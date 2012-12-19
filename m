@@ -1,52 +1,45 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: 32kHz clock removal causes problems omap_hsmmc
-Date: Wed, 19 Dec 2012 12:45:54 +0200
-Message-ID: <1355913954.5273.21.camel@cumari.coelho.fi>
-References: <1352968293.10872.51.camel@cumari.coelho.fi>
-	 <20121218095450.GB27751@arwen.pp.htv.fi>
-	 <20121219094552.GN4985@opensource.wolfsonmicro.com>
-	 <50D19040.5090404@ti.com>
-	 <20121219100909.GO4985@opensource.wolfsonmicro.com>
-	 <50D19463.5010605@ti.com>
-	 <20121219103206.GQ4985@opensource.wolfsonmicro.com>
+From: Peter Meerwald <pmeerw@pmeerw.net>
+Subject: Re: downscaling YUV fails
+Date: Wed, 19 Dec 2012 11:51:07 +0100 (CET)
+Message-ID: <alpine.DEB.2.01.1212191132250.16226@pmeerw.net>
+References: <alpine.DEB.2.01.1212191025480.16226@pmeerw.net> <50D193FD.4070401@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50152 "EHLO arroyo.ext.ti.com"
+Received: from ns.pmeerw.net ([87.118.82.44]:53151 "EHLO pmeerw.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750976Ab2LSKqp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Dec 2012 05:46:45 -0500
-In-Reply-To: <20121219103206.GQ4985@opensource.wolfsonmicro.com>
+	id S1751018Ab2LSKvI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Dec 2012 05:51:08 -0500
+In-Reply-To: <50D193FD.4070401@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Felipe Balbi <balbi@ti.com>, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, lrg@ti.com, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Wed, 2012-12-19 at 10:32 +0000, Mark Brown wrote:
-> On Wed, Dec 19, 2012 at 11:18:11AM +0100, Peter Ujfalusi wrote:
+Hello,
+
+> In the case we set it to 4, the DISPC_FCLK is fast enough to do the required
+> downscaling, but in the case when it's set to 0, it might need to pre decimate
+> rather than try to scale.
+
+this is my understanding as well
+
+> > I think there is a bug downscaling YUV data when resorting to
+> > pre-decimation; setting CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK is a workaround
+> > -- any ideas how this can be fixed?
+
+> Pre-decimation should work for YUV formats also. Could you share DISPC reg
+> dumps when this happens:
 > 
-> > Sure. It must be a clock driver. I already have similar driver (for McPDM fclk
-> > clock) for twl6040.
-> > Let me check linux-next, if CCF is there for OMAP I can send the 32k clock
-> > driver soon (after writing it and testing it). It is going to be for 3.9 but
-> > we can roll it with us I think locally to resolv issues.
-> 
-> Well, we still haven't got the foggiest idea what the actual problem is
-> beyond that it's probably related to the 32kHz clock in some way (unless
-> it was one of the other reverts that coincidentally made a difference,
-> but we don't know what they were) so it's unlikely that just randomly
-> implementing clock support is going to fix anything immediately here.
+> mount -t debugfs debugfs /sys/kernel/debug
+> cat /sys/kernel/debug/omapdss/dispc
 
-This is exactly what I had to revert (as I mentioned in the other email,
-I had to revert the other patches otherwise compilation would break):
+please find the files http://pmeerw.net/ok.dispc (with FCK_PER_PCK=4) and 
+http://pmeerw.net/fail.dispc (FCK_PER_PCK=0)
 
-0e8e5c34 "regulator: twl: Remove references to 32kHz clock from DT bindings"
-e76ab829 "regulator: twl: Remove references to the twl4030 regulator"
-029dd3ce "regulator: twl: Remove another unused variable warning"
+thanks, p.
 
-Let me know if you need more info.
+-- 
 
---
-Luca.
-
+Peter Meerwald
++43-664-2444418 (mobile)
