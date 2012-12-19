@@ -1,44 +1,52 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V6 2/2] dmaengine: add helper function to request a slave
- DMA channel
-Date: Wed, 19 Dec 2012 11:12:02 -0600
-Message-ID: <50D1F562.60904@ti.com>
-References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com>  <1347662517-4210-3-git-send-email-jon-hunter@ti.com>  <1347852805.1943.130.camel@vkoul-udesk3> <201209171159.27359.arnd@arndb.de>  <20120917223619.GC12445@n2100.arm.linux.org.uk>  <1347938035.1943.162.camel@vkoul-udesk3> <5060DDEB.4000600@ti.com>  <1348547701.1943.190.camel@vkoul-udesk3>  <20121016024318.GF24393@S2101-09.ap.freescale.net>  <1350355144.1648.5259.camel@vkoul-udesk3>  <509D6108.1060304@ti.com> <1353029876.7077.56.camel@vkoul-udesk3>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] two trivial omap build error fixes for v3.8 merge window
+Date: Wed, 19 Dec 2012 09:18:28 -0800
+Message-ID: <20121219171828.GP4989@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38473 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755678Ab2LSRMQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Dec 2012 12:12:16 -0500
-In-Reply-To: <1353029876.7077.56.camel@vkoul-udesk3>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:13806 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755667Ab2LSRSd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 12:18:33 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vinod Koul <vinod.koul@linux.intel.com>
-Cc: Shawn Guo <shawn.guo@linaro.org>, Stephen Warren <swarren@nvidia.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Vinod,
+Hi Arnd & Olof,
 
-On 11/15/2012 07:37 PM, Vinod Koul wrote:
-> On Fri, 2012-11-09 at 14:01 -0600, Jon Hunter wrote:
->> Hi Vinod,
->>
->> A few people have been asking me if getting device-tree support for DMA
->> engine is plan for record for v3.8. I know that you were working through
->> implementing a common interface and so I wanted to check how that is
->> going. Do you have any insight to when device-tree support may get added?
->>
-> I have not been able to do much work on this for last couple of weeks. I
-> hope to do it in by this weekend. If not I will merge yours and then
-> uppdate.
-> 
-> Anyway, DT would be there in 3.8 with or without my changes.
+Here's few more trivial build fixes caused by the merge
+conflicts.
 
-I am not sure if I have missed your pull request, but wanted to see if
-you had or were going to send a pull request for the DT changes for
-v3.8? I believe that the merge window ends this week.
+Tony
 
-Cheers
-Jon
 
+The following changes since commit 5031a2a7c12b837a0913c4139ebeb6bbff5e1aa5:
+
+  Merge tag 'for-v3.8-part2' of git://git.infradead.org/battery-2.6 (2012-12-19 08:14:08 -0800)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/fixes-for-merge-window-part2-signed
+
+for you to fetch changes up to a702e279da5154d09a894bf9eac594845da3f390:
+
+  ARM: OMAP: Fix build breakage due to missing include in i2c.c (2012-12-19 08:37:30 -0800)
+
+----------------------------------------------------------------
+Looks like few more trivial merge errors caused by the
+multiplatform related header clean-up popped up.
+
+----------------------------------------------------------------
+Peter Ujfalusi (1):
+      ARM: OMAP2+: Fix compillation error in mach-omap2/timer.c
+
+Vaibhav Bedia (1):
+      ARM: OMAP: Fix build breakage due to missing include in i2c.c
+
+ arch/arm/mach-omap2/i2c.c   | 1 +
+ arch/arm/mach-omap2/timer.c | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
