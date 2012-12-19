@@ -1,29 +1,44 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP4: PRM: Correct wrong instance usage for reading
- reset sources
-Date: Wed, 19 Dec 2012 16:57:31 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1212191657260.16873@utopia.booyaka.com>
-References: <1355911588-21977-1-git-send-email-ivan.khoronzhuk@ti.com> <1355911588-21977-2-git-send-email-ivan.khoronzhuk@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V6 2/2] dmaengine: add helper function to request a slave
+ DMA channel
+Date: Wed, 19 Dec 2012 11:12:02 -0600
+Message-ID: <50D1F562.60904@ti.com>
+References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com>  <1347662517-4210-3-git-send-email-jon-hunter@ti.com>  <1347852805.1943.130.camel@vkoul-udesk3> <201209171159.27359.arnd@arndb.de>  <20120917223619.GC12445@n2100.arm.linux.org.uk>  <1347938035.1943.162.camel@vkoul-udesk3> <5060DDEB.4000600@ti.com>  <1348547701.1943.190.camel@vkoul-udesk3>  <20121016024318.GF24393@S2101-09.ap.freescale.net>  <1350355144.1648.5259.camel@vkoul-udesk3>  <509D6108.1060304@ti.com> <1353029876.7077.56.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:46223 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755597Ab2LSQ5d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 11:57:33 -0500
-In-Reply-To: <1355911588-21977-2-git-send-email-ivan.khoronzhuk@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38473 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755678Ab2LSRMQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Dec 2012 12:12:16 -0500
+In-Reply-To: <1353029876.7077.56.camel@vkoul-udesk3>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: Shawn Guo <shawn.guo@linaro.org>, Stephen Warren <swarren@nvidia.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Wed, 19 Dec 2012, Ivan Khoronzhuk wrote:
+Hi Vinod,
 
-> To read reset sources registers we have to use PRM_DEVICE_INST
+On 11/15/2012 07:37 PM, Vinod Koul wrote:
+> On Fri, 2012-11-09 at 14:01 -0600, Jon Hunter wrote:
+>> Hi Vinod,
+>>
+>> A few people have been asking me if getting device-tree support for DMA
+>> engine is plan for record for v3.8. I know that you were working through
+>> implementing a common interface and so I wanted to check how that is
+>> going. Do you have any insight to when device-tree support may get added?
+>>
+> I have not been able to do much work on this for last couple of weeks. I
+> hope to do it in by this weekend. If not I will merge yours and then
+> uppdate.
 > 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@ti.com>
+> Anyway, DT would be there in 3.8 with or without my changes.
 
-Thanks, queued for v3.8-rc fixes.
+I am not sure if I have missed your pull request, but wanted to see if
+you had or were going to send a pull request for the DT changes for
+v3.8? I believe that the merge window ends this week.
 
+Cheers
+Jon
 
-- Paul
