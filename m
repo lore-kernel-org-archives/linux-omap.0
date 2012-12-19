@@ -1,52 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] two trivial omap build error fixes for v3.8 merge window
-Date: Wed, 19 Dec 2012 09:18:28 -0800
-Message-ID: <20121219171828.GP4989@atomide.com>
+From: R Sricharan <r.sricharan@ti.com>
+Subject: Re: 32kHz clock removal causes problems omap_hsmmc
+Date: Wed, 19 Dec 2012 23:36:55 +0530
+Message-ID: <50D2023F.1000609@ti.com>
+References: <1352968293.10872.51.camel@cumari.coelho.fi>  <20121218095450.GB27751@arwen.pp.htv.fi>  <20121219094552.GN4985@opensource.wolfsonmicro.com>  <50D19040.5090404@ti.com>  <20121219100909.GO4985@opensource.wolfsonmicro.com>  <50D19463.5010605@ti.com>  <20121219103206.GQ4985@opensource.wolfsonmicro.com>  <1355913954.5273.21.camel@cumari.coelho.fi> <50D19D54.2000307@ti.com>  <20121219130128.GC17993@arwen.pp.htv.fi> <50D1C652.3050607@ti.com> <1355925504.5273.26.camel@cumari.coelho.fi> <50D1C957.8090201@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:13806 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755667Ab2LSRSd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 12:18:33 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <50D1C957.8090201@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Luciano Coelho <coelho@ti.com>, balbi@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, lrg@ti.com, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Arnd & Olof,
+Hi,
 
-Here's few more trivial build fixes caused by the merge
-conflicts.
+On Wednesday 19 December 2012 07:34 PM, Benoit Cousson wrote:
+> On 12/19/2012 02:58 PM, Luciano Coelho wrote:
+>> On Wed, 2012-12-19 at 14:51 +0100, Benoit Cousson wrote:
+>>> On 12/19/2012 02:01 PM, Felipe Balbi wrote:
+>>>> On Wed, Dec 19, 2012 at 11:56:20AM +0100, Peter Ujfalusi wrote:
+>>>>> BTW: have you happened to ubdate u-boot recently? There is a nice easter egg
+>>>>> added there:
+>>>>> f3f98bb ARM: OMAP4/5: Do not configure non essential pads, clocks, dplls.
+>>>>>
+>>>>> Which means that _essential_ clocks and pads are no longer configured.
+>>>>
+>>>> anything essential you can list ?
+>>>
+>>> Yeah, that u-boot version is just unusable at all with any mainline
+>>> kernel, since we are still missing pads conf for every drivers.
+>>>
+>>> Regarding the 32k clock, I noticed as well that the OMAP4460 panda
+>>> u-boot is the only one to enable it at boot time, and thus this is the
+>>> only board that can probe the wilink chip properly as of today.
+>>
+>> Do you mean that with the latest mainline u-boot all boards will have
+>> trouble except panda?
+>
+> I don't know since the u-boot mainline has never ever supported properly
+> the SDP4430, I stopped wasting my time with that code a long time ago.
+> But the braves who tried using the latest u-boot mainline code that does
+> not configure anything anymore had some troubles...
+>
+   Configuring every pad and clocks in the u-boot was removed to
+   force kernel drivers to fix up things. Dependency on boot loader
+   was always a problem. Bootloader should not configure anything apart
+   from what is required for boot.
 
-Tony
+Regards,
+  Sricharan
 
 
-The following changes since commit 5031a2a7c12b837a0913c4139ebeb6bbff5e1aa5:
-
-  Merge tag 'for-v3.8-part2' of git://git.infradead.org/battery-2.6 (2012-12-19 08:14:08 -0800)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/fixes-for-merge-window-part2-signed
-
-for you to fetch changes up to a702e279da5154d09a894bf9eac594845da3f390:
-
-  ARM: OMAP: Fix build breakage due to missing include in i2c.c (2012-12-19 08:37:30 -0800)
-
-----------------------------------------------------------------
-Looks like few more trivial merge errors caused by the
-multiplatform related header clean-up popped up.
-
-----------------------------------------------------------------
-Peter Ujfalusi (1):
-      ARM: OMAP2+: Fix compillation error in mach-omap2/timer.c
-
-Vaibhav Bedia (1):
-      ARM: OMAP: Fix build breakage due to missing include in i2c.c
-
- arch/arm/mach-omap2/i2c.c   | 1 +
- arch/arm/mach-omap2/timer.c | 2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
