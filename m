@@ -1,40 +1,105 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] OMAP GPIO - don't wake from suspend unless requested.
-Date: Wed, 19 Dec 2012 22:20:28 +0000
-Message-ID: <20121219222028.6BA4A3E0AD6@localhost>
-References: <20120825214459.7333a376@notabene.brown> <CAMQu2gz0-U4GxEpZFfmJec+0FRs7ugy8EYS3HyYhb1jwbMBjug@mail.gmail.com> <20120827085312.75957354@notabene.brown> <CAMQu2gwH0O+NHV7H2aF375qmv0=TKb6RweOLohTHtB4UhQ-1gQ@mail.gmail.com> <CAMQu2gw2b8HHDPuSRuHXVYn3sJ5BYi_PuOT=snpa3zD5ert=QQ@mail.gmail.com> <20120906130510.32b0b877@notabene.brown> <CAMQu2gxGNJ+NW_rcRiXNE=OMTq8Hb81_1hDZnNen6mjc2cf6BQ@mail.gmail.com> <20120906170245.10e97bdd@notabene.brown> <87627pldkj.fsf@deeprootsystems.com> <CAMQu2gwSCvw_4gVE-giD6MSzmRCNoNu4NoFBSao_dh9YnojfuA@mail.gmail.com> <87ipblahho.fsf@deeprootsystems.com> <20121214180553.5eb62c0c@notabene.brown>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC/RFT] ARM: OMAP1: fix USB host on 1710
+Date: Wed, 19 Dec 2012 14:57:22 -0800
+Message-ID: <20121219225722.GR4989@atomide.com>
+References: <1355954828-4701-1-git-send-email-aaro.koskinen@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f54.google.com ([74.125.82.54]:61868 "EHLO
-	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751305Ab2LSWUc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 17:20:32 -0500
-Received: by mail-wg0-f54.google.com with SMTP id fg15so1186939wgb.33
-        for <linux-omap@vger.kernel.org>; Wed, 19 Dec 2012 14:20:31 -0800 (PST)
-In-Reply-To: <20121214180553.5eb62c0c@notabene.brown>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20724 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750854Ab2LSW5Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 17:57:25 -0500
+Content-Disposition: inline
+In-Reply-To: <1355954828-4701-1-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com
 
-On Fri, 14 Dec 2012 18:05:53 +1100, NeilBrown <neilb@suse.de> wrote:
-> On Mon, 10 Sep 2012 10:57:07 -0700 Kevin Hilman <khilman@deeprootsystems.com>
-> wrote:
-> 
-> 
-> > OK thanks, I'll queue this up for v3.6-rc as this should qualify as a
-> > regression.
-> 
-> I don't think this did actually get queued.  At least I'm still seeing the
-> bug in 3.7 and I cannot see a patch in the git history that looks right.
-> But then I don't remember what we ended up with - it was 3 months ago!!!
-> 
-> This is the last thing I can find in my email history - it still seems to
-> apply and still seems to work.
-> 
-> NeilBrown
+Hi,
 
-Kevin, let me know if I need to do anything here. Since you might have
-it in one of you're trees, I'm not going to do anything unless I hear
-from you.
+* Aaro Koskinen <aaro.koskinen@iki.fi> [121219 14:10]:
+> There seems to be a longstanding bug that OHCI USB host controller
+> does not respond on 1710, possibly because of wrong clocks. Has it ever
+> worked?
 
-g.
+Don't know about 770, but I used to have an old CF card reader
+hooked to my osk5912 and it was working.
+
+> See e.g. http://marc.info/?l=linux-omap&m=119634441229321&w=2. All
+> register reads return just zeroes:
+> 
+> [    1.896606] ohci ohci: OMAP OHCI
+> [    1.912597] ohci ohci: new USB bus registered, assigned bus number 1
+> [    1.933776] ohci ohci: irq 38, io mem 0xfffba000
+> [    2.012573] ohci ohci: init err (00000000 0000)
+> [    2.030334] ohci ohci: can't start
+> [    2.046661] ohci ohci: startup error -75
+> [    2.063201] ohci ohci: USB bus 1 deregistered
+> 
+> After some experiments, it seems that when changing the usb_dc_ck /
+> SOFT_REQ enable bit from USB_REQ_EN_SHIFT to SOFT_USB_OTG_DPLL_REQ_SHIFT
+> (like done also on 7XX), the USB appears to work (tested on Nokia 770):
+> 
+> [    2.183959] ohci ohci: OMAP OHCI
+> [    2.198242] ohci ohci: new USB bus registered, assigned bus number 1
+> [    2.215820] ohci ohci: irq 38, io mem 0xfffba000
+> [    2.324798] hub 1-0:1.0: USB hub found
+> [    2.361267] hub 1-0:1.0: 3 ports detected
+
+Cool seems like you've fixed a long standing bug :)
+And also have tahvo-usb working?
+ 
+> Can someone test if this works also on 16xx and 5912? It seems the current
+> clock data format does not allow to make this change only for 1710...
+
+Does not seem to make a difference, I get the following on
+osk5912 with and without your patch:
+
+hci_hcd: USB 1.1 'Open' Host Controller (OHCI) Driver
+ohci_hcd: block sizes: ed 64 td 64
+ohci ohci: OMAP OHCI
+ohci ohci: new USB bus registered, assigned bus number 1
+ohci ohci: starting USB Controller
+ohci ohci: created debug files
+ohci ohci: irq 38, io mem 0xfffba000
+ohci ohci: OHCI controller state
+ohci ohci: OHCI 1.0, NO legacy support registers, rh state running
+ohci ohci: control 0x283 RWC HCFS=operational CBSR=3
+ohci ohci: cmdstatus 0x00000 SOC=0
+ohci ohci: intrstatus 0x00000004 SF
+ohci ohci: intrenable 0x8000005a MIE RHSC UE RD WDH
+ohci ohci: hcca frame #002f
+ohci ohci: roothub.a 0a000003 POTPGT=10 NDP=3(3)
+ohci ohci: roothub.b 000e0000 PPCM=000e DR=0000
+ohci ohci: roothub.status 00008000 DRWE
+ohci ohci: roothub.portstatus [0] 0x00000100 PPS
+ohci ohci: roothub.portstatus [1] 0x00000100 PPS
+ohci ohci: roothub.portstatus [2] 0x00000100 PPS
+usb usb1: default language 0x0409
+usb usb1: udev 1, busnum 1, minor = 0
+usb usb1: New USB device found, idVendor=1d6b, idProduct=0001
+usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+usb usb1: Product: OMAP OHCI
+usb usb1: Manufacturer: Linux 3.7.0-00024-gf7c4407 ohci_hcd
+usb usb1: SerialNumber: ohci
+usb usb1: usb_probe_device
+usb usb1: configuration #1 chosen from 1 choice
+usb usb1: adding 1-0:1.0 (config #1, interface 0)
+hub 1-0:1.0: usb_probe_interface
+hub 1-0:1.0: usb_probe_interface - got id
+hub 1-0:1.0: USB hub found
+hub 1-0:1.0: 3 ports detected
+hub 1-0:1.0: standalone hub
+hub 1-0:1.0: ganged power switching
+hub 1-0:1.0: global over-current protection
+hub 1-0:1.0: power on to power good time: 20ms
+hub 1-0:1.0: 250mA bus power budget for each child
+hub 1-0:1.0: local power source is good
+hub 1-0:1.0: no over-current condition exists
+hub 1-0:1.0: enabling power on all ports
+
+Regards,
+
+Tony
