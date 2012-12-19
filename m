@@ -1,127 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 6/8] ARM: OMAP2+: Disable code that currently does not work
- with multiplaform
-Date: Wed, 19 Dec 2012 11:26:27 -0800
-Message-ID: <20121219192627.22098.10760.stgit@muffinssi.local>
+Subject: [PATCH 8/8] ARM: OMAP2+: Add minimal support for booting vexpress
+Date: Wed, 19 Dec 2012 11:26:35 -0800
+Message-ID: <20121219192635.22098.74663.stgit@muffinssi.local>
 References: <20121219192354.22098.33408.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62860 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753923Ab2LST0g (ORCPT
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:62535 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754307Ab2LST0g (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 14:26:36 -0500
 In-Reply-To: <20121219192354.22098.33408.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Sean Young <sean@mess.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, =?utf-8?q?V=C3=ADctor?= Manuel =?utf-8?q?J=C3=A1quez?= Leal <vjaquez@igalia.com>, Herbert Xu <herbert@gondor.apana.org.au>
+Cc: linux-omap@vger.kernel.org
 
-We still need to fix up few places for multiplatform support,
-but that can proceed separately. Fix the issue by making the
-problem drivers depends !ARCH_MULTIPLATFORM for now.
+With multiplatform support enabled we are now always
+building in vexpress. Let's enable few drivers also as
+this allows us to boot omap2plus zImage in qemu for
+testing multiplaform related changes.
 
-The remaining pieces that are not multiplatform compatible
-for omap2+ SoCs are:
-
-1. Some drivers are using custom omap_dm_timer calls
-
-There are two drivers that are directly usign omap hardware
-timers for PWM and DSP clocking: drivers/media/rc/ir-rx51.c and
-drivers/staging/tidspbridge/core/dsp-clock.c. These can be
-fixed for multiplatform by allowing a minimal set of hardware
-timers to be accessed, and for some functionality by using the
-hrtimer framework.
-
-2. Hardware OMAP4_ERRATA_I688 needs to be fixed up
-
-This can't be enabled for multiplatform configurations in
-it's current form. It may be possible to fix it up to do
-instruction replacement early on during init. Luckily it
-looks like this errata does not seem to get hit with
-mainline kernel code alone at least currently.
-
-3. Legacy header needed for omap-sham.c
-
-Looks like it still needs mach/irqs.h for omap1 that
-does not exist for multiplatform systems. Just ifdef
-it for now.
-
-Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: Sean Young <sean@mess.org>
-Cc: "V=C3=ADctor Manuel J=C3=A1quez Leal" <vjaquez@igalia.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Kconfig         |    2 +-
- drivers/crypto/omap-sham.c          |    3 +++
- drivers/media/rc/Kconfig            |    2 +-
- drivers/staging/tidspbridge/Kconfig |    2 +-
- 4 files changed, 6 insertions(+), 3 deletions(-)
+ arch/arm/configs/omap2plus_defconfig |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 41b581f..492d764 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -397,7 +397,7 @@ config OMAP3_SDRC_AC_TIMING
-=20
- config OMAP4_ERRATA_I688
- 	bool "OMAP4 errata: Async Bridge Corruption"
--	depends on ARCH_OMAP4
-+	depends on ARCH_OMAP4 && !ARCH_MULTIPLATFORM
- 	select ARCH_HAS_BARRIERS
- 	help
- 	  If a data is stalled inside asynchronous bridge because of back
-diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index 1d75e6f..d65f22c 100644
---- a/drivers/crypto/omap-sham.c
-+++ b/drivers/crypto/omap-sham.c
-@@ -38,7 +38,10 @@
- #include <crypto/internal/hash.h>
-=20
- #include <linux/omap-dma.h>
-+
-+#ifdef CONFIG_ARCH_OMAP1
- #include <mach/irqs.h>
-+#endif
-=20
- #define SHA_REG_DIGEST(x)		(0x00 + ((x) * 0x04))
- #define SHA_REG_DIN(x)			(0x1C + ((x) * 0x04))
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 79ba242..19f3563 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -291,7 +291,7 @@ config IR_TTUSBIR
-=20
- config IR_RX51
- 	tristate "Nokia N900 IR transmitter diode"
--	depends on OMAP_DM_TIMER && LIRC
-+	depends on OMAP_DM_TIMER && LIRC && !ARCH_MULTIPLATFORM
- 	---help---
- 	   Say Y or M here if you want to enable support for the IR
- 	   transmitter diode built in the Nokia N900 (RX51) device.
-diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tids=
-pbridge/Kconfig
-index 0dd479f..60848f1 100644
---- a/drivers/staging/tidspbridge/Kconfig
-+++ b/drivers/staging/tidspbridge/Kconfig
-@@ -4,7 +4,7 @@
-=20
- menuconfig TIDSPBRIDGE
- 	tristate "DSP Bridge driver"
--	depends on ARCH_OMAP3
-+	depends on ARCH_OMAP3 && !ARCH_MULTIPLATFORM
- 	select OMAP_MBOX_FWK
- 	help
- 	  DSP/BIOS Bridge is designed for platforms that contain a GPP and
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index db05745..5be2e4b 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -23,6 +23,7 @@ CONFIG_MODULE_SRCVERSION_ALL=y
+ CONFIG_ARCH_OMAP2PLUS=y
+ CONFIG_OMAP_RESET_CLOCKS=y
+ CONFIG_OMAP_MUX_DEBUG=y
++CONFIG_ARCH_VEXPRESS_CA9X4=y
+ CONFIG_ARM_THUMBEE=y
+ CONFIG_ARM_ERRATA_411920=y
+ CONFIG_NO_HZ=y
+@@ -121,6 +122,8 @@ CONFIG_SERIAL_8250_MANY_PORTS=y
+ CONFIG_SERIAL_8250_SHARE_IRQ=y
+ CONFIG_SERIAL_8250_DETECT_IRQ=y
+ CONFIG_SERIAL_8250_RSA=y
++CONFIG_SERIAL_AMBA_PL011=y
++CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+ CONFIG_I2C_CHARDEV=y
+ CONFIG_SPI=y
+@@ -194,6 +197,7 @@ CONFIG_USB_ZERO=m
+ CONFIG_MMC=y
+ CONFIG_MMC_UNSAFE_RESUME=y
+ CONFIG_SDIO_UART=y
++CONFIG_MMC_ARMMMCI=y
+ CONFIG_MMC_OMAP=y
+ CONFIG_MMC_OMAP_HS=y
+ CONFIG_RTC_CLASS=y
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
