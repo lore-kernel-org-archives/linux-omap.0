@@ -1,91 +1,79 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 2/2] MAINTAINERS: Add an entry for omap related .dts files
-Date: Wed, 19 Dec 2012 12:34:14 +0000
-Message-ID: <20121219123414.32B5E3E0AD7@localhost>
-References: <20121214194325.9874.95898.stgit@muffinssi.local>
- <20121214194452.9874.40037.stgit@muffinssi.local>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 1/1] ARM: dts: omap3-igep: remove VSIM regulator
+Date: Wed, 19 Dec 2012 13:36:17 +0100
+Message-ID: <50D1B4C1.4060502@ti.com>
+References: <1355532740-5956-1-git-send-email-javier.martinez@collabora.co.uk> <CAAwP0s2oJCcvCgQ6UrcnLJpt7K7AdHhVWGOthhgc4v9AgmaHEQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============9102321059787430824=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20121214194452.9874.40037.stgit@muffinssi.local>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
---===============9102321059787430824==
-Content-Type: text/plain
-
-On Fri, 14 Dec 2012 11:44:52 -0800, Tony Lindgren <tony@atomide.com> wrote:
-> All your omap .dts files are belong to us.
-> 
-> Benoît has been doing a good job picking up most of the
-> omap .dts files so far. Let's make sure we both get
-> cc:ed for the related patches.
-> 
-> The .dts patches need to be queued by us as separate
-> patches from drivers and other code changes to avoid
-> pointless merge conflists like we saw with v3.8
-> networking changes.
-> 
-> Cc: Benoît Cousson <b-cousson@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
-
-> ---
->  MAINTAINERS |    9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 0bc485c..4927e80 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -5253,6 +5253,15 @@ F:	arch/arm/*omap*/
->  F:	drivers/i2c/busses/i2c-omap.c
->  F:	include/linux/i2c-omap.h
->  
-> +OMAP DEVICE TREE SUPPORT
-> +M:	Benoît Cousson <b-cousson@ti.com>
-> +M:	Tony Lindgren <tony@atomide.com>
-> +L:	linux-omap@vger.kernel.org
-> +L:	devicetree-discuss@lists.ozlabs.org (moderated for non-subscribers)
-> +S:	Maintained
-> +F:	arch/arm/boot/dts/*omap*
-> +F:	arch/arm/boot/dts/*am3*
-> +
->  OMAP CLOCK FRAMEWORK SUPPORT
->  M:	Paul Walmsley <paul@pwsan.com>
->  L:	linux-omap@vger.kernel.org
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
--- 
-Grant Likely, B.Sc, P.Eng.
-Secret Lab Technologies, Ltd.
-
-
---===============9102321059787430824==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60387 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751114Ab2LSMg2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Dec 2012 07:36:28 -0500
+In-Reply-To: <CAAwP0s2oJCcvCgQ6UrcnLJpt7K7AdHhVWGOthhgc4v9AgmaHEQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Jon Hunter <jon-hunter@ti.com>, Matthias Brugger <matthias.bgg@googlemail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Hi Javier,
 
---===============9102321059787430824==--
+On 12/19/2012 10:31 AM, Javier Martinez Canillas wrote:
+> On Sat, Dec 15, 2012 at 1:52 AM, Javier Martinez Canillas
+> <javier.martinez@collabora.co.uk> wrote:
+>> commit 5a8095e9 ARM: dts: Add omap3-beagle.dts
+>>
+>> moved the VSIM regulator definition to the twl4030.dtsi to avoid
+>> duplication. A definition for the VSIM regulator was also present
+>> on omap3-igep.dtsi which leads to the following build error:
+>>
+>> DTC     arch/arm/boot/dts/omap3-igep0020.dtb
+>> DTC     arch/arm/boot/dts/omap3-igep0030.dtb
+>> ERROR (duplicate_label): Duplicate label 'vsim' on /ocp/i2c@48070000/twl@48/regulator-vsim and /ocp/i2c@48070000/twl@48/regulator@10
+>> ERROR: Input tree has errors, aborting (use -f to force output)
+>> ERROR (duplicate_label): Duplicate label 'vsim' on /ocp/i2c@48070000/twl@48/regulator-vsim and /ocp/i2c@48070000/twl@48/regulator@10
+>> ERROR: Input tree has errors, aborting (use -f to force output)
+>> make[1]: *** [arch/arm/boot/dts/omap3-igep0020.dtb] Error 2
+>> make[1]: *** Waiting for unfinished jobs....
+>> make[1]: *** [arch/arm/boot/dts/omap3-igep0030.dtb] Error 2
+>> make: *** [dtbs] Error 2
+>>
+>> Since IGEP devices uses the same PMIC as Beagle boards, the VSIM
+>> definition from twl4030.dtsi can be used.
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+>> ---
+>>  arch/arm/boot/dts/omap3-igep.dtsi |    6 ------
+>>  1 files changed, 0 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+>> index 125fe00..de708ca 100644
+>> --- a/arch/arm/boot/dts/omap3-igep.dtsi
+>> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+>> @@ -43,12 +43,6 @@
+>>                 interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+>>                 interrupt-parent = <&intc>;
+>>
+>> -               vsim: regulator@10 {
+>> -                       compatible = "ti,twl4030-vsim";
+>> -                       regulator-min-microvolt = <1800000>;
+>> -                       regulator-max-microvolt = <3000000>;
+>> -               };
+>> -
+>>                 twl_audio: audio {
+>>                         compatible = "ti,twl4030-audio";
+>>                         codec {
+> 
+> Hi Benoit,
+> 
+> It is ok for you that I send delta patches for the IGEP DT initial
+> support [1] such as this patch and the MMC device node mux pins setup
+> [2] or should I merge these changes and resend a new patch-set?
+
+It is always better to re-send a clean patch set instead of fixing a
+previously broken one. It will be bisect friendly.
+
+Regards,
+Benoit
+
