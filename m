@@ -1,97 +1,86 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: 32kHz clock removal causes problems omap_hsmmc
-Date: Wed, 19 Dec 2012 15:31:53 +0100
-Message-ID: <50D1CFD9.2050205@ti.com>
-References: <1352968293.10872.51.camel@cumari.coelho.fi> <20121218095450.GB27751@arwen.pp.htv.fi> <20121219094552.GN4985@opensource.wolfsonmicro.com> <50D19040.5090404@ti.com> <20121219100909.GO4985@opensource.wolfsonmicro.com> <50D19463.5010605@ti.com> <20121219103206.GQ4985@opensource.wolfsonmicro.com> <1355913954.5273.21.camel@cumari.coelho.fi> <50D19D54.2000307@ti.com> <20121219130128.GC17993@arwen.pp.htv.fi>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: omap2plus_defconfig: enable TFP410 chip
+ support
+Date: Wed, 19 Dec 2012 17:26:13 +0200
+Message-ID: <50D1DC95.8090003@ti.com>
+References: <1355920420-20852-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20121219130128.GC17993@arwen.pp.htv.fi>
-Sender: linux-mmc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Luciano Coelho <coelho@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, lrg@ti.com, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, r.sricharan@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigF26A9FA42DC0BF9F390A60BB"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:39431 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751456Ab2LSP00 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Dec 2012 10:26:26 -0500
+In-Reply-To: <1355920420-20852-1-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 12/19/2012 02:01 PM, Felipe Balbi wrote:
-> Hi,
+--------------enigF26A9FA42DC0BF9F390A60BB
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 2012-12-19 14:33, Javier Martinez Canillas wrote:
+> Many OMAP3 based boards such as Beagle, Overo and IGEP use
+> the TFP410 DPI-to-DVI chip. So, it's good to have it built
+> as a module by default on OMAP2+ config.
+
+Also on OMAP4 boards, like Panda.
+
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.u=
+k>
+> ---
+>  arch/arm/configs/omap2plus_defconfig |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 >=20
-> +Sricharan who commited that
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/om=
+ap2plus_defconfig
+> index a1dc5c0..da530a0 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -146,6 +146,7 @@ CONFIG_OMAP2_DSS_SDI=3Dy
+>  CONFIG_OMAP2_DSS_DSI=3Dy
+>  CONFIG_FB_OMAP2=3Dm
+>  CONFIG_PANEL_GENERIC_DPI=3Dm
+> +CONFIG_PANEL_TFP410=3Dm
+>  CONFIG_PANEL_SHARP_LS037V7DW01=3Dm
+>  CONFIG_PANEL_NEC_NL8048HL11_01B=3Dm
+>  CONFIG_PANEL_TAAL=3Dm
 >=20
-> On Wed, Dec 19, 2012 at 11:56:20AM +0100, Peter Ujfalusi wrote:
->> On 12/19/2012 11:45 AM, Luciano Coelho wrote:
->>>> Well, we still haven't got the foggiest idea what the actual probl=
-em is
->>>> beyond that it's probably related to the 32kHz clock in some way (=
-unless
->>>> it was one of the other reverts that coincidentally made a differe=
-nce,
->>>> but we don't know what they were) so it's unlikely that just rando=
-mly
->>>> implementing clock support is going to fix anything immediately he=
-re.
->>>
->>> This is exactly what I had to revert (as I mentioned in the other e=
-mail,
->>> I had to revert the other patches otherwise compilation would break=
-):
->>>
->>> 0e8e5c34 "regulator: twl: Remove references to 32kHz clock from DT =
-bindings"
->>> e76ab829 "regulator: twl: Remove references to the twl4030 regulato=
-r"
->>> 029dd3ce "regulator: twl: Remove another unused variable warning"
->>
->> Yeah. 32k clock is not provided by twl.
->>
->> As I said I need to take a look at CCF to see if it already there. I=
-f it is
->> clock driver + mapping + patch for wl12xx should fix the issue you a=
-re facing.
->>
->>> Let me know if you need more info.
->>
->> BTW: have you happened to ubdate u-boot recently? There is a nice ea=
-ster egg
->> added there:
->> f3f98bb ARM: OMAP4/5: Do not configure non essential pads, clocks, d=
-plls.
->>
->> Which means that _essential_ clocks and pads are no longer configure=
-d.
->=20
-> anything essential you can list ?
 
-Depends on the definition of essential.
-Serial and mmc works.
-I said it was an easter egg since it was... well... quite a bit of surp=
-rise
-that the same kernel started to fail for example in all audio operation=
- when I
-updated the u-boot, which I tend to do every now and then to see if the=
-re are
-no regression.
+For both patches:
 
-So it was a nice surprise. Even the commit message agreed that it is go=
-ing to
-break the drivers:
+Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-    Note that this is going to break the kernel drivers. But this
-    is the only way to get things fixed in the kernel.
+ Tomi
 
-Usually if I know I will going to break something intentionally I tend =
-to send
-warnings and give some grace periods for the interested guys to adopt.
 
-And this is why people are not testing u-boot. We tend to have one work=
-ing
-binary moving from SD card to other and update it only, __only__ when i=
-t can
-not be avoided.
 
-If we work together, we should work together...
+--------------enigF26A9FA42DC0BF9F390A60BB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Do not take it personal. I just had tough days...
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
---=20
-P=E9ter
+iQIcBAEBAgAGBQJQ0dyVAAoJEPo9qoy8lh71CTYQAIOO/J+9lmx8JUFEyUOBA1aC
+yKn7T6cJo+OAcT/5zJGIjBrnbM+4vSXSMAhvAYIU/xRTIO91pwy0u7rPVrzvW5nV
+zNHf8vJHZs2sUwBcvJwG/xEjHZ0dC5QFsm8H3bkrVPRw08ZsttyN11rCXuGWsA+w
+O7c8SCPHRxjS2r6spO8+LV6cLyAuKhavSBkRFULBrUq6AeBc4vUIzbLo0PCTbSO5
+l9AhinwZEhZ/Mavvr7BuVQxVBZAgpYCEVgJ1fLKFPgZnut77AkrKVpss21cJvNaJ
+vCvEBLIRkcCDTiUxTB07t8agPjj2XP4fvah9n+RjA0i3U/lZh3N5YteKcHB6DB4e
+/4rtJD4RYo/Acb9tWQ/9z++D7huQylcxxJoQzQTvpyVcUK3ZGP5hNEn1nposRToZ
+Hlx3D3o6hz6zkXSz5zeTN2hYH5wqW6Ue5Kl7xP6x/zGXHqfIkBX/tg7U1iW+aFnO
+CYkQYQb88T2XHrSOH1SgOL2rVVox8LwanGp6AIPZGN6MJDS36MqkjumaEJv8ir/K
+zqgkqjRPezyuCaXJiXVaBOid6lGAXEwd8hgx5y2T96xwgf8A1IrMlln/J0etLM/8
+RxZZICDcyg7bHWOMPzMfnQzOSYiD8DSemXbzaVZagtwH4DDEhtQeITg1dG+utPff
+smUb0dhORMHRs+M353PS
+=vbld
+-----END PGP SIGNATURE-----
+
+--------------enigF26A9FA42DC0BF9F390A60BB--
