@@ -1,76 +1,68 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH 1/1] ARM: dts: omap3-igep: remove VSIM regulator
-Date: Wed, 19 Dec 2012 10:31:51 +0100
-Message-ID: <CAAwP0s2oJCcvCgQ6UrcnLJpt7K7AdHhVWGOthhgc4v9AgmaHEQ@mail.gmail.com>
-References: <1355532740-5956-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: 32kHz clock removal causes problems omap_hsmmc
+Date: Wed, 19 Dec 2012 09:45:52 +0000
+Message-ID: <20121219094552.GN4985@opensource.wolfsonmicro.com>
+References: <1352968293.10872.51.camel@cumari.coelho.fi>
+ <20121218095450.GB27751@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="WkHPBKJ2pKcVUM5H"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f43.google.com ([209.85.219.43]:58171 "EHLO
-	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810Ab2LSJcM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 04:32:12 -0500
-Received: by mail-oa0-f43.google.com with SMTP id k1so1771074oag.30
-        for <linux-omap@vger.kernel.org>; Wed, 19 Dec 2012 01:32:11 -0800 (PST)
-In-Reply-To: <1355532740-5956-1-git-send-email-javier.martinez@collabora.co.uk>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:39272 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751387Ab2LSJpy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Dec 2012 04:45:54 -0500
+Content-Disposition: inline
+In-Reply-To: <20121218095450.GB27751@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Jon Hunter <jon-hunter@ti.com>, Matthias Brugger <matthias.bgg@googlemail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Luciano Coelho <coelho@ti.com>, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, lrg@ti.com, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Sat, Dec 15, 2012 at 1:52 AM, Javier Martinez Canillas
-<javier.martinez@collabora.co.uk> wrote:
-> commit 5a8095e9 ARM: dts: Add omap3-beagle.dts
->
-> moved the VSIM regulator definition to the twl4030.dtsi to avoid
-> duplication. A definition for the VSIM regulator was also present
-> on omap3-igep.dtsi which leads to the following build error:
->
-> DTC     arch/arm/boot/dts/omap3-igep0020.dtb
-> DTC     arch/arm/boot/dts/omap3-igep0030.dtb
-> ERROR (duplicate_label): Duplicate label 'vsim' on /ocp/i2c@48070000/twl@48/regulator-vsim and /ocp/i2c@48070000/twl@48/regulator@10
-> ERROR: Input tree has errors, aborting (use -f to force output)
-> ERROR (duplicate_label): Duplicate label 'vsim' on /ocp/i2c@48070000/twl@48/regulator-vsim and /ocp/i2c@48070000/twl@48/regulator@10
-> ERROR: Input tree has errors, aborting (use -f to force output)
-> make[1]: *** [arch/arm/boot/dts/omap3-igep0020.dtb] Error 2
-> make[1]: *** Waiting for unfinished jobs....
-> make[1]: *** [arch/arm/boot/dts/omap3-igep0030.dtb] Error 2
-> make: *** [dtbs] Error 2
->
-> Since IGEP devices uses the same PMIC as Beagle boards, the VSIM
-> definition from twl4030.dtsi can be used.
->
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> ---
->  arch/arm/boot/dts/omap3-igep.dtsi |    6 ------
->  1 files changed, 0 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-> index 125fe00..de708ca 100644
-> --- a/arch/arm/boot/dts/omap3-igep.dtsi
-> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
-> @@ -43,12 +43,6 @@
->                 interrupts = <7>; /* SYS_NIRQ cascaded to intc */
->                 interrupt-parent = <&intc>;
->
-> -               vsim: regulator@10 {
-> -                       compatible = "ti,twl4030-vsim";
-> -                       regulator-min-microvolt = <1800000>;
-> -                       regulator-max-microvolt = <3000000>;
-> -               };
-> -
->                 twl_audio: audio {
->                         compatible = "ti,twl4030-audio";
->                         codec {
 
-Hi Benoit,
+--WkHPBKJ2pKcVUM5H
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-It is ok for you that I send delta patches for the IGEP DT initial
-support [1] such as this patch and the MMC device node mux pins setup
-[2] or should I merge these changes and resend a new patch-set?
+On Tue, Dec 18, 2012 at 11:54:50AM +0200, Felipe Balbi wrote:
 
-Thanks a lot and best regards,
-Javier
+> damn, this is still part of our v3.7-rc kernel. Original commit was done
+> with no testing whatsoever and caused a big regression to (at least)
+> TI's WiFi driver which depend on SDIO to function.
 
-[1]: https://lkml.org/lkml/2012/12/3/142
-[2]: https://patchwork.kernel.org/patch/1882991/
+> Too bad things break and even when reported nobody gives a rat's ***
+> about them :-s
+
+I guess it's going to be even more of an issue going forward given the
+recent events but FWIW it was always very unusual to see any review of
+any TWL patches, the PMIC appeared to have been rather abandoned so the
+only way of getting any testing was to put stuff in -next and hope.
+
+Mind you, if there is an issue it doesn't seem that serious given that
+it took at least one kernel release before anyone noticed and even when
+they did you're the first person who bothered to respond...
+
+--WkHPBKJ2pKcVUM5H
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQ0YzJAAoJELSic+t+oim9EhsQAJV7Os7mUXx2BCO08e8p8ETH
+Ramjq8oCkU3lMO8ksvcLmtLjm8XpSdbzE3D0xrzuUIYobd+XmJL9iBrvoaZFQayh
+j1VooLdhelX38bMTJXxoEj+vTBGPh8tPDAvoxnUXEio37swYO7p8SUUBIRLvQuJS
+98tuCzvGUTLvSlR2RdtJWdR/CITptqeQaxfAeDbTUg22sF92jxAeuXH/V7ZqKVKy
+TjXh+JdQNwkNz5aTkFEqbuZvTbuuc9YgTHf/o4PPAokuk0wKGcg8131jok+w0CHi
+lBaRaba3WVuQeaZ2rNWogaV59HPtw5G9eUn6OHhTnKfH5DjA3oBuVnxCD3Ts8uCe
+LOBChb4m3/IoY+X+vjFZPPoMraR1tShkMiuYDRzIOzp1UkhgX+4jiOS/EhUgzV7H
+vVLqzm9JXO7Q/Blg/AZ1RYB8qJevDaTq0vDMEwvZFzIuQIMpN3mWzhxrms3dOIJJ
+0UM1nQu4qoXsgjpLVim27/ywJUn64LiPG8t0LsdRWoTQGvzK+/DoymdrVFDTQnb1
+EPPZDYTKTpqxPeMTGSu5Fm34Hiq8QUVTLMsyLKe6GtaJFbUpt7ngSTEtV8HG5MuB
+K642ZaUMKsnlcdH0J/vPTMx1NkQm+Rj7KbQ5Bh4O6NTzt2pTryq8k17GWXRkqw+J
+pbNC4tNQ0GJnKpVuy3eB
+=vHkb
+-----END PGP SIGNATURE-----
+
+--WkHPBKJ2pKcVUM5H--
