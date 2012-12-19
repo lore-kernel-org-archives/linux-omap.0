@@ -1,89 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: downscaling YUV fails
-Date: Wed, 19 Dec 2012 13:21:47 +0200
-Message-ID: <50D1A34B.8030308@ti.com>
-References: <alpine.DEB.2.01.1212191025480.16226@pmeerw.net> <50D193FD.4070401@ti.com> <alpine.DEB.2.01.1212191132250.16226@pmeerw.net> <50D1A2BC.4040605@ti.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: omap DSS fails with tft410 driver panel?
+Date: Wed, 19 Dec 2012 12:27:48 +0100
+Message-ID: <CAAwP0s30Ap9deL506Fk6tBD=JqLT8wFP0CZw8n71hx_YJvNBfw@mail.gmail.com>
+References: <CAFqH_50PVJdbX0CMwo9t3RuAhzi3q6jcBwzq2R3UFighkrF7iw@mail.gmail.com>
+ <CAGDS+nmx8qFSx932TudMN6ikmZ=OGkbvrZuCV=Ump+HETkU-tw@mail.gmail.com>
+ <50ADE6A5.3030001@ti.com> <CAGDS+nm2YVNyq+eAF-VSq785KAKWC2GM4v5U7N1vLGTNNDfa7Q@mail.gmail.com>
+ <50AF37EA.3080400@ti.com> <CAGDS+nncx71OL7tiwEot6RcyFxipj_SVg=z5Sg-Qdv2n4iyL2A@mail.gmail.com>
+ <50B4A4D7.2070203@ti.com> <CAGDS+nmaGK1igkYnz0EQEycUU=LsD5yz9wxmipSnWohKvAPTXA@mail.gmail.com>
+ <50B74592.3020308@ti.com> <CAGDS+n=oQYr+24mX6bdgtW=fzvfvfX5rAvNXXpxM4YKPxHDodQ@mail.gmail.com>
+ <50B771D3.8050907@ti.com> <CAGDS+n=dbuEQgdw9nJ_mYQpuJr5huSgX6e3sBDcvy0+C6T5hFQ@mail.gmail.com>
+ <50B777A3.1080803@ti.com> <CAAwP0s3hYiovSqRfBFDGVQCDVUqYKZrY9QXp+G-R707szdmVqA@mail.gmail.com>
+ <CAAwP0s1JgN4tZjQ74-tmcGyJy9NFf=gPipP3VmqOCKJ6HdmrWg@mail.gmail.com>
+ <CAAwP0s2ksE1wbb4Y3k3+_XeR5DLTgOsOAo63arh4f9F942nGdQ@mail.gmail.com> <50D17BCF.1080108@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig42D387350A41E0F00D4EC3B7"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47802 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987Ab2LSLVv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 06:21:51 -0500
-In-Reply-To: <50D1A2BC.4040605@ti.com>
+Received: from mail-oa0-f54.google.com ([209.85.219.54]:45888 "EHLO
+	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752597Ab2LSL2K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 06:28:10 -0500
+Received: by mail-oa0-f54.google.com with SMTP id n9so1884289oag.13
+        for <linux-omap@vger.kernel.org>; Wed, 19 Dec 2012 03:28:10 -0800 (PST)
+In-Reply-To: <50D17BCF.1080108@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Steve Sakoman <sakoman@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>
 
---------------enig42D387350A41E0F00D4EC3B7
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 2012-12-19 13:19, Tomi Valkeinen wrote:
-> On 2012-12-19 12:51, Peter Meerwald wrote:
->> Hello,
+On Wed, Dec 19, 2012 at 9:33 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 2012-12-18 15:45, Javier Martinez Canillas wrote:
+>> Hi,
 >>
->>> In the case we set it to 4, the DISPC_FCLK is fast enough to do the r=
-equired
->>> downscaling, but in the case when it's set to 0, it might need to pre=
- decimate
->>> rather than try to scale.
+>> I've tested with the latest stable kernel (Linux 3.7.1) and the video
+>> output is working correctly with the same user-space components.
+>> The complete dmesg is here: http://fpaste.org/1Kv4/
 >>
->> this is my understanding as well
+>> Looking at the logs for both kernels I realized that there are two
+>> differences main between the working (3.7.1) and non-working
+>> (mainline) kernel (besides the versions of course):
 >>
->>>> I think there is a bug downscaling YUV data when resorting to
->>>> pre-decimation; setting CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK is a workar=
-ound
->>>> -- any ideas how this can be fixed?
+>> a) The number of framebuffers created (working 1, non working 3)
+>> b) The omapfb now uses dma_alloc_attrs to allocate memory instead of
+>> the now removed OMAP-specific omap_vram_alloc
 >>
->>> Pre-decimation should work for YUV formats also. Could you share DISP=
-C reg
->>> dumps when this happens:
->>>
->>> mount -t debugfs debugfs /sys/kernel/debug
->>> cat /sys/kernel/debug/omapdss/dispc
->>
->> please find the files http://pmeerw.net/ok.dispc (with FCK_PER_PCK=3D4=
-) and=20
->> http://pmeerw.net/fail.dispc (FCK_PER_PCK=3D0)
->=20
-> Something funny is going on here. I can reproduce on omap3 with a few
-> hacks that reduce the clocks. The PICTURE_SIZE's width field is
-> different for working and non-working cases, but I think it should be
-> the same for both.
+>> For a) I built mainline with CONFIG_FB_OMAP2_NUM_FBS=1 and that made
+>> the error about the overlay paddr being zero disappear (OVERLAY error:
+>> check_overlay: paddr cannot be 0) but still no video on the screen.
+>
+> Ok. I think the reason for that is that the paddr errors come from X
+> trying to setup the video overlays with paddr 0. The video overlays are
+> by default on fb1 and fb2, so they are not present if you set the
+> NUM_FBS to 1.
+>
 
-Ah, never mind. Of course the picture_size needs to be modified if
-predecimation is used...
+Yes, that's what I thought, I'll just use CONFIG_FB_OMAP2_NUM_FBS=1
+then on my defconfig.
 
- Tomi
+>> Conversely I build 3.7.1 with CONFIG_FB_OMAP2_NUM_FBS=3 and even
+>> though I had the paddr can't be zero error, video is working
+>> correctly. So it seems that error shouldn't affect the video display.
+>
+> Hmm, so do you get any display with 3.8, before X is started, using
+> plain fb? For example, break the boot before X is started, and do
+>
+> cat /dev/urandom > /dev/fb0
+>
+> Do you have an userspace image I could download to reproduce this?
+>
+>> For b) I tried to built mainline with CONFIG_CMA=y but it didn't work either.
+>
+> I don't think the vram change affects this, except if you see errors
+> about mem alloc. But yes, I think you should enable CMA with 3.8,
+> although allocation may work fine for smaller displays even without CMA.
+>
+>  Tomi
+>
+>
 
+Hi Tomi,
 
+At the end it was a red herring.
 
---------------enig42D387350A41E0F00D4EC3B7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+The problem was not in the kernel but in U-Boot that now only sets the
+OMAP mux pins of the peripherals that uses. So the DSS OMAP mux pins
+and the OMAP GPIO line that is used to power up the TFP410 chip has to
+now be set in the kernel.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
+We will send a patch for the igep0020 board file to fix the issue.
 
-iQIcBAEBAgAGBQJQ0aNLAAoJEPo9qoy8lh71NlMP/R3DnphDk6t1xjf0FkrOPXnp
-P/olJac/GF9tmciddMdmD7gJyLpYaeI/5oEU2k7ylhd5QHf5jizz3kHZdKjAtxRC
-SF3wuFpVROZzyn9zRpXkt1Gu12K4Y5wcviCgwMSvnTnEXqNsySmdRBRc8zhHI6zi
-QBMT8CjP9IOrsLAouNT96eFYlzDgQsF1LRtAf8GSZWu/Bmq+OtOqIkFAqHkWiJBw
-kCPvnkpFuSBdyjlKBb07G9tJXKn1WW+KjY4DpIAG1Bjl2j+76WmRL6160SfK5+tY
-fVktEsUqN5COhU/E3OoM8rYnyCfRqLX4ilrsJMCR0TqS4blrf7yeyMNaoX+YnwA9
-z1yKhIY8m6v3pgjA5BTAa+KZ2yxxutJSivw5E3yK6oid/Svommd2oTGEUIrfg963
-7nlBq8LExAIVFxqRifC9WcWkGtEwmg//N2DcVAyF054hiJPYm34fG1gntIC0HbAz
-CBfxjMwLDT76YaTC313KtyZs8WPaPQfaIYPWF5ZWfn8H6c5rUDvWXQKgiRdKlUj/
-vFE1KqS1AwsnP3ifyJTojdlNkFZttyNev5loSPnQfyNzBQkoqMzQA8e4fIw+mro4
-Av27DwCgVNPunb7mItds/gqrUzDbmXnJsn3XUMmI4oCRQGaOegOo1m0Kj0bEzWsp
-0Aj/akVy8Bx9OTO8GKz9
-=hXy9
------END PGP SIGNATURE-----
+Thanks a lot for your help and sorry for the noise!
 
---------------enig42D387350A41E0F00D4EC3B7--
+Best regards,
+Javier
