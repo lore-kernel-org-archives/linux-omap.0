@@ -1,73 +1,100 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 09/12] ARM: OMAP2+: powerdomain: skip register reads for
- powerdomains known to be on
-Date: Wed, 19 Dec 2012 15:09:31 -0600
-Message-ID: <50D22D0B.3050502@ti.com>
-References: <20121209200108.3196.12452.stgit@dusk.lan> <20121209200327.3196.27686.stgit@dusk.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH] ARM: OMAP1: nokia770: enable CBUS/Retu
+Date: Wed, 19 Dec 2012 23:41:01 +0200
+Message-ID: <1355953262-4352-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49574 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751004Ab2LSVJf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Dec 2012 16:09:35 -0500
-In-Reply-To: <20121209200327.3196.27686.stgit@dusk.lan>
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:49270 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751009Ab2LSVmE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 16:42:04 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Hi Paul,
+Add needed platform data so that it's possible to use Retu and e.g. feed
+Retu watchdog.
 
-On 12/09/2012 02:03 PM, Paul Walmsley wrote:
-> There's no need to determine the current power state for powerdomains
-> that must be on while the kernel is running.  We mark these
-> powerdomains with a new flag, PWRDM_ACTIVE_WITH_KERNEL.  Any
-> powerdomain marked with that flag is reported as being in the ON powe=
-r
-> state while the kernel is running.
->=20
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
-> ---
->  arch/arm/mach-omap2/powerdomain.c           |    9 ++++++---
->  arch/arm/mach-omap2/powerdomain.h           |    4 ++++
->  arch/arm/mach-omap2/powerdomains2xxx_data.c |    2 ++
->  arch/arm/mach-omap2/powerdomains33xx_data.c |    3 ++-
->  arch/arm/mach-omap2/powerdomains3xxx_data.c |    9 ++++++---
->  arch/arm/mach-omap2/powerdomains44xx_data.c |    5 ++++-
->  6 files changed, 24 insertions(+), 8 deletions(-)
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ arch/arm/mach-omap1/board-nokia770.c |   43 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-[snip]
+diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
+index 24d2f2d..ecd3f2a 100644
+--- a/arch/arm/mach-omap1/board-nokia770.c
++++ b/arch/arm/mach-omap1/board-nokia770.c
+@@ -7,6 +7,7 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++#include <linux/irq.h>
+ #include <linux/gpio.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+@@ -23,6 +24,8 @@
+ 
+ #include <linux/platform_data/keypad-omap.h>
+ #include <linux/platform_data/lcd-mipid.h>
++#include <linux/platform_data/gpio-omap.h>
++#include <linux/platform_data/i2c-cbus-gpio.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -212,6 +215,45 @@ static inline void nokia770_mmc_init(void)
+ }
+ #endif
+ 
++#if defined(CONFIG_I2C_CBUS_GPIO) || defined(CONFIG_I2C_CBUS_GPIO_MODULE)
++static struct i2c_cbus_platform_data nokia770_cbus_data = {
++	.clk_gpio = OMAP_MPUIO(9),
++	.dat_gpio = OMAP_MPUIO(10),
++	.sel_gpio = OMAP_MPUIO(11),
++};
++
++static struct platform_device nokia770_cbus_device = {
++	.name   = "i2c-cbus-gpio",
++	.id     = 2,
++	.dev    = {
++		.platform_data = &nokia770_cbus_data,
++	},
++};
++
++static struct i2c_board_info nokia770_i2c_board_info_2[] __initdata = {
++	{
++		I2C_BOARD_INFO("retu-mfd", 0x01),
++	},
++};
++
++static void __init nokia770_cbus_init(void)
++{
++	const int retu_irq_gpio = 62;
++
++	if (gpio_request_one(retu_irq_gpio, GPIOF_IN, "Retu IRQ"))
++		return;
++	irq_set_irq_type(gpio_to_irq(retu_irq_gpio), IRQ_TYPE_EDGE_RISING);
++	nokia770_i2c_board_info_2[0].irq = gpio_to_irq(retu_irq_gpio);
++	i2c_register_board_info(2, nokia770_i2c_board_info_2,
++				ARRAY_SIZE(nokia770_i2c_board_info_2));
++	platform_device_register(&nokia770_cbus_device);
++}
++#else /* CONFIG_I2C_CBUS_GPIO */
++static void __init nokia770_cbus_init(void)
++{
++}
++#endif /* CONFIG_I2C_CBUS_GPIO */
++
+ static void __init omap_nokia770_init(void)
+ {
+ 	/* On Nokia 770, the SleepX signal is masked with an
+@@ -233,6 +275,7 @@ static void __init omap_nokia770_init(void)
+ 	mipid_dev_init();
+ 	omap1_usb_init(&nokia770_usb_config);
+ 	nokia770_mmc_init();
++	nokia770_cbus_init();
+ }
+ 
+ MACHINE_START(NOKIA770, "Nokia 770")
+-- 
+1.7.10.4
 
-> diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/m=
-ach-omap2/powerdomains44xx_data.c
-> index 704664c..b64213c 100644
-> --- a/arch/arm/mach-omap2/powerdomains44xx_data.c
-> +++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
-> @@ -53,7 +53,8 @@ static struct powerdomain core_44xx_pwrdm =3D {
->  		[3] =3D PWRSTS_ON,	/* ducati_l2ram */
->  		[4] =3D PWRSTS_ON,	/* ducati_unicache */
->  	},
-> -	.flags		  =3D PWRDM_HAS_LOWPOWERSTATECHANGE,
-> +	.flags		  =3D (PWRDM_HAS_LOWPOWERSTATECHANGE |
-> +			     PWRDM_ACTIVE_WITH_KERNEL),
->  };
-
-My understanding is that for OMAP4 devices, the core power domain may
-not be active the same time as the MPU power domain. The Cortex-A9 has
-the ability to access some peripherals (such as timer, McBSP) via a
-private bus that does not require the core domain to be active. This is
-a difference from OMAP3 devices, where the core would always be on with
-the MPU power domain.
-
-Hopefully, Benoit will chime in if I have gotten this wrong ;-)
-
-Cheers
-Jon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
