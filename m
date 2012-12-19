@@ -1,42 +1,91 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 2/2] ARM: OMAP2+: omap2plus_defconfig: enable CMA allocator
-Date: Wed, 19 Dec 2012 13:33:40 +0100
-Message-ID: <1355920420-20852-2-git-send-email-javier.martinez@collabora.co.uk>
-References: <1355920420-20852-1-git-send-email-javier.martinez@collabora.co.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:41584 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124Ab2LSMdx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 07:33:53 -0500
-In-Reply-To: <1355920420-20852-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 2/2] MAINTAINERS: Add an entry for omap related .dts files
+Date: Wed, 19 Dec 2012 12:34:14 +0000
+Message-ID: <20121219123414.32B5E3E0AD7@localhost>
+References: <20121214194325.9874.95898.stgit@muffinssi.local>
+ <20121214194452.9874.40037.stgit@muffinssi.local>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============9102321059787430824=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20121214194452.9874.40037.stgit@muffinssi.local>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-The OMAP framebuffer driver now uses the standard dma allocator
-instead of the (now removed) omap specific vram allocator.
+--===============9102321059787430824==
+Content-Type: text/plain
 
-Enable the Contiguous Memory Allocator by default to allow large
-dma memory buffers allocation.
+On Fri, 14 Dec 2012 11:44:52 -0800, Tony Lindgren <tony@atomide.com> wrote:
+> All your omap .dts files are belong to us.
+> 
+> Benoît has been doing a good job picking up most of the
+> omap .dts files so far. Let's make sure we both get
+> cc:ed for the related patches.
+> 
+> The .dts patches need to be queued by us as separate
+> patches from drivers and other code changes to avoid
+> pointless merge conflists like we saw with v3.8
+> networking changes.
+> 
+> Cc: Benoît Cousson <b-cousson@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
- arch/arm/configs/omap2plus_defconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index da530a0..dc4789e 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -64,6 +64,7 @@ CONFIG_MAC80211=m
- CONFIG_MAC80211_RC_PID=y
- CONFIG_MAC80211_RC_DEFAULT_PID=y
- CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
-+CONFIG_CMA=y
- CONFIG_CONNECTOR=y
- CONFIG_MTD=y
- CONFIG_MTD_CMDLINE_PARTS=y
+> ---
+>  MAINTAINERS |    9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 0bc485c..4927e80 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -5253,6 +5253,15 @@ F:	arch/arm/*omap*/
+>  F:	drivers/i2c/busses/i2c-omap.c
+>  F:	include/linux/i2c-omap.h
+>  
+> +OMAP DEVICE TREE SUPPORT
+> +M:	Benoît Cousson <b-cousson@ti.com>
+> +M:	Tony Lindgren <tony@atomide.com>
+> +L:	linux-omap@vger.kernel.org
+> +L:	devicetree-discuss@lists.ozlabs.org (moderated for non-subscribers)
+> +S:	Maintained
+> +F:	arch/arm/boot/dts/*omap*
+> +F:	arch/arm/boot/dts/*am3*
+> +
+>  OMAP CLOCK FRAMEWORK SUPPORT
+>  M:	Paul Walmsley <paul@pwsan.com>
+>  L:	linux-omap@vger.kernel.org
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
 -- 
-1.7.7.6
+Grant Likely, B.Sc, P.Eng.
+Secret Lab Technologies, Ltd.
 
+
+--===============9102321059787430824==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============9102321059787430824==--
