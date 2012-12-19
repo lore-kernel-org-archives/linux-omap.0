@@ -1,187 +1,127 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 7/8] ARM: OMAP2+: Enable ARCH_MULTIPLATFORM support
-Date: Wed, 19 Dec 2012 11:26:33 -0800
-Message-ID: <20121219192633.22098.28350.stgit@muffinssi.local>
+Subject: [PATCH 6/8] ARM: OMAP2+: Disable code that currently does not work
+ with multiplaform
+Date: Wed, 19 Dec 2012 11:26:27 -0800
+Message-ID: <20121219192627.22098.10760.stgit@muffinssi.local>
 References: <20121219192354.22098.33408.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62827 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62860 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753699Ab2LST0e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 14:26:34 -0500
+	with ESMTP id S1753923Ab2LST0g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 14:26:36 -0500
 In-Reply-To: <20121219192354.22098.33408.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Sean Young <sean@mess.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, =?utf-8?q?V=C3=ADctor?= Manuel =?utf-8?q?J=C3=A1quez?= Leal <vjaquez@igalia.com>, Herbert Xu <herbert@gondor.apana.org.au>
 
-Flip on multiplatform support for omap2+.
+We still need to fix up few places for multiplatform support,
+but that can proceed separately. Fix the issue by making the
+problem drivers depends !ARCH_MULTIPLATFORM for now.
 
-No changes to omap2plus_defconfig needed, but please note
-that you may need to update your custom config files to
-make sure you have:
+The remaining pieces that are not multiplatform compatible
+for omap2+ SoCs are:
 
-CONFIG_ARCH_MULTIPLATFORM=y
-CONFIG_ARCH_MULTI_V7=y
-CONFIG_ARCH_OMAP2PLUS=y
+1. Some drivers are using custom omap_dm_timer calls
 
-And may need CONFIG_ARCH_MULTI_V6=y if booting omap2 boards.
+There are two drivers that are directly usign omap hardware
+timers for PWM and DSP clocking: drivers/media/rc/ir-rx51.c and
+drivers/staging/tidspbridge/core/dsp-clock.c. These can be
+fixed for multiplatform by allowing a minimal set of hardware
+timers to be accessed, and for some functionality by using the
+hrtimer framework.
 
-Cc: Russell King <linux@arm.linux.org.uk>
+2. Hardware OMAP4_ERRATA_I688 needs to be fixed up
+
+This can't be enabled for multiplatform configurations in
+it's current form. It may be possible to fix it up to do
+instruction replacement early on during init. Luckily it
+looks like this errata does not seem to get hit with
+mainline kernel code alone at least currently.
+
+3. Legacy header needed for omap-sham.c
+
+Looks like it still needs mach/irqs.h for omap1 that
+does not exist for multiplatform systems. Just ifdef
+it for now.
+
+Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Cc: Sean Young <sean@mess.org>
+Cc: "V=C3=ADctor Manuel J=C3=A1quez Leal" <vjaquez@igalia.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/Kconfig                     |   13 ++++++++++---
- arch/arm/configs/omap2plus_defconfig |    2 +-
- arch/arm/mach-omap2/Kconfig          |   23 +++++++++++++++++++++++
- arch/arm/mach-omap2/Makefile         |    3 +++
- arch/arm/plat-omap/Kconfig           |   30 ------------------------------
- arch/arm/plat-omap/Makefile          |    2 ++
- 6 files changed, 39 insertions(+), 34 deletions(-)
+ arch/arm/mach-omap2/Kconfig         |    2 +-
+ drivers/crypto/omap-sham.c          |    3 +++
+ drivers/media/rc/Kconfig            |    2 +-
+ drivers/staging/tidspbridge/Kconfig |    2 +-
+ 4 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index ae97414..93b6acd 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -940,17 +940,24 @@ config ARCH_DAVINCI
- 	help
- 	  Support for TI's DaVinci platform.
- 
--config ARCH_OMAP
--	bool "TI OMAP"
-+config ARCH_OMAP1
-+	bool "TI OMAP1"
- 	depends on MMU
- 	select ARCH_HAS_CPUFREQ
- 	select ARCH_HAS_HOLES_MEMORYMODEL
-+	select ARCH_OMAP
- 	select ARCH_REQUIRE_GPIOLIB
-+	select CLKDEV_LOOKUP
- 	select CLKSRC_MMIO
- 	select GENERIC_CLOCKEVENTS
-+	select GENERIC_IRQ_CHIP
- 	select HAVE_CLK
-+	select HAVE_IDE
-+	select IRQ_DOMAIN
-+	select NEED_MACH_IO_H if PCCARD
-+	select NEED_MACH_MEMORY_H
- 	help
--	  Support for TI's OMAP platform (OMAP1/2/3/4).
-+	  Support for older TI OMAP1 (omap7xx, omap15xx or omap16xx)
- 
- config ARCH_VT8500_SINGLE
- 	bool "VIA/WonderMedia 85xx"
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 82ce8d7..db05745 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -20,7 +20,7 @@ CONFIG_MODULE_FORCE_UNLOAD=y
- CONFIG_MODVERSIONS=y
- CONFIG_MODULE_SRCVERSION_ALL=y
- # CONFIG_BLK_DEV_BSG is not set
--CONFIG_ARCH_OMAP=y
-+CONFIG_ARCH_OMAP2PLUS=y
- CONFIG_OMAP_RESET_CLOCKS=y
- CONFIG_OMAP_MUX_DEBUG=y
- CONFIG_ARM_THUMBEE=y
 diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 492d764..c3c033f 100644
+index 41b581f..492d764 100644
 --- a/arch/arm/mach-omap2/Kconfig
 +++ b/arch/arm/mach-omap2/Kconfig
-@@ -1,3 +1,26 @@
-+config ARCH_OMAP
-+	bool
+@@ -397,7 +397,7 @@ config OMAP3_SDRC_AC_TIMING
+=20
+ config OMAP4_ERRATA_I688
+ 	bool "OMAP4 errata: Async Bridge Corruption"
+-	depends on ARCH_OMAP4
++	depends on ARCH_OMAP4 && !ARCH_MULTIPLATFORM
+ 	select ARCH_HAS_BARRIERS
+ 	help
+ 	  If a data is stalled inside asynchronous bridge because of back
+diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+index 1d75e6f..d65f22c 100644
+--- a/drivers/crypto/omap-sham.c
++++ b/drivers/crypto/omap-sham.c
+@@ -38,7 +38,10 @@
+ #include <crypto/internal/hash.h>
+=20
+ #include <linux/omap-dma.h>
 +
-+config ARCH_OMAP2PLUS
-+	bool "TI OMAP2/3/4/5 SoCs with device tree support" if (ARCH_MULTI_V6 || ARCH_MULTI_V7)
-+	select ARCH_HAS_CPUFREQ
-+	select ARCH_HAS_HOLES_MEMORYMODEL
-+	select ARCH_OMAP
-+	select ARCH_REQUIRE_GPIOLIB
-+	select CLKDEV_LOOKUP
-+	select CLKSRC_MMIO
-+	select GENERIC_CLOCKEVENTS
-+	select GENERIC_IRQ_CHIP
-+	select HAVE_CLK
-+	select OMAP_DM_TIMER
-+	select PINCTRL
-+	select PROC_DEVICETREE if PROC_FS
-+	select SPARSE_IRQ
-+	select USE_OF
-+	help
-+	  Systems based on OMAP2, OMAP3, OMAP4 or OMAP5
-+
-+
- if ARCH_OMAP2PLUS
- 
- menu "TI OMAP2/3/4 Specific Features"
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 947cafe..65fb6fb 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -2,6 +2,9 @@
- # Makefile for the linux kernel.
- #
- 
-+ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
-+	-I$(srctree)/arch/arm/plat-omap/include
-+
- # Common support
- obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o gpmc.o timer.o pm.o \
- 	 common.o gpio.o dma.o wd_timer.o display.o i2c.o hdq1w.o omap_hwmod.o \
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 665870d..886af14 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -5,36 +5,6 @@ menu "TI OMAP Common Features"
- config ARCH_OMAP_OTG
- 	bool
- 
--choice
--	prompt "OMAP System Type"
--	default ARCH_OMAP2PLUS
--
--config ARCH_OMAP1
--	bool "TI OMAP1"
--	select CLKDEV_LOOKUP
--	select CLKSRC_MMIO
--	select GENERIC_IRQ_CHIP
--	select HAVE_IDE
--	select IRQ_DOMAIN
--	select NEED_MACH_IO_H if PCCARD
--	select NEED_MACH_MEMORY_H
--	help
--	  "Systems based on omap7xx, omap15xx or omap16xx"
--
--config ARCH_OMAP2PLUS
--	bool "TI OMAP2/3/4"
--	select CLKDEV_LOOKUP
--	select GENERIC_IRQ_CHIP
--	select OMAP_DM_TIMER
--	select PINCTRL
--	select PROC_DEVICETREE if PROC_FS
--	select SPARSE_IRQ
--	select USE_OF
--	help
--	  "Systems based on OMAP2, OMAP3, OMAP4 or OMAP5"
--
--endchoice
--
- comment "OMAP Feature Selections"
- 
- config OMAP_DEBUG_DEVICES
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index a14a78a..3119941 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -2,6 +2,8 @@
- # Makefile for the linux kernel.
- #
- 
-+ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/arch/arm/plat-omap/include
-+
- # Common support
- obj-y := sram.o dma.o counter_32k.o
- obj-m :=
++#ifdef CONFIG_ARCH_OMAP1
+ #include <mach/irqs.h>
++#endif
+=20
+ #define SHA_REG_DIGEST(x)		(0x00 + ((x) * 0x04))
+ #define SHA_REG_DIN(x)			(0x1C + ((x) * 0x04))
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 79ba242..19f3563 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -291,7 +291,7 @@ config IR_TTUSBIR
+=20
+ config IR_RX51
+ 	tristate "Nokia N900 IR transmitter diode"
+-	depends on OMAP_DM_TIMER && LIRC
++	depends on OMAP_DM_TIMER && LIRC && !ARCH_MULTIPLATFORM
+ 	---help---
+ 	   Say Y or M here if you want to enable support for the IR
+ 	   transmitter diode built in the Nokia N900 (RX51) device.
+diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tids=
+pbridge/Kconfig
+index 0dd479f..60848f1 100644
+--- a/drivers/staging/tidspbridge/Kconfig
++++ b/drivers/staging/tidspbridge/Kconfig
+@@ -4,7 +4,7 @@
+=20
+ menuconfig TIDSPBRIDGE
+ 	tristate "DSP Bridge driver"
+-	depends on ARCH_OMAP3
++	depends on ARCH_OMAP3 && !ARCH_MULTIPLATFORM
+ 	select OMAP_MBOX_FWK
+ 	help
+ 	  DSP/BIOS Bridge is designed for platforms that contain a GPP and
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
