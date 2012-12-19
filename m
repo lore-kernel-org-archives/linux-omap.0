@@ -1,282 +1,73 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: [PATCH v2 2/3] gpio: twl4030: Cache the direction and output states in private data
-Date: Wed, 19 Dec 2012 21:53:23 +0100
-Message-ID: <a26b13f1-84e2-44fa-9801-690f7edf9345@email.android.com>
-References: <1354791127-20545-1-git-send-email-peter.ujfalusi@ti.com> <1354791127-20545-3-git-send-email-peter.ujfalusi@ti.com> <20121219170357.0BA403E0C4A@localhost>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 09/12] ARM: OMAP2+: powerdomain: skip register reads for
+ powerdomains known to be on
+Date: Wed, 19 Dec 2012 15:09:31 -0600
+Message-ID: <50D22D0B.3050502@ti.com>
+References: <20121209200108.3196.12452.stgit@dusk.lan> <20121209200327.3196.27686.stgit@dusk.lan>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121219170357.0BA403E0C4A@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49574 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751004Ab2LSVJf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Dec 2012 16:09:35 -0500
+In-Reply-To: <20121209200327.3196.27686.stgit@dusk.lan>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>
 
-Hi
+Hi Paul,
 
-Grant Likely <grant.likely@secretlab.ca> wrote:
+On 12/09/2012 02:03 PM, Paul Walmsley wrote:
+> There's no need to determine the current power state for powerdomains
+> that must be on while the kernel is running.  We mark these
+> powerdomains with a new flag, PWRDM_ACTIVE_WITH_KERNEL.  Any
+> powerdomain marked with that flag is reported as being in the ON powe=
+r
+> state while the kernel is running.
+>=20
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+> ---
+>  arch/arm/mach-omap2/powerdomain.c           |    9 ++++++---
+>  arch/arm/mach-omap2/powerdomain.h           |    4 ++++
+>  arch/arm/mach-omap2/powerdomains2xxx_data.c |    2 ++
+>  arch/arm/mach-omap2/powerdomains33xx_data.c |    3 ++-
+>  arch/arm/mach-omap2/powerdomains3xxx_data.c |    9 ++++++---
+>  arch/arm/mach-omap2/powerdomains44xx_data.c |    5 ++++-
+>  6 files changed, 24 insertions(+), 8 deletions(-)
 
->On Thu, 6 Dec 2012 11:52:06 +0100, Peter Ujfalusi
-><peter.ujfalusi@ti.com> wrote:
->> Use more coherent locking in the driver. Use bitfield to store the
->GPIO
->> direction and if the pin is configured as output store the status
->also in a
->> bitfiled.
->> In this way we can just look at these bitfields when we need
->information
->> about the pin status and only reach out to the chip when it is
->needed.
->> 
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->
->Applied, thanks
->
->g.
->
->> ---
->>  drivers/gpio/gpio-twl4030.c | 99
->++++++++++++++++++++++++++++++---------------
->>  1 file changed, 66 insertions(+), 33 deletions(-)
->> 
->> diff --git a/drivers/gpio/gpio-twl4030.c
->b/drivers/gpio/gpio-twl4030.c
->> index c092739..a38e6e9c 100644
->> --- a/drivers/gpio/gpio-twl4030.c
->> +++ b/drivers/gpio/gpio-twl4030.c
->> @@ -64,14 +64,15 @@
->>  /* Mask for GPIO registers when aggregated into a 32-bit integer */
->>  #define GPIO_32_MASK			0x0003ffff
->>  
->> -/* Data structures */
->> -static DEFINE_MUTEX(gpio_lock);
->> -
->>  struct gpio_twl4030_priv {
->>  	struct gpio_chip gpio_chip;
->> +	struct mutex mutex;
->>  	int irq_base;
->>  
->> +	/* Bitfields for state caching */
->>  	unsigned int usage_count;
->> +	unsigned int direction;
->> +	unsigned int out_state;
->>  };
->>  
->> 
->/*----------------------------------------------------------------------*/
->> @@ -130,7 +131,7 @@ static inline int gpio_twl4030_read(u8 address)
->>  
->> 
->/*----------------------------------------------------------------------*/
->>  
->> -static u8 cached_leden;		/* protected by gpio_lock */
->> +static u8 cached_leden;
->>  
->>  /* The LED lines are open drain outputs ... a FET pulls to GND, so
->an
->>   * external pullup is needed.  We could also expose the integrated
->PWM
->> @@ -144,14 +145,12 @@ static void twl4030_led_set_value(int led, int
->value)
->>  	if (led)
->>  		mask <<= 1;
->>  
->> -	mutex_lock(&gpio_lock);
->>  	if (value)
->>  		cached_leden &= ~mask;
->>  	else
->>  		cached_leden |= mask;
->>  	status = twl_i2c_write_u8(TWL4030_MODULE_LED, cached_leden,
->>  				  TWL4030_LED_LEDEN_REG);
->> -	mutex_unlock(&gpio_lock);
->>  }
->>  
->>  static int twl4030_set_gpio_direction(int gpio, int is_input)
->> @@ -162,7 +161,6 @@ static int twl4030_set_gpio_direction(int gpio,
->int is_input)
->>  	u8 base = REG_GPIODATADIR1 + d_bnk;
->>  	int ret = 0;
->>  
->> -	mutex_lock(&gpio_lock);
->>  	ret = gpio_twl4030_read(base);
->>  	if (ret >= 0) {
->>  		if (is_input)
->> @@ -172,7 +170,6 @@ static int twl4030_set_gpio_direction(int gpio,
->int is_input)
->>  
->>  		ret = gpio_twl4030_write(base, reg);
->>  	}
->> -	mutex_unlock(&gpio_lock);
->>  	return ret;
->>  }
->>  
->> @@ -212,7 +209,7 @@ static int twl_request(struct gpio_chip *chip,
->unsigned offset)
->>  	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
->>  	int status = 0;
->>  
->> -	mutex_lock(&gpio_lock);
->> +	mutex_lock(&priv->mutex);
->>  
->>  	/* Support the two LED outputs as output-only GPIOs. */
->>  	if (offset >= TWL4030_GPIO_MAX) {
->> @@ -271,7 +268,7 @@ done:
->>  	if (!status)
->>  		priv->usage_count |= BIT(offset);
->>  
->> -	mutex_unlock(&gpio_lock);
->> +	mutex_unlock(&priv->mutex);
->>  	return status;
->>  }
->>  
->> @@ -279,64 +276,98 @@ static void twl_free(struct gpio_chip *chip,
->unsigned offset)
->>  {
->>  	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
->>  
->> +	mutex_lock(&priv->mutex);
->>  	if (offset >= TWL4030_GPIO_MAX) {
->>  		twl4030_led_set_value(offset - TWL4030_GPIO_MAX, 1);
+[snip]
 
-I have the mobile but where is the unlock here?
+> diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/m=
+ach-omap2/powerdomains44xx_data.c
+> index 704664c..b64213c 100644
+> --- a/arch/arm/mach-omap2/powerdomains44xx_data.c
+> +++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+> @@ -53,7 +53,8 @@ static struct powerdomain core_44xx_pwrdm =3D {
+>  		[3] =3D PWRSTS_ON,	/* ducati_l2ram */
+>  		[4] =3D PWRSTS_ON,	/* ducati_unicache */
+>  	},
+> -	.flags		  =3D PWRDM_HAS_LOWPOWERSTATECHANGE,
+> +	.flags		  =3D (PWRDM_HAS_LOWPOWERSTATECHANGE |
+> +			     PWRDM_ACTIVE_WITH_KERNEL),
+>  };
 
+My understanding is that for OMAP4 devices, the core power domain may
+not be active the same time as the MPU power domain. The Cortex-A9 has
+the ability to access some peripherals (such as timer, McBSP) via a
+private bus that does not require the core domain to be active. This is
+a difference from OMAP3 devices, where the core would always be on with
+the MPU power domain.
 
->>  		return;
->>  	}
->>  
->> -	mutex_lock(&gpio_lock);
->> -
->>  	priv->usage_count &= ~BIT(offset);
->>  
->>  	/* on last use, switch off GPIO module */
->>  	if (!priv->usage_count)
->>  		gpio_twl4030_write(REG_GPIO_CTRL, 0x0);
->>  
->> -	mutex_unlock(&gpio_lock);
->> +	mutex_unlock(&priv->mutex);
->>  }
->>  
->>  static int twl_direction_in(struct gpio_chip *chip, unsigned offset)
->>  {
->> -	return (offset < TWL4030_GPIO_MAX)
->> -		? twl4030_set_gpio_direction(offset, 1)
->> -		: -EINVAL;
->> +	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
->> +	int ret;
->> +
->> +	mutex_lock(&priv->mutex);
->> +	if (offset < TWL4030_GPIO_MAX)
->> +		ret = twl4030_set_gpio_direction(offset, 1);
->> +	else
->> +		ret = -EINVAL;
->> +
->> +	if (!ret)
->> +		priv->direction &= ~BIT(offset);
->> +
->> +	mutex_unlock(&priv->mutex);
->> +
->> +	return ret;
->>  }
->>  
->>  static int twl_get(struct gpio_chip *chip, unsigned offset)
->>  {
->>  	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
->> +	int ret;
->>  	int status = 0;
->>  
->> -	if (!(priv->usage_count & BIT(offset)))
->> -		return -EPERM;
->> +	mutex_lock(&priv->mutex);
->> +	if (!(priv->usage_count & BIT(offset))) {
->> +		ret = -EPERM;
->> +		goto out;
->> +	}
->>  
->> -	if (offset < TWL4030_GPIO_MAX)
->> -		status = twl4030_get_gpio_datain(offset);
->> -	else if (offset == TWL4030_GPIO_MAX)
->> -		status = cached_leden & LEDEN_LEDAON;
->> +	if (priv->direction & BIT(offset))
->> +		status = priv->out_state & BIT(offset);
->>  	else
->> -		status = cached_leden & LEDEN_LEDBON;
->> +		status = twl4030_get_gpio_datain(offset);
->>  
->> -	return (status < 0) ? 0 : status;
->> +	ret = (status <= 0) ? 0 : 1;
->> +out:
->> +	mutex_unlock(&priv->mutex);
->> +	dev_err(chip->dev, "%s: offset %d value %d\n", __func__, offset,
->ret);
->> +	return ret;
->>  }
->>  
->> -static int twl_direction_out(struct gpio_chip *chip, unsigned
->offset, int value)
->> +static void twl_set(struct gpio_chip *chip, unsigned offset, int
->value)
->>  {
->> -	if (offset < TWL4030_GPIO_MAX) {
->> +	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
->> +
->> +	dev_err(chip->dev, "%s: offset %d value %d\n", __func__, offset,
->value);
->> +	mutex_lock(&priv->mutex);
->> +	if (offset < TWL4030_GPIO_MAX)
->>  		twl4030_set_gpio_dataout(offset, value);
->> -		return twl4030_set_gpio_direction(offset, 0);
->> -	} else {
->> +	else
->>  		twl4030_led_set_value(offset - TWL4030_GPIO_MAX, value);
->> -		return 0;
->> -	}
->> +
->> +	if (value)
->> +		priv->out_state |= BIT(offset);
->> +	else
->> +		priv->out_state &= ~BIT(offset);
->> +
->> +	mutex_unlock(&priv->mutex);
->>  }
->>  
->> -static void twl_set(struct gpio_chip *chip, unsigned offset, int
->value)
->> +static int twl_direction_out(struct gpio_chip *chip, unsigned
->offset, int value)
->>  {
->> +	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
->> +
->> +	dev_err(chip->dev, "%s: offset %d value %d\n", __func__, offset,
->value);
->> +	mutex_lock(&priv->mutex);
->>  	if (offset < TWL4030_GPIO_MAX)
->>  		twl4030_set_gpio_dataout(offset, value);
->> -	else
->> -		twl4030_led_set_value(offset - TWL4030_GPIO_MAX, value);
->> +
->> +	priv->direction |= BIT(offset);
->> +	mutex_unlock(&priv->mutex);
->> +
->> +	twl_set(chip, offset, value);
->> +
->> +	return 0;
->>  }
->>  
->>  static int twl_to_irq(struct gpio_chip *chip, unsigned offset)
->> @@ -469,6 +500,8 @@ no_irqs:
->>  	priv->gpio_chip.ngpio = TWL4030_GPIO_MAX;
->>  	priv->gpio_chip.dev = &pdev->dev;
->>  
->> +	mutex_init(&priv->mutex);
->> +
->>  	if (node)
->>  		pdata = of_gpio_twl4030(&pdev->dev);
->>  
->> -- 
->> 1.8.0
->> 
+Hopefully, Benoit will chime in if I have gotten this wrong ;-)
 
--- 
-Sent from my Android phone with K-9 Mail. Please excuse my brevity.
+Cheers
+Jon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
