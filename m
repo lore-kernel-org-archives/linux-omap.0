@@ -1,45 +1,48 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] ARM: OMAP2: hwmod: Fix "register offset NULL check"
- bug
-Date: Wed, 19 Dec 2012 02:13:50 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1212190210021.2446@utopia.booyaka.com>
-References: <1355835378-23437-1-git-send-email-gururaja.hebbar@ti.com>
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Subject: [PATCH 1/1] ARM: OMAP: Fix build breakage due to missing include in i2c.c
+Date: Wed, 19 Dec 2012 12:14:58 +0530
+Message-ID: <1355899498-11442-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43951 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753999Ab2LSCNv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Dec 2012 21:13:51 -0500
-In-Reply-To: <1355835378-23437-1-git-send-email-gururaja.hebbar@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:41809 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750922Ab2LSGpR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Dec 2012 01:45:17 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hebbar Gururaja <gururaja.hebbar@ti.com>
-Cc: tony@atomide.com, b-cousson@ti.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, sudhakar.raj@ti.com, linux@arm.linux.org.uk
+To: tony@atomide.com
+Cc: linux-arm-kernel@lists.infrared.org, linux-omap@vger.kernel.org, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-On Tue, 18 Dec 2012, Hebbar Gururaja wrote:
+Merge commit 752451f (Merge branch 'i2c-embedded/for-next' of git://git.pengutronix.de/git/wsa/linux)
+resulted in a build breakage for OMAP
 
-> From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-> 
-> omap4_cminst_wait_module_ready() checks if register offset is NULL.
-> 
-> int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs,
-> 				   u16 clkctrl_offs)
-> {
-> 	int i = 0;
-> 
-> 	if (!clkctrl_offs)
-> 		return 0;
-> 
-> In case of AM33xx, CLKCTRL register offset for different clock domains
-> are not uniformly placed. An example of this would be the RTC clock
-> domain with CLKCTRL offset at 0x00.
-> In such cases the module ready check is skipped which leads to a data
-> abort during boot-up when RTC registers is accessed.
+...
+arch/arm/mach-omap2/i2c.c: In function 'omap_pm_set_max_mpu_wakeup_lat_compat':
+arch/arm/mach-omap2/i2c.c:130:2: error: implicit declaration of function 'omap_pm_set_max_mpu_wakeup_lat'
+make[1]: *** [arch/arm/mach-omap2/i2c.o] Error 1
+...
 
-We've got a few hwmods on OMAP44xx that don't have clkctrl_offs registers 
-listed in the hwmod data, and which are not marked with HWMOD_NO_IDLEST.  
-What's going to happen in those cases?
+Fix this by including the appropriate header file with the function prototype
 
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+---
+ arch/arm/mach-omap2/i2c.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-- Paul
+diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
+index df6d6ac..b9074dd 100644
+--- a/arch/arm/mach-omap2/i2c.c
++++ b/arch/arm/mach-omap2/i2c.c
+@@ -22,6 +22,7 @@
+ #include "soc.h"
+ #include "omap_hwmod.h"
+ #include "omap_device.h"
++#include "omap-pm.h"
+ 
+ #include "prm.h"
+ #include "common.h"
+-- 
+1.7.0.4
+
