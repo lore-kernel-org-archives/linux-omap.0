@@ -1,54 +1,102 @@
-From: R Sricharan <r.sricharan@ti.com>
-Subject: Re: 32kHz clock removal causes problems omap_hsmmc
-Date: Wed, 19 Dec 2012 23:36:55 +0530
-Message-ID: <50D2023F.1000609@ti.com>
-References: <1352968293.10872.51.camel@cumari.coelho.fi>  <20121218095450.GB27751@arwen.pp.htv.fi>  <20121219094552.GN4985@opensource.wolfsonmicro.com>  <50D19040.5090404@ti.com>  <20121219100909.GO4985@opensource.wolfsonmicro.com>  <50D19463.5010605@ti.com>  <20121219103206.GQ4985@opensource.wolfsonmicro.com>  <1355913954.5273.21.camel@cumari.coelho.fi> <50D19D54.2000307@ti.com>  <20121219130128.GC17993@arwen.pp.htv.fi> <50D1C652.3050607@ti.com> <1355925504.5273.26.camel@cumari.coelho.fi> <50D1C957.8090201@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/8] Flip on multiplatform support for omap2plus for v3.9
+Date: Wed, 19 Dec 2012 11:26:11 -0800
+Message-ID: <20121219192354.22098.33408.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <50D1C957.8090201@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Luciano Coelho <coelho@ti.com>, balbi@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, lrg@ti.com, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:61771 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751521Ab2LST0O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 14:26:14 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+Hi all,
 
-On Wednesday 19 December 2012 07:34 PM, Benoit Cousson wrote:
-> On 12/19/2012 02:58 PM, Luciano Coelho wrote:
->> On Wed, 2012-12-19 at 14:51 +0100, Benoit Cousson wrote:
->>> On 12/19/2012 02:01 PM, Felipe Balbi wrote:
->>>> On Wed, Dec 19, 2012 at 11:56:20AM +0100, Peter Ujfalusi wrote:
->>>>> BTW: have you happened to ubdate u-boot recently? There is a nice easter egg
->>>>> added there:
->>>>> f3f98bb ARM: OMAP4/5: Do not configure non essential pads, clocks, dplls.
->>>>>
->>>>> Which means that _essential_ clocks and pads are no longer configured.
->>>>
->>>> anything essential you can list ?
->>>
->>> Yeah, that u-boot version is just unusable at all with any mainline
->>> kernel, since we are still missing pads conf for every drivers.
->>>
->>> Regarding the 32k clock, I noticed as well that the OMAP4460 panda
->>> u-boot is the only one to enable it at boot time, and thus this is the
->>> only board that can probe the wilink chip properly as of today.
->>
->> Do you mean that with the latest mainline u-boot all boards will have
->> trouble except panda?
->
-> I don't know since the u-boot mainline has never ever supported properly
-> the SDP4430, I stopped wasting my time with that code a long time ago.
-> But the braves who tried using the latest u-boot mainline code that does
-> not configure anything anymore had some troubles...
->
-   Configuring every pad and clocks in the u-boot was removed to
-   force kernel drivers to fix up things. Dependency on boot loader
-   was always a problem. Bootloader should not configure anything apart
-   from what is required for boot.
+These patches enable multiplatform support for omap2plus.
+
+To build and boot it against the current mainline kernel
+you need the following:
+
+[PATCH 1/2] ARM: l2x0: Only set .set_debug on PL310 r3p0 and earlier
+[PATCH 2/2] ARM: disable errata work-arounds which access secure registers
+[GIT PULL 1/2] omap fixes for v3.8 merge window
+[GIT PULL 2/2] omap cleanup for v3.8 merge window
+[GIT PULL] two trivial omap build error fixes for v3.8 merge window
+cpts: Fix build error caused by include of plat/clock.h
 
 Regards,
-  Sricharan
+
+Tony
+
+---
+
+Tony Lindgren (8):
+      ARM: OMAP2+: Limi omap initcalls to omap only on multiplatform kernels
+      ARM: OMAP2+: Use omap initcalls
+      ARM: OMAP: Fix i2c cmdline initcall for multiplatform
+      ARM: OMAP: Fix dmaengine init for multiplatform
+      ARM: OMAP2+: Add multiplatform debug_ll support
+      ARM: OMAP2+: Disable code that currently does not work with multiplaform
+      ARM: OMAP2+: Enable ARCH_MULTIPLATFORM support
+      ARM: OMAP2+: Add minimal support for booting vexpress
 
 
+ arch/arm/Kconfig                         |   13 ++
+ arch/arm/Kconfig.debug                   |   56 +++++++++
+ arch/arm/configs/omap2plus_defconfig     |    6 +
+ arch/arm/include/debug/omap2plus.S       |  190 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap1/dma.c                |   18 +++
+ arch/arm/mach-omap1/i2c.c                |    6 +
+ arch/arm/mach-omap2/Kconfig              |   25 ++++
+ arch/arm/mach-omap2/Makefile             |    3 
+ arch/arm/mach-omap2/board-omap3beagle.c  |    2 
+ arch/arm/mach-omap2/board-rx51-video.c   |    3 
+ arch/arm/mach-omap2/clock2xxx.c          |    2 
+ arch/arm/mach-omap2/clock3xxx.c          |    2 
+ arch/arm/mach-omap2/devices.c            |    6 -
+ arch/arm/mach-omap2/dma.c                |   23 +++-
+ arch/arm/mach-omap2/drm.c                |    2 
+ arch/arm/mach-omap2/emu.c                |    2 
+ arch/arm/mach-omap2/fb.c                 |    4 -
+ arch/arm/mach-omap2/gpio.c               |    5 -
+ arch/arm/mach-omap2/gpmc.c               |    4 -
+ arch/arm/mach-omap2/hdq1w.c              |    3 
+ arch/arm/mach-omap2/hwspinlock.c         |    2 
+ arch/arm/mach-omap2/i2c.c                |    5 +
+ arch/arm/mach-omap2/mcbsp.c              |    3 
+ arch/arm/mach-omap2/omap-iommu.c         |    2 
+ arch/arm/mach-omap2/omap2-restart.c      |    3 
+ arch/arm/mach-omap2/omap4-common.c       |    4 -
+ arch/arm/mach-omap2/omap_device.c        |    5 -
+ arch/arm/mach-omap2/omap_hwmod.c         |    2 
+ arch/arm/mach-omap2/omap_phy_internal.c  |    2 
+ arch/arm/mach-omap2/opp3xxx_data.c       |    2 
+ arch/arm/mach-omap2/opp4xxx_data.c       |    2 
+ arch/arm/mach-omap2/pm-debug.c           |    2 
+ arch/arm/mach-omap2/pm.c                 |    2 
+ arch/arm/mach-omap2/pmu.c                |    2 
+ arch/arm/mach-omap2/prm3xxx.c            |    2 
+ arch/arm/mach-omap2/prm44xx.c            |    2 
+ arch/arm/mach-omap2/serial.c             |    2 
+ arch/arm/mach-omap2/smartreflex-class3.c |    2 
+ arch/arm/mach-omap2/soc.h                |   29 +++++
+ arch/arm/mach-omap2/timer.c              |    2 
+ arch/arm/mach-omap2/wd_timer.c           |    2 
+ arch/arm/plat-omap/Kconfig               |   30 -----
+ arch/arm/plat-omap/Makefile              |    2 
+ arch/arm/plat-omap/i2c.c                 |    3 
+ arch/arm/plat-omap/include/plat/i2c.h    |    6 +
+ drivers/crypto/omap-sham.c               |    3 
+ drivers/dma/omap-dma.c                   |   20 ---
+ drivers/media/rc/Kconfig                 |    2 
+ drivers/staging/tidspbridge/Kconfig      |    2 
+ 49 files changed, 422 insertions(+), 100 deletions(-)
+ create mode 100644 arch/arm/include/debug/omap2plus.S
+
+-- 
+Signature
