@@ -1,50 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] two trivial omap build error fixes for v3.8 merge
- window
-Date: Thu, 20 Dec 2012 07:25:08 -0800
-Message-ID: <20121220152508.GW4989@atomide.com>
-References: <20121219171828.GP4989@atomide.com>
- <20121220150105.GA28275@n2100.arm.linux.org.uk>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/1] Fix sprz319 erratum 2.1
+Date: Thu, 20 Dec 2012 15:34:49 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1212201534080.28579@utopia.booyaka.com>
+References: <4F4289C2.90707@kynesim.co.uk> <alpine.DEB.2.00.1202241419580.23504@utopia.booyaka.com> <8f4f87ed-61f7-44ee-9c74-0f57e0f6a930@googlegroups.com> <d94a4cfd-538c-481c-aa8f-26a730739ac5@googlegroups.com>
+Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:65273 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751195Ab2LTPZP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Dec 2012 10:25:15 -0500
-Content-Disposition: inline
-In-Reply-To: <20121220150105.GA28275@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <beagleboard+bncBDENZBE5PQIJVYGMQYCRUBFVC5HGC-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <d94a4cfd-538c-481c-aa8f-26a730739ac5-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Post: <http://groups.google.com/group/beagleboard/post?hl=en>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/?hl=en>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/beagleboard?hl=en>
+Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe?hl=en>, <mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/beagleboard/subscribe?hl=en>,
+ <mailto:googlegroups-manage+1035534660134+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: =?ISO-8859-15?Q?Adrien_Ferr=E9?= <ferre.adrien-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Richard Watts <rrw-XQiHveOWqdgqdlJmJB21zg@public.gmane.org>, khilman-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [121220 07:03]:
-> On Wed, Dec 19, 2012 at 09:18:28AM -0800, Tony Lindgren wrote:
-> > Here's few more trivial build fixes caused by the merge
-> > conflicts.
-> 
-> If Olof isn't able to pull this stuff in tonight, I'll pull it into my
-> tree and send it up with my stuff.  I'll also see about picking up
-> on the previous one with the common.c vram.h fix too.
+Hi Adrien
 
-I just replied to the "[GIT PULL] ARM: arm-soc fixes for 3.8" thread
-suggesting Linus pull it. It seems that the issue with that one
-.dts file can easily be fixed later on and there's no need to go
-tinker with that branch.
+On Thu, 20 Dec 2012, Adrien Ferr=E9 wrote:
 
-Please go ahead and pull in the $Subject: branch though, these two
-are not yet in Olof's branch.
+> The tests have been running for 6 days now and we had only one failing BB=
+xm
+>=20
+> There are five boards:
+>=20
+> 2 panda: high network + usb traffic
+> 3 bbxm: high network + usb traffic
 
-> I'm not sure what Olof's plans are, but I know Arnd isn't around at
-> the moment, and Olof was travelling a couple of days ago and hasn't
-> reappeared since.  I don't think we can leave these fixes any longer
-> as OMAP has been broken in mainline for at least the last four days
-> and we're nearing the end of the merge window.
+Nice; is that with (443, 12) or (480, 13) ?
 
-Yes, Olof mentioned that he should be back online within few days.
-He's probably enjoying the bastu :)
 
-Regards,
+- Paul
 
-Tony
+--=20
+For more options, visit http://beagleboard.org/discuss
