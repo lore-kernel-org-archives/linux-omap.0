@@ -1,46 +1,68 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] two trivial omap build error fixes for v3.8 merge
- window
-Date: Thu, 20 Dec 2012 08:03:46 -0800
-Message-ID: <20121220160346.GC1034@quad.lixom.net>
-References: <20121219171828.GP4989@atomide.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] gpio/omap: implement irq_enable/disable using mask/unmask.
+Date: Thu, 20 Dec 2012 10:16:56 -0600
+Message-ID: <50D339F8.6050200@ti.com>
+References: <1355736437-14186-1-git-send-email-andreas.fenkart@streamunlimited.com> <50D2A94A.6060100@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20121219171828.GP4989@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41512 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751063Ab2LTQRD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Dec 2012 11:17:03 -0500
+In-Reply-To: <50D2A94A.6060100@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Andreas Fenkart <andreas.fenkart@streamunlimited.com>, Kevin Hilman <khilman@deeprootsystems.com>, grant.likely@secretlab.ca, linus.walleij@linaro.org, linux-omap@vger.kernel.org
 
-On Wed, Dec 19, 2012 at 09:18:28AM -0800, Tony Lindgren wrote:
-> Hi Arnd & Olof,
-> 
-> Here's few more trivial build fixes caused by the merge
-> conflicts.
-> 
-> Tony
-> 
-> 
-> The following changes since commit 5031a2a7c12b837a0913c4139ebeb6bbff5e1aa5:
-> 
->   Merge tag 'for-v3.8-part2' of git://git.infradead.org/battery-2.6 (2012-12-19 08:14:08 -0800)
-> 
-> are available in the git repository at:
-> 
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/fixes-for-merge-window-part2-signed
 
-Thanks, pulled.
+On 12/19/2012 11:59 PM, Santosh Shilimkar wrote:
+> On Monday 17 December 2012 02:57 PM, Andreas Fenkart wrote:
+> 
+> Please add some changelog here too.
+> 
+>> Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+>> ---
+> Patch seems straight forward thought will be interesting where you found
+> the need of it.
 
--Olof
+The only item that I was thinking of if the behaviour of mask/unmask
+should be different from enable/disable?
+
+When a gpio interrupt is masked, the gpio event will still be latched in
+the interrupt status register so when you unmask it later you may get an
+interrupt straight away. However, if the interrupt is disabled then gpio
+events occurring will not be latched/stored.
+
+I am also interested in the need for this, and if we should have a true
+enable/disable here.
+
+Cheers
+Jon
+
+> 
+>>   drivers/gpio/gpio-omap.c |    2 ++
+>>   1 file changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> index d335af1..c1951ec 100644
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -815,6 +815,8 @@ static struct irq_chip gpio_irq_chip = {
+>>       .irq_unmask    = gpio_unmask_irq,
+>>       .irq_set_type    = gpio_irq_type,
+>>       .irq_set_wake    = gpio_wake_enable,
+>> +    .irq_disable    = gpio_mask_irq,
+>> +    .irq_enable     = gpio_unmask_irq,
+>>   };
+>>
+>>  
+>> /*---------------------------------------------------------------------*/
+>>
+> 
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
