@@ -1,34 +1,60 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP3: Add missing enable/disable for EMU clock
-Date: Thu, 20 Dec 2012 22:48:04 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1212202247531.20441@utopia.booyaka.com>
-References: <1356043426-7381-1-git-send-email-jon-hunter@ti.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: correct precedence of operators
+Date: Thu, 20 Dec 2012 23:04:01 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1212202302470.20441@utopia.booyaka.com>
+References: <1356030701-16284-1-git-send-email-sasha.levin@oracle.com> <1356030701-16284-18-git-send-email-sasha.levin@oracle.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:50501 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:50535 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751944Ab2LTWsF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Dec 2012 17:48:05 -0500
-In-Reply-To: <1356043426-7381-1-git-send-email-jon-hunter@ti.com>
+	with ESMTP id S1751944Ab2LTXEC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Dec 2012 18:04:02 -0500
+In-Reply-To: <1356030701-16284-18-git-send-email-sasha.levin@oracle.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Sasha Levin <sasha.levin@oracle.com>
+Cc: Venkatraman S <svenkatr@ti.com>, t-kristo@ti.com, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 20 Dec 2012, Jon Hunter wrote:
+(cc Tero)
 
-> The ETM/ETB drivers for OMAP3, enable the emu_src_ck clock in order
-> to access the ETM/ETB hardware. The emu_src_ck should enable the EMU
-> clock domain so that the ETM/ETB hardware is accessible. However,
-> currently when enabling the emu_src_ck the EMU clock domain is not
-> being enabled and so the ETM/ETB drivers are failing. Add enable/disable
-> clock functions to enable the EMU clock domain when enabling the
-> emu_src_ck.
+Hi,
+
+On Thu, 20 Dec 2012, Sasha Levin wrote:
+
+> With the current code, the condition in the if() doesn't make much sense due to
+> precedence of operators.
 > 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index bc58078..3ee2664 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -611,7 +611,7 @@ static int omap_hsmmc_context_restore(struct omap_hsmmc_host *host)
+>  	if (host->context_loss == context_loss)
+>  		return 1;
+>  
+> -	if (!OMAP_HSMMC_READ(host->base, SYSSTATUS) & RESETDONE)
+> +	if (!(OMAP_HSMMC_READ(host->base, SYSSTATUS) & RESETDONE))
+>  		return 1;
+>  
+>  	if (host->pdata->controller_flags & OMAP_HSMMC_SUPPORTS_DUAL_VOLT) {
 
-Thanks Jon, queued for 3.8-rc. 
+Makes sense to me, but I wonder if this code is even necessary after:
+
+commit 613ad0e98c3596cd2524172fae2a795c3fc57e4a
+Author: Tero Kristo <t-kristo@ti.com>
+Date:   Mon Oct 29 22:02:13 2012 -0600
+
+    ARM: OMAP: hwmod: wait for sysreset complete after enabling hwmod
+    
+
+?  You might just be able to drop those lines completely now.
+
 
 
 - Paul
