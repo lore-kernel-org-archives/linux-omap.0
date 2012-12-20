@@ -1,35 +1,54 @@
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: [PATCH] mmc: omap_hsmmc: correct precedence of operators
-Date: Thu, 20 Dec 2012 14:11:26 -0500
-Message-ID: <1356030701-16284-18-git-send-email-sasha.levin@oracle.com>
-References: <1356030701-16284-1-git-send-email-sasha.levin@oracle.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH 0/9] drivers: mailbox: framework creation
+Date: Thu, 20 Dec 2012 11:19:22 -0800
+Message-ID: <CAOesGMh2uZC_9FzAxDVZqwe06OgqOrKjPgQi6wOJCt-SAmoHwg@mail.gmail.com>
+References: <1355836212-17956-1-git-send-email-loic.pallardy-ext@stericsson.com>
+	<CACRpkdaqO7AAeYeR8SZt4Tbv1grrMq85TNYMc-FSbUSrnZBm=Q@mail.gmail.com>
+	<20121220182835.GB21056@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1356030701-16284-1-git-send-email-sasha.levin@oracle.com>
+In-Reply-To: <20121220182835.GB21056@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Sasha Levin <sasha.levin@oracle.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Loic Pallardy <loic.pallardy-ext@stericsson.com>, arm@kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic PALLARDY <loic.pallardy@st.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Suman Anna <s-anna@ti.com>, Juan Gutierrez <jgutierrez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Tejun Heo <tj@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, Omar Ramirez Luna <omar.luna@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-With the current code, the condition in the if() doesn't make much sense due to
-precedence of operators.
+On Thu, Dec 20, 2012 at 10:28 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Linus Walleij <linus.walleij@linaro.org> [121220 10:19]:
+>> On Tue, Dec 18, 2012 at 2:10 PM, Loic Pallardy
+>> <loic.pallardy-ext@stericsson.com> wrote:
+>>
+>> > OMAP and ST-Ericsson platforms are both using mailbox to communicate
+>> > with some coprocessors.
+>> > Based on OMAP existing mailbox framework, this series proposes a
+>> > generic framework, living under drivers/mailbox.
+>>
+>> I like this patch series so you have my Acked-by.
+>>
+>> Since it's a new subsystem and affects a few ARM architectures can
+>> we merge this into the ARM SoC tree once we have consensus,
+>> so we get some rotation in linux-next that way?
+>
+> Yes good idea.
+>
+>> Olof/Arnd?
+>
+> I suggest we set up an immutable branch against
+> v3.8-rc1 when it's out with only these patches in it.
+> Then we can all merge it in as needed. Maybe Arnd or
+> Olof can set up the branch?
 
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
----
- drivers/mmc/host/omap_hsmmc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I haven't reviewed the patches yet, but this flow sounds reasonable to me.
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index bc58078..3ee2664 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -611,7 +611,7 @@ static int omap_hsmmc_context_restore(struct omap_hsmmc_host *host)
- 	if (host->context_loss == context_loss)
- 		return 1;
- 
--	if (!OMAP_HSMMC_READ(host->base, SYSSTATUS) & RESETDONE)
-+	if (!(OMAP_HSMMC_READ(host->base, SYSSTATUS) & RESETDONE))
- 		return 1;
- 
- 	if (host->pdata->controller_flags & OMAP_HSMMC_SUPPORTS_DUAL_VOLT) {
--- 
-1.8.0
+> FYI, looks like I need to merge in this branch too to
+> avoid build errors with remoteproc enabled once I flip
+> on the multiplatform support for omap2+.
+
+While we can make the branch stable, would it make sense to make
+remoteproc for omap depend on !multiplatform during the transition, to
+reduce dependencies a little? Either way works, but it'd be nice to
+keep them independent if we can.
+
+
+-Olof
