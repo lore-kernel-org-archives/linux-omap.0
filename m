@@ -1,28 +1,68 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 3/9] mailbox: rename omap_mbox in mailbox
-Date: Thu, 20 Dec 2012 23:29:59 +0200
-Message-ID: <CAK=WgbYOJA26PU7sg0ndB981WQEeiaQxSUVEJRACw1b7ogpiOg@mail.gmail.com>
-References: <1355836212-17956-1-git-send-email-loic.pallardy-ext@stericsson.com>
- <1355836212-17956-4-git-send-email-loic.pallardy-ext@stericsson.com>
+From: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Subject: Re: omap_hsmmc: SDIO IRQ on AM335x family
+Date: Thu, 20 Dec 2012 23:04:44 +0100
+Message-ID: <20121220220444.GA350@blumentopf>
+References: <20121130111847.GA24674@blumentopf>
+ <20121130174022.GM5312@atomide.com>
+ <50B9019F.2020109@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1355836212-17956-4-git-send-email-loic.pallardy-ext@stericsson.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Loic Pallardy <loic.pallardy-ext@stericsson.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic PALLARDY <loic.pallardy@st.com>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Linus Walleij <linus.walleij@linaro.org>, Suman Anna <s-anna@ti.com>, Juan Gutierrez <jgutierrez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Tejun Heo <tj@kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.gmx.net ([212.227.17.20]:49188 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751567Ab2LTWEv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Dec 2012 17:04:51 -0500
+Received: from mailout-de.gmx.net ([10.1.76.30]) by mrigmx.server.lan
+ (mrigmx001) with ESMTP (Nemesis) id 0MGlNX-1Tpz6m47DF-00DZXJ for
+ <linux-omap@vger.kernel.org>; Thu, 20 Dec 2012 23:04:49 +0100
+Content-Disposition: inline
+In-Reply-To: <50B9019F.2020109@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Andreas Fenkart <andreas.fenkart@streamunlimited.com>, Chris Ball <cjb@laptop.org>, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com
 
-Hi Loic,
+Hi,
 
-On Tue, Dec 18, 2012 at 3:10 PM, Loic Pallardy
-<loic.pallardy-ext@stericsson.com> wrote:
-> In order to create a generic mailbox framework, functions
-> and structures should be renamed in mailbox.
+On Fri, Nov 30, 2012 at 07:57:35PM +0100, Daniel Mack wrote:
+> 
+> On 30.11.2012 18:40, Tony Lindgren wrote:
+> > * Andreas Fenkart <andreas.fenkart@streamunlimited.com> [121130 03:21]:
+> >>
+> >> The alternative was to configure dat1 line as a GPIO, while
+> >> waiting for an IRQ. Then configuring it back as dat1 when the
+> >> SDIO card is signalling an IRQ. Or the host starts a transfer. I
+> >> guess this will perform poorly, hence not considering it really.
+> > 
+> > This might work for SDIO cards. It should be disabled for data
+> > cards naturally to avoid potential data corruption.
+I don't understand your concern here, could you explain
 
-This patch should also update omap_remoteproc.c so the build doesn't
-break (and if you have a panda board around it might be nice to run
-the remoteproc sample to make sure things still generally work).
+> > The way to implement this is set named states in the .dts file
+> > for the pins using pinctrl-single.c, then have the MMC driver
+> > request states "default" "active" and "idle" during the probe,
+> > then toggle between active and idle during the runtime.
+> > 
+> > As far as I remember the GPIO functionality does not need to
+> > be enabled, just muxing the pin to GPIO mode for the wake-up
+> > is enough.
+> 
+> Wouldn't that be racy, given that an interrupt which occurs at beween
+> the point in time when the driver decides to wait for IRQs again until
+> the mux has finished switching over, could potentially be lost?
 
-Thanks,
-Ohad.
+The IRQ is level triggered, so can't be lost. I implemented it as
+suggested and surprisingly performance is pretty good. Actually not
+worse than keeping the fclk enabled all times.
+
+module: 88W8787 / mwifiex
+tx bitrate: 150.0 MBit/s MCS 7 40Mhz short GI
+
+                   |   tcp tx         |  signal  | cpu idle
+---------------------------------------------------------------
+keep fclk enabled  |   50.3 Mbits/sec | -23 dBm  | 15 %
+suspend/resume     |   49.7 Mbits/sec | -22 dBM  | 13 %
+
+patch follows
+
+/Andi
