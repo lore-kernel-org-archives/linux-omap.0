@@ -1,47 +1,100 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v2 3/3] gpio: twl4030: TODO comment to remove the PWMA/B
- (LEDA/B) handling
-Date: Thu, 20 Dec 2012 09:45:50 +0000
-Message-ID: <CACxGe6tBoyp3oXJP-uoDxHnP2YPJn2E-f1CToqpp20nqapOiJQ@mail.gmail.com>
-References: <1354791127-20545-1-git-send-email-peter.ujfalusi@ti.com>
- <1354791127-20545-4-git-send-email-peter.ujfalusi@ti.com> <20121219170737.E5DB13E0C56@localhost>
- <50D2D91B.8010203@ti.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH 1/1] ARM: OMAP3: igep0020: simplify GPIO LEDs dependencies
+Date: Thu, 20 Dec 2012 15:05:19 +0100
+Message-ID: <CABxcv=k6wypYO+JOV1rWyuGtR-seNQ2PFqym7QsAdkC+mC7P8g@mail.gmail.com>
+References: <1355505428-24302-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:64761 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752144Ab2LTJqL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Dec 2012 04:46:11 -0500
-Received: by mail-pa0-f42.google.com with SMTP id rl6so1962440pac.15
-        for <linux-omap@vger.kernel.org>; Thu, 20 Dec 2012 01:46:10 -0800 (PST)
-In-Reply-To: <50D2D91B.8010203@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1355505428-24302-1-git-send-email-javier.martinez@collabora.co.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>, Russell King <linux@arm.linux.org.uk>, Matthias Brugger <matthias.bgg@googlemail.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Dec 20, 2012 at 9:23 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> On 12/19/2012 06:07 PM, Grant Likely wrote:
->> On Thu, 6 Dec 2012 11:52:07 +0100, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
->>> This GPIO driver should not configure anything else then GPIOs.
->>>
->>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->>
->> I'm not sure if this is the right direction. I actually have no problem
->> with a single driver that registers itself with multiple interfaces (ie.
->> GPIO and PWM) if it makes sense for it to do so. I suspec that a lot of
->> the multifunction device drivers break things up more than is strictly
->> necessary.
+On Fri, Dec 14, 2012 at 6:17 PM, Javier Martinez Canillas
+<javier.martinez@collabora.co.uk> wrote:
+> The IGEPv2 board has two user GPIO LEDs and one of them is
+> default to "on" to tell the user that the board booted correctly.
 >
-> We have PWM drivers for these IPs. As you remember this is the reason I
-> started to work on the gpio-pwm driver so we can have cleaner, more generic
-> way to map a PWM as a gpio. I really don't like the idea of having the same
-> PWM code sitting in various places in the kernel just because it was easier to
-> hack it like that rather then to make an effort for a clean implementation.
-> The PWM handling in the gpio-twl4030 driver is a prime example of this IMHO.
-> It is just a shortcut, nothing else.
+> But to use these LEDs the config options CONFIG_LEDS_GPIO,
+> CONFIG_LEDS_TRIGGERS and CONFIG_LEDS_TRIGGER_DEFAULT_ON have to
+> be enabled.
+>
+> Since only the default-on and default-off triggers were used
+> anyway, it is better to just use .default_state instead of
+> .default_trigger and not depend on CONFIG_LEDS_TRIGGER_*
+>
+> Also, this is consistent with IGEPv2 Device Tree that uses
+> default-state instead of linux,default-trigger for the leds
+> device nodes. The LED names also have been updated to use the
+> same names used on omap3-igep0020.dtb.
+>
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> ---
+>  arch/arm/mach-omap2/board-igep0020.c |   16 ++++++++--------
+>  1 files changed, 8 insertions(+), 8 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+> index 0f24cb8..1921541 100644
+> --- a/arch/arm/mach-omap2/board-igep0020.c
+> +++ b/arch/arm/mach-omap2/board-igep0020.c
+> @@ -300,20 +300,20 @@ static struct omap2_hsmmc_info mmc[] = {
+>
+>  static struct gpio_led igep_gpio_leds[] = {
+>         [0] = {
+> -               .name                   = "gpio-led:red:d0",
+> -               .default_trigger        = "default-off"
+> +               .name                   = "omap3:red:user0",
+> +               .default_state          = 0,
+>         },
+>         [1] = {
+> -               .name                   = "gpio-led:green:d0",
+> -               .default_trigger        = "default-off",
+> +               .name                   = "omap3:green:boot",
+> +               .default_state          = 1,
+>         },
+>         [2] = {
+> -               .name                   = "gpio-led:red:d1",
+> -               .default_trigger        = "default-off",
+> +               .name                   = "omap3:red:user1",
+> +               .default_state          = 0,
+>         },
+>         [3] = {
+> -               .name                   = "gpio-led:green:d1",
+> -               .default_trigger        = "heartbeat",
+> +               .name                   = "omap3:green:user1",
+> +               .default_state          = 0,
+>                 .gpio                   = -EINVAL, /* gets replaced */
+>                 .active_low             = 1,
+>         },
+> --
 
-Ah, right. (there's nothing wrong with my memory, it's just short)  :-p
+Hi Tony,
 
-g.
+Any comments on this patch?
+
+I wonder if I should keep sending fixes/improvements for board-igep0020.c
+
+I already sent an initial Device Tree support for IGEP boards [1] and
+Benoit told me he is going to queue for 3.9. But still doesn't support
+many peripherals found on these boards because they still don't proper
+DT support, for instance NAND and Ethernet need the GPMC bindings
+patches that haven't hit mainline yet.
+
+So, it seems I will have to keep working on the board file until it
+can be completely deprecated.
+
+Thanks a lot and best regards,
+Javier
+
+[1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg82383.html
