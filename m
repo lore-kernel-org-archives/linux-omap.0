@@ -1,47 +1,104 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/9] drivers: mailbox: framework creation
-Date: Thu, 20 Dec 2012 10:28:36 -0800
-Message-ID: <20121220182835.GB21056@atomide.com>
-References: <1355836212-17956-1-git-send-email-loic.pallardy-ext@stericsson.com>
- <CACRpkdaqO7AAeYeR8SZt4Tbv1grrMq85TNYMc-FSbUSrnZBm=Q@mail.gmail.com>
+Subject: Re: [PATCH] lib: atomic64: Initialize locks statically to fix
+ early users
+Date: Thu, 20 Dec 2012 11:06:43 -0800
+Message-ID: <20121220190642.GE21056@atomide.com>
+References: <50D2B94D.10309@codeaurora.org>
+ <1355989188-17665-1-git-send-email-sboyd@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdaqO7AAeYeR8SZt4Tbv1grrMq85TNYMc-FSbUSrnZBm=Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Loic Pallardy <loic.pallardy-ext@stericsson.com>, arm@kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic PALLARDY <loic.pallardy@st.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Suman Anna <s-anna@ti.com>, Juan Gutierrez <jgutierrez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Tejun Heo <tj@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, Omar Ramirez Luna <omar.luna@linaro.org>
+In-Reply-To: <1355989188-17665-1-git-send-email-sboyd@codeaurora.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, paul@pwsan.com, vaibhav.bedia@ti.com, "Eric W. Biederman" <ebiederm@xmission.com>, Linus Torvalds <torvalds@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Miller <davem@davemloft.net>
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [121220 10:19]:
-> On Tue, Dec 18, 2012 at 2:10 PM, Loic Pallardy
-> <loic.pallardy-ext@stericsson.com> wrote:
+* Stephen Boyd <sboyd@codeaurora.org> [121219 23:42]:
+> The atomic64 library uses a handful of static spin locks to
+> implement atomic 64-bit operations on architectures without
+> support for atomic 64-bit instructions. Unfortunately, the
+> spinlocks are initialized in a pure initcall and that is too late
+> for the vfs namespace code which wants to use atomic64 operations
+> before the initcall is run (introduced by 8823c07 "vfs: Add setns
+> support for the mount namespace").
 > 
-> > OMAP and ST-Ericsson platforms are both using mailbox to communicate
-> > with some coprocessors.
-> > Based on OMAP existing mailbox framework, this series proposes a
-> > generic framework, living under drivers/mailbox.
+> This leads to BUG messages such as:
 > 
-> I like this patch series so you have my Acked-by.
+> BUG: spinlock bad magic on CPU#0, swapper/0/0
+>  lock: atomic64_lock+0x240/0x400, .magic: 00000000, .owner: <none>/-1, .owner_cpu: 0
+> [<c001af64>] (unwind_backtrace+0x0/0xf0) from [<c02c2010>] (do_raw_spin_lock+0x158/0x198)
+> [<c02c2010>] (do_raw_spin_lock+0x158/0x198) from [<c04d89ec>] (_raw_spin_lock_irqsave+0x4c/0x58)
+> [<c04d89ec>] (_raw_spin_lock_irqsave+0x4c/0x58) from [<c02cabf0>] (atomic64_add_return+0x30/0x5c)
+> [<c02cabf0>] (atomic64_add_return+0x30/0x5c) from [<c0124564>] (alloc_mnt_ns.clone.14+0x44/0xac)
+> [<c0124564>] (alloc_mnt_ns.clone.14+0x44/0xac) from [<c0124f4c>] (create_mnt_ns+0xc/0x54)
+> [<c0124f4c>] (create_mnt_ns+0xc/0x54) from [<c06f31a4>] (mnt_init+0x120/0x1d4)
+> [<c06f31a4>] (mnt_init+0x120/0x1d4) from [<c06f2d50>] (vfs_caches_init+0xe0/0x10c)
+> [<c06f2d50>] (vfs_caches_init+0xe0/0x10c) from [<c06d4798>] (start_kernel+0x29c/0x300)
+> [<c06d4798>] (start_kernel+0x29c/0x300) from [<80008078>] (0x80008078)
 > 
-> Since it's a new subsystem and affects a few ARM architectures can
-> we merge this into the ARM SoC tree once we have consensus,
-> so we get some rotation in linux-next that way?
+> coming out early on during boot when spinlock debugging is enabled.
+> 
+> Fix this problem by initializing the spinlocks statically at
+> compile time.
+> 
+> Reported-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> Cc: Eric W. Biederman <ebiederm@xmission.com>
+> Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+> ---
+> 
+> Sorry Andrew, I couldn't find a maintainer of this file so I
+> am picking on you.
 
-Yes good idea.
+Works for me:
+
+Tested-by: Tony Lindgren <tony@atomide.com>
+
+Added Linus, Benjamin and David to Cc as this came up on the ARM list.
+
  
-> Olof/Arnd?
-
-I suggest we set up an immutable branch against
-v3.8-rc1 when it's out with only these patches in it.
-Then we can all merge it in as needed. Maybe Arnd or
-Olof can set up the branch?
-
-FYI, looks like I need to merge in this branch too to
-avoid build errors with remoteproc enabled once I flip
-on the multiplatform support for omap2+.
-
-Regards,
-
-Tony
+>  lib/atomic64.c | 17 +++++------------
+>  1 file changed, 5 insertions(+), 12 deletions(-)
+> 
+> diff --git a/lib/atomic64.c b/lib/atomic64.c
+> index 9785378..08a4f06 100644
+> --- a/lib/atomic64.c
+> +++ b/lib/atomic64.c
+> @@ -31,7 +31,11 @@
+>  static union {
+>  	raw_spinlock_t lock;
+>  	char pad[L1_CACHE_BYTES];
+> -} atomic64_lock[NR_LOCKS] __cacheline_aligned_in_smp;
+> +} atomic64_lock[NR_LOCKS] __cacheline_aligned_in_smp = {
+> +	[0 ... (NR_LOCKS - 1)] = {
+> +		.lock =  __RAW_SPIN_LOCK_UNLOCKED(atomic64_lock.lock),
+> +	},
+> +};
+>  
+>  static inline raw_spinlock_t *lock_addr(const atomic64_t *v)
+>  {
+> @@ -173,14 +177,3 @@ int atomic64_add_unless(atomic64_t *v, long long a, long long u)
+>  	return ret;
+>  }
+>  EXPORT_SYMBOL(atomic64_add_unless);
+> -
+> -static int init_atomic64_lock(void)
+> -{
+> -	int i;
+> -
+> -	for (i = 0; i < NR_LOCKS; ++i)
+> -		raw_spin_lock_init(&atomic64_lock[i].lock);
+> -	return 0;
+> -}
+> -
+> -pure_initcall(init_atomic64_lock);
+> -- 
+> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+> hosted by The Linux Foundation
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
