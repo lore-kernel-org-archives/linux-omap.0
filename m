@@ -1,33 +1,41 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [GIT PULL] two trivial omap build error fixes for v3.8 merge
-	window
-Date: Thu, 20 Dec 2012 15:01:05 +0000
-Message-ID: <20121220150105.GA28275@n2100.arm.linux.org.uk>
-References: <20121219171828.GP4989@atomide.com>
+From: Vinod Koul <vkoul@infradead.org>
+Subject: Re: [PATCH V6 2/2] dmaengine: add helper function to request a
+ slave DMA channel
+Date: Thu, 20 Dec 2012 06:57:54 -0800
+Message-ID: <1356015474.7077.2987.camel@vkoul-udesk3>
+References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com>
+	 <1347662517-4210-3-git-send-email-jon-hunter@ti.com>
+	 <1347852805.1943.130.camel@vkoul-udesk3> <201209171159.27359.arnd@arndb.de>
+	 <20120917223619.GC12445@n2100.arm.linux.org.uk>
+	 <1347938035.1943.162.camel@vkoul-udesk3> <5060DDEB.4000600@ti.com>
+	 <1348547701.1943.190.camel@vkoul-udesk3>
+	 <20121016024318.GF24393@S2101-09.ap.freescale.net>
+	 <1350355144.1648.5259.camel@vkoul-udesk3>  <509D6108.1060304@ti.com>
+	 <1353029876.7077.56.camel@vkoul-udesk3>  <50D1F562.60904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34934 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751063Ab2LTPBR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Dec 2012 10:01:17 -0500
-Content-Disposition: inline
-In-Reply-To: <20121219171828.GP4989@atomide.com>
+Received: from merlin.infradead.org ([205.233.59.134]:37904 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750917Ab2LTPUt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Dec 2012 10:20:49 -0500
+In-Reply-To: <50D1F562.60904@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: vinod.koul@intel.com, Shawn Guo <shawn.guo@linaro.org>, Stephen Warren <swarren@nvidia.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Dec 19, 2012 at 09:18:28AM -0800, Tony Lindgren wrote:
-> Here's few more trivial build fixes caused by the merge
-> conflicts.
+On Wed, 2012-12-19 at 11:12 -0600, Jon Hunter wrote:
+> I am not sure if I have missed your pull request, but wanted to see if
+> you had or were going to send a pull request for the DT changes for
+> v3.8? I believe that the merge window ends this week. 
+Not yet sent. I was waiting on Dan's changes, just merged and pushed
+those.
+Pull request should show up in couple of days.
 
-If Olof isn't able to pull this stuff in tonight, I'll pull it into my
-tree and send it up with my stuff.  I'll also see about picking up
-on the previous one with the common.c vram.h fix too.
+Thanks
+-- 
+Vinod Koul
+Intel Corp.
 
-I'm not sure what Olof's plans are, but I know Arnd isn't around at
-the moment, and Olof was travelling a couple of days ago and hasn't
-reappeared since.  I don't think we can leave these fixes any longer
-as OMAP has been broken in mainline for at least the last four days
-and we're nearing the end of the merge window.
