@@ -1,60 +1,62 @@
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: Re: [PATCH] arm: omap3: igep0020: Add console default kernel arguments
-Date: Fri, 21 Dec 2012 17:02:08 +0100
-Message-ID: <CAFqH_50ELkdXhVwW8atG0VsXU85S3pZqCVf9cytQRGk5SocFXw@mail.gmail.com>
-References: <1356018118-29852-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1356018118-29852-1-git-send-email-ezequiel.garcia@free-electrons.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Gregory Clement <gregory.clement@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: [PATCH 02/15] ARM: OMAP2xxx: hwmod: Add DMA support for SHAM module
+Date: Fri, 21 Dec 2012 09:28:02 -0700
+Message-ID: <1356107295-11121-3-git-send-email-mgreer@animalcreek.com>
+References: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:38729 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751091Ab2LUQ2c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 11:28:32 -0500
+In-Reply-To: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: paul@pwsan.com, "Mark A. Greer" <mgreer@animalcreek.com>
 
-Hi Ezequiel,
+From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-Thanks  for the patch.
+The current OMAP2 SHAM support doesn't enable DMA
+so add that support so it can use DMA just like OMAP3.
 
-2012/12/20 Ezequiel Garcia <ezequiel.garcia@free-electrons.com>:
-> IGEP v2 boards has console as ttyO2,115200n8.
-> It's better so simply set this as the default kernel argument
-> directly in the device tree board file.
->
-> Cc: Enric Balletbo i Serra <eballetbo@gmail.com>
-> Cc: Javier Martinez Canillas <javier@dowhile0.org>
-> Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> ---
->  arch/arm/boot/dts/omap3-igep0020.dts |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
-> index e2b9849..45ffe21 100644
-> --- a/arch/arm/boot/dts/omap3-igep0020.dts
-> +++ b/arch/arm/boot/dts/omap3-igep0020.dts
-> @@ -15,6 +15,10 @@
->         model = "IGEPv2";
->         compatible = "isee,omap3-igep0020", "ti,omap3";
->
-> +       chosen {
-> +               bootargs = "console=ttyO2,115200n8 earlyprintk";
-> +       };
-> +
+CC: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c      | 6 ++++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-The u-boot 'bootargs' env overwrites the one from chosen ?
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
+index 8a9b67a..510f584 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
+@@ -405,5 +405,5 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__sham = {
+ 	.slave		= &omap2xxx_sham_hwmod,
+ 	.clk		= "sha_ick",
+ 	.addr		= omap2xxx_sham_addrs,
+-	.user		= OCP_USER_MPU,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+index e72132d..ab3305b 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+@@ -886,9 +886,15 @@ struct omap_hwmod_irq_info omap2_sham_mpu_irqs[] = {
+ 	{ .irq = -1 }
+ };
+ 
++struct omap_hwmod_dma_info omap2_sham_sdma_chs[] = {
++	{ .name = "rx", .dma_req = 13 },
++	{ .dma_req = -1 }
++};
++
+ struct omap_hwmod omap2xxx_sham_hwmod = {
+ 	.name		= "sham",
+ 	.mpu_irqs	= omap2_sham_mpu_irqs,
++	.sdma_reqs	= omap2_sham_sdma_chs,
+ 	.main_clk	= "l4_ck",
+ 	.prcm		= {
+ 		.omap2 = {
+-- 
+1.7.12
 
->         leds {
->                 compatible = "gpio-leds";
->                 boot {
-> --
-> 1.7.8.6
->
