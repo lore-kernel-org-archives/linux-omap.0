@@ -1,75 +1,37 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH] arm: omap3: igep0020: Add console default kernel arguments
-Date: Fri, 21 Dec 2012 19:10:27 +0100
-Message-ID: <CAAwP0s1snYU7FR-BVM=GLg0oopT6NkBVLOysffia0dadsxW+BQ@mail.gmail.com>
-References: <1356018118-29852-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <CAFqH_50ELkdXhVwW8atG0VsXU85S3pZqCVf9cytQRGk5SocFXw@mail.gmail.com>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH 00/15] OMAP SHAM & AES Crypto Updates
+Date: Fri, 21 Dec 2012 20:09:25 +0100
+Message-ID: <87a9t78boa.fsf@dell.be.48ers.dk>
+References: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f179.google.com ([209.85.214.179]:33876 "EHLO
-	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751130Ab2LUSKs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 13:10:48 -0500
-Received: by mail-ob0-f179.google.com with SMTP id x4so4798922obh.24
-        for <linux-omap@vger.kernel.org>; Fri, 21 Dec 2012 10:10:47 -0800 (PST)
-In-Reply-To: <CAFqH_50ELkdXhVwW8atG0VsXU85S3pZqCVf9cytQRGk5SocFXw@mail.gmail.com>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:64130 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751085Ab2LUTJa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 14:09:30 -0500
+Received: by mail-wi0-f177.google.com with SMTP id hm2so2971589wib.10
+        for <linux-omap@vger.kernel.org>; Fri, 21 Dec 2012 11:09:28 -0800 (PST)
+In-Reply-To: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com> (Mark
+	A. Greer's message of "Fri, 21 Dec 2012 09:28:00 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo Serra <eballetbo@gmail.com>
-Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Gregory Clement <gregory.clement@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
 
-Hi Ezequiel,
+>>>>> "Mark" == Mark A Greer <mgreer@animalcreek.com> writes:
 
-Thanks for the patch
+ Mark> From: "Mark A. Greer" <mgreer@animalcreek.com>
+ Mark> [This series supersedes the hwmod related patches sent in the
+ Mark>  "crypto: omap-sham updates" and "crypto: omap-aes updates"
+ Mark>  series a few weeks ago.]
 
-On Fri, Dec 21, 2012 at 5:02 PM, Enric Balletbo Serra
-<eballetbo@gmail.com> wrote:
-> Hi Ezequiel,
->
-> Thanks  for the patch.
->
-> 2012/12/20 Ezequiel Garcia <ezequiel.garcia@free-electrons.com>:
->> IGEP v2 boards has console as ttyO2,115200n8.
->> It's better so simply set this as the default kernel argument
->> directly in the device tree board file.
->>
->> Cc: Enric Balletbo i Serra <eballetbo@gmail.com>
->> Cc: Javier Martinez Canillas <javier@dowhile0.org>
->> Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
->> ---
->>  arch/arm/boot/dts/omap3-igep0020.dts |    4 ++++
->>  1 files changed, 4 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
->> index e2b9849..45ffe21 100644
->> --- a/arch/arm/boot/dts/omap3-igep0020.dts
->> +++ b/arch/arm/boot/dts/omap3-igep0020.dts
->> @@ -15,6 +15,10 @@
->>         model = "IGEPv2";
->>         compatible = "isee,omap3-igep0020", "ti,omap3";
->>
->> +       chosen {
->> +               bootargs = "console=ttyO2,115200n8 earlyprintk";
->> +       };
->> +
->
-> The u-boot 'bootargs' env overwrites the one from chosen ?
->
+ Mark> This series adds hwmod support for the OMAP SHAM and AES
+ Mark> modules on OMAP2, OMAP3, and OMAP4/AM33XX SoCs.  It also
+ Mark> adds device tree info for those modules.
 
-I just tested and U-Boot 'bootargs' has precedence over DT bootargs
-but I didn't find a way to append boot parameters from U-Boot. You can
-either overwrite it completely or not.
+Huh, does am335x have a sham module? I don't see any mention of that in
+spruh73g.pdf
 
-That been said I think that is a good idea to have some default
-bootargs on the DT but since you can't append any boot option from
-U-Boot I would also add root=/dev/mmcblk0p2 rw rootwait so at least it
-will be able to mount the rootfs from the uSD/MMC.
-
-Also, many IGEP COM Module base boards also have serial consoles that
-are connected to the OMAP3 UART3 (ttyO2), so maybe is better to add
-this to omap3-igep.dtsi instead of omap3-igep0020.dts to avoid future
-duplication.
-
-Best regards,
-Javier
+-- 
+Bye, Peter Korsgaard
