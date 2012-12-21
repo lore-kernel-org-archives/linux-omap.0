@@ -1,133 +1,72 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH 14/15] ARM: AM33XX: hwmod: Update and uncomment AES0 module data
-Date: Fri, 21 Dec 2012 09:28:14 -0700
-Message-ID: <1356107295-11121-15-git-send-email-mgreer@animalcreek.com>
-References: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap_twl: Change
+ TWL4030_MODULE_PM_RECEIVER to TWL_MODULE_PM_RECEIVER
+Date: Fri, 21 Dec 2012 08:41:17 -0800
+Message-ID: <20121221164116.GK21056@atomide.com>
+References: <1352799152-20980-1-git-send-email-peter.ujfalusi@ti.com>
+ <50A4A376.3020703@ti.com>
+ <20121121215234.GB5279@atomide.com>
+ <50ADFDD3.1080508@ti.com>
+ <20121214171800.GO4989@atomide.com>
+ <50D45B72.2050300@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:38988 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752515Ab2LUQ2m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 11:28:42 -0500
-In-Reply-To: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:11110 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751091Ab2LUQlU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 11:41:20 -0500
+Content-Disposition: inline
+In-Reply-To: <50D45B72.2050300@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: paul@pwsan.com, "Mark A. Greer" <mgreer@animalcreek.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-From: "Mark A. Greer" <mgreer@animalcreek.com>
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [121221 04:54]:
+> Hi Tony,
+> 
+> On 12/14/2012 06:18 PM, Tony Lindgren wrote:
+> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [121122 02:28]:
+> >> Hi Tony,
+> >>
+> >> On 11/21/2012 10:52 PM, Tony Lindgren wrote:
+> >>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [121115 00:12]:
+> >>>> Hi Tony,
+> >>>>
+> >>>> On 11/13/2012 10:32 AM, Peter Ujfalusi wrote:
+> >>>>> To facilitate upcoming cleanup in twl stack.
+> >>>>> No functional change.
+> >>>>
+> >>>> Would you please consider this patch for 3.8? It would shorten the time I'll
+> >>>> need to progress on the cleanup regarding to twl-core greatly.
+> >>>
+> >>> Please go ahead and merge this with your other patches:
+> >>>
+> >>> Acked-by: Tony Lindgren <tony@atomide.com>
+> >>>
+> >>> Or let me know if I still need to queue it.
+> >>
+> >> This patch has no dependencies on other patches. It is better to go via
+> >> linux-omap.
+> > 
+> > Applying into omap-for-v3.8/fixes-for-merge-window.
+> 
+> Today I looked at:
+> omap-for-v3.8/fixes-for-merge-window-part2
+> omap-for-v3.8/fixes-for-merge-window-v4
+> omap-for-v3.8/fixes-non-critical-v2
+> 
+> branches as well linux-next, mainline, but I can not find this patch. I want
+> to send the second part of the twl-core cleanup series which needs this patch
+> to be in first.
+> Can you make sure this is going for 3.8?
 
-Update the AES0 HIB2 module's hwmod data for the am33xx SoC.
-Also, remove it from the '#if 0' block that its currently
-inside so the data is actually available for use.
+It should be in omap-for-v3.8/cleanup-for-merge-window
+that Olof wanted separated from fixes so hopefully it
+will get queued once the merge window related issues are
+out of the way.
 
-CC: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
----
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 51 ++++++++++++++++++++++++------
- 1 file changed, 42 insertions(+), 9 deletions(-)
+Regards,
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 9f7aadd..ece1162 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -416,7 +416,6 @@ static struct omap_hwmod am33xx_adc_tsc_hwmod = {
-  *    - debugss
-  *    - ocmc ram
-  *    - ocp watch point
-- *    - aes0
-  */
- #if 0
- /*
-@@ -516,25 +515,41 @@ static struct omap_hwmod am33xx_ocpwp_hwmod = {
- 		},
- 	},
- };
-+#endif
- 
- /*
-- * 'aes' class
-+ * 'aes0' class
-  */
--static struct omap_hwmod_class am33xx_aes_hwmod_class = {
--	.name		= "aes",
-+static struct omap_hwmod_class_sysconfig am33xx_aes0_sysc = {
-+	.rev_offs	= 0x80,
-+	.sysc_offs	= 0x84,
-+	.syss_offs	= 0x88,
-+	.sysc_flags	= SYSS_HAS_RESET_STATUS,
-+};
-+
-+static struct omap_hwmod_class am33xx_aes0_hwmod_class = {
-+	.name		= "aes0",
-+	.sysc		= &am33xx_aes0_sysc,
- };
- 
- static struct omap_hwmod_irq_info am33xx_aes0_irqs[] = {
--	{ .irq = 102 + OMAP_INTC_START, },
-+	{ .irq = 103 + OMAP_INTC_START, },
- 	{ .irq = -1 },
- };
- 
-+struct omap_hwmod_dma_info am33xx_aes0_edma_reqs[] = {
-+	{ .name = "tx", .dma_req = 6, },
-+	{ .name = "rx", .dma_req = 5, },
-+	{ .dma_req = -1 }
-+};
-+
- static struct omap_hwmod am33xx_aes0_hwmod = {
--	.name		= "aes0",
--	.class		= &am33xx_aes_hwmod_class,
-+	.name		= "aes",
-+	.class		= &am33xx_aes0_hwmod_class,
- 	.clkdm_name	= "l3_clkdm",
- 	.mpu_irqs	= am33xx_aes0_irqs,
--	.main_clk	= "l3_gclk",
-+	.sdma_reqs	= am33xx_aes0_edma_reqs,
-+	.main_clk	= "aes0_fck",
- 	.prcm		= {
- 		.omap4	= {
- 			.clkctrl_offs	= AM33XX_CM_PER_AES0_CLKCTRL_OFFSET,
-@@ -542,7 +557,6 @@ static struct omap_hwmod am33xx_aes0_hwmod = {
- 		},
- 	},
- };
--#endif
- 
- /* sha0 HIB2 (the 'P' (public) device) */
- static struct omap_hwmod_class_sysconfig am33xx_sha0_sysc = {
-@@ -3358,6 +3372,24 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__sha0 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l3 main -> AES0 HIB2 */
-+static struct omap_hwmod_addr_space am33xx_aes0_addrs[] = {
-+	{
-+		.pa_start	= 0x53500000,
-+		.pa_end		= 0x53500000 + SZ_1M - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
-+static struct omap_hwmod_ocp_if am33xx_l3_main__aes0 = {
-+	.master		= &am33xx_l3_main_hwmod,
-+	.slave		= &am33xx_aes0_hwmod,
-+	.clk		= "aes0_fck",
-+	.addr		= am33xx_aes0_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l4_fw__emif_fw,
- 	&am33xx_l3_main__emif,
-@@ -3432,6 +3464,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l4_hs__cpgmac0,
- 	&am33xx_cpgmac0__mdio,
- 	&am33xx_l3_main__sha0,
-+	&am33xx_l3_main__aes0,
- 	NULL,
- };
- 
--- 
-1.7.12
-
+Tony
