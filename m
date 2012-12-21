@@ -1,13 +1,13 @@
 From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH 12/15] ARM: OMAP2+: Only manually add hwmod data when DT not used.
-Date: Fri, 21 Dec 2012 09:28:12 -0700
-Message-ID: <1356107295-11121-13-git-send-email-mgreer@animalcreek.com>
+Subject: [PATCH 14/15] ARM: AM33XX: hwmod: Update and uncomment AES0 module data
+Date: Fri, 21 Dec 2012 09:28:14 -0700
+Message-ID: <1356107295-11121-15-git-send-email-mgreer@animalcreek.com>
 References: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:38921 "EHLO
+Received: from mail20.dotsterhost.com ([66.11.232.73]:38988 "EHLO
 	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751846Ab2LUQ2j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 11:28:39 -0500
+	with ESMTP id S1752515Ab2LUQ2m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 11:28:42 -0500
 In-Reply-To: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,30 +16,117 @@ Cc: paul@pwsan.com, "Mark A. Greer" <mgreer@animalcreek.com>
 
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-The omap_init_aes() routine in devices.c only needs to be
-called when there is no device tree present.
+Update the AES0 HIB2 module's hwmod data for the am33xx SoC.
+Also, remove it from the '#if 0' block that its currently
+inside so the data is actually available for use.
 
 CC: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- arch/arm/mach-omap2/devices.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 51 ++++++++++++++++++++++++------
+ 1 file changed, 42 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index ab8658c..a261773 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -616,10 +616,10 @@ static int __init omap2_init_devices(void)
- 		omap_init_mcpdm();
- 		omap_init_mcspi();
- 		omap_init_sham();
-+		omap_init_aes();
- 	}
- 	omap_init_sti();
- 	omap_init_rng();
--	omap_init_aes();
- 	omap_init_vout();
- 	omap_init_ocp2scp();
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index 9f7aadd..ece1162 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -416,7 +416,6 @@ static struct omap_hwmod am33xx_adc_tsc_hwmod = {
+  *    - debugss
+  *    - ocmc ram
+  *    - ocp watch point
+- *    - aes0
+  */
+ #if 0
+ /*
+@@ -516,25 +515,41 @@ static struct omap_hwmod am33xx_ocpwp_hwmod = {
+ 		},
+ 	},
+ };
++#endif
+ 
+ /*
+- * 'aes' class
++ * 'aes0' class
+  */
+-static struct omap_hwmod_class am33xx_aes_hwmod_class = {
+-	.name		= "aes",
++static struct omap_hwmod_class_sysconfig am33xx_aes0_sysc = {
++	.rev_offs	= 0x80,
++	.sysc_offs	= 0x84,
++	.syss_offs	= 0x88,
++	.sysc_flags	= SYSS_HAS_RESET_STATUS,
++};
++
++static struct omap_hwmod_class am33xx_aes0_hwmod_class = {
++	.name		= "aes0",
++	.sysc		= &am33xx_aes0_sysc,
+ };
+ 
+ static struct omap_hwmod_irq_info am33xx_aes0_irqs[] = {
+-	{ .irq = 102 + OMAP_INTC_START, },
++	{ .irq = 103 + OMAP_INTC_START, },
+ 	{ .irq = -1 },
+ };
+ 
++struct omap_hwmod_dma_info am33xx_aes0_edma_reqs[] = {
++	{ .name = "tx", .dma_req = 6, },
++	{ .name = "rx", .dma_req = 5, },
++	{ .dma_req = -1 }
++};
++
+ static struct omap_hwmod am33xx_aes0_hwmod = {
+-	.name		= "aes0",
+-	.class		= &am33xx_aes_hwmod_class,
++	.name		= "aes",
++	.class		= &am33xx_aes0_hwmod_class,
+ 	.clkdm_name	= "l3_clkdm",
+ 	.mpu_irqs	= am33xx_aes0_irqs,
+-	.main_clk	= "l3_gclk",
++	.sdma_reqs	= am33xx_aes0_edma_reqs,
++	.main_clk	= "aes0_fck",
+ 	.prcm		= {
+ 		.omap4	= {
+ 			.clkctrl_offs	= AM33XX_CM_PER_AES0_CLKCTRL_OFFSET,
+@@ -542,7 +557,6 @@ static struct omap_hwmod am33xx_aes0_hwmod = {
+ 		},
+ 	},
+ };
+-#endif
+ 
+ /* sha0 HIB2 (the 'P' (public) device) */
+ static struct omap_hwmod_class_sysconfig am33xx_sha0_sysc = {
+@@ -3358,6 +3372,24 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__sha0 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* l3 main -> AES0 HIB2 */
++static struct omap_hwmod_addr_space am33xx_aes0_addrs[] = {
++	{
++		.pa_start	= 0x53500000,
++		.pa_end		= 0x53500000 + SZ_1M - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++static struct omap_hwmod_ocp_if am33xx_l3_main__aes0 = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_aes0_hwmod,
++	.clk		= "aes0_fck",
++	.addr		= am33xx_aes0_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l4_fw__emif_fw,
+ 	&am33xx_l3_main__emif,
+@@ -3432,6 +3464,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l4_hs__cpgmac0,
+ 	&am33xx_cpgmac0__mdio,
+ 	&am33xx_l3_main__sha0,
++	&am33xx_l3_main__aes0,
+ 	NULL,
+ };
  
 -- 
 1.7.12
