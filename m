@@ -1,72 +1,144 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: omap_twl: Change
- TWL4030_MODULE_PM_RECEIVER to TWL_MODULE_PM_RECEIVER
-Date: Fri, 21 Dec 2012 08:41:17 -0800
-Message-ID: <20121221164116.GK21056@atomide.com>
-References: <1352799152-20980-1-git-send-email-peter.ujfalusi@ti.com>
- <50A4A376.3020703@ti.com>
- <20121121215234.GB5279@atomide.com>
- <50ADFDD3.1080508@ti.com>
- <20121214171800.GO4989@atomide.com>
- <50D45B72.2050300@ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [pandaboard] device tree does not work
+Date: Fri, 21 Dec 2012 16:42:42 +0000
+Message-ID: <2822D1C2B9B19F4A8261F756A13373F8C5607D@DFLE12.ent.ti.com>
+References: <CANkO5KMsia5GhZTdR6mFgnhf+84SK9CJHr9gjRAEMu2uHuSm8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-2022-jp"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:11110 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751091Ab2LUQlU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 11:41:20 -0500
-Content-Disposition: inline
-In-Reply-To: <50D45B72.2050300@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50411 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751091Ab2LUQmo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 11:42:44 -0500
+In-Reply-To: <CANkO5KMsia5GhZTdR6mFgnhf+84SK9CJHr9gjRAEMu2uHuSm8Q@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
+To: "ghorai.sukumar@gmail.com" <ghorai.sukumar@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [121221 04:54]:
-> Hi Tony,
-> 
-> On 12/14/2012 06:18 PM, Tony Lindgren wrote:
-> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [121122 02:28]:
-> >> Hi Tony,
-> >>
-> >> On 11/21/2012 10:52 PM, Tony Lindgren wrote:
-> >>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [121115 00:12]:
-> >>>> Hi Tony,
-> >>>>
-> >>>> On 11/13/2012 10:32 AM, Peter Ujfalusi wrote:
-> >>>>> To facilitate upcoming cleanup in twl stack.
-> >>>>> No functional change.
-> >>>>
-> >>>> Would you please consider this patch for 3.8? It would shorten the time I'll
-> >>>> need to progress on the cleanup regarding to twl-core greatly.
-> >>>
-> >>> Please go ahead and merge this with your other patches:
-> >>>
-> >>> Acked-by: Tony Lindgren <tony@atomide.com>
-> >>>
-> >>> Or let me know if I still need to queue it.
-> >>
-> >> This patch has no dependencies on other patches. It is better to go via
-> >> linux-omap.
-> > 
-> > Applying into omap-for-v3.8/fixes-for-merge-window.
-> 
-> Today I looked at:
-> omap-for-v3.8/fixes-for-merge-window-part2
-> omap-for-v3.8/fixes-for-merge-window-v4
-> omap-for-v3.8/fixes-non-critical-v2
-> 
-> branches as well linux-next, mainline, but I can not find this patch. I want
-> to send the second part of the twl-core cleanup series which needs this patch
-> to be in first.
-> Can you make sure this is going for 3.8?
-
-It should be in omap-for-v3.8/cleanup-for-merge-window
-that Olof wanted separated from fixes so hopefully it
-will get queued once the merge window related issues are
-out of the way.
-
+Shifting thread to linux-omap mailing list.
 Regards,
+Nishanth Menon
+________________________________________
+From: pandaboard@googlegroups.com [pandaboard@googlegroups.com] on behalf of Sukumar Ghorai [ghorai.sukumar@gmail.com]
+Sent: Friday, December 21, 2012 10:33
+To: pandaboard@googlegroups.com
+Subject: [pandaboard] device tree does not work
 
-Tony
+Hi,
+Device Tree in Panda board does not boot.
+
+Device Tree with legacy u-boot : Appending dtb blob to kernel
+        menuconfig → boot options
+        select [*] Use appended device tree blob to zImage (EXPERIMENTAL)
+        Used with legacy u-boot
+
+U-Boot 2011.09 (Nov 19 2011 - 04:44:45)
+
+CPU  : OMAP4430
+Board: OMAP4 Panda
+I2C:   ready
+DRAM:  1 GiB
+WARNING: Caches not enabled
+MMC:   OMAP SD/MMC: 0
+Using default environment
+
+In:    serial
+Out:   serial
+Err:   serial
+Net:   No ethernet found.
+Hit any key to stop autoboot:  0
+Panda # setenv bootargs 'console=ttyO2,115200n8 root=/dev/mmcblk0p3 rw
+rootwait rootfstype=ext4 init=/sbin/init ignore_loglevel debug
+printk.time=1 earlyprintk'
+Panda # setenv bootcmd 'mmc rescan; fatload mmc 0 80200000
+uImage-21dec; fatload mmc 0 80700000 omap4-panda-es.dtb; bootm
+80200000 - 80700000'
+Panda # boot
+reading uImage-21dec
+
+4243816 bytes read
+reading omap4-panda-es.dtb
+
+13602 bytes read
+## Booting kernel from Legacy Image at 80200000 ...
+   Image Name:   Linux-3.7.0-11091-gf01af9f-dirty
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    4243752 Bytes = 4 MiB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Verifying Checksum ... OK
+## Flattened Device Tree blob at 80700000
+   Booting using the fdt blob at 0x80700000
+   Loading Kernel Image ... OK
+OK
+   reserving fdt memory region: addr=9d000000 size=3000000
+   Loading Device Tree to bfef1000, end bfef7521 ... OK
+
+Starting kernel ...
+
+Uncompressing Linux... done, booting the kernel.
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 3.7.0-11091-gf01af9f-dirty
+(sghorai@bgsxgitb03) (gcc version 4.4.1 (Sourcery G++ Lite 2010q1-202)
+) #15 SMP Fri Dec 21 15:50:23 IST 2012
+[    0.000000] CPU: ARMv7 Processor [411fc092] revision 2 (ARMv7), cr=10c53c7d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing
+instruction cache
+[    0.000000] Machine: Generic OMAP4 (Flattened Device Tree), model:
+TI OMAP4 PandaBoard
+[    0.000000] debug: ignoring loglevel setting.
+[    0.000000] bootconsole [earlycon0] enabled
+[    0.000000] Memory policy: ECC disabled, Data cache writealloc
+[    0.000000] On node 0 totalpages: 261888
+[    0.000000] free_area_init_node: node 0, pgdat c080eec0,
+node_mem_map c0d6d000
+[    0.000000]   Normal zone: 1520 pages used for memmap
+[    0.000000]   Normal zone: 0 pages reserved
+[    0.000000]   Normal zone: 193040 pages, LIFO batch:31
+[    0.000000]   HighMem zone: 528 pages used for memmap
+[    0.000000]   HighMem zone: 66800 pages, LIFO batch:15
+[    0.000000] Unable to handle kernel paging request at virtual
+address ffef1000
+[    0.000000] pgd = c0004000
+[    0.000000] [ffef1000] *pgd=af7fe821, *pte=00000000, *ppte=00000000
+[    0.000000] Internal error: Oops: 17 [#1] SMP ARM
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0    Not tainted  (3.7.0-11091-gf01af9f-dirty #15)
+[    0.000000] PC is at __unflatten_device_tree+0x1c/0x130
+[    0.000000] LR is at unflatten_device_tree+0x1c/0x34
+[    0.000000] pc : [<c04558ec>]    lr : [<c0755910>]    psr: a00001d3
+[    0.000000] sp : c0781f50  ip : 00000001  fp : c0788954
+[    0.000000] r10: c0666de0  r9 : c157c080  r8 : 80000200
+[    0.000000] r7 : c0730f64  r6 : c078d3d0  r5 : ffef1000  r4 : c0730f64
+[    0.000000] r3 : d00dfeed  r2 : c0730f64  r1 : c0d666e8  r0 : ffef1000
+[    0.000000] Flags: NzCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM
+Segment kernel
+[    0.000000] Control: 10c53c7d  Table: 8000404a  DAC: 00000017
+[    0.000000] Process swapper (pid: 0, stack limit = 0xc0780240)
+[    0.000000] Stack: (0xc0781f50 to 0xc0782000)
+[    0.000000] 1f40:                                     80000200
+c157c080 c0d666e8 00000000
+[    0.000000] 1f60: c0730f64 c0d50c68 c078d3d0 c07e2c60 80000200
+c0755910 c075d548 c072fc94
+[    0.000000] 1f80: 00000000 10c53c7d bfffffff c0781fdc 411fc092
+00000000 00000000 c052f9b0
+[    0.000000] 1fa0: c06655ac ffffffff 00000001 00000000 bfffffff
+8000406a 411fc092 00000000
+[    0.000000] 1fc0: 00000000 c072c4ec 00000000 00000000 00000000
+00000000 00000000 c075f2b0
+[    0.000000] 1fe0: 00000000 10c53c7d c078898c c075f2ac c078d1c4
+80008078 00000000 00000000
+[    0.000000] [<c04558ec>] (__unflatten_device_tree+0x1c/0x130) from
+[<c0755910>] (unflatten_device_tree+0x1c/0x34)
+[    0.000000] [<c0755910>] (unflatten_device_tree+0x1c/0x34) from
+[<c072fc94>] (setup_arch+0x5d4/0x7ac)
+[    0.000000] [<c072fc94>] (setup_arch+0x5d4/0x7ac) from [<c072c4ec>]
+(start_kernel+0x88/0x2fc)
+[    0.000000] [<c072c4ec>] (start_kernel+0x88/0x2fc) from
+[<80008078>] (0x80008078)
+[    0.000000] Code: e1a07002 0a000035 e59f30fc e58d1008 (e5951000)
+[    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
+[    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
