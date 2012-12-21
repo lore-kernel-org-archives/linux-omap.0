@@ -1,66 +1,41 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH 0/8] Flip on multiplatform support for omap2plus for v3.9
-Date: Fri, 21 Dec 2012 09:31:16 +0530
-Message-ID: <50D3DF0C.1050606@ti.com>
-References: <20121219192354.22098.33408.stgit@muffinssi.local> <20121220155518.GX4989@atomide.com> <CALF0-+XspOix_RiNkWN7d1L9uxBZi7Zf5SDaKcx0P7P_Z3anqA@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 09/12] ARM: OMAP2+: powerdomain: skip register reads for
+ powerdomains known to be on
+Date: Fri, 21 Dec 2012 12:03:33 +0530
+Message-ID: <50D402BD.3020402@ti.com>
+References: <20121209200108.3196.12452.stgit@dusk.lan> <20121209200327.3196.27686.stgit@dusk.lan> <50D22D0B.3050502@ti.com> <alpine.DEB.2.00.1212201722190.3498@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59858 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750908Ab2LUEB3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Dec 2012 23:01:29 -0500
-In-Reply-To: <CALF0-+XspOix_RiNkWN7d1L9uxBZi7Zf5SDaKcx0P7P_Z3anqA@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50502 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750718Ab2LUGcy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 01:32:54 -0500
+In-Reply-To: <alpine.DEB.2.00.1212201722190.3498@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hi Garcia,
+On Thursday 20 December 2012 10:52 PM, Paul Walmsley wrote:
+> On Wed, 19 Dec 2012, Jon Hunter wrote:
+>
+>> My understanding is that for OMAP4 devices, the core power domain may
+>> not be active the same time as the MPU power domain. The Cortex-A9 has
+>> the ability to access some peripherals (such as timer, McBSP) via a
+>> private bus that does not require the core domain to be active. This is
+>> a difference from OMAP3 devices, where the core would always be on with
+>> the MPU power domain.
+>
+> You are absolutely right and I will drop that part from this patch.
+>
+Just to be clear, MPU has direct path to ABE domain peripherals on
+OMAP4. As Jon pointed out MCBSP and few timers are put under this
+domain can be directly accessed by MPU without L3. ABE also can
+be accessed via L3 by MPU. ABE has a dual map with MPU.
 
-On Friday 21 December 2012 05:41 AM, Ezequiel Garcia wrote:
-> Hello Tony,
->
-> On Thu, Dec 20, 2012 at 12:55 PM, Tony Lindgren <tony@atomide.com> wrote:
->> * Tony Lindgren <tony@atomide.com> [121219 11:28]:
->>> Hi all,
->>>
->>> These patches enable multiplatform support for omap2plus.
->>>
->>> To build and boot it against the current mainline kernel
->>> you need the following:
->>>
->>> [PATCH 1/2] ARM: l2x0: Only set .set_debug on PL310 r3p0 and earlier
->>> [PATCH 2/2] ARM: disable errata work-arounds which access secure registers
->>> [GIT PULL 1/2] omap fixes for v3.8 merge window
->>> [GIT PULL 2/2] omap cleanup for v3.8 merge window
->>> [GIT PULL] two trivial omap build error fixes for v3.8 merge window
->>> cpts: Fix build error caused by include of plat/clock.h
->>
->
-> I'm trying this on my IGEP v2 board (using Javier's patches for DT).
->
-> I've applied these series on top of your branch
-> "omap-for-v3.8/fixes-for-merge-window-part2".
->
-> However, I'm finding some conflicts (fb.c appears in plat-omap,
-> some missing headers, etc.)
->
-> Could you suggest a better branch to base the series?
-Can you try it on current mainline.
-It applies without any conflicts..
 
-Thanks
-Lokesh
->
-> Thanks!
->
->      Ezequiel
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->
+Regards
+Santosh
 
