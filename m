@@ -1,47 +1,56 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/1] Fix sprz319 erratum 2.1
-Date: Thu, 20 Dec 2012 23:06:48 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1212202305510.20441@utopia.booyaka.com>
-References: <4F4289C2.90707@kynesim.co.uk> <alpine.DEB.2.00.1202241419580.23504@utopia.booyaka.com> <8f4f87ed-61f7-44ee-9c74-0f57e0f6a930@googlegroups.com> <d94a4cfd-538c-481c-aa8f-26a730739ac5@googlegroups.com>
- <alpine.DEB.2.00.1212201534080.28579@utopia.booyaka.com>
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [PATCH 0/8] Flip on multiplatform support for omap2plus for v3.9
+Date: Thu, 20 Dec 2012 21:11:10 -0300
+Message-ID: <CALF0-+XspOix_RiNkWN7d1L9uxBZi7Zf5SDaKcx0P7P_Z3anqA@mail.gmail.com>
+References: <20121219192354.22098.33408.stgit@muffinssi.local>
+ <20121220155518.GX4989@atomide.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1536787598-1356044808=:20441"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:50549 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751941Ab2LTXGt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Dec 2012 18:06:49 -0500
-In-Reply-To: <alpine.DEB.2.00.1212201534080.28579@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20121220155518.GX4989@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-15?Q?Adrien_Ferr=E9?= <ferre.adrien@gmail.com>
-Cc: beagleboard@googlegroups.com, Richard Watts <rrw@kynesim.co.uk>, khilman@ti.com, linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hello Tony,
 
---843723315-1536787598-1356044808=:20441
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On Thu, Dec 20, 2012 at 12:55 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Tony Lindgren <tony@atomide.com> [121219 11:28]:
+>> Hi all,
+>>
+>> These patches enable multiplatform support for omap2plus.
+>>
+>> To build and boot it against the current mainline kernel
+>> you need the following:
+>>
+>> [PATCH 1/2] ARM: l2x0: Only set .set_debug on PL310 r3p0 and earlier
+>> [PATCH 2/2] ARM: disable errata work-arounds which access secure registers
+>> [GIT PULL 1/2] omap fixes for v3.8 merge window
+>> [GIT PULL 2/2] omap cleanup for v3.8 merge window
+>> [GIT PULL] two trivial omap build error fixes for v3.8 merge window
+>> cpts: Fix build error caused by include of plat/clock.h
+>
 
-On Thu, 20 Dec 2012, Paul Walmsley wrote:
+I'm trying this on my IGEP v2 board (using Javier's patches for DT).
 
-> On Thu, 20 Dec 2012, Adrien Ferr=C3=A9 wrote:
->=20
-> > The tests have been running for 6 days now and we had only one failing =
-BBxm
-> >=20
-> > There are five boards:
-> >=20
-> > 2 panda: high network + usb traffic
-> > 3 bbxm: high network + usb traffic
->=20
-> Nice; is that with (443, 12) or (480, 13) ?
+I've applied these series on top of your branch
+"omap-for-v3.8/fixes-for-merge-window-part2".
 
-Adrien responded to me in private E-mail saying that this was without any=
-=20
-changes at all.  Hmm...
+However, I'm finding some conflicts (fb.c appears in plat-omap,
+some missing headers, etc.)
 
+Could you suggest a better branch to base the series?
 
-- Paul
---843723315-1536787598-1356044808=:20441--
+Thanks!
+
+    Ezequiel
