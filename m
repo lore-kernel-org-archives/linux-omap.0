@@ -1,301 +1,98 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH 10/10] crypto: omap-aes - Add CTR algorithm Support
-Date: Fri, 21 Dec 2012 10:05:00 -0700
-Message-ID: <1356109500-11719-11-git-send-email-mgreer@animalcreek.com>
-References: <1356109500-11719-1-git-send-email-mgreer@animalcreek.com>
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1356109500-11719-1-git-send-email-mgreer@animalcreek.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: davem@davemloft.net, herbert@gondor.apana.org.au
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Mark A. Greer" <mgreer@animalcreek.com>, Greg Turner <gkmturner@gmail.com>, Dmitry Kasatkin <dmitry.kasatkin@intel.com>
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [RESEND PATCH] leds: leds-gpio: set devm_gpio_request_one() flags correctly
+Date: Fri, 21 Dec 2012 14:06:15 -0300
+Message-ID: <CALF0-+XM4EZJHU360AUAUFBPctwO81JQ7kUiH12V2n6x7wCXfA@mail.gmail.com>
+References: <1356102464-22234-1-git-send-email-javier.martinez@collabora.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ia0-f176.google.com ([209.85.210.176]:45787 "EHLO
+	mail-ia0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752548Ab2LURGQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 12:06:16 -0500
+In-Reply-To: <1356102464-22234-1-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-From: "Mark A. Greer" <mgreer@animalcreek.com>
+On Fri, Dec 21, 2012 at 12:07 PM, Javier Martinez Canillas
+<javier.martinez@collabora.co.uk> wrote:
+> commit a99d76f leds: leds-gpio: use gpio_request_one
+>
+> changed the leds-gpio driver to use gpio_request_one() instead
+> of gpio_request() + gpio_direction_output()
+>
+> Unfortunately, it also made a semantic change that breaks the
+> leds-gpio driver.
+>
+> The gpio_request_one() flags parameter was set to:
+>
+> GPIOF_DIR_OUT | (led_dat->active_low ^ state)
+>
+> Since GPIOF_DIR_OUT is 0, the final flags value will just be the
+> XOR'ed value of led_dat->active_low and state.
+>
+> This value were used to distinguish between HIGH/LOW output initial
+> level and call gpio_direction_output() accordingly.
+>
+> With this new semantic gpio_request_one() will take the flags value
+> of 1 as a configuration of input direction (GPIOF_DIR_IN) and will
+> call gpio_direction_input() instead of gpio_direction_output().
+>
+> int gpio_request_one(unsigned gpio, unsigned long flags, const char *label)
+> {
+> ..
+>         if (flags & GPIOF_DIR_IN)
+>                 err = gpio_direction_input(gpio);
+>         else
+>                 err = gpio_direction_output(gpio,
+>                                 (flags & GPIOF_INIT_HIGH) ? 1 : 0);
+> ..
+> }
+>
+> The right semantic is to evaluate led_dat->active_low ^ state and
+> set the output initial level explicitly.
+>
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> ---
+>
+> This makes LEDs to work again on my IGEPv2 board (TI OMAP3 based SoC).
+>
+> I sent this patch before but then realized that I only cc'ed to linux-leds.
+> So, I'm resending the patch cc'ing linux-omap,linux-arm-kernel and LKML to
+> reach a broader audience and have more people review/test the patch.
+>
+> Sorry for the noise if someone got it twice.
+>
+>  drivers/leds/leds-gpio.c |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
+> index 1885a26..a0d931b 100644
+> --- a/drivers/leds/leds-gpio.c
+> +++ b/drivers/leds/leds-gpio.c
+> @@ -127,8 +127,9 @@ static int create_gpio_led(const struct gpio_led *template,
+>                 led_dat->cdev.flags |= LED_CORE_SUSPENDRESUME;
+>
+>         ret = devm_gpio_request_one(parent, template->gpio,
+> -                       GPIOF_DIR_OUT | (led_dat->active_low ^ state),
+> -                       template->name);
+> +                                   (led_dat->active_low ^ state) ?
+> +                                   GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW,
+> +                                   template->name);
+>         if (ret < 0)
+>                 return ret;
+>
+> --
+> 1.7.7.6
+>
 
-The OMAP3 and OMAP4/AM33xx versions of the AES crypto
-module support the CTR algorithm in addition to ECB
-and CBC that the OMAP2 version of the module supports.
+Without this patch my IGEP v2 LEDs were dead,
+and this patch brings them back.
 
-So, OMAP2 and OMAP3 share a common register set but
-OMAP3 supports CTR while OMAP2 doesn't.  OMAP4/AM33XX
-uses a different register set from OMAP2/OMAP3 and
-also supports CTR.
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-To add this support, use the platform_data introduced
-in an ealier commit to hold the list of algorithms
-supported by the current module.  The probe routine
-will use that list to register the correct algorithms.
+Thanks,
 
-Note: The code being integrated is from the TI AM33xx SDK
-and was written by Greg Turner <gkmturner@gmail.com> and
-Herman Schuurman (current email unknown) while at TI.
-
-CC: Greg Turner <gkmturner@gmail.com>
-CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
-Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
----
- drivers/crypto/omap-aes.c | 143 +++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 128 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index b992f38..cf57866 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -48,7 +48,11 @@
- #define AES_REG_IV(dd, x)		((dd)->pdata->iv_ofs + ((x) * 0x04))
- 
- #define AES_REG_CTRL(dd)		((dd)->pdata->ctrl_ofs)
--#define AES_REG_CTRL_CTR_WIDTH		(1 << 7)
-+#define AES_REG_CTRL_CTR_WIDTH_MASK	(3 << 7)
-+#define AES_REG_CTRL_CTR_WIDTH_32		(0 << 7)
-+#define AES_REG_CTRL_CTR_WIDTH_64		(1 << 7)
-+#define AES_REG_CTRL_CTR_WIDTH_96		(2 << 7)
-+#define AES_REG_CTRL_CTR_WIDTH_128		(3 << 7)
- #define AES_REG_CTRL_CTR		(1 << 6)
- #define AES_REG_CTRL_CBC		(1 << 5)
- #define AES_REG_CTRL_KEY_SIZE		(3 << 3)
-@@ -76,6 +80,7 @@
- #define FLAGS_ENCRYPT		BIT(0)
- #define FLAGS_CBC		BIT(1)
- #define FLAGS_GIV		BIT(2)
-+#define FLAGS_CTR		BIT(3)
- 
- #define FLAGS_INIT		BIT(4)
- #define FLAGS_FAST		BIT(5)
-@@ -96,7 +101,16 @@ struct omap_aes_reqctx {
- #define OMAP_AES_QUEUE_LENGTH	1
- #define OMAP_AES_CACHE_SIZE	0
- 
-+struct omap_aes_algs_info {
-+	struct crypto_alg	*algs_list;
-+	unsigned int		size;
-+	unsigned int		registered;
-+};
-+
- struct omap_aes_pdata {
-+	struct omap_aes_algs_info	*algs_info;
-+	unsigned int	algs_info_size;
-+
- 	void		(*trigger)(struct omap_aes_dev *dd, int length);
- 
- 	u32		key_ofs;
-@@ -208,7 +222,7 @@ static int omap_aes_write_ctrl(struct omap_aes_dev *dd)
- {
- 	unsigned int key32;
- 	int i, err;
--	u32 val, mask;
-+	u32 val, mask = 0;
- 
- 	err = omap_aes_hw_init(dd);
- 	if (err)
-@@ -222,16 +236,20 @@ static int omap_aes_write_ctrl(struct omap_aes_dev *dd)
- 			__le32_to_cpu(dd->ctx->key[i]));
- 	}
- 
--	if ((dd->flags & FLAGS_CBC) && dd->req->info)
-+	if ((dd->flags & (FLAGS_CBC | FLAGS_CTR)) && dd->req->info)
- 		omap_aes_write_n(dd, AES_REG_IV(dd, 0), dd->req->info, 4);
- 
- 	val = FLD_VAL(((dd->ctx->keylen >> 3) - 1), 4, 3);
- 	if (dd->flags & FLAGS_CBC)
- 		val |= AES_REG_CTRL_CBC;
-+	if (dd->flags & FLAGS_CTR) {
-+		val |= AES_REG_CTRL_CTR | AES_REG_CTRL_CTR_WIDTH_32;
-+		mask = AES_REG_CTRL_CTR | AES_REG_CTRL_CTR_WIDTH_MASK;
-+	}
- 	if (dd->flags & FLAGS_ENCRYPT)
- 		val |= AES_REG_CTRL_DIRECTION;
- 
--	mask = AES_REG_CTRL_CBC | AES_REG_CTRL_DIRECTION |
-+	mask |= AES_REG_CTRL_CBC | AES_REG_CTRL_DIRECTION |
- 			AES_REG_CTRL_KEY_SIZE;
- 
- 	omap_aes_write_mask(dd, AES_REG_CTRL(dd), val, mask);
-@@ -807,6 +825,16 @@ static int omap_aes_cbc_decrypt(struct ablkcipher_request *req)
- 	return omap_aes_crypt(req, FLAGS_CBC);
- }
- 
-+static int omap_aes_ctr_encrypt(struct ablkcipher_request *req)
-+{
-+	return omap_aes_crypt(req, FLAGS_ENCRYPT | FLAGS_CTR);
-+}
-+
-+static int omap_aes_ctr_decrypt(struct ablkcipher_request *req)
-+{
-+	return omap_aes_crypt(req, FLAGS_CTR);
-+}
-+
- static int omap_aes_cra_init(struct crypto_tfm *tfm)
- {
- 	pr_debug("enter\n");
-@@ -823,7 +851,7 @@ static void omap_aes_cra_exit(struct crypto_tfm *tfm)
- 
- /* ********************** ALGS ************************************ */
- 
--static struct crypto_alg algs[] = {
-+static struct crypto_alg algs_ecb_cbc[] = {
- {
- 	.cra_name		= "ecb(aes)",
- 	.cra_driver_name	= "ecb-aes-omap",
-@@ -871,7 +899,43 @@ static struct crypto_alg algs[] = {
- }
- };
- 
-+static struct crypto_alg algs_ctr[] = {
-+{
-+	.cra_name		= "ctr(aes)",
-+	.cra_driver_name	= "ctr-aes-omap",
-+	.cra_priority		= 100,
-+	.cra_flags		= CRYPTO_ALG_TYPE_ABLKCIPHER |
-+				  CRYPTO_ALG_KERN_DRIVER_ONLY |
-+				  CRYPTO_ALG_ASYNC,
-+	.cra_blocksize		= AES_BLOCK_SIZE,
-+	.cra_ctxsize		= sizeof(struct omap_aes_ctx),
-+	.cra_alignmask		= 0,
-+	.cra_type		= &crypto_ablkcipher_type,
-+	.cra_module		= THIS_MODULE,
-+	.cra_init		= omap_aes_cra_init,
-+	.cra_exit		= omap_aes_cra_exit,
-+	.cra_u.ablkcipher = {
-+		.min_keysize	= AES_MIN_KEY_SIZE,
-+		.max_keysize	= AES_MAX_KEY_SIZE,
-+		.geniv		= "eseqiv",
-+		.ivsize		= AES_BLOCK_SIZE,
-+		.setkey		= omap_aes_setkey,
-+		.encrypt	= omap_aes_ctr_encrypt,
-+		.decrypt	= omap_aes_ctr_decrypt,
-+	}
-+} ,
-+};
-+
-+static struct omap_aes_algs_info omap_aes_algs_info_ecb_cbc[] = {
-+	{
-+		.algs_list	= algs_ecb_cbc,
-+		.size		= ARRAY_SIZE(algs_ecb_cbc),
-+	},
-+};
-+
- static const struct omap_aes_pdata omap_aes_pdata_omap2 = {
-+	.algs_info	= omap_aes_algs_info_ecb_cbc,
-+	.algs_info_size	= ARRAY_SIZE(omap_aes_algs_info_ecb_cbc),
- 	.trigger	= omap_aes_dma_trigger_omap2,
- 	.key_ofs	= 0x1c,
- 	.iv_ofs		= 0x20,
-@@ -889,7 +953,39 @@ static const struct omap_aes_pdata omap_aes_pdata_omap2 = {
- };
- 
- #ifdef CONFIG_OF
-+static struct omap_aes_algs_info omap_aes_algs_info_ecb_cbc_ctr[] = {
-+	{
-+		.algs_list	= algs_ecb_cbc,
-+		.size		= ARRAY_SIZE(algs_ecb_cbc),
-+	},
-+	{
-+		.algs_list	= algs_ctr,
-+		.size		= ARRAY_SIZE(algs_ctr),
-+	},
-+};
-+
-+static const struct omap_aes_pdata omap_aes_pdata_omap3 = {
-+	.algs_info	= omap_aes_algs_info_ecb_cbc_ctr,
-+	.algs_info_size	= ARRAY_SIZE(omap_aes_algs_info_ecb_cbc_ctr),
-+	.trigger	= omap_aes_dma_trigger_omap2,
-+	.key_ofs	= 0x1c,
-+	.iv_ofs		= 0x20,
-+	.ctrl_ofs	= 0x30,
-+	.data_ofs	= 0x34,
-+	.rev_ofs	= 0x44,
-+	.mask_ofs	= 0x48,
-+	.dma_enable_in	= BIT(2),
-+	.dma_enable_out	= BIT(3),
-+	.dma_start	= BIT(5),
-+	.major_mask	= 0xf0,
-+	.major_shift	= 4,
-+	.minor_mask	= 0x0f,
-+	.minor_shift	= 0,
-+};
-+
- static const struct omap_aes_pdata omap_aes_pdata_omap4 = {
-+	.algs_info	= omap_aes_algs_info_ecb_cbc_ctr,
-+	.algs_info_size	= ARRAY_SIZE(omap_aes_algs_info_ecb_cbc_ctr),
- 	.trigger	= omap_aes_dma_trigger_omap4,
- 	.key_ofs	= 0x3c,
- 	.iv_ofs		= 0x40,
-@@ -911,6 +1007,10 @@ static const struct of_device_id omap_aes_of_match[] = {
- 		.data		= &omap_aes_pdata_omap2,
- 	},
- 	{
-+		.compatible	= "ti,omap3-aes",
-+		.data		= &omap_aes_pdata_omap3,
-+	},
-+	{
- 		.compatible	= "ti,omap4-aes",
- 		.data		= &omap_aes_pdata_omap4,
- 	},
-@@ -1000,6 +1100,7 @@ static int omap_aes_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct omap_aes_dev *dd;
-+	struct crypto_alg *algp;
- 	struct resource res;
- 	int err = -ENOMEM, i, j;
- 	u32 reg;
-@@ -1053,17 +1154,27 @@ static int omap_aes_probe(struct platform_device *pdev)
- 	list_add_tail(&dd->list, &dev_list);
- 	spin_unlock(&list_lock);
- 
--	for (i = 0; i < ARRAY_SIZE(algs); i++) {
--		pr_debug("i: %d\n", i);
--		err = crypto_register_alg(&algs[i]);
--		if (err)
--			goto err_algs;
-+	for (i = 0; i < dd->pdata->algs_info_size; i++) {
-+		for (j = 0; j < dd->pdata->algs_info[i].size; j++) {
-+			algp = &dd->pdata->algs_info[i].algs_list[j];
-+
-+			pr_debug("reg alg: %s\n", algp->cra_name);
-+			INIT_LIST_HEAD(&algp->cra_list);
-+
-+			err = crypto_register_alg(algp);
-+			if (err)
-+				goto err_algs;
-+
-+			dd->pdata->algs_info[i].registered++;
-+		}
- 	}
- 
- 	return 0;
- err_algs:
--	for (j = 0; j < i; j++)
--		crypto_unregister_alg(&algs[j]);
-+	for (i = dd->pdata->algs_info_size - 1; i >= 0; i--)
-+		for (j = dd->pdata->algs_info[i].registered - 1; j >= 0; j--)
-+			crypto_unregister_alg(
-+					&dd->pdata->algs_info[i].algs_list[j]);
- 	omap_aes_dma_cleanup(dd);
- err_dma:
- 	tasklet_kill(&dd->done_task);
-@@ -1080,7 +1191,7 @@ err_data:
- static int omap_aes_remove(struct platform_device *pdev)
- {
- 	struct omap_aes_dev *dd = platform_get_drvdata(pdev);
--	int i;
-+	int i, j;
- 
- 	if (!dd)
- 		return -ENODEV;
-@@ -1089,8 +1200,10 @@ static int omap_aes_remove(struct platform_device *pdev)
- 	list_del(&dd->list);
- 	spin_unlock(&list_lock);
- 
--	for (i = 0; i < ARRAY_SIZE(algs); i++)
--		crypto_unregister_alg(&algs[i]);
-+	for (i = dd->pdata->algs_info_size - 1; i >= 0; i--)
-+		for (j = dd->pdata->algs_info[i].registered - 1; j >= 0; j--)
-+			crypto_unregister_alg(
-+					&dd->pdata->algs_info[i].algs_list[j]);
- 
- 	tasklet_kill(&dd->done_task);
- 	tasklet_kill(&dd->queue_task);
--- 
-1.7.12
+    Ezequiel
