@@ -1,55 +1,83 @@
-From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] omap: iommu: fixing NULL pointer return value
-Date: Fri, 21 Dec 2012 15:39:50 +0200
-Message-ID: <CAK=WgbaCU0q2t37k51_oVdmFO2uB6zUus-gV5X9O1xy1_GTOng@mail.gmail.com>
-References: <1356096979-27698-1-git-send-email-g-aubertin@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1356096979-27698-1-git-send-email-g-aubertin-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Guillaume Aubertin <g-aubertin-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, lo <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [RESEND PATCH] leds: leds-gpio: set devm_gpio_request_one() flags correctly
+Date: Fri, 21 Dec 2012 16:07:44 +0100
+Message-ID: <1356102464-22234-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:44786 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751097Ab2LUPIG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 10:08:06 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-leds@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-Hi Guillaume,
+commit a99d76f leds: leds-gpio: use gpio_request_one
 
-You should also cc Joerg and the iommu ml for iommu patches (cc'ing now).
+changed the leds-gpio driver to use gpio_request_one() instead
+of gpio_request() + gpio_direction_output()
 
-On Fri, Dec 21, 2012 at 3:36 PM, Guillaume Aubertin <g-aubertin-l0cyMroinI0@public.gmane.org> wrote:
-> the returned NULL pointer is not detected by IS_ERR(), and then
-> de-referenced in the calling function, omap_iommu_attach_dev().
->
-> Signed-off-by: Guillaume Aubertin <g-aubertin-l0cyMroinI0@public.gmane.org>
+Unfortunately, it also made a semantic change that breaks the
+leds-gpio driver.
 
-Acked-by: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+The gpio_request_one() flags parameter was set to:
 
-> ---
->  drivers/iommu/omap-iommu.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> index badc17c..a0fcad2 100644
-> --- a/drivers/iommu/omap-iommu.c
-> +++ b/drivers/iommu/omap-iommu.c
-> @@ -861,7 +861,7 @@ static struct omap_iommu *omap_iommu_attach(const char *name, u32 *iopgd)
->                                 (void *)name,
->                                 device_match_by_alias);
->         if (!dev)
-> -               return NULL;
-> +               return ERR_PTR(-ENODEV);
->
->         obj = to_iommu(dev);
->
-> --
-> 1.7.0.4
->
+GPIOF_DIR_OUT | (led_dat->active_low ^ state)
+
+Since GPIOF_DIR_OUT is 0, the final flags value will just be the
+XOR'ed value of led_dat->active_low and state.
+
+This value were used to distinguish between HIGH/LOW output initial
+level and call gpio_direction_output() accordingly.
+
+With this new semantic gpio_request_one() will take the flags value
+of 1 as a configuration of input direction (GPIOF_DIR_IN) and will
+call gpio_direction_input() instead of gpio_direction_output().
+
+int gpio_request_one(unsigned gpio, unsigned long flags, const char *label)
+{
+..
+	if (flags & GPIOF_DIR_IN)
+		err = gpio_direction_input(gpio);
+	else
+		err = gpio_direction_output(gpio,
+				(flags & GPIOF_INIT_HIGH) ? 1 : 0);
+..
+}
+
+The right semantic is to evaluate led_dat->active_low ^ state and
+set the output initial level explicitly.
+
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
+
+This makes LEDs to work again on my IGEPv2 board (TI OMAP3 based SoC).
+
+I sent this patch before but then realized that I only cc'ed to linux-leds.
+So, I'm resending the patch cc'ing linux-omap,linux-arm-kernel and LKML to
+reach a broader audience and have more people review/test the patch.
+
+Sorry for the noise if someone got it twice.
+
+ drivers/leds/leds-gpio.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
+index 1885a26..a0d931b 100644
+--- a/drivers/leds/leds-gpio.c
++++ b/drivers/leds/leds-gpio.c
+@@ -127,8 +127,9 @@ static int create_gpio_led(const struct gpio_led *template,
+ 		led_dat->cdev.flags |= LED_CORE_SUSPENDRESUME;
+ 
+ 	ret = devm_gpio_request_one(parent, template->gpio,
+-			GPIOF_DIR_OUT | (led_dat->active_low ^ state),
+-			template->name);
++				    (led_dat->active_low ^ state) ?
++				    GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW,
++				    template->name);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-- 
+1.7.7.6
+
