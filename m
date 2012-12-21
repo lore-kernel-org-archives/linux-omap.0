@@ -1,39 +1,65 @@
-From: Loic PALLARDY <loic.pallardy@st.com>
-Subject: Re: [PATCH 1/9] mailbox: OMAP: introduce mailbox framework
-Date: Fri, 21 Dec 2012 09:54:26 +0100
-Message-ID: <50D423C2.3090009@st.com>
-References: <1355836212-17956-1-git-send-email-loic.pallardy-ext@stericsson.com>
- <1355836212-17956-2-git-send-email-loic.pallardy-ext@stericsson.com>
- <20121218165909.GF4989@atomide.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: omap DSS fails with tft410 driver panel?
+Date: Fri, 21 Dec 2012 11:19:16 +0100
+Message-ID: <CAAwP0s3GmAu8ij37y=5XCs246pWXWfLechaHLZf84+gaPXtwNw@mail.gmail.com>
+References: <CAFqH_50PVJdbX0CMwo9t3RuAhzi3q6jcBwzq2R3UFighkrF7iw@mail.gmail.com>
+ <CAGDS+nmx8qFSx932TudMN6ikmZ=OGkbvrZuCV=Ump+HETkU-tw@mail.gmail.com> <8865776.jqeL1Eqbut@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eu1sys200aog106.obsmtp.com ([207.126.144.121]:53705 "EHLO
-	eu1sys200aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751812Ab2LUIzK convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Dec 2012 03:55:10 -0500
-In-Reply-To: <20121218165909.GF4989@atomide.com>
-Content-Language: en-US
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:51648 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751131Ab2LUKZJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 05:25:09 -0500
+Received: by mail-ob0-f182.google.com with SMTP id 16so4313906obc.41
+        for <linux-omap@vger.kernel.org>; Fri, 21 Dec 2012 02:25:08 -0800 (PST)
+In-Reply-To: <8865776.jqeL1Eqbut@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Loic PALLARDY STE <loic.pallardy-ext@stericsson.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Linus Walleij <linus.walleij@linaro.org>, Suman Anna <s-anna@ti.com>, Juan Gutierrez <jgutierrez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Tejun Heo <tj@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>Omar
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Steve Sakoman <sakoman@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>
 
-
-
-On 12/18/2012 05:59 PM, Tony Lindgren wrote:
-> * Loic Pallardy<loic.pallardy-ext@stericsson.com>  [121218 05:15]:
+On Fri, Dec 21, 2012 at 9:30 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Steve,
+>
+> On Wednesday 21 November 2012 16:08:06 Steve Sakoman wrote:
+>> On Thu, Oct 11, 2012 at 8:58 AM, Enric Balletbo Serra
 >>
->> Signed-off-by: Omar Ramirez Luna<omar.luna@linaro.org>
+>> <eballetbo@gmail.com> wrote:
+>> > I see that commit dac8eb5f (OMAPDSS: TFP410: rename dvi files to
+>> > tfp410) and commit 2e6f2ee7 (OMAPDSS: TFP410: rename dvi -> tfp410)
+>> > changes the panel driver used on some boards. I tested current
+>> > linux-next-20101011 kernel with my IGEPv2 board and DSS fails with
+>> >
+>> > following error (see http://pastebin.com/VjPGCQDt for full log) :
+>> >    [ 21.222808] omapdss OVERLAY error: check_overlay: paddr cannot be 0
+>> >    [ 21.229583] omapdss OVERLAY error: check_overlay: paddr cannot be 0
+>> >    [ 21.236236] omapfb omapfb: setup_plane failed
+>>
+>> Was there ever any resolution to this issue?
 >
-> AFAIK the first two patches should have:
-> From: Omar Ramirez Luna<omar.luna@linaro.org>
-Yes right, my mistake.
-I'll fix that on next version.
-/Loic
+> Does mainline commit 950e2fb420d54bf0ee0de2fb0f146827a98330bf help ?
 >
-> Once that's fixed, for arch/arm/*omap*/* parts:
->
-> Acked-by: Tony Lindgren<tony@atomide.com>
+
+Hi Laurent,
+
+I just tried today's mainline kernel which has:
+
+950e2fb [media] omap_vout: use omapdss's version instead of cpu_is_*
+
+but I still see the log message "omapdss OVERLAY error: check_overlay:
+paddr cannot be 0" (full log: http://fpaste.org/jOBo/)
+
+This doesn't affect the video display though since the framebuffer
+video is working correctly.
+
+Setting CONFIG_FB_OMAP2_NUM_FBS=1 in my .config makes the error
+message disappear since the paddr is correctly
+set for the first overlay:
+
+[    3.175842] OMAPFB: allocated VRAM paddr 9e900000, vaddr de900000
+[    3.182891] OMAPFB: paddr 9e900000
+
+Best regards,
+Javier
