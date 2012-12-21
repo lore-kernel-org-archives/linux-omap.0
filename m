@@ -1,13 +1,13 @@
 From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH 15/15] ARM: dts: Add AES data and documentation for AM33XX
-Date: Fri, 21 Dec 2012 09:28:15 -0700
-Message-ID: <1356107295-11121-16-git-send-email-mgreer@animalcreek.com>
+Subject: [PATCH 07/15] ARM: AM33XX: hwmod: Update and uncomment SHA0 module data
+Date: Fri, 21 Dec 2012 09:28:07 -0700
+Message-ID: <1356107295-11121-8-git-send-email-mgreer@animalcreek.com>
 References: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:38834 "EHLO
+Received: from mail20.dotsterhost.com ([66.11.232.73]:38866 "EHLO
 	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751091Ab2LUQ2e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 11:28:34 -0500
+	with ESMTP id S1751544Ab2LUQ2g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 11:28:36 -0500
 In-Reply-To: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,124 +16,111 @@ Cc: paul@pwsan.com, "Mark A. Greer" <mgreer@animalcreek.com>
 
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-Add the generic AM33XX AES module's device tree data and
-enable it for the am335x-evm, am335x-evmsk, and am335x-bone
-platforms.  Also add Documentation file describing the data
-for the AES module.
+Update the SHA0 HIB2 module's hwmod data for the am33xx SoC.
+Also, remove it from the '#if 0' block that its currently
+inside so the data is actually available for use.
 
 CC: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- .../devicetree/bindings/crypto/omap-aes.txt        | 37 ++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts                  |  4 +++
- arch/arm/boot/dts/am335x-evm.dts                   |  4 +++
- arch/arm/boot/dts/am335x-evmsk.dts                 |  4 +++
- arch/arm/boot/dts/am33xx.dtsi                      | 13 ++++++++
- 5 files changed, 62 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/crypto/omap-aes.txt
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 43 +++++++++++++++++++++++++-----
+ 1 file changed, 37 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/crypto/omap-aes.txt b/Documentation/devicetree/bindings/crypto/omap-aes.txt
-new file mode 100644
-index 0000000..6b21256
---- /dev/null
-+++ b/Documentation/devicetree/bindings/crypto/omap-aes.txt
-@@ -0,0 +1,37 @@
-+OMAP SoC AES crypto Module
-+
-+Required properties:
-+
-+- compatible : Should contain entries for this and backward compatible
-+  AES versions:
-+  - "ti,omap2-aes" for OMAP2.
-+  - "ti,omap3-aes" for OMAP3.
-+  - "ti,omap4-aes" for OMAP4 and AM33XX.
-+  Note that the OMAP2 and 3 versions are compatible (OMAP3 supports
-+  more algorithms) but they are incompatible with OMAP4.
-+- ti,hwmods: Name of the hwmod associated with the AES odule
-+- reg : Offset and length of the register set for the module
-+- interrupt-parent : the phandle for the interrupt controller that
-+  services interrupts for this module.
-+- interrupts : the interrupt number for the AES odule.
-+
-+Optional properties:
-+- dmas: DMA controller phandle and DMA request ordered pairs.
-+- dma-names: DMA request names. This string corresponds 1:1 with
-+	the ordered pairs in dmas. The string naming is to be
-+	"tx" for TX request and "rx" for RX request.
-+
-+Example:
-+	/* AM335x */
-+	aes: aes@53500000 {
-+		compatible = "ti,omap4-aes";
-+		ti,hwmods = "aes";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		reg = <0x53500000 0xa0>;
-+		interrupt-parent = <&intc>;
-+		interrupts = <102>;
-+		dmas = <&edma 6
-+			&edma 5>;
-+		dma-names = "tx", "rx";
-+	};
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 1c35f83..4ade888 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -196,3 +196,7 @@
- &sham {
- 	status = "okay";
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index 081c71e..9f7aadd 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -417,7 +417,6 @@ static struct omap_hwmod am33xx_adc_tsc_hwmod = {
+  *    - ocmc ram
+  *    - ocp watch point
+  *    - aes0
+- *    - sha0
+  */
+ #if 0
+ /*
+@@ -543,22 +542,37 @@ static struct omap_hwmod am33xx_aes0_hwmod = {
+ 		},
+ 	},
  };
++#endif
 +
-+&aes {
-+	status = "okay";
++/* sha0 HIB2 (the 'P' (public) device) */
++static struct omap_hwmod_class_sysconfig am33xx_sha0_sysc = {
++	.rev_offs	= 0x100,
++	.sysc_offs	= 0x110,
++	.syss_offs	= 0x114,
++	.sysc_flags	= SYSS_HAS_RESET_STATUS,
 +};
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 57515cd..743635b 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -263,3 +263,7 @@
- &sham {
- 	status = "okay";
+ 
+-/* sha0 */
+ static struct omap_hwmod_class am33xx_sha0_hwmod_class = {
+ 	.name		= "sha0",
++	.sysc		= &am33xx_sha0_sysc,
  };
-+
-+&aes {
-+	status = "okay";
+ 
+ static struct omap_hwmod_irq_info am33xx_sha0_irqs[] = {
+-	{ .irq = 108 + OMAP_INTC_START, },
++	{ .irq = 109 + OMAP_INTC_START, },
+ 	{ .irq = -1 },
+ };
+ 
++struct omap_hwmod_dma_info am33xx_sha0_edma_reqs[] = {
++	{ .name = "rx", .dma_req = 36, },
++	{ .dma_req = -1 }
 +};
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index b322919..1cf8fe1 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -252,3 +252,7 @@
- &sham {
- 	status = "okay";
- };
 +
-+&aes {
-+	status = "okay";
+ static struct omap_hwmod am33xx_sha0_hwmod = {
+-	.name		= "sha0",
++	.name		= "sham",
+ 	.class		= &am33xx_sha0_hwmod_class,
+ 	.clkdm_name	= "l3_clkdm",
+ 	.mpu_irqs	= am33xx_sha0_irqs,
++	.sdma_reqs	= am33xx_sha0_edma_reqs,
+ 	.main_clk	= "l3_gclk",
+ 	.prcm		= {
+ 		.omap4	= {
+@@ -568,8 +582,6 @@ static struct omap_hwmod am33xx_sha0_hwmod = {
+ 	},
+ };
+ 
+-#endif
+-
+ /* 'smartreflex' class */
+ static struct omap_hwmod_class am33xx_smartreflex_hwmod_class = {
+ 	.name		= "smartreflex",
+@@ -3328,6 +3340,24 @@ static struct omap_hwmod_ocp_if am33xx_l3_s__usbss = {
+ 	.flags		= OCPIF_SWSUP_IDLE,
+ };
+ 
++/* l3 main -> sha0 HIB2 */
++static struct omap_hwmod_addr_space am33xx_sha0_addrs[] = {
++	{
++		.pa_start	= 0x53100000,
++		.pa_end		= 0x53100000 + SZ_512 - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
 +};
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 671135e..0aa1a53 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -467,5 +467,18 @@
- 			dmas = <&edma 36>;
- 			dma-names = "rx";
- 		};
 +
-+		aes: aes@53500000 {
-+			compatible = "ti,omap4-aes";
-+			ti,hwmods = "aes";
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <0x53500000 0xa0>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <102>;
-+			dmas = <&edma 6
-+				&edma 5>;
-+			dma-names = "tx", "rx";
-+		};
- 	};
++static struct omap_hwmod_ocp_if am33xx_l3_main__sha0 = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_sha0_hwmod,
++	.clk		= "sha0_fck",
++	.addr		= am33xx_sha0_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l4_fw__emif_fw,
+ 	&am33xx_l3_main__emif,
+@@ -3401,6 +3431,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l3_s__usbss,
+ 	&am33xx_l4_hs__cpgmac0,
+ 	&am33xx_cpgmac0__mdio,
++	&am33xx_l3_main__sha0,
+ 	NULL,
  };
+ 
 -- 
 1.7.12
 
