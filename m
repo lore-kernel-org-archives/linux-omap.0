@@ -1,83 +1,55 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [RESEND PATCH] leds: leds-gpio: set devm_gpio_request_one() flags correctly
-Date: Fri, 21 Dec 2012 16:07:44 +0100
-Message-ID: <1356102464-22234-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: reset handling in am335x hwmod data
+Date: Fri, 21 Dec 2012 16:32:48 +0100
+Message-ID: <87ehij8lpb.fsf@dell.be.48ers.dk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:44786 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751097Ab2LUPIG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 10:08:06 -0500
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:60118 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751432Ab2LUPjI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 10:39:08 -0500
+Received: by mail-wi0-f179.google.com with SMTP id o1so2833695wic.12
+        for <linux-omap@vger.kernel.org>; Fri, 21 Dec 2012 07:39:07 -0800 (PST)
+Received: from peko by dell.be.48ers.dk with local (Exim 4.80)
+	(envelope-from <jacmet@sunsite.dk>)
+	id 1Tm4ae-0000VK-BJ
+	for linux-omap@vger.kernel.org; Fri, 21 Dec 2012 16:32:48 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-leds@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: linux-omap@vger.kernel.org
 
-commit a99d76f leds: leds-gpio: use gpio_request_one
+Hi,
 
-changed the leds-gpio driver to use gpio_request_one() instead
-of gpio_request() + gpio_direction_output()
+On a custom am335x board I was surprised to see the kernel resetting
+gpio pins not mentioned anywhere in the dts.
 
-Unfortunately, it also made a semantic change that breaks the
-leds-gpio driver.
+In this specific case the pin is connected to nCONFIG of a FPGA. The
+FPGA is commanded to start configuration from a SPI flash in the
+bootloader, so it can happen in parallel with kernel
+load/uncompress/startup, but as the kernel resets the gpio during
+initialization this doesn't work.
 
-The gpio_request_one() flags parameter was set to:
+Digging a bit into it, I see the hwmod of the gpio controller is
+configured to reset at startup, and it works correctly (E.G. the pin is
+left asserted) if I change it to HWMOD_INIT_NO_RESET:
 
-GPIOF_DIR_OUT | (led_dat->active_low ^ state)
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -992,7 +992,7 @@ static struct omap_hwmod am33xx_gpio1_hwmod = {
+        .name           = "gpio2",
+        .class          = &am33xx_gpio_hwmod_class,
+        .clkdm_name     = "l4ls_clkdm",
+-       .flags          = HWMOD_CONTROL_OPT_CLKS_IN_RESET,
++       .flags          = (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
+        .mpu_irqs       = am33xx_gpio1_irqs,
+        .main_clk       = "l4ls_gclk",
+        .prcm           = {
 
-Since GPIOF_DIR_OUT is 0, the final flags value will just be the
-XOR'ed value of led_dat->active_low and state.
+Now the question is why is this configured like this? I don't have any
+experience with omap hwmod, but on other (non-TI) boards I haven't
+experienced similar issues. Should E.G. the gpio controllers be changed
+to not reset or should it be configurable in the dts?
 
-This value were used to distinguish between HIGH/LOW output initial
-level and call gpio_direction_output() accordingly.
-
-With this new semantic gpio_request_one() will take the flags value
-of 1 as a configuration of input direction (GPIOF_DIR_IN) and will
-call gpio_direction_input() instead of gpio_direction_output().
-
-int gpio_request_one(unsigned gpio, unsigned long flags, const char *label)
-{
-..
-	if (flags & GPIOF_DIR_IN)
-		err = gpio_direction_input(gpio);
-	else
-		err = gpio_direction_output(gpio,
-				(flags & GPIOF_INIT_HIGH) ? 1 : 0);
-..
-}
-
-The right semantic is to evaluate led_dat->active_low ^ state and
-set the output initial level explicitly.
-
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
-
-This makes LEDs to work again on my IGEPv2 board (TI OMAP3 based SoC).
-
-I sent this patch before but then realized that I only cc'ed to linux-leds.
-So, I'm resending the patch cc'ing linux-omap,linux-arm-kernel and LKML to
-reach a broader audience and have more people review/test the patch.
-
-Sorry for the noise if someone got it twice.
-
- drivers/leds/leds-gpio.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
-index 1885a26..a0d931b 100644
---- a/drivers/leds/leds-gpio.c
-+++ b/drivers/leds/leds-gpio.c
-@@ -127,8 +127,9 @@ static int create_gpio_led(const struct gpio_led *template,
- 		led_dat->cdev.flags |= LED_CORE_SUSPENDRESUME;
- 
- 	ret = devm_gpio_request_one(parent, template->gpio,
--			GPIOF_DIR_OUT | (led_dat->active_low ^ state),
--			template->name);
-+				    (led_dat->active_low ^ state) ?
-+				    GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW,
-+				    template->name);
- 	if (ret < 0)
- 		return ret;
- 
 -- 
-1.7.7.6
-
+Bye, Peter Korsgaard
