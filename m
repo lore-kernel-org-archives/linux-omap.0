@@ -1,128 +1,108 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] ARM: OMAP1: fix USB configuration use-after-release
-Date: Fri, 21 Dec 2012 22:56:32 +0200
-Message-ID: <1356123392-6172-1-git-send-email-aaro.koskinen@iki.fi>
+From: Pratik Patel <pratikp@codeaurora.org>
+Subject: Re: [RFC 3/5] ARM: CTI: Convert CTI helpers to AMBA bus driver
+Date: Fri, 21 Dec 2012 14:27:03 -0800
+Message-ID: <20121221222703.GB2658@pratikp-linux.qualcomm.com>
+References: <1355348588-22318-1-git-send-email-jon-hunter@ti.com>
+ <1355348588-22318-4-git-send-email-jon-hunter@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri6.pp.htv.fi ([213.243.153.189]:51295 "EHLO
-	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738Ab2LUU5A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 15:57:00 -0500
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:35285 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751032Ab2LUW1F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Dec 2012 17:27:05 -0500
+Content-Disposition: inline
+In-Reply-To: <1355348588-22318-4-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Paul Walmsley <paul@pwsan.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-All boards, except Amstrad E3, mark USB config with __initdata.
+On Wed, Dec 12, 2012 at 03:43:06PM -0600, Jon Hunter wrote:
+> +
+> +/**
+> + * cti_irq_ack - acknowledges the CTI trigger output
+> + * @cti: CTI instance
+> + *
+> + * Acknowledges the CTI trigger output by writting to the appropriate
+> + * bit in the CTI interrupt acknowledge register.
+> + */
+> +int cti_irq_ack(struct cti *cti)
+> +{
+> +	u32 v;
+> +
+> +	if (!cti || !cti->enabled)
+> +		return -EINVAL;
+> +
+> +	v = cti_readl(cti, CTIINTACK);
 
-As a result, when you compile USB into modules, they will try to refer
-already released platform data and the behaviour is undefined. For example
-on Nokia 770, I get the following kernel panic when modprobing ohci-hcd:
+Just curious if CTIINTACK is a read-write register? This is a
+read-only for us.
 
-[    3.462158] Unable to handle kernel paging request at virtual address e7fddef0
-[    3.477050] pgd = c3434000
-[    3.487365] [e7fddef0] *pgd=00000000
-[    3.498535] Internal error: Oops: 80000005 [#1] ARM
-[    3.510955] Modules linked in: ohci_hcd(+)
-[    3.522705] CPU: 0    Not tainted  (3.7.0-770_tiny+ #5)
-[    3.535552] PC is at 0xe7fddef0
-[    3.546508] LR is at ohci_omap_init+0x5c/0x144 [ohci_hcd]
-[    3.560272] pc : [<e7fddef0>]    lr : [<bf003140>]    psr: a0000013
-[    3.560272] sp : c344bdb0  ip : c344bce0  fp : c344bdcc
-[    3.589782] r10: 00000001  r9 : 00000000  r8 : 00000000
-[    3.604553] r7 : 00000026  r6 : 000000de  r5 : c0227300  r4 : c342d620
-[    3.621032] r3 : e7fddef0  r2 : c048b880  r1 : 00000000  r0 : 0000000a
-[    3.637786] Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-[    3.655822] Control: 0005317f  Table: 13434000  DAC: 00000015
-[    3.672790] Process modprobe (pid: 425, stack limit = 0xc344a1b8)
-[    3.690643] Stack: (0xc344bdb0 to 0xc344c000)
-[    3.707031] bda0:                                     bf0030e4 c342d620 00000000 c049e62c
-[    3.727905] bdc0: c344be04 c344bdd0 c0150ff0 bf0030f4 bf001b88 00000000 c048a4ac c345b020
-[    3.748870] bde0: c342d620 00000000 c048a468 bf003968 00000001 bf006000 c344be34 c344be08
-[    3.769836] be00: bf001bf0 c0150e48 00000000 c344be18 c00b9bfc c048a478 c048a4ac bf0037f8
-[    3.790985] be20: c012ca04 c000e024 c344be44 c344be38 c012d968 bf001a84 c344be64 c344be48
-[    3.812164] be40: c012c8ac c012d95c 00000000 c048a478 c048a4ac bf0037f8 c344be84 c344be68
-[    3.833740] be60: c012ca74 c012c80c 20000013 00000000 c344be88 bf0037f8 c344beac c344be88
-[    3.855468] be80: c012b038 c012ca14 c38093cc c383ee10 bf0037f8 c35be5a0 c049d5e8 00000000
-[    3.877166] bea0: c344bebc c344beb0 c012c40c c012aff4 c344beec c344bec0 c012bfc0 c012c3fc
-[    3.898834] bec0: bf00378c 00000000 c344beec bf0037f8 00067f39 00000000 00005c44 c000e024
-[    3.920837] bee0: c344bf14 c344bef0 c012cd54 c012befc c04ce080 00067f39 00000000 00005c44
-[    3.943023] bf00: c000e024 bf006000 c344bf24 c344bf18 c012db14 c012ccc0 c344bf3c c344bf28
-[    3.965423] bf20: bf00604c c012dad8 c344a000 bf003834 c344bf7c c344bf40 c00087ac bf006010
-[    3.987976] bf40: 0000000f bf003834 00067f39 00000000 00005c44 bf003834 00067f39 00000000
-[    4.010711] bf60: 00005c44 c000e024 c344a000 00000000 c344bfa4 c344bf80 c004c35c c0008720
-[    4.033569] bf80: c344bfac c344bf90 01422192 01427ea0 00000000 00000080 00000000 c344bfa8
-[    4.056518] bfa0: c000dec0 c004c2f0 01422192 01427ea0 01427ea0 00005c44 00067f39 00000000
-[    4.079406] bfc0: 01422192 01427ea0 00000000 00000080 b6e11008 014221aa be941fcc b6e1e008
-[    4.102569] bfe0: b6ef6300 be941758 0000e93c b6ef6310 60000010 01427ea0 00000000 00000000
-[    4.125946] Backtrace:
-[    4.143463] [<bf0030e4>] (ohci_omap_init+0x0/0x144 [ohci_hcd]) from [<c0150ff0>] (usb_add_hcd+0x1b8/0x61c)
-[    4.183898]  r6:c049e62c r5:00000000 r4:c342d620 r3:bf0030e4
-[    4.205596] [<c0150e38>] (usb_add_hcd+0x0/0x61c) from [<bf001bf0>] (ohci_hcd_omap_drv_probe+0x17c/0x224 [ohci_hcd])
-[    4.248138] [<bf001a74>] (ohci_hcd_omap_drv_probe+0x0/0x224 [ohci_hcd]) from [<c012d968>] (platform_drv_probe+0x1c/0x20)
-[    4.292144]  r8:c000e024 r7:c012ca04 r6:bf0037f8 r5:c048a4ac r4:c048a478
-[    4.316192] [<c012d94c>] (platform_drv_probe+0x0/0x20) from [<c012c8ac>] (driver_probe_device+0xb0/0x208)
-[    4.360168] [<c012c7fc>] (driver_probe_device+0x0/0x208) from [<c012ca74>] (__driver_attach+0x70/0x94)
-[    4.405548]  r6:bf0037f8 r5:c048a4ac r4:c048a478 r3:00000000
-[    4.429809] [<c012ca04>] (__driver_attach+0x0/0x94) from [<c012b038>] (bus_for_each_dev+0x54/0x90)
-[    4.475708]  r6:bf0037f8 r5:c344be88 r4:00000000 r3:20000013
-[    4.500366] [<c012afe4>] (bus_for_each_dev+0x0/0x90) from [<c012c40c>] (driver_attach+0x20/0x28)
-[    4.528442]  r7:00000000 r6:c049d5e8 r5:c35be5a0 r4:bf0037f8
-[    4.553466] [<c012c3ec>] (driver_attach+0x0/0x28) from [<c012bfc0>] (bus_add_driver+0xd4/0x228)
-[    4.581878] [<c012beec>] (bus_add_driver+0x0/0x228) from [<c012cd54>] (driver_register+0xa4/0x134)
-[    4.629730]  r8:c000e024 r7:00005c44 r6:00000000 r5:00067f39 r4:bf0037f8
-[    4.656738] [<c012ccb0>] (driver_register+0x0/0x134) from [<c012db14>] (platform_driver_register+0x4c/0x60)
-[    4.706542] [<c012dac8>] (platform_driver_register+0x0/0x60) from [<bf00604c>] (ohci_hcd_mod_init+0x4c/0x8c [ohci_hcd])
-[    4.757843] [<bf006000>] (ohci_hcd_mod_init+0x0/0x8c [ohci_hcd]) from [<c00087ac>] (do_one_initcall+0x9c/0x174)
-[    4.808990]  r4:bf003834 r3:c344a000
-[    4.832641] [<c0008710>] (do_one_initcall+0x0/0x174) from [<c004c35c>] (sys_init_module+0x7c/0x194)
-[    4.881530] [<c004c2e0>] (sys_init_module+0x0/0x194) from [<c000dec0>] (ret_fast_syscall+0x0/0x2c)
-[    4.930664]  r7:00000080 r6:00000000 r5:01427ea0 r4:01422192
-[    4.956481] Code: bad PC value
-[    4.978729] ---[ end trace 58280240f08342c4 ]---
-[    5.002258] Kernel panic - not syncing: Fatal exception
+> +	v |= BIT(cti->trig_out);
+> +	cti_writel(v, cti, CTIINTACK);
+> +
+> +	return 0;
+> +}
+> +
+> +
+> +static int cti_probe(struct amba_device *dev, const struct amba_id *id)
+> +{
+> +	struct cti *cti;
+> +	struct device_node *np = dev->dev.of_node;
+> +	int rc;
+> +
+> +	if (!np) {
+> +		dev_err(&dev->dev, "device-tree not found!\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	cti = devm_kzalloc(&dev->dev, sizeof(struct cti), GFP_KERNEL);
+> +	if (!cti) {
+> +		dev_err(&dev->dev, "memory allocation failed!\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	rc = of_property_read_string_index(np, "arm,cti-name", 0, &cti->name);
+> +	if (rc) {
+> +		dev_err(&dev->dev, "no name found for CTI!\n");
+> +		return rc;
+> +	}
 
-Fix this by taking a copy of the data. Also mark Amstrad E3's data with
-__initdata to save some memory with multi-board kernels.
+Shouldn't the CTI driver have some kind of clock management that
+it does for itself?
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- arch/arm/mach-omap1/board-ams-delta.c |    2 +-
- arch/arm/mach-omap1/usb.c             |    8 +++++++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+> +
+> +	if (!dev->irq[0]) {
+> +		dev_err(&dev->dev, "no CTI interrupt found!\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	cti->irq = dev->irq[0];
+> +	cti->base = of_iomap(np, 0);
+> +	if (!cti->base) {
+> +		dev_err(&dev->dev, "unable to map CTI registers!\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	cti->dev = &dev->dev;
+> +	amba_set_drvdata(dev, cti);
+> +	list_add_tail(&cti->node, &cti_list);
+> +
+> +	/*
+> +	 * AMBA bus driver has already enabled RPM and incremented
+> +	 * use-count, so now we can safely decrement the use-count
+> +	 * and allow the CTI driver to manage RPM for the device.
+> +	 */
+> +	pm_runtime_put(&dev->dev);
+> +
+> +	dev_info(&dev->dev, "ARM CTI driver");
+> +
+> +	return 0;
+> +}
+> +
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index e255164..063b0c0 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -160,7 +160,7 @@ static struct omap_lcd_config ams_delta_lcd_config __initdata = {
- 	.ctrl_name	= "internal",
- };
- 
--static struct omap_usb_config ams_delta_usb_config = {
-+static struct omap_usb_config ams_delta_usb_config __initdata = {
- 	.register_host	= 1,
- 	.hmc_mode	= 16,
- 	.pins[0]	= 2,
-diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
-index 84267ed..4b1e5dd 100644
---- a/arch/arm/mach-omap1/usb.c
-+++ b/arch/arm/mach-omap1/usb.c
-@@ -629,8 +629,14 @@ static void __init omap_1510_usb_init(struct omap_usb_config *config)
- static inline void omap_1510_usb_init(struct omap_usb_config *config) {}
- #endif
- 
--void __init omap1_usb_init(struct omap_usb_config *pdata)
-+void __init omap1_usb_init(struct omap_usb_config *_pdata)
- {
-+	struct omap_usb_config *pdata;
-+
-+	pdata = kmemdup(_pdata, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return;
-+
- 	pdata->usb0_init = omap1_usb0_init;
- 	pdata->usb1_init = omap1_usb1_init;
- 	pdata->usb2_init = omap1_usb2_init;
 -- 
-1.7.10.4
-
+Employee of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+hosted by The Linux Foundation
