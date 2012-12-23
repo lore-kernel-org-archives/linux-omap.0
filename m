@@ -1,44 +1,50 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH 00/15] OMAP SHAM & AES Crypto Updates
-Date: Sun, 23 Dec 2012 17:03:45 +0100
-Message-ID: <87hancu55q.fsf@dell.be.48ers.dk>
-References: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
-	<87a9t78boa.fsf@dell.be.48ers.dk>
-	<20121221192234.GA10722@animalcreek.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH] arm: omap3: igep0020: Add console default kernel arguments
+Date: Sun, 23 Dec 2012 19:22:19 +0100
+Message-ID: <CAAwP0s1vgrsho12CtejnoBo4biTN-VF_m_oqm+CD95AemhEHyg@mail.gmail.com>
+References: <1356018118-29852-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <CAFqH_50ELkdXhVwW8atG0VsXU85S3pZqCVf9cytQRGk5SocFXw@mail.gmail.com>
+ <CAAwP0s1snYU7FR-BVM=GLg0oopT6NkBVLOysffia0dadsxW+BQ@mail.gmail.com> <CALF0-+UWx-cP7tcZ_L3dHaJREgi9R7-hD23z2wjD5N5ftROQpw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:56563 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751181Ab2LWQDu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Dec 2012 11:03:50 -0500
-Received: by mail-ee0-f53.google.com with SMTP id c50so3295270eek.40
-        for <linux-omap@vger.kernel.org>; Sun, 23 Dec 2012 08:03:49 -0800 (PST)
-In-Reply-To: <20121221192234.GA10722@animalcreek.com> (Mark A. Greer's message
-	of "Fri, 21 Dec 2012 12:22:34 -0700")
+Received: from mail-oa0-f45.google.com ([209.85.219.45]:39998 "EHLO
+	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599Ab2LWSWk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Dec 2012 13:22:40 -0500
+Received: by mail-oa0-f45.google.com with SMTP id i18so6303017oag.18
+        for <linux-omap@vger.kernel.org>; Sun, 23 Dec 2012 10:22:39 -0800 (PST)
+In-Reply-To: <CALF0-+UWx-cP7tcZ_L3dHaJREgi9R7-hD23z2wjD5N5ftROQpw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Gregory Clement <gregory.clement@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>
 
->>>>> "Mark" == Mark A Greer <mgreer@animalcreek.com> writes:
+On Sat, Dec 22, 2012 at 3:17 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> Hi Enric and Javier,
+>
+>>> The u-boot 'bootargs' env overwrites the one from chosen ?
+>>>
+>>
+>> I just tested and U-Boot 'bootargs' has precedence over DT bootargs
+>> but I didn't find a way to append boot parameters from U-Boot. You can
+>> either overwrite it completely or not.
+>>
+>
+> Yes. That seems to be the current case.
+> Perhaps we can merge
+> ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER
+> and CMDLINE_EXTEND in one generic config stating
+> the desired bootargs behavior.
+>
+> Does this sound sane?
+>
 
-Hi,
+Hi Ezequiel,
 
- >> Huh, does am335x have a sham module? I don't see any mention of that
- >> in spruh73g.pdf
+You could enable ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER on
+omap2plus_defconfig but just having a sane DTB bootargs default value
+is better IMHO.
 
- Mark> Yes.  It has sham, aes, and rng modules.
-
-Ok, interesting.
-
- Mark> They are not described in the TRM.  In fact, I had to use the
- Mark> omap4 description (closely guarded by TI) because AFAIK there
- Mark> isn't a doc for the am33xx.  The am33xx modules are identical to
- Mark> the omap4 ones except for the register addresses and dma channels
- Mark> so that doc worked.
-
-Odd. How did you figure out the am335x base address / dma channels?
-
--- 
-Bye, Peter Korsgaard
+Best regards,
+Javier
