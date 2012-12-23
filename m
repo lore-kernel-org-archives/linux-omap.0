@@ -1,35 +1,40 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Testing the powerdomain changes
-Date: Sun, 23 Dec 2012 09:09:40 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1212230907580.16045@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1212092040310.351@utopia.booyaka.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 2/2] cpts: fix a run time warn_on.
+Date: Sun, 23 Dec 2012 18:07:22 +0400
+Message-ID: <50D7101A.6020506@mvista.com>
+References: <cover.1356204860.git.richardcochran@gmail.com> <ad26ca328f0eba6a722d0288ac1c37ad55789447.1356204860.git.richardcochran@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:56146 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751364Ab2LWJJl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Dec 2012 04:09:41 -0500
-In-Reply-To: <alpine.DEB.2.00.1212092040310.351@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <ad26ca328f0eba6a722d0288ac1c37ad55789447.1356204860.git.richardcochran@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Richard Cochran <richardcochran@gmail.com>
+Cc: netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, David Miller <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, Cyril Chemparathy <cyril@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: t-kristo@ti.com, jean.pihet@newoldbits.com, b-cousson@ti.com, rnayak@ti.com, khilman@deeprootsystems.com
 
-On Sun, 9 Dec 2012, Paul Walmsley wrote:
+Hello.
 
-> in case anyone is interested in trying out the recent powerdomain & PM 
-> changes, posted for 3.9, there's a temporary branch 
-> "TEST_pwrdm_post_fpwrst_devel_a_3.9" in the git tree 
-> git://git.pwsan.com/linux-2.6.  It's based on the PRCM cleanup branches 
-> for v3.7, plus some old regression workarounds needed since the base is 
-> v3.7-rc2.  Once 3.8 comes out, this branch will be rebased there ASAP, 
-> assuming we don't have another huge set of regressions...
+On 22-12-2012 23:41, Richard Cochran wrote:
 
-TEST_pwrdm_post_fpwrst_devel_a_3.9 has been updated against v3.8-rc1.  
-Looks like there might be a few bugs to track down.  I know there are a 
-few comments on the list that still need some response; will try to get to 
-those soon. 
+> This patch fixes a warning in clk_enable by calling clk_prepare first.
 
+> Signed-off-by: Richard Cochran <richardcochran@gmail.com>
+> ---
+>   drivers/net/ethernet/ti/cpts.c |    1 +
+>   1 files changed, 1 insertions(+), 0 deletions(-)
 
-- Paul
+> diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+> index 5ab8fb4..3e32a31 100644
+> --- a/drivers/net/ethernet/ti/cpts.c
+> +++ b/drivers/net/ethernet/ti/cpts.c
+> @@ -247,6 +247,7 @@ static void cpts_clk_init(struct cpts *cpts)
+>   		cpts->refclk = NULL;
+>   		return;
+>   	}
+> +	clk_prepare(cpts->refclk);
+>   	clk_enable(cpts->refclk);
+
+    Maybe just call clk_prepare_enable() instead?
+
+WBR, Sergei
