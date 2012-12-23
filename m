@@ -1,91 +1,66 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: reset handling in am335x hwmod data
-Date: Sun, 23 Dec 2012 20:58:13 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1212232033030.8937@utopia.booyaka.com>
-References: <87ehij8lpb.fsf@dell.be.48ers.dk>
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [PATCH] arm: omap3: igep0020: Add console default kernel arguments
+Date: Sun, 23 Dec 2012 18:27:57 -0300
+Message-ID: <CALF0-+UU8jujgtmzdaXgGLgDSD5Gr3z9oAqzFEorsvvXsA4pvw@mail.gmail.com>
+References: <1356018118-29852-1-git-send-email-ezequiel.garcia@free-electrons.com>
+	<CAFqH_50ELkdXhVwW8atG0VsXU85S3pZqCVf9cytQRGk5SocFXw@mail.gmail.com>
+	<CAAwP0s1snYU7FR-BVM=GLg0oopT6NkBVLOysffia0dadsxW+BQ@mail.gmail.com>
+	<CALF0-+UWx-cP7tcZ_L3dHaJREgi9R7-hD23z2wjD5N5ftROQpw@mail.gmail.com>
+	<CAAwP0s1vgrsho12CtejnoBo4biTN-VF_m_oqm+CD95AemhEHyg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:56928 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752626Ab2LWU6O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Dec 2012 15:58:14 -0500
-In-Reply-To: <87ehij8lpb.fsf@dell.be.48ers.dk>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:54042 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752077Ab2LWV16 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Dec 2012 16:27:58 -0500
+Received: by mail-ie0-f172.google.com with SMTP id c13so8279217ieb.17
+        for <linux-omap@vger.kernel.org>; Sun, 23 Dec 2012 13:27:57 -0800 (PST)
+In-Reply-To: <CAAwP0s1vgrsho12CtejnoBo4biTN-VF_m_oqm+CD95AemhEHyg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Korsgaard <jacmet@sunsite.dk>
-Cc: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Gregory Clement <gregory.clement@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>
 
-Hi Peter,
+On Sun, Dec 23, 2012 at 3:22 PM, Javier Martinez Canillas
+<martinez.javier@gmail.com> wrote:
+> On Sat, Dec 22, 2012 at 3:17 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>> Hi Enric and Javier,
+>>
+>>>> The u-boot 'bootargs' env overwrites the one from chosen ?
+>>>>
+>>>
+>>> I just tested and U-Boot 'bootargs' has precedence over DT bootargs
+>>> but I didn't find a way to append boot parameters from U-Boot. You can
+>>> either overwrite it completely or not.
+>>>
+>>
+>> Yes. That seems to be the current case.
+>> Perhaps we can merge
+>> ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER
+>> and CMDLINE_EXTEND in one generic config stating
+>> the desired bootargs behavior.
+>>
+>> Does this sound sane?
+>>
+>
+> Hi Ezequiel,
+>
+> You could enable ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER on
+> omap2plus_defconfig
 
-On Fri, 21 Dec 2012, Peter Korsgaard wrote:
+Actually, ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER depends
+on ARM_ATAG_DTB_COMPAT being selected and it's only compatibility
+stuff for bootloaders non DTB capable.
 
-> On a custom am335x board I was surprised to see the kernel resetting
-> gpio pins not mentioned anywhere in the dts.
+I don't think we should add that to omap2plus_defconfig.
 
-The original plan with DT was to start by focusing on devices on the 
-board, rather than devices on the SoC.  The GPIO is an SoC device, so 
-it's currently managed by the hwmod data.  (This will probably change with 
-future kernel releases.)
+> but just having a sane DTB bootargs default value
+> is better IMHO.
+>
 
-> In this specific case the pin is connected to nCONFIG of a FPGA. The
-> FPGA is commanded to start configuration from a SPI flash in the
-> bootloader, so it can happen in parallel with kernel
-> load/uncompress/startup, but as the kernel resets the gpio during
-> initialization this doesn't work.
-> 
-> Digging a bit into it, I see the hwmod of the gpio controller is
-> configured to reset at startup, and it works correctly (E.G. the pin is
-> left asserted) if I change it to HWMOD_INIT_NO_RESET:
-> 
-> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> @@ -992,7 +992,7 @@ static struct omap_hwmod am33xx_gpio1_hwmod = {
->         .name           = "gpio2",
->         .class          = &am33xx_gpio_hwmod_class,
->         .clkdm_name     = "l4ls_clkdm",
-> -       .flags          = HWMOD_CONTROL_OPT_CLKS_IN_RESET,
-> +       .flags          = (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
->         .mpu_irqs       = am33xx_gpio1_irqs,
->         .main_clk       = "l4ls_gclk",
->         .prcm           = {
-> 
-> Now the question is why is this configured like this?
-
-This behavior is intended to decouple the kernel from the bootloader, or 
-previously-booted operating system (e.g., the kexec case).  The original 
-goal was to place the system in an known safe state as soon as possible 
-after the kernel starts.  This is to prevent misconfigured or 
-previously-configured devices from trashing memory or chip power 
-management in the currently-booted kernel.  It also avoids adding 
-inadvertent bootloader dependencies in driver code.
-
-N.B., the plan is to change this behavior over the next few releases.  
-Devices that have drivers associated with them will be reset when the 
-driver loads.  Driverless devices will be reset after drivers load, late 
-in boot.
-
-> Should E.G. the gpio controllers be changed to not reset or should it be 
-> configurable in the dts?
-
-Probably the DTS is the right place, since this is a board- and 
-bootloader-specific quirk.  The original intention was to allow board 
-files to set this HWMOD_INIT_NO_RESET flag themselves - see mach-omap2/ 
-omap_hwmod.c:omap_hwmod_no_setup_reset().  But since we've deprecated the 
-board files, the DT data seems like the right place.  
-
-It probably shouldn't be a GPIO-specific property.  Other devices like DSS 
-will also need some kind of 'no-init-reset' property, since on many 
-commercial devices, it's expected that some kind of splash screen will be 
-presented by the bootloader and stay on during the boot process.
-
-However, it is probably safest in the long run if you can change the board 
-design to require the SoC to actively reset the FPGA, rather than making 
-reset the default state.  That way, if there's some hardware bug that 
-requires the GPIO block to be reset, or if there's some GPIO glitch during 
-power management, the FPGA won't be inadvertently reset.
+Agreed. I'll send a v2 with your proposed default command line.
 
 
-regards,
-
-- Paul
+-- 
+    Ezequiel
