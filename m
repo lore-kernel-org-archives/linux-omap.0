@@ -1,58 +1,102 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/3] mtd nand : onfi need to be probed in 8 bits mode
-Date: Mon, 24 Dec 2012 00:29:26 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1212240023100.17282@utopia.booyaka.com>
-References: <1352199105-30215-1-git-send-email-matthieu.castet@parrot.com> <1354530053.30168.183.camel@sauron.fi.intel.com>
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [PATCH 3/3] arm: omap2: gpmc: add DT bindings for OneNAND
+Date: Sun, 23 Dec 2012 21:50:52 -0300
+Message-ID: <CALF0-+VHp+V=d114r_OT8baht_hSi9apmdYrJ3eVQRtEzjDZAw@mail.gmail.com>
+References: <1356307280-8323-1-git-send-email-ezequiel.garcia@free-electrons.com>
+	<1356307280-8323-3-git-send-email-ezequiel.garcia@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:57141 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752124Ab2LXA31 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Dec 2012 19:29:27 -0500
-In-Reply-To: <1354530053.30168.183.camel@sauron.fi.intel.com>
+Received: from mail-ie0-f181.google.com ([209.85.223.181]:63762 "EHLO
+	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752513Ab2LXAux (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Dec 2012 19:50:53 -0500
+Received: by mail-ie0-f181.google.com with SMTP id 16so8322052iea.26
+        for <linux-omap@vger.kernel.org>; Sun, 23 Dec 2012 16:50:52 -0800 (PST)
+In-Reply-To: <1356307280-8323-3-git-send-email-ezequiel.garcia@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthieu CASTET <matthieu.castet@parrot.com>, Artem Bityutskiy <dedekind1@gmail.com>
-Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, martinez.javier@gmail.com, zonque@gmail.com, grant.likely@secretlab.ca, eballetbo@gmail.com, matthias.bgg@googlemail.com, jon-hunter@ti.com, b-cousson@ti.com, Ezequiel Garcia <ezequiel@free-electrons.com>
 
-Hi
+On Sun, Dec 23, 2012 at 9:01 PM, Ezequiel Garcia
+<ezequiel.garcia@free-electrons.com> wrote:
+> This patch adds device tree bindings for OMAP OneNAND devices.
+> Tested on an OMAP3 3430 IGEPv2 board.
+>
+> Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+> ---
+>  .../devicetree/bindings/mtd/gpmc-onenand.txt       |   44 ++++++++++++++++++++
+>  arch/arm/mach-omap2/gpmc.c                         |   44 ++++++++++++++++++++
+>  2 files changed, 88 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+>
+> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+> new file mode 100644
+> index 0000000..4108f18
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+> @@ -0,0 +1,44 @@
+> +Device tree bindings for GPMC connected OneNANDs
+> +
+> +GPMC connected OneNAND (found on OMAP boards) are represented as child nodes of
+> +the GPMC controller with a name of "onenand".
+> +
+> +All timing relevant properties as well as generic gpmc child properties are
+> +explained in a separate documents - please refer to
+> +Documentation/devicetree/bindings/bus/ti-gpmc.txt
+> +
+> +Required properties:
+> +
+> + - reg:                        The CS line the peripheral is connected to
+> +
+> +Optional properties:
+> +
+> + - dma-channel:                DMA Channel index
+> +
+> +For inline partiton table parsing (optional):
+> +
+> + - #address-cells: should be set to 1
+> + - #size-cells: should be set to 1
+> +
+> +Example for an OMAP3430 board:
+> +
+> +       gpmc: gpmc@6e000000 {
+> +               compatible = "ti,omap3430-gpmc";
+> +               ti,hwmods = "gpmc";
+> +               reg = <0x6e000000 0x1000000>;
+> +               interrupts = <20>;
+> +               gpmc,num-cs = <8>;
+> +               gpmc,num-waitpins = <4>;
+> +               #address-cells = <2>;
+> +               #size-cells = <1>;
+> +
 
-On Mon, 3 Dec 2012, Artem Bityutskiy wrote:
+Before anyone complains, this is wrong:
 
-> On Tue, 2012-11-06 at 11:51 +0100, Matthieu CASTET wrote:
-> > - NAND_CMD_READID want an address that it is not scaled on x16 device (it is always 0x20)
-> > - NAND_CMD_PARAM want 8 bits data
-> > 
-> > Signed-off-by: Matthieu CASTET <matthieu.castet@parrot.com>
-> 
-> Pushed this one to l2-mtd.git, thanks!
+> +               onenand@0 {
+> +                       reg = <0>;
+> +
 
-This patch (commit ff3206b2450499203532af2505a7f6f8413e92c0 in mainline) 
-is causing warnings on OMAP3730 Beagle XM, OMAP3530 Beagle, and DM37xx EVM 
-as of v3.8-rc1:
+It should be "reg = <0 0 0>" of course.
 
-[    1.349456] ------------[ cut here ]------------
-[    1.351959] WARNING: at drivers/mtd/nand/nand_base.c:2861 nand_scan_ident+0xdb4/0xf90()
-[    1.356292] Modules linked in:
-[    1.357971] [<c001bf50>] (unwind_backtrace+0x0/0xf0) from [<c0045cec>] (warn_slowpath_common+0x4c/0x64)
-[    1.363037] [<c0045cec>] (warn_slowpath_common+0x4c/0x64) from [<c0045d20>] (warn_slowpath_null+0x1c/0x24)
-[    1.368194] [<c0045d20>] (warn_slowpath_null+0x1c/0x24) from [<c039d304>] (nand_scan_ident+0xdb4/0xf90)
-[    1.373229] [<c039d304>] (nand_scan_ident+0xdb4/0xf90) from [<c03a2448>] (omap_nand_probe+0x2e8/0x678)
-[    1.378234] [<c03a2448>] (omap_nand_probe+0x2e8/0x678) from [<c0357f84>] (platform_drv_probe+0x18/0x1c)
-[    1.383239] [<c0357f84>] (platform_drv_probe+0x18/0x1c) from [<c0356b84>] (driver_probe_device+0x84/0x224)
-[    1.388458] [<c0356b84>] (driver_probe_device+0x84/0x224) from [<c0356db8>] (__driver_attach+0x94/0x98)
-[    1.393493] [<c0356db8>] (__driver_attach+0x94/0x98) from [<c0355330>] (bus_for_each_dev+0x50/0x7c)
-[    1.398315] [<c0355330>] (bus_for_each_dev+0x50/0x7c) from [<c0356250>] (bus_add_driver+0xa0/0x2a0)
-[    1.403198] [<c0356250>] (bus_add_driver+0xa0/0x2a0) from [<c03572ec>] (driver_register+0x78/0x18c)
-[    1.408020] [<c03572ec>] (driver_register+0x78/0x18c) from [<c00086a4>] (do_one_initcall+0x34/0x194)
-[    1.412933] [<c00086a4>] (do_one_initcall+0x34/0x194) from [<c0528188>] (kernel_init+0x154/0x2ec)
-[    1.417724] [<c0528188>] (kernel_init+0x154/0x2ec) from [<c0013d50>] (ret_from_fork+0x14/0x24)
-[    1.422454] ---[ end trace 7f5c9fb048cfa61e ]---
+Also, IMHO, I don't like the node to be matched by his name.
+Shouldn't we add a "compatible" tag instead?
 
-The patch also looks bogus.  The patch states that "ONFI need to be probed 
-in 8 bits mode" (sic).  But if that's so, shouldn't 
-nand_flash_detect_onfi()  just fail immediately, rather than warn?
+That way we could describe the device like
 
+flash@xxx {
+    compatible = "nand";
+}
 
-- Paul
+or
+
+flash@xxx {
+    compatible = "onenand";
+}
+
+Does this make sense?
+
+Regards,
+
+    Ezequiel
