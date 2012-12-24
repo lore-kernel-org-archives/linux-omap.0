@@ -1,53 +1,45 @@
-From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v8 5/5] ARM: OMAP: gpmc: add DT bindings for GPMC timings
- and NAND
-Date: Mon, 24 Dec 2012 09:07:34 +0800
-Message-ID: <50D7AAD6.1090705@gmail.com>
-References: <1355481404-27695-1-git-send-email-zonque@gmail.com>
- <1355481404-27695-6-git-send-email-zonque@gmail.com>
- <20121215072738.882313E0C08@localhost>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 0/3] ARM: OMAP: resolve sparse warnings with v3.8-rc1
+Date: Sun, 23 Dec 2012 18:24:56 -0700
+Message-ID: <20121224012304.13698.43551.stgit@dusk.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20121215072738.882313E0C08@localhost>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: x0148406-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, avinashphilip-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:57200 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157Ab2LXB1Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Dec 2012 20:27:25 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 12/15/2012 03:27 PM, Grant Likely wrote:
-> On Fri, 14 Dec 2012 11:36:44 +0100, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> This patch adds basic DT bindings for OMAP GPMC.
->>
->> The actual peripherals are instantiated from child nodes within the GPMC
->> node, and the only type of device that is currently supported is NAND.
->>
->> Code was added to parse the generic GPMC timing parameters and some
->> documentation with examples on how to use them.
->>
->> Successfully tested on an AM33xx board.
->>
->> Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> 
-> For all patches in this series:
-> Acked-by: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Another minor release, another new set of sparse warnings.  It would
+be good if patch submitters and mainline committers can verify that
+new patches don't add sparse warnings.  Otherwise it makes it harder
+for others to verify that their code is sparse-warning-free.
 
-Thanks Grant!
+- Paul
 
-Tony, could you apply these patches somewhere so others can base upon
-them? As I said, I'm now travelling and can't continue my work, so I
-would much like to know these series at a safe place :)
+---
+
+sparse_fixes_a_3.8-rc
+   text	   data	    bss	    dec	    hex	filename
+7697036	 722268	5614832	14034136	 d624d8	vmlinux.omap2plus_defconfig.orig
+7697036	 722268	5614832	14034136	 d624d8	vmlinux.omap2plus_defconfig
+
+Paul Walmsley (3):
+      ARM: OMAP: 32k counter: resolve sparse warnings
+      ARM: OMAP AM33xx: hwmod data: resolve sparse warnings
+      ARM: OMAP: SRAM: resolve sparse warnings
 
 
-Again thanks to everyone,
-Daniel
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |    4 ++-
+ arch/arm/plat-omap/counter_32k.c           |    2 ++
+ arch/arm/plat-omap/counter_32k.h           |   20 ++++++++++++++++
+ arch/arm/plat-omap/sram.c                  |    2 ++
+ arch/arm/plat-omap/sram.h                  |   35 ++++++++++++++++++++++++++++
+ 5 files changed, 61 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/plat-omap/counter_32k.h
+ create mode 100644 arch/arm/plat-omap/sram.h
+
