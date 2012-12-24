@@ -1,97 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 3/3] ARM: OMAP: SRAM: resolve sparse warnings
-Date: Sun, 23 Dec 2012 18:25:01 -0700
-Message-ID: <20121224012500.13698.73653.stgit@dusk.lan>
-References: <20121224012304.13698.43551.stgit@dusk.lan>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH 2/2] cpts: fix a run time warn_on.
+Date: Mon, 24 Dec 2012 07:46:59 +0100
+Message-ID: <20121224064658.GA2390@netboy.at.omicron.at>
+References: <cover.1356204860.git.richardcochran@gmail.com>
+ <ad26ca328f0eba6a722d0288ac1c37ad55789447.1356204860.git.richardcochran@gmail.com>
+ <50D7101A.6020506@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:57218 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752513Ab2LXB10 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Dec 2012 20:27:26 -0500
-In-Reply-To: <20121224012304.13698.43551.stgit@dusk.lan>
+Received: from mail-bk0-f42.google.com ([209.85.214.42]:51632 "EHLO
+	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751954Ab2LXGrL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Dec 2012 01:47:11 -0500
+Content-Disposition: inline
+In-Reply-To: <50D7101A.6020506@mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, David Miller <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, Cyril Chemparathy <cyril@ti.com>
 
-Commit bb77209432873214a796a70a4539e4ebdf3feb54 ("ARM: OMAP: Move
-omap2+ specific parts of sram.c to mach-omap2") adds some new sparse
-warnings:
+On Sun, Dec 23, 2012 at 06:07:22PM +0400, Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 22-12-2012 23:41, Richard Cochran wrote:
+> 
+> >This patch fixes a warning in clk_enable by calling clk_prepare first.
+> 
+> >Signed-off-by: Richard Cochran <richardcochran@gmail.com>
+> >---
+> >  drivers/net/ethernet/ti/cpts.c |    1 +
+> >  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> >diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+> >index 5ab8fb4..3e32a31 100644
+> >--- a/drivers/net/ethernet/ti/cpts.c
+> >+++ b/drivers/net/ethernet/ti/cpts.c
+> >@@ -247,6 +247,7 @@ static void cpts_clk_init(struct cpts *cpts)
+> >  		cpts->refclk = NULL;
+> >  		return;
+> >  	}
+> >+	clk_prepare(cpts->refclk);
+> >  	clk_enable(cpts->refclk);
+> 
+>    Maybe just call clk_prepare_enable() instead?
 
-arch/arm/plat-omap/sram.c:43:6: warning: symbol 'omap_sram_push_address' was not declared. Should it be static?
-arch/arm/plat-omap/sram.c:65:6: warning: symbol 'omap_sram_reset' was not declared. Should it be static?
-arch/arm/plat-omap/sram.c:73:13: warning: symbol 'omap_map_sram' was not declared. Should it be static?
+Okay, will fix in v2.
 
-Fix by creating a temporary header file containing prototypes for
-these SRAM functions - needed until the SRAM code is moved to
-drivers/.  arch/arm/plat-omap/include/plat/sram.h can't be added due
-to ARM CONFIG_ARCH_MULTIPLATFORM restrictions on the use of the "plat/"
-include path shortcut.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/plat-omap/sram.c |    2 ++
- arch/arm/plat-omap/sram.h |   35 +++++++++++++++++++++++++++++++++++
- 2 files changed, 37 insertions(+)
- create mode 100644 arch/arm/plat-omap/sram.h
-
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 743fc28..d15e7b9 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -26,6 +26,8 @@
- 
- #include <asm/mach/map.h>
- 
-+#include "sram.h"
-+
- #define ROUND_DOWN(value,boundary)	((value) & (~((boundary)-1)))
- 
- static void __iomem *omap_sram_base;
-diff --git a/arch/arm/plat-omap/sram.h b/arch/arm/plat-omap/sram.h
-new file mode 100644
-index 0000000..7e47de4
---- /dev/null
-+++ b/arch/arm/plat-omap/sram.h
-@@ -0,0 +1,35 @@
-+/*
-+ * OMAP common SRAM prototypes
-+ *
-+ * Copyright (C) 2012 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ *
-+ * XXX This file is needed until the SRAM handling is implemented via
-+ * some device driver.
-+ */
-+
-+#ifndef __ARCH_ARM_PLAT_OMAP_SRAM_H
-+#define __ARCH_ARM_PLAT_OMAP_SRAM_H
-+
-+#include <linux/kernel.h>
-+
-+extern void *omap_sram_push_address(unsigned long size);
-+extern void omap_sram_reset(void);
-+extern void __init omap_map_sram(unsigned long start, unsigned long size,
-+				 unsigned long skip, int cached);
-+
-+#endif
-
-
+Thanks,
+Richard
