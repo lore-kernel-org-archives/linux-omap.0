@@ -1,21 +1,47 @@
-From: "mrs philips Rita" <rtp234@live.com>
-Subject: N/A
-Date: Sun, 23 Dec 2012 05:08:53 +0700
-Message-ID: <20121222221037.M63693__25761.9850025096$1356572471$gmane$org@live.com>
-Reply-To: philipsrita945@yahoo.com.hk
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB
+Date: Thu, 27 Dec 2012 20:35:24 +0200
+Message-ID: <20121227183524.GB7097@blackmetal.musicnaut.iki.fi>
+References: <1348047128-25692-1-git-send-email-kishon@ti.com>
+ <505A8BAB.2020004@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=tis-620
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailudo.moph.go.th ([203.157.168.6]:55571 "EHLO
-	mailudo.moph.go.th" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751069Ab2L0Bkn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Dec 2012 20:40:43 -0500
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:50579 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751765Ab2L0Sfa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Dec 2012 13:35:30 -0500
+Content-Disposition: inline
+In-Reply-To: <505A8BAB.2020004@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 
-Dear
-friend please i need your quick reply do not ignore this email for no reason
-i am Mrs.Rita Philips
-Thanks and God Be with you
-Best Regards
+Hi,
+
+On Thu, Sep 20, 2012 at 05:21:15AM +0200, Benoit Cousson wrote:
+> On 09/19/2012 11:32 AM, Kishon Vijay Abraham I wrote:
+> > This patch series adds dt data to get MUSB working in omap4 and omap3
+> > 
+> > Changes from v2:
+> > * Changes the subject of all the patches to include "ARM: dts:"
+> > * Added reg property and interrupt property for "usb_otg_hs". Previously these
+> >   were obtained from ti,hwmods property.
+> > * Rebased on
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git devel-dt
+> > 
+> > Changes from v1:
+> > Just removed the omap-usb2 dt data and sent that as a separate patch.
+> > 
+> > Kishon Vijay Abraham I (3):
+> >   ARM: dts: Add twl6030-usb data
+> >   ARM: dts: Add twl4030-usb data
+> >   ARM: dts: omap: Add usb_otg and glue data
+> 
+> Thanks for the update. I've just pulled the series for 3.7.
+
+I wonder what happened to the patch #3 (Add usb_otg and glue data)
+of this series? Why was it dropped? I cannot see it in 3.7 or 3.8-rc1.
+
+A.
