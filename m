@@ -1,226 +1,112 @@
-From: Russ Dill <russ.dill@gmail.com>
-Subject: Re: [PATCH 07/10] crypto: omap-aes - Add Device Tree Support
-Date: Fri, 28 Dec 2012 02:06:02 -0800
-Message-ID: <CA+Bv8XYz6mUJs82qAz=pvhkNDFe_Vp5Nv6918UPMGFAuAaU5Jw@mail.gmail.com>
-References: <1356109500-11719-1-git-send-email-mgreer@animalcreek.com>
- <1356109500-11719-8-git-send-email-mgreer@animalcreek.com>
+From: =?UTF-8?Q?Adrien_Ferr=C3=A9?= <ferre.adrien-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/1] Fix sprz319 erratum 2.1
+Date: Fri, 28 Dec 2012 02:34:46 -0800 (PST)
+Message-ID: <686fc62a-031e-4f35-9d23-e65cc261001c@googlegroups.com>
+References: <4F4289C2.90707@kynesim.co.uk> <alpine.DEB.2.00.1202241419580.23504@utopia.booyaka.com> <8f4f87ed-61f7-44ee-9c74-0f57e0f6a930@googlegroups.com> <d94a4cfd-538c-481c-aa8f-26a730739ac5@googlegroups.com>
+ <alpine.DEB.2.00.1212201534080.28579@utopia.booyaka.com>
+ <alpine.DEB.2.00.1212202305510.20441@utopia.booyaka.com>
+Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1356109500-11719-8-git-send-email-mgreer@animalcreek.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>, Dmitry Kasatkin <dmitry.kasatkin@intel.com>, linux-crypto@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, davem@davemloft.net, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/alternative;
+	boundary="----=_Part_133_25073599.1356690886115"
+Return-path: <beagleboard+bncBDB75T4YUEIBBRXL6WDAKGQESSQS3OQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1212202305510.20441-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+List-Post: <http://groups.google.com/group/beagleboard/post?hl=en>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/?hl=en>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/beagleboard?hl=en>
+Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe?hl=en>, <mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/beagleboard/subscribe?hl=en>,
+ <mailto:googlegroups-manage+1035534660134+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Cc: =?UTF-8?Q?Adrien_Ferr=C3=A9?= <ferre.adrien-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Richard Watts <rrw-XQiHveOWqdgqdlJmJB21zg@public.gmane.org>, khilman-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 21, 2012 at 10:04 AM, Mark A. Greer <mgreer@animalcreek.com> wrote:
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
->
-> Add Device Tree suport to the omap-aes crypto
-> driver.  Currently, only support for OMAP2 and
-> OMAP3 is being added but support for OMAP4 will
-> be added in a subsequent patch.
->
-> CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
-> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
-> ---
->  drivers/crypto/omap-aes.c | 119 ++++++++++++++++++++++++++++++++++++----------
->  1 file changed, 93 insertions(+), 26 deletions(-)
->
-> diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-> index faf522f..68bf22d 100644
-> --- a/drivers/crypto/omap-aes.c
-> +++ b/drivers/crypto/omap-aes.c
-> @@ -25,6 +25,9 @@
->  #include <linux/dmaengine.h>
->  #include <linux/omap-dma.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/of.h>
-> +#include <linux/of_device.h>
-> +#include <linux/of_address.h>
->  #include <linux/io.h>
->  #include <linux/crypto.h>
->  #include <linux/interrupt.h>
-> @@ -819,11 +822,93 @@ static struct crypto_alg algs[] = {
->  }
->  };
->
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id omap_aes_of_match[] = {
-> +       {
-> +               .compatible     = "ti,omap2-aes",
-> +       },
-> +       {},
-> +};
-> +MODULE_DEVICE_TABLE(of, omap_aes_of_match);
+------=_Part_133_25073599.1356690886115
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-I think you mean for the above section to be outside of the '#ifdef
-CONFIG_OF' block.
+Hi,
 
-> +static int omap_aes_get_res_of(struct omap_aes_dev *dd,
-> +               struct device *dev, struct resource *res)
-> +{
-> +       struct device_node *node = dev->of_node;
-> +       const struct of_device_id *match;
-> +       int err = 0;
-> +
-> +       match = of_match_device(of_match_ptr(omap_aes_of_match), dev);
-> +       if (!match) {
-> +               dev_err(dev, "no compatible OF match\n");
-> +               err = -EINVAL;
-> +               goto err;
-> +       }
-> +
-> +       err = of_address_to_resource(node, 0, res);
-> +       if (err < 0) {
-> +               dev_err(dev, "can't translate OF node address\n");
-> +               err = -EINVAL;
-> +               goto err;
-> +       }
-> +
-> +       dd->dma_out = -1; /* Dummy value that's unused */
-> +       dd->dma_in = -1; /* Dummy value that's unused */
-> +
-> +err:
-> +       return err;
-> +}
-> +#else
-> +static int omap_aes_get_res_dev(struct omap_aes_dev *dd,
-> +               struct device *dev, struct resource *res)
-> +{
-> +       return -EINVAL;
-> +}
+Sry about the private answer, I thought that using emails would publish the=
+=20
+content of the email here.
 
-And I think you mean this one to be omap_aes_get_res_of
+Nothing new has come up during the tests. It has been 14 days now and=20
+everything seems to run smoothly. I am starting to suspect that temperature=
+=20
+is an issue. The next step would be to put the tested boards in some kind=
+=20
+of enclosure and run them again for a couple of weeks.
 
-> +#endif
-> +
-> +static int omap_aes_get_res_pdev(struct omap_aes_dev *dd,
-> +               struct platform_device *pdev, struct resource *res)
-> +{
-> +       struct device *dev = &pdev->dev;
-> +       struct resource *r;
-> +       int err = 0;
-> +
-> +       /* Get the base address */
-> +       r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +       if (!r) {
-> +               dev_err(dev, "no MEM resource info\n");
-> +               err = -ENODEV;
-> +               goto err;
-> +       }
-> +       memcpy(res, r, sizeof(*res));
-> +
-> +       /* Get the DMA out channel */
-> +       r = platform_get_resource(pdev, IORESOURCE_DMA, 0);
-> +       if (!r) {
-> +               dev_err(dev, "no DMA out resource info\n");
-> +               err = -ENODEV;
-> +               goto err;
-> +       }
-> +       dd->dma_out = r->start;
-> +
-> +       /* Get the DMA in channel */
-> +       r = platform_get_resource(pdev, IORESOURCE_DMA, 1);
-> +       if (!r) {
-> +               dev_err(dev, "no DMA in resource info\n");
-> +               err = -ENODEV;
-> +               goto err;
-> +       }
-> +       dd->dma_in = r->start;
-> +
-> +err:
-> +       return err;
-> +}
-> +
->  static int omap_aes_probe(struct platform_device *pdev)
->  {
->         struct device *dev = &pdev->dev;
->         struct omap_aes_dev *dd;
-> -       struct resource *res;
-> +       struct resource res;
->         int err = -ENOMEM, i, j;
->         u32 reg;
+Le vendredi 21 d=E9cembre 2012 00:06:48 UTC+1, Paul Walmsley a =E9crit :
 >
-> @@ -838,35 +923,18 @@ static int omap_aes_probe(struct platform_device *pdev)
->         spin_lock_init(&dd->lock);
->         crypto_init_queue(&dd->queue, OMAP_AES_QUEUE_LENGTH);
+> On Thu, 20 Dec 2012, Paul Walmsley wrote:=20
 >
-> -       /* Get the base address */
-> -       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -       if (!res) {
-> -               dev_err(dev, "invalid resource type\n");
-> -               err = -ENODEV;
-> +       err = (dev->of_node) ? omap_aes_get_res_of(dd, dev, &res) :
-> +                              omap_aes_get_res_pdev(dd, pdev, &res);
-> +       if (err)
->                 goto err_res;
-> -       }
-> -       dd->phys_base = res->start;
-> -
-> -       /* Get the DMA */
-> -       res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
-> -       if (!res)
-> -               dev_info(dev, "no DMA info\n");
-> -       else
-> -               dd->dma_out = res->start;
-> -
-> -       /* Get the DMA */
-> -       res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
-> -       if (!res)
-> -               dev_info(dev, "no DMA info\n");
-> -       else
-> -               dd->dma_in = res->start;
-> -
-> -       dd->io_base = ioremap(dd->phys_base, SZ_4K);
-> +
-> +       dd->io_base = devm_request_and_ioremap(dev, &res);
->         if (!dd->io_base) {
->                 dev_err(dev, "can't ioremap\n");
->                 err = -ENOMEM;
->                 goto err_res;
->         }
-> +       dd->phys_base = res.start;
+> > On Thu, 20 Dec 2012, Adrien Ferr=E9 wrote:=20
+> >=20
+> > > The tests have been running for 6 days now and we had only one failin=
+g=20
+> BBxm=20
+> > >=20
+> > > There are five boards:=20
+> > >=20
+> > > 2 panda: high network + usb traffic=20
+> > > 3 bbxm: high network + usb traffic=20
+> >=20
+> > Nice; is that with (443, 12) or (480, 13) ?=20
 >
->         pm_runtime_enable(dev);
->         pm_runtime_get_sync(dev);
-> @@ -904,7 +972,6 @@ err_algs:
->  err_dma:
->         tasklet_kill(&dd->done_task);
->         tasklet_kill(&dd->queue_task);
-> -       iounmap(dd->io_base);
->         pm_runtime_disable(dev);
->  err_res:
->         kfree(dd);
-> @@ -932,7 +999,6 @@ static int omap_aes_remove(struct platform_device *pdev)
->         tasklet_kill(&dd->done_task);
->         tasklet_kill(&dd->queue_task);
->         omap_aes_dma_cleanup(dd);
-> -       iounmap(dd->io_base);
->         pm_runtime_disable(dd->dev);
->         kfree(dd);
->         dd = NULL;
-> @@ -965,6 +1031,7 @@ static struct platform_driver omap_aes_driver = {
->                 .name   = "omap-aes",
->                 .owner  = THIS_MODULE,
->                 .pm     = &omap_aes_pm_ops,
-> +               .of_match_table = omap_aes_of_match,
->         },
->  };
+> Adrien responded to me in private E-mail saying that this was without any=
+=20
+> changes at all.  Hmm...=20
 >
-> --
-> 1.7.12
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> - Paul
+
+--=20
+For more options, visit http://beagleboard.org/discuss
+
+
+
+------=_Part_133_25073599.1356690886115
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi,<div><br></div><div>Sry about the private answer, I thought that using e=
+mails would publish the content of the email here.</div><div><br></div><div=
+>Nothing new has come up during the tests. It has been 14 days now and ever=
+ything seems to run smoothly. I am starting to suspect that temperature is =
+an issue. The next step would be to put the tested boards in some kind of e=
+nclosure and run them again for a couple of weeks.<br><br>Le vendredi 21 d=
+=E9cembre 2012 00:06:48 UTC+1, Paul Walmsley a =E9crit&nbsp;:<blockquote cl=
+ass=3D"gmail_quote" style=3D"margin: 0;margin-left: 0.8ex;border-left: 1px =
+#ccc solid;padding-left: 1ex;">On Thu, 20 Dec 2012, Paul Walmsley wrote:
+<br>
+<br>&gt; On Thu, 20 Dec 2012, Adrien Ferr=E9 wrote:
+<br>&gt;=20
+<br>&gt; &gt; The tests have been running for 6 days now and we had only on=
+e failing BBxm
+<br>&gt; &gt;=20
+<br>&gt; &gt; There are five boards:
+<br>&gt; &gt;=20
+<br>&gt; &gt; 2 panda: high network + usb traffic
+<br>&gt; &gt; 3 bbxm: high network + usb traffic
+<br>&gt;=20
+<br>&gt; Nice; is that with (443, 12) or (480, 13) ?
+<br>
+<br>Adrien responded to me in private E-mail saying that this was without a=
+ny=20
+<br>changes at all. &nbsp;Hmm...
+<br>
+<br>
+<br>- Paul</blockquote></div>
+
+<p></p>
+
+-- <br />
+For more options, visit <a href=3D"http://beagleboard.org/discuss">http://b=
+eagleboard.org/discuss</a><br />
+&nbsp;<br />
+&nbsp;<br />
+
+------=_Part_133_25073599.1356690886115--
