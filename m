@@ -1,15 +1,18 @@
 From: "steve.zhan" <zhanzhenbo@gmail.com>
-Subject: (unknown)
-Date: Sat, 29 Dec 2012 17:17:27 +0800
-Message-ID: <CAKvkGKd_VJUYHxtE18mDHkkGBOiHtxOR9uKJEf2d8CofuNeVHw@mail.gmail.com>
+Subject: Re:[PATCH] hwspinlock/core: Add testing capabilities
+Date: Sat, 29 Dec 2012 17:19:08 +0800
+Message-ID: <CAKvkGKfc5jw+_ABgB8nrX37B7zHCoA5Ld0Gs5O-EDFD-Gk0OKg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Subject: 
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ido Yariv <ido@wizery.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:38515 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752314Ab2L2JTJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Dec 2012 04:19:09 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ido Yariv <ido@wizery.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>
 
 Hi,
 
