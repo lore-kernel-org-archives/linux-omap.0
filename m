@@ -1,14 +1,13 @@
-From: Abdulrahman Hemaily <ahemaily@gmail.com>
-Subject: Re: [PATCH 1/1] arm :omap :DMA: fix a bug on reserving the omap SDMA
- channels
-Date: Sun, 30 Dec 2012 15:09:44 +0200
-Message-ID: <CAJz1Lf2gDVo4n6fF=w1CdFCOWwWm4R5iheAS6EFnKocSJwW5Tg@mail.gmail.com>
-References: <1356813800-4705-1-git-send-email-ahemaily@gmail.com>
- <50DFDE2A.3070800@ti.com>
+From: "steve.zhan" <zhanzhenbo@gmail.com>
+Subject: Re: [PATCH] hwspinlock/core: Add testing capabilities
+Date: Sun, 30 Dec 2012 22:13:08 +0800
+Message-ID: <CAKvkGKep9Fgib=iwCE4RnBWrfsMkJu4CcpNxUDqnkyHpkjohuA@mail.gmail.com>
+References: <CAKvkGKfc5jw+_ABgB8nrX37B7zHCoA5Ld0Gs5O-EDFD-Gk0OKg@mail.gmail.com>
+ <20121230112018.GA14042@WorkStation.localnet>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6389482626035098309=="
+Content-Type: multipart/mixed; boundary="===============5915891397423034859=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <50DFDE2A.3070800@ti.com>
+In-Reply-To: <20121230112018.GA14042@WorkStation.localnet>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,107 +17,149 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ido Yariv <ido@wizery.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============6389482626035098309==
-Content-Type: multipart/alternative; boundary=14dae9340ca33cd51f04d2119cef
+--===============5915891397423034859==
+Content-Type: multipart/alternative; boundary=bcaec51d2f2627dd8c04d212806d
 
---14dae9340ca33cd51f04d2119cef
+--bcaec51d2f2627dd8c04d212806d
 Content-Type: text/plain; charset=ISO-8859-1
 
-sorry for the grammar mistakes.
+Hi,
+   Acked-by: Steve zhan zhanzhenbo@gmail.com
 
-Regards,,
+   "I'd rather not test the spinlocks after they are registering as they
+might already be in use by then."
 
-On 30 December 2012 08:24, Santosh Shilimkar <santosh.shilimkar@ti.com>wrote:
+    Why? I think user must use it after hwspin_lock_register have retured
+sucess.
 
-> $subject
-> s/arm:omap/ARM: OMAP:
+
+Steve
+
+
+2012/12/30 Ido Yariv <ido@wizery.com>
+
+> Hi Steve,
 >
+> On Sat, Dec 29, 2012 at 05:19:08PM +0800, steve.zhan wrote:
+> > Hi,
+> >
+> >     It is good idea add this feature.
+> >
+> > 1: Can we let the "ret = hwspin_lock_tests(ops, hwlock);" add after
+> > hwspin_lock_register_single have return
+> > succeed, that can avoid test duplicated Or error lockid. Of course, If
+> > this interface is intend to test soc hardware capability only, we can
+> > put it in the arch module not this core framework. For driver hardware
+> > sanity check, i would add it after software have register it.
 >
-> On Sunday 30 December 2012 02:13 AM, ahemaily@gmail.com wrote:
+> I'd rather not test the spinlocks after they are registering as they
+> might already be in use by then.
 >
->> From: ahemaily <ahemaily@gmail.com>
->>
->> The variable  dma_lch_count  used for comparison
->>  (omap_dma_reserve_channels <= dma_lch_count)
->> before it initialized to the value from omap_dma_dev_attr : d->lch_count.
->>
-> s/it/it is
+> While this feature only verifies the underlying platform implementation,
+> I think it's best to avoid code duplication and keep it in one place
+> that will always get called.
 >
+> > 2:Is it possible that interface add configs that choose which locks
+> > will be test? Because the hwspinlock module is init late in
+> > postcore_initcall phase, Maybe MACH/ARCH code(for example: code in
+> > early_initcall) need use private other interfaces to lock some
+> > hwspinlocks and then register hw locks to hwspinlock framework, Maybe
+> > some hw locks is in lock status but which test failed.
 >
->  I change the place of dma_lch_count initialization to be before the
->> comparison.
->>
->>  s/I change the place of dma_lch_count initialization to be before the
-> comparison./ Initialize dma_lch_count before it is being used for
-> comparison.
+> It was assumed that up to the point where the hw spinlocks are
+> registered they will not be used, regardless of when this module is
+> initialized.
+> If this assumption does not hold for your platform, the simplest
+> solution would be to set this config option to 'N', as there is no safe
+> way of verifying spinlocks that are actively being used.
 >
->
->  Signed-off-by: Abdelrahman Hemaily <ahemaily@gmail.com>
->> ---
->>
-> Change looks good to my eyes o.w
->
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->
+> Thanks for reviewing this,
+> Ido.
 >
 
---14dae9340ca33cd51f04d2119cef
+
+
+-- 
+Steve Zhan
+
+--bcaec51d2f2627dd8c04d212806d
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-<div dir=3D"ltr">sorry for the grammar mistakes.<br><br>Regards,,<br><br><d=
-iv class=3D"gmail_quote">On 30 December 2012 08:24, Santosh Shilimkar <span=
- dir=3D"ltr">&lt;<a href=3D"mailto:santosh.shilimkar@ti.com" target=3D"_bla=
-nk">santosh.shilimkar@ti.com</a>&gt;</span> wrote:<br>
-<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
-x #ccc solid;padding-left:1ex">$subject<br>
-s/arm:omap/ARM: OMAP:<div class=3D"im"><br>
-<br>
-On Sunday 30 December 2012 02:13 AM, <a href=3D"mailto:ahemaily@gmail.com" =
-target=3D"_blank">ahemaily@gmail.com</a> wrote:<br>
-<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
-x #ccc solid;padding-left:1ex">
-From: ahemaily &lt;<a href=3D"mailto:ahemaily@gmail.com" target=3D"_blank">=
-ahemaily@gmail.com</a>&gt;<br>
-<br>
-The variable =A0dma_lch_count =A0used for comparison =A0(omap_dma_reserve_c=
-hannels &lt;=3D dma_lch_count)<br>
-before it initialized to the value from omap_dma_dev_attr : d-&gt;lch_count=
-.<br>
-</blockquote></div>
-s/it/it is<div class=3D"im"><br>
-<br>
-<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
-x #ccc solid;padding-left:1ex">
-I change the place of dma_lch_count initialization to be before the compari=
-son.<br>
-<br>
-</blockquote></div>
-s/I change the place of dma_lch_count initialization to be before the compa=
-rison./ Initialize dma_lch_count before it is being used for comparison.<di=
-v class=3D"im"><br>
-<br>
-<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
-x #ccc solid;padding-left:1ex">
-Signed-off-by: Abdelrahman Hemaily &lt;<a href=3D"mailto:ahemaily@gmail.com=
-" target=3D"_blank">ahemaily@gmail.com</a>&gt;<br>
----<br>
-</blockquote></div>
-Change looks good to my eyes o.w<br>
-<br>
-Acked-by: Santosh Shilimkar &lt;<a href=3D"mailto:santosh.shilimkar@ti.com"=
- target=3D"_blank">santosh.shilimkar@ti.com</a>&gt;<br>
-<br>
-</blockquote></div><br></div>
-
---14dae9340ca33cd51f04d2119cef--
+<div dir=3D"ltr"><div><div><div>Hi,<br></div>=A0=A0 Acked-by: Steve zhan <a=
+ href=3D"mailto:zhanzhenbo@gmail.com">zhanzhenbo@gmail.com</a><br>=A0<br>=
+=A0=A0 &quot;I&#39;d rather not test the spinlocks after they are registeri=
+ng as they<br>
 
 
---===============6389482626035098309==
+might already be in use by then.&quot;<br><br></div>=A0=A0=A0 Why? I think =
+user must use it after hwspin_lock_register have retured sucess.<br><br><br=
+></div>Steve<br></div><div class=3D"gmail_extra"><br><br><div class=3D"gmai=
+l_quote">
+
+2012/12/30 Ido Yariv <span dir=3D"ltr">&lt;<a href=3D"mailto:ido@wizery.com=
+" target=3D"_blank">ido@wizery.com</a>&gt;</span><br><blockquote class=3D"g=
+mail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-l=
+eft:1ex">
+
+Hi Steve,<br>
+<div class=3D"im"><br>
+On Sat, Dec 29, 2012 at 05:19:08PM +0800, steve.zhan wrote:<br>
+&gt; Hi,<br>
+&gt;<br>
+&gt; =A0 =A0 It is good idea add this feature.<br>
+&gt;<br>
+&gt; 1: Can we let the &quot;ret =3D hwspin_lock_tests(ops, hwlock);&quot; =
+add after<br>
+&gt; hwspin_lock_register_single have return<br>
+&gt; succeed, that can avoid test duplicated Or error lockid. Of course, If=
+<br>
+&gt; this interface is intend to test soc hardware capability only, we can<=
+br>
+&gt; put it in the arch module not this core framework. For driver hardware=
+<br>
+&gt; sanity check, i would add it after software have register it.<br>
+<br>
+</div>I&#39;d rather not test the spinlocks after they are registering as t=
+hey<br>
+might already be in use by then.<br>
+<br>
+While this feature only verifies the underlying platform implementation,<br=
+>
+I think it&#39;s best to avoid code duplication and keep it in one place<br=
+>
+that will always get called.<br>
+<div class=3D"im"><br>
+&gt; 2:Is it possible that interface add configs that choose which locks<br=
+>
+&gt; will be test? Because the hwspinlock module is init late in<br>
+&gt; postcore_initcall phase, Maybe MACH/ARCH code(for example: code in<br>
+&gt; early_initcall) need use private other interfaces to lock some<br>
+&gt; hwspinlocks and then register hw locks to hwspinlock framework, Maybe<=
+br>
+&gt; some hw locks is in lock status but which test failed.<br>
+<br>
+</div>It was assumed that up to the point where the hw spinlocks are<br>
+registered they will not be used, regardless of when this module is<br>
+initialized.<br>
+If this assumption does not hold for your platform, the simplest<br>
+solution would be to set this config option to &#39;N&#39;, as there is no =
+safe<br>
+way of verifying spinlocks that are actively being used.<br>
+<br>
+Thanks for reviewing this,<br>
+Ido.<br>
+</blockquote></div><br><br clear=3D"all"><br>-- <br>Steve Zhan
+</div>
+
+--bcaec51d2f2627dd8c04d212806d--
+
+
+--===============5915891397423034859==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -129,4 +170,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============6389482626035098309==--
+--===============5915891397423034859==--
