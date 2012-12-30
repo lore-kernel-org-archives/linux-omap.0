@@ -1,61 +1,42 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [PATCH] ARM: dts: omap3-igep: Add fixed always-on regulators to common dtsi file
-Date: Sat, 29 Dec 2012 18:04:44 -0300
-Message-ID: <1356815084-6943-1-git-send-email-ezequiel.garcia@free-electrons.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/1] arm :omap :DMA: fix a bug on reserving the omap SDMA
+ channels
+Date: Sun, 30 Dec 2012 11:54:42 +0530
+Message-ID: <50DFDE2A.3070800@ti.com>
+References: <1356813800-4705-1-git-send-email-ahemaily@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.32.191]:54243 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753149Ab2L2VFA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Dec 2012 16:05:00 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58866 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751343Ab2L3GYg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 30 Dec 2012 01:24:36 -0500
+In-Reply-To: <1356813800-4705-1-git-send-email-ahemaily@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>
+To: ahemaily@gmail.com
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-These regulators are common to igep0020 and igep0030 boards
-and are needed by smsc911x controller.
+$subject
+s/arm:omap/ARM: OMAP:
 
-Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>
-Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
----
- arch/arm/boot/dts/omap3-igep.dtsi |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+On Sunday 30 December 2012 02:13 AM, ahemaily@gmail.com wrote:
+> From: ahemaily <ahemaily@gmail.com>
+>
+> The variable  dma_lch_count  used for comparison  (omap_dma_reserve_channels <= dma_lch_count)
+> before it initialized to the value from omap_dma_dev_attr : d->lch_count.
+s/it/it is
 
-diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap=
-3-igep.dtsi
-index dd01c46..91a42ce 100644
---- a/arch/arm/boot/dts/omap3-igep.dtsi
-+++ b/arch/arm/boot/dts/omap3-igep.dtsi
-@@ -24,6 +24,18 @@
- 		ti,mcbsp =3D <&mcbsp2>;
- 		ti,codec =3D <&twl_audio>;
- 	};
-+
-+        vddvario: regulator-vddvario {
-+                compatible =3D "regulator-fixed";
-+                regulator-name =3D "vddvario";
-+                regulator-always-on;
-+        };
-+
-+        vdd33a: regulator-vdd33a {
-+                compatible =3D "regulator-fixed";
-+                regulator-name =3D "vdd33a";
-+                regulator-always-on;
-+        };
- };
-=20
- &omap3_pmx_core {
---=20
-1.7.8.6
+> I change the place of dma_lch_count initialization to be before the comparison.
+>
+s/I change the place of dma_lch_count initialization to be before the 
+comparison./ Initialize dma_lch_count before it is being used for 
+comparison.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Abdelrahman Hemaily <ahemaily@gmail.com>
+> ---
+Change looks good to my eyes o.w
+
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+
