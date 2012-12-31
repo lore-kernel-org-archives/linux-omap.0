@@ -1,12 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 0/6] ARM: OMAP3: Audio support update for
-	omap-twl4030
-Date: Mon, 31 Dec 2012 12:02:54 +0100
-Message-ID: <1356951780-5412-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 1/6] ARM: OMAP: 3430sdp: Enable extmute
+	functionality for audio
+Date: Mon, 31 Dec 2012 12:02:55 +0100
+Message-ID: <1356951780-5412-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1356951780-5412-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1356951780-5412-1-git-send-email-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -20,41 +22,26 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: NeilBrown <neilb@suse.de>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Enable the use of extmute on the HS path.
 
-omap-twl4030 ASoC machine driver can support more boards with the following
-series:
-http://mailman.alsa-project.org/pipermail/alsa-devel/2012-December/058119.html
-
-Rework the omap-twl4030 audio support code in arch/arm/mach-omap2/ to take
-advantages of this. The same machine driver can support the zoom2 and sdp3430
-boards as well.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (6):
-  ARM: OMAP: 3430sdp: Enable extmute functionality for audio
-  ARM: OMAP: zoom: Zoom2 does not have extmute functionality
-  ARM: OMAP2+: twl-common: Add default twl4030 audio configuration
-  ARM: OMAP2+: twl-common: Allow boards to customize the twl4030 audio
-    setup
-  ARM: OMAP: zoom: Audio support via the common omap-twl4030 machine
-    driver
-  ARM: OMAP: sdp3430: Audio support via the common omap-twl4030 machine
-    driver
+ arch/arm/mach-omap2/board-3430sdp.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
- arch/arm/mach-omap2/board-3430sdp.c          | 20 +++++++++++++++++++
- arch/arm/mach-omap2/board-cm-t35.c           |  2 +-
- arch/arm/mach-omap2/board-devkit8000.c       |  2 +-
- arch/arm/mach-omap2/board-igep0020.c         |  2 +-
- arch/arm/mach-omap2/board-omap3beagle.c      |  2 +-
- arch/arm/mach-omap2/board-omap3evm.c         |  2 +-
- arch/arm/mach-omap2/board-overo.c            |  2 +-
- arch/arm/mach-omap2/board-zoom-peripherals.c | 29 ++++++++++++++++++++--------
- arch/arm/mach-omap2/twl-common.c             | 17 ++++++++++------
- arch/arm/mach-omap2/twl-common.h             |  3 ++-
- 10 files changed, 60 insertions(+), 21 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index bb73afc..40c22a7 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -382,6 +382,9 @@ static int __init omap3430_i2c_init(void)
+ 	sdp3430_twldata.vpll2->constraints.apply_uV = true;
+ 	sdp3430_twldata.vpll2->constraints.name = "VDVI";
+ 
++	sdp3430_twldata.audio->codec->hs_extmute = 1;
++	sdp3430_twldata.audio->codec->hs_extmute_gpio = -EINVAL;
++
+ 	omap3_pmic_init("twl4030", &sdp3430_twldata);
+ 
+ 	/* i2c2 on camera connector (for sensor control) and optional isp1301 */
 -- 
 1.8.0.2
