@@ -1,75 +1,104 @@
 From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Subject: [RFC v2 15/18] ARM: OMAP2+: AM33XX: Add assembly code for PM operations
-Date: Mon, 31 Dec 2012 18:37:08 +0530
-Message-ID: <1356959231-17335-16-git-send-email-vaibhav.bedia@ti.com>
+Subject: [RFC v2 16/18] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Mon, 31 Dec 2012 18:37:09 +0530
+Message-ID: <1356959231-17335-17-git-send-email-vaibhav.bedia@ti.com>
 References: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59985 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750935Ab2LaNSC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Dec 2012 08:18:02 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:60124 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751025Ab2LaNSD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Dec 2012 08:18:03 -0500
 In-Reply-To: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, khilman@deeprootsystems.com
-Cc: Vaibhav Bedia <vaibhav.bedia@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Vaibhav Bedia <vaibhav.bedia@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-In preparation for suspend-resume support for AM33XX, add
-the assembly file with the code which is copied to internal
-memory (OCMC RAM) during bootup and runs from there.
+AM335x supports various low power modes as documented
+in section 8.1.4.3 of the AM335x TRM which is available
+@ http://www.ti.com/litv/pdf/spruh73f
 
-As part of the low power entry (DeepSleep0 mode in AM33XX TRM),
-the code running from OCMC RAM does the following
-1. Stores the EMIF configuration
-2. Puts external memory in self-refresh
-3. Disables EMIF clock
-4. Puts the PLLs in bypass
-5. Executes WFI after writing to MPU_CLKCTRL register.
+DeepSleep0 mode offers the lowest power mode with limited
+wakeup sources without a system reboot and is mapped as
+the suspend state in the kernel. In this state, MPU and
+PER domains are turned off with the internal RAM held in
+retention to facilitate resume process. As part of the boot
+process, the assembly code is copied over to OCMCRAM using
+the OMAP SRAM code.
 
-If no interrupts have come, WFI execution on MPU gets registered
-as an interrupt with the WKUP-M3. WKUP-M3 takes care of disabling
-some clocks which MPU should not (L3, L4, OCMC RAM etc) and takes
-care of clockdomain and powerdomain transitions as part of the
-DeepSleep0 mode entry.
+AM335x has a Cortex-M3 (WKUP_M3) which assists the MPU
+in DeepSleep0 entry and exit. WKUP_M3 takes care of the
+clockdomain and powerdomain transitions based on the
+intended low power state. MPU needs to load the appropriate
+WKUP_M3 binary onto the WKUP_M3 memory space before it can
+leverage any of the PM features like DeepSleep.
 
-In case a late interrupt comes in, WFI ends up as a NOP and MPU
-continues execution from internal memory. The 'abort path' code
-undoes whatever was done as part of the low power entry and indicates
-a suspend failure by passing a non-zero value to the cpu_resume routine.
+The IPC mechanism between MPU and WKUP_M3 uses a mailbox
+sub-module and 8 IPC registers in the Control module. MPU
+uses the assigned Mailbox for issuing an interrupt to
+WKUP_M3 which then goes and checks the IPC registers for
+the payload. WKUP_M3 has the ability to trigger on interrupt
+to MPU by executing the "sev" instruction.
 
-The 'resume path' code is similar to the 'abort path' with the key
-difference of MMU being enabled in the 'abort path' but being
-disabled in the 'resume path' due to MPU getting powered off.
+In the current implementation when the suspend process
+is initiated MPU interrupts the WKUP_M3 to let it know about
+the intent of entering DeepSleep0 and waits for an ACK. When
+the ACK is received MPU continues with its suspend process
+to suspend all the drivers and then jumps to assembly in
+OCMC RAM. The assembly code puts the PLLs in bypass, puts the
+external RAM in self-refresh mode and then finally execute the
+WFI instruction. Execution of the WFI instruction triggers another
+interrupt to the WKUP_M3 which then continues wiht the power down
+sequence wherein the clockdomain and powerdomain transition takes
+place. As part of the sleep sequence, WKUP_M3 unmasks the interrupt
+lines for the wakeup sources. WFI execution on WKUP_M3 causes the
+hardware to disable the main oscillator of the SoC.
 
-In addition to the top level steps outlined above, there are some
-additional register writes related to external memory controller
-which help in lowering the overall power consumption in the suspended
-state. These include changing the state of the IOs to LVCMOS mode
-and enabling pull downs on the IOs to reduce leakage in low power state.
+When a wakeup event occurs, WKUP_M3 starts the power-up
+sequence by switching on the power domains and finally
+enabling the clock to MPU. Since the MPU gets powered down
+as part of the sleep sequence in the resume path ROM code
+starts executing. The ROM code detects a wakeup from sleep
+and then jumps to the resume location in OCMC which was
+populated in one of the IPC registers as part of the suspend
+sequence.
+
+The low level code in OCMC relocks the PLLs, enables access
+to external RAM and then jumps to the cpu_resume code of
+the kernel to finish the resume process.
 
 Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: Tony Lingren <tony@atomide.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
 v1->v2:
-	This is a new patch in the series to keep the
-	assembly code additionl separate as mentioned
-	by Kevin Hilman
+	Move assembly code addition, control module access
+	and hookup in OMAP PM framework in separate patches.
+	Address other comments from Kevin Hilman and Santosh
+	Shilimkar on v1. The discussion on v1 is present @
+	http://lists.infradead.org/pipermail/linux-arm-kernel/2012-November/129979.html
+	Note: The mailbox change will need slight rework once
+	the driver is finalized.
 
- arch/arm/mach-omap2/sleep33xx.S |  584 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 584 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/sleep33xx.S
+ arch/arm/mach-omap2/pm33xx.c |  469 ++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm33xx.h |   56 +++++
+ 2 files changed, 525 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/pm33xx.c
+ create mode 100644 arch/arm/mach-omap2/pm33xx.h
 
-diff --git a/arch/arm/mach-omap2/sleep33xx.S b/arch/arm/mach-omap2/sleep33xx.S
+diff --git a/arch/arm/mach-omap2/pm33xx.c b/arch/arm/mach-omap2/pm33xx.c
 new file mode 100644
-index 0000000..98fa76c
+index 0000000..aaa4daa
 --- /dev/null
-+++ b/arch/arm/mach-omap2/sleep33xx.S
-@@ -0,0 +1,584 @@
++++ b/arch/arm/mach-omap2/pm33xx.c
+@@ -0,0 +1,469 @@
 +/*
-+ * Low level suspend code for AM33XX SoCs
++ * AM33XX Power Management Routines
 + *
 + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
 + * Vaibhav Bedia <vaibhav.bedia@ti.com>
@@ -84,574 +113,521 @@ index 0000000..98fa76c
 + * GNU General Public License for more details.
 + */
 +
-+#include <linux/linkage.h>
-+#include <linux/ti_emif.h>
-+#include <asm/memory.h>
-+#include <asm/assembler.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/firmware.h>
++#include <linux/io.h>
++#include <linux/platform_device.h>
++#include <linux/sched.h>
++#include <linux/suspend.h>
++#include <linux/completion.h>
++#include <linux/module.h>
++#include <linux/mailbox.h>
++#include <linux/interrupt.h>
 +
++#include <asm/suspend.h>
++#include <asm/proc-fns.h>
++#include <asm/sizes.h>
++#include <asm/fncpy.h>
++#include <asm/system_misc.h>
++
++#include "pm.h"
 +#include "cm33xx.h"
 +#include "pm33xx.h"
-+#include "prm33xx.h"
++#include "control.h"
++#include "clockdomain.h"
++#include "powerdomain.h"
++#include "omap_hwmod.h"
++#include "omap_device.h"
++#include "soc.h"
++#include "sram.h"
++
++void (*am33xx_do_wfi_sram)(void);
++
++static void __iomem *am33xx_emif_base;
++static struct powerdomain *cefuse_pwrdm, *gfx_pwrdm, *per_pwrdm;
++static struct clockdomain *gfx_l4ls_clkdm;
++static struct omap_hwmod *usb_oh, *cpsw_oh, *tptc0_oh, *tptc1_oh, *tptc2_oh;
++static struct wkup_m3_context *wkup_m3;
++
++static DECLARE_COMPLETION(wkup_m3_sync);
++
++#ifdef CONFIG_SUSPEND
++static int am33xx_do_sram_idle(long unsigned int unused)
++{
++	am33xx_do_wfi_sram();
++	return 0;
++}
++
++static int am33xx_pm_suspend(void)
++{
++	int status, ret = 0;
++
++	/*
++	 * By default the following IPs do not have MSTANDBY asserted
++	 * which is necessary for PER domain transition. If the drivers
++	 * are not compiled into the kernel HWMOD code will not change the
++	 * state of the IPs if the IP was not never enabled. To ensure
++	 * that there no issues with or without the drivers being compiled
++	 * in the kernel, we forcefully put these IPs to idle.
++	 */
++	omap_hwmod_enable(usb_oh);
++	omap_hwmod_enable(tptc0_oh);
++	omap_hwmod_enable(tptc1_oh);
++	omap_hwmod_enable(tptc2_oh);
++	omap_hwmod_enable(cpsw_oh);
++
++	omap_hwmod_idle(usb_oh);
++	omap_hwmod_idle(tptc0_oh);
++	omap_hwmod_idle(tptc1_oh);
++	omap_hwmod_idle(tptc2_oh);
++	omap_hwmod_idle(cpsw_oh);
++
++	/* Try to put GFX to sleep */
++	pwrdm_set_next_fpwrst(gfx_pwrdm, PWRDM_FUNC_PWRST_OFF);
++
++	ret = cpu_suspend(0, am33xx_do_sram_idle);
++
++	status = pwrdm_read_fpwrst(gfx_pwrdm);
++	if (status != PWRDM_FUNC_PWRST_OFF)
++		pr_err("GFX domain did not transition\n");
++	else
++		pr_info("GFX domain entered low power state\n");
++
++	/*
++	 * GFX_L4LS clock domain needs to be woken up to
++	 * ensure thet L4LS clock domain does not get stuck in transition
++	 * If that happens L3 module does not get disabled, thereby leading
++	 * to PER power domain transition failing
++	 *
++	 * The clock framework should take care of ensuring
++	 * that the clock domain is in the right state when
++	 * GFX driver is active.
++	 */
++	clkdm_wakeup(gfx_l4ls_clkdm);
++	clkdm_sleep(gfx_l4ls_clkdm);
++
++	if (ret) {
++		pr_err("Kernel suspend failure\n");
++	} else {
++		status = omap_ctrl_readl(AM33XX_CONTROL_IPC_MSG_REG1);
++		status &= IPC_RESP_MASK;
++		status >>= __ffs(IPC_RESP_MASK);
++
++		switch (status) {
++		case 0:
++			pr_info("Successfully put all powerdomains to target state\n");
++			/*
++			 * XXX: Leads to loss of logic state in PER power domain
++			 * Use SOC specific ops for this?
++			 */
++			break;
++		case 1:
++			pr_err("Could not transition all powerdomains to target state\n");
++			ret = -1;
++			break;
++		default:
++			pr_err("Something went wrong :(\nStatus = %d\n",
++				status);
++			ret = -1;
++		}
++	}
++
++	return ret;
++}
++
++static int am33xx_pm_enter(suspend_state_t suspend_state)
++{
++	int ret = 0;
++
++	switch (suspend_state) {
++	case PM_SUSPEND_STANDBY:
++	case PM_SUSPEND_MEM:
++		ret = am33xx_pm_suspend();
++		break;
++	default:
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
++
++static int am33xx_pm_begin(suspend_state_t state)
++{
++	int ret = 0;
++	struct mailbox_msg dummy_msg;
++
++	disable_hlt();
++
++	MAILBOX_FILL_HEADER_MSG(dummy_msg, 0xABCDABCD);
++
++	wkup_m3->ipc_data.sleep_mode = IPC_CMD_DS0;
++	wkup_m3->ipc_data.param1  = DS_IPC_DEFAULT;
++	wkup_m3->ipc_data.param2  = DS_IPC_DEFAULT;
++
++	am33xx_wkup_m3_ipc_cmd(&wkup_m3->ipc_data);
++
++	wkup_m3->state = M3_STATE_MSG_FOR_LP;
++
++	mailbox_enable_irq(wkup_m3->mbox, IRQ_RX);
++
++	ret = mailbox_msg_send(wkup_m3->mbox, &dummy_msg);
++	if (ret) {
++		pr_err("A8<->CM3 MSG for LP failed\n");
++		am33xx_m3_state_machine_reset();
++		ret = -1;
++	}
++
++	/* Give some time to M3 to respond. 500msec is a random value here */
++	if (!wait_for_completion_timeout(&wkup_m3_sync,
++					msecs_to_jiffies(500))) {
++		pr_err("A8<->CM3 sync failure\n");
++		am33xx_m3_state_machine_reset();
++		ret = -1;
++	} else {
++		pr_debug("Message sent for entering DeepSleep mode\n");
++		mailbox_disable_irq(wkup_m3->mbox, IRQ_RX);
++	}
++
++	return ret;
++}
++
++static void am33xx_pm_end(void)
++{
++	mailbox_enable_irq(wkup_m3->mbox, IRQ_RX);
++
++	am33xx_m3_state_machine_reset();
++
++	enable_hlt();
++
++	return;
++}
++
++static const struct platform_suspend_ops am33xx_pm_ops = {
++	.begin		= am33xx_pm_begin,
++	.end		= am33xx_pm_end,
++	.enter		= am33xx_pm_enter,
++	.valid		= suspend_valid_only_mem,
++};
++
++static void am33xx_m3_state_machine_reset(void)
++{
++	int ret = 0;
++	struct mailbox_msg dummy_msg;
++
++	MAILBOX_FILL_HEADER_MSG(dummy_msg, 0xABCDABCD);
++
++	wkup_m3->ipc_data.sleep_mode	= IPC_CMD_RESET;
++	wkup_m3->ipc_data.param1	= DS_IPC_DEFAULT;
++	wkup_m3->ipc_data.param2	= DS_IPC_DEFAULT;
++
++	am33xx_wkup_m3_ipc_cmd(&wkup_m3->ipc_data);
++
++	wkup_m3->state = M3_STATE_MSG_FOR_RESET;
++
++	ret = mailbox_msg_send(wkup_m3->mbox, &dummy_msg);
++	if (!ret) {
++		pr_debug("Message sent for resetting M3 state machine\n");
++		/* Give some to M3 to respond. 500msec is a random value here */
++		if (!wait_for_completion_timeout(&wkup_m3_sync,
++						msecs_to_jiffies(500)))
++			pr_err("A8<->CM3 sync failure\n");
++	} else {
++		pr_err("Could not reset M3 state machine!!!\n");
++		wkup_m3->state = M3_STATE_UNKNOWN;
++	}
++}
++#endif /* CONFIG_SUSPEND */
++
++/*
++ * Dummy notifier for the mailbox
++ * XXX: Get rid of this requirement once the MBX driver has been finalized
++ */
++static int wkup_mbox_msg(struct notifier_block *self, unsigned long len,
++		void *msg)
++{
++	return 0;
++}
++
++static struct notifier_block wkup_mbox_notifier = {
++	.notifier_call = wkup_mbox_msg,
++};
++
++static irqreturn_t wkup_m3_txev_handler(int irq, void *unused)
++{
++	am33xx_txev_eoi();
++
++	switch (wkup_m3->state) {
++	case M3_STATE_RESET:
++		wkup_m3->state = M3_STATE_INITED;
++		break;
++	case M3_STATE_MSG_FOR_RESET:
++		wkup_m3->state = M3_STATE_INITED;
++		mailbox_rx_flush(wkup_m3->mbox);
++		complete(&wkup_m3_sync);
++		break;
++	case M3_STATE_MSG_FOR_LP:
++		mailbox_rx_flush(wkup_m3->mbox);
++		complete(&wkup_m3_sync);
++		break;
++	case M3_STATE_UNKNOWN:
++		pr_err("IRQ %d with WKUP_M3 in unknown state\n", irq);
++		mailbox_rx_flush(wkup_m3->mbox);
++		return IRQ_NONE;
++	}
++
++	am33xx_txev_enable();
++	return IRQ_HANDLED;
++}
++
++static void am33xx_pm_firmware_cb(const struct firmware *fw, void *context)
++{
++	struct wkup_m3_context *wkup_m3_context = context;
++	struct platform_device *pdev = to_platform_device(wkup_m3_context->dev);
++	int ret = 0;
++
++	/* no firmware found */
++	if (!fw) {
++		dev_err(wkup_m3_context->dev, "request_firmware failed\n");
++		goto err;
++	}
++
++	memcpy((void *)wkup_m3_context->code, fw->data, fw->size);
++	pr_info("Copied the M3 firmware to UMEM\n");
++
++	wkup_m3->state = M3_STATE_RESET;
++
++	ret = omap_device_deassert_hardreset(pdev, "wkup_m3");
++	if (ret) {
++		pr_err("Could not deassert the reset for WKUP_M3\n");
++		goto err;
++	} else {
++#ifdef CONFIG_SUSPEND
++		suspend_set_ops(&am33xx_pm_ops);
++		/*
++		 * Physical resume address to be used by ROM code
++		 */
++		wkup_m3->ipc_data.resume_addr = (AM33XX_OCMC_END -
++				am33xx_do_wfi_sz + am33xx_resume_offset + 0x4);
++#endif
++		return;
++	}
++
++err:
++	mailbox_put(wkup_m3_context->mbox, &wkup_mbox_notifier);
++}
++
++static int wkup_m3_init(void)
++{
++	int irq, ret = 0;
++	struct resource *mem;
++	struct platform_device *pdev = to_platform_device(wkup_m3->dev);
++
++	omap_device_enable_hwmods(to_omap_device(pdev));
++
++	/* Reserve the MBOX for sending messages to M3 */
++	wkup_m3->mbox = mailbox_get("wkup_m3", &wkup_mbox_notifier);
++	if (IS_ERR(wkup_m3->mbox)) {
++		pr_err("Could not reserve mailbox for A8->M3 IPC\n");
++		ret = -ENODEV;
++		goto exit;
++	}
++
++	irq = platform_get_irq(pdev, 0);
++	if (!irq) {
++		dev_err(wkup_m3->dev, "no irq resource\n");
++		ret = -ENXIO;
++		goto err;
++	}
++
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!mem) {
++		dev_err(wkup_m3->dev, "no memory resource\n");
++		ret = -ENXIO;
++		goto err;
++	}
++
++	wkup_m3->code = devm_request_and_ioremap(wkup_m3->dev, mem);
++	if (!wkup_m3->code) {
++		dev_err(wkup_m3->dev, "could not ioremap\n");
++		ret = -EADDRNOTAVAIL;
++		goto err;
++	}
++
++	ret = devm_request_irq(wkup_m3->dev, irq, wkup_m3_txev_handler,
++		  IRQF_DISABLED, "wkup_m3_txev", NULL);
++	if (ret) {
++		dev_err(wkup_m3->dev, "request_irq failed\n");
++		goto err;
++	} else {
++		am33xx_txev_enable();
++	}
++
++	pr_info("Trying to load am335x-pm-firmware.bin");
++
++	/* We don't want to delay boot */
++	request_firmware_nowait(THIS_MODULE, 0, "am335x-pm-firmware.bin",
++				wkup_m3->dev, GFP_KERNEL, wkup_m3,
++				am33xx_pm_firmware_cb);
++	return 0;
++
++err:
++	mailbox_put(wkup_m3->mbox, &wkup_mbox_notifier);
++exit:
++	return ret;
++}
++
++/*
++ * Push the minimal suspend-resume code to SRAM
++ */
++void am33xx_push_sram_idle(void)
++{
++	am33xx_do_wfi_sram = (void *)omap_sram_push
++					(am33xx_do_wfi, am33xx_do_wfi_sz);
++}
++
++static int __init am33xx_map_emif(void)
++{
++	am33xx_emif_base = ioremap(AM33XX_EMIF_BASE, SZ_32K);
++
++	if (!am33xx_emif_base)
++		return -ENOMEM;
++
++	return 0;
++}
++
++void __iomem *am33xx_get_emif_base(void)
++{
++	return am33xx_emif_base;
++}
++
++int __init am33xx_pm_init(void)
++{
++	int ret;
++
++	if (!soc_is_am33xx())
++		return -ENODEV;
++
++	pr_info("Power Management for AM33XX family\n");
++
++	/*
++	 * By default the following IPs do not have MSTANDBY asserted
++	 * which is necessary for PER domain transition. If the drivers
++	 * are not compiled into the kernel HWMOD code will not change the
++	 * state of the IPs if the IP was not never enabled
++	 */
++	usb_oh		= omap_hwmod_lookup("usb_otg_hs");
++	tptc0_oh	= omap_hwmod_lookup("tptc0");
++	tptc1_oh	= omap_hwmod_lookup("tptc1");
++	tptc2_oh	= omap_hwmod_lookup("tptc2");
++	cpsw_oh		= omap_hwmod_lookup("cpgmac0");
++
++	gfx_pwrdm = pwrdm_lookup("gfx_pwrdm");
++	per_pwrdm = pwrdm_lookup("per_pwrdm");
++
++	gfx_l4ls_clkdm = clkdm_lookup("gfx_l4ls_gfx_clkdm");
++
++	if ((!usb_oh) || (!tptc0_oh) || (!tptc1_oh) || (!tptc2_oh) ||
++		(!cpsw_oh) || (!gfx_pwrdm) || (!per_pwrdm) ||
++		(!gfx_l4ls_clkdm)) {
++		ret = -ENODEV;
++		goto err;
++	}
++
++	wkup_m3 = kzalloc(sizeof(struct wkup_m3_context), GFP_KERNEL);
++	if (!wkup_m3) {
++		pr_err("Memory allocation failed\n");
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	ret = am33xx_map_emif();
++	if (ret) {
++		pr_err("Could not ioremap EMIF\n");
++		goto err;
++	}
++
++	(void) clkdm_for_each(omap_pm_clkdms_setup, NULL);
++
++	/* CEFUSE domain can be turned off post bootup */
++	cefuse_pwrdm = pwrdm_lookup("cefuse_pwrdm");
++	if (cefuse_pwrdm)
++		pwrdm_set_next_fpwrst(cefuse_pwrdm, PWRDM_FUNC_PWRST_OFF);
++	else
++		pr_err("Failed to get cefuse_pwrdm\n");
++
++	wkup_m3->dev = omap_device_get_by_hwmod_name("wkup_m3");
++
++	ret = wkup_m3_init();
++	if (ret)
++		pr_err("Could not initialise firmware loading\n");
++
++err:
++	return ret;
++}
+diff --git a/arch/arm/mach-omap2/pm33xx.h b/arch/arm/mach-omap2/pm33xx.h
+new file mode 100644
+index 0000000..13a2c85
+--- /dev/null
++++ b/arch/arm/mach-omap2/pm33xx.h
+@@ -0,0 +1,56 @@
++/*
++ * AM33XX Power Management Routines
++ *
++ * Copyright (C) 2012 Texas Instruments Inc.
++ * Vaibhav Bedia <vaibhav.bedia@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef __ARCH_ARM_MACH_OMAP2_PM33XX_H
++#define __ARCH_ARM_MACH_OMAP2_PM33XX_H
++
 +#include "control.h"
 +
-+	.text
-+	.align 3
-+
-+	.macro	pll_bypass, name, clk_mode_addr, idlest_addr, pll_mode
-+pll_bypass_\name:
-+	ldr	r0, \clk_mode_addr
-+	ldr	r1, [r0]
-+	str	r1, clk_mode_\pll_mode
-+	bic	r1, r1, #(7 << 0)
-+	orr	r1, r1, #0x5
-+	str	r1, [r0]
-+	ldr	r0, \idlest_addr
-+wait_pll_bypass_\name:
-+	ldr	r1, [r0]
-+	tst	r1, #0x0
-+	bne	wait_pll_bypass_\name
-+	.endm
-+
-+	.macro	pll_lock, name, clk_mode_addr, idlest_addr, pll_mode
-+pll_lock_\name:
-+	ldr	r0, \clk_mode_addr
-+	ldr	r1, clk_mode_\pll_mode
-+	str	r1, [r0]
-+	and	r1, r1, #0x7
-+	cmp	r1, #0x7
-+	bne	pll_mode_restored_\name
-+	ldr	r0, \idlest_addr
-+wait_pll_lock_\name:
-+	ldr	r1, [r0]
-+	ands	r1, #0x1
-+	beq	wait_pll_lock_\name
-+pll_mode_restored_\name:
-+	nop
-+	.endm
-+
-+	.macro	ddr_self_refresh, num
-+ddr_self_refresh_\num:
-+	add	r1, r0, #EMIF_POWER_MANAGEMENT_CONTROL
-+	ldr	r2, [r1]
-+	orr	r2, r2, #0xa0		@ a reasonable delay for entering SR
-+	str	r2, [r1, #0]
-+	str	r2, [r1, #4]		@ write to shadow register also
-+
-+	ldr	r2, ddr_start		@ do a dummy access to DDR
-+	ldr	r3, [r2, #0]
-+	ldr	r3, [r1, #0]		@ now set the LP MODE to Self-Refresh
-+	orr	r3, r3, #0x200
-+	str	r3, [r1, #0]
-+
-+	mov	r1, #0x1000		@ Give some time for system to enter SR
-+wait_sr_\num:
-+	subs	r1, r1, #1
-+	bne	wait_sr_\num
-+	.endm
-+
-+	.macro	wait_sdram_config, num
-+wait_sdram_config_\num:
-+	mov	r0, #0x100
-+wait_sc_\num:
-+	subs	r0, r0 ,#1
-+	bne	wait_sc_\num
-+	.endm
-+
-+ENTRY(am33xx_do_wfi)
-+	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
-+	/* Get the EMIF virtual address */
-+	ldr	r0, emif_addr_func
-+	blx	r0
-+	/* Save it for later use */
-+	str	r0, emif_addr_virt
-+
-+	/* This ensures isb */
-+	ldr	r0, dcache_flush
-+	blx	r0
-+
-+	/* Same as v7_flush_icache_all - saving a branch */
-+	mov	r0, #0
-+	mcr	p15, 0, r0, c7, c5, 0	@ I+BTB cache invalidate
-+
-+	ldr	r0, emif_addr_virt
-+	/* Save EMIF configuration */
-+	ldr	r1, [r0, #EMIF_SDRAM_CONFIG]
-+	str	r1, emif_sdcfg_val
-+	ldr	r1, [r0, #EMIF_SDRAM_REFRESH_CONTROL]
-+	str	r1, emif_ref_ctrl_val
-+	ldr	r1, [r0, #EMIF_SDRAM_TIMING_1]
-+	str	r1, emif_timing1_val
-+	ldr	r1, [r0, #EMIF_SDRAM_TIMING_2]
-+	str	r1, emif_timing2_val
-+	ldr	r1, [r0, #EMIF_SDRAM_TIMING_3]
-+	str	r1, emif_timing3_val
-+	ldr	r1, [r0, #EMIF_POWER_MANAGEMENT_CONTROL]
-+	str	r1, emif_pmcr_val
-+	ldr	r1, [r0, #EMIF_POWER_MANAGEMENT_CTRL_SHDW]
-+	str	r1, emif_pmcr_shdw_val
-+	ldr	r1, [r0, #EMIF_SDRAM_OUTPUT_IMPEDANCE_CALIBRATION_CONFIG]
-+	str	r1, emif_zqcfg_val
-+	ldr	r1, [r0, #EMIF_DDR_PHY_CTRL_1]
-+	str	r1, emif_rd_lat_val
-+
-+	/* Ensure that all the writes to DDR leave the A8 */
-+	dsb
-+	dmb
-+	isb
-+
-+	ddr_self_refresh	1
-+
-+	/* Disable EMIF at this point */
-+	ldr	r1, virt_emif_clkctrl
-+	ldr	r2, [r1]
-+	bic	r2, r2, #(3 << 0)
-+	str	r2, [r1]
-+
-+	ldr	r1, virt_emif_clkctrl
-+wait_emif_disable:
-+	ldr	r2, [r1]
-+	ldr	r3, module_disabled_val
-+	cmp	r2, r3
-+	bne	wait_emif_disable
-+
-+	/*
-+	 * For the MPU WFI to be registered as an interrupt
-+	 * to WKUP_M3, MPU_CLKCTRL.MODULEMODE needs to be set
-+	 * to DISABLED
-+	 */
-+	ldr	r1, virt_mpu_clkctrl
-+	ldr	r2, [r1]
-+	bic	r2, r2, #(3 << 0)
-+	str	r2, [r1]
-+
-+	/* DDR3 reset override and mDDR mode selection */
-+	ldr	r0, virt_ddr_io_ctrl
-+	mov	r1, #(0x9 << 28)
-+	str	r1, [r0]
-+
-+	/* Weak pull down for DQ, DM */
-+	ldr	r1, virt_ddr_data0_ioctrl
-+	ldr	r2, susp_io_pull_data
-+	str	r2, [r1]
-+
-+	ldr	r1, virt_ddr_data1_ioctrl
-+	ldr	r2, susp_io_pull_data
-+	str	r2, [r1]
-+
-+	/* Disable VTP */
-+	ldr	r1, virt_ddr_vtp_ctrl
-+	ldr	r2, susp_vtp_ctrl_val
-+	str	r2, [r1]
-+
-+	/* Enable SRAM LDO ret mode */
-+	ldr	r0, virt_sram_ldo_addr
-+	ldr	r1, [r0]
-+	orr	r1, #1
-+	str	r1, [r0]
-+
-+put_pll_bypass:
-+	/* Put the PLLs in bypass mode */
-+	pll_bypass	core, virt_core_clk_mode, virt_core_idlest, core_val
-+	pll_bypass	ddr, virt_ddr_clk_mode, virt_ddr_idlest, ddr_val
-+	pll_bypass	disp, virt_disp_clk_mode, virt_disp_idlest, disp_val
-+	pll_bypass	per, virt_per_clk_mode, virt_per_idlest, per_val
-+	pll_bypass	mpu, virt_mpu_clk_mode, virt_mpu_idlest, mpu_val
-+
-+	dsb
-+	dmb
-+	isb
-+
-+	wfi
-+
-+	/* NOPs to ensure the A8 pipeline is clean */
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+
-+	/* We come here in case of an abort due to a late interrupt */
-+
-+	/* Set MPU_CLKCTRL.MODULEMODE back to ENABLE */
-+	ldr	r1, virt_mpu_clkctrl
-+	mov	r2, #0x2
-+	str	r2, [r1]
-+
-+	/* Relock the PLLs */
-+	pll_lock	mpu_abt, virt_mpu_clk_mode, virt_mpu_idlest, mpu_val
-+	pll_lock	per_abt, virt_per_clk_mode, virt_per_idlest, per_val
-+	pll_lock	disp_abt, virt_disp_clk_mode, virt_disp_idlest, disp_val
-+	pll_lock	ddr_abt, virt_ddr_clk_mode, virt_ddr_idlest, ddr_val
-+	pll_lock	core_abt, virt_core_clk_mode, virt_core_idlest, core_val
-+
-+	/* Disable SRAM LDO ret mode */
-+	ldr	r0, virt_sram_ldo_addr
-+	ldr	r1, [r0]
-+	bic	r1, #1
-+	str	r1, [r0]
-+
-+	/* Restore the pull for DQ, DM */
-+	ldr	r1, virt_ddr_data0_ioctrl
-+	ldr	r2, resume_io_pull_data
-+	str	r2, [r1]
-+
-+	ldr	r1, virt_ddr_data1_ioctrl
-+	ldr	r2, resume_io_pull_data
-+	str	r2, [r1]
-+
-+	/* Enable EMIF */
-+	ldr	r1, virt_emif_clkctrl
-+	mov	r2, #0x2
-+	str	r2, [r1]
-+wait_emif_enable:
-+	ldr	r3, [r1]
-+	cmp	r2, r3
-+	bne	wait_emif_enable
-+
-+	/* Enable VTP */
-+config_vtp_abt:
-+	ldr	r0, virt_ddr_vtp_ctrl
-+	ldr	r1, [r0]
-+	mov	r2, #0x0	@ clear the register
-+	str	r2, [r0]
-+	mov	r2, #0x6	@ write the filter value
-+	str	r2, [r0]
-+
-+	ldr	r1, [r0]
-+	ldr	r2, vtp_enable	@ set the enable bit
-+	orr	r2, r2, r1
-+	str	r2, [r0]
-+
-+	ldr	r1, [r0]	@ toggle the CLRZ bit
-+	bic	r1, #1
-+	str	r1, [r0]
-+
-+	ldr	r1, [r0]
-+	orr	r1, #1
-+	str	r1, [r0]
-+
-+poll_vtp_ready_abt:
-+	ldr	r1, [r0]	@ poll for VTP ready
-+	tst	r1, #(AM33XX_VTP_CTRL_READY)
-+	beq	poll_vtp_ready_abt
-+
-+	/* DDR3 reset override and mDDR mode clear */
-+	ldr	r0, virt_ddr_io_ctrl
-+	mov	r1, #0
-+	str	r1, [r0]
-+
-+emif_self_refresh_dis:
-+	/* Disable EMIF self-refresh */
-+	ldr	r0, emif_addr_virt
-+	add	r0, r0, #EMIF_POWER_MANAGEMENT_CONTROL
-+	ldr	r1, [r0]
-+	bic	r1, r1, #LP_MODE_MASK
-+	str	r1, [r0]
-+	str	r1, [r0, #4]
-+
-+	/*
-+	 * A write to SDRAM CONFIG register triggers
-+	 * an init sequence and hence it must be done
-+	 * at the end
-+	 */
-+	ldr r0, emif_addr_virt
-+	add r0, r0, #EMIF_SDRAM_CONFIG
-+	ldr r4, emif_sdcfg_val
-+	str r4, [r0]
-+
-+	mov r0, #0x1000
-+wait_abt:
-+	subs   r0, r0, #1
-+	bne wait_abt
-+
-+	/* Let the suspend code know about the abort */
-+	mov	r0, #1
-+	ldmfd	sp!, {r4 - r11, pc}	@ restore regs and return
-+ENDPROC(am33xx_do_wfi)
-+
-+	.align
-+ENTRY(am33xx_resume_offset)
-+	.word . - am33xx_do_wfi
-+
-+ENTRY(am33xx_resume_from_deep_sleep)
-+	/* Take the PLLs out of LP_BYPASS */
-+	pll_lock	mpu, phys_mpu_clk_mode, phys_mpu_idlest, mpu_val
-+	pll_lock	per, phys_per_clk_mode, phys_per_idlest, per_val
-+	pll_lock	disp, phys_disp_clk_mode, phys_disp_idlest, disp_val
-+	pll_lock	ddr, phys_ddr_clk_mode, phys_ddr_idlest, ddr_val
-+	pll_lock	core, phys_core_clk_mode, phys_core_idlest, core_val
-+
-+	/* Disable SRAM LDO ret mode */
-+	ldr	r0, phys_sram_ldo_addr
-+	ldr	r1, [r0]
-+	bic	r1, #1
-+	str	r1, [r0]
-+
-+	/* Restore the pull for DQ, DM */
-+	ldr	r1, phys_ddr_data0_ioctrl
-+	ldr	r2, resume_io_pull_data
-+	str	r2, [r1]
-+
-+	ldr	r1, phys_ddr_data1_ioctrl
-+	ldr	r2, resume_io_pull_data
-+	str	r2, [r1]
-+
-+config_vtp:
-+	ldr	r0, phys_ddr_vtp_ctrl
-+	ldr	r1, [r0]
-+	mov	r2, #0x0	@ clear the register
-+	str	r2, [r0]
-+	mov	r2, #0x6	@ write the filter value
-+	str	r2, [r0]
-+
-+	ldr	r1, [r0]
-+	ldr	r2, vtp_enable	@ set the enable bit
-+	orr	r2, r2, r1
-+	str	r2, [r0]
-+
-+	ldr	r1, [r0]	@ toggle the CLRZ bit
-+	bic	r1, #1
-+	str	r1, [r0]
-+
-+	ldr	r1, [r0]
-+	orr	r1, #1
-+	str	r1, [r0]
-+
-+poll_vtp_ready:
-+	ldr	r1, [r0]	@ poll for VTP ready
-+	tst	r1, #AM33XX_VTP_CTRL_READY
-+	beq	poll_vtp_ready
-+
-+	/* DDR3 reset override and mDDR mode clear */
-+	ldr	r0, phys_ddr_io_ctrl
-+	mov	r1, #0
-+	str	r1, [r0]
-+
-+	/* Enable EMIF */
-+	ldr	r1, phys_emif_clkctrl
-+	mov	r2, #0x2
-+	str	r2, [r1]
-+wait_emif_enable1:
-+	ldr	r3, [r1]
-+	cmp	r2, r3
-+	bne	wait_emif_enable1
-+
-+config_emif_timings:
-+	ldr	r3, emif_phys_addr
-+	ldr	r4, emif_rd_lat_val
-+	str	r4, [r3, #EMIF_DDR_PHY_CTRL_1]
-+	str	r4, [r3, #EMIF_DDR_PHY_CTRL_1_SHDW]
-+	ldr	r4, emif_timing1_val
-+	str	r4, [r3, #EMIF_SDRAM_TIMING_1]
-+	str	r4, [r3, #EMIF_SDRAM_TIMING_1_SHDW]
-+	ldr	r4, emif_timing2_val
-+	str	r4, [r3, #EMIF_SDRAM_TIMING_2]
-+	str	r4, [r3, #EMIF_SDRAM_TIMING_2_SHDW]
-+	ldr	r4, emif_timing3_val
-+	str	r4, [r3, #EMIF_SDRAM_TIMING_3]
-+	str	r4, [r3, #EMIF_SDRAM_TIMING_3_SHDW]
-+	ldr	r4, emif_ref_ctrl_val
-+	str	r4, [r3, #EMIF_SDRAM_REFRESH_CONTROL]
-+	str	r4, [r3, #EMIF_SDRAM_REFRESH_CTRL_SHDW]
-+	ldr	r4, emif_pmcr_val
-+	str	r4, [r3, #EMIF_POWER_MANAGEMENT_CONTROL]
-+	ldr	r4, emif_pmcr_shdw_val
-+	str	r4, [r3, #EMIF_POWER_MANAGEMENT_CTRL_SHDW]
-+
-+	/*
-+	 * A write to SDRAM CONFIG register triggers
-+	 * an init sequence and hence it must be done
-+	 * at the end
-+	 */
-+	ldr	r4, emif_sdcfg_val
-+	str	r4, [r3, #EMIF_SDRAM_CONFIG]
-+
-+	/* Back from la-la-land. Kill some time for sanity to settle in */
-+	mov	r0, #0x1000
-+wait_resume:
-+	subs	r0, r0, #1
-+	bne	wait_resume
-+
-+	/* We are back. Branch to the common CPU resume routine */
-+	mov	r0, #0
-+	ldr	pc, resume_addr
-+ENDPROC(am33xx_resume_from_deep_sleep)
-+
-+
-+/*
-+ * Local variables
-+ */
-+	.align
-+resume_addr:
-+	.word	cpu_resume - PAGE_OFFSET + 0x80000000
-+dcache_flush:
-+	.word   v7_flush_dcache_all
-+emif_addr_func:
-+	.word	am33xx_get_emif_base
-+ddr_start:
-+	.word	PAGE_OFFSET
-+emif_phys_addr:
-+	.word	AM33XX_EMIF_BASE
-+virt_mpu_idlest:
-+	.word	AM33XX_CM_IDLEST_DPLL_MPU
-+virt_mpu_clk_mode:
-+	.word	AM33XX_CM_CLKMODE_DPLL_MPU
-+phys_mpu_clk_mode:
-+	.word	(AM33XX_CM_BASE + AM33XX_CM_WKUP_MOD + \
-+		AM33XX_CM_CLKMODE_DPLL_MPU_OFFSET)
-+phys_mpu_idlest:
-+	.word	(AM33XX_CM_BASE + AM33XX_CM_WKUP_MOD + \
-+		AM33XX_CM_IDLEST_DPLL_MPU_OFFSET)
-+virt_core_idlest:
-+	.word	AM33XX_CM_IDLEST_DPLL_CORE
-+virt_core_clk_mode:
-+	.word	AM33XX_CM_CLKMODE_DPLL_CORE
-+phys_core_clk_mode:
-+	.word	(AM33XX_CM_BASE + AM33XX_CM_WKUP_MOD + \
-+		AM33XX_CM_CLKMODE_DPLL_CORE_OFFSET)
-+phys_core_idlest:
-+	.word	(AM33XX_CM_BASE + AM33XX_CM_WKUP_MOD + \
-+		AM33XX_CM_IDLEST_DPLL_CORE_OFFSET)
-+virt_per_idlest:
-+	.word	AM33XX_CM_IDLEST_DPLL_PER
-+virt_per_clk_mode:
-+	.word	AM33XX_CM_CLKMODE_DPLL_PER
-+phys_per_clk_mode:
-+	.word	(AM33XX_CM_BASE + AM33XX_CM_WKUP_MOD + \
-+		AM33XX_CM_CLKMODE_DPLL_PER_OFFSET)
-+phys_per_idlest:
-+	.word	(AM33XX_CM_BASE + AM33XX_CM_WKUP_MOD + \
-+		AM33XX_CM_IDLEST_DPLL_PER_OFFSET)
-+virt_disp_idlest:
-+	.word	AM33XX_CM_IDLEST_DPLL_DISP
-+virt_disp_clk_mode:
-+	.word	AM33XX_CM_CLKMODE_DPLL_DISP
-+phys_disp_clk_mode:
-+	.word	(AM33XX_CM_BASE + AM33XX_CM_WKUP_MOD + \
-+		AM33XX_CM_CLKMODE_DPLL_DISP_OFFSET)
-+phys_disp_idlest:
-+	.word	(AM33XX_CM_BASE + AM33XX_CM_WKUP_MOD + \
-+		AM33XX_CM_IDLEST_DPLL_DISP_OFFSET)
-+virt_ddr_idlest:
-+	.word	AM33XX_CM_IDLEST_DPLL_DDR
-+virt_ddr_clk_mode:
-+	.word	AM33XX_CM_CLKMODE_DPLL_DDR
-+phys_ddr_clk_mode:
-+	.word	(AM33XX_CM_BASE + AM33XX_CM_WKUP_MOD + \
-+		AM33XX_CM_CLKMODE_DPLL_DDR_OFFSET)
-+phys_ddr_idlest:
-+	.word	(AM33XX_CM_BASE + AM33XX_CM_WKUP_MOD + \
-+		AM33XX_CM_IDLEST_DPLL_DDR_OFFSET)
-+virt_sram_ldo_addr:
-+	.word	AM33XX_PRM_LDO_SRAM_MPU_CTRL
-+phys_sram_ldo_addr:
-+	.word	(AM33XX_PRM_BASE + AM33XX_PRM_DEVICE_MOD + \
-+		AM33XX_PRM_LDO_SRAM_MPU_CTRL_OFFSET)
-+virt_mpu_clkctrl:
-+	.word	AM33XX_CM_MPU_MPU_CLKCTRL
-+virt_emif_clkctrl:
-+	.word	AM33XX_CM_PER_EMIF_CLKCTRL
-+phys_emif_clkctrl:
-+	.word	(AM33XX_CM_BASE + AM33XX_CM_PER_MOD + \
-+		AM33XX_CM_PER_EMIF_CLKCTRL_OFFSET)
-+module_disabled_val:
-+	.word	0x30000
-+
-+/* DDR related defines */
-+virt_ddr_io_ctrl:
-+	.word	AM33XX_CTRL_REGADDR(AM33XX_DDR_IO_CTRL)
-+phys_ddr_io_ctrl:
-+	.word	AM33XX_CTRL_BASE + AM33XX_DDR_IO_CTRL
-+virt_ddr_vtp_ctrl:
-+	.word	AM33XX_CTRL_REGADDR(AM33XX_VTP0_CTRL_REG)
-+phys_ddr_vtp_ctrl:
-+	.word	AM33XX_CTRL_BASE + AM33XX_VTP0_CTRL_REG
-+virt_ddr_cmd0_ioctrl:
-+	.word	AM33XX_CTRL_REGADDR(AM33XX_DDR_CMD0_IOCTRL)
-+phys_ddr_cmd0_ioctrl:
-+	.word	AM33XX_CTRL_BASE + AM33XX_DDR_CMD0_IOCTRL
-+virt_ddr_cmd1_ioctrl:
-+	.word	AM33XX_CTRL_REGADDR(AM33XX_DDR_CMD1_IOCTRL)
-+phys_ddr_cmd1_ioctrl:
-+	.word	AM33XX_CTRL_BASE + AM33XX_DDR_CMD1_IOCTRL
-+virt_ddr_cmd2_ioctrl:
-+	.word	AM33XX_CTRL_REGADDR(AM33XX_DDR_CMD2_IOCTRL)
-+phys_ddr_cmd2_ioctrl:
-+	.word	AM33XX_CTRL_BASE + AM33XX_DDR_CMD2_IOCTRL
-+virt_ddr_data0_ioctrl:
-+	.word	AM33XX_CTRL_REGADDR(AM33XX_DDR_DATA0_IOCTRL)
-+phys_ddr_data0_ioctrl:
-+	.word	AM33XX_CTRL_BASE + AM33XX_DDR_DATA0_IOCTRL
-+virt_ddr_data1_ioctrl:
-+	.word	AM33XX_CTRL_REGADDR(AM33XX_DDR_DATA1_IOCTRL)
-+phys_ddr_data1_ioctrl:
-+	.word	AM33XX_CTRL_BASE + AM33XX_DDR_DATA1_IOCTRL
-+vtp_enable:
-+	.word	AM33XX_VTP_CTRL_ENABLE
-+
-+/*
-+ * Values recommended by the HW team. These change the pulls
-+ * on certain IOs of DATA and CMD macros
-+ */
-+susp_io_pull_data:
-+	.word	0x3FF00003
-+susp_io_pull_cmd1:
-+	.word   0xFFE0018B
-+susp_io_pull_cmd2:
-+	.word   0xFFA0098B
-+resume_io_pull_data:
-+	.word	0x18B
-+resume_io_pull_cmd:
-+	.word	0x18B
-+susp_vtp_ctrl_val:
-+	.word	0x10117
-+
-+/* Placeholder for storing EMIF configuration */
-+emif_addr_virt:
-+	.word	0xDEADBEEF
-+emif_rd_lat_val:
-+	.word	0xDEADBEEF
-+emif_timing1_val:
-+	.word	0xDEADBEEF
-+emif_timing2_val:
-+	.word	0xDEADBEEF
-+emif_timing3_val:
-+	.word	0xDEADBEEF
-+emif_sdcfg_val:
-+	.word	0xDEADBEEF
-+emif_ref_ctrl_val:
-+	.word	0xDEADBEEF
-+emif_zqcfg_val:
-+	.word	0xDEADBEEF
-+emif_pmcr_val:
-+	.word	0xDEADBEEF
-+emif_pmcr_shdw_val:
-+	.word	0xDEADBEEF
-+
-+/* Placeholder for storing PLL mode */
-+clk_mode_mpu_val:
-+	.word	0xDEADBEEF
-+clk_mode_per_val:
-+	.word	0xDEADBEEF
-+clk_mode_disp_val:
-+	.word	0xDEADBEEF
-+clk_mode_ddr_val:
-+	.word	0xDEADBEEF
-+clk_mode_core_val:
-+	.word	0xDEADBEEF
-+
-+	.align 3
-+ENTRY(am33xx_do_wfi_sz)
-+	.word	. - am33xx_do_wfi
-+
++#ifndef __ASSEMBLER__
++struct wkup_m3_context {
++	struct am33xx_ipc_data	ipc_data;
++	struct device		*dev;
++	struct firmware		*firmware;
++	struct mailbox		*mbox;
++	void __iomem		*code;
++	u8			state;
++};
++
++#ifdef CONFIG_SUSPEND
++static void am33xx_m3_state_machine_reset(void);
++#else
++static inline void am33xx_m3_state_machine_reset(void) {}
++#endif /* CONFIG_SUSPEND */
++
++extern void __iomem *am33xx_get_emif_base(void);
++#endif
++
++#define	IPC_CMD_DS0			0x3
++#define IPC_CMD_RESET                   0xe
++#define DS_IPC_DEFAULT			0xffffffff
++
++#define IPC_RESP_SHIFT			16
++#define IPC_RESP_MASK			(0xffff << 16)
++
++#define M3_STATE_UNKNOWN		0
++#define M3_STATE_RESET			1
++#define M3_STATE_INITED			2
++#define M3_STATE_MSG_FOR_LP		3
++#define M3_STATE_MSG_FOR_RESET		4
++
++#define AM33XX_OCMC_END			0x40310000
++#define AM33XX_EMIF_BASE		0x4C000000
++
++#endif
 -- 
 1.7.0.4
 
