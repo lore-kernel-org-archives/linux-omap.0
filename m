@@ -1,60 +1,102 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 0/8] ASoC: OMAP-twl4030: Add support for more3
-	boards
-Date: Mon, 31 Dec 2012 11:51:41 +0100
-Message-ID: <1356951109-4286-1-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/8] ASoC: twl4030: Correct the support for Voice port
+Date: Mon, 31 Dec 2012 11:51:42 +0100
+Message-ID: <1356951109-4286-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1356951109-4286-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Grant Likely <grant.likely@secretlab.ca>
-Cc: NeilBrown <neilb@suse.de>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1356951109-4286-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Liam Girdwood <lrg-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+In order to be able to use the Voice port of twl4030 three bits need to be
+handled in VOICE_IF register:
+VIF_EN: to enable the voice port (needed for both playback and capture)
+VIF_DIN_EN: Need to be enabled for playback only (input to the codec)
+VIF_DOUT_EN: Need to be enabled for capture only (output from codec)
 
-This series will update the omap-twl4030 machine driver and the twl4030 codec
-driver to enable support for more boards.
-With this change we can remove two more machine drivers: zoom2 and sdp3430 since
-they will be supported by the common omap-twl4030 machine driver.
-The arch/arm/mach-omap2/ patches will go as a separate series to avoid cross
-tree issues.
+Use DAPM_SUPPLY for the VIF_EN bit and add DAPM_AIF_IO/OUT widget to handle
+the playback/capture bit.
 
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 ---
-Peter Ujfalusi (8):
-  ASoC: twl4030: Correct the support for Voice port
-  ASoC: zoom2: No need to configure the Voice port anymore
-  ASoC: sdp3430: No need to configure the Voice port anymore
-  ASoC: twl4030: Convert MICBIAS to SUPPLY widget
-  ASoC: twl4030: Configure extmute pinmux when the dedicated pin is in
-    use
-  ASoC: sdp3430: No need to configure pin mux for extmute
-  ASoC: omap-twl4030: Add support for routing, voice port and jack
-    detect
-  ASoC: OMAP: Remove obsolete machine drivers for Zoom2 and SDP3430
+ sound/soc/codecs/twl4030.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
- .../devicetree/bindings/sound/omap-twl4030.txt     |  46 ++++
- sound/soc/codecs/twl4030.c                         |  71 ++++--
- sound/soc/omap/Kconfig                             |  19 +-
- sound/soc/omap/Makefile                            |   4 -
- sound/soc/omap/omap-twl4030.c                      | 204 ++++++++++++++-
- sound/soc/omap/omap3pandora.c                      |   8 +-
- sound/soc/omap/sdp3430.c                           | 278 ---------------------
- sound/soc/omap/zoom2.c                             | 207 ---------------
- 8 files changed, 304 insertions(+), 533 deletions(-)
- delete mode 100644 sound/soc/omap/sdp3430.c
- delete mode 100644 sound/soc/omap/zoom2.c
-
+diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
+index 63b280b..79b2f86 100644
+--- a/sound/soc/codecs/twl4030.c
++++ b/sound/soc/codecs/twl4030.c
+@@ -1306,6 +1306,9 @@ static const struct snd_soc_dapm_widget twl4030_dapm_widgets[] = {
+ 	SND_SOC_DAPM_DAC("DAC Left2", NULL, SND_SOC_NOPM, 0, 0),
+ 	SND_SOC_DAPM_DAC("DAC Voice", NULL, SND_SOC_NOPM, 0, 0),
+ 
++	SND_SOC_DAPM_AIF_IN("VAIFIN", "Voice Playback", 0,
++			    TWL4030_REG_VOICE_IF, 6, 0),
++
+ 	/* Analog bypasses */
+ 	SND_SOC_DAPM_SWITCH("Right1 Analog Loopback", SND_SOC_NOPM, 0, 0,
+ 			&twl4030_dapm_abypassr1_control),
+@@ -1438,6 +1441,9 @@ static const struct snd_soc_dapm_widget twl4030_dapm_widgets[] = {
+ 	SND_SOC_DAPM_ADC("ADC Virtual Left2", NULL, SND_SOC_NOPM, 0, 0),
+ 	SND_SOC_DAPM_ADC("ADC Virtual Right2", NULL, SND_SOC_NOPM, 0, 0),
+ 
++	SND_SOC_DAPM_AIF_OUT("VAIFOUT", "Voice Capture", 0,
++			     TWL4030_REG_VOICE_IF, 5, 0),
++
+ 	/* Analog/Digital mic path selection.
+ 	   TX1 Left/Right: either analog Left/Right or Digimic0
+ 	   TX2 Left/Right: either analog Left/Right or Digimic1 */
+@@ -1477,6 +1483,7 @@ static const struct snd_soc_dapm_widget twl4030_dapm_widgets[] = {
+ 	SND_SOC_DAPM_MICBIAS("Mic Bias 2", TWL4030_REG_MICBIAS_CTL, 1, 0),
+ 	SND_SOC_DAPM_MICBIAS("Headset Mic Bias", TWL4030_REG_MICBIAS_CTL, 2, 0),
+ 
++	SND_SOC_DAPM_SUPPLY("VIF Enable", TWL4030_REG_VOICE_IF, 0, 0, NULL, 0),
+ };
+ 
+ static const struct snd_soc_dapm_route intercon[] = {
+@@ -1485,17 +1492,16 @@ static const struct snd_soc_dapm_route intercon[] = {
+ 	{"DAC Left1", NULL, "HiFi Playback"},
+ 	{"DAC Right2", NULL, "HiFi Playback"},
+ 	{"DAC Left2", NULL, "HiFi Playback"},
+-	{"DAC Voice", NULL, "Voice Playback"},
++	{"DAC Voice", NULL, "VAIFIN"},
+ 
+ 	/* ADC -> Stream mapping */
+ 	{"HiFi Capture", NULL, "ADC Virtual Left1"},
+ 	{"HiFi Capture", NULL, "ADC Virtual Right1"},
+ 	{"HiFi Capture", NULL, "ADC Virtual Left2"},
+ 	{"HiFi Capture", NULL, "ADC Virtual Right2"},
+-	{"Voice Capture", NULL, "ADC Virtual Left1"},
+-	{"Voice Capture", NULL, "ADC Virtual Right1"},
+-	{"Voice Capture", NULL, "ADC Virtual Left2"},
+-	{"Voice Capture", NULL, "ADC Virtual Right2"},
++	{"VAIFOUT", NULL, "ADC Virtual Left2"},
++	{"VAIFOUT", NULL, "ADC Virtual Right2"},
++	{"VAIFOUT", NULL, "VIF Enable"},
+ 
+ 	{"Digital L1 Playback Mixer", NULL, "DAC Left1"},
+ 	{"Digital R1 Playback Mixer", NULL, "DAC Right1"},
+@@ -1510,6 +1516,7 @@ static const struct snd_soc_dapm_route intercon[] = {
+ 	{"DAC Right1", NULL, "AIF Enable"},
+ 	{"DAC Left2", NULL, "AIF Enable"},
+ 	{"DAC Right1", NULL, "AIF Enable"},
++	{"DAC Voice", NULL, "VIF Enable"},
+ 
+ 	{"Digital R2 Playback Mixer", NULL, "AIF Enable"},
+ 	{"Digital L2 Playback Mixer", NULL, "AIF Enable"},
 -- 
 1.8.0.2
