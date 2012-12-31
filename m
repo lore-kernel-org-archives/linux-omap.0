@@ -1,108 +1,113 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [RESEND PATCH] leds: leds-gpio: set devm_gpio_request_one() flags
- correctly
-Date: Mon, 31 Dec 2012 14:08:27 +0100
-Message-ID: <50E18E4B.7000107@collabora.co.uk>
-References: <1356102464-22234-1-git-send-email-javier.martinez@collabora.co.uk> <CALF0-+XM4EZJHU360AUAUFBPctwO81JQ7kUiH12V2n6x7wCXfA@mail.gmail.com>
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Subject: [RFC v2 13/18] ARM: OMAP2+: AM33XX: timer: Interchance clkevt and clksrc timers
+Date: Mon, 31 Dec 2012 18:37:06 +0530
+Message-ID: <1356959231-17335-14-git-send-email-vaibhav.bedia@ti.com>
+References: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CALF0-+XM4EZJHU360AUAUFBPctwO81JQ7kUiH12V2n6x7wCXfA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:59690 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751446Ab2LaNIe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Dec 2012 08:08:34 -0500
+In-Reply-To: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, khilman@deeprootsystems.com
+Cc: Vaibhav Bedia <vaibhav.bedia@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Jon Hunter <jon-hunter@ti.com>
 
-On 12/21/2012 06:06 PM, Ezequiel Garcia wrote:
-> On Fri, Dec 21, 2012 at 12:07 PM, Javier Martinez Canillas
-> <javier.martinez@collabora.co.uk> wrote:
->> commit a99d76f leds: leds-gpio: use gpio_request_one
->>
->> changed the leds-gpio driver to use gpio_request_one() instead
->> of gpio_request() + gpio_direction_output()
->>
->> Unfortunately, it also made a semantic change that breaks the
->> leds-gpio driver.
->>
->> The gpio_request_one() flags parameter was set to:
->>
->> GPIOF_DIR_OUT | (led_dat->active_low ^ state)
->>
->> Since GPIOF_DIR_OUT is 0, the final flags value will just be the
->> XOR'ed value of led_dat->active_low and state.
->>
->> This value were used to distinguish between HIGH/LOW output initial
->> level and call gpio_direction_output() accordingly.
->>
->> With this new semantic gpio_request_one() will take the flags value
->> of 1 as a configuration of input direction (GPIOF_DIR_IN) and will
->> call gpio_direction_input() instead of gpio_direction_output().
->>
->> int gpio_request_one(unsigned gpio, unsigned long flags, const char *label)
->> {
->> ..
->>         if (flags & GPIOF_DIR_IN)
->>                 err = gpio_direction_input(gpio);
->>         else
->>                 err = gpio_direction_output(gpio,
->>                                 (flags & GPIOF_INIT_HIGH) ? 1 : 0);
->> ..
->> }
->>
->> The right semantic is to evaluate led_dat->active_low ^ state and
->> set the output initial level explicitly.
->>
->> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
->> ---
->>
->> This makes LEDs to work again on my IGEPv2 board (TI OMAP3 based SoC).
->>
->> I sent this patch before but then realized that I only cc'ed to linux-leds.
->> So, I'm resending the patch cc'ing linux-omap,linux-arm-kernel and LKML to
->> reach a broader audience and have more people review/test the patch.
->>
->> Sorry for the noise if someone got it twice.
->>
->>  drivers/leds/leds-gpio.c |    5 +++--
->>  1 files changed, 3 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
->> index 1885a26..a0d931b 100644
->> --- a/drivers/leds/leds-gpio.c
->> +++ b/drivers/leds/leds-gpio.c
->> @@ -127,8 +127,9 @@ static int create_gpio_led(const struct gpio_led *template,
->>                 led_dat->cdev.flags |= LED_CORE_SUSPENDRESUME;
->>
->>         ret = devm_gpio_request_one(parent, template->gpio,
->> -                       GPIOF_DIR_OUT | (led_dat->active_low ^ state),
->> -                       template->name);
->> +                                   (led_dat->active_low ^ state) ?
->> +                                   GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW,
->> +                                   template->name);
->>         if (ret < 0)
->>                 return ret;
->>
->> --
->> 1.7.7.6
->>
-> 
-> Without this patch my IGEP v2 LEDs were dead,
-> and this patch brings them back.
-> 
-> Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> 
-> Thanks,
-> 
->     Ezequiel
-> 
+AM33XX has two timers (DTIMER0/1) in the WKUP domain.
+On GP devices the source of DMTIMER0 is fixed to an
+inaccurate internal 32k RC oscillator and this makes
+the DMTIMER0 practically either as a clocksource or
+as clockevent.
 
-Hello,
+Currently the timer instance in WKUP domain is used
+as the clockevent and the timer in non-WKUP domain
+as the clocksource. DMTIMER1 in WKUP domain can keep
+running in suspend from a 32K clock fed from external
+OSC and can serve as the persistent clock for the kernel.
+To enable this, interchange the timers used as clocksource
+and clockevent for AM33XX.
 
-Any news on this?
+For now a new DT property has been added to allow the timer code
+to select the timer with the right property.
 
-GPIO LEDs support is still not working on latest mainline kernel and other
-people report that this patch solves the issue for them.
+It has been pointed out by Santosh Shilimkar and Kevin Hilman
+that such a change will result in soc-idle never being achieved
+on AM33XX. There are other reasons why soc-idle does not look
+feasible on AM33XX so for now we go ahead with the interchange
+of the the timers. If at a later point of time we do come up
+with an approach which makes soc-idle possible on AM33XX, this
+can be revisited.
 
-Thanks a lot and best regards,
-Javier
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Tony Lingren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Jon Hunter <jon-hunter@ti.com>
+
+---
+v1->v2:
+	Use DT properties for changing the timers
+
+ .../devicetree/bindings/arm/omap/timer.txt         |    2 ++
+ arch/arm/boot/dts/am33xx.dtsi                      |    1 +
+ arch/arm/mach-omap2/timer.c                        |    6 +++---
+ 3 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/arm/omap/timer.txt b/Documentation/devicetree/bindings/arm/omap/timer.txt
+index 8732d4d..62d4f2c 100644
+--- a/Documentation/devicetree/bindings/arm/omap/timer.txt
++++ b/Documentation/devicetree/bindings/arm/omap/timer.txt
+@@ -18,6 +18,8 @@ Optional properties:
+ - ti,timer-pwm: 	Indicates the timer can generate a PWM output.
+ - ti,timer-secure: 	Indicates the timer is reserved on a secure OMAP device
+ 			and therefore cannot be used by the kernel.
++- ti,timer-non-wkup	Indicates the timer is in non-wkup power domain and hence
++			will lose register context when the power domain transitions
+ 
+ Example:
+ 
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 4731748..b4e8bf7 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -251,6 +251,7 @@
+ 			reg = <0x48040000 0x400>;
+ 			interrupts = <68>;
+ 			ti,hwmods = "timer2";
++			ti,timer-non-wkup;
+ 		};
+ 
+ 		timer3: timer@48042000 {
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 38f9cbc..cfb3413 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -264,7 +264,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 	int r = 0;
+ 
+ 	if (of_have_populated_dt()) {
+-		np = omap_get_timer_dt(omap_timer_match, NULL);
++		np = omap_get_timer_dt(omap_timer_match, property);
+ 		if (!np)
+ 			return -ENODEV;
+ 
+@@ -633,8 +633,8 @@ OMAP_SYS_TIMER(3_gp, gptimer);
+ #endif /* CONFIG_ARCH_OMAP3 */
+ 
+ #ifdef CONFIG_SOC_AM33XX
+-OMAP_SYS_GP_TIMER_INIT(3_am33xx, 1, OMAP4_MPU_SOURCE, "ti,timer-alwon",
+-		       2, OMAP4_MPU_SOURCE);
++OMAP_SYS_GP_TIMER_INIT(3_am33xx, 2, OMAP4_MPU_SOURCE, "ti,timer-non-wkup",
++		       1, OMAP4_MPU_SOURCE);
+ OMAP_SYS_TIMER(3_am33xx, gptimer);
+ #endif /* CONFIG_SOC_AM33XX */
+ 
+-- 
+1.7.0.4
+
