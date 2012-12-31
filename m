@@ -1,113 +1,129 @@
 From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Subject: [RFC v2 13/18] ARM: OMAP2+: AM33XX: timer: Interchance clkevt and clksrc timers
-Date: Mon, 31 Dec 2012 18:37:06 +0530
-Message-ID: <1356959231-17335-14-git-send-email-vaibhav.bedia@ti.com>
+Subject: [RFC v2 14/18] ARM: OMAP2+: AM33XX: control: Add some control module registers and APIs
+Date: Mon, 31 Dec 2012 18:37:07 +0530
+Message-ID: <1356959231-17335-15-git-send-email-vaibhav.bedia@ti.com>
 References: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59690 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751446Ab2LaNIe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Dec 2012 08:08:34 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:59849 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751466Ab2LaNIe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Dec 2012 08:08:34 -0500
 In-Reply-To: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, khilman@deeprootsystems.com
-Cc: Vaibhav Bedia <vaibhav.bedia@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Jon Hunter <jon-hunter@ti.com>
+Cc: Vaibhav Bedia <vaibhav.bedia@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-AM33XX has two timers (DTIMER0/1) in the WKUP domain.
-On GP devices the source of DMTIMER0 is fixed to an
-inaccurate internal 32k RC oscillator and this makes
-the DMTIMER0 practically either as a clocksource or
-as clockevent.
-
-Currently the timer instance in WKUP domain is used
-as the clockevent and the timer in non-WKUP domain
-as the clocksource. DMTIMER1 in WKUP domain can keep
-running in suspend from a 32K clock fed from external
-OSC and can serve as the persistent clock for the kernel.
-To enable this, interchange the timers used as clocksource
-and clockevent for AM33XX.
-
-For now a new DT property has been added to allow the timer code
-to select the timer with the right property.
-
-It has been pointed out by Santosh Shilimkar and Kevin Hilman
-that such a change will result in soc-idle never being achieved
-on AM33XX. There are other reasons why soc-idle does not look
-feasible on AM33XX so for now we go ahead with the interchange
-of the the timers. If at a later point of time we do come up
-with an approach which makes soc-idle possible on AM33XX, this
-can be revisited.
+Add minimal APIs for writing to the IPC and the M3_TXEV registers
+in the Control module. These will be used in a subsequent patch which
+adds suspend-resume support for AM33XX.
 
 Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Cc: Tony Lingren <tony@atomide.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Jon Hunter <jon-hunter@ti.com>
-
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
 v1->v2:
-	Use DT properties for changing the timers
+	This a new patch in the series to isolate
+	the control module accesses as pointed out
+	by Kevin Hilman.
 
- .../devicetree/bindings/arm/omap/timer.txt         |    2 ++
- arch/arm/boot/dts/am33xx.dtsi                      |    1 +
- arch/arm/mach-omap2/timer.c                        |    6 +++---
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/control.c |   20 ++++++++++++++++++++
+ arch/arm/mach-omap2/control.h |   41 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/timer.txt b/Documentation/devicetree/bindings/arm/omap/timer.txt
-index 8732d4d..62d4f2c 100644
---- a/Documentation/devicetree/bindings/arm/omap/timer.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/timer.txt
-@@ -18,6 +18,8 @@ Optional properties:
- - ti,timer-pwm: 	Indicates the timer can generate a PWM output.
- - ti,timer-secure: 	Indicates the timer is reserved on a secure OMAP device
- 			and therefore cannot be used by the kernel.
-+- ti,timer-non-wkup	Indicates the timer is in non-wkup power domain and hence
-+			will lose register context when the power domain transitions
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 2adb268..c5d54ae 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -604,3 +604,23 @@ int omap3_ctrl_save_padconf(void)
+ }
  
- Example:
+ #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
++
++#if defined(CONFIG_SOC_AM33XX) && defined(CONFIG_PM)
++void am33xx_txev_eoi(void)
++{
++	omap_ctrl_writel(AM33XX_M3_TXEV_ACK, AM33XX_CONTROL_M3_TXEV_EOI);
++}
++
++void am33xx_txev_enable(void)
++{
++	omap_ctrl_writel(AM33XX_M3_TXEV_ENABLE, AM33XX_CONTROL_M3_TXEV_EOI);
++}
++
++void am33xx_wkup_m3_ipc_cmd(struct am33xx_ipc_data *data)
++{
++	omap_ctrl_writel(data->resume_addr, AM33XX_CONTROL_IPC_MSG_REG0);
++	omap_ctrl_writel(data->sleep_mode, AM33XX_CONTROL_IPC_MSG_REG1);
++	omap_ctrl_writel(data->param1, AM33XX_CONTROL_IPC_MSG_REG2);
++	omap_ctrl_writel(data->param2, AM33XX_CONTROL_IPC_MSG_REG3);
++}
++#endif /* CONFIG_SOC_AM33XX && CONFIG_PM */
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index 3d944d3..4b05eb9 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -358,6 +358,37 @@
+ #define AM33XX_CONTROL_STATUS_SYSBOOT1_WIDTH		0x2
+ #define AM33XX_CONTROL_STATUS_SYSBOOT1_MASK		(0x3 << 22)
  
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 4731748..b4e8bf7 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -251,6 +251,7 @@
- 			reg = <0x48040000 0x400>;
- 			interrupts = <68>;
- 			ti,hwmods = "timer2";
-+			ti,timer-non-wkup;
- 		};
++#define AM33XX_DDR_IO_CTRL		0x0E04
++#define AM33XX_VTP0_CTRL_REG		0x0E0C
++
++/* AM33XX VTP0_CTRL_REG bits */
++#define AM33XX_VTP_CTRL_START_EN	(1 << 0)
++#define AM33XX_VTP_CTRL_LOCK_EN		(1 << 4)
++#define AM33XX_VTP_CTRL_READY		(1 << 5)
++#define AM33XX_VTP_CTRL_ENABLE		(1 << 6)
++
++/* AM33XX M3_TXEV_EOI register */
++#define AM33XX_CONTROL_M3_TXEV_EOI	0x1324
++
++#define AM33XX_M3_TXEV_ACK		(0x1 << 0)
++#define AM33XX_M3_TXEV_ENABLE		(0x0 << 0)
++
++/* AM33XX IPC message registers */
++#define AM33XX_CONTROL_IPC_MSG_REG0	0x1328
++#define AM33XX_CONTROL_IPC_MSG_REG1	0x132C
++#define AM33XX_CONTROL_IPC_MSG_REG2	0x1330
++#define AM33XX_CONTROL_IPC_MSG_REG3	0x1334
++#define AM33XX_CONTROL_IPC_MSG_REG4	0x1338
++#define AM33XX_CONTROL_IPC_MSG_REG5	0x133C
++#define AM33XX_CONTROL_IPC_MSG_REG6	0x1340
++#define AM33XX_CONTROL_IPC_MSG_REG7	0x1344
++
++#define AM33XX_DDR_CMD0_IOCTRL		0x1404
++#define AM33XX_DDR_CMD1_IOCTRL		0x1408
++#define AM33XX_DDR_CMD2_IOCTRL		0x140C
++#define AM33XX_DDR_DATA0_IOCTRL		0x1440
++#define AM33XX_DDR_DATA1_IOCTRL		0x1444
++
+ /* CONTROL OMAP STATUS register to identify OMAP3 features */
+ #define OMAP3_CONTROL_OMAP_STATUS	0x044c
  
- 		timer3: timer@48042000 {
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 38f9cbc..cfb3413 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -264,7 +264,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
- 	int r = 0;
- 
- 	if (of_have_populated_dt()) {
--		np = omap_get_timer_dt(omap_timer_match, NULL);
-+		np = omap_get_timer_dt(omap_timer_match, property);
- 		if (!np)
- 			return -ENODEV;
- 
-@@ -633,8 +633,8 @@ OMAP_SYS_TIMER(3_gp, gptimer);
- #endif /* CONFIG_ARCH_OMAP3 */
- 
- #ifdef CONFIG_SOC_AM33XX
--OMAP_SYS_GP_TIMER_INIT(3_am33xx, 1, OMAP4_MPU_SOURCE, "ti,timer-alwon",
--		       2, OMAP4_MPU_SOURCE);
-+OMAP_SYS_GP_TIMER_INIT(3_am33xx, 2, OMAP4_MPU_SOURCE, "ti,timer-non-wkup",
-+		       1, OMAP4_MPU_SOURCE);
- OMAP_SYS_TIMER(3_am33xx, gptimer);
- #endif /* CONFIG_SOC_AM33XX */
- 
+@@ -417,6 +448,16 @@ extern void omap3630_ctrl_disable_rta(void);
+ extern int omap3_ctrl_save_padconf(void);
+ extern void omap2_set_globals_control(void __iomem *ctrl,
+ 				      void __iomem *ctrl_pad);
++struct am33xx_ipc_data {
++	u32 resume_addr;
++	u32 param1;
++	u32 param2;
++	u32 sleep_mode;
++};
++extern void am33xx_wkup_m3_ipc_cmd(struct am33xx_ipc_data *data);
++extern void am33xx_txev_eoi(void);
++extern void am33xx_txev_enable(void);
++
+ #else
+ #define omap_ctrl_base_get()		0
+ #define omap_ctrl_readb(x)		0
 -- 
 1.7.0.4
 
