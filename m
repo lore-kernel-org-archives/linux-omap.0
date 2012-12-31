@@ -1,35 +1,60 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2xxx: PM: enter WFI via inline asm if CORE
- stays active
-Date: Mon, 31 Dec 2012 13:57:28 +0530
-Message-ID: <50E14C70.2090700@ti.com>
-References: <20121230182745.30526.47072.stgit@dusk.lan> <20121230182826.30526.27155.stgit@dusk.lan>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 0/8] ASoC: OMAP-twl4030: Add support for more3
+	boards
+Date: Mon, 31 Dec 2012 11:51:41 +0100
+Message-ID: <1356951109-4286-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50417 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750759Ab2LaI0j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Dec 2012 03:26:39 -0500
-In-Reply-To: <20121230182826.30526.27155.stgit@dusk.lan>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Grant Likely <grant.likely@secretlab.ca>
+Cc: NeilBrown <neilb@suse.de>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, Richard Woodruff <r-woodruff2@ti.com>
 
-On Sunday 30 December 2012 11:58 PM, Paul Walmsley wrote:
-> There shouldn't be any need to jump to SRAM code if the OMAP CORE
-> clockdomain (and consequently the SDRAM controller and CORE PLL) stays
-> active during MPU WFI.  The SRAM code should only be needed when the RAM
-> enters self-refresh.  So in the case where CORE stays active, just call
-> WFI directly from the mach-omap2/pm24xx.c code.  This removes some
-> unnecessary SRAM code.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Richard Woodruff <r-woodruff2@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
-This sounds correct to me.
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Hello,
 
+This series will update the omap-twl4030 machine driver and the twl4030 codec
+driver to enable support for more boards.
+With this change we can remove two more machine drivers: zoom2 and sdp3430 since
+they will be supported by the common omap-twl4030 machine driver.
+The arch/arm/mach-omap2/ patches will go as a separate series to avoid cross
+tree issues.
+
+Regards,
+Peter
+---
+Peter Ujfalusi (8):
+  ASoC: twl4030: Correct the support for Voice port
+  ASoC: zoom2: No need to configure the Voice port anymore
+  ASoC: sdp3430: No need to configure the Voice port anymore
+  ASoC: twl4030: Convert MICBIAS to SUPPLY widget
+  ASoC: twl4030: Configure extmute pinmux when the dedicated pin is in
+    use
+  ASoC: sdp3430: No need to configure pin mux for extmute
+  ASoC: omap-twl4030: Add support for routing, voice port and jack
+    detect
+  ASoC: OMAP: Remove obsolete machine drivers for Zoom2 and SDP3430
+
+ .../devicetree/bindings/sound/omap-twl4030.txt     |  46 ++++
+ sound/soc/codecs/twl4030.c                         |  71 ++++--
+ sound/soc/omap/Kconfig                             |  19 +-
+ sound/soc/omap/Makefile                            |   4 -
+ sound/soc/omap/omap-twl4030.c                      | 204 ++++++++++++++-
+ sound/soc/omap/omap3pandora.c                      |   8 +-
+ sound/soc/omap/sdp3430.c                           | 278 ---------------------
+ sound/soc/omap/zoom2.c                             | 207 ---------------
+ 8 files changed, 304 insertions(+), 533 deletions(-)
+ delete mode 100644 sound/soc/omap/sdp3430.c
+ delete mode 100644 sound/soc/omap/zoom2.c
+
+-- 
+1.8.0.2
