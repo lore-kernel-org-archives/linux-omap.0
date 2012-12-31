@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/8] ASoC: zoom2: No need to configure the Voice port anymore
-Date: Mon, 31 Dec 2012 11:51:43 +0100
-Message-ID: <1356951109-4286-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 3/8] ASoC: sdp3430: No need to configure the Voice port anymore
+Date: Mon, 31 Dec 2012 11:51:44 +0100
+Message-ID: <1356951109-4286-4-git-send-email-peter.ujfalusi@ti.com>
 References: <1356951109-4286-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -26,18 +26,18 @@ The codec driver takes care of these bits.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 ---
- sound/soc/omap/zoom2.c | 14 --------------
- 1 file changed, 14 deletions(-)
+ sound/soc/omap/sdp3430.c | 15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff --git a/sound/soc/omap/zoom2.c b/sound/soc/omap/zoom2.c
-index 771bff2..5845d48 100644
---- a/sound/soc/omap/zoom2.c
-+++ b/sound/soc/omap/zoom2.c
-@@ -110,19 +110,6 @@ static int zoom2_twl4030_init(struct snd_soc_pcm_runtime *rtd)
- 	return 0;
+diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
+index b462a2c..86e77e9 100644
+--- a/sound/soc/omap/sdp3430.c
++++ b/sound/soc/omap/sdp3430.c
+@@ -167,20 +167,6 @@ static int sdp3430_twl4030_init(struct snd_soc_pcm_runtime *rtd)
+ 	return ret;
  }
  
--static int zoom2_twl4030_voice_init(struct snd_soc_pcm_runtime *rtd)
+-static int sdp3430_twl4030_voice_init(struct snd_soc_pcm_runtime *rtd)
 -{
 -	struct snd_soc_codec *codec = rtd->codec;
 -	unsigned short reg;
@@ -50,15 +50,16 @@ index 771bff2..5845d48 100644
 -	return 0;
 -}
 -
+-
  /* Digital audio interface glue - connects codec <--> CPU */
- static struct snd_soc_dai_link zoom2_dai[] = {
+ static struct snd_soc_dai_link sdp3430_dai[] = {
  	{
-@@ -146,7 +133,6 @@ static struct snd_soc_dai_link zoom2_dai[] = {
+@@ -204,7 +190,6 @@ static struct snd_soc_dai_link sdp3430_dai[] = {
  		.codec_name = "twl4030-codec",
  		.dai_fmt = SND_SOC_DAIFMT_DSP_A | SND_SOC_DAIFMT_IB_NF |
  			   SND_SOC_DAIFMT_CBM_CFM,
--		.init = zoom2_twl4030_voice_init,
- 		.ops = &zoom2_ops,
+-		.init = sdp3430_twl4030_voice_init,
+ 		.ops = &sdp3430_ops,
  	},
  };
 -- 
