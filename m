@@ -1,15 +1,15 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 6/6] ARM: OMAP: sdp3430: Audio support via the common omap-twl4030 machine driver
-Date: Mon, 31 Dec 2012 12:03:00 +0100
-Message-ID: <1356951780-5412-7-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 5/6] ARM: OMAP: zoom: Audio support via the common omap-twl4030 machine driver
+Date: Mon, 31 Dec 2012 12:02:59 +0100
+Message-ID: <1356951780-5412-6-git-send-email-peter.ujfalusi@ti.com>
 References: <1356951780-5412-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56215 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751287Ab2LaLD5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Dec 2012 06:03:57 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:48373 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751294Ab2LaLDz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Dec 2012 06:03:55 -0500
 In-Reply-To: <1356951780-5412-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,23 +20,23 @@ Use the common omap-twl4030 ASoC machine driver for audio.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ arch/arm/mach-omap2/board-zoom-peripherals.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 40c22a7..e7ef311 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -25,6 +25,7 @@
- #include <linux/gpio.h>
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 03ec6b2..f4ea926 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -20,6 +20,7 @@
+ #include <linux/wl12xx.h>
  #include <linux/mmc/host.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <linux/platform_data/gpio-omap.h>
 +#include <linux/platform_data/omap-twl4030.h>
  
  #include <asm/mach-types.h>
  #include <asm/mach/arch.h>
-@@ -209,6 +210,19 @@ static struct omap2_hsmmc_info mmc[] = {
- 	{}	/* Terminator */
+@@ -226,6 +227,19 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{}      /* Terminator */
  };
  
 +static struct omap_tw4030_pdata omap_twl4030_audio_data = {
@@ -52,17 +52,18 @@ index 40c22a7..e7ef311 100644
 +	.has_linein	= OMAP_TWL4030_LEFT | OMAP_TWL4030_RIGHT,
 +};
 +
- static int sdp3430_twl_gpio_setup(struct device *dev,
+ static int zoom_twl_gpio_setup(struct device *dev,
  		unsigned gpio, unsigned ngpio)
  {
-@@ -225,6 +239,9 @@ static int sdp3430_twl_gpio_setup(struct device *dev,
- 	/* gpio + 15 is "sub_lcd_nRST" (output) */
- 	gpio_request_one(gpio + 15, GPIOF_OUT_INIT_LOW, "sub_lcd_nRST");
+@@ -241,6 +255,10 @@ static int zoom_twl_gpio_setup(struct device *dev,
+ 		pr_err("Failed to get LCD_PANEL_ENABLE_GPIO (gpio%d).\n",
+ 				LCD_PANEL_ENABLE_GPIO);
  
++	/* Audio setup */
 +	omap_twl4030_audio_data.jack_detect = gpio + 2;
-+	omap_twl4030_audio_init("SDP3430", &omap_twl4030_audio_data);
++	omap_twl4030_audio_init("Zoom2", &omap_twl4030_audio_data);
 +
- 	return 0;
+ 	return ret;
  }
  
 -- 
