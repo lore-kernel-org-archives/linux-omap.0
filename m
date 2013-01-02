@@ -1,42 +1,110 @@
-From: <Madhusudhan.Gowda@elektrobit.com>
-Subject: Querry on UART wakeup on Linux 3.8-rc1
-Date: Tue, 1 Jan 2013 22:07:52 +0200
-Message-ID: <B668883EB5DD7144ADFC248A72176EA803E743F9@fioues07.ebgroup.elektrobit.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH v2] ARM: OMAP3: cm-t3517: add MMC support
+Date: Wed, 02 Jan 2013 09:16:42 +0200
+Message-ID: <50E3DEDA.7020807@compulab.co.il>
+References: <1354795206-12048-1-git-send-email-grinberg@compulab.co.il> <1354871155-32528-1-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtpgw2fi.elektrobit.com ([194.136.18.129]:57401 "EHLO
-	smtpgw1fi.elektrobit.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752408Ab3AAUH6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Jan 2013 15:07:58 -0500
-Received: from encgw2fi.ebgroup.elektrobit.com (encgw2fi.ebgroup.elektrobit.com [172.16.0.99])
-	by smtpgw1fi.elektrobit.com (8.13.8/8.13.8) with ESMTP id r01K7uSM016315
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-omap@vger.kernel.org>; Tue, 1 Jan 2013 22:07:56 +0200
-Received: from fioues07.ebgroup.elektrobit.com (fioues07.ebgroup.elektrobit.com [172.16.33.117])
-	by encgw2fi.ebgroup.elektrobit.com (Postfix) with ESMTP
-	for <linux-omap@vger.kernel.org>; Tue,  1 Jan 2013 22:07:56 +0200 (EET)
-Content-class: urn:content-classes:message
+Received: from softlayer.compulab.co.il ([50.23.254.55]:37888 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750763Ab3ABHQu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Jan 2013 02:16:50 -0500
+In-Reply-To: <1354871155-32528-1-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+ping
 
-I tried to wakeup OMAP430 ES2.1 Panda from static suspend retention
-using console uart2, it doesn't wakeup.
-But could configure GPIO_121 button to wake up from retention fine.
+Hi Tony,
 
-On the serial uart side I have manually enabled wakeup by
-echo enabled > /sys/devices/platform/omap_uart.2/tty/ttyO2/power/wakeup
+This is a really small addition to improve Paul's tests coverage.
+Can this go into 3.9?
 
-I could see the wakeup enable bit (1<<14)  of  uart irrx pad register is
-being set properly before it does static suspend fine.
+Thanks
 
-Should I need to do any more thing to get it work?
+On 12/07/12 11:05, Igor Grinberg wrote:
+> cm-t3517 uses two MMC interfaces. Add support for both.
+> 
+> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> ---
+> v2: Use CONFIG_MMC_OMAP_HS instead of plain CONFIG_MMC, so it will be stubbed
+>     out with the same defines as omap_hsmmc_init() function.
+>     Fix the !CONFIG_MMC_OMAP_HS case.
+> 
+>  arch/arm/mach-omap2/board-cm-t3517.c |   27 +++++++++++++++++++++++++++
+>  1 files changed, 27 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
+> index ebbc2ad..792d684 100644
+> --- a/arch/arm/mach-omap2/board-cm-t3517.c
+> +++ b/arch/arm/mach-omap2/board-cm-t3517.c
+> @@ -32,6 +32,7 @@
+>  #include <linux/mtd/mtd.h>
+>  #include <linux/mtd/nand.h>
+>  #include <linux/mtd/partitions.h>
+> +#include <linux/mmc/host.h>
+>  #include <linux/can/platform/ti_hecc.h>
+>  
+>  #include <asm/mach-types.h>
+> @@ -46,6 +47,7 @@
+>  
+>  #include "mux.h"
+>  #include "control.h"
+> +#include "hsmmc.h"
+>  #include "common-board-devices.h"
+>  #include "am35xx-emac.h"
+>  #include "gpmc-nand.h"
+> @@ -121,6 +123,26 @@ static void cm_t3517_init_hecc(void)
+>  static inline void cm_t3517_init_hecc(void) {}
+>  #endif
+>  
+> +#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
+> +static struct omap2_hsmmc_info cm_t3517_mmc[] = {
+> +	{
+> +		.mmc		= 1,
+> +		.caps		= MMC_CAP_4_BIT_DATA,
+> +		.gpio_cd	= 144,
+> +		.gpio_wp	= 59,
+> +	},
+> +	{
+> +		.mmc		= 2,
+> +		.caps		= MMC_CAP_4_BIT_DATA,
+> +		.gpio_cd	= -EINVAL,
+> +		.gpio_wp	= -EINVAL,
+> +	},
+> +	{}	/* Terminator */
+> +};
+> +#else
+> +#define cm_t3517_mmc NULL
+> +#endif
+> +
+>  #if defined(CONFIG_RTC_DRV_V3020) || defined(CONFIG_RTC_DRV_V3020_MODULE)
+>  #define RTC_IO_GPIO		(153)
+>  #define RTC_WR_GPIO		(154)
+> @@ -271,6 +293,10 @@ static struct omap_board_mux board_mux[] __initdata = {
+>  	/* CM-T3517 USB HUB nRESET */
+>  	OMAP3_MUX(MCBSP4_CLKX, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
+>  
+> +	/* CD - GPIO144 and WP - GPIO59 for MMC1 - SB-T35 */
+> +	OMAP3_MUX(UART2_CTS, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
+> +	OMAP3_MUX(GPMC_CLK, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
+> +
+>  	{ .reg_offset = OMAP_MUX_TERMINATOR },
+>  };
+>  #endif
+> @@ -286,6 +312,7 @@ static void __init cm_t3517_init(void)
+>  	cm_t3517_init_usbh();
+>  	cm_t3517_init_hecc();
+>  	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
+> +	omap_hsmmc_init(cm_t3517_mmc);
+>  }
+>  
+>  MACHINE_START(CM_T3517, "Compulab CM-T3517")
 
-Thanks,
-Gowda
+-- 
+Regards,
+Igor.
