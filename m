@@ -1,110 +1,93 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 13/22] mfd: omap-usb-host: override number of ports from platform data
-Date: Wed, 2 Jan 2013 17:00:33 +0200
-Message-ID: <1357138842-28964-14-git-send-email-rogerq@ti.com>
-References: <1357138842-28964-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v5 00/22] OMAP USB Host cleanup
+Date: Wed, 2 Jan 2013 17:00:20 +0200
+Message-ID: <1357138842-28964-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1357138842-28964-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com
-Cc: keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: sshtylyov@mvista.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, keshava_mgowda@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bjorn@mork.no, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Both OMAP4 and 5 exhibit the same revision ID in the REVISION register
-but they have different number of ports i.e. 2 and 3 respectively.
-So we can't rely on REVISION register for number of ports on OMAP5
-and depend on platform data (or device tree) instead.
+Hi,
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+This patchset addresses the following
+
+- Avoid addressing clocks one by one by name and use a for loop + bunch
+  of cleanups.
+- Get number of channels/ports dynamically either from revision register
+  or from platform data. Avoids getting clocks that are not present.
+- Add OMAP5 and HSIC mode (Not tested)
+
+v5:
+- Rebased on top of todays arm-soc/for-next
+- Removed the clock merging patch from the list.
+- Updated patches 14, 19 and 20 to accomodate the above change.
+- Added patch 22 to fix a build warning.
+
+v4:
+- Added appropriate maintainers in to/cc
+- minor print message fix in patch 23 to maintain consistency
+
+v3:
+- Rebased on arm-soc/for-next commit f979306c4d38d213c6977aaf3b1115e8ded71e3a
+- Rearranged patch that get rids of cpu_is_omap..() macros
+- Coding style fixes
+
+v2:
+- Clocks are allocated dynamically based on number of ports available
+on the platform
+- Reduced console spam if non critical clocks are not found on the platform.
+- Get rid of cpu_is_.. macros from USB host driver.
+
+cheers,
+-roger
+
 ---
+Roger Quadros (22):
+  mfd: omap-usb-tll: Avoid creating copy of platform data
+  mfd: omap-usb-tll: Fix channel count detection
+  mfd: omap-usb-tll: Use devm_kzalloc/ioremap and clean up error path
+  mfd: omap-usb-tll: Clean up clock handling
+  mfd: omap-usb-tll: introduce and use mode_needs_tll()
+  mfd: omap-usb-tll: Check for missing platform data in probe
+  mfd: omap-usb-tll: Fix error message
+  mfd: omap-usb-tll: serialize access to TLL device
+  mfd: omap-usb-tll: Add OMAP5 revision and HSIC support
+  mfd: omap_usb_host: Avoid creating copy of platform_data
+  mfd: omap-usb-host: Use devm_kzalloc() and devm_request_and_ioremap()
+  mfd: omap-usb-host: know about number of ports from revision register
+  mfd: omap-usb-host: override number of ports from platform data
+  mfd: omap-usb-host: cleanup clock management code
+  mfd: omap-usb-host: Manage HSIC clocks for HSIC mode
+  mfd: omap-usb-host: Get rid of unnecessary spinlock
+  mfd: omap-usb-host: clean up omap_usbhs_init()
+  USB: ehci-omap: Don't free gpios that we didn't request
+  ARM: OMAP3: clock data: get rid of unused USB host clock aliases and
+    dummies
+  ARM: OMAP4: clock data: get rid of unused USB host clock aliases
+  mfd: omap-usb-host: Don't spam console on clk_set_parent failure
+  mdf: omap-usb-host: get rid of build warning
+
+ arch/arm/mach-omap2/cclock3xxx_data.c  |   11 -
+ arch/arm/mach-omap2/cclock44xx_data.c  |    7 -
  arch/arm/mach-omap2/usb-host.c         |    1 +
  arch/arm/mach-omap2/usb.h              |    1 +
- drivers/mfd/omap-usb-host.c            |   34 +++++++++++++++++++------------
+ drivers/mfd/omap-usb-host.c            |  499 +++++++++++++++++++-------------
+ drivers/mfd/omap-usb-tll.c             |  244 +++++++++-------
+ drivers/usb/host/ehci-omap.c           |    8 -
  include/linux/platform_data/usb-omap.h |    1 +
- 4 files changed, 24 insertions(+), 13 deletions(-)
+ 8 files changed, 435 insertions(+), 337 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-index 2e44e8a..ee8c473 100644
---- a/arch/arm/mach-omap2/usb-host.c
-+++ b/arch/arm/mach-omap2/usb-host.c
-@@ -504,6 +504,7 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
- 	ohci_data.es2_compatibility = pdata->es2_compatibility;
- 	usbhs_data.ehci_data = &ehci_data;
- 	usbhs_data.ohci_data = &ohci_data;
-+	usbhs_data.nports = pdata->nports;
- 
- 	if (cpu_is_omap34xx()) {
- 		setup_ehci_io_mux(pdata->port_mode);
-diff --git a/arch/arm/mach-omap2/usb.h b/arch/arm/mach-omap2/usb.h
-index 9b986ea..7dc0f04 100644
---- a/arch/arm/mach-omap2/usb.h
-+++ b/arch/arm/mach-omap2/usb.h
-@@ -54,6 +54,7 @@
- #define USBPHY_DATA_POLARITY	(1 << 23)
- 
- struct usbhs_omap_board_data {
-+	int				nports;
- 	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
- 
- 	/* have to be valid if phy_reset is true and portx is in phy mode */
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 5edb828..710460d 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -497,19 +497,27 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 	 */
- 	pm_runtime_put_sync(dev);
- 
--	switch (omap->usbhs_rev) {
--	case OMAP_USBHS_REV1:
--		omap->nports = 3;
--		break;
--	case OMAP_USBHS_REV2:
--		omap->nports = 2;
--		break;
--	default:
--		omap->nports = OMAP3_HS_USB_PORTS;
--		dev_dbg(dev,
--		  "USB HOST Rev : 0x%d not recognized, assuming %d ports\n",
--		   omap->usbhs_rev, omap->nports);
--		break;
-+	/*
-+	 * If platform data contains nports then use that
-+	 * else make out number of ports from USBHS revision
-+	 */
-+	if (pdata->nports) {
-+		omap->nports = pdata->nports;
-+	} else {
-+		switch (omap->usbhs_rev) {
-+		case OMAP_USBHS_REV1:
-+			omap->nports = 3;
-+			break;
-+		case OMAP_USBHS_REV2:
-+			omap->nports = 2;
-+			break;
-+		default:
-+			omap->nports = OMAP3_HS_USB_PORTS;
-+			dev_dbg(dev,
-+			"USB HOST Rev:0x%d not recognized, assuming %d ports\n",
-+				omap->usbhs_rev, omap->nports);
-+			break;
-+		}
- 	}
- 
- 	for (i = 0; i < omap->nports; i++)
-diff --git a/include/linux/platform_data/usb-omap.h b/include/linux/platform_data/usb-omap.h
-index ef65b67..57707c7 100644
---- a/include/linux/platform_data/usb-omap.h
-+++ b/include/linux/platform_data/usb-omap.h
-@@ -55,6 +55,7 @@ struct ohci_hcd_omap_platform_data {
- };
- 
- struct usbhs_omap_platform_data {
-+	int					nports;
- 	enum usbhs_omap_port_mode		port_mode[OMAP3_HS_USB_PORTS];
- 
- 	struct ehci_hcd_omap_platform_data	*ehci_data;
 -- 
 1.7.4.1
