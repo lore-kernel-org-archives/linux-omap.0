@@ -1,61 +1,56 @@
 From: Philip Avinash <avinashphilip@ti.com>
-Subject: [PATCH 0/7] HWMOD fixes for AM33xx PWM submodules and device tree nodes.
-Date: Wed, 2 Jan 2013 18:54:47 +0530
-Message-ID: <1357133094-30806-1-git-send-email-avinashphilip@ti.com>
+Subject: [PATCH 3/7] pwm: pwm-tiehrpwm: Update the clock handling of pwm-tiehrpwm driver
+Date: Wed, 2 Jan 2013 18:54:50 +0530
+Message-ID: <1357133094-30806-4-git-send-email-avinashphilip@ti.com>
+References: <1357133094-30806-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52335 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752649Ab3ABNYg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Jan 2013 08:24:36 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:33795 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752649Ab3ABNZ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jan 2013 08:25:29 -0500
+In-Reply-To: <1357133094-30806-1-git-send-email-avinashphilip@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux@arm.linux.org.uk, b-cousson@ti.com
-Cc: hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, vaibhav.bedia@ti.com, Philip Avinash <avinashphilip@ti.com>
+Cc: hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, vaibhav.bedia@ti.com, Philip Avinash <avinashphilip@ti.com>, Thierry Reding <thierry.reding@avionic-design.de>
 
-This patch series is being part of [1] and resubmitting on top of 3.8-rc1 to
-make it to 3.9.
+The clock framework has changed and it's now better to invoke
+clock_prepare_enable() and clk_disable_unprepare() rather than the
+legacy clk_enable() and clk_disable() calls. This patch converts the
+pwm-tiehrpwm driver to the new framework.
 
-In AM33xx PWM sub modules like ECAP, EHRPWM & EQEP are  integrated to
-PWM subsystem. All these submodules shares the resources (clock) & has
-a clock gating register in PWM Subsystem. So a parent PWM subsystem
-driver is created. To support PWM subsystem driver, parent child
-relation is created in HWMOD entry in patch #2.
+Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>
+---
+In 3.8-rc1, common clock frame work support added to AM335x.
 
-In addition EHRPWM module requires explicit clock gating from control
-module. Hence add clock node for tbclk handling in patch #4.
+ drivers/pwm/pwm-tiehrpwm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Patch #3 to support common clock migration for AM33xx.
-
-Also Device tree nodes populated to support parent child relation
-between PWMSS, ECAP & EHRPWM submodules (patch #5, 6 & 7).
-
-This patch series based on linux_omap/master [2] and tested for
-backlight with ECAP on AM335x-evm & AM335x-evmsk.
-
-1. https://lkml.org/lkml/2012/11/27/120
-2. http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=commit;h=c4e2e79ff7c9f4fdad7da432c6b449121cc3033e
-
-Philip Avinash (7):
-  ARM: OMAP: AM33xx hwmod: Corrects PWM subsystem HWMOD entries
-  ARM: OMAP: AM33xx hwmod: Add parent-child relationship for PWM
-    subsystem
-  pwm: pwm-tiehrpwm: Update the clock handling of pwm-tiehrpwm driver
-  ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK
-  ARM: dts: AM33XX: Add PWMSS device tree nodes
-  ARM: dts: AM33XX: Add PWM backlight DT data to  am335x-evm
-  ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evmsk
-
- arch/arm/boot/dts/am335x-evm.dts           |   23 ++
- arch/arm/boot/dts/am335x-evmsk.dts         |   23 ++
- arch/arm/boot/dts/am33xx.dtsi              |   84 ++++++
- arch/arm/mach-omap2/cclock33xx_data.c      |   30 +++
- arch/arm/mach-omap2/control.h              |    8 +
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |  390 ++++++++++++++++++----------
- drivers/pwm/pwm-tiehrpwm.c                 |    4 +-
- 7 files changed, 417 insertions(+), 145 deletions(-)
-
+diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
+index 72a6dd4..af6f162 100644
+--- a/drivers/pwm/pwm-tiehrpwm.c
++++ b/drivers/pwm/pwm-tiehrpwm.c
+@@ -341,7 +341,7 @@ static int ehrpwm_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
+ 	configure_polarity(pc, pwm->hwpwm);
+ 
+ 	/* Enable TBCLK before enabling PWM device */
+-	clk_enable(pc->tbclk);
++	clk_prepare_enable(pc->tbclk);
+ 
+ 	/* Enable time counter for free_run */
+ 	ehrpwm_modify(pc->mmio_base, TBCTL, TBCTL_RUN_MASK, TBCTL_FREE_RUN);
+@@ -372,7 +372,7 @@ static void ehrpwm_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
+ 	ehrpwm_modify(pc->mmio_base, AQCSFRC, aqcsfrc_mask, aqcsfrc_val);
+ 
+ 	/* Disabling TBCLK on PWM disable */
+-	clk_disable(pc->tbclk);
++	clk_disable_unprepare(pc->tbclk);
+ 
+ 	/* Stop Time base counter */
+ 	ehrpwm_modify(pc->mmio_base, TBCTL, TBCTL_RUN_MASK, TBCTL_STOP_NEXT);
 -- 
 1.7.9.5
 
