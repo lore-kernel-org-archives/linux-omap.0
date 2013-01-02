@@ -1,14 +1,14 @@
 From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH v3 4/7] ARM: OMAP2+: omap2plus_defconfig: Add matrix-keypad support
-Date: Wed, 2 Jan 2013 15:57:28 +0530
-Message-ID: <1357122451-7577-5-git-send-email-anilkumar@ti.com>
+Subject: [PATCH v3 1/7] ARM: OMAP2+: omap2plus_defconfig: Add tps65910 support
+Date: Wed, 2 Jan 2013 15:57:25 +0530
+Message-ID: <1357122451-7577-2-git-send-email-anilkumar@ti.com>
 References: <1357122451-7577-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46327 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46328 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751503Ab3ABK1z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752327Ab3ABK1z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 2 Jan 2013 05:27:55 -0500
 In-Reply-To: <1357122451-7577-1-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,27 +16,32 @@ List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, AnilKumar Ch <anilkumar@ti.com>
 
-AM335X-EVM device have 3x2 matrix keypad, one has to manually enable
-this support to use matrix keypad. So this patch enables matrix-keypad
-driver as module in omap2plus_defconfig.
+AM335X-EVM and AM335X-EVMSK devices have tps65910 PMIC regulator, one
+has to manually enable this support to use regulators. So this patch
+enables tps65910 mfd and regulator drivers in omap2plus_defconfig.
 
 Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
 ---
- arch/arm/configs/omap2plus_defconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/configs/omap2plus_defconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index cd1cd51..f3e0e8c 100644
+index 82ce8d7..ee6e060 100644
 --- a/arch/arm/configs/omap2plus_defconfig
 +++ b/arch/arm/configs/omap2plus_defconfig
-@@ -111,6 +111,7 @@ CONFIG_USB_KC2190=y
- CONFIG_INPUT_JOYDEV=y
- CONFIG_INPUT_EVDEV=y
- CONFIG_KEYBOARD_GPIO=y
-+CONFIG_KEYBOARD_MATRIX=m
- CONFIG_KEYBOARD_TWL4030=y
- CONFIG_INPUT_TOUCHSCREEN=y
- CONFIG_TOUCHSCREEN_ADS7846=y
+@@ -135,10 +135,12 @@ CONFIG_WATCHDOG=y
+ CONFIG_OMAP_WATCHDOG=y
+ CONFIG_TWL4030_WATCHDOG=y
+ CONFIG_MFD_TPS65217=y
++CONFIG_MFD_TPS65910=y
+ CONFIG_REGULATOR_TWL4030=y
+ CONFIG_REGULATOR_TPS65023=y
+ CONFIG_REGULATOR_TPS6507X=y
+ CONFIG_REGULATOR_TPS65217=y
++CONFIG_REGULATOR_TPS65910=y
+ CONFIG_FB=y
+ CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_MODE_HELPERS=y
 -- 
 1.7.9.5
 
