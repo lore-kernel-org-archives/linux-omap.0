@@ -1,70 +1,56 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 21/22] mfd: omap-usb-host: Don't spam console on clk_set_parent failure
-Date: Wed, 2 Jan 2013 17:00:41 +0200
-Message-ID: <1357138842-28964-22-git-send-email-rogerq@ti.com>
+Subject: [PATCH v5 18/22] USB: ehci-omap: Don't free gpios that we didn't request
+Date: Wed, 2 Jan 2013 17:00:38 +0200
+Message-ID: <1357138842-28964-19-git-send-email-rogerq@ti.com>
 References: <1357138842-28964-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38262 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753105Ab3ABPBm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jan 2013 10:01:42 -0500
 In-Reply-To: <1357138842-28964-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com
 Cc: keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
-clk_set_parent is expected to fail on OMAP3 platforms. We don't
-consider that as fatal so don't spam console.
+This driver does not request any gpios so don't free them.
+Fixes L3 bus error on multiple modprobe/rmmod of ehci_hcd
+with ehci-omap in use.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mfd/omap-usb-host.c |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/usb/host/ehci-omap.c |    8 --------
+ 1 files changed, 0 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 9166df3..bf2a06a 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -672,32 +672,32 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 	}
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index ac17a7c..e9d9b09 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -288,7 +288,6 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
+ {
+ 	struct device *dev				= &pdev->dev;
+ 	struct usb_hcd *hcd				= dev_get_drvdata(dev);
+-	struct ehci_hcd_omap_platform_data *pdata	= dev->platform_data;
  
- 	if (is_ehci_phy_mode(pdata->port_mode[0])) {
--		/* for OMAP3 , the clk set paretn fails */
-+		/* for OMAP3, clk_set_parent fails */
- 		ret = clk_set_parent(omap->utmi_p1_gfclk,
- 					omap->xclk60mhsp1_ck);
- 		if (ret != 0)
--			dev_err(dev, "xclk60mhsp1_ck set parent"
--				"failed error:%d\n", ret);
-+			dev_dbg(dev, "xclk60mhsp1_ck set parent failed: %d\n",
-+					ret);
- 	} else if (is_ehci_tll_mode(pdata->port_mode[0])) {
- 		ret = clk_set_parent(omap->utmi_p1_gfclk,
- 					omap->init_60m_fclk);
- 		if (ret != 0)
--			dev_err(dev, "init_60m_fclk set parent"
--				"failed error:%d\n", ret);
-+			dev_dbg(dev, "P0 init_60m_fclk set parent failed: %d\n",
-+					ret);
- 	}
+ 	usb_remove_hcd(hcd);
+ 	disable_put_regulator(dev->platform_data);
+@@ -298,13 +297,6 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
+ 	pm_runtime_put_sync(dev);
+ 	pm_runtime_disable(dev);
  
- 	if (is_ehci_phy_mode(pdata->port_mode[1])) {
- 		ret = clk_set_parent(omap->utmi_p2_gfclk,
- 					omap->xclk60mhsp2_ck);
- 		if (ret != 0)
--			dev_err(dev, "xclk60mhsp2_ck set parent"
--					"failed error:%d\n", ret);
-+			dev_dbg(dev, "xclk60mhsp2_ck set parent failed: %d\n",
-+					ret);
- 	} else if (is_ehci_tll_mode(pdata->port_mode[1])) {
- 		ret = clk_set_parent(omap->utmi_p2_gfclk,
- 						omap->init_60m_fclk);
- 		if (ret != 0)
--			dev_err(dev, "init_60m_fclk set parent"
--				"failed error:%d\n", ret);
-+			dev_dbg(dev, "P1 init_60m_fclk set parent failed: %d\n",
-+					ret);
- 	}
+-	if (pdata->phy_reset) {
+-		if (gpio_is_valid(pdata->reset_gpio_port[0]))
+-			gpio_free(pdata->reset_gpio_port[0]);
+-
+-		if (gpio_is_valid(pdata->reset_gpio_port[1]))
+-			gpio_free(pdata->reset_gpio_port[1]);
+-	}
+ 	return 0;
+ }
  
- 	omap_usbhs_init(dev);
 -- 
 1.7.4.1
+
