@@ -1,48 +1,42 @@
 From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH v3 0/7] ARM: OMAP2+: AM33XX: Enable few drivers in omap2plus_defconfig
-Date: Wed, 2 Jan 2013 15:57:24 +0530
-Message-ID: <1357122451-7577-1-git-send-email-anilkumar@ti.com>
+Subject: [PATCH v3 3/7] ARM: OMAP2+: omap2plus_defconfig: Add tsl2550 support
+Date: Wed, 2 Jan 2013 15:57:27 +0530
+Message-ID: <1357122451-7577-4-git-send-email-anilkumar@ti.com>
+References: <1357122451-7577-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46824 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38071 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751503Ab3ABK14 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Jan 2013 05:27:56 -0500
+	id S1752623Ab3ABK15 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Jan 2013 05:27:57 -0500
+In-Reply-To: <1357122451-7577-1-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, AnilKumar Ch <anilkumar@ti.com>
 
-This patch series enable tps65910, lis3lv02d accelerometer, tsl2550
-ambient light sensor, matrix keypad, tmp275 temperature sensor, gpio
-leds and D_CAN drivers in omap2plus_defconfig.
+AM335x-evm device have tsl2550 ambient light sensor, one has to
+manually enable this support to use light sensor. So this patch
+enables tsl2550 driver as module in omap2plus_defconfig.
 
-These are the peripherals present in AM33XX family of devices.
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+ arch/arm/configs/omap2plus_defconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-Changes from v2:
-	- Incorporated Tony's comments on v2
-	  * Enabled as modules instead of kernel built-in drivers.
-	- Dropped 1st patch because it was accepted.
-
-Changes from v1:
-	- Incorporated martinez javier's comments on v1
-	  * Enabled few more triggers in omap2plus_defconfig
-	- Included Igor's patch, which modifies the omap2plus
-	  defconfig for AM33XX devices.
-
-AnilKumar Ch (7):
-  ARM: OMAP2+: omap2plus_defconfig: Add tps65910 support
-  ARM: OMAP2+: omap2plus_defconfig: Add lis3lv02d support
-  ARM: OMAP2+: omap2plus_defconfig: Add tsl2550 support
-  ARM: OMAP2+: omap2plus_defconfig: Add matrix-keypad support
-  ARM: OMAP2+: omap2plus_defconfig: Add tmp275 sensor support
-  ARM: OMAP2+: omap2plus_defconfig: Add leds-gpio support
-  ARM: OMAP2+: omap2plus_defconfig: Add D_CAN support
-
- arch/arm/configs/omap2plus_defconfig |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
-
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 8fd208a..cd1cd51 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -84,6 +84,7 @@ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_RAM=y
+ CONFIG_BLK_DEV_RAM_SIZE=16384
+ CONFIG_SENSORS_LIS3LV02D=m
++CONFIG_SENSORS_TSL2550=m
+ CONFIG_SENSORS_LIS3_I2C=m
+ CONFIG_SCSI=y
+ CONFIG_BLK_DEV_SD=y
 -- 
 1.7.9.5
 
