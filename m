@@ -1,124 +1,84 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 16/22] mfd: omap-usb-host: Get rid of unnecessary spinlock
-Date: Wed, 2 Jan 2013 17:00:36 +0200
-Message-ID: <1357138842-28964-17-git-send-email-rogerq@ti.com>
+Subject: [PATCH v5 09/22] mfd: omap-usb-tll: Add OMAP5 revision and HSIC
+ support
+Date: Wed, 2 Jan 2013 17:00:29 +0200
+Message-ID: <1357138842-28964-10-git-send-email-rogerq@ti.com>
 References: <1357138842-28964-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1357138842-28964-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com
-Cc: keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: sshtylyov@mvista.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, keshava_mgowda@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bjorn@mork.no, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The driver does not have an interrupt handler and
-we don't really need a spinlock, so get rid of it.
+The TLL module on OMAP5 has 3 channels.
+HSIC mode requires the TLL channel to be in Transparent UTMI mode.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mfd/omap-usb-host.c |   16 ----------------
- 1 files changed, 0 insertions(+), 16 deletions(-)
+ drivers/mfd/omap-usb-tll.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index a58da22..bef7249 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -23,7 +23,6 @@
- #include <linux/delay.h>
- #include <linux/clk.h>
- #include <linux/dma-mapping.h>
--#include <linux/spinlock.h>
- #include <linux/gpio.h>
- #include <linux/platform_device.h>
- #include <linux/platform_data/usb-omap.h>
-@@ -108,7 +107,6 @@ struct usbhs_hcd_omap {
- 	struct usbhs_omap_platform_data	*pdata;
+diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+index 3dadacb..e63dc0b 100644
+--- a/drivers/mfd/omap-usb-tll.c
++++ b/drivers/mfd/omap-usb-tll.c
+@@ -54,10 +54,13 @@
  
- 	u32				usbhs_rev;
--	spinlock_t			lock;
- };
- /*-------------------------------------------------------------------------*/
+ #define	OMAP_TLL_CHANNEL_CONF(num)			(0x040 + 0x004 * num)
+ #define OMAP_TLL_CHANNEL_CONF_FSLSMODE_SHIFT		24
++#define OMAP_TLL_CHANNEL_CONF_DRVVBUS			(1 << 16)
++#define OMAP_TLL_CHANNEL_CONF_CHRGVBUS			(1 << 15)
+ #define	OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF		(1 << 11)
+ #define	OMAP_TLL_CHANNEL_CONF_ULPI_ULPIAUTOIDLE		(1 << 10)
+ #define	OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE		(1 << 9)
+ #define	OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE		(1 << 8)
++#define OMAP_TLL_CHANNEL_CONF_MODE_TRANSPARENT_UTMI	(2 << 1)
+ #define OMAP_TLL_CHANNEL_CONF_CHANMODE_FSLS		(1 << 1)
+ #define	OMAP_TLL_CHANNEL_CONF_CHANEN			(1 << 0)
  
-@@ -281,14 +279,12 @@ static bool is_ohci_port(enum usbhs_omap_port_mode pmode)
- static int usbhs_runtime_resume(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
--	unsigned long			flags;
- 	struct usbhs_omap_platform_data *pdata = omap->pdata;
- 	int i, r;
+@@ -92,6 +95,7 @@
+ #define OMAP_USBTLL_REV1		0x00000015	/* OMAP3 */
+ #define OMAP_USBTLL_REV2		0x00000018	/* OMAP 3630 */
+ #define OMAP_USBTLL_REV3		0x00000004	/* OMAP4 */
++#define OMAP_USBTLL_REV4		0x00000006	/* OMAP5 */
  
- 	dev_dbg(dev, "usbhs_runtime_resume\n");
+ #define is_ehci_tll_mode(x)	(x == OMAP_EHCI_PORT_MODE_TLL)
  
- 	omap_tll_enable();
--	spin_lock_irqsave(&omap->lock, flags);
- 
- 	if (omap->ehci_logic_fck && !IS_ERR(omap->ehci_logic_fck))
- 		clk_enable(omap->ehci_logic_fck);
-@@ -330,22 +326,17 @@ static int usbhs_runtime_resume(struct device *dev)
- 		}
- 	}
- 
--	spin_unlock_irqrestore(&omap->lock, flags);
--
- 	return 0;
- }
- 
- static int usbhs_runtime_suspend(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
--	unsigned long			flags;
- 	struct usbhs_omap_platform_data *pdata = omap->pdata;
- 	int i;
- 
- 	dev_dbg(dev, "usbhs_runtime_suspend\n");
- 
--	spin_lock_irqsave(&omap->lock, flags);
--
- 	for (i = 0; i < omap->nports; i++) {
- 		switch (pdata->port_mode[i]) {
- 		case OMAP_EHCI_PORT_MODE_HSIC:
-@@ -368,7 +359,6 @@ static int usbhs_runtime_suspend(struct device *dev)
- 	if (omap->ehci_logic_fck && !IS_ERR(omap->ehci_logic_fck))
- 		clk_disable(omap->ehci_logic_fck);
- 
--	spin_unlock_irqrestore(&omap->lock, flags);
- 	omap_tll_disable();
- 
- 	return 0;
-@@ -378,7 +368,6 @@ static void omap_usbhs_init(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
- 	struct usbhs_omap_platform_data	*pdata = omap->pdata;
--	unsigned long			flags;
- 	unsigned			reg;
- 
- 	dev_dbg(dev, "starting TI HSUSB Controller\n");
-@@ -397,7 +386,6 @@ static void omap_usbhs_init(struct device *dev)
- 	}
- 
- 	pm_runtime_get_sync(dev);
--	spin_lock_irqsave(&omap->lock, flags);
- 
- 	reg = usbhs_read(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
- 	/* setup ULPI bypass and burst configurations */
-@@ -460,8 +448,6 @@ static void omap_usbhs_init(struct device *dev)
- 	usbhs_write(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
- 	dev_dbg(dev, "UHH setup done, uhh_hostconfig=%x\n", reg);
- 
--	spin_unlock_irqrestore(&omap->lock, flags);
--
- 	pm_runtime_put_sync(dev);
- 	if (pdata->ehci_data->phy_reset) {
- 		/* Hold the PHY in RESET for enough time till
-@@ -525,8 +511,6 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 	if (!omap->uhh_base)
- 		return -EADDRNOTAVAIL;
- 
--	spin_lock_init(&omap->lock);
--
- 	omap->pdata = pdata;
- 
- 	pm_runtime_enable(dev);
+@@ -242,6 +246,7 @@ static int usbtll_omap_probe(struct platform_device *pdev)
+ 	ver =  usbtll_read(base, OMAP_USBTLL_REVISION);
+ 	switch (ver) {
+ 	case OMAP_USBTLL_REV1:
++	case OMAP_USBTLL_REV4:
+ 		tll->nch = OMAP_TLL_CHANNEL_COUNT;
+ 		break;
+ 	case OMAP_USBTLL_REV2:
+@@ -310,6 +315,15 @@ static int usbtll_omap_probe(struct platform_device *pdev)
+ 				reg &= ~(OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE
+ 					| OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF
+ 					| OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE);
++			} else if (pdata->port_mode[i] ==
++					OMAP_EHCI_PORT_MODE_HSIC) {
++				/*
++				 * HSIC Mode requires UTMI port configurations
++				 */
++				reg |= OMAP_TLL_CHANNEL_CONF_DRVVBUS
++				 | OMAP_TLL_CHANNEL_CONF_CHRGVBUS
++				 | OMAP_TLL_CHANNEL_CONF_MODE_TRANSPARENT_UTMI
++				 | OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF;
+ 			} else {
+ 				continue;
+ 			}
 -- 
 1.7.4.1
