@@ -1,88 +1,52 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 12/22] mfd: omap-usb-host: know about number of ports from revision register
-Date: Wed, 2 Jan 2013 17:00:32 +0200
-Message-ID: <1357138842-28964-13-git-send-email-rogerq@ti.com>
-References: <1357138842-28964-1-git-send-email-rogerq@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [RFC 3/5] ARM: CTI: Convert CTI helpers to AMBA bus driver
+Date: Wed, 2 Jan 2013 13:13:47 -0600
+Message-ID: <50E486EB.8030506@ti.com>
+References: <1355348588-22318-1-git-send-email-jon-hunter@ti.com> <1355348588-22318-4-git-send-email-jon-hunter@ti.com> <20121221222703.GB2658@pratikp-linux.qualcomm.com> <20121221223558.GC2658@pratikp-linux.qualcomm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1357138842-28964-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com
-Cc: keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41172 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752555Ab3ABTOK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Jan 2013 14:14:10 -0500
+In-Reply-To: <20121221223558.GC2658@pratikp-linux.qualcomm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pratik Patel <pratikp@codeaurora.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, device-tree <devicetree-discuss@lists.ozlabs.org>, Will Deacon <will.deacon@arm.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Ming Lei <ming.lei@canonical.com>, Linus Walleij <linus.walleij@linaro.org>
 
-The revision register should tell us how many ports are present.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/mfd/omap-usb-host.c |   32 +++++++++++++++++++++++++++-----
- 1 files changed, 27 insertions(+), 5 deletions(-)
+On 12/21/2012 04:35 PM, Pratik Patel wrote:
+> On Fri, Dec 21, 2012 at 02:27:03PM -0800, Pratik Patel wrote:
+>> On Wed, Dec 12, 2012 at 03:43:06PM -0600, Jon Hunter wrote:
+>>> +
+>>> +/**
+>>> + * cti_irq_ack - acknowledges the CTI trigger output
+>>> + * @cti: CTI instance
+>>> + *
+>>> + * Acknowledges the CTI trigger output by writting to the appropriate
+>>> + * bit in the CTI interrupt acknowledge register.
+>>> + */
+>>> +int cti_irq_ack(struct cti *cti)
+>>> +{
+>>> +	u32 v;
+>>> +
+>>> +	if (!cti || !cti->enabled)
+>>> +		return -EINVAL;
+>>> +
+>>> +	v = cti_readl(cti, CTIINTACK);
+>>
+>> Just curious if CTIINTACK is a read-write register? This is a
+>> read-only for us.
+>>
+> Mistyped - its a write-only for us
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index b24a3ab..5edb828 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -91,6 +91,8 @@
- 
- 
- struct usbhs_hcd_omap {
-+	int				nports;
-+
- 	struct clk			*xclk60mhsp1_ck;
- 	struct clk			*xclk60mhsp2_ck;
- 	struct clk			*utmi_p1_fck;
-@@ -353,8 +355,6 @@ static void omap_usbhs_init(struct device *dev)
- 
- 	pm_runtime_get_sync(dev);
- 	spin_lock_irqsave(&omap->lock, flags);
--	omap->usbhs_rev = usbhs_read(omap->uhh_base, OMAP_UHH_REVISION);
--	dev_dbg(dev, "OMAP UHH_REVISION 0x%x\n", omap->usbhs_rev);
- 
- 	reg = usbhs_read(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
- 	/* setup ULPI bypass and burst configurations */
-@@ -487,8 +487,32 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 
- 	pm_runtime_enable(dev);
- 
-+	platform_set_drvdata(pdev, omap);
-+	pm_runtime_get_sync(dev);
- 
--	for (i = 0; i < OMAP3_HS_USB_PORTS; i++)
-+	omap->usbhs_rev = usbhs_read(omap->uhh_base, OMAP_UHH_REVISION);
-+
-+	/* we need to call runtime suspend before we update omap->nports
-+	 * to prevent unbalanced clk_disable()
-+	 */
-+	pm_runtime_put_sync(dev);
-+
-+	switch (omap->usbhs_rev) {
-+	case OMAP_USBHS_REV1:
-+		omap->nports = 3;
-+		break;
-+	case OMAP_USBHS_REV2:
-+		omap->nports = 2;
-+		break;
-+	default:
-+		omap->nports = OMAP3_HS_USB_PORTS;
-+		dev_dbg(dev,
-+		  "USB HOST Rev : 0x%d not recognized, assuming %d ports\n",
-+		   omap->usbhs_rev, omap->nports);
-+		break;
-+	}
-+
-+	for (i = 0; i < omap->nports; i++)
- 		if (is_ehci_phy_mode(i) || is_ehci_tll_mode(i) ||
- 			is_ehci_hsic_mode(i)) {
- 			omap->ehci_logic_fck = clk_get(dev, "ehci_logic_fck");
-@@ -578,8 +602,6 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 				"failed error:%d\n", ret);
- 	}
- 
--	platform_set_drvdata(pdev, omap);
--
- 	omap_usbhs_init(dev);
- 	ret = omap_usbhs_alloc_children(pdev);
- 	if (ret) {
--- 
-1.7.4.1
+You are right. Looking at the ARM documentation this is a write-only
+register. I had copied this function from the original helpers but had
+not checked if this was readable. I will correct this.
+
+Cheers
+Jon
+
