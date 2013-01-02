@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 08/22] mfd: omap-usb-tll: serialize access to TLL device
-Date: Wed, 2 Jan 2013 17:00:28 +0200
-Message-ID: <1357138842-28964-9-git-send-email-rogerq@ti.com>
+Subject: [PATCH v5 13/22] mfd: omap-usb-host: override number of ports from platform data
+Date: Wed, 2 Jan 2013 17:00:33 +0200
+Message-ID: <1357138842-28964-14-git-send-email-rogerq@ti.com>
 References: <1357138842-28964-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,191 +12,99 @@ To: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com
 Cc: keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Get rid of the unnecessary spin_lock_irqsave/restore() as there is
-no interrupt handler for this driver. Instead we serialize access
-to tll_dev using a global spinlock.
+Both OMAP4 and 5 exhibit the same revision ID in the REVISION register
+but they have different number of ports i.e. 2 and 3 respectively.
+So we can't rely on REVISION register for number of ports on OMAP5
+and depend on platform data (or device tree) instead.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mfd/omap-usb-tll.c |   53 ++++++++++++++++++++++---------------------
- 1 files changed, 27 insertions(+), 26 deletions(-)
+ arch/arm/mach-omap2/usb-host.c         |    1 +
+ arch/arm/mach-omap2/usb.h              |    1 +
+ drivers/mfd/omap-usb-host.c            |   34 +++++++++++++++++++------------
+ include/linux/platform_data/usb-omap.h |    1 +
+ 4 files changed, 24 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index 5f61352..3dadacb 100644
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -103,14 +103,13 @@ struct usbtll_omap {
- 	int					nch;	/* num. of channels */
- 	struct usbtll_omap_platform_data	*pdata;
- 	struct clk				**ch_clk;
--	/* secure the register updates */
--	spinlock_t				lock;
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 2e44e8a..ee8c473 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -504,6 +504,7 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 	ohci_data.es2_compatibility = pdata->es2_compatibility;
+ 	usbhs_data.ehci_data = &ehci_data;
+ 	usbhs_data.ohci_data = &ohci_data;
++	usbhs_data.nports = pdata->nports;
+ 
+ 	if (cpu_is_omap34xx()) {
+ 		setup_ehci_io_mux(pdata->port_mode);
+diff --git a/arch/arm/mach-omap2/usb.h b/arch/arm/mach-omap2/usb.h
+index 9b986ea..7dc0f04 100644
+--- a/arch/arm/mach-omap2/usb.h
++++ b/arch/arm/mach-omap2/usb.h
+@@ -54,6 +54,7 @@
+ #define USBPHY_DATA_POLARITY	(1 << 23)
+ 
+ struct usbhs_omap_board_data {
++	int				nports;
+ 	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+ 
+ 	/* have to be valid if phy_reset is true and portx is in phy mode */
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 5edb828..710460d 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -497,19 +497,27 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+ 	 */
+ 	pm_runtime_put_sync(dev);
+ 
+-	switch (omap->usbhs_rev) {
+-	case OMAP_USBHS_REV1:
+-		omap->nports = 3;
+-		break;
+-	case OMAP_USBHS_REV2:
+-		omap->nports = 2;
+-		break;
+-	default:
+-		omap->nports = OMAP3_HS_USB_PORTS;
+-		dev_dbg(dev,
+-		  "USB HOST Rev : 0x%d not recognized, assuming %d ports\n",
+-		   omap->usbhs_rev, omap->nports);
+-		break;
++	/*
++	 * If platform data contains nports then use that
++	 * else make out number of ports from USBHS revision
++	 */
++	if (pdata->nports) {
++		omap->nports = pdata->nports;
++	} else {
++		switch (omap->usbhs_rev) {
++		case OMAP_USBHS_REV1:
++			omap->nports = 3;
++			break;
++		case OMAP_USBHS_REV2:
++			omap->nports = 2;
++			break;
++		default:
++			omap->nports = OMAP3_HS_USB_PORTS;
++			dev_dbg(dev,
++			"USB HOST Rev:0x%d not recognized, assuming %d ports\n",
++				omap->usbhs_rev, omap->nports);
++			break;
++		}
+ 	}
+ 
+ 	for (i = 0; i < omap->nports; i++)
+diff --git a/include/linux/platform_data/usb-omap.h b/include/linux/platform_data/usb-omap.h
+index ef65b67..57707c7 100644
+--- a/include/linux/platform_data/usb-omap.h
++++ b/include/linux/platform_data/usb-omap.h
+@@ -55,6 +55,7 @@ struct ohci_hcd_omap_platform_data {
  };
  
- /*-------------------------------------------------------------------------*/
+ struct usbhs_omap_platform_data {
++	int					nports;
+ 	enum usbhs_omap_port_mode		port_mode[OMAP3_HS_USB_PORTS];
  
- static const char usbtll_driver_name[] = USBTLL_DRIVER_NAME;
- static struct device	*tll_dev;
-+static DEFINE_SPINLOCK(tll_lock);	/* serialize access to tll_dev */
- 
- /*-------------------------------------------------------------------------*/
- 
-@@ -212,7 +211,6 @@ static int usbtll_omap_probe(struct platform_device *pdev)
- 	struct resource				*res;
- 	struct usbtll_omap			*tll;
- 	unsigned				reg;
--	unsigned long				flags;
- 	int					ret = 0;
- 	int					i, ver;
- 	bool needs_tll;
-@@ -230,8 +228,6 @@ static int usbtll_omap_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	spin_lock_init(&tll->lock);
--
- 	tll->pdata = pdata;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -243,8 +239,6 @@ static int usbtll_omap_probe(struct platform_device *pdev)
- 	pm_runtime_enable(dev);
- 	pm_runtime_get_sync(dev);
- 
--	spin_lock_irqsave(&tll->lock, flags);
--
- 	ver =  usbtll_read(base, OMAP_USBTLL_REVISION);
- 	switch (ver) {
- 	case OMAP_USBTLL_REV1:
-@@ -262,8 +256,6 @@ static int usbtll_omap_probe(struct platform_device *pdev)
- 		break;
- 	}
- 
--	spin_unlock_irqrestore(&tll->lock, flags);
--
- 	tll->ch_clk = devm_kzalloc(dev, sizeof(struct clk * [tll->nch]),
- 						GFP_KERNEL);
- 	if (!tll->ch_clk) {
-@@ -272,8 +264,6 @@ static int usbtll_omap_probe(struct platform_device *pdev)
- 		goto err_clk_alloc;
- 	}
- 
--	spin_lock_irqsave(&tll->lock, flags);
--
- 	for (i = 0; i < tll->nch; i++) {
- 		char clkname[] = "usb_tll_hs_usb_chx_clk";
- 		struct clk *fck;
-@@ -332,10 +322,11 @@ static int usbtll_omap_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	spin_unlock_irqrestore(&tll->lock, flags);
- 	pm_runtime_put_sync(dev);
- 	/* only after this can omap_tll_enable/disable work */
-+	spin_lock(&tll_lock);
- 	tll_dev = dev;
-+	spin_unlock(&tll_lock);
- 
- 	return 0;
- 
-@@ -357,7 +348,9 @@ static int usbtll_omap_remove(struct platform_device *pdev)
- 	struct usbtll_omap *tll = platform_get_drvdata(pdev);
- 	int i;
- 
-+	spin_lock(&tll_lock);
- 	tll_dev = NULL;
-+	spin_unlock(&tll_lock);
- 
- 	for (i = 0; i < tll->nch; i++)
- 		clk_put(tll->ch_clk[i]);
-@@ -370,13 +363,10 @@ static int usbtll_runtime_resume(struct device *dev)
- {
- 	struct usbtll_omap			*tll = dev_get_drvdata(dev);
- 	struct usbtll_omap_platform_data	*pdata = tll->pdata;
--	unsigned long				flags;
- 	int i;
- 
- 	dev_dbg(dev, "usbtll_runtime_resume\n");
- 
--	spin_lock_irqsave(&tll->lock, flags);
--
- 	for (i = 0; i < tll->nch; i++) {
- 		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
- 			int r;
-@@ -392,8 +382,6 @@ static int usbtll_runtime_resume(struct device *dev)
- 		}
- 	}
- 
--	spin_unlock_irqrestore(&tll->lock, flags);
--
- 	return 0;
- }
- 
-@@ -401,13 +389,10 @@ static int usbtll_runtime_suspend(struct device *dev)
- {
- 	struct usbtll_omap			*tll = dev_get_drvdata(dev);
- 	struct usbtll_omap_platform_data	*pdata = tll->pdata;
--	unsigned long				flags;
- 	int i;
- 
- 	dev_dbg(dev, "usbtll_runtime_suspend\n");
- 
--	spin_lock_irqsave(&tll->lock, flags);
--
- 	for (i = 0; i < tll->nch; i++) {
- 		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
- 			if (tll->ch_clk[i])
-@@ -415,8 +400,6 @@ static int usbtll_runtime_suspend(struct device *dev)
- 		}
- 	}
- 
--	spin_unlock_irqrestore(&tll->lock, flags);
--
- 	return 0;
- }
- 
-@@ -438,21 +421,39 @@ static struct platform_driver usbtll_omap_driver = {
- 
- int omap_tll_enable(void)
- {
-+	int ret;
-+
-+	spin_lock(&tll_lock);
-+
- 	if (!tll_dev) {
- 		pr_err("%s: OMAP USB TLL not initialized\n", __func__);
--		return  -ENODEV;
-+		ret = -ENODEV;
-+	} else {
-+		ret = pm_runtime_get_sync(tll_dev);
- 	}
--	return pm_runtime_get_sync(tll_dev);
-+
-+	spin_unlock(&tll_lock);
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(omap_tll_enable);
- 
- int omap_tll_disable(void)
- {
-+	int ret;
-+
-+	spin_lock(&tll_lock);
-+
- 	if (!tll_dev) {
- 		pr_err("%s: OMAP USB TLL not initialized\n", __func__);
--		return  -ENODEV;
-+		ret = -ENODEV;
-+	} else {
-+		ret = pm_runtime_put_sync(tll_dev);
- 	}
--	return pm_runtime_put_sync(tll_dev);
-+
-+	spin_unlock(&tll_lock);
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(omap_tll_disable);
- 
+ 	struct ehci_hcd_omap_platform_data	*ehci_data;
 -- 
 1.7.4.1
