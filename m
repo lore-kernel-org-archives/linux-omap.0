@@ -1,74 +1,70 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 06/22] mfd: omap-usb-tll: Check for missing platform data
- in probe
-Date: Wed, 2 Jan 2013 17:00:26 +0200
-Message-ID: <1357138842-28964-7-git-send-email-rogerq@ti.com>
+Subject: [PATCH v5 21/22] mfd: omap-usb-host: Don't spam console on clk_set_parent failure
+Date: Wed, 2 Jan 2013 17:00:41 +0200
+Message-ID: <1357138842-28964-22-git-send-email-rogerq@ti.com>
 References: <1357138842-28964-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1357138842-28964-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com
-Cc: sshtylyov@mvista.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, keshava_mgowda@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bjorn@mork.no, rogerq@ti.com
+Cc: keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-No need to check for missing platform data in runtime_suspend/resume
-as it makes more sense to do it in the probe function.
+clk_set_parent is expected to fail on OMAP3 platforms. We don't
+consider that as fatal so don't spam console.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mfd/omap-usb-tll.c |   15 +++++----------
- 1 files changed, 5 insertions(+), 10 deletions(-)
+ drivers/mfd/omap-usb-host.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index b188ee8..f319ac9 100644
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -225,6 +225,11 @@ static int usbtll_omap_probe(struct platform_device *pdev)
- 		return -ENOMEM;
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 9166df3..bf2a06a 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -672,32 +672,32 @@ static int usbhs_omap_probe(struct platform_device *pdev)
  	}
  
-+	if (!pdata) {
-+		dev_err(dev, "Platform data missing\n");
-+		return -ENODEV;
-+	}
-+
- 	spin_lock_init(&tll->lock);
+ 	if (is_ehci_phy_mode(pdata->port_mode[0])) {
+-		/* for OMAP3 , the clk set paretn fails */
++		/* for OMAP3, clk_set_parent fails */
+ 		ret = clk_set_parent(omap->utmi_p1_gfclk,
+ 					omap->xclk60mhsp1_ck);
+ 		if (ret != 0)
+-			dev_err(dev, "xclk60mhsp1_ck set parent"
+-				"failed error:%d\n", ret);
++			dev_dbg(dev, "xclk60mhsp1_ck set parent failed: %d\n",
++					ret);
+ 	} else if (is_ehci_tll_mode(pdata->port_mode[0])) {
+ 		ret = clk_set_parent(omap->utmi_p1_gfclk,
+ 					omap->init_60m_fclk);
+ 		if (ret != 0)
+-			dev_err(dev, "init_60m_fclk set parent"
+-				"failed error:%d\n", ret);
++			dev_dbg(dev, "P0 init_60m_fclk set parent failed: %d\n",
++					ret);
+ 	}
  
- 	tll->pdata = pdata;
-@@ -367,11 +372,6 @@ static int usbtll_runtime_resume(struct device *dev)
+ 	if (is_ehci_phy_mode(pdata->port_mode[1])) {
+ 		ret = clk_set_parent(omap->utmi_p2_gfclk,
+ 					omap->xclk60mhsp2_ck);
+ 		if (ret != 0)
+-			dev_err(dev, "xclk60mhsp2_ck set parent"
+-					"failed error:%d\n", ret);
++			dev_dbg(dev, "xclk60mhsp2_ck set parent failed: %d\n",
++					ret);
+ 	} else if (is_ehci_tll_mode(pdata->port_mode[1])) {
+ 		ret = clk_set_parent(omap->utmi_p2_gfclk,
+ 						omap->init_60m_fclk);
+ 		if (ret != 0)
+-			dev_err(dev, "init_60m_fclk set parent"
+-				"failed error:%d\n", ret);
++			dev_dbg(dev, "P1 init_60m_fclk set parent failed: %d\n",
++					ret);
+ 	}
  
- 	dev_dbg(dev, "usbtll_runtime_resume\n");
- 
--	if (!pdata) {
--		dev_dbg(dev, "missing platform_data\n");
--		return  -ENODEV;
--	}
--
- 	spin_lock_irqsave(&tll->lock, flags);
- 
- 	for (i = 0; i < tll->nch; i++) {
-@@ -403,11 +403,6 @@ static int usbtll_runtime_suspend(struct device *dev)
- 
- 	dev_dbg(dev, "usbtll_runtime_suspend\n");
- 
--	if (!pdata) {
--		dev_dbg(dev, "missing platform_data\n");
--		return  -ENODEV;
--	}
--
- 	spin_lock_irqsave(&tll->lock, flags);
- 
- 	for (i = 0; i < tll->nch; i++) {
+ 	omap_usbhs_init(dev);
 -- 
 1.7.4.1
