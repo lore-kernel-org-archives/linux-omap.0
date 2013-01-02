@@ -1,82 +1,69 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [RFC 3/5] ARM: CTI: Convert CTI helpers to AMBA bus driver
-Date: Wed, 2 Jan 2013 13:23:32 -0600
-Message-ID: <50E48934.6070201@ti.com>
-References: <1355348588-22318-1-git-send-email-jon-hunter@ti.com> <1355348588-22318-4-git-send-email-jon-hunter@ti.com> <20121221222703.GB2658@pratikp-linux.qualcomm.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP: 32k counter: resolve sparse warnings
+Date: Wed, 2 Jan 2013 19:36:48 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301021935580.17366@utopia.booyaka.com>
+References: <20121224012304.13698.43551.stgit@dusk.lan> <20121224012456.13698.41839.stgit@dusk.lan> <20130101181319.GA22106@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51914 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752404Ab3ABTXv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jan 2013 14:23:51 -0500
-In-Reply-To: <20121221222703.GB2658@pratikp-linux.qualcomm.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:41595 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752426Ab3ABTgt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jan 2013 14:36:49 -0500
+In-Reply-To: <20130101181319.GA22106@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pratik Patel <pratikp@codeaurora.org>
-Cc: Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Paul Walmsley <paul@pwsan.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+
+Hi,
+
+On Tue, 1 Jan 2013, Tony Lindgren wrote:
+
+> Here it's OK to include <plat/counter-32k.h> for multiplatform builds
+> as the path will be included in plat-omap/Makefile.
+
+Thanks for the clarification; the patch has been updated as follows.
 
 
-On 12/21/2012 04:27 PM, Pratik Patel wrote:
-> On Wed, Dec 12, 2012 at 03:43:06PM -0600, Jon Hunter wrote:
->> +
->> +/**
->> + * cti_irq_ack - acknowledges the CTI trigger output
->> + * @cti: CTI instance
->> + *
->> + * Acknowledges the CTI trigger output by writting to the appropriate
->> + * bit in the CTI interrupt acknowledge register.
->> + */
->> +int cti_irq_ack(struct cti *cti)
->> +{
->> +	u32 v;
->> +
->> +	if (!cti || !cti->enabled)
->> +		return -EINVAL;
->> +
->> +	v = cti_readl(cti, CTIINTACK);
-> 
-> Just curious if CTIINTACK is a read-write register? This is a
-> read-only for us.
-> 
->> +	v |= BIT(cti->trig_out);
->> +	cti_writel(v, cti, CTIINTACK);
->> +
->> +	return 0;
->> +}
->> +
->> +
->> +static int cti_probe(struct amba_device *dev, const struct amba_id *id)
->> +{
->> +	struct cti *cti;
->> +	struct device_node *np = dev->dev.of_node;
->> +	int rc;
->> +
->> +	if (!np) {
->> +		dev_err(&dev->dev, "device-tree not found!\n");
->> +		return -ENODEV;
->> +	}
->> +
->> +	cti = devm_kzalloc(&dev->dev, sizeof(struct cti), GFP_KERNEL);
->> +	if (!cti) {
->> +		dev_err(&dev->dev, "memory allocation failed!\n");
->> +		return -ENOMEM;
->> +	}
->> +
->> +	rc = of_property_read_string_index(np, "arm,cti-name", 0, &cti->name);
->> +	if (rc) {
->> +		dev_err(&dev->dev, "no name found for CTI!\n");
->> +		return rc;
->> +	}
-> 
-> Shouldn't the CTI driver have some kind of clock management that
-> it does for itself?
+- Paul
 
-It does by using runtime PM. If you look at the cti_get/put functions,
-you will see calls to pm_runtime_get/put. These calls will enable the
-AMBA apb-clock. If you need to enable additional clocks then you could
-register pm runtime resume/idle call backs to do this.
+From: Paul Walmsley <paul@pwsan.com>
+Date: Mon, 10 Dec 2012 11:48:44 -0700
+Subject: [PATCH] ARM: OMAP: 32k counter: resolve sparse warnings
 
-Cheers
-Jon
+Commit 1fe97c8f6a1de67a5f56e029a818903d5bed8017 ("ARM: OMAP: Make OMAP
+clocksource source selection using kernel param") results in a new warning
+from sparse:
+
+arch/arm/plat-omap/counter_32k.c:86:12: warning: symbol 'omap_init_clocksource_32k' was not declared. Should it be static?
+
+This second version fixes this warning by including <plat/counter-32k.h>,
+at Tony's request.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/plat-omap/counter_32k.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+index f3771cd..5b0b86b 100644
+--- a/arch/arm/plat-omap/counter_32k.c
++++ b/arch/arm/plat-omap/counter_32k.c
+@@ -22,6 +22,8 @@
+ #include <asm/mach/time.h>
+ #include <asm/sched_clock.h>
+ 
++#include <plat/counter-32k.h>
++
+ /* OMAP2_32KSYNCNT_CR_OFF: offset of 32ksync counter register */
+ #define OMAP2_32KSYNCNT_REV_OFF		0x0
+ #define OMAP2_32KSYNCNT_REV_SCHEME	(0x3 << 30)
+-- 
+1.7.10.4
+
