@@ -1,54 +1,53 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v3 0/7] ARM: OMAP2+: AM33XX: Enable few drivers in omap2plus_defconfig
-Date: Wed, 2 Jan 2013 12:19:57 -0800
-Message-ID: <CAOesGMj0yO5JxkDAeN1negip5dvwX9Y3syoU4JPsKnVJ0GucdQ@mail.gmail.com>
-References: <1357122451-7577-1-git-send-email-anilkumar@ti.com>
+From: R Sricharan <r.sricharan@ti.com>
+Subject: Re: [PATCH 1/1] arm :omap :DMA: fix a bug on reserving the omap SDMA
+ channels
+Date: Thu, 3 Jan 2013 12:58:11 +0530
+Message-ID: <50E5330B.2060007@ti.com>
+References: <1356813800-4705-1-git-send-email-ahemaily@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f169.google.com ([209.85.210.169]:55469 "EHLO
-	mail-ia0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752693Ab3ABUT5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jan 2013 15:19:57 -0500
-Received: by mail-ia0-f169.google.com with SMTP id u20so5748154iag.0
-        for <linux-omap@vger.kernel.org>; Wed, 02 Jan 2013 12:19:57 -0800 (PST)
-In-Reply-To: <1357122451-7577-1-git-send-email-anilkumar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1356813800-4705-1-git-send-email-ahemaily@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ahemaily@gmail.com
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: tony@atomide.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
 Hi,
 
-On Wed, Jan 2, 2013 at 2:27 AM, AnilKumar Ch <anilkumar@ti.com> wrote:
-> This patch series enable tps65910, lis3lv02d accelerometer, tsl2550
-> ambient light sensor, matrix keypad, tmp275 temperature sensor, gpio
-> leds and D_CAN drivers in omap2plus_defconfig.
+On Sunday 30 December 2012 02:13 AM, ahemaily@gmail.com wrote:
+> From: ahemaily <ahemaily@gmail.com>
 >
-> These are the peripherals present in AM33XX family of devices.
+> The variable  dma_lch_count  used for comparison  (omap_dma_reserve_channels <= dma_lch_count)
+> before it initialized to the value from omap_dma_dev_attr : d->lch_count.
 >
-> Changes from v2:
->         - Incorporated Tony's comments on v2
->           * Enabled as modules instead of kernel built-in drivers.
->         - Dropped 1st patch because it was accepted.
+> I change the place of dma_lch_count initialization to be before the comparison.
 >
-> Changes from v1:
->         - Incorporated martinez javier's comments on v1
->           * Enabled few more triggers in omap2plus_defconfig
->         - Included Igor's patch, which modifies the omap2plus
->           defconfig for AM33XX devices.
+> Signed-off-by: Abdelrahman Hemaily <ahemaily@gmail.com>
+> ---
+>   arch/arm/plat-omap/dma.c |    4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> AnilKumar Ch (7):
->   ARM: OMAP2+: omap2plus_defconfig: Add tps65910 support
->   ARM: OMAP2+: omap2plus_defconfig: Add lis3lv02d support
->   ARM: OMAP2+: omap2plus_defconfig: Add tsl2550 support
->   ARM: OMAP2+: omap2plus_defconfig: Add matrix-keypad support
->   ARM: OMAP2+: omap2plus_defconfig: Add tmp275 sensor support
->   ARM: OMAP2+: omap2plus_defconfig: Add leds-gpio support
->   ARM: OMAP2+: omap2plus_defconfig: Add D_CAN support
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index c76ed8b..cb3e321 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -2014,12 +2014,12 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
+>
+>   	d			= p->dma_attr;
+>   	errata			= p->errata;
+> -
+> +	dma_lch_count           = d->lch_count;
+> +
+>   	if ((d->dev_caps & RESERVE_CHANNEL) && omap_dma_reserve_channels
+>   			&& (omap_dma_reserve_channels <= dma_lch_count))
+>   		d->lch_count	= omap_dma_reserve_channels;
+>
+> -	dma_lch_count		= d->lch_count;
+    By removing this line, you are effectively not assigning
+    d->lch_count after reserving. So the patch should only change
+    dma_lch_count in the above "if statement" to d->lch_count
 
-Doing this as 7 separate patches seems excessive to me. Just do it as
-one single patch instead.
-
-
--Olof
+Regards,
+  Sricharan
