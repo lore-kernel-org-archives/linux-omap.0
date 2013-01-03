@@ -1,49 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL v2] ARM: OMAP2+: sparse & PRCM fixes for v3.8-rc1
-Date: Thu, 3 Jan 2013 11:33:49 -0800
-Message-ID: <20130103193349.GG25633@atomide.com>
-References: <alpine.DEB.2.00.1301021931430.17366@utopia.booyaka.com>
+Subject: Re: omap_hsmmc: SDIO IRQ on AM335x family
+Date: Thu, 3 Jan 2013 11:48:51 -0800
+Message-ID: <20130103194851.GH25633@atomide.com>
+References: <20121130111847.GA24674@blumentopf>
+ <20121130174022.GM5312@atomide.com>
+ <50B9019F.2020109@gmail.com>
+ <20121220220444.GA350@blumentopf>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:42194 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753017Ab3ACTdv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jan 2013 14:33:51 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20201 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753710Ab3ACTs5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jan 2013 14:48:57 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1301021931430.17366@utopia.booyaka.com>
+In-Reply-To: <20121220220444.GA350@blumentopf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Cc: Daniel Mack <zonque@gmail.com>, Chris Ball <cjb@laptop.org>, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com
 
-* Paul Walmsley <paul@pwsan.com> [130102 11:41]:
-> Hi Tony,
+* Andreas Fenkart <andreas.fenkart@streamunlimited.com> [121220 14:07]:
+> Hi,
 > 
-> The following changes since commit a49f0d1ea3ec94fc7cf33a7c36a16343b74bd565:
+> On Fri, Nov 30, 2012 at 07:57:35PM +0100, Daniel Mack wrote:
+> > 
+> > On 30.11.2012 18:40, Tony Lindgren wrote:
+> > > * Andreas Fenkart <andreas.fenkart@streamunlimited.com> [121130 03:21]:
+> > >>
+> > >> The alternative was to configure dat1 line as a GPIO, while
+> > >> waiting for an IRQ. Then configuring it back as dat1 when the
+> > >> SDIO card is signalling an IRQ. Or the host starts a transfer. I
+> > >> guess this will perform poorly, hence not considering it really.
+> > > 
+> > > This might work for SDIO cards. It should be disabled for data
+> > > cards naturally to avoid potential data corruption.
+> I don't understand your concern here, could you explain
 > 
->   Linux 3.8-rc1 (2012-12-21 17:19:00 -0800)
+> > > The way to implement this is set named states in the .dts file
+> > > for the pins using pinctrl-single.c, then have the MMC driver
+> > > request states "default" "active" and "idle" during the probe,
+> > > then toggle between active and idle during the runtime.
+> > > 
+> > > As far as I remember the GPIO functionality does not need to
+> > > be enabled, just muxing the pin to GPIO mode for the wake-up
+> > > is enough.
+> > 
+> > Wouldn't that be racy, given that an interrupt which occurs at beween
+> > the point in time when the driver decides to wait for IRQs again until
+> > the mux has finished switching over, could potentially be lost?
 > 
-> are available in the git repository at:
+> The IRQ is level triggered, so can't be lost. I implemented it as
+> suggested and surprisingly performance is pretty good. Actually not
+> worse than keeping the fclk enabled all times.
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-a2-for-v3.8-rc
+> module: 88W8787 / mwifiex
+> tx bitrate: 150.0 MBit/s MCS 7 40Mhz short GI
 > 
-> for you to fetch changes up to 7e7fff8254e318cede06a1a8c55b0d86dd4d8c5b:
+>                    |   tcp tx         |  signal  | cpu idle
+> ---------------------------------------------------------------
+> keep fclk enabled  |   50.3 Mbits/sec | -23 dBm  | 15 %
+> suspend/resume     |   49.7 Mbits/sec | -22 dBM  | 13 %
 > 
->   ARM: OMAP2/3: PRM: fix bogus OMAP2xxx powerstate return values (2013-01-02 12:07:16 -0700)
-> 
-> ----------------------------------------------------------------
-> Some OMAP PRCM and sparse fixes against v3.8-rc1.  A basic set of test
-> logs are available here:
-> 
->     http://www.pwsan.com/omap/testlogs/prcm_fixes_b_3.8-rc/20130102120724/
-> 
-> The 3730 Beagle XM here has an intermittent failure mounting SD root,
-> but the suspicion right now is that this is due to a failing SD card,
-> rather than any change introduced by these patches.
-> 
-> This second version includes a few changes requested by Tony Lindgren.
+> patch follows
 
-Thanks pulling into omap-for-v3.8-rc2/fixes.
+Hey that's cool :) Will take a look at the patch.
 
 Tony
