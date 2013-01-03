@@ -1,75 +1,114 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/1] arm :omap :DMA: fix a bug on reserving the omap SDMA
- channels
-Date: Thu, 3 Jan 2013 14:08:34 +0530
-Message-ID: <50E5438A.1050902@ti.com>
-References: <1356813800-4705-1-git-send-email-ahemaily@gmail.com> <50E5330B.2060007@ti.com>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH v4] ARM: OMAP2+: AM33XX: omap2plus_defconfig: Add support for few drivers
+Date: Thu, 3 Jan 2013 14:07:59 +0530
+Message-ID: <1357202279-6094-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53803 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834Ab3ACIhy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jan 2013 03:37:54 -0500
-In-Reply-To: <50E5330B.2060007@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42687 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753269Ab3ACIiJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jan 2013 03:38:09 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: R Sricharan <r.sricharan@ti.com>
-Cc: ahemaily@gmail.com, tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: tony@atomide.com
+Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, AnilKumar Ch <anilkumar@ti.com>
 
-On Thursday 03 January 2013 12:58 PM, R Sricharan wrote:
-> Hi,
->
-> On Sunday 30 December 2012 02:13 AM, ahemaily@gmail.com wrote:
->> From: ahemaily <ahemaily@gmail.com>
->>
->> The variable  dma_lch_count  used for comparison
->> (omap_dma_reserve_channels <= dma_lch_count)
->> before it initialized to the value from omap_dma_dev_attr : d->lch_count.
->>
->> I change the place of dma_lch_count initialization to be before the
->> comparison.
->>
->> Signed-off-by: Abdelrahman Hemaily <ahemaily@gmail.com>
->> ---
->>   arch/arm/plat-omap/dma.c |    4 ++--
->>   1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
->> index c76ed8b..cb3e321 100644
->> --- a/arch/arm/plat-omap/dma.c
->> +++ b/arch/arm/plat-omap/dma.c
->> @@ -2014,12 +2014,12 @@ static int __devinit
->> omap_system_dma_probe(struct platform_device *pdev)
->>
->>       d            = p->dma_attr;
->>       errata            = p->errata;
->> -
->> +    dma_lch_count           = d->lch_count;
->> +
->>       if ((d->dev_caps & RESERVE_CHANNEL) && omap_dma_reserve_channels
->>               && (omap_dma_reserve_channels <= dma_lch_count))
->>           d->lch_count    = omap_dma_reserve_channels;
->>
->> -    dma_lch_count        = d->lch_count;
->     By removing this line, you are effectively not assigning
->     d->lch_count after reserving. So the patch should only change
->     dma_lch_count in the above "if statement" to d->lch_count
->
-You are right. I missed it in last review. Below should be enough.
+Adds tps65910 PMIC, lis3lv02d accelerometer, tsl2550 ambient light sensor,
+tmp275 temperature sensor, matrix keypad, gbio based leds and D_CAN drivers
+support. These peripherals are present on AM33XX family of devices (EVM,
+BeagleBone and EVMSK). One has to manually enable these support to use the
+drivers, so this patch enables all the drivers in omap2plus_defconfig
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 37a488a..555ff7b 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -2019,7 +2019,7 @@ static int __devinit omap_system_dma_probe(struct 
-platform_device *pdev)
-  	errata			= p->errata;
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+Changes from v3:
+	- Incorporated Olof Johansson's comments on v3
+	  * Combined all the patches into a single patch
 
-  	if ((d->dev_caps & RESERVE_CHANNEL) && omap_dma_reserve_channels
--			&& (omap_dma_reserve_channels <= dma_lch_count))
-+			&& (omap_dma_reserve_channels <= d->lch_coun))
-  		d->lch_count	= omap_dma_reserve_channels;
+Changes from v2:
+	- Incorporated Tony's comments on v2
+	  * Enabled as modules instead of kernel built-in drivers.
+	- Dropped 1st patch because it was accepted.
 
-  	dma_lch_count		= d->lch_count;
+Changes from v1:
+	- Incorporated martinez javier's comments on v1
+	  * Enabled few more triggers in omap2plus_defconfig
+	- Included Igor's patch, which modifies the omap2plus
+	  defconfig for AM33XX devices.
+
+ arch/arm/configs/omap2plus_defconfig |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 19b7311..9fb2373 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -52,6 +52,11 @@ CONFIG_IP_PNP_RARP=y
+ # CONFIG_INET_LRO is not set
+ # CONFIG_IPV6 is not set
+ CONFIG_NETFILTER=y
++CONFIG_CAN=m
++CONFIG_CAN_RAW=m
++CONFIG_CAN_BCM=m
++CONFIG_CAN_C_CAN=m
++CONFIG_CAN_C_CAN_PLATFORM=m
+ CONFIG_BT=m
+ CONFIG_BT_HCIUART=m
+ CONFIG_BT_HCIUART_H4=y
+@@ -81,6 +86,9 @@ CONFIG_MTD_UBI=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_RAM=y
+ CONFIG_BLK_DEV_RAM_SIZE=16384
++CONFIG_SENSORS_LIS3LV02D=m
++CONFIG_SENSORS_TSL2550=m
++CONFIG_SENSORS_LIS3_I2C=m
+ CONFIG_SCSI=y
+ CONFIG_BLK_DEV_SD=y
+ CONFIG_SCSI_MULTI_LUN=y
+@@ -106,6 +114,7 @@ CONFIG_USB_KC2190=y
+ CONFIG_INPUT_JOYDEV=y
+ CONFIG_INPUT_EVDEV=y
+ CONFIG_KEYBOARD_GPIO=y
++CONFIG_KEYBOARD_MATRIX=m
+ CONFIG_KEYBOARD_TWL4030=y
+ CONFIG_INPUT_TOUCHSCREEN=y
+ CONFIG_TOUCHSCREEN_ADS7846=y
+@@ -129,14 +138,17 @@ CONFIG_GPIO_SYSFS=y
+ CONFIG_GPIO_TWL4030=y
+ CONFIG_W1=y
+ CONFIG_POWER_SUPPLY=y
++CONFIG_SENSORS_LM75=m
+ CONFIG_WATCHDOG=y
+ CONFIG_OMAP_WATCHDOG=y
+ CONFIG_TWL4030_WATCHDOG=y
+ CONFIG_MFD_TPS65217=y
++CONFIG_MFD_TPS65910=y
+ CONFIG_REGULATOR_TWL4030=y
+ CONFIG_REGULATOR_TPS65023=y
+ CONFIG_REGULATOR_TPS6507X=y
+ CONFIG_REGULATOR_TPS65217=y
++CONFIG_REGULATOR_TPS65910=y
+ CONFIG_FB=y
+ CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_MODE_HELPERS=y
+@@ -193,6 +205,16 @@ CONFIG_MMC_UNSAFE_RESUME=y
+ CONFIG_SDIO_UART=y
+ CONFIG_MMC_OMAP=y
+ CONFIG_MMC_OMAP_HS=y
++CONFIG_NEW_LEDS=y
++CONFIG_LEDS_GPIO=y
++CONFIG_LEDS_TRIGGERS=y
++CONFIG_LEDS_TRIGGER_TIMER=y
++CONFIG_LEDS_TRIGGER_ONESHOT=y
++CONFIG_LEDS_TRIGGER_HEARTBEAT=y
++CONFIG_LEDS_TRIGGER_BACKLIGHT=y
++CONFIG_LEDS_TRIGGER_CPU=y
++CONFIG_LEDS_TRIGGER_GPIO=y
++CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
+ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_DRV_TWL92330=y
+ CONFIG_RTC_DRV_TWL4030=y
+-- 
+1.7.9.5
+
