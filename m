@@ -1,52 +1,113 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [RFC PATCH v3 13/16] ARM: dts: add AM33XX MMC support
-Date: Thu, 3 Jan 2013 10:03:43 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EB3402D@DBDE01.ent.ti.com>
-References: <1350566815-409-1-git-send-email-mporter@ti.com>
- <1350566815-409-14-git-send-email-mporter@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 1/3] ARM: OMAP: board-4430sdp: Proper support for TWL6030 PWM LED/Backlight
+Date: Thu, 3 Jan 2013 12:49:26 +0100
+Message-ID: <1357213768-21266-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1357213768-21266-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1350566815-409-14-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori,
- Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50001 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752906Ab3ACLte (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jan 2013 06:49:34 -0500
+In-Reply-To: <1357213768-21266-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Matt,
+New PWM drivers are being prepared for twl series which will enable the use
+of all PWMs (PWMs and LEDs).
+They are implemented as generic PWM drivers to be able to use them for different
+purposes.
+The current platform code was broken: the leds_pwm driver was not able to pick
+up the PWM since the pwm_id was incorrect.
 
-On Thu, Oct 18, 2012 at 18:56:52, Porter, Matt wrote:
-> Adds AM33XX MMC support for am335x-bone and am335x-evm.
+With the other patches we will be able to control the followings:
+LCD backlight via pwm-backlight driver
+Keypad leds via leds_pwm driver as normal LED
+Charging indicator via leds_pwm driver as normal LED
 
-I want to test Suspend/Resume feature on omap hsmmc driver. 
-Do you any tree based on mainline kernel v3.8-rc1 with these edma & mmc
-patches.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c | 31 ++++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
 
-> 
-> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/boot/dts/am335x-bone.dts |    6 ++++++
->  arch/arm/boot/dts/am335x-evm.dts  |    6 ++++++
->  arch/arm/boot/dts/am33xx.dtsi     |   27 +++++++++++++++++++++++++++
->  3 files changed, 39 insertions(+)
-> 
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 1cc6696..946b150 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -24,8 +24,10 @@
+ #include <linux/gpio_keys.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/fixed.h>
++#include <linux/pwm.h>
+ #include <linux/leds.h>
+ #include <linux/leds_pwm.h>
++#include <linux/pwm_backlight.h>
+ #include <linux/platform_data/omap4-keypad.h>
+ #include <linux/usb/musb.h>
+ 
+@@ -256,10 +258,20 @@ static struct gpio_led_platform_data sdp4430_led_data = {
+ 	.num_leds	= ARRAY_SIZE(sdp4430_gpio_leds),
+ };
+ 
++static struct pwm_lookup sdp4430_pwm_lookup[] = {
++	PWM_LOOKUP("twl-pwm", 0, "leds_pwm", "omap4::keypad"),
++	PWM_LOOKUP("twl-pwm", 1, "pwm-backlight", "backlight"),
++	PWM_LOOKUP("twl-pwmled", 0, "leds_pwm", "omap4:green:chrg"),
++};
++
+ static struct led_pwm sdp4430_pwm_leds[] = {
+ 	{
++		.name		= "omap4::keypad",
++		.max_brightness	= 127,
++		.pwm_period_ns	= 7812500,
++	},
++	{
+ 		.name		= "omap4:green:chrg",
+-		.pwm_id		= 1,
+ 		.max_brightness	= 255,
+ 		.pwm_period_ns	= 7812500,
+ 	},
+@@ -278,6 +290,21 @@ static struct platform_device sdp4430_leds_pwm = {
+ 	},
+ };
+ 
++static struct platform_pwm_backlight_data sdp4430_backlight_data = {
++	.pwm_id = 1,
++	.max_brightness = 127,
++	.dft_brightness = 127,
++	.pwm_period_ns = 7812500,
++};
++
++static struct platform_device sdp4430_backlight_pwm = {
++	.name   = "pwm-backlight",
++	.id     = -1,
++	.dev    = {
++		.platform_data = &sdp4430_backlight_data,
++	},
++};
++
+ static int omap_prox_activate(struct device *dev)
+ {
+ 	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , 1);
+@@ -412,6 +439,7 @@ static struct platform_device *sdp4430_devices[] __initdata = {
+ 	&sdp4430_gpio_keys_device,
+ 	&sdp4430_leds_gpio,
+ 	&sdp4430_leds_pwm,
++	&sdp4430_backlight_pwm,
+ 	&sdp4430_vbat,
+ 	&sdp4430_dmic_codec,
+ 	&sdp4430_abe_audio,
+@@ -707,6 +735,7 @@ static void __init omap_4430sdp_init(void)
+ 				ARRAY_SIZE(sdp4430_spi_board_info));
+ 	}
+ 
++	pwm_add_table(sdp4430_pwm_lookup, ARRAY_SIZE(sdp4430_pwm_lookup));
+ 	status = omap4_keyboard_init(&sdp4430_keypad_data, &keypad_data);
+ 	if (status)
+ 		pr_err("Keypad initialization failed: %d\n", status);
+-- 
+1.8.0.2
 
-..snip..
-..snip..
-..snip..
-
-
-Regards, 
-Gururaja
