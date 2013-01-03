@@ -1,91 +1,52 @@
-From: Pratik Patel <pratikp@codeaurora.org>
-Subject: Re: [RFC 3/5] ARM: CTI: Convert CTI helpers to AMBA bus driver
-Date: Thu, 3 Jan 2013 10:47:52 -0800
-Message-ID: <20130103184752.GB30277@pratikp-linux.qualcomm.com>
-References: <1355348588-22318-1-git-send-email-jon-hunter@ti.com>
- <1355348588-22318-4-git-send-email-jon-hunter@ti.com>
- <20121221222703.GB2658@pratikp-linux.qualcomm.com>
- <50E48934.6070201@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP4: clock data: ABE DPLL need to be locked
+ on all revisions
+Date: Thu, 3 Jan 2013 12:58:50 -0600
+Message-ID: <50E5D4EA.5030001@ti.com>
+References: <1357220811-29904-1-git-send-email-peter.ujfalusi@ti.com> <1357220811-29904-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:8153 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753664Ab3ACSry (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jan 2013 13:47:54 -0500
-Content-Disposition: inline
-In-Reply-To: <50E48934.6070201@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:55429 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753858Ab3ACS64 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jan 2013 13:58:56 -0500
+In-Reply-To: <1357220811-29904-2-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Paul Walmsley <paul@pwsan.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Wed, Jan 02, 2013 at 01:23:32PM -0600, Jon Hunter wrote:
-> 
-> On 12/21/2012 04:27 PM, Pratik Patel wrote:
-> > On Wed, Dec 12, 2012 at 03:43:06PM -0600, Jon Hunter wrote:
-> >> +
-> >> +/**
-> >> + * cti_irq_ack - acknowledges the CTI trigger output
-> >> + * @cti: CTI instance
-> >> + *
-> >> + * Acknowledges the CTI trigger output by writting to the appropriate
-> >> + * bit in the CTI interrupt acknowledge register.
-> >> + */
-> >> +int cti_irq_ack(struct cti *cti)
-> >> +{
-> >> +	u32 v;
-> >> +
-> >> +	if (!cti || !cti->enabled)
-> >> +		return -EINVAL;
-> >> +
-> >> +	v = cti_readl(cti, CTIINTACK);
-> > 
-> > Just curious if CTIINTACK is a read-write register? This is a
-> > read-only for us.
-> > 
-> >> +	v |= BIT(cti->trig_out);
-> >> +	cti_writel(v, cti, CTIINTACK);
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +
-> >> +static int cti_probe(struct amba_device *dev, const struct amba_id *id)
-> >> +{
-> >> +	struct cti *cti;
-> >> +	struct device_node *np = dev->dev.of_node;
-> >> +	int rc;
-> >> +
-> >> +	if (!np) {
-> >> +		dev_err(&dev->dev, "device-tree not found!\n");
-> >> +		return -ENODEV;
-> >> +	}
-> >> +
-> >> +	cti = devm_kzalloc(&dev->dev, sizeof(struct cti), GFP_KERNEL);
-> >> +	if (!cti) {
-> >> +		dev_err(&dev->dev, "memory allocation failed!\n");
-> >> +		return -ENOMEM;
-> >> +	}
-> >> +
-> >> +	rc = of_property_read_string_index(np, "arm,cti-name", 0, &cti->name);
-> >> +	if (rc) {
-> >> +		dev_err(&dev->dev, "no name found for CTI!\n");
-> >> +		return rc;
-> >> +	}
-> > 
-> > Shouldn't the CTI driver have some kind of clock management that
-> > it does for itself?
-> 
-> It does by using runtime PM. If you look at the cti_get/put functions,
-> you will see calls to pm_runtime_get/put. These calls will enable the
-> AMBA apb-clock. If you need to enable additional clocks then you could
-> register pm runtime resume/idle call backs to do this.
-> 
+Hi Peter,
 
-Ok
+On 01/03/2013 07:46 AM, Peter Ujfalusi wrote:
+> We need to lock ABE DPPL on al OMAP4 revisions, not only for OMAP446x
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  arch/arm/mach-omap2/cclock44xx_data.c | 14 ++++++--------
+>  1 file changed, 6 insertions(+), 8 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+> index 5789a5e..79c32ce 100644
+> --- a/arch/arm/mach-omap2/cclock44xx_data.c
+> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
+> @@ -2023,17 +2023,15 @@ int __init omap4xxx_clk_init(void)
+>  				     ARRAY_SIZE(enable_init_clks));
+>  
+>  	/*
+> -	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
+> +	 * On OMAP4 the ABE DPLL fails to turn on if in idle low-power
+>  	 * state when turning the ABE clock domain. Workaround this by
+>  	 * locking the ABE DPLL on boot.
 
--- 
-Employee of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-hosted by The Linux Foundation
+I am not sure that this change to the comment is completely accurate. On
+OMAP4430 I did not see any issues with the DPLL failing to turn on if
+the DPLL was not locked. I only saw this particular problem on the 4460.
+Therefore, it may be better to leave the comment as-is and add an
+additional sentence to state that the DPLL should be locked for all
+OMAP4 devices for audio to work correctly.
+
+Cheers
+Jon
