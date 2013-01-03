@@ -1,83 +1,52 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 1/1] arm :omap :DMA: fix a bug on reserving the omap SDMA
- channels
-Date: Thu, 03 Jan 2013 11:10:12 +0200
-Message-ID: <50E54AF4.4030405@compulab.co.il>
-References: <1356813800-4705-1-git-send-email-ahemaily@gmail.com> <50E5330B.2060007@ti.com> <50E5438A.1050902@ti.com>
+From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [RFC PATCH v3 13/16] ARM: dts: add AM33XX MMC support
+Date: Thu, 3 Jan 2013 10:03:43 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C33EB3402D@DBDE01.ent.ti.com>
+References: <1350566815-409-1-git-send-email-mporter@ti.com>
+ <1350566815-409-14-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50E5438A.1050902@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: R Sricharan <r.sricharan@ti.com>, ahemaily@gmail.com, tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1350566815-409-14-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori,
+ Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/03/13 10:38, Santosh Shilimkar wrote:
-> On Thursday 03 January 2013 12:58 PM, R Sricharan wrote:
->> Hi,
->>
->> On Sunday 30 December 2012 02:13 AM, ahemaily@gmail.com wrote:
->>> From: ahemaily <ahemaily@gmail.com>
->>>
->>> The variable  dma_lch_count  used for comparison
->>> (omap_dma_reserve_channels <= dma_lch_count)
->>> before it initialized to the value from omap_dma_dev_attr : d->lch_count.
->>>
->>> I change the place of dma_lch_count initialization to be before the
->>> comparison.
->>>
->>> Signed-off-by: Abdelrahman Hemaily <ahemaily@gmail.com>
->>> ---
->>>   arch/arm/plat-omap/dma.c |    4 ++--
->>>   1 file changed, 2 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
->>> index c76ed8b..cb3e321 100644
->>> --- a/arch/arm/plat-omap/dma.c
->>> +++ b/arch/arm/plat-omap/dma.c
->>> @@ -2014,12 +2014,12 @@ static int __devinit
->>> omap_system_dma_probe(struct platform_device *pdev)
->>>
->>>       d            = p->dma_attr;
->>>       errata            = p->errata;
->>> -
->>> +    dma_lch_count           = d->lch_count;
->>> +
->>>       if ((d->dev_caps & RESERVE_CHANNEL) && omap_dma_reserve_channels
->>>               && (omap_dma_reserve_channels <= dma_lch_count))
->>>           d->lch_count    = omap_dma_reserve_channels;
->>>
->>> -    dma_lch_count        = d->lch_count;
->>     By removing this line, you are effectively not assigning
->>     d->lch_count after reserving. So the patch should only change
->>     dma_lch_count in the above "if statement" to d->lch_count
->>
-> You are right. I missed it in last review. Below should be enough.
-> 
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 37a488a..555ff7b 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -2019,7 +2019,7 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
->      errata            = p->errata;
-> 
->      if ((d->dev_caps & RESERVE_CHANNEL) && omap_dma_reserve_channels
-> -            && (omap_dma_reserve_channels <= dma_lch_count))
-> +            && (omap_dma_reserve_channels <= d->lch_coun))
+Matt,
 
-It looks like the 't' is missing...                     ^^^^^
+On Thu, Oct 18, 2012 at 18:56:52, Porter, Matt wrote:
+> Adds AM33XX MMC support for am335x-bone and am335x-evm.
 
->          d->lch_count    = omap_dma_reserve_channels;
+I want to test Suspend/Resume feature on omap hsmmc driver. 
+Do you any tree based on mainline kernel v3.8-rc1 with these edma & mmc
+patches.
+
 > 
->      dma_lch_count        = d->lch_count;
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/am335x-bone.dts |    6 ++++++
+>  arch/arm/boot/dts/am335x-evm.dts  |    6 ++++++
+>  arch/arm/boot/dts/am33xx.dtsi     |   27 +++++++++++++++++++++++++++
+>  3 files changed, 39 insertions(+)
 > 
 
--- 
-Regards,
-Igor.
+..snip..
+..snip..
+..snip..
+
+
+Regards, 
+Gururaja
