@@ -1,204 +1,309 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 6/8] ARM: OMAP2+: Disable code that currently does not work with multiplaform
-Date: Thu, 03 Jan 2013 22:23:42 +0100
-Message-ID: <2770938.Qr8SHcYrK2@avalon>
-References: <20121219192354.22098.33408.stgit@muffinssi.local> <20121219192627.22098.10760.stgit@muffinssi.local> <20130103201521.GI25633@atomide.com>
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: [PATCH] omap: Properly handle resources for omap_devices
+Date: Fri,  4 Jan 2013 00:31:34 +0200
+Message-ID: <1357252294-6024-1-git-send-email-panto@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41819 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753936Ab3ACVWJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jan 2013 16:22:09 -0500
-In-Reply-To: <20130103201521.GI25633@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.ramirez@ti.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Sean Young <sean@mess.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org, =?ISO-8859-1?Q?V=EDctor_Manuel_J=E1quez?= Leal <vjaquez@igalia.com>, Herbert Xu <herbert@gondor.apana.org.au>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Matt Porter <mporter@ti.com>, Russell King <linux@arm.linux.org.uk>, Pantelis Antoniou <panto@antoniou-consulting.com>, linux-kernel@vger.kernel.org, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+omap_device relies on the platform notifier callbacks managing resources
+behind the scenes. The resources were not properly linked causing crashes
+when removing the device.
 
-On Thursday 03 January 2013 12:15:21 Tony Lindgren wrote:
-> Hi all,
->=20
-> Looks like we need to also disable mailbox to avoid dependencies to
-> the mailbox series as it's being moved to live under drivers.
->=20
-> And we need to disable omap3isp as it tries to use the now private
-> include <plat/*.h> headers.
+Rework the resource modification code so that linking is performed properly,
+and make sure that no resources that have no parent (which can happen for DMA
+& IRQ resources) are ever left for cleanup by the core resource layer.
 
-I've posted a patch to the linux-media mailing list to remove plat/*.h =
-headers=20
-that are not present anymore in v3.8. It will be pushed to v3.8, as thi=
-s=20
-breaks compilation of the driver.
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/mach-omap2/omap_device.c | 232 ++++++++++++++++++++++++--------------
+ 1 file changed, 148 insertions(+), 84 deletions(-)
 
-The driver still includes the plat/cpu.h header that can be removed as =
-well.=20
-I've just posted a patch that remove the header and will push it to v3.=
-9. The=20
-OMAP3 ISP part of this patch can thus be dropped.
-
-> Updated patch below.
->=20
-> Tony
->=20
->=20
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Wed, 2 Jan 2013 10:24:09 -0800
-> Subject: [PATCH] ARM: OMAP2+: Disable code that currently does not wo=
-rk with
-> multiplaform MIME-Version: 1.0
-> Content-Type: text/plain; charset=3DUTF-8
-> Content-Transfer-Encoding: 8bit
->=20
-> We still need to fix up few places for multiplatform support,
-> but that can proceed separately. Fix the issue by making the
-> problem drivers depends !ARCH_MULTIPLATFORM for now.
->=20
-> The remaining pieces that are not multiplatform compatible
-> for omap2+ SoCs are:
->=20
-> 1. Some drivers are using custom omap_dm_timer calls
->=20
-> There are two drivers that are directly usign omap hardware
-> timers for PWM and DSP clocking: drivers/media/rc/ir-rx51.c and
-> drivers/staging/tidspbridge/core/dsp-clock.c. These can be
-> fixed for multiplatform by allowing a minimal set of hardware
-> timers to be accessed, and for some functionality by using the
-> hrtimer framework.
->=20
-> 2. Hardware OMAP4_ERRATA_I688 needs to be fixed up
->=20
-> This can't be enabled for multiplatform configurations in
-> it's current form. It may be possible to fix it up to do
-> instruction replacement early on during init. Luckily it
-> looks like this errata does not seem to get hit with
-> mainline kernel code alone at least currently.
->=20
-> 3. Legacy header needed for omap-sham.c
->=20
-> Looks like it still needs mach/irqs.h for omap1 that
-> does not exist for multiplatform systems. Just ifdef
-> it for now.
->=20
-> 4. Mailbox is waiting to get moved to drivers
->=20
-> Disable it for now to avoid adding a dependency to the
-> mailbox patches.
->=20
-> 5. Camera omap3isp needs to be disabled
->=20
-> The include <plat/*.h> files won't be available to drivers
-> after multiplatform support is enabled.
->=20
-> Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-> Cc: Sean Young <sean@mess.org>
-> Cc: "V=EDctor Manuel J=E1quez Leal" <vjaquez@igalia.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
-> Cc: Herbert Xu <herbert@gondor.apana.org.au>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> [tony@atomide.com: updated to disable mailbox and omap3isp]
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->=20
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfi=
-g
-> index 41b581f..492d764 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -397,7 +397,7 @@ config OMAP3_SDRC_AC_TIMING
->=20
->  config OMAP4_ERRATA_I688
->  	bool "OMAP4 errata: Async Bridge Corruption"
-> -	depends on ARCH_OMAP4
-> +	depends on ARCH_OMAP4 && !ARCH_MULTIPLATFORM
->  	select ARCH_HAS_BARRIERS
->  	help
->  	  If a data is stalled inside asynchronous bridge because of back
-> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> index 665870d..03f1252 100644
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -118,7 +118,7 @@ config OMAP_MUX_WARNINGS
->=20
->  config OMAP_MBOX_FWK
->  	tristate "Mailbox framework support"
-> -	depends on ARCH_OMAP
-> +	depends on ARCH_OMAP && !ARCH_MULTIPLATFORM
->  	help
->  	  Say Y here if you want to use OMAP Mailbox framework support for
->  	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
-> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-> index 1d75e6f..d65f22c 100644
-> --- a/drivers/crypto/omap-sham.c
-> +++ b/drivers/crypto/omap-sham.c
-> @@ -38,7 +38,10 @@
->  #include <crypto/internal/hash.h>
->=20
->  #include <linux/omap-dma.h>
-> +
-> +#ifdef CONFIG_ARCH_OMAP1
->  #include <mach/irqs.h>
-> +#endif
->=20
->  #define SHA_REG_DIGEST(x)		(0x00 + ((x) * 0x04))
->  #define SHA_REG_DIN(x)			(0x1C + ((x) * 0x04))
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/=
-Kconfig
-> index 3dcfea6..eff53c9 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -99,7 +99,7 @@ config VIDEO_OMAP2
->=20
->  config VIDEO_OMAP3
->  	tristate "OMAP 3 Camera support (EXPERIMENTAL)"
-> -	depends on OMAP_IOVMM && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API=
- &&
-> ARCH_OMAP3 && EXPERIMENTAL +	depends on OMAP_IOVMM && VIDEO_V4L2 && I=
-2C &&
-> VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3 && EXPERIMENTAL && !ARCH_MULTIPLA=
-TFORM
-> ---help---
->  	  Driver for an OMAP 3 camera controller.
->=20
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index 79ba242..19f3563 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -291,7 +291,7 @@ config IR_TTUSBIR
->=20
->  config IR_RX51
->  	tristate "Nokia N900 IR transmitter diode"
-> -	depends on OMAP_DM_TIMER && LIRC
-> +	depends on OMAP_DM_TIMER && LIRC && !ARCH_MULTIPLATFORM
->  	---help---
->  	   Say Y or M here if you want to enable support for the IR
->  	   transmitter diode built in the Nokia N900 (RX51) device.
-> diff --git a/drivers/staging/tidspbridge/Kconfig
-> b/drivers/staging/tidspbridge/Kconfig index 0dd479f..60848f1 100644
-> --- a/drivers/staging/tidspbridge/Kconfig
-> +++ b/drivers/staging/tidspbridge/Kconfig
-> @@ -4,7 +4,7 @@
->=20
->  menuconfig TIDSPBRIDGE
->  	tristate "DSP Bridge driver"
-> -	depends on ARCH_OMAP3
-> +	depends on ARCH_OMAP3 && !ARCH_MULTIPLATFORM
->  	select OMAP_MBOX_FWK
->  	help
->  	  DSP/BIOS Bridge is designed for platforms that contain a GPP and
---=20
-Regards,
-
-Laurent Pinchart
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index e065daa..9f8dba1 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -494,30 +494,156 @@ static int omap_device_fill_resources(struct omap_device *od,
+ }
+ 
+ /**
+- * _od_fill_dma_resources - fill in array of struct resource with dma resources
++ * omap_device_fixup_resources - Fix platform device resources
+  * @od: struct omap_device *
+- * @res: pointer to an array of struct resource to be filled in
+- *
+- * Populate one or more empty struct resource pointed to by @res with
+- * the dma resource data for this omap_device @od.  Used by
+- * omap_device_alloc() after calling omap_device_count_resources().
+- *
+- * Ideally this function would not be needed at all.  If we have
+- * mechanism to get dma resources from DT.
+  *
+- * Returns 0.
++ * Fixup the platform device resources so that the resources
++ * from the hwmods are included for.
+  */
+-static int _od_fill_dma_resources(struct omap_device *od,
+-				      struct resource *res)
++static int omap_device_fixup_resources(struct omap_device *od)
+ {
+-	int i, r;
++	struct platform_device *pdev = od->pdev;
++	int i, j, ret, res_count;
++	struct resource *res, *r, *rnew, *rn;
++	unsigned long type;
+ 
+-	for (i = 0; i < od->hwmods_cnt; i++) {
+-		r = omap_hwmod_fill_dma_resources(od->hwmods[i], res);
+-		res += r;
++	/*
++	 * DT Boot:
++	 *   OF framework will construct the resource structure (currently
++	 *   does for MEM & IRQ resource) and we should respect/use these
++	 *   resources, killing hwmod dependency.
++	 *   If pdev->num_resources > 0, we assume that MEM & IRQ resources
++	 *   have been allocated by OF layer already (through DTB).
++	 *
++	 * Non-DT Boot:
++	 *   Here, pdev->num_resources = 0, and we should get all the
++	 *   resources from hwmod.
++	 *
++	 * TODO: Once DMA resource is available from OF layer, we should
++	 *   kill filling any resources from hwmod.
++	 */
++
++	/* count number of resources hwmod provides */
++	res_count = omap_device_count_resources(od, IORESOURCE_IRQ |
++					IORESOURCE_DMA | IORESOURCE_MEM);
++
++	/* if no resources from hwmod, we're done already */
++	if (res_count == 0)
++		return 0;
++
++	/* Allocate resources memory to account for all hwmod resources */
++	res = kzalloc(sizeof(struct resource) * res_count, GFP_KERNEL);
++	if (!res) {
++		ret = -ENOMEM;
++		goto fail_no_res;
+ 	}
+ 
++	/* fill all the resources */
++	ret = omap_device_fill_resources(od, res);
++	if (ret != 0)
++		goto fail_no_fill;
++
++	/*
++	 * If pdev->num_resources > 0, then assume that,
++	 * MEM and IRQ resources will only come from DT and only
++	 * fill DMA resource from hwmod layer.
++	 */
++	if (pdev->num_resources > 0) {
++
++		dev_dbg(&pdev->dev, "%s(): resources allocated %d hwmod #%d\n",
++			__func__, pdev->num_resources, res_count);
++
++		/* find number of resources needing to be inserted */
++		for (i = 0, j = 0, r = res; i < res_count; i++, r++) {
++			type = resource_type(r);
++			if (type == IORESOURCE_DMA)
++				j++;
++		}
++
++		/* no need to insert anything, just return */
++		if (j == 0) {
++			kfree(res);
++			return 0;
++		}
++
++		/* we need to insert j additional resources */
++		rnew = kzalloc(sizeof(*rnew) *
++				(pdev->num_resources + j), GFP_KERNEL);
++		if (rnew == NULL)
++			goto fail_no_rnew;
++
++		/*
++		 * Unlink any resources from any lists.
++		 * This is important since the copying destroys any
++		 * linkage
++		 */
++		for (i = 0, r = pdev->resource;
++				i < pdev->num_resources; i++, r++) {
++
++			if (!r->parent)
++				continue;
++
++			dev_dbg(&pdev->dev,
++					"Releasing resource %p\n", r);
++			release_resource(r);
++			r->parent = NULL;
++			r->sibling = NULL;
++			r->child = NULL;
++		}
++
++		memcpy(rnew, pdev->resource,
++				sizeof(*rnew) * pdev->num_resources);
++
++		/* now append the resources from the hwmods */
++		rn = rnew + pdev->num_resources;
++		for (i = 0, r = res; i < res_count; i++, r++) {
++
++			type = resource_type(r);
++			if (type != IORESOURCE_DMA)
++				continue;
++
++			/* append the hwmod resource */
++			memcpy(rn, r, sizeof(*r));
++
++			/* make sure these are zeroed out */
++			rn->parent = NULL;
++			rn->child = NULL;
++			rn->sibling = NULL;
++
++			rn++;
++		}
++		kfree(res);	/* we don't need res anymore */
++
++		/* this is our new resource table */
++		res = rnew;
++		res_count = j;
++
++	} else {
++		dev_dbg(&pdev->dev, "%s(): using resources from hwmod %d\n",
++			__func__, res_count);
++	}
++
++	ret = platform_device_add_resources(pdev, res, res_count);
++	kfree(res);
++
++	/* failed to add the resources? */
++	if (ret != 0)
++		return ret;
++
++	/* finally link all the resources again */
++	ret = platform_device_link_resources(pdev);
++	if (ret != 0)
++		return ret;
++
+ 	return 0;
++
++fail_no_rnew:
++	/* nothing */
++fail_no_fill:
++	kfree(res);
++
++fail_no_res:
++	return ret;
+ }
+ 
+ /**
+@@ -541,9 +667,8 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
+ {
+ 	int ret = -ENOMEM;
+ 	struct omap_device *od;
+-	struct resource *res = NULL;
+-	int i, res_count;
+ 	struct omap_hwmod **hwmods;
++	int i;
+ 
+ 	od = kzalloc(sizeof(struct omap_device), GFP_KERNEL);
+ 	if (!od) {
+@@ -553,79 +678,18 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
+ 	od->hwmods_cnt = oh_cnt;
+ 
+ 	hwmods = kmemdup(ohs, sizeof(struct omap_hwmod *) * oh_cnt, GFP_KERNEL);
+-	if (!hwmods)
++	if (!hwmods) {
++		ret = -ENOMEM;
+ 		goto oda_exit2;
++	}
+ 
+ 	od->hwmods = hwmods;
+ 	od->pdev = pdev;
+ 
+-	/*
+-	 * Non-DT Boot:
+-	 *   Here, pdev->num_resources = 0, and we should get all the
+-	 *   resources from hwmod.
+-	 *
+-	 * DT Boot:
+-	 *   OF framework will construct the resource structure (currently
+-	 *   does for MEM & IRQ resource) and we should respect/use these
+-	 *   resources, killing hwmod dependency.
+-	 *   If pdev->num_resources > 0, we assume that MEM & IRQ resources
+-	 *   have been allocated by OF layer already (through DTB).
+-	 *   As preparation for the future we examine the OF provided resources
+-	 *   to see if we have DMA resources provided already. In this case
+-	 *   there is no need to update the resources for the device, we use the
+-	 *   OF provided ones.
+-	 *
+-	 * TODO: Once DMA resource is available from OF layer, we should
+-	 *   kill filling any resources from hwmod.
+-	 */
+-	if (!pdev->num_resources) {
+-		/* Count all resources for the device */
+-		res_count = omap_device_count_resources(od, IORESOURCE_IRQ |
+-							    IORESOURCE_DMA |
+-							    IORESOURCE_MEM);
+-	} else {
+-		/* Take a look if we already have DMA resource via DT */
+-		for (i = 0; i < pdev->num_resources; i++) {
+-			struct resource *r = &pdev->resource[i];
+-
+-			/* We have it, no need to touch the resources */
+-			if (r->flags == IORESOURCE_DMA)
+-				goto have_everything;
+-		}
+-		/* Count only DMA resources for the device */
+-		res_count = omap_device_count_resources(od, IORESOURCE_DMA);
+-		/* The device has no DMA resource, no need for update */
+-		if (!res_count)
+-			goto have_everything;
+-
+-		res_count += pdev->num_resources;
+-	}
+-
+-	/* Allocate resources memory to account for new resources */
+-	res = kzalloc(sizeof(struct resource) * res_count, GFP_KERNEL);
+-	if (!res)
+-		goto oda_exit3;
+-
+-	if (!pdev->num_resources) {
+-		dev_dbg(&pdev->dev, "%s: using %d resources from hwmod\n",
+-			__func__, res_count);
+-		omap_device_fill_resources(od, res);
+-	} else {
+-		dev_dbg(&pdev->dev,
+-			"%s: appending %d DMA resources from hwmod\n",
+-			__func__, res_count - pdev->num_resources);
+-		memcpy(res, pdev->resource,
+-		       sizeof(struct resource) * pdev->num_resources);
+-		_od_fill_dma_resources(od, &res[pdev->num_resources]);
+-	}
+-
+-	ret = platform_device_add_resources(pdev, res, res_count);
+-	kfree(res);
+-
+-	if (ret)
++	ret = omap_device_fixup_resources(od);
++	if (ret != 0)
+ 		goto oda_exit3;
+ 
+-have_everything:
+ 	if (!pm_lats) {
+ 		pm_lats = omap_default_latency;
+ 		pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
+-- 
+1.7.12
