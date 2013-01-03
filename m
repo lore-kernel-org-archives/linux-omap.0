@@ -1,190 +1,58 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 3/3] ARM: OMAP: zoom: Use pwm stack for lcd and keyboard backlight
-Date: Thu, 3 Jan 2013 12:49:28 +0100
-Message-ID: <1357213768-21266-4-git-send-email-peter.ujfalusi@ti.com>
-References: <1357213768-21266-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 0/3] ARM: OMAP3/4: Correct support for PWM LEDs/backlight
+Date: Thu, 3 Jan 2013 12:49:25 +0100
+Message-ID: <1357213768-21266-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50396 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50002 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753131Ab3ACLti (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Jan 2013 06:49:38 -0500
-In-Reply-To: <1357213768-21266-1-git-send-email-peter.ujfalusi@ti.com>
+	id S1753024Ab3ACLte (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jan 2013 06:49:34 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use pwm_leds driver for the keyboard light and pwm-backlight for the lcd
-backlight control (instead of implementing the PWM driver part in the board
-file).
+Hi,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+The pwm-leds driver update is going for 3.9:
+https://lkml.org/lkml/2012/12/21/99
+
+This series will make sure that in 3.9 we are going to have working LEDs and
+backlight on these boards.
+
+As a note: 4430SDP never had working backlight and the charger led did not
+worked for couple of releases already due to wrong pwm_id.
+
+On BeagleBoard we will be able to adjust the brighness of pmu_stat LED instead
+of full on/off.
+
+Zoom2 will have working keypad light and the backlight will be moved to be
+handled by the generic pwm-backlight driver.
+
+This series will also fix a compile error in board-zoom-display.c caused by the
+changes in twl-core - which I missed :(
+
+The DT support for these are going to be sent later.
+
+Tony: can you apply this - if it looks OK - so it will hit linux-next before the
+second batch of twl-core update?
+
+Regards,
+Peter
 ---
+Peter Ujfalusi (3):
+  ARM: OMAP: board-4430sdp: Proper support for TWL6030 PWM LED/Backlight
+  ARM: OMAP: omap3beagle: Use the pwm_leds driver to control the PMU_STAT led
+  ARM: OMAP: zoom: Use pwm stack for lcd and keyboard backlight
+
+ arch/arm/mach-omap2/board-4430sdp.c          | 31 ++++++++++++++-
+ arch/arm/mach-omap2/board-omap3beagle.c      | 39 +++++++++++++++----
  arch/arm/mach-omap2/board-zoom-display.c     | 56 ----------------------------
  arch/arm/mach-omap2/board-zoom-peripherals.c | 53 +++++++++++++++++++++++++-
- 2 files changed, 52 insertions(+), 57 deletions(-)
+ 4 files changed, 113 insertions(+), 66 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-zoom-display.c b/arch/arm/mach-omap2/board-zoom-display.c
-index 1c7c834..9a7174f 100644
---- a/arch/arm/mach-omap2/board-zoom-display.c
-+++ b/arch/arm/mach-omap2/board-zoom-display.c
-@@ -12,7 +12,6 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
--#include <linux/i2c/twl.h>
- #include <linux/spi/spi.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
- #include <video/omapdss.h>
-@@ -49,59 +48,6 @@ static void zoom_panel_disable_lcd(struct omap_dss_device *dssdev)
- {
- }
- 
--/*
-- * PWMA/B register offsets (TWL4030_MODULE_PWMA)
-- */
--#define TWL_INTBR_PMBR1	0xD
--#define TWL_INTBR_GPBR1	0xC
--#define TWL_LED_PWMON	0x0
--#define TWL_LED_PWMOFF	0x1
--
--static int zoom_set_bl_intensity(struct omap_dss_device *dssdev, int level)
--{
--#ifdef CONFIG_TWL4030_CORE
--	unsigned char c;
--	u8 mux_pwm, enb_pwm;
--
--	if (level > 100)
--		return -1;
--
--	twl_i2c_read_u8(TWL4030_MODULE_INTBR, &mux_pwm, TWL_INTBR_PMBR1);
--	twl_i2c_read_u8(TWL4030_MODULE_INTBR, &enb_pwm, TWL_INTBR_GPBR1);
--
--	if (level == 0) {
--		/* disable pwm1 output and clock */
--		enb_pwm = enb_pwm & 0xF5;
--		/* change pwm1 pin to gpio pin */
--		mux_pwm = mux_pwm & 0xCF;
--		twl_i2c_write_u8(TWL4030_MODULE_INTBR,
--					enb_pwm, TWL_INTBR_GPBR1);
--		twl_i2c_write_u8(TWL4030_MODULE_INTBR,
--					mux_pwm, TWL_INTBR_PMBR1);
--		return 0;
--	}
--
--	if (!((enb_pwm & 0xA) && (mux_pwm & 0x30))) {
--		/* change gpio pin to pwm1 pin */
--		mux_pwm = mux_pwm | 0x30;
--		/* enable pwm1 output and clock*/
--		enb_pwm = enb_pwm | 0x0A;
--		twl_i2c_write_u8(TWL4030_MODULE_INTBR,
--					mux_pwm, TWL_INTBR_PMBR1);
--		twl_i2c_write_u8(TWL4030_MODULE_INTBR,
--					enb_pwm, TWL_INTBR_GPBR1);
--	}
--
--	c = ((50 * (100 - level)) / 100) + 1;
--	twl_i2c_write_u8(TWL4030_MODULE_PWM1, 0x7F, TWL_LED_PWMOFF);
--	twl_i2c_write_u8(TWL4030_MODULE_PWM1, c, TWL_LED_PWMON);
--#else
--	pr_warn("Backlight not enabled\n");
--#endif
--
--	return 0;
--}
--
- static struct omap_dss_device zoom_lcd_device = {
- 	.name			= "lcd",
- 	.driver_name		= "NEC_8048_panel",
-@@ -109,8 +55,6 @@ static struct omap_dss_device zoom_lcd_device = {
- 	.phy.dpi.data_lines	= 24,
- 	.platform_enable	= zoom_panel_enable_lcd,
- 	.platform_disable	= zoom_panel_disable_lcd,
--	.max_backlight_level	= 100,
--	.set_backlight		= zoom_set_bl_intensity,
- };
- 
- static struct omap_dss_device *zoom_dss_devices[] = {
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 7349bbf..a59c2fc 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -21,6 +21,9 @@
- #include <linux/mmc/host.h>
- #include <linux/platform_data/gpio-omap.h>
- #include <linux/platform_data/omap-twl4030.h>
-+#include <linux/pwm.h>
-+#include <linux/leds_pwm.h>
-+#include <linux/pwm_backlight.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -194,6 +197,53 @@ static struct platform_device omap_vwlan_device = {
- 	},
- };
- 
-+static struct pwm_lookup zoom_pwm_lookup[] = {
-+	PWM_LOOKUP("twl-pwm", 0, "leds_pwm", "zoom::keypad"),
-+	PWM_LOOKUP("twl-pwm", 1, "pwm-backlight", "backlight"),
-+};
-+
-+static struct led_pwm zoom_pwm_leds[] = {
-+	{
-+		.name		= "zoom::keypad",
-+		.max_brightness	= 127,
-+		.pwm_period_ns	= 7812500,
-+	},
-+};
-+
-+static struct led_pwm_platform_data zoom_pwm_data = {
-+	.num_leds	= ARRAY_SIZE(zoom_pwm_leds),
-+	.leds		= zoom_pwm_leds,
-+};
-+
-+static struct platform_device zoom_leds_pwm = {
-+	.name	= "leds_pwm",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data = &zoom_pwm_data,
-+	},
-+};
-+
-+static struct platform_pwm_backlight_data zoom_backlight_data = {
-+	.pwm_id = 1,
-+	.max_brightness = 127,
-+	.dft_brightness = 127,
-+	.pwm_period_ns = 7812500,
-+};
-+
-+static struct platform_device zoom_backlight_pwm = {
-+	.name   = "pwm-backlight",
-+	.id     = -1,
-+	.dev    = {
-+		.platform_data = &zoom_backlight_data,
-+	},
-+};
-+
-+static struct platform_device *zoom_devices[] __initdata = {
-+	&omap_vwlan_device,
-+	&zoom_leds_pwm,
-+	&zoom_backlight_pwm,
-+};
-+
- static struct wl12xx_platform_data omap_zoom_wlan_data __initdata = {
- 	.board_ref_clock = WL12XX_REFCLOCK_26, /* 26 MHz */
- };
-@@ -311,7 +361,8 @@ void __init zoom_peripherals_init(void)
- 
- 	omap_hsmmc_init(mmc);
- 	omap_i2c_init();
--	platform_device_register(&omap_vwlan_device);
-+	pwm_add_table(zoom_pwm_lookup, ARRAY_SIZE(zoom_pwm_lookup));
-+	platform_add_devices(zoom_devices, ARRAY_SIZE(zoom_devices));
- 	usb_musb_init(NULL);
- 	enable_board_wakeup_source();
- 	omap_serial_init();
 -- 
 1.8.0.2
 
