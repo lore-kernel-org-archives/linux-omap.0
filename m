@@ -1,56 +1,48 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 1/2] ARM: OMAP4: clock data: ABE DPLL need to be locked on all revisions
-Date: Thu, 3 Jan 2013 14:46:50 +0100
-Message-ID: <1357220811-29904-2-git-send-email-peter.ujfalusi@ti.com>
-References: <1357220811-29904-1-git-send-email-peter.ujfalusi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/3] mtd nand : onfi need to be probed in 8 bits mode
+Date: Thu, 3 Jan 2013 17:10:17 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301031704460.8721@utopia.booyaka.com>
+References: <1352199105-30215-1-git-send-email-matthieu.castet@parrot.com> <1354530053.30168.183.camel@sauron.fi.intel.com> <alpine.DEB.2.00.1212240023100.17282@utopia.booyaka.com> <50E40336.2080008@parrot.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39587 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753573Ab3ACNq6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jan 2013 08:46:58 -0500
-In-Reply-To: <1357220811-29904-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:43722 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753430Ab3ACRKS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jan 2013 12:10:18 -0500
+In-Reply-To: <50E40336.2080008@parrot.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Jon Hunter <jon-hunter@ti.com>
+To: Matthieu CASTET <matthieu.castet@parrot.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-We need to lock ABE DPPL on al OMAP4 revisions, not only for OMAP446x
+Hi
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/mach-omap2/cclock44xx_data.c | 14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+On Wed, 2 Jan 2013, Matthieu CASTET wrote:
 
-diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-index 5789a5e..79c32ce 100644
---- a/arch/arm/mach-omap2/cclock44xx_data.c
-+++ b/arch/arm/mach-omap2/cclock44xx_data.c
-@@ -2023,17 +2023,15 @@ int __init omap4xxx_clk_init(void)
- 				     ARRAY_SIZE(enable_init_clks));
- 
- 	/*
--	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
-+	 * On OMAP4 the ABE DPLL fails to turn on if in idle low-power
- 	 * state when turning the ABE clock domain. Workaround this by
- 	 * locking the ABE DPLL on boot.
- 	 */
--	if (cpu_is_omap446x()) {
--		rc = clk_set_parent(&abe_dpll_refclk_mux_ck, &sys_32k_ck);
--		if (!rc)
--			rc = clk_set_rate(&dpll_abe_ck, OMAP4_DPLL_ABE_DEFFREQ);
--		if (rc)
--			pr_err("%s: failed to configure ABE DPLL!\n", __func__);
--	}
-+	rc = clk_set_parent(&abe_dpll_refclk_mux_ck, &sys_32k_ck);
-+	if (!rc)
-+		rc = clk_set_rate(&dpll_abe_ck, OMAP4_DPLL_ABE_DEFFREQ);
-+	if (rc)
-+		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
- 
- 	return 0;
- }
--- 
-1.8.0.2
+> I put a warning in order we fix drivers instead of a silent failure.
+> 
+> The omap driver was fixed in the same series with
+> http://article.gmane.org/gmane.linux.ports.arm.omap/88551 and
 
+... which got merged by Artem.
+
+> http://article.gmane.org/gmane.linux.ports.arm.omap/88549
+
+... which did not get merged because Tony requested that it should be 
+based on top of his cleanup work (which takes priority over adding new 
+features):
+
+http://thread.gmane.org/gmane.linux.ports.arm.omap/88550/focus=88549
+
+Could you please update this "omap3 nand : use NAND_BUSWIDTH_AUTO" patch 
+on v3.8-rc2 and repost?
+
+> For drivers that can't support ONFI, I don't know what to do.
+> May we should be replace the WARN_ON by a printk and early return.
+
+That sounds like a good idea to me.  The traceback seems excessive, since 
+the NAND was usable before this series.
+
+
+- Paul
