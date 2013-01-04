@@ -1,44 +1,42 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP4: clock data: ABE DPLL need to be locked
- on all revisions
-Date: Fri, 4 Jan 2013 10:59:46 +0100
-Message-ID: <50E6A812.40903@ti.com>
-References: <1357220811-29904-1-git-send-email-peter.ujfalusi@ti.com> <1357220811-29904-2-git-send-email-peter.ujfalusi@ti.com> <50E5D4EA.5030001@ti.com> <alpine.DEB.2.00.1301032325530.24404@utopia.booyaka.com>
+Subject: [PATCH v2 0/2] ARM: OMAP4: Audio regression fix for 3.8 kernel
+Date: Fri, 4 Jan 2013 11:09:21 +0100
+Message-ID: <1357294163-4317-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47661 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:57264 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752817Ab3ADJ7v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jan 2013 04:59:51 -0500
-In-Reply-To: <alpine.DEB.2.00.1301032325530.24404@utopia.booyaka.com>
+	id S1752346Ab3ADKJ2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Jan 2013 05:09:28 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Jon Hunter <jon-hunter@ti.com>
 
-On 01/04/2013 12:26 AM, Paul Walmsley wrote:
-> On Thu, 3 Jan 2013, Jon Hunter wrote:
->=20
->> I am not sure that this change to the comment is completely accurate=
-=2E On
->> OMAP4430 I did not see any issues with the DPLL failing to turn on i=
-f
->> the DPLL was not locked. I only saw this particular problem on the 4=
-460.
->> Therefore, it may be better to leave the comment as-is and add an
->> additional sentence to state that the DPLL should be locked for all
->> OMAP4 devices for audio to work correctly.
->=20
-> Makes sense to me; what do you think, P=E9ter?
+Hello,
 
-OK, I'll resend the series with the proposed comment.
+Changes since v1:
+- Update the comment in cclock44xx_data.c as suggested by Jon Hunter
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I have noticed that in 3.8-rc2 kernel OMAP4 audio is not working correctly. The
+audio playback is in 'slow motion' mode.
+The following two patch fixes this regression.
+
+We need to lock the ABE DPLL for all OMAP4 revisions not only for 446x and McPDM
+need to be configured to no IDLE mode during activity.
+
+Regards,
+Peter
+---
+Peter Ujfalusi (2):
+  ARM: OMAP4: clock data: Lock ABE DPLL on all revisions
+  ARM: OMAP4: hwmod_data: Correct IDLEMODE for McPDM
+
+ arch/arm/mach-omap2/cclock44xx_data.c      | 13 ++++++-------
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  2 +-
+ 2 files changed, 7 insertions(+), 8 deletions(-)
+
+-- 
+1.8.0.2
+
