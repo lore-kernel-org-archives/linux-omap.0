@@ -1,117 +1,139 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 00/12] ARM: OMAP2+: powerdomain/PM: convert to
- functional power states
-Date: Fri, 4 Jan 2013 16:12:12 +0200
-Message-ID: <1357308732.2221.108.camel@sokoban>
-References: <20121209174545.6933.59371.stgit@dusk.lan>
-Reply-To: <t-kristo@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v5 00/22] OMAP USB Host cleanup
+Date: Fri, 4 Jan 2013 16:17:02 +0200
+Message-ID: <50E6E45E.6010004@ti.com>
+References: <1357138842-28964-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56129 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754738Ab3ADOM1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jan 2013 09:12:27 -0500
-In-Reply-To: <20121209174545.6933.59371.stgit@dusk.lan>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1357138842-28964-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: sameo@linux.intel.com
+Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, tony@atomide.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+Hi Samuel,
 
-As mentioned with the previous set, I have tested this one also on
-omap3beagle + omap4panda boards. omap4 has one regression caused by this
-set, as commented on the patch itself. Also posted a couple of other
-minor comments. Other than that, you can consider this set as acked by
-me.
+Below is the pull request for this series. I've addressed the recent
+indentation issue pointed out by Sergei.
 
--Tero
+The following changes since commit cfa7abd7a92396923889fc870090b5d748c603ab:
 
-On Sun, 2012-12-09 at 10:52 -0700, Paul Walmsley wrote:
-> Hi
+  Merge branch 'heads/fixes' into for-next (2013-01-02 12:40:04 -0800)
+
+are available in the git repository at:
+
+  git://github.com/rogerq/linux.git arm-for-next-usbhost9-part
+
+Roger Quadros (22):
+      mfd: omap-usb-tll: Avoid creating copy of platform data
+      mfd: omap-usb-tll: Fix channel count detection
+      mfd: omap-usb-tll: Use devm_kzalloc/ioremap and clean up error path
+      mfd: omap-usb-tll: Clean up clock handling
+      mfd: omap-usb-tll: introduce and use mode_needs_tll()
+      mfd: omap-usb-tll: Check for missing platform data in probe
+      mfd: omap-usb-tll: Fix error message
+      mfd: omap-usb-tll: serialize access to TLL device
+      mfd: omap-usb-tll: Add OMAP5 revision and HSIC support
+      mfd: omap_usb_host: Avoid creating copy of platform_data
+      mfd: omap-usb-host: Use devm_kzalloc() and devm_request_and_ioremap()
+      mfd: omap-usb-host: know about number of ports from revision register
+      mfd: omap-usb-host: override number of ports from platform data
+      mfd: omap-usb-host: cleanup clock management code
+      mfd: omap-usb-host: Manage HSIC clocks for HSIC mode
+      mfd: omap-usb-host: Get rid of unnecessary spinlock
+      mfd: omap-usb-host: clean up omap_usbhs_init()
+      USB: ehci-omap: Don't free gpios that we didn't request
+      ARM: OMAP3: clock data: get rid of unused USB host clock aliases
+and dummies
+      ARM: OMAP4: clock data: get rid of unused USB host clock aliases
+      mfd: omap-usb-host: Don't spam console on clk_set_parent failure
+      mdf: omap-usb-host: get rid of build warning
+
+ arch/arm/mach-omap2/cclock3xxx_data.c  |   11 -
+ arch/arm/mach-omap2/cclock44xx_data.c  |    7 -
+ arch/arm/mach-omap2/usb-host.c         |    1 +
+ arch/arm/mach-omap2/usb.h              |    1 +
+ drivers/mfd/omap-usb-host.c            |  499
++++++++++++++++++++-------------
+ drivers/mfd/omap-usb-tll.c             |  244 +++++++++-------
+ drivers/usb/host/ehci-omap.c           |    8 -
+ include/linux/platform_data/usb-omap.h |    1 +
+ 8 files changed, 435 insertions(+), 337 deletions(-)
+
+--
+cheers,
+-roger
+
+On 01/02/2013 05:00 PM, Roger Quadros wrote:
+> Hi,
 > 
-> This series converts the OMAP2+ powerdomain and PM code to use
-> "functional power states" - high-level power states such as "OSWR",
-> which reflect changes in multiple underlying registers, rather than
-> expecting high-level PM code to program the registers directly.  This
-> is intended to reduce the complexity of the high-level PM code and to
-> make it easier to implement register caching of the various
-> powerdomain registers, some of which are quite slow to access.
+> This patchset addresses the following
 > 
+> - Avoid addressing clocks one by one by name and use a for loop + bunch
+>   of cleanups.
+> - Get number of channels/ports dynamically either from revision register
+>   or from platform data. Avoids getting clocks that are not present.
+> - Add OMAP5 and HSIC mode (Not tested)
 > 
-> - Paul
+> v5:
+> - Rebased on top of todays arm-soc/for-next
+> - Removed the clock merging patch from the list.
+> - Updated patches 14, 19 and 20 to accomodate the above change.
+> - Added patch 22 to fix a build warning.
+> 
+> v4:
+> - Added appropriate maintainers in to/cc
+> - minor print message fix in patch 23 to maintain consistency
+> 
+> v3:
+> - Rebased on arm-soc/for-next commit f979306c4d38d213c6977aaf3b1115e8ded71e3a
+> - Rearranged patch that get rids of cpu_is_omap..() macros
+> - Coding style fixes
+> 
+> v2:
+> - Clocks are allocated dynamically based on number of ports available
+> on the platform
+> - Reduced console spam if non critical clocks are not found on the platform.
+> - Get rid of cpu_is_.. macros from USB host driver.
+> 
+> cheers,
+> -roger
 > 
 > ---
+> Roger Quadros (22):
+>   mfd: omap-usb-tll: Avoid creating copy of platform data
+>   mfd: omap-usb-tll: Fix channel count detection
+>   mfd: omap-usb-tll: Use devm_kzalloc/ioremap and clean up error path
+>   mfd: omap-usb-tll: Clean up clock handling
+>   mfd: omap-usb-tll: introduce and use mode_needs_tll()
+>   mfd: omap-usb-tll: Check for missing platform data in probe
+>   mfd: omap-usb-tll: Fix error message
+>   mfd: omap-usb-tll: serialize access to TLL device
+>   mfd: omap-usb-tll: Add OMAP5 revision and HSIC support
+>   mfd: omap_usb_host: Avoid creating copy of platform_data
+>   mfd: omap-usb-host: Use devm_kzalloc() and devm_request_and_ioremap()
+>   mfd: omap-usb-host: know about number of ports from revision register
+>   mfd: omap-usb-host: override number of ports from platform data
+>   mfd: omap-usb-host: cleanup clock management code
+>   mfd: omap-usb-host: Manage HSIC clocks for HSIC mode
+>   mfd: omap-usb-host: Get rid of unnecessary spinlock
+>   mfd: omap-usb-host: clean up omap_usbhs_init()
+>   USB: ehci-omap: Don't free gpios that we didn't request
+>   ARM: OMAP3: clock data: get rid of unused USB host clock aliases and
+>     dummies
+>   ARM: OMAP4: clock data: get rid of unused USB host clock aliases
+>   mfd: omap-usb-host: Don't spam console on clk_set_parent failure
+>   mdf: omap-usb-host: get rid of build warning
 > 
-> vmlinux object size
-> (delta in bytes from TEST_pm_cleanup_fixes_b_3.9 (2f8d7b1f0048df431ca226d81c5c27c4dd21953b)):
->    text     data      bss    total  kernel
->    +456      -56        0     +400  am33xx_only
->    +448      -96        0     +352  n800_multi_omap2xxx
->    +448      -96        0     +352  n800_only_a
->       0        0        0        0  omap1_defconfig
->       0        0        0        0  omap1_defconfig_1510innovator_only
->       0        0        0        0  omap1_defconfig_5912osk_only
->   +1180     -744        0     +436  omap2plus_defconfig
->    +584      -72        0     +512  omap2plus_defconfig_2430sdp_only
->   +1244     -808        0     +436  omap2plus_defconfig_cpupm
->    +976    -1224        0     -248  omap2plus_defconfig_no_pm
->    +844     -408        0     +436  omap2plus_defconfig_omap2_4_only
->   +1088     -624        0     +464  omap2plus_defconfig_omap3_4_only
->   +1292    -1232     -352     -292  rmk_omap3430_ldp_allnoconfig
->    +916     -720        0     +196  rmk_omap3430_ldp_oldconfig
->   +1292    -1232     -352     -292  rmk_omap4430_sdp_allnoconfig
->    +840     -392        0     +448  rmk_omap4430_sdp_oldconfig
+>  arch/arm/mach-omap2/cclock3xxx_data.c  |   11 -
+>  arch/arm/mach-omap2/cclock44xx_data.c  |    7 -
+>  arch/arm/mach-omap2/usb-host.c         |    1 +
+>  arch/arm/mach-omap2/usb.h              |    1 +
+>  drivers/mfd/omap-usb-host.c            |  499 +++++++++++++++++++-------------
+>  drivers/mfd/omap-usb-tll.c             |  244 +++++++++-------
+>  drivers/usb/host/ehci-omap.c           |    8 -
+>  include/linux/platform_data/usb-omap.h |    1 +
+>  8 files changed, 435 insertions(+), 337 deletions(-)
 > 
-> Boot-time memory difference
-> (delta in bytes from TEST_pm_cleanup_fixes_b_3.9 (2f8d7b1f0048df431ca226d81c5c27c4dd21953b))
->   avail  rsrvd   high  freed  board          kconfig
->     -8k     8k      .      .  2430sdp        omap2plus_defconfig
->     -8k     8k      .      .  3517evm        omap2plus_defconfig
->     -8k     8k      .      .  3530es3beagle  omap2plus_defconfig
->     -8k     8k      .      .  3730beaglexm   omap2plus_defconfig
->     -8k     8k      .      .  37xxevm        omap2plus_defconfig
->     -8k     8k      .      .  4430es2panda   omap2plus_defconfig
->     -8k     8k      .      .  4460pandaes    omap2plus_defconfig
->     -8k     8k      .      .  cmt3517        omap2plus_defconfig
-> 
-> Jean Pihet (6):
->       ARM: OMAP2+: PM: introduce power domains functional states
->       ARM: OMAP2+: PM debug: trace the functional power domains states
->       ARM: OMAP2xxx: PM: convert to use the functional power states API
->       ARM: OMAP3xxx: PM: convert to use the functional power states API
->       ARM: OMAP44xx: PM: convert to use the functional power states API
->       ARM: OMAP2+: PM: use power domain functional state in stats counters
-> 
-> Paul Walmsley (6):
->       ARM: OMAP2+: powerdomain: add functions that report on powerdomain capabilities
->       ARM: OMAP2+: powerdomain: drop many low-level powerdomain funcs
->       ARM: OMAP2+: powerdomain: add ability to test for supported power states
->       ARM: OMAP2+: powerdomain/PM: only program supported power states
->       ARM: OMAP2+: powerdomain: program memory bank next-power-state upon init
->       ARM: OMAP2+: powerdomain: assume memory bank power states follow powerdomain
-> 
-> 
->  arch/arm/mach-omap2/common.h              |    7 
->  arch/arm/mach-omap2/cpuidle34xx.c         |   95 +-
->  arch/arm/mach-omap2/cpuidle44xx.c         |   32 -
->  arch/arm/mach-omap2/omap-hotplug.c        |    2 
->  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   69 +-
->  arch/arm/mach-omap2/pm-debug.c            |   46 -
->  arch/arm/mach-omap2/pm.h                  |    2 
->  arch/arm/mach-omap2/pm24xx.c              |   33 -
->  arch/arm/mach-omap2/pm34xx.c              |  188 +++-
->  arch/arm/mach-omap2/pm44xx.c              |   47 +
->  arch/arm/mach-omap2/powerdomain.c         | 1235 +++++++++++++++++------------
->  arch/arm/mach-omap2/powerdomain.h         |   69 +-
->  12 files changed, 1040 insertions(+), 785 deletions(-)
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
-
