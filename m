@@ -1,116 +1,58 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 00/10] ARM: OMAP2+: second set of PM fixes and cleanup
- for 3.9
-Date: Fri, 4 Jan 2013 15:07:40 +0200
-Message-ID: <1357304860.2221.78.camel@sokoban>
-References: <20121209011755.19716.25244.stgit@dusk.lan>
-Reply-To: <t-kristo@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: Does USB isochronous mode work on EHCI port?
+Date: Fri, 4 Jan 2013 15:20:16 +0200
+Message-ID: <50E6D710.4060409@ti.com>
+References: <32bbff70-2fcd-4993-92ea-385ab02f735a@googlegroups.com> <eb7a9da0-7556-4d8f-b7b4-bf29768082df@googlegroups.com> <6ffddeae-3f7b-4972-a485-c62ecc7e2cdb@googlegroups.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40979 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754672Ab3ADNHp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 08:07:45 -0500
-In-Reply-To: <20121209011755.19716.25244.stgit@dusk.lan>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54169 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754734Ab3ADNUU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Jan 2013 08:20:20 -0500
+In-Reply-To: <6ffddeae-3f7b-4972-a485-c62ecc7e2cdb@googlegroups.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Gary Thomas <samoht.yrag@gmail.com>
+Cc: pandaboard@googlegroups.com, balbi@ti.com, balbif@gmail.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Paul,
+Hi Gary,
 
-I just tested this + next two powerdomain series from you on omap3beagle
-+ omap4panda boards. This set seems fine, for the code I don't have any
-major complaints either, thus you can add my ack if you like. I'll send
-comments for the next two sets soon also.
+On 01/04/2013 02:20 PM, Gary Thomas wrote:
+> 
+> 
+> On Thursday, January 3, 2013 9:21:19 AM UTC-7, Felipe Balbi wrote:
+> 
+>     Hi,
+> 
+>     On Wednesday, January 2, 2013 10:44:50 PM UTC+2, Gary Thomas wrote:
+> 
+>         I have a video adapter attached to my EHCI port which runs full
+>         speed (480Mb/s) isochronous mode.  Sadly, I never get any data
+>         from the device (it uses the EM28xx driver).
+>         This same device + driver works fine on my laptop and from what
+>         I can tell looking at the module debug, it's failing when
+>         waiting for the ISOC frame data to arrive.
+> 
+>         Should this work?  I recall lots of discussion in the past about
+>         ISOC transfers not working on certain OMAP devices...
+> 
+> 
+>     which kernel are you using ? Have you tested mainline kernel ?
+> 
+> 
+> I'm using the TI/Ubuntu kernel ( ti-ubuntu-3.4.0-1489.17)
+> 
+> Using the mainline would be hard as there is a lot in this kernel that
+> isn't in the mainline.
 
--Tero
+I don't have an ISO device with me at the moment. I can only test this
+next week.
 
-On Sat, 2012-12-08 at 18:23 -0700, Paul Walmsley wrote:
-> Several more OMAP2+ power management fixes, optimizations, and
-> cleanup, intended for 3.9.  This series is also a prerequisite for the
-> functional powerdomain conversion series.
-> 
-> I'll plan to bundle these patches together into a pull request with the first
-> set of 3.9 PM patches, sent earlier.
-> 
-> - Paul
-> 
-> ---
-> 
-> vmlinux object size
-> (delta in bytes from TEST_pm_cleanup_fixes_a_3.9 (8f5e20850396fc60fd4ee01f586705033902bb53)):
->    text     data      bss    total  kernel
->    +460     -368        0      +92  am33xx_only
->    +200     -464        0     -264  n800_multi_omap2xxx
->    +192     -144        0      +48  n800_only_a
->       0        0        0        0  omap1_defconfig
->       0        0        0        0  omap1_defconfig_1510innovator_only
->       0        0        0        0  omap1_defconfig_5912osk_only
->    +296    -1816        0    -1520  omap2plus_defconfig
->    +272     -176        0      +96  omap2plus_defconfig_2430sdp_only
->    +232    -1816        0    -1584  omap2plus_defconfig_cpupm
->    +280    -1520        0    -1240  omap2plus_defconfig_no_pm
->   +4388    -1016        0    +3372  omap2plus_defconfig_omap2_4_only
->    +468     -952        0     -484  omap2plus_defconfig_omap3_4_only
->    +700     -584     -144      -28  rmk_omap3430_ldp_allnoconfig
->    +452     -648        0     -196  rmk_omap3430_ldp_oldconfig
->    +700     -584     -144      -28  rmk_omap4430_sdp_allnoconfig
->    +424     -328        0      +96  rmk_omap4430_sdp_oldconfig
-> 
-> Boot-time memory difference
-> (delta in bytes from TEST_pm_cleanup_fixes_a_3.9 (8f5e20850396fc60fd4ee01f586705033902bb53))
->   avail  rsrvd   high  freed  board          kconfig
->      4k    -4k      .      .  2430sdp        omap2plus_defconfig
->      4k    -4k      .      .  3517evm        omap2plus_defconfig
->      4k    -4k      .      .  3530es3beagle  omap2plus_defconfig
->      4k    -4k      .      .  3730beaglexm   omap2plus_defconfig
->      4k    -4k      .      .  37xxevm        omap2plus_defconfig
->      4k    -4k      .      .  4430es2panda   omap2plus_defconfig
->      4k    -4k      .      .  cmt3517        omap2plus_defconfig
-> 
-> Paul Walmsley (10):
->       ARM: OMAP3/4: cpuidle: fix sparse and checkpatch warnings
->       ARM: OMAP2+: clockdomain: add pwrdm_state_switch() call to clkdm_sleep()
->       ARM: OMAP2xxx: PM: clean up some crufty powerstate programming code
->       ARM: OMAP2: PM/powerdomain: drop unnecessary pwrdm_wait_transition()
->       ARM: OMAP2+: PM/powerdomain: move omap_set_pwrdm_state() to powerdomain code
->       ARM: OMAP2+: powerdomain/clockdomain: add a per-powerdomain spinlock
->       ARM: OMAP2xxx: CM: remove autodep handling
->       ARM: OMAP2+: clockdomain: work on wkdep/sleepdep functions
->       ARM: OMAP2+: clockdomain: convert existing atomic usecounts into spinlock-protected shorts/ints
->       ARM: OMAP2+: powerdomain: fix whitespace, improve flag comments
-> 
-> 
->  arch/arm/mach-omap2/clockdomain-powerdomain.h    |   22 +
->  arch/arm/mach-omap2/clockdomain.c                |  550 +++++++++++++++-------
->  arch/arm/mach-omap2/clockdomain.h                |   17 -
->  arch/arm/mach-omap2/cm2xxx.c                     |   33 -
->  arch/arm/mach-omap2/cm3xxx.c                     |   14 -
->  arch/arm/mach-omap2/cminst44xx.c                 |    2 
->  arch/arm/mach-omap2/cpuidle34xx.c                |   14 -
->  arch/arm/mach-omap2/cpuidle44xx.c                |   28 +
->  arch/arm/mach-omap2/pm-debug.c                   |    6 
->  arch/arm/mach-omap2/pm.c                         |   65 ---
->  arch/arm/mach-omap2/pm.h                         |    1 
->  arch/arm/mach-omap2/pm24xx.c                     |   30 -
->  arch/arm/mach-omap2/powerdomain-clockdomain.h    |   27 +
->  arch/arm/mach-omap2/powerdomain.c                |  176 +++++--
->  arch/arm/mach-omap2/powerdomain.h                |   42 +-
->  arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c |    4 
->  arch/arm/mach-omap2/powerdomains2xxx_data.c      |    8 
->  arch/arm/mach-omap2/powerdomains3xxx_data.c      |   44 +-
->  arch/arm/mach-omap2/prm2xxx_3xxx.c               |    3 
->  19 files changed, 661 insertions(+), 425 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/clockdomain-powerdomain.h
->  create mode 100644 arch/arm/mach-omap2/powerdomain-clockdomain.h
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Could you please post the output of dmesg once you plug in the USB
+device and start using it? Also the output of usbmon would be great.
 
-
+--
+cheers,
+-roger
