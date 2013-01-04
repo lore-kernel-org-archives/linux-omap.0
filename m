@@ -1,44 +1,57 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP4: hwmod data: do not enable or reset the
- AESS during kernel init
-Date: Fri, 4 Jan 2013 18:35:46 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301041833510.25868@utopia.booyaka.com>
-References: <1357304526-21557-1-git-send-email-s-guiriec@ti.com> <1357304526-21557-3-git-send-email-s-guiriec@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: [PATCH 0/6] Introducing Device Tree Overlays
+Date: Fri,  4 Jan 2013 21:31:04 +0200
+Message-ID: <1357327870-13615-1-git-send-email-panto@antoniou-consulting.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:46961 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753804Ab3ADSfr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 13:35:47 -0500
-In-Reply-To: <1357304526-21557-3-git-send-email-s-guiriec@ti.com>
+Received: from li42-95.members.linode.com ([209.123.162.95]:37542 "EHLO
+	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754060Ab3ADTbT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 14:31:19 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, Tero Kristo <t-kristo@ti.com>, Jon Hunter <jon-hunter@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, David Gibson <david@gibson.dropbear.id.au>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>, Pantelis Antoniou <panto@antoniou-consulting.com>
 
-Hi Sebastien
+The following patchset introduces Device Tree overlays, a method
+of dynamically altering the kernel's live Device Tree.
 
-On Fri, 4 Jan 2013, Sebastien Guiriec wrote:
+This patchset is against mainline as of Friday Jan 4 2013.
+(4956964 Merge tag 'driver-core-3.8-rc2' of \
+ 	git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core)
 
-> The AESS on OMAP4 has additional register on top of SYS_CONFIG for
-> auto gatting configuration. In order to avoid running clock after
-> boot up we should avoid to enable and reset the module during boot up.
-> 
-> Audio driver will be in charge of configuring the addition register.
-> 
-> At its core, this patch is a workaround for an OMAP hardware problem.
-> It should be possible to configure the OMAP with good default reset
-> configuration of AESS IP for auto gatting mode.
-> 
-> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
+Note that a separate patch for the DTC compiler has been posted and
+is required to compile the DTS files according to the documentation.
+The patch is "dtc: Dynamic symbols & fixup support"
 
-What do you think about a slightly modified and updated version of:
+An implementation patchset for a beaglebone cape loader will follow,
+but if you want to check out a working kernel for the beaglebone please
+pull from:
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69853.html
+git://github.com/pantoniou/linux-bbxm.git branch not-capebus-v8
 
-?  That way we can reset the IP block at startup, like most of our other 
-IP blocks, to avoid previous OS and bootloader dependencies.
+Pantelis Antoniou (6):
+  OF: Introduce device tree node flag helpers.
+  OF: export of_property_notify
+  OF: Export all DT proc update functions
+  OF: Introduce utility helper functions
+  OF: Introduce Device Tree resolve support.
+  OF: Introduce DT overlay support.
 
+ .../devicetree/dynamic-resolution-notes.txt        |  25 +
+ Documentation/devicetree/overlay-notes.txt         | 179 +++++
+ drivers/of/Kconfig                                 |  19 +
+ drivers/of/Makefile                                |   4 +-
+ drivers/of/base.c                                  | 114 +--
+ drivers/of/overlay.c                               | 831 +++++++++++++++++++++
+ drivers/of/resolver.c                              | 394 ++++++++++
+ drivers/of/util.c                                  | 253 +++++++
+ include/linux/of.h                                 | 243 ++++++
+ 9 files changed, 2005 insertions(+), 57 deletions(-)
+ create mode 100644 Documentation/devicetree/dynamic-resolution-notes.txt
+ create mode 100644 Documentation/devicetree/overlay-notes.txt
+ create mode 100644 drivers/of/overlay.c
+ create mode 100644 drivers/of/resolver.c
+ create mode 100644 drivers/of/util.c
 
-- Paul
+-- 
+1.7.12
+
