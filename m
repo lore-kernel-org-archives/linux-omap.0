@@ -1,76 +1,65 @@
-From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
-Subject: Re: AM335x BeagleBone SPI Issues
-Date: Fri, 04 Jan 2013 15:46:41 +0100
-Message-ID: <1357310801.23039.24.camel@coredoba.hi.pengutronix.de>
-References: <50C5E23D.5040605@communistcode.co.uk>
-	 <20121210135337.GA10219@arwen.pp.htv.fi>
-	 <50C5F6A8.5060701@communistcode.co.uk>
-	 <20121210145947.GK11038@arwen.pp.htv.fi>
-	 <50C5FD73.1000408@communistcode.co.uk>
-	 <20121210183500.GB14303@arwen.pp.htv.fi>
-	 <50C70846.7010207@communistcode.co.uk> <87y5h4r4ul.fsf@gmail.com>
-	 <50C75E54.2080805@communistcode.co.uk> <50C7671B.80504@communistcode.co.uk>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v2 1/2] ARM: OMAP4: clock data: Lock ABE DPLL on all revisions
+Date: Fri, 4 Jan 2013 09:10:02 -0600
+Message-ID: <50E6F0CA.60309@ti.com>
+References: <1357294163-4317-1-git-send-email-peter.ujfalusi@ti.com> <1357294163-4317-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43762 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754765Ab3ADOqq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 09:46:46 -0500
-In-Reply-To: <50C7671B.80504@communistcode.co.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:41961 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754889Ab3ADPKI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Jan 2013 10:10:08 -0500
+In-Reply-To: <1357294163-4317-2-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ml@communistcode.co.uk
-Cc: Ben Gamari <bgamari.foss@gmail.com>, balbi@ti.com, linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi,
 
-On Tue, 2012-12-11 at 17:02 +0000, Jack Mitchell wrote:
-> On 11/12/12 16:24, Jack Mitchell wrote:
-> > On 11/12/12 15:22, Ben Gamari wrote:
-> >> Jack Mitchell <ml@communistcode.co.uk> writes:
-> >>> Thank you, the reordering dma patch fixed the dma issue I was having!
-> >>> However, the bad news, I now get the same results for the dma and
-> >>> non-dma spidev test. While the scope shows the SPI clk and data is 
-> >>> fine,
-> >>> the reading from the program still shows 0x00 for all words.
-> >>>
-> >> Just to make sure this has been thought of: I've seen this sort of
-> >> behavior in the past when the CLK pin wasn't configured as an input.
-
-*snip*
-
-> My bad! The jumper bridge had come loose, it works now! Yippee!
+On 01/04/2013 04:09 AM, Peter Ujfalusi wrote:
+> To avoid issues with audio caused by non locked ABE DPLL we should
+> make sure it is locked in all OMAP4 revisions.
 > 
-> root@beaglebone:~# ./spidev -D /dev/spidev2.0
-> spi mode: 0
-> bits per word: 16
-> max speed: 24000000 Hz (24000 KHz)
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > 
-> FF FF FF FF FF FF
-> 40 00 00 00 00 95
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> DE AD BE EF BA AD
-> F0 0D
-> root@beaglebone:~#
-> 
-> Thanks everyone, and do I need to submit any patches to clear this all up?
-> 
-> Currently all I see is changing the clk pins from output to input (if 
-> this is a valid change?).
+> asda d
 
-I just stumbled over the same problem and have not seen any patch for
-this fix. Have I missed something or should I send a patch? Which would
-be the correct base for such a patch?
+Not sure what the above is ;-)
 
-Regards,
-Jan
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+> ---
+>  arch/arm/mach-omap2/cclock44xx_data.c | 13 ++++++-------
+>  1 file changed, 6 insertions(+), 7 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+> index 5789a5e..a2cc046 100644
+> --- a/arch/arm/mach-omap2/cclock44xx_data.c
+> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
+> @@ -2026,14 +2026,13 @@ int __init omap4xxx_clk_init(void)
+>  	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
+>  	 * state when turning the ABE clock domain. Workaround this by
+>  	 * locking the ABE DPLL on boot.
+> +	 * Lock the ABE DPLL in any case to avoid issues with audio.
+>  	 */
+> -	if (cpu_is_omap446x()) {
+> -		rc = clk_set_parent(&abe_dpll_refclk_mux_ck, &sys_32k_ck);
+> -		if (!rc)
+> -			rc = clk_set_rate(&dpll_abe_ck, OMAP4_DPLL_ABE_DEFFREQ);
+> -		if (rc)
+> -			pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+> -	}
+> +	rc = clk_set_parent(&abe_dpll_refclk_mux_ck, &sys_32k_ck);
+> +	if (!rc)
+> +		rc = clk_set_rate(&dpll_abe_ck, OMAP4_DPLL_ABE_DEFFREQ);
+> +	if (rc)
+> +		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+>  
+>  	return 0;
+>  }
+
+Acked-by: Jon Hunter <jon-hunter@ti.com>
+
+Cheers
+Jon
 
