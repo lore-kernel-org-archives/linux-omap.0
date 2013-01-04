@@ -1,91 +1,61 @@
-From: Jack Mitchell <ml@communistcode.co.uk>
-Subject: Re: AM335x BeagleBone SPI Issues
-Date: Fri, 04 Jan 2013 16:21:50 +0000
-Message-ID: <50E7019E.5090109@communistcode.co.uk>
-References: <50C5E23D.5040605@communistcode.co.uk>  <20121210135337.GA10219@arwen.pp.htv.fi>  <50C5F6A8.5060701@communistcode.co.uk>  <20121210145947.GK11038@arwen.pp.htv.fi>  <50C5FD73.1000408@communistcode.co.uk>  <20121210183500.GB14303@arwen.pp.htv.fi>  <50C70846.7010207@communistcode.co.uk> <87y5h4r4ul.fsf@gmail.com>  <50C75E54.2080805@communistcode.co.uk> <50C7671B.80504@communistcode.co.uk> <1357310801.23039.24.camel@coredoba.hi.pengutronix.de>
-Reply-To: ml@communistcode.co.uk
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Subject: Re: Does USB isochronous mode work on EHCI port?
+Date: Fri, 04 Jan 2013 17:33:08 +0100
+Message-ID: <50E70444.7090407@googlemail.com>
+References: <32bbff70-2fcd-4993-92ea-385ab02f735a@googlegroups.com> <eb7a9da0-7556-4d8f-b7b4-bf29768082df@googlegroups.com> <6ffddeae-3f7b-4972-a485-c62ecc7e2cdb@googlegroups.com> <50E6D710.4060409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eumx.net ([91.82.101.43]:42337 "EHLO eumx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754968Ab3ADQTg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jan 2013 11:19:36 -0500
-In-Reply-To: <1357310801.23039.24.camel@coredoba.hi.pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50E6D710.4060409-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Gary Thomas <samoht.yrag-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: rogerq-l0cyMroinI0@public.gmane.org, pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, balbif-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?B?SmFuIEzDvGJiZQ==?= <jlu@pengutronix.de>
-Cc: Ben Gamari <bgamari.foss@gmail.com>, balbi@ti.com, linux-omap@vger.kernel.org
 
-On 04/01/13 14:46, Jan L=C3=BCbbe wrote:
-> Hi,
+Am 04.01.2013 14:20, schrieb Roger Quadros:
+> Hi Gary,
 >
-> On Tue, 2012-12-11 at 17:02 +0000, Jack Mitchell wrote:
->> On 11/12/12 16:24, Jack Mitchell wrote:
->>> On 11/12/12 15:22, Ben Gamari wrote:
->>>> Jack Mitchell <ml@communistcode.co.uk> writes:
->>>>> Thank you, the reordering dma patch fixed the dma issue I was hav=
-ing!
->>>>> However, the bad news, I now get the same results for the dma and
->>>>> non-dma spidev test. While the scope shows the SPI clk and data i=
-s
->>>>> fine,
->>>>> the reading from the program still shows 0x00 for all words.
->>>>>
->>>> Just to make sure this has been thought of: I've seen this sort of
->>>> behavior in the past when the CLK pin wasn't configured as an inpu=
-t.
-> *snip*
->
->> My bad! The jumper bridge had come loose, it works now! Yippee!
+> On 01/04/2013 02:20 PM, Gary Thomas wrote:
 >>
->> root@beaglebone:~# ./spidev -D /dev/spidev2.0
->> spi mode: 0
->> bits per word: 16
->> max speed: 24000000 Hz (24000 KHz)
+>> On Thursday, January 3, 2013 9:21:19 AM UTC-7, Felipe Balbi wrote:
 >>
->> FF FF FF FF FF FF
->> 40 00 00 00 00 95
->> FF FF FF FF FF FF
->> FF FF FF FF FF FF
->> FF FF FF FF FF FF
->> DE AD BE EF BA AD
->> F0 0D
->> root@beaglebone:~#
+>>     Hi,
 >>
->> Thanks everyone, and do I need to submit any patches to clear this a=
-ll up?
+>>     On Wednesday, January 2, 2013 10:44:50 PM UTC+2, Gary Thomas wrote:
 >>
->> Currently all I see is changing the clk pins from output to input (i=
-f
->> this is a valid change?).
-> I just stumbled over the same problem and have not seen any patch for
-> this fix. Have I missed something or should I send a patch? Which wou=
-ld
-> be the correct base for such a patch?
->
-> Regards,
-> Jan
+>>         I have a video adapter attached to my EHCI port which runs full
+>>         speed (480Mb/s) isochronous mode.  Sadly, I never get any data
+>>         from the device (it uses the EM28xx driver).
+>>         This same device + driver works fine on my laptop and from what
+>>         I can tell looking at the module debug, it's failing when
+>>         waiting for the ISOC frame data to arrive.
+>>
+>>         Should this work?  I recall lots of discussion in the past about
+>>         ISOC transfers not working on certain OMAP devices...
+>>
+>>
+>>     which kernel are you using ? Have you tested mainline kernel ?
+>>
+>>
+>> I'm using the TI/Ubuntu kernel ( ti-ubuntu-3.4.0-1489.17)
+>>
+>> Using the mainline would be hard as there is a lot in this kernel that
+>> isn't in the mainline.
 
-I didn't submit a patch for this but easily could. I was confused about=
-=20
-what tree to base it against as at the time (may still be the same) DT=20
-SPI for AM335x was not in a mainline tree. I hoped someone would pick i=
-t=20
-up when posting DT SPI for mainline....
+I have added support for USB bulk transfers to the em28xx driver
+recently. It will be include in kernels 3.9+.
+Maybe it can be used to work around hardware problems with ISOC transfers.
 
---=20
+So if your device has bulk endpoints for video (see lsusb -v), it's
+probably worth testing the latest code from the media tree
+(http://git.linuxtv.org/media_tree.git).
+You will have to load the module with parameter usb_xfer_mode=1,
+otherwise the driver selects ISOC transfers for TV devices by default.
 
-   Jack Mitchell (jack@embed.me.uk)
-   Embedded Systems Engineer
-   http://www.embed.me.uk
-
+Regards,
+Frank
 --
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
