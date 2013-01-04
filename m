@@ -1,71 +1,65 @@
 From: Philip Avinash <avinashphilip@ti.com>
-Subject: [PATCH v4 1/3] mtd: nand: omap2: Update nerrors using ecc.strength
-Date: Fri, 4 Jan 2013 13:26:49 +0530
-Message-ID: <1357286211-5012-2-git-send-email-avinashphilip@ti.com>
-References: <1357286211-5012-1-git-send-email-avinashphilip@ti.com>
+Subject: [PATCH v4 0/3] mtd: nand: OMAP: ELM error correction support for BCH ecc
+Date: Fri, 4 Jan 2013 13:26:48 +0530
+Message-ID: <1357286211-5012-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1357286211-5012-1-git-send-email-avinashphilip@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: dwmw2@infradead.org, artem.bityutskiy@linux.intel.com, tony@atomide.com, rmk+kernel@arm.linux.org.uk, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, zonque@gmail.com
 Cc: afzal@ti.com, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, ivan.djelic@parrot.com, Philip Avinash <avinashphilip@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Remove check of ecc bytes with 13, number of errors can directly update
-from nand ecc strength. This will increase re-usability of the code.
-Also add macro definitions BCH8_ERROR_MAX & BCH4_ERROR_MAX for better
-readability and cleaner code.
+Support to use ELM as BCH 4 & 8 bit error correction module. Also performance
+enhancement by adding single shot read_page and write_page functions for the
+nand flashes with page size less than 4 KB.
 
-Signed-off-by: Philip Avinash <avinashphilip@ti.com>
----
+ELM module can be used to correct errors reported by BCH 4, 8 & 16 bit
+ECC scheme. For now only 4 & 8 bit support is added.
+
+BCH 4 & 8 bit error detection support is already available in mainline
+kernel and works with software error correction.
+
+This series is based on linux 3.8-rc2 and tested with [1].
+Also this patch series depend on [1] for NAND flash device
+tree data and gpmc nand device tree binding documentation updates.
+
+1. [PATCH v7 0/5] OMAP GPMC DT bindings
+http://www.spinics.net/lists/linux-omap/msg83505.html
+
+Tested on am335x-evm for BCH 4 and 8 bit error correction.
+
+Changes since v1:
+	- Erased page is identified by checking byte [13/7] in read
+	  ecc. To filter out bit flips in OOB area, check 0 bits in
+	  the byte greater than 4.
+	- GPMC ecc engine configuration moves to omap2.c NAND driver.
+
+Changes since v2:
+	- Added runtime detection of elm module, instead of depending
+	  on platform data.
+	- Added bit flip correction in OOB ecc data if bit flip happen
+	  OOB data.
+
 Changes since v3:
-	- Update commit message.
+	- Availability and usability of ELM module is detected from device
+	  tree nodes by checking availability of ELM node in device tree.
 
- drivers/mtd/nand/omap2.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+Philip Avinash (3):
+  mtd: nand: omap2: Update nerrors using ecc.strength
+  mtd: devices: elm: Add support for ELM error correction
+  mtd: nand: omap2: Support for hardware BCH error correction.
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 1d333497c..7d907b7 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -117,6 +117,9 @@
- 
- #define OMAP24XX_DMA_GPMC		4
- 
-+#define BCH8_MAX_ERROR		8	/* upto 8 bit correctable */
-+#define BCH4_MAX_ERROR		4	/* upto 4 bit correctable */
-+
- /* oob info generated runtime depending on ecc algorithm and layout selected */
- static struct nand_ecclayout omap_oobinfo;
- /* Define some generic bad / good block scan pattern which are used
-@@ -1041,7 +1044,7 @@ static void omap3_enable_hwecc_bch(struct mtd_info *mtd, int mode)
- 	struct nand_chip *chip = mtd->priv;
- 	u32 val;
- 
--	nerrors = (info->nand.ecc.bytes == 13) ? 8 : 4;
-+	nerrors = info->nand.ecc.strength;
- 	dev_width = (chip->options & NAND_BUSWIDTH_16) ? 1 : 0;
- 	nsectors = 1;
- 	/*
-@@ -1218,13 +1221,14 @@ static int omap3_init_bch(struct mtd_info *mtd, int ecc_opt)
- 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
- 						   mtd);
- #ifdef CONFIG_MTD_NAND_OMAP_BCH8
--	const int hw_errors = 8;
-+	const int hw_errors = BCH8_MAX_ERROR;
- #else
--	const int hw_errors = 4;
-+	const int hw_errors = BCH4_MAX_ERROR;
- #endif
- 	info->bch = NULL;
- 
--	max_errors = (ecc_opt == OMAP_ECC_BCH8_CODE_HW) ? 8 : 4;
-+	max_errors = (ecc_opt == OMAP_ECC_BCH8_CODE_HW) ?
-+		BCH8_MAX_ERROR : BCH4_MAX_ERROR;
- 	if (max_errors != hw_errors) {
- 		pr_err("cannot configure %d-bit BCH ecc, only %d-bit supported",
- 		       max_errors, hw_errors);
+ Documentation/devicetree/bindings/mtd/elm.txt      |   16 +
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |    4 +
+ drivers/mtd/devices/Makefile                       |    4 +-
+ drivers/mtd/devices/elm.c                          |  405 ++++++++++++++
+ drivers/mtd/nand/omap2.c                           |  583 ++++++++++++++++++--
+ include/linux/platform_data/elm.h                  |   54 ++
+ 6 files changed, 1023 insertions(+), 43 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mtd/elm.txt
+ create mode 100644 drivers/mtd/devices/elm.c
+ create mode 100644 include/linux/platform_data/elm.h
+
 -- 
 1.7.9.5
-
