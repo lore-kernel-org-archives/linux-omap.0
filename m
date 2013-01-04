@@ -1,55 +1,96 @@
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: [PATCH 4/6] OF: Introduce utility helper functions
-Date: Fri,  4 Jan 2013 21:31:08 +0200
-Message-ID: <1357327870-13615-5-git-send-email-panto@antoniou-consulting.com>
+Subject: [PATCH 5/6] OF: Introduce Device Tree resolve support.
+Date: Fri,  4 Jan 2013 21:31:09 +0200
+Message-ID: <1357327870-13615-6-git-send-email-panto@antoniou-consulting.com>
 References: <1357327870-13615-1-git-send-email-panto@antoniou-consulting.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from li42-95.members.linode.com ([209.123.162.95]:37617 "EHLO
-	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754464Ab3ADTbg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 14:31:36 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1357327870-13615-1-git-send-email-panto@antoniou-consulting.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, David Gibson <david@gibson.dropbear.id.au>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>, Pantelis Antoniou <panto@antoniou-consulting.com>
+List-Id: linux-omap@vger.kernel.org
 
-Introduce helper functions for working with the live DT tree.
-
-__of_free_property() frees a dynamically created property
-__of_free_tree() recursively frees a device node tree
-__of_copy_property() copies a property dynamically
-__of_create_empty_node() creates an empty node
-__of_find_node_by_full_name() finds the node with the full name
-and
-of_multi_prop_cmp() performs a multi property compare but without
-having to take locks.
+Introduce support for dynamic device tree resolution.
+Using it, it is possible to prepare a device tree that's
+been loaded on runtime to be modified and inserted at the kernel
+live tree.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/of/Makefile |   2 +-
- drivers/of/util.c   | 253 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/of.h  |  59 ++++++++++++
- 3 files changed, 313 insertions(+), 1 deletion(-)
- create mode 100644 drivers/of/util.c
+ .../devicetree/dynamic-resolution-notes.txt        |  25 ++
+ drivers/of/Kconfig                                 |   9 +
+ drivers/of/Makefile                                |   1 +
+ drivers/of/resolver.c                              | 394 +++++++++++++++++++++
+ include/linux/of.h                                 |  17 +
+ 5 files changed, 446 insertions(+)
+ create mode 100644 Documentation/devicetree/dynamic-resolution-notes.txt
+ create mode 100644 drivers/of/resolver.c
 
+diff --git a/Documentation/devicetree/dynamic-resolution-notes.txt b/Documentation/devicetree/dynamic-resolution-notes.txt
+new file mode 100644
+index 0000000..0b396c4
+--- /dev/null
++++ b/Documentation/devicetree/dynamic-resolution-notes.txt
+@@ -0,0 +1,25 @@
++Device Tree Dynamic Resolver Notes
++----------------------------------
++
++This document describes the implementation of the in-kernel
++Device Tree resolver, residing in drivers/of/resolver.c and is a
++companion document to Documentation/devicetree/dt-object-internal.txt[1]
++
++How the resolver works
++----------------------
++
++The resolver is given as an input an arbitrary tree compiled with the
++proper dtc option and having a /plugin/ tag. This generates the
++appropriate __fixups__ & __local_fixups__ nodes as described in [1].
++
++In sequence the resolver works by the following steps:
++
++1. Get the maximum device tree phandle value from the live tree + 1.
++2. Adjust all the local phandles of the tree to resolve by that amount.
++3. Using the __local__fixups__ node information adjust all local references
++   by the same amount.
++4. For each property in the __fixups__ node locate the node it references
++   in the live tree. This is the label used to tag the node.
++5. Retrieve the phandle of the target of the fixup.
++5. For each fixup in the property locate the node:property:offset location
++   and replace it with the phandle value.
+diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
+index d37bfcf..f9a6193 100644
+--- a/drivers/of/Kconfig
++++ b/drivers/of/Kconfig
+@@ -83,4 +83,13 @@ config OF_MTD
+ 	depends on MTD
+ 	def_bool y
+ 
++config OF_RESOLVE
++	bool "OF Dynamic resolution support"
++	depends on OF
++	select OF_DYNAMIC
++	select OF_DEVICE
++	help
++	  Enable OF dynamic resolution support. This allows you to
++	  load Device Tree object fragments are run time.
++
+ endmenu # OF
 diff --git a/drivers/of/Makefile b/drivers/of/Makefile
-index e027f44..abcc08a 100644
+index abcc08a..9a809c9 100644
 --- a/drivers/of/Makefile
 +++ b/drivers/of/Makefile
-@@ -1,4 +1,4 @@
--obj-y = base.o
-+obj-y = base.o util.o
- obj-$(CONFIG_OF_FLATTREE) += fdt.o
- obj-$(CONFIG_OF_PROMTREE) += pdt.o
- obj-$(CONFIG_OF_ADDRESS)  += address.o
-diff --git a/drivers/of/util.c b/drivers/of/util.c
+@@ -11,3 +11,4 @@ obj-$(CONFIG_OF_MDIO)	+= of_mdio.o
+ obj-$(CONFIG_OF_PCI)	+= of_pci.o
+ obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
+ obj-$(CONFIG_OF_MTD)	+= of_mtd.o
++obj-$(CONFIG_OF_RESOLVE)  += resolver.o
+diff --git a/drivers/of/resolver.c b/drivers/of/resolver.c
 new file mode 100644
-index 0000000..5117e2b
+index 0000000..016d7da
 --- /dev/null
-+++ b/drivers/of/util.c
-@@ -0,0 +1,253 @@
++++ b/drivers/of/resolver.c
+@@ -0,0 +1,394 @@
 +/*
-+ * Utility functions for working with device tree(s)
++ * Functions for dealing with DT resolution
 + *
 + * Copyright (C) 2012 Pantelis Antoniou <panto@antoniou-consulting.com>
 + * Copyright (C) 2012 Texas Instruments Inc.
@@ -63,312 +104,410 @@ index 0000000..5117e2b
 +#include <linux/module.h>
 +#include <linux/of.h>
 +#include <linux/of_device.h>
++#include <linux/of_fdt.h>
 +#include <linux/string.h>
 +#include <linux/ctype.h>
 +#include <linux/errno.h>
 +#include <linux/string.h>
 +#include <linux/slab.h>
-+#include <linux/err.h>
 +
 +/**
-+ * __of_free_property - release the memory of an allocated property
-+ * @prop:	Property to release
-+ *
-+ * Release the memory of an allocated property only after checking
-+ * that the property has been marked as OF_DYNAMIC.
-+ * Only call on known allocated properties.
++ * Find a subtree's maximum phandle value.
 + */
-+void __of_free_property(struct property *prop)
++static phandle __of_get_tree_max_phandle(struct device_node *node,
++		phandle max_phandle)
 +{
-+	if (prop == NULL)
-+		return;
++	struct device_node *child;
 +
-+	if (of_property_check_flag(prop, OF_DYNAMIC)) {
-+		kfree(prop->value);
-+		kfree(prop->name);
-+		kfree(prop);
-+	} else {
-+		pr_warn("%s: property %p cannot be freed; memory is gone\n",
-+				__func__, prop);
-+	}
++	if (node->phandle != 0 && node->phandle != OF_PHANDLE_ILLEGAL &&
++			node->phandle > max_phandle)
++		max_phandle = node->phandle;
++
++	__for_each_child_of_node(node, child)
++		max_phandle = __of_get_tree_max_phandle(child, max_phandle);
++
++	return max_phandle;
 +}
 +
 +/**
-+ * __of_free_tree - release the memory of a device tree node and
-+ *		    of all it's children + properties.
-+ * @node:	Device Tree node to release
-+ *
-+ * Release the memory of a device tree node and of all it's children.
-+ * Also release the properties and the dead properties.
-+ * Only call on detached node trees, and you better be sure that
-+ * no pointer exist for any properties. Only safe to do if you 
-+ * absolutely control the life cycle of the node.
-+ * Also note that the node is not removed from the all_nodes list,
-+ * neither from the parent's child list; this should be handled before
-+ * calling this function.
++ * Find live tree's maximum phandle value.
 + */
-+void __of_free_tree(struct device_node *node)
-+{
-+	struct property *prop;
-+	struct device_node *noden;
-+
-+	/* sanity check */
-+	if (!node)
-+		return;
-+
-+	/* free recursively any children */
-+	while ((noden = node->child) != NULL) {
-+		node->child = noden->sibling;
-+		__of_free_tree(noden);
-+	}
-+
-+	/* free every property already allocated */
-+	while ((prop = node->properties) != NULL) {
-+		node->properties = prop->next;
-+		__of_free_property(prop);
-+	}
-+
-+	/* free dead properties already allocated */
-+	while ((prop = node->deadprops) != NULL) {
-+		node->deadprops = prop->next;
-+		__of_free_property(prop);
-+	}
-+
-+	if (of_node_check_flag(node, OF_DYNAMIC)) {
-+		kfree(node->type);
-+		kfree(node->name);
-+		kfree(node);
-+	} else {
-+		pr_warn("%s: node %p cannot be freed; memory is gone\n",
-+				__func__, node);
-+	}
-+}
-+
-+/**
-+ * __of_copy_property - Copy a property dynamically.
-+ * @prop:	Property to copy
-+ * @flags:	Allocation flags (typically pass GFP_KERNEL)
-+ *
-+ * Copy a property by dynamically allocating the memory of both the
-+ * property stucture and the property name & contents. The property's
-+ * flags have the OF_DYNAMIC bit set so that we can differentiate between
-+ * dynamically allocated properties and not.
-+ * Returns the newly allocated property or NULL on out of memory error.
-+ */
-+struct property *__of_copy_property(const struct property *prop, gfp_t flags)
-+{
-+	struct property *propn;
-+
-+	propn = kzalloc(sizeof(*prop), flags);
-+	if (propn == NULL)
-+		return NULL;
-+
-+	propn->name = kstrdup(prop->name, flags);
-+	if (propn->name == NULL)
-+		goto err_fail_name;
-+
-+	if (prop->length > 0) {
-+		propn->value = kmalloc(prop->length, flags);
-+		if (propn->value == NULL)
-+			goto err_fail_value;
-+		memcpy(propn->value, prop->value, prop->length);
-+		propn->length = prop->length;
-+	}
-+
-+	/* mark the property as dynamic */
-+	of_property_set_flag(propn, OF_DYNAMIC);
-+
-+	return propn;
-+
-+err_fail_value:
-+	kfree(propn->name);
-+err_fail_name:
-+	kfree(propn);
-+	return NULL;
-+}
-+
-+/**
-+ * __of_create_empty_node - Create an empty device node dynamically.
-+ * @name:	Name of the new device node
-+ * @type:	Type of the new device node
-+ * @full_name:	Full name of the new device node
-+ * @phandle:	Phandle of the new device node
-+ * @flags:	Allocation flags (typically pass GFP_KERNEL)
-+ *
-+ * Create an empty device tree node, suitable for further modification.
-+ * The node data are dynamically allocated and all the node flags
-+ * have the OF_DYNAMIC & OF_DETACHED bits set.
-+ * Returns the newly allocated node or NULL on out of memory error.
-+ */
-+struct device_node *__of_create_empty_node(
-+		const char *name, const char *type, const char *full_name,
-+		phandle phandle, gfp_t flags)
++static phandle of_get_tree_max_phandle(void)
 +{
 +	struct device_node *node;
++	phandle phandle;
 +
-+	node = kzalloc(sizeof(*node), flags);
++	/* get root node */
++	node = of_find_node_by_path("/");
 +	if (node == NULL)
-+		return NULL;
++		return OF_PHANDLE_ILLEGAL;
 +
-+	node->name = kstrdup(name, flags);
-+	if (node->name == NULL)
-+		goto err_return;
++	/* now search recursively */
++	read_lock(&devtree_lock);
++	phandle = __of_get_tree_max_phandle(node, 0);
++	read_unlock(&devtree_lock);
 +
-+	node->type = kstrdup(type, flags);
-+	if (node->type == NULL)
-+		goto err_return;
++	of_node_put(node);
 +
-+	node->full_name = kstrdup(full_name, flags);
-+	if (node->type == NULL)
-+		goto err_return;
-+
-+	node->phandle = phandle;
-+	kref_init(&node->kref);
-+	of_node_set_flag(node, OF_DYNAMIC);
-+	of_node_set_flag(node, OF_DETACHED);
-+
-+	return node;
-+
-+err_return:
-+	__of_free_tree(node);
-+	return NULL;
++	return phandle;
 +}
 +
 +/**
-+ * __of_find_node_by_full_name - Find a node with the full name recursively
-+ * @node:	Root of the tree to perform the search
-+ * @full_name:	Full name of the node to find.
-+ *
-+ * Find a node with the give full name by recursively following any of 
-+ * the child node links.
-+ * Returns the matching node, or NULL if not found.
-+ * Note that the devtree lock is not taken, so this function is only
-+ * safe to call on either detached trees, or when devtree lock is already
-+ * taken.
++ * Adjust a subtree's phandle values by a given delta.
++ * Makes sure not to just adjust the device node's phandle value,
++ * but modify the phandle properties values as well.
 + */
-+struct device_node *__of_find_node_by_full_name(struct device_node *node,
-+		const char *full_name)
++static void __of_adjust_tree_phandles(struct device_node *node,
++		int phandle_delta)
 +{
-+	struct device_node *child, *found;
++	struct device_node *child;
++	struct property *prop;
++	phandle phandle;
 +
-+	if (node == NULL)
-+		return NULL;
++	/* first adjust the node's phandle direct value */
++	if (node->phandle != 0 && node->phandle != OF_PHANDLE_ILLEGAL)
++		node->phandle += phandle_delta;
 +
-+	/* check */
-+	if (of_node_cmp(node->full_name, full_name) == 0)
-+		return node;
++	/* now adjust phandle & linux,phandle values */
++	for_each_property_of_node(node, prop) {
 +
-+	__for_each_child_of_node(node, child) {
-+		found = __of_find_node_by_full_name(child, full_name);
-+		if (found != NULL)
-+			return found;
++		/* only look for these two */
++		if (of_prop_cmp(prop->name, "phandle") != 0 &&
++		    of_prop_cmp(prop->name, "linux,phandle") != 0)
++			continue;
++
++		/* must be big enough */
++		if (prop->length < 4)
++			continue;
++
++		/* read phandle value */
++		phandle = be32_to_cpu(*(uint32_t *)prop->value);
++		if (phandle == OF_PHANDLE_ILLEGAL)	/* unresolved */
++			continue;
++
++		/* adjust */
++		*(uint32_t *)prop->value = cpu_to_be32(node->phandle);
 +	}
 +
-+	return NULL;
++	/* now do the children recursively */
++	__for_each_child_of_node(node, child)
++		__of_adjust_tree_phandles(child, phandle_delta);
 +}
 +
 +/**
-+ * of_multi_prop_cmp - Check if a property matches a value
-+ * @prop:	Property to check
-+ * @value:	Value to check against
-+ *
-+ * Check whether a property matches a value, using the standard
-+ * of_compat_cmp() test on each string. It is similar to the test
-+ * of_device_is_compatible() makes, but it can be performed without
-+ * taking the devtree_lock, which is required in some cases.
-+ * Returns 0 on a match, -1 on no match.
++ * Adjust the local phandle references by the given phandle delta.
++ * Assumes the existances of a __local_fixups__ node at the root
++ * of the tree. Does not take any devtree locks so make sure you
++ * call this on a tree which is at the detached state.
 + */
-+int of_multi_prop_cmp(const struct property *prop, const char *value)
++static int __of_adjust_tree_phandle_references(struct device_node *node,
++		int phandle_delta)
 +{
-+	const char *cp;
-+	int cplen, vlen, l;
++	phandle phandle;
++	struct device_node *refnode, *child;
++	struct property *rprop, *sprop;
++	char *propval, *propcur, *propend, *nodestr, *propstr, *s;
++	int offset, propcurlen;
++	int err;
 +
-+	if (prop == NULL || value == NULL)
-+		return -1;
++	/* locate the symbols & fixups nodes on resolve */
++	__for_each_child_of_node(node, child)
++		if (of_node_cmp(child->name, "__local_fixups__") == 0)
++			break;
 +
-+	cp = prop->value;
-+	cplen = prop->length;
-+	vlen = strlen(value);
++	/* no local fixups */
++	if (child == NULL)
++		return 0;
 +
-+	while (cplen > 0) {
-+		if (of_compat_cmp(cp, value, vlen) == 0)
-+			return 0;
-+		l = strlen(cp) + 1;
-+		cp += l;
-+		cplen -= l;
++	/* find the local fixups property */
++	for_each_property_of_node(child, rprop) {
++
++		/* skip properties added automatically */
++		if (of_prop_cmp(rprop->name, "name") == 0)
++			continue;
++
++		/* make a copy */
++		propval = kmalloc(rprop->length, GFP_KERNEL);
++		if (propval == NULL) {
++			pr_err("%s: Could not copy value of '%s'\n",
++					__func__, rprop->name);
++			return -ENOMEM;
++		}
++		memcpy(propval, rprop->value, rprop->length);
++
++		propend = propval + rprop->length;
++		for (propcur = propval; propcur < propend;
++				propcur += propcurlen + 1) {
++
++			propcurlen = strlen(propcur);
++
++			nodestr = propcur;
++			s = strchr(propcur, ':');
++			if (s == NULL) {
++				pr_err("%s: Illegal symbol entry '%s' (1)\n",
++					__func__, propcur);
++				err = -EINVAL;
++				goto err_fail;
++			}
++			*s++ = '\0';
++
++			propstr = s;
++			s = strchr(s, ':');
++			if (s == NULL) {
++				pr_err("%s: Illegal symbol entry '%s' (2)\n",
++					__func__, (char *)rprop->value);
++				err = -EINVAL;
++				goto err_fail;
++			}
++
++			*s++ = '\0';
++			offset = simple_strtoul(s, NULL, 10);
++
++			/* look into the resolve node for the full path */
++			refnode = __of_find_node_by_full_name(node, nodestr);
++			if (refnode == NULL) {
++				pr_warn("%s: Could not find refnode '%s'\n",
++					__func__, (char *)rprop->value);
++				continue;
++			}
++
++			/* now find the property */
++			for_each_property_of_node(refnode, sprop) {
++				if (of_prop_cmp(sprop->name, propstr) == 0)
++					break;
++			}
++
++			if (sprop == NULL) {
++				pr_err("%s: Could not find property '%s'\n",
++					__func__, (char *)rprop->value);
++				err = -ENOENT;
++				goto err_fail;
++			}
++
++			phandle = be32_to_cpu(*(uint32_t *)
++					(sprop->value + offset));
++			*(uint32_t *)(sprop->value + offset) =
++				cpu_to_be32(phandle + phandle_delta);
++		}
++
++		kfree(propval);
 +	}
 +
-+	return -1;
++	return 0;
++
++err_fail:
++	kfree(propval);
++	return err;
 +}
 +
++/**
++ * of_resolve	- Resolve the given node against the live tree.
++ *
++ * @resolve:	Node to resolve
++ *
++ * Perform dynamic Device Tree resolution against the live tree
++ * to the given node to resolve. This depends on the live tree
++ * having a __symbols__ node, and the resolve node the __fixups__ &
++ * __local_fixups__ nodes (if needed).
++ * The result of the operation is a resolve node that it's contents
++ * are fit to be inserted or operate upon the live tree.
++ * Returns 0 on success or a negative error value on error.
++ */
++int of_resolve(struct device_node *resolve)
++{
++	struct device_node *child, *refnode;
++	struct device_node *root_sym, *resolve_sym, *resolve_fix;
++	struct property *rprop, *sprop;
++	const char *refpath;
++	char *propval, *propcur, *propend, *nodestr, *propstr, *s;
++	int offset, propcurlen;
++	phandle phandle, phandle_delta;
++	int err;
++
++	/* the resolve node must exist, and be detached */
++	if (resolve == NULL ||
++			!of_node_check_flag(resolve, OF_DETACHED)) {
++		return -EINVAL;
++	}
++
++	/* first we need to adjust the phandles */
++	phandle_delta = of_get_tree_max_phandle() + 1;
++	__of_adjust_tree_phandles(resolve, phandle_delta);
++	err = __of_adjust_tree_phandle_references(resolve, phandle_delta);
++	if (err != 0)
++		return err;
++
++	root_sym = NULL;
++	resolve_sym = NULL;
++	resolve_fix = NULL;
++
++	/* this may fail (if no fixups are required) */
++	root_sym = of_find_node_by_path("/__symbols__");
++
++	/* locate the symbols & fixups nodes on resolve */
++	__for_each_child_of_node(resolve, child) {
++
++		if (resolve_sym == NULL &&
++				of_node_cmp(child->name, "__symbols__") == 0)
++			resolve_sym = child;
++
++		if (resolve_fix == NULL &&
++				of_node_cmp(child->name, "__fixups__") == 0)
++			resolve_fix = child;
++
++		/* both found, don't bother anymore */
++		if (resolve_sym != NULL && resolve_fix != NULL)
++			break;
++	}
++
++	/* we do allow for the case where no fixups are needed */
++	if (resolve_fix == NULL)
++		goto merge_sym;
++
++	/* we need to fixup, but no root symbols... */
++	if (root_sym == NULL)
++		return -EINVAL;
++
++	for_each_property_of_node(resolve_fix, rprop) {
++
++		/* skip properties added automatically */
++		if (of_prop_cmp(rprop->name, "name") == 0)
++			continue;
++
++		err = of_property_read_string(root_sym,
++				rprop->name, &refpath);
++		if (err != 0) {
++			pr_err("%s: Could not find symbol '%s'\n",
++					__func__, rprop->name);
++			goto err_fail;
++		}
++
++		refnode = of_find_node_by_path(refpath);
++		if (refnode == NULL) {
++			pr_err("%s: Could not find node by path '%s'\n",
++					__func__, refpath);
++			err = -ENOENT;
++			goto err_fail;
++		}
++
++		phandle = refnode->phandle;
++		of_node_put(refnode);
++
++		pr_debug("%s: %s phandle is 0x%08x\n",
++				__func__, rprop->name, phandle);
++
++		/* make a copy */
++		propval = kmalloc(rprop->length, GFP_KERNEL);
++		if (propval == NULL) {
++			pr_err("%s: Could not copy value of '%s'\n",
++					__func__, rprop->name);
++			err = -ENOMEM;
++			goto err_fail;
++		}
++
++		memcpy(propval, rprop->value, rprop->length);
++
++		propend = propval + rprop->length;
++		for (propcur = propval; propcur < propend;
++				propcur += propcurlen + 1) {
++			propcurlen = strlen(propcur);
++
++			nodestr = propcur;
++			s = strchr(propcur, ':');
++			if (s == NULL) {
++				pr_err("%s: Illegal symbol "
++					"entry '%s' (1)\n",
++					__func__, (char *)rprop->value);
++				kfree(propval);
++				err = -EINVAL;
++				goto err_fail;
++			}
++			*s++ = '\0';
++
++			propstr = s;
++			s = strchr(s, ':');
++			if (s == NULL) {
++				pr_err("%s: Illegal symbol "
++					"entry '%s' (2)\n",
++					__func__, (char *)rprop->value);
++				kfree(propval);
++				err = -EINVAL;
++				goto err_fail;
++			}
++
++			*s++ = '\0';
++			offset = simple_strtoul(s, NULL, 10);
++
++			/* look into the resolve node for the full path */
++			refnode = __of_find_node_by_full_name(resolve,
++					nodestr);
++			if (refnode == NULL) {
++				pr_err("%s: Could not find refnode '%s'\n",
++					__func__, (char *)rprop->value);
++				kfree(propval);
++				err = -ENOENT;
++				goto err_fail;
++			}
++
++			/* now find the property */
++			for_each_property_of_node(refnode, sprop) {
++				if (of_prop_cmp(sprop->name, propstr) == 0)
++					break;
++			}
++
++			if (sprop == NULL) {
++				pr_err("%s: Could not find property '%s'\n",
++					__func__, (char *)rprop->value);
++				kfree(propval);
++				err = -ENOENT;
++				goto err_fail;
++			}
++
++			*(uint32_t *)(sprop->value + offset) =
++				cpu_to_be32(phandle);
++		}
++
++		kfree(propval);
++	}
++
++merge_sym:
++
++	of_node_put(root_sym);
++
++	return 0;
++
++err_fail:
++
++	if (root_sym != NULL)
++		of_node_put(root_sym);
++
++	return err;
++}
 diff --git a/include/linux/of.h b/include/linux/of.h
-index 305b087..c38e41a 100644
+index c38e41a..ab52243 100644
 --- a/include/linux/of.h
 +++ b/include/linux/of.h
-@@ -591,4 +591,63 @@ static inline int of_property_read_u32(const struct device_node *np,
- 	return of_property_read_u32_array(np, propname, out_value, 1);
- }
+@@ -650,4 +650,21 @@ static inline int of_multi_prop_cmp(const struct property *prop, const char *val
  
-+/**
-+ * General utilities for working with live trees.
-+ *
-+ * All functions with two leading underscores operate
-+ * without taking node references, so you either have to
-+ * own the devtree lock or work on detached trees only.
-+ */
+ #endif	/* !CONFIG_OF */
+ 
 +
-+#ifdef CONFIG_OF
++/* illegal phandle value (set when unresolved) */
++#define OF_PHANDLE_ILLEGAL	0xdeadbeef
 +
-+/* iterator for internal use; not references, neither affects devtree lock */
-+#define __for_each_child_of_node(dn, chld) \
-+	for (chld = (dn)->child; chld != NULL; chld = chld->sibling)
++#ifdef CONFIG_OF_RESOLVE
 +
-+void __of_free_property(struct property *prop);
-+void __of_free_tree(struct device_node *node);
-+struct property *__of_copy_property(const struct property *prop, gfp_t flags);
-+struct device_node *__of_create_empty_node( const char *name,
-+		const char *type, const char *full_name,
-+		phandle phandle, gfp_t flags);
-+struct device_node *__of_find_node_by_full_name(struct device_node *node,
-+		const char *full_name);
-+int of_multi_prop_cmp(const struct property *prop, const char *value);
++int of_resolve(struct device_node *resolve);
 +
-+#else /* !CONFIG_OF */
++#else
 +
-+#define __for_each_child_of_node(dn, chld) \
-+	while (0)
-+
-+static inline void __of_free_property(struct property *prop) { }
-+
-+static inline void __of_free_tree(struct device_node *node) { }
-+
-+static inline struct property *__of_copy_property(const struct property *prop,
-+		gfp_t flags)
++static inline int of_resolve(struct device_node *resolve)
 +{
-+	return NULL;
++	return -ENOTSUPP;
 +}
 +
-+static inline struct device_node *__of_create_empty_node( const char *name,
-+		const char *type, const char *full_name,
-+		phandle phandle, gfp_t flags)
-+{
-+	return NULL;
-+}
-+
-+static inline struct device_node *__of_find_node_by_full_name(struct device_node *node,
-+		const char *full_name)
-+{
-+	return NULL;
-+}
-+
-+static inline int of_multi_prop_cmp(const struct property *prop, const char *value)
-+{
-+	return -1;
-+}
-+
-+#endif	/* !CONFIG_OF */
++#endif
 +
  #endif /* _LINUX_OF_H */
 -- 
 1.7.12
-
