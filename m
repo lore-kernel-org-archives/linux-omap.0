@@ -1,58 +1,87 @@
 From: Ricardo Neri <rneri@dextratech.com>
-Subject: [RESEND PATCH v3 2/5] ARM: OMAP4: Assign IDs to DSS HDMI devices
-Date: Fri,  4 Jan 2013 17:26:24 -0600
-Message-ID: <1357341987-3327-3-git-send-email-rneri@dextratech.com>
+Subject: [RESEND PATCH v3 5/5] ARM: OMAP4+: HDMI: Refine the DMA port resource for audio
+Date: Fri,  4 Jan 2013 17:26:27 -0600
+Message-ID: <1357341987-3327-6-git-send-email-rneri@dextratech.com>
 References: <1357341987-3327-1-git-send-email-rneri@dextratech.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from spamfilter.dextratech.com ([187.141.251.67]:52712 "EHLO
+Received: from spamfilter.dextratech.com ([187.141.251.67]:52742 "EHLO
 	mail.dextratech.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755201Ab3ADX0l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 18:26:41 -0500
+	with ESMTP id S1755353Ab3ADX0m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 18:26:42 -0500
 In-Reply-To: <1357341987-3327-1-git-send-email-rneri@dextratech.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, tony@atomide.com
 Cc: peter.ujfalusi@ti.com, dzuniga@dextratech.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <rneri@dextratech.com>
 
-While Pandaboard and SDP4430 have only one HDMI output connector, it may be
-possible that future boards and SoCs support more than one HDMI output.
-Thus, we define the identifier of the device. This is used by display
-common code to identify and create the platform devices for HDMI audio drivers.
+Instead of passing the complete address space to the platform device for audio,
+just pass the address offset of the DMA port for audio samples. Thus, we prevent
+that two drivers try to ioremap the same resources. This is to be safe, as the
+ASoC HDMI CPU-DAI driver will not need to ioremap such resource.
 
 Signed-off-by: Ricardo Neri <rneri@dextratech.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c    |    3 +++
- arch/arm/mach-omap2/board-omap4panda.c |    3 +++
- 2 files changed, 6 insertions(+)
+ drivers/video/omap2/dss/hdmi.c |    9 ++++++---
+ sound/soc/omap/omap-hdmi.c     |    3 +--
+ sound/soc/omap/omap-hdmi.h     |    2 --
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 3669c12..5a486d9 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -666,6 +666,9 @@ static struct omap_dss_device sdp4430_hdmi_device = {
- 	.type = OMAP_DISPLAY_TYPE_HDMI,
- 	.channel = OMAP_DSS_CHANNEL_DIGIT,
- 	.data = &sdp4430_hdmi_data,
-+	.dev = {
-+		.id = -1,
-+	},
- };
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 0dde2b5..b758f83 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -829,6 +829,7 @@ static int hdmi_probe_audio(struct platform_device *pdev)
+ {
+ 	struct resource *res;
+ 	struct platform_device *aud_pdev;
++	u32 port_offset, port_size;
+ 	struct resource aud_res[2] = {
+ 		DEFINE_RES_MEM(-1, -1),
+ 		DEFINE_RES_DMA(-1),
+@@ -841,11 +842,13 @@ static int hdmi_probe_audio(struct platform_device *pdev)
+ 	}
  
- static struct picodlp_panel_data sdp4430_picodlp_pdata = {
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index bfcd397..9f336a3 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -440,6 +440,9 @@ static struct omap_dss_device  omap4_panda_hdmi_device = {
- 	.type = OMAP_DISPLAY_TYPE_HDMI,
- 	.channel = OMAP_DSS_CHANNEL_DIGIT,
- 	.data = &omap4_panda_hdmi_data,
-+	.dev = {
-+		.id = -1,
-+	},
- };
+ 	/*
+-	 * Pass this resource to audio drivers to find the DMA port address.
++	 * Pass DMA audio port to audio drivers.
+ 	 * Audio drivers should not ioremap it.
+ 	 */
+-	aud_res[0].start = res->start;
+-	aud_res[0].end = res->end;
++	hdmi.ip_data.ops->audio_get_dma_port(&port_offset, &port_size);
++
++	aud_res[0].start = res->start + port_offset;
++	aud_res[0].end =  aud_res[0].start + port_size - 1;
  
- static struct omap_dss_device *omap4_panda_dss_devices[] = {
+ 	res = platform_get_resource(hdmi.pdev, IORESOURCE_DMA, 0);
+ 	if (!res) {
+diff --git a/sound/soc/omap/omap-hdmi.c b/sound/soc/omap/omap-hdmi.c
+index db08501..33418fc 100644
+--- a/sound/soc/omap/omap-hdmi.c
++++ b/sound/soc/omap/omap-hdmi.c
+@@ -281,8 +281,7 @@ static __devinit int omap_hdmi_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
+ 
+-	hdmi_data->dma_params.port_addr =  hdmi_rsrc->start
+-		+ OMAP_HDMI_AUDIO_DMA_PORT;
++	hdmi_data->dma_params.port_addr =  hdmi_rsrc->start;
+ 
+ 	hdmi_rsrc = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+ 	if (!hdmi_rsrc) {
+diff --git a/sound/soc/omap/omap-hdmi.h b/sound/soc/omap/omap-hdmi.h
+index 6ad2bf4..33d7a93 100644
+--- a/sound/soc/omap/omap-hdmi.h
++++ b/sound/soc/omap/omap-hdmi.h
+@@ -25,8 +25,6 @@
+ #ifndef __OMAP_HDMI_H__
+ #define __OMAP_HDMI_H__
+ 
+-#define OMAP_HDMI_AUDIO_DMA_PORT 0x8c
+-
+ #define OMAP_HDMI_RATES	(SNDRV_PCM_RATE_32000 | \
+ 				SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 | \
+ 				SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 | \
 -- 
 1.7.10.4
 
