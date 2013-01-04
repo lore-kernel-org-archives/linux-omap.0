@@ -1,102 +1,155 @@
-From: Jack Mitchell <ml@communistcode.co.uk>
-Subject: Re: AM335x BeagleBone SPI Issues
-Date: Fri, 04 Jan 2013 16:36:15 +0000
-Message-ID: <50E704FF.107@communistcode.co.uk>
-References: <50C5E23D.5040605@communistcode.co.uk>  <20121210135337.GA10219@arwen.pp.htv.fi>  <50C5F6A8.5060701@communistcode.co.uk>  <20121210145947.GK11038@arwen.pp.htv.fi>  <50C5FD73.1000408@communistcode.co.uk>  <20121210183500.GB14303@arwen.pp.htv.fi>  <50C70846.7010207@communistcode.co.uk> <87y5h4r4ul.fsf@gmail.com>  <50C75E54.2080805@communistcode.co.uk> <50C7671B.80504@communistcode.co.uk> <1357310801.23039.24.camel@coredoba.hi.pengutronix.de> <50E7019E.5090109@communistcode.co.uk>
-Reply-To: ml@communistcode.co.uk
+From: Gary Thomas <samoht.yrag-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Does USB isochronous mode work on EHCI port?
+Date: Fri, 4 Jan 2013 08:46:40 -0800 (PST)
+Message-ID: <8a112bcf-ccee-4e10-93a1-3705e60c8d56@googlegroups.com>
+References: <32bbff70-2fcd-4993-92ea-385ab02f735a@googlegroups.com> <eb7a9da0-7556-4d8f-b7b4-bf29768082df@googlegroups.com> <6ffddeae-3f7b-4972-a485-c62ecc7e2cdb@googlegroups.com> <50E6D710.4060409@ti.com>
+ <50E70444.7090407@googlemail.com>
+Reply-To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eumx.net ([91.82.101.43]:49969 "EHLO eumx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755062Ab3ADQeA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jan 2013 11:34:00 -0500
-In-Reply-To: <50E7019E.5090109@communistcode.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/alternative;
+	boundary="----=_Part_35_25191295.1357318000606"
+Return-path: <pandaboard+bncBCOJLZ4VRAEBB4MOTSDQKGQEHUWRBII-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <50E70444.7090407-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+List-Post: <http://groups.google.com/group/pandaboard/post?hl=en_US>, <mailto:pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:pandaboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/pandaboard?hl=en_US>
+Sender: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
+ <mailto:pandaboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
+ <mailto:googlegroups-manage+575825281776+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Cc: Gary Thomas <samoht.yrag-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, rogerq-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, balbif-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, fschaefer.oss-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: ml@communistcode.co.uk
-Cc: =?UTF-8?B?SmFuIEzDvGJiZQ==?= <jlu@pengutronix.de>, Ben Gamari <bgamari.foss@gmail.com>, balbi@ti.com, linux-omap@vger.kernel.org, mporter@ti.com
 
-On 04/01/13 16:21, Jack Mitchell wrote:
-> On 04/01/13 14:46, Jan L=C3=BCbbe wrote:
->> Hi,
->>
->> On Tue, 2012-12-11 at 17:02 +0000, Jack Mitchell wrote:
->>> On 11/12/12 16:24, Jack Mitchell wrote:
->>>> On 11/12/12 15:22, Ben Gamari wrote:
->>>>> Jack Mitchell <ml@communistcode.co.uk> writes:
->>>>>> Thank you, the reordering dma patch fixed the dma issue I was=20
->>>>>> having!
->>>>>> However, the bad news, I now get the same results for the dma an=
-d
->>>>>> non-dma spidev test. While the scope shows the SPI clk and data =
-is
->>>>>> fine,
->>>>>> the reading from the program still shows 0x00 for all words.
->>>>>>
->>>>> Just to make sure this has been thought of: I've seen this sort o=
-f
->>>>> behavior in the past when the CLK pin wasn't configured as an inp=
-ut.
->> *snip*
->>
->>> My bad! The jumper bridge had come loose, it works now! Yippee!
->>>
->>> root@beaglebone:~# ./spidev -D /dev/spidev2.0
->>> spi mode: 0
->>> bits per word: 16
->>> max speed: 24000000 Hz (24000 KHz)
->>>
->>> FF FF FF FF FF FF
->>> 40 00 00 00 00 95
->>> FF FF FF FF FF FF
->>> FF FF FF FF FF FF
->>> FF FF FF FF FF FF
->>> DE AD BE EF BA AD
->>> F0 0D
->>> root@beaglebone:~#
->>>
->>> Thanks everyone, and do I need to submit any patches to clear this=20
->>> all up?
->>>
->>> Currently all I see is changing the clk pins from output to input (=
-if
->>> this is a valid change?).
->> I just stumbled over the same problem and have not seen any patch fo=
-r
->> this fix. Have I missed something or should I send a patch? Which wo=
-uld
->> be the correct base for such a patch?
->>
->> Regards,
->> Jan
->
-> I didn't submit a patch for this but easily could. I was confused=20
-> about what tree to base it against as at the time (may still be the=20
-> same) DT SPI for AM335x was not in a mainline tree. I hoped someone=20
-> would pick it up when posting DT SPI for mainline....
->
+------=_Part_35_25191295.1357318000606
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-I've just had confirmation from Matt Porter on IRC that this change wil=
+
+
+On Friday, January 4, 2013 9:33:08 AM UTC-7, Frank Sch=C3=A4fer wrote:
+>
+> Am 04.01.2013 14:20, schrieb Roger Quadros:=20
+> > Hi Gary,=20
+> >=20
+> > On 01/04/2013 02:20 PM, Gary Thomas wrote:=20
+> >>=20
+> >> On Thursday, January 3, 2013 9:21:19 AM UTC-7, Felipe Balbi wrote:=20
+> >>=20
+> >>     Hi,=20
+> >>=20
+> >>     On Wednesday, January 2, 2013 10:44:50 PM UTC+2, Gary Thomas wrote=
+:=20
+> >>=20
+> >>         I have a video adapter attached to my EHCI port which runs ful=
 l=20
-be present in the next iteration of his DMA Engine series, which I=20
-believe brings in the DT SPI support.
+> >>         speed (480Mb/s) isochronous mode.  Sadly, I never get any data=
+=20
+> >>         from the device (it uses the EM28xx driver).=20
+> >>         This same device + driver works fine on my laptop and from wha=
+t=20
+> >>         I can tell looking at the module debug, it's failing when=20
+> >>         waiting for the ISOC frame data to arrive.=20
+> >>=20
+> >>         Should this work?  I recall lots of discussion in the past=20
+> about=20
+> >>         ISOC transfers not working on certain OMAP devices...=20
+> >>=20
+> >>=20
+> >>     which kernel are you using ? Have you tested mainline kernel ?=20
+> >>=20
+> >>=20
+> >> I'm using the TI/Ubuntu kernel ( ti-ubuntu-3.4.0-1489.17)=20
+> >>=20
+> >> Using the mainline would be hard as there is a lot in this kernel that=
+=20
+> >> isn't in the mainline.=20
+>
+> I have added support for USB bulk transfers to the em28xx driver=20
+> recently. It will be include in kernels 3.9+.=20
+> Maybe it can be used to work around hardware problems with ISOC transfers=
+.=20
+>
+> So if your device has bulk endpoints for video (see lsusb -v), it's=20
+> probably worth testing the latest code from the media tree=20
+> (http://git.linuxtv.org/media_tree.git).=20
+> You will have to load the module with parameter usb_xfer_mode=3D1,=20
+> otherwise the driver selects ISOC transfers for TV devices by default.=20
+>
 
-Cheers All,
-Jack
+Thanks, I'll give this a try.
+=20
 
---=20
+>
+> Regards,=20
+> Frank=20
+>
 
-   Jack Mitchell (jack@embed.me.uk)
-   Embedded Systems Engineer
-   http://www.embed.me.uk
+------=_Part_35_25191295.1357318000606
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
---
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+<br><br>On Friday, January 4, 2013 9:33:08 AM UTC-7, Frank Sch=C3=A4fer wro=
+te:<blockquote class=3D"gmail_quote" style=3D"margin: 0;margin-left: 0.8ex;=
+border-left: 1px #ccc solid;padding-left: 1ex;">Am 04.01.2013 14:20, schrie=
+b Roger Quadros:
+<br>&gt; Hi Gary,
+<br>&gt;
+<br>&gt; On 01/04/2013 02:20 PM, Gary Thomas wrote:
+<br>&gt;&gt;
+<br>&gt;&gt; On Thursday, January 3, 2013 9:21:19 AM UTC-7, Felipe Balbi wr=
+ote:
+<br>&gt;&gt;
+<br>&gt;&gt; &nbsp; &nbsp; Hi,
+<br>&gt;&gt;
+<br>&gt;&gt; &nbsp; &nbsp; On Wednesday, January 2, 2013 10:44:50 PM UTC+2,=
+ Gary Thomas wrote:
+<br>&gt;&gt;
+<br>&gt;&gt; &nbsp; &nbsp; &nbsp; &nbsp; I have a video adapter attached to=
+ my EHCI port which runs full
+<br>&gt;&gt; &nbsp; &nbsp; &nbsp; &nbsp; speed (480Mb/s) isochronous mode. =
+&nbsp;Sadly, I never get any data
+<br>&gt;&gt; &nbsp; &nbsp; &nbsp; &nbsp; from the device (it uses the EM28x=
+x driver).
+<br>&gt;&gt; &nbsp; &nbsp; &nbsp; &nbsp; This same device + driver works fi=
+ne on my laptop and from what
+<br>&gt;&gt; &nbsp; &nbsp; &nbsp; &nbsp; I can tell looking at the module d=
+ebug, it's failing when
+<br>&gt;&gt; &nbsp; &nbsp; &nbsp; &nbsp; waiting for the ISOC frame data to=
+ arrive.
+<br>&gt;&gt;
+<br>&gt;&gt; &nbsp; &nbsp; &nbsp; &nbsp; Should this work? &nbsp;I recall l=
+ots of discussion in the past about
+<br>&gt;&gt; &nbsp; &nbsp; &nbsp; &nbsp; ISOC transfers not working on cert=
+ain OMAP devices...
+<br>&gt;&gt;
+<br>&gt;&gt;
+<br>&gt;&gt; &nbsp; &nbsp; which kernel are you using ? Have you tested mai=
+nline kernel ?
+<br>&gt;&gt;
+<br>&gt;&gt;
+<br>&gt;&gt; I'm using the TI/Ubuntu kernel ( ti-ubuntu-3.4.0-1489.17)
+<br>&gt;&gt;
+<br>&gt;&gt; Using the mainline would be hard as there is a lot in this ker=
+nel that
+<br>&gt;&gt; isn't in the mainline.
+<br>
+<br>I have added support for USB bulk transfers to the em28xx driver
+<br>recently. It will be include in kernels 3.9+.
+<br>Maybe it can be used to work around hardware problems with ISOC transfe=
+rs.
+<br>
+<br>So if your device has bulk endpoints for video (see lsusb -v), it's
+<br>probably worth testing the latest code from the media tree
+<br>(<a href=3D"http://git.linuxtv.org/media_tree.git" target=3D"_blank">ht=
+tp://git.linuxtv.org/media_<wbr>tree.git</a>).
+<br>You will have to load the module with parameter usb_xfer_mode=3D1,
+<br>otherwise the driver selects ISOC transfers for TV devices by default.
+<br></blockquote><div><br></div><div>Thanks, I'll give this a try.</div><di=
+v>&nbsp;</div><blockquote class=3D"gmail_quote" style=3D"margin: 0;margin-l=
+eft: 0.8ex;border-left: 1px #ccc solid;padding-left: 1ex;">
+<br>Regards,
+<br>Frank
+<br></blockquote>
+------=_Part_35_25191295.1357318000606--
