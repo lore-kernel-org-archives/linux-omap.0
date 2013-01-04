@@ -1,17 +1,17 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: hwmod: rename flag to prevent hwmod
- code from touching IP block during init
-Date: Fri, 4 Jan 2013 18:19:54 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301041817460.25868@utopia.booyaka.com>
-References: <1357304526-21557-1-git-send-email-s-guiriec@ti.com> <1357304526-21557-2-git-send-email-s-guiriec@ti.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP4: hwmod data: do not enable or reset the
+ AESS during kernel init
+Date: Fri, 4 Jan 2013 18:35:46 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301041833510.25868@utopia.booyaka.com>
+References: <1357304526-21557-1-git-send-email-s-guiriec@ti.com> <1357304526-21557-3-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:46910 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:46961 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753796Ab3ADSTz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 13:19:55 -0500
-In-Reply-To: <1357304526-21557-2-git-send-email-s-guiriec@ti.com>
+	with ESMTP id S1753804Ab3ADSfr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 13:35:47 -0500
+In-Reply-To: <1357304526-21557-3-git-send-email-s-guiriec@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Sebastien Guiriec <s-guiriec@ti.com>
@@ -21,19 +21,24 @@ Hi Sebastien
 
 On Fri, 4 Jan 2013, Sebastien Guiriec wrote:
 
-> Rename HWMOD_EXT_OPT_MAIN_CLK flag to indicate that this IP block is
-> dependent on an off-chip functional clock that is not guaranteed to
-> be present during initialization. Same flag can be use for IP with
-> additional HW registers to control Auto IDLE mode.
+> The AESS on OMAP4 has additional register on top of SYS_CONFIG for
+> auto gatting configuration. In order to avoid running clock after
+> boot up we should avoid to enable and reset the module during boot up.
+> 
+> Audio driver will be in charge of configuring the addition register.
+> 
+> At its core, this patch is a workaround for an OMAP hardware problem.
+> It should be possible to configure the OMAP with good default reset
+> configuration of AESS IP for auto gatting mode.
 > 
 > Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
 
-We already have the HWMOD_NO_INIT_RESET flag.  Wouldn't that accomplish 
-the same goal?
+What do you think about a slightly modified and updated version of:
 
-Also I think we can reset the AESS during init.  I posted a patch for this 
-a few months ago, but looks like it got lost.  Will reply to one of your 
-other patches with more details.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69853.html
+
+?  That way we can reset the IP block at startup, like most of our other 
+IP blocks, to avoid previous OS and bootloader dependencies.
 
 
 - Paul
