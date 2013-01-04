@@ -1,42 +1,59 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 2/2] ARM: OMAP4: hwmod_data: Correct IDLEMODE for McPDM
-Date: Fri, 4 Jan 2013 11:09:23 +0100
-Message-ID: <1357294163-4317-3-git-send-email-peter.ujfalusi@ti.com>
-References: <1357294163-4317-1-git-send-email-peter.ujfalusi@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v3 0/5] ARM: OMAP4+: HDMI: Update platform devices for
+ audio
+Date: Fri, 4 Jan 2013 10:42:06 +0000
+Message-ID: <20130104104206.GK4627@opensource.wolfsonmicro.com>
+References: <1355794243-32345-1-git-send-email-rneri@dextratech.com>
+ <50E5C0D8.9@dextratech.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FxavXfDenm+F7xE/"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34219 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752346Ab3ADKJc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 05:09:32 -0500
-In-Reply-To: <1357294163-4317-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:60285 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754427Ab3ADKmJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 05:42:09 -0500
+Content-Disposition: inline
+In-Reply-To: <50E5C0D8.9@dextratech.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Jon Hunter <jon-hunter@ti.com>
+To: Ricardo Neri <rneri@dextratech.com>
+Cc: tomi.valkeinen@ti.com, lrg@ti.com, tony@atomide.com, peter.ujfalusi@ti.com, dzuniga@dextratech.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-McPDM need to be configured to NO_IDLE mode when it is in used otherwise
-vital clocks will be gated which results 'slow motion' audio playback.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+--FxavXfDenm+F7xE/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 129d508..584acf9 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2133,7 +2133,7 @@ static struct omap_hwmod omap44xx_mcpdm_hwmod = {
- 	 * available, so it doesn't seem that we have any choice in
- 	 * the kernel other than to avoid resetting it.
- 	 */
--	.flags		= HWMOD_EXT_OPT_MAIN_CLK,
-+	.flags		= HWMOD_EXT_OPT_MAIN_CLK | HWMOD_SWSUP_SIDLE,
- 	.mpu_irqs	= omap44xx_mcpdm_irqs,
- 	.sdma_reqs	= omap44xx_mcpdm_sdma_reqs,
- 	.main_clk	= "mcpdm_fck",
--- 
-1.8.0.2
+On Thu, Jan 03, 2013 at 11:33:12AM -0600, Ricardo Neri wrote:
 
+> Just wondering if you had a chance to take a look at these patches.
+
+Don't top post.  Whatever patches you're talking about I don't have them
+(given that they say "ARM: OMAP4:" I'm likely to have just discarded
+them if you sent them to me, people CC me on far too much irrelevant
+OMAP stuff).
+
+--FxavXfDenm+F7xE/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQ5rDTAAoJELSic+t+oim9Fq8QAJEko56kRRJRCP+4vz1cztI7
+nq+Aa+Y+cpPjwio7k7gx0XTRJJ/eZ6+60QWcV6Pnf8vbYM1161Q3u41m2SucIRlr
+9xsUA3kIYNEXaxLyYTiFzQxuK7Px0M3ijzFv6Y1ckaZWTbWEa3ExR6N2Xh2gFMgG
+bu8WetnpndIsUpYKqgC2CB1ehpF3QxW2Cig4J3XjzYYIluUIY5HnBetwjso0rsIN
+NQ7VHevWnQkyAQn/C/x3inQt8C/ZhS/J0QyXor8wq2u6PwtVmSzrKKlPnNYuzd/O
+cZ/8kFp4qjBlWSRGQvdoZ0aobJwsoR30kD1Ly2mSSDuZgqLSuuOJAQHgaFBPMWEW
+41yyL6rxyJNd+TVAyzzS9RDnKG6XL/LXxJTvzT+pzXw6rdYwbGqCbAmJA5o8ZFtf
+/VMtEJ+UYiGVpOIOOibAEOApPbwA/8S1ri//1kPgbQAsGkOQSn3o4wIVOc4rHgBh
+stH8MP/RGlN/0Fa84G4REZfHsQAzxPelkFyORdG+51RpMxVDDcIw78EVQ01siZ5N
+J8VuXdK6QLHN2grRiwMY9AueBmeY8tsXT7eDT7PCszhDQBPM5QSjeYWWF432GsQ0
+gRHscDsuusDC6SZ3dSale8/rNGvxG+5Y4xhBisk1jBQBWXjMkmhixwfVDBwTqCkr
+ulLPQWjM7McEy8xYO4Jw
+=b5SV
+-----END PGP SIGNATURE-----
+
+--FxavXfDenm+F7xE/--
