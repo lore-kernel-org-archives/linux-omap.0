@@ -1,59 +1,83 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 02/12] ARM: OMAP2+: PM: introduce power domains
- functional states
-Date: Fri, 4 Jan 2013 15:22:49 +0200
-Message-ID: <1357305769.2221.81.camel@sokoban>
+Subject: Re: [PATCH 05/12] ARM: OMAP3xxx: PM: convert to use the functional
+ power states API
+Date: Fri, 4 Jan 2013 15:45:18 +0200
+Message-ID: <1357307118.2221.93.camel@sokoban>
 References: <20121209174545.6933.59371.stgit@dusk.lan>
-	 <20121209175253.6933.87846.stgit@dusk.lan>
-	 <CAORVsuXnbNLm3i=W2yb682qC1QH673nM3nPpNM_9OMds8SdzQA@mail.gmail.com>
+	 <20121209175312.6933.92995.stgit@dusk.lan>
 Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54239 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55117 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754749Ab3ADNWy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jan 2013 08:22:54 -0500
-In-Reply-To: <CAORVsuXnbNLm3i=W2yb682qC1QH673nM3nPpNM_9OMds8SdzQA@mail.gmail.com>
+	id S1754742Ab3ADNpX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Jan 2013 08:45:23 -0500
+In-Reply-To: <20121209175312.6933.92995.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Jean Pihet <j-pihet@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-Hi Paul / Jean,
+Hi Paul,
 
-On Wed, 2012-12-12 at 11:33 +0100, Jean Pihet wrote:
+On Sun, 2012-12-09 at 10:53 -0700, Paul Walmsley wrote:
 
 <clip>
 
-> > +/**
-> > + * _match_pwrst: determine the closest supported power state
-> > + * @pwrsts: list of allowed states, defined as a bitmask
-> > + * @pwrst: initial state to be used as a starting point
-> > + * @min: minimum (i.e. lowest consumption) allowed state
-> > + * @max: maximum (i.e. highest consumption) allowed state
-> > + *
-> > + * Search down then up for a valid state from a list of allowed
-> > + * states.  Used by states conversion functions (_pwrdm_fpwrst_to_*)
-> > + * to look for allowed power and logic states for a powerdomain.
-> > + * Returns the matching allowed state.  XXX Deprecated.  The software
-> > + * should not try to program unsupported powerstates.
-> 
-> 
-> Why is this new code already deprecated? Does this require a rewrite?
+> @@ -112,24 +112,26 @@ static void omap3_core_restore_context(void)
+>  static void omap3_save_secure_ram_context(void)
+>  {
+>  	u32 ret;
+> -	int mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
+> +	int mpu_next_fpwrst;
+>  
+> -	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
+> -		/*
+> -		 * MPU next state must be set to POWER_ON temporarily,
+> -		 * otherwise the WFI executed inside the ROM code
+> -		 * will hang the system.
+> -		 */
+> -		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+> -		ret = _omap_save_secure_sram((u32 *)
+> -				__pa(omap3_secure_ram_storage));
+> -		pwrdm_set_next_pwrst(mpu_pwrdm, mpu_next_state);
+> -		/* Following is for error tracking, it should not happen */
+> -		if (ret) {
+> -			pr_err("save_secure_sram() returns %08x\n", ret);
+> -			while (1)
+> -				;
+> -		}
+> +	if (omap_type() == OMAP2_DEVICE_TYPE_GP)
+> +		return;
+> +
+> +	/*
+> +	 * MPU next state must be set to POWER_ON temporarily,
+> +	 * otherwise the WFI executed inside the ROM code will hang
+> +	 * the system.
+> +	 */
+> +	mpu_next_fpwrst = pwrdm_read_next_fpwrst(mpu_pwrdm);
+> +	pwrdm_set_next_fpwrst(mpu_pwrdm, PWRDM_FUNC_PWRST_ON);
+> +	ret = _omap_save_secure_sram((u32 *)__pa(omap3_secure_ram_storage));
+> +	pwrdm_set_next_fpwrst(mpu_pwrdm, mpu_next_fpwrst);
+> +	/* Following is for error tracking, it should not happen */
+> +	/* XXX This needs to be converted to a BUG() or removed */
+> +	if (ret) {
+> +		pr_err("save_secure_sram() returns %08x\n", ret);
+> +		while (1)
+> +			;
 
-Looks like it is removed by another patch in the same set and could
-probably just be removed from this one also.
+Just a minor comment here, this can be converted to BUG_ON right now, as
+it is only used from init code.
 
-> > +       }
-> > +
-> > +       /* XXX deprecated */
-> 
-> 
-> Same here
-
-Same thing, maybe drop the code out completely.
+Another thing to consider with this code is, that there might be someone
+who actually wants to use secure services from the kernel, and in this
+case you need to do the save every time you are entering off-mode if
+secure services have been used. If this save fails, the core powerdomain
+should be re-programmed to RET, or prevent idle completely. Maybe this
+needs to be moved into secure driver or something, and use cpu_pm
+notifiers.... they don't support failures currently though.
 
 -Tero
 
