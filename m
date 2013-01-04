@@ -1,58 +1,60 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: Does USB isochronous mode work on EHCI port?
-Date: Fri, 4 Jan 2013 15:20:16 +0200
-Message-ID: <50E6D710.4060409@ti.com>
-References: <32bbff70-2fcd-4993-92ea-385ab02f735a@googlegroups.com> <eb7a9da0-7556-4d8f-b7b4-bf29768082df@googlegroups.com> <6ffddeae-3f7b-4972-a485-c62ecc7e2cdb@googlegroups.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 02/12] ARM: OMAP2+: PM: introduce power domains
+ functional states
+Date: Fri, 4 Jan 2013 15:22:49 +0200
+Message-ID: <1357305769.2221.81.camel@sokoban>
+References: <20121209174545.6933.59371.stgit@dusk.lan>
+	 <20121209175253.6933.87846.stgit@dusk.lan>
+	 <CAORVsuXnbNLm3i=W2yb682qC1QH673nM3nPpNM_9OMds8SdzQA@mail.gmail.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54169 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54239 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754734Ab3ADNUU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jan 2013 08:20:20 -0500
-In-Reply-To: <6ffddeae-3f7b-4972-a485-c62ecc7e2cdb@googlegroups.com>
+	id S1754749Ab3ADNWy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Jan 2013 08:22:54 -0500
+In-Reply-To: <CAORVsuXnbNLm3i=W2yb682qC1QH673nM3nPpNM_9OMds8SdzQA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <samoht.yrag@gmail.com>
-Cc: pandaboard@googlegroups.com, balbi@ti.com, balbif@gmail.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-Hi Gary,
+Hi Paul / Jean,
 
-On 01/04/2013 02:20 PM, Gary Thomas wrote:
-> 
-> 
-> On Thursday, January 3, 2013 9:21:19 AM UTC-7, Felipe Balbi wrote:
-> 
->     Hi,
-> 
->     On Wednesday, January 2, 2013 10:44:50 PM UTC+2, Gary Thomas wrote:
-> 
->         I have a video adapter attached to my EHCI port which runs full
->         speed (480Mb/s) isochronous mode.  Sadly, I never get any data
->         from the device (it uses the EM28xx driver).
->         This same device + driver works fine on my laptop and from what
->         I can tell looking at the module debug, it's failing when
->         waiting for the ISOC frame data to arrive.
-> 
->         Should this work?  I recall lots of discussion in the past about
->         ISOC transfers not working on certain OMAP devices...
-> 
-> 
->     which kernel are you using ? Have you tested mainline kernel ?
-> 
-> 
-> I'm using the TI/Ubuntu kernel ( ti-ubuntu-3.4.0-1489.17)
-> 
-> Using the mainline would be hard as there is a lot in this kernel that
-> isn't in the mainline.
+On Wed, 2012-12-12 at 11:33 +0100, Jean Pihet wrote:
 
-I don't have an ISO device with me at the moment. I can only test this
-next week.
+<clip>
 
-Could you please post the output of dmesg once you plug in the USB
-device and start using it? Also the output of usbmon would be great.
+> > +/**
+> > + * _match_pwrst: determine the closest supported power state
+> > + * @pwrsts: list of allowed states, defined as a bitmask
+> > + * @pwrst: initial state to be used as a starting point
+> > + * @min: minimum (i.e. lowest consumption) allowed state
+> > + * @max: maximum (i.e. highest consumption) allowed state
+> > + *
+> > + * Search down then up for a valid state from a list of allowed
+> > + * states.  Used by states conversion functions (_pwrdm_fpwrst_to_*)
+> > + * to look for allowed power and logic states for a powerdomain.
+> > + * Returns the matching allowed state.  XXX Deprecated.  The software
+> > + * should not try to program unsupported powerstates.
+> 
+> 
+> Why is this new code already deprecated? Does this require a rewrite?
 
---
-cheers,
--roger
+Looks like it is removed by another patch in the same set and could
+probably just be removed from this one also.
+
+> > +       }
+> > +
+> > +       /* XXX deprecated */
+> 
+> 
+> Same here
+
+Same thing, maybe drop the code out completely.
+
+-Tero
+
+
