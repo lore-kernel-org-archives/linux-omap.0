@@ -1,59 +1,96 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v3 0/5] ARM: OMAP4+: HDMI: Update platform devices for
- audio
-Date: Fri, 4 Jan 2013 10:42:06 +0000
-Message-ID: <20130104104206.GK4627@opensource.wolfsonmicro.com>
-References: <1355794243-32345-1-git-send-email-rneri@dextratech.com>
- <50E5C0D8.9@dextratech.com>
+From: Gary Thomas <samoht.yrag-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Does USB isochronous mode work on EHCI port?
+Date: Fri, 4 Jan 2013 04:20:15 -0800 (PST)
+Message-ID: <6ffddeae-3f7b-4972-a485-c62ecc7e2cdb@googlegroups.com>
+References: <32bbff70-2fcd-4993-92ea-385ab02f735a@googlegroups.com>
+ <eb7a9da0-7556-4d8f-b7b4-bf29768082df@googlegroups.com>
+Reply-To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FxavXfDenm+F7xE/"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:60285 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754427Ab3ADKmJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 05:42:09 -0500
-Content-Disposition: inline
-In-Reply-To: <50E5C0D8.9@dextratech.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/alternative;
+	boundary="----=_Part_1068_32648178.1357302015872"
+Return-path: <pandaboard+bncBCOJLZ4VRAEBBAESTODQKGQEBSAPMDI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <eb7a9da0-7556-4d8f-b7b4-bf29768082df-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Post: <http://groups.google.com/group/pandaboard/post?hl=en_US>, <mailto:pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:pandaboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/pandaboard?hl=en_US>
+Sender: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
+ <mailto:pandaboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
+ <mailto:googlegroups-manage+575825281776+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, balbif-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <rneri@dextratech.com>
-Cc: tomi.valkeinen@ti.com, lrg@ti.com, tony@atomide.com, peter.ujfalusi@ti.com, dzuniga@dextratech.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+
+------=_Part_1068_32648178.1357302015872
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
 
---FxavXfDenm+F7xE/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Thu, Jan 03, 2013 at 11:33:12AM -0600, Ricardo Neri wrote:
+On Thursday, January 3, 2013 9:21:19 AM UTC-7, Felipe Balbi wrote:
+>
+> Hi,
+>
+> On Wednesday, January 2, 2013 10:44:50 PM UTC+2, Gary Thomas wrote:
+>>
+>> I have a video adapter attached to my EHCI port which runs full speed 
+>> (480Mb/s) isochronous mode.  Sadly, I never get any data from the device 
+>> (it uses the EM28xx driver).
+>> This same device + driver works fine on my laptop and from what I can 
+>> tell looking at the module debug, it's failing when waiting for the ISOC 
+>> frame data to arrive.
+>>
+>> Should this work?  I recall lots of discussion in the past about ISOC 
+>> transfers not working on certain OMAP devices...
+>>
+>
+> which kernel are you using ? Have you tested mainline kernel ?
+>
 
-> Just wondering if you had a chance to take a look at these patches.
+I'm using the TI/Ubuntu kernel ( ti-ubuntu-3.4.0-1489.17)
 
-Don't top post.  Whatever patches you're talking about I don't have them
-(given that they say "ARM: OMAP4:" I'm likely to have just discarded
-them if you sent them to me, people CC me on far too much irrelevant
-OMAP stuff).
+Using the mainline would be hard as there is a lot in this kernel that 
+isn't in the mainline.
 
---FxavXfDenm+F7xE/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+> Would be cool if you could also Cc linu...-u79uwXL29TY76Z2rM5mHXA@public.gmane.org <javascript:>and 
+> linux...-u79uwXL29TY76Z2rM5mHXA@public.gmane.org <javascript:> for
+> all OMAP USB queries so you can reach all interested folks.
+>
+> cheers
+>
+> -- 
+> balbi
+>
 
-iQIcBAEBAgAGBQJQ5rDTAAoJELSic+t+oim9Fq8QAJEko56kRRJRCP+4vz1cztI7
-nq+Aa+Y+cpPjwio7k7gx0XTRJJ/eZ6+60QWcV6Pnf8vbYM1161Q3u41m2SucIRlr
-9xsUA3kIYNEXaxLyYTiFzQxuK7Px0M3ijzFv6Y1ckaZWTbWEa3ExR6N2Xh2gFMgG
-bu8WetnpndIsUpYKqgC2CB1ehpF3QxW2Cig4J3XjzYYIluUIY5HnBetwjso0rsIN
-NQ7VHevWnQkyAQn/C/x3inQt8C/ZhS/J0QyXor8wq2u6PwtVmSzrKKlPnNYuzd/O
-cZ/8kFp4qjBlWSRGQvdoZ0aobJwsoR30kD1Ly2mSSDuZgqLSuuOJAQHgaFBPMWEW
-41yyL6rxyJNd+TVAyzzS9RDnKG6XL/LXxJTvzT+pzXw6rdYwbGqCbAmJA5o8ZFtf
-/VMtEJ+UYiGVpOIOOibAEOApPbwA/8S1ri//1kPgbQAsGkOQSn3o4wIVOc4rHgBh
-stH8MP/RGlN/0Fa84G4REZfHsQAzxPelkFyORdG+51RpMxVDDcIw78EVQ01siZ5N
-J8VuXdK6QLHN2grRiwMY9AueBmeY8tsXT7eDT7PCszhDQBPM5QSjeYWWF432GsQ0
-gRHscDsuusDC6SZ3dSale8/rNGvxG+5Y4xhBisk1jBQBWXjMkmhixwfVDBwTqCkr
-ulLPQWjM7McEy8xYO4Jw
-=b5SV
------END PGP SIGNATURE-----
+------=_Part_1068_32648178.1357302015872
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
---FxavXfDenm+F7xE/--
+<br><br>On Thursday, January 3, 2013 9:21:19 AM UTC-7, Felipe Balbi wrote:<=
+blockquote class=3D"gmail_quote" style=3D"margin: 0;margin-left: 0.8ex;bord=
+er-left: 1px #ccc solid;padding-left: 1ex;">Hi,<br><br>On Wednesday, Januar=
+y 2, 2013 10:44:50 PM UTC+2, Gary Thomas wrote:<blockquote class=3D"gmail_q=
+uote" style=3D"margin:0;margin-left:0.8ex;border-left:1px #ccc solid;paddin=
+g-left:1ex"><div>I have a video adapter attached to my EHCI port which runs=
+ full speed (480Mb/s) isochronous mode. &nbsp;Sadly, I never get any data f=
+rom the device (it uses the EM28xx driver).</div><div>This same device + dr=
+iver works fine on my laptop and from what I can tell looking at the module=
+ debug, it's failing when waiting for the ISOC frame data to arrive.</div><=
+div><br></div><div>Should this work? &nbsp;I recall lots of discussion in t=
+he past about ISOC transfers not working on certain OMAP devices...</div></=
+blockquote><div><br></div><div>which kernel are you using ? Have you tested=
+ mainline kernel ?</div></blockquote><div><br></div><div>I'm using the TI/U=
+buntu kernel (&nbsp;ti-ubuntu-3.4.0-1489.17)</div><div><br></div><div>Using=
+ the mainline would be hard as there is a lot in this kernel that isn't in =
+the mainline.</div><div><br></div><blockquote class=3D"gmail_quote" style=
+=3D"margin: 0;margin-left: 0.8ex;border-left: 1px #ccc solid;padding-left: =
+1ex;"><div><br></div><div>Would be cool if you could also Cc <a href=3D"jav=
+ascript:" target=3D"_blank" gdf-obfuscated-mailto=3D"xLFeTlVbl0QJ">linu...@=
+vger.kernel.org</a> and&nbsp;<a href=3D"javascript:" target=3D"_blank" gdf-=
+obfuscated-mailto=3D"xLFeTlVbl0QJ">linux...-u79uwXL29TY76Z2rM5mHXA@public.gmane.org</a> for</div><d=
+iv>all OMAP USB queries so you can reach all interested folks.</div><div><b=
+r></div><div>cheers</div><div><br></div><div>--&nbsp;</div><div>balbi</div>=
+</blockquote>
+------=_Part_1068_32648178.1357302015872--
