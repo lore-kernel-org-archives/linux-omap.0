@@ -1,12 +1,12 @@
 From: Ricardo Neri <rneri@dextratech.com>
-Subject: [RESEND PATCH v3 4/5] ARM: OMAP4+: HDMI: Relocate the device for audio interface
-Date: Fri,  4 Jan 2013 17:26:26 -0600
-Message-ID: <1357341987-3327-5-git-send-email-rneri@dextratech.com>
+Subject: [RESEND PATCH v3 3/5] ARM4: OMAP4+: HDMI: Relocate devices for audio codec and card
+Date: Fri,  4 Jan 2013 17:26:25 -0600
+Message-ID: <1357341987-3327-4-git-send-email-rneri@dextratech.com>
 References: <1357341987-3327-1-git-send-email-rneri@dextratech.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from spamfilter.dextratech.com ([187.141.251.67]:52733 "EHLO
+Received: from spamfilter.dextratech.com ([187.141.251.67]:52726 "EHLO
 	mail.dextratech.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755344Ab3ADX0m (ORCPT
+	with ESMTP id S1755254Ab3ADX0m (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 18:26:42 -0500
 In-Reply-To: <1357341987-3327-1-git-send-email-rneri@dextratech.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,151 +14,134 @@ List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, tony@atomide.com
 Cc: peter.ujfalusi@ti.com, dzuniga@dextratech.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <rneri@dextratech.com>
 
-The HDMI display and audio functionality share the same resources (e.g., register
-spaces). The ASoC HDMI CPU-DAI driver needs access to some (but not all) the
-resources of the dss_hdmi platform device. As such resources are within the
-address space of omapdss_hdmi, it makes sense to have the DSS HDMI driver to
-create the platform driver with the required resources.
+Relocate the creation the platform devices for audio the HDMI audio codec and
+the audio card to display.c. This allows the display code to create the required
+platform devices based on what is wired on the board. Thus, as many devices as
+required are created; or none if the HDMI ouptut is not implemented.
 
 Signed-off-by: Ricardo Neri <rneri@dextratech.com>
 ---
- arch/arm/mach-omap2/devices.c  |   24 ----------------
- drivers/video/omap2/dss/hdmi.c |   59 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 59 insertions(+), 24 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c    |    6 ------
+ arch/arm/mach-omap2/board-omap4panda.c |    6 ------
+ arch/arm/mach-omap2/devices.c          |    7 -------
+ arch/arm/mach-omap2/display.c          |   31 +++++++++++++++++++++++++++++++
+ 4 files changed, 31 insertions(+), 19 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 5a486d9..0830d98 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -383,11 +383,6 @@ static struct platform_device sdp4430_dmic_codec = {
+ 	.id	= -1,
+ };
+ 
+-static struct platform_device sdp4430_hdmi_audio_codec = {
+-	.name	= "hdmi-audio-codec",
+-	.id	= -1,
+-};
+-
+ static struct omap_abe_twl6040_data sdp4430_abe_audio_data = {
+ 	.card_name = "SDP4430",
+ 	.has_hs		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
+@@ -422,7 +417,6 @@ static struct platform_device *sdp4430_devices[] __initdata = {
+ 	&sdp4430_vbat,
+ 	&sdp4430_dmic_codec,
+ 	&sdp4430_abe_audio,
+-	&sdp4430_hdmi_audio_codec,
+ };
+ 
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 9f336a3..561a5a7 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -126,11 +126,6 @@ static struct platform_device panda_abe_audio = {
+ 	},
+ };
+ 
+-static struct platform_device panda_hdmi_audio_codec = {
+-	.name	= "hdmi-audio-codec",
+-	.id	= -1,
+-};
+-
+ static struct platform_device btwilink_device = {
+ 	.name	= "btwilink",
+ 	.id	= -1,
+@@ -140,7 +135,6 @@ static struct platform_device *panda_devices[] __initdata = {
+ 	&leds_gpio,
+ 	&wl1271_device,
+ 	&panda_abe_audio,
+-	&panda_hdmi_audio_codec,
+ 	&btwilink_device,
+ };
+ 
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 6d37438..9fdc1f9 100644
+index 66518b2..6d37438 100644
 --- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
-@@ -352,29 +352,6 @@ static void __init omap_init_dmic(void)
- static inline void omap_init_dmic(void) {}
- #endif
+@@ -355,11 +355,6 @@ static inline void omap_init_dmic(void) {}
+ #if defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI) || \
+ 		defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI_MODULE)
  
--#if defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI) || \
--		defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI_MODULE)
+-static struct platform_device omap_hdmi_audio = {
+-	.name	= "omap-hdmi-audio-card",
+-	.id	= -1,
+-};
 -
--static void __init omap_init_hdmi_audio(void)
--{
--	struct omap_hwmod *oh;
--	struct platform_device *pdev;
--
--	oh = omap_hwmod_lookup("dss_hdmi");
--	if (!oh) {
--		printk(KERN_ERR "Could not look up dss_hdmi hw_mod\n");
--		return;
--	}
--
--	pdev = omap_device_build("omap-hdmi-audio",
--		-1, oh, NULL, 0, NULL, 0, 0);
--	WARN(IS_ERR(pdev),
--	     "Can't build omap_device for omap-hdmi-audio-dai.\n");
--}
--#else
--static inline void omap_init_hdmi_audio(void) {}
--#endif
--
- #if defined(CONFIG_SPI_OMAP24XX) || defined(CONFIG_SPI_OMAP24XX_MODULE)
- 
- #include <linux/platform_data/spi-omap2-mcspi.h>
-@@ -620,7 +597,6 @@ static int __init omap2_init_devices(void)
- 	 */
- 	omap_init_audio();
- 	omap_init_camera();
--	omap_init_hdmi_audio();
- 	omap_init_mbox();
- 	/* If dtb is there, the devices will be created dynamically */
- 	if (!of_have_populated_dt()) {
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 769d082..0dde2b5 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -60,6 +60,9 @@
- static struct {
- 	struct mutex lock;
- 	struct platform_device *pdev;
-+#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+	struct platform_device *audio_pdev;
-+#endif
- 
- 	struct hdmi_ip_data ip_data;
- 
-@@ -822,6 +825,51 @@ static void hdmi_put_clocks(void)
- }
- 
- #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+static int hdmi_probe_audio(struct platform_device *pdev)
-+{
-+	struct resource *res;
-+	struct platform_device *aud_pdev;
-+	struct resource aud_res[2] = {
-+		DEFINE_RES_MEM(-1, -1),
-+		DEFINE_RES_DMA(-1),
-+	};
-+
-+	res = platform_get_resource(hdmi.pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		DSSERR("can't get IORESOURCE_MEM HDMI\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Pass this resource to audio drivers to find the DMA port address.
-+	 * Audio drivers should not ioremap it.
-+	 */
-+	aud_res[0].start = res->start;
-+	aud_res[0].end = res->end;
-+
-+	res = platform_get_resource(hdmi.pdev, IORESOURCE_DMA, 0);
-+	if (!res) {
-+		DSSERR("can't get IORESOURCE_DMA HDMI\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Pass the audio DMA request resource to audio drivers. */
-+	aud_res[1].start = res->start;
-+
-+	/* create platform device for HDMI audio driver */
-+	aud_pdev = platform_device_register_simple("omap-hdmi-audio",
-+						   pdev->id, aud_res,
-+						   ARRAY_SIZE(aud_res));
-+	if (IS_ERR(aud_pdev)) {
-+		DSSERR("Can't instantiate hdmi-audio\n");
-+		return -ENODEV;
-+	}
-+
-+	hdmi.audio_pdev = aud_pdev;
-+
-+	return 0;
-+}
-+
- int hdmi_compute_acr(u32 sample_freq, u32 *n, u32 *cts)
+ static void __init omap_init_hdmi_audio(void)
  {
- 	u32 deep_color;
-@@ -1111,6 +1159,12 @@ static int __init omapdss_hdmihw_probe(struct platform_device *pdev)
+ 	struct omap_hwmod *oh;
+@@ -375,8 +370,6 @@ static void __init omap_init_hdmi_audio(void)
+ 		-1, oh, NULL, 0, NULL, 0, 0);
+ 	WARN(IS_ERR(pdev),
+ 	     "Can't build omap_device for omap-hdmi-audio-dai.\n");
+-
+-	platform_device_register(&omap_hdmi_audio);
+ }
+ #else
+ static inline void omap_init_hdmi_audio(void) {}
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 282c814e..6cc9cea 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -414,6 +414,37 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+ 		}
+ 	}
  
- 	hdmi_probe_pdata(pdev);
- 
-+#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+	r = hdmi_probe_audio(pdev);
-+	if (r)
-+		DSSWARN("could not create platform device for audio");
-+#endif
++	/* Create devices for HDMI audio drivers */
++	for (i = 0; i < board_data->num_devices; i++) {
++		struct platform_device *au_pdev;
++		struct omap_dss_device *dssdev = board_data->devices[i];
++		bool card_created = false;
++
++		if (dssdev->type != OMAP_DISPLAY_TYPE_HDMI)
++			continue;
++
++		/* We need only one device for the audio card */
++		if (card_created == false) {
++			au_pdev = create_simple_dss_pdev("omap-hdmi-audio-card",
++							 -1, NULL, 0, dss_pdev);
++			if (IS_ERR(au_pdev)) {
++				pr_err("Could not build platform_device for omap-hdmi-audio-card\n");
++				return PTR_ERR(au_pdev);
++			}
++			card_created = true;
++		}
++
++		/* One device for each HDMI connector in the board */
++		au_pdev = create_simple_dss_pdev("hdmi-audio-codec",
++						  dssdev->dev.id,
++						  NULL, 0, dss_pdev);
++		if (IS_ERR(au_pdev)) {
++			pr_err("Could not build platform_device for hdmi-audio-codec\n");
++			return PTR_ERR(au_pdev);
++		}
++
++	}
 +
  	return 0;
+ }
  
- err_panel_init:
-@@ -1127,6 +1181,11 @@ static int __exit hdmi_remove_child(struct device *dev, void *data)
- 
- static int __exit omapdss_hdmihw_remove(struct platform_device *pdev)
- {
-+#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-+	if (hdmi.audio_pdev != NULL)
-+		platform_device_unregister(hdmi.audio_pdev);
-+#endif
-+
- 	device_for_each_child(&pdev->dev, NULL, hdmi_remove_child);
- 
- 	dss_unregister_child_devices(&pdev->dev);
 -- 
 1.7.10.4
 
