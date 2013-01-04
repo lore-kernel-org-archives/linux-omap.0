@@ -1,96 +1,55 @@
-From: Gary Thomas <samoht.yrag-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Does USB isochronous mode work on EHCI port?
-Date: Fri, 4 Jan 2013 04:20:15 -0800 (PST)
-Message-ID: <6ffddeae-3f7b-4972-a485-c62ecc7e2cdb@googlegroups.com>
-References: <32bbff70-2fcd-4993-92ea-385ab02f735a@googlegroups.com>
- <eb7a9da0-7556-4d8f-b7b4-bf29768082df@googlegroups.com>
-Reply-To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Sebastien Guiriec <s-guiriec@ti.com>
+Subject: [PATCH 2/3] ARM: OMAP4: hwmod data: do not enable or reset the AESS during kernel init
+Date: Fri, 4 Jan 2013 14:02:05 +0100
+Message-ID: <1357304526-21557-3-git-send-email-s-guiriec@ti.com>
+References: <1357304526-21557-1-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_Part_1068_32648178.1357302015872"
-Return-path: <pandaboard+bncBCOJLZ4VRAEBBAESTODQKGQEBSAPMDI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <eb7a9da0-7556-4d8f-b7b4-bf29768082df-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Post: <http://groups.google.com/group/pandaboard/post?hl=en_US>, <mailto:pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:pandaboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/pandaboard?hl=en_US>
-Sender: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
- <mailto:pandaboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
- <mailto:googlegroups-manage+575825281776+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, balbif-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:40807 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751513Ab3ADNCQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 08:02:16 -0500
+In-Reply-To: <1357304526-21557-1-git-send-email-s-guiriec@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastien Guiriec <s-guiriec@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, Tero Kristo <t-kristo@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-------=_Part_1068_32648178.1357302015872
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+The AESS on OMAP4 has additional register on top of SYS_CONFIG for
+auto gatting configuration. In order to avoid running clock after
+boot up we should avoid to enable and reset the module during boot up.
 
+Audio driver will be in charge of configuring the addition register.
 
+At its core, this patch is a workaround for an OMAP hardware problem.
+It should be possible to configure the OMAP with good default reset
+configuration of AESS IP for auto gatting mode.
 
-On Thursday, January 3, 2013 9:21:19 AM UTC-7, Felipe Balbi wrote:
->
-> Hi,
->
-> On Wednesday, January 2, 2013 10:44:50 PM UTC+2, Gary Thomas wrote:
->>
->> I have a video adapter attached to my EHCI port which runs full speed 
->> (480Mb/s) isochronous mode.  Sadly, I never get any data from the device 
->> (it uses the EM28xx driver).
->> This same device + driver works fine on my laptop and from what I can 
->> tell looking at the module debug, it's failing when waiting for the ISOC 
->> frame data to arrive.
->>
->> Should this work?  I recall lots of discussion in the past about ISOC 
->> transfers not working on certain OMAP devices...
->>
->
-> which kernel are you using ? Have you tested mainline kernel ?
->
+Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-I'm using the TI/Ubuntu kernel ( ti-ubuntu-3.4.0-1489.17)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index b340a4e..26d6cde 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -346,6 +346,14 @@ static struct omap_hwmod omap44xx_aess_hwmod = {
+ 	.name		= "aess",
+ 	.class		= &omap44xx_aess_hwmod_class,
+ 	.clkdm_name	= "abe_clkdm",
++	/*
++	 * AESS has an internal register on top of SYS_CONFIG for
++	 * AUTO GATTING mode. Unfortunately the reset value of this
++	 * register is not set correctly. So until AESS driver is not
++	 * probe we should not try to control the module during boot up.
++	 * Audio driver will handle the additional register configuration.
++	 */
++	.flags		= HWMOD_NO_SETUP_RESET,
+ 	.mpu_irqs	= omap44xx_aess_irqs,
+ 	.sdma_reqs	= omap44xx_aess_sdma_reqs,
+ 	.main_clk	= "aess_fck",
+-- 
+1.7.10.4
 
-Using the mainline would be hard as there is a lot in this kernel that 
-isn't in the mainline.
-
-
-> Would be cool if you could also Cc linu...-u79uwXL29TY76Z2rM5mHXA@public.gmane.org <javascript:>and 
-> linux...-u79uwXL29TY76Z2rM5mHXA@public.gmane.org <javascript:> for
-> all OMAP USB queries so you can reach all interested folks.
->
-> cheers
->
-> -- 
-> balbi
->
-
-------=_Part_1068_32648178.1357302015872
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-<br><br>On Thursday, January 3, 2013 9:21:19 AM UTC-7, Felipe Balbi wrote:<=
-blockquote class=3D"gmail_quote" style=3D"margin: 0;margin-left: 0.8ex;bord=
-er-left: 1px #ccc solid;padding-left: 1ex;">Hi,<br><br>On Wednesday, Januar=
-y 2, 2013 10:44:50 PM UTC+2, Gary Thomas wrote:<blockquote class=3D"gmail_q=
-uote" style=3D"margin:0;margin-left:0.8ex;border-left:1px #ccc solid;paddin=
-g-left:1ex"><div>I have a video adapter attached to my EHCI port which runs=
- full speed (480Mb/s) isochronous mode. &nbsp;Sadly, I never get any data f=
-rom the device (it uses the EM28xx driver).</div><div>This same device + dr=
-iver works fine on my laptop and from what I can tell looking at the module=
- debug, it's failing when waiting for the ISOC frame data to arrive.</div><=
-div><br></div><div>Should this work? &nbsp;I recall lots of discussion in t=
-he past about ISOC transfers not working on certain OMAP devices...</div></=
-blockquote><div><br></div><div>which kernel are you using ? Have you tested=
- mainline kernel ?</div></blockquote><div><br></div><div>I'm using the TI/U=
-buntu kernel (&nbsp;ti-ubuntu-3.4.0-1489.17)</div><div><br></div><div>Using=
- the mainline would be hard as there is a lot in this kernel that isn't in =
-the mainline.</div><div><br></div><blockquote class=3D"gmail_quote" style=
-=3D"margin: 0;margin-left: 0.8ex;border-left: 1px #ccc solid;padding-left: =
-1ex;"><div><br></div><div>Would be cool if you could also Cc <a href=3D"jav=
-ascript:" target=3D"_blank" gdf-obfuscated-mailto=3D"xLFeTlVbl0QJ">linu...@=
-vger.kernel.org</a> and&nbsp;<a href=3D"javascript:" target=3D"_blank" gdf-=
-obfuscated-mailto=3D"xLFeTlVbl0QJ">linux...-u79uwXL29TY76Z2rM5mHXA@public.gmane.org</a> for</div><d=
-iv>all OMAP USB queries so you can reach all interested folks.</div><div><b=
-r></div><div>cheers</div><div><br></div><div>--&nbsp;</div><div>balbi</div>=
-</blockquote>
-------=_Part_1068_32648178.1357302015872--
