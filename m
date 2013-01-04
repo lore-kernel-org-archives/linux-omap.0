@@ -1,40 +1,39 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 1/2] ARM: OMAP4: clock data: Lock ABE DPLL on all
- revisions
-Date: Fri, 4 Jan 2013 17:18:13 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301041717410.25868@utopia.booyaka.com>
-References: <1357294163-4317-1-git-send-email-peter.ujfalusi@ti.com> <1357294163-4317-2-git-send-email-peter.ujfalusi@ti.com> <50E6F0CA.60309@ti.com> <50E6F94D.7090706@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: hwmod: rename flag to prevent hwmod
+ code from touching IP block during init
+Date: Fri, 4 Jan 2013 18:19:54 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301041817460.25868@utopia.booyaka.com>
+References: <1357304526-21557-1-git-send-email-s-guiriec@ti.com> <1357304526-21557-2-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:46764 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:46910 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754984Ab3ADRSO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 12:18:14 -0500
-In-Reply-To: <50E6F94D.7090706@ti.com>
+	with ESMTP id S1753796Ab3ADSTz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jan 2013 13:19:55 -0500
+In-Reply-To: <1357304526-21557-2-git-send-email-s-guiriec@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
+To: Sebastien Guiriec <s-guiriec@ti.com>
+Cc: =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, Tero Kristo <t-kristo@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-On Fri, 4 Jan 2013, Peter Ujfalusi wrote:
+Hi Sebastien
 
-> On 01/04/2013 04:10 PM, Jon Hunter wrote:
-> > 
-> > On 01/04/2013 04:09 AM, Peter Ujfalusi wrote:
-> >> To avoid issues with audio caused by non locked ABE DPLL we should
-> >> make sure it is locked in all OMAP4 revisions.
-> >>
-> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> >>
-> >> asda d
-> > 
-> > Not sure what the above is ;-)
+On Fri, 4 Jan 2013, Sebastien Guiriec wrote:
+
+> Rename HWMOD_EXT_OPT_MAIN_CLK flag to indicate that this IP block is
+> dependent on an off-chip functional clock that is not guaranteed to
+> be present during initialization. Same flag can be use for IP with
+> additional HW registers to control Auto IDLE mode.
 > 
-> Argh, squashed patches without commit message cleanup...
-> Paul: can you fix this up, or should I resend?
+> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
 
-No worries, I'll fix it up here :-)
+We already have the HWMOD_NO_INIT_RESET flag.  Wouldn't that accomplish 
+the same goal?
+
+Also I think we can reset the AESS during init.  I posted a patch for this 
+a few months ago, but looks like it got lost.  Will reply to one of your 
+other patches with more details.
 
 
 - Paul
