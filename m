@@ -1,35 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: am33xx-hwmod: Fix wrongly terminated
- am33xx_usbss_mpu_irqs array
-Date: Mon, 7 Jan 2013 12:40:18 -0800
-Message-ID: <20130107204017.GK14149@atomide.com>
-References: <1357252342-6166-1-git-send-email-panto@antoniou-consulting.com>
- <20130107200338.GD14149@atomide.com>
- <alpine.DEB.2.00.1301072009170.31833@utopia.booyaka.com>
-Mime-Version: 1.0
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH 1/5] capemgr: Beaglebone DT overlay based cape manager
+Date: Mon, 7 Jan 2013 22:40:38 +0200
+Message-ID: <93BF5C62-ADE8-4EFC-9175-C2D7E43300E3@antoniou-consulting.com>
+References: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com> <1357584666-17374-2-git-send-email-panto@antoniou-consulting.com> <20130107200945.GF14149@atomide.com> <379B16EC-BFAA-4C27-8321-E7133C03368D@antoniou-consulting.com> <20130107202306.GH14149@atomide.com> <FA4D880E-833E-43D9-A399-0A5C260E83F2@antoniou-consulting.com> <20130107203529.GI14149@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1301072009170.31833@utopia.booyaka.com>
+In-Reply-To: <20130107203529.GI14149@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Afzal Mohammed <afzal@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Stephen Warren <swarren@wwwdotorg.org>, David Gibson <david@gibson.dropbear.id.au>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [130107 12:12]:
-> On Mon, 7 Jan 2013, Tony Lindgren wrote:
+Hi Tony,
+
+On Jan 7, 2013, at 10:35 PM, Tony Lindgren wrote:
+
+> * Pantelis Antoniou <panto@antoniou-consulting.com> [130107 12:29]:
+>> On Jan 7, 2013, at 10:23 PM, Tony Lindgren wrote:
+>>> 
+>>> Well how about split it to an eeprom driver, and Linux generic
+>>> device loader parts?
+>>> 
+>> 
+>> All that's left is the eeprom driver (accessor) and calls to the 
+>> generic DT overlay constructs. 
+>> 
+>> If you caught on the previous patchset about DT overlays it should be
+>> clear.
+>> 
+>> So it is split along those lines already.
 > 
-> > * Pantelis Antoniou <panto@antoniou-consulting.com> [130103 14:35]:
-> > > The IRQ array must be terminated by -1 and not by -1+OMAP_INTC_START
-> > > This led to having a resource list of 100s of IRQs.
-> > 
-> > This is a bug for sure introduced with commit a2cfc509 (ARM: OMAP3+:
-> > hwmod: Add AM33XX HWMOD data). Anybody care to ack this one?
+> Hmm I was thinking something like this:
 > 
-> Acked-by: Paul Walmsley <paul@pwsan.com>
+> drivers/base/device-loader.c
+> drivers/misc/eeprom/beaglebone-cape.c
+> 
+> Then you may be able to just load the configuration for it
+> from a .dts file and maybe no hardware specific glue is even
+> needed.
+> 
 
-Thanks applying into omap-for-v3.8-rc2/fixes.
+At the end of the line, some kind of hardware glue is going to be needed.
 
-Regards,
+I just feel that drawing from a sample size of 1 (maybe 2 if I get to throw
+in the beagleboard), it is a bit premature to think about making it overly
+general, besides the part that are obviously part of the infrastructure 
+(like the DT overlay stuff).
 
-Tony
+What I'm getting at, is that we need some user experience about this, before
+going away and creating structure out of possible misconception about the uses. 
+
+> Regards,
+> 
+> Tony
+
+Regards
+
+-- Pantelis
