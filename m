@@ -1,143 +1,127 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: [PATCH 2/5] capemgr: Add beaglebone's cape driver bindings
-Date: Mon,  7 Jan 2013 20:51:03 +0200
-Message-ID: <1357584666-17374-3-git-send-email-panto@antoniou-consulting.com>
+From: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Subject: [PATCH 3/5] capemgr: am335x-bone capemgr bindings
+Date: Mon,  7 Jan 2013 20:51:04 +0200
+Message-ID: <1357584666-17374-4-git-send-email-panto@antoniou-consulting.com>
 References: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from li42-95.members.linode.com ([209.123.162.95]:58330 "EHLO
-	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755104Ab3AGSv0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jan 2013 13:51:26 -0500
-In-Reply-To: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com>
-Sender: linux-omap-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1357584666-17374-1-git-send-email-panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matt Ranostay <mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Clark <robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, David Gibson <david@gibson.dropbear.id.au>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>, Pantelis Antoniou <panto@antoniou-consulting.com>
 
-Document the beaglebone's cape driver bindings.
+Bindings which enable the DT overlay based cape manager for
+the Texas Instruments Beaglebone platform.
 
-Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+Signed-off-by: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
 ---
- .../devicetree/bindings/misc/capes-beaglebone.txt  | 110 +++++++++++++++++++++
- 1 file changed, 110 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/misc/capes-beaglebone.txt
+ arch/arm/boot/dts/am335x-bone.dts | 68 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 67 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/misc/capes-beaglebone.txt b/Documentation/devicetree/bindings/misc/capes-beaglebone.txt
-new file mode 100644
-index 0000000..f73cab5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/misc/capes-beaglebone.txt
-@@ -0,0 +1,110 @@
-+* TI Beaglebone DT Overlay Cape Driver
-+
-+Required properties:
-+
-+- compatible: "ti,bone-capemgr"
-+
-+- eeprom: Contains the phandle beaglebone's baseboard i2c eeprom.
-+
-+- baseboardmaps - node containing a list of supported
-+	beaglebone revisions; each node in should have the
-+	following properties:
-+	- board-name: The board name stored in the baseboard
-+		eeprom.
-+	- compatible-name: The name which will be used for
-+		matching compatible capes.
-+
-+- slots: node containing a list of slot nodes (which in the beaglebone
-+	case correspond to I2C addresses for dynamically probed capes,
-+	or an override slot definition for hardcoded capes.
-+	- eeprom: Contains the phandle beaglebone's cape i2c eeprom.
-+
-+	It is possible to define override slots that will be activated
-+	when the baseboard matches, and/or if supplied on the kernel command
-+	line and/or when dynamically requested on runtime.
-+	In that case the slot is marked with
-+	- ti,cape-override: Marks a slot override.
-+	- compatible: any of the "runtime", "kernel", or any compatible-name
-+	  on a matching baseboardmap node.
-+	- Any of the eeprom-format-revision, board-name, version, manufacturer,
-+	  part-number, number-of-pins, serial-number, pin-usage, vdd-3v3exp,
-+	  vdd-5v, sys-5v, dc-supplied properties which fill in the simulated
-+	  cape's EEPROM fields. The part-number field is required, the rest
-+	  are optional taking into default values.
-+
-+- capemaps: node contains list of cape mappings, which allow converting
-+	from a part-number & version tuple to the filename of the dtbo file.
-+	- part-number: part number contained in the EEPROM
-+	- version node containing a
-+		- version: specific version to map to
-+		- dtbo: name of the dtbo file 
-+
-+Example:
-+bone_capemgr {
-+	compatible = "ti,bone-capemgr";
-+	status = "okay";
-+
-+	eeprom = <&baseboard_eeprom>;
-+
-+	baseboardmaps {
-+		baseboard_beaglebone: board@0 {
-+			board-name = "A335BONE";
-+			compatible-name = "ti,beaglebone";
-+		};
-+	};
-+
-+	slots {
-+		slot@0 {
-+			eeprom = <&cape_eeprom0>;
-+		};
-+
-+		slot@1 {
-+			eeprom = <&cape_eeprom1>;
-+		};
-+
-+		slot@2 {
-+			eeprom = <&cape_eeprom2>;
-+		};
-+
-+		slot@3 {
-+			eeprom = <&cape_eeprom3>;
-+		};
-+	};
-+
-+	/* mapping between board names and dtb objects */
-+	capemaps {
-+		/* Weather cape */
-+		cape@0 {
-+			part-number = "BB-BONE-WTHR-01";
-+			version@00A0 {
-+				version = "00A0";
-+				dtbo = "cape-bone-weather-00A0.dtbo";
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 11b240c..5faeece 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -38,7 +38,7 @@
+ 		};
+ 	};
+ 
+-	ocp {
++	ocp: ocp {
+ 		uart1: serial@44e09000 {
+ 			status = "okay";
+ 		};
+@@ -51,6 +51,35 @@
+ 				reg = <0x24>;
+ 			};
+ 
++			baseboard_eeprom: baseboard_eeprom@50 {
++				compatible = "at,24c256";
++				reg = <0x50>;
 +			};
 +		};
-+	};
-+};
 +
-+Example of the override syntax when used on a bone compatible foo board.
++		i2c3: i2c@4819c000 {
++			status = "okay";
++			clock-frequency = <100000>;
 +
-+{
-+	...
++			cape_eeprom0: cape_eeprom0@54 {
++				compatible = "at,24c256";
++				reg = <0x54>;
++			};
 +
-+	baseboardmaps {
-+		...
-+		baseboard_beaglebone: board@0 {
-+			board-name = "A335FOO";
-+			compatible-name = "ti,foo";
++			cape_eeprom1: cape_eeprom1@55 {
++				compatible = "at,24c256";
++				reg = <0x55>;
++			};
++
++			cape_eeprom2: cape_eeprom2@56 {
++				compatible = "at,24c256";
++				reg = <0x56>;
++			};
++
++			cape_eeprom3: cape_eeprom3@57 {
++				compatible = "at,24c256";
++				reg = <0x57>;
++			};
+ 		};
+ 	};
+ 
+@@ -83,6 +112,43 @@
+ 			default-state = "off";
+ 		};
+ 	};
++
++	bone_capemgr {
++		compatible = "ti,bone-capemgr";
++		status = "okay";
++
++		eeprom = <&baseboard_eeprom>;
++
++		baseboardmaps {
++			baseboard_beaglebone: board@0 {
++				board-name = "A335BONE";
++				compatible-name = "ti,beaglebone";
++			};
 +		};
 +
-+		slot@6 {
-+			ti,cape-override;
-+			compatible = "ti,foo";
-+			board-name = "FOO-hardcoded";
-+			version = "00A0";
-+			manufacturer = "Texas Instruments";
-+			part-number = "BB-BONE-FOO-01";
++		slots {
++			slot@0 {
++				eeprom = <&cape_eeprom0>;
++			};
++
++			slot@1 {
++				eeprom = <&cape_eeprom1>;
++			};
++
++			slot@2 {
++				eeprom = <&cape_eeprom2>;
++			};
++
++			slot@3 {
++				eeprom = <&cape_eeprom3>;
++			};
++		};
++
++		/* mapping between board names and dtb objects */
++		capemaps {
++
 +		};
 +	};
-+
-+};
-+	
+ };
+ 
+ /include/ "tps65217.dtsi"
 -- 
 1.7.12
-
