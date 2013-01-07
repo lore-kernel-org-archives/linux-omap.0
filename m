@@ -1,44 +1,64 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Common clock framework: mutex recursion when calling clk_prepare from prepare handler
-Date: Mon, 07 Jan 2013 01:49:02 +0100
-Message-ID: <3826517.zOi8FASM36@avalon>
+Subject: Re: [PATCH] omap3isp: Don't include <plat/cpu.h>
+Date: Mon, 07 Jan 2013 02:14:20 +0100
+Message-ID: <30855273.UsAOH7UnCd@avalon>
+References: <1357248204-9863-1-git-send-email-laurent.pinchart@ideasonboard.com> <20130103225541.GK25633@atomide.com> <20130106111039.627d5dab@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42622 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60525 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752294Ab3AGAr3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Jan 2013 19:47:29 -0500
+	with ESMTP id S1752811Ab3AGBMn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Jan 2013 20:12:43 -0500
+In-Reply-To: <20130106111039.627d5dab@redhat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: mturquette@ti.com
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>, linux-omap@vger.kernel.org
 
-Hello,
+Hi Mauro,
 
-I ran into a mutex recursion issue while trying to port the OMAP3 ISP driver 
-(drivers/media/platform/omap3isp) over to the common clock framework.
+On Sunday 06 January 2013 11:10:39 Mauro Carvalho Chehab wrote:
+> Em Thu, 3 Jan 2013 14:55:41 -0800 Tony Lindgren escreveu:
+> > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [130103 13:24]:
+> > > The plat/*.h headers are not available to drivers in multiplatform
+> > > kernels. As the header isn't needed, just remove it.
+> > 
+> > Please consider merging this for the -rc cycle, so I can make
+> > plat/cpu.h produce an error for omap2+ to prevent new drivers
+> > including it.
+> 
+> Ok, I'll add it to the list of patches for 3.8.
 
-The OMAP3 ISP generates two programmable clocks named xclka and xclkb that are 
-routed out of the SoC. My goal is to expose them as common clock instances 
-through the common clock framework.
+Thank you.
 
-The xclk[ab] clocks are children of the cam_mclk clock. They are controlled 
-through ISP registers that sit in the cam_fclk clock domain. The cam_mclk and 
-cam_fclk clocks sit in separate power domains.
+Could you please also add "omap3isp: Don't include deleted OMAP plat/ header 
+files" to that list ? And Sakari, could you please ack it ?
 
-To program the xclk clocks I need to enable the cam_fclk clock. As xclk[ab] 
-are not descendants of the cam_fclk clock, this operation needs to be 
-performed manually. I thus call clk_prepare_enable on the cam_fclk clock in 
-the xclk[ab] prepare handler. This is where things break, as the common clock 
-framework takes the prepare_lock mutex in clk_prepare, which results in a 
-mutex recursion deadlock as the prepare_lock mutex isn't recursive.
-
-What's the best way to solve this ? __clk_prepare (the unlocked version of 
-clk_prepare) isn't exported to drivers, and I'm not convinced it should be. 
-Turning prepare_lock into a recursive mutex might also work, but I'm not sure 
-what drawbacks this would have. Advices would be appreciated.
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > ---
+> > > 
+> > >  drivers/media/platform/omap3isp/isp.c |    2 --
+> > >  1 files changed, 0 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/platform/omap3isp/isp.c
+> > > b/drivers/media/platform/omap3isp/isp.c index 50cea08..07eea5b 100644
+> > > --- a/drivers/media/platform/omap3isp/isp.c
+> > > +++ b/drivers/media/platform/omap3isp/isp.c
+> > > @@ -71,8 +71,6 @@
+> > > 
+> > >  #include <media/v4l2-common.h>
+> > >  #include <media/v4l2-device.h>
+> > > 
+> > > -#include <plat/cpu.h>
+> > > -
+> > > 
+> > >  #include "isp.h"
+> > >  #include "ispreg.h"
+> > >  #include "ispccdc.h"
 
 -- 
 Regards,
