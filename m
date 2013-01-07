@@ -1,127 +1,51 @@
-From: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Subject: [PATCH 3/5] capemgr: am335x-bone capemgr bindings
-Date: Mon,  7 Jan 2013 20:51:04 +0200
-Message-ID: <1357584666-17374-4-git-send-email-panto@antoniou-consulting.com>
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: [PATCH 4/5] capemgr: firmware makefiles for DT objects
+Date: Mon,  7 Jan 2013 20:51:05 +0200
+Message-ID: <1357584666-17374-5-git-send-email-panto@antoniou-consulting.com>
 References: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1357584666-17374-1-git-send-email-panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matt Ranostay <mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Clark <robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from li42-95.members.linode.com ([209.123.162.95]:58364 "EHLO
+	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755104Ab3AGSvg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jan 2013 13:51:36 -0500
+In-Reply-To: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, David Gibson <david@gibson.dropbear.id.au>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>, Pantelis Antoniou <panto@antoniou-consulting.com>
 
-Bindings which enable the DT overlay based cape manager for
-the Texas Instruments Beaglebone platform.
+Makefile rules to support compiling DT cape definitions.
 
-Signed-off-by: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/boot/dts/am335x-bone.dts | 68 ++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 67 insertions(+), 1 deletion(-)
+ firmware/Makefile | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 11b240c..5faeece 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -38,7 +38,7 @@
- 		};
- 	};
+diff --git a/firmware/Makefile b/firmware/Makefile
+index cbb09ce..361b2af 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -147,6 +147,9 @@ quiet_cmd_mkdir = MKDIR   $(patsubst $(objtree)/%,%,$@)
+ quiet_cmd_ihex  = IHEX    $@
+       cmd_ihex  = $(OBJCOPY) -Iihex -Obinary $< $@
  
--	ocp {
-+	ocp: ocp {
- 		uart1: serial@44e09000 {
- 			status = "okay";
- 		};
-@@ -51,6 +51,35 @@
- 				reg = <0x24>;
- 			};
++quiet_cmd_dtco	= DTCO $@
++      cmd_dtco	= $(objtree)/scripts/dtc/dtc -O dtb -o $@ -b 0 $(DTC_FLAGS) -@ $<
++
+ quiet_cmd_ihex2fw  = IHEX2FW $@
+       cmd_ihex2fw  = $(objtree)/$(obj)/ihex2fw $< $@
  
-+			baseboard_eeprom: baseboard_eeprom@50 {
-+				compatible = "at,24c256";
-+				reg = <0x50>;
-+			};
-+		};
-+
-+		i2c3: i2c@4819c000 {
-+			status = "okay";
-+			clock-frequency = <100000>;
-+
-+			cape_eeprom0: cape_eeprom0@54 {
-+				compatible = "at,24c256";
-+				reg = <0x54>;
-+			};
-+
-+			cape_eeprom1: cape_eeprom1@55 {
-+				compatible = "at,24c256";
-+				reg = <0x55>;
-+			};
-+
-+			cape_eeprom2: cape_eeprom2@56 {
-+				compatible = "at,24c256";
-+				reg = <0x56>;
-+			};
-+
-+			cape_eeprom3: cape_eeprom3@57 {
-+				compatible = "at,24c256";
-+				reg = <0x57>;
-+			};
- 		};
- 	};
+@@ -233,6 +236,10 @@ $(obj)/%.fw: $(obj)/%.HEX $(ihex2fw_dep) | $(objtree)/$(obj)/$$(dir %)
+ $(obj)/%.fw: $(obj)/%.H16 $(ihex2fw_dep) | $(objtree)/$(obj)/$$(dir %)
+ 	$(call cmd,h16tofw)
  
-@@ -83,6 +112,43 @@
- 			default-state = "off";
- 		};
- 	};
++# DTBO is device tree blob object
++$(obj)/%.dtbo: $(obj)/%.dts | $(objtree)/$(obj)/$$(dir %)
++	$(call cmd,dtco)
 +
-+	bone_capemgr {
-+		compatible = "ti,bone-capemgr";
-+		status = "okay";
-+
-+		eeprom = <&baseboard_eeprom>;
-+
-+		baseboardmaps {
-+			baseboard_beaglebone: board@0 {
-+				board-name = "A335BONE";
-+				compatible-name = "ti,beaglebone";
-+			};
-+		};
-+
-+		slots {
-+			slot@0 {
-+				eeprom = <&cape_eeprom0>;
-+			};
-+
-+			slot@1 {
-+				eeprom = <&cape_eeprom1>;
-+			};
-+
-+			slot@2 {
-+				eeprom = <&cape_eeprom2>;
-+			};
-+
-+			slot@3 {
-+				eeprom = <&cape_eeprom3>;
-+			};
-+		};
-+
-+		/* mapping between board names and dtb objects */
-+		capemaps {
-+
-+		};
-+	};
- };
+ $(firmware-dirs):
+ 	$(call cmd,mkdir)
  
- /include/ "tps65217.dtsi"
 -- 
 1.7.12
+
