@@ -1,47 +1,121 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/5] capemgr: Beaglebone DT overlay based cape manager
-Date: Mon, 7 Jan 2013 21:35:04 +0000
-Message-ID: <201301072135.05166.arnd@arndb.de>
-References: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com> <93BF5C62-ADE8-4EFC-9175-C2D7E43300E3@antoniou-consulting.com> <20130107210551.GL14149@atomide.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] OMAP: add pwm driver using dmtimers.
+Date: Mon, 7 Jan 2013 16:24:59 -0600
+Message-ID: <50EB4B3B.3070900@ti.com>
+References: <20121212192430.50cea126@notabene.brown> <50C8ABFC.3080309@ti.com> <20121213140635.4eda5858@notabene.brown> <50CA0B4D.2000302@ti.com> <20130107081220.3c39617b@notabene.brown>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130107210551.GL14149@atomide.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Stephen Warren <swarren@wwwdotorg.org>, David Gibson <david@gibson.dropbear.id.au>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, Linus Walleij <linus.walleij@stericss>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130107081220.3c39617b@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>, Grant Erickson <marathon96@gmail.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-(Adding Sascha Hauer, Linus Walleij, Lee Jones to Cc)
 
-On Monday 07 January 2013, Tony Lindgren wrote:
-> > 
-> > At the end of the line, some kind of hardware glue is going to be needed.
-> > 
-> > I just feel that drawing from a sample size of 1 (maybe 2 if I get to throw
-> > in the beagleboard), it is a bit premature to think about making it overly
-> > general, besides the part that are obviously part of the infrastructure 
-> > (like the DT overlay stuff).
-> > 
-> > What I'm getting at, is that we need some user experience about this, before
-> > going away and creating structure out of possible misconception about the uses. 
+On 01/06/2013 03:12 PM, NeilBrown wrote:
+
+[snip]
+
+> I've been playing with off-mode and discovered that the first attempt to set
+> the PWM after resume didn't work, but subsequent ones did.
+> I did some digging and came up with the following patch.  
+> With this in place, the omap_pwm_suspend() above is definitely pointless (was
+> wasn't really useful even without it).
+
+Thanks for sending. I have given this patch a try on omap3 and I am still
+some some failures with my timer read test. I need to dig into that further,
+but I am guessing not related to your patch as there were problems there
+before :-(
+
+Some minor comments below ...
+ 
+> NeilBrown
 > 
-> IMHO stuff like this will be needed by many SoCs. Some examples of similar
-> things for omaps that have eventually become generic frameworks have been
-> the clock framework, USB OTG support, runtime PM, pinmux framework and
-> so on.
 > 
-> So I suggest a minimal generic API from the start as that will make things
-> a lot easier in the long run.
+> From: NeilBrown <neilb@suse.de>
+> Date: Mon, 7 Jan 2013 07:53:03 +1100
+> Subject: [PATCH] OMAP dmtimer - simplify context-loss handling.
 
-I agree. The ux500 platform already has the concept of "user interface boards",
-which currently is not well integrated into devicetree. I believe Sascha
-mentioned that Pengutronix had been shipping some other systems with add-on
-boards and generating device tree binaries from source for each combination.
+Nit, subject should formatted "ARM: OMAP: blah blah blah"
 
-Ideally, both of the above should be able to use the same DT overlay logic
-as BeagleBone, and I'm sure there are more of those.
+Also, may be worth calling this "fix context-loss" as this is really
+fixing something that is broken.
+ 
+> The context loss handling in dmtimer appears to assume that
+>    omap_dm_timer_set_load_start() or omap_dm_timer_start()
+> and
+>    omap_dm_timer_stop()
+> 
+> bracket all interactions.  Only the first two restore the context and
+> the last updates the context loss counter.
+> However omap_dm_timer_set_load() or omap_dm_timer_set_match() can
+> reasonably be called outside this bracketing, and the fact that they
+> call omap_dm_timer_enable() / omap_dm_timer_disable() suggest that
+> is expected.
+> 
+> So if, after a transition into and out of off-mode which would cause
+> the dm timer to loose all state, omap_dm_timer_set_match() is called
+> before omap_dm_timer_start(), the value read from OMAP_TIMER_CTRL_REG
+> will be 'wrong' and this wrong value will be stored context.tclr so
+> a subsequent omap_dm_timer_start() can fail (As the control register
+> is wrong).
+> 
+> Simplify this be doing the restore-from-context in
+> omap_dm_timer_enable() so that whenever the timer is enabled, the
+> context is correct.
+> Also update the ctx_loss_count at the same time as we notice it is
+> wrong - these is no value in delaying this until the
+> omap_dm_timer_disable() as it cannot change while the timer is
+> enabled.
+> 
+> Signed-off-by: NeilBrown <neilb@suse.de>
+> 
+> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+> index 938b50a..c216696 100644
+> --- a/arch/arm/plat-omap/dmtimer.c
+> +++ b/arch/arm/plat-omap/dmtimer.c
+> @@ -253,6 +253,15 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_free);
+>  void omap_dm_timer_enable(struct omap_dm_timer *timer)
+>  {
+>  	pm_runtime_get_sync(&timer->pdev->dev);
+> +
+> +	if (!(timer->capability & OMAP_TIMER_ALWON)) {
+> +		int loss_count =
+> +			omap_pm_get_dev_context_loss_count(&timer->pdev->dev);
+> +		if (loss_count != timer->ctx_loss_count) {
+> +			omap_timer_restore_context(timer);
+> +			timer->ctx_loss_count = loss_count;
+> +		}
+> +	}
+>  }
 
-	Arnd
+Can you rebase on v3.8-rc2? We no longer call 
+omap_pm_get_dev_context_loss_count() directly and so this
+does not apply. Should be something like ...
+
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index d51b75b..2c48182 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -315,7 +315,19 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_free);
+ 
+ void omap_dm_timer_enable(struct omap_dm_timer *timer)
+ {
++       int c;
++
+        pm_runtime_get_sync(&timer->pdev->dev);
++
++       if (!(timer->capability & OMAP_TIMER_ALWON)) {
++               if (timer->get_context_loss_count) {
++                       c = timer->get_context_loss_count(&timer->pdev->dev);
++                       if (c != timer->ctx_loss_count) {
++                               omap_timer_restore_context(timer);
++                               timer->ctx_loss_count = c;
++                       }
++               }
++       }
+
+Cheers
+Jon
