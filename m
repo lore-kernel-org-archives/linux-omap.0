@@ -1,47 +1,88 @@
-From: kishon <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: usb: multi phy support
-Date: Mon, 7 Jan 2013 18:02:06 +0530
-Message-ID: <50EAC046.2020405@ti.com>
-References: <C8443D0743D26F4388EA172BF4E2A7A93EA7FDA7@DBDE01.ent.ti.com> <20130107120040.GD11232@arwen.pp.htv.fi>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: Querry on UART wakeup on Linux 3.8-rc1
+Date: Mon, 7 Jan 2013 18:40:02 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301071827440.24780@utopia.booyaka.com>
+References: <B668883EB5DD7144ADFC248A72176EA803E743F9@fioues07.ebgroup.elektrobit.com> <B668883EB5DD7144ADFC248A72176EA803E74A7A@fioues07.ebgroup.elektrobit.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130107120040.GD11232-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:53746 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752523Ab3AGSkE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jan 2013 13:40:04 -0500
+In-Reply-To: <B668883EB5DD7144ADFC248A72176EA803E74A7A@fioues07.ebgroup.elektrobit.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Madhusudhan.Gowda@elektrobit.com
+Cc: linux-omap@vger.kernel.org, t-kristo@ti.com, rnayak@ti.com
 
 Hi,
 
-On Monday 07 January 2013 05:30 PM, Felipe Balbi wrote:
+On Sun, 6 Jan 2013, Madhusudhan.Gowda@elektrobit.com wrote:
+
+> Could  someone point me if it has been working in any of the releases ?
+
+Serial wakeup from retention suspend seems to work on the OMAP4460 
+Panda-ES here as of v3.8-rc1, with a really recent U-boot[*]:
+
+http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/pm/4460pandaes/4460pandaes_log.txt
+
+http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/README.txt
+
+(There are some warnings present from the power state debugging 
+code, so there's probably something that could use a closer look.)
+
+The problem is, you need a really recent bootloader for this to work.  
+This is because the mainline kernel is missing code to idle several 
+on-chip devices (IVAHD, DSP, etc.).  This can be seen with the OMAP4430 
+boot logs:
+
+http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/pm/4430es2panda/4430es2panda_log.txt
+
+That board is running an "older" bootloader - from July 2012!
+
+The hope is that some of the folks still working for TI can post the 
+appropriate reset and idle code for these devices.  Or at least, we'd 
+better add a console warning to the OMAP44xx PM init code that warns about 
+the bootloader dependencies.  Any comments from the TI folks here?
+
+
+- Paul
+
+> 
+> Thanks,
+> Gowda
+> 
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org
+> [mailto:linux-omap-owner@vger.kernel.org] 
+> Sent: 01. tammikuuta 2013 22:08
+> To: linux-omap@vger.kernel.org
+> Subject: Querry on UART wakeup on Linux 3.8-rc1
+> 
 > Hi,
->
-> On Mon, Jan 07, 2013 at 12:57:15PM +0100, Mohammed, Afzal wrote:
->> AM335x SoC's used in boards like beagle bone has two instances of USB
->> modules (2.0) at the hardware level, each having a dedicated phy.
->> Currently in mainline, only one instance of USB is supported
->> (including a fix in your latest pull request). To support multi
->> instance, the biggest obstacle is lack of multi phy support for
->> usb phy's of same type.
->>
->> Earlier Kishon was working on usb phy device tree support, later it was
->> seen that generic phy layer was preferred. And Kishon posted a couple of
->> versions on generic phy framework, latest being on 26th September 2012,
->> but I could not see follow up's on that series.
->>
->> It seems Kishon is not now working on generic phy support. Let me know
->> your opinion/suggestions on supporting usb phy's of same type. We are
->> trying to get multi USB instance support in mainline for AM335x.
->
-> Kishon is still working on generic PHY layer indeed. Right Kishon ?
+> 
+> I tried to wakeup OMAP430 ES2.1 Panda from static suspend retention
+> using console uart2, it doesn't wakeup.
+> But could configure GPIO_121 button to wake up from retention fine.
+> 
+> On the serial uart side I have manually enabled wakeup by echo enabled >
+> /sys/devices/platform/omap_uart.2/tty/ttyO2/power/wakeup
+> 
+> I could see the wakeup enable bit (1<<14)  of  uart irrx pad register is
+> being set properly before it does static suspend fine.
+> 
+> Should I need to do any more thing to get it work?
+> 
+> Thanks,
+> Gowda
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org More majordomo info
+> at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Yes. I'll try and send it ASAP.
-
-Thanks
-Kishon
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
