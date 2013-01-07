@@ -1,54 +1,74 @@
-From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 02/10] video: da8xx-fb: simplify lcd_reset
-Date: Mon, 7 Jan 2013 10:34:53 +0530
-Message-ID: <6320773e2bd4b06b66d53f1139aaa7c05183bb37.1357303978.git.afzal@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v2 03/10] video: da8xx-fb: use modedb helper to update var
+Date: Mon, 7 Jan 2013 10:34:59 +0530
+Message-ID: <bd3d3c09b84348259e870ad9e017bd09c37c4dfe.1357303978.git.afzal@ti.com>
 References: <cover.1357303978.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <cover.1357303978.git.afzal-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Florian Tobias Schandinat <FlorianSchandinat-Mmb7MZpHnFY@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, hvaibhav-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60445 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750781Ab3AGFEZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jan 2013 00:04:25 -0500
+In-Reply-To: <cover.1357303978.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, nsekhar@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-lcd_reset function doesn't require any arguement, remove it.
+modedb structure is now used to store panel information, run modedb
+helper over it for initial update of "var" information instead of
+equating each fields.
 
-Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+While at it, remove redundant update of bits_per_pixel.
+
+Note: pixclock is overridden with proper value using an existing code
+as currently modedb is having it in Hz instead of ps, this would be
+fixed in a later change and this overide would be removed.
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/da8xx-fb.c |   18 ++----------------
+ 1 file changed, 2 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 89446aa..c8e97de 100644
+index c8e97de..0c404ed 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -681,7 +681,7 @@ static int fb_setcolreg(unsigned regno, unsigned red, unsigned green,
- }
- #undef CNVT_TOHW
+@@ -1329,6 +1329,8 @@ static int __devinit fb_probe(struct platform_device *device)
+ 		par->panel_power_ctrl(1);
+ 	}
  
--static void lcd_reset(struct da8xx_fb_par *par)
-+static void da8xx_fb_lcd_reset(void)
- {
- 	/* Disable the Raster if previously Enabled */
- 	lcd_disable_raster(false);
-@@ -721,7 +721,7 @@ static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
- 	u32 bpp;
- 	int ret = 0;
++	fb_videomode_to_var(&da8xx_fb_var, lcdc_info);
++
+ 	if (lcd_init(par, lcd_cfg, lcdc_info) < 0) {
+ 		dev_err(&device->dev, "lcd_init failed\n");
+ 		ret = -EFAULT;
+@@ -1381,25 +1383,9 @@ static int __devinit fb_probe(struct platform_device *device)
+ 		goto err_release_pl_mem;
+ 	}
  
--	lcd_reset(par);
-+	da8xx_fb_lcd_reset();
+-	/* Initialize par */
+-	da8xx_fb_info->var.bits_per_pixel = lcd_cfg->bpp;
+-
+-	da8xx_fb_var.xres = lcdc_info->xres;
+-	da8xx_fb_var.xres_virtual = lcdc_info->xres;
+-
+-	da8xx_fb_var.yres         = lcdc_info->yres;
+-	da8xx_fb_var.yres_virtual = lcdc_info->yres * LCD_NUM_BUFFERS;
+-
+ 	da8xx_fb_var.grayscale =
+ 	    lcd_cfg->panel_shade == MONOCHROME ? 1 : 0;
+ 	da8xx_fb_var.bits_per_pixel = lcd_cfg->bpp;
+-
+-	da8xx_fb_var.hsync_len = lcdc_info->hsync_len;
+-	da8xx_fb_var.vsync_len = lcdc_info->vsync_len;
+-	da8xx_fb_var.right_margin = lcdc_info->right_margin;
+-	da8xx_fb_var.left_margin  = lcdc_info->left_margin;
+-	da8xx_fb_var.lower_margin = lcdc_info->lower_margin;
+-	da8xx_fb_var.upper_margin = lcdc_info->upper_margin;
+ 	da8xx_fb_var.pixclock = da8xxfb_pixel_clk_period(par);
  
- 	/* Calculate the divider */
- 	lcd_calc_clk_divider(par);
+ 	/* Initialize fbinfo */
 -- 
 1.7.9.5
+
