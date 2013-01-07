@@ -1,108 +1,60 @@
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Subject: Re: [PATCH 08/10] video: da8xx-fb: obtain fb_videomode info from dt
-Date: Mon, 7 Jan 2013 10:11:31 +0100
-Message-ID: <20130107091131.GC23478@pengutronix.de>
+From: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 08/10] video: da8xx-fb: obtain fb_videomode info from dt
+Date: Mon, 7 Jan 2013 09:21:15 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA7FC7A@DBDE01.ent.ti.com>
 References: <cover.1357304090.git.afzal@ti.com>
  <78e026555731e0bbe8475610279d3e5265d124b9.1357304090.git.afzal@ti.com>
+ <20130107091131.GC23478@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46067 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753688Ab3AGJLo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jan 2013 04:11:44 -0500
-Content-Disposition: inline
-In-Reply-To: <78e026555731e0bbe8475610279d3e5265d124b9.1357304090.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130107091131.GC23478-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Steffen Trumtrar <s.trumtrar-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: "linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Florian Tobias Schandinat <FlorianSchandinat-Mmb7MZpHnFY@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori,
+ Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "Valkeinen,
+ Tomi" <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
 
-Hi!
+Hi Steffen,
 
-On Mon, Jan 07, 2013 at 10:41:30AM +0530, Afzal Mohammed wrote:
-> Obtain fb_videomode details for the connected lcd panel using the
-> display timing details present in DT.
+On Mon, Jan 07, 2013 at 14:41:31, Steffen Trumtrar wrote:
+> On Mon, Jan 07, 2013 at 10:41:30AM +0530, Afzal Mohammed wrote:
+
+> > Obtain fb_videomode details for the connected lcd panel using the
+> > display timing details present in DT.
+
+> > +- display-timings: list of different videomodes supported by the lcd
+> > +  panel, represented as childs, can have multiple modes supported, if
+> > +  only one, then it is considered native mode, if multiple modes are
+> > +  provided, native mode can be set explicitly, more details available
+> > +  @Documentation/devicetree/bindings/video/display-timing.txt
+
+> Keep in mind that the text combined with...
+
+> > +		if (of_get_fb_videomode(np, lcdc_info, 0)) {
+> > +			dev_err(&dev->dev, "timings not available in DT\n");
+> > +			return NULL;
+> > +		}
+> > +		return lcdc_info;
+> > +	}
 > 
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> ---
->  .../devicetree/bindings/video/fb-da8xx.txt         |   20 ++++++++++++++++++++
->  drivers/video/da8xx-fb.c                           |   16 ++++++++++++++++
->  2 files changed, 36 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/video/fb-da8xx.txt b/Documentation/devicetree/bindings/video/fb-da8xx.txt
-> index 581e014..eeb935b 100644
-> --- a/Documentation/devicetree/bindings/video/fb-da8xx.txt
-> +++ b/Documentation/devicetree/bindings/video/fb-da8xx.txt
-> @@ -6,6 +6,11 @@ Required properties:
->  	AM335x SoC's - "ti,am3352-lcdc", "ti,da830-lcdc"
->  - reg: Address range of lcdc register set
->  - interrupts: lcdc interrupt
-> +- display-timings: list of different videomodes supported by the lcd
-> +  panel, represented as childs, can have multiple modes supported, if
-> +  only one, then it is considered native mode, if multiple modes are
-> +  provided, native mode can be set explicitly, more details available
-> +  @Documentation/devicetree/bindings/video/display-timing.txt
->  
+> ... this is not correct. You are just supporting the first display-timings
+> subnode (of_get_fb_videomode(..., 0)).
 
-Keep in mind that the text combined with...
 
->  Example:
->  
-> @@ -13,4 +18,19 @@ lcdc@4830e000 {
->  	compatible = "ti,am3352-lcdc", "ti,da830-lcdc";
->  	reg =  <0x4830e000 0x1000>;
->  	interrupts = <36>;
-> +	display-timings {
-> +		800x480p62 {
-> +			clock-frequency = <30000000>;
-> +			hactive = <800>;
-> +			vactive = <480>;
-> +			hfront-porch = <39>;
-> +			hback-porch = <39>;
-> +			hsync-len = <47>;
-> +			vback-porch = <29>;
-> +			vfront-porch = <13>;
-> +			vsync-len = <2>;
-> +			hsync-active = <1>;
-> +			vsync-active = <1>;
-> +		};
-> +	};
->  };
-> diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-> index 68ae925..94add01 100644
-> --- a/drivers/video/da8xx-fb.c
-> +++ b/drivers/video/da8xx-fb.c
-> @@ -1261,8 +1261,24 @@ static struct fb_videomode *da8xx_fb_get_videomode(struct platform_device *dev)
->  {
->  	struct da8xx_lcdc_platform_data *fb_pdata = dev->dev.platform_data;
->  	struct fb_videomode *lcdc_info;
-> +	struct device_node *np = dev->dev.of_node;
->  	int i;
->  
-> +	if (np) {
-> +		lcdc_info = devm_kzalloc(&dev->dev,
-> +					 sizeof(struct fb_videomode),
-> +					 GFP_KERNEL);
-> +		if (!lcdc_info) {
-> +			dev_err(&dev->dev, "memory allocation failed\n");
-> +			return NULL;
-> +		}
-> +		if (of_get_fb_videomode(np, lcdc_info, 0)) {
-> +			dev_err(&dev->dev, "timings not available in DT\n");
-> +			return NULL;
-> +		}
-> +		return lcdc_info;
-> +	}
+Yes right, I will modify the text to reflect what the driver does.
 
-... this is not correct. You are just supporting the first display-timings
-subnode (of_get_fb_videomode(..., 0)).
-
-Regards,
-Steffen
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Regards
+Afzal
