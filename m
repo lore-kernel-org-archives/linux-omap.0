@@ -1,88 +1,66 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: Querry on UART wakeup on Linux 3.8-rc1
-Date: Mon, 7 Jan 2013 18:40:02 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301071827440.24780@utopia.booyaka.com>
-References: <B668883EB5DD7144ADFC248A72176EA803E743F9@fioues07.ebgroup.elektrobit.com> <B668883EB5DD7144ADFC248A72176EA803E74A7A@fioues07.ebgroup.elektrobit.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:53746 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752523Ab3AGSkE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jan 2013 13:40:04 -0500
-In-Reply-To: <B668883EB5DD7144ADFC248A72176EA803E74A7A@fioues07.ebgroup.elektrobit.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: [PATCH 0/5] DT Overlay based cape manager for TI's Beaglebone
+Date: Mon,  7 Jan 2013 20:51:01 +0200
+Message-ID: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, David Gibson <david@gibson.dropbear.id.au>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>, Pantelis Antoniou <panto@antoniou-consulting.com>
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan.Gowda@elektrobit.com
-Cc: linux-omap@vger.kernel.org, t-kristo@ti.com, rnayak@ti.com
 
-Hi,
+Introducing a Device Tree overlay cape manager.
 
-On Sun, 6 Jan 2013, Madhusudhan.Gowda@elektrobit.com wrote:
+Using it it is possible to support the growing cape ecosystem for
+the beaglebone, without having to hack a board file for each and
+every cape plug combination.
 
-> Could  someone point me if it has been working in any of the releases ?
+It is possible to force load capes, and also possible to remove
+them if need be (although precious few drivers support removal).
 
-Serial wakeup from retention suspend seems to work on the OMAP4460 
-Panda-ES here as of v3.8-rc1, with a really recent U-boot[*]:
+This patch is against the mainline kernel as of Jan 7 2013, top
+of the tree: "5f243b9 Merge tag 'arm64-fixes' of \
+	git://git.kernel.org/pub/scm/linux/kernel/git/cmarinas/linux-aarch640"
 
-http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/pm/4460pandaes/4460pandaes_log.txt
+You will need to have the DTC compiler patch which was posted seperately
+to the DTC mailing list "dtc: Dynamic symbols & fixup support", as well
+as the I2C accessor patch "i2c-EEPROM: In kernel memory accessor interface" I
+posted earlier.
 
-http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/README.txt
+Note that not many interesting capes are supported in the mainline kernel,
+since the drivers some time to land in mainline, but you can see an
+example of a (almost) feature complete linux kernel at:
 
-(There are some warnings present from the power state debugging 
-code, so there's probably something that could use a closer look.)
-
-The problem is, you need a really recent bootloader for this to work.  
-This is because the mainline kernel is missing code to idle several 
-on-chip devices (IVAHD, DSP, etc.).  This can be seen with the OMAP4430 
-boot logs:
-
-http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/pm/4430es2panda/4430es2panda_log.txt
-
-That board is running an "older" bootloader - from July 2012!
-
-The hope is that some of the folks still working for TI can post the 
-appropriate reset and idle code for these devices.  Or at least, we'd 
-better add a console warning to the OMAP44xx PM init code that warns about 
-the bootloader dependencies.  Any comments from the TI folks here?
+git://github.com/pantoniou/linux-bbxm.git branch not-capebus-v9
 
 
-- Paul
+Pantelis Antoniou (5):
+  capemgr: Beaglebone DT overlay based cape manager
+  capemgr: Add beaglebone's cape driver bindings
+  capemgr: am335x-bone capemgr bindings
+  capemgr: firmware makefiles for DT objects
+  capemgr: Weather cape cape definition
 
-> 
-> Thanks,
-> Gowda
-> 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org
-> [mailto:linux-omap-owner@vger.kernel.org] 
-> Sent: 01. tammikuuta 2013 22:08
-> To: linux-omap@vger.kernel.org
-> Subject: Querry on UART wakeup on Linux 3.8-rc1
-> 
-> Hi,
-> 
-> I tried to wakeup OMAP430 ES2.1 Panda from static suspend retention
-> using console uart2, it doesn't wakeup.
-> But could configure GPIO_121 button to wake up from retention fine.
-> 
-> On the serial uart side I have manually enabled wakeup by echo enabled >
-> /sys/devices/platform/omap_uart.2/tty/ttyO2/power/wakeup
-> 
-> I could see the wakeup enable bit (1<<14)  of  uart irrx pad register is
-> being set properly before it does static suspend fine.
-> 
-> Should I need to do any more thing to get it work?
-> 
-> Thanks,
-> Gowda
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org More majordomo info
-> at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+ .../devicetree/bindings/misc/capes-beaglebone.txt  |  110 ++
+ arch/arm/boot/dts/am335x-bone.dts                  |   75 +-
+ arch/arm/mach-omap2/Kconfig                        |    2 +
+ drivers/misc/Kconfig                               |    2 +
+ drivers/misc/Makefile                              |    1 +
+ drivers/misc/cape/Kconfig                          |    5 +
+ drivers/misc/cape/Makefile                         |    5 +
+ drivers/misc/cape/beaglebone/Kconfig               |   11 +
+ drivers/misc/cape/beaglebone/Makefile              |    5 +
+ drivers/misc/cape/beaglebone/capemgr.c             | 1835 ++++++++++++++++++++
+ firmware/Makefile                                  |   12 +
+ firmware/capes/cape-bone-weather-00A0.dts          |   66 +
+ 12 files changed, 2128 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/misc/capes-beaglebone.txt
+ create mode 100644 drivers/misc/cape/Kconfig
+ create mode 100644 drivers/misc/cape/Makefile
+ create mode 100644 drivers/misc/cape/beaglebone/Kconfig
+ create mode 100644 drivers/misc/cape/beaglebone/Makefile
+ create mode 100644 drivers/misc/cape/beaglebone/capemgr.c
+ create mode 100644 firmware/capes/cape-bone-weather-00A0.dts
+
+-- 
+1.7.12
 
