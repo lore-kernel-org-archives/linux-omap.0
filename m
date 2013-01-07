@@ -1,48 +1,77 @@
-From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 07/10] video: da8xx-fb: invoke platform callback safely
-Date: Mon, 7 Jan 2013 10:41:18 +0530
-Message-ID: <2f2074847380912085b73c1a53abf36a260cebf6.1357304090.git.afzal@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH 10/10] video: da8xx-fb: setup struct lcd_ctrl_config for dt
+Date: Mon, 7 Jan 2013 10:41:49 +0530
+Message-ID: <c58ee6abc9a364f4a9d8b4d075fd79ac3cc8bf75.1357304090.git.afzal@ti.com>
 References: <cover.1357304090.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <cover.1357304090.git.afzal-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Florian Tobias Schandinat <FlorianSchandinat-Mmb7MZpHnFY@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Steffen Trumtrar <s.trumtrar-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1357304090.git.afzal@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, Sekhar Nori <nsekhar@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Ensure that platform data is present before checking whether platform
-callback is present (the one used to control backlight). So far this
-was not an issue as driver was purely non-DT triggered, but now DT
-support has been added.
+strcut lcd_ctrl_config information required for driver is currently
+obtained via platform data. To handle DT probing, create
+lcd_ctrl_config and populate it with default values, these values are
+sufficient for the panels so far used with this controller to work.
 
-Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/da8xx-fb.c |   34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index d10479f..68ae925 100644
+index 3e590d4..4a4b4dc 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -1351,7 +1351,7 @@ static int __devinit fb_probe(struct platform_device *device)
- 	par->dev = &device->dev;
- 	par->lcdc_clk = fb_clk;
- 	par->lcd_fck_rate = clk_get_rate(fb_clk);
--	if (fb_pdata->panel_power_ctrl) {
-+	if (fb_pdata && fb_pdata->panel_power_ctrl) {
- 		par->panel_power_ctrl = fb_pdata->panel_power_ctrl;
- 		par->panel_power_ctrl(1);
+@@ -1257,6 +1257,35 @@ static struct fb_ops da8xx_fb_ops = {
+ 	.fb_blank = cfb_blank,
+ };
+ 
++static struct lcd_ctrl_config *da8xx_fb_create_cfg(struct platform_device *dev)
++{
++	struct lcd_ctrl_config *cfg;
++
++	cfg = devm_kzalloc(&dev->dev, sizeof(struct fb_videomode), GFP_KERNEL);
++	if (!cfg) {
++		dev_err(&dev->dev, "memory allocation failed\n");
++		return NULL;
++	}
++
++	/* default values */
++
++	if (lcd_revision == LCD_VERSION_1)
++		cfg->bpp = 16;
++	else
++		cfg->bpp = 32;
++
++	/*
++	 * For panels so far used with this LCDC, below statement is sufficient.
++	 * For new panels, if required, struct lcd_ctrl_cfg fields to be updated
++	 * with additional/modified values. Those values would have to be then
++	 * obtained from dt(requiring new dt bindings).
++	 */
++
++	cfg->panel_shade = COLOR_ACTIVE;
++
++	return cfg;
++}
++
+ static struct fb_videomode *da8xx_fb_get_videomode(struct platform_device *dev)
+ {
+ 	struct da8xx_lcdc_platform_data *fb_pdata = dev->dev.platform_data;
+@@ -1348,7 +1377,10 @@ static int __devinit fb_probe(struct platform_device *device)
+ 		break;
  	}
+ 
+-	lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
++	if (device->dev.of_node)
++		lcd_cfg = da8xx_fb_create_cfg(device);
++	else
++		lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
+ 
+ 	if (!lcd_cfg) {
+ 		ret = -EINVAL;
 -- 
 1.7.9.5
