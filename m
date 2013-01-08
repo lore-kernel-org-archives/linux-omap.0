@@ -1,115 +1,71 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH 07/10] crypto: omap-aes - Add Device Tree Support
-Date: Mon, 7 Jan 2013 16:29:50 -0700
-Message-ID: <20130107232950.GB13938@animalcreek.com>
-References: <1356109500-11719-1-git-send-email-mgreer@animalcreek.com>
- <1356109500-11719-8-git-send-email-mgreer@animalcreek.com>
- <CA+Bv8XYz6mUJs82qAz=pvhkNDFe_Vp5Nv6918UPMGFAuAaU5Jw@mail.gmail.com>
+From: Omar Ramirez Luna <omar.ramirez@copitl.com>
+Subject: Re: [PATCH 1/2] staging: tidspbridge: fix breakages due to CM reorganization
+Date: Mon, 7 Jan 2013 19:03:36 -0600
+Message-ID: <CAJ6Av5O8FJjOSDFxZVoMCkt-NZBPR1NAovs1fSTmdgjouOALLA@mail.gmail.com>
+References: <1356358225-25557-1-git-send-email-omar.ramirez@copitl.com>
+	<20130107230331.GA29943@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CA+Bv8XYz6mUJs82qAz=pvhkNDFe_Vp5Nv6918UPMGFAuAaU5Jw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russ Dill <russ.dill@gmail.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>, Dmitry Kasatkin <dmitry.kasatkin@intel.com>, linux-crypto@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, davem@davemloft.net, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ia0-f173.google.com ([209.85.210.173]:57054 "EHLO
+	mail-ia0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751615Ab3AHBDh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jan 2013 20:03:37 -0500
+Received: by mail-ia0-f173.google.com with SMTP id w21so17173825iac.18
+        for <linux-omap@vger.kernel.org>; Mon, 07 Jan 2013 17:03:36 -0800 (PST)
+In-Reply-To: <20130107230331.GA29943@kroah.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>, Tony Lindgren <tony@atomide.com>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
 
-On Fri, Dec 28, 2012 at 02:06:02AM -0800, Russ Dill wrote:
-> On Fri, Dec 21, 2012 at 10:04 AM, Mark A. Greer <mgreer@animalcreek.com> wrote:
-> > From: "Mark A. Greer" <mgreer@animalcreek.com>
-> >
-> > Add Device Tree suport to the omap-aes crypto
-> > driver.  Currently, only support for OMAP2 and
-> > OMAP3 is being added but support for OMAP4 will
-> > be added in a subsequent patch.
-> >
-> > CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
-> > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
-> > ---
-> >  drivers/crypto/omap-aes.c | 119 ++++++++++++++++++++++++++++++++++++----------
-> >  1 file changed, 93 insertions(+), 26 deletions(-)
-> >
-> > diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-> > index faf522f..68bf22d 100644
-> > --- a/drivers/crypto/omap-aes.c
-> > +++ b/drivers/crypto/omap-aes.c
-> > @@ -25,6 +25,9 @@
-> >  #include <linux/dmaengine.h>
-> >  #include <linux/omap-dma.h>
-> >  #include <linux/pm_runtime.h>
-> > +#include <linux/of.h>
-> > +#include <linux/of_device.h>
-> > +#include <linux/of_address.h>
-> >  #include <linux/io.h>
-> >  #include <linux/crypto.h>
-> >  #include <linux/interrupt.h>
-> > @@ -819,11 +822,93 @@ static struct crypto_alg algs[] = {
-> >  }
-> >  };
-> >
-> > +#ifdef CONFIG_OF
-> > +static const struct of_device_id omap_aes_of_match[] = {
-> > +       {
-> > +               .compatible     = "ti,omap2-aes",
-> > +       },
-> > +       {},
-> > +};
-> > +MODULE_DEVICE_TABLE(of, omap_aes_of_match);
-> 
-> I think you mean for the above section to be outside of the '#ifdef
-> CONFIG_OF' block.
+On Mon, Jan 7, 2013 at 5:03 PM, Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+> On Mon, Dec 24, 2012 at 08:10:24AM -0600, Omar Ramirez Luna wrote:
+>> 3.8-rc1 introduced changes in the clock management header files,
+>> this resulted in compilation breakages for this driver.
+>>
+>> Define this locally while APIs are made available, given that driver
+>> code shouldn't include mach header files.
+>>
+>> This fixes:
+>> drivers/staging/tidspbridge/core/tiomap3430.c:550:13: error:
+>> 'OMAP3430_CM_AUTOIDLE_PLL' undeclared (first use in this function)
+>> drivers/staging/tidspbridge/core/tiomap_io.c:416:13: error:
+>> 'OMAP3430_CM_CLKEN_PLL' undeclared (first use in this function)
+>>
+>> Reported-by: Chen Gang <gang.chen@asianux.com>
+>> Signed-off-by: Omar Ramirez Luna <omar.ramirez@copitl.com>
+>
+> Enric sent me a patch that just includes the proper .h file, which
+> should be better than doing this:
 
-Yes, I need to rework that.
+It looks better because the driver is already including related
+headers in a similar fashion, but in reality those headers are under
+arch/arm/mach-omap2 and the driver shouldn't have any business in
+including headers from there.
 
-> > +static int omap_aes_get_res_of(struct omap_aes_dev *dd,
-> > +               struct device *dev, struct resource *res)
-> > +{
-> > +       struct device_node *node = dev->of_node;
-> > +       const struct of_device_id *match;
-> > +       int err = 0;
-> > +
-> > +       match = of_match_device(of_match_ptr(omap_aes_of_match), dev);
-> > +       if (!match) {
-> > +               dev_err(dev, "no compatible OF match\n");
-> > +               err = -EINVAL;
-> > +               goto err;
-> > +       }
-> > +
-> > +       err = of_address_to_resource(node, 0, res);
-> > +       if (err < 0) {
-> > +               dev_err(dev, "can't translate OF node address\n");
-> > +               err = -EINVAL;
-> > +               goto err;
-> > +       }
-> > +
-> > +       dd->dma_out = -1; /* Dummy value that's unused */
-> > +       dd->dma_in = -1; /* Dummy value that's unused */
-> > +
-> > +err:
-> > +       return err;
-> > +}
-> > +#else
-> > +static int omap_aes_get_res_dev(struct omap_aes_dev *dd,
-> > +               struct device *dev, struct resource *res)
-> > +{
-> > +       return -EINVAL;
-> > +}
-> 
-> And I think you mean this one to be omap_aes_get_res_of
+>> --- a/drivers/staging/tidspbridge/core/_tiomap.h
+>> +++ b/drivers/staging/tidspbridge/core/_tiomap.h
+>> @@ -40,6 +40,14 @@
+>>  #include <dspbridge/sync.h>
+>>  #include <dspbridge/clk.h>
+>>
+>> +/*
+>> + * XXX These mach-omap2/ defines are wrong and should be removed.  No
+>> + * driver should read or write to PRM/CM registers directly; they
+>> + * should rely on OMAP core code to do this.
+>> + */
+>> +#define OMAP3430_CM_AUTOIDLE_PLL     0x0034
+>> +#define OMAP3430_CM_CLKEN_PLL                0x0004
+>
+> Don't define things that are already defined elsewhere...
+>
+> I'll not apply this.
 
-I do. :(
+Ok, not a problem, I'll be working on the real fix which is to get
+APIs from the core code for the driver to use.
 
-Thanks Russ. 
+Cheers,
 
-Mark
---
+Omar
