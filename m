@@ -1,69 +1,73 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH v4 0/3] ARM/dts: omap3: Add DT support for IGEP devices
-Date: Tue, 8 Jan 2013 17:19:57 +0100
-Message-ID: <CAAwP0s3RU-5n-JfzW8WpXiY_U7HdJ38rPAM5YGtOaTCFh8aqkw@mail.gmail.com>
-References: <1355923990-21240-1-git-send-email-javier.martinez@collabora.co.uk>
- <50EC4594.4060507@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] few omap fixes for v3.8-rc2
+Date: Tue, 8 Jan 2013 09:48:16 -0800
+Message-ID: <20130108174816.GP14149@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <50EC4594.4060507@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>, Matthias Brugger <matthias.bgg@googlemail.com>, Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Enric Balletbo i Serra <eballetbo@gmail.com>, Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:63055 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756485Ab3AHRsV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jan 2013 12:48:21 -0500
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, Jan 8, 2013 at 5:13 PM, Benoit Cousson <b-cousson@ti.com> wrote:
-> Hi Javier,
->
-> On 12/19/2012 02:33 PM, Javier Martinez Canillas wrote:
->> IGEP technology devices are TI OMAP3 SoC based industrial embedded
->> and computer-on-module boards. This patch-set adds initial device
->> tree support for these devices.
->>
->> The device trees allows to boot from an MMC and are working all the
->> components that already have device tree support on OMAP3 SoCs:
->>
->> - MMC/SD
->> - UARTs
->> - GPIO LEDs
->> - TWL4030 codec audio
->> - pinmux/pinconf pinctrl
->>
->> Some peripheral are still not working such as Flash storage and
->> Ethernet but support for these will also be included once the
->> OMAP GPMC device tree binding patches land on mainline.
->>
->> This is a v4 of the patch-set that adds MMC mux pins setup and
->> fixes a build issue due recent changes on twl4030.dtsi.
->>
->> The patch-set is composed of the following patches:
->>
->> [PATCH v4 1/3] ARM/dts: omap3: Add generic DT support for IGEP devices
->> [PATCH v4 2/3] ARM/dts: omap3: Add support for IGEPv2 board
->> [PATCH v4 3/3] ARM/dts: omap3: Add support for IGEP COM Module
->
-> I've just applied your series for 3.9 on top of 3.8-rc2 and had to update the Makefile that was different in the base you used. At the same time I updated the subjects to use "ARM: dts:" prefix to be compliant with the latest trend :-)
->
-> The patches are available here:
-> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.9/dts
->
-> Regards,
-> Benoit
->
->
-> --
+The following changes since commit d1c3ed669a2d452cacfb48c2d171a1f364dae2ed:
 
-Great, thanks a lot Benoit!
+  Linux 3.8-rc2 (2013-01-02 18:13:21 -0800)
 
-Best regards,
-Javier
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8-rc2/fixes-signed-v2
+
+for you to fetch changes up to 6adba67eb0c4731ed0346731d024b2102f5b4d9d:
+
+  ARM: OMAP2+: am33xx-hwmod: Fix wrongly terminated am33xx_usbss_mpu_irqs array (2013-01-07 12:38:07 -0800)
+
+----------------------------------------------------------------
+The biggest change is a fix to deal with different power state
+on omap2 registers that causes issues trying to use common PM code.
+Also fix few incorrect registers, and an issue for omap1 USB, and
+few sparse fixes for issues that sneaked in with all the clean-up.
+
+----------------------------------------------------------------
+Aaro Koskinen (1):
+      ARM: OMAP1: fix USB configuration use-after-release
+
+Ivan Khoronzhuk (2):
+      ARM: OMAP4: PRM: Correct reset source map
+      ARM: OMAP4: PRM: Correct wrong instance usage for reading reset sources
+
+Jon Hunter (1):
+      ARM: OMAP3: clock data: Add missing enable/disable for EMU clock
+
+Nishanth Menon (1):
+      ARM: OMAP4: PRM: fix RSTTIME and RSTST offsets
+
+Pantelis Antoniou (1):
+      ARM: OMAP2+: am33xx-hwmod: Fix wrongly terminated am33xx_usbss_mpu_irqs array
+
+Paul Walmsley (4):
+      ARM: OMAP: 32k counter: resolve sparse warnings
+      ARM: OMAP AM33xx: hwmod data: resolve sparse warnings
+      ARM: OMAP: SRAM: resolve sparse warnings
+      ARM: OMAP2/3: PRM: fix bogus OMAP2xxx powerstate return values
+
+Tony Lindgren (1):
+      Merge tag 'omap-fixes-a2-for-v3.8-rc' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.8-rc2/fixes
+
+ arch/arm/mach-omap1/board-ams-delta.c      |  2 +-
+ arch/arm/mach-omap1/usb.c                  |  8 ++-
+ arch/arm/mach-omap2/cclock3xxx_data.c      |  2 +
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |  6 +-
+ arch/arm/mach-omap2/prm2xxx.c              | 88 +++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/prm2xxx_3xxx.c         | 22 --------
+ arch/arm/mach-omap2/prm3xxx.c              | 28 +++++++++-
+ arch/arm/mach-omap2/prm44xx.c              |  6 +-
+ arch/arm/mach-omap2/prm44xx.h              |  4 +-
+ arch/arm/plat-omap/counter_32k.c           |  2 +
+ arch/arm/plat-omap/sram.c                  |  2 +
+ 11 files changed, 132 insertions(+), 38 deletions(-)
