@@ -1,51 +1,116 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] few omap fixes for v3.8-rc2
-Date: Tue, 8 Jan 2013 10:20:06 -0800
-Message-ID: <20130108182005.GR14149@atomide.com>
-References: <20130108174816.GP14149@atomide.com>
- <CAOesGMhyYQoFYzqopGgwDwEVc4Gc74ERbRiJg_vhTmYf+V3_rA@mail.gmail.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH v2 3/3] usb: musb: omap: Add device tree support for omap
+ musb glue
+Date: Tue, 08 Jan 2013 22:32:16 +0300
+Message-ID: <50EC7440.20203@mvista.com>
+References: <1347354580-5895-1-git-send-email-kishon@ti.com> <1347354580-5895-4-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35045 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756589Ab3AHSUK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jan 2013 13:20:10 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOesGMhyYQoFYzqopGgwDwEVc4Gc74ERbRiJg_vhTmYf+V3_rA@mail.gmail.com>
+Received: from mail-la0-f44.google.com ([209.85.215.44]:64658 "EHLO
+	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756641Ab3AHSeS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jan 2013 13:34:18 -0500
+Received: by mail-la0-f44.google.com with SMTP id fr10so843056lab.31
+        for <linux-omap@vger.kernel.org>; Tue, 08 Jan 2013 10:34:17 -0800 (PST)
+In-Reply-To: <1347354580-5895-4-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-* Olof Johansson <olof@lixom.net> [130108 10:04]:
-> On Tue, Jan 8, 2013 at 9:48 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > The following changes since commit d1c3ed669a2d452cacfb48c2d171a1f364dae2ed:
-> >
-> >   Linux 3.8-rc2 (2013-01-02 18:13:21 -0800)
-> >
-> > are available in the git repository at:
-> >
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8-rc2/fixes-signed-v2
-> >
-> > for you to fetch changes up to 6adba67eb0c4731ed0346731d024b2102f5b4d9d:
-> >
-> >   ARM: OMAP2+: am33xx-hwmod: Fix wrongly terminated am33xx_usbss_mpu_irqs array (2013-01-07 12:38:07 -0800)
-> >
-> > ----------------------------------------------------------------
-> > The biggest change is a fix to deal with different power state
-> > on omap2 registers that causes issues trying to use common PM code.
-> > Also fix few incorrect registers, and an issue for omap1 USB, and
-> > few sparse fixes for issues that sneaked in with all the clean-up.
-> 
-> Pulled, thanks. Not super-happy about the 100+ line delta for the 24xx
-> bugfix, but seems like it's needed.
+Hello.
 
-Yes sorry looks like Paul was attempting to drop the omap custom PM
-changes related to the drivers/i2c/bus/i2c-omap.c revert mess, but
-naturally it's now too late. AFAIK that patch could wait for v3.9
-too if necessary.
+On 09/11/2012 01:09 PM, Kishon Vijay Abraham I wrote:
 
-Regards,
+> Added device tree support for omap musb driver and updated the
+> Documentation with device tree binding information.
 
-Tony
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+
+   Belated comments to the patch which didn't pass my message size filter in
+time. :-)
+
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index f4d9503..d96873b 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+[...]
+> @@ -470,8 +471,11 @@ static u64 omap2430_dmamask = DMA_BIT_MASK(32);
+>  static int __devinit omap2430_probe(struct platform_device *pdev)
+>  {
+>  	struct musb_hdrc_platform_data	*pdata = pdev->dev.platform_data;
+> +	struct omap_musb_board_data	*data;
+>  	struct platform_device		*musb;
+>  	struct omap2430_glue		*glue;
+> +	struct device_node		*np = pdev->dev.of_node;
+> +	struct musb_hdrc_config		*config;
+>  	struct resource			*res;
+>  	int				ret = -ENOMEM;
+>  
+> @@ -501,6 +505,42 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
+>  	if (glue->control_otghs == NULL)
+>  		dev_dbg(&pdev->dev, "Failed to obtain control memory\n");
+>  
+> +	if (np) {
+> +		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+> +		if (!pdata) {
+> +			dev_err(&pdev->dev,
+> +				"failed to allocate musb platfrom data\n");
+> +			ret = -ENOMEM;
+
+   'ret' is pre-initialized to -ENOMEM.
+
+> +			goto err1;
+> +		}
+> +
+> +		data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+> +		if (!data) {
+> +			dev_err(&pdev->dev,
+> +					"failed to allocate musb board data\n");
+
+   Overindented this line.
+
+> +			ret = -ENOMEM;
+
+   Same comment about already pre-initialized variable.
+
+> +			goto err1;
+> +		}
+> +
+> +		config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
+> +		if (!data) {
+
+   You allocate 'config' but check 'data' again, so instead of exiting
+gracefully we get an oops later on...
+
+> +			dev_err(&pdev->dev,
+> +				"failed to allocate musb hdrc config\n");
+
+   No 'ret = -ENOMEM;' here -- kinda inconsistent. :-)
+
+> +			goto err1;
+> +		}
+> +
+> +		of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
+> +		of_property_read_u32(np, "interface_type",
+> +						(u32 *)&data->interface_type);
+> +		of_property_read_u32(np, "num_eps", (u32 *)&config->num_eps);
+> +		of_property_read_u32(np, "ram_bits", (u32 *)&config->ram_bits);
+> +		of_property_read_u32(np, "power", (u32 *)&pdata->power);
+> +		config->multipoint = of_property_read_bool(np, "multipoint");
+> +
+> +		pdata->board_data	= data;
+> +		pdata->config		= config;
+> +	}
+> +
+>  	pdata->platform_ops		= &omap2430_ops;
+>  
+>  	platform_set_drvdata(pdev, glue);
+
+   Don't worry now, I've just sent two patches to address these shortcomings.
+
+WBR, Sergei
+
+
