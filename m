@@ -1,84 +1,81 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] ARM: OMAP AM3517/05: hwmod data: block WFI when EMAC
- active
-Date: Tue, 8 Jan 2013 13:43:47 -0700
-Message-ID: <20130108204347.GC1876@animalcreek.com>
-References: <alpine.DEB.2.00.1212301828590.8175@utopia.booyaka.com>
- <alpine.DEB.2.00.1301081916190.18536@utopia.booyaka.com>
+From: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [PATCH 5/5] kfifo: log based kfifo API
+Date: Tue, 08 Jan 2013 16:10:07 -0500
+Message-ID: <f1be90be-ad99-4dff-8332-804383adc5c8@email.android.com>
+References: <1357657073-27352-1-git-send-email-yuanhan.liu@linux.intel.com> <1357657073-27352-6-git-send-email-yuanhan.liu@linux.intel.com> <20130108181645.GA7972@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from m1plsmtpa01-04.prod.mesa1.secureserver.net ([64.202.165.6]:41692
-	"EHLO m1plsmtpa01-04.prod.mesa1.secureserver.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751851Ab3AHUns (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Jan 2013 15:43:48 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1301081916190.18536@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130108181645.GA7972@core.coreip.homeip.net>
+Sender: owner-linux-mm@kvack.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Yuanhan Liu <yuanhan.liu@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Stefani Seibold <stefani@seibold.net>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, platform-driver-x86@vger.kernel.org, linux-input@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org, libertas-dev@lists.infradead.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, linux-pci@vger.kernel.org, open-iscsi@googlegroups.com, linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org, linux-serial@vger.kernel.org, linux-usb@vger.kernel.org, linux-mm@kvack.org, dccp@vger.kernel.org, linux-sctp@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jan 08, 2013 at 07:21:16PM +0000, Paul Walmsley wrote:
-> On Sun, 30 Dec 2012, Paul Walmsley wrote:
+Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
 
-Hi Paul.
+>Hi Yuanhan,
+>
+>On Tue, Jan 08, 2013 at 10:57:53PM +0800, Yuanhan Liu wrote:
+>> The current kfifo API take the kfifo size as input, while it rounds
+>>  _down_ the size to power of 2 at __kfifo_alloc. This may introduce
+>> potential issue.
+>>=20
+>> Take the code at drivers/hid/hid-logitech-dj.c as example:
+>>=20
+>> 	if (kfifo_alloc(&djrcv_dev->notif_fifo,
+>>                        DJ_MAX_NUMBER_NOTIFICATIONS * sizeof(struct
+>dj_report),
+>>                        GFP_KERNEL)) {
+>>=20
+>> Where, DJ_MAX_NUMBER_NOTIFICATIONS is 8, and sizeo of(struct
+>dj_report)
+>> is 15.
+>>=20
+>> Which means it wants to allocate a kfifo buffer which can store 8
+>> dj_report entries at once. The expected kfifo buffer size would be
+>> 8 * 15 =3D 120 then. While, in the end, __kfifo_alloc will turn the
+>> size to rounddown_power_of_2(120) =3D  64, and then allocate a buf
+>> with 64 bytes, which I don't think this is the original author want.
+>>=20
+>> With the new log API, we can do like following:
+>>=20
+>> 	int kfifo_size_order =3D order_base_2(DJ_MAX_NUMBER_NOTIFICATIONS *
+>> 					    sizeof(struct dj_report));
+>>=20
+>> 	if (kfifo_alloc(&djrcv_dev->notif_fifo, kfifo_size_order,
+>GFP_KERNEL)) {
+>>=20
+>> This make sure we will allocate enough kfifo buffer for holding
+>> DJ_MAX_NUMBER_NOTIFICATIONS dj_report entries.
+>
+>Why don't you simply change __kfifo_alloc to round the allocation up
+>instead of down?
+>
+>Thanks.
+>
+>--=20
+>Dmitry
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> > However, for some reason, we don't have an EMAC hwmod -- probably some 
-> > bug in the data -- so set the flag on the MDIO hwmod data instead.
-> 
-> Mark and I discussed this in private E-mail.  Looks like I managed to 
-> confuse AM33xx and AM3517 :-(  Here's the updated patch.
-> 
-> 
-> - Paul
-> 
-> 
-> From: Paul Walmsley <paul@pwsan.com>
-> Date: Sun, 30 Dec 2012 10:36:36 -0700
-> Subject: [PATCH] ARM: OMAP AM3517/05: hwmod data: block WFI when EMAC active
-> 
-> According to Mark Greer, on OMAP AM3517/3505 chips, the EMAC is unable
-> to wake the ARM up from WFI:
-> 
->     http://www.spinics.net/lists/arm-kernel/msg174734.html
-> 
-> Further troubleshooting was unable to narrow the problem down.  So we
-> don't have much choice other than to block WFI when the EMAC is active
-> with the HWMOD_BLOCK_WFI flag.
-> 
-> Based on Mark's original patch.  We're removing the omap_device-based
-> pm_lats code, so a different approach was needed.
-> 
-> This second version contains some corrections thanks to Mark's review.
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Mark A. Greer <mgreer@animalcreek.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 8bb2628..7af28b7 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -3493,7 +3493,13 @@ static struct omap_hwmod am35xx_emac_hwmod = {
->  	.name		= "davinci_emac",
->  	.mpu_irqs	= am35xx_emac_mpu_irqs,
->  	.class		= &am35xx_emac_class,
-> -	.flags		= HWMOD_NO_IDLEST,
-> +	/*
-> +	 * According to Mark Greer, the MPU will not return from WFI
-> +	 * when the EMAC signals an interrupt.  We're missing an EMAC
-> +	 * hwmod for some reason, so add the flag to the MDIO instead.
-> +	 * http://www.spinics.net/lists/arm-kernel/msg174734.html
-> +	 */
-> +	.flags		= (HWMOD_NO_IDLEST | HWMOD_BLOCK_WFI),
->  };
+Hi Dmitry,
 
-Sorry to nag but I think the comment needs to be updated to remove the
-sentence about the missing EMAC hwmod.
+I agree.   I don't see the benefit in pushing up the change to a kfifo in=
+ternal decision/problem to many different places in the kernel.
 
-Mark
+Regards,
+Andy
+
+=20
+
 --
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=3Dmailto:"dont@kvack.org"> email@kvack.org </a>
