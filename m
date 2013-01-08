@@ -1,43 +1,47 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] few omap fixes for v3.8-rc2
-Date: Tue, 8 Jan 2013 10:01:06 -0800
-Message-ID: <CAOesGMhyYQoFYzqopGgwDwEVc4Gc74ERbRiJg_vhTmYf+V3_rA@mail.gmail.com>
-References: <20130108174816.GP14149@atomide.com>
+From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Subject: [PATCH 1/2] omap2430: fix wrong devm_kzalloc() result check
+Date: Tue, 8 Jan 2013 22:11:14 +0300
+Message-ID: <201301082211.14413.sshtylyov@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f181.google.com ([209.85.210.181]:42472 "EHLO
-	mail-ia0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756231Ab3AHSBH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jan 2013 13:01:07 -0500
-Received: by mail-ia0-f181.google.com with SMTP id s32so615223iak.12
-        for <linux-omap@vger.kernel.org>; Tue, 08 Jan 2013 10:01:07 -0800 (PST)
-In-Reply-To: <20130108174816.GP14149@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, Jan 8, 2013 at 9:48 AM, Tony Lindgren <tony@atomide.com> wrote:
-> The following changes since commit d1c3ed669a2d452cacfb48c2d171a1f364dae2ed:
->
->   Linux 3.8-rc2 (2013-01-02 18:13:21 -0800)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8-rc2/fixes-signed-v2
->
-> for you to fetch changes up to 6adba67eb0c4731ed0346731d024b2102f5b4d9d:
->
->   ARM: OMAP2+: am33xx-hwmod: Fix wrongly terminated am33xx_usbss_mpu_irqs array (2013-01-07 12:38:07 -0800)
->
-> ----------------------------------------------------------------
-> The biggest change is a fix to deal with different power state
-> on omap2 registers that causes issues trying to use common PM code.
-> Also fix few incorrect registers, and an issue for omap1 USB, and
-> few sparse fixes for issues that sneaked in with all the clean-up.
+Commit 00a0b1d58af873d842580dcac55f3b156c3a4077 (usb: musb: omap: Add device
+tree support for omap musb glue) assigns result of devm_kzalloc() call to
+the 'config' variable but then checks for NULL the 'data' variable (already
+checked after previous call). Thus we risk a kernel oops further when data
+pointed by 'config' is written to by subsequent of_property_read_u32() calls
+iff the allocation happens to fail...
 
-Pulled, thanks. Not super-happy about the 100+ line delta for the 24xx
-bugfix, but seems like it's needed.
+Signed-off-by: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 
--Olof
+---
+This patch is atop of 'musb' branch of Felipe's tree but can also be applied to
+the 'fixes' branch.
+
+ drivers/usb/musb/omap2430.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: usb/drivers/usb/musb/omap2430.c
+===================================================================
+--- usb.orig/drivers/usb/musb/omap2430.c
++++ usb/drivers/usb/musb/omap2430.c
+@@ -545,7 +545,7 @@ static int __devinit omap2430_probe(stru
+ 		}
+ 
+ 		config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
+-		if (!data) {
++		if (!config) {
+ 			dev_err(&pdev->dev,
+ 				"failed to allocate musb hdrc config\n");
+ 			goto err2;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
