@@ -1,67 +1,46 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: Build failure with DMA_OMAP=m and a caller built-in
-Date: Tue, 8 Jan 2013 01:02:32 -0800
-Message-ID: <20130108090231.GF19691@intel.com>
-References: <1357449969.4324.25.camel@deadeye.wl.decadent.org.uk>
- <20130107202106.GG14149@atomide.com>
- <20130107203834.GB2637@n2100.arm.linux.org.uk>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH RESEND] ARM: dts: AM33XX: Rename I2C and GPIO nodes
+Date: Tue, 08 Jan 2013 10:30:45 +0100
+Message-ID: <8738ycaunu.fsf@dell.be.48ers.dk>
+References: <1353498737-21174-1-git-send-email-anilkumar@ti.com>
+	<331ABD5ECB02734CA317220B2BBEABC13EAD4863@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130107203834.GB2637@n2100.arm.linux.org.uk>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Ben Hutchings <ben@decadent.org.uk>, linux-kbuild@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:39724 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754799Ab3AHJav (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jan 2013 04:30:51 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so97205bkw.5
+        for <linux-omap@vger.kernel.org>; Tue, 08 Jan 2013 01:30:50 -0800 (PST)
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EAD4863@DBDE01.ent.ti.com>
+	(Chimata AnilKumar's message of "Wed, 2 Jan 2013 10:12:29 +0000")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Pantelis Antoniou <panto@antoniou-consulting.com>
 
-On Mon, Jan 07, 2013 at 08:38:34PM +0000, Russell King - ARM Linux wrote:
-> On Mon, Jan 07, 2013 at 12:21:06PM -0800, Tony Lindgren wrote:
-> > * Ben Hutchings <ben@decadent.org.uk> [130105 21:29]:
-> > > Various drivers use omap_dma_filter_fn() but don't depend on DMA_OMAP.
-> > > This is fine because there is a trivial inline definition in case
-> > > DMA_OMAP is disabled... until the caller is built-in and DMA_OMAP=m.
-> > > 
-> > > I tried adding the rather weird 'select DMA_OMAP if DMA_OMAP!=n' to
-> > > these drivers' kconfig symbols to promote it to built-in if necessary.
-> > > This sort of works but kconfig complains about the circular dependency
-> > > and it becomes impossible to disable DMA_OMAP in the 'make nconfig'
-> > > menu.  So that's not the right thing to do.
-> > > 
-> > > Any ideas?
-> > 
-> > Hmm let's ask Russell and Vinod what they are envisioning. I believe
-> > there was some talk about removing the filter functions?
-> 
-> The right thing is to nobble down and try and resolve the age old, much
-> talked about, common way to tie peripheral devices and their DMA engine
-> channels together by some means.
-> 
-> Unfortunately, it seems everyone has different views, and as yet it's
-> not reached any kind of concensus.  This has now been going on for a
-> couple of years in various forms.
-> 
-> The problem we have is that the way peripheral devices are connected to
-> their DMA engines can involve additional complexity, which if not handled
-> correctly results in some platforms being crippled by the API.
-> 
-> I think Vinod was working on something, however I've not heard anything on
-> that for a while now.
-My work was stalled due to other stuff at my workplace. I plan to spend some
-time on this pretty soon.
-> 
-> How we avoid this problem outside of OMAP is that the DMA filter function
-> gets passed from platform code, and we only ever allow the DMA engine
-> driver to be configured into the kernel (iow, non-modular).  This means
-> that the DMA users never directly reference the DMA engine driver itself.
-> However, as OMAP headed down the DT path, many drivers no longer make use
-> of platform data, which makes that approach impractical.
-> 
-> So, I'm afraid that OMAP's rather boxed into a corner over the various
-> different competing factions about how ARM should do X, Y and Z vs the
-> state of various subsystems.  So much for DT sorting out world hunger
-> and it never failing to solve any problem...
-> 
-> I'm sure it'll eventually get sorted, but how long that takes depends on
-> how long it takes to come up with a working API for connecting peripheral
-> devices with their DMA agent(s).
+>>>>> "AnilKumar" == AnilKumar, Chimata <anilkumar@ti.com> writes:
+
+ AnilKumar> On Wed, Nov 21, 2012 at 17:22:17, AnilKumar, Chimata wrote:
+ >> Rename I2C and GPIO nodes according to AM33XX TRM. According to
+ >> AM33XX TRM device instances are starting from "0" like i2c0, i2c1
+ >> and i2c3.
+ >> 
+ >> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+ >> [panto@antoniou-consulting.com: initial patch by pantelis's]
+ >> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+ >> ---
+ >> Changes from first version:
+ >> - Updated pantelis's patch
+ >> * Modified based on linux-omap/master
+ >> * Added GPIO nodes renaming as well
+
+ AnilKumar> Hi Tony/Benoit,
+
+ AnilKumar> If there are no comments could you please pull this patch?
+
+Yes, please do.
+
+-- 
+Bye, Peter Korsgaard
