@@ -1,173 +1,38 @@
-From: "steve.zhan" <zhanzhenbo@gmail.com>
-Subject: Re: [PATCH] hwspinlock/core: Add testing capabilities
-Date: Sun, 30 Dec 2012 22:13:08 +0800
-Message-ID: <CAKvkGKep9Fgib=iwCE4RnBWrfsMkJu4CcpNxUDqnkyHpkjohuA@mail.gmail.com>
-References: <CAKvkGKfc5jw+_ABgB8nrX37B7zHCoA5Ld0Gs5O-EDFD-Gk0OKg@mail.gmail.com>
- <20121230112018.GA14042@WorkStation.localnet>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5915891397423034859=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20121230112018.GA14042@WorkStation.localnet>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ido Yariv <ido@wizery.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH 1/5] capemgr: Beaglebone DT overlay based cape manager
+Date: Tue, 8 Jan 2013 15:26:36 +0200
+Message-ID: <51A6DFCC-BBC8-475D-88C4-1B22186339C1@antoniou-consulting.com>
+References: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com> <21E7B891-269B-422D-9038-381FAA15B59B@antoniou-consulting.com> <20130108104832.GE21994@gmail.com> <201301081212.29089.arnd@arndb.de>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <201301081212.29089.arnd@arndb.de>
+Sender: linux-doc-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Stephen Warren <swarren@wwwdotorg.org>, David Gibson <david@gibson.dropbear.id.au>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, Linus Walleij <linus>
 List-Id: linux-omap@vger.kernel.org
 
---===============5915891397423034859==
-Content-Type: multipart/alternative; boundary=bcaec51d2f2627dd8c04d212806d
+Hi Arnd,
 
---bcaec51d2f2627dd8c04d212806d
-Content-Type: text/plain; charset=ISO-8859-1
+On Jan 8, 2013, at 2:12 PM, Arnd Bergmann wrote:
 
-Hi,
-   Acked-by: Steve zhan zhanzhenbo@gmail.com
+> On Tuesday 08 January 2013, Lee Jones wrote:
+>>> If there is not, there is no way to automatically load the overlays; you can always
+>>> use the kernel command line, or have the a user space application to request the loading
+>>> of a specific board's overlay.
+>> 
+>> Unfortunately, there is no way to probe the UIBs. :(
+> 
+> I thought that some of the newer UIBs had it, just not the old ones.
+> As Pantelis says, we could at least detect the ones that have an EEPROM
+> on them, and use a command line option or device tree attribute for the others.
+> 
+> 	Arnd
 
-   "I'd rather not test the spinlocks after they are registering as they
-might already be in use by then."
+So I gather the new ones have an eeprom?
 
-    Why? I think user must use it after hwspin_lock_register have retured
-sucess.
+Regards
 
+-- Pantelis
 
-Steve
-
-
-2012/12/30 Ido Yariv <ido@wizery.com>
-
-> Hi Steve,
->
-> On Sat, Dec 29, 2012 at 05:19:08PM +0800, steve.zhan wrote:
-> > Hi,
-> >
-> >     It is good idea add this feature.
-> >
-> > 1: Can we let the "ret = hwspin_lock_tests(ops, hwlock);" add after
-> > hwspin_lock_register_single have return
-> > succeed, that can avoid test duplicated Or error lockid. Of course, If
-> > this interface is intend to test soc hardware capability only, we can
-> > put it in the arch module not this core framework. For driver hardware
-> > sanity check, i would add it after software have register it.
->
-> I'd rather not test the spinlocks after they are registering as they
-> might already be in use by then.
->
-> While this feature only verifies the underlying platform implementation,
-> I think it's best to avoid code duplication and keep it in one place
-> that will always get called.
->
-> > 2:Is it possible that interface add configs that choose which locks
-> > will be test? Because the hwspinlock module is init late in
-> > postcore_initcall phase, Maybe MACH/ARCH code(for example: code in
-> > early_initcall) need use private other interfaces to lock some
-> > hwspinlocks and then register hw locks to hwspinlock framework, Maybe
-> > some hw locks is in lock status but which test failed.
->
-> It was assumed that up to the point where the hw spinlocks are
-> registered they will not be used, regardless of when this module is
-> initialized.
-> If this assumption does not hold for your platform, the simplest
-> solution would be to set this config option to 'N', as there is no safe
-> way of verifying spinlocks that are actively being used.
->
-> Thanks for reviewing this,
-> Ido.
->
-
-
-
--- 
-Steve Zhan
-
---bcaec51d2f2627dd8c04d212806d
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr"><div><div><div>Hi,<br></div>=A0=A0 Acked-by: Steve zhan <a=
- href=3D"mailto:zhanzhenbo@gmail.com">zhanzhenbo@gmail.com</a><br>=A0<br>=
-=A0=A0 &quot;I&#39;d rather not test the spinlocks after they are registeri=
-ng as they<br>
-
-
-might already be in use by then.&quot;<br><br></div>=A0=A0=A0 Why? I think =
-user must use it after hwspin_lock_register have retured sucess.<br><br><br=
-></div>Steve<br></div><div class=3D"gmail_extra"><br><br><div class=3D"gmai=
-l_quote">
-
-2012/12/30 Ido Yariv <span dir=3D"ltr">&lt;<a href=3D"mailto:ido@wizery.com=
-" target=3D"_blank">ido@wizery.com</a>&gt;</span><br><blockquote class=3D"g=
-mail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-l=
-eft:1ex">
-
-Hi Steve,<br>
-<div class=3D"im"><br>
-On Sat, Dec 29, 2012 at 05:19:08PM +0800, steve.zhan wrote:<br>
-&gt; Hi,<br>
-&gt;<br>
-&gt; =A0 =A0 It is good idea add this feature.<br>
-&gt;<br>
-&gt; 1: Can we let the &quot;ret =3D hwspin_lock_tests(ops, hwlock);&quot; =
-add after<br>
-&gt; hwspin_lock_register_single have return<br>
-&gt; succeed, that can avoid test duplicated Or error lockid. Of course, If=
-<br>
-&gt; this interface is intend to test soc hardware capability only, we can<=
-br>
-&gt; put it in the arch module not this core framework. For driver hardware=
-<br>
-&gt; sanity check, i would add it after software have register it.<br>
-<br>
-</div>I&#39;d rather not test the spinlocks after they are registering as t=
-hey<br>
-might already be in use by then.<br>
-<br>
-While this feature only verifies the underlying platform implementation,<br=
->
-I think it&#39;s best to avoid code duplication and keep it in one place<br=
->
-that will always get called.<br>
-<div class=3D"im"><br>
-&gt; 2:Is it possible that interface add configs that choose which locks<br=
->
-&gt; will be test? Because the hwspinlock module is init late in<br>
-&gt; postcore_initcall phase, Maybe MACH/ARCH code(for example: code in<br>
-&gt; early_initcall) need use private other interfaces to lock some<br>
-&gt; hwspinlocks and then register hw locks to hwspinlock framework, Maybe<=
-br>
-&gt; some hw locks is in lock status but which test failed.<br>
-<br>
-</div>It was assumed that up to the point where the hw spinlocks are<br>
-registered they will not be used, regardless of when this module is<br>
-initialized.<br>
-If this assumption does not hold for your platform, the simplest<br>
-solution would be to set this config option to &#39;N&#39;, as there is no =
-safe<br>
-way of verifying spinlocks that are actively being used.<br>
-<br>
-Thanks for reviewing this,<br>
-Ido.<br>
-</blockquote></div><br><br clear=3D"all"><br>-- <br>Steve Zhan
-</div>
-
---bcaec51d2f2627dd8c04d212806d--
-
-
---===============5915891397423034859==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============5915891397423034859==--
