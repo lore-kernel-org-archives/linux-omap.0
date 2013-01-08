@@ -1,75 +1,67 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 1/5] capemgr: Beaglebone DT overlay based cape manager
-Date: Tue, 8 Jan 2013 11:15:43 +0200
-Message-ID: <89A7A8FD-935E-4225-8C7B-EA1DBA0C2780@antoniou-consulting.com>
-References: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com> <93BF5C62-ADE8-4EFC-9175-C2D7E43300E3@antoniou-consulting.com> <20130107210551.GL14149@atomide.com> <201301072135.05166.arnd@arndb.de>
-Mime-Version: 1.0 (Apple Message framework v1085)
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: Build failure with DMA_OMAP=m and a caller built-in
+Date: Tue, 8 Jan 2013 01:02:32 -0800
+Message-ID: <20130108090231.GF19691@intel.com>
+References: <1357449969.4324.25.camel@deadeye.wl.decadent.org.uk>
+ <20130107202106.GG14149@atomide.com>
+ <20130107203834.GB2637@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from li42-95.members.linode.com ([209.123.162.95]:59054 "EHLO
-	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751429Ab3AHJP4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Jan 2013 04:15:56 -0500
-In-Reply-To: <201301072135.05166.arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kbuild-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130107203834.GB2637@n2100.arm.linux.org.uk>
+Sender: linux-kbuild-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Ben Hutchings <ben@decadent.org.uk>, linux-kbuild@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Stephen Warren <swarren@wwwdotorg.org>, David Gibson <david@gibson.dropbear.id.au>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, Linus Walleij <linus.walleij@stericsson.com>, Lee
 
-Hi Arnd,
-
-On Jan 7, 2013, at 11:35 PM, Arnd Bergmann wrote:
-
-> (Adding Sascha Hauer, Linus Walleij, Lee Jones to Cc)
+On Mon, Jan 07, 2013 at 08:38:34PM +0000, Russell King - ARM Linux wrote:
+> On Mon, Jan 07, 2013 at 12:21:06PM -0800, Tony Lindgren wrote:
+> > * Ben Hutchings <ben@decadent.org.uk> [130105 21:29]:
+> > > Various drivers use omap_dma_filter_fn() but don't depend on DMA_OMAP.
+> > > This is fine because there is a trivial inline definition in case
+> > > DMA_OMAP is disabled... until the caller is built-in and DMA_OMAP=m.
+> > > 
+> > > I tried adding the rather weird 'select DMA_OMAP if DMA_OMAP!=n' to
+> > > these drivers' kconfig symbols to promote it to built-in if necessary.
+> > > This sort of works but kconfig complains about the circular dependency
+> > > and it becomes impossible to disable DMA_OMAP in the 'make nconfig'
+> > > menu.  So that's not the right thing to do.
+> > > 
+> > > Any ideas?
+> > 
+> > Hmm let's ask Russell and Vinod what they are envisioning. I believe
+> > there was some talk about removing the filter functions?
 > 
-> On Monday 07 January 2013, Tony Lindgren wrote:
->>> 
->>> At the end of the line, some kind of hardware glue is going to be needed.
->>> 
->>> I just feel that drawing from a sample size of 1 (maybe 2 if I get to throw
->>> in the beagleboard), it is a bit premature to think about making it overly
->>> general, besides the part that are obviously part of the infrastructure 
->>> (like the DT overlay stuff).
->>> 
->>> What I'm getting at, is that we need some user experience about this, before
->>> going away and creating structure out of possible misconception about the uses. 
->> 
->> IMHO stuff like this will be needed by many SoCs. Some examples of similar
->> things for omaps that have eventually become generic frameworks have been
->> the clock framework, USB OTG support, runtime PM, pinmux framework and
->> so on.
->> 
->> So I suggest a minimal generic API from the start as that will make things
->> a lot easier in the long run.
+> The right thing is to nobble down and try and resolve the age old, much
+> talked about, common way to tie peripheral devices and their DMA engine
+> channels together by some means.
 > 
-> I agree. The ux500 platform already has the concept of "user interface boards",
-> which currently is not well integrated into devicetree. I believe Sascha
-> mentioned that Pengutronix had been shipping some other systems with add-on
-> boards and generating device tree binaries from source for each combination.
+> Unfortunately, it seems everyone has different views, and as yet it's
+> not reached any kind of concensus.  This has now been going on for a
+> couple of years in various forms.
 > 
-> Ideally, both of the above should be able to use the same DT overlay logic
-> as BeagleBone, and I'm sure there are more of those.
+> The problem we have is that the way peripheral devices are connected to
+> their DMA engines can involve additional complexity, which if not handled
+> correctly results in some platforms being crippled by the API.
 > 
-> 	Arnd
-
-Hmm, I see. 
-
-I will need some more information about the interface of the 'user interface boards'.
-I.e. how is the board identified, what is typically present on those boards, etc.
-
-Can we get some input by the owner of other similar hardware? I know the FPGA
-people have similar requirements for example. There are other people that are hitting
-problems getting DT to work with their systems, like the V4L people with the order
-of initialization; see http://lwn.net/Articles/531068/. I think the V4L problem is
-cleanly solved by the overlay being contained in the V4L device node and applied just before
-the device is probed.
-
-In the meantime it would be better to wait until we have some ack from the maintainers
-of the core subsystems about what they think.
- 
-Regards
-
--- Pantelis
-
+> I think Vinod was working on something, however I've not heard anything on
+> that for a while now.
+My work was stalled due to other stuff at my workplace. I plan to spend some
+time on this pretty soon.
+> 
+> How we avoid this problem outside of OMAP is that the DMA filter function
+> gets passed from platform code, and we only ever allow the DMA engine
+> driver to be configured into the kernel (iow, non-modular).  This means
+> that the DMA users never directly reference the DMA engine driver itself.
+> However, as OMAP headed down the DT path, many drivers no longer make use
+> of platform data, which makes that approach impractical.
+> 
+> So, I'm afraid that OMAP's rather boxed into a corner over the various
+> different competing factions about how ARM should do X, Y and Z vs the
+> state of various subsystems.  So much for DT sorting out world hunger
+> and it never failing to solve any problem...
+> 
+> I'm sure it'll eventually get sorted, but how long that takes depends on
+> how long it takes to come up with a working API for connecting peripheral
+> devices with their DMA agent(s).
