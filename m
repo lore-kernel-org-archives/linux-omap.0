@@ -1,125 +1,73 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [RFC v2 02/18] mailbox: Add an API for flushing the FIFO
-Date: Tue, 8 Jan 2013 19:26:51 +0530
-Message-ID: <50EC25A3.6070906@ti.com>
-References: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com> <1356959231-17335-3-git-send-email-vaibhav.bedia@ti.com>
+Subject: Re: [RFC v2 03/18] memory: emif: Move EMIF related header file to
+ include/linux/
+Date: Tue, 8 Jan 2013 19:34:41 +0530
+Message-ID: <50EC2779.8030507@ti.com>
+References: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com> <1356959231-17335-4-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46013 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34404 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755794Ab3AHN4E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Jan 2013 08:56:04 -0500
-In-Reply-To: <1356959231-17335-3-git-send-email-vaibhav.bedia@ti.com>
+	id S1756190Ab3AHODt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Jan 2013 09:03:49 -0500
+In-Reply-To: <1356959231-17335-4-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, khilman@deeprootsystems.com, Benoit Cousson <b-cousson@ti.com>, Aneesh V <aneesh@ti.com>
 
 On Monday 31 December 2012 06:36 PM, Vaibhav Bedia wrote:
-> On AM33XX, the mailbox module between the MPU and the
-> WKUP-M3 co-processor facilitates a one-way communication.
-> MPU uses the assigned mailbox sub-module to issue the
-> interrupt to the WKUP-M3 co-processor which then goes
-> and reads the the IPC data from registers in the control
-> module.
+> OMAP4 and AM33XX share the same EMIF controller IP. Although there
+> are significant differences in the IP integration due to which
+> AM33XX can't reuse the EMIF driver DVFS similar to OMAP4,
+> it can definitely benefit by reusing the EMIF related macros
+> defined in drivers/memory/emif.h.
 >
-> WKUP-M3 is in the L4_WKUP and does not have any access to
-> the mailbox module. Due to this limitation, the MPU is
-> completely responsible for FIFO maintenance and interrupt
-> generation. MPU needs to ensure that the FIFO does not
-> overflow by reading back the assigned mailbox sub-module.
->
-> This patch adds an API in the mailbox code which the MPU
-> can use to empty the FIFO by issuing a readback command.
+> In the current OMAP PM framework the PM code resides under
+> arch/arm/mach-omap2/. To enable reuse of the register defines move
+> the emif header file to include/linux so that both the EMIF driver
+> and the AM33XX PM code can benefit.
 >
 > Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Aneesh V <aneesh@ti.com>
 > ---
-> Note: This patch which will be slightly reworked once the mailbox
-> driver changes are finalized.
+> v1->v2:
+> 	This is a new patch in the series to enable code reuse
+> 	between the EMIF driver and AM33XX PM code
 >
-Can you expand a bit please ?
+>   drivers/memory/emif.c   |    2 +-
+>   drivers/memory/emif.h   |  589 -----------------------------------------------
+>   include/linux/ti_emif.h |  589 +++++++++++++++++++++++++++++++++++++++++++++++
+You are just moving the file. So "git mv file1 flie2; and the git 
+format-patch -C"
+on committed patch should just generate few lines of patch.
 
->   drivers/mailbox/mailbox-omap2.c |   19 +++++++++++++++++++
->   drivers/mailbox/mailbox.c       |   36 ++++++++++++++++++++++++++++++++++++
->   drivers/mailbox/mailbox.h       |    3 +++
->   include/linux/mailbox.h         |    1 +
->   4 files changed, 59 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
-> index 6d61159..c732be1 100644
-> --- a/drivers/mailbox/mailbox-omap2.c
-> +++ b/drivers/mailbox/mailbox-omap2.c
-> @@ -125,6 +125,23 @@ static int omap2_mbox_fifo_full(struct mailbox *mbox)
->   	return mbox_read_reg(fifo->fifo_stat);
->   }
->
-> +static int omap2_mbox_fifo_needs_flush(struct mailbox *mbox)
-> +{
-> +	struct omap_mbox2_priv *p = mbox->priv;
-> +	struct omap_mbox2_fifo *fifo = &p->tx_fifo;
+> +/* DDR_PHY_CTRL_1 - EMIF4D5 */
+> +#define DLL_HALF_DELAY_SHIFT_4D5			21
+> +#define DLL_HALF_DELAY_MASK_4D5				(1 << 21)
+> +#define READ_LATENCY_SHIFT_4D5				0
+> +#define READ_LATENCY_MASK_4D5				(0x1f << 0)
 > +
-> +	return mbox_read_reg(fifo->msg_stat);
-> +}
+> +/* DDR_PHY_CTRL_1_SHDW */
+> +#define DDR_PHY_CTRL_1_SHDW_SHIFT			5
+> +#define DDR_PHY_CTRL_1_SHDW_MASK			(0x7ffffff << 5)
+> +#define READ_LATENCY_SHDW_SHIFT				0
+> +#define READ_LATENCY_SHDW_MASK				(0x1f << 0)
 > +
-> +static void omap2_mbox_fifo_readback(struct mailbox *mbox,
-> +			struct mailbox_msg *msg)
-> +{
-> +	struct omap_mbox2_priv *p = mbox->priv;
-> +	struct omap_mbox2_fifo *fifo = &p->tx_fifo;
-> +
-> +	msg->header = mbox_read_reg(fifo->msg);
-> +}
-> +
->   static int ompa2_mbox_poll_for_space(struct mailbox *mbox)
->   {
->   	if (omap2_mbox_fifo_full(mbox))
-> @@ -221,6 +238,8 @@ static struct mailbox_ops omap2_mbox_ops = {
->   	.read           = omap2_mbox_fifo_read,
->   	.write          = omap2_mbox_fifo_write,
->   	.empty          = omap2_mbox_fifo_empty,
-> +	.fifo_needs_flush	= omap2_mbox_fifo_needs_flush,
-> +	.fifo_readback		= omap2_mbox_fifo_readback,
->   	.poll_for_space = ompa2_mbox_poll_for_space,
->   	.enable_irq     = omap2_mbox_enable_irq,
->   	.disable_irq    = omap2_mbox_disable_irq,
-> diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-> index 2f50226..92c9f68 100644
-> --- a/drivers/mailbox/mailbox.c
-> +++ b/drivers/mailbox/mailbox.c
-> @@ -57,6 +57,15 @@ static inline int mbox_empty(struct mailbox *mbox)
->   {
->   	return mbox->ops->empty(mbox);
->   }
-> +static inline int mbox_fifo_needs_flush(struct mailbox *mbox)
-> +{
-> +	return mbox->ops->fifo_needs_flush(mbox);
-> +}
-> +static inline void mbox_fifo_readback(struct mailbox *mbox,
-> +				struct mailbox_msg *msg)
-> +{
-> +	mbox->ops->fifo_readback(mbox, msg);
-> +}
->
->   /* Mailbox IRQ handle functions */
->   static inline void ack_mbox_irq(struct mailbox *mbox, mailbox_irq_t irq)
-> @@ -110,6 +119,33 @@ out:
->   }
->   EXPORT_SYMBOL(mailbox_msg_send);
->
+> +#ifndef __ASSEMBLY__
 > +/*
-s/*/**
-> + * Flush the Rx FIFO by reading back the messages
-> + * Since the normal expectation is that the Rx will do the
-> + * reading, add a debug message to indicate if we really flush
-> + *
-> + * Returns the no. of messages read back
+> + * Structure containing shadow of important registers in EMIF
+> + * The calculation function fills in this structure to be later used for
+> + * initialisation and DVFS
 > + */
-Just look at the kernel doc style for above
-
-Rest looks fine.
+> +struct emif_regs {
+Are you using above struct. If not we can leave it in same place and
+just move the register defines.
 
 Regards
-Santosh
+santosh
+
