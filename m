@@ -1,48 +1,57 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH RESEND] ARM: dts: AM33XX: Rename I2C and GPIO nodes
-Date: Tue, 8 Jan 2013 17:13:01 +0100
-Message-ID: <50EC458D.9000408@ti.com>
-References: <1353498737-21174-1-git-send-email-anilkumar@ti.com> <331ABD5ECB02734CA317220B2BBEABC13EAD4863@DBDE01.ent.ti.com>
+Subject: Re: [PATCH v4 0/3] ARM/dts: omap3: Add DT support for IGEP devices
+Date: Tue, 8 Jan 2013 17:13:08 +0100
+Message-ID: <50EC4594.4060507@ti.com>
+References: <1355923990-21240-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38258 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756589Ab3AHQNN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jan 2013 11:13:13 -0500
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EAD4863@DBDE01.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43169 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756593Ab3AHQNS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Jan 2013 11:13:18 -0500
+In-Reply-To: <1355923990-21240-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Pantelis Antoniou <panto@antoniou-consulting.com>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Jon Hunter <jon-hunter@ti.com>, Matthias Brugger <matthias.bgg@googlemail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Anil,
+Hi Javier,
 
-On 01/02/2013 11:12 AM, AnilKumar, Chimata wrote:
-> On Wed, Nov 21, 2012 at 17:22:17, AnilKumar, Chimata wrote:
->> Rename I2C and GPIO nodes according to AM33XX TRM. According to
->> AM33XX TRM device instances are starting from "0" like i2c0, i2c1
->> and i2c3.
->>
->> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
->> [panto@antoniou-consulting.com: initial patch by pantelis's]
->> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
->> ---
->> Changes from first version:
->> 	- Updated pantelis's patch
->> 	  * Modified based on linux-omap/master
->> 	  * Added GPIO nodes renaming as well
+On 12/19/2012 02:33 PM, Javier Martinez Canillas wrote:
+> IGEP technology devices are TI OMAP3 SoC based industrial embedded
+> and computer-on-module boards. This patch-set adds initial device
+> tree support for these devices.
 > 
-> Hi Tony/Benoit,
+> The device trees allows to boot from an MMC and are working all the
+> components that already have device tree support on OMAP3 SoCs:
 > 
-> If there are no comments could you please pull this patch?
+> - MMC/SD
+> - UARTs
+> - GPIO LEDs
+> - TWL4030 codec audio
+> - pinmux/pinconf pinctrl
+> 
+> Some peripheral are still not working such as Flash storage and
+> Ethernet but support for these will also be included once the
+> OMAP GPMC device tree binding patches land on mainline.
+> 
+> This is a v4 of the patch-set that adds MMC mux pins setup and
+> fixes a build issue due recent changes on twl4030.dtsi.
+> 
+> The patch-set is composed of the following patches:
+> 
+> [PATCH v4 1/3] ARM/dts: omap3: Add generic DT support for IGEP devices
+> [PATCH v4 2/3] ARM/dts: omap3: Add support for IGEPv2 board
+> [PATCH v4 3/3] ARM/dts: omap3: Add support for IGEP COM Module
 
-Yep, it is done.
+I've just applied your series for 3.9 on top of 3.8-rc2 and had to update the Makefile that was different in the base you used. At the same time I updated the subjects to use "ARM: dts:" prefix to be compliant with the latest trend :-)
 
-The patch is available here:
+The patches are available here:
 git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.9/dts
 
 Regards,
 Benoit
+
 
