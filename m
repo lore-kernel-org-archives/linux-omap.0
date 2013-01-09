@@ -1,58 +1,111 @@
-From: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Subject: Re: [PATCH 1/5] capemgr: Beaglebone DT overlay based cape manager
-Date: Wed, 9 Jan 2013 12:24:31 +0200
-Message-ID: <7FAB15E3-28AE-465A-82F8-CAE559C57839@antoniou-consulting.com>
-References: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com>
- <CACRpkdbx7ptCugpc1+JC5Yk+n835goOuoF6q0pdizsjpZ-G9mQ@mail.gmail.com>
- <57EDCDB4-2AC9-4052-BBA6-9F4A5D3C3D8C@antoniou-consulting.com>
- <201301091021.24147.arnd@arndb.de>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <201301091021.24147.arnd-r2nGTMty4D4@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rabin VINCENT <rabin.vincent-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matt Ranostay <mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Clark <robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Guennadi Liakhovetski <g.liakhovetski-Mmb7MZpHnFY@public.gmane.org>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: Help wanted with USB and OMAP3 off_mode
+Date: Wed, 9 Jan 2013 22:34:56 +1100
+Message-ID: <20130109223456.7832c2bd@notabene.brown>
+References: <20130109092915.1c2077b5@notabene.brown>
+	<50ED3FA5.9030905@compulab.co.il>
+	<20130109211931.0e00db5d@notabene.brown>
+	<50ED4549.6080802@amarulasolutions.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/WL9HqMCKxGg0xIt+IyGjwaK"; protocol="application/pgp-signature"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:41362 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757440Ab3AILfR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Jan 2013 06:35:17 -0500
+In-Reply-To: <50ED4549.6080802@amarulasolutions.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Michael Trimarchi <michael@amarulasolutions.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org
 
-Hi Arnd,
+--Sig_/WL9HqMCKxGg0xIt+IyGjwaK
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-On Jan 9, 2013, at 12:21 PM, Arnd Bergmann wrote:
+On Wed, 09 Jan 2013 11:24:09 +0100 Michael Trimarchi
+<michael@amarulasolutions.com> wrote:
 
-> On Wednesday 09 January 2013, Pantelis Antoniou wrote:
->> I've also heard in passing of some boards that just have an area in NAND
->> where a list of plugged in boards is stored. It can be simplified by
->> having the bootloader pass a command line argument.
->> 
->> Other than the different probe method (and possible future hot-plug capability)
->> I don't see anything different.  
->> 
->> What do you think?
-> 
-> Just one comment on the command line option from the boot loader: If the
-> boot loader is already DT aware, it should not need to modify the command line,
-> but instead should just enable or disable the right nodes in the tree to
-> statically configure all the peripherals on the extension board. That of course
-> won't work for hotpluggable devices.
-> 
+> Hi Neil
+>=20
+> On 01/09/2013 11:19 AM, NeilBrown wrote:
+> > On Wed, 09 Jan 2013 12:00:05 +0200 Igor Grinberg <grinberg@compulab.co.=
+il>
+> > wrote:
+> >=20
+> >> -----BEGIN PGP SIGNED MESSAGE-----
+> >> Hash: SHA1
+> >=20
+> >> Hi Neil,
+> >=20
+> >> On 01/09/13 00:29, NeilBrown wrote:
+> >>>
+> >>> Hi,
+> >>>  I'm trying to get off_mode working reliably on my gta04 mobile phone.
+> >>>
+> >>> My current stumbling block is USB.  The "Option" GSM module is attach=
+ed via
+> >>> USB (there is a separate transceiver chip attached to port 1 which is=
+ placed
+> >>> in OMAP_EHCI_PORT_MODE_PHY).
+> >=20
+> >> Which PHY is this (vendor/model)?
+> >=20
+> > Hi Igor,
+> >   it is the SMSC USB3322
+> >=20
+> > http://www.smsc.com/media/Downloads_Public/Data_Sheets/3320.pdf
+> >=20
+> >=20
+> > BTW I subsequently discovered that keeping USBHOST out off off_mode only
+> > sometimes avoid the problem, not always.  So there are probably multiple
+> > issues :-(
+>=20
+> Are you sure that you don't have glitch on power, reset pin during suspen=
+d?
+>=20
 
-Both methods work for the beaglebone capemgr. Not every bootloader (or version of
-the bootloader) can modify DT blobs, but the kernel command line is easily modified.
+No, I don't really have the equipment to measure such things.
+But is it likely?  Would enabling off_mode make it more likely?
+Can you suggest some way I could test the hypothesis?
 
-> 	Arnd
+The power pin is connected to a 3v3 regulator which certainly should stay on
+the whole time and other things which depend on it keep working.
 
-Regards
+The reset line is connected to GPIO174 which is configured:
 
--- Pantelis
+# cat /sys/kernel/debug/omap_mux/mcspi1_cs0
+name: mcspi1_cs0.gpio_174 (0x480021ce/0x19e =3D 0x011c), b ac2, t NA
+mode: OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE4
+signals: mcspi1_cs0 | sdmmc2_dat7 | NA | NA | gpio_174 | NA | NA | safe_mode
 
-P.S. Any word from the core maintainers yet?
+The "PIN_INPUT" seems a bit odd, so I changed it to OMAP_PIN_OUTPUT but that
+didn't appear to make any difference.
+
+Thanks,
+NeilBrown
+
+--Sig_/WL9HqMCKxGg0xIt+IyGjwaK
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIVAwUBUO1V4Tnsnt1WYoG5AQKHqw//R40kF1Yfzql0fzCv8ovMvduvWBdpp+qh
+4fgzeKjy88+/s9+OjeOsH6NrDexHYF+NDl1QjzEwFx0tMjwY5/vU2/IdoQ4SWvcy
+SO8oXWQMBKt5vyM/1g2S0rCyUfXHd/e4mo2ujmrAE9B7UrKMsDwE0evpFXG4FRVD
+//4oxbDT0svpK2sN3OJdG/hap2Xvsw5BdEypdRepqStAn238DO6PrajeLcGt61kZ
+SnxZJqB+BRkQaF0O0SrnLT5WsWfcnTuRgitoG6U/b6j3ATSb8yLH+218CfwNOAuQ
+Z/1TZRDSHkGxTzQHiNMVZw47hAB8CIUdArnBItOeEV8YRrAgtxf0XYOk0b7gbRyp
+8uQGH4FI2wZsNlSVV/yP/oXxb+soEnGRYf6ZNRD6OZYOD+iDZKdZRtXKAY0yMfGf
+7jNriWyf79Kt+qGqyBQ2mHZDgKKIBwOZfsn6X2lgveT2hODH7b5dMOfZ6nEcKTMq
+EGDjIHU2SVKhGlP/4a43z3zkeuM25QiFg+ubW8X5vs11F9XCklcqnnY/tLI+dHca
+w58GrWYCwmeYNH44Kvu4n6CasdgNgtoNGZD1WsVZPECcOM4bjl5mHMP1qYKz48bW
+vsuj6XyyS/c/K6MhXdHERPA2fE84DiZ8zY+yskr095uq987+8Dza3MjZ7BMfO5eS
+Cns55z3LQbg=
+=XfgN
+-----END PGP SIGNATURE-----
+
+--Sig_/WL9HqMCKxGg0xIt+IyGjwaK--
