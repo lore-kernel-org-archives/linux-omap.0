@@ -1,46 +1,73 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: Build failure with DMA_OMAP=m and a caller built-in
-Date: Tue, 8 Jan 2013 22:56:30 +0000
-Message-ID: <201301082256.30639.arnd@arndb.de>
-References: <1357449969.4324.25.camel@deadeye.wl.decadent.org.uk> <20130107202106.GG14149@atomide.com> <20130107203834.GB2637@n2100.arm.linux.org.uk>
+From: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+Subject: Re: [PATCH 5/5] kfifo: log based kfifo API
+Date: Wed, 9 Jan 2013 10:42:26 +0800
+Message-ID: <20130109024226.GD304@yliu-dev.sh.intel.com>
+References: <1357657073-27352-1-git-send-email-yuanhan.liu@linux.intel.com>
+ <1357657073-27352-6-git-send-email-yuanhan.liu@linux.intel.com>
+ <20130108181645.GA7972@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:58283 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755175Ab3AHW4h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jan 2013 17:56:37 -0500
-In-Reply-To: <20130107203834.GB2637@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20130108181645.GA7972@core.coreip.homeip.net>
+Sender: owner-linux-mm@kvack.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Stefani Seibold <stefani@seibold.net>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, platform-driver-x86@vger.kernel.org, linux-input@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org, libertas-dev@lists.infradead.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, linux-pci@vger.kernel.org, open-iscsi@googlegroups.com, linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org, linux-serial@vger.kernel.org, linux-usb@vger.kernel.org, linux-mm@kvack.org, dccp@vger.kernel.org, linux-sctp@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, linux-omap@vger.kernel.org, Ben Hutchings <ben@decadent.org.uk>, linux-kbuild@vger.kernel.org
 
-On Monday 07 January 2013, Russell King - ARM Linux wrote:
-> The problem we have is that the way peripheral devices are connected to
-> their DMA engines can involve additional complexity, which if not handled
-> correctly results in some platforms being crippled by the API.
+On Tue, Jan 08, 2013 at 10:16:46AM -0800, Dmitry Torokhov wrote:
+> Hi Yuanhan,
 > 
-> I think Vinod was working on something, however I've not heard anything on
-> that for a while now.
+> On Tue, Jan 08, 2013 at 10:57:53PM +0800, Yuanhan Liu wrote:
+> > The current kfifo API take the kfifo size as input, while it rounds
+> >  _down_ the size to power of 2 at __kfifo_alloc. This may introduce
+> > potential issue.
+> > 
+> > Take the code at drivers/hid/hid-logitech-dj.c as example:
+> > 
+> > 	if (kfifo_alloc(&djrcv_dev->notif_fifo,
+> >                        DJ_MAX_NUMBER_NOTIFICATIONS * sizeof(struct dj_report),
+> >                        GFP_KERNEL)) {
+> > 
+> > Where, DJ_MAX_NUMBER_NOTIFICATIONS is 8, and sizeo of(struct dj_report)
+> > is 15.
+> > 
+> > Which means it wants to allocate a kfifo buffer which can store 8
+> > dj_report entries at once. The expected kfifo buffer size would be
+> > 8 * 15 = 120 then. While, in the end, __kfifo_alloc will turn the
+> > size to rounddown_power_of_2(120) =  64, and then allocate a buf
+> > with 64 bytes, which I don't think this is the original author want.
+> > 
+> > With the new log API, we can do like following:
+> > 
+> > 	int kfifo_size_order = order_base_2(DJ_MAX_NUMBER_NOTIFICATIONS *
+> > 					    sizeof(struct dj_report));
+> > 
+> > 	if (kfifo_alloc(&djrcv_dev->notif_fifo, kfifo_size_order, GFP_KERNEL)) {
+> > 
+> > This make sure we will allocate enough kfifo buffer for holding
+> > DJ_MAX_NUMBER_NOTIFICATIONS dj_report entries.
 > 
-> How we avoid this problem outside of OMAP is that the DMA filter function
-> gets passed from platform code, and we only ever allow the DMA engine
-> driver to be configured into the kernel (iow, non-modular).  This means
-> that the DMA users never directly reference the DMA engine driver itself.
-> However, as OMAP headed down the DT path, many drivers no longer make use
-> of platform data, which makes that approach impractical.
+> Why don't you simply change __kfifo_alloc to round the allocation up
+> instead of down?
 
-Hmm, it seems the generic DT binding for dmaengine missed the merge window
-again, Vinod's pull request came a bit too late for this[1].
+Hi Dmitry,
 
-Anyway, once the binding and code from Jon Hunter is there, and the omap-dma
-converted over to use it, the problem should be gone, unless you see any
-other issues with it. Drivers no longer need to reference a filter function
-directly, since the dma channel can get described completely in the DT.
+Yes, it would be neat and that was my first reaction as well. I then
+sent out a patch, but it was NACKed by Stefani(the original kfifo
+author). Here is the link:
 
-	Arnd
+    https://lkml.org/lkml/2012/10/26/144
 
-[1] http://lkml.org/lkml/2012/12/21/466
+Then Stefani proposed to change the API to take log of size as input to
+root fix this kind of issues. And here it is.
+
+Thanks.
+
+	--yliu
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
