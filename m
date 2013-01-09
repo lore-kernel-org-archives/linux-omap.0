@@ -1,48 +1,48 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH 0/3] can: Add D_CAN raminit support to am335x-evm
-Date: Wed, 9 Jan 2013 12:20:00 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EAE677A@DBDE01.ent.ti.com>
-References: <1352916505-12343-1-git-send-email-anilkumar@ti.com>
- <50ED5FA5.9020305@ti.com>
+From: Loic PALLARDY <loic.pallardy@st.com>
+Subject: Re: [PATCH 1/9] mailbox: OMAP: introduce mailbox framework
+Date: Wed, 9 Jan 2013 13:29:39 +0100
+Message-ID: <50ED62B3.50000@st.com>
+References: <1355836212-17956-1-git-send-email-loic.pallardy-ext@stericsson.com>
+ <1355836212-17956-2-git-send-email-loic.pallardy-ext@stericsson.com>
+ <20121218165909.GF4989@atomide.com> <50D423C2.3090009@st.com>
+ <B5906170F1614E41A8A28DE3B8D121433EC9CF77@DBDE01.ent.ti.com>
+ <50D43FA4.8090000@st.com>
+ <B5906170F1614E41A8A28DE3B8D121433ECDD8C1@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60077 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757506Ab3AIMUW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jan 2013 07:20:22 -0500
-In-Reply-To: <50ED5FA5.9020305@ti.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433ECDD8C1@DBDE01.ent.ti.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Loic PALLARDY STE <loic.pallardy-ext@stericsson.com>, Ohad Ben-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, "Gutierrez, Juan" <jgutierrez@ti.com>, Arnd Bergmann <arnd@arndb.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>, "Anna, Suman" <s-anna@ti.com>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, linux-arm-k
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "wg@grandegger.com" <wg@grandegger.com>, "mkl@pengutronix.de" <mkl@pengutronix.de>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-On Wed, Jan 09, 2013 at 17:46:37, Cousson, Benoit wrote:
-> Hi Anil,
-> 
-> On 11/14/2012 07:08 PM, AnilKumar Ch wrote:
-> > This patch series adds d_can raminit support to c_can/d_can driver,
-> > which is required to init/de-init D_CAN message RAM (holds message
-> > objects). Added corresponding DT changes to get resource of RAMINIT
-> > register and device instance.
-> > 
-> > These patches were tested on AM335x-EVM along with pinctrl data addition
-> > patch, which is not added to am335x-evm.dts (only supports CPLD profile#0)
-> > because d_can1 is supported under CPLD profile#1.
-> > 
-> > AnilKumar Ch (3):
-> >   can: c_can: Add d_can raminit support
-> >   ARM: dts: AM33XX: Add d_can instances to aliases
-> >   ARM: dts: AM33XX: Add memory resource to d_can node
-> 
-> I've just applied both DTS patches with Acked-by from Marc in my
-> for_3.9/dts branch.
-> 
-Hi Benoit,
+Hi Vaibhav,
 
-Thanks much
+On 01/09/2013 01:11 PM, Bedia, Vaibhav wrote:
+> Hi Loic,
+>
+> On Fri, Dec 21, 2012 at 16:23:24, Loic PALLARDY wrote:
+>>
+>>
+>> On 12/21/2012 11:49 AM, Bedia, Vaibhav wrote:
+>>> On Fri, Dec 21, 2012 at 14:24:26, Loic PALLARDY wrote:
+>>>>
+>>> I have a few patches which are dependent on this patch series.
+>>> Could you please keep me in cc for the future versions.
+>>>
+>> Sure, I'll.
+>>
+>
+> When do you plan to post an updated version of these patches?
+I'm synchronizing with Omar to include TI RPMsg and tidspbridge patches 
+in next update.
+So I plan update for end of the week, beginning of next week.
 
-Thanks
-AnilKumar
+Regards,
+Loic
+>
+> Regards,
+> Vaibhav
