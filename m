@@ -1,46 +1,37 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 1/9] mailbox: OMAP: introduce mailbox framework
-Date: Wed, 9 Jan 2013 12:11:54 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433ECDD8C1@DBDE01.ent.ti.com>
-References: <1355836212-17956-1-git-send-email-loic.pallardy-ext@stericsson.com>
- <1355836212-17956-2-git-send-email-loic.pallardy-ext@stericsson.com>
- <20121218165909.GF4989@atomide.com> <50D423C2.3090009@st.com>
- <B5906170F1614E41A8A28DE3B8D121433EC9CF77@DBDE01.ent.ti.com>
- <50D43FA4.8090000@st.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 0/3] can: Add D_CAN raminit support to am335x-evm
+Date: Wed, 9 Jan 2013 13:16:37 +0100
+Message-ID: <50ED5FA5.9020305@ti.com>
+References: <1352916505-12343-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <50D43FA4.8090000@st.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Loic PALLARDY <loic.pallardy@st.com>
-Cc: Loic PALLARDY STE <loic.pallardy-ext@stericsson.com>, Ohad Ben-Cohen <ohad@wizery.com>, "Anna, Suman" <s-anna@ti.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "Gutierrez, Juan" <jgutierrez@ti.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Wim Van Sebroeck <wim@iguana.be>, Dom Cobley <popcornmix@gmail.com>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, linux-arm-kernel
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <1352916505-12343-1-git-send-email-anilkumar@ti.com>
+Sender: linux-can-owner@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: wg@grandegger.com, mkl@pengutronix.de, swarren@wwwdotorg.org, linux-can@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Loic,
+Hi Anil,
 
-On Fri, Dec 21, 2012 at 16:23:24, Loic PALLARDY wrote:
+On 11/14/2012 07:08 PM, AnilKumar Ch wrote:
+> This patch series adds d_can raminit support to c_can/d_can driver,
+> which is required to init/de-init D_CAN message RAM (holds message
+> objects). Added corresponding DT changes to get resource of RAMINIT
+> register and device instance.
 > 
+> These patches were tested on AM335x-EVM along with pinctrl data addition
+> patch, which is not added to am335x-evm.dts (only supports CPLD profile#0)
+> because d_can1 is supported under CPLD profile#1.
 > 
-> On 12/21/2012 11:49 AM, Bedia, Vaibhav wrote:
-> > On Fri, Dec 21, 2012 at 14:24:26, Loic PALLARDY wrote:
-> >>
-> > I have a few patches which are dependent on this patch series.
-> > Could you please keep me in cc for the future versions.
-> >
-> Sure, I'll.
-> 
+> AnilKumar Ch (3):
+>   can: c_can: Add d_can raminit support
+>   ARM: dts: AM33XX: Add d_can instances to aliases
+>   ARM: dts: AM33XX: Add memory resource to d_can node
 
-When do you plan to post an updated version of these patches?
+I've just applied both DTS patches with Acked-by from Marc in my
+for_3.9/dts branch.
 
 Regards,
-Vaibhav
+Benoit
