@@ -1,79 +1,65 @@
-From: Sebastien Guiriec <s-guiriec@ti.com>
-Subject: [PATCH v2 0/5] ARM: OMAP4: Enable AESS IP.
-Date: Wed, 9 Jan 2013 16:03:06 +0100
-Message-ID: <1357743792-13917-1-git-send-email-s-guiriec@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 1/5] ARM: OMAP2+: hwmod: add enable_preprogram hook
+Date: Wed, 9 Jan 2013 17:07:57 +0200
+Message-ID: <20130109150757.GL27133@arwen.pp.htv.fi>
+References: <1357743792-13917-1-git-send-email-s-guiriec@ti.com>
+ <1357743792-13917-2-git-send-email-s-guiriec@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OiITrshLgfui8fEl"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39121 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39408 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757992Ab3AIPDW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Jan 2013 10:03:22 -0500
+	id S1755945Ab3AIPIU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Jan 2013 10:08:20 -0500
+Content-Disposition: inline
+In-Reply-To: <1357743792-13917-2-git-send-email-s-guiriec@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, Tero Kristo <t-kristo@ti.com>, Jon Hunter <jon-hunter@ti.com>
+To: Sebastien Guiriec <s-guiriec@ti.com>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, Tero Kristo <t-kristo@ti.com>, Jon Hunter <jon-hunter@ti.com>, Felipe Balbi <balbi@ti.com>
 
-v2:
-- Add missing AESS memory banks.
-- Update the serie base on comments related earlier serie:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69853.html
+--OiITrshLgfui8fEl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The location of the callback has been updated in order to fit with AESS.
-Some call of PM runtime can be done by ASoC core when AESS is in RET so
-we need to ensure that the additional callback is call on enable
-also in order to have clock correctly stop.
+On Wed, Jan 09, 2013 at 04:03:07PM +0100, Sebastien Guiriec wrote:
+> From: Paul Walmsley <paul@pwsan.com>
+>=20
+> After setup/enable, some IP blocks need some additional setting to
+> indicate the PRCM that they are inactive until they are configured.
+> Some examples on OMAP4 include the AESS and FSUSB IP blocks.
+>=20
+> To fix this cleanly, this patch adds another optional function
+> pointer, setup_preprogram, to the IP block's hwmod data.  The function
 
-v1:
-ARM: OMAP4: Enable AESS IP.
+the function pointer is called enable_preprogram.
 
-This patch serie extends the the hwmod HWMOD_EXT_OPT_MAIN_CLK flag for the
-AESS IP. This IP has additional register for Auto Gatting configuration. As
-it is used only for Audio the driver is not always loaded. We can reuse the
-same flag as McPDM to work around the HW problem due to bad reset value of
-AESS Auto gatting configuration register. 
+--=20
+balbi
 
-If we try to setup and reset AESS during boot time without this serie the
-next clocks will still remain enable.
+--OiITrshLgfui8fEl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-omapconf abe cfg:
-|--------------------------------------------------------------|
-| ABE        Clock Domain Configuration                        |
-|--------------------------------|-----------------------------|
-| Clock State Transition control | HW-Auto                     |
-| Clock State                    |                             |
-|   ABE_24M_FCLK                 | GATED                       |
-|   ABE_ALWON_32K_CLK            | GATED                       |
-|   ABE_SYSCLK                   | GATED                       |
-|   24M_FCLK                     | GATED                       |
-|   ABE_ICLK2                    | RUNNING                     |
-|   DPLL_ABE_X2_CLK              | RUNNING                     |
-|   PAD_CLKS                     | GATED                       |
-|   SLIMBUS_CLK                  | GATED                       |
-| OPP Divider                    | ABE_CLK = DPLL_ABE_X2_CLK/1 |
-|--------------------------------------------------------------|
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Paul Walmsley (3):
-  ARM: OMAP2+: hwmod: add enable_preprogram hook
-  ASoC: TI AESS: add autogating-enable function, callable from
-    architecture code
-  ARM: OMAP4+: AESS: enable internal auto-gating during initial setup
+iQIcBAEBAgAGBQJQ7YfNAAoJEIaOsuA1yqREtdQQAI5JV/SDTjBLuHqZgRyOl3Rl
+kwgnERRIkr0S3yUu7AU7KGv452neWgIIQ0/ldQ1E/F1w160mPRKLf01Q+t8CP/B0
+h6FKzqLbYCAvlu/QjFHji9B4pSr0slxxYWErxB+beRuYFj1M2/pLEMdK3HUlvy4g
+CPCYyhY968oq+L4+WAUb4BlT9/4TFWPJ+SqtDhS5ZwRyKW9BiOlhbSXrAt6S9yy/
+Jn1sxKXTTA5vBZoLCvmGDOVu1B41e9ZltVzMTu/sfYqYlv51NI9FaIoNFfjn06uu
+5+cLmTV29Uqhf1HhtVRN6KxEORJecnr1IDl1mgUi6UziqSf9eue1LEbQD9MALtb2
+F7Nvwu5r6FiljcKqHbNuxzRH6to1EwjbrqMmujUHr+YfAGk0HCVNxlUbGFSsdErO
+SoCvLBczSdSDAiahZf7JVsRikNwwpXJxq1A090yb4N5BSMjCXxkrFAj0syoGF+y+
+LxiIpp/JLtUFSHKP92d9ocLxMvw9or4wx7+FFcGBiR6JiYSUWmpTrADPEC8i3rMe
+PCQPMI+X29ql6dmdSrRCA6fueMU8zpgC2OnE7Vqz3ss5H3dZ0ReABjecpUDKOsQ6
+e70rspwWw0HJN2iiVLPeP1fwdDWg6hjR3QEzeLuxhyqJGZp3B76Jix0LXnvbGwIZ
+bFN6PgCX5AChS2+amlpo
+=J4jX
+-----END PGP SIGNATURE-----
 
-Sebastien Guiriec (2):
-  OMAP4: hwmod data: Enable AESS hwmod device
-  OMAP4: hwmod data: Update AESS data with memory bank area
-
- arch/arm/mach-omap2/Makefile               |    2 +-
- arch/arm/mach-omap2/omap_hwmod.c           |   18 ++++++++++
- arch/arm/mach-omap2/omap_hwmod.h           |    8 +++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   49 +++++++++++++++++++++++--
- arch/arm/mach-omap2/omap_hwmod_reset.c     |   52 +++++++++++++++++++++++++++
- include/sound/aess.h                       |   53 ++++++++++++++++++++++++++++
- 6 files changed, 178 insertions(+), 4 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_reset.c
- create mode 100644 include/sound/aess.h
-
--- 
-1.7.10.4
-
+--OiITrshLgfui8fEl--
