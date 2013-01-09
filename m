@@ -1,47 +1,114 @@
 From: Rob Clark <robdclark@gmail.com>
-Subject: [PATCH 3/4] RFC: drm/i2c: nxp-tda998x
-Date: Tue,  8 Jan 2013 22:11:24 -0600
-Message-ID: <1357704685-3600-4-git-send-email-robdclark@gmail.com>
+Subject: [PATCH 1/4] RFC: drm/lcdc: add TI LCD Controller DRM driver (v2)
+Date: Tue,  8 Jan 2013 22:11:22 -0600
+Message-ID: <1357704685-3600-2-git-send-email-robdclark@gmail.com>
 References: <1357704685-3600-1-git-send-email-robdclark@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:40289 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757155Ab3AIELt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jan 2013 23:11:49 -0500
-Received: by mail-pa0-f54.google.com with SMTP id bi5so760967pad.41
-        for <linux-omap@vger.kernel.org>; Tue, 08 Jan 2013 20:11:48 -0800 (PST)
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:51141 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757041Ab3AIELo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jan 2013 23:11:44 -0500
+Received: by mail-pa0-f46.google.com with SMTP id bh2so758110pad.5
+        for <linux-omap@vger.kernel.org>; Tue, 08 Jan 2013 20:11:43 -0800 (PST)
 In-Reply-To: <1357704685-3600-1-git-send-email-robdclark@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dri-devel@lists.freedesktop.org
 Cc: patches@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Clark <robdclark@gmail.com>
 
-Driver for the NXP TDA998X i2c hdmi encoder slave.
+A simple DRM/KMS driver for the TI LCD Controller found in various
+smaller TI parts (AM33xx, OMAPL138, etc).  This driver uses the
+CMA helpers.  Initially only the TFP410 DVI encoder is supported
+(tested with beaglebone + DVI cape).  There are also various LCD
+displays, for which support can be added (as I get hw to test on),
+and an external i2c HDMI encoder found on some boards.
+
+The display controller supports a single CRTC.  And the encoder+
+connector are split out into sub-devices.  Depending on which LCD
+or external encoder is actually present, the appropriate output
+module(s) will be loaded.
+
+v1: original
+v2: fix fb refcnting and few other cleanups
 
 Signed-off-by: Rob Clark <robdclark@gmail.com>
 ---
- drivers/gpu/drm/i2c/Makefile      |   3 +
- drivers/gpu/drm/i2c/tda998x_drv.c | 907 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 910 insertions(+)
- create mode 100644 drivers/gpu/drm/i2c/tda998x_drv.c
+ drivers/gpu/drm/Kconfig            |   2 +
+ drivers/gpu/drm/Makefile           |   1 +
+ drivers/gpu/drm/lcdc/Kconfig       |  10 +
+ drivers/gpu/drm/lcdc/Makefile      |   8 +
+ drivers/gpu/drm/lcdc/lcdc_crtc.c   | 598 ++++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/lcdc/lcdc_drv.c    | 602 +++++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/lcdc/lcdc_drv.h    | 164 ++++++++++
+ drivers/gpu/drm/lcdc/lcdc_regs.h   | 154 ++++++++++
+ drivers/gpu/drm/lcdc/lcdc_tfp410.c | 425 ++++++++++++++++++++++++++
+ drivers/gpu/drm/lcdc/lcdc_tfp410.h |  26 ++
+ 10 files changed, 1990 insertions(+)
+ create mode 100644 drivers/gpu/drm/lcdc/Kconfig
+ create mode 100644 drivers/gpu/drm/lcdc/Makefile
+ create mode 100644 drivers/gpu/drm/lcdc/lcdc_crtc.c
+ create mode 100644 drivers/gpu/drm/lcdc/lcdc_drv.c
+ create mode 100644 drivers/gpu/drm/lcdc/lcdc_drv.h
+ create mode 100644 drivers/gpu/drm/lcdc/lcdc_regs.h
+ create mode 100644 drivers/gpu/drm/lcdc/lcdc_tfp410.c
+ create mode 100644 drivers/gpu/drm/lcdc/lcdc_tfp410.h
 
-diff --git a/drivers/gpu/drm/i2c/Makefile b/drivers/gpu/drm/i2c/Makefile
-index 9286256..43aa33b 100644
---- a/drivers/gpu/drm/i2c/Makefile
-+++ b/drivers/gpu/drm/i2c/Makefile
-@@ -5,3 +5,6 @@ obj-$(CONFIG_DRM_I2C_CH7006) += ch7006.o
+diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+index 983201b..255efcb 100644
+--- a/drivers/gpu/drm/Kconfig
++++ b/drivers/gpu/drm/Kconfig
+@@ -212,3 +212,5 @@ source "drivers/gpu/drm/cirrus/Kconfig"
+ source "drivers/gpu/drm/shmobile/Kconfig"
  
- sil164-y := sil164_drv.o
- obj-$(CONFIG_DRM_I2C_SIL164) += sil164.o
+ source "drivers/gpu/drm/tegra/Kconfig"
 +
-+tda998x-y := tda998x_drv.o
-+obj-$(CONFIG_DRM_I2C_NXP_TDA998X) += tda998x.o
-diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
++source "drivers/gpu/drm/lcdc/Kconfig"
+diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
+index 6f58c81..8e0a19a 100644
+--- a/drivers/gpu/drm/Makefile
++++ b/drivers/gpu/drm/Makefile
+@@ -50,4 +50,5 @@ obj-$(CONFIG_DRM_UDL) += udl/
+ obj-$(CONFIG_DRM_AST) += ast/
+ obj-$(CONFIG_DRM_SHMOBILE) +=shmobile/
+ obj-$(CONFIG_DRM_TEGRA) += tegra/
++obj-$(CONFIG_DRM_LCDC)	+= lcdc/
+ obj-y			+= i2c/
+diff --git a/drivers/gpu/drm/lcdc/Kconfig b/drivers/gpu/drm/lcdc/Kconfig
 new file mode 100644
-index 0000000..47f8fd2
+index 0000000..58806d4
 --- /dev/null
-+++ b/drivers/gpu/drm/i2c/tda998x_drv.c
-@@ -0,0 +1,907 @@
++++ b/drivers/gpu/drm/lcdc/Kconfig
+@@ -0,0 +1,10 @@
++config DRM_LCDC
++	tristate "DRM Support for TI LCDC Display Controller"
++	depends on DRM && OF
++	select DRM_KMS_HELPER
++	select DRM_KMS_CMA_HELPER
++	select DRM_GEM_CMA_HELPER
++	help
++	  Choose this option if you have an TI SoC with LCDC display
++	  controller, for example AM33xx in beagle-bone, DA8xx, or
++	  OMAP-L1xx.  This driver replaces the FB_DA8XX fbdev driver.
+diff --git a/drivers/gpu/drm/lcdc/Makefile b/drivers/gpu/drm/lcdc/Makefile
+new file mode 100644
+index 0000000..db32161
+--- /dev/null
++++ b/drivers/gpu/drm/lcdc/Makefile
+@@ -0,0 +1,8 @@
++ccflags-y := -Iinclude/drm -Werror
++
++lcdc-y := \
++	lcdc_crtc.o \
++	lcdc_tfp410.o \
++	lcdc_drv.o
++
++obj-$(CONFIG_DRM_LCDC)	+= lcdc.o
+diff --git a/drivers/gpu/drm/lcdc/lcdc_crtc.c b/drivers/gpu/drm/lcdc/lcdc_crtc.c
+new file mode 100644
+index 0000000..c956748
+--- /dev/null
++++ b/drivers/gpu/drm/lcdc/lcdc_crtc.c
+@@ -0,0 +1,598 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments
 + * Author: Rob Clark <robdclark@gmail.com>
@@ -59,896 +126,1988 @@ index 0000000..47f8fd2
 + * this program.  If not, see <http://www.gnu.org/licenses/>.
 + */
 +
++#include <linux/kfifo.h>
 +
++#include "lcdc_drv.h"
++#include "lcdc_regs.h"
 +
-+#include <linux/module.h>
++struct lcdc_crtc {
++	struct drm_crtc base;
 +
-+#include <drm/drmP.h>
-+#include <drm/drm_crtc_helper.h>
-+#include <drm/drm_encoder_slave.h>
-+#include <drm/drm_edid.h>
-+
-+
-+#define DBG(fmt, ...) DRM_DEBUG(fmt"\n", ##__VA_ARGS__)
-+
-+struct tda998x_priv {
-+	struct i2c_client *cec;
-+	uint16_t rev;
-+	uint8_t current_page;
++	const struct lcdc_panel_info *info;
++	uint32_t dirty;
++	dma_addr_t start, end;
++	struct drm_pending_vblank_event *event;
 +	int dpms;
++	wait_queue_head_t frame_done_wq;
++	bool frame_done;
++
++	/* fb currently set to scanout 0/1: */
++	struct drm_framebuffer *scanout[2];
++
++	/* for deferred fb unref's: */
++	DECLARE_KFIFO_PTR(unref_fifo, struct drm_framebuffer *);
++	struct work_struct work;
 +};
++#define to_lcdc_crtc(x) container_of(x, struct lcdc_crtc, base)
 +
-+#define to_tda998x_priv(x)  ((struct tda998x_priv *)to_encoder_slave(x)->slave_priv)
-+
-+/* The TDA9988 series of devices use a paged register scheme.. to simplify
-+ * things we encode the page # in upper bits of the register #.  To read/
-+ * write a given register, we need to make sure CURPAGE register is set
-+ * appropriately.  Which implies reads/writes are not atomic.  Fun!
-+ */
-+
-+#define REG(page, addr) (((page) << 8) | (addr))
-+#define REG2ADDR(reg)   ((reg) & 0xff)
-+#define REG2PAGE(reg)   (((reg) >> 8) & 0xff)
-+
-+#define REG_CURPAGE               0xff                /* write */
-+
-+
-+/* Page 00h: General Control */
-+#define REG_VERSION_LSB           REG(0x00, 0x00)     /* read */
-+#define REG_MAIN_CNTRL0           REG(0x00, 0x01)     /* read/write */
-+# define MAIN_CNTRL0_SR           (1 << 0)
-+# define MAIN_CNTRL0_DECS         (1 << 1)
-+# define MAIN_CNTRL0_DEHS         (1 << 2)
-+# define MAIN_CNTRL0_CECS         (1 << 3)
-+# define MAIN_CNTRL0_CEHS         (1 << 4)
-+# define MAIN_CNTRL0_SCALER       (1 << 7)
-+#define REG_VERSION_MSB           REG(0x00, 0x02)     /* read */
-+#define REG_SOFTRESET             REG(0x00, 0x0a)     /* write */
-+# define SOFTRESET_AUDIO          (1 << 0)
-+# define SOFTRESET_I2C_MASTER     (1 << 1)
-+#define REG_DDC_DISABLE           REG(0x00, 0x0b)     /* read/write */
-+#define REG_CCLK_ON               REG(0x00, 0x0c)     /* read/write */
-+#define REG_I2C_MASTER            REG(0x00, 0x0d)     /* read/write */
-+# define I2C_MASTER_DIS_MM        (1 << 0)
-+# define I2C_MASTER_DIS_FILT      (1 << 1)
-+# define I2C_MASTER_APP_STRT_LAT  (1 << 2)
-+#define REG_INT_FLAGS_0           REG(0x00, 0x0f)     /* read/write */
-+#define REG_INT_FLAGS_1           REG(0x00, 0x10)     /* read/write */
-+#define REG_INT_FLAGS_2           REG(0x00, 0x11)     /* read/write */
-+# define INT_FLAGS_2_EDID_BLK_RD  (1 << 1)
-+#define REG_ENA_VP_0              REG(0x00, 0x18)     /* read/write */
-+#define REG_ENA_VP_1              REG(0x00, 0x19)     /* read/write */
-+#define REG_ENA_VP_2              REG(0x00, 0x1a)     /* read/write */
-+#define REG_ENA_AP                REG(0x00, 0x1e)     /* read/write */
-+#define REG_VIP_CNTRL_0           REG(0x00, 0x20)     /* write */
-+# define VIP_CNTRL_0_MIRR_A       (1 << 7)
-+# define VIP_CNTRL_0_SWAP_A(x)    (((x) & 7) << 4)
-+# define VIP_CNTRL_0_MIRR_B       (1 << 3)
-+# define VIP_CNTRL_0_SWAP_B(x)    (((x) & 7) << 0)
-+#define REG_VIP_CNTRL_1           REG(0x00, 0x21)     /* write */
-+# define VIP_CNTRL_1_MIRR_C       (1 << 7)
-+# define VIP_CNTRL_1_SWAP_C(x)    (((x) & 7) << 4)
-+# define VIP_CNTRL_1_MIRR_D       (1 << 3)
-+# define VIP_CNTRL_1_SWAP_D(x)    (((x) & 7) << 0)
-+#define REG_VIP_CNTRL_2           REG(0x00, 0x22)     /* write */
-+# define VIP_CNTRL_2_MIRR_E       (1 << 7)
-+# define VIP_CNTRL_2_SWAP_E(x)    (((x) & 7) << 4)
-+# define VIP_CNTRL_2_MIRR_F       (1 << 3)
-+# define VIP_CNTRL_2_SWAP_F(x)    (((x) & 7) << 0)
-+#define REG_VIP_CNTRL_3           REG(0x00, 0x23)     /* write */
-+# define VIP_CNTRL_3_X_TGL        (1 << 0)
-+# define VIP_CNTRL_3_H_TGL        (1 << 1)
-+# define VIP_CNTRL_3_V_TGL        (1 << 2)
-+# define VIP_CNTRL_3_EMB          (1 << 3)
-+# define VIP_CNTRL_3_SYNC_DE      (1 << 4)
-+# define VIP_CNTRL_3_SYNC_HS      (1 << 5)
-+# define VIP_CNTRL_3_DE_INT       (1 << 6)
-+# define VIP_CNTRL_3_EDGE         (1 << 7)
-+#define REG_VIP_CNTRL_4           REG(0x00, 0x24)     /* write */
-+# define VIP_CNTRL_4_BLC(x)       (((x) & 3) << 0)
-+# define VIP_CNTRL_4_BLANKIT(x)   (((x) & 3) << 2)
-+# define VIP_CNTRL_4_CCIR656      (1 << 4)
-+# define VIP_CNTRL_4_656_ALT      (1 << 5)
-+# define VIP_CNTRL_4_TST_656      (1 << 6)
-+# define VIP_CNTRL_4_TST_PAT      (1 << 7)
-+#define REG_VIP_CNTRL_5           REG(0x00, 0x25)     /* write */
-+# define VIP_CNTRL_5_CKCASE       (1 << 0)
-+# define VIP_CNTRL_5_SP_CNT(x)    (((x) & 3) << 1)
-+#define REG_MAT_CONTRL            REG(0x00, 0x80)     /* write */
-+# define MAT_CONTRL_MAT_SC(x)     (((x) & 3) << 0)
-+# define MAT_CONTRL_MAT_BP        (1 << 2)
-+#define REG_VIDFORMAT             REG(0x00, 0xa0)     /* write */
-+#define REG_REFPIX_MSB            REG(0x00, 0xa1)     /* write */
-+#define REG_REFPIX_LSB            REG(0x00, 0xa2)     /* write */
-+#define REG_REFLINE_MSB           REG(0x00, 0xa3)     /* write */
-+#define REG_REFLINE_LSB           REG(0x00, 0xa4)     /* write */
-+#define REG_NPIX_MSB              REG(0x00, 0xa5)     /* write */
-+#define REG_NPIX_LSB              REG(0x00, 0xa6)     /* write */
-+#define REG_NLINE_MSB             REG(0x00, 0xa7)     /* write */
-+#define REG_NLINE_LSB             REG(0x00, 0xa8)     /* write */
-+#define REG_VS_LINE_STRT_1_MSB    REG(0x00, 0xa9)     /* write */
-+#define REG_VS_LINE_STRT_1_LSB    REG(0x00, 0xaa)     /* write */
-+#define REG_VS_PIX_STRT_1_MSB     REG(0x00, 0xab)     /* write */
-+#define REG_VS_PIX_STRT_1_LSB     REG(0x00, 0xac)     /* write */
-+#define REG_VS_LINE_END_1_MSB     REG(0x00, 0xad)     /* write */
-+#define REG_VS_LINE_END_1_LSB     REG(0x00, 0xae)     /* write */
-+#define REG_VS_PIX_END_1_MSB      REG(0x00, 0xaf)     /* write */
-+#define REG_VS_PIX_END_1_LSB      REG(0x00, 0xb0)     /* write */
-+#define REG_VS_PIX_STRT_2_MSB     REG(0x00, 0xb3)     /* write */
-+#define REG_VS_PIX_STRT_2_LSB     REG(0x00, 0xb4)     /* write */
-+#define REG_VS_PIX_END_2_MSB      REG(0x00, 0xb7)     /* write */
-+#define REG_VS_PIX_END_2_LSB      REG(0x00, 0xb8)     /* write */
-+#define REG_HS_PIX_START_MSB      REG(0x00, 0xb9)     /* write */
-+#define REG_HS_PIX_START_LSB      REG(0x00, 0xba)     /* write */
-+#define REG_HS_PIX_STOP_MSB       REG(0x00, 0xbb)     /* write */
-+#define REG_HS_PIX_STOP_LSB       REG(0x00, 0xbc)     /* write */
-+#define REG_VWIN_START_1_MSB      REG(0x00, 0xbd)     /* write */
-+#define REG_VWIN_START_1_LSB      REG(0x00, 0xbe)     /* write */
-+#define REG_VWIN_END_1_MSB        REG(0x00, 0xbf)     /* write */
-+#define REG_VWIN_END_1_LSB        REG(0x00, 0xc0)     /* write */
-+#define REG_DE_START_MSB          REG(0x00, 0xc5)     /* write */
-+#define REG_DE_START_LSB          REG(0x00, 0xc6)     /* write */
-+#define REG_DE_STOP_MSB           REG(0x00, 0xc7)     /* write */
-+#define REG_DE_STOP_LSB           REG(0x00, 0xc8)     /* write */
-+#define REG_TBG_CNTRL_0           REG(0x00, 0xca)     /* write */
-+# define TBG_CNTRL_0_FRAME_DIS    (1 << 5)
-+# define TBG_CNTRL_0_SYNC_MTHD    (1 << 6)
-+# define TBG_CNTRL_0_SYNC_ONCE    (1 << 7)
-+#define REG_TBG_CNTRL_1           REG(0x00, 0xcb)     /* write */
-+# define TBG_CNTRL_1_VH_TGL_0     (1 << 0)
-+# define TBG_CNTRL_1_VH_TGL_1     (1 << 1)
-+# define TBG_CNTRL_1_VH_TGL_2     (1 << 2)
-+# define TBG_CNTRL_1_VHX_EXT_DE   (1 << 3)
-+# define TBG_CNTRL_1_VHX_EXT_HS   (1 << 4)
-+# define TBG_CNTRL_1_VHX_EXT_VS   (1 << 5)
-+# define TBG_CNTRL_1_DWIN_DIS     (1 << 6)
-+#define REG_ENABLE_SPACE          REG(0x00, 0xd6)     /* write */
-+#define REG_HVF_CNTRL_0           REG(0x00, 0xe4)     /* write */
-+# define HVF_CNTRL_0_SM           (1 << 7)
-+# define HVF_CNTRL_0_RWB          (1 << 6)
-+# define HVF_CNTRL_0_PREFIL(x)    (((x) & 3) << 2)
-+# define HVF_CNTRL_0_INTPOL(x)    (((x) & 3) << 0)
-+#define REG_HVF_CNTRL_1           REG(0x00, 0xe5)     /* write */
-+# define HVF_CNTRL_1_FOR          (1 << 0)
-+# define HVF_CNTRL_1_YUVBLK       (1 << 1)
-+# define HVF_CNTRL_1_VQR(x)       (((x) & 3) << 2)
-+# define HVF_CNTRL_1_PAD(x)       (((x) & 3) << 4)
-+# define HVF_CNTRL_1_SEMI_PLANAR  (1 << 6)
-+#define REG_RPT_CNTRL             REG(0x00, 0xf0)     /* write */
-+
-+
-+/* Page 02h: PLL settings */
-+#define REG_PLL_SERIAL_1          REG(0x02, 0x00)     /* read/write */
-+# define PLL_SERIAL_1_SRL_FDN     (1 << 0)
-+# define PLL_SERIAL_1_SRL_IZ(x)   (((x) & 3) << 1)
-+# define PLL_SERIAL_1_SRL_MAN_IZ  (1 << 6)
-+#define REG_PLL_SERIAL_2          REG(0x02, 0x01)     /* read/write */
-+# define PLL_SERIAL_2_SRL_NOSC(x) (((x) & 3) << 0)
-+# define PLL_SERIAL_2_SRL_PR(x)   (((x) & 0xf) << 4)
-+#define REG_PLL_SERIAL_3          REG(0x02, 0x02)     /* read/write */
-+# define PLL_SERIAL_3_SRL_CCIR    (1 << 0)
-+# define PLL_SERIAL_3_SRL_DE      (1 << 2)
-+# define PLL_SERIAL_3_SRL_PXIN_SEL (1 << 4)
-+#define REG_SERIALIZER            REG(0x02, 0x03)     /* read/write */
-+#define REG_BUFFER_OUT            REG(0x02, 0x04)     /* read/write */
-+#define REG_PLL_SCG1              REG(0x02, 0x05)     /* read/write */
-+#define REG_PLL_SCG2              REG(0x02, 0x06)     /* read/write */
-+#define REG_PLL_SCGN1             REG(0x02, 0x07)     /* read/write */
-+#define REG_PLL_SCGN2             REG(0x02, 0x08)     /* read/write */
-+#define REG_PLL_SCGR1             REG(0x02, 0x09)     /* read/write */
-+#define REG_PLL_SCGR2             REG(0x02, 0x0a)     /* read/write */
-+#define REG_AUDIO_DIV             REG(0x02, 0x0e)     /* read/write */
-+#define REG_SEL_CLK               REG(0x02, 0x11)     /* read/write */
-+# define SEL_CLK_SEL_CLK1         (1 << 0)
-+# define SEL_CLK_SEL_VRF_CLK(x)   (((x) & 3) << 1)
-+# define SEL_CLK_ENA_SC_CLK       (1 << 3)
-+#define REG_ANA_GENERAL           REG(0x02, 0x12)     /* read/write */
-+
-+
-+/* Page 09h: EDID Control */
-+#define REG_EDID_DATA_0           REG(0x09, 0x00)     /* read */
-+/* next 127 successive registers are the EDID block */
-+#define REG_EDID_CTRL             REG(0x09, 0xfa)     /* read/write */
-+#define REG_DDC_ADDR              REG(0x09, 0xfb)     /* read/write */
-+#define REG_DDC_OFFS              REG(0x09, 0xfc)     /* read/write */
-+#define REG_DDC_SEGM_ADDR         REG(0x09, 0xfd)     /* read/write */
-+#define REG_DDC_SEGM              REG(0x09, 0xfe)     /* read/write */
-+
-+
-+/* Page 10h: information frames and packets */
-+
-+
-+/* Page 11h: audio settings and content info packets */
-+#define REG_AIP_CNTRL_0           REG(0x11, 0x00)     /* read/write */
-+# define AIP_CNTRL_0_RST_FIFO     (1 << 0)
-+# define AIP_CNTRL_0_SWAP         (1 << 1)
-+# define AIP_CNTRL_0_LAYOUT       (1 << 2)
-+# define AIP_CNTRL_0_ACR_MAN      (1 << 5)
-+# define AIP_CNTRL_0_RST_CTS      (1 << 6)
-+#define REG_ENC_CNTRL             REG(0x11, 0x0d)     /* read/write */
-+# define ENC_CNTRL_RST_ENC        (1 << 0)
-+# define ENC_CNTRL_RST_SEL        (1 << 1)
-+# define ENC_CNTRL_CTL_CODE(x)    (((x) & 3) << 2)
-+
-+
-+/* Page 12h: HDCP and OTP */
-+#define REG_TX3                   REG(0x12, 0x9a)     /* read/write */
-+#define REG_TX33                  REG(0x12, 0xb8)     /* read/write */
-+# define TX33_HDMI                (1 << 1)
-+
-+
-+/* Page 13h: Gamut related metadata packets */
-+
-+
-+
-+/* CEC registers: (not paged)
-+ */
-+#define REG_CEC_FRO_IM_CLK_CTRL   0xfb                /* read/write */
-+# define CEC_FRO_IM_CLK_CTRL_GHOST_DIS (1 << 7)
-+# define CEC_FRO_IM_CLK_CTRL_ENA_OTP   (1 << 6)
-+# define CEC_FRO_IM_CLK_CTRL_IMCLK_SEL (1 << 1)
-+# define CEC_FRO_IM_CLK_CTRL_FRO_DIV   (1 << 0)
-+#define REG_CEC_RXSHPDLEV         0xfe                /* read */
-+# define CEC_RXSHPDLEV_RXSENS     (1 << 0)
-+# define CEC_RXSHPDLEV_HPD        (1 << 1)
-+
-+#define REG_CEC_ENAMODS           0xff                /* read/write */
-+# define CEC_ENAMODS_DIS_FRO      (1 << 6)
-+# define CEC_ENAMODS_DIS_CCLK     (1 << 5)
-+# define CEC_ENAMODS_EN_RXSENS    (1 << 2)
-+# define CEC_ENAMODS_EN_HDMI      (1 << 1)
-+# define CEC_ENAMODS_EN_CEC       (1 << 0)
-+
-+
-+/* Device versions: */
-+#define TDA9989N2                 0x0101
-+#define TDA19989                  0x0201
-+#define TDA19989N2                0x0202
-+#define TDA19988                  0x0301
-+
-+static void
-+cec_write(struct drm_encoder *encoder, uint16_t addr, uint8_t val)
++static void unref_worker(struct work_struct *work)
 +{
-+	struct i2c_client *client = to_tda998x_priv(encoder)->cec;
-+	uint8_t buf[] = {addr, val};
-+	int ret;
++	struct lcdc_crtc *lcdc_crtc = container_of(work, struct lcdc_crtc, work);
++	struct drm_device *dev = lcdc_crtc->base.dev;
++	struct drm_framebuffer *fb;
 +
-+	ret = i2c_master_send(client, buf, ARRAY_SIZE(buf));
-+	if (ret < 0)
-+		dev_err(&client->dev, "Error %d writing to cec:0x%x\n", ret, addr);
++	mutex_lock(&dev->mode_config.mutex);
++	while (kfifo_get(&lcdc_crtc->unref_fifo, &fb))
++		drm_framebuffer_unreference(fb);
++	mutex_unlock(&dev->mode_config.mutex);
 +}
 +
-+static uint8_t
-+cec_read(struct drm_encoder *encoder, uint8_t addr)
++static void set_scanout(struct drm_crtc *crtc, int n)
 +{
-+	struct i2c_client *client = to_tda998x_priv(encoder)->cec;
-+	uint8_t val;
-+	int ret;
++	static const uint32_t base_reg[] = {
++			LCDC_DMA_FB_BASE_ADDR_0_REG, LCDC_DMA_FB_BASE_ADDR_1_REG,
++	};
++	static const uint32_t ceil_reg[] = {
++			LCDC_DMA_FB_CEILING_ADDR_0_REG, LCDC_DMA_FB_CEILING_ADDR_1_REG,
++	};
++	static const uint32_t stat[] = {
++			LCDC_END_OF_FRAME0, LCDC_END_OF_FRAME1,
++	};
++	struct lcdc_crtc *lcdc_crtc = to_lcdc_crtc(crtc);
++	struct drm_device *dev = crtc->dev;
 +
-+	ret = i2c_master_send(client, &addr, sizeof(addr));
-+	if (ret < 0)
-+		goto fail;
++	pm_runtime_get_sync(dev->dev);
++	lcdc_write(dev, base_reg[n], lcdc_crtc->start);
++	lcdc_write(dev, ceil_reg[n], lcdc_crtc->end);
++	if (lcdc_crtc->scanout[n]) {
++		if (kfifo_put(&lcdc_crtc->unref_fifo,
++				(const struct drm_framebuffer **)&lcdc_crtc->scanout[n])) {
++			struct lcdc_drm_private *priv = dev->dev_private;
++			queue_work(priv->wq, &lcdc_crtc->work);
++		} else {
++			dev_err(dev->dev, "unref fifo full!\n");
++			drm_framebuffer_unreference(lcdc_crtc->scanout[n]);
++		}
++	}
++	lcdc_crtc->scanout[n] = crtc->fb;
++	drm_framebuffer_reference(lcdc_crtc->scanout[n]);
++	lcdc_crtc->dirty &= ~stat[n];
++	pm_runtime_put_sync(dev->dev);
++}
 +
-+	ret = i2c_master_recv(client, &val, sizeof(val));
-+	if (ret < 0)
-+		goto fail;
++static void update_scanout(struct drm_crtc *crtc)
++{
++	struct lcdc_crtc *lcdc_crtc = to_lcdc_crtc(crtc);
++	struct drm_device *dev = crtc->dev;
++	struct drm_framebuffer *fb = crtc->fb;
++	struct drm_gem_cma_object *gem;
++	unsigned int depth, bpp;
 +
-+	return val;
++	drm_fb_get_bpp_depth(fb->pixel_format, &depth, &bpp);
++	gem = drm_fb_cma_get_gem_obj(fb, 0);
 +
-+fail:
-+	dev_err(&client->dev, "Error %d reading from cec:0x%x\n", ret, addr);
++	lcdc_crtc->start = gem->paddr + fb->offsets[0] +
++			(crtc->y * fb->pitches[0]) + (crtc->x * bpp/8);
++
++	lcdc_crtc->end = lcdc_crtc->start +
++			(crtc->mode.vdisplay * fb->pitches[0]);
++
++	if (lcdc_crtc->dpms == DRM_MODE_DPMS_ON) {
++		/* already enabled, so just mark the frames that need
++		 * updating and they will be updated on vblank:
++		 */
++		lcdc_crtc->dirty |= LCDC_END_OF_FRAME0 | LCDC_END_OF_FRAME1;
++		drm_vblank_get(dev, 0);
++	} else {
++		/* not enabled yet, so update registers immediately: */
++		set_scanout(crtc, 0);
++		set_scanout(crtc, 1);
++	}
++}
++
++static void start(struct drm_crtc *crtc)
++{
++	struct drm_device *dev = crtc->dev;
++	struct lcdc_drm_private *priv = dev->dev_private;
++
++	if (priv->rev == 2) {
++		lcdc_set(dev, LCDC_CLK_RESET_REG, LCDC_CLK_MAIN_RESET);
++		msleep(1);
++		lcdc_clear(dev, LCDC_CLK_RESET_REG, LCDC_CLK_MAIN_RESET);
++		msleep(1);
++	}
++
++	lcdc_set(dev, LCDC_DMA_CTRL_REG, LCDC_DUAL_FRAME_BUFFER_ENABLE);
++	lcdc_set(dev, LCDC_RASTER_CTRL_REG, LCDC_PALETTE_LOAD_MODE(DATA_ONLY));
++	lcdc_set(dev, LCDC_RASTER_CTRL_REG, LCDC_RASTER_ENABLE);
++}
++
++static void stop(struct drm_crtc *crtc)
++{
++	struct drm_device *dev = crtc->dev;
++
++	lcdc_clear(dev, LCDC_RASTER_CTRL_REG, LCDC_RASTER_ENABLE);
++}
++
++static void lcdc_crtc_destroy(struct drm_crtc *crtc)
++{
++	struct lcdc_crtc *lcdc_crtc = to_lcdc_crtc(crtc);
++
++	WARN_ON(lcdc_crtc->dpms == DRM_MODE_DPMS_ON);
++
++	drm_crtc_cleanup(crtc);
++	WARN_ON(!kfifo_is_empty(&lcdc_crtc->unref_fifo));
++	kfifo_free(&lcdc_crtc->unref_fifo);
++	kfree(lcdc_crtc);
++}
++
++static int lcdc_crtc_page_flip(struct drm_crtc *crtc,
++		struct drm_framebuffer *fb,
++		struct drm_pending_vblank_event *event)
++{
++	struct lcdc_crtc *lcdc_crtc = to_lcdc_crtc(crtc);
++	struct drm_device *dev = crtc->dev;
++
++	if (lcdc_crtc->event) {
++		dev_err(dev->dev, "already pending page flip!\n");
++		return -EBUSY;
++	}
++
++	crtc->fb = fb;
++	lcdc_crtc->event = event;
++	update_scanout(crtc);
++
 +	return 0;
 +}
 +
-+static void
-+set_page(struct drm_encoder *encoder, uint16_t reg)
++static void lcdc_crtc_dpms(struct drm_crtc *crtc, int mode)
 +{
-+	struct tda998x_priv *priv = to_tda998x_priv(encoder);
++	struct lcdc_crtc *lcdc_crtc = to_lcdc_crtc(crtc);
++	struct drm_device *dev = crtc->dev;
++	struct lcdc_drm_private *priv = dev->dev_private;
 +
-+	if (REG2PAGE(reg) != priv->current_page) {
-+		struct i2c_client *client = drm_i2c_encoder_get_client(encoder);
-+		uint8_t buf[] = {
-+				REG_CURPAGE, REG2PAGE(reg)
-+		};
-+		int ret = i2c_master_send(client, buf, sizeof(buf));
-+		if (ret < 0)
-+			dev_err(&client->dev, "Error %d writing to REG_CURPAGE\n", ret);
-+
-+		priv->current_page = REG2PAGE(reg);
-+	}
-+}
-+
-+static int
-+reg_read_range(struct drm_encoder *encoder, uint16_t reg, char *buf, int cnt)
-+{
-+	struct i2c_client *client = drm_i2c_encoder_get_client(encoder);
-+	uint8_t addr = REG2ADDR(reg);
-+	int ret;
-+
-+	set_page(encoder, reg);
-+
-+	ret = i2c_master_send(client, &addr, sizeof(addr));
-+	if (ret < 0)
-+		goto fail;
-+
-+	ret = i2c_master_recv(client, buf, cnt);
-+	if (ret < 0)
-+		goto fail;
-+
-+	return ret;
-+
-+fail:
-+	dev_err(&client->dev, "Error %d reading from 0x%x\n", ret, reg);
-+	return ret;
-+}
-+
-+static uint8_t
-+reg_read(struct drm_encoder *encoder, uint16_t reg)
-+{
-+	uint8_t val = 0;
-+	reg_read_range(encoder, reg, &val, sizeof(val));
-+	return val;
-+}
-+
-+static void
-+reg_write(struct drm_encoder *encoder, uint16_t reg, uint8_t val)
-+{
-+	struct i2c_client *client = drm_i2c_encoder_get_client(encoder);
-+	uint8_t buf[] = {REG2ADDR(reg), val};
-+	int ret;
-+
-+	set_page(encoder, reg);
-+
-+	ret = i2c_master_send(client, buf, ARRAY_SIZE(buf));
-+	if (ret < 0)
-+		dev_err(&client->dev, "Error %d writing to 0x%x\n", ret, reg);
-+}
-+
-+static void
-+reg_write16(struct drm_encoder *encoder, uint16_t reg, uint16_t val)
-+{
-+	struct i2c_client *client = drm_i2c_encoder_get_client(encoder);
-+	uint8_t buf[] = {REG2ADDR(reg), val >> 8, val};
-+	int ret;
-+
-+	set_page(encoder, reg);
-+
-+	ret = i2c_master_send(client, buf, ARRAY_SIZE(buf));
-+	if (ret < 0)
-+		dev_err(&client->dev, "Error %d writing to 0x%x\n", ret, reg);
-+}
-+
-+static void
-+reg_set(struct drm_encoder *encoder, uint16_t reg, uint8_t val)
-+{
-+	reg_write(encoder, reg, reg_read(encoder, reg) | val);
-+}
-+
-+static void
-+reg_clear(struct drm_encoder *encoder, uint16_t reg, uint8_t val)
-+{
-+	reg_write(encoder, reg, reg_read(encoder, reg) & ~val);
-+}
-+
-+static void
-+tda998x_reset(struct drm_encoder *encoder)
-+{
-+	/* reset audio and i2c master: */
-+	reg_set(encoder, REG_SOFTRESET, SOFTRESET_AUDIO | SOFTRESET_I2C_MASTER);
-+	msleep(50);
-+	reg_clear(encoder, REG_SOFTRESET, SOFTRESET_AUDIO | SOFTRESET_I2C_MASTER);
-+	msleep(50);
-+
-+	/* reset transmitter: */
-+	reg_set(encoder, REG_MAIN_CNTRL0, MAIN_CNTRL0_SR);
-+	reg_clear(encoder, REG_MAIN_CNTRL0, MAIN_CNTRL0_SR);
-+
-+	/* PLL registers common configuration */
-+	reg_write(encoder, REG_PLL_SERIAL_1, 0x00);
-+	reg_write(encoder, REG_PLL_SERIAL_2, PLL_SERIAL_2_SRL_NOSC(1));
-+	reg_write(encoder, REG_PLL_SERIAL_3, 0x00);
-+	reg_write(encoder, REG_SERIALIZER,   0x00);
-+	reg_write(encoder, REG_BUFFER_OUT,   0x00);
-+	reg_write(encoder, REG_PLL_SCG1,     0x00);
-+	reg_write(encoder, REG_AUDIO_DIV,    0x03);
-+	reg_write(encoder, REG_SEL_CLK,      SEL_CLK_SEL_CLK1 | SEL_CLK_ENA_SC_CLK);
-+	reg_write(encoder, REG_PLL_SCGN1,    0xfa);
-+	reg_write(encoder, REG_PLL_SCGN2,    0x00);
-+	reg_write(encoder, REG_PLL_SCGR1,    0x5b);
-+	reg_write(encoder, REG_PLL_SCGR2,    0x00);
-+	reg_write(encoder, REG_PLL_SCG2,     0x10);
-+}
-+
-+/* DRM encoder functions */
-+
-+static void
-+tda998x_encoder_set_config(struct drm_encoder *encoder, void *params)
-+{
-+}
-+
-+static void
-+tda998x_encoder_dpms(struct drm_encoder *encoder, int mode)
-+{
-+	struct tda998x_priv *priv = to_tda998x_priv(encoder);
-+
-+	/* we only care about on or off: */
++	/* we really only care about on or off: */
 +	if (mode != DRM_MODE_DPMS_ON)
 +		mode = DRM_MODE_DPMS_OFF;
 +
-+	if (mode == priv->dpms)
++	if (lcdc_crtc->dpms == mode)
 +		return;
 +
-+	switch (mode) {
-+	case DRM_MODE_DPMS_ON:
-+		/* enable audio and video ports */
-+		reg_write(encoder, REG_ENA_AP, 0xff);
-+		reg_write(encoder, REG_ENA_VP_0, 0xff);
-+		reg_write(encoder, REG_ENA_VP_1, 0xff);
-+		reg_write(encoder, REG_ENA_VP_2, 0xff);
-+		/* set muxing after enabling ports: */
-+		reg_write(encoder, REG_VIP_CNTRL_0,
-+				VIP_CNTRL_0_SWAP_A(2) | VIP_CNTRL_0_SWAP_B(3));
-+		reg_write(encoder, REG_VIP_CNTRL_1,
-+				VIP_CNTRL_1_SWAP_C(0) | VIP_CNTRL_1_SWAP_D(1));
-+		reg_write(encoder, REG_VIP_CNTRL_2,
-+				VIP_CNTRL_2_SWAP_E(4) | VIP_CNTRL_2_SWAP_F(5));
-+		break;
-+	case DRM_MODE_DPMS_OFF:
-+		/* disable audio and video ports */
-+		reg_write(encoder, REG_ENA_AP, 0x00);
-+		reg_write(encoder, REG_ENA_VP_0, 0x00);
-+		reg_write(encoder, REG_ENA_VP_1, 0x00);
-+		reg_write(encoder, REG_ENA_VP_2, 0x00);
-+		break;
++	lcdc_crtc->dpms = mode;
++
++	pm_runtime_get_sync(dev->dev);
++
++	if (mode == DRM_MODE_DPMS_ON) {
++		pm_runtime_forbid(dev->dev);
++		start(crtc);
++	} else {
++		lcdc_crtc->frame_done = false;
++		stop(crtc);
++
++		/* if necessary wait for framedone irq which will still come
++		 * before putting things to sleep..
++		 */
++		if (priv->rev == 2) {
++			int ret = wait_event_timeout(
++					lcdc_crtc->frame_done_wq,
++					lcdc_crtc->frame_done,
++					msecs_to_jiffies(50));
++			if (ret == 0)
++				dev_err(dev->dev, "timeout waiting for framedone\n");
++		}
++		pm_runtime_allow(dev->dev);
 +	}
 +
-+	priv->dpms = mode;
++	pm_runtime_put_sync(dev->dev);
 +}
 +
-+static void
-+tda998x_encoder_save(struct drm_encoder *encoder)
-+{
-+	DBG("");
-+}
-+
-+static void
-+tda998x_encoder_restore(struct drm_encoder *encoder)
-+{
-+	DBG("");
-+}
-+
-+static bool
-+tda998x_encoder_mode_fixup(struct drm_encoder *encoder,
-+			  const struct drm_display_mode *mode,
-+			  struct drm_display_mode *adjusted_mode)
++static bool lcdc_crtc_mode_fixup(struct drm_crtc *crtc,
++		const struct drm_display_mode *mode,
++		struct drm_display_mode *adjusted_mode)
 +{
 +	return true;
 +}
 +
-+static int
-+tda998x_encoder_mode_valid(struct drm_encoder *encoder,
-+			  struct drm_display_mode *mode)
++static void lcdc_crtc_prepare(struct drm_crtc *crtc)
 +{
++	lcdc_crtc_dpms(crtc, DRM_MODE_DPMS_OFF);
++}
++
++static void lcdc_crtc_commit(struct drm_crtc *crtc)
++{
++	lcdc_crtc_dpms(crtc, DRM_MODE_DPMS_ON);
++}
++
++static int lcdc_crtc_mode_set(struct drm_crtc *crtc,
++		struct drm_display_mode *mode,
++		struct drm_display_mode *adjusted_mode,
++		int x, int y,
++		struct drm_framebuffer *old_fb)
++{
++	struct lcdc_crtc *lcdc_crtc = to_lcdc_crtc(crtc);
++	struct drm_device *dev = crtc->dev;
++	struct lcdc_drm_private *priv = dev->dev_private;
++	const struct lcdc_panel_info *info = lcdc_crtc->info;
++	uint32_t reg, hbp, hfp, hsw, vbp, vfp, vsw;
++	int ret;
++
++	ret = lcdc_crtc_mode_valid(crtc, mode);
++	if (WARN_ON(ret))
++		return ret;
++
++	if (WARN_ON(!info))
++		return -EINVAL;
++
++	// TODO possibly need to wait for previous DMA to complete here
++
++	pm_runtime_get_sync(dev->dev);
++
++	/* Configure the Burst Size and fifo threshold of DMA: */
++	reg = lcdc_read(dev, LCDC_DMA_CTRL_REG) & ~0x00000770;
++	switch (info->dma_burst_sz) {
++	case 1:
++		reg |= LCDC_DMA_BURST_SIZE(LCDC_DMA_BURST_1);
++		break;
++	case 2:
++		reg |= LCDC_DMA_BURST_SIZE(LCDC_DMA_BURST_2);
++		break;
++	case 4:
++		reg |= LCDC_DMA_BURST_SIZE(LCDC_DMA_BURST_4);
++		break;
++	case 8:
++		reg |= LCDC_DMA_BURST_SIZE(LCDC_DMA_BURST_8);
++		break;
++	case 16:
++		reg |= LCDC_DMA_BURST_SIZE(LCDC_DMA_BURST_16);
++		break;
++	default:
++		return -EINVAL;
++	}
++	reg |= (info->fifo_th << 8);
++	lcdc_write(dev, LCDC_DMA_CTRL_REG, reg);
++
++	/* Configure the AC Bias Period and Number of Transitions per Interrupt: */
++	reg = lcdc_read(dev, LCDC_RASTER_TIMING_2_REG) & ~0x000fff00;
++	reg |= LCDC_AC_BIAS_FREQUENCY(info->ac_bias) |
++		LCDC_AC_BIAS_TRANSITIONS_PER_INT(info->ac_bias_intrpt);
++	lcdc_write(dev, LCDC_RASTER_TIMING_2_REG, reg);
++
++	/* Configure timings: */
++	hbp = mode->htotal - mode->hsync_end;
++	hfp = mode->hsync_start - mode->hdisplay;
++	hsw = mode->hsync_end - mode->hsync_start;
++	vbp = mode->vtotal - mode->vsync_end;
++	vfp = mode->vsync_start - mode->vdisplay;
++	vsw = mode->vsync_end - mode->vsync_start;
++
++	DBG("%dx%d, hbp=%u, hfp=%u, hsw=%u, vbp=%u, vfp=%u, vsw=%u",
++			mode->hdisplay, mode->vdisplay, hbp, hfp, hsw, vbp, vfp, vsw);
++
++	reg = (((mode->hdisplay >> 4) - 1) << 4) |
++		((hbp & 0xff) << 24) |
++		((hfp & 0xff) << 16) |
++		((hsw & 0x3f) << 10);
++	if (priv->rev == 2)
++		reg |= (((mode->hdisplay >> 4) - 1) & 0x40) >> 3;
++	lcdc_write(dev, LCDC_RASTER_TIMING_0_REG, reg);
++
++	reg = ((mode->vdisplay - 1) & 0x3ff) |
++		((vbp & 0xff) << 24) |
++		((vfp & 0xff) << 16) |
++		((vsw & 0x3f) << 10);
++	lcdc_write(dev, LCDC_RASTER_TIMING_1_REG, reg);
++
++	/* Configure display type: */
++	reg = lcdc_read(dev, LCDC_RASTER_CTRL_REG) &
++		~(LCDC_TFT_MODE | LCDC_MONO_8BIT_MODE | LCDC_MONOCHROME_MODE |
++			LCDC_V2_TFT_24BPP_MODE | LCDC_V2_TFT_24BPP_UNPACK | 0x000ff000);
++	reg |= LCDC_TFT_MODE; /* no monochrome/passive support */
++	if (info->tft_alt_mode)
++		reg |= LCDC_TFT_ALT_ENABLE;
++	if (priv->rev == 2) {
++		unsigned int depth, bpp;
++
++		drm_fb_get_bpp_depth(crtc->fb->pixel_format, &depth, &bpp);
++		switch (bpp) {
++		case 16:
++			break;
++		case 32:
++			reg |= LCDC_V2_TFT_24BPP_UNPACK;
++			/* fallthrough */
++		case 24:
++			reg |= LCDC_V2_TFT_24BPP_MODE;
++			break;
++		default:
++			dev_err(dev->dev, "invalid pixel format\n");
++			return -EINVAL;
++		}
++	}
++	reg |= info->fdd < 12;
++	lcdc_write(dev, LCDC_RASTER_CTRL_REG, reg);
++
++	if (info->invert_pxl_clk)
++		lcdc_set(dev, LCDC_RASTER_TIMING_2_REG, LCDC_INVERT_PIXEL_CLOCK);
++	else
++		lcdc_clear(dev, LCDC_RASTER_TIMING_2_REG, LCDC_INVERT_PIXEL_CLOCK);
++
++	if (info->sync_ctrl)
++		lcdc_set(dev, LCDC_RASTER_TIMING_2_REG, LCDC_SYNC_CTRL);
++	else
++		lcdc_clear(dev, LCDC_RASTER_TIMING_2_REG, LCDC_SYNC_CTRL);
++
++	if (info->sync_edge)
++		lcdc_set(dev, LCDC_RASTER_TIMING_2_REG, LCDC_SYNC_EDGE);
++	else
++		lcdc_clear(dev, LCDC_RASTER_TIMING_2_REG, LCDC_SYNC_EDGE);
++
++	if (info->invert_line_clock)
++		lcdc_set(dev, LCDC_RASTER_TIMING_2_REG, LCDC_INVERT_LINE_CLOCK);
++	else
++		lcdc_clear(dev, LCDC_RASTER_TIMING_2_REG, LCDC_INVERT_LINE_CLOCK);
++
++	if (info->invert_frm_clock)
++		lcdc_set(dev, LCDC_RASTER_TIMING_2_REG, LCDC_INVERT_FRAME_CLOCK);
++	else
++		lcdc_clear(dev, LCDC_RASTER_TIMING_2_REG, LCDC_INVERT_FRAME_CLOCK);
++
++	if (info->raster_order)
++		lcdc_set(dev, LCDC_RASTER_CTRL_REG, LCDC_RASTER_ORDER);
++	else
++		lcdc_clear(dev, LCDC_RASTER_CTRL_REG, LCDC_RASTER_ORDER);
++
++
++	/* Set msb's of fields extended in rev 2 */
++	if (priv->rev == 2) {
++		// XXX TODO RASTER_TIMINGS_2 has some msb hsw/hfp/hbp..
++	}
++
++	update_scanout(crtc);
++	lcdc_crtc_update_clk(crtc);
++
++	pm_runtime_put_sync(dev->dev);
++
++	return 0;
++}
++
++static int lcdc_crtc_mode_set_base(struct drm_crtc *crtc, int x, int y,
++		struct drm_framebuffer *old_fb)
++{
++	update_scanout(crtc);
++	return 0;
++}
++
++static void lcdc_crtc_load_lut(struct drm_crtc *crtc)
++{
++	/* TODO */
++}
++
++static const struct drm_crtc_funcs lcdc_crtc_funcs = {
++		.destroy        = lcdc_crtc_destroy,
++		.set_config     = drm_crtc_helper_set_config,
++		.page_flip      = lcdc_crtc_page_flip,
++};
++
++static const struct drm_crtc_helper_funcs lcdc_crtc_helper_funcs = {
++		.dpms           = lcdc_crtc_dpms,
++		.mode_fixup     = lcdc_crtc_mode_fixup,
++		.prepare        = lcdc_crtc_prepare,
++		.commit         = lcdc_crtc_commit,
++		.mode_set       = lcdc_crtc_mode_set,
++		.mode_set_base  = lcdc_crtc_mode_set_base,
++		.load_lut       = lcdc_crtc_load_lut,
++};
++
++int lcdc_crtc_max_width(struct drm_crtc *crtc)
++{
++	struct drm_device *dev = crtc->dev;
++	struct lcdc_drm_private *priv = dev->dev_private;
++	int max_width = 0;
++
++	if (priv->rev == 1)
++		max_width = 1024;
++	else if (priv->rev == 2)
++		max_width = 2048;
++
++	return max_width;
++}
++
++int lcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode)
++{
++	if (mode->hdisplay > lcdc_crtc_max_width(crtc))
++		return MODE_VIRTUAL_X;
++
++	/* width must be multiple of 16 */
++	if (mode->hdisplay & 0xf)
++		return MODE_VIRTUAL_X;
++
++	if (mode->vdisplay > 2048)
++		return MODE_VIRTUAL_Y;
++
 +	return MODE_OK;
 +}
 +
-+static void
-+tda998x_encoder_mode_set(struct drm_encoder *encoder,
-+			struct drm_display_mode *mode,
-+			struct drm_display_mode *adjusted_mode)
++void lcdc_crtc_set_panel_info(struct drm_crtc *crtc,
++		const struct lcdc_panel_info *info)
 +{
-+	struct tda998x_priv *priv = to_tda998x_priv(encoder);
-+	uint16_t hs_start, hs_end, line_start, line_end;
-+	uint16_t vwin_start, vwin_end, de_start, de_end;
-+	uint16_t ref_pix, ref_line, pix_start2;
-+	uint8_t reg, div, rep;
++	struct lcdc_crtc *lcdc_crtc = to_lcdc_crtc(crtc);
++	lcdc_crtc->info = info;
++}
 +
-+	hs_start   = mode->hsync_start - mode->hdisplay;
-+	hs_end     = mode->hsync_end - mode->hdisplay;
-+	line_start = 1;
-+	line_end   = 1 + mode->vsync_end - mode->vsync_start;
-+	vwin_start = mode->vtotal - mode->vsync_start;
-+	vwin_end   = vwin_start + mode->vdisplay;
-+	de_start   = mode->htotal - mode->hdisplay;
-+	de_end     = mode->htotal;
++void lcdc_crtc_update_clk(struct drm_crtc *crtc)
++{
++	struct lcdc_crtc *lcdc_crtc = to_lcdc_crtc(crtc);
++	struct drm_device *dev = crtc->dev;
++	struct lcdc_drm_private *priv = dev->dev_private;
++	int dpms = lcdc_crtc->dpms;
++	unsigned int lcd_clk, div;
++	int ret;
 +
-+	pix_start2 = 0;
-+	if (mode->flags & DRM_MODE_FLAG_INTERLACE)
-+		pix_start2 = (mode->htotal / 2) + hs_start;
++	pm_runtime_get_sync(dev->dev);
 +
-+	/* TODO how is this value calculated?  It is 2 for all common
-+	 * formats in the tables in out of tree nxp driver (assuming
-+	 * I've properly deciphered their byzantine table system)
++	if (dpms == DRM_MODE_DPMS_ON)
++		lcdc_crtc_dpms(crtc, DRM_MODE_DPMS_OFF);
++
++	/* in raster mode, minimum divisor is 2: */
++	ret = clk_set_rate(priv->disp_clk, crtc->mode.clock * 1000 * 2);
++	if (ret) {
++		dev_err(dev->dev, "failed to set display clock rate to: %d\n",
++				crtc->mode.clock);
++		goto out;
++	}
++
++	lcd_clk = clk_get_rate(priv->clk);
++	div = lcd_clk / (crtc->mode.clock * 1000);
++
++	DBG("lcd_clk=%u, mode clock=%d, div=%u", lcd_clk, crtc->mode.clock, div);
++	DBG("fck=%lu, dpll_disp_ck=%lu", clk_get_rate(priv->clk), clk_get_rate(priv->disp_clk));
++
++	/* Configure the LCD clock divisor. */
++	lcdc_write(dev, LCDC_CTRL_REG, LCDC_CLK_DIVISOR(div) |
++			LCDC_RASTER_MODE);
++
++	if (priv->rev == 2)
++		lcdc_set(dev, LCDC_CLK_ENABLE_REG,
++				LCDC_V2_DMA_CLK_EN | LCDC_V2_LIDD_CLK_EN |
++				LCDC_V2_CORE_CLK_EN);
++
++	if (dpms == DRM_MODE_DPMS_ON)
++		lcdc_crtc_dpms(crtc, DRM_MODE_DPMS_ON);
++
++out:
++	pm_runtime_put_sync(dev->dev);
++}
++
++irqreturn_t lcdc_crtc_irq(struct drm_crtc *crtc)
++{
++	struct lcdc_crtc *lcdc_crtc = to_lcdc_crtc(crtc);
++	struct drm_device *dev = crtc->dev;
++	struct lcdc_drm_private *priv = dev->dev_private;
++	uint32_t stat = lcdc_read_irqstatus(dev);
++
++	if ((stat & LCDC_SYNC_LOST) && (stat & LCDC_FIFO_UNDERFLOW)) {
++		stop(crtc);
++		dev_err(dev->dev, "error: %08x\n", stat);
++		lcdc_clear_irqstatus(dev, stat);
++		start(crtc);
++	} else if (stat & LCDC_PL_LOAD_DONE) {
++		/* TODO lut load.. */
++		lcdc_clear_irqstatus(dev, stat);
++	} else {
++		struct drm_pending_vblank_event *event;
++		unsigned long flags;
++		uint32_t dirty = lcdc_crtc->dirty & stat;
++
++		lcdc_clear_irqstatus(dev, stat);
++
++		if (dirty & LCDC_END_OF_FRAME0)
++			set_scanout(crtc, 0);
++
++		if (dirty & LCDC_END_OF_FRAME1)
++			set_scanout(crtc, 1);
++
++		drm_handle_vblank(dev, 0);
++
++		spin_lock_irqsave(&dev->event_lock, flags);
++		event = lcdc_crtc->event;
++		lcdc_crtc->event = NULL;
++		if (event)
++			drm_send_vblank_event(dev, 0, event);
++		spin_unlock_irqrestore(&dev->event_lock, flags);
++
++		if (dirty && !lcdc_crtc->dirty)
++			drm_vblank_put(dev, 0);
++	}
++
++	if (priv->rev == 2) {
++		if (stat & LCDC_FRAME_DONE) {
++			lcdc_crtc->frame_done = true;
++			wake_up(&lcdc_crtc->frame_done_wq);
++		}
++		lcdc_write(dev, LCDC_END_OF_INT_IND_REG, 0);
++	}
++
++	return IRQ_HANDLED;
++}
++
++void lcdc_crtc_cancel_page_flip(struct drm_crtc *crtc, struct drm_file *file)
++{
++	struct lcdc_crtc *lcdc_crtc = to_lcdc_crtc(crtc);
++	struct drm_pending_vblank_event *event;
++	struct drm_device *dev = crtc->dev;
++	unsigned long flags;
++
++	/* Destroy the pending vertical blanking event associated with the
++	 * pending page flip, if any, and disable vertical blanking interrupts.
 +	 */
-+	ref_line = 2;
-+
-+	/* this might changes for other color formats from the CRTC: */
-+	ref_pix = 3 + hs_start;
-+
-+	div = 148500 / mode->clock;
-+
-+	DBG("clock=%d, div=%u", mode->clock, div);
-+	DBG("hs_start=%u, hs_end=%u, line_start=%u, line_end=%u",
-+			hs_start, hs_end, line_start, line_end);
-+	DBG("vwin_start=%u, vwin_end=%u, de_start=%u, de_end=%u",
-+			vwin_start, vwin_end, de_start, de_end);
-+	DBG("ref_line=%u, ref_pix=%u, pix_start2=%u",
-+			ref_line, ref_pix, pix_start2);
-+
-+	/* mute the audio FIFO: */
-+	reg_set(encoder, REG_AIP_CNTRL_0, AIP_CNTRL_0_RST_FIFO);
-+
-+	/* set HDMI HDCP mode off: */
-+	reg_set(encoder, REG_TBG_CNTRL_1, TBG_CNTRL_1_DWIN_DIS);
-+	reg_clear(encoder, REG_TX33, TX33_HDMI);
-+
-+	reg_write(encoder, REG_ENC_CNTRL, ENC_CNTRL_CTL_CODE(0));
-+	reg_write(encoder, REG_HVF_CNTRL_0, HVF_CNTRL_0_PREFIL(0) |
-+			HVF_CNTRL_0_INTPOL(0));
-+	reg_write(encoder, REG_VIP_CNTRL_5, VIP_CNTRL_5_SP_CNT(0));
-+	reg_write(encoder, REG_VIP_CNTRL_4, VIP_CNTRL_4_BLANKIT(0) |
-+			VIP_CNTRL_4_BLC(0));
-+	reg_clear(encoder, REG_PLL_SERIAL_3, PLL_SERIAL_3_SRL_CCIR);
-+
-+	reg_clear(encoder, REG_PLL_SERIAL_1, PLL_SERIAL_1_SRL_MAN_IZ);
-+	reg_clear(encoder, REG_PLL_SERIAL_3, PLL_SERIAL_3_SRL_DE);
-+	reg_write(encoder, REG_SERIALIZER, 0);
-+	reg_write(encoder, REG_HVF_CNTRL_1, HVF_CNTRL_1_VQR(0));
-+
-+	/* TODO enable pixel repeat for pixel rates less than 25Msamp/s */
-+	rep = 0;
-+	reg_write(encoder, REG_RPT_CNTRL, 0);
-+	reg_write(encoder, REG_SEL_CLK, SEL_CLK_SEL_VRF_CLK(0) |
-+			SEL_CLK_SEL_CLK1 | SEL_CLK_ENA_SC_CLK);
-+
-+	reg_write(encoder, REG_PLL_SERIAL_2, PLL_SERIAL_2_SRL_NOSC(div) |
-+			PLL_SERIAL_2_SRL_PR(rep));
-+
-+	reg_write16(encoder, REG_VS_PIX_STRT_2_MSB, pix_start2);
-+	reg_write16(encoder, REG_VS_PIX_END_2_MSB, pix_start2);
-+
-+	/* set color matrix bypass flag: */
-+	reg_set(encoder, REG_MAT_CONTRL, MAT_CONTRL_MAT_BP);
-+
-+	/* set BIAS tmds value: */
-+	reg_write(encoder, REG_ANA_GENERAL, 0x09);
-+
-+	reg_clear(encoder, REG_TBG_CNTRL_0, TBG_CNTRL_0_SYNC_MTHD);
-+
-+	reg_write(encoder, REG_VIP_CNTRL_3, 0);
-+	reg_set(encoder, REG_VIP_CNTRL_3, VIP_CNTRL_3_SYNC_HS);
-+	if (mode->flags & DRM_MODE_FLAG_NVSYNC)
-+		reg_set(encoder, REG_VIP_CNTRL_3, VIP_CNTRL_3_V_TGL);
-+
-+	if (mode->flags & DRM_MODE_FLAG_NHSYNC)
-+		reg_set(encoder, REG_VIP_CNTRL_3, VIP_CNTRL_3_H_TGL);
-+
-+	reg_write(encoder, REG_VIDFORMAT, 0x00);
-+	reg_write16(encoder, REG_NPIX_MSB, mode->htotal - 1);
-+	reg_write16(encoder, REG_NLINE_MSB, mode->vtotal - 1);
-+	reg_write16(encoder, REG_VS_LINE_STRT_1_MSB, line_start);
-+	reg_write16(encoder, REG_VS_LINE_END_1_MSB, line_end);
-+	reg_write16(encoder, REG_VS_PIX_STRT_1_MSB, hs_start);
-+	reg_write16(encoder, REG_VS_PIX_END_1_MSB, hs_start);
-+	reg_write16(encoder, REG_HS_PIX_START_MSB, hs_start);
-+	reg_write16(encoder, REG_HS_PIX_STOP_MSB, hs_end);
-+	reg_write16(encoder, REG_VWIN_START_1_MSB, vwin_start);
-+	reg_write16(encoder, REG_VWIN_END_1_MSB, vwin_end);
-+	reg_write16(encoder, REG_DE_START_MSB, de_start);
-+	reg_write16(encoder, REG_DE_STOP_MSB, de_end);
-+
-+	if (priv->rev == TDA19988) {
-+		/* let incoming pixels fill the active space (if any) */
-+		reg_write(encoder, REG_ENABLE_SPACE, 0x01);
++	spin_lock_irqsave(&dev->event_lock, flags);
++	event = lcdc_crtc->event;
++	if (event && event->base.file_priv == file) {
++		lcdc_crtc->event = NULL;
++		event->base.destroy(&event->base);
++		drm_vblank_put(dev, 0);
 +	}
-+
-+	reg_write16(encoder, REG_REFPIX_MSB, ref_pix);
-+	reg_write16(encoder, REG_REFLINE_MSB, ref_line);
-+
-+	reg = TBG_CNTRL_1_VHX_EXT_DE |
-+			TBG_CNTRL_1_VHX_EXT_HS |
-+			TBG_CNTRL_1_VHX_EXT_VS |
-+			TBG_CNTRL_1_DWIN_DIS | /* HDCP off */
-+			TBG_CNTRL_1_VH_TGL_2;
-+	if (mode->flags & (DRM_MODE_FLAG_NVSYNC | DRM_MODE_FLAG_NHSYNC))
-+		reg |= TBG_CNTRL_1_VH_TGL_0;
-+	reg_set(encoder, REG_TBG_CNTRL_1, reg);
-+
-+	/* must be last register set: */
-+	reg_clear(encoder, REG_TBG_CNTRL_0, TBG_CNTRL_0_SYNC_ONCE);
++	spin_unlock_irqrestore(&dev->event_lock, flags);
 +}
 +
-+static enum drm_connector_status
-+tda998x_encoder_detect(struct drm_encoder *encoder,
-+		      struct drm_connector *connector)
++struct drm_crtc *lcdc_crtc_create(struct drm_device *dev)
 +{
-+	uint8_t val = cec_read(encoder, REG_CEC_RXSHPDLEV);
-+	return (val & CEC_RXSHPDLEV_HPD) ? connector_status_connected :
-+			connector_status_disconnected;
-+}
++	struct lcdc_crtc *lcdc_crtc;
++	struct drm_crtc *crtc;
++	int ret;
 +
-+static int
-+read_edid_block(struct drm_encoder *encoder, uint8_t *buf, int blk)
-+{
-+	uint8_t offset, segptr;
-+	int ret, i;
-+
-+	/* enable EDID read irq: */
-+	reg_set(encoder, REG_INT_FLAGS_2, INT_FLAGS_2_EDID_BLK_RD);
-+
-+	offset = (blk & 1) ? 128 : 0;
-+	segptr = blk / 2;
-+
-+	reg_write(encoder, REG_DDC_ADDR, 0xa0);
-+	reg_write(encoder, REG_DDC_OFFS, offset);
-+	reg_write(encoder, REG_DDC_SEGM_ADDR, 0x60);
-+	reg_write(encoder, REG_DDC_SEGM, segptr);
-+
-+	/* enable reading EDID: */
-+	reg_write(encoder, REG_EDID_CTRL, 0x1);
-+
-+	/* flag must be cleared by sw: */
-+	reg_write(encoder, REG_EDID_CTRL, 0x0);
-+
-+	/* wait for block read to complete: */
-+	for (i = 100; i > 0; i--) {
-+		uint8_t val = reg_read(encoder, REG_INT_FLAGS_2);
-+		if (val & INT_FLAGS_2_EDID_BLK_RD)
-+			break;
-+		msleep(1);
++	lcdc_crtc = kzalloc(sizeof(*lcdc_crtc), GFP_KERNEL);
++	if (!lcdc_crtc) {
++		dev_err(dev->dev, "allocation failed\n");
++		return NULL;
 +	}
 +
-+	if (i == 0)
-+		return -ETIMEDOUT;
++	crtc = &lcdc_crtc->base;
 +
-+	ret = reg_read_range(encoder, REG_EDID_DATA_0, buf, EDID_LENGTH);
-+	if (ret != EDID_LENGTH) {
-+		dev_err(encoder->dev->dev, "failed to read edid block %d: %d",
-+				blk, ret);
++	lcdc_crtc->dpms = DRM_MODE_DPMS_OFF;
++	init_waitqueue_head(&lcdc_crtc->frame_done_wq);
++
++	ret = kfifo_alloc(&lcdc_crtc->unref_fifo, 16, GFP_KERNEL);
++	if (ret) {
++		dev_err(dev->dev, "could not allocate unref FIFO\n");
++		goto fail;
++	}
++
++	INIT_WORK(&lcdc_crtc->work, unref_worker);
++
++	ret = drm_crtc_init(dev, crtc, &lcdc_crtc_funcs);
++	if (ret < 0)
++		goto fail;
++
++	drm_crtc_helper_add(crtc, &lcdc_crtc_helper_funcs);
++
++	return crtc;
++
++fail:
++	lcdc_crtc_destroy(crtc);
++	return NULL;
++}
+diff --git a/drivers/gpu/drm/lcdc/lcdc_drv.c b/drivers/gpu/drm/lcdc/lcdc_drv.c
+new file mode 100644
+index 0000000..5e6d218
+--- /dev/null
++++ b/drivers/gpu/drm/lcdc/lcdc_drv.c
+@@ -0,0 +1,602 @@
++/*
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <robdclark@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/* LCDC DRM driver, based on da8xx-fb */
++
++#include "lcdc_drv.h"
++#include "lcdc_regs.h"
++#include "lcdc_tfp410.h"
++
++#include "drm_fb_helper.h"
++
++static LIST_HEAD(module_list);
++
++void lcdc_module_init(struct lcdc_module *mod, const char *name,
++		const struct lcdc_module_ops *funcs)
++{
++	mod->name = name;
++	mod->funcs = funcs;
++	INIT_LIST_HEAD(&mod->list);
++	list_add(&mod->list, &module_list);
++}
++
++void lcdc_module_cleanup(struct lcdc_module *mod)
++{
++	list_del(&mod->list);
++}
++
++static struct of_device_id lcdc_of_match[];
++
++static struct drm_framebuffer *lcdc_fb_create(struct drm_device *dev,
++		struct drm_file *file_priv, struct drm_mode_fb_cmd2 *mode_cmd)
++{
++	// XXX todo, check supported format, pitch, etc..
++	return drm_fb_cma_create(dev, file_priv, mode_cmd);
++}
++
++static void lcdc_fb_output_poll_changed(struct drm_device *dev)
++{
++	struct lcdc_drm_private *priv = dev->dev_private;
++	if (priv->fbdev)
++		drm_fbdev_cma_hotplug_event(priv->fbdev);
++}
++
++static const struct drm_mode_config_funcs mode_config_funcs = {
++	.fb_create = lcdc_fb_create,
++	.output_poll_changed = lcdc_fb_output_poll_changed,
++};
++
++static int modeset_init(struct drm_device *dev)
++{
++	struct lcdc_drm_private *priv = dev->dev_private;
++	struct lcdc_module *mod;
++
++	drm_mode_config_init(dev);
++
++	priv->crtc = lcdc_crtc_create(dev);
++
++	list_for_each_entry(mod, &module_list, list) {
++		DBG("loading module: %s", mod->name);
++		mod->funcs->modeset_init(mod, dev);
++	}
++
++	if ((priv->num_encoders = 0) || (priv->num_connectors == 0)) {
++		/* oh nos! */
++		dev_err(dev->dev, "no encoders/connectors found\n");
++		return -ENXIO;
++	}
++
++	dev->mode_config.min_width = 0;
++	dev->mode_config.min_height = 0;
++	dev->mode_config.max_width = lcdc_crtc_max_width(priv->crtc);
++	dev->mode_config.max_height = 2048;
++	dev->mode_config.funcs = &mode_config_funcs;
++
++	return 0;
++}
++
++#ifdef CONFIG_CPU_FREQ
++static int cpufreq_transition(struct notifier_block *nb,
++				     unsigned long val, void *data)
++{
++	struct lcdc_drm_private *priv = container_of(nb,
++			struct lcdc_drm_private, freq_transition);
++	if (val == CPUFREQ_POSTCHANGE) {
++		if (priv->lcd_fck_rate != clk_get_rate(priv->clk)) {
++			priv->lcd_fck_rate = clk_get_rate(priv->clk);
++			lcdc_crtc_update_clk(priv->crtc);
++		}
++	}
++
++	return 0;
++}
++#endif
++
++/*
++ * DRM operations:
++ */
++
++static int lcdc_unload(struct drm_device *dev)
++{
++	struct lcdc_drm_private *priv = dev->dev_private;
++	struct lcdc_module *mod, *cur;
++
++	drm_kms_helper_poll_fini(dev);
++	drm_mode_config_cleanup(dev);
++	drm_vblank_cleanup(dev);
++
++	pm_runtime_get_sync(dev->dev);
++	drm_irq_uninstall(dev);
++	pm_runtime_put_sync(dev->dev);
++
++#ifdef CONFIG_CPU_FREQ
++	cpufreq_unregister_notifier(&priv->freq_transition,
++			CPUFREQ_TRANSITION_NOTIFIER);
++#endif
++
++	if (priv->clk)
++		clk_put(priv->clk);
++
++	if (priv->mmio)
++		iounmap(priv->mmio);
++
++	flush_workqueue(priv->wq);
++	destroy_workqueue(priv->wq);
++
++	dev->dev_private = NULL;
++
++	pm_runtime_disable(dev->dev);
++
++	list_for_each_entry_safe(mod, cur, &module_list, list) {
++		DBG("destroying module: %s", mod->name);
++		mod->funcs->destroy(mod);
++	}
++
++	kfree(priv);
++
++	return 0;
++}
++
++static int lcdc_load(struct drm_device *dev, unsigned long flags)
++{
++	struct platform_device *pdev = dev->platformdev;
++	struct lcdc_drm_private *priv;
++	struct resource *res;
++	int ret;
++
++	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
++	if (!priv) {
++		dev_err(dev->dev, "failed to allocate private data\n");
++		return -ENOMEM;
++	}
++
++	dev->dev_private = priv;
++
++	priv->wq = alloc_ordered_workqueue("lcdc", 0);
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		dev_err(dev->dev, "failed to get memory resource\n");
++		ret = -EINVAL;
++		goto fail;
++	}
++
++	priv->mmio = ioremap_nocache(res->start, resource_size(res));
++	if (!priv->mmio) {
++		dev_err(dev->dev, "failed to ioremap\n");
++		ret = -ENOMEM;
++		goto fail;
++	}
++
++	priv->clk = clk_get(dev->dev, "fck");
++	if (IS_ERR(priv->clk)) {
++		dev_err(dev->dev, "failed to get functional clock\n");
++		ret = -ENODEV;
++		goto fail;
++	}
++
++	priv->disp_clk = clk_get(dev->dev, "dpll_disp_ck");
++	if (IS_ERR(priv->clk)) {
++		dev_err(dev->dev, "failed to get display clock\n");
++		ret = -ENODEV;
++		goto fail;
++	}
++
++#ifdef CONFIG_CPU_FREQ
++	priv->lcd_fck_rate = clk_get_rate(priv->clk);
++	priv->freq_transition.notifier_call = cpufreq_transition;
++	ret = cpufreq_register_notifier(&priv->freq_transition,
++			CPUFREQ_TRANSITION_NOTIFIER);
++	if (ret) {
++		dev_err(dev->dev, "failed to register cpufreq notifier\n");
++		goto fail;
++	}
++#endif
++
++	pm_runtime_enable(dev->dev);
++
++	/* Determine LCD IP Version */
++	pm_runtime_get_sync(dev->dev);
++	switch (lcdc_read(dev, LCDC_PID_REG)) {
++	case 0x4C100102:
++		priv->rev = 1;
++		break;
++	case 0x4F200800:
++	case 0x4F201000:
++		priv->rev = 2;
++		break;
++	default:
++		dev_warn(dev->dev, "Unknown PID Reg value 0x%08x, "
++				"defaulting to LCD revision 1\n",
++				lcdc_read(dev, LCDC_PID_REG));
++		priv->rev = 1;
++		break;
++	}
++
++	pm_runtime_put_sync(dev->dev);
++
++	ret = modeset_init(dev);
++	if (ret < 0) {
++		dev_err(dev->dev, "failed to initialize mode setting\n");
++		goto fail;
++	}
++
++	ret = drm_vblank_init(dev, 1);
++	if (ret < 0) {
++		dev_err(dev->dev, "failed to initialize vblank\n");
++		goto fail;
++	}
++
++	pm_runtime_get_sync(dev->dev);
++	ret = drm_irq_install(dev);
++	pm_runtime_put_sync(dev->dev);
++	if (ret < 0) {
++		dev_err(dev->dev, "failed to install IRQ handler\n");
++		goto fail;
++	}
++
++	platform_set_drvdata(pdev, dev);
++
++	priv->fbdev = drm_fbdev_cma_init(dev, 16,
++			dev->mode_config.num_crtc,
++			dev->mode_config.num_connector);
++
++	drm_kms_helper_poll_init(dev);
++
++	return 0;
++
++fail:
++	lcdc_unload(dev);
++	return ret;
++}
++
++static void lcdc_preclose(struct drm_device *dev, struct drm_file *file)
++{
++	struct lcdc_drm_private *priv = dev->dev_private;
++
++	lcdc_crtc_cancel_page_flip(priv->crtc, file);
++}
++
++static void lcdc_lastclose(struct drm_device *dev)
++{
++	struct lcdc_drm_private *priv = dev->dev_private;
++	drm_fbdev_cma_restore_mode(priv->fbdev);
++}
++
++static irqreturn_t lcdc_irq(DRM_IRQ_ARGS)
++{
++	struct drm_device *dev = arg;
++	struct lcdc_drm_private *priv = dev->dev_private;
++	return lcdc_crtc_irq(priv->crtc);
++}
++
++static void lcdc_irq_preinstall(struct drm_device *dev)
++{
++	lcdc_clear_irqstatus(dev, 0xffffffff);
++}
++
++static int lcdc_irq_postinstall(struct drm_device *dev)
++{
++	struct lcdc_drm_private *priv = dev->dev_private;
++
++	/* enable FIFO underflow irq: */
++	if (priv->rev == 1) {
++		lcdc_set(dev, LCDC_RASTER_CTRL_REG, LCDC_V1_UNDERFLOW_INT_ENA);
++	} else {
++		lcdc_set(dev, LCDC_INT_ENABLE_SET_REG, LCDC_V2_UNDERFLOW_INT_ENA);
++	}
++
++	return 0;
++}
++
++static void lcdc_irq_uninstall(struct drm_device *dev)
++{
++	struct lcdc_drm_private *priv = dev->dev_private;
++
++	/* disable irqs that we might have enabled: */
++	if (priv->rev == 1) {
++		lcdc_clear(dev, LCDC_RASTER_CTRL_REG,
++				LCDC_V1_UNDERFLOW_INT_ENA | LCDC_V1_PL_INT_ENA);
++		lcdc_clear(dev, LCDC_DMA_CTRL_REG, LCDC_V1_END_OF_FRAME_INT_ENA);
++	} else {
++		lcdc_clear(dev, LCDC_INT_ENABLE_SET_REG,
++			LCDC_V2_UNDERFLOW_INT_ENA | LCDC_V2_PL_INT_ENA |
++			LCDC_V2_END_OF_FRAME0_INT_ENA | LCDC_V2_END_OF_FRAME1_INT_ENA |
++			LCDC_FRAME_DONE);
++	}
++
++}
++
++static void enable_vblank(struct drm_device *dev, bool enable)
++{
++	struct lcdc_drm_private *priv = dev->dev_private;
++	u32 reg, mask;
++
++	if (priv->rev == 1) {
++		reg = LCDC_DMA_CTRL_REG;
++		mask = LCDC_V1_END_OF_FRAME_INT_ENA;
++	} else {
++		reg = LCDC_INT_ENABLE_SET_REG;
++		mask = LCDC_V2_END_OF_FRAME0_INT_ENA |
++			LCDC_V2_END_OF_FRAME1_INT_ENA | LCDC_FRAME_DONE;
++	}
++
++	if (enable)
++		lcdc_set(dev, reg, mask);
++	else
++		lcdc_clear(dev, reg, mask);
++}
++
++static int lcdc_enable_vblank(struct drm_device *dev, int crtc)
++{
++	enable_vblank(dev, true);
++	return 0;
++}
++
++static void lcdc_disable_vblank(struct drm_device *dev, int crtc)
++{
++	enable_vblank(dev, false);
++}
++
++#if defined(CONFIG_DEBUG_FS) || defined(CONFIG_PM_SLEEP)
++static const struct {
++	const char *name;
++	uint8_t  rev;
++	uint8_t  save;
++	uint32_t reg;
++} registers[] = 	{
++#define REG(rev, save, reg) { #reg, rev, save, reg }
++		/* exists in revision 1: */
++		REG(1, false, LCDC_PID_REG),
++		REG(1, true,  LCDC_CTRL_REG),
++		REG(1, false, LCDC_STAT_REG),
++		REG(1, true,  LCDC_RASTER_CTRL_REG),
++		REG(1, true,  LCDC_RASTER_TIMING_0_REG),
++		REG(1, true,  LCDC_RASTER_TIMING_1_REG),
++		REG(1, true,  LCDC_RASTER_TIMING_2_REG),
++		REG(1, true,  LCDC_DMA_CTRL_REG),
++		REG(1, true,  LCDC_DMA_FB_BASE_ADDR_0_REG),
++		REG(1, true,  LCDC_DMA_FB_CEILING_ADDR_0_REG),
++		REG(1, true,  LCDC_DMA_FB_BASE_ADDR_1_REG),
++		REG(1, true,  LCDC_DMA_FB_CEILING_ADDR_1_REG),
++		/* new in revision 2: */
++		REG(2, false, LCDC_RAW_STAT_REG),
++		REG(2, false, LCDC_MASKED_STAT_REG),
++		REG(2, false, LCDC_INT_ENABLE_SET_REG),
++		REG(2, false, LCDC_INT_ENABLE_CLR_REG),
++		REG(2, false, LCDC_END_OF_INT_IND_REG),
++		REG(2, true,  LCDC_CLK_ENABLE_REG),
++		REG(2, true,  LCDC_INT_ENABLE_SET_REG),
++#undef REG
++};
++#endif
++
++#ifdef CONFIG_DEBUG_FS
++static int lcdc_regs_show(struct seq_file *m, void *arg)
++{
++	struct drm_info_node *node = (struct drm_info_node *) m->private;
++	struct drm_device *dev = node->minor->dev;
++	struct lcdc_drm_private *priv = dev->dev_private;
++	unsigned i;
++
++	pm_runtime_get_sync(dev->dev);
++
++	seq_printf(m, "revision: %d\n", priv->rev);
++
++	for (i = 0; i < ARRAY_SIZE(registers); i++)
++		if (priv->rev >= registers[i].rev)
++			seq_printf(m, "%s:\t %08x\n", registers[i].name,
++					lcdc_read(dev, registers[i].reg));
++
++	pm_runtime_put_sync(dev->dev);
++
++	return 0;
++}
++
++static int lcdc_mm_show(struct seq_file *m, void *arg)
++{
++	struct drm_info_node *node = (struct drm_info_node *) m->private;
++	struct drm_device *dev = node->minor->dev;
++	return drm_mm_dump_table(m, dev->mm_private);
++}
++
++static struct drm_info_list lcdc_debugfs_list[] = {
++		{ "regs", lcdc_regs_show, 0 },
++		{ "mm",   lcdc_mm_show,   0 },
++		{ "fb",   drm_fb_cma_debugfs_show, 0 },
++};
++
++static int lcdc_debugfs_init(struct drm_minor *minor)
++{
++	struct drm_device *dev = minor->dev;
++	struct lcdc_module *mod;
++	int ret;
++
++	ret = drm_debugfs_create_files(lcdc_debugfs_list,
++			ARRAY_SIZE(lcdc_debugfs_list),
++			minor->debugfs_root, minor);
++
++	list_for_each_entry(mod, &module_list, list)
++		if (mod->funcs->debugfs_init)
++			mod->funcs->debugfs_init(mod, minor);
++
++	if (ret) {
++		dev_err(dev->dev, "could not install lcdc_debugfs_list\n");
 +		return ret;
 +	}
 +
-+	reg_clear(encoder, REG_INT_FLAGS_2, INT_FLAGS_2_EDID_BLK_RD);
++	return ret;
++}
++
++static void lcdc_debugfs_cleanup(struct drm_minor *minor)
++{
++	struct lcdc_module *mod;
++	drm_debugfs_remove_files(lcdc_debugfs_list,
++			ARRAY_SIZE(lcdc_debugfs_list), minor);
++
++	list_for_each_entry(mod, &module_list, list)
++		if (mod->funcs->debugfs_cleanup)
++			mod->funcs->debugfs_cleanup(mod, minor);
++}
++#endif
++
++static const struct file_operations fops = {
++	.owner              = THIS_MODULE,
++	.open               = drm_open,
++	.release            = drm_release,
++	.unlocked_ioctl     = drm_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl       = drm_compat_ioctl,
++#endif
++	.poll               = drm_poll,
++	.read               = drm_read,
++	.fasync             = drm_fasync,
++	.llseek             = no_llseek,
++	.mmap               = drm_gem_cma_mmap,
++};
++
++static struct drm_driver lcdc_driver = {
++	.driver_features    = DRIVER_HAVE_IRQ | DRIVER_GEM | DRIVER_MODESET,
++	.load               = lcdc_load,
++	.unload             = lcdc_unload,
++	.preclose           = lcdc_preclose,
++	.lastclose          = lcdc_lastclose,
++	.irq_handler        = lcdc_irq,
++	.irq_preinstall     = lcdc_irq_preinstall,
++	.irq_postinstall    = lcdc_irq_postinstall,
++	.irq_uninstall      = lcdc_irq_uninstall,
++	.get_vblank_counter = drm_vblank_count,
++	.enable_vblank      = lcdc_enable_vblank,
++	.disable_vblank     = lcdc_disable_vblank,
++	.gem_free_object    = drm_gem_cma_free_object,
++	.gem_vm_ops         = &drm_gem_cma_vm_ops,
++	.dumb_create        = drm_gem_cma_dumb_create,
++	.dumb_map_offset    = drm_gem_cma_dumb_map_offset,
++	.dumb_destroy       = drm_gem_cma_dumb_destroy,
++#ifdef CONFIG_DEBUG_FS
++	.debugfs_init       = lcdc_debugfs_init,
++	.debugfs_cleanup    = lcdc_debugfs_cleanup,
++#endif
++	.fops               = &fops,
++	.name               = "lcdc",
++	.desc               = "TI LCD Controller DRM",
++	.date               = "20121205",
++	.major              = 1,
++	.minor              = 0,
++};
++
++/*
++ * Power management:
++ */
++
++#if CONFIG_PM_SLEEP
++static int lcdc_pm_suspend(struct device *dev)
++{
++	struct drm_device *ddev = dev_get_drvdata(dev);
++	struct lcdc_drm_private *priv = ddev->dev_private;
++	unsigned i, n = 0;
++
++	drm_kms_helper_poll_disable(ddev);
++
++	/* Save register state: */
++	for (i = 0; i < ARRAY_SIZE(registers); i++)
++		if (registers[i].save && (priv->rev >= registers[i].rev))
++			priv->saved_register[n++] = lcdc_read(ddev, registers[i].reg);
 +
 +	return 0;
 +}
 +
-+static uint8_t *
-+do_get_edid(struct drm_encoder *encoder)
++static int lcdc_pm_resume(struct device *dev)
 +{
-+	int j = 0, valid_extensions = 0;
-+	uint8_t *block, *new;
-+	bool print_bad_edid = drm_debug & DRM_UT_KMS;
++	struct drm_device *ddev = dev_get_drvdata(dev);
++	struct lcdc_drm_private *priv = ddev->dev_private;
++	unsigned i, n = 0;
 +
-+	if ((block = kmalloc(EDID_LENGTH, GFP_KERNEL)) == NULL)
++	/* Restore register state: */
++	for (i = 0; i < ARRAY_SIZE(registers); i++)
++		if (registers[i].save && (priv->rev >= registers[i].rev))
++			lcdc_write(ddev, registers[i].reg, priv->saved_register[n++]);
++
++	drm_kms_helper_poll_enable(ddev);
++
++	return 0;
++}
++#endif
++
++static const struct dev_pm_ops lcdc_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(lcdc_pm_suspend, lcdc_pm_resume)
++};
++
++/*
++ * Platform driver:
++ */
++
++static int __devinit lcdc_pdev_probe(struct platform_device *pdev)
++{
++	/* bail out early if no DT data: */
++	if (!of_match_device(lcdc_of_match, &pdev->dev)) {
++		dev_err(&pdev->dev, "device-tree data is missing\n");
++		return -ENXIO;
++	}
++
++	return drm_platform_init(&lcdc_driver, pdev);
++}
++
++static int __devexit lcdc_pdev_remove(struct platform_device *pdev)
++{
++	drm_platform_exit(&lcdc_driver, pdev);
++
++	return 0;
++}
++
++static struct of_device_id lcdc_of_match[] = {
++		{ .compatible = "ti,am33xx-lcdc", },
++		{ },
++};
++MODULE_DEVICE_TABLE(of, lcdc_of_match);
++
++static struct platform_driver lcdc_platform_driver = {
++	.probe      = lcdc_pdev_probe,
++	.remove     = __devexit_p(lcdc_pdev_remove),
++	.driver     = {
++		.owner  = THIS_MODULE,
++		.name   = "lcdc",
++		.pm     = &lcdc_pm_ops,
++		.of_match_table = lcdc_of_match,
++	},
++};
++
++static int __init lcdc_drm_init(void)
++{
++	DBG("init");
++	lcdc_tfp410_init();
++	return platform_driver_register(&lcdc_platform_driver);
++}
++
++static void __exit lcdc_drm_fini(void)
++{
++	DBG("fini");
++	lcdc_tfp410_fini();
++	platform_driver_unregister(&lcdc_platform_driver);
++}
++
++module_init(lcdc_drm_init);
++module_exit(lcdc_drm_fini);
++
++MODULE_AUTHOR("Rob Clark <robdclark@gmail.com");
++MODULE_DESCRIPTION("TI LCD Controller DRM Driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/gpu/drm/lcdc/lcdc_drv.h b/drivers/gpu/drm/lcdc/lcdc_drv.h
+new file mode 100644
+index 0000000..1746041
+--- /dev/null
++++ b/drivers/gpu/drm/lcdc/lcdc_drv.h
+@@ -0,0 +1,164 @@
++/*
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <robdclark@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __LCDC_DRV_H__
++#define __LCDC_DRV_H__
++
++#include <linux/clk.h>
++#include <linux/cpufreq.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/pm.h>
++#include <linux/pm_runtime.h>
++#include <linux/slab.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/list.h>
++
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_gem_cma_helper.h>
++#include <drm/drm_fb_cma_helper.h>
++
++struct lcdc_drm_private {
++	void __iomem *mmio;
++
++	struct clk *disp_clk;    /* display dpll */
++	struct clk *clk;         /* functional clock */
++	int rev;                 /* IP revision */
++
++	/* register contents saved across suspend/resume: */
++	u32 saved_register[12];
++
++#ifdef CONFIG_CPU_FREQ
++	struct notifier_block freq_transition;
++	unsigned int lcd_fck_rate;
++#endif
++
++	struct workqueue_struct *wq;
++
++	struct drm_fbdev_cma *fbdev;
++
++	struct drm_crtc *crtc;
++
++	unsigned int num_encoders;
++	struct drm_encoder *encoders[8];
++
++	unsigned int num_connectors;
++	struct drm_connector *connectors[8];
++};
++
++/* Sub-module for display.  Since we don't know at compile time what panels
++ * or display adapter(s) might be present (for ex, off chip dvi/tfp410,
++ * hdmi encoder, various lcd panels), the connector/encoder(s) are split into
++ * separate drivers.  If they are probed and found to be present, they
++ * register themselves with lcdc_register_module().
++ */
++struct lcdc_module;
++
++struct lcdc_module_ops {
++	/* create appropriate encoders/connectors: */
++	int (*modeset_init)(struct lcdc_module *mod, struct drm_device *dev);
++	void (*destroy)(struct lcdc_module *mod);
++#ifdef CONFIG_DEBUG_FS
++	/* create debugfs nodes (can be NULL): */
++	int (*debugfs_init)(struct lcdc_module *mod, struct drm_minor *minor);
++	/* cleanup debugfs nodes (can be NULL): */
++	void (*debugfs_cleanup)(struct lcdc_module *mod, struct drm_minor *minor);
++#endif
++};
++
++struct lcdc_module {
++	const char *name;
++	struct list_head list;
++	const struct lcdc_module_ops *funcs;
++};
++
++void lcdc_module_init(struct lcdc_module *mod, const char *name,
++		const struct lcdc_module_ops *funcs);
++void lcdc_module_cleanup(struct lcdc_module *mod);
++
++
++/* Panel config that needs to be set in the crtc, but is not coming from
++ * the mode timings.  The display module is expected to call
++ * lcdc_crtc_set_panel_info() to set this during modeset.
++ */
++struct lcdc_panel_info {
++
++	uint32_t max_bpp;
++	uint32_t min_bpp;
++
++	/* AC Bias Pin Frequency */
++	uint32_t ac_bias;
++
++	/* AC Bias Pin Transitions per Interrupt */
++	uint32_t ac_bias_intrpt;
++
++	/* DMA burst size */
++	uint32_t dma_burst_sz;
++
++	/* Bits per pixel */
++	uint32_t bpp;
++
++	/* FIFO DMA Request Delay */
++	uint32_t fdd;
++
++	/* TFT Alternative Signal Mapping (Only for active) */
++	bool tft_alt_mode;
++
++	/* 12 Bit Per Pixel (5-6-5) Mode (Only for passive) */
++	bool stn_565_mode;
++
++	/* Mono 8-bit Mode: 1=D0-D7 or 0=D0-D3 */
++	bool mono_8bit_mode;
++
++	// TODO Invert*clock we can prob get from mode timings..
++
++	/* Invert line clock */
++	bool invert_line_clock;
++
++	/* Invert frame clock  */
++	bool invert_frm_clock;
++
++	/* Invert pixel clock */
++	bool invert_pxl_clk;
++
++	/* Horizontal and Vertical Sync Edge: 0=rising 1=falling */
++	uint32_t sync_edge;
++
++	/* Horizontal and Vertical Sync: Control: 0=ignore */
++	uint32_t sync_ctrl;
++
++	/* Raster Data Order Select: 1=Most-to-least 0=Least-to-most */
++	uint32_t raster_order;
++
++	/* DMA FIFO threshold */
++	uint32_t fifo_th;
++};
++
++#define DBG(fmt, ...) DRM_DEBUG(fmt"\n", ##__VA_ARGS__)
++
++struct drm_crtc *lcdc_crtc_create(struct drm_device *dev);
++void lcdc_crtc_cancel_page_flip(struct drm_crtc *crtc, struct drm_file *file);
++irqreturn_t lcdc_crtc_irq(struct drm_crtc *crtc);
++void lcdc_crtc_update_clk(struct drm_crtc *crtc);
++void lcdc_crtc_set_panel_info(struct drm_crtc *crtc,
++		const struct lcdc_panel_info *info);
++int lcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode);
++int lcdc_crtc_max_width(struct drm_crtc *crtc);
++
++#endif /* __LCDC_DRV_H__ */
+diff --git a/drivers/gpu/drm/lcdc/lcdc_regs.h b/drivers/gpu/drm/lcdc/lcdc_regs.h
+new file mode 100644
+index 0000000..076cb88
+--- /dev/null
++++ b/drivers/gpu/drm/lcdc/lcdc_regs.h
+@@ -0,0 +1,154 @@
++/*
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <robdclark@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __LCDC_REGS_H__
++#define __LCDC_REGS_H__
++
++/* LCDC register definitions, based on da8xx-fb */
++
++#include <linux/bitops.h>
++
++#include "lcdc_drv.h"
++
++/* LCDC Status Register */
++#define LCDC_END_OF_FRAME1                       BIT(9)
++#define LCDC_END_OF_FRAME0                       BIT(8)
++#define LCDC_PL_LOAD_DONE                        BIT(6)
++#define LCDC_FIFO_UNDERFLOW                      BIT(5)
++#define LCDC_SYNC_LOST                           BIT(2)
++#define LCDC_FRAME_DONE                          BIT(0)
++
++/* LCDC DMA Control Register */
++#define LCDC_DMA_BURST_SIZE(x)                   ((x) << 4)
++#define LCDC_DMA_BURST_1                         0x0
++#define LCDC_DMA_BURST_2                         0x1
++#define LCDC_DMA_BURST_4                         0x2
++#define LCDC_DMA_BURST_8                         0x3
++#define LCDC_DMA_BURST_16                        0x4
++#define LCDC_V1_END_OF_FRAME_INT_ENA             BIT(2)
++#define LCDC_V2_END_OF_FRAME0_INT_ENA            BIT(8)
++#define LCDC_V2_END_OF_FRAME1_INT_ENA            BIT(9)
++#define LCDC_DUAL_FRAME_BUFFER_ENABLE            BIT(0)
++
++/* LCDC Control Register */
++#define LCDC_CLK_DIVISOR(x)                      ((x) << 8)
++#define LCDC_RASTER_MODE                         0x01
++
++/* LCDC Raster Control Register */
++#define LCDC_PALETTE_LOAD_MODE(x)                ((x) << 20)
++#define PALETTE_AND_DATA                         0x00
++#define PALETTE_ONLY                             0x01
++#define DATA_ONLY                                0x02
++
++#define LCDC_MONO_8BIT_MODE                      BIT(9)
++#define LCDC_RASTER_ORDER                        BIT(8)
++#define LCDC_TFT_MODE                            BIT(7)
++#define LCDC_V1_UNDERFLOW_INT_ENA                BIT(6)
++#define LCDC_V2_UNDERFLOW_INT_ENA                BIT(5)
++#define LCDC_V1_PL_INT_ENA                       BIT(4)
++#define LCDC_V2_PL_INT_ENA                       BIT(6)
++#define LCDC_MONOCHROME_MODE                     BIT(1)
++#define LCDC_RASTER_ENABLE                       BIT(0)
++#define LCDC_TFT_ALT_ENABLE                      BIT(23)
++#define LCDC_STN_565_ENABLE                      BIT(24)
++#define LCDC_V2_DMA_CLK_EN                       BIT(2)
++#define LCDC_V2_LIDD_CLK_EN                      BIT(1)
++#define LCDC_V2_CORE_CLK_EN                      BIT(0)
++#define LCDC_V2_LPP_B10                          26
++#define LCDC_V2_TFT_24BPP_MODE                   BIT(25)
++#define LCDC_V2_TFT_24BPP_UNPACK                 BIT(26)
++
++/* LCDC Raster Timing 2 Register */
++#define LCDC_AC_BIAS_TRANSITIONS_PER_INT(x)      ((x) << 16)
++#define LCDC_AC_BIAS_FREQUENCY(x)                ((x) << 8)
++#define LCDC_SYNC_CTRL                           BIT(25)
++#define LCDC_SYNC_EDGE                           BIT(24)
++#define LCDC_INVERT_PIXEL_CLOCK                  BIT(22)
++#define LCDC_INVERT_LINE_CLOCK                   BIT(21)
++#define LCDC_INVERT_FRAME_CLOCK                  BIT(20)
++
++/* LCDC Block */
++#define LCDC_PID_REG                             0x0
++#define LCDC_CTRL_REG                            0x4
++#define LCDC_STAT_REG                            0x8
++#define LCDC_RASTER_CTRL_REG                     0x28
++#define LCDC_RASTER_TIMING_0_REG                 0x2c
++#define LCDC_RASTER_TIMING_1_REG                 0x30
++#define LCDC_RASTER_TIMING_2_REG                 0x34
++#define LCDC_DMA_CTRL_REG                        0x40
++#define LCDC_DMA_FB_BASE_ADDR_0_REG              0x44
++#define LCDC_DMA_FB_CEILING_ADDR_0_REG           0x48
++#define LCDC_DMA_FB_BASE_ADDR_1_REG              0x4c
++#define LCDC_DMA_FB_CEILING_ADDR_1_REG           0x50
++
++/* Interrupt Registers available only in Version 2 */
++#define LCDC_RAW_STAT_REG                        0x58
++#define LCDC_MASKED_STAT_REG                     0x5c
++#define LCDC_INT_ENABLE_SET_REG                  0x60
++#define LCDC_INT_ENABLE_CLR_REG                  0x64
++#define LCDC_END_OF_INT_IND_REG                  0x68
++
++/* Clock registers available only on Version 2 */
++#define LCDC_CLK_ENABLE_REG                      0x6c
++#define LCDC_CLK_RESET_REG                       0x70
++#define LCDC_CLK_MAIN_RESET                      BIT(3)
++
++
++/*
++ * Helpers:
++ */
++
++static inline void lcdc_write(struct drm_device *dev, u32 reg, u32 data)
++{
++	struct lcdc_drm_private *priv = dev->dev_private;
++	iowrite32(data, priv->mmio + reg);
++}
++
++static inline u32 lcdc_read(struct drm_device *dev, u32 reg)
++{
++	struct lcdc_drm_private *priv = dev->dev_private;
++	return ioread32(priv->mmio + reg);
++}
++
++static inline void lcdc_set(struct drm_device *dev, u32 reg, u32 mask)
++{
++	lcdc_write(dev, reg, lcdc_read(dev, reg) | mask);
++}
++
++static inline void lcdc_clear(struct drm_device *dev, u32 reg, u32 mask)
++{
++	lcdc_write(dev, reg, lcdc_read(dev, reg) & ~mask);
++}
++
++/* the register to read/clear irqstatus differs between v1 and v2 of the IP */
++static inline u32 lcdc_irqstatus_reg(struct drm_device *dev)
++{
++	struct lcdc_drm_private *priv = dev->dev_private;
++	return (priv->rev == 2) ? LCDC_MASKED_STAT_REG : LCDC_STAT_REG;
++}
++
++static inline u32 lcdc_read_irqstatus(struct drm_device *dev)
++{
++	return lcdc_read(dev, lcdc_irqstatus_reg(dev));
++}
++
++static inline void lcdc_clear_irqstatus(struct drm_device *dev, u32 mask)
++{
++	lcdc_write(dev, lcdc_irqstatus_reg(dev), mask);
++}
++
++#endif /* __LCDC_REGS_H__ */
+diff --git a/drivers/gpu/drm/lcdc/lcdc_tfp410.c b/drivers/gpu/drm/lcdc/lcdc_tfp410.c
+new file mode 100644
+index 0000000..cd29148
+--- /dev/null
++++ b/drivers/gpu/drm/lcdc/lcdc_tfp410.c
+@@ -0,0 +1,425 @@
++/*
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <robdclark@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/i2c.h>
++#include <linux/of_i2c.h>
++#include <linux/gpio.h>
++#include <linux/of_gpio.h>
++#include <linux/pinctrl/pinmux.h>
++#include <linux/pinctrl/consumer.h>
++
++#include "lcdc_drv.h"
++
++struct tfp410_module {
++	struct lcdc_module base;
++	struct i2c_adapter *i2c;
++	int gpio;
++};
++#define to_tfp410_module(x) container_of(x, struct tfp410_module, base)
++
++
++static const struct lcdc_panel_info dvi_info = {
++		.min_bpp                = 16,
++		.max_bpp                = 16,
++		.ac_bias                = 255,
++		.ac_bias_intrpt         = 0,
++		.dma_burst_sz           = 16,
++		.bpp                    = 16,
++		.fdd                    = 0x80,
++		.tft_alt_mode           = 0,
++		.stn_565_mode           = 0,
++		.mono_8bit_mode         = 0,
++		.invert_line_clock      = 1,
++		.invert_frm_clock       = 1,
++		.sync_edge              = 0,
++		.sync_ctrl              = 1,
++		.raster_order           = 0,
++};
++
++/*
++ * Encoder:
++ */
++
++struct tfp410_encoder {
++	struct drm_encoder base;
++	struct tfp410_module *mod;
++	int dpms;
++};
++#define to_tfp410_encoder(x) container_of(x, struct tfp410_encoder, base)
++
++
++static void tfp410_encoder_destroy(struct drm_encoder *encoder)
++{
++	struct tfp410_encoder *tfp410_encoder = to_tfp410_encoder(encoder);
++	drm_encoder_cleanup(encoder);
++	kfree(tfp410_encoder);
++}
++
++static void tfp410_encoder_dpms(struct drm_encoder *encoder, int mode)
++{
++	struct tfp410_encoder *tfp410_encoder = to_tfp410_encoder(encoder);
++
++	if (tfp410_encoder->dpms == mode)
++		return;
++
++	if (mode == DRM_MODE_DPMS_ON) {
++		DBG("Power on");
++		gpio_direction_output(tfp410_encoder->mod->gpio, 1);
++	} else {
++		DBG("Power off");
++		gpio_direction_output(tfp410_encoder->mod->gpio, 0);
++	}
++
++	tfp410_encoder->dpms = mode;
++}
++
++static bool tfp410_encoder_mode_fixup(struct drm_encoder *encoder,
++		const struct drm_display_mode *mode,
++		struct drm_display_mode *adjusted_mode)
++{
++	/* nothing needed */
++	return true;
++}
++
++static void tfp410_encoder_prepare(struct drm_encoder *encoder)
++{
++	tfp410_encoder_dpms(encoder, DRM_MODE_DPMS_OFF);
++	lcdc_crtc_set_panel_info(encoder->crtc, &dvi_info);
++}
++
++static void tfp410_encoder_commit(struct drm_encoder *encoder)
++{
++	tfp410_encoder_dpms(encoder, DRM_MODE_DPMS_ON);
++}
++
++static void tfp410_encoder_mode_set(struct drm_encoder *encoder,
++		struct drm_display_mode *mode,
++		struct drm_display_mode *adjusted_mode)
++{
++	/* nothing needed */
++}
++
++static const struct drm_encoder_funcs tfp410_encoder_funcs = {
++		.destroy        = tfp410_encoder_destroy,
++};
++
++static const struct drm_encoder_helper_funcs tfp410_encoder_helper_funcs = {
++		.dpms           = tfp410_encoder_dpms,
++		.mode_fixup     = tfp410_encoder_mode_fixup,
++		.prepare        = tfp410_encoder_prepare,
++		.commit         = tfp410_encoder_commit,
++		.mode_set       = tfp410_encoder_mode_set,
++};
++
++static struct drm_encoder *tfp410_encoder_create(struct drm_device *dev,
++		struct tfp410_module *mod)
++{
++	struct tfp410_encoder *tfp410_encoder;
++	struct drm_encoder *encoder;
++	int ret;
++
++	tfp410_encoder = kzalloc(sizeof(*tfp410_encoder), GFP_KERNEL);
++	if (!tfp410_encoder) {
++		dev_err(dev->dev, "allocation failed\n");
 +		return NULL;
-+
-+	/* base block fetch */
-+	if (read_edid_block(encoder, block, 0))
-+		goto fail;
-+
-+	if (!drm_edid_block_valid(block, 0, print_bad_edid))
-+		goto fail;
-+
-+	/* if there's no extensions, we're done */
-+	if (block[0x7e] == 0)
-+		return block;
-+
-+	new = krealloc(block, (block[0x7e] + 1) * EDID_LENGTH, GFP_KERNEL);
-+	if (!new)
-+		goto fail;
-+	block = new;
-+
-+	for (j = 1; j <= block[0x7e]; j++) {
-+		uint8_t *ext_block = block + (valid_extensions + 1) * EDID_LENGTH;
-+		if (read_edid_block(encoder, ext_block, j))
-+			goto fail;
-+
-+		if (!drm_edid_block_valid(ext_block, j, print_bad_edid))
-+			goto fail;
-+
-+		valid_extensions++;
 +	}
 +
-+	if (valid_extensions != block[0x7e]) {
-+		block[EDID_LENGTH-1] += block[0x7e] - valid_extensions;
-+		block[0x7e] = valid_extensions;
-+		new = krealloc(block, (valid_extensions + 1) * EDID_LENGTH, GFP_KERNEL);
-+		if (!new)
-+			goto fail;
-+		block = new;
-+	}
++	tfp410_encoder->dpms = DRM_MODE_DPMS_OFF;
++	tfp410_encoder->mod = mod;
 +
-+	return block;
++	encoder = &tfp410_encoder->base;
++	encoder->possible_crtcs = 1;
++
++	ret = drm_encoder_init(dev, encoder, &tfp410_encoder_funcs,
++			DRM_MODE_ENCODER_TMDS);
++	if (ret < 0)
++		goto fail;
++
++	drm_encoder_helper_add(encoder, &tfp410_encoder_helper_funcs);
++
++	return encoder;
 +
 +fail:
-+	dev_warn(encoder->dev->dev, "failed to read EDID\n");
-+	kfree(block);
++	tfp410_encoder_destroy(encoder);
 +	return NULL;
 +}
 +
-+static int
-+tda998x_encoder_get_modes(struct drm_encoder *encoder,
-+			 struct drm_connector *connector)
++/*
++ * Connector:
++ */
++
++struct tfp410_connector {
++	struct drm_connector base;
++
++	struct drm_encoder *encoder;  /* our connected encoder */
++	struct tfp410_module *mod;
++};
++#define to_tfp410_connector(x) container_of(x, struct tfp410_connector, base)
++
++
++static void tfp410_connector_destroy(struct drm_connector *connector)
 +{
-+	struct edid *edid = (struct edid *)do_get_edid(encoder);
-+	int n = 0;
++	struct tfp410_connector *tfp410_connector = to_tfp410_connector(connector);
++	drm_connector_cleanup(connector);
++	kfree(tfp410_connector);
++}
++
++static enum drm_connector_status tfp410_connector_detect(
++		struct drm_connector *connector,
++		bool force)
++{
++	struct tfp410_connector *tfp410_connector = to_tfp410_connector(connector);
++
++	if (drm_probe_ddc(tfp410_connector->mod->i2c))
++		return connector_status_connected;
++
++	return connector_status_unknown;
++}
++
++static int tfp410_connector_get_modes(struct drm_connector *connector)
++{
++	struct tfp410_connector *tfp410_connector = to_tfp410_connector(connector);
++	struct edid *edid;
++	int ret = 0;
++
++	edid = drm_get_edid(connector, tfp410_connector->mod->i2c);
++
++	drm_mode_connector_update_edid_property(connector, edid);
 +
 +	if (edid) {
-+		drm_mode_connector_update_edid_property(connector, edid);
-+		n = drm_add_edid_modes(connector, edid);
++		ret = drm_add_edid_modes(connector, edid);
 +		kfree(edid);
 +	}
 +
-+	return n;
++	return ret;
 +}
 +
-+static int
-+tda998x_encoder_create_resources(struct drm_encoder *encoder,
-+				struct drm_connector *connector)
++static int tfp410_connector_mode_valid(struct drm_connector *connector,
++		  struct drm_display_mode *mode)
 +{
-+	DBG("");
-+	return 0;
++	struct lcdc_drm_private *priv = connector->dev->dev_private;
++	/* our only constraints are what the crtc can generate: */
++	return lcdc_crtc_mode_valid(priv->crtc, mode);
 +}
 +
-+static int
-+tda998x_encoder_set_property(struct drm_encoder *encoder,
-+			    struct drm_connector *connector,
-+			    struct drm_property *property,
-+			    uint64_t val)
++static struct drm_encoder *tfp410_connector_best_encoder(
++		struct drm_connector *connector)
 +{
-+	DBG("");
-+	return 0;
++	struct tfp410_connector *tfp410_connector = to_tfp410_connector(connector);
++	return tfp410_connector->encoder;
 +}
 +
-+static void
-+tda998x_encoder_destroy(struct drm_encoder *encoder)
-+{
-+	struct tda998x_priv *priv = to_tda998x_priv(encoder);
-+	drm_i2c_encoder_destroy(encoder);
-+	kfree(priv);
-+}
-+
-+static struct drm_encoder_slave_funcs tda998x_encoder_funcs = {
-+	.set_config = tda998x_encoder_set_config,
-+	.destroy = tda998x_encoder_destroy,
-+	.dpms = tda998x_encoder_dpms,
-+	.save = tda998x_encoder_save,
-+	.restore = tda998x_encoder_restore,
-+	.mode_fixup = tda998x_encoder_mode_fixup,
-+	.mode_valid = tda998x_encoder_mode_valid,
-+	.mode_set = tda998x_encoder_mode_set,
-+	.detect = tda998x_encoder_detect,
-+	.get_modes = tda998x_encoder_get_modes,
-+	.create_resources = tda998x_encoder_create_resources,
-+	.set_property = tda998x_encoder_set_property,
++static const struct drm_connector_funcs tfp410_connector_funcs = {
++	.destroy            = tfp410_connector_destroy,
++	.dpms               = drm_helper_connector_dpms,
++	.detect             = tfp410_connector_detect,
++	.fill_modes         = drm_helper_probe_single_connector_modes,
 +};
 +
-+/* I2C driver functions */
++static const struct drm_connector_helper_funcs tfp410_connector_helper_funcs = {
++	.get_modes          = tfp410_connector_get_modes,
++	.mode_valid         = tfp410_connector_mode_valid,
++	.best_encoder       = tfp410_connector_best_encoder,
++};
 +
-+static int
-+tda998x_probe(struct i2c_client *client, const struct i2c_device_id *id)
++static struct drm_connector *tfp410_connector_create(struct drm_device *dev,
++		struct tfp410_module *mod, struct drm_encoder *encoder)
 +{
-+	return 0;
++	struct tfp410_connector *tfp410_connector;
++	struct drm_connector *connector;
++	int ret;
++
++	tfp410_connector = kzalloc(sizeof(*tfp410_connector), GFP_KERNEL);
++	if (!tfp410_connector) {
++		dev_err(dev->dev, "allocation failed\n");
++		return NULL;
++	}
++
++	tfp410_connector->encoder = encoder;
++	tfp410_connector->mod = mod;
++
++	connector = &tfp410_connector->base;
++
++	drm_connector_init(dev, connector, &tfp410_connector_funcs,
++			DRM_MODE_CONNECTOR_DVID);
++	drm_connector_helper_add(connector, &tfp410_connector_helper_funcs);
++
++	connector->polled = DRM_CONNECTOR_POLL_CONNECT |
++			DRM_CONNECTOR_POLL_DISCONNECT;
++
++	connector->interlace_allowed = 0;
++	connector->doublescan_allowed = 0;
++
++	ret = drm_mode_connector_attach_encoder(connector, encoder);
++	if (ret)
++		goto fail;
++
++	drm_sysfs_connector_add(connector);
++
++	return connector;
++
++fail:
++	tfp410_connector_destroy(connector);
++	return NULL;
 +}
 +
-+static int
-+tda998x_remove(struct i2c_client *client)
-+{
-+	return 0;
-+}
++/*
++ * Module:
++ */
 +
-+static int
-+tda998x_encoder_init(struct i2c_client *client,
-+		    struct drm_device *dev,
-+		    struct drm_encoder_slave *encoder_slave)
++static int tfp410_modeset_init(struct lcdc_module *mod, struct drm_device *dev)
 +{
-+	struct drm_encoder *encoder = &encoder_slave->base;
-+	struct tda998x_priv *priv;
++	struct tfp410_module *tfp410_mod = to_tfp410_module(mod);
++	struct lcdc_drm_private *priv = dev->dev_private;
++	struct drm_encoder *encoder;
++	struct drm_connector *connector;
 +
-+	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
++	encoder = tfp410_encoder_create(dev, tfp410_mod);
++	if (!encoder)
 +		return -ENOMEM;
 +
-+	priv->current_page = 0;
-+	priv->cec = i2c_new_dummy(client->adapter, 0x34);
-+	priv->dpms = DRM_MODE_DPMS_OFF;
++	connector = tfp410_connector_create(dev, tfp410_mod, encoder);
++	if (!connector)
++		return -ENOMEM;
 +
-+	encoder_slave->slave_priv = priv;
-+	encoder_slave->slave_funcs = &tda998x_encoder_funcs;
++	priv->encoders[priv->num_encoders++] = encoder;
++	priv->connectors[priv->num_connectors++] = connector;
 +
-+	/* wake up the device: */
-+	cec_write(encoder, REG_CEC_ENAMODS,
-+			CEC_ENAMODS_EN_RXSENS | CEC_ENAMODS_EN_HDMI);
++	return 0;
++}
 +
-+	tda998x_reset(encoder);
++static void tfp410_destroy(struct lcdc_module *mod)
++{
++	struct tfp410_module *tfp410_mod = to_tfp410_module(mod);
 +
-+	/* read version: */
-+	priv->rev = reg_read(encoder, REG_VERSION_LSB) |
-+			reg_read(encoder, REG_VERSION_MSB) << 8;
++	if (tfp410_mod->i2c)
++		i2c_put_adapter(tfp410_mod->i2c);
 +
-+	/* mask off feature bits: */
-+	priv->rev &= ~0x30; /* not-hdcp and not-scalar bit */
++	if (!IS_ERR_VALUE(tfp410_mod->gpio))
++		gpio_free(tfp410_mod->gpio);
 +
-+	switch (priv->rev) {
-+	case TDA9989N2:  dev_info(dev->dev, "found TDA9989 n2");  break;
-+	case TDA19989:   dev_info(dev->dev, "found TDA19989");    break;
-+	case TDA19989N2: dev_info(dev->dev, "found TDA19989 n2"); break;
-+	case TDA19988:   dev_info(dev->dev, "found TDA19988");    break;
-+	default:
-+		DBG("found unsupported device: %04x", priv->rev);
++	lcdc_module_cleanup(mod);
++	kfree(tfp410_mod);
++}
++
++static const struct lcdc_module_ops tfp410_module_ops = {
++		.modeset_init = tfp410_modeset_init,
++		.destroy = tfp410_destroy,
++};
++
++/*
++ * Device:
++ */
++
++static struct of_device_id tfp410_of_match[];
++
++static int __devinit tfp410_probe(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct device_node *i2c_node;
++	struct tfp410_module *tfp410_mod;
++	struct lcdc_module *mod;
++	struct pinctrl *pinctrl;
++	uint32_t i2c_phandle;
++	int ret = -EINVAL;
++
++	/* bail out early if no DT data: */
++	if (!of_match_device(tfp410_of_match, &pdev->dev)) {
++		dev_err(&pdev->dev, "device-tree data is missing\n");
++		return -ENXIO;
++	}
++
++	tfp410_mod = kzalloc(sizeof(*tfp410_mod), GFP_KERNEL);
++	if (!tfp410_mod)
++		return -ENOMEM;
++
++	mod = &tfp410_mod->base;
++
++	lcdc_module_init(mod, "tfp410", &tfp410_module_ops);
++
++	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
++	if (IS_ERR(pinctrl))
++		dev_warn(&pdev->dev, "pins are not configured\n");
++
++	if (of_property_read_u32(node, "i2c", &i2c_phandle)) {
++		dev_err(&pdev->dev, "could not get i2c bus phandle\n");
 +		goto fail;
 +	}
 +
-+	/* after reset, enable DDC: */
-+	reg_write(encoder, REG_DDC_DISABLE, 0x00);
++	i2c_node = of_find_node_by_phandle(i2c_phandle);
++	if (!i2c_node) {
++		dev_err(&pdev->dev, "could not get i2c bus node\n");
++		goto fail;
++	}
 +
-+	/* set clock on DDC channel: */
-+	reg_write(encoder, REG_TX3, 39);
++	tfp410_mod->i2c = of_find_i2c_adapter_by_node(i2c_node);
++	if (!tfp410_mod->i2c) {
++		dev_err(&pdev->dev, "could not get i2c\n");
++		goto fail;
++	}
 +
-+	/* if necessary, disable multi-master: */
-+	if (priv->rev == TDA19989)
-+		reg_set(encoder, REG_I2C_MASTER, I2C_MASTER_DIS_MM);
++	of_node_put(i2c_node);
 +
-+	cec_write(encoder, REG_CEC_FRO_IM_CLK_CTRL,
-+			CEC_FRO_IM_CLK_CTRL_GHOST_DIS | CEC_FRO_IM_CLK_CTRL_IMCLK_SEL);
++	tfp410_mod->gpio = of_get_named_gpio_flags(node, "powerdn-gpio",
++			0, NULL);
++	if (IS_ERR_VALUE(tfp410_mod->gpio)) {
++		dev_warn(&pdev->dev, "No power down GPIO\n");
++	} else {
++		ret = gpio_request(tfp410_mod->gpio, "DVI_PDn");
++		if (ret) {
++			dev_err(&pdev->dev, "could not get DVI_PDn gpio\n");
++			goto fail;
++		}
++	}
 +
 +	return 0;
 +
 +fail:
-+	/* if encoder_init fails, the encoder slave is never registered,
-+	 * so cleanup here:
-+	 */
-+	if (priv->cec)
-+		i2c_unregister_device(priv->cec);
-+	kfree(priv);
-+	encoder_slave->slave_priv = NULL;
-+	encoder_slave->slave_funcs = NULL;
-+	return -ENXIO;
++	tfp410_destroy(mod);
++	return ret;
 +}
 +
-+static struct i2c_device_id tda998x_ids[] = {
-+	{ "tda998x", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, tda998x_ids);
++static int __devexit tfp410_remove(struct platform_device *pdev)
++{
++	return 0;
++}
 +
-+static struct drm_i2c_encoder_driver tda998x_driver = {
-+	.i2c_driver = {
-+		.probe = tda998x_probe,
-+		.remove = tda998x_remove,
-+		.driver = {
-+			.name = "tda998x",
-+		},
-+		.id_table = tda998x_ids,
++static struct of_device_id tfp410_of_match[] = {
++		{ .compatible = "lcdc,tfp410", },
++		{ },
++};
++MODULE_DEVICE_TABLE(of, tfp410_of_match);
++
++struct platform_driver tfp410_driver = {
++	.probe = tfp410_probe,
++	.remove = tfp410_remove,
++	.driver = {
++		.owner = THIS_MODULE,
++		.name = "tfp410",
++		.of_match_table = tfp410_of_match,
 +	},
-+	.encoder_init = tda998x_encoder_init,
 +};
 +
-+/* Module initialization */
-+
-+static int __init
-+tda998x_init(void)
++int __init lcdc_tfp410_init(void)
 +{
-+	DBG("");
-+	return drm_i2c_encoder_register(THIS_MODULE, &tda998x_driver);
++	return platform_driver_register(&tfp410_driver);
 +}
 +
-+static void __exit
-+tda998x_exit(void)
++void __exit lcdc_tfp410_fini(void)
 +{
-+	DBG("");
-+	drm_i2c_encoder_unregister(&tda998x_driver);
++	platform_driver_unregister(&tfp410_driver);
 +}
+diff --git a/drivers/gpu/drm/lcdc/lcdc_tfp410.h b/drivers/gpu/drm/lcdc/lcdc_tfp410.h
+new file mode 100644
+index 0000000..4221e69
+--- /dev/null
++++ b/drivers/gpu/drm/lcdc/lcdc_tfp410.h
+@@ -0,0 +1,26 @@
++/*
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <robdclark@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
 +
-+MODULE_DESCRIPTION("NXP Semiconductors TDA998X TMDS transmitter driver");
++#ifndef __LCDC_TFP410_H__
++#define __LCDC_TFP410_H__
 +
-+MODULE_AUTHOR("Rob Clark <robdclark@gmail.com");
-+MODULE_DESCRIPTION("NXP Semiconductors TDA998X HDMI Encoder");
-+MODULE_LICENSE("GPL");
++/* sub-module for tfp410 dvi adaptor */
 +
-+module_init(tda998x_init);
-+module_exit(tda998x_exit);
++int lcdc_tfp410_init(void);
++void lcdc_tfp410_fini(void);
++
++#endif /* __LCDC_TFP410_H__ */
 -- 
 1.8.0.2
 
