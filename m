@@ -1,37 +1,70 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 05/10] ARM: OMAP2+: PM/powerdomain: move
-	omap_set_pwrdm_state() to powerdomain code
-Date: Wed, 9 Jan 2013 17:43:32 +0000
-Message-ID: <20130109174332.GC2637@n2100.arm.linux.org.uk>
-References: <20121209011755.19716.25244.stgit@dusk.lan> <20121209012339.19716.10548.stgit@dusk.lan> <50C85ABD.8040409@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] omap: DT node Timer iteration fix
+Date: Wed, 9 Jan 2013 16:12:52 -0600
+Message-ID: <50EDEB64.4060800@ti.com>
+References: <1357651902-21966-1-git-send-email-panto@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42989 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932233Ab3AIRno (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jan 2013 12:43:44 -0500
-Content-Disposition: inline
-In-Reply-To: <50C85ABD.8040409@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1357651902-21966-1-git-send-email-panto@antoniou-consulting.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, linux-arm-kernel@lists.infradead.org
 
-On Wed, Dec 12, 2012 at 03:51:49PM +0530, Vaibhav Hiremath wrote:
-> > -int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 pwrst)
-> > -{
-> > -	u8 curr_pwrst, next_pwrst;
-> > -	int sleep_switch = -1, ret = 0, hwsup = 0;
-> > -
-> > -	if (!pwrdm || IS_ERR(pwrdm))
+Hi Pantelis,
+
+On 01/08/2013 07:31 AM, Pantelis Antoniou wrote:
+> The iterator correctly handles of_node_put() calls.
+> Remove it before continue'ing the loop.
+> Without this patch you get:
+
+Thanks for the fix!
+
+May be worth mentioning that this will only be seen with
+"CONFIG_OF_DYNAMIC" (and explains why I did not catch this one!).
+
+> ERROR: Bad of_node_put() on /ocp/timer@44e31000!
+> [<c001329c>] (unwind_backtrace+0x0/0xe0) from [<c03dd8f0>] (of_node_release+0x2c/0xa0)!
+> [<c03dd8f0>] (of_node_release+0x2c/0xa0) from [<c03ddea0>] (of_find_matching_node_and_match+0x78/0x90)!
+> [<c03ddea0>] (of_find_matching_node_and_match+0x78/0x90) from [<c06d349c>] (omap_get_timer_dt+0x78/0x90)!
+> [<c06d349c>] (omap_get_timer_dt+0x78/0x90) from [<c06d3664>] (omap_dm_timer_init_one.clone.2+0x34/0x2bc)!
+> [<c06d3664>] (omap_dm_timer_init_one.clone.2+0x34/0x2bc) from [<c06d3a2c>] (omap2_gptimer_clocksource_init.clone.4+0x24/0xa8)!
+> [<c06d3a2c>] (omap2_gptimer_clocksource_init.clone.4+0x24/0xa8) from [<c06cca58>] (time_init+0x20/0x30)!
+> [<c06cca58>] (time_init+0x20/0x30) from [<c06c9690>] (start_kernel+0x1a8/0x2fc)!
 > 
-> You can use IS_ERR_OR_NULL here.
+> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+> ---
+>  arch/arm/mach-omap2/timer.c | 8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 691aa67..b8ad6e6 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -165,15 +165,11 @@ static struct device_node * __init omap_get_timer_dt(struct of_device_id *match,
+>  	struct device_node *np;
+>  
+>  	for_each_matching_node(np, match) {
+> -		if (!of_device_is_available(np)) {
+> -			of_node_put(np);
+> +		if (!of_device_is_available(np))
+>  			continue;
+> -		}
+>  
+> -		if (property && !of_get_property(np, property, NULL)) {
+> -			of_node_put(np);
+> +		if (property && !of_get_property(np, property, NULL))
+>  			continue;
+> -		}
+>  
+>  		of_add_property(np, &device_disabled);
+>  		return np;
 
-As this is removing code...
+Otherwise ...
 
-However, if you pay attention to linux-kernel or linux-arm-kernel, you will
-notice that I've sent a patch deprecating IS_ERR_OR_NULL() and I'm starting
-to remove its use.  IS_ERR_OR_NULL() creates more problems than it solves
-because people don't think about what the hell they're doing with it, or
-even whether it's appropriate to use it.
+Acked-by: Jon Hunter <jon-hunter@ti.com>
+
+Cheers
+Jon
