@@ -1,107 +1,43 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: Help wanted with USB and OMAP3 off_mode
-Date: Wed, 9 Jan 2013 21:19:31 +1100
-Message-ID: <20130109211931.0e00db5d@notabene.brown>
-References: <20130109092915.1c2077b5@notabene.brown>
-	<50ED3FA5.9030905@compulab.co.il>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH 1/5] capemgr: Beaglebone DT overlay based cape manager
+Date: Wed, 9 Jan 2013 10:21:23 +0000
+Message-ID: <201301091021.24147.arnd@arndb.de>
+References: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com>
+ <CACRpkdbx7ptCugpc1+JC5Yk+n835goOuoF6q0pdizsjpZ-G9mQ@mail.gmail.com>
+ <57EDCDB4-2AC9-4052-BBA6-9F4A5D3C3D8C@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:38461 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756210Ab3AIKT5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Jan 2013 05:19:57 -0500
-In-Reply-To: <50ED3FA5.9030905@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <57EDCDB4-2AC9-4052-BBA6-9F4A5D3C3D8C-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rabin VINCENT <rabin.vincent-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matt Ranostay <mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Clark <robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Guennadi Liakhovetski <g.liakhovetski-Mmb7MZpHnFY@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: linux-omap@vger.kernel.org
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBXZWQs
-IDA5IEphbiAyMDEzIDEyOjAwOjA1ICswMjAwIElnb3IgR3JpbmJlcmcgPGdyaW5iZXJnQGNvbXB1
-bGFiLmNvLmlsPg0Kd3JvdGU6DQoNCj4gLS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0t
-LQ0KPiBIYXNoOiBTSEExDQo+IA0KPiBIaSBOZWlsLA0KPiANCj4gT24gMDEvMDkvMTMgMDA6Mjks
-IE5laWxCcm93biB3cm90ZToNCj4gPiANCj4gPiBIaSwNCj4gPiAgSSdtIHRyeWluZyB0byBnZXQg
-b2ZmX21vZGUgd29ya2luZyByZWxpYWJseSBvbiBteSBndGEwNCBtb2JpbGUgcGhvbmUuDQo+ID4g
-DQo+ID4gTXkgY3VycmVudCBzdHVtYmxpbmcgYmxvY2sgaXMgVVNCLiAgVGhlICJPcHRpb24iIEdT
-TSBtb2R1bGUgaXMgYXR0YWNoZWQgdmlhDQo+ID4gVVNCICh0aGVyZSBpcyBhIHNlcGFyYXRlIHRy
-YW5zY2VpdmVyIGNoaXAgYXR0YWNoZWQgdG8gcG9ydCAxIHdoaWNoIGlzIHBsYWNlZA0KPiA+IGlu
-IE9NQVBfRUhDSV9QT1JUX01PREVfUEhZKS4NCj4gDQo+IFdoaWNoIFBIWSBpcyB0aGlzICh2ZW5k
-b3IvbW9kZWwpPw0KDQpIaSBJZ29yLA0KICBpdCBpcyB0aGUgU01TQyBVU0IzMzIyDQoNCmh0dHA6
-Ly93d3cuc21zYy5jb20vbWVkaWEvRG93bmxvYWRzX1B1YmxpYy9EYXRhX1NoZWV0cy8zMzIwLnBk
-Zg0KDQoNCkJUVyBJIHN1YnNlcXVlbnRseSBkaXNjb3ZlcmVkIHRoYXQga2VlcGluZyBVU0JIT1NU
-IG91dCBvZmYgb2ZmX21vZGUgb25seQ0Kc29tZXRpbWVzIGF2b2lkIHRoZSBwcm9ibGVtLCBub3Qg
-YWx3YXlzLiAgU28gdGhlcmUgYXJlIHByb2JhYmx5IG11bHRpcGxlDQppc3N1ZXMgOi0oDQoNCk5l
-aWxCcm93bg0KDQoNCg0KPiANCj4gPiANCj4gPiBBZnRlciBhIHN1c3BlbmQvcmVzdW1lIGN5Y2xl
-IHdpdGggb2ZmX21vZGUgZW5hYmxlZCB0aGUgR1NNIG1vZHVsZSBkaXNhcHBlYXJzLg0KPiA+IGku
-ZS4gJ2xzdXNiJyBkb2Vzbid0IHNlZSBpdCBhbnkgbW9yZSBhbmQgdGhlIHZhcmlvdXMgdHR5SFN4
-eCBkZXZpY2VzIGRvbid0DQo+ID4gZXhpc3QuDQo+ID4gV2l0aG91dCBvZmYgbW9kZSwgdGhlIG1v
-ZGVtIGFsd2F5cyBhcHBlYXJzIGFmdGVyIHJlc3VtZS4NCj4gPiANCj4gPiBJIGRpc2NvdmVyZWQg
-dGhhdCB0aGUgcmVnaXN0ZXJzIHNldCBieToNCj4gPiANCj4gPiAgICBkcml2ZXJzL21mZC9vbWFw
-LXVzYi1ob3N0LmMNCj4gPiANCj4gPiBhcmUgbm90IG1haW50YWluZWQgYWNyb3NzIGFzIHN1c3Bl
-bmQvcmVzdW1lIHNvIEkgYWRkZWQgdGhlIGZvbGxvd2luZyBwYXRjaA0KPiA+ICh3aGljaCBJIGNh
-biBtYWtlIGEgZm9ybWFsIHN1Ym1pc3Npb24gb2YgaWYgaXQgbG9va3MgcmlnaHQgdG8gb3RoZXJz
-KSwgYnV0DQo+ID4gdGhhdCBkaWRuJ3QgaGVscCAob3IgZGlkbid0IGhlbHAgZW5vdWdoKS4NCj4g
-PiANCj4gPiBJZiBJDQo+ID4gDQo+ID4gICBlY2hvIDEgPiAvc3lzL2tlcm5lbC9kZWJ1Zy9wbV9k
-ZWJ1Zy91c2Job3N0X3B3cmRtL3N1c3BlbmQNCj4gPiANCj4gPiB0aHVzIGtlZXBpbmcganVzdCB0
-aGUgVVNCSE9TVCBwb3dlciBkb21haW4gb3V0IG9mIG9mZl9tb2RlLCB0aGUgR1NNIG1vZHVsZQ0K
-PiA+IGRvZXNuJ3QgZGlzYXBwZWFyLiAgU28gaXQgc2VlbXMgdGhhdCBzb21lIGNvbnRleHQgaW4g
-dGhlIHVzYmhvc3QgZG9tYWluIGlzDQo+ID4gbm90IGJlaW5nIHNhdmUgYW5kIHJlc3RvcmVkLg0K
-PiA+IA0KPiA+IFRoaXMgaXMgYXMgZmFyIGFzIEkgY2FuIGdldC4gIENhbiBzb21lb25lIHN1Z2dl
-c3Qgd2hlcmUgSSBzaG91bGQgbG9vayB0byBmaW5kDQo+ID4gb3V0IHdoYXQgaXMgbm90IGJlaW5n
-IHNhdmVkL3Jlc3RvcmVkIHByb3Blcmx5LCBhbmQgaG93IHRvIGdvIGFib3V0IHNhdmluZyBhbmQN
-Cj4gPiByZXN0b3Jpbmc/DQo+ID4gDQo+ID4gVGhhbmtzIGluIGFkdmFuY2UsDQo+ID4gTmVpbEJy
-b3duDQo+ID4gDQo+ID4gDQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWZkL29tYXAt
-dXNiLWhvc3QuYyBiL2RyaXZlcnMvbWZkL29tYXAtdXNiLWhvc3QuYw0KPiA+IGluZGV4IDIzY2Vj
-NTcuLjUyMjQwNWUgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9tZmQvb21hcC11c2ItaG9zdC5j
-DQo+ID4gKysrIGIvZHJpdmVycy9tZmQvb21hcC11c2ItaG9zdC5jDQo+ID4gQEAgLTEwMCw2ICsx
-MDAsMTAgQEAgc3RydWN0IHVzYmhzX2hjZF9vbWFwIHsNCj4gPiAgDQo+ID4gIAl2b2lkIF9faW9t
-ZW0JCQkqdWhoX2Jhc2U7DQo+ID4gIA0KPiA+ICsJc3RydWN0IHsNCj4gPiArCQl1bnNpZ25lZAkJ
-aG9zdGNvbmZpZzsNCj4gPiArCX0gY29udGV4dDsNCj4gPiArDQo+ID4gIAlzdHJ1Y3QgdXNiaHNf
-b21hcF9wbGF0Zm9ybV9kYXRhCXBsYXRkYXRhOw0KPiA+ICANCj4gPiAgCXUzMgkJCQl1c2Joc19y
-ZXY7DQo+ID4gQEAgLTMwMCw2ICszMDQsMTAgQEAgc3RhdGljIGludCB1c2Joc19ydW50aW1lX3Jl
-c3VtZShzdHJ1Y3QgZGV2aWNlICpkZXYpDQo+ID4gIAljbGtfZW5hYmxlKG9tYXAtPnV0bWlfcDFf
-ZmNrKTsNCj4gPiAgCWNsa19lbmFibGUob21hcC0+dXRtaV9wMl9mY2spOw0KPiA+ICANCj4gPiAr
-CXVzYmhzX3dyaXRlKG9tYXAtPnVoaF9iYXNlLA0KPiA+ICsJCSAgICBPTUFQX1VISF9IT1NUQ09O
-RklHLA0KPiA+ICsJCSAgICBvbWFwLT5jb250ZXh0Lmhvc3Rjb25maWcpOw0KPiA+ICsNCj4gPiAg
-CXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJm9tYXAtPmxvY2ssIGZsYWdzKTsNCj4gPiAgDQo+ID4g
-IAlyZXR1cm4gMDsNCj4gPiBAQCAtMzE5LDYgKzMyNyw4IEBAIHN0YXRpYyBpbnQgdXNiaHNfcnVu
-dGltZV9zdXNwZW5kKHN0cnVjdCBkZXZpY2UgKmRldikNCj4gPiAgCX0NCj4gPiAgDQo+ID4gIAlz
-cGluX2xvY2tfaXJxc2F2ZSgmb21hcC0+bG9jaywgZmxhZ3MpOw0KPiA+ICsJb21hcC0+Y29udGV4
-dC5ob3N0Y29uZmlnID0gdXNiaHNfcmVhZChvbWFwLT51aGhfYmFzZSwNCj4gPiArCQkJCQkgICAg
-ICBPTUFQX1VISF9IT1NUQ09ORklHKTsNCj4gPiAgDQo+ID4gIAlpZiAoaXNfZWhjaV90bGxfbW9k
-ZShwZGF0YS0+cG9ydF9tb2RlWzBdKSkNCj4gPiAgCQljbGtfZGlzYWJsZShvbWFwLT51c2Job3N0
-X3AxX2Zjayk7DQo+IA0KPiAtIC0tIA0KPiBSZWdhcmRzLA0KPiBJZ29yLg0KPiAtLS0tLUJFR0lO
-IFBHUCBTSUdOQVRVUkUtLS0tLQ0KPiBWZXJzaW9uOiBHbnVQRyB2Mi4wLjE3IChHTlUvTGludXgp
-DQo+IENvbW1lbnQ6IFVzaW5nIEdudVBHIHdpdGggTW96aWxsYSAtIGh0dHA6Ly9lbmlnbWFpbC5t
-b3pkZXYub3JnLw0KPiANCj4gaVFJY0JBRUJBZ0FHQlFKUTdUK2tBQW9KRUJERThZTzY0RWZhajhZ
-UUFJNW5PRTl2dmY4d3hidTVJWFR4YU14bg0KPiA2QitnMm0vemtNbHlWTkw1aFRyd2tQa1A0Q1RC
-d3ZzR0NaWWtaVDVKUzNLTStSK1R1eUlYMDcrZU01OUllMFBvDQo+IHUxQ0NuMlhLWlkyQ1A1M2Iz
-bkF0Z2s5UGh4d3J1ZjVmRGpFdTlRaVFhcGRVcGJpVFdtSW44VzNDVnllMjQxTzINCj4gd1hCS0FY
-c3pYMWJEODFORk5ZK0ptNVVzNXVHSE5UdE50cWU3OFJuZzdCVHZtYWFOZ0U2MVB1ckZjbGduMHhR
-Yg0KPiBJTzVFN2V5cTdURzF1L0lCaGdlMmpsWkd4MkJiTGNWc3JRSTNXeXVFMkw2RitNUmdBS0JE
-RDdLOHVIVGZ4UHlNDQo+IGVYQWsvdTV0YkEyMXQxbVRJWGsxOU40YzBZVmdlRlcya0tRT1BTaEt5
-d3k5SjZrM3RFNUxFNHlVam9vbzRaZVMNCj4gVGxJZjdIRmNwMTVOM0ZmWDkwRk9Zc1FPWElMbm9O
-TDZhOFNPSzNnVStpVnhaVS80Vm9oS09YQmxNanVaN28xMA0KPiA1Rm5nbFBhSGpzRWFhMURnQi9G
-Y25ZaDNPTzMzbU9ESnNja1VoaTVHaUlscmJtNzBKc3BmV1NoWmZsbjFrOEZTDQo+IFN3Q2xteWI2
-RkNpcUJPY1JKMnVTMUtUd09iellWOVdldVBHQ1RYQzVkNFVCQjU3ZVJjR2NYL052U2Z0VjU3bVgN
-Cj4gamNTRWxlOTNrZ1p4MUVpRzUzVndkMjlvVjluVTZTSkVDRjdROENxdWxERVFWcjc2RTdYaDha
-MUNyc0QrQmhLZQ0KPiBYdUZhM3pkdE1nMVNaTy9jdGNUSVBQcEVsQ1ZQRjFGQ2hYMmxZOWZDSWRL
-Mmx1SE5yT3M0R3lyb3pDR1hRY1hPDQo+IFpNRmlpU3RzanIwMjFDR3FRVUZ3DQo+ID15SUEyDQo+
-IC0tLS0tRU5EIFBHUCBTSUdOQVRVUkUtLS0tLQ0KDQotLS0tLUJFR0lOIFBHUCBTSUdOQVRVUkUt
-LS0tLQ0KVmVyc2lvbjogR251UEcgdjIuMC4xOSAoR05VL0xpbnV4KQ0KDQppUUlWQXdVQlVPMUVN
-em5zbnQxV1lvRzVBUUo5R2cvL1F3eDVQL1ZqT2krOVREWElHcjEwT3FsZExFUUtHNHp2DQpEYndo
-dzVsOURSODVKSXVGK201eFZYVWU5SVdKWjBVQ2FzaTYxTHRrUkpWR1c4VTdMdjBPMm1tWGNZSG9R
-OXp0DQpkaXBoOFNWTTlaVGg0U0FhejJpaUhlSjFTcXowV2tpWjQ3S3YxQzBRL245TXlGcUtLRzdO
-eGc1VUF5QWozOXg0DQpwYTh2c0JHY1Btd241VS9kVVBRQnhzM1FLZHA5YUkzaTJJNlE2dk9iUkxZ
-TEpTdnhBZVhrR1lmcm1NeS9Ob1p6DQpSTmhrTGhWVGFqUENZVEJjUHcrekgwNlB2OFZGK2kvVXdG
-Z2duVmwrdVcrNkxySXBLYmFMYTdDTW50WG1yU2d6DQpmaTd5MUxMaVF1RTdxSzI2SWl6THUvWElh
-cGIwdFBHeTI4QWViWXdTYmpGVGFxSFBObWxMQXp5Znd3M2xCdGVJDQpQUzc2RHVsS2lSNFlYNTh2
-MEtHS0lUY1lMS0szbVVsaU9FVGNXeWxvdDJlVHlxYlA5bTBZM25YNTdBRURpMCtODQpGQkJ1b0c0
-RUtVUWFMZjVDbmpGNlZpTXR0VWZ2Y2Z3TCtWcm4rNFZhWW5kUzlTOXc1SVhUaWk1YjFPY3VoSmFa
-DQphR1MrVG0vTXdhMXVOUVdCanVqYy9EZHZ3S1pSclJpbEhUQkg0dy9ySFJ3eE5UcUtBeFdtcTcy
-MTYyZWZweGRSDQpKeGtIclBURVpaWndMZXdQWG1UYkQxK2g1MDI4NGFwQXcrRDJQRVJGaUIrRmg0
-WlZ6c0xJY0JjVUlaM09UNEwxDQpBbHJxWUMwd0FTMlJnamh2bXZlUjM2MGk4RFMxU1hNTWFmb25y
-TGhyd1J1N29lMXV6bHRLbW5OWDIxU3A3NnZCDQpnTTVMSW9rd29zQT0NCj04Vm5EDQotLS0tLUVO
-RCBQR1AgU0lHTkFUVVJFLS0tLS0NCg==
+On Wednesday 09 January 2013, Pantelis Antoniou wrote:
+> I've also heard in passing of some boards that just have an area in NAND
+> where a list of plugged in boards is stored. It can be simplified by
+> having the bootloader pass a command line argument.
+> 
+> Other than the different probe method (and possible future hot-plug capability)
+> I don't see anything different.  
+> 
+> What do you think?
+
+Just one comment on the command line option from the boot loader: If the
+boot loader is already DT aware, it should not need to modify the command line,
+but instead should just enable or disable the right nodes in the tree to
+statically configure all the peripherals on the extension board. That of course
+won't work for hotpluggable devices.
+
+	Arnd
