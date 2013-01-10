@@ -1,59 +1,40 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: [PATCH] arch/arm/plat-omap: initializing dma_lch_count, before judging
- omap_dma_reserve_channels
-Date: Thu, 10 Jan 2013 18:29:41 +0800
-Message-ID: <50EE9815.2080402@asianux.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v3] gpio: twl4030: Cache the direction and output states
+ in private data
+Date: Thu, 10 Jan 2013 11:41:15 +0100
+Message-ID: <CACRpkdZK8AA-osijVpbp7U-Wv0XUAVxDPQ3zxfCqWYb6WKjmwQ@mail.gmail.com>
+References: <1355996651-17805-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:15810 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751521Ab3AJK2s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jan 2013 05:28:48 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1355996651-17805-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Michael Trimarchi <michael@amarulasolutions.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On Thu, Dec 20, 2012 at 10:44 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
 
-  dma_lch_count is zero before 1st call of omap_system_dma_probe.
-  omap_dma_reserve_channels has value before 1st call of omap_system_dma_probe
+> Use more coherent locking in the driver. Use bitfield to store the GPIO
+> direction and if the pin is configured as output store the status also in a
+> bitfiled.
+> In this way we can just look at these bitfields when we need information
+> about the pin status and only reach out to the chip when it is needed.
+>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Acked-by: Linus Walleij <linus.walleij@linaro.org>
+> ---
+> Hi Grant,
+>
+> Changes sicne v2:
+> - Fixed the mutex_unlock found by Michael.
+> - Removed the debug prints addedd by v2 patch (remains from debugging)
+> - Removed one blank line between includes and the first comment section.
 
-  when 1st call of omap_system_dma_probe
-    we need set dma_lch_count before use it for judging
-    or which will be failed for omap_dma_reserve_channels
+Sorry Peter this must have been missed somehow.
 
-  additional info:
-    this patch is only for fixing bug, not touch the features.
-    so, not use d->lch_count instead of dma_lch_count for the statement:
+This does not apply to the current v3.8-rc3, could you respin
+this on top of Torvalds' tree?
 
-                        && (omap_dma_reserve_channels <= dma_lch_count))
-
-    at least, now, current fixing is equal to above.
-    in the future
-      maybe omap_dma_reserve_channels can be set by outside (such as from /proc)
-      dma_lch_count is a static global variable which has effect to all devices.
-      maybe the original author do not hope the newer is larger than the older
-
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
----
- arch/arm/plat-omap/dma.c |    3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 4136b20..b382eef 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -2018,6 +2018,9 @@ static int omap_system_dma_probe(struct platform_device *pdev)
- 	d			= p->dma_attr;
- 	errata			= p->errata;
- 
-+	if (!dma_lch_count)
-+		dma_lch_count	= d->lch_count;
-+
- 	if ((d->dev_caps & RESERVE_CHANNEL) && omap_dma_reserve_channels
- 			&& (omap_dma_reserve_channels <= dma_lch_count))
- 		d->lch_count	= omap_dma_reserve_channels;
--- 
-1.7.10.4
+Yours,
+Linus Walleij
