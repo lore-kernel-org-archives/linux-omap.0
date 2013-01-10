@@ -1,83 +1,88 @@
 From: Omar Ramirez Luna <omar.ramirez@copitl.com>
-Subject: [PATCH 3/5] staging: tidspbridge: fix uninitialized variable sym_name
-Date: Thu, 10 Jan 2013 03:37:00 -0600
-Message-ID: <1357810622-1709-4-git-send-email-omar.ramirez@copitl.com>
+Subject: [PATCH 4/5] staging: tidspbridge: use scm functions to set boot address and mode
+Date: Thu, 10 Jan 2013 03:37:01 -0600
+Message-ID: <1357810622-1709-5-git-send-email-omar.ramirez@copitl.com>
 References: <1357810622-1709-1-git-send-email-omar.ramirez@copitl.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f43.google.com ([209.85.219.43]:40669 "EHLO
-	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752634Ab3AJJhW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jan 2013 04:37:22 -0500
-Received: by mail-oa0-f43.google.com with SMTP id k1so339160oag.2
-        for <linux-omap@vger.kernel.org>; Thu, 10 Jan 2013 01:37:21 -0800 (PST)
+Received: from mail-oa0-f45.google.com ([209.85.219.45]:33573 "EHLO
+	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752023Ab3AJJhX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jan 2013 04:37:23 -0500
+Received: by mail-oa0-f45.google.com with SMTP id i18so341550oag.32
+        for <linux-omap@vger.kernel.org>; Thu, 10 Jan 2013 01:37:23 -0800 (PST)
 In-Reply-To: <1357810622-1709-1-git-send-email-omar.ramirez@copitl.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Chen Gang <gang.chen@asianux.com>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@copitl.com>
 
-On both counts, sym_name could be printed uninitialized, this
-is solved by moving the pr_* statement to be triggered if the
-value is assigned.
+Instead of ioremapping SCM registers, use the correspondent layer
+to write into them.
 
-Reported-by: Chen Gang <gang.chen@asianux.com>
+This allows us to get rid of a layer violation, since the registers
+are no longer touched by driver code.
+
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@copitl.com>
 ---
- drivers/staging/tidspbridge/rmgr/nldr.c |    6 ++++--
- drivers/staging/tidspbridge/rmgr/node.c |   12 ++++++------
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/staging/tidspbridge/core/tiomap3430.c |   34 +++++-------------------
+ 1 files changed, 7 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/rmgr/nldr.c b/drivers/staging/tidspbridge/rmgr/nldr.c
-index 6309221..ca38050 100644
---- a/drivers/staging/tidspbridge/rmgr/nldr.c
-+++ b/drivers/staging/tidspbridge/rmgr/nldr.c
-@@ -1802,8 +1802,6 @@ int nldr_find_addr(struct nldr_nodeobject *nldr_node, u32 sym_addr,
- 	bool status1 = false;
- 	s32 i = 0;
- 	struct lib_node root = { NULL, 0, NULL };
--	pr_debug("%s(0x%x, 0x%x, 0x%x, 0x%x,  %s)\n", __func__, (u32) nldr_node,
--			sym_addr, offset_range, (u32) offset_output, sym_name);
+diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
+index f619fb3..b770b22 100644
+--- a/drivers/staging/tidspbridge/core/tiomap3430.c
++++ b/drivers/staging/tidspbridge/core/tiomap3430.c
+@@ -70,14 +70,9 @@
+ #define PAGES_II_LVL_TABLE   512
+ #define PHYS_TO_PAGE(phys)      pfn_to_page((phys) >> PAGE_SHIFT)
  
- 	if (nldr_node->dynamic && *nldr_node->phase_split) {
- 		switch (nldr_node->phase) {
-@@ -1852,6 +1850,10 @@ int nldr_find_addr(struct nldr_nodeobject *nldr_node, u32 sym_addr,
- 		pr_debug("%s: Address 0x%x not found in range %d.\n",
- 					__func__, sym_addr, offset_range);
- 		status = -ESPIPE;
-+	} else {
-+		pr_debug("%s(0x%x, 0x%x, 0x%x, 0x%x,  %s)\n",
-+			 __func__, (u32) nldr_node, sym_addr, offset_range,
-+			 (u32) offset_output, sym_name);
- 	}
+-/*
+- * This is a totally ugly layer violation, but needed until
+- * omap_ctrl_set_dsp_boot*() are provided.
+- */
+-#define OMAP3_IVA2_BOOTMOD_IDLE 1
+-#define OMAP2_CONTROL_GENERAL 0x270
+-#define OMAP343X_CONTROL_IVA2_BOOTADDR (OMAP2_CONTROL_GENERAL + 0x0190)
+-#define OMAP343X_CONTROL_IVA2_BOOTMOD (OMAP2_CONTROL_GENERAL + 0x0194)
++/* IVA Boot modes */
++#define DIRECT		0
++#define IDLE		1
  
- 	return status;
-diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/tidspbridge/rmgr/node.c
-index 737f4a9..87dfa92 100644
---- a/drivers/staging/tidspbridge/rmgr/node.c
-+++ b/drivers/staging/tidspbridge/rmgr/node.c
-@@ -3012,16 +3012,16 @@ int node_find_addr(struct node_mgr *node_mgr, u32 sym_addr,
- 	struct node_object *node_obj;
- 	int status = -ENOENT;
+ /* Forward Declarations: */
+ static int bridge_brd_monitor(struct bridge_dev_context *dev_ctxt);
+@@ -423,29 +418,14 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
  
--	pr_debug("%s(0x%x, 0x%x, 0x%x, 0x%x,  %s)\n", __func__,
--			(unsigned int) node_mgr,
--			sym_addr, offset_range,
--			(unsigned int) sym_addr_output, sym_name);
+ 		/* Assert RST1 i.e only the RST only for DSP megacell */
+ 		if (!status) {
+-			/*
+-			 * XXX: OMAP343X_CTRL_BASE ioremapping  MUST be removed once ctrl
+-			 * function is made available.
+-			 */
+-			void __iomem *ctrl = ioremap(0x48002000, SZ_4K);
+-			if (!ctrl) {
+-				iounmap(sync_addr);
+-				return -ENOMEM;
+-			}
 -
- 	list_for_each_entry(node_obj, &node_mgr->node_list, list_elem) {
- 		status = nldr_find_addr(node_obj->nldr_node_obj, sym_addr,
- 			offset_range, sym_addr_output, sym_name);
--		if (!status)
-+		if (!status) {
-+			pr_debug("%s(0x%x, 0x%x, 0x%x, 0x%x, %s)\n", __func__,
-+				 (unsigned int) node_mgr,
-+				 sym_addr, offset_range,
-+				 (unsigned int) sym_addr_output, sym_name);
- 			break;
-+		}
- 	}
+ 			(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST1_IVA2_MASK,
+ 					OMAP3430_RST1_IVA2_MASK, OMAP3430_IVA2_MOD,
+ 					OMAP2_RM_RSTCTRL);
+-			/* Mask address with 1K for compatibility */
+-			__raw_writel(dsp_addr & OMAP3_IVA2_BOOTADDR_MASK,
+-					ctrl + OMAP343X_CONTROL_IVA2_BOOTADDR);
+-			/*
+-			 * Set bootmode to self loop if dsp_debug flag is true
+-			 */
+-			__raw_writel((dsp_debug) ? OMAP3_IVA2_BOOTMOD_IDLE : 0,
+-					ctrl + OMAP343X_CONTROL_IVA2_BOOTMOD);
  
- 	return status;
+-			iounmap(ctrl);
++			/* Mask address with 1K for compatibility */
++			pdata->set_bootaddr(dsp_addr &
++						OMAP3_IVA2_BOOTADDR_MASK);
++			pdata->set_bootmode(dsp_debug ? IDLE : DIRECT);
+ 		}
+ 	}
+ 	if (!status) {
 -- 
 1.7.4.4
 
