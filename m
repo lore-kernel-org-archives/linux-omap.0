@@ -1,55 +1,82 @@
-From: kishon <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB
-Date: Thu, 10 Jan 2013 11:49:13 +0530
-Message-ID: <50EE5D61.1020307@ti.com>
-References: <1348047128-25692-1-git-send-email-kishon@ti.com>
- <505A8BAB.2020004@ti.com> <20121227183524.GB7097@blackmetal.musicnaut.iki.fi>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: reset handling in am335x hwmod data
+Date: Thu, 10 Jan 2013 08:50:01 +0100
+Message-ID: <87d2xda34m.fsf@dell.be.48ers.dk>
+References: <87ehij8lpb.fsf@dell.be.48ers.dk>
+	<alpine.DEB.2.00.1212232033030.8937@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20121227183524.GB7097-R3WNPi76c83LsdW6vOPryG4HOFkwEHDbMR2xtNvyitY@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:60499 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932496Ab3AJHuG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jan 2013 02:50:06 -0500
+Received: by mail-wg0-f43.google.com with SMTP id e12so96928wge.34
+        for <linux-omap@vger.kernel.org>; Wed, 09 Jan 2013 23:50:05 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1212232033030.8937@utopia.booyaka.com> (Paul
+	Walmsley's message of "Sun, 23 Dec 2012 20:58:13 +0000 (UTC)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-On Friday 28 December 2012 12:05 AM, Aaro Koskinen wrote:
-> Hi,
->
-> On Thu, Sep 20, 2012 at 05:21:15AM +0200, Benoit Cousson wrote:
->> On 09/19/2012 11:32 AM, Kishon Vijay Abraham I wrote:
->>> This patch series adds dt data to get MUSB working in omap4 and omap3
->>>
->>> Changes from v2:
->>> * Changes the subject of all the patches to include "ARM: dts:"
->>> * Added reg property and interrupt property for "usb_otg_hs". Previously these
->>>    were obtained from ti,hwmods property.
->>> * Rebased on
->>>    git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git devel-dt
->>>
->>> Changes from v1:
->>> Just removed the omap-usb2 dt data and sent that as a separate patch.
->>>
->>> Kishon Vijay Abraham I (3):
->>>    ARM: dts: Add twl6030-usb data
->>>    ARM: dts: Add twl4030-usb data
->>>    ARM: dts: omap: Add usb_otg and glue data
->>
->> Thanks for the update. I've just pulled the series for 3.7.
->
-> I wonder what happened to the patch #3 (Add usb_otg and glue data)
-> of this series? Why was it dropped? I cannot see it in 3.7 or 3.8-rc1.
+>>>>> "Paul" == Paul Walmsley <paul@pwsan.com> writes:
 
-Benoit?
+Hi Paul,
 
--Kishon
+Thanks for the detailed explanaition, and sorry for the slow response -
+I've been away on holidays.
+
+ >> Now the question is why is this configured like this?
+
+ Paul> This behavior is intended to decouple the kernel from the
+ Paul> bootloader, or previously-booted operating system (e.g., the
+ Paul> kexec case).  The original goal was to place the system in an
+ Paul> known safe state as soon as possible after the kernel starts.
+ Paul> This is to prevent misconfigured or previously-configured devices
+ Paul> from trashing memory or chip power management in the
+ Paul> currently-booted kernel.  It also avoids adding inadvertent
+ Paul> bootloader dependencies in driver code.
+
+ Paul> N.B., the plan is to change this behavior over the next few
+ Paul> releases.  Devices that have drivers associated with them will be
+ Paul> reset when the driver loads.  Driverless devices will be reset
+ Paul> after drivers load, late in boot.
+
+ >> Should E.G. the gpio controllers be changed to not reset or should it be 
+ >> configurable in the dts?
+
+ Paul> Probably the DTS is the right place, since this is a board- and
+ Paul> bootloader-specific quirk.  The original intention was to allow
+ Paul> board files to set this HWMOD_INIT_NO_RESET flag themselves - see
+ Paul> mach-omap2/ omap_hwmod.c:omap_hwmod_no_setup_reset().  But since
+ Paul> we've deprecated the board files, the DT data seems like the
+ Paul> right place.
+
+ Paul> It probably shouldn't be a GPIO-specific property.  Other devices
+ Paul> like DSS will also need some kind of 'no-init-reset' property,
+ Paul> since on many commercial devices, it's expected that some kind of
+ Paul> splash screen will be presented by the bootloader and stay on
+ Paul> during the boot process.
+
+I tried changing omap_device_build_from_dt() to call
+omap_hwmod_no_setup_reset() on the corresponding hwmod if a
+ti,no-init-reset was present, but that doesn't work as the hwmod reset
+happens quite a bit earlier (in omap_hwmod_setup_all()). Do you have
+idea how I could work around this or is that the future reset change you
+referred to above?
+
+
+ Paul> However, it is probably safest in the long run if you can change
+ Paul> the board design to require the SoC to actively reset the FPGA,
+ Paul> rather than making reset the default state.  That way, if there's
+ Paul> some hardware bug that requires the GPIO block to be reset, or if
+ Paul> there's some GPIO glitch during power management, the FPGA won't
+ Paul> be inadvertently reset.
+
+Yes, I'll try to get that done for the next board spin.
+
+Thanks!
+
+-- 
+Bye, Peter Korsgaard
