@@ -1,62 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Enable SDIO IRQ using a GPIO in idle
- mode.
-Date: Thu, 10 Jan 2013 12:22:04 -0800
-Message-ID: <20130110202203.GD14149@atomide.com>
-References: <20121220220444.GA350@blumentopf>
- <1356041532-919-1-git-send-email-andreas.fenkart@streamunlimited.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: OMAP baseline test results for v3.8-rc2
+Date: Thu, 10 Jan 2013 14:36:47 -0600
+Message-ID: <20130110203646.GA7490@kahuna>
+References: <alpine.DEB.2.00.1301101953270.15648@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:64307 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754880Ab3AJUWI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jan 2013 15:22:08 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:40577 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754651Ab3AJUgs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Jan 2013 15:36:48 -0500
 Content-Disposition: inline
-In-Reply-To: <1356041532-919-1-git-send-email-andreas.fenkart@streamunlimited.com>
+In-Reply-To: <alpine.DEB.2.00.1301101953270.15648@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
-Cc: cjb@laptop.org, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, zonque@gmail.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-* Andreas Fenkart <andreas.fenkart@streamunlimited.com> [121220 14:15]:
-> Without functional clock the omap_hsmmc module can't forward
-> SDIO IRQs to the system. This patch reconfigures dat1 line
-> as a gpio while the fclk is off. And uses SDIO IRQ detection of
-> the module, while fclk is present.
+On 19:54-20130110, Paul Walmsley wrote:
+> 
+> Here are some basic OMAP test results for Linux v3.8-rc2.
+> Logs and other details at:
+> 
+>     http://www.pwsan.com/omap/testlogs/test_v3.8-rc2/20130103093341/
+> 
+> Failing tests: needing local investigation (may be due to testbed issues)
+> -------------------------------------------------------------------------
+> 
+> Boot tests:
+> 
+> * AM335x Beaglebone: omap2plus_defconfig kernels don't boot
+>   - May be fixed now, pending retest:
+>     - http://marc.info/?l=linux-omap&m=135082257727502&w=2
+>   - Not yet part of the automated test suite
+>   * May be due to an old U-boot with FDT support problems used here?
+>     Pending local investigation and re-test
+> 
+Tested on AM335x A5 rev of bone board:
+Could be older u-boot build. booting to ramdisk seems to work on rc2 and
+3 (with omap2plus_defconfig)
+http://www.hastebin.com/demafogebe.coffee
 
-Looks pretty good to me, however I could not figure out what
-to apply this on for testing. It fails to apply at least against
-current linux next, can you please update against that?
- 
-> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
-> +{
-> +	struct omap_hsmmc_host *host = mmc_priv(mmc);
-> +	u32 irq_mask;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&host->irq_lock, flags);
-> +
-> +	host->sdio_irq_en = (enable != 0) ? true : false;
-> +
-> +	if (host->active_pinmux) {
-> +		irq_mask = OMAP_HSMMC_READ(host->base, ISE);
-> +		if (enable)
-> +			irq_mask |= CIRQ_ENABLE;
-> +		else
-> +			irq_mask &= ~CIRQ_ENABLE;
-> +		OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
-> +
-> +		if (!host->req_in_progress)
-> +			OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
-> +
-> +#if 0
-> +		OMAP_HSMMC_READ(host->base, IE); /* flush posted write */
-> +#endif
-
-Maybe just replace #if 0 with just a comment in case it turns out to be
-needed for some cases?
-
+Comes up to ramdisk at least.
+-- 
 Regards,
-
-Tony
+Nishanth Menon
