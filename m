@@ -1,151 +1,154 @@
 From: Matt Porter <mporter@ti.com>
-Subject: [RESEND][PATCH] dma: edma: fix slave config dependency on direction
-Date: Thu, 10 Jan 2013 13:41:04 -0500
-Message-ID: <1357843264-27045-1-git-send-email-mporter@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux OMAP List <linux-omap@vger.kernel.org>
+Subject: Re: [RFC PATCH v3 04/16] ARM: edma: add DT and runtime PM support
+ for AM33XX
+Date: Thu, 10 Jan 2013 14:18:03 -0500
+Message-ID: <20130110191803.GN14660@beef>
+References: <1350566815-409-1-git-send-email-mporter@ti.com>
+ <1350566815-409-5-git-send-email-mporter@ti.com>
+ <508D110B.8010908@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <508D110B.8010908@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The edma_slave_config() implementation depends on the
-direction field such that it will not properly configure
-a slave channel when called without direction set.
+On Sun, Oct 28, 2012 at 04:33:39PM +0530, Sekhar Nori wrote:
+> On 10/18/2012 6:56 PM, Matt Porter wrote:
+> > Adds support for parsing the TI EDMA DT data into the required
+> > EDMA private API platform data.
+> > 
+> > Calls runtime PM API only in the DT case in order to unidle the
+> > associated hwmods on AM33XX.
+> 
+> Runtime PM is supported on DaVinci now, so if that was the reason for
+> this choice, then it doesn't need to be that way.
 
-This fixes the implementation so that the slave config
-is copied as is and prep_slave_sg() handles the
-direction dependent handling. spi-omap2-mcspi and
-omap_hsmmc both expose this bug as they configure the
-slave channel config from a common path with an unconfigured
-direction field.
+Thanks, fixed this for v4.
 
-Signed-off-by: Matt Porter <mporter@ti.com>
----
- drivers/dma/edma.c |   55 ++++++++++++++++++++++++++--------------------------
- 1 file changed, 27 insertions(+), 28 deletions(-)
+> > 
+> > Signed-off-by: Matt Porter <mporter@ti.com>
+> > ---
+> >  arch/arm/common/edma.c                      |  255 +++++++++++++++++++++++++--
+> >  arch/arm/mach-davinci/board-da830-evm.c     |    4 +-
+> >  arch/arm/mach-davinci/board-da850-evm.c     |    8 +-
+> >  arch/arm/mach-davinci/board-dm646x-evm.c    |    4 +-
+> >  arch/arm/mach-davinci/board-omapl138-hawk.c |    8 +-
+> >  arch/arm/mach-davinci/devices-da8xx.c       |    8 +-
+> >  arch/arm/mach-davinci/devices-tnetv107x.c   |    4 +-
+> >  arch/arm/mach-davinci/dm355.c               |    4 +-
+> >  arch/arm/mach-davinci/dm365.c               |    4 +-
+> >  arch/arm/mach-davinci/dm644x.c              |    4 +-
+> >  arch/arm/mach-davinci/dm646x.c              |    4 +-
+> >  include/linux/platform_data/edma.h          |    8 +-
+> >  12 files changed, 272 insertions(+), 43 deletions(-)
+> > 
+> > diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+> > index a3d189d..6d2a590 100644
+> > --- a/arch/arm/common/edma.c
+> > +++ b/arch/arm/common/edma.c
+> > @@ -24,6 +24,13 @@
+> >  #include <linux/platform_device.h>
+> >  #include <linux/io.h>
+> >  #include <linux/slab.h>
+> > +#include <linux/edma.h>
+> > +#include <linux/err.h>
+> > +#include <linux/of_address.h>
+> > +#include <linux/of_device.h>
+> > +#include <linux/of_dma.h>
+> > +#include <linux/of_irq.h>
+> > +#include <linux/pm_runtime.h>
+> >  
+> >  #include <linux/platform_data/edma.h>
+> >  
+> > @@ -1366,31 +1373,237 @@ void edma_clear_event(unsigned channel)
+> >  EXPORT_SYMBOL(edma_clear_event);
+> >  
+> >  /*-----------------------------------------------------------------------*/
+> > +static int edma_of_read_u32_to_s8_array(const struct device_node *np,
+> > +					 const char *propname, s8 *out_values,
+> > +					 size_t sz)
+> > +{
+> > +	struct property *prop = of_find_property(np, propname, NULL);
+> > +	const __be32 *val;
+> > +
+> > +	if (!prop)
+> > +		return -EINVAL;
+> > +	if (!prop->value)
+> > +		return -ENODATA;
+> > +	if ((sz * sizeof(u32)) > prop->length)
+> > +		return -EOVERFLOW;
+> > +
+> > +	val = prop->value;
+> > +
+> > +	while (sz--)
+> > +		*out_values++ = (s8)(be32_to_cpup(val++) & 0xff);
+> > +
+> > +	/* Terminate it */
+> > +	*out_values++ = -1;
+> > +	*out_values++ = -1;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int edma_of_read_u32_to_s16_array(const struct device_node *np,
+> > +					 const char *propname, s16 *out_values,
+> > +					 size_t sz)
+> > +{
+> > +	struct property *prop = of_find_property(np, propname, NULL);
+> > +	const __be32 *val;
+> > +
+> > +	if (!prop)
+> > +		return -EINVAL;
+> > +	if (!prop->value)
+> > +		return -ENODATA;
+> > +	if ((sz * sizeof(u32)) > prop->length)
+> > +		return -EOVERFLOW;
+> > +
+> > +	val = prop->value;
+> > +
+> > +	while (sz--)
+> > +		*out_values++ = (s16)(be32_to_cpup(val++) & 0xffff);
+> > +
+> > +	/* Terminate it */
+> > +	*out_values++ = -1;
+> > +	*out_values++ = -1;
+> > +
+> > +	return 0;
+> > +}
+> 
+> I think these helper functions will have some general use beyond EDMA
+> and can be kept in drivers/of/base.c. Grant/Rob need to agree though.
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 05aea3c..fdcf079 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -69,9 +69,7 @@ struct edma_chan {
- 	int				ch_num;
- 	bool				alloced;
- 	int				slot[EDMA_MAX_SLOTS];
--	dma_addr_t			addr;
--	int				addr_width;
--	int				maxburst;
-+	struct dma_slave_config		cfg;
- };
- 
- struct edma_cc {
-@@ -178,29 +176,14 @@ static int edma_terminate_all(struct edma_chan *echan)
- 	return 0;
- }
- 
--
- static int edma_slave_config(struct edma_chan *echan,
--	struct dma_slave_config *config)
-+	struct dma_slave_config *cfg)
- {
--	if ((config->src_addr_width > DMA_SLAVE_BUSWIDTH_4_BYTES) ||
--	    (config->dst_addr_width > DMA_SLAVE_BUSWIDTH_4_BYTES))
-+	if (cfg->src_addr_width == DMA_SLAVE_BUSWIDTH_8_BYTES ||
-+	    cfg->dst_addr_width == DMA_SLAVE_BUSWIDTH_8_BYTES)
- 		return -EINVAL;
- 
--	if (config->direction == DMA_MEM_TO_DEV) {
--		if (config->dst_addr)
--			echan->addr = config->dst_addr;
--		if (config->dst_addr_width)
--			echan->addr_width = config->dst_addr_width;
--		if (config->dst_maxburst)
--			echan->maxburst = config->dst_maxburst;
--	} else if (config->direction == DMA_DEV_TO_MEM) {
--		if (config->src_addr)
--			echan->addr = config->src_addr;
--		if (config->src_addr_width)
--			echan->addr_width = config->src_addr_width;
--		if (config->src_maxburst)
--			echan->maxburst = config->src_maxburst;
--	}
-+	memcpy(&echan->cfg, cfg, sizeof(echan->cfg));
- 
- 	return 0;
- }
-@@ -235,6 +218,9 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
- 	struct edma_chan *echan = to_edma_chan(chan);
- 	struct device *dev = chan->device->dev;
- 	struct edma_desc *edesc;
-+	dma_addr_t dev_addr;
-+	enum dma_slave_buswidth dev_width;
-+	u32 burst;
- 	struct scatterlist *sg;
- 	int i;
- 	int acnt, bcnt, ccnt, src, dst, cidx;
-@@ -243,7 +229,20 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
- 	if (unlikely(!echan || !sgl || !sg_len))
- 		return NULL;
- 
--	if (echan->addr_width == DMA_SLAVE_BUSWIDTH_UNDEFINED) {
-+	if (direction == DMA_DEV_TO_MEM) {
-+		dev_addr = echan->cfg.src_addr;
-+		dev_width = echan->cfg.src_addr_width;
-+		burst = echan->cfg.src_maxburst;
-+	} else if (direction == DMA_MEM_TO_DEV) {
-+		dev_addr = echan->cfg.dst_addr;
-+		dev_width = echan->cfg.dst_addr_width;
-+		burst = echan->cfg.dst_maxburst;
-+	} else {
-+		dev_err(dev, "%s: bad direction?\n", __func__);
-+		return NULL;
-+	}
-+
-+	if (dev_width == DMA_SLAVE_BUSWIDTH_UNDEFINED) {
- 		dev_err(dev, "Undefined slave buswidth\n");
- 		return NULL;
- 	}
-@@ -275,14 +274,14 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
- 			}
- 		}
- 
--		acnt = echan->addr_width;
-+		acnt = dev_width;
- 
- 		/*
- 		 * If the maxburst is equal to the fifo width, use
- 		 * A-synced transfers. This allows for large contiguous
- 		 * buffer transfers using only one PaRAM set.
- 		 */
--		if (echan->maxburst == 1) {
-+		if (burst == 1) {
- 			edesc->absync = false;
- 			ccnt = sg_dma_len(sg) / acnt / (SZ_64K - 1);
- 			bcnt = sg_dma_len(sg) / acnt - ccnt * (SZ_64K - 1);
-@@ -302,7 +301,7 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
- 		 */
- 		} else {
- 			edesc->absync = true;
--			bcnt = echan->maxburst;
-+			bcnt = burst;
- 			ccnt = sg_dma_len(sg) / (acnt * bcnt);
- 			if (ccnt > (SZ_64K - 1)) {
- 				dev_err(dev, "Exceeded max SG segment size\n");
-@@ -313,13 +312,13 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
- 
- 		if (direction == DMA_MEM_TO_DEV) {
- 			src = sg_dma_address(sg);
--			dst = echan->addr;
-+			dst = dev_addr;
- 			src_bidx = acnt;
- 			src_cidx = cidx;
- 			dst_bidx = 0;
- 			dst_cidx = 0;
- 		} else {
--			src = echan->addr;
-+			src = dev_addr;
- 			dst = sg_dma_address(sg);
- 			src_bidx = 0;
- 			src_cidx = 0;
--- 
-1.7.9.5
+I expect these to go away before too long as I expect to rewrite all of
+these data structures when the private edma api code is folded into
+drivers/dma/edma.c. When that happens, I would like to use some data
+structures that lend themselves to the DT property value. Given that,
+let's wait until there is another user to move these helpers to
+drivers/of/.
+
+> > diff --git a/arch/arm/mach-davinci/board-da830-evm.c b/arch/arm/mach-davinci/board-da830-evm.c
+> > index 95b5e10..ffcbec1 100644
+> > --- a/arch/arm/mach-davinci/board-da830-evm.c
+> > +++ b/arch/arm/mach-davinci/board-da830-evm.c
+> > @@ -512,7 +512,7 @@ static struct davinci_i2c_platform_data da830_evm_i2c_0_pdata = {
+> >   * example: Timer, GPIO, UART events etc) on da830/omap-l137 EVM, hence
+> >   * they are being reserved for codecs on the DSP side.
+> >   */
+> > -static const s16 da830_dma_rsv_chans[][2] = {
+> > +static s16 da830_dma_rsv_chans[][2] = {
+> 
+> I wonder why you had to remove const here and in other places. You seem
+> to be allocating new memory for DT case anyway. Its also not a good idea
+> to modify the passed platform data.
+
+Good catch. Although I was never modifying pdata itself, at one point
+the DT parsing code was modifying pointers that were const and I removed
+the const. I've since fixed that issue since we'd like them to be const
+as you point out. As a result, I've removed all these changes from v4 so
+all those files aren't touched.
+
+-Matt
