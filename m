@@ -1,59 +1,172 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB
-Date: Thu, 10 Jan 2013 16:23:11 +0530
-Message-ID: <50EE9D97.6000803@ti.com>
-References: <1348047128-25692-1-git-send-email-kishon@ti.com> <505A8BAB.2020004@ti.com> <20121227183524.GB7097@blackmetal.musicnaut.iki.fi> <50EE5D61.1020307@ti.com> <50EE90B6.2060308@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH RFC] usb: dwc3: Remove dwc3 dependency on gadget.
+Date: Thu, 10 Jan 2013 15:02:38 +0200
+Message-ID: <20130110130238.GW28920@arwen.pp.htv.fi>
+References: <1356357513-8892-1-git-send-email-gautam.vivek@samsung.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="s8wpp40TDz0KNMmP"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50EE90B6.2060308@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1356357513-8892-1-git-send-email-gautam.vivek@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
+To: Vivek Gautam <gautam.vivek@samsung.com>
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, Doug Anderson <dianders@chromium.org>
 List-Id: linux-omap@vger.kernel.org
+
+--s8wpp40TDz0KNMmP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thursday 10 January 2013 03:28 PM, Benoit Cousson wrote:
-> Hi Kishon,
->
-> On 01/10/2013 07:19 AM, kishon wrote:
->> On Friday 28 December 2012 12:05 AM, Aaro Koskinen wrote:
->>> Hi,
->>>
->>> On Thu, Sep 20, 2012 at 05:21:15AM +0200, Benoit Cousson wrote:
->>>> On 09/19/2012 11:32 AM, Kishon Vijay Abraham I wrote:
->>>>> This patch series adds dt data to get MUSB working in omap4 and omap3
->>>>>
->>>>> Changes from v2:
->>>>> * Changes the subject of all the patches to include "ARM: dts:"
->>>>> * Added reg property and interrupt property for "usb_otg_hs".
->>>>> Previously these
->>>>>     were obtained from ti,hwmods property.
->>>>> * Rebased on
->>>>>
->>>>> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
->>>>> devel-dt
->>>>>
->>>>> Changes from v1:
->>>>> Just removed the omap-usb2 dt data and sent that as a separate patch.
->>>>>
->>>>> Kishon Vijay Abraham I (3):
->>>>>     ARM: dts: Add twl6030-usb data
->>>>>     ARM: dts: Add twl4030-usb data
->>>>>     ARM: dts: omap: Add usb_otg and glue data
->>>>
->>>> Thanks for the update. I've just pulled the series for 3.7.
->>>
->>> I wonder what happened to the patch #3 (Add usb_otg and glue data)
->>> of this series? Why was it dropped? I cannot see it in 3.7 or 3.8-rc1.
->
-> I don't remember the context, can you repost it rebased on 3.8-rc2? Did
-> it generate some discussion at that time?
+On Mon, Dec 24, 2012 at 07:28:33PM +0530, Vivek Gautam wrote:
+> DWC3 controller curretly depends on CONFIG_USB and CONFIG_USB_GADGET.
+> Some hardware may like to use only host feature on dwc3.
+> So, removing the dependency of USB_DWC3 on USB_GADGET
+> and further modulating the dwc3 core to enable gadget features
+> only with USB_GADGET.
+>=20
+> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> CC: Doug Anderson <dianders@chromium.org>
 
-That patch also has SCM register. It might be rejected because of that. 
-Will work on the that.
+right, right... Eventually we need to do it, but you're only making
+gadget side optional. Host side should be optional too, but then you
+need to make sure we don't build dwc3 without gadget and host.
 
-Thanks
-Kishon
+Maybe make a mode selection for Host-only, Peripheral-only, Dual-Role
+Device ??
+
+More comments below...
+
+> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+> index f6a6e07..b70dcf1 100644
+> --- a/drivers/usb/dwc3/Kconfig
+> +++ b/drivers/usb/dwc3/Kconfig
+> @@ -1,7 +1,7 @@
+>  config USB_DWC3
+>  	tristate "DesignWare USB3 DRD Core Support"
+> -	depends on (USB && USB_GADGET)
+> -	select USB_OTG_UTILS
+> +	depends on USB
+> +	select USB_OTG_UTILS if USB_GADGET
+
+we want USB_OTG_UTILS also on host-only builds because host side,
+eventually, will have to learn how to control its PHYs.
+
+>  	select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
+>  	help
+>  	  Say Y or M here if your system has a Dual Role SuperSpeed
+> diff --git a/drivers/usb/dwc3/Makefile b/drivers/usb/dwc3/Makefile
+> index 4502648..8f469cb 100644
+> --- a/drivers/usb/dwc3/Makefile
+> +++ b/drivers/usb/dwc3/Makefile
+> @@ -5,7 +5,7 @@ obj-$(CONFIG_USB_DWC3)			+=3D dwc3.o
+> =20
+>  dwc3-y					:=3D core.o
+>  dwc3-y					+=3D host.o
+> -dwc3-y					+=3D gadget.o ep0.o
+> +obj-$(CONFIG_USB_GADGET)               +=3D gadget.o ep0.o
+
+this is wrong. CONFIG_USB_GADGET is tristate, so this should be:
+
+ifneq($(CONFIG_USB_GADGET),)
+ dwc3-y	+=3D gadget.o ep0.o
+endif
+
+or something similar
+
+> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+> index 4999563..4dc7ef2 100644
+> --- a/drivers/usb/dwc3/core.h
+> +++ b/drivers/usb/dwc3/core.h
+> @@ -865,7 +865,14 @@ int dwc3_gadget_resize_tx_fifos(struct dwc3 *dwc);
+>  int dwc3_host_init(struct dwc3 *dwc);
+>  void dwc3_host_exit(struct dwc3 *dwc);
+> =20
+> +#ifdef CONFIG_USB_GADGET
+
+not taking into account module builds.
+
+>  int dwc3_gadget_init(struct dwc3 *dwc);
+>  void dwc3_gadget_exit(struct dwc3 *dwc);
+> +#else
+> +static inline int dwc3_gadget_init(struct dwc3 *dwc)
+> +{ return -EINVAL; }
+> +static inline void dwc3_gadget_exit(struct dwc3 *dwc)
+> +{ }
+> +#endif
+> =20
+>  #endif /* __DRIVERS_USB_DWC3_CORE_H */
+> diff --git a/drivers/usb/dwc3/debugfs.c b/drivers/usb/dwc3/debugfs.c
+> index d4a30f1..553bbaa 100644
+> --- a/drivers/usb/dwc3/debugfs.c
+> +++ b/drivers/usb/dwc3/debugfs.c
+> @@ -535,7 +535,8 @@ static ssize_t dwc3_testmode_write(struct file *file,
+>  		testmode =3D 0;
+> =20
+>  	spin_lock_irqsave(&dwc->lock, flags);
+> -	dwc3_gadget_set_test_mode(dwc, testmode);
+> +	if (dwc3_gadget_set_test_mode(dwc, testmode))
+> +		dev_dbg(dwc->dev, "host: Invalid request\n");
+>  	spin_unlock_irqrestore(&dwc->lock, flags);
+> =20
+>  	return count;
+
+wrong, if you don't have gadget mode, you just don't create this file.
+
+> @@ -638,7 +639,8 @@ static ssize_t dwc3_link_state_write(struct file *fil=
+e,
+>  		return -EINVAL;
+> =20
+>  	spin_lock_irqsave(&dwc->lock, flags);
+> -	dwc3_gadget_set_link_state(dwc, state);
+> +	if (dwc3_gadget_set_link_state(dwc, state))
+> +		dev_dbg(dwc->dev, "host: Invalid request\n");
+
+likewise.
+
+>  	spin_unlock_irqrestore(&dwc->lock, flags);
+> =20
+>  	return count;
+> diff --git a/drivers/usb/dwc3/gadget.h b/drivers/usb/dwc3/gadget.h
+> index 99e6d72..28e82db 100644
+> --- a/drivers/usb/dwc3/gadget.h
+> +++ b/drivers/usb/dwc3/gadget.h
+> @@ -105,8 +105,16 @@ static inline void dwc3_gadget_move_request_queued(s=
+truct dwc3_request *req)
+>  void dwc3_gadget_giveback(struct dwc3_ep *dep, struct dwc3_request *req,
+>  		int status);
+> =20
+> +#ifdef CONFIG_USB_GADGET
+
+not taking into account CONFIG_USB_GADGET=3Dm
+
+--=20
+balbi
+
+--s8wpp40TDz0KNMmP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQ7rvuAAoJEIaOsuA1yqREZNkP/RdtmCVaoboZuzhdp+azDkZd
+Lq16ns47ZP4tUuFT2ph7nXyu7ALfQCkRbWxRdDEuCiVqfRRU3GziZVhiEr0YKZgc
+LNFiRIvQOZkC7WPxKiIcZm2S9prSz/Ko+OCfLkrUPiYGGiLDL1bgSJoCLnbhuWWe
+Qc7oTBcEVG1XpUApZ5pPksMC5KC2YagYeXBndvpRB9Gz1lT0nwJ9kKgTtoYnGlEU
+LYpafmj3B4mwX7HBXg5F1pVgYlnlDOXdppKOeQeO1jghEwL/XiRq3o03QstrAS2k
+fJKjeX+cpbtJJG8PbZHCEobtv1VkDKgKzj7S/pVDghcIZ7YR0gupS3LULAuRdWXy
+JLOqacbJ+cKlm+Ee6ZRxizb2EZoh2Zv0RBD5qrnWmS5tHEfkQMQ7sU3eF2fdMDrN
+aCBHCqdbjOZcWrYOJb/DJd+SYWXMCpmgSOQzroMuVqZecpoOrNaP8wVra11DTd5g
+UjoVPiOBL+uT7jtbPQZzx9XLCwmZ59VTGQqvxbMENGs4Q4W0yg5SvpFlovZUSAoz
+RzqKh1kEPP8+88lkRekcqRX1e1KkHHiHRTzOKKZxLtz4qkEMVmmjye9YVV7seiNJ
+S69xJl2rs5PV7pK8B1ow+8VbFUvCu7b/4b3SVZ989+vtNzyB24hRgvTUWeCBx5ZZ
+rNikz5VT892CWdhNFy3D
+=iU80
+-----END PGP SIGNATURE-----
+
+--s8wpp40TDz0KNMmP--
