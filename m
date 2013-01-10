@@ -1,122 +1,125 @@
 From: Matt Porter <mporter@ti.com>
-Subject: Re: [RFC PATCH v3 05/16] ARM: edma: add AM33XX crossbar event support
-Date: Thu, 10 Jan 2013 17:54:34 -0500
-Message-ID: <20130110225434.GT14660@beef>
+Subject: Re: [RFC PATCH v3 02/16] ARM: davinci: move private EDMA API to
+ arm/common
+Date: Thu, 10 Jan 2013 18:51:57 -0500
+Message-ID: <20130110235157.GU14660@beef>
 References: <1350566815-409-1-git-send-email-mporter@ti.com>
- <1350566815-409-6-git-send-email-mporter@ti.com>
- <508D12DC.8010400@ti.com>
+ <1350566815-409-3-git-send-email-mporter@ti.com>
+ <508CEA05.8060200@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <508D12DC.8010400@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
+In-Reply-To: <508CEA05.8060200@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: Sekhar Nori <nsekhar@ti.com>
 Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Oct 28, 2012 at 04:41:24PM +0530, Sekhar Nori wrote:
+On Sun, Oct 28, 2012 at 01:47:09PM +0530, Sekhar Nori wrote:
 > On 10/18/2012 6:56 PM, Matt Porter wrote:
-> > Adds support for the per-EDMA channel event mux. This is required
-> > for any peripherals using DMA crossbar mapped events.
+> > Move mach-davinci/dma.c to common/edma.c so it can be used
+> > by OMAP (specifically AM33xx) as well. This just moves the
+> > private EDMA API but does not support OMAP.
 > > 
 > > Signed-off-by: Matt Porter <mporter@ti.com>
 > > ---
-> >  arch/arm/common/edma.c             |   63 +++++++++++++++++++++++++++++++++++-
-> >  include/linux/platform_data/edma.h |    1 +
-> >  2 files changed, 63 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-> > index 6d2a590..b761b7a 100644
-> > --- a/arch/arm/common/edma.c
-> > +++ b/arch/arm/common/edma.c
-> > @@ -1425,6 +1425,53 @@ static int edma_of_read_u32_to_s16_array(const struct device_node *np,
-> >  	return 0;
-> >  }
+> 
+> > diff --git a/arch/arm/mach-davinci/devices.c b/arch/arm/mach-davinci/devices.c
+> > index 4c48a36..f45d591 100644
+> > --- a/arch/arm/mach-davinci/devices.c
+> > +++ b/arch/arm/mach-davinci/devices.c
+> > @@ -19,9 +19,10 @@
+> >  #include <mach/irqs.h>
+> >  #include <mach/cputype.h>
+> >  #include <mach/mux.h>
+> > -#include <mach/edma.h>
+> >  #include <linux/platform_data/mmc-davinci.h>
+> >  #include <mach/time.h>
+> > +#include <linux/platform_data/edma.h>
+> 
+> Can you please introduce a patch to clean this mixture of linux/ and
+> mach/ includes?
+
+Yeah, are you ok with a follow on series to clean all these files? I
+don't want to make this series longer with something not dma related
+that's purely cleanup from the great header reorg of 2012.
+
+> > +
 > >  
-> > +static int edma_xbar_event_map(struct device *dev,
-> > +			       struct device_node *node,
-> > +			       struct edma_soc_info *pdata, int len)
-> > +{
-> > +	int ret = 0;
-> > +	int i;
-> > +	struct resource res;
-> > +	void *xbar;
-> > +	s16 (*xbar_chans)[2];
-> > +	u32 shift, offset, mux;
-> > +
-> > +	xbar_chans = devm_kzalloc(dev,
-> > +				  len/sizeof(s16) + 2*sizeof(s16),
-> > +				  GFP_KERNEL);
-> > +	if (!xbar_chans)
-> > +		return -ENOMEM;
-> > +
-> > +	ret = of_address_to_resource(node, 1, &res);
-> > +	if (IS_ERR_VALUE(ret))
-> > +		return -EIO;
-> > +
-> > +	xbar = devm_ioremap(dev, res.start, resource_size(&res));
-> > +	if (!xbar)
-> > +		return -EIO;
+> >  #include "davinci.h"
+> >  #include "clock.h"
+> > @@ -141,10 +142,10 @@ static struct resource mmcsd0_resources[] = {
+> >  	},
+> >  	/* DMA channels: RX, then TX */
+> >  	{
+> > -		.start = EDMA_CTLR_CHAN(0, DAVINCI_DMA_MMCRXEVT),
+> > +		.start = EDMA_CTLR_CHAN(0, 26),
 > 
-> -ENOMEM is more appropiate for ioremap failures.
+> Instead of just replacing the event #defines with plain numbers, can you
+> introduce a mach-davinci local edma.h which can then be included in the
+> davinci platform files which refer to edma channel numbers?
 
-Fixed in v4.
+Ok, so when I removed the old edma.h it was full of unused defines and
+we are left with just this one. If I introduced something like that it
+would be used in just one place here. and only for these two values.
+How about we just add a comment?
 
 > 
-> > +
-> > +	ret = edma_of_read_u32_to_s16_array(node,
-> > +					    "ti,edma-xbar-event-map",
-> > +					    (s16 *)xbar_chans,
-> > +					    len/sizeof(u32));
-> > +	if (IS_ERR_VALUE(ret))
-> > +		return -EIO;
-> > +
-> > +	for (i = 0; xbar_chans[i][0] != -1; i++) {
-> > +		shift = (xbar_chans[i][1] % 4) * 8;
-> > +		offset = xbar_chans[i][1] >> 2;
-> > +		offset <<= 2;
-> > +		mux = __raw_readl((void *)((u32)xbar + offset));
+> > diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> > index 7cd56ed..153fab8 100644
+> > --- a/arch/arm/plat-omap/Kconfig
+> > +++ b/arch/arm/plat-omap/Kconfig
+> > @@ -28,6 +28,7 @@ config ARCH_OMAP2PLUS
+> >  	select OMAP_DM_TIMER
+> >  	select PROC_DEVICETREE if PROC_FS
+> >  	select SPARSE_IRQ
+> > +	select TI_PRIV_EDMA
 > 
-> Dont use __raw* variants of io accessors. There will be ordering issues
-> on ARMv7.
+> This hunk does not seem to belong to subject of this patch.
 
-Fixed in v4.
+Let me reword the subject/description. The idea of this logical
+chunk was to put everything in place to make it build on OMAP,
+with the expectation that the build fails without the next patch
+in the series.
 
+> >  	select USE_OF
+> >  	help
+> >  	  "Systems based on OMAP2, OMAP3, OMAP4 or OMAP5"
 > 
-> > +		mux &= (~(0xff << shift));
-> > +		mux |= (xbar_chans[i][0] << shift);
+> > diff --git a/include/linux/platform_data/edma.h b/include/linux/platform_data/edma.h
+> > new file mode 100644
+> > index 0000000..7396f0b3
+> > --- /dev/null
+> > +++ b/include/linux/platform_data/edma.h
+> > @@ -0,0 +1,198 @@
+> > +/*
+> > + *  TI DAVINCI dma definitions
+> > + *
+> > + *  Copyright (C) 2006-2009 Texas Instruments.
+> > + *
+> > + *  This program is free software; you can redistribute  it and/or modify it
+> > + *  under  the terms of  the GNU General  Public License as published by the
+> > + *  Free Software Foundation;  either version 2 of the  License, or (at your
+> > + *  option) any later version.
+> > + *
+> > + *  THIS  SOFTWARE  IS PROVIDED   ``AS  IS'' AND   ANY  EXPRESS OR IMPLIED
+> > + *  WARRANTIES,   INCLUDING, BUT NOT  LIMITED  TO, THE IMPLIED WARRANTIES OF
+> > + *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
+> > + *  NO  EVENT  SHALL   THE AUTHOR  BE    LIABLE FOR ANY   DIRECT, INDIRECT,
+> > + *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+> > + *  NOT LIMITED   TO, PROCUREMENT OF  SUBSTITUTE GOODS  OR SERVICES; LOSS OF
+> > + *  USE, DATA,  OR PROFITS; OR  BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+> > + *  ANY THEORY OF LIABILITY, WHETHER IN  CONTRACT, STRICT LIABILITY, OR TORT
+> > + *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+> > + *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 > 
-> Unnecessary parens above.
-
-Fixed in v4.
-
+> > + *  You should have received a copy of the  GNU General Public License along
+> > + *  with this program; if not, write  to the Free Software Foundation, Inc.,
+> > + *  675 Mass Ave, Cambridge, MA 02139, USA.
 > 
-> > +		__raw_writel(mux, (void *)((u32)xbar + offset));
-> > +	}
-> > +
-> > +	pdata->xbar_chans = xbar_chans;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> >  static int edma_of_parse_dt(struct device *dev,
-> >  			    struct device_node *node,
-> >  			    struct edma_soc_info *pdata)
-> > @@ -1453,7 +1500,6 @@ static int edma_of_parse_dt(struct device *dev,
-> >  	pdata->n_slot = value;
-> >  
-> >  	pdata->n_cc = 1;
-> > -	/* This is unused */
-> 
-> The comment should have not been part of 4/16?
+> This part can be dropped, I suppose ;-)
 
-Correct. I moved the change to the correct patch in v4.
+Indeed :)
 
-> 
-> Thanks,
-> Sekhar
-> _______________________________________________
-> Davinci-linux-open-source mailing list
-> Davinci-linux-open-source@linux.davincidsp.com
-> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+-Matt
