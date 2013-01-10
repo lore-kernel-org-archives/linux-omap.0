@@ -1,70 +1,35 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] omap: DT node Timer iteration fix
-Date: Wed, 9 Jan 2013 16:12:52 -0600
-Message-ID: <50EDEB64.4060800@ti.com>
-References: <1357651902-21966-1-git-send-email-panto@antoniou-consulting.com>
+From: Dave Airlie <airlied@gmail.com>
+Subject: Re: [RFC 0/4] TI LCDC DRM driver
+Date: Thu, 10 Jan 2013 10:16:10 +1000
+Message-ID: <CAPM=9tzZiQuVNdNhm9=iNWqAwk+uZRh0_YC3QLkyZbne5dfeyg@mail.gmail.com>
+References: <1357704685-3600-1-git-send-email-robdclark@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1357651902-21966-1-git-send-email-panto@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:62025 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932206Ab3AJAQL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jan 2013 19:16:11 -0500
+Received: by mail-ob0-f171.google.com with SMTP id dn14so2845392obc.16
+        for <linux-omap@vger.kernel.org>; Wed, 09 Jan 2013 16:16:10 -0800 (PST)
+In-Reply-To: <1357704685-3600-1-git-send-email-robdclark@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Clark <robdclark@gmail.com>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-Hi Pantelis,
+On Wed, Jan 9, 2013 at 2:11 PM, Rob Clark <robdclark@gmail.com> wrote:
+> Updated version of DRM driver for TI LCD Controller.  Since the initial
+> version of the patch, which only supported TFP410 DVI output, I've added
+> an output driver for LCD panels (for example, LCD3 or LCD7 cape for the
+> beagle-bone), and initial support for HDMI output via NXP TDA19988 HDMI
+> encoder (via i2c encoder-slave output driver).
+>
+> At this point, I think the basic lcdc drm driver plus TFP410 DVI output
+> (first patch) is in reasonable shape (barring potential rename, if lcdc
+> is too generic of a name... but I was not feeling creative enough yet to
+> pick a new name).
 
-On 01/08/2013 07:31 AM, Pantelis Antoniou wrote:
-> The iterator correctly handles of_node_put() calls.
-> Remove it before continue'ing the loop.
-> Without this patch you get:
+I'd like at least tilcdc :-)
 
-Thanks for the fix!
-
-May be worth mentioning that this will only be seen with
-"CONFIG_OF_DYNAMIC" (and explains why I did not catch this one!).
-
-> ERROR: Bad of_node_put() on /ocp/timer@44e31000!
-> [<c001329c>] (unwind_backtrace+0x0/0xe0) from [<c03dd8f0>] (of_node_release+0x2c/0xa0)!
-> [<c03dd8f0>] (of_node_release+0x2c/0xa0) from [<c03ddea0>] (of_find_matching_node_and_match+0x78/0x90)!
-> [<c03ddea0>] (of_find_matching_node_and_match+0x78/0x90) from [<c06d349c>] (omap_get_timer_dt+0x78/0x90)!
-> [<c06d349c>] (omap_get_timer_dt+0x78/0x90) from [<c06d3664>] (omap_dm_timer_init_one.clone.2+0x34/0x2bc)!
-> [<c06d3664>] (omap_dm_timer_init_one.clone.2+0x34/0x2bc) from [<c06d3a2c>] (omap2_gptimer_clocksource_init.clone.4+0x24/0xa8)!
-> [<c06d3a2c>] (omap2_gptimer_clocksource_init.clone.4+0x24/0xa8) from [<c06cca58>] (time_init+0x20/0x30)!
-> [<c06cca58>] (time_init+0x20/0x30) from [<c06c9690>] (start_kernel+0x1a8/0x2fc)!
-> 
-> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-> ---
->  arch/arm/mach-omap2/timer.c | 8 ++------
->  1 file changed, 2 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index 691aa67..b8ad6e6 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -165,15 +165,11 @@ static struct device_node * __init omap_get_timer_dt(struct of_device_id *match,
->  	struct device_node *np;
->  
->  	for_each_matching_node(np, match) {
-> -		if (!of_device_is_available(np)) {
-> -			of_node_put(np);
-> +		if (!of_device_is_available(np))
->  			continue;
-> -		}
->  
-> -		if (property && !of_get_property(np, property, NULL)) {
-> -			of_node_put(np);
-> +		if (property && !of_get_property(np, property, NULL))
->  			continue;
-> -		}
->  
->  		of_add_property(np, &device_disabled);
->  		return np;
-
-Otherwise ...
-
-Acked-by: Jon Hunter <jon-hunter@ti.com>
-
-Cheers
-Jon
+Dave.
