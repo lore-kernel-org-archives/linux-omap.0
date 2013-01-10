@@ -1,58 +1,59 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] arch/arm/plat-omap: initializing dma_lch_count, before
- judging omap_dma_reserve_channels
-Date: Thu, 10 Jan 2013 16:21:33 +0530
-Message-ID: <50EE9D35.6060300@ti.com>
-References: <50EE9815.2080402@asianux.com> <50EE9C87.6060407@ti.com>
+From: kishon <kishon@ti.com>
+Subject: Re: [PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB
+Date: Thu, 10 Jan 2013 16:23:11 +0530
+Message-ID: <50EE9D97.6000803@ti.com>
+References: <1348047128-25692-1-git-send-email-kishon@ti.com> <505A8BAB.2020004@ti.com> <20121227183524.GB7097@blackmetal.musicnaut.iki.fi> <50EE5D61.1020307@ti.com> <50EE90B6.2060308@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37753 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753336Ab3AJKun (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Jan 2013 05:50:43 -0500
-In-Reply-To: <50EE9C87.6060407@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50EE90B6.2060308@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chen Gang <gang.chen@asianux.com>
-Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday 10 January 2013 04:18 PM, Santosh Shilimkar wrote:
-> On Thursday 10 January 2013 03:59 PM, Chen Gang wrote:
->>
->>    dma_lch_count is zero before 1st call of omap_system_dma_probe.
->>    omap_dma_reserve_channels has value before 1st call of
->> omap_system_dma_probe
->>
->>    when 1st call of omap_system_dma_probe
->>      we need set dma_lch_count before use it for judging
->>      or which will be failed for omap_dma_reserve_channels
->>
->>    additional info:
->>      this patch is only for fixing bug, not touch the features.
->>      so, not use d->lch_count instead of dma_lch_count for the statement:
->>
->>                          && (omap_dma_reserve_channels <= dma_lch_count))
->>
-> Why not ? Infact thats the right fix as mentioned in the review.
+Hi,
+
+On Thursday 10 January 2013 03:28 PM, Benoit Cousson wrote:
+> Hi Kishon,
 >
->>      at least, now, current fixing is equal to above.
->>      in the future
->>        maybe omap_dma_reserve_channels can be set by outside (such as
->> from /proc)
->>        dma_lch_count is a static global variable which has effect to
->> all devices.
->>        maybe the original author do not hope the newer is larger than
->> the older
->>
-> 'omap_dma_reserve_channels' when used is suppose to be from command
-> line. Hence the proposed fix in the review is the right one.
+> On 01/10/2013 07:19 AM, kishon wrote:
+>> On Friday 28 December 2012 12:05 AM, Aaro Koskinen wrote:
+>>> Hi,
+>>>
+>>> On Thu, Sep 20, 2012 at 05:21:15AM +0200, Benoit Cousson wrote:
+>>>> On 09/19/2012 11:32 AM, Kishon Vijay Abraham I wrote:
+>>>>> This patch series adds dt data to get MUSB working in omap4 and omap3
+>>>>>
+>>>>> Changes from v2:
+>>>>> * Changes the subject of all the patches to include "ARM: dts:"
+>>>>> * Added reg property and interrupt property for "usb_otg_hs".
+>>>>> Previously these
+>>>>>     were obtained from ti,hwmods property.
+>>>>> * Rebased on
+>>>>>
+>>>>> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
+>>>>> devel-dt
+>>>>>
+>>>>> Changes from v1:
+>>>>> Just removed the omap-usb2 dt data and sent that as a separate patch.
+>>>>>
+>>>>> Kishon Vijay Abraham I (3):
+>>>>>     ARM: dts: Add twl6030-usb data
+>>>>>     ARM: dts: Add twl4030-usb data
+>>>>>     ARM: dts: omap: Add usb_otg and glue data
+>>>>
+>>>> Thanks for the update. I've just pulled the series for 3.7.
+>>>
+>>> I wonder what happened to the patch #3 (Add usb_otg and glue data)
+>>> of this series? Why was it dropped? I cannot see it in 3.7 or 3.8-rc1.
 >
-Another thing. please fix the subject line. It should be something like
-below.
+> I don't remember the context, can you repost it rebased on 3.8-rc2? Did
+> it generate some discussion at that time?
 
-ARM: OMAP: Fix the use of uninitialized dma_lch_count
+That patch also has SCM register. It might be rejected because of that. 
+Will work on the that.
 
-Regards
-santosh
+Thanks
+Kishon
