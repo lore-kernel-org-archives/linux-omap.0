@@ -1,59 +1,55 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH 3/7] pwm: pwm-tiehrpwm: Update the clock handling of
- pwm-tiehrpwm driver
-Date: Thu, 10 Jan 2013 04:11:42 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3EA5A510@DBDE01.ent.ti.com>
-References: <1357133094-30806-1-git-send-email-avinashphilip@ti.com>
- <1357133094-30806-4-git-send-email-avinashphilip@ti.com>
- <20130102133843.GA4414@avionic-0098.adnet.avionic-design.de>
+From: kishon <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB
+Date: Thu, 10 Jan 2013 11:49:13 +0530
+Message-ID: <50EE5D61.1020307@ti.com>
+References: <1348047128-25692-1-git-send-email-kishon@ti.com>
+ <505A8BAB.2020004@ti.com> <20121227183524.GB7097@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130102133843.GA4414@avionic-0098.adnet.avionic-design.de>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20121227183524.GB7097-R3WNPi76c83LsdW6vOPryG4HOFkwEHDbMR2xtNvyitY@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 02, 2013 at 19:08:43, Thierry Reding wrote:
-> On Wed, Jan 02, 2013 at 06:54:50PM +0530, Philip Avinash wrote:
-> > The clock framework has changed and it's now better to invoke
-> > clock_prepare_enable() and clk_disable_unprepare() rather than the
-> > legacy clk_enable() and clk_disable() calls. This patch converts the
-> > pwm-tiehrpwm driver to the new framework.
-> > 
-> > Signed-off-by: Philip Avinash <avinashphilip@ti.com>
-> > Cc: Thierry Reding <thierry.reding@avionic-design.de>
-> > ---
-> > In 3.8-rc1, common clock frame work support added to AM335x.
-> > 
-> >  drivers/pwm/pwm-tiehrpwm.c |    4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
-> > index 72a6dd4..af6f162 100644
-> > --- a/drivers/pwm/pwm-tiehrpwm.c
-> > +++ b/drivers/pwm/pwm-tiehrpwm.c
-> > @@ -341,7 +341,7 @@ static int ehrpwm_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
-> >  	configure_polarity(pc, pwm->hwpwm);
-> >  
-> >  	/* Enable TBCLK before enabling PWM device */
-> > -	clk_enable(pc->tbclk);
-> > +	clk_prepare_enable(pc->tbclk);
-> 
-> I apparently didn't catch this before, but maybe it would be useful to
-> check the return value here to make sure we only proceed if the clock
-> can actually be enabled.
+On Friday 28 December 2012 12:05 AM, Aaro Koskinen wrote:
+> Hi,
+>
+> On Thu, Sep 20, 2012 at 05:21:15AM +0200, Benoit Cousson wrote:
+>> On 09/19/2012 11:32 AM, Kishon Vijay Abraham I wrote:
+>>> This patch series adds dt data to get MUSB working in omap4 and omap3
+>>>
+>>> Changes from v2:
+>>> * Changes the subject of all the patches to include "ARM: dts:"
+>>> * Added reg property and interrupt property for "usb_otg_hs". Previously these
+>>>    were obtained from ti,hwmods property.
+>>> * Rebased on
+>>>    git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git devel-dt
+>>>
+>>> Changes from v1:
+>>> Just removed the omap-usb2 dt data and sent that as a separate patch.
+>>>
+>>> Kishon Vijay Abraham I (3):
+>>>    ARM: dts: Add twl6030-usb data
+>>>    ARM: dts: Add twl4030-usb data
+>>>    ARM: dts: omap: Add usb_otg and glue data
+>>
+>> Thanks for the update. I've just pulled the series for 3.7.
+>
+> I wonder what happened to the patch #3 (Add usb_otg and glue data)
+> of this series? Why was it dropped? I cannot see it in 3.7 or 3.8-rc1.
 
-Ok I will check return value & make it return status of pwm_enable().
-I will send it as individual patch in next series. I am waiting for
-reviews / acceptance of HWMOD and clock tree node patches.
+Benoit?
 
-Thanks
-Avinash
-
-> 
-> Thierry
-> 
+-Kishon
