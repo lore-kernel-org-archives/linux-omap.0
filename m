@@ -1,137 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 11/14] ARM: dts: add AM33XX MMC support
-Date: Fri, 11 Jan 2013 09:55:45 -0800
-Message-ID: <20130111175545.GJ14149@atomide.com>
-References: <1357883330-5364-1-git-send-email-mporter@ti.com>
- <1357883330-5364-12-git-send-email-mporter@ti.com>
+Subject: Re: [PATCH V2 1/2] ARM: OMAP2+: Prepare for device-tree PMU support
+Date: Fri, 11 Jan 2013 09:59:12 -0800
+Message-ID: <20130111175911.GK14149@atomide.com>
+References: <1355766548-5702-1-git-send-email-jon-hunter@ti.com>
+ <1355766548-5702-2-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:49711 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753050Ab3AKR7R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jan 2013 12:59:17 -0500
 Content-Disposition: inline
-In-Reply-To: <1357883330-5364-12-git-send-email-mporter@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Matt Porter <mporter@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Rob Herring <rob.herring@calxeda.com>
+In-Reply-To: <1355766548-5702-2-git-send-email-jon-hunter@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
-* Matt Porter <mporter@ti.com> [130110 21:47]:
-> Adds AM33XX MMC support for am335x-bone, am335x-evm, and
-> am335x-evmsk..
-
-This one should be queued separately by Benoit:
+* Jon Hunter <jon-hunter@ti.com> [121217 09:51]:
+> If device-tree is present, then do not create the PMU device from within
+> the OMAP specific PMU code. This is required to allow device-tree to
+> create the PMU device from the PMU device-tree node.
+> 
+> PMU is not currently supported for OMAP4430 (due to a dependency on
+> having a cross-trigger interface driver) and so ensure that this
+> indicated on boot with or without device-tree.
 
 Acked-by: Tony Lindgren <tony@atomide.com>
  
-> Signed-off-by: Matt Porter <mporter@ti.com>
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 > ---
->  arch/arm/boot/dts/am335x-bone.dts  |    7 +++++++
->  arch/arm/boot/dts/am335x-evm.dts   |    7 +++++++
->  arch/arm/boot/dts/am335x-evmsk.dts |    7 +++++++
->  arch/arm/boot/dts/am33xx.dtsi      |   28 ++++++++++++++++++++++++++++
->  4 files changed, 49 insertions(+)
+>  arch/arm/mach-omap2/pmu.c |   14 +++++++++++---
+>  1 file changed, 11 insertions(+), 3 deletions(-)
 > 
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> index 11b240c..a154ce0 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -120,6 +120,8 @@
->  		};
+> diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
+> index eb78ae7..1a0799c 100644
+> --- a/arch/arm/mach-omap2/pmu.c
+> +++ b/arch/arm/mach-omap2/pmu.c
+> @@ -11,6 +11,8 @@
+>   * the Free Software Foundation; either version 2 of the License, or
+>   * (at your option) any later version.
+>   */
+> +#include <linux/of.h>
+> +
+>  #include <asm/pmu.h>
 >  
->  		ldo3_reg: regulator@5 {
-> +			regulator-min-microvolt = <1800000>;
-> +			regulator-max-microvolt = <3300000>;
->  			regulator-always-on;
->  		};
+>  #include "soc.h"
+> @@ -64,6 +66,15 @@ static int __init omap_init_pmu(void)
+>  	unsigned oh_num;
+>  	char **oh_names;
 >  
-> @@ -136,3 +138,8 @@
->  &cpsw_emac1 {
->  	phy_id = <&davinci_mdio>, <1>;
->  };
+> +	/* XXX Remove this check when the CTI driver is available */
+> +	if (cpu_is_omap443x()) {
+> +		pr_info("ARM PMU: not yet supported on OMAP4430 due to missing CTI driver\n");
+> +		return 0;
+> +	}
 > +
-> +&mmc1 {
-> +	status = "okay";
-> +	vmmc-supply = <&ldo3_reg>;
-> +};
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index d649644..2907da6 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -232,6 +232,8 @@
->  		};
->  
->  		vmmc_reg: regulator@12 {
-> +			regulator-min-microvolt = <1800000>;
-> +			regulator-max-microvolt = <3300000>;
->  			regulator-always-on;
->  		};
->  	};
-> @@ -244,3 +246,8 @@
->  &cpsw_emac1 {
->  	phy_id = <&davinci_mdio>, <1>;
->  };
+> +	if (of_have_populated_dt())
+> +		return 0;
 > +
-> +&mmc1 {
-> +	status = "okay";
-> +	vmmc-supply = <&vmmc_reg>;
-> +};
-> diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-> index f5a6162..f050c46 100644
-> --- a/arch/arm/boot/dts/am335x-evmsk.dts
-> +++ b/arch/arm/boot/dts/am335x-evmsk.dts
-> @@ -244,7 +244,14 @@
->  		};
->  
->  		vmmc_reg: regulator@12 {
-> +			regulator-min-microvolt = <1800000>;
-> +			regulator-max-microvolt = <3300000>;
->  			regulator-always-on;
->  		};
->  	};
->  };
-> +
-> +&mmc1 {
-> +	status = "okay";
-> +	vmmc-supply = <&vmmc_reg>;
-> +};
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index e711ffb..278b75d 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -235,6 +235,34 @@
->  			status = "disabled";
->  		};
->  
-> +		mmc1: mmc@48060000 {
-> +			compatible = "ti,omap3-hsmmc";
-> +			ti,hwmods = "mmc1";
-> +			ti,dual-volt;
-> +			ti,needs-special-reset;
-> +			dmas = <&edma 24
-> +				&edma 25>;
-> +			dma-names = "tx", "rx";
-> +			status = "disabled";
-> +		};
-> +
-> +		mmc2: mmc@481d8000 {
-> +			compatible = "ti,omap3-hsmmc";
-> +			ti,hwmods = "mmc2";
-> +			ti,needs-special-reset;
-> +			dmas = <&edma 2
-> +				&edma 3>;
-> +			dma-names = "tx", "rx";
-> +			status = "disabled";
-> +		};
-> +
-> +		mmc3: mmc@47810000 {
-> +			compatible = "ti,omap3-hsmmc";
-> +			ti,hwmods = "mmc3";
-> +			ti,needs-special-reset;
-> +			status = "disabled";
-> +		};
-> +
->  		wdt2: wdt@44e35000 {
->  			compatible = "ti,omap3-wdt";
->  			ti,hwmods = "wd_timer2";
+>  	/*
+>  	 * To create an ARM-PMU device the following HWMODs
+>  	 * are required for the various OMAP2+ devices.
+> @@ -76,9 +87,6 @@ static int __init omap_init_pmu(void)
+>  	if (cpu_is_omap443x()) {
+>  		oh_num = ARRAY_SIZE(omap4430_pmu_oh_names);
+>  		oh_names = omap4430_pmu_oh_names;
+> -		/* XXX Remove the next two lines when CTI driver available */
+> -		pr_info("ARM PMU: not yet supported on OMAP4430 due to missing CTI driver\n");
+> -		return 0;
+>  	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+>  		oh_num = ARRAY_SIZE(omap3_pmu_oh_names);
+>  		oh_names = omap3_pmu_oh_names;
 > -- 
-> 1.7.9.5
+> 1.7.10.4
 > 
