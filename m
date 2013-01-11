@@ -1,42 +1,60 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH v4 00/14] DMA Engine support for AM33XX
-Date: Fri, 11 Jan 2013 11:40:41 +0000
-Message-ID: <201301111140.41584.arnd@arndb.de>
-References: <1357883330-5364-1-git-send-email-mporter@ti.com>
+From: Paul Barker <paul@paulbarker.me.uk>
+Subject: McBSP functions not exported
+Date: Fri, 11 Jan 2013 11:48:46 +0000
+Message-ID: <20130111114846.00005679@unknown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1357883330-5364-1-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 18.mo3.mail-out.ovh.net ([87.98.172.162]:37373 "EHLO
+	mo3.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752409Ab3AKMnj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jan 2013 07:43:39 -0500
+Received: from mail176.ha.ovh.net (b6.ovh.net [213.186.33.56])
+	by mo3.mail-out.ovh.net (Postfix) with SMTP id 66242FF9211
+	for <linux-omap@vger.kernel.org>; Fri, 11 Jan 2013 13:02:09 +0100 (CET)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Friday 11 January 2013, Matt Porter wrote:
-> The approach taken is similar to how OMAP DMA is being converted to
-> DMA Engine support. With the functional EDMA private API already
-> existing in mach-davinci/dma.c, we first move that to an ARM common
-> area so it can be shared. Adding DT and runtime PM support to the
-> private EDMA API implementation allows it to run on AM33xx. AM33xx
-> only boots using DT so we leverage Jon's generic DT DMA helpers to
-> register EDMA DMAC with the of_dma framework and then add support
-> for calling the dma_request_slave_channel() API to both the mmc
-> and spi drivers.
+Hi,
 
-I think this looks very good. What I wonder is whether we should
-make the non-DT parts of the dmaengine driver compile-time
-conditional on CONFIG_ATAGS though, so the slave drivers don't
-have a link-time dependency on the dmaengine driver's 
-omap_dma_filter_fn symbol when building without ATAGS support.
+I'm currently working on a driver to talk to an analog-to-digital
+converter (specifically a Texas Instruments ADS1672) connected to the
+McBSP port on a Beagleboard-xM. I'm currently building my driver module
+against a 3.2 series kernel with Beagleboard patches and config from
+https://github.com/beagleboard/kernel (branch beagleboard-3.2). I'd
+like to keep up-to-date with the more recent kernels but my module
+won't compile with them.
 
-	Arnd
+When the OMAP McBSP driver stack was merged into a single driver
+(commit 45656b4 by Peter Ujfalusi, looks like it went into linux 3.3)
+all the EXPORT_SYMBOL macros were removed so I can no longer call the
+functions I was using from my external module. Alternatively I could
+just be missing something really obvious, let me know if I am!
+
+I'm just wondering what the best way forward is from here and I'm sure
+I can't be the only person who was using the McBSP driver code in the
+kernel to interface with external hardware. The two options I can think
+of are either that I move my driver into the kernel source tree itself
+or the McBSP driver functions are exported again so that they can be
+used by external modules. It's easier to maintain an external module
+than a series of patches against the kernel, unless a driver for an
+analog-to-digital converter connected to the McBSP port is something
+that would actually have a chance of being merged into the mainline
+kernel. I could look at making this driver more generic once I have the
+current hardware/driver combination working, so that it should work
+with most analog-to-digital converters - I haven't found such a driver
+in my previous googling.
+
+If you have any advice on this or a pointer to a better place to ask
+this question please let me know.
+
+Thanks,
+
+-- 
+Paul Barker
+
+paul@paulbarker.me.uk
+http://www.paulbarker.me.uk/
