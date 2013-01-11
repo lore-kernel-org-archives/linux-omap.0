@@ -1,93 +1,63 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH] ARM: dts: OMAP3: Add support for OMAP3430 SDP board
-Date: Fri, 11 Jan 2013 10:39:22 -0600
-Message-ID: <1357922362-7641-1-git-send-email-jon-hunter@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 07/14] dmaengine: add
+ dma_request_slave_channel_compat()
+Date: Fri, 11 Jan 2013 09:52:23 -0800
+Message-ID: <20130111175223.GF14149@atomide.com>
+References: <1357883330-5364-1-git-send-email-mporter@ti.com>
+ <1357883330-5364-8-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40469 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754711Ab3AKQjc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Jan 2013 11:39:32 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1357883330-5364-8-git-send-email-mporter@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Matt Porter <mporter@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Rob Herring <rob.herring@calxeda.com>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Adds basic device-tree support for OMAP3430 SDP board which has 256MB
-of RAM and uses the TWL4030 power management IC.
+* Matt Porter <mporter@ti.com> [130110 21:47]:
+> Adds a dma_request_slave_channel_compat() wrapper which accepts
+> both the arguments from dma_request_channel() and
+> dma_request_slave_channel(). Based on whether the driver is
+> instantiated via DT, the appropriate channel request call will be
+> made.
+> 
+> This allows for a much cleaner migration of drivers to the
+> dmaengine DT API as platforms continue to be mixed between those
+> that boot using DT and those that do not.
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/boot/dts/Makefile         |    1 +
- arch/arm/boot/dts/omap3430-sdp.dts |   46 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap3430-sdp.dts
+Cool, looks like the driver changes are quite minimal after this:
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index e44da40..5d6dff0 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -104,6 +104,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	omap3-beagle.dtb \
- 	omap3-beagle-xm.dtb \
- 	omap3-evm.dtb \
-+	omap3430-sdp.dtb \
- 	omap3-tobi.dtb \
- 	omap4-panda.dtb \
- 	omap4-panda-a4.dtb \
-diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
-new file mode 100644
-index 0000000..be0650d
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3430-sdp.dts
-@@ -0,0 +1,46 @@
-+/*
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+/include/ "omap3.dtsi"
-+
-+/ {
-+	model = "TI OMAP3430 SDP";
-+	compatible = "ti,omap3430-sdp", "ti,omap3";
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>; /* 256 MB */
-+	};
-+};
-+
-+&i2c1 {
-+	clock-frequency = <2600000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+		interrupt-parent = <&intc>;
-+	};
-+};
-+
-+/include/ "twl4030.dtsi"
-+
-+&mmc1 {
-+	vmmc-supply = <&vmmc1>;
-+	vmmc_aux-supply = <&vsim>;
-+	bus-width = <8>;
-+};
-+
-+&mmc2 {
-+	status = "disabled";
-+};
-+
-+&mmc3 {
-+	status = "disabled";
-+};
--- 
-1.7.10.4
+Acked-by: Tony Lindgren <tony@atomide.com>
 
+> 
+> Suggested-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Matt Porter <mporter@ti.com>
+> ---
+>  include/linux/dmaengine.h |   10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+> index 9fd0c5b..64f9f69 100644
+> --- a/include/linux/dmaengine.h
+> +++ b/include/linux/dmaengine.h
+> @@ -1047,6 +1047,16 @@ void dma_run_dependencies(struct dma_async_tx_descriptor *tx);
+>  struct dma_chan *dma_find_channel(enum dma_transaction_type tx_type);
+>  struct dma_chan *net_dma_find_channel(void);
+>  #define dma_request_channel(mask, x, y) __dma_request_channel(&(mask), x, y)
+> +static inline struct dma_chan
+> +*dma_request_slave_channel_compat(dma_cap_mask_t mask, dma_filter_fn fn,
+> +				  void *fn_param, struct device *dev,
+> +				  char *name)
+> +{
+> +	if (dev->of_node)
+> +		return dma_request_slave_channel(dev, name);
+> +	else
+> +		return dma_request_channel(mask, fn, fn_param);
+> +}
+>  
+>  /* --- Helper iov-locking functions --- */
+>  
+> -- 
+> 1.7.9.5
+> 
