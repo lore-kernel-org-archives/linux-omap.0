@@ -1,111 +1,57 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v4 05/14] dmaengine: edma: Add TI EDMA device tree binding
-Date: Fri, 11 Jan 2013 07:54:05 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EB3EBBD@DBDE01.ent.ti.com>
-References: <1357883330-5364-1-git-send-email-mporter@ti.com>
- <1357883330-5364-6-git-send-email-mporter@ti.com>
+From: Russ Dill <russ.dill@gmail.com>
+Subject: Re: [PATCH v4 2/4] ARM: dts: AM33XX: Set pmic-shutdown-controller for BeagleBone
+Date: Fri, 11 Jan 2013 00:08:28 -0800
+Message-ID: <CA+Bv8XZ_B-yKnmFNaUw3Xp3pss3WmcN+WxZ7YYZ4-TPgc2dGMQ@mail.gmail.com>
+References: <1355464997-19367-1-git-send-email-anilkumar@ti.com>
+	<1355464997-19367-3-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1357883330-5364-6-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori,
- Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qc0-f177.google.com ([209.85.216.177]:59232 "EHLO
+	mail-qc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754640Ab3AKII3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jan 2013 03:08:29 -0500
+Received: by mail-qc0-f177.google.com with SMTP id u28so942888qcs.36
+        for <linux-omap@vger.kernel.org>; Fri, 11 Jan 2013 00:08:28 -0800 (PST)
+In-Reply-To: <1355464997-19367-3-git-send-email-anilkumar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: a.zummo@towertech.it, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rob Herring <rob.herring@calxeda.com>, rtc-linux@googlegroups.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>
 
-On Fri, Jan 11, 2013 at 11:18:41, Porter, Matt wrote:
-> The binding definition is based on the generic DMA controller
-> binding.
-> 
-> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+On Thu, Dec 13, 2012 at 10:03 PM, AnilKumar Ch <anilkumar@ti.com> wrote:
+> Set ti,pmic-shutdown-controller for BeagleBone in am335x-bone.dts
+> file, this flag is used by the driver to set tps65217 PMIC status
+> to OFF when PWR_EN toggle.
+>
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+
+Looks good
+
+Reviewed-by: Russ Dill <russ.dill@ti.com>
+Acked-by: Russ Dill <russ.dill@ti.com>
+
 > ---
->  Documentation/devicetree/bindings/dma/ti-edma.txt |   51 +++++++++++++++++++++
->  1 file changed, 51 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/dma/ti-edma.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
-> new file mode 100644
-> index 0000000..3344345
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
-> @@ -0,0 +1,51 @@
-> +TI EDMA
+>  arch/arm/boot/dts/am335x-bone.dts |    2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+> index 5302f79..e7dff9d 100644
+> --- a/arch/arm/boot/dts/am335x-bone.dts
+> +++ b/arch/arm/boot/dts/am335x-bone.dts
+> @@ -88,6 +88,8 @@
+>  /include/ "tps65217.dtsi"
+>
+>  &tps {
+> +       ti,pmic-shutdown-controller;
 > +
-> +Required properties:
-> +- compatible : "ti,edma3"
-> +- ti,hwmods: Name of the hwmods associated to the EDMA
-> +- ti,edma-regions: Number of regions
-> +- ti,edma-slots: Number of slots
-> +- ti,edma-queue-tc-map: List of transfer control to queue mappings
-> +- ti,edma-queue-priority-map: List of queue priority mappings
-> +- ti,edma-default-queue: Default queue value
-> +
-> +Optional properties:
-> +- ti,edma-reserved-channels: List of reserved channel regions
-> +- ti,edma-reserved-slots: List of reserved slot regions
-> +- ti,edma-xbar-event-map: Crossbar event to channel map
-> +
-> +Example:
-> +
-> +edma: edma@49000000 {
-> +	#address-cells = <1>;
-> +	#size-cells = <0>;
-
-address-cells & size-cells are only required when current node is a parent 
-node & it has sibling/child nodes (that too if the child node uses "reg" 
-property).
-
-> +	reg = <0x49000000 0x10000>;
-> +	interrupt-parent = <&intc>;
-> +	interrupts = <12 13 14>;
-> +	compatible = "ti,edma3";
-> +	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-> +	#dma-cells = <1>;
-> +	dma-channels = <64>;
-> +	ti,edma-regions = <4>;
-> +	ti,edma-slots = <256>;
-> +	ti,edma-reserved-channels = <0  2
-> +				     14 2
-> +				     26 6
-> +				     48 4
-> +				     56 8>;
-> +	ti,edma-reserved-slots = <0  2
-> +				  14 2
-> +				  26 6
-> +				  48 4
-> +				  56 8
-> +				  64 127>;
-> +	ti,edma-queue-tc-map = <0 0
-> +				1 1
-> +				2 2>;
-> +	ti,edma-queue-priority-map = <0 0
-> +				      1 1
-> +				      2 2>;
-> +	ti,edma-default-queue = <0>;
-> +	ti,edma-xbar-event-map = <1 12
-> +				  2 13>;
-> +};
-> -- 
+>         regulators {
+>                 dcdc1_reg: regulator@0 {
+>                         regulator-always-on;
+> --
 > 1.7.9.5
-> 
-> _______________________________________________
-> Davinci-linux-open-source mailing list
-> Davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
-> 
-
-
-Regards, 
-Gururaja
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
