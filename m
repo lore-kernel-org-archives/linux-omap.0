@@ -1,106 +1,136 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH v4 05/14] dmaengine: edma: Add TI EDMA device tree binding
-Date: Fri, 11 Jan 2013 09:30:07 -0500
-Message-ID: <20130111143007.GX14660@beef>
-References: <1357883330-5364-1-git-send-email-mporter@ti.com>
- <1357883330-5364-6-git-send-email-mporter@ti.com>
- <06e6ba0bd8984e1797c84d2926584909@DFLE72.ent.ti.com>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH RFC] usb: dwc3: Remove dwc3 dependency on gadget.
+Date: Fri, 11 Jan 2013 19:58:23 +0530
+Message-ID: <CAFp+6iEvO2z=bWF7awN4vxN5W1YT0eXcpwarXoB8Mf_=BsQBpQ@mail.gmail.com>
+References: <1356357513-8892-1-git-send-email-gautam.vivek@samsung.com>
+	<20130110130238.GW28920@arwen.pp.htv.fi>
+	<CAFp+6iHEJvCPHbSvqYhjuTjzvkKQVuKz8f8TupqFcZ9gdvpt-A@mail.gmail.com>
+	<20130111135931.GE12715@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <06e6ba0bd8984e1797c84d2926584909@DFLE72.ent.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Cousson, Benoit" <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130111135931.GE12715@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, Doug Anderson <dianders@chromium.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 11, 2013 at 07:54:05AM +0000, Hebbar, Gururaja wrote:
-> On Fri, Jan 11, 2013 at 11:18:41, Porter, Matt wrote:
-> > The binding definition is based on the generic DMA controller
-> > binding.
-> > 
-> > Signed-off-by: Matt Porter <mporter@ti.com>
-> > ---
-> >  Documentation/devicetree/bindings/dma/ti-edma.txt |   51 +++++++++++++++++++++
-> >  1 file changed, 51 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/dma/ti-edma.txt
-> > 
-> > diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
-> > new file mode 100644
-> > index 0000000..3344345
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
-> > @@ -0,0 +1,51 @@
-> > +TI EDMA
-> > +
-> > +Required properties:
-> > +- compatible : "ti,edma3"
-> > +- ti,hwmods: Name of the hwmods associated to the EDMA
-> > +- ti,edma-regions: Number of regions
-> > +- ti,edma-slots: Number of slots
-> > +- ti,edma-queue-tc-map: List of transfer control to queue mappings
-> > +- ti,edma-queue-priority-map: List of queue priority mappings
-> > +- ti,edma-default-queue: Default queue value
-> > +
-> > +Optional properties:
-> > +- ti,edma-reserved-channels: List of reserved channel regions
-> > +- ti,edma-reserved-slots: List of reserved slot regions
-> > +- ti,edma-xbar-event-map: Crossbar event to channel map
-> > +
-> > +Example:
-> > +
-> > +edma: edma@49000000 {
-> > +	#address-cells = <1>;
-> > +	#size-cells = <0>;
-> 
-> address-cells & size-cells are only required when current node is a parent 
-> node & it has sibling/child nodes (that too if the child node uses "reg" 
-> property).
+Hi,
 
-Yes, agreed. I addressed this in the actual dts but failed to update the
-binding itself. Will update.
 
-> 
-> > +	reg = <0x49000000 0x10000>;
-> > +	interrupt-parent = <&intc>;
-> > +	interrupts = <12 13 14>;
-> > +	compatible = "ti,edma3";
-> > +	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-> > +	#dma-cells = <1>;
-> > +	dma-channels = <64>;
-> > +	ti,edma-regions = <4>;
-> > +	ti,edma-slots = <256>;
-> > +	ti,edma-reserved-channels = <0  2
-> > +				     14 2
-> > +				     26 6
-> > +				     48 4
-> > +				     56 8>;
-> > +	ti,edma-reserved-slots = <0  2
-> > +				  14 2
-> > +				  26 6
-> > +				  48 4
-> > +				  56 8
-> > +				  64 127>;
-> > +	ti,edma-queue-tc-map = <0 0
-> > +				1 1
-> > +				2 2>;
-> > +	ti,edma-queue-priority-map = <0 0
-> > +				      1 1
-> > +				      2 2>;
-> > +	ti,edma-default-queue = <0>;
-> > +	ti,edma-xbar-event-map = <1 12
-> > +				  2 13>;
-> > +};
-> > -- 
-> > 1.7.9.5
-> > 
-> > _______________________________________________
-> > Davinci-linux-open-source mailing list
-> > Davinci-linux-open-source@linux.davincidsp.com
-> > http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
-> > 
-> 
-> 
-> Regards, 
-> Gururaja
+On Fri, Jan 11, 2013 at 7:29 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Fri, Jan 11, 2013 at 07:13:55PM +0530, Vivek Gautam wrote:
+>> On Thu, Jan 10, 2013 at 6:32 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> > Hi,
+>> >
+>> > On Mon, Dec 24, 2012 at 07:28:33PM +0530, Vivek Gautam wrote:
+>> >> DWC3 controller curretly depends on CONFIG_USB and CONFIG_USB_GADGET.
+>> >> Some hardware may like to use only host feature on dwc3.
+>> >> So, removing the dependency of USB_DWC3 on USB_GADGET
+>> >> and further modulating the dwc3 core to enable gadget features
+>> >> only with USB_GADGET.
+>> >>
+>> >> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>> >> CC: Doug Anderson <dianders@chromium.org>
+>> >
+>> > right, right... Eventually we need to do it, but you're only making
+>> > gadget side optional. Host side should be optional too, but then you
+>> > need to make sure we don't build dwc3 without gadget and host.
+>> >
+>>
+>> Yes, true we need to make host side also optional, build dwc3 only when
+>> either of host or gadget are built.
+>
+> btw, make the default Dual-Role, if user/defconfig doesn't select
+> anything we want to build with all features.
+>
+
+Yes we can try something like this ?
+
+         if (USB || USB_GADGET)
+         menuconfig USB_DWC3
+                 tristate "DesignWare USB3 DRD Core Support"
+          ...
+
+          if USB_DWC3
+          choice
+          default USB_DWC3_DUAL_ROLE_MODE
+          ...
+
+          config USB_DWC3_HOST_MODE
+          ...
+
+          config USB_DWC3_DEVICE_MODE
+          ...
+
+          config USB_DWC3_DUAL_ROLE_MODE
+          ...
+
+         endchoice
+
+         ..
+         ..
+         endif
+         endif
+
+
+>> > Maybe make a mode selection for Host-only, Peripheral-only, Dual-Role
+>> > Device ??
+>> >
+>>
+>> True this will be good idea to use modes: host only, gadget only or dual role.
+>> May be the platform glue layers can use them later to put the controller
+>> in a specific mode ?
+>
+> probably not as that's likely to change from board to board.
+>
+>> >>  int dwc3_gadget_init(struct dwc3 *dwc);
+>> >>  void dwc3_gadget_exit(struct dwc3 *dwc);
+>> >> +#else
+>> >> +static inline int dwc3_gadget_init(struct dwc3 *dwc)
+>> >> +{ return -EINVAL; }
+>> >> +static inline void dwc3_gadget_exit(struct dwc3 *dwc)
+>> >> +{ }
+>> >> +#endif
+>> >>
+>> >>  #endif /* __DRIVERS_USB_DWC3_CORE_H */
+>> >> diff --git a/drivers/usb/dwc3/debugfs.c b/drivers/usb/dwc3/debugfs.c
+>> >> index d4a30f1..553bbaa 100644
+>> >> --- a/drivers/usb/dwc3/debugfs.c
+>> >> +++ b/drivers/usb/dwc3/debugfs.c
+>> >> @@ -535,7 +535,8 @@ static ssize_t dwc3_testmode_write(struct file *file,
+>> >>               testmode = 0;
+>> >>
+>> >>       spin_lock_irqsave(&dwc->lock, flags);
+>> >> -     dwc3_gadget_set_test_mode(dwc, testmode);
+>> >> +     if (dwc3_gadget_set_test_mode(dwc, testmode))
+>> >> +             dev_dbg(dwc->dev, "host: Invalid request\n");
+>> >>       spin_unlock_irqrestore(&dwc->lock, flags);
+>> >>
+>> >>       return count;
+>> >
+>> > wrong, if you don't have gadget mode, you just don't create this file.
+>> >
+>>
+>> dwc3-core makes call to dwc3_debugfs_init() invariably depending on DEBUG_FS.
+>> Will this not go ahead and create this file ?
+>> I think i am missing here something.  :-(
+>
+> right, you can change dwc3_debugfs_init() to take into account the fact
+> that you're a gadget/drd or host-only.
+>
+> In case of host only, you stil want regdump to be available :-)
+>
+
+So in dwc3_debugfs_init() we shall actually create just 'regdump' file
+in case of host only mode, otherwise keep the dwc3_debugfs_init() happy
+with creating other files too.
+Right ?
+
+
+
+-- 
+Thanks & Regards
+Vivek
