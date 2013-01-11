@@ -1,55 +1,173 @@
-From: Omar Ramirez Luna <omar.ramirez@copitl.com>
-Subject: Re: [PATCH 1/9] mailbox: OMAP: introduce mailbox framework
-Date: Fri, 11 Jan 2013 07:34:12 -0600
-Message-ID: <CAJ6Av5M==RCCc-ngKMebPgqUwVT5Gr7E=NNk4Rr2OQK5TzfORQ@mail.gmail.com>
-References: <1355836212-17956-1-git-send-email-loic.pallardy-ext@stericsson.com>
-	<1355836212-17956-2-git-send-email-loic.pallardy-ext@stericsson.com>
-	<20121218165909.GF4989@atomide.com>
-	<50D423C2.3090009@st.com>
-	<B5906170F1614E41A8A28DE3B8D121433EC9CF77@DBDE01.ent.ti.com>
-	<50D43FA4.8090000@st.com>
-	<B5906170F1614E41A8A28DE3B8D121433ECDD8C1@DBDE01.ent.ti.com>
-	<50ED62B3.50000@st.com>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH RFC] usb: dwc3: Remove dwc3 dependency on gadget.
+Date: Fri, 11 Jan 2013 19:13:55 +0530
+Message-ID: <CAFp+6iHEJvCPHbSvqYhjuTjzvkKQVuKz8f8TupqFcZ9gdvpt-A@mail.gmail.com>
+References: <1356357513-8892-1-git-send-email-gautam.vivek@samsung.com>
+	<20130110130238.GW28920@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50ED62B3.50000@st.com>
+In-Reply-To: <20130110130238.GW28920@arwen.pp.htv.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Loic PALLARDY <loic.pallardy@st.com>
-Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Tony Lindgren <tony@atomide.com>, Loic PALLARDY STE <loic.pallardy-ext@stericsson.com>, Ohad Ben-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, "Gutierrez, Juan" <jgutierrez@ti.com>, Arnd Bergmann <arnd@arndb.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>, "Anna, Suman" <s-anna@ti.com>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, linux-arm-kernel
+To: balbi@ti.com
+Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, Doug Anderson <dianders@chromium.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 9, 2013 at 6:29 AM, Loic PALLARDY <loic.pallardy@st.com> wrote:
-> Hi Vaibhav,
+Hi Felipe,
+
+
+On Thu, Jan 10, 2013 at 6:32 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
 >
-> On 01/09/2013 01:11 PM, Bedia, Vaibhav wrote:
->> Hi Loic,
+> On Mon, Dec 24, 2012 at 07:28:33PM +0530, Vivek Gautam wrote:
+>> DWC3 controller curretly depends on CONFIG_USB and CONFIG_USB_GADGET.
+>> Some hardware may like to use only host feature on dwc3.
+>> So, removing the dependency of USB_DWC3 on USB_GADGET
+>> and further modulating the dwc3 core to enable gadget features
+>> only with USB_GADGET.
 >>
->> On Fri, Dec 21, 2012 at 16:23:24, Loic PALLARDY wrote:
->>>
->>>
->>> On 12/21/2012 11:49 AM, Bedia, Vaibhav wrote:
->>>> On Fri, Dec 21, 2012 at 14:24:26, Loic PALLARDY wrote:
->>>>>
->>>> I have a few patches which are dependent on this patch series.
->>>> Could you please keep me in cc for the future versions.
->>>>
->>> Sure, I'll.
->>>
+>> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>> CC: Doug Anderson <dianders@chromium.org>
+>
+> right, right... Eventually we need to do it, but you're only making
+> gadget side optional. Host side should be optional too, but then you
+> need to make sure we don't build dwc3 without gadget and host.
+>
+
+Yes, true we need to make host side also optional, build dwc3 only when
+either of host or gadget are built.
+
+> Maybe make a mode selection for Host-only, Peripheral-only, Dual-Role
+> Device ??
+>
+
+True this will be good idea to use modes: host only, gadget only or dual role.
+May be the platform glue layers can use them later to put the controller
+in a specific mode ?
+
+> More comments below...
+>
+>> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+>> index f6a6e07..b70dcf1 100644
+>> --- a/drivers/usb/dwc3/Kconfig
+>> +++ b/drivers/usb/dwc3/Kconfig
+>> @@ -1,7 +1,7 @@
+>>  config USB_DWC3
+>>       tristate "DesignWare USB3 DRD Core Support"
+>> -     depends on (USB && USB_GADGET)
+>> -     select USB_OTG_UTILS
+>> +     depends on USB
+>> +     select USB_OTG_UTILS if USB_GADGET
+>
+> we want USB_OTG_UTILS also on host-only builds because host side,
+> eventually, will have to learn how to control its PHYs.
+>
+
+Ok.
+
+>>       select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
+>>       help
+>>         Say Y or M here if your system has a Dual Role SuperSpeed
+>> diff --git a/drivers/usb/dwc3/Makefile b/drivers/usb/dwc3/Makefile
+>> index 4502648..8f469cb 100644
+>> --- a/drivers/usb/dwc3/Makefile
+>> +++ b/drivers/usb/dwc3/Makefile
+>> @@ -5,7 +5,7 @@ obj-$(CONFIG_USB_DWC3)                        += dwc3.o
 >>
->> When do you plan to post an updated version of these patches?
-> I'm synchronizing with Omar to include TI RPMsg and tidspbridge patches
-> in next update.
-> So I plan update for end of the week, beginning of next week.
+>>  dwc3-y                                       := core.o
+>>  dwc3-y                                       += host.o
+>> -dwc3-y                                       += gadget.o ep0.o
+>> +obj-$(CONFIG_USB_GADGET)               += gadget.o ep0.o
+>
+> this is wrong. CONFIG_USB_GADGET is tristate, so this should be:
+>
+> ifneq($(CONFIG_USB_GADGET),)
+>  dwc3-y += gadget.o ep0.o
+> endif
+>
+> or something similar
+>
 
-Here are my patches, I didn't post them to the list since they are
-meant to be squashed, I also prepared a squashed version of the
-original set, in case it is easier to take that one, all rebased into
-3.8-rc1. Branches: mailbox-3.8-rc1-separate-changes and
-mailbox-3.8-rc1, respectively.
+True, missed taking into account that CONFIG_USB_GADGET is tristate :-(
+Will amend this as suggested.
 
->From tree: https://github.com/omarrmz/upstream-wip
+>> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+>> index 4999563..4dc7ef2 100644
+>> --- a/drivers/usb/dwc3/core.h
+>> +++ b/drivers/usb/dwc3/core.h
+>> @@ -865,7 +865,14 @@ int dwc3_gadget_resize_tx_fifos(struct dwc3 *dwc);
+>>  int dwc3_host_init(struct dwc3 *dwc);
+>>  void dwc3_host_exit(struct dwc3 *dwc);
+>>
+>> +#ifdef CONFIG_USB_GADGET
+>
+> not taking into account module builds.
+>
 
-Cheers,
+ditto
 
-Omar
+>>  int dwc3_gadget_init(struct dwc3 *dwc);
+>>  void dwc3_gadget_exit(struct dwc3 *dwc);
+>> +#else
+>> +static inline int dwc3_gadget_init(struct dwc3 *dwc)
+>> +{ return -EINVAL; }
+>> +static inline void dwc3_gadget_exit(struct dwc3 *dwc)
+>> +{ }
+>> +#endif
+>>
+>>  #endif /* __DRIVERS_USB_DWC3_CORE_H */
+>> diff --git a/drivers/usb/dwc3/debugfs.c b/drivers/usb/dwc3/debugfs.c
+>> index d4a30f1..553bbaa 100644
+>> --- a/drivers/usb/dwc3/debugfs.c
+>> +++ b/drivers/usb/dwc3/debugfs.c
+>> @@ -535,7 +535,8 @@ static ssize_t dwc3_testmode_write(struct file *file,
+>>               testmode = 0;
+>>
+>>       spin_lock_irqsave(&dwc->lock, flags);
+>> -     dwc3_gadget_set_test_mode(dwc, testmode);
+>> +     if (dwc3_gadget_set_test_mode(dwc, testmode))
+>> +             dev_dbg(dwc->dev, "host: Invalid request\n");
+>>       spin_unlock_irqrestore(&dwc->lock, flags);
+>>
+>>       return count;
+>
+> wrong, if you don't have gadget mode, you just don't create this file.
+>
+
+dwc3-core makes call to dwc3_debugfs_init() invariably depending on DEBUG_FS.
+Will this not go ahead and create this file ?
+I think i am missing here something.  :-(
+
+>> @@ -638,7 +639,8 @@ static ssize_t dwc3_link_state_write(struct file *file,
+>>               return -EINVAL;
+>>
+>>       spin_lock_irqsave(&dwc->lock, flags);
+>> -     dwc3_gadget_set_link_state(dwc, state);
+>> +     if (dwc3_gadget_set_link_state(dwc, state))
+>> +             dev_dbg(dwc->dev, "host: Invalid request\n");
+>
+> likewise.
+>
+>>       spin_unlock_irqrestore(&dwc->lock, flags);
+>>
+>>       return count;
+>> diff --git a/drivers/usb/dwc3/gadget.h b/drivers/usb/dwc3/gadget.h
+>> index 99e6d72..28e82db 100644
+>> --- a/drivers/usb/dwc3/gadget.h
+>> +++ b/drivers/usb/dwc3/gadget.h
+>> @@ -105,8 +105,16 @@ static inline void dwc3_gadget_move_request_queued(struct dwc3_request *req)
+>>  void dwc3_gadget_giveback(struct dwc3_ep *dep, struct dwc3_request *req,
+>>               int status);
+>>
+>> +#ifdef CONFIG_USB_GADGET
+>
+> not taking into account CONFIG_USB_GADGET=m
+>
+missed taking into account that CONFIG_USB_GADGET is tristate :-(
+
+Will amend this patch accordingly.
+
+
+-- 
+Thanks & Regards
+Vivek
