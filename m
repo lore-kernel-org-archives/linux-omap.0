@@ -1,64 +1,106 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: Re: [RFC 0/4] TI LCDC DRM driver
-Date: Thu, 10 Jan 2013 21:15:26 -0600
-Message-ID: <CAF6AEGu4KJ27R6P7CiewVYSP22ZX+2=s6ZeNJv+Voh06gntBzg@mail.gmail.com>
-References: <1357704685-3600-1-git-send-email-robdclark@gmail.com>
-	<CAPM=9tzZiQuVNdNhm9=iNWqAwk+uZRh0_YC3QLkyZbne5dfeyg@mail.gmail.com>
-	<1782274.DIo8UG5duX@avalon>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [RFC v2 12/18] ARM: OMAP2+: timer: Add suspend-resume callbacks
+ for clockevent device
+Date: Fri, 11 Jan 2013 04:37:10 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433ECE0D51@DBDE01.ent.ti.com>
+References: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com>
+ <1356959231-17335-13-git-send-email-vaibhav.bedia@ti.com>
+ <50EC37FE.705@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f176.google.com ([209.85.220.176]:50002 "EHLO
-	mail-vc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751800Ab3AKDP1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jan 2013 22:15:27 -0500
-Received: by mail-vc0-f176.google.com with SMTP id fo13so1028099vcb.21
-        for <linux-omap@vger.kernel.org>; Thu, 10 Jan 2013 19:15:26 -0800 (PST)
-In-Reply-To: <1782274.DIo8UG5duX@avalon>
+Received: from bear.ext.ti.com ([192.94.94.41]:34560 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753400Ab3AKEhV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jan 2013 23:37:21 -0500
+In-Reply-To: <50EC37FE.705@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Dave Airlie <airlied@gmail.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On Thu, Jan 10, 2013 at 6:05 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Thursday 10 January 2013 10:16:10 Dave Airlie wrote:
->> On Wed, Jan 9, 2013 at 2:11 PM, Rob Clark <robdclark@gmail.com> wrote:
->> > Updated version of DRM driver for TI LCD Controller.  Since the initial
->> > version of the patch, which only supported TFP410 DVI output, I've added
->> > an output driver for LCD panels (for example, LCD3 or LCD7 cape for the
->> > beagle-bone), and initial support for HDMI output via NXP TDA19988 HDMI
->> > encoder (via i2c encoder-slave output driver).
->> >
->> > At this point, I think the basic lcdc drm driver plus TFP410 DVI output
->> > (first patch) is in reasonable shape (barring potential rename, if lcdc
->> > is too generic of a name... but I was not feeling creative enough yet to
->> > pick a new name).
->>
->> I'd like at least tilcdc :-)
->
-> So do I :-) The Renesas LCD controller is also called LCDC, and they called
-> the fbdev driver sh_mobile_lcdcfb. tilcdc isn't *that* long in comparison :-)
+On Tue, Jan 08, 2013 at 20:45:10, Shilimkar, Santosh wrote:
+> On Monday 31 December 2012 06:37 PM, Vaibhav Bedia wrote:
+> > The current OMAP timer code registers two timers -
+> > one as clocksource and one as clockevent.
+> > AM33XX has only one usable timer in the WKUP domain
+> > so one of the timers needs suspend-resume support
+> > to restore the configuration to pre-suspend state.
+> >
+> > commit adc78e6 (timekeeping: Add suspend and resume
+> > of clock event devices) introduced .suspend and .resume
+> > callbacks for clock event devices. Leverages these
+> > callbacks to have AM33XX clockevent timer which is
+> > in not in WKUP domain to behave properly across system
+> > suspend.
+> >
+> > Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Cc: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> > Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+> > Cc: Jon Hunter <jon-hunter@ti.com>
+> > ---
+> > v1->v2:
+> > 	Get rid of harcoded timer id.
+> > 	Note: since a platform device is not created for these timer
+> > 	instances and because there's very minimal change needed for
+> > 	restarting the timer a full blown context save and restore
+> > 	has been skipped.
+> >
+> >   arch/arm/mach-omap2/timer.c |   33 +++++++++++++++++++++++++++++++++
+> >   1 files changed, 33 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> > index 691aa67..38f9cbc 100644
+> > --- a/arch/arm/mach-omap2/timer.c
+> > +++ b/arch/arm/mach-omap2/timer.c
+> > @@ -128,6 +128,36 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+> >   	}
+> >   }
+> >
+> > +static void omap_clkevt_suspend(struct clock_event_device *unused)
+> > +{
+> > +	char name[10];
+> > +	struct omap_hwmod *oh;
+> > +
+> > +	sprintf(name, "timer%d", clkev.id);
+> > +	oh = omap_hwmod_lookup(name);
+> > +	if (!oh)
+> > +		return;
+> > +
+> > +	__omap_dm_timer_stop(&clkev, 1, clkev.rate);
+> > +	omap_hwmod_idle(oh);
+> > +}
+> > +
+> > +static void omap_clkevt_resume(struct clock_event_device *unused)
+> > +{
+> > +	char name[10];
+> > +	struct omap_hwmod *oh;
+> > +
+> > +	sprintf(name, "timer%d", clkev.id);
+> > +	oh = omap_hwmod_lookup(name);
+> > +	if (!oh)
+> > +		return;
+> > +
+> > +	omap_hwmod_enable(oh);
+> > +	__omap_dm_timer_load_start(&clkev,
+> > +			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
+> > +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
+> > +}
+> > +
+> Am still bit uncomfortable with direct hwmod usage in the suspend/resmue
+> hooks.
+> 
+> Jon, Any alternatives you can think of ?
+> 
 
-next version will be 'tilcdc' :-)
+Jon,
 
-I would appreciate some thoughts about more generic devicetree lcd
-panel parameters for the (ti)lcdc_panel patch..  from a functional
-standpoint, I think the lcd panel support part is also pretty much
-ready to go (I've added backlight support since the last version I
-sent), but I'm not really happy with the DT bindings for that because
-they seem to me a bit too hw specific, but I'm not really sure how
-they should look.
+Any suggestions here?
 
-Fwiw, on the CDF <-> KMS end of things, I'm sort of thinking the i2c
-encoder slave is not too far off.. just needs to be a bit decoupled
-from i2c.
-
-BR,
--R
-
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Regards,
+Vaibhav
