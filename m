@@ -1,60 +1,121 @@
-From: Paul Barker <paul@paulbarker.me.uk>
-Subject: McBSP functions not exported
-Date: Fri, 11 Jan 2013 11:48:46 +0000
-Message-ID: <20130111114846.00005679@unknown>
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH 2/4] RFC: drm/lcdc: add support for LCD panels (v2)
+Date: Fri, 11 Jan 2013 14:13:53 +0100
+Message-ID: <20130111131353.GA4247@pengutronix.de>
+References: <1357704685-3600-1-git-send-email-robdclark@gmail.com>
+	<1357704685-3600-3-git-send-email-robdclark@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 18.mo3.mail-out.ovh.net ([87.98.172.162]:37373 "EHLO
-	mo3.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752409Ab3AKMnj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jan 2013 07:43:39 -0500
-Received: from mail176.ha.ovh.net (b6.ovh.net [213.186.33.56])
-	by mo3.mail-out.ovh.net (Postfix) with SMTP id 66242FF9211
-	for <linux-omap@vger.kernel.org>; Fri, 11 Jan 2013 13:02:09 +0100 (CET)
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <1357704685-3600-3-git-send-email-robdclark@gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+To: Rob Clark <robdclark@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, patches@linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-Hi,
+Hi Rob,
 
-I'm currently working on a driver to talk to an analog-to-digital
-converter (specifically a Texas Instruments ADS1672) connected to the
-McBSP port on a Beagleboard-xM. I'm currently building my driver module
-against a 3.2 series kernel with Beagleboard patches and config from
-https://github.com/beagleboard/kernel (branch beagleboard-3.2). I'd
-like to keep up-to-date with the more recent kernels but my module
-won't compile with them.
+On Tue, Jan 08, 2013 at 10:11:23PM -0600, Rob Clark wrote:
+> Add an output panel driver for LCD panels.  Tested with LCD3 cape on
+> beaglebone.
+> 
+> TODO: need some way to control the appropriate backlight device
+> TODO: probably want to make the DT bindings more generic for panel-info
+> 
+> v1: original
+> v2: s/of_find_node_by_name()/of_get_child_by_name()/ from Pantelis
+>     Antoniou
+> 
+> Signed-off-by: Rob Clark <robdclark@gmail.com>
 
-When the OMAP McBSP driver stack was merged into a single driver
-(commit 45656b4 by Peter Ujfalusi, looks like it went into linux 3.3)
-all the EXPORT_SYMBOL macros were removed so I can no longer call the
-functions I was using from my external module. Alternatively I could
-just be missing something really obvious, let me know if I am!
+> +static enum drm_connector_status panel_connector_detect(
+> +		struct drm_connector *connector,
+> +		bool force)
+> +{
+> +	return connector_status_connected;
+> +}
+> +
+> +/* maybe this should be helper in drm-core? */
+> +static inline void copy_timings_to_drm(struct drm_display_mode *mode,
+> +		struct display_timing *timing)
+> +{
 
-I'm just wondering what the best way forward is from here and I'm sure
-I can't be the only person who was using the McBSP driver code in the
-kernel to interface with external hardware. The two options I can think
-of are either that I move my driver into the kernel source tree itself
-or the McBSP driver functions are exported again so that they can be
-used by external modules. It's easier to maintain an external module
-than a series of patches against the kernel, unless a driver for an
-analog-to-digital converter connected to the McBSP port is something
-that would actually have a chance of being merged into the mainline
-kernel. I could look at making this driver more generic once I have the
-current hardware/driver combination working, so that it should work
-with most analog-to-digital converters - I haven't found such a driver
-in my previous googling.
+This actually is a helper already and is called of_get_drm_display_mode.
 
-If you have any advice on this or a pointer to a better place to ask
-this question please let me know.
+> +	mode->clock = timing->pixelclock.typ / 1000;
+> +
+> +	mode->hdisplay = timing->hactive.typ;
+> +	mode->hsync_start = mode->hdisplay + timing->hfront_porch.typ;
+> +	mode->hsync_end = mode->hsync_start + timing->hsync_len.typ;
+> +	mode->htotal = mode->hsync_end + timing->hback_porch.typ;
+> +
+> +	mode->vdisplay = timing->vactive.typ;
+> +	mode->vsync_start = mode->vdisplay + timing->vfront_porch.typ;
+> +	mode->vsync_end = mode->vsync_start + timing->vsync_len.typ;
+> +	mode->vtotal = mode->vsync_end + timing->vback_porch.typ;
+> +
+> +	mode->flags = 0;
+> +
+> +	if (timing->interlaced)
+> +		mode->flags |= DRM_MODE_FLAG_INTERLACE;
+> +
+> +	if (timing->doublescan)
+> +		mode->flags |= DRM_MODE_FLAG_DBLSCAN;
+> +
+> +	if (timing->hsync_pol_active)
+> +		mode->flags |= DRM_MODE_FLAG_PHSYNC;
+> +	else
+> +		mode->flags |= DRM_MODE_FLAG_NHSYNC;
+> +
+> +	if (timing->vsync_pol_active)
+> +		mode->flags |= DRM_MODE_FLAG_PVSYNC;
+> +	else
+> +		mode->flags |= DRM_MODE_FLAG_NVSYNC;
+> +}
+> +
 
-Thanks,
+[...]
+
+> +
+> +static struct of_device_id panel_of_match[];
+> +
+> +static int __devinit panel_probe(struct platform_device *pdev)
+> +{
+> +	struct device_node *node = pdev->dev.of_node;
+> +	struct panel_module *panel_mod;
+> +	struct lcdc_module *mod;
+> +	struct pinctrl *pinctrl;
+> +	int ret = -EINVAL;
+> +
+> +	/* bail out early if no DT data: */
+> +	if (!of_match_device(panel_of_match, &pdev->dev)) {
+> +		dev_err(&pdev->dev, "device-tree data is missing\n");
+> +		return -ENXIO;
+> +	}
+
+You wouldn't be here if the device didn't match. How about
+
+	if (!node)
+		return -ENXIO;
+
+instead which prevents you from trying to probe the device when
+somebody registered a device without dt support?
+Same for the other platform devices in this series.
+
+Sascha
 
 -- 
-Paul Barker
-
-paul@paulbarker.me.uk
-http://www.paulbarker.me.uk/
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
