@@ -1,136 +1,129 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH RFC] usb: dwc3: Remove dwc3 dependency on gadget.
-Date: Fri, 11 Jan 2013 19:58:23 +0530
-Message-ID: <CAFp+6iEvO2z=bWF7awN4vxN5W1YT0eXcpwarXoB8Mf_=BsQBpQ@mail.gmail.com>
-References: <1356357513-8892-1-git-send-email-gautam.vivek@samsung.com>
-	<20130110130238.GW28920@arwen.pp.htv.fi>
-	<CAFp+6iHEJvCPHbSvqYhjuTjzvkKQVuKz8f8TupqFcZ9gdvpt-A@mail.gmail.com>
-	<20130111135931.GE12715@arwen.pp.htv.fi>
+From: Paul Barker <paul@paulbarker.me.uk>
+Subject: Re: McBSP functions not exported
+Date: Fri, 11 Jan 2013 16:27:02 +0000
+Message-ID: <ebad79c2234bac82958b7a1deea3ae55@localhost>
+References: <20130111114846.00005679@unknown> <50F010CF.8020808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130111135931.GE12715@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, Doug Anderson <dianders@chromium.org>
+Content-Type: text/plain;
+ charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 16.mo3.mail-out.ovh.net ([188.165.56.217]:60638 "EHLO
+	mo3.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754949Ab3AKQdh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jan 2013 11:33:37 -0500
+Received: from mail176.ha.ovh.net (b6.ovh.net [213.186.33.56])
+	by mo3.mail-out.ovh.net (Postfix) with SMTP id B25B5FFBA00
+	for <linux-omap@vger.kernel.org>; Fri, 11 Jan 2013 17:40:23 +0100 (CET)
+In-Reply-To: <50F010CF.8020808@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Hi,
-
-
-On Fri, Jan 11, 2013 at 7:29 PM, Felipe Balbi <balbi@ti.com> wrote:
+On 2013-01-11 13:17, Peter Ujfalusi wrote:
 > Hi,
 >
-> On Fri, Jan 11, 2013 at 07:13:55PM +0530, Vivek Gautam wrote:
->> On Thu, Jan 10, 2013 at 6:32 PM, Felipe Balbi <balbi@ti.com> wrote:
->> > Hi,
->> >
->> > On Mon, Dec 24, 2012 at 07:28:33PM +0530, Vivek Gautam wrote:
->> >> DWC3 controller curretly depends on CONFIG_USB and CONFIG_USB_GADGET.
->> >> Some hardware may like to use only host feature on dwc3.
->> >> So, removing the dependency of USB_DWC3 on USB_GADGET
->> >> and further modulating the dwc3 core to enable gadget features
->> >> only with USB_GADGET.
->> >>
->> >> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
->> >> CC: Doug Anderson <dianders@chromium.org>
->> >
->> > right, right... Eventually we need to do it, but you're only making
->> > gadget side optional. Host side should be optional too, but then you
->> > need to make sure we don't build dwc3 without gadget and host.
->> >
+> On 01/11/2013 12:48 PM, Paul Barker wrote:
+>> Hi,
 >>
->> Yes, true we need to make host side also optional, build dwc3 only when
->> either of host or gadget are built.
->
-> btw, make the default Dual-Role, if user/defconfig doesn't select
-> anything we want to build with all features.
->
-
-Yes we can try something like this ?
-
-         if (USB || USB_GADGET)
-         menuconfig USB_DWC3
-                 tristate "DesignWare USB3 DRD Core Support"
-          ...
-
-          if USB_DWC3
-          choice
-          default USB_DWC3_DUAL_ROLE_MODE
-          ...
-
-          config USB_DWC3_HOST_MODE
-          ...
-
-          config USB_DWC3_DEVICE_MODE
-          ...
-
-          config USB_DWC3_DUAL_ROLE_MODE
-          ...
-
-         endchoice
-
-         ..
-         ..
-         endif
-         endif
-
-
->> > Maybe make a mode selection for Host-only, Peripheral-only, Dual-Role
->> > Device ??
->> >
+>> I'm currently working on a driver to talk to an analog-to-digital
+>> converter (specifically a Texas Instruments ADS1672) connected to 
+>> the
+>> McBSP port on a Beagleboard-xM. I'm currently building my driver 
+>> module
+>> against a 3.2 series kernel with Beagleboard patches and config from
+>> https://github.com/beagleboard/kernel (branch beagleboard-3.2). I'd
+>> like to keep up-to-date with the more recent kernels but my module
+>> won't compile with them.
 >>
->> True this will be good idea to use modes: host only, gadget only or dual role.
->> May be the platform glue layers can use them later to put the controller
->> in a specific mode ?
+>> When the OMAP McBSP driver stack was merged into a single driver
+>> (commit 45656b4 by Peter Ujfalusi, looks like it went into linux 
+>> 3.3)
+>> all the EXPORT_SYMBOL macros were removed so I can no longer call 
+>> the
+>> functions I was using from my external module. Alternatively I could
+>> just be missing something really obvious, let me know if I am!
 >
-> probably not as that's likely to change from board to board.
->
->> >>  int dwc3_gadget_init(struct dwc3 *dwc);
->> >>  void dwc3_gadget_exit(struct dwc3 *dwc);
->> >> +#else
->> >> +static inline int dwc3_gadget_init(struct dwc3 *dwc)
->> >> +{ return -EINVAL; }
->> >> +static inline void dwc3_gadget_exit(struct dwc3 *dwc)
->> >> +{ }
->> >> +#endif
->> >>
->> >>  #endif /* __DRIVERS_USB_DWC3_CORE_H */
->> >> diff --git a/drivers/usb/dwc3/debugfs.c b/drivers/usb/dwc3/debugfs.c
->> >> index d4a30f1..553bbaa 100644
->> >> --- a/drivers/usb/dwc3/debugfs.c
->> >> +++ b/drivers/usb/dwc3/debugfs.c
->> >> @@ -535,7 +535,8 @@ static ssize_t dwc3_testmode_write(struct file *file,
->> >>               testmode = 0;
->> >>
->> >>       spin_lock_irqsave(&dwc->lock, flags);
->> >> -     dwc3_gadget_set_test_mode(dwc, testmode);
->> >> +     if (dwc3_gadget_set_test_mode(dwc, testmode))
->> >> +             dev_dbg(dwc->dev, "host: Invalid request\n");
->> >>       spin_unlock_irqrestore(&dwc->lock, flags);
->> >>
->> >>       return count;
->> >
->> > wrong, if you don't have gadget mode, you just don't create this file.
->> >
->>
->> dwc3-core makes call to dwc3_debugfs_init() invariably depending on DEBUG_FS.
->> Will this not go ahead and create this file ?
->> I think i am missing here something.  :-(
->
-> right, you can change dwc3_debugfs_init() to take into account the fact
-> that you're a gadget/drd or host-only.
->
-> In case of host only, you stil want regdump to be available :-)
->
+> Since 3.3 there were even more changes in the McBSP driver stack. We 
+> (I) did
+> removed lot's of code and it is more focused on it's main
+> functionality (ASoC).
+> What functions you were using from the McBSP driver(s)?
 
-So in dwc3_debugfs_init() we shall actually create just 'regdump' file
-in case of host only mode, otherwise keep the dwc3_debugfs_init() happy
-with creating other files too.
-Right ?
+I'm just using the request, free, start, stop and config functions, 
+then
+using DMA to copy data.
 
+>> I'm just wondering what the best way forward is from here and I'm 
+>> sure
+>> I can't be the only person who was using the McBSP driver code in 
+>> the
+>> kernel to interface with external hardware. The two options I can 
+>> think
+>> of are either that I move my driver into the kernel source tree 
+>> itself
+>> or the McBSP driver functions are exported again so that they can be
+>> used by external modules. It's easier to maintain an external module
+>> than a series of patches against the kernel, unless a driver for an
+>> analog-to-digital converter connected to the McBSP port is something
+>> that would actually have a chance of being merged into the mainline
+>> kernel. I could look at making this driver more generic once I have 
+>> the
+>> current hardware/driver combination working, so that it should work
+>> with most analog-to-digital converters - I haven't found such a 
+>> driver
+>> in my previous googling.
+>
+> I have taken a brief look at ADS1672 datasheet. At first glance I 
+> would think
+> that if you connect the ADC to SPI port of OMAP3 you should be able 
+> to read
+> the data out as well. On BeagleBoard-xM you should have access to
+> McSPI3 (CS0,
+> CS1) and McSPI4 (CS0).
 
+I've just been having a look at the McSPI interface and SPI code in the 
+kernel.
+I can see how to wire this up, use the processor as SPI master and the 
+ADC as
+SPI slave, get the clock running, etc. I need the transfers to be 
+synchronised
+to the data ready signal from the ADC, or I need them to occur at a 
+guaranteed
+frequency. I can't see how to do either of these with the SPI interface 
+provided
+by <linux/spi/spi.h>, so looks like I'd have to interface directly with 
+the
+McSPI hardware. I'll have a bash around, try to get some advice from 
+the
+beagleboard@googlegroups.com list and see what I can come up with as I 
+think
+that's a bit off topic for this list.
 
--- 
-Thanks & Regards
-Vivek
+>> If you have any advice on this or a pointer to a better place to ask
+>> this question please let me know.
+>
+> Can you try to see if you can use McSPI for your application?
+>
+> As background: we did not had any other uses of McBSP when I have 
+> decided to
+> merge the code and move it out from arch/arm/plat-omap/ This was 
+> needed to be
+> done in any ways. The decision back then was that since we don't have 
+> users
+> for McBSP other than audio, it is going to be moved under 
+> sound/soc/omap/
+
+This makes sense. The only other benefit I can see from exporting the 
+McBSP
+functions again is that audio drivers for custom boards based on OMAP 
+processors
+could then be written as external modules. That's not really what I'm 
+doing here
+though.
+
+Cheers,
+
+Paul Barker
