@@ -1,51 +1,40 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] enable multiplatform support for omap2+ for v3.9
-Date: Fri, 11 Jan 2013 12:12:42 -0800
-Message-ID: <CAOesGMiifZDu1gZJ6hu5Yz6DTSfqstzkMxkb-G7Od5vjeuHYHA@mail.gmail.com>
-References: <20130110194217.GA14149@atomide.com>
-	<20130111194319.GN14149@atomide.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v4 00/14] DMA Engine support for AM33XX
+Date: Fri, 11 Jan 2013 20:12:45 +0000
+Message-ID: <201301112012.45981.arnd@arndb.de>
+References: <1357883330-5364-1-git-send-email-mporter@ti.com>
+ <201301111140.41584.arnd@arndb.de> <20130111183349.GA14660@beef>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f176.google.com ([209.85.223.176]:45620 "EHLO
-	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754302Ab3AKUMo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jan 2013 15:12:44 -0500
-Received: by mail-ie0-f176.google.com with SMTP id 13so2807832iea.35
-        for <linux-omap@vger.kernel.org>; Fri, 11 Jan 2013 12:12:44 -0800 (PST)
-In-Reply-To: <20130111194319.GN14149@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130111183349.GA14660@beef>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>
 
-On Fri, Jan 11, 2013 at 11:43 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Tony Lindgren <tony@atomide.com> [130110 11:46]:
->> Hi Arnd, Olof,
->>
->> Below is a pull request to enable multiplatform support for omap2+.
->
-> Now that -rc3 is out, here's this one rebased on v3.8-rc3 as requested
-> by Olof.
->
-> Regards,
->
-> Tony
->
->
-> The following changes since commit 9931faca02c604c22335f5a935a501bb2ace6e20:
->
->   Linux 3.8-rc3 (2013-01-09 18:59:55 -0800)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/multiplatform-enable-signed-v2
+On Friday 11 January 2013, Matt Porter wrote:
+> We have tightly coupled the link-time dependency for
+> omap_dma_filter_fn by going down the path of using
+> dma_request_slave_channel_compat() as Tony suggested to avoid extra
+> ifdefry.
+> 
+> That dependency will go away naturally if all the "legacy" OMAP platforms
+> were required to only boot from DT...just as a newly added SoCs are.
+> 
+> Are you suggesting unwinding the _compat() approach?
 
-Pulled, thanks!
+No, I was thinking we could define omap_dma_filter_fn to NULL
+for the DT-only case.
 
->  51 files changed, 314 insertions(+), 370 deletions(-)
-
-Enabling multiplatform with a net negative patch delta -- awesome!
-
-
--Olof
+	Arnd
