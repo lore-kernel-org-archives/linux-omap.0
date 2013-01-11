@@ -1,121 +1,55 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH V2 2/2] ARM: dts: OMAP2+: Add PMU nodes
-Date: Fri, 11 Jan 2013 14:23:34 +0100
-Message-ID: <50F01256.7030701@ti.com>
-References: <1355766548-5702-1-git-send-email-jon-hunter@ti.com> <1355766548-5702-3-git-send-email-jon-hunter@ti.com>
+From: Omar Ramirez Luna <omar.ramirez@copitl.com>
+Subject: Re: [PATCH 1/9] mailbox: OMAP: introduce mailbox framework
+Date: Fri, 11 Jan 2013 07:34:12 -0600
+Message-ID: <CAJ6Av5M==RCCc-ngKMebPgqUwVT5Gr7E=NNk4Rr2OQK5TzfORQ@mail.gmail.com>
+References: <1355836212-17956-1-git-send-email-loic.pallardy-ext@stericsson.com>
+	<1355836212-17956-2-git-send-email-loic.pallardy-ext@stericsson.com>
+	<20121218165909.GF4989@atomide.com>
+	<50D423C2.3090009@st.com>
+	<B5906170F1614E41A8A28DE3B8D121433EC9CF77@DBDE01.ent.ti.com>
+	<50D43FA4.8090000@st.com>
+	<B5906170F1614E41A8A28DE3B8D121433ECDD8C1@DBDE01.ent.ti.com>
+	<50ED62B3.50000@st.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59088 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752409Ab3AKNXs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Jan 2013 08:23:48 -0500
-In-Reply-To: <1355766548-5702-3-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50ED62B3.50000@st.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Loic PALLARDY <loic.pallardy@st.com>
+Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Tony Lindgren <tony@atomide.com>, Loic PALLARDY STE <loic.pallardy-ext@stericsson.com>, Ohad Ben-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, "Gutierrez, Juan" <jgutierrez@ti.com>, Arnd Bergmann <arnd@arndb.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>, "Anna, Suman" <s-anna@ti.com>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, linux-arm-kernel
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
-Hi Jon,
+On Wed, Jan 9, 2013 at 6:29 AM, Loic PALLARDY <loic.pallardy@st.com> wrote:
+> Hi Vaibhav,
+>
+> On 01/09/2013 01:11 PM, Bedia, Vaibhav wrote:
+>> Hi Loic,
+>>
+>> On Fri, Dec 21, 2012 at 16:23:24, Loic PALLARDY wrote:
+>>>
+>>>
+>>> On 12/21/2012 11:49 AM, Bedia, Vaibhav wrote:
+>>>> On Fri, Dec 21, 2012 at 14:24:26, Loic PALLARDY wrote:
+>>>>>
+>>>> I have a few patches which are dependent on this patch series.
+>>>> Could you please keep me in cc for the future versions.
+>>>>
+>>> Sure, I'll.
+>>>
+>>
+>> When do you plan to post an updated version of these patches?
+> I'm synchronizing with Omar to include TI RPMsg and tidspbridge patches
+> in next update.
+> So I plan update for end of the week, beginning of next week.
 
-On 12/17/2012 06:49 PM, Jon Hunter wrote:
-> Add PMU nodes for OMAP2, OMAP3 and OMAP4460 devices.
-> 
-> Please note that the node for OMAP4460 has been placed in a separate
-> header file for OMAP4460, because the node is not compatible with
-> OMAP4430. The node for OMAP4430 is not included because PMU is not
-> currently supported on OMAP4430 due to the absence of a cross-trigger
-> interface driver.
-> 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Here are my patches, I didn't post them to the list since they are
+meant to be squashed, I also prepared a squashed version of the
+original set, in case it is easier to take that one, all rebased into
+3.8-rc1. Branches: mailbox-3.8-rc1-separate-changes and
+mailbox-3.8-rc1, respectively.
 
-I've just applied this patch in my for_3.9/dts branch.
+>From tree: https://github.com/omarrmz/upstream-wip
 
-I'm wondering if there is any dependency with the previous patch? If
-Tony ack it I can take it as well.
+Cheers,
 
-Regards,
-Benoit
-
-> ---
->  arch/arm/boot/dts/omap2.dtsi         |    5 +++++
->  arch/arm/boot/dts/omap3.dtsi         |    6 ++++++
->  arch/arm/boot/dts/omap4-panda-es.dts |    2 ++
->  arch/arm/boot/dts/omap4460.dtsi      |   18 ++++++++++++++++++
->  4 files changed, 31 insertions(+)
->  create mode 100644 arch/arm/boot/dts/omap4460.dtsi
-> 
-> diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
-> index 761c4b6..27f5ea1 100644
-> --- a/arch/arm/boot/dts/omap2.dtsi
-> +++ b/arch/arm/boot/dts/omap2.dtsi
-> @@ -26,6 +26,11 @@
->  		};
->  	};
->  
-> +	pmu {
-> +		compatible = "arm,arm1136-pmu";
-> +		interrupts = <3>;
-> +	};
-> +
->  	soc {
->  		compatible = "ti,omap-infra";
->  		mpu {
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index 1acc261..6c63118 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -26,6 +26,12 @@
->  		};
->  	};
->  
-> +	pmu {
-> +		compatible = "arm,cortex-a8-pmu";
-> +		interrupts = <3>;
-> +		ti,hwmods = "debugss";
-> +	};
-> +
->  	/*
->  	 * The soc node represents the soc top level view. It is uses for IPs
->  	 * that are not memory mapped in the MPU view or for the MPU itself.
-> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
-> index 73bc1a6..2a6e344 100644
-> --- a/arch/arm/boot/dts/omap4-panda-es.dts
-> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
-> @@ -5,7 +5,9 @@
->   * it under the terms of the GNU General Public License version 2 as
->   * published by the Free Software Foundation.
->   */
-> +
->  /include/ "omap4-panda.dts"
-> +/include/ "omap4460.dtsi"
->  
->  /* Audio routing is differnet between PandaBoard4430 and PandaBoardES */
->  &sound {
-> diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
-> new file mode 100644
-> index 0000000..0a1d38b
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap4460.dtsi
-> @@ -0,0 +1,18 @@
-> +/*
-> + * Device Tree Source for OMAP4460 SoC
-> + *
-> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * This file is licensed under the terms of the GNU General Public License
-> + * version 2.  This program is licensed "as is" without any warranty of any
-> + * kind, whether express or implied.
-> + */
-> +
-> +/ {
-> +	pmu {
-> +		compatible = "arm,cortex-a9-pmu";
-> +		interrupts = <0 54 0x4>,
-> +			     <0 55 0x4>;
-> +		ti,hwmods = "debugss";
-> +	};
-> +};
-> 
-
+Omar
