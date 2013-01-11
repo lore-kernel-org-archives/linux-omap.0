@@ -1,50 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2 2/2] ARM: dts: OMAP2+: Add PMU nodes
-Date: Fri, 11 Jan 2013 09:59:40 -0800
-Message-ID: <20130111175939.GL14149@atomide.com>
-References: <1355766548-5702-1-git-send-email-jon-hunter@ti.com>
- <1355766548-5702-3-git-send-email-jon-hunter@ti.com>
- <50F01256.7030701@ti.com>
- <50F01AAD.8020003@ti.com>
+From: Lars Poeschel <poeschel@lemonage.de>
+Subject: Re: [PATCH v4,03/14] ARM: edma: add AM33XX support to the private EDMA API
+Date: Fri, 11 Jan 2013 19:14:27 +0100
+Message-ID: <201301111914.27712.poeschel@lemonage.de>
+References: <1357883330-5364-4-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26364 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754562Ab3AKR7p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jan 2013 12:59:45 -0500
-Content-Disposition: inline
-In-Reply-To: <50F01AAD.8020003@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1357883330-5364-4-git-send-email-mporter@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Porter <mporter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Rob Herring <rob.herring@calxe>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
-* Jon Hunter <jon-hunter@ti.com> [130111 06:02]:
-> Hi Benoit,
-> 
-> On 01/11/2013 07:23 AM, Benoit Cousson wrote:
-> > Hi Jon,
-> > 
-> > On 12/17/2012 06:49 PM, Jon Hunter wrote:
-> >> Add PMU nodes for OMAP2, OMAP3 and OMAP4460 devices.
-> >>
-> >> Please note that the node for OMAP4460 has been placed in a separate
-> >> header file for OMAP4460, because the node is not compatible with
-> >> OMAP4430. The node for OMAP4430 is not included because PMU is not
-> >> currently supported on OMAP4430 due to the absence of a cross-trigger
-> >> interface driver.
-> >>
-> >> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> > 
-> > I've just applied this patch in my for_3.9/dts branch.
-> > 
-> > I'm wondering if there is any dependency with the previous patch? If
-> > Tony ack it I can take it as well.
-> 
-> I have been thinking about the best way to handle that. May be best for
-> you to take both if Tony can ack the first.
+Hi Matt,
 
-Sounds good to me, I've acked it now.
+On Friday 11 January 2013 at 06:48:39, Matt Porter wrote:
 
-Tony
+> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+> index a3d189d..1951d63 100644
+> --- a/arch/arm/common/edma.c
+> +++ b/arch/arm/common/edma.c
+> @@ -24,6 +24,13 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/io.h>
+>  #include <linux/slab.h>
+> +#include <linux/edma.h>
+> +#include <linux/err.h>
+> +#include <linux/of_address.h>
+> +#include <linux/of_device.h>
+> +#include <linux/of_dma.h>
+> +#include <linux/of_irq.h>
+> +#include <linux/pm_runtime.h>
+
+You add the include linux/of_dma.h here, but maybe you missed to add the file 
+itself. It is not in Linus v3.8-rc3 tree, not in the patches yours depend on 
+listed and not in your patchset.
+
+Regards,
+Lars
