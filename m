@@ -1,93 +1,121 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: McBSP functions not exported
-Date: Fri, 11 Jan 2013 14:17:03 +0100
-Message-ID: <50F010CF.8020808@ti.com>
-References: <20130111114846.00005679@unknown>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH V2 2/2] ARM: dts: OMAP2+: Add PMU nodes
+Date: Fri, 11 Jan 2013 14:23:34 +0100
+Message-ID: <50F01256.7030701@ti.com>
+References: <1355766548-5702-1-git-send-email-jon-hunter@ti.com> <1355766548-5702-3-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50270 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59088 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754977Ab3AKNRQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Jan 2013 08:17:16 -0500
-In-Reply-To: <20130111114846.00005679@unknown>
+	id S1752409Ab3AKNXs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Jan 2013 08:23:48 -0500
+In-Reply-To: <1355766548-5702-3-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Barker <paul@paulbarker.me.uk>
-Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
-Hi,
+Hi Jon,
 
-On 01/11/2013 12:48 PM, Paul Barker wrote:
-> Hi,
->=20
-> I'm currently working on a driver to talk to an analog-to-digital
-> converter (specifically a Texas Instruments ADS1672) connected to the
-> McBSP port on a Beagleboard-xM. I'm currently building my driver modu=
-le
-> against a 3.2 series kernel with Beagleboard patches and config from
-> https://github.com/beagleboard/kernel (branch beagleboard-3.2). I'd
-> like to keep up-to-date with the more recent kernels but my module
-> won't compile with them.
->=20
-> When the OMAP McBSP driver stack was merged into a single driver
-> (commit 45656b4 by Peter Ujfalusi, looks like it went into linux 3.3)
-> all the EXPORT_SYMBOL macros were removed so I can no longer call the
-> functions I was using from my external module. Alternatively I could
-> just be missing something really obvious, let me know if I am!
+On 12/17/2012 06:49 PM, Jon Hunter wrote:
+> Add PMU nodes for OMAP2, OMAP3 and OMAP4460 devices.
+> 
+> Please note that the node for OMAP4460 has been placed in a separate
+> header file for OMAP4460, because the node is not compatible with
+> OMAP4430. The node for OMAP4430 is not included because PMU is not
+> currently supported on OMAP4430 due to the absence of a cross-trigger
+> interface driver.
+> 
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 
-Since 3.3 there were even more changes in the McBSP driver stack. We (I=
-) did
-removed lot's of code and it is more focused on it's main functionality=
- (ASoC).
-What functions you were using from the McBSP driver(s)?
+I've just applied this patch in my for_3.9/dts branch.
 
-> I'm just wondering what the best way forward is from here and I'm sur=
-e
-> I can't be the only person who was using the McBSP driver code in the
-> kernel to interface with external hardware. The two options I can thi=
-nk
-> of are either that I move my driver into the kernel source tree itsel=
-f
-> or the McBSP driver functions are exported again so that they can be
-> used by external modules. It's easier to maintain an external module
-> than a series of patches against the kernel, unless a driver for an
-> analog-to-digital converter connected to the McBSP port is something
-> that would actually have a chance of being merged into the mainline
-> kernel. I could look at making this driver more generic once I have t=
-he
-> current hardware/driver combination working, so that it should work
-> with most analog-to-digital converters - I haven't found such a drive=
-r
-> in my previous googling.
+I'm wondering if there is any dependency with the previous patch? If
+Tony ack it I can take it as well.
 
-I have taken a brief look at ADS1672 datasheet. At first glance I would=
- think
-that if you connect the ADC to SPI port of OMAP3 you should be able to =
-read
-the data out as well. On BeagleBoard-xM you should have access to McSPI=
-3 (CS0,
-CS1) and McSPI4 (CS0).
+Regards,
+Benoit
 
-> If you have any advice on this or a pointer to a better place to ask
-> this question please let me know.
+> ---
+>  arch/arm/boot/dts/omap2.dtsi         |    5 +++++
+>  arch/arm/boot/dts/omap3.dtsi         |    6 ++++++
+>  arch/arm/boot/dts/omap4-panda-es.dts |    2 ++
+>  arch/arm/boot/dts/omap4460.dtsi      |   18 ++++++++++++++++++
+>  4 files changed, 31 insertions(+)
+>  create mode 100644 arch/arm/boot/dts/omap4460.dtsi
+> 
+> diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+> index 761c4b6..27f5ea1 100644
+> --- a/arch/arm/boot/dts/omap2.dtsi
+> +++ b/arch/arm/boot/dts/omap2.dtsi
+> @@ -26,6 +26,11 @@
+>  		};
+>  	};
+>  
+> +	pmu {
+> +		compatible = "arm,arm1136-pmu";
+> +		interrupts = <3>;
+> +	};
+> +
+>  	soc {
+>  		compatible = "ti,omap-infra";
+>  		mpu {
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index 1acc261..6c63118 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -26,6 +26,12 @@
+>  		};
+>  	};
+>  
+> +	pmu {
+> +		compatible = "arm,cortex-a8-pmu";
+> +		interrupts = <3>;
+> +		ti,hwmods = "debugss";
+> +	};
+> +
+>  	/*
+>  	 * The soc node represents the soc top level view. It is uses for IPs
+>  	 * that are not memory mapped in the MPU view or for the MPU itself.
+> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+> index 73bc1a6..2a6e344 100644
+> --- a/arch/arm/boot/dts/omap4-panda-es.dts
+> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
+> @@ -5,7 +5,9 @@
+>   * it under the terms of the GNU General Public License version 2 as
+>   * published by the Free Software Foundation.
+>   */
+> +
+>  /include/ "omap4-panda.dts"
+> +/include/ "omap4460.dtsi"
+>  
+>  /* Audio routing is differnet between PandaBoard4430 and PandaBoardES */
+>  &sound {
+> diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
+> new file mode 100644
+> index 0000000..0a1d38b
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap4460.dtsi
+> @@ -0,0 +1,18 @@
+> +/*
+> + * Device Tree Source for OMAP4460 SoC
+> + *
+> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This file is licensed under the terms of the GNU General Public License
+> + * version 2.  This program is licensed "as is" without any warranty of any
+> + * kind, whether express or implied.
+> + */
+> +
+> +/ {
+> +	pmu {
+> +		compatible = "arm,cortex-a9-pmu";
+> +		interrupts = <0 54 0x4>,
+> +			     <0 55 0x4>;
+> +		ti,hwmods = "debugss";
+> +	};
+> +};
+> 
 
-Can you try to see if you can use McSPI for your application?
-
-As background: we did not had any other uses of McBSP when I have decid=
-ed to
-merge the code and move it out from arch/arm/plat-omap/ This was needed=
- to be
-done in any ways. The decision back then was that since we don't have u=
-sers
-for McBSP other than audio, it is going to be moved under sound/soc/oma=
-p/
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
