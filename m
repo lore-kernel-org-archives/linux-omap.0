@@ -1,206 +1,41 @@
-From: Russ Dill <russ.dill@gmail.com>
-Subject: Re: [PATCH v4 1/4] rtc: OMAP: Add system pm_power_off to rtc driver
-Date: Fri, 11 Jan 2013 00:08:41 -0800
-Message-ID: <CA+Bv8XbfkdhZKXtve4VF6uxZB9rw=wj5tda9OxmSByM9k7wa3w@mail.gmail.com>
-References: <1355464997-19367-1-git-send-email-anilkumar@ti.com>
- <1355464997-19367-2-git-send-email-anilkumar@ti.com>
+From: Paolo Pisati <p.pisati@gmail.com>
+Subject: Re: [PATCH] staging/omapdrm: garbage collect
+ OMAP_DSS_DISPLAY_SUSPENDED
+Date: Fri, 11 Jan 2013 09:47:25 +0100
+Message-ID: <20130111084725.GB4313@luxor.wired.org>
+References: <1357850547-32270-1-git-send-email-paolo.pisati@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1355464997-19367-2-git-send-email-anilkumar@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: a.zummo@towertech.it, Samuel Ortiz <sameo@linux.intel.com>, rtc-linux@googlegroups.com, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rob Herring <rob.herring@calxeda.com>, Colin Foe-Parker <colin.foeparker@logicpd.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f53.google.com ([74.125.82.53]:63727 "EHLO
+	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753043Ab3AKIr3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jan 2013 03:47:29 -0500
+Content-Disposition: inline
+In-Reply-To: <1357850547-32270-1-git-send-email-paolo.pisati@canonical.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paolo Pisati <paolo.pisati@canonical.com>
+Cc: Rob Clark <rob@ti.com>, linux-omap@vger.kernel.org, Sumit Semwal <sumit.semwal@ti.com>, YAMANE Toshiaki <yamanetoshi@gmail.com>, Jani Nikula <jani.nikula@intel.com>, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On Thu, Dec 13, 2012 at 10:03 PM, AnilKumar Ch <anilkumar@ti.com> wrote:
-> From: Colin Foe-Parker <colin.foeparker@logicpd.com>
->
-> Add system power off control to rtc driver which is the in-charge
-> of controlling the BeagleBone system power. The power_off routine
-> can be hooked up to "pm_power_off" system call.
->
-> System power off sequence:-
-> * Set PMIC STATUS_OFF when PMIC_POWER_EN is pulled low
-> * Enable PMIC_POWER_EN in rtc module
-> * Set rtc ALARM2 time
-> * Enable ALARM2 interrupt
->
-> Signed-off-by: Colin Foe-Parker <colin.foeparker@logicpd.com>
-> [anilkumar@ti.com: move poweroff additions to rtc driver]
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+On Thu, Jan 10, 2013 at 09:42:27PM +0100, Paolo Pisati wrote:
+> Compilation fix - leftover from:
+> 
+> commit 998c336d4c7183301ed6a6ca93952f63e3cf694f
+> Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Date:   Wed May 30 13:26:00 2012 +0300
+> 
+>     OMAPDSS: remove omap_dss_device's suspend/resume
+> 
+> Cc: stable <stable@vger.kernel.org> # v3.7
+> Signed-off-by: Paolo Pisati <paolo.pisati@canonical.com>
 
-Looks good
+bah, never mind:
 
-Reviewed-by: Russ Dill <russ.dill@ti.com>
-Acked-by: Russ Dill <russ.dill@ti.com>
+https://git.kernel.org/?p=linux/kernel/git/gregkh/staging.git;a=commit;h=f5f9454c2145fa018c9808597739abce67114ac7
 
-> ---
->  Documentation/devicetree/bindings/rtc/rtc-omap.txt |    5 ++
->  drivers/rtc/rtc-omap.c                             |   74 +++++++++++++++++++-
->  2 files changed, 78 insertions(+), 1 deletion(-)
->
-> diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-> index b47aa41..8d9f4f9 100644
-> --- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-> +++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-> @@ -6,6 +6,10 @@ Required properties:
->  - interrupts: rtc timer, alarm interrupts in order
->  - interrupt-parent: phandle for the interrupt controller
->
-> +Optional properties:
-> +- ti,system-power-controller: Telling whether or not rtc is controlling
-> +  the system power.
-> +
->  Example:
->
->  rtc@1c23000 {
-> @@ -14,4 +18,5 @@ rtc@1c23000 {
->         interrupts = <19
->                       19>;
->         interrupt-parent = <&intc>;
-> +       ti,system-power-controller;
->  };
-> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-> index 6009714..e6d4878 100644
-> --- a/drivers/rtc/rtc-omap.c
-> +++ b/drivers/rtc/rtc-omap.c
-> @@ -72,6 +72,14 @@
->  #define OMAP_RTC_KICK0_REG             0x6c
->  #define OMAP_RTC_KICK1_REG             0x70
->
-> +#define OMAP_RTC_ALARM2_SECONDS_REG    0x80
-> +#define OMAP_RTC_ALARM2_MINUTES_REG    0x84
-> +#define OMAP_RTC_ALARM2_HOURS_REG      0x88
-> +#define OMAP_RTC_ALARM2_DAYS_REG       0x8c
-> +#define OMAP_RTC_ALARM2_MONTHS_REG     0x90
-> +#define OMAP_RTC_ALARM2_YEARS_REG      0x94
-> +#define OMAP_RTC_PMIC_REG              0x98
-> +
->  /* OMAP_RTC_CTRL_REG bit fields: */
->  #define OMAP_RTC_CTRL_SPLIT            (1<<7)
->  #define OMAP_RTC_CTRL_DISABLE          (1<<6)
-> @@ -93,15 +101,21 @@
->  #define OMAP_RTC_STATUS_BUSY            (1<<0)
->
->  /* OMAP_RTC_INTERRUPTS_REG bit fields: */
-> +#define OMAP_RTC_INTERRUPTS_IT_ALARM2   (1<<4)
->  #define OMAP_RTC_INTERRUPTS_IT_ALARM    (1<<3)
->  #define OMAP_RTC_INTERRUPTS_IT_TIMER    (1<<2)
->
-> +/* OMAP_RTC_PMIC_REG bit fields: */
-> +#define OMAP_RTC_PMIC_POWER_EN_EN       (1<<16)
-> +
->  /* OMAP_RTC_KICKER values */
->  #define        KICK0_VALUE                     0x83e70b13
->  #define        KICK1_VALUE                     0x95a4f1e0
->
->  #define        OMAP_RTC_HAS_KICKER             0x1
->
-> +#define SHUTDOWN_TIME_SEC              2
-> +
->  static void __iomem    *rtc_base;
->
->  #define rtc_read(addr)         readb(rtc_base + (addr))
-> @@ -290,6 +304,56 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
->         return 0;
->  }
->
-> +/*
-> + * rtc_power_off: Set the pmic power off sequence. The RTC generates
-> + * pmic_pwr_enable control, which can be used to control an external
-> + * PMIC.
-> + */
-> +static void rtc_power_off(void)
-> +{
-> +       u32 val;
-> +       struct rtc_time tm;
-> +       unsigned long time;
-> +
-> +       /* Set PMIC power enable */
-> +       val = readl(rtc_base + OMAP_RTC_PMIC_REG);
-> +       writel(val | OMAP_RTC_PMIC_POWER_EN_EN, rtc_base + OMAP_RTC_PMIC_REG);
-> +
-> +       /* Read rtc time */
-> +       omap_rtc_read_time(NULL, &tm);
-> +
-> +       /* Convert Gregorian date to seconds since 01-01-1970 00:00:00 */
-> +       rtc_tm_to_time(&tm, &time);
-> +
-> +       /* Add shutdown time to the current value */
-> +       time += SHUTDOWN_TIME_SEC;
-> +
-> +       /* Convert seconds since 01-01-1970 00:00:00 to Gregorian date */
-> +       rtc_time_to_tm(time, &tm);
-> +
-> +       if (tm2bcd(&tm) < 0)
-> +               return;
-> +
-> +       pr_info("System will go to power_off state in approx. %d secs\n",
-> +                       SHUTDOWN_TIME_SEC);
-> +
-> +       /*
-> +        * pmic_pwr_enable is controlled by means of ALARM2 event. So here
-> +        * programming alarm2 expiry time and enabling alarm2 interrupt
-> +        */
-> +       rtc_write(tm.tm_sec, OMAP_RTC_ALARM2_SECONDS_REG);
-> +       rtc_write(tm.tm_min, OMAP_RTC_ALARM2_MINUTES_REG);
-> +       rtc_write(tm.tm_hour, OMAP_RTC_ALARM2_HOURS_REG);
-> +       rtc_write(tm.tm_mday, OMAP_RTC_ALARM2_DAYS_REG);
-> +       rtc_write(tm.tm_mon, OMAP_RTC_ALARM2_MONTHS_REG);
-> +       rtc_write(tm.tm_year, OMAP_RTC_ALARM2_YEARS_REG);
-> +
-> +       /* Enable alarm2 interrupt */
-> +       val = readl(rtc_base + OMAP_RTC_INTERRUPTS_REG);
-> +       writel(val | OMAP_RTC_INTERRUPTS_IT_ALARM2,
-> +                               rtc_base + OMAP_RTC_INTERRUPTS_REG);
-> +}
-> +
->  static struct rtc_class_ops omap_rtc_ops = {
->         .read_time      = omap_rtc_read_time,
->         .set_time       = omap_rtc_set_time,
-> @@ -327,12 +391,16 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
->         struct resource         *res, *mem;
->         struct rtc_device       *rtc;
->         u8                      reg, new_ctrl;
-> +       bool                    pm_off = false;
->         const struct platform_device_id *id_entry;
->         const struct of_device_id *of_id;
->
->         of_id = of_match_device(omap_rtc_of_match, &pdev->dev);
-> -       if (of_id)
-> +       if (of_id) {
->                 pdev->id_entry = of_id->data;
-> +               pm_off = of_property_read_bool(pdev->dev.of_node,
-> +                                       "ti,system-power-controller");
-> +       }
->
->         omap_rtc_timer = platform_get_irq(pdev, 0);
->         if (omap_rtc_timer <= 0) {
-> @@ -385,6 +453,10 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
->         platform_set_drvdata(pdev, rtc);
->         dev_set_drvdata(&rtc->dev, mem);
->
-> +       /* RTC power off */
-> +       if (pm_off && !pm_power_off)
-> +               pm_power_off = rtc_power_off;
-> +
->         /* clear pending irqs, and set 1/second periodic,
->          * which we'll use instead of update irqs
->          */
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+fixes the compilation breakagage.
+It could be useful for v3.7 stable tough.
+-- 
+bye,
+p.
