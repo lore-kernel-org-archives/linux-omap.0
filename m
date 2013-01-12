@@ -1,154 +1,51 @@
 From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH] Don't mark shared helper functions as inline
-Date: Fri, 11 Jan 2013 16:37:58 -0800
-Message-ID: <20130112003758.4361.99977@quantum>
-References: <1353957609-1295-1-git-send-email-Russ.Dill@ti.com>
- <20121126195742.21126.16500@nucleus>
- <CA+Bv8XbR68-VcOF3JkL47+L9yZFkpv16JTbQfA02yZUGnPZvEQ@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP4: clock/hwmod data: remove MODULEMODE entries in mux +
+ gate combos
+Date: Fri, 11 Jan 2013 18:53:19 -0800
+Message-ID: <20130112025319.4361.29079@quantum>
+References: <alpine.DEB.2.00.1212172240101.29833@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+Bv8XbR68-VcOF3JkL47+L9yZFkpv16JTbQfA02yZUGnPZvEQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>, Mike Turquette <mturquette@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:56228 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754985Ab3ALCxZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jan 2013 21:53:25 -0500
+Received: by mail-pa0-f49.google.com with SMTP id bi1so1323537pad.22
+        for <linux-omap@vger.kernel.org>; Fri, 11 Jan 2013 18:53:25 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1212172240101.29833@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, b-cousson@ti.com
 
-Quoting Russ Dill (2012-11-27 09:52:50)
-> On Mon, Nov 26, 2012 at 11:57 AM, Mike Turquette <mturquette@ti.com> =
-wrote:
-> >
-> > Quoting Russ Dill (2012-11-26 11:20:09)
-> > > The helper functions that access the opaque struct clk should
-> > > not be marked inline since they are contained in clk.c, but expec=
-ted
-> > > to be used by other compilation units. This causes compile errors
-> > > under gcc-4.7
-> > >
-> > > In file included from arch/arm/mach-omap2/clockdomain.c:25:0:
-> > > arch/arm/mach-omap2/clockdomain.c: In function =E2=80=98clkdm_clk=
-_disable=E2=80=99:
-> > > include/linux/clk-provider.h:338:12: error: inlining failed in ca=
-ll to always_inline =E2=80=98__clk_get_enable_count=E2=80=99: function =
-body not available
-> > > arch/arm/mach-omap2/clockdomain.c:1001:28: error: called from her=
+Quoting Paul Walmsley (2012-12-17 14:41:13)
+> Convert all DEFINE_OMAP_MUX_GATE() combinations that list MODULEMODE
+> registers in their gate arguments to DEFINE_OMAP_MUX(), dropping the
+> MODULEMODE data.  This is possible because the MODULEMODE bits contro=
+l
+> IP blocks, not clocks; and the hwmod code takes care of IP block
+> control.  Rename these clocks to reflect the original multiplexer nam=
 e
-> > > make[1]: *** [arch/arm/mach-omap2/clockdomain.o] Error 1
-> > > make: *** [arch/arm/mach-omap2] Error 2
-> > >
-> >
-> > Hi Russ,
-> >
-> > A fix for this was merged into rc7.  See 93532c8a, "clk: remove inl=
-ine
-> > usage from clk-provider.h".
-> >
-> > Regardless, I'm still considering this patch.  I've heard many time=
-s
-> > that we should trust the compiler to optimize for us and some folks=
- look
-> > down on inlining in general.  If anyone has an opinion on removing
-> > inlines from the common clk core then please do speak up.
-> >
-> > Russ, can you update to the latest rc and verify if that fix is eno=
-ugh
-> > for you?
+> as specified in the comments.  And convert the hwmod data to use the
+> multiplexer clock name.
 >=20
-> Yes, that commit fixes the compile issue too. I'd go with the more
-> complete removal of inlines though. If you have a declaration in a
-> header, it makes no sense to call it inline in the .c
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+> Cc: Mike Turquette <mturquette@linaro.org>
+> ---
+>=20
+> Seems to boot with omap2plus_defconfig, anyway.
 >=20
 
-Hi Russ,
+It looks good to me, and I am happy to see fewer clocks in favor of
+using the hwmods.  However I did not test it.
 
-I've taken this into clk-next.
-
-Thanks,
+Regards,
 Mike
-
-> > Regards,
-> > Mike
-> >
-> > >
-> > > Signed-off-by: Russ Dill <Russ.Dill@ti.com>
-> > > ---
-> > >  drivers/clk/clk.c            | 14 +++++++-------
-> > >  include/linux/clk-provider.h |  4 ++--
-> > >  2 files changed, 9 insertions(+), 9 deletions(-)
-> > >
-> > > diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-> > > index 56e4495e..ed01746 100644
-> > > --- a/drivers/clk/clk.c
-> > > +++ b/drivers/clk/clk.c
-> > > @@ -249,32 +249,32 @@ late_initcall(clk_disable_unused);
-> > >
-> > >  /***    helper functions   ***/
-> > >
-> > > -inline const char *__clk_get_name(struct clk *clk)
-> > > +const char *__clk_get_name(struct clk *clk)
-> > >  {
-> > >         return !clk ? NULL : clk->name;
-> > >  }
-> > >
-> > > -inline struct clk_hw *__clk_get_hw(struct clk *clk)
-> > > +struct clk_hw *__clk_get_hw(struct clk *clk)
-> > >  {
-> > >         return !clk ? NULL : clk->hw;
-> > >  }
-> > >
-> > > -inline u8 __clk_get_num_parents(struct clk *clk)
-> > > +u8 __clk_get_num_parents(struct clk *clk)
-> > >  {
-> > >         return !clk ? -EINVAL : clk->num_parents;
-> > >  }
-> > >
-> > > -inline struct clk *__clk_get_parent(struct clk *clk)
-> > > +struct clk *__clk_get_parent(struct clk *clk)
-> > >  {
-> > >         return !clk ? NULL : clk->parent;
-> > >  }
-> > >
-> > > -inline int __clk_get_enable_count(struct clk *clk)
-> > > +int __clk_get_enable_count(struct clk *clk)
-> > >  {
-> > >         return !clk ? -EINVAL : clk->enable_count;
-> > >  }
-> > >
-> > > -inline int __clk_get_prepare_count(struct clk *clk)
-> > > +int __clk_get_prepare_count(struct clk *clk)
-> > >  {
-> > >         return !clk ? -EINVAL : clk->prepare_count;
-> > >  }
-> > > @@ -300,7 +300,7 @@ out:
-> > >         return ret;
-> > >  }
-> > >
-> > > -inline unsigned long __clk_get_flags(struct clk *clk)
-> > > +unsigned long __clk_get_flags(struct clk *clk)
-> > >  {
-> > >         return !clk ? -EINVAL : clk->flags;
-> > >  }
-> > > diff --git a/include/linux/clk-provider.h b/include/linux/clk-pro=
-vider.h
-> > > index c127315..f9f5e9e 100644
-> > > --- a/include/linux/clk-provider.h
-> > > +++ b/include/linux/clk-provider.h
-> > > @@ -335,8 +335,8 @@ const char *__clk_get_name(struct clk *clk);
-> > >  struct clk_hw *__clk_get_hw(struct clk *clk);
-> > >  u8 __clk_get_num_parents(struct clk *clk);
-> > >  struct clk *__clk_get_parent(struct clk *clk);
-> > > -inline int __clk_get_enable_count(struct clk *clk);
-> > > -inline int __clk_get_prepare_count(struct clk *clk);
-> > > +int __clk_get_enable_count(struct clk *clk);
-> > > +int __clk_get_prepare_count(struct clk *clk);
-> > >  unsigned long __clk_get_rate(struct clk *clk);
-> > >  unsigned long __clk_get_flags(struct clk *clk);
-> > >  int __clk_is_enabled(struct clk *clk);
-> > > --
-> > > 1.8.0
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
