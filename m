@@ -1,51 +1,123 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH] ARM: OMAP4: clock/hwmod data: remove MODULEMODE entries in mux +
- gate combos
-Date: Fri, 11 Jan 2013 18:53:19 -0800
-Message-ID: <20130112025319.4361.29079@quantum>
-References: <alpine.DEB.2.00.1212172240101.29833@utopia.booyaka.com>
+From: <Madhusudhan.Gowda@elektrobit.com>
+Subject: RE: Querry on UART wakeup on Linux 3.8-rc1
+Date: Sat, 12 Jan 2013 21:56:26 +0200
+Message-ID: <B668883EB5DD7144ADFC248A72176EA803EEA5F5@fioues07.ebgroup.elektrobit.com>
+References: <B668883EB5DD7144ADFC248A72176EA803E743F9@fioues07.ebgroup.elektrobit.com> <B668883EB5DD7144ADFC248A72176EA803E74A7A@fioues07.ebgroup.elektrobit.com> <alpine.DEB.2.00.1301071827440.24780@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:56228 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754985Ab3ALCxZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jan 2013 21:53:25 -0500
-Received: by mail-pa0-f49.google.com with SMTP id bi1so1323537pad.22
-        for <linux-omap@vger.kernel.org>; Fri, 11 Jan 2013 18:53:25 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1212172240101.29833@utopia.booyaka.com>
+Received: from smtpgw2fi.elektrobit.com ([194.136.18.129]:35164 "EHLO
+	smtpgw1fi.elektrobit.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754330Ab3ALT4e convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 12 Jan 2013 14:56:34 -0500
+Received: from fioumg02.ebgroup.elektrobit.com (smtpgw2fi.ebgroup.elektrobit.com [127.0.0.1])
+	by smtpgw1fi.elektrobit.com (8.13.8/8.13.8) with ESMTP id r0CJuUXd013431
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Sat, 12 Jan 2013 21:56:31 +0200
+Received: (from defang@localhost)
+	by fioumg02.ebgroup.elektrobit.com (8.13.8/8.13.8/Submit) id r0CJuRWW013428
+	for <linux-omap@vger.kernel.org>; Sat, 12 Jan 2013 21:56:27 +0200
+Content-class: urn:content-classes:message
+In-Reply-To: <alpine.DEB.2.00.1301071827440.24780@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, b-cousson@ti.com
+To: paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, t-kristo@ti.com, rnayak@ti.com
 
-Quoting Paul Walmsley (2012-12-17 14:41:13)
-> Convert all DEFINE_OMAP_MUX_GATE() combinations that list MODULEMODE
-> registers in their gate arguments to DEFINE_OMAP_MUX(), dropping the
-> MODULEMODE data.  This is possible because the MODULEMODE bits contro=
-l
-> IP blocks, not clocks; and the hwmod code takes care of IP block
-> control.  Rename these clocks to reflect the original multiplexer nam=
-e
-> as specified in the comments.  And convert the hwmod data to use the
-> multiplexer clock name.
->=20
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
-> Cc: Mike Turquette <mturquette@linaro.org>
-> ---
->=20
-> Seems to boot with omap2plus_defconfig, anyway.
->=20
+Thanks for the reply Paul.
 
-It looks good to me, and I am happy to see fewer clocks in favor of
-using the hwmods.  However I did not test it.
+I  will check the boot loader version and try with latest.
 
-Regards,
-Mike
+Best Regards,
+Gowda
+
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org
+[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Paul Walmsley
+Sent: 07. tammikuuta 2013 20:40
+To: Gowda Madhusudhan
+Cc: linux-omap@vger.kernel.org; t-kristo@ti.com; rnayak@ti.com
+Subject: RE: Querry on UART wakeup on Linux 3.8-rc1
+
+Hi,
+
+On Sun, 6 Jan 2013, Madhusudhan.Gowda@elektrobit.com wrote:
+
+> Could  someone point me if it has been working in any of the releases
+?
+
+Serial wakeup from retention suspend seems to work on the OMAP4460
+Panda-ES here as of v3.8-rc1, with a really recent U-boot[*]:
+
+http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/pm/4460p
+andaes/4460pandaes_log.txt
+
+http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/README.t
+xt
+
+(There are some warnings present from the power state debugging code, so
+there's probably something that could use a closer look.)
+
+The problem is, you need a really recent bootloader for this to work.  
+This is because the mainline kernel is missing code to idle several
+on-chip devices (IVAHD, DSP, etc.).  This can be seen with the OMAP4430
+boot logs:
+
+http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/pm/4430e
+s2panda/4430es2panda_log.txt
+
+That board is running an "older" bootloader - from July 2012!
+
+The hope is that some of the folks still working for TI can post the
+appropriate reset and idle code for these devices.  Or at least, we'd
+better add a console warning to the OMAP44xx PM init code that warns
+about the bootloader dependencies.  Any comments from the TI folks here?
+
+
+- Paul
+
+> 
+> Thanks,
+> Gowda
+> 
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org]
+> Sent: 01. tammikuuta 2013 22:08
+> To: linux-omap@vger.kernel.org
+> Subject: Querry on UART wakeup on Linux 3.8-rc1
+> 
+> Hi,
+> 
+> I tried to wakeup OMAP430 ES2.1 Panda from static suspend retention 
+> using console uart2, it doesn't wakeup.
+> But could configure GPIO_121 button to wake up from retention fine.
+> 
+> On the serial uart side I have manually enabled wakeup by echo enabled
+
+> > /sys/devices/platform/omap_uart.2/tty/ttyO2/power/wakeup
+> 
+> I could see the wakeup enable bit (1<<14)  of  uart irrx pad register 
+> is being set properly before it does static suspend fine.
+> 
+> Should I need to do any more thing to get it work?
+> 
+> Thanks,
+> Gowda
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" 
+> in the body of a message to majordomo@vger.kernel.org More majordomo 
+> info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" 
+> in the body of a message to majordomo@vger.kernel.org More majordomo 
+> info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org More majordomo info
+at  http://vger.kernel.org/majordomo-info.html
