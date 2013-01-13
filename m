@@ -1,123 +1,57 @@
-From: <Madhusudhan.Gowda@elektrobit.com>
-Subject: RE: Querry on UART wakeup on Linux 3.8-rc1
-Date: Sat, 12 Jan 2013 21:56:26 +0200
-Message-ID: <B668883EB5DD7144ADFC248A72176EA803EEA5F5@fioues07.ebgroup.elektrobit.com>
-References: <B668883EB5DD7144ADFC248A72176EA803E743F9@fioues07.ebgroup.elektrobit.com> <B668883EB5DD7144ADFC248A72176EA803E74A7A@fioues07.ebgroup.elektrobit.com> <alpine.DEB.2.00.1301071827440.24780@utopia.booyaka.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RESEND PATCH v3 1/5] ARM: OMAP4+: HDMI: Rename platform devices
+ for ASoC drivers
+Date: Mon, 14 Jan 2013 08:19:05 +0900
+Message-ID: <20130113231904.GK5041@opensource.wolfsonmicro.com>
+References: <1357341987-3327-1-git-send-email-rneri@dextratech.com>
+ <1357341987-3327-2-git-send-email-rneri@dextratech.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="nzri8VXeXB/g5ayr"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtpgw2fi.elektrobit.com ([194.136.18.129]:35164 "EHLO
-	smtpgw1fi.elektrobit.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754330Ab3ALT4e convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 12 Jan 2013 14:56:34 -0500
-Received: from fioumg02.ebgroup.elektrobit.com (smtpgw2fi.ebgroup.elektrobit.com [127.0.0.1])
-	by smtpgw1fi.elektrobit.com (8.13.8/8.13.8) with ESMTP id r0CJuUXd013431
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Sat, 12 Jan 2013 21:56:31 +0200
-Received: (from defang@localhost)
-	by fioumg02.ebgroup.elektrobit.com (8.13.8/8.13.8/Submit) id r0CJuRWW013428
-	for <linux-omap@vger.kernel.org>; Sat, 12 Jan 2013 21:56:27 +0200
-Content-class: urn:content-classes:message
-In-Reply-To: <alpine.DEB.2.00.1301071827440.24780@utopia.booyaka.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58062 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755277Ab3AMXTK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 13 Jan 2013 18:19:10 -0500
+Content-Disposition: inline
+In-Reply-To: <1357341987-3327-2-git-send-email-rneri@dextratech.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, t-kristo@ti.com, rnayak@ti.com
-
-Thanks for the reply Paul.
-
-I  will check the boot loader version and try with latest.
-
-Best Regards,
-Gowda
-
------Original Message-----
-From: linux-omap-owner@vger.kernel.org
-[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Paul Walmsley
-Sent: 07. tammikuuta 2013 20:40
-To: Gowda Madhusudhan
-Cc: linux-omap@vger.kernel.org; t-kristo@ti.com; rnayak@ti.com
-Subject: RE: Querry on UART wakeup on Linux 3.8-rc1
-
-Hi,
-
-On Sun, 6 Jan 2013, Madhusudhan.Gowda@elektrobit.com wrote:
-
-> Could  someone point me if it has been working in any of the releases
-?
-
-Serial wakeup from retention suspend seems to work on the OMAP4460
-Panda-ES here as of v3.8-rc1, with a really recent U-boot[*]:
-
-http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/pm/4460p
-andaes/4460pandaes_log.txt
-
-http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/README.t
-xt
-
-(There are some warnings present from the power state debugging code, so
-there's probably something that could use a closer look.)
-
-The problem is, you need a really recent bootloader for this to work.  
-This is because the mainline kernel is missing code to idle several
-on-chip devices (IVAHD, DSP, etc.).  This can be seen with the OMAP4430
-boot logs:
-
-http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/pm/4430e
-s2panda/4430es2panda_log.txt
-
-That board is running an "older" bootloader - from July 2012!
-
-The hope is that some of the folks still working for TI can post the
-appropriate reset and idle code for these devices.  Or at least, we'd
-better add a console warning to the OMAP44xx PM init code that warns
-about the bootloader dependencies.  Any comments from the TI folks here?
+To: Ricardo Neri <rneri@dextratech.com>
+Cc: tomi.valkeinen@ti.com, lrg@ti.com, tony@atomide.com, peter.ujfalusi@ti.com, dzuniga@dextratech.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
 
-- Paul
+--nzri8VXeXB/g5ayr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> 
-> Thanks,
-> Gowda
-> 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org]
-> Sent: 01. tammikuuta 2013 22:08
-> To: linux-omap@vger.kernel.org
-> Subject: Querry on UART wakeup on Linux 3.8-rc1
-> 
-> Hi,
-> 
-> I tried to wakeup OMAP430 ES2.1 Panda from static suspend retention 
-> using console uart2, it doesn't wakeup.
-> But could configure GPIO_121 button to wake up from retention fine.
-> 
-> On the serial uart side I have manually enabled wakeup by echo enabled
+On Fri, Jan 04, 2013 at 05:26:23PM -0600, Ricardo Neri wrote:
+> Assign more logical and meaningful names to the platform devices used
+> by ASoC OMAP HDMI drivers.
 
-> > /sys/devices/platform/omap_uart.2/tty/ttyO2/power/wakeup
-> 
-> I could see the wakeup enable bit (1<<14)  of  uart irrx pad register 
-> is being set properly before it does static suspend fine.
-> 
-> Should I need to do any more thing to get it work?
-> 
-> Thanks,
-> Gowda
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" 
-> in the body of a message to majordomo@vger.kernel.org More majordomo 
-> info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" 
-> in the body of a message to majordomo@vger.kernel.org More majordomo 
-> info at  http://vger.kernel.org/majordomo-info.html
-> 
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-the body of a message to majordomo@vger.kernel.org More majordomo info
-at  http://vger.kernel.org/majordomo-info.html
+--nzri8VXeXB/g5ayr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQ80DhAAoJELSic+t+oim9e6AQAJYv2SUqZiZpnz/MXOK8Pfsq
+BOo9nn2TbxoLoqQQtUqm1HYxNtnxM14iolluzd1HdDDYhJyt1tkZrnjc4qwKA0FB
+sMXOP/S3lF/GvrdPM6OFaQ+WKfVFZIOlZDy99ZbQoBXYUarYC+0XoUQtamqzb9ky
+bhNgnYZ/Mzk+bqEyrL4d+coFV+5K4BRHYjNoNUDzwgNqNRMZiRPb6XCd7XwvnTzO
+iEvKTQLzT1WyQ93uv/SB3JP1mbh1CePm6iVMijhgGupyGZjMgOlRRO1rxiReKK04
+dN2d7ZN1K8wcFak+GFBd0JuN2V3E1Ig3pdAeuMdm4jgJ1mKDHxhu2lQlpupHop7W
+kayjmQ0SgOBFJ7fMy3th9QGsVs5iaYAePwJHH4CXi3Qd7djHQpM7bbp8CuqRx0q/
+ZlAZj/FDS2FIS+Tx1kG+/+UUeyCfSPvg9EXW2snjMiAIwYd9Ni7WQmwC/nPGioI3
+5R5uVIoaaadTo5Kaqni6/xHQ0s425BlQm/N8u9GeBZ9+H1L1swIog3qNDvf/+M7b
+aFrXL1MQWKJMmF2My1uRgIdsHu8a1Y7fymzJkoWyuerR0RvJvrTop5axzwX3M5pf
+UiZ1RIDc3HjDTiLH1j0RgDxbCqmscV/d6DMvjkfS1ufYI0xjuhZXUVg1TdwsGnvJ
+Ls6X6wiI7qso7l9UqyCk
+=Q0OC
+-----END PGP SIGNATURE-----
+
+--nzri8VXeXB/g5ayr--
