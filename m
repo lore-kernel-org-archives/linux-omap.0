@@ -1,42 +1,77 @@
-From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Subject: Re: [RFC-v2 1/7] capebus: Core capebus support
-Date: Mon, 14 Jan 2013 02:34:39 +0000
-Message-ID: <20130114023439.GB4928@sirena.org.uk>
-References: <1351783952-11804-1-git-send-email-panto@antoniou-consulting.com>
- <1351783952-11804-2-git-send-email-panto@antoniou-consulting.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: [PATCH 1/2] pwm: pwm-tiehrpwm: Low power sleep support
+Date: Mon, 14 Jan 2013 08:08:56 +0100
+Message-ID: <20130114070855.GA21994@avionic-0098.adnet.avionic-design.de>
+References: <1357823024-17585-1-git-send-email-avinashphilip@ti.com>
+ <1357823024-17585-2-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+HP7ph2BbKc20aGI"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.8]:49259 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753125Ab3ANHJH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jan 2013 02:09:07 -0500
 Content-Disposition: inline
-In-Reply-To: <1351783952-11804-2-git-send-email-panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Cc: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+In-Reply-To: <1357823024-17585-2-git-send-email-avinashphilip@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Philip Avinash <avinashphilip@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com
 
-On Thu, Nov 01, 2012 at 05:32:26PM +0200, Pantelis Antoniou wrote:
-> Introducing capebus; a bus that allows small boards (capes) to connect
-> to a complex SoC using simple expansion connectors.
-> 
-> Up to now to support these kind of boards, one had to hack the board files,
-> and do all sort of gymnastics to handle all the different cases of
-> conflict resolution.
 
-Would it be possible to split out the DT support from the underlying
-bus?  Looking at the code it seems like we're relying on DT for a lot of
-the functionality when it comes to mapping devices into the system but
-that doesn't really meet what I'm looking for.  One of the use cases I
-have is supporting modules which can be used with multiple systems so I
-really want to be able to just define the modules once and then have a
-layer in the subsystem which remaps the connections onto the actual
-hardware.
+--+HP7ph2BbKc20aGI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Jan 10, 2013 at 06:33:43PM +0530, Philip Avinash wrote:
+[...]
+> diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
+[...]
+> +static int ehrpwm_pwm_suspend(struct device *dev)
+> +{
+> +	struct ehrpwm_pwm_chip *pc = dev_get_drvdata(dev);
+> +
+> +	ehrpwm_pwm_context_save(pc);
+> +	pm_runtime_put_sync(dev);
+> +	return 0;
+> +}
+> +
+> +static int ehrpwm_pwm_resume(struct device *dev)
+> +{
+> +	struct ehrpwm_pwm_chip *pc = dev_get_drvdata(dev);
+> +
+> +	pm_runtime_get_sync(dev);
+> +	ehrpwm_pwm_context_restore(pc);
+> +	return 0;
+> +}
+
+According to Documentation/power/runtime_pm.txt, the PM core runs the
+pm_runtime_get_noresume() and pm_runtime_put_sync() before executing the
+.suspend() and .resume() callbacks. Are you sure you need to call them
+here explicitly?
+
+Thierry
+
+--+HP7ph2BbKc20aGI
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQ868GAAoJEN0jrNd/PrOh1ecP/2BiUloIaHU05MVuLhyBeBKU
+VumB5tqYR3hVG060XcVPeA0daFSDODNTf+Ld5kQrVYCdAdhEpmVFgYCXQt9OW7e6
+P7msrz8dpJJeXQrO1H9ZnvYUvsrs8dcERTLvgtvUSzYchoaVeAueyoc6uS+GZxaF
+iizOKqFqUb+fsKBBP+yxtjKP5+bhm5xMQvaGKbOwugY+NliBNB/B09wko/oCCEsb
+SxhsLa5cS0jNbbi77YhdjrOaUlCn7ZEZ2iGltWzBO15TnxcmuPfQDjCEDH7FEpQ3
+G10KkVF1I1juoOKu/C+jmmQALtp/WTXVSJWnmAWzBp+WuewUwApIWR1as1fFpEdA
+hEHas22MAjMm16OYpq0Zzj8bXpXY6Fd7vT2CsKkk9qKnVfmSPjs+78uj0cnGfzBw
+KXwQA3IgLZuipW0vydnXQ577qzfguv40xhoiGXXcGKX7fLGub7MVJ7HhxJzLmN/U
+/aJBMwNbTOPebdiCts2e3IKpt9HN7jbK3S+yqF2ZM9WfD9Mc+0Ucz/hen0I3dFfS
+SHPYcQKWLOTcB3Wi39Tg/bwKHaLcgZ9ixekQ3pd2h+FpD6/Wq+8z99ZtvYQdGhQj
+3tklNktNhTLv0zIFvaliiR748JtvMYKF0OvQNRWGreXLxFab3HMGyWgqDNVBJewF
+YTX7Wi+RnMNvvuBiGfIf
+=ZNgT
+-----END PGP SIGNATURE-----
+
+--+HP7ph2BbKc20aGI--
