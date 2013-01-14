@@ -1,63 +1,169 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH v2] pwm: pwm-tiehrpwm: Update the clock handling of
- pwm-tiehrpwm driver
-Date: Mon, 14 Jan 2013 08:29:23 +0100
-Message-ID: <20130114072923.GC21994@avionic-0098.adnet.avionic-design.de>
-References: <1357823126-19333-1-git-send-email-avinashphilip@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH RFC] usb: dwc3: Remove dwc3 dependency on gadget.
+Date: Mon, 14 Jan 2013 09:57:40 +0200
+Message-ID: <20130114075740.GC10176@arwen.pp.htv.fi>
+References: <1356357513-8892-1-git-send-email-gautam.vivek@samsung.com>
+ <20130110130238.GW28920@arwen.pp.htv.fi>
+ <CAFp+6iHEJvCPHbSvqYhjuTjzvkKQVuKz8f8TupqFcZ9gdvpt-A@mail.gmail.com>
+ <20130111135931.GE12715@arwen.pp.htv.fi>
+ <CAFp+6iEvO2z=bWF7awN4vxN5W1YT0eXcpwarXoB8Mf_=BsQBpQ@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MnLPg7ZWsaic7Fhd"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:58531 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751956Ab3ANH3a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jan 2013 02:29:30 -0500
+	protocol="application/pgp-signature"; boundary="eHhjakXzOLJAF9wJ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1357823126-19333-1-git-send-email-avinashphilip@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAFp+6iEvO2z=bWF7awN4vxN5W1YT0eXcpwarXoB8Mf_=BsQBpQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vivek Gautam <gautamvivek1987@gmail.com>
+Cc: balbi@ti.com, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, Doug Anderson <dianders@chromium.org>
 List-Id: linux-omap@vger.kernel.org
-To: Philip Avinash <avinashphilip@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com
 
-
---MnLPg7ZWsaic7Fhd
+--eHhjakXzOLJAF9wJ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 10, 2013 at 06:35:26PM +0530, Philip Avinash wrote:
-> From: "Philip, Avinash" <avinashphilip@ti.com>
+On Fri, Jan 11, 2013 at 07:58:23PM +0530, Vivek Gautam wrote:
+> Hi,
 >=20
-> The clock framework has changed and it's now better to invoke
-> clock_prepare_enable() and clk_disable_unprepare() rather than the
-> legacy clk_enable() and clk_disable() calls. This patch converts the
-> pwm-tiehrpwm driver to the new framework.
 >=20
-> Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+> On Fri, Jan 11, 2013 at 7:29 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > Hi,
+> >
+> > On Fri, Jan 11, 2013 at 07:13:55PM +0530, Vivek Gautam wrote:
+> >> On Thu, Jan 10, 2013 at 6:32 PM, Felipe Balbi <balbi@ti.com> wrote:
+> >> > Hi,
+> >> >
+> >> > On Mon, Dec 24, 2012 at 07:28:33PM +0530, Vivek Gautam wrote:
+> >> >> DWC3 controller curretly depends on CONFIG_USB and CONFIG_USB_GADGE=
+T.
+> >> >> Some hardware may like to use only host feature on dwc3.
+> >> >> So, removing the dependency of USB_DWC3 on USB_GADGET
+> >> >> and further modulating the dwc3 core to enable gadget features
+> >> >> only with USB_GADGET.
+> >> >>
+> >> >> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> >> >> CC: Doug Anderson <dianders@chromium.org>
+> >> >
+> >> > right, right... Eventually we need to do it, but you're only making
+> >> > gadget side optional. Host side should be optional too, but then you
+> >> > need to make sure we don't build dwc3 without gadget and host.
+> >> >
+> >>
+> >> Yes, true we need to make host side also optional, build dwc3 only when
+> >> either of host or gadget are built.
+> >
+> > btw, make the default Dual-Role, if user/defconfig doesn't select
+> > anything we want to build with all features.
+> >
+>=20
+> Yes we can try something like this ?
+>=20
+>          if (USB || USB_GADGET)
 
-Applied, thanks.
+no need for this if, actually...
 
-Thierry
+>          menuconfig USB_DWC3
+>                  tristate "DesignWare USB3 DRD Core Support"
 
---MnLPg7ZWsaic7Fhd
-Content-Type: application/pgp-signature
+make it a "depends on (USB || USB_GAGDGET)" here
+
+other than that, it looks correct. Just make sure to compile test in all
+options.
+
+>           if USB_DWC3
+>           choice
+>           default USB_DWC3_DUAL_ROLE_MODE
+>           ...
+>=20
+>           config USB_DWC3_HOST_MODE
+
+this one should depend on USB
+
+>           ...
+>=20
+>           config USB_DWC3_DEVICE_MODE
+
+this one should depend on USB_GADGET
+
+>           ...
+>=20
+>           config USB_DWC3_DUAL_ROLE_MODE
+
+should depend on USB && USB_GADGET
+
+> >> >>  int dwc3_gadget_init(struct dwc3 *dwc);
+> >> >>  void dwc3_gadget_exit(struct dwc3 *dwc);
+> >> >> +#else
+> >> >> +static inline int dwc3_gadget_init(struct dwc3 *dwc)
+> >> >> +{ return -EINVAL; }
+> >> >> +static inline void dwc3_gadget_exit(struct dwc3 *dwc)
+> >> >> +{ }
+> >> >> +#endif
+> >> >>
+> >> >>  #endif /* __DRIVERS_USB_DWC3_CORE_H */
+> >> >> diff --git a/drivers/usb/dwc3/debugfs.c b/drivers/usb/dwc3/debugfs.c
+> >> >> index d4a30f1..553bbaa 100644
+> >> >> --- a/drivers/usb/dwc3/debugfs.c
+> >> >> +++ b/drivers/usb/dwc3/debugfs.c
+> >> >> @@ -535,7 +535,8 @@ static ssize_t dwc3_testmode_write(struct file =
+*file,
+> >> >>               testmode =3D 0;
+> >> >>
+> >> >>       spin_lock_irqsave(&dwc->lock, flags);
+> >> >> -     dwc3_gadget_set_test_mode(dwc, testmode);
+> >> >> +     if (dwc3_gadget_set_test_mode(dwc, testmode))
+> >> >> +             dev_dbg(dwc->dev, "host: Invalid request\n");
+> >> >>       spin_unlock_irqrestore(&dwc->lock, flags);
+> >> >>
+> >> >>       return count;
+> >> >
+> >> > wrong, if you don't have gadget mode, you just don't create this fil=
+e.
+> >> >
+> >>
+> >> dwc3-core makes call to dwc3_debugfs_init() invariably depending on DE=
+BUG_FS.
+> >> Will this not go ahead and create this file ?
+> >> I think i am missing here something.  :-(
+> >
+> > right, you can change dwc3_debugfs_init() to take into account the fact
+> > that you're a gadget/drd or host-only.
+> >
+> > In case of host only, you stil want regdump to be available :-)
+> >
+>=20
+> So in dwc3_debugfs_init() we shall actually create just 'regdump' file
+> in case of host only mode, otherwise keep the dwc3_debugfs_init() happy
+> with creating other files too.
+> Right ?
+
+right.
+
+--=20
+balbi
+
+--eHhjakXzOLJAF9wJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQ87PTAAoJEN0jrNd/PrOhTwkQAKQUUxrSevZhSjjlucnt5nCp
-foOxd3GYph8sBR7Vlm9wJ1N+YHFNVAVj2lxGbhg4QCJFfG5k9m03eRNz6x11OByW
-lBqK8OhsN2iU9QEpQxj+ptxwwRrL3tjYb8JhjDD7NghQLeQJ3ODLx/WSsNG8Eklr
-LRWJ8jaLN6/U3Vy2n3ZB27zKIr4mEoANPmaupChgmkFcwKR7sFMVPbob1pyNSS59
-4qXCsXpFea7B22NKAC8IR0n9eZeiTnaQFbS31gUfSFFleYezTKp59tPwsRSs3/8j
-KbzugMnVRQ9vujY51CMmEqcTn5s90xOKz9qdRYe3XLSzWgIZSwpW9ahceOivvdlZ
-sT1bBnr7zP36gMkCmiYetzXmqj3tvhaz9MFMLb9wDhlDqgImscgdkgQER6g0ktWi
-ePzDAY4JjOMuXletGdDhMRQtbF6SgH8NHLW1Qrfmd7Z9l11ExIh8fhC1RTigqcKY
-JK4lma6oRTpZRKquWx+Ic9rYcgJFQ8o7nWSicIrX37t1t3Wu4ORNeILqYgJma4tP
-u706mrvLD/ReXxe4nBdI3PfbwzLzAaVD5+iL1NhuwJ77PGIpQQg/ESvpjXj/ET83
-UOhfSvrXBxgrUUo+7HX1ARgyrossJk/mdjXKM1KfJ7Q6DqlLvhUKarMxHADqdUbv
-NJx7bV7Bt4IGsn6qaNOL
-=iAs9
+iQIcBAEBAgAGBQJQ87p0AAoJEIaOsuA1yqREKuUP/jzwgCgCdQ4VzZ3yucXg8b46
+418Iy5qaWerIQdO5L3tOF5728WIM0k7PgA/6+vHreKVFZNrJKXzWDNKxFi2pSX6i
+g3bY13Dmsh4dOUVO87wmzpEAY53E4Pk/tc29yN6ZgieByUGdw2f8rf3hxntIa3bY
+qF72YyPd+kWY62L9SUIuk5S76rM6jkKFJOMnqPuptXI7XuHn0+eWb2/HfNxiaVnj
+7IymA/Goy08U/+1Qqvz7Z0XJdPYCp5zEzrffwPlun28gXKI4pHV6ESp2vfG7GaJ7
+9kky9UtAKwpy8/sfUzwb1DFgMsuFStWhLlxvNS5FHGgZnwca/2jozDHNSX/+w7+l
+1o/D7tIYPfbGfYRDB8IQgZLCms3jtd6t4zwS8p7hudbPbkvx2jL8euqYYRdW6ccR
+4yjc3XTGvyHIyNDDUluBaPtwrXPgASDR9XZcJ5YHk8lizx5Ry1QvIDE2dVRjceJf
+U1SbVv5wEYtk6wHs4DnpE4WPa/0Od7YdeqcQdh7zkImmgiQbGag+F+e6HK5/4WEn
+SRBsX71kBzaCajjkRKl/q2aFWgvI3zJpDu+hVBnIE9XNr7pGRVJ4Ve5HZzYHTcOG
+YW/l/MsZ08uqm7t83LNQKyPQGBT91ukDv4iLMRA8CZpNHHiCOwT9nEe3kGBoZ3KY
+GhoM3RvIrzSN4lyJJCsn
+=yB4X
 -----END PGP SIGNATURE-----
 
---MnLPg7ZWsaic7Fhd--
+--eHhjakXzOLJAF9wJ--
