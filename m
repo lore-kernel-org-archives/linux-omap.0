@@ -1,115 +1,77 @@
-From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 04/12] video: da8xx-fb: use devres
-Date: Tue, 15 Jan 2013 19:12:22 +0530
-Message-ID: <527f3adc41ba0090dd1362adde550eb0e7595e28.1358251447.git.afzal@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v2 11/12] video: da8xx-fb: setup struct lcd_ctrl_config for dt
+Date: Tue, 15 Jan 2013 19:13:14 +0530
+Message-ID: <6d09674a99d62d752f87dfd0e6bb625d142c68ba.1358251448.git.afzal@ti.com>
 References: <cover.1358251447.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <cover.1358251447.git.afzal-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Florian Tobias Schandinat <FlorianSchandinat-Mmb7MZpHnFY@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1358251447.git.afzal@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Replace existing resource handling in the driver with managed device
-resource.
+strcut lcd_ctrl_config information required for driver is currently
+obtained via platform data. To handle DT probing, create
+lcd_ctrl_config and populate it with default values, these values are
+sufficient for the panels so far used with this controller to work.
 
-Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c |   35 ++++++-----------------------------
- 1 file changed, 6 insertions(+), 29 deletions(-)
+ drivers/video/da8xx-fb.c |   34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index ca69e01..7a32e83 100644
+index 1c1a616..5455682 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -1036,12 +1036,9 @@ static int fb_remove(struct platform_device *dev)
- 				  par->p_palette_base);
- 		dma_free_coherent(NULL, par->vram_size, par->vram_virt,
- 				  par->vram_phys);
--		free_irq(par->irq, par);
- 		pm_runtime_put_sync(&dev->dev);
- 		pm_runtime_disable(&dev->dev);
- 		framebuffer_release(info);
--		iounmap(da8xx_fb_reg_base);
--		release_mem_region(lcdc_regs->start, resource_size(lcdc_regs));
+@@ -1254,6 +1254,35 @@ static struct fb_ops da8xx_fb_ops = {
+ 	.fb_blank = cfb_blank,
+ };
  
- 	}
- 	return 0;
-@@ -1265,7 +1262,6 @@ static int fb_probe(struct platform_device *device)
- 	struct fb_info *da8xx_fb_info;
- 	struct clk *fb_clk = NULL;
- 	struct da8xx_fb_par *par;
--	resource_size_t len;
- 	int ret, i;
- 	unsigned long ulcm;
- 
-@@ -1275,29 +1271,16 @@ static int fb_probe(struct platform_device *device)
- 	}
- 
- 	lcdc_regs = platform_get_resource(device, IORESOURCE_MEM, 0);
--	if (!lcdc_regs) {
--		dev_err(&device->dev,
--			"Can not get memory resource for LCD controller\n");
--		return -ENOENT;
--	}
--
--	len = resource_size(lcdc_regs);
--
--	lcdc_regs = request_mem_region(lcdc_regs->start, len, lcdc_regs->name);
--	if (!lcdc_regs)
--		return -EBUSY;
--
--	da8xx_fb_reg_base = ioremap(lcdc_regs->start, len);
-+	da8xx_fb_reg_base = devm_request_and_ioremap(&device->dev, lcdc_regs);
- 	if (!da8xx_fb_reg_base) {
--		ret = -EBUSY;
--		goto err_request_mem;
-+		dev_err(&device->dev, "memory resource setup failed\n");
-+		return -EADDRNOTAVAIL;
++static struct lcd_ctrl_config *da8xx_fb_create_cfg(struct platform_device *dev)
++{
++	struct lcd_ctrl_config *cfg;
++
++	cfg = devm_kzalloc(&dev->dev, sizeof(struct fb_videomode), GFP_KERNEL);
++	if (!cfg) {
++		dev_err(&dev->dev, "memory allocation failed\n");
++		return NULL;
++	}
++
++	/* default values */
++
++	if (lcd_revision == LCD_VERSION_1)
++		cfg->bpp = 16;
++	else
++		cfg->bpp = 32;
++
++	/*
++	 * For panels so far used with this LCDC, below statement is sufficient.
++	 * For new panels, if required, struct lcd_ctrl_cfg fields to be updated
++	 * with additional/modified values. Those values would have to be then
++	 * obtained from dt(requiring new dt bindings).
++	 */
++
++	cfg->panel_shade = COLOR_ACTIVE;
++
++	return cfg;
++}
++
+ static struct fb_videomode *da8xx_fb_get_videomode(struct platform_device *dev)
+ {
+ 	struct da8xx_lcdc_platform_data *fb_pdata = dev->dev.platform_data;
+@@ -1345,7 +1374,10 @@ static int fb_probe(struct platform_device *device)
+ 		break;
  	}
  
--	fb_clk = clk_get(&device->dev, "fck");
-+	fb_clk = devm_clk_get(&device->dev, "fck");
- 	if (IS_ERR(fb_clk)) {
- 		dev_err(&device->dev, "Can not get device clock\n");
--		ret = -ENODEV;
--		goto err_ioremap;
-+		return -ENODEV;
- 	}
+-	lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
++	if (device->dev.of_node)
++		lcd_cfg = da8xx_fb_create_cfg(device);
++	else
++		lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
  
- 	pm_runtime_enable(&device->dev);
-@@ -1458,7 +1441,7 @@ static int fb_probe(struct platform_device *device)
- 		lcdc_irq_handler = lcdc_irq_handler_rev02;
- 	}
- 
--	ret = request_irq(par->irq, lcdc_irq_handler, 0,
-+	ret = devm_request_irq(&device->dev, par->irq, lcdc_irq_handler, 0,
- 			DRIVER_NAME, par);
- 	if (ret)
- 		goto irq_freq;
-@@ -1488,12 +1471,6 @@ err_pm_runtime_disable:
- 	pm_runtime_put_sync(&device->dev);
- 	pm_runtime_disable(&device->dev);
- 
--err_ioremap:
--	iounmap(da8xx_fb_reg_base);
--
--err_request_mem:
--	release_mem_region(lcdc_regs->start, len);
--
- 	return ret;
- }
- 
+ 	if (!lcd_cfg) {
+ 		ret = -EINVAL;
 -- 
 1.7.9.5
