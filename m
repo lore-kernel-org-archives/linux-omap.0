@@ -1,98 +1,115 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 09/12] video: da8xx-fb: obtain fb_videomode info from dt
-Date: Tue, 15 Jan 2013 19:12:52 +0530
-Message-ID: <d7067a4a8d3107fd558e828fba992d4201ba5970.1358251448.git.afzal@ti.com>
+From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 04/12] video: da8xx-fb: use devres
+Date: Tue, 15 Jan 2013 19:12:22 +0530
+Message-ID: <527f3adc41ba0090dd1362adde550eb0e7595e28.1358251447.git.afzal@ti.com>
 References: <cover.1358251447.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1358251447.git.afzal@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <cover.1358251447.git.afzal-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Florian Tobias Schandinat <FlorianSchandinat-Mmb7MZpHnFY@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Obtain fb_videomode details for the connected lcd panel using the
-display timing details present in DT.
+Replace existing resource handling in the driver with managed device
+resource.
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
 ---
- .../devicetree/bindings/video/fb-da8xx.txt         |   21 ++++++++++++++++++++
- drivers/video/da8xx-fb.c                           |   17 ++++++++++++++++
- 2 files changed, 38 insertions(+)
+ drivers/video/da8xx-fb.c |   35 ++++++-----------------------------
+ 1 file changed, 6 insertions(+), 29 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/video/fb-da8xx.txt b/Documentation/devicetree/bindings/video/fb-da8xx.txt
-index 581e014..0741f78 100644
---- a/Documentation/devicetree/bindings/video/fb-da8xx.txt
-+++ b/Documentation/devicetree/bindings/video/fb-da8xx.txt
-@@ -6,6 +6,12 @@ Required properties:
- 	AM335x SoC's - "ti,am3352-lcdc", "ti,da830-lcdc"
- - reg: Address range of lcdc register set
- - interrupts: lcdc interrupt
-+- display-timings: typical videomode of lcd panel, represented as child.
-+  Refer Documentation/devicetree/bindings/video/display-timing.txt for
-+  display timing binding details. If multiple videomodes are mentioned
-+  in display timings node, typical videomode has to be mentioned as the
-+  native mode or it has to be first child (driver cares only for native
-+  videomode).
- 
- Example:
- 
-@@ -13,4 +19,19 @@ lcdc@4830e000 {
- 	compatible = "ti,am3352-lcdc", "ti,da830-lcdc";
- 	reg =  <0x4830e000 0x1000>;
- 	interrupts = <36>;
-+	display-timings {
-+		800x480p62 {
-+			clock-frequency = <30000000>;
-+			hactive = <800>;
-+			vactive = <480>;
-+			hfront-porch = <39>;
-+			hback-porch = <39>;
-+			hsync-len = <47>;
-+			vback-porch = <29>;
-+			vfront-porch = <13>;
-+			vsync-len = <2>;
-+			hsync-active = <1>;
-+			vsync-active = <1>;
-+		};
-+	};
- };
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 0beed20..0c68712 100644
+index ca69e01..7a32e83 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -36,6 +36,7 @@
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/lcm.h>
-+#include <video/of_display_timing.h>
- #include <video/da8xx-fb.h>
- #include <asm/div64.h>
+@@ -1036,12 +1036,9 @@ static int fb_remove(struct platform_device *dev)
+ 				  par->p_palette_base);
+ 		dma_free_coherent(NULL, par->vram_size, par->vram_virt,
+ 				  par->vram_phys);
+-		free_irq(par->irq, par);
+ 		pm_runtime_put_sync(&dev->dev);
+ 		pm_runtime_disable(&dev->dev);
+ 		framebuffer_release(info);
+-		iounmap(da8xx_fb_reg_base);
+-		release_mem_region(lcdc_regs->start, resource_size(lcdc_regs));
  
-@@ -1257,8 +1258,24 @@ static struct fb_videomode *da8xx_fb_get_videomode(struct platform_device *dev)
- {
- 	struct da8xx_lcdc_platform_data *fb_pdata = dev->dev.platform_data;
- 	struct fb_videomode *lcdc_info;
-+	struct device_node *np = dev->dev.of_node;
- 	int i;
+ 	}
+ 	return 0;
+@@ -1265,7 +1262,6 @@ static int fb_probe(struct platform_device *device)
+ 	struct fb_info *da8xx_fb_info;
+ 	struct clk *fb_clk = NULL;
+ 	struct da8xx_fb_par *par;
+-	resource_size_t len;
+ 	int ret, i;
+ 	unsigned long ulcm;
  
-+	if (np) {
-+		lcdc_info = devm_kzalloc(&dev->dev,
-+					 sizeof(struct fb_videomode),
-+					 GFP_KERNEL);
-+		if (!lcdc_info) {
-+			dev_err(&dev->dev, "memory allocation failed\n");
-+			return NULL;
-+		}
-+		if (of_get_fb_videomode(np, lcdc_info, OF_USE_NATIVE_MODE)) {
-+			dev_err(&dev->dev, "timings not available in DT\n");
-+			return NULL;
-+		}
-+		return lcdc_info;
-+	}
-+
- 	for (i = 0, lcdc_info = known_lcd_panels;
- 		i < ARRAY_SIZE(known_lcd_panels); i++, lcdc_info++) {
- 		if (strcmp(fb_pdata->type, lcdc_info->name) == 0)
+@@ -1275,29 +1271,16 @@ static int fb_probe(struct platform_device *device)
+ 	}
+ 
+ 	lcdc_regs = platform_get_resource(device, IORESOURCE_MEM, 0);
+-	if (!lcdc_regs) {
+-		dev_err(&device->dev,
+-			"Can not get memory resource for LCD controller\n");
+-		return -ENOENT;
+-	}
+-
+-	len = resource_size(lcdc_regs);
+-
+-	lcdc_regs = request_mem_region(lcdc_regs->start, len, lcdc_regs->name);
+-	if (!lcdc_regs)
+-		return -EBUSY;
+-
+-	da8xx_fb_reg_base = ioremap(lcdc_regs->start, len);
++	da8xx_fb_reg_base = devm_request_and_ioremap(&device->dev, lcdc_regs);
+ 	if (!da8xx_fb_reg_base) {
+-		ret = -EBUSY;
+-		goto err_request_mem;
++		dev_err(&device->dev, "memory resource setup failed\n");
++		return -EADDRNOTAVAIL;
+ 	}
+ 
+-	fb_clk = clk_get(&device->dev, "fck");
++	fb_clk = devm_clk_get(&device->dev, "fck");
+ 	if (IS_ERR(fb_clk)) {
+ 		dev_err(&device->dev, "Can not get device clock\n");
+-		ret = -ENODEV;
+-		goto err_ioremap;
++		return -ENODEV;
+ 	}
+ 
+ 	pm_runtime_enable(&device->dev);
+@@ -1458,7 +1441,7 @@ static int fb_probe(struct platform_device *device)
+ 		lcdc_irq_handler = lcdc_irq_handler_rev02;
+ 	}
+ 
+-	ret = request_irq(par->irq, lcdc_irq_handler, 0,
++	ret = devm_request_irq(&device->dev, par->irq, lcdc_irq_handler, 0,
+ 			DRIVER_NAME, par);
+ 	if (ret)
+ 		goto irq_freq;
+@@ -1488,12 +1471,6 @@ err_pm_runtime_disable:
+ 	pm_runtime_put_sync(&device->dev);
+ 	pm_runtime_disable(&device->dev);
+ 
+-err_ioremap:
+-	iounmap(da8xx_fb_reg_base);
+-
+-err_request_mem:
+-	release_mem_region(lcdc_regs->start, len);
+-
+ 	return ret;
+ }
+ 
 -- 
 1.7.9.5
