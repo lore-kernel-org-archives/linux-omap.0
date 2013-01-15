@@ -1,66 +1,54 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [RFC PATCH 2/7] ARM: OMAP: devices: create device for usb part
- of control module
-Date: Tue, 15 Jan 2013 19:56:11 +0530
-Message-ID: <50F56703.1060202@ti.com>
-References: <1358239378-10030-1-git-send-email-kishon@ti.com> <1358239378-10030-3-git-send-email-kishon@ti.com> <50F5514A.2040207@mvista.com>
+From: kishon <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH 0/7] usb: musb: add driver for control module
+Date: Tue, 15 Jan 2013 20:09:22 +0530
+Message-ID: <50F56A1A.3040504@ti.com>
+References: <1358239378-10030-1-git-send-email-kishon@ti.com>
+ <201301151341.08297.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <50F5514A.2040207@mvista.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: grant.likely@secretlab.ca, b-cousson@ti.com, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, arnd@arndb.de, balbi@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <201301151341.08297.arnd-r2nGTMty4D4@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 15 January 2013 06:23 PM, Sergei Shtylyov wrote:
-> Hello.
->
-> On 15-01-2013 12:42, Kishon Vijay Abraham I wrote:
->
->> A seperate driver has been added to handle the usb part of control
->> module. A device for the above driver is created here, using the register
->> address information to be used by the driver for powering on the PHY and
->> for writing to the mailbox.
->
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>   arch/arm/mach-omap2/devices.c |   50
->> +++++++++++++++++++++++++++++++++++++++++
->>   1 file changed, 50 insertions(+)
->
->> diff --git a/arch/arm/mach-omap2/devices.c
->> b/arch/arm/mach-omap2/devices.c
->> index 5e304d0..a761faf4 100644
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
-> [...]
->> @@ -254,6 +255,54 @@ static inline void omap_init_camera(void)
->>   #endif
->>   }
->>
->> +#if (defined(CONFIG_OMAP_CONTROL_USB) || \
->> +                defined(CONFIG_OMAP_CONTROL_USB_MODULE))
->
->     () around || not needed, and you're indenting the second line too much.
->
->> +static inline void __init omap_init_control_usb(void)
->> +{
->> +    int ret = 0;
->
->     Initializer not needed.
->
->> +
->> +    if (cpu_is_omap44xx()) {
->> +        ret = platform_device_register(&omap4_control_usb);
->> +        if (ret)
->> +            pr_err("Error registering omap_control_usb device: %d\n"
->> +                , ret);
->
->     Please leave the comma on the previous line.
+Hi Arnd,
 
-Sure. I'll fix it.
+On Tuesday 15 January 2013 07:11 PM, Arnd Bergmann wrote:
+> On Tuesday 15 January 2013, Kishon Vijay Abraham I wrote:
+>> Added a new driver for the usb part of control module. This has an API
+>> to power on the USB2 phy and an API to write to the mailbox depending on
+>> whether MUSB has to act in host mode or in device mode.
+>>
+>> Writing to control module registers for doing the above task which was
+>> previously done in omap glue and in omap-usb2 phy is removed.
+>>
+>> Also added the dt data to get MUSB working in OMAP platforms.
+>> This series has patches for both drivers and ARCH folders, so If it has to
+>> be split I'll do it.
+>>
+>
+> The series looks good to me, I just had a minor comment on one patch.
+>
+> One a somewhat related topic, I wonder whether there are any plans
+> on your side to change this driver to support multiple bus glues
+> to be built for one kernel image. With a multiplatform kernel, we
+> may need all of TUSB6010/OMAP2PLUS/DSPS/UX500 for instance.
+
+We don't have plans as of now. I actually don't expect any changes in 
+the driver other than the Kconfig changes. Anyways the probe of glue's 
+other than the platform it's running won't get called. right Felipe?
 
 Thanks
 Kishon
