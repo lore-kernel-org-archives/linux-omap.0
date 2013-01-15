@@ -1,84 +1,55 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 00/12] video: da8xx-fb: DT support
-Date: Tue, 15 Jan 2013 19:11:38 +0530
-Message-ID: <cover.1358251447.git.afzal@ti.com>
+From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 01/12] video: da8xx-fb: make io operations safe
+Date: Tue, 15 Jan 2013 19:11:53 +0530
+Message-ID: <08c4247f9a883b35982af40ede8a720b617334c2.1358251447.git.afzal@ti.com>
+References: <cover.1358251447.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <cover.1358251447.git.afzal-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Florian Tobias Schandinat <FlorianSchandinat-Mmb7MZpHnFY@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Replace __raw_readl/__raw_writel with readl/writel; this driver is
+reused on ARMv7 (AM335x SoC).
 
-This series adds DT support to da8xx-fb driver (device found on
-DaVinci and AM335x SoC's). It does certain cleanup's in the process.
+Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+---
 
-This series as compared to previous version handles configuration of
-the LCDC input clock to required value if clock divider in IP cannot
-take care of required pixel clock. In the case of AM335x (where there
-is requirement of configuring input clock), it's clock tree has to be
-updated with proper flags, relevant patch is,
+v2: new patch
 
-"ARM: AM33XX: clock: SET_RATE_PARENT in lcd path".
+ drivers/video/da8xx-fb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-There is an additional patch in this new series to make io operations
-safe.
-
-This makes use of Steffen Trumtrar's v16 of display timing DT support.
-
-Testing has been done on AM335x SoC based boards like AM335x EVM and
-AM335x EVM-SK. It has also been verified that display on DA850 EVM
-(non-DT boot) works as earlier.
-
-This series is based on v3.8-rc3,
- and is dependent on,
-1. Series v16 "of: add display helper" by,
-	Steffen Trumtrar <s.trumtrar@pengutronix.de>
-2. Patch "da8xx: Allow use by am33xx based devices" by,
-	Pantelis Antoniou <panto@antoniou-consulting.com>
-3. Series v3 "video: da8xx-fb: runtime timing configuration" by,
-	me (Afzal Mohammed <afzal@ti.com>)
-
-To test this series on AM335x based boards,
-1. Series v2 "ARM: dts: AM33XX: lcdc support" by,
-	me (Afzal Mohammed <afzal@ti.com>),
-2. Patch "ARM: AM33XX: clock: SET_RATE_PARENT in lcd path" by,
-	me (Afzal Mohammed <afzal@ti.com>),
-3. Series "HWMOD fixes for AM33xx PWM submodules and device tree nodes" by,
-	Philip, Avinash <avinashphilip@ti.com>
-would be needed.
-
-All above dependencies along with those required for testing is available
- @git://gitorious.org/x0148406-public/linux-kernel.git tags/da8xx-fb-dt-v3.8-rc3
-
-Regards
-Afzal
-
-v2: 2 new patches - one to configure clock rate properly (12/12)and
-    other to make io operations safe (1/12)
-
-Afzal Mohammed (11):
-  video: da8xx-fb: make io operations safe
-  video: da8xx-fb: enable sync lost intr for v2 ip
-  video: da8xx-fb: use devres
-  video: da8xx-fb: ensure non-null cfg in pdata
-  video: da8xx-fb: reorganize panel detection
-  video: da8xx-fb: minimal dt support
-  video: da8xx-fb: invoke platform callback safely
-  video: da8xx-fb: obtain fb_videomode info from dt
-  video: da8xx-fb: ensure pdata only for non-dt
-  video: da8xx-fb: setup struct lcd_ctrl_config for dt
-  video: da8xx-fb: set upstream clock rate (if reqd)
-
-Manjunathappa, Prakash (1):
-  video: da8xx-fb: fix 24bpp raster configuration
-
- .../devicetree/bindings/video/fb-da8xx.txt         |   37 ++++
- drivers/video/da8xx-fb.c                           |  226 ++++++++++++++------
- 2 files changed, 194 insertions(+), 69 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/video/fb-da8xx.txt
-
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index 720604c..35a33ca 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -141,12 +141,12 @@ static int frame_done_flag;
+ 
+ static inline unsigned int lcdc_read(unsigned int addr)
+ {
+-	return (unsigned int)__raw_readl(da8xx_fb_reg_base + (addr));
++	return (unsigned int)readl(da8xx_fb_reg_base + (addr));
+ }
+ 
+ static inline void lcdc_write(unsigned int val, unsigned int addr)
+ {
+-	__raw_writel(val, da8xx_fb_reg_base + (addr));
++	writel(val, da8xx_fb_reg_base + (addr));
+ }
+ 
+ struct da8xx_fb_par {
 -- 
 1.7.9.5
-
