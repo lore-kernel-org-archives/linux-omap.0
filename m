@@ -1,107 +1,164 @@
-From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 06/12] video: da8xx-fb: reorganize panel detection
-Date: Tue, 15 Jan 2013 19:12:34 +0530
-Message-ID: <08858a7cd96fd3a603316f7c09f3cb9232a4f0f8.1358251447.git.afzal@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v2 12/12] video: da8xx-fb: set upstream clock rate (if reqd)
+Date: Tue, 15 Jan 2013 19:14:36 +0530
+Message-ID: <26e787b021cda89a080f80657c2094b9ff2decaf.1358251448.git.afzal@ti.com>
 References: <cover.1358251447.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <cover.1358251447.git.afzal-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Florian Tobias Schandinat <FlorianSchandinat-Mmb7MZpHnFY@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1358251447.git.afzal@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Mike Turquette <mturquette@linaro.org>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Move panel detection to a separate function, this helps in readability
-as well as makes DT support cleaner.
+LCDC IP has a clock divider to adjust pixel clock, this limits pixel
+clock range to fck/255 - fck/2(fck - rate of input clock to LCDC IP).
+In the case of AM335x, where this IP is present, default fck is not
+sufficient to provide normal pixel clock rates, hence rendering this
+driver unusable on AM335x.
 
-Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+If input clock too is configurable, allowable range of pixel clock
+would increase. Here initially it is checked whether with present fck,
+divider in IP could be configured to obtain required rate, if not,
+fck is adjusted. This makes it usable on AM335x.
+
+Note:
+A better (if allowable) solution may be to represent clock divider in
+LCDC IP as a basic divider clock - the one defined in common clock
+framework. But for this to happen, all the platform's using this driver
+should be using common clock framework (DaVinci is yet to be converted
+to use common clock framework). And it has to be determined whether
+common clock framework allows this kind of a clock modelling inside a
+driver and for this to be part of clock tree. Advantage of doing so
+would be better resolution for pixel clock, even though without this
+existing use cases are working properly. Or another extreme alternative
+would be to replicate clk-divider of common clock framework inside the
+driver, but that probably is not preferred and not worth as it would be
+duplication and without much advantage to existing users.
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c |   42 ++++++++++++++++++++++++++----------------
- 1 file changed, 26 insertions(+), 16 deletions(-)
+
+v2: new patch
+
+ drivers/video/da8xx-fb.c |   76 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 58 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 3b146bc..b6ea5e9 100644
+index 5455682..09dfa12 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -1253,6 +1253,27 @@ static struct fb_ops da8xx_fb_ops = {
- 	.fb_blank = cfb_blank,
- };
+@@ -133,6 +133,9 @@
+ #define WSI_TIMEOUT	50
+ #define PALETTE_SIZE	256
  
-+static struct fb_videomode *da8xx_fb_get_videomode(struct platform_device *dev)
-+{
-+	struct da8xx_lcdc_platform_data *fb_pdata = dev->dev.platform_data;
-+	struct fb_videomode *lcdc_info;
-+	int i;
++#define	CLK_MIN_DIV	2
++#define	CLK_MAX_DIV	255
 +
-+	for (i = 0, lcdc_info = known_lcd_panels;
-+		i < ARRAY_SIZE(known_lcd_panels); i++, lcdc_info++) {
-+		if (strcmp(fb_pdata->type, lcdc_info->name) == 0)
-+			break;
+ static void __iomem *da8xx_fb_reg_base;
+ static struct resource *lcdc_regs;
+ static unsigned int lcd_revision;
+@@ -683,23 +686,21 @@ static void da8xx_fb_lcd_reset(void)
+ 	}
+ }
+ 
+-static inline unsigned da8xx_fb_calc_clk_divider(struct da8xx_fb_par *par,
+-						 unsigned pixclock)
+-{
+-	return par->lcd_fck_rate / (PICOS2KHZ(pixclock) * 1000);
+-}
+-
+-static inline unsigned da8xx_fb_round_clk(struct da8xx_fb_par *par,
+-					  unsigned pixclock)
++static int da8xx_fb_config_clk_divider(struct da8xx_fb_par *par,
++					      unsigned div, unsigned rate)
+ {
+-	unsigned div;
++	int ret;
+ 
+-	div = da8xx_fb_calc_clk_divider(par, pixclock);
+-	return KHZ2PICOS(par->lcd_fck_rate / (1000 * div));
+-}
++	if (par->lcd_fck_rate != rate) {
++		ret = clk_set_rate(par->lcdc_clk, rate);
++		if (IS_ERR_VALUE(ret)) {
++			dev_err(par->dev,
++				"unable to set clock rate at %u\n", rate);
++			return ret;
++		}
++		par->lcd_fck_rate = clk_get_rate(par->lcdc_clk);
 +	}
+ 
+-static inline void da8xx_fb_config_clk_divider(unsigned div)
+-{
+ 	/* Configure the LCD clock divisor. */
+ 	lcdc_write(LCD_CLK_DIVISOR(div) |
+ 			(LCD_RASTER_MODE & 0x1), LCD_CTRL_REG);
+@@ -707,14 +708,49 @@ static inline void da8xx_fb_config_clk_divider(unsigned div)
+ 	if (lcd_revision == LCD_VERSION_2)
+ 		lcdc_write(LCD_V2_DMA_CLK_EN | LCD_V2_LIDD_CLK_EN |
+ 				LCD_V2_CORE_CLK_EN, LCD_CLK_ENABLE_REG);
 +
-+	if (i == ARRAY_SIZE(known_lcd_panels)) {
-+		dev_err(&dev->dev, "no panel found\n");
-+		return NULL;
-+	}
-+	dev_info(&dev->dev, "found %s panel\n", lcdc_info->name);
-+
-+	return lcdc_info;
++	return 0;
 +}
 +
- static int fb_probe(struct platform_device *device)
- {
- 	struct da8xx_lcdc_platform_data *fb_pdata =
-@@ -1262,7 +1283,7 @@ static int fb_probe(struct platform_device *device)
- 	struct fb_info *da8xx_fb_info;
- 	struct clk *fb_clk = NULL;
- 	struct da8xx_fb_par *par;
--	int ret, i;
-+	int ret;
- 	unsigned long ulcm;
- 
- 	if (fb_pdata == NULL) {
-@@ -1270,6 +1291,10 @@ static int fb_probe(struct platform_device *device)
- 		return -ENOENT;
- 	}
- 
-+	lcdc_info = da8xx_fb_get_videomode(device);
-+	if (lcdc_info == NULL)
-+		return -ENODEV;
++static unsigned int da8xx_fb_calc_clk_divider(struct da8xx_fb_par *par,
++					      unsigned pixclock,
++					      unsigned *rate)
++{
++	unsigned div;
 +
- 	lcdc_regs = platform_get_resource(device, IORESOURCE_MEM, 0);
- 	da8xx_fb_reg_base = devm_request_and_ioremap(&device->dev, lcdc_regs);
- 	if (!da8xx_fb_reg_base) {
-@@ -1303,21 +1328,6 @@ static int fb_probe(struct platform_device *device)
- 		break;
- 	}
++	pixclock = PICOS2KHZ(pixclock) * 1000;
++
++	*rate = par->lcd_fck_rate;
++
++	if (pixclock < (*rate / CLK_MAX_DIV)) {
++		*rate = clk_round_rate(par->lcdc_clk, pixclock * CLK_MAX_DIV);
++		div = CLK_MAX_DIV;
++	} else if (pixclock > (*rate / CLK_MIN_DIV)) {
++		*rate = clk_round_rate(par->lcdc_clk, pixclock * CLK_MIN_DIV);
++		div = CLK_MIN_DIV;
++	} else {
++		div = *rate / pixclock;
++	}
++
++	return div;
+ }
  
--	for (i = 0, lcdc_info = known_lcd_panels;
--		i < ARRAY_SIZE(known_lcd_panels);
--		i++, lcdc_info++) {
--		if (strcmp(fb_pdata->type, lcdc_info->name) == 0)
--			break;
--	}
--
--	if (i == ARRAY_SIZE(known_lcd_panels)) {
--		dev_err(&device->dev, "GLCD: No valid panel found\n");
--		ret = -ENODEV;
--		goto err_pm_runtime_disable;
--	} else
--		dev_info(&device->dev, "GLCD: Found %s panel\n",
--					fb_pdata->type);
--
- 	lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
+-static inline void da8xx_fb_calc_config_clk_divider(struct da8xx_fb_par *par,
++static inline int da8xx_fb_calc_config_clk_divider(struct da8xx_fb_par *par,
+ 						    struct fb_videomode *mode)
+ {
+-	unsigned div = da8xx_fb_calc_clk_divider(par, mode->pixclock);
++	unsigned rate;
++	unsigned div = da8xx_fb_calc_clk_divider(par, mode->pixclock, &rate);
  
- 	if (!lcd_cfg) {
+-	da8xx_fb_config_clk_divider(div);
++	return da8xx_fb_config_clk_divider(par, div, rate);
++}
++
++static inline unsigned da8xx_fb_round_clk(struct da8xx_fb_par *par,
++					  unsigned pixclock)
++{
++	unsigned div, rate;
++
++	div = da8xx_fb_calc_clk_divider(par, pixclock, &rate);
++	return KHZ2PICOS(rate / (1000 * div));
+ }
+ 
+ static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
+@@ -723,7 +759,11 @@ static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
+ 	u32 bpp;
+ 	int ret = 0;
+ 
+-	da8xx_fb_calc_config_clk_divider(par, panel);
++	ret = da8xx_fb_calc_config_clk_divider(par, panel);
++	if (IS_ERR_VALUE(ret)) {
++		dev_err(par->dev, "unable to configure clock\n");
++		return ret;
++	}
+ 
+ 	if (panel->sync & FB_SYNC_CLK_INVERT)
+ 		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) |
 -- 
 1.7.9.5
