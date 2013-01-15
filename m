@@ -1,36 +1,37 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 03/12] video: da8xx-fb: enable sync lost intr for v2 ip
-Date: Tue, 15 Jan 2013 19:12:05 +0530
-Message-ID: <402581e429e1f47b6d680e7bae338883463fb0e7.1358251447.git.afzal@ti.com>
-References: <cover.1358251447.git.afzal@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH 0/7] usb: musb: add driver for control module
+Date: Tue, 15 Jan 2013 13:41:08 +0000
+Message-ID: <201301151341.08297.arnd@arndb.de>
+References: <1358239378-10030-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1358251447.git.afzal@ti.com>
+In-Reply-To: <1358239378-10030-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: grant.likely@secretlab.ca, b-cousson@ti.com, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-interrupt handler is checking for sync lost interrupt, but it was not
-enabled, enable it.
+On Tuesday 15 January 2013, Kishon Vijay Abraham I wrote:
+> Added a new driver for the usb part of control module. This has an API
+> to power on the USB2 phy and an API to write to the mailbox depending on
+> whether MUSB has to act in host mode or in device mode.
+> 
+> Writing to control module registers for doing the above task which was
+> previously done in omap glue and in omap-usb2 phy is removed.
+> 
+> Also added the dt data to get MUSB working in OMAP platforms.
+> This series has patches for both drivers and ARCH folders, so If it has to
+> be split I'll do it.
+> 
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- drivers/video/da8xx-fb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The series looks good to me, I just had a minor comment on one patch.
 
-diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 7f92f37..ca69e01 100644
---- a/drivers/video/da8xx-fb.c
-+++ b/drivers/video/da8xx-fb.c
-@@ -318,7 +318,7 @@ static void lcd_blit(int load_mode, struct da8xx_fb_par *par)
- 			reg_int = lcdc_read(LCD_INT_ENABLE_SET_REG) |
- 				LCD_V2_END_OF_FRAME0_INT_ENA |
- 				LCD_V2_END_OF_FRAME1_INT_ENA |
--				LCD_FRAME_DONE;
-+				LCD_FRAME_DONE | LCD_SYNC_LOST;
- 			lcdc_write(reg_int, LCD_INT_ENABLE_SET_REG);
- 		}
- 		reg_dma |= LCD_DUAL_FRAME_BUFFER_ENABLE;
--- 
-1.7.9.5
+One a somewhat related topic, I wonder whether there are any plans
+on your side to change this driver to support multiple bus glues
+to be built for one kernel image. With a multiplatform kernel, we
+may need all of TUSB6010/OMAP2PLUS/DSPS/UX500 for instance.
+
+	Arnd
