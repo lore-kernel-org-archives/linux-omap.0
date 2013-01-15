@@ -1,60 +1,57 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [RFC PATCH 2/7] ARM: OMAP: devices: create device for usb part
- of control module
-Date: Tue, 15 Jan 2013 16:53:30 +0400
-Message-ID: <50F5514A.2040207@mvista.com>
-References: <1358239378-10030-1-git-send-email-kishon@ti.com> <1358239378-10030-3-git-send-email-kishon@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v3 00/10] video: da8xx-fb: runtime timing configuration
+Date: Tue, 15 Jan 2013 19:00:50 +0530
+Message-ID: <cover.1358250489.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358239378-10030-3-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@secretlab.ca, b-cousson@ti.com, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, arnd@arndb.de, balbi@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46181 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755259Ab3AON3z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Jan 2013 08:29:55 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hello.
+Hi,
 
-On 15-01-2013 12:42, Kishon Vijay Abraham I wrote:
+This series makes da8xx-fb driver (device found on DaVinci and AM335x)
+capable of handling runtime timing configuration by adding fb_set_par.
 
-> A seperate driver has been added to handle the usb part of control
-> module. A device for the above driver is created here, using the register
-> address information to be used by the driver for powering on the PHY and
-> for writing to the mailbox.
+The last change adds actual fb_set_par support. Other preceeding
+changes makes the way clear for it as well as does certain cleanup's
+on the way.
 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->   arch/arm/mach-omap2/devices.c |   50 +++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 50 insertions(+)
+This has been tested on da850 evm as is. This was also tested on
+am335x-evm & am335x-evmsk with a series that adds DT support.
 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 5e304d0..a761faf4 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-[...]
-> @@ -254,6 +255,54 @@ static inline void omap_init_camera(void)
->   #endif
->   }
->
-> +#if (defined(CONFIG_OMAP_CONTROL_USB) || \
-> +				defined(CONFIG_OMAP_CONTROL_USB_MODULE))
+This is based on v3.8-rc3, this is the only change in this revision.
+The new version of this series is being posted so that this series can
+be applied easily (as __dev* are removed, there would be merge
+conflicts with v2, which was based on -rc2).
+series
 
-    () around || not needed, and you're indenting the second line too much.
+Regards
+Afzal
 
-> +static inline void __init omap_init_control_usb(void)
-> +{
-> +	int ret = 0;
+v3: rebased over -rc3, no functional changes
+v2: disable raster in fb_set_par properly
 
-    Initializer not needed.
+Afzal Mohammed (10):
+  video: da8xx-fb: fb_check_var enhancement
+  video: da8xx-fb: simplify lcd_reset
+  video: da8xx-fb: use modedb helper to update var
+  video: da8xx-fb: remove unneeded "var" initialization
+  video: da8xx-fb: store current display information
+  video: da8xx-fb: store clk rate even if !CPUFREQ
+  video: da8xx-fb: pix clk and clk div handling cleanup
+  video: da8xx-fb: store struct device *
+  video: da8xx-fb: report correct pixclock
+  video: da8xx-fb: fb_set_par support
 
-> +
-> +	if (cpu_is_omap44xx()) {
-> +		ret = platform_device_register(&omap4_control_usb);
-> +		if (ret)
-> +			pr_err("Error registering omap_control_usb device: %d\n"
-> +			    , ret);
+ drivers/video/da8xx-fb.c |  185 ++++++++++++++++++++++++++--------------------
+ 1 file changed, 105 insertions(+), 80 deletions(-)
 
-    Please leave the comma on the previous line.
+-- 
+1.7.9.5
 
-WBR, Sergei
