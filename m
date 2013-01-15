@@ -1,7 +1,7 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v3 09/10] video: da8xx-fb: report correct pixclock
-Date: Tue, 15 Jan 2013 19:02:28 +0530
-Message-ID: <0afcc9a2b298874ec1402db6906e0069fd072e45.1358250489.git.afzal@ti.com>
+Subject: [PATCH v3 06/10] video: da8xx-fb: store clk rate even if !CPUFREQ
+Date: Tue, 15 Jan 2013 19:02:09 +0530
+Message-ID: <564a1730402897cabc71d114b6272120641428bd.1358250489.git.afzal@ti.com>
 References: <cover.1358250489.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -11,42 +11,38 @@ Sender: linux-kernel-owner@vger.kernel.org
 To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Update "var" pixclock with the value that is configurable in hardware.
-This lets user know the actual pixclock.
+store lcd clk rate always, i.e. irrespective of whether CPUFREQ is
+enabled or not. This can be used to get clk rate directly instead of
+enquiring with clock framework with clk handle every time.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/video/da8xx-fb.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index a5341d0..0f73c76 100644
+index d060f14..f1d88ac 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -686,6 +686,15 @@ static inline unsigned da8xx_fb_calc_clk_divider(struct da8xx_fb_par *par,
- 	return par->lcd_fck_rate / (PICOS2KHZ(pixclock) * 1000);
- }
+@@ -174,8 +174,8 @@ struct da8xx_fb_par {
+ 	unsigned int		which_dma_channel_done;
+ #ifdef CONFIG_CPU_FREQ
+ 	struct notifier_block	freq_transition;
+-	unsigned int		lcd_fck_rate;
+ #endif
++	unsigned int		lcd_fck_rate;
+ 	void (*panel_power_ctrl)(int);
+ 	u32 pseudo_palette[16];
+ 	struct fb_videomode	mode;
+@@ -1302,9 +1302,7 @@ static int fb_probe(struct platform_device *device)
  
-+static inline unsigned da8xx_fb_round_clk(struct da8xx_fb_par *par,
-+					  unsigned pixclock)
-+{
-+	unsigned div;
-+
-+	div = da8xx_fb_calc_clk_divider(par, pixclock);
-+	return KHZ2PICOS(par->lcd_fck_rate / (1000 * div));
-+}
-+
- static inline void da8xx_fb_config_clk_divider(unsigned div)
- {
- 	/* Configure the LCD clock divisor. */
-@@ -962,6 +971,8 @@ static int fb_check_var(struct fb_var_screeninfo *var,
- 	if (var->yres + var->yoffset > var->yres_virtual)
- 		var->yoffset = var->yres_virtual - var->yres;
- 
-+	var->pixclock = da8xx_fb_round_clk(par, var->pixclock);
-+
- 	return err;
- }
- 
+ 	par = da8xx_fb_info->par;
+ 	par->lcdc_clk = fb_clk;
+-#ifdef CONFIG_CPU_FREQ
+ 	par->lcd_fck_rate = clk_get_rate(fb_clk);
+-#endif
+ 	par->pxl_clk = lcdc_info->pixclock;
+ 	if (fb_pdata->panel_power_ctrl) {
+ 		par->panel_power_ctrl = fb_pdata->panel_power_ctrl;
 -- 
 1.7.9.5
