@@ -1,270 +1,158 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: OMAP baseline test results for v3.8-rc3
-Date: Tue, 15 Jan 2013 10:55:30 +0200
-Message-ID: <20130115085530.GA4350@arwen.pp.htv.fi>
-References: <alpine.DEB.2.00.1301141756460.20390@utopia.booyaka.com>
- <20130114184018.GA18224@blackmetal.musicnaut.iki.fi>
- <20130114191459.GA9402@arwen.pp.htv.fi>
- <20130114204654.GB18224@blackmetal.musicnaut.iki.fi>
- <20130114211846.GA10699@arwen.pp.htv.fi>
- <20130114224222.GC18224@blackmetal.musicnaut.iki.fi>
- <20130115073225.GB14505@arwen.pp.htv.fi>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fdj2RfSjLxBAspz7"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46188 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756491Ab3AOIzp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jan 2013 03:55:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20130115073225.GB14505@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+From: Vivek Gautam <gautam.vivek@samsung.com>
+Subject: [PATCH] usb: dwc3: Remove dwc3 dependency on host AND gadget.
+Date: Tue, 15 Jan 2013 16:09:21 +0530
+Message-ID: <1358246361-16200-1-git-send-email-gautam.vivek@samsung.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gregkh@linuxfoundation.org, Doug Anderson <dianders@chromium.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---fdj2RfSjLxBAspz7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+DWC3 controller curretly depends on USB && USB_GADGET.
+Some hardware may like to use only host feature on dwc3,
+or only gadget feature.
+So, removing this dependency of USB_DWC3 on USB and USB_GADGET.
+Adding the mode of operaiton of DWC3 also here
+HOST/GADGET/DUAL_ROLE based on which features are enabled.
 
-Hi,
+Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+CC: Doug Anderson <dianders@chromium.org>
+---
 
-(quick parens here)
+This patch is outcome of discussion happened on:
+[PATCH RFC] usb: dwc3: Remove dwc3 dependency on gadget
+http://comments.gmane.org/gmane.linux.ports.arm.omap/91328
 
-I think n900's problems will go away if you add omap_i2c_wait_for_ardy()
-=66rom my patchset.
+Changes from RFC:
+        - Making both HOST as well as GADGET optional for dwc3.
+        - Adding mode of working of DWC3 controller here:
+          HOST/GADGET/DUAL_ROLE
+        - Build gadget related features for debugfs in dwc3_debugfs_init()
+          only with USB_DWC3_GADGET or USB_DWC3_DUAL_ROLE.
 
-On Tue, Jan 15, 2013 at 09:32:25AM +0200, Felipe Balbi wrote:
-> > [    4.281280] twl 1-0048: PIH (irq 23) chaining IRQs 338..346
-> > [    4.281433] twl 1-0048: power (irq 343) chaining IRQs 346..353
-> > [    4.281616] i2c i2c-1: master_xfer[0] W, addr=3D0x49, len=3D1
-> > [    4.281677] i2c i2c-1: master_xfer[1] R, addr=3D0x49, len=3D1
-> > [    4.281707] omap_i2c omap_i2c.1: addr: 0x0049, len: 1, flags: 0x0, s=
-top: 0
-> > [    4.281799] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-> > [    4.281829] omap_i2c omap_i2c.1: addr: 0x0049, len: 1, flags: 0x1, s=
-top: 1
-> > [    4.281921] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0008)
-> > [    4.296905] i2c i2c-1: master_xfer[0] W, addr=3D0x49, len=3D2
-> > [    4.296936] omap_i2c omap_i2c.1: addr: 0x0049, len: 2, flags: 0x0, s=
-top: 1
-> > [    4.296997] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-> > [    4.313476] twl4030_gpio twl4030_gpio: gpio (irq 338) chaining IRQs =
-354..371
-> >=20
-> > This log excerpt has only 3 transfers, but the time duration is already
-> > 10x longer compared to vanilla 3.8-rc3.
->=20
-> weird, there's nothing extremely expensive added by my patchset, I'll go
-> over them and try to figure out what's going on.
->=20
-> Thanks for notifying me about it.
+ drivers/usb/dwc3/Kconfig   |   31 +++++++++++++++++++++++++++++--
+ drivers/usb/dwc3/Makefile  |   10 ++++++++--
+ drivers/usb/dwc3/core.h    |   16 +++++++++++++++-
+ drivers/usb/dwc3/debugfs.c |    2 ++
+ 4 files changed, 54 insertions(+), 5 deletions(-)
 
-Here's from v3.8-rc3 vanilla (just added two small prints):
-
-[    1.688079] omap_i2c omap_i2c.1: addr: 0x0048, len: 1, flags: 0x0, stop:=
- 0
-[    1.688110] omap_i2c omap_i2c.1: starting transfer
-[    1.688140] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-[    1.688201] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0004)
-[    1.688232] omap_i2c omap_i2c.1: finishing transfer
-[    1.688232] omap_i2c omap_i2c.1: addr: 0x0048, len: 1, flags: 0x1, stop:=
- 1
-[    1.688262] omap_i2c omap_i2c.1: starting transfer
-[    1.688354] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0008)
-[    1.688354] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0004)
-[    1.688385] omap_i2c omap_i2c.1: finishing transfer
-[    1.688415] i2c i2c-1: master_xfer[0] W, addr=3D0x48, len=3D2
-[    1.688446] omap_i2c omap_i2c.1: addr: 0x0048, len: 2, flags: 0x0, stop:=
- 1
-[    1.688446] omap_i2c omap_i2c.1: starting transfer
-[    1.688476] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-[    1.688568] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0004)
-[    1.688598] omap_i2c omap_i2c.1: finishing transfer
-[    1.688629] i2c i2c-1: master_xfer[0] W, addr=3D0x48, len=3D1
-[    1.688659] i2c i2c-1: master_xfer[1] R, addr=3D0x48, len=3D6
-[    1.688659] omap_i2c omap_i2c.1: addr: 0x0048, len: 1, flags: 0x0, stop:=
- 0
-[    1.688690] omap_i2c omap_i2c.1: starting transfer
-[    1.688720] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-[    1.688781] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0004)
-[    1.688812] omap_i2c omap_i2c.1: finishing transfer
-[    1.688812] omap_i2c omap_i2c.1: addr: 0x0048, len: 6, flags: 0x1, stop:=
- 1
-
-and here's from my patchset:
-
-[    1.993865] omap_i2c omap_i2c.1: addr: 0x0049, len: 1, flags: 0x0, stop:=
- 0
-[    1.993896] omap_i2c omap_i2c.1: starting transfer
-[    1.993927] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-[    1.993957] omap_i2c omap_i2c.1: finished transfer
-[    1.993988] omap_i2c omap_i2c.1: addr: 0x0049, len: 1, flags: 0x1, stop:=
- 1
-[    1.993988] omap_i2c omap_i2c.1: starting transfer
-[    1.994079] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0008)
-[    1.994110] omap_i2c omap_i2c.1: finished transfer
-[    2.009490] i2c i2c-1: master_xfer[0] W, addr=3D0x49, len=3D2
-[    2.009490] omap_i2c omap_i2c.1: addr: 0x0049, len: 2, flags: 0x0, stop:=
- 1
-[    2.009521] omap_i2c omap_i2c.1: starting transfer
-[    2.009552] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-[    2.009582] omap_i2c omap_i2c.1: finished transfer
-[    2.025054] i2c i2c-1: master_xfer[0] W, addr=3D0x49, len=3D1
-[    2.025054] i2c i2c-1: master_xfer[1] R, addr=3D0x49, len=3D1
-[    2.025085] omap_i2c omap_i2c.1: addr: 0x0049, len: 1, flags: 0x0, stop:=
- 0
-[    2.025085] omap_i2c omap_i2c.1: starting transfer
-[    2.025146] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-[    2.025177] omap_i2c omap_i2c.1: finished transfer
-[    2.025177] omap_i2c omap_i2c.1: addr: 0x0049, len: 1, flags: 0x1, stop:=
- 1
-[    2.025207] omap_i2c omap_i2c.1: starting transfer
-[    2.025268] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0008)
-[    2.025329] omap_i2c omap_i2c.1: finished transfer
-[    2.040679] i2c i2c-1: master_xfer[0] W, addr=3D0x49, len=3D2
-[    2.040710] omap_i2c omap_i2c.1: addr: 0x0049, len: 2, flags: 0x0, stop:=
- 1
-[    2.040710] omap_i2c omap_i2c.1: starting transfer
-[    2.040771] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-[    2.040802] omap_i2c omap_i2c.1: finished transfer
-
-Looks like the transfer itself is faster with my patchset. I don't have
-an idea of what's causing extra delay, for whatever reason client driver
-seems to take longer to start more i2c transfers. I've added extra
-prints to see what's going on:
-
-
-| [    1.818725] omap_i2c omap_i2c.1: pm_runtime_get_sync()
-| [    1.818725] omap_i2c omap_i2c.1: omap_i2c_wait_for_bb()
-| [    1.818725] omap_i2c omap_i2c.1: omap_i2c_xfer_msg()
-| [    1.818756] omap_i2c omap_i2c.1: addr: 0x0048, len: 1, flags: 0x0, sto=
-p: 0
-| [    1.818756] omap_i2c omap_i2c.1: starting transfer
-| [    1.818786] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-| [    1.818847] omap_i2c omap_i2c.1: finished transfer
-| [    1.818847] omap_i2c omap_i2c.1: addr: 0x0048, len: 1, flags: 0x1, sto=
-p: 1
-| [    1.818847] omap_i2c omap_i2c.1: starting transfer
-| [    1.818939] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0008)
-| [    1.818969] omap_i2c omap_i2c.1: finished transfer
-| [    1.819000] omap_i2c omap_i2c.1: waiting for ARDY
-| [    1.819000] omap_i2c omap_i2c.1: ARDY
-| [    1.819000] omap_i2c omap_i2c.1: 2. omap_i2c_wait_for_bb()
-| [    1.819030] omap_i2c omap_i2c.1: pm_runtime_mark_last_busy()
-| [    1.819030] omap_i2c omap_i2c.1: return
-| [    1.819061] i2c i2c-1: master_xfer[0] W, addr=3D0x48, len=3D1
-| [    1.819061] i2c i2c-1: master_xfer[1] R, addr=3D0x48, len=3D1
-| [    1.819091] omap_i2c omap_i2c.1: pm_runtime_get_sync()
-| [    1.819091] omap_i2c omap_i2c.1: omap_i2c_wait_for_bb()
-| [    1.819122] omap_i2c omap_i2c.1: omap_i2c_xfer_msg()
-| [    1.819122] omap_i2c omap_i2c.1: addr: 0x0048, len: 1, flags: 0x0, sto=
-p: 0
-| [    1.819122] omap_i2c omap_i2c.1: starting transfer
-| [    1.819183] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-| [    1.819213] omap_i2c omap_i2c.1: finished transfer
-| [    1.819213] omap_i2c omap_i2c.1: addr: 0x0048, len: 1, flags: 0x1, sto=
-p: 1
-| [    1.819244] omap_i2c omap_i2c.1: starting transfer
-| [    1.819305] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0008)
-| [    1.819366] omap_i2c omap_i2c.1: finished transfer
-| [    1.819366] omap_i2c omap_i2c.1: waiting for ARDY
-| [    1.819366] omap_i2c omap_i2c.1: ARDY
-| [    1.819396] omap_i2c omap_i2c.1: 2. omap_i2c_wait_for_bb()
-| [    1.819396] omap_i2c omap_i2c.1: pm_runtime_mark_last_busy()
-| [    1.819396] omap_i2c omap_i2c.1: return
-| [    1.819427] i2c i2c-1: master_xfer[0] W, addr=3D0x48, len=3D1
-| [    1.819458] i2c i2c-1: master_xfer[1] R, addr=3D0x48, len=3D1
-| [    1.819458] omap_i2c omap_i2c.1: pm_runtime_get_sync()
-| [    1.819458] omap_i2c omap_i2c.1: omap_i2c_wait_for_bb()
-| [    1.819488] omap_i2c omap_i2c.1: omap_i2c_xfer_msg()
-| [    1.819488] omap_i2c omap_i2c.1: addr: 0x0048, len: 1, flags: 0x0, sto=
-p: 0
-| [    1.819519] omap_i2c omap_i2c.1: starting transfer
-| [    1.819549] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-| [    1.819580] omap_i2c omap_i2c.1: finished transfer
-| [    1.819580] omap_i2c omap_i2c.1: addr: 0x0048, len: 1, flags: 0x1, sto=
-p: 1
-| [    1.819610] omap_i2c omap_i2c.1: starting transfer
-| [    1.819671] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0008)
-| [    1.819732] omap_i2c omap_i2c.1: finished transfer
-| [    1.819732] omap_i2c omap_i2c.1: waiting for ARDY
-| [    1.819732] omap_i2c omap_i2c.1: ARDY
-| [    1.819763] omap_i2c omap_i2c.1: 2. omap_i2c_wait_for_bb()
-| [    1.819763] omap_i2c omap_i2c.1: pm_runtime_mark_last_busy()
-| [    1.819793] omap_i2c omap_i2c.1: return
-
-as you can see, from pm_runtime_get_sync() to return, the time spent is
-about the same in all cases (around 305us).
-
-one thing I note, however, is that after we start waiting for ARDY,
-there's no point in "omap_i2c_wait_for_bb()" since I only exit
-omap_i2c_xfer_msg() after all bytes have been unloaded on SDA line.
-
-Removing that saves some extra time (about 30us):
-
-[    1.751983] omap_i2c omap_i2c.1: pm_runtime_get_sync()
-[    1.751983] omap_i2c omap_i2c.1: omap_i2c_xfer_msg()
-[    1.751983] omap_i2c omap_i2c.1: addr: 0x0048, len: 1, flags: 0x0, stop:=
- 0
-[    1.752014] omap_i2c omap_i2c.1: starting transfer
-[    1.752044] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-[    1.752075] omap_i2c omap_i2c.1: finished transfer
-[    1.752105] omap_i2c omap_i2c.1: addr: 0x0048, len: 1, flags: 0x1, stop:=
- 1
-[    1.752105] omap_i2c omap_i2c.1: starting transfer
-[    1.752197] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0008)
-[    1.752227] omap_i2c omap_i2c.1: finished transfer
-[    1.752227] omap_i2c omap_i2c.1: waiting for ARDY
-[    1.752258] omap_i2c omap_i2c.1: ARDY
-[    1.752258] omap_i2c omap_i2c.1: pm_runtime_mark_last_busy()
-[    1.752258] omap_i2c omap_i2c.1: return
-[    1.752288] i2c i2c-1: master_xfer[0] W, addr=3D0x48, len=3D2
-[    1.752319] omap_i2c omap_i2c.1: pm_runtime_get_sync()
-[    1.752319] omap_i2c omap_i2c.1: omap_i2c_xfer_msg()
-[    1.752349] omap_i2c omap_i2c.1: addr: 0x0048, len: 2, flags: 0x0, stop:=
- 1
-[    1.752349] omap_i2c omap_i2c.1: starting transfer
-[    1.752380] omap_i2c omap_i2c.1: IRQ (ISR =3D 0x0010)
-[    1.752410] omap_i2c omap_i2c.1: finished transfer
-[    1.752441] omap_i2c omap_i2c.1: waiting for ARDY
-[    1.752441] omap_i2c omap_i2c.1: ARDY
-[    1.752471] omap_i2c omap_i2c.1: pm_runtime_mark_last_busy()
-[    1.752471] omap_i2c omap_i2c.1: return
-
-For whatever reason, in some cases client driver takes longer to
-initiate a transfer and I don't think there's anything we can do about
-that during boot up.
-
-Anyway, whenever I can see a big delay, it's always from "return" to the
-next "i2c i2c-1: master_xfer[0] W, addr=3D0x48, len=3D1" message.
-
---=20
-balbi
-
---fdj2RfSjLxBAspz7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQ9RmCAAoJEIaOsuA1yqRE5BwP/jVfyEVsONsi+nBt4fGa2+J0
-Z8QGzk9/mwqvlMTRct8tYrsmCg3cQzojOxkd2gWqlPxcDtuRi1ylyPFl8U8/XD0w
-keEhBZJMRfzz2kELRyQcOixToL2ZES3OqV+DMIOuSttQ2MU4Lzr8IZcMbfSStJv1
-txfFTffZtcJWhBEwwOfkygd+JJWAuT5R9xnysKiV+rhlRnp3o7bhTZue9YDS+2yW
-hqhprj0MWR5TnhvNiC1w52xGxqIu2cRigXiyc8pMY62sz1q2P2Um9t583LLh62s3
-A0CMzxn5h/iXyY3iz79QU7TMTYppBOhDhhtsYRjFnoHeIa/6G7E0GYFJbJhI6ulR
-qpCdcZHELE2el/OorkiraEcvo7/QPc7Qr2A62Yw9fgscXgAir9rFWTlG/OEIRYtU
-vvrWqr939ifNLZ7bWNmAClVBMmCLHAThlwjH1+1MOvEKE7smNOasESuQ2hTNaozQ
-gggWI1X4NLpYRlGJsd5/ot7jmrYuVl4zXLbG4o+XOBI6Y5FiXriJVNmbcnuRi9Qk
-OZuXcKXCqwDUFD2sMgBt4oG9IxhUbiMPK1IrK7QQuQ1beBV6j8O+btSzDnY9LC9S
-t9v8WZisi+rMQzRRP69bHuM2PZKvc/Acn28krpY+db7CnLZSkdMacCzG5eJX0sLq
-5xcuKtNtCz20w0/ILcq3
-=awS3
------END PGP SIGNATURE-----
-
---fdj2RfSjLxBAspz7--
+diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+index f6a6e07..418d058 100644
+--- a/drivers/usb/dwc3/Kconfig
++++ b/drivers/usb/dwc3/Kconfig
+@@ -1,6 +1,6 @@
+-config USB_DWC3
++menuconfig USB_DWC3
+ 	tristate "DesignWare USB3 DRD Core Support"
+-	depends on (USB && USB_GADGET)
++	depends on (USB || USB_GADGET)
+ 	select USB_OTG_UTILS
+ 	select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
+ 	help
+@@ -12,6 +12,33 @@ config USB_DWC3
+ 
+ if USB_DWC3
+ 
++choice
++	bool "DWC3 mode of working"
++	default USB_DWC3_DUAL_ROLE
++
++config USB_DWC3_HOST
++	bool "Host only mode"
++	depends on USB
++	help
++	  Select this when you want to use DWC3 in host mode only,
++	  thereby the gadget feature will be regressed.
++
++config USB_DWC3_GADGET
++	bool "Gadget only mode"
++	depends on USB_GADGET
++	help
++	  Select this when you want to use DWC3 in gadget mode only,
++	  thereby the host feature will be regressed.
++
++config USB_DWC3_DUAL_ROLE
++	bool "Dual role mode"
++	depends on (USB && USB_GADGET)
++	help
++	  This is the default mode of working of DWC3 controller where
++	  both host and gadget features are enabled.
++
++endchoice
++
+ config USB_DWC3_DEBUG
+ 	bool "Enable Debugging Messages"
+ 	help
+diff --git a/drivers/usb/dwc3/Makefile b/drivers/usb/dwc3/Makefile
+index 4502648..0c7ac92 100644
+--- a/drivers/usb/dwc3/Makefile
++++ b/drivers/usb/dwc3/Makefile
+@@ -4,8 +4,14 @@ ccflags-$(CONFIG_USB_DWC3_VERBOSE)	+= -DVERBOSE_DEBUG
+ obj-$(CONFIG_USB_DWC3)			+= dwc3.o
+ 
+ dwc3-y					:= core.o
+-dwc3-y					+= host.o
+-dwc3-y					+= gadget.o ep0.o
++
++ifneq ($(filter y,$(CONFIG_USB_DWC3_HOST) $(CONFIG_USB_DWC3_DUAL_ROLE)),)
++	dwc3-y				+= host.o
++endif
++
++ifneq ($(filter y,$(CONFIG_USB_DWC3_GADGET) $(CONFIG_USB_DWC3_DUAL_ROLE)),)
++	dwc3-y				+= gadget.o ep0.o
++endif
+ 
+ ifneq ($(CONFIG_DEBUG_FS),)
+ 	dwc3-y				+= debugfs.o
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index 5f79d9f..829b11b 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -864,10 +864,24 @@ union dwc3_event {
+ void dwc3_set_mode(struct dwc3 *dwc, u32 mode);
+ int dwc3_gadget_resize_tx_fifos(struct dwc3 *dwc);
+ 
++#if defined CONFIG_USB_DWC3_HOST || defined CONFIG_USB_DWC3_DUAL_ROLE
+ int dwc3_host_init(struct dwc3 *dwc);
+ void dwc3_host_exit(struct dwc3 *dwc);
+-
++#else
++static inline int dwc3_host_init(struct dwc3 *dwc)
++{ return 0; }
++static inline void dwc3_host_exit(struct dwc3 *dwc)
++{ }
++#endif
++
++#if defined CONFIG_USB_DWC3_GADGET || defined CONFIG_USB_DWC3_DUAL_ROLE
+ int dwc3_gadget_init(struct dwc3 *dwc);
+ void dwc3_gadget_exit(struct dwc3 *dwc);
++#else
++static inline int dwc3_gadget_init(struct dwc3 *dwc)
++{ return 0; }
++static inline void dwc3_gadget_exit(struct dwc3 *dwc)
++{ }
++#endif
+ 
+ #endif /* __DRIVERS_USB_DWC3_CORE_H */
+diff --git a/drivers/usb/dwc3/debugfs.c b/drivers/usb/dwc3/debugfs.c
+index d4a30f1..fc0af8b 100644
+--- a/drivers/usb/dwc3/debugfs.c
++++ b/drivers/usb/dwc3/debugfs.c
+@@ -673,6 +673,7 @@ int __devinit dwc3_debugfs_init(struct dwc3 *dwc)
+ 		goto err1;
+ 	}
+ 
++#if defined CONFIG_USB_DWC3_GADGET || defined CONFIG_USB_DWC3_DUAL_ROLE
+ 	file = debugfs_create_file("mode", S_IRUGO | S_IWUSR, root,
+ 			dwc, &dwc3_mode_fops);
+ 	if (!file) {
+@@ -693,6 +694,7 @@ int __devinit dwc3_debugfs_init(struct dwc3 *dwc)
+ 		ret = -ENOMEM;
+ 		goto err1;
+ 	}
++#endif
+ 
+ 	return 0;
+ 
+-- 
+1.7.6.5
