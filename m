@@ -1,54 +1,30 @@
-From: kishon <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 0/7] usb: musb: add driver for control module
-Date: Tue, 15 Jan 2013 20:09:22 +0530
-Message-ID: <50F56A1A.3040504@ti.com>
-References: <1358239378-10030-1-git-send-email-kishon@ti.com>
- <201301151341.08297.arnd@arndb.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH 1/7] drivers: usb: phy: add a new driver for usb part of control module
+Date: Tue, 15 Jan 2013 14:46:53 +0000
+Message-ID: <201301151446.53206.arnd@arndb.de>
+References: <1358239378-10030-1-git-send-email-kishon@ti.com> <201301151336.47546.arnd@arndb.de> <50F56697.9060803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <201301151341.08297.arnd-r2nGTMty4D4@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50F56697.9060803@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: kishon <kishon@ti.com>
+Cc: grant.likely@secretlab.ca, b-cousson@ti.com, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd,
+On Tuesday 15 January 2013, kishon wrote:
+> Good point :-). Currently, none of the OMAP platforms have multiple 
+> control modules and it doesn't seem to be in the future (AFAIK). While 
+> it might be simpler to support multiple control devices with phandle, it 
+> might face the same complications as faced by the USB PHY framework for 
+> non-dt boot.
+> 
 
-On Tuesday 15 January 2013 07:11 PM, Arnd Bergmann wrote:
-> On Tuesday 15 January 2013, Kishon Vijay Abraham I wrote:
->> Added a new driver for the usb part of control module. This has an API
->> to power on the USB2 phy and an API to write to the mailbox depending on
->> whether MUSB has to act in host mode or in device mode.
->>
->> Writing to control module registers for doing the above task which was
->> previously done in omap glue and in omap-usb2 phy is removed.
->>
->> Also added the dt data to get MUSB working in OMAP platforms.
->> This series has patches for both drivers and ARCH folders, so If it has to
->> be split I'll do it.
->>
->
-> The series looks good to me, I just had a minor comment on one patch.
->
-> One a somewhat related topic, I wonder whether there are any plans
-> on your side to change this driver to support multiple bus glues
-> to be built for one kernel image. With a multiplatform kernel, we
-> may need all of TUSB6010/OMAP2PLUS/DSPS/UX500 for instance.
+Maybe you can put the phandle into the binding then but don't use it
+until hardware actually requires it. If anything needs it, then we
+can always change the code later, but it's harder to change the
+binding.
 
-We don't have plans as of now. I actually don't expect any changes in 
-the driver other than the Kconfig changes. Anyways the probe of glue's 
-other than the platform it's running won't get called. right Felipe?
-
-Thanks
-Kishon
+	Arnd
