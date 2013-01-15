@@ -1,80 +1,91 @@
-From: "B, Ravi" <ravibabu@ti.com>
-Subject: RE: [RFC PATCH 0/7] usb: musb: add driver for control module
-Date: Tue, 15 Jan 2013 16:06:44 +0000
-Message-ID: <6C6B28D4DC342643927BEAFCE8707BF63EA5ACAB@DBDE01.ent.ti.com>
-References: <1358239378-10030-1-git-send-email-kishon@ti.com>
- <201301151341.08297.arnd@arndb.de> <50F56A1A.3040504@ti.com>
- <20130115150432.GB26272@arwen.pp.htv.fi>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH] ARM: AM33XX: clock: SET_RATE_PARENT in lcd path
+Date: Tue, 15 Jan 2013 08:16:29 -0800
+Message-ID: <20130115161629.23734.45853@quantum>
+References: <1358256897-26275-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130115150432.GB26272@arwen.pp.htv.fi>
-Content-Language: en-US
+In-Reply-To: <1358256897-26275-1-git-send-email-afzal@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "Cousson, Benoit" <b-cousson@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Afzal Mohammed <afzal@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-> Hi,
+Quoting Afzal Mohammed (2013-01-15 05:34:57)
+> LCDC clock node is a one that does not have set rate capability. It
+> just passes on the rate that is sent downstream by it's parent. While
+> lcdc clock parent and it's grand parent - dpll_disp_m2_ck and
+> dpll_disp_ck has the capability to configure rate.
 > 
-> On Tue, Jan 15, 2013 at 08:09:22PM +0530, kishon wrote:
-> > Hi Arnd,
-> > 
-> > On Tuesday 15 January 2013 07:11 PM, Arnd Bergmann wrote:
-> > >On Tuesday 15 January 2013, Kishon Vijay Abraham I wrote:
-> > >>Added a new driver for the usb part of control module. 
-> This has an 
-> > >>API to power on the USB2 phy and an API to write to the mailbox 
-> > >>depending on whether MUSB has to act in host mode or in 
-> device mode.
-> > >>
-> > >>Writing to control module registers for doing the above 
-> task which 
-> > >>was previously done in omap glue and in omap-usb2 phy is removed.
-> > >>
-> > >>Also added the dt data to get MUSB working in OMAP platforms.
-> > >>This series has patches for both drivers and ARCH 
-> folders, so If it 
-> > >>has to be split I'll do it.
-> > >>
-> > >
-> > >The series looks good to me, I just had a minor comment on 
-> one patch.
-> > >
-> > >One a somewhat related topic, I wonder whether there are 
-> any plans on 
-> > >your side to change this driver to support multiple bus 
-> glues to be 
-> > >built for one kernel image. With a multiplatform kernel, 
-> we may need 
-> > >all of TUSB6010/OMAP2PLUS/DSPS/UX500 for instance.
-> > 
-> > We don't have plans as of now. I actually don't expect any 
-> changes in 
-> > the driver other than the Kconfig changes. Anyways the 
-> probe of glue's 
-> > other than the platform it's running won't get called. right Felipe?
+> And the default rates provided by LCDC clock's ancestors are not
+> sufficient to obtain pixel clock for current LCDC use cases, hence
+> currently display would not work on AM335x SoC's (with driver
+> modifications in platfrom independent way).
+> 
+> Hence inform clock framework to propogate set rate for LCDC clock as
+> well as it's parent - dpll_disp_m2_ck. With this change, set rate on
+> LCDC clock would get propogated till dpll_disp_ck via dpll_disp_m2_ck,
+> hence allowing the driver (same driver is used in DaVinci too) to set
+> rates using LCDC clock without worrying about platform dependent clock
+> details.
+> 
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+> 
+> Based on v3.8-rc3
+> 
+>  arch/arm/mach-omap2/cclock33xx_data.c |    9 ++++++---
+>  1 file changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
+> index ea64ad6..b731216 100644
+> --- a/arch/arm/mach-omap2/cclock33xx_data.c
+> +++ b/arch/arm/mach-omap2/cclock33xx_data.c
+> @@ -284,9 +284,10 @@ DEFINE_STRUCT_CLK(dpll_disp_ck, dpll_core_ck_parents, dpll_ddr_ck_ops);
+>   * TODO: Add clksel here (sys_clkin, CORE_CLKOUTM6, PER_CLKOUTM2
+>   * and ALT_CLK1/2)
+>   */
+> -DEFINE_CLK_DIVIDER(dpll_disp_m2_ck, "dpll_disp_ck", &dpll_disp_ck, 0x0,
+> -                  AM33XX_CM_DIV_M2_DPLL_DISP, AM33XX_DPLL_CLKOUT_DIV_SHIFT,
+> -                  AM33XX_DPLL_CLKOUT_DIV_WIDTH, CLK_DIVIDER_ONE_BASED, NULL);
+> +DEFINE_CLK_DIVIDER(dpll_disp_m2_ck, "dpll_disp_ck", &dpll_disp_ck,
+> +                  CLK_SET_RATE_PARENT, AM33XX_CM_DIV_M2_DPLL_DISP,
+> +                  AM33XX_DPLL_CLKOUT_DIV_SHIFT, AM33XX_DPLL_CLKOUT_DIV_WIDTH,
+> +                  CLK_DIVIDER_ONE_BASED, NULL);
+>  
+>  /* DPLL_PER */
+>  static struct dpll_data dpll_per_dd = {
+> @@ -932,6 +933,8 @@ int __init am33xx_clk_init(void)
+>                 cpu_clkflg = CK_AM33XX;
+>         }
+>  
+> +       lcd_gclk.flags |= CLK_SET_RATE_PARENT;
+> +
 
-If understand correctly the control module driver used to configure the respective usb phy of SoC to respective usb modes using the common set of control module APIs. What if, if control module interface (register defintions) varies b/w different revision or spin of same type of SoCs, if usbphy type is changed. In this case whether the single instance of control module driver is good enough to cater of all cpu types of same SoC series ? 
-Whether cpu_is_xxx() can be used to differentiate b/w different cpu types in CM driver?
+Afzal,
 
-> 
-> AFAICT there's nothing preventing those from being built 
-> together as long as you don't use DMA (yeah, that's a touchy 
-> subject still with MUSB).
-> 
-> If there are any build breaks, please report them so bus glue 
-> owners can fix. I see that at least the davinci folks need to 
-> work a bit
-> 
-> $ git grep -e "mach\/" drivers/usb/musb/ 
-> drivers/usb/musb/da8xx.c:#include <mach/da8xx.h> 
-> drivers/usb/musb/davinci.c:#include <mach/cputype.h> 
-> drivers/usb/musb/davinci.c:#include <mach/hardware.h>
-> 
-> I'm adding Ravi B to the loop here for those.
+This is a bit hacky.  Someone looking at the definition of struct
+lcd_gclk above cannot easily tell that CLK_SET_RATE_PARENT is set below.
+Also if other clocks need flags set at a later date then this will
+become a big ugly block of flag setting.
+
+I hope to move away from these macros some day, but in the mean time it
+might be good to have a DEFINE_STRUCT_CLK_FLAGS macro which adds in an
+argument struct clk->flags.
+
+Paul, any thoughts on yet another macro?
+
+Thanks,
+Mike
+
+>         for (c = am33xx_clks; c < am33xx_clks + ARRAY_SIZE(am33xx_clks); c++) {
+>                 if (c->cpu & cpu_clkflg) {
+>                         clkdev_add(&c->lk);
+> -- 
+> 1.7.9.5
 > 
 > --
-> balbi
-> 
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
