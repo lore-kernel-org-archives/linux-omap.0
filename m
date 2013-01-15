@@ -1,83 +1,59 @@
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: Re: [PATCH 1/3] mtd: omap-onenand: pass device_node in platform data
-Date: Tue, 15 Jan 2013 19:48:56 -0300
-Message-ID: <CALF0-+Xpvn45ZXOawyFzkqMt5t7--CLZYhkr6RwRX7WWnqdnqw@mail.gmail.com>
-References: <1356307280-8323-1-git-send-email-ezequiel.garcia@free-electrons.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH] crypto: omap-sham - Fix compile errors when CONFIG_OF
+ not defined
+Date: Tue, 15 Jan 2013 16:36:35 -0700
+Message-ID: <20130115233635.GB527@animalcreek.com>
+References: <1358283182-29392-1-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f53.google.com ([209.85.215.53]:43054 "EHLO
-	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757677Ab3AOWs6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jan 2013 17:48:58 -0500
-Received: by mail-la0-f53.google.com with SMTP id fn20so727217lab.40
-        for <linux-omap@vger.kernel.org>; Tue, 15 Jan 2013 14:48:57 -0800 (PST)
-In-Reply-To: <1356307280-8323-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Received: from m1plsmtpa01-08.prod.mesa1.secureserver.net ([64.202.165.187]:41150
+	"EHLO m1plsmtpa01-08.prod.mesa1.secureserver.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932327Ab3AOXgg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Jan 2013 18:36:36 -0500
+Content-Disposition: inline
+In-Reply-To: <1358283182-29392-1-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, martinez.javier@gmail.com, zonque@gmail.com, grant.likely@secretlab.ca, eballetbo@gmail.com, matthias.bgg@googlemail.com, jon-hunter@ti.com, b-cousson@ti.com, Tony Lindgren <tony@atomide.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: herbert@gondor.apana.org.au
+Cc: davem@davemloft.net, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Artem,
-
-On Sun, Dec 23, 2012 at 9:01 PM, Ezequiel Garcia
-<ezequiel.garcia@free-electrons.com> wrote:
-> Pass an optional device_node pointer in the platform data,
-> which in turn will be put into a mtd_part_parser_data.
-> This way, code that sets up the platform devices can pass
-> along the node from DT so that the partitions can be parsed.
->
-> For non-DT boards, this change has no effect.
->
-> Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+On Tue, Jan 15, 2013 at 01:53:02PM -0700, Mark A. Greer wrote:
+> From: "Mark A. Greer" <mgreer@animalcreek.com>
+> 
+> Fix the compile errors created by commit 2545e8d
+> (crypto: omap-sham - Add Device Tree Support)
+> when CONFIG_OF is not defined.  This includes
+> changing omap_sham_get_res_dev() to omap_sham_get_res_of()
+> and creating an empty version of omap_sham_of_match[].
+> 
+> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 > ---
->  drivers/mtd/onenand/omap2.c                     |    4 +++-
->  include/linux/platform_data/mtd-onenand-omap2.h |    3 +++
->  2 files changed, 6 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-> index 065f3fe..eec2aed 100644
-> --- a/drivers/mtd/onenand/omap2.c
-> +++ b/drivers/mtd/onenand/omap2.c
-> @@ -637,6 +637,7 @@ static int omap2_onenand_probe(struct platform_device *pdev)
->         struct onenand_chip *this;
->         int r;
->         struct resource *res;
-> +       struct mtd_part_parser_data ppdata = {};
->
->         pdata = pdev->dev.platform_data;
->         if (pdata == NULL) {
-> @@ -767,7 +768,8 @@ static int omap2_onenand_probe(struct platform_device *pdev)
->         if ((r = onenand_scan(&c->mtd, 1)) < 0)
->                 goto err_release_regulator;
->
-> -       r = mtd_device_parse_register(&c->mtd, NULL, NULL,
-> +       ppdata.of_node = pdata->of_node;
-> +       r = mtd_device_parse_register(&c->mtd, NULL, &ppdata,
->                                       pdata ? pdata->parts : NULL,
->                                       pdata ? pdata->nr_parts : 0);
->         if (r)
-> diff --git a/include/linux/platform_data/mtd-onenand-omap2.h b/include/linux/platform_data/mtd-onenand-omap2.h
-> index 685af7e..e9a9fb1 100644
-> --- a/include/linux/platform_data/mtd-onenand-omap2.h
-> +++ b/include/linux/platform_data/mtd-onenand-omap2.h
-> @@ -29,5 +29,8 @@ struct omap_onenand_platform_data {
->         u8                      flags;
->         u8                      regulator_can_sleep;
->         u8                      skip_initial_unlocking;
+>  drivers/crypto/omap-sham.c | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+> index edff981..dc2d354 100644
+> --- a/drivers/crypto/omap-sham.c
+> +++ b/drivers/crypto/omap-sham.c
+> @@ -1607,7 +1607,11 @@ err:
+>  	return err;
+>  }
+>  #else
+> -static int omap_sham_get_res_dev(struct omap_sham_dev *dd,
+> +static const struct of_device_id omap_sham_of_match[] = {
+> +	{},
+> +};
 > +
-> +       /* for passing the partitions */
-> +       struct device_node      *of_node;
->  };
->  #endif
-> --
-> 1.7.8.6
->
+> +static int omap_sham_get_res_of(struct omap_sham_dev *dd,
+>  		struct device *dev, struct resource *res)
+>  {
+>  	return -EINVAL;
+> -- 
+> 1.7.12
 
-I saw you have acked the gpmc patch on nand.
-Can I add your Acked-by on this one, when I send the rebased patch set?
+I meant to add that this applies to the current cryptodev/master repo/branch.
 
-Thanks,
-
--- 
-    Ezequiel
+Mark
+--
