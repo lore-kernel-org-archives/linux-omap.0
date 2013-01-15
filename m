@@ -1,7 +1,7 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v3 06/10] video: da8xx-fb: store clk rate even if !CPUFREQ
-Date: Tue, 15 Jan 2013 19:02:09 +0530
-Message-ID: <564a1730402897cabc71d114b6272120641428bd.1358250489.git.afzal@ti.com>
+Subject: [PATCH v3 04/10] video: da8xx-fb: remove unneeded "var" initialization
+Date: Tue, 15 Jan 2013 19:01:55 +0530
+Message-ID: <03ef2f9478704988f0240b55da8243879ac579f3.1358250489.git.afzal@ti.com>
 References: <cover.1358250489.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -11,38 +11,53 @@ Sender: linux-kernel-owner@vger.kernel.org
 To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-store lcd clk rate always, i.e. irrespective of whether CPUFREQ is
-enabled or not. This can be used to get clk rate directly instead of
-enquiring with clock framework with clk handle every time.
+modedb helper now updates "var" information based on the detected
+panel, remove the unnecessary initialization.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/video/da8xx-fb.c |   22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index d060f14..f1d88ac 100644
+index a1f6544..18834fa 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -174,8 +174,8 @@ struct da8xx_fb_par {
- 	unsigned int		which_dma_channel_done;
- #ifdef CONFIG_CPU_FREQ
- 	struct notifier_block	freq_transition;
--	unsigned int		lcd_fck_rate;
- #endif
-+	unsigned int		lcd_fck_rate;
- 	void (*panel_power_ctrl)(int);
- 	u32 pseudo_palette[16];
- 	struct fb_videomode	mode;
-@@ -1302,9 +1302,7 @@ static int fb_probe(struct platform_device *device)
+@@ -131,10 +131,6 @@
  
- 	par = da8xx_fb_info->par;
- 	par->lcdc_clk = fb_clk;
--#ifdef CONFIG_CPU_FREQ
- 	par->lcd_fck_rate = clk_get_rate(fb_clk);
--#endif
- 	par->pxl_clk = lcdc_info->pixclock;
- 	if (fb_pdata->panel_power_ctrl) {
- 		par->panel_power_ctrl = fb_pdata->panel_power_ctrl;
+ #define WSI_TIMEOUT	50
+ #define PALETTE_SIZE	256
+-#define LEFT_MARGIN	64
+-#define RIGHT_MARGIN	64
+-#define UPPER_MARGIN	32
+-#define LOWER_MARGIN	32
+ 
+ static void __iomem *da8xx_fb_reg_base;
+ static struct resource *lcdc_regs;
+@@ -184,23 +180,7 @@ struct da8xx_fb_par {
+ 	u32 pseudo_palette[16];
+ };
+ 
+-/* Variable Screen Information */
+-static struct fb_var_screeninfo da8xx_fb_var = {
+-	.xoffset = 0,
+-	.yoffset = 0,
+-	.transp = {0, 0, 0},
+-	.nonstd = 0,
+-	.activate = 0,
+-	.height = -1,
+-	.width = -1,
+-	.accel_flags = 0,
+-	.left_margin = LEFT_MARGIN,
+-	.right_margin = RIGHT_MARGIN,
+-	.upper_margin = UPPER_MARGIN,
+-	.lower_margin = LOWER_MARGIN,
+-	.sync = 0,
+-	.vmode = FB_VMODE_NONINTERLACED
+-};
++static struct fb_var_screeninfo da8xx_fb_var;
+ 
+ static struct fb_fix_screeninfo da8xx_fb_fix = {
+ 	.id = "DA8xx FB Drv",
 -- 
 1.7.9.5
