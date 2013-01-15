@@ -1,68 +1,43 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v3 01/10] video: da8xx-fb: fb_check_var enhancement
-Date: Tue, 15 Jan 2013 19:01:36 +0530
-Message-ID: <4cc2a1179d24e067623b9516946e222b22d79f7e.1358250489.git.afzal@ti.com>
-References: <cover.1358250489.git.afzal@ti.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [RFC PATCH 1/7] drivers: usb: phy: add a new driver for usb part
+ of control module
+Date: Tue, 15 Jan 2013 13:36:47 +0000
+Message-ID: <201301151336.47546.arnd@arndb.de>
+References: <1358239378-10030-1-git-send-email-kishon@ti.com>
+ <1358239378-10030-2-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46288 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756877Ab3AONbH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Jan 2013 08:31:07 -0500
-In-Reply-To: <cover.1358250489.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1358239378-10030-2-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Check whether "struct fb_var_screeninfo" fields are sane, if not
-update it to be within allowed limits.
+On Tuesday 15 January 2013, Kishon Vijay Abraham I wrote:
+> +OMAP CONTROL USB
+> +
+> +Required properties:
+> + - compatible: Should be "ti,omap-control-usb"
+> + - reg : Address and length of the register set for the device. It contains
+> +   the address of "control_dev_conf" and "otghs_control".
+> + - reg-names: The names of the register addresses corresponding to the registers
+> +   filled in "reg".
+> + - ti,has_mailbox: This is used to specify if the platform uses mailbox in
+> +   control module.
 
-If user sends down buggy "var" values, this will bring those within
-allowable limits. And fb_set_par is not supposed to change "var"
-values, fb_check_var has to ensure that values are proper.
+I wonder whether we need to have a phandle here to connect the control device
+to the actual usb device. What happens if you have multiple instances of
+each?
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- drivers/video/da8xx-fb.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
-
-diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 0810939..d00dd17 100644
---- a/drivers/video/da8xx-fb.c
-+++ b/drivers/video/da8xx-fb.c
-@@ -888,6 +888,9 @@ static int fb_check_var(struct fb_var_screeninfo *var,
- 			struct fb_info *info)
- {
- 	int err = 0;
-+	struct da8xx_fb_par *par = info->par;
-+	int bpp = var->bits_per_pixel >> 3;
-+	unsigned long line_size = var->xres_virtual * bpp;
- 
- 	if (var->bits_per_pixel > 16 && lcd_revision == LCD_VERSION_1)
- 		return -EINVAL;
-@@ -955,6 +958,21 @@ static int fb_check_var(struct fb_var_screeninfo *var,
- 	var->green.msb_right = 0;
- 	var->blue.msb_right = 0;
- 	var->transp.msb_right = 0;
-+
-+	if (line_size * var->yres_virtual > par->vram_size)
-+		var->yres_virtual = par->vram_size / line_size;
-+
-+	if (var->yres > var->yres_virtual)
-+		var->yres = var->yres_virtual;
-+
-+	if (var->xres > var->xres_virtual)
-+		var->xres = var->xres_virtual;
-+
-+	if (var->xres + var->xoffset > var->xres_virtual)
-+		var->xoffset = var->xres_virtual - var->xres;
-+	if (var->yres + var->yoffset > var->yres_virtual)
-+		var->yoffset = var->yres_virtual - var->yres;
-+
- 	return err;
- }
- 
--- 
-1.7.9.5
-
+	Arnd
