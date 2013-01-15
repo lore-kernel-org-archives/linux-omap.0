@@ -1,75 +1,63 @@
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: Re: [PATCH v8 5/5] ARM: OMAP: gpmc: add DT bindings for GPMC timings
- and NAND
-Date: Tue, 15 Jan 2013 15:10:11 -0300
-Message-ID: <CALF0-+WpCc=291-thQz2=U_kBFztaq50j+U=Hm8C9ho3UZBejw@mail.gmail.com>
-References: <1355481404-27695-1-git-send-email-zonque@gmail.com>
-	<1355481404-27695-6-git-send-email-zonque@gmail.com>
-	<CALF0-+UbqFF17X1Ok1s1AGKg6SBmvMc1mvjVuZb=Ej7xo+qcmA@mail.gmail.com>
-	<20130114180602.GV14149@atomide.com>
-	<CACTFLAMT2-6VRkNSO3OF6X=afTYKRz=JcDkYqqyZ4VNT5xBVkw@mail.gmail.com>
-	<20130115180324.GZ14149@atomide.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH] dmaengine: omap-dma: Allow DMA controller to prefetch data
+Date: Tue, 15 Jan 2013 11:52:14 -0700
+Message-ID: <20130115185214.GA3165@animalcreek.com>
+References: <20121119163727.GB9758@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:62210 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697Ab3AOSKN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jan 2013 13:10:13 -0500
-Received: by mail-la0-f43.google.com with SMTP id eg20so468071lab.30
-        for <linux-omap@vger.kernel.org>; Tue, 15 Jan 2013 10:10:12 -0800 (PST)
-In-Reply-To: <20130115180324.GZ14149@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20121119163727.GB9758@animalcreek.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Daniel Mack <zonque@gmail.com>, Paul Walmsley <paul@pwsan.com>, x0148406@ti.com, Enric Balletbo Serra <eballetbo@gmail.com>, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, avinashphilip@ti.com, jon-hunter@ti.com, rob.herring@calxeda.com, Javier Martinez Canillas <martinez.javier@gmail.com>, linux-arm-kernel@lists.infradead.org, jacmet@sunsite.dk, grant.likely@secretlab.ca, linux-omap@vger.kernel.org
 
-On Tue, Jan 15, 2013 at 3:03 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Daniel Mack <zonque@gmail.com> [130114 15:30]:
->> On Jan 15, 2013 2:06 AM, "Tony Lindgren" <tony@atomide.com> wrote:
->> >
->> > * Ezequiel Garcia <elezegarcia@gmail.com> [121223 13:49]:
->> > > On Fri, Dec 14, 2012 at 7:36 AM, Daniel Mack <zonque@gmail.com> wrote:
->> > > > +
->> > > > +Example for an AM33xx board:
->> > > > +
->> > > > +       gpmc: gpmc@50000000 {
->> > > > +               compatible = "ti,am3352-gpmc";
->> > > > +               ti,hwmods = "gpmc";
->> > > > +               reg = <0x50000000 0x1000000>;
->> > > > +               interrupts = <100>;
->> > > > +               gpmc,num-cs = <8>;
->> > > > +               gpmc,num-waitpins = <2>;
->> > > > +               #address-cells = <2>;
->> > > > +               #size-cells = <1>;
->> > > > +               ranges = <0 0 0x08000000 0x2000>;       /* CS0: NAND
->> */
->> > > > +
->> > > > +               nand@0,0 {
->> > > > +                       reg = <0 0 0>; /* CS0, offset 0 */
->> > >
->> > > I'm a bit confused by this: what are the other two values in "reg"?
->> > > I see you've only added a binding for CS.
->> > >
->> > > I've extended a bit on your work and added a binding to enable OneNAND
->> > > device on my IGEP board.
->> > >
->> > > I might send some patches in case anyone wants to give it a try.
->> >
->> > Daniel, should this be updated to just pass the CS?
->>
->> No, as Rob pointed out earlier in a thread about this topic, the 'ranges'
->> feature will help doing the math for the offset calculation eventually, so
->> we need to pass all three values.
->
-> OK thanks. Applying this set into omap-for-v3.9/gpmc.
->
-> Also sounds like Ezequiel needs to update his follow up patches accordingly.
->
+On Mon, Nov 19, 2012 at 09:37:27AM -0700, Mark A. Greer wrote:
+> From: "Mark A. Greer" <mgreer@animalcreek.com>
+> =
 
-Ok, I'll do that anytime this week.
+> Enable DMA prefetching for non-cyclic DMAs by setting the
+> 'OMAP_DMA_DST_SYNC_PREFETCH' flag when there is a destination
+> synchronized DMA transfer.  Prefetching is not allowed on
+> source synchronized DMA transfers.  It is not allowed on
+> cyclic DMAs either since that can cause issues with some
+> users (e.g., suspending/resuming audio).
+> =
 
-Thanks,
+> CC: Russell King <rmk+kernel@arm.linux.org.uk>
+> CC: P=E9ter Ujfalusi <peter.ujfalusi@ti.com>
+> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+> ---
+>  drivers/dma/omap-dma.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> =
 
--- 
-    Ezequiel
+> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+> index bb2d8e7..3932eab 100644
+> --- a/drivers/dma/omap-dma.c
+> +++ b/drivers/dma/omap-dma.c
+> @@ -310,7 +310,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_=
+slave_sg(
+>  		dev_addr =3D c->cfg.dst_addr;
+>  		dev_width =3D c->cfg.dst_addr_width;
+>  		burst =3D c->cfg.dst_maxburst;
+> -		sync_type =3D OMAP_DMA_DST_SYNC;
+> +		sync_type =3D OMAP_DMA_DST_SYNC_PREFETCH;
+>  	} else {
+>  		dev_err(chan->device->dev, "%s: bad direction?\n", __func__);
+>  		return NULL;
+> -- =
+
+> 1.7.12
+
+Ping?
