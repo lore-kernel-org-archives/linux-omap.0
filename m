@@ -1,91 +1,68 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH] ARM: AM33XX: clock: SET_RATE_PARENT in lcd path
-Date: Tue, 15 Jan 2013 08:16:29 -0800
-Message-ID: <20130115161629.23734.45853@quantum>
-References: <1358256897-26275-1-git-send-email-afzal@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v8 5/5] ARM: OMAP: gpmc: add DT bindings for GPMC
+ timings and NAND
+Date: Tue, 15 Jan 2013 10:03:24 -0800
+Message-ID: <20130115180324.GZ14149@atomide.com>
+References: <1355481404-27695-1-git-send-email-zonque@gmail.com>
+ <1355481404-27695-6-git-send-email-zonque@gmail.com>
+ <CALF0-+UbqFF17X1Ok1s1AGKg6SBmvMc1mvjVuZb=Ej7xo+qcmA@mail.gmail.com>
+ <20130114180602.GV14149@atomide.com>
+ <CACTFLAMT2-6VRkNSO3OF6X=afTYKRz=JcDkYqqyZ4VNT5xBVkw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358256897-26275-1-git-send-email-afzal@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42604 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757020Ab3AOSDg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jan 2013 13:03:36 -0500
+Content-Disposition: inline
+In-Reply-To: <CACTFLAMT2-6VRkNSO3OF6X=afTYKRz=JcDkYqqyZ4VNT5xBVkw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>, x0148406@ti.com, Enric Balletbo Serra <eballetbo@gmail.com>, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, avinashphilip@ti.com, jon-hunter@ti.com, rob.herring@calxeda.com, Javier Martinez Canillas <martinez.javier@gmail.com>, linux-arm-kernel@lists.infradead.org, Ezequiel Garcia <elezegarcia@gmail.com>, jacmet@sunsite.dk, grant.likely@secretlab.ca, linux-omap@vger.kernel.org
 
-Quoting Afzal Mohammed (2013-01-15 05:34:57)
-> LCDC clock node is a one that does not have set rate capability. It
-> just passes on the rate that is sent downstream by it's parent. While
-> lcdc clock parent and it's grand parent - dpll_disp_m2_ck and
-> dpll_disp_ck has the capability to configure rate.
+* Daniel Mack <zonque@gmail.com> [130114 15:30]:
+> On Jan 15, 2013 2:06 AM, "Tony Lindgren" <tony@atomide.com> wrote:
+> >
+> > * Ezequiel Garcia <elezegarcia@gmail.com> [121223 13:49]:
+> > > On Fri, Dec 14, 2012 at 7:36 AM, Daniel Mack <zonque@gmail.com> wrote:
+> > > > +
+> > > > +Example for an AM33xx board:
+> > > > +
+> > > > +       gpmc: gpmc@50000000 {
+> > > > +               compatible = "ti,am3352-gpmc";
+> > > > +               ti,hwmods = "gpmc";
+> > > > +               reg = <0x50000000 0x1000000>;
+> > > > +               interrupts = <100>;
+> > > > +               gpmc,num-cs = <8>;
+> > > > +               gpmc,num-waitpins = <2>;
+> > > > +               #address-cells = <2>;
+> > > > +               #size-cells = <1>;
+> > > > +               ranges = <0 0 0x08000000 0x2000>;       /* CS0: NAND
+> */
+> > > > +
+> > > > +               nand@0,0 {
+> > > > +                       reg = <0 0 0>; /* CS0, offset 0 */
+> > >
+> > > I'm a bit confused by this: what are the other two values in "reg"?
+> > > I see you've only added a binding for CS.
+> > >
+> > > I've extended a bit on your work and added a binding to enable OneNAND
+> > > device on my IGEP board.
+> > >
+> > > I might send some patches in case anyone wants to give it a try.
+> >
+> > Daniel, should this be updated to just pass the CS?
 > 
-> And the default rates provided by LCDC clock's ancestors are not
-> sufficient to obtain pixel clock for current LCDC use cases, hence
-> currently display would not work on AM335x SoC's (with driver
-> modifications in platfrom independent way).
-> 
-> Hence inform clock framework to propogate set rate for LCDC clock as
-> well as it's parent - dpll_disp_m2_ck. With this change, set rate on
-> LCDC clock would get propogated till dpll_disp_ck via dpll_disp_m2_ck,
-> hence allowing the driver (same driver is used in DaVinci too) to set
-> rates using LCDC clock without worrying about platform dependent clock
-> details.
-> 
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> ---
-> 
-> Based on v3.8-rc3
-> 
->  arch/arm/mach-omap2/cclock33xx_data.c |    9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
-> index ea64ad6..b731216 100644
-> --- a/arch/arm/mach-omap2/cclock33xx_data.c
-> +++ b/arch/arm/mach-omap2/cclock33xx_data.c
-> @@ -284,9 +284,10 @@ DEFINE_STRUCT_CLK(dpll_disp_ck, dpll_core_ck_parents, dpll_ddr_ck_ops);
->   * TODO: Add clksel here (sys_clkin, CORE_CLKOUTM6, PER_CLKOUTM2
->   * and ALT_CLK1/2)
->   */
-> -DEFINE_CLK_DIVIDER(dpll_disp_m2_ck, "dpll_disp_ck", &dpll_disp_ck, 0x0,
-> -                  AM33XX_CM_DIV_M2_DPLL_DISP, AM33XX_DPLL_CLKOUT_DIV_SHIFT,
-> -                  AM33XX_DPLL_CLKOUT_DIV_WIDTH, CLK_DIVIDER_ONE_BASED, NULL);
-> +DEFINE_CLK_DIVIDER(dpll_disp_m2_ck, "dpll_disp_ck", &dpll_disp_ck,
-> +                  CLK_SET_RATE_PARENT, AM33XX_CM_DIV_M2_DPLL_DISP,
-> +                  AM33XX_DPLL_CLKOUT_DIV_SHIFT, AM33XX_DPLL_CLKOUT_DIV_WIDTH,
-> +                  CLK_DIVIDER_ONE_BASED, NULL);
->  
->  /* DPLL_PER */
->  static struct dpll_data dpll_per_dd = {
-> @@ -932,6 +933,8 @@ int __init am33xx_clk_init(void)
->                 cpu_clkflg = CK_AM33XX;
->         }
->  
-> +       lcd_gclk.flags |= CLK_SET_RATE_PARENT;
-> +
+> No, as Rob pointed out earlier in a thread about this topic, the 'ranges'
+> feature will help doing the math for the offset calculation eventually, so
+> we need to pass all three values.
 
-Afzal,
+OK thanks. Applying this set into omap-for-v3.9/gpmc.
 
-This is a bit hacky.  Someone looking at the definition of struct
-lcd_gclk above cannot easily tell that CLK_SET_RATE_PARENT is set below.
-Also if other clocks need flags set at a later date then this will
-become a big ugly block of flag setting.
+Also sounds like Ezequiel needs to update his follow up patches accordingly.
 
-I hope to move away from these macros some day, but in the mean time it
-might be good to have a DEFINE_STRUCT_CLK_FLAGS macro which adds in an
-argument struct clk->flags.
+Regards,
 
-Paul, any thoughts on yet another macro?
-
-Thanks,
-Mike
-
->         for (c = am33xx_clks; c < am33xx_clks + ARRAY_SIZE(am33xx_clks); c++) {
->                 if (c->cpu & cpu_clkflg) {
->                         clkdev_add(&c->lk);
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
