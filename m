@@ -1,7 +1,7 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v3 05/10] video: da8xx-fb: store current display information
-Date: Tue, 15 Jan 2013 19:02:03 +0530
-Message-ID: <92fd51db47d336228809626d54212a3703d174bf.1358250489.git.afzal@ti.com>
+Subject: [PATCH v3 08/10] video: da8xx-fb: store struct device *
+Date: Tue, 15 Jan 2013 19:02:22 +0530
+Message-ID: <772688fb6e53edec2d27bfeca4286b84721be68d.1358250489.git.afzal@ti.com>
 References: <cover.1358250489.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -11,41 +11,33 @@ Sender: linux-kernel-owner@vger.kernel.org
 To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-store current videomode and controller data so that reconfiguring can
-be done easily. Reconfiguring would be required in fb_set_par, which
-is going to be added soon.
-
-If these details are not stored, the work probe does to retrieve these
-information would have to repeated at the place of reconfiguring and
-modifying platform data would be necessary to handle controller data
-changes like bpp.
+store struct device pointer so that dev_dbg/err can be used outside
+of probe.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/video/da8xx-fb.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 18834fa..d060f14 100644
+index 7f08644..a5341d0 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -178,6 +178,8 @@ struct da8xx_fb_par {
- #endif
- 	void (*panel_power_ctrl)(int);
- 	u32 pseudo_palette[16];
-+	struct fb_videomode	mode;
-+	struct lcd_ctrl_config	cfg;
- };
+@@ -150,6 +150,7 @@ static inline void lcdc_write(unsigned int val, unsigned int addr)
+ }
  
- static struct fb_var_screeninfo da8xx_fb_var;
-@@ -1310,6 +1312,8 @@ static int fb_probe(struct platform_device *device)
+ struct da8xx_fb_par {
++	struct device		*dev;
+ 	resource_size_t p_palette_base;
+ 	unsigned char *v_palette_base;
+ 	dma_addr_t		vram_phys;
+@@ -1291,6 +1292,7 @@ static int fb_probe(struct platform_device *device)
  	}
  
- 	fb_videomode_to_var(&da8xx_fb_var, lcdc_info);
-+	fb_var_to_videomode(&par->mode, &da8xx_fb_var);
-+	par->cfg = *lcd_cfg;
- 
- 	if (lcd_init(par, lcd_cfg, lcdc_info) < 0) {
- 		dev_err(&device->dev, "lcd_init failed\n");
+ 	par = da8xx_fb_info->par;
++	par->dev = &device->dev;
+ 	par->lcdc_clk = fb_clk;
+ 	par->lcd_fck_rate = clk_get_rate(fb_clk);
+ 	if (fb_pdata->panel_power_ctrl) {
 -- 
 1.7.9.5
