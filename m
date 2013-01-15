@@ -1,42 +1,61 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: OMAP baseline test results for v3.8-rc3
-Date: Tue, 15 Jan 2013 09:16:39 +0100
-Message-ID: <50F51067.5090008@ti.com>
-References: <alpine.DEB.2.00.1301141756460.20390@utopia.booyaka.com>
+Subject: Re: [PATCH 00/10] MFD: twl-core: Cleanup part 2 for 3.9
+Date: Tue, 15 Jan 2013 09:20:50 +0100
+Message-ID: <50F51162.1080606@ti.com>
+References: <1356952171-6109-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58436 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753644Ab3AOIQq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Jan 2013 03:16:46 -0500
-In-Reply-To: <alpine.DEB.2.00.1301141756460.20390@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1356952171-6109-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chuansheng Liu <chuansheng.liu@intel.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Hi Paul,
+Hi Samuel,
 
-On 01/14/2013 06:59 PM, Paul Walmsley wrote:
-> Failing tests: needing investigation
-> ------------------------------------
+On 12/31/2012 12:09 PM, Peter Ujfalusi wrote:
+> Hello,
 >=20
-> Build tests:
->=20
-> * rmk_3430_ldp_allnoconfig, rmk_4430_sdp_allnoconfig: twl4030 build f=
-ailures
->   - in drivers/mfd/twl-core.c
+> Second part of the cleanup of twl-core which aims to make the code a =
+bit more
+> readable.
+> It has been tested on: OMAP4 PandaBoard, OMAP4 Blaze, OMAP3 BeagleBoa=
+rd, OMAP3
+> Zoom2.
 
-The following patch fixes these:
-https://lkml.org/lkml/2012/12/24/3
+I will resend the series since I need to add two more patches to avoid =
+build
+breakage in zoom2.
+
+>=20
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (10):
+>   mfd: twl-core: Clean up module id lookup and definitions
+>   mfd: twl-core: No need to check for invalid subchip ID
+>   mfd: twl-core: Use the lookup table to find the correct subchip for
+>     the modules
+>   mfd: twl-core: Allocate twl_modules dynamically
+>   mfd: twl-core: Do not try to call legacy mfd add_children() when
+>     booted with DT
+>   mfd: twl-core: Do not create dummy pdata when booted with DT
+>   mfd: twl-core: Move 'inuse' check early at probe time
+>   mfd: twl-core: Collect global variables behind one private structur=
+e
+>     (global)
+>   mfd: twl-core: Remove no longer valid comment regarding to write
+>     buffer size
+>   mfd: twl-core: Move twl_i2c_read/write_u8 to header as inline funct=
+ion
+>  drivers/mfd/twl-core.c  | 362 +++++++++++++++++++++-----------------=
+----------
+>  include/linux/i2c/twl.h |  84 +++++------
+>  2 files changed, 205 insertions(+), 241 deletions(-)
+>=20
 
 
 --=20
 P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
