@@ -1,63 +1,91 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] dmaengine: omap-dma: Allow DMA controller to prefetch data
-Date: Tue, 15 Jan 2013 11:52:14 -0700
-Message-ID: <20130115185214.GA3165@animalcreek.com>
-References: <20121119163727.GB9758@animalcreek.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v8 2/5] mtd: omap-nand: pass device_node in platform data
+Date: Tue, 15 Jan 2013 10:52:51 -0800
+Message-ID: <20130115185251.GB14149@atomide.com>
+References: <1355481404-27695-1-git-send-email-zonque@gmail.com>
+ <1355481404-27695-3-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20121119163727.GB9758@animalcreek.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>
+In-Reply-To: <1355481404-27695-3-git-send-email-zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Artem Bityutskiy <dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: x0148406-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, avinashphilip-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 19, 2012 at 09:37:27AM -0700, Mark A. Greer wrote:
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
-> =
+Artem,
 
-> Enable DMA prefetching for non-cyclic DMAs by setting the
-> 'OMAP_DMA_DST_SYNC_PREFETCH' flag when there is a destination
-> synchronized DMA transfer.  Prefetching is not allowed on
-> source synchronized DMA transfers.  It is not allowed on
-> cyclic DMAs either since that can cause issues with some
-> users (e.g., suspending/resuming audio).
-> =
+Looks like this patch related to making GPMC work with DT was
+never sent to linux-mtd or to you so adding to cc.
 
-> CC: Russell King <rmk+kernel@arm.linux.org.uk>
-> CC: P=E9ter Ujfalusi <peter.ujfalusi@ti.com>
-> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+Is this OK to apply along with the GPMC patches, or do you want to
+take this separately with the MTD patches?
+
+Regards,
+
+Tony
+
+* Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [121214 02:39]:
+> Pass an optional device_node pointer in the platform data, which in turn
+> will be put into a mtd_part_parser_data. This way, code that sets up the
+> platform devices can pass along the node from DT so that the partitions
+> can be parsed.
+> 
+> For non-DT boards, this change has no effect.
+> 
+> Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/dma/omap-dma.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> =
-
-> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-> index bb2d8e7..3932eab 100644
-> --- a/drivers/dma/omap-dma.c
-> +++ b/drivers/dma/omap-dma.c
-> @@ -310,7 +310,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_=
-slave_sg(
->  		dev_addr =3D c->cfg.dst_addr;
->  		dev_width =3D c->cfg.dst_addr_width;
->  		burst =3D c->cfg.dst_maxburst;
-> -		sync_type =3D OMAP_DMA_DST_SYNC;
-> +		sync_type =3D OMAP_DMA_DST_SYNC_PREFETCH;
->  	} else {
->  		dev_err(chan->device->dev, "%s: bad direction?\n", __func__);
->  		return NULL;
-> -- =
-
-> 1.7.12
-
-Ping?
+>  drivers/mtd/nand/omap2.c                     | 4 +++-
+>  include/linux/platform_data/mtd-nand-omap2.h | 4 +++-
+>  2 files changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 0002d5e..1d333497c 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -1332,6 +1332,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  	dma_cap_mask_t mask;
+>  	unsigned sig;
+>  	struct resource			*res;
+> +	struct mtd_part_parser_data	ppdata = {};
+>  
+>  	pdata = pdev->dev.platform_data;
+>  	if (pdata == NULL) {
+> @@ -1557,7 +1558,8 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  		goto out_release_mem_region;
+>  	}
+>  
+> -	mtd_device_parse_register(&info->mtd, NULL, NULL, pdata->parts,
+> +	ppdata.of_node = pdata->of_node;
+> +	mtd_device_parse_register(&info->mtd, NULL, &ppdata, pdata->parts,
+>  				  pdata->nr_parts);
+>  
+>  	platform_set_drvdata(pdev, &info->mtd);
+> diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+> index 24d32ca..6bf9ef4 100644
+> --- a/include/linux/platform_data/mtd-nand-omap2.h
+> +++ b/include/linux/platform_data/mtd-nand-omap2.h
+> @@ -60,6 +60,8 @@ struct omap_nand_platform_data {
+>  	int			devsize;
+>  	enum omap_ecc           ecc_opt;
+>  	struct gpmc_nand_regs	reg;
+> -};
+>  
+> +	/* for passing the partitions */
+> +	struct device_node	*of_node;
+> +};
+>  #endif
+> -- 
+> 1.7.11.7
+> 
