@@ -1,36 +1,107 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 10/12] video: da8xx-fb: ensure pdata only for non-dt
-Date: Tue, 15 Jan 2013 19:13:07 +0530
-Message-ID: <5ffb4ab8d7f0698e4235cf6b85f2f096c5256f04.1358251448.git.afzal@ti.com>
+From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 06/12] video: da8xx-fb: reorganize panel detection
+Date: Tue, 15 Jan 2013 19:12:34 +0530
+Message-ID: <08858a7cd96fd3a603316f7c09f3cb9232a4f0f8.1358251447.git.afzal@ti.com>
 References: <cover.1358251447.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1358251447.git.afzal@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <cover.1358251447.git.afzal-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Florian Tobias Schandinat <FlorianSchandinat-Mmb7MZpHnFY@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This driver is DT probe-able, hence ensure presence of platform data
-only for non-DT boot.
+Move panel detection to a separate function, this helps in readability
+as well as makes DT support cleaner.
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
 ---
- drivers/video/da8xx-fb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/da8xx-fb.c |   42 ++++++++++++++++++++++++++----------------
+ 1 file changed, 26 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 0c68712..1c1a616 100644
+index 3b146bc..b6ea5e9 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -1303,7 +1303,7 @@ static int fb_probe(struct platform_device *device)
- 	int ret;
+@@ -1253,6 +1253,27 @@ static struct fb_ops da8xx_fb_ops = {
+ 	.fb_blank = cfb_blank,
+ };
+ 
++static struct fb_videomode *da8xx_fb_get_videomode(struct platform_device *dev)
++{
++	struct da8xx_lcdc_platform_data *fb_pdata = dev->dev.platform_data;
++	struct fb_videomode *lcdc_info;
++	int i;
++
++	for (i = 0, lcdc_info = known_lcd_panels;
++		i < ARRAY_SIZE(known_lcd_panels); i++, lcdc_info++) {
++		if (strcmp(fb_pdata->type, lcdc_info->name) == 0)
++			break;
++	}
++
++	if (i == ARRAY_SIZE(known_lcd_panels)) {
++		dev_err(&dev->dev, "no panel found\n");
++		return NULL;
++	}
++	dev_info(&dev->dev, "found %s panel\n", lcdc_info->name);
++
++	return lcdc_info;
++}
++
+ static int fb_probe(struct platform_device *device)
+ {
+ 	struct da8xx_lcdc_platform_data *fb_pdata =
+@@ -1262,7 +1283,7 @@ static int fb_probe(struct platform_device *device)
+ 	struct fb_info *da8xx_fb_info;
+ 	struct clk *fb_clk = NULL;
+ 	struct da8xx_fb_par *par;
+-	int ret, i;
++	int ret;
  	unsigned long ulcm;
  
--	if (fb_pdata == NULL) {
-+	if (fb_pdata == NULL && !device->dev.of_node) {
- 		dev_err(&device->dev, "Can not get platform data\n");
+ 	if (fb_pdata == NULL) {
+@@ -1270,6 +1291,10 @@ static int fb_probe(struct platform_device *device)
  		return -ENOENT;
  	}
+ 
++	lcdc_info = da8xx_fb_get_videomode(device);
++	if (lcdc_info == NULL)
++		return -ENODEV;
++
+ 	lcdc_regs = platform_get_resource(device, IORESOURCE_MEM, 0);
+ 	da8xx_fb_reg_base = devm_request_and_ioremap(&device->dev, lcdc_regs);
+ 	if (!da8xx_fb_reg_base) {
+@@ -1303,21 +1328,6 @@ static int fb_probe(struct platform_device *device)
+ 		break;
+ 	}
+ 
+-	for (i = 0, lcdc_info = known_lcd_panels;
+-		i < ARRAY_SIZE(known_lcd_panels);
+-		i++, lcdc_info++) {
+-		if (strcmp(fb_pdata->type, lcdc_info->name) == 0)
+-			break;
+-	}
+-
+-	if (i == ARRAY_SIZE(known_lcd_panels)) {
+-		dev_err(&device->dev, "GLCD: No valid panel found\n");
+-		ret = -ENODEV;
+-		goto err_pm_runtime_disable;
+-	} else
+-		dev_info(&device->dev, "GLCD: Found %s panel\n",
+-					fb_pdata->type);
+-
+ 	lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
+ 
+ 	if (!lcd_cfg) {
 -- 
 1.7.9.5
