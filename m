@@ -1,66 +1,43 @@
-From: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 08/10] video: da8xx-fb: obtain fb_videomode info from dt
-Date: Tue, 15 Jan 2013 13:59:03 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA85B05@DBDE01.ent.ti.com>
-References: <cover.1357304090.git.afzal@ti.com>
- <78e026555731e0bbe8475610279d3e5265d124b9.1357304090.git.afzal@ti.com>
- <20130107091131.GC23478@pengutronix.de>
- <C8443D0743D26F4388EA172BF4E2A7A93EA7FC7A@DBDE01.ent.ti.com>
+From: kishon <kishon@ti.com>
+Subject: Re: [RFC PATCH 1/7] drivers: usb: phy: add a new driver for usb part
+ of control module
+Date: Tue, 15 Jan 2013 19:54:23 +0530
+Message-ID: <50F56697.9060803@ti.com>
+References: <1358239378-10030-1-git-send-email-kishon@ti.com> <1358239378-10030-2-git-send-email-kishon@ti.com> <201301151336.47546.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-15"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA7FC7A-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Steffen Trumtrar <s.trumtrar-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: "linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Florian Tobias Schandinat <FlorianSchandinat-Mmb7MZpHnFY@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori,
- Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "Valkeinen,
- Tomi" <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201301151336.47546.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: grant.likely@secretlab.ca, b-cousson@ti.com, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Steffen,
+Hi Arnd,
 
-On Mon, Jan 07, 2013 at 14:51:15, Mohammed, Afzal wrote:
-> On Mon, Jan 07, 2013 at 14:41:31, Steffen Trumtrar wrote:
-> > On Mon, Jan 07, 2013 at 10:41:30AM +0530, Afzal Mohammed wrote:
+On Tuesday 15 January 2013 07:06 PM, Arnd Bergmann wrote:
+> On Tuesday 15 January 2013, Kishon Vijay Abraham I wrote:
+>> +OMAP CONTROL USB
+>> +
+>> +Required properties:
+>> + - compatible: Should be "ti,omap-control-usb"
+>> + - reg : Address and length of the register set for the device. It contains
+>> +   the address of "control_dev_conf" and "otghs_control".
+>> + - reg-names: The names of the register addresses corresponding to the registers
+>> +   filled in "reg".
+>> + - ti,has_mailbox: This is used to specify if the platform uses mailbox in
+>> +   control module.
+>
+> I wonder whether we need to have a phandle here to connect the control device
+> to the actual usb device. What happens if you have multiple instances of
+> each?
 
-> > > +- display-timings: list of different videomodes supported by the lcd
-> > > +  panel, represented as childs, can have multiple modes supported, if
-> > > +  only one, then it is considered native mode, if multiple modes are
-> > > +  provided, native mode can be set explicitly, more details available
-> > > +  @Documentation/devicetree/bindings/video/display-timing.txt
-> 
-> > Keep in mind that the text combined with...
-> 
-> > > +		if (of_get_fb_videomode(np, lcdc_info, 0)) {
-> > > +			dev_err(&dev->dev, "timings not available in DT\n");
-> > > +			return NULL;
-> > > +		}
-> > > +		return lcdc_info;
-> > > +	}
-> > 
-> > ... this is not correct. You are just supporting the first display-timings
-> > subnode (of_get_fb_videomode(..., 0)).
-> 
-> 
-> Yes right, I will modify the text to reflect what the driver does.
+Good point :-). Currently, none of the OMAP platforms have multiple 
+control modules and it doesn't seem to be in the future (AFAIK). While 
+it might be simpler to support multiple control devices with phandle, it 
+might face the same complications as faced by the USB PHY framework for 
+non-dt boot.
 
-Thinking about it further, it seems the right thing to do
-in this case would be to invoke as,
-
-"of_get_fb_videomode(np, lcd_info, OF_USE_NATIVE_MODE)".
-
-Updated version has been posted to the lists (forgot to cc you)
-
-Regards
-Afzal
+Thanks
+Kishon
