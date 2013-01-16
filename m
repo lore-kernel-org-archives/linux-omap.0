@@ -1,132 +1,157 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 1/6] usb: otg: Add an API to bind the USB controller and PHY
-Date: Wed, 16 Jan 2013 20:30:57 +0530
-Message-ID: <1358348462-27693-2-git-send-email-kishon@ti.com>
+Subject: [RFC PATCH 5/6] usb: otg: add device tree support to otg library
+Date: Wed, 16 Jan 2013 20:31:01 +0530
+Message-ID: <1358348462-27693-6-git-send-email-kishon@ti.com>
 References: <1358348462-27693-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-sh-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1358348462-27693-1-git-send-email-kishon@ti.com>
-Sender: linux-sh-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, balbi@ti.com
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, horms@verge.net.au, magnus.damm@gmail.com, cbou@mail.ru, dwmw2@infradead.org, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, leoli@freescale.com, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, stern@rowland.harvard.edu, kishon@ti.com
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, horms@verge.net.au, magnus.damm@gmail.com, cbou@mail.ru, dwmw2@infradead.org, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, leoli@freescale.com, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, stern@rowland.harvard.edu, kishon@ti.com, Marc Kleine-Budde <mkl@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-New platforms are added which has multiple PHY's (of same type) and
-which has multiple USB controllers. The binding information has to be
-present in the PHY library (otg.c) in order for it to return the
-appropriate PHY whenever the USB controller request for the PHY. So
-added a new API to pass the binding information. This API should be
-called by platform specific initialization code.
+Added an API devm_usb_get_phy_by_phandle(), to get usb phy by passing a
+device node phandle value. This function will return a pointer to
+the phy on success, -EPROBE_DEFER if there is a device_node for the phandle,
+but the phy has not been added, or a ERR_PTR() otherwise.
 
+Cc: Marc Kleine-Budde <mkl@pengutronix.de>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/otg/otg.c   |   37 +++++++++++++++++++++++++++++++++++++
- include/linux/usb/phy.h |   22 ++++++++++++++++++++++
- 2 files changed, 59 insertions(+)
+ drivers/usb/otg/otg.c   |   77 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/usb/phy.h |    8 +++++
+ 2 files changed, 85 insertions(+)
 
 diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
-index a30c041..492ba2f 100644
+index dbf2043..e9799bb 100644
 --- a/drivers/usb/otg/otg.c
 +++ b/drivers/usb/otg/otg.c
-@@ -18,6 +18,7 @@
+@@ -13,7 +13,9 @@
+ #include <linux/export.h>
+ #include <linux/err.h>
+ #include <linux/device.h>
++#include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/of.h>
+ 
  #include <linux/usb/otg.h>
  
- static LIST_HEAD(phy_list);
-+static LIST_HEAD(phy_bind_list);
- static DEFINE_SPINLOCK(phy_lock);
- 
- static struct usb_phy *__usb_find_phy(struct list_head *list,
-@@ -201,6 +202,42 @@ void usb_remove_phy(struct usb_phy *x)
+@@ -34,6 +36,20 @@ static struct usb_phy *__usb_find_phy(struct device *dev, u8 index)
+ 	return ERR_PTR(-ENODEV);
  }
- EXPORT_SYMBOL(usb_remove_phy);
  
-+/**
-+ * usb_bind_phy - bind the phy and the controller that uses the phy
-+ * @dev_name: the device name of the device that will bind to the phy
-+ * @index: index to specify the port number
-+ * @phy_dev_name: the device name of the phy
-+ *
-+ * Fills the phy_bind structure with the dev_name and phy_dev_name. This will
-+ * be used when the phy driver registers the phy and when the controller
-+ * requests this phy.
-+ *
-+ * To be used by platform specific initialization code.
-+ */
-+struct usb_phy_bind __init *usb_bind_phy(const char *dev_name, u8 index,
-+				const char *phy_dev_name)
++static struct usb_phy *__of_usb_find_phy(struct device_node *node)
 +{
-+	struct usb_phy_bind *phy_bind;
-+	unsigned long flags;
++	struct usb_phy  *phy;
 +
-+	phy_bind = kzalloc(sizeof(*phy_bind), GFP_KERNEL);
-+	if (!phy_bind) {
-+		pr_err("phy_bind(): No memory for phy_bind");
++	list_for_each_entry(phy, &phy_list, head) {
++		if (node != phy->dev->of_node)
++			continue;
++
++		return phy;
++	}
++
++	return ERR_PTR(-ENODEV);
++}
++
+ static void devm_usb_phy_release(struct device *dev, void *res)
+ {
+ 	struct usb_phy *phy = *(struct usb_phy **)res;
+@@ -109,6 +125,67 @@ err0:
+ }
+ EXPORT_SYMBOL(usb_get_phy);
+ 
++ /**
++ * devm_usb_get_phy_by_phandle - find the USB PHY by phandle
++ * @dev - device that requests this phy
++ * @phandle - name of the property holding the phy phandle value
++ * @index - the index of the phy
++ *
++ * Returns the phy driver associated with the given phandle value,
++ * after getting a refcount to it, -ENODEV if there is no such phy or
++ * -EPROBE_DEFER if there is a phandle to the phy, but the device is
++ * not yet loaded. While at that, it also associates the device with
++ * the phy using devres. On driver detach, release function is invoked
++ * on the devres data, then, devres data is freed.
++ *
++ * For use by USB host and peripheral drivers.
++ */
++struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
++	const char *phandle, u8 index)
++{
++	struct usb_phy	*phy = NULL, **ptr;
++	unsigned long	flags;
++	struct device_node *node;
++
++	if (!dev->of_node) {
++		dev_dbg(dev, "device does not have a device node entry\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	node = of_parse_phandle(dev->of_node, phandle, index);
++	if (!node) {
++		dev_dbg(dev, "failed to get %s phandle in %s node\n", phandle,
++			dev->of_node->full_name);
++		return ERR_PTR(-ENODEV);
++	}
++
++	ptr = devres_alloc(devm_usb_phy_release, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr) {
++		dev_dbg(dev, "failed to allocate memory for devres\n");
 +		return ERR_PTR(-ENOMEM);
 +	}
 +
-+	phy_bind->dev_name = dev_name;
-+	phy_bind->phy_dev_name = phy_dev_name;
-+	phy_bind->index = index;
-+
 +	spin_lock_irqsave(&phy_lock, flags);
-+	list_add_tail(&phy_bind->list, &phy_bind_list);
++
++	phy = __of_usb_find_phy(node);
++	if (IS_ERR(phy) || !try_module_get(phy->dev->driver->owner)) {
++		phy = ERR_PTR(-EPROBE_DEFER);
++		devres_free(ptr);
++		goto err0;
++	}
++
++	*ptr = phy;
++	devres_add(dev, ptr);
++
++	get_device(phy->dev);
++
++err0:
 +	spin_unlock_irqrestore(&phy_lock, flags);
 +
-+	return phy_bind;
++	return phy;
 +}
-+EXPORT_SYMBOL_GPL(usb_bind_phy);
++EXPORT_SYMBOL(devm_usb_get_phy_by_phandle);
 +
- const char *otg_state_string(enum usb_otg_state state)
- {
- 	switch (state) {
+ /**
+  * devm_usb_put_phy - release the USB PHY
+  * @dev - device that wants to release this phy
 diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
-index a29ae1e..fbeab1a 100644
+index d133c8b..5836b6d 100644
 --- a/include/linux/usb/phy.h
 +++ b/include/linux/usb/phy.h
-@@ -106,6 +106,21 @@ struct usb_phy {
- 			enum usb_device_speed speed);
- };
- 
-+/**
-+ * struct usb_phy_bind - represent the binding for the phy
-+ * @dev_name: the device name of the device that will bind to the phy
-+ * @phy_dev_name: the device name of the phy
-+ * @index: used if a single controller uses multiple phys
-+ * @phy: reference to the phy
-+ * @list: to maintain a linked list of the binding information
-+ */
-+struct usb_phy_bind {
-+	const char	*dev_name;
-+	const char	*phy_dev_name;
-+	u8		index;
-+	struct usb_phy	*phy;
-+	struct list_head list;
-+};
- 
- /* for board-specific init logic */
- extern int usb_add_phy(struct usb_phy *, enum usb_phy_type type);
-@@ -151,6 +166,8 @@ extern struct usb_phy *devm_usb_get_phy(struct device *dev,
- 	enum usb_phy_type type);
+@@ -163,6 +163,8 @@ usb_phy_shutdown(struct usb_phy *x)
+ #ifdef CONFIG_USB_OTG_UTILS
+ extern struct usb_phy *usb_get_phy(struct device *dev, u8 index);
+ extern struct usb_phy *devm_usb_get_phy(struct device *dev, u8 index);
++extern struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
++	const char *phandle, u8 index);
  extern void usb_put_phy(struct usb_phy *);
  extern void devm_usb_put_phy(struct device *dev, struct usb_phy *x);
-+extern struct usb_phy_bind *usb_bind_phy(const char *dev_name, u8 index,
-+				const char *phy_dev_name);
- #else
- static inline struct usb_phy *usb_get_phy(enum usb_phy_type type)
- {
-@@ -171,6 +188,11 @@ static inline void devm_usb_put_phy(struct device *dev, struct usb_phy *x)
- {
+ extern struct usb_phy_bind *usb_bind_phy(const char *dev_name, u8 index,
+@@ -178,6 +180,12 @@ static inline struct usb_phy *devm_usb_get_phy(struct device *dev, u8 index)
+ 	return NULL;
  }
  
-+static inline struct usb_phy_bind *usb_bind_phy(const char *dev_name, u8 index,
-+				const char *phy_dev_name)
++static inline struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
++	const char *phandle, u8 index)
 +{
 +	return NULL;
 +}
- #endif
- 
- static inline int
++
+ static inline void usb_put_phy(struct usb_phy *x)
+ {
+ }
 -- 
 1.7.9.5
-
