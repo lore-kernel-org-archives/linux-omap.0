@@ -1,92 +1,67 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 0/6] USB: Add multiple PHYs of same type
-Date: Wed, 16 Jan 2013 20:30:56 +0530
-Message-ID: <1358348462-27693-1-git-send-email-kishon@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/3] mtd nand : onfi need to be probed in 8 bits mode
+Date: Wed, 16 Jan 2013 17:15:19 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301161713380.32170@utopia.booyaka.com>
+References: <1352199105-30215-1-git-send-email-matthieu.castet@parrot.com> <1354530053.30168.183.camel@sauron.fi.intel.com> <alpine.DEB.2.00.1212240023100.17282@utopia.booyaka.com> <50E40336.2080008@parrot.com> <alpine.DEB.2.00.1301031704460.8721@utopia.booyaka.com>
+ <50F6B904.5000600@parrot.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, balbi@ti.com
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, horms@verge.net.au, magnus.damm@gmail.com, cbou@mail.ru, dwmw2@infradead.org, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, leoli@freescale.com, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, stern@rowland.harvard.edu, kishon@ti.com
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1778857457-1358356505=:32170"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:32891 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756331Ab3APRPV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jan 2013 12:15:21 -0500
+In-Reply-To: <50F6B904.5000600@parrot.com>
+Content-ID: <alpine.DEB.2.00.1301161715140.32170@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthieu CASTET <matthieu.castet@parrot.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-New platforms are being added which has multiple PHY's (of same type) and
-which has multiple USB controllers. The binding information has to be
-present in the PHY library (otg.c) in order for it to return the
-appropriate PHY whenever the USB controller request for the PHY. So
-added a new API to pass the binding information. This API should be
-called by platform specific initialization code.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-So the binding should be done something like
-usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto"); specifying the USB
-controller device name, index, and the PHY device name.
-I have done this binding for OMAP platforms, but it should be done for
-all the platforms.
+--843723315-1778857457-1358356505=:32170
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1301161715141.32170@utopia.booyaka.com>
 
-After this design, the phy can be got by passing the USB controller device
-pointer and the index.
+Hi Matthieu,
 
-Developed this patch series on
-git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git xceiv
-after applying "usb: musb: add driver for control module" patch series.
+On Wed, 16 Jan 2013, Matthieu CASTET wrote:
 
-Did basic enumeration testing in omap4 panda, omap4 sdp and omap3 beagle.
+> Paul Walmsley a =E9crit :
+> > On Wed, 2 Jan 2013, Matthieu CASTET wrote:
+>=20
+> > .... which did not get merged because Tony requested that it should be=
+=20
+> > based on top of his cleanup work (which takes priority over adding new=
+=20
+> > features):
+> >=20
+> > http://thread.gmane.org/gmane.linux.ports.arm.omap/88550/focus=3D88549
+> >=20
+> > Could you please update this "omap3 nand : use NAND_BUSWIDTH_AUTO" patc=
+h=20
+> > on v3.8-rc2 and repost?
+>=20
+> Do you know when this patchset will be submited to mtd ?
+> I think I will wait it is merged in mtd and redo my patch after that.
 
-Kishon Vijay Abraham I (6):
-  usb: otg: Add an API to bind the USB controller and PHY
-  ARM: OMAP: USB: Add phy binding information
-  usb: otg: utils: change the phy lib to support multiple PHYs of same
-    type
-  ARM: dts: OMAP: Add phandle to bind PHY with USB controller
-  usb: otg: add device tree support to otg library
-  USB: MUSB: OMAP: get PHY by phandle for dt boot
+As far as I know, it was merged during the v3.8 merge window.  So it's=20
+already in mainline. =20
 
- Documentation/devicetree/bindings/usb/omap-usb.txt |    2 +
- arch/arm/boot/dts/omap3.dtsi                       |    1 +
- arch/arm/boot/dts/omap4.dtsi                       |    3 +-
- arch/arm/boot/dts/twl4030.dtsi                     |    2 +-
- arch/arm/mach-omap2/usb-musb.c                     |    7 +-
- arch/arm/mach-shmobile/board-marzen.c              |    2 +-
- drivers/power/ab8500_charger.c                     |    2 +-
- drivers/power/isp1704_charger.c                    |    2 +-
- drivers/power/pda_power.c                          |    2 +-
- drivers/power/twl4030_charger.c                    |    2 +-
- drivers/usb/chipidea/udc.c                         |    2 +-
- drivers/usb/dwc3/core.c                            |    4 +-
- drivers/usb/gadget/fsl_udc_core.c                  |    2 +-
- drivers/usb/gadget/mv_udc_core.c                   |    2 +-
- drivers/usb/gadget/omap_udc.c                      |    2 +-
- drivers/usb/gadget/pxa25x_udc.c                    |    2 +-
- drivers/usb/gadget/pxa27x_udc.c                    |    2 +-
- drivers/usb/gadget/s3c-hsudc.c                     |    2 +-
- drivers/usb/host/ehci-fsl.c                        |    2 +-
- drivers/usb/host/ehci-msm.c                        |    2 +-
- drivers/usb/host/ehci-mv.c                         |    2 +-
- drivers/usb/host/ehci-tegra.c                      |    2 +-
- drivers/usb/host/ohci-omap.c                       |    2 +-
- drivers/usb/musb/am35x.c                           |    2 +-
- drivers/usb/musb/blackfin.c                        |    2 +-
- drivers/usb/musb/da8xx.c                           |    2 +-
- drivers/usb/musb/davinci.c                         |    2 +-
- drivers/usb/musb/musb_dsps.c                       |    2 +-
- drivers/usb/musb/omap2430.c                        |    7 +-
- drivers/usb/musb/tusb6010.c                        |    2 +-
- drivers/usb/musb/ux500.c                           |    2 +-
- drivers/usb/otg/ab8500-usb.c                       |    3 +-
- drivers/usb/otg/fsl_otg.c                          |    5 +-
- drivers/usb/otg/gpio_vbus.c                        |    3 +-
- drivers/usb/otg/isp1301_omap.c                     |    3 +-
- drivers/usb/otg/msm_otg.c                          |    3 +-
- drivers/usb/otg/mv_otg.c                           |    3 +-
- drivers/usb/otg/nop-usb-xceiv.c                    |    3 +-
- drivers/usb/otg/otg.c                              |  175 ++++++++++++++++----
- drivers/usb/otg/twl4030-usb.c                      |    3 +-
- drivers/usb/phy/mv_u3d_phy.c                       |    3 +-
- drivers/usb/phy/omap-usb2.c                        |   11 +-
- drivers/usb/phy/rcar-phy.c                         |    3 +-
- include/linux/usb/phy.h                            |   42 ++++-
- 44 files changed, 245 insertions(+), 89 deletions(-)
+> >> For drivers that can't support ONFI, I don't know what to do.
+> >> May we should be replace the WARN_ON by a printk and early return.
+> >=20
+> > That sounds like a good idea to me.  The traceback seems excessive, sin=
+ce=20
+> > the NAND was usable before this series.
+> >=20
+> I submited a patch for doing that.
 
--- 
-1.7.9.5
+Thanks for doing this, it's much appreciated!
 
+
+- Paul
+--843723315-1778857457-1358356505=:32170--
