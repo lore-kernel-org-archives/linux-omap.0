@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 08/11] mfd: twl-core: Move 'inuse' check early at probe time
-Date: Wed, 16 Jan 2013 14:53:56 +0100
-Message-ID: <1358344439-23017-9-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 07/11] mfd: twl-core: Do not create dummy pdata when booted with DT
+Date: Wed, 16 Jan 2013 14:53:55 +0100
+Message-ID: <1358344439-23017-8-git-send-email-peter.ujfalusi@ti.com>
 References: <1358344439-23017-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,44 +12,75 @@ To: Samuel Ortiz <sameo@linux.intel.com>
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We can fail earlier in case multiple instance of the twl-core is tried to
-be loaded.
-The twl-core by design only supports one instance.
+When booted with DT we can manage without the dummy pdata.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/mfd/twl-core.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/mfd/twl-core.c | 31 +++++++------------------------
+ 1 file changed, 7 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 547fed5..1827088 100644
+index 86cca9e..547fed5 100644
 --- a/drivers/mfd/twl-core.c
 +++ b/drivers/mfd/twl-core.c
-@@ -1170,6 +1170,12 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		return -EINVAL;
- 	}
+@@ -1165,6 +1165,11 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	int				status;
+ 	unsigned			i, num_slaves;
  
-+	if (inuse) {
-+		dev_dbg(&client->dev, "only one instance of %s allowed\n",
-+			DRIVER_NAME);
-+		return -EBUSY;
++	if (!node && !pdata) {
++		dev_err(&client->dev, "no platform data\n");
++		return -EINVAL;
 +	}
 +
  	pdev = platform_device_alloc(DRIVER_NAME, -1);
  	if (!pdev) {
  		dev_err(&client->dev, "can't alloc pdev\n");
-@@ -1188,12 +1194,6 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		goto free;
+@@ -1177,28 +1182,6 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		return status;
  	}
  
--	if (inuse) {
--		dev_dbg(&client->dev, "driver is already in use\n");
--		status = -EBUSY;
+-	if (node && !pdata) {
+-		/*
+-		 * XXX: Temporary pdata until the information is correctly
+-		 * retrieved by every TWL modules from DT.
+-		 */
+-		pdata = devm_kzalloc(&client->dev,
+-				     sizeof(struct twl4030_platform_data),
+-				     GFP_KERNEL);
+-		if (!pdata) {
+-			status = -ENOMEM;
+-			goto free;
+-		}
+-	}
+-
+-	if (!pdata) {
+-		dev_dbg(&client->dev, "no platform data?\n");
+-		status = -EINVAL;
 -		goto free;
 -	}
 -
- 	if ((id->driver_data) & TWL6030_CLASS) {
- 		twl_id = TWL6030_CLASS_ID;
- 		twl_map = &twl6030_map[0];
+-	platform_set_drvdata(pdev, pdata);
+-
+ 	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C) == 0) {
+ 		dev_dbg(&client->dev, "can't talk I2C?\n");
+ 		status = -EIO;
+@@ -1264,7 +1247,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	inuse = true;
+ 
+ 	/* setup clock framework */
+-	clocks_init(&pdev->dev, pdata->clock);
++	clocks_init(&pdev->dev, pdata ? pdata->clock : NULL);
+ 
+ 	/* read TWL IDCODE Register */
+ 	if (twl_id == TWL4030_CLASS_ID) {
+@@ -1273,7 +1256,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	}
+ 
+ 	/* load power event scripts */
+-	if (IS_ENABLED(CONFIG_TWL4030_POWER) && pdata->power)
++	if (IS_ENABLED(CONFIG_TWL4030_POWER) && pdata && pdata->power)
+ 		twl4030_power_init(pdata->power);
+ 
+ 	/* Maybe init the T2 Interrupt subsystem */
 -- 
 1.8.1
