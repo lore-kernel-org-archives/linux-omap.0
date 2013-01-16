@@ -1,75 +1,78 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v2 12/12] video: da8xx-fb: set upstream clock rate (if
- reqd)
-Date: Wed, 16 Jan 2013 10:32:10 +0530
-Message-ID: <50F63452.1060004@ti.com>
-References: <cover.1358251447.git.afzal@ti.com> <26e787b021cda89a080f80657c2094b9ff2decaf.1358251448.git.afzal@ti.com> <20130115153222.23734.7924@quantum>
+From: kishon <kishon@ti.com>
+Subject: Re: [RFC PATCH 0/7] usb: musb: add driver for control module
+Date: Wed, 16 Jan 2013 11:31:32 +0530
+Message-ID: <50F6423C.2020307@ti.com>
+References: <1358239378-10030-1-git-send-email-kishon@ti.com> <201301151341.08297.arnd@arndb.de> <50F56A1A.3040504@ti.com> <20130115150432.GB26272@arwen.pp.htv.fi> <6C6B28D4DC342643927BEAFCE8707BF63EA5ACAB@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130115153222.23734.7924@quantum>
+In-Reply-To: <6C6B28D4DC342643927BEAFCE8707BF63EA5ACAB@DBDE01.ent.ti.com>
 Sender: linux-doc-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Afzal Mohammed <afzal@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "B, Ravi" <ravibabu@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "Cousson, Benoit" <b-cousson@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 1/15/2013 9:02 PM, Mike Turquette wrote:
-> Quoting Afzal Mohammed (2013-01-15 05:44:36)
->> LCDC IP has a clock divider to adjust pixel clock, this limits pixel
->> clock range to fck/255 - fck/2(fck - rate of input clock to LCDC IP).
->> In the case of AM335x, where this IP is present, default fck is not
->> sufficient to provide normal pixel clock rates, hence rendering this
->> driver unusable on AM335x.
+Hi Ravi,
+
+On Tuesday 15 January 2013 09:36 PM, B, Ravi wrote:
+>> Hi,
 >>
->> If input clock too is configurable, allowable range of pixel clock
->> would increase. Here initially it is checked whether with present fck,
->> divider in IP could be configured to obtain required rate, if not,
->> fck is adjusted. This makes it usable on AM335x.
->>
->> Note:
->> A better (if allowable) solution may be to represent clock divider in
->> LCDC IP as a basic divider clock - the one defined in common clock
->> framework. But for this to happen, all the platform's using this driver
->> should be using common clock framework (DaVinci is yet to be converted
->> to use common clock framework). And it has to be determined whether
->> common clock framework allows this kind of a clock modelling inside a
->> driver and for this to be part of clock tree. Advantage of doing so
->> would be better resolution for pixel clock, even though without this
->> existing use cases are working properly. Or another extreme alternative
->> would be to replicate clk-divider of common clock framework inside the
->> driver, but that probably is not preferred and not worth as it would be
->> duplication and without much advantage to existing users.
->>
-> 
-> Afzal,
-> 
-> Modeling the divider inside your IP block as a clock is supported in the
-> common clock framework.  Linking up these sorts of clocks to the clock
-> tree was one of the original design goals of CCF.
-> 
-> Regarding DaVinci: converting that platform over to use CCF would be the
-> best approach.
+>> On Tue, Jan 15, 2013 at 08:09:22PM +0530, kishon wrote:
+>>> Hi Arnd,
+>>>
+>>> On Tuesday 15 January 2013 07:11 PM, Arnd Bergmann wrote:
+>>>> On Tuesday 15 January 2013, Kishon Vijay Abraham I wrote:
+>>>>> Added a new driver for the usb part of control module.
+>> This has an
+>>>>> API to power on the USB2 phy and an API to write to the mailbox
+>>>>> depending on whether MUSB has to act in host mode or in
+>> device mode.
+>>>>>
+>>>>> Writing to control module registers for doing the above
+>> task which
+>>>>> was previously done in omap glue and in omap-usb2 phy is removed.
+>>>>>
+>>>>> Also added the dt data to get MUSB working in OMAP platforms.
+>>>>> This series has patches for both drivers and ARCH
+>> folders, so If it
+>>>>> has to be split I'll do it.
+>>>>>
+>>>>
+>>>> The series looks good to me, I just had a minor comment on
+>> one patch.
+>>>>
+>>>> One a somewhat related topic, I wonder whether there are
+>> any plans on
+>>>> your side to change this driver to support multiple bus
+>> glues to be
+>>>> built for one kernel image. With a multiplatform kernel,
+>> we may need
+>>>> all of TUSB6010/OMAP2PLUS/DSPS/UX500 for instance.
+>>>
+>>> We don't have plans as of now. I actually don't expect any
+>> changes in
+>>> the driver other than the Kconfig changes. Anyways the
+>> probe of glue's
+>>> other than the platform it's running won't get called. right Felipe?
+>
+> If understand correctly the control module driver used to configure the respective usb phy of SoC to respective usb modes using the common set of control module APIs.
+What if, if control module interface (register defintions) varies b/w 
+different revision or spin of same type of SoCs, if usbphy type is changed.
+Well in that case, we can write to the registers based on the IP 
+revision check (I think thats the common practice to do).
 
-This is work in progress. There are patches that have been posted. Work
-has been slow on this though due to lack of bandwidth.
+In this case whether the single instance of control module driver is 
+good enough to cater of all cpu types of same SoC series ?
+Of course. I don't see why we can't have the same driver to handle 
+different versions of the same IP.
+The only reason where we might need multiple instance is if the SoC have 
+multiple control module which Arnd already pointed out.
 
-> An alternative would be that you could break
-> single-image boot for AM335x and DaVinci, by having AM335x use CCF and
-> DaVinci use the legacy clock framework.  From the LCDC driver's
+> Whether cpu_is_xxx() can be used to differentiate b/w different cpu types in CM driver?
+Not needed at all IMHO. We can use revision register to differentiate.
 
-Single image for DaVinci and AM335x is not possible anyway since ARMv5
-and ARMv6+ cannot be supported in a single image.
+Btw I think Felipe looped you for a different reason ;-)
 
-> perspective this should not matter and is indeed the purpose of the
-> clk.h api and clkdev interfaces, however looking at this driver I can
-> see there would still be a lot ifdef-ery going on... better to just
-> convert everything over to CCF.
-
-Waiting for DaVinci CCF to complete will be too long a wait. Probably
-convert to CCF just for AM335x ATM. There would be some ifdef'ry but
-hopefully that need not be inside function bodies. Would have to see the
-implementation, I guess.
-
-Thanks,
-Sekhar
+Thanks
+Kishon
