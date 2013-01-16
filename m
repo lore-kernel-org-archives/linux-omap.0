@@ -1,59 +1,268 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 01/11] ARM: OMAP: zoom-display: Remove the use of TWL4030_MODULE_PWM1
-Date: Wed, 16 Jan 2013 14:53:49 +0100
-Message-ID: <1358344439-23017-2-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 09/11] mfd: twl-core: Collect global variables behind one private structure (global)
+Date: Wed, 16 Jan 2013 14:53:57 +0100
+Message-ID: <1358344439-23017-10-git-send-email-peter.ujfalusi@ti.com>
 References: <1358344439-23017-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54806 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751914Ab3APNyN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Jan 2013 08:54:13 -0500
 In-Reply-To: <1358344439-23017-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Samuel Ortiz <sameo@linux.intel.com>
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-Use the future proof TWL_MODULE_PWM module id instead to aim the twl-core
-cleanup planed for 3.9 kernel cycle.
+Gather the global variables under a single structure and allocate it with
+devm_kzalloc(). It is easier to see them and if in the future we try to add
+support for multiple instance of twl in the system it is going to be much
+simpler.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-zoom-display.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/mfd/twl-core.c | 104 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 57 insertions(+), 47 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-zoom-display.c b/arch/arm/mach-omap2/board-zoom-display.c
-index 1c7c834..8cef477 100644
---- a/arch/arm/mach-omap2/board-zoom-display.c
-+++ b/arch/arm/mach-omap2/board-zoom-display.c
-@@ -49,13 +49,13 @@ static void zoom_panel_disable_lcd(struct omap_dss_device *dssdev)
- {
- }
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 1827088..e2895a4 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -141,33 +141,28 @@
  
--/*
-- * PWMA/B register offsets (TWL4030_MODULE_PWMA)
-- */
-+/* Register offsets in TWL4030_MODULE_INTBR */
- #define TWL_INTBR_PMBR1	0xD
- #define TWL_INTBR_GPBR1	0xC
--#define TWL_LED_PWMON	0x0
--#define TWL_LED_PWMOFF	0x1
+ /*----------------------------------------------------------------------*/
+ 
+-/* is driver active, bound to a chip? */
+-static bool inuse;
+-
+-/* TWL IDCODE Register value */
+-static u32 twl_idcode;
+-
+-static unsigned int twl_id;
+-unsigned int twl_rev(void)
+-{
+-	return twl_id;
+-}
+-EXPORT_SYMBOL(twl_rev);
+-
+ /* Structure for each TWL4030/TWL6030 Slave */
+ struct twl_client {
+ 	struct i2c_client *client;
+ 	struct regmap *regmap;
+ };
+ 
+-static struct twl_client *twl_modules;
+-
+ /* mapping the module id to slave id and base address */
+ struct twl_mapping {
+ 	unsigned char sid;	/* Slave ID */
+ 	unsigned char base;	/* base address */
+ };
+-static struct twl_mapping *twl_map;
 +
-+/* Register offsets in TWL_MODULE_PWM */
-+#define TWL_LED_PWMON	0x3
-+#define TWL_LED_PWMOFF	0x4
++struct twl_private {
++	bool ready; /* The core driver is ready to be used */
++	u32 twl_idcode; /* TWL IDCODE Register value */
++	unsigned int twl_id;
++
++	struct twl_mapping *twl_map;
++	struct twl_client *twl_modules;
++};
++
++static struct twl_private *twl_priv;
  
- static int zoom_set_bl_intensity(struct omap_dss_device *dssdev, int level)
- {
-@@ -93,8 +93,8 @@ static int zoom_set_bl_intensity(struct omap_dss_device *dssdev, int level)
+ static struct twl_mapping twl4030_map[] = {
+ 	/*
+@@ -300,6 +295,12 @@ static inline int twl_get_last_module(void)
+ 
+ /* Exported Functions */
+ 
++unsigned int twl_rev(void)
++{
++	return twl_priv ? twl_priv->twl_id : 0;
++}
++EXPORT_SYMBOL(twl_rev);
++
+ /**
+  * twl_i2c_write - Writes a n bit register in TWL4030/TWL5030/TWL60X0
+  * @mod_no: module number
+@@ -322,16 +323,17 @@ int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+ 		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
+ 		return -EPERM;
+ 	}
+-	if (unlikely(!inuse)) {
++	if (unlikely(!twl_priv->ready)) {
+ 		pr_err("%s: not initialized\n", DRIVER_NAME);
+ 		return -EPERM;
  	}
  
- 	c = ((50 * (100 - level)) / 100) + 1;
--	twl_i2c_write_u8(TWL4030_MODULE_PWM1, 0x7F, TWL_LED_PWMOFF);
--	twl_i2c_write_u8(TWL4030_MODULE_PWM1, c, TWL_LED_PWMON);
-+	twl_i2c_write_u8(TWL_MODULE_PWM, 0x7F, TWL_LED_PWMOFF);
-+	twl_i2c_write_u8(TWL_MODULE_PWM, c, TWL_LED_PWMON);
- #else
- 	pr_warn("Backlight not enabled\n");
- #endif
+-	sid = twl_map[mod_no].sid;
+-	twl = &twl_modules[sid];
++	sid = twl_priv->twl_map[mod_no].sid;
++	twl = &twl_priv->twl_modules[sid];
+ 
+-	ret = regmap_bulk_write(twl->regmap, twl_map[mod_no].base + reg,
+-				value, num_bytes);
++	ret = regmap_bulk_write(twl->regmap,
++				twl_priv->twl_map[mod_no].base + reg, value,
++				num_bytes);
+ 
+ 	if (ret)
+ 		pr_err("%s: Write failed (mod %d, reg 0x%02x count %d)\n",
+@@ -360,16 +362,17 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+ 		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
+ 		return -EPERM;
+ 	}
+-	if (unlikely(!inuse)) {
++	if (unlikely(!twl_priv->ready)) {
+ 		pr_err("%s: not initialized\n", DRIVER_NAME);
+ 		return -EPERM;
+ 	}
+ 
+-	sid = twl_map[mod_no].sid;
+-	twl = &twl_modules[sid];
++	sid = twl_priv->twl_map[mod_no].sid;
++	twl = &twl_priv->twl_modules[sid];
+ 
+-	ret = regmap_bulk_read(twl->regmap, twl_map[mod_no].base + reg,
+-			       value, num_bytes);
++	ret = regmap_bulk_read(twl->regmap,
++			       twl_priv->twl_map[mod_no].base + reg, value,
++			       num_bytes);
+ 
+ 	if (ret)
+ 		pr_err("%s: Read failed (mod %d, reg 0x%02x count %d)\n",
+@@ -425,7 +428,7 @@ static int twl_read_idcode_register(void)
+ 		goto fail;
+ 	}
+ 
+-	err = twl_i2c_read(TWL4030_MODULE_INTBR, (u8 *)(&twl_idcode),
++	err = twl_i2c_read(TWL4030_MODULE_INTBR, (u8 *)(&twl_priv->twl_idcode),
+ 						REG_IDCODE_7_0, 4);
+ 	if (err) {
+ 		pr_err("TWL4030: unable to read IDCODE -%d\n", err);
+@@ -446,7 +449,7 @@ fail:
+  */
+ int twl_get_type(void)
+ {
+-	return TWL_SIL_TYPE(twl_idcode);
++	return TWL_SIL_TYPE(twl_priv->twl_idcode);
+ }
+ EXPORT_SYMBOL_GPL(twl_get_type);
+ 
+@@ -457,7 +460,7 @@ EXPORT_SYMBOL_GPL(twl_get_type);
+  */
+ int twl_get_version(void)
+ {
+-	return TWL_SIL_REV(twl_idcode);
++	return TWL_SIL_REV(twl_priv->twl_idcode);
+ }
+ EXPORT_SYMBOL_GPL(twl_get_version);
+ 
+@@ -506,8 +509,8 @@ add_numbered_child(unsigned mod_no, const char *name, int num,
+ 		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
+ 		return ERR_PTR(-EPERM);
+ 	}
+-	sid = twl_map[mod_no].sid;
+-	twl = &twl_modules[sid];
++	sid = twl_priv->twl_map[mod_no].sid;
++	twl = &twl_priv->twl_modules[sid];
+ 
+ 	pdev = platform_device_alloc(name, num);
+ 	if (!pdev) {
+@@ -1143,13 +1146,13 @@ static int twl_remove(struct i2c_client *client)
+ 
+ 	num_slaves = twl_get_num_slaves();
+ 	for (i = 0; i < num_slaves; i++) {
+-		struct twl_client	*twl = &twl_modules[i];
++		struct twl_client	*twl = &twl_priv->twl_modules[i];
+ 
+ 		if (twl->client && twl->client != client)
+ 			i2c_unregister_device(twl->client);
+-		twl_modules[i].client = NULL;
++		twl->client = NULL;
+ 	}
+-	inuse = false;
++	twl_priv->ready = false;
+ 	return 0;
+ }
+ 
+@@ -1170,7 +1173,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (inuse) {
++	if (twl_priv) {
+ 		dev_dbg(&client->dev, "only one instance of %s allowed\n",
+ 			DRIVER_NAME);
+ 		return -EBUSY;
+@@ -1194,31 +1197,38 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		goto free;
+ 	}
+ 
++	twl_priv = devm_kzalloc(&client->dev, sizeof(struct twl_private),
++				GFP_KERNEL);
++	if (!twl_priv) {
++		status = -ENOMEM;
++		goto free;
++	}
++
+ 	if ((id->driver_data) & TWL6030_CLASS) {
+-		twl_id = TWL6030_CLASS_ID;
+-		twl_map = &twl6030_map[0];
++		twl_priv->twl_id = TWL6030_CLASS_ID;
++		twl_priv->twl_map = &twl6030_map[0];
+ 		/* The charger base address is different in twl6025 */
+ 		if ((id->driver_data) & TWL6025_SUBCLASS)
+-			twl_map[TWL_MODULE_MAIN_CHARGE].base =
++			twl_priv->twl_map[TWL_MODULE_MAIN_CHARGE].base =
+ 							TWL6025_BASEADD_CHARGER;
+ 		twl_regmap_config = twl6030_regmap_config;
+ 	} else {
+-		twl_id = TWL4030_CLASS_ID;
+-		twl_map = &twl4030_map[0];
++		twl_priv->twl_id = TWL4030_CLASS_ID;
++		twl_priv->twl_map = &twl4030_map[0];
+ 		twl_regmap_config = twl4030_regmap_config;
+ 	}
+ 
+ 	num_slaves = twl_get_num_slaves();
+-	twl_modules = devm_kzalloc(&client->dev,
+-				   sizeof(struct twl_client) * num_slaves,
+-				   GFP_KERNEL);
+-	if (!twl_modules) {
++	twl_priv->twl_modules = devm_kzalloc(&client->dev,
++					 sizeof(struct twl_client) * num_slaves,
++					 GFP_KERNEL);
++	if (!twl_priv->twl_modules) {
+ 		status = -ENOMEM;
+ 		goto free;
+ 	}
+ 
+ 	for (i = 0; i < num_slaves; i++) {
+-		struct twl_client *twl = &twl_modules[i];
++		struct twl_client *twl = &twl_priv->twl_modules[i];
+ 
+ 		if (i == 0) {
+ 			twl->client = client;
+@@ -1244,13 +1254,13 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		}
+ 	}
+ 
+-	inuse = true;
++	twl_priv->ready = true;
+ 
+ 	/* setup clock framework */
+ 	clocks_init(&pdev->dev, pdata ? pdata->clock : NULL);
+ 
+ 	/* read TWL IDCODE Register */
+-	if (twl_id == TWL4030_CLASS_ID) {
++	if (twl_class_is_4030()) {
+ 		status = twl_read_idcode_register();
+ 		WARN(status < 0, "Error: reading twl_idcode register value\n");
+ 	}
 -- 
 1.8.1
+
