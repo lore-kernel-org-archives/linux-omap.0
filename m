@@ -1,105 +1,65 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 4/6] ARM: dts: OMAP: Add phandle to bind PHY with USB
- controller
-Date: Wed, 16 Jan 2013 20:31:00 +0530
-Message-ID: <1358348462-27693-5-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [RFC PATCH 2/6] ARM: OMAP: USB: Add phy binding information
+Date: Wed, 16 Jan 2013 20:30:58 +0530
+Message-ID: <1358348462-27693-3-git-send-email-kishon@ti.com>
 References: <1358348462-27693-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1358348462-27693-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, balbi@ti.com
-Cc: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, gregkh@linuxfoundation.org, magnus.damm@gmail.com, rob.herring@calxeda.com, kishon@ti.com, grant.likely@secretlab.ca, cbou@mail.ru, alexander.shishkin@linux.intel.com, horms@verge.net.au, stern@rowland.harvard.edu, haojian.zhuang@gmail.com, rob@landley.net, eric.y.miao@gmail.com, leoli@freescale.com, dwmw2@infradead.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1358348462-27693-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, cbou-JGs/UdohzUI@public.gmane.org, alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Added a phandle in the dt node for usb_otg to bind the PHY with the USB
-controller and also updated the documentation with the binding information.
+This is in preparation for the changes in PHY library to support adding
+and getting multiple PHYs of the same type. In the new design, the
+binding information between the PHY and the USB controller should be
+specified in the platform specific initialization code. So it's been
+done for OMAP platforms here.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
-I'll add this patch in this series "usb: musb: add driver for control module"
-which contains the dt data to get MUSB working in dt boot in OMAP platforms.
- Documentation/devicetree/bindings/usb/omap-usb.txt |    2 ++
- arch/arm/boot/dts/omap3.dtsi                       |    1 +
- arch/arm/boot/dts/omap4.dtsi                       |    3 ++-
- arch/arm/boot/dts/twl4030.dtsi                     |    2 +-
- 4 files changed, 6 insertions(+), 2 deletions(-)
+This kind-of binding should be done in all the platforms (I've done only
+for OMAP platform). 
+ arch/arm/mach-omap2/usb-musb.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-index 3f0152b..591c4fc 100644
---- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-@@ -18,6 +18,7 @@ OMAP MUSB GLUE
-    represents PERIPHERAL.
-  - power : Should be "50". This signifies the controller can supply upto
-    100mA when operating in host mode.
-+ - usb_phy : the phandle for the PHY device
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 9d27e3f..bbe2fa5 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -24,6 +24,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/io.h>
+ #include <linux/usb/musb.h>
++#include <linux/usb/phy.h>
  
- SOC specific device node entry
- usb_otg_hs: usb_otg_hs@4a0ab000 {
-@@ -27,6 +28,7 @@ usb_otg_hs: usb_otg_hs@4a0ab000 {
- 	multipoint = <1>;
- 	num_eps = <16>;
- 	ram_bits = <12>;
-+	usb_phy = <&phy>;
- };
+ #include "omap_device.h"
+ #include "soc.h"
+@@ -85,8 +86,12 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+ 	musb_plat.mode = board_data->mode;
+ 	musb_plat.extvbus = board_data->extvbus;
  
- Board specific device node entry
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 8d03736..ebbf596 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -404,6 +404,7 @@
- 			interrupts = <0 92 0x4>, <0 93 0x4>;
- 			interrupt-names = "mc", "dma";
- 			ti,hwmods = "usb_otg_hs";
-+			usb_phy = <&phy>;
- 			multipoint = <1>;
- 			num_eps = <16>;
- 			ram_bits = <12>;
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 5d770be..531cb2d 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -438,7 +438,7 @@
- 			#size-cells = <1>;
- 			ranges;
- 			ti,hwmods = "ocp2scp_usb_phy";
--			usb2phy@4a0ad080 {
-+			phy: usb2phy@4a0ad080 {
- 				compatible = "ti,omap-usb2";
- 				reg = <0x4a0ad080 0x58>;
- 			};
-@@ -540,6 +540,7 @@
- 			interrupts = <0 92 0x4>, <0 93 0x4>;
- 			interrupt-names = "mc", "dma";
- 			ti,hwmods = "usb_otg_hs";
-+			usb_phy = <&phy>;
- 			multipoint = <1>;
- 			num_eps = <16>;
- 			ram_bits = <12>;
-diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-index ed0bc95..80f7c2b 100644
---- a/arch/arm/boot/dts/twl4030.dtsi
-+++ b/arch/arm/boot/dts/twl4030.dtsi
-@@ -67,7 +67,7 @@
- 		#interrupt-cells = <1>;
- 	};
+-	if (cpu_is_omap44xx())
++	if (cpu_is_omap44xx()) {
+ 		musb_plat.has_mailbox = true;
++		usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
++	} else if (cpu_is_omap34xx()) {
++		usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	}
  
--	twl4030-usb {
-+	phy: twl4030-usb {
- 		compatible = "ti,twl4030-usb";
- 		interrupts = <10>, <4>;
- 		usb1v5-supply = <&vusb1v5>;
+ 	if (soc_is_am35xx()) {
+ 		oh_name = "am35x_otg_hs";
 -- 
 1.7.9.5
