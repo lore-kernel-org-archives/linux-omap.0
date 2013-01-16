@@ -1,59 +1,75 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] crypto: omap-sham - Fix compile errors when CONFIG_OF
- not defined
-Date: Tue, 15 Jan 2013 16:36:35 -0700
-Message-ID: <20130115233635.GB527@animalcreek.com>
-References: <1358283182-29392-1-git-send-email-mgreer@animalcreek.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v2 12/12] video: da8xx-fb: set upstream clock rate (if
+ reqd)
+Date: Wed, 16 Jan 2013 10:32:10 +0530
+Message-ID: <50F63452.1060004@ti.com>
+References: <cover.1358251447.git.afzal@ti.com> <26e787b021cda89a080f80657c2094b9ff2decaf.1358251448.git.afzal@ti.com> <20130115153222.23734.7924@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from m1plsmtpa01-08.prod.mesa1.secureserver.net ([64.202.165.187]:41150
-	"EHLO m1plsmtpa01-08.prod.mesa1.secureserver.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932327Ab3AOXgg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Jan 2013 18:36:36 -0500
-Content-Disposition: inline
-In-Reply-To: <1358283182-29392-1-git-send-email-mgreer@animalcreek.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130115153222.23734.7924@quantum>
+Sender: linux-doc-owner@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Afzal Mohammed <afzal@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: herbert@gondor.apana.org.au
-Cc: davem@davemloft.net, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jan 15, 2013 at 01:53:02PM -0700, Mark A. Greer wrote:
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
+On 1/15/2013 9:02 PM, Mike Turquette wrote:
+> Quoting Afzal Mohammed (2013-01-15 05:44:36)
+>> LCDC IP has a clock divider to adjust pixel clock, this limits pixel
+>> clock range to fck/255 - fck/2(fck - rate of input clock to LCDC IP).
+>> In the case of AM335x, where this IP is present, default fck is not
+>> sufficient to provide normal pixel clock rates, hence rendering this
+>> driver unusable on AM335x.
+>>
+>> If input clock too is configurable, allowable range of pixel clock
+>> would increase. Here initially it is checked whether with present fck,
+>> divider in IP could be configured to obtain required rate, if not,
+>> fck is adjusted. This makes it usable on AM335x.
+>>
+>> Note:
+>> A better (if allowable) solution may be to represent clock divider in
+>> LCDC IP as a basic divider clock - the one defined in common clock
+>> framework. But for this to happen, all the platform's using this driver
+>> should be using common clock framework (DaVinci is yet to be converted
+>> to use common clock framework). And it has to be determined whether
+>> common clock framework allows this kind of a clock modelling inside a
+>> driver and for this to be part of clock tree. Advantage of doing so
+>> would be better resolution for pixel clock, even though without this
+>> existing use cases are working properly. Or another extreme alternative
+>> would be to replicate clk-divider of common clock framework inside the
+>> driver, but that probably is not preferred and not worth as it would be
+>> duplication and without much advantage to existing users.
+>>
 > 
-> Fix the compile errors created by commit 2545e8d
-> (crypto: omap-sham - Add Device Tree Support)
-> when CONFIG_OF is not defined.  This includes
-> changing omap_sham_get_res_dev() to omap_sham_get_res_of()
-> and creating an empty version of omap_sham_of_match[].
+> Afzal,
 > 
-> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
-> ---
->  drivers/crypto/omap-sham.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+> Modeling the divider inside your IP block as a clock is supported in the
+> common clock framework.  Linking up these sorts of clocks to the clock
+> tree was one of the original design goals of CCF.
 > 
-> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-> index edff981..dc2d354 100644
-> --- a/drivers/crypto/omap-sham.c
-> +++ b/drivers/crypto/omap-sham.c
-> @@ -1607,7 +1607,11 @@ err:
->  	return err;
->  }
->  #else
-> -static int omap_sham_get_res_dev(struct omap_sham_dev *dd,
-> +static const struct of_device_id omap_sham_of_match[] = {
-> +	{},
-> +};
-> +
-> +static int omap_sham_get_res_of(struct omap_sham_dev *dd,
->  		struct device *dev, struct resource *res)
->  {
->  	return -EINVAL;
-> -- 
-> 1.7.12
+> Regarding DaVinci: converting that platform over to use CCF would be the
+> best approach.
 
-I meant to add that this applies to the current cryptodev/master repo/branch.
+This is work in progress. There are patches that have been posted. Work
+has been slow on this though due to lack of bandwidth.
 
-Mark
---
+> An alternative would be that you could break
+> single-image boot for AM335x and DaVinci, by having AM335x use CCF and
+> DaVinci use the legacy clock framework.  From the LCDC driver's
+
+Single image for DaVinci and AM335x is not possible anyway since ARMv5
+and ARMv6+ cannot be supported in a single image.
+
+> perspective this should not matter and is indeed the purpose of the
+> clk.h api and clkdev interfaces, however looking at this driver I can
+> see there would still be a lot ifdef-ery going on... better to just
+> convert everything over to CCF.
+
+Waiting for DaVinci CCF to complete will be too long a wait. Probably
+convert to CCF just for AM335x ATM. There would be some ifdef'ry but
+hopefully that need not be inside function bodies. Would have to see the
+implementation, I guess.
+
+Thanks,
+Sekhar
