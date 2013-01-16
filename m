@@ -1,72 +1,129 @@
-From: Roger Quadros <rogerq@ti.com>
+From: NeilBrown <neilb@suse.de>
 Subject: Re: Help wanted with USB and OMAP3 off_mode
-Date: Wed, 16 Jan 2013 12:00:48 +0200
-Message-ID: <50F67A50.5020203@ti.com>
+Date: Wed, 16 Jan 2013 21:19:27 +1100
+Message-ID: <20130116211927.42195d3b@notabene.brown>
 References: <20130109092915.1c2077b5@notabene.brown>
+	<50ED3FA5.9030905@compulab.co.il>
+	<20130109211931.0e00db5d@notabene.brown>
+	<50ED4549.6080802@amarulasolutions.com>
+	<20130109223456.7832c2bd@notabene.brown>
+	<50ED5DBE.4000107@amarulasolutions.com>
+	<50ED6868.1080900@compulab.co.il>
+	<20130116182606.5249db0c@notabene.brown>
+	<50F672A2.6010500@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46146 "EHLO arroyo.ext.ti.com"
+Received: from cantor2.suse.de ([195.135.220.15]:42039 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757534Ab3APKBd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Jan 2013 05:01:33 -0500
-In-Reply-To: <20130109092915.1c2077b5@notabene.brown>
+	id S1758710Ab3APKTj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Jan 2013 05:19:39 -0500
+In-Reply-To: <50F672A2.6010500@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Michael Trimarchi <michael@amarulasolutions.com>, linux-omap@vger.kernel.org
 
-On 01/09/2013 12:29 AM, NeilBrown wrote:
-> 
-> Hi,
->  I'm trying to get off_mode working reliably on my gta04 mobile phone.
-> 
-> My current stumbling block is USB.  The "Option" GSM module is attached via
-> USB (there is a separate transceiver chip attached to port 1 which is placed
-> in OMAP_EHCI_PORT_MODE_PHY).
-> 
-> After a suspend/resume cycle with off_mode enabled the GSM module disappears.
-> i.e. 'lsusb' doesn't see it any more and the various ttyHSxx devices don't
-> exist.
-> Without off mode, the modem always appears after resume.
-> 
-> I discovered that the registers set by:
-> 
->    drivers/mfd/omap-usb-host.c
-> 
-> are not maintained across as suspend/resume so I added the following patch
-> (which I can make a formal submission of if it looks right to others), but
-> that didn't help (or didn't help enough).
-> 
-> If I
-> 
->   echo 1 > /sys/kernel/debug/pm_debug/usbhost_pwrdm/suspend
-> 
-> thus keeping just the USBHOST power domain out of off_mode, the GSM module
-> doesn't disappear.  So it seems that some context in the usbhost domain is
-> not being save and restored.
-> 
-> This is as far as I can get.  Can someone suggest where I should look to find
-> out what is not being saved/restored properly, and how to go about saving and
-> restoring?
-
-You need to ensure that USBHOST/TLL context is saved as per the Save and
-Restore sequence see section "USBHOST/USBTLL Save-and-Restore
-Management" in the OMAP Technical Reference Manual.
-
-The basic idea there is that software does the context saving into SAR
-RAM before entering OFF mode and hardware automatically restores the
-context after coming out of OFF mode.
-
-But that alone is not enough for USB host to work. We need to make sure
-we have covered all the erratas. There are a number of them which are
-not covered yet in mainline.
-
-USB remote wakeup is another challenge with OMAP USB host (while in OFF
-mode). The usual workaround here is to use a GPIO as a wakeup line from
-the modem.
-
-regards,
--roger
-
+LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBXZWQs
+IDE2IEphbiAyMDEzIDExOjI4OjAyICswMjAwIElnb3IgR3JpbmJlcmcgPGdyaW5iZXJnQGNvbXB1
+bGFiLmNvLmlsPg0Kd3JvdGU6DQoNCj4gLS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0t
+LQ0KPiBIYXNoOiBTSEExDQo+IA0KPiBPbiAwMS8xNi8xMyAwOToyNiwgTmVpbEJyb3duIHdyb3Rl
+Og0KPiA+IE9uIFdlZCwgMDkgSmFuIDIwMTMgMTQ6NTQ6MDAgKzAyMDAgSWdvciBHcmluYmVyZyA8
+Z3JpbmJlcmdAY29tcHVsYWIuY28uaWw+DQo+ID4gd3JvdGU6DQo+ID4gDQo+ID4+IE9uIDAxLzA5
+LzEzIDE0OjA4LCBNaWNoYWVsIFRyaW1hcmNoaSB3cm90ZToNCj4gPj4+IEhpIE5laWwNCj4gPj4+
+DQo+ID4+PiBJIGZvcmdldCB0byBhbnN3ZXIgdG8geW91ciBxdWVzdGlvbnMNCj4gPj4+DQo+ID4+
+PiBPbiAwMS8wOS8yMDEzIDEyOjM0IFBNLCBOZWlsQnJvd24gd3JvdGU6DQo+ID4+Pj4gT24gV2Vk
+LCAwOSBKYW4gMjAxMyAxMToyNDowOSArMDEwMCBNaWNoYWVsIFRyaW1hcmNoaQ0KPiA+Pj4+IDxt
+aWNoYWVsQGFtYXJ1bGFzb2x1dGlvbnMuY29tPiB3cm90ZToNCj4gPj4+Pg0KPiA+Pj4+PiBIaSBO
+ZWlsDQo+ID4+Pj4+DQo+ID4+Pj4+IE9uIDAxLzA5LzIwMTMgMTE6MTkgQU0sIE5laWxCcm93biB3
+cm90ZToNCj4gPj4+Pj4+IE9uIFdlZCwgMDkgSmFuIDIwMTMgMTI6MDA6MDUgKzAyMDAgSWdvciBH
+cmluYmVyZyA8Z3JpbmJlcmdAY29tcHVsYWIuY28uaWw+DQo+ID4+Pj4+PiB3cm90ZToNCj4gPj4+
+Pj4+DQo+ID4+Pj4+Pj4gLS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KPiA+Pj4+
+Pj4+IEhhc2g6IFNIQTENCj4gPj4+Pj4+DQo+ID4+Pj4+Pj4gSGkgTmVpbCwNCj4gPj4+Pj4+DQo+
+ID4+Pj4+Pj4gT24gMDEvMDkvMTMgMDA6MjksIE5laWxCcm93biB3cm90ZToNCj4gPj4+Pj4+Pj4N
+Cj4gPj4+Pj4+Pj4gSGksDQo+ID4+Pj4+Pj4+ICBJJ20gdHJ5aW5nIHRvIGdldCBvZmZfbW9kZSB3
+b3JraW5nIHJlbGlhYmx5IG9uIG15IGd0YTA0IG1vYmlsZSBwaG9uZS4NCj4gPj4+Pj4+Pj4NCj4g
+Pj4+Pj4+Pj4gTXkgY3VycmVudCBzdHVtYmxpbmcgYmxvY2sgaXMgVVNCLiAgVGhlICJPcHRpb24i
+IEdTTSBtb2R1bGUgaXMgYXR0YWNoZWQgdmlhDQo+ID4+Pj4+Pj4+IFVTQiAodGhlcmUgaXMgYSBz
+ZXBhcmF0ZSB0cmFuc2NlaXZlciBjaGlwIGF0dGFjaGVkIHRvIHBvcnQgMSB3aGljaCBpcyBwbGFj
+ZWQNCj4gPj4+Pj4+Pj4gaW4gT01BUF9FSENJX1BPUlRfTU9ERV9QSFkpLg0KPiA+Pj4+Pj4NCj4g
+Pj4+Pj4+PiBXaGljaCBQSFkgaXMgdGhpcyAodmVuZG9yL21vZGVsKT8NCj4gPj4+Pj4+DQo+ID4+
+Pj4+PiBIaSBJZ29yLA0KPiA+Pj4+Pj4gICBpdCBpcyB0aGUgU01TQyBVU0IzMzIyDQo+ID4+Pj4+
+Pg0KPiA+Pj4+Pj4gaHR0cDovL3d3dy5zbXNjLmNvbS9tZWRpYS9Eb3dubG9hZHNfUHVibGljL0Rh
+dGFfU2hlZXRzLzMzMjAucGRmDQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+IEJUVyBJIHN1
+YnNlcXVlbnRseSBkaXNjb3ZlcmVkIHRoYXQga2VlcGluZyBVU0JIT1NUIG91dCBvZmYgb2ZmX21v
+ZGUgb25seQ0KPiA+Pj4+Pj4gc29tZXRpbWVzIGF2b2lkIHRoZSBwcm9ibGVtLCBub3QgYWx3YXlz
+LiAgU28gdGhlcmUgYXJlIHByb2JhYmx5IG11bHRpcGxlDQo+ID4+Pj4+PiBpc3N1ZXMgOi0oDQo+
+ID4+DQo+ID4+IFdlIGhhdmUgdGhlIHNhbWUgUEhZIGFuZCBpdCBoYXMgc29tZSBpc3N1ZXMgd2l0
+aCB0aGUgT01BUCBVU0IgY29kZS4NCj4gPj4gRmlyc3QgaXNzdWUgd2UgZXhwZXJpZW5jZSBpcyB0
+aGF0IGlmIHdlIHJlc2V0IHRoZSBQSFkgbW9yZSB0aGVuIG9uY2UNCj4gPj4gdy9vIHBvd2VyIGN5
+Y2xpbmcgaXQsIHRoZSBQSFkgZGllcyB1bnRpbCBuZXh0IHBvd2VyIGN5Y2xlLg0KPiA+PiBTbywg
+d2Ugc3RvcCBwcm92aWRpbmcgdGhlIHJlc2V0IEdQSU8gdG8gdGhlIHVzYiBjb2RlIGFuZCBkbyB0
+aGUgcmVzZXQNCj4gPj4gaW4gdGhlIGJvYXJkIGNvZGUuDQo+ID4gDQo+ID4gSSd2ZSB0cmllZCB2
+YXJpb3VzIGNoYW5nZSB3LnIudCB0aGUgcmVzZXR0aW5nIGFuZCAgSSBjYW5ub3QgZmF1bHQgaXQu
+DQo+ID4gUmVzZXR0aW5nIG9yIG5vdCByZXNldHRpbmcgbmVpdGhlciBjYXVzZXMgYSBwcm9ibGVt
+IHdoaWxlIHRoZSBVU0IgaXMNCj4gPiBvdGhlcndpc2Ugd29ya2luZywgbm90IGZpeGVkIHRoZSBV
+U0Igd2hpbGUgIGl0IGlzIG90aGVyd2lzZSBmYWlsaW5nLg0KPiA+IFNvIEkgZG9uJ3QgdGhpbmsg
+dGhpcyBpcyBteSBwcm9ibGVtIC0gdGhhbmtzLg0KPiA+IA0KPiA+Pg0KPiA+Pj4+Pg0KPiA+Pj4+
+PiBBcmUgeW91IHN1cmUgdGhhdCB5b3UgZG9uJ3QgaGF2ZSBnbGl0Y2ggb24gcG93ZXIsIHJlc2V0
+IHBpbiBkdXJpbmcgc3VzcGVuZD8NCj4gPj4+Pj4NCj4gPj4+Pg0KPiA+Pj4+IE5vLCBJIGRvbid0
+IHJlYWxseSBoYXZlIHRoZSBlcXVpcG1lbnQgdG8gbWVhc3VyZSBzdWNoIHRoaW5ncy4NCj4gPj4+
+PiBCdXQgaXMgaXQgbGlrZWx5PyAgV291bGQgZW5hYmxpbmcgb2ZmX21vZGUgbWFrZSBpdCBtb3Jl
+IGxpa2VseT8NCj4gPj4+DQo+ID4+PiBJIGRvbid0IGtub3cgdGhlIHJlYXNvbiBvZiB0aGUgb2Zm
+X21vZGUgcHJvYmxlbSA6KA0KPiA+Pg0KPiA+PiBXZSBoYXZlIHRoZSBlcXVpcG1lbnQgdG8gY2hl
+Y2sgdGhpcyBhbmQgbm8gLSB0aGlzIGlzIG5vdCB0aGUgY2FzZS4NCj4gPj4NCj4gPj4+DQo+ID4+
+Pj4gQ2FuIHlvdSBzdWdnZXN0IHNvbWUgd2F5IEkgY291bGQgdGVzdCB0aGUgaHlwb3RoZXNpcz8N
+Cj4gPj4+DQo+ID4+PiBJIGhhZCB0aGUgc2FtZSBwcm9ibGVtIG9uIGEgcnVnZ2VkIG1vYmlsZSBw
+aG9uZSwgc28gaXQgaXMganVzdCBleHBlcmllbmNlDQo+ID4+PiBDaGVjayB0aGUgbW9kZW0gcG93
+ZXIgYW5kIHJlc2V0IGdwaW8gdG9vLCBidXQgaWYgeW91IGRvbid0IG5lZWQgdG8gdW5ibG9jayBp
+dA0KPiA+Pj4gd2l0aCB0aGUgcGluIGFmdGVyIHJlc3VtZSB3ZSBrbm93IHRoYXQgbW9kZW0gaXMg
+bm90IHRoZSBwcm9ibGVtDQo+ID4+DQo+ID4+IEkgZG9uJ3QgdGhpbmsgbW9kZW0gaXMgdGhlIHBy
+b2JsZW0uLi4NCj4gPj4gV2UgaGF2ZSBwbGFpbiBVU0IgY29ubmVjdG9yIHBvcnRzIHRoYXQgYXJl
+IGRlYWQgYWZ0ZXIgdGhlIHJlc3VtZSBmcm9tIG9mZi1tb2RlLg0KPiA+Pg0KPiA+PiBUaGUgZ29v
+ZCBuZXdzIGFyZSB0aGF0IHdlIGhhdmUgdGhlIG9mZi1tb2RlIHdvcmtpbmcgb24gdjMuNi4xLA0K
+PiA+PiBpbmNsdWRpbmcgdGhlIFVTQiwgYnV0IHdlIGhhZCB0byBkbyBzb21lIGhvcnJpYmxlIHVn
+bHkgaGFja2luZyBmb3IgdGhpcy4NCj4gPj4NCj4gPiANCj4gPiBJIGFzc3VtZSB0aGlzICBtZWFu
+cyAic29tZSBwYXRjaGVzIG9uIHRvcCBvZiAzLjYuMSIgPz8NCj4gPiBDYXJlIHRvIHNoYXJlIHlv
+dXIgY29kZT8gIEV2ZW4gaG9ycmlibHkgdWdseSBoYWNrcyBjYW4gYmUgZWR1Y2F0aW9uYWwuDQo+
+IA0KPiBXZSBhcmUgbm90IHJlYWR5IHRvIHNoYXJlIHRoZXNlIHBhdGNoZXMgKHRoaXMgd2lsbCBo
+YXBwZW4gZXZlbnR1YWxseQ0KPiBhZnRlciBzb21lIHdvcmsgaXMgZmluaXNoZWQpLCBidXQgSSBj
+YW4gZXhwbGFpbiB3aGF0IHRoZXkgZG8uLi4NCj4gDQo+IFdlIHNwbGl0IHRoZSBlaGNpX3J1biBm
+dW5jdGlvbiB0byBzZXBhcmF0ZSB0aGUgZGVidWdmcyBhbmQgc3lzZnMgc3R1ZmYgZnJvbQ0KPiBv
+dGhlciBpbml0aWFsaXphdGlvbnMsIHNvIHdlIGNhbiBydW4gdGhlIG5ldyB2ZXJzaW9uIHdpdGhv
+dXQgdGhlIGRlYnVnZnMgYW5kDQo+IHN5c2ZzIHN0dWZmIG11bHRpcGxlIHRpbWVzLg0KPiANCj4g
+VGhlbiB3ZSBpbXBsZW1lbnQgdGhlIHN1c3BlbmQvcmVzdW1lIGVoY2kgY2FsbGJhY2tzOg0KPiBv
+biBzdXNwZW5kLCBhc3NlcnQgcGh5IHJlc2V0LA0KPiBvbiByZXN1bWUsIGRlYXNzZXJ0IHBoeSBy
+ZXNldCwgd3JpdGUgRUhDSV9JTlNOUkVHMDRfRElTQUJMRV9VTlNVU1BFTkQgdG8NCj4gRUhDSV9J
+TlNOUkVHMDQsIGFuZCBjYWxsIHRoZSBuZXcgZWhjaV9ydW4oKSBmdW5jdGlvbi4NCj4gDQo+IFRo
+YXQgZG9lcyB0aGUgam9iIGZvciBVU0IgaG9zdCB0byByZXN1bWUgZnJvbSBvZmYgbW9kZS4NCg0K
+SW50ZXJlc3RpbmcgdGhhbmtzLiAgVGhhdCBtYWtlcyBhIGNlcnRhaW4gYW1vdW50IG9mIHNlbnNl
+Lg0KDQpIb3dldmVyIEkgdHJpZWQgY29tcGlsaW5nIGVoY2ktaGNkIGFzIGEgbW9kdWxlIGFuZCAg
+dW5sb2FkL3JlbG9hZGluZyBpdCB3aGljaA0Kc2hvdWxkIGhhdmUgYSBzaW1pbGFyIG5ldCBlZmZl
+Y3QgdG8gd2hhdCB5b3UgZGlkLCBidXQgaXQgZGlkbid0IG1ha2UgYW55DQpkaWZmZXJlbmNlIC0g
+ZGV2aWNlIGRpc2FwcGVhcnMgb24gcmVzdW1lLg0KDQpJIGFsc28gdHJpZWQgcmVzdG9yaW5nIHRo
+ZSBjb3JyZWN0IHZhbHVlIHRvIEVIQ0lfSU5TTlJFRzA0IGFuZA0KRUhDSV9JTlNOUkVHMDVfVUxQ
+SSB3aGljaCBhcmUgdGhlIG9ubHkgcmVnaXN0ZXJzIHdyaXR0ZW4gYnkgDQplaGNpLW9tYXAuYywg
+YW5kIHRoYXQgZGlkbid0IGhlbHAgZWl0aGVyLg0KDQpUaGUgb25seSB0aGluZyBJJ3ZlIGZvdW5k
+IHRoYXQgd29ya3MgaXMga2VlcGluZyAnY29yZScgb3V0IG9mIG9mZi1tb2RlLg0KDQpCVFcgSSBk
+aXNjb3ZlcmVkIHRoYXQgYXJjaC9hcm0vbWFjaC1vbWFwMi9wb3dlcmRvbWFpbnMzeHh4X2RhdGEu
+Yw0KY29tbWVudHMgb3V0IHRoZSBzZXR0aW5nIG9mIA0KICAuZmxhZ3MgICAgPSBQV1JETV9IQVNf
+SERXUl9TQVIsDQpmb3IgdGhlIHVzYmhvc3QgcG93ZXJkb21haW4gLSB0aGF0IGlzIHdoeSBJIGhh
+ZCB0byBsZWF2ZSBpdCBpbiByZXRlbnRpb24uDQpJZiBJIHVuY29tbWVudCB0aGF0IHNldHRpbmcs
+IHRoZSBpdCBpcyBzYWZlIGZvciBVU0JIT1NUIHRvIGdvIHRvIG9mZi1tb2RlLA0KanVzdCBub3Qg
+Zm9yIENPUkUuDQoNCkknbGwga2VlcCBleHBsb3JpbmcuDQoNCk5laWxCcm93bg0KLS0tLS1CRUdJ
+TiBQR1AgU0lHTkFUVVJFLS0tLS0NClZlcnNpb246IEdudVBHIHYyLjAuMTkgKEdOVS9MaW51eCkN
+Cg0KaVFJVkF3VUJVUForcnpuc250MVdZb0c1QVFMWXVnLy9UK0ozTDExZndWcThKSGZpUEpWZmJF
+ZnJBZHg5NitJZA0KT0QrcXB3V1VhcldmcHhjZ3RodVJta3J4eFVTWHhJOHNCcjBZMHdLV1J3NGJp
+Rnh0emNZM3FrNXhubFVNQ2ZGeA0KQnVxcmV2Vlo2YlFaM0pET1J2MU9mZVJ3WlhPaGVXMG9jSjUw
+czFhVjhRVFRadnJUS28wVE52N0cydUxZSXNzSw0KdmFmQTFXT1RRUFdBeE1kN2d4OHFqcGJUL0hQ
+aTJrWWFMbEVKMS9rWFlleWxHYm9uY1V5dXM0MmoxcTFxbkdxeQ0KeE42MDMxcnB3YmE0Q1h0WHlz
+eDgzMC91UHJucjNMUENoMTVIVVVweEhzWUI4cmV5KzYwRjBDbGJUNzJacWFqSg0KdzFDeTFHUitV
+REFNN0RQM3d0MXo4N0g2L0lIUlhwSkxWb2RVUTVMSVplemJXWUYxQ2JBY3lKb1N5cmpaaGVmZQ0K
+eVFuR3JGYXhIUzlvTndhWnBET2NjeEdDUE90OHVZNURCUk10RXBRS3QrM0xSMGxGSnplSUNNcGZF
+TnlNZyszYQ0KbVUrZnpWZkdzMHB1eWcvSW1jZHM1eXJwbWp0R0R6dUYweUlaMnBJVzhwY1dqSndi
+WVZ6YXc5VGZ6WVNTQUx2MQ0KVmFKcDdESXRVdzlKcmVCdHliN1c0UDNLdkxqSDFHQUhqUFNGQlU0
+aVdoWEY2Sm1Rbkc2bnREZUgrZUtOcE8yRg0KMEJjYXhoUDhMbDFrV2lmK2NmMGdJVkJNQlRqYkJh
+V1lrRDh6UHBYQW5FSStGSE5keFQ1a25ib2hNRFBWalIxQQ0KVzVyWUh2enBhMDROL0RRU1ZKVnE3
+ekJiQXMwUWtZR0x0QzAzYjllYms3WTl6N0hTL0tkelphZnFXMEdyNTBqNw0KRHFCS25HQS8wR0U9
+DQo9c3JmTQ0KLS0tLS1FTkQgUEdQIFNJR05BVFVSRS0tLS0tDQo=
