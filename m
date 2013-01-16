@@ -1,93 +1,133 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH 1/2] pwm: pwm-tiehrpwm: Low power sleep support
-Date: Wed, 16 Jan 2013 13:30:26 +0100
-Message-ID: <20130116123026.GA7132@avionic-0098.adnet.avionic-design.de>
-References: <1357823024-17585-1-git-send-email-avinashphilip@ti.com>
- <1357823024-17585-2-git-send-email-avinashphilip@ti.com>
- <20130114070855.GA21994@avionic-0098.adnet.avionic-design.de>
- <518397C60809E147AF5323E0420B992E3EA5DF80@DBDE01.ent.ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 3/3] OMAPDSS: Panel NEC: Only register backlight when we have valid callback
+Date: Wed, 16 Jan 2013 13:45:09 +0100
+Message-ID: <1358340309-8774-4-git-send-email-peter.ujfalusi@ti.com>
+References: <1358340309-8774-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dDRMvlgZJXvWKvBx"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <518397C60809E147AF5323E0420B992E3EA5DF80@DBDE01.ent.ti.com>
+In-Reply-To: <1358340309-8774-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
+Do not register a backlight device when the dssdev->set_backlight callback
+is not set by the board.
+In this case either we do not have means to control the backlight or the
+board is using other means to control it, like bl-pwm.
 
---dDRMvlgZJXvWKvBx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ .../omap2/displays/panel-nec-nl8048hl11-01b.c      | 60 ++++++++++++----------
+ 1 file changed, 33 insertions(+), 27 deletions(-)
 
-On Wed, Jan 16, 2013 at 12:14:01PM +0000, Philip, Avinash wrote:
-> On Mon, Jan 14, 2013 at 12:38:56, Thierry Reding wrote:
-> > On Thu, Jan 10, 2013 at 06:33:43PM +0530, Philip Avinash wrote:
-> > [...]
-> > > diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
-> > [...]
-> > > +static int ehrpwm_pwm_suspend(struct device *dev)
-> > > +{
-> > > +	struct ehrpwm_pwm_chip *pc =3D dev_get_drvdata(dev);
-> > > +
-> > > +	ehrpwm_pwm_context_save(pc);
-> > > +	pm_runtime_put_sync(dev);
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static int ehrpwm_pwm_resume(struct device *dev)
-> > > +{
-> > > +	struct ehrpwm_pwm_chip *pc =3D dev_get_drvdata(dev);
-> > > +
-> > > +	pm_runtime_get_sync(dev);
-> > > +	ehrpwm_pwm_context_restore(pc);
-> > > +	return 0;
-> > > +}
-> >=20
-> > According to Documentation/power/runtime_pm.txt, the PM core runs the
-> > pm_runtime_get_noresume() and pm_runtime_put_sync() before executing the
-> > .suspend() and .resume() callbacks. Are you sure you need to call them
-> > here explicitly?
->=20
-> I understand the problem of calling pm_runtime_get_sync() from .resume().
-> But this has to be called if pwm was running while going to suspend so th=
-at
-> pwm can continues to run after resume.
-
-Okay. I misread the documentation and/or your patch. The documentation
-says that the core calls pm_runtime_get_noresume() before executing the
-=2Esuspend() callback so you're not in fact calling it twice. Sorry for
-the confusion.
-
-> So I will add check of test_bit(PWMF_ENABLED, &pwm->flags) before=20
-> pm_runtime_get/put_sync calls.
-
-Yes, that sounds reasonable.
-
-Thierry
-
---dDRMvlgZJXvWKvBx
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQ9p1iAAoJEN0jrNd/PrOhAwQQAMLI/3Mxh+S88RwmGnKBzdJn
-vg4UEsbX/0Gr75kzEKwuvXdH4u/lY9S/ZUg3nI54fgnhHUG6VLhXA13YNGR0FIag
-ygDLHYiLXwsfrfOUOtrpXkLisuKVUapveilRSLxYFCdPlY7KFsIE8tvhiC7uEKev
-VKhQV8476XRF7MlSj53BRL0jzdfdBS5NV5wSK+lKwPaopTn20HCcS7GKclEWuyl/
-RW/BnndegEO9PIz6vHYiJBeIhYxiWIXJnGrKsTUPtRJBam27MRBUZ7Pt8vpaasMG
-ZroF2mxaZsTyj736ryEBbRpvr4b/AqOBSnPX6vTfYL/HfSQGgVgTfhRO3WLpGhjJ
-rNheQdO7ErYWQUW5nAypW8SHs2LybJtUV9Rqw3hpWElgAf1oGC+F2mEXTFtVhAVj
-5mabTUgC5TIIeahbCtV/6cfrKxvfU4E1P5f0WOHRustT0UiVswF/v3C7uolkVLYg
-heqVnEXh1lphfQHNsZ02fZ1MZkjMSUcnlXRy2u+ujzIehR9HmERP38qE6MsdKNBA
-SBl4o5exlqlJ91yIF7UnbDtycp7F4DquQkH09JRt1FAC0tXjKnvnG470gnK0T9er
-vqacEHblMy1fRiwzYXwjnAITmlbkvZ7SNtLqVtr7gLJXSQgmqTzBCQ2lriFLUv7O
-lMDGTjpN2B9jHpPmA1VJ
-=MJbn
------END PGP SIGNATURE-----
-
---dDRMvlgZJXvWKvBx--
+diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+index e6589fe..11302b2 100644
+--- a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
++++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+@@ -85,9 +85,6 @@ static int nec_8048_bl_update_status(struct backlight_device *bl)
+ 	struct omap_dss_device *dssdev = dev_get_drvdata(&bl->dev);
+ 	int level;
+ 
+-	if (!dssdev->set_backlight)
+-		return -EINVAL;
+-
+ 	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
+ 			bl->props.power == FB_BLANK_UNBLANK)
+ 		level = bl->props.brightness;
+@@ -114,30 +111,33 @@ static const struct backlight_ops nec_8048_bl_ops = {
+ static int nec_8048_panel_probe(struct omap_dss_device *dssdev)
+ {
+ 	struct backlight_device *bl;
+-	struct backlight_properties props;
+ 	int r;
+ 
+ 	dssdev->panel.timings = nec_8048_panel_timings;
+ 
+-	memset(&props, 0, sizeof(struct backlight_properties));
+-	props.max_brightness = 255;
+-	props.type = BACKLIGHT_RAW;
++	if (dssdev->set_backlight) {
++		struct backlight_properties props;
++
++		memset(&props, 0, sizeof(struct backlight_properties));
++		props.max_brightness = 255;
++		props.type = BACKLIGHT_RAW;
+ 
+-	bl = backlight_device_register("nec-8048", &dssdev->dev, dssdev,
+-			&nec_8048_bl_ops, &props);
+-	if (IS_ERR(bl))
+-		return PTR_ERR(bl);
++		bl = backlight_device_register("nec-8048", &dssdev->dev, dssdev,
++				&nec_8048_bl_ops, &props);
++		if (IS_ERR(bl))
++			return PTR_ERR(bl);
+ 
+-	dev_set_drvdata(&dssdev->dev, bl);
++		dev_set_drvdata(&dssdev->dev, bl);
+ 
+-	bl->props.fb_blank = FB_BLANK_UNBLANK;
+-	bl->props.power = FB_BLANK_UNBLANK;
+-	bl->props.max_brightness = dssdev->max_backlight_level;
+-	bl->props.brightness = dssdev->max_backlight_level;
++		bl->props.fb_blank = FB_BLANK_UNBLANK;
++		bl->props.power = FB_BLANK_UNBLANK;
++		bl->props.max_brightness = dssdev->max_backlight_level;
++		bl->props.brightness = dssdev->max_backlight_level;
+ 
+-	r = nec_8048_bl_update_status(bl);
+-	if (r < 0)
+-		dev_err(&dssdev->dev, "failed to set lcd brightness\n");
++		r = nec_8048_bl_update_status(bl);
++		if (r < 0)
++			dev_err(&dssdev->dev, "failed to set lcd brightness\n");
++	}
+ 
+ 	return 0;
+ }
+@@ -146,9 +146,11 @@ static void nec_8048_panel_remove(struct omap_dss_device *dssdev)
+ {
+ 	struct backlight_device *bl = dev_get_drvdata(&dssdev->dev);
+ 
+-	bl->props.power = FB_BLANK_POWERDOWN;
+-	nec_8048_bl_update_status(bl);
+-	backlight_device_unregister(bl);
++	if (bl) {
++		bl->props.power = FB_BLANK_POWERDOWN;
++		nec_8048_bl_update_status(bl);
++		backlight_device_unregister(bl);
++	}
+ }
+ 
+ static int nec_8048_panel_power_on(struct omap_dss_device *dssdev)
+@@ -172,9 +174,11 @@ static int nec_8048_panel_power_on(struct omap_dss_device *dssdev)
+ 			goto err1;
+ 	}
+ 
+-	r = nec_8048_bl_update_status(bl);
+-	if (r < 0)
+-		dev_err(&dssdev->dev, "failed to set lcd brightness\n");
++	if (bl) {
++		r = nec_8048_bl_update_status(bl);
++		if (r < 0)
++			dev_err(&dssdev->dev, "failed to set lcd brightness\n");
++	}
+ 
+ 	return 0;
+ err1:
+@@ -190,8 +194,10 @@ static void nec_8048_panel_power_off(struct omap_dss_device *dssdev)
+ 	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
+ 		return;
+ 
+-	bl->props.brightness = 0;
+-	nec_8048_bl_update_status(bl);
++	if (bl) {
++		bl->props.brightness = 0;
++		nec_8048_bl_update_status(bl);
++	}
+ 
+ 	if (dssdev->platform_disable)
+ 		dssdev->platform_disable(dssdev);
+-- 
+1.8.1
