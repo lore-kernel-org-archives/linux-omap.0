@@ -1,115 +1,165 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: [PATCH] OMAP: omap4-panda: add WiLink shared transport power functions
-Date: Wed, 16 Jan 2013 22:34:55 +0200
-Message-ID: <1358368495-10499-1-git-send-email-coelho@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: [PATCH] am33xx: cpsw: default to ethernet hwaddr from efuse if not defined in dt
+Date: Wed, 16 Jan 2013 22:01:13 +0100
+Message-ID: <1358370073-32545-1-git-send-email-jacmet@sunsite.dk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:37156 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754549Ab3APVBU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jan 2013 16:01:20 -0500
+Received: by mail-ee0-f53.google.com with SMTP id e53so839738eek.26
+        for <linux-omap@vger.kernel.org>; Wed, 16 Jan 2013 13:01:19 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, mugunthanvnm@ti.com, hvaibhav@ti.com, richardcochran@gmail.com, tony@atomide.com
+Cc: Peter Korsgaard <jacmet@sunsite.dk>
 
-The code to enable and disable the WiLink shared transport has been
-removed from the TI-ST driver, so it must be implemented in the board
-files instead.  Add the relevant operations to Panda's board file.
+When booting with CONFIG_ARM_APPENDED_DTB (either because of using an old
+U-Boot, not wanting the hassle of 2 files or when using Falcon fast boot
+mode in U-Boot), nothing updates the ethernet hwaddr specified for the
+CPSW slaves, causing the driver to use a random hwaddr, which is some times
+troublesome.
 
-Additionally, add the UART2 muxing data, so it's properly configured.
+The am33xx has unique ethernet hwaddrs programmed in the efuse, so it makes
+more sense to default to these rather than random ones. Add a fixup step
+which adds mac-address dt properties using the efuse addresses if the DTB
+didn't contain valid ones.
 
-Signed-off-by: Luciano Coelho <coelho@ti.com>
+Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
 ---
- arch/arm/mach-omap2/board-omap4panda.c |   57 +++++++++++++++++++++++++++++---
- 1 file changed, 53 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/Makefile      |    3 ++
+ arch/arm/mach-omap2/am33xx-cpsw.c |   94 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/control.h     |    4 ++
+ 3 files changed, 101 insertions(+)
+ create mode 100644 arch/arm/mach-omap2/am33xx-cpsw.c
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 5c8e9ce..97a274b 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -51,18 +51,57 @@
- #define GPIO_HUB_NRESET		62
- #define GPIO_WIFI_PMENA		43
- #define GPIO_WIFI_IRQ		53
-+#define GPIO_BT_EN		46
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 65fb6fb..54fb2ee 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -298,4 +298,7 @@ endif
+ emac-$(CONFIG_TI_DAVINCI_EMAC)		:= am35xx-emac.o
+ obj-y					+= $(emac-m) $(emac-y)
  
- /* wl127x BT, FM, GPS connectivity chip */
-+static int plat_kim_chip_enable(struct kim_data_s *kim_data)
++cpsw-$(CONFIG_TI_CPSW)			:= am33xx-cpsw.o
++obj-y					+= $(cpsw-m) $(cpsw-y)
++
+ obj-y					+= common-board-devices.o twl-common.o dss-common.o
+diff --git a/arch/arm/mach-omap2/am33xx-cpsw.c b/arch/arm/mach-omap2/am33xx-cpsw.c
+new file mode 100644
+index 0000000..5a674d9
+--- /dev/null
++++ b/arch/arm/mach-omap2/am33xx-cpsw.c
+@@ -0,0 +1,94 @@
++/*
++ * am335x specific cpsw dt fixups
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/etherdevice.h>
++#include <linux/of.h>
++#include <linux/of_net.h>
++
++#include "soc.h"
++#include "control.h"
++
++/**
++ * am33xx_dt_cpsw_set_mac_from_efuse - Add mac-address property using
++ * ethernet hwaddr from efuse
++ * @np:		Pointer to the cpsw slave to set mac address of
++ * @idx:	Mac address index to use from efuse
++ */
++static void am33xx_dt_cpsw_set_mac_from_efuse(struct device_node *np, int idx)
 +{
-+	gpio_set_value(GPIO_BT_EN, GPIO_LOW);
-+	mdelay(5);
-+	gpio_set_value(GPIO_BT_EN, GPIO_HIGH);
-+	mdelay(100);
++	struct property *prop;
++	u32 lo, hi;
++	u8 *mac;
 +
-+	return 0;
-+}
++	switch (idx) {
++	case 0:
++		lo = omap_ctrl_readl(AM33XX_CONTROL_MAC_ID0_LOW);
++		hi = omap_ctrl_readl(AM33XX_CONTROL_MAC_ID0_HIGH);
++		break;
 +
-+static int plat_kim_chip_disable(struct kim_data_s *kim_data)
-+{
-+	gpio_set_value(GPIO_BT_EN, GPIO_LOW);
-+	mdelay(1);
-+	gpio_set_value(GPIO_BT_EN, GPIO_HIGH);
-+	mdelay(1);
-+	gpio_set_value(GPIO_BT_EN, GPIO_LOW);
++	case 1:
++		lo = omap_ctrl_readl(AM33XX_CONTROL_MAC_ID1_LOW);
++		hi = omap_ctrl_readl(AM33XX_CONTROL_MAC_ID1_HIGH);
++		break;
 +
-+	return 0;
-+}
-+
- static struct ti_st_plat_data wilink_platform_data = {
--	.nshutdown_gpio	= 46,
- 	.dev_name	= "/dev/ttyO1",
- 	.flow_cntrl	= 1,
- 	.baud_rate	= 3000000,
--	.chip_enable	= NULL,
--	.suspend	= NULL,
--	.resume		= NULL,
-+	.chip_enable	= plat_kim_chip_enable,
-+	.chip_disable	= plat_kim_chip_disable,
- };
- 
-+static int wilink_st_init(void)
-+{
-+	int status;
-+
-+	status = gpio_request(GPIO_BT_EN, "kim");
-+	if (status) {
-+		pr_err("%s: failed to request gpio %d\n", __func__,
-+		       GPIO_BT_EN);
-+		return status;
++	default:
++		pr_err("cpsw.%d: too many slaves found\n", idx);
++		return;
 +	}
 +
-+	status = gpio_direction_output(GPIO_BT_EN, 0);
-+	if (status)
-+		pr_err("%s: unable to configure gpio %d", __func__,
-+		       GPIO_BT_EN);
++	prop = kzalloc(sizeof(*prop) + ETH_ALEN, GFP_KERNEL);
++	if (!prop)
++		return;
 +
-+	return status;
++	prop->value = prop + 1;
++	prop->length = ETH_ALEN;
++	prop->name = kstrdup("mac-address", GFP_KERNEL);
++	if (!prop->name) {
++		kfree(prop);
++		return;
++	}
++
++	mac = prop->value;
++
++	mac[0] = hi;
++	mac[1] = hi >> 8;
++	mac[2] = hi >> 16;
++	mac[3] = hi >> 24;
++	mac[4] = lo;
++	mac[5] = lo >> 8;
++
++	of_update_property(np, prop);
++
++	pr_info("cpsw.%d: No hwaddr in dt. Using %pM from efuse\n", idx, mac);
 +}
 +
- static struct platform_device wl1271_device = {
- 	.name	= "kim",
- 	.id	= -1,
-@@ -397,6 +436,12 @@ static struct omap_board_mux board_mux[] __initdata = {
- 		  OMAP_PULL_ENA),
- 	OMAP4_MUX(ABE_MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
- 
-+	/* UART2 - BT/FM/GPS shared transport */
-+	OMAP4_MUX(UART2_CTS,	OMAP_PIN_INPUT	| OMAP_MUX_MODE0),
-+	OMAP4_MUX(UART2_RTS,	OMAP_PIN_OUTPUT	| OMAP_MUX_MODE0),
-+	OMAP4_MUX(UART2_RX,	OMAP_PIN_INPUT	| OMAP_MUX_MODE0),
-+	OMAP4_MUX(UART2_TX,	OMAP_PIN_OUTPUT	| OMAP_MUX_MODE0),
++static int __init am33xx_dt_cpsw_mac_fixup(void)
++{
++	struct device_node *np, *slave;
++	int idx = 0;
 +
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
- 
-@@ -433,6 +478,10 @@ static void __init omap4_panda_init(void)
- 	if (ret)
- 		pr_err("error setting wl12xx data: %d\n", ret);
- 
-+	ret = wilink_st_init();
-+	if (ret)
-+		pr_err("WiLink shared transport init failed: %d\n", ret);
++	if (!soc_is_am33xx())
++		return -ENODEV;
 +
- 	omap4_panda_init_rev();
- 	omap4_panda_i2c_init();
- 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
++	for_each_compatible_node(np, NULL, "ti,cpsw")
++		for_each_node_by_name(slave, "slave") {
++			if (!of_get_mac_address(slave))
++				am33xx_dt_cpsw_set_mac_from_efuse(slave, idx);
++			idx++;
++		}
++
++	return 0;
++}
++arch_initcall(am33xx_dt_cpsw_mac_fixup);
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index e6c3281..266d512 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -352,6 +352,10 @@
+ /* AM33XX CONTROL_STATUS register */
+ #define AM33XX_CONTROL_STATUS		0x040
+ #define AM33XX_CONTROL_SEC_CLK_CTRL	0x1bc
++#define AM33XX_CONTROL_MAC_ID0_LOW	0x630
++#define AM33XX_CONTROL_MAC_ID0_HIGH	0x634
++#define AM33XX_CONTROL_MAC_ID1_LOW	0x638
++#define AM33XX_CONTROL_MAC_ID1_HIGH	0x63c
+ 
+ /* AM33XX CONTROL_STATUS bitfields (partial) */
+ #define AM33XX_CONTROL_STATUS_SYSBOOT1_SHIFT		22
 -- 
 1.7.10.4
+
