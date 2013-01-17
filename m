@@ -1,153 +1,168 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [RFC PATCH 1/6] usb: otg: Add an API to bind the USB controller
- and PHY
-Date: Thu, 17 Jan 2013 16:44:52 +0530
-Message-ID: <50F7DD2C.90500@ti.com>
-References: <1358348462-27693-1-git-send-email-kishon@ti.com> <1358348462-27693-2-git-send-email-kishon@ti.com> <50F7C643.600@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: Help wanted with USB and OMAP3 off_mode
+Date: Thu, 17 Jan 2013 13:29:07 +0200
+Message-ID: <50F7E083.7040105@ti.com>
+References: <20130109092915.1c2077b5@notabene.brown> <50F67A50.5020203@ti.com> <20130116212715.2567d5ed@notabene.brown> <50F68784.8050708@ti.com> <20130117220143.1cdf362e@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <50F7C643.600@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, balbi@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, horms@verge.net.au, magnus.damm@gmail.com, cbou@mail.ru, dwmw2@infradead.org, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, leoli@freescale.com, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, stern@rowland.harvard.edu
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47378 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753171Ab3AQL3w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jan 2013 06:29:52 -0500
+In-Reply-To: <20130117220143.1cdf362e@notabene.brown>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+On 01/17/2013 01:01 PM, NeilBrown wrote:
+> On Wed, 16 Jan 2013 12:57:08 +0200 Roger Quadros <rogerq@ti.com> wrote:
+> 
+>> On 01/16/2013 12:27 PM, NeilBrown wrote:
+>>> On Wed, 16 Jan 2013 12:00:48 +0200 Roger Quadros <rogerq@ti.com> wrote:
+>>>
+>>>> On 01/09/2013 12:29 AM, NeilBrown wrote:
+>>>>>
+>>>>> Hi,
+>>>>>  I'm trying to get off_mode working reliably on my gta04 mobile phone.
+>>>>>
+>>>>> My current stumbling block is USB.  The "Option" GSM module is attached via
+>>>>> USB (there is a separate transceiver chip attached to port 1 which is placed
+>>>>> in OMAP_EHCI_PORT_MODE_PHY).
+>>>>>
+>>>>> After a suspend/resume cycle with off_mode enabled the GSM module disappears.
+>>>>> i.e. 'lsusb' doesn't see it any more and the various ttyHSxx devices don't
+>>>>> exist.
+>>>>> Without off mode, the modem always appears after resume.
+>>>>>
+>>>>> I discovered that the registers set by:
+>>>>>
+>>>>>    drivers/mfd/omap-usb-host.c
+>>>>>
+>>>>> are not maintained across as suspend/resume so I added the following patch
+>>>>> (which I can make a formal submission of if it looks right to others), but
+>>>>> that didn't help (or didn't help enough).
+>>>>>
+>>>>> If I
+>>>>>
+>>>>>   echo 1 > /sys/kernel/debug/pm_debug/usbhost_pwrdm/suspend
+>>>>>
+>>>>> thus keeping just the USBHOST power domain out of off_mode, the GSM module
+>>>>> doesn't disappear.  So it seems that some context in the usbhost domain is
+>>>>> not being save and restored.
+>>>>>
+>>>>> This is as far as I can get.  Can someone suggest where I should look to find
+>>>>> out what is not being saved/restored properly, and how to go about saving and
+>>>>> restoring?
+>>>>
+>>>> You need to ensure that USBHOST/TLL context is saved as per the Save and
+>>>> Restore sequence see section "USBHOST/USBTLL Save-and-Restore
+>>>> Management" in the OMAP Technical Reference Manual.
+>>>>
+>>>> The basic idea there is that software does the context saving into SAR
+>>>> RAM before entering OFF mode and hardware automatically restores the
+>>>> context after coming out of OFF mode.
+>>>
+>>> Is it?  The way I read the doco, the hardware both saves to SAR RAM, and
+>>> restores from  SAR RAM.
+>>>   Section 22.2.4.1.6  Save and Restore
+>>> of my copy of the TRM says:
+>>>
+>>>> The save-and-restore (SAR) mechanism can extract the hardware context of the high-speed USB host
+>>>> controller (after all USB activity has been suspended) before switching off (=save), save it to an external
+>>>> always-on memory, and reinject it later after the module has been switched on again and reset (=restore)
+>>>> seamlessly for the USB. Part of that context is composed of the register fields described in the current
+>>>> chapter. The rest of the context is composed of the "buried" flip-flops and memories (not accessible by
+>>>> software) like finite state-machine (FSM) states, buffer contents, and miscellaneous random logic bits.
+>>>
+>>> which strongly suggests that it is all handled by hardware.  Of course there
+>>> are other registers that aren't covered  by the SAR - we need to identify
+>>> those and make sure they are saved and restored.  I've found a few registers
+>>> that aren't being restored, but restoring them hasn't made a visible
+>>> difference yet.
+>>
+>> Yes, you are right. I mixed it up with OMAP4 behaviour, sorry.
+>> But still, software needs to ensure that the USBHOST and CORE power
+>> domain's SAVEANDRESTORE bit are set to ensure that SAR works.
+>>
+>> see section "3.5.4.6 USBHOST/USBTLL Save-and-Restore Management"
+>>
+>> This seems to be done by the powerdomain code based on the
+>> PWRDM_HAS_HDWR_SAR flag. However, this flag is disabled for USBHOST
+>> powerdomain with the following comment.
+>>
+>>> Both USBHOST and USBTLL support a save-and-restore mechanism. When the device enters into off
+>>> mode (that is, all power domains, except the WKUP power domain, are off), the user may want to save
+>>> the USBHOST context and restore it when exiting off mode. The save-and-restore mechanism for the HS
+>>> USB Host is enabled by setting the PRCM.PM_PWSTCTRL_USBHOST[4] SAVEANDRESTORE bit; for
+>>> the USBTLL, it is configured by the PRCM.PM_PWSTCTRL_CORE[4] SAVEANDRESTORE bit. The save
+>>> mechanism is initiated as the power domain transitions from active to off state (or to OSWR state for the
+>>> USBTLL), whereas the restore mechanism is initiated as the power domain transitions from off to active
+>>> power state.
+>>
+>> Can you try with the flag enabled?
+> 
+> If I keep CORE and  USBHOST out of off-mode (by writing to the relevant
+> 'suspend' files in /sys/kernel/debug/pm-debug) then it all works.
+> 
+> If I set this flag, then I can allow USBHOST to enter off-mode as long as I
+> keep CORE in retention or better.
+> 
+> If I let CORE and USBHOST go to off-mode and don't have the flag set, then I
+> can resume from suspend, but the usb modem has disappeared.
+> 
+> If I let CORE and USBHOST go to off-mode and DO have the flag set, then I
+> cannot even resume from suspend.... sometimes.
+> 
 
-On Thursday 17 January 2013 03:07 PM, Roger Quadros wrote:
-> On 01/16/2013 05:00 PM, Kishon Vijay Abraham I wrote:
->> New platforms are added which has multiple PHY's (of same type) and
->> which has multiple USB controllers. The binding information has to be
->> present in the PHY library (otg.c) in order for it to return the
->> appropriate PHY whenever the USB controller request for the PHY. So
->> added a new API to pass the binding information. This API should be
->> called by platform specific initialization code.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>   drivers/usb/otg/otg.c   |   37 +++++++++++++++++++++++++++++++++++++
->>   include/linux/usb/phy.h |   22 ++++++++++++++++++++++
->>   2 files changed, 59 insertions(+)
->>
->> diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
->> index a30c041..492ba2f 100644
->> --- a/drivers/usb/otg/otg.c
->> +++ b/drivers/usb/otg/otg.c
->> @@ -18,6 +18,7 @@
->>   #include <linux/usb/otg.h>
->>
->>   static LIST_HEAD(phy_list);
->> +static LIST_HEAD(phy_bind_list);
->>   static DEFINE_SPINLOCK(phy_lock);
->>
->>   static struct usb_phy *__usb_find_phy(struct list_head *list,
->> @@ -201,6 +202,42 @@ void usb_remove_phy(struct usb_phy *x)
->>   }
->>   EXPORT_SYMBOL(usb_remove_phy);
->>
->> +/**
->> + * usb_bind_phy - bind the phy and the controller that uses the phy
->> + * @dev_name: the device name of the device that will bind to the phy
->> + * @index: index to specify the port number
->> + * @phy_dev_name: the device name of the phy
->> + *
->> + * Fills the phy_bind structure with the dev_name and phy_dev_name. This will
->> + * be used when the phy driver registers the phy and when the controller
->> + * requests this phy.
->> + *
->> + * To be used by platform specific initialization code.
->> + */
->> +struct usb_phy_bind __init *usb_bind_phy(const char *dev_name, u8 index,
->> +				const char *phy_dev_name)
->> +{
->> +	struct usb_phy_bind *phy_bind;
->> +	unsigned long flags;
->> +
->> +	phy_bind = kzalloc(sizeof(*phy_bind), GFP_KERNEL);
->> +	if (!phy_bind) {
->> +		pr_err("phy_bind(): No memory for phy_bind");
->
-> Function name in comment doesn't match the actual.
-> Instead, you could use
-> 	pr_err("%s ...", __func__);
->
->> +		return ERR_PTR(-ENOMEM);
->> +	}
->> +
->> +	phy_bind->dev_name = dev_name;
->> +	phy_bind->phy_dev_name = phy_dev_name;
->> +	phy_bind->index = index;
->> +
->> +	spin_lock_irqsave(&phy_lock, flags);
->> +	list_add_tail(&phy_bind->list, &phy_bind_list);
->> +	spin_unlock_irqrestore(&phy_lock, flags);
->> +
->> +	return phy_bind;
->> +}
->> +EXPORT_SYMBOL_GPL(usb_bind_phy);
->> +
->>   const char *otg_state_string(enum usb_otg_state state)
->>   {
->>   	switch (state) {
->> diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
->> index a29ae1e..fbeab1a 100644
->> --- a/include/linux/usb/phy.h
->> +++ b/include/linux/usb/phy.h
->> @@ -106,6 +106,21 @@ struct usb_phy {
->>   			enum usb_device_speed speed);
->>   };
->>
->> +/**
->> + * struct usb_phy_bind - represent the binding for the phy
->> + * @dev_name: the device name of the device that will bind to the phy
->> + * @phy_dev_name: the device name of the phy
->> + * @index: used if a single controller uses multiple phys
->> + * @phy: reference to the phy
->> + * @list: to maintain a linked list of the binding information
->> + */
->> +struct usb_phy_bind {
->> +	const char	*dev_name;
->> +	const char	*phy_dev_name;
->> +	u8		index;
->> +	struct usb_phy	*phy;
->> +	struct list_head list;
->> +};
->>
->>   /* for board-specific init logic */
->>   extern int usb_add_phy(struct usb_phy *, enum usb_phy_type type);
->> @@ -151,6 +166,8 @@ extern struct usb_phy *devm_usb_get_phy(struct device *dev,
->>   	enum usb_phy_type type);
->>   extern void usb_put_phy(struct usb_phy *);
->>   extern void devm_usb_put_phy(struct device *dev, struct usb_phy *x);
->> +extern struct usb_phy_bind *usb_bind_phy(const char *dev_name, u8 index,
->> +				const char *phy_dev_name);
->>   #else
->>   static inline struct usb_phy *usb_get_phy(enum usb_phy_type type)
->>   {
->> @@ -171,6 +188,11 @@ static inline void devm_usb_put_phy(struct device *dev, struct usb_phy *x)
->>   {
->>   }
->>
->> +static inline struct usb_phy_bind *usb_bind_phy(const char *dev_name, u8 index,
->> +				const char *phy_dev_name)
->> +{
->> +	return NULL;
->> +}
->>   #endif
->>
->>   static inline int
->>
->
-> Controllers like ehci-omap which don't need OTG functionality would
-> benefit from this API. Can we make these PHY APIs not dependent on OTG /
-> OTG_UTILS?
+It looks like the problem creeps in when the OMAP device hits OFF. i.e.
+CORE is allowed to go OFF.
 
-Actually much of whatever is in otg.c can be used by controllers which 
-don't have OTG functionality (except otg_state_string). I vaguely 
-remember, there was a patch that renamed otg.c to phy.c etc.. I'm not 
-sure what happened to that.
+> I hate those "sometimes"s!
+> 
+> If I remove the battery (with no other power source present) and re-insert
+> it, and let the phone boot up to  stable state and then enter suspend, I
+> cannot resume from suspend.  (I tried setting "no_console_suspend" to see if
+> anything was happening - but that keeps CORE awake).
+> 
+> If I do the same but before  it suspends I:
+> 
+>    echo 1 > /sys/kernel/debug/pm_debug/core_pwrdm/suspend
+>    
+> then let is suspend and resume, the resume works.  Then I:
+> 
+>    echo 0 > /sys/kernel/debug/pm_debug/core_pwrdm/suspend
+> 
+> to allow full sleep mode and now suspend, and again resume works.
+> And it continues to work.
+> And the USB modem remains visible - it doesn't disconnect at all.
+> 
 
-Thanks
-Kishon
+So does repeated suspend/resume work after this? Or is it only the first
+suspend/resume.
+
+> So.... something very odd is happening somewhere.
+> Maybe the USBHOST powerdomain isn't really going to off-mode again after the
+> first time like the comment in powerdomains3xxx_data.c says:
+> 
+> 	/*
+> 	 * REVISIT: Enabling usb host save and restore mechanism seems to
+> 	 * leave the usb host domain permanently in ACTIVE mode after
+> 	 * changing the usb host power domain state from OFF to active once.
+> 	 * Disabling for now.
+> 	 */
+> 
+> However the  /sys/kernel/debug/pm_debug/count file shows the "OFF" count for
+> usbhost_pwrdm increments on each suspend, and that seems to be based on info
+> read out of the the OMAP3 itself....
+> 
+> All very odd.
+
+I need to give this a try. I can try it out on OMAP3 beagle board.
+
+What OMAP3 are you on, and which kernel are you using for your tests?
+
+cheers,
+-roger
