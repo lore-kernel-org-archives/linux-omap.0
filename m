@@ -1,50 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [[PATCH v2]] OMAP: omap4-panda: add WiLink shared transport
- power functions
-Date: Thu, 17 Jan 2013 09:31:31 -0800
-Message-ID: <20130117173131.GL14149@atomide.com>
-References: <1358372702-13102-1-git-send-email-coelho@ti.com>
- <50F7C4A7.5060202@ti.com>
- <20130117093417.GH10814@arwen.pp.htv.fi>
- <50F7CA82.4050509@ti.com>
- <20130117100510.GI10814@arwen.pp.htv.fi>
- <20130117100919.GJ10814@arwen.pp.htv.fi>
- <1358418917.6252.31.camel@cumari.coelho.fi>
- <50F7D535.6030205@ti.com>
+Subject: Re: [PATCH] am33xx: cpsw: default to ethernet hwaddr from efuse if
+ not defined in dt
+Date: Thu, 17 Jan 2013 09:45:29 -0800
+Message-ID: <20130117174528.GM14149@atomide.com>
+References: <1358370073-32545-1-git-send-email-jacmet@sunsite.dk>
+ <loom.20130117T105358-639@post.gmane.org>
+ <87a9s7lq09.fsf@dell.be.48ers.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:57030 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752776Ab3AQRpd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jan 2013 12:45:33 -0500
 Content-Disposition: inline
-In-Reply-To: <50F7D535.6030205@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Luciano Coelho <coelho@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <87a9s7lq09.fsf@dell.be.48ers.dk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Korsgaard <jacmet@sunsite.dk>
+Cc: Michal Bachraty <michal.bachraty@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [130117 02:44]:
-> On 01/17/2013 11:35 AM, Luciano Coelho wrote:
-> > This out-of-tree code doesn't explain why we need to do the
-> > enable/disable in the board file.  We just need to do things a bit
-> > differently in the driver.  I'll start cleaning all this stuff up for
-> > -next pretty soon.
-> > 
-> > For now, ie. 3.7 (stable) and 3.8, do we agree in taking this patch so
-> > that TI-ST at least works on Panda? Simply reverting the gpio removal
-> > patch doesn't help, because we also need to handle the UART2 muxing
-> > (which my patch does as well).
+* Peter Korsgaard <jacmet@sunsite.dk> [130117 08:46]:
+> >>>>> "Michal" == Michal Bachraty <michal.bachraty@gmail.com> writes:
 > 
-> I don't see better way to fix this either. In any case, I give you my:
+> Hi Michael,
 > 
-> Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>  Michal> I made changes to cpsw driver two weeks ago, which add support
+>  Michal> for reading MAC address from CPU and also I posted it to
+>  Michal> review.  You can find patch here :
+>  Michal> https://patchwork.kernel.org/patch/1966481/ I will create
+>  Michal> updated patch next week, depended on reactions. Can you try
+>  Michal> that patch? I'll be glad to hear your opinion.
+> 
+> Thanks, I missed that patch. Functionality wise the patches do the same,
+> but I must say I find my patch cleaner, as it doesn't involve any new dt
+> bindings or access to the am33xx specific control module registers from
+> the cpsw driver.
+> 
+> The way I've handled it is similar to how it is done on atleast one
+> other arm subarchicture, see
+> arch/arm/mach-mxs/mach-mxs.c::update_fec_mac_prop()
 
-So what is actually broken? The horrible bluetooth muxing over serial
-port? If so, let's rather fix it properly than even attempt to fix
-it as it seems that it's been broken for two merge windows now.
+Cool this seems like the cleanest way to deal with it so far. Can
+you please resend with also linux-net and DT list Cc:d too?
 
-Also, let's just do absolutely minimal board-*.c file fixes now.
-This thing should be just moved to use DT so we can flip over omap4
-to be DT only and drop estimated 5k LOC from mach-omap2.
+Also the arch_initcall should be omap_arch_initcall in linux next
+for consistency if we ever have SoC specific sections for those.
 
 Regards,
 
-Tony 
+Tony
