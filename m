@@ -1,203 +1,134 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: Help wanted with USB and OMAP3 off_mode
-Date: Thu, 17 Jan 2013 20:24:53 +1100
-Message-ID: <20130117202453.4393c591@notabene.brown>
-References: <20130109092915.1c2077b5@notabene.brown>
-	<50ED3FA5.9030905@compulab.co.il>
-	<20130109211931.0e00db5d@notabene.brown>
-	<50ED4549.6080802@amarulasolutions.com>
-	<20130109223456.7832c2bd@notabene.brown>
-	<50ED5DBE.4000107@amarulasolutions.com>
-	<50ED6868.1080900@compulab.co.il>
-	<20130116182606.5249db0c@notabene.brown>
-	<50F672A2.6010500@compulab.co.il>
-	<20130116211927.42195d3b@notabene.brown>
-	<50F68ADE.9020400@compulab.co.il>
-	<20130117112255.40825643@notabene.brown>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [[PATCH v2]] OMAP: omap4-panda: add WiLink shared transport power
+ functions
+Date: Thu, 17 Jan 2013 10:30:15 +0100
+Message-ID: <50F7C4A7.5060202@ti.com>
+References: <1358372702-13102-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:37636 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759317Ab3AQJZI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Jan 2013 04:25:08 -0500
-In-Reply-To: <20130117112255.40825643@notabene.brown>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358372702-13102-1-git-send-email-coelho@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Michael Trimarchi <michael@amarulasolutions.com>, linux-omap@vger.kernel.org
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBUaHUs
-IDE3IEphbiAyMDEzIDExOjIyOjU1ICsxMTAwIE5laWxCcm93biA8bmVpbGJAc3VzZS5kZT4gd3Jv
-dGU6DQoNCj4gLS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KPiBIYXNoOiBTSEEx
-DQo+IA0KPiBPbiBXZWQsIDE2IEphbiAyMDEzIDEzOjExOjI2ICswMjAwIElnb3IgR3JpbmJlcmcg
-PGdyaW5iZXJnQGNvbXB1bGFiLmNvLmlsPg0KPiB3cm90ZToNCj4gDQo+ID4gLS0tLS1CRUdJTiBQ
-R1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KPiA+IEhhc2g6IFNIQTENCj4gPiANCj4gPiBPbiAwMS8x
-Ni8xMyAxMjoxOSwgTmVpbEJyb3duIHdyb3RlOg0KPiA+ID4gT24gV2VkLCAxNiBKYW4gMjAxMyAx
-MToyODowMiArMDIwMCBJZ29yIEdyaW5iZXJnIDxncmluYmVyZ0Bjb21wdWxhYi5jby5pbD4NCj4g
-PiA+IHdyb3RlOg0KPiA+ID4gDQo+ID4gPj4gLS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0Ut
-LS0tLQ0KPiA+ID4+IEhhc2g6IFNIQTENCj4gPiA+IA0KPiA+ID4+IE9uIDAxLzE2LzEzIDA5OjI2
-LCBOZWlsQnJvd24gd3JvdGU6DQo+ID4gPj4+IE9uIFdlZCwgMDkgSmFuIDIwMTMgMTQ6NTQ6MDAg
-KzAyMDAgSWdvciBHcmluYmVyZyA8Z3JpbmJlcmdAY29tcHVsYWIuY28uaWw+DQo+ID4gPj4+IHdy
-b3RlOg0KPiA+ID4+Pg0KPiA+ID4+Pj4gT24gMDEvMDkvMTMgMTQ6MDgsIE1pY2hhZWwgVHJpbWFy
-Y2hpIHdyb3RlOg0KPiA+ID4+Pj4+IEhpIE5laWwNCj4gPiA+Pj4+Pg0KPiA+ID4+Pj4+IEkgZm9y
-Z2V0IHRvIGFuc3dlciB0byB5b3VyIHF1ZXN0aW9ucw0KPiA+ID4+Pj4+DQo+ID4gPj4+Pj4gT24g
-MDEvMDkvMjAxMyAxMjozNCBQTSwgTmVpbEJyb3duIHdyb3RlOg0KPiA+ID4+Pj4+PiBPbiBXZWQs
-IDA5IEphbiAyMDEzIDExOjI0OjA5ICswMTAwIE1pY2hhZWwgVHJpbWFyY2hpDQo+ID4gPj4+Pj4+
-IDxtaWNoYWVsQGFtYXJ1bGFzb2x1dGlvbnMuY29tPiB3cm90ZToNCj4gPiA+Pj4+Pj4NCj4gPiA+
-Pj4+Pj4+IEhpIE5laWwNCj4gPiA+Pj4+Pj4+DQo+ID4gPj4+Pj4+PiBPbiAwMS8wOS8yMDEzIDEx
-OjE5IEFNLCBOZWlsQnJvd24gd3JvdGU6DQo+ID4gPj4+Pj4+Pj4gT24gV2VkLCAwOSBKYW4gMjAx
-MyAxMjowMDowNSArMDIwMCBJZ29yIEdyaW5iZXJnIDxncmluYmVyZ0Bjb21wdWxhYi5jby5pbD4N
-Cj4gPiA+Pj4+Pj4+PiB3cm90ZToNCj4gPiA+Pj4+Pj4+Pg0KPiA+ID4+Pj4+Pj4+PiAtLS0tLUJF
-R0lOIFBHUCBTSUdORUQgTUVTU0FHRS0tLS0tDQo+ID4gPj4+Pj4+Pj4+IEhhc2g6IFNIQTENCj4g
-PiA+Pj4+Pj4+Pg0KPiA+ID4+Pj4+Pj4+PiBIaSBOZWlsLA0KPiA+ID4+Pj4+Pj4+DQo+ID4gPj4+
-Pj4+Pj4+IE9uIDAxLzA5LzEzIDAwOjI5LCBOZWlsQnJvd24gd3JvdGU6DQo+ID4gPj4+Pj4+Pj4+
-Pg0KPiA+ID4+Pj4+Pj4+Pj4gSGksDQo+ID4gPj4+Pj4+Pj4+PiAgSSdtIHRyeWluZyB0byBnZXQg
-b2ZmX21vZGUgd29ya2luZyByZWxpYWJseSBvbiBteSBndGEwNCBtb2JpbGUgcGhvbmUuDQo+ID4g
-Pj4+Pj4+Pj4+Pg0KPiA+ID4+Pj4+Pj4+Pj4gTXkgY3VycmVudCBzdHVtYmxpbmcgYmxvY2sgaXMg
-VVNCLiAgVGhlICJPcHRpb24iIEdTTSBtb2R1bGUgaXMgYXR0YWNoZWQgdmlhDQo+ID4gPj4+Pj4+
-Pj4+PiBVU0IgKHRoZXJlIGlzIGEgc2VwYXJhdGUgdHJhbnNjZWl2ZXIgY2hpcCBhdHRhY2hlZCB0
-byBwb3J0IDEgd2hpY2ggaXMgcGxhY2VkDQo+ID4gPj4+Pj4+Pj4+PiBpbiBPTUFQX0VIQ0lfUE9S
-VF9NT0RFX1BIWSkuDQo+ID4gPj4+Pj4+Pj4NCj4gPiA+Pj4+Pj4+Pj4gV2hpY2ggUEhZIGlzIHRo
-aXMgKHZlbmRvci9tb2RlbCk/DQo+ID4gPj4+Pj4+Pj4NCj4gPiA+Pj4+Pj4+PiBIaSBJZ29yLA0K
-PiA+ID4+Pj4+Pj4+ICAgaXQgaXMgdGhlIFNNU0MgVVNCMzMyMg0KPiA+ID4+Pj4+Pj4+DQo+ID4g
-Pj4+Pj4+Pj4gaHR0cDovL3d3dy5zbXNjLmNvbS9tZWRpYS9Eb3dubG9hZHNfUHVibGljL0RhdGFf
-U2hlZXRzLzMzMjAucGRmDQo+ID4gPj4+Pj4+Pj4NCj4gPiA+Pj4+Pj4+Pg0KPiA+ID4+Pj4+Pj4+
-IEJUVyBJIHN1YnNlcXVlbnRseSBkaXNjb3ZlcmVkIHRoYXQga2VlcGluZyBVU0JIT1NUIG91dCBv
-ZmYgb2ZmX21vZGUgb25seQ0KPiA+ID4+Pj4+Pj4+IHNvbWV0aW1lcyBhdm9pZCB0aGUgcHJvYmxl
-bSwgbm90IGFsd2F5cy4gIFNvIHRoZXJlIGFyZSBwcm9iYWJseSBtdWx0aXBsZQ0KPiA+ID4+Pj4+
-Pj4+IGlzc3VlcyA6LSgNCj4gPiA+Pj4+DQo+ID4gPj4+PiBXZSBoYXZlIHRoZSBzYW1lIFBIWSBh
-bmQgaXQgaGFzIHNvbWUgaXNzdWVzIHdpdGggdGhlIE9NQVAgVVNCIGNvZGUuDQo+ID4gPj4+PiBG
-aXJzdCBpc3N1ZSB3ZSBleHBlcmllbmNlIGlzIHRoYXQgaWYgd2UgcmVzZXQgdGhlIFBIWSBtb3Jl
-IHRoZW4gb25jZQ0KPiA+ID4+Pj4gdy9vIHBvd2VyIGN5Y2xpbmcgaXQsIHRoZSBQSFkgZGllcyB1
-bnRpbCBuZXh0IHBvd2VyIGN5Y2xlLg0KPiA+ID4+Pj4gU28sIHdlIHN0b3AgcHJvdmlkaW5nIHRo
-ZSByZXNldCBHUElPIHRvIHRoZSB1c2IgY29kZSBhbmQgZG8gdGhlIHJlc2V0DQo+ID4gPj4+PiBp
-biB0aGUgYm9hcmQgY29kZS4NCj4gPiA+Pj4NCj4gPiA+Pj4gSSd2ZSB0cmllZCB2YXJpb3VzIGNo
-YW5nZSB3LnIudCB0aGUgcmVzZXR0aW5nIGFuZCAgSSBjYW5ub3QgZmF1bHQgaXQuDQo+ID4gPj4+
-IFJlc2V0dGluZyBvciBub3QgcmVzZXR0aW5nIG5laXRoZXIgY2F1c2VzIGEgcHJvYmxlbSB3aGls
-ZSB0aGUgVVNCIGlzDQo+ID4gPj4+IG90aGVyd2lzZSB3b3JraW5nLCBub3QgZml4ZWQgdGhlIFVT
-QiB3aGlsZSAgaXQgaXMgb3RoZXJ3aXNlIGZhaWxpbmcuDQo+ID4gPj4+IFNvIEkgZG9uJ3QgdGhp
-bmsgdGhpcyBpcyBteSBwcm9ibGVtIC0gdGhhbmtzLg0KPiA+ID4+Pg0KPiA+ID4+Pj4NCj4gPiA+
-Pj4+Pj4+DQo+ID4gPj4+Pj4+PiBBcmUgeW91IHN1cmUgdGhhdCB5b3UgZG9uJ3QgaGF2ZSBnbGl0
-Y2ggb24gcG93ZXIsIHJlc2V0IHBpbiBkdXJpbmcgc3VzcGVuZD8NCj4gPiA+Pj4+Pj4+DQo+ID4g
-Pj4+Pj4+DQo+ID4gPj4+Pj4+IE5vLCBJIGRvbid0IHJlYWxseSBoYXZlIHRoZSBlcXVpcG1lbnQg
-dG8gbWVhc3VyZSBzdWNoIHRoaW5ncy4NCj4gPiA+Pj4+Pj4gQnV0IGlzIGl0IGxpa2VseT8gIFdv
-dWxkIGVuYWJsaW5nIG9mZl9tb2RlIG1ha2UgaXQgbW9yZSBsaWtlbHk/DQo+ID4gPj4+Pj4NCj4g
-PiA+Pj4+PiBJIGRvbid0IGtub3cgdGhlIHJlYXNvbiBvZiB0aGUgb2ZmX21vZGUgcHJvYmxlbSA6
-KA0KPiA+ID4+Pj4NCj4gPiA+Pj4+IFdlIGhhdmUgdGhlIGVxdWlwbWVudCB0byBjaGVjayB0aGlz
-IGFuZCBubyAtIHRoaXMgaXMgbm90IHRoZSBjYXNlLg0KPiA+ID4+Pj4NCj4gPiA+Pj4+Pg0KPiA+
-ID4+Pj4+PiBDYW4geW91IHN1Z2dlc3Qgc29tZSB3YXkgSSBjb3VsZCB0ZXN0IHRoZSBoeXBvdGhl
-c2lzPw0KPiA+ID4+Pj4+DQo+ID4gPj4+Pj4gSSBoYWQgdGhlIHNhbWUgcHJvYmxlbSBvbiBhIHJ1
-Z2dlZCBtb2JpbGUgcGhvbmUsIHNvIGl0IGlzIGp1c3QgZXhwZXJpZW5jZQ0KPiA+ID4+Pj4+IENo
-ZWNrIHRoZSBtb2RlbSBwb3dlciBhbmQgcmVzZXQgZ3BpbyB0b28sIGJ1dCBpZiB5b3UgZG9uJ3Qg
-bmVlZCB0byB1bmJsb2NrIGl0DQo+ID4gPj4+Pj4gd2l0aCB0aGUgcGluIGFmdGVyIHJlc3VtZSB3
-ZSBrbm93IHRoYXQgbW9kZW0gaXMgbm90IHRoZSBwcm9ibGVtDQo+ID4gPj4+Pg0KPiA+ID4+Pj4g
-SSBkb24ndCB0aGluayBtb2RlbSBpcyB0aGUgcHJvYmxlbS4uLg0KPiA+ID4+Pj4gV2UgaGF2ZSBw
-bGFpbiBVU0IgY29ubmVjdG9yIHBvcnRzIHRoYXQgYXJlIGRlYWQgYWZ0ZXIgdGhlIHJlc3VtZSBm
-cm9tIG9mZi1tb2RlLg0KPiA+ID4+Pj4NCj4gPiA+Pj4+IFRoZSBnb29kIG5ld3MgYXJlIHRoYXQg
-d2UgaGF2ZSB0aGUgb2ZmLW1vZGUgd29ya2luZyBvbiB2My42LjEsDQo+ID4gPj4+PiBpbmNsdWRp
-bmcgdGhlIFVTQiwgYnV0IHdlIGhhZCB0byBkbyBzb21lIGhvcnJpYmxlIHVnbHkgaGFja2luZyBm
-b3IgdGhpcy4NCj4gPiA+Pj4+DQo+ID4gPj4+DQo+ID4gPj4+IEkgYXNzdW1lIHRoaXMgIG1lYW5z
-ICJzb21lIHBhdGNoZXMgb24gdG9wIG9mIDMuNi4xIiA/Pw0KPiA+ID4+PiBDYXJlIHRvIHNoYXJl
-IHlvdXIgY29kZT8gIEV2ZW4gaG9ycmlibHkgdWdseSBoYWNrcyBjYW4gYmUgZWR1Y2F0aW9uYWwu
-DQo+ID4gPiANCj4gPiA+PiBXZSBhcmUgbm90IHJlYWR5IHRvIHNoYXJlIHRoZXNlIHBhdGNoZXMg
-KHRoaXMgd2lsbCBoYXBwZW4gZXZlbnR1YWxseQ0KPiA+ID4+IGFmdGVyIHNvbWUgd29yayBpcyBm
-aW5pc2hlZCksIGJ1dCBJIGNhbiBleHBsYWluIHdoYXQgdGhleSBkby4uLg0KPiA+ID4gDQo+ID4g
-Pj4gV2Ugc3BsaXQgdGhlIGVoY2lfcnVuIGZ1bmN0aW9uIHRvIHNlcGFyYXRlIHRoZSBkZWJ1Z2Zz
-IGFuZCBzeXNmcyBzdHVmZiBmcm9tDQo+ID4gPj4gb3RoZXIgaW5pdGlhbGl6YXRpb25zLCBzbyB3
-ZSBjYW4gcnVuIHRoZSBuZXcgdmVyc2lvbiB3aXRob3V0IHRoZSBkZWJ1Z2ZzIGFuZA0KPiA+ID4+
-IHN5c2ZzIHN0dWZmIG11bHRpcGxlIHRpbWVzLg0KPiA+ID4gDQo+ID4gPj4gVGhlbiB3ZSBpbXBs
-ZW1lbnQgdGhlIHN1c3BlbmQvcmVzdW1lIGVoY2kgY2FsbGJhY2tzOg0KPiA+ID4+IG9uIHN1c3Bl
-bmQsIGFzc2VydCBwaHkgcmVzZXQsDQo+ID4gPj4gb24gcmVzdW1lLCBkZWFzc2VydCBwaHkgcmVz
-ZXQsIHdyaXRlIEVIQ0lfSU5TTlJFRzA0X0RJU0FCTEVfVU5TVVNQRU5EIHRvDQo+ID4gPj4gRUhD
-SV9JTlNOUkVHMDQsIGFuZCBjYWxsIHRoZSBuZXcgZWhjaV9ydW4oKSBmdW5jdGlvbi4NCj4gPiA+
-IA0KPiA+ID4+IFRoYXQgZG9lcyB0aGUgam9iIGZvciBVU0IgaG9zdCB0byByZXN1bWUgZnJvbSBv
-ZmYgbW9kZS4NCj4gPiA+IA0KPiA+ID4gSW50ZXJlc3RpbmcgdGhhbmtzLiAgVGhhdCBtYWtlcyBh
-IGNlcnRhaW4gYW1vdW50IG9mIHNlbnNlLg0KPiA+ID4gDQo+ID4gPiBIb3dldmVyIEkgdHJpZWQg
-Y29tcGlsaW5nIGVoY2ktaGNkIGFzIGEgbW9kdWxlIGFuZCAgdW5sb2FkL3JlbG9hZGluZyBpdCB3
-aGljaA0KPiA+ID4gc2hvdWxkIGhhdmUgYSBzaW1pbGFyIG5ldCBlZmZlY3QgdG8gd2hhdCB5b3Ug
-ZGlkLCBidXQgaXQgZGlkbid0IG1ha2UgYW55DQo+ID4gPiBkaWZmZXJlbmNlIC0gZGV2aWNlIGRp
-c2FwcGVhcnMgb24gcmVzdW1lLg0KPiA+IA0KPiA+IFllcyBpdCBkb2VzIGZvciBjbS10MzczMCwg
-aW4gZmFjdCwgdGhhdCBpcyB3aGF0IHdlIGhhdmUgc3RhcnRlZCBmcm9tLi4uDQo+ID4gDQo+ID4g
-PiANCj4gPiA+IEkgYWxzbyB0cmllZCByZXN0b3JpbmcgdGhlIGNvcnJlY3QgdmFsdWUgdG8gRUhD
-SV9JTlNOUkVHMDQgYW5kDQo+ID4gPiBFSENJX0lOU05SRUcwNV9VTFBJIHdoaWNoIGFyZSB0aGUg
-b25seSByZWdpc3RlcnMgd3JpdHRlbiBieSANCj4gPiA+IGVoY2ktb21hcC5jLCBhbmQgdGhhdCBk
-aWRuJ3QgaGVscCBlaXRoZXIuDQo+ID4gPiANCj4gPiA+IFRoZSBvbmx5IHRoaW5nIEkndmUgZm91
-bmQgdGhhdCB3b3JrcyBpcyBrZWVwaW5nICdjb3JlJyBvdXQgb2Ygb2ZmLW1vZGUuDQo+ID4gDQo+
-ID4gQWgsIG9uZSBtb3JlIHRoaW5nLCB3ZSBlbnN1cmUgdGhhdCBwaHkgaXMgY29tcGxldGVseSBw
-b3dlcmVkIG9mZiB0aHJvdWdoDQo+ID4gdGhlIFRQUyBwb3dlciBzY3JpcHRzLCBvdGhlcndpc2Us
-IGl0IGRvZXMgbm90IHdvcmsuLi4NCj4gPiANCj4gDQo+IEFoaGguLi4uICB0aGF0IGRvZXMgbWFr
-ZSBhIGRpZmZlcmVuY2UuDQo+IA0KPiBJIHR1cm5lZCBvZmYgdGhlIDVWNSByYWlsIHdoaWNoIHBv
-d2VyZWQgdGhlIHBoeSAoYW5kIGEgZmV3IG90aGVyIHRoaW5ncykgYW5kDQo+IG5vdyB0aGUgdXNi
-LWF0dGFjaGVkIG1vZGVtIGFwcGVhcnMgYWZ0ZXIgcmVzdW1lLiAgVmVyeSBpbnRlcmVzdGluZy4N
-Cj4gDQo+IEkgaGFkbid0IGJlZW4gZG9pbmcgdGhpcyBhcyBJIGhhZCBiZWVuIGFkdmlzZWQgdGhh
-dCB0aGUgaGFyZHdhcmUgd291bGRuJ3QNCj4gbGlrZSBpdC4gIFRoZXJlIGFyZSBhIGZldyBkZXZp
-Y2VzIChpbmNsdWRpbmcgdGhlICBVU0IgUEhZKSB3aGljaCBhcmUgc3VwcGxpZWQNCj4gYnkgYm90
-aCBhIDFWOCByYWlsIGFuZCB0aGUgNVY1IHJhaWwuICBTb21lIG9mIHRoZW0gYXJlIG91dC1vZi1z
-cGVjIGlmIHRoZSAxVjgNCj4gaXMgc3VwcGxpZWQsIGJ1dCB0aGUgNVY1IGlzbid0Lg0KPiBUaGUg
-MVY4IG11c3QgcmVtYWluIG9uIGR1cmluZyBzdXNwZW5kIGFzIGl0IGtlZXAgdGhlIFJBTSBwb3dl
-cmVkLCBzbyB0aGUgNVY1DQo+IG11c3QgYXMgd2VsbC4gIEF3a3dhcmQuDQo+IA0KPiANCj4gSXQg
-aXMgbm90IGVudGlyZWx5IHNhdGlzZmFjdG9yeSBmb3Igb3RoZXIgcmVhc29ucy4gSXQgc2VlbXMg
-dGhhdCB3aXRoDQo+IG9mZl9tb2RlIGZ1bGx5IHdvcmtpbmcsIHdlIGRyb3AgdG8gb2ZmIG1vZGUg
-d2hlbiBDUFVJRExFIHB1dHMgdGhpbmdzIHRvDQo+IHNsZWVwLCBhbmQgdGhhdCByZW1vdmVzIHRo
-ZSA1VjUgdG9vLCB3aGljaCBpcyBiYWQuICBUaGlzIGRpc2Nvbm5lY3RzIHRoZSBVU0IuDQo+IE15
-IGN1cnJlbnQgY29uc29sZSBsb2cgc2hvd3M6DQo+IA0KPiANCj4gWyAyNDUzLjgzNzQwMl0gdXNi
-IDEtMjogbmV3IGhpZ2gtc3BlZWQgVVNCIGRldmljZSBudW1iZXIgMTAgdXNpbmcgZWhjaS1vbWFw
-DQo+IFsgMjQ1NC4wMDYyNTZdIHVzYiAxLTI6IE5ldyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRv
-cj0wYWYwLCBpZFByb2R1Y3Q9ODgwMA0KPiBbIDI0NTQuMDE1Njg2XSB1c2IgMS0yOiBOZXcgVVNC
-IGRldmljZSBzdHJpbmdzOiBNZnI9MywgUHJvZHVjdD0yLCBTZXJpYWxOdW1iZXI9MA0KPiBbIDI0
-NTQuMDI1NTEyXSB1c2IgMS0yOiBQcm9kdWN0OiBHbG9iZXRyb3R0ZXIgSFNVUEEgTW9kZW0NCj4g
-WyAyNDU0LjAzMTAwNV0gdXNiIDEtMjogTWFudWZhY3R1cmVyOiBPcHRpb24gTi5WLg0KPiBbIDI0
-NTUuMzU1ODA0XSB1c2IgMS0yOiBVU0IgZGlzY29ubmVjdCwgZGV2aWNlIG51bWJlciAxMA0KPiBb
-IDI0NTkuODI5NTg5XSB1c2IgMS0yOiBuZXcgaGlnaC1zcGVlZCBVU0IgZGV2aWNlIG51bWJlciAx
-MSB1c2luZyBlaGNpLW9tYXANCj4gWyAyNDU5Ljk5Nzg5NF0gdXNiIDEtMjogTmV3IFVTQiBkZXZp
-Y2UgZm91bmQsIGlkVmVuZG9yPTBhZjAsIGlkUHJvZHVjdD04ODAwDQo+IFsgMjQ2MC4wMDczODVd
-IHVzYiAxLTI6IE5ldyBVU0IgZGV2aWNlIHN0cmluZ3M6IE1mcj0zLCBQcm9kdWN0PTIsIFNlcmlh
-bE51bWJlcj0wDQo+IFsgMjQ2MC4wMTcyNDJdIHVzYiAxLTI6IFByb2R1Y3Q6IEdsb2JldHJvdHRl
-ciBIU1VQQSBNb2RlbQ0KPiBbIDI0NjAuMDIyNjQ0XSB1c2IgMS0yOiBNYW51ZmFjdHVyZXI6IE9w
-dGlvbiBOLlYuDQo+IFsgMjQ2OS40OTY0OTBdIHVzYiAxLTI6IFVTQiBkaXNjb25uZWN0LCBkZXZp
-Y2UgbnVtYmVyIDExDQo+IFsgMjQ3Mi44NDUyNDVdIHVzYiAxLTI6IG5ldyBoaWdoLXNwZWVkIFVT
-QiBkZXZpY2UgbnVtYmVyIDEyIHVzaW5nIGVoY2ktb21hcA0KPiBbIDI0NzMuMDEzOTQ2XSB1c2Ig
-MS0yOiBOZXcgVVNCIGRldmljZSBmb3VuZCwgaWRWZW5kb3I9MGFmMCwgaWRQcm9kdWN0PTg4MDAN
-Cj4gWyAyNDczLjAyMzM3Nl0gdXNiIDEtMjogTmV3IFVTQiBkZXZpY2Ugc3RyaW5nczogTWZyPTMs
-IFByb2R1Y3Q9MiwgU2VyaWFsTnVtYmVyPTANCj4gWyAyNDczLjAzMzI2NF0gdXNiIDEtMjogUHJv
-ZHVjdDogR2xvYmV0cm90dGVyIEhTVVBBIE1vZGVtDQo+IFsgMjQ3My4wMzg3NTddIHVzYiAxLTI6
-IE1hbnVmYWN0dXJlcjogT3B0aW9uIE4uVi4NCj4gWyAyNDc0LjUyODI4OV0gdXNiIDEtMjogVVNC
-IGRpc2Nvbm5lY3QsIGRldmljZSBudW1iZXIgMTINCj4gWyAyNDc4LjgyOTU4OV0gdXNiIDEtMjog
-bmV3IGhpZ2gtc3BlZWQgVVNCIGRldmljZSBudW1iZXIgMTMgdXNpbmcgZWhjaS1vbWFwDQo+IFsg
-MjQ3OC45OTg3NDhdIHVzYiAxLTI6IE5ldyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRvcj0wYWYw
-LCBpZFByb2R1Y3Q9ODgwMA0KPiBbIDI0NzkuMDA4MjA5XSB1c2IgMS0yOiBOZXcgVVNCIGRldmlj
-ZSBzdHJpbmdzOiBNZnI9MywgUHJvZHVjdD0yLCBTZXJpYWxOdW1iZXI9MA0KPiBbIDI0NzkuMDE4
-MDA1XSB1c2IgMS0yOiBQcm9kdWN0OiBHbG9iZXRyb3R0ZXIgSFNVUEEgTW9kZW0NCj4gWyAyNDc5
-LjAyMzQ5OF0gdXNiIDEtMjogTWFudWZhY3R1cmVyOiBPcHRpb24gTi5WLg0KPiBbIDI0ODAuMzc0
-Njk0XSB1c2IgMS0yOiBVU0IgZGlzY29ubmVjdCwgZGV2aWNlIG51bWJlciAxMw0KPiANCj4gaS5l
-LiB0aGUgbW9kZW0gZGlzY29ubmVjdGluZyBhbmQgcmVjb25uZWN0aW5nLiBldmVyeSBmZXcgc2Vj
-b25kcy4gIFRoZSBtb2RlbQ0KPiBldmVudHVhbGx5IGdvdCB1cHNldCBhbmQgaGFzICBlbnRlcmVk
-IGEgc3RhdGUgd2hlcmUgSSBjYW5ub3QgY29tbXVuaWNhdGUgd2l0aA0KPiBpdC4NCj4gDQo+IFNv
-IC0gaW50ZXJlc3RpbmcgYW5kIHVzZWZ1bCwgYnV0IEkgZG9uJ3QgaGF2ZSBhIGNvbXBsZXRlIHNv
-bHV0aW9uIHlldC4NCj4gDQo+IA0KPiBBbHNvLCB3aGlsZSB0aGlzIGdldHMgdGhlIGludGVybmFs
-IFVTQiB3b3JraW5nICh0byBzb21lIGV4dGVudCkgdGhlIGV4dGVybmFsDQo+IHVzYiAoVVNCLU9U
-RyB1c2luZyB0aGUgbXVzYiBkcml2ZXIpIGlzIHN0aWxsIGJyb2tlbi4gIFdoZW4gQ09SRSBpcyBv
-bmx5DQo+IGFsbG93ZWQgaW50byByZXRlbnRpb24gbW9kZSwgaXQgd29ya3MgZmluZS4gV2hlbiBD
-T1JFIGdvZXMgdG8gb2ZmLW1vZGUsIEkNCj4gbG9zZSB0aGUgVVNCIHBvcnQuICBTbyB0aGF0J2xs
-IGJlIGFub3RoZXIgIHByb2JsZW0gdG8gc29sdmUuDQoNCkFjdHVhbGx5LCBmb3JnZXQgYWxsIHRo
-YXQuICBNeSB0ZXN0aW5nIG1ldGhvZG9sb2d5IHdhcyBmbGF3ZWQgYW5kIEkgd2Fzbid0DQpyZWFs
-bHkgc2VlaW5nIHdoYXQgSSB0aG91Z2h0IEkgd2FzIHNlZWluZy4NCkknbGwgdHJ5IHRvIGZpbmQg
-dGltZSB0byBiZSBtb3JlIGNhcmVmdWwgYW5kIGlmIEkgZmluZCBzb21ldGhpbmcgaW50ZXJlc3Rp
-bmcsDQpJJ2xsIGxldCB5b3Uga25vdy4NCg0KTmVpbEJyb3duDQotLS0tLUJFR0lOIFBHUCBTSUdO
-QVRVUkUtLS0tLQ0KVmVyc2lvbjogR251UEcgdjIuMC4xOSAoR05VL0xpbnV4KQ0KDQppUUlWQXdV
-QlVQZkRaVG5zbnQxV1lvRzVBUUo2NncvNkFpNEd3NHFRUmNTV2pLK3RyWisxTGpvYkx4anpTbU9m
-DQpPWHlnUGVuZ3NDYmtBdkh5RUdQVmlsc3ozQy9JTlFtNERFbzZ4eHFldmE4YU1VNUxqQ0pGWGd3
-ZFZDSS9taTYwDQovRlNoaldWY0xXenVha2VtRWJCZFhITEM0enJCVGJZVWIweUZ3ZHFEbEJoalNw
-QnR5T3FQQ3FmV05jM29UTHM1DQpwMks4Y1VzQ2N0S1FmUUNRVzdMV090Z295QzFzUlhRWTFoVFND
-a2RpWElydXY1S21iMDM4Q0hVTmhwZEJiaGtDDQpZckc4WUUvWGpoN3JFSlBzcnNrUHBlbVhnV1M4
-MGdUUTBSMEZQalE5Tk5TODVVU3ZtQXgyMGVpN0Rwb0dadWIxDQo4UUl5R2xVTHE5ZlhyQTR3emxG
-NStkR2dQc05reGp3UlJkOU14Rm9vZ08wVlVNZE9vY3I2aG5vUzZRQ245QWNJDQpWTk5KdmFCdThi
-T2t5b1dVNjVkNDZSTCtOUFlpWU1iLzZOelBkaUxxU1liQWVJMDUwK0RINTg5dC95WlVlZWk4DQp2
-cmFuTjBoYU9HSGJVUm9pM3N3MkE0RUZJRDIydVN5Q2RVdHlJWUFXTHB4dTBmM0NhbzNVZGR6R0pG
-bGk2M3drDQpMbkc5YTZUNmlSZWVSZjNmSndvYmlJUWVFT1FUaldUWVFrbmFRc2NXQnp6ZEZ0M1dw
-NzJzNXVUT2hvbnZFUzBvDQo2MEhwQ0ZIRXFmUWVLMUtHN3VlTWxGVU9nZ1VmTzgxeTBZb3czR1o3
-U0cxUUthaUpkdDdTbnFLSnBiNFQrSURYDQpCSWF0YXRIL3M2NmpMQ0hXQjIwNXQvMy9YZjdPODNZ
-YXFFZUxueVk4VTRuOTF2c3BudFc1SjJnRmx0YXBUeW1qDQpqekpRSTdtOSs5Yz0NCj1lYm5pDQot
-LS0tLUVORCBQR1AgU0lHTkFUVVJFLS0tLS0NCg==
+Hi Luca,
+
+On 01/16/2013 10:45 PM, Luciano Coelho wrote:
+> The code to enable and disable the WiLink shared transport has been
+> removed from the TI-ST driver, so it must be implemented in the board
+> files instead.  Add the relevant operations to Panda's board file.
+>=20
+> Additionally, add the UART2 muxing data, so it's properly configured.
+>=20
+> Cc: stable <stable@vger.kernel.org> [3.7]
+> Signed-off-by: Luciano Coelho <coelho@ti.com>
+> ---
+>=20
+> In v2: use gpio_request_one() instead of gpio_request() and
+> gpio_direction_output(). (Thanks Fabio!)
+>=20
+>  arch/arm/mach-omap2/board-omap4panda.c |   50 ++++++++++++++++++++++=
++++++++---
+>  1 file changed, 46 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-o=
+map2/board-omap4panda.c
+> index 5c8e9ce..f44fccf 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -51,18 +51,50 @@
+>  #define GPIO_HUB_NRESET		62
+>  #define GPIO_WIFI_PMENA		43
+>  #define GPIO_WIFI_IRQ		53
+> +#define GPIO_BT_EN		46
+> =20
+>  /* wl127x BT, FM, GPS connectivity chip */
+> +static int plat_kim_chip_enable(struct kim_data_s *kim_data)
+> +{
+> +	gpio_set_value(GPIO_BT_EN, GPIO_LOW);
+> +	mdelay(5);
+> +	gpio_set_value(GPIO_BT_EN, GPIO_HIGH);
+> +	mdelay(100);
+> +
+> +	return 0;
+> +}
+> +
+> +static int plat_kim_chip_disable(struct kim_data_s *kim_data)
+> +{
+> +	gpio_set_value(GPIO_BT_EN, GPIO_LOW);
+> +	mdelay(1);
+> +	gpio_set_value(GPIO_BT_EN, GPIO_HIGH);
+> +	mdelay(1);
+> +	gpio_set_value(GPIO_BT_EN, GPIO_LOW);
+> +
+> +	return 0;
+> +}
+> +
+>  static struct ti_st_plat_data wilink_platform_data =3D {
+> -	.nshutdown_gpio	=3D 46,
+>  	.dev_name	=3D "/dev/ttyO1",
+>  	.flow_cntrl	=3D 1,
+>  	.baud_rate	=3D 3000000,
+> -	.chip_enable	=3D NULL,
+> -	.suspend	=3D NULL,
+> -	.resume		=3D NULL,
+> +	.chip_enable	=3D plat_kim_chip_enable,
+> +	.chip_disable	=3D plat_kim_chip_disable,
+
+I just wonder how this is going to work with DT... You are not going to=
+ have
+the ability to use callback in this form.
+I think the GPIO handling should be done in the driver itself rather th=
+an in
+the board file.
+
+>  };
+> =20
+> +static int wilink_st_init(void)
+> +{
+> +	int status;
+> +
+> +	status =3D gpio_request_one(GPIO_BT_EN, GPIOF_OUT_INIT_LOW, "kim");
+> +	if (status)
+> +		pr_err("%s: failed to request gpio %d\n", __func__,
+> +		       GPIO_BT_EN);
+> +
+> +	return status;
+> +}
+> +
+>  static struct platform_device wl1271_device =3D {
+>  	.name	=3D "kim",
+>  	.id	=3D -1,
+> @@ -397,6 +429,12 @@ static struct omap_board_mux board_mux[] __initd=
+ata =3D {
+>  		  OMAP_PULL_ENA),
+>  	OMAP4_MUX(ABE_MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+> =20
+> +	/* UART2 - BT/FM/GPS shared transport */
+> +	OMAP4_MUX(UART2_CTS,	OMAP_PIN_INPUT	| OMAP_MUX_MODE0),
+> +	OMAP4_MUX(UART2_RTS,	OMAP_PIN_OUTPUT	| OMAP_MUX_MODE0),
+> +	OMAP4_MUX(UART2_RX,	OMAP_PIN_INPUT	| OMAP_MUX_MODE0),
+> +	OMAP4_MUX(UART2_TX,	OMAP_PIN_OUTPUT	| OMAP_MUX_MODE0),
+> +
+>  	{ .reg_offset =3D OMAP_MUX_TERMINATOR },
+>  };
+> =20
+> @@ -433,6 +471,10 @@ static void __init omap4_panda_init(void)
+>  	if (ret)
+>  		pr_err("error setting wl12xx data: %d\n", ret);
+> =20
+> +	ret =3D wilink_st_init();
+> +	if (ret)
+> +		pr_err("WiLink shared transport init failed: %d\n", ret);
+> +
+>  	omap4_panda_init_rev();
+>  	omap4_panda_i2c_init();
+>  	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
+>=20
+
+
+--=20
+P=E9ter
