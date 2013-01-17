@@ -1,91 +1,97 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [[PATCH v2]] OMAP: omap4-panda: add WiLink shared transport
- power functions
-Date: Thu, 17 Jan 2013 12:09:19 +0200
-Message-ID: <20130117100919.GJ10814@arwen.pp.htv.fi>
-References: <1358372702-13102-1-git-send-email-coelho@ti.com>
- <50F7C4A7.5060202@ti.com>
- <20130117093417.GH10814@arwen.pp.htv.fi>
- <50F7CA82.4050509@ti.com>
- <20130117100510.GI10814@arwen.pp.htv.fi>
-Reply-To: <balbi@ti.com>
+From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/5] capemgr: Beaglebone DT overlay based cape manager
+Date: Thu, 17 Jan 2013 11:20:27 +0100
+Message-ID: <CACRpkdZ8hgV_=ev8Kcq=i7K15jrvwW+Or7p+=8fP+8Rb7GGvTQ@mail.gmail.com>
+References: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com>
+ <20130109081131.GH21994@gmail.com>
+ <CACRpkdbx7ptCugpc1+JC5Yk+n835goOuoF6q0pdizsjpZ-G9mQ@mail.gmail.com>
+ <201301091148.09320.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kaF1vgn83Aa7CiXN"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44446 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759486Ab3AQKJa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jan 2013 05:09:30 -0500
-Content-Disposition: inline
-In-Reply-To: <20130117100510.GI10814@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <201301091148.09320.arnd-r2nGTMty4D4@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rabin VINCENT <rabin.vincent-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matt Ranostay <mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Clark <robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Guennadi Liakhovetski <g.liakhovetski-Mmb7MZpHnFY@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Luciano Coelho <coelho@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---kaF1vgn83Aa7CiXN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, Jan 9, 2013 at 12:48 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
+> On Wednesday 09 January 2013, Linus Walleij wrote:
 
-On Thu, Jan 17, 2013 at 12:05:10PM +0200, Felipe Balbi wrote:
-> Hi,
->=20
-> On Thu, Jan 17, 2013 at 10:55:14AM +0100, Peter Ujfalusi wrote:
-> > On 01/17/2013 10:34 AM, Felipe Balbi wrote:
-> > >> I just wonder how this is going to work with DT... You are not going=
- to have
-> > >> the ability to use callback in this form.
-> > >> I think the GPIO handling should be done in the driver itself rather=
- than in
-> > >> the board file.
-> > >=20
-> > > that can (should ?) be moved to ti-st eventually. In fact I don't know
-> > > why it was removed in the first place, we would need Pavan to help us
-> > > with that query.
-> >=20
-> > Yes, this is a good question. I don't know what is the spacial thing pl=
-atforms
-> > need to do in the callback..
+>> static void __init ap_init(void)
+>> {
+>>         unsigned long sc_dec;
+>>         int i;
+>>
+>>         platform_device_register(&cfi_flash_device);
+>>
+>>         sc_dec = readl(ap_syscon_base + INTEGRATOR_SC_DEC_OFFSET);
+>>         for (i = 0; i < 4; i++) {
+>>                 struct lm_device *lmdev;
+>>
+>>                 if ((sc_dec & (16 << i)) == 0)
+>>                         continue;
+>>
+>>                 lmdev = kzalloc(sizeof(struct lm_device), GFP_KERNEL);
+>>                 if (!lmdev)
+>>                         continue;
+>>
+>>                 lmdev->resource.start = 0xc0000000 + 0x10000000 * i;
+>>                 lmdev->resource.end = lmdev->resource.start + 0x0fffffff;
+>>                 lmdev->resource.flags = IORESOURCE_MEM;
+>>                 lmdev->irq = IRQ_AP_EXPINT0 + i;
+>>                 lmdev->id = i;
+>>
+>>                 lm_device_register(lmdev);
+>>         }
+>>
+>>         integrator_init(false);
+>> }
+>>
+>> In this case I think the autodetect is so nice that device tree probing
+>> is mostly pointless. If it wasn't for the fact that we get a
+>> cross-depenency to defined interrupts and clocks and whatever that
+>> are coming from the device tree. Which is where DT shows its
+>> all-or-nothing face.
+>
+> Well, the extension bus above can easily be represented as a single device
+> with four interrupts and four memory ranges. The child devices don't
+> have to show up in DT at all, since they can be detected, but the detection
+> mechanism should be there. This is the same as PCI devices, where we have
+> to describe the host controller, but not the add-on cards.
 
-hah! looks like I found the reason:
+Right, so the picture is more complex.
 
-http://git.omapzoom.org/?p=3Dkernel/omap.git;a=3Dblob;f=3Darch/arm/mach-oma=
-p2/board-44xx-54xx-connectivity.c;h=3De4852b93e91b6daa8f85cca91a1e7fbcc778f=
-45b;hb=3D594aedd9e7da0491523411f8999efd98297f4fe4#l177
+Each logic module / plug-in card spawn a set of struct amba_device
+primecells.
 
-IMHO:
+Each of them need clocks and interrupts. These are then cascaded
+from the clocks/irqs on the main board.
 
-a) removing gpio handling wasn't necessary, we could just check
-	if gpio_is_valid(nshutdown_gpio)
+>> So to get an elegant DT probing in this case I *guess* the right thing
+>> to do is to dynamically add nodes to the device tree from the board
+>> code, or have all alternatives inside the DT marked "disable" and then
+>> mark them as "okay" from the board code by modifying the DT at
+>> runtime.
+>
+> That would also work, but I think the other way is simpler.
 
-b) that whole omap_serial_ext_uart_enable() looks really hacky. I'm sure
-	we can come up with something better.
+So when taking into account that the daugther boards are not just
+spawning themselves but a number of devices in turn, I thin
+it's the only way...
 
---=20
-balbi
+I will get to tackle this when I've converted the Integrator PCI to DT
+and removed the Integrator boardfiles.
 
---kaF1vgn83Aa7CiXN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQ983PAAoJEIaOsuA1yqREXkUP/0DaXdUD8vAOEHw2PRroYUbD
-IyTpShnnv3PJJMsVr64gxAHMkDDRDnq5YUkwoJLqKRDeT0W/9Vl2gZcy8l6lWzNM
-1nBlCwJP2+3mjWN+/qzo3NnmErnT2FXuoXmts8luPFABU3aBYA2Bdvziip3Z7ZwK
-9NamI3LboBeGezLX3OotvnxSGYxrqhHN3U11+1o6iuBUPeW566Fz8kbHJrJSvb8h
-72fvPdzCIX9MeS2jupOKFM2o7WZtWx/36m9YGRE7+qX+3PhlpYkt3ozG0vujHAKo
-nZKuZO28LuYHRSCaGSZ06OBFRCHkL/MCOPmGeEZZ/rdXtBoc03wpww5jyMLgWMh+
-8gYLHRVy1Pf4zlBDYgRUuCeSBOdNtuFJ/lVXPkGs0c5xDf3AFf2zzM/6OMBcJOOu
-MM6Hopebpom6rmK/P54fB22/Pwki0VYuCSD+JCfMkJg66c2v/+TW9dckNgjpMSQ9
-EUe1GFFbOhRtX3aHqUy6fSx/reANmmP76tqPIg6FShxq4/BaySNfc/H6pVAYa1iu
-tr0Hr3e0l+94D25POMn5qyNvYMXNO3j9V1nLoV3Fjn621dq0iO6FD14t44R0Zyub
-xR85lvirhB342OKgZ7L5r1eE0mUXhrHEqUMNavq3VpiWs9EHUoiHKt//Hi7HEaHM
-VEBiB6U/8a3YDcl1aD8V
-=5lZo
------END PGP SIGNATURE-----
-
---kaF1vgn83Aa7CiXN--
+Yours,
+Linus Walleij
