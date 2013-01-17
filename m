@@ -1,67 +1,59 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 2/6] ARM: OMAP: USB: Add phy binding information
-Date: Thu, 17 Jan 2013 11:39:19 +0200
-Message-ID: <50F7C6C7.3030400@ti.com>
-References: <1358348462-27693-1-git-send-email-kishon@ti.com> <1358348462-27693-3-git-send-email-kishon@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [[PATCH v2]] OMAP: omap4-panda: add WiLink shared transport power
+ functions
+Date: Thu, 17 Jan 2013 10:55:14 +0100
+Message-ID: <50F7CA82.4050509@ti.com>
+References: <1358372702-13102-1-git-send-email-coelho@ti.com> <50F7C4A7.5060202@ti.com> <20130117093417.GH10814@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1358348462-27693-3-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, balbi@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, horms@verge.net.au, magnus.damm@gmail.com, cbou@mail.ru, dwmw2@infradead.org, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, leoli@freescale.com, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, stern@rowland.harvard.edu
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43720 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759344Ab3AQJz1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jan 2013 04:55:27 -0500
+In-Reply-To: <20130117093417.GH10814@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Luciano Coelho <coelho@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 01/16/2013 05:00 PM, Kishon Vijay Abraham I wrote:
-> This is in preparation for the changes in PHY library to support adding
-> and getting multiple PHYs of the same type. In the new design, the
-> binding information between the PHY and the USB controller should be
-> specified in the platform specific initialization code. So it's been
-> done for OMAP platforms here.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
-> This kind-of binding should be done in all the platforms (I've done only
-> for OMAP platform). 
->  arch/arm/mach-omap2/usb-musb.c |    7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-> index 9d27e3f..bbe2fa5 100644
-> --- a/arch/arm/mach-omap2/usb-musb.c
-> +++ b/arch/arm/mach-omap2/usb-musb.c
-> @@ -24,6 +24,7 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/io.h>
->  #include <linux/usb/musb.h>
-> +#include <linux/usb/phy.h>
->  
->  #include "omap_device.h"
->  #include "soc.h"
-> @@ -85,8 +86,12 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
->  	musb_plat.mode = board_data->mode;
->  	musb_plat.extvbus = board_data->extvbus;
->  
-> -	if (cpu_is_omap44xx())
-> +	if (cpu_is_omap44xx()) {
->  		musb_plat.has_mailbox = true;
-> +		usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
-> +	} else if (cpu_is_omap34xx()) {
-> +		usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-> +	}
+On 01/17/2013 10:34 AM, Felipe Balbi wrote:
+>> I just wonder how this is going to work with DT... You are not going=
+ to have
+>> the ability to use callback in this form.
+>> I think the GPIO handling should be done in the driver itself rather=
+ than in
+>> the board file.
+>=20
+> that can (should ?) be moved to ti-st eventually. In fact I don't kno=
+w
+> why it was removed in the first place, we would need Pavan to help us
+> with that query.
 
-Are you sure than these OMAP platforms cannot be wired in any other way
-to the PHY?
+Yes, this is a good question. I don't know what is the spacial thing pl=
+atforms
+need to do in the callback..
 
-If they can be then this association must come from the board files or
-device tree.
+> Still, for -rc, the minimal patch had to be cooked, right ?
 
->  
->  	if (soc_is_am35xx()) {
->  		oh_name = "am35x_otg_hs";
-> 
+Sure it need to be fixed. I would try to revert the patch which caused =
+the
+issue (eccf2979 drivers/misc/ti-st: remove gpio handling).
 
+Should fix the legacy boot, but it is going to be even bigger fun to mo=
+ve to
+DT (and get rid of the callbacks).
+
+I don't have anything against this patch as such. Just wanted to point =
+out the
+obvious that the comfort of callbacks are not going to be around in som=
+e cases.
+
+--=20
+P=E9ter
 --
-cheers,
--roger
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
