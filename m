@@ -1,74 +1,83 @@
-From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Subject: Re: [PATCH v4 0/3] mtd: nand: OMAP: ELM error correction support
- for BCH ecc
-Date: Thu, 17 Jan 2013 14:06:15 +0200
-Message-ID: <1358424375.2731.234.camel@sauron.fi.intel.com>
-References: <1357286211-5012-1-git-send-email-avinashphilip@ti.com>
-	 <518397C60809E147AF5323E0420B992E3EA5DFA9@DBDE01.ent.ti.com>
-Reply-To: artem.bityutskiy@linux.intel.com
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [RFC PATCH 2/6] ARM: OMAP: USB: Add phy binding information
+Date: Thu, 17 Jan 2013 17:41:53 +0530
+Message-ID: <CAFp+6iGEC9KgfuQz6nqnAY5JrmtPG=HkGw5yjKw7-1=8AG_=dg@mail.gmail.com>
+References: <1358348462-27693-1-git-send-email-kishon@ti.com>
+	<1358348462-27693-3-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-97PiZq+ZXz3zLdWxUiVi"
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <518397C60809E147AF5323E0420B992E3EA5DFA9@DBDE01.ent.ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: "dwmw2@infradead.org" <dwmw2@infradead.org>, "tony@atomide.com" <tony@atomide.com>, "rmk+kernel@arm.linux.org.uk" <rmk+kernel@arm.linux.org.uk>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "zonque@gmail.com" <zonque@gmail.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "ivan.djelic@parrot.com" <ivan.dj>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <1358348462-27693-3-git-send-email-kishon@ti.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, balbi@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, horms@verge.net.au, magnus.damm@gmail.com, cbou@mail.ru, dwmw2@infradead.org, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, leoli@freescale.com, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, stern@rowland.harvard.edu
 List-Id: linux-omap@vger.kernel.org
 
+Hi Kishon,
 
---=-97PiZq+ZXz3zLdWxUiVi
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2013-01-16 at 12:22 +0000, Philip, Avinash wrote:
-> > This series is based on linux 3.8-rc2 and tested with [1].
-> > Also this patch series depend on [1] for NAND flash device
-> > tree data and gpmc nand device tree binding documentation updates.
-> >=20
-> > 1. [PATCH v7 0/5] OMAP GPMC DT bindings
-> > http://www.spinics.net/lists/linux-omap/msg83505.html
-> >=20
-> > Tested on am335x-evm for BCH 4 and 8 bit error correction.
->=20
-> Can you apply this patch series on l2-mtd tree as it will help RBL compat=
-ibility
-> ecc layout for NAND flash in am335x-platforms and hardware based BCH erro=
-r
-> correction.
+On Wed, Jan 16, 2013 at 8:30 PM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> This is in preparation for the changes in PHY library to support adding
+> and getting multiple PHYs of the same type. In the new design, the
+> binding information between the PHY and the USB controller should be
+> specified in the platform specific initialization code. So it's been
+> done for OMAP platforms here.
+>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+> This kind-of binding should be done in all the platforms (I've done only
+> for OMAP platform).
+>  arch/arm/mach-omap2/usb-musb.c |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+>
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+> index 9d27e3f..bbe2fa5 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/dma-mapping.h>
+>  #include <linux/io.h>
+>  #include <linux/usb/musb.h>
+> +#include <linux/usb/phy.h>
+>
+>  #include "omap_device.h"
+>  #include "soc.h"
+> @@ -85,8 +86,12 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+>         musb_plat.mode = board_data->mode;
+>         musb_plat.extvbus = board_data->extvbus;
+>
+> -       if (cpu_is_omap44xx())
+> +       if (cpu_is_omap44xx()) {
+>                 musb_plat.has_mailbox = true;
+> +               usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
+> +       } else if (cpu_is_omap34xx()) {
+> +               usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
+> +       }
 
-OK, I've applied them. I dropped the part that updates the
-documentation. Please, handle it separately when Daniel's patches are
-in.
+Just trying to understand things here.
+Is the device name we are using here the platform device name (pdev->name) ?
+If i am not wrong then for devices added through device tree
+the device name would actually include the device address in the string,
+wouldn't that make things somewhat weird, since we will have to add
+such bindings
+using this address string.
 
-Pushed to l2-mtd.git, thanks!
+one more doubt please :)
+is it possible to bind phy in the controllers' driver somehow ?
 
---=20
-Best Regards,
-Artem Bityutskiy
+>
+>         if (soc_is_am35xx()) {
+>                 oh_name = "am35x_otg_hs";
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---=-97PiZq+ZXz3zLdWxUiVi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAABAgAGBQJQ9+k3AAoJECmIfjd9wqK0h78P/ihNKGVzJ6EZoycfAIadjAbb
-yYsq/A3Zo4Ex4X7GqJFADPW5IpEHQakQ//plP6Ug5r58ZTViQGmhT4ZT1VE3mmZ2
-8A+aLkTGGqu9QSzzhYlyQYROFgdJPOc+oTzfGqE9H9c6l2uN0YWlVA6622dd8j8q
-4PF0Z7CWmWmzremwWoHtJTS/+WVmrhGx3qDODEglMY8MoBu53ljFBO1HYQwT630g
-SHmHTJ5oxAfUGvWkb+9J6nJl6KEiaojCKdb0KqMCLjnNVL3YpqbM8URmE5G3WXqt
-ywzoovgMiXXGa+8HG4xJV1IoshEnJFEsBplYRRBqlQjTPMbAgmP1qqVjFGaWtKSg
-M/PpbsEhHdOzTfLdeqxDHSCyPyHKu4RG6qbF+NrZeSgM4PsUNKMQvwMvyZV6sLk0
-8LELXZTcnaJ7xB/diVXH38TuHXWOCL4SiAfNd6NRSxSSbPsQRWsw8WLRi3ad5Hn7
-chKo/Dk/K27iPZPIm8Ym1WlRHyzLspjvkh2Mzn7lhRmAMSxKdweNH+vKus5BHOGv
-oPXajCRUROrtfO5xaHcQlMa/R7ooUT9J/QawljBrE8zsJK0W/rRxDJWLIKsaSW+R
-KQWpjw9YavHSWLk57Z3F4MVgK8rXRGyBV/Lxy2GzGOpBPfOnCAQoRA3UVICkPikM
-wycjvDqWHtLjIJVWwwHc
-=JGA8
------END PGP SIGNATURE-----
-
---=-97PiZq+ZXz3zLdWxUiVi--
-
+-- 
+Thanks & Regards
+Vivek
