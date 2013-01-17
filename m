@@ -1,67 +1,84 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] ARM: OMAP AM3517/05: hwmod data: block WFI when EMAC
- active
-Date: Thu, 17 Jan 2013 15:31:01 -0700
-Message-ID: <20130117223101.GB32446@animalcreek.com>
-References: <alpine.DEB.2.00.1212301828590.8175@utopia.booyaka.com>
- <alpine.DEB.2.00.1301081916190.18536@utopia.booyaka.com>
- <20130108204347.GC1876@animalcreek.com>
- <alpine.DEB.2.00.1301171919420.14118@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [[PATCH v2]] OMAP: omap4-panda: add WiLink shared transport
+ power functions
+Date: Thu, 17 Jan 2013 15:16:08 -0800
+Message-ID: <20130117231608.GP14149@atomide.com>
+References: <1358372702-13102-1-git-send-email-coelho@ti.com>
+ <50F7C4A7.5060202@ti.com>
+ <20130117093417.GH10814@arwen.pp.htv.fi>
+ <50F7CA82.4050509@ti.com>
+ <20130117100510.GI10814@arwen.pp.htv.fi>
+ <20130117100919.GJ10814@arwen.pp.htv.fi>
+ <1358418917.6252.31.camel@cumari.coelho.fi>
+ <50F7D535.6030205@ti.com>
+ <20130117173131.GL14149@atomide.com>
+ <1358445456.6252.64.camel@cumari.coelho.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1301171919420.14118@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1358445456.6252.64.camel@cumari.coelho.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 17, 2013 at 07:21:42PM +0000, Paul Walmsley wrote:
-> Hi Mark
+* Luciano Coelho <coelho@ti.com> [130117 10:04]:
+> Hi Tony,
 > 
-> On Tue, 8 Jan 2013, Mark A. Greer wrote:
+> On Thu, 2013-01-17 at 09:31 -0800, Tony Lindgren wrote:
+> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [130117 02:44]:
+> > > On 01/17/2013 11:35 AM, Luciano Coelho wrote:
+> > > > This out-of-tree code doesn't explain why we need to do the
+> > > > enable/disable in the board file.  We just need to do things a bit
+> > > > differently in the driver.  I'll start cleaning all this stuff up for
+> > > > -next pretty soon.
+> > > > 
+> > > > For now, ie. 3.7 (stable) and 3.8, do we agree in taking this patch so
+> > > > that TI-ST at least works on Panda? Simply reverting the gpio removal
+> > > > patch doesn't help, because we also need to handle the UART2 muxing
+> > > > (which my patch does as well).
+> > > 
+> > > I don't see better way to fix this either. In any case, I give you my:
+> > > 
+> > > Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> > 
+> > So what is actually broken? The horrible bluetooth muxing over serial
+> > port? If so, let's rather fix it properly than even attempt to fix
+> > it as it seems that it's been broken for two merge windows now.
 > 
-> > Sorry to nag but I think the comment needs to be updated to remove the
-> > sentence about the missing EMAC hwmod.
-> 
-> You are absolutely right, and the correction is very much appreciated.  
-> Updated patch follows.
-> 
-> 
-> - Paul
-> 
-> From: Paul Walmsley <paul@pwsan.com>
-> Date: Sun, 30 Dec 2012 10:36:36 -0700
-> Subject: [PATCH] ARM: OMAP AM3517/05: hwmod data: block WFI when EMAC active
-> 
-> According to Mark Greer, on OMAP AM3517/3505 chips, the EMAC is unable
-> to wake the ARM up from WFI:
-> 
->     http://www.spinics.net/lists/arm-kernel/msg174734.html
-> 
-> Further troubleshooting was unable to narrow the problem down.  So we
-> don't have much choice other than to block WFI when the EMAC is active
-> with the HWMOD_BLOCK_WFI flag.
-> 
-> Based on Mark's original patch.  We're removing the omap_device-based
-> pm_lats code, so a different approach was needed.
-> 
-> This third version contains some corrections thanks to Mark's review.
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Mark A. Greer <mgreer@animalcreek.com>
-> ---
+> Yes, it is the horrible Bluetooth muxing over serial that is broken.  It
+> has been broken for two merge windows, because nobody seemed to care
+> until I started looking into it and tried to figure out how to get it to
+> work. :)
 
-FWIW,
+Heh I see.
+ 
+> The implementation is really weak and there are loads of things I want
+> to start fixing/cleaning up.  This patch was just my intention to start
+> with a relatively clean table (ie. horrible or not, at least working).
+> 
+> 
+> > Also, let's just do absolutely minimal board-*.c file fixes now.
+> > This thing should be just moved to use DT so we can flip over omap4
+> > to be DT only and drop estimated 5k LOC from mach-omap2.
+> 
+> I totally agree, I'll start looking into that next.
+> 
+> But this patch is pretty small and simple, so why not include it to at
+> least fix the breakage in 3.7 and 3.8? Whether you take it or not now
+> won't make any difference in the 5k LOC in these kernel versions.
 
-Acked-by: Mark A. Greer <mgreer@animalcreek.com>
+Well we are planning to drop the non-DT support for omap4 as soon as it's
+usable with DT. For omap4 we are only carrying SDP and panda support to
+make this transition easier. The only bindings missing AFAIK are wl12xx and
+USB.
+
+If we add this, then it implies we're somehow supporting it, which is not
+the way to go IMHO as we need to get rid of these platform callbacks instead.
+
+What's your estimate of having minimal wl12xx WLAN DT binding available?
+
+Regards,
+
+Tony
