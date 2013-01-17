@@ -1,88 +1,91 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [[PATCH v2]] OMAP: omap4-panda: add WiLink shared transport
  power functions
-Date: Thu, 17 Jan 2013 12:05:10 +0200
-Message-ID: <20130117100510.GI10814@arwen.pp.htv.fi>
+Date: Thu, 17 Jan 2013 12:09:19 +0200
+Message-ID: <20130117100919.GJ10814@arwen.pp.htv.fi>
 References: <1358372702-13102-1-git-send-email-coelho@ti.com>
  <50F7C4A7.5060202@ti.com>
  <20130117093417.GH10814@arwen.pp.htv.fi>
  <50F7CA82.4050509@ti.com>
+ <20130117100510.GI10814@arwen.pp.htv.fi>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YZQs1kEQY307C4ut"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="kaF1vgn83Aa7CiXN"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:44446 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759486Ab3AQKJa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jan 2013 05:09:30 -0500
 Content-Disposition: inline
-In-Reply-To: <50F7CA82.4050509@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: balbi@ti.com, Luciano Coelho <coelho@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20130117100510.GI10814@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Luciano Coelho <coelho@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---YZQs1kEQY307C4ut
+--kaF1vgn83Aa7CiXN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Thu, Jan 17, 2013 at 10:55:14AM +0100, Peter Ujfalusi wrote:
-> On 01/17/2013 10:34 AM, Felipe Balbi wrote:
-> >> I just wonder how this is going to work with DT... You are not going t=
-o have
-> >> the ability to use callback in this form.
-> >> I think the GPIO handling should be done in the driver itself rather t=
-han in
-> >> the board file.
+On Thu, Jan 17, 2013 at 12:05:10PM +0200, Felipe Balbi wrote:
+> Hi,
+>=20
+> On Thu, Jan 17, 2013 at 10:55:14AM +0100, Peter Ujfalusi wrote:
+> > On 01/17/2013 10:34 AM, Felipe Balbi wrote:
+> > >> I just wonder how this is going to work with DT... You are not going=
+ to have
+> > >> the ability to use callback in this form.
+> > >> I think the GPIO handling should be done in the driver itself rather=
+ than in
+> > >> the board file.
+> > >=20
+> > > that can (should ?) be moved to ti-st eventually. In fact I don't know
+> > > why it was removed in the first place, we would need Pavan to help us
+> > > with that query.
 > >=20
-> > that can (should ?) be moved to ti-st eventually. In fact I don't know
-> > why it was removed in the first place, we would need Pavan to help us
-> > with that query.
->=20
-> Yes, this is a good question. I don't know what is the spacial thing plat=
-forms
-> need to do in the callback..
->=20
-> > Still, for -rc, the minimal patch had to be cooked, right ?
->=20
-> Sure it need to be fixed. I would try to revert the patch which caused the
-> issue (eccf2979 drivers/misc/ti-st: remove gpio handling).
->=20
-> Should fix the legacy boot, but it is going to be even bigger fun to move=
- to
-> DT (and get rid of the callbacks).
->=20
-> I don't have anything against this patch as such. Just wanted to point ou=
-t the
-> obvious that the comfort of callbacks are not going to be around in some =
-cases.
+> > Yes, this is a good question. I don't know what is the spacial thing pl=
+atforms
+> > need to do in the callback..
 
-I guess Luca's choice was to cause the minimum impact to current code,
-also reverting original commit isn't free os hassles either.
+hah! looks like I found the reason:
+
+http://git.omapzoom.org/?p=3Dkernel/omap.git;a=3Dblob;f=3Darch/arm/mach-oma=
+p2/board-44xx-54xx-connectivity.c;h=3De4852b93e91b6daa8f85cca91a1e7fbcc778f=
+45b;hb=3D594aedd9e7da0491523411f8999efd98297f4fe4#l177
+
+IMHO:
+
+a) removing gpio handling wasn't necessary, we could just check
+	if gpio_is_valid(nshutdown_gpio)
+
+b) that whole omap_serial_ext_uart_enable() looks really hacky. I'm sure
+	we can come up with something better.
 
 --=20
 balbi
 
---YZQs1kEQY307C4ut
+--kaF1vgn83Aa7CiXN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQ98zWAAoJEIaOsuA1yqREAOEP/2SacEiV9pnXTOrUHhZm48sS
-8NaT/E5MoLViP//N8t8kSm48OH7V1KV1aUk9y+OoYD3ayt2CG/w48Qw+t7cu0x1k
-0Br7f9UkyuBONWzYQ/I7KTdkU6qudaFN/0plBXkYxgy0/iKGHf9xUelFN4NSfDVf
-dlcxUtocug2GZ8WiDmC3NCasLUEk/eQLRN3Hg6yTlUReSyKJeF9DSq5YOcDHFW/Y
-W/80KSsJb+Jo4IlowVvdiL+XIBrq9NFm9ocyHA+IK+PEoIUlM2yQ3i5FVV+zMj/7
-vDXioMCTsDjh/68dakNtQdtViqQ6U654HTQVLsj3sNW40o06ycgGk/zXKKV7YLgT
-VyxkqYGT8IlBVXAKH9O7pHPZmtUfG3WkEO8NBKxiCjmTuzR074Xp2+1qt0jJ6Jwd
-KprZKbyxZtbVYROSh+u80DvFYntJgZ7A2CQe4cELLXVWHUo8cXW8ELSxDmw8fD7Z
-VrsvpCCoj1DCZAoXIxOP2ZLeU4AUaiHocowcEXK+8vXGr4eQ/ijpZlH7J/tHw5/n
-qFVMoY1L8W3GTTXRwT5bSuMAYxFdYhuvGWtYdeewEP+Yu+G1DoDESrUuMjgYF+lv
-0fijmBseXn06uyDXN3Zod4WengwFtn7lS7TO0u5GwBBvnk72VQhF9hnC50W4jCGt
-s/3cNKR0tzTXzAqNVyj3
-=Bkpa
+iQIcBAEBAgAGBQJQ983PAAoJEIaOsuA1yqREXkUP/0DaXdUD8vAOEHw2PRroYUbD
+IyTpShnnv3PJJMsVr64gxAHMkDDRDnq5YUkwoJLqKRDeT0W/9Vl2gZcy8l6lWzNM
+1nBlCwJP2+3mjWN+/qzo3NnmErnT2FXuoXmts8luPFABU3aBYA2Bdvziip3Z7ZwK
+9NamI3LboBeGezLX3OotvnxSGYxrqhHN3U11+1o6iuBUPeW566Fz8kbHJrJSvb8h
+72fvPdzCIX9MeS2jupOKFM2o7WZtWx/36m9YGRE7+qX+3PhlpYkt3ozG0vujHAKo
+nZKuZO28LuYHRSCaGSZ06OBFRCHkL/MCOPmGeEZZ/rdXtBoc03wpww5jyMLgWMh+
+8gYLHRVy1Pf4zlBDYgRUuCeSBOdNtuFJ/lVXPkGs0c5xDf3AFf2zzM/6OMBcJOOu
+MM6Hopebpom6rmK/P54fB22/Pwki0VYuCSD+JCfMkJg66c2v/+TW9dckNgjpMSQ9
+EUe1GFFbOhRtX3aHqUy6fSx/reANmmP76tqPIg6FShxq4/BaySNfc/H6pVAYa1iu
+tr0Hr3e0l+94D25POMn5qyNvYMXNO3j9V1nLoV3Fjn621dq0iO6FD14t44R0Zyub
+xR85lvirhB342OKgZ7L5r1eE0mUXhrHEqUMNavq3VpiWs9EHUoiHKt//Hi7HEaHM
+VEBiB6U/8a3YDcl1aD8V
+=5lZo
 -----END PGP SIGNATURE-----
 
---YZQs1kEQY307C4ut--
+--kaF1vgn83Aa7CiXN--
