@@ -1,67 +1,83 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH v2 2/2] pwm: pwm-tiecap: Low power sleep support
-Date: Thu, 17 Jan 2013 16:59:14 +0100
-Message-ID: <20130117155914.GB2186@avionic-0098.adnet.avionic-design.de>
-References: <1358414403-13431-1-git-send-email-avinashphilip@ti.com>
- <1358414403-13431-3-git-send-email-avinashphilip@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [RFC PATCH 3/6] usb: otg: utils: change the phy lib to support
+ multiple PHYs of same type
+Date: Thu, 17 Jan 2013 18:07:57 +0200
+Message-ID: <50F821DD.1040609@ti.com>
+References: <1358348462-27693-1-git-send-email-kishon@ti.com> <1358348462-27693-4-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eJnRUKwClWJh1Khz"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:63547 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756994Ab3AQP7T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jan 2013 10:59:19 -0500
-Content-Disposition: inline
-In-Reply-To: <1358414403-13431-3-git-send-email-avinashphilip@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <1358348462-27693-4-git-send-email-kishon@ti.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, balbi@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, horms@verge.net.au, magnus.damm@gmail.com, cbou@mail.ru, dwmw2@infradead.org, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, leoli@freescale.com, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, stern@rowland.harvard.edu
 List-Id: linux-omap@vger.kernel.org
-To: Philip Avinash <avinashphilip@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com
 
-
---eJnRUKwClWJh1Khz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, Jan 17, 2013 at 02:50:03PM +0530, Philip Avinash wrote:
-> In low power modes of AM33XX platforms, peripherals power is cut off.
-> This patch supports low power sleep transition support for ECAP driver.
->=20
-> Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+On 01/16/2013 05:00 PM, Kishon Vijay Abraham I wrote:
+> In order to add support for multipe PHY's of the same type, the API's
+> for adding PHY and getting PHY has been changed. Now the binding
+> information of the PHY and controller should be done in platform file
+> using usb_bind_phy API. And for getting a PHY, the device pointer of the
+> USB controller and an index should be passed. Based on the binding
+> information that is added in the platform file, get_phy will return the
+> approappropriate PHY.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
-> Changes since v1:
-> 	- check the enabled status of pwm device for handling module
-> 	  enable/disable on resume/suspend
->=20
->  drivers/pwm/pwm-tiecap.c |   53 ++++++++++++++++++++++++++++++++++++++++=
-++++++
->  1 file changed, 53 insertions(+)
+>  arch/arm/mach-shmobile/board-marzen.c |    2 +-
+>  drivers/power/ab8500_charger.c        |    2 +-
+>  drivers/power/isp1704_charger.c       |    2 +-
+>  drivers/power/pda_power.c             |    2 +-
+>  drivers/power/twl4030_charger.c       |    2 +-
+>  drivers/usb/chipidea/udc.c            |    2 +-
+>  drivers/usb/dwc3/core.c               |    4 +-
+>  drivers/usb/gadget/fsl_udc_core.c     |    2 +-
+>  drivers/usb/gadget/mv_udc_core.c      |    2 +-
+>  drivers/usb/gadget/omap_udc.c         |    2 +-
+>  drivers/usb/gadget/pxa25x_udc.c       |    2 +-
+>  drivers/usb/gadget/pxa27x_udc.c       |    2 +-
+>  drivers/usb/gadget/s3c-hsudc.c        |    2 +-
+>  drivers/usb/host/ehci-fsl.c           |    2 +-
+>  drivers/usb/host/ehci-msm.c           |    2 +-
+>  drivers/usb/host/ehci-mv.c            |    2 +-
+>  drivers/usb/host/ehci-tegra.c         |    2 +-
+>  drivers/usb/host/ohci-omap.c          |    2 +-
+>  drivers/usb/musb/am35x.c              |    2 +-
+>  drivers/usb/musb/blackfin.c           |    2 +-
+>  drivers/usb/musb/da8xx.c              |    2 +-
+>  drivers/usb/musb/davinci.c            |    2 +-
+>  drivers/usb/musb/musb_dsps.c          |    2 +-
+>  drivers/usb/musb/omap2430.c           |    2 +-
+>  drivers/usb/musb/tusb6010.c           |    2 +-
+>  drivers/usb/musb/ux500.c              |    2 +-
+>  drivers/usb/otg/ab8500-usb.c          |    3 +-
+>  drivers/usb/otg/fsl_otg.c             |    5 ++-
+>  drivers/usb/otg/gpio_vbus.c           |    3 +-
+>  drivers/usb/otg/isp1301_omap.c        |    3 +-
+>  drivers/usb/otg/msm_otg.c             |    3 +-
+>  drivers/usb/otg/mv_otg.c              |    3 +-
+>  drivers/usb/otg/nop-usb-xceiv.c       |    3 +-
+>  drivers/usb/otg/otg.c                 |   67 +++++++++++++++------------------
+>  drivers/usb/otg/twl4030-usb.c         |    3 +-
+>  drivers/usb/phy/mv_u3d_phy.c          |    3 +-
+>  drivers/usb/phy/omap-usb2.c           |   11 ++----
+>  drivers/usb/phy/rcar-phy.c            |    3 +-
+>  include/linux/usb/phy.h               |   12 +++---
+>  39 files changed, 87 insertions(+), 89 deletions(-)
 
-Applied, thanks.
+I think it better to leave the existing add/get APIs as they are add add
+new APIs that support multiple PHYs. You could probably mark the old
+ones as deprecated.
 
-Thierry
+That way you don't need to wait till all users are converted and tested.
 
---eJnRUKwClWJh1Khz
-Content-Type: application/pgp-signature
+e.g. you could name the new APIs as
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
+usb_add_phy_dev(struct usb_phy *phy);
+usb_get_phy_dev(struct device *dev, int index);
 
-iQIcBAEBAgAGBQJQ+B/SAAoJEN0jrNd/PrOhgB0P/1KtbYXQ/MiniNN1fdlKePgT
-F1onmJaOt/Nq3FOPirxMHrNYwpPSDhQ9O4mur9fNE1HcWUUUuwynfqjoitOJdIsn
-45H0zLQ9N38QL1dJ7VYRkEQTY7fQfqiij061Qkv1wIS8Pg7cRuUyWPfmUhFWtJDX
-H2mOFyoGf+grEzxuIB8iU9EEAqwUkun3eH9WvPhbw6w4xe/gootG2TIFrmPr8/rx
-tIHiSwqgoKMdUMtF/NOdFkTFBaHSGv95iPyiPjpxa08iD/mUmpRBycgFkiVHWhcF
-JBSFegWlC3+wAZZR4iqxDtKrX1WT6TEMwpqylCRQYjxkrP/l+PJWP/rnPCJhm9h3
-SiWPN43NGWNijsPTtc76zmnwl3YZXCEauQtXNBtGg/RRkDH9rhCdwn8c/FwiNg72
-c60tl+XkESg30UBG7wP2qCs7s7s6pvJP4v2VV3aNhv1p3VCTGyc7NZ5zImJwixqr
-CgWDaC3iRAcr1ZvFNusUXhang73nvif38cXIvVhNRc55Oumj8Z1BnqbyEnRrCv5q
-xiz/LzmeYExFfW7WoLsW9jFOKPtuWNNzzXiVpVS1Xawkv1Yt/tgXouWwV+KNSxGE
-yM3UqreCf9g95qnKvPP2KGX7VKkylKOsBJ3CYy2jJDPP9WrMD5gf/X9KM10CNYBz
-cmnO9C8N2T1NmZt49JT2
-=f2hJ
------END PGP SIGNATURE-----
+--
+cheers,
+-roger
 
---eJnRUKwClWJh1Khz--
