@@ -1,77 +1,56 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP AM3517/05: hwmod data: block WFI when EMAC
- active
-Date: Thu, 17 Jan 2013 19:21:42 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301171919420.14118@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1212301828590.8175@utopia.booyaka.com> <alpine.DEB.2.00.1301081916190.18536@utopia.booyaka.com> <20130108204347.GC1876@animalcreek.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2: Fix missing omap2xxx_clkt_vps_xxx function
+ calls
+Date: Thu, 17 Jan 2013 13:27:03 -0600
+Message-ID: <50F85087.3060507@ti.com>
+References: <1357851209-5332-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1301171848490.14118@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42158 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751814Ab3AQTVn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jan 2013 14:21:43 -0500
-In-Reply-To: <20130108204347.GC1876@animalcreek.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40138 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752701Ab3AQT1F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Jan 2013 14:27:05 -0500
+In-Reply-To: <alpine.DEB.2.00.1301171848490.14118@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Mark
+Hi Paul,
 
-On Tue, 8 Jan 2013, Mark A. Greer wrote:
+On 01/17/2013 12:51 PM, Paul Walmsley wrote:
+> Hi Jon
+> 
+> On Thu, 10 Jan 2013, Jon Hunter wrote:
+> 
+>> During the migration to the common clock framework, calls to the
+>> functions omap2xxx_clkt_vps_late_init() and
+>> omap2xxx_clkt_vps_check_bootloader_rates() were not preserved for
+>> OMAP2420 and OMAP2430. This causes the variables "sys_ck_rate" and
+>> "curr_prcm_set" to be uninitialised on boot. On reboot, this causes the
+>> following error message to be displayed because the appropriate MPU
+>> clock frequency (derived from sys_ck_rate) cannot be found.
+>>
+>> "Could not set MPU rate to 4294MHz"
+> 
+> I don't see this message on 2430sdp or n800 with v3.8-rc3, but maybe 
+> that's due to sys_clk differences.  Do you still see this on v3.8-rc3 
+> with H4?
 
-> Sorry to nag but I think the comment needs to be updated to remove the
-> sentence about the missing EMAC hwmod.
+Yes I still see it. You don't see it on reboot?
 
-You are absolutely right, and the correction is very much appreciated.  
-Updated patch follows.
+The reason why there is such a large number is because
+omap2_round_to_table_rate() is returning the value -EINVAL. You could
+add a print to omap2_round_to_table_rate() to see what it returns on
+reboot. Or we could add a WARN to the function is sys_ck_rate is 0 for
+testing.
 
+> Also, there's already a call to omap2xxx_clkt_vps_check_bootloader_rates() 
+> -- is it necessary to add another one?
 
-- Paul
+Thanks. I see that now and so that is not needed then.
 
-From: Paul Walmsley <paul@pwsan.com>
-Date: Sun, 30 Dec 2012 10:36:36 -0700
-Subject: [PATCH] ARM: OMAP AM3517/05: hwmod data: block WFI when EMAC active
-
-According to Mark Greer, on OMAP AM3517/3505 chips, the EMAC is unable
-to wake the ARM up from WFI:
-
-    http://www.spinics.net/lists/arm-kernel/msg174734.html
-
-Further troubleshooting was unable to narrow the problem down.  So we
-don't have much choice other than to block WFI when the EMAC is active
-with the HWMOD_BLOCK_WFI flag.
-
-Based on Mark's original patch.  We're removing the omap_device-based
-pm_lats code, so a different approach was needed.
-
-This third version contains some corrections thanks to Mark's review.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Mark A. Greer <mgreer@animalcreek.com>
----
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 8bb2628..ac7e03e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -3493,7 +3493,12 @@ static struct omap_hwmod am35xx_emac_hwmod = {
- 	.name		= "davinci_emac",
- 	.mpu_irqs	= am35xx_emac_mpu_irqs,
- 	.class		= &am35xx_emac_class,
--	.flags		= HWMOD_NO_IDLEST,
-+	/*
-+	 * According to Mark Greer, the MPU will not return from WFI
-+	 * when the EMAC signals an interrupt.
-+	 * http://www.spinics.net/lists/arm-kernel/msg174734.html
-+	 */
-+	.flags		= (HWMOD_NO_IDLEST | HWMOD_BLOCK_WFI),
- };
- 
- /* l3_core -> davinci emac interface */
--- 
-1.7.10.4
-
+Cheers
+Jon
