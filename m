@@ -1,68 +1,44 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [[PATCH v2]] OMAP: omap4-panda: add WiLink shared transport
- power functions
-Date: Thu, 17 Jan 2013 12:35:17 +0200
-Message-ID: <1358418917.6252.31.camel@cumari.coelho.fi>
-References: <1358372702-13102-1-git-send-email-coelho@ti.com>
-	 <50F7C4A7.5060202@ti.com> <20130117093417.GH10814@arwen.pp.htv.fi>
-	 <50F7CA82.4050509@ti.com> <20130117100510.GI10814@arwen.pp.htv.fi>
-	 <20130117100919.GJ10814@arwen.pp.htv.fi>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH 1/5] capemgr: Beaglebone DT overlay based cape manager
+Date: Thu, 17 Jan 2013 10:35:41 +0000
+Message-ID: <201301171035.41407.arnd@arndb.de>
+References: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com>
+ <201301091148.09320.arnd@arndb.de>
+ <CACRpkdZ8hgV_=ev8Kcq=i7K15jrvwW+Or7p+=8fP+8Rb7GGvTQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54868 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759489Ab3AQKgQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Jan 2013 05:36:16 -0500
-In-Reply-To: <20130117100919.GJ10814@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CACRpkdZ8hgV_=ev8Kcq=i7K15jrvwW+Or7p+=8fP+8Rb7GGvTQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rabin VINCENT <rabin.vincent-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matt Ranostay <mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Clark <robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Guennadi Liakhovetski <g.liakhovetski-Mmb7MZpHnFY@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2013-01-17 at 12:09 +0200, Felipe Balbi wrote:
-> On Thu, Jan 17, 2013 at 12:05:10PM +0200, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Thu, Jan 17, 2013 at 10:55:14AM +0100, Peter Ujfalusi wrote:
-> > > On 01/17/2013 10:34 AM, Felipe Balbi wrote:
-> > > >> I just wonder how this is going to work with DT... You are not going to have
-> > > >> the ability to use callback in this form.
-> > > >> I think the GPIO handling should be done in the driver itself rather than in
-> > > >> the board file.
-> > > > 
-> > > > that can (should ?) be moved to ti-st eventually. In fact I don't know
-> > > > why it was removed in the first place, we would need Pavan to help us
-> > > > with that query.
-> > > 
-> > > Yes, this is a good question. I don't know what is the spacial thing platforms
-> > > need to do in the callback..
+On Thursday 17 January 2013, Linus Walleij wrote:
+> Each logic module / plug-in card spawn a set of struct amba_device
+> primecells.
 > 
-> hah! looks like I found the reason:
-> 
-> http://git.omapzoom.org/?p=kernel/omap.git;a=blob;f=arch/arm/mach-omap2/board-44xx-54xx-connectivity.c;h=e4852b93e91b6daa8f85cca91a1e7fbcc778f45b;hb=594aedd9e7da0491523411f8999efd98297f4fe4#l177
-> 
-> IMHO:
-> 
-> a) removing gpio handling wasn't necessary, we could just check
-> 	if gpio_is_valid(nshutdown_gpio)
-> 
-> b) that whole omap_serial_ext_uart_enable() looks really hacky. I'm sure
-> 	we can come up with something better.
-> 
+> Each of them need clocks and interrupts. These are then cascaded
+> from the clocks/irqs on the main board.
 
-This out-of-tree code doesn't explain why we need to do the
-enable/disable in the board file.  We just need to do things a bit
-differently in the driver.  I'll start cleaning all this stuff up for
--next pretty soon.
+But can they be cascaded from any clocks and irqs on the mainboard,
+or just a few selected ones that are connected to the plug-in
+module?
 
-For now, ie. 3.7 (stable) and 3.8, do we agree in taking this patch so
-that TI-ST at least works on Panda? Simply reverting the gpio removal
-patch doesn't help, because we also need to handle the UART2 muxing
-(which my patch does as well).
+If you can describe which IRQs and clocks are routed to the
+connector, then everything below it can be locally described
+again. For the interrupts, you can use an
+interrupt-map/interrupt-map-mask pair, and I'd assume for
+the clocks, you just need to provide the right labels.
 
---
-Cheers,
-Luca.
-
+	Arnd
