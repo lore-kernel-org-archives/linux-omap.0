@@ -1,14 +1,14 @@
 From: J Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] ARM: OMAP2+: OMAP44XX: Clock: Correct the clock
-Date: Fri, 18 Jan 2013 15:50:32 +0530
-Message-ID: <1358504432-31915-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH] ARM: OMAP2+: OMAP44XX: Clock: Correct the clock identifiers for OMAP4460 and OMAP4430
+Date: Fri, 18 Jan 2013 15:51:38 +0530
+Message-ID: <1358504498-31985-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57355 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49281 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751072Ab3ARKYi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Jan 2013 05:24:38 -0500
+	id S1751072Ab3ARKZr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Jan 2013 05:25:47 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com
