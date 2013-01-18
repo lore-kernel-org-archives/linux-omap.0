@@ -1,67 +1,38 @@
-From: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 0/8] MFD: ti_am335x_tscadc: DT support and TSC features
- addition
-Date: Fri, 18 Jan 2013 16:14:57 +0530
-Message-ID: <cover.1358502134.git.rachna@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: OMAP baseline test results for v3.8-rc3
+Date: Fri, 18 Jan 2013 11:46:42 +0100
+Message-ID: <50F92812.3080406@ti.com>
+References: <alpine.DEB.2.00.1301141756460.20390@utopia.booyaka.com> <50F51067.5090008@ti.com> <alpine.DEB.2.00.1301171841350.14118@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Dmitry Torokhov <dtor-JGs/UdohzUI@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:51421 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751395Ab3ARKqr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Jan 2013 05:46:47 -0500
+In-Reply-To: <alpine.DEB.2.00.1301171841350.14118@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chuansheng Liu <chuansheng.liu@intel.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-From: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
+Hi Paul,
 
-This patch set is a cumulative set of [1] and [2] sent earlier.
+On 01/17/2013 07:43 PM, Paul Walmsley wrote:
+>> The following patch fixes these:
+>> https://lkml.org/lkml/2012/12/24/3
+>=20
+> Thanks, I've added that info in the v3.8-rc3 test summary, and moved =
+the
+> paragraph to the 'resolved by posted patches' section.
 
-Note that there are no code changes in either of the patch set,
-only rebased on top of Linus's v3.8-rc3 tag to make sure that
-all the patches apply without any conflicts.
+=46YI: the patch is now in mainline (3.8-rc4)
 
-This patch set has been tested on AM335x EVM.
-
-[1] http://www.spinics.net/lists/linux-input/msg23060.html
-[2] http://www.spinics.net/lists/linux-input/msg23090.html
-
-Changes in v3:
-	No code change.
-
-Changes in v2:
-	Patch "input: ti_am335x_tsc: Add variance filter"
-	from v1 has been dropped.
-	Add MFD device DT node in AM335x EVM.
-
-Patil, Rachna (8):
-  input: ti_am335x_tsc: Step enable bits made configurable
-  input: ti_am335x_tsc: Order of TSC wires, made configurable
-  input: touchscreen: ti_tsc: remove unwanted fifo flush
-  MFD: ti_am335x_tscadc: add device tree binding information
-  MFD: ti_am335x_tscadc: Add DT support
-  input: ti_am335x_tsc: Add DT support
-  IIO: ti_am335x_adc: Add DT support
-  arm/dts: AM335x-evm: Add TSC/ADC MFD device support
-
- .../devicetree/bindings/mfd/ti_am335x_tscadc.txt   |   35 +++
- arch/arm/boot/dts/am335x-evm.dts                   |   13 +
- arch/arm/boot/dts/am33xx.dtsi                      |    8 +
- drivers/iio/adc/ti_am335x_adc.c                    |   26 +-
- drivers/input/touchscreen/ti_am335x_tsc.c          |  266 +++++++++++++++++---
- drivers/mfd/ti_am335x_tscadc.c                     |   28 ++-
- include/linux/input/ti_am335x_tsc.h                |   12 +
- include/linux/mfd/ti_am335x_tscadc.h               |   11 +-
- 8 files changed, 347 insertions(+), 52 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/mfd/ti_am335x_tscadc.txt
-
--- 
-1.7.9.5
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
