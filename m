@@ -1,122 +1,70 @@
 From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Subject: [PATCH 9/9] ARM: OMAP2+: AM33XX: control: Add some control module registers and APIs
-Date: Fri, 18 Jan 2013 12:49:29 +0530
-Message-ID: <1358493569-17142-10-git-send-email-vaibhav.bedia@ti.com>
+Subject: [PATCH 2/9] ARM: OMAP2+: AM33XX: CM/PRM: Use __ASSEMBLER__ macros in header files
+Date: Fri, 18 Jan 2013 12:49:22 +0530
+Message-ID: <1358493569-17142-3-git-send-email-vaibhav.bedia@ti.com>
 References: <1358493569-17142-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49893 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49889 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751257Ab3ARHTz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Jan 2013 02:19:55 -0500
+	id S1751111Ab3ARHTx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Jan 2013 02:19:53 -0500
 In-Reply-To: <1358493569-17142-1-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, b-cousson@ti.com
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, khilman@deeprootsystems.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-Add minimal APIs for writing to the IPC and the M3_TXEV registers
-in the Control module. These will be used in a subsequent patch which
-adds suspend-resume support for AM33XX.
+This is necessary to ensure that macros declared here can
+be reused from assembly files.
 
 Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
 Change from RFC version:
-	No change
+	Get rid of extra lines
 
- arch/arm/mach-omap2/control.c |   20 ++++++++++++++++++++
- arch/arm/mach-omap2/control.h |   41 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 61 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/cm33xx.h  |    2 ++
+ arch/arm/mach-omap2/prm33xx.h |    2 ++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 2adb268..c5d54ae 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -604,3 +604,23 @@ int omap3_ctrl_save_padconf(void)
+diff --git a/arch/arm/mach-omap2/cm33xx.h b/arch/arm/mach-omap2/cm33xx.h
+index 8009e13..64f4baf 100644
+--- a/arch/arm/mach-omap2/cm33xx.h
++++ b/arch/arm/mach-omap2/cm33xx.h
+@@ -376,6 +376,7 @@
+ #define AM33XX_CM_CEFUSE_CEFUSE_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_CEFUSE_MOD, 0x0020)
+ 
+ 
++#ifndef __ASSEMBLER__
+ extern bool am33xx_cm_is_clkdm_in_hwsup(s16 inst, u16 cdoffs);
+ extern void am33xx_cm_clkdm_enable_hwsup(s16 inst, u16 cdoffs);
+ extern void am33xx_cm_clkdm_disable_hwsup(s16 inst, u16 cdoffs);
+@@ -412,4 +413,5 @@ static inline int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs,
  }
+ #endif
  
- #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
-+
-+#if defined(CONFIG_SOC_AM33XX) && defined(CONFIG_PM)
-+void am33xx_txev_eoi(void)
-+{
-+	omap_ctrl_writel(AM33XX_M3_TXEV_ACK, AM33XX_CONTROL_M3_TXEV_EOI);
-+}
-+
-+void am33xx_txev_enable(void)
-+{
-+	omap_ctrl_writel(AM33XX_M3_TXEV_ENABLE, AM33XX_CONTROL_M3_TXEV_EOI);
-+}
-+
-+void am33xx_wkup_m3_ipc_cmd(struct am33xx_ipc_data *data)
-+{
-+	omap_ctrl_writel(data->resume_addr, AM33XX_CONTROL_IPC_MSG_REG0);
-+	omap_ctrl_writel(data->sleep_mode, AM33XX_CONTROL_IPC_MSG_REG1);
-+	omap_ctrl_writel(data->param1, AM33XX_CONTROL_IPC_MSG_REG2);
-+	omap_ctrl_writel(data->param2, AM33XX_CONTROL_IPC_MSG_REG3);
-+}
-+#endif /* CONFIG_SOC_AM33XX && CONFIG_PM */
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index e6c3281..cb85f0a 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -358,6 +358,37 @@
- #define AM33XX_CONTROL_STATUS_SYSBOOT1_WIDTH		0x2
- #define AM33XX_CONTROL_STATUS_SYSBOOT1_MASK		(0x3 << 22)
++#endif /* ASSEMBLER */
+ #endif
+diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
+index 3f25c56..1c40373 100644
+--- a/arch/arm/mach-omap2/prm33xx.h
++++ b/arch/arm/mach-omap2/prm33xx.h
+@@ -117,6 +117,7 @@
+ #define AM33XX_PM_CEFUSE_PWRSTST_OFFSET		0x0004
+ #define AM33XX_PM_CEFUSE_PWRSTST		AM33XX_PRM_REGADDR(AM33XX_PRM_CEFUSE_MOD, 0x0004)
  
-+#define AM33XX_DDR_IO_CTRL		0x0E04
-+#define AM33XX_VTP0_CTRL_REG		0x0E0C
-+
-+/* AM33XX VTP0_CTRL_REG bits */
-+#define AM33XX_VTP_CTRL_START_EN	(1 << 0)
-+#define AM33XX_VTP_CTRL_LOCK_EN		(1 << 4)
-+#define AM33XX_VTP_CTRL_READY		(1 << 5)
-+#define AM33XX_VTP_CTRL_ENABLE		(1 << 6)
-+
-+/* AM33XX M3_TXEV_EOI register */
-+#define AM33XX_CONTROL_M3_TXEV_EOI	0x1324
-+
-+#define AM33XX_M3_TXEV_ACK		(0x1 << 0)
-+#define AM33XX_M3_TXEV_ENABLE		(0x0 << 0)
-+
-+/* AM33XX IPC message registers */
-+#define AM33XX_CONTROL_IPC_MSG_REG0	0x1328
-+#define AM33XX_CONTROL_IPC_MSG_REG1	0x132C
-+#define AM33XX_CONTROL_IPC_MSG_REG2	0x1330
-+#define AM33XX_CONTROL_IPC_MSG_REG3	0x1334
-+#define AM33XX_CONTROL_IPC_MSG_REG4	0x1338
-+#define AM33XX_CONTROL_IPC_MSG_REG5	0x133C
-+#define AM33XX_CONTROL_IPC_MSG_REG6	0x1340
-+#define AM33XX_CONTROL_IPC_MSG_REG7	0x1344
-+
-+#define AM33XX_DDR_CMD0_IOCTRL		0x1404
-+#define AM33XX_DDR_CMD1_IOCTRL		0x1408
-+#define AM33XX_DDR_CMD2_IOCTRL		0x140C
-+#define AM33XX_DDR_DATA0_IOCTRL		0x1440
-+#define AM33XX_DDR_DATA1_IOCTRL		0x1444
-+
- /* CONTROL OMAP STATUS register to identify OMAP3 features */
- #define OMAP3_CONTROL_OMAP_STATUS	0x044c
- 
-@@ -417,6 +448,16 @@ extern void omap3630_ctrl_disable_rta(void);
- extern int omap3_ctrl_save_padconf(void);
- extern void omap2_set_globals_control(void __iomem *ctrl,
- 				      void __iomem *ctrl_pad);
-+struct am33xx_ipc_data {
-+	u32 resume_addr;
-+	u32 param1;
-+	u32 param2;
-+	u32 sleep_mode;
-+};
-+extern void am33xx_wkup_m3_ipc_cmd(struct am33xx_ipc_data *data);
-+extern void am33xx_txev_eoi(void);
-+extern void am33xx_txev_enable(void);
-+
- #else
- #define omap_ctrl_base_get()		0
- #define omap_ctrl_readb(x)		0
++#ifndef __ASSEMBLER__
+ extern u32 am33xx_prm_read_reg(s16 inst, u16 idx);
+ extern void am33xx_prm_write_reg(u32 val, s16 inst, u16 idx);
+ extern u32 am33xx_prm_rmw_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
+@@ -126,4 +127,5 @@ extern int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst,
+ extern int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs);
+ extern int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
+ 		u16 rstctrl_offs, u16 rstst_offs);
++#endif /* ASSEMBLER */
+ #endif
 -- 
 1.7.0.4
 
