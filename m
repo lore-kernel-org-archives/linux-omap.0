@@ -1,73 +1,80 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 5/5] ARM: dts: OMAP5: Specify nonsecure PPI IRQ for arch
- timer
-Date: Fri, 18 Jan 2013 17:08:06 +0000
-Message-ID: <50F98176.6070703@arm.com>
-References: <1358523141-12295-1-git-send-email-santosh.shilimkar@ti.com> <1358523141-12295-6-git-send-email-santosh.shilimkar@ti.com> <50F97207.1030706@arm.com> <50F97FA4.9010608@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 08/10] ARM: OMAP5: hwmod data: Create initial OMAP5 SOC
+ hwmod data
+Date: Fri, 18 Jan 2013 09:15:01 -0800
+Message-ID: <20130118171500.GC15361@atomide.com>
+References: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com>
+ <1358522856-12180-9-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:51841 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753871Ab3ARRIO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jan 2013 12:08:14 -0500
-In-Reply-To: <50F97FA4.9010608@ti.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:33901 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751424Ab3ARRPF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jan 2013 12:15:05 -0500
+Content-Disposition: inline
+In-Reply-To: <1358522856-12180-9-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, rnayak@ti.com, b-cousson@ti.com, Paul Walmsley <paul@pwsan.com>
 
-On 18/01/13 17:00, Santosh Shilimkar wrote:
-> On Friday 18 January 2013 09:32 PM, Marc Zyngier wrote:
->> On 18/01/13 15:32, Santosh Shilimkar wrote:
->>> From: Rajendra Nayak <rnayak@ti.com>
->>>
->>> Specify both secure as well as nonsecure PPI IRQ for arch
->>> timer. This fixes the following errors seen on DT OMAP5 boot..
->>>
->>> [    0.000000] arch_timer: No interrupt available, giving up
->>>
->>> Cc: Benoit Cousson <b-cousson@ti.com>
->>>
->>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> ---
->>>   arch/arm/boot/dts/omap5.dtsi |   16 ++++++++++++----
->>>   1 file changed, 12 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
->>> index 790bb2a..7a78d1b 100644
->>> --- a/arch/arm/boot/dts/omap5.dtsi
->>> +++ b/arch/arm/boot/dts/omap5.dtsi
->>> @@ -35,8 +35,12 @@
->>>   			compatible = "arm,cortex-a15";
->>>   			timer {
->>>   				compatible = "arm,armv7-timer";
->>> -				/* 14th PPI IRQ, active low level-sensitive */
->>> -				interrupts = <1 14 0x308>;
->>> +				/*
->>> +				 * PPI secure/nonsecure IRQ,
->>> +				 * active low level-sensitive
->>> +				 */
->>> +				interrupts = <1 13 0x308>,
->>> +					     <1 14 0x308>;
->>
->> Care to add the virtual and HYP timer interrupts? So KVM can get a
->> chance to run on this HW...
->>
-> Thanks Marc for spotting it. Will take care of it.
+Hi,
 
-I just realised something silly... You have one timer node *per cpu*,
-and this is not really expected.
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130118 07:30]:
+> From: Benoit Cousson <b-cousson@ti.com>
+> 
+> Adding the hwmod data for OMAP54xx platforms.
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+> +/* bb2d */
+> +static struct omap_hwmod_irq_info omap54xx_bb2d_irqs[] = {
+> +	{ .irq = 125 + OMAP54XX_IRQ_GIC_START },
+> +	{ .irq = -1 }
+> +};
+...
 
-The driver really wants one single node. See
-arch/arm/boot/dts/vexpress-v2p-ca15_a7.dts for an example.
+> +/* c2c */
+> +static struct omap_hwmod_irq_info omap54xx_c2c_irqs[] = {
+> +	{ .irq = 88 + OMAP54XX_IRQ_GIC_START },
+> +	{ .irq = -1 }
+> +};
+...
 
-Oh, and your GIC node could do with some updating too (no VGIC regs or
-interrupt).
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+> +static struct omap_hwmod_dma_info omap54xx_c2c_sdma_reqs[] = {
+> +	{ .dma_req = 68 + OMAP54XX_DMA_REQ_START },
+> +	{ .dma_req = -1 }
+> +};
 
+
+
+> +static struct omap_hwmod_addr_space omap54xx_elm_addrs[] = {
+> +	{
+> +		.pa_start	= 0x48078000,
+> +		.pa_end		= 0x48078fff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +	{ }
+> +};
+...
+
+> +static struct omap_hwmod_addr_space omap54xx_emif1_addrs[] = {
+> +	{
+> +		.pa_start	= 0x4c000000,
+> +		.pa_end		= 0x4c0003ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +	{ }
+> +};
+
+As discussed earlier on this list, let's not duplicate the standard
+resources here as they already are supposed to come from device tree.
+
+Whatever issues prevent us from dropping the duplicate data here need
+to be fixed. I believe Benoit already had some scripts/patches for
+that and was just waiting for the DMA binding to get merged?
+
+Regards,
+
+Tony
