@@ -1,86 +1,283 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 1/4] cpufreq: OMAP: use RCU locks around usage of OPP
-Date: Fri, 18 Jan 2013 13:52:32 -0600
-Message-ID: <1358538755-29109-2-git-send-email-nm@ti.com>
+Subject: [PATCH 4/4] PM / devfreq: exynos4_bus: honor RCU lock usage
+Date: Fri, 18 Jan 2013 13:52:35 -0600
+Message-ID: <1358538755-29109-5-git-send-email-nm@ti.com>
 References: <1358538755-29109-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51846 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755720Ab3ARTxH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Jan 2013 14:53:07 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1358538755-29109-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-pm <linux-pm@vger.kernel.org>
 Cc: Rafael <rjw@sisk.pl>, Kevin <khilman@deeprootsystems.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, lkml <linux-kernel@vger.kernel.org>, lo <linux-omap@vger.kernel.org>, Jack <jack@embed.me.uk>, Alexander <holler@ahsoftware.de>, Nishanth Menon <nm@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-OPP pointer is RCU protected, hence after finding it, de-reference
-also should be protected with the same RCU context else the OPP
-pointer may become invalid.
+OPP pointers cannot be expected to be valid beyond the boundary
+of rcu_read_lock and rcu_read_unlock. Unfortunately, the current
+exynos4 busfreq driver does not honor the usage constraint and stores
+the OPP pointer in struct busfreq_data. This could potentially
+become invalid later such as: across devfreq opp change decisions,
+resulting in unpredictable behavior.
 
-Reported-by: Alexander Holler <holler@ahsoftware.de>
-Tested-by: Alexander Holler <holler@ahsoftware.de>
-Acked-by: Alexander Holler <holler@ahsoftware.de>
+To fix this, we introduce a busfreq specific busfreq_opp_info
+structure which is used to handle OPP information. OPP information
+is de-referenced to voltage and frequency pairs as needed into
+busfreq_opp_info structure and used as needed.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- drivers/cpufreq/omap-cpufreq.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/devfreq/exynos4_bus.c |   94 +++++++++++++++++++++++++++++------------
+ 1 file changed, 67 insertions(+), 27 deletions(-)
 
-Fixes warning as follows: http://dpaste.de/5j4qX/
-[ 5.175323] ===============================
-[ 5.179901] [ INFO: suspicious RCU usage. ]
-[ 5.184295] 3.7.1-beagleboard-00018-g65ab3da-dirty #180 Not tainted
-[ 5.190979] -------------------------------
-[ 5.195465] drivers/base/power/opp.c:155 suspicious rcu_dereference_check() usage!
-[ 5.203460]
-[ 5.203460] other info that might help us debug this:
-[ 5.203460]
-[ 5.211914]
-[ 5.211914] rcu_scheduler_active = 1, debug_locks = 0
-[ 5.219055] 3 locks held by swapper/1:
-[ 5.222991] #0: (subsys mutex#5){+.+.+.}, at: [<c026217c>] subsys_interface_register+0x34/0xbc
-[ 5.232360] #1: (&per_cpu(cpu_policy_rwsem, cpu)){+.+.+.}, at: [<c02d9374>] lock_policy_rwsem_write+0x24/0x48
-[ 5.243072] #2: (&this_dbs_info->timer_mutex){+.+...}, at: [<c02db234>] cpufreq_governor_dbs+0x2e8/0x380
-[ 5.253295]
-[ 5.253295] stack backtrace:
-[ 5.257965] [<c0013198>] (unwind_backtrace+0x0/0xe0) from [<c026bd08>] (opp_get_voltage+0x5c/0xc0)
-[ 5.267395] [<c026bd08>] (opp_get_voltage+0x5c/0xc0) from [<c02db928>] (omap_target+0x180/0x364)
-[ 5.276672] [<c02db928>] (omap_target+0x180/0x364) from [<c02d8bbc>] (__cpufreq_driver_target+0x38/0x54)
-[ 5.303039] [<c02d8bbc>] (__cpufreq_driver_target+0x38/0x54) from [<c02db260>] (cpufreq_governor_dbs+0x314/0x380)
-[ 5.313903] [<c02db260>] (cpufreq_governor_dbs+0x314/0x380) from [<c02d948c>] (__cpufreq_governor+0x70/0xb4)
-[ 5.324310] [<c02d948c>] (__cpufreq_governor+0x70/0xb4) from [<c02d96fc>] (__cpufreq_set_policy+0x150/0x168)
-[ 5.334686] [<c02d96fc>] (__cpufreq_set_policy+0x150/0x168) from [<c02d9ae0>] (cpufreq_add_dev_interface+0x17c/0x1f0)
-[ 5.345886] [<c02d9ae0>] (cpufreq_add_dev_interface+0x17c/0x1f0) from [<c02d9c80>] (cpufreq_add_dev+0x12c/0x1d8)
-[ 5.356628] [<c02d9c80>] (cpufreq_add_dev+0x12c/0x1d8) from [<c02621c4>] (subsys_interface_register+0x7c/0xbc)
-[ 5.367187] [<c02621c4>] (subsys_interface_register+0x7c/0xbc) from [<c02d91bc>] (cpufreq_register_driver+0x9c/0x128)
-[ 5.378387] [<c02d91bc>] (cpufreq_register_driver+0x9c/0x128) from [<c00086a0>] (do_one_initcall+0x90/0x164)
-[ 5.395812] [<c00086a0>] (do_one_initcall+0x90/0x164) from [<c03d5740>] (kernel_init+0xe4/0x298)
-[ 5.408569] [<c03d5740>] (kernel_init+0xe4/0x298) from [<c000de30>] (ret_from_fork+0x14/0x24)
-
-diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
-index 1f3417a..97102b0 100644
---- a/drivers/cpufreq/omap-cpufreq.c
-+++ b/drivers/cpufreq/omap-cpufreq.c
-@@ -110,13 +110,16 @@ static int omap_target(struct cpufreq_policy *policy,
- 	freq = ret;
+diff --git a/drivers/devfreq/exynos4_bus.c b/drivers/devfreq/exynos4_bus.c
+index 80c745e..6d72f12 100644
+--- a/drivers/devfreq/exynos4_bus.c
++++ b/drivers/devfreq/exynos4_bus.c
+@@ -73,6 +73,16 @@ enum busclk_level_idx {
+ #define EX4210_LV_NUM	(LV_2 + 1)
+ #define EX4x12_LV_NUM	(LV_4 + 1)
  
- 	if (mpu_reg) {
-+		rcu_read_lock();
- 		opp = opp_find_freq_ceil(mpu_dev, &freq);
- 		if (IS_ERR(opp)) {
-+			rcu_read_unlock();
- 			dev_err(mpu_dev, "%s: unable to find MPU OPP for %d\n",
- 				__func__, freqs.new);
- 			return -EINVAL;
++/**
++ * struct busfreq_opp_info - opp information for bus
++ * @rate:	Frequency in hertz
++ * @volt:	Voltage in microvolts corresponding to this OPP
++ */
++struct busfreq_opp_info {
++	unsigned long rate;
++	unsigned long volt;
++};
++
+ struct busfreq_data {
+ 	enum exynos4_busf_type type;
+ 	struct device *dev;
+@@ -80,7 +90,7 @@ struct busfreq_data {
+ 	bool disabled;
+ 	struct regulator *vdd_int;
+ 	struct regulator *vdd_mif; /* Exynos4412/4212 only */
+-	struct opp *curr_opp;
++	struct busfreq_opp_info curr_oppinfo;
+ 	struct exynos4_ppmu dmc[2];
+ 
+ 	struct notifier_block pm_notifier;
+@@ -296,13 +306,14 @@ static unsigned int exynos4x12_clkdiv_sclkip[][3] = {
+ };
+ 
+ 
+-static int exynos4210_set_busclk(struct busfreq_data *data, struct opp *opp)
++static int exynos4210_set_busclk(struct busfreq_data *data,
++				 struct busfreq_opp_info *oppi)
+ {
+ 	unsigned int index;
+ 	unsigned int tmp;
+ 
+ 	for (index = LV_0; index < EX4210_LV_NUM; index++)
+-		if (opp_get_freq(opp) == exynos4210_busclk_table[index].clk)
++		if (oppi->rate == exynos4210_busclk_table[index].clk)
+ 			break;
+ 
+ 	if (index == EX4210_LV_NUM)
+@@ -361,13 +372,14 @@ static int exynos4210_set_busclk(struct busfreq_data *data, struct opp *opp)
+ 	return 0;
+ }
+ 
+-static int exynos4x12_set_busclk(struct busfreq_data *data, struct opp *opp)
++static int exynos4x12_set_busclk(struct busfreq_data *data,
++				 struct busfreq_opp_info *oppi)
+ {
+ 	unsigned int index;
+ 	unsigned int tmp;
+ 
+ 	for (index = LV_0; index < EX4x12_LV_NUM; index++)
+-		if (opp_get_freq(opp) == exynos4x12_mifclk_table[index].clk)
++		if (oppi->rate == exynos4x12_mifclk_table[index].clk)
+ 			break;
+ 
+ 	if (index == EX4x12_LV_NUM)
+@@ -576,11 +588,12 @@ static int exynos4x12_get_intspec(unsigned long mifclk)
+ 	return -EINVAL;
+ }
+ 
+-static int exynos4_bus_setvolt(struct busfreq_data *data, struct opp *opp,
+-			       struct opp *oldopp)
++static int exynos4_bus_setvolt(struct busfreq_data *data,
++			       struct busfreq_opp_info *oppi,
++			       struct busfreq_opp_info *oldoppi)
+ {
+ 	int err = 0, tmp;
+-	unsigned long volt = opp_get_voltage(opp);
++	unsigned long volt = oppi->volt;
+ 
+ 	switch (data->type) {
+ 	case TYPE_BUSF_EXYNOS4210:
+@@ -595,11 +608,11 @@ static int exynos4_bus_setvolt(struct busfreq_data *data, struct opp *opp,
+ 		if (err)
+ 			break;
+ 
+-		tmp = exynos4x12_get_intspec(opp_get_freq(opp));
++		tmp = exynos4x12_get_intspec(oppi->rate);
+ 		if (tmp < 0) {
+ 			err = tmp;
+ 			regulator_set_voltage(data->vdd_mif,
+-					      opp_get_voltage(oldopp),
++					      oldoppi->volt,
+ 					      MAX_SAFEVOLT);
+ 			break;
  		}
- 		volt = opp_get_voltage(opp);
+@@ -609,7 +622,7 @@ static int exynos4_bus_setvolt(struct busfreq_data *data, struct opp *opp,
+ 		/*  Try to recover */
+ 		if (err)
+ 			regulator_set_voltage(data->vdd_mif,
+-					      opp_get_voltage(oldopp),
++					      oldoppi->volt,
+ 					      MAX_SAFEVOLT);
+ 		break;
+ 	default:
+@@ -626,17 +639,26 @@ static int exynos4_bus_target(struct device *dev, unsigned long *_freq,
+ 	struct platform_device *pdev = container_of(dev, struct platform_device,
+ 						    dev);
+ 	struct busfreq_data *data = platform_get_drvdata(pdev);
+-	struct opp *opp = devfreq_recommended_opp(dev, _freq, flags);
+-	unsigned long freq = opp_get_freq(opp);
+-	unsigned long old_freq = opp_get_freq(data->curr_opp);
++	struct opp *opp;
++	unsigned long freq;
++	unsigned long old_freq = data->curr_oppinfo.rate;
++	struct busfreq_opp_info	new_oppinfo;
+ 
+-	if (IS_ERR(opp))
++	rcu_read_lock();
++	opp = devfreq_recommended_opp(dev, _freq, flags);
++	if (IS_ERR(opp)) {
 +		rcu_read_unlock();
- 		tol = volt * OPP_TOLERANCE / 100;
- 		volt_old = regulator_get_voltage(mpu_reg);
+ 		return PTR_ERR(opp);
++	}
++	new_oppinfo.rate = opp_get_freq(opp);
++	new_oppinfo.volt = opp_get_voltage(opp);
++	rcu_read_unlock();
++	freq = new_oppinfo.rate;
+ 
+ 	if (old_freq == freq)
+ 		return 0;
+ 
+-	dev_dbg(dev, "targetting %lukHz %luuV\n", freq, opp_get_voltage(opp));
++	dev_dbg(dev, "targetting %lukHz %luuV\n", freq, new_oppinfo.volt);
+ 
+ 	mutex_lock(&data->lock);
+ 
+@@ -644,17 +666,18 @@ static int exynos4_bus_target(struct device *dev, unsigned long *_freq,
+ 		goto out;
+ 
+ 	if (old_freq < freq)
+-		err = exynos4_bus_setvolt(data, opp, data->curr_opp);
++		err = exynos4_bus_setvolt(data, &new_oppinfo,
++					  &data->curr_oppinfo);
+ 	if (err)
+ 		goto out;
+ 
+ 	if (old_freq != freq) {
+ 		switch (data->type) {
+ 		case TYPE_BUSF_EXYNOS4210:
+-			err = exynos4210_set_busclk(data, opp);
++			err = exynos4210_set_busclk(data, &new_oppinfo);
+ 			break;
+ 		case TYPE_BUSF_EXYNOS4x12:
+-			err = exynos4x12_set_busclk(data, opp);
++			err = exynos4x12_set_busclk(data, &new_oppinfo);
+ 			break;
+ 		default:
+ 			err = -EINVAL;
+@@ -664,11 +687,12 @@ static int exynos4_bus_target(struct device *dev, unsigned long *_freq,
+ 		goto out;
+ 
+ 	if (old_freq > freq)
+-		err = exynos4_bus_setvolt(data, opp, data->curr_opp);
++		err = exynos4_bus_setvolt(data, &new_oppinfo,
++					  &data->curr_oppinfo);
+ 	if (err)
+ 		goto out;
+ 
+-	data->curr_opp = opp;
++	data->curr_oppinfo = new_oppinfo;
+ out:
+ 	mutex_unlock(&data->lock);
+ 	return err;
+@@ -702,7 +726,7 @@ static int exynos4_bus_get_dev_status(struct device *dev,
+ 
+ 	exynos4_read_ppmu(data);
+ 	busier_dmc = exynos4_get_busier_dmc(data);
+-	stat->current_frequency = opp_get_freq(data->curr_opp);
++	stat->current_frequency = data->curr_oppinfo.rate;
+ 
+ 	if (busier_dmc)
+ 		addr = S5P_VA_DMC1;
+@@ -933,6 +957,7 @@ static int exynos4_busfreq_pm_notifier_event(struct notifier_block *this,
+ 	struct busfreq_data *data = container_of(this, struct busfreq_data,
+ 						 pm_notifier);
+ 	struct opp *opp;
++	struct busfreq_opp_info	new_oppinfo;
+ 	unsigned long maxfreq = ULONG_MAX;
+ 	int err = 0;
+ 
+@@ -943,18 +968,29 @@ static int exynos4_busfreq_pm_notifier_event(struct notifier_block *this,
+ 
+ 		data->disabled = true;
+ 
++		rcu_read_lock();
+ 		opp = opp_find_freq_floor(data->dev, &maxfreq);
++		if (IS_ERR(opp)) {
++			rcu_read_unlock();
++			dev_err(data->dev, "%s: unable to find a min freq\n",
++				__func__);
++			return PTR_ERR(opp);
++		}
++		new_oppinfo.rate = opp_get_freq(opp);
++		new_oppinfo.volt = opp_get_voltage(opp);
++		rcu_read_unlock();
+ 
+-		err = exynos4_bus_setvolt(data, opp, data->curr_opp);
++		err = exynos4_bus_setvolt(data, &new_oppinfo,
++					  &data->curr_oppinfo);
+ 		if (err)
+ 			goto unlock;
+ 
+ 		switch (data->type) {
+ 		case TYPE_BUSF_EXYNOS4210:
+-			err = exynos4210_set_busclk(data, opp);
++			err = exynos4210_set_busclk(data, &new_oppinfo);
+ 			break;
+ 		case TYPE_BUSF_EXYNOS4x12:
+-			err = exynos4x12_set_busclk(data, opp);
++			err = exynos4x12_set_busclk(data, &new_oppinfo);
+ 			break;
+ 		default:
+ 			err = -EINVAL;
+@@ -962,7 +998,7 @@ static int exynos4_busfreq_pm_notifier_event(struct notifier_block *this,
+ 		if (err)
+ 			goto unlock;
+ 
+-		data->curr_opp = opp;
++		data->curr_oppinfo = new_oppinfo;
+ unlock:
+ 		mutex_unlock(&data->lock);
+ 		if (err)
+@@ -1027,13 +1063,17 @@ static int exynos4_busfreq_probe(struct platform_device *pdev)
+ 		}
  	}
+ 
++	rcu_read_lock();
+ 	opp = opp_find_freq_floor(dev, &exynos4_devfreq_profile.initial_freq);
+ 	if (IS_ERR(opp)) {
++		rcu_read_unlock();
+ 		dev_err(dev, "Invalid initial frequency %lu kHz.\n",
+ 			exynos4_devfreq_profile.initial_freq);
+ 		return PTR_ERR(opp);
+ 	}
+-	data->curr_opp = opp;
++	data->curr_oppinfo.rate = opp_get_freq(opp);
++	data->curr_oppinfo.volt = opp_get_voltage(opp);
++	rcu_read_unlock();
+ 
+ 	platform_set_drvdata(pdev, data);
+ 
 -- 
 1.7.9.5
-
