@@ -1,51 +1,44 @@
-From: Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/3] ARM: dts: AM33XX: Add ELM node
-Date: Fri, 18 Jan 2013 12:11:33 +0530
-Message-ID: <1358491295-4022-2-git-send-email-avinashphilip@ti.com>
+From: Philip Avinash <avinashphilip@ti.com>
+Subject: [PATCH 2/3] ARM: dts: AM33XX: Add GPMC node
+Date: Fri, 18 Jan 2013 12:11:34 +0530
+Message-ID: <1358491295-4022-3-git-send-email-avinashphilip@ti.com>
 References: <1358491295-4022-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1358491295-4022-1-git-send-email-avinashphilip-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gururaja.hebbar-l0cyMroinI0@public.gmane.org, "Philip,
- Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358491295-4022-1-git-send-email-avinashphilip@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com, zonque@gmail.com, "Philip, Avinash" <avinashphilip@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
+From: "Philip, Avinash" <avinashphilip@ti.com>
 
-Add ELM data node to AM33XX device tree file.
+Add GPMC data node to AM33XX device tree file.
 
-Signed-off-by: Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Philip Avinash <avinashphilip@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/arm/boot/dts/am33xx.dtsi |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index c2f14e8..eaef5e7 100644
+index eaef5e7..f4209d8 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -385,5 +385,13 @@
- 				mac-address = [ 00 00 00 00 00 00 ];
- 			};
+@@ -393,5 +393,17 @@
+ 			ti,hwmods = "elm";
+ 			status = "disabled";
  		};
 +
-+		elm: elm@48080000 {
-+			compatible	= "ti,am33xx-elm";
-+			reg = <0x48080000 0x2000>;
-+			interrupts = <4>;
-+			ti,hwmods = "elm";
++		gpmc: gpmc@50000000 {
++			compatible = "ti,am3352-gpmc";
++			ti,hwmods = "gpmc";
++			reg = <0x50000000 0x2000>;
++			interrupts = <100>;
++			num-cs = <8>;
++			num-waitpins = <2>;
++			#address-cells = <2>;
++			#size-cells = <1>;
 +			status = "disabled";
 +		};
  	};
