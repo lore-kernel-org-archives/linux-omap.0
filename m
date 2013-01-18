@@ -1,101 +1,54 @@
 From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Subject: [PATCH 7/9] ARM: OMAP2+: AM33XX: Update the hardreset API
-Date: Fri, 18 Jan 2013 12:49:27 +0530
-Message-ID: <1358493569-17142-8-git-send-email-vaibhav.bedia@ti.com>
-References: <1358493569-17142-1-git-send-email-vaibhav.bedia@ti.com>
+Subject: [PATCH 0/9] ARM: OMAP2+: AM33XX: Misc fixes/updates
+Date: Fri, 18 Jan 2013 12:49:20 +0530
+Message-ID: <1358493569-17142-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42869 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751164Ab3ARHT4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jan 2013 02:19:56 -0500
-In-Reply-To: <1358493569-17142-1-git-send-email-vaibhav.bedia@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41001 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751335Ab3ARHT4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Jan 2013 02:19:56 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, b-cousson@ti.com
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, khilman@deeprootsystems.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-WKUP-M3 has a reset status bit (RM_WKUP_STST.WKUP_M3_LRST)
-Update the hardreset API to ensure that the reset line properly
-deasserted.
+Hi,
 
-Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
-Change from RFC version:
-	No change
+The following patches were earlier posted as part the AM33XX
+suspend-resume support series [1]. Based on the suggestion
+from Santosh Shilimkar <santosh.shilimkar@ti.com> i have split
+out the changes which update the various data files related
+to AM33XX support.
 
- arch/arm/mach-omap2/omap_hwmod.c |    5 +----
- arch/arm/mach-omap2/prm33xx.c    |   11 +++++++----
- arch/arm/mach-omap2/prm33xx.h    |    2 +-
- 3 files changed, 9 insertions(+), 9 deletions(-)
+These patches apply on top of v3.8-rc3
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 4653efb..6549439 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3041,11 +3041,8 @@ static int _am33xx_assert_hardreset(struct omap_hwmod *oh,
- static int _am33xx_deassert_hardreset(struct omap_hwmod *oh,
- 				     struct omap_hwmod_rst_info *ohri)
- {
--	if (ohri->st_shift)
--		pr_err("omap_hwmod: %s: %s: hwmod data error: OMAP4 does not support st_shift\n",
--		       oh->name, ohri->name);
--
- 	return am33xx_prm_deassert_hardreset(ohri->rst_shift,
-+				ohri->st_shift,
- 				oh->clkdm->pwrdm.ptr->prcm_offs,
- 				oh->prcm.omap4.rstctrl_offs,
- 				oh->prcm.omap4.rstst_offs);
-diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
-index 1ac7388..44c0d72 100644
---- a/arch/arm/mach-omap2/prm33xx.c
-+++ b/arch/arm/mach-omap2/prm33xx.c
-@@ -110,11 +110,11 @@ int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs)
-  * -EINVAL upon an argument error, -EEXIST if the submodule was already out
-  * of reset, or -EBUSY if the submodule did not exit reset promptly.
-  */
--int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
-+int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, s16 inst,
- 		u16 rstctrl_offs, u16 rstst_offs)
- {
- 	int c;
--	u32 mask = 1 << shift;
-+	u32 mask = 1 << st_shift;
- 
- 	/* Check the current status to avoid  de-asserting the line twice */
- 	if (am33xx_prm_is_hardreset_asserted(shift, inst, rstctrl_offs) == 0)
-@@ -122,11 +122,14 @@ int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
- 
- 	/* Clear the reset status by writing 1 to the status bit */
- 	am33xx_prm_rmw_reg_bits(0xffffffff, mask, inst, rstst_offs);
-+
- 	/* de-assert the reset control line */
-+	mask = 1 << shift;
-+
- 	am33xx_prm_rmw_reg_bits(mask, 0, inst, rstctrl_offs);
--	/* wait the status to be set */
- 
--	omap_test_timeout(am33xx_prm_is_hardreset_asserted(shift, inst,
-+	/* wait the status to be set */
-+	omap_test_timeout(am33xx_prm_is_hardreset_asserted(st_shift, inst,
- 							   rstst_offs),
- 			  MAX_MODULE_HARDRESET_WAIT, c);
- 
-diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
-index 1c40373..9b9918d 100644
---- a/arch/arm/mach-omap2/prm33xx.h
-+++ b/arch/arm/mach-omap2/prm33xx.h
-@@ -125,7 +125,7 @@ extern void am33xx_prm_global_warm_sw_reset(void);
- extern int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst,
- 		u16 rstctrl_offs);
- extern int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs);
--extern int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
-+extern int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, s16 inst,
- 		u16 rstctrl_offs, u16 rstst_offs);
- #endif /* ASSEMBLER */
- #endif
--- 
-1.7.0.4
+Regards,
+Vaibhav
+
+[1] http://marc.info/?l=linux-arm-kernel&m=135698501821074&w=2
+
+Vaibhav Bedia (9):
+  ARM: OMAP2+: AM33XX: CM: Get rid of unncessary header inclusions
+  ARM: OMAP2+: AM33XX: CM/PRM: Use __ASSEMBLER__ macros in header files
+  ARM: OMAP2+: AM33XX: hwmod: Register OCMC RAM hwmod
+  ARM: OMAP2+: AM33XX: hwmod: Update TPTC0 hwmod with the right flags
+  ARM: OMAP2+: AM33XX: hwmod: Fixup cpgmac0 hwmod entry
+  ARM: OMAP2+: AM33XX: hwmod: Update the WKUP-M3 hwmod with reset
+    status bit
+  ARM: OMAP2+: AM33XX: Update the hardreset API
+  ARM: DTS: AM33XX: Add nodes for OCMC RAM and WKUP-M3
+  ARM: OMAP2+: AM33XX: control: Add some control module registers and
+    APIs
+
+ arch/arm/boot/dts/am33xx.dtsi              |   11 ++++++
+ arch/arm/mach-omap2/cm33xx.h               |    9 ++---
+ arch/arm/mach-omap2/control.c              |   20 +++++++++++
+ arch/arm/mach-omap2/control.h              |   41 +++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod.c           |    5 +--
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   50 ++++++++++++++++------------
+ arch/arm/mach-omap2/prm33xx.c              |   11 ++++--
+ arch/arm/mach-omap2/prm33xx.h              |    4 ++-
+ 8 files changed, 115 insertions(+), 36 deletions(-)
 
