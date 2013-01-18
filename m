@@ -1,115 +1,35 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2: Fix missing omap2xxx_clkt_vps_xxx function
- calls
-Date: Thu, 17 Jan 2013 23:24:47 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301172320460.14118@utopia.booyaka.com>
-References: <1357851209-5332-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1301171848490.14118@utopia.booyaka.com> <50F85087.3060507@ti.com> <alpine.DEB.2.00.1301172230250.14118@utopia.booyaka.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 0/5] staging: tidspbridge: for 3.9
+Date: Thu, 17 Jan 2013 16:47:46 -0800
+Message-ID: <20130118004746.GA8897@kroah.com>
+References: <1357810622-1709-1-git-send-email-omar.ramirez@copitl.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43651 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750963Ab3AQXYr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jan 2013 18:24:47 -0500
-In-Reply-To: <alpine.DEB.2.00.1301172230250.14118@utopia.booyaka.com>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:38447 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753825Ab3ARAru (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jan 2013 19:47:50 -0500
+Received: by mail-pa0-f45.google.com with SMTP id bg2so1785679pad.4
+        for <linux-omap@vger.kernel.org>; Thu, 17 Jan 2013 16:47:49 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1357810622-1709-1-git-send-email-omar.ramirez@copitl.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Omar Ramirez Luna <omar.ramirez@copitl.com>
+Cc: devel@driverdev.osuosl.org, Chen Gang <gang.chen@asianux.com>, linux-omap@vger.kernel.org
 
+On Thu, Jan 10, 2013 at 03:36:57AM -0600, Omar Ramirez Luna wrote:
+> Patches for staging-next, fixing comments and suggestions provided
+> by Chen Gang.
+> 
+> There is an additional scm patch, that removes hardcoded defines
+> related to direct register handling for SCM, it was dependent on
+> changes that already made it to mainline.
 
-Here's the updated version (at the bottom of this message). Seems to work 
-based on a quick test on 2430SDP.
+What is the status on getting this out of the staging tree?  What needs
+to be done still?
 
-# shutdown -r -n now
-shutdown: sending all processes the TERM signal...
-shutdown: sending all processes the KILL signal.
-shutdown: turning off swap
-shutdown: unmounting all file systems
-umount: /debug: not mounted
-umount: /run/shm: not mounted
-umount: /dev: not mounted
-umount: /tmp: not mounted
-umount: /run/lock: not mounted
-umount: /run: not mounted
-umount: /lib/init/rw: not found
-Please stand by while rebooting the system.
-[   79.635925] Disabling non-boot CPUs ...
-[   79.640197] Restarting system.
+thanks,
 
-
-U-Boot 1.1.4 (Mar 18 2007 - 12:22:00)
-
-OMAP2430C-GP revision 3, PRCM #5A
-TI 2430SDP 1.1 Version + mDDR (Boot NOR)
-DRAM:  128 MB
-Flash: 192 MB
-NAND:64 MB
-In:    serial
-Out:   serial
-Err:   serial
-Hit any key to stop autoboot:  0 
-
-
-... etc. ...
-
-
-- Paul
-
-
-From: Jon Hunter <jon-hunter@ti.com>
-Date: Thu, 10 Jan 2013 14:53:29 -0600
-Subject: [PATCH] ARM: OMAP2: Fix missing omap2xxx_clkt_vps_late_init function
- calls
-
-During the migration to the common clock framework, calls to the
-functions omap2xxx_clkt_vps_late_init() were not preserved for
-OMAP2420 and OMAP2430. This causes the variables "sys_ck_rate" and
-"curr_prcm_set" to be uninitialised on boot. On reboot, this causes the
-following error message to be displayed because the appropriate MPU
-clock frequency (derived from sys_ck_rate) cannot be found.
-
-"Could not set MPU rate to 4294MHz"
-
-Fix this by adding back calls to omap2xxx_clkt_vps_late_init() in the
-OMAP2420 and OMAP2430 clock initialisation code.
-
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-[paul@pwsan.com: dropped the duplicated call to
- omap2xxx_clkt_vps_check_bootloader_rates() after consultation with Jon;
- updated patch description]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/cclock2420_data.c |    2 ++
- arch/arm/mach-omap2/cclock2430_data.c |    2 ++
- 2 files changed, 4 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/cclock2420_data.c b/arch/arm/mach-omap2/cclock2420_data.c
-index 7e5febe..ab7e952 100644
---- a/arch/arm/mach-omap2/cclock2420_data.c
-+++ b/arch/arm/mach-omap2/cclock2420_data.c
-@@ -1935,6 +1935,8 @@ int __init omap2420_clk_init(void)
- 			omap2_init_clk_hw_omap_clocks(c->lk.clk);
- 	}
- 
-+	omap2xxx_clkt_vps_late_init();
-+
- 	omap2_clk_disable_autoidle_all();
- 
- 	omap2_clk_enable_init_clocks(enable_init_clks,
-diff --git a/arch/arm/mach-omap2/cclock2430_data.c b/arch/arm/mach-omap2/cclock2430_data.c
-index eda079b..eb3dab6 100644
---- a/arch/arm/mach-omap2/cclock2430_data.c
-+++ b/arch/arm/mach-omap2/cclock2430_data.c
-@@ -2050,6 +2050,8 @@ int __init omap2430_clk_init(void)
- 			omap2_init_clk_hw_omap_clocks(c->lk.clk);
- 	}
- 
-+	omap2xxx_clkt_vps_late_init();
-+
- 	omap2_clk_disable_autoidle_all();
- 
- 	omap2_clk_enable_init_clocks(enable_init_clks,
--- 
-1.7.10.4
-
+greg k-h
