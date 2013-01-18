@@ -1,40 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] staging: tidspbridge: for 3.9
-Date: Thu, 17 Jan 2013 18:01:22 -0800
-Message-ID: <20130118020122.GB15361@atomide.com>
-References: <1357810622-1709-1-git-send-email-omar.ramirez@copitl.com>
- <20130118004746.GA8897@kroah.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH v4 0/3] mtd: nand: OMAP: ELM error correction support
+ for BCH ecc
+Date: Fri, 18 Jan 2013 03:54:51 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3EA5F353@DBDE01.ent.ti.com>
+References: <1357286211-5012-1-git-send-email-avinashphilip@ti.com>
+	 <518397C60809E147AF5323E0420B992E3EA5DFA9@DBDE01.ent.ti.com>
+ <1358424375.2731.234.camel@sauron.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59558 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752776Ab3ARCB1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jan 2013 21:01:27 -0500
-Content-Disposition: inline
-In-Reply-To: <20130118004746.GA8897@kroah.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1358424375.2731.234.camel@sauron.fi.intel.com>
+Content-Language: en-US
+Sender: linux-doc-owner@vger.kernel.org
+To: "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>
+Cc: "dwmw2@infradead.org" <dwmw2@infradead.org>, "tony@atomide.com" <tony@atomide.com>, "rmk+kernel@arm.linux.org.uk" <rmk+kernel@arm.linux.org.uk>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "zonque@gmail.com" <zonque@gmail.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "ivan.djelic@parrot.com" <ivan.dj>
 List-Id: linux-omap@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Omar Ramirez Luna <omar.ramirez@copitl.com>, devel@driverdev.osuosl.org, Chen Gang <gang.chen@asianux.com>, linux-omap@vger.kernel.org
 
-* Greg Kroah-Hartman <gregkh@linuxfoundation.org> [130117 16:51]:
-> On Thu, Jan 10, 2013 at 03:36:57AM -0600, Omar Ramirez Luna wrote:
-> > Patches for staging-next, fixing comments and suggestions provided
-> > by Chen Gang.
-> > 
-> > There is an additional scm patch, that removes hardcoded defines
-> > related to direct register handling for SCM, it was dependent on
-> > changes that already made it to mainline.
-> 
-> What is the status on getting this out of the staging tree?  What needs
-> to be done still?
-
-Omar, please correct me if I'm wrong. This thing should be reimplemented
-using remoteproc AFAIK.
-
-But I doubt that anybody is working on making it happen?
-
-Regards,
-
-Tony
+T24gVGh1LCBKYW4gMTcsIDIwMTMgYXQgMTc6MzY6MTUsIEFydGVtIEJpdHl1dHNraXkgd3JvdGU6
+DQo+IE9uIFdlZCwgMjAxMy0wMS0xNiBhdCAxMjoyMiArMDAwMCwgUGhpbGlwLCBBdmluYXNoIHdy
+b3RlOg0KPiA+ID4gVGhpcyBzZXJpZXMgaXMgYmFzZWQgb24gbGludXggMy44LXJjMiBhbmQgdGVz
+dGVkIHdpdGggWzFdLg0KPiA+ID4gQWxzbyB0aGlzIHBhdGNoIHNlcmllcyBkZXBlbmQgb24gWzFd
+IGZvciBOQU5EIGZsYXNoIGRldmljZQ0KPiA+ID4gdHJlZSBkYXRhIGFuZCBncG1jIG5hbmQgZGV2
+aWNlIHRyZWUgYmluZGluZyBkb2N1bWVudGF0aW9uIHVwZGF0ZXMuDQo+ID4gPiANCj4gPiA+IDEu
+IFtQQVRDSCB2NyAwLzVdIE9NQVAgR1BNQyBEVCBiaW5kaW5ncw0KPiA+ID4gaHR0cDovL3d3dy5z
+cGluaWNzLm5ldC9saXN0cy9saW51eC1vbWFwL21zZzgzNTA1Lmh0bWwNCj4gPiA+IA0KPiA+ID4g
+VGVzdGVkIG9uIGFtMzM1eC1ldm0gZm9yIEJDSCA0IGFuZCA4IGJpdCBlcnJvciBjb3JyZWN0aW9u
+Lg0KPiA+IA0KPiA+IENhbiB5b3UgYXBwbHkgdGhpcyBwYXRjaCBzZXJpZXMgb24gbDItbXRkIHRy
+ZWUgYXMgaXQgd2lsbCBoZWxwIFJCTCBjb21wYXRpYmlsaXR5DQo+ID4gZWNjIGxheW91dCBmb3Ig
+TkFORCBmbGFzaCBpbiBhbTMzNXgtcGxhdGZvcm1zIGFuZCBoYXJkd2FyZSBiYXNlZCBCQ0ggZXJy
+b3INCj4gPiBjb3JyZWN0aW9uLg0KPiANCj4gT0ssIEkndmUgYXBwbGllZCB0aGVtLiBJIGRyb3Bw
+ZWQgdGhlIHBhcnQgdGhhdCB1cGRhdGVzIHRoZQ0KPiBkb2N1bWVudGF0aW9uLiBQbGVhc2UsIGhh
+bmRsZSBpdCBzZXBhcmF0ZWx5IHdoZW4gRGFuaWVsJ3MgcGF0Y2hlcyBhcmUNCj4gaW4uDQo+IA0K
+PiBQdXNoZWQgdG8gbDItbXRkLmdpdCwgdGhhbmtzIQ0KDQpUaGFua3MgZm9yIGFwcGx5aW5nIHRo
+aXMgcGF0Y2ggc2VyaWVzLg0KSSB3aWxsIHVwZGF0ZSBncG1jLW5hbmQgZG9jdW1lbnRhdGlvbiBw
+YXJ0IGluIGEgc2VwYXJhdGUgcGF0Y2guDQoNClRoYW5rcywNCkF2aW5hc2gNCg0KPiANCj4gLS0g
+DQo+IEJlc3QgUmVnYXJkcywNCj4gQXJ0ZW0gQml0eXV0c2tpeQ0KPiANCg0K
