@@ -1,160 +1,79 @@
-From: Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/3] ARM: dts: AM33XX: Add NAND flash device tree data to
- am335x-evm
-Date: Fri, 18 Jan 2013 12:11:35 +0530
-Message-ID: <1358491295-4022-4-git-send-email-avinashphilip@ti.com>
-References: <1358491295-4022-1-git-send-email-avinashphilip@ti.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: [PATCH v2] pwm: pwm-tiehrpwm: Update the clock handling of
+ pwm-tiehrpwm driver
+Date: Fri, 18 Jan 2013 07:49:31 +0100
+Message-ID: <20130118064931.GA17790@avionic-0098.adnet.avionic-design.de>
+References: <1357823126-19333-1-git-send-email-avinashphilip@ti.com>
+ <20130117155218.GA23117@avionic-0098.adnet.avionic-design.de>
+ <518397C60809E147AF5323E0420B992E3EA5F43D@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1358491295-4022-1-git-send-email-avinashphilip-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gururaja.hebbar-l0cyMroinI0@public.gmane.org, Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3MwIy2ne0vdjdPXF"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <518397C60809E147AF5323E0420B992E3EA5F43D@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Philip, Avinash" <avinashphilip@ti.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-NAND flash connected in am335x-evm on GPMC controller. This patch adds
-device tree node in am335x-evm with GPMC controller timing for NAND flash
-interface, NAND partition table, ECC scheme, elm handle id, pin-mux
-setup.
 
-Signed-off-by: Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am335x-evm.dts |   98 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 97 insertions(+), 1 deletion(-)
+--3MwIy2ne0vdjdPXF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index d649644..1c6b1a8 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -26,7 +26,8 @@
- 
- 	am33xx_pinmux: pinmux@44e10800 {
- 		pinctrl-names = "default";
--		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0>;
-+		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0
-+			&nandflash_pins_s0>;
- 
- 		matrix_keypad_s0: matrix_keypad_s0 {
- 			pinctrl-single,pins = <
-@@ -44,6 +45,26 @@
- 				0x154 0x27	/* spi0_d0.gpio0_3, INPUT | MODE7 */
- 			>;
- 		};
-+
-+		nandflash_pins_s0: nandflash_pins_s0 {
-+			pinctrl-single,pins = <
-+				0x0 0x30	/* gpmc_ad0.gpmc_ad0, INPUT | PULLUP | MODE0 */
-+				0x4 0x30	/* gpmc_ad1.gpmc_ad1, INPUT | PULLUP | MODE0 */
-+				0x8 0x30	/* gpmc_ad2.gpmc_ad2, INPUT | PULLUP | MODE0 */
-+				0xc 0x30	/* gpmc_ad3.gpmc_ad3, INPUT | PULLUP | MODE0 */
-+				0x10 0x30	/* gpmc_ad4.gpmc_ad4, INPUT | PULLUP | MODE0 */
-+				0x14 0x30	/* gpmc_ad5.gpmc_ad5, INPUT | PULLUP | MODE0 */
-+				0x18 0x30	/* gpmc_ad6.gpmc_ad6, INPUT | PULLUP | MODE0 */
-+				0x1c 0x30	/* gpmc_ad7.gpmc_ad7, INPUT | PULLUP | MODE0 */
-+				0x70 0x30	/* gpmc_wait0.gpmc_wait0, INPUT | PULLUP | MODE0 */
-+				0x74 0x37	/* gpmc_wpn.gpio0_30, INPUT | PULLUP | MODE7 */
-+				0x7c 0x8	/* gpmc_csn0.gpmc_csn0,  PULL DISA */
-+				0x90 0x8	/* gpmc_advn_ale.gpmc_advn_ale, PULL DISA */
-+				0x94 0x8	/* gpmc_oen_ren.gpmc_oen_ren, PULL DISA */
-+				0x98 0x8	/* gpmc_wen.gpmc_wen, PULL DISA */
-+				0x9c 0x8	/* gpmc_be0n_cle.gpmc_be0n_cle, PULL DISA */
-+			>;
-+		};
- 	};
- 
- 	ocp {
-@@ -102,6 +123,81 @@
- 				reg = <0x48>;
- 			};
- 		};
-+
-+		elm: elm@48080000 {
-+			status = "okay";
-+		};
-+
-+		gpmc: gpmc@50000000 {
-+			status = "okay";
-+			ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
-+
-+			nand@0,0 {
-+				reg = <0 0 0>; /* CS0, offset 0 */
-+				nand-bus-width = <8>;
-+				ti,nand-ecc-opt = "bch8";
-+
-+				gpmc,sync-clk = <0>;
-+				gpmc,cs-on = <0>;
-+				gpmc,cs-rd-off = <44>;
-+				gpmc,cs-wr-off = <44>;
-+				gpmc,adv-on = <6>;
-+				gpmc,adv-rd-off = <34>;
-+				gpmc,adv-wr-off = <44>;
-+				gpmc,we-off = <40>;
-+				gpmc,oe-off = <54>;
-+				gpmc,access = <64>;
-+				gpmc,rd-cycle = <82>;
-+				gpmc,wr-cycle = <82>;
-+				gpmc,wr-access = <40>;
-+				gpmc,wr-data-mux-bus = <0>;
-+
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				elm_id = <&elm>;
-+
-+				/* MTD partition table */
-+				partition@0 {
-+					label = "SPL1";
-+					reg = <0x00000000 0x000020000>;
-+				};
-+
-+				partition@1 {
-+					label = "SPL2";
-+					reg = <0x00020000 0x00020000>;
-+				};
-+
-+				partition@2 {
-+					label = "SPL3";
-+					reg = <0x00040000 0x00020000>;
-+				};
-+
-+				partition@3 {
-+					label = "SPL4";
-+					reg = <0x00060000 0x00020000>;
-+				};
-+
-+				partition@4 {
-+					label = "U-boot";
-+					reg = <0x00080000 0x001e0000>;
-+				};
-+
-+				partition@5 {
-+					label = "environment";
-+					reg = <0x00260000 0x00020000>;
-+				};
-+
-+				partition@6 {
-+					label = "Kernel";
-+					reg = <0x00280000 0x00500000>;
-+				};
-+
-+				partition@7 {
-+					label = "File-System";
-+					reg = <0x00780000 0x0F880000>;
-+				};
-+			};
-+		};
- 	};
- 
- 	vbat: fixedregulator@0 {
--- 
-1.7.9.5
+On Fri, Jan 18, 2013 at 04:18:27AM +0000, Philip, Avinash wrote:
+> On Thu, Jan 17, 2013 at 21:22:18, Thierry Reding wrote:
+> > On Thu, Jan 10, 2013 at 06:35:26PM +0530, Philip Avinash wrote:
+> > > From: "Philip, Avinash" <avinashphilip@ti.com>
+> > >=20
+> > > The clock framework has changed and it's now better to invoke
+> > > clock_prepare_enable() and clk_disable_unprepare() rather than the
+> > > legacy clk_enable() and clk_disable() calls. This patch converts the
+> > > pwm-tiehrpwm driver to the new framework.
+> > >=20
+> > > Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+> > > ---
+> > > Changes Since v1:
+> > > 	- Check the return value of TBCLK enable in .pwm_enable()
+> > >=20
+> > > In 3.8-rc1, common clock frame work support added to AM335x.
+> > >=20
+> > >  drivers/pwm/pwm-tiehrpwm.c |   10 ++++++++--
+> > >  1 file changed, 8 insertions(+), 2 deletions(-)
+> >=20
+> > I had applied this to my for-next branch, but reading the commit message
+> > again it would seem that this should actually go into 3.8, right?
+>=20
+> Common clock framework support added for am335x in 3.8 only, still EHRPWM
+> tbclk not present in clock tree. I expect this to be in 3.9. So this patch
+> also requires to be in 3.9 only.
+
+Okay, I'll leave it in my for-next branch then, which gets merged into
+linux-next and will go into 3.9.
+
+Thierry
+
+--3MwIy2ne0vdjdPXF
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQ+PB6AAoJEN0jrNd/PrOhiCUP/AhVxZWjyi9HWOANPYDcqP0m
+L1OInFX7XZ+LSahnyfkpgbszub/tEvZnOwD5CdsEq3V9nVGNB/Y46the0tFwhJVR
+iXbVNnnRAK2r3N7avoJX/TAKg0DDCBvkU3UOXEkx5M7vooZ5Qf36rmw5BbAZ7uaf
+pjbTmCrLzAvlbPYwZ+0Vk9MZGyn1oetmkTiaDPhswfkKkwBZX/79b38BzsJR5Yye
+dGEl6aKsrJbl7s1mH/Q0DkMFoEhXNYme1beKNwrerdIu5aNgd70V1sKLOeirzSzQ
+iINZMY2kZRl0CNOWw6b8YzYs7enLbawJtVQQxq7zQ5KeZy4UeahXYnRX/Hzjqx7w
+DZjbPhzC1XPaF3HuCW4NCGmmQHjJJ4vZIo10J0+O+txh8gksUqi8fN/4apLVZ932
+GxRmHfJ/lmNuKEGE2sKNKmOYxupspbWvvQ27qZKVyR1SEPBCESxhVMqYJfTRr7HZ
+a1LffZ0HcS57X6X9g8/Xmh1njOcKZ8R0stmJ5Jt9zEOK6W6OkZBliYIRPp86BRN9
+zhLP0pExPq7C8gc/HKs+3OhfxDKPzAux1SERXZ8remzdHbwXw1Q0ug34RGwWk0Lg
+cUohta+Ej55HHFRXDse2EHhFBETvX9DBPNx0nclHehZ6vDrCjL5PPpj8w9Iztxwb
+lSpFMTPzUXFfJu22EUcB
+=gE0p
+-----END PGP SIGNATURE-----
+
+--3MwIy2ne0vdjdPXF--
