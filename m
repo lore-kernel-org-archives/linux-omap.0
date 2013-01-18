@@ -1,78 +1,168 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [[PATCH v2]] OMAP: omap4-panda: add WiLink shared transport
- power functions
-Date: Fri, 18 Jan 2013 09:49:10 -0800
-Message-ID: <20130118174910.GF15361@atomide.com>
-References: <20130117093417.GH10814@arwen.pp.htv.fi>
- <50F7CA82.4050509@ti.com>
- <20130117100510.GI10814@arwen.pp.htv.fi>
- <20130117100919.GJ10814@arwen.pp.htv.fi>
- <1358418917.6252.31.camel@cumari.coelho.fi>
- <50F7D535.6030205@ti.com>
- <20130117173131.GL14149@atomide.com>
- <1358445456.6252.64.camel@cumari.coelho.fi>
- <20130117231608.GP14149@atomide.com>
- <50F91FE2.3020402@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <50F91FE2.3020402@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Luciano Coelho <coelho@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Jan Luebbe <jlu@pengutronix.de>
+Subject: [RFC PATCH] gpio/omap: fix pm_runtime for IRQ functions
+Date: Fri, 18 Jan 2013 18:49:22 +0100
+Message-ID: <1358531362-27933-1-git-send-email-jlu@pengutronix.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57727 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751654Ab3ARRti (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jan 2013 12:49:38 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, kernel@pengutronix.de, Jan Luebbe <jlu@pengutronix.de>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [130118 02:15]:
-> Hi Tony,
-> 
-> On 01/18/2013 12:16 AM, Tony Lindgren wrote:
-> > Well we are planning to drop the non-DT support for omap4 as soon as it's
-> > usable with DT.
-> 
-> Exactly, but right now we do have legacy and legacy should work in order to
-> help for example Luca to make the final push which allows us to move to DT
-> only for OMAP4.
+Other devices in the device tree can use omap-gpio as an interrupt
+controller with something like:
+	interrupt-parent = <&gpio1>;
+	interrupts = <19 8>;
+(in this case with #interrupt-cells = <2> in the gpio node to be able
+to configure the IRQ flags in DT)
 
-Yeah I'm suggesting we should do the muxing in the platform code and fix the
-regression in the driver. But not add the new platform callbacks.
+Currently this triggers an unhandled fault (external abort on non-
+linefetch) because the gpio bank has been disabled by runtime pm.
+The current driver keeps a reference count in omap_gpio_request
+and omap_gpio_free, but these are not called when configuring
+an IRQ via device tree. The current code expects that users
+always request a gpio before trying to use the IRQ functions.
+When using DT, this is no longer the case.
+
+To fix this problem, I changed bank->mod_usage from per pin flags
+to a simple refcount and update it from gpio_unmask_irq and
+gpio_mask_irq, as well. Depending on the content of bank->mod_usage,
+pm_runtime_get_sync and pm_runtime_put are called.
+
+I'm unsure about the code to en-/disable the module clock gate.
+Maybe it should be moved to omap_gpio_runtime_{suspend,resume} or
+separate helpers?
+Another unclear point is whether the pm_runtime_* calls have a too
+large overhead for unmask/mask.
+
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+---
+ drivers/gpio/gpio-omap.c |   65 +++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 61 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index d335af1..51434f3 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -436,10 +436,16 @@ static int gpio_irq_type(struct irq_data *d, unsigned type)
+ 		(type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
+ 		return -EINVAL;
  
-> > For omap4 we are only carrying SDP and panda support to
-> > make this transition easier. The only bindings missing AFAIK are wl12xx and
-> > USB.
-> >
-> > If we add this, then it implies we're somehow supporting it, which is not
-> > the way to go IMHO as we need to get rid of these platform callbacks instead.
-> 
-> IMHO we should keep these boards working as long as we have the legacy board
-> support for them.
++	if (!bank->mod_usage)
++		pm_runtime_get_sync(bank->dev);
++
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	retval = _set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), type);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ 
++	if (!bank->mod_usage)
++		pm_runtime_put(bank->dev);
++
+ 	if (type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
+ 		__irq_set_handler_locked(d->irq, handle_level_irq);
+ 	else if (type & (IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING))
+@@ -621,7 +627,7 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+ 		bank->context.ctrl = ctrl;
+ 	}
+ 
+-	bank->mod_usage |= 1 << offset;
++	bank->mod_usage++;
+ 
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ 
+@@ -631,19 +637,18 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+ {
+ 	struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
+-	void __iomem *base = bank->base;
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 
+ 	if (bank->regs->wkup_en) {
+ 		/* Disable wake-up during idle for dynamic tick */
+-		_gpio_rmw(base, bank->regs->wkup_en, 1 << offset, 0);
++		_gpio_rmw(bank->base, bank->regs->wkup_en, 1 << offset, 0);
+ 		bank->context.wake_en =
+ 			__raw_readl(bank->base + bank->regs->wkup_en);
+ 	}
+ 
+-	bank->mod_usage &= ~(1 << offset);
++	bank->mod_usage--;
+ 
+ 	if (bank->regs->ctrl && !bank->mod_usage) {
+ 		void __iomem *reg = bank->base + bank->regs->ctrl;
+@@ -781,7 +786,35 @@ static void gpio_mask_irq(struct irq_data *d)
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	_set_gpio_irqenable(bank, gpio, 0);
+ 	_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
++
++	if (bank->regs->wkup_en) {
++		/* Disable wake-up during idle for dynamic tick */
++		_gpio_rmw(bank->base, bank->regs->wkup_en, GPIO_BIT(bank, gpio), 0);
++		bank->context.wake_en =
++			__raw_readl(bank->base + bank->regs->wkup_en);
++	}
++
++	bank->mod_usage--;
++
++	if (bank->regs->ctrl && !bank->mod_usage) {
++		void __iomem *reg = bank->base + bank->regs->ctrl;
++		u32 ctrl;
++
++		ctrl = __raw_readl(reg);
++		/* Module is disabled, clocks are gated */
++		ctrl |= GPIO_MOD_CTRL_BIT;
++		__raw_writel(ctrl, reg);
++		bank->context.ctrl = ctrl;
++	}
++
+ 	spin_unlock_irqrestore(&bank->lock, flags);
++
++	/*
++	 * If this is the last gpio to be freed in the bank,
++	 * disable the bank module.
++	 */
++	if (!bank->mod_usage)
++		pm_runtime_put(bank->dev);
+ }
+ 
+ static void gpio_unmask_irq(struct irq_data *d)
+@@ -792,7 +825,31 @@ static void gpio_unmask_irq(struct irq_data *d)
+ 	u32 trigger = irqd_get_trigger_type(d);
+ 	unsigned long flags;
+ 
++	if (!bank->mod_usage)
++		pm_runtime_get_sync(bank->dev);
++
+ 	spin_lock_irqsave(&bank->lock, flags);
++
++	if (bank->regs->pinctrl) {
++		void __iomem *reg = bank->base + bank->regs->pinctrl;
++
++		/* Claim the pin for MPU */
++		__raw_writel(__raw_readl(reg) | (GPIO_BIT(bank, gpio)), reg);
++	}
++
++	if (bank->regs->ctrl && !bank->mod_usage) {
++		void __iomem *reg = bank->base + bank->regs->ctrl;
++		u32 ctrl;
++
++		ctrl = __raw_readl(reg);
++		/* Module is enabled, clocks are not gated */
++		ctrl &= ~GPIO_MOD_CTRL_BIT;
++		__raw_writel(ctrl, reg);
++		bank->context.ctrl = ctrl;
++	}
++
++	bank->mod_usage++;
++
+ 	if (trigger)
+ 		_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), trigger);
+ 
+-- 
+1.7.10.4
 
-Naturally. We cannot flip over to DT only boot until we have usable system :)
-And to me "usable system" means being able to use my pandaboard es with a lapdock
-for work things.
-
-Currently it seems that we need the following working with DT to have panda
-and blaze usable:
-
-1. MMC (done)
-2. USB (patches pending for EHCI and MUSB)
-3. Ethernet (done for blaze, needs USB for panda)
-4. DSS (various drivers pending, probably still needs some platform init code)
-5. WLAN (no binding, needs platform init until done)
-6. Audio (done?)
-
-The DMA binding is still pending, but these devices should also work without it
-until we have the binding. And various miscellaneous drivers we can init with
-the platform code until the bindings are done.
-
-> So what is the policy now regarding to 'old' legacy but still used OMAP4 board
-> files? I think we should still maintain them, but the effort to get rid of
-> them should be the highest priority.
-
-Yes only minimal fixes. We should not add any new features to them as that will
-just complicate the conversion to DT. Once we have a usable system booting with DT,
-we can ust drop the old omap4 board-*.c files.
-
-Regards,
-
-Tony
