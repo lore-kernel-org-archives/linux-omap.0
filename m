@@ -1,60 +1,54 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 1/9] ARM: OMAP2+: AM33XX: CM: Get rid of unncessary header
- inclusions
-Date: Fri, 18 Jan 2013 16:31:01 +0400
-Message-ID: <50F94085.3030704@mvista.com>
-References: <1358493569-17142-1-git-send-email-vaibhav.bedia@ti.com> <1358493569-17142-2-git-send-email-vaibhav.bedia@ti.com>
+From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
+Subject: Re: [PATCH 2/3] ARM: dts: AM33XX: Add GPMC node
+Date: Fri, 18 Jan 2013 14:17:43 +0100
+Message-ID: <1358515063.3873.31.camel@coredoba.hi.pengutronix.de>
+References: <1358491295-4022-1-git-send-email-avinashphilip@ti.com>
+	 <1358491295-4022-3-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:59859 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756020Ab3ARMbO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jan 2013 07:31:14 -0500
-Received: by mail-lb0-f176.google.com with SMTP id k6so2642626lbo.21
-        for <linux-omap@vger.kernel.org>; Fri, 18 Jan 2013 04:31:12 -0800 (PST)
-In-Reply-To: <1358493569-17142-2-git-send-email-vaibhav.bedia@ti.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37347 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187Ab3ARNRz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jan 2013 08:17:55 -0500
+In-Reply-To: <1358491295-4022-3-git-send-email-avinashphilip@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Cc: tony@atomide.com, paul@pwsan.com, b-cousson@ti.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
+To: Philip Avinash <avinashphilip@ti.com>
+Cc: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com, zonque@gmail.com
 
-On 18-01-2013 11:19, Vaibhav Bedia wrote:
+On Fri, 2013-01-18 at 12:11 +0530, Philip Avinash wrote:
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index eaef5e7..f4209d8 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -393,5 +393,17 @@
+>  			ti,hwmods = "elm";
+>  			status = "disabled";
+>  		};
+> +
+> +		gpmc: gpmc@50000000 {
+> +			compatible = "ti,am3352-gpmc";
+> +			ti,hwmods = "gpmc";
+> +			reg = <0x50000000 0x2000>;
+> +			interrupts = <100>;
+> +			num-cs = <8>;
 
-> Some of the included header files are not needed so
-> remove them.
+According to the AM335x TRM (SPRUH73G) page 254 we have GPMC_CSn[6:0],
+so num-cs should probably be <7>.
 
-> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
-> Change from RFC version:
-> 	No change
+> +			num-waitpins = <2>;
+> +			#address-cells = <2>;
+> +			#size-cells = <1>;
+> +			status = "disabled";
+> +		};
+>  	};
+>  };
 
->   arch/arm/mach-omap2/cm33xx.h |    7 +------
->   1 files changed, 1 insertions(+), 6 deletions(-)
-
-> diff --git a/arch/arm/mach-omap2/cm33xx.h b/arch/arm/mach-omap2/cm33xx.h
-> index 5fa0b62..8009e13 100644
-> --- a/arch/arm/mach-omap2/cm33xx.h
-> +++ b/arch/arm/mach-omap2/cm33xx.h
-> @@ -17,16 +17,11 @@
->   #ifndef __ARCH_ARM_MACH_OMAP2_CM_33XX_H
->   #define __ARCH_ARM_MACH_OMAP2_CM_33XX_H
->
-> -#include <linux/delay.h>
-> -#include <linux/errno.h>
-> -#include <linux/err.h>
-> -#include <linux/io.h>
-> -
->   #include "common.h"
->
->   #include "cm.h"
->   #include "cm-regbits-33xx.h"
-> -#include "cm33xx.h"
-> +#include "iomap.h"
-
-    You don't comment on this addition in the changelog...
-
-WBR, Sergei
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
 
