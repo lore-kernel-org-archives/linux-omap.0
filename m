@@ -1,38 +1,98 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: OMAP baseline test results for v3.8-rc3
-Date: Fri, 18 Jan 2013 11:46:42 +0100
-Message-ID: <50F92812.3080406@ti.com>
-References: <alpine.DEB.2.00.1301141756460.20390@utopia.booyaka.com> <50F51067.5090008@ti.com> <alpine.DEB.2.00.1301171841350.14118@utopia.booyaka.com>
+From: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 1/8] input: ti_am335x_tsc: Step enable bits made
+ configurable
+Date: Fri, 18 Jan 2013 16:17:41 +0530
+Message-ID: <c7c319bc186fd98b35fb834e770561572bfb81b5.1358502134.git.rachna@ti.com>
+References: <cover.1358502134.git.rachna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51421 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751395Ab3ARKqr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Jan 2013 05:46:47 -0500
-In-Reply-To: <alpine.DEB.2.00.1301171841350.14118@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <cover.1358502134.git.rachna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Dmitry Torokhov <dtor-JGs/UdohzUI@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chuansheng Liu <chuansheng.liu@intel.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Hi Paul,
+From: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
 
-On 01/17/2013 07:43 PM, Paul Walmsley wrote:
->> The following patch fixes these:
->> https://lkml.org/lkml/2012/12/24/3
->=20
-> Thanks, I've added that info in the v3.8-rc3 test summary, and moved =
-the
-> paragraph to the 'resolved by posted patches' section.
+Current code has hard coded value written to
+step enable bits. Now the bits are updated based
+on how many steps are needed to be configured got
+from platform data.
 
-=46YI: the patch is now in mainline (3.8-rc4)
+The user needs to take care not to exceed
+the count more than 16. While using ADC and TSC
+one should take care to set this parameter correctly.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Patil, Rachna <rachna-l0cyMroinI0@public.gmane.org>
+---
+ drivers/input/touchscreen/ti_am335x_tsc.c |   10 ++++++++--
+ include/linux/mfd/ti_am335x_tscadc.h      |    1 -
+ 2 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index 51e7b87..da652e0 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -39,6 +39,7 @@ struct titsc {
+ 	unsigned int		irq;
+ 	unsigned int		wires;
+ 	unsigned int		x_plate_resistance;
++	unsigned int		enable_bits;
+ 	bool			pen_down;
+ 	int			steps_to_configure;
+ };
+@@ -57,6 +58,7 @@ static void titsc_writel(struct titsc *tsc, unsigned int reg,
+ static void titsc_step_config(struct titsc *ts_dev)
+ {
+ 	unsigned int	config;
++	unsigned int	stepenable = 0;
+ 	int i, total_steps;
+ 
+ 	/* Configure the Step registers */
+@@ -128,7 +130,11 @@ static void titsc_step_config(struct titsc *ts_dev)
+ 	titsc_writel(ts_dev, REG_STEPDELAY(total_steps + 2),
+ 			STEPCONFIG_OPENDLY);
+ 
+-	titsc_writel(ts_dev, REG_SE, STPENB_STEPENB_TC);
++	for (i = 0; i <= (total_steps + 2); i++)
++		stepenable |= 1 << i;
++	ts_dev->enable_bits = stepenable;
++
++	titsc_writel(ts_dev, REG_SE, ts_dev->enable_bits);
+ }
+ 
+ static void titsc_read_coordinates(struct titsc *ts_dev,
+@@ -250,7 +256,7 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+ 
+ 	titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
+ 
+-	titsc_writel(ts_dev, REG_SE, STPENB_STEPENB_TC);
++	titsc_writel(ts_dev, REG_SE, ts_dev->enable_bits);
+ 	return IRQ_HANDLED;
+ }
+ 
+diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+index c79ad5d..23e4f33 100644
+--- a/include/linux/mfd/ti_am335x_tscadc.h
++++ b/include/linux/mfd/ti_am335x_tscadc.h
+@@ -47,7 +47,6 @@
+ #define STEPENB_MASK		(0x1FFFF << 0)
+ #define STEPENB(val)		((val) << 0)
+ #define STPENB_STEPENB		STEPENB(0x1FFFF)
+-#define STPENB_STEPENB_TC	STEPENB(0x1FFF)
+ 
+ /* IRQ enable */
+ #define IRQENB_HW_PEN		BIT(0)
+-- 
+1.7.9.5
