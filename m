@@ -1,68 +1,84 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [[PATCH v2]] OMAP: omap4-panda: add WiLink shared transport
- power functions
-Date: Fri, 18 Jan 2013 10:05:49 -0800
-Message-ID: <20130118180548.GR14149@atomide.com>
-References: <20130117100510.GI10814@arwen.pp.htv.fi>
- <20130117100919.GJ10814@arwen.pp.htv.fi>
- <1358418917.6252.31.camel@cumari.coelho.fi>
- <50F7D535.6030205@ti.com>
- <20130117173131.GL14149@atomide.com>
- <1358445456.6252.64.camel@cumari.coelho.fi>
- <20130117231608.GP14149@atomide.com>
- <1358499533.6252.80.camel@cumari.coelho.fi>
- <20130118173635.GE15361@atomide.com>
- <20130118175408.GC1035@arwen.pp.htv.fi>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 5/5] ARM: dts: OMAP5: Specify nonsecure PPI IRQ for arch
+ timer
+Date: Sat, 19 Jan 2013 00:21:22 +0530
+Message-ID: <50F999AA.2020901@ti.com>
+References: <1358523141-12295-1-git-send-email-santosh.shilimkar@ti.com> <1358523141-12295-6-git-send-email-santosh.shilimkar@ti.com> <50F97207.1030706@arm.com> <50F97FA4.9010608@ti.com> <50F98176.6070703@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130118175408.GC1035@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Luciano Coelho <coelho@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49357 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751838Ab3ARSu1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Jan 2013 13:50:27 -0500
+In-Reply-To: <50F98176.6070703@arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Felipe Balbi <balbi@ti.com> [130118 09:57]:
-> Hi,
-> 
-> On Fri, Jan 18, 2013 at 09:36:35AM -0800, Tony Lindgren wrote:
-> > * Luciano Coelho <coelho@ti.com> [130118 01:03]:
-> > > On Thu, 2013-01-17 at 15:16 -0800, Tony Lindgren wrote:
-> > > > * Luciano Coelho <coelho@ti.com> [130117 10:04]:
-> > > > > But this patch is pretty small and simple, so why not include it to at
-> > > > > least fix the breakage in 3.7 and 3.8? Whether you take it or not now
-> > > > > won't make any difference in the 5k LOC in these kernel versions.
-> > > > 
-> > > > Well we are planning to drop the non-DT support for omap4 as soon as it's
-> > > > usable with DT. For omap4 we are only carrying SDP and panda support to
-> > > > make this transition easier. The only bindings missing AFAIK are wl12xx and
-> > > > USB.
-> > > 
-> > > In my view this is a regression and it should be fixed with as simple a
-> > > patch as possible.  The alternative to my solution is to revert the
-> > > patch that removed the enable/disable from the ti-st driver *and* fix
-> > > u-boot, because if it doesn't mux the UART2 pins properly (and it
-> > > doesn't) the shared transport still won't work.
-> > 
-> > Fixing the muxing here makes sense naturally as we cannot do that in the driver
-> > until we've flipped things over to use DT.
-> > 
-> > But I don't think we should fix the driver regression by adding more platform
-> > callbacks as we are getting rid of them anyways.
-> 
-> it's not adding more callbacks, solely implementing them as it should
-> have been done on Pavan's original patch.
+On Friday 18 January 2013 10:38 PM, Marc Zyngier wrote:
+> On 18/01/13 17:00, Santosh Shilimkar wrote:
+>> On Friday 18 January 2013 09:32 PM, Marc Zyngier wrote:
+>>> On 18/01/13 15:32, Santosh Shilimkar wrote:
+>>>> From: Rajendra Nayak <rnayak@ti.com>
+>>>>
+>>>> Specify both secure as well as nonsecure PPI IRQ for arch
+>>>> timer. This fixes the following errors seen on DT OMAP5 boot..
+>>>>
+>>>> [    0.000000] arch_timer: No interrupt available, giving up
+>>>>
+>>>> Cc: Benoit Cousson <b-cousson@ti.com>
+>>>>
+>>>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>> ---
+>>>>    arch/arm/boot/dts/omap5.dtsi |   16 ++++++++++++----
+>>>>    1 file changed, 12 insertions(+), 4 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+>>>> index 790bb2a..7a78d1b 100644
+>>>> --- a/arch/arm/boot/dts/omap5.dtsi
+>>>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>>>> @@ -35,8 +35,12 @@
+>>>>    			compatible = "arm,cortex-a15";
+>>>>    			timer {
+>>>>    				compatible = "arm,armv7-timer";
+>>>> -				/* 14th PPI IRQ, active low level-sensitive */
+>>>> -				interrupts = <1 14 0x308>;
+>>>> +				/*
+>>>> +				 * PPI secure/nonsecure IRQ,
+>>>> +				 * active low level-sensitive
+>>>> +				 */
+>>>> +				interrupts = <1 13 0x308>,
+>>>> +					     <1 14 0x308>;
+>>>
+>>> Care to add the virtual and HYP timer interrupts? So KVM can get a
+>>> chance to run on this HW...
+>>>
+>> Thanks Marc for spotting it. Will take care of it.
+>
+> I just realised something silly... You have one timer node *per cpu*,
+> and this is not really expected.
+>
+This was discussed on the list here [1]
+Benoit suggested to add per CPU node since arch timer is per
+CPU and DT should describe the hw the way it is. Did we miss
+something ?
 
-It certainly is adding new callback functions to board-*.c files looking
-at the diffstat :)
+> The driver really wants one single node. See
+> arch/arm/boot/dts/vexpress-v2p-ca15_a7.dts for an example.
+>
+I remember adding only one node based on above file and then
+updating the patch based on the comment.
 
-IMHO the right fix is to revert eccf2979 that caused the regression and then
-adding the muxing to the board-*.c file(s).
+> Oh, and your GIC node could do with some updating too (no VGIC regs or
+> interrupt).
+>
+Will have a look at that as well.
 
-It's OK for the driver to call the standard GPIO functions, and those will
-be needed in the driver for the DT case anyways.
+Regards
+Santosh,
 
-Regards,
-
-Tony
+[1] https://patchwork.kernel.org/patch/1312061/
