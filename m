@@ -1,66 +1,45 @@
-From: Philip Avinash <avinashphilip@ti.com>
-Subject: [PATCH] ARM: OMAP: gpmc: Add device tree documentation for elm handle
-Date: Fri, 18 Jan 2013 10:27:46 +0530
-Message-ID: <1358485066-27495-1-git-send-email-avinashphilip@ti.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv2] am33xx: cpsw: default to ethernet hwaddr from efuse
+ if not defined in dt
+Date: Fri, 18 Jan 2013 10:44:34 +0530
+Message-ID: <50F8DA3A.3090406@ti.com>
+References: <1358461134-13452-1-git-send-email-jacmet@sunsite.dk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35578 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752798Ab3ARE5Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Jan 2013 23:57:25 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1358461134-13452-1-git-send-email-jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
+Cc: michal.bachraty-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, michal.bachraty-6oiIBCxl0MMjD8S081q9vkEOCMrvLtNR@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, artem.bityutskiy@linux.intel.com, zonque@gmail.com
-Cc: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, Philip Avinash <avinashphilip@ti.com>
 
-In case ELM module available, omap2 NAND driver can opt for hardware
-correction method for bit flip errors in NAND flash with BCH. Hence the
-detection of ELM module is done through devicetree population of elm_id.
-This patch update device tree documentation for gpmc-nand for elm-id
-data population.
+On 1/18/2013 3:48 AM, Peter Korsgaard wrote:
+> When booting with CONFIG_ARM_APPENDED_DTB (either because of using an old
+> U-Boot, not wanting the hassle of 2 files or when using Falcon fast boot
+> mode in U-Boot), nothing updates the ethernet hwaddr specified for the
+> CPSW slaves, causing the driver to use a random hwaddr, which is some times
+> troublesome.
+>
+> The am33xx has unique ethernet hwaddrs programmed in the efuse, so it makes
+> more sense to default to these rather than random ones. Add a fixup step
+> which adds mac-address dt properties using the efuse addresses if the DTB
+> didn't contain valid ones.
+>
+> Signed-off-by: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
+>
 
-Signed-off-by: Philip Avinash <avinashphilip@ti.com>
----
-This patch based [1] and depends on [2]. As Artem suggested, this patch can
-go in omap_tree due to the dependency on [3].
-Discussion can found at [4]
+This implementation looks fine.
+Acked-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 
-Tony,
-  Can you accept this patch.
-
-1. http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=shortlog;h=refs/heads/omap-for-v3.9/gpmc
-2. mtd: nand: omap2: Support for hardware BCH error correction
-   http://git.infradead.org/users/dedekind/l2-mtd-2.6.git/commit/576daed18c3f27bb5d0e57e1df11e8f7b493dce8
-3. ARM: OMAP: gpmc: add DT bindings for GPMC timings and NAND
-   http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=commit;h=bc6b1e7b86f5d8e4a6fc1c0189e64bba4077efe0
-4. https://lkml.org/lkml/2013/1/17/167   
-
- .../devicetree/bindings/mtd/gpmc-nand.txt          |    4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-index 9f464f9..e7f8d7e 100644
---- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-@@ -29,6 +29,9 @@ Optional properties:
- 		"bch4"		4-bit BCH ecc code
- 		"bch8"		8-bit BCH ecc code
- 
-+ - elm_id:	Specifies elm device node. This is required to support BCH
-+ 		error correction using ELM module.
-+
- For inline partiton table parsing (optional):
- 
-  - #address-cells: should be set to 1
-@@ -46,6 +49,7 @@ Example for an AM33xx board:
- 		#address-cells = <2>;
- 		#size-cells = <1>;
- 		ranges = <0 0 0x08000000 0x2000>;	/* CS0: NAND */
-+		elm_id = <&elm>;
- 
- 		nand@0,0 {
- 			reg = <0 0 0>; /* CS0, offset 0 */
--- 
-1.7.9.5
-
+Regards
+Mugunthan V N
