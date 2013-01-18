@@ -1,49 +1,54 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 2/5] ARM: dts: twl6030: Add PWM support
-Date: Fri, 18 Jan 2013 15:36:31 +0100
-Message-ID: <1358519794-13214-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 4/5] ARM: dts: omap4-sdp: Add support for pwm-leds (keypad and charging LED)
+Date: Fri, 18 Jan 2013 15:36:33 +0100
+Message-ID: <1358519794-13214-5-git-send-email-peter.ujfalusi@ti.com>
 References: <1358519794-13214-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58277 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37656 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751595Ab3AROgp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Jan 2013 09:36:45 -0500
+	id S1751595Ab3AROgs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Jan 2013 09:36:48 -0500
 In-Reply-To: <1358519794-13214-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Enable support for the PWMs and LED as PWM drivers.
+Sections to describe the pwm-leds in the system.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/twl6030.dtsi | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ arch/arm/boot/dts/omap4-sdp.dts | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/arch/arm/boot/dts/twl6030.dtsi b/arch/arm/boot/dts/twl6030.dtsi
-index 9996cfc..d9b8b21 100644
---- a/arch/arm/boot/dts/twl6030.dtsi
-+++ b/arch/arm/boot/dts/twl6030.dtsi
-@@ -91,4 +91,16 @@
- 		compatible = "ti,twl6030-usb";
- 		interrupts = <4>, <10>;
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 43e5258..8101a94 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -80,6 +80,21 @@
+ 		};
  	};
+ 
++	pwmleds {
++		compatible = "pwm-leds";
++		kpad {
++			label = "omap4::keypad";
++			pwms = <&twl_pwm 0 7812500>;
++			max-brightness = <127>;
++		};
 +
-+	twl_pwm: pwm {
-+		/* provides two PWMs (id 0, 1 for PWM1 and PWM2) */
-+		compatible = "ti,twl6030-pwm";
-+		#pwm-cells = <2>;
++		charging {
++			label = "omap4:green:chrg";
++			pwms = <&twl_pwmled 0 7812500>;
++			max-brightness = <255>;
++		};
 +	};
 +
-+	twl_pwmled: pwmled {
-+		/* provides one PWM (id 0 for Charing indicator LED) */
-+		compatible = "ti,twl6030-pwmled";
-+		#pwm-cells = <2>;
-+	};
- };
+ 	sound {
+ 		compatible = "ti,abe-twl6040";
+ 		ti,model = "SDP4430";
 -- 
 1.8.1
 
