@@ -1,45 +1,118 @@
-From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2] am33xx: cpsw: default to ethernet hwaddr from efuse
- if not defined in dt
-Date: Fri, 18 Jan 2013 10:44:34 +0530
-Message-ID: <50F8DA3A.3090406@ti.com>
-References: <1358461134-13452-1-git-send-email-jacmet@sunsite.dk>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [RFC v2 12/18] ARM: OMAP2+: timer: Add suspend-resume callbacks
+ for clockevent device
+Date: Fri, 18 Jan 2013 10:55:43 +0530
+Message-ID: <50F8DCD7.707@ti.com>
+References: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com> <1356959231-17335-13-git-send-email-vaibhav.bedia@ti.com> <50EC37FE.705@ti.com> <B5906170F1614E41A8A28DE3B8D121433ECE0D51@DBDE01.ent.ti.com> <50F846D7.8060509@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1358461134-13452-1-git-send-email-jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
-Cc: michal.bachraty-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, michal.bachraty-6oiIBCxl0MMjD8S081q9vkEOCMrvLtNR@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35815 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750720Ab3ARFYt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Jan 2013 00:24:49 -0500
+In-Reply-To: <50F846D7.8060509@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On 1/18/2013 3:48 AM, Peter Korsgaard wrote:
-> When booting with CONFIG_ARM_APPENDED_DTB (either because of using an old
-> U-Boot, not wanting the hassle of 2 files or when using Falcon fast boot
-> mode in U-Boot), nothing updates the ethernet hwaddr specified for the
-> CPSW slaves, causing the driver to use a random hwaddr, which is some times
-> troublesome.
+On Friday 18 January 2013 12:15 AM, Jon Hunter wrote:
 >
-> The am33xx has unique ethernet hwaddrs programmed in the efuse, so it makes
-> more sense to default to these rather than random ones. Add a fixup step
-> which adds mac-address dt properties using the efuse addresses if the DTB
-> didn't contain valid ones.
+> On 01/10/2013 10:37 PM, Bedia, Vaibhav wrote:
+>> On Tue, Jan 08, 2013 at 20:45:10, Shilimkar, Santosh wrote:
+>>> On Monday 31 December 2012 06:37 PM, Vaibhav Bedia wrote:
+>>>> The current OMAP timer code registers two timers -
+>>>> one as clocksource and one as clockevent.
+>>>> AM33XX has only one usable timer in the WKUP domain
+>>>> so one of the timers needs suspend-resume support
+>>>> to restore the configuration to pre-suspend state.
+>>>>
+>>>> commit adc78e6 (timekeeping: Add suspend and resume
+>>>> of clock event devices) introduced .suspend and .resume
+>>>> callbacks for clock event devices. Leverages these
+>>>> callbacks to have AM33XX clockevent timer which is
+>>>> in not in WKUP domain to behave properly across system
+>>>> suspend.
+>>>>
+>>>> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>>>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>> Cc: Benoit Cousson <b-cousson@ti.com>
+>>>> Cc: Paul Walmsley <paul@pwsan.com>
+>>>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>>>> Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+>>>> Cc: Jon Hunter <jon-hunter@ti.com>
+>>>> ---
+>>>> v1->v2:
+>>>> 	Get rid of harcoded timer id.
+>>>> 	Note: since a platform device is not created for these timer
+>>>> 	instances and because there's very minimal change needed for
+>>>> 	restarting the timer a full blown context save and restore
+>>>> 	has been skipped.
+>>>>
+>>>>    arch/arm/mach-omap2/timer.c |   33 +++++++++++++++++++++++++++++++++
+>>>>    1 files changed, 33 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+>>>> index 691aa67..38f9cbc 100644
+>>>> --- a/arch/arm/mach-omap2/timer.c
+>>>> +++ b/arch/arm/mach-omap2/timer.c
+>>>> @@ -128,6 +128,36 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+>>>>    	}
+>>>>    }
+>>>>
+>>>> +static void omap_clkevt_suspend(struct clock_event_device *unused)
+>>>> +{
+>>>> +	char name[10];
+>>>> +	struct omap_hwmod *oh;
+>>>> +
+>>>> +	sprintf(name, "timer%d", clkev.id);
+>>>> +	oh = omap_hwmod_lookup(name);
+>>>> +	if (!oh)
+>>>> +		return;
+>>>> +
+>>>> +	__omap_dm_timer_stop(&clkev, 1, clkev.rate);
+>>>> +	omap_hwmod_idle(oh);
+>>>> +}
+>>>> +
+>>>> +static void omap_clkevt_resume(struct clock_event_device *unused)
+>>>> +{
+>>>> +	char name[10];
+>>>> +	struct omap_hwmod *oh;
+>>>> +
+>>>> +	sprintf(name, "timer%d", clkev.id);
+>>>> +	oh = omap_hwmod_lookup(name);
+>>>> +	if (!oh)
+>>>> +		return;
+>>>> +
+>>>> +	omap_hwmod_enable(oh);
+>>>> +	__omap_dm_timer_load_start(&clkev,
+>>>> +			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
+>>>> +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
+>>>> +}
+>>>> +
+>>> Am still bit uncomfortable with direct hwmod usage in the suspend/resmue
+>>> hooks.
+>>>
+>>> Jon, Any alternatives you can think of ?
+>>>
+>>
+>> Jon,
+>>
+>> Any suggestions here?
 >
-> Signed-off-by: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
+> Sorry completed this missed this!
 >
+> Unfortunately, I don't have any good suggestions here. However, I am
+> wondering if the suspend/resume handlers can just be calls to
+> omap_hwmod_idle/enable and we can remove these __omap_dm_timer_xxxx
+> calls (I don't think they are needed). Furthermore, my understanding is
+> this is only needed for AM335x (per the changelog), and so we should not
+> add suspend/resume handlers for all OMAP2+ based devices.
+>
+I agree with the direction.
 
-This implementation looks fine.
-Acked-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Regards,
+Santosh
 
-Regards
-Mugunthan V N
