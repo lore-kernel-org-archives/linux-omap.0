@@ -1,42 +1,33 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 3/4] PM / devfreq: add locking documentation for recommended_opp
-Date: Fri, 18 Jan 2013 13:52:34 -0600
-Message-ID: <1358538755-29109-4-git-send-email-nm@ti.com>
-References: <1358538755-29109-1-git-send-email-nm@ti.com>
+From: Cliff Brake <cliff.brake@gmail.com>
+Subject: gpios reset when kernel starts
+Date: Fri, 18 Jan 2013 15:08:01 -0500
+Message-ID: <CAOd_LFy8b_=eqqraKHz7Kc+o3wFTH-e8G=74d9+ec7L2B28crA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358538755-29109-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pm <linux-pm@vger.kernel.org>
-Cc: Rafael <rjw@sisk.pl>, Kevin <khilman@deeprootsystems.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, lkml <linux-kernel@vger.kernel.org>, lo <linux-omap@vger.kernel.org>, Jack <jack@embed.me.uk>, Alexander <holler@ahsoftware.de>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:56432 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092Ab3ARUNI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jan 2013 15:13:08 -0500
+Received: by mail-la0-f41.google.com with SMTP id em20so4315784lab.28
+        for <linux-omap@vger.kernel.org>; Fri, 18 Jan 2013 12:13:05 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-OPP pointers are protected by RCU locks, the pointer validity is
-permissible only under the section of rcu_read_lock to rcu_read_unlock
+I'm working with the 3.0 kernel on a 3730.  It appears that when I set
+a GPIO to output and set it high in the bootloader, this gets reset
+when the kernel starts.  Is this expected, and is there any workaround
+to have this not happen?  The alternate functions seem to be sticking
+when configured in the bootloader.
 
-Add documentation to the effect.
+Its possible that something in the kernel is taking control of the
+signal, but it seems ulikely as I've tried two different unrelated
+GPIOs with the same result.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- drivers/devfreq/devfreq.c |    5 +++++
- 1 file changed, 5 insertions(+)
+Thanks,
+Cliff
 
-diff --git a/drivers/devfreq/devfreq.c b/drivers/devfreq/devfreq.c
-index 53766f3..3b36797 100644
---- a/drivers/devfreq/devfreq.c
-+++ b/drivers/devfreq/devfreq.c
-@@ -994,6 +994,11 @@ module_exit(devfreq_exit);
-  * @freq:	The frequency given to target function
-  * @flags:	Flags handed from devfreq framework.
-  *
-+ * Locking: This function must be called under rcu_read_lock(). opp is a rcu
-+ * protected pointer. The reason for the same is that the opp pointer which is
-+ * returned will remain valid for use with opp_get_{voltage, freq} only while
-+ * under the locked area. The pointer returned must be used prior to unlocking
-+ * with rcu_read_unlock() to maintain the integrity of the pointer.
-  */
- struct opp *devfreq_recommended_opp(struct device *dev, unsigned long *freq,
- 				    u32 flags)
 -- 
-1.7.9.5
+=================
+http://bec-systems.com
