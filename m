@@ -1,105 +1,385 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 10/10] ARM: OMAP5: Enable build and frameowrk initialisations
-Date: Fri, 18 Jan 2013 20:57:36 +0530
-Message-ID: <1358522856-12180-11-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 06/10] ARM: OMAP5: powerdomain data: Add OMAP54XX data and update the header
+Date: Fri, 18 Jan 2013 20:57:32 +0530
+Message-ID: <1358522856-12180-7-git-send-email-santosh.shilimkar@ti.com>
 References: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32942 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751294Ab3ARP12 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jan 2013 10:27:28 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:35096 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751294Ab3ARP1l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Jan 2013 10:27:41 -0500
 In-Reply-To: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Include the OMAP5 data files in build. Initialise the voltage, power,
-clock domains and the clock tree.
+From: Benoit Cousson <b-cousson@ti.com>
+
+Add the data file to describe all power domains inside the OMAP54XX soc.
 
 Cc: Paul Walmsley <paul@pwsan.com>
 
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+[santosh.shilimkar@ti.com: Generated es2.0 data]
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/Makefile |    6 +++++-
- arch/arm/mach-omap2/io.c     |    9 +++++++++
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/powerdomain.h           |    1 +
+ arch/arm/mach-omap2/powerdomains54xx_data.c |  331 +++++++++++++++++++++++++++
+ 2 files changed, 332 insertions(+)
+ create mode 100644 arch/arm/mach-omap2/powerdomains54xx_data.c
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 947cafe..5ab0b7c 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -123,6 +123,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= voltagedomains44xx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(voltagedomain-common)
- obj-$(CONFIG_SOC_AM33XX)                += voltagedomains33xx_data.o
- obj-$(CONFIG_SOC_OMAP5)			+= $(voltagedomain-common)
-+obj-$(CONFIG_SOC_OMAP5)                += voltagedomains54xx_data.o
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 5277d56eb..a2e44d2 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -239,6 +239,7 @@ extern void omap243x_powerdomains_init(void);
+ extern void omap3xxx_powerdomains_init(void);
+ extern void am33xx_powerdomains_init(void);
+ extern void omap44xx_powerdomains_init(void);
++extern void omap54xx_powerdomains_init(void);
  
- # OMAP powerdomain framework
- powerdomain-common			+= powerdomain.o powerdomain-common.o
-@@ -137,6 +138,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= powerdomains44xx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(powerdomain-common)
- obj-$(CONFIG_SOC_AM33XX)		+= powerdomains33xx_data.o
- obj-$(CONFIG_SOC_OMAP5)			+= $(powerdomain-common)
-+obj-$(CONFIG_SOC_OMAP5)			+= powerdomains54xx_data.o
- 
- # PRCM clockdomain control
- clockdomain-common			+= clockdomain.o
-@@ -152,6 +154,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= clockdomains44xx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(clockdomain-common)
- obj-$(CONFIG_SOC_AM33XX)		+= clockdomains33xx_data.o
- obj-$(CONFIG_SOC_OMAP5)			+= $(clockdomain-common)
-+obj-$(CONFIG_SOC_OMAP5)			+= clockdomains54xx_data.o
- 
- # Clock framework
- obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o
-@@ -171,7 +174,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) cclock44xx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o dpll44xx.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(clock-common) dpll3xxx.o
- obj-$(CONFIG_SOC_AM33XX)		+= cclock33xx_data.o
--obj-$(CONFIG_SOC_OMAP5)			+= $(clock-common)
-+obj-$(CONFIG_SOC_OMAP5)			+= $(clock-common) cclock54xx_data.o
- obj-$(CONFIG_SOC_OMAP5)			+= dpll3xxx.o dpll44xx.o
- 
- # OMAP2 clock rate set data (old "OPP" data)
-@@ -194,6 +197,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_2xxx_3xxx_interconnect_data.o
- obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= omap_hwmod_33xx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
-+obj-$(CONFIG_SOC_OMAP5)			+= omap_hwmod_54xx_data.o
- 
- # EMU peripherals
- obj-$(CONFIG_OMAP3_EMU)			+= emu.o
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 2c3fdd6..a1da83e 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -38,6 +38,7 @@
- #include "clock2xxx.h"
- #include "clock3xxx.h"
- #include "clock44xx.h"
-+#include "clock54xx.h"
- #include "omap-pm.h"
- #include "sdrc.h"
- #include "control.h"
-@@ -618,7 +619,15 @@ void __init omap5_init_early(void)
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
- 	omap_prm_base_init();
- 	omap_cm_base_init();
-+	omap44xx_prm_init();
- 	omap5xxx_check_revision();
-+	omap54xx_voltagedomains_init();
-+	omap54xx_powerdomains_init();
-+	omap54xx_clockdomains_init();
-+	omap54xx_hwmod_init();
-+	omap_hwmod_init_postsetup();
-+	omap5xxx_clk_init();
+ extern struct pwrdm_ops omap2_pwrdm_operations;
+ extern struct pwrdm_ops omap3_pwrdm_operations;
+diff --git a/arch/arm/mach-omap2/powerdomains54xx_data.c b/arch/arm/mach-omap2/powerdomains54xx_data.c
+new file mode 100644
+index 0000000..81f8a7c
+--- /dev/null
++++ b/arch/arm/mach-omap2/powerdomains54xx_data.c
+@@ -0,0 +1,331 @@
++/*
++ * OMAP54XX Power domains framework
++ *
++ * Copyright (C) 2013 Texas Instruments, Inc.
++ *
++ * Abhijit Pagare (abhijitpagare@ti.com)
++ * Benoit Cousson (b-cousson@ti.com)
++ * Paul Walmsley (paul@pwsan.com)
++ *
++ * This file is automatically generated from the OMAP hardware databases.
++ * We respectfully ask that any modifications to this file be coordinated
++ * with the public linux-omap@vger.kernel.org mailing list and the
++ * authors above to ensure that the autogeneration scripts are kept
++ * up-to-date with the file contents.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
- }
- #endif
- 
++#include <linux/kernel.h>
++#include <linux/init.h>
++
++#include "powerdomain.h"
++
++#include "prcm-common.h"
++#include "prcm44xx.h"
++#include "prm-regbits-54xx.h"
++#include "prm54xx.h"
++#include "prcm_mpu54xx.h"
++
++/* core_54xx_pwrdm: CORE power domain */
++static struct powerdomain core_54xx_pwrdm = {
++	.name		  = "core_pwrdm",
++	.voltdm		  = { .name = "core" },
++	.prcm_offs	  = OMAP54XX_PRM_CORE_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF_RET,
++	.banks		  = 5,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* core_nret_bank */
++		[1] = PWRSTS_OFF_RET,	/* core_ocmram */
++		[2] = PWRSTS_OFF_RET,	/* core_other_bank */
++		[3] = PWRSTS_OFF_RET,	/* ipu_l2ram */
++		[4] = PWRSTS_OFF_RET,	/* ipu_unicache */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_OFF_RET,	/* core_nret_bank */
++		[1] = PWRSTS_OFF_RET,	/* core_ocmram */
++		[2] = PWRSTS_OFF_RET,	/* core_other_bank */
++		[3] = PWRSTS_OFF_RET,	/* ipu_l2ram */
++		[4] = PWRSTS_OFF_RET,	/* ipu_unicache */
++	},
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
++
++/* abe_54xx_pwrdm: Audio back end power domain */
++static struct powerdomain abe_54xx_pwrdm = {
++	.name		  = "abe_pwrdm",
++	.voltdm		  = { .name = "core" },
++	.prcm_offs	  = OMAP54XX_PRM_ABE_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF,
++	.banks		  = 2,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* aessmem */
++		[1] = PWRSTS_OFF_RET,	/* periphmem */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_OFF_RET,	/* aessmem */
++		[1] = PWRSTS_OFF_RET,	/* periphmem */
++	},
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
++
++/* coreaon_54xx_pwrdm: Always ON logic that sits in VDD_CORE voltage domain */
++static struct powerdomain coreaon_54xx_pwrdm = {
++	.name		  = "coreaon_pwrdm",
++	.voltdm		  = { .name = "core" },
++	.prcm_offs	  = OMAP54XX_PRM_COREAON_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_ON,
++};
++
++/* dss_54xx_pwrdm: Display subsystem power domain */
++static struct powerdomain dss_54xx_pwrdm = {
++	.name		  = "dss_pwrdm",
++	.voltdm		  = { .name = "core" },
++	.prcm_offs	  = OMAP54XX_PRM_DSS_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF,
++	.banks		  = 1,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* dss_mem */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_OFF_RET,	/* dss_mem */
++	},
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
++
++/* cpu0_54xx_pwrdm: MPU0 processor and Neon coprocessor power domain */
++static struct powerdomain cpu0_54xx_pwrdm = {
++	.name		  = "cpu0_pwrdm",
++	.voltdm		  = { .name = "mpu" },
++	.prcm_offs	  = OMAP54XX_PRCM_MPU_PRM_C0_INST,
++	.prcm_partition	  = OMAP54XX_PRCM_MPU_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF_RET,
++	.banks		  = 1,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* cpu0_l1 */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_ON,	/* cpu0_l1 */
++	},
++};
++
++/* cpu1_54xx_pwrdm: MPU1 processor and Neon coprocessor power domain */
++static struct powerdomain cpu1_54xx_pwrdm = {
++	.name		  = "cpu1_pwrdm",
++	.voltdm		  = { .name = "mpu" },
++	.prcm_offs	  = OMAP54XX_PRCM_MPU_PRM_C1_INST,
++	.prcm_partition	  = OMAP54XX_PRCM_MPU_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF_RET,
++	.banks		  = 1,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* cpu1_l1 */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_ON,	/* cpu1_l1 */
++	},
++};
++
++/* emu_54xx_pwrdm: Emulation power domain */
++static struct powerdomain emu_54xx_pwrdm = {
++	.name		  = "emu_pwrdm",
++	.voltdm		  = { .name = "wkup" },
++	.prcm_offs	  = OMAP54XX_PRM_EMU_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_ON,
++	.banks		  = 1,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* emu_bank */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_OFF_RET,	/* emu_bank */
++	},
++};
++
++/* mpu_54xx_pwrdm: Modena processor and the Neon coprocessor power domain */
++static struct powerdomain mpu_54xx_pwrdm = {
++	.name		  = "mpu_pwrdm",
++	.voltdm		  = { .name = "mpu" },
++	.prcm_offs	  = OMAP54XX_PRM_MPU_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF_RET,
++	.banks		  = 2,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* mpu_l2 */
++		[1] = PWRSTS_RET,	/* mpu_ram */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_OFF_RET,	/* mpu_l2 */
++		[1] = PWRSTS_OFF_RET,	/* mpu_ram */
++	},
++};
++
++/* custefuse_54xx_pwrdm: Customer efuse controller power domain */
++static struct powerdomain custefuse_54xx_pwrdm = {
++	.name		  = "custefuse_pwrdm",
++	.voltdm		  = { .name = "core" },
++	.prcm_offs	  = OMAP54XX_PRM_CUSTEFUSE_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_ON,
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
++
++/* dsp_54xx_pwrdm: Tesla processor power domain */
++static struct powerdomain dsp_54xx_pwrdm = {
++	.name		  = "dsp_pwrdm",
++	.voltdm		  = { .name = "mm" },
++	.prcm_offs	  = OMAP54XX_PRM_DSP_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF_RET,
++	.banks		  = 3,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* dsp_edma */
++		[1] = PWRSTS_OFF_RET,	/* dsp_l1 */
++		[2] = PWRSTS_OFF_RET,	/* dsp_l2 */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_OFF_RET,	/* dsp_edma */
++		[1] = PWRSTS_OFF_RET,	/* dsp_l1 */
++		[2] = PWRSTS_OFF_RET,	/* dsp_l2 */
++	},
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
++
++/* cam_54xx_pwrdm: Camera subsystem power domain */
++static struct powerdomain cam_54xx_pwrdm = {
++	.name		  = "cam_pwrdm",
++	.voltdm		  = { .name = "core" },
++	.prcm_offs	  = OMAP54XX_PRM_CAM_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_ON,
++	.banks		  = 1,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* cam_mem */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_OFF_RET,	/* cam_mem */
++	},
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
++
++/* l3init_54xx_pwrdm: L3 initators pheripherals power domain  */
++static struct powerdomain l3init_54xx_pwrdm = {
++	.name		  = "l3init_pwrdm",
++	.voltdm		  = { .name = "core" },
++	.prcm_offs	  = OMAP54XX_PRM_L3INIT_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF_RET,
++	.banks		  = 2,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* l3init_bank1 */
++		[1] = PWRSTS_OFF_RET,	/* l3init_bank2 */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_OFF_RET,	/* l3init_bank1 */
++		[1] = PWRSTS_OFF_RET,	/* l3init_bank2 */
++	},
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
++
++/* gpu_54xx_pwrdm: 3D accelerator power domain */
++static struct powerdomain gpu_54xx_pwrdm = {
++	.name		  = "gpu_pwrdm",
++	.voltdm		  = { .name = "mm" },
++	.prcm_offs	  = OMAP54XX_PRM_GPU_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_ON,
++	.banks		  = 1,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* gpu_mem */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_OFF_RET,	/* gpu_mem */
++	},
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
++
++/* wkupaon_54xx_pwrdm: Wake-up power domain */
++static struct powerdomain wkupaon_54xx_pwrdm = {
++	.name		  = "wkupaon_pwrdm",
++	.voltdm		  = { .name = "wkup" },
++	.prcm_offs	  = OMAP54XX_PRM_WKUPAON_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_ON,
++	.banks		  = 1,
++	.pwrsts_mem_ret	= {
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_ON,	/* wkup_bank */
++	},
++};
++
++/* iva_54xx_pwrdm: IVA-HD power domain */
++static struct powerdomain iva_54xx_pwrdm = {
++	.name		  = "iva_pwrdm",
++	.voltdm		  = { .name = "mm" },
++	.prcm_offs	  = OMAP54XX_PRM_IVA_INST,
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF,
++	.banks		  = 4,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* hwa_mem */
++		[1] = PWRSTS_OFF_RET,	/* sl2_mem */
++		[2] = PWRSTS_OFF_RET,	/* tcm1_mem */
++		[3] = PWRSTS_OFF_RET,	/* tcm2_mem */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_OFF_RET,	/* hwa_mem */
++		[1] = PWRSTS_OFF_RET,	/* sl2_mem */
++		[2] = PWRSTS_OFF_RET,	/* tcm1_mem */
++		[3] = PWRSTS_OFF_RET,	/* tcm2_mem */
++	},
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
++
++/*
++ * The following power domains are not under SW control
++ *
++ * mpuaon
++ * mmaon
++ */
++
++/* As powerdomains are added or removed above, this list must also be changed */
++static struct powerdomain *powerdomains_omap54xx[] __initdata = {
++	&core_54xx_pwrdm,
++	&abe_54xx_pwrdm,
++	&coreaon_54xx_pwrdm,
++	&dss_54xx_pwrdm,
++	&cpu0_54xx_pwrdm,
++	&cpu1_54xx_pwrdm,
++	&emu_54xx_pwrdm,
++	&mpu_54xx_pwrdm,
++	&custefuse_54xx_pwrdm,
++	&dsp_54xx_pwrdm,
++	&cam_54xx_pwrdm,
++	&l3init_54xx_pwrdm,
++	&gpu_54xx_pwrdm,
++	&wkupaon_54xx_pwrdm,
++	&iva_54xx_pwrdm,
++	NULL
++};
++
++void __init omap54xx_powerdomains_init(void)
++{
++	pwrdm_register_platform_funcs(&omap4_pwrdm_operations);
++	pwrdm_register_pwrdms(powerdomains_omap54xx);
++	pwrdm_complete_init();
++}
 -- 
 1.7.9.5
 
