@@ -1,121 +1,85 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2: Fix missing omap2xxx_clkt_vps_xxx function
- calls
-Date: Fri, 18 Jan 2013 09:34:06 -0600
-Message-ID: <50F96B6E.3060108@ti.com>
-References: <1357851209-5332-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1301171848490.14118@utopia.booyaka.com> <50F85087.3060507@ti.com> <alpine.DEB.2.00.1301172230250.14118@utopia.booyaka.com> <alpine.DEB.2.00.1301172320460.14118@utopia.booyaka.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH 5/5] ARM: dts: OMAP5: Specify nonsecure PPI IRQ for arch
+ timer
+Date: Fri, 18 Jan 2013 16:02:15 +0000
+Message-ID: <50F97207.1030706@arm.com>
+References: <1358523141-12295-1-git-send-email-santosh.shilimkar@ti.com> <1358523141-12295-6-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40128 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750937Ab3ARPeK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Jan 2013 10:34:10 -0500
-In-Reply-To: <alpine.DEB.2.00.1301172320460.14118@utopia.booyaka.com>
+Received: from service87.mimecast.com ([91.220.42.44]:33003 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750898Ab3ARQCT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jan 2013 11:02:19 -0500
+In-Reply-To: <1358523141-12295-6-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Paul,
-
-On 01/17/2013 05:24 PM, Paul Walmsley wrote:
+On 18/01/13 15:32, Santosh Shilimkar wrote:
+> From: Rajendra Nayak <rnayak@ti.com>
 > 
-> Here's the updated version (at the bottom of this message). Seems to work 
-> based on a quick test on 2430SDP.
+> Specify both secure as well as nonsecure PPI IRQ for arch
+> timer. This fixes the following errors seen on DT OMAP5 boot..
 > 
-> # shutdown -r -n now
-> shutdown: sending all processes the TERM signal...
-> shutdown: sending all processes the KILL signal.
-> shutdown: turning off swap
-> shutdown: unmounting all file systems
-> umount: /debug: not mounted
-> umount: /run/shm: not mounted
-> umount: /dev: not mounted
-> umount: /tmp: not mounted
-> umount: /run/lock: not mounted
-> umount: /run: not mounted
-> umount: /lib/init/rw: not found
-> Please stand by while rebooting the system.
-> [   79.635925] Disabling non-boot CPUs ...
-> [   79.640197] Restarting system.
+> [    0.000000] arch_timer: No interrupt available, giving up
 > 
+> Cc: Benoit Cousson <b-cousson@ti.com>
 > 
-> U-Boot 1.1.4 (Mar 18 2007 - 12:22:00)
-> 
-> OMAP2430C-GP revision 3, PRCM #5A
-> TI 2430SDP 1.1 Version + mDDR (Boot NOR)
-> DRAM:  128 MB
-> Flash: 192 MB
-> NAND:64 MB
-> In:    serial
-> Out:   serial
-> Err:   serial
-> Hit any key to stop autoboot:  0 
-> 
-> 
-> ... etc. ...
-> 
-> 
-> - Paul
-> 
-> 
-> From: Jon Hunter <jon-hunter@ti.com>
-> Date: Thu, 10 Jan 2013 14:53:29 -0600
-> Subject: [PATCH] ARM: OMAP2: Fix missing omap2xxx_clkt_vps_late_init function
->  calls
-> 
-> During the migration to the common clock framework, calls to the
-> functions omap2xxx_clkt_vps_late_init() were not preserved for
-> OMAP2420 and OMAP2430. This causes the variables "sys_ck_rate" and
-> "curr_prcm_set" to be uninitialised on boot. On reboot, this causes the
-> following error message to be displayed because the appropriate MPU
-> clock frequency (derived from sys_ck_rate) cannot be found.
-> 
-> "Could not set MPU rate to 4294MHz"
-> 
-> Fix this by adding back calls to omap2xxx_clkt_vps_late_init() in the
-> OMAP2420 and OMAP2430 clock initialisation code.
-> 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> [paul@pwsan.com: dropped the duplicated call to
->  omap2xxx_clkt_vps_check_bootloader_rates() after consultation with Jon;
->  updated patch description]
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > ---
->  arch/arm/mach-omap2/cclock2420_data.c |    2 ++
->  arch/arm/mach-omap2/cclock2430_data.c |    2 ++
->  2 files changed, 4 insertions(+)
+>  arch/arm/boot/dts/omap5.dtsi |   16 ++++++++++++----
+>  1 file changed, 12 insertions(+), 4 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/cclock2420_data.c b/arch/arm/mach-omap2/cclock2420_data.c
-> index 7e5febe..ab7e952 100644
-> --- a/arch/arm/mach-omap2/cclock2420_data.c
-> +++ b/arch/arm/mach-omap2/cclock2420_data.c
-> @@ -1935,6 +1935,8 @@ int __init omap2420_clk_init(void)
->  			omap2_init_clk_hw_omap_clocks(c->lk.clk);
->  	}
->  
-> +	omap2xxx_clkt_vps_late_init();
-> +
->  	omap2_clk_disable_autoidle_all();
->  
->  	omap2_clk_enable_init_clocks(enable_init_clks,
-> diff --git a/arch/arm/mach-omap2/cclock2430_data.c b/arch/arm/mach-omap2/cclock2430_data.c
-> index eda079b..eb3dab6 100644
-> --- a/arch/arm/mach-omap2/cclock2430_data.c
-> +++ b/arch/arm/mach-omap2/cclock2430_data.c
-> @@ -2050,6 +2050,8 @@ int __init omap2430_clk_init(void)
->  			omap2_init_clk_hw_omap_clocks(c->lk.clk);
->  	}
->  
-> +	omap2xxx_clkt_vps_late_init();
-> +
->  	omap2_clk_disable_autoidle_all();
->  
->  	omap2_clk_enable_init_clocks(enable_init_clks,
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index 790bb2a..7a78d1b 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -35,8 +35,12 @@
+>  			compatible = "arm,cortex-a15";
+>  			timer {
+>  				compatible = "arm,armv7-timer";
+> -				/* 14th PPI IRQ, active low level-sensitive */
+> -				interrupts = <1 14 0x308>;
+> +				/*
+> +				 * PPI secure/nonsecure IRQ,
+> +				 * active low level-sensitive
+> +				 */
+> +				interrupts = <1 13 0x308>,
+> +					     <1 14 0x308>;
 
-Thanks! Looks good to me.
+Care to add the virtual and HYP timer interrupts? So KVM can get a
+chance to run on this HW...
 
-Jon
+>  				clock-frequency = <6144000>;
+>  			};
+>  		};
+> @@ -44,8 +48,12 @@
+>  			compatible = "arm,cortex-a15";
+>  			timer {
+>  				compatible = "arm,armv7-timer";
+> -				/* 14th PPI IRQ, active low level-sensitive */
+> -				interrupts = <1 14 0x308>;
+> +				/*
+> +				 * PPI secure/nonsecure IRQ,
+> +				 * active low level-sensitive
+> +				 */
+> +				interrupts = <1 13 0x308>,
+> +					     <1 14 0x308>;
+
+Same here.
+
+>  				clock-frequency = <6144000>;
+>  			};
+>  		};
+> 
+
+Thanks,
+
+	M.
+-- 
+Jazz is not dead. It just smells funny...
 
