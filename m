@@ -1,107 +1,272 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 00/10] ARM: OMAP5: hwmod, clock and prm data files
-Date: Fri, 18 Jan 2013 20:57:26 +0530
-Message-ID: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 04/10] ARM: OMAP5: SCRM: Add OMAP54XX header file.
+Date: Fri, 18 Jan 2013 20:57:30 +0530
+Message-ID: <1358522856-12180-5-git-send-email-santosh.shilimkar@ti.com>
+References: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60551 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751290Ab3ARP04 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Jan 2013 10:26:56 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:32916 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751417Ab3ARP1H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jan 2013 10:27:07 -0500
+In-Reply-To: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Series contains the hwmod, clock and prm data files for OMAP54xx SOCs.
-This data was kept out of tree to be validated on es2.0 silicon version
-and also to avoid the es1.0/es2.0 differences which are many.
+From: Benoit Cousson <b-cousson@ti.com>
 
-Benoit Cousson, Rajendra Nayak, Paul Walmesly and Mike have all contributed
-to get the autogen scripts in shape for OMAP5.
+Adding the OMAP5 specific header for SCRM module.
 
->From various discussion on the list, the clock data files are suppose
-to be moved to drivers/clk/. Once the direction is clear, patch 8
-can be updated accordingly.
+Cc: Paul Walmsley <paul@pwsan.com>
 
-Patches are tested on OMAP5 sEVM and uEVM. For testing few additional patches
-are needed. Same tree can be fetched from here [1]
-
-The following changes since commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619:
-
-  Linux 3.8-rc4 (2013-01-17 19:25:45 -0800)
-
-are available in the git repository at:
-
-  git://github.com/SantoshShilimkar/linux.git for_3.9/omap5_data_files
-
-for you to fetch changes up to 7f534e1ebeb2bc64250b56fe00eb7d4dfa585e8e:
-
-  ARM: OMAP5: Enable build and frameowrk initialisations (2013-01-18 19:45:48 +0530)
-
-----------------------------------------------------------------
-
-Benoit Cousson (7):
-  ARM: OMAP5: PRM: Add OMAP54XX register and bitfield files
-  ARM: OMAP5: CM: Add OMAP54XX register and bitfield files
-  ARM: OMAP5: PRCM: Add OMAP54XX local MPU PRCM registers
-  ARM: OMAP5: SCRM: Add OMAP54XX header file.
-  ARM: OMAP2+: clockdomain data: Add OMAP54XX data and update the
-    header
-  ARM: OMAP5: powerdomain data: Add OMAP54XX data and update the header
-  ARM: OMAP5: hwmod data: Create initial OMAP5 SOC hwmod data
-
-Rajendra Nayak (1):
-  ARM: OMAP5: clock data: Add OMAP54XX full clock tree and headers
-
-Santosh Shilimkar (2):
-  ARM: OMAP5: voltagedomain data: Add OMAP5 voltage domain data
-  ARM: OMAP5: Enable build and frameowrk initialisations
-
- arch/arm/mach-omap2/Makefile                  |    6 +-
- arch/arm/mach-omap2/cclock54xx_data.c         | 1794 ++++++++
- arch/arm/mach-omap2/clock.h                   |   23 +-
- arch/arm/mach-omap2/clock54xx.h               |   12 +
- arch/arm/mach-omap2/clock_common_data.c       |  139 +-
- arch/arm/mach-omap2/clockdomain.h             |    1 +
- arch/arm/mach-omap2/clockdomains54xx_data.c   |  464 ++
- arch/arm/mach-omap2/cm-regbits-54xx.h         | 1737 +++++++
- arch/arm/mach-omap2/cm1_54xx.h                |  216 +
- arch/arm/mach-omap2/cm2_54xx.h                |  392 ++
- arch/arm/mach-omap2/io.c                      |    9 +
- arch/arm/mach-omap2/omap_hwmod.h              |    1 +
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c    | 5988 +++++++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.h             |    1 +
- arch/arm/mach-omap2/powerdomains54xx_data.c   |  331 ++
- arch/arm/mach-omap2/prcm44xx.h                |    6 +
- arch/arm/mach-omap2/prcm_mpu54xx.h            |   92 +
- arch/arm/mach-omap2/prm-regbits-54xx.h        | 2701 +++++++++++
- arch/arm/mach-omap2/prm54xx.h                 |  447 ++
- arch/arm/mach-omap2/scrm54xx.h                |  231 +
- arch/arm/mach-omap2/voltage.h                 |    1 +
- arch/arm/mach-omap2/voltagedomains54xx_data.c |  102 +
- 22 files changed, 14656 insertions(+), 38 deletions(-)
- create mode 100644 arch/arm/mach-omap2/cclock54xx_data.c
- create mode 100644 arch/arm/mach-omap2/clock54xx.h
- create mode 100644 arch/arm/mach-omap2/clockdomains54xx_data.c
- create mode 100644 arch/arm/mach-omap2/cm-regbits-54xx.h
- create mode 100644 arch/arm/mach-omap2/cm1_54xx.h
- create mode 100644 arch/arm/mach-omap2/cm2_54xx.h
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_54xx_data.c
- create mode 100644 arch/arm/mach-omap2/powerdomains54xx_data.c
- create mode 100644 arch/arm/mach-omap2/prcm_mpu54xx.h
- create mode 100644 arch/arm/mach-omap2/prm-regbits-54xx.h
- create mode 100644 arch/arm/mach-omap2/prm54xx.h
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+[santosh.shilimkar@ti.com: Generated es2.0 data]
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/scrm54xx.h |  231 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 231 insertions(+)
  create mode 100644 arch/arm/mach-omap2/scrm54xx.h
- create mode 100644 arch/arm/mach-omap2/voltagedomains54xx_data.c
 
-Regards,
-Santosh
-
-[1] OMAP5-Test brach
-git://github.com/SantoshShilimkar/linux.git 3.9/omap5-testing
-
+diff --git a/arch/arm/mach-omap2/scrm54xx.h b/arch/arm/mach-omap2/scrm54xx.h
+new file mode 100644
+index 0000000..57e86c8
+--- /dev/null
++++ b/arch/arm/mach-omap2/scrm54xx.h
+@@ -0,0 +1,231 @@
++/*
++ * OMAP54XX SCRM registers and bitfields
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
++ *
++ * Benoit Cousson (b-cousson@ti.com)
++ *
++ * This file is automatically generated from the OMAP hardware databases.
++ * We respectfully ask that any modifications to this file be coordinated
++ * with the public linux-omap@vger.kernel.org mailing list and the
++ * authors above to ensure that the autogeneration scripts are kept
++ * up-to-date with the file contents.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __ARCH_ARM_MACH_OMAP2_SCRM_54XX_H
++#define __ARCH_ARM_MACH_OMAP2_SCRM_54XX_H
++
++#define OMAP5_SCRM_BASE		0x4ae0a000
++
++#define OMAP54XX_SCRM_REGADDR(reg)				\
++	OMAP2_L4_IO_ADDRESS(OMAP5_SCRM_BASE + (reg))
++
++/* SCRM */
++
++/* SCRM.SCRM register offsets */
++#define OMAP5_SCRM_REVISION_SCRM_OFFSET		0x0000
++#define OMAP5_SCRM_REVISION_SCRM		OMAP54XX_SCRM_REGADDR(0x0000)
++#define OMAP5_SCRM_CLKSETUPTIME_OFFSET		0x0100
++#define OMAP5_SCRM_CLKSETUPTIME			OMAP54XX_SCRM_REGADDR(0x0100)
++#define OMAP5_SCRM_PMICSETUPTIME_OFFSET		0x0104
++#define OMAP5_SCRM_PMICSETUPTIME		OMAP54XX_SCRM_REGADDR(0x0104)
++#define OMAP5_SCRM_ALTCLKSRC_OFFSET		0x0110
++#define OMAP5_SCRM_ALTCLKSRC			OMAP54XX_SCRM_REGADDR(0x0110)
++#define OMAP5_SCRM_MODEMCLKM_OFFSET		0x0118
++#define OMAP5_SCRM_MODEMCLKM			OMAP54XX_SCRM_REGADDR(0x0118)
++#define OMAP5_SCRM_D2DCLKM_OFFSET		0x011c
++#define OMAP5_SCRM_D2DCLKM			OMAP54XX_SCRM_REGADDR(0x011c)
++#define OMAP5_SCRM_EXTCLKREQ_OFFSET		0x0200
++#define OMAP5_SCRM_EXTCLKREQ			OMAP54XX_SCRM_REGADDR(0x0200)
++#define OMAP5_SCRM_ACCCLKREQ_OFFSET		0x0204
++#define OMAP5_SCRM_ACCCLKREQ			OMAP54XX_SCRM_REGADDR(0x0204)
++#define OMAP5_SCRM_PWRREQ_OFFSET		0x0208
++#define OMAP5_SCRM_PWRREQ			OMAP54XX_SCRM_REGADDR(0x0208)
++#define OMAP5_SCRM_AUXCLKREQ0_OFFSET		0x0210
++#define OMAP5_SCRM_AUXCLKREQ0			OMAP54XX_SCRM_REGADDR(0x0210)
++#define OMAP5_SCRM_AUXCLKREQ1_OFFSET		0x0214
++#define OMAP5_SCRM_AUXCLKREQ1			OMAP54XX_SCRM_REGADDR(0x0214)
++#define OMAP5_SCRM_AUXCLKREQ2_OFFSET		0x0218
++#define OMAP5_SCRM_AUXCLKREQ2			OMAP54XX_SCRM_REGADDR(0x0218)
++#define OMAP5_SCRM_AUXCLKREQ3_OFFSET		0x021c
++#define OMAP5_SCRM_AUXCLKREQ3			OMAP54XX_SCRM_REGADDR(0x021c)
++#define OMAP5_SCRM_AUXCLKREQ4_OFFSET		0x0220
++#define OMAP5_SCRM_AUXCLKREQ4			OMAP54XX_SCRM_REGADDR(0x0220)
++#define OMAP5_SCRM_AUXCLKREQ5_OFFSET		0x0224
++#define OMAP5_SCRM_AUXCLKREQ5			OMAP54XX_SCRM_REGADDR(0x0224)
++#define OMAP5_SCRM_D2DCLKREQ_OFFSET		0x0234
++#define OMAP5_SCRM_D2DCLKREQ			OMAP54XX_SCRM_REGADDR(0x0234)
++#define OMAP5_SCRM_AUXCLK0_OFFSET		0x0310
++#define OMAP5_SCRM_AUXCLK0			OMAP54XX_SCRM_REGADDR(0x0310)
++#define OMAP5_SCRM_AUXCLK1_OFFSET		0x0314
++#define OMAP5_SCRM_AUXCLK1			OMAP54XX_SCRM_REGADDR(0x0314)
++#define OMAP5_SCRM_AUXCLK2_OFFSET		0x0318
++#define OMAP5_SCRM_AUXCLK2			OMAP54XX_SCRM_REGADDR(0x0318)
++#define OMAP5_SCRM_AUXCLK3_OFFSET		0x031c
++#define OMAP5_SCRM_AUXCLK3			OMAP54XX_SCRM_REGADDR(0x031c)
++#define OMAP5_SCRM_AUXCLK4_OFFSET		0x0320
++#define OMAP5_SCRM_AUXCLK4			OMAP54XX_SCRM_REGADDR(0x0320)
++#define OMAP5_SCRM_AUXCLK5_OFFSET		0x0324
++#define OMAP5_SCRM_AUXCLK5			OMAP54XX_SCRM_REGADDR(0x0324)
++#define OMAP5_SCRM_RSTTIME_OFFSET		0x0400
++#define OMAP5_SCRM_RSTTIME			OMAP54XX_SCRM_REGADDR(0x0400)
++#define OMAP5_SCRM_MODEMRSTCTRL_OFFSET		0x0418
++#define OMAP5_SCRM_MODEMRSTCTRL			OMAP54XX_SCRM_REGADDR(0x0418)
++#define OMAP5_SCRM_D2DRSTCTRL_OFFSET		0x041c
++#define OMAP5_SCRM_D2DRSTCTRL			OMAP54XX_SCRM_REGADDR(0x041c)
++#define OMAP5_SCRM_EXTPWRONRSTCTRL_OFFSET	0x0420
++#define OMAP5_SCRM_EXTPWRONRSTCTRL		OMAP54XX_SCRM_REGADDR(0x0420)
++#define OMAP5_SCRM_EXTWARMRSTST_OFFSET		0x0510
++#define OMAP5_SCRM_EXTWARMRSTST			OMAP54XX_SCRM_REGADDR(0x0510)
++#define OMAP5_SCRM_APEWARMRSTST_OFFSET		0x0514
++#define OMAP5_SCRM_APEWARMRSTST			OMAP54XX_SCRM_REGADDR(0x0514)
++#define OMAP5_SCRM_MODEMWARMRSTST_OFFSET	0x0518
++#define OMAP5_SCRM_MODEMWARMRSTST		OMAP54XX_SCRM_REGADDR(0x0518)
++#define OMAP5_SCRM_D2DWARMRSTST_OFFSET		0x051c
++#define OMAP5_SCRM_D2DWARMRSTST			OMAP54XX_SCRM_REGADDR(0x051c)
++
++/*
++ * Used by AUXCLKREQ0, AUXCLKREQ1, AUXCLKREQ2, AUXCLKREQ3, AUXCLKREQ4,
++ * AUXCLKREQ5, D2DCLKREQ
++ */
++#define OMAP5_ACCURACY_SHIFT			1
++#define OMAP5_ACCURACY_WIDTH			0x1
++#define OMAP5_ACCURACY_MASK			(1 << 1)
++
++/* Used by APEWARMRSTST */
++#define OMAP5_APEWARMRSTST_SHIFT		1
++#define OMAP5_APEWARMRSTST_WIDTH		0x1
++#define OMAP5_APEWARMRSTST_MASK			(1 << 1)
++
++/* Used by AUXCLK0, AUXCLK1, AUXCLK2, AUXCLK3, AUXCLK4, AUXCLK5 */
++#define OMAP5_CLKDIV_SHIFT			16
++#define OMAP5_CLKDIV_WIDTH			0x4
++#define OMAP5_CLKDIV_MASK			(0xf << 16)
++
++/* Used by D2DCLKM, MODEMCLKM */
++#define OMAP5_CLK_32KHZ_SHIFT			0
++#define OMAP5_CLK_32KHZ_WIDTH			0x1
++#define OMAP5_CLK_32KHZ_MASK			(1 << 0)
++
++/* Used by D2DRSTCTRL, MODEMRSTCTRL */
++#define OMAP5_COLDRST_SHIFT			0
++#define OMAP5_COLDRST_WIDTH			0x1
++#define OMAP5_COLDRST_MASK			(1 << 0)
++
++/* Used by D2DWARMRSTST */
++#define OMAP5_D2DWARMRSTST_SHIFT		3
++#define OMAP5_D2DWARMRSTST_WIDTH		0x1
++#define OMAP5_D2DWARMRSTST_MASK			(1 << 3)
++
++/* Used by AUXCLK0 */
++#define OMAP5_DISABLECLK_SHIFT			9
++#define OMAP5_DISABLECLK_WIDTH			0x1
++#define OMAP5_DISABLECLK_MASK			(1 << 9)
++
++/* Used by CLKSETUPTIME */
++#define OMAP5_DOWNTIME_SHIFT			16
++#define OMAP5_DOWNTIME_WIDTH			0x6
++#define OMAP5_DOWNTIME_MASK			(0x3f << 16)
++
++/* Used by AUXCLK0, AUXCLK1, AUXCLK2, AUXCLK3, AUXCLK4, AUXCLK5 */
++#define OMAP5_ENABLE_SHIFT			8
++#define OMAP5_ENABLE_WIDTH			0x1
++#define OMAP5_ENABLE_MASK			(1 << 8)
++
++/* Renamed from ENABLE Used by EXTPWRONRSTCTRL */
++#define OMAP5_ENABLE_0_0_SHIFT			0
++#define OMAP5_ENABLE_0_0_WIDTH			0x1
++#define OMAP5_ENABLE_0_0_MASK			(1 << 0)
++
++/* Used by ALTCLKSRC */
++#define OMAP5_ENABLE_EXT_SHIFT			3
++#define OMAP5_ENABLE_EXT_WIDTH			0x1
++#define OMAP5_ENABLE_EXT_MASK			(1 << 3)
++
++/* Used by ALTCLKSRC */
++#define OMAP5_ENABLE_INT_SHIFT			2
++#define OMAP5_ENABLE_INT_WIDTH			0x1
++#define OMAP5_ENABLE_INT_MASK			(1 << 2)
++
++/* Used by EXTWARMRSTST */
++#define OMAP5_EXTWARMRSTST_SHIFT		0
++#define OMAP5_EXTWARMRSTST_WIDTH		0x1
++#define OMAP5_EXTWARMRSTST_MASK			(1 << 0)
++
++/*
++ * Used by AUXCLKREQ0, AUXCLKREQ1, AUXCLKREQ2, AUXCLKREQ3, AUXCLKREQ4,
++ * AUXCLKREQ5
++ */
++#define OMAP5_MAPPING_SHIFT			2
++#define OMAP5_MAPPING_WIDTH			0x3
++#define OMAP5_MAPPING_MASK			(0x7 << 2)
++
++/* Used by ALTCLKSRC */
++#define OMAP5_MODE_SHIFT			0
++#define OMAP5_MODE_WIDTH			0x2
++#define OMAP5_MODE_MASK				(0x3 << 0)
++
++/* Used by MODEMWARMRSTST */
++#define OMAP5_MODEMWARMRSTST_SHIFT		2
++#define OMAP5_MODEMWARMRSTST_WIDTH		0x1
++#define OMAP5_MODEMWARMRSTST_MASK		(1 << 2)
++
++/*
++ * Used by ACCCLKREQ, AUXCLK0, AUXCLK1, AUXCLK2, AUXCLK3, AUXCLK4, AUXCLK5,
++ * AUXCLKREQ0, AUXCLKREQ1, AUXCLKREQ2, AUXCLKREQ3, AUXCLKREQ4, AUXCLKREQ5,
++ * D2DCLKREQ, EXTCLKREQ, PWRREQ
++ */
++#define OMAP5_POLARITY_SHIFT			0
++#define OMAP5_POLARITY_WIDTH			0x1
++#define OMAP5_POLARITY_MASK			(1 << 0)
++
++/* Used by EXTPWRONRSTCTRL */
++#define OMAP5_PWRONRST_SHIFT			1
++#define OMAP5_PWRONRST_WIDTH			0x1
++#define OMAP5_PWRONRST_MASK			(1 << 1)
++
++/* Used by REVISION_SCRM */
++#define OMAP5_REV_SHIFT				0
++#define OMAP5_REV_WIDTH				0x8
++#define OMAP5_REV_MASK				(0xff << 0)
++
++/* Used by RSTTIME */
++#define OMAP5_RSTTIME_SHIFT			0
++#define OMAP5_RSTTIME_WIDTH			0x4
++#define OMAP5_RSTTIME_MASK			(0xf << 0)
++
++/* Used by CLKSETUPTIME */
++#define OMAP5_SETUPTIME_SHIFT			0
++#define OMAP5_SETUPTIME_WIDTH			0xc
++#define OMAP5_SETUPTIME_MASK			(0xfff << 0)
++
++/* Used by PMICSETUPTIME */
++#define OMAP5_SLEEPTIME_SHIFT			0
++#define OMAP5_SLEEPTIME_WIDTH			0x6
++#define OMAP5_SLEEPTIME_MASK			(0x3f << 0)
++
++/* Used by AUXCLK0, AUXCLK1, AUXCLK2, AUXCLK3, AUXCLK4, AUXCLK5 */
++#define OMAP5_SRCSELECT_SHIFT			1
++#define OMAP5_SRCSELECT_WIDTH			0x2
++#define OMAP5_SRCSELECT_MASK			(0x3 << 1)
++
++/* Used by D2DCLKM */
++#define OMAP5_SYSCLK_SHIFT			1
++#define OMAP5_SYSCLK_WIDTH			0x1
++#define OMAP5_SYSCLK_MASK			(1 << 1)
++
++/* Used by PMICSETUPTIME */
++#define OMAP5_WAKEUPTIME_SHIFT			16
++#define OMAP5_WAKEUPTIME_WIDTH			0x6
++#define OMAP5_WAKEUPTIME_MASK			(0x3f << 16)
++
++/* Used by D2DRSTCTRL, MODEMRSTCTRL */
++#define OMAP5_WARMRST_SHIFT			1
++#define OMAP5_WARMRST_WIDTH			0x1
++#define OMAP5_WARMRST_MASK			(1 << 1)
++
++#endif
 -- 
 1.7.9.5
 
