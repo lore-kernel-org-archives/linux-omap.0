@@ -1,151 +1,105 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 03/10] ARM: OMAP5: PRCM: Add OMAP54XX local MPU PRCM registers
-Date: Fri, 18 Jan 2013 20:57:29 +0530
-Message-ID: <1358522856-12180-4-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 10/10] ARM: OMAP5: Enable build and frameowrk initialisations
+Date: Fri, 18 Jan 2013 20:57:36 +0530
+Message-ID: <1358522856-12180-11-git-send-email-santosh.shilimkar@ti.com>
 References: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39844 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750883Ab3ARP1V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Jan 2013 10:27:21 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:32942 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751294Ab3ARP12 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jan 2013 10:27:28 -0500
 In-Reply-To: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-From: Benoit Cousson <b-cousson@ti.com>
-
-Add the PRCM MPU registers for OMAP54XX platforms.
+Include the OMAP5 data files in build. Initialise the voltage, power,
+clock domains and the clock tree.
 
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-[santosh.shilimkar@ti.com: Generated es2.0 data]
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/prcm44xx.h     |    6 +++
- arch/arm/mach-omap2/prcm_mpu54xx.h |   92 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 98 insertions(+)
- create mode 100644 arch/arm/mach-omap2/prcm_mpu54xx.h
+ arch/arm/mach-omap2/Makefile |    6 +++++-
+ arch/arm/mach-omap2/io.c     |    9 +++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/prcm44xx.h b/arch/arm/mach-omap2/prcm44xx.h
-index 7334ffb..f429cdd 100644
---- a/arch/arm/mach-omap2/prcm44xx.h
-+++ b/arch/arm/mach-omap2/prcm44xx.h
-@@ -32,6 +32,12 @@
- #define OMAP4430_SCRM_PARTITION			4
- #define OMAP4430_PRCM_MPU_PARTITION		5
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 947cafe..5ab0b7c 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -123,6 +123,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= voltagedomains44xx_data.o
+ obj-$(CONFIG_SOC_AM33XX)		+= $(voltagedomain-common)
+ obj-$(CONFIG_SOC_AM33XX)                += voltagedomains33xx_data.o
+ obj-$(CONFIG_SOC_OMAP5)			+= $(voltagedomain-common)
++obj-$(CONFIG_SOC_OMAP5)                += voltagedomains54xx_data.o
  
-+#define OMAP54XX_PRM_PARTITION			1
-+#define OMAP54XX_CM_CORE_AON_PARTITION		2
-+#define OMAP54XX_CM_CORE_PARTITION		3
-+#define OMAP54XX_SCRM_PARTITION			4
-+#define OMAP54XX_PRCM_MPU_PARTITION		5
+ # OMAP powerdomain framework
+ powerdomain-common			+= powerdomain.o powerdomain-common.o
+@@ -137,6 +138,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= powerdomains44xx_data.o
+ obj-$(CONFIG_SOC_AM33XX)		+= $(powerdomain-common)
+ obj-$(CONFIG_SOC_AM33XX)		+= powerdomains33xx_data.o
+ obj-$(CONFIG_SOC_OMAP5)			+= $(powerdomain-common)
++obj-$(CONFIG_SOC_OMAP5)			+= powerdomains54xx_data.o
+ 
+ # PRCM clockdomain control
+ clockdomain-common			+= clockdomain.o
+@@ -152,6 +154,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= clockdomains44xx_data.o
+ obj-$(CONFIG_SOC_AM33XX)		+= $(clockdomain-common)
+ obj-$(CONFIG_SOC_AM33XX)		+= clockdomains33xx_data.o
+ obj-$(CONFIG_SOC_OMAP5)			+= $(clockdomain-common)
++obj-$(CONFIG_SOC_OMAP5)			+= clockdomains54xx_data.o
+ 
+ # Clock framework
+ obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o
+@@ -171,7 +174,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) cclock44xx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o dpll44xx.o
+ obj-$(CONFIG_SOC_AM33XX)		+= $(clock-common) dpll3xxx.o
+ obj-$(CONFIG_SOC_AM33XX)		+= cclock33xx_data.o
+-obj-$(CONFIG_SOC_OMAP5)			+= $(clock-common)
++obj-$(CONFIG_SOC_OMAP5)			+= $(clock-common) cclock54xx_data.o
+ obj-$(CONFIG_SOC_OMAP5)			+= dpll3xxx.o dpll44xx.o
+ 
+ # OMAP2 clock rate set data (old "OPP" data)
+@@ -194,6 +197,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_2xxx_3xxx_interconnect_data.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
+ obj-$(CONFIG_SOC_AM33XX)		+= omap_hwmod_33xx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
++obj-$(CONFIG_SOC_OMAP5)			+= omap_hwmod_54xx_data.o
+ 
+ # EMU peripherals
+ obj-$(CONFIG_OMAP3_EMU)			+= emu.o
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 2c3fdd6..a1da83e 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -38,6 +38,7 @@
+ #include "clock2xxx.h"
+ #include "clock3xxx.h"
+ #include "clock44xx.h"
++#include "clock54xx.h"
+ #include "omap-pm.h"
+ #include "sdrc.h"
+ #include "control.h"
+@@ -618,7 +619,15 @@ void __init omap5_init_early(void)
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
+ 	omap_prm_base_init();
+ 	omap_cm_base_init();
++	omap44xx_prm_init();
+ 	omap5xxx_check_revision();
++	omap54xx_voltagedomains_init();
++	omap54xx_powerdomains_init();
++	omap54xx_clockdomains_init();
++	omap54xx_hwmod_init();
++	omap_hwmod_init_postsetup();
++	omap5xxx_clk_init();
 +
- /*
-  * OMAP4_MAX_PRCM_PARTITIONS: set to the highest value of the PRCM partition
-  * IDs, plus one
-diff --git a/arch/arm/mach-omap2/prcm_mpu54xx.h b/arch/arm/mach-omap2/prcm_mpu54xx.h
-new file mode 100644
-index 0000000..d2eb945
---- /dev/null
-+++ b/arch/arm/mach-omap2/prcm_mpu54xx.h
-@@ -0,0 +1,92 @@
-+/*
-+ * OMAP54xx PRCM MPU instance offset macros
-+ *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
-+ *
-+ * Paul Walmsley (paul@pwsan.com)
-+ * Rajendra Nayak (rnayak@ti.com)
-+ * Benoit Cousson (b-cousson@ti.com)
-+ *
-+ * This file is automatically generated from the OMAP hardware databases.
-+ * We respectfully ask that any modifications to this file be coordinated
-+ * with the public linux-omap@vger.kernel.org mailing list and the
-+ * authors above to ensure that the autogeneration scripts are kept
-+ * up-to-date with the file contents.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __ARCH_ARM_MACH_OMAP2_PRCM_MPU54XX_H
-+#define __ARCH_ARM_MACH_OMAP2_PRCM_MPU54XX_H
-+
-+#define OMAP54XX_PRCM_MPU_BASE			0x48243000
-+
-+#define OMAP54XX_PRCM_MPU_REGADDR(inst, reg)				\
-+	OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE + (inst) + (reg))
-+
-+/* PRCM_MPU instances */
-+#define OMAP54XX_PRCM_MPU_OCP_SOCKET_INST	0x0000
-+#define OMAP54XX_PRCM_MPU_DEVICE_INST		0x0200
-+#define OMAP54XX_PRCM_MPU_PRM_C0_INST		0x0400
-+#define OMAP54XX_PRCM_MPU_CM_C0_INST		0x0600
-+#define OMAP54XX_PRCM_MPU_PRM_C1_INST		0x0800
-+#define OMAP54XX_PRCM_MPU_CM_C1_INST		0x0a00
-+
-+/* PRCM_MPU clockdomain register offsets (from instance start) */
-+#define OMAP54XX_PRCM_MPU_CM_C0_CPU0_CDOFFS	0x0000
-+#define OMAP54XX_PRCM_MPU_CM_C1_CPU1_CDOFFS	0x0000
-+
-+
-+/*
-+ * PRCM_MPU
-+ *
-+ * The PRCM_MPU is a local PRCM inside the MPU subsystem. For the PRCM (global)
-+ * point of view the PRCM_MPU is a single entity. It shares the same
-+ * programming model as the global PRCM and thus can be assimilate as two new
-+ * MOD inside the PRCM
-+ */
-+
-+/* PRCM_MPU.PRCM_MPU_OCP_SOCKET register offsets */
-+#define OMAP54XX_REVISION_PRCM_MPU_OFFSET			0x0000
-+
-+/* PRCM_MPU.PRCM_MPU_DEVICE register offsets */
-+#define OMAP54XX_PRCM_MPU_PRM_RSTST_OFFSET			0x0000
-+#define OMAP54XX_PRCM_MPU_PRM_PSCON_COUNT_OFFSET		0x0004
-+#define OMAP54XX_PRM_FRAC_INCREMENTER_NUMERATOR_OFFSET		0x0010
-+#define OMAP54XX_PRM_FRAC_INCREMENTER_DENUMERATOR_RELOAD_OFFSET	0x0014
-+
-+/* PRCM_MPU.PRCM_MPU_PRM_C0 register offsets */
-+#define OMAP54XX_PM_CPU0_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP54XX_PM_CPU0_PWRSTST_OFFSET				0x0004
-+#define OMAP54XX_RM_CPU0_CPU0_RSTCTRL_OFFSET			0x0010
-+#define OMAP54XX_RM_CPU0_CPU0_RSTST_OFFSET			0x0014
-+#define OMAP54XX_RM_CPU0_CPU0_CONTEXT_OFFSET			0x0024
-+
-+/* PRCM_MPU.PRCM_MPU_CM_C0 register offsets */
-+#define OMAP54XX_CM_CPU0_CLKSTCTRL_OFFSET			0x0000
-+#define OMAP54XX_CM_CPU0_CPU0_CLKCTRL_OFFSET			0x0020
-+#define OMAP54XX_CM_CPU0_CPU0_CLKCTRL				OMAP54XX_PRCM_MPU_REGADDR(OMAP54XX_PRCM_MPU_CM_C0_INST, 0x0020)
-+
-+/* PRCM_MPU.PRCM_MPU_PRM_C1 register offsets */
-+#define OMAP54XX_PM_CPU1_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP54XX_PM_CPU1_PWRSTST_OFFSET				0x0004
-+#define OMAP54XX_RM_CPU1_CPU1_RSTCTRL_OFFSET			0x0010
-+#define OMAP54XX_RM_CPU1_CPU1_RSTST_OFFSET			0x0014
-+#define OMAP54XX_RM_CPU1_CPU1_CONTEXT_OFFSET			0x0024
-+
-+/* PRCM_MPU.PRCM_MPU_CM_C1 register offsets */
-+#define OMAP54XX_CM_CPU1_CLKSTCTRL_OFFSET			0x0000
-+#define OMAP54XX_CM_CPU1_CPU1_CLKCTRL_OFFSET			0x0020
-+#define OMAP54XX_CM_CPU1_CPU1_CLKCTRL				OMAP54XX_PRCM_MPU_REGADDR(OMAP54XX_PRCM_MPU_CM_C1_INST, 0x0020)
-+
-+/* Function prototypes */
-+# ifndef __ASSEMBLER__
-+extern u32 omap4_prcm_mpu_read_inst_reg(s16 inst, u16 idx);
-+extern void omap4_prcm_mpu_write_inst_reg(u32 val, s16 inst, u16 idx);
-+extern u32 omap4_prcm_mpu_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst,
-+					    s16 idx);
-+# endif
-+
-+#endif
+ }
+ #endif
+ 
 -- 
 1.7.9.5
 
