@@ -1,66 +1,40 @@
 From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [PATCH v2 1/3] mtd: omap-onenand: pass device_node in platform data
-Date: Sat, 19 Jan 2013 19:27:55 -0300
-Message-ID: <1358634477-25868-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Subject: [PATCH v2 2/3] arm: omap2: gpmc-onenand: drop __init annotation
+Date: Sat, 19 Jan 2013 19:27:56 -0300
+Message-ID: <1358634477-25868-2-git-send-email-ezequiel.garcia@free-electrons.com>
+References: <1358634477-25868-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:49251 "EHLO
+Received: from mail.free-electrons.com ([94.23.35.102]:49260 "EHLO
 	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751964Ab3ASW2Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Jan 2013 17:28:25 -0500
+	with ESMTP id S1751964Ab3ASW2g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Jan 2013 17:28:36 -0500
+In-Reply-To: <1358634477-25868-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, thomas.petazzoni@free-electrons.com, martinez.javier@gmail.com, zonque@gmail.com, grant.likely@secretlab.ca, eballetbo@gmail.com, matthias.bgg@googlemail.com, jon-hunter@ti.com, b-cousson@ti.com, tony@atomide.com, Ezequiel Garcia <elezegarcia@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Pass an optional device_node pointer in the platform data,
-which in turn will be put into a mtd_part_parser_data.
-This way, code that sets up the platform devices can pass
-along the node from DT so that the partitions can be parsed.
+gpmc_onenand_init() will be called from another driver's probe() function,
+so drop the __init annotation, in order to prevent section mismatches.
 
-For non-DT boards, this change has no effect.
-
-Acked-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
- drivers/mtd/onenand/omap2.c                     |    4 +++-
- include/linux/platform_data/mtd-onenand-omap2.h |    3 +++
- 2 files changed, 6 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/gpmc-onenand.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index 065f3fe..eec2aed 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -637,6 +637,7 @@ static int omap2_onenand_probe(struct platform_device *pdev)
- 	struct onenand_chip *this;
- 	int r;
- 	struct resource *res;
-+	struct mtd_part_parser_data ppdata = {};
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index 94a349e..fadd8743 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -356,7 +356,7 @@ static int gpmc_onenand_setup(void __iomem *onenand_base, int *freq_ptr)
+ 	return ret;
+ }
  
- 	pdata = pdev->dev.platform_data;
- 	if (pdata == NULL) {
-@@ -767,7 +768,8 @@ static int omap2_onenand_probe(struct platform_device *pdev)
- 	if ((r = onenand_scan(&c->mtd, 1)) < 0)
- 		goto err_release_regulator;
+-void __init gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
++void gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
+ {
+ 	int err;
  
--	r = mtd_device_parse_register(&c->mtd, NULL, NULL,
-+	ppdata.of_node = pdata->of_node;
-+	r = mtd_device_parse_register(&c->mtd, NULL, &ppdata,
- 				      pdata ? pdata->parts : NULL,
- 				      pdata ? pdata->nr_parts : 0);
- 	if (r)
-diff --git a/include/linux/platform_data/mtd-onenand-omap2.h b/include/linux/platform_data/mtd-onenand-omap2.h
-index 685af7e..e9a9fb1 100644
---- a/include/linux/platform_data/mtd-onenand-omap2.h
-+++ b/include/linux/platform_data/mtd-onenand-omap2.h
-@@ -29,5 +29,8 @@ struct omap_onenand_platform_data {
- 	u8			flags;
- 	u8			regulator_can_sleep;
- 	u8			skip_initial_unlocking;
-+
-+	/* for passing the partitions */
-+	struct device_node	*of_node;
- };
- #endif
 -- 
 1.7.8.6
 
