@@ -1,51 +1,148 @@
-From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Subject: [PATCH] i2c: omap: fix draining irq handling
-Date: Sun, 20 Jan 2013 20:37:02 +0200
-Message-ID: <1358707022-26477-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
-Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.8-rc4
+Date: Sun, 20 Jan 2013 21:38:21 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301202136290.31667@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:59627 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752503Ab3ATViV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Jan 2013 16:38:21 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-Commit 0bdfe0cb803dce699ff337c35d8e97ac355fa417 (i2c: omap: sanitize
-exit path) changed the interrupt handler to exit early and complete
-the transfer after the draining IRQ is handled. As a result, the ARDY
-may not be cleared properly, and it may cause all future I2C transfers
-to timeout with "timeout waiting for bus ready". This is reproducible
-at least with N900 when twl4030_gpio makes a long write (> FIFO size)
-during the probe (http://marc.info/?l=linux-omap&m=135818882610432&w=2).
 
-The fix is to continue until we get ARDY interrupt that completes the
-transfer. Tested with 3.8-rc4 + N900: 20 boots in a row without errors;
-without the patch the problem triggers after few reboots.
+Here are some basic OMAP test results for Linux v3.8-rc4.
+Logs and other details at:
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+    http://www.pwsan.com/omap/testlogs/test_v3.8-rc4/20130120122039/
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 832f16e..4cc2f05 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -963,7 +963,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 				i2c_omap_errata_i207(dev, stat);
- 
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RDR);
--			break;
-+			continue;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_RRDY) {
-@@ -989,7 +989,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 				break;
- 
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XDR);
--			break;
-+			continue;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_XRDY) {
--- 
-1.7.10.4
+
+Test summary
+------------
+
+Boot to userspace:
+    Pass ( 9/11): 2420n800, 2430sdp, 3517evm, 3530es3beagle,
+  	   	  3730beaglexm, 37xxevm, 4430es2panda, 5912osk,
+		  4460pandaes
+    FAIL ( 2/11): am335xbone, cmt3517 
+  
+PM ret/off, suspend + dynamic idle:
+    Pass (3/3): 3530es3beagle, 3730beaglexm, 37xxevm
+
+PM ret, suspend + dynamic idle:
+    Pass (1/2): 4460pandaes
+    FAIL (1/2): 4430es2panda
+
+PM ret, dynamic idle:
+    FAIL (1/1): 2430sdp
+
+
+Failing tests: fixed by posted patches
+--------------------------------------
+
+Other:
+
+* 2420N800: powers down 30 seconds after boot
+  - Presumably due to missing CBUS patches for watchdog control
+  - http://lkml.org/lkml/2012/9/3/265
+  - http://marc.info/?l=linux-omap&m=135274739624125&w=2
+  - http://marc.info/?l=linux-omap&m=135664195831104&w=2
+
+
+Failing tests: needing investigation
+------------------------------------
+
+Boot tests:
+
+* am335xbone: hangs after "Starting kernel"
+  - Cause unknown
+  - http://www.mail-archive.com/linux-omap@vger.kernel.org/msg82297.html
+
+* 3517EVM & CM-T3517: boot hangs with NFS root
+  - Likely some Kconfig, board file, and PM issues with EMAC
+  - Longstanding bug
+
+* CM-T3517: boot hangs with MMC root
+  - Due to missing MMC setup in board file
+  - http://www.spinics.net/lists/arm-kernel/msg211471.html
+
+Boot warnings:
+
+* 3530es3beagle, 3730beaglexm, 37xxevm: nand_scan_ident() warning
+  - "at drivers/mtd/nand/nand_base.c:2861 nand_scan_ident+0xdb4/0xf90()"
+  - http://marc.info/?l=linux-omap&m=135630897110185&w=2
+
+* CM-T3517: L3 in-band error with IPSS during boot
+  - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
+  - Longstanding issue; does not occur on the 3517EVM
+
+PM tests:
+
+* 2430sdp: pwrdm state mismatch(dsp_pwrdm) 0 != 3
+  - need to doublecheck wakeup dependencies
+
+* 2430sdp: power domains not entering retention
+  - Cause unknown
+
+* 4430es2panda, 4460pandaes: pwrdm state mismatch on CAM, DSS, ABE
+
+* 4460pandaes: pwrdm state mismatch on IVAHD, TESLA 
+
+* 4430es2panda: CORE, TESLA, IVAHD, L3INIT didn't enter target state
+  - Probably due to lack of reset code for M3, DSP, SL2IF, FSUSB
+    per discussion with Tero Kristo
+  - Likely dependent on the bootloader version
+    - fails with 2012.07-00136-g755de79
+
+* 3730 Beagle XM: does not serial wake from off-idle suspend when console
+  UART doesn't clock gate ("debug ignore_loglevel")
+  - Cause unknown
+  - Not yet part of the automated test suite
+  - Re-tested at v3.7; still failing:
+    http://www.pwsan.com/omap/transcripts/20121211-3730beaglexm-3.7-pm-offmode-fail-debug.txt
+
+Other:
+
+* 4430es2panda: omap_hwmod: l3_instr: _wait_target_disable failed
+  - Unknown cause; could be due to the lack of hierarchical enable/disable
+    in hwmod code
+  - Jon Hunter reports this does not appear with the same X-loader/bootloader
+    on his 4430ES2.3 Panda, so could be ES-level dependent
+
+
+Failing tests: needing local investigation (may be due to testbed issues)
+-------------------------------------------------------------------------
+
+Boot tests:
+
+* AM335x Beaglebone: omap2plus_defconfig kernels don't boot
+  - May be fixed now, pending retest:
+    - http://marc.info/?l=linux-omap&m=135082257727502&w=2
+  - Not yet part of the automated test suite
+  - Nishanth Menon & Vaibhav Hiremath report that it works for them
+  * May be due to an old U-boot with FDT support problems used here?
+    Pending local investigation and re-test
+
+
+Problems reported by others
+---------------------------
+
+* I2C intermittent failures on N900; can break boot
+  - "omap_i2c omap_i2c.1: timeout waiting for bus ready"
+  - Reported by Aaro Koskinen
+  - http://www.spinics.net/lists/arm-kernel/msg216859.html
+
+* 2420H4: reports "Could not set MPU rate to 4294MHz" on reboot
+  - Reported and fixed by Jon Hunter
+  - http://www.spinics.net/lists/arm-kernel/msg216121.html
+
+
+--------------------------------------------------------------
+Branch: test_v3.8-rc4
+Test-Serial: 20130120122039
+Commit-ID: 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619
+Test-Target-Board-Count: 11
