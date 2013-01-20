@@ -1,47 +1,51 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: [PATCH] ARM: OMAP2+: fix build break for omapdrm
-Date: Sun, 20 Jan 2013 09:37:23 -0600
-Message-ID: <1358696243-3604-1-git-send-email-robdclark@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:49047 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308Ab3ATPnG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Jan 2013 10:43:06 -0500
-Received: by mail-ob0-f170.google.com with SMTP id wp18so5249483obc.29
-        for <linux-omap@vger.kernel.org>; Sun, 20 Jan 2013 07:43:05 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Subject: [PATCH] i2c: omap: fix draining irq handling
+Date: Sun, 20 Jan 2013 20:37:02 +0200
+Message-ID: <1358707022-26477-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: patches@linaro.org, Tony Lindgren <tony@atomide.com>, Rob Clark <robdclark@gmail.com>
 
-Fixes compile break with 3.8-rc4.
+Commit 0bdfe0cb803dce699ff337c35d8e97ac355fa417 (i2c: omap: sanitize
+exit path) changed the interrupt handler to exit early and complete
+the transfer after the draining IRQ is handled. As a result, the ARDY
+may not be cleared properly, and it may cause all future I2C transfers
+to timeout with "timeout waiting for bus ready". This is reproducible
+at least with N900 when twl4030_gpio makes a long write (> FIFO size)
+during the probe (http://marc.info/?l=linux-omap&m=135818882610432&w=2).
 
-Signed-off-by: Rob Clark <robdclark@gmail.com>
+The fix is to continue until we get ARDY interrupt that completes the
+transfer. Tested with 3.8-rc4 + N900: 20 boots in a row without errors;
+without the patch the problem triggers after few reboots.
+
+Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 ---
- arch/arm/mach-omap2/drm.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/i2c/busses/i2c-omap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
-index 4c7566c..2a2cfa8 100644
---- a/arch/arm/mach-omap2/drm.c
-+++ b/arch/arm/mach-omap2/drm.c
-@@ -25,6 +25,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/platform_data/omap_drm.h>
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 832f16e..4cc2f05 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -963,7 +963,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
+ 				i2c_omap_errata_i207(dev, stat);
  
-+#include "soc.h"
- #include "omap_device.h"
- #include "omap_hwmod.h"
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RDR);
+-			break;
++			continue;
+ 		}
  
-@@ -56,7 +57,7 @@ static int __init omap_init_drm(void)
- 			oh->name);
- 	}
+ 		if (stat & OMAP_I2C_STAT_RRDY) {
+@@ -989,7 +989,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
+ 				break;
  
--	platform_data.omaprev = GET_OMAP_REVISION();
-+	platform_data.omaprev = GET_OMAP_TYPE;
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XDR);
+-			break;
++			continue;
+ 		}
  
- 	return platform_device_register(&omap_drm_device);
- 
+ 		if (stat & OMAP_I2C_STAT_XRDY) {
 -- 
-1.8.1
-
+1.7.10.4
