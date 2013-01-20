@@ -1,40 +1,47 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] i2c: omap: errata i462: fix incorrect ack for arbitration lost interrupt
-Date: Sun, 20 Jan 2013 02:32:58 +0200
-Message-ID: <1358641978-9316-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:34419 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751160Ab3ATAdM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Jan 2013 19:33:12 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: [PATCH] RX-51: Add leds lp5523 names from Maemo 5 2.6.28 kernel
+Date: Sun, 20 Jan 2013 03:50:44 +0100
+Message-ID: <1358650244-29722-1-git-send-email-pali.rohar@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: w.sang@pengutronix.de, ben-linux@fluff.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, balbi@ti.com
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-The errata handling function acks wrong interrupt in case of "Arbitration
-lost". Fix it.
-
-Discovered during code review, the real impact of the bug is unknown.
-
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- drivers/i2c/busses/i2c-omap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 20d41bf..832f16e 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -803,7 +803,7 @@ static int errata_omap3_i462(struct omap_i2c_dev *dev)
- 			if (stat & OMAP_I2C_STAT_AL) {
- 				dev_err(dev->dev, "Arbitration lost\n");
- 				dev->cmd_err |= OMAP_I2C_STAT_AL;
--				omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
-+				omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
- 			}
- 
- 			return -EIO;
--- 
-1.7.10.4
-
+U2lnbmVkLW9mZi1ieTogUGFsaSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPgotLS0KIGFy
+Y2gvYXJtL21hY2gtb21hcDIvYm9hcmQtcng1MS1wZXJpcGhlcmFscy5jIHwgICAgOSArKysrKysr
+KysKIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9hcmNoL2Fy
+bS9tYWNoLW9tYXAyL2JvYXJkLXJ4NTEtcGVyaXBoZXJhbHMuYyBiL2FyY2gvYXJtL21hY2gtb21h
+cDIvYm9hcmQtcng1MS1wZXJpcGhlcmFscy5jCmluZGV4IDc2MTE5NTguLjlhMGRiYjcgMTAwNjQ0
+Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtcng1MS1wZXJpcGhlcmFscy5jCisrKyBi
+L2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtcng1MS1wZXJpcGhlcmFscy5jCkBAIC0xNjgsMzAg
+KzE2OCwzOSBAQCBzdGF0aWMgc3RydWN0IHRzbDI1NjNfcGxhdGZvcm1fZGF0YSByeDUxX3RzbDI1
+NjNfcGxhdGZvcm1fZGF0YSA9IHsKICNpZiBkZWZpbmVkKENPTkZJR19MRURTX0xQNTUyMykgfHwg
+ZGVmaW5lZChDT05GSUdfTEVEU19MUDU1MjNfTU9EVUxFKQogc3RhdGljIHN0cnVjdCBscDU1MjNf
+bGVkX2NvbmZpZyByeDUxX2xwNTUyM19sZWRfY29uZmlnW10gPSB7CiAJeworCQkubmFtZQkJPSAi
+bHA1NTIzOmtiMSIsCiAJCS5jaGFuX25yCT0gMCwKIAkJLmxlZF9jdXJyZW50CT0gNTAsCiAJfSwg
+eworCQkubmFtZQkJPSAibHA1NTIzOmtiMiIsCiAJCS5jaGFuX25yCT0gMSwKIAkJLmxlZF9jdXJy
+ZW50CT0gNTAsCiAJfSwgeworCQkubmFtZQkJPSAibHA1NTIzOmtiMyIsCiAJCS5jaGFuX25yCT0g
+MiwKIAkJLmxlZF9jdXJyZW50CT0gNTAsCiAJfSwgeworCQkubmFtZQkJPSAibHA1NTIzOmtiNCIs
+CiAJCS5jaGFuX25yCT0gMywKIAkJLmxlZF9jdXJyZW50CT0gNTAsCiAJfSwgeworCQkubmFtZQkJ
+PSAibHA1NTIzOmIiLAogCQkuY2hhbl9ucgk9IDQsCiAJCS5sZWRfY3VycmVudAk9IDUwLAogCX0s
+IHsKKwkJLm5hbWUJCT0gImxwNTUyMzpnIiwKIAkJLmNoYW5fbnIJPSA1LAogCQkubGVkX2N1cnJl
+bnQJPSA1MCwKIAl9LCB7CisJCS5uYW1lCQk9ICJscDU1MjM6ciIsCiAJCS5jaGFuX25yCT0gNiwK
+IAkJLmxlZF9jdXJyZW50CT0gNTAsCiAJfSwgeworCQkubmFtZQkJPSAibHA1NTIzOmtiNSIsCiAJ
+CS5jaGFuX25yCT0gNywKIAkJLmxlZF9jdXJyZW50CT0gNTAsCiAJfSwgeworCQkubmFtZQkJPSAi
+bHA1NTIzOmtiNiIsCiAJCS5jaGFuX25yCT0gOCwKIAkJLmxlZF9jdXJyZW50CT0gNTAsCiAJfQot
+LSAKMS43LjEwLjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3Rz
+LmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5m
+by9saW51eC1hcm0ta2VybmVsCg==
