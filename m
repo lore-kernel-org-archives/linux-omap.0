@@ -1,47 +1,59 @@
 From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH] RX-51: Add leds lp5523 names from Maemo 5 2.6.28 kernel
-Date: Sun, 20 Jan 2013 03:50:44 +0100
-Message-ID: <1358650244-29722-1-git-send-email-pali.rohar@gmail.com>
+Subject: [PATCH] RX-51: Register twl4030-madc device
+Date: Sun, 20 Jan 2013 03:54:26 +0100
+Message-ID: <1358650466-29917-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:44389 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752288Ab3ATC4U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Jan 2013 21:56:20 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 
-U2lnbmVkLW9mZi1ieTogUGFsaSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPgotLS0KIGFy
-Y2gvYXJtL21hY2gtb21hcDIvYm9hcmQtcng1MS1wZXJpcGhlcmFscy5jIHwgICAgOSArKysrKysr
-KysKIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9hcmNoL2Fy
-bS9tYWNoLW9tYXAyL2JvYXJkLXJ4NTEtcGVyaXBoZXJhbHMuYyBiL2FyY2gvYXJtL21hY2gtb21h
-cDIvYm9hcmQtcng1MS1wZXJpcGhlcmFscy5jCmluZGV4IDc2MTE5NTguLjlhMGRiYjcgMTAwNjQ0
-Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtcng1MS1wZXJpcGhlcmFscy5jCisrKyBi
-L2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtcng1MS1wZXJpcGhlcmFscy5jCkBAIC0xNjgsMzAg
-KzE2OCwzOSBAQCBzdGF0aWMgc3RydWN0IHRzbDI1NjNfcGxhdGZvcm1fZGF0YSByeDUxX3RzbDI1
-NjNfcGxhdGZvcm1fZGF0YSA9IHsKICNpZiBkZWZpbmVkKENPTkZJR19MRURTX0xQNTUyMykgfHwg
-ZGVmaW5lZChDT05GSUdfTEVEU19MUDU1MjNfTU9EVUxFKQogc3RhdGljIHN0cnVjdCBscDU1MjNf
-bGVkX2NvbmZpZyByeDUxX2xwNTUyM19sZWRfY29uZmlnW10gPSB7CiAJeworCQkubmFtZQkJPSAi
-bHA1NTIzOmtiMSIsCiAJCS5jaGFuX25yCT0gMCwKIAkJLmxlZF9jdXJyZW50CT0gNTAsCiAJfSwg
-eworCQkubmFtZQkJPSAibHA1NTIzOmtiMiIsCiAJCS5jaGFuX25yCT0gMSwKIAkJLmxlZF9jdXJy
-ZW50CT0gNTAsCiAJfSwgeworCQkubmFtZQkJPSAibHA1NTIzOmtiMyIsCiAJCS5jaGFuX25yCT0g
-MiwKIAkJLmxlZF9jdXJyZW50CT0gNTAsCiAJfSwgeworCQkubmFtZQkJPSAibHA1NTIzOmtiNCIs
-CiAJCS5jaGFuX25yCT0gMywKIAkJLmxlZF9jdXJyZW50CT0gNTAsCiAJfSwgeworCQkubmFtZQkJ
-PSAibHA1NTIzOmIiLAogCQkuY2hhbl9ucgk9IDQsCiAJCS5sZWRfY3VycmVudAk9IDUwLAogCX0s
-IHsKKwkJLm5hbWUJCT0gImxwNTUyMzpnIiwKIAkJLmNoYW5fbnIJPSA1LAogCQkubGVkX2N1cnJl
-bnQJPSA1MCwKIAl9LCB7CisJCS5uYW1lCQk9ICJscDU1MjM6ciIsCiAJCS5jaGFuX25yCT0gNiwK
-IAkJLmxlZF9jdXJyZW50CT0gNTAsCiAJfSwgeworCQkubmFtZQkJPSAibHA1NTIzOmtiNSIsCiAJ
-CS5jaGFuX25yCT0gNywKIAkJLmxlZF9jdXJyZW50CT0gNTAsCiAJfSwgeworCQkubmFtZQkJPSAi
-bHA1NTIzOmtiNiIsCiAJCS5jaGFuX25yCT0gOCwKIAkJLmxlZF9jdXJyZW50CT0gNTAsCiAJfQot
-LSAKMS43LjEwLjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3Rz
-LmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5m
-by9saW51eC1hcm0ta2VybmVsCg==
+Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/ma=
+ch-omap2/board-rx51-peripherals.c
+index 9a0dbb7..286292e 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -1364,6 +1364,16 @@ static void __init rx51_init_lirc(void)
+ }
+ #endif
+=20
++static struct platform_device madc_hwmon =3D {
++	.name	=3D "twl4030_madc_hwmon",
++	.id	=3D -1,
++};
++
++static void __init rx51_init_twl4030_hwmon(void)
++{
++	platform_device_register(&madc_hwmon);
++}
++
+ void __init rx51_peripherals_init(void)
+ {
+ 	rx51_i2c_init();
+@@ -1386,5 +1396,6 @@ void __init rx51_peripherals_init(void)
+ 		omap_hsmmc_init(mmc);
+=20
+ 	rx51_charger_init();
++	rx51_init_twl4030_hwmon();
+ }
+=20
+--=20
+1.7.10.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
