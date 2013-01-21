@@ -1,102 +1,68 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH] usb: musb: fix context save over suspend.
-Date: Tue, 22 Jan 2013 08:38:32 +1100
-Message-ID: <20130122083832.7a3026c9@notabene.brown>
-References: <20130121202831.40a09bbc@notabene.brown>
-	<50FD28D3.5070107@compulab.co.il>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 13/15] drivers/usb/musb/omap2430.c: adjust duplicate test
+Date: Tue, 22 Jan 2013 01:45:34 +0400
+Message-ID: <50FDB6FE.7010601@mvista.com>
+References: <1358773378-4700-1-git-send-email-Julia.Lawall@lip6.fr> <1358773378-4700-14-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49336 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752683Ab3AUVit (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Jan 2013 16:38:49 -0500
-In-Reply-To: <50FD28D3.5070107@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358773378-4700-14-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Felipe Balbi <balbi@ti.com>, kernel-janitors@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBNb24s
-IDIxIEphbiAyMDEzIDEzOjM4OjU5ICswMjAwIElnb3IgR3JpbmJlcmcgPGdyaW5iZXJnQGNvbXB1
-bGFiLmNvLmlsPg0Kd3JvdGU6DQoNCj4gLS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0t
-LQ0KPiBIYXNoOiBTSEExDQo+IA0KPiBIaSBOZWlsLA0KPiANCj4gT24gMDEvMjEvMTMgMTE6Mjgs
-IE5laWxCcm93biB3cm90ZToNCj4gPiANCj4gPiANCj4gPiBUaGUgc3RhbmRhcmQgc3VzcGVuZCBz
-ZXF1ZW5jZSBpbnZvbHZlcyBydW50aW1lX3Jlc3VtaW5nDQo+ID4gZGV2aWNlcyBiZWZvcmUgc3Vz
-cGVuZGluZyB0aGUgc3lzdGVtLg0KPiA+IFNvIGp1c3Qgc2F2aW5nIGNvbnRleHQgaW4gcnVudGlt
-ZV9zdXNwZW5kIGFuZCByZXN0b3JpbmcgaXQNCj4gPiBpbiBydW50aW1lIHJlc3VtZSBpc24ndCBl
-bm91Z2guICBXZSAgbXVzdCBhbHNvIHNhdmUgaW4gInN1c3BlbmQiDQo+ID4gYW5kIHJlc3RvcmUg
-aW4gInJlc3VtZSIuDQo+ID4gDQo+ID4gV2l0aG91dCB0aGlzIHBhdGNoLCBhbmQgT01BUDMgc3lz
-dGVtIHdpdGggb2ZmX21vZGUgZW5hYmxlZCB3aWxsIGZpbmQNCj4gPiB0aGUgbXVzYiBwb3J0IG5v
-bi1mdW5jdGlvbmFsIGFmdGVyIHN1c3BlbmQvcmVzdW1lLiAgV2l0aCB0aGUgcGF0Y2ggaXQNCj4g
-PiB3b3JrcyBwZXJmZWN0bHkuDQo+IA0KPiBIbW1tLi4uIFNvbWUgdGltZSBhZ28sIHRoaXMgaGFz
-IGJlZW4gcmVtb3ZlZCBpbg0KPiA1ZDE5M2NlOCAodXNiOiBtdXNiOiBQTTogZml4IGNvbnRleHQg
-c2F2ZS9yZXN0b3JlIGluIHN1c3BlbmQvcmVzdW1lIHBhdGgpDQo+IA0KPiBBbSBJIG1pc3Npbmcg
-c29tZXRoaW5nPyBPciB0aGluZ3MgY2hhbmdlZCBhbmQgbm93IHRoaXMgcGF0Y2ggaXMgY29ycmVj
-dD8NCg0KSGkgSWdvciwNCiB0aGFua3MgZm9yIGFsZXJ0aW5nIG1lIHRvIHRoYXQgcGF0Y2ggLi4u
-LiBkb2VzIGFueW9uZSBlbHNlIGdldCB0aGUgZmVlbGluZw0KIHRoYXQgcG93ZXIgbWFuYWdlbWVu
-dCB0byB0b28gY29tcGxleCB0byBiZSB1bmRlcnN0b29kIGJ5IGEgbWVyZSBodW1hbj8NCg0KIFRo
-YXQgY29tbWl0ICg1ZDE5M2NlOCkgc3VnZ2VzdHMgdGhhdCB0aGUgbXVzYi1oZHJjIGRldmljZSBp
-cyBhbg0KICdvbWFwX2RldmljZScsIG9yIG1heWJlIGhhcyBhIFBNIGRvbWFpbiBzZXQgdG8gc29t
-ZXRoaW5nIGVsc2UuDQogSG93ZXZlciBpdCBpc24ndC9kb2Vzbid0LiAgZGV2LT5wbV9kb21haW4g
-aXMgTlVMTC4gIFNvIG5vIFBNIGRvbWFpbiBsYXllcg0KIHdpbGwgZXZlciBjYWxsIHRoZSBtdXNi
-X2NvcmUgbXVzYl9ydW50aW1lX3N1c3BlbmQvcmVzdW1lLg0KDQogVGhlIHBhcmVudCBkZXZpY2Ug
-LSBtdXNiLW9tYXAyNDMwIC0gaXMgYW4gb21hcCBkZXZpY2UsIGRvZXMgaGF2ZSBwbV9kb21haW4N
-CiBzZXQsIGFuZCBkb2VzIGhhdmUgaXRzIG9tYXAyNDMwX3J1bnRpbWVfc3VzcGVuZC9yZXN1bWUg
-Y2FsbGVkIGZvciBzeXN0ZW0NCiBzdXNwZW5kIGFuZCBzbyB0aGUgY29udGV4dCBmb3IgdGhhdCBk
-ZXZpY2UgaXMgc2F2ZWQgYW5kIHJlc3RvcmVkLg0KIEhvd2V2ZXIgdGhhdCBkb2Vzbid0IGhlbHAg
-dGhlIGNvbnRleHQgZm9yIG11c2ItaGRyYy4NCg0KIFdoZXRoZXIgbXVzYiBldmVyIHdhcyBhbiBv
-bWFwX2RldmljZSBpcyBiZXlvbmQgbXkgYXJjaGFlb2xvZ2ljYWwgc2tpbGxzIHRvDQogZGV0ZXJt
-aW5lLg0KDQogS2V2aW46ICBXYXMgbXVzYi1oZHJjIGV2ZXIgYSBkZXZpY2Ugd2l0aCBhIHBtX2Rv
-bWFpbj8gb3Igd2FzIGl0IG9ubHkgZXZlcg0KICAgICB0aGUgdmFyaW91cyBwb3NzaWJsZSBwYXJl
-bnRzIHRoYXQgaGFkIGRvbWFpbnM/DQogICAgIEFyZSB5b3UgYWJsZSB0byBkZWZlbmQgeW91ciBl
-YXJsaWVyIHBhdGNoIGluIHRvZGF5J3Mga2VybmVsPyAgSXQNCiAgICAgY2VydGFpbmx5IGNhdXNl
-cyBteSBkZXZpY2Ugbm90IHRvIHdvcmsgcHJvcGVybHkuDQoNClRoYW5rcywNCk5laWxCcm93bg0K
-DQoNCg0KPiANCj4gPiANCj4gPiBTaWduZWQtb2ZmLWJ5OiBOZWlsQnJvd24gPG5laWxiQHN1c2Uu
-ZGU+DQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdXNiL211c2IvbXVzYl9jb3JlLmMg
-Yi9kcml2ZXJzL3VzYi9tdXNiL211c2JfY29yZS5jDQo+ID4gaW5kZXggZmQzNDg2Ny4uYjZjY2Mw
-MiAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL3VzYi9tdXNiL211c2JfY29yZS5jDQo+ID4gKysr
-IGIvZHJpdmVycy91c2IvbXVzYi9tdXNiX2NvcmUuYw0KPiA+IEBAIC0yMjI1LDYgKzIyMjUsNyBA
-QCBzdGF0aWMgaW50IG11c2Jfc3VzcGVuZChzdHJ1Y3QgZGV2aWNlICpkZXYpDQo+ID4gIAl9DQo+
-ID4gIA0KPiA+ICAJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmbXVzYi0+bG9jaywgZmxhZ3MpOw0K
-PiA+ICsJbXVzYl9zYXZlX2NvbnRleHQobXVzYik7DQo+ID4gIAlyZXR1cm4gMDsNCj4gPiAgfQ0K
-PiA+ICANCj4gPiBAQCAtMjIzNCw2ICsyMjM1LDggQEAgc3RhdGljIGludCBtdXNiX3Jlc3VtZV9u
-b2lycShzdHJ1Y3QgZGV2aWNlICpkZXYpDQo+ID4gIAkgKiB1bmxlc3MgZm9yIHNvbWUgcmVhc29u
-IHRoZSB3aG9sZSBzb2MgcG93ZXJlZCBkb3duIG9yIHRoZSBVU0INCj4gPiAgCSAqIG1vZHVsZSBn
-b3QgcmVzZXQgdGhyb3VnaCB0aGUgUFNDICh2cyBqdXN0IGJlaW5nIGRpc2FibGVkKS4NCj4gPiAg
-CSAqLw0KPiA+ICsJc3RydWN0IG11c2IJKm11c2IgPSBkZXZfdG9fbXVzYihkZXYpOw0KPiA+ICsJ
-bXVzYl9yZXN0b3JlX2NvbnRleHQobXVzYik7DQo+ID4gIAlyZXR1cm4gMDsNCj4gPiAgfQ0KPiA+
-ICANCj4gDQo+IC0gLS0gDQo+IFJlZ2FyZHMsDQo+IElnb3IuDQo+IC0tLS0tQkVHSU4gUEdQIFNJ
-R05BVFVSRS0tLS0tDQo+IFZlcnNpb246IEdudVBHIHYyLjAuMTcgKEdOVS9MaW51eCkNCj4gQ29t
-bWVudDogVXNpbmcgR251UEcgd2l0aCBNb3ppbGxhIC0gaHR0cDovL2VuaWdtYWlsLm1vemRldi5v
-cmcvDQo+IA0KPiBpUUljQkFFQkFnQUdCUUpRL1NqVEFBb0pFQkRFOFlPNjRFZmFIcnNQLzJibDRy
-UDZML3RXTFNaK3JORWR6NkIrDQo+IFFvK0hWT2huVFZzT3hnV2JiZDVWcmZoRTI4akxvRkdNc2xy
-THVJK2dlZUNjSjF6Z3dOc2FoRzlDMTFieWd5ZnUNCj4gNTRoUWdrbWF4REpQREtBbGFsY3k3Vks5
-QzZ0T1RnUVY1aVNidVJsZW10dEs4NzlkVHJiKzMzelA2aWRuNSt6Sw0KPiBreHB0WTM4ZnBteW9q
-bmw4Z0ppVmE2UGxpay9hcFFjVnIrR0l4OENNd2orWVFDNXZrZGc3Y1VFV3luZ2Z5azJDDQo+IFcw
-VTROY2Vyb1M4TlNqUmJjRlYzVjZROTEyVFZqS3psK0IyeXhWRDBPQmFTSzRCcEhFbmNEQlhpVng4
-QVBxODcNCj4gNG5EZUJCNWdEWGkxcnROM1lqY2ZEYUZ1MG1lNXF6cFljM0pGRmlkdmRMVGRYSWR2
-eER6akhnTXFzWkI4WkJZQw0KPiBSMGU1UHRJdy82Mkk5MGQ2M0prWFpYVlJUQjdKZVpzR2ZaRlky
-UjdNeEJhYjlvcjh6ejBPeVl3R1dvVzYzdnpIDQo+IG9GcndtQWtXb0QwSUVLY2ZjOCtkZDk5ZWlj
-Z1pybVFMNkZEV3JFTXNYK1JTMzRMUnRWVTMwU1ZBdWRSaFkrQ1INCj4gTWhOQ2pLeUZ5U3d4N3dx
-a0dnSmwxRUNsMFk2VTR1YTB2NGJ2N2tkRTZleXJnYlFJa2lHbGlTSjdEaFdCUGNQNg0KPiBpTUlP
-VHdDNytMd1BZUC9NWDJ1WVIzRFhEZkkwWHdpcWR0eXpoRDlMSmU0UFJvbDh6am96UzJqMFk3RnJp
-SXR3DQo+IGpGcXNnQ2d3RGM5ajh1ZmNwWGY1WnluSllubENHMGlMdUFQRVV1Z1pvdDgzL0NweGdV
-KytBOGN1SHFVck9uaEgNCj4gNzZMOTVyZmxVVGtwaVE3NmZmUDcNCj4gPWpxWGINCj4gLS0tLS1F
-TkQgUEdQIFNJR05BVFVSRS0tLS0tDQoNCi0tLS0tQkVHSU4gUEdQIFNJR05BVFVSRS0tLS0tDQpW
-ZXJzaW9uOiBHbnVQRyB2Mi4wLjE5IChHTlUvTGludXgpDQoNCmlRSVZBd1VCVVAyMVdEbnNudDFX
-WW9HNUFRSVFsUS8rTGxYaTFaUlhLdE8vb2ovdTRpcXM3REw4UE5jWlg2QzcNCmo3UnJ4OG54ZDJD
-MTVwRW54dk9ZSXJvakxUclhxejNiZ0U5Tm1CdllPWVkrZGoyLytDYVM3UkpzVFIwZ1lKaTANCkFN
-a0xUOWs2K2VkVUo3OUt0SVJtZXFiblBFbnVqT1dIa0JkZzJkTHJtNFBwWW1HVW1jOFZHZUUzK21o
-M0xhOTcNCnNzWm00Z1liaXA2VFB6QjRNZHZUYmhreGJFWEppZE9jZ0JKcnNkVHZNWEI4SGtaMzBX
-cTYvWUVMdFlvWU5wWm8NCnJuK0NiUW81RGQwYlViOGZRM0ZkNXVuZlhxeDVONXR4QnNsd0s4SmdT
-QTNMN2w5NmQzK3E5VU9mQmcvUHNVSkoNCldybkZhaHYxMWx5cGFqSHRuQ25YYjN6K1RzR2dWNHY0
-NmFVWjRZayt0a3dWdjgxbmJPUkhUUkdvYUxSZVJNRzINClNpaS94WWV1Z091aG5KSS8vMDd5V3Ju
-TGZ1bkZiSkp5SG1mWkFSei82a0tOb0lQclp3UkRtVmVPMytJdS8zOVINCnptd3ZKRFRxT053ZW5Y
-blpFbXhxck9OMEUvWThWNmhkTmxHWmRGWUl5cEpyL1ltMnJwK1IrcWNSeUV3UXhBWWkNCjdoMW1B
-Q3ZYRTd0WUNDb0JpK2ZONWhGYUYyVlFlTjFRcUpNVGltUWpxbmtnYUkyalE0Wm03ek1DVUtSRWhH
-UHUNCjNUVHZPd3VGR00rYndiMmVLc1crNHpTemViZGVwWGFOalNQQ21IU0tVKys1U1ZjT01OaVp5
-S2xydm9XOHpuTTQNCi8xRWErM0Nta0hxQWhtamE1Rmx5NE5ZTDJmZHkvTmhmSXFaSTJ5SXJUQUc1
-OGlJYW5rUWpCSHlzcUFjR3J2UXANClRwbEhqN29zTzQwPQ0KPUc5MUkNCi0tLS0tRU5EIFBHUCBT
-SUdOQVRVUkUtLS0tLQ0K
+On 21-01-2013 17:02, Julia Lawall wrote:
+
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
+
+> Delete successive tests to the same location.  Data is the just previously
+> allocated and tested value.  Test the result of the allocation made here
+> instead.
+
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+
+> // <smpl>
+> @s exists@
+> local idexpression y;
+> expression x,e;
+> @@
+
+> *if ( \(x == NULL\|IS_ERR(x)\|y != 0\) )
+>   { ... when forall
+>     return ...; }
+> ... when != \(y = e\|y += e\|y -= e\|y |= e\|y &= e\|y++\|y--\|&y\)
+>      when != \(XT_GETPAGE(...,y)\|WMI_CMD_BUF(...)\)
+> *if ( \(x == NULL\|IS_ERR(x)\|y != 0\) )
+>   { ... when forall
+>     return ...; }
+> // </smpl>
+
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+> ---
+> The previous code could be further simplified by removing the
+> initializations of ret to -ENOMEM, as is absent in this case.  But that is
+> probably for another patch.
+
+    I've already sent such patch and Felipe has queued it.
+
+>   drivers/usb/musb/omap2430.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index da00af4..533c4fd 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -545,7 +545,7 @@ static int omap2430_probe(struct platform_device *pdev)
+>   		}
+>
+>   		config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
+> -		if (!data) {
+> +		if (!config) {
+
+    Same about this change. You're a bit late this time. :-)
+
+WBR, Sergei
