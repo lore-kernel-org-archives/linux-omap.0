@@ -1,64 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 08/10] ARM: OMAP5: hwmod data: Create initial OMAP5 SOC
- hwmod data
-Date: Mon, 21 Jan 2013 10:01:14 -0800
-Message-ID: <20130121180113.GA22517@atomide.com>
-References: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com>
- <1358522856-12180-9-git-send-email-santosh.shilimkar@ti.com>
- <20130118171500.GC15361@atomide.com>
- <50FCF838.6000105@ti.com>
- <50FD5993.5010008@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] i2c: omap: fix draining irq handling
+Date: Mon, 21 Jan 2013 20:01:59 +0200
+Message-ID: <20130121180159.GB13174@blackmetal.musicnaut.iki.fi>
+References: <1358707022-26477-1-git-send-email-aaro.koskinen@iki.fi>
+ <20130121084431.GG8777@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:58103 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752458Ab3AUSBS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 13:01:18 -0500
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:43430 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752751Ab3AUSCE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 13:02:04 -0500
 Content-Disposition: inline
-In-Reply-To: <50FD5993.5010008@ti.com>
+In-Reply-To: <20130121084431.GG8777@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, rnayak@ti.com, b-cousson@ti.com, Paul Walmsley <paul@pwsan.com>
+To: Felipe Balbi <balbi@ti.com>, Wolfram Sang <w.sang@pengutronix.de>
+Cc: ben-linux@fluff.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [130121 07:09]:
-> >
-> So I looked at this one with help of Rajendra. We can get rid of the
-> IRQ and DMA data(needs DMA biding updates) easily. The address
-> space though is needed since hwmod code uses it to setup the
-> sysconfig registers.
+Hi,
 
-OK great. The address space tinkering in hwmod code should be
-moved to be done in the drivers.
+On Mon, Jan 21, 2013 at 10:44:31AM +0200, Felipe Balbi wrote:
+> On Sun, Jan 20, 2013 at 08:37:02PM +0200, Aaro Koskinen wrote:
+> > Commit 0bdfe0cb803dce699ff337c35d8e97ac355fa417 (i2c: omap: sanitize
+> > exit path) changed the interrupt handler to exit early and complete
+> > the transfer after the draining IRQ is handled. As a result, the ARDY
+> > may not be cleared properly, and it may cause all future I2C transfers
+> > to timeout with "timeout waiting for bus ready". This is reproducible
+> > at least with N900 when twl4030_gpio makes a long write (> FIFO size)
+> > during the probe (http://marc.info/?l=linux-omap&m=135818882610432&w=2).
+> > 
+> > The fix is to continue until we get ARDY interrupt that completes the
+> > transfer. Tested with 3.8-rc4 + N900: 20 boots in a row without errors;
+> > without the patch the problem triggers after few reboots.
+> 
+> fair enough, but ...
+> 
+> > Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> > ---
+> >  drivers/i2c/busses/i2c-omap.c |    4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> > index 832f16e..4cc2f05 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -963,7 +963,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
+> >  				i2c_omap_errata_i207(dev, stat);
+> >  
+> >  			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RDR);
+> > -			break;
+> > +			continue;
+> 
+> ... when we get draining Interrupt, it means we're receiving the last
+> few bytes, meaning that by the time we handle it there's nothing pending
+> to be transferred.
+> 
+> I would rather wait for ARDY before exiting omap_i2c_xfer_msg() rather
+> than here. Specially since that was the programming model suggested by
+> our IP engineers. Such handling is part of my other patchset and can be
+> easily ported.
+> 
+> OTOH, we might decide to go with this during this -rc and fix it all up
+> for v3.9 on my other patchset.
 
-As discussed earlier, there should be a driver specific reset
-function driver_xyz_reset() in the driver header file so the
-hwmod code can call it too in a late_initcall if no driver is
-loaded.
+Completing through ARDY interrupt has been known to work reliably for
+years. So for 3.8-rc I would prefer to just restore the old behaviour.
 
-> Extracting that from DT code seems to be really expensive and
-> ugly [1]. I am yet to try out DMA lines removal but that seems
-> to be doable by pulling Vinod'd DMA engine branch and updating
-> DT file.
-
-The overhead here does not matter as it should only happen in a
-late_initcall and only for some of the drivers. For that to
-happen we just need to go through the list of modules not yet
-probed. We also need to have some locking in the driver specific
-reset function to avoid races with the loadable modules.
-
-> Whats your suggestion on address space part ?
-
-Let's add the code to hwmod to extract it from DT so hwmod code
-can call the driver specific reset function defined in the driver
-header. That way we can start moving the driver code out of hwmod
-one driver at a time.
-
-Note that the ioremapping should be done in the driver specific
-reset function, not in hwmod code. We just need to pass the
-iorange in a struct resource to the driver specific reset function.
-
-Regards,
-
-Tony
+A.
