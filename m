@@ -1,91 +1,76 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP: some clock/hwmod fixes for v3.8-rc
-Date: Mon, 21 Jan 2013 16:01:19 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301211557530.8450@utopia.booyaka.com>
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: Re: OMAP baseline test results for v3.8-rc4
+Date: Mon, 21 Jan 2013 16:32:13 +0000
+Message-ID: <50FD6D8D.6030106@mimc.co.uk>
+References: <alpine.DEB.2.00.1301202136290.31667@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:36879 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754190Ab3AUQBU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 11:01:20 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1301202136290.31667@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, mporter@ti.com
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Vaibhav / Matt
 
-Hi Tony,
+On 20/01/13 21:38, Paul Walmsley wrote:
+> 
+> Here are some basic OMAP test results for Linux v3.8-rc4.
+> Logs and other details at:
+> 
+>     http://www.pwsan.com/omap/testlogs/test_v3.8-rc4/20130120122039/
 
-The following changes since commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619:
+<snip>
 
-  Linux 3.8-rc4 (2013-01-17 19:25:45 -0800)
+> Failing tests: needing investigation
+> ------------------------------------
+> 
+> Boot tests:
+> 
+> * am335xbone: hangs after "Starting kernel"
+>   - Cause unknown
+>   - http://www.mail-archive.com/linux-omap@vger.kernel.org/msg82297.html
 
-are available in the git repository at:
+<snip>
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-b-for-v3.8-rc
+> Failing tests: needing local investigation (may be due to testbed issues)
+> -------------------------------------------------------------------------
+> 
+> Boot tests:
+> 
+> * AM335x Beaglebone: omap2plus_defconfig kernels don't boot
+>   - May be fixed now, pending retest:
+>     - http://marc.info/?l=linux-omap&m=135082257727502&w=2
+>   - Not yet part of the automated test suite
+>   - Nishanth Menon & Vaibhav Hiremath report that it works for them
+>   * May be due to an old U-boot with FDT support problems used here?
+>     Pending local investigation and re-test
 
-for you to fetch changes up to bdcc61275232db897ba831f87a16df98ab248571:
+Does anyone know when the BeagleBone support is going to be fixed in mainline ?
 
-  ARM: OMAP2: Fix missing omap2xxx_clkt_vps_late_init function calls (2013-01-18 16:48:16 -0700)
+I've just tried the latest linux-next git, and no joy.
 
-- ----------------------------------------------------------------
-A few OMAP integration fixes for v3.8-rc, for OMAP4 audio and OMAP2 reboot.
+However, Matt's edma-dmaengine-am33xx-v5 branch on github seems to be working:-
 
-Basic test logs are available here:
+Uncompressing Linux... done, booting the kernel.
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 3.8.0-rc3-61978-g108da76-dirty (mpfj@mpfj-nanobone) (gcc version 4.5.4
+(Buildroot 2012.11-git-00497-ge48bf89) ) #7 SMP Mon Jan 21 15:52:14 GMT 2013
+[    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+[    0.000000] Machine: Generic AM33XX (Flattened Device Tree), model: TI AM335x BeagleBone
 
-    http://www.pwsan.com/omap/testlogs/prcm_fixes_c_v3.8-rc/20130121073904/
+Are we just waiting for Matt's DMA stuff to be accepted ?
 
-- ----------------------------------------------------------------
-
-vmlinux object size
-(delta in bytes from test_v3.8-rc4 (7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619)):
-   text     data      bss    total  kernel
-      0        0        0        0  am33xx_only
-     +8      +24        0      +32  n800_multi_omap2xxx
-     +4       -8        0       -4  n800_only_a
-      0        0        0        0  omap1_defconfig
-      0        0        0        0  omap1_defconfig_1510innovator_only
-      0        0        0        0  omap1_defconfig_5912osk_only
-     -8       +8        0        0  omap2plus_defconfig
-     +4      +24        0      +28  omap2plus_defconfig_2430sdp_only
-     -8       +8        0        0  omap2plus_defconfig_cpupm
-     -8       +8        0        0  omap2plus_defconfig_no_pm
-     -8       +8        0        0  omap2plus_defconfig_omap2_4_only
-    -16      +16        0        0  omap2plus_defconfig_omap3_4_only
-     -8       +8        0        0  rmk_omap3430_ldp_allnoconfig
-      0        0        0        0  rmk_omap3430_ldp_oldconfig
-     -8       +8        0        0  rmk_omap4430_sdp_allnoconfig
-    -16      +16        0        0  rmk_omap4430_sdp_oldconfig
-
-Jon Hunter (1):
-      ARM: OMAP2: Fix missing omap2xxx_clkt_vps_late_init function calls
-
-Peter Ujfalusi (2):
-      ARM: OMAP4: clock data: Lock ABE DPLL on all revisions
-      ARM: OMAP4: hwmod_data: Correct IDLEMODE for McPDM
-
- arch/arm/mach-omap2/cclock2420_data.c      |    2 ++
- arch/arm/mach-omap2/cclock2430_data.c      |    2 ++
- arch/arm/mach-omap2/cclock44xx_data.c      |   13 ++++++-------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    6 +++++-
- 4 files changed, 15 insertions(+), 8 deletions(-)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQ/WYEAAoJEMePsQ0LvSpLjwcP/3ZgPMHcwk+/rdSOtCF9BR4V
-BFc9GSyUnj5jJMmVo2yixHgM6hnf0nqP9lEHW6wYaqFF7wb6swo5mKCsK3VErgF/
-xJXL1j9DmdnnF+uUeoRmKlNkQ2y2+zkbHCBY8A6zxzKQMYW6xSwkhM1Jdmw55Vxn
-ROgPXuzjOnXUsTtodYsVkW/3hGNKCxoP8/hH7M+GcQVql9Iebh2E/efW67pSFTvp
-ChisfYiHWJWzDso8FfKkLwYHSZfK5qq3KNFgRq2n0xuxEsJMGqM5rKaQypJ6LMK/
-ExvPgFAhgHnsSvtESNWAKsAXDtVvr2z/HYPIsoCVYUy7C33P857uQpbIXuD4gS4w
-CLon1M9k4Wpuzd4Da/WY6O8L6goCrTuL7Cx1ayWBmvZNDpwNAUVQi8k1Ei9vcFiv
-N3vxutc/QrYQ11x7uNe2A8XWp8fsVvwQ6+XiVk96ZXgKe+Fc1COOz17lMyxhJqdo
-PhAXvnvo5avzDueiu4AluFkIwsNl5vDqphkxqhOdlDzcuZHN4dzguoN/fKIbSXfy
-fKS6GXDwU1vTTpvzbefdDUiVU+rEi9HIbXv8tkXp5FPnAs0YLD0vdbC6bIeUFO1K
-S7AW075XkmB04VYPZeUh6vBCBjoWXYClMyIzeEEVvAxOTEHMi3+nZn7jIel7uVMa
-l0wEGhU+lY3MHfbHdmh2
-=1k3b
------END PGP SIGNATURE-----
+Cheers
+Mark J.
