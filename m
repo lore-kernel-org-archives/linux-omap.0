@@ -1,52 +1,96 @@
-From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: [PATCH] usb: phy: samsung: Remove __devinit,
- __devexit_p and __exit annotations
-Date: Mon, 21 Jan 2013 19:30:12 +0530
-Message-ID: <1358776812-14158-1-git-send-email-gautam.vivek@samsung.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 2/4] ARM: OMAP: devices: create device for usb part of control module
+Date: Mon, 21 Jan 2013 19:38:26 +0530
+Message-ID: <1358777308-2409-3-git-send-email-kishon@ti.com>
+References: <1358777308-2409-1-git-send-email-kishon@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358777308-2409-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, p.paneri@samsung.com
+To: rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, balbi@ti.com, b-cousson@ti.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Cc: grant.likely@secretlab.ca, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Dropping __devinit, __devexit_p, __exit annotations since they are
-nop and no longer supported.
+A seperate driver has been added to handle the usb part of control
+module. A device for the above driver is created here, using the register
+address information to be used by the driver for powering on the PHY and
+for writing to the mailbox.
 
-Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/phy/samsung-usbphy.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/devices.c |   45 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
 
-diff --git a/drivers/usb/phy/samsung-usbphy.c b/drivers/usb/phy/samsung-usbphy.c
-index 30aebb5..6b30809 100644
---- a/drivers/usb/phy/samsung-usbphy.c
-+++ b/drivers/usb/phy/samsung-usbphy.c
-@@ -343,7 +343,7 @@ static inline const struct samsung_usbphy_drvdata
- 				platform_get_device_id(pdev)->driver_data;
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 5e304d0..edc5ec2 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -20,6 +20,7 @@
+ #include <linux/pinctrl/machine.h>
+ #include <linux/platform_data/omap4-keypad.h>
+ #include <linux/platform_data/omap_ocp2scp.h>
++#include <linux/usb/omap_control_usb.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/map.h>
+@@ -254,6 +255,49 @@ static inline void omap_init_camera(void)
+ #endif
  }
  
--static int __devinit samsung_usbphy_probe(struct platform_device *pdev)
-+static int samsung_usbphy_probe(struct platform_device *pdev)
++#if IS_ENABLED(CONFIG_OMAP_CONTROL_USB)
++static struct omap_control_usb_platform_data omap4_control_usb_pdata = {
++	.has_mailbox = true,
++};
++
++struct resource omap4_control_usb_res[] = {
++	{
++		.name	= "control_dev_conf",
++		.start	= 0x4a002300,
++		.end	= 0x4a002303,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.name	= "otghs_control",
++		.start	= 0x4a00233c,
++		.end	= 0x4a00233f,
++		.flags	= IORESOURCE_MEM,
++	},
++};
++
++static struct platform_device omap4_control_usb = {
++	.name		= "omap-control-usb",
++	.id		= -1,
++	.dev = {
++		.platform_data = &omap4_control_usb_pdata,
++	},
++	.num_resources = 2,
++	.resource = omap4_control_usb_res,
++};
++
++static inline void __init omap_init_control_usb(void)
++{
++	if (!cpu_is_omap44xx())
++		return;
++
++	if (platform_device_register(&omap4_control_usb))
++		pr_err("Error registering omap_control_usb device\n");
++}
++
++#else
++static inline void omap_init_control_usb(void) { }
++#endif /* CONFIG_OMAP_CONTROL_USB */
++
+ int __init omap4_keyboard_init(struct omap4_keypad_platform_data
+ 			*sdp4430_keypad_data, struct omap_board_data *bdata)
  {
- 	struct samsung_usbphy *sphy;
- 	struct samsung_usbphy_data *pdata = pdev->dev.platform_data;
-@@ -405,7 +405,7 @@ static int __devinit samsung_usbphy_probe(struct platform_device *pdev)
- 	return usb_add_phy(&sphy->phy, USB_PHY_TYPE_USB2);
- }
- 
--static int __exit samsung_usbphy_remove(struct platform_device *pdev)
-+static int samsung_usbphy_remove(struct platform_device *pdev)
- {
- 	struct samsung_usbphy *sphy = platform_get_drvdata(pdev);
- 
-@@ -456,7 +456,7 @@ MODULE_DEVICE_TABLE(platform, samsung_usbphy_driver_ids);
- 
- static struct platform_driver samsung_usbphy_driver = {
- 	.probe		= samsung_usbphy_probe,
--	.remove		= __devexit_p(samsung_usbphy_remove),
-+	.remove		= samsung_usbphy_remove,
- 	.id_table	= samsung_usbphy_driver_ids,
- 	.driver		= {
- 		.name	= "samsung-usbphy",
+@@ -721,6 +765,7 @@ static int __init omap2_init_devices(void)
+ 	omap_init_mbox();
+ 	/* If dtb is there, the devices will be created dynamically */
+ 	if (!of_have_populated_dt()) {
++		omap_init_control_usb();
+ 		omap_init_dmic();
+ 		omap_init_mcpdm();
+ 		omap_init_mcspi();
 -- 
-1.7.6.5
+1.7.9.5
