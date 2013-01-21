@@ -1,75 +1,49 @@
-From: srinidhi kasagar <srinidhi.kasagar@stericsson.com>
-Subject: [PATCH 3/4] ARM: mach-omap2: apply the errata at run time rather
-Date: Mon, 21 Jan 2013 18:46:15 +0530
-Message-ID: <20130121131613.GA29876@bnru10>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [RFC PATCH 6/6] USB: MUSB: OMAP: get PHY by phandle for dt boot
+Date: Mon, 21 Jan 2013 15:18:44 +0200
+Message-ID: <50FD4034.5040402@ti.com>
+References: <1358348462-27693-1-git-send-email-kishon@ti.com> <1358348462-27693-7-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eu1sys200aog106.obsmtp.com ([207.126.144.121]:47835 "EHLO
-	eu1sys200aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753991Ab3AUNQ0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Jan 2013 08:16:26 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358348462-27693-7-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, balbi@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, horms@verge.net.au, magnus.damm@gmail.com, cbou@mail.ru, dwmw2@infradead.org, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, leoli@freescale.com, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, stern@rowland.harvard.edu
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
 
-Signed-off-by: srinidhi kasagar <srinidhi.kasagar@stericsson.com>
----
- arch/arm/mach-omap2/sleep44xx.S |   25 +++++++++++++++++++++----
- 1 files changed, 21 insertions(+), 4 deletions(-)
+On 01/16/2013 05:01 PM, Kishon Vijay Abraham I wrote:
+> The OMAP glue has been modified to get PHY by phandle for dt boot.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/usb/musb/omap2430.c |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 3628a50..08709cf 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -346,7 +346,12 @@ static int omap2430_musb_init(struct musb *musb)
+>  	 * up through ULPI.  TWL4030-family PMICs include one,
+>  	 * which needs a driver, drivers aren't always needed.
+>  	 */
+> -	musb->xceiv = devm_usb_get_phy(dev, 0);
+> +	if (dev->parent->of_node)
+> +		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
+> +		    "usb_phy", 0);
 
-diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
-index 88ff83a..071ca1f 100644
---- a/arch/arm/mach-omap2/sleep44xx.S
-+++ b/arch/arm/mach-omap2/sleep44xx.S
-@@ -157,11 +157,19 @@ skip_scu_gp_set:
- 	ldrne	r0, [r8, #L2X0_SAVE_OFFSET1]	@ memory.
- 	cmp	r0, #3
- 	bne	do_WFI
--#ifdef CONFIG_PL310_ERRATA_727915
-+	/* Check for PL310_ERRATA_727915 */
-+	bl	l2x0_get_rtl_release
-+	cmp	r0, #0x4
-+	beq	dosmc
-+	cmp	r0, #0x5
-+	beq	dosmc
-+	b	nosmc
-+dosmc:
- 	mov	r0, #0x03
- 	mov	r12, #OMAP4_MON_L2X0_DBG_CTRL_INDEX
- 	DO_SMC
--#endif
-+
-+nosmc:
- 	bl	omap4_get_l2cache_base
- 	mov	r2, r0
- 	ldr	r0, =0xffff
-@@ -171,11 +179,20 @@ wait:
- 	ldr	r1, =0xffff
- 	ands	r0, r0, r1
- 	bne	wait
--#ifdef CONFIG_PL310_ERRATA_727915
-+
-+	/* Check for PL310_ERRATA_727915 */
-+	bl	l2x0_get_rtl_release
-+	cmp	r0, #0x4
-+	beq	dosmc2
-+	cmp	r0, #0x5
-+	beq	dosmc2
-+	b	nosmc2
-+dosmc2:
- 	mov	r0, #0x00
- 	mov	r12, #OMAP4_MON_L2X0_DBG_CTRL_INDEX
- 	DO_SMC
--#endif
-+
-+nosmc2:
- l2x_sync:
- 	bl	omap4_get_l2cache_base
- 	mov	r2, r0
--- 
-1.7.2.dirty
+Why dev->parent and not just dev?
 
+> +	else
+> +		musb->xceiv = devm_usb_get_phy(dev, 0);
+> +
+>  	if (IS_ERR_OR_NULL(musb->xceiv)) {
+>  		pr_err("HS USB OTG: no transceiver configured\n");
+>  		return -ENODEV;
+> 
+
+--
+cheers,
+-roger
