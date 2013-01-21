@@ -1,80 +1,47 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH] usb: musb: fix context save over suspend.
-Date: Mon, 21 Jan 2013 20:28:31 +1100
-Message-ID: <20130121202831.40a09bbc@notabene.brown>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH 0/5] staging: tidspbridge: for 3.9
+Date: Mon, 21 Jan 2013 12:49:21 +0300
+Message-ID: <20130121094921.GT4584@mwanda>
+References: <1357810622-1709-1-git-send-email-omar.ramirez@copitl.com>
+ <20130118004746.GA8897@kroah.com>
+ <20130121072524.GR4584@mwanda>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/OLteVNqqJ2YwmkQ1L8SYH52"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:39336 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751635Ab3AUJ2r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Jan 2013 04:28:47 -0500
+Received: from aserp1040.oracle.com ([141.146.126.69]:27773 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751569Ab3AUJtd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 04:49:33 -0500
+Content-Disposition: inline
+In-Reply-To: <20130121072524.GR4584@mwanda>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: devel@driverdev.osuosl.org, Chen Gang <gang.chen@asianux.com>, linux-omap@vger.kernel.org
 
---Sig_/OLteVNqqJ2YwmkQ1L8SYH52
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Mon, Jan 21, 2013 at 10:25:24AM +0300, Dan Carpenter wrote:
+> On Thu, Jan 17, 2013 at 04:47:46PM -0800, Greg Kroah-Hartman wrote:
+> > On Thu, Jan 10, 2013 at 03:36:57AM -0600, Omar Ramirez Luna wrote:
+> > > Patches for staging-next, fixing comments and suggestions provided
+> > > by Chen Gang.
+> > > 
+> > > There is an additional scm patch, that removes hardcoded defines
+> > > related to direct register handling for SCM, it was dependent on
+> > > changes that already made it to mainline.
+> > 
+> > What is the status on getting this out of the staging tree?  What needs
+> > to be done still?
+> > 
+> 
+> Why can't tidspbridge be built as a module?
+> 
+> The Kconfig help files aren't very informative.
 
+Huh.  Ignore me.  I don't know what I was looking at before.  Both
+the things I said were wrong.
 
+Sorry for the noise.
 
-The standard suspend sequence involves runtime_resuming
-devices before suspending the system.
-So just saving context in runtime_suspend and restoring it
-in runtime resume isn't enough.  We  must also save in "suspend"
-and restore in "resume".
+regards,
+dan carpenter
 
-Without this patch, and OMAP3 system with off_mode enabled will find
-the musb port non-functional after suspend/resume.  With the patch it
-works perfectly.
-
-Signed-off-by: NeilBrown <neilb@suse.de>
-
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index fd34867..b6ccc02 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -2225,6 +2225,7 @@ static int musb_suspend(struct device *dev)
- 	}
-=20
- 	spin_unlock_irqrestore(&musb->lock, flags);
-+	musb_save_context(musb);
- 	return 0;
- }
-=20
-@@ -2234,6 +2235,8 @@ static int musb_resume_noirq(struct device *dev)
- 	 * unless for some reason the whole soc powered down or the USB
- 	 * module got reset through the PSC (vs just being disabled).
- 	 */
-+	struct musb	*musb =3D dev_to_musb(dev);
-+	musb_restore_context(musb);
- 	return 0;
- }
-=20
-
---Sig_/OLteVNqqJ2YwmkQ1L8SYH52
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIVAwUBUP0KPznsnt1WYoG5AQJUAQ//Uk82am41zm12mW/ARcn9cHlznzOpscuF
-0BzinOxCLCAGHPi6rFo6nTPnfViIlyUgpbOtLk1gQgwO/9muzRYvQzjFagJcLj4U
-Q8kWOObEHf0JNXL08jA4uk02xTkoTsoDfXzDMFEUblAVk8KqVj7lyTXR4uWzyMNE
-pXNms8cCOQXakga1RFlQgR06Y0ieq1j/ZIeCTGOxKa7Dp31jaBpF+uajZkKuGE51
-T6N9sCfjq03rUu+eZHZFi6n9CMEjruVe0Cco+0nyCy9x7iUpJIdrFsJKKfji9X69
-OkoMWvFj9dnfYBrogLXhQIAiBTnl76LVOdPxS9KhGa9NtMKD+1oS8nCihuR/QpvS
-A4eqLPpMUsEyaPq+/qBiQMis+7DDz00sI10e2mUcnZBAIILkMq4NQSlvpDCnIMFX
-mBjFlfJLLgIRRDojoCqNWXVj4nlxNmO0XWHPMu/UYEgcUIsYGjrcArE0GVsI8EpF
-BYK/BrkIdxbcvdUsqdlH2e+HZHlwWzFsv/guXmsGYA8JMyb40EyowXFzVFvYGW2V
-YeYofmLXSNW2dLg+8pp7Kc2AeAfnYD+8pa9PPeuBsjS20bTFD9CY/Pm5B7+YY4EG
-+wnXpIeyP0NvHjhNX64Nt9lG5Q1MF70f226QzywhGQtjBGNgB3gGBXqmJzv6sm4i
-+7CUlU9TybU=
-=kx3g
------END PGP SIGNATURE-----
-
---Sig_/OLteVNqqJ2YwmkQ1L8SYH52--
