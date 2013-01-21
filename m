@@ -1,137 +1,49 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 1/2] ASoC: omap: rx51: Use snd_soc_register_card and add
- module alias for autoloading driver
-Date: Mon, 21 Jan 2013 09:47:20 +0100
-Message-ID: <50FD0098.4070407@ti.com>
-References: <1358651070-30029-1-git-send-email-pali.rohar@gmail.com> <1358651070-30029-2-git-send-email-pali.rohar@gmail.com>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH 0/9] ARM: OMAP2+: AM33XX: Misc fixes/updates
+Date: Mon, 21 Jan 2013 10:03:20 +0100
+Message-ID: <87zk02aox3.fsf@dell.be.48ers.dk>
+References: <1358493569-17142-1-git-send-email-vaibhav.bedia@ti.com>
+	<B5906170F1614E41A8A28DE3B8D121433ECF09E0@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358651070-30029-2-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f41.google.com ([209.85.214.41]:50135 "EHLO
+	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752356Ab3AUJDZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 04:03:25 -0500
+Received: by mail-bk0-f41.google.com with SMTP id jg9so2922160bkc.28
+        for <linux-omap@vger.kernel.org>; Mon, 21 Jan 2013 01:03:24 -0800 (PST)
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433ECF09E0@DBDE01.ent.ti.com>
+	(Vaibhav Bedia's message of "Mon, 21 Jan 2013 05:27:16 +0000")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+
+>>>>> "V" == Bedia, Vaibhav <vaibhav.bedia@ti.com> writes:
 
 Hi,
 
-On 01/20/2013 04:04 AM, Pali Roh=C3=A1r wrote:
-> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+ >> Vaibhav Bedia (9):
+ >> ARM: OMAP2+: AM33XX: CM: Get rid of unncessary header inclusions
+ >> ARM: OMAP2+: AM33XX: CM/PRM: Use __ASSEMBLER__ macros in header files
+ >> ARM: OMAP2+: AM33XX: hwmod: Register OCMC RAM hwmod
+ >> ARM: OMAP2+: AM33XX: hwmod: Update TPTC0 hwmod with the right flags
+ >> ARM: OMAP2+: AM33XX: hwmod: Fixup cpgmac0 hwmod entry
+ >> ARM: OMAP2+: AM33XX: hwmod: Update the WKUP-M3 hwmod with reset
+ >> status bit
+ >> ARM: OMAP2+: AM33XX: Update the hardreset API
+ >> ARM: DTS: AM33XX: Add nodes for OCMC RAM and WKUP-M3
+ >> ARM: OMAP2+: AM33XX: control: Add some control module registers and
+ >> APIs
+ >> 
 
-This is really welcome.
-It would be even better if we would have commit message...
-Also for ASoC patches please CC alsa-devel and the maintainers so they =
-will
-also have a chance to review.
+ V> Any comments on these before I resend addressing the comments from Sergei?
 
-There are still couple of things which can improve the rx51 machine dri=
-ver:
-- Switch to use devm_gpio_request_one() so we can remove the failure ha=
-ndling.
-- I would introduce platform data for this driver to pass the GPIO numb=
-ers.
-This is especially important for the RX51_SPEAKER_AMP_TWL_GPIO since it=
- is in
-twl4030 and the GPIO range now allocated dynamically so the (192 + 7) m=
-ight
-not be valid anymore.
+Wouldn't the ocmram/wkup dt nodes need a reg property to define their
+size as I indirectly mentioned here:
 
---=20
-P=C3=A9ter
+http://thread.gmane.org/gmane.linux.ports.arm.omap/91405/focus=92061
 
-> ---
->  sound/soc/omap/rx51.c |   50 +++++++++++++++++++++++++++++----------=
-----------
->  1 file changed, 30 insertions(+), 20 deletions(-)
->=20
-> diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
-> index d921ddb..82e3aae 100644
-> --- a/sound/soc/omap/rx51.c
-> +++ b/sound/soc/omap/rx51.c
-> @@ -391,10 +391,9 @@ static struct snd_soc_card rx51_sound_card =3D {
->  	.num_configs =3D ARRAY_SIZE(rx51_codec_conf),
->  };
-> =20
-> -static struct platform_device *rx51_snd_device;
-> -
-> -static int __init rx51_soc_init(void)
-> +static int rx51_soc_probe(struct platform_device *pdev)
->  {
-> +	struct snd_soc_card *card =3D &rx51_sound_card;
->  	int err;
-> =20
->  	if (!machine_is_nokia_rx51())
-> @@ -409,22 +408,18 @@ static int __init rx51_soc_init(void)
->  	if (err)
->  		goto err_gpio_eci_sw;
-> =20
-> -	rx51_snd_device =3D platform_device_alloc("soc-audio", -1);
-> -	if (!rx51_snd_device) {
-> -		err =3D -ENOMEM;
-> -		goto err1;
-> -	}
-> -
-> -	platform_set_drvdata(rx51_snd_device, &rx51_sound_card);
-> +	card->dev =3D &pdev->dev;
-> =20
-> -	err =3D platform_device_add(rx51_snd_device);
-> -	if (err)
-> -		goto err2;
-> +	err =3D snd_soc_register_card(card);
-> +	if (err) {
-> +		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", err);
-> +		goto err_snd;
-> +	}
-> =20
->  	return 0;
-> -err2:
-> -	platform_device_put(rx51_snd_device);
-> -err1:
-> +
-> +err_snd:
-> +	card->dev =3D NULL;
->  	gpio_free(RX51_ECI_SW_GPIO);
->  err_gpio_eci_sw:
->  	gpio_free(RX51_TVOUT_SEL_GPIO);
-> @@ -433,19 +428,34 @@ err_gpio_tvout_sel:
->  	return err;
->  }
-> =20
-> -static void __exit rx51_soc_exit(void)
-> +static int rx51_soc_remove(struct platform_device *pdev)
->  {
-> +	struct snd_soc_card *card =3D platform_get_drvdata(pdev);
-> +
->  	snd_soc_jack_free_gpios(&rx51_av_jack, ARRAY_SIZE(rx51_av_jack_gpio=
-s),
->  				rx51_av_jack_gpios);
-> =20
-> -	platform_device_unregister(rx51_snd_device);
-> +	snd_soc_unregister_card(card);
-> +	card->dev =3D NULL;
-> +
->  	gpio_free(RX51_ECI_SW_GPIO);
->  	gpio_free(RX51_TVOUT_SEL_GPIO);
-> +
-> +	return 0;
->  }
-> =20
-> -module_init(rx51_soc_init);
-> -module_exit(rx51_soc_exit);
-> +static struct platform_driver rx51_soc_driver =3D {
-> +	.driver =3D {
-> +		.name =3D "rx51-audio",
-> +		.owner =3D THIS_MODULE,
-> +	},
-> +	.probe =3D rx51_soc_probe,
-> +	.remove =3D rx51_soc_remove,
-> +};
-> +
-> +module_platform_driver(rx51_soc_driver);
-> =20
->  MODULE_AUTHOR("Nokia Corporation");
->  MODULE_DESCRIPTION("ALSA SoC Nokia RX-51");
->  MODULE_LICENSE("GPL");
-> +MODULE_ALIAS("platform:rx51-audio");
->=20
+-- 
+Bye, Peter Korsgaard
