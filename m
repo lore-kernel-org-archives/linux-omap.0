@@ -1,43 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP2+: Fix section warning for omap_init_ocp2scp()
-Date: Mon, 21 Jan 2013 10:26:03 -0800
-Message-ID: <20130121182602.GF22517@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: some clock/hwmod fixes for v3.8-rc
+Date: Mon, 21 Jan 2013 10:27:53 -0800
+Message-ID: <20130121182753.GG22517@atomide.com>
+References: <alpine.DEB.2.00.1301211557530.8450@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48057 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755429Ab3AUS0F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 13:26:05 -0500
-Received: from c-50-131-214-131.hsd1.ca.comcast.net ([50.131.214.131] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.72)
-	(envelope-from <tony@atomide.com>)
-	id 1TxM4K-000Khb-HS
-	for linux-omap@vger.kernel.org; Mon, 21 Jan 2013 18:26:04 +0000
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:46232 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752592Ab3AUS14 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 13:27:56 -0500
 Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1301211557530.8450@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Otherwise we will get:
+* Paul Walmsley <paul@pwsan.com> [130121 08:04]:
+> Hi Tony,
+> 
+> The following changes since commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619:
+> 
+>   Linux 3.8-rc4 (2013-01-17 19:25:45 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-b-for-v3.8-rc
+> 
+> for you to fetch changes up to bdcc61275232db897ba831f87a16df98ab248571:
+> 
+>   ARM: OMAP2: Fix missing omap2xxx_clkt_vps_late_init function calls (2013-01-18 16:48:16 -0700)
+> 
+> ----------------------------------------------------------------
+> A few OMAP integration fixes for v3.8-rc, for OMAP4 audio and OMAP2 reboot.
+> 
+> Basic test logs are available here:
+> 
+>     http://www.pwsan.com/omap/testlogs/prcm_fixes_c_v3.8-rc/20130121073904/
 
-WARNING: vmlinux.o(.text+0x1d4f0): Section mismatch in reference from the
-function omap_init_ocp2scp() to the function .init.text:omap_device_build()
-The function omap_init_ocp2scp() references
-the function __init omap_device_build().
-This is often because omap_init_ocp2scp lacks a __init
-annotation or the annotation of omap_device_build is wrong.
+Thanks pulling into omap-for-v3.8-rc4/fixes.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Regards,
 
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -639,7 +639,7 @@ static int count_ocp2scp_devices(struct omap_ocp2scp_dev *ocp2scp_dev)
- 	return cnt;
- }
- 
--static void omap_init_ocp2scp(void)
-+static void __init omap_init_ocp2scp(void)
- {
- 	struct omap_hwmod	*oh;
- 	struct platform_device	*pdev;
+Tony
