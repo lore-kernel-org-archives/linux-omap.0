@@ -1,117 +1,124 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 13/15] drivers/usb/musb/omap2430.c: adjust duplicate test
-Date: Mon, 21 Jan 2013 14:28:15 +0200
-Message-ID: <20130121122815.GX8777@arwen.pp.htv.fi>
-References: <1358773378-4700-1-git-send-email-Julia.Lawall@lip6.fr>
- <1358773378-4700-14-git-send-email-Julia.Lawall@lip6.fr>
-Reply-To: <balbi@ti.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v2 3/3] arm: omap2: gpmc: add DT bindings for OneNAND
+Date: Mon, 21 Jan 2013 12:30:20 +0000
+Message-ID: <20130121123020.GI15707@e106331-lin.cambridge.arm.com>
+References: <1358634477-25868-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <1358634477-25868-3-git-send-email-ezequiel.garcia@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lPJ5i9rX1WvdYcWF"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from service87.mimecast.com ([91.220.42.44]:58941 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752627Ab3AUMa3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 07:30:29 -0500
+In-Reply-To: <1358634477-25868-3-git-send-email-ezequiel.garcia@free-electrons.com>
 Content-Disposition: inline
-In-Reply-To: <1358773378-4700-14-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Felipe Balbi <balbi@ti.com>, kernel-janitors@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "martinez.javier@gmail.com" <martinez.javier@gmail.com>, "matthias.bgg@googlemail.com" <matthias.bgg@googlemail.com>, "eballetbo@gmail.com" <eballetbo@gmail.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---lPJ5i9rX1WvdYcWF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+[...]
 
-Hi,
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 01ce462..f7de9eb 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -39,6 +39,7 @@
+>  #include "omap_device.h"
+>  #include "gpmc.h"
+>  #include "gpmc-nand.h"
+> +#include "gpmc-onenand.h"
+>  
+>  #define	DEVICE_NAME		"omap-gpmc"
+>  
+> @@ -1259,6 +1260,43 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+>  }
+>  #endif
+>  
+> +#ifdef CONFIG_MTD_ONENAND
+> +static int gpmc_probe_onenand_child(struct platform_device *pdev,
+> +				 struct device_node *child)
+> +{
+> +	u32 val;
+> +	struct omap_onenand_platform_data *gpmc_onenand_data;
+> +
+> +	if (of_property_read_u32(child, "reg", &val) < 0) {
+> +		dev_err(&pdev->dev, "%s has no 'reg' property\n",
+> +			child->full_name);
+> +		return -ENODEV;
+> +	}
+> +
+> +	gpmc_onenand_data = devm_kzalloc(&pdev->dev, sizeof(*gpmc_onenand_data),
+> +					 GFP_KERNEL);
+> +	if (!gpmc_onenand_data)
+> +		return -ENOMEM;
+> +
+> +	gpmc_onenand_data->cs = val;
+> +	gpmc_onenand_data->of_node = child;
+> +	gpmc_onenand_data->dma_channel = -1;
+> +
+> +	if (!of_property_read_u32(child, "dma-channel", &val))
+> +		gpmc_onenand_data->dma_channel = val;
+> +
+> +	gpmc_onenand_init(gpmc_onenand_data);
+> +
+> +	return 0;
+> +}
+> +#else
+> +static int gpmc_probe_onenand_child(struct platform_device *pdev,
+> +				    struct device_node *child)
+> +{
+> +	return 0;
+> +}
+> +#endif
+> +
+>  static int gpmc_probe_dt(struct platform_device *pdev)
+>  {
+>  	int ret;
+> @@ -1276,6 +1314,12 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+>  			return ret;
+>  	}
+>  
 
-On Mon, Jan 21, 2013 at 02:02:57PM +0100, Julia Lawall wrote:
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
->=20
-> Delete successive tests to the same location.  Data is the just previously
-> allocated and tested value.  Test the result of the allocation made here
-> instead.
->=20
-> A simplified version of the semantic match that finds this problem is as
-> follows: (http://coccinelle.lip6.fr/)
->=20
-> // <smpl>
-> @s exists@
-> local idexpression y;
-> expression x,e;
-> @@
->=20
-> *if ( \(x =3D=3D NULL\|IS_ERR(x)\|y !=3D 0\) )
->  { ... when forall
->    return ...; }
-> ... when !=3D \(y =3D e\|y +=3D e\|y -=3D e\|y |=3D e\|y &=3D e\|y++\|y--=
-\|&y\)
->     when !=3D \(XT_GETPAGE(...,y)\|WMI_CMD_BUF(...)\)
-> *if ( \(x =3D=3D NULL\|IS_ERR(x)\|y !=3D 0\) )
->  { ... when forall
->    return ...; }
-> // </smpl>
->=20
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+This doesn't look right to me:
 
-Already in my tree ;-)
+> +	for_each_node_by_name(child, "onenand") {
+> +		ret = gpmc_probe_onenand_child(pdev, child);
+> +		of_node_put(child);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
 
-commit b37457d80bc3e2a6bb86a6036c572574614a7631
-Author: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Date:   Tue Jan 8 22:11:14 2013 +0300
+for_each_node_by_name automatically calls of_node_put on each node once passed,
+and as far as I can tell, gpmc_probe_onenand_child doesn't do anything that'd
+increment a node's refcount.
 
-    usb: musb: omap2430: fix wrong devm_kzalloc() result check
-   =20
-    Commit 00a0b1d58af873d842580dcac55f3b156c3a4077 (usb: musb: omap: Add d=
-evice
-    tree support for omap musb glue) assigns result of devm_kzalloc() call =
-to
-    the 'config' variable but then checks for NULL the 'data' variable (alr=
-eady
-    checked after previous call). Thus we risk a kernel oops further when d=
-ata
-    pointed by 'config' is written to by subsequent of_property_read_u32() =
-calls
-    iff the allocation happens to fail...
-   =20
-    Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-    Signed-off-by: Felipe Balbi <balbi@ti.com>
+As far as I can see, you only need the of_node_put in the error case:
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index b15bb05..bb48796 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -543,7 +543,7 @@ static int omap2430_probe(struct platform_device *pdev)
- 		}
-=20
- 		config =3D devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
--		if (!data) {
-+		if (!config) {
- 			dev_err(&pdev->dev,
- 				"failed to allocate musb hdrc config\n");
- 			goto err2;
+for_each_node_by_name(child, "onenand") {
+	ret = gpmc_probe_onenand_child(pdev, child);
+	if (ret < 0) {
+		of_node_put(child);
+		return ret;
+	}
+}
 
---=20
-balbi
+Have I missed something here?
 
---lPJ5i9rX1WvdYcWF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+>  	return 0;
+>  }
+>  #else
+> -- 
+> 1.7.8.6
+> 
+> _______________________________________________
+> devicetree-discuss mailing list
+> devicetree-discuss@lists.ozlabs.org
+> https://lists.ozlabs.org/listinfo/devicetree-discuss
+> 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Thanks,
+Mark.
 
-iQIcBAEBAgAGBQJQ/TRfAAoJEIaOsuA1yqREiN8QAKZ/9VQe+dfO90v7PuZsfyD1
-lgJ/+RO+xW3EguNfuFHX+mCloBwUw9aAdThlowDjBhYd2YVgmznkNs7O2VnLJETv
-e+/QxAwo5jgZba2w3eH+Guwnb6oplhR+Cy5rOTUeoAfgLdS4kITh4Ee84HOiHWHG
-n/UZ8/H/K+gmPMH3eSmhWUMnHoeQ+7MMZTHZ1yNOGvGdW1pgDsM9Dzo/quN0fxdh
-/chMZEhQG4Rvnzj5OnjOHuiovbhZxBkmowrEbiePeIWXqDxkKkqOoUdSu4SfNzOp
-ejmhWw1ki1L0DsngCmTaoufAAtJwuPPQTOqoJHlgGgoea2JstR2JIIm46fGwvmTP
-id7xvUyVHSHUXyFav17K2ou/WPnFnLvdBEOBhUzZobN5tDNe6w0X8GmegM2N137L
-bnDgg4oi+3x5/j7W2Zjob738HUpLq2M4mELVqEGa0Bmyyz3A+Igimo6opILsOk6M
-OFlj6WAFLnQERh4VKE5yGtnoaO5NPiERFQYaVluHcA2JZiPtvwD3bRfi07B0u2S+
-Poez6l1N+Eirf3fmSezDR2s55OHj2R/PN9aDNnzA7ziL7dOvq1atNWiiS2kF+Nqs
-p8/KHdDZ8iF/08J+PeUeqUqLEBLGiUDwYAIKoLeOVWj8f8dzwd3lMAl2Eh0wYBTS
-Fm7JDZ1rmOeWlxG08Ok6
-=AnlX
------END PGP SIGNATURE-----
-
---lPJ5i9rX1WvdYcWF--
