@@ -1,53 +1,69 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 3/4] ARM: OMAP2: MUSB: Specify omap4 has mailbox
-Date: Mon, 21 Jan 2013 19:38:27 +0530
-Message-ID: <1358777308-2409-4-git-send-email-kishon@ti.com>
-References: <1358777308-2409-1-git-send-email-kishon@ti.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Question regarding broadcast timer/cpuidle and /proc/interrupts
+Date: Mon, 21 Jan 2013 15:17:48 +0100
+Message-ID: <50FD4E0C.1010305@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358777308-2409-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, balbi@ti.com, b-cousson@ti.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
-Cc: grant.likely@secretlab.ca, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, kishon@ti.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-la0-f43.google.com ([209.85.215.43]:47685 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752866Ab3AUOR5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 09:17:57 -0500
+Received: by mail-la0-f43.google.com with SMTP id ed20so1660215lab.2
+        for <linux-omap@vger.kernel.org>; Mon, 21 Jan 2013 06:17:56 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Lists Linaro-dev <linaro-dev@lists.linaro.org>
 
-Added has_mailbox to the musb platform data to specify that omap uses
-an external mailbox (in control module) to communicate with the musb
-core during device connect and disconnect.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/mach-omap2/usb-musb.c |    3 +++
- include/linux/usb/musb.h       |    2 ++
- 2 files changed, 5 insertions(+)
+Hi All,
 
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 7b33b37..9d27e3f 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -85,6 +85,9 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
- 	musb_plat.mode = board_data->mode;
- 	musb_plat.extvbus = board_data->extvbus;
- 
-+	if (cpu_is_omap44xx())
-+		musb_plat.has_mailbox = true;
-+
- 	if (soc_is_am35xx()) {
- 		oh_name = "am35x_otg_hs";
- 		name = "musb-am35x";
-diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-index eb50525..053c268 100644
---- a/include/linux/usb/musb.h
-+++ b/include/linux/usb/musb.h
-@@ -99,6 +99,8 @@ struct musb_hdrc_platform_data {
- 	/* MUSB_HOST, MUSB_PERIPHERAL, or MUSB_OTG */
- 	u8		mode;
- 
-+	u8		has_mailbox:1;
-+
- 	/* for clk_get() */
- 	const char	*clock;
- 
--- 
-1.7.9.5
+I have a question regarding the behavior of cpuidle on pandaboard.
+
+1. cpuidle is enabled
+
+2. The deep idle states seem to be reach
+
+for i in $(find /sys/devices/system/cpu -name "usage"); do echo "$i :
+$(cat $i)"; done
+/sys/devices/system/cpu/cpu0/cpuidle/state0/usage : 7049
+/sys/devices/system/cpu/cpu0/cpuidle/state1/usage : 17
+/sys/devices/system/cpu/cpu0/cpuidle/state2/usage : 1341
+/sys/devices/system/cpu/cpu1/cpuidle/state0/usage : 6318
+/sys/devices/system/cpu/cpu1/cpuidle/state1/usage : 17
+/sys/devices/system/cpu/cpu1/cpuidle/state2/usage : 1341
+
+3. Regarding the cpuidle driver code : the "state1" and "state2" are
+coupled states where the broadcast timer is used instead of the local
+timer. I assume this is because they go down when we reach these idle
+states.
+
+4. The content of /proc/interrupts shows no broadcast timer used at all=
+=2E
+
+=2E..
+IPI1:          0          0  Timer broadcast interrupts
+=2E..
+
+Shouldn't be the broadcast timer used sometimes ? or did I miss somethi=
+ng ?
+
+Thanks.
+
+  -- Daniel
+
+
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
