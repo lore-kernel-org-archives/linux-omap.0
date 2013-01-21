@@ -1,54 +1,118 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 6/6] USB: MUSB: OMAP: get PHY by phandle for dt boot
-Date: Mon, 21 Jan 2013 16:24:16 +0200
-Message-ID: <50FD4F90.7080101@ti.com>
-References: <1358348462-27693-1-git-send-email-kishon@ti.com> <1358348462-27693-7-git-send-email-kishon@ti.com> <50FD4034.5040402@ti.com> <50FD4593.5020007@ti.com>
+From: Sebastien Guiriec <s-guiriec@ti.com>
+Subject: Re: [PATCH 08/10] ARM: OMAP5: hwmod data: Create initial OMAP5 SOC
+ hwmod data
+Date: Mon, 21 Jan 2013 15:25:52 +0100
+Message-ID: <50FD4FF0.1020403@ti.com>
+References: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com> <1358522856-12180-9-git-send-email-santosh.shilimkar@ti.com> <20130118171500.GC15361@atomide.com> <50FCF838.6000105@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <50FD4593.5020007@ti.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: kishon <kishon@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, balbi@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, horms@verge.net.au, magnus.damm@gmail.com, cbou@mail.ru, dwmw2@infradead.org, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, leoli@freescale.com, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, stern@rowland.harvard.edu
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41510 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753809Ab3AUO0E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Jan 2013 09:26:04 -0500
+In-Reply-To: <50FCF838.6000105@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, rnayak@ti.com, b-cousson@ti.com, Paul Walmsley <paul@pwsan.com>
 
-On 01/21/2013 03:41 PM, kishon wrote:
-> Hi,
-> 
-> On Monday 21 January 2013 06:48 PM, Roger Quadros wrote:
->> On 01/16/2013 05:01 PM, Kishon Vijay Abraham I wrote:
->>> The OMAP glue has been modified to get PHY by phandle for dt boot.
->>>
->>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>> ---
->>>   drivers/usb/musb/omap2430.c |    7 ++++++-
->>>   1 file changed, 6 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
->>> index 3628a50..08709cf 100644
->>> --- a/drivers/usb/musb/omap2430.c
->>> +++ b/drivers/usb/musb/omap2430.c
->>> @@ -346,7 +346,12 @@ static int omap2430_musb_init(struct musb *musb)
->>>        * up through ULPI.  TWL4030-family PMICs include one,
->>>        * which needs a driver, drivers aren't always needed.
->>>        */
->>> -    musb->xceiv = devm_usb_get_phy(dev, 0);
->>> +    if (dev->parent->of_node)
->>> +        musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
->>> +            "usb_phy", 0);
+Hi Santosh
+
+We can also remove all the next data:
+	omap54xx_l4_abe__aess_dma,
+	omap54xx_l4_abe__dmic_dma,
+	omap54xx_l4_abe__mcasp_dma,
+	omap54xx_l4_abe__mcbsp1_dma,
+	omap54xx_l4_abe__mcbsp2_dma,
+	omap54xx_l4_abe__mcbsp3_dma,
+	omap54xx_l4_abe__mcpdm_dma,
+	omap54xx_l4_abe__slimbus1_dma,
+	omap54xx_l4_abe__timer5_dma,
+	omap54xx_l4_abe__timer6_dma,
+	omap54xx_l4_abe__timer7_dma,
+	omap54xx_l4_abe__timer8_dma,
+	omap54xx_l4_abe__wd_timer3_dma,
+
+It was needed in the past due to the way the lockup between DT data and 
+hwmod was done but Peter clean it up in 3.8.
+
+For AESS we just need the last memory bank due to hwmod code for 
+SYS_CONFIG access.
+
+Best regards,
+
+Sebastien
+
+
+On 01/21/2013 09:11 AM, Santosh Shilimkar wrote:
+> On Friday 18 January 2013 10:45 PM, Tony Lindgren wrote:
+>> Hi,
 >>
->> Why dev->parent and not just dev?
-> 
-> Right now MUSB core is not converted to dt and hence we don't have
-> separate dt node for MUSB core.
-> So the PHY information is added to the glue dt data.
-> 
-
-OK. Got it :).
-
---
-cheers,
--roger
-
+>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130118 07:30]:
+>>> From: Benoit Cousson <b-cousson@ti.com>
+>>>
+>>> Adding the hwmod data for OMAP54xx platforms.
+>>> --- /dev/null
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+>>> +/* bb2d */
+>>> +static struct omap_hwmod_irq_info omap54xx_bb2d_irqs[] = {
+>>> +    { .irq = 125 + OMAP54XX_IRQ_GIC_START },
+>>> +    { .irq = -1 }
+>>> +};
+>> ...
+>>
+>>> +/* c2c */
+>>> +static struct omap_hwmod_irq_info omap54xx_c2c_irqs[] = {
+>>> +    { .irq = 88 + OMAP54XX_IRQ_GIC_START },
+>>> +    { .irq = -1 }
+>>> +};
+>> ...
+>>
+>>
+>>> +static struct omap_hwmod_dma_info omap54xx_c2c_sdma_reqs[] = {
+>>> +    { .dma_req = 68 + OMAP54XX_DMA_REQ_START },
+>>> +    { .dma_req = -1 }
+>>> +};
+>>
+>>
+>>
+>>> +static struct omap_hwmod_addr_space omap54xx_elm_addrs[] = {
+>>> +    {
+>>> +        .pa_start    = 0x48078000,
+>>> +        .pa_end        = 0x48078fff,
+>>> +        .flags        = ADDR_TYPE_RT
+>>> +    },
+>>> +    { }
+>>> +};
+>> ...
+>>
+>>> +static struct omap_hwmod_addr_space omap54xx_emif1_addrs[] = {
+>>> +    {
+>>> +        .pa_start    = 0x4c000000,
+>>> +        .pa_end        = 0x4c0003ff,
+>>> +        .flags        = ADDR_TYPE_RT
+>>> +    },
+>>> +    { }
+>>> +};
+>>
+>> As discussed earlier on this list, let's not duplicate the standard
+>> resources here as they already are supposed to come from device tree.
+>>
+>> Whatever issues prevent us from dropping the duplicate data here need
+>> to be fixed. I believe Benoit already had some scripts/patches for
+>> that and was just waiting for the DMA binding to get merged?
+>>
+> Will have a loot at it. DMA binding pull request narrowly missed
+> 3.8 but should get into 3.9.
+>
+> Regards
+> santosh
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
