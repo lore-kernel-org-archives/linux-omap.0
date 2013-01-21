@@ -1,68 +1,63 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 13/15] drivers/usb/musb/omap2430.c: adjust duplicate test
-Date: Tue, 22 Jan 2013 01:45:34 +0400
-Message-ID: <50FDB6FE.7010601@mvista.com>
-References: <1358773378-4700-1-git-send-email-Julia.Lawall@lip6.fr> <1358773378-4700-14-git-send-email-Julia.Lawall@lip6.fr>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: omap2plus_defconfig: enable CMA allocator
+Date: Mon, 21 Jan 2013 23:27:58 +0100
+Message-ID: <CAAwP0s2=_wrPYjmckiXMwK8-4MkyYxtX8HtWv9NuaTtqqN7icg@mail.gmail.com>
+References: <1355920420-20852-1-git-send-email-javier.martinez@collabora.co.uk>
+ <1355920420-20852-2-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358773378-4700-14-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Felipe Balbi <balbi@ti.com>, kernel-janitors@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ia0-f178.google.com ([209.85.210.178]:63628 "EHLO
+	mail-ia0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752245Ab3AUW2T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 17:28:19 -0500
+Received: by mail-ia0-f178.google.com with SMTP id y26so2967860iab.9
+        for <linux-omap@vger.kernel.org>; Mon, 21 Jan 2013 14:28:18 -0800 (PST)
+In-Reply-To: <1355920420-20852-2-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-On 21-01-2013 17:02, Julia Lawall wrote:
-
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
-
-> Delete successive tests to the same location.  Data is the just previously
-> allocated and tested value.  Test the result of the allocation made here
-> instead.
-
-> A simplified version of the semantic match that finds this problem is as
-> follows: (http://coccinelle.lip6.fr/)
-
-> // <smpl>
-> @s exists@
-> local idexpression y;
-> expression x,e;
-> @@
-
-> *if ( \(x == NULL\|IS_ERR(x)\|y != 0\) )
->   { ... when forall
->     return ...; }
-> ... when != \(y = e\|y += e\|y -= e\|y |= e\|y &= e\|y++\|y--\|&y\)
->      when != \(XT_GETPAGE(...,y)\|WMI_CMD_BUF(...)\)
-> *if ( \(x == NULL\|IS_ERR(x)\|y != 0\) )
->   { ... when forall
->     return ...; }
-> // </smpl>
-
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+On Wed, Dec 19, 2012 at 1:33 PM, Javier Martinez Canillas
+<javier.martinez@collabora.co.uk> wrote:
+> The OMAP framebuffer driver now uses the standard dma allocator
+> instead of the (now removed) omap specific vram allocator.
+>
+> Enable the Contiguous Memory Allocator by default to allow large
+> dma memory buffers allocation.
+>
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 > ---
-> The previous code could be further simplified by removing the
-> initializations of ret to -ENOMEM, as is absent in this case.  But that is
-> probably for another patch.
-
-    I've already sent such patch and Felipe has queued it.
-
->   drivers/usb/musb/omap2430.c |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+>  arch/arm/configs/omap2plus_defconfig |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 >
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index da00af4..533c4fd 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -545,7 +545,7 @@ static int omap2430_probe(struct platform_device *pdev)
->   		}
->
->   		config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
-> -		if (!data) {
-> +		if (!config) {
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index da530a0..dc4789e 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -64,6 +64,7 @@ CONFIG_MAC80211=m
+>  CONFIG_MAC80211_RC_PID=y
+>  CONFIG_MAC80211_RC_DEFAULT_PID=y
+>  CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+> +CONFIG_CMA=y
+>  CONFIG_CONNECTOR=y
+>  CONFIG_MTD=y
+>  CONFIG_MTD_CMDLINE_PARTS=y
+> --
 
-    Same about this change. You're a bit late this time. :-)
+Hi Tony,
 
-WBR, Sergei
+Are you considering adding this patch and
+
+ARM: OMAP2+: omap2plus_defconfig: enable TFP410 chip support [1]
+
+to the 3.8-rc series or 3.9?
+
+These patches have been acked by Tomi and are necessary to have
+framebuffer video working on many OMAP3 based boards.
+
+Thanks a lot and best regards,
+Javier
+
+[1]: https://patchwork.kernel.org/patch/1895451/
