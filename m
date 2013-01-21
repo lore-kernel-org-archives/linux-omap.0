@@ -1,98 +1,137 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] i2c: omap: fix draining irq handling
-Date: Mon, 21 Jan 2013 10:44:31 +0200
-Message-ID: <20130121084431.GG8777@arwen.pp.htv.fi>
-References: <1358707022-26477-1-git-send-email-aaro.koskinen@iki.fi>
-Reply-To: <balbi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 1/2] ASoC: omap: rx51: Use snd_soc_register_card and add
+ module alias for autoloading driver
+Date: Mon, 21 Jan 2013 09:47:20 +0100
+Message-ID: <50FD0098.4070407@ti.com>
+References: <1358651070-30029-1-git-send-email-pali.rohar@gmail.com> <1358651070-30029-2-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oOB74oR0WcNeq9Zb"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55659 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751404Ab3AUIpF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Jan 2013 03:45:05 -0500
-Content-Disposition: inline
-In-Reply-To: <1358707022-26477-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358651070-30029-2-git-send-email-pali.rohar@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: w.sang@pengutronix.de, ben-linux@fluff.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, balbi@ti.com
 
---oOB74oR0WcNeq9Zb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-HI,
+On 01/20/2013 04:04 AM, Pali Roh=C3=A1r wrote:
+> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
 
-On Sun, Jan 20, 2013 at 08:37:02PM +0200, Aaro Koskinen wrote:
-> Commit 0bdfe0cb803dce699ff337c35d8e97ac355fa417 (i2c: omap: sanitize
-> exit path) changed the interrupt handler to exit early and complete
-> the transfer after the draining IRQ is handled. As a result, the ARDY
-> may not be cleared properly, and it may cause all future I2C transfers
-> to timeout with "timeout waiting for bus ready". This is reproducible
-> at least with N900 when twl4030_gpio makes a long write (> FIFO size)
-> during the probe (http://marc.info/?l=3Dlinux-omap&m=3D135818882610432&w=
-=3D2).
->=20
-> The fix is to continue until we get ARDY interrupt that completes the
-> transfer. Tested with 3.8-rc4 + N900: 20 boots in a row without errors;
-> without the patch the problem triggers after few reboots.
+This is really welcome.
+It would be even better if we would have commit message...
+Also for ASoC patches please CC alsa-devel and the maintainers so they =
+will
+also have a chance to review.
 
-fair enough, but ...
-
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> ---
->  drivers/i2c/busses/i2c-omap.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 832f16e..4cc2f05 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -963,7 +963,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
->  				i2c_omap_errata_i207(dev, stat);
-> =20
->  			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RDR);
-> -			break;
-> +			continue;
-
-=2E.. when we get draining Interrupt, it means we're receiving the last
-few bytes, meaning that by the time we handle it there's nothing pending
-to be transferred.
-
-I would rather wait for ARDY before exiting omap_i2c_xfer_msg() rather
-than here. Specially since that was the programming model suggested by
-our IP engineers. Such handling is part of my other patchset and can be
-easily ported.
-
-OTOH, we might decide to go with this during this -rc and fix it all up
-for v3.9 on my other patchset.
+There are still couple of things which can improve the rx51 machine dri=
+ver:
+- Switch to use devm_gpio_request_one() so we can remove the failure ha=
+ndling.
+- I would introduce platform data for this driver to pass the GPIO numb=
+ers.
+This is especially important for the RX51_SPEAKER_AMP_TWL_GPIO since it=
+ is in
+twl4030 and the GPIO range now allocated dynamically so the (192 + 7) m=
+ight
+not be valid anymore.
 
 --=20
-balbi
+P=C3=A9ter
 
---oOB74oR0WcNeq9Zb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQ/P/vAAoJEIaOsuA1yqREnPMQAIWekhOO5KS9ZmEKqqLJ0aof
-P3xtJaHk1ZXHqVYrH5JHRSNwteMwkOPG1IFewXGWZEZx30H/M0Kfjrj8rQ5dzZKY
-NMcFNOtTxtTXwxOPqh0TLZgm/duNkjS8xa2uHc+pT1t1PkV1aCZwmczQVT/k6JOd
-rvcU4S5JIJ/A2NfOhSiqaoqa9lhurlk/fS89v+52G0R3Y//7/UtRm5reR/d7HUHX
-CRd/kzJ4cHG5taczkIIPJFkaBxULpjbZMFnDLtr/uvS3ItZ7L6WvfhP+mOVPgp0R
-aZecWBbD9xkYvs3iAWkc7p/7c0QWR093qE0fU1F27MLQj5PX4AzIFWYJuhZy3/OS
-Od5wdLdMSUqBgI4b+6cq7zkuVt1MVYhf5XRc03kiyBPcbiFEEevDNX8oA2LezDz0
-X0Clg1LBPPryogXNr30YbLcSZi32WEShCZ5SqUmmqkxBtrNqf+ox5089TtYqrXlC
-WAfyTcN13GE6mEQGQLGlYKprYRfPA0z7JolirqKUiF+eSDNbw6RYDOAfFX91Eqnh
-4rCdKZpdxQAWnbloCcGOU8HXKcnIqccv/iHWicPpJAvgiSRiZvYK76xzoC4H+UM1
-4uZAzOIOJU/i2MHd/PpCcOSex79afzT87UJfOMzbQMKpxaO/e+LsMoPcPAZF81ap
-yx54Xw5Gj0oE980ZfMNM
-=2zBS
------END PGP SIGNATURE-----
-
---oOB74oR0WcNeq9Zb--
+> ---
+>  sound/soc/omap/rx51.c |   50 +++++++++++++++++++++++++++++----------=
+----------
+>  1 file changed, 30 insertions(+), 20 deletions(-)
+>=20
+> diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
+> index d921ddb..82e3aae 100644
+> --- a/sound/soc/omap/rx51.c
+> +++ b/sound/soc/omap/rx51.c
+> @@ -391,10 +391,9 @@ static struct snd_soc_card rx51_sound_card =3D {
+>  	.num_configs =3D ARRAY_SIZE(rx51_codec_conf),
+>  };
+> =20
+> -static struct platform_device *rx51_snd_device;
+> -
+> -static int __init rx51_soc_init(void)
+> +static int rx51_soc_probe(struct platform_device *pdev)
+>  {
+> +	struct snd_soc_card *card =3D &rx51_sound_card;
+>  	int err;
+> =20
+>  	if (!machine_is_nokia_rx51())
+> @@ -409,22 +408,18 @@ static int __init rx51_soc_init(void)
+>  	if (err)
+>  		goto err_gpio_eci_sw;
+> =20
+> -	rx51_snd_device =3D platform_device_alloc("soc-audio", -1);
+> -	if (!rx51_snd_device) {
+> -		err =3D -ENOMEM;
+> -		goto err1;
+> -	}
+> -
+> -	platform_set_drvdata(rx51_snd_device, &rx51_sound_card);
+> +	card->dev =3D &pdev->dev;
+> =20
+> -	err =3D platform_device_add(rx51_snd_device);
+> -	if (err)
+> -		goto err2;
+> +	err =3D snd_soc_register_card(card);
+> +	if (err) {
+> +		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", err);
+> +		goto err_snd;
+> +	}
+> =20
+>  	return 0;
+> -err2:
+> -	platform_device_put(rx51_snd_device);
+> -err1:
+> +
+> +err_snd:
+> +	card->dev =3D NULL;
+>  	gpio_free(RX51_ECI_SW_GPIO);
+>  err_gpio_eci_sw:
+>  	gpio_free(RX51_TVOUT_SEL_GPIO);
+> @@ -433,19 +428,34 @@ err_gpio_tvout_sel:
+>  	return err;
+>  }
+> =20
+> -static void __exit rx51_soc_exit(void)
+> +static int rx51_soc_remove(struct platform_device *pdev)
+>  {
+> +	struct snd_soc_card *card =3D platform_get_drvdata(pdev);
+> +
+>  	snd_soc_jack_free_gpios(&rx51_av_jack, ARRAY_SIZE(rx51_av_jack_gpio=
+s),
+>  				rx51_av_jack_gpios);
+> =20
+> -	platform_device_unregister(rx51_snd_device);
+> +	snd_soc_unregister_card(card);
+> +	card->dev =3D NULL;
+> +
+>  	gpio_free(RX51_ECI_SW_GPIO);
+>  	gpio_free(RX51_TVOUT_SEL_GPIO);
+> +
+> +	return 0;
+>  }
+> =20
+> -module_init(rx51_soc_init);
+> -module_exit(rx51_soc_exit);
+> +static struct platform_driver rx51_soc_driver =3D {
+> +	.driver =3D {
+> +		.name =3D "rx51-audio",
+> +		.owner =3D THIS_MODULE,
+> +	},
+> +	.probe =3D rx51_soc_probe,
+> +	.remove =3D rx51_soc_remove,
+> +};
+> +
+> +module_platform_driver(rx51_soc_driver);
+> =20
+>  MODULE_AUTHOR("Nokia Corporation");
+>  MODULE_DESCRIPTION("ALSA SoC Nokia RX-51");
+>  MODULE_LICENSE("GPL");
+> +MODULE_ALIAS("platform:rx51-audio");
+>=20
