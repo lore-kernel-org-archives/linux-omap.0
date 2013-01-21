@@ -1,58 +1,75 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/4] OPP usage fixes for RCU locking
-Date: Mon, 21 Jan 2013 13:40:35 +0100
-Message-ID: <3394404.9F6oTTpRKB@vostro.rjw.lan>
-References: <1358538755-29109-1-git-send-email-nm@ti.com> <2007041.tOt4VKpdOD@vostro.rjw.lan> <CAJ0PZbS6Ka7ZNJ+a4kXW89dYgwASWA_3pYQFPFtTNv8DwwQzLw@mail.gmail.com>
+From: srinidhi kasagar <srinidhi.kasagar@stericsson.com>
+Subject: [PATCH 3/4] ARM: mach-omap2: apply the errata at run time rather
+Date: Mon, 21 Jan 2013 18:46:15 +0530
+Message-ID: <20130121131613.GA29876@bnru10>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJ0PZbS6Ka7ZNJ+a4kXW89dYgwASWA_3pYQFPFtTNv8DwwQzLw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: myungjoo.ham@gmail.com
-Cc: Nishanth Menon <nm@ti.com>, linux-pm <linux-pm@vger.kernel.org>, Kevin <khilman@deeprootsystems.com>, lkml <linux-kernel@vger.kernel.org>, lo <linux-omap@vger.kernel.org>, Jack <jack@embed.me.uk>, Alexander <holler@ahsoftware.de>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from eu1sys200aog106.obsmtp.com ([207.126.144.121]:47835 "EHLO
+	eu1sys200aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753991Ab3AUNQ0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Jan 2013 08:16:26 -0500
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-On Monday, January 21, 2013 02:45:32 PM MyungJoo Ham wrote:
-> On Sat, Jan 19, 2013 at 7:28 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Friday, January 18, 2013 01:52:31 PM Nishanth Menon wrote:
-> >> Hi,
-> >> Despite being documented in function documentation and in
-> >> Documentation/power/opp.txt, many of the users of OPP APIs
-> >> dont honor RCU lock usage appropriately.
-> >>
-> >> This recently appeared in IRC discussion earlier today [1].
-> >> I did an audit of current usage and the following series
-> >> is a result of this.
-> >>
-> >> NOTE:
-> >> 1. The patch "PM / devfreq: exynos4_bus: honor RCU lock usage" has only
-> >>    been build tested as I dont have an exynos platform to try it on. I have
-> >>    tried to make it as least intrusive as possible and at least reviewed
-> >>    to ensure I haven't screwed anything up.
-> >>
-> >> Other than this, I have added appropriate tested by information in requisite
-> >> patches.
-> >
-> > Thanks for the fixes.
-> >
-> > MyungJoo, do you want me to take the devfreq ones too?
-> >
-> > Rafael
-> 
-> Yes, please take RCU-OPP patches. Having those patches splitted
-> doesn't seem beneficial.
+Signed-off-by: srinidhi kasagar <srinidhi.kasagar@stericsson.com>
+---
+ arch/arm/mach-omap2/sleep44xx.S |   25 +++++++++++++++++++++----
+ 1 files changed, 21 insertions(+), 4 deletions(-)
 
-OK, I will take them.
-
-> I'll let other devfreq patches be based on this after you get them applied.
-
-OK
-
-Thanks,
-Rafael
-
-
+diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
+index 88ff83a..071ca1f 100644
+--- a/arch/arm/mach-omap2/sleep44xx.S
++++ b/arch/arm/mach-omap2/sleep44xx.S
+@@ -157,11 +157,19 @@ skip_scu_gp_set:
+ 	ldrne	r0, [r8, #L2X0_SAVE_OFFSET1]	@ memory.
+ 	cmp	r0, #3
+ 	bne	do_WFI
+-#ifdef CONFIG_PL310_ERRATA_727915
++	/* Check for PL310_ERRATA_727915 */
++	bl	l2x0_get_rtl_release
++	cmp	r0, #0x4
++	beq	dosmc
++	cmp	r0, #0x5
++	beq	dosmc
++	b	nosmc
++dosmc:
+ 	mov	r0, #0x03
+ 	mov	r12, #OMAP4_MON_L2X0_DBG_CTRL_INDEX
+ 	DO_SMC
+-#endif
++
++nosmc:
+ 	bl	omap4_get_l2cache_base
+ 	mov	r2, r0
+ 	ldr	r0, =0xffff
+@@ -171,11 +179,20 @@ wait:
+ 	ldr	r1, =0xffff
+ 	ands	r0, r0, r1
+ 	bne	wait
+-#ifdef CONFIG_PL310_ERRATA_727915
++
++	/* Check for PL310_ERRATA_727915 */
++	bl	l2x0_get_rtl_release
++	cmp	r0, #0x4
++	beq	dosmc2
++	cmp	r0, #0x5
++	beq	dosmc2
++	b	nosmc2
++dosmc2:
+ 	mov	r0, #0x00
+ 	mov	r12, #OMAP4_MON_L2X0_DBG_CTRL_INDEX
+ 	DO_SMC
+-#endif
++
++nosmc2:
+ l2x_sync:
+ 	bl	omap4_get_l2cache_base
+ 	mov	r2, r0
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.2.dirty
+
