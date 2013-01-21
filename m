@@ -1,32 +1,61 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 07/10] ARM: OMAP5: clock data: Add OMAP54XX full clock
- tree and headers
-Date: Mon, 21 Jan 2013 20:01:07 +0530
-Message-ID: <50FD512B.4020003@ti.com>
-References: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com> <1358522856-12180-8-git-send-email-santosh.shilimkar@ti.com> <50FD5055.6000903@ti.com>
+Subject: Re: Question regarding broadcast timer/cpuidle and /proc/interrupts
+Date: Mon, 21 Jan 2013 20:08:11 +0530
+Message-ID: <50FD52D3.8010601@ti.com>
+References: <50FD4E0C.1010305@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38262 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755907Ab3AUOaL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Jan 2013 09:30:11 -0500
-In-Reply-To: <50FD5055.6000903@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38585 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753006Ab3AUOhJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 09:37:09 -0500
+In-Reply-To: <50FD4E0C.1010305@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Paul Walmsley <paul@pwsan.com>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linux-omap@vger.kernel.org, Lists Linaro-dev <linaro-dev@lists.linaro.org>
 
-On Monday 21 January 2013 07:57 PM, Sebastien Guiriec wrote:
-> Hi Santosh,
+On Monday 21 January 2013 07:47 PM, Daniel Lezcano wrote:
 >
-> I check the tree with Audio and it is working. Just a comment for the
-> addition of ABE DPLL locking like for OMAP4.
+> Hi All,
 >
-Excellent. Can you send the update please?
-I will fold that in.
+> I have a question regarding the behavior of cpuidle on pandaboard.
+>
+> 1. cpuidle is enabled
+>
+> 2. The deep idle states seem to be reach
+>
+> for i in $(find /sys/devices/system/cpu -name "usage"); do echo "$i :
+> $(cat $i)"; done
+> /sys/devices/system/cpu/cpu0/cpuidle/state0/usage : 7049
+> /sys/devices/system/cpu/cpu0/cpuidle/state1/usage : 17
+> /sys/devices/system/cpu/cpu0/cpuidle/state2/usage : 1341
+> /sys/devices/system/cpu/cpu1/cpuidle/state0/usage : 6318
+> /sys/devices/system/cpu/cpu1/cpuidle/state1/usage : 17
+> /sys/devices/system/cpu/cpu1/cpuidle/state2/usage : 1341
+>
+> 3. Regarding the cpuidle driver code : the "state1" and "state2" are
+> coupled states where the broadcast timer is used instead of the local
+> timer. I assume this is because they go down when we reach these idle
+> states.
+>
+Thats correct. Local timer are not wakeup capable and hence we switch
+to a wakeup capable broadcast timer.
 
-Regards
+> 4. The content of /proc/interrupts shows no broadcast timer used at all.
+>
+> ...
+> IPI1:          0          0  Timer broadcast interrupts
+> ...
+>
+> Shouldn't be the broadcast timer used sometimes ? or did I miss something ?
+>
+There might be an issue with status updating. Just look for gptimer1
+interrupts. if they are incrementing then, broadcast is being used
+but just the status update isn't happening some how.
+
+regards
 santosh
 
