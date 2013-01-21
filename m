@@ -1,65 +1,46 @@
-From: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
-Subject: Re: [PATCH 2/3] ARM: dts: AM33XX: Add GPMC node
-Date: Mon, 21 Jan 2013 22:01:53 +0100
-Message-ID: <8738xu9rni.fsf@dell.be.48ers.dk>
-References: <1358491295-4022-1-git-send-email-avinashphilip@ti.com>
- <1358491295-4022-3-git-send-email-avinashphilip@ti.com>
+From: Sebastien Guiriec <s-guiriec@ti.com>
+Subject: Re: [PATCH 07/10] ARM: OMAP5: clock data: Add OMAP54XX full clock
+ tree and headers
+Date: Mon, 21 Jan 2013 22:34:22 +0100
+Message-ID: <50FDB45E.7090609@ti.com>
+References: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com> <1358522856-12180-8-git-send-email-santosh.shilimkar@ti.com> <50FD5055.6000903@ti.com> <50FD512B.4020003@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1358491295-4022-3-git-send-email-avinashphilip-l0cyMroinI0@public.gmane.org> (Philip
- Avinash's message of "Fri, 18 Jan 2013 12:11:34 +0530")
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gururaja.hebbar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33438 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752512Ab3AUVea (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Jan 2013 16:34:30 -0500
+In-Reply-To: <50FD512B.4020003@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Paul Walmsley <paul@pwsan.com>
 
->>>>> "Philip" == Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org> writes:
+Hi Santosh,
 
- Philip> From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
- Philip> Add GPMC data node to AM33XX device tree file.
+I have push under the omap-audio gitorious two patches on top of your 
+series. One for adding the ABE DPLL and a second for the remove of Audio 
+DMA addresses.
 
- Philip> Signed-off-by: Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
- Philip> ---
- Philip>  arch/arm/boot/dts/am33xx.dtsi |   12 ++++++++++++
- Philip>  1 file changed, 12 insertions(+)
+https://gitorious.org/omap-audio/linux-audio/commits/base/omap5_es2_data
 
- Philip> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
- Philip> index eaef5e7..f4209d8 100644
- Philip> --- a/arch/arm/boot/dts/am33xx.dtsi
- Philip> +++ b/arch/arm/boot/dts/am33xx.dtsi
- Philip> @@ -393,5 +393,17 @@
- Philip>  			ti,hwmods = "elm";
- Philip>  			status = "disabled";
- Philip>  		};
- Philip> +
- Philip> +		gpmc: gpmc@50000000 {
- Philip> +			compatible = "ti,am3352-gpmc";
- Philip> +			ti,hwmods = "gpmc";
- Philip> +			reg = <0x50000000 0x2000>;
- Philip> +			interrupts = <100>;
- Philip> +			num-cs = <8>;
+I will try to check Display tomorrow.
 
-Next to Jan's comment about am335x having 7 cs signals, I just realized
-the difference in compatible string between the gpmc and elm. The gpmc
-refers to a real device (which is afaik how it should be done), but the
-elm compatible is simply ti,am33xx-elm.
+Sebastien
 
-Presumably it should have been ti,am3352-elm in the binding instead?
+On 01/21/2013 03:31 PM, Santosh Shilimkar wrote:
+> On Monday 21 January 2013 07:57 PM, Sebastien Guiriec wrote:
+>> Hi Santosh,
+>>
+>> I check the tree with Audio and it is working. Just a comment for the
+>> addition of ABE DPLL locking like for OMAP4.
+>>
+> Excellent. Can you send the update please?
+> I will fold that in.
+>
+> Regards
+> santosh
+>
 
-Other than that it looks fine.
-
-Acked-by: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
-
--- 
-Bye, Peter Korsgaard
