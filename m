@@ -1,47 +1,52 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [RFC PATCH 6/6] USB: MUSB: OMAP: get PHY by phandle for dt boot
-Date: Mon, 21 Jan 2013 19:11:39 +0530
-Message-ID: <50FD4593.5020007@ti.com>
-References: <1358348462-27693-1-git-send-email-kishon@ti.com> <1358348462-27693-7-git-send-email-kishon@ti.com> <50FD4034.5040402@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <50FD4034.5040402@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, balbi@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, horms@verge.net.au, magnus.damm@gmail.com, cbou@mail.ru, dwmw2@infradead.org, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, leoli@freescale.com, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, stern@rowland.harvard.edu
+From: Vivek Gautam <gautam.vivek@samsung.com>
+Subject: [PATCH] usb: phy: samsung: Remove __devinit,
+ __devexit_p and __exit annotations
+Date: Mon, 21 Jan 2013 19:30:12 +0530
+Message-ID: <1358776812-14158-1-git-send-email-gautam.vivek@samsung.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, p.paneri@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Dropping __devinit, __devexit_p, __exit annotations since they are
+nop and no longer supported.
 
-On Monday 21 January 2013 06:48 PM, Roger Quadros wrote:
-> On 01/16/2013 05:01 PM, Kishon Vijay Abraham I wrote:
->> The OMAP glue has been modified to get PHY by phandle for dt boot.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>   drivers/usb/musb/omap2430.c |    7 ++++++-
->>   1 file changed, 6 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
->> index 3628a50..08709cf 100644
->> --- a/drivers/usb/musb/omap2430.c
->> +++ b/drivers/usb/musb/omap2430.c
->> @@ -346,7 +346,12 @@ static int omap2430_musb_init(struct musb *musb)
->>   	 * up through ULPI.  TWL4030-family PMICs include one,
->>   	 * which needs a driver, drivers aren't always needed.
->>   	 */
->> -	musb->xceiv = devm_usb_get_phy(dev, 0);
->> +	if (dev->parent->of_node)
->> +		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
->> +		    "usb_phy", 0);
->
-> Why dev->parent and not just dev?
+Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+---
+ drivers/usb/phy/samsung-usbphy.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-Right now MUSB core is not converted to dt and hence we don't have 
-separate dt node for MUSB core.
-So the PHY information is added to the glue dt data.
-
-Thanks
-Kishon
+diff --git a/drivers/usb/phy/samsung-usbphy.c b/drivers/usb/phy/samsung-usbphy.c
+index 30aebb5..6b30809 100644
+--- a/drivers/usb/phy/samsung-usbphy.c
++++ b/drivers/usb/phy/samsung-usbphy.c
+@@ -343,7 +343,7 @@ static inline const struct samsung_usbphy_drvdata
+ 				platform_get_device_id(pdev)->driver_data;
+ }
+ 
+-static int __devinit samsung_usbphy_probe(struct platform_device *pdev)
++static int samsung_usbphy_probe(struct platform_device *pdev)
+ {
+ 	struct samsung_usbphy *sphy;
+ 	struct samsung_usbphy_data *pdata = pdev->dev.platform_data;
+@@ -405,7 +405,7 @@ static int __devinit samsung_usbphy_probe(struct platform_device *pdev)
+ 	return usb_add_phy(&sphy->phy, USB_PHY_TYPE_USB2);
+ }
+ 
+-static int __exit samsung_usbphy_remove(struct platform_device *pdev)
++static int samsung_usbphy_remove(struct platform_device *pdev)
+ {
+ 	struct samsung_usbphy *sphy = platform_get_drvdata(pdev);
+ 
+@@ -456,7 +456,7 @@ MODULE_DEVICE_TABLE(platform, samsung_usbphy_driver_ids);
+ 
+ static struct platform_driver samsung_usbphy_driver = {
+ 	.probe		= samsung_usbphy_probe,
+-	.remove		= __devexit_p(samsung_usbphy_remove),
++	.remove		= samsung_usbphy_remove,
+ 	.id_table	= samsung_usbphy_driver_ids,
+ 	.driver		= {
+ 		.name	= "samsung-usbphy",
+-- 
+1.7.6.5
