@@ -1,116 +1,43 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH v2] ARM: OMAP3: cm-t3517: add MMC support
-Date: Tue, 22 Jan 2013 14:21:46 +0200
-Message-ID: <50FE845A.8090309@compulab.co.il>
-References: <1354795206-12048-1-git-send-email-grinberg@compulab.co.il> <1354871155-32528-1-git-send-email-grinberg@compulab.co.il> <50E3DEDA.7020807@compulab.co.il>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [RFC v2 16/18] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Tue, 22 Jan 2013 13:50:15 +0100
+Message-ID: <87sj5t4c1k.fsf@dell.be.48ers.dk>
+References: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com>
+	<1356959231-17335-17-git-send-email-vaibhav.bedia@ti.com>
+	<87ip6vlwaf.fsf@dell.be.48ers.dk>
+	<B5906170F1614E41A8A28DE3B8D121433ECF118E@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:43638 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752894Ab3AVMWA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Jan 2013 07:22:00 -0500
-In-Reply-To: <50E3DEDA.7020807@compulab.co.il>
+Received: from mail-bk0-f50.google.com ([209.85.214.50]:43357 "EHLO
+	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751138Ab3AVMuU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jan 2013 07:50:20 -0500
+Received: by mail-bk0-f50.google.com with SMTP id jf3so3681533bkc.9
+        for <linux-omap@vger.kernel.org>; Tue, 22 Jan 2013 04:50:19 -0800 (PST)
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433ECF118E@DBDE01.ent.ti.com>
+	(Vaibhav Bedia's message of "Mon, 21 Jan 2013 10:37:06 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-ping!
+>>>>> "V" == Bedia, Vaibhav <vaibhav.bedia@ti.com> writes:
 
-It has been 1.5 month and we are at rc4 already...
+Hi,
 
-On 01/02/13 09:16, Igor Grinberg wrote:
-> ping
-> 
-> Hi Tony,
-> 
-> This is a really small addition to improve Paul's tests coverage.
-> Can this go into 3.9?
-> 
-> Thanks
-> 
-> On 12/07/12 11:05, Igor Grinberg wrote:
->> cm-t3517 uses two MMC interfaces. Add support for both.
->>
->> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
->> ---
->> v2: Use CONFIG_MMC_OMAP_HS instead of plain CONFIG_MMC, so it will be stubbed
->>     out with the same defines as omap_hsmmc_init() function.
->>     Fix the !CONFIG_MMC_OMAP_HS case.
->>
->>  arch/arm/mach-omap2/board-cm-t3517.c |   27 +++++++++++++++++++++++++++
->>  1 files changed, 27 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
->> index ebbc2ad..792d684 100644
->> --- a/arch/arm/mach-omap2/board-cm-t3517.c
->> +++ b/arch/arm/mach-omap2/board-cm-t3517.c
->> @@ -32,6 +32,7 @@
->>  #include <linux/mtd/mtd.h>
->>  #include <linux/mtd/nand.h>
->>  #include <linux/mtd/partitions.h>
->> +#include <linux/mmc/host.h>
->>  #include <linux/can/platform/ti_hecc.h>
->>  
->>  #include <asm/mach-types.h>
->> @@ -46,6 +47,7 @@
->>  
->>  #include "mux.h"
->>  #include "control.h"
->> +#include "hsmmc.h"
->>  #include "common-board-devices.h"
->>  #include "am35xx-emac.h"
->>  #include "gpmc-nand.h"
->> @@ -121,6 +123,26 @@ static void cm_t3517_init_hecc(void)
->>  static inline void cm_t3517_init_hecc(void) {}
->>  #endif
->>  
->> +#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
->> +static struct omap2_hsmmc_info cm_t3517_mmc[] = {
->> +	{
->> +		.mmc		= 1,
->> +		.caps		= MMC_CAP_4_BIT_DATA,
->> +		.gpio_cd	= 144,
->> +		.gpio_wp	= 59,
->> +	},
->> +	{
->> +		.mmc		= 2,
->> +		.caps		= MMC_CAP_4_BIT_DATA,
->> +		.gpio_cd	= -EINVAL,
->> +		.gpio_wp	= -EINVAL,
->> +	},
->> +	{}	/* Terminator */
->> +};
->> +#else
->> +#define cm_t3517_mmc NULL
->> +#endif
->> +
->>  #if defined(CONFIG_RTC_DRV_V3020) || defined(CONFIG_RTC_DRV_V3020_MODULE)
->>  #define RTC_IO_GPIO		(153)
->>  #define RTC_WR_GPIO		(154)
->> @@ -271,6 +293,10 @@ static struct omap_board_mux board_mux[] __initdata = {
->>  	/* CM-T3517 USB HUB nRESET */
->>  	OMAP3_MUX(MCBSP4_CLKX, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
->>  
->> +	/* CD - GPIO144 and WP - GPIO59 for MMC1 - SB-T35 */
->> +	OMAP3_MUX(UART2_CTS, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
->> +	OMAP3_MUX(GPMC_CLK, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
->> +
->>  	{ .reg_offset = OMAP_MUX_TERMINATOR },
->>  };
->>  #endif
->> @@ -286,6 +312,7 @@ static void __init cm_t3517_init(void)
->>  	cm_t3517_init_usbh();
->>  	cm_t3517_init_hecc();
->>  	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
->> +	omap_hsmmc_init(cm_t3517_mmc);
->>  }
->>  
->>  MACHINE_START(CM_T3517, "Compulab CM-T3517")
-> 
+ V> +	memcpy((void *)wkup_m3_context->code, fw->data, fw->size);
+ >> 
+ >> A size check would be good. I don't know much about the finer details
+ >> about the m3 and how it is connected, but don't you need to ensure data
+ >> is flushed before resetting the m3?
+ >> 
+
+ V> Will add the reg property in the next version. The wkup-m3 memory is
+ V> coming via ioremap() so AFAIK it should be ok. I realized that I do
+ V> need to replace the memcpy() with memcpy_toio() here.
+
+Ok, thanks.
 
 -- 
-Regards,
-Igor.
+Bye, Peter Korsgaard
