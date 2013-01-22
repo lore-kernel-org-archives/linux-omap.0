@@ -1,393 +1,157 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v1 3/6] ARM: OMAP: USB: Add phy binding information
-Date: Tue, 22 Jan 2013 15:28:11 +0530
-Message-ID: <1358848694-20145-4-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v1 5/6] usb: otg: add device tree support to otg library
+Date: Tue, 22 Jan 2013 15:28:13 +0530
+Message-ID: <1358848694-20145-6-git-send-email-kishon@ti.com>
 References: <1358848694-20145-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1358848694-20145-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Cc: kishon-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358848694-20145-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, balbi@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Cc: kishon@ti.com, Marc Kleine-Budde <mkl@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-This is w.r.t the changes in PHY library to support adding and getting
-multiple PHYs of the same type. In the new design, the
-binding information between the PHY and the USB controller should be
-specified in the platform specific initialization code. So it's been
-done here for OMAP platforms.
+Added an API devm_usb_get_phy_by_phandle(), to get usb phy by passing a
+device node phandle value. This function will return a pointer to
+the phy on success, -EPROBE_DEFER if there is a device_node for the phandle,
+but the phy has not been added, or a ERR_PTR() otherwise.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: Marc Kleine-Budde <mkl@pengutronix.de>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c          |    2 ++
- arch/arm/mach-omap2/board-3430sdp.c          |    2 ++
- arch/arm/mach-omap2/board-4430sdp.c          |    2 ++
- arch/arm/mach-omap2/board-cm-t35.c           |    2 ++
- arch/arm/mach-omap2/board-devkit8000.c       |    2 ++
- arch/arm/mach-omap2/board-igep0020.c         |    2 ++
- arch/arm/mach-omap2/board-ldp.c              |    2 ++
- arch/arm/mach-omap2/board-omap3beagle.c      |    2 ++
- arch/arm/mach-omap2/board-omap3evm.c         |    2 ++
- arch/arm/mach-omap2/board-omap3logic.c       |    2 ++
- arch/arm/mach-omap2/board-omap3pandora.c     |    2 ++
- arch/arm/mach-omap2/board-omap3stalker.c     |    2 ++
- arch/arm/mach-omap2/board-omap3touchbook.c   |    2 ++
- arch/arm/mach-omap2/board-omap4panda.c       |    2 ++
- arch/arm/mach-omap2/board-overo.c            |    2 ++
- arch/arm/mach-omap2/board-rm680.c            |    2 ++
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 ++
- 17 files changed, 34 insertions(+)
+ drivers/usb/otg/otg.c   |   77 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/usb/phy.h |    8 +++++
+ 2 files changed, 85 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 4815ea6..1337f2c 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -27,6 +27,7 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/gpio.h>
-+#include <linux/usb/phy.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -263,6 +264,7 @@ static void __init omap_2430sdp_init(void)
- 	omap_hsmmc_init(mmc);
- 
- 	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	board_smc91x_init();
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index bb73afc..8a2e242 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -25,6 +25,7 @@
- #include <linux/gpio.h>
- #include <linux/mmc/host.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
-+#include <linux/usb/phy.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -579,6 +580,7 @@ static void __init omap_3430sdp_init(void)
- 	omap_ads7846_init(1, gpio_pendown, 310, NULL);
- 	omap_serial_init();
- 	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	board_smc91x_init();
- 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 1cc6696..8e8efcc 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -28,6 +28,7 @@
- #include <linux/leds_pwm.h>
- #include <linux/platform_data/omap4-keypad.h>
- #include <linux/usb/musb.h>
-+#include <linux/usb/phy.h>
- 
- #include <asm/hardware/gic.h>
- #include <asm/mach-types.h>
-@@ -696,6 +697,7 @@ static void __init omap_4430sdp_init(void)
- 	omap4_sdp4430_wifi_init();
- 	omap4_twl6030_hsmmc_init(mmc);
- 
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
- 	usb_musb_init(&musb_board_data);
- 
- 	status = omap_ethernet_init();
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index b3102c2..f1172f2 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -30,6 +30,7 @@
- #include <linux/regulator/fixed.h>
- #include <linux/regulator/machine.h>
- #include <linux/mmc/host.h>
-+#include <linux/usb/phy.h>
- 
- #include <linux/spi/spi.h>
- #include <linux/spi/tdo24m.h>
-@@ -724,6 +725,7 @@ static void __init cm_t3x_common_init(void)
- 	cm_t35_init_display();
- 	omap_twl4030_audio_init("cm-t3x");
- 
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	cm_t35_init_usbh();
- 	cm_t35_init_camera();
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 12865af..77cade52 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -29,6 +29,7 @@
- #include <linux/mtd/partitions.h>
- #include <linux/mtd/nand.h>
- #include <linux/mmc/host.h>
-+#include <linux/usb/phy.h>
- 
- #include <linux/regulator/machine.h>
- #include <linux/i2c/twl.h>
-@@ -622,6 +623,7 @@ static void __init devkit8000_init(void)
- 
- 	omap_ads7846_init(2, OMAP3_DEVKIT_TS_GPIO, 0, NULL);
- 
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	board_nand_init(devkit8000_nand_partitions,
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 0f24cb8..15e5881 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -18,6 +18,7 @@
- #include <linux/gpio.h>
- #include <linux/interrupt.h>
- #include <linux/input.h>
-+#include <linux/usb/phy.h>
- 
- #include <linux/regulator/machine.h>
- #include <linux/regulator/fixed.h>
-@@ -625,6 +626,7 @@ static void __init igep_init(void)
- 	omap_serial_init();
- 	omap_sdrc_init(m65kxxxxam_sdrc_params,
- 				  m65kxxxxam_sdrc_params);
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	igep_flash_init();
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 0869f4f..3b5510a 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -28,6 +28,7 @@
- #include <linux/io.h>
- #include <linux/smsc911x.h>
- #include <linux/mmc/host.h>
-+#include <linux/usb/phy.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
- 
- #include <asm/mach-types.h>
-@@ -418,6 +419,7 @@ static void __init omap_ldp_init(void)
- 	omap_ads7846_init(1, 54, 310, NULL);
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	board_nand_init(ldp_nand_partitions, ARRAY_SIZE(ldp_nand_partitions),
- 			ZOOM_NAND_CS, 0, nand_default_timings);
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 22c483d..4616f92 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -30,6 +30,7 @@
- #include <linux/mtd/partitions.h>
- #include <linux/mtd/nand.h>
- #include <linux/mmc/host.h>
-+#include <linux/usb/phy.h>
- 
- #include <linux/regulator/machine.h>
- #include <linux/i2c/twl.h>
-@@ -519,6 +520,7 @@ static void __init omap3_beagle_init(void)
- 	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
- 				  mt46h32m32lf6_sdrc_params);
- 
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	board_nand_init(omap3beagle_nand_partitions,
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 3985f35..a198b61 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -41,6 +41,7 @@
- #include <linux/regulator/machine.h>
- #include <linux/mmc/host.h>
+diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
+index 1f30b22..67daf8c 100644
+--- a/drivers/usb/otg/otg.c
++++ b/drivers/usb/otg/otg.c
+@@ -13,7 +13,9 @@
  #include <linux/export.h>
-+#include <linux/usb/phy.h>
+ #include <linux/err.h>
+ #include <linux/device.h>
++#include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/of.h>
  
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -734,6 +735,7 @@ static void __init omap3_evm_init(void)
- 		omap_mux_init_gpio(135, OMAP_PIN_OUTPUT);
- 		usbhs_bdata.reset_gpio_port[1] = 135;
- 	}
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(&musb_board_data);
- 	usbhs_init(&usbhs_bdata);
- 	board_nand_init(omap3evm_nand_partitions,
-diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-index 2a065ba..9409eb8 100644
---- a/arch/arm/mach-omap2/board-omap3logic.c
-+++ b/arch/arm/mach-omap2/board-omap3logic.c
-@@ -29,6 +29,7 @@
+ #include <linux/usb/otg.h>
  
- #include <linux/i2c/twl.h>
- #include <linux/mmc/host.h>
-+#include <linux/usb/phy.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -215,6 +216,7 @@ static void __init omap3logic_init(void)
- 	board_mmc_init();
- 	board_smsc911x_init();
- 
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	/* Ensure SDRC pins are mux'd for self-refresh */
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index a53a668..1ac3e81 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -35,6 +35,7 @@
- #include <linux/mmc/host.h>
- #include <linux/mmc/card.h>
- #include <linux/regulator/fixed.h>
-+#include <linux/usb/phy.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
- 
- #include <asm/mach-types.h>
-@@ -601,6 +602,7 @@ static void __init omap3pandora_init(void)
- 			ARRAY_SIZE(omap3pandora_spi_board_info));
- 	omap_ads7846_init(1, OMAP3_PANDORA_TS_GPIO, 0, NULL);
- 	usbhs_init(&usbhs_bdata);
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	gpmc_nand_init(&pandora_nand_data, NULL);
- 
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index 53a6cbc..63cb204 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -33,6 +33,7 @@
- #include <linux/interrupt.h>
- #include <linux/smsc911x.h>
- #include <linux/i2c/at24.h>
-+#include <linux/usb/phy.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -404,6 +405,7 @@ static void __init omap3_stalker_init(void)
- 
- 	omap_serial_init();
- 	omap_sdrc_init(mt46h32m32lf6_sdrc_params, NULL);
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	omap_ads7846_init(1, OMAP3_STALKER_TS_GPIO, 310, NULL);
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 263cb9c..6b22ce3 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -28,6 +28,7 @@
- #include <linux/mtd/partitions.h>
- #include <linux/mtd/nand.h>
- #include <linux/mmc/host.h>
-+#include <linux/usb/phy.h>
- 
- #include <linux/platform_data/spi-omap2-mcspi.h>
- #include <linux/spi/spi.h>
-@@ -365,6 +366,7 @@ static void __init omap3_touchbook_init(void)
- 
- 	/* Touchscreen and accelerometer */
- 	omap_ads7846_init(4, OMAP3_TS_GPIO, 310, &ads7846_pdata);
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	board_nand_init(omap3touchbook_nand_partitions,
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 5c8e9ce..64fb190 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -30,6 +30,7 @@
- #include <linux/regulator/fixed.h>
- #include <linux/ti_wilink_st.h>
- #include <linux/usb/musb.h>
-+#include <linux/usb/phy.h>
- #include <linux/wl12xx.h>
- #include <linux/platform_data/omap-abe-twl6040.h>
- 
-@@ -441,6 +442,7 @@ static void __init omap4_panda_init(void)
- 	omap_sdrc_init(NULL, NULL);
- 	omap4_twl6030_hsmmc_init(mmc);
- 	omap4_ehci_init();
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
- 	usb_musb_init(&musb_board_data);
- 	omap4_panda_display_init();
+@@ -50,6 +52,20 @@ static struct usb_phy *__usb_find_phy_dev(struct device *dev,
+ 	return ERR_PTR(-ENODEV);
  }
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index c8fde3e..7e43ff3 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -36,6 +36,7 @@
- #include <linux/mtd/nand.h>
- #include <linux/mtd/partitions.h>
- #include <linux/mmc/host.h>
-+#include <linux/usb/phy.h>
  
- #include <linux/platform_data/mtd-nand-omap2.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
-@@ -499,6 +500,7 @@ static void __init overo_init(void)
- 				  mt46h32m32lf6_sdrc_params);
- 	board_nand_init(overo_nand_partitions,
- 			ARRAY_SIZE(overo_nand_partitions), NAND_CS, 0, NULL);
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	overo_spi_init();
-diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
-index 0c777b7..f8a272c 100644
---- a/arch/arm/mach-omap2/board-rm680.c
-+++ b/arch/arm/mach-omap2/board-rm680.c
-@@ -18,6 +18,7 @@
- #include <linux/regulator/machine.h>
- #include <linux/regulator/consumer.h>
- #include <linux/platform_data/mtd-onenand-omap2.h>
-+#include <linux/usb/phy.h>
- 
- #include <asm/mach/arch.h>
- #include <asm/mach-types.h>
-@@ -134,6 +135,7 @@ static void __init rm680_init(void)
- 	sdrc_params = nokia_get_sdram_timings();
- 	omap_sdrc_init(sdrc_params, sdrc_params);
- 
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	rm680_peripherals_init();
++static struct usb_phy *__of_usb_find_phy(struct device_node *node)
++{
++	struct usb_phy  *phy;
++
++	list_for_each_entry(phy, &phy_list, head) {
++		if (node != phy->dev->of_node)
++			continue;
++
++		return phy;
++	}
++
++	return ERR_PTR(-ENODEV);
++}
++
+ static void devm_usb_phy_release(struct device *dev, void *res)
+ {
+ 	struct usb_phy *phy = *(struct usb_phy **)res;
+@@ -125,6 +141,67 @@ err0:
  }
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 26e07ad..dc5498b 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -20,6 +20,7 @@
- #include <linux/wl12xx.h>
- #include <linux/mmc/host.h>
- #include <linux/platform_data/gpio-omap.h>
-+#include <linux/usb/phy.h>
+ EXPORT_SYMBOL(usb_get_phy);
  
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -298,6 +299,7 @@ void __init zoom_peripherals_init(void)
- 	omap_hsmmc_init(mmc);
- 	omap_i2c_init();
- 	platform_device_register(&omap_vwlan_device);
-+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	enable_board_wakeup_source();
- 	omap_serial_init();
++ /**
++ * devm_usb_get_phy_by_phandle - find the USB PHY by phandle
++ * @dev - device that requests this phy
++ * @phandle - name of the property holding the phy phandle value
++ * @index - the index of the phy
++ *
++ * Returns the phy driver associated with the given phandle value,
++ * after getting a refcount to it, -ENODEV if there is no such phy or
++ * -EPROBE_DEFER if there is a phandle to the phy, but the device is
++ * not yet loaded. While at that, it also associates the device with
++ * the phy using devres. On driver detach, release function is invoked
++ * on the devres data, then, devres data is freed.
++ *
++ * For use by USB host and peripheral drivers.
++ */
++struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
++	const char *phandle, u8 index)
++{
++	struct usb_phy	*phy = NULL, **ptr;
++	unsigned long	flags;
++	struct device_node *node;
++
++	if (!dev->of_node) {
++		dev_dbg(dev, "device does not have a device node entry\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	node = of_parse_phandle(dev->of_node, phandle, index);
++	if (!node) {
++		dev_dbg(dev, "failed to get %s phandle in %s node\n", phandle,
++			dev->of_node->full_name);
++		return ERR_PTR(-ENODEV);
++	}
++
++	ptr = devres_alloc(devm_usb_phy_release, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr) {
++		dev_dbg(dev, "failed to allocate memory for devres\n");
++		return ERR_PTR(-ENOMEM);
++	}
++
++	spin_lock_irqsave(&phy_lock, flags);
++
++	phy = __of_usb_find_phy(node);
++	if (IS_ERR(phy) || !try_module_get(phy->dev->driver->owner)) {
++		phy = ERR_PTR(-EPROBE_DEFER);
++		devres_free(ptr);
++		goto err0;
++	}
++
++	*ptr = phy;
++	devres_add(dev, ptr);
++
++	get_device(phy->dev);
++
++err0:
++	spin_unlock_irqrestore(&phy_lock, flags);
++
++	return phy;
++}
++EXPORT_SYMBOL(devm_usb_get_phy_by_phandle);
++
+ /**
+  * usb_get_phy_dev - find the USB PHY
+  * @dev - device that requests this phy
+diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
+index 3a9ae3e..c7f5a98 100644
+--- a/include/linux/usb/phy.h
++++ b/include/linux/usb/phy.h
+@@ -167,6 +167,8 @@ extern struct usb_phy *devm_usb_get_phy(struct device *dev,
+ 	enum usb_phy_type type);
+ extern struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index);
+ extern struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index);
++extern struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
++	const char *phandle, u8 index);
+ extern void usb_put_phy(struct usb_phy *);
+ extern void devm_usb_put_phy(struct device *dev, struct usb_phy *x);
+ extern struct usb_phy_bind *usb_bind_phy(const char *dev_name, u8 index,
+@@ -193,6 +195,12 @@ static inline struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
+ 	return NULL;
+ }
+ 
++static inline struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
++	const char *phandle, u8 index)
++{
++	return NULL;
++}
++
+ static inline void usb_put_phy(struct usb_phy *x)
+ {
+ }
 -- 
 1.7.9.5
