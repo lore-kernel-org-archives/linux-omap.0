@@ -1,7 +1,7 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v3 08/12] video: da8xx-fb: invoke platform callback safely
-Date: Tue, 22 Jan 2013 22:22:47 +0530
-Message-ID: <80ce1ec4b0b5dd307eecb82029ec97583724a312.1358871750.git.afzal@ti.com>
+Subject: [PATCH v3 11/12] video: da8xx-fb: setup struct lcd_ctrl_config for dt
+Date: Tue, 22 Jan 2013 22:23:05 +0530
+Message-ID: <dc47adb437c3668c1378a20dd724a5b8ff4c73c4.1358871750.git.afzal@ti.com>
 References: <cover.1358871750.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,28 +12,67 @@ To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.k
 Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Ensure that platform data is present before checking whether platform
-callback is present (the one used to control backlight). So far this
-was not an issue as driver was purely non-DT triggered, but now DT
-support has been added.
+strcut lcd_ctrl_config information required for driver is currently
+obtained via platform data. To handle DT probing, create
+lcd_ctrl_config and populate it with default values, these values are
+sufficient for the panels so far used with this controller to work.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/da8xx-fb.c | 34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 08ee8eb..0beed20 100644
+index 1c1a616..5455682 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -1347,7 +1347,7 @@ static int fb_probe(struct platform_device *device)
- 	par->dev = &device->dev;
- 	par->lcdc_clk = fb_clk;
- 	par->lcd_fck_rate = clk_get_rate(fb_clk);
--	if (fb_pdata->panel_power_ctrl) {
-+	if (fb_pdata && fb_pdata->panel_power_ctrl) {
- 		par->panel_power_ctrl = fb_pdata->panel_power_ctrl;
- 		par->panel_power_ctrl(1);
+@@ -1254,6 +1254,35 @@ static struct fb_ops da8xx_fb_ops = {
+ 	.fb_blank = cfb_blank,
+ };
+ 
++static struct lcd_ctrl_config *da8xx_fb_create_cfg(struct platform_device *dev)
++{
++	struct lcd_ctrl_config *cfg;
++
++	cfg = devm_kzalloc(&dev->dev, sizeof(struct fb_videomode), GFP_KERNEL);
++	if (!cfg) {
++		dev_err(&dev->dev, "memory allocation failed\n");
++		return NULL;
++	}
++
++	/* default values */
++
++	if (lcd_revision == LCD_VERSION_1)
++		cfg->bpp = 16;
++	else
++		cfg->bpp = 32;
++
++	/*
++	 * For panels so far used with this LCDC, below statement is sufficient.
++	 * For new panels, if required, struct lcd_ctrl_cfg fields to be updated
++	 * with additional/modified values. Those values would have to be then
++	 * obtained from dt(requiring new dt bindings).
++	 */
++
++	cfg->panel_shade = COLOR_ACTIVE;
++
++	return cfg;
++}
++
+ static struct fb_videomode *da8xx_fb_get_videomode(struct platform_device *dev)
+ {
+ 	struct da8xx_lcdc_platform_data *fb_pdata = dev->dev.platform_data;
+@@ -1345,7 +1374,10 @@ static int fb_probe(struct platform_device *device)
+ 		break;
  	}
+ 
+-	lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
++	if (device->dev.of_node)
++		lcd_cfg = da8xx_fb_create_cfg(device);
++	else
++		lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
+ 
+ 	if (!lcd_cfg) {
+ 		ret = -EINVAL;
 -- 
 1.7.12
