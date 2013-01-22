@@ -1,7 +1,7 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v3 11/12] video: da8xx-fb: setup struct lcd_ctrl_config for dt
-Date: Tue, 22 Jan 2013 22:23:05 +0530
-Message-ID: <dc47adb437c3668c1378a20dd724a5b8ff4c73c4.1358871750.git.afzal@ti.com>
+Subject: [PATCH v3 12/12] video: da8xx-fb: CCF clock divider handling
+Date: Tue, 22 Jan 2013 22:23:10 +0530
+Message-ID: <6532be60dcb9b1754fb600ec7267927e49ea6af5.1358871750.git.afzal@ti.com>
 References: <cover.1358871750.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,67 +12,164 @@ To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.k
 Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-strcut lcd_ctrl_config information required for driver is currently
-obtained via platform data. To handle DT probing, create
-lcd_ctrl_config and populate it with default values, these values are
-sufficient for the panels so far used with this controller to work.
+Common clock framework provides a basic clock divider. Make use of it
+to handle clock configuration in the LCDC IP, wherever applicable;
+out of two platforms having this IP, only am335x is converted to use
+CCF, DaVinci is not yet converted. Hence wrap the modification such
+that it will come into effect only if CCF is selected, otherwise,
+prgram dividers as earlier. Once DaVinci is converted to use CCF,
+this ifdef'ery can be removed.
+
+Divider clock instantiated is made as a one that allows the rate
+propogation to it's parent, that provides more options w.r.t pixel
+clock rates that could be configured.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c | 34 +++++++++++++++++++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+
+v3: model CCF clock divider with parent propogation if CCF selected
+v2: new patch
+
+ drivers/video/da8xx-fb.c | 67 ++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 65 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 1c1a616..5455682 100644
+index 5455682..3c9db1d 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -1254,6 +1254,35 @@ static struct fb_ops da8xx_fb_ops = {
- 	.fb_blank = cfb_blank,
+@@ -36,6 +36,7 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/lcm.h>
++#include <linux/clk-provider.h>
+ #include <video/of_display_timing.h>
+ #include <video/da8xx-fb.h>
+ #include <asm/div64.h>
+@@ -133,6 +134,10 @@
+ #define WSI_TIMEOUT	50
+ #define PALETTE_SIZE	256
+ 
++#define	LCD_CLK_SHIFT	8
++#define	LCD_CLK_WIDTH	8
++#define	LCD_CLK_MIN_DIV	2
++
+ static void __iomem *da8xx_fb_reg_base;
+ static struct resource *lcdc_regs;
+ static unsigned int lcd_revision;
+@@ -181,6 +186,9 @@ struct da8xx_fb_par {
+ 	u32 pseudo_palette[16];
+ 	struct fb_videomode	mode;
+ 	struct lcd_ctrl_config	cfg;
++#ifdef CONFIG_COMMON_CLK
++	struct clk		*child_clk;
++#endif
  };
  
-+static struct lcd_ctrl_config *da8xx_fb_create_cfg(struct platform_device *dev)
+ static struct fb_var_screeninfo da8xx_fb_var;
+@@ -689,6 +697,19 @@ static inline unsigned da8xx_fb_calc_clk_divider(struct da8xx_fb_par *par,
+ 	return par->lcd_fck_rate / (PICOS2KHZ(pixclock) * 1000);
+ }
+ 
++#ifdef	CONFIG_COMMON_CLK
++static inline unsigned da8xx_fb_round_clk(struct da8xx_fb_par *par,
++					  unsigned pixclock)
 +{
-+	struct lcd_ctrl_config *cfg;
++	unsigned long rate;
 +
-+	cfg = devm_kzalloc(&dev->dev, sizeof(struct fb_videomode), GFP_KERNEL);
-+	if (!cfg) {
-+		dev_err(&dev->dev, "memory allocation failed\n");
-+		return NULL;
-+	}
++	rate = PICOS2KHZ(pixclock) * 1000;
++	rate = clk_round_rate(par->child_clk, rate);
++	rate = KHZ2PICOS(rate / 1000);
 +
-+	/* default values */
-+
-+	if (lcd_revision == LCD_VERSION_1)
-+		cfg->bpp = 16;
-+	else
-+		cfg->bpp = 32;
-+
-+	/*
-+	 * For panels so far used with this LCDC, below statement is sufficient.
-+	 * For new panels, if required, struct lcd_ctrl_cfg fields to be updated
-+	 * with additional/modified values. Those values would have to be then
-+	 * obtained from dt(requiring new dt bindings).
-+	 */
-+
-+	cfg->panel_shade = COLOR_ACTIVE;
-+
-+	return cfg;
++	return rate;
 +}
-+
- static struct fb_videomode *da8xx_fb_get_videomode(struct platform_device *dev)
++#else
+ static inline unsigned da8xx_fb_round_clk(struct da8xx_fb_par *par,
+ 					  unsigned pixclock)
  {
- 	struct da8xx_lcdc_platform_data *fb_pdata = dev->dev.platform_data;
-@@ -1345,7 +1374,10 @@ static int fb_probe(struct platform_device *device)
- 		break;
- 	}
+@@ -697,25 +718,49 @@ static inline unsigned da8xx_fb_round_clk(struct da8xx_fb_par *par,
+ 	div = da8xx_fb_calc_clk_divider(par, pixclock);
+ 	return KHZ2PICOS(par->lcd_fck_rate / (1000 * div));
+ }
++#endif
  
--	lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
-+	if (device->dev.of_node)
-+		lcd_cfg = da8xx_fb_create_cfg(device);
-+	else
-+		lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
+ static inline void da8xx_fb_config_clk_divider(unsigned div)
+ {
+ 	/* Configure the LCD clock divisor. */
+ 	lcdc_write(LCD_CLK_DIVISOR(div) |
+ 			(LCD_RASTER_MODE & 0x1), LCD_CTRL_REG);
++}
  
- 	if (!lcd_cfg) {
- 		ret = -EINVAL;
++static inline void da8xx_fb_clkc_enable(void)
++{
+ 	if (lcd_revision == LCD_VERSION_2)
+ 		lcdc_write(LCD_V2_DMA_CLK_EN | LCD_V2_LIDD_CLK_EN |
+ 				LCD_V2_CORE_CLK_EN, LCD_CLK_ENABLE_REG);
+ }
+ 
+-static inline void da8xx_fb_calc_config_clk_divider(struct da8xx_fb_par *par,
++#ifdef	CONFIG_COMMON_CLK
++static inline int da8xx_fb_calc_config_clk_divider(struct da8xx_fb_par *par,
++						    struct fb_videomode *mode)
++{
++	int ret;
++
++	ret = clk_set_rate(par->child_clk, PICOS2KHZ(mode->pixclock) * 1000);
++	if (IS_ERR_VALUE(ret)) {
++		dev_err(par->dev, "unable to setup pixel clock of %u ps",
++			mode->pixclock);
++		return ret;
++	}
++	da8xx_fb_clkc_enable();
++	return 0;
++}
++#else
++static inline int da8xx_fb_calc_config_clk_divider(struct da8xx_fb_par *par,
+ 						    struct fb_videomode *mode)
+ {
+ 	unsigned div = da8xx_fb_calc_clk_divider(par, mode->pixclock);
+ 
+ 	da8xx_fb_config_clk_divider(div);
++	da8xx_fb_clkc_enable();
++
++	return 0;
+ }
++#endif
+ 
+ static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
+ 		struct fb_videomode *panel)
+@@ -723,7 +768,9 @@ static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
+ 	u32 bpp;
+ 	int ret = 0;
+ 
+-	da8xx_fb_calc_config_clk_divider(par, panel);
++	ret = da8xx_fb_calc_config_clk_divider(par, panel);
++	if (IS_ERR_VALUE(ret))
++		return ret;
+ 
+ 	if (panel->sync & FB_SYNC_CLK_INVERT)
+ 		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) |
+@@ -1406,6 +1453,22 @@ static int fb_probe(struct platform_device *device)
+ 
+ 	da8xx_fb_lcd_reset();
+ 
++#ifdef	CONFIG_COMMON_CLK
++	lcdc_write(LCD_RASTER_MODE | LCD_CLK_DIVISOR(0x2), LCD_CTRL_REG);
++	par->child_clk = clk_register_divider(NULL, "da8xx_fb_clk",
++					      __clk_get_name(fb_clk),
++					      CLK_SET_RATE_PARENT,
++					      da8xx_fb_reg_base + LCD_CTRL_REG,
++					      LCD_CLK_SHIFT, LCD_CLK_WIDTH,
++					      LCD_CLK_MIN_DIV,
++					      CLK_DIVIDER_ONE_BASED, NULL);
++	if (IS_ERR(par->child_clk)) {
++		dev_err(&device->dev, "error registering clk\n");
++		ret = -ENODEV;
++		goto err_release_fb;
++	}
++#endif
++
+ 	/* allocate frame buffer */
+ 	par->vram_size = lcdc_info->xres * lcdc_info->yres * lcd_cfg->bpp;
+ 	ulcm = lcm((lcdc_info->xres * lcd_cfg->bpp)/8, PAGE_SIZE);
 -- 
 1.7.12
