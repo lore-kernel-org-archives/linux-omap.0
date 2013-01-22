@@ -1,96 +1,112 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v1 4/6] drivers: usb: musb: omap: make use of the new
- PHY lib APIs
-Date: Tue, 22 Jan 2013 16:09:42 +0200
-Message-ID: <50FE9DA6.4030507@ti.com>
-References: <1358848694-20145-1-git-send-email-kishon@ti.com> <1358848694-20145-5-git-send-email-kishon@ti.com>
+From: kishon <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v1 2/6] usb: otg: utils: add facilities in phy lib to
+ support multiple PHYs of same type
+Date: Tue, 22 Jan 2013 19:43:44 +0530
+Message-ID: <50FE9E98.3080905@ti.com>
+References: <1358848694-20145-1-git-send-email-kishon@ti.com>
+ <1358848694-20145-3-git-send-email-kishon@ti.com> <50FE9D1E.3010800@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358848694-20145-5-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: tony@atomide.com, balbi@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <50FE9D1E.3010800-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/22/2013 11:58 AM, Kishon Vijay Abraham I wrote:
-> New PHY lib APIs like usb_add_phy_dev() and devm_usb_get_phy_dev() are
-> used in MUSB (OMAP), in order to make use of the binding information
-> provided in the board file (of OMAP platforms).
-> All the platforms should be modified similar to this to add and get the
-> PHY.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/usb/musb/omap2430.c   |    2 +-
->  drivers/usb/otg/twl4030-usb.c |    3 ++-
->  drivers/usb/phy/omap-usb2.c   |    3 ++-
->  3 files changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index bf6cfe0..1a8cf6d 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -345,7 +345,7 @@ static int omap2430_musb_init(struct musb *musb)
->  	 * up through ULPI.  TWL4030-family PMICs include one,
->  	 * which needs a driver, drivers aren't always needed.
->  	 */
-> -	musb->xceiv = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
-> +	musb->xceiv = devm_usb_get_phy_dev(dev, 0);
->  	if (IS_ERR_OR_NULL(musb->xceiv)) {
->  		pr_err("HS USB OTG: no transceiver configured\n");
->  		return -ENODEV;
-> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
-> index 0a70193..a994715 100644
-> --- a/drivers/usb/otg/twl4030-usb.c
-> +++ b/drivers/usb/otg/twl4030-usb.c
-> @@ -610,6 +610,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
->  	twl->phy.dev		= twl->dev;
->  	twl->phy.label		= "twl4030";
->  	twl->phy.otg		= otg;
-> +	twl->phy.type		= USB_PHY_TYPE_USB2;
+Hi,
 
-What is the need to set phy.type? I think this should be deprecated along with the old API.
+On Tuesday 22 January 2013 07:37 PM, Roger Quadros wrote:
+> On 01/22/2013 11:58 AM, Kishon Vijay Abraham I wrote:
+>> In order to add support for multipe PHY's of the same type, new API's
+>> for adding PHY and getting PHY has been added. Now the binding
+>> information for the PHY and controller should be done in platform file
+>> using usb_bind_phy API. And for getting a PHY, the device pointer of the
+>> USB controller and an index should be passed. Based on the binding
+>> information that is added in the platform file, usb_get_phy_dev will return the
+>> appropriate PHY.
+>> Already existing API's to add and get phy by type is not removed. These
+>> API's are deprecated and will be removed once all the platforms start to
+>> use the new API.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   drivers/usb/otg/otg.c   |  114 ++++++++++++++++++++++++++++++++++++++++++++++-
+>>   include/linux/usb/phy.h |   13 ++++++
+>>   2 files changed, 126 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
+>> index 492ba2f..1f30b22 100644
+>> --- a/drivers/usb/otg/otg.c
+>> +++ b/drivers/usb/otg/otg.c
+>> @@ -36,6 +36,20 @@ static struct usb_phy *__usb_find_phy(struct list_head *list,
+>>   	return ERR_PTR(-ENODEV);
+>>   }
+>>
+>> +static struct usb_phy *__usb_find_phy_dev(struct device *dev,
+>> +	struct list_head *list, u8 index)
+>> +{
+>> +	struct usb_phy_bind *phy_bind = NULL;
+>> +
+>> +	list_for_each_entry(phy_bind, list, list) {
+>> +		if (!(strcmp(phy_bind->dev_name, dev_name(dev))) &&
+>> +				phy_bind->index == index)
+>> +			return phy_bind->phy;
+>
+> If the PHY driver has not yet called usb_add_phy_dev() (e.g. driver not yet loaeded)
+> then this will return NULL.
+>
+>> +	}
+>> +
+>> +	return ERR_PTR(-ENODEV);
+>> +}
+>> +
+>>   static void devm_usb_phy_release(struct device *dev, void *res)
+>>   {
+>>   	struct usb_phy *phy = *(struct usb_phy **)res;
+>> @@ -112,6 +126,69 @@ err0:
+>>   EXPORT_SYMBOL(usb_get_phy);
+>>
+>>   /**
+>> + * usb_get_phy_dev - find the USB PHY
+>> + * @dev - device that requests this phy
+>> + * @index - the index of the phy
+>> + *
+>> + * Returns the phy driver, after getting a refcount to it; or
+>> + * -ENODEV if there is no such phy.  The caller is responsible for
+>> + * calling usb_put_phy() to release that count.
+>> + *
+>> + * For use by USB host and peripheral drivers.
+>> + */
+>> +struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index)
+>> +{
+>> +	struct usb_phy	*phy = NULL;
+>> +	unsigned long	flags;
+>> +
+>> +	spin_lock_irqsave(&phy_lock, flags);
+>> +
+>> +	phy = __usb_find_phy_dev(dev, &phy_bind_list, index);
+>> +	if (IS_ERR(phy)) {
+>> +		pr_err("unable to find transceiver\n");
+>> +		goto err0;
+>> +	}
+>
+> Since NULL is not IS_ERR(), you will do a NULL pointer reference below.
+>
+> In such cases we would want to use the deferred probe mechanism. So should we return
+> -EPROBE_DEFER?
 
->  	twl->phy.set_suspend	= twl4030_set_suspend;
->  
->  	otg->phy		= &twl->phy;
-> @@ -624,7 +625,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
->  		dev_err(&pdev->dev, "ldo init failed\n");
->  		return err;
->  	}
-> -	usb_add_phy(&twl->phy, USB_PHY_TYPE_USB2);
-> +	usb_add_phy_dev(&twl->phy);
->  
->  	platform_set_drvdata(pdev, twl);
->  	if (device_create_file(&pdev->dev, &dev_attr_vbus))
-> diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
-> index 4b59b39..b5c759c 100644
-> --- a/drivers/usb/phy/omap-usb2.c
-> +++ b/drivers/usb/phy/omap-usb2.c
-> @@ -143,6 +143,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
->  	phy->phy.label		= "omap-usb2";
->  	phy->phy.set_suspend	= omap_usb2_suspend;
->  	phy->phy.otg		= otg;
-> +	phy->phy.type		= USB_PHY_TYPE_USB2;
+Good catch. I'll update the patch.
 
-same here.
-
->  
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
->  
-> @@ -168,7 +169,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
->  	}
->  	clk_prepare(phy->wkupclk);
->  
-> -	usb_add_phy(&phy->phy, USB_PHY_TYPE_USB2);
-> +	usb_add_phy_dev(&phy->phy);
->  
->  	platform_set_drvdata(pdev, phy);
->  
-> 
-
---
-cheers,
--roger
+Thanks
+Kishon
