@@ -1,112 +1,95 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v1 2/6] usb: otg: utils: add facilities in phy lib to
- support multiple PHYs of same type
-Date: Tue, 22 Jan 2013 16:07:26 +0200
-Message-ID: <50FE9D1E.3010800@ti.com>
-References: <1358848694-20145-1-git-send-email-kishon@ti.com> <1358848694-20145-3-git-send-email-kishon@ti.com>
+Subject: Re: [PATCH v1 4/6] drivers: usb: musb: omap: make use of the new
+ PHY lib APIs
+Date: Tue, 22 Jan 2013 16:09:42 +0200
+Message-ID: <50FE9DA6.4030507@ti.com>
+References: <1358848694-20145-1-git-send-email-kishon@ti.com> <1358848694-20145-5-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35054 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751138Ab3AVOHp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Jan 2013 09:07:45 -0500
-In-Reply-To: <1358848694-20145-3-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358848694-20145-5-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: tony@atomide.com, balbi@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+List-Id: linux-omap@vger.kernel.org
 
 On 01/22/2013 11:58 AM, Kishon Vijay Abraham I wrote:
-> In order to add support for multipe PHY's of the same type, new API's
-> for adding PHY and getting PHY has been added. Now the binding
-> information for the PHY and controller should be done in platform file
-> using usb_bind_phy API. And for getting a PHY, the device pointer of the
-> USB controller and an index should be passed. Based on the binding
-> information that is added in the platform file, usb_get_phy_dev will return the
-> appropriate PHY.
-> Already existing API's to add and get phy by type is not removed. These
-> API's are deprecated and will be removed once all the platforms start to
-> use the new API.
+> New PHY lib APIs like usb_add_phy_dev() and devm_usb_get_phy_dev() are
+> used in MUSB (OMAP), in order to make use of the binding information
+> provided in the board file (of OMAP platforms).
+> All the platforms should be modified similar to this to add and get the
+> PHY.
 > 
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
->  drivers/usb/otg/otg.c   |  114 ++++++++++++++++++++++++++++++++++++++++++++++-
->  include/linux/usb/phy.h |   13 ++++++
->  2 files changed, 126 insertions(+), 1 deletion(-)
+>  drivers/usb/musb/omap2430.c   |    2 +-
+>  drivers/usb/otg/twl4030-usb.c |    3 ++-
+>  drivers/usb/phy/omap-usb2.c   |    3 ++-
+>  3 files changed, 5 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
-> index 492ba2f..1f30b22 100644
-> --- a/drivers/usb/otg/otg.c
-> +++ b/drivers/usb/otg/otg.c
-> @@ -36,6 +36,20 @@ static struct usb_phy *__usb_find_phy(struct list_head *list,
->  	return ERR_PTR(-ENODEV);
->  }
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index bf6cfe0..1a8cf6d 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -345,7 +345,7 @@ static int omap2430_musb_init(struct musb *musb)
+>  	 * up through ULPI.  TWL4030-family PMICs include one,
+>  	 * which needs a driver, drivers aren't always needed.
+>  	 */
+> -	musb->xceiv = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
+> +	musb->xceiv = devm_usb_get_phy_dev(dev, 0);
+>  	if (IS_ERR_OR_NULL(musb->xceiv)) {
+>  		pr_err("HS USB OTG: no transceiver configured\n");
+>  		return -ENODEV;
+> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+> index 0a70193..a994715 100644
+> --- a/drivers/usb/otg/twl4030-usb.c
+> +++ b/drivers/usb/otg/twl4030-usb.c
+> @@ -610,6 +610,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+>  	twl->phy.dev		= twl->dev;
+>  	twl->phy.label		= "twl4030";
+>  	twl->phy.otg		= otg;
+> +	twl->phy.type		= USB_PHY_TYPE_USB2;
+
+What is the need to set phy.type? I think this should be deprecated along with the old API.
+
+>  	twl->phy.set_suspend	= twl4030_set_suspend;
 >  
-> +static struct usb_phy *__usb_find_phy_dev(struct device *dev,
-> +	struct list_head *list, u8 index)
-> +{
-> +	struct usb_phy_bind *phy_bind = NULL;
-> +
-> +	list_for_each_entry(phy_bind, list, list) {
-> +		if (!(strcmp(phy_bind->dev_name, dev_name(dev))) &&
-> +				phy_bind->index == index)
-> +			return phy_bind->phy;
-
-If the PHY driver has not yet called usb_add_phy_dev() (e.g. driver not yet loaeded)
-then this will return NULL.
-
-> +	}
-> +
-> +	return ERR_PTR(-ENODEV);
-> +}
-> +
->  static void devm_usb_phy_release(struct device *dev, void *res)
->  {
->  	struct usb_phy *phy = *(struct usb_phy **)res;
-> @@ -112,6 +126,69 @@ err0:
->  EXPORT_SYMBOL(usb_get_phy);
+>  	otg->phy		= &twl->phy;
+> @@ -624,7 +625,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+>  		dev_err(&pdev->dev, "ldo init failed\n");
+>  		return err;
+>  	}
+> -	usb_add_phy(&twl->phy, USB_PHY_TYPE_USB2);
+> +	usb_add_phy_dev(&twl->phy);
 >  
->  /**
-> + * usb_get_phy_dev - find the USB PHY
-> + * @dev - device that requests this phy
-> + * @index - the index of the phy
-> + *
-> + * Returns the phy driver, after getting a refcount to it; or
-> + * -ENODEV if there is no such phy.  The caller is responsible for
-> + * calling usb_put_phy() to release that count.
-> + *
-> + * For use by USB host and peripheral drivers.
-> + */
-> +struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index)
-> +{
-> +	struct usb_phy	*phy = NULL;
-> +	unsigned long	flags;
-> +
-> +	spin_lock_irqsave(&phy_lock, flags);
-> +
-> +	phy = __usb_find_phy_dev(dev, &phy_bind_list, index);
-> +	if (IS_ERR(phy)) {
-> +		pr_err("unable to find transceiver\n");
-> +		goto err0;
-> +	}
+>  	platform_set_drvdata(pdev, twl);
+>  	if (device_create_file(&pdev->dev, &dev_attr_vbus))
+> diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
+> index 4b59b39..b5c759c 100644
+> --- a/drivers/usb/phy/omap-usb2.c
+> +++ b/drivers/usb/phy/omap-usb2.c
+> @@ -143,6 +143,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
+>  	phy->phy.label		= "omap-usb2";
+>  	phy->phy.set_suspend	= omap_usb2_suspend;
+>  	phy->phy.otg		= otg;
+> +	phy->phy.type		= USB_PHY_TYPE_USB2;
 
-Since NULL is not IS_ERR(), you will do a NULL pointer reference below.
+same here.
 
-In such cases we would want to use the deferred probe mechanism. So should we return
--EPROBE_DEFER?
-
-> +
-> +	get_device(phy->dev);
-> +
-> +err0:
-> +	spin_unlock_irqrestore(&phy_lock, flags);
-> +
-> +	return phy;
-> +}
-> +EXPORT_SYMBOL(usb_get_phy_dev);
-> +
+>  
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+>  
+> @@ -168,7 +169,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
+>  	}
+>  	clk_prepare(phy->wkupclk);
+>  
+> -	usb_add_phy(&phy->phy, USB_PHY_TYPE_USB2);
+> +	usb_add_phy_dev(&phy->phy);
+>  
+>  	platform_set_drvdata(pdev, phy);
+>  
+> 
 
 --
 cheers,
