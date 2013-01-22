@@ -1,61 +1,61 @@
-From: Roger Quadros <rogerq@ti.com>
+From: kishon <kishon@ti.com>
 Subject: Re: [PATCH v1 6/6] USB: MUSB: OMAP: get PHY by phandle for dt boot
-Date: Tue, 22 Jan 2013 16:47:50 +0200
-Message-ID: <50FEA696.8000506@ti.com>
-References: <1358848694-20145-1-git-send-email-kishon@ti.com> <1358848694-20145-7-git-send-email-kishon@ti.com> <50FE9F5C.2010501@ti.com> <50FEA447.1090701@ti.com>
+Date: Tue, 22 Jan 2013 20:51:58 +0530
+Message-ID: <50FEAE96.30706@ti.com>
+References: <1358848694-20145-1-git-send-email-kishon@ti.com> <1358848694-20145-7-git-send-email-kishon@ti.com> <50FE9F5C.2010501@ti.com> <50FEA447.1090701@ti.com> <50FEA696.8000506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50FEA447.1090701@ti.com>
+In-Reply-To: <50FEA696.8000506@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kishon <kishon@ti.com>
+To: Roger Quadros <rogerq@ti.com>
 Cc: tony@atomide.com, balbi@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/22/2013 04:37 PM, kishon wrote:
-> On Tuesday 22 January 2013 07:47 PM, Roger Quadros wrote:
->> On 01/22/2013 11:58 AM, Kishon Vijay Abraham I wrote:
->>> The OMAP glue has been modified to get PHY by phandle for dt boot.
+On Tuesday 22 January 2013 08:17 PM, Roger Quadros wrote:
+> On 01/22/2013 04:37 PM, kishon wrote:
+>> On Tuesday 22 January 2013 07:47 PM, Roger Quadros wrote:
+>>> On 01/22/2013 11:58 AM, Kishon Vijay Abraham I wrote:
+>>>> The OMAP glue has been modified to get PHY by phandle for dt boot.
+>>>>
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>> ---
+>>>>    drivers/usb/musb/omap2430.c |    7 ++++++-
+>>>>    1 file changed, 6 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+>>>> index 1a8cf6d..e43faeb 100644
+>>>> --- a/drivers/usb/musb/omap2430.c
+>>>> +++ b/drivers/usb/musb/omap2430.c
+>>>> @@ -345,7 +345,12 @@ static int omap2430_musb_init(struct musb *musb)
+>>>>         * up through ULPI.  TWL4030-family PMICs include one,
+>>>>         * which needs a driver, drivers aren't always needed.
+>>>>         */
+>>>> -    musb->xceiv = devm_usb_get_phy_dev(dev, 0);
+>>>> +    if (dev->parent->of_node)
+>>>> +        musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
+>>>> +            "usb_phy", 0);
+>>>> +    else
+>>>> +        musb->xceiv = devm_usb_get_phy_dev(dev, 0);
+>>>> +
+>>>>        if (IS_ERR_OR_NULL(musb->xceiv)) {
+>>>>            pr_err("HS USB OTG: no transceiver configured\n");
+>>>>            return -ENODEV;
 >>>
->>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>> ---
->>>   drivers/usb/musb/omap2430.c |    7 ++++++-
->>>   1 file changed, 6 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
->>> index 1a8cf6d..e43faeb 100644
->>> --- a/drivers/usb/musb/omap2430.c
->>> +++ b/drivers/usb/musb/omap2430.c
->>> @@ -345,7 +345,12 @@ static int omap2430_musb_init(struct musb *musb)
->>>        * up through ULPI.  TWL4030-family PMICs include one,
->>>        * which needs a driver, drivers aren't always needed.
->>>        */
->>> -    musb->xceiv = devm_usb_get_phy_dev(dev, 0);
->>> +    if (dev->parent->of_node)
->>> +        musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
->>> +            "usb_phy", 0);
->>> +    else
->>> +        musb->xceiv = devm_usb_get_phy_dev(dev, 0);
->>> +
->>>       if (IS_ERR_OR_NULL(musb->xceiv)) {
->>>           pr_err("HS USB OTG: no transceiver configured\n");
->>>           return -ENODEV;
+>>> This will not work with PHY driver as a module. You need to use deferred probing mechanism here
+>>> after you have addressed my comment in patch 2 and also devm_usb_get_phy_by_phandle()
 >>
->> This will not work with PHY driver as a module. You need to use deferred probing mechanism here
->> after you have addressed my comment in patch 2 and also devm_usb_get_phy_by_phandle()
-> 
-> IIUC, even using -EPROBE_DEFER might not help if we are making the PHY driver as module, since the kernel will try to probe only till the prompt comes.
-> 
-Oh really? I thought deferred probing takes place whenever a new driver is bound to a device. What does "prompt comes" have to do with it?
+>> IIUC, even using -EPROBE_DEFER might not help if we are making the PHY driver as module, since the kernel will try to probe only till the prompt comes.
+>>
+> Oh really? I thought deferred probing takes place whenever a new driver is bound to a device.
+You might also be right. I'm not so sure.
 
+What does "prompt comes" have to do with it?
 
-> And having -EPROBE_DEFER instead of -ENODEV might also not help since, the gadget driver wont be able to bind to UDC (usb_gadget_probe_driver will fail).
-> 
-> A lot of things need to be changed before we change to -EPROBE_DEFER IMO.
+I just meant end of boot process. But it's better to check if deferred 
+probing takes place whenever a new driver is bound to a device as you 
+just mentioned.
 
-OK.
-
---
-cheers,
--roger
+Thanks
+Kishon
