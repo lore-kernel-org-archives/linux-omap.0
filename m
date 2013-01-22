@@ -1,157 +1,51 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v1 5/6] usb: otg: add device tree support to otg library
-Date: Tue, 22 Jan 2013 15:28:13 +0530
-Message-ID: <1358848694-20145-6-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v1 6/6] USB: MUSB: OMAP: get PHY by phandle for dt boot
+Date: Tue, 22 Jan 2013 15:28:14 +0530
+Message-ID: <1358848694-20145-7-git-send-email-kishon@ti.com>
 References: <1358848694-20145-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358848694-20145-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, balbi@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
-Cc: kishon@ti.com, Marc Kleine-Budde <mkl@pengutronix.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1358848694-20145-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Cc: kishon-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Added an API devm_usb_get_phy_by_phandle(), to get usb phy by passing a
-device node phandle value. This function will return a pointer to
-the phy on success, -EPROBE_DEFER if there is a device_node for the phandle,
-but the phy has not been added, or a ERR_PTR() otherwise.
+The OMAP glue has been modified to get PHY by phandle for dt boot.
 
-Cc: Marc Kleine-Budde <mkl@pengutronix.de>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/otg/otg.c   |   77 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/usb/phy.h |    8 +++++
- 2 files changed, 85 insertions(+)
+ drivers/usb/musb/omap2430.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
-index 1f30b22..67daf8c 100644
---- a/drivers/usb/otg/otg.c
-+++ b/drivers/usb/otg/otg.c
-@@ -13,7 +13,9 @@
- #include <linux/export.h>
- #include <linux/err.h>
- #include <linux/device.h>
-+#include <linux/module.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
- 
- #include <linux/usb/otg.h>
- 
-@@ -50,6 +52,20 @@ static struct usb_phy *__usb_find_phy_dev(struct device *dev,
- 	return ERR_PTR(-ENODEV);
- }
- 
-+static struct usb_phy *__of_usb_find_phy(struct device_node *node)
-+{
-+	struct usb_phy  *phy;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 1a8cf6d..e43faeb 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -345,7 +345,12 @@ static int omap2430_musb_init(struct musb *musb)
+ 	 * up through ULPI.  TWL4030-family PMICs include one,
+ 	 * which needs a driver, drivers aren't always needed.
+ 	 */
+-	musb->xceiv = devm_usb_get_phy_dev(dev, 0);
++	if (dev->parent->of_node)
++		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
++		    "usb_phy", 0);
++	else
++		musb->xceiv = devm_usb_get_phy_dev(dev, 0);
 +
-+	list_for_each_entry(phy, &phy_list, head) {
-+		if (node != phy->dev->of_node)
-+			continue;
-+
-+		return phy;
-+	}
-+
-+	return ERR_PTR(-ENODEV);
-+}
-+
- static void devm_usb_phy_release(struct device *dev, void *res)
- {
- 	struct usb_phy *phy = *(struct usb_phy **)res;
-@@ -125,6 +141,67 @@ err0:
- }
- EXPORT_SYMBOL(usb_get_phy);
- 
-+ /**
-+ * devm_usb_get_phy_by_phandle - find the USB PHY by phandle
-+ * @dev - device that requests this phy
-+ * @phandle - name of the property holding the phy phandle value
-+ * @index - the index of the phy
-+ *
-+ * Returns the phy driver associated with the given phandle value,
-+ * after getting a refcount to it, -ENODEV if there is no such phy or
-+ * -EPROBE_DEFER if there is a phandle to the phy, but the device is
-+ * not yet loaded. While at that, it also associates the device with
-+ * the phy using devres. On driver detach, release function is invoked
-+ * on the devres data, then, devres data is freed.
-+ *
-+ * For use by USB host and peripheral drivers.
-+ */
-+struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
-+	const char *phandle, u8 index)
-+{
-+	struct usb_phy	*phy = NULL, **ptr;
-+	unsigned long	flags;
-+	struct device_node *node;
-+
-+	if (!dev->of_node) {
-+		dev_dbg(dev, "device does not have a device node entry\n");
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	node = of_parse_phandle(dev->of_node, phandle, index);
-+	if (!node) {
-+		dev_dbg(dev, "failed to get %s phandle in %s node\n", phandle,
-+			dev->of_node->full_name);
-+		return ERR_PTR(-ENODEV);
-+	}
-+
-+	ptr = devres_alloc(devm_usb_phy_release, sizeof(*ptr), GFP_KERNEL);
-+	if (!ptr) {
-+		dev_dbg(dev, "failed to allocate memory for devres\n");
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	spin_lock_irqsave(&phy_lock, flags);
-+
-+	phy = __of_usb_find_phy(node);
-+	if (IS_ERR(phy) || !try_module_get(phy->dev->driver->owner)) {
-+		phy = ERR_PTR(-EPROBE_DEFER);
-+		devres_free(ptr);
-+		goto err0;
-+	}
-+
-+	*ptr = phy;
-+	devres_add(dev, ptr);
-+
-+	get_device(phy->dev);
-+
-+err0:
-+	spin_unlock_irqrestore(&phy_lock, flags);
-+
-+	return phy;
-+}
-+EXPORT_SYMBOL(devm_usb_get_phy_by_phandle);
-+
- /**
-  * usb_get_phy_dev - find the USB PHY
-  * @dev - device that requests this phy
-diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
-index 3a9ae3e..c7f5a98 100644
---- a/include/linux/usb/phy.h
-+++ b/include/linux/usb/phy.h
-@@ -167,6 +167,8 @@ extern struct usb_phy *devm_usb_get_phy(struct device *dev,
- 	enum usb_phy_type type);
- extern struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index);
- extern struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index);
-+extern struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
-+	const char *phandle, u8 index);
- extern void usb_put_phy(struct usb_phy *);
- extern void devm_usb_put_phy(struct device *dev, struct usb_phy *x);
- extern struct usb_phy_bind *usb_bind_phy(const char *dev_name, u8 index,
-@@ -193,6 +195,12 @@ static inline struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
- 	return NULL;
- }
- 
-+static inline struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
-+	const char *phandle, u8 index)
-+{
-+	return NULL;
-+}
-+
- static inline void usb_put_phy(struct usb_phy *x)
- {
- }
+ 	if (IS_ERR_OR_NULL(musb->xceiv)) {
+ 		pr_err("HS USB OTG: no transceiver configured\n");
+ 		return -ENODEV;
 -- 
 1.7.9.5
