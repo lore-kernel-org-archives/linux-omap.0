@@ -1,63 +1,53 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: omap2plus_defconfig: enable CMA allocator
-Date: Mon, 21 Jan 2013 23:27:58 +0100
-Message-ID: <CAAwP0s2=_wrPYjmckiXMwK8-4MkyYxtX8HtWv9NuaTtqqN7icg@mail.gmail.com>
-References: <1355920420-20852-1-git-send-email-javier.martinez@collabora.co.uk>
- <1355920420-20852-2-git-send-email-javier.martinez@collabora.co.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.8-rc4
+Date: Tue, 22 Jan 2013 02:24:44 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301220213390.25789@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1301202136290.31667@utopia.booyaka.com> <50FD6D8D.6030106@mimc.co.uk> <20130121164510.GA18905@kahuna> <f36acfaf128c4844b8f696ea4440e253@DLEE74.ent.ti.com> <20130121182419.GE10020@beef> <87boci9str.fsf@dell.be.48ers.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f178.google.com ([209.85.210.178]:63628 "EHLO
-	mail-ia0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752245Ab3AUW2T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 17:28:19 -0500
-Received: by mail-ia0-f178.google.com with SMTP id y26so2967860iab.9
-        for <linux-omap@vger.kernel.org>; Mon, 21 Jan 2013 14:28:18 -0800 (PST)
-In-Reply-To: <1355920420-20852-2-git-send-email-javier.martinez@collabora.co.uk>
+Received: from utopia.booyaka.com ([74.50.51.50]:40891 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753182Ab3AVCYp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jan 2013 21:24:45 -0500
+In-Reply-To: <87boci9str.fsf@dell.be.48ers.dk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Matt Porter <mporter@ti.com>, Richard Cochran <richardcochran@gmail.com>, "Menon\\, Nishanth" <nm@ti.com>, Mark Jackson <mpfj-list@mimc.co.uk>, "Hiremath\\, Vaibhav" <hvaibhav@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Peter Korsgaard <jacmet@sunsite.dk>
+Cc: "linux-omap\\@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel\\@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Dec 19, 2012 at 1:33 PM, Javier Martinez Canillas
-<javier.martinez@collabora.co.uk> wrote:
-> The OMAP framebuffer driver now uses the standard dma allocator
-> instead of the (now removed) omap specific vram allocator.
->
-> Enable the Contiguous Memory Allocator by default to allow large
-> dma memory buffers allocation.
->
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> ---
->  arch/arm/configs/omap2plus_defconfig |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index da530a0..dc4789e 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -64,6 +64,7 @@ CONFIG_MAC80211=m
->  CONFIG_MAC80211_RC_PID=y
->  CONFIG_MAC80211_RC_DEFAULT_PID=y
->  CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
-> +CONFIG_CMA=y
->  CONFIG_CONNECTOR=y
->  CONFIG_MTD=y
->  CONFIG_MTD_CMDLINE_PARTS=y
-> --
 
-Hi Tony,
+Hi guys,
 
-Are you considering adding this patch and
+Regarding the AM33xx test failures with appended DTBs, it would be very 
+helpful if especially the TI people could try reproducing the problem.
+Otherwise it's going to cause problems with merging any new AM33xx 
+patches, since I won't be able to test them without additional work.  
+Plus, this is something that used to work up until d01e4afd, so something 
+isn't right.
 
-ARM: OMAP2+: omap2plus_defconfig: enable TFP410 chip support [1]
+You'll need to use the bootloader that TI originally shipped with the 
+BeagleBones:
 
-to the 3.8-rc series or 3.9?
+U-Boot 2011.09-00009-gcf6e04d (Mar 08 2012 - 17:15:43)
 
-These patches have been acked by Tomi and are necessary to have
-framebuffer video working on many OMAP3 based boards.
+This is because many folks don't replace their bootloader.  I do plan to 
+add a test with a recent version of u-boot, but the kernel should not be 
+dependent on the bootloader in any way to work correctly.  If it is, then 
+we need to document what u-boot version the kernel started to work with.
 
-Thanks a lot and best regards,
-Javier
+The Kconfig that I use is here:
 
-[1]: https://patchwork.kernel.org/patch/1895451/
+http://www.pwsan.com/omap/testlogs/test_v3.8-rc4/20130120122039/build/am33xx_only/am33xx_only
+
+It's possible that there's something wrong with the Kconfig.  It's 
+basically just omap2plus_defconfig, but with all OMAP support for 
+non-AM33xx turned off, and with the appended DTB and ATAG compatibility 
+options turned on.
+
+Let's try to do this ASAP.  That way, if it's some bootloader dependency 
+or bug in the kernel, some fix can be merged during the v3.8-rc series, 
+which is rapidly drawing to a close.
+
+
+- Paul
