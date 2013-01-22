@@ -1,7 +1,7 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v3 10/12] video: da8xx-fb: ensure pdata only for non-dt
-Date: Tue, 22 Jan 2013 22:22:59 +0530
-Message-ID: <4bd302e9c88c586323327eef990f354f994ea9c5.1358871750.git.afzal@ti.com>
+Subject: [PATCH v3 09/12] video: da8xx-fb: obtain fb_videomode info from dt
+Date: Tue, 22 Jan 2013 22:22:53 +0530
+Message-ID: <e96df7059488fe353d2da9853a98b479b568a8f2.1358871750.git.afzal@ti.com>
 References: <cover.1358871750.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,26 +12,88 @@ To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.k
 Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-This driver is DT probe-able, hence ensure presence of platform data
-only for non-DT boot.
+Obtain fb_videomode details for the connected lcd panel using the
+display timing details present in DT.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../devicetree/bindings/video/fb-da8xx.txt          | 21 +++++++++++++++++++++
+ drivers/video/da8xx-fb.c                            | 17 +++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
+diff --git a/Documentation/devicetree/bindings/video/fb-da8xx.txt b/Documentation/devicetree/bindings/video/fb-da8xx.txt
+index 581e014..0741f78 100644
+--- a/Documentation/devicetree/bindings/video/fb-da8xx.txt
++++ b/Documentation/devicetree/bindings/video/fb-da8xx.txt
+@@ -6,6 +6,12 @@ Required properties:
+ 	AM335x SoC's - "ti,am3352-lcdc", "ti,da830-lcdc"
+ - reg: Address range of lcdc register set
+ - interrupts: lcdc interrupt
++- display-timings: typical videomode of lcd panel, represented as child.
++  Refer Documentation/devicetree/bindings/video/display-timing.txt for
++  display timing binding details. If multiple videomodes are mentioned
++  in display timings node, typical videomode has to be mentioned as the
++  native mode or it has to be first child (driver cares only for native
++  videomode).
+ 
+ Example:
+ 
+@@ -13,4 +19,19 @@ lcdc@4830e000 {
+ 	compatible = "ti,am3352-lcdc", "ti,da830-lcdc";
+ 	reg =  <0x4830e000 0x1000>;
+ 	interrupts = <36>;
++	display-timings {
++		800x480p62 {
++			clock-frequency = <30000000>;
++			hactive = <800>;
++			vactive = <480>;
++			hfront-porch = <39>;
++			hback-porch = <39>;
++			hsync-len = <47>;
++			vback-porch = <29>;
++			vfront-porch = <13>;
++			vsync-len = <2>;
++			hsync-active = <1>;
++			vsync-active = <1>;
++		};
++	};
+ };
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 0c68712..1c1a616 100644
+index 0beed20..0c68712 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -1303,7 +1303,7 @@ static int fb_probe(struct platform_device *device)
- 	int ret;
- 	unsigned long ulcm;
+@@ -36,6 +36,7 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/lcm.h>
++#include <video/of_display_timing.h>
+ #include <video/da8xx-fb.h>
+ #include <asm/div64.h>
  
--	if (fb_pdata == NULL) {
-+	if (fb_pdata == NULL && !device->dev.of_node) {
- 		dev_err(&device->dev, "Can not get platform data\n");
- 		return -ENOENT;
- 	}
+@@ -1257,8 +1258,24 @@ static struct fb_videomode *da8xx_fb_get_videomode(struct platform_device *dev)
+ {
+ 	struct da8xx_lcdc_platform_data *fb_pdata = dev->dev.platform_data;
+ 	struct fb_videomode *lcdc_info;
++	struct device_node *np = dev->dev.of_node;
+ 	int i;
+ 
++	if (np) {
++		lcdc_info = devm_kzalloc(&dev->dev,
++					 sizeof(struct fb_videomode),
++					 GFP_KERNEL);
++		if (!lcdc_info) {
++			dev_err(&dev->dev, "memory allocation failed\n");
++			return NULL;
++		}
++		if (of_get_fb_videomode(np, lcdc_info, OF_USE_NATIVE_MODE)) {
++			dev_err(&dev->dev, "timings not available in DT\n");
++			return NULL;
++		}
++		return lcdc_info;
++	}
++
+ 	for (i = 0, lcdc_info = known_lcd_panels;
+ 		i < ARRAY_SIZE(known_lcd_panels); i++, lcdc_info++) {
+ 		if (strcmp(fb_pdata->type, lcdc_info->name) == 0)
 -- 
 1.7.12
