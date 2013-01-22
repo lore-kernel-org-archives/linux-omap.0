@@ -1,70 +1,95 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v1 0/6] USB: Add support for multiple PHYs of same type
-Date: Tue, 22 Jan 2013 15:28:08 +0530
-Message-ID: <1358848694-20145-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v1 4/6] drivers: usb: musb: omap: make use of the new PHY lib
+ APIs
+Date: Tue, 22 Jan 2013 15:28:12 +0530
+Message-ID: <1358848694-20145-5-git-send-email-kishon@ti.com>
+References: <1358848694-20145-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, balbi@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
-Cc: kishon@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1358848694-20145-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Cc: kishon-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch series adds support for adding multiple PHY's (of same type).
-The binding information has to be present in the PHY library (otg.c) in
-order for it to return the appropriate PHY whenever the USB controller
-request for the PHY. So added a new API usb_bind_phy() to pass the binding
-information. This API should be called by platform specific initialization
-code.
+New PHY lib APIs like usb_add_phy_dev() and devm_usb_get_phy_dev() are
+used in MUSB (OMAP), in order to make use of the binding information
+provided in the board file (of OMAP platforms).
+All the platforms should be modified similar to this to add and get the
+PHY.
 
-So the binding should be done something like
-usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto"); specifying the USB
-controller device name, index, and the PHY device name.
-I have done this binding for OMAP platforms, but it should be done for
-all the platforms.
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/musb/omap2430.c   |    2 +-
+ drivers/usb/otg/twl4030-usb.c |    3 ++-
+ drivers/usb/phy/omap-usb2.c   |    3 ++-
+ 3 files changed, 5 insertions(+), 3 deletions(-)
 
-After this design, the phy can be got by passing the USB controller device
-pointer and the index.
-
-Developed this patch series on
-git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git xceiv
-after applying "usb: musb: add driver for control module" patch series
-and "ARM: dts: omap: add dt data for MUSB"
-
-Did basic enumeration testing in omap4 panda and omap3 beagle.
-
-Kishon Vijay Abraham I (6):
-  usb: otg: Add an API to bind the USB controller and PHY
-  usb: otg: utils: add facilities in phy lib to support multiple PHYs
-    of same type
-  ARM: OMAP: USB: Add phy binding information
-  drivers: usb: musb: omap: make use of the new PHY lib APIs
-  usb: otg: add device tree support to otg library
-  USB: MUSB: OMAP: get PHY by phandle for dt boot
-
- arch/arm/mach-omap2/board-2430sdp.c          |    2 +
- arch/arm/mach-omap2/board-3430sdp.c          |    2 +
- arch/arm/mach-omap2/board-4430sdp.c          |    2 +
- arch/arm/mach-omap2/board-cm-t35.c           |    2 +
- arch/arm/mach-omap2/board-devkit8000.c       |    2 +
- arch/arm/mach-omap2/board-igep0020.c         |    2 +
- arch/arm/mach-omap2/board-ldp.c              |    2 +
- arch/arm/mach-omap2/board-omap3beagle.c      |    2 +
- arch/arm/mach-omap2/board-omap3evm.c         |    2 +
- arch/arm/mach-omap2/board-omap3logic.c       |    2 +
- arch/arm/mach-omap2/board-omap3pandora.c     |    2 +
- arch/arm/mach-omap2/board-omap3stalker.c     |    2 +
- arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +
- arch/arm/mach-omap2/board-omap4panda.c       |    2 +
- arch/arm/mach-omap2/board-overo.c            |    2 +
- arch/arm/mach-omap2/board-rm680.c            |    2 +
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +
- drivers/usb/musb/omap2430.c                  |    7 +-
- drivers/usb/otg/otg.c                        |  228 +++++++++++++++++++++++++-
- drivers/usb/otg/twl4030-usb.c                |    3 +-
- drivers/usb/phy/omap-usb2.c                  |    3 +-
- include/linux/usb/phy.h                      |   43 +++++
- 22 files changed, 314 insertions(+), 4 deletions(-)
-
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index bf6cfe0..1a8cf6d 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -345,7 +345,7 @@ static int omap2430_musb_init(struct musb *musb)
+ 	 * up through ULPI.  TWL4030-family PMICs include one,
+ 	 * which needs a driver, drivers aren't always needed.
+ 	 */
+-	musb->xceiv = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
++	musb->xceiv = devm_usb_get_phy_dev(dev, 0);
+ 	if (IS_ERR_OR_NULL(musb->xceiv)) {
+ 		pr_err("HS USB OTG: no transceiver configured\n");
+ 		return -ENODEV;
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 0a70193..a994715 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -610,6 +610,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 	twl->phy.dev		= twl->dev;
+ 	twl->phy.label		= "twl4030";
+ 	twl->phy.otg		= otg;
++	twl->phy.type		= USB_PHY_TYPE_USB2;
+ 	twl->phy.set_suspend	= twl4030_set_suspend;
+ 
+ 	otg->phy		= &twl->phy;
+@@ -624,7 +625,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "ldo init failed\n");
+ 		return err;
+ 	}
+-	usb_add_phy(&twl->phy, USB_PHY_TYPE_USB2);
++	usb_add_phy_dev(&twl->phy);
+ 
+ 	platform_set_drvdata(pdev, twl);
+ 	if (device_create_file(&pdev->dev, &dev_attr_vbus))
+diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
+index 4b59b39..b5c759c 100644
+--- a/drivers/usb/phy/omap-usb2.c
++++ b/drivers/usb/phy/omap-usb2.c
+@@ -143,6 +143,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 	phy->phy.label		= "omap-usb2";
+ 	phy->phy.set_suspend	= omap_usb2_suspend;
+ 	phy->phy.otg		= otg;
++	phy->phy.type		= USB_PHY_TYPE_USB2;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+ 
+@@ -168,7 +169,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 	}
+ 	clk_prepare(phy->wkupclk);
+ 
+-	usb_add_phy(&phy->phy, USB_PHY_TYPE_USB2);
++	usb_add_phy_dev(&phy->phy);
+ 
+ 	platform_set_drvdata(pdev, phy);
+ 
 -- 
 1.7.9.5
