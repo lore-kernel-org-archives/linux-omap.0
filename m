@@ -1,93 +1,127 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/5] ARM: dts: OMAP3+: PWM support for TWL and selected
- boards
-Date: Tue, 22 Jan 2013 11:11:46 +0100
-Message-ID: <50FE65E2.9020301@ti.com>
-References: <1358519794-13214-1-git-send-email-peter.ujfalusi@ti.com>
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: Re: OMAP baseline test results for v3.8-rc4
+Date: Tue, 22 Jan 2013 10:15:08 +0000
+Message-ID: <50FE66AC.2090306@mimc.co.uk>
+References: <alpine.DEB.2.00.1301202136290.31667@utopia.booyaka.com> <50FD6D8D.6030106@mimc.co.uk> <20130121164510.GA18905@kahuna> <f36acfaf128c4844b8f696ea4440e253@DLEE74.ent.ti.com> <20130121182419.GE10020@beef> <87boci9str.fsf@dell.be.48ers.dk> <alpine.DEB.2.00.1301220213390.25789@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33538 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752449Ab3AVKLy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jan 2013 05:11:54 -0500
-In-Reply-To: <1358519794-13214-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from mercuryimc.plus.com ([80.229.200.144]:42791 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752279Ab3AVKPJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jan 2013 05:15:09 -0500
+In-Reply-To: <alpine.DEB.2.00.1301220213390.25789@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Matt Porter <mporter@ti.com>, Richard Cochran <richardcochran@gmail.com>, "Menon\\, Nishanth" <nm@ti.com>, "Hiremath\\, Vaibhav" <hvaibhav@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Peter Korsgaard <jacmet@sunsite.dk>, "linux-omap\\@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel\\@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Benoit,
-
-I have prepared for you a branch from where you can pull this set on to=
-p of
-mainline v3.8-rc4:
-
-Regards,
-P=E9ter
-
----
-The following changes since commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe964=
-7619:
-
-  Linux 3.8-rc4 (2013-01-17 19:25:45 -0800)
-
-are available in the git repository at:
-
-  git://gitorious.org/omap-audio/linux-audio.git peter/for-benoit
-
-for you to fetch changes up to b6230ae20bc018d042d703d0667ba9e7ac027ccb=
-:
-
-  ARM: dts: omap4-sdp: Add support for pwm-backlight (2013-01-22 11:08:=
-37 +0100)
-
-----------------------------------------------------------------
-Peter Ujfalusi (5):
-      ARM: dts: twl4030: Add PWM support
-      ARM: dts: twl6030: Add PWM support
-      ARM: dts: omap3-beagle-xm: Use pwm-leds for pmu_stat LED
-      ARM: dts: omap4-sdp: Add support for pwm-leds (keypad and chargin=
-g LED)
-      ARM: dts: omap4-sdp: Add support for pwm-backlight
-
- arch/arm/boot/dts/omap3-beagle-xm.dts | 14 ++++++++++----
- arch/arm/boot/dts/omap4-sdp.dts       | 26 ++++++++++++++++++++++++++
- arch/arm/boot/dts/twl4030.dtsi        | 10 ++++++++++
- arch/arm/boot/dts/twl6030.dtsi        | 12 ++++++++++++
- 4 files changed, 58 insertions(+), 4 deletions(-)
-
-On 01/18/2013 03:36 PM, Peter Ujfalusi wrote:
-> Hi,
+On 22/01/13 02:24, Paul Walmsley wrote:
 >=20
-> Add the needed DT sections for twl4030 and twl6030 for the PWM childs=
+> Hi guys,
+>=20
+> Regarding the AM33xx test failures with appended DTBs, it would be ve=
+ry=20
+> helpful if especially the TI people could try reproducing the problem=
 =2E
-> Update the omap4-sdp to have working backlight and keypad/charging LE=
-D support.
-> Use the pwm-leds driver on BeagleBoard for the pmu_stat LED instead o=
-f the hacky
-> twl403-gpio mapped PWM.
->=20
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (5):
->   ARM: dts: twl4030: Add PWM support
->   ARM: dts: twl6030: Add PWM support
->   ARM: dts: omap3-beagle-xm: Use pwm-leds for pmu_stat LED
->   ARM: dts: omap4-sdp: Add support for pwm-leds (keypad and charging =
-LED)
->   ARM: dts: omap4-sdp: Add support for pwm-backlight
->=20
->  arch/arm/boot/dts/omap3-beagle-xm.dts | 14 ++++++++++----
->  arch/arm/boot/dts/omap4-sdp.dts       | 26 +++++++++++++++++++++++++=
-+
->  arch/arm/boot/dts/twl4030.dtsi        | 10 ++++++++++
->  arch/arm/boot/dts/twl6030.dtsi        | 12 ++++++++++++
->  4 files changed, 58 insertions(+), 4 deletions(-)
->=20
 
+My non-working setup (I'm using a recent U-Boot) is as follows ...
+
+[Note that the DTB patch mentioned elsewhere in this thread seems to be=
+ *already* applied to -next]
+
+$ git describe
+next-20130121
+$ make -j 8 ARCH=3Darm CROSS_COMPILE=3Darm-linux- omap2plus_defconfig
+$ make -j 8 ARCH=3Darm CROSS_COMPILE=3Darm-linux- menuconfig
+CONFIG_ARM_APPENDED_DTB=3Dy
+CONFIG_ARM_ATAG_DTB_COMPAT=3Dy
+CONFIG_EARLY_PRINTK=3Dy
+$ make -j 8 ARCH=3Darm CROSS_COMPILE=3Darm-linux-
+$ cat arch/arm/boot/zImage arch/arm/boot/dtb/am335x-bone.dtb > arch/arm=
+/boot/zImage-dtb.am335x-bone
+$ scripts/mkuboot.sh -A arm -O linux -C none -T kernel -a 0=D780008000 =
+-e 0=D780008000 -n =91Linux=92 -d
+arch/arm/boot/zImage-dtb.am335x-bone arch/arm/boot/uImage-dtb.am335x-bo=
+ne
+$ cp arch/arm/boot/uImage-dtb.am335x-bone /tftpboot/nanobone/uImage-dtb
+
+And when I boot:-
+
+U-Boot SPL 2013.01 (Jan 16 2013 - 15:20:58)
+OMAP SD/MMC: 0
+reading u-boot.img
+reading u-boot.img
+
+
+U-Boot 2013.01 (Jan 16 2013 - 15:20:58)
+
+I2C:   ready
+DRAM:  256 MiB
+WARNING: Caches not enabled
+NAND:  No NAND device found!!!
+0 MiB
+MMC:   OMAP SD/MMC: 0, OMAP SD/MMC: 1
+*** Warning - readenv() failed, using default environment
+
+musb-hdrc: ConfigData=3D0xde (UTMI-8, dyn FIFOs, bulk combine, bulk spl=
+it, HB-ISO Rx, HB-ISO Tx, SoftConn)
+musb-hdrc: MHDRC RTL version 2.0
+musb-hdrc: setup fifo_mode 4
+musb-hdrc: 28/31 max ep, 16384/16384 memory
+USB Peripheral mode controller at 47401000 using PIO, IRQ 0
+musb-hdrc: ConfigData=3D0xde (UTMI-8, dyn FIFOs, bulk combine, bulk spl=
+it, HB-ISO Rx, HB-ISO Tx, SoftConn)
+musb-hdrc: MHDRC RTL version 2.0
+musb-hdrc: setup fifo_mode 4
+musb-hdrc: 28/31 max ep, 16384/16384 memory
+USB Host mode controller at 47401800 using PIO, IRQ 0
+Net:   cpsw, usb_ether
+Hit any key to stop autoboot:  0
+mmc0 is current device
+SD/MMC found on device 0
+reading uEnv.txt
+167 bytes read in 3 ms (53.7 KiB/s)
+Loaded environment from uEnv.txt
+Importing environment from mmc ...
+Running uenvcmd ...
+cpsw Waiting for PHY auto negotiation to complete. done
+link up on port 0, speed 100, full duplex
+BOOTP broadcast 1
+BOOTP broadcast 2
+*** Unhandled DHCP Option in OFFER/ACK: 44
+*** Unhandled DHCP Option in OFFER/ACK: 46
+*** Unhandled DHCP Option in OFFER/ACK: 44
+*** Unhandled DHCP Option in OFFER/ACK: 46
+DHCP client bound to address 10.0.0.112
+Using cpsw device
+TFTP from server 10.0.0.100; our IP address is 10.0.0.112
+=46ilename '/nanobone/uImage-dtb'.
+Load address: 0x80000000
+Loading: ##############################################################=
+###
+         ##############################################################=
+###
+         ##############################################################=
+###
+         ##############################################################=
+###
+         ###########
+         627.9 KiB/s
+done
+Bytes transferred =3D 3963919 (3c7c0f hex)
+## Booting kernel from Legacy Image at 80000000 ...
+   Image Name:   Linux
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    3963855 Bytes =3D 3.8 MiB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Verifying Checksum ... OK
+   Loading Kernel Image ... OK
+OK
+
+Starting kernel ...
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
