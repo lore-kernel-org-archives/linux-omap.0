@@ -1,7 +1,7 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 1/4] ARM: OMAP2+: dpll: round rate to closest value
-Date: Tue, 22 Jan 2013 22:14:11 +0530
-Message-ID: <2e1a48e0a326e914c8a7497f9a61243387c61862.1358871018.git.afzal@ti.com>
+Subject: [PATCH 3/4] ARM: OMAP2+: clock: DEFINE_STRUCT_CLK_FLAGS helper
+Date: Tue, 22 Jan 2013 22:14:23 +0530
+Message-ID: <abe7aceb564b97ab00b88b13a9aac487363e01c1.1358871018.git.afzal@ti.com>
 References: <cover.1358871018.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,59 +12,36 @@ To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kern
 Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently round rate function would return proper rate iff requested
-rate exactly matches the PLL lockable rate. This causes set_rate to
-fail if exact rate could not be set. Instead round rate may return
-closest rate possible (less than the requested). And if any user is
-badly in need of exact rate, then return value of round rate could
-be used to decide whether to invoke set rate or not.
-
-Modify round rate so that it return closest possible rate.
-
-This was required to get display working on am335x. Without this
-display rate could not be set (taking help of SET_RATE_PARENT). Couple
-of the downstream clocks of display PLL are basic clock dividers and
-they do MULT_ROUND_UP before requesting rate on PLL causing values
-that mostly could not be locked by PLL. And even otherwise, if
-requested rate for a particular pixel clock could not be satisfied by
-PLL, display would not work. This change will resolve the issue.
+DEFINE_STRUCT_CLK does not have the capability to set flags, define
+DEFINE_STRUCT_CLK_FLAGS to handle flags. This is needed to add
+SET_RATE_PARENT flag in statically defined lcd clock in am335x.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/clkt_dpll.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/clock.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
-index 924c230..15e6d41 100644
---- a/arch/arm/mach-omap2/clkt_dpll.c
-+++ b/arch/arm/mach-omap2/clkt_dpll.c
-@@ -345,20 +345,22 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
- 		pr_debug("clock: %s: m = %d: n = %d: new_rate = %ld\n",
- 			 clk_name, m, n, new_rate);
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index b402048..60ddd86 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -65,6 +65,17 @@ struct clockdomain;
+ 		.ops = &_clkops_name,				\
+ 	};
  
--		if (target_rate == new_rate) {
-+		if ((new_rate <= target_rate) &&
-+		    (new_rate > dd->last_rounded_rate)) {
- 			dd->last_rounded_m = m;
- 			dd->last_rounded_n = n;
--			dd->last_rounded_rate = target_rate;
--			break;
-+			dd->last_rounded_rate = new_rate;
-+			if (new_rate == target_rate)
-+				break;
- 		}
- 	}
- 
--	if (target_rate != new_rate) {
-+	if (!dd->last_rounded_rate) {
- 		pr_debug("clock: %s: cannot round to rate %ld\n",
- 			 clk_name, target_rate);
- 		return ~0;
- 	}
- 
--	return target_rate;
-+	return dd->last_rounded_rate;
- }
- 
++#define DEFINE_STRUCT_CLK_FLAGS(_name, _parent_array_name,	\
++				_clkops_name, _flags)		\
++	static struct clk _name = {				\
++		.name = #_name,					\
++		.hw = &_name##_hw.hw,				\
++		.parent_names = _parent_array_name,		\
++		.num_parents = ARRAY_SIZE(_parent_array_name),	\
++		.ops = &_clkops_name,				\
++		.flags = _flags,				\
++	};
++
+ #define DEFINE_STRUCT_CLK_HW_OMAP(_name, _clkdm_name)		\
+ 	static struct clk_hw_omap _name##_hw = {		\
+ 		.hw = {						\
 -- 
 1.7.12
