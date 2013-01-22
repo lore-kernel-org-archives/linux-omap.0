@@ -1,105 +1,101 @@
 From: Rob Clark <robdclark@gmail.com>
-Subject: [PATCH 3/4] drm/tilcdc: add encoder slave
-Date: Tue, 22 Jan 2013 16:36:24 -0600
-Message-ID: <1358894185-21617-4-git-send-email-robdclark@gmail.com>
+Subject: [PATCH 4/4] drm/tilcdc: add support for LCD panels (v4)
+Date: Tue, 22 Jan 2013 16:36:25 -0600
+Message-ID: <1358894185-21617-5-git-send-email-robdclark@gmail.com>
 References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:60052 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753097Ab3AVWgf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jan 2013 17:36:35 -0500
-Received: by mail-oa0-f41.google.com with SMTP id k14so7933080oag.14
-        for <linux-omap@vger.kernel.org>; Tue, 22 Jan 2013 14:36:34 -0800 (PST)
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:48444 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753350Ab3AVWgh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jan 2013 17:36:37 -0500
+Received: by mail-ob0-f178.google.com with SMTP id eh20so7599523obb.37
+        for <linux-omap@vger.kernel.org>; Tue, 22 Jan 2013 14:36:36 -0800 (PST)
 In-Reply-To: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dri-devel@lists.freedesktop.org
 Cc: patches@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Clark <robdclark@gmail.com>
 
-Add output panel driver for i2c encoder slaves.
+Add an output panel driver for LCD panels.  Tested with LCD3 cape on
+beaglebone.
+
+v1: original
+v2: s/of_find_node_by_name()/of_get_child_by_name()/ from Pantelis
+    Antoniou
+v3: add backlight support
+v4: rebase to latest of video timing helpers
 
 Signed-off-by: Rob Clark <robdclark@gmail.com>
 ---
- drivers/gpu/drm/tilcdc/Kconfig        |  12 ++
+ drivers/gpu/drm/tilcdc/Kconfig        |   3 +
  drivers/gpu/drm/tilcdc/Makefile       |   1 +
- drivers/gpu/drm/tilcdc/tilcdc_drv.c   |   5 +-
- drivers/gpu/drm/tilcdc/tilcdc_slave.c | 380 ++++++++++++++++++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_slave.h |  26 +++
- 5 files changed, 423 insertions(+), 1 deletion(-)
- create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave.c
- create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave.h
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c   |   3 +
+ drivers/gpu/drm/tilcdc/tilcdc_panel.c | 443 ++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_panel.h |  26 ++
+ 5 files changed, 476 insertions(+)
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_panel.c
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_panel.h
 
 diff --git a/drivers/gpu/drm/tilcdc/Kconfig b/drivers/gpu/drm/tilcdc/Kconfig
-index ee9b592..99beca2 100644
+index 99beca2..f468b2b 100644
 --- a/drivers/gpu/drm/tilcdc/Kconfig
 +++ b/drivers/gpu/drm/tilcdc/Kconfig
-@@ -8,3 +8,15 @@ config DRM_TILCDC
+@@ -4,6 +4,9 @@ config DRM_TILCDC
+ 	select DRM_KMS_HELPER
+ 	select DRM_KMS_CMA_HELPER
+ 	select DRM_GEM_CMA_HELPER
++	select OF_VIDEOMODE
++	select OF_DISPLAY_TIMING
++	select BACKLIGHT_CLASS_DEVICE
+ 	help
  	  Choose this option if you have an TI SoC with LCDC display
  	  controller, for example AM33xx in beagle-bone, DA8xx, or
- 	  OMAP-L1xx.  This driver replaces the FB_DA8XX fbdev driver.
-+
-+menu "I2C encoder or helper chips"
-+	depends on DRM && DRM_KMS_HELPER && I2C
-+
-+config DRM_I2C_NXP_TDA998X
-+	tristate "NXP Semiconductors TDA998X HDMI encoder"
-+	default m if DRM_TILCDC
-+	help
-+	  Support for NXP Semiconductors TDA998X HDMI encoders.
-+
-+endmenu
-+
 diff --git a/drivers/gpu/drm/tilcdc/Makefile b/drivers/gpu/drm/tilcdc/Makefile
-index 1359cc2..aa9097e 100644
+index aa9097e..deda656 100644
 --- a/drivers/gpu/drm/tilcdc/Makefile
 +++ b/drivers/gpu/drm/tilcdc/Makefile
-@@ -3,6 +3,7 @@ ccflags-y := -Iinclude/drm -Werror
- tilcdc-y := \
+@@ -4,6 +4,7 @@ tilcdc-y := \
  	tilcdc_crtc.o \
  	tilcdc_tfp410.o \
-+	tilcdc_slave.o \
+ 	tilcdc_slave.o \
++	tilcdc_panel.o \
  	tilcdc_drv.o
  
  obj-$(CONFIG_DRM_TILCDC)	+= tilcdc.o
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
-index cf1fddc..ca76dbe 100644
+index ca76dbe..d10858c 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
-@@ -20,6 +20,7 @@
- #include "tilcdc_drv.h"
+@@ -21,6 +21,7 @@
  #include "tilcdc_regs.h"
  #include "tilcdc_tfp410.h"
-+#include "tilcdc_slave.h"
+ #include "tilcdc_slave.h"
++#include "tilcdc_panel.h"
  
  #include "drm_fb_helper.h"
  
-@@ -587,6 +588,7 @@ static int __init tilcdc_drm_init(void)
- {
+@@ -589,6 +590,7 @@ static int __init tilcdc_drm_init(void)
  	DBG("init");
  	tilcdc_tfp410_init();
-+	tilcdc_slave_init();
+ 	tilcdc_slave_init();
++	tilcdc_panel_init();
  	return platform_driver_register(&tilcdc_platform_driver);
  }
  
-@@ -594,10 +596,11 @@ static void __exit tilcdc_drm_fini(void)
- {
+@@ -597,6 +599,7 @@ static void __exit tilcdc_drm_fini(void)
  	DBG("fini");
  	tilcdc_tfp410_fini();
-+	tilcdc_slave_fini();
+ 	tilcdc_slave_fini();
++	tilcdc_panel_fini();
  	platform_driver_unregister(&tilcdc_platform_driver);
  }
  
--module_init(tilcdc_drm_init);
-+late_initcall(tilcdc_drm_init);
- module_exit(tilcdc_drm_fini);
- 
- MODULE_AUTHOR("Rob Clark <robdclark@gmail.com");
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_panel.c b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
 new file mode 100644
-index 0000000..b6f3e63
+index 0000000..a3c7fe93
 --- /dev/null
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-@@ -0,0 +1,380 @@
++++ b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
+@@ -0,0 +1,443 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments
 + * Author: Rob Clark <robdclark@gmail.com>
@@ -117,119 +113,123 @@ index 0000000..b6f3e63
 + * this program.  If not, see <http://www.gnu.org/licenses/>.
 + */
 +
-+#include <linux/i2c.h>
-+#include <linux/of_i2c.h>
 +#include <linux/pinctrl/pinmux.h>
 +#include <linux/pinctrl/consumer.h>
-+#include <drm/drm_encoder_slave.h>
++#include <linux/backlight.h>
++#include <video/display_timing.h>
++#include <video/of_display_timing.h>
++#include <video/videomode.h>
 +
 +#include "tilcdc_drv.h"
 +
-+struct slave_module {
++struct panel_module {
 +	struct tilcdc_module base;
-+	struct i2c_adapter *i2c;
++	struct tilcdc_panel_info *info;
++	struct display_timings *timings;
++	struct backlight_device *backlight;
 +};
-+#define to_slave_module(x) container_of(x, struct slave_module, base)
-+
-+static const struct tilcdc_panel_info slave_info = {
-+		.min_bpp                = 16,
-+		.max_bpp                = 16,
-+		.bpp                    = 16,
-+		.ac_bias                = 255,
-+		.ac_bias_intrpt         = 0,
-+		.dma_burst_sz           = 16,
-+		.fdd                    = 0x80,
-+		.tft_alt_mode           = 0,
-+		.stn_565_mode           = 0,
-+		.mono_8bit_mode         = 0,
-+		.sync_edge              = 0,
-+		.sync_ctrl              = 1,
-+		.raster_order           = 0,
-+};
++#define to_panel_module(x) container_of(x, struct panel_module, base)
 +
 +
 +/*
 + * Encoder:
 + */
 +
-+struct slave_encoder {
-+	struct drm_encoder_slave base;
-+	struct slave_module *mod;
++struct panel_encoder {
++	struct drm_encoder base;
++	struct panel_module *mod;
 +};
-+#define to_slave_encoder(x) container_of(to_encoder_slave(x), struct slave_encoder, base)
++#define to_panel_encoder(x) container_of(x, struct panel_encoder, base)
 +
-+static inline struct drm_encoder_slave_funcs *
-+get_slave_funcs(struct drm_encoder *enc)
-+{
-+	return to_encoder_slave(enc)->slave_funcs;
-+}
 +
-+static void slave_encoder_destroy(struct drm_encoder *encoder)
++static void panel_encoder_destroy(struct drm_encoder *encoder)
 +{
-+	struct slave_encoder *slave_encoder = to_slave_encoder(encoder);
-+	if (get_slave_funcs(encoder))
-+		get_slave_funcs(encoder)->destroy(encoder);
++	struct panel_encoder *panel_encoder = to_panel_encoder(encoder);
 +	drm_encoder_cleanup(encoder);
-+	kfree(slave_encoder);
++	kfree(panel_encoder);
 +}
 +
-+static void slave_encoder_prepare(struct drm_encoder *encoder)
++static void panel_encoder_dpms(struct drm_encoder *encoder, int mode)
 +{
-+	drm_i2c_encoder_prepare(encoder);
-+	tilcdc_crtc_set_panel_info(encoder->crtc, &slave_info);
++	struct panel_encoder *panel_encoder = to_panel_encoder(encoder);
++	struct backlight_device *backlight = panel_encoder->mod->backlight;
++
++	if (!backlight)
++		return;
++
++	backlight->props.power = mode == DRM_MODE_DPMS_ON
++				     ? FB_BLANK_UNBLANK : FB_BLANK_POWERDOWN;
++	backlight_update_status(backlight);
 +}
 +
-+static const struct drm_encoder_funcs slave_encoder_funcs = {
-+		.destroy        = slave_encoder_destroy,
-+};
-+
-+static const struct drm_encoder_helper_funcs slave_encoder_helper_funcs = {
-+		.dpms           = drm_i2c_encoder_dpms,
-+		.mode_fixup     = drm_i2c_encoder_mode_fixup,
-+		.prepare        = slave_encoder_prepare,
-+		.commit         = drm_i2c_encoder_commit,
-+		.mode_set       = drm_i2c_encoder_mode_set,
-+		.save           = drm_i2c_encoder_save,
-+		.restore        = drm_i2c_encoder_restore,
-+};
-+
-+static const struct i2c_board_info info = {
-+		I2C_BOARD_INFO("tda998x", 0x70)
-+};
-+
-+static struct drm_encoder *slave_encoder_create(struct drm_device *dev,
-+		struct slave_module *mod)
++static bool panel_encoder_mode_fixup(struct drm_encoder *encoder,
++		const struct drm_display_mode *mode,
++		struct drm_display_mode *adjusted_mode)
 +{
-+	struct slave_encoder *slave_encoder;
++	/* nothing needed */
++	return true;
++}
++
++static void panel_encoder_prepare(struct drm_encoder *encoder)
++{
++	struct panel_encoder *panel_encoder = to_panel_encoder(encoder);
++	panel_encoder_dpms(encoder, DRM_MODE_DPMS_OFF);
++	tilcdc_crtc_set_panel_info(encoder->crtc, panel_encoder->mod->info);
++}
++
++static void panel_encoder_commit(struct drm_encoder *encoder)
++{
++	panel_encoder_dpms(encoder, DRM_MODE_DPMS_ON);
++}
++
++static void panel_encoder_mode_set(struct drm_encoder *encoder,
++		struct drm_display_mode *mode,
++		struct drm_display_mode *adjusted_mode)
++{
++	/* nothing needed */
++}
++
++static const struct drm_encoder_funcs panel_encoder_funcs = {
++		.destroy        = panel_encoder_destroy,
++};
++
++static const struct drm_encoder_helper_funcs panel_encoder_helper_funcs = {
++		.dpms           = panel_encoder_dpms,
++		.mode_fixup     = panel_encoder_mode_fixup,
++		.prepare        = panel_encoder_prepare,
++		.commit         = panel_encoder_commit,
++		.mode_set       = panel_encoder_mode_set,
++};
++
++static struct drm_encoder *panel_encoder_create(struct drm_device *dev,
++		struct panel_module *mod)
++{
++	struct panel_encoder *panel_encoder;
 +	struct drm_encoder *encoder;
 +	int ret;
 +
-+	slave_encoder = kzalloc(sizeof(*slave_encoder), GFP_KERNEL);
-+	if (!slave_encoder) {
++	panel_encoder = kzalloc(sizeof(*panel_encoder), GFP_KERNEL);
++	if (!panel_encoder) {
 +		dev_err(dev->dev, "allocation failed\n");
 +		return NULL;
 +	}
 +
-+	slave_encoder->mod = mod;
++	panel_encoder->mod = mod;
 +
-+	encoder = &slave_encoder->base.base;
++	encoder = &panel_encoder->base;
 +	encoder->possible_crtcs = 1;
 +
-+	ret = drm_encoder_init(dev, encoder, &slave_encoder_funcs,
++	ret = drm_encoder_init(dev, encoder, &panel_encoder_funcs,
 +			DRM_MODE_ENCODER_LVDS);
-+	if (ret)
++	if (ret < 0)
 +		goto fail;
 +
-+	drm_encoder_helper_add(encoder, &slave_encoder_helper_funcs);
-+
-+	ret = drm_i2c_encoder_init(dev, to_encoder_slave(encoder), mod->i2c, &info);
-+	if (ret)
-+		goto fail;
++	drm_encoder_helper_add(encoder, &panel_encoder_helper_funcs);
 +
 +	return encoder;
 +
 +fail:
-+	slave_encoder_destroy(encoder);
++	panel_encoder_destroy(encoder);
 +	return NULL;
 +}
 +
@@ -237,107 +237,109 @@ index 0000000..b6f3e63
 + * Connector:
 + */
 +
-+struct slave_connector {
++struct panel_connector {
 +	struct drm_connector base;
 +
 +	struct drm_encoder *encoder;  /* our connected encoder */
-+	struct slave_module *mod;
++	struct panel_module *mod;
 +};
-+#define to_slave_connector(x) container_of(x, struct slave_connector, base)
++#define to_panel_connector(x) container_of(x, struct panel_connector, base)
 +
-+static void slave_connector_destroy(struct drm_connector *connector)
++
++static void panel_connector_destroy(struct drm_connector *connector)
 +{
-+	struct slave_connector *slave_connector = to_slave_connector(connector);
++	struct panel_connector *panel_connector = to_panel_connector(connector);
 +	drm_connector_cleanup(connector);
-+	kfree(slave_connector);
++	kfree(panel_connector);
 +}
 +
-+static enum drm_connector_status slave_connector_detect(
++static enum drm_connector_status panel_connector_detect(
 +		struct drm_connector *connector,
 +		bool force)
 +{
-+	struct drm_encoder *encoder = to_slave_connector(connector)->encoder;
-+	return get_slave_funcs(encoder)->detect(encoder, connector);
++	return connector_status_connected;
 +}
 +
-+static int slave_connector_get_modes(struct drm_connector *connector)
++static int panel_connector_get_modes(struct drm_connector *connector)
 +{
-+	struct drm_encoder *encoder = to_slave_connector(connector)->encoder;
-+	return get_slave_funcs(encoder)->get_modes(encoder, connector);
++	struct drm_device *dev = connector->dev;
++	struct panel_connector *panel_connector = to_panel_connector(connector);
++	struct display_timings *timings = panel_connector->mod->timings;
++	int i;
++
++	for (i = 0; i < timings->num_timings; i++) {
++		struct drm_display_mode *mode = drm_mode_create(dev);
++		struct videomode vm;
++
++		if (videomode_from_timing(timings, &vm, i))
++			break;
++
++		drm_display_mode_from_videomode(&vm, mode);
++
++		mode->type = DRM_MODE_TYPE_DRIVER;
++
++		if (timings->native_mode == i)
++			mode->type |= DRM_MODE_TYPE_PREFERRED;
++
++		drm_mode_set_name(mode);
++		drm_mode_probed_add(connector, mode);
++	}
++
++	return i;
 +}
 +
-+static int slave_connector_mode_valid(struct drm_connector *connector,
++static int panel_connector_mode_valid(struct drm_connector *connector,
 +		  struct drm_display_mode *mode)
 +{
-+	struct drm_encoder *encoder = to_slave_connector(connector)->encoder;
 +	struct tilcdc_drm_private *priv = connector->dev->dev_private;
-+	int ret;
-+
-+	ret = tilcdc_crtc_mode_valid(priv->crtc, mode);
-+	if (ret != MODE_OK)
-+		return ret;
-+
-+	return get_slave_funcs(encoder)->mode_valid(encoder, mode);
++	/* our only constraints are what the crtc can generate: */
++	return tilcdc_crtc_mode_valid(priv->crtc, mode);
 +}
 +
-+static struct drm_encoder *slave_connector_best_encoder(
++static struct drm_encoder *panel_connector_best_encoder(
 +		struct drm_connector *connector)
 +{
-+	struct slave_connector *slave_connector = to_slave_connector(connector);
-+	return slave_connector->encoder;
++	struct panel_connector *panel_connector = to_panel_connector(connector);
++	return panel_connector->encoder;
 +}
 +
-+static int slave_connector_set_property(struct drm_connector *connector,
-+		struct drm_property *property, uint64_t value)
-+{
-+	struct drm_encoder *encoder = to_slave_connector(connector)->encoder;
-+	return get_slave_funcs(encoder)->set_property(encoder,
-+			connector, property, value);
-+}
-+
-+static const struct drm_connector_funcs slave_connector_funcs = {
-+	.destroy            = slave_connector_destroy,
++static const struct drm_connector_funcs panel_connector_funcs = {
++	.destroy            = panel_connector_destroy,
 +	.dpms               = drm_helper_connector_dpms,
-+	.detect             = slave_connector_detect,
++	.detect             = panel_connector_detect,
 +	.fill_modes         = drm_helper_probe_single_connector_modes,
-+	.set_property       = slave_connector_set_property,
 +};
 +
-+static const struct drm_connector_helper_funcs slave_connector_helper_funcs = {
-+	.get_modes          = slave_connector_get_modes,
-+	.mode_valid         = slave_connector_mode_valid,
-+	.best_encoder       = slave_connector_best_encoder,
++static const struct drm_connector_helper_funcs panel_connector_helper_funcs = {
++	.get_modes          = panel_connector_get_modes,
++	.mode_valid         = panel_connector_mode_valid,
++	.best_encoder       = panel_connector_best_encoder,
 +};
 +
-+static struct drm_connector *slave_connector_create(struct drm_device *dev,
-+		struct slave_module *mod, struct drm_encoder *encoder)
++static struct drm_connector *panel_connector_create(struct drm_device *dev,
++		struct panel_module *mod, struct drm_encoder *encoder)
 +{
-+	struct slave_connector *slave_connector;
++	struct panel_connector *panel_connector;
 +	struct drm_connector *connector;
 +	int ret;
 +
-+	slave_connector = kzalloc(sizeof(*slave_connector), GFP_KERNEL);
-+	if (!slave_connector) {
++	panel_connector = kzalloc(sizeof(*panel_connector), GFP_KERNEL);
++	if (!panel_connector) {
 +		dev_err(dev->dev, "allocation failed\n");
 +		return NULL;
 +	}
 +
-+	slave_connector->encoder = encoder;
-+	slave_connector->mod = mod;
++	panel_connector->encoder = encoder;
++	panel_connector->mod = mod;
 +
-+	connector = &slave_connector->base;
++	connector = &panel_connector->base;
 +
-+	drm_connector_init(dev, connector, &slave_connector_funcs,
-+			DRM_MODE_CONNECTOR_HDMIA);
-+	drm_connector_helper_add(connector, &slave_connector_helper_funcs);
-+
-+	connector->polled = DRM_CONNECTOR_POLL_CONNECT |
-+			DRM_CONNECTOR_POLL_DISCONNECT;
++	drm_connector_init(dev, connector, &panel_connector_funcs,
++			DRM_MODE_CONNECTOR_LVDS);
++	drm_connector_helper_add(connector, &panel_connector_helper_funcs);
 +
 +	connector->interlace_allowed = 0;
 +	connector->doublescan_allowed = 0;
-+
-+	get_slave_funcs(encoder)->create_resources(encoder, connector);
 +
 +	ret = drm_mode_connector_attach_encoder(connector, encoder);
 +	if (ret)
@@ -348,7 +350,7 @@ index 0000000..b6f3e63
 +	return connector;
 +
 +fail:
-+	slave_connector_destroy(connector);
++	panel_connector_destroy(connector);
 +	return NULL;
 +}
 +
@@ -356,18 +358,18 @@ index 0000000..b6f3e63
 + * Module:
 + */
 +
-+static int slave_modeset_init(struct tilcdc_module *mod, struct drm_device *dev)
++static int panel_modeset_init(struct tilcdc_module *mod, struct drm_device *dev)
 +{
-+	struct slave_module *slave_mod = to_slave_module(mod);
++	struct panel_module *panel_mod = to_panel_module(mod);
 +	struct tilcdc_drm_private *priv = dev->dev_private;
 +	struct drm_encoder *encoder;
 +	struct drm_connector *connector;
 +
-+	encoder = slave_encoder_create(dev, slave_mod);
++	encoder = panel_encoder_create(dev, panel_mod);
 +	if (!encoder)
 +		return -ENOMEM;
 +
-+	connector = slave_connector_create(dev, slave_mod, encoder);
++	connector = panel_connector_create(dev, panel_mod, encoder);
 +	if (!connector)
 +		return -ENOMEM;
 +
@@ -377,34 +379,93 @@ index 0000000..b6f3e63
 +	return 0;
 +}
 +
-+static void slave_destroy(struct tilcdc_module *mod)
++static void panel_destroy(struct tilcdc_module *mod)
 +{
-+	struct slave_module *slave_mod = to_slave_module(mod);
++	struct panel_module *panel_mod = to_panel_module(mod);
++
++	if (panel_mod->timings) {
++		display_timings_release(panel_mod->timings);
++		kfree(panel_mod->timings);
++	}
 +
 +	tilcdc_module_cleanup(mod);
-+	kfree(slave_mod);
++	kfree(panel_mod->info);
++	kfree(panel_mod);
 +}
 +
-+static const struct tilcdc_module_ops slave_module_ops = {
-+		.modeset_init = slave_modeset_init,
-+		.destroy = slave_destroy,
++static const struct tilcdc_module_ops panel_module_ops = {
++		.modeset_init = panel_modeset_init,
++		.destroy = panel_destroy,
 +};
 +
 +/*
 + * Device:
 + */
 +
-+static struct of_device_id slave_of_match[];
++/* maybe move this somewhere common if it is needed by other outputs? */
++static struct tilcdc_panel_info * of_get_panel_info(struct device_node *np)
++{
++	struct device_node *info_np;
++	struct tilcdc_panel_info *info;
++	int ret = 0;
 +
-+static int slave_probe(struct platform_device *pdev)
++	if (!np) {
++		pr_err("%s: no devicenode given\n", __func__);
++		return NULL;
++	}
++
++	info_np = of_get_child_by_name(np, "panel-info");
++	if (!info_np) {
++		pr_err("%s: could not find panel-info node\n", __func__);
++		return NULL;
++	}
++
++	info = kzalloc(sizeof(*info), GFP_KERNEL);
++	if (!info) {
++		pr_err("%s: allocation failed\n", __func__);
++		return NULL;
++	}
++
++	ret |= of_property_read_u32(info_np, "ac-bias", &info->ac_bias);
++	ret |= of_property_read_u32(info_np, "ac-bias-intrpt", &info->ac_bias_intrpt);
++	ret |= of_property_read_u32(info_np, "dma-burst-sz", &info->dma_burst_sz);
++	ret |= of_property_read_u32(info_np, "bpp", &info->bpp);
++	ret |= of_property_read_u32(info_np, "fdd", &info->fdd);
++	ret |= of_property_read_u32(info_np, "sync-edge", &info->sync_edge);
++	ret |= of_property_read_u32(info_np, "sync-ctrl", &info->sync_ctrl);
++	ret |= of_property_read_u32(info_np, "raster-order", &info->raster_order);
++	ret |= of_property_read_u32(info_np, "fifo-th", &info->fifo_th);
++
++	/* optional: */
++	info->tft_alt_mode      = of_property_read_bool(info_np, "tft-alt-mode");
++	info->stn_565_mode      = of_property_read_bool(info_np, "stn-565-mode");
++	info->mono_8bit_mode    = of_property_read_bool(info_np, "mono-8bit-mode");
++	info->invert_pxl_clk    = of_property_read_bool(info_np, "invert-pxl-clk");
++
++	if (of_property_read_u32(info_np, "max-bpp", &info->max_bpp))
++		info->max_bpp = info->bpp;
++	if (of_property_read_u32(info_np, "min-bpp", &info->min_bpp))
++		info->min_bpp = info->bpp;
++
++	if (ret) {
++		pr_err("%s: error reading panel-info properties\n", __func__);
++		kfree(info);
++		return NULL;
++	}
++
++	return info;
++}
++
++static struct of_device_id panel_of_match[];
++
++static int panel_probe(struct platform_device *pdev)
 +{
 +	struct device_node *node = pdev->dev.of_node;
-+	struct device_node *i2c_node;
-+	struct slave_module *slave_mod;
++	struct panel_module *panel_mod;
 +	struct tilcdc_module *mod;
 +	struct pinctrl *pinctrl;
-+	uint32_t i2c_phandle;
 +	int ret = -EINVAL;
++
 +
 +	/* bail out early if no DT data: */
 +	if (!node) {
@@ -412,79 +473,77 @@ index 0000000..b6f3e63
 +		return -ENXIO;
 +	}
 +
-+	slave_mod = kzalloc(sizeof(*slave_mod), GFP_KERNEL);
-+	if (!slave_mod)
++	panel_mod = kzalloc(sizeof(*panel_mod), GFP_KERNEL);
++	if (!panel_mod)
 +		return -ENOMEM;
 +
-+	mod = &slave_mod->base;
++	mod = &panel_mod->base;
 +
-+	tilcdc_module_init(mod, "slave", &slave_module_ops);
++	tilcdc_module_init(mod, "panel", &panel_module_ops);
 +
 +	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
 +	if (IS_ERR(pinctrl))
 +		dev_warn(&pdev->dev, "pins are not configured\n");
 +
-+	if (of_property_read_u32(node, "i2c", &i2c_phandle)) {
-+		dev_err(&pdev->dev, "could not get i2c bus phandle\n");
++
++	panel_mod->timings = of_get_display_timings(node);
++	if (!panel_mod->timings) {
++		dev_err(&pdev->dev, "could not get panel timings\n");
 +		goto fail;
 +	}
 +
-+	i2c_node = of_find_node_by_phandle(i2c_phandle);
-+	if (!i2c_node) {
-+		dev_err(&pdev->dev, "could not get i2c bus node\n");
++	panel_mod->info = of_get_panel_info(node);
++	if (!panel_mod->info) {
++		dev_err(&pdev->dev, "could not get panel info\n");
 +		goto fail;
 +	}
 +
-+	slave_mod->i2c = of_find_i2c_adapter_by_node(i2c_node);
-+	if (!slave_mod->i2c) {
-+		dev_err(&pdev->dev, "could not get i2c\n");
-+		goto fail;
-+	}
-+
-+	of_node_put(i2c_node);
++	panel_mod->backlight = of_find_backlight_by_node(node);
++	if (panel_mod->backlight)
++		dev_info(&pdev->dev, "found backlight\n");
 +
 +	return 0;
 +
 +fail:
-+	slave_destroy(mod);
++	panel_destroy(mod);
 +	return ret;
 +}
 +
-+static int slave_remove(struct platform_device *pdev)
++static int panel_remove(struct platform_device *pdev)
 +{
 +	return 0;
 +}
 +
-+static struct of_device_id slave_of_match[] = {
-+		{ .compatible = "tilcdc,slave", },
++static struct of_device_id panel_of_match[] = {
++		{ .compatible = "tilcdc,panel", },
 +		{ },
 +};
-+MODULE_DEVICE_TABLE(of, slave_of_match);
++MODULE_DEVICE_TABLE(of, panel_of_match);
 +
-+struct platform_driver slave_driver = {
-+	.probe = slave_probe,
-+	.remove = slave_remove,
++struct platform_driver panel_driver = {
++	.probe = panel_probe,
++	.remove = panel_remove,
 +	.driver = {
 +		.owner = THIS_MODULE,
-+		.name = "slave",
-+		.of_match_table = slave_of_match,
++		.name = "panel",
++		.of_match_table = panel_of_match,
 +	},
 +};
 +
-+int __init tilcdc_slave_init(void)
++int __init tilcdc_panel_init(void)
 +{
-+	return platform_driver_register(&slave_driver);
++	return platform_driver_register(&panel_driver);
 +}
 +
-+void __exit tilcdc_slave_fini(void)
++void __exit tilcdc_panel_fini(void)
 +{
-+	platform_driver_unregister(&slave_driver);
++	platform_driver_unregister(&panel_driver);
 +}
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.h b/drivers/gpu/drm/tilcdc/tilcdc_slave.h
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_panel.h b/drivers/gpu/drm/tilcdc/tilcdc_panel.h
 new file mode 100644
-index 0000000..2f85048
+index 0000000..7db40aa
 --- /dev/null
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.h
++++ b/drivers/gpu/drm/tilcdc/tilcdc_panel.h
 @@ -0,0 +1,26 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments
@@ -503,15 +562,15 @@ index 0000000..2f85048
 + * this program.  If not, see <http://www.gnu.org/licenses/>.
 + */
 +
-+#ifndef __TILCDC_SLAVE_H__
-+#define __TILCDC_SLAVE_H__
++#ifndef __TILCDC_PANEL_H__
++#define __TILCDC_PANEL_H__
 +
-+/* sub-module for i2c slave encoder output */
++/* sub-module for generic lcd panel output */
 +
-+int tilcdc_slave_init(void);
-+void tilcdc_slave_fini(void);
++int tilcdc_panel_init(void);
++void tilcdc_panel_fini(void);
 +
-+#endif /* __TILCDC_SLAVE_H__ */
++#endif /* __TILCDC_PANEL_H__ */
 -- 
 1.8.1
 
