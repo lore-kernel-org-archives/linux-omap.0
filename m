@@ -1,48 +1,44 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH v1 0/6] USB: Add support for multiple PHYs of same type
-Date: Tue, 22 Jan 2013 21:15:01 +0530
-Message-ID: <50FEB3FD.3050001@ti.com>
-References: <1358848694-20145-1-git-send-email-kishon@ti.com> <2D906ABA-71F2-4843-9DBE-F82527A1240A@dominion.thruhere.net>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 00/14] DMA Engine support for AM33XX
+Date: Tue, 22 Jan 2013 21:26:34 +0530
+Message-ID: <50FEB6B2.5020303@ti.com>
+References: <1358281974-8411-1-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2D906ABA-71F2-4843-9DBE-F82527A1240A@dominion.thruhere.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: tony@atomide.com, balbi@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Jason Kridner <jkridner@beagleboard.org>
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1358281974-8411-1-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 22 January 2013 09:11 PM, Koen Kooi wrote:
->
-> Op 22 jan. 2013, om 10:58 heeft Kishon Vijay Abraham I <kishon@ti.com> het volgende geschreven:
->
->> This patch series adds support for adding multiple PHY's (of same type).
->> The binding information has to be present in the PHY library (otg.c) in
->> order for it to return the appropriate PHY whenever the USB controller
->> request for the PHY. So added a new API usb_bind_phy() to pass the binding
->> information. This API should be called by platform specific initialization
->> code.
->>
->> So the binding should be done something like
->> usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto"); specifying the USB
->> controller device name, index, and the PHY device name.
->> I have done this binding for OMAP platforms, but it should be done for
->> all the platforms.
->>
->> After this design, the phy can be got by passing the USB controller device
->> pointer and the index.
->>
->> Developed this patch series on
->> git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git xceiv
->> after applying "usb: musb: add driver for control module" patch series
->> and "ARM: dts: omap: add dt data for MUSB"
->>
->> Did basic enumeration testing in omap4 panda and omap3 beagle.
->
-> With this patchset USB completely breaks on am33xx beaglebone, is that intended?
-Not really.
-Does am33xx makes use of omap2430.c? Which PHY does am33xx uses?
+Hi Tony,
 
-Thanks
-Kishon
+On 1/16/2013 2:02 AM, Matt Porter wrote:
+
+> This series adds DMA Engine support for AM33xx, which uses
+> an EDMA DMAC. The EDMA DMAC has been previously supported by only
+> a private API implementation (much like the situation with OMAP
+> DMA) found on the DaVinci family of SoCs.
+
+Will you take this series through the OMAP tree? Only 1/14 touches
+mach-davinci and I am mostly okay with it except some changes I just
+requested Matt to make in another thread.
+
+Thanks,
+Sekhar
+
+------------------------------------------------------------------------------
+Master Visual Studio, SharePoint, SQL, ASP.NET, C# 2012, HTML5, CSS,
+MVC, Windows 8 Apps, JavaScript and much more. Keep your skills current
+with LearnDevNow - 3,200 step-by-step video tutorials by Microsoft
+MVPs and experts. ON SALE this month only -- learn more at:
+http://p.sf.net/sfu/learnnow-d2d
