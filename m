@@ -1,150 +1,46 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 6/6] OF: Introduce DT overlay support.
-Date: Tue, 22 Jan 2013 13:08:04 +0200
-Message-ID: <9768253B-92ED-4298-8BE4-6FAB091DF062@antoniou-consulting.com>
-References: <1357327870-13615-1-git-send-email-panto@antoniou-consulting.com> <1357327870-13615-7-git-send-email-panto@antoniou-consulting.com> <20130122035056.GF23500@truffula.fritz.box>
-Mime-Version: 1.0 (Apple Message framework v1085)
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: OMAP baseline test results for v3.8-rc4
+Date: Tue, 22 Jan 2013 13:19:33 +0100
+Message-ID: <878v7l5s16.fsf@dell.be.48ers.dk>
+References: <alpine.DEB.2.00.1301202136290.31667@utopia.booyaka.com>
+	<50FD6D8D.6030106@mimc.co.uk> <20130121164510.GA18905@kahuna>
+	<f36acfaf128c4844b8f696ea4440e253@DLEE74.ent.ti.com>
+	<20130121182419.GE10020@beef> <87boci9str.fsf@dell.be.48ers.dk>
+	<alpine.DEB.2.00.1301220213390.25789@utopia.booyaka.com>
+	<1358846666.3996.3.camel@coredoba.hi.pengutronix.de>
+	<87ham95zdt.fsf@dell.be.48ers.dk>
+	<20130122095218.GD2637@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130122035056.GF23500@truffula.fritz.box>
-Sender: linux-doc-owner@vger.kernel.org
-To: David Gibson <david@gibson.dropbear.id.au>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f47.google.com ([209.85.214.47]:61998 "EHLO
+	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752917Ab3AVMTi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jan 2013 07:19:38 -0500
+Received: by mail-bk0-f47.google.com with SMTP id jc3so401435bkc.6
+        for <linux-omap@vger.kernel.org>; Tue, 22 Jan 2013 04:19:37 -0800 (PST)
+In-Reply-To: <20130122095218.GD2637@n2100.arm.linux.org.uk> (Russell King's
+	message of "Tue, 22 Jan 2013 09:52:18 +0000")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Jan =?utf-8?Q?L=C3=BCbbe?= <jlu@pengutronix.de>, "Menon, Nishanth" <nm@ti.com>, Matt Porter <mporter@ti.com>, Paul Walmsley <paul@pwsan.com>, Richard Cochran <richardcochran@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Jackson <mpfj-list@mimc.co.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi
+>>>>> "Russell" == Russell King <- ARM Linux <linux@arm.linux.org.uk>> writes:
 
-On Jan 22, 2013, at 5:50 AM, David Gibson wrote:
+ Russell> Don't rely on that.  Remember, if the compressed image
+ Russell> occupies the same location as the decompressed kernel, the
+ Russell> decompressor will copy the data to a different location in RAM
+ Russell> first - I think at RAM offset + 32K + decompressed kernel
+ Russell> size.
 
-> On Fri, Jan 04, 2013 at 09:31:10PM +0200, Pantelis Antoniou wrote:
->> Introduce DT overlay support.
->> Using this functionality it is possible to dynamically overlay a part of
->> the kernel's tree with another tree that's been dynamically loaded.
->> It is also possible to remove node and properties.
->> 
->> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
->> ---
->> Documentation/devicetree/overlay-notes.txt | 179 +++++++
->> drivers/of/Kconfig                         |  10 +
->> drivers/of/Makefile                        |   1 +
->> drivers/of/overlay.c                       | 831 +++++++++++++++++++++++++++++
->> include/linux/of.h                         | 107 ++++
->> 5 files changed, 1128 insertions(+)
->> create mode 100644 Documentation/devicetree/overlay-notes.txt
->> create mode 100644 drivers/of/overlay.c
->> 
->> diff --git a/Documentation/devicetree/overlay-notes.txt b/Documentation/devicetree/overlay-notes.txt
->> new file mode 100644
->> index 0000000..5289cbb
->> --- /dev/null
->> +++ b/Documentation/devicetree/overlay-notes.txt
->> @@ -0,0 +1,179 @@
->> +Device Tree Overlay Notes
->> +-------------------------
->> +
->> +This document describes the implementation of the in-kernel
->> +device tree overlay functionality residing in drivers/of/overlay.c and is a
->> +companion document to Documentation/devicetree/dt-object-internal.txt[1] &
->> +Documentation/devicetree/dynamic-resolution-notes.txt[2]
->> +
->> +How overlays work
->> +-----------------
->> +
->> +A Device Tree's overlay purpose is to modify the kernel's live tree, and
->> +have the modification affecting the state of the the kernel in a way that
->> +is reflecting the changes.
-> 
-> Um.. I'm having a great deal of trouble parsing that sentence.
-> 
->> +Since the kernel mainly deals with devices, any new device node that result
->> +in an active device should have it created while if the device node is either
->> +disabled or removed all together, the affected device should be deregistered.
->> +
->> +Lets take an example where we have a foo board with the following base tree
->> +which is taken from [1].
->> +
->> +---- foo.dts -----------------------------------------------------------------
->> +	/* FOO platform */
->> +	/ {
->> +		compatible = "corp,foo";
->> +
->> +		/* shared resources */
->> +		res: res {
->> +		};
->> +
->> +		/* On chip peripherals */
->> +		ocp: ocp {
->> +			/* peripherals that are always instantiated */
->> +			peripheral1 { ... };
->> +		}
->> +	};
->> +---- foo.dts -----------------------------------------------------------------
->> +
->> +The overlay bar.dts, when loaded (and resolved as described in [2]) should
->> +
->> +---- bar.dts -----------------------------------------------------------------
->> +/plugin/;	/* allow undefined label references and record them */
->> +/ {
->> +	....	/* various properties for loader use; i.e. part id etc. */
->> +	fragment@0 {
->> +		target = <&ocp>;
->> +		__overlay__ {
->> +			/* bar peripheral */
->> +			bar {
->> +				compatible = "corp,bar";
->> +				... /* various properties and child nodes */
->> +			}
->> +		};
->> +	};
->> +};
->> +---- bar.dts -----------------------------------------------------------------
->> +
->> +result in foo+bar.dts
->> +
->> +---- foo+bar.dts -------------------------------------------------------------
->> +	/* FOO platform + bar peripheral */
->> +	/ {
->> +		compatible = "corp,foo";
->> +
->> +		/* shared resources */
->> +		res: res {
->> +		};
->> +
->> +		/* On chip peripherals */
->> +		ocp: ocp {
->> +			/* peripherals that are always instantiated */
->> +			peripheral1 { ... };
->> +
->> +			/* bar peripheral */
->> +			bar {
->> +				compatible = "corp,bar";
->> +				... /* various properties and child nodes */
->> +			}
->> +		}
->> +	};
->> +---- foo+bar.dts -------------------------------------------------------------
->> +
->> +As a result of the the overlay, a new device node (bar) has been created
->> +so a bar platform device will be registered and if a matching device driver
->> +is loaded the device will be created as expected.
-> 
-> Hrm.  This all seems rather complicated.  Maybe it needs to be, but
-> I'm not entirely convinced yet.
-> 
-> One other point - both of these patches are assuming that the overlay
-> is in the "live tree" format, but it still needs a bunch of extra
-> mangling.  Would it simplify things to just go straight from the
-> overlay in flat tree form to modifications to the system-wide live
-> tree.
+Ok, but this is with the exact same kernel image loaded at the same
+address for the two cases. The only difference is U-Boot version.
 
-Sorry, I can't parse this. You mean apply the overlay without converting
-to live tree format?
+ Russell> So yes, please try the patch in the link above.
 
-> 
-> -- 
-> David Gibson			| I'll have my music baroque, and my code
-> david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
-> 				| _way_ _around_!
-> http://www.ozlabs.org/~dgibson
+I did. No visible difference. Also not with changing the uImage load
+address (2M/16M/32M from start of RAM).
 
+-- 
+Bye, Peter Korsgaard
