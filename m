@@ -1,87 +1,61 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [GIT PULL] ARM: OMAP: Audio support via omap-twl4030 and pwm support
-Date: Tue, 22 Jan 2013 11:07:24 +0100
-Message-ID: <50FE64DC.2030808@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH] gpio/omap: fix pm_runtime for IRQ functions
+Date: Tue, 22 Jan 2013 11:07:45 +0100
+Message-ID: <CACRpkdbtUo4oU_yjwukuYW89sk4OM0NY+ZcwQprLEu_9mqZFgg@mail.gmail.com>
+References: <1358531362-27933-1-git-send-email-jlu@pengutronix.de>
+	<50FCE27D.7060500@ti.com>
+	<CACRpkdYpCbWtk6PbgLm0HWFBihDqA_G_1btYQ38+WfeXridPJA@mail.gmail.com>
+	<50FE61CB.5010906@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33366 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752636Ab3AVKH3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jan 2013 05:07:29 -0500
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:56303 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752903Ab3AVKHq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jan 2013 05:07:46 -0500
+Received: by mail-ie0-f179.google.com with SMTP id k14so11247697iea.38
+        for <linux-omap@vger.kernel.org>; Tue, 22 Jan 2013 02:07:46 -0800 (PST)
+In-Reply-To: <50FE61CB.5010906@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Jan Luebbe <jlu@pengutronix.de>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, kernel@pengutronix.de, devicetree-discuss@lists.ozlabs.org
 
-Hi Tony,
+On Tue, Jan 22, 2013 at 10:54 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+> On Tuesday 22 January 2013 01:52 PM, Linus Walleij wrote:
+>>
+>> In the Nomadik I had a similar situation with a GPIO used for the
+>> ethernet IRQ. I put the GPIO number in a special board-specific
+>> node and added this to the machine,
+>
+> Thanks Linus. Are there any bindings already available on how these
+> special board-specific nodes can be defined in the dts files?
 
-The content of this pull:
+No generic bindings as they are per definition board-specific.
 
-update for audio support via omap-twl4030 and pwm updates in board leve=
-l:
-http://www.spinics.net/lists/linux-omap/msg85085.html
+So in the Nomadik case it looks like this:
 
-and zoom-peripherals update to not request the TWL GPIO7:
-http://www.spinics.net/lists/linux-omap/msg85187.html
+        /* Custom board node with GPIO pins to active etc */
+        usb-s8815 {
+                /* The S8815 is using this very GPIO pin for the SMSC91x IRQs */
+                ethernet-gpio {
+                        gpios = <&gpio3 19 0x1>;
+                        interrupts = <19 0x1>;
+                        interrupt-parent = <&gpio3>;
+                };
+                /* This will bias the MMC/SD card detect line */
+                mmcsd-gpio {
+                        gpios = <&gpio3 16 0x1>;
+                };
+        };
 
-All is on top of mainline v3.8-rc4 tag.
+First I added custom nodes to the IP blocks, but it was no good idea
+as it's not generic for that driver at all, just a board pecularity.
 
-Regards,
-P=E9ter
+> Are there any using some such in the mainline already?
 
----
-The following changes since commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe964=
-7619:
+I just sent a pull request for the Nomadik example but I don't
+know about any others.
 
-  Linux 3.8-rc4 (2013-01-17 19:25:45 -0800)
-
-are available in the git repository at:
-
-  git://gitorious.org/omap-audio/linux-audio.git peter/for-tony
-
-for you to fetch changes up to e4f4e8bfa47431b91fbb21dd9b86d9bc2c15cbd7=
-:
-
-  ARM: board-zoom: Do not request LCD panel enable GPIO from twl4030 (2=
-013-01-22 10:35:16 +0100)
-
-----------------------------------------------------------------
-Peter Ujfalusi (9):
-      ARM: OMAP: 3430sdp: Enable extmute functionality for audio
-      ARM: OMAP: zoom: Zoom2 does not have extmute functionality
-      ARM: OMAP2+: twl-common: Add default twl4030 audio configuration
-      ARM: OMAP2+: twl-common: Allow boards to customize the twl4030 au=
-dio setup
-      ARM: OMAP: zoom: Audio support via the common omap-twl4030 machin=
-e driver
-      ARM: OMAP: sdp3430: Audio support via the common omap-twl4030 mac=
-hine driver
-      ARM: OMAP: board-4430sdp: Proper support for TWL6030 PWM LED/Back=
-light
-      ARM: OMAP: omap3beagle: Use the pwm_leds driver to control the PM=
-U_STAT led
-      ARM: board-zoom: Do not request LCD panel enable GPIO from twl403=
-0
-
- arch/arm/mach-omap2/board-3430sdp.c          | 20 ++++++++++++++++++++
- arch/arm/mach-omap2/board-4430sdp.c          | 30 ++++++++++++++++++++=
-+++++++++-
- arch/arm/mach-omap2/board-cm-t35.c           |  2 +-
- arch/arm/mach-omap2/board-devkit8000.c       |  2 +-
- arch/arm/mach-omap2/board-igep0020.c         |  2 +-
- arch/arm/mach-omap2/board-omap3beagle.c      | 41 ++++++++++++++++++++=
-++++++++++++---------
- arch/arm/mach-omap2/board-omap3evm.c         |  2 +-
- arch/arm/mach-omap2/board-overo.c            |  2 +-
- arch/arm/mach-omap2/board-zoom-peripherals.c | 39 ++++++++++++++++++++=
-+------------------
- arch/arm/mach-omap2/twl-common.c             | 17 +++++++++++------
- arch/arm/mach-omap2/twl-common.h             |  3 ++-
- 11 files changed, 120 insertions(+), 40 deletions(-)
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yours,
+Linus Walleij
