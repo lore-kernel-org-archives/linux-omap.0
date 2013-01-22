@@ -1,51 +1,130 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v1 6/6] USB: MUSB: OMAP: get PHY by phandle for dt boot
-Date: Tue, 22 Jan 2013 15:28:14 +0530
-Message-ID: <1358848694-20145-7-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v1 1/6] usb: otg: Add an API to bind the USB controller and PHY
+Date: Tue, 22 Jan 2013 15:28:09 +0530
+Message-ID: <1358848694-20145-2-git-send-email-kishon@ti.com>
 References: <1358848694-20145-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1358848694-20145-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Cc: kishon-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358848694-20145-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, balbi@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Cc: kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP glue has been modified to get PHY by phandle for dt boot.
+In order to support platforms which has multiple PHY's (of same type) and
+which has multiple USB controllers, a new design is adopted wherin the binding
+information (between the PHY and the USB controller) should be passed to the
+PHY library from platform specific file (board file). 
+So added a new API to pass the binding information.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/musb/omap2430.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/usb/otg/otg.c   |   37 +++++++++++++++++++++++++++++++++++++
+ include/linux/usb/phy.h |   22 ++++++++++++++++++++++
+ 2 files changed, 59 insertions(+)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 1a8cf6d..e43faeb 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -345,7 +345,12 @@ static int omap2430_musb_init(struct musb *musb)
- 	 * up through ULPI.  TWL4030-family PMICs include one,
- 	 * which needs a driver, drivers aren't always needed.
- 	 */
--	musb->xceiv = devm_usb_get_phy_dev(dev, 0);
-+	if (dev->parent->of_node)
-+		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
-+		    "usb_phy", 0);
-+	else
-+		musb->xceiv = devm_usb_get_phy_dev(dev, 0);
+diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
+index a30c041..492ba2f 100644
+--- a/drivers/usb/otg/otg.c
++++ b/drivers/usb/otg/otg.c
+@@ -18,6 +18,7 @@
+ #include <linux/usb/otg.h>
+ 
+ static LIST_HEAD(phy_list);
++static LIST_HEAD(phy_bind_list);
+ static DEFINE_SPINLOCK(phy_lock);
+ 
+ static struct usb_phy *__usb_find_phy(struct list_head *list,
+@@ -201,6 +202,42 @@ void usb_remove_phy(struct usb_phy *x)
+ }
+ EXPORT_SYMBOL(usb_remove_phy);
+ 
++/**
++ * usb_bind_phy - bind the phy and the controller that uses the phy
++ * @dev_name: the device name of the device that will bind to the phy
++ * @index: index to specify the port number
++ * @phy_dev_name: the device name of the phy
++ *
++ * Fills the phy_bind structure with the dev_name and phy_dev_name. This will
++ * be used when the phy driver registers the phy and when the controller
++ * requests this phy.
++ *
++ * To be used by platform specific initialization code.
++ */
++struct usb_phy_bind __init *usb_bind_phy(const char *dev_name, u8 index,
++				const char *phy_dev_name)
++{
++	struct usb_phy_bind *phy_bind;
++	unsigned long flags;
 +
- 	if (IS_ERR_OR_NULL(musb->xceiv)) {
- 		pr_err("HS USB OTG: no transceiver configured\n");
- 		return -ENODEV;
++	phy_bind = kzalloc(sizeof(*phy_bind), GFP_KERNEL);
++	if (!phy_bind) {
++		pr_err("phy_bind(): No memory for phy_bind");
++		return ERR_PTR(-ENOMEM);
++	}
++
++	phy_bind->dev_name = dev_name;
++	phy_bind->phy_dev_name = phy_dev_name;
++	phy_bind->index = index;
++
++	spin_lock_irqsave(&phy_lock, flags);
++	list_add_tail(&phy_bind->list, &phy_bind_list);
++	spin_unlock_irqrestore(&phy_lock, flags);
++
++	return phy_bind;
++}
++EXPORT_SYMBOL_GPL(usb_bind_phy);
++
+ const char *otg_state_string(enum usb_otg_state state)
+ {
+ 	switch (state) {
+diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
+index a29ae1e..fbeab1a 100644
+--- a/include/linux/usb/phy.h
++++ b/include/linux/usb/phy.h
+@@ -106,6 +106,21 @@ struct usb_phy {
+ 			enum usb_device_speed speed);
+ };
+ 
++/**
++ * struct usb_phy_bind - represent the binding for the phy
++ * @dev_name: the device name of the device that will bind to the phy
++ * @phy_dev_name: the device name of the phy
++ * @index: used if a single controller uses multiple phys
++ * @phy: reference to the phy
++ * @list: to maintain a linked list of the binding information
++ */
++struct usb_phy_bind {
++	const char	*dev_name;
++	const char	*phy_dev_name;
++	u8		index;
++	struct usb_phy	*phy;
++	struct list_head list;
++};
+ 
+ /* for board-specific init logic */
+ extern int usb_add_phy(struct usb_phy *, enum usb_phy_type type);
+@@ -151,6 +166,8 @@ extern struct usb_phy *devm_usb_get_phy(struct device *dev,
+ 	enum usb_phy_type type);
+ extern void usb_put_phy(struct usb_phy *);
+ extern void devm_usb_put_phy(struct device *dev, struct usb_phy *x);
++extern struct usb_phy_bind *usb_bind_phy(const char *dev_name, u8 index,
++				const char *phy_dev_name);
+ #else
+ static inline struct usb_phy *usb_get_phy(enum usb_phy_type type)
+ {
+@@ -171,6 +188,11 @@ static inline void devm_usb_put_phy(struct device *dev, struct usb_phy *x)
+ {
+ }
+ 
++static inline struct usb_phy_bind *usb_bind_phy(const char *dev_name, u8 index,
++				const char *phy_dev_name)
++{
++	return NULL;
++}
+ #endif
+ 
+ static inline int
 -- 
 1.7.9.5
