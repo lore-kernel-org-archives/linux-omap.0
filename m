@@ -1,47 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap: Fix build break in drm.c
-Date: Tue, 22 Jan 2013 10:25:50 -0800
-Message-ID: <20130122182549.GL15361@atomide.com>
-References: <1358843328-8178-1-git-send-email-archit@ti.com>
+Subject: Re: [PATCH v2 3/3] arm: omap2: gpmc: add DT bindings for OneNAND
+Date: Tue, 22 Jan 2013 10:27:49 -0800
+Message-ID: <20130122182749.GM15361@atomide.com>
+References: <1358634477-25868-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <1358634477-25868-3-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20130121123020.GI15707@e106331-lin.cambridge.arm.com>
+ <CALF0-+VOxtsfQLZCGujvjMrsGacbfVTMytRUX=CfKa3+FgnU1w@mail.gmail.com>
+ <20130121183348.GI22517@atomide.com>
+ <af696cd0-8a7f-4839-9600-87d5b9172585@email.android.com>
+ <CALF0-+WvfyygnV5A=E8UGc=zp9pab79FzJRe1KywjPw-B4UGZA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31907 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:36689 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754023Ab3AVSZw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jan 2013 13:25:52 -0500
+	with ESMTP id S1754528Ab3AVS1z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jan 2013 13:27:55 -0500
 Content-Disposition: inline
-In-Reply-To: <1358843328-8178-1-git-send-email-archit@ti.com>
+In-Reply-To: <CALF0-+WvfyygnV5A=E8UGc=zp9pab79FzJRe1KywjPw-B4UGZA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: robdclark@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Daniel Mack <zonque@gmail.com>, Mark Rutland <mark.rutland@arm.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "martinez.javier@gmail.com" <martinez.javier@gmail.com>, "matthias.bgg@googlemail.com" <matthias.bgg@googlemail.com>, "eballetbo@gmail.com" <eballetbo@gmail.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Archit Taneja <archit@ti.com> [130122 00:32]:
-> Building omapdrm leads to a build break because of a missing include needed
-> for the macro GET_OMAP_REVISION(). Add the missing inlclude.
+* Ezequiel Garcia <elezegarcia@gmail.com> [130122 10:17]:
+> On Mon, Jan 21, 2013 at 10:32 PM, Daniel Mack <zonque@gmail.com> wrote:
+> >
+> > I'm currently far away from my computer and can't prepare a patch for this, sorry. But I think you are right, so please just submit a patch for that, anyone :-)
+> >
+> 
+> Ok, I'll try to submit a patch as soon as possible. If anyone wants to
+> do it instead, fine by me.
 
-Thanks I already have a similar patch from Rob queued up.
+No please go ahead as it seems that you can easily test it too.
+
+Regards,
 
 Tony
- 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  arch/arm/mach-omap2/drm.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
-> index 4c7566c..6b1a8df 100644
-> --- a/arch/arm/mach-omap2/drm.c
-> +++ b/arch/arm/mach-omap2/drm.c
-> @@ -25,6 +25,7 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/platform_data/omap_drm.h>
->  
-> +#include "soc.h"
->  #include "omap_device.h"
->  #include "omap_hwmod.h"
->  
-> -- 
-> 1.7.9.5
-> 
