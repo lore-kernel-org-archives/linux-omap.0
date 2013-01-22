@@ -1,30 +1,231 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [RFC PATCH] gpio/omap: fix pm_runtime for IRQ functions
-Date: Tue, 22 Jan 2013 15:24:19 +0530
-Message-ID: <50FE61CB.5010906@ti.com>
-References: <1358531362-27933-1-git-send-email-jlu@pengutronix.de> <50FCE27D.7060500@ti.com> <CACRpkdYpCbWtk6PbgLm0HWFBihDqA_G_1btYQ38+WfeXridPJA@mail.gmail.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v1 2/6] usb: otg: utils: add facilities in phy lib to support
+ multiple PHYs of same type
+Date: Tue, 22 Jan 2013 15:28:10 +0530
+Message-ID: <1358848694-20145-3-git-send-email-kishon@ti.com>
+References: <1358848694-20145-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33588 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751764Ab3AVJyg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Jan 2013 04:54:36 -0500
-In-Reply-To: <CACRpkdYpCbWtk6PbgLm0HWFBihDqA_G_1btYQ38+WfeXridPJA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1358848694-20145-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Cc: kishon-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Jan Luebbe <jlu@pengutronix.de>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, kernel@pengutronix.de
 
-On Tuesday 22 January 2013 01:52 PM, Linus Walleij wrote:
-> In the Nomadik I had a similar situation with a GPIO used for the
-> ethernet IRQ. I put the GPIO number in a special board-specific
-> node and added this to the machine,
+In order to add support for multipe PHY's of the same type, new API's
+for adding PHY and getting PHY has been added. Now the binding
+information for the PHY and controller should be done in platform file
+using usb_bind_phy API. And for getting a PHY, the device pointer of the
+USB controller and an index should be passed. Based on the binding
+information that is added in the platform file, usb_get_phy_dev will return the
+appropriate PHY.
+Already existing API's to add and get phy by type is not removed. These
+API's are deprecated and will be removed once all the platforms start to
+use the new API.
 
-Thanks Linus. Are there any bindings already available on how these
-special board-specific nodes can be defined in the dts files?
-Are there any using some such in the mainline already?
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/otg/otg.c   |  114 ++++++++++++++++++++++++++++++++++++++++++++++-
+ include/linux/usb/phy.h |   13 ++++++
+ 2 files changed, 126 insertions(+), 1 deletion(-)
 
-regards,
-Rajendra
+diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
+index 492ba2f..1f30b22 100644
+--- a/drivers/usb/otg/otg.c
++++ b/drivers/usb/otg/otg.c
+@@ -36,6 +36,20 @@ static struct usb_phy *__usb_find_phy(struct list_head *list,
+ 	return ERR_PTR(-ENODEV);
+ }
+ 
++static struct usb_phy *__usb_find_phy_dev(struct device *dev,
++	struct list_head *list, u8 index)
++{
++	struct usb_phy_bind *phy_bind = NULL;
++
++	list_for_each_entry(phy_bind, list, list) {
++		if (!(strcmp(phy_bind->dev_name, dev_name(dev))) &&
++				phy_bind->index == index)
++			return phy_bind->phy;
++	}
++
++	return ERR_PTR(-ENODEV);
++}
++
+ static void devm_usb_phy_release(struct device *dev, void *res)
+ {
+ 	struct usb_phy *phy = *(struct usb_phy **)res;
+@@ -112,6 +126,69 @@ err0:
+ EXPORT_SYMBOL(usb_get_phy);
+ 
+ /**
++ * usb_get_phy_dev - find the USB PHY
++ * @dev - device that requests this phy
++ * @index - the index of the phy
++ *
++ * Returns the phy driver, after getting a refcount to it; or
++ * -ENODEV if there is no such phy.  The caller is responsible for
++ * calling usb_put_phy() to release that count.
++ *
++ * For use by USB host and peripheral drivers.
++ */
++struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index)
++{
++	struct usb_phy	*phy = NULL;
++	unsigned long	flags;
++
++	spin_lock_irqsave(&phy_lock, flags);
++
++	phy = __usb_find_phy_dev(dev, &phy_bind_list, index);
++	if (IS_ERR(phy)) {
++		pr_err("unable to find transceiver\n");
++		goto err0;
++	}
++
++	get_device(phy->dev);
++
++err0:
++	spin_unlock_irqrestore(&phy_lock, flags);
++
++	return phy;
++}
++EXPORT_SYMBOL(usb_get_phy_dev);
++
++/**
++ * devm_usb_get_phy_dev - find the USB PHY using device ptr and index
++ * @dev - device that requests this phy
++ * @index - the index of the phy
++ *
++ * Gets the phy using usb_get_phy_dev(), and associates a device with it using
++ * devres. On driver detach, release function is invoked on the devres data,
++ * then, devres data is freed.
++ *
++ * For use by USB host and peripheral drivers.
++ */
++struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
++{
++	struct usb_phy **ptr, *phy;
++
++	ptr = devres_alloc(devm_usb_phy_release, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr)
++		return NULL;
++
++	phy = usb_get_phy_dev(dev, index);
++	if (!IS_ERR(phy)) {
++		*ptr = phy;
++		devres_add(dev, ptr);
++	} else
++		devres_free(ptr);
++
++	return phy;
++}
++EXPORT_SYMBOL(devm_usb_get_phy_dev);
++
++/**
+  * devm_usb_put_phy - release the USB PHY
+  * @dev - device that wants to release this phy
+  * @phy - the phy returned by devm_usb_get_phy()
+@@ -186,6 +263,36 @@ out:
+ EXPORT_SYMBOL(usb_add_phy);
+ 
+ /**
++ * usb_add_phy_dev - declare the USB PHY
++ * @x: the USB phy to be used; or NULL
++ *
++ * This call is exclusively for use by phy drivers, which
++ * coordinate the activities of drivers for host and peripheral
++ * controllers, and in some cases for VBUS current regulation.
++ */
++int usb_add_phy_dev(struct usb_phy *x)
++{
++	struct usb_phy_bind *phy_bind;
++	unsigned long flags;
++
++	if (!x->dev) {
++		dev_err(x->dev, "no device provided for PHY\n");
++		return -EINVAL;
++	}
++
++	spin_lock_irqsave(&phy_lock, flags);
++	list_for_each_entry(phy_bind, &phy_bind_list, list)
++		if (!(strcmp(phy_bind->phy_dev_name, dev_name(x->dev))))
++			phy_bind->phy = x;
++
++	list_add_tail(&x->head, &phy_list);
++
++	spin_unlock_irqrestore(&phy_lock, flags);
++	return 0;
++}
++EXPORT_SYMBOL(usb_add_phy_dev);
++
++/**
+  * usb_remove_phy - remove the OTG PHY
+  * @x: the USB OTG PHY to be removed;
+  *
+@@ -194,10 +301,15 @@ EXPORT_SYMBOL(usb_add_phy);
+ void usb_remove_phy(struct usb_phy *x)
+ {
+ 	unsigned long	flags;
++	struct usb_phy_bind *phy_bind;
+ 
+ 	spin_lock_irqsave(&phy_lock, flags);
+-	if (x)
++	if (x) {
++		list_for_each_entry(phy_bind, &phy_bind_list, list)
++			if (phy_bind->phy == x)
++				phy_bind->phy = NULL;
+ 		list_del(&x->head);
++	}
+ 	spin_unlock_irqrestore(&phy_lock, flags);
+ }
+ EXPORT_SYMBOL(usb_remove_phy);
+diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
+index fbeab1a..3a9ae3e 100644
+--- a/include/linux/usb/phy.h
++++ b/include/linux/usb/phy.h
+@@ -124,6 +124,7 @@ struct usb_phy_bind {
+ 
+ /* for board-specific init logic */
+ extern int usb_add_phy(struct usb_phy *, enum usb_phy_type type);
++extern int usb_add_phy_dev(struct usb_phy *);
+ extern void usb_remove_phy(struct usb_phy *);
+ 
+ /* helpers for direct access thru low-level io interface */
+@@ -164,6 +165,8 @@ usb_phy_shutdown(struct usb_phy *x)
+ extern struct usb_phy *usb_get_phy(enum usb_phy_type type);
+ extern struct usb_phy *devm_usb_get_phy(struct device *dev,
+ 	enum usb_phy_type type);
++extern struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index);
++extern struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index);
+ extern void usb_put_phy(struct usb_phy *);
+ extern void devm_usb_put_phy(struct device *dev, struct usb_phy *x);
+ extern struct usb_phy_bind *usb_bind_phy(const char *dev_name, u8 index,
+@@ -180,6 +183,16 @@ static inline struct usb_phy *devm_usb_get_phy(struct device *dev,
+ 	return NULL;
+ }
+ 
++static inline struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index)
++{
++	return NULL;
++}
++
++static inline struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
++{
++	return NULL;
++}
++
+ static inline void usb_put_phy(struct usb_phy *x)
+ {
+ }
+-- 
+1.7.9.5
