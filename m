@@ -1,185 +1,128 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: OMAP baseline test results for v3.8-rc4
-Date: Tue, 22 Jan 2013 09:55:13 +0100
-Message-ID: <87sj5t61hq.fsf@dell.be.48ers.dk>
-References: <alpine.DEB.2.00.1301202136290.31667@utopia.booyaka.com>
-	<50FD6D8D.6030106@mimc.co.uk> <20130121164510.GA18905@kahuna>
-	<f36acfaf128c4844b8f696ea4440e253@DLEE74.ent.ti.com>
-	<20130121182419.GE10020@beef> <87boci9str.fsf@dell.be.48ers.dk>
-	<alpine.DEB.2.00.1301220213390.25789@utopia.booyaka.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] usb: musb: fix context save over suspend.
+Date: Tue, 22 Jan 2013 11:12:54 +0200
+Message-ID: <50FE5816.30703@compulab.co.il>
+References: <20130121202831.40a09bbc@notabene.brown> <50FD28D3.5070107@compulab.co.il> <20130122083832.7a3026c9@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:34539 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752221Ab3AVIzT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jan 2013 03:55:19 -0500
-Received: by mail-wg0-f52.google.com with SMTP id 12so1939808wgh.19
-        for <linux-omap@vger.kernel.org>; Tue, 22 Jan 2013 00:55:17 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1301220213390.25789@utopia.booyaka.com> (Paul
-	Walmsley's message of "Tue, 22 Jan 2013 02:24:44 +0000 (UTC)")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130122083832.7a3026c9@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Matt Porter <mporter@ti.com>, Richard Cochran <richardcochran@gmail.com>, "Menon, Nishanth" <nm@ti.com>, Mark Jackson <mpfj-list@mimc.co.uk>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
->>>>> "Paul" == Paul Walmsley <paul@pwsan.com> writes:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
- Paul> Hi guys,
+It looks like Kevin has a new address:
+Kevin Hilman <khilman@deeprootsystems.com>
 
- Paul> Regarding the AM33xx test failures with appended DTBs, it would
- Paul> be very helpful if especially the TI people could try reproducing
- Paul> the problem.  Otherwise it's going to cause problems with merging
- Paul> any new AM33xx patches, since I won't be able to test them
- Paul> without additional work.  Plus, this is something that used to
- Paul> work up until d01e4afd, so something isn't right.
+On 01/21/13 23:38, NeilBrown wrote:
+> On Mon, 21 Jan 2013 13:38:59 +0200 Igor Grinberg <grinberg@compulab.co.il>
+> wrote:
+> 
+>> -----BEGIN PGP SIGNED MESSAGE-----
+>> Hash: SHA1
+> 
+>> Hi Neil,
+> 
+>> On 01/21/13 11:28, NeilBrown wrote:
+>>>
+>>>
+>>> The standard suspend sequence involves runtime_resuming
+>>> devices before suspending the system.
+>>> So just saving context in runtime_suspend and restoring it
+>>> in runtime resume isn't enough.  We  must also save in "suspend"
+>>> and restore in "resume".
+>>>
+>>> Without this patch, and OMAP3 system with off_mode enabled will find
+>>> the musb port non-functional after suspend/resume.  With the patch it
+>>> works perfectly.
+> 
+>> Hmmm... Some time ago, this has been removed in
+>> 5d193ce8 (usb: musb: PM: fix context save/restore in suspend/resume path)
+> 
+>> Am I missing something? Or things changed and now this patch is correct?
+> 
+> Hi Igor,
+>  thanks for alerting me to that patch .... does anyone else get the feeling
+>  that power management to too complex to be understood by a mere human?
+> 
+>  That commit (5d193ce8) suggests that the musb-hdrc device is an
+>  'omap_device', or maybe has a PM domain set to something else.
+>  However it isn't/doesn't.  dev->pm_domain is NULL.  So no PM domain layer
+>  will ever call the musb_core musb_runtime_suspend/resume.
+> 
+>  The parent device - musb-omap2430 - is an omap device, does have pm_domain
+>  set, and does have its omap2430_runtime_suspend/resume called for system
+>  suspend and so the context for that device is saved and restored.
+>  However that doesn't help the context for musb-hdrc.
+> 
+>  Whether musb ever was an omap_device is beyond my archaeological skills to
+>  determine.
+> 
+>  Kevin:  Was musb-hdrc ever a device with a pm_domain? or was it only ever
+>      the various possible parents that had domains?
+>      Are you able to defend your earlier patch in today's kernel?  It
+>      certainly causes my device not to work properly.
+> 
+> Thanks,
+> NeilBrown
+> 
+> 
+> 
+> 
+>>>
+>>> Signed-off-by: NeilBrown <neilb@suse.de>
+>>>
+>>> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+>>> index fd34867..b6ccc02 100644
+>>> --- a/drivers/usb/musb/musb_core.c
+>>> +++ b/drivers/usb/musb/musb_core.c
+>>> @@ -2225,6 +2225,7 @@ static int musb_suspend(struct device *dev)
+>>>  	}
+>>>  
+>>>  	spin_unlock_irqrestore(&musb->lock, flags);
+>>> +	musb_save_context(musb);
+>>>  	return 0;
+>>>  }
+>>>  
+>>> @@ -2234,6 +2235,8 @@ static int musb_resume_noirq(struct device *dev)
+>>>  	 * unless for some reason the whole soc powered down or the USB
+>>>  	 * module got reset through the PSC (vs just being disabled).
+>>>  	 */
+>>> +	struct musb	*musb = dev_to_musb(dev);
+>>> +	musb_restore_context(musb);
+>>>  	return 0;
+>>>  }
+>>>  
+> 
+>> - -- 
+>> Regards,
+>> Igor.
+>> 
 
- Paul> You'll need to use the bootloader that TI originally shipped with
- Paul> the BeagleBones:
 
- Paul> U-Boot 2011.09-00009-gcf6e04d (Mar 08 2012 - 17:15:43)
+- -- 
+Regards,
+Igor.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.17 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
-FYI, my beaglebone came with a slightly different U-Boot:
-
-U-Boot 2011.09-00000-gf63b270-dirty (Nov 14 2011 - 10:37:14)
-
-But I have the same behaviour. Recent kernels work with a modern U-Boot,
-but not the original. The build I'm doing is very similar to yours:
-
-git describe
-v3.8-rc4-71-g9a92841
-
-make ARCH=arm CROSS_COMPILE=arm-linux- omap2plus_defconfig
-echo CONFIG_ARM_APPENDED_DTB=y >> .config
-echo CONFIG_ARM_ATAG_DTB_COMPAT=y >> .config
-yes ''| make ARCH=arm CROSS_COMPILE=arm-linux- oldconfig
-make ARCH=arm CROSS_COMPILE=arm-linux-
-cat arch/arm/boot/dts/am335x-bone.dtb >> arch/arm/boot/zImage
-make ARCH=arm CROSS_COMPILE=arm-linux- uImage
-
-# old u-boot (ethernet not stable here, so load from sd)
-
-U-Boot SPL 2011.09-00000-gf63b270-dirty (Nov 14 2011 - 10:37:14)
-Texas Instruments Revision detection unimplemented
-No AC power, disabling frequency switch
-OMAP SD/MMC: 0
-reading u-boot.img
-reading u-boot.img
-
-
-U-Boot 2011.09-00000-gf63b270-dirty (Nov 14 2011 - 10:37:14)
-
-I2C:   ready
-DRAM:  256 MiB
-No daughter card present
-NAND:  HW ECC Hamming Code selected
-nand_get_flash_type: unknown NAND device: Manufacturer ID: 0x10, Chip ID: 0x10
-No NAND device found!!!
-0 MiB
-MMC:   OMAP SD/MMC: 0
-*** Warning - readenv() failed, using default environment
-
-Net:   cpsw
-Hit any key to stop autoboot:  0
-U-Boot# mmc rescan
-U-Boot# fatload mmc 0:1 0x80200000 uImage.new
-reading uImage.new
-
-3945127 bytes read
-U-Boot# setenv bootargs console=$console
-U-Boot# bootm 0x80200000
-## Booting kernel from Legacy Image at 80200000 ...
-   Image Name:   Linux-3.8.0-rc4-00071-g9a92841
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    3945063 Bytes = 3.8 MiB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-   Loading Kernel Image ... OK
-OK
-
-Starting kernel ...
-
-And it hangs. With a reasonably modern U-Boot it works:
-
-U-Boot SPL 2012.10 (Oct 29 2012 - 23:39:02)
-OMAP SD/MMC: 0
-reading u-boot.img
-reading u-boot.img
-
-
-U-Boot 2012.10 (Oct 29 2012 - 23:39:02)
-
-I2C:   ready
-DRAM:  256 MiB
-WARNING: Caches not enabled
-MMC:   OMAP SD/MMC: 0, OMAP SD/MMC: 1
-Using default environment
-
-Net:   cpsw
-Hit any key to stop autoboot:  0
-U-Boot# dhcp
-link up on port 0, speed 100, full duplex
-BOOTP broadcast 1
-DHCP client bound to address 172.16.1.2
-Using cpsw device
-TFTP from server 172.16.1.1; our IP address is 172.16.1.2
-Filename 'uImage'.
-Load address: 0x80200000
-Loading: #################################################################
-         #################################################################
-         #################################################################
-         #################################################################
-         #########
-done
-Bytes transferred = 3945127 (3c32a7 hex)
-U-Boot# setenv bootargs console=$console
-U-Boot# bootm
-## Booting kernel from Legacy Image at 80200000 ...
-   Image Name:   Linux-3.8.0-rc4-00071-g9a92841
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    3945063 Bytes = 3.8 MiB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-   Loading Kernel Image ... OK
-OK
-
-Starting kernel ...
-
-[    0.000000] Booting Linux on physical CPU 0x0
-[    0.000000] Linux version 3.8.0-rc4-00071-g9a92841 (peko@dell) (gcc version 3
-[    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7d
-[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instructie
-[    0.000000] Machine: Generic AM33XX (Flattened Device Tree), model: TI AM335e
-[    0.000000] Memory policy: ECC disabled, Data cache writeback
-[    0.000000] AM335X ES1.0 (neon )
-...
-
-For the failing case, __log_buf doesn't contain anything sensible so I
-guess it crashes early:
-
-grep __log_buf System.map
-c07cc450 b __log_buf
-U-Boot# md 807cc450
-807cc450: e5749fbf ef220eff 3df957df acebffbd    ..t..."..W.=....
-807cc460: 61dfffff 7e93c5ef ddbafdfd bb2ac2fd    ...a...~......*.
-807cc470: 7ffffff1 f7fafd7f 717ddf7f 3feecfbc    ..........}q...?
-807cc480: bddb573d beeaba9b c57f7b99 f77dfbfe    =W.......{....}.
-807cc490: 6b7dde97 ebffcfaf fdf62df5 77e5f7bb    ..}k.....-.....w
-807cc4a0: 5fdffdf5 7bc2d8be 7d977ddd feafafff    ..._...{.}.}....
-807cc4b0: f7429df5 76e2fd6d dedffd3d cf6769ff    ..B.m..v=....ig.
-807cc4c0: fb5644dd bdcf3a69 ffbfffd9 befff9ae    .DV.i:..........
-807cc4d0: f7537fd7 feafe2f2 f37c7c2f fe5ffded    ..S...../||..._.
-807cc4e0: d757dcff 4aefffbf f5dfdbdf febccbef    ..W....J........
-807cc4f0: 0efff5fd 9effca7a f757ffff 07fffeff    ....z.....W.....
-807cc500: deffd1db edbe5ef7 d5e7e579 bf63deef    .....^..y.....c.
-807cc510: edbece57 7cfdebbf f5371f9e f0ffffb3    W......|..7.....
-807cc520: 3fa4ffdf cae9fd66 f6f71d4f ab777d5f    ...?f...O..._}w.
-807cc530: ed9df97d f7fcfeee dff7fb7c 3dbacafe    }.......|......=
-807cc540: 47effd7c b9f9b78e ddc5f7b7 fe2f2bea    |..G.........+/.
-
-Any ideas?
-
---
-Bye, Peter Korsgaard
+iQIcBAEBAgAGBQJQ/lgWAAoJEBDE8YO64EfacIAP/3nyXjs8QQpcD6RcNuRSLp3O
+veKU2grzsUOL/Eu/8TQMM7WDz5n8YlycQ6/THNGGYojjOlEimDC02wbsI4gc5j41
+QC1/XGf62Nlxv6CzORzkGkUoKXtVWzgMYKddWKPEwsXMKPun/LH4ZGDp+7Rkfcmu
+U0k7LM1Pv487iG9pF3Bq5BPYeMxyxyFJC0PiQEK1ZE65RKWbCvInibc7p1bvZ+XX
+JQxf8Qx1p/kBhqWc6LLpcHT5Z3B/F+3rxEhvf8lSu5fdRPHFffcmuX7bIbC/GlTe
+e6mODA114mtn5YbaKCmnYExvJcpz4Nziy+8fGLJ56aAyeKI1wsOJzhWDpSKwQiIF
+CVtYulk5iIfaeUA4sAzvRqEu7dJuaVgm6mEeGHQjebPastYhK7vHjiEOJJ2+LQrs
+698A9wMLckp4AQ75HiwXRgi5N0W528gD8piNoIA9Sh1LwyytIa5Wg7uYw14UjtLJ
+QIerm0v6Ay+8FbVfmpm9k0v3HkYfv0ZVTSdtIXVAE30+WKIBTn0yszxWYo6JZtvj
+p0NEFUNVuR3C9k/xyzkcqwJh8Q6DrleWJeHWL59xgWWKzfeDKjU/DMOuWmuVEkTO
+aRdAlW32VDtUeWlWz3Jz3IOWZRJQKCW2o97n/MDyxwMoRiMWcHxYw6jti6se9S7a
+IGZeEMCcf39fnH5o7i2q
+=nwGe
+-----END PGP SIGNATURE-----
