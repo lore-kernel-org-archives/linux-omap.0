@@ -1,256 +1,151 @@
-From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 00/14] DMA Engine support for AM33XX
-Date: Wed, 23 Jan 2013 16:37:55 +0530
-Message-ID: <50FFC48B.80902@ti.com>
-References: <1358281974-8411-1-git-send-email-mporter@ti.com>
+From: "Bilovol, Ruslan" <ruslan.bilovol@ti.com>
+Subject: RE: [PATCH] usb: musb: fix context save over suspend.
+Date: Wed, 23 Jan 2013 11:15:26 +0000
+Message-ID: <A9A85B2DD0EE454FA2A690F58C997458BB5D17@DNCE04.ent.ti.com>
+References: <20130121202831.40a09bbc@notabene.brown>
+ <50FD28D3.5070107@compulab.co.il>
+ <20130122083832.7a3026c9@notabene.brown>,<50FE5816.30703@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090500030202030700080108"
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1358281974-8411-1-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Id: linux-omap@vger.kernel.org
-
---------------090500030202030700080108
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Matt,
-
-On Wednesday 16 January 2013 02:02 AM, Matt Porter wrote:
-
-[..]
-
-> This series adds DMA Engine support for AM33xx, which uses
-> an EDMA DMAC. The EDMA DMAC has been previously supported by only
-> a private API implementation (much like the situation with OMAP
-> DMA) found on the DaVinci family of SoCs.
->
-> The series applies on top of 3.8-rc3 and the following patches:
->
-> 	- TPS65910 REGMAP_IRQ build fix:
-> 	  https://patchwork.kernel.org/patch/1857701/
-> 	- dmaengine DT support from Vinod's dmaengine_dt branch in
-> 	  git://git.infradead.org/users/vkoul/slave-dma.git since
-> 	  027478851791df751176398be02a3b1c5f6aa824
-> 	- edma dmaengine driver fix:
-> 	  https://patchwork.kernel.org/patch/1961521/
-> 	- dmaengine dma_get_channel_caps v2:
-> 	  https://patchwork.kernel.org/patch/1961601/
-> 	- dmaengine edma driver channel caps support v2:
-> 	  https://patchwork.kernel.org/patch/1961591/
->
-> The approach taken is similar to how OMAP DMA is being converted to
-> DMA Engine support. With the functional EDMA private API already
-> existing in mach-davinci/dma.c, we first move that to an ARM common
-> area so it can be shared. Adding DT and runtime PM support to the
-> private EDMA API implementation allows it to run on AM33xx. AM33xx
-> *only* boots using DT so we leverage Jon's generic DT DMA helpers to
-> register EDMA DMAC with the of_dma framework and then add support
-> for calling the dma_request_slave_channel() API to both the mmc
-> and spi drivers.
->
-> With this series both BeagleBone and the AM335x EVM have working
-> MMC and SPI support.
->
-> This is tested on BeagleBone with a SPI framebuffer driver and MMC
-> rootfs. A trivial gpio DMA event misc driver was used to test the
-> crossbar DMA event support. It is also tested on the AM335x EVM
-> with the onboard SPI flash and MMC rootfs. The branch at
-> https://github.com/ohporter/linux/tree/edma-dmaengine-am33xx-v4
-> has the complete series, dependencies, and some test
-> drivers/defconfigs.
->
-> Regression testing was done on AM180x-EVM (which also makes use
-> of the EDMA dmaengine driver and the EDMA private API) using SD,
-> SPI flash, and the onboard audio supported by the ASoC Davinci
-> driver. Regression testing was also done on a BeagleBoard xM
-> booting from the legacy board file using MMC rootfs.
->
-> Matt Porter (14):
->    ARM: davinci: move private EDMA API to arm/common
->    ARM: edma: remove unused transfer controller handlers
->    ARM: edma: add AM33XX support to the private EDMA API
->    dmaengine: edma: enable build for AM33XX
->    dmaengine: edma: Add TI EDMA device tree binding
->    ARM: dts: add AM33XX EDMA support
->    dmaengine: add dma_request_slave_channel_compat()
->    mmc: omap_hsmmc: convert to dma_request_slave_channel_compat()
->    mmc: omap_hsmmc: set max_segs based on dma engine limitations
->    mmc: omap_hsmmc: add generic DMA request support to the DT binding
->    ARM: dts: add AM33XX MMC support
->    spi: omap2-mcspi: convert to dma_request_slave_channel_compat()
->    spi: omap2-mcspi: add generic DMA request support to the DT binding
->    ARM: dts: add AM33XX SPI DMA support
->
-While going through the series and testing it out, I observed an issue
-with MMC driver. You need patch in the end of the email to avoid the
-issue. Same is attached in case mailer damages it. Can you please
-add it with your series if you agree ?
-
-Overall the series looks good to my eyes.
-Acked-tested-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-
-Regards,
-Santosh
-
- From 2dcc90b7a4b2dcdb52ddd052ca7f3e88a78e83e4 Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Date: Wed, 23 Jan 2013 16:04:32 +0530
-Subject: [PATCH] mmc: omap_hsmmc: Skip platform_get_resource_byname() for dt
-  case
-
-MMC driver probe will abort for DT case because of failed
-platform_get_resource_byname() lookup. Fix it by skipping resource
-byname lookup for device tree build.
-
-Issue is hidden because hwmod popullates the IO resources which
-helps to succeed platform_get_resource_byname() and probe.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
----
-  drivers/mmc/host/omap_hsmmc.c |   28 +++++++++++++++-------------
-  1 file changed, 15 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index f74bd69..d4655e7 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1897,21 +1897,23 @@ static int omap_hsmmc_probe(struct 
-platform_device *pdev)
-
-  	omap_hsmmc_conf_bus_power(host);
-
--	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
--	if (!res) {
--		dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
--		ret = -ENXIO;
--		goto err_irq;
--	}
--	tx_req = res->start;
-+	if (!pdev->dev.of_node) {
-+		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
-+		if (!res) {
-+			dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
-+			ret = -ENXIO;
-+			goto err_irq;
-+		}
-+		tx_req = res->start;
-
--	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
--	if (!res) {
--		dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
--		ret = -ENXIO;
--		goto err_irq;
-+		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
-+		if (!res) {
-+			dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
-+			ret = -ENXIO;
-+			goto err_irq;
-+		}
-+		rx_req = res->start;
-  	}
--	rx_req = res->start;
-
-  	dma_cap_zero(mask);
-  	dma_cap_set(DMA_SLAVE, mask);
--- 
-1.7.9.5
-
-
-
-
-
---------------090500030202030700080108
-Content-Type: text/x-patch;
-	name="0001-mmc-omap_hsmmc-Skip-platform_get_resource_byname-for.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename*0="0001-mmc-omap_hsmmc-Skip-platform_get_resource_byname-for.pa";
-	filename*1="tch"
-
->From 2dcc90b7a4b2dcdb52ddd052ca7f3e88a78e83e4 Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Date: Wed, 23 Jan 2013 16:04:32 +0530
-Subject: [PATCH] mmc: omap_hsmmc: Skip platform_get_resource_byname() for dt
- case
-
-MMC driver probe will abort for DT case because of failed
-platform_get_resource_byname() lookup. Fix it by skipping resource
-byname lookup for device tree build.
-
-Issue is hidden because hwmod popullates the IO resources which
-helps to succeed platform_get_resource_byname() and probe.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
----
- drivers/mmc/host/omap_hsmmc.c |   28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index f74bd69..d4655e7 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1897,21 +1897,23 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 
- 	omap_hsmmc_conf_bus_power(host);
- 
--	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
--	if (!res) {
--		dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
--		ret = -ENXIO;
--		goto err_irq;
--	}
--	tx_req = res->start;
-+	if (!pdev->dev.of_node) {
-+		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
-+		if (!res) {
-+			dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
-+			ret = -ENXIO;
-+			goto err_irq;
-+		}
-+		tx_req = res->start;
- 
--	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
--	if (!res) {
--		dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
--		ret = -ENXIO;
--		goto err_irq;
-+		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
-+		if (!res) {
-+			dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
-+			ret = -ENXIO;
-+			goto err_irq;
-+		}
-+		rx_req = res->start;
- 	}
--	rx_req = res->start;
- 
- 	dma_cap_zero(mask);
- 	dma_cap_set(DMA_SLAVE, mask);
--- 
-1.7.9.5
-
-
---------------090500030202030700080108
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42135 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755229Ab3AWLQP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jan 2013 06:16:15 -0500
+In-Reply-To: <50FE5816.30703@compulab.co.il>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>, NeilBrown <neilb@suse.de>
+Cc: "Balbi, Felipe" <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
+Hi,
 
---------------090500030202030700080108--
+I faced the same issue on OMAP4 and made similar fix a week ago: http://review.omapzoom.org/31700 but in this patch I also check is the MUSB is already suspended (so the context is already saved) in .suspend callback so reading/writing to MUSB register is more safe.
+It is almost same solution as we had a long time ago.
+
+--
+Best regards,
+Ruslan Bilovol
+
+________________________________________
+From: linux-usb-owner@vger.kernel.org [linux-usb-owner@vger.kernel.org] on behalf of Igor Grinberg [grinberg@compulab.co.il]
+Sent: Tuesday, January 22, 2013 11:12 AM
+To: NeilBrown
+Cc: Balbi, Felipe; Greg Kroah-Hartman; linux-usb@vger.kernel.org; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org; Kevin Hilman
+Subject: Re: [PATCH] usb: musb: fix context save over suspend.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+It looks like Kevin has a new address:
+Kevin Hilman <khilman@deeprootsystems.com>
+
+On 01/21/13 23:38, NeilBrown wrote:
+> On Mon, 21 Jan 2013 13:38:59 +0200 Igor Grinberg <grinberg@compulab.co.il>
+> wrote:
+>
+>> -----BEGIN PGP SIGNED MESSAGE-----
+>> Hash: SHA1
+>
+>> Hi Neil,
+>
+>> On 01/21/13 11:28, NeilBrown wrote:
+>>>
+>>>
+>>> The standard suspend sequence involves runtime_resuming
+>>> devices before suspending the system.
+>>> So just saving context in runtime_suspend and restoring it
+>>> in runtime resume isn't enough.  We  must also save in "suspend"
+>>> and restore in "resume".
+>>>
+>>> Without this patch, and OMAP3 system with off_mode enabled will find
+>>> the musb port non-functional after suspend/resume.  With the patch it
+>>> works perfectly.
+>
+>> Hmmm... Some time ago, this has been removed in
+>> 5d193ce8 (usb: musb: PM: fix context save/restore in suspend/resume path)
+>
+>> Am I missing something? Or things changed and now this patch is correct?
+>
+> Hi Igor,
+>  thanks for alerting me to that patch .... does anyone else get the feeling
+>  that power management to too complex to be understood by a mere human?
+>
+>  That commit (5d193ce8) suggests that the musb-hdrc device is an
+>  'omap_device', or maybe has a PM domain set to something else.
+>  However it isn't/doesn't.  dev->pm_domain is NULL.  So no PM domain layer
+>  will ever call the musb_core musb_runtime_suspend/resume.
+>
+>  The parent device - musb-omap2430 - is an omap device, does have pm_domain
+>  set, and does have its omap2430_runtime_suspend/resume called for system
+>  suspend and so the context for that device is saved and restored.
+>  However that doesn't help the context for musb-hdrc.
+>
+>  Whether musb ever was an omap_device is beyond my archaeological skills to
+>  determine.
+>
+>  Kevin:  Was musb-hdrc ever a device with a pm_domain? or was it only ever
+>      the various possible parents that had domains?
+>      Are you able to defend your earlier patch in today's kernel?  It
+>      certainly causes my device not to work properly.
+>
+> Thanks,
+> NeilBrown
+>
+>
+>
+>
+>>>
+>>> Signed-off-by: NeilBrown <neilb@suse.de>
+>>>
+>>> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+>>> index fd34867..b6ccc02 100644
+>>> --- a/drivers/usb/musb/musb_core.c
+>>> +++ b/drivers/usb/musb/musb_core.c
+>>> @@ -2225,6 +2225,7 @@ static int musb_suspend(struct device *dev)
+>>>     }
+>>>
+>>>     spin_unlock_irqrestore(&musb->lock, flags);
+>>> +   musb_save_context(musb);
+>>>     return 0;
+>>>  }
+>>>
+>>> @@ -2234,6 +2235,8 @@ static int musb_resume_noirq(struct device *dev)
+>>>      * unless for some reason the whole soc powered down or the USB
+>>>      * module got reset through the PSC (vs just being disabled).
+>>>      */
+>>> +   struct musb     *musb = dev_to_musb(dev);
+>>> +   musb_restore_context(musb);
+>>>     return 0;
+>>>  }
+>>>
+>
+>> - --
+>> Regards,
+>> Igor.
+>>
+
+
+- --
+Regards,
+Igor.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.17 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQIcBAEBAgAGBQJQ/lgWAAoJEBDE8YO64EfacIAP/3nyXjs8QQpcD6RcNuRSLp3O
+veKU2grzsUOL/Eu/8TQMM7WDz5n8YlycQ6/THNGGYojjOlEimDC02wbsI4gc5j41
+QC1/XGf62Nlxv6CzORzkGkUoKXtVWzgMYKddWKPEwsXMKPun/LH4ZGDp+7Rkfcmu
+U0k7LM1Pv487iG9pF3Bq5BPYeMxyxyFJC0PiQEK1ZE65RKWbCvInibc7p1bvZ+XX
+JQxf8Qx1p/kBhqWc6LLpcHT5Z3B/F+3rxEhvf8lSu5fdRPHFffcmuX7bIbC/GlTe
+e6mODA114mtn5YbaKCmnYExvJcpz4Nziy+8fGLJ56aAyeKI1wsOJzhWDpSKwQiIF
+CVtYulk5iIfaeUA4sAzvRqEu7dJuaVgm6mEeGHQjebPastYhK7vHjiEOJJ2+LQrs
+698A9wMLckp4AQ75HiwXRgi5N0W528gD8piNoIA9Sh1LwyytIa5Wg7uYw14UjtLJ
+QIerm0v6Ay+8FbVfmpm9k0v3HkYfv0ZVTSdtIXVAE30+WKIBTn0yszxWYo6JZtvj
+p0NEFUNVuR3C9k/xyzkcqwJh8Q6DrleWJeHWL59xgWWKzfeDKjU/DMOuWmuVEkTO
+aRdAlW32VDtUeWlWz3Jz3IOWZRJQKCW2o97n/MDyxwMoRiMWcHxYw6jti6se9S7a
+IGZeEMCcf39fnH5o7i2q
+=nwGe
+-----END PGP SIGNATURE-----
