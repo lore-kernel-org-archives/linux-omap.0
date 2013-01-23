@@ -1,151 +1,87 @@
-From: "Bilovol, Ruslan" <ruslan.bilovol@ti.com>
-Subject: RE: [PATCH] usb: musb: fix context save over suspend.
-Date: Wed, 23 Jan 2013 11:15:26 +0000
-Message-ID: <A9A85B2DD0EE454FA2A690F58C997458BB5D17@DNCE04.ent.ti.com>
-References: <20130121202831.40a09bbc@notabene.brown>
- <50FD28D3.5070107@compulab.co.il>
- <20130122083832.7a3026c9@notabene.brown>,<50FE5816.30703@compulab.co.il>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 2/4] ARM: OMAP: devices: create device for usb part of
+ control module
+Date: Wed, 23 Jan 2013 13:24:22 +0200
+Message-ID: <20130123112422.GF29258@arwen.pp.htv.fi>
+References: <1358777308-2409-1-git-send-email-kishon@ti.com>
+ <1358777308-2409-3-git-send-email-kishon@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42135 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755229Ab3AWLQP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jan 2013 06:16:15 -0500
-In-Reply-To: <50FE5816.30703@compulab.co.il>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0875166743167326036=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1358777308-2409-3-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>, NeilBrown <neilb@suse.de>
-Cc: "Balbi, Felipe" <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+
+--===============0875166743167326036==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cpvLTH7QU4gwfq3S"
+Content-Disposition: inline
+
+--cpvLTH7QU4gwfq3S
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-I faced the same issue on OMAP4 and made similar fix a week ago: http://review.omapzoom.org/31700 but in this patch I also check is the MUSB is already suspended (so the context is already saved) in .suspend callback so reading/writing to MUSB register is more safe.
-It is almost same solution as we had a long time ago.
+On Mon, Jan 21, 2013 at 07:38:26PM +0530, Kishon Vijay Abraham I wrote:
+> A seperate driver has been added to handle the usb part of control
+> module. A device for the above driver is created here, using the register
+> address information to be used by the driver for powering on the PHY and
+> for writing to the mailbox.
+>=20
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 
---
-Best regards,
-Ruslan Bilovol
+Tony ? Without this we won't have the control module driver.
 
-________________________________________
-From: linux-usb-owner@vger.kernel.org [linux-usb-owner@vger.kernel.org] on behalf of Igor Grinberg [grinberg@compulab.co.il]
-Sent: Tuesday, January 22, 2013 11:12 AM
-To: NeilBrown
-Cc: Balbi, Felipe; Greg Kroah-Hartman; linux-usb@vger.kernel.org; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org; Kevin Hilman
-Subject: Re: [PATCH] usb: musb: fix context save over suspend.
+--=20
+balbi
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+--cpvLTH7QU4gwfq3S
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-It looks like Kevin has a new address:
-Kevin Hilman <khilman@deeprootsystems.com>
-
-On 01/21/13 23:38, NeilBrown wrote:
-> On Mon, 21 Jan 2013 13:38:59 +0200 Igor Grinberg <grinberg@compulab.co.il>
-> wrote:
->
->> -----BEGIN PGP SIGNED MESSAGE-----
->> Hash: SHA1
->
->> Hi Neil,
->
->> On 01/21/13 11:28, NeilBrown wrote:
->>>
->>>
->>> The standard suspend sequence involves runtime_resuming
->>> devices before suspending the system.
->>> So just saving context in runtime_suspend and restoring it
->>> in runtime resume isn't enough.  We  must also save in "suspend"
->>> and restore in "resume".
->>>
->>> Without this patch, and OMAP3 system with off_mode enabled will find
->>> the musb port non-functional after suspend/resume.  With the patch it
->>> works perfectly.
->
->> Hmmm... Some time ago, this has been removed in
->> 5d193ce8 (usb: musb: PM: fix context save/restore in suspend/resume path)
->
->> Am I missing something? Or things changed and now this patch is correct?
->
-> Hi Igor,
->  thanks for alerting me to that patch .... does anyone else get the feeling
->  that power management to too complex to be understood by a mere human?
->
->  That commit (5d193ce8) suggests that the musb-hdrc device is an
->  'omap_device', or maybe has a PM domain set to something else.
->  However it isn't/doesn't.  dev->pm_domain is NULL.  So no PM domain layer
->  will ever call the musb_core musb_runtime_suspend/resume.
->
->  The parent device - musb-omap2430 - is an omap device, does have pm_domain
->  set, and does have its omap2430_runtime_suspend/resume called for system
->  suspend and so the context for that device is saved and restored.
->  However that doesn't help the context for musb-hdrc.
->
->  Whether musb ever was an omap_device is beyond my archaeological skills to
->  determine.
->
->  Kevin:  Was musb-hdrc ever a device with a pm_domain? or was it only ever
->      the various possible parents that had domains?
->      Are you able to defend your earlier patch in today's kernel?  It
->      certainly causes my device not to work properly.
->
-> Thanks,
-> NeilBrown
->
->
->
->
->>>
->>> Signed-off-by: NeilBrown <neilb@suse.de>
->>>
->>> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
->>> index fd34867..b6ccc02 100644
->>> --- a/drivers/usb/musb/musb_core.c
->>> +++ b/drivers/usb/musb/musb_core.c
->>> @@ -2225,6 +2225,7 @@ static int musb_suspend(struct device *dev)
->>>     }
->>>
->>>     spin_unlock_irqrestore(&musb->lock, flags);
->>> +   musb_save_context(musb);
->>>     return 0;
->>>  }
->>>
->>> @@ -2234,6 +2235,8 @@ static int musb_resume_noirq(struct device *dev)
->>>      * unless for some reason the whole soc powered down or the USB
->>>      * module got reset through the PSC (vs just being disabled).
->>>      */
->>> +   struct musb     *musb = dev_to_musb(dev);
->>> +   musb_restore_context(musb);
->>>     return 0;
->>>  }
->>>
->
->> - --
->> Regards,
->> Igor.
->>
-
-
-- --
-Regards,
-Igor.
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQ/lgWAAoJEBDE8YO64EfacIAP/3nyXjs8QQpcD6RcNuRSLp3O
-veKU2grzsUOL/Eu/8TQMM7WDz5n8YlycQ6/THNGGYojjOlEimDC02wbsI4gc5j41
-QC1/XGf62Nlxv6CzORzkGkUoKXtVWzgMYKddWKPEwsXMKPun/LH4ZGDp+7Rkfcmu
-U0k7LM1Pv487iG9pF3Bq5BPYeMxyxyFJC0PiQEK1ZE65RKWbCvInibc7p1bvZ+XX
-JQxf8Qx1p/kBhqWc6LLpcHT5Z3B/F+3rxEhvf8lSu5fdRPHFffcmuX7bIbC/GlTe
-e6mODA114mtn5YbaKCmnYExvJcpz4Nziy+8fGLJ56aAyeKI1wsOJzhWDpSKwQiIF
-CVtYulk5iIfaeUA4sAzvRqEu7dJuaVgm6mEeGHQjebPastYhK7vHjiEOJJ2+LQrs
-698A9wMLckp4AQ75HiwXRgi5N0W528gD8piNoIA9Sh1LwyytIa5Wg7uYw14UjtLJ
-QIerm0v6Ay+8FbVfmpm9k0v3HkYfv0ZVTSdtIXVAE30+WKIBTn0yszxWYo6JZtvj
-p0NEFUNVuR3C9k/xyzkcqwJh8Q6DrleWJeHWL59xgWWKzfeDKjU/DMOuWmuVEkTO
-aRdAlW32VDtUeWlWz3Jz3IOWZRJQKCW2o97n/MDyxwMoRiMWcHxYw6jti6se9S7a
-IGZeEMCcf39fnH5o7i2q
-=nwGe
+iQIcBAEBAgAGBQJQ/8hmAAoJEIaOsuA1yqREIvYP/j2I79PlB/krUKdUObwk1GJC
+bZ/iM9t2xPxdjNs5DtKBow0FyEsUDIzOUVs2XsKRInuEPHgGhoJg5tdsPbnoYprQ
+bX9eZshPgW39GXDQGO2KvJDFLoMI2O3O0Ud5sFmIBvFc/EwuF0JttSCYl7KvlSc8
+Ul1JjptDy2BYwqdZ09ppfueKkwaHxWZX952V/k7pkV7Nsd4w8JiV7vNiXoxmmbyt
+Y6arAnhZADS+qjPnRkmB8yCWPN0hmRu8eJaK1fh25fmEXiFiYvZ0J1rgq8rbfBoC
+IqDbUP0Gs85XtKrwLBZlBvSt5wN0EXjPLsgZOI/gaBnpteqj+fZWqlpt0Q/JHNNN
+W883S49/SjAQxQjOnXuCLr8qm5S3IaDDtNgtbB+sWxGcdd4tDGIYSvM8r9JjQ+xk
+cdTtp/HQdx2rnJrgISUvW/Vsvv5P0+zV5MZYTqjzo71NGwXH+wbxFpMM+dYG6Yty
+liKQjMcXrh5D5h/Of+o2pM5KnRD4CjANomVu4dq+09ZUKBlotIlbPWgg7Uabf1+j
+/fPPbGOlHPozn4W3UKsf4yI9upnX84Cf+PQvCe1ouVttBWu5ynE9aTzaXD1hXIoS
+d5pz3IjUe4A2qnOW4GJwFkMXXjTLmreftV+Aa85gldsIrMdDhJEv21Kdv6dDURaX
+HH1B5evD0ymZkiv3Ndvw
+=sCR7
 -----END PGP SIGNATURE-----
+
+--cpvLTH7QU4gwfq3S--
+
+--===============0875166743167326036==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============0875166743167326036==--
