@@ -1,100 +1,97 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: Re: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
-Date: Wed, 23 Jan 2013 08:37:34 -0600
-Message-ID: <CAF6AEGtX3Z7ZU0=DsmqnVSHng8gXZZ7=ExYJ+zhFXad9pUjVig@mail.gmail.com>
-References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
- <1358894185-21617-2-git-send-email-robdclark@gmail.com>
- <20130123104216.1de2eee1@armhf>
- <CAF6AEGsDq8AW1-8uYmgc7DNvVU-eF=emWw24nTDHWBMwM_wUDA@mail.gmail.com>
- <20130123133607.GE2637@n2100.arm.linux.org.uk>
- <CAF6AEGu2f_zqkKayS-7ZEiVHHEhEYcqE2eL2BQ4rxW6+08wm7w@mail.gmail.com>
+From: Paolo Pisati <p.pisati@gmail.com>
+Subject: 3.8rc4+ and cpu_freq omap: hangs, oopses, etcetc
+Date: Wed, 23 Jan 2013 17:24:08 +0100
+Message-ID: <20130123162408.GB4123@luxor.wired.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAF6AEGu2f_zqkKayS-7ZEiVHHEhEYcqE2eL2BQ4rxW6+08wm7w@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Jean-Francois Moine <moinejf@free.fr>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:36758 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755839Ab3AWQYN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jan 2013 11:24:13 -0500
+Received: by mail-wi0-f172.google.com with SMTP id o1so876427wic.11
+        for <linux-omap@vger.kernel.org>; Wed, 23 Jan 2013 08:24:12 -0800 (PST)
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
 
-On Wed, Jan 23, 2013 at 8:13 AM, Rob Clark <robdclark@gmail.com> wrote:
-> On Wed, Jan 23, 2013 at 7:36 AM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
->> On Wed, Jan 23, 2013 at 07:24:33AM -0600, Rob Clark wrote:
->>> On Wed, Jan 23, 2013 at 3:42 AM, Jean-Francois Moine <moinejf@free.fr> wrote:
->>> > Hi Rob,
->>> >
->>> > As I wanted to re-use your nxp-tda998x driver for the Marvell Dove SoC,
->>> > I had a look at your IT LCD driver. Comments below.
->>>
->>> Just fyi, you can re-use the nxp-tda998x part independently of tilcdc
->>> (just in case that wasn't clear).
->>
->> Great, this chip is also used on the cubox too.
->
-> cool, it would be great if other platforms could benefit from this as
-> well.. the out-of-tree nxp driver is just horrid ;-)
->
->> The one thing I wonder is how you deal with the VSYNC/HSYNC polarities
->> that are provided to the TDA9988x chip.  On the cubox, I have to adjust
->> the mode parameters such that the polarities are fixed up thusly:
->>
->>         adjusted->flags &= ~(DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_NHSYNC |
->>                              DRM_MODE_FLAG_PVSYNC | DRM_MODE_FLAG_NVSYNC |
->>                              DRM_MODE_FLAG_PCSYNC | DRM_MODE_FLAG_NCSYNC);
->>
->>         /* The TDA19988 always requires negative VSYNC? */
->>         adjusted->flags |= DRM_MODE_FLAG_NVSYNC;
->>
->>         /* The TDA19988 requires positive HSYNC on 1080p or 720p */
->>         if ((adjusted->hdisplay == 1920 && adjusted->vdisplay == 1080) ||
->>             (adjusted->hdisplay == 1280 && adjusted->vdisplay == 720))
->>                 adjusted->flags |= DRM_MODE_FLAG_PHSYNC;
->>         else
->>                 adjusted->flags |= DRM_MODE_FLAG_NHSYNC;
->>
->>         return true;
->>
->> for these resolutions to be displayed correctly.
->
-> hmm, I didn't come across this.  Although 1080p seems to be a bit more
-> than what the little board I'm working on can drive.  I didn't have to
-> do any special fixup for 720p..
+Hi,
 
-one thought.. I haven't enabled any hdmi features like audio yet..
-which could be a reason that I didn't hit some of these issues.  I'm
-not really much of an audio/asoc expert so I'm not really sure how
-this should hook in for audio stuff, but if someone out there with
-some hw with a similar nxp encoder chip does have some better audio
-experience, I'd be interested to work together on that.
+i can't boot my pandaes with 3.8rc4 + cpu_freq + ehci/ohci enabled, as it usually
+hangs with:
 
-BR,
--R
+[   26.718322] INFO: rcu_sched detected stalls on CPUs/tasks: { 1} (detected by 0, t=2690 jiffies, g=4294967100, c=4294967099, q=749)
+[   26.730682] Task dump for CPU 1:
+[   26.734069] udevd           R running      0   772      1 0x00000002
+[   26.740783] [<c04e287c>] (__schedule+0x34c/0x728) from [<eebbaa70>] (0xeebbaa70)
 
-> I wonder if you are having to do that with the nxp out of tree driver?
->  Maybe it is related to how that driver it is configuring the hw?  It
-> would be interesting if you hit the same issue w/ the i2c encoder
-> slave version.
->
-> At any rate, if it turns out to be needed, we can add this in
-> tda998x_encoder_mode_fixup().
->
->> Also, when the only output is the HDMI device, reporting the display
->> "disconnected" and without any modes seems to cause problems - I have to
->> report "unknown" status when there's nothing connected, and also provide
->> a default (720p) mode when no EDID is received.
->
-> hmm, also did not run into any issues here on my end.  What sort of
-> problems did you hit?
->
-> BR,
-> -R
+complete dmesg with clks warnings and a "BUG: spinlock wrong CPU on CPU#1"
+here:
+
+http://paste.ubuntu.com/1563384/
+
+sometimes it randomly oopses around usb:
+
+[    4.922180] hub 1-1:1.0: port 1: status 0101 change 0001
+[    4.936706] Unable to handle kernel NULL pointer dereference at virtual address 00000004
+[    4.945220] pgd = c0004000
+[    4.948059] [00000004] *pgd=00000000
+[    4.951843] Internal error: Oops: 5 [#1] SMP ARM
+[    4.956695] Modules linked in:
+[    4.959899] CPU: 1    Tainted: G        W     (3.8.0-rc4-00139-g1d85490 #1)
+[    4.967224] PC is at _set_bit+0x1c/0x40
+[    4.971252] LR is at out_of_memory+0x7c/0x2f8
+[    4.975830] pc : [<c02aacfc>]    lr : [<c00ce7d0>]    psr: 60000193
+[    4.975830] sp : ee839a40  ip : 00000000  fp : 00000000
+[    4.987884] r10: 0000000e  r9 : c088f5d8  r8 : c07ab33c
+[    4.993377] r7 : ee8373c0  r6 : c07d1014  r5 : c1547e90  r4 : 00000000
+[    5.000244] r3 : 00040000  r2 : 00000001  r1 : 00000004  r0 : 00000000
+[    5.007080] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+[    5.014862] Control: 10c53c7d  Table: 8000404a  DAC: 00000017
+[    5.020904] Process swapper/0 (pid: 1, stack limit = 0xee838240)
+[    5.023437] usb 1-1: link qh256-0001/eeda8b00 start 1 [1/0 us]
+[    5.023468] hub 1-1:1.0: state 7 ports 5 chg 0002 evt 0000
+[    5.023773] hub 1-1:1.0: port 1, status 0101, change 0000, 12 Mb/s
+
+Complete dmesg here:
+
+http://paste.ubuntu.com/1563423/
+
+Or:
+
+[    4.927307] Unable to handle kernel NULL pointer dereference at virtual address 00000014
+[    4.935821] pgd = c0004000
+[    4.938659] [00000014] *pgd=00000000
+[    4.942413] Internal error: Oops: 5 [#1] SMP ARM
+[    4.947265] Modules linked in:
+[    4.950469] CPU: 1    Tainted: G        W     (3.8.0-rc4 #1)
+[    4.956420] PC is at rcu_irq_exit+0x20/0xc4
+[    4.960845] LR is at irq_enter+0x18/0x70
+[    4.964965] pc : [<c00a6d74>]    lr : [<c0049a0c>]    psr: a0000193
+[    4.964965] sp : ee87de90  ip : fffffff2  fp : ee87df54
+[    4.977020] r10: c07491d0  r9 : 00000000  r8 : 00000001
+[    4.982482] r7 : c073ae80  r6 : a0000193  r5 : 00000001  r4 : ee87c000
+[    4.989349] r3 : c0745d88  r2 : 00000000  r1 : 00000560  r0 : c0049a0c
+[    4.992736] usb 1-1: link qh256-0001/eedb0f80 start 1 [1/0 us]
+[    4.992767] hub 1-1:1.0: state 7 ports 5 chg 0002 evt 0000
+[    4.993255] hub 1-1:1.0: port 1, status 0101, change 0000, 12 Mb/s
+
+Complete dmesg here:
+
+http://paste.ubuntu.com/1563483/
+
+Same happens with latest linus/master:
+
+1d85490 Merge tag '3.8-pci-fixes-2' of ...
+
+Config can be found here:
+
+http://people.canonical.com/~ppisati/38rc4/config.omap2plus_cpufreq
+
+Disabling cpufreq i can get my board to boot, and 3.7.y is working fine.
+
+Any clue?
+-- 
+bye,
+p.
