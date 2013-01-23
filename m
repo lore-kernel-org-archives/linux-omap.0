@@ -1,74 +1,214 @@
-From: Philip Avinash <avinashphilip@ti.com>
-Subject: [PATCH 1/4] arch: arm: gpmc: gpmc migration support
-Date: Wed, 23 Jan 2013 14:56:13 +0530
-Message-ID: <1358933176-12409-2-git-send-email-avinashphilip@ti.com>
-References: <1358933176-12409-1-git-send-email-avinashphilip@ti.com>
+From: Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
+Date: Wed, 23 Jan 2013 10:42:16 +0100
+Message-ID: <20130123104216.1de2eee1@armhf>
+References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
+	<1358894185-21617-2-git-send-email-robdclark@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358933176-12409-1-git-send-email-avinashphilip@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: khilman@ti.com, tony@atomide.com, linux@arm.linux.org.uk, dwmw2@infradead.org
-Cc: afzal@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, Philip Avinash <avinashphilip@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:36454 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752439Ab3AWJmb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jan 2013 04:42:31 -0500
+In-Reply-To: <1358894185-21617-2-git-send-email-robdclark@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Clark <robdclark@gmail.com>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-With recent GPMC driver conversion, usage of gpmc_save/restore_context
-can done from gpmc driver itself. Hence removes the usage from pm34xx.c.
-Also removes the conditional compilation primitives ARCH_OMAP3 for
-gpmc_save/restore_context.
+Hi Rob,
 
-Signed-off-by: Philip Avinash <avinashphilip@ti.com>
----
- arch/arm/mach-omap2/gpmc.c   |    2 --
- arch/arm/mach-omap2/pm34xx.c |    5 -----
- 2 files changed, 7 deletions(-)
+As I wanted to re-use your nxp-tda998x driver for the Marvell Dove SoC,
+I had a look at your IT LCD driver. Comments below.
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index cbf4e0d..aed958a 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1426,7 +1426,6 @@ static irqreturn_t gpmc_handle_irq(int irq, void *dev)
- 	return IRQ_HANDLED;
- }
- 
--#ifdef CONFIG_ARCH_OMAP3
- static struct omap3_gpmc_regs gpmc_context;
- 
- void omap3_gpmc_save_context(void)
-@@ -1491,4 +1490,3 @@ void omap3_gpmc_restore_context(void)
- 		}
- 	}
- }
--#endif /* CONFIG_ARCH_OMAP3 */
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 60fbf0a..cab4c5d 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -43,7 +43,6 @@
- #include "common.h"
- #include "cm3xxx.h"
- #include "cm-regbits-34xx.h"
--#include "gpmc.h"
- #include "prm-regbits-34xx.h"
- #include "prm3xxx.h"
- #include "pm.h"
-@@ -84,8 +83,6 @@ static void omap3_core_save_context(void)
- 
- 	/* Save the Interrupt controller context */
- 	omap_intc_save_context();
--	/* Save the GPMC context */
--	omap3_gpmc_save_context();
- 	/* Save the system control module context, padconf already save above*/
- 	omap3_control_save_context();
- 	omap_dma_global_context_save();
-@@ -95,8 +92,6 @@ static void omap3_core_restore_context(void)
- {
- 	/* Restore the control module context, padconf restored by h/w */
- 	omap3_control_restore_context();
--	/* Restore the GPMC context */
--	omap3_gpmc_restore_context();
- 	/* Restore the interrupt controller context */
- 	omap_intc_restore_context();
- 	omap_dma_global_context_restore();
--- 
-1.7.9.5
+On Tue, 22 Jan 2013 16:36:22 -0600
+Rob Clark <robdclark@gmail.com> wrote:
+
+> A simple DRM/KMS driver for the TI LCD Controller found in various
+> smaller TI parts (AM33xx, OMAPL138, etc).  This driver uses the
+> CMA helpers.  Currently only the TFP410 DVI encoder is supported
+> (tested with beaglebone + DVI cape).  There are also various LCD
+> displays, for which support can be added (as I get hw to test on),
+> and an external i2c HDMI encoder found on some boards.
+>=20
+> The display controller supports a single CRTC.  And the encoder+
+> connector are split out into sub-devices.  Depending on which LCD
+> or external encoder is actually present, the appropriate output
+> module(s) will be loaded.
+>=20
+> v1: original
+> v2: fix fb refcnting and few other cleanups
+> v3: get +/- vsync/hsync from timings rather than panel-info, add
+>     option DT max-bandwidth field so driver doesn't attempt to
+>     pick a display mode with too high memory bandwidth, and other
+>     small cleanups
+>=20
+> Signed-off-by: Rob Clark <robdclark@gmail.com>
+> ---
+>  drivers/gpu/drm/Kconfig                |   2 +
+>  drivers/gpu/drm/Makefile               |   1 +
+>  drivers/gpu/drm/tilcdc/Kconfig         |  10 +
+>  drivers/gpu/drm/tilcdc/Makefile        |   8 +
+>  drivers/gpu/drm/tilcdc/tilcdc_crtc.c   | 597 +++++++++++++++++++++++=
++++++++++
+>  drivers/gpu/drm/tilcdc/tilcdc_drv.c    | 605 +++++++++++++++++++++++=
+++++++++++
+>  drivers/gpu/drm/tilcdc/tilcdc_drv.h    | 159 +++++++++
+>  drivers/gpu/drm/tilcdc/tilcdc_regs.h   | 154 +++++++++
+>  drivers/gpu/drm/tilcdc/tilcdc_tfp410.c | 423 +++++++++++++++++++++++
+>  drivers/gpu/drm/tilcdc/tilcdc_tfp410.h |  26 ++
+>  10 files changed, 1985 insertions(+)
+>  create mode 100644 drivers/gpu/drm/tilcdc/Kconfig
+>  create mode 100644 drivers/gpu/drm/tilcdc/Makefile
+>  create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+>  create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_drv.c
+>  create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_drv.h
+>  create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_regs.h
+>  create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+>  create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_tfp410.h
+	[snip]
+> diff --git a/drivers/gpu/drm/tilcdc/Kconfig b/drivers/gpu/drm/tilcdc/=
+Kconfig
+> new file mode 100644
+> index 0000000..ee9b592
+> --- /dev/null
+> +++ b/drivers/gpu/drm/tilcdc/Kconfig
+> @@ -0,0 +1,10 @@
+> +config DRM_TILCDC
+> +	tristate "DRM Support for TI LCDC Display Controller"
+> +	depends on DRM && OF
+> +	select DRM_KMS_HELPER
+> +	select DRM_KMS_CMA_HELPER
+> +	select DRM_GEM_CMA_HELPER
+> +	help
+> +	  Choose this option if you have an TI SoC with LCDC display
+> +	  controller, for example AM33xx in beagle-bone, DA8xx, or
+> +	  OMAP-L1xx.  This driver replaces the FB_DA8XX fbdev driver.
+> diff --git a/drivers/gpu/drm/tilcdc/Makefile b/drivers/gpu/drm/tilcdc=
+/Makefile
+> new file mode 100644
+> index 0000000..1359cc2
+> --- /dev/null
+> +++ b/drivers/gpu/drm/tilcdc/Makefile
+> @@ -0,0 +1,8 @@
+> +ccflags-y :=3D -Iinclude/drm -Werror
+> +
+> +tilcdc-y :=3D \
+> +	tilcdc_crtc.o \
+> +	tilcdc_tfp410.o \
+> +	tilcdc_drv.o
+
+As I understand, this means that the 3 objects will go into the
+resident kernel.
+
+I though that the device tree was created for Linux distributors who
+might generate generic ARM kernels, the choice of the drivers being
+done according the local device tree.
+
+=46rom this point of vue, it would be nicer to have 2 separate modules:
+tilcdc and tfp410, tilcdc_crtc being included in one of these ones
+(I did not look deep enough at the code to know which).
+
+	[snip]
+> diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/ti=
+lcdc/tilcdc_drv.c
+> new file mode 100644
+> index 0000000..cf1fddc
+> --- /dev/null
+> +++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+> @@ -0,0 +1,605 @@
+	[snip]
+> +static struct drm_driver tilcdc_driver =3D {
+> +	.driver_features    =3D DRIVER_HAVE_IRQ | DRIVER_GEM | DRIVER_MODES=
+ET,
+> +	.load               =3D tilcdc_load,
+> +	.unload             =3D tilcdc_unload,
+> +	.preclose           =3D tilcdc_preclose,
+> +	.lastclose          =3D tilcdc_lastclose,
+> +	.irq_handler        =3D tilcdc_irq,
+> +	.irq_preinstall     =3D tilcdc_irq_preinstall,
+> +	.irq_postinstall    =3D tilcdc_irq_postinstall,
+> +	.irq_uninstall      =3D tilcdc_irq_uninstall,
+> +	.get_vblank_counter =3D drm_vblank_count,
+> +	.enable_vblank      =3D tilcdc_enable_vblank,
+> +	.disable_vblank     =3D tilcdc_disable_vblank,
+> +	.gem_free_object    =3D drm_gem_cma_free_object,
+> +	.gem_vm_ops         =3D &drm_gem_cma_vm_ops,
+> +	.dumb_create        =3D drm_gem_cma_dumb_create,
+> +	.dumb_map_offset    =3D drm_gem_cma_dumb_map_offset,
+> +	.dumb_destroy       =3D drm_gem_cma_dumb_destroy,
+> +#ifdef CONFIG_DEBUG_FS
+> +	.debugfs_init       =3D tilcdc_debugfs_init,
+> +	.debugfs_cleanup    =3D tilcdc_debugfs_cleanup,
+> +#endif
+> +	.fops               =3D &fops,
+> +	.name               =3D "tilcdc",
+> +	.desc               =3D "TI LCD Controller DRM",
+> +	.date               =3D "20121205",
+> +	.major              =3D 1,
+> +	.minor              =3D 0,
+> +};
+> +
+> +/*
+> + * Power management:
+> + */
+> +
+> +#if CONFIG_PM_SLEEP
+
+Should be:
+
+#ifdef CONFIG_PM_SLEEP
+
+	[snip]
+> +static struct of_device_id tilcdc_of_match[] =3D {
+> +		{ .compatible =3D "ti,am33xx-tilcdc", },
+> +		{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, tilcdc_of_match);
+> +
+> +static struct platform_driver tilcdc_platform_driver =3D {
+> +	.probe      =3D tilcdc_pdev_probe,
+> +	.remove     =3D tilcdc_pdev_remove,
+> +	.driver     =3D {
+> +		.owner  =3D THIS_MODULE,
+> +		.name   =3D "tilcdc",
+> +		.pm     =3D &tilcdc_pm_ops,
+> +		.of_match_table =3D tilcdc_of_match,
+> +	},
+> +};
+> +
+> +static int __init tilcdc_drm_init(void)
+> +{
+> +	DBG("init");
+> +	tilcdc_tfp410_init();
+
+This function may be called twice if "tilcdc,tfp410" is in the DT.
+
+> +	return platform_driver_register(&tilcdc_platform_driver);
+> +}
+> +
+> +static void __exit tilcdc_drm_fini(void)
+> +{
+> +	DBG("fini");
+> +	tilcdc_tfp410_fini();
+> +	platform_driver_unregister(&tilcdc_platform_driver);
+> +}
+> +
+> +module_init(tilcdc_drm_init);
+> +module_exit(tilcdc_drm_fini);
+> +
+> +MODULE_AUTHOR("Rob Clark <robdclark@gmail.com");
+> +MODULE_DESCRIPTION("TI LCD Controller DRM Driver");
+> +MODULE_LICENSE("GPL");
+
+
+--=20
+Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
