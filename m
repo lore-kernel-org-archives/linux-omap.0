@@ -1,32 +1,65 @@
 From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v3 00/12] video: da8xx-fb: am335x DT support
-Date: Wed, 23 Jan 2013 12:27:21 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA911BF@DBDE01.ent.ti.com>
-References: <cover.1358871750.git.afzal@ti.com>
-	<02F0A27B-B16B-42F8-A0BC-29726732226D@dominion.thruhere.net>
- <CAF6AEGuyb26EZ_9=GP9gs0TZqUtiFv3D_7+wcDOHuKn2qUcytQ@mail.gmail.com>
+Subject: RE: [PATCH v2 12/12] video: da8xx-fb: set upstream clock rate (if
+ reqd)
+Date: Wed, 23 Jan 2013 13:00:20 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA9123E@DBDE01.ent.ti.com>
+References: <cover.1358251447.git.afzal@ti.com>
+ <26e787b021cda89a080f80657c2094b9ff2decaf.1358251448.git.afzal@ti.com>
+ <20130115153222.23734.7924@quantum> <50F63452.1060004@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50605 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755387Ab3AWM1p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Jan 2013 07:27:45 -0500
-In-Reply-To: <CAF6AEGuyb26EZ_9=GP9gs0TZqUtiFv3D_7+wcDOHuKn2qUcytQ@mail.gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50F63452.1060004@ti.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Nori, Sekhar" <nsekhar@ti.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <robdclark@gmail.com>, Koen Kooi <koen@dominion.thruhere.net>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, Mike Turquette <mturquette@linaro.org>
 
-SGksDQoNCk9uIFdlZCwgSmFuIDIzLCAyMDEzIGF0IDAwOjE1OjA5LCBSb2IgQ2xhcmsgd3JvdGU6
-DQoNCj4gPiBXb3VsZG4ndCBpdCBiZSBiZXR0ZXIgdG8gZGVsZXRlIGRhOHh4LWZiLiogYW5kIHN3
-aXRjaCB0byBSb2IgQ2xhcmtzIERSTSBiYXNlZCBkcml2ZXIgZm9yIHRoaXMgSVAgYmxvY2s/DQoN
-Cj4gd2UgcHJvYmFibHkgY2FuJ3QgZGVsZXRlIGRhOHh4LWZiLCBidXQgSSB0aGluayBpdCB3b3Vs
-ZCBiZSBvayB0byBvbmx5DQo+IHVzZSBpdCBmb3IgbGVnYWN5IHBsYXRmb3JtcyBub3QgeWV0IHBv
-cnRlZCB0byBEVC4NCg0KV2UgY2FuJ3QgcmVtb3ZlIGRhOHh4LWZiIGFzIERBODMwIGlzIGEgbm9u
-LURUIG9uZSBhbmQgREE4NTAgaXMgb25seSBnYWluaW5nDQpEVCBzdXBwb3J0Lg0KDQpBbmQgUm9i
-LA0KDQpJIGFtIG5vdCBmYW1pbGlhciB3aXRoIGRybSBzZXR1cCwgd291bGQgYWxsIHRoZSB1c2Vy
-IHNwYWNlIGZyYW1lIGJ1ZmZlciBiYXNlZA0KYXBwbGljYXRpb25zIHdvcmsgYXMgaXMgd2l0aCBk
-cm0gZHJpdmVyPw0KDQpSZWdhcmRzDQpBZnphbA0K
+SGkgTWlrZSwNCg0KT24gV2VkLCBKYW4gMTYsIDIwMTMgYXQgMTA6MzI6MTAsIE5vcmksIFNla2hh
+ciB3cm90ZToNCj4gT24gMS8xNS8yMDEzIDk6MDIgUE0sIE1pa2UgVHVycXVldHRlIHdyb3RlOg0K
+PiA+IFF1b3RpbmcgQWZ6YWwgTW9oYW1tZWQgKDIwMTMtMDEtMTUgMDU6NDQ6MzYpDQoNCj4gPj4g
+Tm90ZToNCj4gPj4gQSBiZXR0ZXIgKGlmIGFsbG93YWJsZSkgc29sdXRpb24gbWF5IGJlIHRvIHJl
+cHJlc2VudCBjbG9jayBkaXZpZGVyIGluDQo+ID4+IExDREMgSVAgYXMgYSBiYXNpYyBkaXZpZGVy
+IGNsb2NrIC0gdGhlIG9uZSBkZWZpbmVkIGluIGNvbW1vbiBjbG9jaw0KPiA+PiBmcmFtZXdvcmsu
+IEJ1dCBmb3IgdGhpcyB0byBoYXBwZW4sIGFsbCB0aGUgcGxhdGZvcm0ncyB1c2luZyB0aGlzIGRy
+aXZlcg0KPiA+PiBzaG91bGQgYmUgdXNpbmcgY29tbW9uIGNsb2NrIGZyYW1ld29yayAoRGFWaW5j
+aSBpcyB5ZXQgdG8gYmUgY29udmVydGVkDQo+ID4+IHRvIHVzZSBjb21tb24gY2xvY2sgZnJhbWV3
+b3JrKS4gQW5kIGl0IGhhcyB0byBiZSBkZXRlcm1pbmVkIHdoZXRoZXINCj4gPj4gY29tbW9uIGNs
+b2NrIGZyYW1ld29yayBhbGxvd3MgdGhpcyBraW5kIG9mIGEgY2xvY2sgbW9kZWxsaW5nIGluc2lk
+ZSBhDQo+ID4+IGRyaXZlciBhbmQgZm9yIHRoaXMgdG8gYmUgcGFydCBvZiBjbG9jayB0cmVlLiBB
+ZHZhbnRhZ2Ugb2YgZG9pbmcgc28NCj4gPj4gd291bGQgYmUgYmV0dGVyIHJlc29sdXRpb24gZm9y
+IHBpeGVsIGNsb2NrLCBldmVuIHRob3VnaCB3aXRob3V0IHRoaXMNCj4gPj4gZXhpc3RpbmcgdXNl
+IGNhc2VzIGFyZSB3b3JraW5nIHByb3Blcmx5LiBPciBhbm90aGVyIGV4dHJlbWUgYWx0ZXJuYXRp
+dmUNCj4gPj4gd291bGQgYmUgdG8gcmVwbGljYXRlIGNsay1kaXZpZGVyIG9mIGNvbW1vbiBjbG9j
+ayBmcmFtZXdvcmsgaW5zaWRlIHRoZQ0KPiA+PiBkcml2ZXIsIGJ1dCB0aGF0IHByb2JhYmx5IGlz
+IG5vdCBwcmVmZXJyZWQgYW5kIG5vdCB3b3J0aCBhcyBpdCB3b3VsZCBiZQ0KPiA+PiBkdXBsaWNh
+dGlvbiBhbmQgd2l0aG91dCBtdWNoIGFkdmFudGFnZSB0byBleGlzdGluZyB1c2Vycy4NCg0KPiA+
+IE1vZGVsaW5nIHRoZSBkaXZpZGVyIGluc2lkZSB5b3VyIElQIGJsb2NrIGFzIGEgY2xvY2sgaXMg
+c3VwcG9ydGVkIGluIHRoZQ0KPiA+IGNvbW1vbiBjbG9jayBmcmFtZXdvcmsuICBMaW5raW5nIHVw
+IHRoZXNlIHNvcnRzIG9mIGNsb2NrcyB0byB0aGUgY2xvY2sNCj4gPiB0cmVlIHdhcyBvbmUgb2Yg
+dGhlIG9yaWdpbmFsIGRlc2lnbiBnb2FscyBvZiBDQ0YuDQoNCj4gPiBSZWdhcmRpbmcgRGFWaW5j
+aTogY29udmVydGluZyB0aGF0IHBsYXRmb3JtIG92ZXIgdG8gdXNlIENDRiB3b3VsZCBiZSB0aGUN
+Cj4gPiBiZXN0IGFwcHJvYWNoLg0KDQo+IFRoaXMgaXMgd29yayBpbiBwcm9ncmVzcy4gVGhlcmUg
+YXJlIHBhdGNoZXMgdGhhdCBoYXZlIGJlZW4gcG9zdGVkLiBXb3JrDQo+IGhhcyBiZWVuIHNsb3cg
+b24gdGhpcyB0aG91Z2ggZHVlIHRvIGxhY2sgb2YgYmFuZHdpZHRoLg0KDQo+ID4gQW4gYWx0ZXJu
+YXRpdmUgd291bGQgYmUgdGhhdCB5b3UgY291bGQgYnJlYWsNCj4gPiBzaW5nbGUtaW1hZ2UgYm9v
+dCBmb3IgQU0zMzV4IGFuZCBEYVZpbmNpLCBieSBoYXZpbmcgQU0zMzV4IHVzZSBDQ0YgYW5kDQo+
+ID4gRGFWaW5jaSB1c2UgdGhlIGxlZ2FjeSBjbG9jayBmcmFtZXdvcmsuICBGcm9tIHRoZSBMQ0RD
+IGRyaXZlcidzDQoNCj4gU2luZ2xlIGltYWdlIGZvciBEYVZpbmNpIGFuZCBBTTMzNXggaXMgbm90
+IHBvc3NpYmxlIGFueXdheSBzaW5jZSBBUk12NQ0KPiBhbmQgQVJNdjYrIGNhbm5vdCBiZSBzdXBw
+b3J0ZWQgaW4gYSBzaW5nbGUgaW1hZ2UuDQoNCj4gPiBwZXJzcGVjdGl2ZSB0aGlzIHNob3VsZCBu
+b3QgbWF0dGVyIGFuZCBpcyBpbmRlZWQgdGhlIHB1cnBvc2Ugb2YgdGhlDQo+ID4gY2xrLmggYXBp
+IGFuZCBjbGtkZXYgaW50ZXJmYWNlcywgaG93ZXZlciBsb29raW5nIGF0IHRoaXMgZHJpdmVyIEkg
+Y2FuDQo+ID4gc2VlIHRoZXJlIHdvdWxkIHN0aWxsIGJlIGEgbG90IGlmZGVmLWVyeSBnb2luZyBv
+bi4uLiBiZXR0ZXIgdG8ganVzdA0KPiA+IGNvbnZlcnQgZXZlcnl0aGluZyBvdmVyIHRvIENDRi4N
+Cg0KPiBXYWl0aW5nIGZvciBEYVZpbmNpIENDRiB0byBjb21wbGV0ZSB3aWxsIGJlIHRvbyBsb25n
+IGEgd2FpdC4gUHJvYmFibHkNCj4gY29udmVydCB0byBDQ0YganVzdCBmb3IgQU0zMzV4IEFUTS4g
+VGhlcmUgd291bGQgYmUgc29tZSBpZmRlZidyeSBidXQNCj4gaG9wZWZ1bGx5IHRoYXQgbmVlZCBu
+b3QgYmUgaW5zaWRlIGZ1bmN0aW9uIGJvZGllcy4gV291bGQgaGF2ZSB0byBzZWUgdGhlDQo+IGlt
+cGxlbWVudGF0aW9uLCBJIGd1ZXNzLg0KDQp2NCBwb3N0ZWQgaGFzIHRoZSBkaXZpZGVyIGluIExD
+REMgSVAgbW9kZWxlZCBieSBjbG9jayBub2RlIGZvciBDQ0YsIGZvcg0Kbm9uLUNDRiAoRGFWaW5j
+aSksIGV4aXN0aW5nIGxvZ2ljIGlzIGtlcHQgYXMgaXMgd2l0aCB0aGUgaGVscCBvZiBpZmRlZidz
+DQooYXMgRGFWaW5jaSBtYWludGFpbmVyIG1lbnRpb25lZCB0aGF0IERhVmluY2kgQ0NGIG1heSB0
+YWtlIHNvbWUgdGltZSkNCg0KUmVnYXJkcw0KQWZ6YWwNCg0KDQo=
