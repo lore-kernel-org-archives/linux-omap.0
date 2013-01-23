@@ -1,99 +1,47 @@
-From: Matthias Brugger <matthias.bgg@gmail.com>
-Subject: [PATCH] omap2: twl-common: Add default power configuration
-Date: Wed, 23 Jan 2013 19:50:38 +0100
-Message-ID: <1358967038-6615-1-git-send-email-matthias.bgg@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:41883 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752052Ab3AWSuq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jan 2013 13:50:46 -0500
-Received: by mail-wg0-f52.google.com with SMTP id 12so3123461wgh.7
-        for <linux-omap@vger.kernel.org>; Wed, 23 Jan 2013 10:50:44 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH 0/6] i2c: deferred STP
+Date: Wed, 23 Jan 2013 22:05:41 +0200
+Message-ID: <20130123200540.GE23057@blackmetal.musicnaut.iki.fi>
+References: <20130123095813.GG3767@nekote.pengutronix.de>
+ <1358936588-16375-1-git-send-email-balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1358936588-16375-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk, martinez.javier@gmail.com, eballetbo@iseebcn.com, ezequiel.garcia@free-electrons.com, robertcnelson@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
 
-This patch adds a generic power script configuration.
-When rebooting an OMAP3530 at 125 MHz, the reboot hangs.
-With the generic power script, TWL4030 will be reset
-when a warm reset occures. This way the OMAP3530 does not
-hang on reboot.
+Hi,
 
-Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
----
- arch/arm/mach-omap2/twl-common.c | 38 ++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/twl-common.h |  1 +
- 2 files changed, 39 insertions(+)
+On Wed, Jan 23, 2013 at 12:23:02PM +0200, Felipe Balbi wrote:
+> Hi folks,
+> 
+> it's now rebased on today's i2c-embedded/for-next. I boot tested with my
+> Blaze board.
+> 
+> Aaro, if you could verify it doesn't break N900, I'd be glad.
 
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index e49b40b..f096beb 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -120,6 +120,41 @@ static struct twl4030_audio_data omap3_audio_pdata = {
- 	.codec = &omap3_codec,
- };
- 
-+static struct twl4030_ins wrst_seq[] __initdata = {
-+	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wrst_script __initdata = {
-+	.script = wrst_seq,
-+	.size	= ARRAY_SIZE(wrst_seq),
-+	.flags	= TWL4030_WRST_SCRIPT,
-+};
-+
-+static struct twl4030_script *omap3_power_scripts[] __initdata = {
-+	&wrst_script,
-+};
-+
-+static struct twl4030_resconfig omap3_rconfig[] = {
-+	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
-+		.type2 = -1 },
-+	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
-+		.type2 = -1 },
-+	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
-+		.type2 = -1 },
-+	{ 0, 0},
-+};
-+
-+static struct twl4030_power_data omap3_power_pdata = {
-+	.scripts	= omap3_power_scripts,
-+	.num		= ARRAY_SIZE(omap3_power_scripts),
-+	.resource_config = omap3_rconfig,
-+};
-+
- static struct regulator_consumer_supply omap3_vdda_dac_supplies[] = {
- 	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
- };
-@@ -224,6 +259,9 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->audio)
- 		pmic_data->audio = &omap3_audio_pdata;
- 
-+	if (pdata_flags & TWL_COMMON_PDATA_POWER && !pmic_data->power)
-+		pmic_data->power = &omap3_power_pdata;
-+
- 	/* Common regulator configurations */
- 	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
- 		pmic_data->vdac = &omap3_vdac_idata;
-diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
-index dcfbad5..dbeb905 100644
---- a/arch/arm/mach-omap2/twl-common.h
-+++ b/arch/arm/mach-omap2/twl-common.h
-@@ -7,6 +7,7 @@
- #define TWL_COMMON_PDATA_BCI		(1 << 1)
- #define TWL_COMMON_PDATA_MADC		(1 << 2)
- #define TWL_COMMON_PDATA_AUDIO		(1 << 3)
-+#define TWL_COMMON_PDATA_POWER		(1 << 4)
- 
- /* Common LDO regulators for TWL4030/TWL6030 */
- #define TWL_COMMON_REGULATOR_VDAC	(1 << 0)
--- 
-1.7.11.7
+It works, but it still introduces a ~4 second delay during the boot:
 
+[    0.180847] usbcore: registered new device driver usb
+[    0.181518] musb-omap2430 musb-omap2430: invalid resource
+[    4.289093] twl 1-0048: PIH (irq 23) chaining IRQs 338..346
+[    4.289276] twl 1-0048: power (irq 343) chaining IRQs 346..353
+[    4.321228] twl4030_gpio twl4030_gpio: gpio (irq 338) chaining IRQs 354..371
+[    4.446655] VUSB1V5: 1500 mV normal standby
+
+Without these patches, it's:
+
+[    0.186798] usbcore: registered new device driver usb
+[    0.187438] musb-omap2430 musb-omap2430: invalid resource
+[    0.213897] twl 1-0048: PIH (irq 23) chaining IRQs 338..346
+[    0.214080] twl 1-0048: power (irq 343) chaining IRQs 346..353
+[    0.215301] twl4030_gpio twl4030_gpio: gpio (irq 338) chaining IRQs 354..371
+[    0.217926] VUSB1V5: 1500 mV normal standby
+
+I'll try to find out what change is causing this.
+
+A.
