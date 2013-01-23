@@ -1,58 +1,63 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 6/6] i2c: omap: get rid of b_hw flag
-Date: Wed, 23 Jan 2013 12:23:08 +0200
-Message-ID: <1358936588-16375-7-git-send-email-balbi@ti.com>
-References: <20130123095813.GG3767@nekote.pengutronix.de>
- <1358936588-16375-1-git-send-email-balbi@ti.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 00/14] DMA Engine support for AM33XX
+Date: Wed, 23 Jan 2013 16:19:18 +0530
+Message-ID: <50FFC02E.5090703@ti.com>
+References: <1358281974-8411-1-git-send-email-mporter@ti.com>
+	<50FEB6B2.5020303@ti.com>
+	<20130123022133.GA5727@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1358936588-16375-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, aaro.koskinen-X3B1VOXEql0@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20130123022133.GA5727-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Cc: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Grant, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Now that we never set STP and STT together,
-that flag has been rendered useless. Let's
-completely drop it.
+Hi Mark,
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c | 7 -------
- 1 file changed, 7 deletions(-)
+On 1/23/2013 7:51 AM, Mark Brown wrote:
+> On Tue, Jan 22, 2013 at 09:26:34PM +0530, Sekhar Nori wrote:
+>> On 1/16/2013 2:02 AM, Matt Porter wrote:
+> 
+>>> This series adds DMA Engine support for AM33xx, which uses
+>>> an EDMA DMAC. The EDMA DMAC has been previously supported by only
+>>> a private API implementation (much like the situation with OMAP
+>>> DMA) found on the DaVinci family of SoCs.
+> 
+>> Will you take this series through the OMAP tree? Only 1/14 touches
+>> mach-davinci and I am mostly okay with it except some changes I just
+>> requested Matt to make in another thread.
+> 
+> Is this series somewhere near actually getting merged then? It seemed
+> like there was lots of stuff going on.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 4e715c4..96cdfba 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -215,7 +215,6 @@ struct omap_i2c_dev {
- 						 * if set, should be trsh+1
- 						 */
- 	u32			rev;
--	unsigned		b_hw:1;		/* bad h/w fixes */
- 	unsigned		receiver:1;	/* true when we're in receiver mode */
- 	u16			iestate;	/* Saved interrupt register */
- 	u16			pscstate;
-@@ -557,9 +556,6 @@ static void omap_i2c_resize_fifo(struct omap_i2c_dev *dev, u8 size, bool is_rx)
- 
- 	omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
- 
--	if (dev->rev < OMAP_I2C_REV_ON_3630)
--		dev->b_hw = 1; /* Enable hardware fixes */
--
- 	/* calculate wakeup latency constraint for MPU */
- 	if (dev->set_mpu_wkup_lat != NULL)
- 		dev->latency = (1000000 * dev->threshold) /
-@@ -1215,9 +1211,6 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 		dev->fifo_size = (dev->fifo_size / 2);
- 
--		if (dev->rev < OMAP_I2C_REV_ON_3630)
--			dev->b_hw = 1; /* Enable hardware fixes */
--
- 		/* calculate wakeup latency constraint for MPU */
- 		if (dev->set_mpu_wkup_lat != NULL)
- 			dev->latency = (1000000 * dev->fifo_size) /
--- 
-1.8.1.rc1.5.g7e0651a
+I don't think there is a lot of churn on this now. 5 of the patches have
+already been acked by Tony. I had a look at the first two patches (from
+davinci perspective) and they mostly look good to me.
+
+That said, I was not intending to suggest the entire series was ready
+for merging. Since the series touches multiple areas of the kernel, I
+wanted to make sure we have one person shepherding the series towards
+mainline.
+
+Patch 1/14 has some changes in sound/ can you please take a look and ack
+them?
+
+Thanks,
+Sekhar
+
+------------------------------------------------------------------------------
+Master Visual Studio, SharePoint, SQL, ASP.NET, C# 2012, HTML5, CSS,
+MVC, Windows 8 Apps, JavaScript and much more. Keep your skills current
+with LearnDevNow - 3,200 step-by-step video tutorials by Microsoft
+MVPs and experts. ON SALE this month only -- learn more at:
+http://p.sf.net/sfu/learnnow-d2d
