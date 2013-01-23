@@ -1,71 +1,127 @@
-From: Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [PATCH 2/4] drm/i2c: nxp-tda998x (v2)
-Date: Wed, 23 Jan 2013 10:42:30 +0100
-Message-ID: <20130123104230.38cfc515@armhf>
-References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
-	<1358894185-21617-3-git-send-email-robdclark@gmail.com>
+From: Philip Avinash <avinashphilip@ti.com>
+Subject: [PATCH 2/4] mtd: devices: elm: Low power transition support
+Date: Wed, 23 Jan 2013 15:15:44 +0530
+Message-ID: <1358934346-16822-3-git-send-email-avinashphilip@ti.com>
+References: <1358933176-12409-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:39919 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752439Ab3AWJmo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jan 2013 04:42:44 -0500
-In-Reply-To: <1358894185-21617-3-git-send-email-robdclark@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358933176-12409-1-git-send-email-avinashphilip@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: khilman@ti.com, tony@atomide.com, linux@arm.linux.org.uk, dwmw2@infradead.org
+Cc: afzal@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, Philip Avinash <avinashphilip@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <robdclark@gmail.com>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-On Tue, 22 Jan 2013 16:36:23 -0600
-Rob Clark <robdclark@gmail.com> wrote:
+In low power modes of AM335X platforms, peripherals power is cut off.
+This patch supports low power sleep transition support for ELM driver.
 
-> Driver for the NXP TDA998X i2c hdmi encoder slave.
->=20
-> v1: original
-> v2: fix npix/nline programming
->=20
-> Signed-off-by: Rob Clark <robdclark@gmail.com>
-> ---
->  drivers/gpu/drm/i2c/Makefile      |   3 +
->  drivers/gpu/drm/i2c/tda998x_drv.c | 908 ++++++++++++++++++++++++++++=
-++++++++++
->  2 files changed, 911 insertions(+)
->  create mode 100644 drivers/gpu/drm/i2c/tda998x_drv.c
-	[snip]
-> diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/=
-tda998x_drv.c
-> new file mode 100644
-> index 0000000..02054e8
-> --- /dev/null
-> +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
-> @@ -0,0 +1,908 @@
-	[snip]
-> +static void __exit
-> +tda998x_exit(void)
-> +{
-> +	DBG("");
-> +	drm_i2c_encoder_unregister(&tda998x_driver);
-> +}
-> +
-> +MODULE_DESCRIPTION("NXP Semiconductors TDA998X TMDS transmitter driv=
-er");
-> +
-> +MODULE_AUTHOR("Rob Clark <robdclark@gmail.com");
-> +MODULE_DESCRIPTION("NXP Semiconductors TDA998X HDMI Encoder");
-> +MODULE_LICENSE("GPL");
-> +
-> +module_init(tda998x_init);
-> +module_exit(tda998x_exit);
+Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+---
+ drivers/mtd/devices/elm.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-There are 2 MODULE_DESCRIPTION().
-
---=20
-Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/mtd/devices/elm.c b/drivers/mtd/devices/elm.c
+index f78f43f..4793cb0 100644
+--- a/drivers/mtd/devices/elm.c
++++ b/drivers/mtd/devices/elm.c
+@@ -20,6 +20,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/of.h>
++#include <linux/sched.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/platform_data/elm.h>
+ 
+@@ -62,6 +63,7 @@ struct elm_info {
+ 	struct completion elm_completion;
+ 	struct list_head list;
+ 	enum bch_ecc bch_type;
++	bool idle;
+ };
+ 
+ static LIST_HEAD(elm_devices);
+@@ -86,9 +88,11 @@ void elm_config(struct device *dev, enum bch_ecc bch_type)
+ 	u32 reg_val;
+ 	struct elm_info *info = dev_get_drvdata(dev);
+ 
++	info->idle = true;
+ 	reg_val = (bch_type & ECC_BCH_LEVEL_MASK) | (ELM_ECC_SIZE << 16);
+ 	elm_write_reg(info, ELM_LOCATION_CONFIG, reg_val);
+ 	info->bch_type = bch_type;
++	info->idle = false;
+ }
+ EXPORT_SYMBOL(elm_config);
+ 
+@@ -280,6 +284,7 @@ void elm_decode_bch_error_page(struct device *dev, u8 *ecc_calc,
+ 	struct elm_info *info = dev_get_drvdata(dev);
+ 	u32 reg_val;
+ 
++	info->idle = true;
+ 	/* Enable page mode interrupt */
+ 	reg_val = elm_read_reg(info, ELM_IRQSTATUS);
+ 	elm_write_reg(info, ELM_IRQSTATUS, reg_val & INTR_STATUS_PAGE_VALID);
+@@ -298,6 +303,7 @@ void elm_decode_bch_error_page(struct device *dev, u8 *ecc_calc,
+ 	reg_val = elm_read_reg(info, ELM_IRQENABLE);
+ 	elm_write_reg(info, ELM_IRQENABLE, reg_val & ~INTR_EN_PAGE_MASK);
+ 	elm_error_correction(info, err_vec);
++	info->idle = false;
+ }
+ EXPORT_SYMBOL(elm_decode_bch_error_page);
+ 
+@@ -368,6 +374,7 @@ static int elm_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&info->list);
+ 	list_add(&info->list, &elm_devices);
+ 	platform_set_drvdata(pdev, info);
++	info->idle = false;
+ 	return ret;
+ }
+ 
+@@ -379,6 +386,38 @@ static int elm_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int elm_suspend(struct device *dev)
++{
++	struct elm_info *info = dev_get_drvdata(dev);
++	wait_queue_head_t wq;
++	DECLARE_WAITQUEUE(wait, current);
++
++	init_waitqueue_head(&wq);
++	while (1) {
++		/* Make sure that ELM not running */
++		if (info->idle) {
++			add_wait_queue(&wq, &wait);
++			schedule();
++			remove_wait_queue(&wq, &wait);
++		} else {
++			break;
++		}
++	}
++	pm_runtime_put_sync(dev);
++	return 0;
++}
++
++static int elm_resume(struct device *dev)
++{
++	struct elm_info *info = dev_get_drvdata(dev);
++
++	pm_runtime_get_sync(dev);
++	elm_config(dev, info->bch_type);
++	return 0;
++}
++
++static SIMPLE_DEV_PM_OPS(elm_pm_ops, elm_suspend, elm_resume);
++
+ #ifdef CONFIG_OF
+ static const struct of_device_id elm_of_match[] = {
+ 	{ .compatible = "ti,am33xx-elm" },
+@@ -392,6 +431,7 @@ static struct platform_driver elm_driver = {
+ 		.name	= "elm",
+ 		.owner	= THIS_MODULE,
+ 		.of_match_table = of_match_ptr(elm_of_match),
++		.pm	= &elm_pm_ops,
+ 	},
+ 	.probe	= elm_probe,
+ 	.remove	= elm_remove,
+-- 
+1.7.9.5
