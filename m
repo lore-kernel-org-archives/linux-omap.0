@@ -1,108 +1,73 @@
-From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 06/12] video: da8xx-fb: reorganize panel detection
-Date: Wed, 23 Jan 2013 17:18:24 +0530
-Message-ID: <47095b1c5196d6ca1de19899274bcd0f79bcc269.1358937685.git.afzal@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v4 07/12] video: da8xx-fb: minimal dt support
+Date: Wed, 23 Jan 2013 17:18:29 +0530
+Message-ID: <16c9779fb53323bb68bc9b6c9d86f61da8297088.1358937685.git.afzal@ti.com>
 References: <cover.1358937685.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <cover.1358937685.git.afzal-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Florian Tobias Schandinat <FlorianSchandinat-Mmb7MZpHnFY@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <cover.1358937685.git.afzal@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Move panel detection to a separate function, this helps in readability
-as well as makes DT support cleaner.
+Driver is provided a means to have the probe triggered by DT.
 
-Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c | 42 ++++++++++++++++++++++++++----------------
- 1 file changed, 26 insertions(+), 16 deletions(-)
+ Documentation/devicetree/bindings/video/fb-da8xx.txt | 16 ++++++++++++++++
+ drivers/video/da8xx-fb.c                             |  7 +++++++
+ 2 files changed, 23 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/video/fb-da8xx.txt
 
+diff --git a/Documentation/devicetree/bindings/video/fb-da8xx.txt b/Documentation/devicetree/bindings/video/fb-da8xx.txt
+new file mode 100644
+index 0000000..581e014
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/fb-da8xx.txt
+@@ -0,0 +1,16 @@
++TI LCD Controller on DA830/DA850/AM335x SoC's
++
++Required properties:
++- compatible:
++	DA830 - "ti,da830-lcdc"
++	AM335x SoC's - "ti,am3352-lcdc", "ti,da830-lcdc"
++- reg: Address range of lcdc register set
++- interrupts: lcdc interrupt
++
++Example:
++
++lcdc@4830e000 {
++	compatible = "ti,am3352-lcdc", "ti,da830-lcdc";
++	reg =  <0x4830e000 0x1000>;
++	interrupts = <36>;
++};
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 3b146bc..b6ea5e9 100644
+index b6ea5e9..08ee8eb 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -1253,6 +1253,27 @@ static struct fb_ops da8xx_fb_ops = {
- 	.fb_blank = cfb_blank,
+@@ -1595,6 +1595,12 @@ static int fb_resume(struct platform_device *dev)
+ #define fb_resume NULL
+ #endif
+ 
++static const struct of_device_id da8xx_fb_of_match[] = {
++	{.compatible = "ti,da830-lcdc", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, da8xx_fb_of_match);
++
+ static struct platform_driver da8xx_fb_driver = {
+ 	.probe = fb_probe,
+ 	.remove = fb_remove,
+@@ -1603,6 +1609,7 @@ static struct platform_driver da8xx_fb_driver = {
+ 	.driver = {
+ 		   .name = DRIVER_NAME,
+ 		   .owner = THIS_MODULE,
++		   .of_match_table = of_match_ptr(da8xx_fb_of_match),
+ 		   },
  };
  
-+static struct fb_videomode *da8xx_fb_get_videomode(struct platform_device *dev)
-+{
-+	struct da8xx_lcdc_platform_data *fb_pdata = dev->dev.platform_data;
-+	struct fb_videomode *lcdc_info;
-+	int i;
-+
-+	for (i = 0, lcdc_info = known_lcd_panels;
-+		i < ARRAY_SIZE(known_lcd_panels); i++, lcdc_info++) {
-+		if (strcmp(fb_pdata->type, lcdc_info->name) == 0)
-+			break;
-+	}
-+
-+	if (i == ARRAY_SIZE(known_lcd_panels)) {
-+		dev_err(&dev->dev, "no panel found\n");
-+		return NULL;
-+	}
-+	dev_info(&dev->dev, "found %s panel\n", lcdc_info->name);
-+
-+	return lcdc_info;
-+}
-+
- static int fb_probe(struct platform_device *device)
- {
- 	struct da8xx_lcdc_platform_data *fb_pdata =
-@@ -1262,7 +1283,7 @@ static int fb_probe(struct platform_device *device)
- 	struct fb_info *da8xx_fb_info;
- 	struct clk *fb_clk = NULL;
- 	struct da8xx_fb_par *par;
--	int ret, i;
-+	int ret;
- 	unsigned long ulcm;
- 
- 	if (fb_pdata == NULL) {
-@@ -1270,6 +1291,10 @@ static int fb_probe(struct platform_device *device)
- 		return -ENOENT;
- 	}
- 
-+	lcdc_info = da8xx_fb_get_videomode(device);
-+	if (lcdc_info == NULL)
-+		return -ENODEV;
-+
- 	lcdc_regs = platform_get_resource(device, IORESOURCE_MEM, 0);
- 	da8xx_fb_reg_base = devm_request_and_ioremap(&device->dev, lcdc_regs);
- 	if (!da8xx_fb_reg_base) {
-@@ -1303,21 +1328,6 @@ static int fb_probe(struct platform_device *device)
- 		break;
- 	}
- 
--	for (i = 0, lcdc_info = known_lcd_panels;
--		i < ARRAY_SIZE(known_lcd_panels);
--		i++, lcdc_info++) {
--		if (strcmp(fb_pdata->type, lcdc_info->name) == 0)
--			break;
--	}
--
--	if (i == ARRAY_SIZE(known_lcd_panels)) {
--		dev_err(&device->dev, "GLCD: No valid panel found\n");
--		ret = -ENODEV;
--		goto err_pm_runtime_disable;
--	} else
--		dev_info(&device->dev, "GLCD: Found %s panel\n",
--					fb_pdata->type);
--
- 	lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
- 
- 	if (!lcd_cfg) {
 -- 
 1.7.12
+
