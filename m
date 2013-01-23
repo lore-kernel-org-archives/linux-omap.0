@@ -1,63 +1,60 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/2] OMAP3 ISP: Simplify clock usage
-Date: Wed, 23 Jan 2013 00:56:26 +0100
-Message-ID: <5665847.MPnegB7rS6@avalon>
-References: <1357652634-17668-1-git-send-email-laurent.pinchart@ideasonboard.com> <4222427.SJZRgZMHGN@avalon> <alpine.DEB.2.00.1301220256040.25789@utopia.booyaka.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v5 00/14] DMA Engine support for AM33XX
+Date: Wed, 23 Jan 2013 10:21:42 +0800
+Message-ID: <20130123022133.GA5727@opensource.wolfsonmicro.com>
+References: <1358281974-8411-1-git-send-email-mporter@ti.com>
+ <50FEB6B2.5020303@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54962 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752806Ab3AVXym (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jan 2013 18:54:42 -0500
-In-Reply-To: <alpine.DEB.2.00.1301220256040.25789@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tThc/1wpZn/ma/RB"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <50FEB6B2.5020303@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Matt Porter <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Rob Herring <rob.herring@calxeda.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
 
-Hi Paul,
 
-On Tuesday 22 January 2013 02:57:22 Paul Walmsley wrote:
-> On Mon, 21 Jan 2013, Laurent Pinchart wrote:
-> > OK. The omap3isp patch can go through Paul's tree as well, it won't
-> > conflict with other changes to the driver in this merge window.
-> > 
-> > Paul, can you take both patches together ? If so I'll send you a pull
-> > request.
->
-> Yes I'll take them, as long as they won't cause conflicts outside of
-> arch/arm/mach-omap2. Otherwise the OMAP3 ISP patch should wait until the
-> early v3.9-rc integration fixes timeframe.
+--tThc/1wpZn/ma/RB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-There's currently no conflict with the other OMAP3 ISP patches that I intend 
-to push to v3.9.
+On Tue, Jan 22, 2013 at 09:26:34PM +0530, Sekhar Nori wrote:
+> On 1/16/2013 2:02 AM, Matt Porter wrote:
 
-The following changes since commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619:
+> > This series adds DMA Engine support for AM33xx, which uses
+> > an EDMA DMAC. The EDMA DMAC has been previously supported by only
+> > a private API implementation (much like the situation with OMAP
+> > DMA) found on the DaVinci family of SoCs.
 
-  Linux 3.8-rc4 (2013-01-17 19:25:45 -0800)
+> Will you take this series through the OMAP tree? Only 1/14 touches
+> mach-davinci and I am mostly okay with it except some changes I just
+> requested Matt to make in another thread.
 
-are available in the git repository at:
+Is this series somewhere near actually getting merged then? It seemed
+like there was lots of stuff going on.
 
-  git://linuxtv.org/pinchartl/media.git omap3isp/clock
+--tThc/1wpZn/ma/RB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-for you to fetch changes up to 6d1aa02f10497b138e01ebe6eafabd6071729334:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-  omap3isp: Set cam_mclk rate directly (2013-01-23 00:44:04 +0100)
+iQIcBAEBAgAGBQJQ/0enAAoJELSic+t+oim9ffsQAI5Ur3zy+yOwyevsnZw8bB12
+7bBbRS8xk9pMMDyncxZ/7KU/B7IXSjWbTHS+4un1gPpIVEA6I3J25inPDFJIkh6I
+0vpuGOf3CWpKtKb8vYFG3e6j4ibk+fz2ZBzq7gx3snPEyb/nOTwuutGrU41TAGhF
+YC63hsoC4olgKL3eZgaqa1T0jQixK/aRFWQ8GVvy8MLDgoGZiCMS5rwtc+d/qJzv
+r0+woqcmx0UCEHMaSk+WBBJ1ncRBxSCOIvGXY7J9x+rcQxbizmnOlRsOHbBKfTI3
+o5np5K7wPR0nyQSVR0YLKjlQnM2PP1X4VRXFvKoqyTKGEr7TlXhU87yiv0O3K0Eu
+anRUphgIIcuCBy8DcpxMO3QHkVHgsiMDKippR3a///bxyYy+VRO6FZCa/GJx9X7j
+z2GHXEX7oioB0HfLPEiBFBuOKXFlGwp9SIoebF7it4fnKjrmW8qoTMtZaltDE9eu
+FVah1IGDQKlgI9XSqOK+OqD4muz/Lb/e6MdpLDOAtk86AfrfS2iHbq138SSA3DgN
+IjBlPjRuDKJucPYitiYHvfmxNtzsmbOsMnA86OfnBxuSOUZMaHUyQGe37q3hJXUJ
+BbSrrGN2gP6KdutaSooB/ua5XR4A6TDBX7nA3Zi4wmGfyA4Pl7e857eqtJSL6QP4
+atfb6xpp6+wpPEWlFGlE
+=FwkO
+-----END PGP SIGNATURE-----
 
-----------------------------------------------------------------
-Laurent Pinchart (2):
-      ARM: OMAP3: clock: Back-propagate rate change from cam_mclk to dpll4_m5
-      omap3isp: Set cam_mclk rate directly
-
- arch/arm/mach-omap2/cclock3xxx_data.c | 10 +++++++++-
- drivers/media/platform/omap3isp/isp.c | 18 ++----------------
- drivers/media/platform/omap3isp/isp.h |  8 +++-----
- 3 files changed, 14 insertions(+), 22 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+--tThc/1wpZn/ma/RB--
