@@ -1,7 +1,7 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH 2/2] ARM: dts: omap3-overo: Add audio support
-Date: Wed, 23 Jan 2013 18:56:52 +0100
-Message-ID: <1358963812-19947-3-git-send-email-florian.vaussard@epfl.ch>
+Subject: [PATCH 1/2] ARM: dts: omap3-overo: Add support for pwm-leds
+Date: Wed, 23 Jan 2013 18:56:51 +0100
+Message-ID: <1358963812-19947-2-git-send-email-florian.vaussard@epfl.ch>
 References: <1358963812-19947-1-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,44 +21,35 @@ To: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
 Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 List-Id: linux-omap@vger.kernel.org
 
-Add the needed sections to enable audio support on Overo.
+Convert the on-board LED connected to the TWL4030 (LEDB) to use
+pwm-leds.
 
 Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 ---
- arch/arm/boot/dts/omap3-overo.dtsi |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap3-overo.dtsi |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
-index 800be29..81341fa 100644
+index 89808ce..800be29 100644
 --- a/arch/arm/boot/dts/omap3-overo.dtsi
 +++ b/arch/arm/boot/dts/omap3-overo.dtsi
-@@ -23,6 +23,14 @@
- 			max-brightness = <127>;
+@@ -14,12 +14,13 @@
+ /include/ "omap3.dtsi"
+ 
+ / {
+-	leds {
+-		compatible = "gpio-leds";
++	pwmleds {
++		compatible = "pwm-leds";
++
+ 		overo {
+ 			label = "overo:blue:COM";
+-			gpios = <&twl_gpio 19 0>;
+-			linux,default-trigger = "mmc0";
++			pwms = <&twl_pwmled 1 7812500>;
++			max-brightness = <127>;
  		};
  	};
-+
-+	sound {
-+		compatible = "ti,omap-twl4030";
-+		ti,model = "overo";
-+
-+		ti,mcbsp = <&mcbsp2>;
-+		ti,codec = <&twl_audio>;
-+	};
  };
- 
- &i2c1 {
-@@ -32,6 +40,12 @@
- 		reg = <0x48>;
- 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
- 		interrupt-parent = <&intc>;
-+
-+		twl_audio: audio {
-+			compatible = "ti,twl4030-audio";
-+			codec {
-+			};
-+		};
- 	};
- };
- 
 -- 
 1.7.5.4
