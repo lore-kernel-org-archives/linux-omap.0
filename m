@@ -1,66 +1,48 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH 2/3] ARM: dts: AM33XX: Add GPMC node
-Date: Wed, 23 Jan 2013 06:32:12 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3EA62B27@DBDE01.ent.ti.com>
-References: <1358491295-4022-1-git-send-email-avinashphilip@ti.com>
-	<1358491295-4022-3-git-send-email-avinashphilip@ti.com>
- <8738xu9rni.fsf@dell.be.48ers.dk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
+Date: Wed, 23 Jan 2013 08:43:41 +0100
+Message-ID: <9D3F79D4-17D5-4DEA-BA4C-1C200B4187E2@dominion.thruhere.net>
+References: <1358894185-21617-1-git-send-email-robdclark@gmail.com> <1358894185-21617-2-git-send-email-robdclark@gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8738xu9rni.fsf@dell.be.48ers.dk>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Korsgaard <jacmet@sunsite.dk>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "zonque@gmail.com" <zonque@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:38982 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751240Ab3AWHnp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jan 2013 02:43:45 -0500
+Received: by mail-ee0-f42.google.com with SMTP id b47so3769171eek.1
+        for <linux-omap@vger.kernel.org>; Tue, 22 Jan 2013 23:43:44 -0800 (PST)
+In-Reply-To: <1358894185-21617-2-git-send-email-robdclark@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Clark <robdclark@gmail.com>
+Cc: dri-devel@lists.freedesktop.org, patches@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jan 22, 2013 at 02:31:53, Peter Korsgaard wrote:
-> >>>>> "Philip" == Philip Avinash <avinashphilip@ti.com> writes:
-> 
->  Philip> From: "Philip, Avinash" <avinashphilip@ti.com>
->  Philip> Add GPMC data node to AM33XX device tree file.
-> 
->  Philip> Signed-off-by: Philip Avinash <avinashphilip@ti.com>
->  Philip> ---
->  Philip>  arch/arm/boot/dts/am33xx.dtsi |   12 ++++++++++++
->  Philip>  1 file changed, 12 insertions(+)
-> 
->  Philip> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
->  Philip> index eaef5e7..f4209d8 100644
->  Philip> --- a/arch/arm/boot/dts/am33xx.dtsi
->  Philip> +++ b/arch/arm/boot/dts/am33xx.dtsi
->  Philip> @@ -393,5 +393,17 @@
->  Philip>  			ti,hwmods = "elm";
->  Philip>  			status = "disabled";
->  Philip>  		};
->  Philip> +
->  Philip> +		gpmc: gpmc@50000000 {
->  Philip> +			compatible = "ti,am3352-gpmc";
->  Philip> +			ti,hwmods = "gpmc";
->  Philip> +			reg = <0x50000000 0x2000>;
->  Philip> +			interrupts = <100>;
->  Philip> +			num-cs = <8>;
-> 
-> Next to Jan's comment about am335x having 7 cs signals, I just realized
-> the difference in compatible string between the gpmc and elm. The gpmc
-> refers to a real device (which is afaik how it should be done), but the
-> elm compatible is simply ti,am33xx-elm.
-> 
-> Presumably it should have been ti,am3352-elm in the binding instead?
 
-I thought of following the file name convention. I will correct to "ti,am3352-elm"
+Op 22 jan. 2013, om 23:36 heeft Rob Clark <robdclark@gmail.com> het volgende geschreven:
 
+> A simple DRM/KMS driver for the TI LCD Controller found in various
+> smaller TI parts (AM33xx, OMAPL138, etc).  This driver uses the
+> CMA helpers.  Currently only the TFP410 DVI encoder is supported
+> (tested with beaglebone + DVI cape).  There are also various LCD
+> displays, for which support can be added (as I get hw to test on),
+> and an external i2c HDMI encoder found on some boards.
 > 
-> Other than that it looks fine.
+> The display controller supports a single CRTC.  And the encoder+
+> connector are split out into sub-devices.  Depending on which LCD
+> or external encoder is actually present, the appropriate output
+> module(s) will be loaded.
 > 
-> Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
+> v1: original
+> v2: fix fb refcnting and few other cleanups
+> v3: get +/- vsync/hsync from timings rather than panel-info, add
+>    option DT max-bandwidth field so driver doesn't attempt to
+>    pick a display mode with too high memory bandwidth, and other
+>    small cleanups
+> 
+> Signed-off-by: Rob Clark <robdclark@gmail.com>
 
-Thanks
-Avinash
+Tested on a beaglebone and beaglebone-black:
 
-> 
-> -- 
-> Bye, Peter Korsgaard
-> 
+Tested-by: Koen Kooi <koen@dominion.thruhere.net>
