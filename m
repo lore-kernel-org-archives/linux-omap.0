@@ -1,81 +1,57 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: Re: [PATCH 2/4] drm/i2c: nxp-tda998x (v2)
-Date: Wed, 23 Jan 2013 07:25:45 -0600
-Message-ID: <CAF6AEGveA9eE6+3W_fRpZC-cs3O80vWWeQNN5CwRj2+TciSAVw@mail.gmail.com>
-References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
-	<1358894185-21617-3-git-send-email-robdclark@gmail.com>
-	<20130123104230.38cfc515@armhf>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
+Date: Wed, 23 Jan 2013 13:36:07 +0000
+Message-ID: <20130123133607.GE2637@n2100.arm.linux.org.uk>
+References: <1358894185-21617-1-git-send-email-robdclark@gmail.com> <1358894185-21617-2-git-send-email-robdclark@gmail.com> <20130123104216.1de2eee1@armhf> <CAF6AEGsDq8AW1-8uYmgc7DNvVU-eF=emWw24nTDHWBMwM_wUDA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f41.google.com ([209.85.212.41]:62779 "EHLO
-	mail-vb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994Ab3AWNZq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jan 2013 08:25:46 -0500
-Received: by mail-vb0-f41.google.com with SMTP id l22so3633137vbn.14
-        for <linux-omap@vger.kernel.org>; Wed, 23 Jan 2013 05:25:45 -0800 (PST)
-In-Reply-To: <20130123104230.38cfc515@armhf>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53322 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753937Ab3AWNgR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jan 2013 08:36:17 -0500
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGsDq8AW1-8uYmgc7DNvVU-eF=emWw24nTDHWBMwM_wUDA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
+To: Rob Clark <robdclark@gmail.com>
+Cc: Jean-Francois Moine <moinejf@free.fr>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, patches@linaro.org
 
-On Wed, Jan 23, 2013 at 3:42 AM, Jean-Francois Moine <moinejf@free.fr> =
-wrote:
-> On Tue, 22 Jan 2013 16:36:23 -0600
-> Rob Clark <robdclark@gmail.com> wrote:
->
->> Driver for the NXP TDA998X i2c hdmi encoder slave.
->>
->> v1: original
->> v2: fix npix/nline programming
->>
->> Signed-off-by: Rob Clark <robdclark@gmail.com>
->> ---
->>  drivers/gpu/drm/i2c/Makefile      |   3 +
->>  drivers/gpu/drm/i2c/tda998x_drv.c | 908 +++++++++++++++++++++++++++=
-+++++++++++
->>  2 files changed, 911 insertions(+)
->>  create mode 100644 drivers/gpu/drm/i2c/tda998x_drv.c
->         [snip]
->> diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c=
-/tda998x_drv.c
->> new file mode 100644
->> index 0000000..02054e8
->> --- /dev/null
->> +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
->> @@ -0,0 +1,908 @@
->         [snip]
->> +static void __exit
->> +tda998x_exit(void)
->> +{
->> +     DBG("");
->> +     drm_i2c_encoder_unregister(&tda998x_driver);
->> +}
->> +
->> +MODULE_DESCRIPTION("NXP Semiconductors TDA998X TMDS transmitter dri=
-ver");
->> +
->> +MODULE_AUTHOR("Rob Clark <robdclark@gmail.com");
->> +MODULE_DESCRIPTION("NXP Semiconductors TDA998X HDMI Encoder");
->> +MODULE_LICENSE("GPL");
->> +
->> +module_init(tda998x_init);
->> +module_exit(tda998x_exit);
->
-> There are 2 MODULE_DESCRIPTION().
+On Wed, Jan 23, 2013 at 07:24:33AM -0600, Rob Clark wrote:
+> On Wed, Jan 23, 2013 at 3:42 AM, Jean-Francois Moine <moinejf@free.fr> wrote:
+> > Hi Rob,
+> >
+> > As I wanted to re-use your nxp-tda998x driver for the Marvell Dove SoC,
+> > I had a look at your IT LCD driver. Comments below.
+> 
+> Just fyi, you can re-use the nxp-tda998x part independently of tilcdc
+> (just in case that wasn't clear).
 
-oh, whoops.. I'll fix that
+Great, this chip is also used on the cubox too.
 
-BR,
--R
+The one thing I wonder is how you deal with the VSYNC/HSYNC polarities
+that are provided to the TDA9988x chip.  On the cubox, I have to adjust
+the mode parameters such that the polarities are fixed up thusly:
 
-> --
-> Ken ar c'henta=F1 |             ** Breizh ha Linux atav! **
-> Jef             |               http://moinejf.free.fr/
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+        adjusted->flags &= ~(DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_NHSYNC |
+                             DRM_MODE_FLAG_PVSYNC | DRM_MODE_FLAG_NVSYNC |
+                             DRM_MODE_FLAG_PCSYNC | DRM_MODE_FLAG_NCSYNC);
+
+        /* The TDA19988 always requires negative VSYNC? */
+        adjusted->flags |= DRM_MODE_FLAG_NVSYNC;
+
+        /* The TDA19988 requires positive HSYNC on 1080p or 720p */
+        if ((adjusted->hdisplay == 1920 && adjusted->vdisplay == 1080) ||
+            (adjusted->hdisplay == 1280 && adjusted->vdisplay == 720))
+                adjusted->flags |= DRM_MODE_FLAG_PHSYNC;
+        else
+                adjusted->flags |= DRM_MODE_FLAG_NHSYNC;
+
+        return true;
+
+for these resolutions to be displayed correctly.
+
+Also, when the only output is the HDMI device, reporting the display
+"disconnected" and without any modes seems to cause problems - I have to
+report "unknown" status when there's nothing connected, and also provide
+a default (720p) mode when no EDID is received.
