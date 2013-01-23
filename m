@@ -1,164 +1,256 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 6/6] OF: Introduce DT overlay support.
-Date: Wed, 23 Jan 2013 13:01:58 +0200
-Message-ID: <EAB57031-78DC-4150-B1A9-F6A19A60293F@antoniou-consulting.com>
-References: <1357327870-13615-1-git-send-email-panto@antoniou-consulting.com> <1357327870-13615-7-git-send-email-panto@antoniou-consulting.com> <20130122035056.GF23500@truffula.fritz.box> <9768253B-92ED-4298-8BE4-6FAB091DF062@antoniou-consulting.com> <20130123051207.GA2228@truffula.fritz.box>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130123051207.GA2228@truffula.fritz.box>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Gibson <david@gibson.dropbear.id.au>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 00/14] DMA Engine support for AM33XX
+Date: Wed, 23 Jan 2013 16:37:55 +0530
+Message-ID: <50FFC48B.80902@ti.com>
+References: <1358281974-8411-1-git-send-email-mporter@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="------------090500030202030700080108"
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1358281974-8411-1-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+--------------090500030202030700080108
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Jan 23, 2013, at 7:12 AM, David Gibson wrote:
+Matt,
 
-> On Tue, Jan 22, 2013 at 01:08:04PM +0200, Pantelis Antoniou wrote:
->> Hi
->> 
->> On Jan 22, 2013, at 5:50 AM, David Gibson wrote:
->> 
->>> On Fri, Jan 04, 2013 at 09:31:10PM +0200, Pantelis Antoniou wrote:
->>>> Introduce DT overlay support.
->>>> Using this functionality it is possible to dynamically overlay a part of
->>>> the kernel's tree with another tree that's been dynamically loaded.
->>>> It is also possible to remove node and properties.
->>>> 
->>>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
->>>> ---
->>>> Documentation/devicetree/overlay-notes.txt | 179 +++++++
->>>> drivers/of/Kconfig                         |  10 +
->>>> drivers/of/Makefile                        |   1 +
->>>> drivers/of/overlay.c                       | 831 +++++++++++++++++++++++++++++
->>>> include/linux/of.h                         | 107 ++++
->>>> 5 files changed, 1128 insertions(+)
->>>> create mode 100644 Documentation/devicetree/overlay-notes.txt
->>>> create mode 100644 drivers/of/overlay.c
->>>> 
->>>> diff --git a/Documentation/devicetree/overlay-notes.txt b/Documentation/devicetree/overlay-notes.txt
->>>> new file mode 100644
->>>> index 0000000..5289cbb
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/overlay-notes.txt
->>>> @@ -0,0 +1,179 @@
->>>> +Device Tree Overlay Notes
->>>> +-------------------------
->>>> +
->>>> +This document describes the implementation of the in-kernel
->>>> +device tree overlay functionality residing in drivers/of/overlay.c and is a
->>>> +companion document to Documentation/devicetree/dt-object-internal.txt[1] &
->>>> +Documentation/devicetree/dynamic-resolution-notes.txt[2]
->>>> +
->>>> +How overlays work
->>>> +-----------------
->>>> +
->>>> +A Device Tree's overlay purpose is to modify the kernel's live tree, and
->>>> +have the modification affecting the state of the the kernel in a way that
->>>> +is reflecting the changes.
->>> 
->>> Um.. I'm having a great deal of trouble parsing that sentence.
->>> 
->>>> +Since the kernel mainly deals with devices, any new device node that result
->>>> +in an active device should have it created while if the device node is either
->>>> +disabled or removed all together, the affected device should be deregistered.
->>>> +
->>>> +Lets take an example where we have a foo board with the following base tree
->>>> +which is taken from [1].
->>>> +
->>>> +---- foo.dts -----------------------------------------------------------------
->>>> +	/* FOO platform */
->>>> +	/ {
->>>> +		compatible = "corp,foo";
->>>> +
->>>> +		/* shared resources */
->>>> +		res: res {
->>>> +		};
->>>> +
->>>> +		/* On chip peripherals */
->>>> +		ocp: ocp {
->>>> +			/* peripherals that are always instantiated */
->>>> +			peripheral1 { ... };
->>>> +		}
->>>> +	};
->>>> +---- foo.dts -----------------------------------------------------------------
->>>> +
->>>> +The overlay bar.dts, when loaded (and resolved as described in [2]) should
->>>> +
->>>> +---- bar.dts -----------------------------------------------------------------
->>>> +/plugin/;	/* allow undefined label references and record them */
->>>> +/ {
->>>> +	....	/* various properties for loader use; i.e. part id etc. */
->>>> +	fragment@0 {
->>>> +		target = <&ocp>;
->>>> +		__overlay__ {
->>>> +			/* bar peripheral */
->>>> +			bar {
->>>> +				compatible = "corp,bar";
->>>> +				... /* various properties and child nodes */
->>>> +			}
->>>> +		};
->>>> +	};
->>>> +};
->>>> +---- bar.dts -----------------------------------------------------------------
->>>> +
->>>> +result in foo+bar.dts
->>>> +
->>>> +---- foo+bar.dts -------------------------------------------------------------
->>>> +	/* FOO platform + bar peripheral */
->>>> +	/ {
->>>> +		compatible = "corp,foo";
->>>> +
->>>> +		/* shared resources */
->>>> +		res: res {
->>>> +		};
->>>> +
->>>> +		/* On chip peripherals */
->>>> +		ocp: ocp {
->>>> +			/* peripherals that are always instantiated */
->>>> +			peripheral1 { ... };
->>>> +
->>>> +			/* bar peripheral */
->>>> +			bar {
->>>> +				compatible = "corp,bar";
->>>> +				... /* various properties and child nodes */
->>>> +			}
->>>> +		}
->>>> +	};
->>>> +---- foo+bar.dts -------------------------------------------------------------
->>>> +
->>>> +As a result of the the overlay, a new device node (bar) has been created
->>>> +so a bar platform device will be registered and if a matching device driver
->>>> +is loaded the device will be created as expected.
->>> 
->>> Hrm.  This all seems rather complicated.  Maybe it needs to be, but
->>> I'm not entirely convinced yet.
->>> 
->>> One other point - both of these patches are assuming that the overlay
->>> is in the "live tree" format, but it still needs a bunch of extra
->>> mangling.  Would it simplify things to just go straight from the
->>> overlay in flat tree form to modifications to the system-wide live
->>> tree.
->> 
->> Sorry, I can't parse this. You mean apply the overlay without converting
->> to live tree format?
-> 
-> Yes.
-> 
+On Wednesday 16 January 2013 02:02 AM, Matt Porter wrote:
 
-The gymnastics required when operating on the flat tree will make grown, tough as nails
-s/w developers cry.
+[..]
 
-In essence you will have to replicate the unflattening functionality again, create a
-similar tree structure as the live tree, do your work, and then discard it.
+> This series adds DMA Engine support for AM33xx, which uses
+> an EDMA DMAC. The EDMA DMAC has been previously supported by only
+> a private API implementation (much like the situation with OMAP
+> DMA) found on the DaVinci family of SoCs.
+>
+> The series applies on top of 3.8-rc3 and the following patches:
+>
+> 	- TPS65910 REGMAP_IRQ build fix:
+> 	  https://patchwork.kernel.org/patch/1857701/
+> 	- dmaengine DT support from Vinod's dmaengine_dt branch in
+> 	  git://git.infradead.org/users/vkoul/slave-dma.git since
+> 	  027478851791df751176398be02a3b1c5f6aa824
+> 	- edma dmaengine driver fix:
+> 	  https://patchwork.kernel.org/patch/1961521/
+> 	- dmaengine dma_get_channel_caps v2:
+> 	  https://patchwork.kernel.org/patch/1961601/
+> 	- dmaengine edma driver channel caps support v2:
+> 	  https://patchwork.kernel.org/patch/1961591/
+>
+> The approach taken is similar to how OMAP DMA is being converted to
+> DMA Engine support. With the functional EDMA private API already
+> existing in mach-davinci/dma.c, we first move that to an ARM common
+> area so it can be shared. Adding DT and runtime PM support to the
+> private EDMA API implementation allows it to run on AM33xx. AM33xx
+> *only* boots using DT so we leverage Jon's generic DT DMA helpers to
+> register EDMA DMAC with the of_dma framework and then add support
+> for calling the dma_request_slave_channel() API to both the mmc
+> and spi drivers.
+>
+> With this series both BeagleBone and the AM335x EVM have working
+> MMC and SPI support.
+>
+> This is tested on BeagleBone with a SPI framebuffer driver and MMC
+> rootfs. A trivial gpio DMA event misc driver was used to test the
+> crossbar DMA event support. It is also tested on the AM335x EVM
+> with the onboard SPI flash and MMC rootfs. The branch at
+> https://github.com/ohporter/linux/tree/edma-dmaengine-am33xx-v4
+> has the complete series, dependencies, and some test
+> drivers/defconfigs.
+>
+> Regression testing was done on AM180x-EVM (which also makes use
+> of the EDMA dmaengine driver and the EDMA private API) using SD,
+> SPI flash, and the onboard audio supported by the ASoC Davinci
+> driver. Regression testing was also done on a BeagleBoard xM
+> booting from the legacy board file using MMC rootfs.
+>
+> Matt Porter (14):
+>    ARM: davinci: move private EDMA API to arm/common
+>    ARM: edma: remove unused transfer controller handlers
+>    ARM: edma: add AM33XX support to the private EDMA API
+>    dmaengine: edma: enable build for AM33XX
+>    dmaengine: edma: Add TI EDMA device tree binding
+>    ARM: dts: add AM33XX EDMA support
+>    dmaengine: add dma_request_slave_channel_compat()
+>    mmc: omap_hsmmc: convert to dma_request_slave_channel_compat()
+>    mmc: omap_hsmmc: set max_segs based on dma engine limitations
+>    mmc: omap_hsmmc: add generic DMA request support to the DT binding
+>    ARM: dts: add AM33XX MMC support
+>    spi: omap2-mcspi: convert to dma_request_slave_channel_compat()
+>    spi: omap2-mcspi: add generic DMA request support to the DT binding
+>    ARM: dts: add AM33XX SPI DMA support
+>
+While going through the series and testing it out, I observed an issue
+with MMC driver. You need patch in the end of the email to avoid the
+issue. Same is attached in case mailer damages it. Can you please
+add it with your series if you agree ?
 
-A bit excessive don't you think?
+Overall the series looks good to my eyes.
+Acked-tested-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 
+Regards,
+Santosh
+
+ From 2dcc90b7a4b2dcdb52ddd052ca7f3e88a78e83e4 Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Date: Wed, 23 Jan 2013 16:04:32 +0530
+Subject: [PATCH] mmc: omap_hsmmc: Skip platform_get_resource_byname() for dt
+  case
+
+MMC driver probe will abort for DT case because of failed
+platform_get_resource_byname() lookup. Fix it by skipping resource
+byname lookup for device tree build.
+
+Issue is hidden because hwmod popullates the IO resources which
+helps to succeed platform_get_resource_byname() and probe.
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+---
+  drivers/mmc/host/omap_hsmmc.c |   28 +++++++++++++++-------------
+  1 file changed, 15 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index f74bd69..d4655e7 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1897,21 +1897,23 @@ static int omap_hsmmc_probe(struct 
+platform_device *pdev)
+
+  	omap_hsmmc_conf_bus_power(host);
+
+-	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
+-	if (!res) {
+-		dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
+-		ret = -ENXIO;
+-		goto err_irq;
+-	}
+-	tx_req = res->start;
++	if (!pdev->dev.of_node) {
++		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
++		if (!res) {
++			dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
++			ret = -ENXIO;
++			goto err_irq;
++		}
++		tx_req = res->start;
+
+-	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
+-	if (!res) {
+-		dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
+-		ret = -ENXIO;
+-		goto err_irq;
++		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
++		if (!res) {
++			dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
++			ret = -ENXIO;
++			goto err_irq;
++		}
++		rx_req = res->start;
+  	}
+-	rx_req = res->start;
+
+  	dma_cap_zero(mask);
+  	dma_cap_set(DMA_SLAVE, mask);
+-- 
+1.7.9.5
+
+
+
+
+
+--------------090500030202030700080108
+Content-Type: text/x-patch;
+	name="0001-mmc-omap_hsmmc-Skip-platform_get_resource_byname-for.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename*0="0001-mmc-omap_hsmmc-Skip-platform_get_resource_byname-for.pa";
+	filename*1="tch"
+
+>From 2dcc90b7a4b2dcdb52ddd052ca7f3e88a78e83e4 Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Date: Wed, 23 Jan 2013 16:04:32 +0530
+Subject: [PATCH] mmc: omap_hsmmc: Skip platform_get_resource_byname() for dt
+ case
+
+MMC driver probe will abort for DT case because of failed
+platform_get_resource_byname() lookup. Fix it by skipping resource
+byname lookup for device tree build.
+
+Issue is hidden because hwmod popullates the IO resources which
+helps to succeed platform_get_resource_byname() and probe.
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+---
+ drivers/mmc/host/omap_hsmmc.c |   28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index f74bd69..d4655e7 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1897,21 +1897,23 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
  
-> -- 
-> David Gibson			| I'll have my music baroque, and my code
-> david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
-> 				| _way_ _around_!
-> http://www.ozlabs.org/~dgibson
+ 	omap_hsmmc_conf_bus_power(host);
+ 
+-	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
+-	if (!res) {
+-		dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
+-		ret = -ENXIO;
+-		goto err_irq;
+-	}
+-	tx_req = res->start;
++	if (!pdev->dev.of_node) {
++		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
++		if (!res) {
++			dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
++			ret = -ENXIO;
++			goto err_irq;
++		}
++		tx_req = res->start;
+ 
+-	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
+-	if (!res) {
+-		dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
+-		ret = -ENXIO;
+-		goto err_irq;
++		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
++		if (!res) {
++			dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
++			ret = -ENXIO;
++			goto err_irq;
++		}
++		rx_req = res->start;
+ 	}
+-	rx_req = res->start;
+ 
+ 	dma_cap_zero(mask);
+ 	dma_cap_set(DMA_SLAVE, mask);
+-- 
+1.7.9.5
+
+
+--------------090500030202030700080108
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--------------090500030202030700080108--
