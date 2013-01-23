@@ -1,182 +1,79 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 1/2] clk: divider: prepare for minimum divider
-Date: Wed, 23 Jan 2013 17:08:52 +0530
-Message-ID: <6dc1c48cac5b2646a55da3079afb72f88e40c3bc.1358937138.git.afzal@ti.com>
+Subject: [PATCH v2 2/2] clk: divider: handle minimum divider
+Date: Wed, 23 Jan 2013 17:09:01 +0530
+Message-ID: <9e6a498d23f5768e2e9d57bfe13c4f9434bf74d8.1358937138.git.afzal@ti.com>
+References: <6dc1c48cac5b2646a55da3079afb72f88e40c3bc.1358937138.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <6dc1c48cac5b2646a55da3079afb72f88e40c3bc.1358937138.git.afzal@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
 Some of clocks can have a limit on minimum divider value that can be
-programmed, prepare for such a support.
-
-Add a new field min_div for the basic divider clock and a new dynamic
-clock divider registration function where minimum divider value can
-be specified. Keep behaviour of existing divider clock registration
-functions, static initialization helpers as was earlier.
+programmed. Modify basic clock divider to take care of this aspect.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
-
-v2: create a new registration function for those that needs to
-    constrain minimum divider value instead of modifying existing
-    registration functions and hence remove modification in other
-    clock files.
-    
-
- drivers/clk/clk-divider.c    | 37 ++++++++++++++++++++++++++++++++++---
- include/linux/clk-private.h  |  6 +++++-
- include/linux/clk-provider.h |  7 +++++++
- 3 files changed, 46 insertions(+), 4 deletions(-)
+ drivers/clk/clk-divider.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
-index a9204c6..4025c5a 100644
+index 4025c5a..ee648dc 100644
 --- a/drivers/clk/clk-divider.c
 +++ b/drivers/clk/clk-divider.c
-@@ -236,7 +236,7 @@ EXPORT_SYMBOL_GPL(clk_divider_ops);
+@@ -32,6 +32,11 @@
+ #define div_mask(d)	((1 << (d->width)) - 1)
+ #define is_power_of_two(i)	!(i & ~i)
  
- static struct clk *_register_divider(struct device *dev, const char *name,
- 		const char *parent_name, unsigned long flags,
--		void __iomem *reg, u8 shift, u8 width,
-+		void __iomem *reg, u8 shift, u8 width, u8 min_div,
- 		u8 clk_divider_flags, const struct clk_div_table *table,
- 		spinlock_t *lock)
- {
-@@ -244,6 +244,11 @@ static struct clk *_register_divider(struct device *dev, const char *name,
- 	struct clk *clk;
- 	struct clk_init_data init;
- 
-+	if (!min_div) {
-+		pr_err("%s: minimum divider cannot be zero\n", __func__);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
- 	/* allocate the divider */
- 	div = kzalloc(sizeof(struct clk_divider), GFP_KERNEL);
- 	if (!div) {
-@@ -261,6 +266,7 @@ static struct clk *_register_divider(struct device *dev, const char *name,
- 	div->reg = reg;
- 	div->shift = shift;
- 	div->width = width;
-+	div->min_div = min_div;
- 	div->flags = clk_divider_flags;
- 	div->lock = lock;
- 	div->hw.init = &init;
-@@ -276,6 +282,29 @@ static struct clk *_register_divider(struct device *dev, const char *name,
- }
- 
- /**
-+ * clk_register_min_divider - register a divider clock having minimum divider
-+ * constraints with clock framework
-+ * @dev: device registering this clock
-+ * @name: name of this clock
-+ * @parent_name: name of clock's parent
-+ * @flags: framework-specific flags
-+ * @reg: register address to adjust divider
-+ * @shift: number of bits to shift the bitfield
-+ * @width: width of the bitfield
-+ * @min_div: minimum allowable divider
-+ * @clk_divider_flags: divider-specific flags for this clock
-+ * @lock: shared register lock for this clock
-+ */
-+struct clk *clk_register_min_divider(struct device *dev, const char *name,
-+		const char *parent_name, unsigned long flags,
-+		void __iomem *reg, u8 shift, u8 width, u8 min_div,
-+		u8 clk_divider_flags, spinlock_t *lock)
++static unsigned int _get_mindiv(struct clk_divider *divider)
 +{
-+	return _register_divider(dev, name, parent_name, flags, reg, shift,
-+			width, min_div, clk_divider_flags, NULL, lock);
++	return divider->min_div;
 +}
 +
-+/**
-  * clk_register_divider - register a divider clock with the clock framework
-  * @dev: device registering this clock
-  * @name: name of this clock
-@@ -293,7 +322,8 @@ struct clk *clk_register_divider(struct device *dev, const char *name,
- 		u8 clk_divider_flags, spinlock_t *lock)
+ static unsigned int _get_table_maxdiv(const struct clk_div_table *table)
  {
- 	return _register_divider(dev, name, parent_name, flags, reg, shift,
--			width, clk_divider_flags, NULL, lock);
-+			width, CLK_DIVIDER_MIN_DIV_DEFAULT, clk_divider_flags,
-+			NULL, lock);
- }
- 
- /**
-@@ -317,5 +347,6 @@ struct clk *clk_register_divider_table(struct device *dev, const char *name,
- 		spinlock_t *lock)
+ 	unsigned int maxdiv = 0;
+@@ -148,17 +153,18 @@ static int clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
  {
- 	return _register_divider(dev, name, parent_name, flags, reg, shift,
--			width, clk_divider_flags, table, lock);
-+			width, CLK_DIVIDER_MIN_DIV_DEFAULT, clk_divider_flags,
-+			table, lock);
- }
-diff --git a/include/linux/clk-private.h b/include/linux/clk-private.h
-index 9c7f580..942a1be 100644
---- a/include/linux/clk-private.h
-+++ b/include/linux/clk-private.h
-@@ -105,7 +105,8 @@ struct clk {
+ 	struct clk_divider *divider = to_clk_divider(hw);
+ 	int i, bestdiv = 0;
+-	unsigned long parent_rate, best = 0, now, maxdiv;
++	unsigned long parent_rate, best = 0, now, maxdiv, mindiv;
  
- #define _DEFINE_CLK_DIVIDER(_name, _parent_name, _parent_ptr,	\
- 				_flags, _reg, _shift, _width,	\
--				_divider_flags, _table, _lock)	\
-+				_min_div, _divider_flags,	\
-+				_table, _lock)			\
- 	static struct clk _name;				\
- 	static const char *_name##_parent_names[] = {		\
- 		_parent_name,					\
-@@ -120,6 +121,7 @@ struct clk {
- 		.reg = _reg,					\
- 		.shift = _shift,				\
- 		.width = _width,				\
-+		.min_div = _min_div,				\
- 		.flags = _divider_flags,			\
- 		.table = _table,				\
- 		.lock = _lock,					\
-@@ -132,6 +134,7 @@ struct clk {
- 				_divider_flags, _lock)		\
- 	_DEFINE_CLK_DIVIDER(_name, _parent_name, _parent_ptr,	\
- 				_flags, _reg, _shift, _width,	\
-+				CLK_DIVIDER_MIN_DIV_DEFAULT,	\
- 				_divider_flags, NULL, _lock)
+ 	if (!rate)
+ 		rate = 1;
  
- #define DEFINE_CLK_DIVIDER_TABLE(_name, _parent_name,		\
-@@ -140,6 +143,7 @@ struct clk {
- 				_table, _lock)			\
- 	_DEFINE_CLK_DIVIDER(_name, _parent_name, _parent_ptr,	\
- 				_flags, _reg, _shift, _width,	\
-+				CLK_DIVIDER_MIN_DIV_DEFAULT,	\
- 				_divider_flags, _table, _lock)	\
+ 	maxdiv = _get_maxdiv(divider);
++	mindiv = _get_mindiv(divider);
  
- #define DEFINE_CLK_MUX(_name, _parent_names, _parents, _flags,	\
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 4989b8a..1c09481 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -248,15 +248,22 @@ struct clk_divider {
- 	void __iomem	*reg;
- 	u8		shift;
- 	u8		width;
-+	u8		min_div;
- 	u8		flags;
- 	const struct clk_div_table	*table;
- 	spinlock_t	*lock;
- };
+ 	if (!(__clk_get_flags(hw->clk) & CLK_SET_RATE_PARENT)) {
+ 		parent_rate = *best_parent_rate;
+ 		bestdiv = DIV_ROUND_UP(parent_rate, rate);
+-		bestdiv = bestdiv == 0 ? 1 : bestdiv;
++		bestdiv = bestdiv == 0 ? mindiv : bestdiv;
+ 		bestdiv = bestdiv > maxdiv ? maxdiv : bestdiv;
+ 		return bestdiv;
+ 	}
+@@ -169,7 +175,7 @@ static int clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
+ 	 */
+ 	maxdiv = min(ULONG_MAX / rate, maxdiv);
  
-+#define	CLK_DIVIDER_MIN_DIV_DEFAULT	1
-+
- #define CLK_DIVIDER_ONE_BASED		BIT(0)
- #define CLK_DIVIDER_POWER_OF_TWO	BIT(1)
- 
- extern const struct clk_ops clk_divider_ops;
-+struct clk *clk_register_min_divider(struct device *dev, const char *name,
-+		const char *parent_name, unsigned long flags,
-+		void __iomem *reg, u8 shift, u8 width, u8 min_div,
-+		u8 clk_divider_flags, spinlock_t *lock);
- struct clk *clk_register_divider(struct device *dev, const char *name,
- 		const char *parent_name, unsigned long flags,
- 		void __iomem *reg, u8 shift, u8 width,
+-	for (i = 1; i <= maxdiv; i++) {
++	for (i = mindiv; i <= maxdiv; i++) {
+ 		if (!_is_valid_div(divider, i))
+ 			continue;
+ 		parent_rate = __clk_round_rate(__clk_get_parent(hw->clk),
 -- 
 1.7.12
