@@ -1,136 +1,58 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 32/32] usb: gadget: drop now unnecessary flag
-Date: Thu, 24 Jan 2013 21:09:26 +0200
-Message-ID: <20130124190926.GA31254@arwen.pp.htv.fi>
-References: <1359042370-4358-1-git-send-email-balbi@ti.com>
- <1359042370-4358-33-git-send-email-balbi@ti.com>
- <2268214.yJrDJgELNj@flatron>
-Reply-To: <balbi@ti.com>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [PATCH v5 00/14] DMA Engine support for AM33XX
+Date: Thu, 24 Jan 2013 15:42:03 -0500
+Message-ID: <20130124204203.GD5256@beef>
+References: <1358281974-8411-1-git-send-email-mporter@ti.com>
+ <50FEB6B2.5020303@ti.com>
+ <20130123022133.GA5727@opensource.wolfsonmicro.com>
+ <20130123213736.GC5256@beef>
+ <d07dbfd50690423b903803720152c0dc@DLEE74.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47700 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753445Ab3AXTK0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jan 2013 14:10:26 -0500
+Received: from mail-ia0-f182.google.com ([209.85.210.182]:40755 "EHLO
+	mail-ia0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030184Ab3AXUlz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jan 2013 15:41:55 -0500
 Content-Disposition: inline
-In-Reply-To: <2268214.yJrDJgELNj@flatron>
+In-Reply-To: <d07dbfd50690423b903803720152c0dc@DLEE74.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, leoli@freescale.com, eric.y.miao@gmail.com, linux@arm.linux.org.uk, haojian.zhuang@gmail.com, ben-linux@fluff.org, kgene.kim@samsung.com, kuninori.morimoto.gx@renesas.com, yoshihiro.shimoda.uh@renesas.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org
+To: "Nori, Sekhar" <nsekhar@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
---/04w6evG8XlLl3ft
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Jan 24, 2013 at 05:14:13AM +0000, Sekhar Nori wrote:
+> Matt,
+> 
+> On 1/24/2013 3:07 AM, Matt Porter wrote:
+> > On Wed, Jan 23, 2013 at 10:21:42AM +0800, Mark Brown wrote:
+> >> On Tue, Jan 22, 2013 at 09:26:34PM +0530, Sekhar Nori wrote:
+> >>> On 1/16/2013 2:02 AM, Matt Porter wrote:
+> >>
+> >>>> This series adds DMA Engine support for AM33xx, which uses
+> >>>> an EDMA DMAC. The EDMA DMAC has been previously supported by only
+> >>>> a private API implementation (much like the situation with OMAP
+> >>>> DMA) found on the DaVinci family of SoCs.
+> >>
+> >>> Will you take this series through the OMAP tree? Only 1/14 touches
+> >>> mach-davinci and I am mostly okay with it except some changes I just
+> >>> requested Matt to make in another thread.
+> >>
+> >> Is this series somewhere near actually getting merged then? It seemed
+> >> like there was lots of stuff going on.
+> > 
+> > The issues raised by Sekhar and Santosh were reasonably minor and will
+> > be addressed. My major concern is that the dependency on some api to
+> > fetch dmaengine driver SG limitations is not resolved. That's being
+> > discussed in https://lkml.org/lkml/2013/1/10/432
+> 
+> It might be worth posting the patches which don't have dependencies and
+> are ready for acceptance as a separate series. That way at least some of
+> these patches have a good chance of getting into v3.9 if not the entire
+> series.
 
-On Thu, Jan 24, 2013 at 07:52:52PM +0100, Tomasz Figa wrote:
-> Hi Felipe,
->=20
-> On Thursday 24 of January 2013 17:46:10 Felipe Balbi wrote:
-> > We don't need the ->register_my_device flag
-> > anymore because all UDC drivers have been
-> > properly converted.
-> >=20
-> > Let's remove every history of it.
-> >=20
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >  drivers/usb/chipidea/udc.c             | 1 -
-> >  drivers/usb/dwc3/gadget.c              | 1 -
-> >  drivers/usb/gadget/amd5536udc.c        | 1 -
-> >  drivers/usb/gadget/at91_udc.c          | 1 -
-> >  drivers/usb/gadget/atmel_usba_udc.c    | 1 -
-> >  drivers/usb/gadget/bcm63xx_udc.c       | 1 -
-> >  drivers/usb/gadget/dummy_hcd.c         | 1 -
-> >  drivers/usb/gadget/fsl_qe_udc.c        | 1 -
-> >  drivers/usb/gadget/fsl_udc_core.c      | 1 -
-> >  drivers/usb/gadget/fusb300_udc.c       | 1 -
-> >  drivers/usb/gadget/goku_udc.c          | 1 -
-> >  drivers/usb/gadget/imx_udc.c           | 1 -
-> >  drivers/usb/gadget/lpc32xx_udc.c       | 1 -
-> >  drivers/usb/gadget/m66592-udc.c        | 1 -
-> >  drivers/usb/gadget/mv_u3d_core.c       | 1 -
-> >  drivers/usb/gadget/mv_udc_core.c       | 1 -
-> >  drivers/usb/gadget/net2272.c           | 1 -
-> >  drivers/usb/gadget/net2280.c           | 1 -
-> >  drivers/usb/gadget/omap_udc.c          | 1 -
-> >  drivers/usb/gadget/pch_udc.c           | 1 -
-> >  drivers/usb/gadget/pxa25x_udc.c        | 1 -
-> >  drivers/usb/gadget/pxa27x_udc.c        | 1 -
-> >  drivers/usb/gadget/r8a66597-udc.c      | 1 -
-> >  drivers/usb/gadget/s3c-hsotg.c         | 1 -
-> >  drivers/usb/gadget/s3c-hsudc.c         | 1 -
-> >  drivers/usb/gadget/s3c2410_udc.c       | 1 -
-> >  drivers/usb/gadget/udc-core.c          | 3 ---
-> >  drivers/usb/musb/musb_gadget.c         | 1 -
-> >  drivers/usb/renesas_usbhs/mod_gadget.c | 1 -
-> >  include/linux/usb/gadget.h             | 4 ----
-> >  30 files changed, 35 deletions(-)
-> >=20
-> [snip]
-> > diff --git a/drivers/usb/gadget/udc-core.c
-> > b/drivers/usb/gadget/udc-core.c index 9195054..4ee0efc 100644
-> > --- a/drivers/usb/gadget/udc-core.c
-> > +++ b/drivers/usb/gadget/udc-core.c
-> > @@ -173,7 +173,6 @@ int usb_add_gadget_udc(struct device *parent, struct
-> > usb_gadget *gadget) if (!udc)
-> >  		goto err1;
-> >=20
-> > -	if (gadget->register_my_device) {
-> >  		dev_set_name(&gadget->dev, "gadget");
-> >=20
-> >  		ret =3D device_register(&gadget->dev);
-> > @@ -211,7 +210,6 @@ err3:
-> >  	put_device(&udc->dev);
-> >=20
-> >  err2:
-> > -	if (gadget->register_my_device)
-> >  		put_device(&gadget->dev);
-> >  err1:
-> >  	return ret;
-> > @@ -267,7 +265,6 @@ found:
-> >  	kobject_uevent(&udc->dev.kobj, KOBJ_REMOVE);
-> >  	device_unregister(&udc->dev);
-> >=20
-> > -	if (gadget->register_my_device)
-> >  		device_unregister(&gadget->dev);
->=20
-> Correct me if I am wrong, but doesn't this patch leave us with incorrect=
-=20
-> indentation?
+Yes a good idea and seems to be the best option. I've dropped the mmc
+support from the series for the next version. I'll repost the separately
+when we have an api to support it.
 
-right, I fixed it up on my branch, see [1]. That was me trusting my poor
-sed skills and not verifying the result ;-)
-
-[1] http://git.kernel.org/?p=3Dlinux/kernel/git/balbi/usb.git;a=3Dcommitdif=
-f;h=3Dd0bdf2970dd68677c65671be9bd56759593cfaf1
-
---=20
-balbi
-
---/04w6evG8XlLl3ft
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRAYbmAAoJEIaOsuA1yqRE3EsQAIRJ4cf9cxaxwgF6STF+90gs
-jy+oxA1eMxpk1qtL8rJ5sfXB8/B90dO6lQzHx2KtcpXx5hlXgOfn1BZCoMwWocFj
-4nI/HdgP4T4UXrtWXOpGhqdwSUWjID6vcvWaybCEUT3bhLZSNzTeZ3K1pzQAg54P
-+S45/YsZkiqvNUfDIrbf0YLZ3/zJp4nE5ZH+jMLUV0LUy26YyXAmIU/LUS4brstF
-RUqU2X7Z+9Oxd8eTgpuMZrNZrDo6Z0yYCKnamRpiYmzCndDOgFOY2lCxinkpZnE1
-SyVqFi4Ckw2UaSJozPKJZydYhNOJ60VRgy+C1B0c1YTCYDzSt/kBKyCcBajQqm5g
-q2QNaB40Rc95K2ZWRgf+BGYgStjsf6qxIBEm3nqWwO3/cerwxsf3gebm6g2XdMR3
-afgW2/vfJMhIr0rILSVKjp8NTtDPiMgIKfzM+TTE+ITVi0ZsWGieHGIwQGHRRK8M
-L87TsWv4kNKAMf4Soa5P4Cg+j09CNDeR99jI2ewEhZzXGoSVDyKK8pnnSZInXJeE
-mLjScdKpKYTIBulBepbMeyaweRlgYNklLBvG3U5WAs0HG7nChQ13WDd7Snt5gCXw
-NeP2LzaXHkDCRHy4nHZBGf9kLsz4ix+HA5JTzsgnwZxDgBwdHT0vY1DnYwmPPX8U
-VEDUlmb/NcSOJmlBOGbR
-=iJlK
------END PGP SIGNATURE-----
-
---/04w6evG8XlLl3ft--
+-Matt
