@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 31/32] usb: chipidea: let udc-core manage gadget->dev
-Date: Thu, 24 Jan 2013 17:46:09 +0200
-Message-ID: <1359042370-4358-32-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 25/32] usb: gadget: s3c-hsudc: let udc-core manage gadget->dev
+Date: Thu, 24 Jan 2013 17:46:03 +0200
+Message-ID: <1359042370-4358-26-git-send-email-balbi@ti.com>
 References: <1359042370-4358-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,59 +17,53 @@ boilerplate code.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/chipidea/udc.c | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ drivers/usb/gadget/s3c-hsudc.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-diff --git a/drivers/usb/chipidea/udc.c b/drivers/usb/chipidea/udc.c
-index f64fbea..e95e8bb 100644
---- a/drivers/usb/chipidea/udc.c
-+++ b/drivers/usb/chipidea/udc.c
-@@ -1717,11 +1717,11 @@ static int udc_start(struct ci13xxx *ci)
+diff --git a/drivers/usb/gadget/s3c-hsudc.c b/drivers/usb/gadget/s3c-hsudc.c
+index 4a3d620..dee6810 100644
+--- a/drivers/usb/gadget/s3c-hsudc.c
++++ b/drivers/usb/gadget/s3c-hsudc.c
+@@ -1304,18 +1304,16 @@ static int s3c_hsudc_probe(struct platform_device *pdev)
  
- 	INIT_LIST_HEAD(&ci->gadget.ep_list);
+ 	spin_lock_init(&hsudc->lock);
  
--	dev_set_name(&ci->gadget.dev, "gadget");
- 	ci->gadget.dev.dma_mask = dev->dma_mask;
- 	ci->gadget.dev.coherent_dma_mask = dev->coherent_dma_mask;
- 	ci->gadget.dev.parent   = dev;
- 	ci->gadget.dev.release  = udc_release;
-+	ci->gadget.register_my_device = true;
+-	dev_set_name(&hsudc->gadget.dev, "gadget");
+-
+ 	hsudc->gadget.max_speed = USB_SPEED_HIGH;
+ 	hsudc->gadget.ops = &s3c_hsudc_gadget_ops;
+ 	hsudc->gadget.name = dev_name(dev);
+ 	hsudc->gadget.dev.parent = dev;
+ 	hsudc->gadget.dev.dma_mask = dev->dma_mask;
+ 	hsudc->gadget.ep0 = &hsudc->ep[0].ep;
+-
+ 	hsudc->gadget.is_otg = 0;
+ 	hsudc->gadget.is_a_peripheral = 0;
+ 	hsudc->gadget.speed = USB_SPEED_UNKNOWN;
++	hsudc->gadget.register_my_device = true;
  
- 	/* alloc resources */
- 	ci->qh_pool = dma_pool_create("ci13xxx_qh", dev,
-@@ -1761,15 +1761,9 @@ static int udc_start(struct ci13xxx *ci)
- 		hw_enable_vbus_intr(ci);
- 	}
+ 	s3c_hsudc_setup_ep(hsudc);
  
--	retval = device_register(&ci->gadget.dev);
--	if (retval) {
--		put_device(&ci->gadget.dev);
--		goto put_transceiver;
+@@ -1346,12 +1344,6 @@ static int s3c_hsudc_probe(struct platform_device *pdev)
+ 	disable_irq(hsudc->irq);
+ 	local_irq_enable();
+ 
+-	ret = device_register(&hsudc->gadget.dev);
+-	if (ret) {
+-		put_device(&hsudc->gadget.dev);
+-		goto err_add_device;
 -	}
 -
- 	retval = dbg_create_files(ci->dev);
- 	if (retval)
--		goto unreg_device;
-+		goto put_transceiver;
+ 	ret = usb_add_gadget_udc(&pdev->dev, &hsudc->gadget);
+ 	if (ret)
+ 		goto err_add_udc;
+@@ -1360,7 +1352,6 @@ static int s3c_hsudc_probe(struct platform_device *pdev)
  
- 	if (!IS_ERR_OR_NULL(ci->transceiver)) {
- 		retval = otg_set_peripheral(ci->transceiver->otg,
-@@ -1797,8 +1791,6 @@ remove_trans:
- 	dev_err(dev, "error = %i\n", retval);
- remove_dbg:
- 	dbg_remove_files(ci->dev);
--unreg_device:
--	device_unregister(&ci->gadget.dev);
- put_transceiver:
- 	if (!IS_ERR_OR_NULL(ci->transceiver) && ci->global_phy)
- 		usb_put_phy(ci->transceiver);
-@@ -1837,7 +1829,6 @@ static void udc_stop(struct ci13xxx *ci)
- 			usb_put_phy(ci->transceiver);
- 	}
- 	dbg_remove_files(ci->dev);
--	device_unregister(&ci->gadget.dev);
- 	/* my kobject is dynamic, I swear! */
- 	memset(&ci->gadget, 0, sizeof(ci->gadget));
- }
+ 	return 0;
+ err_add_udc:
+-	device_unregister(&hsudc->gadget.dev);
+ err_add_device:
+ 	clk_disable(hsudc->uclk);
+ err_res:
 -- 
 1.8.1.rc1.5.g7e0651a
