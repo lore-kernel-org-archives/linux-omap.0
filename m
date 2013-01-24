@@ -1,69 +1,96 @@
-From: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 8/8] arm/dts: AM335x-evm: Add TSC/ADC MFD device support
-Date: Thu, 24 Jan 2013 09:15:12 +0530
-Message-ID: <1358999112-31192-9-git-send-email-rachna@ti.com>
+From: "Patil, Rachna" <rachna@ti.com>
+Subject: [PATCH v4 5/8] MFD: ti_am335x_tscadc: Add DT support
+Date: Thu, 24 Jan 2013 09:15:09 +0530
+Message-ID: <1358999112-31192-6-git-send-email-rachna@ti.com>
 References: <1358999112-31192-1-git-send-email-rachna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1358999112-31192-1-git-send-email-rachna-l0cyMroinI0@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dtor-JGs/UdohzUI@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, gururaja.hebbar-l0cyMroinI0@public.gmane.org, "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1358999112-31192-1-git-send-email-rachna@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, Rob Herring <rob.herring@calxeda.com>, Jonathan Cameron <jic23@cam.ac.uk>, Tony Lindgren <tony@atomide.com>, Benit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, gururaja.hebbar@ti.com, "Patil, Rachna" <rachna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
+From: "Patil, Rachna" <rachna@ti.com>
 
-Add support for core multifunctional device along
-with its clients touchscreen and ADC.
+Make changes to add DT support in the MFD core driver.
 
-Signed-off-by: Patil, Rachna <rachna-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Patil, Rachna <rachna@ti.com>
 ---
 Changes in v4:
 	Non-standard properties prefixed with vendor name.
 
- arch/arm/boot/dts/am335x-evm.dts |   13 +++++++++++++
- arch/arm/boot/dts/am33xx.dtsi    |    8 ++++++++
- 2 files changed, 21 insertions(+)
+ drivers/mfd/ti_am335x_tscadc.c |   28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index d649644..bfd7928 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -244,3 +244,16 @@
- &cpsw_emac1 {
- 	phy_id = <&davinci_mdio>, <1>;
- };
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index e9f3fb5..87b446b 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -22,6 +22,8 @@
+ #include <linux/regmap.h>
+ #include <linux/mfd/core.h>
+ #include <linux/pm_runtime.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
+ 
+ #include <linux/mfd/ti_am335x_tscadc.h>
+ #include <linux/input/ti_am335x_tsc.h>
+@@ -64,20 +66,31 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	struct resource		*res;
+ 	struct clk		*clk;
+ 	struct mfd_tscadc_board	*pdata = pdev->dev.platform_data;
++	struct device_node	*node = pdev->dev.of_node;
+ 	struct mfd_cell		*cell;
+ 	int			err, ctrl;
+ 	int			clk_value, clock_rate;
+-	int			tsc_wires, adc_channels = 0, total_channels;
++	int			tsc_wires = 0, adc_channels = 0, total_channels;
+ 
+-	if (!pdata) {
++	if (!pdata && !pdev->dev.of_node) {
+ 		dev_err(&pdev->dev, "Could not find platform data\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	if (pdata->adc_init)
+-		adc_channels = pdata->adc_init->adc_channels;
++	if (pdev->dev.platform_data) {
++		if (pdata->tsc_init)
++			tsc_wires = pdata->tsc_init->wires;
 +
-+&tscadc {
-+	tsc {
-+		ti,wires = <4>;
-+		ti,x-plate-resistance = <200>;
-+		ti,steps-to-configure = <5>;
-+		ti,wire-config = <0x00 0x11 0x22 0x33>;
-+	};
++		if (pdata->adc_init)
++			adc_channels = pdata->adc_init->adc_channels;
++	} else {
++		node = of_find_node_by_name(pdev->dev.of_node, "tsc");
++		of_property_read_u32(node, "ti,wires", &tsc_wires);
 +
-+	adc {
-+		ti,adc-channels = <4>;
-+	};
++		node = of_find_node_by_name(pdev->dev.of_node, "adc");
++		of_property_read_u32(node, "ti,adc-channels", &adc_channels);
++	}
+ 
+-	tsc_wires = pdata->tsc_init->wires;
+ 	total_channels = tsc_wires + adc_channels;
+ 
+ 	if (total_channels > 8) {
+@@ -256,11 +269,16 @@ static const struct dev_pm_ops tscadc_pm_ops = {
+ #define TSCADC_PM_OPS NULL
+ #endif
+ 
++static const struct of_device_id ti_tscadc_dt_ids[] = {
++	{ .compatible = "ti,ti-tscadc", },
 +};
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index c2f14e8..211ec42 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -385,5 +385,13 @@
- 				mac-address = [ 00 00 00 00 00 00 ];
- 			};
- 		};
 +
-+		tscadc: tscadc@44e0d000 {
-+			compatible = "ti,ti-tscadc";
-+			reg = <0x44e0d000 0x1000>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <16>;
-+			ti,hwmods = "adc_tsc";
-+		};
- 	};
- };
+ static struct platform_driver ti_tscadc_driver = {
+ 	.driver = {
+ 		.name   = "ti_tscadc",
+ 		.owner	= THIS_MODULE,
+ 		.pm	= TSCADC_PM_OPS,
++		.of_match_table = of_match_ptr(ti_tscadc_dt_ids),
+ 	},
+ 	.probe	= ti_tscadc_probe,
+ 	.remove	= ti_tscadc_remove,
 -- 
 1.7.9.5
+
