@@ -1,66 +1,46 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v4 12/12] video: da8xx-fb: CCF clock divider handling
-Date: Thu, 24 Jan 2013 11:36:02 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA92ADF@DBDE01.ent.ti.com>
-References: <cover.1358937685.git.afzal@ti.com>
- <fa8dab522507e087d5a94bac13dda71544911707.1358937685.git.afzal@ti.com>
- <20130123202204.9205.66575@quantum>
+From: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v1 0/6] USB: Add support for multiple PHYs of same type
+Date: Thu, 24 Jan 2013 11:51:45 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA92B0B@DBDE01.ent.ti.com>
+References: <1358848694-20145-1-git-send-email-kishon@ti.com>
+ <2D906ABA-71F2-4843-9DBE-F82527A1240A@dominion.thruhere.net>
+ <50FEB3FD.3050001@ti.com> <50FEBB61.9000707@ti.com>
+ <B9531499-0746-44DA-BDBB-999D4CA31E63@dominion.thruhere.net>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA922F5@DBDE01.ent.ti.com>
+ <50FFF31D.2070908@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130123202204.9205.66575@quantum>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <50FFF31D.2070908-l0cyMroinI0@public.gmane.org>
 Content-Language: en-US
-Sender: linux-doc-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Cc: "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi,
+ Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org" <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org List" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgTWlrZSwNCg0KT24gVGh1LCBKYW4gMjQsIDIwMTMgYXQgMDE6NTI6MDQsIE1pa2UgVHVycXVl
-dHRlIHdyb3RlOg0KPiBRdW90aW5nIEFmemFsIE1vaGFtbWVkICgyMDEzLTAxLTIzIDAzOjQ4OjU2
-KQ0KDQo+ID4gK3N0YXRpYyBpbmxpbmUgdm9pZCBkYTh4eF9mYl9jbGtjX2VuYWJsZSh2b2lkKQ0K
-PiA+ICt7DQo+ID4gICAgICAgICBpZiAobGNkX3JldmlzaW9uID09IExDRF9WRVJTSU9OXzIpDQo+
-ID4gICAgICAgICAgICAgICAgIGxjZGNfd3JpdGUoTENEX1YyX0RNQV9DTEtfRU4gfCBMQ0RfVjJf
-TElERF9DTEtfRU4gfA0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTENEX1Yy
-X0NPUkVfQ0xLX0VOLCBMQ0RfQ0xLX0VOQUJMRV9SRUcpOw0KDQo+ID4gK3N0YXRpYyBpbmxpbmUg
-aW50IGRhOHh4X2ZiX2NhbGNfY29uZmlnX2Nsa19kaXZpZGVyKHN0cnVjdCBkYTh4eF9mYl9wYXIg
-KnBhciwNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgc3RydWN0IGZiX3ZpZGVvbW9kZSAqbW9kZSkNCj4gPiArew0KDQo+ID4gKyAgICAgICBy
-ZXQgPSBjbGtfc2V0X3JhdGUocGFyLT5jaGlsZF9jbGssIFBJQ09TMktIWihtb2RlLT5waXhjbG9j
-aykgKiAxMDAwKTsNCj4gPiArICAgICAgIGlmIChJU19FUlJfVkFMVUUocmV0KSkgew0KPiA+ICsg
-ICAgICAgICAgICAgICBkZXZfZXJyKHBhci0+ZGV2LCAidW5hYmxlIHRvIHNldHVwIHBpeGVsIGNs
-b2NrIG9mICV1IHBzIiwNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICBtb2RlLT5waXhjbG9j
-ayk7DQo+ID4gKyAgICAgICAgICAgICAgIHJldHVybiByZXQ7DQo+ID4gKyAgICAgICB9DQo+ID4g
-KyAgICAgICBkYTh4eF9mYl9jbGtjX2VuYWJsZSgpOw0KDQo+IEl0IGxvb2tzIGxpa2UgeW91IGFy
-ZSB1c2luZyB0aGUgbGVnYWN5IG1ldGhvZCB0byBlbmFibGUvZGlzYWJsZSB0aGUNCj4gY2xvY2sg
-YW5kIHVzaW5nIHRoZSBDQ0YgYmFzaWMgZGl2aWRlciB0byBzZXQgdGhlIHJhdGUuICBUaGlzIGZl
-ZWxzIGEgYml0DQo+IGhhY2t5IHRvIG1lLiAgSWYgeW91IHdhbnQgdG8gbW9kZWwgeW91ciBjbG9j
-ayBpbiBDQ0YgdGhlbiB5b3Ugc2hvdWxkDQo+IHByb2JhYmx5IG1vZGVsIHRoZSB3aG9sZSBjbG9j
-aywgbm90IGp1c3QgdGhlIHJhdGUtY2hhbmdlIGFzcGVjdHMgb2YgaXQuDQoNCkluaXRpYWxseSBJ
-IHRob3VnaHQgYWJvdXQgaXQsIGJ1dCBzZWVpbmcgcmVxdWlyZW1lbnQgb2YgMyBnYXRlIGNsb2Nr
-cw0KKGR1ZSB0byAzIGJpdHMgbWVhbnQgZm9yIGRpZmZlcmVudCBwdXJwb3NlcyAtIERNQSwgTElE
-RCBhbmQgQ09SRQ0KZnVuY3Rpb25hbGl0aWVzKSwgZmVsdCB0aGF0IGhhdmluZyA0IGNsb2NrcyAo
-MyBnYXRlICsgMSBkaXZpZGVyKSBpbg0KZHJpdmVyIHdvdWxkIGJlIGFuIG92ZXJkZXNpZ24gW2xl
-YXZpbmcgYSBicmFuY2ggaW5zdGVhZCBvZiBhIGxlYWYgb2YNCnRoZSB0cmVlIGluIGRyaXZlciA7
-KV0uDQoNCj4gSGF2ZSB5b3UgbG9va2VkIGF0IHRoZSBjb21wb3NpdGUgY2xvY2sgcGF0Y2hlcyBm
-cm9tIFByYXNoYW50PyAgVGhvc2UNCj4gbWlnaHQgZ2l2ZSB5b3UgdGhlIGRpdmlkZXIrZ2F0ZSBw
-cm9wZXJ0aWVzIHRoYXQgeW91IGFyZSBsb29raW5nIGZvcjoNCj4gaHR0cDovL2FydGljbGUuZ21h
-bmUub3JnL2dtYW5lLmxpbnV4Lmtlcm5lbC8xNDE2Njk3DQoNClRoYW5rcyBmb3IgdGhlIHBvaW50
-ZXIsDQoNCk5vdyB3aXRoIHRoZSBjb21wb3NpdGUgY2xvY2sgaW4gbWluZCwgaXQgd2FzIHRyaWVk
-IHRvIHJlbGF0ZSB0byB3aGF0DQp3YXMgcmVxdWlyZWQgZm9yIHRoZSBwcmVzZW50IHNjZW5hcmlv
-Lg0KDQpTbyB0aGVyZSBhcmUgMyAtIExJREQgaXMgYWN0dWFsbHkgbm90IGZvciBwcmVzZW50IHVz
-ZSBjYXNlLCBDT1JFIGNvdWxkDQpiZSBjbHViYmVkIHdpdGggdGhlIGRpdmlkZXIgdG8gaGF2ZSBh
-IGNvbXBvc2l0ZSBjbG9jay4gQW5kIENPUkUgaXMNCmluIGZ1bmN0aW9uYWwgY2xvY2sgcGF0aCBh
-bmQgbG9naWNhbGx5IGl0J3MgcGVyZmVjdGx5IGFscmlnaHQgdG8gaGF2ZQ0KdGhlIGNvbXBvc2l0
-ZSBjbG9jay4NCg0KQW5kIG5vdyB3ZSBhcmUgbGVmdCB3aXRoIERNQSwgdGhpcyBpcyBhY3R1YWxs
-eSBpbiB0aGUgaW50ZXJmYWNlIGNsb2NrDQpwYXRoIHdoaWNoIGRyaXZlciBpbiB1bmF3YXJlLiBB
-biBvcHRpb24gd291bGQgYmUgdG8gaGF2ZSBETUEgY2xvY2sNCmFzIGNoaWxkIG9mIENPUkUgcGx1
-cyBkaXZpZGVyIGNvbXBvc2l0ZSBjbG9jaywgZXZlbiB0aG91Z2ggbG9naWNhbGx5DQpETUEgY2Fu
-J3QgYmUgY29uc2lkZXJlZCBpbiB0aGUgc2FtZSBwYXRoLg0KDQpBbHNvIHRyaWVkIG5vdCBlbmFi
-bGluZyBETUEgY2xvY2ssIGJ1dCBkcml2ZXIgaXMgYWJsZSB0byBwcm92aWRlDQpkaXNwbGF5IHdp
-dGhvdXQgYW55IGlzc3Vlcywgc28gd2FzIHRoaW5raW5nIHdoZXRoZXIgdG8gYXZvaWQNCmluc3Rh
-bnRpYXRpbmcgRE1BIGNsb2NrIGF0IGFsbCBhbmQgaGVuY2UgdG8gaGF2ZSBhIHNpbXBsZSBzaW5n
-bGUNCmNvbXBvc2l0ZSBjbG9jay4gVHJ5aW5nIHRvIGdldCBpbmZvcm1hdGlvbiBpbnRlcm5hbGx5
-IG9uIHdoZXRoZXINCm5vdCBzZXR0aW5nIERNQSBjbG9jayBiaXRzIHdvdWxkIGFjdHVhbGx5IG1h
-a2UgYSBkaWZmZXJlbmNlLg0KDQpJZiB5b3UgaGF2ZSBhbnkgb3BpbmlvbiBvbiBob3cgdG8gZGVh
-bCBoZXJlLCBsZXQgbWUga25vdy4NCg0KUmVnYXJkcw0KQWZ6YWwNCg0KDQo=
+Hi Kishon,
+
+On Wed, Jan 23, 2013 at 19:56:37, ABRAHAM, KISHON VIJAY wrote:
+> On Wednesday 23 January 2013 07:28 PM, Mohammed, Afzal wrote:
+
+> > USB first instance of am335x works in mainline as of now.
+
+> Can you check if this series indeed breaks am335x?
+> 
+> Thanks for your help.
+
+Do you have a tree having these changes, it would be easier for me.
+
+Regards
+Afzal
