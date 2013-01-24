@@ -1,86 +1,136 @@
-From: Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC/PATCH 24/32] usb: gadget: s3c-hsotg: let udc-core manage gadget->dev
-Date: Thu, 24 Jan 2013 20:00:05 +0100
-Message-ID: <5963888.Uco7z1jaqo@flatron>
-References: <1359042370-4358-1-git-send-email-balbi@ti.com> <1359042370-4358-25-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/PATCH 32/32] usb: gadget: drop now unnecessary flag
+Date: Thu, 24 Jan 2013 21:09:26 +0200
+Message-ID: <20130124190926.GA31254@arwen.pp.htv.fi>
+References: <1359042370-4358-1-git-send-email-balbi@ti.com>
+ <1359042370-4358-33-git-send-email-balbi@ti.com>
+ <2268214.yJrDJgELNj@flatron>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1359042370-4358-25-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dahlmann.thomas-KvP5wT2u2U0@public.gmane.org, nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org, leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org, eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-geode-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47700 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753445Ab3AXTK0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jan 2013 14:10:26 -0500
+Content-Disposition: inline
+In-Reply-To: <2268214.yJrDJgELNj@flatron>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomasz Figa <tomasz.figa@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, leoli@freescale.com, eric.y.miao@gmail.com, linux@arm.linux.org.uk, haojian.zhuang@gmail.com, ben-linux@fluff.org, kgene.kim@samsung.com, kuninori.morimoto.gx@renesas.com, yoshihiro.shimoda.uh@renesas.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org
 
-Hi Felipe,
+--/04w6evG8XlLl3ft
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday 24 of January 2013 17:46:02 Felipe Balbi wrote:
-> By simply setting a flag, we can drop some
-> boilerplate code.
-> 
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/usb/gadget/s3c-hsotg.c | 14 +-------------
->  1 file changed, 1 insertion(+), 13 deletions(-)
-> 
-> diff --git a/drivers/usb/gadget/s3c-hsotg.c
-> b/drivers/usb/gadget/s3c-hsotg.c index 833d85b..bd8292d 100644
-> --- a/drivers/usb/gadget/s3c-hsotg.c
-> +++ b/drivers/usb/gadget/s3c-hsotg.c
-> @@ -3552,17 +3552,13 @@ static int s3c_hsotg_probe(struct
-> platform_device *pdev)
-> 
->  	dev_info(dev, "regs %p, irq %d\n", hsotg->regs, hsotg->irq);
-> 
-> -	device_initialize(&hsotg->gadget.dev);
-> -
-> -	dev_set_name(&hsotg->gadget.dev, "gadget");
-> -
->  	hsotg->gadget.max_speed = USB_SPEED_HIGH;
->  	hsotg->gadget.ops = &s3c_hsotg_gadget_ops;
->  	hsotg->gadget.name = dev_name(dev);
-> -
->  	hsotg->gadget.dev.parent = dev;
->  	hsotg->gadget.dev.dma_mask = dev->dma_mask;
->  	hsotg->gadget.dev.release = s3c_hsotg_release;
-> +	hsotg->gadget.register_my_device = true;
-> 
->  	/* reset the system */
-> 
-> @@ -3643,12 +3639,6 @@ static int s3c_hsotg_probe(struct platform_device
-> *pdev)
-> 
->  	s3c_hsotg_phy_disable(hsotg);
-> 
-> -	ret = device_add(&hsotg->gadget.dev);
-> -	if (ret) {
-> -		put_device(&hsotg->gadget.dev);
-> -		goto err_ep_mem;
-> -	}
-> -
->  	ret = usb_add_gadget_udc(&pdev->dev, &hsotg->gadget);
->  	if (ret)
->  		goto err_ep_mem;
-> @@ -3687,10 +3677,8 @@ static int s3c_hsotg_remove(struct
-> platform_device *pdev) }
-> 
->  	s3c_hsotg_phy_disable(hsotg);
-> -
->  	clk_disable_unprepare(hsotg->clk);
-> 
-> -	device_unregister(&hsotg->gadget.dev);
->  	return 0;
->  }
+On Thu, Jan 24, 2013 at 07:52:52PM +0100, Tomasz Figa wrote:
+> Hi Felipe,
+>=20
+> On Thursday 24 of January 2013 17:46:10 Felipe Balbi wrote:
+> > We don't need the ->register_my_device flag
+> > anymore because all UDC drivers have been
+> > properly converted.
+> >=20
+> > Let's remove every history of it.
+> >=20
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > ---
+> >  drivers/usb/chipidea/udc.c             | 1 -
+> >  drivers/usb/dwc3/gadget.c              | 1 -
+> >  drivers/usb/gadget/amd5536udc.c        | 1 -
+> >  drivers/usb/gadget/at91_udc.c          | 1 -
+> >  drivers/usb/gadget/atmel_usba_udc.c    | 1 -
+> >  drivers/usb/gadget/bcm63xx_udc.c       | 1 -
+> >  drivers/usb/gadget/dummy_hcd.c         | 1 -
+> >  drivers/usb/gadget/fsl_qe_udc.c        | 1 -
+> >  drivers/usb/gadget/fsl_udc_core.c      | 1 -
+> >  drivers/usb/gadget/fusb300_udc.c       | 1 -
+> >  drivers/usb/gadget/goku_udc.c          | 1 -
+> >  drivers/usb/gadget/imx_udc.c           | 1 -
+> >  drivers/usb/gadget/lpc32xx_udc.c       | 1 -
+> >  drivers/usb/gadget/m66592-udc.c        | 1 -
+> >  drivers/usb/gadget/mv_u3d_core.c       | 1 -
+> >  drivers/usb/gadget/mv_udc_core.c       | 1 -
+> >  drivers/usb/gadget/net2272.c           | 1 -
+> >  drivers/usb/gadget/net2280.c           | 1 -
+> >  drivers/usb/gadget/omap_udc.c          | 1 -
+> >  drivers/usb/gadget/pch_udc.c           | 1 -
+> >  drivers/usb/gadget/pxa25x_udc.c        | 1 -
+> >  drivers/usb/gadget/pxa27x_udc.c        | 1 -
+> >  drivers/usb/gadget/r8a66597-udc.c      | 1 -
+> >  drivers/usb/gadget/s3c-hsotg.c         | 1 -
+> >  drivers/usb/gadget/s3c-hsudc.c         | 1 -
+> >  drivers/usb/gadget/s3c2410_udc.c       | 1 -
+> >  drivers/usb/gadget/udc-core.c          | 3 ---
+> >  drivers/usb/musb/musb_gadget.c         | 1 -
+> >  drivers/usb/renesas_usbhs/mod_gadget.c | 1 -
+> >  include/linux/usb/gadget.h             | 4 ----
+> >  30 files changed, 35 deletions(-)
+> >=20
+> [snip]
+> > diff --git a/drivers/usb/gadget/udc-core.c
+> > b/drivers/usb/gadget/udc-core.c index 9195054..4ee0efc 100644
+> > --- a/drivers/usb/gadget/udc-core.c
+> > +++ b/drivers/usb/gadget/udc-core.c
+> > @@ -173,7 +173,6 @@ int usb_add_gadget_udc(struct device *parent, struct
+> > usb_gadget *gadget) if (!udc)
+> >  		goto err1;
+> >=20
+> > -	if (gadget->register_my_device) {
+> >  		dev_set_name(&gadget->dev, "gadget");
+> >=20
+> >  		ret =3D device_register(&gadget->dev);
+> > @@ -211,7 +210,6 @@ err3:
+> >  	put_device(&udc->dev);
+> >=20
+> >  err2:
+> > -	if (gadget->register_my_device)
+> >  		put_device(&gadget->dev);
+> >  err1:
+> >  	return ret;
+> > @@ -267,7 +265,6 @@ found:
+> >  	kobject_uevent(&udc->dev.kobj, KOBJ_REMOVE);
+> >  	device_unregister(&udc->dev);
+> >=20
+> > -	if (gadget->register_my_device)
+> >  		device_unregister(&gadget->dev);
+>=20
+> Correct me if I am wrong, but doesn't this patch leave us with incorrect=
+=20
+> indentation?
 
-Looks good.
+right, I fixed it up on my branch, see [1]. That was me trusting my poor
+sed skills and not verifying the result ;-)
 
-Reviewed-by: Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+[1] http://git.kernel.org/?p=3Dlinux/kernel/git/balbi/usb.git;a=3Dcommitdif=
+f;h=3Dd0bdf2970dd68677c65671be9bd56759593cfaf1
 
-Best regards,
-Tomasz Figa
+--=20
+balbi
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--/04w6evG8XlLl3ft
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRAYbmAAoJEIaOsuA1yqRE3EsQAIRJ4cf9cxaxwgF6STF+90gs
+jy+oxA1eMxpk1qtL8rJ5sfXB8/B90dO6lQzHx2KtcpXx5hlXgOfn1BZCoMwWocFj
+4nI/HdgP4T4UXrtWXOpGhqdwSUWjID6vcvWaybCEUT3bhLZSNzTeZ3K1pzQAg54P
++S45/YsZkiqvNUfDIrbf0YLZ3/zJp4nE5ZH+jMLUV0LUy26YyXAmIU/LUS4brstF
+RUqU2X7Z+9Oxd8eTgpuMZrNZrDo6Z0yYCKnamRpiYmzCndDOgFOY2lCxinkpZnE1
+SyVqFi4Ckw2UaSJozPKJZydYhNOJ60VRgy+C1B0c1YTCYDzSt/kBKyCcBajQqm5g
+q2QNaB40Rc95K2ZWRgf+BGYgStjsf6qxIBEm3nqWwO3/cerwxsf3gebm6g2XdMR3
+afgW2/vfJMhIr0rILSVKjp8NTtDPiMgIKfzM+TTE+ITVi0ZsWGieHGIwQGHRRK8M
+L87TsWv4kNKAMf4Soa5P4Cg+j09CNDeR99jI2ewEhZzXGoSVDyKK8pnnSZInXJeE
+mLjScdKpKYTIBulBepbMeyaweRlgYNklLBvG3U5WAs0HG7nChQ13WDd7Snt5gCXw
+NeP2LzaXHkDCRHy4nHZBGf9kLsz4ix+HA5JTzsgnwZxDgBwdHT0vY1DnYwmPPX8U
+VEDUlmb/NcSOJmlBOGbR
+=iJlK
+-----END PGP SIGNATURE-----
+
+--/04w6evG8XlLl3ft--
