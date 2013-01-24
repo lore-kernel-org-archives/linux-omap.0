@@ -1,77 +1,112 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH 1/2] ARM: dts: omap3-overo: Add support for pwm-leds
-Date: Thu, 24 Jan 2013 17:50:04 +0100
-Message-ID: <5101663C.7020301@epfl.ch>
-References: <1358963812-19947-1-git-send-email-florian.vaussard@epfl.ch> <1358963812-19947-2-git-send-email-florian.vaussard@epfl.ch> <5101510C.9050407@ti.com> <51015663.8080109@epfl.ch> <5101570A.1030303@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: RE: [PATCH v4 12/12] video: da8xx-fb: CCF clock divider handling
+Date: Thu, 24 Jan 2013 09:00:44 -0800
+Message-ID: <20130124170044.10623.45314@quantum>
+References: <cover.1358937685.git.afzal@ti.com>
+ <fa8dab522507e087d5a94bac13dda71544911707.1358937685.git.afzal@ti.com>
+ <20130123202204.9205.66575@quantum>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA92ADF@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp5.epfl.ch ([128.178.224.8]:47240 "HELO smtp5.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751254Ab3AXQuK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Jan 2013 11:50:10 -0500
-In-Reply-To: <5101570A.1030303@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA92ADF@DBDE01.ent.ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
->> I did it at first, but the led API executes in atomic context, where the
->> pwm-twl-led driver uses i2c communication. Setting a trigger will result in a
->> kernel panic.
->
-> Now that you mentioned it, this might be true.
->
+Quoting Mohammed, Afzal (2013-01-24 03:36:02)
+> Hi Mike,
+> 
+> On Thu, Jan 24, 2013 at 01:52:04, Mike Turquette wrote:
+> > Quoting Afzal Mohammed (2013-01-23 03:48:56)
+> 
+> > > +static inline void da8xx_fb_clkc_enable(void)
+> > > +{
+> > >         if (lcd_revision == LCD_VERSION_2)
+> > >                 lcdc_write(LCD_V2_DMA_CLK_EN | LCD_V2_LIDD_CLK_EN |
+> > >                                 LCD_V2_CORE_CLK_EN, LCD_CLK_ENABLE_REG);
+> 
+> > > +static inline int da8xx_fb_calc_config_clk_divider(struct da8xx_fb_par *par,
+> > > +                                                   struct fb_videomode *mode)
+> > > +{
+> 
+> > > +       ret = clk_set_rate(par->child_clk, PICOS2KHZ(mode->pixclock) * 1000);
+> > > +       if (IS_ERR_VALUE(ret)) {
+> > > +               dev_err(par->dev, "unable to setup pixel clock of %u ps",
+> > > +                       mode->pixclock);
+> > > +               return ret;
+> > > +       }
+> > > +       da8xx_fb_clkc_enable();
+> 
+> > It looks like you are using the legacy method to enable/disable the
+> > clock and using the CCF basic divider to set the rate.  This feels a bit
+> > hacky to me.  If you want to model your clock in CCF then you should
+> > probably model the whole clock, not just the rate-change aspects of it.
+> 
+> Initially I thought about it, but seeing requirement of 3 gate clocks
+> (due to 3 bits meant for different purposes - DMA, LIDD and CORE
+> functionalities), felt that having 4 clocks (3 gate + 1 divider) in
+> driver would be an overdesign [leaving a branch instead of a leaf of
+> the tree in driver ;)].
+> 
+> > Have you looked at the composite clock patches from Prashant?  Those
+> > might give you the divider+gate properties that you are looking for:
+> > http://article.gmane.org/gmane.linux.kernel/1416697
+> 
+> Thanks for the pointer,
+> 
+> Now with the composite clock in mind, it was tried to relate to what
+> was required for the present scenario.
+> 
+> So there are 3 - LIDD is actually not for present use case, CORE could
+> be clubbed with the divider to have a composite clock. And CORE is
+> in functional clock path and logically it's perfectly alright to have
+> the composite clock.
+> 
 
-[<c0013204>] (unwind_backtrace+0x0/0xec) from [<c00348ac>] 
-(warn_slowpath_common+0x4c/0x64)
-[<c00348ac>] (warn_slowpath_common+0x4c/0x64) from [<c00348e0>] 
-(warn_slowpath_null+0x1c/0x24)
-[<c00348e0>] (warn_slowpath_null+0x1c/0x24) from [<c054d384>] 
-(__mutex_lock_slowpath+0x6c/0x26c)
-[<c054d384>] (__mutex_lock_slowpath+0x6c/0x26c) from [<c054d590>] 
-(mutex_lock+0xc/0x20)
-[<c054d590>] (mutex_lock+0xc/0x20) from [<c02d740c>] 
-(regmap_bulk_write+0x48/0x138)
-[<c02d740c>] (regmap_bulk_write+0x48/0x138) from [<c02de2c0>] 
-(twl_i2c_write+0xa4/0xf0)
-[<c02de2c0>] (twl_i2c_write+0xa4/0xf0) from [<c0299e34>] 
-(twl4030_pwmled_config+0x70/0x9c)
-[<c0299e34>] (twl4030_pwmled_config+0x70/0x9c) from [<c029875c>] 
-(pwm_config+0x5c/0x6c)
-[<c029875c>] (pwm_config+0x5c/0x6c) from [<c039dc04>] 
-(led_pwm_set+0x28/0x64)
-[<c039dc04>] (led_pwm_set+0x28/0x64) from [<c039e27c>] 
-(led_heartbeat_function+0x10c/0x134)
-[<c039e27c>] (led_heartbeat_function+0x10c/0x134) from [<c004359c>] 
-(call_timer_fn+0x90/0x178)
-[<c004359c>] (call_timer_fn+0x90/0x178) from [<c0043994>] 
-(run_timer_softirq+0x250/0x2c8)
-[<c0043994>] (run_timer_softirq+0x250/0x2c8) from [<c003cf78>] 
-(__do_softirq+0xf8/0x248)
-[<c003cf78>] (__do_softirq+0xf8/0x248) from [<c003d154>] 
-(irq_exit+0x44/0x98)
-[<c003d154>] (irq_exit+0x44/0x98) from [<c000e338>] (handle_IRQ+0x68/0x8c)
-[<c000e338>] (handle_IRQ+0x68/0x8c) from [<c000870c>] 
-(omap3_intc_handle_irq+0x58/0x70)
-[<c000870c>] (omap3_intc_handle_irq+0x58/0x70) from [<c054f8c0>] 
-(__irq_svc+0x40/0x70)
-Exception stack(0xc077df60 to 0xc077dfa8)
+Some of the clock names are a bit generic, so a question that I'm going
+to repeat throughout my response: "is this clock only inside of your
+video IP ?"
 
-:-)
+Regarding the CORE clock, is this only inside of your IP or are you
+referring to the SoC CORE clock which is driven by a DPLL and clocks
+DDR and many other peripherals (often MMC, UART, etc)?
 
->> I am working on a patch for pwm-twl-led to defer using a workqueue right now.
->
-> Great!
-> The only thing I worry about is the latency we are going to get with the
-> workqueue.
->
+Note that this is from my past experience with OMAP, and I'm making an
+assumption that the clock scheme between OMAP and Da Vinci/AM335x parts
+isn't very different.
 
-If the latency becomes critical, we can create our own workqueue.
+Is there a public TRM I can look at?  It would help me understand this
+without having to ask you so many annoying questions ;)
 
-Do we merge anyway this patchset, or do we wait until the trigger has 
-been fixed?
+> And now we are left with DMA, this is actually in the interface clock
+> path which driver in unaware. An option would be to have DMA clock
+> as child of CORE plus divider composite clock, even though logically
+> DMA can't be considered in the same path.
+> 
 
-Florian
+Why is the driver unaware of the interface clk?  For instance OMAP3 had
+separate fclk and iclk for IPs and drivers would call clk_enable on
+both.  Or am I misunderstanding something?
+
+In general I don't think the clock subtree should be modeled in a way
+that is convenient for software, but instead model the actual hardware.
+Trust me, if you don't model the actual hardware then you will be very
+confused when you come back and revisit this code in 6 months and can't
+remember why things are so weird looking.
+
+Thanks,
+Mike
+
+> Also tried not enabling DMA clock, but driver is able to provide
+> display without any issues, so was thinking whether to avoid
+> instantiating DMA clock at all and hence to have a simple single
+> composite clock. Trying to get information internally on whether
+> not setting DMA clock bits would actually make a difference.
+> 
+> If you have any opinion on how to deal here, let me know.
+> 
+> Regards
+> Afzal
