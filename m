@@ -1,74 +1,77 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] ARM: dts: omap3-overo: Add support for pwm-leds
-Date: Thu, 24 Jan 2013 16:19:40 +0100
-Message-ID: <5101510C.9050407@ti.com>
-References: <1358963812-19947-1-git-send-email-florian.vaussard@epfl.ch>
- <1358963812-19947-2-git-send-email-florian.vaussard@epfl.ch>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 2/2] ARM: dts: omap3-overo: Add audio support
+Date: Thu, 24 Jan 2013 16:21:16 +0100
+Message-ID: <5101516C.30602@ti.com>
+References: <1358963812-19947-1-git-send-email-florian.vaussard@epfl.ch> <1358963812-19947-3-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1358963812-19947-2-git-send-email-florian.vaussard-p8DiymsW2f8@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:43233 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751805Ab3AXPV3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Jan 2013 10:21:29 -0500
+In-Reply-To: <1358963812-19947-3-git-send-email-florian.vaussard@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 Hi,
 
 On 01/23/2013 06:56 PM, Florian Vaussard wrote:
-> Convert the on-board LED connected to the TWL4030 (LEDB) to use
-> pwm-leds.
-> =
+> Add the needed sections to enable audio support on Overo.
 
-> Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Looks fine for me.
+
+Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+>=20
+> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 > ---
->  arch/arm/boot/dts/omap3-overo.dtsi |    9 +++++----
->  1 files changed, 5 insertions(+), 4 deletions(-)
-> =
-
-> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3=
--overo.dtsi
-> index 89808ce..800be29 100644
+>  arch/arm/boot/dts/omap3-overo.dtsi |   14 ++++++++++++++
+>  1 files changed, 14 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/o=
+map3-overo.dtsi
+> index 800be29..81341fa 100644
 > --- a/arch/arm/boot/dts/omap3-overo.dtsi
 > +++ b/arch/arm/boot/dts/omap3-overo.dtsi
-> @@ -14,12 +14,13 @@
->  /include/ "omap3.dtsi"
->  =
-
->  / {
-> -	leds {
-> -		compatible =3D "gpio-leds";
-> +	pwmleds {
-> +		compatible =3D "pwm-leds";
-> +
->  		overo {
->  			label =3D "overo:blue:COM";
-> -			gpios =3D <&twl_gpio 19 0>;
-> -			linux,default-trigger =3D "mmc0";
-
-You can keep the default trigger for the pwm-leds as well.
-The best way to test this is on top of linux-next which already have the
-leds-pwm DT bindings.
-
-> +			pwms =3D <&twl_pwmled 1 7812500>;
-> +			max-brightness =3D <127>;
+> @@ -23,6 +23,14 @@
+>  			max-brightness =3D <127>;
 >  		};
 >  	};
+> +
+> +	sound {
+> +		compatible =3D "ti,omap-twl4030";
+> +		ti,model =3D "overo";
+> +
+> +		ti,mcbsp =3D <&mcbsp2>;
+> +		ti,codec =3D <&twl_audio>;
+> +	};
 >  };
-> =
+> =20
+>  &i2c1 {
+> @@ -32,6 +40,12 @@
+>  		reg =3D <0x48>;
+>  		interrupts =3D <7>; /* SYS_NIRQ cascaded to intc */
+>  		interrupt-parent =3D <&intc>;
+> +
+> +		twl_audio: audio {
+> +			compatible =3D "ti,twl4030-audio";
+> +			codec {
+> +			};
+> +		};
+>  	};
+>  };
+> =20
+>=20
 
 
-
--- =
-
+--=20
 P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
