@@ -1,61 +1,70 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [RFC/PATCH 15/32] usb: gadget: lpc32xx_udc: let udc-core manage gadget->dev
-Date: Thu, 24 Jan 2013 17:45:53 +0200
-Message-ID: <1359042370-4358-16-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFC/PATCH 12/32] usb: gadget: fusb300_udc: let udc-core manage gadget->dev
+Date: Thu, 24 Jan 2013 17:45:50 +0200
+Message-ID: <1359042370-4358-13-git-send-email-balbi@ti.com>
 References: <1359042370-4358-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1359042370-4358-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dahlmann.thomas-KvP5wT2u2U0@public.gmane.org, nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org, leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org, eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-geode-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44832 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754792Ab3AXPr0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Jan 2013 10:47:26 -0500
+In-Reply-To: <1359042370-4358-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linux USB Mailing List <linux-usb@vger.kernel.org>
+Cc: alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, leoli@freescale.com, eric.y.miao@gmail.com, linux@arm.linux.org.uk, haojian.zhuang@gmail.com, ben-linux@fluff.org, kgene.kim@samsung.com, kuninori.morimoto.gx@renesas.com, yoshihiro.shimoda.uh@renesas.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
 By simply setting a flag, we can drop some
 boilerplate code.
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/gadget/lpc32xx_udc.c | 11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ drivers/usb/gadget/fusb300_udc.c | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/drivers/usb/gadget/lpc32xx_udc.c b/drivers/usb/gadget/lpc32xx_udc.c
-index dd1c9b1..077e021 100644
---- a/drivers/usb/gadget/lpc32xx_udc.c
-+++ b/drivers/usb/gadget/lpc32xx_udc.c
-@@ -3090,6 +3090,7 @@ static int __init lpc32xx_udc_probe(struct platform_device *pdev)
+diff --git a/drivers/usb/gadget/fusb300_udc.c b/drivers/usb/gadget/fusb300_udc.c
+index 8c2372f..798a25b 100644
+--- a/drivers/usb/gadget/fusb300_udc.c
++++ b/drivers/usb/gadget/fusb300_udc.c
+@@ -1422,15 +1422,12 @@ static int __init fusb300_probe(struct platform_device *pdev)
  
- 	/* init software state */
- 	udc->gadget.dev.parent = dev;
-+	udc->gadget.register_my_device = true;
- 	udc->pdev = pdev;
- 	udc->dev = &pdev->dev;
- 	udc->enabled = 0;
-@@ -3248,12 +3249,6 @@ static int __init lpc32xx_udc_probe(struct platform_device *pdev)
- 	udc_disable(udc);
- 	udc_reinit(udc);
+ 	fusb300->gadget.ops = &fusb300_gadget_ops;
  
--	retval = device_register(&udc->gadget.dev);
--	if (retval < 0) {
--		dev_err(udc->dev, "Device registration failure\n");
--		goto dev_register_fail;
+-	device_initialize(&fusb300->gadget.dev);
+-
+-	dev_set_name(&fusb300->gadget.dev, "gadget");
+-
+ 	fusb300->gadget.max_speed = USB_SPEED_HIGH;
+ 	fusb300->gadget.dev.parent = &pdev->dev;
+ 	fusb300->gadget.dev.dma_mask = pdev->dev.dma_mask;
+ 	fusb300->gadget.dev.release = pdev->dev.release;
+ 	fusb300->gadget.name = udc_name;
++	fusb300->gadget.register_my_device = true;
+ 	fusb300->reg = reg;
+ 
+ 	ret = request_irq(ires->start, fusb300_irq, IRQF_SHARED,
+@@ -1478,19 +1475,10 @@ static int __init fusb300_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto err_add_udc;
+ 
+-	ret = device_add(&fusb300->gadget.dev);
+-	if (ret) {
+-		pr_err("device_add error (%d)\n", ret);
+-		goto err_add_device;
 -	}
 -
- 	/* Request IRQs - low and high priority USB device IRQs are routed to
- 	 * the same handler, while the DMA interrupt is routed elsewhere */
- 	retval = request_irq(udc->udp_irq[IRQ_USB_LP], lpc32xx_usb_lp_irq,
-@@ -3320,8 +3315,6 @@ irq_dev_fail:
- irq_hp_fail:
- 	free_irq(udc->udp_irq[IRQ_USB_LP], udc);
- irq_lp_fail:
--	device_unregister(&udc->gadget.dev);
--dev_register_fail:
- 	dma_pool_destroy(udc->dd_cache);
- dma_alloc_fail:
- 	dma_free_coherent(&pdev->dev, UDCA_BUFF_SIZE,
-@@ -3376,8 +3369,6 @@ static int lpc32xx_udc_remove(struct platform_device *pdev)
- 	free_irq(udc->udp_irq[IRQ_USB_HP], udc);
- 	free_irq(udc->udp_irq[IRQ_USB_LP], udc);
+ 	dev_info(&pdev->dev, "version %s\n", DRIVER_VERSION);
  
--	device_unregister(&udc->gadget.dev);
+ 	return 0;
+ 
+-err_add_device:
+-	usb_del_gadget_udc(&fusb300->gadget);
+-
+ err_add_udc:
+ 	fusb300_free_request(&fusb300->ep[0]->ep, fusb300->ep0_req);
+ 
+-- 
+1.8.1.rc1.5.g7e0651a
+
