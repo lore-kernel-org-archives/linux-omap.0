@@ -1,147 +1,71 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH] omap2: twl-common: Add default power configuration
-Date: Thu, 24 Jan 2013 09:54:49 -0600
-Message-ID: <CAOCHtYjufr+MS1=6Cnsn-EgvkPs+Y5oWejAG98aLkVjdQbu1ZA@mail.gmail.com>
-References: <1358967038-6615-1-git-send-email-matthias.bgg@gmail.com>
+From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH 0/6] i2c: deferred STP
+Date: Thu, 24 Jan 2013 18:11:21 +0200
+Message-ID: <20130124161121.GD23053@blackmetal.musicnaut.iki.fi>
+References: <20130123095813.GG3767@nekote.pengutronix.de>
+ <1358936588-16375-1-git-send-email-balbi@ti.com>
+ <20130123200540.GE23057@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f53.google.com ([209.85.219.53]:48587 "EHLO
-	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751749Ab3AXPyu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jan 2013 10:54:50 -0500
-Received: by mail-oa0-f53.google.com with SMTP id l20so2116415oag.26
-        for <linux-omap@vger.kernel.org>; Thu, 24 Jan 2013 07:54:49 -0800 (PST)
-In-Reply-To: <1358967038-6615-1-git-send-email-matthias.bgg@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20130123200540.GE23057-R3WNPi76c83LsdW6vOPryG4HOFkwEHDbMR2xtNvyitY@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: tony@atomide.com, linux@arm.linux.org.uk, martinez.javier@gmail.com, eballetbo@iseebcn.com, ezequiel.garcia@free-electrons.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Jan 23, 2013 at 12:50 PM, Matthias Brugger
-<matthias.bgg@gmail.com> wrote:
-> This patch adds a generic power script configuration.
-> When rebooting an OMAP3530 at 125 MHz, the reboot hangs.
-> With the generic power script, TWL4030 will be reset
-> when a warm reset occures. This way the OMAP3530 does not
-> hang on reboot.
->
-> Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
-> ---
->  arch/arm/mach-omap2/twl-common.c | 38 ++++++++++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/twl-common.h |  1 +
->  2 files changed, 39 insertions(+)
->
-> diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-> index e49b40b..f096beb 100644
-> --- a/arch/arm/mach-omap2/twl-common.c
-> +++ b/arch/arm/mach-omap2/twl-common.c
-> @@ -120,6 +120,41 @@ static struct twl4030_audio_data omap3_audio_pdata = {
->         .codec = &omap3_codec,
->  };
->
-> +static struct twl4030_ins wrst_seq[] __initdata = {
-> +       {MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
-> +       {MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
-> +       {MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
-> +       {MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
-> +       {MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
-> +       {MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
-> +};
-> +
-> +static struct twl4030_script wrst_script __initdata = {
-> +       .script = wrst_seq,
-> +       .size   = ARRAY_SIZE(wrst_seq),
-> +       .flags  = TWL4030_WRST_SCRIPT,
-> +};
-> +
-> +static struct twl4030_script *omap3_power_scripts[] __initdata = {
-> +       &wrst_script,
-> +};
-> +
-> +static struct twl4030_resconfig omap3_rconfig[] = {
-> +       { .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
-> +               .type2 = -1 },
-> +       { .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
-> +               .type2 = -1 },
-> +       { .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
-> +               .type2 = -1 },
-> +       { 0, 0},
-> +};
-> +
-> +static struct twl4030_power_data omap3_power_pdata = {
-> +       .scripts        = omap3_power_scripts,
-> +       .num            = ARRAY_SIZE(omap3_power_scripts),
-> +       .resource_config = omap3_rconfig,
-> +};
-> +
->  static struct regulator_consumer_supply omap3_vdda_dac_supplies[] = {
->         REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
->  };
-> @@ -224,6 +259,9 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
->         if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->audio)
->                 pmic_data->audio = &omap3_audio_pdata;
->
-> +       if (pdata_flags & TWL_COMMON_PDATA_POWER && !pmic_data->power)
-> +               pmic_data->power = &omap3_power_pdata;
-> +
->         /* Common regulator configurations */
->         if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
->                 pmic_data->vdac = &omap3_vdac_idata;
-> diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
-> index dcfbad5..dbeb905 100644
-> --- a/arch/arm/mach-omap2/twl-common.h
-> +++ b/arch/arm/mach-omap2/twl-common.h
-> @@ -7,6 +7,7 @@
->  #define TWL_COMMON_PDATA_BCI           (1 << 1)
->  #define TWL_COMMON_PDATA_MADC          (1 << 2)
->  #define TWL_COMMON_PDATA_AUDIO         (1 << 3)
-> +#define TWL_COMMON_PDATA_POWER         (1 << 4)
->
->  /* Common LDO regulators for TWL4030/TWL6030 */
->  #define TWL_COMMON_REGULATOR_VDAC      (1 << 0)
-> --
-> 1.7.11.7
+On Wed, Jan 23, 2013 at 10:05:41PM +0200, Aaro Koskinen wrote:
+> On Wed, Jan 23, 2013 at 12:23:02PM +0200, Felipe Balbi wrote:
+> > Hi folks,
+> > 
+> > it's now rebased on today's i2c-embedded/for-next. I boot tested with my
+> > Blaze board.
+> > 
+> > Aaro, if you could verify it doesn't break N900, I'd be glad.
+> 
+> It works, but it still introduces a ~4 second delay during the boot:
+> 
+> [    0.180847] usbcore: registered new device driver usb
+> [    0.181518] musb-omap2430 musb-omap2430: invalid resource
+> [    4.289093] twl 1-0048: PIH (irq 23) chaining IRQs 338..346
+> [    4.289276] twl 1-0048: power (irq 343) chaining IRQs 346..353
+> [    4.321228] twl4030_gpio twl4030_gpio: gpio (irq 338) chaining IRQs 354..371
+> [    4.446655] VUSB1V5: 1500 mV normal standby
 
-Thanks for making this generic Matthias..
+This delay is coming from omap_i2c_wait_for_bb(), with ARDY interrupt
+disabled we need to poll for BB bit longer, it seems for every transfer.
 
-Tested-by: Robert Nelson <robertcnelson@gmail.com>
+Replacing msleep(1) with usleep_range(800, 1200) drops it half, and with
+just cpu_relax() the delay is gone - but obviously may increase the CPU
+time usage.
 
-Tested on Beagle C4 (omap3530) and Beagle xM (DM3730, no regressions)
-with this patch to enable it on the Beagle..
+BTW, with TWL RTC on OMAP boards you can quickly sanity check I2C
+throughput:
 
->From 65004dafc8d37c69dd839803dc8ea5dcefd993df Mon Sep 17 00:00:00 2001
-From: Robert Nelson <robertcnelson@gmail.com>
-Date: Thu, 24 Jan 2013 09:43:51 -0600
-Subject: [PATCH] ARM: OMAP: Beagle: use TWL4030 generic reset script
+	while /bin/true; do cat /sys/class/rtc/rtc0/time ; done | uniq -c
 
-Enable TWL_COMMON_PDATA_POWER such that OMAP3530 revisions of the
-Beagle (Bx/Cx) will not hang on reboot when running at 125 Mhz.
+For these patches I get (ignoring the first line of the output):
 
-Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
----
- arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Before:
+     88 00:13:07
+     89 00:13:08
+     89 00:13:09
+     88 00:13:10
+     89 00:13:11
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
-b/arch/arm/mach-omap2/board-omap3beagle.c
-index 22c483d..0974e08 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -353,7 +353,7 @@ static int __init omap3_beagle_i2c_init(void)
- {
- 	omap3_pmic_get_config(&beagle_twldata,
- 			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC |
--			TWL_COMMON_PDATA_AUDIO,
-+			TWL_COMMON_PDATA_AUDIO | TWL_COMMON_PDATA_POWER,
- 			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
+After:
+     26 00:00:30
+     26 00:00:31
+     26 00:00:32
+     26 00:00:33
+     26 00:00:34
 
- 	beagle_twldata.vpll2->constraints.name = "VDVI";
--- 
-1.7.10.4
+After + omap_i2c_wait_for_bb() msleep() replaced with cpu_relax():
+     91 00:04:59
+     90 00:05:00
+     91 00:05:01
+     90 00:05:02
+     91 00:05:03
 
-Regards,
-
--- 
-Robert Nelson
-http://www.rcn-ee.com/
+A.
