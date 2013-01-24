@@ -1,112 +1,83 @@
 From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: RE: [PATCH v4 12/12] video: da8xx-fb: CCF clock divider handling
-Date: Thu, 24 Jan 2013 09:00:44 -0800
-Message-ID: <20130124170044.10623.45314@quantum>
-References: <cover.1358937685.git.afzal@ti.com>
- <fa8dab522507e087d5a94bac13dda71544911707.1358937685.git.afzal@ti.com>
- <20130123202204.9205.66575@quantum>
- <C8443D0743D26F4388EA172BF4E2A7A93EA92ADF@DBDE01.ent.ti.com>
+Subject: Re: RE: [PATCH v2 1/2] clk: divider: prepare for minimum divider
+Date: Thu, 24 Jan 2013 09:06:30 -0800
+Message-ID: <20130124170630.10623.78749@quantum>
+References: <6dc1c48cac5b2646a55da3079afb72f88e40c3bc.1358937138.git.afzal@ti.com>
+ <20130123214053.9205.49804@quantum>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA92ABC@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA92ADF@DBDE01.ent.ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:59115 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751617Ab3AXRGf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jan 2013 12:06:35 -0500
+Received: by mail-pb0-f43.google.com with SMTP id jt11so4175537pbb.16
+        for <linux-omap@vger.kernel.org>; Thu, 24 Jan 2013 09:06:35 -0800 (PST)
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA92ABC@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
 
-Quoting Mohammed, Afzal (2013-01-24 03:36:02)
+Quoting Mohammed, Afzal (2013-01-24 03:29:15)
 > Hi Mike,
 > 
-> On Thu, Jan 24, 2013 at 01:52:04, Mike Turquette wrote:
-> > Quoting Afzal Mohammed (2013-01-23 03:48:56)
+> On Thu, Jan 24, 2013 at 03:10:53, Mike Turquette wrote:
+> > Quoting Afzal Mohammed (2013-01-23 03:38:52)
 > 
-> > > +static inline void da8xx_fb_clkc_enable(void)
-> > > +{
-> > >         if (lcd_revision == LCD_VERSION_2)
-> > >                 lcdc_write(LCD_V2_DMA_CLK_EN | LCD_V2_LIDD_CLK_EN |
-> > >                                 LCD_V2_CORE_CLK_EN, LCD_CLK_ENABLE_REG);
+> > > Some of clocks can have a limit on minimum divider value that can be
+> > > programmed, prepare for such a support.
 > 
-> > > +static inline int da8xx_fb_calc_config_clk_divider(struct da8xx_fb_par *par,
-> > > +                                                   struct fb_videomode *mode)
-> > > +{
+> > > Add a new field min_div for the basic divider clock and a new dynamic
+> > > clock divider registration function where minimum divider value can
+> > > be specified. Keep behaviour of existing divider clock registration
+> > > functions, static initialization helpers as was earlier.
 > 
-> > > +       ret = clk_set_rate(par->child_clk, PICOS2KHZ(mode->pixclock) * 1000);
-> > > +       if (IS_ERR_VALUE(ret)) {
-> > > +               dev_err(par->dev, "unable to setup pixel clock of %u ps",
-> > > +                       mode->pixclock);
-> > > +               return ret;
-> > > +       }
-> > > +       da8xx_fb_clkc_enable();
+> > My first question is whether the minimum divider you plan to use is an
+> > actual constraint of the hardware (e.g. the clock controller ip only
+> > lets program two bits which divide by 4, 5, 6 or 7, where 4 is the
+> > minimum divider) or if this is a functional constraint (e.g. the clock
+> > hardware can divide by a lower value, but you never want that since it
+> > results in non-functional video/audio/whatever).  If this is more of a
+> > functional constraint then perhaps a new api like clk_set_min_rate makes
+> > more sense.
 > 
-> > It looks like you are using the legacy method to enable/disable the
-> > clock and using the CCF basic divider to set the rate.  This feels a bit
-> > hacky to me.  If you want to model your clock in CCF then you should
-> > probably model the whole clock, not just the rate-change aspects of it.
+> It is a functional constraint: divider has 8 bits and it can have
+> all possible values (0 to 255) and divider value corresponds to
+> value set in the 8 bits. But depending on the modes the minimum
+> value that can be configured (to get display working) varies.
+> Eg. For raster mode (which the driver is presently supporting), it
+> can take a minimum value of 2, while in LIDD (LCD interface display
+> driver) mode it can take a min value of 1.
 > 
-> Initially I thought about it, but seeing requirement of 3 gate clocks
-> (due to 3 bits meant for different purposes - DMA, LIDD and CORE
-> functionalities), felt that having 4 clocks (3 gate + 1 divider) in
-> driver would be an overdesign [leaving a branch instead of a leaf of
-> the tree in driver ;)].
-> 
-> > Have you looked at the composite clock patches from Prashant?  Those
-> > might give you the divider+gate properties that you are looking for:
-> > http://article.gmane.org/gmane.linux.kernel/1416697
-> 
-> Thanks for the pointer,
-> 
-> Now with the composite clock in mind, it was tried to relate to what
-> was required for the present scenario.
-> 
-> So there are 3 - LIDD is actually not for present use case, CORE could
-> be clubbed with the divider to have a composite clock. And CORE is
-> in functional clock path and logically it's perfectly alright to have
-> the composite clock.
+> Here min rate is not a constraint w.r.t divider in LCDC IP, but
+> rather min divider.
 > 
 
-Some of the clock names are a bit generic, so a question that I'm going
-to repeat throughout my response: "is this clock only inside of your
-video IP ?"
+Just so I understand correctly... you are saying that the functional
+constraint is not caused by the clock rate, but instead by the divider
+value?  For the different modes (raster vs LIDD) is the clock rate the
+same, or is the clock rate different?
 
-Regarding the CORE clock, is this only inside of your IP or are you
-referring to the SoC CORE clock which is driven by a DPLL and clocks
-DDR and many other peripherals (often MMC, UART, etc)?
-
-Note that this is from my past experience with OMAP, and I'm making an
-assumption that the clock scheme between OMAP and Da Vinci/AM335x parts
-isn't very different.
-
-Is there a public TRM I can look at?  It would help me understand this
-without having to ask you so many annoying questions ;)
-
-> And now we are left with DMA, this is actually in the interface clock
-> path which driver in unaware. An option would be to have DMA clock
-> as child of CORE plus divider composite clock, even though logically
-> DMA can't be considered in the same path.
-> 
-
-Why is the driver unaware of the interface clk?  For instance OMAP3 had
-separate fclk and iclk for IPs and drivers would call clk_enable on
-both.  Or am I misunderstanding something?
-
-In general I don't think the clock subtree should be modeled in a way
-that is convenient for software, but instead model the actual hardware.
-Trust me, if you don't model the actual hardware then you will be very
-confused when you come back and revisit this code in 6 months and can't
-remember why things are so weird looking.
+What is the clock output rate of the divider in raster mode?  What is
+the clock output rate of the divider in LIDD mode?
 
 Thanks,
 Mike
 
-> Also tried not enabling DMA clock, but driver is able to provide
-> display without any issues, so was thinking whether to avoid
-> instantiating DMA clock at all and hence to have a simple single
-> composite clock. Trying to get information internally on whether
-> not setting DMA clock bits would actually make a difference.
+> As it is the case, you prefer a clk_divider_set_min_div()?
 > 
-> If you have any opinion on how to deal here, let me know.
+> > 
+> > Secondly, have you looked into using the rate-table option provided by
+> > the basic divider clock?  Can you explain how this is not a good fit for
+> > your needs?  Perhaps there are too many divisor values so the table
+> > would be large?
+> 
+> Divider values can range from 2-255 (254 possible values), so I believe
+> it is not a suitable candidate here (also divider to values have 1-to-1
+> mapping)
 > 
 > Regards
 > Afzal
