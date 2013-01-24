@@ -1,46 +1,64 @@
-From: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v1 0/6] USB: Add support for multiple PHYs of same type
-Date: Thu, 24 Jan 2013 11:51:45 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA92B0B@DBDE01.ent.ti.com>
-References: <1358848694-20145-1-git-send-email-kishon@ti.com>
- <2D906ABA-71F2-4843-9DBE-F82527A1240A@dominion.thruhere.net>
- <50FEB3FD.3050001@ti.com> <50FEBB61.9000707@ti.com>
- <B9531499-0746-44DA-BDBB-999D4CA31E63@dominion.thruhere.net>
- <C8443D0743D26F4388EA172BF4E2A7A93EA922F5@DBDE01.ent.ti.com>
- <50FFF31D.2070908@ti.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH 2/4] drm/i2c: nxp-tda998x (v2)
+Date: Thu, 24 Jan 2013 12:57:20 +0100
+Message-ID: <20130124115720.GV31870@phenom.ffwll.local>
+References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
+ <1358894185-21617-3-git-send-email-robdclark@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <50FFF31D.2070908-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Cc: "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi,
- Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org" <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org List" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:41776 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752747Ab3AXLzP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jan 2013 06:55:15 -0500
+Received: by mail-wi0-f179.google.com with SMTP id o1so355089wic.6
+        for <linux-omap@vger.kernel.org>; Thu, 24 Jan 2013 03:55:14 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1358894185-21617-3-git-send-email-robdclark@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Clark <robdclark@gmail.com>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-Hi Kishon,
-
-On Wed, Jan 23, 2013 at 19:56:37, ABRAHAM, KISHON VIJAY wrote:
-> On Wednesday 23 January 2013 07:28 PM, Mohammed, Afzal wrote:
-
-> > USB first instance of am335x works in mainline as of now.
-
-> Can you check if this series indeed breaks am335x?
+On Tue, Jan 22, 2013 at 04:36:23PM -0600, Rob Clark wrote:
+> Driver for the NXP TDA998X i2c hdmi encoder slave.
 > 
-> Thanks for your help.
+> v1: original
+> v2: fix npix/nline programming
+> 
+> Signed-off-by: Rob Clark <robdclark@gmail.com>
 
-Do you have a tree having these changes, it would be easier for me.
+Just one bikeshed, otherwise
 
-Regards
-Afzal
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+[cut]
+
+> +static void
+> +reg_set(struct drm_encoder *encoder, uint16_t reg, uint8_t val)
+> +{
+> +	reg_write(encoder, reg, reg_read(encoder, reg) | val);
+> +}
+> +
+> +static void
+> +reg_clear(struct drm_encoder *encoder, uint16_t reg, uint8_t val)
+> +{
+> +	reg_write(encoder, reg, reg_read(encoder, reg) & ~val);
+> +}
+
+What about drivers/base/regmap? I haven't looked to closely yet and never
+used it in code, but there's a presentation [1] and it sounds like it
+provides some nice (and more important standardized) helper stuff for
+debug, tracing, ...
+
+Since encoder slave drivers tend to be utterly boring register bashing and
+we expect tons of time, I think high levels of standardization would be
+really useful. Care to look into this a bit?
+
+Cheers, Daniel
+
+1: http://free-electrons.com/blog/fosdem2012-videos/
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
