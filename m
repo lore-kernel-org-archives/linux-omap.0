@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [RFC/PATCH 10/32] usb: gadget: fsl_qe_udc: let udc-core manage gadget->dev
-Date: Thu, 24 Jan 2013 17:45:48 +0200
-Message-ID: <1359042370-4358-11-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 11/32] usb: gadget: fsl_udc_core: let udc-core manage gadget->dev
+Date: Thu, 24 Jan 2013 17:45:49 +0200
+Message-ID: <1359042370-4358-12-git-send-email-balbi@ti.com>
 References: <1359042370-4358-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,58 +17,48 @@ boilerplate code.
 
 Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/gadget/fsl_qe_udc.c | 15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ drivers/usb/gadget/fsl_udc_core.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/usb/gadget/fsl_qe_udc.c b/drivers/usb/gadget/fsl_qe_udc.c
-index ec50f18..08c8432 100644
---- a/drivers/usb/gadget/fsl_qe_udc.c
-+++ b/drivers/usb/gadget/fsl_qe_udc.c
-@@ -2523,13 +2523,9 @@ static int qe_udc_probe(struct platform_device *ofdev)
+diff --git a/drivers/usb/gadget/fsl_udc_core.c b/drivers/usb/gadget/fsl_udc_core.c
+index 49642d4..b78b734 100644
+--- a/drivers/usb/gadget/fsl_udc_core.c
++++ b/drivers/usb/gadget/fsl_udc_core.c
+@@ -2526,9 +2526,7 @@ static int __init fsl_udc_probe(struct platform_device *pdev)
+ 	udc_controller->gadget.dev.release = fsl_udc_release;
+ 	udc_controller->gadget.dev.parent = &pdev->dev;
+ 	udc_controller->gadget.dev.of_node = pdev->dev.of_node;
+-	ret = device_register(&udc_controller->gadget.dev);
+-	if (ret < 0)
+-		goto err_free_irq;
++	udc_controller->gadget.register_my_device = true;
  
- 	/* name: Identifies the controller hardware type. */
- 	udc->gadget.name = driver_name;
--
--	device_initialize(&udc->gadget.dev);
--
--	dev_set_name(&udc->gadget.dev, "gadget");
--
- 	udc->gadget.dev.release = qe_udc_release;
- 	udc->gadget.dev.parent = &ofdev->dev;
-+	udc->gadget.register_my_device = true;
- 
- 	/* initialize qe_ep struct */
- 	for (i = 0; i < USB_MAX_ENDPOINTS ; i++) {
-@@ -2592,13 +2588,9 @@ static int qe_udc_probe(struct platform_device *ofdev)
- 		goto err5;
+ 	if (!IS_ERR_OR_NULL(udc_controller->transceiver))
+ 		udc_controller->gadget.is_otg = 1;
+@@ -2561,7 +2559,7 @@ static int __init fsl_udc_probe(struct platform_device *pdev)
+ 			DTD_ALIGNMENT, UDC_DMA_BOUNDARY);
+ 	if (udc_controller->td_pool == NULL) {
+ 		ret = -ENOMEM;
+-		goto err_unregister;
++		goto err_free_irq;
  	}
  
--	ret = device_add(&udc->gadget.dev);
--	if (ret)
--		goto err6;
--
- 	ret = usb_add_gadget_udc(&ofdev->dev, &udc->gadget);
- 	if (ret)
--		goto err7;
-+		goto err6;
+ 	ret = usb_add_gadget_udc(&pdev->dev, &udc_controller->gadget);
+@@ -2573,8 +2571,6 @@ static int __init fsl_udc_probe(struct platform_device *pdev)
  
- 	dev_set_drvdata(&ofdev->dev, udc);
- 	dev_info(udc->dev,
-@@ -2606,8 +2598,6 @@ static int qe_udc_probe(struct platform_device *ofdev)
- 			(udc->soc_type == PORT_QE) ? "QE" : "CPM");
- 	return 0;
+ err_del_udc:
+ 	dma_pool_destroy(udc_controller->td_pool);
+-err_unregister:
+-	device_unregister(&udc_controller->gadget.dev);
+ err_free_irq:
+ 	free_irq(udc_controller->irq, udc_controller);
+ err_iounmap:
+@@ -2624,7 +2620,6 @@ static int __exit fsl_udc_remove(struct platform_device *pdev)
+ 	if (pdata->operating_mode == FSL_USB2_DR_DEVICE)
+ 		release_mem_region(res->start, resource_size(res));
  
--err7:
--	device_unregister(&udc->gadget.dev);
- err6:
- 	free_irq(udc->usb_irq, udc);
- err5:
-@@ -2702,7 +2692,6 @@ static int qe_udc_remove(struct platform_device *ofdev)
- 
- 	iounmap(udc->usb_regs);
- 
--	device_unregister(&udc->gadget.dev);
- 	/* wait for release() of gadget.dev to free udc */
+-	device_unregister(&udc_controller->gadget.dev);
+ 	/* free udc --wait for the release() finished */
  	wait_for_completion(&done);
  
 -- 
