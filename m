@@ -1,74 +1,77 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 16/32] usb: gadget: m66592-udc: let udc-core manage gadget->dev
-Date: Thu, 24 Jan 2013 17:45:54 +0200
-Message-ID: <1359042370-4358-17-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [RFC/PATCH 19/32] usb: gadget: mv_udc_core: let udc-core manage gadget->dev
+Date: Thu, 24 Jan 2013 17:45:57 +0200
+Message-ID: <1359042370-4358-20-git-send-email-balbi@ti.com>
 References: <1359042370-4358-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1359042370-4358-1-git-send-email-balbi@ti.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Linux USB Mailing List <linux-usb@vger.kernel.org>
-Cc: alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, leoli@freescale.com, eric.y.miao@gmail.com, linux@arm.linux.org.uk, haojian.zhuang@gmail.com, ben-linux@fluff.org, kgene.kim@samsung.com, kuninori.morimoto.gx@renesas.com, yoshihiro.shimoda.uh@renesas.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1359042370-4358-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dahlmann.thomas-KvP5wT2u2U0@public.gmane.org, nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org, leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org, eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-geode-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 By simply setting a flag, we can drop some
 boilerplate code.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/gadget/m66592-udc.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/usb/gadget/mv_udc_core.c | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/usb/gadget/m66592-udc.c b/drivers/usb/gadget/m66592-udc.c
-index 0a35db1..c5d1b39 100644
---- a/drivers/usb/gadget/m66592-udc.c
-+++ b/drivers/usb/gadget/m66592-udc.c
-@@ -1538,7 +1538,6 @@ static int __exit m66592_remove(struct platform_device *pdev)
- 	struct m66592		*m66592 = dev_get_drvdata(&pdev->dev);
+diff --git a/drivers/usb/gadget/mv_udc_core.c b/drivers/usb/gadget/mv_udc_core.c
+index 67d72f9..60741af 100644
+--- a/drivers/usb/gadget/mv_udc_core.c
++++ b/drivers/usb/gadget/mv_udc_core.c
+@@ -2138,8 +2138,6 @@ static int mv_udc_remove(struct platform_device *pdev)
  
- 	usb_del_gadget_udc(&m66592->gadget);
--	device_del(&m66592->gadget.dev);
+ 	mv_udc_disable(udc);
  
- 	del_timer_sync(&m66592->timer);
- 	iounmap(m66592->reg);
-@@ -1608,13 +1607,12 @@ static int __init m66592_probe(struct platform_device *pdev)
- 	dev_set_drvdata(&pdev->dev, m66592);
- 
- 	m66592->gadget.ops = &m66592_gadget_ops;
--	device_initialize(&m66592->gadget.dev);
--	dev_set_name(&m66592->gadget.dev, "gadget");
- 	m66592->gadget.max_speed = USB_SPEED_HIGH;
- 	m66592->gadget.dev.parent = &pdev->dev;
- 	m66592->gadget.dev.dma_mask = pdev->dev.dma_mask;
- 	m66592->gadget.dev.release = pdev->dev.release;
- 	m66592->gadget.name = udc_name;
-+	m66592->gadget.register_my_device = true;
- 
- 	init_timer(&m66592->timer);
- 	m66592->timer.function = m66592_timer;
-@@ -1674,12 +1672,6 @@ static int __init m66592_probe(struct platform_device *pdev)
- 
- 	init_controller(m66592);
- 
--	ret = device_add(&m66592->gadget.dev);
--	if (ret) {
--		pr_err("device_add error (%d)\n", ret);
--		goto err_device_add;
--	}
+-	device_unregister(&udc->gadget.dev);
 -
- 	ret = usb_add_gadget_udc(&pdev->dev, &m66592->gadget);
- 	if (ret)
- 		goto err_add_udc;
-@@ -1688,9 +1680,6 @@ static int __init m66592_probe(struct platform_device *pdev)
- 	return 0;
+ 	/* free dev, wait for the release() finished */
+ 	wait_for_completion(udc->done);
  
- err_add_udc:
--	device_del(&m66592->gadget.dev);
+@@ -2311,15 +2309,11 @@ static int mv_udc_probe(struct platform_device *pdev)
+ 	udc->gadget.max_speed = USB_SPEED_HIGH;	/* support dual speed */
+ 
+ 	/* the "gadget" abstracts/virtualizes the controller */
+-	dev_set_name(&udc->gadget.dev, "gadget");
+ 	udc->gadget.dev.parent = &pdev->dev;
+ 	udc->gadget.dev.dma_mask = pdev->dev.dma_mask;
+ 	udc->gadget.dev.release = gadget_release;
+ 	udc->gadget.name = driver_name;		/* gadget name */
 -
--err_device_add:
- 	m66592_free_request(&m66592->ep[0].ep, m66592->ep0_req);
+-	retval = device_register(&udc->gadget.dev);
+-	if (retval)
+-		goto err_destroy_dma;
++	udc->gadget.register_my_device = true;
  
- clean_up3:
+ 	eps_init(udc);
+ 
+@@ -2342,7 +2336,7 @@ static int mv_udc_probe(struct platform_device *pdev)
+ 		if (!udc->qwork) {
+ 			dev_err(&pdev->dev, "cannot create workqueue\n");
+ 			retval = -ENOMEM;
+-			goto err_unregister;
++			goto err_destroy_dma;
+ 		}
+ 
+ 		INIT_WORK(&udc->vbus_work, mv_udc_vbus_work);
+@@ -2370,8 +2364,6 @@ static int mv_udc_probe(struct platform_device *pdev)
+ 
+ err_create_workqueue:
+ 	destroy_workqueue(udc->qwork);
+-err_unregister:
+-	device_unregister(&udc->gadget.dev);
+ err_destroy_dma:
+ 	dma_pool_destroy(udc->dtd_pool);
+ err_free_dma:
 -- 
 1.8.1.rc1.5.g7e0651a
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
