@@ -1,75 +1,123 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap: make wakeupgen_lock raw
-Date: Thu, 24 Jan 2013 20:22:33 +0200
-Message-ID: <20130124182159.GL4424@arwen.pp.htv.fi>
-References: <1354891787-24119-1-git-send-email-balbi@ti.com>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UUMz/kfoogzZ9WLZ"
+From: Marek Belisko <marek.belisko@open-nandra.com>
+Subject: [PATCH] arm/dts: Add basic support for gta04 (Openmoko next generation) board.
+Date: Thu, 24 Jan 2013 19:34:05 +0100
+Message-ID: <1359052445-18560-1-git-send-email-marek.belisko@open-nandra.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42800 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753932Ab3AXSW6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Jan 2013 13:22:58 -0500
-Content-Disposition: inline
-In-Reply-To: <1354891787-24119-1-git-send-email-balbi@ti.com>
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:54750 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751893Ab3AXSeZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jan 2013 13:34:25 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Thomas Gleixner <tglx@linutronix.de>
+To: b-cousson@ti.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Marek Belisko <marek.belisko@open-nandra.com>
 
---UUMz/kfoogzZ9WLZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
+---
+ arch/arm/boot/dts/omap3-gta04.dts |   94 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 94 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap3-gta04.dts
 
-Hi,
+diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
+new file mode 100644
+index 0000000..9e7e3ec
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-gta04.dts
+@@ -0,0 +1,94 @@
++/*
++ * Copyright (C) 2013 Marek Belisko <marek.belisko@open-nandra.com>
++ *
++ * Based on omap3-beagle-xm.dts
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "omap3.dtsi"
++
++/ {
++	model = "OMAP3 GTA04";
++	compatible = "ti,omap3-gta04", "ti,omap3";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x20000000>; /* 512 MB */
++	};
++
++	gpio-keys {
++		compatible = "gpio-keys";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		aux-button {
++			label = "AUX";
++			linux,code = <169>;
++			gpios = <&gpio1 7 1>;
++			gpio-key,wakeup;
++		};
++	};
++};
++
++&i2c1 {
++	clock-frequency = <2600000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++	};
++};
++
++/include/ "twl4030.dtsi"
++
++&i2c2 {
++	clock-frequency = <400000>;
++	/* Pressure Sensor */
++	bmp085@77 {
++		compatible = "bosch,bmp085";
++		reg = <0x77>;
++	};
++
++	/* leds */
++	tca6507@45 {
++		compatible = "ti,tca6507";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reg = <0x45>;
++
++		gta04_led0: red_aux@0 {
++			label = "gta04:red:aux";
++			reg = <0x0>;
++		};
++
++		gta04_led1: green_aux@1 {
++			label = "gta04:green:aux";
++			reg = <0x1>;
++		};
++
++		gta04_led3: red_power@3 {
++			label = "gta04:red:power";
++			reg = <0x3>;
++			linux,default-trigger = "default-on";
++		};
++
++		gta04_led4: green_power@4 {
++			label = "gta04:green:power";
++			reg = <0x4>;
++		};
++	};
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++};
++
++&mmc1 {
++	vmmc-supply = <&vmmc1>;
++	bus-width = <4>;
++};
++
+-- 
+1.7.10.4
 
-On Fri, Dec 07, 2012 at 04:49:47PM +0200, Felipe Balbi wrote:
-> From: Thomas Gleixner <tglx@linutronix.de>
->=20
-> When applying RT patch on top of Linux, spinlocks are
-> implemented as RT-mutexes, which means they are preemptable.
->=20
-> Current GIC implementation on OMAP is using a spinlock
-> to protect against preemption. As it turns out, we need
-> to convert that lock into a raw_spinlock so that OMAP's
-> interrupt controller works as expected after RT-patch
-> is applied.
->=20
-> This patch is simply to decrease the amount of changes
-> RT-team needs to carry out of tree. It doesn't cause any
-> changes in behavior.
->=20
-> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-
-ping
-
---=20
-balbi
-
---UUMz/kfoogzZ9WLZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRAXvpAAoJEIaOsuA1yqREQ/8P+wZ1K04yH5X2scriP6XBHdT9
-oV5z/p3mre+abUR5e/+ecbiZMaoW3lZHZsjcc+T3IEw2KoUK12jaZng/zVtwPdDO
-tFYQLC1XygdgHhjf9bQzd5ptNd/Ui5cM2fJGFj2vru0xRP3Ylr/pXgcMocahR9qf
-q7ToN82tSmdGmNugny1RH6jZoPPdVFwXHwttHvHzKfNJJo+ChKdKV7eKWWjyhqLx
-KR8MBcDl97eSuVE63FFu6o0G0bb9XapWNcS2hkCHQ173c5XfsBHrhmubIs88dG9J
-lzD7d0reLIPYTSK5wAiTibg22lkdyJEhJRpoEdByHlIx6bjLr/mb/axHO7yC2Pdf
-avQkdMBKlRTX7IPpsEq33dUw8WpLka6zdmp6ngpjQSJ7c6LfC/nEl3lu++Nwrel+
-Ly33vk/C5rBVKxtsxj5JEyJa46inyHLbVtLhg3ZNto0WQXvQCd+Hq/xt1pjAtPzn
-xUqHqcIvhGMru8VVM3w3aXYti/43GbjVLsB5fSuHAm1IMLlp1oXbJZJCMl4KYCK0
-LW63c7lbJcM30gkXDbVzD7y/KrB8kmTmv9T50n5mNqUoKC5bbLHeIb3836d+jZor
-P8MofuS+qkxsAy/rkYr1cOnlByXYzvfYC9DsOB+us+Zjr3tcPY1URbvhC9funASF
-H2g+FERV23bUL7sL3hed
-=101W
------END PGP SIGNATURE-----
-
---UUMz/kfoogzZ9WLZ--
