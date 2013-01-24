@@ -1,65 +1,76 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [RFC/PATCH 27/32] usb: renesas_usbhs: gadget: let udc-core manage gadget->dev
-Date: Thu, 24 Jan 2013 17:46:05 +0200
-Message-ID: <1359042370-4358-28-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFC/PATCH 24/32] usb: gadget: s3c-hsotg: let udc-core manage gadget->dev
+Date: Thu, 24 Jan 2013 17:46:02 +0200
+Message-ID: <1359042370-4358-25-git-send-email-balbi@ti.com>
 References: <1359042370-4358-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1359042370-4358-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dahlmann.thomas-KvP5wT2u2U0@public.gmane.org, nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org, leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org, eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-geode-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35043 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755271Ab3AXPrq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Jan 2013 10:47:46 -0500
+In-Reply-To: <1359042370-4358-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linux USB Mailing List <linux-usb@vger.kernel.org>
+Cc: alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, leoli@freescale.com, eric.y.miao@gmail.com, linux@arm.linux.org.uk, haojian.zhuang@gmail.com, ben-linux@fluff.org, kgene.kim@samsung.com, kuninori.morimoto.gx@renesas.com, yoshihiro.shimoda.uh@renesas.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
 By simply setting a flag, we can drop some
 boilerplate code.
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/renesas_usbhs/mod_gadget.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/usb/gadget/s3c-hsotg.c | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/drivers/usb/renesas_usbhs/mod_gadget.c b/drivers/usb/renesas_usbhs/mod_gadget.c
-index dd41f61..b42d81d 100644
---- a/drivers/usb/renesas_usbhs/mod_gadget.c
-+++ b/drivers/usb/renesas_usbhs/mod_gadget.c
-@@ -981,15 +981,12 @@ int usbhs_mod_gadget_probe(struct usbhs_priv *priv)
- 	/*
- 	 * init gadget
- 	 */
--	dev_set_name(&gpriv->gadget.dev, "gadget");
- 	gpriv->gadget.dev.parent	= dev;
- 	gpriv->gadget.dev.release	= usbhs_mod_gadget_release;
- 	gpriv->gadget.name		= "renesas_usbhs_udc";
- 	gpriv->gadget.ops		= &usbhsg_gadget_ops;
- 	gpriv->gadget.max_speed		= USB_SPEED_HIGH;
--	ret = device_register(&gpriv->gadget.dev);
--	if (ret < 0)
--		goto err_add_udc;
-+	gpriv->gadget.register_my_device = true;
+diff --git a/drivers/usb/gadget/s3c-hsotg.c b/drivers/usb/gadget/s3c-hsotg.c
+index 833d85b..bd8292d 100644
+--- a/drivers/usb/gadget/s3c-hsotg.c
++++ b/drivers/usb/gadget/s3c-hsotg.c
+@@ -3552,17 +3552,13 @@ static int s3c_hsotg_probe(struct platform_device *pdev)
  
- 	INIT_LIST_HEAD(&gpriv->gadget.ep_list);
+ 	dev_info(dev, "regs %p, irq %d\n", hsotg->regs, hsotg->irq);
  
-@@ -1018,15 +1015,13 @@ int usbhs_mod_gadget_probe(struct usbhs_priv *priv)
+-	device_initialize(&hsotg->gadget.dev);
+-
+-	dev_set_name(&hsotg->gadget.dev, "gadget");
+-
+ 	hsotg->gadget.max_speed = USB_SPEED_HIGH;
+ 	hsotg->gadget.ops = &s3c_hsotg_gadget_ops;
+ 	hsotg->gadget.name = dev_name(dev);
+-
+ 	hsotg->gadget.dev.parent = dev;
+ 	hsotg->gadget.dev.dma_mask = dev->dma_mask;
+ 	hsotg->gadget.dev.release = s3c_hsotg_release;
++	hsotg->gadget.register_my_device = true;
  
- 	ret = usb_add_gadget_udc(dev, &gpriv->gadget);
+ 	/* reset the system */
+ 
+@@ -3643,12 +3639,6 @@ static int s3c_hsotg_probe(struct platform_device *pdev)
+ 
+ 	s3c_hsotg_phy_disable(hsotg);
+ 
+-	ret = device_add(&hsotg->gadget.dev);
+-	if (ret) {
+-		put_device(&hsotg->gadget.dev);
+-		goto err_ep_mem;
+-	}
+-
+ 	ret = usb_add_gadget_udc(&pdev->dev, &hsotg->gadget);
  	if (ret)
--		goto err_register;
-+		goto err_add_udc;
+ 		goto err_ep_mem;
+@@ -3687,10 +3677,8 @@ static int s3c_hsotg_remove(struct platform_device *pdev)
+ 	}
  
+ 	s3c_hsotg_phy_disable(hsotg);
+-
+ 	clk_disable_unprepare(hsotg->clk);
  
- 	dev_info(dev, "gadget probed\n");
- 
+-	device_unregister(&hsotg->gadget.dev);
  	return 0;
+ }
  
--err_register:
--	device_unregister(&gpriv->gadget.dev);
- err_add_udc:
- 	kfree(gpriv->uep);
- 
-@@ -1042,8 +1037,6 @@ void usbhs_mod_gadget_remove(struct usbhs_priv *priv)
- 
- 	usb_del_gadget_udc(&gpriv->gadget);
- 
--	device_unregister(&gpriv->gadget.dev);
+-- 
+1.8.1.rc1.5.g7e0651a
+
