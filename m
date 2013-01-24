@@ -1,76 +1,74 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 24/32] usb: gadget: s3c-hsotg: let udc-core manage gadget->dev
-Date: Thu, 24 Jan 2013 17:46:02 +0200
-Message-ID: <1359042370-4358-25-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 16/32] usb: gadget: m66592-udc: let udc-core manage gadget->dev
+Date: Thu, 24 Jan 2013 17:45:54 +0200
+Message-ID: <1359042370-4358-17-git-send-email-balbi@ti.com>
 References: <1359042370-4358-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35043 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755271Ab3AXPrq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Jan 2013 10:47:46 -0500
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-Reply-To: <1359042370-4358-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-samsung-soc-owner@vger.kernel.org
 To: Linux USB Mailing List <linux-usb@vger.kernel.org>
 Cc: alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, leoli@freescale.com, eric.y.miao@gmail.com, linux@arm.linux.org.uk, haojian.zhuang@gmail.com, ben-linux@fluff.org, kgene.kim@samsung.com, kuninori.morimoto.gx@renesas.com, yoshihiro.shimoda.uh@renesas.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
 By simply setting a flag, we can drop some
 boilerplate code.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/gadget/s3c-hsotg.c | 14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ drivers/usb/gadget/m66592-udc.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff --git a/drivers/usb/gadget/s3c-hsotg.c b/drivers/usb/gadget/s3c-hsotg.c
-index 833d85b..bd8292d 100644
---- a/drivers/usb/gadget/s3c-hsotg.c
-+++ b/drivers/usb/gadget/s3c-hsotg.c
-@@ -3552,17 +3552,13 @@ static int s3c_hsotg_probe(struct platform_device *pdev)
+diff --git a/drivers/usb/gadget/m66592-udc.c b/drivers/usb/gadget/m66592-udc.c
+index 0a35db1..c5d1b39 100644
+--- a/drivers/usb/gadget/m66592-udc.c
++++ b/drivers/usb/gadget/m66592-udc.c
+@@ -1538,7 +1538,6 @@ static int __exit m66592_remove(struct platform_device *pdev)
+ 	struct m66592		*m66592 = dev_get_drvdata(&pdev->dev);
  
- 	dev_info(dev, "regs %p, irq %d\n", hsotg->regs, hsotg->irq);
+ 	usb_del_gadget_udc(&m66592->gadget);
+-	device_del(&m66592->gadget.dev);
  
--	device_initialize(&hsotg->gadget.dev);
--
--	dev_set_name(&hsotg->gadget.dev, "gadget");
--
- 	hsotg->gadget.max_speed = USB_SPEED_HIGH;
- 	hsotg->gadget.ops = &s3c_hsotg_gadget_ops;
- 	hsotg->gadget.name = dev_name(dev);
--
- 	hsotg->gadget.dev.parent = dev;
- 	hsotg->gadget.dev.dma_mask = dev->dma_mask;
- 	hsotg->gadget.dev.release = s3c_hsotg_release;
-+	hsotg->gadget.register_my_device = true;
+ 	del_timer_sync(&m66592->timer);
+ 	iounmap(m66592->reg);
+@@ -1608,13 +1607,12 @@ static int __init m66592_probe(struct platform_device *pdev)
+ 	dev_set_drvdata(&pdev->dev, m66592);
  
- 	/* reset the system */
+ 	m66592->gadget.ops = &m66592_gadget_ops;
+-	device_initialize(&m66592->gadget.dev);
+-	dev_set_name(&m66592->gadget.dev, "gadget");
+ 	m66592->gadget.max_speed = USB_SPEED_HIGH;
+ 	m66592->gadget.dev.parent = &pdev->dev;
+ 	m66592->gadget.dev.dma_mask = pdev->dev.dma_mask;
+ 	m66592->gadget.dev.release = pdev->dev.release;
+ 	m66592->gadget.name = udc_name;
++	m66592->gadget.register_my_device = true;
  
-@@ -3643,12 +3639,6 @@ static int s3c_hsotg_probe(struct platform_device *pdev)
+ 	init_timer(&m66592->timer);
+ 	m66592->timer.function = m66592_timer;
+@@ -1674,12 +1672,6 @@ static int __init m66592_probe(struct platform_device *pdev)
  
- 	s3c_hsotg_phy_disable(hsotg);
+ 	init_controller(m66592);
  
--	ret = device_add(&hsotg->gadget.dev);
+-	ret = device_add(&m66592->gadget.dev);
 -	if (ret) {
--		put_device(&hsotg->gadget.dev);
--		goto err_ep_mem;
+-		pr_err("device_add error (%d)\n", ret);
+-		goto err_device_add;
 -	}
 -
- 	ret = usb_add_gadget_udc(&pdev->dev, &hsotg->gadget);
+ 	ret = usb_add_gadget_udc(&pdev->dev, &m66592->gadget);
  	if (ret)
- 		goto err_ep_mem;
-@@ -3687,10 +3677,8 @@ static int s3c_hsotg_remove(struct platform_device *pdev)
- 	}
- 
- 	s3c_hsotg_phy_disable(hsotg);
--
- 	clk_disable_unprepare(hsotg->clk);
- 
--	device_unregister(&hsotg->gadget.dev);
+ 		goto err_add_udc;
+@@ -1688,9 +1680,6 @@ static int __init m66592_probe(struct platform_device *pdev)
  	return 0;
- }
  
+ err_add_udc:
+-	device_del(&m66592->gadget.dev);
+-
+-err_device_add:
+ 	m66592_free_request(&m66592->ep[0].ep, m66592->ep0_req);
+ 
+ clean_up3:
 -- 
 1.8.1.rc1.5.g7e0651a
-
