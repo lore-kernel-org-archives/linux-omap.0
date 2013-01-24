@@ -1,59 +1,58 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 3/3] spi: spi-omap2-mcspi.c: Toggle CS after each word
-Date: Thu, 24 Jan 2013 19:06:52 +0800
-Message-ID: <20130124110648.GM4955@opensource.wolfsonmicro.com>
-References: <1358964529-4905-1-git-send-email-matthias.bgg@gmail.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v2 1/2] clk: divider: prepare for minimum divider
+Date: Thu, 24 Jan 2013 11:29:15 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA92ABC@DBDE01.ent.ti.com>
+References: <6dc1c48cac5b2646a55da3079afb72f88e40c3bc.1358937138.git.afzal@ti.com>
+ <20130123214053.9205.49804@quantum>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Kc9HNjpzOXVc7FFU"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:38744 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753258Ab3AXLG7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Jan 2013 06:06:59 -0500
-Content-Disposition: inline
-In-Reply-To: <1358964529-4905-1-git-send-email-matthias.bgg@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:60774 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752532Ab3AXL32 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Jan 2013 06:29:28 -0500
+In-Reply-To: <20130123214053.9205.49804@quantum>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, eballetbo@gmail.com, javier.martinez@collabora.co.uk, ezequiel.garcia@free-electrons.com, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
 
-
---Kc9HNjpzOXVc7FFU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Jan 23, 2013 at 07:08:49PM +0100, Matthias Brugger wrote:
-> This patch allows the board code to define SPI devices which needs to
-> toggle the chip select after every word send. This is needed to get a
-> better resolution reading e.g. an ADC data stream.
-> Apart from that, as in the normal code CS is controlled by software,
-> a transfer is done much faster.
-
-As Jarkko says the feature itself seems fine and the coding style fix
-seems fine but they should really be separate changes.
-
---Kc9HNjpzOXVc7FFU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRARXCAAoJELSic+t+oim9mQMP/3TNpoX1+mwsN04TS00xepv/
-AmEi8KYsDV2JgqUymmN52SHH5xhagkYu0Sym3c8kzxwrujRaIVm18i2lWGKyJ3OK
-LQ/XvYiyNmRh/GTzkAlUH1jBnFa9tcHMwAEWRoEvx7wV6BD2P6wi9xAdnQAcY77C
-GagThr1EQ/YHcUD6NApGKGzPQx42+U6Pq/OD+XNa/AskU07xSeOCuoQbcUn2nLWU
-muHUr3PSjkV7utUqY5ZVnFVTqu1kOiAbC/S836OMrSaLhLBJQKZZuDTzVB/BqUl2
-qQ4dcVLCB/sAldSj8pQIQmWF2sotjOjMJwUCPG6H+NBSvkR15TN4i0J85hXnloYE
-06hhPVY9uiAtkxMiof9TYGK+DDWGYkuLToUQexMoFznYlTvjRk7LUG+M2giFCTVV
-EubNzGZb6CTaXkeKDig4T2/HLgCuTTTtcPjGZBlDdyepuDAmOSmOvQnYqX2VrRPa
-K/j4j8HyvvEKcVLnVcddJ1gGciLHo420FES6lTbXekfz9RkhCCzREK2ELf1Oyf6h
-iUJewqyEhrQlnHZyweDk29tnOEQwjlgJZmYVYALzWGZGejW899N7OlbX3/cku63B
-ZBIPJmgsVrF7Jx28YUKMNo7SsjXC9UZ3hEa+RDe/axiVmCskNARUFIUFxHWLg+0O
-fBv2LFxc6e0SNeRPJwLA
-=xmMK
------END PGP SIGNATURE-----
-
---Kc9HNjpzOXVc7FFU--
+SGkgTWlrZSwNCg0KT24gVGh1LCBKYW4gMjQsIDIwMTMgYXQgMDM6MTA6NTMsIE1pa2UgVHVycXVl
+dHRlIHdyb3RlOg0KPiBRdW90aW5nIEFmemFsIE1vaGFtbWVkICgyMDEzLTAxLTIzIDAzOjM4OjUy
+KQ0KDQo+ID4gU29tZSBvZiBjbG9ja3MgY2FuIGhhdmUgYSBsaW1pdCBvbiBtaW5pbXVtIGRpdmlk
+ZXIgdmFsdWUgdGhhdCBjYW4gYmUNCj4gPiBwcm9ncmFtbWVkLCBwcmVwYXJlIGZvciBzdWNoIGEg
+c3VwcG9ydC4NCg0KPiA+IEFkZCBhIG5ldyBmaWVsZCBtaW5fZGl2IGZvciB0aGUgYmFzaWMgZGl2
+aWRlciBjbG9jayBhbmQgYSBuZXcgZHluYW1pYw0KPiA+IGNsb2NrIGRpdmlkZXIgcmVnaXN0cmF0
+aW9uIGZ1bmN0aW9uIHdoZXJlIG1pbmltdW0gZGl2aWRlciB2YWx1ZSBjYW4NCj4gPiBiZSBzcGVj
+aWZpZWQuIEtlZXAgYmVoYXZpb3VyIG9mIGV4aXN0aW5nIGRpdmlkZXIgY2xvY2sgcmVnaXN0cmF0
+aW9uDQo+ID4gZnVuY3Rpb25zLCBzdGF0aWMgaW5pdGlhbGl6YXRpb24gaGVscGVycyBhcyB3YXMg
+ZWFybGllci4NCg0KPiBNeSBmaXJzdCBxdWVzdGlvbiBpcyB3aGV0aGVyIHRoZSBtaW5pbXVtIGRp
+dmlkZXIgeW91IHBsYW4gdG8gdXNlIGlzIGFuDQo+IGFjdHVhbCBjb25zdHJhaW50IG9mIHRoZSBo
+YXJkd2FyZSAoZS5nLiB0aGUgY2xvY2sgY29udHJvbGxlciBpcCBvbmx5DQo+IGxldHMgcHJvZ3Jh
+bSB0d28gYml0cyB3aGljaCBkaXZpZGUgYnkgNCwgNSwgNiBvciA3LCB3aGVyZSA0IGlzIHRoZQ0K
+PiBtaW5pbXVtIGRpdmlkZXIpIG9yIGlmIHRoaXMgaXMgYSBmdW5jdGlvbmFsIGNvbnN0cmFpbnQg
+KGUuZy4gdGhlIGNsb2NrDQo+IGhhcmR3YXJlIGNhbiBkaXZpZGUgYnkgYSBsb3dlciB2YWx1ZSwg
+YnV0IHlvdSBuZXZlciB3YW50IHRoYXQgc2luY2UgaXQNCj4gcmVzdWx0cyBpbiBub24tZnVuY3Rp
+b25hbCB2aWRlby9hdWRpby93aGF0ZXZlcikuICBJZiB0aGlzIGlzIG1vcmUgb2YgYQ0KPiBmdW5j
+dGlvbmFsIGNvbnN0cmFpbnQgdGhlbiBwZXJoYXBzIGEgbmV3IGFwaSBsaWtlIGNsa19zZXRfbWlu
+X3JhdGUgbWFrZXMNCj4gbW9yZSBzZW5zZS4NCg0KSXQgaXMgYSBmdW5jdGlvbmFsIGNvbnN0cmFp
+bnQ6IGRpdmlkZXIgaGFzIDggYml0cyBhbmQgaXQgY2FuIGhhdmUNCmFsbCBwb3NzaWJsZSB2YWx1
+ZXMgKDAgdG8gMjU1KSBhbmQgZGl2aWRlciB2YWx1ZSBjb3JyZXNwb25kcyB0bw0KdmFsdWUgc2V0
+IGluIHRoZSA4IGJpdHMuIEJ1dCBkZXBlbmRpbmcgb24gdGhlIG1vZGVzIHRoZSBtaW5pbXVtDQp2
+YWx1ZSB0aGF0IGNhbiBiZSBjb25maWd1cmVkICh0byBnZXQgZGlzcGxheSB3b3JraW5nKSB2YXJp
+ZXMuDQpFZy4gRm9yIHJhc3RlciBtb2RlICh3aGljaCB0aGUgZHJpdmVyIGlzIHByZXNlbnRseSBz
+dXBwb3J0aW5nKSwgaXQNCmNhbiB0YWtlIGEgbWluaW11bSB2YWx1ZSBvZiAyLCB3aGlsZSBpbiBM
+SUREIChMQ0QgaW50ZXJmYWNlIGRpc3BsYXkNCmRyaXZlcikgbW9kZSBpdCBjYW4gdGFrZSBhIG1p
+biB2YWx1ZSBvZiAxLg0KDQpIZXJlIG1pbiByYXRlIGlzIG5vdCBhIGNvbnN0cmFpbnQgdy5yLnQg
+ZGl2aWRlciBpbiBMQ0RDIElQLCBidXQNCnJhdGhlciBtaW4gZGl2aWRlci4NCg0KQXMgaXQgaXMg
+dGhlIGNhc2UsIHlvdSBwcmVmZXIgYSBjbGtfZGl2aWRlcl9zZXRfbWluX2RpdigpPw0KDQo+IA0K
+PiBTZWNvbmRseSwgaGF2ZSB5b3UgbG9va2VkIGludG8gdXNpbmcgdGhlIHJhdGUtdGFibGUgb3B0
+aW9uIHByb3ZpZGVkIGJ5DQo+IHRoZSBiYXNpYyBkaXZpZGVyIGNsb2NrPyAgQ2FuIHlvdSBleHBs
+YWluIGhvdyB0aGlzIGlzIG5vdCBhIGdvb2QgZml0IGZvcg0KPiB5b3VyIG5lZWRzPyAgUGVyaGFw
+cyB0aGVyZSBhcmUgdG9vIG1hbnkgZGl2aXNvciB2YWx1ZXMgc28gdGhlIHRhYmxlDQo+IHdvdWxk
+IGJlIGxhcmdlPw0KDQpEaXZpZGVyIHZhbHVlcyBjYW4gcmFuZ2UgZnJvbSAyLTI1NSAoMjU0IHBv
+c3NpYmxlIHZhbHVlcyksIHNvIEkgYmVsaWV2ZQ0KaXQgaXMgbm90IGEgc3VpdGFibGUgY2FuZGlk
+YXRlIGhlcmUgKGFsc28gZGl2aWRlciB0byB2YWx1ZXMgaGF2ZSAxLXRvLTENCm1hcHBpbmcpDQoN
+ClJlZ2FyZHMNCkFmemFsDQoNCg0K
