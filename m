@@ -1,92 +1,47 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 5/6] i2c: omap: wait for transfer completion before
- sending STP bit
-Date: Thu, 24 Jan 2013 09:35:25 +0200
-Message-ID: <20130124073525.GB27304@arwen.pp.htv.fi>
-References: <20130123095813.GG3767@nekote.pengutronix.de>
- <1358936588-16375-1-git-send-email-balbi@ti.com>
- <1358936588-16375-6-git-send-email-balbi@ti.com>
- <20130123201031.GF23057@blackmetal.musicnaut.iki.fi>
-Reply-To: <balbi@ti.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH 3/3] spi: spi-omap2-mcspi.c: Toggle CS after each word
+Date: Thu, 24 Jan 2013 09:38:32 +0200
+Message-ID: <20130124093832.3eef9bda0195a405c8eb3d96@bitmer.com>
+References: <1358964529-4905-1-git-send-email-matthias.bgg@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eJnRUKwClWJh1Khz"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47873 "EHLO bear.ext.ti.com"
+Received: from bitmer.com ([213.157.87.50]:51117 "EHLO bitmer.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751076Ab3AXHfw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Jan 2013 02:35:52 -0500
-Content-Disposition: inline
-In-Reply-To: <20130123201031.GF23057@blackmetal.musicnaut.iki.fi>
+	id S1751076Ab3AXHin (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Jan 2013 02:38:43 -0500
+In-Reply-To: <1358964529-4905-1-git-send-email-matthias.bgg@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Felipe Balbi <balbi@ti.com>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, eballetbo@gmail.com, javier.martinez@collabora.co.uk, ezequiel.garcia@free-electrons.com, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
 
---eJnRUKwClWJh1Khz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi
 
-HI,
+On Wed, 23 Jan 2013 19:08:49 +0100
+Matthias Brugger <matthias.bgg@gmail.com> wrote:
 
-On Wed, Jan 23, 2013 at 10:10:31PM +0200, Aaro Koskinen wrote:
-> Hi,
->=20
-> Some minor comments/questions:
->=20
-> On Wed, Jan 23, 2013 at 12:23:07PM +0200, Felipe Balbi wrote:
-> > @@ -639,31 +630,37 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *=
-adap,
-> >  		dev_err(dev->dev, "controller timed out\n");
-> >  		omap_i2c_reset(dev);
-> >  		__omap_i2c_init(dev);
-> > -		return -ETIMEDOUT;
-> > +		ret =3D -ETIMEDOUT;
-> > +		goto out;
-> >  	}
-> > =20
-> > -	if (likely(!dev->cmd_err))
-> > -		return 0;
-> > -
-> >  	/* We have an error */
-> >  	if (dev->cmd_err & (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
-> >  			    OMAP_I2C_STAT_XUDF)) {
-> >  		omap_i2c_reset(dev);
-> >  		__omap_i2c_init(dev);
-> > -		return -EIO;
-> > +		ret =3D -EIO;
-> > +		goto out;
->=20
-> Why change return to goto on these paths? If you reset and re-initialize
-> the controller, I think it's unlikely that omap_i2c_wait_for_ardy()
-> will ever succeed?
+> @@ -1020,7 +1038,7 @@ static void omap2_mcspi_work(struct omap2_mcspi *mcspi, struct spi_message *m)
+>  }
+>  
+>  static int omap2_mcspi_transfer_one_message(struct spi_master *master,
+> -						struct spi_message *m)
+> +		struct spi_message *m)
+>  {
+>  	struct omap2_mcspi	*mcspi;
+>  	struct spi_transfer	*t;
+> @@ -1041,7 +1059,7 @@ static int omap2_mcspi_transfer_one_message(struct spi_master *master,
+>  				|| (len && !(rx_buf || tx_buf))
+>  				|| (t->bits_per_word &&
+>  					(  t->bits_per_word < 4
+> -					|| t->bits_per_word > 32))) {
+> +					   || t->bits_per_word > 32))) {
+>  			dev_dbg(mcspi->dev, "transfer: %d Hz, %d %s%s, %d bpw\n",
+>  					t->speed_hz,
+>  					len,
 
-good catch, I'll update.
+Just a sidenote but these indentation changes should go to another patch as they count about half of the lines.
 
---=20
-balbi
-
---eJnRUKwClWJh1Khz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRAOQ9AAoJEIaOsuA1yqREBm0QAKqVfohm35FxZk28sAb1WVcO
-Xt3BNkryZQMqJeMOSLCUhExkVzFBDzhs5Tkm29kKHuo3fYZvyV+1fuYsHQEl/Q9N
-zSPR3OsRpRPHsoBLMoU43P0m58opkzcpnYwoXGZAkMjvNVUlXzwkTYAyKzaNERq2
-OVXYOvNk2M41E1eUl0oJ3rd6b7sMA2C09a72mtpLxWNdAMSgq5JQa8NfdN2lQ6Ug
-MeDAhKcc02kevRBkdf0wM7oLyVGrtm/gYLc26rXhf+YjmeuTb/LvzUKr1s2qjwUl
-6Xr6lhb6ztczjyi47BRKFO11zgZ/aDlp8S5r83yoW8TolzUeVEWmNZ+SWMISG4bl
-l/7iNofJPvUqyUrPmWnqU3DPE9QKdBLiP84mZX3L28V1hPJ3bPtjRriLU1BpaNZK
-uLioEj4EME3I7SSV2Ybnjq2RJO0ArESVX599y/Vr3ZyQ+s/2xXvz7CDzHmqEqu84
-pRv3sRvmzu/TWuxbEfl/H5Ap/qWZOYkIxi3rKnklXUOKhdvD9mWr8753/QoVwvGa
-9oaemny3A7IbJ5GqEajYA2K/0JuwP6BYYsePtawawtzdbsAgGP74qcKBgkDjHsNw
-AmaRS+2nkb5fFgiDQkoVP4yYjiXlqv0oK1A0rbR+UZdRAvrmsVPe+/fcLvK2nqLd
-GfuA50MT287FU/LoCmVq
-=tCS7
------END PGP SIGNATURE-----
-
---eJnRUKwClWJh1Khz--
+-- 
+Jarkko
