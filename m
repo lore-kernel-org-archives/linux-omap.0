@@ -1,124 +1,68 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 01/32] usb: gadget: udc-core: allow udc class register gadget device
-Date: Thu, 24 Jan 2013 17:45:39 +0200
-Message-ID: <1359042370-4358-2-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [RFC/PATCH 03/32] usb: musb: gadget: let udc-core manage gadget-dev
+Date: Thu, 24 Jan 2013 17:45:41 +0200
+Message-ID: <1359042370-4358-4-git-send-email-balbi@ti.com>
 References: <1359042370-4358-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1359042370-4358-1-git-send-email-balbi@ti.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Linux USB Mailing List <linux-usb@vger.kernel.org>
-Cc: alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, leoli@freescale.com, eric.y.miao@gmail.com, linux@arm.linux.org.uk, haojian.zhuang@gmail.com, ben-linux@fluff.org, kgene.kim@samsung.com, kuninori.morimoto.gx@renesas.com, yoshihiro.shimoda.uh@renesas.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1359042370-4358-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dahlmann.thomas-KvP5wT2u2U0@public.gmane.org, nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org, leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org, eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-geode-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently all UDC drivers are calling
-device_register() before calling
-usb_add_gadget_udc(). In order to avoid
-code duplication, we can allow udc-core.c
-register that device.
+By simply setting a flag, we can delete a little
+boilerplate code.
 
-However that would become a really large patch,
-so to cope with the meanwhile and allow us
-to write bite-sized patches, we're adding
-a flag which will be set by UDC driver once
-it removes the code for registering the
-gadget device.
-
-Once all are converted, the new flag will
-be removed.
-
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/gadget/udc-core.c | 23 +++++++++++++++++++----
- include/linux/usb/gadget.h    |  4 ++++
- 2 files changed, 23 insertions(+), 4 deletions(-)
+ drivers/usb/musb/musb_gadget.c | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff --git a/drivers/usb/gadget/udc-core.c b/drivers/usb/gadget/udc-core.c
-index 2a9cd36..9195054 100644
---- a/drivers/usb/gadget/udc-core.c
-+++ b/drivers/usb/gadget/udc-core.c
-@@ -173,6 +173,14 @@ int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget)
- 	if (!udc)
- 		goto err1;
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+index 8767874..1c4a8e8 100644
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -1871,12 +1871,11 @@ int musb_gadget_setup(struct musb *musb)
+ 	musb->g.speed = USB_SPEED_UNKNOWN;
  
-+	if (gadget->register_my_device) {
-+		dev_set_name(&gadget->dev, "gadget");
-+
-+		ret = device_register(&gadget->dev);
-+		if (ret)
-+			goto err2;
-+	}
-+
- 	device_initialize(&udc->dev);
- 	udc->dev.release = usb_udc_release;
- 	udc->dev.class = udc_class;
-@@ -180,7 +188,7 @@ int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget)
- 	udc->dev.parent = parent;
- 	ret = dev_set_name(&udc->dev, "%s", kobject_name(&parent->kobj));
- 	if (ret)
--		goto err2;
-+		goto err3;
+ 	/* this "gadget" abstracts/virtualizes the controller */
+-	dev_set_name(&musb->g.dev, "gadget");
+ 	musb->g.dev.parent = musb->controller;
+ 	musb->g.dev.dma_mask = musb->controller->dma_mask;
+ 	musb->g.dev.release = musb_gadget_release;
+ 	musb->g.name = musb_driver_name;
+-
++	musb->g.register_my_device = true;
+ 	musb->g.is_otg = 1;
  
- 	udc->gadget = gadget;
+ 	musb_g_init_endpoints(musb);
+@@ -1884,11 +1883,6 @@ int musb_gadget_setup(struct musb *musb)
+ 	musb->is_active = 0;
+ 	musb_platform_try_idle(musb, 0);
  
-@@ -189,18 +197,22 @@ int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget)
- 
- 	ret = device_add(&udc->dev);
- 	if (ret)
--		goto err3;
-+		goto err4;
- 
- 	mutex_unlock(&udc_lock);
- 
- 	return 0;
--err3:
-+
-+err4:
- 	list_del(&udc->list);
- 	mutex_unlock(&udc_lock);
- 
--err2:
-+err3:
- 	put_device(&udc->dev);
- 
-+err2:
-+	if (gadget->register_my_device)
-+		put_device(&gadget->dev);
- err1:
- 	return ret;
+-	status = device_register(&musb->g.dev);
+-	if (status != 0) {
+-		put_device(&musb->g.dev);
+-		return status;
+-	}
+ 	status = usb_add_gadget_udc(musb->controller, &musb->g);
+ 	if (status)
+ 		goto err;
+@@ -1903,8 +1897,6 @@ err:
+ void musb_gadget_cleanup(struct musb *musb)
+ {
+ 	usb_del_gadget_udc(&musb->g);
+-	if (musb->g.dev.parent)
+-		device_unregister(&musb->g.dev);
  }
-@@ -254,6 +266,9 @@ found:
  
- 	kobject_uevent(&udc->dev.kobj, KOBJ_REMOVE);
- 	device_unregister(&udc->dev);
-+
-+	if (gadget->register_my_device)
-+		device_unregister(&gadget->dev);
- }
- EXPORT_SYMBOL_GPL(usb_del_gadget_udc);
- 
-diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-index 2e297e8..fcd9ef8 100644
---- a/include/linux/usb/gadget.h
-+++ b/include/linux/usb/gadget.h
-@@ -494,6 +494,9 @@ struct usb_gadget_ops {
-  *	only supports HNP on a different root port.
-  * @b_hnp_enable: OTG device feature flag, indicating that the A-Host
-  *	enabled HNP support.
-+ * @register_my_device: Flag telling udc-core that UDC driver didn't
-+ *	register the gadget device to the driver model. Temporary until
-+ *	all UDC drivers are fixed up properly.
-  * @name: Identifies the controller hardware type.  Used in diagnostics
-  *	and sometimes configuration.
-  * @dev: Driver model state for this abstract device.
-@@ -531,6 +534,7 @@ struct usb_gadget {
- 	unsigned			b_hnp_enable:1;
- 	unsigned			a_hnp_support:1;
- 	unsigned			a_alt_hnp_support:1;
-+	unsigned			register_my_device:1;
- 	const char			*name;
- 	struct device			dev;
- 	unsigned			out_epnum;
+ /*
 -- 
 1.8.1.rc1.5.g7e0651a
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
