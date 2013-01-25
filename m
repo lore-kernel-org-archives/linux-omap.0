@@ -1,76 +1,53 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
-Date: Fri, 25 Jan 2013 14:15:29 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA93A7D@DBDE01.ent.ti.com>
-References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
-	<1358894185-21617-2-git-send-email-robdclark@gmail.com>
-	<C8443D0743D26F4388EA172BF4E2A7A93EA939BB@DBDE01.ent.ti.com>
- <CAF6AEGsqkUr0R3eYa4P371tUPq_NLSJLhH=N_MkyJF31s068+g@mail.gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] ARM: omap2: gpmc: Remove unneeded of_node_put()
+Date: Fri, 25 Jan 2013 08:18:11 -0600
+Message-ID: <51029423.2040106@ti.com>
+References: <1359116387-32613-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40936 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:41067 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932509Ab3AYOPi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 09:15:38 -0500
-In-Reply-To: <CAF6AEGsqkUr0R3eYa4P371tUPq_NLSJLhH=N_MkyJF31s068+g@mail.gmail.com>
-Content-Language: en-US
+	with ESMTP id S932347Ab3AYOSU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 09:18:20 -0500
+In-Reply-To: <1359116387-32613-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <robdclark@gmail.com>
-Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@linaro.org" <patches@linaro.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, "Nori, Sekhar" <nsekhar@ti.com>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: linux-omap@vger.kernel.org, mark.rutland@arm.com, linux-arm-kernel@lists.infradead.org, zonque@gmail.com, tony@atomide.com, matthias.bgg@googlemail.com
 
-SGkgUm9iLA0KDQpPbiBGcmksIEphbiAyNSwgMjAxMyBhdCAxOToyOTo0MCwgUm9iIENsYXJrIHdy
-b3RlOg0KPiBPbiBGcmksIEphbiAyNSwgMjAxMyBhdCA3OjE5IEFNLCBNb2hhbW1lZCwgQWZ6YWwg
-PGFmemFsQHRpLmNvbT4gd3JvdGU6DQo+ID4gT24gV2VkLCBKYW4gMjMsIDIwMTMgYXQgMDQ6MDY6
-MjIsIFJvYiBDbGFyayB3cm90ZToNCg0KPiA+PiBBIHNpbXBsZSBEUk0vS01TIGRyaXZlciBmb3Ig
-dGhlIFRJIExDRCBDb250cm9sbGVyIGZvdW5kIGluIHZhcmlvdXMNCj4gPj4gc21hbGxlciBUSSBw
-YXJ0cyAoQU0zM3h4LCBPTUFQTDEzOCwgZXRjKS4gIFRoaXMgZHJpdmVyIHVzZXMgdGhlDQoNCj4g
-Pj4gK3ZvaWQgdGlsY2RjX2NydGNfdXBkYXRlX2NsayhzdHJ1Y3QgZHJtX2NydGMgKmNydGMpDQo+
-ID4NCj4gPj4gKyAgICAgLyogaW4gcmFzdGVyIG1vZGUsIG1pbmltdW0gZGl2aXNvciBpcyAyOiAq
-Lw0KPiA+PiArICAgICByZXQgPSBjbGtfc2V0X3JhdGUocHJpdi0+ZGlzcF9jbGssIGNydGMtPm1v
-ZGUuY2xvY2sgKiAxMDAwICogMik7DQoNCj4gPiBUaGVzZSB0aGluZ3MgY2FuIGJldHRlciBiZSBo
-YW5kbGVkIHdpdGggZGl2aWRlciBjbG9jayBoYXZpbmcgYQ0KPiA+IG1pbmltdW0gdmFsdWUgKGJl
-aW5nIGRpc2N1c3NlZCB3aXRoIE1pa2Ugb24gaG93IGV4YWN0bHkgaXQgc2hvdWxkDQo+ID4gYmUp
-IGFuZCBpbnN0ZWFkIG9mIHNldHRpbmcgcmF0ZSBvdmVyIGEgcGxhdGZvcm0gc3BlY2lmaWMgY2xv
-Y2ssDQo+ID4geW91IGNhbiBzZXQgcmF0ZSBvdmVyIGxjZCBjbG9jayB1c2luZyBTRVRfUkFURV9Q
-QVJFTlQgYXQgcGxhdGZvcm0NCj4gPiBsZXZlbCwgbW9yZSBiZWxvdywNCg0KPiBJIGxvb2tlZCBh
-dCB0aGF0IHBhdGNoIHlvdSB3ZXJlIHByb3Bvc2luZyBmb3IgZGE4eHgtZmIuLiAgdG8gYmUNCj4g
-aG9uZXN0LCBpdCBkaWQgbm90IHNlZW0gc2ltcGxlciB0byBtZSwgc28gSSB3YXMgc29ydCBvZiBm
-YWlsaW5nIHRvIHNlZQ0KPiB0aGUgYmVuZWZpdC4uDQoNCkl0J3Mgbm90IGFib3V0IGJlaW5nIHNp
-bXBsZSwgYnV0IG5vdCBkb2luZyB0aGUgd3Jvbmcgd2F5LCBoZXJlIHlvdSBhcmUNCnJlbHlpbmcg
-b24gYSBwbGF0Zm9ybSBzcGVjaWZpYyBjbG9jayBpbiBhIGRyaXZlciwgdGhpbmsgYWJvdXQgdGhl
-IGNhc2UNCndoZXJlIHNhbWUgSVAgaXMgdXNlZCBvbiBhbm90aGVyIHBsYXRmb3JtLiBFaXRoZXIg
-d2F5IGl0IGlzIG5vdCBhIGdvb2QNCnRoaW5nIHRvIGhhbmRsZSBwbGF0Zm9ybSBzcGVjaWZpYyBk
-ZXRhaWxzIChhYm91dCBkaXNwX2NsaykgaW4gZHJpdmVyLg0KDQpBbmQgTWlrZSBtZW50aW9uZWQg
-dGhhdCBvbmUgb2YgZGVzaWduIGdvYWxzIG9mIENDRiBpcyB0byBtb2RlbCB0aGVzZQ0Ka2luZHMg
-b2YgY2xvY2tzIGluIElQJ3MuDQoNCj4gPj4gKyAgICAgLyogQ29uZmlndXJlIHRoZSBMQ0QgY2xv
-Y2sgZGl2aXNvci4gKi8NCj4gPj4gKyAgICAgdGlsY2RjX3dyaXRlKGRldiwgTENEQ19DVFJMX1JF
-RywgTENEQ19DTEtfRElWSVNPUihkaXYpIHwNCj4gPj4gKyAgICAgICAgICAgICAgICAgICAgIExD
-RENfUkFTVEVSX01PREUpOw0KPiA+PiArDQo+ID4+ICsgICAgIGlmIChwcml2LT5yZXYgPT0gMikN
-Cj4gPj4gKyAgICAgICAgICAgICB0aWxjZGNfc2V0KGRldiwgTENEQ19DTEtfRU5BQkxFX1JFRywN
-Cj4gPj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTENEQ19WMl9ETUFfQ0xLX0VOIHwg
-TENEQ19WMl9MSUREX0NMS19FTiB8DQo+ID4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IExDRENfVjJfQ09SRV9DTEtfRU4pOw0KPiA+DQo+ID4gTWlrZSB3YXMgc3VnZ2VzdGluZyB0byBt
-b2RlbCB0aGUgYWJvdmUgdXNpbmcgZ2F0ZS9kaXZpZGVyL2NvbXBvc2l0ZQ0KPiA+IGNsb2NrcyBv
-ZiBDQ0YgaW4gdGhlIEZCIGRyaXZlci4NCg0KPiA+PiArICAgICBwcml2LT5jbGsgPSBjbGtfZ2V0
-KGRldi0+ZGV2LCAiZmNrIik7DQo+ID4+ICsgICAgIGlmIChJU19FUlIocHJpdi0+Y2xrKSkgew0K
-PiA+PiArICAgICAgICAgICAgIGRldl9lcnIoZGV2LT5kZXYsICJmYWlsZWQgdG8gZ2V0IGZ1bmN0
-aW9uYWwgY2xvY2tcbiIpOw0KPiA+PiArICAgICAgICAgICAgIHJldCA9IC1FTk9ERVY7DQo+ID4+
-ICsgICAgICAgICAgICAgZ290byBmYWlsOw0KPiA+PiArICAgICB9DQo+ID4+ICsNCj4gPj4gKyAg
-ICAgcHJpdi0+ZGlzcF9jbGsgPSBjbGtfZ2V0KGRldi0+ZGV2LCAiZHBsbF9kaXNwX2NrIik7DQo+
-ID4+ICsgICAgIGlmIChJU19FUlIocHJpdi0+Y2xrKSkgew0KPiA+PiArICAgICAgICAgICAgIGRl
-dl9lcnIoZGV2LT5kZXYsICJmYWlsZWQgdG8gZ2V0IGRpc3BsYXkgY2xvY2tcbiIpOw0KPiA+PiAr
-ICAgICAgICAgICAgIHJldCA9IC1FTk9ERVY7DQo+ID4+ICsgICAgICAgICAgICAgZ290byBmYWls
-Ow0KPiA+PiArICAgICB9DQo+ID4NCj4gPiAiZHBsbF9kaXNwX2NrIiBpcyBhIHBsYXRmb3JtIHNw
-ZWNpZmljIG1hdHRlciwgZHJpdmVyIHNob3VsZCBub3QNCj4gPiBiZSBoYW5kbGluZyBwbGF0Zm9y
-bSBzcGVjaWZpY3MuIEFuZCB0aGlzIHdvbid0IHdvcmsgb24gRGFWaW5jaSwNCj4gPiB5b3UgY2Fu
-IHByb2JhYmx5IG1ha2UgdXNlIG9mDQo+IA0KPiBtZWFuaW5nIHRoZSBjbG9jayBoYXMgYSBkaWZm
-ZXJlbnQgbmFtZSBvbiBkYXZpbmNpLCBvcj8gIFByZXN1bWFibHkNCj4gdGhlcmUgbXVzdCBiZSBz
-b21lIGNsb2NrIGdlbmVyYXRpbmcgdGhlIHBpeGVsIGNsb2NrIGZvciB0aGUgZGlzcGxheSwNCj4g
-YnV0IEkgY29uZmVzcyB0byBub3QgYmVpbmcgdG9vIGZhbWlsaWFyIHdpdGggdGhlIGRldGFpbHMg
-b24gZGF2aW5jaS4uDQoNClRoZSBvbmx5IG9wdGlvbiBmb3IgdGhlIGRyaXZlciBpbiBEYVZpbmNp
-IGlzIHRvIGNvbmZpZ3VyZSBjbG9jayByYXRlDQp1c2luZyB0aGUgZGl2aWRlciBvZiBMQ0RDIElQ
-LCBpdCBoYXMgImZjayIsIHdoaWNoIGdpdmVzIGEgcmF0ZQ0KZGVjaWRlZCBieSBpdHMgYW5jZXN0
-b3JzLg0KDQpSZWdhcmRzDQpBZnphbA0K
+
+On 01/25/2013 06:19 AM, Ezequiel Garcia wrote:
+> for_each_node_by_name() automatically calls of_node_put() on each
+> node passed; so don't do it explicitly unless there's an error.
+> 
+> Reported-by: Mark Rutland <mark.rutland@arm.com>
+> Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+> ---
+>  arch/arm/mach-omap2/gpmc.c |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 01ce462..c6255f7 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1271,9 +1271,10 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+>  
+>  	for_each_node_by_name(child, "nand") {
+>  		ret = gpmc_probe_nand_child(pdev, child);
+> -		of_node_put(child);
+> -		if (ret < 0)
+> +		if (ret < 0) {
+> +			of_node_put(child);
+>  			return ret;
+> +		}
+>  	}
+>  
+>  	return 0;
+> 
+
+Acked-by: Jon Hunter <jon-hunter@ti.com>
+
+Thanks!
+Jon
