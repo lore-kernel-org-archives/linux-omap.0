@@ -1,98 +1,40 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v4 1/4] drivers: usb: phy: add a new driver for usb
- part of control module
-Date: Fri, 25 Jan 2013 17:08:45 +0000
-Message-ID: <20130125170845.GE16795@e106331-lin.cambridge.arm.com>
-References: <1359109440-2195-1-git-send-email-kishon@ti.com>
- <1359109440-2195-2-git-send-email-kishon@ti.com>
- <20130125110141.GK3075@e106331-lin.cambridge.arm.com>
- <20130125111120.GP15886@arwen.pp.htv.fi>
- <20130125122943.GB16795@e106331-lin.cambridge.arm.com>
- <20130125145928.GC28379@arwen.pp.htv.fi>
- <20130125161401.GD16795@e106331-lin.cambridge.arm.com>
- <20130125162346.GM28379@arwen.pp.htv.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 5/5] wlcore: move wl12xx_platform_data up and make
+ it truly optional
+Date: Fri, 25 Jan 2013 09:09:03 -0800
+Message-ID: <20130125170903.GZ22517@atomide.com>
+References: <1358952038-5982-6-git-send-email-coelho@ti.com>
+ <1359108334-18459-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:51018 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757579Ab3AYRIx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 12:08:53 -0500
-In-Reply-To: <20130125162346.GM28379@arwen.pp.htv.fi>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1359108334-18459-1-git-send-email-coelho@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: linux-wireless@vger.kernel.org, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "tony@atomide.com" <tony@atomide.com>, "b-cousson@ti.com" <b-cousson@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
 
-On Fri, Jan 25, 2013 at 04:23:46PM +0000, Felipe Balbi wrote:
-> Hi,
+* Luciano Coelho <coelho@ti.com> [130125 02:09]:
+> The platform data is used not only by wlcore-based drivers, but also
+> by wl1251.  Move it up in the directory hierarchy to reflect this.
 > 
-> On Fri, Jan 25, 2013 at 04:14:02PM +0000, Mark Rutland wrote:
-> > On Fri, Jan 25, 2013 at 02:59:28PM +0000, Felipe Balbi wrote:
-> > > Hi,
-> > > 
-> > > On Fri, Jan 25, 2013 at 12:29:43PM +0000, Mark Rutland wrote:
-> > > > > > > +   depending upon omap4 or omap5.
-> > > > > > > + - reg-names: The names of the register addresses corresponding to the registers
-> > > > > > > +   filled in "reg".
-> > > > > > > + - ti,type: This is used to differentiate whether the control module has
-> > > > > > > +   usb mailbox or usb3 phy power. omap4 has usb mailbox in control module to
-> > > > > > > +   notify events to the musb core and omap5 has usb3 phy power register to
-> > > > > > > +   power on usb3 phy. Should be "1" if it has mailbox and "2" if it has usb3
-> > > > > > > +   phy power.
-> > > > > > 
-> > > > > > Why not make this a string property, perhaps values "mailbox" or "register"?
-> > > > > 
-> > > > > NAK.
-> > > > 
-> > > > Can I ask what your objection to using a string property is?
-> > > > 
-> > > > As far as I can see, "ti,type" is only used by this driver, so there's no
-> > > > common convention to stick to. Using a string makes the binding easier for
-> > > > humans to read, and thus harder to mess up in a dts, and it decouples the
-> > > > binding from kernel-side constants.
-> > > 
-> > > IIRC there is some work going on to add #define-like support for DT,
-> > > which would allow us to match against integers while still having
-> > > meaningful symbolic representations.
-> > 
-> > I was under the impression that the motivation for using the preprocessor on
-> > the DT was to allow symbolic names for device/soc-specific values like
-> > addresses, rather than what amounts to ABI values for the binding.
-> > 
-> > I don't see the point in building a binding that depends on future
-> > functionality to be legible, especially as we can make it more readable,
-> > robust, and just as extensible today, with a simple change to the proposed
-> > binding.
-> > 
-> > Even ignoring the above, the driver isn't doing appropriate sanity checking.
-> > If you use a string property, this sanity check is implicit in the parsing --
-> > you've either matched a value you can handle or you haven't.
+> Additionally, make it truly optional.  At the moment, disabling
+> platform data while wl1251_sdio or wlcore_sdio are enabled doesn't
+> work, but it will be necessary when device tree support is
+> implemented.
 > 
-> Even IRQs use numbers (not talking about the IRQ number, but the IRQ
-> flags), why would we depend on string comparisson ? It doesn't make
-> sense.
+> Signed-off-by: Luciano Coelho <coelho@ti.com>
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
+> ---
+> 
+> In v2:
+>    * Fix ti/Makefile
+>    * Modify board_omap3evm.c which was still using the old Kconfig define
+> 
+> Tony, is it okay if I add this change in the omap3evm board in this
+> patch and queue it via wireless so that the whole thing is in sync?
 
-When describing interrupts, the flags are associated with the interrupt number,
-and don't really make sense on their own. devicetree does not allow you to mix
-strings and integers in a value, so you'd never be able to encode irq flags
-with strings without completely breaking away from the way ePAPR describes how
-to encode interrupts.
+OK, this should not cause additional merge conflicts:
 
-By using a string property, the binding is self-describing and easy for humans
-to read and verify. It doesn't add a large overhead to either the driver or the
-dts, and is no worse (possibly better) for future extension of bindings to
-support new device variants while retaining backwards compatibility.
-
-See the standard "status" property, which is string encoded. This would still
-work were it an integer-encoded enumeration. Having it as a string makes the
-meaning clear to a reader of the dts, and it's trivial for code to deal with.
-
-I don't understand why you think encoding a more legible value in the dt does
-not make sense.
-
-Thanks,
-Mark.
-
+Acked-by: Tony Lindgren <tony@atomide.com> 
