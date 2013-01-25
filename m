@@ -1,113 +1,86 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: Re: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
-Date: Fri, 25 Jan 2013 08:52:55 -0600
-Message-ID: <CAF6AEGtrHBxvnp052K6z3aj3dAxJf1hy7H72EoAWr6PhTtwr8Q@mail.gmail.com>
-References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
-	<1358894185-21617-2-git-send-email-robdclark@gmail.com>
-	<C8443D0743D26F4388EA172BF4E2A7A93EA939BB@DBDE01.ent.ti.com>
-	<CAF6AEGsqkUr0R3eYa4P371tUPq_NLSJLhH=N_MkyJF31s068+g@mail.gmail.com>
-	<C8443D0743D26F4388EA172BF4E2A7A93EA93A7D@DBDE01.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v4 1/4] drivers: usb: phy: add a new driver for usb part
+ of control module
+Date: Fri, 25 Jan 2013 16:59:28 +0200
+Message-ID: <20130125145928.GC28379@arwen.pp.htv.fi>
+References: <1359109440-2195-1-git-send-email-kishon@ti.com>
+ <1359109440-2195-2-git-send-email-kishon@ti.com>
+ <20130125110141.GK3075@e106331-lin.cambridge.arm.com>
+ <20130125111120.GP15886@arwen.pp.htv.fi>
+ <20130125122943.GB16795@e106331-lin.cambridge.arm.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f170.google.com ([209.85.220.170]:46707 "EHLO
-	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750887Ab3AYOw4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 09:52:56 -0500
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA93A7D@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="uh9ZiVrAOUUm9fzH"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130125122943.GB16795@e106331-lin.cambridge.arm.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "tony@atomide.com" <tony@atomide.com>, "b-cousson@ti.com" <b-cousson@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@linaro.org" <patches@linaro.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, "Nori, Sekhar" <nsekhar@ti.com>
 
-On Fri, Jan 25, 2013 at 8:15 AM, Mohammed, Afzal <afzal@ti.com> wrote:
-> Hi Rob,
->
-> On Fri, Jan 25, 2013 at 19:29:40, Rob Clark wrote:
->> On Fri, Jan 25, 2013 at 7:19 AM, Mohammed, Afzal <afzal@ti.com> wrote:
->> > On Wed, Jan 23, 2013 at 04:06:22, Rob Clark wrote:
->
->> >> A simple DRM/KMS driver for the TI LCD Controller found in various
->> >> smaller TI parts (AM33xx, OMAPL138, etc).  This driver uses the
->
->> >> +void tilcdc_crtc_update_clk(struct drm_crtc *crtc)
->> >
->> >> +     /* in raster mode, minimum divisor is 2: */
->> >> +     ret = clk_set_rate(priv->disp_clk, crtc->mode.clock * 1000 * 2);
->
->> > These things can better be handled with divider clock having a
->> > minimum value (being discussed with Mike on how exactly it should
->> > be) and instead of setting rate over a platform specific clock,
->> > you can set rate over lcd clock using SET_RATE_PARENT at platform
->> > level, more below,
->
->> I looked at that patch you were proposing for da8xx-fb..  to be
->> honest, it did not seem simpler to me, so I was sort of failing to see
->> the benefit..
->
-> It's not about being simple, but not doing the wrong way, here you are
-> relying on a platform specific clock in a driver, think about the case
-> where same IP is used on another platform. Either way it is not a good
-> thing to handle platform specific details (about disp_clk) in driver.
+--uh9ZiVrAOUUm9fzH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Right, but I was trying to understand what was the benefit that the
-added complexity is.  I didn't realize on davinci that you are limited
-to just setting divider values (which is going to drastically limit
-the timings you can generate, although maybe not an issue if all you
-support is a fixed lcd panel).
+Hi,
 
-> And Mike mentioned that one of design goals of CCF is to model these
-> kinds of clocks in IP's.
->
->> >> +     /* Configure the LCD clock divisor. */
->> >> +     tilcdc_write(dev, LCDC_CTRL_REG, LCDC_CLK_DIVISOR(div) |
->> >> +                     LCDC_RASTER_MODE);
->> >> +
->> >> +     if (priv->rev == 2)
->> >> +             tilcdc_set(dev, LCDC_CLK_ENABLE_REG,
->> >> +                             LCDC_V2_DMA_CLK_EN | LCDC_V2_LIDD_CLK_EN |
->> >> +                             LCDC_V2_CORE_CLK_EN);
->> >
->> > Mike was suggesting to model the above using gate/divider/composite
->> > clocks of CCF in the FB driver.
->
->> >> +     priv->clk = clk_get(dev->dev, "fck");
->> >> +     if (IS_ERR(priv->clk)) {
->> >> +             dev_err(dev->dev, "failed to get functional clock\n");
->> >> +             ret = -ENODEV;
->> >> +             goto fail;
->> >> +     }
->> >> +
->> >> +     priv->disp_clk = clk_get(dev->dev, "dpll_disp_ck");
->> >> +     if (IS_ERR(priv->clk)) {
->> >> +             dev_err(dev->dev, "failed to get display clock\n");
->> >> +             ret = -ENODEV;
->> >> +             goto fail;
->> >> +     }
->> >
->> > "dpll_disp_ck" is a platform specific matter, driver should not
->> > be handling platform specifics. And this won't work on DaVinci,
->> > you can probably make use of
->>
->> meaning the clock has a different name on davinci, or?  Presumably
->> there must be some clock generating the pixel clock for the display,
->> but I confess to not being too familiar with the details on davinci..
->
-> The only option for the driver in DaVinci is to configure clock rate
-> using the divider of LCDC IP, it has "fck", which gives a rate
-> decided by its ancestors.
+On Fri, Jan 25, 2013 at 12:29:43PM +0000, Mark Rutland wrote:
+> > > > +   depending upon omap4 or omap5.
+> > > > + - reg-names: The names of the register addresses corresponding to=
+ the registers
+> > > > +   filled in "reg".
+> > > > + - ti,type: This is used to differentiate whether the control modu=
+le has
+> > > > +   usb mailbox or usb3 phy power. omap4 has usb mailbox in control=
+ module to
+> > > > +   notify events to the musb core and omap5 has usb3 phy power reg=
+ister to
+> > > > +   power on usb3 phy. Should be "1" if it has mailbox and "2" if i=
+t has usb3
+> > > > +   phy power.
+> > >=20
+> > > Why not make this a string property, perhaps values "mailbox" or "reg=
+ister"?
+> >=20
+> > NAK.
+>=20
+> Can I ask what your objection to using a string property is?
+>=20
+> As far as I can see, "ti,type" is only used by this driver, so there's no
+> common convention to stick to. Using a string makes the binding easier for
+> humans to read, and thus harder to mess up in a dts, and it decouples the
+> binding from kernel-side constants.
 
-Well, from looking at the other patch series it seems CCF doesn't
-support minimum divider yet.  And davinci doesn't support CCF yet.  So
-at the moment all this discussion is a bit moot.  I'd propose leaving
-the driver as it is for now, because that at least makes it useful on
-am33xx.  And when CCF and davinci have the needed support in place,
-then send a patch to change the clock handling in tilcdc.  I don't
-actually have any davinci hw to test on, but I can easily test on
-am33xx.
+IIRC there is some work going on to add #define-like support for DT,
+which would allow us to match against integers while still having
+meaningful symbolic representations.
 
-BR,
--R
+--=20
+balbi
 
-> Regards
-> Afzal
+--uh9ZiVrAOUUm9fzH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRAp3QAAoJEIaOsuA1yqREH0UP/ReIIcy0pLxMRcsSYakc45nk
+vrqi7QpGU6moc2RIyqjpJXaxEG5HjMt+PXG/RXb1QDly/mXhlxKblHsME5ets4wP
+NAh+uSb1oMMyPhCsHFA0B1kgfbzbF3yKWXBI0YkyhP1aOkeUcSd5tXSKW3YIb3gp
+HoHRWvt7Er+MRMQxLklH7Si05eVD4Kf4WiMMq9fSbJjfV/DZOzF/gLyrlqBA36rh
+ui7bA6kZze04+Buj1LLqzrN6eBMT7YfhGIYgvkbNut7QsZzaEInF1k13sfWjfCSH
+rF4nHeKX6tADeJVqNVOFf1HzfPa3mwPznuKzgWrpxyR2Z8axWnHPbuW9WCjNURNh
+C1dyCmW7a2BIxLtRlBIJ8GtEB9He8/henfvfhct7jvoCLgaj2GeEb0+gidTUTnK2
+LPsHvkce+0HJ3quCPJLuIEVYN+FwMW+o5KTWmvSIYA2m2wVNhhuibuXJQZaRKDdA
+kUKDmloWANpxl8YpNorSOAywdUoiyB1pukfjECH5ZbZmrZnhglYUtvm8ElYFajKZ
+Djp+8cd9nJarDdOlmow45Q2XHTDMiOzpkKznpE9KGa6c0JiYH3ELPvnMsady+fEM
+V5H6k9t2V7r7HGbJ++gIuT1wKdmX0C131kr8RxU71HnyWPvBAhOU7mgSDoUqYymo
+QwIaG0K6Eh2s1OlB4u1s
+=YVg8
+-----END PGP SIGNATURE-----
+
+--uh9ZiVrAOUUm9fzH--
