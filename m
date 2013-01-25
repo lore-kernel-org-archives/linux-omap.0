@@ -1,88 +1,99 @@
 From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: RE: RE: [PATCH v2 1/2] clk: divider: prepare for minimum divider
-Date: Fri, 25 Jan 2013 14:35:24 -0800
-Message-ID: <20130125223524.10623.29375@quantum>
-References: <6dc1c48cac5b2646a55da3079afb72f88e40c3bc.1358937138.git.afzal@ti.com>
- <20130123214053.9205.49804@quantum>
- <C8443D0743D26F4388EA172BF4E2A7A93EA92ABC@DBDE01.ent.ti.com>
- <20130124170630.10623.78749@quantum>
- <C8443D0743D26F4388EA172BF4E2A7A93EA93851@DBDE01.ent.ti.com>
+Subject: Re: RE: RE: [PATCH v4 12/12] video: da8xx-fb: CCF clock divider handling
+Date: Fri, 25 Jan 2013 14:44:53 -0800
+Message-ID: <20130125224453.10623.74434@quantum>
+References: <cover.1358937685.git.afzal@ti.com>
+ <fa8dab522507e087d5a94bac13dda71544911707.1358937685.git.afzal@ti.com>
+ <20130123202204.9205.66575@quantum>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA92ADF@DBDE01.ent.ti.com>
+ <20130124170044.10623.45314@quantum>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA9383E@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA93851@DBDE01.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA9383E@DBDE01.ent.ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, paul@pwsan.com, rnayak@ti.com, b-cousson@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Mohammed, Afzal (2013-01-25 04:06:41)
+Quoting Mohammed, Afzal (2013-01-25 04:05:44)
 > Hi Mike,
 > 
-> On Thu, Jan 24, 2013 at 22:36:30, Mike Turquette wrote:
-> > Quoting Mohammed, Afzal (2013-01-24 03:29:15)
+> On Thu, Jan 24, 2013 at 22:30:44, Mike Turquette wrote:
+> > Quoting Mohammed, Afzal (2013-01-24 03:36:02)
 > 
-> > > It is a functional constraint: divider has 8 bits and it can have
-> > > all possible values (0 to 255) and divider value corresponds to
-> > > value set in the 8 bits. But depending on the modes the minimum
-> > > value that can be configured (to get display working) varies.
-> > > Eg. For raster mode (which the driver is presently supporting), it
-> > > can take a minimum value of 2, while in LIDD (LCD interface display
-> > > driver) mode it can take a min value of 1.
-> > > 
-> > > Here min rate is not a constraint w.r.t divider in LCDC IP, but
-> > > rather min divider.
+> > > So there are 3 - LIDD is actually not for present use case, CORE could
+> > > be clubbed with the divider to have a composite clock. And CORE is
+> > > in functional clock path and logically it's perfectly alright to have
+> > > the composite clock.
 > 
-> > Just so I understand correctly... you are saying that the functional
-> > constraint is not caused by the clock rate, but instead by the divider
-> > value?  For the different modes (raster vs LIDD) is the clock rate the
-> > same, or is the clock rate different?
+> > Some of the clock names are a bit generic, so a question that I'm going
+> > to repeat throughout my response: "is this clock only inside of your
+> > video IP ?"
 > 
-> > What is the clock output rate of the divider in raster mode?  What is
-> > the clock output rate of the divider in LIDD mode?
+> Yes these three clocks are inside LCDC IP.
 > 
-> Yes, functional constraint in caused by divider value.
+> > Regarding the CORE clock, is this only inside of your IP or are you
+> > referring to the SoC CORE clock which is driven by a DPLL and clocks
+> > DDR and many other peripherals (often MMC, UART, etc)?
 > 
-> clock output rate can defined for both modes as follows,
+> Sorry for the confusion, here CORE refers to clock inside LCDC IP. This
+> CORE should not be confused with CORE PLL. Actually I used CORE so that
+> it corresponds to the nomenclature in LCDC section of TRM.
 > 
-> p_clk (clock output rate) = lcd_clk (input clock rate) / div,
+> > Note that this is from my past experience with OMAP, and I'm making an
+> > assumption that the clock scheme between OMAP and Da Vinci/AM335x parts
+> > isn't very different.
 > 
-> to configure "div", we have r/w 8 bits, so div values can
-> range from 0-255,
+> Additional detail: DaVinci doesn't have these 3 clocks controls available,
+> so these three are required only on AM335x (which has IP version 2 )
 > 
-> And IP spec says value "0" and "1" should not be written, in
-> raster mode. Further it says if in LIDD mode it can have values
-> from 0-255, but effect of writing "0" is same as "1".
+> > Is there a public TRM I can look at?  It would help me understand this
+> > without having to ask you so many annoying questions ;)
+> 
+> No problem, http://www.ti.com/product/am3359
+> 
+> 
+> > > And now we are left with DMA, this is actually in the interface clock
+> > > path which driver in unaware. An option would be to have DMA clock
+> > > as child of CORE plus divider composite clock, even though logically
+> > > DMA can't be considered in the same path.
+> 
+> > Why is the driver unaware of the interface clk?  For instance OMAP3 had
+> > separate fclk and iclk for IPs and drivers would call clk_enable on
+> > both.  Or am I misunderstanding something?
+> 
+> HWMOD handles enabling those upon pm_runtime calls, HWMOD makes an alias
+> for main clock with "fck", but not for "ick", so currently "ick" is
+> unavailable for the driver, continued below ..
+> 
+> > In general I don't think the clock subtree should be modeled in a way
+> > that is convenient for software, but instead model the actual hardware.
+> > Trust me, if you don't model the actual hardware then you will be very
+> > confused when you come back and revisit this code in 6 months and can't
+> > remember why things are so weird looking.
+> 
+> Ok, then it seems an omap clock entry for con-id "ick" should be created
+> as follows (dpll_core_m4_ck supplies interface clock),
+> 
+> CLK("4830e000.lcdc",    "ick",          &dpll_core_m4_ck,       CK_AM33XX)
+> 
+> And then in the driver, DMA gate clock should be made a child of this clock
+> (obtained with con-id "ick").
+> 
+> Let me know your opinion on this.
 > 
 
-Afzal,
-
-Thank you for the information.  In short, the way you program your clock
-depend on the configuration of your lcdc device.
-
-As such I am not sure the basic divider is the right choice for you.
-You might be better off creating a clock for your IP which takes into
-account these details.  Luckily it is possible to inherit from the basic
-clock types and create a new type.
-
-An example of this is the MXS divider.  It uses the basic divider as a
-"parent class" and adds a busy bit.  This is a better approach than
-putting every feature into the basic divider type.  You can see how it
-was done in drivers/clk/mxs/clk-div.c
-
-Let me know what you think.
+I think Paul W. or someone on the TI side should weigh in on your clkdev
+entries.  My main point is that the actual tree should be modeled and
+clocks shouldn't be globbed together unnecessarily.  As mentioned in the
+other mail thread you might be better off making a divider for your LCDC
+IP block and modeling each node individually.
 
 Regards,
 Mike
 
-> Effect of divider value on output rate is in the same way for
-> both modes as per above expression (except for writing "0" in
-> LIDD mode).
-> 
-> The driver supports only raster mode.
-> 
 > Regards
 > Afzal
-> 
-> Note: link to trm has been mentioned in the earlier reply.
