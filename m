@@ -1,7 +1,8 @@
 From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 08/11] usb: dwc3-omap: stop using nop-usb-xceiv
-Date: Fri, 25 Jan 2013 08:30:52 +0530
-Message-ID: <1359082855-7404-9-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 02/11] usb: dwc3-omap: use of_platform API to create dwc3
+ core pdev
+Date: Fri, 25 Jan 2013 08:30:46 +0530
+Message-ID: <1359082855-7404-3-git-send-email-kishon@ti.com>
 References: <1359082855-7404-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,119 +23,114 @@ To: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880jo
 Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Now that we have drivers for omap-usb2 phy and omap-usb3 phy, stop
-using nop-usb-xceiv.
+Used of_platform_populate() to create dwc3 core platform_device
+from device tree data.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/dwc3/dwc3-omap.c |   67 ------------------------------------------
- 1 file changed, 67 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c |   40 ++++++++++------------------------------
+ 1 file changed, 10 insertions(+), 30 deletions(-)
 
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 4e96fbe..0c62e28 100644
+index 1d03a8a..78bb2f6 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -52,7 +52,6 @@
- #include <linux/of_platform.h>
+@@ -47,6 +47,7 @@
+ #include <linux/ioport.h>
+ #include <linux/io.h>
+ #include <linux/of.h>
++#include <linux/of_platform.h>
  
  #include <linux/usb/otg.h>
--#include <linux/usb/nop-usb-xceiv.h>
- 
- #include "core.h"
- 
-@@ -119,8 +118,6 @@ struct dwc3_omap {
+ #include <linux/usb/nop-usb-xceiv.h>
+@@ -133,7 +134,6 @@ struct dwc3_omap {
  	/* device lock */
  	spinlock_t		lock;
  
--	struct platform_device	*usb2_phy;
--	struct platform_device	*usb3_phy;
+-	struct platform_device	*dwc3;
+ 	struct platform_device	*usb2_phy;
+ 	struct platform_device	*usb3_phy;
  	struct device		*dev;
+@@ -276,7 +276,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 	struct dwc3_omap_data	*pdata = pdev->dev.platform_data;
+ 	struct device_node	*node = pdev->dev.of_node;
  
- 	int			irq;
-@@ -195,60 +192,6 @@ void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
- }
- EXPORT_SYMBOL_GPL(dwc3_omap_mailbox);
- 
--static int dwc3_omap_register_phys(struct dwc3_omap *omap)
--{
--	struct nop_usb_xceiv_platform_data pdata;
--	struct platform_device	*pdev;
--	int			ret;
--
--	memset(&pdata, 0x00, sizeof(pdata));
--
--	pdev = platform_device_alloc("nop_usb_xceiv", 0);
--	if (!pdev)
--		return -ENOMEM;
--
--	omap->usb2_phy = pdev;
--	pdata.type = USB_PHY_TYPE_USB2;
--
--	ret = platform_device_add_data(omap->usb2_phy, &pdata, sizeof(pdata));
--	if (ret)
--		goto err1;
--
--	pdev = platform_device_alloc("nop_usb_xceiv", 1);
--	if (!pdev) {
--		ret = -ENOMEM;
--		goto err1;
--	}
--
--	omap->usb3_phy = pdev;
--	pdata.type = USB_PHY_TYPE_USB3;
--
--	ret = platform_device_add_data(omap->usb3_phy, &pdata, sizeof(pdata));
--	if (ret)
--		goto err2;
--
--	ret = platform_device_add(omap->usb2_phy);
--	if (ret)
--		goto err2;
--
--	ret = platform_device_add(omap->usb3_phy);
--	if (ret)
--		goto err3;
--
--	return 0;
--
--err3:
--	platform_device_del(omap->usb2_phy);
--
--err2:
--	platform_device_put(omap->usb3_phy);
--
--err1:
--	platform_device_put(omap->usb2_phy);
--
--	return ret;
--}
--
- static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
- {
- 	struct dwc3_omap	*omap = _omap;
-@@ -358,12 +301,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 		return -ENOMEM;
+-	struct platform_device	*dwc3;
+ 	struct dwc3_omap	*omap;
+ 	struct resource		*res;
+ 	struct device		*dev = &pdev->dev;
+@@ -323,30 +322,19 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 		return ret;
  	}
  
--	ret = dwc3_omap_register_phys(omap);
--	if (ret) {
--		dev_err(dev, "couldn't register PHYs\n");
--		return ret;
+-	dwc3 = platform_device_alloc("dwc3", PLATFORM_DEVID_AUTO);
+-	if (!dwc3) {
+-		dev_err(dev, "couldn't allocate dwc3 device\n");
+-		return -ENOMEM;
 -	}
 -
  	context = devm_kzalloc(dev, resource_size(res), GFP_KERNEL);
  	if (!context) {
  		dev_err(dev, "couldn't allocate dwc3 context memory\n");
-@@ -447,10 +384,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+-		goto err2;
++		return -ENOMEM;
+ 	}
+ 
+ 	spin_lock_init(&omap->lock);
+-	dma_set_coherent_mask(&dwc3->dev, dev->coherent_dma_mask);
+ 
+-	dwc3->dev.parent = dev;
+-	dwc3->dev.dma_mask = dev->dma_mask;
+-	dwc3->dev.dma_parms = dev->dma_parms;
+ 	omap->resource_size = resource_size(res);
+ 	omap->context	= context;
+ 	omap->dev	= dev;
+ 	omap->irq	= irq;
+ 	omap->base	= base;
+-	omap->dwc3	= dwc3;
+ 
+ 	reg = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
+ 
+@@ -391,7 +379,7 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 	if (ret) {
+ 		dev_err(dev, "failed to request IRQ #%d --> %d\n",
+ 				omap->irq, ret);
+-		goto err2;
++		return ret;
+ 	}
+ 
+ 	/* enable all IRQs */
+@@ -410,24 +398,16 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 
+ 	dwc3_omap_writel(omap->base, USBOTGSS_IRQENABLE_SET_1, reg);
+ 
+-	ret = platform_device_add_resources(dwc3, pdev->resource,
+-			pdev->num_resources);
+-	if (ret) {
+-		dev_err(dev, "couldn't add resources to dwc3 device\n");
+-		goto err2;
+-	}
+-
+-	ret = platform_device_add(dwc3);
+-	if (ret) {
+-		dev_err(dev, "failed to register dwc3 device\n");
+-		goto err2;
++	if (node) {
++		ret = of_platform_populate(node, NULL, NULL, dev);
++		if (ret) {
++			dev_err(&pdev->dev,
++				"failed to add create dwc3 core\n");
++			return ret;
++		}
+ 	}
+ 
+ 	return 0;
+-
+-err2:
+-	platform_device_put(dwc3);
+-	return ret;
+ }
  
  static int dwc3_omap_remove(struct platform_device *pdev)
- {
--	struct dwc3_omap	*omap = platform_get_drvdata(pdev);
--
--	platform_device_unregister(omap->usb2_phy);
--	platform_device_unregister(omap->usb3_phy);
- 	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 	device_for_each_child(&pdev->dev, NULL, dwc3_omap_remove_core);
 -- 
 1.7.9.5
