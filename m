@@ -1,246 +1,88 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 2/6] usb: otg: utils: add facilities in phy lib to
- support multiple PHYs of same type
-Date: Fri, 25 Jan 2013 15:34:22 +0200
-Message-ID: <510289DE.5040403@ti.com>
-References: <1359081206-5602-1-git-send-email-kishon@ti.com> <1359081206-5602-3-git-send-email-kishon@ti.com>
+From: Rob Clark <robdclark@gmail.com>
+Subject: Re: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
+Date: Fri, 25 Jan 2013 07:59:40 -0600
+Message-ID: <CAF6AEGsqkUr0R3eYa4P371tUPq_NLSJLhH=N_MkyJF31s068+g@mail.gmail.com>
+References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
+	<1358894185-21617-2-git-send-email-robdclark@gmail.com>
+	<C8443D0743D26F4388EA172BF4E2A7A93EA939BB@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1359081206-5602-3-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: tony@atomide.com, balbi@ti.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vc0-f179.google.com ([209.85.220.179]:55012 "EHLO
+	mail-vc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754935Ab3AYN7l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 08:59:41 -0500
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA939BB@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@linaro.org" <patches@linaro.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>
 
-On 01/25/2013 04:33 AM, Kishon Vijay Abraham I wrote:
-> In order to add support for multipe PHY's of the same type, new API's
-> for adding PHY and getting PHY has been added. Now the binding
-> information for the PHY and controller should be done in platform file
-> using usb_bind_phy API. And for getting a PHY, the device pointer of the
-> USB controller and an index should be passed. Based on the binding
-> information that is added in the platform file, usb_get_phy_dev will return the
-> appropriate PHY.
-> Already existing API's to add and get phy by type is not removed. These
-> API's are deprecated and will be removed once all the platforms start to
-> use the new API.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/usb/otg/otg.c   |  118 ++++++++++++++++++++++++++++++++++++++++++++++-
->  include/linux/usb/phy.h |   13 ++++++
->  2 files changed, 130 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
-> index 8e756d9..4bb4333 100644
-> --- a/drivers/usb/otg/otg.c
-> +++ b/drivers/usb/otg/otg.c
-> @@ -36,6 +36,24 @@ static struct usb_phy *__usb_find_phy(struct list_head *list,
->  	return ERR_PTR(-ENODEV);
->  }
->  
-> +static struct usb_phy *__usb_find_phy_dev(struct device *dev,
-> +	struct list_head *list, u8 index)
-> +{
-> +	struct usb_phy_bind *phy_bind = NULL;
-> +
-> +	list_for_each_entry(phy_bind, list, list) {
-> +		if (!(strcmp(phy_bind->dev_name, dev_name(dev))) &&
-> +				phy_bind->index == index) {
-> +			if (phy_bind->phy)
-> +				return phy_bind->phy;
-> +			else
-> +				return ERR_PTR(-EPROBE_DEFER);
-> +		}
-> +	}
-> +
-> +	return ERR_PTR(-ENODEV);
-> +}
-> +
->  static void devm_usb_phy_release(struct device *dev, void *res)
->  {
->  	struct usb_phy *phy = *(struct usb_phy **)res;
-> @@ -112,6 +130,69 @@ err0:
->  EXPORT_SYMBOL(usb_get_phy);
->  
->  /**
-> + * usb_get_phy_dev - find the USB PHY
-> + * @dev - device that requests this phy
-> + * @index - the index of the phy
-> + *
-> + * Returns the phy driver, after getting a refcount to it; or
+On Fri, Jan 25, 2013 at 7:19 AM, Mohammed, Afzal <afzal@ti.com> wrote:
+> Hi Rob,
+>
+> On Wed, Jan 23, 2013 at 04:06:22, Rob Clark wrote:
+>
+>> A simple DRM/KMS driver for the TI LCD Controller found in various
+>> smaller TI parts (AM33xx, OMAPL138, etc).  This driver uses the
+>
+>> +void tilcdc_crtc_update_clk(struct drm_crtc *crtc)
+>
+>> +     /* in raster mode, minimum divisor is 2: */
+>> +     ret = clk_set_rate(priv->disp_clk, crtc->mode.clock * 1000 * 2);
+>
+> These things can better be handled with divider clock having a
+> minimum value (being discussed with Mike on how exactly it should
+> be) and instead of setting rate over a platform specific clock,
+> you can set rate over lcd clock using SET_RATE_PARENT at platform
+> level, more below,
 
-PHY driver or PHY device?
+I looked at that patch you were proposing for da8xx-fb..  to be
+honest, it did not seem simpler to me, so I was sort of failing to see
+the benefit..
 
-> + * -ENODEV if there is no such phy.  The caller is responsible for
-> + * calling usb_put_phy() to release that count.
-> + *
-> + * For use by USB host and peripheral drivers.
-> + */
-> +struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index)
-> +{
-> +	struct usb_phy	*phy = NULL;
-> +	unsigned long	flags;
-> +
-> +	spin_lock_irqsave(&phy_lock, flags);
-> +
-> +	phy = __usb_find_phy_dev(dev, &phy_bind_list, index);
-> +	if (IS_ERR(phy)) {
-> +		pr_err("unable to find transceiver\n");
+>> +     /* Configure the LCD clock divisor. */
+>> +     tilcdc_write(dev, LCDC_CTRL_REG, LCDC_CLK_DIVISOR(div) |
+>> +                     LCDC_RASTER_MODE);
+>> +
+>> +     if (priv->rev == 2)
+>> +             tilcdc_set(dev, LCDC_CLK_ENABLE_REG,
+>> +                             LCDC_V2_DMA_CLK_EN | LCDC_V2_LIDD_CLK_EN |
+>> +                             LCDC_V2_CORE_CLK_EN);
+>
+> Mike was suggesting to model the above using gate/divider/composite
+> clocks of CCF in the FB driver.
+>
+>> +     priv->clk = clk_get(dev->dev, "fck");
+>> +     if (IS_ERR(priv->clk)) {
+>> +             dev_err(dev->dev, "failed to get functional clock\n");
+>> +             ret = -ENODEV;
+>> +             goto fail;
+>> +     }
+>> +
+>> +     priv->disp_clk = clk_get(dev->dev, "dpll_disp_ck");
+>> +     if (IS_ERR(priv->clk)) {
+>> +             dev_err(dev->dev, "failed to get display clock\n");
+>> +             ret = -ENODEV;
+>> +             goto fail;
+>> +     }
+>
+> "dpll_disp_ck" is a platform specific matter, driver should not
+> be handling platform specifics. And this won't work on DaVinci,
+> you can probably make use of
 
-I would suggest not to print and leave it to the user. This print
-"unable to find transceiver" gives no valuable information/context.
+meaning the clock has a different name on davinci, or?  Presumably
+there must be some clock generating the pixel clock for the display,
+but I confess to not being too familiar with the details on davinci..
 
-Also -EPROBE_DEFER is a valid case where this message must not be printed.
+BR,
+-R
 
-> +		goto err0;
-> +	}
-> +
-> +	get_device(phy->dev);
-> +
-> +err0:
-> +	spin_unlock_irqrestore(&phy_lock, flags);
-> +
-> +	return phy;
-> +}
-> +EXPORT_SYMBOL(usb_get_phy_dev);
-> +
-> +/**
-> + * devm_usb_get_phy_dev - find the USB PHY using device ptr and index
-> + * @dev - device that requests this phy
-> + * @index - the index of the phy
-> + *
-> + * Gets the phy using usb_get_phy_dev(), and associates a device with it using
-> + * devres. On driver detach, release function is invoked on the devres data,
-> + * then, devres data is freed.
-> + *
-> + * For use by USB host and peripheral drivers.
-> + */
-> +struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
-> +{
-> +	struct usb_phy **ptr, *phy;
-> +
-> +	ptr = devres_alloc(devm_usb_phy_release, sizeof(*ptr), GFP_KERNEL);
-> +	if (!ptr)
-> +		return NULL;
-> +
-> +	phy = usb_get_phy_dev(dev, index);
-> +	if (!IS_ERR(phy)) {
-> +		*ptr = phy;
-> +		devres_add(dev, ptr);
-> +	} else
-> +		devres_free(ptr);
-> +
-> +	return phy;
-> +}
-> +EXPORT_SYMBOL(devm_usb_get_phy_dev);
-> +
-> +/**
->   * devm_usb_put_phy - release the USB PHY
->   * @dev - device that wants to release this phy
->   * @phy - the phy returned by devm_usb_get_phy()
-> @@ -186,6 +267,36 @@ out:
->  EXPORT_SYMBOL(usb_add_phy);
->  
->  /**
-> + * usb_add_phy_dev - declare the USB PHY
-> + * @x: the USB phy to be used; or NULL
-
-@phy is better than @x?
-
-> + *
-> + * This call is exclusively for use by phy drivers, which
-> + * coordinate the activities of drivers for host and peripheral
-> + * controllers, and in some cases for VBUS current regulation.
-> + */
-> +int usb_add_phy_dev(struct usb_phy *x)
-> +{
-> +	struct usb_phy_bind *phy_bind;
-> +	unsigned long flags;
-> +
-> +	if (!x->dev) {
-> +		dev_err(x->dev, "no device provided for PHY\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	spin_lock_irqsave(&phy_lock, flags);
-> +	list_for_each_entry(phy_bind, &phy_bind_list, list)
-> +		if (!(strcmp(phy_bind->phy_dev_name, dev_name(x->dev))))
-> +			phy_bind->phy = x;
-> +
-> +	list_add_tail(&x->head, &phy_list);
-> +
-> +	spin_unlock_irqrestore(&phy_lock, flags);
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(usb_add_phy_dev);
-> +
-> +/**
->   * usb_remove_phy - remove the OTG PHY
->   * @x: the USB OTG PHY to be removed;
-
-@phy
-
-Also the PHY may not always be an OTG PHY, so remove OTG from description.
-
->   *
-> @@ -194,10 +305,15 @@ EXPORT_SYMBOL(usb_add_phy);
->  void usb_remove_phy(struct usb_phy *x)
->  {
->  	unsigned long	flags;
-> +	struct usb_phy_bind *phy_bind;
->  
->  	spin_lock_irqsave(&phy_lock, flags);
-> -	if (x)
-> +	if (x) {
-> +		list_for_each_entry(phy_bind, &phy_bind_list, list)
-> +			if (phy_bind->phy == x)
-> +				phy_bind->phy = NULL;
->  		list_del(&x->head);
-> +	}
->  	spin_unlock_irqrestore(&phy_lock, flags);
->  }
->  EXPORT_SYMBOL(usb_remove_phy);
-> diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
-> index e7eb429..d1675e8 100644
-> --- a/include/linux/usb/phy.h
-> +++ b/include/linux/usb/phy.h
-> @@ -124,6 +124,7 @@ struct usb_phy_bind {
->  
->  /* for board-specific init logic */
->  extern int usb_add_phy(struct usb_phy *, enum usb_phy_type type);
-> +extern int usb_add_phy_dev(struct usb_phy *);
->  extern void usb_remove_phy(struct usb_phy *);
->  
->  /* helpers for direct access thru low-level io interface */
-> @@ -164,6 +165,8 @@ usb_phy_shutdown(struct usb_phy *x)
->  extern struct usb_phy *usb_get_phy(enum usb_phy_type type);
->  extern struct usb_phy *devm_usb_get_phy(struct device *dev,
->  	enum usb_phy_type type);
-> +extern struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index);
-> +extern struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index);
->  extern void usb_put_phy(struct usb_phy *);
->  extern void devm_usb_put_phy(struct device *dev, struct usb_phy *x);
->  extern int usb_bind_phy(const char *dev_name, u8 index,
-> @@ -180,6 +183,16 @@ static inline struct usb_phy *devm_usb_get_phy(struct device *dev,
->  	return NULL;
->  }
->  
-> +static inline struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index)
-> +{
-> +	return NULL;
-> +}
-> +
-> +static inline struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
-> +{
-> +	return NULL;
-> +}
-> +
->  static inline void usb_put_phy(struct usb_phy *x)
->  {
->  }
-> 
-
-cheers,
--roger
+> my series "[PATCH v2 0/4] ARM: AM335x: LCDC platform support"
+>
+> or something similar to overcome this.
+>
+> Regards
+> Afzal
+>
+>
