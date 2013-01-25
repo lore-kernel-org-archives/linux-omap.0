@@ -1,70 +1,82 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v4 1/4] drivers: usb: phy: add a new driver for usb
- part of control module
-Date: Fri, 25 Jan 2013 16:14:02 +0000
-Message-ID: <20130125161401.GD16795@e106331-lin.cambridge.arm.com>
-References: <1359109440-2195-1-git-send-email-kishon@ti.com>
- <1359109440-2195-2-git-send-email-kishon@ti.com>
- <20130125110141.GK3075@e106331-lin.cambridge.arm.com>
- <20130125111120.GP15886@arwen.pp.htv.fi>
- <20130125122943.GB16795@e106331-lin.cambridge.arm.com>
- <20130125145928.GC28379@arwen.pp.htv.fi>
+From: Ricardo Neri <rneri@dextratech.com>
+Subject: Re: [alsa-devel] [RESEND PATCH v3 2/5] ARM: OMAP4: Assign IDs to
+ DSS HDMI devices
+Date: Fri, 25 Jan 2013 10:23:49 -0600
+Message-ID: <5102B195.5000801@dextratech.com>
+References: <1357341987-3327-1-git-send-email-rneri@dextratech.com> <1357341987-3327-3-git-send-email-rneri@dextratech.com> <51029A30.7070903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:54690 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757180Ab3AYQOJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 11:14:09 -0500
-In-Reply-To: <20130125145928.GC28379@arwen.pp.htv.fi>
-Content-Disposition: inline
+Received: from spamfilter.dextratech.com ([187.141.251.67]:35509 "EHLO
+	mail.dextratech.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755926Ab3AYQXv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 11:23:51 -0500
+In-Reply-To: <51029A30.7070903@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "tony@atomide.com" <tony@atomide.com>, "b-cousson@ti.com" <b-cousson@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
+To: Sebastien Guiriec <s-guiriec@ti.com>
+Cc: tomi.valkeinen@ti.com, broonie@opensource.wolfsonmicro.com, liam.r.girdwood@intel.com, tony@atomide.com, peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, dzuniga@dextratech.com
 
-On Fri, Jan 25, 2013 at 02:59:28PM +0000, Felipe Balbi wrote:
-> Hi,
-> 
-> On Fri, Jan 25, 2013 at 12:29:43PM +0000, Mark Rutland wrote:
-> > > > > +   depending upon omap4 or omap5.
-> > > > > + - reg-names: The names of the register addresses corresponding to the registers
-> > > > > +   filled in "reg".
-> > > > > + - ti,type: This is used to differentiate whether the control module has
-> > > > > +   usb mailbox or usb3 phy power. omap4 has usb mailbox in control module to
-> > > > > +   notify events to the musb core and omap5 has usb3 phy power register to
-> > > > > +   power on usb3 phy. Should be "1" if it has mailbox and "2" if it has usb3
-> > > > > +   phy power.
-> > > > 
-> > > > Why not make this a string property, perhaps values "mailbox" or "register"?
-> > > 
-> > > NAK.
-> > 
-> > Can I ask what your objection to using a string property is?
-> > 
-> > As far as I can see, "ti,type" is only used by this driver, so there's no
-> > common convention to stick to. Using a string makes the binding easier for
-> > humans to read, and thus harder to mess up in a dts, and it decouples the
-> > binding from kernel-side constants.
-> 
-> IIRC there is some work going on to add #define-like support for DT,
-> which would allow us to match against integers while still having
-> meaningful symbolic representations.
+Hi Sebastien,
 
-I was under the impression that the motivation for using the preprocessor on
-the DT was to allow symbolic names for device/soc-specific values like
-addresses, rather than what amounts to ABI values for the binding.
+On 01/25/2013 08:44 AM, Sebastien Guiriec wrote:
+> Hi Ricardo,
+>
+> You need to rebase this patch as the code has been moved to dss-common.c
+> file now. So it would not apply.
 
-I don't see the point in building a binding that depends on future
-functionality to be legible, especially as we can make it more readable,
-robust, and just as extensible today, with a simple change to the proposed
-binding.
+Thanks! I will send a new rebased version.
 
-Even ignoring the above, the driver isn't doing appropriate sanity checking.
-If you use a string property, this sanity check is implicit in the parsing --
-you've either matched a value you can handle or you haven't.
-
-Thanks,
-Mark.
+Ricardo
+>
+> Sebastien
+>
+> On 01/05/2013 12:26 AM, Ricardo Neri wrote:
+>> While Pandaboard and SDP4430 have only one HDMI output connector, it
+>> may be
+>> possible that future boards and SoCs support more than one HDMI output.
+>> Thus, we define the identifier of the device. This is used by display
+>> common code to identify and create the platform devices for HDMI audio
+>> drivers.
+>>
+>> Signed-off-by: Ricardo Neri <rneri@dextratech.com>
+>> ---
+>>   arch/arm/mach-omap2/board-4430sdp.c    |    3 +++
+>>   arch/arm/mach-omap2/board-omap4panda.c |    3 +++
+>>   2 files changed, 6 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-4430sdp.c
+>> b/arch/arm/mach-omap2/board-4430sdp.c
+>> index 3669c12..5a486d9 100644
+>> --- a/arch/arm/mach-omap2/board-4430sdp.c
+>> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+>> @@ -666,6 +666,9 @@ static struct omap_dss_device sdp4430_hdmi_device = {
+>>       .type = OMAP_DISPLAY_TYPE_HDMI,
+>>       .channel = OMAP_DSS_CHANNEL_DIGIT,
+>>       .data = &sdp4430_hdmi_data,
+>> +    .dev = {
+>> +        .id = -1,
+>> +    },
+>>   };
+>>
+>>   static struct picodlp_panel_data sdp4430_picodlp_pdata = {
+>> diff --git a/arch/arm/mach-omap2/board-omap4panda.c
+>> b/arch/arm/mach-omap2/board-omap4panda.c
+>> index bfcd397..9f336a3 100644
+>> --- a/arch/arm/mach-omap2/board-omap4panda.c
+>> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+>> @@ -440,6 +440,9 @@ static struct omap_dss_device
+>> omap4_panda_hdmi_device = {
+>>       .type = OMAP_DISPLAY_TYPE_HDMI,
+>>       .channel = OMAP_DSS_CHANNEL_DIGIT,
+>>       .data = &omap4_panda_hdmi_data,
+>> +    .dev = {
+>> +        .id = -1,
+>> +    },
+>>   };
+>>
+>>   static struct omap_dss_device *omap4_panda_dss_devices[] = {
+>>
+>
 
