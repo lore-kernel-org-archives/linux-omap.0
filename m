@@ -1,47 +1,52 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 1/2] ARM: dts: omap3-overo: Add support for pwm-leds
-Date: Fri, 25 Jan 2013 13:30:09 +0100
-Message-ID: <51027AD1.60107@ti.com>
-References: <1358963812-19947-1-git-send-email-florian.vaussard@epfl.ch> <1358963812-19947-2-git-send-email-florian.vaussard@epfl.ch> <5101510C.9050407@ti.com> <51015663.8080109@epfl.ch> <5101570A.1030303@ti.com> <5101663C.7020301@epfl.ch> <51016A84.20703@ti.com> <5101A43D.7080108@epfl.ch> <51024254.40208@ti.com> <5102756A.9040901@ti.com> <510278B8.40809@epfl.ch>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
+Date: Fri, 25 Jan 2013 13:19:08 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA939BB@DBDE01.ent.ti.com>
+References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
+ <1358894185-21617-2-git-send-email-robdclark@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36830 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:38582 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755485Ab3AYMaU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 07:30:20 -0500
-In-Reply-To: <510278B8.40809@epfl.ch>
+	with ESMTP id S1756545Ab3AYNTT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 08:19:19 -0500
+In-Reply-To: <1358894185-21617-2-git-send-email-robdclark@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: florian.vaussard@epfl.ch
-Cc: Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Rob Clark <robdclark@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@linaro.org" <patches@linaro.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>
 
-On 01/25/2013 01:21 PM, Florian Vaussard wrote:
->>>
->>> We have two drivers at the moment: pwm-twl and pwm-twl-led. However=
- new out of
->>> SoC PWM drivers might come (for example for palmas). So it worth ta=
-ke a look
->>> at some generic implementation.
->>
->> OK. So I have the series. I need to add few more things but pwm-leds=
- on
->> BeagleBoard works fine when I put the default_trigger for the pmusta=
-t LED to
->> be mmc0. It is blinking happily ;)
->> I'll CC you with the patches when I send them.
->>
->=20
-> I sent a patchset 2 hours ago with you in CC, you haven't received th=
-em?
-
-I have not noticed them. Going through them right now.
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgUm9iLA0KDQpPbiBXZWQsIEphbiAyMywgMjAxMyBhdCAwNDowNjoyMiwgUm9iIENsYXJrIHdy
+b3RlOg0KDQo+IEEgc2ltcGxlIERSTS9LTVMgZHJpdmVyIGZvciB0aGUgVEkgTENEIENvbnRyb2xs
+ZXIgZm91bmQgaW4gdmFyaW91cw0KPiBzbWFsbGVyIFRJIHBhcnRzIChBTTMzeHgsIE9NQVBMMTM4
+LCBldGMpLiAgVGhpcyBkcml2ZXIgdXNlcyB0aGUNCg0KPiArdm9pZCB0aWxjZGNfY3J0Y191cGRh
+dGVfY2xrKHN0cnVjdCBkcm1fY3J0YyAqY3J0YykNCg0KPiArCS8qIGluIHJhc3RlciBtb2RlLCBt
+aW5pbXVtIGRpdmlzb3IgaXMgMjogKi8NCj4gKwlyZXQgPSBjbGtfc2V0X3JhdGUocHJpdi0+ZGlz
+cF9jbGssIGNydGMtPm1vZGUuY2xvY2sgKiAxMDAwICogMik7DQoNClRoZXNlIHRoaW5ncyBjYW4g
+YmV0dGVyIGJlIGhhbmRsZWQgd2l0aCBkaXZpZGVyIGNsb2NrIGhhdmluZyBhDQptaW5pbXVtIHZh
+bHVlIChiZWluZyBkaXNjdXNzZWQgd2l0aCBNaWtlIG9uIGhvdyBleGFjdGx5IGl0IHNob3VsZA0K
+YmUpIGFuZCBpbnN0ZWFkIG9mIHNldHRpbmcgcmF0ZSBvdmVyIGEgcGxhdGZvcm0gc3BlY2lmaWMg
+Y2xvY2ssDQp5b3UgY2FuIHNldCByYXRlIG92ZXIgbGNkIGNsb2NrIHVzaW5nIFNFVF9SQVRFX1BB
+UkVOVCBhdCBwbGF0Zm9ybQ0KbGV2ZWwsIG1vcmUgYmVsb3csDQoNCj4gKwkvKiBDb25maWd1cmUg
+dGhlIExDRCBjbG9jayBkaXZpc29yLiAqLw0KPiArCXRpbGNkY193cml0ZShkZXYsIExDRENfQ1RS
+TF9SRUcsIExDRENfQ0xLX0RJVklTT1IoZGl2KSB8DQo+ICsJCQlMQ0RDX1JBU1RFUl9NT0RFKTsN
+Cj4gKw0KPiArCWlmIChwcml2LT5yZXYgPT0gMikNCj4gKwkJdGlsY2RjX3NldChkZXYsIExDRENf
+Q0xLX0VOQUJMRV9SRUcsDQo+ICsJCQkJTENEQ19WMl9ETUFfQ0xLX0VOIHwgTENEQ19WMl9MSURE
+X0NMS19FTiB8DQo+ICsJCQkJTENEQ19WMl9DT1JFX0NMS19FTik7DQoNCk1pa2Ugd2FzIHN1Z2dl
+c3RpbmcgdG8gbW9kZWwgdGhlIGFib3ZlIHVzaW5nIGdhdGUvZGl2aWRlci9jb21wb3NpdGUNCmNs
+b2NrcyBvZiBDQ0YgaW4gdGhlIEZCIGRyaXZlci4NCg0KPiArCXByaXYtPmNsayA9IGNsa19nZXQo
+ZGV2LT5kZXYsICJmY2siKTsNCj4gKwlpZiAoSVNfRVJSKHByaXYtPmNsaykpIHsNCj4gKwkJZGV2
+X2VycihkZXYtPmRldiwgImZhaWxlZCB0byBnZXQgZnVuY3Rpb25hbCBjbG9ja1xuIik7DQo+ICsJ
+CXJldCA9IC1FTk9ERVY7DQo+ICsJCWdvdG8gZmFpbDsNCj4gKwl9DQo+ICsNCj4gKwlwcml2LT5k
+aXNwX2NsayA9IGNsa19nZXQoZGV2LT5kZXYsICJkcGxsX2Rpc3BfY2siKTsNCj4gKwlpZiAoSVNf
+RVJSKHByaXYtPmNsaykpIHsNCj4gKwkJZGV2X2VycihkZXYtPmRldiwgImZhaWxlZCB0byBnZXQg
+ZGlzcGxheSBjbG9ja1xuIik7DQo+ICsJCXJldCA9IC1FTk9ERVY7DQo+ICsJCWdvdG8gZmFpbDsN
+Cj4gKwl9DQoNCiJkcGxsX2Rpc3BfY2siIGlzIGEgcGxhdGZvcm0gc3BlY2lmaWMgbWF0dGVyLCBk
+cml2ZXIgc2hvdWxkIG5vdA0KYmUgaGFuZGxpbmcgcGxhdGZvcm0gc3BlY2lmaWNzLiBBbmQgdGhp
+cyB3b24ndCB3b3JrIG9uIERhVmluY2ksDQp5b3UgY2FuIHByb2JhYmx5IG1ha2UgdXNlIG9mDQoN
+Cm15IHNlcmllcyAiW1BBVENIIHYyIDAvNF0gQVJNOiBBTTMzNXg6IExDREMgcGxhdGZvcm0gc3Vw
+cG9ydCINCg0Kb3Igc29tZXRoaW5nIHNpbWlsYXIgdG8gb3ZlcmNvbWUgdGhpcy4NCg0KUmVnYXJk
+cw0KQWZ6YWwNCg0KDQo=
