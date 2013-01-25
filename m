@@ -1,66 +1,39 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [PATCH v3 1/3] mtd: omap-onenand: pass device_node in platform data
-Date: Fri, 25 Jan 2013 09:23:09 -0300
-Message-ID: <1359116591-32730-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:47754 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754372Ab3AYMXm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 07:23:42 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 11/11] usb: dwc3: core: stray statements are removed
+Date: Fri, 25 Jan 2013 16:23:37 +0400
+Message-ID: <51027949.8080602@mvista.com>
+References: <1359082855-7404-1-git-send-email-kishon@ti.com>
+ <1359082855-7404-12-git-send-email-kishon@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1359082855-7404-12-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: mark.rutland@arm.com, linux-arm-kernel@lists.infradead.org, zonque@gmail.com, tony@atomide.com, matthias.bgg@googlemail.com, Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-mtd@lists.infradead.org, b-cousson@ti.com, grant.likely@secretlab.ca, jon-hunter@ti.com, Artem Bityutskiy <dedekind1@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Pass an optional device_node pointer in the platform data,
-which in turn will be put into a mtd_part_parser_data.
-This way, code that sets up the platform devices can pass
-along the node from DT so that the partitions can be parsed.
+Hello.
 
-For non-DT boards, this change has no effect.
+On 25-01-2013 7:00, Kishon Vijay Abraham I wrote:
 
-Acked-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
----
- drivers/mtd/onenand/omap2.c                     |    4 +++-
- include/linux/platform_data/mtd-onenand-omap2.h |    3 +++
- 2 files changed, 6 insertions(+), 1 deletions(-)
+> No functional change. Stray statements where removed from dwc3 core.
 
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index 065f3fe..eec2aed 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -637,6 +637,7 @@ static int omap2_onenand_probe(struct platform_device *pdev)
- 	struct onenand_chip *this;
- 	int r;
- 	struct resource *res;
-+	struct mtd_part_parser_data ppdata = {};
- 
- 	pdata = pdev->dev.platform_data;
- 	if (pdata == NULL) {
-@@ -767,7 +768,8 @@ static int omap2_onenand_probe(struct platform_device *pdev)
- 	if ((r = onenand_scan(&c->mtd, 1)) < 0)
- 		goto err_release_regulator;
- 
--	r = mtd_device_parse_register(&c->mtd, NULL, NULL,
-+	ppdata.of_node = pdata->of_node;
-+	r = mtd_device_parse_register(&c->mtd, NULL, &ppdata,
- 				      pdata ? pdata->parts : NULL,
- 				      pdata ? pdata->nr_parts : 0);
- 	if (r)
-diff --git a/include/linux/platform_data/mtd-onenand-omap2.h b/include/linux/platform_data/mtd-onenand-omap2.h
-index 685af7e..e9a9fb1 100644
---- a/include/linux/platform_data/mtd-onenand-omap2.h
-+++ b/include/linux/platform_data/mtd-onenand-omap2.h
-@@ -29,5 +29,8 @@ struct omap_onenand_platform_data {
- 	u8			flags;
- 	u8			regulator_can_sleep;
- 	u8			skip_initial_unlocking;
-+
-+	/* for passing the partitions */
-+	struct device_node	*of_node;
- };
- #endif
--- 
-1.7.8.6
+    s/where/are/
 
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> ---
+>   drivers/usb/dwc3/core.c |    3 ---
+>   1 file changed, 3 deletions(-)
+
+WBR, Sergei
