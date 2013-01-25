@@ -1,53 +1,69 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] ARM: omap2: gpmc: Remove unneeded of_node_put()
-Date: Fri, 25 Jan 2013 08:18:11 -0600
-Message-ID: <51029423.2040106@ti.com>
-References: <1359116387-32613-1-git-send-email-ezequiel.garcia@free-electrons.com>
+From: Sebastien Guiriec <s-guiriec@ti.com>
+Subject: Re: [alsa-devel] [RESEND PATCH v3 2/5] ARM: OMAP4: Assign IDs to
+ DSS HDMI devices
+Date: Fri, 25 Jan 2013 15:44:00 +0100
+Message-ID: <51029A30.7070903@ti.com>
+References: <1357341987-3327-1-git-send-email-rneri@dextratech.com> <1357341987-3327-3-git-send-email-rneri@dextratech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41067 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932347Ab3AYOSU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 09:18:20 -0500
-In-Reply-To: <1359116387-32613-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:53763 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750779Ab3AYOoK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Jan 2013 09:44:10 -0500
+In-Reply-To: <1357341987-3327-3-git-send-email-rneri@dextratech.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: linux-omap@vger.kernel.org, mark.rutland@arm.com, linux-arm-kernel@lists.infradead.org, zonque@gmail.com, tony@atomide.com, matthias.bgg@googlemail.com
+To: Ricardo Neri <rneri@dextratech.com>
+Cc: tomi.valkeinen@ti.com, broonie@opensource.wolfsonmicro.com, liam.r.girdwood@intel.com, tony@atomide.com, peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, dzuniga@dextratech.com
 
+Hi Ricardo,
 
-On 01/25/2013 06:19 AM, Ezequiel Garcia wrote:
-> for_each_node_by_name() automatically calls of_node_put() on each
-> node passed; so don't do it explicitly unless there's an error.
-> 
-> Reported-by: Mark Rutland <mark.rutland@arm.com>
-> Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+You need to rebase this patch as the code has been moved to dss-common.c 
+file now. So it would not apply.
+
+Sebastien
+
+On 01/05/2013 12:26 AM, Ricardo Neri wrote:
+> While Pandaboard and SDP4430 have only one HDMI output connector, it may be
+> possible that future boards and SoCs support more than one HDMI output.
+> Thus, we define the identifier of the device. This is used by display
+> common code to identify and create the platform devices for HDMI audio drivers.
+>
+> Signed-off-by: Ricardo Neri <rneri@dextratech.com>
 > ---
->  arch/arm/mach-omap2/gpmc.c |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 01ce462..c6255f7 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -1271,9 +1271,10 @@ static int gpmc_probe_dt(struct platform_device *pdev)
->  
->  	for_each_node_by_name(child, "nand") {
->  		ret = gpmc_probe_nand_child(pdev, child);
-> -		of_node_put(child);
-> -		if (ret < 0)
-> +		if (ret < 0) {
-> +			of_node_put(child);
->  			return ret;
-> +		}
->  	}
->  
->  	return 0;
-> 
+>   arch/arm/mach-omap2/board-4430sdp.c    |    3 +++
+>   arch/arm/mach-omap2/board-omap4panda.c |    3 +++
+>   2 files changed, 6 insertions(+)
+>
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index 3669c12..5a486d9 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -666,6 +666,9 @@ static struct omap_dss_device sdp4430_hdmi_device = {
+>   	.type = OMAP_DISPLAY_TYPE_HDMI,
+>   	.channel = OMAP_DSS_CHANNEL_DIGIT,
+>   	.data = &sdp4430_hdmi_data,
+> +	.dev = {
+> +		.id = -1,
+> +	},
+>   };
+>
+>   static struct picodlp_panel_data sdp4430_picodlp_pdata = {
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+> index bfcd397..9f336a3 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -440,6 +440,9 @@ static struct omap_dss_device  omap4_panda_hdmi_device = {
+>   	.type = OMAP_DISPLAY_TYPE_HDMI,
+>   	.channel = OMAP_DSS_CHANNEL_DIGIT,
+>   	.data = &omap4_panda_hdmi_data,
+> +	.dev = {
+> +		.id = -1,
+> +	},
+>   };
+>
+>   static struct omap_dss_device *omap4_panda_dss_devices[] = {
+>
 
-Acked-by: Jon Hunter <jon-hunter@ti.com>
-
-Thanks!
-Jon
