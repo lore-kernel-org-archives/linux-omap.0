@@ -1,39 +1,40 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 11/11] usb: dwc3: core: stray statements are removed
-Date: Fri, 25 Jan 2013 16:23:37 +0400
-Message-ID: <51027949.8080602@mvista.com>
-References: <1359082855-7404-1-git-send-email-kishon@ti.com>
- <1359082855-7404-12-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1359082855-7404-12-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: [PATCH v3 2/3] arm: omap2: gpmc-onenand: drop __init annotation
+Date: Fri, 25 Jan 2013 09:23:10 -0300
+Message-ID: <1359116591-32730-2-git-send-email-ezequiel.garcia@free-electrons.com>
+References: <1359116591-32730-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.free-electrons.com ([94.23.35.102]:47788 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754372Ab3AYMZ6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 07:25:58 -0500
+In-Reply-To: <1359116591-32730-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: mark.rutland@arm.com, linux-arm-kernel@lists.infradead.org, zonque@gmail.com, tony@atomide.com, matthias.bgg@googlemail.com, Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-mtd@lists.infradead.org, b-cousson@ti.com, grant.likely@secretlab.ca, jon-hunter@ti.com, Artem Bityutskiy <dedekind1@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Hello.
+gpmc_onenand_init() will be called from another driver's probe() function,
+so drop the __init annotation, in order to prevent section mismatches.
 
-On 25-01-2013 7:00, Kishon Vijay Abraham I wrote:
+Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ arch/arm/mach-omap2/gpmc-onenand.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> No functional change. Stray statements where removed from dwc3 core.
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index 94a349e..fadd8743 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -356,7 +356,7 @@ static int gpmc_onenand_setup(void __iomem *onenand_base, int *freq_ptr)
+ 	return ret;
+ }
+ 
+-void __init gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
++void gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
+ {
+ 	int err;
+ 
+-- 
+1.7.8.6
 
-    s/where/are/
-
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> ---
->   drivers/usb/dwc3/core.c |    3 ---
->   1 file changed, 3 deletions(-)
-
-WBR, Sergei
