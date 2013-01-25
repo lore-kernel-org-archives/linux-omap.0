@@ -1,50 +1,42 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH v3 1/4] drivers: usb: phy: add a new driver for usb part
- of control module
-Date: Fri, 25 Jan 2013 14:12:41 +0530
-Message-ID: <51024581.6020301@ti.com>
-References: <1359080391-5120-1-git-send-email-kishon@ti.com> <1359080391-5120-2-git-send-email-kishon@ti.com> <510218FE.8080606@wwwdotorg.org> <20130125074818.GF15886@arwen.pp.htv.fi>
+From: kishon <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v1 1/8] usb: otg: palmas-usb: make palmas-usb as a
+ comparator driver
+Date: Fri, 25 Jan 2013 14:14:07 +0530
+Message-ID: <510245D7.4090008@ti.com>
+References: <1359083551-8524-1-git-send-email-kishon@ti.com>
+ <1359083551-8524-2-git-send-email-kishon@ti.com>
+ <20130125074339.GD15886@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130125074818.GF15886@arwen.pp.htv.fi>
-Sender: linux-doc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Stephen Warren <swarren@wwwdotorg.org>, rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, b-cousson@ti.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gregkh@linuxfoundation.org, linux@arm.linux.org.uk
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130125074339.GD15886-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, s-guiriec-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 25 January 2013 01:18 PM, Felipe Balbi wrote:
-> On Thu, Jan 24, 2013 at 09:32:46PM -0800, Stephen Warren wrote:
->> On 01/24/2013 06:19 PM, Kishon Vijay Abraham I wrote:
->>> Added a new driver for the usb part of control module. This has an API
->>> to power on the USB2 phy and an API to write to the mailbox depending on
->>> whether MUSB has to act in host mode or in device mode.
->>>
->>> Writing to control module registers for doing the above task which was
->>> previously done in omap glue and in omap-usb2 phy will be removed.
->>
->>> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
->>
->> This file seems to be specific to the TI USB PHYs, not all USB PHYs;
->> shouldn't it be renamed ti-usb-phy.txt, or even better renamed to match
->> the compatible value it documents, giving ti,omap-usb2.txt?
+On Friday 25 January 2013 01:13 PM, Felipe Balbi wrote:
+> Hi,
 >
-> could be, but that can be done as a separate patch. It's not part of
-> $SUBJECT.
->
->>>   add the address of control module dev conf register until a driver for
->>>   control module is added
->>>
->>> +Optional properties:
->>> + - ctrl_module : phandle of the control module used by PHY driver to power on
->>> +   the PHY.
+> On Fri, Jan 25, 2013 at 08:42:24AM +0530, Kishon Vijay Abraham I wrote:
+>> palmas-usb is made as a comparator driver to omap usb2 phy, so that
+>> omap usb can make use of palmas for srp and also to set vbus.
 >>
->> DT property names generally use - not _ as the word separator.
+>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 >
-> fair enough, Kishon, can you fix this up ?
-
-Sure. Will post a patch..
+> doesn't apply. palmas-usb isn't in mainline
+>
+Yes. We'll ask Rajendra Nayak to pick this up in his tree?
 
 Thanks
 Kishon
