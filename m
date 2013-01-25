@@ -1,55 +1,49 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: RE: [PATCH v2 1/2] clk: divider: prepare for minimum divider
-Date: Fri, 25 Jan 2013 12:06:41 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA93851@DBDE01.ent.ti.com>
-References: <6dc1c48cac5b2646a55da3079afb72f88e40c3bc.1358937138.git.afzal@ti.com>
- <20130123214053.9205.49804@quantum>
- <C8443D0743D26F4388EA172BF4E2A7A93EA92ABC@DBDE01.ent.ti.com>
- <20130124170630.10623.78749@quantum>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 1/2] ARM: dts: omap3-overo: Add support for pwm-leds
+Date: Fri, 25 Jan 2013 13:07:06 +0100
+Message-ID: <5102756A.9040901@ti.com>
+References: <1358963812-19947-1-git-send-email-florian.vaussard@epfl.ch> <1358963812-19947-2-git-send-email-florian.vaussard@epfl.ch> <5101510C.9050407@ti.com> <51015663.8080109@epfl.ch> <5101570A.1030303@ti.com> <5101663C.7020301@epfl.ch> <51016A84.20703@ti.com> <5101A43D.7080108@epfl.ch> <51024254.40208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44344 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755771Ab3AYMGw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Jan 2013 07:06:52 -0500
-In-Reply-To: <20130124170630.10623.78749@quantum>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:36091 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756434Ab3AYMHZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 07:07:25 -0500
+In-Reply-To: <51024254.40208@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
+To: florian.vaussard@epfl.ch
+Cc: Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 
-SGkgTWlrZSwNCg0KT24gVGh1LCBKYW4gMjQsIDIwMTMgYXQgMjI6MzY6MzAsIE1pa2UgVHVycXVl
-dHRlIHdyb3RlOg0KPiBRdW90aW5nIE1vaGFtbWVkLCBBZnphbCAoMjAxMy0wMS0yNCAwMzoyOTox
-NSkNCg0KPiA+IEl0IGlzIGEgZnVuY3Rpb25hbCBjb25zdHJhaW50OiBkaXZpZGVyIGhhcyA4IGJp
-dHMgYW5kIGl0IGNhbiBoYXZlDQo+ID4gYWxsIHBvc3NpYmxlIHZhbHVlcyAoMCB0byAyNTUpIGFu
-ZCBkaXZpZGVyIHZhbHVlIGNvcnJlc3BvbmRzIHRvDQo+ID4gdmFsdWUgc2V0IGluIHRoZSA4IGJp
-dHMuIEJ1dCBkZXBlbmRpbmcgb24gdGhlIG1vZGVzIHRoZSBtaW5pbXVtDQo+ID4gdmFsdWUgdGhh
-dCBjYW4gYmUgY29uZmlndXJlZCAodG8gZ2V0IGRpc3BsYXkgd29ya2luZykgdmFyaWVzLg0KPiA+
-IEVnLiBGb3IgcmFzdGVyIG1vZGUgKHdoaWNoIHRoZSBkcml2ZXIgaXMgcHJlc2VudGx5IHN1cHBv
-cnRpbmcpLCBpdA0KPiA+IGNhbiB0YWtlIGEgbWluaW11bSB2YWx1ZSBvZiAyLCB3aGlsZSBpbiBM
-SUREIChMQ0QgaW50ZXJmYWNlIGRpc3BsYXkNCj4gPiBkcml2ZXIpIG1vZGUgaXQgY2FuIHRha2Ug
-YSBtaW4gdmFsdWUgb2YgMS4NCj4gPiANCj4gPiBIZXJlIG1pbiByYXRlIGlzIG5vdCBhIGNvbnN0
-cmFpbnQgdy5yLnQgZGl2aWRlciBpbiBMQ0RDIElQLCBidXQNCj4gPiByYXRoZXIgbWluIGRpdmlk
-ZXIuDQoNCj4gSnVzdCBzbyBJIHVuZGVyc3RhbmQgY29ycmVjdGx5Li4uIHlvdSBhcmUgc2F5aW5n
-IHRoYXQgdGhlIGZ1bmN0aW9uYWwNCj4gY29uc3RyYWludCBpcyBub3QgY2F1c2VkIGJ5IHRoZSBj
-bG9jayByYXRlLCBidXQgaW5zdGVhZCBieSB0aGUgZGl2aWRlcg0KPiB2YWx1ZT8gIEZvciB0aGUg
-ZGlmZmVyZW50IG1vZGVzIChyYXN0ZXIgdnMgTElERCkgaXMgdGhlIGNsb2NrIHJhdGUgdGhlDQo+
-IHNhbWUsIG9yIGlzIHRoZSBjbG9jayByYXRlIGRpZmZlcmVudD8NCg0KPiBXaGF0IGlzIHRoZSBj
-bG9jayBvdXRwdXQgcmF0ZSBvZiB0aGUgZGl2aWRlciBpbiByYXN0ZXIgbW9kZT8gIFdoYXQgaXMN
-Cj4gdGhlIGNsb2NrIG91dHB1dCByYXRlIG9mIHRoZSBkaXZpZGVyIGluIExJREQgbW9kZT8NCg0K
-WWVzLCBmdW5jdGlvbmFsIGNvbnN0cmFpbnQgaW4gY2F1c2VkIGJ5IGRpdmlkZXIgdmFsdWUuDQoN
-CmNsb2NrIG91dHB1dCByYXRlIGNhbiBkZWZpbmVkIGZvciBib3RoIG1vZGVzIGFzIGZvbGxvd3Ms
-DQoNCnBfY2xrIChjbG9jayBvdXRwdXQgcmF0ZSkgPSBsY2RfY2xrIChpbnB1dCBjbG9jayByYXRl
-KSAvIGRpdiwNCg0KdG8gY29uZmlndXJlICJkaXYiLCB3ZSBoYXZlIHIvdyA4IGJpdHMsIHNvIGRp
-diB2YWx1ZXMgY2FuDQpyYW5nZSBmcm9tIDAtMjU1LA0KDQpBbmQgSVAgc3BlYyBzYXlzIHZhbHVl
-ICIwIiBhbmQgIjEiIHNob3VsZCBub3QgYmUgd3JpdHRlbiwgaW4NCnJhc3RlciBtb2RlLiBGdXJ0
-aGVyIGl0IHNheXMgaWYgaW4gTElERCBtb2RlIGl0IGNhbiBoYXZlIHZhbHVlcw0KZnJvbSAwLTI1
-NSwgYnV0IGVmZmVjdCBvZiB3cml0aW5nICIwIiBpcyBzYW1lIGFzICIxIi4NCg0KRWZmZWN0IG9m
-IGRpdmlkZXIgdmFsdWUgb24gb3V0cHV0IHJhdGUgaXMgaW4gdGhlIHNhbWUgd2F5IGZvcg0KYm90
-aCBtb2RlcyBhcyBwZXIgYWJvdmUgZXhwcmVzc2lvbiAoZXhjZXB0IGZvciB3cml0aW5nICIwIiBp
-bg0KTElERCBtb2RlKS4NCg0KVGhlIGRyaXZlciBzdXBwb3J0cyBvbmx5IHJhc3RlciBtb2RlLg0K
-DQpSZWdhcmRzDQpBZnphbA0KDQpOb3RlOiBsaW5rIHRvIHRybSBoYXMgYmVlbiBtZW50aW9uZWQg
-aW4gdGhlIGVhcmxpZXIgcmVwbHkuDQoNCg0KDQo=
+On 01/25/2013 09:29 AM, Peter Ujfalusi wrote:
+> On 01/24/2013 10:14 PM, Florian Vaussard wrote:
+>> You are right. But then the pwm core must provide a way to know if t=
+he pwm
+>> access function are callable
+>> from atomic context or not (the gpio framework provides gpio_canslee=
+p()).
+>> This implies a good amount of changes to the pwm framework, and curr=
+ently we
+>> are the only driver using non-atomic access.
+>=20
+> We have two drivers at the moment: pwm-twl and pwm-twl-led. However n=
+ew out of
+> SoC PWM drivers might come (for example for palmas). So it worth take=
+ a look
+> at some generic implementation.
+
+OK. So I have the series. I need to add few more things but pwm-leds on
+BeagleBoard works fine when I put the default_trigger for the pmustat L=
+ED to
+be mmc0. It is blinking happily ;)
+I'll CC you with the patches when I send them.
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
