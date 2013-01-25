@@ -1,43 +1,36 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [PATCH] ARM: omap2: gpmc: Remove unneeded of_node_put()
-Date: Fri, 25 Jan 2013 09:19:47 -0300
-Message-ID: <1359116387-32613-1-git-send-email-ezequiel.garcia@free-electrons.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH 1/2] ARM: dts: omap3-overo: Add support for pwm-leds
+Date: Fri, 25 Jan 2013 13:21:12 +0100
+Message-ID: <510278B8.40809@epfl.ch>
+References: <1358963812-19947-1-git-send-email-florian.vaussard@epfl.ch> <1358963812-19947-2-git-send-email-florian.vaussard@epfl.ch> <5101510C.9050407@ti.com> <51015663.8080109@epfl.ch> <5101570A.1030303@ti.com> <5101663C.7020301@epfl.ch> <51016A84.20703@ti.com> <5101A43D.7080108@epfl.ch> <51024254.40208@ti.com> <5102756A.9040901@ti.com>
+Reply-To: florian.vaussard@epfl.ch
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:47719 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932101Ab3AYMU3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 07:20:29 -0500
+Received: from smtp5.epfl.ch ([128.178.224.8]:42925 "HELO smtp5.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755890Ab3AYMVR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Jan 2013 07:21:17 -0500
+In-Reply-To: <5102756A.9040901@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: mark.rutland@arm.com, linux-arm-kernel@lists.infradead.org, zonque@gmail.com, tony@atomide.com, matthias.bgg@googlemail.com, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 
-for_each_node_by_name() automatically calls of_node_put() on each
-node passed; so don't do it explicitly unless there's an error.
+>>
+>> We have two drivers at the moment: pwm-twl and pwm-twl-led. However new out of
+>> SoC PWM drivers might come (for example for palmas). So it worth take a look
+>> at some generic implementation.
+>
+> OK. So I have the series. I need to add few more things but pwm-leds on
+> BeagleBoard works fine when I put the default_trigger for the pmustat LED to
+> be mmc0. It is blinking happily ;)
+> I'll CC you with the patches when I send them.
+>
 
-Reported-by: Mark Rutland <mark.rutland@arm.com>
-Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
----
- arch/arm/mach-omap2/gpmc.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+I sent a patchset 2 hours ago with you in CC, you haven't received them?
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 01ce462..c6255f7 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1271,9 +1271,10 @@ static int gpmc_probe_dt(struct platform_device *pdev)
- 
- 	for_each_node_by_name(child, "nand") {
- 		ret = gpmc_probe_nand_child(pdev, child);
--		of_node_put(child);
--		if (ret < 0)
-+		if (ret < 0) {
-+			of_node_put(child);
- 			return ret;
-+		}
- 	}
- 
- 	return 0;
--- 
-1.7.8.6
+Cheers,
 
+Florian
