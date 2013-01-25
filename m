@@ -1,112 +1,43 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 0/6] ARM: dts: omap: add dt data for dwc3
-Date: Fri, 25 Jan 2013 14:18:38 +0200
-Message-ID: <20130125121838.GC27148@arwen.pp.htv.fi>
-References: <1359112312-6918-1-git-send-email-kishon@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4785671081492359806=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1359112312-6918-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, s-guiriec-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: [PATCH] ARM: omap2: gpmc: Remove unneeded of_node_put()
+Date: Fri, 25 Jan 2013 09:19:47 -0300
+Message-ID: <1359116387-32613-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.free-electrons.com ([94.23.35.102]:47719 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932101Ab3AYMU3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 07:20:29 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: mark.rutland@arm.com, linux-arm-kernel@lists.infradead.org, zonque@gmail.com, tony@atomide.com, matthias.bgg@googlemail.com, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
---===============4785671081492359806==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ABTtc+pdwF7KHXCz"
-Content-Disposition: inline
+for_each_node_by_name() automatically calls of_node_put() on each
+node passed; so don't do it explicitly unless there's an error.
 
---ABTtc+pdwF7KHXCz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Reported-by: Mark Rutland <mark.rutland@arm.com>
+Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ arch/arm/mach-omap2/gpmc.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-Hi,
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 01ce462..c6255f7 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1271,9 +1271,10 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+ 
+ 	for_each_node_by_name(child, "nand") {
+ 		ret = gpmc_probe_nand_child(pdev, child);
+-		of_node_put(child);
+-		if (ret < 0)
++		if (ret < 0) {
++			of_node_put(child);
+ 			return ret;
++		}
+ 	}
+ 
+ 	return 0;
+-- 
+1.7.8.6
 
-On Fri, Jan 25, 2013 at 04:41:46PM +0530, Kishon Vijay Abraham I wrote:
-> This patch series adds dt data to get dwc3 working in omap5.
->=20
-> Changes from v1:
-> * rename "ctrl_module" to "ctrl-module" and "usb_phy" to "usb-phy"
->=20
-> This patch series is developed on
-> git://github.com/rrnayak/linux.git omap5-3.8-rc4-base-palmas
->=20
-> This is the last series of the series of patches.
-> I've kept everything in a single branch
-> git://gitorious.org/linux-usb/linux-usb.git omap5-with-palmas
-> (changes up to 23b4dfa2ab7052569cd88acc6383c4b1a8e8a482)
->=20
-> Did enumeration testing on omap5 evm.
-
-I have gone quickly through this series and it looks already to me:
-
-Reviewied-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-
-> Kishon Vijay Abraham I (6):
->   ARM: dts: omap5: Add omap control usb data
->   ARM: dts: omap5: Add ocp2scp data
->   ARM: dts: omap5: Add omap-usb3 and omap-usb2 dt data
->   ARM: dts: omap5: add dwc3 omap dt data
->   ARM: dts: omap5: add dwc3 core dt data
->   ARM: dts: palmas: update dt data for palmas-usb
->=20
->  arch/arm/boot/dts/omap5.dtsi  |   48 +++++++++++++++++++++++++++++++++++=
-++++++
->  arch/arm/boot/dts/palmas.dtsi |    4 ++--
->  2 files changed, 50 insertions(+), 2 deletions(-)
->=20
-> --=20
-> 1.7.9.5
->=20
-
---=20
-balbi
-
---ABTtc+pdwF7KHXCz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRAngeAAoJEIaOsuA1yqREol0P/3akqoDidmGfhZ4q3ktajHMc
-v7I77xgpLGd1XlN0iiqp4N4SgH7Ue2w4DDVeN0YYT5LS01B82nLhCM0UQ/oD1NvE
-tsF+HPEPmb2piXudHx+ZMRI41XZoiTmuKjwx3Vk1N4pcI72tGzzfITgU+Mbx8cyt
-+cy9BNtLBTYRhMshEAIHyKgYxLS9PmGoIP7mc8QBAtf5U2gistIaw5lz/cK8ILEG
-vnFIWFcefsDCW4snUDqrbbKvkYhkBueaKqcbKS0lNx6iuNt38OMAvggDikvY57mM
-J0k5nzQEJtnO+FVt9UHXl2esHPQ3FfZpXfixI+XqpvjLFmrJk5xUI4jbTdMJCH5q
-hR5AX6dMSNs6eK2rPsnF+moF6D/Rql0hb3uZUVDREt9EMNrKFvUNPRgnhSFf95MK
-p5YUaDIj7DuaEitmjavWle/JcqZcgfoh2GN7CA9atzI5N7cxrd3xGG63WXiM/GXI
-6ko/iYhN25uHPxq4gq77RshnjpJDmX9gPwqRJyPToqnUE1Z9kTYuZB+nFDszScAc
-vgkEroKqE2SacO24gefSHs56QnCmj3hwFk0syR6kguOhmXEq/1y3Gf8Pic/uissV
-XQ1OsfS+Vsj4hpit+z+o/L9ZM5m5g7KEziioNUjOtAmJ9KbG8X85vGsKzsZCRBJc
-qsnueGNO/NkOdZ5FXrQ8
-=dCWo
------END PGP SIGNATURE-----
-
---ABTtc+pdwF7KHXCz--
-
---===============4785671081492359806==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============4785671081492359806==--
