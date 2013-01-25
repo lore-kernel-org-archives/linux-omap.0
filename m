@@ -1,49 +1,53 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] arm: omap: make wakeupgen_lock raw
-Date: Fri, 25 Jan 2013 13:21:49 +0530
-Message-ID: <51023995.1050703@ti.com>
-References: <1354891787-24119-1-git-send-email-balbi@ti.com> <20130124182159.GL4424@arwen.pp.htv.fi>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH] spi: spi-omap2-mcspi.c: fix coding style
+Date: Fri, 25 Jan 2013 09:58:58 +0200
+Message-ID: <20130125095858.32e70b983abb349f6c1c4340@bitmer.com>
+References: <1359030538-2866-1-git-send-email-matthias.bgg@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52895 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751135Ab3AYHu4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 02:50:56 -0500
-In-Reply-To: <20130124182159.GL4424@arwen.pp.htv.fi>
+Received: from bitmer.com ([213.157.87.50]:51126 "EHLO bitmer.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751272Ab3AYH7I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Jan 2013 02:59:08 -0500
+In-Reply-To: <1359030538-2866-1-git-send-email-matthias.bgg@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, Tony Lindgren <tony@atomide.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: grant.likely@secretlab.ca, tony@atomide.com, broonie@opensource.wolfsonmicro.com, zonque@gmail.com, gregkh@linuxfoundation.org, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, trivial@kernel.org
 
-On Thursday 24 January 2013 11:52 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Fri, Dec 07, 2012 at 04:49:47PM +0200, Felipe Balbi wrote:
->> From: Thomas Gleixner <tglx@linutronix.de>
->>
->> When applying RT patch on top of Linux, spinlocks are
->> implemented as RT-mutexes, which means they are preemptable.
->>
->> Current GIC implementation on OMAP is using a spinlock
->> to protect against preemption. As it turns out, we need
->> to convert that lock into a raw_spinlock so that OMAP's
->> interrupt controller works as expected after RT-patch
->> is applied.
->>
->> This patch is simply to decrease the amount of changes
->> RT-team needs to carry out of tree. It doesn't cause any
->> changes in behavior.
->>
->> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
->> Signed-off-by: Felipe Balbi <balbi@ti.com>
->
-Sorry i missed this patch. Tony can you please
-pick it up?
+Hi
 
-For the patch,
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On Thu, 24 Jan 2013 13:28:58 +0100
+Matthias Brugger <matthias.bgg@gmail.com> wrote:
 
+> This patch fixes some indentation errors.
+> 
+> Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
+> ---
+>  drivers/spi/spi-omap2-mcspi.c | 16 ++++++++--------
+>  1 file changed, 8 insertions(+), 8 deletions(-)
+> 
+...
+> @@ -1052,8 +1052,8 @@ static int omap2_mcspi_transfer_one_message(struct spi_master *master,
+>  		}
+>  		if (t->speed_hz && t->speed_hz < (OMAP2_MCSPI_MAX_FREQ >> 15)) {
+>  			dev_dbg(mcspi->dev, "speed_hz %d below minimum %d Hz\n",
+> -				t->speed_hz,
+> -				OMAP2_MCSPI_MAX_FREQ >> 15);
+> +					t->speed_hz,
+> +					OMAP2_MCSPI_MAX_FREQ >> 15);
 
+I have some mixed feelings from these changes and looking at the driver currently. Above change makes the readability a step backward but the driver has already these so in that sense your change makes the style more consistent.
 
+I can see three options with this patch: take your patch as it, do nothing or do larger style 'spring cleanup'.
+
+I'm personally somewhere take as it or do nothing. If style is not terribly wrong I personally favor smaller style fixes when those lines are changing anyway.
+
+In case maintainer takes this you could add:
+
+Reviewed-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+
+-- 
+Jarkko
