@@ -1,132 +1,197 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] ARM: OMAP2xxx: clock data: clean up unused null clocks
-Date: Fri, 25 Jan 2013 09:32:53 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301250932040.12241@utopia.booyaka.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: [PATCH v2 5/5] wlcore: move wl12xx_platform_data up and make it truly optional
+Date: Fri, 25 Jan 2013 12:05:34 +0200
+Message-ID: <1359108334-18459-1-git-send-email-coelho@ti.com>
+References: <1358952038-5982-6-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:41993 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753189Ab3AYJcy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 04:32:54 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358952038-5982-6-git-send-email-coelho@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-wireless@vger.kernel.org
+Cc: coelho@ti.com, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, rnayak@ti.com
 
+The platform data is used not only by wlcore-based drivers, but also
+by wl1251.  Move it up in the directory hierarchy to reflect this.
 
-Remove some clocks that don't appear to be used by anything
-and which are not associated with any hardware registers.
+Additionally, make it truly optional.  At the moment, disabling
+platform data while wl1251_sdio or wlcore_sdio are enabled doesn't
+work, but it will be necessary when device tree support is
+implemented.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Luciano Coelho <coelho@ti.com>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/cclock2420_data.c |   16 +---------------
- arch/arm/mach-omap2/cclock2430_data.c |   16 +---------------
- 2 files changed, 2 insertions(+), 30 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cclock2420_data.c b/arch/arm/mach-omap2/cclock2420_data.c
-index 7e5febe..c3acd2d 100644
---- a/arch/arm/mach-omap2/cclock2420_data.c
-+++ b/arch/arm/mach-omap2/cclock2420_data.c
-@@ -622,15 +622,10 @@ static struct clk_hw_omap gpios_fck_hw = {
- 
- DEFINE_STRUCT_CLK(gpios_fck, gpios_fck_parent_names, aes_ick_ops);
- 
--static struct clk wu_l4_ick;
--
--DEFINE_STRUCT_CLK_HW_OMAP(wu_l4_ick, "wkup_clkdm");
--DEFINE_STRUCT_CLK(wu_l4_ick, dpll_ck_parent_names, core_ck_ops);
--
- static struct clk gpios_ick;
- 
- static const char *gpios_ick_parent_names[] = {
--	"wu_l4_ick",
-+	"sys_ck",
+In v2:
+   * Fix ti/Makefile
+   * Modify board_omap3evm.c which was still using the old Kconfig define
+
+Tony, is it okay if I add this change in the omap3evm board in this
+patch and queue it via wireless so that the whole thing is in sync?
+
+
+ arch/arm/mach-omap2/board-omap3evm.c                     |   10 +++++-----
+ drivers/net/wireless/ti/Kconfig                          |    9 +++++++++
+ drivers/net/wireless/ti/Makefile                         |    4 +++-
+ .../wl12xx_platform_data.c => wilink_platform_data.c}    |    0
+ drivers/net/wireless/ti/wlcore/Kconfig                   |    5 -----
+ drivers/net/wireless/ti/wlcore/Makefile                  |    3 ---
+ include/linux/wl12xx.h                                   |   14 +++++++++++---
+ 7 files changed, 28 insertions(+), 17 deletions(-)
+ rename drivers/net/wireless/ti/{wlcore/wl12xx_platform_data.c => wilink_platform_data.c} (100%)
+
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 3985f35..a4ca63b 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -309,7 +309,7 @@ static struct omap2_hsmmc_info mmc[] = {
+ 		.gpio_wp	= 63,
+ 		.deferred	= true,
+ 	},
+-#ifdef CONFIG_WL12XX_PLATFORM_DATA
++#ifdef CONFIG_WILINK_PLATFORM_DATA
+ 	{
+ 		.name		= "wl1271",
+ 		.mmc		= 2,
+@@ -450,7 +450,7 @@ static struct regulator_init_data omap3evm_vio = {
+ 	.consumer_supplies	= omap3evm_vio_supply,
  };
  
- static struct clk_hw_omap gpios_ick_hw = {
-@@ -1682,13 +1677,6 @@ static struct clk_hw_omap wdt1_ick_hw = {
+-#ifdef CONFIG_WL12XX_PLATFORM_DATA
++#ifdef CONFIG_WILINK_PLATFORM_DATA
  
- DEFINE_STRUCT_CLK(wdt1_ick, gpios_ick_parent_names, aes_ick_ops);
+ #define OMAP3EVM_WLAN_PMENA_GPIO	(150)
+ #define OMAP3EVM_WLAN_IRQ_GPIO		(149)
+@@ -563,7 +563,7 @@ static struct omap_board_mux omap35x_board_mux[] __initdata = {
+ 				OMAP_PIN_OFF_NONE),
+ 	OMAP3_MUX(GPMC_WAIT2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
+ 				OMAP_PIN_OFF_NONE),
+-#ifdef CONFIG_WL12XX_PLATFORM_DATA
++#ifdef CONFIG_WILINK_PLATFORM_DATA
+ 	/* WLAN IRQ - GPIO 149 */
+ 	OMAP3_MUX(UART1_RTS, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
  
--static struct clk wdt1_osc_ck;
+@@ -601,7 +601,7 @@ static struct omap_board_mux omap36x_board_mux[] __initdata = {
+ 	OMAP3_MUX(SYS_BOOT4, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+ 	OMAP3_MUX(SYS_BOOT5, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+ 	OMAP3_MUX(SYS_BOOT6, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-#ifdef CONFIG_WL12XX_PLATFORM_DATA
++#ifdef CONFIG_WILINK_PLATFORM_DATA
+ 	/* WLAN IRQ - GPIO 149 */
+ 	OMAP3_MUX(UART1_RTS, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
+ 
+@@ -637,7 +637,7 @@ static struct gpio omap3_evm_ehci_gpios[] __initdata = {
+ 
+ static void __init omap3_evm_wl12xx_init(void)
+ {
+-#ifdef CONFIG_WL12XX_PLATFORM_DATA
++#ifdef CONFIG_WILINK_PLATFORM_DATA
+ 	int ret;
+ 
+ 	/* WL12xx WLAN Init */
+diff --git a/drivers/net/wireless/ti/Kconfig b/drivers/net/wireless/ti/Kconfig
+index be80011..cbe1e7f 100644
+--- a/drivers/net/wireless/ti/Kconfig
++++ b/drivers/net/wireless/ti/Kconfig
+@@ -12,4 +12,13 @@ source "drivers/net/wireless/ti/wl18xx/Kconfig"
+ 
+ # keep last for automatic dependencies
+ source "drivers/net/wireless/ti/wlcore/Kconfig"
++
++config WILINK_PLATFORM_DATA
++	bool "TI WiLink platform data"
++	depends on WLCORE_SDIO || WL1251_SDIO
++	default y
++	---help---
++	Small platform data bit needed to pass data to the sdio modules.
++
++
+ endif # WL_TI
+diff --git a/drivers/net/wireless/ti/Makefile b/drivers/net/wireless/ti/Makefile
+index 4d68239..af14231 100644
+--- a/drivers/net/wireless/ti/Makefile
++++ b/drivers/net/wireless/ti/Makefile
+@@ -1,5 +1,7 @@
+ obj-$(CONFIG_WLCORE)			+= wlcore/
+ obj-$(CONFIG_WL12XX)			+= wl12xx/
+-obj-$(CONFIG_WL12XX_PLATFORM_DATA)	+= wlcore/
+ obj-$(CONFIG_WL1251)			+= wl1251/
+ obj-$(CONFIG_WL18XX)			+= wl18xx/
++
++# small builtin driver bit
++obj-$(CONFIG_WILINK_PLATFORM_DATA)	+= wilink_platform_data.o
+diff --git a/drivers/net/wireless/ti/wlcore/wl12xx_platform_data.c b/drivers/net/wireless/ti/wilink_platform_data.c
+similarity index 100%
+rename from drivers/net/wireless/ti/wlcore/wl12xx_platform_data.c
+rename to drivers/net/wireless/ti/wilink_platform_data.c
+diff --git a/drivers/net/wireless/ti/wlcore/Kconfig b/drivers/net/wireless/ti/wlcore/Kconfig
+index d7b907e..2b83282 100644
+--- a/drivers/net/wireless/ti/wlcore/Kconfig
++++ b/drivers/net/wireless/ti/wlcore/Kconfig
+@@ -33,8 +33,3 @@ config WLCORE_SDIO
+ 
+ 	  If you choose to build a module, it'll be called wlcore_sdio.
+ 	  Say N if unsure.
 -
--static const struct clk_ops wdt1_osc_ck_ops = {};
+-config WL12XX_PLATFORM_DATA
+-	bool
+-	depends on WLCORE_SDIO != n || WL1251_SDIO != n
+-	default y
+diff --git a/drivers/net/wireless/ti/wlcore/Makefile b/drivers/net/wireless/ti/wlcore/Makefile
+index d9fba9e..b21398f 100644
+--- a/drivers/net/wireless/ti/wlcore/Makefile
++++ b/drivers/net/wireless/ti/wlcore/Makefile
+@@ -9,7 +9,4 @@ obj-$(CONFIG_WLCORE)			+= wlcore.o
+ obj-$(CONFIG_WLCORE_SPI)		+= wlcore_spi.o
+ obj-$(CONFIG_WLCORE_SDIO)		+= wlcore_sdio.o
+ 
+-# small builtin driver bit
+-obj-$(CONFIG_WL12XX_PLATFORM_DATA)	+= wl12xx_platform_data.o
 -
--DEFINE_STRUCT_CLK_HW_OMAP(wdt1_osc_ck, NULL);
--DEFINE_STRUCT_CLK(wdt1_osc_ck, sys_ck_parent_names, wdt1_osc_ck_ops);
--
- static struct clk wdt3_fck;
+ ccflags-y += -D__CHECK_ENDIAN__
+diff --git a/include/linux/wl12xx.h b/include/linux/wl12xx.h
+index 360c9bc..a54fe82 100644
+--- a/include/linux/wl12xx.h
++++ b/include/linux/wl12xx.h
+@@ -24,6 +24,8 @@
+ #ifndef _LINUX_WL12XX_H
+ #define _LINUX_WL12XX_H
  
- static struct clk_hw_omap wdt3_fck_hw = {
-@@ -1767,7 +1755,6 @@ static struct omap_clk omap2420_clks[] = {
- 	CLK(NULL,	"func_96m_ck",	&func_96m_ck,	CK_242X),
- 	CLK(NULL,	"func_48m_ck",	&func_48m_ck,	CK_242X),
- 	CLK(NULL,	"func_12m_ck",	&func_12m_ck,	CK_242X),
--	CLK(NULL,	"ck_wdt1_osc",	&wdt1_osc_ck,	CK_242X),
- 	CLK(NULL,	"sys_clkout_src", &sys_clkout_src, CK_242X),
- 	CLK(NULL,	"sys_clkout",	&sys_clkout,	CK_242X),
- 	CLK(NULL,	"sys_clkout2_src", &sys_clkout2_src, CK_242X),
-@@ -1797,7 +1784,6 @@ static struct omap_clk omap2420_clks[] = {
- 	/* L4 domain clocks */
- 	CLK(NULL,	"l4_ck",	&l4_ck,		CK_242X),
- 	CLK(NULL,	"ssi_l4_ick",	&ssi_l4_ick,	CK_242X),
--	CLK(NULL,	"wu_l4_ick",	&wu_l4_ick,	CK_242X),
- 	/* virtual meta-group clock */
- 	CLK(NULL,	"virt_prcm_set", &virt_prcm_set, CK_242X),
- 	/* general l4 interface ck, multi-parent functional clk */
-diff --git a/arch/arm/mach-omap2/cclock2430_data.c b/arch/arm/mach-omap2/cclock2430_data.c
-index eda079b..7560ec9 100644
---- a/arch/arm/mach-omap2/cclock2430_data.c
-+++ b/arch/arm/mach-omap2/cclock2430_data.c
-@@ -601,15 +601,10 @@ static struct clk_hw_omap gpios_fck_hw = {
++#include <linux/err.h>
++
+ /* Reference clock values */
+ enum {
+ 	WL12XX_REFCLOCK_19	= 0, /* 19.2 MHz */
+@@ -60,10 +62,12 @@ struct wl12xx_platform_data {
+ /* Platform does not support level trigger interrupts */
+ #define WL12XX_PLATFORM_QUIRK_EDGE_IRQ	BIT(0)
  
- DEFINE_STRUCT_CLK(gpios_fck, gpio5_fck_parent_names, aes_ick_ops);
+-#ifdef CONFIG_WL12XX_PLATFORM_DATA
++#ifdef CONFIG_WILINK_PLATFORM_DATA
  
--static struct clk wu_l4_ick;
--
--DEFINE_STRUCT_CLK_HW_OMAP(wu_l4_ick, "wkup_clkdm");
--DEFINE_STRUCT_CLK(wu_l4_ick, dpll_ck_parent_names, core_ck_ops);
--
- static struct clk gpios_ick;
+ int wl12xx_set_platform_data(const struct wl12xx_platform_data *data);
  
- static const char *gpios_ick_parent_names[] = {
--	"wu_l4_ick",
-+	"sys_ck",
- };
++struct wl12xx_platform_data *wl12xx_get_platform_data(void);
++
+ #else
  
- static struct clk_hw_omap gpios_ick_hw = {
-@@ -1811,13 +1806,6 @@ static struct clk_hw_omap wdt1_ick_hw = {
+ static inline
+@@ -72,8 +76,12 @@ int wl12xx_set_platform_data(const struct wl12xx_platform_data *data)
+ 	return -ENOSYS;
+ }
  
- DEFINE_STRUCT_CLK(wdt1_ick, gpios_ick_parent_names, aes_ick_ops);
+-#endif
++static inline
++struct wl12xx_platform_data *wl12xx_get_platform_data(void)
++{
++	return ERR_PTR(-ENODATA);
++}
  
--static struct clk wdt1_osc_ck;
--
--static const struct clk_ops wdt1_osc_ck_ops = {};
--
--DEFINE_STRUCT_CLK_HW_OMAP(wdt1_osc_ck, NULL);
--DEFINE_STRUCT_CLK(wdt1_osc_ck, sys_ck_parent_names, wdt1_osc_ck_ops);
--
- static struct clk wdt4_fck;
+-struct wl12xx_platform_data *wl12xx_get_platform_data(void);
++#endif
  
- static struct clk_hw_omap wdt4_fck_hw = {
-@@ -1869,7 +1857,6 @@ static struct omap_clk omap2430_clks[] = {
- 	CLK(NULL,	"func_96m_ck",	&func_96m_ck,	CK_243X),
- 	CLK(NULL,	"func_48m_ck",	&func_48m_ck,	CK_243X),
- 	CLK(NULL,	"func_12m_ck",	&func_12m_ck,	CK_243X),
--	CLK(NULL,	"ck_wdt1_osc",	&wdt1_osc_ck,	CK_243X),
- 	CLK(NULL,	"sys_clkout_src", &sys_clkout_src, CK_243X),
- 	CLK(NULL,	"sys_clkout",	&sys_clkout,	CK_243X),
- 	CLK(NULL,	"emul_ck",	&emul_ck,	CK_243X),
-@@ -1898,7 +1885,6 @@ static struct omap_clk omap2430_clks[] = {
- 	/* L4 domain clocks */
- 	CLK(NULL,	"l4_ck",	&l4_ck,		CK_243X),
- 	CLK(NULL,	"ssi_l4_ick",	&ssi_l4_ick,	CK_243X),
--	CLK(NULL,	"wu_l4_ick",	&wu_l4_ick,	CK_243X),
- 	/* virtual meta-group clock */
- 	CLK(NULL,	"virt_prcm_set", &virt_prcm_set, CK_243X),
- 	/* general l4 interface ck, multi-parent functional clk */
+ #endif
 -- 
 1.7.10.4
-
