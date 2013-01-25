@@ -1,224 +1,55 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 2/6] usb: otg: utils: add facilities in phy lib to support multiple PHYs of same type
-Date: Fri, 25 Jan 2013 08:03:22 +0530
-Message-ID: <1359081206-5602-3-git-send-email-kishon@ti.com>
-References: <1359081206-5602-1-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 0/2] usb: phy: add usb3 phy driver
+Date: Fri, 25 Jan 2013 08:21:47 +0530
+Message-ID: <1359082309-7158-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1359081206-5602-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, balbi@ti.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, kishon@ti.com
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-In order to add support for multipe PHY's of the same type, new API's
-for adding PHY and getting PHY has been added. Now the binding
-information for the PHY and controller should be done in platform file
-using usb_bind_phy API. And for getting a PHY, the device pointer of the
-USB controller and an index should be passed. Based on the binding
-information that is added in the platform file, usb_get_phy_dev will return the
-appropriate PHY.
-Already existing API's to add and get phy by type is not removed. These
-API's are deprecated and will be removed once all the platforms start to
-use the new API.
+Apologies for the delay in sending this version.
+ 
+Added a driver for usb3 phy that handles the interaction between usb phy
+device and dwc3 controller.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/usb/otg/otg.c   |  118 ++++++++++++++++++++++++++++++++++++++++++++++-
- include/linux/usb/phy.h |   13 ++++++
- 2 files changed, 130 insertions(+), 1 deletion(-)
+Changes from v2:
+* used control module driver APIs to write to control module register.
+* Added pm_runtime_put and pm_runtime_disable in the usb3 phy driver.
+* Added checks for enabling and disabling "usb_otg_ss_refclk960m" so that
+  it doesn't break omap4.
 
-diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
-index 8e756d9..4bb4333 100644
---- a/drivers/usb/otg/otg.c
-+++ b/drivers/usb/otg/otg.c
-@@ -36,6 +36,24 @@ static struct usb_phy *__usb_find_phy(struct list_head *list,
- 	return ERR_PTR(-ENODEV);
- }
- 
-+static struct usb_phy *__usb_find_phy_dev(struct device *dev,
-+	struct list_head *list, u8 index)
-+{
-+	struct usb_phy_bind *phy_bind = NULL;
-+
-+	list_for_each_entry(phy_bind, list, list) {
-+		if (!(strcmp(phy_bind->dev_name, dev_name(dev))) &&
-+				phy_bind->index == index) {
-+			if (phy_bind->phy)
-+				return phy_bind->phy;
-+			else
-+				return ERR_PTR(-EPROBE_DEFER);
-+		}
-+	}
-+
-+	return ERR_PTR(-ENODEV);
-+}
-+
- static void devm_usb_phy_release(struct device *dev, void *res)
- {
- 	struct usb_phy *phy = *(struct usb_phy **)res;
-@@ -112,6 +130,69 @@ err0:
- EXPORT_SYMBOL(usb_get_phy);
- 
- /**
-+ * usb_get_phy_dev - find the USB PHY
-+ * @dev - device that requests this phy
-+ * @index - the index of the phy
-+ *
-+ * Returns the phy driver, after getting a refcount to it; or
-+ * -ENODEV if there is no such phy.  The caller is responsible for
-+ * calling usb_put_phy() to release that count.
-+ *
-+ * For use by USB host and peripheral drivers.
-+ */
-+struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index)
-+{
-+	struct usb_phy	*phy = NULL;
-+	unsigned long	flags;
-+
-+	spin_lock_irqsave(&phy_lock, flags);
-+
-+	phy = __usb_find_phy_dev(dev, &phy_bind_list, index);
-+	if (IS_ERR(phy)) {
-+		pr_err("unable to find transceiver\n");
-+		goto err0;
-+	}
-+
-+	get_device(phy->dev);
-+
-+err0:
-+	spin_unlock_irqrestore(&phy_lock, flags);
-+
-+	return phy;
-+}
-+EXPORT_SYMBOL(usb_get_phy_dev);
-+
-+/**
-+ * devm_usb_get_phy_dev - find the USB PHY using device ptr and index
-+ * @dev - device that requests this phy
-+ * @index - the index of the phy
-+ *
-+ * Gets the phy using usb_get_phy_dev(), and associates a device with it using
-+ * devres. On driver detach, release function is invoked on the devres data,
-+ * then, devres data is freed.
-+ *
-+ * For use by USB host and peripheral drivers.
-+ */
-+struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
-+{
-+	struct usb_phy **ptr, *phy;
-+
-+	ptr = devres_alloc(devm_usb_phy_release, sizeof(*ptr), GFP_KERNEL);
-+	if (!ptr)
-+		return NULL;
-+
-+	phy = usb_get_phy_dev(dev, index);
-+	if (!IS_ERR(phy)) {
-+		*ptr = phy;
-+		devres_add(dev, ptr);
-+	} else
-+		devres_free(ptr);
-+
-+	return phy;
-+}
-+EXPORT_SYMBOL(devm_usb_get_phy_dev);
-+
-+/**
-  * devm_usb_put_phy - release the USB PHY
-  * @dev - device that wants to release this phy
-  * @phy - the phy returned by devm_usb_get_phy()
-@@ -186,6 +267,36 @@ out:
- EXPORT_SYMBOL(usb_add_phy);
- 
- /**
-+ * usb_add_phy_dev - declare the USB PHY
-+ * @x: the USB phy to be used; or NULL
-+ *
-+ * This call is exclusively for use by phy drivers, which
-+ * coordinate the activities of drivers for host and peripheral
-+ * controllers, and in some cases for VBUS current regulation.
-+ */
-+int usb_add_phy_dev(struct usb_phy *x)
-+{
-+	struct usb_phy_bind *phy_bind;
-+	unsigned long flags;
-+
-+	if (!x->dev) {
-+		dev_err(x->dev, "no device provided for PHY\n");
-+		return -EINVAL;
-+	}
-+
-+	spin_lock_irqsave(&phy_lock, flags);
-+	list_for_each_entry(phy_bind, &phy_bind_list, list)
-+		if (!(strcmp(phy_bind->phy_dev_name, dev_name(x->dev))))
-+			phy_bind->phy = x;
-+
-+	list_add_tail(&x->head, &phy_list);
-+
-+	spin_unlock_irqrestore(&phy_lock, flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL(usb_add_phy_dev);
-+
-+/**
-  * usb_remove_phy - remove the OTG PHY
-  * @x: the USB OTG PHY to be removed;
-  *
-@@ -194,10 +305,15 @@ EXPORT_SYMBOL(usb_add_phy);
- void usb_remove_phy(struct usb_phy *x)
- {
- 	unsigned long	flags;
-+	struct usb_phy_bind *phy_bind;
- 
- 	spin_lock_irqsave(&phy_lock, flags);
--	if (x)
-+	if (x) {
-+		list_for_each_entry(phy_bind, &phy_bind_list, list)
-+			if (phy_bind->phy == x)
-+				phy_bind->phy = NULL;
- 		list_del(&x->head);
-+	}
- 	spin_unlock_irqrestore(&phy_lock, flags);
- }
- EXPORT_SYMBOL(usb_remove_phy);
-diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
-index e7eb429..d1675e8 100644
---- a/include/linux/usb/phy.h
-+++ b/include/linux/usb/phy.h
-@@ -124,6 +124,7 @@ struct usb_phy_bind {
- 
- /* for board-specific init logic */
- extern int usb_add_phy(struct usb_phy *, enum usb_phy_type type);
-+extern int usb_add_phy_dev(struct usb_phy *);
- extern void usb_remove_phy(struct usb_phy *);
- 
- /* helpers for direct access thru low-level io interface */
-@@ -164,6 +165,8 @@ usb_phy_shutdown(struct usb_phy *x)
- extern struct usb_phy *usb_get_phy(enum usb_phy_type type);
- extern struct usb_phy *devm_usb_get_phy(struct device *dev,
- 	enum usb_phy_type type);
-+extern struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index);
-+extern struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index);
- extern void usb_put_phy(struct usb_phy *);
- extern void devm_usb_put_phy(struct device *dev, struct usb_phy *x);
- extern int usb_bind_phy(const char *dev_name, u8 index,
-@@ -180,6 +183,16 @@ static inline struct usb_phy *devm_usb_get_phy(struct device *dev,
- 	return NULL;
- }
- 
-+static inline struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index)
-+{
-+	return NULL;
-+}
-+
-+static inline struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
-+{
-+	return NULL;
-+}
-+
- static inline void usb_put_phy(struct usb_phy *x)
- {
- }
+Changes from v1:
+* Added missing clk_put()
+* Remove the patches usb: dwc3: Fix gadget pullup in SS mode and
+usb: phy: omap-usb3: Decrease the number of transitions to recovery. Those
+are actually WA for hw issues which will be fixed in ES2.
+* Removed the *has960mhzclk* property
+
+This patch series is developed on
+git://github.com/rrnayak/linux.git omap5-3.8-rc4-base-palmas
+
+I've kept this patch series and all the patch series to follow in a single branch
+git://gitorious.org/linux-usb/linux-usb.git omap5-with-palmas
+(changes up to 23b4dfa2ab7052569cd88acc6383c4b1a8e8a482)
+
+Did enumeration testing on omap4 panda and omap5 evm.
+
+Kishon Vijay Abraham I (2):
+  usb: phy: add a new driver for usb3 phy
+  usb: phy: omap-usb2: enable 960Mhz clock for omap5
+
+ Documentation/devicetree/bindings/usb/usb-phy.txt |   23 ++
+ drivers/usb/phy/Kconfig                           |   10 +
+ drivers/usb/phy/Makefile                          |    1 +
+ drivers/usb/phy/omap-usb2.c                       |   28 +-
+ drivers/usb/phy/omap-usb3.c                       |  355 +++++++++++++++++++++
+ include/linux/usb/omap_usb.h                      |   23 ++
+ 6 files changed, 439 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/usb/phy/omap-usb3.c
+
 -- 
 1.7.9.5
+
