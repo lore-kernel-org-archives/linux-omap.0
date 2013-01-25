@@ -1,49 +1,45 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 1/2] ARM: dts: omap3-overo: Add support for pwm-leds
-Date: Fri, 25 Jan 2013 13:07:06 +0100
-Message-ID: <5102756A.9040901@ti.com>
-References: <1358963812-19947-1-git-send-email-florian.vaussard@epfl.ch> <1358963812-19947-2-git-send-email-florian.vaussard@epfl.ch> <5101510C.9050407@ti.com> <51015663.8080109@epfl.ch> <5101570A.1030303@ti.com> <5101663C.7020301@epfl.ch> <51016A84.20703@ti.com> <5101A43D.7080108@epfl.ch> <51024254.40208@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v2 1/4] ARM: OMAP2+: dpll: round rate to closest value
+Date: Fri, 25 Jan 2013 12:18:22 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA9388C@DBDE01.ent.ti.com>
+References: <cover.1358937533.git.afzal@ti.com>
+ <871e6890897534b6c3669e252f23bef5ff1247b6.1358937533.git.afzal@ti.com>
+ <alpine.DEB.2.00.1301250816010.471@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36091 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756434Ab3AYMHZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 07:07:25 -0500
-In-Reply-To: <51024254.40208@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1301250816010.471@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>, Russell King <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: florian.vaussard@epfl.ch
-Cc: Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On 01/25/2013 09:29 AM, Peter Ujfalusi wrote:
-> On 01/24/2013 10:14 PM, Florian Vaussard wrote:
->> You are right. But then the pwm core must provide a way to know if t=
-he pwm
->> access function are callable
->> from atomic context or not (the gpio framework provides gpio_canslee=
-p()).
->> This implies a good amount of changes to the pwm framework, and curr=
-ently we
->> are the only driver using non-atomic access.
->=20
-> We have two drivers at the moment: pwm-twl and pwm-twl-led. However n=
-ew out of
-> SoC PWM drivers might come (for example for palmas). So it worth take=
- a look
-> at some generic implementation.
-
-OK. So I have the series. I need to add few more things but pwm-leds on
-BeagleBoard works fine when I put the default_trigger for the pmustat L=
-ED to
-be mmc0. It is blinking happily ;)
-I'll CC you with the patches when I send them.
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgUGF1bCwNCg0KT24gRnJpLCBKYW4gMjUsIDIwMTMgYXQgMTM6NDg6MTEsIFBhdWwgV2FsbXNs
+ZXkgd3JvdGU6DQo+IE9uIFdlZCwgMjMgSmFuIDIwMTMsIEFmemFsIE1vaGFtbWVkIHdyb3RlOg0K
+DQo+ID4gQ3VycmVudGx5IHJvdW5kIHJhdGUgZnVuY3Rpb24gd291bGQgcmV0dXJuIHByb3BlciBy
+YXRlIGlmZiByZXF1ZXN0ZWQNCj4gPiByYXRlIGV4YWN0bHkgbWF0Y2hlcyB0aGUgUExMIGxvY2th
+YmxlIHJhdGUuIFRoaXMgY2F1c2VzIHNldF9yYXRlIHRvDQo+ID4gZmFpbCBpZiBleGFjdCByYXRl
+IGNvdWxkIG5vdCBiZSBzZXQuIEluc3RlYWQgcm91bmQgcmF0ZSBtYXkgcmV0dXJuDQo+ID4gY2xv
+c2VzdCByYXRlIHBvc3NpYmxlIChsZXNzIHRoYW4gdGhlIHJlcXVlc3RlZCkuIEFuZCBpZiBhbnkg
+dXNlciBpcw0KPiA+IGJhZGx5IGluIG5lZWQgb2YgZXhhY3QgcmF0ZSwgdGhlbiByZXR1cm4gdmFs
+dWUgb2Ygcm91bmQgcmF0ZSBjb3VsZA0KPiA+IGJlIHVzZWQgdG8gZGVjaWRlIHdoZXRoZXIgdG8g
+aW52b2tlIHNldCByYXRlIG9yIG5vdC4NCj4gPiANCj4gPiBNb2RpZnkgcm91bmQgcmF0ZSBzbyB0
+aGF0IGl0IHJldHVybiBjbG9zZXN0IHBvc3NpYmxlIHJhdGUuDQo+IA0KPiBUaGlzIGRvZXNuJ3Qg
+bG9vayBsaWtlIHRoZSByaWdodCBhcHByb2FjaCB0byBtZS4gIEZvciBzb21lIFBMTHMsIGFuIGV4
+YWN0IA0KPiByYXRlIGlzIGRlc2lyZWQuDQoNCklmIGV4YWN0IHJhdGUgaXMgcmVxdWlyZWQsIHRo
+ZXJlIGlzIGEgd2F5IHRvIGFjaGlldmUgaXQgYXMgbWVudGlvbmVkDQppbiB0aGUgY29tbWl0IG1l
+c3NhZ2UsIGkuZS4gYnkgZmlyc3QgaW52b2tpbmcgcm91bmQgcmF0ZSBvdmVyIHJlcWQuIHJhdGUN
+CmFuZCBpZiBpdCBkb2Vzbid0IG1hdGNoLCBiYWlsIG91dCB3L28gaW52b2tpbmcgc2V0X3JhdGUu
+DQoNCkFuZCBpdCBzZWVtcyByZXF1aXJlbWVudCBvZiBDQ0Ygdy5yLnQgdG8gcm91bmQgcmF0ZSBp
+cyB0byByZXR1cm4gY2xvc2VzdA0KcG9zc2libGUgcmF0ZS4NCg0KPiBXZSByZW1vdmVkIHRoZSBy
+YXRlIHRvbGVyYW5jZSBjb2RlIGluIGNvbW1pdCANCj4gMjQxZDNhOGRjYTIzOTYxMGQzZDk5MWJm
+NThkNGZlMzhjMmQ4NmZkNSwgYnV0IHRoYXQgd2FzIHByb2JhYmx5IHByZW1hdHVyZS4gIA0KPiBX
+ZSd2ZSBlbmNvdW50ZXJlZCBzZXZlcmFsIHNpdHVhdGlvbnMgbm93IHdoZXJlIHdlIGNvdWxkIHJl
+YWxseSB1c2UgaXQsIA0KPiBsaWtlIE1QVSBDUFVGcmVxLiAgSSdkIHN1Z2dlc3QgcmV2ZXJ0aW5n
+IA0KPiAyNDFkM2E4ZGNhMjM5NjEwZDNkOTkxYmY1OGQ0ZmUzOGMyZDg2ZmQ1IG9yIHVzaW5nIGEg
+c2ltaWxhciBhcHByb2FjaC4NCg0KQXMgeW91IHByZWZlciByZXZlcnRpbmcgdGhlIGFib3ZlIGNv
+bW1pdCwgSSB3aWxsIHByb2NlZWQgc28sIGhtbS4uIGdvdA0Kbm90IHNvIHNpbXBsZSBtZXJnZSBj
+b25mbGljdCwgd2lzaCB0aGVyZSB3YXMgYSBjb21tYW5kLA0KZ2l0IHJldmVydCBsb2dpY2FsIC4u
+DQoNClJlZ2FyZHMNCkFmemFsDQo=
