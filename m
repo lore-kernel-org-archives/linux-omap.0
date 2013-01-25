@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 2/3] ARM: dts: omap: Add omap-usb2 dt data
-Date: Fri, 25 Jan 2013 07:54:36 +0530
-Message-ID: <1359080677-5381-3-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 1/3] ARM: dts: omap: Add omap control usb data
+Date: Fri, 25 Jan 2013 07:54:35 +0530
+Message-ID: <1359080677-5381-2-git-send-email-kishon@ti.com>
 References: <1359080677-5381-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,32 +12,34 @@ To: rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, balbi@ti.com, b-
 Cc: grant.likely@secretlab.ca, linux@arm.linux.org.uk, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add omap-usb2 data node in omap4 device tree file. Since omap-usb2 is
-connected to ocp2scp, omap-usb2 dt data is added as a child node
-of ocp2scp. The information about this data node is availabe @
-Documentation/devicetree/bindings/usb/usb-phy.txt
+Add omap control usb data in omap4 device tree file. This will have the
+register address of registers to power on the PHY and to write to
+mailbox. The information about this data node is available @
+Documentation/devicetree/bindings/usb/omap-usb.txt
 
-Acked-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/boot/dts/omap4.dtsi |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index ffc7352..5f68d68 100644
+index 739bb79..ffc7352 100644
 --- a/arch/arm/boot/dts/omap4.dtsi
 +++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -438,6 +438,10 @@
- 			#size-cells = <1>;
- 			ranges;
- 			ti,hwmods = "ocp2scp_usb_phy";
-+			usb2_phy: usb2phy@4a0ad080 {
-+				compatible = "ti,omap-usb2";
-+				reg = <0x4a0ad080 0x58>;
-+			};
+@@ -529,5 +529,13 @@
+ 			ti,hwmods = "timer11";
+ 			ti,timer-pwm;
  		};
- 
- 		timer1: timer@4a318000 {
++
++		omap_control_usb: omap-control-usb@4a002300 {
++			compatible = "ti,omap-control-usb";
++			reg = <0x4a002300 0x4>,
++			      <0x4a00233c 0x4>;
++			reg-names = "control_dev_conf", "otghs_control";
++			ti,type = <1>;
++		};
+ 	};
+ };
 -- 
 1.7.9.5
 
