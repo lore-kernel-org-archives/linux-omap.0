@@ -1,52 +1,105 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
-Date: Fri, 25 Jan 2013 13:19:08 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA939BB@DBDE01.ent.ti.com>
-References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
- <1358894185-21617-2-git-send-email-robdclark@gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 1/6] usb: otg: Add an API to bind the USB controller
+ and PHY
+Date: Fri, 25 Jan 2013 15:19:36 +0200
+Message-ID: <51028668.1020800@ti.com>
+References: <1359081206-5602-1-git-send-email-kishon@ti.com> <1359081206-5602-2-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38582 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:38604 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756545Ab3AYNTT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 08:19:19 -0500
-In-Reply-To: <1358894185-21617-2-git-send-email-robdclark@gmail.com>
-Content-Language: en-US
+	with ESMTP id S1756545Ab3AYNTu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 08:19:50 -0500
+In-Reply-To: <1359081206-5602-2-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <robdclark@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@linaro.org" <patches@linaro.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: tony@atomide.com, balbi@ti.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org
 
-SGkgUm9iLA0KDQpPbiBXZWQsIEphbiAyMywgMjAxMyBhdCAwNDowNjoyMiwgUm9iIENsYXJrIHdy
-b3RlOg0KDQo+IEEgc2ltcGxlIERSTS9LTVMgZHJpdmVyIGZvciB0aGUgVEkgTENEIENvbnRyb2xs
-ZXIgZm91bmQgaW4gdmFyaW91cw0KPiBzbWFsbGVyIFRJIHBhcnRzIChBTTMzeHgsIE9NQVBMMTM4
-LCBldGMpLiAgVGhpcyBkcml2ZXIgdXNlcyB0aGUNCg0KPiArdm9pZCB0aWxjZGNfY3J0Y191cGRh
-dGVfY2xrKHN0cnVjdCBkcm1fY3J0YyAqY3J0YykNCg0KPiArCS8qIGluIHJhc3RlciBtb2RlLCBt
-aW5pbXVtIGRpdmlzb3IgaXMgMjogKi8NCj4gKwlyZXQgPSBjbGtfc2V0X3JhdGUocHJpdi0+ZGlz
-cF9jbGssIGNydGMtPm1vZGUuY2xvY2sgKiAxMDAwICogMik7DQoNClRoZXNlIHRoaW5ncyBjYW4g
-YmV0dGVyIGJlIGhhbmRsZWQgd2l0aCBkaXZpZGVyIGNsb2NrIGhhdmluZyBhDQptaW5pbXVtIHZh
-bHVlIChiZWluZyBkaXNjdXNzZWQgd2l0aCBNaWtlIG9uIGhvdyBleGFjdGx5IGl0IHNob3VsZA0K
-YmUpIGFuZCBpbnN0ZWFkIG9mIHNldHRpbmcgcmF0ZSBvdmVyIGEgcGxhdGZvcm0gc3BlY2lmaWMg
-Y2xvY2ssDQp5b3UgY2FuIHNldCByYXRlIG92ZXIgbGNkIGNsb2NrIHVzaW5nIFNFVF9SQVRFX1BB
-UkVOVCBhdCBwbGF0Zm9ybQ0KbGV2ZWwsIG1vcmUgYmVsb3csDQoNCj4gKwkvKiBDb25maWd1cmUg
-dGhlIExDRCBjbG9jayBkaXZpc29yLiAqLw0KPiArCXRpbGNkY193cml0ZShkZXYsIExDRENfQ1RS
-TF9SRUcsIExDRENfQ0xLX0RJVklTT1IoZGl2KSB8DQo+ICsJCQlMQ0RDX1JBU1RFUl9NT0RFKTsN
-Cj4gKw0KPiArCWlmIChwcml2LT5yZXYgPT0gMikNCj4gKwkJdGlsY2RjX3NldChkZXYsIExDRENf
-Q0xLX0VOQUJMRV9SRUcsDQo+ICsJCQkJTENEQ19WMl9ETUFfQ0xLX0VOIHwgTENEQ19WMl9MSURE
-X0NMS19FTiB8DQo+ICsJCQkJTENEQ19WMl9DT1JFX0NMS19FTik7DQoNCk1pa2Ugd2FzIHN1Z2dl
-c3RpbmcgdG8gbW9kZWwgdGhlIGFib3ZlIHVzaW5nIGdhdGUvZGl2aWRlci9jb21wb3NpdGUNCmNs
-b2NrcyBvZiBDQ0YgaW4gdGhlIEZCIGRyaXZlci4NCg0KPiArCXByaXYtPmNsayA9IGNsa19nZXQo
-ZGV2LT5kZXYsICJmY2siKTsNCj4gKwlpZiAoSVNfRVJSKHByaXYtPmNsaykpIHsNCj4gKwkJZGV2
-X2VycihkZXYtPmRldiwgImZhaWxlZCB0byBnZXQgZnVuY3Rpb25hbCBjbG9ja1xuIik7DQo+ICsJ
-CXJldCA9IC1FTk9ERVY7DQo+ICsJCWdvdG8gZmFpbDsNCj4gKwl9DQo+ICsNCj4gKwlwcml2LT5k
-aXNwX2NsayA9IGNsa19nZXQoZGV2LT5kZXYsICJkcGxsX2Rpc3BfY2siKTsNCj4gKwlpZiAoSVNf
-RVJSKHByaXYtPmNsaykpIHsNCj4gKwkJZGV2X2VycihkZXYtPmRldiwgImZhaWxlZCB0byBnZXQg
-ZGlzcGxheSBjbG9ja1xuIik7DQo+ICsJCXJldCA9IC1FTk9ERVY7DQo+ICsJCWdvdG8gZmFpbDsN
-Cj4gKwl9DQoNCiJkcGxsX2Rpc3BfY2siIGlzIGEgcGxhdGZvcm0gc3BlY2lmaWMgbWF0dGVyLCBk
-cml2ZXIgc2hvdWxkIG5vdA0KYmUgaGFuZGxpbmcgcGxhdGZvcm0gc3BlY2lmaWNzLiBBbmQgdGhp
-cyB3b24ndCB3b3JrIG9uIERhVmluY2ksDQp5b3UgY2FuIHByb2JhYmx5IG1ha2UgdXNlIG9mDQoN
-Cm15IHNlcmllcyAiW1BBVENIIHYyIDAvNF0gQVJNOiBBTTMzNXg6IExDREMgcGxhdGZvcm0gc3Vw
-cG9ydCINCg0Kb3Igc29tZXRoaW5nIHNpbWlsYXIgdG8gb3ZlcmNvbWUgdGhpcy4NCg0KUmVnYXJk
-cw0KQWZ6YWwNCg0KDQo=
+On 01/25/2013 04:33 AM, Kishon Vijay Abraham I wrote:
+> In order to support platforms which has multiple PHY's (of same type) and
+> which has multiple USB controllers, a new design is adopted wherin the binding
+> information (between the PHY and the USB controller) should be passed to the
+> PHY library from platform specific file (board file).
+> So added a new API to pass the binding information.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/usb/otg/otg.c   |   37 +++++++++++++++++++++++++++++++++++++
+>  include/linux/usb/phy.h |   22 ++++++++++++++++++++++
+>  2 files changed, 59 insertions(+)
+> 
+> diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
+> index a30c041..8e756d9 100644
+> --- a/drivers/usb/otg/otg.c
+> +++ b/drivers/usb/otg/otg.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/usb/otg.h>
+>  
+>  static LIST_HEAD(phy_list);
+> +static LIST_HEAD(phy_bind_list);
+>  static DEFINE_SPINLOCK(phy_lock);
+>  
+>  static struct usb_phy *__usb_find_phy(struct list_head *list,
+> @@ -201,6 +202,42 @@ void usb_remove_phy(struct usb_phy *x)
+>  }
+>  EXPORT_SYMBOL(usb_remove_phy);
+>  
+> +/**
+> + * usb_bind_phy - bind the phy and the controller that uses the phy
+> + * @dev_name: the device name of the device that will bind to the phy
+> + * @index: index to specify the port number
+> + * @phy_dev_name: the device name of the phy
+> + *
+> + * Fills the phy_bind structure with the dev_name and phy_dev_name. This will
+> + * be used when the phy driver registers the phy and when the controller
+> + * requests this phy.
+> + *
+> + * To be used by platform specific initialization code.
+> + */
+> +int __init usb_bind_phy(const char *dev_name, u8 index,
+> +				const char *phy_dev_name)
+> +{
+> +	struct usb_phy_bind *phy_bind;
+> +	unsigned long flags;
+> +
+> +	phy_bind = kzalloc(sizeof(*phy_bind), GFP_KERNEL);
+> +	if (!phy_bind) {
+> +		pr_err("phy_bind(): No memory for phy_bind");
+
+nitpick. Function name is usb_bind_phy() and you don't need to mention it twice ;).
+
+Is it even needed to print here as the user would most likely print it anyways. At least
+the user can decide if it needs to be printed or not.
+
+> +		return -ENOMEM;
+> +	}
+> +
+> +	phy_bind->dev_name = dev_name;
+> +	phy_bind->phy_dev_name = phy_dev_name;
+> +	phy_bind->index = index;
+> +
+> +	spin_lock_irqsave(&phy_lock, flags);
+> +	list_add_tail(&phy_bind->list, &phy_bind_list);
+> +	spin_unlock_irqrestore(&phy_lock, flags);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(usb_bind_phy);
+> +
+>  const char *otg_state_string(enum usb_otg_state state)
+>  {
+>  	switch (state) {
+> diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
+> index a29ae1e..e7eb429 100644
+> --- a/include/linux/usb/phy.h
+> +++ b/include/linux/usb/phy.h
+> @@ -106,6 +106,21 @@ struct usb_phy {
+>  			enum usb_device_speed speed);
+>  };
+
+cheers,
+-roger
+
