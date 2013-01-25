@@ -1,60 +1,86 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v1 1/8] usb: otg: palmas-usb: make palmas-usb as a
- comparator driver
-Date: Fri, 25 Jan 2013 09:43:39 +0200
-Message-ID: <20130125074339.GD15886@arwen.pp.htv.fi>
-References: <1359083551-8524-1-git-send-email-kishon@ti.com>
- <1359083551-8524-2-git-send-email-kishon@ti.com>
+Subject: Re: [PATCH v3 1/4] drivers: usb: phy: add a new driver for usb part
+ of control module
+Date: Fri, 25 Jan 2013 09:48:18 +0200
+Message-ID: <20130125074818.GF15886@arwen.pp.htv.fi>
+References: <1359080391-5120-1-git-send-email-kishon@ti.com>
+ <1359080391-5120-2-git-send-email-kishon@ti.com>
+ <510218FE.8080606@wwwdotorg.org>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9l24NVCWtSuIVIod"
-Return-path: <linux-doc-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="AGZzQgpsuUlWC1xT"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46918 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751180Ab3AYHsp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Jan 2013 02:48:45 -0500
 Content-Disposition: inline
-In-Reply-To: <1359083551-8524-2-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, sameo@linux.intel.com, gg@slimlogic.co.uk, s-guiriec@ti.com, broonie@opensource.wolfsonmicro.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, gregkh@linuxfoundation.org
+In-Reply-To: <510218FE.8080606@wwwdotorg.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, balbi@ti.com, b-cousson@ti.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gregkh@linuxfoundation.org, linux@arm.linux.org.uk
 
---9l24NVCWtSuIVIod
+--AGZzQgpsuUlWC1xT
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Fri, Jan 25, 2013 at 08:42:24AM +0530, Kishon Vijay Abraham I wrote:
-> palmas-usb is made as a comparator driver to omap usb2 phy, so that
-> omap usb can make use of palmas for srp and also to set vbus.
+On Thu, Jan 24, 2013 at 09:32:46PM -0800, Stephen Warren wrote:
+> On 01/24/2013 06:19 PM, Kishon Vijay Abraham I wrote:
+> > Added a new driver for the usb part of control module. This has an API
+> > to power on the USB2 phy and an API to write to the mailbox depending on
+> > whether MUSB has to act in host mode or in device mode.
+> >=20
+> > Writing to control module registers for doing the above task which was
+> > previously done in omap glue and in omap-usb2 phy will be removed.
 >=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> > diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Docume=
+ntation/devicetree/bindings/usb/usb-phy.txt
+>=20
+> This file seems to be specific to the TI USB PHYs, not all USB PHYs;
+> shouldn't it be renamed ti-usb-phy.txt, or even better renamed to match
+> the compatible value it documents, giving ti,omap-usb2.txt?
 
-doesn't apply. palmas-usb isn't in mainline
+could be, but that can be done as a separate patch. It's not part of
+$SUBJECT.
+
+> >  add the address of control module dev conf register until a driver for
+> >  control module is added
+> > =20
+> > +Optional properties:
+> > + - ctrl_module : phandle of the control module used by PHY driver to p=
+ower on
+> > +   the PHY.
+>=20
+> DT property names generally use - not _ as the word separator.
+
+fair enough, Kishon, can you fix this up ?
 
 --=20
 balbi
 
---9l24NVCWtSuIVIod
+--AGZzQgpsuUlWC1xT
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRAjerAAoJEIaOsuA1yqRExq8P/3U+uIqSa8HbY9KxYnlJMCjp
-M5H+fZJCKhfqIkgFZdVNugU0nMMMxj2Wnw8zZWdPHe4ueK4zta5ghqceacfWAF2B
-UFS7dB6H//lX4puE1svPvpXs0vujtGhY1fgZGQoMQ7h9PZQ573QXZpvE+gJbO9iP
-iiy5IuCe3R2Q2KMiRYgt5wGcRTDWLei58XIg6mAQ4phboMLNWZQiV1azBsGImq7b
-Q7ukw8DwybMt0/WZrRe67zxz0XpZxrk23VUXJdUH343DTkOh9x6trWiXY8Up+tpE
-pC1KazTgcohK5dzF6W8+eKW5oPLKizeSVFte/bnz8S0wB6HEcpaAiH4X8tuwv2Kh
-1ecmlNpZNSyAGFzkF0fo+Nnb13ZF5MPsd8AUiYMWdA61ovnXMHUxirBz7T8baIBN
-ZsVhLWd+j+XaYWWfICO1Ju0wFBYilLStfP4d89MlzodV3TMfOs9YvhIs2Crr3a17
-uMjbWzQ5yE/7mjBG/pwJMqVJEE43BWA5/Nxqs/n9U5Y1h8BmgTJizbGggJ5mFNJz
-M54TqOXfUaNPZQPu05mBVwUkp/eQsSwBSEiNoDZznWDDkcBj86zXjDDx0CfJ1/Kv
-aHLZWJaRGqXJmeVU5C0v/p3eNQ2lQrWC1+tqMqD7zU6SLW0HeAbbcL6P/GUOYmzj
-nt9lwBw07woeT2wdwUvd
-=Leb5
+iQIcBAEBAgAGBQJRAjjCAAoJEIaOsuA1yqREqsYQAIDbG9pMox9MzMhLTQ3nYziI
+UI4lVKJSkHvwAaSrZdUdlt88HQeHD1iDUY9H6S5VFX5L7FnkhtNYvHfcVNpIWlf4
+bvB3kCmueLELHn1jhnss8gZzYo+c2jhRNF7rccdVFQ2w5A+O30eVmknphAc5KURX
+P80JDFpmY4yfVbHOgkZ6sd2Dqy0GhqRj9nOftN5Rp0FLrnkpa5BqGcgq8WcvmgZ7
+Fj5nGHaoTD/MrkbfwtjeGiKAU0zkjBgXIQbKeZT3sqPYrB2/6OKx8MyzWIEtoDK/
+imV6BH/gUoIldGjPG5TsaDzcxoEy13waz71pIENTpgIUzahe6MRZelXsDQW4ZBSh
+5i2uFYnIbzkJz0yhZ5oURwhP26wfaS5MsXtADAtl2d5P2n9mEFrqXn3mOprSBPup
+Bm8xkse21bCLccG6vL84hQNirqTRvl9LICw2R/P3+ly4tNCgrSTMnxDU0BdqZJYB
+LKemOPGp/D0iNR6k8cQY15w26Uvb+R5oy7HUPshtAf4W/zePWat3iGN/MapqOue9
+vps1bWKdr1qg4K9TpmcLUAOAnnGsg3TtBZSz1gw7GAKanK8FcEohHeRJMLArvThV
+c/T9C5sfBw8F21FoXs9DagR+Msv9JBkRpzIHRlDPcY0eqAo3cfrMBFrGqot4M5Et
+OEGn/zmfPgNfBA5pqgke
+=GAPu
 -----END PGP SIGNATURE-----
 
---9l24NVCWtSuIVIod--
+--AGZzQgpsuUlWC1xT--
