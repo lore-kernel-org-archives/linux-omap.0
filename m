@@ -1,84 +1,165 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 4/6] drivers: usb: musb: omap: make use of the new PHY lib APIs
-Date: Fri, 25 Jan 2013 08:03:24 +0530
-Message-ID: <1359081206-5602-5-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 5/6] usb: otg: add device tree support to otg library
+Date: Fri, 25 Jan 2013 08:03:25 +0530
+Message-ID: <1359081206-5602-6-git-send-email-kishon@ti.com>
 References: <1359081206-5602-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38601 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755585Ab3AYCeB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jan 2013 21:34:01 -0500
 In-Reply-To: <1359081206-5602-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, balbi@ti.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, kishon@ti.com
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, balbi@ti.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, kishon@ti.com, Marc Kleine-Budde <mkl@pengutronix.de>
 
-New PHY lib APIs like usb_add_phy_dev() and devm_usb_get_phy_dev() are
-used in MUSB (OMAP), in order to make use of the binding information
-provided in the board file (of OMAP platforms).
-All the platforms should be modified similar to this to add and get the
-PHY.
+Added an API devm_usb_get_phy_by_phandle(), to get usb phy by passing a
+device node phandle value. This function will return a pointer to
+the phy on success, -EPROBE_DEFER if there is a device_node for the phandle,
+but the phy has not been added, or a ERR_PTR() otherwise.
 
+Cc: Marc Kleine-Budde <mkl@pengutronix.de>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/musb/omap2430.c   |    2 +-
- drivers/usb/otg/twl4030-usb.c |    3 ++-
- drivers/usb/phy/omap-usb2.c   |    3 ++-
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/usb/otg/otg.c   |   80 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/usb/phy.h |    8 +++++
+ 2 files changed, 88 insertions(+)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 88a601b..be6d259 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -345,7 +345,7 @@ static int omap2430_musb_init(struct musb *musb)
- 	 * up through ULPI.  TWL4030-family PMICs include one,
- 	 * which needs a driver, drivers aren't always needed.
- 	 */
--	musb->xceiv = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
-+	musb->xceiv = devm_usb_get_phy_dev(dev, 0);
- 	if (IS_ERR_OR_NULL(musb->xceiv)) {
- 		pr_err("HS USB OTG: no transceiver configured\n");
- 		return -ENODEV;
-diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
-index 0a70193..a994715 100644
---- a/drivers/usb/otg/twl4030-usb.c
-+++ b/drivers/usb/otg/twl4030-usb.c
-@@ -610,6 +610,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	twl->phy.dev		= twl->dev;
- 	twl->phy.label		= "twl4030";
- 	twl->phy.otg		= otg;
-+	twl->phy.type		= USB_PHY_TYPE_USB2;
- 	twl->phy.set_suspend	= twl4030_set_suspend;
+diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
+index 4bb4333..e181439 100644
+--- a/drivers/usb/otg/otg.c
++++ b/drivers/usb/otg/otg.c
+@@ -13,7 +13,9 @@
+ #include <linux/export.h>
+ #include <linux/err.h>
+ #include <linux/device.h>
++#include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/of.h>
  
- 	otg->phy		= &twl->phy;
-@@ -624,7 +625,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 		dev_err(&pdev->dev, "ldo init failed\n");
- 		return err;
- 	}
--	usb_add_phy(&twl->phy, USB_PHY_TYPE_USB2);
-+	usb_add_phy_dev(&twl->phy);
+ #include <linux/usb/otg.h>
  
- 	platform_set_drvdata(pdev, twl);
- 	if (device_create_file(&pdev->dev, &dev_attr_vbus))
-diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
-index c2b4c8e..0cd88ac 100644
---- a/drivers/usb/phy/omap-usb2.c
-+++ b/drivers/usb/phy/omap-usb2.c
-@@ -142,6 +142,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 	phy->phy.label		= "omap-usb2";
- 	phy->phy.set_suspend	= omap_usb2_suspend;
- 	phy->phy.otg		= otg;
-+	phy->phy.type		= USB_PHY_TYPE_USB2;
+@@ -54,6 +56,20 @@ static struct usb_phy *__usb_find_phy_dev(struct device *dev,
+ 	return ERR_PTR(-ENODEV);
+ }
  
- 	phy->control_dev = omap_get_control_dev();
- 	if (IS_ERR(phy->control_dev)) {
-@@ -165,7 +166,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 	}
- 	clk_prepare(phy->wkupclk);
++static struct usb_phy *__of_usb_find_phy(struct device_node *node)
++{
++	struct usb_phy  *phy;
++
++	list_for_each_entry(phy, &phy_list, head) {
++		if (node != phy->dev->of_node)
++			continue;
++
++		return phy;
++	}
++
++	return ERR_PTR(-ENODEV);
++}
++
+ static void devm_usb_phy_release(struct device *dev, void *res)
+ {
+ 	struct usb_phy *phy = *(struct usb_phy **)res;
+@@ -129,6 +145,70 @@ err0:
+ }
+ EXPORT_SYMBOL(usb_get_phy);
  
--	usb_add_phy(&phy->phy, USB_PHY_TYPE_USB2);
-+	usb_add_phy_dev(&phy->phy);
++ /**
++ * devm_usb_get_phy_by_phandle - find the USB PHY by phandle
++ * @dev - device that requests this phy
++ * @phandle - name of the property holding the phy phandle value
++ * @index - the index of the phy
++ *
++ * Returns the phy driver associated with the given phandle value,
++ * after getting a refcount to it, -ENODEV if there is no such phy or
++ * -EPROBE_DEFER if there is a phandle to the phy, but the device is
++ * not yet loaded. While at that, it also associates the device with
++ * the phy using devres. On driver detach, release function is invoked
++ * on the devres data, then, devres data is freed.
++ *
++ * For use by USB host and peripheral drivers.
++ */
++struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
++	const char *phandle, u8 index)
++{
++	struct usb_phy	*phy = ERR_PTR(-ENOMEM), **ptr;
++	unsigned long	flags;
++	struct device_node *node;
++
++	if (!dev->of_node) {
++		dev_dbg(dev, "device does not have a device node entry\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	node = of_parse_phandle(dev->of_node, phandle, index);
++	if (!node) {
++		dev_dbg(dev, "failed to get %s phandle in %s node\n", phandle,
++			dev->of_node->full_name);
++		return ERR_PTR(-ENODEV);
++	}
++
++	ptr = devres_alloc(devm_usb_phy_release, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr) {
++		dev_dbg(dev, "failed to allocate memory for devres\n");
++		goto err0;
++	}
++
++	spin_lock_irqsave(&phy_lock, flags);
++
++	phy = __of_usb_find_phy(node);
++	if (IS_ERR(phy) || !try_module_get(phy->dev->driver->owner)) {
++		phy = ERR_PTR(-EPROBE_DEFER);
++		devres_free(ptr);
++		goto err1;
++	}
++
++	*ptr = phy;
++	devres_add(dev, ptr);
++
++	get_device(phy->dev);
++
++err1:
++	spin_unlock_irqrestore(&phy_lock, flags);
++
++err0:
++	of_node_put(node);
++
++	return phy;
++}
++EXPORT_SYMBOL(devm_usb_get_phy_by_phandle);
++
+ /**
+  * usb_get_phy_dev - find the USB PHY
+  * @dev - device that requests this phy
+diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
+index d1675e8..31ef95f 100644
+--- a/include/linux/usb/phy.h
++++ b/include/linux/usb/phy.h
+@@ -167,6 +167,8 @@ extern struct usb_phy *devm_usb_get_phy(struct device *dev,
+ 	enum usb_phy_type type);
+ extern struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index);
+ extern struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index);
++extern struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
++	const char *phandle, u8 index);
+ extern void usb_put_phy(struct usb_phy *);
+ extern void devm_usb_put_phy(struct device *dev, struct usb_phy *x);
+ extern int usb_bind_phy(const char *dev_name, u8 index,
+@@ -193,6 +195,12 @@ static inline struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
+ 	return NULL;
+ }
  
- 	platform_set_drvdata(pdev, phy);
- 
++static inline struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
++	const char *phandle, u8 index)
++{
++	return NULL;
++}
++
+ static inline void usb_put_phy(struct usb_phy *x)
+ {
+ }
 -- 
 1.7.9.5
+
