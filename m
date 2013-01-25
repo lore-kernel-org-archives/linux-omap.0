@@ -1,38 +1,39 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 1/4] ARM: OMAP2+: dpll: round rate to closest value
-Date: Fri, 25 Jan 2013 08:18:11 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301250816010.471@utopia.booyaka.com>
-References: <cover.1358937533.git.afzal@ti.com> <871e6890897534b6c3669e252f23bef5ff1247b6.1358937533.git.afzal@ti.com>
+Subject: Re: OMAP baseline test results for v3.8-rc4
+Date: Fri, 25 Jan 2013 08:23:02 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301250822270.471@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1301202136290.31667@utopia.booyaka.com>  <50FD6D8D.6030106@mimc.co.uk> <20130121164510.GA18905@kahuna>  <f36acfaf128c4844b8f696ea4440e253@DLEE74.ent.ti.com>  <20130121182419.GE10020@beef> <87boci9str.fsf@dell.be.48ers.dk>
+ <alpine.DEB.2.00.1301220213390.25789@utopia.booyaka.com> <1358846666.3996.3.camel@coredoba.hi.pengutronix.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <871e6890897534b6c3669e252f23bef5ff1247b6.1358937533.git.afzal@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>, Russell King <linux@arm.linux.org.uk>
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-516921023-1359102182=:471"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:41467 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305Ab3AYIXD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 03:23:03 -0500
+In-Reply-To: <1358846666.3996.3.camel@coredoba.hi.pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?ISO-8859-15?Q?Jan_L=FCbbe?= <jlu@pengutronix.de>
+Cc: Matt Porter <mporter@ti.com>, Richard Cochran <richardcochran@gmail.com>, "Menon\\\\, Nishanth" <nm@ti.com>, Mark Jackson <mpfj-list@mimc.co.uk>, "Hiremath\\\\, Vaibhav" <hvaibhav@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Peter Korsgaard <jacmet@sunsite.dk>, "linux-omap\\\\@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel\\\\@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Wed, 23 Jan 2013, Afzal Mohammed wrote:
+--843723315-516921023-1359102182=:471
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> Currently round rate function would return proper rate iff requested
-> rate exactly matches the PLL lockable rate. This causes set_rate to
-> fail if exact rate could not be set. Instead round rate may return
-> closest rate possible (less than the requested). And if any user is
-> badly in need of exact rate, then return value of round rate could
-> be used to decide whether to invoke set rate or not.
-> 
-> Modify round rate so that it return closest possible rate.
+Hello Jan,
 
-This doesn't look like the right approach to me.  For some PLLs, an exact 
-rate is desired.
+On Tue, 22 Jan 2013, Jan L=C3=BCbbe wrote:
 
-We removed the rate tolerance code in commit 
-241d3a8dca239610d3d991bf58d4fe38c2d86fd5, but that was probably premature.  
-We've encountered several situations now where we could really use it, 
-like MPU CPUFreq.  I'd suggest reverting 
-241d3a8dca239610d3d991bf58d4fe38c2d86fd5 or using a similar approach.
+> Just a guess, but there can be problems when the appended DTB crosses an
+> 1MB boundary. See this mail for details and a patch:
+> http://www.spinics.net/lists/arm-kernel/msg216898.html
+
+Thanks for the suggestion.  That patch didn't fix it for me.
 
 
 - Paul
+--843723315-516921023-1359102182=:471--
