@@ -1,58 +1,56 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH v3 1/4] drivers: usb: phy: add a new driver for usb part
- of control module
-Date: Fri, 25 Jan 2013 14:16:22 +0530
-Message-ID: <5102465E.4030305@ti.com>
-References: <1359080391-5120-1-git-send-email-kishon@ti.com> <1359080391-5120-2-git-send-email-kishon@ti.com> <510218FE.8080606@wwwdotorg.org> <20130125074818.GF15886@arwen.pp.htv.fi> <51024581.6020301@ti.com> <20130125084501.GI15886@arwen.pp.htv.fi>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: OMAP44XX: Clock: Correct the clock identifiers
+ for OMAP4460 and OMAP4430
+Date: Fri, 25 Jan 2013 08:50:45 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301250845310.471@utopia.booyaka.com>
+References: <1358504498-31985-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130125084501.GI15886@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Stephen Warren <swarren@wwwdotorg.org>, rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, b-cousson@ti.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gregkh@linuxfoundation.org, linux@arm.linux.org.uk
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:41699 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751218Ab3AYIuq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 03:50:46 -0500
+In-Reply-To: <1358504498-31985-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: J Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, mturquette@linaro.org
 
-On Friday 25 January 2013 02:15 PM, Felipe Balbi wrote:
-> hi,
->
-> On Fri, Jan 25, 2013 at 02:12:41PM +0530, kishon wrote:
->> On Friday 25 January 2013 01:18 PM, Felipe Balbi wrote:
->>> On Thu, Jan 24, 2013 at 09:32:46PM -0800, Stephen Warren wrote:
->>>> On 01/24/2013 06:19 PM, Kishon Vijay Abraham I wrote:
->>>>> Added a new driver for the usb part of control module. This has an API
->>>>> to power on the USB2 phy and an API to write to the mailbox depending on
->>>>> whether MUSB has to act in host mode or in device mode.
->>>>>
->>>>> Writing to control module registers for doing the above task which was
->>>>> previously done in omap glue and in omap-usb2 phy will be removed.
->>>>
->>>>> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
->>>>
->>>> This file seems to be specific to the TI USB PHYs, not all USB PHYs;
->>>> shouldn't it be renamed ti-usb-phy.txt, or even better renamed to match
->>>> the compatible value it documents, giving ti,omap-usb2.txt?
->>>
->>> could be, but that can be done as a separate patch. It's not part of
->>> $SUBJECT.
->>>
->>>>>   add the address of control module dev conf register until a driver for
->>>>>   control module is added
->>>>>
->>>>> +Optional properties:
->>>>> + - ctrl_module : phandle of the control module used by PHY driver to power on
->>>>> +   the PHY.
->>>>
->>>> DT property names generally use - not _ as the word separator.
->>>
->>> fair enough, Kishon, can you fix this up ?
->>
->> Sure. Will post a patch..
->
-> Great, notice that I've already applied some of your patches to my tree.
->
-Cool. Thanks :-)
+Hi,
 
-Regards
-Kishon
+On Fri, 18 Jan 2013, J Keerthy wrote:
+
+> The previous logic to detect the clocks for OMAP4460
+> was to combine the clocks marked as CK_443X and CK_446X. This would be
+> fine as long as OMAP4460 was a super set of OMAP4430 clock set.
+> This is not the case as there are clocks which are specific to OMAP4430
+> (for example bandgap_fclk) and some which are specific to OMAP4460(for example
+> bandgap_ts_fclk). 
+> The clock "bandgap_fclk" is specific for OMAP4430 and
+> this was added as part of OMAP4460 clock set which should not be done.
+> 
+> Hence changing the convention.
+> 
+> CK_446X				--------> Clocks specific to OMAP4460
+> CK_443X				--------> Clocks specific to OMAP4430
+> CK_44XX (CK_446X | CK_443X)	--------> Common to both OMAP4460 and OMAP4430
+> 
+> Boot Tested on both Panda and Panda-es.
+> 
+> Signed-off-by: J Keerthy <j-keerthy@ti.com>
+> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Eduardo Valentin <eduardo.valentin@ti.com>
+
+While I agree with this patch, my understanding is that Tony wishes to 
+shift to list-based initialization for clocks, similar to how the hwmod 
+initialization is done for OMAP3.  This will result in moving away from 
+the CK_* flags.  There are some previous public mailing list messages on 
+this topic that you can probably find by searching for CK_446X.
+Now that we've switched to the common clock framework, it should be more 
+practical to do this conversion, since we can refer to parent clocks by 
+name rather than by pointer.  Could you please update your patch to take 
+that approach instead?
+
+- Paul
