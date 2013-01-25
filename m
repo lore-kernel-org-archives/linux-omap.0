@@ -1,69 +1,50 @@
-From: Sebastien Guiriec <s-guiriec@ti.com>
-Subject: Re: [alsa-devel] [RESEND PATCH v3 2/5] ARM: OMAP4: Assign IDs to
- DSS HDMI devices
-Date: Fri, 25 Jan 2013 15:44:00 +0100
-Message-ID: <51029A30.7070903@ti.com>
-References: <1357341987-3327-1-git-send-email-rneri@dextratech.com> <1357341987-3327-3-git-send-email-rneri@dextratech.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v1 0/6] USB: Add support for multiple PHYs of same type
+Date: Fri, 25 Jan 2013 14:46:09 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA93ACE@DBDE01.ent.ti.com>
+References: <1358848694-20145-1-git-send-email-kishon@ti.com>
+ <2D906ABA-71F2-4843-9DBE-F82527A1240A@dominion.thruhere.net>
+ <50FEB3FD.3050001@ti.com> <50FEBB61.9000707@ti.com>
+ <B9531499-0746-44DA-BDBB-999D4CA31E63@dominion.thruhere.net>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA922F5@DBDE01.ent.ti.com>
+ <50FFF31D.2070908@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA92B0B@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53763 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750779Ab3AYOoK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Jan 2013 09:44:10 -0500
-In-Reply-To: <1357341987-3327-3-git-send-email-rneri@dextratech.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:42353 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750887Ab3AYOqg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jan 2013 09:46:36 -0500
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA92B0B@DBDE01.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <rneri@dextratech.com>
-Cc: tomi.valkeinen@ti.com, broonie@opensource.wolfsonmicro.com, liam.r.girdwood@intel.com, tony@atomide.com, peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, dzuniga@dextratech.com
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "eballetbo@gmail.com" <eballetbo@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, "javier@dowhile0.org" <javier@dowhile0.org>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Ricardo,
+Hi Kishon,
 
-You need to rebase this patch as the code has been moved to dss-common.c 
-file now. So it would not apply.
+On Thu, Jan 24, 2013 at 17:21:45, Mohammed, Afzal wrote:
+> On Wed, Jan 23, 2013 at 19:56:37, ABRAHAM, KISHON VIJAY wrote:
+> > On Wednesday 23 January 2013 07:28 PM, Mohammed, Afzal wrote:
 
-Sebastien
+> > > USB first instance of am335x works in mainline as of now.
+> 
+> > Can you check if this series indeed breaks am335x?
+> > 
+> > Thanks for your help.
+> 
+> Do you have a tree having these changes, it would be easier for me.
 
-On 01/05/2013 12:26 AM, Ricardo Neri wrote:
-> While Pandaboard and SDP4430 have only one HDMI output connector, it may be
-> possible that future boards and SoCs support more than one HDMI output.
-> Thus, we define the identifier of the device. This is used by display
-> common code to identify and create the platform devices for HDMI audio drivers.
->
-> Signed-off-by: Ricardo Neri <rneri@dextratech.com>
-> ---
->   arch/arm/mach-omap2/board-4430sdp.c    |    3 +++
->   arch/arm/mach-omap2/board-omap4panda.c |    3 +++
->   2 files changed, 6 insertions(+)
->
-> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-> index 3669c12..5a486d9 100644
-> --- a/arch/arm/mach-omap2/board-4430sdp.c
-> +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -666,6 +666,9 @@ static struct omap_dss_device sdp4430_hdmi_device = {
->   	.type = OMAP_DISPLAY_TYPE_HDMI,
->   	.channel = OMAP_DSS_CHANNEL_DIGIT,
->   	.data = &sdp4430_hdmi_data,
-> +	.dev = {
-> +		.id = -1,
-> +	},
->   };
->
->   static struct picodlp_panel_data sdp4430_picodlp_pdata = {
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> index bfcd397..9f336a3 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -440,6 +440,9 @@ static struct omap_dss_device  omap4_panda_hdmi_device = {
->   	.type = OMAP_DISPLAY_TYPE_HDMI,
->   	.channel = OMAP_DSS_CHANNEL_DIGIT,
->   	.data = &omap4_panda_hdmi_data,
-> +	.dev = {
-> +		.id = -1,
-> +	},
->   };
->
->   static struct omap_dss_device *omap4_panda_dss_devices[] = {
->
+I tried with your "omap5-with-palmas" branch that was mentioned in
+the cover letter of your latest series (but couldn't find the commit
+that you mentioned in the cover letter, HEAD of that branch that I
+tested was "2c29519 ARM: dts: palmas: update dt data for palmas-usb")
+
+usb first instance of am335x works as earlier.
+
+Regards
+Afzal
 
