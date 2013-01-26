@@ -1,99 +1,64 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: RE: RE: [PATCH v4 12/12] video: da8xx-fb: CCF clock divider handling
-Date: Fri, 25 Jan 2013 14:44:53 -0800
-Message-ID: <20130125224453.10623.74434@quantum>
-References: <cover.1358937685.git.afzal@ti.com>
- <fa8dab522507e087d5a94bac13dda71544911707.1358937685.git.afzal@ti.com>
- <20130123202204.9205.66575@quantum>
- <C8443D0743D26F4388EA172BF4E2A7A93EA92ADF@DBDE01.ent.ti.com>
- <20130124170044.10623.45314@quantum>
- <C8443D0743D26F4388EA172BF4E2A7A93EA9383E@DBDE01.ent.ti.com>
+From: Christoffer Dall <chris@cloudcar.com>
+Subject: [RFC PATCH] ARM: mm: Fix alloc_init_section bug on LPAE
+Date: Fri, 25 Jan 2013 19:31:58 -0500
+Message-ID: <1359160318-27068-1-git-send-email-chris@cloudcar.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA9383E@DBDE01.ent.ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, paul@pwsan.com, rnayak@ti.com, b-cousson@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Christoffer Dall <chris@cloudcar.com>, "Jeremy C. Andrus" <jeremya@cs.columbia.edu>
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Mohammed, Afzal (2013-01-25 04:05:44)
-> Hi Mike,
-> 
-> On Thu, Jan 24, 2013 at 22:30:44, Mike Turquette wrote:
-> > Quoting Mohammed, Afzal (2013-01-24 03:36:02)
-> 
-> > > So there are 3 - LIDD is actually not for present use case, CORE could
-> > > be clubbed with the divider to have a composite clock. And CORE is
-> > > in functional clock path and logically it's perfectly alright to have
-> > > the composite clock.
-> 
-> > Some of the clock names are a bit generic, so a question that I'm going
-> > to repeat throughout my response: "is this clock only inside of your
-> > video IP ?"
-> 
-> Yes these three clocks are inside LCDC IP.
-> 
-> > Regarding the CORE clock, is this only inside of your IP or are you
-> > referring to the SoC CORE clock which is driven by a DPLL and clocks
-> > DDR and many other peripherals (often MMC, UART, etc)?
-> 
-> Sorry for the confusion, here CORE refers to clock inside LCDC IP. This
-> CORE should not be confused with CORE PLL. Actually I used CORE so that
-> it corresponds to the nomenclature in LCDC section of TRM.
-> 
-> > Note that this is from my past experience with OMAP, and I'm making an
-> > assumption that the clock scheme between OMAP and Da Vinci/AM335x parts
-> > isn't very different.
-> 
-> Additional detail: DaVinci doesn't have these 3 clocks controls available,
-> so these three are required only on AM335x (which has IP version 2 )
-> 
-> > Is there a public TRM I can look at?  It would help me understand this
-> > without having to ask you so many annoying questions ;)
-> 
-> No problem, http://www.ti.com/product/am3359
-> 
-> 
-> > > And now we are left with DMA, this is actually in the interface clock
-> > > path which driver in unaware. An option would be to have DMA clock
-> > > as child of CORE plus divider composite clock, even though logically
-> > > DMA can't be considered in the same path.
-> 
-> > Why is the driver unaware of the interface clk?  For instance OMAP3 had
-> > separate fclk and iclk for IPs and drivers would call clk_enable on
-> > both.  Or am I misunderstanding something?
-> 
-> HWMOD handles enabling those upon pm_runtime calls, HWMOD makes an alias
-> for main clock with "fck", but not for "ick", so currently "ick" is
-> unavailable for the driver, continued below ..
-> 
-> > In general I don't think the clock subtree should be modeled in a way
-> > that is convenient for software, but instead model the actual hardware.
-> > Trust me, if you don't model the actual hardware then you will be very
-> > confused when you come back and revisit this code in 6 months and can't
-> > remember why things are so weird looking.
-> 
-> Ok, then it seems an omap clock entry for con-id "ick" should be created
-> as follows (dpll_core_m4_ck supplies interface clock),
-> 
-> CLK("4830e000.lcdc",    "ick",          &dpll_core_m4_ck,       CK_AM33XX)
-> 
-> And then in the driver, DMA gate clock should be made a child of this clock
-> (obtained with con-id "ick").
-> 
-> Let me know your opinion on this.
-> 
+When using LPAE the call to alloc_init_pte is passed then end address
+for the entire 1st level page table region, and the code unluckily ends
+up going over the bounds of the single allocated PTE, which is sad.
 
-I think Paul W. or someone on the TI side should weigh in on your clkdev
-entries.  My main point is that the actual tree should be modeled and
-clocks shouldn't be globbed together unnecessarily.  As mentioned in the
-other mail thread you might be better off making a divider for your LCDC
-IP block and modeling each node individually.
+This caused LPAE boot on omap5 to crash.
 
-Regards,
-Mike
+There may be some hidden mystery in the boot code that I'm unaware of
+or it may be assumed that all mappings are always mappable as sections
+on LPAE and therefore omap5 just does something bad, in which case this
+patch isn't the right fix, but I'd be happy to be told the reason.
 
-> Regards
-> Afzal
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Jeremy C. Andrus <jeremya@cs.columbia.edu>
+Signed-off-by: Christoffer Dall <chris@cloudcar.com>
+---
+ arch/arm/mm/mmu.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
+index ce328c7..1cecc99 100644
+--- a/arch/arm/mm/mmu.c
++++ b/arch/arm/mm/mmu.c
+@@ -603,11 +603,13 @@ static void __init alloc_init_section(pud_t *pud, unsigned long addr,
+ 
+ 		flush_pmd_entry(p);
+ 	} else {
+-		/*
+-		 * No need to loop; pte's aren't interested in the
+-		 * individual L1 entries.
+-		 */
+-		alloc_init_pte(pmd, addr, end, __phys_to_pfn(phys), type);
++		unsigned long next;
++
++		do {
++			next = pmd_addr_end(addr, end);
++			alloc_init_pte(pmd, addr, next, __phys_to_pfn(phys), type);
++			phys += next - addr;
++		} while (pmd++, addr = next, addr != end);
+ 	}
+ }
+ 
+-- 
+1.7.9.5
