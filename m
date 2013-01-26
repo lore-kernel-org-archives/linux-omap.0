@@ -1,58 +1,96 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2] spi: spi-omap2-mcspi.c: Toggle CS after each word
-Date: Sat, 26 Jan 2013 17:00:35 +0800
-Message-ID: <20130126090033.GF30594@opensource.wolfsonmicro.com>
-References: <1359031241-3234-1-git-send-email-matthias.bgg@gmail.com>
+From: Matthias Brugger <matthias.bgg@gmail.com>
+Subject: Re: [PATCH] arm: dts: Add uart1 and uart2 to igep boards.
+Date: Sat, 26 Jan 2013 16:16:45 +0100
+Message-ID: <CABuKBeJsHCq98Pe-BwPajbQ+2OLQpwrbtVTJe=j9thPDQCCBrg@mail.gmail.com>
+References: <1355326422-12357-1-git-send-email-matthias.bgg@gmail.com>
+	<50C8AC3C.9020908@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Bqc0IY4JZZt50bUr"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58437 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752961Ab3AZJAn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 26 Jan 2013 04:00:43 -0500
-Content-Disposition: inline
-In-Reply-To: <1359031241-3234-1-git-send-email-matthias.bgg@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50C8AC3C.9020908@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: tony@atomide.com, grant.likely@secretlab.ca, eballetbo@gmail.com, elezegarcia@gmail.com, ebutera@gmail.com, javier.martinez@collabora.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, eballetbo@gmail.com, javier.martinez@collabora.co.uk, ezequiel.garcia@free-electrons.com, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
+
+Hi Benoit,
+
+2012/12/12 Benoit Cousson <b-cousson@ti.com>:
+> Hi Matthias,
+>
+> On 12/12/2012 04:33 PM, Matthias Brugger wrote:
+>> This patch is a follow-up patch for Javier Martinez effort adding initial
+>> device tree support to IGEP technology devices. [1]
+>>
+>> It adds uart1 and uart2 bindings to the generic dtsi for the IGEP boards.
+>>
+>> [1] http://www.spinics.net/lists/linux-omap/msg83409.html
+>>
+>> Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
+>> ---
+>>  arch/arm/boot/dts/omap3-igep.dtsi |   24 ++++++++++++++++++++++++
+>>  1 file changed, 24 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+>> index 125fe00..c02e3c0 100644
+>> --- a/arch/arm/boot/dts/omap3-igep.dtsi
+>> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+>> @@ -27,6 +27,20 @@
+>>  };
+>>
+>>  &omap3_pmx_core {
+>> +     uart1_pins: pinmux_uart1_pins {
+>> +             pinctrl-single,pins = <
+>> +                     0x152 0x100     /* uart1_rx.uart1_rx INPUT | MODE0 */
+>> +                     0x14c 0         /* uart1_tx.uart1_tx OUTPUT | MODE0 */
+>> +             >;
+>> +     };
+>> +
+>> +     uart2_pins: pinmux_uart2_pins {
+>> +             pinctrl-single,pins = <
+>> +                     0x14a 0x100     /* uart2_rx.uart2_rx INPUT | MODE0 */
+>> +                     0x148 0         /* uart2_tx.uart2_tx OUTPUT | MODE0 */
+>> +             >;
+>> +     };
+>> +
+>>       uart3_pins: pinmux_uart3_pins {
+>>               pinctrl-single,pins = <
+>>                       0x16e 0x100     /* uart3_rx.uart3_rx INPUT | MODE0 */
+>> @@ -77,6 +91,16 @@
+>>       status = "disabled";
+>>  };
+>>
+>> +&uart1 {
+>> +       pinctrl-names = "default";
+>> +       pinctrl-0 = <&uart1_pins>;
+>> +};
+>> +
+>> +&uart2 {
+>> +       pinctrl-names = "default";
+>> +       pinctrl-0 = <&uart2_pins>;
+>> +};
+>> +
+>>  &uart3 {
+>>         pinctrl-names = "default";
+>>         pinctrl-0 = <&uart3_pins>;
+>>
+>
+> That looks good to me. I'll apply it on top of javier's series for 3.9.
+
+Can you pin-point me to the repository where this patches are in right
+now? I tried to figure it out these days, but didn't found where to
+clone the repository from.
+
+Thanks,
+Matthias
+
+>
+> Thanks,
+> Benoit
+>
 
 
---Bqc0IY4JZZt50bUr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Thu, Jan 24, 2013 at 01:40:41PM +0100, Matthias Brugger wrote:
-> This patch allows the board code to define SPI devices which needs to
-> toggle the chip select after every word send. This is needed to get a
-> better resolution reading e.g. an ADC data stream.
-> Apart from that, as in the normal code CS is controlled by software,
-> a transfer is done much faster.
-
-Applied, thanks.
-
---Bqc0IY4JZZt50bUr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRA5smAAoJELSic+t+oim9A2gQAJA/TfJCWmz7+Xh4jsBiHp1S
-WGVKtAPSHoqf63wVSWOGKncJ0siw7G6sS06yVRyIbAbed5PFV7nQwozHtSkPjdkC
-xmIqoBcXwv47/68O+AJ3EUJtqrmUpk1uGbPFmJQhEadWrJ1WMsoJk2L8i3vt/nat
-6DIqCKkTFrkl8W2XBhtIrwrLirtvPvf0hyDimBJW4kp9zh+xw8QwCj0y8sQN4Zpj
-fUoxkOwQtFfw1Cby4sInDkFCNjh4MZfbBh5dAPavs17wNMxJjbFhkGndi85EWP43
-1DEZ6pO7fnhyn4AFMRVMa+6KTbXzCa00/qeKxhJTb7b4TahyQIwbU0PfsaCni5R4
-wxfQB+V/Qkc7Gft96i22pUA5SCp1gNfC+gQqkH2LsjRBeQRTF2l95s5ZXcgCsngn
-Gs7RuZvMEc0oudDfQ59QISR64nM968pWJwGamFSi8Ub/n15Yio8jHDNOTWot13i1
-5up/pzcOOjvlb/7QJGzEYjIqttsr5xUIxrk4eCK085lP+QmPFRfwSf7DvCMWImEb
-2AVgiIxAGCLGBBul4Eg8D75ugzjdcaglc0TV+v32IJwpRaVpNIoxa5JQJfrPkcOu
-xuj2j1tF9f22JgwY1UclIbSVwjeBluESGi/fCXwLFBYFL+O86h7Pb9CAVXbfumrn
-8KJYmcVgKOgl3PZ/LeYO
-=a+ak
------END PGP SIGNATURE-----
-
---Bqc0IY4JZZt50bUr--
+-- 
+---
+motzblog.wordpress.com
