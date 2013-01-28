@@ -1,39 +1,54 @@
 From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: RE: [PATCH v2 1/4] ARM: OMAP2+: dpll: round rate to closest
- value
-Date: Mon, 28 Jan 2013 09:25:41 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA9446B@DBDE01.ent.ti.com>
-References: <cover.1358937533.git.afzal@ti.com>
- <871e6890897534b6c3669e252f23bef5ff1247b6.1358937533.git.afzal@ti.com>
- <alpine.DEB.2.00.1301250816010.471@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A93EA9388C@DBDE01.ent.ti.com>
- <20130125222032.10623.47200@quantum>
+Subject: RE: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
+Date: Mon, 28 Jan 2013 09:56:15 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA944D2@DBDE01.ent.ti.com>
+References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
+	<1358894185-21617-2-git-send-email-robdclark@gmail.com>
+	<C8443D0743D26F4388EA172BF4E2A7A93EA939BB@DBDE01.ent.ti.com>
+	<CAF6AEGsqkUr0R3eYa4P371tUPq_NLSJLhH=N_MkyJF31s068+g@mail.gmail.com>
+	<C8443D0743D26F4388EA172BF4E2A7A93EA93A7D@DBDE01.ent.ti.com>
+ <CAF6AEGtrHBxvnp052K6z3aj3dAxJf1hy7H72EoAWr6PhTtwr8Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48300 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:49749 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755985Ab3A1JZy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 04:25:54 -0500
-In-Reply-To: <20130125222032.10623.47200@quantum>
+	with ESMTP id S1753345Ab3A1J4Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 04:56:25 -0500
+In-Reply-To: <CAF6AEGtrHBxvnp052K6z3aj3dAxJf1hy7H72EoAWr6PhTtwr8Q@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+To: Rob Clark <robdclark@gmail.com>
+Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@linaro.org" <patches@linaro.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, "Nori, Sekhar" <nsekhar@ti.com>
 
-SGkgTWlrZSwNCg0KT24gU2F0LCBKYW4gMjYsIDIwMTMgYXQgMDM6NTA6MzIsIE1pa2UgVHVycXVl
-dHRlIHdyb3RlOg0KDQo+IElzIE1VTFRfUk9VTkRfVVAgZG9pbmcgdGhlIHJpZ2h0IHRoaW5nIGZv
-ciB5b3UgaW4gdGhlIGNsa19kaXZpZGVyIGNvZGU/DQo+IFdoYXQgaXMgdGhlIGNsb2NrIHJhdGUg
-cmVxdWVzdGVkIG9mIHRoZSBwYXJlbnQgUExMPyAgSSBqdXN0IHdhbnQgdG8gbWFrZQ0KPiBzdXJl
-IHRoYXQgd2UncmUgZG9pbmcgdGhlIHJpZ2h0IHRoaW5nIGluIHRoZSBiYXNpYyBkaXZpZGVyIGNv
-ZGUuDQoNCkFjdHVhbGx5IE1VTFRfUk9VTkRfVVAgbWFkZSBteSBsaWZlIGRpZmZpY3VsdCBlYXJs
-aWVyLCBhbmQgZmluYWxseSBjYW1lIHVwDQp3aXRoIHRoaXMgc29sdXRpb24gaW5zdGVhZCBvZiBy
-ZW1vdmluZyBpdC4NCg0KSXQgd2FzIHNvbWV0aGluZyBsaWtlIDYwMDAwMDAwIHJlcXVlc3RlZCBv
-ZiBQTEwsIGZvciBpID0gMSwgYnV0IGZvciBvdGhlcg0KdmFsdWVzLCBpdCB3YXMgc29tZXRoaW5n
-IGxpa2UgNjAwMDAwMDEsIDYwMDAwMDAyIGV0Yy4NCg0KRXZlbiBpZiByb3VuZCByYXRlIHJvdW5k
-cywgSSB0aG91Z2h0IHJlbW92aW5nIE1VTFRfUk9VTkRfVVAgd291bGQgYmUgb2ssDQpjb3VsZG4n
-dCBzcGVuZCB0aW1lIHRvIHVuZGVyc3RhbmQgZnVsbHkgcmF0aW9uYWwgYmVoaW5kIGl0LCBhbmQg
-YXMgaXQgd2FzDQppbiBnZW5lcmljIGNvZGUsIGtlcHQgYXdheSBmcm9tIGRvaW5nIGl0Lg0KDQpS
-ZWdhcmRzDQpBZnphbA0KDQo=
+SGkgUm9iLA0KDQpPbiBGcmksIEphbiAyNSwgMjAxMyBhdCAyMDoyMjo1NSwgUm9iIENsYXJrIHdy
+b3RlOg0KPiBPbiBGcmksIEphbiAyNSwgMjAxMyBhdCA4OjE1IEFNLCBNb2hhbW1lZCwgQWZ6YWwg
+PGFmemFsQHRpLmNvbT4gd3JvdGU6DQoNCj4gPiBJdCdzIG5vdCBhYm91dCBiZWluZyBzaW1wbGUs
+IGJ1dCBub3QgZG9pbmcgdGhlIHdyb25nIHdheSwgaGVyZSB5b3UgYXJlDQo+ID4gcmVseWluZyBv
+biBhIHBsYXRmb3JtIHNwZWNpZmljIGNsb2NrIGluIGEgZHJpdmVyLCB0aGluayBhYm91dCB0aGUg
+Y2FzZQ0KPiA+IHdoZXJlIHNhbWUgSVAgaXMgdXNlZCBvbiBhbm90aGVyIHBsYXRmb3JtLiBFaXRo
+ZXIgd2F5IGl0IGlzIG5vdCBhIGdvb2QNCj4gPiB0aGluZyB0byBoYW5kbGUgcGxhdGZvcm0gc3Bl
+Y2lmaWMgZGV0YWlscyAoYWJvdXQgZGlzcF9jbGspIGluIGRyaXZlci4NCg0KPiBSaWdodCwgYnV0
+IEkgd2FzIHRyeWluZyB0byB1bmRlcnN0YW5kIHdoYXQgd2FzIHRoZSBiZW5lZml0IHRoYXQgdGhl
+DQo+IGFkZGVkIGNvbXBsZXhpdHkgaXMuICBJIGRpZG4ndCByZWFsaXplIG9uIGRhdmluY2kgdGhh
+dCB5b3UgYXJlIGxpbWl0ZWQNCg0KSGVyZSBJIGFtIHJlZmVycmluZyB0byB1c2FnZSBvZiBkaXNw
+X2NsaywNCg0KRHJpdmVyIGlzIG5vdCBzdXBwb3NlZCB0byBkbyBwbGF0Zm9ybSBoYWNrcyAtIGhl
+cmUgeW91IGFyZSB0cnlpbmcgdG8NCmNvbmZpZ3VyZSBzb21ldGhpbmcgKFBMTCkgaW4geW91ciBk
+cml2ZXIgd2hpY2ggaXMgbm90IHBhcnQgb2YgTENEQyBJUC4NCkFuZCBMQ0RDIElQIGlzIG5vdCBh
+d2FyZSBvZiBQTEwgd2hpY2ggaXMgYSBwbGF0Zm9ybSBzcGVjaWZpYyBtYXR0ZXINCihleGlzdGVu
+dCBvbmx5IGluIEFNMzM1eCksIGl0IGlzIG9ubHkgYXdhcmUgb2YgZnVuY3Rpb25hbCBjbG9jay4N
+Cg0KWW91IGNhbiBzZXQgdGhlIHJhdGUgb24gImZjayIgKGZ1bmN0aW9uYWwgY2xvY2spIGluIEFN
+MzM1eCB1c2luZyBteSBwYXRjaCwNCiJBUk06IEFNMzNYWDogY2xvY2s6IFNFVF9SQVRFX1BBUkVO
+VCBpbiBsY2QgcGF0aCIsIGFuZCB0aGVyZQ0Kd291bGQgbm90IGJlIGFueSBuZWVkIGZvciBkcml2
+ZXIgdG8gYmUgYXdhcmUgb2YgcGxhdGZvcm0gc3BlY2lmaWMgUExMLg0KDQo+ID4+ID4+ICsgICAg
+IHByaXYtPmNsayA9IGNsa19nZXQoZGV2LT5kZXYsICJmY2siKTsNCg0KPiA+PiA+PiArICAgICBw
+cml2LT5kaXNwX2NsayA9IGNsa19nZXQoZGV2LT5kZXYsICJkcGxsX2Rpc3BfY2siKTsNCg0KPiBh
+dCB0aGUgbW9tZW50IGFsbCB0aGlzIGRpc2N1c3Npb24gaXMgYSBiaXQgbW9vdC4gIEknZCBwcm9w
+b3NlIGxlYXZpbmcNCj4gdGhlIGRyaXZlciBhcyBpdCBpcyBmb3Igbm93LCBiZWNhdXNlIHRoYXQg
+YXQgbGVhc3QgbWFrZXMgaXQgdXNlZnVsIG9uDQo+IGFtMzN4eC4gIEFuZCB3aGVuIENDRiBhbmQg
+ZGF2aW5jaSBoYXZlIHRoZSBuZWVkZWQgc3VwcG9ydCBpbiBwbGFjZSwNCg0KTGV0J3MgZm9yZ2V0
+IGFib3V0IGxldmVyYWdpbmcgQ0NGIGluIGRyaXZlciwgYnV0IHNhbmUgc29sdXRpb24gdy5yLnQg
+UExMDQpjb25maWd1cmF0aW9uIHdvdWxkIGJlIHRvIGRvIGFzIG1lbnRpb25lZCBhYm92ZS4NCg0K
+UmVnYXJkcw0KQWZ6YWwNCg0K
