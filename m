@@ -1,108 +1,52 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH] arm: dts: omap4-sdp: Add I2c pinctrl data
-Date: Mon, 28 Jan 2013 16:47:45 +0530
-Message-ID: <1359371865-27907-1-git-send-email-sourav.poddar@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: b-cousson@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com
-Cc: Sourav Poddar <sourav.poddar@ti.com>
+From: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/4] usb: dwc3/xhci: Enable runtime power management
+Date: Mon, 28 Jan 2013 17:12:24 +0530
+Message-ID: <1359373348-18320-1-git-send-email-gautam.vivek@samsung.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Booting 3.8-rc4 om omap 4430sdp results in the following error
+This patch-series enables runtime power management on xhci-plat,
+dwc3-core, dwc3-exynos as well as on samsung-usb3 type PHY.
+This allows usb 3.0 host ports to be power managed at runtime.
+We also turn off the PHY ref_clk PLL, which supplies reference clock
+to USB3 type phy, when ports are not in use.
 
-omap_i2c 48070000.i2c: did not get pins for i2c error: -19
-[    1.024261] omap_i2c 48070000.i2c: bus 0 rev0.12 at 100 kHz
-[    1.030181] omap_i2c 48072000.i2c: did not get pins for i2c error: -19
-[    1.037384] omap_i2c 48072000.i2c: bus 1 rev0.12 at 400 kHz
-[    1.043762] omap_i2c 48060000.i2c: did not get pins for i2c error: -19
-[    1.050964] omap_i2c 48060000.i2c: bus 2 rev0.12 at 100 kHz
-[    1.056823] omap_i2c 4807a000.i2c: did not get pins for i2c error: -19
-[    1.064025] omap_i2c 4807a000.i2c: bus 3 rev0.12 at 400 kHz
+This patch-series is based on 'usb-next' with follwing patches:
 
-This happens because omap4 dts file is not adapted to use i2c through pinctrl
-framework. Populating i2c pinctrl data to get rid of the error.
+usb: phy: samsung: Introducing usb phy driver for hsotg
+usb: phy: s3c-hsotg: adding phy driver support
 
-Tested on omap4430 sdp with 3.8-rc4 kernel.
+usb: phy: samsung: Add support to set pmu isolation
+ARM: EXYNOS: Update & move usb-phy types to generic include layer
+usb: phy: samsung: Add host phy support to samsung-phy driver
+USB: ehci-s5p: Add phy driver support
+USB: ohci-exynos: Add phy driver support
+usb: phy: samsung: Remove __devinit, __devexit_p and __exit annotations
 
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-Reported-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/boot/dts/omap4-sdp.dts |   40 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 40 insertions(+), 0 deletions(-)
+[PATCH v4 1/2] usb: phy: samsung: Common out the generic stuff
+[PATCH v4 2/2] usb: phy: samsung: Add PHY support for USB 3.0 controller
 
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 43e5258..40a04c9 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -212,9 +212,40 @@
- 			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
- 		>;
- 	};
-+
-+	i2c1_pins: pinmux_i2c1_pins {
-+		pinctrl-single,pins = <
-+			0xe2 0x118        /* i2c1_scl PULLUP | INPUTENABLE | MODE0 */
-+			0xe4 0x118       /* i2c1_sda PULLUP | INPUTENABLE | MODE0 */
-+		>;
-+	};
-+
-+	i2c2_pins: pinmux_i2c2_pins {
-+		pinctrl-single,pins = <
-+                        0xe6 0x118        /* i2c2_scl PULLUP | INPUTENABLE | MODE0 */
-+                        0xe8 0x118        /* i2c2_sda PULLUP | INPUTENABLE | MODE0 */
-+		>;
-+	};
-+
-+	i2c3_pins: pinmux_i2c3_pins {
-+		pinctrl-single,pins = <
-+			0xea 0x118        /* i2c3_scl PULLUP | INPUTENABLE | MODE0 */
-+			0xec 0x118     /* i2c3_sda PULLUP | INPUTENABLE | MODE0 */
-+		>;
-+	};
-+
-+	i2c4_pins: pinmux_i2c4_pins {
-+		pinctrl-single,pins = <
-+			0xee 0x118        /* i2c4_scl PULLUP | INPUTENABLE | MODE0 */
-+			0xf0 0x118     /* i2c4_sda PULLUP | INPUTENABLE | MODE0 */
-+		>;
-+	};
- };
- 
- &i2c1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c1_pins>;
-+
- 	clock-frequency = <400000>;
- 
- 	twl: twl@48 {
-@@ -253,10 +284,16 @@
- /include/ "twl6030.dtsi"
- 
- &i2c2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c2_pins>;
-+
- 	clock-frequency = <400000>;
- };
- 
- &i2c3 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c3_pins>;
-+
- 	clock-frequency = <400000>;
- 
- 	/*
-@@ -279,6 +316,9 @@
- };
- 
- &i2c4 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c4_pins>;
-+
- 	clock-frequency = <400000>;
- 
- 	/*
+Vivek Gautam (4):
+  usb: xhci: Enable runtime pm in xhci-plat
+  USB: dwc3: Adjust runtime pm the dwc3 driver to allow runtime suspend
+  usb: dwc3: exynos: Enable runtime power management
+  usb: phy: samsung: Enable runtime power management on samsung-usb3
+
+ drivers/usb/dwc3/core.c          |    4 +-
+ drivers/usb/dwc3/dwc3-exynos.c   |   47 +++++++++++++++++
+ drivers/usb/host/xhci-plat.c     |    9 +++
+ drivers/usb/phy/samsung-usb3.c   |  107 +++++++++++++++++++++++++++++++++++--
+ drivers/usb/phy/samsung-usbphy.c |   26 +++++++++
+ drivers/usb/phy/samsung-usbphy.h |    1 +
+ 6 files changed, 187 insertions(+), 7 deletions(-)
+
 -- 
-1.7.1
+1.7.6.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
