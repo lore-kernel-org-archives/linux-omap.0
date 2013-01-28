@@ -1,118 +1,46 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3/4] usb: dwc3: exynos: Enable runtime power management
-Date: Mon, 28 Jan 2013 14:29:02 +0200
-Message-ID: <20130128122902.GK28698@arwen.pp.htv.fi>
-References: <1359373348-18320-1-git-send-email-gautam.vivek@samsung.com>
- <1359373348-18320-4-git-send-email-gautam.vivek@samsung.com>
- <20130128114755.GF28698@arwen.pp.htv.fi>
- <CAFp+6iEb4R3NQkvtrY8X4h8oMwPf7E+LDYfb_cS5z2WfdGHNWA@mail.gmail.com>
- <20130128121231.GH28698@arwen.pp.htv.fi>
- <CAFp+6iHvH8ZXRGEb=5AsVX+Ks+mAaPqwWW9DhH9O7RNdKo+cgw@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] ARM: OMAP: hwmod_reset: Include errno.h to fix compilation
+ error
+Date: Mon, 28 Jan 2013 13:55:43 +0100
+Message-ID: <1359377743-30663-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bX/mw5riLlTkt+Gv"
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAFp+6iHvH8ZXRGEb=5AsVX+Ks+mAaPqwWW9DhH9O7RNdKo+cgw@mail.gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Vivek Gautam <gautamvivek1987@gmail.com>
-Cc: balbi@ti.com, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, dianders@chromium.org, sylvester.nawrocki@gmail.com, tomasz.figa@gmail.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sebastien Guiriec <s-guiriec@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---bX/mw5riLlTkt+Gv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Jan 28, 2013 at 05:57:04PM +0530, Vivek Gautam wrote:
-> On Mon, Jan 28, 2013 at 5:42 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > Hi,
-> >
-> > On Mon, Jan 28, 2013 at 05:28:30PM +0530, Vivek Gautam wrote:
-> >> >> +static int dwc3_exynos_runtime_resume(struct device *dev)
-> >> >> +{
-> >> >> +     struct dwc3_exynos      *exynos =3D dev_get_drvdata(dev);
-> >> >> +     struct platform_device  *pdev_dwc =3D exynos->dwc3;
-> >> >> +     struct dwc3             *dwc =3D NULL;
-> >> >> +
-> >> >> +     dwc =3D platform_get_drvdata(pdev_dwc);
-> >> >> +
-> >> >> +     clk_enable(exynos->clk);
-> >> >> +
-> >> >> +     if (!dwc)
-> >> >> +             return 0;
-> >> >> +
-> >> >> +     pm_runtime_get_sync(dwc->usb3_phy->dev);
-> >> >
-> >> > dude, this is wrong :-)
-> >> >
-> >> > look at this:
-> >> >
-> >> > pm_runtime_get() -> dwc3_exynos_runtime_resume() ->
-> >> > pm_runtime_get_sync() -> dwc3_exynos_runtime_resume() -> ...
-> >> >
-> >> > only your clock enalbe should do
-> >> >
-> >>
-> >> We want to wake up "dwc->usb3_phy" so tried to call pm_runtime_get_syn=
-c()
-> >> with "dwc->usb3_phy->dev".
-> >> Missing something ? :-(
-> >
-> > oh, my bad. That's the PHY... But we can't really do that for samsung
-> > only. It needs to be done generically for the entire dwc3 core driver,
-> > and for that we need to introduce usb_phy_autopm_get(),
-> > usb_phy_autopm_get_sync() and friends.
-> >
->=20
-> aah!! Ok. I definitely missed that part. :-(
->=20
-> > Then, from dwc_probe() we call:
-> >
-> > phy =3D usb_get_phy();
-> > usb_phy_autopm_enable(phy);
-> > usb_phy_autopm_get_sync(phy);
-> >
-> > or something similar ;-) Bottom line, you shouldn't fiddle with phy->dev
-> > directly.
-> >
->=20
-> Ok, the core should actually be handling the 'phy' not the glue layers.
-> Right ?
-
-that's right, thanks for doing this ;-)
-
-> Will try putting these helper functions in place and come up with a
-> solution. :-)
-
-awesome ;-)
-
-cheers
-
---=20
-balbi
-
---bX/mw5riLlTkt+Gv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRBm8OAAoJEIaOsuA1yqREKCgP/2bAZHHZ8rmyhE93lUj/U/E2
-jhuawf0rWh0Y9NPSx3KrAzsTN4vKHvxOTO8p9MOm+AJloCWk0yE/R5bzfQ83poxc
-ZSg0MZGo22VtRKbaXhh8T7ihELVjBo0LF66tXboDp0ozNPCYd0O2OA392U4X1tbs
-+V7RWOLVf6s5T7Kl4L6QPGz8qugs3A/ZA4Gb987XphxY+REH+LImpCSakk7fowUl
-0eNR/z6Rc091oIHEp2jV+6L7yLAVkaWQNZQ/6DBFXBBsv49414vAqsFFo9mXx8/e
-yngPaP7g7B1h+9jpTU5Ep9/F/l6dHS5eL0eTjEaWK06oQIGAtaN6rNoudILK6TDz
-c/7R7hL0MJ3TmNjthh6QNHGtaLYfHLcucEIn6yEbiJmCsUZQiwvj+dAMVV7BFMEK
-cYimykPtIT+2p6MarYsUJO6BxYUXIsVgfA1AZ040m4JukBwI+aljZSJjZzYyEUZh
-q6Zxq2dH1B3oUm+XFsHmnQ5Lfxs/xisMm8iH2hjnO2f4/ba0iOXBRQDXTFDUh9wD
-GKoQeiGzAr5paed6h43jFFc5eqB2fp+0swi/1IZfPu1FxGo51F5OhgDRDQm42FLq
-79HKw6Y8ehsOv+1I7D1KXe9pjdghk3l8VzPIF1eNfm+1ZCBT+j16bQk63w2j95jt
-GXjFwQzbEIG26y/KXV5W
-=D5gd
------END PGP SIGNATURE-----
-
---bX/mw5riLlTkt+Gv--
+V2l0aG91dCB0aGUgZXJybm8uaDoKICBDQyAgICAgIGFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9o
+d21vZF9yZXNldC5vCmFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF9yZXNldC5jOiBJbiBm
+dW5jdGlvbiDigJhvbWFwX2h3bW9kX2Flc3NfcHJlcHJvZ3JhbeKAmToKYXJjaC9hcm0vbWFjaC1v
+bWFwMi9vbWFwX2h3bW9kX3Jlc2V0LmM6NDc6MTE6IGVycm9yOiDigJhFSU5WQUzigJkgdW5kZWNs
+YXJlZCAoZmlyc3QgdXNlIGluIHRoaXMgZnVuY3Rpb24pCmFyY2gvYXJtL21hY2gtb21hcDIvb21h
+cF9od21vZF9yZXNldC5jOjQ3OjExOiBub3RlOiBlYWNoIHVuZGVjbGFyZWQgaWRlbnRpZmllciBp
+cyByZXBvcnRlZCBvbmx5IG9uY2UgZm9yIGVhY2ggZnVuY3Rpb24gaXQgYXBwZWFycyBpbgptYWtl
+WzFdOiAqKiogW2FyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF9yZXNldC5vXSBFcnJvciAx
+CgpTaWduZWQtb2ZmLWJ5OiBQZXRlciBVamZhbHVzaSA8cGV0ZXIudWpmYWx1c2lAdGkuY29tPgot
+LS0KSGkgUGF1bCwKCkkgY291bGQgbm90IGZpbmQgdGhlIHBhdGNoZXMgZnJvbSBTZWJhc3RpZW4n
+cyBzZXJpZXM6Cmh0dHA6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1vbWFwQHZnZXIua2Vy
+bmVsLm9yZy9tc2c4Mjk3MS5odG1sCgpCdXQgQUZBSUsgeW91IGhhdmUgdGFrZW4gdGhlbSBmb3Ig
+My45LgoKVGhpcyBwYXRjaCBpcyBvbiB0b3Agb2YgaXQgdG8gZml4IGNvbXBpbGF0aW9uIGVycm9y
+LgoKUmVnYXJkcywKUGV0ZXIKCiBhcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfcmVzZXQu
+YyB8IDEgKwogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCgpkaWZmIC0tZ2l0IGEvYXJj
+aC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kX3Jlc2V0LmMgYi9hcmNoL2FybS9tYWNoLW9tYXAy
+L29tYXBfaHdtb2RfcmVzZXQuYwppbmRleCBiYmE0M2ZhLi42NWUxODZjIDEwMDY0NAotLS0gYS9h
+cmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfcmVzZXQuYworKysgYi9hcmNoL2FybS9tYWNo
+LW9tYXAyL29tYXBfaHdtb2RfcmVzZXQuYwpAQCAtMjQsNiArMjQsNyBAQAogICogMDIxMTAtMTMw
+MSBVU0EKICAqLwogI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5oPgorI2luY2x1ZGUgPGxpbnV4L2Vy
+cm5vLmg+CiAKICNpbmNsdWRlIDxzb3VuZC9hZXNzLmg+CiAKLS0gCjEuOC4xLjEKCgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVs
+IG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDov
+L2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
