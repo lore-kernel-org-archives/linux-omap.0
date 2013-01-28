@@ -1,30 +1,50 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH] cpsw: Fix interrupt storm among other things
-Date: Mon, 28 Jan 2013 20:56:32 +0100
-Message-ID: <20130128195632.GB6129@netboy.at.omicron.at>
-References: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com>
- <20130128182451.GC2445@netboy.at.omicron.at>
- <4E26978C-0B09-4E06-8373-49F1850C08C4@antoniou-consulting.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v5 07/14] dmaengine: add dma_request_slave_channel_compat()
+Date: Mon, 28 Jan 2013 19:57:47 +0000
+Message-ID: <201301281957.47604.arnd@arndb.de>
+References: <1358281974-8411-1-git-send-email-mporter@ti.com>
+ <1358281974-8411-8-git-send-email-mporter@ti.com>
+ <CAHp75VeqikcTuOd14utb9E0P3b9t1mr=JsmkAbz5=3FJwU2kFA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f41.google.com ([209.85.214.41]:49564 "EHLO
-	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751306Ab3A1T4p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 14:56:45 -0500
-Content-Disposition: inline
-In-Reply-To: <4E26978C-0B09-4E06-8373-49F1850C08C4@antoniou-consulting.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CAHp75VeqikcTuOd14utb9E0P3b9t1mr=JsmkAbz5=3FJwU2kFA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, Matt Porter <mporter@ti.com>, Chase Maupin <chase.maupin@ti.com>, Jason Kridner <jdk@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Jan 28, 2013 at 08:40:25PM +0200, Pantelis Antoniou wrote:
+On Monday 28 January 2013, Andy Shevchenko wrote:
+> On Tue, Jan 15, 2013 at 10:32 PM, Matt Porter <mporter-l0cyMroinI0@public.gmane.org> wrote:
+> > Adds a dma_request_slave_channel_compat() wrapper which accepts
+> > both the arguments from dma_request_channel() and
+> > dma_request_slave_channel(). Based on whether the driver is
+> > instantiated via DT, the appropriate channel request call will be
+> > made.
+> >
+> > This allows for a much cleaner migration of drivers to the
+> > dmaengine DT API as platforms continue to be mixed between those
+> > that boot using DT and those that do not.
 > 
-> Speaking of which, I'm probably the original developer of the fec driver.
+> Does it mean the introduced function is kinda temporary?
 
-BTW, as I mentioned, someone is converting fec to napi. Care to take a
-look to make sure it is done right?
+Some drivers can very likely get converted to use only
+dma_request_slave_channel() in the long run, when all
+the platforms using those drivers have been converted to
+provide the channels using device tree.
 
-Thanks,
-Richard
+However, for drivers that are used on legacy platforms
+without DT support, we may still need something like
+this function in the long run.
+
+	Arnd
