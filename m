@@ -1,267 +1,71 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH v5] watchdog: introduce retu_wdt driver
-Date: Mon, 28 Jan 2013 17:12:23 +0200
-Message-ID: <20130128151223.GH23053@blackmetal.musicnaut.iki.fi>
-References: <1356641909-8598-1-git-send-email-aaro.koskinen@iki.fi>
+From: Rob Clark <robdclark@gmail.com>
+Subject: Re: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
+Date: Mon, 28 Jan 2013 10:37:13 -0600
+Message-ID: <CAF6AEGtZvjh+==3rFo5gnZqF=orY=YqXf1fndYhE5s74v=rT1Q@mail.gmail.com>
+References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
+	<1358894185-21617-2-git-send-email-robdclark@gmail.com>
+	<C8443D0743D26F4388EA172BF4E2A7A93EA939BB@DBDE01.ent.ti.com>
+	<CAF6AEGsqkUr0R3eYa4P371tUPq_NLSJLhH=N_MkyJF31s068+g@mail.gmail.com>
+	<C8443D0743D26F4388EA172BF4E2A7A93EA93A7D@DBDE01.ent.ti.com>
+	<CAF6AEGtrHBxvnp052K6z3aj3dAxJf1hy7H72EoAWr6PhTtwr8Q@mail.gmail.com>
+	<C8443D0743D26F4388EA172BF4E2A7A93EA944D2@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1356641909-8598-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wim Van Sebroeck <wim@iguana.be>, linux-watchdog@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vc0-f175.google.com ([209.85.220.175]:57284 "EHLO
+	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757384Ab3A1QhO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 11:37:14 -0500
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA944D2@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@linaro.org" <patches@linaro.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, "Nori, Sekhar" <nsekhar@ti.com>
 
-Hi,
+On Mon, Jan 28, 2013 at 3:56 AM, Mohammed, Afzal <afzal@ti.com> wrote:
+> Hi Rob,
+>
+> On Fri, Jan 25, 2013 at 20:22:55, Rob Clark wrote:
+>> On Fri, Jan 25, 2013 at 8:15 AM, Mohammed, Afzal <afzal@ti.com> wrote:
+>
+>> > It's not about being simple, but not doing the wrong way, here you are
+>> > relying on a platform specific clock in a driver, think about the case
+>> > where same IP is used on another platform. Either way it is not a good
+>> > thing to handle platform specific details (about disp_clk) in driver.
+>
+>> Right, but I was trying to understand what was the benefit that the
+>> added complexity is.  I didn't realize on davinci that you are limited
+>
+> Here I am referring to usage of disp_clk,
+>
+> Driver is not supposed to do platform hacks - here you are trying to
+> configure something (PLL) in your driver which is not part of LCDC IP.
+> And LCDC IP is not aware of PLL which is a platform specific matter
+> (existent only in AM335x), it is only aware of functional clock.
+>
+> You can set the rate on "fck" (functional clock) in AM335x using my patch,
+> "ARM: AM33XX: clock: SET_RATE_PARENT in lcd path", and there
+> would not be any need for driver to be aware of platform specific PLL.
 
-On Thu, Dec 27, 2012 at 10:58:29PM +0200, Aaro Koskinen wrote:
-> Introduce Retu watchdog driver.
+right, but I think it would be better to just make another patch that
+changes tilcdc to just set rate on fck after that patch is merged.  I
+mean, I'd rather have the driver at least usable on AM33xx until then,
+rather than broken for everyone.
 
-Wim, any comments about this driver? Do you think it could be queued
-for 3.9?
+BR,
+-R
 
-Thanks,
-
-A.
-
-> Cc: linux-watchdog@vger.kernel.org
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> Cc: Wim Van Sebroeck <wim@iguana.be>
-> ---
-> 
-> 	v5: Deleted __dev* annotations.
-> 	    Fixed a typo in Kconfig help text (Nokia 700 -> 770).
-> 
-> 	For earlier history, see:
-> 	http://marc.info/?l=linux-kernel&m=135325660302114&w=2
-> 
->  drivers/watchdog/Kconfig    |   12 +++
->  drivers/watchdog/Makefile   |    1 +
->  drivers/watchdog/retu_wdt.c |  178 +++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 191 insertions(+)
->  create mode 100644 drivers/watchdog/retu_wdt.c
-> 
-> diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-> index 7f809fd..75afc76 100644
-> --- a/drivers/watchdog/Kconfig
-> +++ b/drivers/watchdog/Kconfig
-> @@ -364,6 +364,18 @@ config IMX2_WDT
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called imx2_wdt.
->  
-> +config RETU_WATCHDOG
-> +	tristate "Retu watchdog"
-> +	depends on MFD_RETU
-> +	select WATCHDOG_CORE
-> +	help
-> +	  Retu watchdog driver for Nokia Internet Tablets (770, N800,
-> +	  N810). At least on N800 the watchdog cannot be disabled, so
-> +	  this driver is essential and you should enable it.
-> +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called retu_wdt.
-> +
->  # AVR32 Architecture
->  
->  config AT32AP700X_WDT
-> diff --git a/drivers/watchdog/Makefile b/drivers/watchdog/Makefile
-> index 97bbdb3a..157bc61 100644
-> --- a/drivers/watchdog/Makefile
-> +++ b/drivers/watchdog/Makefile
-> @@ -52,6 +52,7 @@ obj-$(CONFIG_STMP3XXX_WATCHDOG) += stmp3xxx_wdt.o
->  obj-$(CONFIG_NUC900_WATCHDOG) += nuc900_wdt.o
->  obj-$(CONFIG_TS72XX_WATCHDOG) += ts72xx_wdt.o
->  obj-$(CONFIG_IMX2_WDT) += imx2_wdt.o
-> +obj-$(CONFIG_RETU_WATCHDOG) += retu_wdt.o
->  
->  # AVR32 Architecture
->  obj-$(CONFIG_AT32AP700X_WDT) += at32ap700x_wdt.o
-> diff --git a/drivers/watchdog/retu_wdt.c b/drivers/watchdog/retu_wdt.c
-> new file mode 100644
-> index 0000000..f53615d
-> --- /dev/null
-> +++ b/drivers/watchdog/retu_wdt.c
-> @@ -0,0 +1,178 @@
-> +/*
-> + * Retu watchdog driver
-> + *
-> + * Copyright (C) 2004, 2005 Nokia Corporation
-> + *
-> + * Based on code written by Amit Kucheria and Michael Buesch.
-> + * Rewritten by Aaro Koskinen.
-> + *
-> + * This file is subject to the terms and conditions of the GNU General
-> + * Public License. See the file "COPYING" in the main directory of this
-> + * archive for more details.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/init.h>
-> +#include <linux/slab.h>
-> +#include <linux/errno.h>
-> +#include <linux/device.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/mfd/retu.h>
-> +#include <linux/watchdog.h>
-> +#include <linux/platform_device.h>
-> +
-> +/* Watchdog timer values in seconds */
-> +#define RETU_WDT_MAX_TIMER	63
-> +
-> +struct retu_wdt_dev {
-> +	struct retu_dev		*rdev;
-> +	struct device		*dev;
-> +	struct delayed_work	ping_work;
-> +};
-> +
-> +/*
-> + * Since Retu watchdog cannot be disabled in hardware, we must kick it
-> + * with a timer until userspace watchdog software takes over. If
-> + * CONFIG_WATCHDOG_NOWAYOUT is set, we never start the feeding.
-> + */
-> +static void retu_wdt_ping_enable(struct retu_wdt_dev *wdev)
-> +{
-> +	retu_write(wdev->rdev, RETU_REG_WATCHDOG, RETU_WDT_MAX_TIMER);
-> +	schedule_delayed_work(&wdev->ping_work,
-> +			round_jiffies_relative(RETU_WDT_MAX_TIMER * HZ / 2));
-> +}
-> +
-> +static void retu_wdt_ping_disable(struct retu_wdt_dev *wdev)
-> +{
-> +	retu_write(wdev->rdev, RETU_REG_WATCHDOG, RETU_WDT_MAX_TIMER);
-> +	cancel_delayed_work_sync(&wdev->ping_work);
-> +}
-> +
-> +static void retu_wdt_ping_work(struct work_struct *work)
-> +{
-> +	struct retu_wdt_dev *wdev = container_of(to_delayed_work(work),
-> +						struct retu_wdt_dev, ping_work);
-> +	retu_wdt_ping_enable(wdev);
-> +}
-> +
-> +static int retu_wdt_start(struct watchdog_device *wdog)
-> +{
-> +	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-> +
-> +	retu_wdt_ping_disable(wdev);
-> +
-> +	return retu_write(wdev->rdev, RETU_REG_WATCHDOG, wdog->timeout);
-> +}
-> +
-> +static int retu_wdt_stop(struct watchdog_device *wdog)
-> +{
-> +	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-> +
-> +	retu_wdt_ping_enable(wdev);
-> +
-> +	return 0;
-> +}
-> +
-> +static int retu_wdt_ping(struct watchdog_device *wdog)
-> +{
-> +	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-> +
-> +	return retu_write(wdev->rdev, RETU_REG_WATCHDOG, wdog->timeout);
-> +}
-> +
-> +static int retu_wdt_set_timeout(struct watchdog_device *wdog,
-> +				unsigned int timeout)
-> +{
-> +	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-> +
-> +	wdog->timeout = timeout;
-> +	return retu_write(wdev->rdev, RETU_REG_WATCHDOG, wdog->timeout);
-> +}
-> +
-> +static const struct watchdog_info retu_wdt_info = {
-> +	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
-> +	.identity = "Retu watchdog",
-> +};
-> +
-> +static const struct watchdog_ops retu_wdt_ops = {
-> +	.owner		= THIS_MODULE,
-> +	.start		= retu_wdt_start,
-> +	.stop		= retu_wdt_stop,
-> +	.ping		= retu_wdt_ping,
-> +	.set_timeout	= retu_wdt_set_timeout,
-> +};
-> +
-> +static int retu_wdt_probe(struct platform_device *pdev)
-> +{
-> +	struct retu_dev *rdev = dev_get_drvdata(pdev->dev.parent);
-> +	bool nowayout = WATCHDOG_NOWAYOUT;
-> +	struct watchdog_device *retu_wdt;
-> +	struct retu_wdt_dev *wdev;
-> +	int ret;
-> +
-> +	retu_wdt = devm_kzalloc(&pdev->dev, sizeof(*retu_wdt), GFP_KERNEL);
-> +	if (!retu_wdt)
-> +		return -ENOMEM;
-> +
-> +	wdev = devm_kzalloc(&pdev->dev, sizeof(*wdev), GFP_KERNEL);
-> +	if (!wdev)
-> +		return -ENOMEM;
-> +
-> +	retu_wdt->info		= &retu_wdt_info;
-> +	retu_wdt->ops		= &retu_wdt_ops;
-> +	retu_wdt->timeout	= RETU_WDT_MAX_TIMER;
-> +	retu_wdt->min_timeout	= 0;
-> +	retu_wdt->max_timeout	= RETU_WDT_MAX_TIMER;
-> +
-> +	watchdog_set_drvdata(retu_wdt, wdev);
-> +	watchdog_set_nowayout(retu_wdt, nowayout);
-> +
-> +	wdev->rdev		= rdev;
-> +	wdev->dev		= &pdev->dev;
-> +
-> +	INIT_DELAYED_WORK(&wdev->ping_work, retu_wdt_ping_work);
-> +
-> +	ret = watchdog_register_device(retu_wdt);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	if (nowayout)
-> +		retu_wdt_ping(retu_wdt);
-> +	else
-> +		retu_wdt_ping_enable(wdev);
-> +
-> +	platform_set_drvdata(pdev, retu_wdt);
-> +
-> +	return 0;
-> +}
-> +
-> +static int retu_wdt_remove(struct platform_device *pdev)
-> +{
-> +	struct watchdog_device *wdog = platform_get_drvdata(pdev);
-> +	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-> +
-> +	watchdog_unregister_device(wdog);
-> +	cancel_delayed_work_sync(&wdev->ping_work);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver retu_wdt_driver = {
-> +	.probe		= retu_wdt_probe,
-> +	.remove		= retu_wdt_remove,
-> +	.driver		= {
-> +		.name	= "retu-wdt",
-> +	},
-> +};
-> +module_platform_driver(retu_wdt_driver);
-> +
-> +MODULE_ALIAS("platform:retu-wdt");
-> +MODULE_DESCRIPTION("Retu watchdog");
-> +MODULE_AUTHOR("Amit Kucheria");
-> +MODULE_AUTHOR("Aaro Koskinen <aaro.koskinen@iki.fi>");
-> +MODULE_LICENSE("GPL");
-> -- 
-> 1.7.10.4
-> 
+>> >> >> +     priv->clk = clk_get(dev->dev, "fck");
+>
+>> >> >> +     priv->disp_clk = clk_get(dev->dev, "dpll_disp_ck");
+>
+>> at the moment all this discussion is a bit moot.  I'd propose leaving
+>> the driver as it is for now, because that at least makes it useful on
+>> am33xx.  And when CCF and davinci have the needed support in place,
+>
+> Let's forget about leveraging CCF in driver, but sane solution w.r.t PLL
+> configuration would be to do as mentioned above.
+>
+> Regards
+> Afzal
+>
