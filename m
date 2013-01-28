@@ -1,101 +1,73 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH] cpsw: Fix interrupt storm among other things
-Date: Mon, 28 Jan 2013 20:40:25 +0200
-Message-ID: <4E26978C-0B09-4E06-8373-49F1850C08C4@antoniou-consulting.com>
-References: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com> <20130128182451.GC2445@netboy.at.omicron.at>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130128182451.GC2445@netboy.at.omicron.at>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Richard Cochran <richardcochran@gmail.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, Matt Porter <mporter@ti.com>, Chase Maupin <chase.maupin@ti.com>, Jason Kridner <jdk@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH 00/15] OMAP SHAM & AES Crypto Updates
+Date: Mon, 28 Jan 2013 12:16:35 -0700
+Message-ID: <20130128191635.GA14158@animalcreek.com>
+References: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
+ <alpine.DEB.2.00.1212230836160.16045@utopia.booyaka.com>
+ <20130108203853.GB1876@animalcreek.com>
+ <alpine.DEB.2.00.1301171904070.14118@utopia.booyaka.com>
+ <20130117222728.GA32446@animalcreek.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from p3plsmtpa01-06.prod.phx3.secureserver.net ([72.167.82.86]:46530
+	"HELO p3plsmtpa01-06.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753544Ab3A1TQg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Jan 2013 14:16:36 -0500
+Content-Disposition: inline
+In-Reply-To: <20130117222728.GA32446@animalcreek.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Richard,
+On Thu, Jan 17, 2013 at 03:27:28PM -0700, Mark A. Greer wrote:
+> On Thu, Jan 17, 2013 at 07:13:36PM +0000, Paul Walmsley wrote:
+> > Hi Mark,
+>=20
+> Hi Paul.
 
-Yes, I guess this was more of a drive-by patch dump - but people need this
-to get PG2.0 silicon to work on am33xx.
- 
-On Jan 28, 2013, at 8:24 PM, Richard Cochran wrote:
+Hi again, Paul.  Sorry for the delay, I've been under the weather.
 
-> On Mon, Jan 28, 2013 at 03:11:08PM +0200, Pantelis Antoniou wrote:
->> Fix interrupt storm on bone A4 cause by non-by-the-book interrupt handling.
->> While at it, added a non-NAPI mode (which is easier to debug), plus
->> some general fixes.
-> 
-> I have a few issues with this patch:
-> 
-> 1. This is a networking patch. It should be addressed to netdev, it it
->   needs to have davem on CC.
-> 
-> 2. The description is poor. You need to tell us more about this
->   "storm". How can one trigger it? What is the effect? Does the
->   system lock up, or is the throughput poor? Tell us exactly what the
->   problem is. Tell us what is wrong in the interrupt handling, and
->   how the patch improves the situation.
-> 
+> > I regret the delay,
+> >=20
+> > On Tue, 8 Jan 2013, Mark A. Greer wrote:
+> >=20
+> > > On Sun, Dec 23, 2012 at 08:40:43AM +0000, Paul Walmsley wrote:
 
-PG2.0 fixed a number of silicon bugs. The old driver hard locked, since
-it didn't follow the TRM described interrupt handling.
+> > What do you think about adding an am35xx_es11plus_hwmod_ocp_ifs[] a=
+rray to=20
+> > omap_hwmod_3xxx_data.c for these secure hwmods?  That carries the i=
+mplicit=20
+> > and possibly wrong assumption that it's likely to be ES1.0 devices =
+that=20
+> > are missing the SHAM/AES, but it seems unlikely that TI would have=20
+> > multiple silicon revs running around claiming to be ES1.1?  Or mayb=
+e I'm=20
+> > just being na=EFve.
+>=20
+> Something like that makes sense to me.  I'll re-read my email, etc. a=
+nd
+> see if I can find something to help us figure it out.
 
-> 3. Don't just say "general fixes", but do say exactly what you fixed.
-> 
-> 4. Adding non-NAPI code is going backwards. Don't do that (and see the
->   recent discussion on netdev on just this very topic: Frank Li and
->   the fec driver).
-> 
+I couldn't find any information that helped with this so AFAIK there is=
+ no
+good way to tell if a particular am35xx has the crypto hardware availab=
+le
+or not.  At this point, I vote for moving 'omap3xxx_l4_core__sham' and
+'omap3xxx_l4_core__aes' from omap3xxx_gp_hwmod_ocp_ifs[] and putting th=
+em
+in omap34xx_hwmod_ocp_ifs[] and omap36xx_hwmod_ocp_ifs[].  That should =
+be
+safe in general and if someone with an am35xx wants to use those module=
+s,
+they can edit am35xx_hwmod_ocp_ifs[] locally.
 
-Speaking of which, I'm probably the original developer of the fec driver.
-
-And no, I don't think having a non-NAPI code path is backwards, especially
-when trying to debug hardware problems; the non-NAPI driver is much easier
-to understand and follow, especially when there is a convoluted method
-you have to follow to have the h/w acknowledge the interrupt.
-Not every device can be conveniently be made to shut up so that NAPI processing 
-can take place at a later time.
-
-The NAPI case is still broken in this driver, which OOPs under load.
-
->> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->> index 40aff68..b6ca4af 100644
->> --- a/drivers/net/ethernet/ti/cpsw.c
->> +++ b/drivers/net/ethernet/ti/cpsw.c
->> @@ -148,10 +148,37 @@ struct cpsw_wr_regs {
->> 	u32	soft_reset;
->> 	u32	control;
->> 	u32	int_control;
->> -	u32	rx_thresh_en;
->> -	u32	rx_en;
->> -	u32	tx_en;
->> -	u32	misc_en;
->> +	u32	c0_rx_thresh_en;
->> +	u32	c0_rx_en;
->> +	u32	c0_tx_en;
->> +	u32	c0_misc_en;
-> 
-> How does renaming these help?
-> 
-> (If you really think that new names are needed, then put the cosmetic
-> renaming changes into its a separate patch.)
-
-Those are the real register names in the updated TRM.
-
-> 
->> +	u32	c1_rx_thresh_en;
->> +	u32	c1_rx_en;
->> +	u32	c1_tx_en;
->> +	u32	c1_misc_en;
-> 
-> You added a bunch of new fields, but you don't use any of them.
-> 
-
-dido.
-
-> Thanks,
-> Richard
-
-Regards
-
--- Pantelis
+What do you think?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
