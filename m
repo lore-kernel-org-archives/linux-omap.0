@@ -1,7 +1,7 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v5 07/12] video: da8xx-fb: minimal dt support
-Date: Mon, 28 Jan 2013 14:51:20 +0530
-Message-ID: <c7ee69ac9efaf8ab15ac6194adee2f39b3d2ecc3.1359356015.git.afzal@ti.com>
+Subject: [PATCH v5 09/12] video: da8xx-fb: obtain fb_videomode info from dt
+Date: Mon, 28 Jan 2013 14:51:30 +0530
+Message-ID: <b0361bc1d0d8405f1f845b1c57eccb8c862bb675.1359356015.git.afzal@ti.com>
 References: <cover.1359356015.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,61 +12,88 @@ To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@
 Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Driver is provided a means to have the probe triggered by DT.
+Obtain fb_videomode details for the connected lcd panel using the
+display timing details present in DT.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- Documentation/devicetree/bindings/video/fb-da8xx.txt | 16 ++++++++++++++++
- drivers/video/da8xx-fb.c                             |  7 +++++++
- 2 files changed, 23 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/video/fb-da8xx.txt
+ .../devicetree/bindings/video/fb-da8xx.txt          | 21 +++++++++++++++++++++
+ drivers/video/da8xx-fb.c                            | 17 +++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
 diff --git a/Documentation/devicetree/bindings/video/fb-da8xx.txt b/Documentation/devicetree/bindings/video/fb-da8xx.txt
-new file mode 100644
-index 0000000..581e014
---- /dev/null
+index 581e014..0741f78 100644
+--- a/Documentation/devicetree/bindings/video/fb-da8xx.txt
 +++ b/Documentation/devicetree/bindings/video/fb-da8xx.txt
-@@ -0,0 +1,16 @@
-+TI LCD Controller on DA830/DA850/AM335x SoC's
-+
-+Required properties:
-+- compatible:
-+	DA830 - "ti,da830-lcdc"
-+	AM335x SoC's - "ti,am3352-lcdc", "ti,da830-lcdc"
-+- reg: Address range of lcdc register set
-+- interrupts: lcdc interrupt
-+
-+Example:
-+
-+lcdc@4830e000 {
-+	compatible = "ti,am3352-lcdc", "ti,da830-lcdc";
-+	reg =  <0x4830e000 0x1000>;
-+	interrupts = <36>;
-+};
+@@ -6,6 +6,12 @@ Required properties:
+ 	AM335x SoC's - "ti,am3352-lcdc", "ti,da830-lcdc"
+ - reg: Address range of lcdc register set
+ - interrupts: lcdc interrupt
++- display-timings: typical videomode of lcd panel, represented as child.
++  Refer Documentation/devicetree/bindings/video/display-timing.txt for
++  display timing binding details. If multiple videomodes are mentioned
++  in display timings node, typical videomode has to be mentioned as the
++  native mode or it has to be first child (driver cares only for native
++  videomode).
+ 
+ Example:
+ 
+@@ -13,4 +19,19 @@ lcdc@4830e000 {
+ 	compatible = "ti,am3352-lcdc", "ti,da830-lcdc";
+ 	reg =  <0x4830e000 0x1000>;
+ 	interrupts = <36>;
++	display-timings {
++		800x480p62 {
++			clock-frequency = <30000000>;
++			hactive = <800>;
++			vactive = <480>;
++			hfront-porch = <39>;
++			hback-porch = <39>;
++			hsync-len = <47>;
++			vback-porch = <29>;
++			vfront-porch = <13>;
++			vsync-len = <2>;
++			hsync-active = <1>;
++			vsync-active = <1>;
++		};
++	};
+ };
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index b6ea5e9..08ee8eb 100644
+index 0beed20..0c68712 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -1595,6 +1595,12 @@ static int fb_resume(struct platform_device *dev)
- #define fb_resume NULL
- #endif
+@@ -36,6 +36,7 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/lcm.h>
++#include <video/of_display_timing.h>
+ #include <video/da8xx-fb.h>
+ #include <asm/div64.h>
  
-+static const struct of_device_id da8xx_fb_of_match[] = {
-+	{.compatible = "ti,da830-lcdc", },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, da8xx_fb_of_match);
+@@ -1257,8 +1258,24 @@ static struct fb_videomode *da8xx_fb_get_videomode(struct platform_device *dev)
+ {
+ 	struct da8xx_lcdc_platform_data *fb_pdata = dev->dev.platform_data;
+ 	struct fb_videomode *lcdc_info;
++	struct device_node *np = dev->dev.of_node;
+ 	int i;
+ 
++	if (np) {
++		lcdc_info = devm_kzalloc(&dev->dev,
++					 sizeof(struct fb_videomode),
++					 GFP_KERNEL);
++		if (!lcdc_info) {
++			dev_err(&dev->dev, "memory allocation failed\n");
++			return NULL;
++		}
++		if (of_get_fb_videomode(np, lcdc_info, OF_USE_NATIVE_MODE)) {
++			dev_err(&dev->dev, "timings not available in DT\n");
++			return NULL;
++		}
++		return lcdc_info;
++	}
 +
- static struct platform_driver da8xx_fb_driver = {
- 	.probe = fb_probe,
- 	.remove = fb_remove,
-@@ -1603,6 +1609,7 @@ static struct platform_driver da8xx_fb_driver = {
- 	.driver = {
- 		   .name = DRIVER_NAME,
- 		   .owner = THIS_MODULE,
-+		   .of_match_table = of_match_ptr(da8xx_fb_of_match),
- 		   },
- };
- 
+ 	for (i = 0, lcdc_info = known_lcd_panels;
+ 		i < ARRAY_SIZE(known_lcd_panels); i++, lcdc_info++) {
+ 		if (strcmp(fb_pdata->type, lcdc_info->name) == 0)
 -- 
 1.7.12
