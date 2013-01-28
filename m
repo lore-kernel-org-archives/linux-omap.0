@@ -1,58 +1,83 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: OMAP baseline test results for v3.8-rc4
-Date: Mon, 28 Jan 2013 12:23:56 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433ECFF0CA@DBDE01.ent.ti.com>
-References: <20130121164510.GA18905@kahuna>
- <f36acfaf128c4844b8f696ea4440e253@DLEE74.ent.ti.com>
- <20130121182419.GE10020@beef> <87boci9str.fsf@dell.be.48ers.dk>
- <alpine.DEB.2.00.1301220213390.25789@utopia.booyaka.com>
- <50FE66AC.2090306@mimc.co.uk>
- <B5906170F1614E41A8A28DE3B8D121433ECF3DD3@DBDE01.ent.ti.com>
- <50FE9692.2090001@mimc.co.uk> <20130122182331.GO22517@atomide.com>
- <B5906170F1614E41A8A28DE3B8D121433ECF6261@DBDE01.ent.ti.com>
- <20130125165942.GY22517@atomide.com>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH 3/4] usb: dwc3: exynos: Enable runtime power management
+Date: Mon, 28 Jan 2013 17:57:04 +0530
+Message-ID: <CAFp+6iHvH8ZXRGEb=5AsVX+Ks+mAaPqwWW9DhH9O7RNdKo+cgw@mail.gmail.com>
+References: <1359373348-18320-1-git-send-email-gautam.vivek@samsung.com>
+	<1359373348-18320-4-git-send-email-gautam.vivek@samsung.com>
+	<20130128114755.GF28698@arwen.pp.htv.fi>
+	<CAFp+6iEb4R3NQkvtrY8X4h8oMwPf7E+LDYfb_cS5z2WfdGHNWA@mail.gmail.com>
+	<20130128121231.GH28698@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55346 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751895Ab3A1MYS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 07:24:18 -0500
-In-Reply-To: <20130125165942.GY22517@atomide.com>
-Content-Language: en-US
+Received: from mail-bk0-f53.google.com ([209.85.214.53]:54080 "EHLO
+	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751895Ab3A1M1H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 07:27:07 -0500
+In-Reply-To: <20130128121231.GH28698@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Jackson <mpfj-list@mimc.co.uk>, "Menon, Nishanth" <nm@ti.com>, "Porter, Matt" <mporter@ti.com>, Paul Walmsley <paul@pwsan.com>, Richard Cochran <richardcochran@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Peter Korsgaard <jacmet@sunsite.dk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>
+To: balbi@ti.com
+Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, dianders@chromium.org, sylvester.nawrocki@gmail.com, tomasz.figa@gmail.com
 
-On Fri, Jan 25, 2013 at 22:29:43, Tony Lindgren wrote:
-> * Bedia, Vaibhav <vaibhav.bedia@ti.com> [130123 06:35]:
-> > Hi Tony,
-> > 
-> > On Tue, Jan 22, 2013 at 23:53:32, Tony Lindgren wrote:
-> > [...]
-> > > > 
-> > > > But I should get *something* from the kernel before it starts trying to access the rootfs ?
-> > > 
-> > > Here's something Kevin fixed but did not send it out before going to
-> > > a vacation. Can you give it a try with earlyprintk enabled?
-> > > 
-> > > Note that this does not help with no output early on, that sounds
-> > > like a bug configuring the DEBUG_LL port somewhere.
-> > > 
-> > 
-> > I think earlyprintk on AM335x has not been functional for a while [1].
-> > Will the latest patches from you to enable multiplatform debug-ll be sufficient
-> > to test this out? I am trying to track down the boot issues reported and just
-> > want to be sure of the dependencies. 
-> 
-> Yes you should check with current linux next and select the DEBUG_LL
-> port manually.
->  
+On Mon, Jan 28, 2013 at 5:42 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Mon, Jan 28, 2013 at 05:28:30PM +0530, Vivek Gautam wrote:
+>> >> +static int dwc3_exynos_runtime_resume(struct device *dev)
+>> >> +{
+>> >> +     struct dwc3_exynos      *exynos = dev_get_drvdata(dev);
+>> >> +     struct platform_device  *pdev_dwc = exynos->dwc3;
+>> >> +     struct dwc3             *dwc = NULL;
+>> >> +
+>> >> +     dwc = platform_get_drvdata(pdev_dwc);
+>> >> +
+>> >> +     clk_enable(exynos->clk);
+>> >> +
+>> >> +     if (!dwc)
+>> >> +             return 0;
+>> >> +
+>> >> +     pm_runtime_get_sync(dwc->usb3_phy->dev);
+>> >
+>> > dude, this is wrong :-)
+>> >
+>> > look at this:
+>> >
+>> > pm_runtime_get() -> dwc3_exynos_runtime_resume() ->
+>> > pm_runtime_get_sync() -> dwc3_exynos_runtime_resume() -> ...
+>> >
+>> > only your clock enalbe should do
+>> >
+>>
+>> We want to wake up "dwc->usb3_phy" so tried to call pm_runtime_get_sync()
+>> with "dwc->usb3_phy->dev".
+>> Missing something ? :-(
+>
+> oh, my bad. That's the PHY... But we can't really do that for samsung
+> only. It needs to be done generically for the entire dwc3 core driver,
+> and for that we need to introduce usb_phy_autopm_get(),
+> usb_phy_autopm_get_sync() and friends.
+>
 
-Verified on linux-next that selecting the right UART port gives a functional early_console. 
-(One of the rare cases where forcing a kernel panic early in the boot process makes sense ;)
+aah!! Ok. I definitely missed that part. :-(
 
-Regards,
-Vaibhav
+> Then, from dwc_probe() we call:
+>
+> phy = usb_get_phy();
+> usb_phy_autopm_enable(phy);
+> usb_phy_autopm_get_sync(phy);
+>
+> or something similar ;-) Bottom line, you shouldn't fiddle with phy->dev
+> directly.
+>
+
+Ok, the core should actually be handling the 'phy' not the glue layers.
+Right ?
+
+Will try putting these helper functions in place and come up with a
+solution. :-)
+
+
+-- 
+Thanks & Regards
+Vivek
