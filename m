@@ -1,106 +1,78 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/4] usb: phy: samsung: Enable runtime power management
- on samsung-usb3
-Date: Mon, 28 Jan 2013 15:25:59 +0200
-Message-ID: <20130128132558.GP28698@arwen.pp.htv.fi>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH 2/4] USB: dwc3: Adjust runtime pm the dwc3 driver to allow
+ runtime suspend
+Date: Mon, 28 Jan 2013 19:06:56 +0530
+Message-ID: <CAFp+6iFcZwu3=2u5ig_F14UKxTXwb2Czrv3JjCqR6QGLPHzFqg@mail.gmail.com>
 References: <1359373348-18320-1-git-send-email-gautam.vivek@samsung.com>
- <1359373348-18320-5-git-send-email-gautam.vivek@samsung.com>
- <20130128120909.GG28698@arwen.pp.htv.fi>
- <CAFp+6iHjzSKyya-t6dtsVQdOuhBTsCgWu+NFnDXFeRWwnBt-Jw@mail.gmail.com>
- <20130128130703.GO28698@arwen.pp.htv.fi>
- <CAFp+6iHSvJdsT-Bdq2nPWo8L+LFigdrx9=2XEind9H8XC9BCFg@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+	<1359373348-18320-3-git-send-email-gautam.vivek@samsung.com>
+	<20130128114554.GE28698@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1BKOZKwX7DAU5odC"
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAFp+6iHSvJdsT-Bdq2nPWo8L+LFigdrx9=2XEind9H8XC9BCFg@mail.gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Vivek Gautam <gautamvivek1987@gmail.com>
-Cc: balbi@ti.com, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, dianders@chromium.org, sylvester.nawrocki@gmail.com, tomasz.figa@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f50.google.com ([209.85.214.50]:41946 "EHLO
+	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754287Ab3A1Ng6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 08:36:58 -0500
+In-Reply-To: <20130128114554.GE28698@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, dianders@chromium.org, sylvester.nawrocki@gmail.com, tomasz.figa@gmail.com
 
---1BKOZKwX7DAU5odC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Felipe,
 
-On Mon, Jan 28, 2013 at 06:54:42PM +0530, Vivek Gautam wrote:
-> Hi Felipe,
->=20
->=20
-> On Mon, Jan 28, 2013 at 6:37 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > Hi,
-> >
-> > On Mon, Jan 28, 2013 at 06:34:15PM +0530, Vivek Gautam wrote:
-> >> >> @@ -65,7 +67,22 @@ static u32 samsung_usb3_phy_set_refclk(struct sa=
-msung_usbphy *sphy)
-> >> >>       return reg;
-> >> >>  }
-> >> >>
-> >> >> -static int samsung_exynos5_usb3_phy_enable(struct samsung_usbphy *=
-sphy)
-> >> >> +/*
-> >> >> + * Sets the phy clk as ref_pad_clk (XusbXTI) which is clock from e=
-xternal PLL.
-> >> >> + */
-> >> >> +static u32 samsung_usb3_phy_set_refclk_ext(void)
-> >> >> +{
-> >> >> +     u32 reg;
-> >> >> +
-> >> >> +     reg =3D PHYCLKRST_REFCLKSEL_PAD_REFCLK |
-> >> >> +             PHYCLKRST_FSEL_PAD_100MHZ |
-> >> >> +             PHYCLKRST_MPLL_MULTIPLIER_100MHZ_REF;
-> >> >> +
-> >> >> +     return reg;
-> >> >> +}
-> >> >
-> >> > I wonder if you really need this small function (likewise for
-> >> > set_refclk_int()). They don't do much, so you could just inline them=
- on
-> >> > the only caller.
-> >> >
-> >>
-> >> Created this just to keep symmetry, ;-)
-> >> will move this in the caller only.
-> >
-> > you can have a patch before this series moving the refclk_int() to the
-> > caller, then you will have symmetry ;-)
-> >
->=20
-> refclk_int() was rather slightly a big chunk :-(
-> as available in below patch as samsung_usb3_phy_set_refclk() :
-> [PATCH v4 2/2] usb: phy: samsung: Add PHY support for USB 3.0 controller
-> http://www.mail-archive.com/linux-usb@vger.kernel.org/msg13796.html
->=20
-> Will try to figure best possible way and amend.
 
-oh, right... In that case, keep the way it is. Ignore my comment ;-)
+On Mon, Jan 28, 2013 at 5:15 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Mon, Jan 28, 2013 at 05:12:26PM +0530, Vivek Gautam wrote:
+>> The current code in the dwc3 probe effectively disables runtime pm
+>> from ever working because it calls a get() that was never put() until
+>> device removal.  Change the runtime pm code to match the standard
+>> formula and allow runtime pm to function.
+>>
+>> Note that this doesn't enable full runtime pm on the DWC3 device in
+>> that the port isn't put into a lower power mode when not used.
+>> However it does allow users of dwc3 (like dwc3-exynos) to do some
+>> amount of runtime power management.
+>>
+>> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>> Signed-off-by: Doug Anderson <dianders@chromium.org>
+>> ---
+>>  drivers/usb/dwc3/core.c |    4 +++-
+>>  1 files changed, 3 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>> index 3a4004a..59c2494 100644
+>> --- a/drivers/usb/dwc3/core.c
+>> +++ b/drivers/usb/dwc3/core.c
+>> @@ -453,6 +453,7 @@ static int dwc3_probe(struct platform_device *pdev)
+>>       if (of_get_property(node, "tx-fifo-resize", NULL))
+>>               dwc->needs_fifo_resize = true;
+>>
+>> +     pm_runtime_set_active(dev);
+>
+> this usage of pm_runtime_set_active() actually makes me a bit scared. At
+> least OMAP starts with the device switched off, so this will probably
+> break OMAP at least.
 
---=20
-balbi
+I am fine with dropping pm_runtime_set_active(), actually thought
+to put device in active state so that as and when system finds it idle,
+force into suspend state.
 
---1BKOZKwX7DAU5odC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I fact should i drop  pm_runtime_set_active() calls from other places too
+(xhci-plat, dwc3-exynos, and samsung-usb3 phy) and call get_sync() alongwith
+enable() ?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+> OTOH, calling ->runtime_resume() during probe()
+> might not make that much sense after all, but the way OMAP is
+> implemented, we won't get clocks turned on if this ->runtime_resume()
+> method isn't called.
+>
+> /me starts to wonder whether OMAP implementation is flakey and what
+> should be done here...
+>
 
-iQIcBAEBAgAGBQJRBnxmAAoJEIaOsuA1yqREbSoP/0iKcZf2KXv3I+7jn6fbQ+UL
-GOHO7IuFbpGAfhJctpivIgVVNPonhJKEze0mTT5AqdVSlgmy5bgilvl9H7K/bgtQ
-XORLLZVR9wISGNGraZ95dMGjFHAwNUyu5jPejBwKB6KjaFHPT+LR3eCO1SrH1SGq
-LTroBuc29w6y9SVhI4E6K9kVg09w8LPuT9sYQSGfIUwfgKwCBuqTqivWQy8GNUFg
-FvrXiWgzu+BMcsUDLRnuFuAsvnjHD9EULnN6PuY+jqwFa9XVgtN1AELktT+V85d6
-L9Zfln9Njy9pPfLXus/8O8xyuZQk9yl8GhRUyIiXaYAq4cxBKzI0ctIcZVojx/Le
-MdbQHXBcCt2vJQWSOraajZ5xtOOBdbGHm9ZqUfOzkKWkOXcvc3TldGhzs2xv0dp+
-3BFhuuTXM7u2UJpBFlmD0cK+6Dlmg0VgCiPOFr2t6aAQLvN8kdjscAzlGdMsb3Wf
-EB1wjKa72sYQb2tGZAcfYr6kmt+9xXRnVIQYp8Rv6ugJbzduC8BmjlL56+0WvNpS
-Q13jXU1Ot3ZanVrpLW4KKQVyUhultt3/eVkrJg+LnKx3P7m9q8yQahr1pGsjj4ci
-F75DRAQHvkWlx2NXPZrkxkIBSmA2vbZzCgAf7lgQS40Ytdu3w2H0BMRx7Gx38Pe9
-7BJBn2EBBe2FJ7v4ZNUE
-=S2WK
------END PGP SIGNATURE-----
 
---1BKOZKwX7DAU5odC--
+
+-- 
+Thanks & Regards
+Vivek
