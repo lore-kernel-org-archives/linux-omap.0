@@ -1,427 +1,67 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: [PATCH] cpsw: Fix interrupt storm among other things
-Date: Mon, 28 Jan 2013 15:11:08 +0200
-Message-ID: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Richard Cochran <richardcochran@gmail.com>, Matt Porter <mporter@ti.com>, Chase Maupin <chase.maupin@ti.com>, Jason Kridner <jdk@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Pantelis Antoniou <panto@antoniou-consulting.com>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH 4/4] usb: phy: samsung: Enable runtime power management on samsung-usb3
+Date: Mon, 28 Jan 2013 18:54:42 +0530
+Message-ID: <CAFp+6iHSvJdsT-Bdq2nPWo8L+LFigdrx9=2XEind9H8XC9BCFg@mail.gmail.com>
+References: <1359373348-18320-1-git-send-email-gautam.vivek@samsung.com>
+	<1359373348-18320-5-git-send-email-gautam.vivek@samsung.com>
+	<20130128120909.GG28698@arwen.pp.htv.fi>
+	<CAFp+6iHjzSKyya-t6dtsVQdOuhBTsCgWu+NFnDXFeRWwnBt-Jw@mail.gmail.com>
+	<20130128130703.GO28698@arwen.pp.htv.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20130128130703.GO28698@arwen.pp.htv.fi>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, dianders@chromium.org, sylvester.nawrocki@gmail.com, tomasz.figa@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Fix interrupt storm on bone A4 cause by non-by-the-book interrupt handling.
-While at it, added a non-NAPI mode (which is easier to debug), plus
-some general fixes.
+Hi Felipe,
 
-Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
----
- Documentation/devicetree/bindings/net/cpsw.txt |   1 +
- drivers/net/ethernet/ti/cpsw.c                 | 222 +++++++++++++++++++++----
- drivers/net/ethernet/ti/davinci_cpdma.c        |   4 +-
- drivers/net/ethernet/ti/davinci_cpdma.h        |   2 +-
- include/linux/platform_data/cpsw.h             |   1 +
- 5 files changed, 194 insertions(+), 36 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-index 6ddd028..d46b293 100644
---- a/Documentation/devicetree/bindings/net/cpsw.txt
-+++ b/Documentation/devicetree/bindings/net/cpsw.txt
-@@ -20,6 +20,7 @@ Required properties:
- - cpts_clock_shift	: Denominator to convert input clock ticks into nanoseconds
- - phy_id		: Specifies slave phy id
- - mac-address		: Specifies slave MAC address
-+- disable-napi		: Disables driver NAPI
- 
- Optional properties:
- - ti,hwmods		: Must be "cpgmac0"
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 40aff68..b6ca4af 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -148,10 +148,37 @@ struct cpsw_wr_regs {
- 	u32	soft_reset;
- 	u32	control;
- 	u32	int_control;
--	u32	rx_thresh_en;
--	u32	rx_en;
--	u32	tx_en;
--	u32	misc_en;
-+	u32	c0_rx_thresh_en;
-+	u32	c0_rx_en;
-+	u32	c0_tx_en;
-+	u32	c0_misc_en;
-+	u32	c1_rx_thresh_en;
-+	u32	c1_rx_en;
-+	u32	c1_tx_en;
-+	u32	c1_misc_en;
-+	u32	c2_rx_thresh_en;
-+	u32	c2_rx_en;
-+	u32	c2_tx_en;
-+	u32	c2_misc_en;
-+	u32	c0_rx_thresh_stat;
-+	u32	c0_rx_stat;
-+	u32	c0_tx_stat;
-+	u32	c0_misc_stat;
-+	u32	c1_rx_thresh_stat;
-+	u32	c1_rx_stat;
-+	u32	c1_tx_stat;
-+	u32	c1_misc_stat;
-+	u32	c2_rx_thresh_stat;
-+	u32	c2_rx_stat;
-+	u32	c2_tx_stat;
-+	u32	c2_misc_stat;
-+	u32	c0_rx_imax;
-+	u32	c0_tx_imax;
-+	u32	c1_rx_imax;
-+	u32	c1_tx_imax;
-+	u32	c2_rx_imax;
-+	u32	c2_tx_imax;
-+	u32	rgmii_ctl;
- };
- 
- struct cpsw_ss_regs {
-@@ -352,8 +379,8 @@ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
- 
- static void cpsw_intr_enable(struct cpsw_priv *priv)
- {
--	__raw_writel(0xFF, &priv->wr_regs->tx_en);
--	__raw_writel(0xFF, &priv->wr_regs->rx_en);
-+	__raw_writel(0xFF, &priv->wr_regs->c0_tx_en);
-+	__raw_writel(0xFF, &priv->wr_regs->c0_rx_en);
- 
- 	cpdma_ctlr_int_ctrl(priv->dma, true);
- 	return;
-@@ -361,8 +388,8 @@ static void cpsw_intr_enable(struct cpsw_priv *priv)
- 
- static void cpsw_intr_disable(struct cpsw_priv *priv)
- {
--	__raw_writel(0, &priv->wr_regs->tx_en);
--	__raw_writel(0, &priv->wr_regs->rx_en);
-+	__raw_writel(0, &priv->wr_regs->c0_tx_en);
-+	__raw_writel(0, &priv->wr_regs->c0_rx_en);
- 
- 	cpdma_ctlr_int_ctrl(priv->dma, false);
- 	return;
-@@ -399,7 +426,10 @@ void cpsw_rx_handler(void *token, int len, int status)
- 		skb_put(skb, len);
- 		cpts_rx_timestamp(&priv->cpts, skb);
- 		skb->protocol = eth_type_trans(skb, ndev);
--		netif_receive_skb(skb);
-+		if (priv->data.disable_napi)
-+			netif_rx(skb);
-+		else
-+			netif_receive_skb(skb);
- 		priv->stats.rx_bytes += len;
- 		priv->stats.rx_packets++;
- 		skb = NULL;
-@@ -431,6 +461,7 @@ static irqreturn_t cpsw_interrupt(int irq, void *dev_id)
- 		cpsw_disable_irq(priv);
- 		napi_schedule(&priv->napi);
- 	}
-+
- 	return IRQ_HANDLED;
- }
- 
-@@ -445,23 +476,104 @@ static inline int cpsw_get_slave_port(struct cpsw_priv *priv, u32 slave_num)
- static int cpsw_poll(struct napi_struct *napi, int budget)
- {
- 	struct cpsw_priv	*priv = napi_to_priv(napi);
--	int			num_tx, num_rx;
-+	int			num_tx, num_rx, num_total_tx, num_total_rx;
-+	int			budget_left;
-+
-+	budget_left = budget;
- 
--	num_tx = cpdma_chan_process(priv->txch, 128);
--	num_rx = cpdma_chan_process(priv->rxch, budget);
-+	/* read status and throw away */
-+	(void)__raw_readl(&priv->wr_regs->c0_tx_stat);
-+
-+	/* handle all transmits */
-+	num_total_tx = 0;
-+	while (budget_left > 0 &&
-+		(num_tx = cpdma_chan_process(priv->txch, 128)) > 0) {
-+		budget_left -= num_tx;
-+		num_total_tx += num_tx;
-+	}
- 
--	if (num_rx || num_tx)
--		cpsw_dbg(priv, intr, "poll %d rx, %d tx pkts\n",
--			 num_rx, num_tx);
-+	if (num_total_tx > 0 && budget_left > 0)
-+		cpdma_ctlr_eoi(priv->dma, 0x02);
-+
-+	/* read status and throw away */
-+	(void)__raw_readl(&priv->wr_regs->c0_rx_stat);
-+
-+	/* handle all receives */
-+	num_total_rx = 0;
-+	while (budget_left > 0 &&
-+		(num_rx = cpdma_chan_process(priv->rxch, budget_left)) > 0) {
-+		budget_left -= num_rx;
-+		num_total_rx += num_rx;
-+	}
- 
--	if (num_rx < budget) {
-+	if (num_total_rx > 0 && budget_left > 0)
-+		cpdma_ctlr_eoi(priv->dma, 0x01);
-+
-+	if ((num_total_rx + num_total_tx) < budget) {
- 		napi_complete(napi);
- 		cpsw_intr_enable(priv);
--		cpdma_ctlr_eoi(priv->dma);
- 		cpsw_enable_irq(priv);
- 	}
- 
--	return num_rx;
-+	return num_total_rx + num_total_rx;
-+}
-+
-+static irqreturn_t cpsw_rx_thresh_pend_irq(int irq, void *dev_id)
-+{
-+	struct cpsw_priv *priv = dev_id;
-+
-+	(void)priv;
-+
-+	/* not handling this interrupt yet */
-+	return IRQ_HANDLED;
-+}
-+
-+static irqreturn_t cpsw_rx_pend_irq(int irq, void *dev_id)
-+{
-+	struct cpsw_priv *priv = dev_id;
-+	int num_rx, total_rx;
-+	u32 rx_stat;
-+
-+	rx_stat = __raw_readl(&priv->wr_regs->c0_rx_stat) & 0xff;
-+	if (rx_stat == 0)
-+		return IRQ_NONE;
-+
-+	total_rx = 0;
-+	while ((num_rx = cpdma_chan_process(priv->rxch,
-+					priv->data.rx_descs)) > 0)
-+		total_rx += num_rx;
-+
-+	cpdma_ctlr_eoi(priv->dma, 0x01);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static irqreturn_t cpsw_tx_pend_irq(int irq, void *dev_id)
-+{
-+	struct cpsw_priv *priv = dev_id;
-+	int num_tx, total_tx;
-+	u32 tx_stat;
-+
-+	tx_stat = __raw_readl(&priv->wr_regs->c0_tx_stat) & 0xff;
-+	if (tx_stat == 0)
-+		return IRQ_NONE;
-+
-+	total_tx = 0;
-+	while ((num_tx = cpdma_chan_process(priv->txch, 128)) > 0)
-+		total_tx += num_tx;
-+
-+	cpdma_ctlr_eoi(priv->dma, 0x02);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static irqreturn_t cpsw_misc_pend_irq(int irq, void *dev_id)
-+{
-+	struct cpsw_priv *priv = dev_id;
-+
-+	(void)priv;
-+	/* not handling this interrupt yet */
-+	return IRQ_HANDLED;
- }
- 
- static inline void soft_reset(const char *module, void __iomem *reg)
-@@ -678,8 +790,10 @@ static int cpsw_ndo_open(struct net_device *ndev)
- 
- 	cpdma_ctlr_start(priv->dma);
- 	cpsw_intr_enable(priv);
--	napi_enable(&priv->napi);
--	cpdma_ctlr_eoi(priv->dma);
-+	if (!priv->data.disable_napi)
-+		napi_enable(&priv->napi);
-+	cpdma_ctlr_eoi(priv->dma, 0x01);
-+	cpdma_ctlr_eoi(priv->dma, 0x02);
- 
- 	return 0;
- }
-@@ -698,8 +812,10 @@ static int cpsw_ndo_stop(struct net_device *ndev)
- 	struct cpsw_priv *priv = netdev_priv(ndev);
- 
- 	cpsw_info(priv, ifdown, "shutting down cpsw device\n");
-+	cpsw_disable_irq(priv);
- 	netif_stop_queue(priv->ndev);
--	napi_disable(&priv->napi);
-+	if (!priv->data.disable_napi)
-+		napi_disable(&priv->napi);
- 	netif_carrier_off(priv->ndev);
- 	cpsw_intr_disable(priv);
- 	cpdma_ctlr_int_ctrl(priv->dma, false);
-@@ -901,7 +1017,8 @@ static void cpsw_ndo_tx_timeout(struct net_device *ndev)
- 	cpdma_chan_start(priv->txch);
- 	cpdma_ctlr_int_ctrl(priv->dma, true);
- 	cpsw_intr_enable(priv);
--	cpdma_ctlr_eoi(priv->dma);
-+	cpdma_ctlr_eoi(priv->dma, 0x01);
-+	cpdma_ctlr_eoi(priv->dma, 0x02);
- }
- 
- static struct net_device_stats *cpsw_ndo_get_stats(struct net_device *ndev)
-@@ -917,14 +1034,21 @@ static void cpsw_ndo_poll_controller(struct net_device *ndev)
- 
- 	cpsw_intr_disable(priv);
- 	cpdma_ctlr_int_ctrl(priv->dma, false);
--	cpsw_interrupt(ndev->irq, priv);
-+	if (!priv->data.disable_napi)
-+		cpsw_interrupt(ndev->irq, priv);
-+	else {
-+		/* bah! */
-+		cpsw_rx_pend_irq(ndev->irq, priv);
-+		cpsw_tx_pend_irq(ndev->irq, priv);
-+	}
- 	cpdma_ctlr_int_ctrl(priv->dma, true);
- 	cpsw_intr_enable(priv);
--	cpdma_ctlr_eoi(priv->dma);
-+	cpdma_ctlr_eoi(priv->dma, 0x01);
-+	cpdma_ctlr_eoi(priv->dma, 0x02);
- }
- #endif
- 
--static const struct net_device_ops cpsw_netdev_ops = {
-+static struct net_device_ops cpsw_netdev_ops = {
- 	.ndo_open		= cpsw_ndo_open,
- 	.ndo_stop		= cpsw_ndo_stop,
- 	.ndo_start_xmit		= cpsw_ndo_start_xmit,
-@@ -1079,6 +1203,9 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 	}
- 	data->bd_ram_size = prop;
- 
-+	if (of_property_read_bool(node, "disable-napi"))
-+		data->disable_napi = 1;
-+
- 	if (of_property_read_u32(node, "rx_descs", &prop)) {
- 		pr_err("Missing rx_descs property in the DT.\n");
- 		ret = -EINVAL;
-@@ -1136,6 +1263,22 @@ error_ret:
- 	return ret;
- }
- 
-+static irq_handler_t cpsw_get_irq_handler(struct cpsw_priv *priv, int irq_idx)
-+{
-+	static const irq_handler_t non_napi_irq_tab[4] = {
-+		cpsw_rx_thresh_pend_irq, cpsw_rx_pend_irq,
-+		cpsw_tx_pend_irq, cpsw_misc_pend_irq
-+	};
-+
-+	if ((unsigned int)irq_idx >= 4)
-+		return NULL;
-+
-+	if (!priv->data.disable_napi)
-+		return cpsw_interrupt;
-+
-+	return non_napi_irq_tab[irq_idx];
-+}
-+
- static int cpsw_probe(struct platform_device *pdev)
- {
- 	struct cpsw_platform_data	*data = pdev->dev.platform_data;
-@@ -1146,7 +1289,8 @@ static int cpsw_probe(struct platform_device *pdev)
- 	void __iomem			*ss_regs, *wr_regs;
- 	struct resource			*res;
- 	u32 slave_offset, sliver_offset, slave_size;
--	int ret = 0, i, k = 0;
-+	irq_handler_t			irqh;
-+	int ret = 0, i, j, k = 0;
- 
- 	ndev = alloc_etherdev(sizeof(struct cpsw_priv));
- 	if (!ndev) {
-@@ -1333,24 +1477,36 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_ale_ret;
- 	}
- 
--	while ((res = platform_get_resource(priv->pdev, IORESOURCE_IRQ, k))) {
--		for (i = res->start; i <= res->end; i++) {
--			if (request_irq(i, cpsw_interrupt, IRQF_DISABLED,
-+	dev_info(&pdev->dev, "NAPI %s\n", priv->data.disable_napi ?
-+			"disabled" : "enabled");
-+
-+	/* get interrupts */
-+	j = k = 0;
-+	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, j++))) {
-+		for (i = res->start; k < 4 && i <= res->end; i++) {
-+			irqh = cpsw_get_irq_handler(priv, k);
-+			if (irqh == NULL) {
-+				dev_err(&pdev->dev, "Unable to get handler "
-+						"for #%d (%d)\n", k, i);
-+				goto clean_ale_ret;
-+			}
-+			if (request_irq(i, irqh, IRQF_DISABLED,
- 					dev_name(&pdev->dev), priv)) {
- 				dev_err(priv->dev, "error attaching irq\n");
- 				goto clean_ale_ret;
- 			}
--			priv->irqs_table[k] = i;
--			priv->num_irqs = k;
-+			priv->irqs_table[k++] = i;
- 		}
--		k++;
- 	}
-+	priv->num_irqs = k;
- 
- 	ndev->flags |= IFF_ALLMULTI;	/* see cpsw_ndo_change_rx_flags() */
- 
- 	ndev->netdev_ops = &cpsw_netdev_ops;
- 	SET_ETHTOOL_OPS(ndev, &cpsw_ethtool_ops);
--	netif_napi_add(ndev, &priv->napi, cpsw_poll, CPSW_POLL_WEIGHT);
-+
-+	if (!priv->data.disable_napi)
-+		netif_napi_add(ndev, &priv->napi, cpsw_poll, CPSW_POLL_WEIGHT);
- 
- 	/* register the network device */
- 	SET_NETDEV_DEV(ndev, &pdev->dev);
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index 4995673..6effab2 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -474,9 +474,9 @@ int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable)
- 	return 0;
- }
- 
--void cpdma_ctlr_eoi(struct cpdma_ctlr *ctlr)
-+void cpdma_ctlr_eoi(struct cpdma_ctlr *ctlr, u32 value)
- {
--	dma_reg_write(ctlr, CPDMA_MACEOIVECTOR, 0);
-+	dma_reg_write(ctlr, CPDMA_MACEOIVECTOR, value);
- }
- 
- struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
-index afa19a0..b7c097d 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.h
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.h
-@@ -86,7 +86,7 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
- int cpdma_chan_process(struct cpdma_chan *chan, int quota);
- 
- int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable);
--void cpdma_ctlr_eoi(struct cpdma_ctlr *ctlr);
-+void cpdma_ctlr_eoi(struct cpdma_ctlr *ctlr, u32 value);
- int cpdma_chan_int_ctrl(struct cpdma_chan *chan, bool enable);
- 
- enum cpdma_control {
-diff --git a/include/linux/platform_data/cpsw.h b/include/linux/platform_data/cpsw.h
-index 24368a2..be5b27e 100644
---- a/include/linux/platform_data/cpsw.h
-+++ b/include/linux/platform_data/cpsw.h
-@@ -35,6 +35,7 @@ struct cpsw_platform_data {
- 	u32	bd_ram_size;  /*buffer descriptor ram size */
- 	u32	rx_descs;	/* Number of Rx Descriptios */
- 	u32	mac_control;	/* Mac control register */
-+	int	disable_napi;	/* disable NAPI */
- };
- 
- #endif /* __CPSW_H__ */
+On Mon, Jan 28, 2013 at 6:37 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Mon, Jan 28, 2013 at 06:34:15PM +0530, Vivek Gautam wrote:
+>> >> @@ -65,7 +67,22 @@ static u32 samsung_usb3_phy_set_refclk(struct samsung_usbphy *sphy)
+>> >>       return reg;
+>> >>  }
+>> >>
+>> >> -static int samsung_exynos5_usb3_phy_enable(struct samsung_usbphy *sphy)
+>> >> +/*
+>> >> + * Sets the phy clk as ref_pad_clk (XusbXTI) which is clock from external PLL.
+>> >> + */
+>> >> +static u32 samsung_usb3_phy_set_refclk_ext(void)
+>> >> +{
+>> >> +     u32 reg;
+>> >> +
+>> >> +     reg = PHYCLKRST_REFCLKSEL_PAD_REFCLK |
+>> >> +             PHYCLKRST_FSEL_PAD_100MHZ |
+>> >> +             PHYCLKRST_MPLL_MULTIPLIER_100MHZ_REF;
+>> >> +
+>> >> +     return reg;
+>> >> +}
+>> >
+>> > I wonder if you really need this small function (likewise for
+>> > set_refclk_int()). They don't do much, so you could just inline them on
+>> > the only caller.
+>> >
+>>
+>> Created this just to keep symmetry, ;-)
+>> will move this in the caller only.
+>
+> you can have a patch before this series moving the refclk_int() to the
+> caller, then you will have symmetry ;-)
+>
+
+refclk_int() was rather slightly a big chunk :-(
+as available in below patch as samsung_usb3_phy_set_refclk() :
+[PATCH v4 2/2] usb: phy: samsung: Add PHY support for USB 3.0 controller
+http://www.mail-archive.com/linux-usb@vger.kernel.org/msg13796.html
+
+Will try to figure best possible way and amend.
+
+
 -- 
-1.7.12
+Thanks & Regards
+Vivek
