@@ -1,35 +1,34 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [PATCH 0/2] Add CPSW VLAN Support
-Date: Tue, 29 Jan 2013 01:42:23 +0530
-Message-ID: <1359403945-28585-1-git-send-email-mugunthanvnm@ti.com>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [RFC/PATCH 29/32] usb: gadget: pxa27x_udc: let udc-core manage gadget->dev
+Date: Mon, 28 Jan 2013 21:18:29 +0100
+Message-ID: <87txq1m57u.fsf@free.fr>
+References: <1359042370-4358-1-git-send-email-balbi@ti.com>
+	<1359042370-4358-30-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52905 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751155Ab3A1UOk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 15:14:40 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <1359042370-4358-30-git-send-email-balbi@ti.com> (Felipe Balbi's
+	message of "Thu, 24 Jan 2013 17:46:07 +0200")
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, kgene.kim@samsung.com, eric.y.miao@gmail.com, kuninori.morimoto.gx@renesas.com, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, yoshihiro.shimoda.uh@renesas.com, nicolas.ferre@atmel.com, linux-geode@lists.infradead.org, haojian.zhuang@gmail.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-samsung-soc@vger.kernel.org, ben-linux@fluff.org, dahlmann.thomas@arcor.de, linux@arm.linux.org.uk, leoli@freescale.com, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 
-CPSW is capable of filtering VLAN packets in hardware. This patch series
-implements VLAN support to CPSW driver.
-This patch series is tested on net-next with AM335x EVM with ping test.
+Felipe Balbi <balbi@ti.com> writes:
 
+> By simply setting a flag, we can drop some
+> boilerplate code.
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  drivers/usb/gadget/pxa27x_udc.c | 9 +--------
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-Mugunthan V N (2):
-  drivers: net: cpsw: Add helper functions for VLAN ALE implementation
-  drivers: net:ethernet: cpsw: add support for VLAN
+And I tested also your patch and it works in my environment. For next patches
+I'd like to be CCed for pxa27x_udc stuff as I'm maintaining that one since its
+beginning (and yes, I know, I didn't put that in MAINTAINERS ...).
 
- Documentation/devicetree/bindings/net/cpsw.txt |    2 +
- drivers/net/ethernet/ti/cpsw.c                 |  108 ++++++++++++++-
- drivers/net/ethernet/ti/cpsw_ale.c             |  172 +++++++++++++++++++++++-
- drivers/net/ethernet/ti/cpsw_ale.h             |   11 ++
- include/linux/platform_data/cpsw.h             |    1 +
- 5 files changed, 288 insertions(+), 6 deletions(-)
+Cheers.
 
--- 
-1.7.9.5
-
+--
+Robert
