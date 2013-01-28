@@ -1,136 +1,87 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: OMAP baseline test results for v3.8-rc5
-Date: Mon, 28 Jan 2013 11:43:48 +0000
-Message-ID: <51066474.9030701@mimc.co.uk>
-References: <alpine.DEB.2.00.1301260838300.19277@utopia.booyaka.com> <20130126084604.GB8754@arwen.pp.htv.fi> <C8443D0743D26F4388EA172BF4E2A7A93EA9456A@DBDE01.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/4] USB: dwc3: Adjust runtime pm the dwc3 driver to
+ allow runtime suspend
+Date: Mon, 28 Jan 2013 13:45:54 +0200
+Message-ID: <20130128114554.GE28698@arwen.pp.htv.fi>
+References: <1359373348-18320-1-git-send-email-gautam.vivek@samsung.com>
+ <1359373348-18320-3-git-send-email-gautam.vivek@samsung.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:48316 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753221Ab3A1Lnt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 06:43:49 -0500
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA9456A@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="hwvH6HDNit2nSK4j"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1359373348-18320-3-git-send-email-gautam.vivek@samsung.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Vivek Gautam <gautam.vivek@samsung.com>
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, dianders@chromium.org, sylvester.nawrocki@gmail.com, tomasz.figa@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 28/01/13 10:34, Mohammed, Afzal wrote:
-> Hi,
-> 
-> On Sat, Jan 26, 2013 at 14:16:04, Balbi, Felipe wrote:
->> On Sat, Jan 26, 2013 at 08:40:07AM +0000, Paul Walmsley wrote:
-> 
->>> * am335xbone: hangs after "Starting kernel"
->>>   - Cause unknown; may be due to CONFIG_EARLY_PRINTK=y?
->>>   - http://www.mail-archive.com/linux-omap@vger.kernel.org/msg82297.html
->>>   - http://marc.info/?l=linux-omap&m=135903184512238&w=2
->>
->> FYI, I don't think it's related to CONFIG_EARLY_PRINTK. Tested with and
->> without it, also removed CONFIG_DEBUG_LL completely and nothing seemed
->> to help my bone, no matter if I had appended DTB or not.
-> 
-> Following patch with low level debug may help to find where the issue is,
-> (my observation is that it boots with mainline u-boot)
-> 
-> Regards
-> Afzal
-> 
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 41b581f..178a411 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -117,6 +117,10 @@ config SOC_AM33XX
->         select CPU_V7
->         select MULTI_IRQ_HANDLER
->         select COMMON_CLK
-> +       select MACH_AM335XEVM
-> +
-> +config MACH_AM335XEVM
-> +       bool
-> 
->  config OMAP_PACKAGE_ZAF
->         bool
-> 
+--hwvH6HDNit2nSK4j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I can confirm that this patch works with EARLY_PRINTK and DEBUG_LL enabled (current mainline kernel
-and u-boot), and the following .config changes:-
+On Mon, Jan 28, 2013 at 05:12:26PM +0530, Vivek Gautam wrote:
+> The current code in the dwc3 probe effectively disables runtime pm
+> from ever working because it calls a get() that was never put() until
+> device removal.  Change the runtime pm code to match the standard
+> formula and allow runtime pm to function.
+>=20
+> Note that this doesn't enable full runtime pm on the DWC3 device in
+> that the port isn't put into a lower power mode when not used.
+> However it does allow users of dwc3 (like dwc3-exynos) to do some
+> amount of runtime power management.
+>=20
+> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> Signed-off-by: Doug Anderson <dianders@chromium.org>
+> ---
+>  drivers/usb/dwc3/core.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+>=20
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index 3a4004a..59c2494 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+> @@ -453,6 +453,7 @@ static int dwc3_probe(struct platform_device *pdev)
+>  	if (of_get_property(node, "tx-fifo-resize", NULL))
+>  		dwc->needs_fifo_resize =3D true;
+> =20
+> +	pm_runtime_set_active(dev);
 
-$ diff .config.omap2plus_defconfig .config
-505c505,508
-< # CONFIG_ARM_APPENDED_DTB is not set
----
-> CONFIG_ARM_APPENDED_DTB=y
-> CONFIG_ARM_ATAG_DTB_COMPAT=y
-> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
-> # CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND is not set
-2659c2662,2665
-< # CONFIG_DEBUG_LL is not set
----
-> CONFIG_DEBUG_LL=y
-> CONFIG_DEBUG_LL_UART_NONE=y
-> # CONFIG_DEBUG_ICEDCC is not set
-> # CONFIG_DEBUG_SEMIHOSTING is not set
-2660a2667
-> CONFIG_EARLY_PRINTK=y
+this usage of pm_runtime_set_active() actually makes me a bit scared. At
+least OMAP starts with the device switched off, so this will probably
+break OMAP at least. OTOH, calling ->runtime_resume() during probe()
+might not make that much sense after all, but the way OMAP is
+implemented, we won't get clocks turned on if this ->runtime_resume()
+method isn't called.
 
-Boot log
---------
-Filename '/nanobone/uImage-dtb'.
-Load address: 0x80000000
-Loading: #################################################################
-         #################################################################
-         #################################################################
-         #################################################################
-         #########
-         627 KiB/s
-done
-Bytes transferred = 3946799 (3c392f hex)
-## Booting kernel from Legacy Image at 80000000 ...
-   Image Name:   Linux 3.8.0-rc5-dirty
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    3946735 Bytes = 3.8 MiB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-   Loading Kernel Image ... OK
-OK
+/me starts to wonder whether OMAP implementation is flakey and what
+should be done here...
 
-Starting kernel ...
+--=20
+balbi
 
-Uncompressing Linux... done, booting the kernel.
-[    0.000000] Booting Linux on physical CPU 0x0
-[    0.000000] Linux version 3.8.0-rc5-dirty (mpfj@mpfj-nanobone) (gcc version 4.5.4 (Buildroot
-2012.11-git-00497-ge48bf89) ) #9 SMP Mon Jan 28 11:34:19 GMT 2013
-[    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7d
-[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
-[    0.000000] Machine: Generic AM33XX (Flattened Device Tree), model: TI AM335x BeagleBone
-[    0.000000] bootconsole [earlycon0] enabled
-[    0.000000] Memory policy: ECC disabled, Data cache writeback
-[    0.000000] On node 0 totalpages: 65280
-[    0.000000] free_area_init_node: node 0, pgdat c07c7040, node_mem_map c0d27000
-[    0.000000]   Normal zone: 512 pages used for memmap
-[    0.000000]   Normal zone: 0 pages reserved
-[    0.000000]   Normal zone: 64768 pages, LIFO batch:15
-[    0.000000] AM335X ES1.0 (neon )
-[    0.000000] PERCPU: Embedded 9 pages/cpu @c0f30000 s12992 r8192 d15680 u36864
-[    0.000000] pcpu-alloc: s12992 r8192 d15680 u36864 alloc=9*4096
-[    0.000000] pcpu-alloc: [0] 0
-[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 64768
-[    0.000000] Kernel command line: console=ttyO0,115200n8 earlyprintk debug root=/dev/mmcblk0p2 ro
-rootfstype=ext2 rootwait
+--hwvH6HDNit2nSK4j
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-<snip>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-[    1.702800] davinci_mdio 4a101000.mdio: phy[0]: device 4a101000.mdio:00, driver SMSC LAN8710/LAN8720
-[    1.713088] Random MACID = 56:e9:38:ee:af:e4
-[    1.723695] drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
-[    1.735470] Waiting for root device /dev/mmcblk0p2...
+iQIcBAEBAgAGBQJRBmTyAAoJEIaOsuA1yqRETWgP/jxSlC79Ixe8iutKZJz30TAL
+2vgyLWQULrbXJLM/itQR/j9162uvZSxej9ykvWTH6saafi6uIE7gcJQR6KcHhPHZ
+JlboJoTp/XlOqdgIFA5BmyIO7UWkHaJRg/wiAGsPqRQlxDsCa1yGsHSJXrdufRTn
+B1C9c48mQcwVzULxpHrY2sIrMaDGsokjJn/dofbIPb9xsIsxe8/hwR/XF47ykWML
+7lULnaDH8YHyRbDzQs1BpO2CCsk/GoafjYGkLCXECXY8gNPJmdXnWJr65G909EcQ
+oqBQ5mk6szk7FvYDIYC1IwvRBLDO+NOVLsDW4luZewy32sEJECkh9SJtORoF9dmh
+lA76Gv8D0rb5ugTaA+JlcT+5OErIkm3mDhhPqBgVl2G4PPFwVsAgy12P8KouW4YJ
+XLxiJVis9+uLLrK5JT8xXbQmwnFHAzDbdq2PrGS4pyoyvF/I2bxTly55iOzVR7jO
+LZn/CPMsg+ZFKUdIyGM46VBXvvrzOrMEe0cRV+b44W/GqSeTC5e/Kv5AzqjzR9v9
+UCQlYtg5rtHGhZesEGcwheAMKtmhOXH9byDSJ1MJWpKqUTUHwHkShn0w0Tdy77yr
+yIZsbuqxe7EXs9WJxZX2u+DlGrpLGKN8VMPNbSm8KlhuFGSA1A3tIbixmzrR9fzB
+7bMIWyJUpdVkaXMFgpaj
+=6cTd
+-----END PGP SIGNATURE-----
 
-Still no support for rootfs on MMC, but hopefully that won't be long ??
-
-Regards
-Mark J.
+--hwvH6HDNit2nSK4j--
