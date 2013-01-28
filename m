@@ -1,52 +1,37 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v5 02/12] video: da8xx-fb: fix 24bpp raster configuration
-Date: Mon, 28 Jan 2013 14:50:50 +0530
-Message-ID: <70856bfec42adfd57125d6924b3677520eb0b0fc.1359356015.git.afzal@ti.com>
+Subject: [PATCH v5 03/12] video: da8xx-fb: enable sync lost intr for v2 ip
+Date: Mon, 28 Jan 2013 14:50:56 +0530
+Message-ID: <fb4732c185521fae61b39e3688694dc542bcd4b7.1359356015.git.afzal@ti.com>
 References: <cover.1359356015.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43449 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754625Ab3A1JVA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Jan 2013 04:21:00 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1359356015.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Mike Turquette <mturquette@linaro.org>, "Manjunathappa, Prakash" <prakash.pm@ti.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Mike Turquette <mturquette@linaro.org>
+List-Id: linux-omap@vger.kernel.org
 
-From: "Manjunathappa, Prakash" <prakash.pm@ti.com>
+interrupt handler is checking for sync lost interrupt, but it was not
+enabled, enable it.
 
-Set only LCD_V2_TFT_24BPP_MODE bit for 24bpp and LCD_V2_TFT_24BPP_UNPACK
-bit along with LCD_V2_TFT_24BPP_MODE for 32bpp configuration.
-
-Patch is tested on am335x-evm for 24bpp and da850-evm for 16bpp
-configurations.
-
-Signed-off-by: Manjunathappa, Prakash <prakash.pm@ti.com>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/da8xx-fb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 35a33ca..7f92f37 100644
+index 7f92f37..ca69e01 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -550,10 +550,10 @@ static int lcd_cfg_frame_buffer(struct da8xx_fb_par *par, u32 width, u32 height,
- 	case 4:
- 	case 16:
- 		break;
--	case 24:
--		reg |= LCD_V2_TFT_24BPP_MODE;
- 	case 32:
- 		reg |= LCD_V2_TFT_24BPP_UNPACK;
-+	case 24:
-+		reg |= LCD_V2_TFT_24BPP_MODE;
- 		break;
- 
- 	case 8:
+@@ -318,7 +318,7 @@ static void lcd_blit(int load_mode, struct da8xx_fb_par *par)
+ 			reg_int = lcdc_read(LCD_INT_ENABLE_SET_REG) |
+ 				LCD_V2_END_OF_FRAME0_INT_ENA |
+ 				LCD_V2_END_OF_FRAME1_INT_ENA |
+-				LCD_FRAME_DONE;
++				LCD_FRAME_DONE | LCD_SYNC_LOST;
+ 			lcdc_write(reg_int, LCD_INT_ENABLE_SET_REG);
+ 		}
+ 		reg_dma |= LCD_DUAL_FRAME_BUFFER_ENABLE;
 -- 
 1.7.12
-
