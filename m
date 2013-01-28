@@ -1,47 +1,72 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH 1/2] ARM: dts: OMAP3: Add GPMC controller
-Date: Mon, 28 Jan 2013 18:54:07 +0100
-Message-ID: <1359395648-2137-2-git-send-email-florian.vaussard@epfl.ch>
-References: <1359395648-2137-1-git-send-email-florian.vaussard@epfl.ch>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH] cpsw: Fix interrupt storm among other things
+Date: Mon, 28 Jan 2013 19:24:51 +0100
+Message-ID: <20130128182451.GC2445@netboy.at.omicron.at>
+References: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:40358 "HELO smtp4.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757339Ab3A1RyP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Jan 2013 12:54:15 -0500
-In-Reply-To: <1359395648-2137-1-git-send-email-florian.vaussard@epfl.ch>
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:34254 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750710Ab3A1SZG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 13:25:06 -0500
+Content-Disposition: inline
+In-Reply-To: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, Matt Porter <mporter@ti.com>, Chase Maupin <chase.maupin@ti.com>, Jason Kridner <jdk@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Add device-tree support for the GPMC controller on the OMAP3.
+On Mon, Jan 28, 2013 at 03:11:08PM +0200, Pantelis Antoniou wrote:
+> Fix interrupt storm on bone A4 cause by non-by-the-book interrupt handling.
+> While at it, added a non-NAPI mode (which is easier to debug), plus
+> some general fixes.
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
----
- arch/arm/boot/dts/omap3.dtsi |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+I have a few issues with this patch:
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 6c63118..2ddae38 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -403,5 +403,16 @@
- 			ti,timer-alwon;
- 			ti,timer-secure;
- 		};
-+
-+		gpmc: gpmc@6e000000 {
-+			compatible = "ti,omap3430-gpmc";
-+			ti,hwmods = "gpmc";
-+			reg = <0x6e000000 0x1000000>;
-+			interrupts = <20>;
-+			gpmc,num-cs = <8>;
-+			gpmc,num-waitpins = <4>;
-+			#address-cells = <2>;
-+			#size-cells = <1>;
-+		};
- 	};
- };
--- 
-1.7.5.4
+1. This is a networking patch. It should be addressed to netdev, it it
+   needs to have davem on CC.
 
+2. The description is poor. You need to tell us more about this
+   "storm". How can one trigger it? What is the effect? Does the
+   system lock up, or is the throughput poor? Tell us exactly what the
+   problem is. Tell us what is wrong in the interrupt handling, and
+   how the patch improves the situation.
+
+3. Don't just say "general fixes", but do say exactly what you fixed.
+
+4. Adding non-NAPI code is going backwards. Don't do that (and see the
+   recent discussion on netdev on just this very topic: Frank Li and
+   the fec driver).
+
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 40aff68..b6ca4af 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -148,10 +148,37 @@ struct cpsw_wr_regs {
+>  	u32	soft_reset;
+>  	u32	control;
+>  	u32	int_control;
+> -	u32	rx_thresh_en;
+> -	u32	rx_en;
+> -	u32	tx_en;
+> -	u32	misc_en;
+> +	u32	c0_rx_thresh_en;
+> +	u32	c0_rx_en;
+> +	u32	c0_tx_en;
+> +	u32	c0_misc_en;
+
+How does renaming these help?
+
+(If you really think that new names are needed, then put the cosmetic
+renaming changes into its a separate patch.)
+
+> +	u32	c1_rx_thresh_en;
+> +	u32	c1_rx_en;
+> +	u32	c1_tx_en;
+> +	u32	c1_misc_en;
+
+You added a bunch of new fields, but you don't use any of them.
+
+Thanks,
+Richard
