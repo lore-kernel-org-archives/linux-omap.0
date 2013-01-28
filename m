@@ -1,41 +1,56 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH] cpsw: Fix interrupt storm among other things
-Date: Mon, 28 Jan 2013 22:14:36 +0100
-Message-ID: <87wquxdn7n.fsf@dell.be.48ers.dk>
-References: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH] mmc: omap_hsmmc: MAINTAINERS: change omap_hsmmc maintenance to orphan
+Date: Mon, 28 Jan 2013 16:33:43 -0500
+Message-ID: <8738xl8020.fsf@laptop.org>
+References: <1358343026-17198-1-git-send-email-svenkatr@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com>
-	(Pantelis Antoniou's message of "Mon, 28 Jan 2013 15:11:08 +0200")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>, Matt Porter <mporter@ti.com>, Chase Maupin <chase.maupin@ti.com>, Jason Kridner <jdk@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from void.printf.net ([89.145.121.20]:56449 "EHLO void.printf.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754001Ab3A1VeR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Jan 2013 16:34:17 -0500
+In-Reply-To: <1358343026-17198-1-git-send-email-svenkatr@gmail.com>
+	(Venkatraman S.'s message of "Wed, 16 Jan 2013 19:00:26 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Venkatraman S <svenkatr@gmail.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>
 
->>>>> "Pantelis" == Pantelis Antoniou <panto@antoniou-consulting.com> writes:
+Hi,
 
-'among other things' is not a very descriptive commit message.
+On Wed, Jan 16 2013, Venkatraman S wrote:
+> The specified email id is no longer in service.
+> Update the OMAP HSMMC entry from the MAINTAINERS file as I will
+> no longer be able to maintain this driver.
+>
+> Signed-off-by: Venkatraman S <svenkatr@gmail.com>
+> ---
+>  MAINTAINERS |    4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index cd5b31f..95778e1 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -5499,10 +5499,8 @@ S:	Maintained
+>  F:	drivers/mmc/host/omap.c
+>  
+>  OMAP HS MMC SUPPORT
+> -M:	Venkatraman S <svenkatr@ti.com>
+> -L:	linux-mmc@vger.kernel.org
+>  L:	linux-omap@vger.kernel.org
+> -S:	Maintained
+> +S:	Orphan
+>  F:	drivers/mmc/host/omap_hsmmc.c
+>  
+>  OMAP RANDOM NUMBER GENERATOR SUPPORT
 
- Pantelis> Fix interrupt storm on bone A4 cause by non-by-the-book
- Pantelis> interrupt handling.  While at it, added a non-NAPI mode
- Pantelis> (which is easier to debug), plus some general fixes.
+Thanks for your work on omap_hsmmc, Venkat!
 
-'bone A4' is also not very descriptive. There also was an A4 revision of
-the "old" beaglebone. I guess you're instead referring to a new die
-revision?
+Is anyone else interested in taking up maintenance of omap_hsmmc?
 
-What is the impact of this change on earlier devices?
-
- Pantelis> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
- Pantelis> @@ -20,6 +20,7 @@ Required properties:
- Pantelis>  - cpts_clock_shift	: Denominator to convert input clock ticks into nanoseconds
- Pantelis>  - phy_id		: Specifies slave phy id
- Pantelis>  - mac-address		: Specifies slave MAC address
- Pantelis> +- disable-napi		: Disables driver NAPI
-
-napi is not a hardware feature, so it doesn't belong here (if anything,
-it should be linux,disable-napi).
-
+- Chris.
 -- 
-Bye, Peter Korsgaard
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
