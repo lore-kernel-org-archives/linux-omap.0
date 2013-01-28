@@ -1,288 +1,136 @@
-From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: [PATCH 4/4] usb: phy: samsung: Enable runtime power management on
- samsung-usb3
-Date: Mon, 28 Jan 2013 17:12:28 +0530
-Message-ID: <1359373348-18320-5-git-send-email-gautam.vivek@samsung.com>
-References: <1359373348-18320-1-git-send-email-gautam.vivek@samsung.com>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-reply-to: <1359373348-18320-1-git-send-email-gautam.vivek@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, dianders@chromium.org, sylvester.nawrocki@gmail.com, tomasz.figa@gmail.com
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: Re: OMAP baseline test results for v3.8-rc5
+Date: Mon, 28 Jan 2013 11:43:48 +0000
+Message-ID: <51066474.9030701@mimc.co.uk>
+References: <alpine.DEB.2.00.1301260838300.19277@utopia.booyaka.com> <20130126084604.GB8754@arwen.pp.htv.fi> <C8443D0743D26F4388EA172BF4E2A7A93EA9456A@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mercuryimc.plus.com ([80.229.200.144]:48316 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753221Ab3A1Lnt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 06:43:49 -0500
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA9456A@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Enabling runtime power management support on samsung-usb3 phy
-and further adding support to turn off the PHY ref_clk PLL.
-It thereby requires PHY ref_clk to be switched between internal
-core clock and external PLL clock.
+On 28/01/13 10:34, Mohammed, Afzal wrote:
+> Hi,
+> 
+> On Sat, Jan 26, 2013 at 14:16:04, Balbi, Felipe wrote:
+>> On Sat, Jan 26, 2013 at 08:40:07AM +0000, Paul Walmsley wrote:
+> 
+>>> * am335xbone: hangs after "Starting kernel"
+>>>   - Cause unknown; may be due to CONFIG_EARLY_PRINTK=y?
+>>>   - http://www.mail-archive.com/linux-omap@vger.kernel.org/msg82297.html
+>>>   - http://marc.info/?l=linux-omap&m=135903184512238&w=2
+>>
+>> FYI, I don't think it's related to CONFIG_EARLY_PRINTK. Tested with and
+>> without it, also removed CONFIG_DEBUG_LL completely and nothing seemed
+>> to help my bone, no matter if I had appended DTB or not.
+> 
+> Following patch with low level debug may help to find where the issue is,
+> (my observation is that it boots with mainline u-boot)
+> 
+> Regards
+> Afzal
+> 
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 41b581f..178a411 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -117,6 +117,10 @@ config SOC_AM33XX
+>         select CPU_V7
+>         select MULTI_IRQ_HANDLER
+>         select COMMON_CLK
+> +       select MACH_AM335XEVM
+> +
+> +config MACH_AM335XEVM
+> +       bool
+> 
+>  config OMAP_PACKAGE_ZAF
+>         bool
+> 
 
-Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+I can confirm that this patch works with EARLY_PRINTK and DEBUG_LL enabled (current mainline kernel
+and u-boot), and the following .config changes:-
+
+$ diff .config.omap2plus_defconfig .config
+505c505,508
+< # CONFIG_ARM_APPENDED_DTB is not set
 ---
- drivers/usb/phy/samsung-usb3.c   |  107 +++++++++++++++++++++++++++++++++++--
- drivers/usb/phy/samsung-usbphy.c |   26 +++++++++
- drivers/usb/phy/samsung-usbphy.h |    1 +
- 3 files changed, 128 insertions(+), 6 deletions(-)
+> CONFIG_ARM_APPENDED_DTB=y
+> CONFIG_ARM_ATAG_DTB_COMPAT=y
+> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
+> # CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND is not set
+2659c2662,2665
+< # CONFIG_DEBUG_LL is not set
+---
+> CONFIG_DEBUG_LL=y
+> CONFIG_DEBUG_LL_UART_NONE=y
+> # CONFIG_DEBUG_ICEDCC is not set
+> # CONFIG_DEBUG_SEMIHOSTING is not set
+2660a2667
+> CONFIG_EARLY_PRINTK=y
 
-diff --git a/drivers/usb/phy/samsung-usb3.c b/drivers/usb/phy/samsung-usb3.c
-index 29e1321..4dbef15 100644
---- a/drivers/usb/phy/samsung-usb3.c
-+++ b/drivers/usb/phy/samsung-usb3.c
-@@ -22,8 +22,10 @@
- #include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/err.h>
-+#include <linux/gpio.h>
- #include <linux/io.h>
- #include <linux/of.h>
-+#include <linux/pm_runtime.h>
- #include <linux/usb/samsung_usb_phy.h>
- #include <linux/platform_data/samsung-usbphy.h>
- 
-@@ -32,7 +34,7 @@
- /*
-  * Sets the phy clk as EXTREFCLK (XXTI) which is internal clock from clock core.
-  */
--static u32 samsung_usb3_phy_set_refclk(struct samsung_usbphy *sphy)
-+static u32 samsung_usb3_phy_set_refclk_int(struct samsung_usbphy *sphy)
- {
- 	u32 reg;
- 	u32 refclk;
-@@ -65,7 +67,22 @@ static u32 samsung_usb3_phy_set_refclk(struct samsung_usbphy *sphy)
- 	return reg;
- }
- 
--static int samsung_exynos5_usb3_phy_enable(struct samsung_usbphy *sphy)
-+/*
-+ * Sets the phy clk as ref_pad_clk (XusbXTI) which is clock from external PLL.
-+ */
-+static u32 samsung_usb3_phy_set_refclk_ext(void)
-+{
-+	u32 reg;
-+
-+	reg = PHYCLKRST_REFCLKSEL_PAD_REFCLK |
-+		PHYCLKRST_FSEL_PAD_100MHZ |
-+		PHYCLKRST_MPLL_MULTIPLIER_100MHZ_REF;
-+
-+	return reg;
-+}
-+
-+static int samsung_exynos5_usb3_phy_enable(struct samsung_usbphy *sphy,
-+							bool use_ext_clk)
- {
- 	void __iomem *regs = sphy->regs;
- 	u32 phyparam0;
-@@ -80,7 +97,11 @@ static int samsung_exynos5_usb3_phy_enable(struct samsung_usbphy *sphy)
- 
- 	phyparam0 = readl(regs + EXYNOS5_DRD_PHYPARAM0);
- 	/* Select PHY CLK source */
--	phyparam0 &= ~PHYPARAM0_REF_USE_PAD;
-+	if (use_ext_clk)
-+		phyparam0 |= PHYPARAM0_REF_USE_PAD;
-+	else
-+		phyparam0 &= ~PHYPARAM0_REF_USE_PAD;
-+
- 	/* Set Loss-of-Signal Detector sensitivity */
- 	phyparam0 &= ~PHYPARAM0_REF_LOSLEVEL_MASK;
- 	phyparam0 |= PHYPARAM0_REF_LOSLEVEL;
-@@ -115,7 +136,10 @@ static int samsung_exynos5_usb3_phy_enable(struct samsung_usbphy *sphy)
- 	/* UTMI Power Control */
- 	writel(PHYUTMI_OTGDISABLE, regs + EXYNOS5_DRD_PHYUTMI);
- 
--	phyclkrst = samsung_usb3_phy_set_refclk(sphy);
-+	if (use_ext_clk)
-+		phyclkrst = samsung_usb3_phy_set_refclk_ext();
-+	else
-+		phyclkrst = samsung_usb3_phy_set_refclk_int(sphy);
- 
- 	phyclkrst |= PHYCLKRST_PORTRESET |
- 			/* Digital power supply in normal operating mode */
-@@ -163,7 +187,7 @@ static void samsung_exynos5_usb3_phy_disable(struct samsung_usbphy *sphy)
- 	writel(phytest, regs + EXYNOS5_DRD_PHYTEST);
- }
- 
--static int samsung_usb3_phy_init(struct usb_phy *phy)
-+static int samsung_exynos5_usb3_phy_init(struct usb_phy *phy, bool use_ext_clk)
- {
- 	struct samsung_usbphy *sphy;
- 	unsigned long flags;
-@@ -187,7 +211,7 @@ static int samsung_usb3_phy_init(struct usb_phy *phy)
- 	samsung_usbphy_set_isolation(sphy, false);
- 
- 	/* Initialize usb phy registers */
--	samsung_exynos5_usb3_phy_enable(sphy);
-+	samsung_exynos5_usb3_phy_enable(sphy, use_ext_clk);
- 
- 	spin_unlock_irqrestore(&sphy->lock, flags);
- 
-@@ -198,6 +222,34 @@ static int samsung_usb3_phy_init(struct usb_phy *phy)
- }
- 
- /*
-+ * Switch  between internal core clock and external oscillator clock
-+ * for PHY reference clock
-+ */
-+static int samsung_exynos5_usb3phy_clk_switch(struct usb_phy *phy,
-+						bool use_ext_clk)
-+{
-+	/*
-+	 * This will switch PHY refclk from internal core clock
-+	 * to external PLL clock when device is in use and vice versa
-+	 * when device plunge into runtime suspend mode.
-+	 */
-+	return samsung_exynos5_usb3_phy_init(phy, use_ext_clk);
-+}
-+
-+/*
-+ * The function passed to the usb driver for phy initialization
-+ */
-+static int samsung_usb3_phy_init(struct usb_phy *phy)
-+{
-+	/*
-+	 * We start with using PHY refclk from external PLL,
-+	 * once runtime suspend for the device is called this
-+	 * will change to internal core clock
-+	 */
-+	return  samsung_exynos5_usb3_phy_init(phy, true);
-+}
-+
-+/*
-  * The function passed to the usb driver for phy shutdown
-  */
- static void samsung_usb3_phy_shutdown(struct usb_phy *phy)
-@@ -287,6 +339,9 @@ static int samsung_usb3_phy_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, sphy);
- 
-+	pm_runtime_set_active(&pdev->dev);
-+	pm_runtime_enable(&pdev->dev);
-+
- 	return usb_add_phy(&sphy->phy, USB_PHY_TYPE_USB3);
- }
- 
-@@ -296,6 +351,8 @@ static int samsung_usb3_phy_remove(struct platform_device *pdev)
- 
- 	usb_remove_phy(&sphy->phy);
- 
-+	pm_runtime_disable(&pdev->dev);
-+
- 	if (sphy->pmuregs)
- 		iounmap(sphy->pmuregs);
- 	if (sphy->sysreg)
-@@ -304,6 +361,42 @@ static int samsung_usb3_phy_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static int samsung_usb3_phy_runtime_suspend(struct device *dev)
-+{
-+	struct samsung_usbphy *sphy = dev_get_drvdata(dev);
-+
-+	samsung_exynos5_usb3phy_clk_switch(&sphy->phy, false);
-+
-+	if (gpio_is_valid(sphy->phyclk_gpio))
-+		gpio_set_value(sphy->phyclk_gpio, 0);
-+
-+	return 0;
-+}
-+
-+static int samsung_usb3_phy_runtime_resume(struct device *dev)
-+{
-+	struct samsung_usbphy *sphy = dev_get_drvdata(dev);
-+
-+	if (gpio_is_valid(sphy->phyclk_gpio)) {
-+		gpio_set_value(sphy->phyclk_gpio, 1);
-+		/*
-+		 * PI6C557-03 clock generator needs 3ms typically to stabilise,
-+		 * but the datasheet doesn't list max.  We'll sleep for 10ms
-+		 * and cross our fingers that it's enough.
-+		 */
-+		usleep_range(10000, 20000);
-+	}
-+
-+	samsung_exynos5_usb3phy_clk_switch(&sphy->phy, true);
-+
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops samsung_usb3_phy_pm_ops = {
-+	SET_RUNTIME_PM_OPS(samsung_usb3_phy_runtime_suspend,
-+				samsung_usb3_phy_runtime_resume, NULL)
-+};
-+
- static struct samsung_usbphy_drvdata usb3_phy_exynos5 = {
- 	.cpu_type		= TYPE_EXYNOS5250,
- 	.devphy_en_mask		= EXYNOS_USBPHY_ENABLE,
-@@ -338,7 +431,9 @@ static struct platform_driver samsung_usb3_phy_driver = {
- 		.name	= "samsung-usb3-phy",
- 		.owner	= THIS_MODULE,
- 		.of_match_table = of_match_ptr(samsung_usbphy_dt_match),
-+		.pm	= &samsung_usb3_phy_pm_ops,
- 	},
-+
- };
- 
- module_platform_driver(samsung_usb3_phy_driver);
-diff --git a/drivers/usb/phy/samsung-usbphy.c b/drivers/usb/phy/samsung-usbphy.c
-index 7782a43..fb17b84 100644
---- a/drivers/usb/phy/samsung-usbphy.c
-+++ b/drivers/usb/phy/samsung-usbphy.c
-@@ -26,6 +26,7 @@
- #include <linux/io.h>
- #include <linux/of.h>
- #include <linux/of_address.h>
-+#include <linux/of_gpio.h>
- #include <linux/usb/samsung_usb_phy.h>
- 
- #include "samsung-usbphy.h"
-@@ -33,6 +34,7 @@
- int samsung_usbphy_parse_dt(struct samsung_usbphy *sphy)
- {
- 	struct device_node *usbphy_sys;
-+	int ret;
- 
- 	/* Getting node for system controller interface for usb-phy */
- 	usbphy_sys = of_get_child_by_name(sphy->dev->of_node, "usbphy-sys");
-@@ -57,6 +59,30 @@ int samsung_usbphy_parse_dt(struct samsung_usbphy *sphy)
- 	if (sphy->sysreg == NULL)
- 		dev_warn(sphy->dev, "Can't get usb-phy sysreg cfg register\n");
- 
-+	/* Getting PHY clk gpio here to enable/disable PHY clock PLL, if any */
-+	sphy->phyclk_gpio = of_get_named_gpio(sphy->dev->of_node,
-+						"samsung,phyclk-gpio", 0);
-+	/*
-+	 * We don't want to return error code here in case we don't get the
-+	 * PHY clock gpio, some PHYs may not have it.
-+	 */
-+	if (gpio_is_valid(sphy->phyclk_gpio)) {
-+		ret = gpio_request_one(sphy->phyclk_gpio, GPIOF_INIT_HIGH,
-+						"samsung_usb_phy_clock_en");
-+		if (ret) {
-+			/*
-+			 * We don't want to return error code here,
-+			 * sometimes either of usb2 phy or usb3 phy may not
-+			 * have the PHY clock gpio.
-+			 */
-+			dev_err(sphy->dev, "can't request phyclk gpio %d\n",
-+						sphy->phyclk_gpio);
-+			sphy->phyclk_gpio = -EINVAL;
-+		}
-+	} else {
-+		dev_warn(sphy->dev, "Can't get usb-phy clock gpio\n");
-+	}
-+
- 	of_node_put(usbphy_sys);
- 
- 	return 0;
-diff --git a/drivers/usb/phy/samsung-usbphy.h b/drivers/usb/phy/samsung-usbphy.h
-index f7e657d..1921ab0 100644
---- a/drivers/usb/phy/samsung-usbphy.h
-+++ b/drivers/usb/phy/samsung-usbphy.h
-@@ -300,6 +300,7 @@ struct samsung_usbphy {
- 	enum samsung_usb_phy_type phy_type;
- 	atomic_t	phy_usage;
- 	spinlock_t	lock;
-+	int		phyclk_gpio;
- };
- 
- #define phy_to_sphy(x)		container_of((x), struct samsung_usbphy, phy)
--- 
-1.7.6.5
+Boot log
+--------
+Filename '/nanobone/uImage-dtb'.
+Load address: 0x80000000
+Loading: #################################################################
+         #################################################################
+         #################################################################
+         #################################################################
+         #########
+         627 KiB/s
+done
+Bytes transferred = 3946799 (3c392f hex)
+## Booting kernel from Legacy Image at 80000000 ...
+   Image Name:   Linux 3.8.0-rc5-dirty
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    3946735 Bytes = 3.8 MiB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Verifying Checksum ... OK
+   Loading Kernel Image ... OK
+OK
+
+Starting kernel ...
+
+Uncompressing Linux... done, booting the kernel.
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 3.8.0-rc5-dirty (mpfj@mpfj-nanobone) (gcc version 4.5.4 (Buildroot
+2012.11-git-00497-ge48bf89) ) #9 SMP Mon Jan 28 11:34:19 GMT 2013
+[    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+[    0.000000] Machine: Generic AM33XX (Flattened Device Tree), model: TI AM335x BeagleBone
+[    0.000000] bootconsole [earlycon0] enabled
+[    0.000000] Memory policy: ECC disabled, Data cache writeback
+[    0.000000] On node 0 totalpages: 65280
+[    0.000000] free_area_init_node: node 0, pgdat c07c7040, node_mem_map c0d27000
+[    0.000000]   Normal zone: 512 pages used for memmap
+[    0.000000]   Normal zone: 0 pages reserved
+[    0.000000]   Normal zone: 64768 pages, LIFO batch:15
+[    0.000000] AM335X ES1.0 (neon )
+[    0.000000] PERCPU: Embedded 9 pages/cpu @c0f30000 s12992 r8192 d15680 u36864
+[    0.000000] pcpu-alloc: s12992 r8192 d15680 u36864 alloc=9*4096
+[    0.000000] pcpu-alloc: [0] 0
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 64768
+[    0.000000] Kernel command line: console=ttyO0,115200n8 earlyprintk debug root=/dev/mmcblk0p2 ro
+rootfstype=ext2 rootwait
+
+<snip>
+
+[    1.702800] davinci_mdio 4a101000.mdio: phy[0]: device 4a101000.mdio:00, driver SMSC LAN8710/LAN8720
+[    1.713088] Random MACID = 56:e9:38:ee:af:e4
+[    1.723695] drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
+[    1.735470] Waiting for root device /dev/mmcblk0p2...
+
+Still no support for rootfs on MMC, but hopefully that won't be long ??
+
+Regards
+Mark J.
