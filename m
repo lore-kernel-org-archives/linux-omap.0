@@ -1,71 +1,50 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v5 07/14] dmaengine: add dma_request_slave_channel_compat()
-Date: Mon, 28 Jan 2013 21:34:25 +0200
-Message-ID: <CAHp75VeqikcTuOd14utb9E0P3b9t1mr=JsmkAbz5=3FJwU2kFA@mail.gmail.com>
-References: <1358281974-8411-1-git-send-email-mporter@ti.com>
-	<1358281974-8411-8-git-send-email-mporter@ti.com>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH] cpsw: Fix interrupt storm among other things
+Date: Mon, 28 Jan 2013 20:49:58 +0100
+Message-ID: <20130128194958.GA6129@netboy.at.omicron.at>
+References: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com>
+ <20130128182451.GC2445@netboy.at.omicron.at>
+ <4E26978C-0B09-4E06-8373-49F1850C08C4@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1358281974-8411-8-git-send-email-mporter@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Matt Porter <mporter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Rob Herring <rob.herring@calxe>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4E26978C-0B09-4E06-8373-49F1850C08C4@antoniou-consulting.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, Matt Porter <mporter@ti.com>, Chase Maupin <chase.maupin@ti.com>, Jason Kridner <jdk@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 15, 2013 at 10:32 PM, Matt Porter <mporter@ti.com> wrote:
-> Adds a dma_request_slave_channel_compat() wrapper which accepts
-> both the arguments from dma_request_channel() and
-> dma_request_slave_channel(). Based on whether the driver is
-> instantiated via DT, the appropriate channel request call will be
-> made.
->
-> This allows for a much cleaner migration of drivers to the
-> dmaengine DT API as platforms continue to be mixed between those
-> that boot using DT and those that do not.
+On Mon, Jan 28, 2013 at 08:40:25PM +0200, Pantelis Antoniou wrote:
+> Hi Richard,
+> 
+> Yes, I guess this was more of a drive-by patch dump - but people need this
+> to get PG2.0 silicon to work on am33xx.
 
-Does it mean the introduced function is kinda temporary?
+And what is PG2.0?
 
->
-> Suggested-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Matt Porter <mporter@ti.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> ---
->  include/linux/dmaengine.h |   10 ++++++++++
->  1 file changed, 10 insertions(+)
->
-> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-> index 9fd0c5b..64f9f69 100644
-> --- a/include/linux/dmaengine.h
-> +++ b/include/linux/dmaengine.h
-> @@ -1047,6 +1047,16 @@ void dma_run_dependencies(struct dma_async_tx_descriptor *tx);
->  struct dma_chan *dma_find_channel(enum dma_transaction_type tx_type);
->  struct dma_chan *net_dma_find_channel(void);
->  #define dma_request_channel(mask, x, y) __dma_request_channel(&(mask), x, y)
-> +static inline struct dma_chan
-> +*dma_request_slave_channel_compat(dma_cap_mask_t mask, dma_filter_fn fn,
-> +                                 void *fn_param, struct device *dev,
-> +                                 char *name)
-> +{
-> +       if (dev->of_node)
-> +               return dma_request_slave_channel(dev, name);
-> +       else
-> +               return dma_request_channel(mask, fn, fn_param);
-> +}
->
->  /* --- Helper iov-locking functions --- */
->
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> And no, I don't think having a non-NAPI code path is backwards, especially
+> when trying to debug hardware problems; the non-NAPI driver is much easier
+> to understand and follow, especially when there is a convoluted method
+> you have to follow to have the h/w acknowledge the interrupt.
 
+Special debug modes are fine to have, but not in mainline code. 
+I suggest taking a look at the recent netdev discussion on this.
+Someone wanted to make napi/non-napi a DT option, and it got
+nixed.
 
+> Not every device can be conveniently be made to shut up so that NAPI processing 
+> can take place at a later time.
 
--- 
-With Best Regards,
-Andy Shevchenko
+So, are you saying that the cpsw cannot work as a napi device?
+ 
+> The NAPI case is still broken in this driver, which OOPs under load.
+
+And does your patch fix it, or not?
+
+It would be nice to know what the problem is, and how to reproduce
+it. I haven't seen any OOPs on the beaglebone, but maybe I am not
+trying hard enough.
+
+Thanks,
+Richard
