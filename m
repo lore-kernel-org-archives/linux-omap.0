@@ -1,48 +1,95 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: RE: RE: [PATCH v2 1/2] clk: divider: prepare for minimum divider
-Date: Mon, 28 Jan 2013 09:18:08 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA943FA@DBDE01.ent.ti.com>
-References: <6dc1c48cac5b2646a55da3079afb72f88e40c3bc.1358937138.git.afzal@ti.com>
- <20130123214053.9205.49804@quantum>
- <C8443D0743D26F4388EA172BF4E2A7A93EA92ABC@DBDE01.ent.ti.com>
- <20130124170630.10623.78749@quantum>
- <C8443D0743D26F4388EA172BF4E2A7A93EA93851@DBDE01.ent.ti.com>
- <20130125223524.10623.29375@quantum>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v5 00/12] video: da8xx-fb: am335x DT support
+Date: Mon, 28 Jan 2013 14:50:22 +0530
+Message-ID: <cover.1359356015.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37189 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753763Ab3A1JSR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Jan 2013 04:18:17 -0500
-In-Reply-To: <20130125223524.10623.29375@quantum>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:48006 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755087Ab3A1JUi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 04:20:38 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
+To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Mike Turquette <mturquette@linaro.org>
 
-SGkgTWlrZSwNCg0KT24gU2F0LCBKYW4gMjYsIDIwMTMgYXQgMDQ6MDU6MjQsIE1pa2UgVHVycXVl
-dHRlIHdyb3RlOg0KDQo+IFRoYW5rIHlvdSBmb3IgdGhlIGluZm9ybWF0aW9uLiAgSW4gc2hvcnQs
-IHRoZSB3YXkgeW91IHByb2dyYW0geW91ciBjbG9jaw0KPiBkZXBlbmQgb24gdGhlIGNvbmZpZ3Vy
-YXRpb24gb2YgeW91ciBsY2RjIGRldmljZS4NCj4gDQo+IEFzIHN1Y2ggSSBhbSBub3Qgc3VyZSB0
-aGUgYmFzaWMgZGl2aWRlciBpcyB0aGUgcmlnaHQgY2hvaWNlIGZvciB5b3UuDQo+IFlvdSBtaWdo
-dCBiZSBiZXR0ZXIgb2ZmIGNyZWF0aW5nIGEgY2xvY2sgZm9yIHlvdXIgSVAgd2hpY2ggdGFrZXMg
-aW50bw0KPiBhY2NvdW50IHRoZXNlIGRldGFpbHMuICBMdWNraWx5IGl0IGlzIHBvc3NpYmxlIHRv
-IGluaGVyaXQgZnJvbSB0aGUgYmFzaWMNCj4gY2xvY2sgdHlwZXMgYW5kIGNyZWF0ZSBhIG5ldyB0
-eXBlLg0KPiANCj4gQW4gZXhhbXBsZSBvZiB0aGlzIGlzIHRoZSBNWFMgZGl2aWRlci4gIEl0IHVz
-ZXMgdGhlIGJhc2ljIGRpdmlkZXIgYXMgYQ0KPiAicGFyZW50IGNsYXNzIiBhbmQgYWRkcyBhIGJ1
-c3kgYml0LiAgVGhpcyBpcyBhIGJldHRlciBhcHByb2FjaCB0aGFuDQo+IHB1dHRpbmcgZXZlcnkg
-ZmVhdHVyZSBpbnRvIHRoZSBiYXNpYyBkaXZpZGVyIHR5cGUuICBZb3UgY2FuIHNlZSBob3cgaXQN
-Cj4gd2FzIGRvbmUgaW4gZHJpdmVycy9jbGsvbXhzL2Nsay1kaXYuYw0KPiANCj4gTGV0IG1lIGtu
-b3cgd2hhdCB5b3UgdGhpbmsuDQoNClllcywgYSBkZXJpdmVkIGRpdmlkZXIgaXMgYmV0dGVyLg0K
-DQpBcyBtZW50aW9uZWQgaW4gb3RoZXIgdGhyZWFkLCB0aGUgbW9kZWxpbmcgb2YgY2xvY2sgbm9k
-ZXMgKGRlcml2ZWQgcGx1cw0KZ2F0ZXMpIHdvdWxkIGJyaW5nIGluIGNvbnNpZGVyYWJsZSAocmVs
-YXRpdmUgdG8gY29tcGxldGUgZHJpdmVyKSBjb2RlLCB0aGUNCmFkdmFudGFnZSBiZWluZyBoaWdo
-ZXIgcGl4ZWwgY2xvY2sgcmVzb2x1dGlvbi4gQ3VycmVudCB1c2UgY2FzZXMgd29yaw0KYXMgcGVy
-IGV4aXN0aW5nIGRpdmlkZXIgc2V0dGluZyBpbiBkcml2ZXIuIEhlbmNlIG5vdyBpdCBzZWVtcyBh
-IGJldHRlcg0KZGVjaXNpb24gbm93IGlzIHRvIHByb2NlZWQgd2l0aCBsb2dpYyBhcyBpbiB2MiAo
-bm90IHVzaW5nIGNsb2NrIG5vZGVzKS4NCkFuZCBsYXRlciBkZXBlbmRpbmcgb24gdGhlIHVzZSBj
-YXNlIHJlcXVpcmVtZW50LCBjbG9jayB0cmVlIG1vZGVsaW5nIGNhbg0KYmUgaW1wbGVtZW50ZWQu
-DQoNClRoYW5rcyBmb3IgeW91ciBpbnB1dC4NCg0KUmVnYXJkcw0KQWZ6YWwNCg0KDQo=
+Hi,
+
+This series adds DT support to da8xx-fb driver (device found on
+DaVinci and AM335x SoC's). It does certain cleanup's in the process.
+
+This series as compared to previous version goes back to v2 way of
+configuring pixel clock rate. i.e. set divider if rate is within
+the range that is configurable with existing input clock rate, else
+change input clock rate as required instead of modeling CCF clock
+nodes in the driver (more details in 12/12)
+
+This makes use of Steffen Trumtrar's v17 of display timing DT support.
+
+Testing has been done on AM335x SoC based boards like AM335x EVM. It
+has also been verified that display on DA850 EVM (non-DT boot) works
+as earlier.
+
+This series is based on v3.8-rc3,
+ and is dependent on,
+1. Series v17 "of: add display helper" by,
+        Steffen Trumtrar <s.trumtrar@pengutronix.de>
+2. Patch "da8xx: Allow use by am33xx based devices" by,
+        Pantelis Antoniou <panto@antoniou-consulting.com>
+3. Series v3 "video: da8xx-fb: runtime timing configuration" by,
+        me (Afzal Mohammed <afzal@ti.com>)
+
+To test this series on AM335x based boards,
+1. Series "HWMOD fixes for AM33xx PWM submodules and device tree nodes" by,
+        Philip, Avinash <avinashphilip@ti.com>
+as well as following,
+2. Series v2 "ARM: dts: AM33XX: lcdc support",
+3. Patch v2 "ARM: OMAP2+: dpll: am335x - avoid freqsel",
+4. Patch v2 "ARM: OMAP2+: clock: DEFINE_STRUCT_CLK_FLAGS helper",
+5. Patch v2 "ARM: AM33XX: clock: SET_RATE_PARENT in lcd path" by,
+	me (Afzal Mohammed <afzal@ti.com>)
+would be needed.
+
+All above dependencies along with those required for testing is available
+@ git://gitorious.org/x0148406-public/linux-kernel.git tags/da8xx-fb-dt-v5
+
+Regards
+Afzal
+
+v5: use v2 method of configuring pixel clock rate instead of modeling
+    CCF clock nodes in driver, i.e. set divider if rate is within
+    the range that is configurable with existing input clock rate,
+    else change input clock rate as required.
+v4: use new registration for clock divider having minimum divider
+    requirement and have ifdef'ery in a better way
+v3: model CCF clock divider with parent propogation if CCF selected
+v2: 2 new patches - one to configure clock rate properly (12/12)and
+    other to make io operations safe (1/12)
+
+
+
+Afzal Mohammed (11):
+  video: da8xx-fb: make io operations safe
+  video: da8xx-fb: enable sync lost intr for v2 ip
+  video: da8xx-fb: use devres
+  video: da8xx-fb: ensure non-null cfg in pdata
+  video: da8xx-fb: reorganize panel detection
+  video: da8xx-fb: minimal dt support
+  video: da8xx-fb: invoke platform callback safely
+  video: da8xx-fb: obtain fb_videomode info from dt
+  video: da8xx-fb: ensure pdata only for non-dt
+  video: da8xx-fb: setup struct lcd_ctrl_config for dt
+  video: da8xx-fb: set upstream clock rate (if reqd)
+
+Manjunathappa, Prakash (1):
+  video: da8xx-fb: fix 24bpp raster configuration
+
+ .../devicetree/bindings/video/fb-da8xx.txt         |  37 ++++
+ drivers/video/da8xx-fb.c                           | 226 ++++++++++++++-------
+ 2 files changed, 194 insertions(+), 69 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/video/fb-da8xx.txt
+
+-- 
+1.7.12
+
