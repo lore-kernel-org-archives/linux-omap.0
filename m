@@ -1,54 +1,62 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
-Date: Mon, 28 Jan 2013 09:56:15 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA944D2@DBDE01.ent.ti.com>
-References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
-	<1358894185-21617-2-git-send-email-robdclark@gmail.com>
-	<C8443D0743D26F4388EA172BF4E2A7A93EA939BB@DBDE01.ent.ti.com>
-	<CAF6AEGsqkUr0R3eYa4P371tUPq_NLSJLhH=N_MkyJF31s068+g@mail.gmail.com>
-	<C8443D0743D26F4388EA172BF4E2A7A93EA93A7D@DBDE01.ent.ti.com>
- <CAF6AEGtrHBxvnp052K6z3aj3dAxJf1hy7H72EoAWr6PhTtwr8Q@mail.gmail.com>
+From: Mats Liljegren <mats.liljegren@enea.com>
+Subject: RE: [BUG] panda board locks up on boot
+Date: Mon, 28 Jan 2013 09:59:47 +0000
+Message-ID: <0247700D01F14443B9209F90AD938CC524099EA3@sestoex09.enea.se>
+References: <1359082886.21576.199.camel@gandalf.local.home>
+ <51022FD2.8090101@compulab.co.il>
+ <0247700D01F14443B9209F90AD938CC52409708C@sestoex09.enea.se>
+ <20130127141254.GC5714@stinkpad> <51053AD2.8080805@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49749 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753345Ab3A1J4Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 04:56:25 -0500
-In-Reply-To: <CAF6AEGtrHBxvnp052K6z3aj3dAxJf1hy7H72EoAWr6PhTtwr8Q@mail.gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51053AD2.8080805@gmail.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <menon.nishanth@gmail.com>, Paolo Pisati <p.pisati@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, Steven Rostedt <rostedt@goodmis.org>, Igor Grinberg <grinberg@compulab.co.il>, Russell King <rmk+kernel@arm.linux.org.uk>, Venkatraman S <svenkatr@ti.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <robdclark@gmail.com>
-Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@linaro.org" <patches@linaro.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, "Nori, Sekhar" <nsekhar@ti.com>
 
-SGkgUm9iLA0KDQpPbiBGcmksIEphbiAyNSwgMjAxMyBhdCAyMDoyMjo1NSwgUm9iIENsYXJrIHdy
-b3RlOg0KPiBPbiBGcmksIEphbiAyNSwgMjAxMyBhdCA4OjE1IEFNLCBNb2hhbW1lZCwgQWZ6YWwg
-PGFmemFsQHRpLmNvbT4gd3JvdGU6DQoNCj4gPiBJdCdzIG5vdCBhYm91dCBiZWluZyBzaW1wbGUs
-IGJ1dCBub3QgZG9pbmcgdGhlIHdyb25nIHdheSwgaGVyZSB5b3UgYXJlDQo+ID4gcmVseWluZyBv
-biBhIHBsYXRmb3JtIHNwZWNpZmljIGNsb2NrIGluIGEgZHJpdmVyLCB0aGluayBhYm91dCB0aGUg
-Y2FzZQ0KPiA+IHdoZXJlIHNhbWUgSVAgaXMgdXNlZCBvbiBhbm90aGVyIHBsYXRmb3JtLiBFaXRo
-ZXIgd2F5IGl0IGlzIG5vdCBhIGdvb2QNCj4gPiB0aGluZyB0byBoYW5kbGUgcGxhdGZvcm0gc3Bl
-Y2lmaWMgZGV0YWlscyAoYWJvdXQgZGlzcF9jbGspIGluIGRyaXZlci4NCg0KPiBSaWdodCwgYnV0
-IEkgd2FzIHRyeWluZyB0byB1bmRlcnN0YW5kIHdoYXQgd2FzIHRoZSBiZW5lZml0IHRoYXQgdGhl
-DQo+IGFkZGVkIGNvbXBsZXhpdHkgaXMuICBJIGRpZG4ndCByZWFsaXplIG9uIGRhdmluY2kgdGhh
-dCB5b3UgYXJlIGxpbWl0ZWQNCg0KSGVyZSBJIGFtIHJlZmVycmluZyB0byB1c2FnZSBvZiBkaXNw
-X2NsaywNCg0KRHJpdmVyIGlzIG5vdCBzdXBwb3NlZCB0byBkbyBwbGF0Zm9ybSBoYWNrcyAtIGhl
-cmUgeW91IGFyZSB0cnlpbmcgdG8NCmNvbmZpZ3VyZSBzb21ldGhpbmcgKFBMTCkgaW4geW91ciBk
-cml2ZXIgd2hpY2ggaXMgbm90IHBhcnQgb2YgTENEQyBJUC4NCkFuZCBMQ0RDIElQIGlzIG5vdCBh
-d2FyZSBvZiBQTEwgd2hpY2ggaXMgYSBwbGF0Zm9ybSBzcGVjaWZpYyBtYXR0ZXINCihleGlzdGVu
-dCBvbmx5IGluIEFNMzM1eCksIGl0IGlzIG9ubHkgYXdhcmUgb2YgZnVuY3Rpb25hbCBjbG9jay4N
-Cg0KWW91IGNhbiBzZXQgdGhlIHJhdGUgb24gImZjayIgKGZ1bmN0aW9uYWwgY2xvY2spIGluIEFN
-MzM1eCB1c2luZyBteSBwYXRjaCwNCiJBUk06IEFNMzNYWDogY2xvY2s6IFNFVF9SQVRFX1BBUkVO
-VCBpbiBsY2QgcGF0aCIsIGFuZCB0aGVyZQ0Kd291bGQgbm90IGJlIGFueSBuZWVkIGZvciBkcml2
-ZXIgdG8gYmUgYXdhcmUgb2YgcGxhdGZvcm0gc3BlY2lmaWMgUExMLg0KDQo+ID4+ID4+ICsgICAg
-IHByaXYtPmNsayA9IGNsa19nZXQoZGV2LT5kZXYsICJmY2siKTsNCg0KPiA+PiA+PiArICAgICBw
-cml2LT5kaXNwX2NsayA9IGNsa19nZXQoZGV2LT5kZXYsICJkcGxsX2Rpc3BfY2siKTsNCg0KPiBh
-dCB0aGUgbW9tZW50IGFsbCB0aGlzIGRpc2N1c3Npb24gaXMgYSBiaXQgbW9vdC4gIEknZCBwcm9w
-b3NlIGxlYXZpbmcNCj4gdGhlIGRyaXZlciBhcyBpdCBpcyBmb3Igbm93LCBiZWNhdXNlIHRoYXQg
-YXQgbGVhc3QgbWFrZXMgaXQgdXNlZnVsIG9uDQo+IGFtMzN4eC4gIEFuZCB3aGVuIENDRiBhbmQg
-ZGF2aW5jaSBoYXZlIHRoZSBuZWVkZWQgc3VwcG9ydCBpbiBwbGFjZSwNCg0KTGV0J3MgZm9yZ2V0
-IGFib3V0IGxldmVyYWdpbmcgQ0NGIGluIGRyaXZlciwgYnV0IHNhbmUgc29sdXRpb24gdy5yLnQg
-UExMDQpjb25maWd1cmF0aW9uIHdvdWxkIGJlIHRvIGRvIGFzIG1lbnRpb25lZCBhYm92ZS4NCg0K
-UmVnYXJkcw0KQWZ6YWwNCg0K
+> From: Nishanth Menon [mailto:menon.nishanth@gmail.com]
+> Sent: den 27 januari 2013 15:34
+> To: Paolo Pisati
+> Cc: Mats Liljegren; Tony Lindgren; LKML; Steven Rostedt; Igor Grinberg;
+> Russell King; Venkatraman S; linux-arm-kernel; linux-omap
+> Subject: Re: [BUG] panda board locks up on boot
+> 
+> On 01/27/2013 08:12 AM, Paolo Pisati wrote:
+> > On Fri, Jan 25, 2013 at 08:43:15AM +0000, Mats Liljegren wrote:
+> >> Hi Steven,
+> >>
+> >> Do you have CONFIG_CPU_FREQ enabled? As I posted earlier in linux-
+> kernel forum ("Failed booting PandaBoard ES with Linux 3.8 RC4" two days
+> ago) my PandaBoard ES hangs while booting with this option enabled. It
+> works fine without it. I have not bisected it down to a single commit though.
+> >
+> > glad i'm not the only one who hit this problem:
+> >
+> > "3.8rc4+ and cpu_freq omap: hangs, oopses, etcetc"
+> >
+> > http://www.mail-archive.com/linux-
+> omap@vger.kernel.org/msg83693.html
+> >
+> 
+> Support for TPS is not yet in mainline kernel. you may want to do:
+> 
+> you could try running 'mw.w 0x4A31E05A 0x1' before bootm in u-boot -> This
+> will hack the pad of panda ES pin mean for controlling TPS voltage register
+> (again a kernel bug where the GPIO block setup by bootloader got reset).
+> 
+> CPUfreq needs both voltage and frequency scaling to work and without
+> support of the TPS voltage scaling on vdd_MPU, you are stuck at boot
+> voltage, and just scaling frequency. with the not-enough boot voltage,
+> moving to higher frequencies can/will result in unpredictable behavior.
+> 
+> ---
+> Regards,
+> NM
+
+Thanks for the suggestion. Unfortunately it didn't make any difference for me, neither did an upgrade to 3.8-rc5. I guess I have to wait for the TPS support to hit mainline kernel.
+
+Regards
+Mats
