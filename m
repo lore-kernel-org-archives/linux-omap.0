@@ -1,71 +1,85 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: Re: [PATCH 1/4] drm/tilcdc: add TI LCD Controller DRM driver (v3)
-Date: Mon, 28 Jan 2013 10:37:13 -0600
-Message-ID: <CAF6AEGtZvjh+==3rFo5gnZqF=orY=YqXf1fndYhE5s74v=rT1Q@mail.gmail.com>
-References: <1358894185-21617-1-git-send-email-robdclark@gmail.com>
-	<1358894185-21617-2-git-send-email-robdclark@gmail.com>
-	<C8443D0743D26F4388EA172BF4E2A7A93EA939BB@DBDE01.ent.ti.com>
-	<CAF6AEGsqkUr0R3eYa4P371tUPq_NLSJLhH=N_MkyJF31s068+g@mail.gmail.com>
-	<C8443D0743D26F4388EA172BF4E2A7A93EA93A7D@DBDE01.ent.ti.com>
-	<CAF6AEGtrHBxvnp052K6z3aj3dAxJf1hy7H72EoAWr6PhTtwr8Q@mail.gmail.com>
-	<C8443D0743D26F4388EA172BF4E2A7A93EA944D2@DBDE01.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: OMAP baseline test results for v3.8-rc5
+Date: Mon, 28 Jan 2013 18:51:59 +0200
+Message-ID: <20130128165159.GZ28698@arwen.pp.htv.fi>
+References: <alpine.DEB.2.00.1301260838300.19277@utopia.booyaka.com>
+ <20130126084604.GB8754@arwen.pp.htv.fi>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA9456A@DBDE01.ent.ti.com>
+ <20130128113818.GD28698@arwen.pp.htv.fi>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA946E4@DBDE01.ent.ti.com>
+ <20130128121635.GI28698@arwen.pp.htv.fi>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA94745@DBDE01.ent.ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EAF78AE@DBDE01.ent.ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Kf9dPzkPP9+q7vtQ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f175.google.com ([209.85.220.175]:57284 "EHLO
-	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757384Ab3A1QhO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 11:37:14 -0500
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA944D2@DBDE01.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:39895 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755991Ab3A1QwV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Jan 2013 11:52:21 -0500
+Content-Disposition: inline
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EAF78AE@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@linaro.org" <patches@linaro.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, "Nori, Sekhar" <nsekhar@ti.com>
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "Balbi, Felipe" <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Jan 28, 2013 at 3:56 AM, Mohammed, Afzal <afzal@ti.com> wrote:
-> Hi Rob,
->
-> On Fri, Jan 25, 2013 at 20:22:55, Rob Clark wrote:
->> On Fri, Jan 25, 2013 at 8:15 AM, Mohammed, Afzal <afzal@ti.com> wrote:
->
->> > It's not about being simple, but not doing the wrong way, here you are
->> > relying on a platform specific clock in a driver, think about the case
->> > where same IP is used on another platform. Either way it is not a good
->> > thing to handle platform specific details (about disp_clk) in driver.
->
->> Right, but I was trying to understand what was the benefit that the
->> added complexity is.  I didn't realize on davinci that you are limited
->
-> Here I am referring to usage of disp_clk,
->
-> Driver is not supposed to do platform hacks - here you are trying to
-> configure something (PLL) in your driver which is not part of LCDC IP.
-> And LCDC IP is not aware of PLL which is a platform specific matter
-> (existent only in AM335x), it is only aware of functional clock.
->
-> You can set the rate on "fck" (functional clock) in AM335x using my patch,
-> "ARM: AM33XX: clock: SET_RATE_PARENT in lcd path", and there
-> would not be any need for driver to be aware of platform specific PLL.
+--Kf9dPzkPP9+q7vtQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-right, but I think it would be better to just make another patch that
-changes tilcdc to just set rate on fck after that patch is merged.  I
-mean, I'd rather have the driver at least usable on AM33xx until then,
-rather than broken for everyone.
+Hi,
 
-BR,
--R
+On Mon, Jan 28, 2013 at 03:40:09PM +0100, AnilKumar, Chimata wrote:
+> On Mon, Jan 28, 2013 at 17:48:49, Mohammed, Afzal wrote:
+> > Hi Felipe,
+> >=20
+> > On Mon, Jan 28, 2013 at 17:46:35, Balbi, Felipe wrote:
+> >=20
+> > > didn't help :-s
+> >=20
+> > Hands up :(
+>=20
+> Hi Felipe,
+>=20
+> Could you please try with any of these options?
+>=20
+> 1. Change/add mem=3D512M (should be same value as u-boot printed RAM size=
+) in your
+> bootargs?
+>=20
+> Or
+>=20
+> 2. set fdt_high 0xffffffff (at u-boot prompt).
 
->> >> >> +     priv->clk = clk_get(dev->dev, "fck");
->
->> >> >> +     priv->disp_clk = clk_get(dev->dev, "dpll_disp_ck");
->
->> at the moment all this discussion is a bit moot.  I'd propose leaving
->> the driver as it is for now, because that at least makes it useful on
->> am33xx.  And when CCF and davinci have the needed support in place,
->
-> Let's forget about leveraging CCF in driver, but sane solution w.r.t PLL
-> configuration would be to do as mentioned above.
->
-> Regards
-> Afzal
->
+that helped, thank you :-)
+
+--=20
+balbi
+
+--Kf9dPzkPP9+q7vtQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRBqyvAAoJEIaOsuA1yqRExdcP/048DO90CEu7SbqTSP8Et0VR
+i2VtykI3cHJ1sBrsDdHzrKW5D/hss0PPY+mcb9i0lS1qVTpFReevakR/KCO3LL53
+FqeMU8ONSk15ppk4ZK7reeoS4A1mKow3ISVFr+45PXvaKoDq26N6D9yh7lZrWP4l
+MXH0tCqAoUE0gDYXrwkDQDlF7wHYUP9S1DxykAwJFZm4M2uDMsmQdK+qRaSB4ajf
+dpbYqB1bApKNMEQVOMfyDLchv1pWrcTvVVYHdVFgMH5sgJiUCyhNh2gmwyWzL9Np
+oKqfp+5oiaWC+l/LE1MA1o7m066WpdgrlPD+nvwXZDVz15NQLCwWgbqvdR0oPlww
+JKzp4MFztIIjJ8gtihFk7tKAknnV1raqBIQNdbP0pMFfza0he8Hz9MfCXwg485R8
+MQDFnqwaLuP/lpi/zYekkNqN5DJIPDqxB86msssy76S7ffdoc9G8KqfFvGhfOFw5
+jI5EIjpzGA2SJB9wcIACm7JDkxsWaXQ0EDqr7oOBniBgYGEVI2iE+lHTF1V52HGq
+MEKwlivAqT4CZY88NLHDuyLBOO/TVw9cPVnPXH77XKm57F8b4hR5gysI6kkFgojK
+pXEE+esSF9KVUiSaQe/7AExNrrXetEeYnuBSPzpUtZvhWwvfqAf8L9OuUtT1XLOT
+D4QWrhr7XOaitTir9359
+=Qpog
+-----END PGP SIGNATURE-----
+
+--Kf9dPzkPP9+q7vtQ--
