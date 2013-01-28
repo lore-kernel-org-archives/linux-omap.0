@@ -1,78 +1,137 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2+: OMAP44XX: Clock: Correct the clock
- identifiers for OMAP4460 and OMAP4430
-Date: Mon, 28 Jan 2013 10:59:37 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229B6C4A@DBDE01.ent.ti.com>
-References: <1358504498-31985-1-git-send-email-j-keerthy@ti.com>
- <alpine.DEB.2.00.1301250845310.471@utopia.booyaka.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCH] arm: dts: omap5-evm: Add I2c pinctrl data
+Date: Mon, 28 Jan 2013 16:47:25 +0530
+Message-ID: <1359371845-27876-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52241 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:52781 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754864Ab3A1K7m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 05:59:42 -0500
-In-Reply-To: <alpine.DEB.2.00.1301250845310.471@utopia.booyaka.com>
-Content-Language: en-US
+	with ESMTP id S1756425Ab3A1LQ2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 06:16:28 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "mturquette@linaro.org" <mturquette@linaro.org>
+To: b-cousson@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com
+Cc: Sourav Poddar <sourav.poddar@ti.com>
 
-Hi Paul,
+Booting 3.8-rc4 om omap 5430evm results in the following error
 
------Original Message-----
-From: Paul Walmsley [mailto:paul@pwsan.com] 
-Sent: Friday, January 25, 2013 2:21 PM
-To: J, KEERTHY
-Cc: linux-omap@vger.kernel.org; Valentin, Eduardo; mturquette@linaro.org
-Subject: Re: [PATCH] ARM: OMAP2+: OMAP44XX: Clock: Correct the clock identifiers for OMAP4460 and OMAP4430
+omap_i2c 48070000.i2c: did not get pins for i2c error: -19
+[    1.024261] omap_i2c 48070000.i2c: bus 0 rev0.12 at 100 kHz
+[    1.030181] omap_i2c 48072000.i2c: did not get pins for i2c error: -19
+[    1.037384] omap_i2c 48072000.i2c: bus 1 rev0.12 at 400 kHz
+[    1.043762] omap_i2c 48060000.i2c: did not get pins for i2c error: -19
+[    1.050964] omap_i2c 48060000.i2c: bus 2 rev0.12 at 100 kHz
+[    1.056823] omap_i2c 4807a000.i2c: did not get pins for i2c error: -19
+[    1.064025] omap_i2c 4807a000.i2c: bus 3 rev0.12 at 400 kHz
 
-Hi,
+This happens because omap5 dts file is not adapted to use i2c through pinctrl
+framework. Populating i2c pinctrl data to get rid of the error.
 
-On Fri, 18 Jan 2013, J Keerthy wrote:
+Tested on omap5430 evm with 3.8-rc4 kernel.
 
-> The previous logic to detect the clocks for OMAP4460
-> was to combine the clocks marked as CK_443X and CK_446X. This would be
-> fine as long as OMAP4460 was a super set of OMAP4430 clock set.
-> This is not the case as there are clocks which are specific to OMAP4430
-> (for example bandgap_fclk) and some which are specific to OMAP4460(for example
-> bandgap_ts_fclk). 
-> The clock "bandgap_fclk" is specific for OMAP4430 and
-> this was added as part of OMAP4460 clock set which should not be done.
-> 
-> Hence changing the convention.
-> 
-> CK_446X				--------> Clocks specific to OMAP4460
-> CK_443X				--------> Clocks specific to OMAP4430
-> CK_44XX (CK_446X | CK_443X)	--------> Common to both OMAP4460 and OMAP4430
-> 
-> Boot Tested on both Panda and Panda-es.
-> 
-> Signed-off-by: J Keerthy <j-keerthy@ti.com>
-> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Eduardo Valentin <eduardo.valentin@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+Reported-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/boot/dts/omap5-evm.dts |   62 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 62 insertions(+), 0 deletions(-)
 
-While I agree with this patch, my understanding is that Tony wishes to 
-shift to list-based initialization for clocks, similar to how the hwmod 
-initialization is done for OMAP3.  This will result in moving away from 
-the CK_* flags.  There are some previous public mailing list messages on 
-this topic that you can probably find by searching for CK_446X.
-Now that we've switched to the common clock framework, it should be more 
-practical to do this conversion, since we can refer to parent clocks by 
-name rather than by pointer.  Could you please update your patch to take 
-that approach instead?
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+index 8722c15..a96acc0 100644
+--- a/arch/arm/boot/dts/omap5-evm.dts
++++ b/arch/arm/boot/dts/omap5-evm.dts
+@@ -80,6 +80,41 @@
+ 			0x15a 0x100	/* abemcbsp2_clkx.abemcbsp2_clkx INPUT | MODE0 */
+ 		>;
+ 	};
++
++        i2c1_pins: pinmux_i2c1_pins {
++                pinctrl-single,pins = <
++                        0x1b2 0x118        /* i2c2_scl PULLUP | INPUTENABLE | MODE0 */
++                        0x1b4 0x118        /* i2c2_sda PULLUP | INPUTENABLE | MODE0 */
++                >;
++        };
++
++	i2c2_pins: pinmux_i2c2_pins {
++		pinctrl-single,pins = <
++			0x178 0x100        /* i2c2_scl INPUTENABLE | MODE0 */
++			0x17a 0x100        /* i2c2_sda INPUTENABLE | MODE0 */
++		>;
++	};
++
++	i2c3_pins: pinmux_i2c3_pins {
++		pinctrl-single,pins = <
++			0x13a 0x100        /* i2c3_scl INPUTENABLE | MODE0 */
++			0x13c 0x100     /* i2c3_sda INPUTENABLE | MODE0 */
++		>;
++	};
++
++	i2c4_pins: pinmux_i2c4_pins {
++		pinctrl-single,pins = <
++			0xb8 0x100        /* i2c4_scl INPUTENABLE | MODE0 */
++			0xba 0x100     /* i2c4_sda INPUTENABLE | MODE0 */
++		>;
++	};
++
++	i2c5_pins: pinmux_i2c5_pins {
++		pinctrl-single,pins = <
++			0x184 0x100        /* i2c4_scl INPUTENABLE | MODE0 */
++			0x186 0x100     /* i2c4_sda INPUTENABLE | MODE0 */
++		>;
++	};
+ };
+ 
+ &mmc1 {
+@@ -106,7 +141,17 @@
+ 	status = "disabled";
+ };
+ 
++&i2c1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
++	clock-frequency = <400000>;
++};
++
+ &i2c2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++
+ 	clock-frequency = <400000>;
+ 
+ 	/* Pressure Sensor */
+@@ -116,7 +161,17 @@
+ 	};
+ };
+ 
++&i2c3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c3_pins>;
++
++	clock-frequency = <400000>;
++};
++
+ &i2c4 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c4_pins>;
++
+ 	clock-frequency = <400000>;
+ 
+ 	/* Temperature Sensor */
+@@ -126,6 +181,13 @@
+ 	};
+ };
+ 
++&i2c5 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c5_pins>;
++
++	clock-frequency = <400000>;
++};
++
+ &keypad {
+ 	keypad,num-rows = <8>;
+ 	keypad,num-columns = <8>;
+-- 
+1.7.1
 
-Thanks for your feedback. I am in the process of removing all the
-CK_* flags and making separate lists instead. I am not
-Able to figure out where/how exactly the flag "CK_TI816X"
-Is getting used. Which family of processors are chosen
-Using this flag? Which clock nodes are selected using
-This flag?
-
-- Paul
-
-Regards,
-Keerthy
