@@ -1,68 +1,72 @@
-From: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/4] usb: xhci: Enable runtime pm in xhci-plat
-Date: Mon, 28 Jan 2013 17:12:25 +0530
-Message-ID: <1359373348-18320-2-git-send-email-gautam.vivek@samsung.com>
+From: Vivek Gautam <gautam.vivek@samsung.com>
+Subject: [PATCH 2/4] USB: dwc3: Adjust runtime pm the dwc3 driver to allow
+ runtime suspend
+Date: Mon, 28 Jan 2013 17:12:26 +0530
+Message-ID: <1359373348-18320-3-git-send-email-gautam.vivek@samsung.com>
 References: <1359373348-18320-1-git-send-email-gautam.vivek@samsung.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <1359373348-18320-1-git-send-email-gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout4.samsung.com ([203.254.224.34]:27128 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757106Ab3A1Lij (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jan 2013 06:38:39 -0500
+In-reply-to: <1359373348-18320-1-git-send-email-gautam.vivek@samsung.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, dianders@chromium.org, sylvester.nawrocki@gmail.com, tomasz.figa@gmail.com
 
-By enabling runtime pm in this driver is allows users of xhci-plat to
-enter into runtime pm.  This is not full runtime pm support (AKA
-xhci-plat doesn't actually power anything off when in runtime suspend
-mode) but just basic enablement.
+The current code in the dwc3 probe effectively disables runtime pm
+from ever working because it calls a get() that was never put() until
+device removal.  Change the runtime pm code to match the standard
+formula and allow runtime pm to function.
 
-Signed-off-by: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Note that this doesn't enable full runtime pm on the DWC3 device in
+that the port isn't put into a lower power mode when not used.
+However it does allow users of dwc3 (like dwc3-exynos) to do some
+amount of runtime power management.
+
+Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+Signed-off-by: Doug Anderson <dianders@chromium.org>
 ---
- drivers/usb/host/xhci-plat.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ drivers/usb/dwc3/core.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
-index df90fe5..6ad7cfb 100644
---- a/drivers/usb/host/xhci-plat.c
-+++ b/drivers/usb/host/xhci-plat.c
-@@ -139,6 +139,10 @@ static int xhci_plat_probe(struct platform_device *pdev)
- 		goto dealloc_usb2_hcd;
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 3a4004a..59c2494 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -453,6 +453,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	if (of_get_property(node, "tx-fifo-resize", NULL))
+ 		dwc->needs_fifo_resize = true;
+ 
++	pm_runtime_set_active(dev);
+ 	pm_runtime_enable(dev);
+ 	pm_runtime_get_sync(dev);
+ 	pm_runtime_forbid(dev);
+@@ -517,6 +518,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		goto err2;
  	}
  
-+	pm_runtime_set_active(&pdev->dev);
-+	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_forbid(&pdev->dev);
-+
- 	/*
- 	 * Set the xHCI pointer before xhci_plat_setup() (aka hcd_driver.reset)
- 	 * is called by usb_add_hcd().
-@@ -149,10 +153,13 @@ static int xhci_plat_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto put_usb3_hcd;
++	pm_runtime_put(dev);
+ 	pm_runtime_allow(dev);
  
-+	pm_runtime_allow(&pdev->dev);
-+
  	return 0;
+@@ -543,6 +545,7 @@ err1:
  
- put_usb3_hcd:
- 	usb_put_hcd(xhci->shared_hcd);
+ err0:
+ 	dwc3_free_event_buffers(dwc);
 +	pm_runtime_disable(&pdev->dev);
  
- dealloc_usb2_hcd:
- 	usb_remove_hcd(hcd);
-@@ -174,6 +181,8 @@ static int xhci_plat_remove(struct platform_device *dev)
- 	struct usb_hcd	*hcd = platform_get_drvdata(dev);
- 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
+ 	return ret;
+ }
+@@ -554,7 +557,6 @@ static int dwc3_remove(struct platform_device *pdev)
  
-+	pm_runtime_disable(&dev->dev);
-+
- 	usb_remove_hcd(xhci->shared_hcd);
- 	usb_put_hcd(xhci->shared_hcd);
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
  
+-	pm_runtime_put(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	dwc3_debugfs_exit(dwc);
 -- 
 1.7.6.5
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
