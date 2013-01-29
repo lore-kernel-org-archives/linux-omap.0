@@ -1,36 +1,47 @@
-From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
-Subject: Re: [PATCH 2/2] drivers: net:ethernet: cpsw: add support for VLAN
-Date: Tue, 29 Jan 2013 10:48:46 +0100
-Message-ID: <1359452926.4336.1.camel@coredoba.hi.pengutronix.de>
-References: <1359403945-28585-1-git-send-email-mugunthanvnm@ti.com>
-	 <1359403945-28585-3-git-send-email-mugunthanvnm@ti.com>
+From: =?UTF-8?B?xYF1a2FzeiBHw7NyYWxjenlr?= <lukasz.goralczyk@gmail.com>
+Subject: [BUG] omap1 fails to boot on clock propagation
+Date: Tue, 29 Jan 2013 10:53:56 +0100
+Message-ID: <CAP2z3mkGdmSUPZcwTATGvnKrMmkgjwMUGNaTZk17R=X2xMy2AQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1359403945-28585-3-git-send-email-mugunthanvnm@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:37131 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751413Ab3A2Jx7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 04:53:59 -0500
+Received: by mail-wg0-f51.google.com with SMTP id 8so156154wgl.18
+        for <linux-omap@vger.kernel.org>; Tue, 29 Jan 2013 01:53:58 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Tue, 2013-01-29 at 01:42 +0530, Mugunthan V N wrote:
-> --- a/Documentation/devicetree/bindings/net/cpsw.txt
-> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
-> @@ -24,6 +24,8 @@ Required properties:
->  Optional properties:
->  - ti,hwmods            : Must be "cpgmac0"
->  - no_bd_ram            : Must be 0 or 1
-> +- default_vlan         : Specifies Default VLAN for non tagged packets
-> +                         ALE processing
+Hello,
 
-This does not seem to be a property of the hardware. Could there be a
-reasonable default for it?
+Some background:
+Recently I've ported Linux to some custom omap1 based (5940 or 1510)
+hardware. I've had some initial problems, but after a "dirty" fix I
+have a running kernel and I can boot using NFS.
 
-Regards,
-Jan
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Problem:
+On the very beginning kernel boot process stopped on clock propagation
+routine (simple freeze, no crash info, nothing). After investigation I
+have found that one memory read is at fault in function
+omap1_ckctl_recalc_dsp_domain() in clock.c file:
+
+dsor = 1 << (3 & (__raw_readw(DSP_CKCTL) >> clk->rate_offset));
+
+My fix was to exchange read operation with default value of DSP_CKCTL register:
+
+dsor = 1 << (3 & (0x009000090 >> clk->rate_offset));
+
+Since this fix I haven't dug deeper into this problem, but it keeps me
+thinking how to fix it properly. Any suggestions what might be the
+root cause of this?
+
+System info:
+kernel version 3.5-rc1, kernel boots using some old Redboot
+bootloader, compiled with gcc 4.6, almost bare metal kernel
+configuration.
+
+Thanks,
+Lukasz G.
