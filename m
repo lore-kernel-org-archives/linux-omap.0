@@ -1,48 +1,30 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v3 0/9] ARM: OMAP2+: AM33XX: Misc fixes/updates
-Date: Tue, 29 Jan 2013 16:57:04 +0530
-Message-ID: <5107B208.80005@ti.com>
-References: <1359458108-8489-1-git-send-email-vaibhav.bedia@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v2 0/5] ARM: Manage the pl310 erratas in a dynamic way
+Date: Tue, 29 Jan 2013 11:29:17 +0000
+Message-ID: <20130129112917.GF2637@n2100.arm.linux.org.uk>
+References: <20130129101026.GA1063@bnru10>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52070 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751694Ab3A2LZ7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Jan 2013 06:25:59 -0500
-In-Reply-To: <1359458108-8489-1-git-send-email-vaibhav.bedia@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130129101026.GA1063@bnru10>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: srinidhi kasagar <srinidhi.kasagar@stericsson.com>
+Cc: linux-arm-kernel@lists.infradead.org, avorontsov@mvista.com, gregory.clement@free-electrons.com, linux-samsung-soc@vger.kernel.org, kernel@pengutronix.de, shawn.guo@linaro.org, rubini@unipv.it, linus.walleij@linaro.org, linux-omap@vger.kernel.org, tony@atomide.com, horms@verge.net.au, magnus.damm@gmail.com, viresh.linux@gmail.com, shiraz.hashim@st.com
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Cc: tony@atomide.com, paul@pwsan.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-Vaibhav,
+On Tue, Jan 29, 2013 at 03:40:38PM +0530, srinidhi kasagar wrote:
+> - Added l2x0_quirks to manage the errata in cpu_idle path. Tried to address
+>   Russell's comment on this, but could not completely. Because, neither I can
+>   keep the #ifdef CONFIG_PL310_ERRATA_769419 nor remove it entirely since
+>   the platform A suffers from this bug, whereas B do not but shares the same
+>   defconfig.
 
-On Tuesday 29 January 2013 04:44 PM, Vaibhav Bedia wrote:
-> Hi,
->
-> The following patches were earlier posted as part the AM33XX
-> suspend-resume support series [1]. Based on the suggestion
-> from Santosh Shilimkar <santosh.shilimkar@ti.com> i have split
-> out the changes which update the various data files related
-> to AM33XX support.
->
-> These patches apply on top of v3.8-rc5
->
-> v1->v2: Address the comments received from Sergei Shtylyov
-> and Peter Korsgaard.
->
-> v2->v3: Address an additional comment from Peter Korgaard
-> and add his Acked-by to the patches
->
-Just a suggestion here...
+Yes you can and I covered this situation in my email.  In that case,
+you _define_ CONFIG_PL310_ERRATA_769419 such that the barrier _always_
+gets included both both platforms.
 
-I saw v2 of $subject series just today morning and in just
-few hours, I see v3 as well. You should at least let v2 settle
-down for a while :-)
-Collecting tags and minor update can always be done once you
-gather sufficient comments to warrant a re-spin.
-
-Regards,
-Santosh
+As I already said, there is _no_ point making the barrier conditional;
+it's probably more expensive to make it conditional than just to execute
+it every time.  But we still might as well optimize it away if we are
+running _only_ on platforms which _do_ _not_ have that errata.
