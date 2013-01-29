@@ -1,47 +1,74 @@
-From: =?UTF-8?B?xYF1a2FzeiBHw7NyYWxjenlr?= <lukasz.goralczyk@gmail.com>
-Subject: [BUG] omap1 fails to boot on clock propagation
-Date: Tue, 29 Jan 2013 10:53:56 +0100
-Message-ID: <CAP2z3mkGdmSUPZcwTATGvnKrMmkgjwMUGNaTZk17R=X2xMy2AQ@mail.gmail.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH v2 8/9] ARM: DTS: AM33XX: Add nodes for OCMC RAM and
+ WKUP-M3
+Date: Tue, 29 Jan 2013 10:07:57 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433ED01B92@DBDE01.ent.ti.com>
+References: <1359442762-13697-1-git-send-email-vaibhav.bedia@ti.com>
+	<1359442762-13697-9-git-send-email-vaibhav.bedia@ti.com>
+ <87622ge6xv.fsf@dell.be.48ers.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:37131 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751413Ab3A2Jx7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 04:53:59 -0500
-Received: by mail-wg0-f51.google.com with SMTP id 8so156154wgl.18
-        for <linux-omap@vger.kernel.org>; Tue, 29 Jan 2013 01:53:58 -0800 (PST)
+Received: from devils.ext.ti.com ([198.47.26.153]:59167 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751652Ab3A2KIL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 05:08:11 -0500
+In-Reply-To: <87622ge6xv.fsf@dell.be.48ers.dk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Peter Korsgaard <jacmet@sunsite.dk>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-Hello,
+On Tue, Jan 29, 2013 at 13:50:44, Peter Korsgaard wrote:
+> >>>>> "Vaibhav" == Vaibhav Bedia <vaibhav.bedia@ti.com> writes:
+> 
+>  Vaibhav> Since AM33XX supports only DT-boot, this is needed
+>  Vaibhav> for the appropriate device nodes to be created.
+> 
+>  Vaibhav> Note: OCMC RAM is part of the PER power domain and supports
+>  Vaibhav> retention. The assembly code for low power entry/exit will
+>  Vaibhav> run from OCMC RAM. To ensure that the OMAP PM code does not
+>  Vaibhav> attempt to disable the clock to OCMC RAM as part of the
+>  Vaibhav> suspend process add the no_idle_on_suspend flag.
+> 
+>  Vaibhav> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>  Vaibhav> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>  Vaibhav> ---
+>  Vaibhav> v2: Add reg property
+> 
+>  Vaibhav>  arch/arm/boot/dts/am33xx.dtsi | 14 +++++++++++++
+>  Vaibhav>  1 file changed, 14 insertions(+)
+> 
+>  Vaibhav> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+>  Vaibhav> index c2f14e8..423f898 100644
+>  Vaibhav> --- a/arch/arm/boot/dts/am33xx.dtsi
+>  Vaibhav> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>  Vaibhav> @@ -385,5 +385,19 @@
+>  Vaibhav>  				mac-address = [ 00 00 00 00 00 00 ];
+>  Vaibhav>  			};
+>  Vaibhav>  		};
+>  Vaibhav> +
+>  Vaibhav> +		ocmcram: ocmcram@40300000 {
+>  Vaibhav> +			compatible = "ti,ocmcram";
+>  Vaibhav> +			reg = <0x40300000 0x10000>;
+>  Vaibhav> +			ti,hwmods = "ocmcram";
+>  Vaibhav> +			ti,no_idle_on_suspend;
+>  Vaibhav> +		};
+>  Vaibhav> +
+>  Vaibhav> +		wkup_m3: wkup_m3@44d00000 {
+>  Vaibhav> +			compatible = "ti,wkup_m3";
+> 
+> 
+> Both of these compatible properties should probably use less generic
+> names, like:
+> 
+> ti,am3352-ocmcram
+> ti,am3352-wkup-m3 ('-' instead of '_')
+> 
 
-Some background:
-Recently I've ported Linux to some custom omap1 based (5940 or 1510)
-hardware. I've had some initial problems, but after a "dirty" fix I
-have a running kernel and I can boot using NFS.
-
-Problem:
-On the very beginning kernel boot process stopped on clock propagation
-routine (simple freeze, no crash info, nothing). After investigation I
-have found that one memory read is at fault in function
-omap1_ckctl_recalc_dsp_domain() in clock.c file:
-
-dsor = 1 << (3 & (__raw_readw(DSP_CKCTL) >> clk->rate_offset));
-
-My fix was to exchange read operation with default value of DSP_CKCTL register:
-
-dsor = 1 << (3 & (0x009000090 >> clk->rate_offset));
-
-Since this fix I haven't dug deeper into this problem, but it keeps me
-thinking how to fix it properly. Any suggestions what might be the
-root cause of this?
-
-System info:
-kernel version 3.5-rc1, kernel boots using some old Redboot
-bootloader, compiled with gcc 4.6, almost bare metal kernel
-configuration.
+Ok. Will do.
 
 Thanks,
-Lukasz G.
+Vaibhav
