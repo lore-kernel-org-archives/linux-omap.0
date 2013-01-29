@@ -1,73 +1,96 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [BUG] omap1 fails to boot on clock propagation
-Date: Tue, 29 Jan 2013 10:58:32 -0600
-Message-ID: <5107FFB8.4050008@ti.com>
-References: <CAP2z3mkGdmSUPZcwTATGvnKrMmkgjwMUGNaTZk17R=X2xMy2AQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Rob Clark <robdclark@gmail.com>
+Subject: [PATCH 0/4] TI LCDC DRM driver
+Date: Tue, 29 Jan 2013 11:23:00 -0600
+Message-ID: <1359480184-9168-1-git-send-email-robdclark@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38305 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751392Ab3A2Q6e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Jan 2013 11:58:34 -0500
-In-Reply-To: <CAP2z3mkGdmSUPZcwTATGvnKrMmkgjwMUGNaTZk17R=X2xMy2AQ@mail.gmail.com>
+Received: from mail-oa0-f45.google.com ([209.85.219.45]:61367 "EHLO
+	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753481Ab3A2RXP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 12:23:15 -0500
+Received: by mail-oa0-f45.google.com with SMTP id o6so703579oag.32
+        for <linux-omap@vger.kernel.org>; Tue, 29 Jan 2013 09:23:14 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?B?xYF1a2FzeiBHw7NyYWxjenlr?= <lukasz.goralczyk@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: dri-devel@lists.freedesktop.org
+Cc: patches@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Clark <robdclark@gmail.com>
 
+One more iteration.. now with more cowbell!
 
-On 01/29/2013 03:53 AM, =C5=81ukasz G=C3=B3ralczyk wrote:
-> Hello,
->=20
-> Some background:
-> Recently I've ported Linux to some custom omap1 based (5940 or 1510)
-> hardware. I've had some initial problems, but after a "dirty" fix I
-> have a running kernel and I can boot using NFS.
+The first patch adds the basic driver and TFP410 DVI output.
 
-Do you mean 5910? I am not familiar with a 5940.
+The second patch adds support for NXP TDA998x family of i2c connected
+HDMI encoders.  It is split out into an i2c encoder-slave in case someone
+else has hw with the same HDMI encoder.
 
-> Problem:
-> On the very beginning kernel boot process stopped on clock propagatio=
-n
-> routine (simple freeze, no crash info, nothing). After investigation =
-I
-> have found that one memory read is at fault in function
-> omap1_ckctl_recalc_dsp_domain() in clock.c file:
->=20
-> dsor =3D 1 << (3 & (__raw_readw(DSP_CKCTL) >> clk->rate_offset));
->=20
-> My fix was to exchange read operation with default value of DSP_CKCTL=
- register:
->=20
-> dsor =3D 1 << (3 & (0x009000090 >> clk->rate_offset));
->=20
-> Since this fix I haven't dug deeper into this problem, but it keeps m=
-e
-> thinking how to fix it properly. Any suggestions what might be the
-> root cause of this?
+The final patch adds support for LCD panels, with timings and panel info
+coming from device-tree.
 
-Well looking at the code, in order to access the DSP_CKCTL register you
-need to enable the api_ck first ...
+The patch set has dependencies on the following patches that I have sent
+earlier (which have not changed since then so I am not resending):
 
-omap1_clk_enable(api_ck_p);
-dsor =3D 1 << (3 & (__raw_readw(DSP_CKCTL) >> clk->rate_offset));
-omap1_clk_disable(api_ck_p);
+ * drm/cma: add debugfs helpers -
+     https://patchwork.kernel.org/patch/1876721/
+ * drm: i2c encoder helper wrappers -
+     https://patchwork.kernel.org/patch/1950971/
+ * drm/i2c: give i2c it's own Kconfig -
+     https://patchwork.kernel.org/patch/2037181/
 
-Therefore, I would check if the api_ck is actually being turned on, on
-your platform. For example ...
+In addition, the LCD panel patch also depends on Steffen Trumtrar's OF
+display helper series. I've moved this patch to last so it can be merged
+later if needed.  Although I really see no reason not to merge the OF
+display helper series for 3.9.
 
-omap1_clk_enable(api_ck_p);
-pr_info("ARM_IDLECT2 =3D 0x%x\n", __raw_readw(ARM_IDLECT2));
-omap1_clk_disable(api_ck_p);
+These patches and their dependencies can also be found here:
 
-Bit 6 in the ARM_IDLECT2 should be set if the api_ck is enabled.
+  git://people.freedesktop.org/~robclark/linux tilcdc-next
+  http://cgit.freedesktop.org/~robclark/linux/log/?h=tilcdc-next
 
-Cheers
-Jon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rob Clark (4):
+  drm/tilcdc: add TI LCD Controller DRM driver (v4)
+  drm/i2c: nxp-tda998x (v3)
+  drm/tilcdc: add encoder slave (v2)
+  drm/tilcdc: add support for LCD panels (v5)
+
+ .../devicetree/bindings/drm/tilcdc/panel.txt       |  59 ++
+ .../devicetree/bindings/drm/tilcdc/slave.txt       |  19 +
+ .../devicetree/bindings/drm/tilcdc/tfp410.txt      |  21 +
+ .../devicetree/bindings/drm/tilcdc/tilcdc.txt      |  21 +
+ drivers/gpu/drm/Kconfig                            |   2 +
+ drivers/gpu/drm/Makefile                           |   1 +
+ drivers/gpu/drm/i2c/Kconfig                        |   6 +
+ drivers/gpu/drm/i2c/Makefile                       |   3 +
+ drivers/gpu/drm/i2c/tda998x_drv.c                  | 906 +++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/Kconfig                     |  13 +
+ drivers/gpu/drm/tilcdc/Makefile                    |  10 +
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c               | 602 ++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c                | 611 ++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h                | 150 ++++
+ drivers/gpu/drm/tilcdc/tilcdc_panel.c              | 436 ++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_panel.h              |  26 +
+ drivers/gpu/drm/tilcdc/tilcdc_regs.h               | 154 ++++
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c              | 376 +++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_slave.h              |  26 +
+ drivers/gpu/drm/tilcdc/tilcdc_tfp410.c             | 419 ++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_tfp410.h             |  26 +
+ 21 files changed, 3887 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/drm/tilcdc/panel.txt
+ create mode 100644 Documentation/devicetree/bindings/drm/tilcdc/slave.txt
+ create mode 100644 Documentation/devicetree/bindings/drm/tilcdc/tfp410.txt
+ create mode 100644 Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt
+ create mode 100644 drivers/gpu/drm/i2c/tda998x_drv.c
+ create mode 100644 drivers/gpu/drm/tilcdc/Kconfig
+ create mode 100644 drivers/gpu/drm/tilcdc/Makefile
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_drv.c
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_drv.h
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_panel.c
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_panel.h
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_regs.h
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave.c
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave.h
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_tfp410.h
+
+-- 
+1.8.1
+
