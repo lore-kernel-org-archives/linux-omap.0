@@ -1,24 +1,23 @@
 From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Subject: [PATCH v3 7/9] ARM: OMAP2+: AM33XX: Update the hardreset API
-Date: Tue, 29 Jan 2013 16:45:06 +0530
-Message-ID: <1359458108-8489-8-git-send-email-vaibhav.bedia@ti.com>
+Subject: [PATCH v3 2/9] ARM: OMAP2+: AM33XX: CM/PRM: Use __ASSEMBLER__ macros in header files
+Date: Tue, 29 Jan 2013 16:45:01 +0530
+Message-ID: <1359458108-8489-3-git-send-email-vaibhav.bedia@ti.com>
 References: <1359458108-8489-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34544 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34528 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755511Ab3A2LPv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Jan 2013 06:15:51 -0500
+	id S1755559Ab3A2LPu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Jan 2013 06:15:50 -0500
 In-Reply-To: <1359458108-8489-1-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, b-cousson@ti.com
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, khilman@deeprootsystems.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-WKUP-M3 has a reset status bit (RM_WKUP_STST.WKUP_M3_LRST)
-Update the hardreset API to ensure that the reset line properly
-deasserted.
+This is necessary to ensure that macros declared here can
+be reused from assembly files.
 
 Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
@@ -27,75 +26,45 @@ Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
 v3: Add Peter's Acked-by
 v2: No change
 
- arch/arm/mach-omap2/omap_hwmod.c |  5 +----
- arch/arm/mach-omap2/prm33xx.c    | 11 +++++++----
- arch/arm/mach-omap2/prm33xx.h    |  2 +-
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/cm33xx.h  | 2 ++
+ arch/arm/mach-omap2/prm33xx.h | 2 ++
+ 2 files changed, 4 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 4653efb..6549439 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3041,11 +3041,8 @@ static int _am33xx_assert_hardreset(struct omap_hwmod *oh,
- static int _am33xx_deassert_hardreset(struct omap_hwmod *oh,
- 				     struct omap_hwmod_rst_info *ohri)
- {
--	if (ohri->st_shift)
--		pr_err("omap_hwmod: %s: %s: hwmod data error: OMAP4 does not support st_shift\n",
--		       oh->name, ohri->name);
--
- 	return am33xx_prm_deassert_hardreset(ohri->rst_shift,
-+				ohri->st_shift,
- 				oh->clkdm->pwrdm.ptr->prcm_offs,
- 				oh->prcm.omap4.rstctrl_offs,
- 				oh->prcm.omap4.rstst_offs);
-diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
-index 1ac7388..44c0d72 100644
---- a/arch/arm/mach-omap2/prm33xx.c
-+++ b/arch/arm/mach-omap2/prm33xx.c
-@@ -110,11 +110,11 @@ int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs)
-  * -EINVAL upon an argument error, -EEXIST if the submodule was already out
-  * of reset, or -EBUSY if the submodule did not exit reset promptly.
-  */
--int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
-+int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, s16 inst,
- 		u16 rstctrl_offs, u16 rstst_offs)
- {
- 	int c;
--	u32 mask = 1 << shift;
-+	u32 mask = 1 << st_shift;
+diff --git a/arch/arm/mach-omap2/cm33xx.h b/arch/arm/mach-omap2/cm33xx.h
+index 8009e13..64f4baf 100644
+--- a/arch/arm/mach-omap2/cm33xx.h
++++ b/arch/arm/mach-omap2/cm33xx.h
+@@ -376,6 +376,7 @@
+ #define AM33XX_CM_CEFUSE_CEFUSE_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_CEFUSE_MOD, 0x0020)
  
- 	/* Check the current status to avoid  de-asserting the line twice */
- 	if (am33xx_prm_is_hardreset_asserted(shift, inst, rstctrl_offs) == 0)
-@@ -122,11 +122,14 @@ int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
  
- 	/* Clear the reset status by writing 1 to the status bit */
- 	am33xx_prm_rmw_reg_bits(0xffffffff, mask, inst, rstst_offs);
-+
- 	/* de-assert the reset control line */
-+	mask = 1 << shift;
-+
- 	am33xx_prm_rmw_reg_bits(mask, 0, inst, rstctrl_offs);
--	/* wait the status to be set */
++#ifndef __ASSEMBLER__
+ extern bool am33xx_cm_is_clkdm_in_hwsup(s16 inst, u16 cdoffs);
+ extern void am33xx_cm_clkdm_enable_hwsup(s16 inst, u16 cdoffs);
+ extern void am33xx_cm_clkdm_disable_hwsup(s16 inst, u16 cdoffs);
+@@ -412,4 +413,5 @@ static inline int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs,
+ }
+ #endif
  
--	omap_test_timeout(am33xx_prm_is_hardreset_asserted(shift, inst,
-+	/* wait the status to be set */
-+	omap_test_timeout(am33xx_prm_is_hardreset_asserted(st_shift, inst,
- 							   rstst_offs),
- 			  MAX_MODULE_HARDRESET_WAIT, c);
- 
++#endif /* ASSEMBLER */
+ #endif
 diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
-index 1c40373..9b9918d 100644
+index 3f25c56..1c40373 100644
 --- a/arch/arm/mach-omap2/prm33xx.h
 +++ b/arch/arm/mach-omap2/prm33xx.h
-@@ -125,7 +125,7 @@ extern void am33xx_prm_global_warm_sw_reset(void);
- extern int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst,
- 		u16 rstctrl_offs);
+@@ -117,6 +117,7 @@
+ #define AM33XX_PM_CEFUSE_PWRSTST_OFFSET		0x0004
+ #define AM33XX_PM_CEFUSE_PWRSTST		AM33XX_PRM_REGADDR(AM33XX_PRM_CEFUSE_MOD, 0x0004)
+ 
++#ifndef __ASSEMBLER__
+ extern u32 am33xx_prm_read_reg(s16 inst, u16 idx);
+ extern void am33xx_prm_write_reg(u32 val, s16 inst, u16 idx);
+ extern u32 am33xx_prm_rmw_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
+@@ -126,4 +127,5 @@ extern int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst,
  extern int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs);
--extern int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
-+extern int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, s16 inst,
+ extern int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
  		u16 rstctrl_offs, u16 rstst_offs);
- #endif /* ASSEMBLER */
++#endif /* ASSEMBLER */
  #endif
 -- 
 1.8.1
