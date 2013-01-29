@@ -1,74 +1,75 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH v2 8/9] ARM: DTS: AM33XX: Add nodes for OCMC RAM and
- WKUP-M3
-Date: Tue, 29 Jan 2013 10:07:57 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433ED01B92@DBDE01.ent.ti.com>
-References: <1359442762-13697-1-git-send-email-vaibhav.bedia@ti.com>
-	<1359442762-13697-9-git-send-email-vaibhav.bedia@ti.com>
- <87622ge6xv.fsf@dell.be.48ers.dk>
+From: srinidhi kasagar <srinidhi.kasagar@stericsson.com>
+Subject: [PATCH v2 0/5] ARM: Manage the pl310 erratas in a dynamic way
+Date: Tue, 29 Jan 2013 15:40:38 +0530
+Message-ID: <20130129101026.GA1063@bnru10>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59167 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751652Ab3A2KIL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 05:08:11 -0500
-In-Reply-To: <87622ge6xv.fsf@dell.be.48ers.dk>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux@arm.linux.org.uk, avorontsov@mvista.com, gregory.clement@free-electrons.com, linux-samsung-soc@vger.kernel.org, kernel@pengutronix.de, shawn.guo@linaro.org, rubini@unipv.it, linus.walleij@linaro.org, linux-omap@vger.kernel.org, tony@atomide.com, horms@verge.net.au, magnus.damm@gmail.com, viresh.linux@gmail.com, shiraz.hashim@st.com
 List-Id: linux-omap@vger.kernel.org
-To: Peter Korsgaard <jacmet@sunsite.dk>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-On Tue, Jan 29, 2013 at 13:50:44, Peter Korsgaard wrote:
-> >>>>> "Vaibhav" == Vaibhav Bedia <vaibhav.bedia@ti.com> writes:
-> 
->  Vaibhav> Since AM33XX supports only DT-boot, this is needed
->  Vaibhav> for the appropriate device nodes to be created.
-> 
->  Vaibhav> Note: OCMC RAM is part of the PER power domain and supports
->  Vaibhav> retention. The assembly code for low power entry/exit will
->  Vaibhav> run from OCMC RAM. To ensure that the OMAP PM code does not
->  Vaibhav> attempt to disable the clock to OCMC RAM as part of the
->  Vaibhav> suspend process add the no_idle_on_suspend flag.
-> 
->  Vaibhav> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
->  Vaibhav> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->  Vaibhav> ---
->  Vaibhav> v2: Add reg property
-> 
->  Vaibhav>  arch/arm/boot/dts/am33xx.dtsi | 14 +++++++++++++
->  Vaibhav>  1 file changed, 14 insertions(+)
-> 
->  Vaibhav> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
->  Vaibhav> index c2f14e8..423f898 100644
->  Vaibhav> --- a/arch/arm/boot/dts/am33xx.dtsi
->  Vaibhav> +++ b/arch/arm/boot/dts/am33xx.dtsi
->  Vaibhav> @@ -385,5 +385,19 @@
->  Vaibhav>  				mac-address = [ 00 00 00 00 00 00 ];
->  Vaibhav>  			};
->  Vaibhav>  		};
->  Vaibhav> +
->  Vaibhav> +		ocmcram: ocmcram@40300000 {
->  Vaibhav> +			compatible = "ti,ocmcram";
->  Vaibhav> +			reg = <0x40300000 0x10000>;
->  Vaibhav> +			ti,hwmods = "ocmcram";
->  Vaibhav> +			ti,no_idle_on_suspend;
->  Vaibhav> +		};
->  Vaibhav> +
->  Vaibhav> +		wkup_m3: wkup_m3@44d00000 {
->  Vaibhav> +			compatible = "ti,wkup_m3";
-> 
-> 
-> Both of these compatible properties should probably use less generic
-> names, like:
-> 
-> ti,am3352-ocmcram
-> ti,am3352-wkup-m3 ('-' instead of '_')
-> 
+This series of patches attempts to manage the pl310 erratas dynamically rather 
+allowing platforms to choose them during build time.
 
-Ok. Will do.
+A bit of information which triggered the cause for this series is here:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-December/138066.html
 
-Thanks,
-Vaibhav
+v2:
+- The commit 74ddcdb868a84f4a9f65e33c1ca0d24e1134e53a 
+  (l2x0: Only set .set_debug on PL310 r3p0 and earlier) which makes the
+  assumption that non-secure platforms will implement .set_debug interface.
+  An attempt is made to set .set_debug only if 'smc' is passed either
+  through DT or through legacy interface (l2x0_init).
+  With this background, this series adds 'smc' identifier to differentiate
+  the paltforms which implements SMC interface.
+
+- Use the stashed value	instead of reading RTL revision all over the place(Will)
+
+- Added l2x0_quirks to manage the errata in cpu_idle path. Tried to address
+  Russell's comment on this, but could not completely. Because, neither I can
+  keep the #ifdef CONFIG_PL310_ERRATA_769419 nor remove it entirely since
+  the platform A suffers from this bug, whereas B do not but shares the same
+  defconfig.
+
+srinidhi kasagar (5):
+  ARM: cache-l2x0: add 'smc' identifier
+  ARM: cache-l2x0: Manage the errata at run time
+  ARM: make the platforms not to select the l2x0 erratas
+  ARM: Handle l2x0 quirks in cpu_idle path
+  ARM: mach-omap2: apply the errata at run time rather
+
+ arch/arm/boot/dts/omap4.dtsi                   |    1 +
+ arch/arm/include/asm/hardware/cache-l2x0.h     |   16 ++++-
+ arch/arm/kernel/process.c                      |    7 +-
+ arch/arm/mach-cns3xxx/core.c                   |    4 +-
+ arch/arm/mach-exynos/common.c                  |    4 +-
+ arch/arm/mach-imx/Kconfig                      |    3 -
+ arch/arm/mach-imx/mm-imx3.c                    |    4 +-
+ arch/arm/mach-nomadik/cpu-8815.c               |    4 +-
+ arch/arm/mach-omap2/Kconfig                    |    2 -
+ arch/arm/mach-omap2/omap4-common.c             |    2 +-
+ arch/arm/mach-omap2/sleep44xx.S                |   25 ++++++-
+ arch/arm/mach-realview/realview_eb.c           |    4 +-
+ arch/arm/mach-realview/realview_pb1176.c       |    4 +-
+ arch/arm/mach-realview/realview_pb11mp.c       |    4 +-
+ arch/arm/mach-realview/realview_pbx.c          |    4 +-
+ arch/arm/mach-shmobile/board-ag5evm.c          |    2 +-
+ arch/arm/mach-shmobile/board-armadillo800eva.c |    4 +-
+ arch/arm/mach-shmobile/board-bonito.c          |    4 +-
+ arch/arm/mach-shmobile/board-kota2.c           |    4 +-
+ arch/arm/mach-shmobile/board-kzm9g.c           |    4 +-
+ arch/arm/mach-shmobile/setup-r8a7779.c         |    4 +-
+ arch/arm/mach-spear13xx/spear13xx.c            |    2 +-
+ arch/arm/mach-tegra/Kconfig                    |    3 -
+ arch/arm/mach-ux500/Kconfig                    |    1 -
+ arch/arm/mach-ux500/cache-l2x0.c               |    2 +-
+ arch/arm/mach-vexpress/Kconfig                 |    1 -
+ arch/arm/mach-vexpress/ct-ca9x4.c              |    2 +-
+ arch/arm/mm/cache-l2x0.c                       |   90 +++++++++++++-----------
+ 28 files changed, 121 insertions(+), 90 deletions(-)
+
+-- 
+1.7.2.dirty
