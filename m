@@ -1,53 +1,73 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [RFC PATCH 0/2] ARM: update cpuinfo to print CPU model name
-Date: Tue, 29 Jan 2013 10:11:05 -0600
-Message-ID: <5107F499.2050608@gmail.com>
-References: <1359474865-15408-1-git-send-email-ruslan.bilovol@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [BUG] omap1 fails to boot on clock propagation
+Date: Tue, 29 Jan 2013 10:58:32 -0600
+Message-ID: <5107FFB8.4050008@ti.com>
+References: <CAP2z3mkGdmSUPZcwTATGvnKrMmkgjwMUGNaTZk17R=X2xMy2AQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f42.google.com ([209.85.219.42]:41188 "EHLO
-	mail-oa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809Ab3A2QLJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 11:11:09 -0500
-In-Reply-To: <1359474865-15408-1-git-send-email-ruslan.bilovol@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:38305 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751392Ab3A2Q6e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Jan 2013 11:58:34 -0500
+In-Reply-To: <CAP2z3mkGdmSUPZcwTATGvnKrMmkgjwMUGNaTZk17R=X2xMy2AQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
+To: =?UTF-8?B?xYF1a2FzeiBHw7NyYWxjenlr?= <lukasz.goralczyk@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On 01/29/2013 09:54 AM, Ruslan Bilovol wrote:
-> Hi,
-> 
-> The following patches update cpuinfo to print CPU
-> model name for ARM. First patch exactly makes needed
-> changes for ARM architecture.
-> Second patch adds this ability to OMAP4 SoCs.
-> 
-> This adds a common approach to show SoC name.
-> 
-> Looks like there were few attempts to do similar
-> changes to cpuinfo without any luck.
 
-Care to point out how your solution is different from those or addresses
-the issues with them.
+On 01/29/2013 03:53 AM, =C5=81ukasz G=C3=B3ralczyk wrote:
+> Hello,
+>=20
+> Some background:
+> Recently I've ported Linux to some custom omap1 based (5940 or 1510)
+> hardware. I've had some initial problems, but after a "dirty" fix I
+> have a running kernel and I can boot using NFS.
 
-Assuming we want to do this, I think this information should come from
-DeviceTree. OMAP may have this in a register, but others don't.
+Do you mean 5910? I am not familiar with a 5940.
 
-Rob
+> Problem:
+> On the very beginning kernel boot process stopped on clock propagatio=
+n
+> routine (simple freeze, no crash info, nothing). After investigation =
+I
+> have found that one memory read is at fault in function
+> omap1_ckctl_recalc_dsp_domain() in clock.c file:
+>=20
+> dsor =3D 1 << (3 & (__raw_readw(DSP_CKCTL) >> clk->rate_offset));
+>=20
+> My fix was to exchange read operation with default value of DSP_CKCTL=
+ register:
+>=20
+> dsor =3D 1 << (3 & (0x009000090 >> clk->rate_offset));
+>=20
+> Since this fix I haven't dug deeper into this problem, but it keeps m=
+e
+> thinking how to fix it properly. Any suggestions what might be the
+> root cause of this?
 
-> 
-> So - comments are welcome
-> 
-> Ruslan Bilovol (2):
->   ARM: kernel: update cpuinfo to print CPU model name
->   ARM: OMAP4: setup CPU model name during ID initialisation
-> 
->  arch/arm/include/asm/setup.h |    1 +
->  arch/arm/kernel/setup.c      |   10 ++++++++++
->  arch/arm/mach-omap2/id.c     |   18 ++++++++++++++++--
->  3 files changed, 27 insertions(+), 2 deletions(-)
-> 
+Well looking at the code, in order to access the DSP_CKCTL register you
+need to enable the api_ck first ...
 
+omap1_clk_enable(api_ck_p);
+dsor =3D 1 << (3 & (__raw_readw(DSP_CKCTL) >> clk->rate_offset));
+omap1_clk_disable(api_ck_p);
+
+Therefore, I would check if the api_ck is actually being turned on, on
+your platform. For example ...
+
+omap1_clk_enable(api_ck_p);
+pr_info("ARM_IDLECT2 =3D 0x%x\n", __raw_readw(ARM_IDLECT2));
+omap1_clk_disable(api_ck_p);
+
+Bit 6 in the ARM_IDLECT2 should be set if the api_ck is enabled.
+
+Cheers
+Jon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
