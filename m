@@ -1,55 +1,39 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v1 1/5] ARM: cache-l2x0: add 'smc' identifier
-Date: Tue, 29 Jan 2013 12:22:56 +0000
-Message-ID: <20130129122255.GI2637@n2100.arm.linux.org.uk>
-References: <20130129101328.GA11878@bnru10> <20130129113325.GG2637@n2100.arm.linux.org.uk> <20130129114926.GA14624@bnru10>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH 2/2] drivers: net:ethernet: cpsw: add support for VLAN
+Date: Tue, 29 Jan 2013 18:03:13 +0530
+Message-ID: <5107C189.1050604@ti.com>
+References: <1359403945-28585-1-git-send-email-mugunthanvnm@ti.com> <1359403945-28585-3-git-send-email-mugunthanvnm@ti.com> <20130129073626.GB18272@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130129114926.GA14624@bnru10>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "avorontsov@mvista.com" <avorontsov@mvista.com>, "gregory.clement@free-electrons.com" <gregory.clement@free-electrons.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "shawn.guo@linaro.org" <shawn.guo@linaro.org>, "rubini@unipv.it" <rubini@unipv.it>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "horms@verge.net.au" <horms@verge.net.au>, "magnus.damm@gmail.com" <magnus.damm@gmail.com>, "viresh.linux@gmail.com" <viresh.linux@gmail.com>, Shiraz HASHIM <shiraz.hashim@st.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130129073626.GB18272@localhost.localdomain>
+Sender: netdev-owner@vger.kernel.org
+To: Richard Cochran <richardcochran@gmail.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 29, 2013 at 05:19:27PM +0530, Srinidhi Kasagar wrote:
-> On Tue, Jan 29, 2013 at 12:33:25 +0100, Russell King - ARM Linux wrote:
-> > On Tue, Jan 29, 2013 at 03:43:31PM +0530, srinidhi kasagar wrote:
-> > > Add 'smc' (Secure Monitor Call) identifier to differentiates
-> > > the platforms which implements this.
-> > 
-> > This patch makes no sense.
-> > 
-> > So, if setting 'smc' in the DT description is supposed to mean that
-> > the platform has a secure monitor then...
-> > 
-> > > +	is_smc = of_property_read_bool(np, "smc");
-> > > +
-> > > +	if (is_smc) {
-> > > +		/* set the debug interface */
-> > > +		outer_cache.set_debug = pl310_set_debug;
-> > > +	}
-> > 
-> > Now, let's look at what pl310_set_debug() does:
-> > 
-> > static void pl310_set_debug(unsigned long val)
-> > {
-> >         writel_relaxed(val, l2x0_base + L2X0_DEBUG_CTRL);
-> 
-> You can do this operation (write to DEBUG_CTRL) only if SMC is implemented.
+On 1/29/2013 1:06 PM, Richard Cochran wrote:
+> On Tue, Jan 29, 2013 at 01:42:25AM +0530, Mugunthan V N wrote:
+>> @@ -947,6 +1042,10 @@ static const struct net_device_ops cpsw_netdev_ops = {
+>>   #ifdef CONFIG_NET_POLL_CONTROLLER
+>>   	.ndo_poll_controller	= cpsw_ndo_poll_controller,
+>>   #endif
+>> +#ifdef VLAN_SUPPORT
+>> +	.ndo_vlan_rx_add_vid	= cpsw_ndo_vlan_rx_add_vid,
+>> +	.ndo_vlan_rx_kill_vid	= cpsw_ndo_vlan_rx_kill_vid,
+>> +#endif
+> These are not compile time conditionals in net_device_ops, so I wonder
+> (after reading Felipe's comments) whether you can simply keep the VLAN
+> code always present.
+>
+> As long as the driver still compiles and loads, when VLAN is missing
+> from the stack, then I don't see why you can't just leave it in,
+> without all the ifdefs.
+>
+> Thanks,
+> Richard
+This idea seems to be good. I will update the patch in next version.
 
-Err... no.  You can do it if you're running in secure mode without a
-secure monitor, because the security stuff doesn't get in the way.
-
-What other platforms do is up to them, and up to *how* the secure monitor
-is implemented, not *if*.
-
-> > }
-> > 
-> > Can you explain where the secure monitor call is there please, because
-> > I can't see one.  In fact, this is the function used when there _isn't_
-> > a secure monitor.  So this patch just seems totally wrong to me.
-
-So this is going to be difficult because you only ever answer half an
-email?  So, I repeat the question above.
+Regards
+Mugunthan V N
