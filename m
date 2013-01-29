@@ -1,121 +1,118 @@
 From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Subject: [PATCH v2 9/9] ARM: OMAP2+: AM33XX: control: Add some control module registers and APIs
-Date: Tue, 29 Jan 2013 12:29:22 +0530
-Message-ID: <1359442762-13697-10-git-send-email-vaibhav.bedia@ti.com>
+Subject: [PATCH v2 3/9] ARM: OMAP2+: AM33XX: hwmod: Register OCMC RAM hwmod
+Date: Tue, 29 Jan 2013 12:29:16 +0530
+Message-ID: <1359442762-13697-4-git-send-email-vaibhav.bedia@ti.com>
 References: <1359442762-13697-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53322 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53304 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751549Ab3A2G7v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Jan 2013 01:59:51 -0500
+	id S1751399Ab3A2G7u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Jan 2013 01:59:50 -0500
 In-Reply-To: <1359442762-13697-1-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, b-cousson@ti.com
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, khilman@deeprootsystems.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-Add minimal APIs for writing to the IPC and the M3_TXEV registers
-in the Control module. These will be used in a subsequent patch which
-adds suspend-resume support for AM33XX.
+OCMC RAM lies in the PER power domain and this memory
+support retention.
 
 Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
 v2: No change
 
- arch/arm/mach-omap2/control.c | 20 ++++++++++++++++++++
- arch/arm/mach-omap2/control.h | 41 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 61 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 47 +++++++++++++++++-------------
+ 1 file changed, 27 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 2adb268..c5d54ae 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -604,3 +604,23 @@ int omap3_ctrl_save_padconf(void)
- }
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index 646c14d..8280f11 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -414,7 +414,6 @@ static struct omap_hwmod am33xx_adc_tsc_hwmod = {
+  *    - cEFUSE (doesn't fall under any ocp_if)
+  *    - clkdiv32k
+  *    - debugss
+- *    - ocmc ram
+  *    - ocp watch point
+  *    - aes0
+  *    - sha0
+@@ -481,25 +480,6 @@ static struct omap_hwmod am33xx_debugss_hwmod = {
+ 	},
+ };
  
- #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
-+
-+#if defined(CONFIG_SOC_AM33XX) && defined(CONFIG_PM)
-+void am33xx_txev_eoi(void)
-+{
-+	omap_ctrl_writel(AM33XX_M3_TXEV_ACK, AM33XX_CONTROL_M3_TXEV_EOI);
-+}
-+
-+void am33xx_txev_enable(void)
-+{
-+	omap_ctrl_writel(AM33XX_M3_TXEV_ENABLE, AM33XX_CONTROL_M3_TXEV_EOI);
-+}
-+
-+void am33xx_wkup_m3_ipc_cmd(struct am33xx_ipc_data *data)
-+{
-+	omap_ctrl_writel(data->resume_addr, AM33XX_CONTROL_IPC_MSG_REG0);
-+	omap_ctrl_writel(data->sleep_mode, AM33XX_CONTROL_IPC_MSG_REG1);
-+	omap_ctrl_writel(data->param1, AM33XX_CONTROL_IPC_MSG_REG2);
-+	omap_ctrl_writel(data->param2, AM33XX_CONTROL_IPC_MSG_REG3);
-+}
-+#endif /* CONFIG_SOC_AM33XX && CONFIG_PM */
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index e6c3281..cb85f0a 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -358,6 +358,37 @@
- #define AM33XX_CONTROL_STATUS_SYSBOOT1_WIDTH		0x2
- #define AM33XX_CONTROL_STATUS_SYSBOOT1_MASK		(0x3 << 22)
+-/* ocmcram */
+-static struct omap_hwmod_class am33xx_ocmcram_hwmod_class = {
+-	.name = "ocmcram",
+-};
+-
+-static struct omap_hwmod am33xx_ocmcram_hwmod = {
+-	.name		= "ocmcram",
+-	.class		= &am33xx_ocmcram_hwmod_class,
+-	.clkdm_name	= "l3_clkdm",
+-	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
+-	.main_clk	= "l3_gclk",
+-	.prcm		= {
+-		.omap4	= {
+-			.clkctrl_offs	= AM33XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET,
+-			.modulemode	= MODULEMODE_SWCTRL,
+-		},
+-	},
+-};
+-
+ /* ocpwp */
+ static struct omap_hwmod_class am33xx_ocpwp_hwmod_class = {
+ 	.name		= "ocpwp",
+@@ -570,6 +550,25 @@ static struct omap_hwmod am33xx_sha0_hwmod = {
  
-+#define AM33XX_DDR_IO_CTRL		0x0E04
-+#define AM33XX_VTP0_CTRL_REG		0x0E0C
-+
-+/* AM33XX VTP0_CTRL_REG bits */
-+#define AM33XX_VTP_CTRL_START_EN	(1 << 0)
-+#define AM33XX_VTP_CTRL_LOCK_EN		(1 << 4)
-+#define AM33XX_VTP_CTRL_READY		(1 << 5)
-+#define AM33XX_VTP_CTRL_ENABLE		(1 << 6)
-+
-+/* AM33XX M3_TXEV_EOI register */
-+#define AM33XX_CONTROL_M3_TXEV_EOI	0x1324
-+
-+#define AM33XX_M3_TXEV_ACK		(0x1 << 0)
-+#define AM33XX_M3_TXEV_ENABLE		(0x0 << 0)
-+
-+/* AM33XX IPC message registers */
-+#define AM33XX_CONTROL_IPC_MSG_REG0	0x1328
-+#define AM33XX_CONTROL_IPC_MSG_REG1	0x132C
-+#define AM33XX_CONTROL_IPC_MSG_REG2	0x1330
-+#define AM33XX_CONTROL_IPC_MSG_REG3	0x1334
-+#define AM33XX_CONTROL_IPC_MSG_REG4	0x1338
-+#define AM33XX_CONTROL_IPC_MSG_REG5	0x133C
-+#define AM33XX_CONTROL_IPC_MSG_REG6	0x1340
-+#define AM33XX_CONTROL_IPC_MSG_REG7	0x1344
-+
-+#define AM33XX_DDR_CMD0_IOCTRL		0x1404
-+#define AM33XX_DDR_CMD1_IOCTRL		0x1408
-+#define AM33XX_DDR_CMD2_IOCTRL		0x140C
-+#define AM33XX_DDR_DATA0_IOCTRL		0x1440
-+#define AM33XX_DDR_DATA1_IOCTRL		0x1444
-+
- /* CONTROL OMAP STATUS register to identify OMAP3 features */
- #define OMAP3_CONTROL_OMAP_STATUS	0x044c
+ #endif
  
-@@ -417,6 +448,16 @@ extern void omap3630_ctrl_disable_rta(void);
- extern int omap3_ctrl_save_padconf(void);
- extern void omap2_set_globals_control(void __iomem *ctrl,
- 				      void __iomem *ctrl_pad);
-+struct am33xx_ipc_data {
-+	u32 resume_addr;
-+	u32 param1;
-+	u32 param2;
-+	u32 sleep_mode;
++/* ocmcram */
++static struct omap_hwmod_class am33xx_ocmcram_hwmod_class = {
++	.name = "ocmcram",
 +};
-+extern void am33xx_wkup_m3_ipc_cmd(struct am33xx_ipc_data *data);
-+extern void am33xx_txev_eoi(void);
-+extern void am33xx_txev_enable(void);
 +
- #else
- #define omap_ctrl_base_get()		0
- #define omap_ctrl_readb(x)		0
++static struct omap_hwmod am33xx_ocmcram_hwmod = {
++	.name		= "ocmcram",
++	.class		= &am33xx_ocmcram_hwmod_class,
++	.clkdm_name	= "l3_clkdm",
++	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.main_clk	= "l3_gclk",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= AM33XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
+ /* 'smartreflex' class */
+ static struct omap_hwmod_class am33xx_smartreflex_hwmod_class = {
+ 	.name		= "smartreflex",
+@@ -3328,6 +3327,13 @@ static struct omap_hwmod_ocp_if am33xx_l3_s__usbss = {
+ 	.flags		= OCPIF_SWSUP_IDLE,
+ };
+ 
++/* l3 main -> ocmc */
++static struct omap_hwmod_ocp_if am33xx_l3_main__ocmc = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_ocmcram_hwmod,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l4_fw__emif_fw,
+ 	&am33xx_l3_main__emif,
+@@ -3398,6 +3404,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l3_main__tptc0,
+ 	&am33xx_l3_main__tptc1,
+ 	&am33xx_l3_main__tptc2,
++	&am33xx_l3_main__ocmc,
+ 	&am33xx_l3_s__usbss,
+ 	&am33xx_l4_hs__cpgmac0,
+ 	&am33xx_cpgmac0__mdio,
 -- 
 1.8.1
 
