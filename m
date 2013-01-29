@@ -1,71 +1,48 @@
-From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Subject: [PATCH v3 2/9] ARM: OMAP2+: AM33XX: CM/PRM: Use __ASSEMBLER__ macros in header files
-Date: Tue, 29 Jan 2013 16:45:01 +0530
-Message-ID: <1359458108-8489-3-git-send-email-vaibhav.bedia@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v3 0/9] ARM: OMAP2+: AM33XX: Misc fixes/updates
+Date: Tue, 29 Jan 2013 16:57:04 +0530
+Message-ID: <5107B208.80005@ti.com>
 References: <1359458108-8489-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34528 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52070 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755559Ab3A2LPu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Jan 2013 06:15:50 -0500
+	id S1751694Ab3A2LZ7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Jan 2013 06:25:59 -0500
 In-Reply-To: <1359458108-8489-1-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, paul@pwsan.com, b-cousson@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, khilman@deeprootsystems.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: tony@atomide.com, paul@pwsan.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-This is necessary to ensure that macros declared here can
-be reused from assembly files.
+Vaibhav,
 
-Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
----
-v3: Add Peter's Acked-by
-v2: No change
+On Tuesday 29 January 2013 04:44 PM, Vaibhav Bedia wrote:
+> Hi,
+>
+> The following patches were earlier posted as part the AM33XX
+> suspend-resume support series [1]. Based on the suggestion
+> from Santosh Shilimkar <santosh.shilimkar@ti.com> i have split
+> out the changes which update the various data files related
+> to AM33XX support.
+>
+> These patches apply on top of v3.8-rc5
+>
+> v1->v2: Address the comments received from Sergei Shtylyov
+> and Peter Korsgaard.
+>
+> v2->v3: Address an additional comment from Peter Korgaard
+> and add his Acked-by to the patches
+>
+Just a suggestion here...
 
- arch/arm/mach-omap2/cm33xx.h  | 2 ++
- arch/arm/mach-omap2/prm33xx.h | 2 ++
- 2 files changed, 4 insertions(+)
+I saw v2 of $subject series just today morning and in just
+few hours, I see v3 as well. You should at least let v2 settle
+down for a while :-)
+Collecting tags and minor update can always be done once you
+gather sufficient comments to warrant a re-spin.
 
-diff --git a/arch/arm/mach-omap2/cm33xx.h b/arch/arm/mach-omap2/cm33xx.h
-index 8009e13..64f4baf 100644
---- a/arch/arm/mach-omap2/cm33xx.h
-+++ b/arch/arm/mach-omap2/cm33xx.h
-@@ -376,6 +376,7 @@
- #define AM33XX_CM_CEFUSE_CEFUSE_CLKCTRL			AM33XX_CM_REGADDR(AM33XX_CM_CEFUSE_MOD, 0x0020)
- 
- 
-+#ifndef __ASSEMBLER__
- extern bool am33xx_cm_is_clkdm_in_hwsup(s16 inst, u16 cdoffs);
- extern void am33xx_cm_clkdm_enable_hwsup(s16 inst, u16 cdoffs);
- extern void am33xx_cm_clkdm_disable_hwsup(s16 inst, u16 cdoffs);
-@@ -412,4 +413,5 @@ static inline int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs,
- }
- #endif
- 
-+#endif /* ASSEMBLER */
- #endif
-diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
-index 3f25c56..1c40373 100644
---- a/arch/arm/mach-omap2/prm33xx.h
-+++ b/arch/arm/mach-omap2/prm33xx.h
-@@ -117,6 +117,7 @@
- #define AM33XX_PM_CEFUSE_PWRSTST_OFFSET		0x0004
- #define AM33XX_PM_CEFUSE_PWRSTST		AM33XX_PRM_REGADDR(AM33XX_PRM_CEFUSE_MOD, 0x0004)
- 
-+#ifndef __ASSEMBLER__
- extern u32 am33xx_prm_read_reg(s16 inst, u16 idx);
- extern void am33xx_prm_write_reg(u32 val, s16 inst, u16 idx);
- extern u32 am33xx_prm_rmw_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
-@@ -126,4 +127,5 @@ extern int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst,
- extern int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs);
- extern int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
- 		u16 rstctrl_offs, u16 rstst_offs);
-+#endif /* ASSEMBLER */
- #endif
--- 
-1.8.1
-
+Regards,
+Santosh
