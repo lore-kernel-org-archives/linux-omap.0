@@ -1,34 +1,36 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v2 1/4] ARM: OMAP2+: dpll: round rate to closest value
-Date: Tue, 29 Jan 2013 09:42:39 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA94FDD@DBDE01.ent.ti.com>
-References: <cover.1358937533.git.afzal@ti.com>
- <871e6890897534b6c3669e252f23bef5ff1247b6.1358937533.git.afzal@ti.com>
- <alpine.DEB.2.00.1301250816010.471@utopia.booyaka.com>
- <C8443D0743D26F4388EA172BF4E2A7A93EA9388C@DBDE01.ent.ti.com>
+From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
+Subject: Re: [PATCH 2/2] drivers: net:ethernet: cpsw: add support for VLAN
+Date: Tue, 29 Jan 2013 10:48:46 +0100
+Message-ID: <1359452926.4336.1.camel@coredoba.hi.pengutronix.de>
+References: <1359403945-28585-1-git-send-email-mugunthanvnm@ti.com>
+	 <1359403945-28585-3-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA9388C@DBDE01.ent.ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1359403945-28585-3-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgUGF1bCwNCg0KT24gRnJpLCBKYW4gMjUsIDIwMTMgYXQgMTc6NDg6MjIsIE1vaGFtbWVkLCBB
-ZnphbCB3cm90ZToNCj4gT24gRnJpLCBKYW4gMjUsIDIwMTMgYXQgMTM6NDg6MTEsIFBhdWwgV2Fs
-bXNsZXkgd3JvdGU6DQoNCj4gPiBsaWtlIE1QVSBDUFVGcmVxLiAgSSdkIHN1Z2dlc3QgcmV2ZXJ0
-aW5nIA0KPiA+IDI0MWQzYThkY2EyMzk2MTBkM2Q5OTFiZjU4ZDRmZTM4YzJkODZmZDUgb3IgdXNp
-bmcgYSBzaW1pbGFyIGFwcHJvYWNoLg0KDQo+IEFzIHlvdSBwcmVmZXIgcmV2ZXJ0aW5nIHRoZSBh
-Ym92ZSBjb21taXQsIEkgd2lsbCBwcm9jZWVkIHNvLCBobW0uLiBnb3QNCg0KVGhpcyBwYXRjaCBv
-ciByZXZlcnRpbmcgdGhlIGFib3ZlIG1lbnRpb25lZCBjb21taXQgaXMgbm90IHJlcXVpcmVkIGZv
-cg0KbGNkYyB0byBiZSB1c2FibGUgb24gYW0zMzV4LCBpbnN0ZWFkIHBsZWFzZSBjb25zaWRlciBm
-b3IgaW5jbHVzaW9uDQpwYXRjaGVzIDMgJiA0IG9mIHRoaXMgc2VyaWVzLA0KDQoiQVJNOiBPTUFQ
-Mis6IGNsb2NrOiBERUZJTkVfU1RSVUNUX0NMS19GTEFHUyBoZWxwZXIiIGFuZA0KIkFSTTogQU0z
-M1hYOiBjbG9jazogU0VUX1JBVEVfUEFSRU5UIGluIGxjZCBwYXRoIg0KDQpQYXRjaGVzIDMgJiA0
-IGFyZSByZXF1aXJlZCB0byBoYXZlIGEgZnVuY3Rpb25hbCBmcmFtZSBidWZmZXIgZHJpdmVyDQpv
-biBhbTMzNXgsIGFsc28gaXQgbWF5IGhlbHAgZHJtIGRyaXZlciBmb3IgdGhlIGxjZGMgaXAgaW4g
-YW0zMzV4IHRvDQpiZSBhIHBsYXRmb3JtIGluZGVwZW5kZW50IG9uZS4NCg0KUmVnYXJkcw0KQWZ6
-YWwNCg0K
+On Tue, 2013-01-29 at 01:42 +0530, Mugunthan V N wrote:
+> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+> @@ -24,6 +24,8 @@ Required properties:
+>  Optional properties:
+>  - ti,hwmods            : Must be "cpgmac0"
+>  - no_bd_ram            : Must be 0 or 1
+> +- default_vlan         : Specifies Default VLAN for non tagged packets
+> +                         ALE processing
+
+This does not seem to be a property of the hardware. Could there be a
+reasonable default for it?
+
+Regards,
+Jan
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
