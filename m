@@ -1,51 +1,100 @@
 From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Subject: [PATCH v2 5/9] ARM: OMAP2+: AM33XX: hwmod: Fixup cpgmac0 hwmod entry
-Date: Tue, 29 Jan 2013 12:29:18 +0530
-Message-ID: <1359442762-13697-6-git-send-email-vaibhav.bedia@ti.com>
+Subject: [PATCH v2 7/9] ARM: OMAP2+: AM33XX: Update the hardreset API
+Date: Tue, 29 Jan 2013 12:29:20 +0530
+Message-ID: <1359442762-13697-8-git-send-email-vaibhav.bedia@ti.com>
 References: <1359442762-13697-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53242 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53320 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751030Ab3A2G7r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Jan 2013 01:59:47 -0500
+	id S1751514Ab3A2G7v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Jan 2013 01:59:51 -0500
 In-Reply-To: <1359442762-13697-1-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, b-cousson@ti.com
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, khilman@deeprootsystems.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-The current HWMOD code expects the memory region with
-the IP's SYSCONFIG register to be marked with ADDR_TYPE_RT
-flag.
-
-CPGMAC0 hwmod entry specifies two memory regions and marks
-both with the flag ADDR_TYPE_RT although only the 2nd region
-has the SYSCONFIG register. This leads to the HWMOD code
-accessing the wrong memory address for idle and standby
-operations. Fix this by removing the ADDR_TYPE_RT flag from
-the 1st memory region in CPGMAC0 hwmod entry.
+WKUP-M3 has a reset status bit (RM_WKUP_STST.WKUP_M3_LRST)
+Update the hardreset API to ensure that the reset line properly
+deasserted.
 
 Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
 v2: No change
 
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 1 -
- 1 file changed, 1 deletion(-)
+ arch/arm/mach-omap2/omap_hwmod.c |  5 +----
+ arch/arm/mach-omap2/prm33xx.c    | 11 +++++++----
+ arch/arm/mach-omap2/prm33xx.h    |  2 +-
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 94254e8..40bfde3 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -2496,7 +2496,6 @@ static struct omap_hwmod_addr_space am33xx_cpgmac0_addr_space[] = {
- 	{
- 		.pa_start	= 0x4a100000,
- 		.pa_end		= 0x4a100000 + SZ_2K - 1,
--		.flags		= ADDR_TYPE_RT,
- 	},
- 	/* cpsw wr */
- 	{
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 4653efb..6549439 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -3041,11 +3041,8 @@ static int _am33xx_assert_hardreset(struct omap_hwmod *oh,
+ static int _am33xx_deassert_hardreset(struct omap_hwmod *oh,
+ 				     struct omap_hwmod_rst_info *ohri)
+ {
+-	if (ohri->st_shift)
+-		pr_err("omap_hwmod: %s: %s: hwmod data error: OMAP4 does not support st_shift\n",
+-		       oh->name, ohri->name);
+-
+ 	return am33xx_prm_deassert_hardreset(ohri->rst_shift,
++				ohri->st_shift,
+ 				oh->clkdm->pwrdm.ptr->prcm_offs,
+ 				oh->prcm.omap4.rstctrl_offs,
+ 				oh->prcm.omap4.rstst_offs);
+diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
+index 1ac7388..44c0d72 100644
+--- a/arch/arm/mach-omap2/prm33xx.c
++++ b/arch/arm/mach-omap2/prm33xx.c
+@@ -110,11 +110,11 @@ int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs)
+  * -EINVAL upon an argument error, -EEXIST if the submodule was already out
+  * of reset, or -EBUSY if the submodule did not exit reset promptly.
+  */
+-int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
++int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, s16 inst,
+ 		u16 rstctrl_offs, u16 rstst_offs)
+ {
+ 	int c;
+-	u32 mask = 1 << shift;
++	u32 mask = 1 << st_shift;
+ 
+ 	/* Check the current status to avoid  de-asserting the line twice */
+ 	if (am33xx_prm_is_hardreset_asserted(shift, inst, rstctrl_offs) == 0)
+@@ -122,11 +122,14 @@ int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
+ 
+ 	/* Clear the reset status by writing 1 to the status bit */
+ 	am33xx_prm_rmw_reg_bits(0xffffffff, mask, inst, rstst_offs);
++
+ 	/* de-assert the reset control line */
++	mask = 1 << shift;
++
+ 	am33xx_prm_rmw_reg_bits(mask, 0, inst, rstctrl_offs);
+-	/* wait the status to be set */
+ 
+-	omap_test_timeout(am33xx_prm_is_hardreset_asserted(shift, inst,
++	/* wait the status to be set */
++	omap_test_timeout(am33xx_prm_is_hardreset_asserted(st_shift, inst,
+ 							   rstst_offs),
+ 			  MAX_MODULE_HARDRESET_WAIT, c);
+ 
+diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
+index 1c40373..9b9918d 100644
+--- a/arch/arm/mach-omap2/prm33xx.h
++++ b/arch/arm/mach-omap2/prm33xx.h
+@@ -125,7 +125,7 @@ extern void am33xx_prm_global_warm_sw_reset(void);
+ extern int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst,
+ 		u16 rstctrl_offs);
+ extern int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs);
+-extern int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
++extern int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, s16 inst,
+ 		u16 rstctrl_offs, u16 rstst_offs);
+ #endif /* ASSEMBLER */
+ #endif
 -- 
 1.8.1
 
