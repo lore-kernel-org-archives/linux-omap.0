@@ -1,639 +1,81 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: [PATCH 4/4] drm/tilcdc: add support for LCD panels (v5)
-Date: Tue, 29 Jan 2013 11:23:04 -0600
-Message-ID: <1359480184-9168-5-git-send-email-robdclark@gmail.com>
-References: <1359480184-9168-1-git-send-email-robdclark@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 08/10] ARM: OMAP5: hwmod data: Create initial OMAP5 SOC
+ hwmod data
+Date: Tue, 29 Jan 2013 09:24:11 -0800
+Message-ID: <20130129172410.GS15361@atomide.com>
+References: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com>
+ <1358522856-12180-9-git-send-email-santosh.shilimkar@ti.com>
+ <20130118171500.GC15361@atomide.com>
+ <50FCF838.6000105@ti.com>
+ <50FD5993.5010008@ti.com>
+ <20130121180113.GA22517@atomide.com>
+ <50FE8C5C.2030409@ti.com>
+ <20130122183213.GN15361@atomide.com>
+ <5107D52C.80200@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f53.google.com ([209.85.219.53]:55048 "EHLO
-	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753293Ab3A2RXV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 12:23:21 -0500
-Received: by mail-oa0-f53.google.com with SMTP id l20so701102oag.12
-        for <linux-omap@vger.kernel.org>; Tue, 29 Jan 2013 09:23:21 -0800 (PST)
-In-Reply-To: <1359480184-9168-1-git-send-email-robdclark@gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41786 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753293Ab3A2RYO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 12:24:14 -0500
+Content-Disposition: inline
+In-Reply-To: <5107D52C.80200@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org
-Cc: patches@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Clark <robdclark@gmail.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, rnayak@ti.com, Paul Walmsley <paul@pwsan.com>
 
-Add an output panel driver for LCD panels.  Tested with LCD3 cape on
-beaglebone.
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130129 05:59]:
+> OK so we do managed to clean up the address space, IRQ lines
+> and DMA request lines data from hwmod completely.
+> 
+> -OMAP5 hwmod data file, 2076 lines we could remove which significant
+> reduction. I ran the same scripts on OMAP4 and there too about 2200
+> lines getting deleted.
 
-v1: original
-v2: s/of_find_node_by_name()/of_get_child_by_name()/ from Pantelis
-    Antoniou
-v3: add backlight support
-v4: rebase to latest of video timing helpers
-v5: remove some unneeded fields from panel-info struct, add DT bindings
-    docs
+Great, thanks for looking into it. I guess we cannot do that quite
+yet for omap4 as we have not made it DT only. But we should be able
+to do that for am33xx as that's DT only already.
+ 
+> - I have to udapte DT file to add the all supported hwmods with reg
+> property so that OMAP5 continue to boot. Similar work is needed for
+> OMAP4 too once OMAP4 is made DT only support.
 
-Signed-off-by: Rob Clark <robdclark@gmail.com>
-Tested-by: Koen Kooi <koen@dominion.thruhere.net>
----
- .../devicetree/bindings/drm/tilcdc/panel.txt       |  59 +++
- drivers/gpu/drm/tilcdc/Kconfig                     |   3 +
- drivers/gpu/drm/tilcdc/Makefile                    |   1 +
- drivers/gpu/drm/tilcdc/tilcdc_drv.c                |   3 +
- drivers/gpu/drm/tilcdc/tilcdc_panel.c              | 436 +++++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_panel.h              |  26 ++
- 6 files changed, 528 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/drm/tilcdc/panel.txt
- create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_panel.c
- create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_panel.h
+OK
+ 
+> - To my suprise, the DT lookup isn't that bad. It is adding just
+> 24 milliseconds to the boot time which is more or less noise.
 
-diff --git a/Documentation/devicetree/bindings/drm/tilcdc/panel.txt b/Documentation/devicetree/bindings/drm/tilcdc/panel.txt
-new file mode 100644
-index 0000000..5ff1e61
---- /dev/null
-+++ b/Documentation/devicetree/bindings/drm/tilcdc/panel.txt
-@@ -0,0 +1,59 @@
-+Device-Tree bindings for tilcdc DRM generic panel output driver
-+
-+Required properties:
-+ - compatible: value should be "tilcdc,panel".
-+ - panel-info: configuration info to configure LCDC correctly for the panel
-+   - ac-bias: AC Bias Pin Frequency
-+   - ac-bias-intrpt: AC Bias Pin Transitions per Interrupt
-+   - dma-burst-sz: DMA burst size
-+   - bpp: Bits per pixel
-+   - fdd: FIFO DMA Request Delay
-+   - sync-edge: Horizontal and Vertical Sync Edge: 0=rising 1=falling
-+   - sync-ctrl: Horizontal and Vertical Sync: Control: 0=ignore
-+   - raster-order: Raster Data Order Select: 1=Most-to-least 0=Least-to-most
-+   - fifo-th: DMA FIFO threshold
-+ - display-timings: typical videomode of lcd panel.  Multiple video modes
-+   can be listed if the panel supports multiple timings, but the 'native-mode'
-+   should be the preferred/default resolution.  Refer to
-+   Documentation/devicetree/bindings/video/display-timing.txt for display
-+   timing binding details.
-+
-+Recommended properties:
-+ - pinctrl-names, pinctrl-0: the pincontrol settings to configure
-+   muxing properly for pins that connect to TFP410 device
-+
-+Example:
-+
-+	/* Settings for CDTech_S035Q01 / LCD3 cape: */
-+	lcd3 {
-+		compatible = "tilcdc,panel";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&bone_lcd3_cape_lcd_pins>;
-+		panel-info {
-+			ac-bias           = <255>;
-+			ac-bias-intrpt    = <0>;
-+			dma-burst-sz      = <16>;
-+			bpp               = <16>;
-+			fdd               = <0x80>;
-+			sync-edge         = <0>;
-+			sync-ctrl         = <1>;
-+			raster-order      = <0>;
-+			fifo-th           = <0>;
-+		};
-+		display-timings {
-+			native-mode = <&timing0>;
-+			timing0: 320x240 {
-+				hactive         = <320>;
-+				vactive         = <240>;
-+				hback-porch     = <21>;
-+				hfront-porch    = <58>;
-+				hsync-len       = <47>;
-+				vback-porch     = <11>;
-+				vfront-porch    = <23>;
-+				vsync-len       = <2>;
-+				clock-frequency = <8000000>;
-+				hsync-active    = <0>;
-+				vsync-active    = <0>;
-+			};
-+		};
-+	};
-diff --git a/drivers/gpu/drm/tilcdc/Kconfig b/drivers/gpu/drm/tilcdc/Kconfig
-index ee9b592..ae14fd6 100644
---- a/drivers/gpu/drm/tilcdc/Kconfig
-+++ b/drivers/gpu/drm/tilcdc/Kconfig
-@@ -4,6 +4,9 @@ config DRM_TILCDC
- 	select DRM_KMS_HELPER
- 	select DRM_KMS_CMA_HELPER
- 	select DRM_GEM_CMA_HELPER
-+	select OF_VIDEOMODE
-+	select OF_DISPLAY_TIMING
-+	select BACKLIGHT_CLASS_DEVICE
- 	help
- 	  Choose this option if you have an TI SoC with LCDC display
- 	  controller, for example AM33xx in beagle-bone, DA8xx, or
-diff --git a/drivers/gpu/drm/tilcdc/Makefile b/drivers/gpu/drm/tilcdc/Makefile
-index aa9097e..deda656 100644
---- a/drivers/gpu/drm/tilcdc/Makefile
-+++ b/drivers/gpu/drm/tilcdc/Makefile
-@@ -4,6 +4,7 @@ tilcdc-y := \
- 	tilcdc_crtc.o \
- 	tilcdc_tfp410.o \
- 	tilcdc_slave.o \
-+	tilcdc_panel.o \
- 	tilcdc_drv.o
+That's good to hear.
  
- obj-$(CONFIG_DRM_TILCDC)	+= tilcdc.o
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
-index 25f3add..c5b592d 100644
---- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
-@@ -21,6 +21,7 @@
- #include "tilcdc_regs.h"
- #include "tilcdc_tfp410.h"
- #include "tilcdc_slave.h"
-+#include "tilcdc_panel.h"
- 
- #include "drm_fb_helper.h"
- 
-@@ -589,6 +590,7 @@ static int __init tilcdc_drm_init(void)
- 	DBG("init");
- 	tilcdc_tfp410_init();
- 	tilcdc_slave_init();
-+	tilcdc_panel_init();
- 	return platform_driver_register(&tilcdc_platform_driver);
- }
- 
-@@ -597,6 +599,7 @@ static void __exit tilcdc_drm_fini(void)
- 	DBG("fini");
- 	tilcdc_tfp410_fini();
- 	tilcdc_slave_fini();
-+	tilcdc_panel_fini();
- 	platform_driver_unregister(&tilcdc_platform_driver);
- }
- 
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_panel.c b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
-new file mode 100644
-index 0000000..d1463f5
---- /dev/null
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
-@@ -0,0 +1,436 @@
-+/*
-+ * Copyright (C) 2012 Texas Instruments
-+ * Author: Rob Clark <robdclark@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/pinctrl/pinmux.h>
-+#include <linux/pinctrl/consumer.h>
-+#include <linux/backlight.h>
-+#include <video/display_timing.h>
-+#include <video/of_display_timing.h>
-+#include <video/videomode.h>
-+
-+#include "tilcdc_drv.h"
-+
-+struct panel_module {
-+	struct tilcdc_module base;
-+	struct tilcdc_panel_info *info;
-+	struct display_timings *timings;
-+	struct backlight_device *backlight;
-+};
-+#define to_panel_module(x) container_of(x, struct panel_module, base)
-+
-+
-+/*
-+ * Encoder:
-+ */
-+
-+struct panel_encoder {
-+	struct drm_encoder base;
-+	struct panel_module *mod;
-+};
-+#define to_panel_encoder(x) container_of(x, struct panel_encoder, base)
-+
-+
-+static void panel_encoder_destroy(struct drm_encoder *encoder)
-+{
-+	struct panel_encoder *panel_encoder = to_panel_encoder(encoder);
-+	drm_encoder_cleanup(encoder);
-+	kfree(panel_encoder);
-+}
-+
-+static void panel_encoder_dpms(struct drm_encoder *encoder, int mode)
-+{
-+	struct panel_encoder *panel_encoder = to_panel_encoder(encoder);
-+	struct backlight_device *backlight = panel_encoder->mod->backlight;
-+
-+	if (!backlight)
-+		return;
-+
-+	backlight->props.power = mode == DRM_MODE_DPMS_ON
-+				     ? FB_BLANK_UNBLANK : FB_BLANK_POWERDOWN;
-+	backlight_update_status(backlight);
-+}
-+
-+static bool panel_encoder_mode_fixup(struct drm_encoder *encoder,
-+		const struct drm_display_mode *mode,
-+		struct drm_display_mode *adjusted_mode)
-+{
-+	/* nothing needed */
-+	return true;
-+}
-+
-+static void panel_encoder_prepare(struct drm_encoder *encoder)
-+{
-+	struct panel_encoder *panel_encoder = to_panel_encoder(encoder);
-+	panel_encoder_dpms(encoder, DRM_MODE_DPMS_OFF);
-+	tilcdc_crtc_set_panel_info(encoder->crtc, panel_encoder->mod->info);
-+}
-+
-+static void panel_encoder_commit(struct drm_encoder *encoder)
-+{
-+	panel_encoder_dpms(encoder, DRM_MODE_DPMS_ON);
-+}
-+
-+static void panel_encoder_mode_set(struct drm_encoder *encoder,
-+		struct drm_display_mode *mode,
-+		struct drm_display_mode *adjusted_mode)
-+{
-+	/* nothing needed */
-+}
-+
-+static const struct drm_encoder_funcs panel_encoder_funcs = {
-+		.destroy        = panel_encoder_destroy,
-+};
-+
-+static const struct drm_encoder_helper_funcs panel_encoder_helper_funcs = {
-+		.dpms           = panel_encoder_dpms,
-+		.mode_fixup     = panel_encoder_mode_fixup,
-+		.prepare        = panel_encoder_prepare,
-+		.commit         = panel_encoder_commit,
-+		.mode_set       = panel_encoder_mode_set,
-+};
-+
-+static struct drm_encoder *panel_encoder_create(struct drm_device *dev,
-+		struct panel_module *mod)
-+{
-+	struct panel_encoder *panel_encoder;
-+	struct drm_encoder *encoder;
-+	int ret;
-+
-+	panel_encoder = kzalloc(sizeof(*panel_encoder), GFP_KERNEL);
-+	if (!panel_encoder) {
-+		dev_err(dev->dev, "allocation failed\n");
-+		return NULL;
-+	}
-+
-+	panel_encoder->mod = mod;
-+
-+	encoder = &panel_encoder->base;
-+	encoder->possible_crtcs = 1;
-+
-+	ret = drm_encoder_init(dev, encoder, &panel_encoder_funcs,
-+			DRM_MODE_ENCODER_LVDS);
-+	if (ret < 0)
-+		goto fail;
-+
-+	drm_encoder_helper_add(encoder, &panel_encoder_helper_funcs);
-+
-+	return encoder;
-+
-+fail:
-+	panel_encoder_destroy(encoder);
-+	return NULL;
-+}
-+
-+/*
-+ * Connector:
-+ */
-+
-+struct panel_connector {
-+	struct drm_connector base;
-+
-+	struct drm_encoder *encoder;  /* our connected encoder */
-+	struct panel_module *mod;
-+};
-+#define to_panel_connector(x) container_of(x, struct panel_connector, base)
-+
-+
-+static void panel_connector_destroy(struct drm_connector *connector)
-+{
-+	struct panel_connector *panel_connector = to_panel_connector(connector);
-+	drm_connector_cleanup(connector);
-+	kfree(panel_connector);
-+}
-+
-+static enum drm_connector_status panel_connector_detect(
-+		struct drm_connector *connector,
-+		bool force)
-+{
-+	return connector_status_connected;
-+}
-+
-+static int panel_connector_get_modes(struct drm_connector *connector)
-+{
-+	struct drm_device *dev = connector->dev;
-+	struct panel_connector *panel_connector = to_panel_connector(connector);
-+	struct display_timings *timings = panel_connector->mod->timings;
-+	int i;
-+
-+	for (i = 0; i < timings->num_timings; i++) {
-+		struct drm_display_mode *mode = drm_mode_create(dev);
-+		struct videomode vm;
-+
-+		if (videomode_from_timing(timings, &vm, i))
-+			break;
-+
-+		drm_display_mode_from_videomode(&vm, mode);
-+
-+		mode->type = DRM_MODE_TYPE_DRIVER;
-+
-+		if (timings->native_mode == i)
-+			mode->type |= DRM_MODE_TYPE_PREFERRED;
-+
-+		drm_mode_set_name(mode);
-+		drm_mode_probed_add(connector, mode);
-+	}
-+
-+	return i;
-+}
-+
-+static int panel_connector_mode_valid(struct drm_connector *connector,
-+		  struct drm_display_mode *mode)
-+{
-+	struct tilcdc_drm_private *priv = connector->dev->dev_private;
-+	/* our only constraints are what the crtc can generate: */
-+	return tilcdc_crtc_mode_valid(priv->crtc, mode);
-+}
-+
-+static struct drm_encoder *panel_connector_best_encoder(
-+		struct drm_connector *connector)
-+{
-+	struct panel_connector *panel_connector = to_panel_connector(connector);
-+	return panel_connector->encoder;
-+}
-+
-+static const struct drm_connector_funcs panel_connector_funcs = {
-+	.destroy            = panel_connector_destroy,
-+	.dpms               = drm_helper_connector_dpms,
-+	.detect             = panel_connector_detect,
-+	.fill_modes         = drm_helper_probe_single_connector_modes,
-+};
-+
-+static const struct drm_connector_helper_funcs panel_connector_helper_funcs = {
-+	.get_modes          = panel_connector_get_modes,
-+	.mode_valid         = panel_connector_mode_valid,
-+	.best_encoder       = panel_connector_best_encoder,
-+};
-+
-+static struct drm_connector *panel_connector_create(struct drm_device *dev,
-+		struct panel_module *mod, struct drm_encoder *encoder)
-+{
-+	struct panel_connector *panel_connector;
-+	struct drm_connector *connector;
-+	int ret;
-+
-+	panel_connector = kzalloc(sizeof(*panel_connector), GFP_KERNEL);
-+	if (!panel_connector) {
-+		dev_err(dev->dev, "allocation failed\n");
-+		return NULL;
-+	}
-+
-+	panel_connector->encoder = encoder;
-+	panel_connector->mod = mod;
-+
-+	connector = &panel_connector->base;
-+
-+	drm_connector_init(dev, connector, &panel_connector_funcs,
-+			DRM_MODE_CONNECTOR_LVDS);
-+	drm_connector_helper_add(connector, &panel_connector_helper_funcs);
-+
-+	connector->interlace_allowed = 0;
-+	connector->doublescan_allowed = 0;
-+
-+	ret = drm_mode_connector_attach_encoder(connector, encoder);
-+	if (ret)
-+		goto fail;
-+
-+	drm_sysfs_connector_add(connector);
-+
-+	return connector;
-+
-+fail:
-+	panel_connector_destroy(connector);
-+	return NULL;
-+}
-+
-+/*
-+ * Module:
-+ */
-+
-+static int panel_modeset_init(struct tilcdc_module *mod, struct drm_device *dev)
-+{
-+	struct panel_module *panel_mod = to_panel_module(mod);
-+	struct tilcdc_drm_private *priv = dev->dev_private;
-+	struct drm_encoder *encoder;
-+	struct drm_connector *connector;
-+
-+	encoder = panel_encoder_create(dev, panel_mod);
-+	if (!encoder)
-+		return -ENOMEM;
-+
-+	connector = panel_connector_create(dev, panel_mod, encoder);
-+	if (!connector)
-+		return -ENOMEM;
-+
-+	priv->encoders[priv->num_encoders++] = encoder;
-+	priv->connectors[priv->num_connectors++] = connector;
-+
-+	return 0;
-+}
-+
-+static void panel_destroy(struct tilcdc_module *mod)
-+{
-+	struct panel_module *panel_mod = to_panel_module(mod);
-+
-+	if (panel_mod->timings) {
-+		display_timings_release(panel_mod->timings);
-+		kfree(panel_mod->timings);
-+	}
-+
-+	tilcdc_module_cleanup(mod);
-+	kfree(panel_mod->info);
-+	kfree(panel_mod);
-+}
-+
-+static const struct tilcdc_module_ops panel_module_ops = {
-+		.modeset_init = panel_modeset_init,
-+		.destroy = panel_destroy,
-+};
-+
-+/*
-+ * Device:
-+ */
-+
-+/* maybe move this somewhere common if it is needed by other outputs? */
-+static struct tilcdc_panel_info * of_get_panel_info(struct device_node *np)
-+{
-+	struct device_node *info_np;
-+	struct tilcdc_panel_info *info;
-+	int ret = 0;
-+
-+	if (!np) {
-+		pr_err("%s: no devicenode given\n", __func__);
-+		return NULL;
-+	}
-+
-+	info_np = of_get_child_by_name(np, "panel-info");
-+	if (!info_np) {
-+		pr_err("%s: could not find panel-info node\n", __func__);
-+		return NULL;
-+	}
-+
-+	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	if (!info) {
-+		pr_err("%s: allocation failed\n", __func__);
-+		return NULL;
-+	}
-+
-+	ret |= of_property_read_u32(info_np, "ac-bias", &info->ac_bias);
-+	ret |= of_property_read_u32(info_np, "ac-bias-intrpt", &info->ac_bias_intrpt);
-+	ret |= of_property_read_u32(info_np, "dma-burst-sz", &info->dma_burst_sz);
-+	ret |= of_property_read_u32(info_np, "bpp", &info->bpp);
-+	ret |= of_property_read_u32(info_np, "fdd", &info->fdd);
-+	ret |= of_property_read_u32(info_np, "sync-edge", &info->sync_edge);
-+	ret |= of_property_read_u32(info_np, "sync-ctrl", &info->sync_ctrl);
-+	ret |= of_property_read_u32(info_np, "raster-order", &info->raster_order);
-+	ret |= of_property_read_u32(info_np, "fifo-th", &info->fifo_th);
-+
-+	/* optional: */
-+	info->tft_alt_mode      = of_property_read_bool(info_np, "tft-alt-mode");
-+	info->invert_pxl_clk    = of_property_read_bool(info_np, "invert-pxl-clk");
-+
-+	if (ret) {
-+		pr_err("%s: error reading panel-info properties\n", __func__);
-+		kfree(info);
-+		return NULL;
-+	}
-+
-+	return info;
-+}
-+
-+static struct of_device_id panel_of_match[];
-+
-+static int panel_probe(struct platform_device *pdev)
-+{
-+	struct device_node *node = pdev->dev.of_node;
-+	struct panel_module *panel_mod;
-+	struct tilcdc_module *mod;
-+	struct pinctrl *pinctrl;
-+	int ret = -EINVAL;
-+
-+
-+	/* bail out early if no DT data: */
-+	if (!node) {
-+		dev_err(&pdev->dev, "device-tree data is missing\n");
-+		return -ENXIO;
-+	}
-+
-+	panel_mod = kzalloc(sizeof(*panel_mod), GFP_KERNEL);
-+	if (!panel_mod)
-+		return -ENOMEM;
-+
-+	mod = &panel_mod->base;
-+
-+	tilcdc_module_init(mod, "panel", &panel_module_ops);
-+
-+	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
-+	if (IS_ERR(pinctrl))
-+		dev_warn(&pdev->dev, "pins are not configured\n");
-+
-+
-+	panel_mod->timings = of_get_display_timings(node);
-+	if (!panel_mod->timings) {
-+		dev_err(&pdev->dev, "could not get panel timings\n");
-+		goto fail;
-+	}
-+
-+	panel_mod->info = of_get_panel_info(node);
-+	if (!panel_mod->info) {
-+		dev_err(&pdev->dev, "could not get panel info\n");
-+		goto fail;
-+	}
-+
-+	panel_mod->backlight = of_find_backlight_by_node(node);
-+	if (panel_mod->backlight)
-+		dev_info(&pdev->dev, "found backlight\n");
-+
-+	return 0;
-+
-+fail:
-+	panel_destroy(mod);
-+	return ret;
-+}
-+
-+static int panel_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static struct of_device_id panel_of_match[] = {
-+		{ .compatible = "tilcdc,panel", },
-+		{ },
-+};
-+MODULE_DEVICE_TABLE(of, panel_of_match);
-+
-+struct platform_driver panel_driver = {
-+	.probe = panel_probe,
-+	.remove = panel_remove,
-+	.driver = {
-+		.owner = THIS_MODULE,
-+		.name = "panel",
-+		.of_match_table = panel_of_match,
-+	},
-+};
-+
-+int __init tilcdc_panel_init(void)
-+{
-+	return platform_driver_register(&panel_driver);
-+}
-+
-+void __exit tilcdc_panel_fini(void)
-+{
-+	platform_driver_unregister(&panel_driver);
-+}
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_panel.h b/drivers/gpu/drm/tilcdc/tilcdc_panel.h
-new file mode 100644
-index 0000000..7db40aa
---- /dev/null
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_panel.h
-@@ -0,0 +1,26 @@
-+/*
-+ * Copyright (C) 2012 Texas Instruments
-+ * Author: Rob Clark <robdclark@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef __TILCDC_PANEL_H__
-+#define __TILCDC_PANEL_H__
-+
-+/* sub-module for generic lcd panel output */
-+
-+int tilcdc_panel_init(void);
-+void tilcdc_panel_fini(void);
-+
-+#endif /* __TILCDC_PANEL_H__ */
--- 
-1.8.1
+> Have pushed a branch with above update for OMAP5 here [1]
+> 
+> So we are left with two other topics which you mentioned in the
+> comments.
+> 
+> 1. Movement of clock data to drivers/clk. Till we get direction here
+> I would like to hear the alternative to get OMAP5 booting from mainline.
+> If there is no alternative, we can keep OMAP5 clock data alone
+> out of tree and get rest of the data files merged.
 
+I agree, no reason to hold back the other patches. But we should
+resolve the common clock move to drivers/clk properly now,
+otherwise it will just get postponed again and we have even bigger
+problem to deal with.
+
+> 2. The iormap() done by hwmod for sysconfig handling which you are
+> discussing with Rajendra. So far we don't have a viable way to
+> get the iormapped address from device drivers back to platform
+> code. Lets continue on this thread but this can evolve in
+> parallel.
+
+Yes that can be fixed separately.
+
+Regards,
+
+Tony
+
+ 
+> [1] git://github.com/SantoshShilimkar/linux.git
+> 3.9/omap5-testing-hwmod-cleanup
