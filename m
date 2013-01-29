@@ -1,56 +1,95 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH] mmc: omap_hsmmc: MAINTAINERS: change omap_hsmmc maintenance to orphan
-Date: Mon, 28 Jan 2013 16:33:43 -0500
-Message-ID: <8738xl8020.fsf@laptop.org>
-References: <1358343026-17198-1-git-send-email-svenkatr@gmail.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH 2/2] drivers: net:ethernet: cpsw: add support for VLAN
+Date: Tue, 29 Jan 2013 10:35:05 +0530
+Message-ID: <51075881.4050200@ti.com>
+References: <1359403945-28585-1-git-send-email-mugunthanvnm@ti.com> <1359403945-28585-3-git-send-email-mugunthanvnm@ti.com> <20130128204446.GB5509@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from void.printf.net ([89.145.121.20]:56449 "EHLO void.printf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754001Ab3A1VeR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Jan 2013 16:34:17 -0500
-In-Reply-To: <1358343026-17198-1-git-send-email-svenkatr@gmail.com>
-	(Venkatraman S.'s message of "Wed, 16 Jan 2013 19:00:26 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:60222 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599Ab3A2FFQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 00:05:16 -0500
+In-Reply-To: <20130128204446.GB5509@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@gmail.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>
+To: balbi@ti.com
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi,
-
-On Wed, Jan 16 2013, Venkatraman S wrote:
-> The specified email id is no longer in service.
-> Update the OMAP HSMMC entry from the MAINTAINERS file as I will
-> no longer be able to maintain this driver.
+On 1/29/2013 2:14 AM, Felipe Balbi wrote:
+> On Tue, Jan 29, 2013 at 01:42:25AM +0530, Mugunthan V N wrote:
+>> adding support for VLAN interface for cpsw.
+>>
+>> CPSW VLAN Capability
+>> * Can filter VLAN packets in Hardware
+>>
+>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+>> ---
+>>   Documentation/devicetree/bindings/net/cpsw.txt |    2 +
+>>   drivers/net/ethernet/ti/cpsw.c                 |  108 +++++++++++++++++++++++-
+>>   include/linux/platform_data/cpsw.h             |    1 +
+>>   3 files changed, 110 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+>> index 6ddd028..99696bf 100644
+>> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+>> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+>> @@ -24,6 +24,8 @@ Required properties:
+>>   Optional properties:
+>>   - ti,hwmods		: Must be "cpgmac0"
+>>   - no_bd_ram		: Must be 0 or 1
+>> +- default_vlan		: Specifies Default VLAN for non tagged packets
+>> +			  ALE processing
+>>   
+>>   Note: "ti,hwmods" field is used to fetch the base address and irq
+>>   resources from TI, omap hwmod data base during device registration.
+>> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+>> index b35e6a7..dee6951 100644
+>> --- a/drivers/net/ethernet/ti/cpsw.c
+>> +++ b/drivers/net/ethernet/ti/cpsw.c
+>> @@ -32,6 +32,7 @@
+>>   #include <linux/of.h>
+>>   #include <linux/of_net.h>
+>>   #include <linux/of_device.h>
+>> +#include <linux/if_vlan.h>
+>>   
+>>   #include <linux/platform_data/cpsw.h>
+>>   
+>> @@ -72,6 +73,11 @@ do {								\
+>>   		dev_notice(priv->dev, format, ## __VA_ARGS__);	\
+>>   } while (0)
+>>   
+>> +#if defined(CONFIG_VLAN_8021Q) || defined(CONFIG_VLAN_8021Q_MODULE)
+> use IS_ENABLED() instead.
+Will change this in next patch version.
 >
-> Signed-off-by: Venkatraman S <svenkatr@gmail.com>
-> ---
->  MAINTAINERS |    4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index cd5b31f..95778e1 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -5499,10 +5499,8 @@ S:	Maintained
->  F:	drivers/mmc/host/omap.c
->  
->  OMAP HS MMC SUPPORT
-> -M:	Venkatraman S <svenkatr@ti.com>
-> -L:	linux-mmc@vger.kernel.org
->  L:	linux-omap@vger.kernel.org
-> -S:	Maintained
-> +S:	Orphan
->  F:	drivers/mmc/host/omap_hsmmc.c
->  
->  OMAP RANDOM NUMBER GENERATOR SUPPORT
+>> +#define VLAN_SUPPORT
+>> +#define CPSW_VLAN_AWARE_MODE
+>> +#endif
+>> +
+>>   #define ALE_ALL_PORTS		0x7
+>>   
+>>   #define CPSW_MAJOR_VERSION(reg)		(reg >> 8 & 0x7)
+>> @@ -118,6 +124,14 @@ do {								\
+>>   #define TX_PRIORITY_MAPPING	0x33221100
+>>   #define CPDMA_TX_PRIORITY_MAP	0x76543210
+>>   
+>> +#ifdef CPSW_VLAN_AWARE_MODE
+>> +#define CPSW_VLAN_AWARE		BIT(1)
+>> +#define CPSW_ALE_VLAN_AWARE	1
+>> +#else
+>> +#define CPSW_VLAN_AWARE		0x0
+>> +#define CPSW_ALE_VLAN_AWARE	0
+>> +#endif
+> you should really figure out a way of doing runtime detection for this.
+> Depending on driver recompilation just to enable/disable VLAN support
+> will be quite boring.
+I am not able to find a way to know whether stack is compiled with VLAN 
+support or not
+without using VLAN_SUPPORT compiler option. Only way is to hack 
+cpsw_ndo_vlan_rx_add_vid
+and know whether stack has VLAN capability or not which is not advisable.
 
-Thanks for your work on omap_hsmmc, Venkat!
-
-Is anyone else interested in taking up maintenance of omap_hsmmc?
-
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Regards
+Mugunthan V N
