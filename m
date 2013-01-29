@@ -1,55 +1,41 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH v3 0/9] ARM: OMAP2+: AM33XX: Misc fixes/updates
-Date: Tue, 29 Jan 2013 11:32:09 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433ED01FC6@DBDE01.ent.ti.com>
-References: <1359458108-8489-1-git-send-email-vaibhav.bedia@ti.com>
- <5107B208.80005@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v1 1/5] ARM: cache-l2x0: add 'smc' identifier
+Date: Tue, 29 Jan 2013 11:33:25 +0000
+Message-ID: <20130129113325.GG2637@n2100.arm.linux.org.uk>
+References: <20130129101328.GA11878@bnru10>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34757 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751580Ab3A2LcT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 06:32:19 -0500
-In-Reply-To: <5107B208.80005@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130129101328.GA11878@bnru10>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: srinidhi kasagar <srinidhi.kasagar@stericsson.com>
+Cc: linux-arm-kernel@lists.infradead.org, avorontsov@mvista.com, gregory.clement@free-electrons.com, kgene.kim@samsung.com, linux-samsung-soc@vger.kernel.org, kernel@pengutronix.de, shawn.guo@linaro.org, rubini@unipv.it, linus.walleij@linaro.org, linux-omap@vger.kernel.org, tony@atomide.com, horms@verge.net.au, magnus.damm@gmail.com, viresh.linux@gmail.com, shiraz.hashim@st.com
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-On Tue, Jan 29, 2013 at 16:57:04, Shilimkar, Santosh wrote:
-> Vaibhav,
-> 
-> On Tuesday 29 January 2013 04:44 PM, Vaibhav Bedia wrote:
-> > Hi,
-> >
-> > The following patches were earlier posted as part the AM33XX
-> > suspend-resume support series [1]. Based on the suggestion
-> > from Santosh Shilimkar <santosh.shilimkar@ti.com> i have split
-> > out the changes which update the various data files related
-> > to AM33XX support.
-> >
-> > These patches apply on top of v3.8-rc5
-> >
-> > v1->v2: Address the comments received from Sergei Shtylyov
-> > and Peter Korsgaard.
-> >
-> > v2->v3: Address an additional comment from Peter Korgaard
-> > and add his Acked-by to the patches
-> >
-> Just a suggestion here...
-> 
-> I saw v2 of $subject series just today morning and in just
-> few hours, I see v3 as well. You should at least let v2 settle
-> down for a while :-)
-> Collecting tags and minor update can always be done once you
-> gather sufficient comments to warrant a re-spin.
-> 
+On Tue, Jan 29, 2013 at 03:43:31PM +0530, srinidhi kasagar wrote:
+> Add 'smc' (Secure Monitor Call) identifier to differentiates
+> the platforms which implements this.
 
-OK. v1 has been in the wild for more than 10 days without any
-more comments so I went aggressive on v3 :)
+This patch makes no sense.
 
-Regards,
-Vaibhav
+So, if setting 'smc' in the DT description is supposed to mean that
+the platform has a secure monitor then...
+
+> +	is_smc = of_property_read_bool(np, "smc");
+> +
+> +	if (is_smc) {
+> +		/* set the debug interface */
+> +		outer_cache.set_debug = pl310_set_debug;
+> +	}
+
+Now, let's look at what pl310_set_debug() does:
+
+static void pl310_set_debug(unsigned long val)
+{
+        writel_relaxed(val, l2x0_base + L2X0_DEBUG_CTRL);
+}
+
+Can you explain where the secure monitor call is there please, because
+I can't see one.  In fact, this is the function used when there _isn't_
+a secure monitor.  So this patch just seems totally wrong to me.
