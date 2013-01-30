@@ -1,49 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: powerdomain & clockdomain cleanup and
- fixes for 3.9
-Date: Wed, 30 Jan 2013 14:06:00 -0800
-Message-ID: <20130130220600.GB22517@atomide.com>
-References: <alpine.DEB.2.00.1301292235330.11442@utopia.booyaka.com>
+From: Francois Romieu <romieu@fr.zoreil.com>
+Subject: Re: [PATCH v2 1/2] drivers: net: cpsw: Add helper functions for VLAN ALE implementation
+Date: Wed, 30 Jan 2013 23:02:08 +0100
+Message-ID: <20130130220208.GA22847@electric-eye.fr.zoreil.com>
+References: <1359572855-12344-1-git-send-email-mugunthanvnm@ti.com> <1359572855-12344-2-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:40674 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756031Ab3A3WGF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 17:06:05 -0500
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1301292235330.11442@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1359572855-12344-2-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-* Paul Walmsley <paul@pwsan.com> [130129 14:40]:
-> Hi Tony,
-> 
-> The following changes since commit 949db153b6466c6f7cad5a427ecea94985927311:
-> 
->   Linux 3.8-rc5 (2013-01-25 11:57:28 -0800)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-cleanup-b-for-3.9
-> 
-> for you to fetch changes up to 562e54d13b6e0b17f72c9e629e1fd0b71e2a8a36:
-> 
->   ARM: OMAP2+: powerdomain: fix whitespace, improve flag comments (2013-01-29 14:59:58 -0700)
-> 
-> ----------------------------------------------------------------
-> Several OMAP2+ power management fixes, optimizations, and cleanup.
-> This series is a prerequisite for the functional powerdomain
-> conversion series.
-> 
-> Basic test logs for this branch are here:
-> 
->     http://www.pwsan.com/omap/testlogs/pm_cleanup_fixes_3.9/20130129150017/
+Mugunthan V N <mugunthanvnm@ti.com> :
+[...]
+> diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+> index 0e9ccc2..18b88ce 100644
+> --- a/drivers/net/ethernet/ti/cpsw_ale.c
+> +++ b/drivers/net/ethernet/ti/cpsw_ale.c
+[...]
+> @@ -274,19 +292,26 @@ int cpsw_ale_flush(struct cpsw_ale *ale, int port_mask)
+>  	return 0;
+>  }
+>  
+> -int cpsw_ale_add_ucast(struct cpsw_ale *ale, u8 *addr, int port, int flags)
+> +int cpsw_ale_add_ucast(struct cpsw_ale *ale, u8 *addr, int port,
+> +		       int flags, u16 vid)
+>  {
+>  	u32 ale_entry[ALE_ENTRY_WORDS] = {0, 0, 0};
+>  	int idx;
+>  
+> -	cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_ADDR);
+> +	if (flags & ALE_VLAN) {
+> +		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_VLAN_ADDR);
+> +		cpsw_ale_set_vlan_id(ale_entry, vid);
+> +	} else {
+> +		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_ADDR);
+> +	}
+> +
+[...]
+> +	if (flags & ALE_VLAN) {
+> +		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_VLAN_ADDR);
+> +		cpsw_ale_set_vlan_id(ale_entry, vid);
+> +	} else {
+> +		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_ADDR);
+> +	}
+> +
 
-Thanks pulling both of them into omap-for-v3.9/pm.
+It could be fctored out.
 
-Regards,
+[...]
+> @@ -362,6 +395,55 @@ int cpsw_ale_del_mcast(struct cpsw_ale *ale, u8 *addr, int port_mask)
+>  	return 0;
+>  }
+>  
+> +int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int untag,
+> +		      int reg_mcast, int unreg_mcast)
+> +{
+[...]
+> +int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
+[...]
 
-Tony
+Patch #2 doesn't use the returned status code.
+
+-- 
+Ueimor
