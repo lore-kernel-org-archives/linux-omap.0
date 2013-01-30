@@ -1,54 +1,94 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP4 PM bootloader dependency problems
-Date: Wed, 30 Jan 2013 17:15:07 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301301706580.17105@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1301220229140.25789@utopia.booyaka.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 07/10] ARM: OMAP5: clock data: Add OMAP54XX full clock
+ tree and headers
+Date: Wed, 30 Jan 2013 11:37:41 -0600
+Message-ID: <51095A65.9070102@ti.com>
+References: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com> <1358522856-12180-8-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:46528 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754277Ab3A3RPH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 12:15:07 -0500
-In-Reply-To: <alpine.DEB.2.00.1301220229140.25789@utopia.booyaka.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:54265 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754299Ab3A3Rhr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Jan 2013 12:37:47 -0500
+In-Reply-To: <1358522856-12180-8-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Paul Walmsley <paul@pwsan.com>
 
-Hi Tero et al.,
 
-On Tue, 22 Jan 2013, Paul Walmsley wrote:
-
-> As we've discussed, there are known bootloader dependencies with the OMAP4 
-> PM retention idle code, introduced in v3.8.  Boards booted with u-boot 
-> versions even as recent as 2011 won't enter retention idle correctly; for 
-> example:
+On 01/18/2013 09:27 AM, Santosh Shilimkar wrote:
+> From: Rajendra Nayak <rnayak@ti.com>
 > 
->     http://www.pwsan.com/omap/testlogs/test_v3.8-rc4/20130120122039/pm/4430es2panda/4430es2panda_log.txt
+> Add the clock tree related data for OMAP54xx platforms.
 
-...
+[snip]
 
-> Barring that, what I'd like to see is a patch for v3.8-rc fixes that adds 
-> a warning, printed to the kernel console, during boot.  The warning should 
-> state that the OMAP4 PM code only works with certain bootloaders, and 
-> should identify the minimum u-boot release needed for OMAP4 full-chip 
-> retention idle to work.
+> +	CLK("omap_timer.1",	"32k_ck",		&sys_32k_ck,	CK_54XX),
+> +	CLK("omap_timer.2",	"32k_ck",		&sys_32k_ck,	CK_54XX),
+> +	CLK("omap_timer.3",	"32k_ck",		&sys_32k_ck,	CK_54XX),
+> +	CLK("omap_timer.4",	"32k_ck",		&sys_32k_ck,	CK_54XX),
+> +	CLK("omap_timer.5",	"32k_ck",		&sys_32k_ck,	CK_54XX),
+> +	CLK("omap_timer.6",	"32k_ck",		&sys_32k_ck,	CK_54XX),
+> +	CLK("omap_timer.7",	"32k_ck",		&sys_32k_ck,	CK_54XX),
+> +	CLK("omap_timer.8",	"32k_ck",		&sys_32k_ck,	CK_54XX),
+> +	CLK("omap_timer.9",	"32k_ck",		&sys_32k_ck,	CK_54XX),
+> +	CLK("omap_timer.10",	"32k_ck",		&sys_32k_ck,	CK_54XX),
+> +	CLK("omap_timer.11",	"32k_ck",		&sys_32k_ck,	CK_54XX),
 
-Any progress on this one?  Time is getting very short to get this into 
-v3.8-rc fixes, and it's important to get this into v3.8 so we don't 
-have users expecting chip power management to work correctly with most 
-u-boot versions that are out in the field.
+I have been trying to get away from having so many aliases for the same
+clock for timers. Here we should replace all of the above and just have ...
 
-All we should need for v3.8-rc are a few pr_warn()s that execute during 
-OMAP4 PM init, noting that the OMAP4 chip power management doesn't work 
-correctly with many bootloaders, due to missing code in the kernel to 
-properly reset and initialize some devices, and noting the first u-boot 
-version that is known to work correctly.
++	CLK(NULL,	"timer_32k_ck",		&sys_32k_ck, CK_54XX),
 
-Otherwise there's a very real risk that folks out there will waste lots of 
-time trying to figure out why power management doesn't work as they 
-expect.   To respect our users, we shouldn't put them in that situation.
+For more details see [1].
 
+> +	CLK("omap_timer.1",	"sys_ck",		&sys_clkin,	CK_54XX),
+> +	CLK("omap_timer.2",	"sys_ck",		&sys_clkin,	CK_54XX),
+> +	CLK("omap_timer.3",	"sys_ck",		&sys_clkin,	CK_54XX),
+> +	CLK("omap_timer.4",	"sys_ck",		&sys_clkin,	CK_54XX),
+> +	CLK("omap_timer.9",	"sys_ck",		&sys_clkin,	CK_54XX),
+> +	CLK("omap_timer.10",	"sys_ck",		&sys_clkin,	CK_54XX),
+> +	CLK("omap_timer.11",	"sys_ck",		&sys_clkin,	CK_54XX),
+> +	CLK("omap_timer.5",	"sys_ck",		&dss_syc_gfclk_div,	CK_54XX),
+> +	CLK("omap_timer.6",	"sys_ck",		&dss_syc_gfclk_div,	CK_54XX),
+> +	CLK("omap_timer.7",	"sys_ck",		&dss_syc_gfclk_div,	CK_54XX),
+> +	CLK("omap_timer.8",	"sys_ck",		&dss_syc_gfclk_div,	CK_54XX),
+> +};
 
-- Paul
+These aliases will not work with device-tree because the device-name is
+formatted <addr>.<device>. Hence, when configuring a the timer parent
+clock via the dmtimer driver it will fail. So it should be more like ...
+
++	CLK("4ae18000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
++	CLK("48032000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
++	CLK("48034000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
++	CLK("48036000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
++	CLK("40138000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
++	CLK("4013a000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
++	CLK("4013c000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
++	CLK("4013e000.timer",	"timer_sys_ck",	&dss_syc_gfclk_div, 	
+CK_54XX),
++	CLK("4803e000.timer",	"timer_sys_ck",	&dss_syc_gfclk_div, CK_54XX),
++	CLK("48086000.timer",	"timer_sys_ck",	&dss_syc_gfclk_div, CK_54XX),
++	CLK("48088000.timer",	"timer_sys_ck",	&dss_syc_gfclk_div, CK_54XX),
+
+For more details see [2].
+
+If you would like to test the dmtimer driver on omap5, then you can grab
+my omap-test module [3], build it (see README), load it and then ...
+
+# echo 1 > /sys/kernel/debug/omap-test/timer/all
+
+This will perform some basic tests on all the dmtimers. I would do it
+myself, but there appears to be several issues getting this to boot on
+an ES1.0 (which is probably expected).
+
+Cheers
+Jon
+
+[1] http://www.spinics.net/lists/linux-omap/msg71272.html
+[2] https://patchwork.kernel.org/patch/1204351/
+[3] https://github.com/jonhunter/omap-test
