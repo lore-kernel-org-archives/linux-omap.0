@@ -1,49 +1,39 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: [PATCH] ARM:omap2: using strlcpy instead of strncpy
-Date: Wed, 30 Jan 2013 19:46:49 +0800
-Message-ID: <51090829.1010109@asianux.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH] cpsw: Fix interrupt storm among other things
+Date: Wed, 30 Jan 2013 12:38:02 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433ED03FE1@DBDE01.ent.ti.com>
+References: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com>
+ <5107B650.5090901@ti.com>
+ <3DE2C638-6AE8-4BC9-AD68-3AAA40CD6233@antoniou-consulting.com>
+ <5108E1C6.9020201@ti.com>
+ <0FB10FF4-6639-472E-943C-61CEDB0336E0@antoniou-consulting.com>
+ <5108FC31.3000507@ti.com>
+ <27A3106E-3FDB-43DB-AAC9-DC2DA768AF9E@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:57821 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754213Ab3A3Lqz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 06:46:55 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:38687 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752359Ab3A3MiJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 07:38:09 -0500
+In-Reply-To: <27A3106E-3FDB-43DB-AAC9-DC2DA768AF9E@antoniou-consulting.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, "Porter, Matt" <mporter@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "Kridner, Jason" <jdk@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
+On Wed, Jan 30, 2013 at 16:38:50, Pantelis Antoniou wrote:
+[...]
+> 
+> TBH I haven't found a simple way to print out the silicon revision number.
+> Anyone on the list know a quick and dirty method? 
+> 
 
-  the fields must be null-terminated:
-  the caller may use it as null-terminted string, next.
+You can dump the DEVICE_ID register @ 0x44e10600.
+Bits 31:28 should be 0 for PG1.0 and 1 for PG2.0.
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
----
- arch/arm/mach-omap2/twl-common.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Regards,
+Vaibhav 
 
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index e49b40b..6a7aec6 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -23,6 +23,7 @@
- #include <linux/i2c.h>
- #include <linux/i2c/twl.h>
- #include <linux/gpio.h>
-+#include <linux/string.h>
- #include <linux/regulator/machine.h>
- #include <linux/regulator/fixed.h>
- 
-@@ -56,7 +57,7 @@ void __init omap_pmic_init(int bus, u32 clkrate,
- 			   struct twl4030_platform_data *pmic_data)
- {
- 	omap_mux_init_signal("sys_nirq", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
--	strncpy(pmic_i2c_board_info.type, pmic_type,
-+	strlcpy(pmic_i2c_board_info.type, pmic_type,
- 		sizeof(pmic_i2c_board_info.type));
- 	pmic_i2c_board_info.irq = pmic_irq;
- 	pmic_i2c_board_info.platform_data = pmic_data;
--- 
-1.7.10.4
