@@ -1,51 +1,47 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH v2] ARM: OMAP2: hwmod: Fix "register offset NULL check"
- bug
-Date: Wed, 30 Jan 2013 16:39:51 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301301634310.17105@utopia.booyaka.com>
-References: <1355835378-23437-1-git-send-email-gururaja.hebbar@ti.com> <alpine.DEB.2.00.1212190210021.2446@utopia.booyaka.com> <1BAFE6F6C881BF42822005164F1491C33EB0C4FB@DBDE01.ent.ti.com> <alpine.DEB.2.00.1212200734160.7362@utopia.booyaka.com>
- <1BAFE6F6C881BF42822005164F1491C33EB5920F@DBDE01.ent.ti.com>
+Subject: Re: [PATCH v3] ARM: OMAP2: am33xx-hwmod: Fix "register offset NULL
+ check" bug
+Date: Wed, 30 Jan 2013 16:42:22 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301301641490.17105@utopia.booyaka.com>
+References: <1359556760-25214-1-git-send-email-gururaja.hebbar@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:46263 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:46286 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754299Ab3A3Qjx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 11:39:53 -0500
-In-Reply-To: <1BAFE6F6C881BF42822005164F1491C33EB5920F@DBDE01.ent.ti.com>
+	with ESMTP id S1754331Ab3A3QmX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 11:42:23 -0500
+In-Reply-To: <1359556760-25214-1-git-send-email-gururaja.hebbar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
+To: Hebbar Gururaja <gururaja.hebbar@ti.com>
+Cc: tony@atomide.com, b-cousson@ti.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, sudhakar.raj@ti.com, linux@arm.linux.org.uk, hvaibhav@ti.com, vaibhav.bedia@ti.com
 
-On Wed, 30 Jan 2013, Hebbar, Gururaja wrote:
+On Wed, 30 Jan 2013, Hebbar Gururaja wrote:
 
-> On Thu, Dec 20, 2012 at 13:05:27, Paul Walmsley wrote:
-> > On Thu, 20 Dec 2012, Hebbar, Gururaja wrote:
-> > 
-> > > On Wed, Dec 19, 2012 at 07:43:50, Paul Walmsley wrote:
-> > > 
-> > > > We've got a few hwmods on OMAP44xx that don't have clkctrl_offs registers 
-> > > > listed in the hwmod data, and which are not marked with HWMOD_NO_IDLEST.  
-> > > > What's going to happen in those cases?
-> > > 
-> > > Hmm. This is a special case to me. Let me go back and do some review.
-> > > Will be back with some more details.
-> > 
-> > Probably what needs to happen is that those hwmods need to be marked with 
-> > HWMOD_NO_IDLEST, in a separate patch before yours.  As far as I can tell, 
-> > that's how they should have been marked initially.  Then your patch should 
-> > be fine.
+> am33xx_cm_wait_module_ready() checks if register offset is NULL.
 > 
-> Looking at latest kernel v3.8-rc5, there is separate cm33xx.c file which
-> handles module ready checking for am33xx platform. So I will update this 
-> patch to work on this file instead of touching omap4 related file 
-> (cminst44xx.c)
+> int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
+> {
+> 	int i = 0;
+> 
+> 	if (!clkctrl_offs)
+> 		return 0;
+> 
+> In case of AM33xx, CLKCTRL register offset for different clock domains
+> are not uniformly placed. An example of this would be the RTC clock
+> domain with CLKCTRL offset at 0x00.
+> In such cases the module ready check is skipped which leads to a data
+> abort during boot-up when RTC registers is accessed.
+> 
+> Remove this check here to avoid checking module readiness for modules
+> with clkctrl register offset at 0x00.
+> 
+> Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
 
-The same problem still exists.  According to the TRM, there's at least one
-AM335x CLKCTRL register that doesn't have IDLEST bits.  So to avoid 
-reading reserved bits, either this patch or a preceding patch should
-mark those hwmods with HWMOD_NO_IDLEST.
+See 
+
+http://marc.info/?l=linux-omap&m=135956399407076&w=2
 
 
 - Paul
