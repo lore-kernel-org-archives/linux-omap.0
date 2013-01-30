@@ -1,140 +1,125 @@
-From: Francois Romieu <romieu@fr.zoreil.com>
-Subject: Re: [PATCH v2 2/2] drivers: net:ethernet: cpsw: add support for VLAN
-Date: Wed, 30 Jan 2013 23:02:43 +0100
-Message-ID: <20130130220243.GB22847@electric-eye.fr.zoreil.com>
-References: <1359572855-12344-1-git-send-email-mugunthanvnm@ti.com> <1359572855-12344-3-git-send-email-mugunthanvnm@ti.com>
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Subject: Re: [RFC PATCH v3 1/2] ARM: kernel: update cpuinfo to print SoC
+ model name
+Date: Thu, 31 Jan 2013 00:18:06 +0100
+Message-ID: <20130130231806.GO7360@game.jcrosoft.org>
+References: <1359558091-29251-1-git-send-email-ruslan.bilovol@ti.com>
+ <1359558091-29251-2-git-send-email-ruslan.bilovol@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1359572855-12344-3-git-send-email-mugunthanvnm@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+In-Reply-To: <1359558091-29251-2-git-send-email-ruslan.bilovol@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Cc: linux@arm.linux.org.uk, tony@atomide.com, linux-kernel@vger.kernel.org, eduardo.valentin@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Mugunthan V N <mugunthanvnm@ti.com> :
-[...]
-> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-> index 6ddd028..99696bf 100644
-> --- a/Documentation/devicetree/bindings/net/cpsw.txt
-> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
-> @@ -24,6 +24,8 @@ Required properties:
->  Optional properties:
->  - ti,hwmods		: Must be "cpgmac0"
->  - no_bd_ram		: Must be 0 or 1
-> +- default_vlan		: Specifies Default VLAN for non tagged packets
-> +			  ALE processing
+On 17:01 Wed 30 Jan     , Ruslan Bilovol wrote:
+> Currently, reading /proc/cpuinfo provides userspace with CPU ID of
+> the CPU carrying out the read from the file.
+> Userspace using this information may decide what module
+> to load or how to configure some specific (and processor-depended)
+> settings or so.
+> However, since really different SoCs can share same ARM core,
+> this information currently is not so useful.
+> For example, TI OMAP4460 and OMAP4470 SoCs show the same
+> information in the /proc/cpuinfo whereas they are different.
+> Since in most cases ARM CPU is a part of some system on a chip (SoC),
+> the "cpuinfo" file looks like exactly that place, where this
+> information have to be displayed.
+> 
+> So added new line "SoC name" in the "cpuinfo" output for system
+> on a chip name. It is placed between CPU information and machine
+> information, so the file structure looks gracefully (CPU-SoC-Hardware)
+Nack
 
-Isn't it a device-tree hack for what should belong to a common API ?
+this break the kernel ABI
 
-[...]
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index a40750e..6c66f01 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-[...]
-> @@ -607,14 +611,41 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
->  	}
->  }
+and we have now socinfo via sysfs
+
+Best Regards,
+J.
+> 
+> Example:
+> 
+> / # cat proc/cpuinfo
+> [...]
+> CPU variant     : 0x2
+> CPU part        : 0xc09
+> CPU revision    : 10
+> 
+> SoC name        : OMAP4470
+> 
+> Hardware        : OMAP4 Blaze Tablet
+> Revision        : 20edb4
+> [...]
+> 
+> Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+> ---
+>  arch/arm/include/asm/setup.h |    1 +
+>  arch/arm/kernel/setup.c      |    9 +++++++++
+>  2 files changed, 10 insertions(+)
+> 
+> diff --git a/arch/arm/include/asm/setup.h b/arch/arm/include/asm/setup.h
+> index c50f056..621df40 100644
+> --- a/arch/arm/include/asm/setup.h
+> +++ b/arch/arm/include/asm/setup.h
+> @@ -52,5 +52,6 @@ extern struct meminfo meminfo;
+>  extern int arm_add_memory(phys_addr_t start, phys_addr_t size);
+>  extern void early_print(const char *str, ...);
+>  extern void dump_machine_table(void);
+> +extern void set_soc_model_name(char *name);
 >  
-> +static inline void cpsw_add_default_vlan(struct cpsw_priv *priv)
-> +{
-> +	writel(priv->data.default_vlan, &priv->host_port_regs->port_vlan);
-> +	if (priv->version == CPSW_VERSION_1) {
-> +		slave_write(&priv->slaves[0], priv->data.default_vlan,
-> +			    CPSW1_PORT_VLAN);
-> +		slave_write(&priv->slaves[1], priv->data.default_vlan,
-> +			    CPSW1_PORT_VLAN);
-> +	} else {
-> +		slave_write(&priv->slaves[0], priv->data.default_vlan,
-> +			    CPSW2_PORT_VLAN);
-> +		slave_write(&priv->slaves[1], priv->data.default_vlan,
-> +			    CPSW2_PORT_VLAN);
-> +	}
-> +	cpsw_ale_add_vlan(priv->ale, priv->data.default_vlan,
-> +			ALE_ALL_PORTS << priv->host_port,
-> +			ALE_ALL_PORTS << priv->host_port,
-> +			ALE_ALL_PORTS << priv->host_port,
-> +			(BIT(1) | BIT(2)) << priv->host_port);
-> +}
-
-static inline void cpsw_add_default_vlan(struct cpsw_priv *priv)
-{
-	const int vlan = priv->data.default_vlan;
-	const int port = priv->host_port;
-	u32 reg;
-	int i;
-
-	reg = (priv->version == CPSW_VERSION_1) ? CPSW1_PORT_VLAN :
-	      CPSW2_PORT_VLAN;
-
-	writel(vlan, &priv->host_port_regs->port_vlan);
-
-	for (int i = 0; i < 2; i++)
-		slave_write(priv->slaves + i, vlan, reg);
-
-	cpsw_ale_add_vlan(priv->ale, vlan, ALE_ALL_PORTS << port,
-			  ALE_ALL_PORTS << port, ALE_ALL_PORTS << port,
-			  (BIT(1) | BIT(2)) << port);
-}
-
-... or somewhere between both. Your call.
-
-[...]
-> @@ -933,6 +967,55 @@ static void cpsw_ndo_poll_controller(struct net_device *ndev)
->  }
 >  #endif
+> diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+> index 3f6cbb2..bb3805f 100644
+> --- a/arch/arm/kernel/setup.c
+> +++ b/arch/arm/kernel/setup.c
+> @@ -134,6 +134,7 @@ char elf_platform[ELF_PLATFORM_SIZE];
+>  EXPORT_SYMBOL(elf_platform);
 >  
-> +static inline void cpsw_add_vlan_ale_entry(struct cpsw_priv *priv,
-> +				unsigned short vid)
+>  static const char *cpu_name;
+> +static const char *soc_name;
+>  static const char *machine_name;
+>  static char __initdata cmd_line[COMMAND_LINE_SIZE];
+>  struct machine_desc *machine_desc __initdata;
+> @@ -493,6 +494,11 @@ static void __init setup_processor(void)
+>  	cpu_init();
+>  }
+>  
+> +void set_soc_model_name(char *name)
 > +{
-> +	cpsw_ale_add_vlan(priv->ale, vid, ALE_ALL_PORTS << priv->host_port,
-> +			0, ALE_ALL_PORTS << priv->host_port,
-> +			(BIT(1) | BIT(2)) << priv->host_port);
-
-"(BIT(1) | BIT(2))" is repeated a couple of times.
-
-[...]
-> +static int cpsw_ndo_vlan_rx_add_vid(struct net_device *ndev,
-> +		unsigned short vid)
-> +{
-> +	struct cpsw_priv *priv = netdev_priv(ndev);
-> +
-> +	if (vid == priv->data.default_vlan)
-> +		return 0;
-> +
-> +	spin_lock(&priv->lock);
-> +
-> +	dev_info(priv->dev, "Adding vlanid %d to vlan filter\n", vid);
-> +	cpsw_add_vlan_ale_entry(priv, vid);
-> +
-> +	spin_unlock(&priv->lock);
-> +	return 0;
+> +	soc_name = name;
 > +}
 > +
-> +static int cpsw_ndo_vlan_rx_kill_vid(struct net_device *ndev,
-> +		unsigned short vid)
-> +{
-> +	struct cpsw_priv *priv = netdev_priv(ndev);
+>  void __init dump_machine_table(void)
+>  {
+>  	struct machine_desc *p;
+> @@ -902,6 +908,9 @@ static int c_show(struct seq_file *m, void *v)
+>  		seq_printf(m, "CPU revision\t: %d\n\n", cpuid & 15);
+>  	}
+>  
+> +	if (soc_name)
+> +		seq_printf(m, "SoC name\t: %s\n\n", soc_name);
 > +
-> +	if (vid == priv->data.default_vlan)
-> +		return 0;
-> +
-> +	spin_lock(&priv->lock);
-> +
-> +	dev_info(priv->dev, "removing vlanid %d from vlan filter\n", vid);
-> +	cpsw_ale_del_vlan(priv->ale, vid, 0);
-> +	cpsw_ale_del_ucast(priv->ale, priv->mac_addr,
-> +			   priv->host_port, ALE_VLAN, vid);
-> +	cpsw_ale_del_mcast(priv->ale, priv->ndev->broadcast, 0, ALE_VLAN, vid);
-> +
-> +	spin_unlock(&priv->lock);
-
-What are you trying to achieve with the lock ?
-
-It is not used anywhere else and both cpsw_ndo_vlan_rx_{add, kill}_vid are
-called under RTNL.
-
--- 
-Ueimor
+>  	seq_printf(m, "Hardware\t: %s\n", machine_name);
+>  	seq_printf(m, "Revision\t: %04x\n", system_rev);
+>  	seq_printf(m, "Serial\t\t: %08x%08x\n",
+> -- 
+> 1.7.9.5
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
