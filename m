@@ -1,67 +1,72 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH] arm: dts: omap4-sdp: Add I2c pinctrl data
-Date: Wed, 30 Jan 2013 11:06:10 +0200
-Message-ID: <1359536770.14894.38.camel@cumari.coelho.fi>
-References: <1359371865-27907-1-git-send-email-sourav.poddar@ti.com>
-	 <1359527158.14894.37.camel@cumari.coelho.fi> <5108C052.3070604@ti.com>
-	 <F3DBB1B3EF102E4994C89758CFCA32412C16DD@DBDE01.ent.ti.com>
-	 <5108DE5F.5090803@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5108DE5F.5090803@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: "Kumar, Anil" <anilkumar.v@ti.com>, "Poddar, Sourav" <sourav.poddar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Vishwanathrao Badarkhe, Manish" <manishv.b@ti.com>
+From: Jan Luebbe <jlu@pengutronix.de>
+Subject: [PATCH] mmc: omap_hsmmc: support deferred probing for GPIOs
+Date: Wed, 30 Jan 2013 10:07:17 +0100
+Message-ID: <1359536837-14874-1-git-send-email-jlu@pengutronix.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52780 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753146Ab3A3JHe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 04:07:34 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Jan Luebbe <jlu@pengutronix.de>
 
-On Wed, 2013-01-30 at 14:18 +0530, Santosh Shilimkar wrote:
-> On Wednesday 30 January 2013 02:13 PM, Kumar, Anil wrote:
-> > Hi Sourav,
-> >
-> > On Wed, Jan 30, 2013 at 12:10:18, Poddar, Sourav wrote:
-> >> Hi Luciano,
-> >> On Wednesday 30 January 2013 11:55 AM, Luciano Coelho wrote:
-> >>> Hi Sourav,
-> >>>
-> >>> On Mon, 2013-01-28 at 16:47 +0530, Sourav Poddar wrote:
-> >>>> Booting 3.8-rc4 om omap 4430sdp results in the following error
-> >>>>
-> >>>> omap_i2c 48070000.i2c: did not get pins for i2c error: -19
-> >>>> [    1.024261] omap_i2c 48070000.i2c: bus 0 rev0.12 at 100 kHz
-> >>>> [    1.030181] omap_i2c 48072000.i2c: did not get pins for i2c error: -19
-> >>>> [    1.037384] omap_i2c 48072000.i2c: bus 1 rev0.12 at 400 kHz
-> >>>> [    1.043762] omap_i2c 48060000.i2c: did not get pins for i2c error: -19
-> >>>> [    1.050964] omap_i2c 48060000.i2c: bus 2 rev0.12 at 100 kHz
-> >>>> [    1.056823] omap_i2c 4807a000.i2c: did not get pins for i2c error: -19
-> >>>> [    1.064025] omap_i2c 4807a000.i2c: bus 3 rev0.12 at 400 kHz
-> >>>>
-> >>>> This happens because omap4 dts file is not adapted to use i2c through pinctrl
-> >>>> framework. Populating i2c pinctrl data to get rid of the error.
-> >>>>
-> >>>> Tested on omap4430 sdp with 3.8-rc4 kernel.
-> >>>>
-> >>>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> >>>> Reported-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> >>>> ---
-> >>> Could you do the same thing for panda? I'm getting the same kind of
-> >>> errors with it:
-> >
-> > omap4 uses pinctrl-single driver for pinmux with DT. Currently
-> > pinctrl-single driver is getting up after I2C driver. So I2c cannot
-> > use pinctrl. The below patch solve this issue
-> >
-> > http://www.gossamer-threads.com/lists/linux/kernel/1669067
-> >
-> > Can you try with this ? it may solve it.
-> >
-> OMAP i2c driver already takes care of -EPROBE_DEFER. The issue
-> as you see from the log is not probe failure but missing the
-> pin information in DT blob. And thats what patch does.
+If the CD/WP-GPIOs are not provided by the SoC's GPIO controller,
+we need to handle the case where omap_hsmmc is probed earlier than
+the GPIO controller chosen in the device tree.
 
-Yes, Santosh is right.  I tried this patch, but it didn't fix the
-warnings.
+Fix this by checking the return value of of_get_named_gpio against
+-EPROBE_DEFER and passing it through to the probe function.
 
---
-Luca.
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+---
+
+I've tested this on an AM335x based board which uses an external
+GPIO expander.
+
+ drivers/mmc/host/omap_hsmmc.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index e30c1ee..fd1b342 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1717,6 +1717,12 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
+ 	struct omap_mmc_platform_data *pdata;
+ 	struct device_node *np = dev->of_node;
+ 	u32 bus_width, max_freq;
++	int cd_gpio, wp_gpio;
++
++	cd_gpio = of_get_named_gpio(np, "cd-gpios", 0);
++	wp_gpio = of_get_named_gpio(np, "wp-gpios", 0);
++	if (cd_gpio == -EPROBE_DEFER || wp_gpio == -EPROBE_DEFER)
++		return ERR_PTR(-EPROBE_DEFER);
+ 
+ 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+ 	if (!pdata)
+@@ -1727,8 +1733,8 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
+ 
+ 	/* This driver only supports 1 slot */
+ 	pdata->nr_slots = 1;
+-	pdata->slots[0].switch_pin = of_get_named_gpio(np, "cd-gpios", 0);
+-	pdata->slots[0].gpio_wp = of_get_named_gpio(np, "wp-gpios", 0);
++	pdata->slots[0].switch_pin = cd_gpio;
++	pdata->slots[0].gpio_wp = wp_gpio;
+ 
+ 	if (of_find_property(np, "ti,non-removable", NULL)) {
+ 		pdata->slots[0].nonremovable = true;
+@@ -1775,6 +1781,10 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 	match = of_match_device(of_match_ptr(omap_mmc_of_match), &pdev->dev);
+ 	if (match) {
+ 		pdata = of_get_hsmmc_pdata(&pdev->dev);
++
++		if (IS_ERR(pdata))
++			return PTR_ERR(pdata);
++
+ 		if (match->data) {
+ 			const u16 *offsetp = match->data;
+ 			pdata->reg_offset = *offsetp;
+-- 
+1.7.10.4
+
