@@ -1,75 +1,39 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 08/10] ARM: OMAP5: hwmod data: Create initial OMAP5 SOC
- hwmod data
-Date: Wed, 30 Jan 2013 14:40:15 +0530
-Message-ID: <5108E377.1020304@ti.com>
-References: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com> <1358522856-12180-9-git-send-email-santosh.shilimkar@ti.com> <20130118171500.GC15361@atomide.com> <50FCF838.6000105@ti.com> <50FD5993.5010008@ti.com> <20130121180113.GA22517@atomide.com> <50FE8C5C.2030409@ti.com> <20130122183213.GN15361@atomide.com> <5107D52C.80200@ti.com> <20130129172410.GS15361@atomide.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v6 09/10] spi: omap2-mcspi: add generic DMA request
+ support to the DT binding
+Date: Wed, 30 Jan 2013 09:24:00 +0000
+Message-ID: <201301300924.00508.arnd@arndb.de>
+References: <1359529229-22207-1-git-send-email-mporter@ti.com>
+ <1359529229-22207-10-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56925 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750800Ab3A3JJL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Jan 2013 04:09:11 -0500
-In-Reply-To: <20130129172410.GS15361@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1359529229-22207-10-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, rnayak@ti.com, Paul Walmsley <paul@pwsan.com>
 
-On Tuesday 29 January 2013 10:54 PM, Tony Lindgren wrote:
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130129 05:59]:
->> OK so we do managed to clean up the address space, IRQ lines
->> and DMA request lines data from hwmod completely.
->>
->> -OMAP5 hwmod data file, 2076 lines we could remove which significant
->> reduction. I ran the same scripts on OMAP4 and there too about 2200
->> lines getting deleted.
->
-> Great, thanks for looking into it. I guess we cannot do that quite
-> yet for omap4 as we have not made it DT only. But we should be able
-> to do that for am33xx as that's DT only already.
->
->> - I have to udapte DT file to add the all supported hwmods with reg
->> property so that OMAP5 continue to boot. Similar work is needed for
->> OMAP4 too once OMAP4 is made DT only support.
->
-> OK
->
->> - To my suprise, the DT lookup isn't that bad. It is adding just
->> 24 milliseconds to the boot time which is more or less noise.
->
-> That's good to hear.
->
->> Have pushed a branch with above update for OMAP5 here [1]
->>
->> So we are left with two other topics which you mentioned in the
->> comments.
->>
->> 1. Movement of clock data to drivers/clk. Till we get direction here
->> I would like to hear the alternative to get OMAP5 booting from mainline.
->> If there is no alternative, we can keep OMAP5 clock data alone
->> out of tree and get rest of the data files merged.
->
-> I agree, no reason to hold back the other patches. But we should
-> resolve the common clock move to drivers/clk properly now,
-> otherwise it will just get postponed again and we have even bigger
-> problem to deal with.
->
-I will go ahead and separate the clock data from rest of the data
-files so that we can get rest of the data patches in.
+On Wednesday 30 January 2013, Matt Porter wrote:
+> +Optional properties:
+> +- dmas: List of DMA controller phandle and DMA request ordered
+> +       pairs. One tx and one rx pair is required for each chip
+> +       select.
 
->> 2. The iormap() done by hwmod for sysconfig handling which you are
->> discussing with Rajendra. So far we don't have a viable way to
->> get the iormapped address from device drivers back to platform
->> code. Lets continue on this thread but this can evolve in
->> parallel.
->
-> Yes that can be fixed separately.
->
-Yep. Thanks for the comments.
+The binding looks ok, but the wording is slightly incorrect here:
+strictly speaking, it's not a pair of controller phandle and request
+line number, but a DMA descriptor as specified in bindings/dma/dma.txt
+with a format specific to the dma engine being used. That can
+require more than just a single integer request number.
 
-Regards
-Santosh
-
+	Arnd
