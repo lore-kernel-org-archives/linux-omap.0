@@ -1,79 +1,66 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 1/2] drivers: net: cpsw: Add helper functions for VLAN
- ALE implementation
-Date: Wed, 30 Jan 2013 09:47:11 +0530
-Message-ID: <51089EC7.5070205@ti.com>
-References: <1359403945-28585-1-git-send-email-mugunthanvnm@ti.com> <1359403945-28585-2-git-send-email-mugunthanvnm@ti.com> <51085D6C.4050102@ti.com>
+From: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
+Subject: Re: [PATCH v1 1/5] ARM: cache-l2x0: add 'smc' identifier
+Date: Wed, 30 Jan 2013 10:36:43 +0530
+Message-ID: <20130130050642.GA11075@bnru10>
+References: <20130129101328.GA11878@bnru10>
+ <20130129113325.GG2637@n2100.arm.linux.org.uk>
+ <20130129114926.GA14624@bnru10>
+ <20130129122255.GI2637@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <51085D6C.4050102@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Cyril Chemparathy <cyril@ti.com>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130129122255.GI2637@n2100.arm.linux.org.uk>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "avorontsov@mvista.com" <avorontsov@mvista.com>, "gregory.clement@free-electrons.com" <gregory.clement@free-electrons.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "shawn.guo@linaro.org" <shawn.guo@linaro.org>, "rubini@unipv.it" <rubini@unipv.it>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "horms@verge.net.au" <horms@verge.net.au>, "magnus.damm@gmail.com" <magnus.damm@gmail.com>, "viresh.linux@gmail.com" <viresh.linux@gmail.com>, Shiraz HASHIM <shiraz.hashim@st.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 1/30/2013 5:08 AM, Cyril Chemparathy wrote:
-> On 01/28/2013 03:12 PM, Mugunthan V N wrote:
->> Add helper functions for VLAN ALE implementations for Add, Delete
->> Dump VLAN related ALE entries
->>
->> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
->> ---
->>   drivers/net/ethernet/ti/cpsw_ale.c |  172 
->> ++++++++++++++++++++++++++++++++++--
->>   drivers/net/ethernet/ti/cpsw_ale.h |   11 +++
->>   2 files changed, 178 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/ti/cpsw_ale.c 
->> b/drivers/net/ethernet/ti/cpsw_ale.c
->> index 0e9ccc2..0d7a60a 100644
->> --- a/drivers/net/ethernet/ti/cpsw_ale.c
->> +++ b/drivers/net/ethernet/ti/cpsw_ale.c
->
-> [...]
->
->> +int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int 
->> untag,
->> +              int reg_mcast, int unreg_mcast)
->
-> [...]
->
->> +int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port)
->
-> [...]
->
->> +int cpsw_ale_vlan_add_ucast(struct cpsw_ale *ale, u8 *addr, int port,
->> +                int flags, u16 vid)
->
-> [...]
->
->> +int cpsw_ale_vlan_del_ucast(struct cpsw_ale *ale, u8 *addr, int 
->> port, u16 vid)
->
-> [...]
->
->> +int cpsw_ale_vlan_add_mcast(struct cpsw_ale *ale, u8 *addr,
->> +        int port_mask, u16 vid, int super, int mcast_state)
->
-> [...]
->
->> +int cpsw_ale_vlan_del_mcast(struct cpsw_ale *ale, u8 *addr,
->> +                int port_mask, u16 vid)
->
-> Are the VLAN and non-VLAN variants different enough to justify 
-> separate implementations for all these functions?  Could we collapse 
-> these by generalizing the original to take an optional vlan argument 
-> instead?
->
-> Thanks
-> -- Cyril.
-Since vid is u16, any value to vid is valid, so only i have proposed new 
-api for vlan.
-add vlan and delete vlan has to be seperate vlan since these are new 
-apis. Will merge
-other api to existing api with additional vlan parameter.
+On Tue, Jan 29, 2013 at 13:22:56 +0100, Russell King - ARM Linux wrote:
+> On Tue, Jan 29, 2013 at 05:19:27PM +0530, Srinidhi Kasagar wrote:
+> > On Tue, Jan 29, 2013 at 12:33:25 +0100, Russell King - ARM Linux wrote:
+> > > On Tue, Jan 29, 2013 at 03:43:31PM +0530, srinidhi kasagar wrote:
+> > > > Add 'smc' (Secure Monitor Call) identifier to differentiates
+> > > > the platforms which implements this.
+> > > 
+> > > This patch makes no sense.
+> > > 
+> > > So, if setting 'smc' in the DT description is supposed to mean that
+> > > the platform has a secure monitor then...
+> > > 
+> > > > +	is_smc = of_property_read_bool(np, "smc");
+> > > > +
+> > > > +	if (is_smc) {
+> > > > +		/* set the debug interface */
+> > > > +		outer_cache.set_debug = pl310_set_debug;
+> > > > +	}
+> > > 
+> > > Now, let's look at what pl310_set_debug() does:
+> > > 
+> > > static void pl310_set_debug(unsigned long val)
+> > > {
+> > >         writel_relaxed(val, l2x0_base + L2X0_DEBUG_CTRL);
+> > 
+> > You can do this operation (write to DEBUG_CTRL) only if SMC is implemented.
+> 
+> Err... no.  You can do it if you're running in secure mode without a
+> secure monitor, because the security stuff doesn't get in the way.
 
-Regards
-Mugunthan V N
+Yes, you are right as always. I was totally wrong, I overlooked the code.
+I will drop this patch, it does not make sense.
+
+> 
+> What other platforms do is up to them, and up to *how* the secure monitor
+> is implemented, not *if*.
+> 
+> > > }
+> > > 
+> > > Can you explain where the secure monitor call is there please, because
+> > > I can't see one.  In fact, this is the function used when there _isn't_
+> > > a secure monitor.  So this patch just seems totally wrong to me.
+> 
+> So this is going to be difficult because you only ever answer half an
+> email?  So, I repeat the question above.
+Yes, there is no secure monitor call. I mixed up two things and end up in a mess.
+
+Thanks,srinidhi
