@@ -1,90 +1,101 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH 0/2] ARM: update cpuinfo to print CPU model name
-Date: Tue, 29 Jan 2013 17:38:42 -0600
-Message-ID: <20130129233842.GA8024@kahuna>
-References: <1359474865-15408-1-git-send-email-ruslan.bilovol@ti.com>
- <20130129160243.GA3389@kahuna>
- <CAB=otbSV6CH4WOrr577bHXFcjEVRGjZxatgy4CJ3cr0M0h4vfw@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: On MIPI-CSI2 YUV420 formats and V4L2 Media Bus formats
+Date: Wed, 30 Jan 2013 01:23:48 +0100
+Message-ID: <3106282.VAxg78mvQZ@avalon>
+References: <20130128132210.433568c8c28fe1b7f0e70085@studenti.unina.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAB=otbSV6CH4WOrr577bHXFcjEVRGjZxatgy4CJ3cr0M0h4vfw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ruslan Bilovol <ruslan.bilovol@gmail.com>
-Cc: linux@arm.linux.org.uk, tony@atomide.com, linux-kernel@vger.kernel.org, eduardo.valentin@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50681 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752364Ab3A3AXp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 19:23:45 -0500
+In-Reply-To: <20130128132210.433568c8c28fe1b7f0e70085@studenti.unina.it>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: linux-media@vger.kernel.org, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Sergio Aguirre <sergio.a.aguirre@gmail.com>, Michael Trimarchi <michael@amarulasolutions.com>, linux-omap@vger.kernel.org
 
-On 01:08-20130130, Ruslan Bilovol wrote:
+Hi Antonio,
+
+On Monday 28 January 2013 13:22:10 Antonio Ospite wrote:
 > Hi,
 > 
-> On Tue, Jan 29, 2013 at 6:02 PM, Nishanth Menon <nm@ti.com> wrote:
-> >
-> > On 17:54-20130129, Ruslan Bilovol wrote:
-> > > Hi,
-> > >
-> > > The following patches update cpuinfo to print CPU
-> > > model name for ARM. First patch exactly makes needed
-> > > changes for ARM architecture.
-> > > Second patch adds this ability to OMAP4 SoCs.
-> > >
-> > > This adds a common approach to show SoC name.
-> > >
-> > > Looks like there were few attempts to do similar
-> > > changes to cpuinfo without any luck.
-> > >
-> > > So - comments are welcome
-> > >
-> > > Ruslan Bilovol (2):
-> > >   ARM: kernel: update cpuinfo to print CPU model name
-> > >   ARM: OMAP4: setup CPU model name during ID initialisation
-> >
-> > We had an discussion on similar lines but a generic suggestion:
-> > https://patchwork.kernel.org/patch/98720/
-> > SoCinfo framework which was supposed to introduce this
-> >
-> > Would'nt that be a better approach to take than an OMAP only solution?
+> looking at the MIPI Alliance Specification for Camera Serial Interface
+> 2 (I'll call it MIPI-CSI2 from now on, the document I am referring to
+> is mentioned at [1] and available at [2]), I see there is an YUV420 8
+> bit format (MIPI Data Type 0x18) specified with interleaved components
+> in the form of:
 > 
-> My goal is only to say what is the SoC model name in the /proc/cpuinfo
-> (And it is not an OMAP-only solution - it is common. Support for OMAP
-> is added in second patch)
-> This is the only type of information that we can apply for any SoC.
-> My point is - any SoC-specific information should go through some other
-> way - like SoCinfo framework mentioned by you.
-> And additional point - in cpuinfo we already have CPU name and Machine name.
-> The SoC name (that is something between these two things) looks also relevant
-Looking at the sample output in patch #1/2
-OMAP4470 ES1.0 HS
+>   YYYY...     (odd lines)
+>   UYVYUYVY... (even lines)
+> 
+> With even lines twice the size of odd lines.
+> Such format is also supported by some sensors, for instance ov5640, and
+> by MIPI-CSI2 receivers like OMAP4 ISS.
+> 
+> The doubt I have is: how should I represent those formats as media bus
+> formats?
 
-OMAP4470 is SoC name
-ES1.0 is SoC revision
-HS is SoC type
+We likely need new media bus formats to describe those.
 
-We even have SoC features (e.g. at boot NEON etc..)
+> I've seen that some drivers (sensors and SoC, for instance[3]) tend to
+> identify the MIPI-CSI2 format above (0x18) with media bus formats like
+> V4L2_MBUS_FMT_UYVY8_1_5X8 (actually the code above uses
+> V4L2_MBUS_FMT_YUYV8_1_5X8 is this OK?), but from the v4l2 documentation
+> [4] I understand that this format is supposed to have data in this
+> configuration:
+> 
+>   UUUU...
+>   YYYY...
+>   YYYY...
+>   VVVV...
+>   YYYY...
+>   YYYY...
 
-Is the intent to put all this inside /proc/cpuinfo?? I bet every SoC has
-it's own interesting data it'd like to have (like some of the info
-populated by DT even). I am hardpressed to think this fits inside
-/proc/cpuinfo. I might even suspect that the list of interesting
-information might even vary per SoC.
+Not exactly, the UYVY8_1_5X8 is transmits Y, U and V samples as UYYVYY...
 
-having machine name is something ARM specific? dumping it on my linux
-machines (x86[1] and sparc[2]) dont seem to show that.
+> That is with interleaved lines, but NOT interleaved components. Should
+> new media bus formats be added for YYYY.../UYVYUYVY...?
 
-but in the interest of not breaking existing interfaces, new interfaces
-should potentially belong elsewhere.. my 2 cents.
+Yes, I think so.
 
-[1] http://pastebin.com/CF8HPDAC (Xubuntu 12.04 3.2.0-36)
-[2] http://pastebin.com/qNwWHwiu (Debian 3.2.35-2)
+> Another doubt I have is: how is the YYYY.../UYVYUYVY... data supposed
+> to be processed in userspace? Is the MIPI Receiver (i.e, the SoC)
+> expected to be able to convert it to a more usable format like YUV420P
+> or NV12/NV21? Or are there applications capable of handling this data
+> directly, or efficiently convert them to planar or semi-planar YUV420
+> formats?
+
+The bridge (receiver and DMA engine) driver will expose V4L2 pixel formats 
+corresponding to the bridge capabilities. If the bridge can store the above 
+stream in memory in NV12 it will expose that to applications. If the bridge 
+stores data in memory as described above, it will just expose that format (it 
+seems to correspond to the V4L2 M420 pixel format), and applications will need 
+to handle that explicitly.
+
+> In particular I am curios if the OMAP4 ISS can do the conversion to NV12, I
+> understand that the formats with interleaved _lines_ can be produced by the
+> resizer and handled by the OMAP ISP DMA-Engine by setting buffers offsets to
+> Y and UV in order to send NV12 data to userspace, but I couldn't find info
+> about how to handle the YUV420 MIPI-CSI2 formats (interleaved components)
+> without the resizer in the Developer Manual [5]; having NV12 data directly
+> from the hardware without using the OMAP4 ISS/ISP Resizer can be valuable in
+> some use cases (e.g. dual camera setups).
+
+No idea about that, sorry.
+
+> [1] http://www.mipi.org/specifications/camera-interface#CSI2
+> [2] http://ishare.sina.cn/dintro.php?id=20498632
+> [3]
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=driver
+> s/media/platform/soc_camera/sh_mobile_csi2.c;h=a17aba9a0104c41cbc4e5e5d27701
+> 0ecac577600;hb=HEAD#l108 [4]
+> http://kernel.org/doc/htmldocs/media/subdev.html#v4l2-mbus-pixelcode-yuv8
+> [5] http://www.ti.com/lit/ug/swpu235w/swpu235w.pdf
+
 -- 
 Regards,
-Nishanth Menon
+
+Laurent Pinchart
