@@ -1,53 +1,88 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [PATCH v2] ARM: OMAP2: hwmod: Fix "register offset NULL check"
- bug
-Date: Wed, 30 Jan 2013 14:07:08 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EB5920F@DBDE01.ent.ti.com>
-References: <1355835378-23437-1-git-send-email-gururaja.hebbar@ti.com>
- <alpine.DEB.2.00.1212190210021.2446@utopia.booyaka.com>
- <1BAFE6F6C881BF42822005164F1491C33EB0C4FB@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1212200734160.7362@utopia.booyaka.com>
+From: Shawn Guo <shawn.guo@linaro.org>
+Subject: [PATCH] ARM: omap2: register cpufreq-cpu0 device for am33xx
+Date: Wed, 30 Jan 2013 22:32:22 +0800
+Message-ID: <1359556342-17020-1-git-send-email-shawn.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51097 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754843Ab3A3OHV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 09:07:21 -0500
-In-Reply-To: <alpine.DEB.2.00.1212200734160.7362@utopia.booyaka.com>
-Content-Language: en-US
+Received: from co9ehsobe002.messaging.microsoft.com ([207.46.163.25]:32533
+	"EHLO co9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751082Ab3A3Ocj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Jan 2013 09:32:39 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, AnilKumar Ch <anilkumar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
 
-On Thu, Dec 20, 2012 at 13:05:27, Paul Walmsley wrote:
-> On Thu, 20 Dec 2012, Hebbar, Gururaja wrote:
-> 
-> > On Wed, Dec 19, 2012 at 07:43:50, Paul Walmsley wrote:
-> > 
-> > > We've got a few hwmods on OMAP44xx that don't have clkctrl_offs registers 
-> > > listed in the hwmod data, and which are not marked with HWMOD_NO_IDLEST.  
-> > > What's going to happen in those cases?
-> > 
-> > Hmm. This is a special case to me. Let me go back and do some review.
-> > Will be back with some more details.
-> 
-> Probably what needs to happen is that those hwmods need to be marked with 
-> HWMOD_NO_IDLEST, in a separate patch before yours.  As far as I can tell, 
-> that's how they should have been marked initially.  Then your patch should 
-> be fine.
+The cpufreq-cpu0 driver changes to instantiate use platform_driver
+mechanism.  The patch is an am33xx platform level adaptation for it.
 
-Looking at latest kernel v3.8-rc5, there is separate cm33xx.c file which
-handles module ready checking for am33xx platform. So I will update this 
-patch to work on this file instead of touching omap4 related file 
-(cminst44xx.c)
+Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+---
+ arch/arm/mach-omap2/board-generic.c   |    1 +
+ arch/arm/mach-omap2/cclock33xx_data.c |    2 +-
+ arch/arm/mach-omap2/common.h          |    1 +
+ arch/arm/mach-omap2/io.c              |    8 ++++++++
+ 4 files changed, 11 insertions(+), 1 deletion(-)
 
-> 
-> - Paul
-> 
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 53cb380b..b945480 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -139,6 +139,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
+ 	.init_irq	= omap_intc_of_init,
+ 	.handle_irq	= omap3_intc_handle_irq,
+ 	.init_machine	= omap_generic_init,
++	.init_late	= am33xx_init_late,
+ 	.timer		= &omap3_am33xx_timer,
+ 	.dt_compat	= am33xx_boards_compat,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
+index ea64ad6..acb1620 100644
+--- a/arch/arm/mach-omap2/cclock33xx_data.c
++++ b/arch/arm/mach-omap2/cclock33xx_data.c
+@@ -850,7 +850,7 @@ static struct omap_clk am33xx_clks[] = {
+ 	CLK(NULL,	"dpll_core_m5_ck",	&dpll_core_m5_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_core_m6_ck",	&dpll_core_m6_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_mpu_ck",		&dpll_mpu_ck,	CK_AM33XX),
+-	CLK("cpu0",	NULL,			&dpll_mpu_ck,	CK_AM33XX),
++	CLK("cpufreq-cpu0.0",	NULL,		&dpll_mpu_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_mpu_m2_ck",	&dpll_mpu_m2_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_ddr_ck",		&dpll_ddr_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_ddr_m2_ck",	&dpll_ddr_m2_ck,	CK_AM33XX),
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 948bcaa..e3355df5 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -106,6 +106,7 @@ void omap2430_init_late(void);
+ void omap3430_init_late(void);
+ void omap35xx_init_late(void);
+ void omap3630_init_late(void);
++void am33xx_init_late(void);
+ void am35xx_init_late(void);
+ void ti81xx_init_late(void);
+ void omap4430_init_late(void);
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 2c3fdd6..0e67711 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -535,6 +535,14 @@ void __init omap3630_init_late(void)
+ 	omap2_clk_enable_autoidle_all();
+ }
+ 
++void __init am33xx_init_late(void)
++{
++	struct platform_device_info devinfo = { .name = "cpufreq-cpu0", };
++
++	if (IS_ENABLED(CONFIG_GENERIC_CPUFREQ_CPU0))
++		platform_device_register_full(&devinfo);
++}
++
+ void __init am35xx_init_late(void)
+ {
+ 	omap_mux_late_init();
+-- 
+1.7.9.5
 
 
-Regards, 
-Gururaja
