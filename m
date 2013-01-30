@@ -1,101 +1,100 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: On MIPI-CSI2 YUV420 formats and V4L2 Media Bus formats
-Date: Wed, 30 Jan 2013 01:23:48 +0100
-Message-ID: <3106282.VAxg78mvQZ@avalon>
-References: <20130128132210.433568c8c28fe1b7f0e70085@studenti.unina.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: [RFC PATCH v2 1/2] ARM: kernel: update cpuinfo to print SoC model name
+Date: Wed, 30 Jan 2013 02:38:56 +0200
+Message-ID: <1359506337-21619-2-git-send-email-ruslan.bilovol@ti.com>
+References: <1359506337-21619-1-git-send-email-ruslan.bilovol@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50681 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752364Ab3A3AXp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 19:23:45 -0500
-In-Reply-To: <20130128132210.433568c8c28fe1b7f0e70085@studenti.unina.it>
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:53379 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751467Ab3A3AjH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jan 2013 19:39:07 -0500
+In-Reply-To: <1359506337-21619-1-git-send-email-ruslan.bilovol@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Antonio Ospite <ospite@studenti.unina.it>
-Cc: linux-media@vger.kernel.org, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Sergio Aguirre <sergio.a.aguirre@gmail.com>, Michael Trimarchi <michael@amarulasolutions.com>, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, eduardo.valentin@ti.com
 
-Hi Antonio,
+Currently, reading /proc/cpuinfo provides userspace with CPU ID of
+the CPU carrying out the read from the file.
+Userspace using this information may decide what module
+to load or how to configure some specific (and processor-depended)
+settings or so.
+However, since really different SoCs can share same ARM core,
+this information currently is not so useful.
+For example, TI OMAP4460 and OMAP4470 SoCs show the same
+information in the /proc/cpuinfo whereas they are different.
+Since in most cases ARM CPU is a part of some system on a chip (SoC),
+the "cpuinfo" file looks like exactly that place, where this
+information have to be displayed.
 
-On Monday 28 January 2013 13:22:10 Antonio Ospite wrote:
-> Hi,
-> 
-> looking at the MIPI Alliance Specification for Camera Serial Interface
-> 2 (I'll call it MIPI-CSI2 from now on, the document I am referring to
-> is mentioned at [1] and available at [2]), I see there is an YUV420 8
-> bit format (MIPI Data Type 0x18) specified with interleaved components
-> in the form of:
-> 
->   YYYY...     (odd lines)
->   UYVYUYVY... (even lines)
-> 
-> With even lines twice the size of odd lines.
-> Such format is also supported by some sensors, for instance ov5640, and
-> by MIPI-CSI2 receivers like OMAP4 ISS.
-> 
-> The doubt I have is: how should I represent those formats as media bus
-> formats?
+So added new line "SoC name" in the "cpuinfo" output for system
+on a chip name. It is placed between CPU information and machine
+information, so the file structure looks gracefully (CPU-SoC-Hardware)
 
-We likely need new media bus formats to describe those.
+Example:
 
-> I've seen that some drivers (sensors and SoC, for instance[3]) tend to
-> identify the MIPI-CSI2 format above (0x18) with media bus formats like
-> V4L2_MBUS_FMT_UYVY8_1_5X8 (actually the code above uses
-> V4L2_MBUS_FMT_YUYV8_1_5X8 is this OK?), but from the v4l2 documentation
-> [4] I understand that this format is supposed to have data in this
-> configuration:
-> 
->   UUUU...
->   YYYY...
->   YYYY...
->   VVVV...
->   YYYY...
->   YYYY...
+/ # cat proc/cpuinfo
+[...]
+CPU variant     : 0x2
+CPU part        : 0xc09
+CPU revision    : 10
 
-Not exactly, the UYVY8_1_5X8 is transmits Y, U and V samples as UYYVYY...
+SoC name        : OMAP4470 ES1.0 HS
 
-> That is with interleaved lines, but NOT interleaved components. Should
-> new media bus formats be added for YYYY.../UYVYUYVY...?
+Hardware        : OMAP4 Blaze Tablet
+Revision        : 20edb4
+[...]
 
-Yes, I think so.
+Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+---
+ arch/arm/include/asm/setup.h |    1 +
+ arch/arm/kernel/setup.c      |    9 +++++++++
+ 2 files changed, 10 insertions(+)
 
-> Another doubt I have is: how is the YYYY.../UYVYUYVY... data supposed
-> to be processed in userspace? Is the MIPI Receiver (i.e, the SoC)
-> expected to be able to convert it to a more usable format like YUV420P
-> or NV12/NV21? Or are there applications capable of handling this data
-> directly, or efficiently convert them to planar or semi-planar YUV420
-> formats?
-
-The bridge (receiver and DMA engine) driver will expose V4L2 pixel formats 
-corresponding to the bridge capabilities. If the bridge can store the above 
-stream in memory in NV12 it will expose that to applications. If the bridge 
-stores data in memory as described above, it will just expose that format (it 
-seems to correspond to the V4L2 M420 pixel format), and applications will need 
-to handle that explicitly.
-
-> In particular I am curios if the OMAP4 ISS can do the conversion to NV12, I
-> understand that the formats with interleaved _lines_ can be produced by the
-> resizer and handled by the OMAP ISP DMA-Engine by setting buffers offsets to
-> Y and UV in order to send NV12 data to userspace, but I couldn't find info
-> about how to handle the YUV420 MIPI-CSI2 formats (interleaved components)
-> without the resizer in the Developer Manual [5]; having NV12 data directly
-> from the hardware without using the OMAP4 ISS/ISP Resizer can be valuable in
-> some use cases (e.g. dual camera setups).
-
-No idea about that, sorry.
-
-> [1] http://www.mipi.org/specifications/camera-interface#CSI2
-> [2] http://ishare.sina.cn/dintro.php?id=20498632
-> [3]
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=driver
-> s/media/platform/soc_camera/sh_mobile_csi2.c;h=a17aba9a0104c41cbc4e5e5d27701
-> 0ecac577600;hb=HEAD#l108 [4]
-> http://kernel.org/doc/htmldocs/media/subdev.html#v4l2-mbus-pixelcode-yuv8
-> [5] http://www.ti.com/lit/ug/swpu235w/swpu235w.pdf
-
+diff --git a/arch/arm/include/asm/setup.h b/arch/arm/include/asm/setup.h
+index c50f056..621df40 100644
+--- a/arch/arm/include/asm/setup.h
++++ b/arch/arm/include/asm/setup.h
+@@ -52,5 +52,6 @@ extern struct meminfo meminfo;
+ extern int arm_add_memory(phys_addr_t start, phys_addr_t size);
+ extern void early_print(const char *str, ...);
+ extern void dump_machine_table(void);
++extern void set_soc_model_name(char *name);
+ 
+ #endif
+diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+index 3f6cbb2..bb3805f 100644
+--- a/arch/arm/kernel/setup.c
++++ b/arch/arm/kernel/setup.c
+@@ -134,6 +134,7 @@ char elf_platform[ELF_PLATFORM_SIZE];
+ EXPORT_SYMBOL(elf_platform);
+ 
+ static const char *cpu_name;
++static const char *soc_name;
+ static const char *machine_name;
+ static char __initdata cmd_line[COMMAND_LINE_SIZE];
+ struct machine_desc *machine_desc __initdata;
+@@ -493,6 +494,11 @@ static void __init setup_processor(void)
+ 	cpu_init();
+ }
+ 
++void set_soc_model_name(char *name)
++{
++	soc_name = name;
++}
++
+ void __init dump_machine_table(void)
+ {
+ 	struct machine_desc *p;
+@@ -902,6 +908,9 @@ static int c_show(struct seq_file *m, void *v)
+ 		seq_printf(m, "CPU revision\t: %d\n\n", cpuid & 15);
+ 	}
+ 
++	if (soc_name)
++		seq_printf(m, "SoC name\t: %s\n\n", soc_name);
++
+ 	seq_printf(m, "Hardware\t: %s\n", machine_name);
+ 	seq_printf(m, "Revision\t: %04x\n", system_rev);
+ 	seq_printf(m, "Serial\t\t: %08x%08x\n",
 -- 
-Regards,
+1.7.9.5
 
-Laurent Pinchart
