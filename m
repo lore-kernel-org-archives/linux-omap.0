@@ -1,75 +1,44 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [RFC PATCH v3 1/2] ARM: kernel: update cpuinfo to print SoC model
- name
-Date: Wed, 30 Jan 2013 16:02:54 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1301301602220.6300@xanadu.home>
-References: <1359558091-29251-1-git-send-email-ruslan.bilovol@ti.com>
- <1359558091-29251-2-git-send-email-ruslan.bilovol@ti.com>
- <alpine.LFD.2.02.1301301402330.6300@xanadu.home>
- <CAKGA1bncYCAwvU1-ZYkAYd_RGUvqq4NCWDeV5EXt4Z6qrgr3Sw@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: Audio support via omap-twl4030 and pwm
+ support
+Date: Wed, 30 Jan 2013 14:05:32 -0800
+Message-ID: <20130130220532.GA22517@atomide.com>
+References: <50FE64DC.2030808@ti.com>
+ <510788B9.9050907@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:62420 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751486Ab3A3VC4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 16:02:56 -0500
-In-reply-to: <CAKGA1bncYCAwvU1-ZYkAYd_RGUvqq4NCWDeV5EXt4Z6qrgr3Sw@mail.gmail.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:37414 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757083Ab3A3WFg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 17:05:36 -0500
+Content-Disposition: inline
+In-Reply-To: <510788B9.9050907@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matt Sealey <matt@genesi-usa.com>
-Cc: Ruslan Bilovol <ruslan.bilovol@ti.com>, Linux ARM Kernel ML <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, tony@atomide.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, eduardo.valentin@ti.com
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, 30 Jan 2013, Matt Sealey wrote:
-
-> On Wed, Jan 30, 2013 at 1:07 PM, Nicolas Pitre <nico@fluxnic.net> wrote:
-> > On Wed, 30 Jan 2013, Ruslan Bilovol wrote:
-> >
-> >> Currently, reading /proc/cpuinfo provides userspace with CPU ID of
-> >> the CPU carrying out the read from the file.
-> >> Userspace using this information may decide what module
-> >> to load or how to configure some specific (and processor-depended)
-> >> settings or so.
-> >> However, since really different SoCs can share same ARM core,
-> >> this information currently is not so useful.
-> >> For example, TI OMAP4460 and OMAP4470 SoCs show the same
-> >> information in the /proc/cpuinfo whereas they are different.
-> >> Since in most cases ARM CPU is a part of some system on a chip (SoC),
-> >> the "cpuinfo" file looks like exactly that place, where this
-> >> information have to be displayed.
-> >>
-> >> So added new line "SoC name" in the "cpuinfo" output for system
-> >> on a chip name. It is placed between CPU information and machine
-> >> information, so the file structure looks gracefully (CPU-SoC-Hardware)
-> >>
-> >> Example:
-> >>
-> >> / # cat proc/cpuinfo
-> >> [...]
-> >> CPU variant     : 0x2
-> >> CPU part        : 0xc09
-> >> CPU revision    : 10
-> >>
-> >> SoC name        : OMAP4470
-> >>
-> >> Hardware        : OMAP4 Blaze Tablet
-> >
-> > Please remove that extra blank line between "SoC name" and "Hardware".
-> > The blank line after "CPU revision" is fine.
-> >
-> > Also, please rename this to "System name".  Not all systems are "on
-> > chip".  By using "System name" this is more universally useful.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [130129 00:34]:
+> Hi Tony,
 > 
-> I can't agree with "System name", it is confusing in common
-> terminology since it's about the same definition as the current
-> "Hardware" line.
+> On 01/22/2013 11:07 AM, Peter Ujfalusi wrote:
+> > Hi Tony,
+> > 
+> > The content of this pull:
+> > 
+> > update for audio support via omap-twl4030 and pwm updates in board level:
+> > http://www.spinics.net/lists/linux-omap/msg85085.html
+> > 
+> > and zoom-peripherals update to not request the TWL GPIO7:
+> > http://www.spinics.net/lists/linux-omap/msg85187.html
+> > 
+> > All is on top of mainline v3.8-rc4 tag.
 > 
-> If we're just printing out the name of the device surrounding the CPU
-> - be it a Northbridge/Southbridge combination or SoC packaging -
-> "Chipset" might be a better name for it.
+> Have you already pulled this one? I can not find the patches in linux-next.
 
-That suits me as well.
+Pulled now thanks. Will push out to omap-for-v3.9/twl.
 
+Regards,
 
-Nicolas
+Tony
