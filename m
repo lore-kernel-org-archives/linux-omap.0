@@ -1,47 +1,82 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3] ARM: OMAP2: am33xx-hwmod: Fix "register offset NULL
- check" bug
-Date: Wed, 30 Jan 2013 16:42:22 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301301641490.17105@utopia.booyaka.com>
-References: <1359556760-25214-1-git-send-email-gururaja.hebbar@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: MAINTAINERS: change omap_hsmmc maintenance
+ to orphan
+Date: Wed, 30 Jan 2013 22:22:11 +0530
+Message-ID: <51094FBB.7050503@ti.com>
+References: <1358343026-17198-1-git-send-email-svenkatr@gmail.com> <8738xl8020.fsf@laptop.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:46286 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754331Ab3A3QmX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 11:42:23 -0500
-In-Reply-To: <1359556760-25214-1-git-send-email-gururaja.hebbar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <8738xl8020.fsf@laptop.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: Venkatraman S <svenkatr@gmail.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Hebbar Gururaja <gururaja.hebbar@ti.com>
-Cc: tony@atomide.com, b-cousson@ti.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, sudhakar.raj@ti.com, linux@arm.linux.org.uk, hvaibhav@ti.com, vaibhav.bedia@ti.com
 
-On Wed, 30 Jan 2013, Hebbar Gururaja wrote:
+On Tuesday 29 January 2013 03:03 AM, Chris Ball wrote:
+> Hi,
+>
+> On Wed, Jan 16 2013, Venkatraman S wrote:
+>> The specified email id is no longer in service.
+>> Update the OMAP HSMMC entry from the MAINTAINERS file as I will
+>> no longer be able to maintain this driver.
+>>
+>> Signed-off-by: Venkatraman S <svenkatr@gmail.com>
+>> ---
+>>   MAINTAINERS |    4 +---
+>>   1 file changed, 1 insertion(+), 3 deletions(-)
+>>
+>> diff --git a/MAINTAINERS b/MAINTAINERS
+>> index cd5b31f..95778e1 100644
+>> --- a/MAINTAINERS
+>> +++ b/MAINTAINERS
+>> @@ -5499,10 +5499,8 @@ S:	Maintained
+>>   F:	drivers/mmc/host/omap.c
+>>
+>>   OMAP HS MMC SUPPORT
+>> -M:	Venkatraman S <svenkatr@ti.com>
+>> -L:	linux-mmc@vger.kernel.org
+>>   L:	linux-omap@vger.kernel.org
+>> -S:	Maintained
+>> +S:	Orphan
+>>   F:	drivers/mmc/host/omap_hsmmc.c
+>>
+>>   OMAP RANDOM NUMBER GENERATOR SUPPORT
+>
+> Thanks for your work on omap_hsmmc, Venkat!
+>
+> Is anyone else interested in taking up maintenance of omap_hsmmc?
 
-> am33xx_cm_wait_module_ready() checks if register offset is NULL.
-> 
-> int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-> {
-> 	int i = 0;
-> 
-> 	if (!clkctrl_offs)
-> 		return 0;
-> 
-> In case of AM33xx, CLKCTRL register offset for different clock domains
-> are not uniformly placed. An example of this would be the RTC clock
-> domain with CLKCTRL offset at 0x00.
-> In such cases the module ready check is skipped which leads to a data
-> abort during boot-up when RTC registers is accessed.
-> 
-> Remove this check here to avoid checking module readiness for modules
-> with clkctrl register offset at 0x00.
-> 
-> Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
+Hi Chris,
+I am interested in maintaining omap_hsmmc,
+Please add me as Maintainer and Thanks Venkat for his support
 
-See 
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH] mmc: omap_hsmmc: MAINTAINERS: update
 
-http://marc.info/?l=linux-omap&m=135956399407076&w=2
+Update Maintainer email for omap_hsmmc,
+as Venkatraman will no longer be able to maintain omap_hsmmc driver.
 
+Signed-off-by: Venkatraman S <svenkatr@gmail.com>
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+  MAINTAINERS |    2 +-
+  1 file changed, 1 insertion(+), 1 deletion(-)
 
-- Paul
+Index: linux2/MAINTAINERS
+===================================================================
+--- linux2.orig/MAINTAINERS	2013-01-30 22:12:51.449322930 +0530
++++ linux2/MAINTAINERS	2013-01-30 22:21:22.412224531 +0530
+@@ -5454,7 +5454,7 @@ S:	Maintained
+  F:	drivers/mmc/host/omap.c
+
+  OMAP HS MMC SUPPORT
+-M:	Venkatraman S <svenkatr@ti.com>
++M:	Balaji T K <balajitk@ti.com>
+  L:	linux-mmc@vger.kernel.org
+  L:	linux-omap@vger.kernel.org
+  S:	Maintained
+>
+> - Chris.
+>
