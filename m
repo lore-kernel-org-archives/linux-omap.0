@@ -1,32 +1,64 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH 1/1] drivers: net: davinci_cpdma: acknowledge interrupt properly
-Date: Wed, 30 Jan 2013 21:03:27 +0100
-Message-ID: <EF466712-C5FF-4A91-BDF3-477559B02705@dominion.thruhere.net>
-References: <1359575813-15703-1-git-send-email-mugunthanvnm@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f41.google.com ([74.125.83.41]:57197 "EHLO
-	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752411Ab3A3UD2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 15:03:28 -0500
-Received: by mail-ee0-f41.google.com with SMTP id c13so1093275eek.28
-        for <linux-omap@vger.kernel.org>; Wed, 30 Jan 2013 12:03:27 -0800 (PST)
-In-Reply-To: <1359575813-15703-1-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Matt Sealey <matt@genesi-usa.com>
+Subject: Re: [RFC PATCH v3 1/2] ARM: kernel: update cpuinfo to print SoC model name
+Date: Wed, 30 Jan 2013 14:37:53 -0600
+Message-ID: <CAKGA1bncYCAwvU1-ZYkAYd_RGUvqq4NCWDeV5EXt4Z6qrgr3Sw@mail.gmail.com>
+References: <1359558091-29251-1-git-send-email-ruslan.bilovol@ti.com>
+ <1359558091-29251-2-git-send-email-ruslan.bilovol@ti.com> <alpine.LFD.2.02.1301301402330.6300@xanadu.home>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.02.1301301402330.6300@xanadu.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: Ruslan Bilovol <ruslan.bilovol@ti.com>, Linux ARM Kernel ML <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, tony@atomide.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, eduardo.valentin@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, panto@antoniou-consulting.com
 
+On Wed, Jan 30, 2013 at 1:07 PM, Nicolas Pitre <nico@fluxnic.net> wrote:
+> On Wed, 30 Jan 2013, Ruslan Bilovol wrote:
+>
+>> Currently, reading /proc/cpuinfo provides userspace with CPU ID of
+>> the CPU carrying out the read from the file.
+>> Userspace using this information may decide what module
+>> to load or how to configure some specific (and processor-depended)
+>> settings or so.
+>> However, since really different SoCs can share same ARM core,
+>> this information currently is not so useful.
+>> For example, TI OMAP4460 and OMAP4470 SoCs show the same
+>> information in the /proc/cpuinfo whereas they are different.
+>> Since in most cases ARM CPU is a part of some system on a chip (SoC),
+>> the "cpuinfo" file looks like exactly that place, where this
+>> information have to be displayed.
+>>
+>> So added new line "SoC name" in the "cpuinfo" output for system
+>> on a chip name. It is placed between CPU information and machine
+>> information, so the file structure looks gracefully (CPU-SoC-Hardware)
+>>
+>> Example:
+>>
+>> / # cat proc/cpuinfo
+>> [...]
+>> CPU variant     : 0x2
+>> CPU part        : 0xc09
+>> CPU revision    : 10
+>>
+>> SoC name        : OMAP4470
+>>
+>> Hardware        : OMAP4 Blaze Tablet
+>
+> Please remove that extra blank line between "SoC name" and "Hardware".
+> The blank line after "CPU revision" is fine.
+>
+> Also, please rename this to "System name".  Not all systems are "on
+> chip".  By using "System name" this is more universally useful.
 
-Op 30 jan. 2013, om 20:56 heeft Mugunthan V N <mugunthanvnm@ti.com> het volgende geschreven:
+I can't agree with "System name", it is confusing in common
+terminology since it's about the same definition as the current
+"Hardware" line.
 
-> CPDMA interrupts are not properly acknowledged which leads to interrupt
-> storm, only cpdma interrupt 0 is acknowledged in Davinci CPDMA driver.
-> Changed cpdma_ctlr_eoi api to acknowledge 1 and 2 interrupts which are
-> used for rx and tx respectively.
+If we're just printing out the name of the device surrounding the CPU
+- be it a Northbridge/Southbridge combination or SoC packaging -
+"Chipset" might be a better name for it.
 
-A brief inspection shows that this still isn't following the TRM, but Pantelis' patch does. Can you please fix this driver to follow the TRM and make it work on both PG1.0 and PG2.0 instead of papering over bugs instead of fixing them properly?
-
-
+-- 
+Matt Sealey <matt@genesi-usa.com>
+Product Development Analyst, Genesi USA, Inc.
