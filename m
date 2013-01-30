@@ -1,88 +1,66 @@
-From: Shawn Guo <shawn.guo@linaro.org>
-Subject: [PATCH] ARM: omap2: register cpufreq-cpu0 device for am33xx
-Date: Wed, 30 Jan 2013 22:32:22 +0800
-Message-ID: <1359556342-17020-1-git-send-email-shawn.guo@linaro.org>
+From: Hebbar Gururaja <gururaja.hebbar@ti.com>
+Subject: [PATCH v3] ARM: OMAP2: am33xx-hwmod: Fix "register offset NULL check" bug
+Date: Wed, 30 Jan 2013 20:09:20 +0530
+Message-ID: <1359556760-25214-1-git-send-email-gururaja.hebbar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from co9ehsobe002.messaging.microsoft.com ([207.46.163.25]:32533
-	"EHLO co9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751082Ab3A3Ocj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Jan 2013 09:32:39 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:37145 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752618Ab3A3Ojr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Jan 2013 09:39:47 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, AnilKumar Ch <anilkumar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
+To: tony@atomide.com, b-cousson@ti.com, paul@pwsan.com, khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, sudhakar.raj@ti.com, gururaja.hebbar@ti.com, linux@arm.linux.org.uk, hvaibhav@ti.com, vaibhav.bedia@ti.com
 
-The cpufreq-cpu0 driver changes to instantiate use platform_driver
-mechanism.  The patch is an am33xx platform level adaptation for it.
+am33xx_cm_wait_module_ready() checks if register offset is NULL.
 
-Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
+{
+	int i = 0;
+
+	if (!clkctrl_offs)
+		return 0;
+
+In case of AM33xx, CLKCTRL register offset for different clock domains
+are not uniformly placed. An example of this would be the RTC clock
+domain with CLKCTRL offset at 0x00.
+In such cases the module ready check is skipped which leads to a data
+abort during boot-up when RTC registers is accessed.
+
+Remove this check here to avoid checking module readiness for modules
+with clkctrl register offset at 0x00.
+
+Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
 ---
- arch/arm/mach-omap2/board-generic.c   |    1 +
- arch/arm/mach-omap2/cclock33xx_data.c |    2 +-
- arch/arm/mach-omap2/common.h          |    1 +
- arch/arm/mach-omap2/io.c              |    8 ++++++++
- 4 files changed, 11 insertions(+), 1 deletion(-)
+Changes in v3:
+	- Since now there is separate cm33xx.c file which handles module
+	ready checking for am33xx platform, use the same for the fix.
+	- Also update subject to indicate am33xx platform name
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 53cb380b..b945480 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -139,6 +139,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
- 	.init_irq	= omap_intc_of_init,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap_generic_init,
-+	.init_late	= am33xx_init_late,
- 	.timer		= &omap3_am33xx_timer,
- 	.dt_compat	= am33xx_boards_compat,
- MACHINE_END
-diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
-index ea64ad6..acb1620 100644
---- a/arch/arm/mach-omap2/cclock33xx_data.c
-+++ b/arch/arm/mach-omap2/cclock33xx_data.c
-@@ -850,7 +850,7 @@ static struct omap_clk am33xx_clks[] = {
- 	CLK(NULL,	"dpll_core_m5_ck",	&dpll_core_m5_ck,	CK_AM33XX),
- 	CLK(NULL,	"dpll_core_m6_ck",	&dpll_core_m6_ck,	CK_AM33XX),
- 	CLK(NULL,	"dpll_mpu_ck",		&dpll_mpu_ck,	CK_AM33XX),
--	CLK("cpu0",	NULL,			&dpll_mpu_ck,	CK_AM33XX),
-+	CLK("cpufreq-cpu0.0",	NULL,		&dpll_mpu_ck,	CK_AM33XX),
- 	CLK(NULL,	"dpll_mpu_m2_ck",	&dpll_mpu_m2_ck,	CK_AM33XX),
- 	CLK(NULL,	"dpll_ddr_ck",		&dpll_ddr_ck,	CK_AM33XX),
- 	CLK(NULL,	"dpll_ddr_m2_ck",	&dpll_ddr_m2_ck,	CK_AM33XX),
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 948bcaa..e3355df5 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -106,6 +106,7 @@ void omap2430_init_late(void);
- void omap3430_init_late(void);
- void omap35xx_init_late(void);
- void omap3630_init_late(void);
-+void am33xx_init_late(void);
- void am35xx_init_late(void);
- void ti81xx_init_late(void);
- void omap4430_init_late(void);
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 2c3fdd6..0e67711 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -535,6 +535,14 @@ void __init omap3630_init_late(void)
- 	omap2_clk_enable_autoidle_all();
- }
- 
-+void __init am33xx_init_late(void)
-+{
-+	struct platform_device_info devinfo = { .name = "cpufreq-cpu0", };
-+
-+	if (IS_ENABLED(CONFIG_GENERIC_CPUFREQ_CPU0))
-+		platform_device_register_full(&devinfo);
-+}
-+
- void __init am35xx_init_late(void)
+Changes in v2:
+	- update commit message to reflect the actual cause. Previous
+	message conveyed a wrong/opposite message.
+
+:100644 100644 058ce3c... 325a515... M	arch/arm/mach-omap2/cm33xx.c
+ arch/arm/mach-omap2/cm33xx.c |    3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
+index 058ce3c..325a515 100644
+--- a/arch/arm/mach-omap2/cm33xx.c
++++ b/arch/arm/mach-omap2/cm33xx.c
+@@ -241,9 +241,6 @@ int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
  {
- 	omap_mux_late_init();
+ 	int i = 0;
+ 
+-	if (!clkctrl_offs)
+-		return 0;
+-
+ 	omap_test_timeout(_is_module_ready(inst, cdoffs, clkctrl_offs),
+ 			  MAX_MODULE_READY_TIME, i);
+ 
 -- 
 1.7.9.5
-
 
