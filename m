@@ -1,66 +1,71 @@
-From: Hebbar Gururaja <gururaja.hebbar@ti.com>
-Subject: [PATCH v3] ARM: OMAP2: am33xx-hwmod: Fix "register offset NULL check" bug
-Date: Wed, 30 Jan 2013 20:09:20 +0530
-Message-ID: <1359556760-25214-1-git-send-email-gururaja.hebbar@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: [RFC PATCH v3 0/2] ARM: update cpuinfo to print SoC model name
+Date: Wed, 30 Jan 2013 17:01:29 +0200
+Message-ID: <1359558091-29251-1-git-send-email-ruslan.bilovol@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37145 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752618Ab3A3Ojr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Jan 2013 09:39:47 -0500
+Received: from mail-we0-f170.google.com ([74.125.82.170]:43207 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751042Ab3A3PBh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 10:01:37 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, b-cousson@ti.com, paul@pwsan.com, khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, sudhakar.raj@ti.com, gururaja.hebbar@ti.com, linux@arm.linux.org.uk, hvaibhav@ti.com, vaibhav.bedia@ti.com
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, eduardo.valentin@ti.com
 
-am33xx_cm_wait_module_ready() checks if register offset is NULL.
 
-int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-{
-	int i = 0;
+The following patches update cpuinfo to print SoC
+model name for ARM.
+The first patch exactly makes needed changes for ARM
+architecture and adds a common approach to show SoC name.
+Second patch uses this approach for TI OMAP4 SoCs (as live
+example).
 
-	if (!clkctrl_offs)
-		return 0;
+Why we need it?
 
-In case of AM33xx, CLKCTRL register offset for different clock domains
-are not uniformly placed. An example of this would be the RTC clock
-domain with CLKCTRL offset at 0x00.
-In such cases the module ready check is skipped which leads to a data
-abort during boot-up when RTC registers is accessed.
+First - the /proc/cpuinfo becomes more informative.
+Added new line "SoC name" in the "cpuinfo" output for system
+on a chip name. It is placed between CPU information and machine
+information, so the file structure looks gracefully
+('CPU-SoC-Hardware' instead of 'CPU-Hardware' that we have now)
 
-Remove this check here to avoid checking module readiness for modules
-with clkctrl register offset at 0x00.
+Second - this information may be used by userspace
+for different purposes (as example - OMAP4460 and
+OMAP4470 SoCs have different graphics accelerators,
+and userspace may want to know what libraries
+to use and what module to insert if the graphics
+drivers are built as modules)
 
-Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
----
-Changes in v3:
-	- Since now there is separate cm33xx.c file which handles module
-	ready checking for am33xx platform, use the same for the fix.
-	- Also update subject to indicate am33xx platform name
+Looks like there were few attempts to do similar
+changes to cpuinfo without any luck (had stuck
+on review) so this functionality is still not
+in the kernel yet.
+In this patch series the update to cpuinfo is very
+short (10 lines) and easy.
 
-Changes in v2:
-	- update commit message to reflect the actual cause. Previous
-	message conveyed a wrong/opposite message.
+Comments are welcome as usual
 
-:100644 100644 058ce3c... 325a515... M	arch/arm/mach-omap2/cm33xx.c
- arch/arm/mach-omap2/cm33xx.c |    3 ---
- 1 file changed, 3 deletions(-)
+--------------------------------------------------
+v3:
+Addressed comments from Nishanth (changed 'SoC name'
+field for OMAP - now it shows only SoC name without
+additional info)
 
-diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
-index 058ce3c..325a515 100644
---- a/arch/arm/mach-omap2/cm33xx.c
-+++ b/arch/arm/mach-omap2/cm33xx.c
-@@ -241,9 +241,6 @@ int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
- {
- 	int i = 0;
- 
--	if (!clkctrl_offs)
--		return 0;
--
- 	omap_test_timeout(_is_module_ready(inst, cdoffs, clkctrl_offs),
- 			  MAX_MODULE_READY_TIME, i);
- 
+Updated commit messages. Updated this cover letter
+with additional information
+
+--------------------------------------------------
+v2:
+Addressed comments from Russel (changed 'CPU name' > 'SoC name')
+Updatet commit messages. Updated cover letter
+
+Ruslan Bilovol (2):
+  ARM: kernel: update cpuinfo to print SoC model name
+  ARM: OMAP4: setup SoC model name during ID initialisation
+
+ arch/arm/include/asm/setup.h |    1 +
+ arch/arm/kernel/setup.c      |    9 +++++++++
+ arch/arm/mach-omap2/id.c     |    5 +++++
+ 3 files changed, 15 insertions(+)
+
 -- 
 1.7.9.5
 
