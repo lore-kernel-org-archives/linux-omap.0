@@ -1,102 +1,146 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 3/5] ARM: OMAP2+: Simplify system timer clock definitions
-Date: Wed, 30 Jan 2013 11:04:29 -0600
-Message-ID: <1359565471-30721-4-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 5/5] ARM: OMAP3: Update clocksource timer selection
+Date: Wed, 30 Jan 2013 11:04:31 -0600
+Message-ID: <1359565471-30721-6-git-send-email-jon-hunter@ti.com>
 References: <1359565471-30721-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48874 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51261 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756005Ab3A3REm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Jan 2013 12:04:42 -0500
+	id S1756035Ab3A3REr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Jan 2013 12:04:47 -0500
 In-Reply-To: <1359565471-30721-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Vaibhav Bedia <vaibhav.bedia@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-In commit c59b537 (ARM: OMAP2+: Simplify dmtimer clock aliases), new
-clock aliases for dmtimers were added to simplify the code. These clock
-aliases can also be used when configuring the system timers and allow us
-to remove the current definitions, simplifying the code.
+When booting with device-tree for OMAP3 and AM335x devices and a gptimer
+is used as the clocksource (which is always the case for AM335x), a
+gptimer located in a power domain that is not always-on is selected.
+Ideally we should use a gptimer located in a power domain that is always
+on (such as the wake-up domain) so that time can be maintained during a
+kernel suspend without keeping on additional power domains unnecessarily.
+
+In order to fix this so that we can select a gptimer located in a power
+domain that is always-on, the following changes were made ...
+1. Currently, only when selecting a gptimer to use for a clockevent
+   timer, do we pass a timer property that can be used to select a
+   specific gptimer. Change this so that we can pass a property when
+   selecting a gptimer to use for a clocksource timer too.
+2. Currently, when selecting either a gptimer to use for a clockevent
+   timer or a clocksource timer and no timer property is passed, then
+   the first available timer is selected regardless of the properties
+   it has. Change this so that if no properties are passed, then a timer
+   that does not have additional features (such as always-on, dsp-irq,
+   pwm, and secure) is selected.
+
+Please note that using a gptimer for both clocksource and clockevents
+can have a system power impact during idle. The reason being is that
+OMAP and AMxxx devices typically only have one gptimer in a power domain
+that is always-on. Therefore when the kernel is idle both the clocksource
+and clockevent timers will be active and this will keep additional power
+domains on. During kernel suspend, only the clocksource timer is active
+and therefore, it is better to use a gptimer in a power domain that is
+always-on for clocksource.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/timer.c |   37 ++++++++++++++-----------------------
- 1 file changed, 14 insertions(+), 23 deletions(-)
+ arch/arm/mach-omap2/timer.c |   32 +++++++++++++++++++++-----------
+ 1 file changed, 21 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 69fe623b..e7df00a 100644
+index af20be7..acf9f82 100644
 --- a/arch/arm/mach-omap2/timer.c
 +++ b/arch/arm/mach-omap2/timer.c
-@@ -57,15 +57,6 @@
- #include "common.h"
- #include "powerdomain.h"
+@@ -163,6 +163,12 @@ static struct device_node * __init omap_get_timer_dt(struct of_device_id *match,
+ 		if (property && !of_get_property(np, property, NULL))
+ 			continue;
  
--/* Parent clocks, eventually these will come from the clock framework */
--
--#define OMAP2_MPU_SOURCE	"sys_ck"
--#define OMAP3_MPU_SOURCE	OMAP2_MPU_SOURCE
--#define OMAP4_MPU_SOURCE	"sys_clkin_ck"
--#define OMAP2_32K_SOURCE	"func_32k_ck"
--#define OMAP3_32K_SOURCE	"omap_32k_fck"
--#define OMAP4_32K_SOURCE	"sys_32k_ck"
--
- #define REALTIME_COUNTER_BASE				0x48243200
- #define INCREMENTER_NUMERATOR_OFFSET			0x10
- #define INCREMENTER_DENUMERATOR_RELOAD_OFFSET		0x14
-@@ -564,27 +555,27 @@ void __init omap##name##_sync32k_timer_init(void)		\
++		if (!property && (of_get_property(np, "ti,timer-alwon", NULL) ||
++				  of_get_property(np, "ti,timer-dsp", NULL) ||
++				  of_get_property(np, "ti,timer-pwm", NULL) ||
++				  of_get_property(np, "ti,timer-secure", NULL)))
++			continue;
++
+ 		of_add_property(np, &device_disabled);
+ 		return np;
+ 	}
+@@ -431,14 +437,16 @@ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
  }
  
- #ifdef CONFIG_ARCH_OMAP2
--OMAP_SYS_32K_TIMER_INIT(2, 1, OMAP2_32K_SOURCE, "ti,timer-alwon",
--			2, OMAP2_MPU_SOURCE);
-+OMAP_SYS_32K_TIMER_INIT(2, 1, "timer_32k_ck", "ti,timer-alwon",
-+			2, "timer_sys_ck");
- #endif /* CONFIG_ARCH_OMAP2 */
+ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
+-						const char *fck_source)
++						  const char *fck_source,
++						  const char *property)
+ {
+ 	int res;
+ 
+ 	clksrc.errata = omap_dm_timer_get_errata();
+ 
+ 	res = omap_dm_timer_init_one(&clksrc, gptimer_id, &clocksource_gpt.name,
+-				     fck_source, NULL, OMAP_TIMER_NONPOSTED);
++				     fck_source, property,
++				     OMAP_TIMER_NONPOSTED);
+ 	BUG_ON(res);
+ 
+ 	__omap_dm_timer_load_start(&clksrc,
+@@ -533,23 +541,25 @@ static inline void __init realtime_counter_init(void)
+ #endif
+ 
+ #define OMAP_SYS_GP_TIMER_INIT(name, clkev_nr, clkev_src, clkev_prop,	\
+-			       clksrc_nr, clksrc_src)			\
++			       clksrc_nr, clksrc_src, clksrc_prop)	\
+ void __init omap##name##_gptimer_timer_init(void)			\
+ {									\
+ 	omap_dmtimer_init();						\
+ 	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+-	omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src);	\
++	omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src,		\
++					clksrc_prop);			\
+ }
+ 
+ #define OMAP_SYS_32K_TIMER_INIT(name, clkev_nr, clkev_src, clkev_prop,	\
+-				clksrc_nr, clksrc_src)			\
++				clksrc_nr, clksrc_src, clksrc_prop)	\
+ void __init omap##name##_sync32k_timer_init(void)		\
+ {									\
+ 	omap_dmtimer_init();						\
+ 	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+ 	/* Enable the use of clocksource="gp_timer" kernel parameter */	\
+ 	if (use_gptimer_clksrc)						\
+-		omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src);\
++		omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src,	\
++						clksrc_prop);		\
+ 	else								\
+ 		omap2_sync32k_clocksource_init();			\
+ }
+@@ -557,19 +567,19 @@ void __init omap##name##_sync32k_timer_init(void)		\
+ #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP4) ||		\
+ 	defined(CONFIG_SOC_OMAP5)
+ OMAP_SYS_32K_TIMER_INIT(2, 1, "timer_32k_ck", "ti,timer-alwon",
+-			2, "timer_sys_ck");
++			2, "timer_sys_ck", NULL);
+ #endif
  
  #ifdef CONFIG_ARCH_OMAP3
--OMAP_SYS_32K_TIMER_INIT(3, 1, OMAP3_32K_SOURCE, "ti,timer-alwon",
--			2, OMAP3_MPU_SOURCE);
--OMAP_SYS_32K_TIMER_INIT(3_secure, 12, OMAP3_32K_SOURCE, "ti,timer-secure",
--			2, OMAP3_MPU_SOURCE);
--OMAP_SYS_GP_TIMER_INIT(3_gp, 1, OMAP3_MPU_SOURCE, "ti,timer-alwon",
--		       2, OMAP3_MPU_SOURCE);
-+OMAP_SYS_32K_TIMER_INIT(3, 1, "timer_32k_ck", "ti,timer-alwon",
-+			2, "timer_sys_ck");
-+OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
-+			2, "timer_sys_ck");
-+OMAP_SYS_GP_TIMER_INIT(3_gp, 1, "timer_sys_ck", "ti,timer-alwon",
-+		       2, "timer_sys_ck");
+ OMAP_SYS_32K_TIMER_INIT(3, 1, "timer_32k_ck", "ti,timer-alwon",
+-			2, "timer_sys_ck");
++			2, "timer_sys_ck", NULL);
+ OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
+-			2, "timer_sys_ck");
++			2, "timer_sys_ck", NULL);
  #endif /* CONFIG_ARCH_OMAP3 */
  
- #ifdef CONFIG_SOC_AM33XX
--OMAP_SYS_GP_TIMER_INIT(3_am33xx, 1, OMAP4_MPU_SOURCE, "ti,timer-alwon",
--		       2, OMAP4_MPU_SOURCE);
-+OMAP_SYS_GP_TIMER_INIT(3_am33xx, 1, "timer_sys_ck", "ti,timer-alwon",
-+		       2, "timer_sys_ck");
- #endif /* CONFIG_SOC_AM33XX */
+ #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
+-OMAP_SYS_GP_TIMER_INIT(3, 1, "timer_sys_ck", "ti,timer-alwon",
+-		       2, "timer_sys_ck");
++OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
++		       1, "timer_sys_ck", "ti,timer-alwon");
+ #endif
  
  #ifdef CONFIG_ARCH_OMAP4
--OMAP_SYS_32K_TIMER_INIT(4, 1, OMAP4_32K_SOURCE, "ti,timer-alwon",
--			2, OMAP4_MPU_SOURCE);
-+OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
-+			2, "timer_sys_ck");
- #ifdef CONFIG_LOCAL_TIMERS
- static DEFINE_TWD_LOCAL_TIMER(twd_local_timer, OMAP44XX_LOCAL_TWD_BASE, 29);
- void __init omap4_local_timer_init(void)
-@@ -613,8 +604,8 @@ void __init omap4_local_timer_init(void)
- #endif /* CONFIG_ARCH_OMAP4 */
- 
- #ifdef CONFIG_SOC_OMAP5
--OMAP_SYS_32K_TIMER_INIT(5, 1, OMAP4_32K_SOURCE, "ti,timer-alwon",
--			2, OMAP4_MPU_SOURCE);
-+OMAP_SYS_32K_TIMER_INIT(5, 1, "timer_32k_ck", "ti,timer-alwon",
-+			2, "timer_sys_ck");
- void __init omap5_realtime_timer_init(void)
- {
- 	int err;
 -- 
 1.7.10.4
 
