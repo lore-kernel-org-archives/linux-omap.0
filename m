@@ -1,79 +1,101 @@
-From: Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
-Subject: Re: [PATCH v4 5/8] MFD: ti_am335x_tscadc: Add DT support
-Date: Wed, 30 Jan 2013 11:40:09 +0100
-Message-ID: <A9839AA2-ABCD-4642-9766-D56824AC27AD@dominion.thruhere.net>
-References: <1358999112-31192-1-git-send-email-rachna@ti.com> <1358999112-31192-6-git-send-email-rachna@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1358999112-31192-6-git-send-email-rachna-l0cyMroinI0@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
-Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dtor-JGs/UdohzUI@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, gururaja.hebbar-l0cyMroinI0@public.gmane.org
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH] cpsw: Fix interrupt storm among other things
+Date: Wed, 30 Jan 2013 16:25:45 +0530
+Message-ID: <5108FC31.3000507@ti.com>
+References: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com> <5107B650.5090901@ti.com> <3DE2C638-6AE8-4BC9-AD68-3AAA40CD6233@antoniou-consulting.com> <5108E1C6.9020201@ti.com> <0FB10FF4-6639-472E-943C-61CEDB0336E0@antoniou-consulting.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <0FB10FF4-6639-472E-943C-61CEDB0336E0@antoniou-consulting.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, Matt Porter <mporter@ti.com>, Chase Maupin <chase.maupin@ti.com>, Jason Kridner <jdk@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On 1/30/2013 3:06 PM, Pantelis Antoniou wrote:
+> Hi,
+>
+> On Jan 30, 2013, at 11:03 AM, Mugunthan V N wrote:
+>
+>> On 1/30/2013 2:06 PM, Pantelis Antoniou wrote:
+>>> Hi Mugunthan,
+>>>
+>>> On Jan 29, 2013, at 1:45 PM, Mugunthan V N wrote:
+>>>
+>>>> On 1/28/2013 6:41 PM, Pantelis Antoniou wrote:
+>>>>> Fix interrupt storm on bone A4 cause by non-by-the-book interrupt handling.
+>>>>> While at it, added a non-NAPI mode (which is easier to debug), plus
+>>>>> some general fixes.
+>>>>>
+>>>>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+>>>>> ---
+>>>>>   Documentation/devicetree/bindings/net/cpsw.txt |   1 +
+>>>>>   drivers/net/ethernet/ti/cpsw.c                 | 222 +++++++++++++++++++++----
+>>>>>   drivers/net/ethernet/ti/davinci_cpdma.c        |   4 +-
+>>>>>   drivers/net/ethernet/ti/davinci_cpdma.h        |   2 +-
+>>>>>   include/linux/platform_data/cpsw.h             |   1 +
+>>>>>   5 files changed, 194 insertions(+), 36 deletions(-)
+>>>> I have tested CPSW on AM335x EVM 1.5A with flood ping and i am not
+>>>> seeing any interrupt storm.
+>>>> Can you provide more details on how to reproduce the issue.
+>>>>
+>>> A beaglebone prototype with the new silicon version, with the ethernet errata
+>>> fixed displays this. You can't trigger it on old silicon.
+>>>
+>>> The TI people on the CC list can confirm.
+>> But i have the same silicon revision (PG2.0) in my EVM and I am not seeing any issues. Can you
+>> point me to the ethernet errata which you are mentioning?
+>>
+>> Regards
+>> Mugunthan V N
+> What kernel version are you using? This is only triggered on the mainline driver.
+>
+> The advisory in question: From http://www.ti.com/lit/er/sprz360c/sprz360c.pdf
+>
+> Advisory 1.0.9: "Ethernet Media Access Controller and Switch Subsystem: C0_TX_PEND
+> and C0_RX_PEND Interrupts Not Connected to ARM Cortex-A8"
+>
+> I bet you're using an old kernel driver with the workarounds with the timers.
+>
+> If I had to guess (although I didn't use a probe or anything) is that the
+> interrupts are now proper level interrupts, instead of working in edge
+> triggered mode due to the workaround.
+>
+> Apparently the interrupt was never acked properly in the original driver
+> (the sequence described in the TRM is not followed).
+>
+> Looking at the TRM (spruh73g.pdf) 14.3.1.3 Interrupts in particular, the
+> the status registers are not read, and more damning the proper values to the
+> CPDMA_EOI_VECTOR register are not written.
+>
+> The original driver blindly wrote zero (cpdma_ctlr_eoi), while you have to
+> write different values according to the interrupt you ack.
+>
+> What happened was that on the first interrupt, the interrupt was never acked,
+> and we had an irq storm...
+>
+> Regards
+>
+> -- Pantelis
+The above mentioned advisory is for PG1.0 and not for PG2.0
+I am booting net-next kernel.
 
-Op 24 jan. 2013, om 04:45 heeft "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org> het volgende geschreven:
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 3.8.0-rc5-01248-gd2ed273 
+(a0131834@a0131834-linux) (gcc version 4.5.3 20110311 (prerelease) (GCC) 
+) #21 SMP Wed Jan 30 163
+[    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), 
+cr=10c53c7d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing 
+instruction cache
 
-> From: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
-> 
-> Make changes to add DT support in the MFD core driver.
-> 
-> Signed-off-by: Patil, Rachna <rachna-l0cyMroinI0@public.gmane.org>
-> ---
-> Changes in v4:
-> 	Non-standard properties prefixed with vendor name.
-> 
-> drivers/mfd/ti_am335x_tscadc.c |   28 +++++++++++++++++++++++-----
-> 1 file changed, 23 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-> index e9f3fb5..87b446b 100644
-> --- a/drivers/mfd/ti_am335x_tscadc.c
-> +++ b/drivers/mfd/ti_am335x_tscadc.c
-> @@ -22,6 +22,8 @@
-> #include <linux/regmap.h>
-> #include <linux/mfd/core.h>
-> #include <linux/pm_runtime.h>
-> +#include <linux/of.h>
-> +#include <linux/of_device.h>
-> 
-> #include <linux/mfd/ti_am335x_tscadc.h>
-> #include <linux/input/ti_am335x_tsc.h>
-> @@ -64,20 +66,31 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
-> 	struct resource		*res;
-> 	struct clk		*clk;
-> 	struct mfd_tscadc_board	*pdata = pdev->dev.platform_data;
-> +	struct device_node	*node = pdev->dev.of_node;
-> 	struct mfd_cell		*cell;
-> 	int			err, ctrl;
-> 	int			clk_value, clock_rate;
-> -	int			tsc_wires, adc_channels = 0, total_channels;
-> +	int			tsc_wires = 0, adc_channels = 0, total_channels;
-> 
-> -	if (!pdata) {
-> +	if (!pdata && !pdev->dev.of_node) {
-> 		dev_err(&pdev->dev, "Could not find platform data\n");
-> 		return -EINVAL;
-> 	}
-> 
-> -	if (pdata->adc_init)
-> -		adc_channels = pdata->adc_init->adc_channels;
-> +	if (pdev->dev.platform_data) {
-> +		if (pdata->tsc_init)
-> +			tsc_wires = pdata->tsc_init->wires;
-> +
-> +		if (pdata->adc_init)
-> +			adc_channels = pdata->adc_init->adc_channels;
-> +	} else {
-> +		node = of_find_node_by_name(pdev->dev.of_node, "tsc");
-> +		of_property_read_u32(node, "ti,wires", &tsc_wires);
-> +
-> +		node = of_find_node_by_name(pdev->dev.of_node, "adc");
-> +		of_property_read_u32(node, "ti,adc-channels", &adc_channels);
-> +	}
+[root@arago /]# uname -a
+Linux arago 3.8.0-rc5-01248-gd2ed273 #21 SMP Wed Jan 30 16:13:26 IST 
+2013 armv7l GNU/Linux
 
-Since AM335x is DT only, why is there a platform data codepath and why is it the first branch it tries? And I guess the next question is related to the first: why doesn't it work when used with DT? When I copy over the nodes from the evm.dts to my board I get "tsc tsc: Missing platform data" in dmesg.
+In theory what you are mentioning is correct. I have a beagle bone black 
+and yet to try it.
 
-What are the chances this driver will work when applied on top of 3.8-rcX? Has it even been tested with that? Has it been tested at all?
+Regards
+Mugunthan V N
