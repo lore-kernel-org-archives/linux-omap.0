@@ -1,40 +1,80 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH v6 03/10] ARM: edma: add AM33XX support to the private
- EDMA API
-Date: Wed, 30 Jan 2013 09:32:58 +0000
-Message-ID: <201301300932.58732.arnd@arndb.de>
-References: <1359529229-22207-1-git-send-email-mporter@ti.com>
- <1359529229-22207-4-git-send-email-mporter@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1359529229-22207-4-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH] cpsw: Fix interrupt storm among other things
+Date: Wed, 30 Jan 2013 11:36:20 +0200
+Message-ID: <0FB10FF4-6639-472E-943C-61CEDB0336E0@antoniou-consulting.com>
+References: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com> <5107B650.5090901@ti.com> <3DE2C638-6AE8-4BC9-AD68-3AAA40CD6233@antoniou-consulting.com> <5108E1C6.9020201@ti.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5108E1C6.9020201@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, Matt Porter <mporter@ti.com>, Chase Maupin <chase.maupin@ti.com>, Jason Kridner <jdk@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 30 January 2013, Matt Porter wrote:
-> +               dma_cap_set(DMA_SLAVE, edma_filter_info.dma_cap);
-> +               of_dma_controller_register(dev->of_node,
-> +                                          of_dma_simple_xlate,
-> +                                          &edma_filter_info);
-> +       }
+Hi,
 
-How do you actually deal with the problem mentioned by Padma, that
-the filter function does not know which edma instance it is looking
-at? If you assume that there can only be a single edma instance in
-the system, that is probably a limitation that should be documented
-somewhere, and ideally the probe() function should check for that.
+On Jan 30, 2013, at 11:03 AM, Mugunthan V N wrote:
 
-	Arnd
+> On 1/30/2013 2:06 PM, Pantelis Antoniou wrote:
+>> Hi Mugunthan,
+>> 
+>> On Jan 29, 2013, at 1:45 PM, Mugunthan V N wrote:
+>> 
+>>> On 1/28/2013 6:41 PM, Pantelis Antoniou wrote:
+>>>> Fix interrupt storm on bone A4 cause by non-by-the-book interrupt handling.
+>>>> While at it, added a non-NAPI mode (which is easier to debug), plus
+>>>> some general fixes.
+>>>> 
+>>>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+>>>> ---
+>>>>  Documentation/devicetree/bindings/net/cpsw.txt |   1 +
+>>>>  drivers/net/ethernet/ti/cpsw.c                 | 222 +++++++++++++++++++++----
+>>>>  drivers/net/ethernet/ti/davinci_cpdma.c        |   4 +-
+>>>>  drivers/net/ethernet/ti/davinci_cpdma.h        |   2 +-
+>>>>  include/linux/platform_data/cpsw.h             |   1 +
+>>>>  5 files changed, 194 insertions(+), 36 deletions(-)
+>>> I have tested CPSW on AM335x EVM 1.5A with flood ping and i am not
+>>> seeing any interrupt storm.
+>>> Can you provide more details on how to reproduce the issue.
+>>> 
+>> A beaglebone prototype with the new silicon version, with the ethernet errata
+>> fixed displays this. You can't trigger it on old silicon.
+>> 
+>> The TI people on the CC list can confirm.
+> But i have the same silicon revision (PG2.0) in my EVM and I am not seeing any issues. Can you
+> point me to the ethernet errata which you are mentioning?
+> 
+> Regards
+> Mugunthan V N
+
+What kernel version are you using? This is only triggered on the mainline driver.
+
+The advisory in question: From http://www.ti.com/lit/er/sprz360c/sprz360c.pdf 
+
+Advisory 1.0.9: "Ethernet Media Access Controller and Switch Subsystem: C0_TX_PEND 
+and C0_RX_PEND Interrupts Not Connected to ARM Cortex-A8"
+
+I bet you're using an old kernel driver with the workarounds with the timers.
+
+If I had to guess (although I didn't use a probe or anything) is that the
+interrupts are now proper level interrupts, instead of working in edge
+triggered mode due to the workaround. 
+
+Apparently the interrupt was never acked properly in the original driver 
+(the sequence described in the TRM is not followed).
+
+Looking at the TRM (spruh73g.pdf) 14.3.1.3 Interrupts in particular, the
+the status registers are not read, and more damning the proper values to the 
+CPDMA_EOI_VECTOR register are not written.
+
+The original driver blindly wrote zero (cpdma_ctlr_eoi), while you have to
+write different values according to the interrupt you ack.
+
+What happened was that on the first interrupt, the interrupt was never acked,
+and we had an irq storm...
+
+Regards
+
+-- Pantelis
