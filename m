@@ -1,99 +1,53 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH] cpsw: Fix interrupt storm among other things
-Date: Wed, 30 Jan 2013 19:33:31 +0530
-Message-ID: <51092833.9050701@ti.com>
-References: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com> <5107B650.5090901@ti.com> <3DE2C638-6AE8-4BC9-AD68-3AAA40CD6233@antoniou-consulting.com> <5108E1C6.9020201@ti.com> <0FB10FF4-6639-472E-943C-61CEDB0336E0@antoniou-consulting.com> <5108FC31.3000507@ti.com> <27A3106E-3FDB-43DB-AAC9-DC2DA768AF9E@antoniou-consulting.com> <B5906170F1614E41A8A28DE3B8D121433ED03FE1@DBDE01.ent.ti.com> <0422CC2C-3D0D-4BB5-A90D-D3D337E44DD0@antoniou-consulting.com> <B5906170F1614E41A8A28DE3B8D121433ED04134@DBDE01.ent.ti.com> <F3F6248B-4DF4-418E-AD1F-F41E14CC85B2@antoniou-consulting.com> <B5906170F1614E41A8A28DE3B8D121433ED041A8@DBDE01.ent.ti.com> <60C298DC-2DE8-4A44-B00C-E3B09ABE701E@antoniou-consulting.com> <510925C5.2080601@ti.com> <C6DFFB7E-2A5A-4A4A-ABAB-BF0C2739C44A@antoniou-consulting
- .com>
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Subject: RE: [PATCH v2] ARM: OMAP2: hwmod: Fix "register offset NULL check"
+ bug
+Date: Wed, 30 Jan 2013 14:07:08 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C33EB5920F@DBDE01.ent.ti.com>
+References: <1355835378-23437-1-git-send-email-gururaja.hebbar@ti.com>
+ <alpine.DEB.2.00.1212190210021.2446@utopia.booyaka.com>
+ <1BAFE6F6C881BF42822005164F1491C33EB0C4FB@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1212200734160.7362@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42923 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753744Ab3A3OEJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Jan 2013 09:04:09 -0500
-In-Reply-To: <C6DFFB7E-2A5A-4A4A-ABAB-BF0C2739C44A@antoniou-consulting.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51097 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754843Ab3A3OHV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 09:07:21 -0500
+In-Reply-To: <alpine.DEB.2.00.1212200734160.7362@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Richard Cochran <richardcochran@gmail.com>, "Porter, Matt" <mporter@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "Kridner, Jason" <jdk@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
 
-On 1/30/2013 7:25 PM, Pantelis Antoniou wrote:
-> Hi Mugunthan,
->
-> On Jan 30, 2013, at 3:53 PM, Mugunthan V N wrote:
->
->> On 1/30/2013 7:21 PM, Pantelis Antoniou wrote:
->>> Hi Vaibhav,
->>>
->>> On Jan 30, 2013, at 3:47 PM, Bedia, Vaibhav wrote:
->>>
->>>> Hi Antoniou,
->>>>
->>>> On Wed, Jan 30, 2013 at 19:07:19, Pantelis Antoniou wrote:
->>>>> Hi Vaibhav,
->>>>>
->>>>> On Jan 30, 2013, at 3:29 PM, Bedia, Vaibhav wrote:
->>>>>
->>>>>> On Wed, Jan 30, 2013 at 18:14:30, Pantelis Antoniou wrote:
->>>>>>> Hi Vaibhav,
->>>>>>>
->>>>>>> On Jan 30, 2013, at 2:38 PM, Bedia, Vaibhav wrote:
->>>>>>>
->>>>>>>> On Wed, Jan 30, 2013 at 16:38:50, Pantelis Antoniou wrote:
->>>>>>>> [...]
->>>>>>>>> TBH I haven't found a simple way to print out the silicon revision number.
->>>>>>>>> Anyone on the list know a quick and dirty method?
->>>>>>>>>
->>>>>>>> You can dump the DEVICE_ID register @ 0x44e10600.
->>>>>>>> Bits 31:28 should be 0 for PG1.0 and 1 for PG2.0.
->>>>>>>>
->>>>>>> Thanks this works perfectly:
->>>>>>>
->>>>>>> original-bone:
->>>>>>> root@beaglebone:~# devmem2 0x44e10600 w
->>>>>>> Read at address  0x44E10600 (0xb6ff4600): 0x0B94402E
->>>>>>>
->>>>>>> bone-black:
->>>>>>> root@beaglebone:~# devmem2 0x44e10600 w
->>>>>>> Read at address  0x44E10600 (0xb6fcc600): 0x1B94402E
->>>>>>>
->>>>>> I just re-read the mail-chain and I am confused here.
->>>>>> So the patch in question is meant for Bone-A4 which has
->>>>>> PG1.0?
->>>>>>
->>>>> It is a general bug fix. The problem was discovered only on
->>>>> the bone black which has PG2.0 silicon. The driver has been
->>>>> tested and it works on the original bone with PG1.0 as well.
->>>>>
->>>> But Mugunthan mentioned that he doesn't see this on an EVM
->>>> with PG2.0 silicon... is there any board dependency here?
->>>>
->>> I don't know, but I doubt it. How about we wait for Mugunthan to
->>> send us what are the DEVICE_ID contents for his board.
->>>
->>>> Regards,
->>>> Vaibhav
->>> Regards
->>>
->>> -- Pantelis
->>>
->> This is the device ID which i have
->>
->> [root@arago /]# devmem 0x44e10600
->> 0x1B94402E
->>
-> No clue what's the difference of the black with the EVM, and why this happens.
-> The fix is valid anyway.
->
->> Regards
->> Mugunthan V N
-> Regards
->
-> -- Pantelis
->
-I will try to run overnight ethernet test in EVM and will update by 
-tomorrow.
+On Thu, Dec 20, 2012 at 13:05:27, Paul Walmsley wrote:
+> On Thu, 20 Dec 2012, Hebbar, Gururaja wrote:
+> 
+> > On Wed, Dec 19, 2012 at 07:43:50, Paul Walmsley wrote:
+> > 
+> > > We've got a few hwmods on OMAP44xx that don't have clkctrl_offs registers 
+> > > listed in the hwmod data, and which are not marked with HWMOD_NO_IDLEST.  
+> > > What's going to happen in those cases?
+> > 
+> > Hmm. This is a special case to me. Let me go back and do some review.
+> > Will be back with some more details.
+> 
+> Probably what needs to happen is that those hwmods need to be marked with 
+> HWMOD_NO_IDLEST, in a separate patch before yours.  As far as I can tell, 
+> that's how they should have been marked initially.  Then your patch should 
+> be fine.
 
-Regards
-Mugunthan V N
+Looking at latest kernel v3.8-rc5, there is separate cm33xx.c file which
+handles module ready checking for am33xx platform. So I will update this 
+patch to work on this file instead of touching omap4 related file 
+(cminst44xx.c)
+
+> 
+> - Paul
+> 
+
+
+Regards, 
+Gururaja
