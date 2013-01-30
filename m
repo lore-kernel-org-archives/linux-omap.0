@@ -1,41 +1,78 @@
 From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: [RFC PATCH v2 0/2] ARM: update cpuinfo to print SoC model name
-Date: Wed, 30 Jan 2013 02:38:55 +0200
-Message-ID: <1359506337-21619-1-git-send-email-ruslan.bilovol@ti.com>
+Subject: [RFC PATCH v2 2/2] ARM: OMAP4: setup SoC model name during ID initialisation
+Date: Wed, 30 Jan 2013 02:38:57 +0200
+Message-ID: <1359506337-21619-3-git-send-email-ruslan.bilovol@ti.com>
+References: <1359506337-21619-1-git-send-email-ruslan.bilovol@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1359506337-21619-1-git-send-email-ruslan.bilovol@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, eduardo.valentin@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The following patches update cpuinfo to print SoC
-model name for ARM.
-The first patch exactly makes needed changes for ARM
-architecture and adds a common approach to show SoC name.
-Second patch uses this approach for OMAP4 SoCs (as live
-example).
+Set up the SoC model name during OMAP ID initialisation
+so it will be displayed in /proc/cpuinfo:
 
-Looks like there were few attempts to do similar
-changes to cpuinfo without any luck (had stuck
-on review) so this functionality is still not
-in the kernel yet.
-In this patch series the update to cpuinfo is very
-short (10 lines) and easy.
+/ # cat proc/cpuinfo
+[...]
+CPU variant     : 0x2
+CPU part        : 0xc09
+CPU revision    : 10
 
-Comments are welcome as usual
+SoC name        : OMAP4470 ES1.0 HS
 
---------------------------------------------------
-v2:
-Addressed comments from Russel (changed 'CPU name' > 'SoC name')
-Updatet commit messages. Updated cover letter
+Hardware        : OMAP4 Blaze Tablet
+Revision        : 20edb4
+[...]
 
-Ruslan Bilovol (2):
-  ARM: kernel: update cpuinfo to print SoC model name
-  ARM: OMAP4: setup SoC model name during ID initialisation
+Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+---
+ arch/arm/mach-omap2/id.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
- arch/arm/include/asm/setup.h |    1 +
- arch/arm/kernel/setup.c      |    9 +++++++++
- arch/arm/mach-omap2/id.c     |   18 ++++++++++++++++--
- 3 files changed, 26 insertions(+), 2 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 45cc7ed4..b1fba35 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -20,6 +20,7 @@
+ #include <linux/io.h>
+ 
+ #include <asm/cputype.h>
++#include <asm/setup.h>
+ 
+ #include "common.h"
+ 
+@@ -33,8 +34,17 @@
+ 
+ static unsigned int omap_revision;
+ static const char *cpu_rev;
++static char omap_soc_model_name[80];
+ u32 omap_features;
+ 
++static const char const *omap_types[] = {
++	[OMAP2_DEVICE_TYPE_TEST]	= "TST",
++	[OMAP2_DEVICE_TYPE_EMU]		= "EMU",
++	[OMAP2_DEVICE_TYPE_SEC]		= "HS",
++	[OMAP2_DEVICE_TYPE_GP]		= "GP",
++	[OMAP2_DEVICE_TYPE_BAD]		= "BAD",
++};
++
+ unsigned int omap_rev(void)
+ {
+ 	return omap_revision;
+@@ -502,8 +512,12 @@ void __init omap4xxx_check_revision(void)
+ 		omap_revision = OMAP4430_REV_ES2_3;
+ 	}
+ 
+-	pr_info("OMAP%04x ES%d.%d\n", omap_rev() >> 16,
+-		((omap_rev() >> 12) & 0xf), ((omap_rev() >> 8) & 0xf));
++	sprintf(omap_soc_model_name, "OMAP%04x ES%d.%d %s", omap_rev() >> 16,
++			((omap_rev() >> 12) & 0xf), ((omap_rev() >> 8) & 0xf),
++			omap_types[omap_type()]);
++	set_soc_model_name(omap_soc_model_name);
++
++	pr_info("%s\n", omap_soc_model_name);
+ }
+ 
+ void __init omap5xxx_check_revision(void)
 -- 
 1.7.9.5
