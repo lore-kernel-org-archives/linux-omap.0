@@ -1,56 +1,104 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [RFC PATCH v3 1/2] ARM: kernel: update cpuinfo to print SoC model
- name
-Date: Wed, 30 Jan 2013 14:07:53 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1301301402330.6300@xanadu.home>
-References: <1359558091-29251-1-git-send-email-ruslan.bilovol@ti.com>
- <1359558091-29251-2-git-send-email-ruslan.bilovol@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH] cpsw: Fix interrupt storm among other things
+Date: Thu, 31 Jan 2013 00:57:56 +0530
+Message-ID: <5109743C.7010703@ti.com>
+References: <1359378668-26536-1-git-send-email-panto@antoniou-consulting.com> <5107B650.5090901@ti.com> <3DE2C638-6AE8-4BC9-AD68-3AAA40CD6233@antoniou-consulting.com> <5108E1C6.9020201@ti.com> <0FB10FF4-6639-472E-943C-61CEDB0336E0@antoniou-consulting.com> <5108FC31.3000507@ti.com> <27A3106E-3FDB-43DB-AAC9-DC2DA768AF9E@antoniou-consulting.com> <B5906170F1614E41A8A28DE3B8D121433ED03FE1@DBDE01.ent.ti.com> <0422CC2C-3D0D-4BB5-A90D-D3D337E44DD0@antoniou-consulting.com> <B5906170F1614E41A8A28DE3B8D121433ED04134@DBDE01.ent.ti.com> <F3F6248B-4DF4-418E-AD1F-F41E14CC85B2@antoniou-consulting.com> <B5906170F1614E41A8A28DE3B8D121433ED041A8@DBDE01.ent.ti.com> <60C298DC-2DE8-4A44-B00C-E3B09ABE701E@antoniou-consulting.com> <510925C5.2080601@ti.com> <C6DFFB7E-2A5A-4A4A-ABAB-BF0C2739C44A@antoniou-consulting
+ .com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1359558091-29251-2-git-send-email-ruslan.bilovol@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, eduardo.valentin@ti.com
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59093 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751401Ab3A3T2V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 14:28:21 -0500
+In-Reply-To: <C6DFFB7E-2A5A-4A4A-ABAB-BF0C2739C44A@antoniou-consulting.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Richard Cochran <richardcochran@gmail.com>, "Porter, Matt" <mporter@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "Kridner, Jason" <jdk@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, 30 Jan 2013, Ruslan Bilovol wrote:
+Hi Antoniou
 
-> Currently, reading /proc/cpuinfo provides userspace with CPU ID of
-> the CPU carrying out the read from the file.
-> Userspace using this information may decide what module
-> to load or how to configure some specific (and processor-depended)
-> settings or so.
-> However, since really different SoCs can share same ARM core,
-> this information currently is not so useful.
-> For example, TI OMAP4460 and OMAP4470 SoCs show the same
-> information in the /proc/cpuinfo whereas they are different.
-> Since in most cases ARM CPU is a part of some system on a chip (SoC),
-> the "cpuinfo" file looks like exactly that place, where this
-> information have to be displayed.
-> 
-> So added new line "SoC name" in the "cpuinfo" output for system
-> on a chip name. It is placed between CPU information and machine
-> information, so the file structure looks gracefully (CPU-SoC-Hardware)
-> 
-> Example:
-> 
-> / # cat proc/cpuinfo
-> [...]
-> CPU variant     : 0x2
-> CPU part        : 0xc09
-> CPU revision    : 10
-> 
-> SoC name        : OMAP4470
-> 
-> Hardware        : OMAP4 Blaze Tablet
+On 1/30/2013 7:25 PM, Pantelis Antoniou wrote:
+> Hi Mugunthan,
+>
+> On Jan 30, 2013, at 3:53 PM, Mugunthan V N wrote:
+>
+>> On 1/30/2013 7:21 PM, Pantelis Antoniou wrote:
+>>> Hi Vaibhav,
+>>>
+>>> On Jan 30, 2013, at 3:47 PM, Bedia, Vaibhav wrote:
+>>>
+>>>> Hi Antoniou,
+>>>>
+>>>> On Wed, Jan 30, 2013 at 19:07:19, Pantelis Antoniou wrote:
+>>>>> Hi Vaibhav,
+>>>>>
+>>>>> On Jan 30, 2013, at 3:29 PM, Bedia, Vaibhav wrote:
+>>>>>
+>>>>>> On Wed, Jan 30, 2013 at 18:14:30, Pantelis Antoniou wrote:
+>>>>>>> Hi Vaibhav,
+>>>>>>>
+>>>>>>> On Jan 30, 2013, at 2:38 PM, Bedia, Vaibhav wrote:
+>>>>>>>
+>>>>>>>> On Wed, Jan 30, 2013 at 16:38:50, Pantelis Antoniou wrote:
+>>>>>>>> [...]
+>>>>>>>>> TBH I haven't found a simple way to print out the silicon revision number.
+>>>>>>>>> Anyone on the list know a quick and dirty method?
+>>>>>>>>>
+>>>>>>>> You can dump the DEVICE_ID register @ 0x44e10600.
+>>>>>>>> Bits 31:28 should be 0 for PG1.0 and 1 for PG2.0.
+>>>>>>>>
+>>>>>>> Thanks this works perfectly:
+>>>>>>>
+>>>>>>> original-bone:
+>>>>>>> root@beaglebone:~# devmem2 0x44e10600 w
+>>>>>>> Read at address  0x44E10600 (0xb6ff4600): 0x0B94402E
+>>>>>>>
+>>>>>>> bone-black:
+>>>>>>> root@beaglebone:~# devmem2 0x44e10600 w
+>>>>>>> Read at address  0x44E10600 (0xb6fcc600): 0x1B94402E
+>>>>>>>
+>>>>>> I just re-read the mail-chain and I am confused here.
+>>>>>> So the patch in question is meant for Bone-A4 which has
+>>>>>> PG1.0?
+>>>>>>
+>>>>> It is a general bug fix. The problem was discovered only on
+>>>>> the bone black which has PG2.0 silicon. The driver has been
+>>>>> tested and it works on the original bone with PG1.0 as well.
+>>>>>
+>>>> But Mugunthan mentioned that he doesn't see this on an EVM
+>>>> with PG2.0 silicon... is there any board dependency here?
+>>>>
+>>> I don't know, but I doubt it. How about we wait for Mugunthan to
+>>> send us what are the DEVICE_ID contents for his board.
+>>>
+>>>> Regards,
+>>>> Vaibhav
+>>> Regards
+>>>
+>>> -- Pantelis
+>>>
+>> This is the device ID which i have
+>>
+>> [root@arago /]# devmem 0x44e10600
+>> 0x1B94402E
+>>
+> No clue what's the difference of the black with the EVM, and why this happens.
+> The fix is valid anyway.
+I am able to see the issue in EVM also by comparing the number of rx  
+interrupt received
+from CPSW and no of packets actually received. But this can be resolved 
+by acknowledging
+the interrupt in cpdma driver.
 
-Please remove that extra blank line between "SoC name" and "Hardware".  
-The blank line after "CPU revision" is fine.
+Regards
+Mugunthan V N
+>> Regards
+>> Mugunthan V N
+> Regards
+>
+> -- Pantelis
+>
 
-Also, please rename this to "System name".  Not all systems are "on 
-chip".  By using "System name" this is more universally useful.
-
-
-Nicolas
