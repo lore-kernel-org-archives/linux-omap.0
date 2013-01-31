@@ -1,37 +1,32 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/4] drm/i2c: nxp-tda998x (v3)
-Date: Thu, 31 Jan 2013 16:36:56 +0000
-Message-ID: <20130131163656.GV2637@n2100.arm.linux.org.uk>
-References: <1359480184-9168-1-git-send-email-robdclark@gmail.com> <1359480184-9168-3-git-send-email-robdclark@gmail.com> <5109D5BA.2030801@gmail.com> <CAF6AEGsYzyefOpeHnsRh-YczVfaTh2d5AtoTFfT7AEWuukJZUA@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP4 PM bootloader dependency problems
+Date: Thu, 31 Jan 2013 16:56:54 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301311656230.32145@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1301220229140.25789@utopia.booyaka.com>  <alpine.DEB.2.00.1301301706580.17105@utopia.booyaka.com> <1359622829.10415.40.camel@sokoban> <510A54F8.4090609@ti.com> <alpine.DEB.2.00.1301311537530.23099@utopia.booyaka.com>
+ <510A9BFB.5070802@ti.com> <alpine.DEB.2.00.1301311630090.32145@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60380 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752923Ab3AaQhC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 11:37:02 -0500
-Content-Disposition: inline
-In-Reply-To: <CAF6AEGsYzyefOpeHnsRh-YczVfaTh2d5AtoTFfT7AEWuukJZUA@mail.gmail.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:52992 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753168Ab3AaQ4z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 11:56:55 -0500
+In-Reply-To: <alpine.DEB.2.00.1301311630090.32145@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <robdclark@gmail.com>
-Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, patches@linaro.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
 
-On Thu, Jan 31, 2013 at 08:23:53AM -0600, Rob Clark wrote:
-> On Wed, Jan 30, 2013 at 8:23 PM, Sebastian Hesselbarth
-> <sebastian.hesselbarth@gmail.com> wrote:
-> > On 01/29/2013 06:23 PM, Rob Clark wrote:
-> >>
-> >> Driver for the NXP TDA998X i2c hdmi encoder slave.
-> >
-> >
-> > Rob,
-> >
-> > good to see a driver for TDA998x comming! I'd love to test
-> > it on CuBox (mach-dove) but there is no gpu driver I can hook up,
-> > yet. Anyway, I will make some comments how I think the driver
-> > should be improved.
+On Thu, 31 Jan 2013, Paul Walmsley wrote:
 
-I will eventually pick this up and give it a whirl with my cubox DRM
-stuff.  I've yet to receive my round tuit.
+> Right.  I don't have any problem with adding a message to the suspend path 
+> also.  But I'd like to see a boot-time message added even if 
+> CONFIG_CPU_IDLE=n, since it's still possible to enter full-chip retention 
+> idle with dynamic idle.  In other words, not everyone might use 'echo mem 
+> > /sys/power/state'.
 
+(and re-reading my original E-mail to Rajendra, I can see that it was 
+nuclear, so I'm sorry about that.)
+
+
+- Paul
