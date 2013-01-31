@@ -1,72 +1,102 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [Patch v2 1/2] ARM: OMAP2+: AM33xx: hwmod: add missing
- HWMOD_NO_IDLEST flags
-Date: Thu, 31 Jan 2013 15:28:24 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301311527190.23099@utopia.booyaka.com>
-References: <1359642327-5542-1-git-send-email-gururaja.hebbar@ti.com> <1359642327-5542-2-git-send-email-gururaja.hebbar@ti.com>
+Subject: Re: [Patch v2 2/2] ARM: OMAP2: am33xx-hwmod: Fix "register offset
+ NULL check" bug
+Date: Thu, 31 Jan 2013 15:30:32 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1301311528320.23099@utopia.booyaka.com>
+References: <1359642327-5542-1-git-send-email-gururaja.hebbar@ti.com> <1359642327-5542-3-git-send-email-gururaja.hebbar@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:52330 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:52352 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751734Ab3AaP2Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 10:28:25 -0500
-In-Reply-To: <1359642327-5542-2-git-send-email-gururaja.hebbar@ti.com>
+	with ESMTP id S1751886Ab3AaPad (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 10:30:33 -0500
+In-Reply-To: <1359642327-5542-3-git-send-email-gururaja.hebbar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hebbar Gururaja <gururaja.hebbar@ti.com>
-Cc: tony@atomide.com, b-cousson@ti.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, sudhakar.raj@ti.com, linux@arm.linux.org.uk, hvaibhav@ti.com, vaibhav.bedia@ti.com
+Cc: tony@atomide.com, b-cousson@ti.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, sudhakar.raj@ti.com, linux@arm.linux.org.uk, hvaibhav@ti.com, vaibhav.bedia@ti.com, Koen Kooi <koen@dominion.thruhere.net>
+
++ Koen
 
 Hi
 
 On Thu, 31 Jan 2013, Hebbar Gururaja wrote:
 
-> struct omap_hwmod records belonging to wkup m3 domain is missing
-> HWMOD_NO_IDLEST flags; add them.
+> am33xx_cm_wait_module_ready() checks if register offset is NULL.
+> 
+> int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
+> {
+> 	int i = 0;
+> 
+> 	if (!clkctrl_offs)
+> 		return 0;
+> 
+> In case of AM33xx, CLKCTRL register offset for different clock domains
+> are not uniformly placed. An example of this would be the RTC clock
+> domain with CLKCTRL offset at 0x00.
+> In such cases the module ready check is skipped which leads to a data
+> abort during boot-up when RTC registers is accessed.
+> 
+> Remove this check here to avoid checking module readiness for modules
+> with clkctrl register offset at 0x00.
 > 
 > Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
 
-I've modified this patch to add some more description of why it's needed 
-as a fix, and queued it for v3.8-rc fixes.
-
-Updated patch follows.
-
+Some text has been added to the patch description to describe Koen's test 
+results, and the updated patch has been queued for v3.8-rc fixes.  Updated 
+patch follows.
 
 - Paul
 
 From: Hebbar Gururaja <gururaja.hebbar@ti.com>
-Date: Thu, 31 Jan 2013 19:55:26 +0530
-Subject: [PATCH] ARM: OMAP2+: AM33xx: hwmod: add missing HWMOD_NO_IDLEST
- flags
+Date: Thu, 31 Jan 2013 19:55:27 +0530
+Subject: [PATCH] ARM: OMAP2: am33xx-hwmod: Fix "register offset NULL check"
+ bug
 
-struct omap_hwmod records belonging to wkup m3 domain is missing
-HWMOD_NO_IDLEST flags; add them.
+am33xx_cm_wait_module_ready() checks if register offset is NULL.
 
-This patch is a prerequisite for a subsequent patch, 'ARM: OMAP2:
-am33xx-hwmod: Fix "register offset NULL check" bug'.  That patch would
-otherwise attempt to read from reserved bits.
+int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
+{
+	int i = 0;
+
+	if (!clkctrl_offs)
+		return 0;
+
+In case of AM33xx, CLKCTRL register offset for different clock domains
+are not uniformly placed. An example of this would be the RTC clock
+domain with CLKCTRL offset at 0x00.
+In such cases the module ready check is skipped which leads to a data
+abort during boot-up when RTC registers is accessed.
+
+Remove this check here to avoid checking module readiness for modules
+with clkctrl register offset at 0x00.
+
+Koen Kooi notes that this patch fixes a crash on boot with
+CONFIG_RTC_DRV_OMAP=y with v3.8-rc5.
 
 Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
-[paul@pwsan.com: add some more explanation in the patch description]
+Cc: Koen Kooi <koen@dominion.thruhere.net>
+[paul@pwsan.com: noted Koen's test in the patch description]
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/cm33xx.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 646c14d..1ab693e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -262,7 +262,8 @@ static struct omap_hwmod am33xx_wkup_m3_hwmod = {
- 	.name		= "wkup_m3",
- 	.class		= &am33xx_wkup_m3_hwmod_class,
- 	.clkdm_name	= "l4_wkup_aon_clkdm",
--	.flags		= HWMOD_INIT_NO_RESET,	/* Keep hardreset asserted */
-+	/* Keep hardreset asserted */
-+	.flags		= HWMOD_INIT_NO_RESET | HWMOD_NO_IDLEST,
- 	.mpu_irqs	= am33xx_wkup_m3_irqs,
- 	.main_clk	= "dpll_core_m4_div2_ck",
- 	.prcm		= {
+diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
+index 058ce3c..325a515 100644
+--- a/arch/arm/mach-omap2/cm33xx.c
++++ b/arch/arm/mach-omap2/cm33xx.c
+@@ -241,9 +241,6 @@ int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
+ {
+ 	int i = 0;
+ 
+-	if (!clkctrl_offs)
+-		return 0;
+-
+ 	omap_test_timeout(_is_module_ready(inst, cdoffs, clkctrl_offs),
+ 			  MAX_MODULE_READY_TIME, i);
+ 
 -- 
 1.7.10.4
 
