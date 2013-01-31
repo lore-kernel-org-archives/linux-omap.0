@@ -1,63 +1,462 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH v6 03/10] ARM: edma: add AM33XX support to the private
- EDMA API
-Date: Thu, 31 Jan 2013 16:42:41 -0500
-Message-ID: <20130131214241.GJ2244@beef>
-References: <1359529229-22207-1-git-send-email-mporter@ti.com>
- <201301300932.58732.arnd@arndb.de>
- <20130131183255.GI2244@beef>
- <6932828d68394f71ba6df8e6bf608635@DFLE72.ent.ti.com>
+From: Rob Clark <robdclark@gmail.com>
+Subject: Re: [PATCH 2/4] drm/i2c: nxp-tda998x (v3)
+Date: Thu, 31 Jan 2013 15:43:47 -0600
+Message-ID: <CAF6AEGuqC9UGRzLOVaVz3ngxi2Zx=8-=Y7cZgThTiUnd+WPoJQ@mail.gmail.com>
+References: <1359480184-9168-1-git-send-email-robdclark@gmail.com>
+	<1359480184-9168-3-git-send-email-robdclark@gmail.com>
+	<5109D5BA.2030801@gmail.com>
+	<CAF6AEGsYzyefOpeHnsRh-YczVfaTh2d5AtoTFfT7AEWuukJZUA@mail.gmail.com>
+	<510AD0B8.8020401@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:64039 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942Ab3AaVmM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 16:42:12 -0500
-Content-Disposition: inline
-In-Reply-To: <6932828d68394f71ba6df8e6bf608635@DFLE72.ent.ti.com>
+Received: from mail-vc0-f171.google.com ([209.85.220.171]:50509 "EHLO
+	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753841Ab3AaVns (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 16:43:48 -0500
+Received: by mail-vc0-f171.google.com with SMTP id p1so2095833vcq.30
+        for <linux-omap@vger.kernel.org>; Thu, 31 Jan 2013 13:43:47 -0800 (PST)
+In-Reply-To: <510AD0B8.8020401@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Padma Venkat <padma.kvr@gmail.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-On Thu, Jan 31, 2013 at 08:58:39PM +0000, Arnd Bergmann wrote:
-> On Thursday 31 January 2013, Matt Porter wrote:
-> > On Wed, Jan 30, 2013 at 09:32:58AM +0000, Arnd Bergmann wrote:
-> > > On Wednesday 30 January 2013, Matt Porter wrote:
-> > > > +               dma_cap_set(DMA_SLAVE, edma_filter_info.dma_cap);
-> > > > +               of_dma_controller_register(dev->of_node,
-> > > > +                                          of_dma_simple_xlate,
-> > > > +                                          &edma_filter_info);
-> > > > +       }
-> > > 
-> > > How do you actually deal with the problem mentioned by Padma, that
-> > > the filter function does not know which edma instance it is looking
-> > > at? If you assume that there can only be a single edma instance in
-> > > the system, that is probably a limitation that should be documented
-> > > somewhere, and ideally the probe() function should check for that.
-> > 
-> > I make an assumption of one edma instance in the system in the case of
-> > DT being populated. This is always true right now as the only SoC with
-> > two EDMA controllers in existence is Davinci DA850. Until recently,
-> > Davinci had no DT support. Given the steady work being done today on DT
-> > support for DA850, it'll probably be something needed in 3.10.
-> > 
-> > I will add a comment and check in probe() to capture this assumption
-> > and then plan to update separately to support DA850 booting from DT.
-> 
-> Ok, sounds good. Hopefully by then we will already have a nicer
-> way to write an xlate function that does not rely on a filter
-> function.
+On Thu, Jan 31, 2013 at 2:14 PM, Sebastian Hesselbarth
+<sebastian.hesselbarth@gmail.com> wrote:
+> On 01/31/2013 03:23 PM, Rob Clark wrote:
+>>
+>> On Wed, Jan 30, 2013 at 8:23 PM, Sebastian Hesselbarth
+>> <sebastian.hesselbarth@gmail.com>  wrote:
+>>>
+>>> On 01/29/2013 06:23 PM, Rob Clark wrote:
+>
+> [...]
+>>>>
+>>>> +
+>>>> +/* The TDA9988 series of devices use a paged register scheme.. to
+>>>> simplify
+>>>> + * things we encode the page # in upper bits of the register #.  To
+>>>> read/
+>>>> + * write a given register, we need to make sure CURPAGE register is set
+>>>> + * appropriately.  Which implies reads/writes are not atomic.  Fun!
+>>>> + */
+>>>
+>>>
+>>> Please have a look at regmap-i2c, it also supports paged i2c registers
+>>> and will save you _a lot_ of the i2c handling.
+>>
+>>
+>> Yeah, I have looked at it, and will eventually convert over to using
+>> it.  The problems at the moment are that I don't really have enough
+>> documentation about the chip at the register level to properly use the
+>> caching modes, and from my digging through the regmap code it looked
+>> like paged regmap + non-caching will result in writes to the page
+>> register for every transaction.  That, and a bit of docs or few more
+>> examples of using the paging support in regmap would be nice.  For
+>> now, I am punting on regmap conversion.
+>
+>
+> Hmm, flipping through the public tda998x sources *sigh* I found a
+> quite complete register list that also states if registers are RO or RW.
+> Even if you are not using all registers you can still prevent regmap from
+> reading/writing to them. But yes, documentation lacks some examples ;)
+>
+>
+>>>> [...]
+>>>> +
+>>>> +/* Device versions: */
+>>>> +#define TDA9989N2                 0x0101
+>>>> +#define TDA19989                  0x0201
+>>>> +#define TDA19989N2                0x0202
+>>>> +#define TDA19988                  0x0301
+>>>
+>>>
+>>>
+>>> Maybe split this into device_version/revision? What does N2 stand for
+>>> or is this the name NXP uses for that device?
+>>
+>>
+>> The register names are based on the names used in the NXP out-of-tree
+>> driver (the 50kloc monstrosity, if you've seen it).. that was pretty
+>> much all the register level documentation I had.
+>
+>
+> Yeah, but there is a comment about N2, that says the last bit is "not a
+> register bit, but is derived by the driver from the new N5 registers..".
+> I guess you will not see that many i2c devices returning you "N2" version
+> registers..
+>
 
-Yes, it would be nice to avoid what Padma had to do. I should have
-mentioned also that the second EDMA on DA850 has no DMA events of
-immediate use on it anyway. All the in-kernel users use events on the
-first controller, except for the second MMC instance. That's only used
-for a wl12xx module on the EVM and that driver has no DT support so it
-doesn't matter yet in the DT case. Because of this, DA850 can actually
-add EDMA DT support immediately (on top of this series) and add DMA
-support to the DT support already posted for the Davinci SPI and MMC
-client drivers.
+hmm, maybe you are looking at a different (newer?) version of the nxp
+code?  I did not see this.  Perhaps the "n2" stuff isn't too critical,
+but I figured it would be nice to see if someone is trying to bring up
+a device with one of these parts and I ask them to send me a boot log
+with drm traces enabled
 
--Matt
+>
+>>>> [...]
+>>>
+>>>
+>>>> +static void
+>>>> +cec_write(struct drm_encoder *encoder, uint16_t addr, uint8_t val)
+>>>> +{
+>>>> +       struct i2c_client *client = to_tda998x_priv(encoder)->cec;
+>>>> +       uint8_t buf[] = {addr, val};
+>>>> +       int ret;
+>>>> +
+>>>> +       ret = i2c_master_send(client, buf, ARRAY_SIZE(buf));
+>>>> +       if (ret<   0)
+>>>> +               dev_err(&client->dev, "Error %d writing to cec:0x%x\n",
+>>>> ret, addr);
+>>>> +}
+>>>
+>>>
+>>>
+>>> Has there been any decision on how to split/integrate cec from drm?
+>>> Or is there display stuff located in cec i2c slave (I see HPD in
+>>> ..._detect below)?
+>>
+>>
+>> not sure, but at least in this case it can't really be decoupled.  I
+>> need to use the CEC interface for HPD (as you noticed) and also to
+>> power up the HDMI bits..
+>
+>
+> Just to make things clearer here, TDA998x ususally has two i2c slaves
+> at power-up, 0x70 (hdmi slave) and 0x34 (cec slave). Are you actually
+> accessing the cec slave?
+
+yes, as I mentioned, it is not possible to access the hdmi slave
+without first accessing the cec slave to enable the hdmi slave
+
+> [...]
+>
+>>>> +static bool
+>>>> +tda998x_encoder_mode_fixup(struct drm_encoder *encoder,
+>>>> +                         const struct drm_display_mode *mode,
+>>>> +                         struct drm_display_mode *adjusted_mode)
+>>>> +{
+>>>> +       return true;
+>>>> +}
+>>>> +
+>>>> +static int
+>>>> +tda998x_encoder_mode_valid(struct drm_encoder *encoder,
+>>>> +                         struct drm_display_mode *mode)
+>>>> +{
+>>>> +       return MODE_OK;
+>>>> +}
+>>>
+>>>
+>>>
+>>> At least a note would be helpful to see what callbacks are
+>>> not yet done. I guess there will be some kind of mode check
+>>> someday?
+>>
+>>
+>> Well, some of these drm will assume the fxn ptrs are not null, so we
+>> need something even if it is empty.
+>>
+>> I suppose there are must be some upper bounds on pixel clock
+>> supported, which could perhaps be added some day in _mode_valid().  On
+>
+>
+> Depends what drm expects on mode_valid or mode_fixup, I haven't dug into
+> drm encoders, yet. But usually for HDMI/DVI you will only choose between
+> modes supplied by monitor EDID and not choose something "close". Anyway,
+> I just think a note about stuff that is not yet working is helpful.
+>
+
+I would put a note if there was something that was not working about it ;-)
+
+Currently there is no need to validate or fixup the mode, which is why
+these functions are empty.  DRM has hooks for the drivers at many
+point.  Not always are all of them needed, in this case they are not
+needed.
+
+>
+>> the device I am working on, the limiting factor is the crtc (upstream
+>> of the encoder), so I haven't really needed this yet.  I expect that
+>> as people start using this on some other devices, we'll come across
+>> some enhancements needed, some places where we need to add some
+>> configuration, etc.  I cannot really predict exactly what is needed,
+>> so I prefer just to put the driver out there in some form, and then
+>> add it it as needed.  So, I wouldn't really say that these functions
+>> are "TODO", but I also wouldn't say that we won't find some reason to
+>> add some code there at some point.
+>
+>
+> Or put it in staging?
+>
+
+that won't work too well if we end up having to add a header and
+config info struct to be passed in from the driver using the encoder
+slave
+
+>
+>>>> [...]
+>>>>
+>>>> +static enum drm_connector_status
+>>>> +tda998x_encoder_detect(struct drm_encoder *encoder,
+>>>> +                     struct drm_connector *connector)
+>>>> +{
+>>>> +       uint8_t val = cec_read(encoder, REG_CEC_RXSHPDLEV);
+>>>> +       return (val&   CEC_RXSHPDLEV_HPD) ? connector_status_connected :
+>>>> +                       connector_status_disconnected;
+>>>> +}
+>>>
+>>>
+>>>
+>>> This is where cec slave gets called from hdmi i2c driver. Any chance
+>>> there is HPD status in hdmi registers, too?
+>>
+>>
+>> Not that I know of.  But like I mentioned, we also need to use the CEC
+>> interface just to talk to the HDMI interface.  Before setting ENAMODS
+>> reg via cec address, the hdmi address won't even show up (for ex, on
+>> i2cdetect).
+>
+>
+> Again, I quickly checked the public sources. The cec slave looks like is
+> only for cec communication, i.e. actually sending/receiving messages.
+> But from your patch it isn't even clear to me, when you access hdmi or
+> cec slave as you are bypassing i2c client subsystem somehow.
+>
+
+The cec_read()/cec_write() fxns use the cec i2c_client ptr.  They are
+accessing the cec slave.  I'm not really sure how that is unclear.
+There is not really anything being bypassed here.
+
+Anyways, like I mentioned, the cec slave needs to be accessed before
+the hdmi slave can be accessed at all.
+
+>
+>> Maybe there is some way that this code should register some interface
+>> with CEC driver/subsystem?  (Is there such a thing?  I am not really
+>> CEC expert.)  But I don't think there is any way to completely split
+>> it out.
+>
+>
+> When speaking about CEC subsystem you mean sending/receiving cec messages
+> and the corresponding kernel API? That can come later, for now everything
+> this driver needs can IMHO depend on EDID, i.e. DVI-style, only.
+> CEC communication can come later.
+>
+
+Yes, presumably other than internal use (enabling hdmi subsystem, hpd,
+etc), the other interesting use for CEC would be to enable
+sending/receiving CEC messages.  If there is some kernel subsystem for
+this, presumably the i2c encoder slave would need to register some
+sort of cec_adapter with this subsystem.  I haven't really concerned
+myself with this too much.  I expect enabling hdmi audio is probably
+the more interesting next-feature.
+
+>
+>>>> +/* I2C driver functions */
+>>>> +
+>>>> +static int
+>>>> +tda998x_probe(struct i2c_client *client, const struct i2c_device_id
+>>>> *id)
+>>>> +{
+>>>> +       return 0;
+>>>> +}
+>>>> +
+>>>> +static int
+>>>> +tda998x_remove(struct i2c_client *client)
+>>>> +{
+>>>> +       return 0;
+>>>> +}
+>>>
+>>>
+>>>
+>>> Hmm, empty _probe and _remove? Maybe these should get some code
+>>> from _init below?
+>>
+>>
+>> naw, they aren't really used for drm i2c encoder slaves.
+>
+>
+> Well, if you use a i2c_client_addr != 0 below, the i2c subsystem will only
+> bother you if it finds e.g. device 0x70 on an i2c bus. So they should be
+> used. The drm API must be clear about what should happen in encoder_init
+> and encoder_probe.
+
+btw, if you haven't already, please look at drm_i2c_encoder_init() to
+see how the i2c encoder slave is loaded and connected to it's master
+driver.
+
+I suppose, in theory I could read the device version information in
+the _probe().  But this can't even be read until accessing the CEC
+interface to enable hdmi.  So I end up reading the revision and
+potentially failing later.  But for this hw, there isn't really a
+better way because of the goofy way that the hdmi interface cannot be
+accessed until after it is switched on via cec interface.
+
+>
+>>>> +static int
+>>>> +tda998x_encoder_init(struct i2c_client *client,
+>>>> +                   struct drm_device *dev,
+>>>> +                   struct drm_encoder_slave *encoder_slave)
+>>>> +{
+>>>> +       struct drm_encoder *encoder =&encoder_slave->base;
+>>>>
+>>>> +       struct tda998x_priv *priv;
+>>>> +
+>>>> +       priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+>>>> +       if (!priv)
+>>>> +               return -ENOMEM;
+>>>> +
+>>>> +       priv->current_page = 0;
+>>>> +       priv->cec = i2c_new_dummy(client->adapter, 0x34);
+>>>> +       priv->dpms = DRM_MODE_DPMS_OFF;
+>>>> +
+>>>> +       encoder_slave->slave_priv = priv;
+>>>> +       encoder_slave->slave_funcs =&tda998x_encoder_funcs;
+>>>> +
+>>>> +       /* wake up the device: */
+>>>> +       cec_write(encoder, REG_CEC_ENAMODS,
+>>>> +                       CEC_ENAMODS_EN_RXSENS | CEC_ENAMODS_EN_HDMI);
+>>>> +
+>>>> +       tda998x_reset(encoder);
+>>>> +
+>>>> +       /* read version: */
+>>>> +       priv->rev = reg_read(encoder, REG_VERSION_LSB) |
+>>>> +                       reg_read(encoder, REG_VERSION_MSB)<<   8;
+>>>> +
+>>>> +       /* mask off feature bits: */
+>>>> +       priv->rev&= ~0x30; /* not-hdcp and not-scalar bit */
+>>>
+>>>
+>>>
+>>> If revision register contains features, why not save them for later
+>>> driver improvements?
+>>>
+>>
+>> can be added later if the need arises.  I prefer to leave out code
+>> that only might be used later.. otherwise it is a good way to
+>> accumulate cruft.
+>
+>
+> True, but magic masking (~0x30) and some comments don't help either.
+>
+>
+>>>
+>>>> +       switch (priv->rev) {
+>>>> +       case TDA9989N2:  dev_info(dev->dev, "found TDA9989 n2");  break;
+>>>> +       case TDA19989:   dev_info(dev->dev, "found TDA19989");    break;
+>>>> +       case TDA19989N2: dev_info(dev->dev, "found TDA19989 n2"); break;
+>>>> +       case TDA19988:   dev_info(dev->dev, "found TDA19988");    break;
+>>>> +       default:
+>>>> +               DBG("found unsupported device: %04x", priv->rev);
+>>>> +               goto fail;
+>>>> +       }
+>>>
+>>>
+>>>
+>>> I think printing revision is sufficient, no user will care about the
+>>> actual device or revision.
+>>>
+>>>
+>>>> +       /* after reset, enable DDC: */
+>>>> +       reg_write(encoder, REG_DDC_DISABLE, 0x00);
+>>>> +
+>>>> +       /* set clock on DDC channel: */
+>>>> +       reg_write(encoder, REG_TX3, 39);
+>>>
+>>>
+>>>
+>>> This should be kept disabled as long as there is no monitor attached
+>>> (HPD!)
+>>>
+>>
+>> The sequence is based on NXP's driver.. I'll have to go back and
+>> check, but IIRC there were a few things I had to turn on just to make
+>> HPD work in the first place.
+>
+>
+> Hmm, I have seen a note about issues with some monitors that expect
+> ddc clock to be stable very early. And this looks like the NXP proposed
+> workaround to always clock ddc - but it tells nothing about the reason
+> and more important the note from NXP clearly puts some restrictions on
+> how hdmi tx needs to be clocked by pixclk. Can you ensure a stable pixclk
+> at this point at all?
+>
+
+In my experience it is not depending on pixel clock from crtc.  Or at
+least it isn't turned on at this point and doesn't seem to cause
+issues.  The drm core will not enable the crtc until long after the
+edid is read.
+
+>
+>> Ofc, if there were actually some decent docs about the part, it would
+>> be a bit easier to know what is actually required and what is not.  So
+>> I don't claim everything in it's current form is optimal.
+>
+>
+> I know, everybody knows I guess. But that is what this list is for,
+> discussing when a driver is ready to be mainlined. And without regmap
+> and proper i2c client handling, I have a feeling that it is not close.
+>
+
+There is not really anything wrong with the i2c client handling, or
+rather it works the way that drm i2c encoder slave infrastructure
+expects.
+
+regmap, I'd partially agree..  I'd prefer to use it.  But it doesn't
+really bring that much benefit and the requirements are a bit steep
+considering what is known / not-known about this hw.
+
+>
+>>>> +       /* if necessary, disable multi-master: */
+>>>> +       if (priv->rev == TDA19989)
+>>>> +               reg_set(encoder, REG_I2C_MASTER, I2C_MASTER_DIS_MM);
+>>>> +
+>>>> +       cec_write(encoder, REG_CEC_FRO_IM_CLK_CTRL,
+>>>> +                       CEC_FRO_IM_CLK_CTRL_GHOST_DIS |
+>>>> CEC_FRO_IM_CLK_CTRL_IMCLK_SEL);
+>>>> +
+>>>> +       return 0;
+>>>> +
+>>>> +fail:
+>>>> +       /* if encoder_init fails, the encoder slave is never registered,
+>>>> +        * so cleanup here:
+>>>> +        */
+>>>> +       if (priv->cec)
+>>>> +               i2c_unregister_device(priv->cec);
+>>>> +       kfree(priv);
+>>>> +       encoder_slave->slave_priv = NULL;
+>>>> +       encoder_slave->slave_funcs = NULL;
+>>>> +       return -ENXIO;
+>>>> +}
+>>>> +
+>>>> +static struct i2c_device_id tda998x_ids[] = {
+>>>> +       { "tda998x", 0 },
+>>>> +       { }
+>>>> +};
+>>>> +MODULE_DEVICE_TABLE(i2c, tda998x_ids);
+>>>
+>>>
+>>>
+>>> Shouldn't the above carry the hdmi core i2c address at least?
+>>>
+>>
+>> no, it should come from the user of the encoder slave.  Actually the
+>> CEC address should too, but current drm i2c encoder slave code sort of
+>> assumes the device just has a single address
+>
+>
+> Hmm, that is a limitation for sure. Well I checked drm_encoder_slave and
+> it is calling i2c_register_driver directly. Passing a valid i2c slave
+> address
+> will work here.
+
+note that the hdmi interface cannot be probed until after enabling it
+via cec interface
+
+BR,
+-R
+
+> For the cec i2c slave, we at least know that it is on the same i2c bus
+> and can probe it during _init or _probe ourselves.
+>
+> Sebastian
