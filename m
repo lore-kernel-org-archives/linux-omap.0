@@ -1,42 +1,65 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH v6 03/10] ARM: edma: add AM33XX support to the private
- EDMA API
-Date: Thu, 31 Jan 2013 13:32:55 -0500
-Message-ID: <20130131183255.GI2244@beef>
-References: <1359529229-22207-1-git-send-email-mporter@ti.com>
- <1359529229-22207-4-git-send-email-mporter@ti.com>
- <201301300932.58732.arnd@arndb.de>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH, RFC] default machine descriptor for multiplatform
+Date: Thu, 31 Jan 2013 11:52:32 -0700
+Message-ID: <510ABD70.1020408@wwwdotorg.org>
+References: <20130131092024.GN2637@n2100.arm.linux.org.uk> <20130131161823.GT2637@n2100.arm.linux.org.uk> <1731670.s76EGcEZ7m@wuerfel> <1638002.UJ7zfj1Wn5@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201301300932.58732.arnd@arndb.de>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Padma Venkat <padma.kvr@gmail.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:40042 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756638Ab3AaSwn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 13:52:43 -0500
+In-Reply-To: <1638002.UJ7zfj1Wn5@wuerfel>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, Fabio Estevam <festevam@gmail.com>
 
-On Wed, Jan 30, 2013 at 09:32:58AM +0000, Arnd Bergmann wrote:
-> On Wednesday 30 January 2013, Matt Porter wrote:
-> > +               dma_cap_set(DMA_SLAVE, edma_filter_info.dma_cap);
-> > +               of_dma_controller_register(dev->of_node,
-> > +                                          of_dma_simple_xlate,
-> > +                                          &edma_filter_info);
-> > +       }
+On 01/31/2013 10:51 AM, Arnd Bergmann wrote:
+> This is what I think it would look like to do a default platform
+> with an empty machine descriptor on ARM. It makes the few required
+> entries in the descriptor optional by using the new irqchip_init()
+> and clocksource_of_init() functions as defaults, and adds
+> a fallback for the DT case to customize_machine to probe all
+> the default devices.
 > 
-> How do you actually deal with the problem mentioned by Padma, that
-> the filter function does not know which edma instance it is looking
-> at? If you assume that there can only be a single edma instance in
-> the system, that is probably a limitation that should be documented
-> somewhere, and ideally the probe() function should check for that.
+> For the case that CONFIG_MULTIPLATFORM is enabled, it then
+> adds a machine descriptor that never matches any machine but
+> is used as a fallback if nothing else matches.
 
-I make an assumption of one edma instance in the system in the case of
-DT being populated. This is always true right now as the only SoC with
-two EDMA controllers in existence is Davinci DA850. Until recently,
-Davinci had no DT support. Given the steady work being done today on DT
-support for DA850, it'll probably be something needed in 3.10.
+> diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
 
-I will add a comment and check in probe() to capture this assumption
-and then plan to update separately to support DA850 booting from DT.
+>  static int __init customize_machine(void)
+>  {
+> -	/* customizes platform devices, or adds new ones */
+> +	/*
+> +	 * customizes platform devices, or adds new ones
+> +	 * On DT based machines, we fall back to populating the
+> +	 * machine from the device tree, if no callback is provided,
+> +	 * otherwise we would always need an init_machine callback.
+> +	 */
+>  	if (machine_desc->init_machine)
+>  		machine_desc->init_machine();
+> +	else
+> +		of_platform_populate(NULL, of_default_bus_match_table,
+> +					NULL, NULL);
 
--Matt
+With that change, we can remove the custom .init_machine() functions for
+all of Tegra, since they just do that:-)
+
+> diff --git a/drivers/irqchip/irqchip.c b/drivers/irqchip/irqchip.c
+
+> +#ifdef CONFIG_IRQCHIP
+>  void __init irqchip_init(void)
+>  {
+>  	of_irq_init(__irqchip_begin);
+>  }
+> +#else
+> +static inline void irqchip_init(void)
+> +{
+> +}
+> +#endif
+
+That'd need to go in a header file.
