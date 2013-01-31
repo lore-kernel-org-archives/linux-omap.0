@@ -1,70 +1,41 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 5/5] ARM: OMAP3: Update clocksource timer selection
-Date: Thu, 31 Jan 2013 10:07:19 -0600
-Message-ID: <510A96B7.7010503@ti.com>
-References: <1359565471-30721-1-git-send-email-jon-hunter@ti.com> <1359565471-30721-6-git-send-email-jon-hunter@ti.com> <510A3493.6050508@compulab.co.il>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Failure to boot...
+Date: Thu, 31 Jan 2013 16:18:23 +0000
+Message-ID: <20130131161823.GT2637@n2100.arm.linux.org.uk>
+References: <20130131092024.GN2637@n2100.arm.linux.org.uk> <20130131104044.GO2637@n2100.arm.linux.org.uk> <510A6877.9080307@ti.com> <20130131130437.GP2637@n2100.arm.linux.org.uk> <510A78E1.8010308@ti.com> <20130131141320.GQ2637@n2100.arm.linux.org.uk> <20130131141635.GR2637@n2100.arm.linux.org.uk> <510A7D9F.7040507@ti.com> <20130131142758.GS2637@n2100.arm.linux.org.uk> <CAOMZO5BrGcffzd2YBrF6YQTs7X38RuniYhm010fpLMnigecnTw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56982 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753666Ab3AaQH2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Jan 2013 11:07:28 -0500
-In-Reply-To: <510A3493.6050508@compulab.co.il>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60332 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753695Ab3AaQSk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 11:18:40 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOMZO5BrGcffzd2YBrF6YQTs7X38RuniYhm010fpLMnigecnTw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, arm@kernel.org, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-
-On 01/31/2013 03:08 AM, Igor Grinberg wrote:
-> On 01/30/13 19:04, Jon Hunter wrote:
->> When booting with device-tree for OMAP3 and AM335x devices and a gptimer
->> is used as the clocksource (which is always the case for AM335x), a
->> gptimer located in a power domain that is not always-on is selected.
->> Ideally we should use a gptimer located in a power domain that is always
->> on (such as the wake-up domain) so that time can be maintained during a
->> kernel suspend without keeping on additional power domains unnecessarily.
->>
->> In order to fix this so that we can select a gptimer located in a power
->> domain that is always-on, the following changes were made ...
->> 1. Currently, only when selecting a gptimer to use for a clockevent
->>    timer, do we pass a timer property that can be used to select a
->>    specific gptimer. Change this so that we can pass a property when
->>    selecting a gptimer to use for a clocksource timer too.
->> 2. Currently, when selecting either a gptimer to use for a clockevent
->>    timer or a clocksource timer and no timer property is passed, then
->>    the first available timer is selected regardless of the properties
->>    it has. Change this so that if no properties are passed, then a timer
->>    that does not have additional features (such as always-on, dsp-irq,
->>    pwm, and secure) is selected.
->>
->> Please note that using a gptimer for both clocksource and clockevents
->> can have a system power impact during idle. The reason being is that
->> OMAP and AMxxx devices typically only have one gptimer in a power domain
->> that is always-on. Therefore when the kernel is idle both the clocksource
->> and clockevent timers will be active and this will keep additional power
->> domains on. During kernel suspend, only the clocksource timer is active
->> and therefore, it is better to use a gptimer in a power domain that is
->> always-on for clocksource.
+On Thu, Jan 31, 2013 at 02:01:14PM -0200, Fabio Estevam wrote:
+> On Thu, Jan 31, 2013 at 12:27 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
 > 
-> This should explain the gptimer number switch in the
-> #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
-> section below, right?
-> I would really like to see that clearly stated in the commit message.
-> For instance:
-> ... it is better to use a gptimer in a power domain that is
-> always-on for clocksource. Therefore we switch to use the first gptimer
-> for clocksource and the second for clockevents.
-
-Yes exactly. Good point I can make that bit explicit.
-
->>
->> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> > too.  It also looks like Versatile Express support _can't_ be disabled in
+> > a multiplatform kernel, which is ludicrous.
 > 
-> Apart from above,
-> Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+> Should we go with this approach?
+> https://patchwork.kernel.org/patch/1774521/
 
-Thanks
-Jon
+We need to go with an approach which isn't going to break allnoconfig
+and randconfig.
+
+I've suggested that we should have a basic, minimalist platform always
+built in for DT supporting kernels.  I've actually suggested that we
+should end up not having a machine_desc at all once the DT conversion
+is complete.  Either of those solves the problem of us ending up with
+no platform support built with these configurations.
+
+The alternative is we end up with quite a long disgusting Kconfig
+option which becomes enabled when everything but Versatile Express
+is disabled...
