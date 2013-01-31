@@ -1,52 +1,49 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: Failure to boot...
-Date: Thu, 31 Jan 2013 17:27:02 +0100
-Message-ID: <1731670.s76EGcEZ7m@wuerfel>
-References: <20130131092024.GN2637@n2100.arm.linux.org.uk> <CAOMZO5BrGcffzd2YBrF6YQTs7X38RuniYhm010fpLMnigecnTw@mail.gmail.com> <20130131161823.GT2637@n2100.arm.linux.org.uk>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: OMAP4 PM bootloader dependency problems
+Date: Thu, 31 Jan 2013 21:59:47 +0530
+Message-ID: <510A9BFB.5070802@ti.com>
+References: <alpine.DEB.2.00.1301220229140.25789@utopia.booyaka.com>  <alpine.DEB.2.00.1301301706580.17105@utopia.booyaka.com> <1359622829.10415.40.camel@sokoban> <510A54F8.4090609@ti.com> <alpine.DEB.2.00.1301311537530.23099@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:57929 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751375Ab3AaQ1Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 11:27:16 -0500
-In-Reply-To: <20130131161823.GT2637@n2100.arm.linux.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57972 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754350Ab3AaQ2k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Jan 2013 11:28:40 -0500
+In-Reply-To: <alpine.DEB.2.00.1301311537530.23099@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Fabio Estevam <festevam@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, arm@kernel.org, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
 
-On Thursday 31 January 2013 16:18:23 Russell King - ARM Linux wrote:
-> On Thu, Jan 31, 2013 at 02:01:14PM -0200, Fabio Estevam wrote:
-> > On Thu, Jan 31, 2013 at 12:27 PM, Russell King - ARM Linux
-> > <linux@arm.linux.org.uk> wrote:
-> > 
-> > > too.  It also looks like Versatile Express support _can't_ be disabled in
-> > > a multiplatform kernel, which is ludicrous.
-> > 
-> > Should we go with this approach?
-> > https://patchwork.kernel.org/patch/1774521/
-> 
-> We need to go with an approach which isn't going to break allnoconfig
-> and randconfig.
-> 
-> I've suggested that we should have a basic, minimalist platform always
-> built in for DT supporting kernels.  I've actually suggested that we
-> should end up not having a machine_desc at all once the DT conversion
-> is complete.  Either of those solves the problem of us ending up with
-> no platform support built with these configurations.
+On Thursday 31 January 2013 09:10 PM, Paul Walmsley wrote:
+> Hi,
+>
+> On Thu, 31 Jan 2013, Rajendra Nayak wrote:
+>
+>> Throw a pr_warn() at boot only when CONFIG_CPU_IDLE is enabled. Note
+>> that it isn't enabled by default in omap2plus_defconfig. Also
+>> throw one when a suspend fails, saying bootloader *could be* a possible
+>> cause specifying the right version to be used.
+>
+> In my view, these steps aren't sufficient, for the reasons described in
+>
+> http://marc.info/?l=linux-omap&m=135964568904053&w=2
+>
+> Even with CONFIG_CPU_IDLE=n, it's still possible to attempt to enter
+> full-chip retention idle on OMAP4 via 'echo mem > /sys/power/state', so it
+> doesn't seem right to restrict a solution to that case.
+>
 
-Yes, I like the idea a lot. I think we should be pretty close to
-being able to do that just now, with generic hooks to initialize
-the interrupt controller and clocksouroce drivers.
+I think rajendra also mentioned adding one in suspend path too
+when it fails.
+" Also throw one when a suspend fails, saying bootloader
+*could be* a possible cause specifying the right version to be used."
 
-> The alternative is we end up with quite a long disgusting Kconfig
-> option which becomes enabled when everything but Versatile Express
-> is disabled...
+I find Rajendra's suggestion reasonable because some one might
+just miss the boot message but getting the message on failure
+case cant' be missed.
 
-Yes, I've tried that in the past, it wasn't nice. It also gets
-much more complex if you want to do it for all configurations instead
-of just those that enable ARMv7.
-
-	Arnd
+Regards
+Santosh
