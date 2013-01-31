@@ -1,65 +1,48 @@
-From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2 0/3] Add device tree support for NAND flash in
- am335x-evm
-Date: Thu, 31 Jan 2013 09:36:10 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3EA68A6D@DBDE01.ent.ti.com>
-References: <cover.1359007746.git.avinashphilip@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 0/5] ARM: OMAP2+: System timer updates
+Date: Thu, 31 Jan 2013 15:10:11 +0530
+Message-ID: <510A3BFB.5050805@ti.com>
+References: <1359565471-30721-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <cover.1359007746.git.avinashphilip-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hebbar,
- Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43265 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752923Ab3AaJjC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Jan 2013 04:39:02 -0500
+In-Reply-To: <1359565471-30721-1-git-send-email-jon-hunter@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-Benoit,
+On Wednesday 30 January 2013 10:34 PM, Jon Hunter wrote:
+> This series consists mainly of clean-ups for clockevents and
+> clocksource timers on OMAP2+ devices. The most significant change
+> in functionality comes from the 5th patch which is changing the
+> selection of the clocksource timer for OMAP3 and AM335x devices
+> when gptimers are used for clocksource. This change came about from
+> Vaibhav Bedia's series for AM335x [1]. See patch for more details on
+> the exact nature of the change.
+>
+> Boot tested with and without  device-tree on OMAP2420 H4,
+> OMAP3430 SDP, OMAP3430 Beagle Board, OMAP4430 SDP and
+> AM335x EVM (AM335x only supports device-tree boot).
+>
+> This series is based upon ARM-SoC next branch.
+>
+> [1] https://patchwork.kernel.org/patch/1921421/
+>
+> Jon Hunter (5):
+>    ARM: OMAP2+: Display correct system timer name
+>    ARM: OMAP2+: Remove hard-coded test on timer ID
+>    ARM: OMAP2+: Simplify system timer clock definitions
+>    ARM: OMAP2+: Simplify system timers definitions
+>    ARM: OMAP3: Update clocksource timer selection
+>
+Nice work Jon. All the patches in the series looks good
+to my eyes.
 
-On Thu, Jan 24, 2013 at 13:32:26, Philip, Avinash wrote:
-> This patch series adds device tree support for NAND flash in am335x-evm.
-> Also ELM node is populated in device tree and been used for BCH error
-> correction in NAND flash part. Also this patch series ensures RBL ecc
-> layout maintained in Linux kernel with BCH8 ecc scheme.
-> 
-> This patch series based on [1] and depends on [2].
-> 
-> 1. http://git.kernel.org/?p=linux/kernel/git/bcousson/linux-omap-dt.git;a=tree;h=refs/heads/for_3.9/dts;hb=refs/heads/for_3.9/dts
-> 
-> 2.mtd: devices: elm: Removes <xx> literals in elm DT node
->   https://lkml.org/lkml/2013/1/24/30
-> 
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Can you accept this patch series so that NAND flash with BCH support
-for am335x-evm available in 3.9.
-
-Thanks
-Avinash
-
-
-> Philip Avinash (1):
->   ARM: dts: AM33XX: Add NAND flash device tree data to am335x-evm
-> 
-> Philip, Avinash (2):
->   ARM: dts: AM33XX: Add ELM node
->   ARM: dts: AM33XX: Add GPMC node
-> 
->  arch/arm/boot/dts/am335x-evm.dts |   98 +++++++++++++++++++++++++++++++++++++-
->  arch/arm/boot/dts/am33xx.dtsi    |   20 ++++++++
->  2 files changed, 117 insertions(+), 1 deletion(-)
-> 
-> -- 
-> 1.7.9.5
-> 
-> 
