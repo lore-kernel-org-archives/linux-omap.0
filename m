@@ -1,43 +1,72 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Failure to boot...
-Date: Thu, 31 Jan 2013 10:40:44 +0000
-Message-ID: <20130131104044.GO2637@n2100.arm.linux.org.uk>
-References: <20130131014912.GM2637@n2100.arm.linux.org.uk> <20130131030203.GA8374@quad.lixom.net> <alpine.LFD.2.02.1301302312030.6300@xanadu.home> <20130131092024.GN2637@n2100.arm.linux.org.uk>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH v2 1/2] drivers: net: cpsw: Add helper functions for VLAN
+ ALE implementation
+Date: Thu, 31 Jan 2013 16:39:18 +0530
+Message-ID: <510A50DE.1010308@ti.com>
+References: <1359572855-12344-1-git-send-email-mugunthanvnm@ti.com> <1359572855-12344-2-git-send-email-mugunthanvnm@ti.com> <20130130220208.GA22847@electric-eye.fr.zoreil.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59863 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752858Ab3AaKk5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 05:40:57 -0500
-Content-Disposition: inline
-In-Reply-To: <20130131092024.GN2637@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130130220208.GA22847@electric-eye.fr.zoreil.com>
+Sender: netdev-owner@vger.kernel.org
+To: Francois Romieu <romieu@fr.zoreil.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, arm@kernel.org
 
-On Thu, Jan 31, 2013 at 09:20:24AM +0000, Russell King - ARM Linux wrote:
-> On Wed, Jan 30, 2013 at 11:19:40PM -0500, Nicolas Pitre wrote:
-> > Better yet (IMHO): just enable the zboot command in U-Boot to let you 
-> > boot a zImage binary directly.
-> 
-> I wish it were that easy but it isn't.  I've no idea where to get a
-> version of uboot for my boards which supports that; TI have always
-> supplied updates to uboot for me, and with the current state of TI
-> being afaict in chaos.
-> 
-> TI have always supplied a replacement X-Loader with each uboot update.
-> I've no idea what X-Loader is or why both get updated together, but...
-> 
-> Moreover, I doubt that the 3430LDP, of which there are multiple versions,
-> will ever see a uboot update.  It already suffers from a lack of correct
-> kernel support due to random wiring changes between these versions (the
-> keypad doesn't work correctly) and I've yet to indentify which version
-> it is despite downloading the circuits.  So trying to locate the right
-> uboot will be impossible there.
-> 
-> So, I'm _stuck_ with uImages for these platforms.
+On 1/31/2013 3:32 AM, Francois Romieu wrote:
+> Mugunthan V N <mugunthanvnm@ti.com> :
+> [...]
+>> diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+>> index 0e9ccc2..18b88ce 100644
+>> --- a/drivers/net/ethernet/ti/cpsw_ale.c
+>> +++ b/drivers/net/ethernet/ti/cpsw_ale.c
+> [...]
+>> @@ -274,19 +292,26 @@ int cpsw_ale_flush(struct cpsw_ale *ale, int port_mask)
+>>   	return 0;
+>>   }
+>>   
+>> -int cpsw_ale_add_ucast(struct cpsw_ale *ale, u8 *addr, int port, int flags)
+>> +int cpsw_ale_add_ucast(struct cpsw_ale *ale, u8 *addr, int port,
+>> +		       int flags, u16 vid)
+>>   {
+>>   	u32 ale_entry[ALE_ENTRY_WORDS] = {0, 0, 0};
+>>   	int idx;
+>>   
+>> -	cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_ADDR);
+>> +	if (flags & ALE_VLAN) {
+>> +		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_VLAN_ADDR);
+>> +		cpsw_ale_set_vlan_id(ale_entry, vid);
+>> +	} else {
+>> +		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_ADDR);
+>> +	}
+>> +
+> [...]
+>> +	if (flags & ALE_VLAN) {
+>> +		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_VLAN_ADDR);
+>> +		cpsw_ale_set_vlan_id(ale_entry, vid);
+>> +	} else {
+>> +		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_ADDR);
+>> +	}
+>> +
+> It could be fctored out.
+Are you mentioning to have static inline function for the above two 
+statements above?
+>
+> [...]
+>> @@ -362,6 +395,55 @@ int cpsw_ale_del_mcast(struct cpsw_ale *ale, u8 *addr, int port_mask)
+>>   	return 0;
+>>   }
+>>   
+>> +int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int untag,
+>> +		      int reg_mcast, int unreg_mcast)
+>> +{
+> [...]
+>> +int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port_mask)
+> [...]
+>
+> Patch #2 doesn't use the returned status code.
+Will modify the prototype to return void
 
-Right, so I'm now passing LOADADDR= which allows this to work - and the
-latest OMAP4430SDP boot result shows almost the same sad broken story.
+Regards
+Mugunthan V N
