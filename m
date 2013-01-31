@@ -1,58 +1,39 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [PATCH v3] ARM: OMAP2: am33xx-hwmod: Fix "register offset NULL
- check" bug
-Date: Thu, 31 Jan 2013 08:24:00 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EB59E84@DBDE01.ent.ti.com>
-References: <1359556760-25214-1-git-send-email-gururaja.hebbar@ti.com>
- <D0DE2843-AA5C-4DFA-ADBE-61BC11D24836@dominion.thruhere.net>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH] mmc: omap_hsmmc: MAINTAINERS: update
+Date: Thu, 31 Jan 2013 14:22:22 +0530
+Message-ID: <1359622342-30553-1-git-send-email-balajitk@ti.com>
+References: <878v7asj56.fsf@octavius.laptop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35897 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751954Ab3AaIYN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 03:24:13 -0500
-In-Reply-To: <D0DE2843-AA5C-4DFA-ADBE-61BC11D24836@dominion.thruhere.net>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <878v7asj56.fsf@octavius.laptop.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, cjb@laptop.org
+Cc: linux-omap@vger.kernel.org, balbi@ti.com, Balaji T K <balajitk@ti.com>, Venkatraman S <svenkatr@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
 
-On Thu, Jan 31, 2013 at 12:58:36, Koen Kooi wrote:
-> 
-> Op 30 jan. 2013, om 15:39 heeft Hebbar Gururaja <gururaja.hebbar@ti.com> het volgende geschreven:
-> 
-> > am33xx_cm_wait_module_ready() checks if register offset is NULL.
-> > 
-> > int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-> > {
-> > 	int i = 0;
-> > 
-> > 	if (!clkctrl_offs)
-> > 		return 0;
-> > 
-> > In case of AM33xx, CLKCTRL register offset for different clock domains
-> > are not uniformly placed. An example of this would be the RTC clock
-> > domain with CLKCTRL offset at 0x00.
-> > In such cases the module ready check is skipped which leads to a data
-> > abort during boot-up when RTC registers is accessed.
-> > 
-> > Remove this check here to avoid checking module readiness for modules
-> > with clkctrl register offset at 0x00.
-> > 
-> > Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
-> 
-> I can confirm that this fixes the crash on boot with CONFIG_RTC_DRV_OMAP=y with 3.8-rc5
+Update Maintainer email for omap_hsmmc,
+as Venkatraman will no longer be able to maintain omap_hsmmc driver.
 
-Could you please share the crash log for my reference?
+Signed-off-by: Venkatraman S <svenkatr@gmail.com>
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+ MAINTAINERS |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> 
-> regards,
-> 
-> Koen
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 92e726c..f319237 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5498,7 +5498,7 @@ S:	Maintained
+ F:	drivers/mmc/host/omap.c
+ 
+ OMAP HS MMC SUPPORT
+-M:	Venkatraman S <svenkatr@ti.com>
++M:	Balaji T K <balajitk@ti.com>
+ L:	linux-mmc@vger.kernel.org
+ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+-- 
+1.7.5.4
 
-
-Regards, 
-Gururaja
