@@ -1,72 +1,81 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: Failure to boot...
-Date: Thu, 31 Jan 2013 19:30:01 +0530
-Message-ID: <510A78E1.8010308@ti.com>
-References: <20130131014912.GM2637@n2100.arm.linux.org.uk> <20130131030203.GA8374@quad.lixom.net> <alpine.LFD.2.02.1301302312030.6300@xanadu.home> <20130131092024.GN2637@n2100.arm.linux.org.uk> <20130131104044.GO2637@n2100.arm.linux.org.uk> <510A6877.9080307@ti.com> <20130131130437.GP2637@n2100.arm.linux.org.uk>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH 1/1] drivers: net: davinci_cpdma: acknowledge interrupt
+ properly
+Date: Thu, 31 Jan 2013 19:30:23 +0530
+Message-ID: <510A78F7.3070400@ti.com>
+References: <1359575813-15703-1-git-send-email-mugunthanvnm@ti.com> <EF466712-C5FF-4A91-BDF3-477559B02705@dominion.thruhere.net> <510A44B0.30200@ti.com> <C92BBC79-6B63-482D-8431-4812823920B9@antoniou-consulting.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53950 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750921Ab3AaN7v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 08:59:51 -0500
-In-Reply-To: <20130131130437.GP2637@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <C92BBC79-6B63-482D-8431-4812823920B9@antoniou-consulting.com>
+Sender: netdev-owner@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nicolas Pitre <nico@fluxnic.net>, Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday 31 January 2013 06:34 PM, Russell King - ARM Linux wrote:
-> On Thu, Jan 31, 2013 at 06:19:59PM +0530, Santosh Shilimkar wrote:
->> On Thursday 31 January 2013 04:10 PM, Russell King - ARM Linux wrote:
->>> On Thu, Jan 31, 2013 at 09:20:24AM +0000, Russell King - ARM Linux wrote:
->>>> On Wed, Jan 30, 2013 at 11:19:40PM -0500, Nicolas Pitre wrote:
->>>>> Better yet (IMHO): just enable the zboot command in U-Boot to let you
->>>>> boot a zImage binary directly.
->>>>
->>>> I wish it were that easy but it isn't.  I've no idea where to get a
->>>> version of uboot for my boards which supports that; TI have always
->>>> supplied updates to uboot for me, and with the current state of TI
->>>> being afaict in chaos.
->>>>
->>>> TI have always supplied a replacement X-Loader with each uboot update.
->>>> I've no idea what X-Loader is or why both get updated together, but...
->>>>
->>>> Moreover, I doubt that the 3430LDP, of which there are multiple versions,
->>>> will ever see a uboot update.  It already suffers from a lack of correct
->>>> kernel support due to random wiring changes between these versions (the
->>>> keypad doesn't work correctly) and I've yet to indentify which version
->>>> it is despite downloading the circuits.  So trying to locate the right
->>>> uboot will be impossible there.
->>>>
->>>> So, I'm _stuck_ with uImages for these platforms.
+Pantelis
+
+On 1/31/2013 4:52 PM, Pantelis Antoniou wrote:
+> Hi
+> On Jan 31, 2013, at 12:17 PM, Mugunthan V N wrote:
+>
+>> On 1/31/2013 1:33 AM, Koen Kooi wrote:
+>>> Op 30 jan. 2013, om 20:56 heeft Mugunthan V N <mugunthanvnm@ti.com> het volgende geschreven:
 >>>
->>> Right, so I'm now passing LOADADDR= which allows this to work - and the
->>> latest OMAP4430SDP boot result shows almost the same sad broken story.
->>>
->> I just tried latest mainline (commit: 04c2eee5) and default config
->> just boots fine.
+>>>> CPDMA interrupts are not properly acknowledged which leads to interrupt
+>>>> storm, only cpdma interrupt 0 is acknowledged in Davinci CPDMA driver.
+>>>> Changed cpdma_ctlr_eoi api to acknowledge 1 and 2 interrupts which are
+>>>> used for rx and tx respectively.
+>>> A brief inspection shows that this still isn't following the TRM, but Pantelis' patch does. Can you please fix this driver to follow the TRM and make it work on both PG1.0 and PG2.0 instead of papering over bugs instead of fixing them properly?
+>> Existing driver implementation is also complies with TRM. What Pantelis added
+>> additionally are non-napi implementation, handled cpdma processed tx and rx
+>> processing separately and renamed wr_reg as per TRM naming convention.. Also he
+>> has added a dummy reading tx/rx stat which is mentioned in TRM, but this stat
+>> is required only when using multichannel for data transfer. Current implementation
+>> of CPSW driver uses only channel 0 of Tx and Rx channels respectively for transmission
+>> and reading stat doesn't gets any effect in interrupt acknowledgment.
+>>
+>> Since both tx and rx are processed in same napi api, so i have added interrupt
+>> acknowledgment to the same existing api.
+>>
 >
-> Please read the notes at the bottom of the page, specifically:
->   * Build tree is currently created on an ad-hoc basis from Linus' tip, rmk's
->     development tip and arm-soc for-next branches.
+> First of all, this method of not needing to read the stat registers besides when
+> using multichannel for data transfers is never described anywhere in any manual,
+> or in the driver sources.
 >
-> This system does *not* build and boot vanilla mainline kernels.  It is
-> (as the above says):
+> Secondly, I find the method of ack-ing all interrupt sources problematic.
+> Consider the following sequence
 >
-> - Linus' tip
-> - My for-next plus a few other bits
-> - arm-soc for-next
+> Rx-interrupt ---> |                         |
+>                    | IRQ handler             |
+>                    | schedules NAPI          |
+>                    | disables interrupts --> | cpsw_poll()
+>                    |                         | handle Rx
+> Tx-interrupt ---> |-------------------------|-------------
+>                    |                         | ack Rx & Tx IRQ
+>                    |                         | enable interrupts
 >
-> all merged together.
+> When will the Tx interrupt get handled? Is it guaranteed that the DMA
+> logic will assert the Tx interrupt when the interrupts are enabled, even
+> though the interrupt was previously acked? It is not clear in the TRM.
+Need to check with the IP owner with this corner case. Simulating this 
+will be difficult
+because even if driver misses the interrupt in next rx/tx interrupt it 
+will be serviced.
 >
-Linus' tip(commit: 04c2eee5) + arm-soc for-next boots fine as well.
-The pull request from Tony [1] fixed the multi-platform boot issue
-for OMAP.
+> Another problem that I see is that the other interrupts (MISC) are not supposed
+> to be routed to the napi cpsw_poll() function at all. NAPI is for the tx/rx path
+> as far as I know.
+I agree that napi should not be used for MISC interrupts.
 
-Now trying to merge your for-next and test.
-
-Regards,
-Santosh
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg83084.html
+Regards
+Mugunthan V N
+>
+>
+>> Regards
+>> Mugunthan V N
+> Regards
+>
+> -- Pantelis
+>
