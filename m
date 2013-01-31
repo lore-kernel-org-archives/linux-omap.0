@@ -1,87 +1,128 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: Failure to boot...
-Date: Wed, 30 Jan 2013 23:19:40 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1301302312030.6300@xanadu.home>
-References: <20130131014912.GM2637@n2100.arm.linux.org.uk>
- <20130131030203.GA8374@quad.lixom.net>
+From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v4 5/8] MFD: ti_am335x_tscadc: Add DT support
+Date: Thu, 31 Jan 2013 05:02:04 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EBEFAE8@DBDE01.ent.ti.com>
+References: <1358999112-31192-1-git-send-email-rachna@ti.com>
+ <1358999112-31192-6-git-send-email-rachna@ti.com>
+ <A9839AA2-ABCD-4642-9766-D56824AC27AD@dominion.thruhere.net>
+ <4CE347531D4CA947960AF71FF095B9323E9B1EE9@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:63797 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756366Ab3AaETl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jan 2013 23:19:41 -0500
-Received: from xanadu.home ([24.202.213.203]) by VL-VM-MR005.ip.videotron.ca
- (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
- 2011)) with ESMTP id <0MHH00EJS2OS9DO1@VL-VM-MR005.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Wed, 30 Jan 2013 23:19:41 -0500 (EST)
-In-reply-to: <20130131030203.GA8374@quad.lixom.net>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <4CE347531D4CA947960AF71FF095B9323E9B1EE9-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dmitry Torokhov <dtor-JGs/UdohzUI@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "Hebbar,
+ Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, arm@kernel.org
 
-On Wed, 30 Jan 2013, Olof Johansson wrote:
-
-> My Panda ES works with omap2plus_defconfig, but I just noticed that the
-> in-kernel uImage target will use a bad load/entry address so loading and
-> booting that uImage will hang u-boot:
+On Thu, Jan 31, 2013 at 09:41:11, Patil, Rachna wrote:
+> On Wed, Jan 30, 2013 at 16:10:09, Koen Kooi wrote:
+> > 
+> > Op 24 jan. 2013, om 04:45 heeft "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org> het volgende geschreven:
+> > 
+> > > From: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
+> > > 
+> > > Make changes to add DT support in the MFD core driver.
+> > > 
+> > > Signed-off-by: Patil, Rachna <rachna-l0cyMroinI0@public.gmane.org>
+> > > ---
+> > > Changes in v4:
+> > > 	Non-standard properties prefixed with vendor name.
+> > > 
+> > > drivers/mfd/ti_am335x_tscadc.c |   28 +++++++++++++++++++++++-----
+> > > 1 file changed, 23 insertions(+), 5 deletions(-)
+> > > 
+> > > diff --git a/drivers/mfd/ti_am335x_tscadc.c 
+> > > b/drivers/mfd/ti_am335x_tscadc.c index e9f3fb5..87b446b 100644
+> > > --- a/drivers/mfd/ti_am335x_tscadc.c
+> > > +++ b/drivers/mfd/ti_am335x_tscadc.c
+> > > @@ -22,6 +22,8 @@
+> > > #include <linux/regmap.h>
+> > > #include <linux/mfd/core.h>
+> > > #include <linux/pm_runtime.h>
+> > > +#include <linux/of.h>
+> > > +#include <linux/of_device.h>
+> > > 
+> > > #include <linux/mfd/ti_am335x_tscadc.h> #include 
+> > > <linux/input/ti_am335x_tsc.h>
+> > > @@ -64,20 +66,31 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+> > > 	struct resource		*res;
+> > > 	struct clk		*clk;
+> > > 	struct mfd_tscadc_board	*pdata = pdev->dev.platform_data;
+> > > +	struct device_node	*node = pdev->dev.of_node;
+> > > 	struct mfd_cell		*cell;
+> > > 	int			err, ctrl;
+> > > 	int			clk_value, clock_rate;
+> > > -	int			tsc_wires, adc_channels = 0, total_channels;
+> > > +	int			tsc_wires = 0, adc_channels = 0, total_channels;
+> > > 
+> > > -	if (!pdata) {
+> > > +	if (!pdata && !pdev->dev.of_node) {
+> > > 		dev_err(&pdev->dev, "Could not find platform data\n");
+> > > 		return -EINVAL;
+> > > 	}
+> > > 
+> > > -	if (pdata->adc_init)
+> > > -		adc_channels = pdata->adc_init->adc_channels;
+> > > +	if (pdev->dev.platform_data) {
+> > > +		if (pdata->tsc_init)
+> > > +			tsc_wires = pdata->tsc_init->wires;
+> > > +
+> > > +		if (pdata->adc_init)
+> > > +			adc_channels = pdata->adc_init->adc_channels;
+> > > +	} else {
+> > > +		node = of_find_node_by_name(pdev->dev.of_node, "tsc");
+> > > +		of_property_read_u32(node, "ti,wires", &tsc_wires);
+> > > +
+> > > +		node = of_find_node_by_name(pdev->dev.of_node, "adc");
+> > > +		of_property_read_u32(node, "ti,adc-channels", &adc_channels);
+> > > +	}
+> > 
+> > Since AM335x is DT only, why is there a platform data codepath and why is it the first branch it tries? And I guess the next question is related to the first: why doesn't it work when used with DT? When I copy over the nodes from the evm.dts to my board I get "tsc tsc: Missing platform data" in dmesg.
 > 
-> Image Name:   Linux-3.8.0-rc5-00389-g120d4a8
-> Created:      Wed Jan 30 18:30:39 2013
-> Image Type:   ARM Linux Kernel Image (uncompressed)
-> Data Size:    3843912 Bytes = 3753.82 kB = 3.67 MB
-> Load Address: fffffff2
-> Entry Point:  fffffff2
+> This IP came up 1st on AM335x, but it is not platform dependent. The driver can be used on other platforms where-in DT is not supported.
+> According to the maintainers platform data takes precedence over DT. Hence the order.
 > 
-> Looking at the latest build and boot log for SDP (oldconfig) on your build
-> status site verifies that you hit that case too. :(
+
+Rachana,
+
+I see no point adding support for platform_data when you know that none of 
+older platforms are going to use this driver and all future platforms _must_ 
+follow device-tree model.
+
+So I agree that you should remove board file dependency from the driver.
+
+
+> I do not see "Missing platform data" error msg in the latest driver. I am not able to trace from where this got populated.
 > 
-> Wrapping by hand (which my scripts already do) produces a bootable image; just
-> verified both with and without device-tree on my panda.
+
+Can you share the branch which you have tested?
+
+Thanks,
+Vaibhav
+
+> > 
+> > What are the chances this driver will work when applied on top of 3.8-rcX? Has it even been tested with that? Has it been tested at all?
 > 
-> git bisect points at a069486162a59513053cf772515217ca61727704 (ARM: OMAP2+:
-> Enable ARCH_MULTIPLATFORM support)
+> This driver has been tested on top of v3.8-rc3 on a AM335x EVM.
 > 
-> Hmm. This happens because nothing sources arch/arm/mach-*/Makefile.boot for
-> CONFIG_ARCH_MULTIPLATFORM builds, even if only a single platform is enabled,
-> since $MACHINE is empty.
-
-The uImage format is incompatible with multi-platform builds, period.
-
-The uImage wrapping should be done at kernel _installation_ time, not at 
-_build_ time.  That is, people shoud get into the habit of distributing 
-a zImage binary, and the installation procedure on a particular platform 
-should take care of running mkimage on it.
-
-Better yet (IMHO): just enable the zboot command in U-Boot to let you 
-boot a zImage binary directly.
-
-> It seems like most of the available options to deal with this are bad. One
-> thing we should never do though, is to pretend to make a working uImage
-> when we're not.  Maybe abort building just like in the case of multiple
-> load addresses?
-
-Absolutely.
-
-> diff --git a/arch/arm/boot/Makefile b/arch/arm/boot/Makefile
-> index abfce28..71768b8 100644
-> --- a/arch/arm/boot/Makefile
-> +++ b/arch/arm/boot/Makefile
-> @@ -68,8 +68,8 @@ else
->  endif
->  
->  check_for_multiple_loadaddr = \
-> -if [ $(words $(UIMAGE_LOADADDR)) -gt 1 ]; then \
-> -	echo 'multiple load addresses: $(UIMAGE_LOADADDR)'; \
-> +if [ $(words $(UIMAGE_LOADADDR)) -ne 1 ]; then \
-> +	echo 'multiple (or no) load addresses: $(UIMAGE_LOADADDR)'; \
->  	echo 'This is incompatible with uImages'; \
->  	echo 'Specify LOADADDR on the commandline to build an uImage'; \
->  	false; \
-
-Acked-by: Nicolas Pitre <nico@linaro.org>
-
-
-Nicolas
+> Regards,
+> Rachna
+> 
+> _______________________________________________
+> devicetree-discuss mailing list
+> devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+> https://lists.ozlabs.org/listinfo/devicetree-discuss
+> 
