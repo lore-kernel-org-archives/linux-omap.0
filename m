@@ -1,47 +1,43 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 1/1] drivers: net: davinci_cpdma: acknowledge interrupt
- properly
-Date: Thu, 31 Jan 2013 15:47:20 +0530
-Message-ID: <510A44B0.30200@ti.com>
-References: <1359575813-15703-1-git-send-email-mugunthanvnm@ti.com> <EF466712-C5FF-4A91-BDF3-477559B02705@dominion.thruhere.net>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Failure to boot...
+Date: Thu, 31 Jan 2013 10:40:44 +0000
+Message-ID: <20130131104044.GO2637@n2100.arm.linux.org.uk>
+References: <20130131014912.GM2637@n2100.arm.linux.org.uk> <20130131030203.GA8374@quad.lixom.net> <alpine.LFD.2.02.1301302312030.6300@xanadu.home> <20130131092024.GN2637@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52496 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753183Ab3AaKR6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 05:17:58 -0500
-In-Reply-To: <EF466712-C5FF-4A91-BDF3-477559B02705@dominion.thruhere.net>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59863 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858Ab3AaKk5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 05:40:57 -0500
+Content-Disposition: inline
+In-Reply-To: <20130131092024.GN2637@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, panto@antoniou-consulting.com
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, arm@kernel.org
 
-On 1/31/2013 1:33 AM, Koen Kooi wrote:
-> Op 30 jan. 2013, om 20:56 heeft Mugunthan V N <mugunthanvnm@ti.com> het volgende geschreven:
->
->> CPDMA interrupts are not properly acknowledged which leads to interrupt
->> storm, only cpdma interrupt 0 is acknowledged in Davinci CPDMA driver.
->> Changed cpdma_ctlr_eoi api to acknowledge 1 and 2 interrupts which are
->> used for rx and tx respectively.
-> A brief inspection shows that this still isn't following the TRM, but Pantelis' patch does. Can you please fix this driver to follow the TRM and make it work on both PG1.0 and PG2.0 instead of papering over bugs instead of fixing them properly?
-Existing driver implementation is also complies with TRM. What Pantelis 
-added
-additionally are non-napi implementation, handled cpdma processed tx and rx
-processing separately and renamed wr_reg as per TRM naming convention.. 
-Also he
-has added a dummy reading tx/rx stat which is mentioned in TRM, but this 
-stat
-is required only when using multichannel for data transfer. Current 
-implementation
-of CPSW driver uses only channel 0 of Tx and Rx channels respectively 
-for transmission
-and reading stat doesn't gets any effect in interrupt acknowledgment.
+On Thu, Jan 31, 2013 at 09:20:24AM +0000, Russell King - ARM Linux wrote:
+> On Wed, Jan 30, 2013 at 11:19:40PM -0500, Nicolas Pitre wrote:
+> > Better yet (IMHO): just enable the zboot command in U-Boot to let you 
+> > boot a zImage binary directly.
+> 
+> I wish it were that easy but it isn't.  I've no idea where to get a
+> version of uboot for my boards which supports that; TI have always
+> supplied updates to uboot for me, and with the current state of TI
+> being afaict in chaos.
+> 
+> TI have always supplied a replacement X-Loader with each uboot update.
+> I've no idea what X-Loader is or why both get updated together, but...
+> 
+> Moreover, I doubt that the 3430LDP, of which there are multiple versions,
+> will ever see a uboot update.  It already suffers from a lack of correct
+> kernel support due to random wiring changes between these versions (the
+> keypad doesn't work correctly) and I've yet to indentify which version
+> it is despite downloading the circuits.  So trying to locate the right
+> uboot will be impossible there.
+> 
+> So, I'm _stuck_ with uImages for these platforms.
 
-Since both tx and rx are processed in same napi api, so i have added 
-interrupt
-acknowledgment to the same existing api.
-
-Regards
-Mugunthan V N
+Right, so I'm now passing LOADADDR= which allows this to work - and the
+latest OMAP4430SDP boot result shows almost the same sad broken story.
