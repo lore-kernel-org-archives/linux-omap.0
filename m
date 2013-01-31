@@ -1,56 +1,98 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH RFC] usb: dwc3: Get PHY from platform specific dwc3 dt node.
-Date: Thu, 31 Jan 2013 21:00:37 +0530
-Message-ID: <CAFp+6iHvKYiF_neANRq5roAEJwhvcaLk7pAd7Dy94Z5XiDkhgA@mail.gmail.com>
-References: <1359631232-7107-1-git-send-email-gautam.vivek@samsung.com>
-	<510A56BF.3040804@ti.com>
-	<CAFp+6iFkb=U0CJA=3zmQvd5XfMwbROuRJjXoJG7zvvq4_upzNw@mail.gmail.com>
-	<20130131152527.GE4064@arwen.pp.htv.fi>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] ARM: OMAP2+: Get rid of custom OMAP_32K_TIMER_HZ
+Date: Thu, 31 Jan 2013 21:02:00 +0530
+Message-ID: <1359646320-9086-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130131152527.GE4064@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: kishon <kishon@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54937 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754862Ab3AaPbI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Jan 2013 10:31:08 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, John Stultz <john.stultz@linaro.org>, Tony Lindgren <tony@atomide.com>
 
-Hi Felipe,
+The timekeeping doesn't depend on HZ value in presence of fine grained
+clocksource and hence there should not be any time drift because of HZ
+value which was chosen to be divisor of 32768.
 
+OMAP has been using HZ = 128 value to avoid any time drift issues
+because of 32768 HZ clock. But with various measurements performed
+with HZ = 100, no time drift is observed and it also proves the
+point about HZ not having impact on time keeping on OMAP.
 
-On Thu, Jan 31, 2013 at 8:55 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Thu, Jan 31, 2013 at 08:53:27PM +0530, Vivek Gautam wrote:
->> >> Moreover, SoCs having multiple dwc3 controllers will have multiple
->> >> PHYs, which eventually be added using usb_add_phy_dev(), and not
->> >> using usb_add_phy(). So each dwc3 controller won't be able to
->> >> get PHYs by simply calling devm_usb_get_phy() also.
->> >
->> > No. We have added usb_get_phy_dev() for that purpose in the case of non-dt.
->> > I think, instead you can have a patch to use devm_usb_get_phy_dev() here and
->> > in exynos platform specific code use usb_bind_phy() to bind the phy and
->> > controller till you change it to dt.
->> >
->>
->> We have dt support for dwc3-exynos, in such case we should go ahead with
->> of_platform_populate(), right ?
->> But if when i use of_platform_populate() i will not be able to set
->> dma_mask to dwc3->dev. :-(
->
-> do you have a special need for dma_mask because OF already sets it.
->
-If i am not wrong of_platform_device_create_pdata() will set
-"dev->dev.coherent_dma_mask = DMA_BIT_MASK(32)"
-and not dma_mask.
-I fact we had some discussion sometime back when we needed the same
-for dwc3-exynos in the thread:
-[PATCH v2 1/2] USB: dwc3-exynos: Add support for device tree
+Very informative thread on this topic is here:
+	https://lkml.org/lkml/2013/1/29/435
 
-But couldn't get final node on it.
-So suggestions here please. :-)
+Special thanks to John Stulz, Arnd Bergmann and Russell King for their
+valuable suggestions.
 
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>
 
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ arch/arm/Kconfig                        |    1 -
+ arch/arm/plat-omap/Kconfig              |    9 ---------
+ arch/arm/plat-omap/include/plat/timex.h |    8 --------
+ 3 files changed, 18 deletions(-)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index b35b27f..5493164 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1648,7 +1648,6 @@ config HZ
+ 	int
+ 	default 200 if ARCH_EBSA110 || ARCH_S3C24XX || ARCH_S5P64X0 || \
+ 		ARCH_S5PV210 || ARCH_EXYNOS4
+-	default OMAP_32K_TIMER_HZ if ARCH_OMAP && OMAP_32K_TIMER
+ 	default AT91_TIMER_HZ if ARCH_AT91
+ 	default SHMOBILE_TIMER_HZ if ARCH_SHMOBILE
+ 	default 100
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 67c859c..ce66eb9 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -147,15 +147,6 @@ config OMAP3_L2_AUX_SECURE_SERVICE_SET_ID
+ 	help
+ 	  PPA routine service ID for setting L2 auxiliary control register.
+ 
+-config OMAP_32K_TIMER_HZ
+-	int "Kernel internal timer frequency for 32KHz timer"
+-	range 32 1024
+-	depends on OMAP_32K_TIMER
+-	default "128"
+-	help
+-	  Kernel internal timer frequency should be a divisor of 32768,
+-	  such as 64 or 128.
+-
+ config OMAP_DM_TIMER
+ 	bool "Use dual-mode timer"
+ 	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
+diff --git a/arch/arm/plat-omap/include/plat/timex.h b/arch/arm/plat-omap/include/plat/timex.h
+index 6d35767..e27d2da 100644
+--- a/arch/arm/plat-omap/include/plat/timex.h
++++ b/arch/arm/plat-omap/include/plat/timex.h
+@@ -28,14 +28,6 @@
+ #if !defined(__ASM_ARCH_OMAP_TIMEX_H)
+ #define __ASM_ARCH_OMAP_TIMEX_H
+ 
+-/*
+- * OMAP 32KHz timer updates time one jiffie at a time from a secondary timer,
+- * and that's why the CLOCK_TICK_RATE is not 32768.
+- */
+-#ifdef CONFIG_OMAP_32K_TIMER
+-#define CLOCK_TICK_RATE		(CONFIG_OMAP_32K_TIMER_HZ)
+-#else
+ #define CLOCK_TICK_RATE		(HZ * 100000UL)
+-#endif
+ 
+ #endif /* __ASM_ARCH_OMAP_TIMEX_H */
 -- 
-Thanks & Regards
-Vivek
+1.7.9.5
+
