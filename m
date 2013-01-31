@@ -1,39 +1,47 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP4 PM bootloader dependency problems
-Date: Thu, 31 Jan 2013 15:40:29 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1301311537530.23099@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1301220229140.25789@utopia.booyaka.com>  <alpine.DEB.2.00.1301301706580.17105@utopia.booyaka.com> <1359622829.10415.40.camel@sokoban> <510A54F8.4090609@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Failure to boot...
+Date: Thu, 31 Jan 2013 08:00:02 -0800
+Message-ID: <20130131160000.GW15361@atomide.com>
+References: <20130131092024.GN2637@n2100.arm.linux.org.uk>
+ <20130131104044.GO2637@n2100.arm.linux.org.uk>
+ <510A6877.9080307@ti.com>
+ <20130131130437.GP2637@n2100.arm.linux.org.uk>
+ <510A78E1.8010308@ti.com>
+ <20130131141320.GQ2637@n2100.arm.linux.org.uk>
+ <20130131141635.GR2637@n2100.arm.linux.org.uk>
+ <510A7D9F.7040507@ti.com>
+ <20130131142758.GS2637@n2100.arm.linux.org.uk>
+ <510A82FE.6050803@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:52422 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751796Ab3AaPka (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 10:40:30 -0500
-In-Reply-To: <510A54F8.4090609@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56363 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755138Ab3AaQAI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 11:00:08 -0500
+Content-Disposition: inline
+In-Reply-To: <510A82FE.6050803@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: t-kristo@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130131 06:45]:
+> On Thursday 31 January 2013 07:57 PM, Russell King - ARM Linux wrote:
+> >>>
+> >>># 13 Jan 2013: Update for OMAP moving to multiplatform
+> >>>CONFIG_ARCH_MULTIPLATFORM=y
+> >>>CONFIG_ARCH_MULTI_V7=y
+> >>>
+> >>>don't fix it either, it needs more options defined...
 
-On Thu, 31 Jan 2013, Rajendra Nayak wrote:
+Just trying to figure out what was the missing entry in case
+others have the same problem.
 
-> Throw a pr_warn() at boot only when CONFIG_CPU_IDLE is enabled. Note
-> that it isn't enabled by default in omap2plus_defconfig. Also
-> throw one when a suspend fails, saying bootloader *could be* a possible
-> cause specifying the right version to be used.
+In addition to the ones above, I had also CONFIG_ARCH_OMAP2PLUS=y
+listed in my comments. Did you also need something else added
+manually?
 
-In my view, these steps aren't sufficient, for the reasons described in 
+Regards,
 
-http://marc.info/?l=linux-omap&m=135964568904053&w=2
-
-Even with CONFIG_CPU_IDLE=n, it's still possible to attempt to enter 
-full-chip retention idle on OMAP4 via 'echo mem > /sys/power/state', so it 
-doesn't seem right to restrict a solution to that case.
-
-regards,
-
-
-- Paul
+Tony
