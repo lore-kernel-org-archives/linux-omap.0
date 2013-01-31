@@ -1,39 +1,36 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Failure to boot...
-Date: Thu, 31 Jan 2013 09:20:24 +0000
-Message-ID: <20130131092024.GN2637@n2100.arm.linux.org.uk>
-References: <20130131014912.GM2637@n2100.arm.linux.org.uk> <20130131030203.GA8374@quad.lixom.net> <alpine.LFD.2.02.1301302312030.6300@xanadu.home>
+From: Venkatraman S <svenkatr@gmail.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: MAINTAINERS: update
+Date: Thu, 31 Jan 2013 14:52:06 +0530
+Message-ID: <CAOyx1Lq=WNrpXKtd07iZJ-hTFBt-W=6GUDTqX+15ByPEhfezmw@mail.gmail.com>
+References: <878v7asj56.fsf@octavius.laptop.org>
+	<1359622342-30553-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59783 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751467Ab3AaJUh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 04:20:37 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.02.1301302312030.6300@xanadu.home>
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:64292 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751467Ab3AaJWH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 04:22:07 -0500
+In-Reply-To: <1359622342-30553-1-git-send-email-balajitk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, arm@kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, balbi@ti.com
 
-On Wed, Jan 30, 2013 at 11:19:40PM -0500, Nicolas Pitre wrote:
-> Better yet (IMHO): just enable the zboot command in U-Boot to let you 
-> boot a zImage binary directly.
+On Thu, Jan 31, 2013 at 2:22 PM, Balaji T K <balajitk@ti.com> wrote:
+> Update Maintainer email for omap_hsmmc,
+> as Venkatraman will no longer be able to maintain omap_hsmmc driver.
+>
+> Signed-off-by: Venkatraman S <svenkatr@gmail.com>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
 
-I wish it were that easy but it isn't.  I've no idea where to get a
-version of uboot for my boards which supports that; TI have always
-supplied updates to uboot for me, and with the current state of TI
-being afaict in chaos.
+Balaji,
+  My sign-off is incorrect, as I did not write this patch.
 
-TI have always supplied a replacement X-Loader with each uboot update.
-I've no idea what X-Loader is or why both get updated together, but...
+Of course it would great to have a maintainer for this, hence you can add my
+Acked-by: Venkatraman S <svenkatr@gmail.com>
 
-Moreover, I doubt that the 3430LDP, of which there are multiple versions,
-will ever see a uboot update.  It already suffers from a lack of correct
-kernel support due to random wiring changes between these versions (the
-keypad doesn't work correctly) and I've yet to indentify which version
-it is despite downloading the circuits.  So trying to locate the right
-uboot will be impossible there.
-
-So, I'm _stuck_ with uImages for these platforms.
+> ---
+>  MAINTAINERS |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
