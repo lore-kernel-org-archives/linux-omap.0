@@ -1,35 +1,62 @@
-From: Hebbar Gururaja <gururaja.hebbar@ti.com>
-Subject: [Patch v2 0/2] ARM: OMAP2+: AM33xx: fix hwmod & Clock Control Module
-Date: Thu, 31 Jan 2013 19:55:25 +0530
-Message-ID: <1359642327-5542-1-git-send-email-gururaja.hebbar@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Failure to boot...
+Date: Thu, 31 Jan 2013 14:27:58 +0000
+Message-ID: <20130131142758.GS2637@n2100.arm.linux.org.uk>
+References: <20130131030203.GA8374@quad.lixom.net> <alpine.LFD.2.02.1301302312030.6300@xanadu.home> <20130131092024.GN2637@n2100.arm.linux.org.uk> <20130131104044.GO2637@n2100.arm.linux.org.uk> <510A6877.9080307@ti.com> <20130131130437.GP2637@n2100.arm.linux.org.uk> <510A78E1.8010308@ti.com> <20130131141320.GQ2637@n2100.arm.linux.org.uk> <20130131141635.GR2637@n2100.arm.linux.org.uk> <510A7D9F.7040507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35327 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753613Ab3AaO1i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Jan 2013 09:27:38 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60157 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753266Ab3AaO2M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 09:28:12 -0500
+Content-Disposition: inline
+In-Reply-To: <510A7D9F.7040507@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, b-cousson@ti.com, paul@pwsan.com, khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, sudhakar.raj@ti.com, gururaja.hebbar@ti.com, linux@arm.linux.org.uk, hvaibhav@ti.com, vaibhav.bedia@ti.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>, Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 
-1. Add add missing HWMOD_NO_IDLEST flags
-2. Fix "register offset NULL check" bug
+On Thu, Jan 31, 2013 at 07:50:15PM +0530, Santosh Shilimkar wrote:
+> On Thursday 31 January 2013 07:46 PM, Russell King - ARM Linux wrote:
+>> On Thu, Jan 31, 2013 at 02:13:20PM +0000, Russell King - ARM Linux wrote:
+>>> On Thu, Jan 31, 2013 at 07:30:01PM +0530, Santosh Shilimkar wrote:
+>>>> Linus' tip(commit: 04c2eee5) + arm-soc for-next boots fine as well.
+>>>> The pull request from Tony [1] fixed the multi-platform boot issue
+>>>> for OMAP.
+>>>>
+>>>> Now trying to merge your for-next and test.
+>>>
+>>> Well, my tip (which is based on Linus' 6abb7c25) also builds and
+>>> boots fine.
+>>>
+>>> Hang on...
+>>>
+>>> # CONFIG_ARCH_OMAP2PLUS is not set
+>>> CONFIG_ARCH_VEXPRESS=y
+>>>
+>>> which of course won't boot, and this happens on both oldconfigs because
+>>> of the change to multiplatform support.
+>>
+>> And no, the instructions given last time around to add:
+>>
+>> # 13 Jan 2013: Update for OMAP moving to multiplatform
+>> CONFIG_ARCH_MULTIPLATFORM=y
+>> CONFIG_ARCH_MULTI_V7=y
+>>
+>> don't fix it either, it needs more options defined...
+>>
+> Linus' tip + Tony's pull [1] request also makes things work
+> on OMAP.
 
-Changes in v2:
-	- As per Paul's suggestion 1st add HWMOD_NO_IDLEST flag where
-	  it is necessary and then correct the clock control register
-	  offset check bug.
+Thanks to all this multiplatform stuff, the autobuilder has been building
+nothing but Versatile Express kernels for the last 20 days.  That totally
+explains why it won't boot.
 
-Hebbar Gururaja (2):
-  ARM: OMAP2+: AM33xx: hwmod: add missing HWMOD_NO_IDLEST flags
-  ARM: OMAP2: am33xx-hwmod: Fix "register offset NULL check" bug
+The only thing I was told is to add the above two config symbols.  That
+is not the complete story.  There's also other symbols which need adding
+too.  It also looks like Versatile Express support _can't_ be disabled in
+a multiplatform kernel, which is ludicrous.
 
- arch/arm/mach-omap2/cm33xx.c               |    3 ---
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |    3 ++-
- 2 files changed, 2 insertions(+), 4 deletions(-)
-
--- 
-1.7.9.5
-
+And... fixing the config finally results in something that boots on the
+SDP4430.
