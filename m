@@ -1,47 +1,61 @@
-From: Shawn Guo <shawn.guo@linaro.org>
-Subject: Re: [PATCH] ARM: omap2: register cpufreq-cpu0 device for am33xx
-Date: Thu, 31 Jan 2013 20:31:30 +0800
-Message-ID: <20130131123128.GC2735@S2101-09.ap.freescale.net>
-References: <1359556342-17020-1-git-send-email-shawn.guo@linaro.org>
- <331ABD5ECB02734CA317220B2BBEABC13EAF9DD9@DBDE01.ent.ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: Failure to boot...
+Date: Thu, 31 Jan 2013 18:19:59 +0530
+Message-ID: <510A6877.9080307@ti.com>
+References: <20130131014912.GM2637@n2100.arm.linux.org.uk> <20130131030203.GA8374@quad.lixom.net> <alpine.LFD.2.02.1301302312030.6300@xanadu.home> <20130131092024.GN2637@n2100.arm.linux.org.uk> <20130131104044.GO2637@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ch1ehsobe003.messaging.microsoft.com ([216.32.181.183]:16817
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751339Ab3AaMbh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Jan 2013 07:31:37 -0500
-Content-Disposition: inline
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EAF9DD9@DBDE01.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49960 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753302Ab3AaMt3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Jan 2013 07:49:29 -0500
+In-Reply-To: <20130131104044.GO2637@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Nicolas Pitre <nico@fluxnic.net>, Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Jan 31, 2013 at 09:40:43AM +0000, AnilKumar, Chimata wrote:
-> On Wed, Jan 30, 2013 at 20:02:22, Shawn Guo wrote:
-> > The cpufreq-cpu0 driver changes to instantiate use platform_driver
-> > mechanism.  The patch is an am33xx platform level adaptation for it.
-> 
-> Tested-by: AnilKumar Ch <anilkumar@ti.com>
-> 
-Thanks, AnilKumar.
+On Thursday 31 January 2013 04:10 PM, Russell King - ARM Linux wrote:
+> On Thu, Jan 31, 2013 at 09:20:24AM +0000, Russell King - ARM Linux wrote:
+>> On Wed, Jan 30, 2013 at 11:19:40PM -0500, Nicolas Pitre wrote:
+>>> Better yet (IMHO): just enable the zboot command in U-Boot to let you
+>>> boot a zImage binary directly.
+>>
+>> I wish it were that easy but it isn't.  I've no idea where to get a
+>> version of uboot for my boards which supports that; TI have always
+>> supplied updates to uboot for me, and with the current state of TI
+>> being afaict in chaos.
+>>
+>> TI have always supplied a replacement X-Loader with each uboot update.
+>> I've no idea what X-Loader is or why both get updated together, but...
+>>
+>> Moreover, I doubt that the 3430LDP, of which there are multiple versions,
+>> will ever see a uboot update.  It already suffers from a lack of correct
+>> kernel support due to random wiring changes between these versions (the
+>> keypad doesn't work correctly) and I've yet to indentify which version
+>> it is despite downloading the circuits.  So trying to locate the right
+>> uboot will be impossible there.
+>>
+>> So, I'm _stuck_ with uImages for these platforms.
+>
+> Right, so I'm now passing LOADADDR= which allows this to work - and the
+> latest OMAP4430SDP boot result shows almost the same sad broken story.
+>
+I just tried latest mainline (commit: 04c2eee5) and default config
+just boots fine.
 
-> Hi Shawn,
-> 
-> I have tested your patch on AM335x-EVM, no issues observed.
-> 
-> I think, better post v3 version which contains this patch
-> and cpu0-cpufreq driver changes.
-> 
-> Or
-> 
-> Post v3 of cpufreq-cpu0 driver changes. 
-> 
-Sorry for forgetting copying you guys.  It's been posted as below.
+I was looking at your build system output which shows the boot
+state "OMAP4430 SDP: fail". Your config seems to be with
+CONFIG_ARCH_MULTIPLATFORM=y and indeed this kernel doesn't
+boot. Seems to abort very early in boot. Am looking at it.
 
-http://www.spinics.net/lists/arm-kernel/msg221209.html
+Regards,
+Santosh
 
-Shawn
+P.S Btw, the load address issue with multi-platform build
+was highlighted on the list in past by Tony [1]
+
+[1] http://www.spinics.net/lists/linux-omap/msg84146.html
 
