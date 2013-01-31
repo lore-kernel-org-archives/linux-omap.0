@@ -1,110 +1,47 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH] ARM: omap2: register cpufreq-cpu0 device for am33xx
-Date: Thu, 31 Jan 2013 09:40:43 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EAF9DD9@DBDE01.ent.ti.com>
-References: <1359556342-17020-1-git-send-email-shawn.guo@linaro.org>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH 1/1] drivers: net: davinci_cpdma: acknowledge interrupt
+ properly
+Date: Thu, 31 Jan 2013 15:47:20 +0530
+Message-ID: <510A44B0.30200@ti.com>
+References: <1359575813-15703-1-git-send-email-mugunthanvnm@ti.com> <EF466712-C5FF-4A91-BDF3-477559B02705@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46268 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752432Ab3AaJkt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 04:40:49 -0500
-In-Reply-To: <1359556342-17020-1-git-send-email-shawn.guo@linaro.org>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:52496 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753183Ab3AaKR6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 05:17:58 -0500
+In-Reply-To: <EF466712-C5FF-4A91-BDF3-477559B02705@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shawn Guo <shawn.guo@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: Tony Lindgren <tony@atomide.com>
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, panto@antoniou-consulting.com
 
-On Wed, Jan 30, 2013 at 20:02:22, Shawn Guo wrote:
-> The cpufreq-cpu0 driver changes to instantiate use platform_driver
-> mechanism.  The patch is an am33xx platform level adaptation for it.
+On 1/31/2013 1:33 AM, Koen Kooi wrote:
+> Op 30 jan. 2013, om 20:56 heeft Mugunthan V N <mugunthanvnm@ti.com> het volgende geschreven:
+>
+>> CPDMA interrupts are not properly acknowledged which leads to interrupt
+>> storm, only cpdma interrupt 0 is acknowledged in Davinci CPDMA driver.
+>> Changed cpdma_ctlr_eoi api to acknowledge 1 and 2 interrupts which are
+>> used for rx and tx respectively.
+> A brief inspection shows that this still isn't following the TRM, but Pantelis' patch does. Can you please fix this driver to follow the TRM and make it work on both PG1.0 and PG2.0 instead of papering over bugs instead of fixing them properly?
+Existing driver implementation is also complies with TRM. What Pantelis 
+added
+additionally are non-napi implementation, handled cpdma processed tx and rx
+processing separately and renamed wr_reg as per TRM naming convention.. 
+Also he
+has added a dummy reading tx/rx stat which is mentioned in TRM, but this 
+stat
+is required only when using multichannel for data transfer. Current 
+implementation
+of CPSW driver uses only channel 0 of Tx and Rx channels respectively 
+for transmission
+and reading stat doesn't gets any effect in interrupt acknowledgment.
 
-Tested-by: AnilKumar Ch <anilkumar@ti.com>
+Since both tx and rx are processed in same napi api, so i have added 
+interrupt
+acknowledgment to the same existing api.
 
-Hi Shawn,
-
-I have tested your patch on AM335x-EVM, no issues observed.
-
-I think, better post v3 version which contains this patch
-and cpu0-cpufreq driver changes.
-
-Or
-
-Post v3 of cpufreq-cpu0 driver changes. 
-
-Thanks
-AnilKumar
- 
-> Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
-> ---
->  arch/arm/mach-omap2/board-generic.c   |    1 +
->  arch/arm/mach-omap2/cclock33xx_data.c |    2 +-
->  arch/arm/mach-omap2/common.h          |    1 +
->  arch/arm/mach-omap2/io.c              |    8 ++++++++
->  4 files changed, 11 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index 53cb380b..b945480 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -139,6 +139,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
->  	.init_irq	= omap_intc_of_init,
->  	.handle_irq	= omap3_intc_handle_irq,
->  	.init_machine	= omap_generic_init,
-> +	.init_late	= am33xx_init_late,
->  	.timer		= &omap3_am33xx_timer,
->  	.dt_compat	= am33xx_boards_compat,
->  MACHINE_END
-> diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
-> index ea64ad6..acb1620 100644
-> --- a/arch/arm/mach-omap2/cclock33xx_data.c
-> +++ b/arch/arm/mach-omap2/cclock33xx_data.c
-> @@ -850,7 +850,7 @@ static struct omap_clk am33xx_clks[] = {
->  	CLK(NULL,	"dpll_core_m5_ck",	&dpll_core_m5_ck,	CK_AM33XX),
->  	CLK(NULL,	"dpll_core_m6_ck",	&dpll_core_m6_ck,	CK_AM33XX),
->  	CLK(NULL,	"dpll_mpu_ck",		&dpll_mpu_ck,	CK_AM33XX),
-> -	CLK("cpu0",	NULL,			&dpll_mpu_ck,	CK_AM33XX),
-> +	CLK("cpufreq-cpu0.0",	NULL,		&dpll_mpu_ck,	CK_AM33XX),
->  	CLK(NULL,	"dpll_mpu_m2_ck",	&dpll_mpu_m2_ck,	CK_AM33XX),
->  	CLK(NULL,	"dpll_ddr_ck",		&dpll_ddr_ck,	CK_AM33XX),
->  	CLK(NULL,	"dpll_ddr_m2_ck",	&dpll_ddr_m2_ck,	CK_AM33XX),
-> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-> index 948bcaa..e3355df5 100644
-> --- a/arch/arm/mach-omap2/common.h
-> +++ b/arch/arm/mach-omap2/common.h
-> @@ -106,6 +106,7 @@ void omap2430_init_late(void);
->  void omap3430_init_late(void);
->  void omap35xx_init_late(void);
->  void omap3630_init_late(void);
-> +void am33xx_init_late(void);
->  void am35xx_init_late(void);
->  void ti81xx_init_late(void);
->  void omap4430_init_late(void);
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 2c3fdd6..0e67711 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -535,6 +535,14 @@ void __init omap3630_init_late(void)
->  	omap2_clk_enable_autoidle_all();
->  }
->  
-> +void __init am33xx_init_late(void)
-> +{
-> +	struct platform_device_info devinfo = { .name = "cpufreq-cpu0", };
-> +
-> +	if (IS_ENABLED(CONFIG_GENERIC_CPUFREQ_CPU0))
-> +		platform_device_register_full(&devinfo);
-> +}
-> +
->  void __init am35xx_init_late(void)
->  {
->  	omap_mux_late_init();
-> -- 
-> 1.7.9.5
-> 
-> 
-> 
-
+Regards
+Mugunthan V N
