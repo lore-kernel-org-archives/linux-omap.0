@@ -1,66 +1,109 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [PATCH v2] ARM: OMAP2: hwmod: Fix "register offset NULL check"
- bug
-Date: Thu, 31 Jan 2013 05:25:24 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EB59A7A@DBDE01.ent.ti.com>
-References: <1355835378-23437-1-git-send-email-gururaja.hebbar@ti.com>
- <alpine.DEB.2.00.1212190210021.2446@utopia.booyaka.com>
- <1BAFE6F6C881BF42822005164F1491C33EB0C4FB@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1212200734160.7362@utopia.booyaka.com>
- <1BAFE6F6C881BF42822005164F1491C33EB5920F@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1301301634310.17105@utopia.booyaka.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCH] arm: dts: omap4-panda: Add I2c pinctrl data
+Date: Thu, 31 Jan 2013 11:53:21 +0530
+Message-ID: <1359613401-29133-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56360 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752045Ab3AaFZj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 00:25:39 -0500
-In-Reply-To: <alpine.DEB.2.00.1301301634310.17105@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, b-cousson@ti.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, coelho@ti.com
+Cc: Sourav Poddar <sourav.poddar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
 
-On Wed, Jan 30, 2013 at 22:09:51, Paul Walmsley wrote:
-> On Wed, 30 Jan 2013, Hebbar, Gururaja wrote:
-> 
-> > On Thu, Dec 20, 2012 at 13:05:27, Paul Walmsley wrote:
-> > > On Thu, 20 Dec 2012, Hebbar, Gururaja wrote:
-> > > 
-> > > > On Wed, Dec 19, 2012 at 07:43:50, Paul Walmsley wrote:
-> > > > 
-> > > > > We've got a few hwmods on OMAP44xx that don't have clkctrl_offs registers 
-> > > > > listed in the hwmod data, and which are not marked with HWMOD_NO_IDLEST.  
-> > > > > What's going to happen in those cases?
-> > > > 
-> > > > Hmm. This is a special case to me. Let me go back and do some review.
-> > > > Will be back with some more details.
-> > > 
-> > > Probably what needs to happen is that those hwmods need to be marked with 
-> > > HWMOD_NO_IDLEST, in a separate patch before yours.  As far as I can tell, 
-> > > that's how they should have been marked initially.  Then your patch should 
-> > > be fine.
-> > 
-> > Looking at latest kernel v3.8-rc5, there is separate cm33xx.c file which
-> > handles module ready checking for am33xx platform. So I will update this 
-> > patch to work on this file instead of touching omap4 related file 
-> > (cminst44xx.c)
-> 
-> The same problem still exists.  According to the TRM, there's at least one
-> AM335x CLKCTRL register that doesn't have IDLEST bits.  So to avoid 
-> reading reserved bits, either this patch or a preceding patch should
-> mark those hwmods with HWMOD_NO_IDLEST.
+Booting 3.8-rc4 on omap4 panda results in the following error
 
-Ok. I will look into this now.
+[    0.444427] omap_i2c 48070000.i2c: did not get pins for i2c error: -19
+[    0.445770] omap_i2c 48070000.i2c: bus 0 rev0.11 at 400 kHz
+[    0.473937] omap_i2c 48072000.i2c: did not get pins for i2c error: -19
+[    0.474670] omap_i2c 48072000.i2c: bus 1 rev0.11 at 400 kHz
+[    0.474822] omap_i2c 48060000.i2c: did not get pins for i2c error: -19
+[    0.476379] omap_i2c 48060000.i2c: bus 2 rev0.11 at 100 kHz
+[    0.477294] omap_i2c 48350000.i2c: did not get pins for i2c error: -19
+[    0.477996] omap_i2c 48350000.i2c: bus 3 rev0.11 at 400 kHz
+[    0.483398] Switching to clocksource 32k_counter
 
-> 
-> 
-> - Paul
-> 
+This happens because omap4 panda dts file is not adapted to use i2c through
+pinctrl framework. Populating i2c pinctrl data to get rid of the error.
 
+Tested on omap4460 panda with 3.8-rc4 kernel.
 
-Regards, 
-Gururaja
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+Reported-by: Luciano Coelho <coelho@ti.com>
+---
+ arch/arm/boot/dts/omap4-panda.dts |   40 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index 4122efe..f951e6b 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -110,9 +110,40 @@
+ 			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
+ 		>;
+ 	};
++
++	i2c1_pins: pinmux_i2c1_pins {
++		pinctrl-single,pins = <
++			0xe2 0x118        /* i2c1_scl PULLUP | INPUTENABLE | MODE0 */
++			0xe4 0x118        /* i2c1_sda PULLUP | INPUTENABLE | MODE0 */
++		>;
++	};
++
++	i2c2_pins: pinmux_i2c2_pins {
++		pinctrl-single,pins = <
++			0xe6 0x118        /* i2c2_scl PULLUP | INPUTENABLE | MODE0 */
++			0xe8 0x118        /* i2c2_sda PULLUP | INPUTENABLE | MODE0 */
++		>;
++	};
++
++	i2c3_pins: pinmux_i2c3_pins {
++		pinctrl-single,pins = <
++			0xea 0x118        /* i2c3_scl PULLUP | INPUTENABLE | MODE0 */
++			0xec 0x118     /* i2c3_sda PULLUP | INPUTENABLE | MODE0 */
++		>;
++	};
++
++	i2c4_pins: pinmux_i2c4_pins {
++		pinctrl-single,pins = <
++			0xee 0x118        /* i2c4_scl PULLUP | INPUTENABLE | MODE0 */
++			0xf0 0x118     /* i2c4_sda PULLUP | INPUTENABLE | MODE0 */
++		>;
++	};
+ };
+ 
+ &i2c1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
+ 	clock-frequency = <400000>;
+ 
+ 	twl: twl@48 {
+@@ -139,10 +170,16 @@
+ /include/ "twl6030.dtsi"
+ 
+ &i2c2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++
+ 	clock-frequency = <400000>;
+ };
+ 
+ &i2c3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c3_pins>;
++
+ 	clock-frequency = <100000>;
+ 
+ 	/*
+@@ -156,6 +193,9 @@
+ };
+ 
+ &i2c4 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c4_pins>;
++
+ 	clock-frequency = <400000>;
+ };
+ 
+-- 
+1.7.1
