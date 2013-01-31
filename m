@@ -1,65 +1,226 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH, RFC] default machine descriptor for multiplatform
-Date: Thu, 31 Jan 2013 11:52:32 -0700
-Message-ID: <510ABD70.1020408@wwwdotorg.org>
-References: <20130131092024.GN2637@n2100.arm.linux.org.uk> <20130131161823.GT2637@n2100.arm.linux.org.uk> <1731670.s76EGcEZ7m@wuerfel> <1638002.UJ7zfj1Wn5@wuerfel>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH v3 2/2] drivers: net:ethernet: cpsw: add support for VLAN
+Date: Fri, 1 Feb 2013 00:33:20 +0530
+Message-ID: <1359659000-25995-3-git-send-email-mugunthanvnm@ti.com>
+References: <1359659000-25995-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:40042 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756638Ab3AaSwn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 13:52:43 -0500
-In-Reply-To: <1638002.UJ7zfj1Wn5@wuerfel>
+Received: from devils.ext.ti.com ([198.47.26.153]:56093 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753600Ab3AaTFW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 14:05:22 -0500
+In-Reply-To: <1359659000-25995-1-git-send-email-mugunthanvnm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, Fabio Estevam <festevam@gmail.com>
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 
-On 01/31/2013 10:51 AM, Arnd Bergmann wrote:
-> This is what I think it would look like to do a default platform
-> with an empty machine descriptor on ARM. It makes the few required
-> entries in the descriptor optional by using the new irqchip_init()
-> and clocksource_of_init() functions as defaults, and adds
-> a fallback for the DT case to customize_machine to probe all
-> the default devices.
-> 
-> For the case that CONFIG_MULTIPLATFORM is enabled, it then
-> adds a machine descriptor that never matches any machine but
-> is used as a fallback if nothing else matches.
+adding support for VLAN interface for cpsw.
 
-> diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+CPSW VLAN Capability
+* Can filter VLAN packets in Hardware
 
->  static int __init customize_machine(void)
->  {
-> -	/* customizes platform devices, or adds new ones */
-> +	/*
-> +	 * customizes platform devices, or adds new ones
-> +	 * On DT based machines, we fall back to populating the
-> +	 * machine from the device tree, if no callback is provided,
-> +	 * otherwise we would always need an init_machine callback.
-> +	 */
->  	if (machine_desc->init_machine)
->  		machine_desc->init_machine();
-> +	else
-> +		of_platform_populate(NULL, of_default_bus_match_table,
-> +					NULL, NULL);
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ Documentation/devicetree/bindings/net/cpsw.txt |    2 +
+ drivers/net/ethernet/ti/cpsw.c                 |   85 +++++++++++++++++++++++-
+ drivers/net/ethernet/ti/cpsw_ale.h             |    4 ++
+ include/linux/platform_data/cpsw.h             |    1 +
+ 4 files changed, 90 insertions(+), 2 deletions(-)
 
-With that change, we can remove the custom .init_machine() functions for
-all of Tegra, since they just do that:-)
+diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+index 6ddd028..99696bf 100644
+--- a/Documentation/devicetree/bindings/net/cpsw.txt
++++ b/Documentation/devicetree/bindings/net/cpsw.txt
+@@ -24,6 +24,8 @@ Required properties:
+ Optional properties:
+ - ti,hwmods		: Must be "cpgmac0"
+ - no_bd_ram		: Must be 0 or 1
++- default_vlan		: Specifies Default VLAN for non tagged packets
++			  ALE processing
+ 
+ Note: "ti,hwmods" field is used to fetch the base address and irq
+ resources from TI, omap hwmod data base during device registration.
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index a40750e..63b1563 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -32,6 +32,7 @@
+ #include <linux/of.h>
+ #include <linux/of_net.h>
+ #include <linux/of_device.h>
++#include <linux/if_vlan.h>
+ 
+ #include <linux/platform_data/cpsw.h>
+ 
+@@ -118,6 +119,9 @@ do {								\
+ #define TX_PRIORITY_MAPPING	0x33221100
+ #define CPDMA_TX_PRIORITY_MAP	0x76543210
+ 
++#define CPSW_VLAN_AWARE		BIT(1)
++#define CPSW_ALE_VLAN_AWARE	1
++
+ #define cpsw_enable_irq(priv)	\
+ 	do {			\
+ 		u32 i;		\
+@@ -607,14 +611,40 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
+ 	}
+ }
+ 
++static inline void cpsw_add_default_vlan(struct cpsw_priv *priv)
++{
++	const int vlan = priv->data.default_vlan;
++	const int port = priv->host_port;
++	u32 reg;
++	int i;
++
++	reg = (priv->version == CPSW_VERSION_1) ? CPSW1_PORT_VLAN :
++	       CPSW2_PORT_VLAN;
++
++	writel(vlan, &priv->host_port_regs->port_vlan);
++
++	for (i = 0; i < 2; i++)
++		slave_write(priv->slaves + i, vlan, reg);
++
++	cpsw_ale_add_vlan(priv->ale, vlan, ALE_ALL_PORTS << port,
++			  ALE_ALL_PORTS << port, ALE_ALL_PORTS << port,
++			  (ALE_PORT_1 | ALE_PORT_2) << port);
++}
++
+ static void cpsw_init_host_port(struct cpsw_priv *priv)
+ {
++	u32 control_reg;
++
+ 	/* soft reset the controller and initialize ale */
+ 	soft_reset("cpsw", &priv->regs->soft_reset);
+ 	cpsw_ale_start(priv->ale);
+ 
+ 	/* switch to vlan unaware mode */
+-	cpsw_ale_control_set(priv->ale, 0, ALE_VLAN_AWARE, 0);
++	cpsw_ale_control_set(priv->ale, priv->host_port, ALE_VLAN_AWARE,
++			     CPSW_ALE_VLAN_AWARE);
++	control_reg = readl(&priv->regs->control);
++	control_reg |= CPSW_VLAN_AWARE;
++	writel(control_reg, &priv->regs->control);
+ 
+ 	/* setup host port priority mapping */
+ 	__raw_writel(CPDMA_TX_PRIORITY_MAP,
+@@ -650,6 +680,9 @@ static int cpsw_ndo_open(struct net_device *ndev)
+ 	cpsw_init_host_port(priv);
+ 	for_each_slave(priv, cpsw_slave_open, priv);
+ 
++	/* Add default VLAN */
++	cpsw_add_default_vlan(priv);
++
+ 	/* setup tx dma to fixed prio and zero offset */
+ 	cpdma_control_set(priv->dma, CPDMA_TX_PRIO_FIXED, 1);
+ 	cpdma_control_set(priv->dma, CPDMA_RX_BUFFER_OFFSET, 0);
+@@ -933,6 +966,49 @@ static void cpsw_ndo_poll_controller(struct net_device *ndev)
+ }
+ #endif
+ 
++static inline void cpsw_add_vlan_ale_entry(struct cpsw_priv *priv,
++				unsigned short vid)
++{
++	cpsw_ale_add_vlan(priv->ale, vid, ALE_ALL_PORTS << priv->host_port,
++			0, ALE_ALL_PORTS << priv->host_port,
++			(ALE_PORT_1 | ALE_PORT_2) << priv->host_port);
++	cpsw_ale_add_ucast(priv->ale, priv->mac_addr,
++			priv->host_port, ALE_VLAN, vid);
++	cpsw_ale_add_mcast(priv->ale, priv->ndev->broadcast,
++			ALE_ALL_PORTS << priv->host_port, ALE_VLAN, vid, 0);
++}
++
++static int cpsw_ndo_vlan_rx_add_vid(struct net_device *ndev,
++		unsigned short vid)
++{
++	struct cpsw_priv *priv = netdev_priv(ndev);
++
++	if (vid == priv->data.default_vlan)
++		return 0;
++
++	dev_info(priv->dev, "Adding vlanid %d to vlan filter\n", vid);
++	cpsw_add_vlan_ale_entry(priv, vid);
++
++	return 0;
++}
++
++static int cpsw_ndo_vlan_rx_kill_vid(struct net_device *ndev,
++		unsigned short vid)
++{
++	struct cpsw_priv *priv = netdev_priv(ndev);
++
++	if (vid == priv->data.default_vlan)
++		return 0;
++
++	dev_info(priv->dev, "removing vlanid %d from vlan filter\n", vid);
++	cpsw_ale_del_vlan(priv->ale, vid, 0);
++	cpsw_ale_del_ucast(priv->ale, priv->mac_addr,
++			   priv->host_port, ALE_VLAN, vid);
++	cpsw_ale_del_mcast(priv->ale, priv->ndev->broadcast, 0, ALE_VLAN, vid);
++
++	return 0;
++}
++
+ static const struct net_device_ops cpsw_netdev_ops = {
+ 	.ndo_open		= cpsw_ndo_open,
+ 	.ndo_stop		= cpsw_ndo_stop,
+@@ -947,6 +1023,8 @@ static const struct net_device_ops cpsw_netdev_ops = {
+ #ifdef CONFIG_NET_POLL_CONTROLLER
+ 	.ndo_poll_controller	= cpsw_ndo_poll_controller,
+ #endif
++	.ndo_vlan_rx_add_vid	= cpsw_ndo_vlan_rx_add_vid,
++	.ndo_vlan_rx_kill_vid	= cpsw_ndo_vlan_rx_kill_vid,
+ };
+ 
+ static void cpsw_get_drvinfo(struct net_device *ndev,
+@@ -1103,6 +1181,9 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
+ 	}
+ 	data->mac_control = prop;
+ 
++	if (!of_property_read_u32(node, "default_vlan", &prop))
++		data->default_vlan = prop;
++
+ 	/*
+ 	 * Populate all the child nodes here...
+ 	 */
+@@ -1356,7 +1437,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 		k++;
+ 	}
+ 
+-	ndev->flags |= IFF_ALLMULTI;	/* see cpsw_ndo_change_rx_flags() */
++	ndev->features |= NETIF_F_HW_VLAN_FILTER;
+ 
+ 	ndev->netdev_ops = &cpsw_netdev_ops;
+ 	SET_ETHTOOL_OPS(ndev, &cpsw_ethtool_ops);
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.h b/drivers/net/ethernet/ti/cpsw_ale.h
+index 74f6fe2..f554c05 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.h
++++ b/drivers/net/ethernet/ti/cpsw_ale.h
+@@ -69,6 +69,10 @@ enum cpsw_ale_port_state {
+ #define ALE_SUPER			BIT(2)
+ #define ALE_VLAN			BIT(3)
+ 
++#define ALE_PORT_HOST			BUT(0)
++#define ALE_PORT_1			BIT(1)
++#define ALE_PORT_2			BIT(2)
++
+ #define ALE_MCAST_FWD			0
+ #define ALE_MCAST_BLOCK_LEARN_FWD	1
+ #define ALE_MCAST_FWD_LEARN		2
+diff --git a/include/linux/platform_data/cpsw.h b/include/linux/platform_data/cpsw.h
+index 24368a2..e962cfd 100644
+--- a/include/linux/platform_data/cpsw.h
++++ b/include/linux/platform_data/cpsw.h
+@@ -35,6 +35,7 @@ struct cpsw_platform_data {
+ 	u32	bd_ram_size;  /*buffer descriptor ram size */
+ 	u32	rx_descs;	/* Number of Rx Descriptios */
+ 	u32	mac_control;	/* Mac control register */
++	u16	default_vlan;	/* Def VLAN for ALE lookup in VLAN aware mode*/
+ };
+ 
+ #endif /* __CPSW_H__ */
+-- 
+1.7.9.5
 
-> diff --git a/drivers/irqchip/irqchip.c b/drivers/irqchip/irqchip.c
-
-> +#ifdef CONFIG_IRQCHIP
->  void __init irqchip_init(void)
->  {
->  	of_irq_init(__irqchip_begin);
->  }
-> +#else
-> +static inline void irqchip_init(void)
-> +{
-> +}
-> +#endif
-
-That'd need to go in a header file.
