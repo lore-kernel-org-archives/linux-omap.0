@@ -1,47 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Fabio Estevam <festevam@gmail.com>
 Subject: Re: Failure to boot...
-Date: Thu, 31 Jan 2013 08:00:02 -0800
-Message-ID: <20130131160000.GW15361@atomide.com>
-References: <20130131092024.GN2637@n2100.arm.linux.org.uk>
- <20130131104044.GO2637@n2100.arm.linux.org.uk>
- <510A6877.9080307@ti.com>
- <20130131130437.GP2637@n2100.arm.linux.org.uk>
- <510A78E1.8010308@ti.com>
- <20130131141320.GQ2637@n2100.arm.linux.org.uk>
- <20130131141635.GR2637@n2100.arm.linux.org.uk>
- <510A7D9F.7040507@ti.com>
- <20130131142758.GS2637@n2100.arm.linux.org.uk>
- <510A82FE.6050803@ti.com>
+Date: Thu, 31 Jan 2013 14:01:14 -0200
+Message-ID: <CAOMZO5BrGcffzd2YBrF6YQTs7X38RuniYhm010fpLMnigecnTw@mail.gmail.com>
+References: <20130131030203.GA8374@quad.lixom.net>
+	<alpine.LFD.2.02.1301302312030.6300@xanadu.home>
+	<20130131092024.GN2637@n2100.arm.linux.org.uk>
+	<20130131104044.GO2637@n2100.arm.linux.org.uk>
+	<510A6877.9080307@ti.com>
+	<20130131130437.GP2637@n2100.arm.linux.org.uk>
+	<510A78E1.8010308@ti.com>
+	<20130131141320.GQ2637@n2100.arm.linux.org.uk>
+	<20130131141635.GR2637@n2100.arm.linux.org.uk>
+	<510A7D9F.7040507@ti.com>
+	<20130131142758.GS2637@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56363 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755138Ab3AaQAI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 11:00:08 -0500
-Content-Disposition: inline
-In-Reply-To: <510A82FE.6050803@ti.com>
+Received: from mail-vb0-f52.google.com ([209.85.212.52]:35116 "EHLO
+	mail-vb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751342Ab3AaQBQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 11:01:16 -0500
+Received: by mail-vb0-f52.google.com with SMTP id fa15so1818934vbb.39
+        for <linux-omap@vger.kernel.org>; Thu, 31 Jan 2013 08:01:16 -0800 (PST)
+In-Reply-To: <20130131142758.GS2637@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, arm@kernel.org, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [130131 06:45]:
-> On Thursday 31 January 2013 07:57 PM, Russell King - ARM Linux wrote:
-> >>>
-> >>># 13 Jan 2013: Update for OMAP moving to multiplatform
-> >>>CONFIG_ARCH_MULTIPLATFORM=y
-> >>>CONFIG_ARCH_MULTI_V7=y
-> >>>
-> >>>don't fix it either, it needs more options defined...
+On Thu, Jan 31, 2013 at 12:27 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
 
-Just trying to figure out what was the missing entry in case
-others have the same problem.
+> too.  It also looks like Versatile Express support _can't_ be disabled in
+> a multiplatform kernel, which is ludicrous.
 
-In addition to the ones above, I had also CONFIG_ARCH_OMAP2PLUS=y
-listed in my comments. Did you also need something else added
-manually?
-
-Regards,
-
-Tony
+Should we go with this approach?
+https://patchwork.kernel.org/patch/1774521/
