@@ -1,39 +1,76 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [RFC v2 12/18] ARM: OMAP2+: timer: Add suspend-resume callbacks
- for clockevent device
-Date: Thu, 31 Jan 2013 11:17:50 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433ED05777@DBDE01.ent.ti.com>
-References: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com>
- <1356959231-17335-13-git-send-email-vaibhav.bedia@ti.com>
- <50EC37FE.705@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433ECE0D51@DBDE01.ent.ti.com>
- <50F846D7.8060509@ti.com> <50F8DCD7.707@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433ECF0B60@DBDE01.ent.ti.com>
- <51095C7A.9080904@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH 1/1] drivers: net: davinci_cpdma: acknowledge interrupt properly
+Date: Thu, 31 Jan 2013 13:22:09 +0200
+Message-ID: <C92BBC79-6B63-482D-8431-4812823920B9@antoniou-consulting.com>
+References: <1359575813-15703-1-git-send-email-mugunthanvnm@ti.com> <EF466712-C5FF-4A91-BDF3-477559B02705@dominion.thruhere.net> <510A44B0.30200@ti.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41531 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751082Ab3AaLSA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 06:18:00 -0500
-In-Reply-To: <51095C7A.9080904@ti.com>
-Content-Language: en-US
+Received: from li42-95.members.linode.com ([209.123.162.95]:43719 "EHLO
+	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750978Ab3AaLWU convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Jan 2013 06:22:20 -0500
+In-Reply-To: <510A44B0.30200@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, Jan 30, 2013 at 23:16:34, Hunter, Jon wrote:
+Hi
+On Jan 31, 2013, at 12:17 PM, Mugunthan V N wrote:
+
+> On 1/31/2013 1:33 AM, Koen Kooi wrote:
+>> Op 30 jan. 2013, om 20:56 heeft Mugunthan V N <mugunthanvnm@ti.com> het volgende geschreven:
+>> 
+>>> CPDMA interrupts are not properly acknowledged which leads to interrupt
+>>> storm, only cpdma interrupt 0 is acknowledged in Davinci CPDMA driver.
+>>> Changed cpdma_ctlr_eoi api to acknowledge 1 and 2 interrupts which are
+>>> used for rx and tx respectively.
+>> A brief inspection shows that this still isn't following the TRM, but Pantelis' patch does. Can you please fix this driver to follow the TRM and make it work on both PG1.0 and PG2.0 instead of papering over bugs instead of fixing them properly?
+> Existing driver implementation is also complies with TRM. What Pantelis added
+> additionally are non-napi implementation, handled cpdma processed tx and rx
+> processing separately and renamed wr_reg as per TRM naming convention.. Also he
+> has added a dummy reading tx/rx stat which is mentioned in TRM, but this stat
+> is required only when using multichannel for data transfer. Current implementation
+> of CPSW driver uses only channel 0 of Tx and Rx channels respectively for transmission
+> and reading stat doesn't gets any effect in interrupt acknowledgment.
 > 
-> Ok fair enough. By the way, I posted a patch today [1] that will use the
-> hwmod name as the clockevent timer name. Care to try on top of that
-> patch and then we can eliminate the sprintf.
+> Since both tx and rx are processed in same napi api, so i have added interrupt
+> acknowledgment to the same existing api.
 > 
 
-Thanks. Will try it out later today.
 
-Regards,
-Vaibhav
+First of all, this method of not needing to read the stat registers besides when
+using multichannel for data transfers is never described anywhere in any manual, 
+or in the driver sources.
+
+Secondly, I find the method of ack-ing all interrupt sources problematic.
+Consider the following sequence
+
+Rx-interrupt ---> |                         |
+                  | IRQ handler             |
+                  | schedules NAPI          |
+                  | disables interrupts --> | cpsw_poll()
+                  |                         | handle Rx
+Tx-interrupt ---> |-------------------------|-------------
+                  |                         | ack Rx & Tx IRQ
+                  |                         | enable interrupts
+
+When will the Tx interrupt get handled? Is it guaranteed that the DMA
+logic will assert the Tx interrupt when the interrupts are enabled, even
+though the interrupt was previously acked? It is not clear in the TRM.
+
+Another problem that I see is that the other interrupts (MISC) are not supposed
+to be routed to the napi cpsw_poll() function at all. NAPI is for the tx/rx path 
+as far as I know.
+
+
+> Regards
+> Mugunthan V N
+
+Regards
+
+-- Pantelis
 
