@@ -1,107 +1,76 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 07/10] ARM: OMAP5: clock data: Add OMAP54XX full clock
- tree and headers
-Date: Thu, 31 Jan 2013 17:19:46 +0530
-Message-ID: <510A5A5A.9090708@ti.com>
-References: <1358522856-12180-1-git-send-email-santosh.shilimkar@ti.com> <1358522856-12180-8-git-send-email-santosh.shilimkar@ti.com> <51095A65.9070102@ti.com>
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: Re: [RFC PATCH v3 1/2] ARM: kernel: update cpuinfo to print SoC model name
+Date: Thu, 31 Jan 2013 13:50:07 +0200
+Message-ID: <CAB=otbQuJR75BSxtB8BHdLaTKYkPWp3jvuT3pRognHY5O6pP+Q@mail.gmail.com>
+References: <1359558091-29251-1-git-send-email-ruslan.bilovol@ti.com>
+	<1359558091-29251-2-git-send-email-ruslan.bilovol@ti.com>
+	<alpine.LFD.2.02.1301301402330.6300@xanadu.home>
+	<20130130232408.GL2637@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33619 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604Ab3AaLty (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jan 2013 06:49:54 -0500
-In-Reply-To: <51095A65.9070102@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130130232408.GL2637@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Nicolas Pitre <nico@fluxnic.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, eduardo.valentin@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@linaro.org, tony@atomide.com, b-cousson@ti.com, Paul Walmsley <paul@pwsan.com>
 
-On Wednesday 30 January 2013 11:07 PM, Jon Hunter wrote:
->
-> On 01/18/2013 09:27 AM, Santosh Shilimkar wrote:
->> From: Rajendra Nayak <rnayak@ti.com>
+On Thu, Jan 31, 2013 at 1:24 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Wed, Jan 30, 2013 at 02:07:53PM -0500, Nicolas Pitre wrote:
+>> On Wed, 30 Jan 2013, Ruslan Bilovol wrote:
 >>
->> Add the clock tree related data for OMAP54xx platforms.
+>> > Currently, reading /proc/cpuinfo provides userspace with CPU ID of
+>> > the CPU carrying out the read from the file.
+>> > Userspace using this information may decide what module
+>> > to load or how to configure some specific (and processor-depended)
+>> > settings or so.
+>> > However, since really different SoCs can share same ARM core,
+>> > this information currently is not so useful.
+>> > For example, TI OMAP4460 and OMAP4470 SoCs show the same
+>> > information in the /proc/cpuinfo whereas they are different.
+>> > Since in most cases ARM CPU is a part of some system on a chip (SoC),
+>> > the "cpuinfo" file looks like exactly that place, where this
+>> > information have to be displayed.
+>> >
+>> > So added new line "SoC name" in the "cpuinfo" output for system
+>> > on a chip name. It is placed between CPU information and machine
+>> > information, so the file structure looks gracefully (CPU-SoC-Hardware)
+>> >
+>> > Example:
+>> >
+>> > / # cat proc/cpuinfo
+>> > [...]
+>> > CPU variant     : 0x2
+>> > CPU part        : 0xc09
+>> > CPU revision    : 10
+>> >
+>> > SoC name        : OMAP4470
+>> >
+>> > Hardware        : OMAP4 Blaze Tablet
+>>
+>> Please remove that extra blank line between "SoC name" and "Hardware".
+>> The blank line after "CPU revision" is fine.
+>>
+>> Also, please rename this to "System name".  Not all systems are "on
+>> chip".  By using "System name" this is more universally useful.
 >
-> [snip]
+> You may notice I've already suggested that this should be using the SoC
+> infrastructure to export this information, which was explicitly designed
+> to do this.
 >
->> +	CLK("omap_timer.1",	"32k_ck",		&sys_32k_ck,	CK_54XX),
->> +	CLK("omap_timer.2",	"32k_ck",		&sys_32k_ck,	CK_54XX),
->> +	CLK("omap_timer.3",	"32k_ck",		&sys_32k_ck,	CK_54XX),
->> +	CLK("omap_timer.4",	"32k_ck",		&sys_32k_ck,	CK_54XX),
->> +	CLK("omap_timer.5",	"32k_ck",		&sys_32k_ck,	CK_54XX),
->> +	CLK("omap_timer.6",	"32k_ck",		&sys_32k_ck,	CK_54XX),
->> +	CLK("omap_timer.7",	"32k_ck",		&sys_32k_ck,	CK_54XX),
->> +	CLK("omap_timer.8",	"32k_ck",		&sys_32k_ck,	CK_54XX),
->> +	CLK("omap_timer.9",	"32k_ck",		&sys_32k_ck,	CK_54XX),
->> +	CLK("omap_timer.10",	"32k_ck",		&sys_32k_ck,	CK_54XX),
->> +	CLK("omap_timer.11",	"32k_ck",		&sys_32k_ck,	CK_54XX),
+> If we're going to have one SoC doing one thing and another SoC exporting
+> this information a completely different way, we're doomed.  We need to
+> make a decision and do it one way and one way only - and that decision
+> was made when drivers/base/soc.c was merged.
 >
-> I have been trying to get away from having so many aliases for the same
-> clock for timers. Here we should replace all of the above and just have ...
->
-> +	CLK(NULL,	"timer_32k_ck",		&sys_32k_ck, CK_54XX),
->
-> For more details see [1].
->
->> +	CLK("omap_timer.1",	"sys_ck",		&sys_clkin,	CK_54XX),
->> +	CLK("omap_timer.2",	"sys_ck",		&sys_clkin,	CK_54XX),
->> +	CLK("omap_timer.3",	"sys_ck",		&sys_clkin,	CK_54XX),
->> +	CLK("omap_timer.4",	"sys_ck",		&sys_clkin,	CK_54XX),
->> +	CLK("omap_timer.9",	"sys_ck",		&sys_clkin,	CK_54XX),
->> +	CLK("omap_timer.10",	"sys_ck",		&sys_clkin,	CK_54XX),
->> +	CLK("omap_timer.11",	"sys_ck",		&sys_clkin,	CK_54XX),
->> +	CLK("omap_timer.5",	"sys_ck",		&dss_syc_gfclk_div,	CK_54XX),
->> +	CLK("omap_timer.6",	"sys_ck",		&dss_syc_gfclk_div,	CK_54XX),
->> +	CLK("omap_timer.7",	"sys_ck",		&dss_syc_gfclk_div,	CK_54XX),
->> +	CLK("omap_timer.8",	"sys_ck",		&dss_syc_gfclk_div,	CK_54XX),
->> +};
->
-> These aliases will not work with device-tree because the device-name is
-> formatted <addr>.<device>. Hence, when configuring a the timer parent
-> clock via the dmtimer driver it will fail. So it should be more like ...
->
-> +	CLK("4ae18000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
-> +	CLK("48032000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
-> +	CLK("48034000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
-> +	CLK("48036000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
-> +	CLK("40138000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
-> +	CLK("4013a000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
-> +	CLK("4013c000.timer",	"timer_sys_ck",	&sys_clkin, CK_54XX),
-> +	CLK("4013e000.timer",	"timer_sys_ck",	&dss_syc_gfclk_div, 	
-> CK_54XX),
-> +	CLK("4803e000.timer",	"timer_sys_ck",	&dss_syc_gfclk_div, CK_54XX),
-> +	CLK("48086000.timer",	"timer_sys_ck",	&dss_syc_gfclk_div, CK_54XX),
-> +	CLK("48088000.timer",	"timer_sys_ck",	&dss_syc_gfclk_div, CK_54XX),
->
-> For more details see [2].
+> Unfortunately, I'd forgotten about that when I made my initial comments
+> about the difference between "CPU" and "SoC".
 
-Thanks Jon. I will update the autogen scripts to generate these
-accordingly.
+Yes agree - let's stop this discussion at this point. I'm going to
+learn that soc framework and provide better solution.
+Unfortunately, I didn't find it when looked into the kernel sources
+for similar approaches.
 
->
-> If you would like to test the dmtimer driver on omap5, then you can grab
-> my omap-test module [3], build it (see README), load it and then ...
->
-> # echo 1 > /sys/kernel/debug/omap-test/timer/all
->
-> This will perform some basic tests on all the dmtimers. I would do it
-> myself, but there appears to be several issues getting this to boot on
-> an ES1.0 (which is probably expected).
-
-Right. This is ES2.0 data, so won't boot on an ES1.0 device.
-
-regards,
-Rajendra
-
->
-> Cheers
-> Jon
->
-> [1] http://www.spinics.net/lists/linux-omap/msg71272.html
-> [2] https://patchwork.kernel.org/patch/1204351/
-> [3] https://github.com/jonhunter/omap-test
->
-
+Regards,
+Ruslan
