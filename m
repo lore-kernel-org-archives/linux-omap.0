@@ -1,44 +1,133 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 5/5] ARM: OMAP3: Update clocksource timer selection
-Date: Fri, 1 Feb 2013 09:31:04 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433ED073AA@DBDE01.ent.ti.com>
-References: <1359565471-30721-1-git-send-email-jon-hunter@ti.com>
- <1359565471-30721-6-git-send-email-jon-hunter@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433ED07250@DBDE01.ent.ti.com>
- <510B83D5.1090500@ti.com> <510B8A0B.9000600@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH RFC] usb: dwc3: Get PHY from platform specific dwc3 dt
+ node.
+Date: Fri, 1 Feb 2013 11:43:27 +0200
+Message-ID: <20130201094326.GK8060@arwen.pp.htv.fi>
+References: <510A56BF.3040804@ti.com>
+ <CAFp+6iFkb=U0CJA=3zmQvd5XfMwbROuRJjXoJG7zvvq4_upzNw@mail.gmail.com>
+ <20130131152527.GE4064@arwen.pp.htv.fi>
+ <CAFp+6iHvKYiF_neANRq5roAEJwhvcaLk7pAd7Dy94Z5XiDkhgA@mail.gmail.com>
+ <20130131153836.GF4064@arwen.pp.htv.fi>
+ <510B50DA.6010201@ti.com>
+ <CAFp+6iF2HMmiMVR4YyEG7bmpCZ4KdwBT7q2Jy-P1SMVtoVBn6g@mail.gmail.com>
+ <CAFp+6iGZU29nt4yBjkyeeS+s_D1=AamgGTOsJq1xo_5z2O-sDg@mail.gmail.com>
+ <20130201085053.GG8060@arwen.pp.htv.fi>
+ <CAFp+6iFBL8LOh=dw=mvHaUHjKvmLr0of83dmC6wf4zHog8xubw@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yQDbd2FCF2Yhw41T"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51967 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755558Ab3BAJbK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 04:31:10 -0500
-In-Reply-To: <510B8A0B.9000600@ti.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:56407 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756128Ab3BAJoD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 04:44:03 -0500
+Content-Disposition: inline
+In-Reply-To: <CAFp+6iFBL8LOh=dw=mvHaUHjKvmLr0of83dmC6wf4zHog8xubw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Vivek Gautam <gautamvivek1987@gmail.com>
+Cc: balbi@ti.com, kishon <kishon@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, devicetree-discuss@lists.ozlabs.org
 
-On Fri, Feb 01, 2013 at 14:55:31, Hunter, Jon wrote:
-[...]
-> > 
-> > I don't see this as being DT specific. It is more of a policy change to
-> > ensure a wake-up domain timer is used for clocksource when we are using
-> > gptimers for both clocksource and clockevents. It was your patch for
-> > AM335x that made me see the need for this, if that makes sense. May be I
-> > should have referenced that in the changelog.
-> 
-> Sorry to be clear, I don't see the policy change as DT specific.
-> 
-> In answer to your question, yes clkev_nr and clksrc_nr are changed so
-> the policy it is consistent regardless of whether you use DT or not. In
-> other words, an OMAP3 board using a gptimer for clocksource  (such as
-> cm-t3517) and does not use DT, would work the same as AM335x with DT.
-> 
+--yQDbd2FCF2Yhw41T
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Ok. Thanks for clarifying.
+Hi,
 
-Regards,
-Vaibhav
+On Fri, Feb 01, 2013 at 02:23:28PM +0530, Vivek Gautam wrote:
+> >> >>>>> On Thu, Jan 31, 2013 at 08:53:27PM +0530, Vivek Gautam wrote:
+> >> >>>>>>>>
+> >> >>>>>>>> Moreover, SoCs having multiple dwc3 controllers will have mul=
+tiple
+> >> >>>>>>>> PHYs, which eventually be added using usb_add_phy_dev(), and =
+not
+> >> >>>>>>>> using usb_add_phy(). So each dwc3 controller won't be able to
+> >> >>>>>>>> get PHYs by simply calling devm_usb_get_phy() also.
+> >> >>>>>>>
+> >> >>>>>>>
+> >> >>>>>>> No. We have added usb_get_phy_dev() for that purpose in the ca=
+se of
+> >> >>>>>>> non-dt.
+> >> >>>>>>> I think, instead you can have a patch to use devm_usb_get_phy_=
+dev()
+> >> >>>>>>> here and
+> >> >>>>>>> in exynos platform specific code use usb_bind_phy() to bind th=
+e phy
+> >> >>>>>>> and
+> >> >>>>>>> controller till you change it to dt.
+> >> >>>>>>>
+> >> >>>>>>
+> >> >>>>>> We have dt support for dwc3-exynos, in such case we should go a=
+head
+> >> >>>>>> with
+> >> >>>>>> of_platform_populate(), right ?
+> >> >>>>>> But if when i use of_platform_populate() i will not be able to =
+set
+> >> >>>>>> dma_mask to dwc3->dev. :-(
+> >> >>
+> >> >>
+> >> >> You can do something like this
+> >> >>
+> >> >> static u64 dwc3_exynos_dma_mask =3D DMA_BIT_MASK(32);
+> >> >>
+> >> >> static int dwc3_exynos_set_dmamask(struct device *dev, void *c)
+> >> >> {
+> >> >>         dev->dma_mask =3D &dwc3_exynos_dma_mask;
+> >> >>
+> >> >>         return 0;
+> >> >> }
+> >> >>
+> >> >> And in your probe after of_platform_populate, you can add
+> >> >>
+> >> >> device_for_each_child(&pdev->dev, NULL, dwc3_exynos_set_dmamask);
+> >> >>
+> >> >> Here pdev is the platform device of dwc3-exynos. By this way all the
+> >> >> children of dwc3-exynos will have dma_mask set to the required valu=
+e.
+> >> >>
+> >> >
+> >> > Nice idea, thanks :-)
+> >> > hmm.. so i can patch this now, and get things working ;-)
+> >> >
+> >>
+> >> If this is fine with you shall i go ahead and post a patch for the sam=
+e ? ;-)
+> >
+> > should be fine, but we can wait a bit to see if DeviceTree folks reply,
+> > your patch will only go on v3.10 anyway.
+> >
+>=20
+> Yeah, sure. No problem at all.
+> For the time being i will continue to use this change for my other
+> development work too. :-)
+
+Sure, makes sense ;-)
+
+--=20
+balbi
+
+--yQDbd2FCF2Yhw41T
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRC44+AAoJEIaOsuA1yqRE9k4P/Rt3DdOUHTa0eTsJxbqvMD3r
+Ksg4aa8fb3gcrp5kM0m1+pDWLHVTQaWqjDZtl1C2k9iBkv+LMhmmVbI2s9cWuQ/l
+VG93Y2hHNDJqI0d1sWHoNVc+TTw0BugPgk1cbXydYKKQqJ7lmCluK99NyuvwnamB
+LvT4ioe7Ku6eKn/VWntpwvD+squnSnTa+o1ss2juJyDAbqfO/ZiNjkgrOBj3L9Xv
+y+SYLz60ghS9pgavULC55jQGEhd0ATzPiV7hORqrMcvoaD0DujRol7z1DfHILbWW
+ATyikvCF7+znFt1BMiGpcsvjXrP13YEuhSpT4eg9/BOfI0Wx2lzExoFqDZd7AU3i
+apA97D681z1wOhqNdKKKbvvS/B+dVzwsvgw/+NSU1pqARqLqN69lqni6RDZvjjAo
++slII1EjLyp3z1d4rzUXbjxm0WpnsGPoeCOk5Fvfki4Kzbmyo3X46K12lWyoXfcl
+FwzPaQJPc9+gmqjUg2hKIjyeXkkkIO8Kw90tI45pQbeabeurq2HXAXlD3zNA0HyY
+SJ67/Ov9Q1Ha6bC/VvpgQzNsw7l1dzT17VGqAzkAG2PjM/bE6Dxz/qSofUAuYBnl
+YdyEsrj++PjfEv4fC+UbgQIFJkfpvMCTgQ7gVd+MFsQW4A2RkAFOlA5+wnxwlBSc
+6/8elnnoWyMQNDTGaXVs
+=1AQM
+-----END PGP SIGNATURE-----
+
+--yQDbd2FCF2Yhw41T--
