@@ -1,67 +1,96 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH] ARM: dts: AM33XX: Corrects typo in interrupt field in
- SPI node
-Date: Fri, 1 Feb 2013 06:10:25 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3EA6977C@DBDE01.ent.ti.com>
-References: <1359697047-1816-1-git-send-email-avinashphilip@ti.com>
+From: Vivek Gautam <gautamvivek1987-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC] usb: dwc3: Get PHY from platform specific dwc3 dt node.
+Date: Fri, 1 Feb 2013 11:52:27 +0530
+Message-ID: <CAFp+6iF2HMmiMVR4YyEG7bmpCZ4KdwBT7q2Jy-P1SMVtoVBn6g@mail.gmail.com>
+References: <1359631232-7107-1-git-send-email-gautam.vivek@samsung.com>
+	<510A56BF.3040804@ti.com>
+	<CAFp+6iFkb=U0CJA=3zmQvd5XfMwbROuRJjXoJG7zvvq4_upzNw@mail.gmail.com>
+	<20130131152527.GE4064@arwen.pp.htv.fi>
+	<CAFp+6iHvKYiF_neANRq5roAEJwhvcaLk7pAd7Dy94Z5XiDkhgA@mail.gmail.com>
+	<20130131153836.GF4064@arwen.pp.htv.fi>
+	<510B50DA.6010201@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37207 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750918Ab3BAGLy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 01:11:54 -0500
-In-Reply-To: <1359697047-1816-1-git-send-email-avinashphilip@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <510B50DA.6010201-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kishon <kishon-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On Fri, Feb 01, 2013 at 11:07:27, Philip, Avinash wrote:
-> DT field of "interrupts" was mentioned wrongly as "interrupt" in SPI
-> node. This went unnoticed as spi-omap2 driver not making use of
-> interrupt. Fixes the typo.
-> 
-> Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+Hi Kishon,
 
-Reported-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-Typo mistake was reported by Vaibhav. I forgot to mention "Reported-by"
-tag while posting. Add the same on his behalf.
+On Fri, Feb 1, 2013 at 10:51 AM, kishon <kishon-l0cyMroinI0@public.gmane.org> wrote:
+> Hi,
+>
+>
+> On Thursday 31 January 2013 09:08 PM, Felipe Balbi wrote:
+>>
+>> On Thu, Jan 31, 2013 at 09:00:37PM +0530, Vivek Gautam wrote:
+>>>
+>>> Hi Felipe,
+>>>
+>>>
+>>> On Thu, Jan 31, 2013 at 8:55 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> On Thu, Jan 31, 2013 at 08:53:27PM +0530, Vivek Gautam wrote:
+>>>>>>>
+>>>>>>> Moreover, SoCs having multiple dwc3 controllers will have multiple
+>>>>>>> PHYs, which eventually be added using usb_add_phy_dev(), and not
+>>>>>>> using usb_add_phy(). So each dwc3 controller won't be able to
+>>>>>>> get PHYs by simply calling devm_usb_get_phy() also.
+>>>>>>
+>>>>>>
+>>>>>> No. We have added usb_get_phy_dev() for that purpose in the case of
+>>>>>> non-dt.
+>>>>>> I think, instead you can have a patch to use devm_usb_get_phy_dev()
+>>>>>> here and
+>>>>>> in exynos platform specific code use usb_bind_phy() to bind the phy
+>>>>>> and
+>>>>>> controller till you change it to dt.
+>>>>>>
+>>>>>
+>>>>> We have dt support for dwc3-exynos, in such case we should go ahead
+>>>>> with
+>>>>> of_platform_populate(), right ?
+>>>>> But if when i use of_platform_populate() i will not be able to set
+>>>>> dma_mask to dwc3->dev. :-(
+>
+>
+> You can do something like this
+>
+> static u64 dwc3_exynos_dma_mask = DMA_BIT_MASK(32);
+>
+> static int dwc3_exynos_set_dmamask(struct device *dev, void *c)
+> {
+>         dev->dma_mask = &dwc3_exynos_dma_mask;
+>
+>         return 0;
+> }
+>
+> And in your probe after of_platform_populate, you can add
+>
+> device_for_each_child(&pdev->dev, NULL, dwc3_exynos_set_dmamask);
+>
+> Here pdev is the platform device of dwc3-exynos. By this way all the
+> children of dwc3-exynos will have dma_mask set to the required value.
+>
 
-Thanks
-Avinash
+Nice idea, thanks :-)
+hmm.. so i can patch this now, and get things working ;-)
 
-> ---
->  arch/arm/boot/dts/am33xx.dtsi |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index fbcb90b..cece3ad 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -309,7 +309,7 @@
->  			#address-cells = <1>;
->  			#size-cells = <0>;
->  			reg = <0x48030000 0x400>;
-> -			interrupt = <65>;
-> +			interrupts = <65>;
->  			ti,spi-num-cs = <2>;
->  			ti,hwmods = "spi0";
->  			status = "disabled";
-> @@ -320,7 +320,7 @@
->  			#address-cells = <1>;
->  			#size-cells = <0>;
->  			reg = <0x481a0000 0x400>;
-> -			interrupt = <125>;
-> +			interrupts = <125>;
->  			ti,spi-num-cs = <2>;
->  			ti,hwmods = "spi1";
->  			status = "disabled";
-> -- 
-> 1.7.9.5
-> 
-> 
+> I'm not sure if there is any other better way to achieve the same (without
+> patching of.c ;-))
+>
 
+
+-- 
+Thanks & Regards
+Vivek
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
