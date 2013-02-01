@@ -1,66 +1,50 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH] ARM: OMAP2: AM33XX: id: Add support for AM335x PG2.0
-Date: Fri, 1 Feb 2013 15:58:22 +0530
-Message-ID: <1359714502-21528-1-git-send-email-anilkumar@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/5] ARM: OMAP2+: Display correct system timer name
+Date: Fri, 1 Feb 2013 04:34:27 -0600
+Message-ID: <510B9A33.1070706@ti.com>
+References: <1359565471-30721-1-git-send-email-jon-hunter@ti.com> <1359565471-30721-2-git-send-email-jon-hunter@ti.com> <B5906170F1614E41A8A28DE3B8D121433ED07255@DBDE01.ent.ti.com> <510B8297.8070305@ti.com> <B5906170F1614E41A8A28DE3B8D121433ED073A5@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47977 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33685 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756417Ab3BAK23 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Feb 2013 05:28:29 -0500
+	id S1755579Ab3BAKec (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Feb 2013 05:34:32 -0500
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433ED073A5@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, AnilKumar Ch <anilkumar@ti.com>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Add support for chip id recognition of AM335x PG2.0 silicon. By default
-omap3xxx_check_revision() recognizes PG1.0, which is extended by adding
-PG2.0 support
 
-Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
----
- arch/arm/mach-omap2/id.c  |   14 ++++++++++++--
- arch/arm/mach-omap2/soc.h |    1 +
- 2 files changed, 13 insertions(+), 2 deletions(-)
+On 02/01/2013 03:31 AM, Bedia, Vaibhav wrote:
+> On Fri, Feb 01, 2013 at 14:23:43, Hunter, Jon wrote:
+> [...]
+>>>>  
+>>>> +/* Timer name needs to be big enough to store a string of "timerXX" */
+>>>> +static char timer_name[10];
+>>>> +
+>>>
+>>> Why not move this inside omap_dm_timer_init_one()?
+>>
+>> In the non-DT case, the name member of the clocksource/event struct will
+>> point to this array and so it needs to reside in memory permanently and
+>> not just temporary. Once we migrate completely to DT then we will be
+>> able to remove this completely. See following snippet ...
+>>
+>> -		sprintf(name, "timer%d", gptimer_id);
+>> -		oh_name = name;
+>> +		sprintf(timer_name, "timer%d", gptimer_id);
+>> +		*name = timer_name;
+> 
+> Ok. But in case of non-DT boot if someone selects gptimers for both clkevt and
+> clksrc, both the name members will end up pointing to the same memory location.
+> To be specific, in the current code the clkevt timer name will point to the clksrc
+> name. This won't be noticeable during boot since the clkevt name gets printed
+> before it is over-written.
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 45cc7ed4..8a68f1e 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -399,8 +399,18 @@ void __init omap3xxx_check_revision(void)
- 		}
- 		break;
- 	case 0xb944:
--		omap_revision = AM335X_REV_ES1_0;
--		cpu_rev = "1.0";
-+		switch (rev) {
-+		case 0:
-+			omap_revision = AM335X_REV_ES1_0;
-+			cpu_rev = "1.0";
-+			break;
-+		case 1:
-+		/* FALLTHROUGH */
-+		default:
-+			omap_revision = AM335X_REV_ES2_0;
-+			cpu_rev = "2.0";
-+			break;
-+		}
- 		break;
- 	case 0xb8f2:
- 		switch (rev) {
-diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-index 092aedd..c62116b 100644
---- a/arch/arm/mach-omap2/soc.h
-+++ b/arch/arm/mach-omap2/soc.h
-@@ -395,6 +395,7 @@ IS_OMAP_TYPE(3430, 0x3430)
- 
- #define AM335X_CLASS		0x33500033
- #define AM335X_REV_ES1_0	AM335X_CLASS
-+#define AM335X_REV_ES2_0	(AM335X_CLASS | (0x1 << 8))
- 
- #define OMAP443X_CLASS		0x44300044
- #define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
--- 
-1.7.9.5
+Yes you are right! Good catch. Will fix that.
 
+Cheers
+Jon
