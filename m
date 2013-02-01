@@ -1,51 +1,95 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH, RFC] default machine descriptor for multiplatform
-Date: Fri, 1 Feb 2013 12:34:30 +0000
-Message-ID: <201302011234.30592.arnd@arndb.de>
-References: <20130131092024.GN2637@n2100.arm.linux.org.uk> <1638002.UJ7zfj1Wn5@wuerfel> <510BAB55.30603@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH 2/2] ARM: OMAP2: Fix GPMC memory initialisation
+Date: Fri, 1 Feb 2013 10:38:46 -0600
+Message-ID: <1359736726-10193-3-git-send-email-jon-hunter@ti.com>
+References: <1359736726-10193-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:54349 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753471Ab3BAMes (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 07:34:48 -0500
-In-Reply-To: <510BAB55.30603@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:51014 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756891Ab3BAQiz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Feb 2013 11:38:55 -0500
+In-Reply-To: <1359736726-10193-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, Fabio Estevam <festevam@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Afzal Mohammed <afzal@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-On Friday 01 February 2013, Santosh Shilimkar wrote:
-> This is indeed a nice update towards consolidation. Though
-> on OMAP, we need to do some work to effectively get rid
-> of machine, time and irq inits. Will add this task in my
-> TODO queue.
+OMAP2+ devices have an internal ROM that by default is typically mapped
+to the first 1MB of the GPMC address space (0x0).
 
-There is no urgent need to get all board files to have empty
-machine descriptors, I would not expect that to happen for
-the more complex platforms like omap any time soon.
+For OMAP24xx devices, GPMC chip-select 0 (CS0) may be mapped to address
+0x0 instead of the internal ROM if configured for an external boot mode.
+If configured for an internal boot mode then the internal ROM is mapped
+to 0x0.
 
-You currently use quite a number of callbacks:
+Currently, the function gpmc_mem_init() function reserves the first 1MB
+of GPMC address space for the internal OMAP ROM with the exception of
+the OMAP2 APOLLON board. This prevents any device (ethernet chip, flash
+memories, etc) from using this address range. This causes the GPMC probe
+to fail on the OMAP2420 H4 when NOR flash is mapped to address 0x0. Fix
+this by testing the boot mode for OMAP24xx devices to see if the
+SYS_BOOT3 is low, indicating an external boot, and thus GPMC CS0 is
+mapped to 0x0.
 
-DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
-        .reserve        = omap_reserve,
-        .smp            = smp_ops(omap4_smp_ops),
-        .map_io         = omap5_map_io,
-        .init_early     = omap5_init_early,
-        .init_irq       = omap_gic_of_init,
-        .handle_irq     = gic_handle_irq,
-        .init_machine   = omap_generic_init,
-        .timer          = &omap5_timer,
-        .dt_compat      = omap5_boards_compat,
-        .restart        = omap44xx_restart,
-MACHINE_END
+Please note that for OMAP3-5 devices, when booting from NOR or NAND
+memories connected to CS0, these memories are always mapped to address
+0x08000000 and so reserving this memory range does not present any
+problems for these devices.
 
-and I see nothing wrong with that. For simpler platforms that
-after migrating out init_irq and init_timer have only one
-or two callbacks left, it may be more interesting to actually
-go all the way and remove all of them if possible.
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c |   25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-	Arnd
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 441cc63..9486b8e 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -32,6 +32,7 @@
+ 
+ #include "soc.h"
+ #include "common.h"
++#include "control.h"
+ #include "omap_device.h"
+ #include "gpmc.h"
+ 
+@@ -778,18 +779,26 @@ static void gpmc_mem_exit(void)
+ static int gpmc_mem_init(void)
+ {
+ 	int cs, rc;
+-	unsigned long boot_rom_space = 0;
+ 
+-	/* never allocate the first page, to facilitate bug detection;
+-	 * even if we didn't boot from ROM.
++	/*
++	 * The first 1MB of GPMC address space is mapped to the
++	 * internal ROM. OMAP2 devices are an exception to this
++	 * where the first 1MB may be mapped to the GPMC.
+ 	 */
+-	boot_rom_space = BOOT_ROM_SPACE;
+-	/* In apollon the CS0 is mapped as 0x0000 0000 */
+-	if (machine_is_omap_apollon())
+-		boot_rom_space = 0;
+-	gpmc_mem_root.start = GPMC_MEM_START + boot_rom_space;
++	gpmc_mem_root.start = GPMC_MEM_START + BOOT_ROM_SPACE;
+ 	gpmc_mem_root.end = GPMC_MEM_END;
+ 
++	/*
++	 * OMAP2 devices that boot from external memory devices, will
++	 * map CS0 to the start of the GPMC address space (0x0). We can
++	 * test this by checking if SYS_BOOT3 pin is set. If not set
++	 * then CS0 is mapped to 0x0.
++	 */
++	if (cpu_is_omap24xx())
++		if (!(omap_ctrl_readl(OMAP24XX_CONTROL_STATUS) &
++		      OMAP2_SYSBOOT_3_MASK))
++			gpmc_mem_root.start = GPMC_MEM_START;
++
+ 	/* Reserve all regions that has been set up by bootloader */
+ 	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
+ 		u32 base, size;
+-- 
+1.7.10.4
+
