@@ -1,31 +1,41 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH] ARM: dts: AM33XX: Corrects typo in interrupt field in SPI node
-Date: Fri, 01 Feb 2013 12:23:05 +0100
-Message-ID: <8738xg8ehy.fsf@dell.be.48ers.dk>
-References: <1359697047-1816-1-git-send-email-avinashphilip@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH, RFC] default machine descriptor for multiplatform
+Date: Fri, 1 Feb 2013 17:17:33 +0530
+Message-ID: <510BAB55.30603@ti.com>
+References: <20130131092024.GN2637@n2100.arm.linux.org.uk> <20130131161823.GT2637@n2100.arm.linux.org.uk> <1731670.s76EGcEZ7m@wuerfel> <1638002.UJ7zfj1Wn5@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:34608 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755941Ab3BALXM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 06:23:12 -0500
-In-Reply-To: <1359697047-1816-1-git-send-email-avinashphilip@ti.com> (Philip
-	Avinash's message of "Fri, 1 Feb 2013 11:07:27 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:57431 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751922Ab3BALqm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 06:46:42 -0500
+In-Reply-To: <1638002.UJ7zfj1Wn5@wuerfel>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Philip Avinash <avinashphilip@ti.com>
-Cc: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, vaibhav.bedia@ti.com, gururaja.hebbar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, Fabio Estevam <festevam@gmail.com>
 
->>>>> "Philip" == Philip Avinash <avinashphilip@ti.com> writes:
+On Thursday 31 January 2013 11:21 PM, Arnd Bergmann wrote:
+> This is what I think it would look like to do a default platform
+> with an empty machine descriptor on ARM. It makes the few required
+> entries in the descriptor optional by using the new irqchip_init()
+> and clocksource_of_init() functions as defaults, and adds
+> a fallback for the DT case to customize_machine to probe all
+> the default devices.
+>
+> For the case that CONFIG_MULTIPLATFORM is enabled, it then
+> adds a machine descriptor that never matches any machine but
+> is used as a fallback if nothing else matches.
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>
+This is indeed a nice update towards consolidation. Though
+on OMAP, we need to do some work to effectively get rid
+of machine, time and irq inits. Will add this task in my
+TODO queue.
 
- Philip> DT field of "interrupts" was mentioned wrongly as "interrupt" in SPI
- Philip> node. This went unnoticed as spi-omap2 driver not making use of
- Philip> interrupt. Fixes the typo.
+Regards,
+Santosh
 
- Philip> Signed-off-by: Philip Avinash <avinashphilip@ti.com>
-
-Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
-
--- 
-Bye, Peter Korsgaard
