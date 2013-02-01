@@ -1,74 +1,66 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2+: OMAP44XX: Clock: Correct the clock
- identifiers for OMAP4460 and OMAP4430
-Date: Fri, 1 Feb 2013 05:13:51 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229B7B90@DBDE01.ent.ti.com>
-References: <1358504498-31985-1-git-send-email-j-keerthy@ti.com>
- <alpine.DEB.2.00.1301250845310.471@utopia.booyaka.com>
+From: kishon <kishon@ti.com>
+Subject: Re: [PATCH RFC] usb: dwc3: Get PHY from platform specific dwc3 dt
+ node.
+Date: Fri, 1 Feb 2013 10:51:30 +0530
+Message-ID: <510B50DA.6010201@ti.com>
+References: <1359631232-7107-1-git-send-email-gautam.vivek@samsung.com> <510A56BF.3040804@ti.com> <CAFp+6iFkb=U0CJA=3zmQvd5XfMwbROuRJjXoJG7zvvq4_upzNw@mail.gmail.com> <20130131152527.GE4064@arwen.pp.htv.fi> <CAFp+6iHvKYiF_neANRq5roAEJwhvcaLk7pAd7Dy94Z5XiDkhgA@mail.gmail.com> <20130131153836.GF4064@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34314 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750918Ab3BAFN5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 00:13:57 -0500
-In-Reply-To: <alpine.DEB.2.00.1301250845310.471@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20130131153836.GF4064@arwen.pp.htv.fi>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Vivek Gautam <gautamvivek1987@gmail.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "mturquette@linaro.org" <mturquette@linaro.org>
-
-Hi Paul,
-
------Original Message-----
-From: Paul Walmsley [mailto:paul@pwsan.com] 
-Sent: Friday, January 25, 2013 2:21 PM
-To: J, KEERTHY
-Cc: linux-omap@vger.kernel.org; Valentin, Eduardo; mturquette@linaro.org
-Subject: Re: [PATCH] ARM: OMAP2+: OMAP44XX: Clock: Correct the clock identifiers for OMAP4460 and OMAP4430
 
 Hi,
 
-On Fri, 18 Jan 2013, J Keerthy wrote:
+On Thursday 31 January 2013 09:08 PM, Felipe Balbi wrote:
+> On Thu, Jan 31, 2013 at 09:00:37PM +0530, Vivek Gautam wrote:
+>> Hi Felipe,
+>>
+>>
+>> On Thu, Jan 31, 2013 at 8:55 PM, Felipe Balbi <balbi@ti.com> wrote:
+>>> Hi,
+>>>
+>>> On Thu, Jan 31, 2013 at 08:53:27PM +0530, Vivek Gautam wrote:
+>>>>>> Moreover, SoCs having multiple dwc3 controllers will have multiple
+>>>>>> PHYs, which eventually be added using usb_add_phy_dev(), and not
+>>>>>> using usb_add_phy(). So each dwc3 controller won't be able to
+>>>>>> get PHYs by simply calling devm_usb_get_phy() also.
+>>>>>
+>>>>> No. We have added usb_get_phy_dev() for that purpose in the case of non-dt.
+>>>>> I think, instead you can have a patch to use devm_usb_get_phy_dev() here and
+>>>>> in exynos platform specific code use usb_bind_phy() to bind the phy and
+>>>>> controller till you change it to dt.
+>>>>>
+>>>>
+>>>> We have dt support for dwc3-exynos, in such case we should go ahead with
+>>>> of_platform_populate(), right ?
+>>>> But if when i use of_platform_populate() i will not be able to set
+>>>> dma_mask to dwc3->dev. :-(
 
-> The previous logic to detect the clocks for OMAP4460
-> was to combine the clocks marked as CK_443X and CK_446X. This would be
-> fine as long as OMAP4460 was a super set of OMAP4430 clock set.
-> This is not the case as there are clocks which are specific to OMAP4430
-> (for example bandgap_fclk) and some which are specific to OMAP4460(for example
-> bandgap_ts_fclk). 
-> The clock "bandgap_fclk" is specific for OMAP4430 and
-> this was added as part of OMAP4460 clock set which should not be done.
-> 
-> Hence changing the convention.
-> 
-> CK_446X				--------> Clocks specific to OMAP4460
-> CK_443X				--------> Clocks specific to OMAP4430
-> CK_44XX (CK_446X | CK_443X)	--------> Common to both OMAP4460 and OMAP4430
-> 
-> Boot Tested on both Panda and Panda-es.
-> 
-> Signed-off-by: J Keerthy <j-keerthy@ti.com>
-> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Eduardo Valentin <eduardo.valentin@ti.com>
+You can do something like this
 
-While I agree with this patch, my understanding is that Tony wishes to 
-shift to list-based initialization for clocks, similar to how the hwmod 
-initialization is done for OMAP3.  This will result in moving away from 
-the CK_* flags.  There are some previous public mailing list messages on 
-this topic that you can probably find by searching for CK_446X.
-Now that we've switched to the common clock framework, it should be more 
-practical to do this conversion, since we can refer to parent clocks by 
-name rather than by pointer.  Could you please update your patch to take 
-that approach instead?
+static u64 dwc3_exynos_dma_mask = DMA_BIT_MASK(32);
 
-I sent a fresh patch which knocks of all the CK_* flags and creates lists
-For initialization of clocks similar to the hwmod approach for OMAP3.
+static int dwc3_exynos_set_dmamask(struct device *dev, void *c)
+{
+	dev->dma_mask = &dwc3_exynos_dma_mask;
 
-- Paul
+	return 0;
+}
 
-Thanks,
-Keerthy
+And in your probe after of_platform_populate, you can add
+
+device_for_each_child(&pdev->dev, NULL, dwc3_exynos_set_dmamask);
+
+Here pdev is the platform device of dwc3-exynos. By this way all the 
+children of dwc3-exynos will have dma_mask set to the required value.
+
+I'm not sure if there is any other better way to achieve the same 
+(without patching of.c ;-))
+
+Thanks
+Kishon
