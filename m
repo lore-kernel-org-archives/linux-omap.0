@@ -1,59 +1,82 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to
-	arm/common
-Date: Fri, 1 Feb 2013 21:30:03 +0000
-Message-ID: <20130201213003.GW2637@n2100.arm.linux.org.uk>
-References: <1359742975-10421-1-git-send-email-mporter@ti.com> <1359742975-10421-2-git-send-email-mporter@ti.com> <5022f635a527470dbd0be932063e9cd2@DFLE72.ent.ti.com> <20130201184915.GP2244@beef> <510C1D0E.6030401@mvista.com> <20130201185820.GE29898@arwen.pp.htv.fi> <510C2A47.1090607@mvista.com> <20130201205600.GA31762@arwen.pp.htv.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2: Fix GPMC memory initialisation
+Date: Fri, 1 Feb 2013 13:51:54 -0800
+Message-ID: <20130201215154.GV22517@atomide.com>
+References: <1359736726-10193-1-git-send-email-jon-hunter@ti.com>
+ <1359736726-10193-3-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:43042 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757470Ab3BAVv4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 16:51:56 -0500
 Content-Disposition: inline
-In-Reply-To: <20130201205600.GA31762@arwen.pp.htv.fi>
-Sender: linux-doc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>, Matt Porter <mporter@ti.com>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Chris Ball <cjb@laptop.org>, "Cousson, Benoit" <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.i>
+In-Reply-To: <1359736726-10193-3-git-send-email-jon-hunter@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Afzal Mohammed <afzal@ti.com>
 
-On Fri, Feb 01, 2013 at 10:56:00PM +0200, Felipe Balbi wrote:
-> hi,
-> 
-> On Fri, Feb 01, 2013 at 11:49:11PM +0300, Sergei Shtylyov wrote:
-> > > good point, do you wanna send some patches ?
-> > 
-> >    I have already sent them countless times and even stuck CPPI 4.1 support (in
-> > arch/arm/common/cppi41.c) in Russell's patch system. TI requested to remove the
-> > patch. :-(
-> 
-> sticking into arch/arm/common/ wasn't a nice move. But then again, so
-> wasn't asking for the patch to be removed :-s
+Hi Jon,
 
-Err, patches don't get removed, they get moved to 'discarded'.
+* Jon Hunter <jon-hunter@ti.com> [130201 08:42]:
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -32,6 +32,7 @@
+>  
+>  #include "soc.h"
+>  #include "common.h"
+> +#include "control.h"
+>  #include "omap_device.h"
+>  #include "gpmc.h"
+>  
+> @@ -778,18 +779,26 @@ static void gpmc_mem_exit(void)
+>  static int gpmc_mem_init(void)
+>  {
+>  	int cs, rc;
+> -	unsigned long boot_rom_space = 0;
+>  
+> -	/* never allocate the first page, to facilitate bug detection;
+> -	 * even if we didn't boot from ROM.
+> +	/*
+> +	 * The first 1MB of GPMC address space is mapped to the
+> +	 * internal ROM. OMAP2 devices are an exception to this
+> +	 * where the first 1MB may be mapped to the GPMC.
+>  	 */
+> -	boot_rom_space = BOOT_ROM_SPACE;
+> -	/* In apollon the CS0 is mapped as 0x0000 0000 */
+> -	if (machine_is_omap_apollon())
+> -		boot_rom_space = 0;
 
-> > > I guess to make the MUSB side simpler we would need musb-dma-engine glue
-> > > to map dmaengine to the private MUSB API. Then we would have some
-> > > starting point to also move inventra (and anybody else) to dmaengine
-> > > API.
-> > 
-> >    Why? Inventra is a dedicated device's private DMA controller, why make
-> > universal DMA driver for it?
-> 
-> because it doesn't make sense to support multiple DMA APIs. We can check
-> from MUSB's registers if it was configured with Inventra DMA support and
-> based on that we can register MUSB's own DMA Engine to dmaengine API.
+This part is going away anyways with the patch dropping apollon
+board support from Kyungin.
 
-Hang on.  This is one of the DMA implementations which is closely
-coupled with the USB and only the USB?  If it is...
+> -	gpmc_mem_root.start = GPMC_MEM_START + boot_rom_space;
+> +	gpmc_mem_root.start = GPMC_MEM_START + BOOT_ROM_SPACE;
+>  	gpmc_mem_root.end = GPMC_MEM_END;
+>  
+> +	/*
+> +	 * OMAP2 devices that boot from external memory devices, will
+> +	 * map CS0 to the start of the GPMC address space (0x0). We can
+> +	 * test this by checking if SYS_BOOT3 pin is set. If not set
+> +	 * then CS0 is mapped to 0x0.
+> +	 */
+> +	if (cpu_is_omap24xx())
+> +		if (!(omap_ctrl_readl(OMAP24XX_CONTROL_STATUS) &
+> +		      OMAP2_SYSBOOT_3_MASK))
+> +			gpmc_mem_root.start = GPMC_MEM_START;
+> +
+>  	/* Reserve all regions that has been set up by bootloader */
+>  	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
+>  		u32 base, size;
 
-I thought this had been discussed _extensively_ before.  I thought the
-resolution on it was:
-1. It would not use the DMA engine API.
-2. It would not live in arch/arm.
-3. It would be placed nearby the USB driver it's associated with.
+How about let's fix this properly to start with so we don't add
+more blockers moving this code to drivers/bus?
 
-(1) because we don't use APIs just for the hell of it - think.  Do we
-use the DMA engine API for PCI bus mastering ethernet controllers?  No.
-Do we use it for PCI bus mastering SCSI controllers?  No.  Because the
-DMA is integral to the rest of the device.
+Looks like gpmc_mem_init() gets called from gpmc_probe() so
+we can pass that information in pdev.
 
-The DMA engine API only makes sense if the DMA engine is a shared
-system resource.
+Regards,
+
+Tony
