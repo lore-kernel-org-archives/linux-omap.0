@@ -1,35 +1,32 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap: Remove apollon board support
-Date: Fri, 1 Feb 2013 10:12:05 -0800
-Message-ID: <20130201181205.GG22517@atomide.com>
-References: <20121226052106.GA8929@july>
- <50DDE0B2.60006@ti.com>
+Subject: Re: [PATCH v2] ARM: OMAP3: cm-t3517: add MMC support
+Date: Fri, 1 Feb 2013 10:13:17 -0800
+Message-ID: <20130201181317.GH22517@atomide.com>
+References: <1354795206-12048-1-git-send-email-grinberg@compulab.co.il>
+ <1354871155-32528-1-git-send-email-grinberg@compulab.co.il>
+ <50E3DEDA.7020807@compulab.co.il>
+ <50FE845A.8090309@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:56788 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752990Ab3BASMJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 13:12:09 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35971 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752990Ab3BASNU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 13:13:20 -0500
 Content-Disposition: inline
-In-Reply-To: <50DDE0B2.60006@ti.com>
+In-Reply-To: <50FE845A.8090309@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kyungmin Park <kmpark@infradead.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [121228 10:12]:
-> On Wednesday 26 December 2012 10:51 AM, Kyungmin Park wrote:
-> >From: Kyungmin Park <kyungmin.park@samsung.com>
-> >
-> >As apollon board doesn't used anymore, remove it.
-> >
-> >Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >---
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+* Igor Grinberg <grinberg@compulab.co.il> [130122 04:25]:
+> ping!
+> 
+> It has been 1.5 month and we are at rc4 already...
 
-Thanks applying into omap-for-v3.9/board.
+Sorry for the delay, applying finally into omap-for-v3.9/board.
 
 Regards,
 
-Tony 
+Tony
