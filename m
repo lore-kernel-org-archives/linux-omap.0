@@ -1,117 +1,74 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [Patch v2 2/2] ARM: OMAP2: am33xx-hwmod: Fix "register offset
- NULL check" bug
-Date: Fri, 1 Feb 2013 05:05:54 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EB5B145@DBDE01.ent.ti.com>
-References: <1359642327-5542-1-git-send-email-gururaja.hebbar@ti.com>
- <1359642327-5542-3-git-send-email-gururaja.hebbar@ti.com>
- <alpine.DEB.2.00.1301311528320.23099@utopia.booyaka.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: RE: [PATCH] ARM: OMAP2+: OMAP44XX: Clock: Correct the clock
+ identifiers for OMAP4460 and OMAP4430
+Date: Fri, 1 Feb 2013 05:13:51 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229B7B90@DBDE01.ent.ti.com>
+References: <1358504498-31985-1-git-send-email-j-keerthy@ti.com>
+ <alpine.DEB.2.00.1301250845310.471@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34042 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34314 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750787Ab3BAFGG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 00:06:06 -0500
-In-Reply-To: <alpine.DEB.2.00.1301311528320.23099@utopia.booyaka.com>
+	id S1750918Ab3BAFN5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 00:13:57 -0500
+In-Reply-To: <alpine.DEB.2.00.1301250845310.471@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Koen Kooi <koen@dominion.thruhere.net>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "mturquette@linaro.org" <mturquette@linaro.org>
 
-On Thu, Jan 31, 2013 at 21:00:32, Paul Walmsley wrote:
-> + Koen
-> 
-> Hi
-> 
-> On Thu, 31 Jan 2013, Hebbar Gururaja wrote:
-> 
-> > am33xx_cm_wait_module_ready() checks if register offset is NULL.
-> > 
-> > int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-> > {
-> > 	int i = 0;
-> > 
-> > 	if (!clkctrl_offs)
-> > 		return 0;
-> > 
-> > In case of AM33xx, CLKCTRL register offset for different clock domains
-> > are not uniformly placed. An example of this would be the RTC clock
-> > domain with CLKCTRL offset at 0x00.
-> > In such cases the module ready check is skipped which leads to a data
-> > abort during boot-up when RTC registers is accessed.
-> > 
-> > Remove this check here to avoid checking module readiness for modules
-> > with clkctrl register offset at 0x00.
-> > 
-> > Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
-> 
-> Some text has been added to the patch description to describe Koen's test 
-> results, and the updated patch has been queued for v3.8-rc fixes.  Updated 
-> patch follows.
-> 
-> - Paul
+Hi Paul,
 
+-----Original Message-----
+From: Paul Walmsley [mailto:paul@pwsan.com] 
+Sent: Friday, January 25, 2013 2:21 PM
+To: J, KEERTHY
+Cc: linux-omap@vger.kernel.org; Valentin, Eduardo; mturquette@linaro.org
+Subject: Re: [PATCH] ARM: OMAP2+: OMAP44XX: Clock: Correct the clock identifiers for OMAP4460 and OMAP4430
 
-Thanks for the review & update.
+Hi,
 
+On Fri, 18 Jan 2013, J Keerthy wrote:
 
-Regards, 
-Gururaja
+> The previous logic to detect the clocks for OMAP4460
+> was to combine the clocks marked as CK_443X and CK_446X. This would be
+> fine as long as OMAP4460 was a super set of OMAP4430 clock set.
+> This is not the case as there are clocks which are specific to OMAP4430
+> (for example bandgap_fclk) and some which are specific to OMAP4460(for example
+> bandgap_ts_fclk). 
+> The clock "bandgap_fclk" is specific for OMAP4430 and
+> this was added as part of OMAP4460 clock set which should not be done.
+> 
+> Hence changing the convention.
+> 
+> CK_446X				--------> Clocks specific to OMAP4460
+> CK_443X				--------> Clocks specific to OMAP4430
+> CK_44XX (CK_446X | CK_443X)	--------> Common to both OMAP4460 and OMAP4430
+> 
+> Boot Tested on both Panda and Panda-es.
+> 
+> Signed-off-by: J Keerthy <j-keerthy@ti.com>
+> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Eduardo Valentin <eduardo.valentin@ti.com>
 
-> 
-> From: Hebbar Gururaja <gururaja.hebbar@ti.com>
-> Date: Thu, 31 Jan 2013 19:55:27 +0530
-> Subject: [PATCH] ARM: OMAP2: am33xx-hwmod: Fix "register offset NULL check"
->  bug
-> 
-> am33xx_cm_wait_module_ready() checks if register offset is NULL.
-> 
-> int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-> {
-> 	int i = 0;
-> 
-> 	if (!clkctrl_offs)
-> 		return 0;
-> 
-> In case of AM33xx, CLKCTRL register offset for different clock domains
-> are not uniformly placed. An example of this would be the RTC clock
-> domain with CLKCTRL offset at 0x00.
-> In such cases the module ready check is skipped which leads to a data
-> abort during boot-up when RTC registers is accessed.
-> 
-> Remove this check here to avoid checking module readiness for modules
-> with clkctrl register offset at 0x00.
-> 
-> Koen Kooi notes that this patch fixes a crash on boot with
-> CONFIG_RTC_DRV_OMAP=y with v3.8-rc5.
-> 
-> Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
-> Cc: Koen Kooi <koen@dominion.thruhere.net>
-> [paul@pwsan.com: noted Koen's test in the patch description]
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/cm33xx.c |    3 ---
->  1 file changed, 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
-> index 058ce3c..325a515 100644
-> --- a/arch/arm/mach-omap2/cm33xx.c
-> +++ b/arch/arm/mach-omap2/cm33xx.c
-> @@ -241,9 +241,6 @@ int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
->  {
->  	int i = 0;
->  
-> -	if (!clkctrl_offs)
-> -		return 0;
-> -
->  	omap_test_timeout(_is_module_ready(inst, cdoffs, clkctrl_offs),
->  			  MAX_MODULE_READY_TIME, i);
->  
-> -- 
-> 1.7.10.4
-> 
-> 
+While I agree with this patch, my understanding is that Tony wishes to 
+shift to list-based initialization for clocks, similar to how the hwmod 
+initialization is done for OMAP3.  This will result in moving away from 
+the CK_* flags.  There are some previous public mailing list messages on 
+this topic that you can probably find by searching for CK_446X.
+Now that we've switched to the common clock framework, it should be more 
+practical to do this conversion, since we can refer to parent clocks by 
+name rather than by pointer.  Could you please update your patch to take 
+that approach instead?
 
+I sent a fresh patch which knocks of all the CK_* flags and creates lists
+For initialization of clocks similar to the hwmod approach for OMAP3.
+
+- Paul
+
+Thanks,
+Keerthy
