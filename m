@@ -1,103 +1,45 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH RFC] usb: dwc3: Get PHY from platform specific dwc3 dt node.
-Date: Fri, 1 Feb 2013 11:54:01 +0530
-Message-ID: <CAFp+6iGZU29nt4yBjkyeeS+s_D1=AamgGTOsJq1xo_5z2O-sDg@mail.gmail.com>
-References: <1359631232-7107-1-git-send-email-gautam.vivek@samsung.com>
-	<510A56BF.3040804@ti.com>
-	<CAFp+6iFkb=U0CJA=3zmQvd5XfMwbROuRJjXoJG7zvvq4_upzNw@mail.gmail.com>
-	<20130131152527.GE4064@arwen.pp.htv.fi>
-	<CAFp+6iHvKYiF_neANRq5roAEJwhvcaLk7pAd7Dy94Z5XiDkhgA@mail.gmail.com>
-	<20130131153836.GF4064@arwen.pp.htv.fi>
-	<510B50DA.6010201@ti.com>
-	<CAFp+6iF2HMmiMVR4YyEG7bmpCZ4KdwBT7q2Jy-P1SMVtoVBn6g@mail.gmail.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH 0/5] ARM: OMAP2+: System timer updates
+Date: Fri, 1 Feb 2013 08:41:37 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433ED0725A@DBDE01.ent.ti.com>
+References: <1359565471-30721-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <CAFp+6iF2HMmiMVR4YyEG7bmpCZ4KdwBT7q2Jy-P1SMVtoVBn6g@mail.gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: kishon <kishon@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:45424 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755812Ab3BAIlp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 03:41:45 -0500
+In-Reply-To: <1359565471-30721-1-git-send-email-jon-hunter@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hunter, Jon" <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Balbi,
+Hi Jon,
 
+On Wed, Jan 30, 2013 at 22:34:26, Hunter, Jon wrote:
+> This series consists mainly of clean-ups for clockevents and
+> clocksource timers on OMAP2+ devices. The most significant change
+> in functionality comes from the 5th patch which is changing the
+> selection of the clocksource timer for OMAP3 and AM335x devices
+> when gptimers are used for clocksource. This change came about from
+> Vaibhav Bedia's series for AM335x [1]. See patch for more details on
+> the exact nature of the change.
+> 
+> Boot tested with and without  device-tree on OMAP2420 H4,
+> OMAP3430 SDP, OMAP3430 Beagle Board, OMAP4430 SDP and
+> AM335x EVM (AM335x only supports device-tree boot).
+> 
 
-On Fri, Feb 1, 2013 at 11:52 AM, Vivek Gautam <gautamvivek1987@gmail.com> wrote:
-> Hi Kishon,
->
->
-> On Fri, Feb 1, 2013 at 10:51 AM, kishon <kishon@ti.com> wrote:
->> Hi,
->>
->>
->> On Thursday 31 January 2013 09:08 PM, Felipe Balbi wrote:
->>>
->>> On Thu, Jan 31, 2013 at 09:00:37PM +0530, Vivek Gautam wrote:
->>>>
->>>> Hi Felipe,
->>>>
->>>>
->>>> On Thu, Jan 31, 2013 at 8:55 PM, Felipe Balbi <balbi@ti.com> wrote:
->>>>>
->>>>> Hi,
->>>>>
->>>>> On Thu, Jan 31, 2013 at 08:53:27PM +0530, Vivek Gautam wrote:
->>>>>>>>
->>>>>>>> Moreover, SoCs having multiple dwc3 controllers will have multiple
->>>>>>>> PHYs, which eventually be added using usb_add_phy_dev(), and not
->>>>>>>> using usb_add_phy(). So each dwc3 controller won't be able to
->>>>>>>> get PHYs by simply calling devm_usb_get_phy() also.
->>>>>>>
->>>>>>>
->>>>>>> No. We have added usb_get_phy_dev() for that purpose in the case of
->>>>>>> non-dt.
->>>>>>> I think, instead you can have a patch to use devm_usb_get_phy_dev()
->>>>>>> here and
->>>>>>> in exynos platform specific code use usb_bind_phy() to bind the phy
->>>>>>> and
->>>>>>> controller till you change it to dt.
->>>>>>>
->>>>>>
->>>>>> We have dt support for dwc3-exynos, in such case we should go ahead
->>>>>> with
->>>>>> of_platform_populate(), right ?
->>>>>> But if when i use of_platform_populate() i will not be able to set
->>>>>> dma_mask to dwc3->dev. :-(
->>
->>
->> You can do something like this
->>
->> static u64 dwc3_exynos_dma_mask = DMA_BIT_MASK(32);
->>
->> static int dwc3_exynos_set_dmamask(struct device *dev, void *c)
->> {
->>         dev->dma_mask = &dwc3_exynos_dma_mask;
->>
->>         return 0;
->> }
->>
->> And in your probe after of_platform_populate, you can add
->>
->> device_for_each_child(&pdev->dev, NULL, dwc3_exynos_set_dmamask);
->>
->> Here pdev is the platform device of dwc3-exynos. By this way all the
->> children of dwc3-exynos will have dma_mask set to the required value.
->>
->
-> Nice idea, thanks :-)
-> hmm.. so i can patch this now, and get things working ;-)
->
+Thanks for working on this. I have couple of minor comments but with this
+series in place I can drop the patch for interchanging the timers for AM33xx
+and the suspend-resume handlers for the clockevent also don't need the
+sprintf() that I had :)
 
-If this is fine with you shall i go ahead and post a patch for the same ? ;-)
-
-
->> I'm not sure if there is any other better way to achieve the same (without
->> patching of.c ;-))
->>
->
+Reviewed-and-Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 
 
 
--- 
-Thanks & Regards
-Vivek
