@@ -1,110 +1,110 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH 00/15] OMAP SHAM & AES Crypto Updates
-Date: Fri, 1 Feb 2013 13:18:24 -0700
-Message-ID: <20130201201824.GA6326@animalcreek.com>
-References: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
- <alpine.DEB.2.00.1212230836160.16045@utopia.booyaka.com>
- <20130108203853.GB1876@animalcreek.com>
- <alpine.DEB.2.00.1301171904070.14118@utopia.booyaka.com>
- <20130117222728.GA32446@animalcreek.com>
- <20130128191635.GA14158@animalcreek.com>
- <alpine.DEB.2.00.1302011722070.10853@utopia.booyaka.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to arm/common
+Date: Fri, 1 Feb 2013 22:56:00 +0200
+Message-ID: <20130201205600.GA31762@arwen.pp.htv.fi>
+References: <1359742975-10421-1-git-send-email-mporter@ti.com>
+ <1359742975-10421-2-git-send-email-mporter@ti.com>
+ <5022f635a527470dbd0be932063e9cd2@DFLE72.ent.ti.com>
+ <20130201184915.GP2244@beef> <510C1D0E.6030401@mvista.com>
+ <20130201185820.GE29898@arwen.pp.htv.fi>
+ <510C2A47.1090607@mvista.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from p3plsmtpa01-05.prod.phx3.secureserver.net ([72.167.82.85]:57871
-	"HELO p3plsmtpa01-05.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756373Ab3BAUSZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 15:18:25 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1302011722070.10853@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============7764280878580205488=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <510C2A47.1090607-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Feb 01, 2013 at 05:35:05PM +0000, Paul Walmsley wrote:
-> Hi Mark
->=20
-> On Mon, 28 Jan 2013, Mark A. Greer wrote:
->=20
-> > On Thu, Jan 17, 2013 at 03:27:28PM -0700, Mark A. Greer wrote:
-> > > On Thu, Jan 17, 2013 at 07:13:36PM +0000, Paul Walmsley wrote:
-> > > > On Tue, 8 Jan 2013, Mark A. Greer wrote:
-> > > >=20
-> > > > > On Sun, Dec 23, 2012 at 08:40:43AM +0000, Paul Walmsley wrote=
-:
-> >=20
-> > > > What do you think about adding an am35xx_es11plus_hwmod_ocp_ifs=
-[] array to=20
-> > > > omap_hwmod_3xxx_data.c for these secure hwmods?  That carries t=
-he implicit=20
-> > > > and possibly wrong assumption that it's likely to be ES1.0 devi=
-ces that=20
-> > > > are missing the SHAM/AES, but it seems unlikely that TI would h=
-ave=20
-> > > > multiple silicon revs running around claiming to be ES1.1?  Or =
-maybe I'm=20
-> > > > just being na=EFve.
-> > >=20
-> > > Something like that makes sense to me.  I'll re-read my email, et=
-c. and
-> > > see if I can find something to help us figure it out.
-> >=20
-> > I couldn't find any information that helped with this so AFAIK ther=
-e is no
-> > good way to tell if a particular am35xx has the crypto hardware ava=
-ilable
-> > or not.
->=20
-> I was thinking that we might assume that they are present on AM35xx=20
-> ES1.1+.  If the TI folks are saying that they aren't available on onl=
-y a=20
-> few early devices, I'd guess that means ES1.0.  I personally have nev=
-er=20
-> seen an ES1.0 AM35xx device...=20
->=20
-> Discriminating between ES1.0 and ES1.1+ should be pretty easy in the =
-hwmod=20
-> init...
->=20
-> >  At this point, I vote for moving 'omap3xxx_l4_core__sham' and
-> > 'omap3xxx_l4_core__aes' from omap3xxx_gp_hwmod_ocp_ifs[] and puttin=
-g them
-> > in omap34xx_hwmod_ocp_ifs[] and omap36xx_hwmod_ocp_ifs[]. =20
->=20
-> I'm pretty sure that's going to break on HS OMAPs, like the HS OMAP34=
-30 in=20
-> the N900.  I don't think those IP blocks are directly accessible from=
-=20
-> Linux on most HS setups, although this might vary by device.  I'd fee=
-l=20
-> more comfortable if you created an omap34xx_gp_hwmod_ocp_ifs[] list a=
-nd an=20
-> omap36xx_gp_hwmod_ocp_ifs[] list.  We should probably get rid of=20
-> omap3xxx_gp_hwmod_ocp_ifs[] altogether.
->=20
-> > That should be safe in general and if someone with an am35xx wants =
-to=20
-> > use those modules, they can edit am35xx_hwmod_ocp_ifs[] locally.
->=20
-> If you want to just leave them commented in am35xx_hwmod_ocp_ifs[], r=
-ather=20
-> than enabling them for ES1.1+ AM35xx, that's fine with me too, since =
-we=20
-> don't know that they are ES-level-based.  Maybe put a comment there t=
-hat=20
-> says that these are likely to be present, but no one seems to know fo=
-r=20
-> certain?  Seems ludicrous, but I guess that's what we're reduced to!
+--===============7764280878580205488==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2oS5YaxWCcQjTEyO"
+Content-Disposition: inline
 
-Thanks Paul.  I will have some patches early next week.
+--2oS5YaxWCcQjTEyO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Mark
---
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+hi,
+
+On Fri, Feb 01, 2013 at 11:49:11PM +0300, Sergei Shtylyov wrote:
+> > good point, do you wanna send some patches ?
+>=20
+>    I have already sent them countless times and even stuck CPPI 4.1 suppo=
+rt (in
+> arch/arm/common/cppi41.c) in Russell's patch system. TI requested to remo=
+ve the
+> patch. :-(
+
+sticking into arch/arm/common/ wasn't a nice move. But then again, so
+wasn't asking for the patch to be removed :-s
+
+> > I guess to make the MUSB side simpler we would need musb-dma-engine glue
+> > to map dmaengine to the private MUSB API. Then we would have some
+> > starting point to also move inventra (and anybody else) to dmaengine
+> > API.
+>=20
+>    Why? Inventra is a dedicated device's private DMA controller, why make
+> universal DMA driver for it?
+
+because it doesn't make sense to support multiple DMA APIs. We can check
+=66rom MUSB's registers if it was configured with Inventra DMA support and
+based on that we can register MUSB's own DMA Engine to dmaengine API.
+
+> > Once that's done, we drop MUSB's private API.
+>=20
+>    Don't think it's a good idea.
+
+see above.
+
+--=20
+balbi
+
+--2oS5YaxWCcQjTEyO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRDCvfAAoJEIaOsuA1yqREUjQP/RqhK6sXFPDiZQokepbVHvh1
+/QY/xwmvqJ5sC+OJn99FrQ0Lp+4awceYRrx3d/aLbZ2ato58jLpdXNMOSyYiJR5R
+gE4nNYafHmv070vFnkt87M9VsEZY7hERUh0UjNoqcREKYLSJ5Te0CkN2Dfewx4Ub
+dX3UQKVxjjCsxcNEg2+Ssyw1+oMTbjkSjkAwQbet8ZFsZSqXXoJ5xuRh1Ik2VD0M
+Xuc+MAAWbzilgcyM7C9Yxw5cvlan7ei6hsPgAq2kNai7WK2lm47h+enwW41q/nbs
+iXIhXM7qFHpwsByG3K3Rpkmtsg75SM8ymyNohdxb5odwh4Evzw2Z/ed6Vu+t0JK6
+vK1/mSOP7QtQCNFcO0gOvLT3NCavEf372bTLiKNWvSb1KecC4BB84tJ+oGrGxCKS
+BnhVKCKtq5PqGBoBxv29JVaTgNh0djr804bLYssB9RNvnigYh8ZD6CCLr8aDT8P5
+fyZWjXY74K8N8sfTHBYASUIhC7IVeDDFApt/0UKt8+OLPwJ9aLxXHhx+xBG96Im9
+d0Jx31hInwZ+2l7ZZr8CE/1Oy79qtAX2ANJOjSSuR8SGah+ipW40Er2nYbN0+0hx
+QiDPcezowX/2yVF7HNQjiYfAoq3pwiESXlPfN3/BnAwIsP5p/HGT9nRun2yiQJL1
+U0qONWBg4L7gNQUFhURD
+=dgm9
+-----END PGP SIGNATURE-----
+
+--2oS5YaxWCcQjTEyO--
+
+--===============7764280878580205488==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============7764280878580205488==--
