@@ -1,35 +1,26 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 0/2] ARM: OMAP2+: GPMC Fixes
-Date: Fri, 1 Feb 2013 10:38:44 -0600
-Message-ID: <1359736726-10193-1-git-send-email-jon-hunter@ti.com>
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: DT GPMC SRAM and NOR flash support ?
+Date: Fri, 01 Feb 2013 16:56:51 +0000
+Message-ID: <510BF3D3.3000304@mimc.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33462 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756867Ab3BAQiz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Feb 2013 11:38:55 -0500
+Received: from mercuryimc.plus.com ([80.229.200.144]:46420 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757030Ab3BAQ4x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 11:56:53 -0500
+Received: from [10.0.0.102] (unknown [10.0.0.102])
+	by centos1.newflow.co.uk (Postfix) with ESMTP id DA9C326B8035
+	for <linux-omap@vger.kernel.org>; Fri,  1 Feb 2013 16:56:51 +0000 (GMT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Afzal Mohammed <afzal@ti.com>, Jon Hunter <jon-hunter@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-A couple GPMC fixes for OMAP2+ devices which were causing boot problems
-on OMAP2420 H4.
+There's plenty of DT support going in for NAND flash, but is there any work going on to support NOR
+flash ?
 
-Please note that long term we need to remove the cpu_is_omap24xx() from
-the gpmc driver and pass the gpmc_mem_root information via platform data
-and figure out a way to pass this information for device tree.
+And how about SRAM chips or other memory mapped devices ?
 
-Boot tested on OMAP2420 H4, OMAP3430 SDP, OMAP4430 SDP and AM335x EVM.
-
-Jon Hunter (2):
-  ARM: OMAP2+: Prevent potential crash if GPMC probe fails
-  ARM: OMAP2: Fix GPMC memory initialisation
-
- arch/arm/mach-omap2/gpmc.c |   31 ++++++++++++++++++++++---------
- 1 file changed, 22 insertions(+), 9 deletions(-)
-
--- 
-1.7.10.4
-
+Regards
+Mark J.
