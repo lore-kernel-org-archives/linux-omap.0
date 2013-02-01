@@ -1,35 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 3/3] arm: omap2: gpmc: add DT bindings for OneNAND
-Date: Fri, 1 Feb 2013 14:12:10 -0800
-Message-ID: <20130201221209.GA22517@atomide.com>
-References: <1359116591-32730-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <1359116591-32730-3-git-send-email-ezequiel.garcia@free-electrons.com>
- <20130125155633.GC16795@e106331-lin.cambridge.arm.com>
- <CALF0-+X2qsF5OETerRSVsJbjkC-JdVXsZhyw1sxQYR+PWX6LHA@mail.gmail.com>
- <20130128115339.GD7754@e106331-lin.cambridge.arm.com>
+Subject: Re: [PATCH 0/2] ARM: dts: OMAP3: Add GPMC controller and NAND
+ memory to Overo
+Date: Fri, 1 Feb 2013 14:16:18 -0800
+Message-ID: <20130201221618.GB22517@atomide.com>
+References: <1359395648-2137-1-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:58566 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:65249 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757839Ab3BAWMQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 17:12:16 -0500
+	with ESMTP id S1757849Ab3BAWQW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 17:16:22 -0500
 Content-Disposition: inline
-In-Reply-To: <20130128115339.GD7754@e106331-lin.cambridge.arm.com>
+In-Reply-To: <1359395648-2137-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "zonque@gmail.com" <zonque@gmail.com>, "matthias.bgg@googlemail.com" <matthias.bgg@googlemail.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "b-cousson@ti.com" <b-cousson@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "jon-hunter@ti.com" <jon-hunter@ti.com>, Artem Bityutskiy <dedekind1@gmail.com>
+To: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Benoit Cousson <b-cousson@ti.com>, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-* Mark Rutland <mark.rutland@arm.com> [130128 03:57]:
+* Florian Vaussard <florian.vaussard@epfl.ch> [130128 09:57]:
+> Hello,
 > 
-> So if I've understood correctly, the first address cell is the CS, and the
-> second the offset within this (as the comment in the onenand@0 node hints)?
+> This is more an RFC serie, as an issue is still unclear to me.
+> Building on the work of Daniel Mack for the GPMC controller (staged
+> in Tony's tree [1]), it was easy to add the GPMC controller to OMAP3.
 > 
-> If so, the code now makes sense to me :)
+> The issue comes from the Overo on-board NAND, as the amount of flash
+> depends on the revision. Currently, partitions are handled in the board
+> file using MTDPART_SIZ_FULL, but looking at the ofpart parser, the size
+> given to the parser must be fixed.
+> 
+> So how should we handle such case? Having several dtsi depending
+> on the Overo's revision would be a mess to my sense, considering
+> the non-conditional include inside the expansion boards' dts.
+> Or would it make sense to extend the DT binding for partitions?
 
-Sounds like further checking can be added as needed, so applying this
-series into omap-for-v3.9/gpmc.
+Yes makes sense to extend the binding to use the full flash memory
+if the size can be probed.
 
 Regards,
 
