@@ -1,66 +1,55 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH RFC] usb: dwc3: Get PHY from platform specific dwc3 dt
- node.
-Date: Fri, 1 Feb 2013 10:51:30 +0530
-Message-ID: <510B50DA.6010201@ti.com>
-References: <1359631232-7107-1-git-send-email-gautam.vivek@samsung.com> <510A56BF.3040804@ti.com> <CAFp+6iFkb=U0CJA=3zmQvd5XfMwbROuRJjXoJG7zvvq4_upzNw@mail.gmail.com> <20130131152527.GE4064@arwen.pp.htv.fi> <CAFp+6iHvKYiF_neANRq5roAEJwhvcaLk7pAd7Dy94Z5XiDkhgA@mail.gmail.com> <20130131153836.GF4064@arwen.pp.htv.fi>
+From: Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: AM33XX: Corrects typo in interrupt field in SPI node
+Date: Fri, 1 Feb 2013 11:07:27 +0530
+Message-ID: <1359697047-1816-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20130131153836.GF4064@arwen.pp.htv.fi>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Vivek Gautam <gautamvivek1987@gmail.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, devicetree-discuss@lists.ozlabs.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, vaibhav.bedia-l0cyMroinI0@public.gmane.org, gururaja.hebbar-l0cyMroinI0@public.gmane.org, Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+DT field of "interrupts" was mentioned wrongly as "interrupt" in SPI
+node. This went unnoticed as spi-omap2 driver not making use of
+interrupt. Fixes the typo.
 
-On Thursday 31 January 2013 09:08 PM, Felipe Balbi wrote:
-> On Thu, Jan 31, 2013 at 09:00:37PM +0530, Vivek Gautam wrote:
->> Hi Felipe,
->>
->>
->> On Thu, Jan 31, 2013 at 8:55 PM, Felipe Balbi <balbi@ti.com> wrote:
->>> Hi,
->>>
->>> On Thu, Jan 31, 2013 at 08:53:27PM +0530, Vivek Gautam wrote:
->>>>>> Moreover, SoCs having multiple dwc3 controllers will have multiple
->>>>>> PHYs, which eventually be added using usb_add_phy_dev(), and not
->>>>>> using usb_add_phy(). So each dwc3 controller won't be able to
->>>>>> get PHYs by simply calling devm_usb_get_phy() also.
->>>>>
->>>>> No. We have added usb_get_phy_dev() for that purpose in the case of non-dt.
->>>>> I think, instead you can have a patch to use devm_usb_get_phy_dev() here and
->>>>> in exynos platform specific code use usb_bind_phy() to bind the phy and
->>>>> controller till you change it to dt.
->>>>>
->>>>
->>>> We have dt support for dwc3-exynos, in such case we should go ahead with
->>>> of_platform_populate(), right ?
->>>> But if when i use of_platform_populate() i will not be able to set
->>>> dma_mask to dwc3->dev. :-(
+Signed-off-by: Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am33xx.dtsi |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-You can do something like this
-
-static u64 dwc3_exynos_dma_mask = DMA_BIT_MASK(32);
-
-static int dwc3_exynos_set_dmamask(struct device *dev, void *c)
-{
-	dev->dma_mask = &dwc3_exynos_dma_mask;
-
-	return 0;
-}
-
-And in your probe after of_platform_populate, you can add
-
-device_for_each_child(&pdev->dev, NULL, dwc3_exynos_set_dmamask);
-
-Here pdev is the platform device of dwc3-exynos. By this way all the 
-children of dwc3-exynos will have dma_mask set to the required value.
-
-I'm not sure if there is any other better way to achieve the same 
-(without patching of.c ;-))
-
-Thanks
-Kishon
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index fbcb90b..cece3ad 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -309,7 +309,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <0x48030000 0x400>;
+-			interrupt = <65>;
++			interrupts = <65>;
+ 			ti,spi-num-cs = <2>;
+ 			ti,hwmods = "spi0";
+ 			status = "disabled";
+@@ -320,7 +320,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <0x481a0000 0x400>;
+-			interrupt = <125>;
++			interrupts = <125>;
+ 			ti,spi-num-cs = <2>;
+ 			ti,hwmods = "spi1";
+ 			status = "disabled";
+-- 
+1.7.9.5
