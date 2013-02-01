@@ -1,61 +1,65 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH] ARM: OMAP2+: dpll: Add missing soc_is_am33xx() check
-Date: Fri, 01 Feb 2013 09:54:27 -0800
-Message-ID: <20130201175427.16898.39901@quantum>
-References: <1359714424-21167-1-git-send-email-anilkumar@ti.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [RFC PATCH] ARM: mm: Fix alloc_init_section bug on LPAE
+Date: Fri, 1 Feb 2013 17:55:09 +0000
+Message-ID: <20130201175509.GK5151@arm.com>
+References: <1359160318-27068-1-git-send-email-chris@cloudcar.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:59458 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757046Ab3BARyo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 12:54:44 -0500
-Received: by mail-pa0-f46.google.com with SMTP id kp14so2365700pab.5
-        for <linux-omap@vger.kernel.org>; Fri, 01 Feb 2013 09:54:44 -0800 (PST)
-In-Reply-To: <1359714424-21167-1-git-send-email-anilkumar@ti.com>
+Received: from fw-tnat.cambridge.arm.com ([217.140.96.21]:51589 "EHLO
+	cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757098Ab3BARzg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 12:55:36 -0500
+Content-Disposition: inline
+In-Reply-To: <1359160318-27068-1-git-send-email-chris@cloudcar.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, AnilKumar Ch <anilkumar@ti.com>
+To: Christoffer Dall <chris@cloudcar.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Jeremy C. Andrus" <jeremya@cs.columbia.edu>
 
-Quoting AnilKumar Ch (2013-02-01 02:27:04)
-> Add missing soc_is_am33xx() check in noncore DPLL set rate function.
-> Without this, dpll set_rate function throughs warnings for am33xx
-> family of devices.
+On Sat, Jan 26, 2013 at 12:31:58AM +0000, Christoffer Dall wrote:
+> When using LPAE the call to alloc_init_pte is passed then end address
+> for the entire 1st level page table region, and the code unluckily ends
+> up going over the bounds of the single allocated PTE, which is sad.
 > 
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-
-I think that only 3430 needs the freqsel calculation.  If this is true,
-then I think it would be better to just have a check for cpu_is_3430()
-instead of appending new SoCs to the list that do not care about the
-freqsel calculation.
-
-Regards,
-Mike
-
+> This caused LPAE boot on omap5 to crash.
+> 
+> There may be some hidden mystery in the boot code that I'm unaware of
+> or it may be assumed that all mappings are always mappable as sections
+> on LPAE and therefore omap5 just does something bad, in which case this
+> patch isn't the right fix, but I'd be happy to be told the reason.
+> 
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Jeremy C. Andrus <jeremya@cs.columbia.edu>
+> Signed-off-by: Christoffer Dall <chris@cloudcar.com>
 > ---
->  arch/arm/mach-omap2/dpll3xxx.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  arch/arm/mm/mmu.c |   12 +++++++-----
+>  1 file changed, 7 insertions(+), 5 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-> index 0a02aab5..4bb3f78 100644
-> --- a/arch/arm/mach-omap2/dpll3xxx.c
-> +++ b/arch/arm/mach-omap2/dpll3xxx.c
-> @@ -501,7 +501,8 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
->                         return -EINVAL;
+> diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
+> index ce328c7..1cecc99 100644
+> --- a/arch/arm/mm/mmu.c
+> +++ b/arch/arm/mm/mmu.c
+> @@ -603,11 +603,13 @@ static void __init alloc_init_section(pud_t *pud, unsigned long addr,
 >  
->                 /* No freqsel on OMAP4 and OMAP3630 */
-> -               if (!cpu_is_omap44xx() && !cpu_is_omap3630()) {
-> +               if (!cpu_is_omap44xx() && !cpu_is_omap3630() &&
-> +                                       !soc_is_am33xx()) {
->                         freqsel = _omap3_dpll_compute_freqsel(clk,
->                                                 dd->last_rounded_n);
->                         WARN_ON(!freqsel);
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  		flush_pmd_entry(p);
+>  	} else {
+> -		/*
+> -		 * No need to loop; pte's aren't interested in the
+> -		 * individual L1 entries.
+> -		 */
+> -		alloc_init_pte(pmd, addr, end, __phys_to_pfn(phys), type);
+> +		unsigned long next;
+> +
+> +		do {
+> +			next = pmd_addr_end(addr, end);
+> +			alloc_init_pte(pmd, addr, next, __phys_to_pfn(phys), type);
+> +			phys += next - addr;
+> +		} while (pmd++, addr = next, addr != end);
+
+I now noticed your patch (I'm a bit behind with the list). It looks to
+me like it should work since next == end with the classic MMU, so we
+only go through the loop once.
+
+-- 
+Catalin
