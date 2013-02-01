@@ -1,49 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP3: igep0020: simplify GPIO LEDs
- dependencies
-Date: Fri, 1 Feb 2013 10:26:37 -0800
-Message-ID: <20130201182637.GJ22517@atomide.com>
-References: <1355505428-24302-1-git-send-email-javier.martinez@collabora.co.uk>
- <CABxcv=k6wypYO+JOV1rWyuGtR-seNQ2PFqym7QsAdkC+mC7P8g@mail.gmail.com>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [PATCH v7 07/10] dmaengine: add
+ dma_request_slave_channel_compat()
+Date: Fri, 1 Feb 2013 13:28:04 -0500
+Message-ID: <20130201182804.GN2244@beef>
+References: <1359742975-10421-1-git-send-email-mporter@ti.com>
+ <1359742975-10421-8-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:28989 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756243Ab3BAS0n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Feb 2013 13:26:43 -0500
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CABxcv=k6wypYO+JOV1rWyuGtR-seNQ2PFqym7QsAdkC+mC7P8g@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1359742975-10421-8-git-send-email-mporter@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>
+Cc: Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Rob Herring <rob.herring@calxeda.com>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Ezequiel Garcia <elezegarcia@gmail.com>, Russell King <linux@arm.linux.org.uk>, Matthias Brugger <matthias.bgg@googlemail.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Javier Martinez Canillas <javier@dowhile0.org> [121220 06:08]:
+On Fri, Feb 01, 2013 at 01:22:52PM -0500, Matt Porter wrote:
+> Adds a dma_request_slave_channel_compat() wrapper which accepts
+> both the arguments from dma_request_channel() and
+> dma_request_slave_channel(). Based on whether the driver is
+> instantiated via DT, the appropriate channel request call will be
+> made.
 > 
-> Any comments on this patch?
-
-No comments, sorry for the delay. Applying it into omap-for-v3.9/board.
- 
-> I wonder if I should keep sending fixes/improvements for board-igep0020.c
+> This allows for a much cleaner migration of drivers to the
+> dmaengine DT API as platforms continue to be mixed between those
+> that boot using DT and those that do not.
 > 
-> I already sent an initial Device Tree support for IGEP boards [1] and
-> Benoit told me he is going to queue for 3.9. But still doesn't support
-> many peripherals found on these boards because they still don't proper
-> DT support, for instance NAND and Ethernet need the GPMC bindings
-> patches that haven't hit mainline yet.
+> Suggested-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Matt Porter <mporter@ti.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+
+Vinod, can I get an ack on this one?
+
+-Matt
+
+> ---
+>  include/linux/dmaengine.h |   16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
 > 
-> So, it seems I will have to keep working on the board file until it
-> can be completely deprecated.
-
-Yes we still have few missing things for complete DT support. While we
-are working at it, let's just keep the board-*.c changes to minimum.
-
-Regards,
-
-Tony
- 
-> Thanks a lot and best regards,
-> Javier
+> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+> index bfcdecb..17d8ffd 100644
+> --- a/include/linux/dmaengine.h
+> +++ b/include/linux/dmaengine.h
+> @@ -1001,6 +1001,22 @@ void dma_run_dependencies(struct dma_async_tx_descriptor *tx);
+>  struct dma_chan *dma_find_channel(enum dma_transaction_type tx_type);
+>  struct dma_chan *net_dma_find_channel(void);
+>  #define dma_request_channel(mask, x, y) __dma_request_channel(&(mask), x, y)
+> +#define dma_request_slave_channel_compat(mask, x, y, dev, name) \
+> +	__dma_request_slave_channel_compat(&(mask), x, y, dev, name)
+> +
+> +static inline struct dma_chan
+> +*__dma_request_slave_channel_compat(dma_cap_mask_t *mask, dma_filter_fn fn,
+> +				  void *fn_param, struct device *dev,
+> +				  char *name)
+> +{
+> +	struct dma_chan *chan;
+> +
+> +	chan = dma_request_slave_channel(dev, name);
+> +	if (chan)
+> +		return chan;
+> +
+> +	return __dma_request_channel(mask, fn, fn_param);
+> +}
+>  
+>  /* --- Helper iov-locking functions --- */
+>  
+> -- 
+> 1.7.9.5
 > 
-> [1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg82383.html
