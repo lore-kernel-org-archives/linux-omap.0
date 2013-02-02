@@ -1,68 +1,93 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to
-	arm/common
-Date: Sat, 2 Feb 2013 00:44:55 +0000
-Message-ID: <20130202004455.GX2637@n2100.arm.linux.org.uk>
-References: <1359742975-10421-1-git-send-email-mporter@ti.com> <1359742975-10421-2-git-send-email-mporter@ti.com> <5022f635a527470dbd0be932063e9cd2@DFLE72.ent.ti.com> <20130201184915.GP2244@beef> <510C1D0E.6030401@mvista.com> <20130201185820.GE29898@arwen.pp.htv.fi> <510C2A47.1090607@mvista.com> <20130201205600.GA31762@arwen.pp.htv.fi> <20130201213003.GW2637@n2100.arm.linux.org.uk> <510C58DF.3010103@mvista.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2: Fix GPMC memory initialisation
+Date: Fri, 1 Feb 2013 19:22:05 -0600
+Message-ID: <510C6A3D.70401@ti.com>
+References: <1359736726-10193-1-git-send-email-jon-hunter@ti.com> <1359736726-10193-3-git-send-email-jon-hunter@ti.com> <20130201215154.GV22517@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <510C58DF.3010103@mvista.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Felipe Balbi <balbi@ti.com>, Matt Porter <mporter@ti.com>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Chris Ball <cjb@laptop.org>, "Cousson, Benoit" <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51752 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757258Ab3BBBWJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Feb 2013 20:22:09 -0500
+In-Reply-To: <20130201215154.GV22517@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Afzal Mohammed <afzal@ti.com>
 
-On Sat, Feb 02, 2013 at 04:07:59AM +0400, Sergei Shtylyov wrote:
-> Hello.
->
-> On 02-02-2013 1:30, Russell King - ARM Linux wrote:
->
->>> On Fri, Feb 01, 2013 at 11:49:11PM +0300, Sergei Shtylyov wrote:
->>>>> good point, do you wanna send some patches ?
->
->>>>     I have already sent them countless times and even stuck CPPI 4.1 support (in
->>>> arch/arm/common/cppi41.c) in Russell's patch system. TI requested to remove the
->>>> patch. :-(
->
->>> sticking into arch/arm/common/ wasn't a nice move. But then again, so
->>> wasn't asking for the patch to be removed :-s
->
->> Err, patches don't get removed, they get moved to 'discarded'.
->
->    Any chance to bring it back to life? :-)
->    Although... drivers/usb/musb/cppi41.c would need to be somewhat 
-> reworked for at least AM35x and I don't have time. But that may change, 
-> of course.
 
-Right, I've just looked back at the various meeting minutes from December
-2010 when the CPPI stuff was discussed.  Yes, I archive these things and
-all email discussions for referencing in cases like this.
+On 02/01/2013 03:51 PM, Tony Lindgren wrote:
+> Hi Jon,
+> 
+> * Jon Hunter <jon-hunter@ti.com> [130201 08:42]:
+>> --- a/arch/arm/mach-omap2/gpmc.c
+>> +++ b/arch/arm/mach-omap2/gpmc.c
+>> @@ -32,6 +32,7 @@
+>>  
+>>  #include "soc.h"
+>>  #include "common.h"
+>> +#include "control.h"
+>>  #include "omap_device.h"
+>>  #include "gpmc.h"
+>>  
+>> @@ -778,18 +779,26 @@ static void gpmc_mem_exit(void)
+>>  static int gpmc_mem_init(void)
+>>  {
+>>  	int cs, rc;
+>> -	unsigned long boot_rom_space = 0;
+>>  
+>> -	/* never allocate the first page, to facilitate bug detection;
+>> -	 * even if we didn't boot from ROM.
+>> +	/*
+>> +	 * The first 1MB of GPMC address space is mapped to the
+>> +	 * internal ROM. OMAP2 devices are an exception to this
+>> +	 * where the first 1MB may be mapped to the GPMC.
+>>  	 */
+>> -	boot_rom_space = BOOT_ROM_SPACE;
+>> -	/* In apollon the CS0 is mapped as 0x0000 0000 */
+>> -	if (machine_is_omap_apollon())
+>> -		boot_rom_space = 0;
+> 
+> This part is going away anyways with the patch dropping apollon
+> board support from Kyungin.
 
-Unfortunately, they do not contain any useful information other than the
-topic having been brought up.  At that point, the CPPI stuff was in
-mach-davinci, and I had suggested moving it into drivers/dma.
+Yes just saw that today.
 
-The result of that was to say that it doesn't fit the DMA engine APIs.
-So someone came up with the idea of putting it in arch/arm/common - which
-I frankly ignored by email (how long have we been saying "no drivers in
-arch/arm" ?)
+>> -	gpmc_mem_root.start = GPMC_MEM_START + boot_rom_space;
+>> +	gpmc_mem_root.start = GPMC_MEM_START + BOOT_ROM_SPACE;
+>>  	gpmc_mem_root.end = GPMC_MEM_END;
+>>  
+>> +	/*
+>> +	 * OMAP2 devices that boot from external memory devices, will
+>> +	 * map CS0 to the start of the GPMC address space (0x0). We can
+>> +	 * test this by checking if SYS_BOOT3 pin is set. If not set
+>> +	 * then CS0 is mapped to 0x0.
+>> +	 */
+>> +	if (cpu_is_omap24xx())
+>> +		if (!(omap_ctrl_readl(OMAP24XX_CONTROL_STATUS) &
+>> +		      OMAP2_SYSBOOT_3_MASK))
+>> +			gpmc_mem_root.start = GPMC_MEM_START;
+>> +
+>>  	/* Reserve all regions that has been set up by bootloader */
+>>  	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
+>>  		u32 base, size;
+> 
+> How about let's fix this properly to start with so we don't add
+> more blockers moving this code to drivers/bus?
+> 
+> Looks like gpmc_mem_init() gets called from gpmc_probe() so
+> we can pass that information in pdev.
 
-Now, it would've been discussed in that meeting, but unfortunately no
-record exists of that.  What does follow that meeting is a discussion
-trail.  From what I can see there, but it looks to me like the decision
-was taken to move it to the DMA engine API, and work on sorting out MUSB
-was going to commence.
+I wondered if you would suggest that ;-)
 
-The last email in that says "I'll get to that soon"... and that is also
-the final email I have on this topic.  I guess if nothing has happened...
-Shrug, that's someone elses problem.
+I definitely can and it is probably best. Things like this become
+painful when we move to device-tree. We really need a generic way for
+passing stuff like this to drivers for omap. Our options are auxdata or
+bus notifiers. I am wondering whether we can plug pdata in the
+omap_device bus notifier for device-tree. Let me know if you have any
+thoughts.
 
-Anyway, the answer for putting it in arch/arm/common hasn't changed,
-and really, where we are now, post Linus having a moan about the size
-of arch/arm, that answer is even more concrete in the negative.  It's
-54K of code which should not be under arch/arm at all.
-
-Anyway, if you need to look at the patch, it's 6305/1.  Typing into the
-summary search box 'cppi' found it in one go.
+Cheers
+Jon
