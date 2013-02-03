@@ -1,65 +1,25 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH v2 00/11] MFD: twl-core: Cleanup part 2 for 3.9
-Date: Sun, 3 Feb 2013 18:01:31 +0100
-Message-ID: <20130203170131.GL8476@sortiz-mobl>
-References: <1358344439-23017-1-git-send-email-peter.ujfalusi@ti.com>
+From: "Song Chen" <info@song.com>
+Subject: Great Proposal!!
+Date: Mon, 04 Feb 2013 03:39:38 +0700
+Message-ID: <20130203203817.2267E5C00D4__29978.2414026142$1359924810$gmane$org@unevm-pmta14.une.net.co>
+Reply-To: mrsongchen12@yahoo.cn
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1358344439-23017-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.une.net.co ([200.13.249.231]:46439 "EHLO
+	une-avas-int03.une.net.co" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753550Ab3BCUxH convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 3 Feb 2013 15:53:07 -0500
+Content-Description: Mail message body
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Recipients <info@song.com>
 
-Hi Peter,
+Hello,
 
-On Wed, Jan 16, 2013 at 02:53:48PM +0100, Peter Ujfalusi wrote:
-> Hello Samuel,
-> 
-> Changes since v1:
-> - Patch for zoom-display to avoid build issus with this set
-> 
-> I had a patch on top of this series to move the zoom board to use bl-pwm for
-> display backlight. Because of this I have not noticed that the zoom-display.c
-> still have twl related code in upstream.
-> 
-> Cover letter from v1:
-> 
-> Second part of the cleanup of twl-core which aims to make the code a bit more
-> readable.
-> It has been tested on: OMAP4 PandaBoard, OMAP4 Blaze, OMAP3 BeagleBoard, OMAP3
-> Zoom2.
-> 
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (11):
->   ARM: OMAP: zoom-display: Remove the use of TWL4030_MODULE_PWM1
->   mfd: twl-core: Clean up module id lookup and definitions
->   mfd: twl-core: No need to check for invalid subchip ID
->   mfd: twl-core: Use the lookup table to find the correct subchip for
->     the modules
->   mfd: twl-core: Allocate twl_modules dynamically
->   mfd: twl-core: Do not try to call legacy mfd add_children() when
->     booted with DT
->   mfd: twl-core: Do not create dummy pdata when booted with DT
->   mfd: twl-core: Move 'inuse' check early at probe time
->   mfd: twl-core: Collect global variables behind one private structure
->     (global)
->   mfd: twl-core: Remove no longer valid comment regarding to write
->     buffer size
->   mfd: twl-core: Move twl_i2c_read/write_u8 to header as inline function
->  arch/arm/mach-omap2/board-zoom-display.c |  14 +-
->  drivers/mfd/twl-core.c                   | 362 ++++++++++++++-----------------
->  include/linux/i2c/twl.h                  |  84 +++----
->  3 files changed, 212 insertions(+), 248 deletions(-)
-Thanks, all 11 patches applied to my for-next branch.
+Proposal of ($12.8mUSD)for you, reply for details.I await to hear from you on my private email (mrsongchen12@yahoo.cn)
 
-Cheers,
-Samuel.
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Regards
+Song.
