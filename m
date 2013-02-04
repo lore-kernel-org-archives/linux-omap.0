@@ -1,83 +1,120 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2: Fix GPMC memory initialisation
-Date: Mon, 4 Feb 2013 13:33:53 -0600
-Message-ID: <51100D21.9050505@ti.com>
-References: <1359736726-10193-1-git-send-email-jon-hunter@ti.com> <1359736726-10193-3-git-send-email-jon-hunter@ti.com> <20130201215154.GV22517@atomide.com> <510C6A3D.70401@ti.com> <20130202181147.GC577@atomide.com> <510FCE40.5040202@ti.com> <20130204174501.GO22517@atomide.com> <511001F8.20306@ti.com> <20130204191552.GQ22517@atomide.com>
+Subject: [PATCH V3 1/7] ARM: OMAP2+: Display correct system timer name
+Date: Mon, 4 Feb 2013 13:46:30 -0600
+Message-ID: <1360007196-21350-2-git-send-email-jon-hunter@ti.com>
+References: <1360007196-21350-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52721 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56543 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754019Ab3BDTeN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Feb 2013 14:34:13 -0500
-In-Reply-To: <20130204191552.GQ22517@atomide.com>
+	id S1753805Ab3BDTrE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Feb 2013 14:47:04 -0500
+In-Reply-To: <1360007196-21350-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
+Currently on boot, when displaying the name of the gptimer used for
+clockevents and clocksource timers, the timer ID is shown. However,
+when booting with device-tree, the timer ID is not used to select a
+gptimer but a timer property. Hence, it is possible that the timer
+selected when booting with device-tree does not match the ID shown.
+Therefore, instead display the HWMOD name of the gptimer and use
+the HWMOD name as the name of clockevent and clocksource timer (if a
+gptimer is used).
 
-On 02/04/2013 01:15 PM, Tony Lindgren wrote:
-> * Jon Hunter <jon-hunter@ti.com> [130204 10:49]:
->> On 02/04/2013 11:45 AM, Tony Lindgren wrote:
->>>
->>> AFAIK SYSBOOT_n values reflect the boot time values of the actual SYSBOOT
->>> pins, so using generic pinconf there makes sense. But this of course should
->>> be checked.
->>
->> Not sure I am a fan of that idea. It is possible the pins could be
->> re-used as GPIOs after reset. Given that the state at reset is latched
->> in a register, it is best just to read the register directly.
-> 
-> Yes the physical SYSBOOT pins can be reused as GPIO, but that's are already
-> handled by the padconf and GPIO registers. This is a different register
-> showing the boot time pin values for some pins. So it makes sense to use
-> generic pinconf to make the pin values available to the client drivers
-> as needed.
-> 
-> The advantage doing it this way is that we don't need to export any omap
-> custom functions to the drivers from the SCM driver. This way we need zero
-> platform glue code, and can deal with it directly in the drivers in a
-> generic way. And all we need to do is just need to map the SoC specific
-> SYSBOOT pin register in the .dts files.
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/timer.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-I see what you are saying exporting the state in control_status register
-via the pinconf. That could work.
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 72c2ca1..83118fb 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -129,7 +129,6 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+ }
+ 
+ static struct clock_event_device clockevent_gpt = {
+-	.name		= "gp_timer",
+ 	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
+ 	.rating		= 300,
+ 	.set_next_event	= omap2_gp_timer_set_next_event,
+@@ -214,10 +213,11 @@ static u32 __init omap_dm_timer_get_errata(void)
+ }
+ 
+ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+-						int gptimer_id,
+-						const char *fck_source,
+-						const char *property,
+-						int posted)
++					 int gptimer_id,
++					 const char *fck_source,
++					 const char *property,
++					 const char **timer_name,
++					 int posted)
+ {
+ 	char name[10]; /* 10 = sizeof("gptXX_Xck0") */
+ 	const char *oh_name;
+@@ -254,6 +254,8 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 	if (!oh)
+ 		return -ENODEV;
+ 
++	*timer_name = oh->name;
++
+ 	if (!of_have_populated_dt()) {
+ 		r = omap_hwmod_get_resource_byname(oh, IORESOURCE_IRQ, NULL,
+ 						   &irq);
+@@ -327,7 +329,7 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
+ 	__omap_dm_timer_override_errata(&clkev, OMAP_TIMER_ERRATA_I103_I767);
+ 
+ 	res = omap_dm_timer_init_one(&clkev, gptimer_id, fck_source, property,
+-				     OMAP_TIMER_POSTED);
++				     &clockevent_gpt.name, OMAP_TIMER_POSTED);
+ 	BUG_ON(res);
+ 
+ 	omap2_gp_timer_irq.dev_id = &clkev;
+@@ -341,8 +343,8 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
+ 					3, /* Timer internal resynch latency */
+ 					0xffffffff);
+ 
+-	pr_info("OMAP clockevent source: GPTIMER%d at %lu Hz\n",
+-		gptimer_id, clkev.rate);
++	pr_info("OMAP clockevent source: %s at %lu Hz\n", clockevent_gpt.name,
++		clkev.rate);
+ }
+ 
+ /* Clocksource code */
+@@ -359,7 +361,6 @@ static cycle_t clocksource_read_cycles(struct clocksource *cs)
+ }
+ 
+ static struct clocksource clocksource_gpt = {
+-	.name		= "gp_timer",
+ 	.rating		= 300,
+ 	.read		= clocksource_read_cycles,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+@@ -449,6 +450,7 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
+ 	clksrc.errata = omap_dm_timer_get_errata();
+ 
+ 	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source, NULL,
++				     &clocksource_gpt.name,
+ 				     OMAP_TIMER_NONPOSTED);
+ 	BUG_ON(res);
+ 
+@@ -461,8 +463,8 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
+ 		pr_err("Could not register clocksource %s\n",
+ 			clocksource_gpt.name);
+ 	else
+-		pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
+-			gptimer_id, clksrc.rate);
++		pr_info("OMAP clocksource: %s at %lu Hz\n",
++			clocksource_gpt.name, clksrc.rate);
+ }
+ 
+ #ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
+-- 
+1.7.10.4
 
-> It may also make sense to export DEVICETYPE this way. At least early omaps
-> had the GP vs HS mode configured by pulls on some pins during the boot time.
-> So those bits too may reflect actual physical pins during the boot time
-> configured by the efuse settings?
-
-I *believe* that was only omap1.
-
->>>>> Regarding omap_device, we should find a way to keep the dependencies
->>>>> between drivers and the bus code down to minimum. So ideally things
->>>>> like this would be only done using just the compatible flag. But the
->>>>> pdata we cannot remove quite yet.
->>>>
->>>> Agree. However, there are several drivers today (gpio, dmtimer, mmc,
->>>> serial, dss, etc), that make use of a function pointer to
->>>> omap_pm_get_dev_context_loss_count() to determine when the peripheral's
->>>> state has been lost. When booting with DT this function pointer is not
->>>> populated and so with DT we currently have no way to determine this. I
->>>> see this as a blocker to migrating completely to DT. Ideally we would
->>>> find a way for RPM to handle this and remove the function pointer.
->>>> However, right now we still need a generic way to pass this type of
->>>> platform data to drivers.
->>>
->>> Yeah pinconf generic won't help us with the legacy boot.
->>
->> Right. I view all this sort of thing as system-level device information
->> that some drivers may need. It does not seem that we have a good way to
->> handle that at the moment. Any ideas?
-> 
-> I suggest just passing it in in pdata for now for the legacy boot. Then
-> I suggest we make what we can generic with pinconf in the long run.
-
-I don't see why we would want to export a function pointer to
-omap_pm_get_dev_context_loss_count() with pinconf. Have we got our wires
-crossed here?
-
-Jon
