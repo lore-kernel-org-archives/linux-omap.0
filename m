@@ -1,122 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: Audio support via omap-twl4030 and pwm
- support
-Date: Mon, 4 Feb 2013 11:52:51 -0800
-Message-ID: <20130204195251.GS22517@atomide.com>
-References: <50FE64DC.2030808@ti.com>
- <510788B9.9050907@ti.com>
- <20130130220532.GA22517@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/PATCH 29/32] usb: gadget: pxa27x_udc: let udc-core manage
+ gadget->dev
+Date: Mon, 4 Feb 2013 21:53:15 +0200
+Message-ID: <20130204195315.GA29628@arwen.pp.htv.fi>
+References: <1359042370-4358-1-git-send-email-balbi@ti.com>
+ <1359042370-4358-30-git-send-email-balbi@ti.com>
+ <87txq1m57u.fsf@free.fr>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:60519 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753311Ab3BDTwy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Feb 2013 14:52:54 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130130220532.GA22517@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <87txq1m57u.fsf@free.fr>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, kgene.kim@samsung.com, eric.y.miao@gmail.com, kuninori.morimoto.gx@renesas.com, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, yoshihiro.shimoda.uh@renesas.com, nicolas.ferre@atmel.com, linux-geode@lists.infradead.org, haojian.zhuang@gmail.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-samsung-soc@vger.kernel.org, ben-linux@fluff.org, dahlmann.thomas@arcor.de, linux@arm.linux.org.uk, leoli@freescale.com, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Tony Lindgren <tony@atomide.com> [130130 14:09]:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [130129 00:34]:
-> > Hi Tony,
-> > 
-> > On 01/22/2013 11:07 AM, Peter Ujfalusi wrote:
-> > > Hi Tony,
-> > > 
-> > > The content of this pull:
-> > > 
-> > > update for audio support via omap-twl4030 and pwm updates in board level:
-> > > http://www.spinics.net/lists/linux-omap/msg85085.html
-> > > 
-> > > and zoom-peripherals update to not request the TWL GPIO7:
-> > > http://www.spinics.net/lists/linux-omap/msg85187.html
-> > > 
-> > > All is on top of mainline v3.8-rc4 tag.
-> > 
-> > Have you already pulled this one? I can not find the patches in linux-next.
-> 
-> Pulled now thanks. Will push out to omap-for-v3.9/twl.
+--XsQoSWH+UP9D9v3l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Looks like this now adds some new section warnings:
+On Mon, Jan 28, 2013 at 09:18:29PM +0100, Robert Jarzmik wrote:
+> Felipe Balbi <balbi@ti.com> writes:
+>=20
+> > By simply setting a flag, we can drop some
+> > boilerplate code.
+> >
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > ---
+> >  drivers/usb/gadget/pxa27x_udc.c | 9 +--------
+> Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+>=20
+> And I tested also your patch and it works in my environment. For next pat=
+ches
+> I'd like to be CCed for pxa27x_udc stuff as I'm maintaining that one sinc=
+e its
+> beginning (and yes, I know, I didn't put that in MAINTAINERS ...).
 
-WARNING: vmlinux.o(.text+0x34124): Section mismatch in reference from the function sdp3430_twl_gpio_setup() to the function .init.text:omap_twl4030_audio_init()
-The function sdp3430_twl_gpio_setup() references
-the function __init omap_twl4030_audio_init().
-This is often because sdp3430_twl_gpio_setup lacks a __init 
-annotation or the annotation of omap_twl4030_audio_init is wrong.
+you should add yourself to MAINTAINERS. Please send a patch to Greg when
+you have time.
 
-WARNING: vmlinux.o(.text+0x34b8c): Section mismatch in reference from the function zoom_twl_gpio_setup() to the function .init.text:omap_twl4030_audio_init()
-The function zoom_twl_gpio_setup() references
-the function __init omap_twl4030_audio_init().
-This is often because zoom_twl_gpio_setup lacks a __init 
-annotation or the annotation of omap_twl4030_audio_init is wrong.
+No need to prepare a tree, though. I just need you to give your Acked-by
+and I'll queue the patches myself.
 
-These can be fixed with the following patch, but I suspect some
-of these cannot be __init/__initdata if the driver reprobes.
+cheers
 
-Can you please check this? I'll hold on sendinf off
-this branch until it's been checked and fixed properly.
+--=20
+balbi
 
-Regards,
+--XsQoSWH+UP9D9v3l
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Tony
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
+iQIcBAEBAgAGBQJREBGrAAoJEIaOsuA1yqRE0vUQAKyazTVwVicGXO+vGMA3PsuF
+eOWtYr8dSlvXy/cjOo5ltIlFBbjc8tZVWsOqurALqO+qzu0pfON9AAQShpyHq2YV
++J6iAGFYaQ6x5QrPuFDeDWG9SEWwcAJtSxa99x8pPrVyzt/an06JwEwSztezLHUj
+flhRU0iHLuBPgZVwUPK5Zx9PRu7XeHUoyVLB2pSzsffxM+2cR4P6cglNSrU7uqJY
+vNtoZpwpAMDDjtgzRNLAj3LTiSlmpG6/Jxaq3vqt5xUR34f6OywafM/rjW64CmbT
+u+NGIPnWxXXawThlBkIhotZzMQgS3hD0cZtnw3v9RTdAgSH3KE1sWum/QXkOAMwI
+Jg/6fwcNto4E7npl6cGQqREXYcOg4lH0d4eZ8va1sZQUwSinJKMWZj2Dkd1esGdr
+VDa/3hw6tncruTbaSXcgyr9bWCcSjmZYNdF8hd9B+fEPgMeRBcLH0PF+w2bRcG4Q
+xiPgGG2y3s3SWsUXvyXRE2vtSp1f+aPEYLmWZdGDIum+Ev5v7yRK1s3d2s3kLM/Q
+1Kb3kQMyfachlwYd0Ev54L8X1vyjHe5SQylhdzIbW7RpXY3vn3KIxbT9WjLM385t
+ok43ibbIzXBtS7z17PqMNLQoIrNtJk+vJEaMJsmY7hBBCgfmnFpRqJiRQaTi65xr
+uexTC1K/SknBAg/8+Z8h
+=qf2p
+-----END PGP SIGNATURE-----
 
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -223,7 +223,7 @@ static struct omap_tw4030_pdata omap_twl4030_audio_data = {
- 	.has_linein	= OMAP_TWL4030_LEFT | OMAP_TWL4030_RIGHT,
- };
- 
--static int sdp3430_twl_gpio_setup(struct device *dev,
-+static int __init sdp3430_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
- 	/* gpio + 0 is "mmc0_cd" (input/IRQ),
-@@ -245,7 +245,7 @@ static int sdp3430_twl_gpio_setup(struct device *dev,
- 	return 0;
- }
- 
--static struct twl4030_gpio_platform_data sdp3430_gpio_data = {
-+static struct twl4030_gpio_platform_data __initdata sdp3430_gpio_data = {
- 	.pulldowns	= BIT(2) | BIT(6) | BIT(8) | BIT(13)
- 				| BIT(16) | BIT(17),
- 	.setup		= sdp3430_twl_gpio_setup,
-@@ -374,7 +374,7 @@ static struct regulator_init_data sdp3430_vsim = {
- 	.consumer_supplies	= sdp3430_vsim_supplies,
- };
- 
--static struct twl4030_platform_data sdp3430_twldata = {
-+static struct twl4030_platform_data __initdata sdp3430_twldata = {
- 	/* platform_data for children goes here */
- 	.gpio		= &sdp3430_gpio_data,
- 	.keypad		= &sdp3430_kp_data,
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -238,7 +238,7 @@ static struct omap_tw4030_pdata omap_twl4030_audio_data = {
- 	.has_linein	= OMAP_TWL4030_LEFT | OMAP_TWL4030_RIGHT,
- };
- 
--static int zoom_twl_gpio_setup(struct device *dev,
-+static int __init zoom_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
- 	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
-@@ -252,11 +252,11 @@ static int zoom_twl_gpio_setup(struct device *dev,
- 	return 0;
- }
- 
--static struct twl4030_gpio_platform_data zoom_gpio_data = {
-+static struct twl4030_gpio_platform_data __initdata zoom_gpio_data = {
- 	.setup		= zoom_twl_gpio_setup,
- };
- 
--static struct twl4030_platform_data zoom_twldata = {
-+static struct twl4030_platform_data __initdata zoom_twldata = {
- 	/* platform_data for children goes here */
- 	.gpio		= &zoom_gpio_data,
- 	.keypad		= &zoom_kp_twl4030_data,
+--XsQoSWH+UP9D9v3l--
