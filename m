@@ -1,89 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: dts: OMAP3: Add GPMC controller
-Date: Mon, 4 Feb 2013 09:32:52 -0800
-Message-ID: <20130204173252.GN22517@atomide.com>
-References: <1359395648-2137-1-git-send-email-florian.vaussard@epfl.ch>
- <1359395648-2137-2-git-send-email-florian.vaussard@epfl.ch>
- <CABxcv=k_gwB3ExQYUeappDZ6FE4L7x8Acer4ZQpDH09BL6LG0Q@mail.gmail.com>
- <510F8F49.9020800@epfl.ch>
- <CABxcv==7KiBbkTyr7VLVw82F=9vVWRftpbyZWub_CVp3pQW0tQ@mail.gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH V2 0/7] ARM: OMAP2+: System timer updates
+Date: Mon, 4 Feb 2013 11:42:59 -0600
+Message-ID: <1359999786-8740-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:46858 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753593Ab3BDRc6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Feb 2013 12:32:58 -0500
-Content-Disposition: inline
-In-Reply-To: <CABxcv==7KiBbkTyr7VLVw82F=9vVWRftpbyZWub_CVp3pQW0tQ@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49510 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754286Ab3BDRnL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Feb 2013 12:43:11 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: florian.vaussard@epfl.ch, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-* Javier Martinez Canillas <javier@dowhile0.org> [130204 04:00]:
-> On Mon, Feb 4, 2013 at 11:36 AM, Florian Vaussard
-> > Great, the smsc911x was on my TODO list, I can cross it out :) BTW,
-> > do you have a public git for this, so I can test your work on my setup?
-> >
-> 
-> Yes, it is the gpmc-smsc911x-wip branch on my github linux tree [1]
-> 
-> That branch is Linus master tree + linux-omap/omap-for-v3.9/gpmc +
-> linux-omap-dt/for_3.9/dts
-> 
-> plus these patches:
-> 
-> Javier Martinez Canillas (4):
->       ARM: OMAP: gpmc-smsc911x: add DT dev node init function
->       ARM: OMAP: gpmc: add support for gpmc-smsc911x child nodes
->       ARM: dts: OMAP: Add an GPMC node for OMAP3
->       ARM: dts: omap3-igep0020: Add SMSC911x LAN chip support
-> 
-> You can browse these patches here [2].
-> 
-> With these patches I have ethernet working on my IGEPv2 but this board
-> uses an OMAP GPIO pin as the smsc911x IRQ line, so it needs to set a
-> mux pin (mcspi1_cs2.gpio_176 INPUT | MODE4) or it will fallback on
-> poll mode.
+This series consists mainly of clean-ups for clockevents and
+clocksource timers on OMAP2+ devices. The most significant change
+in functionality comes from the 5th patch which is changing the
+selection of the clocksource timer for OMAP3 and AM335x devices
+when gptimers are used for clocksource. This change came about from
+Vaibhav Bedia's series for AM335x [1]. See patch for more details on
+the exact nature of the change.
 
-Great, that's good news :)
+Boot tested with and without  device-tree on OMAP2420 H4, OMAP3430 SDP,
+OMAP3430 Beagle Board, OMAP4430 SDP and AM335x EVM (AM335x only
+supports device-tree boot). Also boot tested boards with kernel boot
+parameter "clocksource=gp_timer".
 
-> For some reasons I still couldn't figure out (I'm still learning about
-> Device Trees) adding:
-> 
->        pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
-> 
-> to the gpmc-smsc911x child node parse function (gpmc_smsc911x_init_dt)
-> didn't have a functional effect and I had to initialize the defined
-> pinctrl-single pins for the smsc911x in the omap3_pmx_core device node
-> instead of pmc_smsc911x@0 as I do for other devices (mmc, uarts, etc).
+This series is based upon ARM-SoC next branch.
 
-Maybe this is related to the initcall ordering..
- 
-> So I just removed the devm_pinctrl_get_select_default() call in
-> gpmc_smsc911x_init_dt() in for this RFC.
-> 
-> I don't know if this is because arch/arm/mach-omap2/gpmc-smsc911x.c is
-> not a real platform driver (is just a wrapper/helper function) and
-> doesn't have a probe function.
+V2 changes:
+- Fixed bug in patch that updates clocksource and clockevents timer
+  names to use the hwmod timer names (thanks Vaibhav Bedia!)
+- Updated patch that removes the hard-coded ID test to return an error
+  as soon as clk_set_parent fails instead of waiting for the end of the
+  function.
+- Fixed bug in patches that "simplify system timer clock definitions"
+  and "simplify system timer definitions" that was prevent omap4/5
+  boards from booting with kernel boot parameter "clocksource=gp_timer".
+- Updated changelog for patch "simplify system timer definitions" per
+  feedback received from Igor.
+- Added new patch to store the timer ID in the omap_dm_timer structure
+  to clean-up the code.
+- Added new patch to fix a sparse warning seen in ARM-SOC next.
 
-..that function just initializes the pdata for smsc911x driver, and
-should not be a driver. You need to add devm_pinctrl_get_select_default()
-to the probe of smsc911x or the GPMC probe.
- 
-> Which brings me to the question if my approach of adding a binding for
-> gpmc-smsc911x is correct or if we should extend/use the binding that
-> already exist for smsc911x
-> (Documentation/devicetree/bindings/net/smsc911x.txt).
+[1] https://patchwork.kernel.org/patch/1921421/
 
-We should use the existing smsc911x binding, then have a separate GPMC
-binding for the GPMC driver.
 
-Regards,
+Jon Hunter (7):
+  ARM: OMAP2+: Fix selection of clockevent timer when using device-tree
+  ARM: OMAP2+: Display correct system timer name
+  ARM: OMAP2+: Remove hard-coded test on timer ID
+  ARM: OMAP2+: Simplify system timer clock definitions
+  ARM: OMAP2+: Simplify system timers definitions
+  ARM: OMAP2+: Store ID of system timers in timer structure
+  ARM: OMAP4+: Fix sparse warning in system timers
 
-Tony 
- 
-> [1]: git://github.com/martinezjavier/linux.git
-> [2]: https://github.com/martinezjavier/linux/commits/gpmc-smsc911x-wip
-> [3]: http://omappedia.org/wiki/Bootloader_Project#SYSBOOT_Pins
+ arch/arm/mach-omap2/board-cm-t3517.c |    2 +-
+ arch/arm/mach-omap2/board-generic.c  |    2 +-
+ arch/arm/mach-omap2/common.h         |    3 +-
+ arch/arm/mach-omap2/timer.c          |  121 +++++++++++++++++-----------------
+ 4 files changed, 65 insertions(+), 63 deletions(-)
+
+-- 
+1.7.10.4
+
