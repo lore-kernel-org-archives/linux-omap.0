@@ -1,70 +1,67 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to arm/common
-Date: Mon, 04 Feb 2013 15:27:09 +0100
-Message-ID: <7655522.SvRnLo3eyU@wuerfel>
-References: <1359742975-10421-1-git-send-email-mporter@ti.com>
- <20130201213003.GW2637@n2100.arm.linux.org.uk> <510C58DF.3010103@mvista.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2: Fix GPMC memory initialisation
+Date: Mon, 4 Feb 2013 09:05:36 -0600
+Message-ID: <510FCE40.5040202@ti.com>
+References: <1359736726-10193-1-git-send-email-jon-hunter@ti.com> <1359736726-10193-3-git-send-email-jon-hunter@ti.com> <20130201215154.GV22517@atomide.com> <510C6A3D.70401@ti.com> <20130202181147.GC577@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <510C58DF.3010103-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39342 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755853Ab3BDPFk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Feb 2013 10:05:40 -0500
+In-Reply-To: <20130202181147.GC577@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Afzal Mohammed <afzal@ti.com>
 
-On Saturday 02 February 2013 04:07:59 Sergei Shtylyov wrote:
-> On 02-02-2013 1:30, Russell King - ARM Linux wrote:
 
-> >> because it doesn't make sense to support multiple DMA APIs. We can check
-> >> from MUSB's registers if it was configured with Inventra DMA support and
-> >> based on that we can register MUSB's own DMA Engine to dmaengine API.
+On 02/02/2013 12:11 PM, Tony Lindgren wrote:
+> * Jon Hunter <jon-hunter@ti.com> [130201 17:25]:
+>>
+>> On 02/01/2013 03:51 PM, Tony Lindgren wrote:
+>>>
+>>> How about let's fix this properly to start with so we don't add
+>>> more blockers moving this code to drivers/bus?
+>>>
+>>> Looks like gpmc_mem_init() gets called from gpmc_probe() so
+>>> we can pass that information in pdev.
+>>
+>> I wondered if you would suggest that ;-)
 > 
-> > Hang on.  This is one of the DMA implementations which is closely
-> > coupled with the USB and only the USB?  If it is...
+> :)
+>  
+>> I definitely can and it is probably best. Things like this become
+>> painful when we move to device-tree. We really need a generic way for
+>> passing stuff like this to drivers for omap. Our options are auxdata or
+>> bus notifiers. I am wondering whether we can plug pdata in the
+>> omap_device bus notifier for device-tree. Let me know if you have any
+>> thoughts.
 > 
-> > I thought this had been discussed _extensively_ before.  I thought the
-> > resolution on it was:
-> > 1. It would not use the DMA engine API.
-> > 2. It would not live in arch/arm.
-> > 3. It would be placed nearby the USB driver it's associated with.
-> 
-> > (1) because we don't use APIs just for the hell of it - think.  Do we
-> > use the DMA engine API for PCI bus mastering ethernet controllers?  No.
-> > Do we use it for PCI bus mastering SCSI controllers?  No.  Because the
-> > DMA is integral to the rest of the device.
-> 
-> > The DMA engine API only makes sense if the DMA engine is a shared
-> > system resource.
-> 
->     Thanks for such extensive wording in the support of my point. 
+> Hmm but in this case can't you just do it based on the compatible
+> flag? For legacy systems we also need to pass it in pdata.
 
-Actually there is another problem with the musb driver, which is that
-you can only have one DMA controller configured at build time, and
-that currently prevents us from building a kernel that supports both
-the Inventra and TUSB variants together. With multiplatform coming
-up for both ux500 and omap2, we will also have to make a decision
-about ux500 vs omap being supported in DMA mode.
+This is a boot-time configuration. So really you need to read the
+control status register at boot and then determine the mapping. We could
+store the address of the control status read in the pdata, but I think
+that is a bit of a hack.
 
-I can see two ways out of this: either we extend the musb driver to
-have run-time registration of the DMA controller, which duplicates
-infrastructure that already exists in the dmaengine API, or we
-make the dmaengine back-end for musb the default and require all
-platforms to use that if they want to coexist with other platforms
-and also use DMA support in musb.
+> Regarding omap_device, we should find a way to keep the dependencies
+> between drivers and the bus code down to minimum. So ideally things
+> like this would be only done using just the compatible flag. But the
+> pdata we cannot remove quite yet.
 
-Note that the ux500_dma code in musb already uses dmaengine. It could
-probably be extended to support any platform that has a dmaengine
-driver for the DMA controller used in MUSB.
+Agree. However, there are several drivers today (gpio, dmtimer, mmc,
+serial, dss, etc), that make use of a function pointer to
+omap_pm_get_dev_context_loss_count() to determine when the peripheral's
+state has been lost. When booting with DT this function pointer is not
+populated and so with DT we currently have no way to determine this. I
+see this as a blocker to migrating completely to DT. Ideally we would
+find a way for RPM to handle this and remove the function pointer.
+However, right now we still need a generic way to pass this type of
+platform data to drivers.
 
-	Arnd
+Cheers
+Jon
