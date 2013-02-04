@@ -1,125 +1,103 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/4] omap PM changes for v3.9 merge window
-Date: Mon, 4 Feb 2013 11:55:47 -0800
-Message-ID: <E1U2S9T-0002ss-OU@merlin.infradead.org>
-References: <pull-1360007747-30585>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to arm/common
+Date: Mon, 4 Feb 2013 21:29:46 +0100
+Message-ID: <CACRpkdZihnp3_Df==QRWxQupgi7W_YXZxc-MxkusVH6J+Vx56A@mail.gmail.com>
+References: <20130201184915.GP2244@beef>
+	<510C1D0E.6030401@mvista.com>
+	<20130201185820.GE29898@arwen.pp.htv.fi>
+	<510C2A47.1090607@mvista.com>
+	<20130201205600.GA31762@arwen.pp.htv.fi>
+	<20130201213003.GW2637@n2100.arm.linux.org.uk>
+	<20130204154153.GA18237@arwen.pp.htv.fi>
+	<510FF1A6.403@mvista.com>
+	<20130204164712.GB4269@arwen.pp.htv.fi>
+	<510FF5C9.3030600@mvista.com>
+	<20130204170216.GC4269@arwen.pp.htv.fi>
+	<51100A72.6030909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <pull-1360007747-30585>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <51100A72.6030909@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Cyril Chemparathy <cyril@ti.com>
+Cc: balbi@ti.com, Sergei Shtylyov <sshtylyov@mvista.com>, Linux Documentation List <linux-doc@vger.kernel.org>, Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, "Nair, Sandeep" <sandeep_n@ti.com>, Chris Ball <cjb@laptop.org>, Matt Porter <mporter@ti.com>, Arnd Bergmann <arnd@arndb.de>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Linux OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, "Cousson, Benoit" <b-cousson@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Landley <rob@landley.net>, Dan Williams <djbw@fb.com>Linux
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 949db153b6466c6f7cad5a427ecea94985927311:
+On Mon, Feb 4, 2013 at 8:22 PM, Cyril Chemparathy <cyril@ti.com> wrote:
 
-  Linux 3.8-rc5 (2013-01-25 11:57:28 -0800)
+> Based on our experience with fitting multiple subsystems on top of this
+> DMA-Engine driver, I must say that the DMA-Engine interface has proven
+> to be a less than ideal fit for the network driver use case.
+>
+> The first problem is that the DMA-Engine interface expects to "push"
+> completed traffic up into the upper layer as a part of its callback.
+> This doesn't fit cleanly with NAPI, which expects to "pull" completed
+> traffic from below in the NAPI poll.  We've somehow kludged together a
+> solution around this, but it isn't very elegant.
 
-are available in the git repository at:
+I cannot understand the actual technical problem from the above
+paragraphs though. dmaengine doesn't have a concept of pushing
+nor polling, it basically copies streams of words from A to B, where
+A/B can be a device or a buffer, nothing else.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/pm-signed
+The thing you're looking for sounds more like an adapter on top
+of dmaengine, which can surely be constructed, some
+drivers/dma/dmaengine-napi.c or whatever.
 
-for you to fetch changes up to 0e084c9c843320995b0e219f02880f910d439b37:
+> The second problem is one of binding fixed DMA resources to fixed users.
+>   AFAICT, the stock DMA-Engine mechanism works best when one DMA
+> resource is as good as any other.
 
-  Merge tag 'omap-cleanup-b-for-3.9' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.9/pm (2013-01-30 14:03:05 -0800)
+The filter function picks a channel for whatever reason. That reason
+can be, well whatever. Some engines have a clever mechanism to
+select resources on the other end.
 
-----------------------------------------------------------------
+Then for tying devices to channels we have the dmaengine
+DT branch:
+http://git.infradead.org/users/vkoul/slave-dma.git/shortlog/refs/heads/topic/dmaengine_dt
 
-OMAP PM related updates via Paul Walmsley <paul@pwsan.com>:
+This stuff didn't go into v3.8 but you can *sure* expect it
+to be in v3.9.
 
-Remove some dead OMAP clock and device integration code and data.
-Also, clean up the way that the OMAP device integration code blocks
-WFI/WFE to use a consistent mechanism, controlled by a data flag.
+Or are you referring to a multi-engine scenario? Say if there is engine
+A and B and depending on circumstances A or B may be preferred
+in some order (and permutations of this problem). That is currently
+identified as a shortcoming that we need help to address.
 
-Several OMAP2+ power management fixes, optimizations, and cleanup.
-This series is a prerequisite for the functional powerdomain
-conversion series.
+> To get over this problem, we've added
+> support for named channels, and drivers specifically request for a DMA
+> resource by name.  Again, this is less than ideal.
 
-----------------------------------------------------------------
-Jean Pihet (1):
-      ARM: OMAP2+: powerdomain: fix powerdomain trace integration
+Jon Hunter has been working on a mechanism to look up DMA channels
+from struct device *, dev_name() or a device tree node for example.
+Just like we do with clocks or regulators.
 
-Paul Walmsley (19):
-      ARM: OMAP2+: omap_device: remove obsolete pm_lats and early_device code
-      ARM: OMAP4: clock/hwmod data: start to remove some IP block control "clocks"
-      ARM: OMAP4: clock/hwmod data: remove MODULEMODE entries in mux + gate combos
-      ARM: OMAP2xxx: clock data: clean up unused null clocks
-      ARM: OMAP2xxx: powerdomain: core powerdomain missing logic retention states
-      ARM: OMAP3xxx: CPUIdle: simplify the PER next-state code
-      ARM: OMAP2+: hwmod: add support for blocking WFI when a device is active
-      ARM: OMAP2420: hwmod data/PM: use hwmod to block WFI when I2C active
-      ARM: OMAP3xxx: CPUIdle: optimize __omap3_enter_idle()
-      ARM: OMAP4: MPUSS PM: remove unnecessary shim functions for powerdomain control
-      ARM: OMAP2+: clockdomain: add pwrdm_state_switch() call to clkdm_sleep()
-      ARM: OMAP2xxx: PM: clean up some crufty powerstate programming code
-      ARM: OMAP2: PM/powerdomain: drop unnecessary pwrdm_wait_transition()
-      ARM: OMAP2+: PM/powerdomain: move omap_set_pwrdm_state() to powerdomain code
-      ARM: OMAP2+: powerdomain/clockdomain: add a per-powerdomain spinlock
-      ARM: OMAP2xxx: CM: remove autodep handling
-      ARM: OMAP2+: clockdomain: work on wkdep/sleepdep functions
-      ARM: OMAP2+: clockdomain: convert existing atomic usecounts into spinlock-protected shorts/ints
-      ARM: OMAP2+: powerdomain: fix whitespace, improve flag comments
+Look at this patch from the dmaengine_dt branch:
+http://git.infradead.org/users/vkoul/slave-dma.git/commitdiff/528499a7037ebec0636d928f88cd783c618df3c5
 
-Tony Lindgren (2):
-      Merge tag 'omap-cleanup-a-for-3.9' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.9/pm
-      Merge tag 'omap-cleanup-b-for-3.9' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.9/pm
+Looks up an optionally named channel for a certain
+device.
 
- arch/arm/mach-omap2/am35xx-emac.c                |   2 +-
- arch/arm/mach-omap2/cclock2420_data.c            |  16 +-
- arch/arm/mach-omap2/cclock2430_data.c            |  16 +-
- arch/arm/mach-omap2/cclock44xx_data.c            | 578 +++++------------------
- arch/arm/mach-omap2/clockdomain.c                | 569 ++++++++++++++--------
- arch/arm/mach-omap2/clockdomain.h                |  17 +-
- arch/arm/mach-omap2/cm2xxx.c                     |  33 +-
- arch/arm/mach-omap2/cm3xxx.c                     |  14 +-
- arch/arm/mach-omap2/cminst44xx.c                 |   2 +-
- arch/arm/mach-omap2/cpuidle34xx.c                |  79 ++--
- arch/arm/mach-omap2/devices.c                    |  25 +-
- arch/arm/mach-omap2/display.c                    |   2 +-
- arch/arm/mach-omap2/dma.c                        |   2 +-
- arch/arm/mach-omap2/drm.c                        |   3 +-
- arch/arm/mach-omap2/gpio.c                       |   3 +-
- arch/arm/mach-omap2/gpmc.c                       |   2 +-
- arch/arm/mach-omap2/hdq1w.c                      |   2 +-
- arch/arm/mach-omap2/hsmmc.c                      |   2 +-
- arch/arm/mach-omap2/hwspinlock.c                 |   3 +-
- arch/arm/mach-omap2/i2c.c                        |   3 +-
- arch/arm/mach-omap2/mcbsp.c                      |   2 +-
- arch/arm/mach-omap2/msdi.c                       |   2 +-
- arch/arm/mach-omap2/omap-iommu.c                 |   3 +-
- arch/arm/mach-omap2/omap-mpuss-lowpower.c        |  44 +-
- arch/arm/mach-omap2/omap_device.c                | 537 +++------------------
- arch/arm/mach-omap2/omap_device.h                |  79 +---
- arch/arm/mach-omap2/omap_hwmod.c                 |   8 +
- arch/arm/mach-omap2/omap_hwmod.h                 |   9 +
- arch/arm/mach-omap2/omap_hwmod_2420_data.c       |   7 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c       |  99 ++--
- arch/arm/mach-omap2/pm-debug.c                   |   6 +-
- arch/arm/mach-omap2/pm.c                         |  69 +--
- arch/arm/mach-omap2/pm.h                         |   1 -
- arch/arm/mach-omap2/pm24xx.c                     |  43 +-
- arch/arm/mach-omap2/pmu.c                        |   3 +-
- arch/arm/mach-omap2/powerdomain.c                | 232 +++++++--
- arch/arm/mach-omap2/powerdomain.h                |  52 +-
- arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c |   4 +-
- arch/arm/mach-omap2/powerdomains2xxx_data.c      |   9 +-
- arch/arm/mach-omap2/powerdomains3xxx_data.c      |  44 +-
- arch/arm/mach-omap2/prm2xxx_3xxx.c               |   3 +-
- arch/arm/mach-omap2/serial.c                     |   3 +-
- arch/arm/mach-omap2/sr_device.c                  |   3 +-
- arch/arm/mach-omap2/timer.c                      |   3 +-
- arch/arm/mach-omap2/usb-host.c                   |  16 +-
- arch/arm/mach-omap2/usb-musb.c                   |   2 +-
- arch/arm/mach-omap2/wd_timer.c                   |   3 +-
- 47 files changed, 1002 insertions(+), 1657 deletions(-)
+It currently only supports device tree, but you are free to
+patch in whatever mechanism you need there. Static tables
+in platform data works too. Just nobody did it.
+
+So go ahead and hack on dma_request_slave_channel().
+(I would just branch of the DT branch.)
+
+> We found that virtio devices offer a more elegant solution to this
+> problem.  First, the virtqueue interface is a much better fit into NAPI
+> (callback --> napi schedule, napi poll --> get_buf), and this eliminates
+> the need for aforementioned kludges in the code.  Second, the virtio
+> device infrastructure nicely uses the device model to solve the problem
+> of binding DMA users to specific DMA resources.
+
+Not that I understand the polling issue, but it sounds to me like
+what Jon is doing is similar.
+
+Surely the way to look up resources cannot be paramount in this
+discussion, I think the real problem must be your specific networking
+usecase, so we need to drill into that.
+
+Yours,
+Linus Walleij
