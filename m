@@ -1,48 +1,62 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH 0/2] ARM: dts: omap3-overo: Add pwm-leds and audio support
-Date: Mon, 04 Feb 2013 10:14:19 +0100
-Message-ID: <510F7BEB.1020408@epfl.ch>
-References: <1358963812-19947-1-git-send-email-florian.vaussard@epfl.ch> <5101273A.9090800@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH 1/2] ARM: dts: OMAP3: Add GPMC controller
+Date: Mon, 4 Feb 2013 10:27:38 +0100
+Message-ID: <CABxcv=k_gwB3ExQYUeappDZ6FE4L7x8Acer4ZQpDH09BL6LG0Q@mail.gmail.com>
+References: <1359395648-2137-1-git-send-email-florian.vaussard@epfl.ch>
+	<1359395648-2137-2-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:60191 "HELO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754323Ab3BDJOY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Feb 2013 04:14:24 -0500
-In-Reply-To: <5101273A.9090800@ti.com>
+Received: from mail-we0-f170.google.com ([74.125.82.170]:40910 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751343Ab3BDJ1k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Feb 2013 04:27:40 -0500
+Received: by mail-we0-f170.google.com with SMTP id z53so4754615wey.29
+        for <linux-omap@vger.kernel.org>; Mon, 04 Feb 2013 01:27:38 -0800 (PST)
+In-Reply-To: <1359395648-2137-2-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello Benoit,
+Hi Florian,
 
-On 01/24/2013 01:21 PM, Benoit Cousson wrote:
-> + Peter who did the original PWM
+On Mon, Jan 28, 2013 at 6:54 PM, Florian Vaussard
+<florian.vaussard@epfl.ch> wrote:
+> Add device-tree support for the GPMC controller on the OMAP3.
 >
-> Hi Florian,
+> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+> ---
+>  arch/arm/boot/dts/omap3.dtsi |   11 +++++++++++
+>  1 files changed, 11 insertions(+), 0 deletions(-)
 >
-> On 01/23/2013 06:56 PM, Florian Vaussard wrote:
->> Hello Benoit,
->>
->> This patchset adds some new DT supports to the Overo products. The
->> first patch converts the PMIC LEDB output to use the pwm-leds,
->> newly merged in your branch for_3.9/dts. The second patch adds the
->> audio support.
->
-> Excellent, that looks very good to me, but I'd like to get the
-> feedback from Peter before merging it.
->
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index 6c63118..2ddae38 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -403,5 +403,16 @@
+>                         ti,timer-alwon;
+>                         ti,timer-secure;
+>                 };
+> +
+> +               gpmc: gpmc@6e000000 {
+> +                       compatible = "ti,omap3430-gpmc";
+> +                       ti,hwmods = "gpmc";
+> +                       reg = <0x6e000000 0x1000000>;
+> +                       interrupts = <20>;
+> +                       gpmc,num-cs = <8>;
+> +                       gpmc,num-waitpins = <4>;
+> +                       #address-cells = <2>;
+> +                       #size-cells = <1>;
+> +               };
+>         };
+>  };
 
-So a patch is being merged to handle triggers in the case of pwm leds [1].
-When done, we will be able to add back the default trigger. Do you want
-to wait on it to merge this series?
+I had the same patch on a tree I was working on to add DT support for
+gpmc-smsc911x on an OMAP3 board but I was waiting for Daniel's patches
+to hit mainline before sending the RFC. So please feel free to add:
 
-Regards,
+Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-Florian
-
-[1] https://patchwork.kernel.org/patch/2056191/
+Best regards,
+Javier
