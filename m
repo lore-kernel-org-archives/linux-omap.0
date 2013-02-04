@@ -1,56 +1,76 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to
-	arm/common
-Date: Mon, 4 Feb 2013 17:10:59 +0000
-Message-ID: <20130204171059.GE2637@n2100.arm.linux.org.uk>
-References: <5022f635a527470dbd0be932063e9cd2@DFLE72.ent.ti.com> <20130201184915.GP2244@beef> <510C1D0E.6030401@mvista.com> <20130201185820.GE29898@arwen.pp.htv.fi> <510C2A47.1090607@mvista.com> <20130201205600.GA31762@arwen.pp.htv.fi> <20130201213003.GW2637@n2100.arm.linux.org.uk> <20130204154153.GA18237@arwen.pp.htv.fi> <510FF1A6.403@mvista.com> <20130204164712.GB4269@arwen.pp.htv.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 4/4] drivers: usb: start using the control module
+ driver
+Date: Mon, 4 Feb 2013 09:22:00 -0800
+Message-ID: <20130204172200.GM22517@atomide.com>
+References: <1359109440-2195-1-git-send-email-kishon@ti.com>
+ <1359109440-2195-5-git-send-email-kishon@ti.com>
+ <20130125102700.GO15886@arwen.pp.htv.fi>
+ <20130201191424.GQ22517@atomide.com>
+ <20130204155300.GC18237@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130204164712.GB4269@arwen.pp.htv.fi>
-Sender: linux-doc-owner@vger.kernel.org
+In-Reply-To: <20130204155300.GC18237@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>, Matt Porter <mporter@ti.com>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Chris Ball <cjb@laptop.org>, "Cousson, Benoit" <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.i>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Feb 04, 2013 at 06:47:12PM +0200, Felipe Balbi wrote:
+* Felipe Balbi <balbi@ti.com> [130204 07:57]:
 > Hi,
 > 
-> On Mon, Feb 04, 2013 at 08:36:38PM +0300, Sergei Shtylyov wrote:
-> >    In my eyes, getting rid of the mess doesn't justify breaking the rules that
-> > Russell formulated above.
+> On Fri, Feb 01, 2013 at 11:14:24AM -0800, Tony Lindgren wrote:
+> > * Felipe Balbi <balbi@ti.com> [130125 02:30]:
+> > > Hi,
+> > > 
+> > > On Fri, Jan 25, 2013 at 03:54:00PM +0530, Kishon Vijay Abraham I wrote:
+> > > > Start using the control module driver for powering on the PHY and for
+> > > > writing to the mailbox instead of writing to the control module
+> > > > registers on their own.
+> > > > 
+> > > > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> > > > ---
+> > > >  Documentation/devicetree/bindings/usb/omap-usb.txt |    4 ++
+> > > >  Documentation/devicetree/bindings/usb/usb-phy.txt  |    7 +-
+> > > >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   13 ----
+> > > 
+> > > I'm taking this patch but I'm leaving out the omap_hwmod_44xx_data.c
+> > > change just to kill dependency. Can you send that single change as a
+> > > separate patch which Tony can queue ?
+> > 
+> > For the USB patches, please also leave out patches touching
+> > arch/arm/mach-omap2/devices.c. Those are almost guaranteed to
+> > cause pointless merge conflicts with other branches.
+> > 
+> > I suggest you set up few immutable branches:
+> > 
+> > 1. Minimal platform_data changes for all your USB changes
+> > 
+> > This should contain include/linux/platform_data changes and
+> > changes to arch/arm/*omap* so me and Paul can merge it in too
+> > to avoid merge conflicts.
+> > 
+> > 2. The rest of the driver/usb changes
+> > 
+> > This can then be based on #1 branch above.
+> > 
+> > 3. Changes for the .dts files for Benoit
+> > 
+> > These can be queued separately from #1 and #2 above.
 > 
-> MUSB is no PCI, there is no single, standard interface to the DMA
-> engine (unlike Synopsys' dwc-usb3 and dwc-usb2, where we don't use DMA
-> engine), every DMA engine comes with its own set of registers, its own
-> programming model and so forth.
+> I'm done with all USB stuff for this merge window. The patches which I
+> didn't take have no dependencies on any drivers/ part. You can easily
+> queue this through your tree.
 
-Err, before you get too wrapped up in that argument... if you think there's
-anything like a common hardware interface for DMA on PCI, you'd be wrong.
-There isn't.
+Sorry with a huge pile of USB patches being posted I have no idea at
+this point which USB related patches for arch/arm/*omap* have no
+dependencies to the USB driver changes.
 
-What there is is a bus protocol for it.  How the device decides to perform
-DMA is up to the device; there's no standard register definitions across
-all devices.  Yes, some classes have a standard register set (like USB,
-and ATA) but others are totally device specific (eg, network chips).
+So I suggest that you, Kishon and Roger figure it out and put together
+a pull request for me against v3.8-rc6 for the patches I should merge.
 
-However, on PCI, the DMA support is always integrated with the rest of
-the device itself.  That is not the case here.
+Regards,
 
-So, bringing PCI up into this discussion is totally irrelevant.  As I've
-already explained, this was brought up in the _previous_ discussion as
-a reason why _not_ to use the DMA engine API for this.
-
-So, can we please leave PCI totally out of this?  It didn't belong here
-2-3 years ago, and it sure enough doesn't belong here now.  It's nothing
-but pure distraction.  And the more this goes on, the more I can see,
-yet again, the CPPI 4.1 going nowhere at all.
-
-As I can see it, there's nothing more to talk about.  The issue has been
-extensively talked to death.  What it needs now is not _more_ talk, it
-needs someone to actually go and _do_ something useful with it.
-
-I realise that may be difficult given the mess that TI must still be in
-internally since the upheaval of OMAP, but it sounds like there's a
-different group needing this stuff to work...
+Tony
