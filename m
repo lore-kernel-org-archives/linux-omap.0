@@ -1,76 +1,50 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 29/32] usb: gadget: pxa27x_udc: let udc-core manage
- gadget->dev
-Date: Mon, 4 Feb 2013 21:53:15 +0200
-Message-ID: <20130204195315.GA29628@arwen.pp.htv.fi>
-References: <1359042370-4358-1-git-send-email-balbi@ti.com>
- <1359042370-4358-30-git-send-email-balbi@ti.com>
- <87txq1m57u.fsf@free.fr>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/4] omap non-critical fixes for v3.9 merge window
+Date: Mon, 4 Feb 2013 11:55:46 -0800
+Message-ID: <12782.9449520961$1360007780@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:10693 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754500Ab3BDTzv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Feb 2013 14:55:51 -0500
 Content-Disposition: inline
-In-Reply-To: <87txq1m57u.fsf@free.fr>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, kgene.kim@samsung.com, eric.y.miao@gmail.com, kuninori.morimoto.gx@renesas.com, alexander.shishkin@linux.intel.com, gregkh@linuxfoundation.org, yoshihiro.shimoda.uh@renesas.com, nicolas.ferre@atmel.com, linux-geode@lists.infradead.org, haojian.zhuang@gmail.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-samsung-soc@vger.kernel.org, ben-linux@fluff.org, dahlmann.thomas@arcor.de, linux@arm.linux.org.uk, leoli@freescale.com, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
---XsQoSWH+UP9D9v3l
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The following changes since commit 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7:
 
-On Mon, Jan 28, 2013 at 09:18:29PM +0100, Robert Jarzmik wrote:
-> Felipe Balbi <balbi@ti.com> writes:
->=20
-> > By simply setting a flag, we can drop some
-> > boilerplate code.
-> >
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >  drivers/usb/gadget/pxa27x_udc.c | 9 +--------
-> Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
->=20
-> And I tested also your patch and it works in my environment. For next pat=
-ches
-> I'd like to be CCed for pxa27x_udc stuff as I'm maintaining that one sinc=
-e its
-> beginning (and yes, I know, I didn't put that in MAINTAINERS ...).
+  Linux 3.8-rc6 (2013-02-01 12:08:14 +1100)
 
-you should add yourself to MAINTAINERS. Please send a patch to Greg when
-you have time.
+are available in the git repository at:
 
-No need to prepare a tree, though. I just need you to give your Acked-by
-and I'll queue the patches myself.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/fixes-non-critical-signed-v2
 
-cheers
+for you to fetch changes up to c8d4bafe503ca767bbc8f3c54e4acd344ef26346:
 
---=20
-balbi
+  ARM: OMAP2+: using strlcpy instead of strncpy (2013-02-04 10:17:37 -0800)
 
---XsQoSWH+UP9D9v3l
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+----------------------------------------------------------------
+Few fixes for v3.9 merge window that are not urgent for
+the -rc series.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+----------------------------------------------------------------
+Chen Gang (2):
+      ARM: OMAP: Fix the use of uninitialized dma_lch_count
+      ARM: OMAP2+: using strlcpy instead of strncpy
 
-iQIcBAEBAgAGBQJREBGrAAoJEIaOsuA1yqRE0vUQAKyazTVwVicGXO+vGMA3PsuF
-eOWtYr8dSlvXy/cjOo5ltIlFBbjc8tZVWsOqurALqO+qzu0pfON9AAQShpyHq2YV
-+J6iAGFYaQ6x5QrPuFDeDWG9SEWwcAJtSxa99x8pPrVyzt/an06JwEwSztezLHUj
-flhRU0iHLuBPgZVwUPK5Zx9PRu7XeHUoyVLB2pSzsffxM+2cR4P6cglNSrU7uqJY
-vNtoZpwpAMDDjtgzRNLAj3LTiSlmpG6/Jxaq3vqt5xUR34f6OywafM/rjW64CmbT
-u+NGIPnWxXXawThlBkIhotZzMQgS3hD0cZtnw3v9RTdAgSH3KE1sWum/QXkOAMwI
-Jg/6fwcNto4E7npl6cGQqREXYcOg4lH0d4eZ8va1sZQUwSinJKMWZj2Dkd1esGdr
-VDa/3hw6tncruTbaSXcgyr9bWCcSjmZYNdF8hd9B+fEPgMeRBcLH0PF+w2bRcG4Q
-xiPgGG2y3s3SWsUXvyXRE2vtSp1f+aPEYLmWZdGDIum+Ev5v7yRK1s3d2s3kLM/Q
-1Kb3kQMyfachlwYd0Ev54L8X1vyjHe5SQylhdzIbW7RpXY3vn3KIxbT9WjLM385t
-ok43ibbIzXBtS7z17PqMNLQoIrNtJk+vJEaMJsmY7hBBCgfmnFpRqJiRQaTi65xr
-uexTC1K/SknBAg/8+Z8h
-=qf2p
------END PGP SIGNATURE-----
+Jon Hunter (1):
+      ARM: OMAP2+: Fix selection of clockevent timer when using device-tree
 
---XsQoSWH+UP9D9v3l--
+Thomas Gleixner (1):
+      ARM: OMAP: make wakeupgen_lock raw
+
+ arch/arm/mach-omap2/omap-wakeupgen.c | 14 +++++++-------
+ arch/arm/mach-omap2/timer.c          |  2 +-
+ arch/arm/mach-omap2/twl-common.c     |  3 ++-
+ arch/arm/plat-omap/dma.c             |  2 +-
+ 4 files changed, 11 insertions(+), 10 deletions(-)
