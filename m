@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 02/13] USB: phy: nop: Defer probe if device needs VCC/RESET
-Date: Mon, 4 Feb 2013 17:58:49 +0200
-Message-ID: <1359993540-20780-3-git-send-email-rogerq@ti.com>
+Subject: [PATCH 04/13] mfd: omap-usb-tll: Add device tree support
+Date: Mon, 4 Feb 2013 17:58:51 +0200
+Message-ID: <1359993540-20780-5-git-send-email-rogerq@ti.com>
 References: <1359993540-20780-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,74 +9,73 @@ Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1359993540-20780-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: b-cousson-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org
+Cc: b-cousson-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add 2 flags, needs_vcc and needs_reset to platform data.
-If the flag is set and the regulator couldn't be found
-then we bail out with -EPROBE_DEFER.
+Enable this driver to probe in device tree boot.
 
-For device tree boot we depend on presensce of vcc-supply/
-reset-supply properties to decide if we should bail out
-with -EPROBE_DEFER or just continue in case the regulator
-can't be found.
-
-This is required for proper functionality in cases where the
-regulator is needed but is probed later than the PHY device.
-
+CC: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/otg/nop-usb-xceiv.c   |    8 ++++++++
- include/linux/usb/nop-usb-xceiv.h |    4 ++++
- 2 files changed, 12 insertions(+), 0 deletions(-)
+ .../devicetree/bindings/mfd/omap-usb-tll.txt       |   17 +++++++++++++++++
+ drivers/mfd/omap-usb-tll.c                         |    9 +++++++++
+ 2 files changed, 26 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
 
-diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
-index adbb7ab..7860e7569 100644
---- a/drivers/usb/otg/nop-usb-xceiv.c
-+++ b/drivers/usb/otg/nop-usb-xceiv.c
-@@ -147,6 +147,10 @@ static void nop_xeiv_get_dt_pdata(struct device *dev,
+diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt b/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
+new file mode 100644
+index 0000000..835cf4f
+--- /dev/null
++++ b/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
+@@ -0,0 +1,17 @@
++OMAP HS USB Host TLL (Transceiver-Less Interface)
++
++Required properties:
++
++- compatible : should be "ti,usbhs-tll"
++- reg : should contain one register range i.e. start and length
++- interrupts : should contain the TLL module's interrupt
++- ti,hwmod : must contain "usb_tll_hs"
++
++Example:
++
++	usbhstll: usbhstll@0x4a062000 {
++		compatible = "ti,usbhs-tll";
++		reg = <0x4a062000 0x1000>;
++		interrupts = <78>;
++		ti,hwmods = "usb_tll_hs";
++	  };
+diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+index f7d2568..f7afb22 100644
+--- a/drivers/mfd/omap-usb-tll.c
++++ b/drivers/mfd/omap-usb-tll.c
+@@ -28,6 +28,7 @@
+ #include <linux/err.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/platform_data/usb-omap.h>
++#include <linux/of.h>
  
- 	if (!of_property_read_u32(node, "clock-frequency", &clk_rate))
- 		pdata->clk_rate = clk_rate;
-+	if (of_property_read_bool(node, "vcc-supply"))
-+		pdata->needs_vcc = true;
-+	if (of_property_read_bool(node, "reset-supply"))
-+		pdata->needs_reset = true;
+ #define USBTLL_DRIVER_NAME	"usbhs_tll"
+ 
+@@ -311,10 +312,18 @@ static int usbtll_omap_remove(struct platform_device *pdev)
+ 	return 0;
  }
  
- static int nop_usb_xceiv_probe(struct platform_device *pdev)
-@@ -205,12 +209,16 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
- 	if (IS_ERR(nop->vcc)) {
- 		dev_dbg(&pdev->dev, "Error getting vcc regulator: %ld\n",
- 					PTR_ERR(nop->vcc));
-+		if (pdata->needs_vcc)
-+			return -EPROBE_DEFER;
- 	}
- 
- 	nop->reset = devm_regulator_get(&pdev->dev, "reset");
- 	if (IS_ERR(nop->reset)) {
- 		dev_dbg(&pdev->dev, "Error getting reset regulator: %ld\n",
- 					PTR_ERR(nop->reset));
-+		if (pdata->needs_reset)
-+			return -EPROBE_DEFER;
- 	}
- 
- 	nop->dev		= &pdev->dev;
-diff --git a/include/linux/usb/nop-usb-xceiv.h b/include/linux/usb/nop-usb-xceiv.h
-index 3265b61..148d351 100644
---- a/include/linux/usb/nop-usb-xceiv.h
-+++ b/include/linux/usb/nop-usb-xceiv.h
-@@ -6,6 +6,10 @@
- struct nop_usb_xceiv_platform_data {
- 	enum usb_phy_type type;
- 	unsigned long clk_rate;
++static const struct of_device_id usbtll_omap_dt_ids[] = {
++	{ .compatible = "ti,usbhs-tll" },
++	{ }
++};
 +
-+	/* if set fails with -EPROBE_DEFER if can't get regulator */
-+	unsigned int needs_vcc:1;
-+	unsigned int needs_reset:1;
- };
- 
- #if defined(CONFIG_NOP_USB_XCEIV) || (defined(CONFIG_NOP_USB_XCEIV_MODULE) && defined(MODULE))
++MODULE_DEVICE_TABLE(of, usbtll_omap_dt_ids);
++
+ static struct platform_driver usbtll_omap_driver = {
+ 	.driver = {
+ 		.name		= (char *)usbtll_driver_name,
+ 		.owner		= THIS_MODULE,
++		.of_match_table = of_match_ptr(usbtll_omap_dt_ids),
+ 	},
+ 	.probe		= usbtll_omap_probe,
+ 	.remove		= usbtll_omap_remove,
 -- 
 1.7.4.1
 
