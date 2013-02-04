@@ -1,46 +1,41 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: MAINTAINERS: update
-Date: Mon, 4 Feb 2013 20:37:14 +0530
-Message-ID: <510FCEA2.8010507@ti.com>
-References: <878v7asj56.fsf@octavius.laptop.org> <1359622342-30553-1-git-send-email-balajitk@ti.com> <CAOyx1Lq=WNrpXKtd07iZJ-hTFBt-W=6GUDTqX+15ByPEhfezmw@mail.gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 4/5] ARM: OMAP2+: Simplify system timers definitions
+Date: Mon, 4 Feb 2013 09:27:43 -0600
+Message-ID: <510FD36F.5090603@ti.com>
+References: <1359565471-30721-1-git-send-email-jon-hunter@ti.com> <1359565471-30721-5-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAOyx1Lq=WNrpXKtd07iZJ-hTFBt-W=6GUDTqX+15ByPEhfezmw@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Venkatraman S <svenkatr@gmail.com>
-Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, balbi@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40656 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752432Ab3BDP1r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Feb 2013 10:27:47 -0500
+In-Reply-To: <1359565471-30721-5-git-send-email-jon-hunter@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Thursday 31 January 2013 02:52 PM, Venkatraman S wrote:
-> On Thu, Jan 31, 2013 at 2:22 PM, Balaji T K <balajitk@ti.com> wrote:
->> Update Maintainer email for omap_hsmmc,
->> as Venkatraman will no longer be able to maintain omap_hsmmc driver.
->>
->> Signed-off-by: Venkatraman S <svenkatr@gmail.com>
->> Signed-off-by: Balaji T K <balajitk@ti.com>
->
-> Balaji,
->    My sign-off is incorrect, as I did not write this patch.
->
-> Of course it would great to have a maintainer for this, hence you can add my
-> Acked-by: Venkatraman S <svenkatr@gmail.com>
 
-Thanks for acking Venkat :-)
-yes, you didn't write this patch entirely,
-I retained your sign-off because I just modified your
-patch[1] to add myself as maintainer :-)
+On 01/30/2013 11:04 AM, Jon Hunter wrote:
+> There is a lot of redundancy in the definitions for the various system
+> timers for OMAP2+ devices. For example, the omap3_am33xx_gptimer_timer_init()
+> function is the same as the omap3_gp_gptimer_timer_init() function and the
+> function omap2_sync32k_timer_init() can be re-used for OMAP4/5 devices.
 
-[1]
-http://comments.gmane.org/gmane.linux.kernel.mmc/18703
+After further testing, I have found that using the
+omap2_sync32k_timer_init() for omap4/5 devices does not work for the
+case where we boot with boot parameter "clocksource=gp_timer". The
+problem is omap4/5 devices, unlike omap2/3 devices, does not have a
+clock alias for "timer_sys_ck" with NULL as the device name. Therefore
+we fail to find the parent clock and boot fails.
 
-Anyways let me know If you would still like to have your sign-off
-dropped from this patch.
+So I am going to update this patch so that omap4 and omap5 both use
+omap4_sync32k_timer_init() and just get rid of the extra function
+defined for omap5.
 
->
->> ---
->>   MAINTAINERS |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
->>
+Hope this makes sense.
 
+Cheers
+Jon
