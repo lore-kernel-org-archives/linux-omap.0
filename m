@@ -1,149 +1,100 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 5/7] ARM: OMAP3: Update clocksource timer selection
-Date: Mon, 4 Feb 2013 13:46:34 -0600
-Message-ID: <1360007196-21350-6-git-send-email-jon-hunter@ti.com>
-References: <1360007196-21350-1-git-send-email-jon-hunter@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2: Fix GPMC memory initialisation
+Date: Mon, 4 Feb 2013 13:51:03 -0600
+Message-ID: <51101127.8010602@ti.com>
+References: <1359736726-10193-1-git-send-email-jon-hunter@ti.com> <1359736726-10193-3-git-send-email-jon-hunter@ti.com> <20130201215154.GV22517@atomide.com> <510C6A3D.70401@ti.com> <20130202181147.GC577@atomide.com> <510FCE40.5040202@ti.com> <20130204174501.GO22517@atomide.com> <511001F8.20306@ti.com> <20130204191552.GQ22517@atomide.com> <51100D21.9050505@ti.com> <20130204194725.GR22517@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56725 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57254 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754798Ab3BDTra (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Feb 2013 14:47:30 -0500
-In-Reply-To: <1360007196-21350-1-git-send-email-jon-hunter@ti.com>
+	id S1754141Ab3BDTvK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Feb 2013 14:51:10 -0500
+In-Reply-To: <20130204194725.GR22517@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Afzal Mohammed <afzal@ti.com>
 
-When booting with device-tree for OMAP3 and AM335x devices and a gptimer
-is used as the clocksource (which is always the case for AM335x), a
-gptimer located in a power domain that is not always-on is selected.
-Ideally we should use a gptimer located in a power domain that is always
-on (such as the wake-up domain) so that time can be maintained during a
-kernel suspend without keeping on additional power domains unnecessarily.
 
-In order to fix this so that we can select a gptimer located in a power
-domain that is always-on, the following changes were made ...
-1. Currently, only when selecting a gptimer to use for a clockevent
-   timer, do we pass a timer property that can be used to select a
-   specific gptimer. Change this so that we can pass a property when
-   selecting a gptimer to use for a clocksource timer too.
-2. Currently, when selecting either a gptimer to use for a clockevent
-   timer or a clocksource timer and no timer property is passed, then
-   the first available timer is selected regardless of the properties
-   it has. Change this so that if no properties are passed, then a timer
-   that does not have additional features (such as always-on, dsp-irq,
-   pwm, and secure) is selected.
+On 02/04/2013 01:47 PM, Tony Lindgren wrote:
+> * Jon Hunter <jon-hunter@ti.com> [130204 11:37]:
+>>
+>> On 02/04/2013 01:15 PM, Tony Lindgren wrote:
+>>> * Jon Hunter <jon-hunter@ti.com> [130204 10:49]:
+>>>> On 02/04/2013 11:45 AM, Tony Lindgren wrote:
+>>>>>
+>>>>> AFAIK SYSBOOT_n values reflect the boot time values of the actual SYSBOOT
+>>>>> pins, so using generic pinconf there makes sense. But this of course should
+>>>>> be checked.
+>>>>
+>>>> Not sure I am a fan of that idea. It is possible the pins could be
+>>>> re-used as GPIOs after reset. Given that the state at reset is latched
+>>>> in a register, it is best just to read the register directly.
+>>>
+>>> Yes the physical SYSBOOT pins can be reused as GPIO, but that's are already
+>>> handled by the padconf and GPIO registers. This is a different register
+>>> showing the boot time pin values for some pins. So it makes sense to use
+>>> generic pinconf to make the pin values available to the client drivers
+>>> as needed.
+>>>
+>>> The advantage doing it this way is that we don't need to export any omap
+>>> custom functions to the drivers from the SCM driver. This way we need zero
+>>> platform glue code, and can deal with it directly in the drivers in a
+>>> generic way. And all we need to do is just need to map the SoC specific
+>>> SYSBOOT pin register in the .dts files.
+>>
+>> I see what you are saying exporting the state in control_status register
+>> via the pinconf. That could work.
+>>
+>>> It may also make sense to export DEVICETYPE this way. At least early omaps
+>>> had the GP vs HS mode configured by pulls on some pins during the boot time.
+>>> So those bits too may reflect actual physical pins during the boot time
+>>> configured by the efuse settings?
+>>
+>> I *believe* that was only omap1.
+> 
+> Yeah but maybe the efuses just configure some pulls for selected pins for
+> later omaps?
+>  
+>>>>>>> Regarding omap_device, we should find a way to keep the dependencies
+>>>>>>> between drivers and the bus code down to minimum. So ideally things
+>>>>>>> like this would be only done using just the compatible flag. But the
+>>>>>>> pdata we cannot remove quite yet.
+>>>>>>
+>>>>>> Agree. However, there are several drivers today (gpio, dmtimer, mmc,
+>>>>>> serial, dss, etc), that make use of a function pointer to
+>>>>>> omap_pm_get_dev_context_loss_count() to determine when the peripheral's
+>>>>>> state has been lost. When booting with DT this function pointer is not
+>>>>>> populated and so with DT we currently have no way to determine this. I
+>>>>>> see this as a blocker to migrating completely to DT. Ideally we would
+>>>>>> find a way for RPM to handle this and remove the function pointer.
+>>>>>> However, right now we still need a generic way to pass this type of
+>>>>>> platform data to drivers.
+>>>>>
+>>>>> Yeah pinconf generic won't help us with the legacy boot.
+>>>>
+>>>> Right. I view all this sort of thing as system-level device information
+>>>> that some drivers may need. It does not seem that we have a good way to
+>>>> handle that at the moment. Any ideas?
+>>>
+>>> I suggest just passing it in in pdata for now for the legacy boot. Then
+>>> I suggest we make what we can generic with pinconf in the long run.
+>>
+>> I don't see why we would want to export a function pointer to
+>> omap_pm_get_dev_context_loss_count() with pinconf. Have we got our wires
+>> crossed here?
+> 
+> Yes sorry, too many muxes here. I got this topic mixed up with the sysboot
+> pin topic :)
+> 
+> We really need to find a Linux generic API to query this. Sounds like it
+> should be part of runtime PM?
 
-Please note that using a gptimer for both clocksource and clockevents
-can have a system power impact during idle. The reason being is that
-OMAP and AMxxx devices typically only have one gptimer in a power domain
-that is always-on. Therefore when the kernel is idle both the clocksource
-and clockevent timers will be active and this will keep additional power
-domains on. During kernel suspend, only the clocksource timer is active
-and therefore, it is better to use a gptimer in a power domain that is
-always-on for clocksource.
+Ideally, yes. I had discussed with Kevin about adding a new state for
+"logic state lost" and then if this could be passed to the RPM resume
+callback then we could use this. May be I need to bring this up with Tero.
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/timer.c |   33 +++++++++++++++++++++------------
- 1 file changed, 21 insertions(+), 12 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 3ad9a3b..fce495e 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -160,6 +160,12 @@ static struct device_node * __init omap_get_timer_dt(struct of_device_id *match,
- 		if (property && !of_get_property(np, property, NULL))
- 			continue;
- 
-+		if (!property && (of_get_property(np, "ti,timer-alwon", NULL) ||
-+				  of_get_property(np, "ti,timer-dsp", NULL) ||
-+				  of_get_property(np, "ti,timer-pwm", NULL) ||
-+				  of_get_property(np, "ti,timer-secure", NULL)))
-+			continue;
-+
- 		of_add_property(np, &device_disabled);
- 		return np;
- 	}
-@@ -435,13 +441,14 @@ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
- }
- 
- static void __init omap2_gptimer_clocksource_init(int gptimer_id,
--						const char *fck_source)
-+						  const char *fck_source,
-+						  const char *property)
- {
- 	int res;
- 
- 	clksrc.errata = omap_dm_timer_get_errata();
- 
--	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source, NULL,
-+	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source, property,
- 				     &clocksource_gpt.name,
- 				     OMAP_TIMER_NONPOSTED);
- 	BUG_ON(res);
-@@ -538,47 +545,49 @@ static inline void __init realtime_counter_init(void)
- #endif
- 
- #define OMAP_SYS_GP_TIMER_INIT(name, clkev_nr, clkev_src, clkev_prop,	\
--			       clksrc_nr, clksrc_src)			\
-+			       clksrc_nr, clksrc_src, clksrc_prop)	\
- void __init omap##name##_gptimer_timer_init(void)			\
- {									\
- 	omap_dmtimer_init();						\
- 	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
--	omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src);	\
-+	omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src,		\
-+					clksrc_prop);			\
- }
- 
- #define OMAP_SYS_32K_TIMER_INIT(name, clkev_nr, clkev_src, clkev_prop,	\
--				clksrc_nr, clksrc_src)			\
-+				clksrc_nr, clksrc_src, clksrc_prop)	\
- void __init omap##name##_sync32k_timer_init(void)		\
- {									\
- 	omap_dmtimer_init();						\
- 	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
- 	/* Enable the use of clocksource="gp_timer" kernel parameter */	\
- 	if (use_gptimer_clksrc)						\
--		omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src);\
-+		omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src,	\
-+						clksrc_prop);		\
- 	else								\
- 		omap2_sync32k_clocksource_init();			\
- }
- 
- #ifdef CONFIG_ARCH_OMAP2
- OMAP_SYS_32K_TIMER_INIT(2, 1, "timer_32k_ck", "ti,timer-alwon",
--			2, "timer_sys_ck");
-+			2, "timer_sys_ck", NULL);
- #endif /* CONFIG_ARCH_OMAP2 */
- 
- #ifdef CONFIG_ARCH_OMAP3
- OMAP_SYS_32K_TIMER_INIT(3, 1, "timer_32k_ck", "ti,timer-alwon",
--			2, "timer_sys_ck");
-+			2, "timer_sys_ck", NULL);
- OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
--			2, "timer_sys_ck");
-+			2, "timer_sys_ck", NULL);
- #endif /* CONFIG_ARCH_OMAP3 */
- 
- #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
--OMAP_SYS_GP_TIMER_INIT(3, 1, "timer_sys_ck", "ti,timer-alwon",
--		       2, "timer_sys_ck");
-+OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
-+		       1, "timer_sys_ck", "ti,timer-alwon");
- #endif
- 
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
- OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
--			2, "sys_clkin_ck");
-+			2, "sys_clkin_ck", NULL);
- #endif
- 
- #ifdef CONFIG_ARCH_OMAP4
--- 
-1.7.10.4
-
+Cheers
+Jon
