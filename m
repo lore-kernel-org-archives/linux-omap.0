@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/4] omap gpmc changes for v3.9 merge window
-Date: Mon, 4 Feb 2013 11:55:46 -0800
-Message-ID: <E1U2S9A-0002gu-No@merlin.infradead.org>
+Subject: [GIT PULL 4/4] omap board changes for v3.9 merge window
+Date: Mon, 4 Feb 2013 11:55:47 -0800
+Message-ID: <E1U2S9J-0002oF-It@merlin.infradead.org>
 References: <pull-1360007747-30585>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,53 +22,61 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 9931faca02c604c22335f5a935a501bb2ace6e20:
+The following changes since commit 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7:
 
-  Linux 3.8-rc3 (2013-01-09 18:59:55 -0800)
+  Linux 3.8-rc6 (2013-02-01 12:08:14 +1100)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/gpmc-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/board-signed
 
-for you to fetch changes up to 97c794a1e37b1ca128ef38f17c069186bfa5fb1b:
+for you to fetch changes up to 7dc0f27ea43151889ae762d321e4068dd90cd9e2:
 
-  ARM: OMAP2+: gpmc: Add device tree documentation for elm handle (2013-02-01 14:32:03 -0800)
-
-----------------------------------------------------------------
-OMAP GPMC (General Purpose Memory Controller) changes to add
-device tree bindings.
+  ARM: OMAP2+: omap2plus_defconfig: enable omap1 rtc (2013-02-01 14:59:35 -0800)
 
 ----------------------------------------------------------------
-Daniel Mack (5):
-      ARM: OMAP: gpmc: don't create devices from initcall on DT
-      mtd: omap-nand: pass device_node in platform data
-      ARM: OMAP: gpmc-nand: drop __init annotation
-      ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
-      ARM: OMAP: gpmc: add DT bindings for GPMC timings and NAND
+Minimal updates to OMAP board-*.c files while converting
+things to device tree based booting.
 
-Ezequiel Garcia (4):
-      ARM: OMAP2+: gpmc: Remove unneeded of_node_put()
-      mtd: omap-onenand: pass device_node in platform data
-      ARM: OMAP2+: gpmc-onenand: drop __init annotation
-      ARM: OMAP2+: gpmc: add DT bindings for OneNAND
+----------------------------------------------------------------
+Aaro Koskinen (1):
+      ARM: OMAP1: nokia770: enable CBUS/Retu
 
-Jon Hunter (1):
-      ARM: OMAP2+: Prevent potential crash if GPMC probe fails
+AnilKumar Ch (1):
+      ARM: OMAP2+: AM33XX: omap2plus_defconfig: Add support for few drivers
 
-Philip Avinash (1):
-      ARM: OMAP2+: gpmc: Add device tree documentation for elm handle
+Igor Grinberg (1):
+      ARM: OMAP3: cm-t3517: add MMC support
 
- Documentation/devicetree/bindings/bus/ti-gpmc.txt  |  84 ++++++++
- .../devicetree/bindings/mtd/gpmc-nand.txt          |  80 +++++++
- .../devicetree/bindings/mtd/gpmc-onenand.txt       |  43 ++++
- arch/arm/mach-omap2/gpmc-nand.c                    |  15 +-
- arch/arm/mach-omap2/gpmc-onenand.c                 |   2 +-
- arch/arm/mach-omap2/gpmc.c                         | 232 ++++++++++++++++++++-
- drivers/mtd/nand/omap2.c                           |   4 +-
- drivers/mtd/onenand/omap2.c                        |   4 +-
- include/linux/platform_data/mtd-nand-omap2.h       |   4 +-
- include/linux/platform_data/mtd-onenand-omap2.h    |   3 +
- 10 files changed, 459 insertions(+), 12 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/bus/ti-gpmc.txt
- create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nand.txt
- create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+Javier Martinez Canillas (3):
+      ARM: OMAP3: igep0020: simplify GPIO LEDs dependencies
+      ARM: OMAP2+: omap2plus_defconfig: enable TFP410 chip support
+      ARM: OMAP2+: omap2plus_defconfig: enable CMA allocator
+
+Kim Milo (2):
+      ARM: OMAP2+: craneboard: support NAND device
+      ARM: OMAP2+: craneboard: support the TPS65910 PMU
+
+Kyungmin Park (1):
+      ARM: OMAP2+: Remove apollon board support
+
+Mark Jackson (1):
+      ARM: OMAP2+: omap2plus_defconfig: enable omap1 rtc
+
+Pali Rohr (2):
+      RX-51: Add leds lp5523 names from Maemo 5 2.6.28 kernel
+      RX-51: Register twl4030-madc device
+
+ arch/arm/configs/omap2plus_defconfig             |  25 ++
+ arch/arm/mach-omap1/board-nokia770.c             |  43 +++
+ arch/arm/mach-omap2/Kconfig                      |   6 -
+ arch/arm/mach-omap2/Makefile                     |   1 -
+ arch/arm/mach-omap2/board-am3517crane.c          |  59 ++++
+ arch/arm/mach-omap2/board-apollon.c              | 342 -----------------------
+ arch/arm/mach-omap2/board-cm-t3517.c             |  27 ++
+ arch/arm/mach-omap2/board-igep0020.c             |  16 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c     |  20 ++
+ arch/arm/mach-omap2/gpmc.c                       |   3 -
+ drivers/video/omap2/displays/panel-generic-dpi.c |  24 --
+ 11 files changed, 182 insertions(+), 384 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/board-apollon.c
