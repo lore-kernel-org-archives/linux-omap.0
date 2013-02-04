@@ -1,30 +1,31 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 06/13] USB: ohci-omap3: Get platform resources by index
- rather than by name
-Date: Mon, 4 Feb 2013 16:12:55 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1302041612380.1756-100000@iolanthe.rowland.org>
-References: <1359993540-20780-7-git-send-email-rogerq@ti.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH 07/13] USB: ohci-omap3: Add device tree support and
+ binding information
+Date: Mon, 4 Feb 2013 16:14:13 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1302041613550.1756-100000@iolanthe.rowland.org>
+References: <1359993540-20780-8-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:33121 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754180Ab3BDVM4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Feb 2013 16:12:56 -0500
-In-Reply-To: <1359993540-20780-7-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1359993540-20780-8-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, b-cousson@ti.com, balbi@ti.com, linux@arm.linux.org.uk, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, paul@pwsan.com
 
 On Mon, 4 Feb 2013, Roger Quadros wrote:
 
-> Since there is only one resource per type we don't really need
-> to use resource name to obtain it. This also also makes it easier
-> for device tree adaptation.
+> Allows the OHCI controller found in OMAP3 and later chips to
+> be specified via device tree.
 > 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 
-Acked-by: Alan Stern <stern@rowland.harvard.edu>
+For the ohci-omap3 part:
+
+Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
