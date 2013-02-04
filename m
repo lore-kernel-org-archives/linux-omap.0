@@ -1,80 +1,70 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH] ARM: OMAP4: PM: Warn users about usage of older bootloaders
-Date: Mon, 4 Feb 2013 17:54:43 +0530
-Message-ID: <1359980683-12079-1-git-send-email-rnayak@ti.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to arm/common
+Date: Mon, 04 Feb 2013 15:27:09 +0100
+Message-ID: <7655522.SvRnLo3eyU@wuerfel>
+References: <1359742975-10421-1-git-send-email-mporter@ti.com>
+ <20130201213003.GW2637@n2100.arm.linux.org.uk> <510C58DF.3010103@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59256 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751321Ab3BDMY6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Feb 2013 07:24:58 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <510C58DF.3010103-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, R Sricharan <r.sricharan@ti.com>
 
-OMAP4 CHIP level PM works only with newer bootloaders. The
-dependency on the bootloader comes from the fact that the
-kernel is missing reset and initialization code for some
-devices.
+On Saturday 02 February 2013 04:07:59 Sergei Shtylyov wrote:
+> On 02-02-2013 1:30, Russell King - ARM Linux wrote:
 
-While the right thing to do is to add reset and init code in
-the kernel, for some co-processor IP blocks like DSP and IVA
-it means downloading firmware into each one of them to execute
-idle instructions.
+> >> because it doesn't make sense to support multiple DMA APIs. We can check
+> >> from MUSB's registers if it was configured with Inventra DMA support and
+> >> based on that we can register MUSB's own DMA Engine to dmaengine API.
+> 
+> > Hang on.  This is one of the DMA implementations which is closely
+> > coupled with the USB and only the USB?  If it is...
+> 
+> > I thought this had been discussed _extensively_ before.  I thought the
+> > resolution on it was:
+> > 1. It would not use the DMA engine API.
+> > 2. It would not live in arch/arm.
+> > 3. It would be placed nearby the USB driver it's associated with.
+> 
+> > (1) because we don't use APIs just for the hell of it - think.  Do we
+> > use the DMA engine API for PCI bus mastering ethernet controllers?  No.
+> > Do we use it for PCI bus mastering SCSI controllers?  No.  Because the
+> > DMA is integral to the rest of the device.
+> 
+> > The DMA engine API only makes sense if the DMA engine is a shared
+> > system resource.
+> 
+>     Thanks for such extensive wording in the support of my point. 
 
-While a feasible solution is worked upon on how such IP blocks
-can be better handled in the kernel, in the interim, to avoid
-any further frustration to users testing PM on OMAP4 and finding
-it broken, warn them about the bootloader being a possible
-cause.
+Actually there is another problem with the musb driver, which is that
+you can only have one DMA controller configured at build time, and
+that currently prevents us from building a kernel that supports both
+the Inventra and TUSB variants together. With multiplatform coming
+up for both ux500 and omap2, we will also have to make a decision
+about ux500 vs omap being supported in DMA mode.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: R Sricharan <r.sricharan@ti.com>
----
- arch/arm/mach-omap2/pm44xx.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+I can see two ways out of this: either we extend the musb driver to
+have run-time registration of the DMA controller, which duplicates
+infrastructure that already exists in the dmaengine API, or we
+make the dmaengine back-end for musb the default and require all
+platforms to use that if they want to coexist with other platforms
+and also use DMA support in musb.
 
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index aa6fd98..45ca053 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -77,8 +77,18 @@ static int omap4_pm_suspend(void)
- 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
- 		pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->saved_logic_state);
- 	}
--	if (ret)
-+	if (ret) {
- 		pr_crit("Could not enter target state in pm_suspend\n");
-+		/*
-+		 * OMAP4 chip PM currently works only with certain (newer)
-+		 * versions of bootloaders. This is due to missing code in the
-+		 * kernel to properly reset and initialize some devices.
-+		 * Warn the user about the bootloader version being one of the
-+		 * possible causes.
-+		 */
-+		pr_warn("One of the possible cause could be an old bootloder\n"
-+			"Use version v2012.07 (or later)\n");
-+	}
- 	else
- 		pr_info("Successfully put all powerdomains to target state\n");
- 
-@@ -146,6 +156,12 @@ int __init omap4_pm_init(void)
- 	}
- 
- 	pr_err("Power Management for TI OMAP4.\n");
-+	/*
-+	 * OMAP4 chip PM currently works only with certain (newer)
-+	 * versions of bootloaders. This is due to missing code in the
-+	 * kernel to properly reset and initialize some devices.
-+	 */
-+	pr_warn("Use Bootloader version v2012.07 (or later) for full PM support\n");
- 
- 	ret = pwrdm_for_each(pwrdms_setup, NULL);
- 	if (ret) {
--- 
-1.7.9.5
+Note that the ux500_dma code in musb already uses dmaengine. It could
+probably be extended to support any platform that has a dmaengine
+driver for the DMA controller used in MUSB.
 
+	Arnd
