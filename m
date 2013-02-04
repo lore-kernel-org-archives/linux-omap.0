@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/4] omap board changes for v3.9 merge window
+Subject: [GIT PULL 3/4] omap PM changes for v3.9 merge window
 Date: Mon, 4 Feb 2013 11:55:47 -0800
-Message-ID: <E1U2S9J-0002oF-It@merlin.infradead.org>
+Message-ID: <E1U2S9T-0002ss-OU@merlin.infradead.org>
 References: <pull-1360007747-30585>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,61 +22,104 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7:
+The following changes since commit 949db153b6466c6f7cad5a427ecea94985927311:
 
-  Linux 3.8-rc6 (2013-02-01 12:08:14 +1100)
+  Linux 3.8-rc5 (2013-01-25 11:57:28 -0800)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/board-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/pm-signed
 
-for you to fetch changes up to 7dc0f27ea43151889ae762d321e4068dd90cd9e2:
+for you to fetch changes up to 0e084c9c843320995b0e219f02880f910d439b37:
 
-  ARM: OMAP2+: omap2plus_defconfig: enable omap1 rtc (2013-02-01 14:59:35 -0800)
-
-----------------------------------------------------------------
-Minimal updates to OMAP board-*.c files while converting
-things to device tree based booting.
+  Merge tag 'omap-cleanup-b-for-3.9' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.9/pm (2013-01-30 14:03:05 -0800)
 
 ----------------------------------------------------------------
-Aaro Koskinen (1):
-      ARM: OMAP1: nokia770: enable CBUS/Retu
 
-AnilKumar Ch (1):
-      ARM: OMAP2+: AM33XX: omap2plus_defconfig: Add support for few drivers
+OMAP PM related updates via Paul Walmsley <paul@pwsan.com>:
 
-Igor Grinberg (1):
-      ARM: OMAP3: cm-t3517: add MMC support
+Remove some dead OMAP clock and device integration code and data.
+Also, clean up the way that the OMAP device integration code blocks
+WFI/WFE to use a consistent mechanism, controlled by a data flag.
 
-Javier Martinez Canillas (3):
-      ARM: OMAP3: igep0020: simplify GPIO LEDs dependencies
-      ARM: OMAP2+: omap2plus_defconfig: enable TFP410 chip support
-      ARM: OMAP2+: omap2plus_defconfig: enable CMA allocator
+Several OMAP2+ power management fixes, optimizations, and cleanup.
+This series is a prerequisite for the functional powerdomain
+conversion series.
 
-Kim Milo (2):
-      ARM: OMAP2+: craneboard: support NAND device
-      ARM: OMAP2+: craneboard: support the TPS65910 PMU
+----------------------------------------------------------------
+Jean Pihet (1):
+      ARM: OMAP2+: powerdomain: fix powerdomain trace integration
 
-Kyungmin Park (1):
-      ARM: OMAP2+: Remove apollon board support
+Paul Walmsley (19):
+      ARM: OMAP2+: omap_device: remove obsolete pm_lats and early_device code
+      ARM: OMAP4: clock/hwmod data: start to remove some IP block control "clocks"
+      ARM: OMAP4: clock/hwmod data: remove MODULEMODE entries in mux + gate combos
+      ARM: OMAP2xxx: clock data: clean up unused null clocks
+      ARM: OMAP2xxx: powerdomain: core powerdomain missing logic retention states
+      ARM: OMAP3xxx: CPUIdle: simplify the PER next-state code
+      ARM: OMAP2+: hwmod: add support for blocking WFI when a device is active
+      ARM: OMAP2420: hwmod data/PM: use hwmod to block WFI when I2C active
+      ARM: OMAP3xxx: CPUIdle: optimize __omap3_enter_idle()
+      ARM: OMAP4: MPUSS PM: remove unnecessary shim functions for powerdomain control
+      ARM: OMAP2+: clockdomain: add pwrdm_state_switch() call to clkdm_sleep()
+      ARM: OMAP2xxx: PM: clean up some crufty powerstate programming code
+      ARM: OMAP2: PM/powerdomain: drop unnecessary pwrdm_wait_transition()
+      ARM: OMAP2+: PM/powerdomain: move omap_set_pwrdm_state() to powerdomain code
+      ARM: OMAP2+: powerdomain/clockdomain: add a per-powerdomain spinlock
+      ARM: OMAP2xxx: CM: remove autodep handling
+      ARM: OMAP2+: clockdomain: work on wkdep/sleepdep functions
+      ARM: OMAP2+: clockdomain: convert existing atomic usecounts into spinlock-protected shorts/ints
+      ARM: OMAP2+: powerdomain: fix whitespace, improve flag comments
 
-Mark Jackson (1):
-      ARM: OMAP2+: omap2plus_defconfig: enable omap1 rtc
+Tony Lindgren (2):
+      Merge tag 'omap-cleanup-a-for-3.9' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.9/pm
+      Merge tag 'omap-cleanup-b-for-3.9' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.9/pm
 
-Pali Rohr (2):
-      RX-51: Add leds lp5523 names from Maemo 5 2.6.28 kernel
-      RX-51: Register twl4030-madc device
-
- arch/arm/configs/omap2plus_defconfig             |  25 ++
- arch/arm/mach-omap1/board-nokia770.c             |  43 +++
- arch/arm/mach-omap2/Kconfig                      |   6 -
- arch/arm/mach-omap2/Makefile                     |   1 -
- arch/arm/mach-omap2/board-am3517crane.c          |  59 ++++
- arch/arm/mach-omap2/board-apollon.c              | 342 -----------------------
- arch/arm/mach-omap2/board-cm-t3517.c             |  27 ++
- arch/arm/mach-omap2/board-igep0020.c             |  16 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c     |  20 ++
- arch/arm/mach-omap2/gpmc.c                       |   3 -
- drivers/video/omap2/displays/panel-generic-dpi.c |  24 --
- 11 files changed, 182 insertions(+), 384 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/board-apollon.c
+ arch/arm/mach-omap2/am35xx-emac.c                |   2 +-
+ arch/arm/mach-omap2/cclock2420_data.c            |  16 +-
+ arch/arm/mach-omap2/cclock2430_data.c            |  16 +-
+ arch/arm/mach-omap2/cclock44xx_data.c            | 578 +++++------------------
+ arch/arm/mach-omap2/clockdomain.c                | 569 ++++++++++++++--------
+ arch/arm/mach-omap2/clockdomain.h                |  17 +-
+ arch/arm/mach-omap2/cm2xxx.c                     |  33 +-
+ arch/arm/mach-omap2/cm3xxx.c                     |  14 +-
+ arch/arm/mach-omap2/cminst44xx.c                 |   2 +-
+ arch/arm/mach-omap2/cpuidle34xx.c                |  79 ++--
+ arch/arm/mach-omap2/devices.c                    |  25 +-
+ arch/arm/mach-omap2/display.c                    |   2 +-
+ arch/arm/mach-omap2/dma.c                        |   2 +-
+ arch/arm/mach-omap2/drm.c                        |   3 +-
+ arch/arm/mach-omap2/gpio.c                       |   3 +-
+ arch/arm/mach-omap2/gpmc.c                       |   2 +-
+ arch/arm/mach-omap2/hdq1w.c                      |   2 +-
+ arch/arm/mach-omap2/hsmmc.c                      |   2 +-
+ arch/arm/mach-omap2/hwspinlock.c                 |   3 +-
+ arch/arm/mach-omap2/i2c.c                        |   3 +-
+ arch/arm/mach-omap2/mcbsp.c                      |   2 +-
+ arch/arm/mach-omap2/msdi.c                       |   2 +-
+ arch/arm/mach-omap2/omap-iommu.c                 |   3 +-
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c        |  44 +-
+ arch/arm/mach-omap2/omap_device.c                | 537 +++------------------
+ arch/arm/mach-omap2/omap_device.h                |  79 +---
+ arch/arm/mach-omap2/omap_hwmod.c                 |   8 +
+ arch/arm/mach-omap2/omap_hwmod.h                 |   9 +
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c       |   7 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c       |  99 ++--
+ arch/arm/mach-omap2/pm-debug.c                   |   6 +-
+ arch/arm/mach-omap2/pm.c                         |  69 +--
+ arch/arm/mach-omap2/pm.h                         |   1 -
+ arch/arm/mach-omap2/pm24xx.c                     |  43 +-
+ arch/arm/mach-omap2/pmu.c                        |   3 +-
+ arch/arm/mach-omap2/powerdomain.c                | 232 +++++++--
+ arch/arm/mach-omap2/powerdomain.h                |  52 +-
+ arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c |   4 +-
+ arch/arm/mach-omap2/powerdomains2xxx_data.c      |   9 +-
+ arch/arm/mach-omap2/powerdomains3xxx_data.c      |  44 +-
+ arch/arm/mach-omap2/prm2xxx_3xxx.c               |   3 +-
+ arch/arm/mach-omap2/serial.c                     |   3 +-
+ arch/arm/mach-omap2/sr_device.c                  |   3 +-
+ arch/arm/mach-omap2/timer.c                      |   3 +-
+ arch/arm/mach-omap2/usb-host.c                   |  16 +-
+ arch/arm/mach-omap2/usb-musb.c                   |   2 +-
+ arch/arm/mach-omap2/wd_timer.c                   |   3 +-
+ 47 files changed, 1002 insertions(+), 1657 deletions(-)
