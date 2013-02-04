@@ -1,52 +1,44 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V2 3/7] ARM: OMAP2+: Remove hard-coded test on timer ID
-Date: Mon, 4 Feb 2013 12:01:59 -0600
-Message-ID: <510FF797.8000406@ti.com>
-References: <1359999786-8740-1-git-send-email-jon-hunter@ti.com> <1359999786-8740-4-git-send-email-jon-hunter@ti.com> <20130204174612.GF2637@n2100.arm.linux.org.uk>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v3 2/2] drivers: net:ethernet: cpsw: add support for
+ VLAN
+Date: Mon, 04 Feb 2013 13:09:51 -0500 (EST)
+Message-ID: <20130204.130951.535741806527607249.davem@davemloft.net>
+References: <1359659000-25995-1-git-send-email-mugunthanvnm@ti.com>
+	<1359659000-25995-3-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43456 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754293Ab3BDSCM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Feb 2013 13:02:12 -0500
-In-Reply-To: <20130204174612.GF2637@n2100.arm.linux.org.uk>
+Received: from shards.monkeyblade.net ([149.20.54.216]:43794 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753711Ab3BDSJx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Feb 2013 13:09:53 -0500
+In-Reply-To: <1359659000-25995-3-git-send-email-mugunthanvnm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: mugunthanvnm@ti.com
+Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Date: Fri, 1 Feb 2013 00:33:20 +0530
 
-On 02/04/2013 11:46 AM, Russell King - ARM Linux wrote:
-> On Mon, Feb 04, 2013 at 11:43:02AM -0600, Jon Hunter wrote:
->> @@ -280,22 +281,22 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
->>  	if (IS_ERR(timer->fclk))
->>  		return -ENODEV;
->>  
->> -	/* FIXME: Need to remove hard-coded test on timer ID */
->> -	if (gptimer_id != 12) {
->> -		struct clk *src;
->> -
->> -		src = clk_get(NULL, fck_source);
->> -		if (IS_ERR(src)) {
->> -			r = -EINVAL;
->> -		} else {
->> -			r = clk_set_parent(timer->fclk, src);
->> -			if (IS_ERR_VALUE(r))
->> -				pr_warn("%s: %s cannot set source\n",
->> -					__func__, oh->name);
->> +	src = clk_get(NULL, fck_source);
->> +	if (IS_ERR(src))
->> +		return -EINVAL;
-> 
-> This should be:
-> 		return PTR_ERR(src);
-> 
-> and should've been there previously...
+> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+> index 6ddd028..99696bf 100644
+> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+> @@ -24,6 +24,8 @@ Required properties:
+>  Optional properties:
+>  - ti,hwmods		: Must be "cpgmac0"
+>  - no_bd_ram		: Must be 0 or 1
+> +- default_vlan		: Specifies Default VLAN for non tagged packets
+> +			  ALE processing
+>  
+>  Note: "ti,hwmods" field is used to fetch the base address and irq
+>  resources from TI, omap hwmod data base during device registration.
 
-Thanks for the catch. I will include this and resend.
+You guys have to get away from this idea that you can basically pepper
+devicetree bindings with all sorts of random behavioral knobs like
+this, it's terrible.
 
-Cheers
-Jon
-
+Make this an ethtool configurable entity or similar, and don't even
+think about adding a module parameter.
