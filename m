@@ -1,62 +1,63 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: DT GPMC SRAM and NOR flash support ?
-Date: Tue, 5 Feb 2013 10:35:20 -0600
-Message-ID: <511134C8.8000008@ti.com>
-References: <510BF3D3.3000304@mimc.co.uk> <510BF766.5090608@ti.com> <510C19FC.8090906@mimc.co.uk> <5111304C.7090706@mimc.co.uk>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to
+ arm/common
+Date: Tue, 5 Feb 2013 16:47:05 +0000
+Message-ID: <20130205164705.GG4720@opensource.wolfsonmicro.com>
+References: <20130201213003.GW2637@n2100.arm.linux.org.uk>
+ <20130204154153.GA18237@arwen.pp.htv.fi>
+ <510FF1A6.403@mvista.com>
+ <20130204164712.GB4269@arwen.pp.htv.fi>
+ <510FF5C9.3030600@mvista.com>
+ <20130204170216.GC4269@arwen.pp.htv.fi>
+ <51100A72.6030909@ti.com>
+ <CACRpkdZihnp3_Df==QRWxQupgi7W_YXZxc-MxkusVH6J+Vx56A@mail.gmail.com>
+ <5110369B.9060901@ti.com>
+ <CACRpkda8xBB35CwuBH76xXcC341TeRs1ZuwzDD0LtuXc4ifQTw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39323 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753986Ab3BEQf2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Feb 2013 11:35:28 -0500
-In-Reply-To: <5111304C.7090706@mimc.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mMdCh5/a0q2ATNCM"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkda8xBB35CwuBH76xXcC341TeRs1ZuwzDD0LtuXc4ifQTw@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Cyril Chemparathy <cyril@ti.com>, balbi@ti.com, Sergei Shtylyov <sshtylyov@mvista.com>, Linux Documentation List <linux-doc@vger.kernel.org>, Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, "Nair, Sandeep" <sandeep_n@ti.com>, Chris Ball <cjb@laptop.org>, Matt Porter <mporter@ti.com>, Arnd Bergmann <arnd@arndb.de>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Linux OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, "Cousson, Benoit" <b-cousson@ti.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Landley <rob@landley.net>, Dan Williams <djbw@fb.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Afzal Mohammed <afzal@ti.com>
 
 
-On 02/05/2013 10:16 AM, Mark Jackson wrote:
-> On 01/02/13 19:39, Mark Jackson wrote:
->> On 01/02/13 17:12, Jon Hunter wrote:
->>> Hi Mark,
->>>
->>> On 02/01/2013 10:56 AM, Mark Jackson wrote:
->>>> There's plenty of DT support going in for NAND flash, but is there any work going on to support NOR
->>>> flash ?
->>>
->>> What board and device are you working that is using NOR? I have a
->>> OMAP2420 H4 with NOR that I have been doing a bit of maintenance for but
->>> I don't spend much time on it. Eventually it will have to be done but it
->>> is always good to know if there is a pressing need.
->>
->> We have a custom AM335x CPU board (arriving on my desk within the next few weeks) that has both NAND
->> and NOR Flash.
->>
->>>> And how about SRAM chips or other memory mapped devices ?
->>>
->>> Not sure about SRAM (trying to think if I have a board with SRAM even),
->>> but definitely, boards using the GPMC to interface to ethernet chips
->>> need to be added.
->>
->> The board also contains an FRAM chip (which is just treated as SRAM).
->>
->> If you'd anything in the pipeline, I'm glad to help in any testing. I've created a custom cape board
->> for the BeagleBone which contains the NOR flash and FRAM chips, so I'm not waiting for the new
->> hardware to arrive.
+--mMdCh5/a0q2ATNCM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Sorry for the delay. I personally don't have anything in the pipe.
+On Tue, Feb 05, 2013 at 05:21:48PM +0100, Linus Walleij wrote:
 
-Afzal, do you know of anyone looking at this?
+> For IRQ mode, use the completion callback to push each cookie
+> to NAPI, and thus let the IRQ drive the traffic.
 
-> I've experimented with trying to add a mtd-physmap device, but no joy.
-> 
-> I'm guessing that the current mtd-physmap code is (in some way) currently incompatible with the GPMC
-> device ?
+The whole purpose of NAPI is to avoid taking interrupts for completion
+of transfers.  Anything that generates interrupts when NAPI is in
+polling mode is defeating the point.
 
-I am not familiar with mtd-physmap to comment. Is that DT specific?
+--mMdCh5/a0q2ATNCM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Cheers
-Jon
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRETeCAAoJELSic+t+oim9GqAP/3am0bSTpCOIFDsaJ+svUe0t
+eEe+hUMNmvB0rKJPZ9JbQaPStBOB6Q+kFMKa/9hSJcBXRm2cl2mTaD7FSzZUcf+2
+xmbNBwQKiNO06H8vO9w2y7vzgJChWQomTigho9rt1PXUaoULfEpVw+PWA1gr8bAR
+GRmArdAxk9t4hUbResVSGYVTICViNGd6w1ekLl0FLjorshEv/U7fnyhVn1fv5Hwc
+smxTMeSEXI8iah2N/BIh0uL4Obiutdz/LnIVJSO24nVQllLfoAa/4SzW6OdyT2Py
+nBlQtf7YhwwyBKykanNEawru54N09TMIomZkSF8izVpF6XNGpzbDiq0G/EKDCG+a
+5TuitPwoEoi1sLjKv6jZB4BUXQsAI5n8Hi7wUAwrHbcONKJSMxGdVxXA/8B1f/O2
+dc6jv1N8ghL0EADVBEsmQ6/4NEXMEicFX7rkA7Uwzr+mmXGdilGhBeJdzxA+9V5p
+8s5Lj9fikJLzksK5j21Ju1cNie9rFIWZGOY57/R6f4cINwScSk4mwnMr9WyjustH
+DneXGu4Rtux1xWX0RfMnFnVD42QvMPtOlHIQKLBt30O7+QHhf+QqXX5oAkYPrKas
+8hYXaRzTMGDrBxXVTO0a6h8Hq4vGShNmEAIh9qSJyS78p+2V23EY+jWg1aUqY5t1
+8mc5LqO8rk3I3a+VEQ/j
+=DsCQ
+-----END PGP SIGNATURE-----
+
+--mMdCh5/a0q2ATNCM--
