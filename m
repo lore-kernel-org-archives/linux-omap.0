@@ -1,17 +1,15 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 4/6] ARM: dts: omap5: add dwc3 omap dt data
-Date: Tue, 5 Feb 2013 11:46:51 +0200
-Message-ID: <20130205094650.GO32118@arwen.pp.htv.fi>
-References: <1359112312-6918-1-git-send-email-kishon@ti.com>
- <1359112312-6918-5-git-send-email-kishon@ti.com>
- <510432BF.80808@mvista.com> <5110C2E6.30504@ti.com>
- <20130205083828.GE32118@arwen.pp.htv.fi> <5110C6EC.6050606@ti.com>
- <5110CBB9.5080307@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 09/13] mfd: omap-usb-host: Add device tree support and
+ binding information
+Date: Tue, 5 Feb 2013 12:58:12 +0200
+Message-ID: <5110E5C4.1000501@ti.com>
+References: <1359993540-20780-1-git-send-email-rogerq@ti.com>
+ <1359993540-20780-10-git-send-email-rogerq@ti.com> <5110A3C6.6040808@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2154298070667640374=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <5110CBB9.5080307-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <5110A3C6.6040808-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
  <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
@@ -22,113 +20,226 @@ List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
 Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 Sender: "devicetree-discuss"
  <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon <kishon-l0cyMroinI0@public.gmane.org>, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, s-guiriec-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: kishon <kishon-l0cyMroinI0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============2154298070667640374==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="G23JYFG0d77Z6i/3"
-Content-Disposition: inline
+On 02/05/2013 08:16 AM, kishon wrote:
+> On Monday 04 February 2013 09:28 PM, Roger Quadros wrote:
+>> Allows the OMAP HS USB host controller to be specified
+>> via device tree.
+>>
+>> CC: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   .../devicetree/bindings/mfd/omap-usb-host.txt      |   68 ++++++++++++++++
+>>   drivers/mfd/omap-usb-host.c                        |   83 ++++++++++++++++++--
+>>   2 files changed, 145 insertions(+), 6 deletions(-)
+>>   create mode 100644 Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+>> new file mode 100644
+>> index 0000000..2196893
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+>> @@ -0,0 +1,68 @@
+>> +OMAP HS USB Host
+>> +
+>> +Required properties:
+>> +
+>> +- compatible: should be "ti,usbhs-host"
+>> +- reg: should contain one register range i.e. start and length
+>> +- ti,hwmods: must contain "usb_host_hs"
+>> +
+>> +Optional properties:
+>> +
+>> +- nports: number of USB ports. Usually this is automatically detected
+>> +  from the IP's revision register but can be overridden by specifying
+>> +  this property.
+>> +
+>> +- portN_mode: Integer specifying the port mode for port N, where N can be
+>> +  from 1 to nports. The port mode must be as per enum usbhs_omap_port_mode
+>> +  in include/linux/platform_data/usb-omap.h
+>> +  If the port mode is not specified, that port is treated as unused.
+>> +
+>> +- single_ulpi_bypass: Must be present if the controller contains a single
+>> +  ULPI bypass control bit. e.g. OMAP3 silicon <= ES2.1
+>> +
+>> +Required properties if child node exists:
+>> +
+>> +- #address-cells: Must be 1
+>> +- #size-cells: Must be 1
+>> +- ranges: must be present
+>> +
+>> +Properties for children:
+>> +
+>> +The OMAP HS USB Host subsystem contains EHCI and OHCI controllers.
+>> +See Documentation/devicetree/bindings/usb/omap-ehci.txt and
+>> +omap3-ohci.txt
+>> +
+>> +Example for OMAP4:
+>> +
+>> +usbhshost: usbhshost@0x4a064000 {
+>> +    compatible = "ti,usbhs-host";
+>> +    reg = <0x4a064000 0x800>;
+>> +    ti,hwmods = "usb_host_hs";
+>> +    #address-cells = <1>;
+>> +    #size-cells = <1>;
+>> +    ranges;
+>> +
+>> +    usbhsohci: ohci@0x4a064800 {
+>> +        compatible = "ti,omap3-ohci", "usb-ohci";
+>> +        reg = <0x4a064800 0x400>;
+>> +        interrupt-parent = <&gic>;
+>> +        interrupts = <0 76 0x4>;
+>> +    };
+>> +
+>> +    usbhsehci: ehci@0x4a064c00 {
+>> +        compatible = "ti,omap-ehci", "usb-ehci";
+>> +        reg = <0x4a064c00 0x400>;
+>> +        interrupt-parent = <&gic>;
+>> +        interrupts = <0 77 0x4>;
+>> +    };
+>> +};
+>> +
+>> +&usbhshost {
+>> +    port1_mode = <1>; /* OMAP_EHCI_PORT_MODE_PHY */
+>> +    port2_mode = <2>; /* OMAP_EHCI_PORT_MODE_TLL */
+>> +    port3_mode = <1>; /* OMAP_EHCI_PORT_MODE_PHY */
+>> +};
+>> +
+>> +&usbhsehci {
+>> +    phy = <&hsusb1_phy 0 &hsusb3_phy>;
+>> +};
+>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+>> index f8ed08e..0f67856 100644
+>> --- a/drivers/mfd/omap-usb-host.c
+>> +++ b/drivers/mfd/omap-usb-host.c
+>> @@ -1,8 +1,9 @@
+>>   /**
+>>    * omap-usb-host.c - The USBHS core driver for OMAP EHCI & OHCI
+>>    *
+>> - * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com
+>> + * Copyright (C) 2011-2013 Texas Instruments Incorporated - http://www.ti.com
+>>    * Author: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>> + * Author: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>>    *
+>>    * This program is free software: you can redistribute it and/or modify
+>>    * it under the terms of the GNU General Public License version 2  of
+>> @@ -27,6 +28,8 @@
+>>   #include <linux/platform_device.h>
+>>   #include <linux/platform_data/usb-omap.h>
+>>   #include <linux/pm_runtime.h>
+>> +#include <linux/of.h>
+>> +#include <linux/of_platform.h>
+>>
+>>   #include "omap-usb.h"
+>>
+>> @@ -464,6 +467,37 @@ static void omap_usbhs_init(struct device *dev)
+>>       pm_runtime_put_sync(dev);
+>>   }
+>>
+>> +static int usbhs_omap_get_dt_pdata(struct device_node *node,
+>> +                    struct usbhs_omap_platform_data *pdata)
+>> +{
+>> +    int ret, i;
+>> +
+>> +    ret = of_property_read_u32(node, "nports", &pdata->nports);
+>> +    if (ret)
+>> +        pdata->nports = 0;
+>> +
+>> +    /* get port modes */
+>> +    for (i = 0; i < OMAP3_HS_USB_PORTS; i++) {
+>> +        char prop[11];
+>> +
+>> +        snprintf(prop, sizeof(prop), "port%d_mode", i + 1);
+>> +        ret = of_property_read_u32(node, prop, &pdata->port_mode[i]);
+>> +        if (ret)
+>> +            pdata->port_mode[i] = OMAP_USBHS_PORT_MODE_UNUSED;
+>> +    }
+>> +
+>> +    /* get flags */
+>> +    pdata->single_ulpi_bypass = of_property_read_bool(node,
+>> +                        "single_ulpi_bypass");
+>> +    return 0;
+>> +}
+>> +
+>> +static struct of_device_id usbhs_child_match_table[] __initdata = {
+>> +    { .compatible = "ti,omap-ehci", },
+>> +    { .compatible = "ti,omap-ohci", },
+>> +    { }
+>> +};
+>> +
+>>   /**
+>>    * usbhs_omap_probe - initialize TI-based HCDs
+>>    *
+>> @@ -479,6 +513,21 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+>>       int                i;
+>>       bool                need_logic_fck;
+>>
+>> +    if (dev->of_node) {
+>> +        /* For DT boot we populate platform data from OF node */
+>> +        pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+>> +        if (!pdata)
+>> +            return -ENOMEM;
+>> +
+>> +        if (usbhs_omap_get_dt_pdata(dev->of_node, pdata)) {
+>> +            dev_err(dev,
+>> +                "Error getting platform data from DT node\n");
+>> +            return -ENODEV;
+>> +        }
+>> +
+>> +        dev->platform_data = pdata;
+>> +    }
+>> +
+>>       if (!pdata) {
+>>           dev_err(dev, "Missing platform data\n");
+>>           return -ENODEV;
+>> @@ -490,7 +539,7 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+>>           return -ENOMEM;
+>>       }
+>>
+>> -    res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "uhh");
+>> +    res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>       omap->uhh_base = devm_request_and_ioremap(dev, res);
+>>       if (!omap->uhh_base) {
+>>           dev_err(dev, "Resource request/ioremap failed\n");
+>> @@ -661,10 +710,23 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+>>       }
+>>
+>>       omap_usbhs_init(dev);
+>> -    ret = omap_usbhs_alloc_children(pdev);
+>> -    if (ret) {
+>> -        dev_err(dev, "omap_usbhs_alloc_children failed\n");
+>> -        goto err_alloc;
+>> +
+>> +    if (dev->of_node) {
+>> +        ret = of_platform_populate(dev->of_node,
+>> +                usbhs_child_match_table, NULL, dev);
+>> +
+>> +        if (ret) {
+>> +            dev_err(dev, "Failed to create DT children: %d\n", ret);
+>> +            goto err_alloc;
+>> +        }
+>> +
+>> +    } else {
+>> +        ret = omap_usbhs_alloc_children(pdev);
+>> +        if (ret) {
+>> +            dev_err(dev, "omap_usbhs_alloc_children failed: %d\n",
+>> +                        ret);
+>> +            goto err_alloc;
+>> +        }
+> These child devices should be destroyed on driver remove..no?
+> 
+I could not find a function that does the opposite of of_platform_populate() or
+of_platform_device_create_pdata(). It seems that platform devices created via
+device tree are never meant to be destroyed.
 
---G23JYFG0d77Z6i/3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It kind of makes sense for EHCI/OHCI, cause the devices are always present
+on the SoC. Also, this driver can't be built as a module so it can never be removed.
 
-On Tue, Feb 05, 2013 at 02:37:05PM +0530, Santosh Shilimkar wrote:
-> On Tuesday 05 February 2013 02:16 PM, kishon wrote:
-> >Hi,
-> >
-> >On Tuesday 05 February 2013 02:08 PM, Felipe Balbi wrote:
-> >>On Tue, Feb 05, 2013 at 01:59:26PM +0530, kishon wrote:
-> >>>On Sunday 27 January 2013 01:17 AM, Sergei Shtylyov wrote:
-> >>>>Hello.
-> >>>>
-> >>>>On 25-01-2013 15:11, Kishon Vijay Abraham I wrote:
-> >>>>
-> >>>>>Add dwc3 omap glue data to the omap5 dt data file. The information
-> >>>>>about
-> >>>>>the dt node added here is available @
-> >>>>>Documentation/devicetree/bindings/usb/omap-usb.txt
-> >>>>
-> >>>>>Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> >>>>>---
-> >>>>>  arch/arm/boot/dts/omap5.dtsi |   11 +++++++++++
-> >>>>>  1 file changed, 11 insertions(+)
-> >>>>
-> >>>>>diff --git a/arch/arm/boot/dts/omap5.dtsi
-> >>>>>b/arch/arm/boot/dts/omap5.dtsi
-> >>>>>index 5f59bf2..1703a72 100644
-> >>>>>--- a/arch/arm/boot/dts/omap5.dtsi
-> >>>>>+++ b/arch/arm/boot/dts/omap5.dtsi
-> >>>>>@@ -513,6 +513,17 @@
-> >>>>>              ti,type =3D <2>;
-> >>>>>          };
-> >>>>>
-> >>>>>+        omap_dwc3@4a020000 {
-> >>>>>+            compatible =3D "ti,dwc3";
-> >>>>>+            ti,hwmods =3D "usb_otg_ss";
-> >>>>>+            reg =3D <0x4a020000 0x1ff>;
-> >>>>
-> >>>>    Shoudn't the "reg" length be 0x200 here? It's length, not limit.
-> >>>
-> >>>I think 0x1ff is correct. I got the data from hwmod data.
-> >>
-> >>hwmod is utterly wrong. Looking at TRM, it says the size here is 64KiB
-> >>(0x10000), so is the size for dwc3 itself. Please don't blindly trust
-> >>hwmod, make sure you read data from TRM ;-)
-> >
-> >hmm..ok. But it has only 17 registers :-D
-> >
-> As Felipe said, it should be 0x200. And if you are
-> interested in lesser space, there is no need to map entire 64 KB
-> address space if it isn't being used.
+So let's leave this patch the way it is except removing 0x from the device name
+in the example.
 
-We get really close to using all of it. For DWC3, the last address is at
-0xcc10 (a 32-bit register).
-
-For dwc3-wrapper, then it's correct, we don't use it, I would still map
-the whole thing to make it future proof.
-
-Any draw-backs from mapping all 64K ?
-
---=20
-balbi
-
---G23JYFG0d77Z6i/3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRENUKAAoJEIaOsuA1yqREm5kQAKHEtm1CcMceK3bB2JTyaxDe
-P+cMlkSXLNo67MR0fnLketFIwy/ELQIwARg1uBTj/wIwRTa2YmW/AGmos1vG7wO/
-nA6tDD8Pbp+apdtkyLBudq6IDk5aEIGcFv9pl6fDTyV2mQB9m+HiYDRfsJhoPPGy
-K1rEDzvKkNJc7TMr0ZwYgzcJmNabezjpyXMsfPrKisncaz5zKHOAHVzfAMcsuwZO
-1M8ja/fpLfXRW9zgs1rCMz3jyyvWKrs0fmAiAzkqFJfRxV7kZJoT9j2nPPX/milZ
-oTj2UPNAYjcugZcB4ABBzLb64FzjV040pF8PMKulZ0/fjHBfFdRjBkii8psYE2nU
-yoIRV3HguGXJhbBY4mkAIDyO5XeYj6euosC39C6HAIuwQJ6dOg1NtiJgfcn0ojK0
-Duh7I6GATPwTg3YISvpV3vMaZ0dJPpyyWot2sfAAocnWc9uduLkocn+n35YhgwXQ
-Nppn1X5OddfJ40jmCuqe9qj3D46+YdnfMO23X5iCsuu0sxFwuxFS/JQd4bQUmI1a
-6fICTd2n9t6c7RVfDUXl5uHthg5mVMPO6VDiJ7XBn9/X5HH9kGHKq1sUx4fS8Mqo
-jQ0fBIWhz9fJkIRRkEhsRun48T+slWDUQ4lTs9xfQgZmhpjHM+Uh/zMrwD20OI7m
-AAIW8fQLotUotP8VVL6q
-=yRok
------END PGP SIGNATURE-----
-
---G23JYFG0d77Z6i/3--
-
---===============2154298070667640374==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============2154298070667640374==--
+cheers,
+-roger
