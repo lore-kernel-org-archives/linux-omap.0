@@ -1,224 +1,50 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2: Fix GPMC memory initialisation
-Date: Mon, 4 Feb 2013 16:45:57 -0600
-Message-ID: <51103A25.9010401@ti.com>
-References: <1359736726-10193-1-git-send-email-jon-hunter@ti.com> <1359736726-10193-3-git-send-email-jon-hunter@ti.com> <20130201215154.GV22517@atomide.com> <51103247.2030906@ti.com>
+From: Chen Gang <gang.chen@asianux.com>
+Subject: Re: [PATCH] ARM:omap2: using strlcpy instead of strncpy
+Date: Tue, 05 Feb 2013 10:18:26 +0800
+Message-ID: <51106BF2.7080203@asianux.com>
+References: <51090829.1010109@asianux.com> <20130201224546.GG22517@atomide.com> <510F78AB.4000602@ti.com> <20130204181844.GP22517@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39344 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756233Ab3BDWqB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Feb 2013 17:46:01 -0500
-In-Reply-To: <51103247.2030906@ti.com>
+Received: from intranet.asianux.com ([58.214.24.6]:2085 "EHLO
+	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753114Ab3BECSf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Feb 2013 21:18:35 -0500
+In-Reply-To: <20130204181844.GP22517@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Afzal Mohammed <afzal@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+=E4=BA=8E 2013=E5=B9=B402=E6=9C=8805=E6=97=A5 02:18, Tony Lindgren =E5=86=
+=99=E9=81=93:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [130204 01:04]:
+>> > Hi Tony,
+>> >=20
+>> > I can create a branch for you in our gitorious tree
+>> > (git://gitorious.org/omap-audio/linux-audio.git) for this patch. B=
+ut I think
+>> > for now it would be best if you could take this via linux-omap (th=
+e file is
+>> > under arch/arm/mach-omap2 anyways)
+> OK thanks I'll apply with your ack to omap-for-v3.9/fixes-noncritical=
+=2E
+>=20
+> Tony
+>=20
 
-On 02/04/2013 04:12 PM, Jon Hunter wrote:
-> 
-> On 02/01/2013 03:51 PM, Tony Lindgren wrote:
-> 
->> How about let's fix this properly to start with so we don't add
->> more blockers moving this code to drivers/bus?
->>
->> Looks like gpmc_mem_init() gets called from gpmc_probe() so
->> we can pass that information in pdev.
-> 
-> I have re-worked this a bit to use platform data. I have also update
-> the logic for testing internal/external boot on omap2430 which is
-> different from omap2420 (according to the TRM). However, I have only
-> boot tested on omap2420. 
-> 
-> Do you know why this was changed in the first place? See below ...
-> 
-> http://permalink.gmane.org/gmane.linux.kernel.commits.head/95931
-> 
-> Heres what I have now ...
+  Does it mean: we need not sync MAINTAINERS file for twl-*, recently ?
 
-Updated patch (I was missing a kfree()). By the way, this is based
-upon the apollon removal patch. I understand probably needs to be
-rebased on your latest gpmc series too.
+  :-)
 
-Jon
+  thanks.
+--=20
+Chen Gang
 
->From 643656e3754ed949d9a8af31b22ed3727e0962f6 Mon Sep 17 00:00:00 2001
-From: Jon Hunter <jon-hunter@ti.com>
-Date: Thu, 31 Jan 2013 15:56:08 -0600
-Subject: [PATCH] ARM: OMAP2: Fix GPMC memory initialisation
-
-OMAP2+ devices have an internal ROM that by default is typically mapped
-to the first 1MB of the GPMC address space (0x0).
-
-For OMAP24xx devices, GPMC chip-select 0 (CS0) may be mapped to address
-0x0 instead of the internal ROM if configured for an external boot mode.
-If configured for an internal boot mode then the internal ROM is mapped
-to 0x0.
-
-Currently, the function gpmc_mem_init() function reserves the first 1MB
-of GPMC address space for the internal OMAP ROM. This prevents any
-device (ethernet chip, flash memories, etc) from using this address
-range. This causes the GPMC probe to fail on the OMAP2420 H4 when NOR
-flash is mapped to address 0x0. Fix this by checking the SYS_BOOT pin
-setting for OMAP24xx devices, to see the device is configured for
-an internal or external boot and pass the amount of ROM mapped to
-address 0x0 to the GPMC driver via platform data.
-
-Please note that for OMAP3-5 devices, when booting from NOR or NAND
-memories connected to CS0, these memories are always mapped to address
-0x08000000 and so reserving this memory range does not present any
-problems for these devices.
-
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/gpmc.c |   60 ++++++++++++++++++++++++++++++++++++--------
- arch/arm/mach-omap2/gpmc.h |    5 ++++
- 2 files changed, 54 insertions(+), 11 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index a124849..aa58258 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -20,6 +20,7 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/ioport.h>
-+#include <linux/slab.h>
- #include <linux/spinlock.h>
- #include <linux/io.h>
- #include <linux/module.h>
-@@ -32,6 +33,7 @@
- 
- #include "soc.h"
- #include "common.h"
-+#include "control.h"
- #include "omap_device.h"
- #include "gpmc.h"
- 
-@@ -87,7 +89,6 @@
- 
- #define GPMC_MEM_START		0x00000000
- #define GPMC_MEM_END		0x3FFFFFFF
--#define BOOT_ROM_SPACE		0x100000	/* 1MB */
- 
- #define GPMC_CHUNK_SHIFT	24		/* 16 MB */
- #define GPMC_SECTION_SHIFT	28		/* 128 MB */
-@@ -775,16 +776,11 @@ static void gpmc_mem_exit(void)
- 
- }
- 
--static int gpmc_mem_init(void)
-+static int gpmc_mem_init(u32 offset)
- {
- 	int cs, rc;
--	unsigned long boot_rom_space = 0;
- 
--	/* never allocate the first page, to facilitate bug detection;
--	 * even if we didn't boot from ROM.
--	 */
--	boot_rom_space = BOOT_ROM_SPACE;
--	gpmc_mem_root.start = GPMC_MEM_START + boot_rom_space;
-+	gpmc_mem_root.start = GPMC_MEM_START + offset;
- 	gpmc_mem_root.end = GPMC_MEM_END;
- 
- 	/* Reserve all regions that has been set up by bootloader */
-@@ -1124,6 +1120,12 @@ static int gpmc_probe(struct platform_device *pdev)
- 	int rc;
- 	u32 l;
- 	struct resource *res;
-+	struct gpmc_platform_data *pdata = pdev->dev.platform_data;
-+
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "%s: no platform data.\n", __func__);
-+		return -ENODEV;
-+	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res == NULL)
-@@ -1161,7 +1163,7 @@ static int gpmc_probe(struct platform_device *pdev)
- 	dev_info(gpmc_dev, "GPMC revision %d.%d\n", GPMC_REVISION_MAJOR(l),
- 		 GPMC_REVISION_MINOR(l));
- 
--	rc = gpmc_mem_init();
-+	rc = gpmc_mem_init(pdata->gpmc_rom_space);
- 	if (IS_ERR_VALUE(rc)) {
- 		clk_disable_unprepare(gpmc_l3_clk);
- 		clk_put(gpmc_l3_clk);
-@@ -1213,18 +1215,54 @@ static int __init omap_gpmc_init(void)
- {
- 	struct omap_hwmod *oh;
- 	struct platform_device *pdev;
-+	struct gpmc_platform_data *pdata;
- 	char *oh_name = "gpmc";
- 
-+	pdata = kzalloc(sizeof(struct gpmc_platform_data), GFP_KERNEL);
-+	if (!pdata) {
-+		pr_err("%s: No memory for gpmc\n", __func__);
-+		return -ENOMEM;
-+	}
-+
-+	/*
-+	 * The first 1MB of GPMC address space is mapped to the internal
-+	 * ROM. OMAP2 devices are an exception to this where the first
-+	 * 1MB may be mapped to the GPMC. OMAP2 devices that boot from
-+	 * external memory devices, will map CS0 to the start of the
-+	 * GPMC address space (0x0). We can test this by checking the
-+	 * SYS_BOOT pins.
-+	 *
-+	 * OMAP2420 SYS_BOOT[3] = 1b, then GPMC CS0 is mapped to 0x0.
-+	 * OMAP2430 SYS_BOOT[2:1] = 00b, then GPMC CS0 is mapped to 0x0.
-+	 */
-+	pdata->gpmc_rom_space = SZ_1M;
-+
-+	if (cpu_is_omap242x()) {
-+		if (!(omap_ctrl_readl(OMAP24XX_CONTROL_STATUS) &
-+		      OMAP2_SYSBOOT_3_MASK))
-+			pdata->gpmc_rom_space = 0;
-+	} else if (cpu_is_omap243x()) {
-+		if (!(omap_ctrl_readl(OMAP24XX_CONTROL_STATUS) &
-+		      (OMAP2_SYSBOOT_2_MASK | OMAP2_SYSBOOT_1_MASK)))
-+			pdata->gpmc_rom_space = 0;
-+	}
-+
- 	oh = omap_hwmod_lookup(oh_name);
- 	if (!oh) {
- 		pr_err("Could not look up %s\n", oh_name);
- 		return -ENODEV;
- 	}
- 
--	pdev = omap_device_build(DEVICE_NAME, -1, oh, NULL, 0, NULL, 0, 0);
-+	pdev = omap_device_build(DEVICE_NAME, -1, oh, pdata, sizeof(*pdata),
-+				 NULL, 0, 0);
- 	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
- 
--	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
-+	if (IS_ERR(pdev)) {
-+		kfree(pdata);
-+		return PTR_ERR(pdev);
-+	}
-+
-+	return 0;
- }
- postcore_initcall(omap_gpmc_init);
- 
-diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
-index fe0a844..b33ef26 100644
---- a/arch/arm/mach-omap2/gpmc.h
-+++ b/arch/arm/mach-omap2/gpmc.h
-@@ -189,6 +189,11 @@ struct gpmc_device_timings {
- 	bool we_xdelay;
- };
- 
-+/* GPMC platform data */
-+struct gpmc_platform_data {
-+	u32 gpmc_rom_space;
-+};
-+
- extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
- 				struct gpmc_device_timings *dev_t);
- 
--- 
-1.7.10.4
+Asianux Corporation
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
