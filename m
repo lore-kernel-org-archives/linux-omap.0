@@ -1,50 +1,97 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: Re: [PATCH] ARM:omap2: using strlcpy instead of strncpy
-Date: Tue, 05 Feb 2013 10:18:26 +0800
-Message-ID: <51106BF2.7080203@asianux.com>
-References: <51090829.1010109@asianux.com> <20130201224546.GG22517@atomide.com> <510F78AB.4000602@ti.com> <20130204181844.GP22517@atomide.com>
+From: kishon <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 02/13] USB: phy: nop: Defer probe if device needs VCC/RESET
+Date: Tue, 5 Feb 2013 11:24:29 +0530
+Message-ID: <51109E95.3000307@ti.com>
+References: <1359993540-20780-1-git-send-email-rogerq@ti.com>
+ <1359993540-20780-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:2085 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753114Ab3BECSf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Feb 2013 21:18:35 -0500
-In-Reply-To: <20130204181844.GP22517@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1359993540-20780-3-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-=E4=BA=8E 2013=E5=B9=B402=E6=9C=8805=E6=97=A5 02:18, Tony Lindgren =E5=86=
-=99=E9=81=93:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [130204 01:04]:
->> > Hi Tony,
->> >=20
->> > I can create a branch for you in our gitorious tree
->> > (git://gitorious.org/omap-audio/linux-audio.git) for this patch. B=
-ut I think
->> > for now it would be best if you could take this via linux-omap (th=
-e file is
->> > under arch/arm/mach-omap2 anyways)
-> OK thanks I'll apply with your ack to omap-for-v3.9/fixes-noncritical=
-=2E
->=20
-> Tony
->=20
+On Monday 04 February 2013 09:28 PM, Roger Quadros wrote:
+> Add 2 flags, needs_vcc and needs_reset to platform data.
+> If the flag is set and the regulator couldn't be found
+> then we bail out with -EPROBE_DEFER.
+>
+> For device tree boot we depend on presensce of vcc-supply/
+> reset-supply properties to decide if we should bail out
+> with -EPROBE_DEFER or just continue in case the regulator
+> can't be found.
+>
+> This is required for proper functionality in cases where the
+> regulator is needed but is probed later than the PHY device.
+>
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>   drivers/usb/otg/nop-usb-xceiv.c   |    8 ++++++++
+>   include/linux/usb/nop-usb-xceiv.h |    4 ++++
+>   2 files changed, 12 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
+> index adbb7ab..7860e7569 100644
+> --- a/drivers/usb/otg/nop-usb-xceiv.c
+> +++ b/drivers/usb/otg/nop-usb-xceiv.c
+> @@ -147,6 +147,10 @@ static void nop_xeiv_get_dt_pdata(struct device *dev,
+>
+>   	if (!of_property_read_u32(node, "clock-frequency", &clk_rate))
+>   		pdata->clk_rate = clk_rate;
+> +	if (of_property_read_bool(node, "vcc-supply"))
+> +		pdata->needs_vcc = true;
+This can be written as..
+pdata->needs_vcc = of_property_read_bool(node, "vcc-supply");
 
-  Does it mean: we need not sync MAINTAINERS file for twl-*, recently ?
+> +	if (of_property_read_bool(node, "reset-supply"))
+> +		pdata->needs_reset = true;
+same here..
+>   }
+>
+>   static int nop_usb_xceiv_probe(struct platform_device *pdev)
+> @@ -205,12 +209,16 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+>   	if (IS_ERR(nop->vcc)) {
+>   		dev_dbg(&pdev->dev, "Error getting vcc regulator: %ld\n",
+>   					PTR_ERR(nop->vcc));
+> +		if (pdata->needs_vcc)
+> +			return -EPROBE_DEFER;
+>   	}
+>
+>   	nop->reset = devm_regulator_get(&pdev->dev, "reset");
+>   	if (IS_ERR(nop->reset)) {
+>   		dev_dbg(&pdev->dev, "Error getting reset regulator: %ld\n",
+>   					PTR_ERR(nop->reset));
+> +		if (pdata->needs_reset)
+> +			return -EPROBE_DEFER;
+>   	}
+>
+>   	nop->dev		= &pdev->dev;
+> diff --git a/include/linux/usb/nop-usb-xceiv.h b/include/linux/usb/nop-usb-xceiv.h
+> index 3265b61..148d351 100644
+> --- a/include/linux/usb/nop-usb-xceiv.h
+> +++ b/include/linux/usb/nop-usb-xceiv.h
+> @@ -6,6 +6,10 @@
+>   struct nop_usb_xceiv_platform_data {
+>   	enum usb_phy_type type;
+>   	unsigned long clk_rate;
+> +
+> +	/* if set fails with -EPROBE_DEFER if can't get regulator */
+> +	unsigned int needs_vcc:1;
+> +	unsigned int needs_reset:1;
 
-  :-)
+how about u8 here?
 
-  thanks.
---=20
-Chen Gang
-
-Asianux Corporation
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Kishon
