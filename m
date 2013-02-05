@@ -1,21 +1,62 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to
-	arm/common
-Date: Tue, 5 Feb 2013 12:41:20 +0000
-Message-ID: <20130205124120.GC17852@n2100.arm.linux.org.uk>
-References: <20130204154153.GA18237@arwen.pp.htv.fi> <510FF1A6.403@mvista.com> <20130204164712.GB4269@arwen.pp.htv.fi> <510FF5C9.3030600@mvista.com> <20130204170216.GC4269@arwen.pp.htv.fi> <51100A72.6030909@ti.com> <CACRpkdZihnp3_Df==QRWxQupgi7W_YXZxc-MxkusVH6J+Vx56A@mail.gmail.com> <20130204203358.GX4720@opensource.wolfsonmicro.com> <CACRpkdbPyZt8=pLhz-5qcaSSAk6VBn61dPTNp6teU9HksBwN2w@mail.gmail.com> <51102E25.8040107@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 08/13] USB: ehci-omap: Add device tree support and binding
+ information
+Date: Tue, 5 Feb 2013 14:46:40 +0200
+Message-ID: <5110FF30.5050705@ti.com>
+References: <1359993540-20780-1-git-send-email-rogerq@ti.com> <1359993540-20780-9-git-send-email-rogerq@ti.com> <20130205123346.GB26842@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51102E25.8040107@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Cyril Chemparathy <cyril@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, balbi@ti.com, Sergei Shtylyov <sshtylyov@mvista.com>, Linux Documentation List <linux-doc@vger.kernel.org>, Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, "Nair, Sandeep" <sandeep_n@ti.com>, Chris Ball <cjb@laptop.org>, Matt Porter <mporter@ti.com>, Arnd Bergmann <arnd@arndb.de>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Linux OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, "Cousson, Benoit" <b-cousson@ti.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Landley <rob@landley.net>, Dan Williams <djbw@fb.com>Linux
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130205123346.GB26842-NuALmloUBlrZROr8t4l/smS4ubULX0JqMm0uRHvK7Nw@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Feb 04, 2013 at 04:54:45PM -0500, Cyril Chemparathy wrote:
-> You're assuming that cookies complete in order.  That is not necessarily  
-> true.
+On 02/05/2013 02:33 PM, Mark Rutland wrote:
+> On Mon, Feb 04, 2013 at 03:58:55PM +0000, Roger Quadros wrote:
+>> Allows the OMAP EHCI controller to be specified via device tree.
+>>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  .../devicetree/bindings/usb/omap-ehci.txt          |   34 ++++++++++++++++++
+>>  drivers/usb/host/ehci-omap.c                       |   36 +++++++++++++++++++-
+>>  2 files changed, 69 insertions(+), 1 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/usb/omap-ehci.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/usb/omap-ehci.txt b/Documentation/devicetree/bindings/usb/omap-ehci.txt
+>> new file mode 100644
+>> index 0000000..90e6e3a
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/usb/omap-ehci.txt
+>> @@ -0,0 +1,34 @@
+>> +OMAP HS USB EHCI controller
+>> +
+>> +This device is usually the child of the omap-usb-host
+>> +Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+>> +
+>> +Required properties:
+>> +
+>> +- compatible: should be "ti,omap-ehci"
+>> +- reg: should contain one register range i.e. start and length
+>> +- interrupt-parent: phandle to the interrupt controller
+>> +- interrupts: description of the interrupt line
+>> +
+>> +Optional properties:
+>> +
+>> +- phy: list of phandles to PHY nodes.
+>> +  This property is required if at least one of the ports are in
+>> +  PHY mode i.e. OMAP_EHCI_PORT_MODE_PHY
+> 
+> Any reason for not calling this "phys", given it's a list?
+>
 
-Under what circumstances is that not true?
+No good reason. "phys" seems more appropriate. Thanks.
+
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
