@@ -1,44 +1,37 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH, RFC] default machine descriptor for multiplatform
-Date: Tue, 5 Feb 2013 13:39:32 -0800
-Message-ID: <CAOesGMiyKCdevdgnRu6gwzx214OEZvq18jCijTer5pnqwv3yww@mail.gmail.com>
-References: <20130131092024.GN2637@n2100.arm.linux.org.uk>
-	<20130131161823.GT2637@n2100.arm.linux.org.uk>
-	<1731670.s76EGcEZ7m@wuerfel>
-	<1638002.UJ7zfj1Wn5@wuerfel>
+Subject: Re: [GIT PULL 1/4] omap non-critical fixes for v3.9 merge window
+Date: Tue, 5 Feb 2013 14:10:10 -0800
+Message-ID: <20130205221010.GA13768@quad.lixom.net>
+References: <511012de.a35b320a.5730.669eSMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f171.google.com ([74.125.82.171]:41790 "EHLO
-	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754908Ab3BEVje (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Feb 2013 16:39:34 -0500
-Received: by mail-we0-f171.google.com with SMTP id u54so576834wey.30
-        for <linux-omap@vger.kernel.org>; Tue, 05 Feb 2013 13:39:32 -0800 (PST)
-In-Reply-To: <1638002.UJ7zfj1Wn5@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <511012de.a35b320a.5730.669eSMTPIN_ADDED_BROKEN@mx.google.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Fabio Estevam <festevam@gmail.com>
 
-On Thu, Jan 31, 2013 at 9:51 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> This is what I think it would look like to do a default platform
-> with an empty machine descriptor on ARM. It makes the few required
-> entries in the descriptor optional by using the new irqchip_init()
-> and clocksource_of_init() functions as defaults, and adds
-> a fallback for the DT case to customize_machine to probe all
-> the default devices.
->
-> For the case that CONFIG_MULTIPLATFORM is enabled, it then
-> adds a machine descriptor that never matches any machine but
-> is used as a fallback if nothing else matches.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+On Mon, Feb 04, 2013 at 11:55:46AM -0800, Tony Lindgren wrote:
+> The following changes since commit 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7:
+> 
+>   Linux 3.8-rc6 (2013-02-01 12:08:14 +1100)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/fixes-non-critical-signed-v2
 
-Nice!
+Pulled 1-4.
 
-Acked-by: Olof Johansson <olof@lixom.net>
-
-(Besides what Stephen already pointed out)
 
 -Olof
