@@ -1,182 +1,84 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 01/13] usb: phy: nop: Add device tree support and binding
- information
-Date: Tue, 5 Feb 2013 11:07:48 +0200
-Message-ID: <20130205090748.GG32118@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 02/13] USB: phy: nop: Defer probe if device needs
+ VCC/RESET
+Date: Tue, 5 Feb 2013 11:09:20 +0200
+Message-ID: <20130205090920.GH32118@arwen.pp.htv.fi>
 References: <1359993540-20780-1-git-send-email-rogerq@ti.com>
- <1359993540-20780-2-git-send-email-rogerq@ti.com>
- <20130205072637.GA32118@arwen.pp.htv.fi>
- <5110C339.7080109@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+ <1359993540-20780-3-git-send-email-rogerq@ti.com>
+ <51109E95.3000307@ti.com>
+ <5110C655.3060305@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vJguvTgX93MxBIIe"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="xHbokkKX1kTiQeDC"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50058 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751052Ab3BEJJc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Feb 2013 04:09:32 -0500
 Content-Disposition: inline
-In-Reply-To: <5110C339.7080109-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org
+In-Reply-To: <5110C655.3060305@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: kishon <kishon@ti.com>, tony@atomide.com, b-cousson@ti.com, balbi@ti.com, stern@rowland.harvard.edu, linux@arm.linux.org.uk, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, paul@pwsan.com
 
---vJguvTgX93MxBIIe
+--xHbokkKX1kTiQeDC
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Feb 05, 2013 at 10:30:49AM +0200, Roger Quadros wrote:
-> On 02/05/2013 09:26 AM, Felipe Balbi wrote:
-> > Hi,
+On Tue, Feb 05, 2013 at 10:44:05AM +0200, Roger Quadros wrote:
+> >> diff --git a/include/linux/usb/nop-usb-xceiv.h b/include/linux/usb/nop=
+-usb-xceiv.h
+> >> index 3265b61..148d351 100644
+> >> --- a/include/linux/usb/nop-usb-xceiv.h
+> >> +++ b/include/linux/usb/nop-usb-xceiv.h
+> >> @@ -6,6 +6,10 @@
+> >>   struct nop_usb_xceiv_platform_data {
+> >>       enum usb_phy_type type;
+> >>       unsigned long clk_rate;
+> >> +
+> >> +    /* if set fails with -EPROBE_DEFER if can't get regulator */
+> >> +    unsigned int needs_vcc:1;
+> >> +    unsigned int needs_reset:1;
 > >=20
-> > On Mon, Feb 04, 2013 at 05:58:48PM +0200, Roger Quadros wrote:
-> >> The PHY clock, clock rate, VCC regulator and RESET regulator
-> >> can now be provided via device tree.
-> >>
-> >> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> >> ---
-> >>  .../devicetree/bindings/usb/usb-nop-xceiv.txt      |   34 +++++++++++=
-+++++++++
-> >>  drivers/usb/otg/nop-usb-xceiv.c                    |   31 +++++++++++=
-+++++++
-> >>  2 files changed, 65 insertions(+), 0 deletions(-)
-> >>  create mode 100644 Documentation/devicetree/bindings/usb/usb-nop-xcei=
-v.txt
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt b=
-/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
-> >> new file mode 100644
-> >> index 0000000..d7e2726
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
-> >> @@ -0,0 +1,34 @@
-> >> +USB NOP PHY
-> >> +
-> >> +Required properties:
-> >> +- compatible: should be usb-nop-xceiv
-> >> +
-> >> +Optional properties:
-> >> +- clocks: phandle to the PHY clock. Use as per Documentation/devicetr=
-ee
-> >> +  /bindings/clock/clock-bindings.txt
-> >> +  This property is required if clock-frequency is specified.
-> >> +
-> >> +- clock-names: Should be "main_clk"
-> >> +
-> >> +- clock-frequency: the clock frequency (in Hz) that the PHY clock must
-> >> +  be configured to.
-> >> +
-> >> +- vcc-supply: phandle to the regulator that provides RESET to the PHY.
-> >> +
-> >> +- reset-supply: phandle to the regulator that provides power to the P=
-HY.
-> >> +
-> >> +Example:
-> >> +
-> >> +	hsusb1_phy {
-> >> +		compatible =3D "usb-nop-xceiv";
-> >> +		clock-frequency =3D <19200000>;
-> >> +		clocks =3D <&osc 0>;
-> >> +		clock-names =3D "main_clk";
-> >> +		vcc-supply =3D <&hsusb1_vcc_regulator>;
-> >> +		reset-supply =3D <&hsusb1_reset_regulator>;
-> >> +	};
-> >> +
-> >> +hsusb1_phy is a NOP USB PHY device that gets its clock from an oscill=
-ator
-> >> +and expects that clock to be configured to 19.2MHz by the NOP PHY dri=
-ver.
-> >> +hsusb1_vcc_regulator provides power to the PHY and hsusb1_reset_regul=
-ator
-> >> +controls RESET.
-> >> diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb=
--xceiv.c
-> >> index ac027a1..adbb7ab 100644
-> >> --- a/drivers/usb/otg/nop-usb-xceiv.c
-> >> +++ b/drivers/usb/otg/nop-usb-xceiv.c
-> >> @@ -34,6 +34,7 @@
-> >>  #include <linux/slab.h>
-> >>  #include <linux/clk.h>
-> >>  #include <linux/regulator/consumer.h>
-> >> +#include <linux/of.h>
-> >> =20
-> >>  struct nop_usb_xceiv {
-> >>  	struct usb_phy		phy;
-> >> @@ -138,8 +139,19 @@ static int nop_set_host(struct usb_otg *otg, stru=
-ct usb_bus *host)
-> >>  	return 0;
-> >>  }
-> >> =20
-> >> +static void nop_xeiv_get_dt_pdata(struct device *dev,
-> >=20
-> > asking to remove, but xeiv !=3D xceiv :-)
-> >=20
-> >> +				struct nop_usb_xceiv_platform_data *pdata)
-> >> +{
-> >> +	struct device_node *node =3D dev->of_node;
-> >> +	u32 clk_rate;
-> >> +
-> >> +	if (!of_property_read_u32(node, "clock-frequency", &clk_rate))
-> >> +		pdata->clk_rate =3D clk_rate;
-> >> +}
-> >> +
-> >>  static int nop_usb_xceiv_probe(struct platform_device *pdev)
-> >>  {
-> >> +	struct device *dev =3D &pdev->dev;
-> >>  	struct nop_usb_xceiv_platform_data *pdata =3D pdev->dev.platform_dat=
-a;
-> >>  	struct nop_usb_xceiv	*nop;
-> >>  	enum usb_phy_type	type =3D USB_PHY_TYPE_USB2;
-> >> @@ -153,6 +165,17 @@ static int nop_usb_xceiv_probe(struct platform_de=
-vice *pdev)
-> >>  	if (!nop->phy.otg)
-> >>  		return -ENOMEM;
-> >> =20
-> >> +	if (dev->of_node) {
-> >> +		pdata =3D devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-> >> +		if (!pdata) {
-> >> +			dev_err(dev, "Memory allocation failure\n");
-> >> +			return -ENOMEM;
-> >> +		}
-> >> +		nop_xeiv_get_dt_pdata(dev, pdata);
-> >=20
-> > actually, I would prefer to not create pdata at all. I mean, ideally
-> > pdata would be used to initialize fields in your own structure, so first
-> > move clk_rate to your own private structure, copy pdata's clk_rate value
-> > to that, then you don't need this hackery when using DT.
-> >=20
-> OK, got it. Will revise.
+> > how about u8 here?
+>=20
+> Not sure. Bitfields are usually defined as unsigned int.
 
-Cool, after that you can add my:
+IIRC the benefit is that compiler can try to optimize those flags. I
+mean, if you have 32 1-bit flags, compiler will combine those in a
+single u32. Someone correct me if I'm wrong.
 
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+after you fix other comments from kishon (about of_read_bool()), you can
+add my:
+
+Acked-by: Felipe Balbi <balbi@ti.com>
 
 --=20
 balbi
 
---vJguvTgX93MxBIIe
+--xHbokkKX1kTiQeDC
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJREMvkAAoJEIaOsuA1yqREBnsP/2pF4RvgMlGpjOHs31Sj3F0G
-DsXfiDysmOSidxZvT2E6Svn2JQmD1y6G0voz4Aevc1BMhIB+RqVaD2KL+OXVDz7W
-baicaaPCP0ekZylZhrZuDnNO+HgOQdQjxpY17bX+P8CNirBn0nCR/o1z8X7SkqpT
-M9QcVKDKyU16JtOSingeySUmxrAWUXBbcFsFMRu3ZPNfO9aXR3iCNX9NyCM6p6r1
-ZiFcumWMuwK49HtXsETA/8tZlxUyOiMy/Kp1iDb2t6TA+2jsX5ByxUhcVcYaCEQL
-794WjicsGPfaYwXYCQFJqfCPbVaGLmjefiooKfAXnt7W509aCKLLSXIwu64YjkBj
-VEwWiLHR/2IVk07IIwx7ZedfA/Z3o51tnePmby+2ib9I5ItVtTsRdsPTdO+3wlRI
-8lkDXN72eIuCrm95xAqEiXxoF2s59Ddtffypm1EjNBmy5txhupKlBvinwjMBXH6e
-avIVGoqnvfJiQMKWJewd8nu0l8Xezzfn+5zHSFVjW2LLq24AEKxu8+hLsm1kHzzF
-rQQpkoNth/3MOrXJRICXMCIJM3ml863jEmueFItvhEUuE4JPCNfleyVhdsT4tr4z
-yX7V5KhW+9W5cW99+14rMiuyk5AE54fw53HOJaEatBrwLp2rE+ZPdPxJrsYgxZRg
-roRFkEpR2kkD1C3cOTy+
-=hVeM
+iQIcBAEBAgAGBQJREMxAAAoJEIaOsuA1yqREs68P/RLv6FYW3OkX7aJTwckP53+n
+yjLZ960pEPAfAqDURLX4IoZNwS+EzRvh0GWKh7A21CoeGtSg0YWhS5YJkE+UnPWx
+F4mSvJgMRr5jmAQva8x+gK0Hl4Gw+sTvvo2IQAaCCwBti1wDI5zntfh1QaRJEcPK
+ta+L7htNrU82/j/sdIUQYfc3kTJAP15pPLPFWC+klS4G6iobnJR+Svl1ERQYBwsv
+4BETAGi+q0cRpXcAK7g4m8NVMnQ35QIQ6yNpVYkH/YzHqrp8X36C5tMHEYFCiX3n
+rJt1y4PV62cgdQPcEsPI8HR2Lebvsatqho8JUFfgZa3ElJ/vInzmb4g+uGkC0MJR
+GH0Bz4iALAiUdOB2jj+YYOu7cklVdgqu3pDIfbfqWzqZN91+Jbyy0nllII5fWffT
+f/9qekz0rZXemEeDG3JCthIu4Co4vTKZ6PH12QC0UTh0B+7PD+mgwy6HSPYAN6VQ
+XLev/n9y0Pq7LbcjkJVwxZJMiad0Mevsu9Uq8vd6X5VbUBdaOhq71G0YGBol+6u1
+c9Y2o9ymHb7HPJOAJCPLLFW0zSF4wk6fhEPGiKIgBgMqrHrqkC6IE9YAWEu7yH/n
+18oDAn6VCe5S4Udef2eRW3AvPonRzPaBgUFrcUiRG4WJc5I/rTJxJW3NPTrql52b
+KABTiIGO4lY8GUJdqi1K
+=uNZG
 -----END PGP SIGNATURE-----
 
---vJguvTgX93MxBIIe--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--xHbokkKX1kTiQeDC--
