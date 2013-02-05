@@ -1,15 +1,14 @@
-From: kishon <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 4/6] ARM: dts: omap5: add dwc3 omap dt data
-Date: Tue, 5 Feb 2013 14:16:36 +0530
-Message-ID: <5110C6EC.6050606@ti.com>
-References: <1359112312-6918-1-git-send-email-kishon@ti.com>
- <1359112312-6918-5-git-send-email-kishon@ti.com> <510432BF.80808@mvista.com>
- <5110C2E6.30504@ti.com> <20130205083828.GE32118@arwen.pp.htv.fi>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 04/13] mfd: omap-usb-tll: Add device tree support
+Date: Tue, 5 Feb 2013 10:46:51 +0200
+Message-ID: <5110C6FB.90101@ti.com>
+References: <1359993540-20780-1-git-send-email-rogerq@ti.com>
+ <1359993540-20780-5-git-send-email-rogerq@ti.com> <5110A0DF.7050609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20130205083828.GE32118-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+In-Reply-To: <5110A0DF.7050609-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
  <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
@@ -20,50 +19,43 @@ List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
 Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 Sender: "devicetree-discuss"
  <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, s-guiriec-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: kishon <kishon-l0cyMroinI0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Tuesday 05 February 2013 02:08 PM, Felipe Balbi wrote:
-> On Tue, Feb 05, 2013 at 01:59:26PM +0530, kishon wrote:
->> On Sunday 27 January 2013 01:17 AM, Sergei Shtylyov wrote:
->>> Hello.
->>>
->>> On 25-01-2013 15:11, Kishon Vijay Abraham I wrote:
->>>
->>>> Add dwc3 omap glue data to the omap5 dt data file. The information about
->>>> the dt node added here is available @
->>>> Documentation/devicetree/bindings/usb/omap-usb.txt
->>>
->>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->>>> ---
->>>>   arch/arm/boot/dts/omap5.dtsi |   11 +++++++++++
->>>>   1 file changed, 11 insertions(+)
->>>
->>>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
->>>> index 5f59bf2..1703a72 100644
->>>> --- a/arch/arm/boot/dts/omap5.dtsi
->>>> +++ b/arch/arm/boot/dts/omap5.dtsi
->>>> @@ -513,6 +513,17 @@
->>>>               ti,type = <2>;
->>>>           };
->>>>
->>>> +        omap_dwc3@4a020000 {
->>>> +            compatible = "ti,dwc3";
->>>> +            ti,hwmods = "usb_otg_ss";
->>>> +            reg = <0x4a020000 0x1ff>;
->>>
->>>     Shoudn't the "reg" length be 0x200 here? It's length, not limit.
+On 02/05/2013 08:04 AM, kishon wrote:
+> On Monday 04 February 2013 09:28 PM, Roger Quadros wrote:
+>> Enable this driver to probe in device tree boot.
 >>
->> I think 0x1ff is correct. I got the data from hwmod data.
->
-> hwmod is utterly wrong. Looking at TRM, it says the size here is 64KiB
-> (0x10000), so is the size for dwc3 itself. Please don't blindly trust
-> hwmod, make sure you read data from TRM ;-)
+>> CC: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   .../devicetree/bindings/mfd/omap-usb-tll.txt       |   17 +++++++++++++++++
+>>   drivers/mfd/omap-usb-tll.c                         |    9 +++++++++
+>>   2 files changed, 26 insertions(+), 0 deletions(-)
+>>   create mode 100644 Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt b/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
+>> new file mode 100644
+>> index 0000000..835cf4f
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
+>> @@ -0,0 +1,17 @@
+>> +OMAP HS USB Host TLL (Transceiver-Less Interface)
+>> +
+>> +Required properties:
+>> +
+>> +- compatible : should be "ti,usbhs-tll"
+>> +- reg : should contain one register range i.e. start and length
+>> +- interrupts : should contain the TLL module's interrupt
+>> +- ti,hwmod : must contain "usb_tll_hs"
+>> +
+>> +Example:
+>> +
+>> +    usbhstll: usbhstll@0x4a062000 {
+> The node name shouldn't have 0x. This comment applies to all your patches adding device tree support.
 
-hmm..ok. But it has only 17 registers :-D
+OK, will fix.
 
-Thanks
-Kishon
+cheers,
+-roger
