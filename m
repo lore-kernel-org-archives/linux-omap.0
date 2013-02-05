@@ -1,140 +1,187 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: DT GPMC SRAM and NOR flash support ?
-Date: Tue, 5 Feb 2013 11:08:04 -0600
-Message-ID: <51113C74.4070607@ti.com>
-References: <510BF3D3.3000304@mimc.co.uk> <510BF766.5090608@ti.com> <510C19FC.8090906@mimc.co.uk> <5111304C.7090706@mimc.co.uk> <511134C8.8000008@ti.com> <511137CF.1090706@mimc.co.uk>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH V3 5/7] ARM: OMAP3: Update clocksource timer selection
+Date: Tue, 05 Feb 2013 19:10:26 +0200
+Message-ID: <51113D02.2060209@compulab.co.il>
+References: <1360007196-21350-1-git-send-email-jon-hunter@ti.com> <1360007196-21350-6-git-send-email-jon-hunter@ti.com> <5110C53F.1010203@compulab.co.il> <51113833.2090306@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34299 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755372Ab3BERIH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Feb 2013 12:08:07 -0500
-In-Reply-To: <511137CF.1090706@mimc.co.uk>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:37504 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754925Ab3BERKg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Feb 2013 12:10:36 -0500
+In-Reply-To: <51113833.2090306@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Afzal Mohammed <afzal@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-
-On 02/05/2013 10:48 AM, Mark Jackson wrote:
-> On 05/02/13 16:35, Jon Hunter wrote:
->>
->> On 02/05/2013 10:16 AM, Mark Jackson wrote:
->>> On 01/02/13 19:39, Mark Jackson wrote:
->>>> On 01/02/13 17:12, Jon Hunter wrote:
->>>>> Hi Mark,
->>>>>
->>>>> On 02/01/2013 10:56 AM, Mark Jackson wrote:
->>>>>> There's plenty of DT support going in for NAND flash, but is there any work going on to support NOR
->>>>>> flash ?
->>>>>
->>>>> What board and device are you working that is using NOR? I have a
->>>>> OMAP2420 H4 with NOR that I have been doing a bit of maintenance for but
->>>>> I don't spend much time on it. Eventually it will have to be done but it
->>>>> is always good to know if there is a pressing need.
->>>>
->>>> We have a custom AM335x CPU board (arriving on my desk within the next few weeks) that has both NAND
->>>> and NOR Flash.
->>>>
->>>>>> And how about SRAM chips or other memory mapped devices ?
->>>>>
->>>>> Not sure about SRAM (trying to think if I have a board with SRAM even),
->>>>> but definitely, boards using the GPMC to interface to ethernet chips
->>>>> need to be added.
->>>>
->>>> The board also contains an FRAM chip (which is just treated as SRAM).
->>>>
->>>> If you'd anything in the pipeline, I'm glad to help in any testing. I've created a custom cape board
->>>> for the BeagleBone which contains the NOR flash and FRAM chips, so I'm not waiting for the new
->>>> hardware to arrive.
->>
->> Sorry for the delay. I personally don't have anything in the pipe.
->>
->> Afzal, do you know of anyone looking at this?
->>
->>> I've experimented with trying to add a mtd-physmap device, but no joy.
->>>
->>> I'm guessing that the current mtd-physmap code is (in some way) currently incompatible with the GPMC
->>> device ?
->>
->> I am not familiar with mtd-physmap to comment. Is that DT specific?
+On 02/05/13 18:49, Jon Hunter wrote:
 > 
-> Well, it's documented in Documentation/devicetree/bindings/mtd/mtd-physmap.txt, showing you can
-> specify "cfi-flash" or "mtd-ram" devices, eg (taken from mtd-physmap.txt):-
+> On 02/05/2013 02:39 AM, Igor Grinberg wrote:
+
+[...]
+
+>>
+>> Hmmm...
+>> Do I miss something or you have forgot to update the commit message?
 > 
-> 	flash@ff000000 {
-> 		compatible = "amd,am29lv128ml", "cfi-flash";
-> 		reg = <ff000000 01000000>;
-> 		bank-width = <4>;
-> 		device-width = <1>;
-> 		#address-cells = <1>;
-> 		#size-cells = <1>;
-> 		fs@0 {
-> 			label = "fs";
-> 			reg = <0 f80000>;
-> 		};
-> 		firmware@f80000 {
-> 			label ="firmware";
-> 			reg = <f80000 80000>;
-> 			read-only;
-> 		};
-> 	};
+> Ugh you are right :-(
 > 
-> 	sram@2,0 {
-> 		compatible = "samsung,k6f1616u6a", "mtd-ram";
-> 		reg = <2 0 0x00200000>;
-> 		bank-width = <2>;
-> 	};
+> Some how yesterday when rebasing the series and adding a couple more
+> patches, I royally screwed it up. How about the following ...
 
-Ok, I see that the NOR flash on my omap2420 H4 is named "physmap-flash"
-(I have not ported to DT yet). So the GPMC should work with it.
+Yep, that should do.
+Thanks!
 
-> But I guess the GPMC needs to be configured to enable chip selects, data widths, etc.
-
-Exactly.
-
-> I did get *something* on the address / data bus by adding the patches below, but I'm getting bus
-> contention, so something else needs setting up in the GPMC.
-> 
-> I'm no great device driver writer, but if anyone can give me some pointers, I'm happy to keep digging.
 > 
 > Cheers
-> Mark J.
+> Jon
 > 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index a37e1c9..8f45d18 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -1265,10 +1265,13 @@ static int gpmc_probe_dt(struct platform_device *pdev)
->         struct device_node *child;
->         const struct of_device_id *of_id =
->                 of_match_device(gpmc_dt_ids, &pdev->dev);
-> +       unsigned long base;
+>>From c82699e94d0255b3b1524e0d5ff4fd1f5852de69 Mon Sep 17 00:00:00 2001
+> From: Jon Hunter <jon-hunter@ti.com>
+> Date: Mon, 28 Jan 2013 17:53:57 -0600
+> Subject: [PATCH] ARM: OMAP3: Update clocksource timer selection
 > 
->         if (!of_id)
->                 return 0;
+> When booting with device-tree for OMAP3 and AM335x devices and a gptimer
+> is used as the clocksource (which is always the case for AM335x), a
+> gptimer located in a power domain that is not always-on is selected.
+> Ideally we should use a gptimer for clocksource that is located in a
+> power domain that is always on (such as the wake-up domain) so that time
+> can be maintained during a kernel suspend without keeping on additional
+> power domains unnecessarily.
 > 
-> +       gpmc_cs_request(0, SZ_16M, &base);
+> In order to fix this so that we can select a gptimer located in a power
+> domain that is always-on, the following changes were made ...
+> 1. Currently, only when selecting a gptimer to use for a clockevent
+>    timer, do we pass a timer property that can be used to select a
+>    specific gptimer. Change this so that we can pass a property when
+>    selecting a gptimer to use for a clocksource timer too.
+> 2. Currently, when selecting either a gptimer to use for a clockevent
+>    timer or a clocksource timer and no timer property is passed, then
+>    the first available timer is selected regardless of the properties
+>    it has. Change this so that if no properties are passed, then a timer
+>    that does not have additional features (such as always-on, dsp-irq,
+>    pwm, and secure) is selected.
+> 
+> For OMAP3 and AM335x devices that use a gptimer for clocksource, change
+> the selection of the gptimer so that by default the gptimer located in
+> the always-on power domain is used for clocksource instead of
+> clockevents.
+> 
+> Please note that using a gptimer for both clocksource and clockevents
+> can have a system power impact during idle. The reason being is that
+> OMAP and AMxxx devices typically only have one gptimer in a power domain
+> that is always-on. Therefore when the kernel is idle both the clocksource
+> and clockevent timers will be active and this will keep additional power
+> domains on. During kernel suspend, only the clocksource timer is active
+> and therefore, it is better to use a gptimer in a power domain that is
+> always-on for clocksource.
+> 
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+> ---
+>  arch/arm/mach-omap2/timer.c |   33 +++++++++++++++++++++------------
+>  1 file changed, 21 insertions(+), 12 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 3ad9a3b..fce495e 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -160,6 +160,12 @@ static struct device_node * __init omap_get_timer_dt(struct of_device_id *match,
+>  		if (property && !of_get_property(np, property, NULL))
+>  			continue;
+>  
+> +		if (!property && (of_get_property(np, "ti,timer-alwon", NULL) ||
+> +				  of_get_property(np, "ti,timer-dsp", NULL) ||
+> +				  of_get_property(np, "ti,timer-pwm", NULL) ||
+> +				  of_get_property(np, "ti,timer-secure", NULL)))
+> +			continue;
 > +
+>  		of_add_property(np, &device_disabled);
+>  		return np;
+>  	}
+> @@ -435,13 +441,14 @@ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
+>  }
+>  
+>  static void __init omap2_gptimer_clocksource_init(int gptimer_id,
+> -						const char *fck_source)
+> +						  const char *fck_source,
+> +						  const char *property)
+>  {
+>  	int res;
+>  
+>  	clksrc.errata = omap_dm_timer_get_errata();
+>  
+> -	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source, NULL,
+> +	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source, property,
+>  				     &clocksource_gpt.name,
+>  				     OMAP_TIMER_NONPOSTED);
+>  	BUG_ON(res);
+> @@ -538,47 +545,49 @@ static inline void __init realtime_counter_init(void)
+>  #endif
+>  
+>  #define OMAP_SYS_GP_TIMER_INIT(name, clkev_nr, clkev_src, clkev_prop,	\
+> -			       clksrc_nr, clksrc_src)			\
+> +			       clksrc_nr, clksrc_src, clksrc_prop)	\
+>  void __init omap##name##_gptimer_timer_init(void)			\
+>  {									\
+>  	omap_dmtimer_init();						\
+>  	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+> -	omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src);	\
+> +	omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src,		\
+> +					clksrc_prop);			\
+>  }
+>  
+>  #define OMAP_SYS_32K_TIMER_INIT(name, clkev_nr, clkev_src, clkev_prop,	\
+> -				clksrc_nr, clksrc_src)			\
+> +				clksrc_nr, clksrc_src, clksrc_prop)	\
+>  void __init omap##name##_sync32k_timer_init(void)		\
+>  {									\
+>  	omap_dmtimer_init();						\
+>  	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+>  	/* Enable the use of clocksource="gp_timer" kernel parameter */	\
+>  	if (use_gptimer_clksrc)						\
+> -		omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src);\
+> +		omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src,	\
+> +						clksrc_prop);		\
+>  	else								\
+>  		omap2_sync32k_clocksource_init();			\
+>  }
+>  
+>  #ifdef CONFIG_ARCH_OMAP2
+>  OMAP_SYS_32K_TIMER_INIT(2, 1, "timer_32k_ck", "ti,timer-alwon",
+> -			2, "timer_sys_ck");
+> +			2, "timer_sys_ck", NULL);
+>  #endif /* CONFIG_ARCH_OMAP2 */
+>  
+>  #ifdef CONFIG_ARCH_OMAP3
+>  OMAP_SYS_32K_TIMER_INIT(3, 1, "timer_32k_ck", "ti,timer-alwon",
+> -			2, "timer_sys_ck");
+> +			2, "timer_sys_ck", NULL);
+>  OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
+> -			2, "timer_sys_ck");
+> +			2, "timer_sys_ck", NULL);
+>  #endif /* CONFIG_ARCH_OMAP3 */
+>  
+>  #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
+> -OMAP_SYS_GP_TIMER_INIT(3, 1, "timer_sys_ck", "ti,timer-alwon",
+> -		       2, "timer_sys_ck");
+> +OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
+> +		       1, "timer_sys_ck", "ti,timer-alwon");
+>  #endif
+>  
+>  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
+>  OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
+> -			2, "sys_clkin_ck");
+> +			2, "sys_clkin_ck", NULL);
+>  #endif
+>  
+>  #ifdef CONFIG_ARCH_OMAP4
+> 
 
-You should check what gpmc_cs_request returns.
-
-Where are the NOR flash timings setup? Or are they already configured by
-the bootloader? If so then that is probably ok for now.
-
->         for_each_node_by_name(child, "nand") {
->                 ret = gpmc_probe_nand_child(pdev, child);
->                 of_node_put(child);
-
-If you look at the gpmc_probe_nand_child(), this function is setting up
-the NAND timings for the GPMC.
-
-Ideally, we would have a similar function for nor (ie.
-gpmc_probe_nor_child()), that would read the NOR information
-(chip-select, size, timings, etc) from DT. However, I understand that
-the above is just for test purposes.
-
-Cheers
-Jon
+-- 
+Regards,
+Igor.
