@@ -1,63 +1,56 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: Latest additional build warnings
-Date: Tue, 5 Feb 2013 14:11:25 -0800
-Message-ID: <20130205221125.GB13768@quad.lixom.net>
-References: <20130205142218.GB17833@n2100.arm.linux.org.uk>
- <20130205175126.GH25185@atomide.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH, RFC] default machine descriptor for multiplatform
+Date: Tue, 5 Feb 2013 22:23:04 +0000
+Message-ID: <201302052223.04807.arnd@arndb.de>
+References: <20130131092024.GN2637@n2100.arm.linux.org.uk> <1638002.UJ7zfj1Wn5@wuerfel> <CAL_JsqJ2SyGeJePvNh5fREWP5LcAxnvNsiq2=kKNxKrnquyy3Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20130205175126.GH25185@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, arm@kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:55084 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757376Ab3BEWXM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Feb 2013 17:23:12 -0500
+In-Reply-To: <CAL_JsqJ2SyGeJePvNh5fREWP5LcAxnvNsiq2=kKNxKrnquyy3Q@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, Fabio Estevam <festevam@gmail.com>
 
-On Tue, Feb 05, 2013 at 09:51:26AM -0800, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [130205 06:25]:
-> > arch/arm/mach-omap2/hwspinlock.c:60:1: warning: data definition has no type or storage class
-> > arch/arm/mach-omap2/hwspinlock.c:60:1: warning: type defaults to 'int' in declaration of 'omap_postcore_initcall'
-> > arch/arm/mach-omap2/hwspinlock.c:60:1: warning: parameter names (without types) in function declaration
-> > arch/arm/mach-omap2/hwspinlock.c:31:122: warning: 'hwspinlocks_init' defined but not used
+On Tuesday 05 February 2013, Rob Herring wrote:
+> >
+> > + if (IS_ENABLED(CONFIG_ARCH_MULTIPLATFORM)) {
+> > + DT_MACHINE_START(GENERIC_DT, "Generic DT based system")
+> > + MACHINE_END
 > 
-> Thanks looks like I missed that one somehow. Here's a fix for
-> it.
-> 
-> Arnd & Olof, care to apply this directly into the arm-soc multiplatform
-> branch?
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Tue, 5 Feb 2013 09:48:08 -0800
-> Subject: [PATCH] ARM: OMAP2+: Fix warning for hwspinlock omap_postcore_initcall
-> 
-> Commit 816a65ef4 (ARM: OMAP2+: Limit omap initcalls to omap only on
-> multiplatform kernels) fixed up things for multiplatform booting
-> but failed to include soc.h causing a new warning:
-> 
-> arch/arm/mach-omap2/hwspinlock.c:60:1: warning: data definition has no type or storage class
-> arch/arm/mach-omap2/hwspinlock.c:60:1: warning: type defaults to 'int' in declaration of 'omap_postcore_initcall'
-> arch/arm/mach-omap2/hwspinlock.c:60:1: warning: parameter names (without types) in function declaration
-> arch/arm/mach-omap2/hwspinlock.c:31:122: warning: 'hwspinlocks_init' defined but not used
-> 
-> Reported-by: Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> I assume this works, but it looks a bit strange declared here.
 
-Applied to next/multiplatform with the reported-by line fixed up.
+Yes, I was wondering whether it should be global instead, but that
+would require an #ifdef, or enabling it for all DT-based builds, not
+just those with ARCH_MULTIPLATFORM.
 
 
--Olof
+> >  static int __init customize_machine(void)
+> >  {
+> > - /* customizes platform devices, or adds new ones */
+> > + /*
+> > + * customizes platform devices, or adds new ones
+> > + * On DT based machines, we fall back to populating the
+> > + * machine from the device tree, if no callback is provided,
+> > + * otherwise we would always need an init_machine callback.
+> > + */
+> >   if (machine_desc->init_machine)
+> >   machine_desc->init_machine();
+> > + else
+> > + of_platform_populate(NULL, of_default_bus_match_table,
+> > + NULL, NULL);
+> 
+> Could this be unconditional? It should be safe to call multiple times
+> if a platform calls this first because ordering matters or there are
+> custom match tables. I would guess any ordering requirements need to
+> happen before this call anyway.
+
+Yes, possible, but that needs more testing to avoid potential regressions.
+
+	Arnd
