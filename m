@@ -1,71 +1,71 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to arm/common
-Date: Tue, 5 Feb 2013 19:33:42 +0100
-Message-ID: <CACRpkdbruBRH8TJb8kkopYEZrpX+h73HT=1VDa=tOWPKg-sGJw@mail.gmail.com>
-References: <510FF1A6.403@mvista.com> <20130204164712.GB4269@arwen.pp.htv.fi>
-	<510FF5C9.3030600@mvista.com>
-	<20130204170216.GC4269@arwen.pp.htv.fi> <51100A72.6030909@ti.com>
-	<CACRpkdZihnp3_Df==QRWxQupgi7W_YXZxc-MxkusVH6J+Vx56A@mail.gmail.com>
-	<20130204203358.GX4720@opensource.wolfsonmicro.com>
-	<CACRpkdbPyZt8=pLhz-5qcaSSAk6VBn61dPTNp6teU9HksBwN2w@mail.gmail.com>
-	<51102E25.8040107@ti.com>
-	<CACRpkdaUQ60W8Vmg3MpvP5uV+3jD3y4+9V2et4Ni+z-7k=aFTg@mail.gmail.com>
-	<20130205171451.GE17852@n2100.arm.linux.org.uk>
+From: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Subject: Re: [GIT PULL] ARM part of USB patches
+Date: Tue, 5 Feb 2013 10:37:29 -0800
+Message-ID: <20130205183729.GA18954@kroah.com>
+References: <51112418.5020000@ti.com>
+ <51112495.4060908@ti.com>
+ <20130205172724.GA1601@kroah.com>
+ <20130205181947.GI25185@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20130205171451.GE17852-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nair, Sandeep" <sandeep_n-l0cyMroinI0@public.gmane.org>, Cyril Chemparathy <cyril-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "Cousson,
-	Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-d>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:47661 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755429Ab3BESfS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Feb 2013 13:35:18 -0500
+Received: by mail-pa0-f42.google.com with SMTP id kq12so294001pab.15
+        for <linux-omap@vger.kernel.org>; Tue, 05 Feb 2013 10:35:17 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20130205181947.GI25185@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, kishon <kishon@ti.com>, Felipe Balbi <balbi@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
 
-On Tue, Feb 5, 2013 at 6:14 PM, Russell King - ARM Linux
-<linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
-> On Tue, Feb 05, 2013 at 04:30:45PM +0100, Linus Walleij wrote:
+On Tue, Feb 05, 2013 at 10:19:47AM -0800, Tony Lindgren wrote:
+> * gregkh@linuxfoundation.org <gregkh@linuxfoundation.org> [130205 09:28]:
+> > On Tue, Feb 05, 2013 at 08:56:13PM +0530, kishon wrote:
+> > > Hi Tony, Greg,
+> > > 
+> > > On Tuesday 05 February 2013 08:54 PM, kishon wrote:
+> > > >Hi Tony,
+> > > >
+> > > >As discussed, I'm sending a pull request for the arch/arm part of my USB
+> > > >patches. These patches are necessary to get MUSB functional in both dt
+> > > >and non-dt boot. Also added dt data for dwc3 present in OMAP. This patch
+> > > >series *depends* on some of the patches which are merged in usb-next.
+> > > 
+> > > This patch series should go in only after USB. Or else it will break
+> > > compilation.
+> > 
+> > Then it probably should go through the USB tree, right?  We don't want
+> > to break bisectability.
+> 
+> Looks like this branch needs to be based on at least 01658f0f (usb: phy:
+> add a new driver for usb part of control module) to compile. Probably
+> needs other USB patches too to make sense.
+> 
+> This branch has a high likelihood of conflicting with .dts files, so
+> Kishon, I suggest you do two branches:
+> 
+> 1. A branch for Greg based on top of the USB changes
+> 
+>    This branch should contain:
+> 
+>    ARM: OMAP4: remove control module address space from PHY and OTG
+>    ARM: OMAP: devices: create device for usb part of control module
+>    ARM: OMAP2: MUSB: Specify omap4 has mailbox
+>    ARM: OMAP: USB: Add phy binding information
+> 
+>    Naturally please make sure they compile and boot on their own.
+>    Looks like this will only cause few trivial include merge conflicts
+>    with what I have queued up.
+> 
+>    You can add my Acked-by: Tony Lindgren <tony@atomide.com> for those.
 
->> So put them on a wait list? Surely you will have a list of pending
->> cookies and pick from the front of the queue if there isn't a hole on
->> queue position 0.
->
-> Not quite.  The key is the cookie system DMA engine employs to indicate
-> when a cookie is complete.
->
-> Cookies between the "issued sequence" and "completed sequence" are defined
-> to be in progress, everything else is defined to be completed.
->
-> This means that if "completed sequence" is 1, and "issued sequence" is 5,
-> then cookies with values 2, 3, 4, 5 are in progress.  You can't mark
-> sequence 4 as being complete until 2 and 3 have completed.
+If that happens, please send me patches in email, I don't take git
+pull requests, especially for something as small as 4 patches.
 
-Yes that is true. DMA transfers on a certain channel are defined
-as progressing linearly per-cookie. I wonder if that is a problem
-in this case though (actually it seems the reverse, this helps
-in Cyril's case.)
+thanks,
 
-> If we need out-of-order completion, then that's a problem for the DMA
-> engine API, because you'd need to radically change the way "completion"
-> is marked.
-
-True. I wonder if this usecase is ever going to be applicable
-however. It could maybe be useful in some instances of
-memcpy() I could dream up, whereas for device transfers it
-seems unlikely to me.
-
-Yours,
-Linus Walleij
-
-------------------------------------------------------------------------------
-Free Next-Gen Firewall Hardware Offer
-Buy your Sophos next-gen firewall before the end March 2013 
-and get the hardware for free! Learn more.
-http://p.sf.net/sfu/sophos-d2d-feb
+greg k-h
