@@ -1,96 +1,61 @@
-From: Cyril Chemparathy <cyril-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to arm/common
-Date: Tue, 5 Feb 2013 14:45:25 -0500
-Message-ID: <51116155.3080609@ti.com>
-References: <20130201213003.GW2637@n2100.arm.linux.org.uk>
- <20130204154153.GA18237@arwen.pp.htv.fi> <510FF1A6.403@mvista.com>
- <20130204164712.GB4269@arwen.pp.htv.fi> <510FF5C9.3030600@mvista.com>
- <20130204170216.GC4269@arwen.pp.htv.fi> <51100A72.6030909@ti.com>
- <CACRpkdZihnp3_Df==QRWxQupgi7W_YXZxc-MxkusVH6J+Vx56A@mail.gmail.com>
- <5110369B.9060901@ti.com>
- <CACRpkda8xBB35CwuBH76xXcC341TeRs1ZuwzDD0LtuXc4ifQTw@mail.gmail.com>
- <20130205164705.GG4720@opensource.wolfsonmicro.com>
- <CACRpkdbeoMO1rjPiWDAuVL0uYwMGF+9-vCxqoMiMd1uAgZm=RQ@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP GPIO - don't wake from suspend unless requested.
+Date: Tue, 05 Feb 2013 11:47:54 -0800
+Message-ID: <87622635lh.fsf@deeprootsystems.com>
+References: <20120825214459.7333a376@notabene.brown>
+	<CAMQu2gz0-U4GxEpZFfmJec+0FRs7ugy8EYS3HyYhb1jwbMBjug@mail.gmail.com>
+	<20120827085312.75957354@notabene.brown>
+	<CAMQu2gwH0O+NHV7H2aF375qmv0=TKb6RweOLohTHtB4UhQ-1gQ@mail.gmail.com>
+	<CAMQu2gw2b8HHDPuSRuHXVYn3sJ5BYi_PuOT=snpa3zD5ert=QQ@mail.gmail.com>
+	<20120906130510.32b0b877@notabene.brown>
+	<CAMQu2gxGNJ+NW_rcRiXNE=OMTq8Hb81_1hDZnNen6mjc2cf6BQ@mail.gmail.com>
+	<20120906170245.10e97bdd@notabene.brown>
+	<87627pldkj.fsf@deeprootsystems.com>
+	<CAMQu2gwSCvw_4gVE-giD6MSzmRCNoNu4NoFBSao_dh9YnojfuA@mail.gmail.com>
+	<87ipblahho.fsf@deeprootsystems.com>
+	<20121214180553.5eb62c0c@notabene.brown>
+	<20121219222028.6BA4A3E0AD6@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CACRpkdbeoMO1rjPiWDAuVL0uYwMGF+9-vCxqoMiMd1uAgZm=RQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nair,
- Sandeep" <sandeep_n-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-da0-f44.google.com ([209.85.210.44]:60650 "EHLO
+	mail-da0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755613Ab3BETr7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Feb 2013 14:47:59 -0500
+Received: by mail-da0-f44.google.com with SMTP id z20so209617dae.31
+        for <linux-omap@vger.kernel.org>; Tue, 05 Feb 2013 11:47:57 -0800 (PST)
+In-Reply-To: <20121219222028.6BA4A3E0AD6@localhost> (Grant Likely's message of
+	"Wed, 19 Dec 2012 22:20:28 +0000")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: NeilBrown <neilb@suse.de>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>
 
-On 02/05/2013 01:29 PM, Linus Walleij wrote:
-> On Tue, Feb 5, 2013 at 5:47 PM, Mark Brown
-> <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org> wrote:
->> On Tue, Feb 05, 2013 at 05:21:48PM +0100, Linus Walleij wrote:
->>
->>> For IRQ mode, use the completion callback to push each cookie
->>> to NAPI, and thus let the IRQ drive the traffic.
->>
->> The whole purpose of NAPI is to avoid taking interrupts for completion
->> of transfers.  Anything that generates interrupts when NAPI is in
->> polling mode is defeating the point.
+Grant Likely <grant.likely@secretlab.ca> writes:
+
+> On Fri, 14 Dec 2012 18:05:53 +1100, NeilBrown <neilb@suse.de> wrote:
+>> On Mon, 10 Sep 2012 10:57:07 -0700 Kevin Hilman <khilman@deeprootsystems.com>
+>> wrote:
+>> 
+>> 
+>> > OK thanks, I'll queue this up for v3.6-rc as this should qualify as a
+>> > regression.
+>> 
+>> I don't think this did actually get queued.  At least I'm still seeing the
+>> bug in 3.7 and I cannot see a patch in the git history that looks right.
+>> But then I don't remember what we ended up with - it was 3 months ago!!!
+>> 
+>> This is the last thing I can find in my email history - it still seems to
+>> apply and still seems to work.
+>> 
+>> NeilBrown
 >
-> So what I was trying to get across is that when you're in polling
-> mode you do not set DMA_PREP_INTERRUPT on your transfers,
-> just throw the obtained struct dma_async_tx_descriptor on some
-> list and then when polling use dma_async_is_tx_complete()
-> on the channel and the cookie inside the descriptor.
->
-> I was trying to describe that you can move from
-> IRQ mode to polling mode and back again by selectively
-> choosing to set/not set the DMA_PREP_INTERRUPT flag.
->
+> Kevin, let me know if I need to do anything here. Since you might have
+> it in one of you're trees, I'm not going to do anything unless I hear
+> from you.
 
-This does not work.  At prep/submit time, the network driver does not 
-know if a particular packet buffer needs an interrupt or not.  It queues 
-up a whole bunch of receive buffers upfront.  These buffers simply sit 
-on the hardware queue/ring until the NIC receives traffic.  The driver 
-throttles the receive processing rate by dynamically switching between 
-interrupt and poll behaviors on the completion side, not on the 
-submission side.
+oops, just stumbled across this one.  Sorry for the lag.
 
-> If polling is all you want you never set it.
->
+Grant, feel free to apply.  Seems this one never made it into my queue.
 
-Another point here is that it is not simply a polling vs. interrupt 
-problem.  The system needs to dynamically switch between the two 
-behaviors depending on offered load conditions.  This dynamic switching 
-is key to balancing latency (under low load) and throughput (at high 
-rates).  It cannot be one or the other, it must be both.
-
-
-Once again, I'm fairly sure that suitably reworking or extending the 
-dma-engine interfaces will allow network DMAs to fit in nicely.
-
-However, I'd also appreciate inputs on the alternative approach of using 
-virtio devices as an interface to packet oriented DMA hardware.  From my 
-perspective this offers the following advantages, some of which I've 
-already mentioned in earlier postings:
-
-1. The virtqueue interface is nice and clean, it fits very well with 
-networking concepts such as NAPI.  In comparison, the dma-engine API 
-will need extensions and/or rework to fit network DMAs.
-
-2. Advantages from leveraging the virtio infrastructure.  For example, 
-if a DMA pipe to a remote processor is exposed as a virtio device, 
-something like rpmsg could very naturally fit on top of this without any 
-other added glue.
-
-3. Advantages from leveraging the driver model for binding dma clients 
-to dma hardware, instead of resorting to name lookups and such.
-
-Thanks
--- Cyril.
+Kevin
