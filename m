@@ -1,77 +1,52 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: DSS errors in linux next when booted with DTB append
-Date: Tue, 5 Feb 2013 14:37:21 +0200
-Message-ID: <5110FD01.7010605@ti.com>
-References: <20130116190803.GG14149@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to
+	arm/common
+Date: Tue, 5 Feb 2013 12:38:28 +0000
+Message-ID: <20130205123828.GB17852@n2100.arm.linux.org.uk>
+References: <510C2A47.1090607@mvista.com> <20130204203358.GX4720@opensource.wolfsonmicro.com> <CACRpkdbPyZt8=pLhz-5qcaSSAk6VBn61dPTNp6teU9HksBwN2w@mail.gmail.com> <201302042147.38407.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigD4D41AB842F1BC8A56367DBC"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38538 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753718Ab3BEMhY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Feb 2013 07:37:24 -0500
-In-Reply-To: <20130116190803.GG14149@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201302042147.38407.arnd@arndb.de>
+Sender: linux-doc-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Cyril Chemparathy <cyril@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, balbi@ti.com, Sergei Shtylyov <sshtylyov@mvista.com>, Linux Documentation List <linux-doc@vger.kernel.org>, Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, "Nair, Sandeep" <sandeep_n@ti.com>, Chris Ball <cjb@laptop.org>, Matt Porter <mporter@ti.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Linux OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, "Cousson, Benoit" <b-cousson@ti.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Landley <rob@landley.net>, Dan Williams <djbw@fb.com>Linux
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
 
---------------enigD4D41AB842F1BC8A56367DBC
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Mon, Feb 04, 2013 at 09:47:38PM +0000, Arnd Bergmann wrote:
+> On Monday 04 February 2013, Linus Walleij wrote:
+> > So I think the above concerns are moot. The callback we can
+> > set on cookies is entirely optional, and it's even implemented by
+> > each DMA engine, and some may not even support it but require
+> > polling, and then it won't even be implemented by the driver.
+> 
+> Just to ensure that everybody is talking about the same thing here:
+> Is it just the callback that is optional, or also the interrupt
+> coming from the hardware?
 
-Hi,
+If everyone implements stuff correctly, both.  The callback most certainly
+is optional as things stand.  The interrupt - that depends on the DMA
+engine.
 
-On 2013-01-16 21:08, Tony Lindgren wrote:
-> Hi Tomi,
->=20
-> Looks like omap_dss_init() goes crazy on panda es when booted with=20
-> PANEL_TAAL and DTB append enabled, see below. Does not seem to happen w=
-hen
-> booted on blaze. Noticed this after enabling all the panels, my modifie=
-d
-> omap2plus_defconfig attached.
+Some DMA engines you can't avoid it because you need to reprogram the
+hardware with the next+1 transfer upon completion of an existing transfer.
+Others may allow you to chain transfers in hardware.  That's all up to
+how the DMA engine driver is implemented and how the hardware behaves.
 
-Hmm, looks odd. The log shows it's trying to use Taal panel, even if
-Panda doesn't have such a panel. Who's adding the Taal device? Are you
-booting Panda with Blaze's dtb?
+Now, there's another problem here: that is, people abuse the API.  People
+don't pass DMA_CTRL_ACK | DMA_PREP_INTERRUPT into their operations by
+default.  People like typing '0'.
 
-That said, I have seen similar circular locking warnings related to
-omapfb/omapdss, but I haven't been able to resolve them, or even to
-really find out why the warning happens. I haven't seen any problems
-though, it's just a warning.
+The intention of the "DMA_PREP_INTERRUPT" is significant here: it means
+"ask the hardware to send an interrupt upon completion of this transfer".
 
-So my guess is that you're seeing two unrelated problems, one related to
-dtbs or such, and the other related to locks.
+Because soo many people like to type '0' instead in their DMA engine
+clients, it means that this flag is utterly useless today - you have to
+ignore it.  So there's _no_ way for client drivers to actually tell the
+a DMA engine driver which _doesn't_ need to signal interrupts at the end
+of every transfer not to do so.
 
- Tomi
-
-
-
---------------enigD4D41AB842F1BC8A56367DBC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJREP0BAAoJEPo9qoy8lh710BAP/ijPQ3827SpC8tG0rOwcLHGK
-IxvfSGvDkdDRF54ltpUqfwWOGF7CzA5V81+TQ40NrG4bJDgdQxxcMA1+OEGZdkcE
-SXr0t9uFl7Gh9UbtzpNlsYZyocX88W8mltrKOVvV8mY983Li3xXwih2DuIFV9/OL
-WWatKbIhZ2WiKS7496chOr2PpX/qMMPetKSMZAs8WT/ijT3agAUYZC0NQkMvuNBr
-ZZO+2T7eU0rnWVt0CMAeWeYc+d0fPApeX4X+/YMRBbF5fYPw6trqiBHxugLAXJuE
-39/tpmyyIuUh87hM6KoS+ZJLloLo45z0sp6yDEECxFs5Jna1pHpq7pQ91dyAQUOI
-8VHbD5SfY/TS5rjNDip0ZZVOVHdNtuEw10XTPEySfjo/o4bySTHC2tloaSkZqwri
-RlGT6cnvCRhMmh+aZEYKeNlBG8QreahIQOrUVcRVhKfZlXvFNp3rTr/n1IE3EW+r
-fYrCweLlJ5jP4fHn293oQEcSepn9z39G/086CTYH76SxleNBFqCv0y6UdnbvBiuW
-/JHE2U89t97lhO/bs/nThQanDzdoINvhjTnisq1iW7QvtjKdCwaYxTQ2r0DuK4wy
-ICy88CctJGePbbXLaet1TiR2+Ptqn6tsR2jPi16zLGtGe/AgCd6ZchSCvhJx2v6n
-cl0P6++xcMvHaUUN+MeZ
-=fEIk
------END PGP SIGNATURE-----
-
---------------enigD4D41AB842F1BC8A56367DBC--
+So yes, the DMA engine API supports it.  Whether the _implementations_
+themselves do is very much hit and miss (and in reality is much more
+miss than hit.)
