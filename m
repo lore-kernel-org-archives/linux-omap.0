@@ -1,101 +1,96 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: OMAP4 PM bootloader dependency problems
-Date: Tue, 5 Feb 2013 13:45:31 -0600
-Message-ID: <5111615B.50708@ti.com>
-References: <alpine.DEB.2.00.1301220229140.25789@utopia.booyaka.com>
+From: Cyril Chemparathy <cyril-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to arm/common
+Date: Tue, 5 Feb 2013 14:45:25 -0500
+Message-ID: <51116155.3080609@ti.com>
+References: <20130201213003.GW2637@n2100.arm.linux.org.uk>
+ <20130204154153.GA18237@arwen.pp.htv.fi> <510FF1A6.403@mvista.com>
+ <20130204164712.GB4269@arwen.pp.htv.fi> <510FF5C9.3030600@mvista.com>
+ <20130204170216.GC4269@arwen.pp.htv.fi> <51100A72.6030909@ti.com>
+ <CACRpkdZihnp3_Df==QRWxQupgi7W_YXZxc-MxkusVH6J+Vx56A@mail.gmail.com>
+ <5110369B.9060901@ti.com>
+ <CACRpkda8xBB35CwuBH76xXcC341TeRs1ZuwzDD0LtuXc4ifQTw@mail.gmail.com>
+ <20130205164705.GG4720@opensource.wolfsonmicro.com>
+ <CACRpkdbeoMO1rjPiWDAuVL0uYwMGF+9-vCxqoMiMd1uAgZm=RQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43847 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755964Ab3BETpg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Feb 2013 14:45:36 -0500
-In-Reply-To: <alpine.DEB.2.00.1301220229140.25789@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CACRpkdbeoMO1rjPiWDAuVL0uYwMGF+9-vCxqoMiMd1uAgZm=RQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nair,
+ Sandeep" <sandeep_n-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: t-kristo@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
 
-Hi Paul,
+On 02/05/2013 01:29 PM, Linus Walleij wrote:
+> On Tue, Feb 5, 2013 at 5:47 PM, Mark Brown
+> <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org> wrote:
+>> On Tue, Feb 05, 2013 at 05:21:48PM +0100, Linus Walleij wrote:
+>>
+>>> For IRQ mode, use the completion callback to push each cookie
+>>> to NAPI, and thus let the IRQ drive the traffic.
+>>
+>> The whole purpose of NAPI is to avoid taking interrupts for completion
+>> of transfers.  Anything that generates interrupts when NAPI is in
+>> polling mode is defeating the point.
+>
+> So what I was trying to get across is that when you're in polling
+> mode you do not set DMA_PREP_INTERRUPT on your transfers,
+> just throw the obtained struct dma_async_tx_descriptor on some
+> list and then when polling use dma_async_is_tx_complete()
+> on the channel and the cookie inside the descriptor.
+>
+> I was trying to describe that you can move from
+> IRQ mode to polling mode and back again by selectively
+> choosing to set/not set the DMA_PREP_INTERRUPT flag.
+>
 
-On 01/21/2013 08:42 PM, Paul Walmsley wrote:
-> 
-> Hi Tero, Rajendra, Santosh,
-> 
-> As we've discussed, there are known bootloader dependencies with the OMAP4 
-> PM retention idle code, introduced in v3.8.  Boards booted with u-boot 
-> versions even as recent as 2011 won't enter retention idle correctly; for 
-> example:
-> 
->     http://www.pwsan.com/omap/testlogs/test_v3.8-rc4/20130120122039/pm/4430es2panda/4430es2panda_log.txt
-> 
-> The right thing for you all to do is what was done for OMAP3: to add code 
-> to correctly reset and initialize these on-chip devices.  However, since 
-> it's already late in the v3.8-rc cycle, this seems unlikely to happen in 
-> time for the v3.8 release -- and that's assuming that you guys are working 
-> on this, which I'm unsure of.
+This does not work.  At prep/submit time, the network driver does not 
+know if a particular packet buffer needs an interrupt or not.  It queues 
+up a whole bunch of receive buffers upfront.  These buffers simply sit 
+on the hardware queue/ring until the NIC receives traffic.  The driver 
+throttles the receive processing rate by dynamically switching between 
+interrupt and poll behaviors on the completion side, not on the 
+submission side.
 
-I noticed on my OMAP4430 SDP that in suspend L3INIT was failing to enter 
-retention state. I am not sure if this is the same problem that you are 
-seeing or not. However, I found that the reason the L3INIT was not entering
-retention on this board was because the USB DPLL was not locked by the
-bootloader on this board. On my panda the USB DPLL is locked the L3INIT 
-is entering suspend. 
+> If polling is all you want you never set it.
+>
 
-I crafted the following which is working on my omap4430 panda, sdp and 
-omap4460 panda. Let me know what you think ...
+Another point here is that it is not simply a polling vs. interrupt 
+problem.  The system needs to dynamically switch between the two 
+behaviors depending on offered load conditions.  This dynamic switching 
+is key to balancing latency (under low load) and throughput (at high 
+rates).  It cannot be one or the other, it must be both.
 
-Cheers
-Jon
 
->From 3bfe708af8e91564bc78c79111f9080a35fb5b88 Mon Sep 17 00:00:00 2001
-From: Jon Hunter <jon-hunter@ti.com>
-Date: Tue, 5 Feb 2013 13:27:57 -0600
-Subject: [PATCH] ARM: OMAP4: Fix low power in kernel suspend
+Once again, I'm fairly sure that suitably reworking or extending the 
+dma-engine interfaces will allow network DMAs to fit in nicely.
 
-Some versions of the u-boot bootloader do not lock the USB DPLL and
-when the USB DPLL is not locked, then it is observed that the L3INIT
-power domain does not transition to retention state during kernel
-suspend on OMAP4 devices. Fix this by locking the USB DPLL at 960 MHz
-on kernel boot.
+However, I'd also appreciate inputs on the alternative approach of using 
+virtio devices as an interface to packet oriented DMA hardware.  From my 
+perspective this offers the following advantages, some of which I've 
+already mentioned in earlier postings:
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/cclock44xx_data.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+1. The virtqueue interface is nice and clean, it fits very well with 
+networking concepts such as NAPI.  In comparison, the dma-engine API 
+will need extensions and/or rework to fit network DMAs.
 
-diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-index e71a19c..2c811d9 100644
---- a/arch/arm/mach-omap2/cclock44xx_data.c
-+++ b/arch/arm/mach-omap2/cclock44xx_data.c
-@@ -48,6 +48,13 @@
-  */
- #define OMAP4_DPLL_ABE_DEFFREQ				98304000
- 
-+/*
-+ * OMAP4 USB DPLL default frequency. In OMAP4430 TRM version V, section
-+ * "3.6.3.9.5 DPLL_USB Preferred Settings" shows that the preferred
-+ * locked frequency for the USB DPLL is 960MHz.
-+ */
-+#define OMAP4_DPLL_USB_DEFFREQ				960000000
-+
- /* Root clocks */
- 
- DEFINE_CLK_FIXED_RATE(extalt_clkin_ck, CLK_IS_ROOT, 59000000, 0x0);
-@@ -2045,5 +2052,13 @@ int __init omap4xxx_clk_init(void)
- 	if (rc)
- 		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
- 
-+	/*
-+	 * Lock USB DPLL on OMAP4 devices so that the L3INIT power
-+	 * domain can transition to retention state when not in use.
-+	 */
-+	rc = clk_set_rate(&dpll_usb_ck, OMAP4_DPLL_USB_DEFFREQ);
-+	if (rc)
-+		pr_err("%s: failed to configure USB DPLL!\n", __func__);
-+
- 	return 0;
- }
--- 
-1.7.10.4
+2. Advantages from leveraging the virtio infrastructure.  For example, 
+if a DMA pipe to a remote processor is exposed as a virtio device, 
+something like rpmsg could very naturally fit on top of this without any 
+other added glue.
+
+3. Advantages from leveraging the driver model for binding dma clients 
+to dma hardware, instead of resorting to name lookups and such.
+
+Thanks
+-- Cyril.
