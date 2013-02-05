@@ -1,36 +1,80 @@
-From: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-Subject: Re: [GIT PULL] ARM part of USB patches
-Date: Tue, 5 Feb 2013 09:27:24 -0800
-Message-ID: <20130205172724.GA1601@kroah.com>
-References: <51112418.5020000@ti.com>
- <51112495.4060908@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to
+ arm/common
+Date: Tue, 5 Feb 2013 17:41:13 +0000
+Message-ID: <20130205174113.GJ4720@opensource.wolfsonmicro.com>
+References: <510FF1A6.403@mvista.com>
+ <20130204164712.GB4269@arwen.pp.htv.fi>
+ <510FF5C9.3030600@mvista.com>
+ <20130204170216.GC4269@arwen.pp.htv.fi>
+ <51100A72.6030909@ti.com>
+ <CACRpkdZihnp3_Df==QRWxQupgi7W_YXZxc-MxkusVH6J+Vx56A@mail.gmail.com>
+ <5110369B.9060901@ti.com>
+ <CACRpkda8xBB35CwuBH76xXcC341TeRs1ZuwzDD0LtuXc4ifQTw@mail.gmail.com>
+ <20130205164705.GG4720@opensource.wolfsonmicro.com>
+ <20130205170628.GD17852@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Ai6NJizWfpRUKxSm"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51112495.4060908@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: kishon <kishon@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
+In-Reply-To: <20130205170628.GD17852@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Cyril Chemparathy <cyril@ti.com>, balbi@ti.com, Sergei Shtylyov <sshtylyov@mvista.com>, Linux Documentation List <linux-doc@vger.kernel.org>, Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, "Nair, Sandeep" <sandeep_n@ti.com>, Chris Ball <cjb@laptop.org>, Matt Porter <mporter@ti.com>, Arnd Bergmann <arnd@arndb.de>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Linux OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, "Cousson, Benoit" <b-cousson@ti.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel->
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Feb 05, 2013 at 08:56:13PM +0530, kishon wrote:
-> Hi Tony, Greg,
-> 
-> On Tuesday 05 February 2013 08:54 PM, kishon wrote:
-> >Hi Tony,
-> >
-> >As discussed, I'm sending a pull request for the arch/arm part of my USB
-> >patches. These patches are necessary to get MUSB functional in both dt
-> >and non-dt boot. Also added dt data for dwc3 present in OMAP. This patch
-> >series *depends* on some of the patches which are merged in usb-next.
-> 
-> This patch series should go in only after USB. Or else it will break
-> compilation.
 
-Then it probably should go through the USB tree, right?  We don't want
-to break bisectability.
+--Ai6NJizWfpRUKxSm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-thanks,
+On Tue, Feb 05, 2013 at 05:06:28PM +0000, Russell King - ARM Linux wrote:
+> On Tue, Feb 05, 2013 at 04:47:05PM +0000, Mark Brown wrote:
+> > On Tue, Feb 05, 2013 at 05:21:48PM +0100, Linus Walleij wrote:
 
-greg k-h
+> > > For IRQ mode, use the completion callback to push each cookie
+> > > to NAPI, and thus let the IRQ drive the traffic.
+
+> > The whole purpose of NAPI is to avoid taking interrupts for completion
+> > of transfers.  Anything that generates interrupts when NAPI is in
+> > polling mode is defeating the point.
+
+> Yes, but you're missing one very important point.  If your DMA engine
+> is decoupled from the network device, and the DMA engine relies upon
+> interrupts to queue further transfers to move data into RAM, then you
+> have two options:
+
+> 1. Receive these interrupts so you can update the DMA engine for
+>    further data transfer.
+> 2. Don't receive these interrupts, and cause the network device to
+>    error out with a FIFO overrun because its DMA requests have not
+>    been serviced. (which may raise an interrupt.)
+
+There's still the third option of just implementing a non-NAPI driver,
+though I guess we've now built so much infrastructure on top of NAPI
+that it's still useful to pretend we can disable interrupts.
+
+--Ai6NJizWfpRUKxSm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJREUQyAAoJELSic+t+oim9meMP+wQGjHAZdn1AoszGg81XLikx
+LBO6zM/qUNMedHR83X6Lu0YqpJlWvnFaALFCnL7y4uWZMGWr4vqE5ojTj8jVZeFq
+Seb4cBErx87WQjOP7JIeT3CG1pIlNySfloTB+hECGO7chABjW7ZjrN1mVTTo9yAf
+AvxZ9pQaSZkkyUPuF+goDzQM3aOihXME2rOEsWQ6UT5AG7Bm7hAA9UHs9rlK6VpB
+hXG8HTwXU7if+B7ByH6q/IxxqutcM97WI5c0a6KwKaRzaIRCJBS/AHnxA/8EM+vR
+RF223u9m9Xrp2xayhuv/Md0JwhP7q9vg/YQ7oPnFyKFmEKi6SKkAdR23zV8E2NAk
+hUKf2z/s3az3BCOvtsZvAOx3crUo4CxOfHAlh+nfT1OZw7sHP769tjJP8rGXBbiO
+yW2cyO+5KA/udw6B07U1Lj/ui7FoVhY8/dybQYNOGy6EGYj1gTjOUTG7kJFd+3WE
+w4jOE3qRcZFKOtjV+bhXOyPaOnlj7KBcuNISUuPopIOzm5AY7sPgF5yI8rhE5W2m
+qlle5WAwOxUpZXbHQUIfsXwc0EmgeChxZ2qH66AuQXvI3CoACqsOA3QvwGIOjdta
+vRlztO3L/Cqeg3r6darqaoWrsqFTgqsGhai0L6L2ZF1krHfaW6VrvTmErG/vZixC
+nc+otbZzByvTJvlO86dM
+=TnkV
+-----END PGP SIGNATURE-----
+
+--Ai6NJizWfpRUKxSm--
