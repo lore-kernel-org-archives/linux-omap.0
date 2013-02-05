@@ -1,73 +1,97 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH V3 5/7] ARM: OMAP3: Update clocksource timer selection
-Date: Tue, 05 Feb 2013 10:39:27 +0200
-Message-ID: <5110C53F.1010203@compulab.co.il>
-References: <1360007196-21350-1-git-send-email-jon-hunter@ti.com> <1360007196-21350-6-git-send-email-jon-hunter@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 02/13] USB: phy: nop: Defer probe if device needs VCC/RESET
+Date: Tue, 5 Feb 2013 10:44:05 +0200
+Message-ID: <5110C655.3060305@ti.com>
+References: <1359993540-20780-1-git-send-email-rogerq@ti.com> <1359993540-20780-3-git-send-email-rogerq@ti.com> <51109E95.3000307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:35607 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754024Ab3BEIje (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Feb 2013 03:39:34 -0500
-In-Reply-To: <1360007196-21350-6-git-send-email-jon-hunter@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35370 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754024Ab3BEIoa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Feb 2013 03:44:30 -0500
+In-Reply-To: <51109E95.3000307@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: kishon <kishon@ti.com>
+Cc: tony@atomide.com, b-cousson@ti.com, balbi@ti.com, stern@rowland.harvard.edu, linux@arm.linux.org.uk, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, paul@pwsan.com
 
-On 02/04/13 21:46, Jon Hunter wrote:
-> When booting with device-tree for OMAP3 and AM335x devices and a gptimer
-> is used as the clocksource (which is always the case for AM335x), a
-> gptimer located in a power domain that is not always-on is selected.
-> Ideally we should use a gptimer located in a power domain that is always
-> on (such as the wake-up domain) so that time can be maintained during a
-> kernel suspend without keeping on additional power domains unnecessarily.
+On 02/05/2013 07:54 AM, kishon wrote:
+> On Monday 04 February 2013 09:28 PM, Roger Quadros wrote:
+>> Add 2 flags, needs_vcc and needs_reset to platform data.
+>> If the flag is set and the regulator couldn't be found
+>> then we bail out with -EPROBE_DEFER.
+>>
+>> For device tree boot we depend on presensce of vcc-supply/
+>> reset-supply properties to decide if we should bail out
+>> with -EPROBE_DEFER or just continue in case the regulator
+>> can't be found.
+>>
+>> This is required for proper functionality in cases where the
+>> regulator is needed but is probed later than the PHY device.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   drivers/usb/otg/nop-usb-xceiv.c   |    8 ++++++++
+>>   include/linux/usb/nop-usb-xceiv.h |    4 ++++
+>>   2 files changed, 12 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
+>> index adbb7ab..7860e7569 100644
+>> --- a/drivers/usb/otg/nop-usb-xceiv.c
+>> +++ b/drivers/usb/otg/nop-usb-xceiv.c
+>> @@ -147,6 +147,10 @@ static void nop_xeiv_get_dt_pdata(struct device *dev,
+>>
+>>       if (!of_property_read_u32(node, "clock-frequency", &clk_rate))
+>>           pdata->clk_rate = clk_rate;
+>> +    if (of_property_read_bool(node, "vcc-supply"))
+>> +        pdata->needs_vcc = true;
+> This can be written as..
+> pdata->needs_vcc = of_property_read_bool(node, "vcc-supply");
+
+OK.
+
 > 
-> In order to fix this so that we can select a gptimer located in a power
-> domain that is always-on, the following changes were made ...
-> 1. Currently, only when selecting a gptimer to use for a clockevent
->    timer, do we pass a timer property that can be used to select a
->    specific gptimer. Change this so that we can pass a property when
->    selecting a gptimer to use for a clocksource timer too.
-> 2. Currently, when selecting either a gptimer to use for a clockevent
->    timer or a clocksource timer and no timer property is passed, then
->    the first available timer is selected regardless of the properties
->    it has. Change this so that if no properties are passed, then a timer
->    that does not have additional features (such as always-on, dsp-irq,
->    pwm, and secure) is selected.
+>> +    if (of_property_read_bool(node, "reset-supply"))
+>> +        pdata->needs_reset = true;
+> same here..
+>>   }
+>>
+>>   static int nop_usb_xceiv_probe(struct platform_device *pdev)
+>> @@ -205,12 +209,16 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+>>       if (IS_ERR(nop->vcc)) {
+>>           dev_dbg(&pdev->dev, "Error getting vcc regulator: %ld\n",
+>>                       PTR_ERR(nop->vcc));
+>> +        if (pdata->needs_vcc)
+>> +            return -EPROBE_DEFER;
+>>       }
+>>
+>>       nop->reset = devm_regulator_get(&pdev->dev, "reset");
+>>       if (IS_ERR(nop->reset)) {
+>>           dev_dbg(&pdev->dev, "Error getting reset regulator: %ld\n",
+>>                       PTR_ERR(nop->reset));
+>> +        if (pdata->needs_reset)
+>> +            return -EPROBE_DEFER;
+>>       }
+>>
+>>       nop->dev        = &pdev->dev;
+>> diff --git a/include/linux/usb/nop-usb-xceiv.h b/include/linux/usb/nop-usb-xceiv.h
+>> index 3265b61..148d351 100644
+>> --- a/include/linux/usb/nop-usb-xceiv.h
+>> +++ b/include/linux/usb/nop-usb-xceiv.h
+>> @@ -6,6 +6,10 @@
+>>   struct nop_usb_xceiv_platform_data {
+>>       enum usb_phy_type type;
+>>       unsigned long clk_rate;
+>> +
+>> +    /* if set fails with -EPROBE_DEFER if can't get regulator */
+>> +    unsigned int needs_vcc:1;
+>> +    unsigned int needs_reset:1;
 > 
-> Please note that using a gptimer for both clocksource and clockevents
-> can have a system power impact during idle. The reason being is that
-> OMAP and AMxxx devices typically only have one gptimer in a power domain
-> that is always-on. Therefore when the kernel is idle both the clocksource
-> and clockevent timers will be active and this will keep additional power
-> domains on. During kernel suspend, only the clocksource timer is active
-> and therefore, it is better to use a gptimer in a power domain that is
-> always-on for clocksource.
+> how about u8 here?
 
-Hmmm...
-Do I miss something or you have forgot to update the commit message?
+Not sure. Bitfields are usually defined as unsigned int.
 
-> 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> ---
->  arch/arm/mach-omap2/timer.c |   33 +++++++++++++++++++++------------
->  1 file changed, 21 insertions(+), 12 deletions(-)
-
-[...]
-
->  #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
-> -OMAP_SYS_GP_TIMER_INIT(3, 1, "timer_sys_ck", "ti,timer-alwon",
-> -		       2, "timer_sys_ck");
-> +OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
-> +		       1, "timer_sys_ck", "ti,timer-alwon");
->  #endif
-
-[...]
-
-
--- 
-Regards,
-Igor.
+cheers,
+-roger
