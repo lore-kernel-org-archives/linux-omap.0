@@ -1,140 +1,134 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP: Audio support via omap-twl4030 and pwm
- support
-Date: Tue, 5 Feb 2013 10:46:21 +0100
-Message-ID: <5110D4ED.6030306@ti.com>
-References: <50FE64DC.2030808@ti.com> <510788B9.9050907@ti.com> <20130130220532.GA22517@atomide.com> <20130204195251.GS22517@atomide.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 4/6] ARM: dts: omap5: add dwc3 omap dt data
+Date: Tue, 5 Feb 2013 11:46:51 +0200
+Message-ID: <20130205094650.GO32118@arwen.pp.htv.fi>
+References: <1359112312-6918-1-git-send-email-kishon@ti.com>
+ <1359112312-6918-5-git-send-email-kishon@ti.com>
+ <510432BF.80808@mvista.com> <5110C2E6.30504@ti.com>
+ <20130205083828.GE32118@arwen.pp.htv.fi> <5110C6EC.6050606@ti.com>
+ <5110CBB9.5080307@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38052 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750844Ab3BEJqZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Feb 2013 04:46:25 -0500
-In-Reply-To: <20130204195251.GS22517@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============2154298070667640374=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <5110CBB9.5080307-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon <kishon-l0cyMroinI0@public.gmane.org>, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, s-guiriec-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony,
+--===============2154298070667640374==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="G23JYFG0d77Z6i/3"
+Content-Disposition: inline
 
-On 02/04/2013 08:52 PM, Tony Lindgren wrote:
-> Looks like this now adds some new section warnings:
->=20
-> WARNING: vmlinux.o(.text+0x34124): Section mismatch in reference from=
- the function sdp3430_twl_gpio_setup() to the function .init.text:omap_=
-twl4030_audio_init()
-> The function sdp3430_twl_gpio_setup() references
-> the function __init omap_twl4030_audio_init().
-> This is often because sdp3430_twl_gpio_setup lacks a __init=20
-> annotation or the annotation of omap_twl4030_audio_init is wrong.
->=20
-> WARNING: vmlinux.o(.text+0x34b8c): Section mismatch in reference from=
- the function zoom_twl_gpio_setup() to the function .init.text:omap_twl=
-4030_audio_init()
-> The function zoom_twl_gpio_setup() references
-> the function __init omap_twl4030_audio_init().
-> This is often because zoom_twl_gpio_setup lacks a __init=20
-> annotation or the annotation of omap_twl4030_audio_init is wrong.
+--G23JYFG0d77Z6i/3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-=46or some reason the CONFIG_DEBUG_SECTION_MISMATCH got disabled in my =
-rolling
-kernel config...
+On Tue, Feb 05, 2013 at 02:37:05PM +0530, Santosh Shilimkar wrote:
+> On Tuesday 05 February 2013 02:16 PM, kishon wrote:
+> >Hi,
+> >
+> >On Tuesday 05 February 2013 02:08 PM, Felipe Balbi wrote:
+> >>On Tue, Feb 05, 2013 at 01:59:26PM +0530, kishon wrote:
+> >>>On Sunday 27 January 2013 01:17 AM, Sergei Shtylyov wrote:
+> >>>>Hello.
+> >>>>
+> >>>>On 25-01-2013 15:11, Kishon Vijay Abraham I wrote:
+> >>>>
+> >>>>>Add dwc3 omap glue data to the omap5 dt data file. The information
+> >>>>>about
+> >>>>>the dt node added here is available @
+> >>>>>Documentation/devicetree/bindings/usb/omap-usb.txt
+> >>>>
+> >>>>>Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> >>>>>---
+> >>>>>  arch/arm/boot/dts/omap5.dtsi |   11 +++++++++++
+> >>>>>  1 file changed, 11 insertions(+)
+> >>>>
+> >>>>>diff --git a/arch/arm/boot/dts/omap5.dtsi
+> >>>>>b/arch/arm/boot/dts/omap5.dtsi
+> >>>>>index 5f59bf2..1703a72 100644
+> >>>>>--- a/arch/arm/boot/dts/omap5.dtsi
+> >>>>>+++ b/arch/arm/boot/dts/omap5.dtsi
+> >>>>>@@ -513,6 +513,17 @@
+> >>>>>              ti,type =3D <2>;
+> >>>>>          };
+> >>>>>
+> >>>>>+        omap_dwc3@4a020000 {
+> >>>>>+            compatible =3D "ti,dwc3";
+> >>>>>+            ti,hwmods =3D "usb_otg_ss";
+> >>>>>+            reg =3D <0x4a020000 0x1ff>;
+> >>>>
+> >>>>    Shoudn't the "reg" length be 0x200 here? It's length, not limit.
+> >>>
+> >>>I think 0x1ff is correct. I got the data from hwmod data.
+> >>
+> >>hwmod is utterly wrong. Looking at TRM, it says the size here is 64KiB
+> >>(0x10000), so is the size for dwc3 itself. Please don't blindly trust
+> >>hwmod, make sure you read data from TRM ;-)
+> >
+> >hmm..ok. But it has only 17 registers :-D
+> >
+> As Felipe said, it should be 0x200. And if you are
+> interested in lesser space, there is no need to map entire 64 KB
+> address space if it isn't being used.
 
+We get really close to using all of it. For DWC3, the last address is at
+0xcc10 (a 32-bit register).
 
-> These can be fixed with the following patch, but I suspect some
-> of these cannot be __init/__initdata if the driver reprobes.
->=20
-> Can you please check this? I'll hold on sendinf off
-> this branch until it's been checked and fixed properly.
+For dwc3-wrapper, then it's correct, we don't use it, I would still map
+the whole thing to make it future proof.
 
-I think this is not the correct way. the *_twl_gpio_setup() is called f=
-rom the
-gpio-twl4030 driver's platform_driver probe function which if I'm not m=
-istaken
-is not __init.
-
-I think we should remove the __init from the omap_twl4030_audio_init() =
-in
-twl-common.c
-With this change I do not have section mismatch either.
+Any draw-backs from mapping all 64K ?
 
 --=20
-P=E9ter
+balbi
 
->=20
-> Regards,
->=20
-> Tony
->=20
->=20
-> --- a/arch/arm/mach-omap2/board-3430sdp.c
-> +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -223,7 +223,7 @@ static struct omap_tw4030_pdata omap_twl4030_audi=
-o_data =3D {
->  	.has_linein	=3D OMAP_TWL4030_LEFT | OMAP_TWL4030_RIGHT,
->  };
-> =20
-> -static int sdp3430_twl_gpio_setup(struct device *dev,
-> +static int __init sdp3430_twl_gpio_setup(struct device *dev,
->  		unsigned gpio, unsigned ngpio)
->  {
->  	/* gpio + 0 is "mmc0_cd" (input/IRQ),
-> @@ -245,7 +245,7 @@ static int sdp3430_twl_gpio_setup(struct device *=
-dev,
->  	return 0;
->  }
-> =20
-> -static struct twl4030_gpio_platform_data sdp3430_gpio_data =3D {
-> +static struct twl4030_gpio_platform_data __initdata sdp3430_gpio_dat=
-a =3D {
->  	.pulldowns	=3D BIT(2) | BIT(6) | BIT(8) | BIT(13)
->  				| BIT(16) | BIT(17),
->  	.setup		=3D sdp3430_twl_gpio_setup,
-> @@ -374,7 +374,7 @@ static struct regulator_init_data sdp3430_vsim =3D=
- {
->  	.consumer_supplies	=3D sdp3430_vsim_supplies,
->  };
-> =20
-> -static struct twl4030_platform_data sdp3430_twldata =3D {
-> +static struct twl4030_platform_data __initdata sdp3430_twldata =3D {
->  	/* platform_data for children goes here */
->  	.gpio		=3D &sdp3430_gpio_data,
->  	.keypad		=3D &sdp3430_kp_data,
-> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-> @@ -238,7 +238,7 @@ static struct omap_tw4030_pdata omap_twl4030_audi=
-o_data =3D {
->  	.has_linein	=3D OMAP_TWL4030_LEFT | OMAP_TWL4030_RIGHT,
->  };
-> =20
-> -static int zoom_twl_gpio_setup(struct device *dev,
-> +static int __init zoom_twl_gpio_setup(struct device *dev,
->  		unsigned gpio, unsigned ngpio)
->  {
->  	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
-> @@ -252,11 +252,11 @@ static int zoom_twl_gpio_setup(struct device *d=
-ev,
->  	return 0;
->  }
-> =20
-> -static struct twl4030_gpio_platform_data zoom_gpio_data =3D {
-> +static struct twl4030_gpio_platform_data __initdata zoom_gpio_data =3D=
- {
->  	.setup		=3D zoom_twl_gpio_setup,
->  };
-> =20
-> -static struct twl4030_platform_data zoom_twldata =3D {
-> +static struct twl4030_platform_data __initdata zoom_twldata =3D {
->  	/* platform_data for children goes here */
->  	.gpio		=3D &zoom_gpio_data,
->  	.keypad		=3D &zoom_kp_twl4030_data,
->=20
+--G23JYFG0d77Z6i/3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRENUKAAoJEIaOsuA1yqREm5kQAKHEtm1CcMceK3bB2JTyaxDe
+P+cMlkSXLNo67MR0fnLketFIwy/ELQIwARg1uBTj/wIwRTa2YmW/AGmos1vG7wO/
+nA6tDD8Pbp+apdtkyLBudq6IDk5aEIGcFv9pl6fDTyV2mQB9m+HiYDRfsJhoPPGy
+K1rEDzvKkNJc7TMr0ZwYgzcJmNabezjpyXMsfPrKisncaz5zKHOAHVzfAMcsuwZO
+1M8ja/fpLfXRW9zgs1rCMz3jyyvWKrs0fmAiAzkqFJfRxV7kZJoT9j2nPPX/milZ
+oTj2UPNAYjcugZcB4ABBzLb64FzjV040pF8PMKulZ0/fjHBfFdRjBkii8psYE2nU
+yoIRV3HguGXJhbBY4mkAIDyO5XeYj6euosC39C6HAIuwQJ6dOg1NtiJgfcn0ojK0
+Duh7I6GATPwTg3YISvpV3vMaZ0dJPpyyWot2sfAAocnWc9uduLkocn+n35YhgwXQ
+Nppn1X5OddfJ40jmCuqe9qj3D46+YdnfMO23X5iCsuu0sxFwuxFS/JQd4bQUmI1a
+6fICTd2n9t6c7RVfDUXl5uHthg5mVMPO6VDiJ7XBn9/X5HH9kGHKq1sUx4fS8Mqo
+jQ0fBIWhz9fJkIRRkEhsRun48T+slWDUQ4lTs9xfQgZmhpjHM+Uh/zMrwD20OI7m
+AAIW8fQLotUotP8VVL6q
+=yRok
+-----END PGP SIGNATURE-----
+
+--G23JYFG0d77Z6i/3--
+
+--===============2154298070667640374==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============2154298070667640374==--
