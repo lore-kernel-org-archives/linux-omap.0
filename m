@@ -1,115 +1,50 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: how to specify an OMAP clock in device tree?
-Date: Tue, 5 Feb 2013 11:34:33 +0200
-Message-ID: <5110D229.1000808@ti.com>
-References: <1359993540-20780-1-git-send-email-rogerq@ti.com>
- <1359993540-20780-12-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 02/13] USB: phy: nop: Defer probe if device needs VCC/RESET
+Date: Tue, 5 Feb 2013 11:43:54 +0200
+Message-ID: <5110D45A.3040007@ti.com>
+References: <1359993540-20780-1-git-send-email-rogerq@ti.com> <1359993540-20780-3-git-send-email-rogerq@ti.com> <51109E95.3000307@ti.com> <5110C655.3060305@ti.com> <20130205090920.GH32118@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1359993540-20780-12-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, rnayak-l0cyMroinI0@public.gmane.org
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:52822 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750842Ab3BEJoU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Feb 2013 04:44:20 -0500
+In-Reply-To: <20130205090920.GH32118@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: kishon <kishon@ti.com>, tony@atomide.com, b-cousson@ti.com, stern@rowland.harvard.edu, linux@arm.linux.org.uk, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, paul@pwsan.com
 
-Hi Rajendra,
-
-On 02/04/2013 05:58 PM, Roger Quadros wrote:
-> Provide the RESET and Power regulators for the USB PHY,
-> the USB Host port mode and the PHY device.
+On 02/05/2013 11:09 AM, Felipe Balbi wrote:
+> On Tue, Feb 05, 2013 at 10:44:05AM +0200, Roger Quadros wrote:
+>>>> diff --git a/include/linux/usb/nop-usb-xceiv.h b/include/linux/usb/nop-usb-xceiv.h
+>>>> index 3265b61..148d351 100644
+>>>> --- a/include/linux/usb/nop-usb-xceiv.h
+>>>> +++ b/include/linux/usb/nop-usb-xceiv.h
+>>>> @@ -6,6 +6,10 @@
+>>>>   struct nop_usb_xceiv_platform_data {
+>>>>       enum usb_phy_type type;
+>>>>       unsigned long clk_rate;
+>>>> +
+>>>> +    /* if set fails with -EPROBE_DEFER if can't get regulator */
+>>>> +    unsigned int needs_vcc:1;
+>>>> +    unsigned int needs_reset:1;
+>>>
+>>> how about u8 here?
+>>
+>> Not sure. Bitfields are usually defined as unsigned int.
 > 
-> Also provide pin multiplexer information for the USB host
-> pins.
+> IIRC the benefit is that compiler can try to optimize those flags. I
+> mean, if you have 32 1-bit flags, compiler will combine those in a
+> single u32. Someone correct me if I'm wrong.
 > 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/boot/dts/omap4-panda.dts |   55 +++++++++++++++++++++++++++++++++++++
->  1 files changed, 55 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-> index 4122efe..fe2d3d4 100644
-> --- a/arch/arm/boot/dts/omap4-panda.dts
-> +++ b/arch/arm/boot/dts/omap4-panda.dts
-> @@ -57,6 +57,35 @@
->  			"AFML", "Line In",
->  			"AFMR", "Line In";
->  	};
-> +
-> +	/* HS USB Port 1 RESET */
-> +	hsusb1_reset: hsusb1_reset_reg {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "hsusb1_reset";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +		gpio = <&gpio2 30 0>;	/* gpio_62 */
-> +		startup-delay-us = <70000>;
-> +		enable-active-high;
-> +	};
-> +
-> +	/* HS USB Port 1 Power */
-> +	hsusb1_power: hsusb1_power_reg {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "hsusb1_vbus";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +		gpio = <&gpio1 1 0>;	/* gpio_1 */
-> +		startup-delay-us = <70000>;
-> +		enable-active-high;
-> +	};
-> +
-> +	/* HS USB Host PHY on PORT 1 */
-> +	hsusb1_phy: hsusb1_phy {
-> +		compatible = "usb-nop-xceiv";
-> +		reset-supply = <&hsusb1_reset>;
-> +		vcc-supply = <&hsusb1_power>;
-> +	};
 
-This is the patch I was discussing with you about before.
-
-Let me explain the problem again.
-
-The Pandaboard has a USB PHY whose reference clock is provided by
-FREF_CLK3 pin which is a clock generated by the OMAP.
-The PHY driver expects a reference to this clock in the PHY device node.
-See the above node hsusb1_phy. we would need something like
-	hsusb1_phy {
-		...
-		clocks = <&fref_clk3>;
-		clock-names = "main_clk";
-		...
-	};
-
-Currently on OMAP, there is no way to provide a phandle to this clock.
-
-Is it practical to provide device tree based implementation of at least
-the externally accessible OMAP clocks?
+Yes you are right. Kishon was asking me to use u8 instead of unsigned int, which
+I don't think is necessary. AFAIK, it is a norm to use unsigned int when defining
+a bitfield. Compilers are known to behave funny with bitfields. I don't mind
+using bool for each.
 
 cheers,
 -roger
-
->  };
->  
->  &omap4_pmx_core {
-> @@ -67,6 +96,7 @@
->  			&mcbsp1_pins
->  			&dss_hdmi_pins
->  			&tpd12s015_pins
-> +			&hsusbb1_pins
->  	>;
->  
->  	twl6040_pins: pinmux_twl6040_pins {
-> @@ -110,6 +140,23 @@
->  			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
->  		>;
->  	};
