@@ -1,97 +1,53 @@
-From: kishon <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 02/13] USB: phy: nop: Defer probe if device needs VCC/RESET
-Date: Tue, 5 Feb 2013 11:24:29 +0530
-Message-ID: <51109E95.3000307@ti.com>
-References: <1359993540-20780-1-git-send-email-rogerq@ti.com>
- <1359993540-20780-3-git-send-email-rogerq@ti.com>
+From: kishon <kishon@ti.com>
+Subject: Re: [PATCH 04/13] mfd: omap-usb-tll: Add device tree support
+Date: Tue, 5 Feb 2013 11:34:15 +0530
+Message-ID: <5110A0DF.7050609@ti.com>
+References: <1359993540-20780-1-git-send-email-rogerq@ti.com> <1359993540-20780-5-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1359993540-20780-3-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:59475 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751070Ab3BEGEc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Feb 2013 01:04:32 -0500
+In-Reply-To: <1359993540-20780-5-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, b-cousson@ti.com, balbi@ti.com, stern@rowland.harvard.edu, linux@arm.linux.org.uk, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, paul@pwsan.com, Samuel Ortiz <sameo@linux.intel.com>
 
 On Monday 04 February 2013 09:28 PM, Roger Quadros wrote:
-> Add 2 flags, needs_vcc and needs_reset to platform data.
-> If the flag is set and the regulator couldn't be found
-> then we bail out with -EPROBE_DEFER.
+> Enable this driver to probe in device tree boot.
 >
-> For device tree boot we depend on presensce of vcc-supply/
-> reset-supply properties to decide if we should bail out
-> with -EPROBE_DEFER or just continue in case the regulator
-> can't be found.
->
-> This is required for proper functionality in cases where the
-> regulator is needed but is probed later than the PHY device.
->
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> CC: Samuel Ortiz <sameo@linux.intel.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->   drivers/usb/otg/nop-usb-xceiv.c   |    8 ++++++++
->   include/linux/usb/nop-usb-xceiv.h |    4 ++++
->   2 files changed, 12 insertions(+), 0 deletions(-)
+>   .../devicetree/bindings/mfd/omap-usb-tll.txt       |   17 +++++++++++++++++
+>   drivers/mfd/omap-usb-tll.c                         |    9 +++++++++
+>   2 files changed, 26 insertions(+), 0 deletions(-)
+>   create mode 100644 Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
 >
-> diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
-> index adbb7ab..7860e7569 100644
-> --- a/drivers/usb/otg/nop-usb-xceiv.c
-> +++ b/drivers/usb/otg/nop-usb-xceiv.c
-> @@ -147,6 +147,10 @@ static void nop_xeiv_get_dt_pdata(struct device *dev,
->
->   	if (!of_property_read_u32(node, "clock-frequency", &clk_rate))
->   		pdata->clk_rate = clk_rate;
-> +	if (of_property_read_bool(node, "vcc-supply"))
-> +		pdata->needs_vcc = true;
-This can be written as..
-pdata->needs_vcc = of_property_read_bool(node, "vcc-supply");
-
-> +	if (of_property_read_bool(node, "reset-supply"))
-> +		pdata->needs_reset = true;
-same here..
->   }
->
->   static int nop_usb_xceiv_probe(struct platform_device *pdev)
-> @@ -205,12 +209,16 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
->   	if (IS_ERR(nop->vcc)) {
->   		dev_dbg(&pdev->dev, "Error getting vcc regulator: %ld\n",
->   					PTR_ERR(nop->vcc));
-> +		if (pdata->needs_vcc)
-> +			return -EPROBE_DEFER;
->   	}
->
->   	nop->reset = devm_regulator_get(&pdev->dev, "reset");
->   	if (IS_ERR(nop->reset)) {
->   		dev_dbg(&pdev->dev, "Error getting reset regulator: %ld\n",
->   					PTR_ERR(nop->reset));
-> +		if (pdata->needs_reset)
-> +			return -EPROBE_DEFER;
->   	}
->
->   	nop->dev		= &pdev->dev;
-> diff --git a/include/linux/usb/nop-usb-xceiv.h b/include/linux/usb/nop-usb-xceiv.h
-> index 3265b61..148d351 100644
-> --- a/include/linux/usb/nop-usb-xceiv.h
-> +++ b/include/linux/usb/nop-usb-xceiv.h
-> @@ -6,6 +6,10 @@
->   struct nop_usb_xceiv_platform_data {
->   	enum usb_phy_type type;
->   	unsigned long clk_rate;
+> diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt b/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
+> new file mode 100644
+> index 0000000..835cf4f
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
+> @@ -0,0 +1,17 @@
+> +OMAP HS USB Host TLL (Transceiver-Less Interface)
 > +
-> +	/* if set fails with -EPROBE_DEFER if can't get regulator */
-> +	unsigned int needs_vcc:1;
-> +	unsigned int needs_reset:1;
-
-how about u8 here?
+> +Required properties:
+> +
+> +- compatible : should be "ti,usbhs-tll"
+> +- reg : should contain one register range i.e. start and length
+> +- interrupts : should contain the TLL module's interrupt
+> +- ti,hwmod : must contain "usb_tll_hs"
+> +
+> +Example:
+> +
+> +	usbhstll: usbhstll@0x4a062000 {
+The node name shouldn't have 0x. This comment applies to all your 
+patches adding device tree support.
 
 Thanks
 Kishon
