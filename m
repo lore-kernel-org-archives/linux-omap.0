@@ -1,48 +1,55 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 09/13] mfd: omap-usb-host: Add device tree support and
- binding information
-Date: Tue, 5 Feb 2013 16:11:41 +0000
-Message-ID: <20130205161141.GD26842@e106331-lin.cambridge.arm.com>
-References: <1359993540-20780-1-git-send-email-rogerq@ti.com>
- <1359993540-20780-10-git-send-email-rogerq@ti.com>
- <20130205142049.GC26842@e106331-lin.cambridge.arm.com>
- <51111A41.4050607@ti.com>
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: Re: DT GPMC SRAM and NOR flash support ?
+Date: Tue, 05 Feb 2013 16:16:12 +0000
+Message-ID: <5111304C.7090706@mimc.co.uk>
+References: <510BF3D3.3000304@mimc.co.uk> <510BF766.5090608@ti.com> <510C19FC.8090906@mimc.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:56773 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755985Ab3BEQLr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Feb 2013 11:11:47 -0500
-In-Reply-To: <51111A41.4050607@ti.com>
-Content-Disposition: inline
+Received: from mercuryimc.plus.com ([80.229.200.144]:37086 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754248Ab3BEQQN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Feb 2013 11:16:13 -0500
+In-Reply-To: <510C19FC.8090906@mimc.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, Samuel Ortiz <sameo@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-[...]
-
-> >> +
-> >> +- single_ulpi_bypass: Must be present if the controller contains a single
-> >> +  ULPI bypass control bit. e.g. OMAP3 silicon <= ES2.1
-> > 
-> > Again it would be nicer to have '-' rather than '_' here. It might be worth
-> > prefixing this "ti,".
+On 01/02/13 19:39, Mark Jackson wrote:
+> On 01/02/13 17:12, Jon Hunter wrote:
+>> Hi Mark,
+>>
+>> On 02/01/2013 10:56 AM, Mark Jackson wrote:
+>>> There's plenty of DT support going in for NAND flash, but is there any work going on to support NOR
+>>> flash ?
+>>
+>> What board and device are you working that is using NOR? I have a
+>> OMAP2420 H4 with NOR that I have been doing a bit of maintenance for but
+>> I don't spend much time on it. Eventually it will have to be done but it
+>> is always good to know if there is a pressing need.
 > 
-> Is prefixing with "ti" really required? how does it better?
+> We have a custom AM335x CPU board (arriving on my desk within the next few weeks) that has both NAND
+> and NOR Flash.
+> 
+>>> And how about SRAM chips or other memory mapped devices ?
+>>
+>> Not sure about SRAM (trying to think if I have a board with SRAM even),
+>> but definitely, boards using the GPMC to interface to ethernet chips
+>> need to be added.
+> 
+> The board also contains an FRAM chip (which is just treated as SRAM).
+> 
+> If you'd anything in the pipeline, I'm glad to help in any testing. I've created a custom cape board
+> for the BeagleBone which contains the NOR flash and FRAM chips, so I'm not waiting for the new
+> hardware to arrive.
 
-I thought single-ulpi-bypass sounded rather generic, but it probably is
-specific enough as-is. I don't know enough about USB hardware to have strong
-feelings either way.
+I've experimented with trying to add a mtd-physmap device, but no joy.
 
-[...]
+I'm guessing that the current mtd-physmap code is (in some way) currently incompatible with the GPMC
+device ?
 
-> Thanks for the in-depth review :).
+Mark J.
 
-You're welcome.
-
-Thanks,
-Mark.
 
