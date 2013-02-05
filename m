@@ -1,111 +1,101 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 1/2] ARM: dts: OMAP3: Add GPMC controller
-Date: Tue, 5 Feb 2013 20:40:58 +0100
-Message-ID: <CABxcv=ms0DOHL8ooktLi+_gQGvGOiKpNgx7gKnU5BUX1pWkAJQ@mail.gmail.com>
-References: <1359395648-2137-1-git-send-email-florian.vaussard@epfl.ch>
-	<1359395648-2137-2-git-send-email-florian.vaussard@epfl.ch>
-	<CABxcv=k_gwB3ExQYUeappDZ6FE4L7x8Acer4ZQpDH09BL6LG0Q@mail.gmail.com>
-	<510F8F49.9020800@epfl.ch>
-	<CABxcv==7KiBbkTyr7VLVw82F=9vVWRftpbyZWub_CVp3pQW0tQ@mail.gmail.com>
-	<51114003.9070405@epfl.ch>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: OMAP4 PM bootloader dependency problems
+Date: Tue, 5 Feb 2013 13:45:31 -0600
+Message-ID: <5111615B.50708@ti.com>
+References: <alpine.DEB.2.00.1301220229140.25789@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:34180 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754880Ab3BETlA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Feb 2013 14:41:00 -0500
-Received: by mail-wi0-f170.google.com with SMTP id hm11so6077804wib.5
-        for <linux-omap@vger.kernel.org>; Tue, 05 Feb 2013 11:40:58 -0800 (PST)
-In-Reply-To: <51114003.9070405@epfl.ch>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43847 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755964Ab3BETpg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Feb 2013 14:45:36 -0500
+In-Reply-To: <alpine.DEB.2.00.1301220229140.25789@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: florian.vaussard@epfl.ch
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: t-kristo@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
 
-On Tue, Feb 5, 2013 at 6:23 PM, Florian Vaussard
-<florian.vaussard@epfl.ch> wrote:
-> Hi Javier,
->
+Hi Paul,
 
-Hi Florian,
+On 01/21/2013 08:42 PM, Paul Walmsley wrote:
+> 
+> Hi Tero, Rajendra, Santosh,
+> 
+> As we've discussed, there are known bootloader dependencies with the OMAP4 
+> PM retention idle code, introduced in v3.8.  Boards booted with u-boot 
+> versions even as recent as 2011 won't enter retention idle correctly; for 
+> example:
+> 
+>     http://www.pwsan.com/omap/testlogs/test_v3.8-rc4/20130120122039/pm/4430es2panda/4430es2panda_log.txt
+> 
+> The right thing for you all to do is what was done for OMAP3: to add code 
+> to correctly reset and initialize these on-chip devices.  However, since 
+> it's already late in the v3.8-rc cycle, this seems unlikely to happen in 
+> time for the v3.8 release -- and that's assuming that you guys are working 
+> on this, which I'm unsure of.
 
-> On 02/04/2013 12:57 PM, Javier Martinez Canillas wrote:
->
-> [...]
->
->
->>
->> Yes, I saw on the list that Tony asked you too extend the GPMC DT
->> support. Flash support is on my TODO list too but I don't know if I'm
->> going to have time to work on this in the next few weeks.
->>
->> Since you are thinking to change the binding, there is something I
->> want to discuss with you.
->>
->> We have two different version for each IGEP board, one that uses NAND
->> memory and another that has OneNAND.
->>
->> With board files this is easy because the flash memory type is
->> hardcoded (in hardware) using sysboot pins [3]. So we check the
->> sysboot value and call board_nand_init() or board_onenand_init()
->> accordingly and pass the same static struct mtd_partition
->> igep_flash_partitions[] in both cases.
->>
->> But with DT this is a little bit trickier since you have to define
->> either a nand@0 or onenand@0 child node for the gpmc device node. So,
->> we will have to create lots of dts and dtsi to handle each combination
->> (IGEPv2 + NAND, IGEPv2 + OneNAND, IGEP COM + NAND, etc).
->>
->> I wonder if we could just have a generic gpmc-flash binding and maybe
->> use a "gpmc, flash_type" property or something like that to decide if
->> gpmc_onenand_init() or gpmc_nand_init() has to be called.
->>
->
-> This boils down to the problem where you have an "if" statement in
-> your board file, and I think no general solution exists.
->
+I noticed on my OMAP4430 SDP that in suspend L3INIT was failing to enter 
+retention state. I am not sure if this is the same problem that you are 
+seeing or not. However, I found that the reason the L3INIT was not entering
+retention on this board was because the USB DPLL was not locked by the
+bootloader on this board. On my panda the USB DPLL is locked the L3INIT 
+is entering suspend. 
 
-Yes, this is a general issue since DT uses a declarative paradigm.
+I crafted the following which is working on my omap4430 panda, sdp and 
+omap4460 panda. Let me know what you think ...
 
-I was just pointing out that I found that particular issue with the flash
-memory type on IGEP boards.
+Cheers
+Jon
 
-> In your suggestion, having a property will force you anyway to write
-> distinct DT files to account for the two versions, so it won't really
-> help if I understand correctly. We would need conditional
-> section inside device trees, at least to test for simple parameters.
-> Or a way to generate several DT blobs based on a single DT source file.
->
+>From 3bfe708af8e91564bc78c79111f9080a35fb5b88 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jon-hunter@ti.com>
+Date: Tue, 5 Feb 2013 13:27:57 -0600
+Subject: [PATCH] ARM: OMAP4: Fix low power in kernel suspend
 
-Well you will still need a different dtb for each <board,flash type> combination
-but it could make your device trees smaller and simpler since you can define
-your GPMC flash child node on a dtsi where you set all the partition and sizes
-and export that device node to your boards dts that only set the
-"gpmc, flash_type"
-property to nand or onenand (assuming both your NAND and OneNAND version
-have the same partition layout and sizes).
+Some versions of the u-boot bootloader do not lock the USB DPLL and
+when the USB DPLL is not locked, then it is observed that the L3INIT
+power domain does not transition to retention state during kernel
+suspend on OMAP4 devices. Fix this by locking the USB DPLL at 960 MHz
+on kernel boot.
 
-Otherwise you would have to define the complete onenand or nand child node
-on your board dts having duplicated definition for your flash partition layouts.
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/cclock44xx_data.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-> Another hackish solution would be to write a meta component, whose
-> probe section would do your test. But this is just a stripped down version
-> of the board file, far from being generic...
->
-
-Yes, and that doesn't fit on the DT model too well. I still don't know what's
-the best way to do it.
-
-> I will think on it during my holidays :)
->
-
-great, I hope you enjoy your holidays :-)
-
-> Regards,
->
-> Florian
->
-
-Thanks a lot and best regards,
-Javier
+diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+index e71a19c..2c811d9 100644
+--- a/arch/arm/mach-omap2/cclock44xx_data.c
++++ b/arch/arm/mach-omap2/cclock44xx_data.c
+@@ -48,6 +48,13 @@
+  */
+ #define OMAP4_DPLL_ABE_DEFFREQ				98304000
+ 
++/*
++ * OMAP4 USB DPLL default frequency. In OMAP4430 TRM version V, section
++ * "3.6.3.9.5 DPLL_USB Preferred Settings" shows that the preferred
++ * locked frequency for the USB DPLL is 960MHz.
++ */
++#define OMAP4_DPLL_USB_DEFFREQ				960000000
++
+ /* Root clocks */
+ 
+ DEFINE_CLK_FIXED_RATE(extalt_clkin_ck, CLK_IS_ROOT, 59000000, 0x0);
+@@ -2045,5 +2052,13 @@ int __init omap4xxx_clk_init(void)
+ 	if (rc)
+ 		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+ 
++	/*
++	 * Lock USB DPLL on OMAP4 devices so that the L3INIT power
++	 * domain can transition to retention state when not in use.
++	 */
++	rc = clk_set_rate(&dpll_usb_ck, OMAP4_DPLL_USB_DEFFREQ);
++	if (rc)
++		pr_err("%s: failed to configure USB DPLL!\n", __func__);
++
+ 	return 0;
+ }
+-- 
+1.7.10.4
