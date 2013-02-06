@@ -1,142 +1,119 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.8-rc6
-Date: Wed, 6 Feb 2013 23:34:32 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1302062333270.12769@utopia.booyaka.com>
+Subject: Re: [PATCH] ARM: OMAP4: PM: Warn users about usage of older
+ bootloaders
+Date: Wed, 6 Feb 2013 23:44:34 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1302062343230.12769@utopia.booyaka.com>
+References: <1359980683-12079-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38787 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:38833 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755163Ab3BFXed (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Feb 2013 18:34:33 -0500
+	with ESMTP id S1757858Ab3BFXof (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Feb 2013 18:44:35 -0500
+In-Reply-To: <1359980683-12079-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, R Sricharan <r.sricharan@ti.com>
+
+On Mon, 4 Feb 2013, Rajendra Nayak wrote:
+
+> OMAP4 CHIP level PM works only with newer bootloaders. The
+> dependency on the bootloader comes from the fact that the
+> kernel is missing reset and initialization code for some
+> devices.
+> 
+> While the right thing to do is to add reset and init code in
+> the kernel, for some co-processor IP blocks like DSP and IVA
+> it means downloading firmware into each one of them to execute
+> idle instructions.
+> 
+> While a feasible solution is worked upon on how such IP blocks
+> can be better handled in the kernel, in the interim, to avoid
+> any further frustration to users testing PM on OMAP4 and finding
+> it broken, warn them about the bootloader being a possible
+> cause.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: R Sricharan <r.sricharan@ti.com>
+
+Thanks Rajendra, I appreciate the patch.  I've tweaked it slightly and the 
+following is what's queued here; hopefully it can go in for v3.9.
 
 
-Here are some basic OMAP test results for Linux v3.8-rc6.
-Logs and other details at:
+- Paul
 
-    http://www.pwsan.com/omap/testlogs/test_v3.8-rc6/20130206155004/
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Mon, 4 Feb 2013 17:54:43 +0530
+Subject: [PATCH] ARM: OMAP4: PM: Warn users about usage of older bootloaders
 
+OMAP4 CHIP level PM works only with newer bootloaders. The
+dependency on the bootloader comes from the fact that the
+kernel is missing reset and initialization code for some
+devices.
 
-Test summary
-------------
+While the right thing to do is to add reset and init code in
+the kernel, for some co-processor IP blocks like DSP and IVA
+it means downloading firmware into each one of them to execute
+idle instructions.
 
-Boot to userspace:
-    Pass ( 9/11): 2420n800, 2430sdp, 3517evm, 3530es3beagle,
-  	   	  3730beaglexm, 37xxevm, 4430es2panda, 5912osk,
-		  4460pandaes
-    FAIL ( 2/11): am335xbone, cmt3517 
-  
-PM ret/off, suspend + dynamic idle:
-    Pass (3/3): 3530es3beagle, 3730beaglexm, 37xxevm
+While a feasible solution is worked upon on how such IP blocks
+can be better handled in the kernel, in the interim, to avoid
+any further frustration to users testing PM on OMAP4 and finding
+it broken, warn them about the bootloader being a possible
+cause.
 
-PM ret, suspend + dynamic idle:
-    Pass (1/2): 4460pandaes
-    FAIL (1/2): 4430es2panda
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: R Sricharan <r.sricharan@ti.com>
+[paul@pwsan.com: tweaked warning messages and comments slightly]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/pm44xx.c |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
-PM ret, dynamic idle:
-    FAIL (1/1): 2430sdp
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index aa6fd98..502ed9b 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -77,8 +77,18 @@ static int omap4_pm_suspend(void)
+ 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
+ 		pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->saved_logic_state);
+ 	}
+-	if (ret)
++	if (ret) {
+ 		pr_crit("Could not enter target state in pm_suspend\n");
++		/*
++		 * OMAP4 chip PM currently works only with certain (newer)
++		 * versions of bootloaders. This is due to missing code in the
++		 * kernel to properly reset and initialize some devices.
++		 * Warn the user about the bootloader version being one of the
++		 * possible causes.
++		 * http://www.spinics.net/lists/arm-kernel/msg218641.html
++		 */
++		pr_warn("A possible cause could be an old bootloader - try u-boot >= v2012.07\n");
++	}
+ 	else
+ 		pr_info("Successfully put all powerdomains to target state\n");
+ 
+@@ -146,6 +156,13 @@ int __init omap4_pm_init(void)
+ 	}
+ 
+ 	pr_err("Power Management for TI OMAP4.\n");
++	/*
++	 * OMAP4 chip PM currently works only with certain (newer)
++	 * versions of bootloaders. This is due to missing code in the
++	 * kernel to properly reset and initialize some devices.
++	 * http://www.spinics.net/lists/arm-kernel/msg218641.html
++	 */
++	pr_warn("u-boot >= v2012.07 is required for full PM support\n");
+ 
+ 	ret = pwrdm_for_each(pwrdms_setup, NULL);
+ 	if (ret) {
+-- 
+1.7.10.4
 
-
-Failing tests: fixed by posted patches
---------------------------------------
-
-Other:
-
-* 2420N800: powers down 30 seconds after boot
-  - Presumably due to missing CBUS patches for watchdog control
-  - http://lkml.org/lkml/2012/9/3/265
-  - http://marc.info/?l=linux-omap&m=135274739624125&w=2
-  - http://marc.info/?l=linux-omap&m=135664195831104&w=2
-
-
-Failing tests: needing investigation
-------------------------------------
-
-Boot tests:
-
-* am335xbone: hangs after "Starting kernel"
-  - Cause unknown
-  - http://www.mail-archive.com/linux-omap@vger.kernel.org/msg82297.html
-  - http://marc.info/?l=linux-omap&m=135903184512238&w=2
-  - http://www.mail-archive.com/linux-omap@vger.kernel.org/msg83942.html
-
-* 3517EVM & CM-T3517: boot hangs with NFS root
-  - Likely some Kconfig, board file, and PM issues with EMAC
-  - Longstanding bug
-
-* CM-T3517: boot hangs with MMC root
-  - Due to missing MMC setup in board file
-  - http://www.spinics.net/lists/arm-kernel/msg211471.html
-
-Boot warnings:
-
-* 3530es3beagle, 3730beaglexm, 37xxevm: nand_scan_ident() warning
-  - "at drivers/mtd/nand/nand_base.c:2861 nand_scan_ident+0xdb4/0xf90()"
-  - http://marc.info/?l=linux-omap&m=135630897110185&w=2
-
-* CM-T3517: L3 in-band error with IPSS during boot
-  - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
-  - Longstanding issue; does not occur on the 3517EVM
-
-PM tests:
-
-* 2430sdp: pwrdm state mismatch(dsp_pwrdm) 0 != 3
-  - need to doublecheck wakeup dependencies
-
-* 2430sdp: power domains not entering retention
-  - Cause unknown
-
-* 4430es2panda, 4460pandaes: pwrdm state mismatch on CAM, DSS, ABE
-
-* 4460pandaes: pwrdm state mismatch on IVAHD, TESLA 
-
-* 4430es2panda: CORE, TESLA, IVAHD, L3INIT didn't enter target state
-  - Probably due to lack of reset code for M3, DSP, SL2IF, FSUSB
-    per discussion with Tero Kristo
-  - Likely dependent on the bootloader version
-    - fails with 2012.07-00136-g755de79
-
-* 3730 Beagle XM: does not serial wake from off-idle suspend when console
-  UART doesn't clock gate ("debug ignore_loglevel")
-  - Cause unknown
-  - Not yet part of the automated test suite
-  - Re-tested at v3.7; still failing:
-    http://www.pwsan.com/omap/transcripts/20121211-3730beaglexm-3.7-pm-offmode-fail-debug.txt
-
-Other:
-
-* 4430es2panda: omap_hwmod: l3_instr: _wait_target_disable failed
-  - Unknown cause; could be due to the lack of hierarchical enable/disable
-    in hwmod code
-  - Jon Hunter reports this does not appear with the same X-loader/bootloader
-    on his 4430ES2.3 Panda, so could be ES-level dependent
-
-
-Failing tests: needing local investigation (may be due to testbed issues)
--------------------------------------------------------------------------
-
-Boot tests:
-
-* AM335x Beaglebone: omap2plus_defconfig kernels don't boot
-  - May be fixed now, pending retest:
-    - http://marc.info/?l=linux-omap&m=135082257727502&w=2
-  - Not yet part of the automated test suite
-  - Nishanth Menon & Vaibhav Hiremath report that it works for them
-  * May be due to an old U-boot with FDT support problems used here?
-    Pending local investigation and re-test
-
-
-Problems reported by others
----------------------------
-
-(none currently listed)
-
---------------------------------------------------------------
-Branch: test_v3.8-rc6
-Test-Serial: 20130206155004
-Commit-ID: 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7
-Test-Target-Board-Count: 11
