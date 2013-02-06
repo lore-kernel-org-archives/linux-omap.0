@@ -1,68 +1,46 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Bad divider used for sysclk for DSS and ABE (CM_ABE_DSS_SYS_CLKSEL)
-Date: Wed, 6 Feb 2013 13:33:24 +0200
-Message-ID: <51123F84.3040101@ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH 1/4] arch: arm: gpmc: gpmc migration support
+Date: Wed, 6 Feb 2013 11:38:57 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3EA6E6A3@DBDE01.ent.ti.com>
+References: <1358933176-12409-1-git-send-email-avinashphilip@ti.com>
+ <1358933176-12409-2-git-send-email-avinashphilip@ti.com>
+ <20130201220510.GY22517@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig60CAB2DEED0A6142E780C121"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51661 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751231Ab3BFLd1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Feb 2013 06:33:27 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56633 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750951Ab3BFLkJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Feb 2013 06:40:09 -0500
+In-Reply-To: <20130201220510.GY22517@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Jon Hunter <jon-hunter@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
---------------enig60CAB2DEED0A6142E780C121
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Sat, Feb 02, 2013 at 03:35:10, Tony Lindgren wrote:
+> * Philip Avinash <avinashphilip@ti.com> [130123 01:28]:
+> > With recent GPMC driver conversion, usage of gpmc_save/restore_context
+> > can done from gpmc driver itself. Hence removes the usage from pm34xx.c.
+> > Also removes the conditional compilation primitives ARCH_OMAP3 for
+> > gpmc_save/restore_context.
+> 
+> Hmm I think this will break GPMC for deeper idle modes. Note that we
+> need to save and restore the context every time hitting off-idle, not
+> just for suspend and resume. Or am I missing something here?
 
-Hi Paul,
+I understand dependency on idle modes. So I will send a second version
+with this patch eliminated so that user initiated suspend/resume work
+for am335x platforms.
 
-OMAP4 TRM has a mention in CM_ABE_DSS_SYS_CLKSEL's description:
+Thanks
+Avinash
 
-"Select SYS_CLK divided by 2. Must be used for
-SYS_CLK > 26 MHz"
+> 
+> Regards,
+> 
+> Tony
+> 
 
-This doesn't seem to be enforced with the current kernel. OMAP4 blaze
-has 38.4MHz sys clk, but above mentioned divider is 1.
-
-I made a quick test with omapdss, so that omapdss sets the divider to 2
-when initializing. Everything seemed to work fine, although everything
-has been working fine with the divider 1 also. But I think it'd be wise
-to adhere to the TRM.
-
-Is this something that the bootloader should setup, or should kernel do
-it (also)?
-
- Tomi
-
-
---------------enig60CAB2DEED0A6142E780C121
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJREj+EAAoJEPo9qoy8lh712poQAIncLFWM8QOzKpxhjOaLFZ/l
-f68qXICFXQWr5djjfydWW2R0IC/J4yG5VUzZuGGh9RgzjS7rRbRGBT1as5mtvF4e
-L3gitbjELg47Sleow6orhxi8EWxV97U0ynuRw0yccImnXDdL9IEPgLRNoA5/6Jze
-YZUCvIxLJGP0KUgBjXBwXLVX90qqNJeU/CsIDnVGWXUhe5gTTwbKM3yi1dZxqEPi
-RlIPmTLOsEe+GHDW39bnfFH7BrCyq7fAHDs9AV1ZpvvY/0DQbf168M1PCQuhvx4b
-42GgDGa8FKaJlyLprZ3RSIcj3qFDEDwTFY/iTUWQwHz/jqvqLMbp0GY00zHlCgBt
-EP4+HnIjGNgxHBG/Fl+ybH06/lebmRo9Gdt2uc2hgO2NeXbZZZLwpVhJaXOjvh3g
-TSMIj1FFFV4Vp2ywcLyJ4dKfrp6EMpiXdpB6q2xcnm0ygZvAG2p4SHCc7i+yq0Nu
-FA/3oWahK6kxI1rTCVBrE05u4Jql6gaJg5tT3jBbvdSJvdCSwbRzuobwLXvJzpyP
-CwVzO56EqJHZoV7RoWwuRV4xpvxoaTkzy+SE5GhDSDD/dCnoyBTIpm/jO49rPrFD
-mPn4xYwH03FveGECd9YPyZiPX9QQTnlIvtvWQSzE7ceYl520PnCrvQ5gM7pkfk0W
-jQXPe7OCAdO/vr4Y5Q3v
-=Gwzd
------END PGP SIGNATURE-----
-
---------------enig60CAB2DEED0A6142E780C121--
