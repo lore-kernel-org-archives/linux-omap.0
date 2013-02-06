@@ -1,76 +1,34 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: Re: [PATCH] ARM:omap2: using strlcpy instead of strncpy
-Date: Wed, 06 Feb 2013 10:05:22 +0800
-Message-ID: <5111BA62.8050908@asianux.com>
-References: <51090829.1010109@asianux.com> <20130201224546.GG22517@atomide.com> <510F78AB.4000602@ti.com> <20130204181844.GP22517@atomide.com> <51106BF2.7080203@asianux.com> <20130205185648.GM25185@atomide.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: DT GPMC SRAM and NOR flash support ?
+Date: Wed, 6 Feb 2013 05:07:19 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EAA1F0D@DBDE01.ent.ti.com>
+References: <510BF3D3.3000304@mimc.co.uk> <510BF766.5090608@ti.com>
+ <510C19FC.8090906@mimc.co.uk> <5111304C.7090706@mimc.co.uk>
+ <511134C8.8000008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:37490 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757050Ab3BFCFa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Feb 2013 21:05:30 -0500
-In-Reply-To: <20130205185648.GM25185@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49421 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750716Ab3BFFH0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Feb 2013 00:07:26 -0500
+In-Reply-To: <511134C8.8000008@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Hunter, Jon" <jon-hunter@ti.com>, Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-=D3=DA 2013=C4=EA02=D4=C206=C8=D5 02:56, Tony Lindgren =D0=B4=B5=C0:
-> * Chen Gang <gang.chen@asianux.com> [130204 18:22]:
->> >   Does it mean: we need not sync MAINTAINERS file for twl-*, recen=
-tly ?
->> >=20
->> >   :-)
-> No we should still do it.
->=20
-> Tony
->=20
-
-  ok, thanks.
-
-  if necessary (no other members do it), I should perform.
-  if really should I do:
-
-    requirements:
-      A) I should succeed provide at least 3 valuable patches to twl-*
-           (or I am not qualified to provide the sync MAINTAINERS patch=
-)
-
-      B) relative member need give strictly checking for the patch.
-           (so can evaluate whether I have been qualified)
-
-      C) it is necessary to be monitored by the relative mailing lists.
-
-    I should try:
-      A) need mainly focus on the omap2, specially for twl-*
-
-      B) the patch type should be for bug fixing:
-           (I am not familiar with omap2, so can not for new features)
-          i. memory override.
-         ii. resource management.
-        iii. others (compiling issue, type cast, ...)
-
-      C) should provide 3 twl-* valuable patches within 1 month.
-           (have finished one: strlcpy, in Jan 30 2013)
-           (so need finish the other 2 patches, before Feb 28 2013)
-
-    hope I can succeed.
-
-    welcome any members to provide suggestions and completions.
-
-
-  thanks.
-
-  :-)
-
---=20
-Chen Gang
-
-Asianux Corporation
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgSm9uLA0KDQpPbiBUdWUsIEZlYiAwNSwgMjAxMyBhdCAyMjowNToyMCwgSHVudGVyLCBKb24g
+d3JvdGU6DQo+IE9uIDAyLzA1LzIwMTMgMTA6MTYgQU0sIE1hcmsgSmFja3NvbiB3cm90ZToNCg0K
+PiA+Pj4+IFRoZXJlJ3MgcGxlbnR5IG9mIERUIHN1cHBvcnQgZ29pbmcgaW4gZm9yIE5BTkQgZmxh
+c2gsIGJ1dCBpcyB0aGVyZSBhbnkgd29yayBnb2luZyBvbiB0byBzdXBwb3J0IE5PUg0KPiA+Pj4+
+IGZsYXNoID8NCg0KPiA+PiBJZiB5b3UnZCBhbnl0aGluZyBpbiB0aGUgcGlwZWxpbmUsIEknbSBn
+bGFkIHRvIGhlbHAgaW4gYW55IHRlc3RpbmcuIEkndmUgY3JlYXRlZCBhIGN1c3RvbSBjYXBlIGJv
+YXJkDQo+ID4+IGZvciB0aGUgQmVhZ2xlQm9uZSB3aGljaCBjb250YWlucyB0aGUgTk9SIGZsYXNo
+IGFuZCBGUkFNIGNoaXBzLCBzbyBJJ20gbm90IHdhaXRpbmcgZm9yIHRoZSBuZXcNCj4gPj4gaGFy
+ZHdhcmUgdG8gYXJyaXZlLg0KDQo+IFNvcnJ5IGZvciB0aGUgZGVsYXkuIEkgcGVyc29uYWxseSBk
+b24ndCBoYXZlIGFueXRoaW5nIGluIHRoZSBwaXBlLg0KPiANCj4gQWZ6YWwsIGRvIHlvdSBrbm93
+IG9mIGFueW9uZSBsb29raW5nIGF0IHRoaXM/DQoNCkkgYW0gbm90IGF3YXJlIG9mIGFueW9uZSB3
+b3JraW5nIG9uIGl0Lg0KDQpSZWdhcmRzDQpBZnphbA0KDQo=
