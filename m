@@ -1,62 +1,52 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 1/5] ARM: OMAP4: remove control module address space from PHY and OTG
-Date: Wed, 6 Feb 2013 11:28:09 +0530
-Message-ID: <1360130294-5976-2-git-send-email-kishon@ti.com>
+Subject: [PATCH 5/5] usb: omap_control_usb: fix compile warning
+Date: Wed, 6 Feb 2013 11:28:13 +0530
+Message-ID: <1360130294-5976-6-git-send-email-kishon@ti.com>
 References: <1360130294-5976-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41563 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752179Ab3BFF6m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Feb 2013 00:58:42 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1360130294-5976-1-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: gregkh@linuxfoundation.org, tony@atomide.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, b-cousson@ti.com, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
 Cc: kishon@ti.com
+List-Id: linux-omap@vger.kernel.org
 
-Now that we have a separate driver for the control module,
-stop populating the control module device data in other modules
-(PHY and OTG) device info.
+From: Felipe Balbi <balbi@ti.com>
 
+When CONFIG_OMAP_CONTROL_USB isn't enabled,
+there's a compile warning stating that a
+particular function isn't a prototype.
+
+Fix it.
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ include/linux/usb/omap_control_usb.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 793f54a..624a7e8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2702,13 +2702,6 @@ static struct resource omap44xx_usb_phy_and_pll_addrs[] = {
- 		.end		= 0x4a0ae000,
- 		.flags		= IORESOURCE_MEM,
- 	},
--	{
--		/* XXX: Remove this once control module driver is in place */
--		.name		= "ctrl_dev",
--		.start		= 0x4a002300,
--		.end		= 0x4a002303,
--		.flags		= IORESOURCE_MEM,
--	},
- 	{ }
- };
- 
-@@ -6156,12 +6149,6 @@ static struct omap_hwmod_addr_space omap44xx_usb_otg_hs_addrs[] = {
- 		.pa_end		= 0x4a0ab7ff,
- 		.flags		= ADDR_TYPE_RT
- 	},
--	{
--		/* XXX: Remove this once control module driver is in place */
--		.pa_start	= 0x4a00233c,
--		.pa_end		= 0x4a00233f,
--		.flags		= ADDR_TYPE_RT
--	},
- 	{ }
- };
- 
+diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
+index f306db7..27b5b8c 100644
+--- a/include/linux/usb/omap_control_usb.h
++++ b/include/linux/usb/omap_control_usb.h
+@@ -70,7 +70,7 @@ extern void omap_control_usb3_phy_power(struct device *dev, bool on);
+ extern void omap_control_usb_set_mode(struct device *dev,
+ 	enum omap_control_usb_mode mode);
+ #else
+-static inline struct device *omap_get_control_dev()
++static inline struct device *omap_get_control_dev(void)
+ {
+ 	return ERR_PTR(-ENODEV);
+ }
 -- 
 1.7.10.4
-
