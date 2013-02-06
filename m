@@ -1,47 +1,105 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP: Audio support via omap-twl4030 and pwm
- support
-Date: Wed, 6 Feb 2013 08:21:56 +0100
-Message-ID: <51120494.6020407@ti.com>
-References: <50FE64DC.2030808@ti.com> <510788B9.9050907@ti.com> <20130130220532.GA22517@atomide.com> <20130204195251.GS22517@atomide.com> <5110D4ED.6030306@ti.com> <20130205184014.GK25185@atomide.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to arm/common
+Date: Wed, 6 Feb 2013 09:45:08 +0200
+Message-ID: <20130206074508.GB22064@arwen.pp.htv.fi>
+References: <1359742975-10421-1-git-send-email-mporter@ti.com>
+ <20130204154153.GA18237@arwen.pp.htv.fi>
+ <20130205182848.GJ25185@atomide.com>
+ <201302052226.30754.arnd@arndb.de>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39982 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751172Ab3BFHWA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Feb 2013 02:22:00 -0500
-In-Reply-To: <20130205184014.GK25185@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============8912946262857323859=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <201302052226.30754.arnd-r2nGTMty4D4@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 02/05/2013 07:40 PM, Tony Lindgren wrote:
->> For some reason the CONFIG_DEBUG_SECTION_MISMATCH got disabled in my=
- rolling
->> kernel config...
+--===============8912946262857323859==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wq9mPyueHGvFACwf"
+Content-Disposition: inline
+
+--wq9mPyueHGvFACwf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Feb 05, 2013 at 10:26:30PM +0000, Arnd Bergmann wrote:
+> On Tuesday 05 February 2013, Tony Lindgren wrote:
+> > * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [130204 07:46]:
+> > >=20
+> > > Current DMA abstraction is quite poor, for example there's no way to
+> > > compile support for multiple DMA engines. Code also makes certain, IMO
+> > > unnecessary, assumptions about the underlying DMA engine (abstraction=
+ is
+> > > poor, as said above but it we could follow MUSB's programming guide w=
+hen
+> > > it comes to programming DMA transfers).
+> > >=20
+> > > Considering all of the above, it's far better to use DMA engine and g=
+et
+> > > rid of all the mess.
+> >=20
+> > How about just disable MUSB DMA support if ARCH_MULTIPLATFORM for now?
+> > That way MUSB can be fixed up first to support ARCH_MULTIPLATFORM
+> > using PIO while sorting out the DMA related issues.
 >=20
-> At least gcc version 4.3.5 (Debian 4.3.5-4) shows them. What's
-> the compiler you have?=20
+> Sounds ok to me. Someone still needs to do the work to make the non-DMA
+> variants of MUSB coexist in one kernel, but as we discussed erlier, that
+> should be much simpler.
 
-It show for me as well now that I have enabled the
-CONFIG_DEBUG_SECTION_MISMATCH in my config.
+Yeah, I'm cooking some patches to at least make it buildable. Dropping
+unnecessary dependencies and marking da8xx and davinci as depending on
+BROKEN seems to be the easiest way; those two glues hasn't seen a real
+patch since 2010 or so.
 
-My GCC is:
-armv7a-hardfloat-linux-gnueabi-gcc (Gentoo 4.7.2 p1.3, pie-0.5.5) 4.7.2
+--=20
+balbi
 
-> Yes let's do that rather than start copying things around. I'll apply
-> the following fix to the omap-for-v3.9/twl branch.
+--wq9mPyueHGvFACwf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Cool, thanks Tony. I will drop my patch and pick the one from omap-for-=
-v3.9/twl.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Thanks,
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBAgAGBQJREgoEAAoJEIaOsuA1yqRE1usP/R//BpO3v7devKDdQBLwvF8l
+phPe3rz8ETV1nVYLYYrbmBtfDf5DBMD0D0FcehZyPDXcXUeQnlijhTRXVFpyH0Zy
+SIE5djOk1Tn16H06zw0igs5BOo9ErOLL3lBu5wg3fkXehdd81pmGBJKAooEkj2jw
+GSJlsvId2MST7VOuzA0ZX+4hwE0GWSD9H4L0qPiShZXT4fPtLB0KdYWINYe5ydsU
+h1Doapg3ur93Hvaz1otV+a219TMBa3zmtORPnKDeTMKgZmuAPIKJBX2fCY1CmYuh
+c6C5F6xKS6iYsqO+TsDXFM9r2gN0qUG2Y/2nhTsRDP5wNZVqVTQcLlUeSjPPCrI6
+TCp6uQyBjvyMWY8U+sBO0Rvq181PQytCujeH5rcwT5V4Y1Yq0dp+2466jk3STesY
+9Md48ZZYIboKmjkXcN0gE1Ypge79Cdofrxt/fFvPrAro8jw+mSb7GA2nMD8Jts/D
+eKsd6r53u6dBRcrYhTXroWuHKv+lyEffxbmSWmSk3SBM0+LIgEgCyhLycwYq1MyG
+Y12kgteqKgMJlGJbpWmYDJ1szi7KUIrMRwUviRWIKt8NebZrvEcAPyxWy521uKYe
+1gTYGDyw05BP0VlWff8JRAWF027uUBac1tacfpnCg9LtAA0HSTK6gZ2Gb7EYGG81
+NyGEb7Y2apxrUalPd+aF
+=J3m8
+-----END PGP SIGNATURE-----
+
+--wq9mPyueHGvFACwf--
+
+--===============8912946262857323859==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============8912946262857323859==--
