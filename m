@@ -1,80 +1,53 @@
-From: Lars Poeschel <poeschel@lemonage.de>
-Subject: Re: [PATCH 0/3] omap_hsmmc DT DMA Client support
-Date: Wed, 6 Feb 2013 13:41:06 +0100
-Message-ID: <201302061341.06964.poeschel@lemonage.de>
-References: <1359752479-29427-1-git-send-email-mporter@ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 2/5] ARM: OMAP: devices: create device for usb part of
+ control module
+Date: Wed, 06 Feb 2013 17:01:59 +0400
+Message-ID: <51125447.5010209@mvista.com>
+References: <1360130294-5976-1-git-send-email-kishon@ti.com> <1360130294-5976-3-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1359752479-29427-1-git-send-email-mporter@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Matt Porter <mporter@ti.com>
-Cc: Venkatraman S <svenkatr@ti.com>, Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Jon Hunter <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1360130294-5976-3-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, b-cousson@ti.com, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Matt!
+Hello.
 
-At first thanks for you efforts on DMA Engine on AM33XX.
+On 06-02-2013 9:58, Kishon Vijay Abraham I wrote:
 
-On Friday 01 February 2013 at 22:01:17, Matt Porter wrote:
-> This series adds DT DMA Engine Client support to the omap_hsmmc.
-> It leverages the generic DMA OF helpers in -next and the
-> dma_request_slave_channel_compat() wrapper introduced in the
-> AM33XX DMA Engine series to support DMA in omap_hsmmc on platforms
-> booting via DT. These platforms include omap2/3/4/5 and am33xx.
-> 
-> These patches were split out from the v5 version of the AM33XX DMA
-> series and split from the EDMA-specific omap_hsmmc changes.
-> 
-> The series depends on the following patches:
-> 
-> 	- dmaengine DT support and edma dmaengine driver fix from
-> 	  the git://git.infradead.org/users/vkoul/slave-dma.git next
-> 	  branch
-> 	- dma_request_slave_channel_compat() support
-> 	  https://patchwork.kernel.org/patch/2081671/
-> 
-> The series with all dependencies can be found at
-> https://github.com/ohporter/linux/tree/omap-hsmmc-dt-dmaengine-v1
+> A seperate driver has been added to handle the usb part of control
+> module. A device for the above driver is created here, using the register
+> address information to be used by the driver for powering on the PHY and
+> for writing to the mailbox.
 
-I cloned your github repository and did short testing with it. I get the 
-following error when the kernel mounts my sd-card:
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> ---
+>   arch/arm/mach-omap2/devices.c |   45 +++++++++++++++++++++++++++++++++++++++++
+>   1 file changed, 45 insertions(+)
 
-Starting udev
-[    5.884738] udevd[72]: starting version 182
-[    8.879651] edma-dma-engine edma-dma-engine.0: Exceeded max SG segments 33 
-> 16
-[    8.887377] omap_hsmmc mmc.3: prep_slave_sg() failed
-[    8.892588] omap_hsmmc mmc.3: MMC start dma failure
-[    8.897725] mmcblk0: unknown error -1 sending read/write command, card 
-status 0x900
-[    8.905889] end_request: I/O error, dev mmcblk0, sector 17039
-[    8.911926] end_request: I/O error, dev mmcblk0, sector 17047
-[    8.917934] end_request: I/O error, dev mmcblk0, sector 17055
-[    8.923960] end_request: I/O error, dev mmcblk0, sector 17063
-[    8.929967] end_request: I/O error, dev mmcblk0, sector 17071
-[    8.935988] end_request: I/O error, dev mmcblk0, sector 17079
-[    8.942010] end_request: I/O error, dev mmcblk0, sector 17087
-[    8.948016] end_request: I/O error, dev mmcblk0, sector 17095
-[    8.954037] end_request: I/O error, dev mmcblk0, sector 17103
-[    8.960043] end_request: I/O error, dev mmcblk0, sector 17111
-[    9.020919] EXT4-fs error (device mmcblk0p2): __ext4_get_inode_loc:3764: 
-inode #8: block 239: comm mount: unable to read itable block
-[    9.033514] EXT4-fs (mmcblk0p2): no journal found
-[    9.043799] kjournald starting.  Commit interval 5 seconds
-[    9.049589] EXT3-fs (mmcblk0p2): warning: mounting fs with errors, running 
-e2fsck is recommended
-[    9.060940] EXT3-fs (mmcblk0p2): using internal journal
-[    9.066437] EXT3-fs (mmcblk0p2): recovery complete
-[    9.071460] EXT3-fs (mmcblk0p2): mounted filesystem with ordered data mode
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 626f3ea..6cda103 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -20,6 +20,7 @@
+[...]
+> @@ -254,6 +255,49 @@ static inline void omap_init_camera(void)
+[...]
+> +static struct platform_device omap4_control_usb = {
+> +	.name		= "omap-control-usb",
+> +	.id		= -1,
+> +	.dev = {
+> +		.platform_data = &omap4_control_usb_pdata,
+> +	},
+> +	.num_resources = 2,
+> +	.resource = omap4_control_usb_res,
 
-After that the filesystem on the sd-card has an error that I have to fix with 
-e2fsck. As rootfs I use a nfsroot.
-In my quick tests, same setup, I don't get any error on edma-dmaengine-
-am33xx-v5 branch of your repository.
-If you need any further information, let me now.
+    Either align = or not, not both at once.
 
-Regards,
-Lars
+> +};
+
+WBR, Sergei
