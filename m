@@ -1,107 +1,47 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 2/5] ARM: OMAP: devices: create device for usb part of control
- module
-Date: Wed, 6 Feb 2013 11:28:10 +0530
-Message-ID: <1360130294-5976-3-git-send-email-kishon@ti.com>
-References: <1360130294-5976-1-git-send-email-kishon@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP: Audio support via omap-twl4030 and pwm
+ support
+Date: Wed, 6 Feb 2013 08:21:56 +0100
+Message-ID: <51120494.6020407@ti.com>
+References: <50FE64DC.2030808@ti.com> <510788B9.9050907@ti.com> <20130130220532.GA22517@atomide.com> <20130204195251.GS22517@atomide.com> <5110D4ED.6030306@ti.com> <20130205184014.GK25185@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1360130294-5976-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: gregkh@linuxfoundation.org, tony@atomide.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, b-cousson@ti.com, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: kishon@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39982 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751172Ab3BFHWA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Feb 2013 02:22:00 -0500
+In-Reply-To: <20130205184014.GK25185@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-A seperate driver has been added to handle the usb part of control
-module. A device for the above driver is created here, using the register
-address information to be used by the driver for powering on the PHY and
-for writing to the mailbox.
+On 02/05/2013 07:40 PM, Tony Lindgren wrote:
+>> For some reason the CONFIG_DEBUG_SECTION_MISMATCH got disabled in my=
+ rolling
+>> kernel config...
+>=20
+> At least gcc version 4.3.5 (Debian 4.3.5-4) shows them. What's
+> the compiler you have?=20
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/devices.c |   45 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+It show for me as well now that I have enabled the
+CONFIG_DEBUG_SECTION_MISMATCH in my config.
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 626f3ea..6cda103 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -20,6 +20,7 @@
- #include <linux/pinctrl/machine.h>
- #include <linux/platform_data/omap4-keypad.h>
- #include <linux/platform_data/omap_ocp2scp.h>
-+#include <linux/usb/omap_control_usb.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/map.h>
-@@ -254,6 +255,49 @@ static inline void omap_init_camera(void)
- #endif
- }
- 
-+#if IS_ENABLED(CONFIG_OMAP_CONTROL_USB)
-+static struct omap_control_usb_platform_data omap4_control_usb_pdata = {
-+	.type = 1,
-+};
-+
-+struct resource omap4_control_usb_res[] = {
-+	{
-+		.name	= "control_dev_conf",
-+		.start	= 0x4a002300,
-+		.end	= 0x4a002303,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.name	= "otghs_control",
-+		.start	= 0x4a00233c,
-+		.end	= 0x4a00233f,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+};
-+
-+static struct platform_device omap4_control_usb = {
-+	.name		= "omap-control-usb",
-+	.id		= -1,
-+	.dev = {
-+		.platform_data = &omap4_control_usb_pdata,
-+	},
-+	.num_resources = 2,
-+	.resource = omap4_control_usb_res,
-+};
-+
-+static inline void __init omap_init_control_usb(void)
-+{
-+	if (!cpu_is_omap44xx())
-+		return;
-+
-+	if (platform_device_register(&omap4_control_usb))
-+		pr_err("Error registering omap_control_usb device\n");
-+}
-+
-+#else
-+static inline void omap_init_control_usb(void) { }
-+#endif /* CONFIG_OMAP_CONTROL_USB */
-+
- int __init omap4_keyboard_init(struct omap4_keypad_platform_data
- 			*sdp4430_keypad_data, struct omap_board_data *bdata)
- {
-@@ -721,6 +765,7 @@ static int __init omap2_init_devices(void)
- 	omap_init_mbox();
- 	/* If dtb is there, the devices will be created dynamically */
- 	if (!of_have_populated_dt()) {
-+		omap_init_control_usb();
- 		omap_init_dmic();
- 		omap_init_mcpdm();
- 		omap_init_mcspi();
--- 
-1.7.10.4
+My GCC is:
+armv7a-hardfloat-linux-gnueabi-gcc (Gentoo 4.7.2 p1.3, pie-0.5.5) 4.7.2
+
+> Yes let's do that rather than start copying things around. I'll apply
+> the following fix to the omap-for-v3.9/twl branch.
+
+Cool, thanks Tony. I will drop my patch and pick the one from omap-for-=
+v3.9/twl.
+
+Thanks,
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
