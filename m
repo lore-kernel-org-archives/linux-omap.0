@@ -1,41 +1,25 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2] drivers/gpio: using common order: let 'static const'
- instead of 'const static'
-Date: Wed, 6 Feb 2013 16:17:24 +0530
-Message-ID: <511234BC.2000305@ti.com>
-References: <51122147.6080708@asianux.com> <5112241B.8050207@ti.com> <511232B1.7090206@asianux.com> <5112334F.1020508@ti.com> <51123410.40602@asianux.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 3/5] ARM: OMAP2: MUSB: Specify omap4 has mailbox
+Date: Wed, 6 Feb 2013 10:57:13 +0000
+Message-ID: <20130206105713.GF17852@n2100.arm.linux.org.uk>
+References: <1360130294-5976-1-git-send-email-kishon@ti.com> <1360130294-5976-4-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48001 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751891Ab3BFKqY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Feb 2013 05:46:24 -0500
-In-Reply-To: <51123410.40602@asianux.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1360130294-5976-4-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, eballetbo@gmail.com, javier@dowhile0.org, b-cousson@ti.com, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chen Gang <gang.chen@asianux.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, grant.likely@secretlab.ca, linus.walleij@linaro.org, linux-omap@vger.kernel.org
 
-On Wednesday 06 February 2013 04:14 PM, Chen Gang wrote:
->
->    'const static ' is not a common order, better to use 'static const' instead.
->
-> building:
->    make EXTRA_CFLAGS=-W ARCH=arm
->
->    drivers/gpio/gpio-omap.c:1479:
->      warning: 'static' is not at beginning of declaration
->    drivers/gpio/gpio-omap.c:1485:
->      warning: 'static' is not at beginning of declaration
->    drivers/gpio/gpio-omap.c:1491:
->      warning: 'static' is not at beginning of declaration
->
->
-> Signed-off-by: Chen Gang <gang.chen@asianux.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
-Thanks for update.
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On Wed, Feb 06, 2013 at 11:28:11AM +0530, Kishon Vijay Abraham I wrote:
+> Added has_mailbox to the musb platform data to specify that omap uses
+> an external mailbox (in control module) to communicate with the musb
+> core during device connect and disconnect.
 
+So, I've been through your five patches looking for any other users of
+"has_mailbox" and I can find none.  You introduce this in this patch,
+and you set it.  But I don't see anything that uses it.
+
+Write only variables are not useful.
