@@ -1,53 +1,47 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: DT GPMC SRAM and NOR flash support ?
-Date: Thu, 07 Feb 2013 10:34:08 +0000
-Message-ID: <51138320.8040706@mimc.co.uk>
-References: <510BF3D3.3000304@mimc.co.uk> <510BF766.5090608@ti.com> <510C19FC.8090906@mimc.co.uk> <5111304C.7090706@mimc.co.uk> <511134C8.8000008@ti.com> <511137CF.1090706@mimc.co.uk> <51113C74.4070607@ti.com> <51137923.4070301@mimc.co.uk>
+From: Philip Avinash <avinashphilip@ti.com>
+Subject: [PATCH v2 0/4] suspend/resume support for OMAP nand driver
+Date: Thu, 7 Feb 2013 18:06:54 +0530
+Message-ID: <1360240618-11094-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:48316 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754959Ab3BGKeJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Feb 2013 05:34:09 -0500
-In-Reply-To: <51137923.4070301@mimc.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: khilman@ti.com, tony@atomide.com, linux@arm.linux.org.uk, dwmw2@infradead.org, artem.bityutskiy@linux.intel.com
+Cc: afzal@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, hvaibhav@ti.com, Philip Avinash <avinashphilip@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Afzal Mohammed <afzal@ti.com>
 
-On 07/02/13 09:51, Mark Jackson wrote:
-> Okay ... I have made some progress, but it's not ideal.
+This patch series adds low power transition support for OMAP NAND driver.
+With recent driver conversion of GPMC to platform_driver, pm_runtime calls
+can be used to handle module enable & disable of GPMC. This is taken care
+patch #1.
 
-<snip>
+patch #2 is for GPMC suspend/resume support.
 
-> But the physmap driver (of_flash_probe()) is unable to use this information.  It seems that although
-> I can call of_flash_probe() from my NOR setup code, the platform_device being reference is wrong.
-> 
-> The platform_device passed to my gpmc_probe_nor_child() routine from gpmc_probe_dt() points to my
-> gpmc entry (above), but the physmap probe requires its own DT entry (rather than a node child such
-> as my NOR entry with the GPMC device entry).
-> 
-> So I need to have any extra entry in the DT file as follows:-
-> 
-> 	nor-flash@08000000 {
-> 		compatible = "spansion,s29gl064n90t", "cfi-flash";
-> 		reg = <0x08000000 0x00800000>;
-> 		bank-width = <2>;
-> 	};
-> 
-> So the GPMC entry handles all the chip select and timing setup, but the 2nd entry is the only one
-> the physmap driver can see.
-> 
-> Would it be acceptable to re-code of_flash_probe() to allow either a child device_node to be passed
-> or a platform_device ?
+This includes low power transition support of
+- GPMC module
+- ELM module
+- OMAP2 NAND driver
 
-Or is it acceptable to simply state the gpmc portion is for setting up the chip access, and you *do*
-need a separate physmap section ?
+User initiated suspend/resume sequence tested on am335x-evm with NAND
+flash support. Also tested in omap3-evm for user initiated
+suspend/resume sequence with NAND flash.
+This patch series based on [1] and is present in [2].
 
-That's certainly easier, and it works without any changes to the physmap driver.
+1. ARM: OMAP2+: AM33XX: Add suspend-resume support
+   http://comments.gmane.org/gmane.linux.ports.arm.omap/91405
+2. https://github.com/avinashphilip/am335x_linux/commits/NAND_supend_resume_support
 
-Regards
-Mark J.
 
+Philip Avinash (4):
+  arm: gpmc: Converts GPMC driver to pm_runtime capable
+  arm: gpmc: Low power transition support
+  mtd: devices: elm: Low power transition support
+  mtd: nand: omap2: Low power transition support
+
+ arch/arm/mach-omap2/gpmc.c |   30 +++++++++++++++++++++++++++---
+ drivers/mtd/devices/elm.c  |   40 ++++++++++++++++++++++++++++++++++++++++
+ drivers/mtd/nand/omap2.c   |   19 +++++++++++++++++++
+ 3 files changed, 86 insertions(+), 3 deletions(-)
+
+-- 
+1.7.9.5
