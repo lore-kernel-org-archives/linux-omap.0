@@ -1,33 +1,82 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v3 00/10] video: da8xx-fb: runtime timing configuration
-Date: Thu, 7 Feb 2013 09:05:59 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EAA2846@DBDE01.ent.ti.com>
-References: <cover.1358250489.git.afzal@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 00/10] video: da8xx-fb: runtime timing configuration
+Date: Thu, 7 Feb 2013 11:13:01 +0200
+Message-ID: <5113701D.2080009@ti.com>
+References: <cover.1358250489.git.afzal@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93EAA2846@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig84BFB8ADE209F0A10B699267"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1358250489.git.afzal@ti.com>
-Content-Language: en-US
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EAA2846@DBDE01.ent.ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVG9taSwgRmxvcmlhbiwNCg0KT24gVHVlLCBKYW4gMTUsIDIwMTMgYXQgMTk6MDA6NTAsIE1v
-aGFtbWVkLCBBZnphbCB3cm90ZToNCg0KPiBUaGlzIHNlcmllcyBtYWtlcyBkYTh4eC1mYiBkcml2
-ZXIgKGRldmljZSBmb3VuZCBvbiBEYVZpbmNpIGFuZCBBTTMzNXgpDQo+IGNhcGFibGUgb2YgaGFu
-ZGxpbmcgcnVudGltZSB0aW1pbmcgY29uZmlndXJhdGlvbiBieSBhZGRpbmcgZmJfc2V0X3Bhci4N
-Cj4gDQo+IFRoZSBsYXN0IGNoYW5nZSBhZGRzIGFjdHVhbCBmYl9zZXRfcGFyIHN1cHBvcnQuIE90
-aGVyIHByZWNlZWRpbmcNCj4gY2hhbmdlcyBtYWtlcyB0aGUgd2F5IGNsZWFyIGZvciBpdCBhcyB3
-ZWxsIGFzIGRvZXMgY2VydGFpbiBjbGVhbnVwJ3MNCj4gb24gdGhlIHdheS4NCj4gDQo+IFRoaXMg
-aGFzIGJlZW4gdGVzdGVkIG9uIGRhODUwIGV2bSBhcyBpcy4gVGhpcyB3YXMgYWxzbyB0ZXN0ZWQg
-b24NCj4gYW0zMzV4LWV2bSAmIGFtMzM1eC1ldm1zayB3aXRoIGEgc2VyaWVzIHRoYXQgYWRkcyBE
-VCBzdXBwb3J0Lg0KPiANCj4gVGhpcyBpcyBiYXNlZCBvbiB2My44LXJjMywgdGhpcyBpcyB0aGUg
-b25seSBjaGFuZ2UgaW4gdGhpcyByZXZpc2lvbi4NCj4gVGhlIG5ldyB2ZXJzaW9uIG9mIHRoaXMg
-c2VyaWVzIGlzIGJlaW5nIHBvc3RlZCBzbyB0aGF0IHRoaXMgc2VyaWVzIGNhbg0KPiBiZSBhcHBs
-aWVkIGVhc2lseSAoYXMgX19kZXYqIGFyZSByZW1vdmVkLCB0aGVyZSB3b3VsZCBiZSBtZXJnZQ0K
-PiBjb25mbGljdHMgd2l0aCB2Miwgd2hpY2ggd2FzIGJhc2VkIG9uIC1yYzIpLg0KPiBzZXJpZXMN
-Cg0KQ2FuIHlvdSBwbGVhc2UgY29uc2lkZXIgdGhpcyBzZXJpZXMgZm9yIGluY2x1c2lvbi4gVGhl
-cmUgYXJlIG5vDQpwZW5kaW5nIGNvbW1lbnRzIG9yIGRlcGVuZGVuY3kgZm9yIHRoaXMgc2VyaWVz
-LiBJZiB5b3UgbmVlZCBhDQpwdWxsIHJlcXVlc3QsIGxldCBtZSBrbm93LCBJIHdpbGwgc2VudCBp
-dC4NCg0KUmVnYXJkcw0KQWZ6YWwNCg0K
+--------------enig84BFB8ADE209F0A10B699267
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On 2013-02-07 11:05, Mohammed, Afzal wrote:
+> Hi Tomi, Florian,
+>=20
+> On Tue, Jan 15, 2013 at 19:00:50, Mohammed, Afzal wrote:
+>=20
+>> This series makes da8xx-fb driver (device found on DaVinci and AM335x)=
+
+>> capable of handling runtime timing configuration by adding fb_set_par.=
+
+>>
+>> The last change adds actual fb_set_par support. Other preceeding
+>> changes makes the way clear for it as well as does certain cleanup's
+>> on the way.
+>>
+>> This has been tested on da850 evm as is. This was also tested on
+>> am335x-evm & am335x-evmsk with a series that adds DT support.
+>>
+>> This is based on v3.8-rc3, this is the only change in this revision.
+>> The new version of this series is being posted so that this series can=
+
+>> be applied easily (as __dev* are removed, there would be merge
+>> conflicts with v2, which was based on -rc2).
+>> series
+>=20
+> Can you please consider this series for inclusion. There are no
+> pending comments or dependency for this series. If you need a
+> pull request, let me know, I will sent it.
+
+I handled only the pull request for 3.8 merge window to help Florian
+with it. I didn't mean to become a co-maintainer or such =3D).
+
+ Tomi
+
+
+
+--------------enig84BFB8ADE209F0A10B699267
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRE3AdAAoJEPo9qoy8lh71KvwP/j7flxTpyAiBAE+bOxK4G7Kt
+9Gn1FdshJPQAfMtgq9i/8TPeAAEPAA5deXr3lzHFzZVRcmlgP/t20hW19Fd6G5BB
+17Z6ARmEXbl6zgMavI8G6eQ8VSs1RAOtrc1wksVRDSJzYNSQ7qeh2yjQ5xj/eUQu
+6a0vInt5UzYFOjnayqLMl4ur75PhLPQ1qfzwsTjQ5SNK4iX04SKDSJwIs2ujZeMH
+aICzD5CvoaMDxKljl6qu3IQ+9YOAmBJGIwW8jPc7s/MbUBsiFu680sRRKm69yeLZ
+9947pZ4o+889fywmEiaDW+FJIDte/IrYeI3WdM5eRQ9aYi8wVKY44lfmU6Uxiddc
+GSE5DnfNNMInUexcQcIZbYIjoqBbysG49CXdV/dm4QHdfbztoTuBoL3IdfIunUUC
+ki8CARKFEQvXUakrFZgHopFp5tndLlUK0TZ1Z0hH7BkbSpSAfV0qw7umZK4uYNki
+MPPLd6rClcdLavEvP0y/AJqbqqsN7ejPb6iUfraS87H4e6iO6KUnO6bYVMVdgfLU
+hwWeDtoKfS+P0TWApo89nWRO7mPbfrAQsNWWliL3XDcEVuJnhSSniYpjO+I9W3YW
+Ll6AjTEbCukLEgpwOZJKN1mtRy5w9PbLqq9xpOn46uwEzbl10/An+GdI8ovijQNF
+NnDJizsamiCHjVE7fweJ
+=l0He
+-----END PGP SIGNATURE-----
+
+--------------enig84BFB8ADE209F0A10B699267--
