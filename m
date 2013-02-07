@@ -1,166 +1,60 @@
-From: Andi Shyti <andi@etezian.org>
-Subject: Re: [PATCH 1/1] OMAP4: DSS: Add panel for Blaze Tablet boards
-Date: Thu, 7 Feb 2013 15:59:52 +0100
-Message-ID: <20130207145952.GA7860@jack.whiskey>
-References: <1360248051-16541-1-git-send-email-ruslan.bilovol@ti.com>
- <1360248051-16541-2-git-send-email-ruslan.bilovol@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 2/2] dmaengine: OMAP: Register SDMA controller with Device
+ Tree DMA driver
+Date: Thu, 7 Feb 2013 09:51:11 -0600
+Message-ID: <5113CD6F.3060108@ti.com>
+References: <1360184596-1603-1-git-send-email-jon-hunter@ti.com> <1360184596-1603-3-git-send-email-jon-hunter@ti.com> <201302071439.13720.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1360248051-16541-2-git-send-email-ruslan.bilovol@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: tomi.valkeinen@ti.com, FlorianSchandinat@gmx.de, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48806 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758292Ab3BGPvx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 Feb 2013 10:51:53 -0500
+In-Reply-To: <201302071439.13720.arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Vinod Koul <vinod.koul@intel.com>, Russell King <linux@arm.linux.org.uk>, Matt Porter <mporter@ti.com>, Balaji T K <balajitk@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi,
 
-> TC358765 is DSI-to-LVDS transmitter from Toshiba, used in
-> OMAP44XX Blaze Tablet and Blaze Tablet2 boards.
+On 02/07/2013 08:39 AM, Arnd Bergmann wrote:
+> On Wednesday 06 February 2013, Jon Hunter wrote:
+>> +static struct of_dma_filter_info info;
+> 
+> Both members of this structure are constant, so you can just initialize it here,
+> and it would be nice to give it a more descriptive name, such as omap_dmadev_info.
+> 
+>>  static struct platform_driver omap_dma_driver = {
+>>  	.probe	= omap_dma_probe,
+>>  	.remove	= omap_dma_remove,
+>>  	.driver = {
+>>  		.name = "omap-dma-engine",
+>>  		.owner = THIS_MODULE,
+>> +		.of_match_table = of_match_ptr(omap_dma_match)
+>>  	},
+>>  };
+> 
+> please end the new line with a comma.
 
-I had a really fast look and I have few comments
+Ok.
 
-> +static int tc358765_read_register(struct omap_dss_device *dssdev,
-> +					u16 reg, u32 *val)
-> +{
-> +	int ret = 0;
-> +	pm_runtime_get_sync(&dssdev->dev);
-> +	/* I2C is preferred way of reading, but fall back to DSI
-> +	 * if I2C didn't got initialized
-> +	*/
-> +	if (tc358765_i2c)
-> +		ret = tc358765_i2c_read(reg, val);
-> +	else
-> +		ret = tc358765_dsi_read(dssdev, reg, val);
-> +	pm_runtime_put_sync(&dssdev->dev);
-> +
-> +	return ret;
-> +}
-> +
-> +static int tc358765_write_register(struct omap_dss_device *dssdev, u16 reg,
-> +		u32 value)
-> +{
-> +	struct tc358765_data *d2d = dev_get_drvdata(&dssdev->dev);
-> +	u8 buf[6];
-> +	int r;
-> +
-> +	buf[0] = (reg >> 0) & 0xff;
-> +	buf[1] = (reg >> 8) & 0xff;
-> +	buf[2] = (value >> 0) & 0xff;
-> +	buf[3] = (value >> 8) & 0xff;
-> +	buf[4] = (value >> 16) & 0xff;
-> +	buf[5] = (value >> 24) & 0xff;
-> +
-> +	r = dsi_vc_generic_write_nosync(dssdev, d2d->channel1, buf, 6);
-> +	if (r)
-> +		dev_err(&dssdev->dev, "reg write reg(%x) val(%x) failed: %d\n",
-> +			       reg, value, r);
-> +	return r;
-> +}
-> +
-> +/****************************
-> +********* DEBUG *************
-> +****************************/
-> +#ifdef CONFIG_TC358765_DEBUG
-> +static int tc358765_write_register_i2c(u16 reg, u32 val)
-> +{
-> +	int ret = -ENODEV;
-> +	unsigned char buf[6];
-> +	struct i2c_msg msg;
-> +
-> +	if (!tc358765_i2c) {
-> +		dev_err(tc358765_debug.dev, "%s: I2C not initilized\n",
-> +							__func__);
-> +		return ret;
-> +	}
-> +
-> +	buf[0] = (reg >> 8) & 0xff;
-> +	buf[1] = (reg >> 0) & 0xff;
-> +	buf[2] = (val >> 0) & 0xff;
-> +	buf[3] = (val >> 8) & 0xff;
-> +	buf[4] = (val >> 16) & 0xff;
-> +	buf[5] = (val >> 24) & 0xff;
-> +	msg.addr = tc358765_i2c->client->addr;
-> +	msg.len = sizeof(buf);
-> +	msg.flags = 0;
-> +	msg.buf = buf;
-> +
-> +	mutex_lock(&tc358765_i2c->xfer_lock);
-> +	ret = i2c_transfer(tc358765_i2c->client->adapter, &msg, 1);
-> +	mutex_unlock(&tc358765_i2c->xfer_lock);
-> +
-> +	if (ret != 1)
-> +		return ret;
-> +	return 0;
-> +}
+>> @@ -673,7 +702,7 @@ static int omap_dma_init(void)
+>>  {
+>>  	int rc = platform_driver_register(&omap_dma_driver);
+>>  
+>> -	if (rc == 0) {
+>> +	if ((rc == 0) && (!of_have_populated_dt())) {
+>>  		pdev = platform_device_register_full(&omap_dma_dev_info);
+>>  		if (IS_ERR(pdev)) {
+>>  			platform_driver_unregister(&omap_dma_driver);
+> 
+> There is already a patch in linux-next that makes this obsolete.
+> The device is now registered in arch/arm/mach-omap2/dma.c, so
+> I guess you have to change that location now.
 
-What about using smbus?
+Thanks. Will rebase on top of linux-next.
 
-> +
-> +	if (copy_from_user(&buf, ubuf, size))
-> +		return -EFAULT;
-> +
-> +	buf[size-1] = '\0';
-> +	if (sscanf(buf, "%s %x", name, &value) != 2) {
-> +		dev_err(dev, "%s: unable to parse input\n", __func__);
-> +		return -1;
-> +	}
-> +
-> +	if (!tc358765_i2c) {
-> +		dev_warn(dev,
-> +			"failed to write register: I2C not initialized\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	reg_count = sizeof(tc358765_regs) / sizeof(tc358765_regs[0]);
-> +	for (i = 0; i < reg_count; i++) {
-> +		if (!strcmp(name, tc358765_regs[i].name)) {
-> +			if (!(tc358765_regs[i].perm & A_WO)) {
-> +				dev_err(dev, "%s is write-protected\n", name);
-> +				return -EACCES;
-> +			}
-> +
-> +			error = tc358765_write_register_i2c(
-> +				tc358765_regs[i].reg, value);
-> +			if (error) {
-> +				dev_err(dev, "%s: failed to write %s\n",
-> +					__func__, name);
-> +				return -1;
-
-Could avoid returning -1 instead of returning a correct errno?
-
-> +	gpio_set_value(dssdev->reset_gpio, 1);
-> +	udelay(200);
-> +	/* reset the panel */
-> +	gpio_set_value(dssdev->reset_gpio, 0);
-> +	/* assert reset */
-> +	udelay(200);
-> +	gpio_set_value(dssdev->reset_gpio, 1);
-> +	/* wait after releasing reset */
-> +	msleep(200);
-
-I invite you to have a look at
-
-Documentation/timers/timers-howto.txt
-
-> +	/* reset LVDS-PHY */
-> +	tc358765_write_register(dssdev, LVPHY0, (1 << 22));
-> +	mdelay(2);
-
-You should give me a really good reason for using mdelay.
-
-> +	if (r) {
-> +		dev_err(&dssdev->dev, "failed to configure DSI pins\n");
-> +		goto err_disp_enable;
-> +	};
-        ^^^
-
-???
-
-> +static int tc358765_i2c_probe(struct i2c_client *client,
-> +				   const struct i2c_device_id *id)
-> +{
-> +	tc358765_i2c = kzalloc(sizeof(*tc358765_i2c), GFP_KERNEL);
-
-what about devm_kzalloc?
+Cheers
+Jon
