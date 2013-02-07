@@ -1,35 +1,40 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH 1/2] ARM: dts: OMAP2+: Add SDMA controller bindings and
- nodes
-Date: Thu, 7 Feb 2013 14:39:59 +0000
-Message-ID: <201302071440.00164.arnd@arndb.de>
-References: <1360184596-1603-1-git-send-email-jon-hunter@ti.com>
- <1360184596-1603-2-git-send-email-jon-hunter@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1360184596-1603-2-git-send-email-jon-hunter-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: [PATCH 0/1] OMAP4: DSS: Add panel for Blaze Tablet boards
+Date: Thu,  7 Feb 2013 16:40:49 +0200
+Message-ID: <1360248051-16541-1-git-send-email-ruslan.bilovol@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tomi.valkeinen@ti.com, FlorianSchandinat@gmx.de, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 06 February 2013, Jon Hunter wrote:
-> Add SDMA controller binding for OMAP2+ devices and populate DMA client
-> information for SPI and MMC periperhal on OMAP3+ devices. Please note
-> that OMAP24xx devices do not have SPI and MMC bindings available yet and
-> so DMA client information is not populated.
-> 
-> Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Hi,
 
-Acked-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+This patch adds support for TC358765 DSI-to-LVDS transmitter
+from Toshiba, that is used in OMAP4 Blaze Tablet development
+platform. It was originally developed a long time ago and
+was used internally survived few kernel migrations.
+Different people worked in this driver during last two
+years changing its sources to what each new version of
+kernel expects.
+
+Current version is ported from internal kernel v3.4 to 3.8.0-rc6
+Tested basic functioning under busybox.
+
+-
+Ruslan
+
+Tomi Valkeinen (1):
+  OMAP4: DSS: Add panel for Blaze Tablet boards
+
+ drivers/video/omap2/displays/Kconfig          |   15 +
+ drivers/video/omap2/displays/Makefile         |    1 +
+ drivers/video/omap2/displays/panel-tc358765.c | 1001 +++++++++++++++++++++++++
+ drivers/video/omap2/displays/panel-tc358765.h |  170 +++++
+ include/video/omap-panel-tc358765.h           |   53 ++
+ 5 files changed, 1240 insertions(+)
+ create mode 100644 drivers/video/omap2/displays/panel-tc358765.c
+ create mode 100644 drivers/video/omap2/displays/panel-tc358765.h
+ create mode 100644 include/video/omap-panel-tc358765.h
+
+-- 
+1.7.9.5
