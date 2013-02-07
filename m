@@ -1,46 +1,107 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 14/14] USB: ehci-omap: Fix autoloading of module
-Date: Thu, 7 Feb 2013 18:02:54 +0200
-Message-ID: <1360252974-7912-15-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 07/14] USB: ohci-omap3: Add device tree support and binding information
+Date: Thu, 7 Feb 2013 18:02:47 +0200
+Message-ID: <1360252974-7912-8-git-send-email-rogerq@ti.com>
 References: <1360252974-7912-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33851 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932275Ab3BGQDr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Feb 2013 11:03:47 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1360252974-7912-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com
 Cc: b-cousson@ti.com, balbi@ti.com, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, linux@arm.linux.org.uk, kishon@ti.com, mark.rutland@arm.com, rogerq@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-The module alias should be "ehci-omap" and not
-"omap-ehci" to match the platform device name.
-The omap-ehci module should now autoload correctly.
+Allows the OHCI controller found in OMAP3 and later chips to
+be specified via device tree.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
 ---
- drivers/usb/host/ehci-omap.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ .../devicetree/bindings/usb/omap3-ohci.txt         |   17 +++++++++++++++++
+ drivers/usb/host/ohci-omap3.c                      |   19 +++++++++++++++++++
+ 2 files changed, 36 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/usb/omap3-ohci.txt
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index a8ce10d..a2d16c0 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -340,9 +340,10 @@ static void __exit ehci_omap_cleanup(void)
+diff --git a/Documentation/devicetree/bindings/usb/omap3-ohci.txt b/Documentation/devicetree/bindings/usb/omap3-ohci.txt
+new file mode 100644
+index 0000000..ad2ace0
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/omap3-ohci.txt
+@@ -0,0 +1,17 @@
++OMAP HS USB OHCI controller (OMAP3 and later)
++
++Required properties:
++
++- compatible: should be "ti,ohci-omap3"
++- reg: should contain one register range i.e. start and length
++- interrupt-parent: phandle to the interrupt controller
++- interrupts: description of the interrupt line
++
++Example for OMAP4:
++
++usbhsohci: ohci@4a064800 {
++	compatible = "ti,ohci-omap3", "usb-ohci";
++	reg = <0x4a064800 0x400>;
++	interrupt-parent = <&gic>;
++	interrupts = <0 76 0x4>;
++};
+diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
+index 5ed28c5..ddfc314 100644
+--- a/drivers/usb/host/ohci-omap3.c
++++ b/drivers/usb/host/ohci-omap3.c
+@@ -31,6 +31,8 @@
+ 
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/of.h>
++#include <linux/dma-mapping.h>
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+@@ -112,6 +114,8 @@ static const struct hc_driver ohci_omap3_hc_driver = {
+ 
+ /*-------------------------------------------------------------------------*/
+ 
++static u64 omap_ohci_dma_mask = DMA_BIT_MASK(32);
++
+ /*
+  * configure so an HC device and id are always provided
+  * always called with process context; sleeping is OK
+@@ -159,6 +163,13 @@ static int ohci_hcd_omap3_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
++	/*
++	 * Right now device-tree probed devices don't get dma_mask set.
++	 * Since shared usb code relies on it, set it here for now.
++	 * Once we have dma capability bindings this can go away.
++	 */
++	if (!pdev->dev.dma_mask)
++		pdev->dev.dma_mask = &omap_ohci_dma_mask;
+ 
+ 	hcd = usb_create_hcd(&ohci_omap3_hc_driver, dev,
+ 			dev_name(dev));
+@@ -228,12 +239,20 @@ static void ohci_hcd_omap3_shutdown(struct platform_device *pdev)
+ 		hcd->driver->shutdown(hcd);
  }
- module_exit(ehci_omap_cleanup);
  
--MODULE_ALIAS("platform:omap-ehci");
-+MODULE_ALIAS("platform:ehci-omap");
- MODULE_AUTHOR("Texas Instruments, Inc.");
- MODULE_AUTHOR("Felipe Balbi <felipe.balbi@nokia.com>");
-+MODULE_AUTHOR("Roger Quadros <rogerq@ti.com");
++static const struct of_device_id omap_ohci_dt_ids[] = {
++	{ .compatible = "ti,ohci-omap3" },
++	{ }
++};
++
++MODULE_DEVICE_TABLE(of, omap_ohci_dt_ids);
++
+ static struct platform_driver ohci_hcd_omap3_driver = {
+ 	.probe		= ohci_hcd_omap3_probe,
+ 	.remove		= ohci_hcd_omap3_remove,
+ 	.shutdown	= ohci_hcd_omap3_shutdown,
+ 	.driver		= {
+ 		.name	= "ohci-omap3",
++		.of_match_table = of_match_ptr(omap_ohci_dt_ids),
+ 	},
+ };
  
- MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_LICENSE("GPL");
 -- 
 1.7.4.1
-
