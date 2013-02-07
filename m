@@ -1,118 +1,155 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 13/14] ARM: dts: omap3-beagle: Add USB Host support
-Date: Thu, 7 Feb 2013 18:02:53 +0200
-Message-ID: <1360252974-7912-14-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 08/14] USB: ehci-omap: Add device tree support and binding information
+Date: Thu, 7 Feb 2013 18:02:48 +0200
+Message-ID: <1360252974-7912-9-git-send-email-rogerq@ti.com>
 References: <1360252974-7912-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33845 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932243Ab3BGQDm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Feb 2013 11:03:42 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1360252974-7912-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com
 Cc: b-cousson@ti.com, balbi@ti.com, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, linux@arm.linux.org.uk, kishon@ti.com, mark.rutland@arm.com, rogerq@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Provide RESET and Power regulators for the USB PHY,
-the USB Host port mode and the PHY device.
-
-Also provide pin multiplexer information for USB host
-pins.
+Allows the OMAP EHCI controller to be specified via device tree.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
 ---
- arch/arm/boot/dts/omap3-beagle.dts |   71 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 71 insertions(+), 0 deletions(-)
+ .../devicetree/bindings/usb/omap-ehci.txt          |   34 ++++++++++++++++++
+ drivers/usb/host/ehci-omap.c                       |   36 +++++++++++++++++++-
+ 2 files changed, 69 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/usb/omap-ehci.txt
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index f624dc8..02d23f1 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -38,6 +38,57 @@
- 		};
- 	};
- 
-+	/* HS USB Port 2 RESET */
-+	hsusb2_reset: hsusb2_reset_reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "hsusb2_reset";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&gpio5 19 0>;	/* gpio_147 */
-+		startup-delay-us = <70000>;
-+		enable-active-high;
-+	};
+diff --git a/Documentation/devicetree/bindings/usb/omap-ehci.txt b/Documentation/devicetree/bindings/usb/omap-ehci.txt
+new file mode 100644
+index 0000000..b00a654
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/omap-ehci.txt
+@@ -0,0 +1,34 @@
++OMAP HS USB EHCI controller
 +
-+	/* HS USB Port 2 Power */
-+	hsusb2_power: hsusb2_power_reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "hsusb2_vbus";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&twl_gpio 18 0>;	/* GPIO LEDA */
-+		startup-delay-us = <70000>;
-+	};
++This device is usually the child of the omap-usb-host
++Documentation/devicetree/bindings/mfd/omap-usb-host.txt
 +
-+	/* HS USB Host PHY on PORT 2 */
-+	hsusb2_phy: hsusb2_phy {
-+		compatible = "usb-nop-xceiv";
-+		reset-supply = <&hsusb2_reset>;
-+		vcc-supply = <&hsusb2_power>;
-+	};
-+};
++Required properties:
 +
-+&omap3_pmx_core {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+			&hsusbb2_pins
-+	>;
++- compatible: should be "ti,ehci-omap"
++- reg: should contain one register range i.e. start and length
++- interrupt-parent: phandle to the interrupt controller
++- interrupts: description of the interrupt line
 +
-+	hsusbb2_pins: pinmux_hsusbb2_pins {
-+		pinctrl-single,pins = <
-+			0x5c0 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_clk OUTPUT */
-+			0x5c2 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_stp OUTPUT */
-+			0x5c4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dir INPUT | PULLDOWN */
-+			0x5c6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_nxt INPUT | PULLDOWN */
-+			0x5c8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat0 INPUT | PULLDOWN */
-+			0x5cA 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat1 INPUT | PULLDOWN */
-+			0x1a4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat2 INPUT | PULLDOWN */
-+			0x1a6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat3 INPUT | PULLDOWN */
-+			0x1a8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat4 INPUT | PULLDOWN */
-+			0x1aa 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat5 INPUT | PULLDOWN */
-+			0x1ac 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat6 INPUT | PULLDOWN */
-+			0x1ae 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat7 INPUT | PULLDOWN */
-+		>;
-+	};
- };
- 
- &i2c1 {
-@@ -65,3 +116,23 @@
- &mmc3 {
- 	status = "disabled";
- };
++Optional properties:
 +
-+&usbhshost {
-+	port2-mode = "ehci-phy";
++- phys: list of phandles to PHY nodes.
++  This property is required if at least one of the ports are in
++  PHY mode i.e. OMAP_EHCI_PORT_MODE_PHY
++
++To specify the port mode, see
++Documentation/devicetree/bindings/mfd/omap-usb-host.txt
++
++Example for OMAP4:
++
++usbhsehci: ehci@4a064c00 {
++	compatible = "ti,ehci-omap", "usb-ehci";
++	reg = <0x4a064c00 0x400>;
++	interrupt-parent = <&gic>;
++	interrupts = <0 77 0x4>;
 +};
 +
 +&usbhsehci {
-+	phys = <0 &hsusb2_phy>;
++	phys = <&hsusb1_phy 0 &hsusb3_phy>;
 +};
 +
-+&twl_gpio {
-+	ti,use-leds;
-+	/* pullups: BIT(1) */
-+	ti,pullups = <0x000002>;
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 02a7893..a8ce10d 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -48,6 +48,8 @@
+ #include <linux/clk.h>
+ #include <linux/usb.h>
+ #include <linux/usb/hcd.h>
++#include <linux/of.h>
++#include <linux/dma-mapping.h>
+ 
+ #include "ehci.h"
+ 
+@@ -121,6 +123,8 @@ static const struct ehci_driver_overrides ehci_omap_overrides __initdata = {
+ 	.extra_priv_size = sizeof(struct omap_hcd),
+ };
+ 
++static u64 omap_ehci_dma_mask = DMA_BIT_MASK(32);
++
+ /**
+  * ehci_hcd_omap_probe - initialize TI-based HCDs
+  *
+@@ -148,6 +152,17 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
+ 
++	/* For DT boot, get platform data from parent. i.e. usbhshost */
++	if (dev->of_node) {
++		pdata = dev->parent->platform_data;
++		dev->platform_data = pdata;
++	}
++
++	if (!pdata) {
++		dev_err(dev, "Missing platform data\n");
++		return -ENODEV;
++	}
++
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0) {
+ 		dev_err(dev, "EHCI irq failed\n");
+@@ -161,6 +176,14 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 		return -EADDRNOTAVAIL;
+ 	}
+ 
 +	/*
-+	 * pulldowns:
-+	 * BIT(2), BIT(6), BIT(7), BIT(8), BIT(13)
-+	 * BIT(15), BIT(16), BIT(17)
++	 * Right now device-tree probed devices don't get dma_mask set.
++	 * Since shared usb code relies on it, set it here for now.
++	 * Once we have dma capability bindings this can go away.
 +	 */
-+	ti,pulldowns = <0x03a1c4>;
++	if (!pdev->dev.dma_mask)
++		pdev->dev.dma_mask = &omap_ehci_dma_mask;
++
+ 	hcd = usb_create_hcd(&ehci_omap_hc_driver, dev,
+ 			dev_name(dev));
+ 	if (!hcd) {
+@@ -185,7 +208,10 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 			continue;
+ 
+ 		/* get the PHY device */
+-		phy = devm_usb_get_phy_dev(dev, i);
++		if (dev->of_node)
++			phy = devm_usb_get_phy_by_phandle(dev, "phys", i);
++		else
++			phy = devm_usb_get_phy_dev(dev, i);
+ 		if (IS_ERR(phy) || !phy) {
+ 			ret = IS_ERR(phy) ? PTR_ERR(phy) : -ENODEV;
+ 			dev_err(dev, "Can't get PHY device for port %d: %d\n",
+@@ -275,6 +301,13 @@ static void ehci_hcd_omap_shutdown(struct platform_device *pdev)
+ 		hcd->driver->shutdown(hcd);
+ }
+ 
++static const struct of_device_id omap_ehci_dt_ids[] = {
++	{ .compatible = "ti,ehci-omap" },
++	{ }
 +};
++
++MODULE_DEVICE_TABLE(of, omap_ehci_dt_ids);
++
+ static struct platform_driver ehci_hcd_omap_driver = {
+ 	.probe			= ehci_hcd_omap_probe,
+ 	.remove			= ehci_hcd_omap_remove,
+@@ -283,6 +316,7 @@ static struct platform_driver ehci_hcd_omap_driver = {
+ 	/*.resume		= ehci_hcd_omap_resume, */
+ 	.driver = {
+ 		.name		= hcd_name,
++		.of_match_table = of_match_ptr(omap_ehci_dt_ids),
+ 	}
+ };
+ 
 -- 
 1.7.4.1
-
