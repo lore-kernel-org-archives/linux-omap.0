@@ -1,28 +1,59 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: OMAP baseline test results for v3.8-rc6
-Date: Fri, 8 Feb 2013 13:34:04 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1302081332200.11464@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1302062333270.12769@utopia.booyaka.com> <20130207083217.GA15462@arwen.pp.htv.fi> <79CD15C6BA57404B839C016229A409A83EC06CEA@DBDE01.ent.ti.com> <alpine.DEB.2.00.1302081306230.11464@utopia.booyaka.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: Build error: OMAP randconfig / mvebu
+Date: Fri, 08 Feb 2013 14:33:29 +0100
+Message-ID: <4351524.MQWtq16mqg@wuerfel>
+References: <20130208100813.GN17833@n2100.arm.linux.org.uk> <2213733.Wbjy3dFgom@wuerfel> <5114DC44.7000107@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:48954 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754225Ab3BHNeF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Feb 2013 08:34:05 -0500
-In-Reply-To: <alpine.DEB.2.00.1302081306230.11464@utopia.booyaka.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:53521 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946022Ab3BHNeN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Feb 2013 08:34:13 -0500
+In-Reply-To: <5114DC44.7000107@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, arm@kernel.org, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>
 
-On Fri, 8 Feb 2013, Paul Walmsley wrote:
+On Friday 08 February 2013 12:06:44 Gregory CLEMENT wrote:
+> 
+> I don't know what to do here, there is no point to build any of the files
+> in mach-mvebu if no SoCs are selected. So either we force to have at least
+> one SoCS selected if ARCH_MVEBU is selected, or we unselect  ARCH_MVEB if
+> no SoCs are selected.
 
-> The point is to try to minimize bootloader dependencies.
+The latter does not work, because that would introduce a circular
+dependency in Kconfig.
 
-Also if there are weird bootloader dependendencies that no one can track 
-down, we should document them somewhere, maybe underneath 
-Documentation/arm/OMAP.
+I suppose rearranging the mvebu Makefile like this would do.
 
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-- Paul
+diff --git a/arch/arm/mach-mvebu/Makefile b/arch/arm/mach-mvebu/Makefile
+index 99df4df..c0434dc 100644
+--- a/arch/arm/mach-mvebu/Makefile
++++ b/arch/arm/mach-mvebu/Makefile
+@@ -1,9 +1,15 @@
+ ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
+ 	-I$(srctree)/arch/arm/plat-orion/include
+ 
+-AFLAGS_coherency_ll.o		:= -Wa,-march=armv7-a
++AFLAGS_coherency_ll.o		 := -Wa,-march=armv7-a
+ 
+-obj-y += system-controller.o
+-obj-$(CONFIG_MACH_ARMADA_370_XP) += armada-370-xp.o irq-armada-370-xp.o addr-map.o coherency.o coherency_ll.o pmsu.o
+-obj-$(CONFIG_SMP)                += platsmp.o headsmp.o
+-obj-$(CONFIG_HOTPLUG_CPU)        += hotplug.o
++obj-$(CONFIG_MACH_ARMADA_370_XP) += $(armada-y)
++armada-y			 += system-controller.o
++armada-y			 += armada-370-xp.o
++armada-y			 += irq-armada-370-xp.o
++armada-y			 += addr-map.o
++armada-y			 += coherency.o
++armada-y			 += coherency_ll.o
++armada-y			 += pmsu.o
++armada-$(CONFIG_SMP)		 += platsmp.o headsmp.o
++armada-$(CONFIG_HOTPLUG_CPU)	 += hotplug.o
+
