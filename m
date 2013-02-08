@@ -1,36 +1,35 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Build error: OMAP randconfig / mvebu
-Date: Fri, 8 Feb 2013 10:08:13 +0000
-Message-ID: <20130208100813.GN17833@n2100.arm.linux.org.uk>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: smp_twd: convert to use CLKSRC_OF init
+Date: Fri, 8 Feb 2013 15:49:42 +0530
+Message-ID: <5114D13E.5020308@ti.com>
+References: <1360270385-24335-1-git-send-email-robherring2@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38006 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760052Ab3BHKNX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Feb 2013 05:13:23 -0500
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:60754 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760070Ab3BHKTK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Feb 2013 05:19:10 -0500
+In-Reply-To: <1360270385-24335-1-git-send-email-robherring2@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, arm@kernel.org, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@free-electrons.com>
+To: Rob Herring <robherring2@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, John Stultz <johnstul@us.ibm.com>, Linus Walleij <linus.walleij@linaro.org>, spear-devel@list.st.com, Rob Herring <rob.herring@calxeda.com>, arm@kernel.org, Viresh Kumar <viresh.linux@gmail.com>, Sascha Hauer <kernel@pengutronix.de>, Thomas Gleixner <tglx@linutronix.de>, Shawn Guo <shawn.guo@linaro.org>
 
-Last night's OMAP4430SDP randconfig build failed with:
+On Friday 08 February 2013 02:23 AM, Rob Herring wrote:
+> From: Rob Herring <rob.herring@calxeda.com>
+>
+> Now that we have OF based init with CLKSRC_OF, convert smp_twd init
+> function to use it and covert all callers of
+> twd_local_timer_of_register.
+>
+> Signed-off-by: Rob Herring <rob.herring@calxeda.com>
 
-arch/arm/mach-mvebu/built-in.o: In function `armada_xp_smp_init_cpus':
-hotplug.c:(.init.text+0x70): undefined reference to `coherency_get_cpu_count'
-hotplug.c:(.init.text+0xb4): undefined reference to `armada_mpic_send_doorbell'
-arch/arm/mach-mvebu/built-in.o: In function `armada_xp_smp_prepare_cpus':
-hotplug.c:(.init.text+0x254): undefined reference to `set_cpu_coherent'
-arch/arm/mach-mvebu/built-in.o: In function `armada_xp_boot_secondary':
-hotplug.c:(.cpuinit.text+0x10): undefined reference to `armada_xp_boot_cpu'
-arch/arm/mach-mvebu/built-in.o: In function `armada_xp_secondary_init':
-hotplug.c:(.cpuinit.text+0x2c): undefined reference to `armada_xp_mpic_smp_cpu_init'
-arch/arm/mach-mvebu/built-in.o: In function `armada_xp_secondary_startup':
-hotplug.c:(.cpuinit.text+0x40): undefined reference to `ll_set_cpu_coherent'
+[..]
 
-This seems to be because we ended up with CONFIG_ARCH_MVEBU=y but without
-CONFIG_MACH_ARMADA_370_XP being set - and because of OMAP, we have SMP
-and hotplug CPU enabled.
+>   arch/arm/mach-omap2/timer.c         |    2 +-
 
-Usual configs/logs available via the website.
+For OMAP,
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
