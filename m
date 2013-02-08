@@ -1,45 +1,39 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: PM: Avoid expensive cpu_suspend() path for
- all CPU power states except off
-Date: Fri, 8 Feb 2013 21:04:09 +0530
-Message-ID: <51151AF1.20202@ti.com>
-References: <1360336306-18277-1-git-send-email-santosh.shilimkar@ti.com> <1360336306-18277-3-git-send-email-santosh.shilimkar@ti.com> <20130208152607.GJ23979@arwen.pp.htv.fi>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: PM: Fix the dt return condition in
+ pm_late_init()
+Date: Fri, 8 Feb 2013 15:34:09 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1302081533270.28008@utopia.booyaka.com>
+References: <1360336306-18277-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48889 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754926Ab3BHPc4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Feb 2013 10:32:56 -0500
-In-Reply-To: <20130208152607.GJ23979@arwen.pp.htv.fi>
+Received: from utopia.booyaka.com ([74.50.51.50]:49829 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754926Ab3BHPeK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Feb 2013 10:34:10 -0500
+In-Reply-To: <1360336306-18277-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Friday 08 February 2013 08:56 PM, Felipe Balbi wrote:
-> On Fri, Feb 08, 2013 at 08:41:46PM +0530, Santosh Shilimkar wrote:
->> Current CPU PM code code make use of common cpu_suspend() path for all the
->> CPU power states which is not optimal. In fact cpu_suspend() path is needed
->> only when we put CPU power domain to off state where the CPU context is lost.
->>
->> Update the code accordingly so that the expensive cpu_suspend() path
->> can be avoided for the shallow CPU power states like CPU PD INA/CSWR.
->>
->> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>
->> Reported-by: Richard Woodruff <r-woodruff2@ti.com>
->> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->
-> some numbers showing the benefit would be cool...
->
-The numbers depends on CPU clock you are running generally. The main
-issue is, for the shallow power states where we were not loosing
-CPU context or Caches, we were doing all the book keeping. States
-like INA are of 6-8 uS and above overhead is quite significant
-their.
+On Fri, 8 Feb 2013, Santosh Shilimkar wrote:
 
-Regards
-Santosh
+> Commit 1416408d {ARM: OMAP2+: PM: share some suspend-related functions
+> across OMAP2, 3, 4} moved suspend code to common place but now with
+> that change, for DT build on OMAP4, suspend hooks are not getting
+> registered which results in no suspend support.
+> 
+> The DT return condition is limited to PMIC and smartreflex
+> initialization and hence restrict it so that suspend ops gets
+> registered.
+> 
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
+Thanks, queued here with Felipe's Reviewed-by: along with the other OMAP4 
+PM fixes.
+
+- Paul
