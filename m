@@ -1,36 +1,71 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 2/2] dmaengine: OMAP: Register SDMA controller with Device
- Tree DMA driver
-Date: Fri, 8 Feb 2013 09:23:24 -0600
-Message-ID: <5115186C.2070406@ti.com>
-References: <1360184596-1603-1-git-send-email-jon-hunter@ti.com> <1360184596-1603-3-git-send-email-jon-hunter@ti.com> <201302071439.13720.arnd@arndb.de>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: PM: Avoid expensive cpu_suspend() path for
+ all CPU power states except off
+Date: Fri, 8 Feb 2013 17:26:08 +0200
+Message-ID: <20130208152607.GJ23979@arwen.pp.htv.fi>
+References: <1360336306-18277-1-git-send-email-santosh.shilimkar@ti.com>
+ <1360336306-18277-3-git-send-email-santosh.shilimkar@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="q5r20fdKX+PFtYHw"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46410 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53474 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946450Ab3BHPXi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Feb 2013 10:23:38 -0500
-In-Reply-To: <201302071439.13720.arnd@arndb.de>
+	id S1946070Ab3BHP0T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Feb 2013 10:26:19 -0500
+Content-Disposition: inline
+In-Reply-To: <1360336306-18277-3-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Vinod Koul <vinod.koul@intel.com>, Russell King <linux@arm.linux.org.uk>, Matt Porter <mporter@ti.com>, Balaji T K <balajitk@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>
 
+--q5r20fdKX+PFtYHw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 02/07/2013 08:39 AM, Arnd Bergmann wrote:
-> On Wednesday 06 February 2013, Jon Hunter wrote:
->> +static struct of_dma_filter_info info;
-> 
-> Both members of this structure are constant, so you can just initialize it here,
-> and it would be nice to give it a more descriptive name, such as omap_dmadev_info.
+On Fri, Feb 08, 2013 at 08:41:46PM +0530, Santosh Shilimkar wrote:
+> Current CPU PM code code make use of common cpu_suspend() path for all the
+> CPU power states which is not optimal. In fact cpu_suspend() path is need=
+ed
+> only when we put CPU power domain to off state where the CPU context is l=
+ost.
+>=20
+> Update the code accordingly so that the expensive cpu_suspend() path
+> can be avoided for the shallow CPU power states like CPU PD INA/CSWR.
+>=20
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>=20
+> Reported-by: Richard Woodruff <r-woodruff2@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-No problem. By the way, I see the dma_cap_mask_t is defined as follows ...
+some numbers showing the benefit would be cool...
 
-typedef struct { DECLARE_BITMAP(bits, DMA_TX_TYPE_END); } dma_cap_mask_t;
+--=20
+balbi
 
-Is there a good way to statically initialise this?
+--q5r20fdKX+PFtYHw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Cheers
-Jon
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRFRkPAAoJEIaOsuA1yqREOl8P/3mzeRZljefeANqUZBYoGq54
+YJdtTXzYQDsWRUdt0k73MJlUo/1PE32+tx330pvmtrm4WcFeMhbO06O7ZT7Z1q7Y
+U1ilHyzyUOh8MpYAjFAoPtUUxJtY7+i1HS4bkbNeXdFVBUdEXAdK+yg1aYPcMvy0
+9Y+zS0TNjiHe+NooBwn70BVtb8dKp468BfBK9kXJXM+7bDqQNO6nvY2ANUVja43D
+GOwThz6nhRI/e7JRDxNl02Q2IzrjKlguCzB1D3TQ+NhjqCZ6zXGJIM1pKW9g+9ti
+ckfB5XPUvY/lVyyhV+0+Vai+D3NwSaGa4xkitJ75jLWMEv9huROfeK0JOLc2XVBS
+kIK56bL3zRpBINIjx1YHtQyYaQyFuHRe99XDZ7/S/qz7oOZ6dSSOgWK0hhX9j5YA
+rb3DssgonOcxAwq2+2I1S3PBcScJegXL4+AYXwqELr9etVjOpTz5N/kkpzHR+wdm
+lVbkiIo543aTPzB6I/E1aL/LX7jL7VIv42xHUwN4P4OkTR4ORU0CUDIxcq5hjShv
+CcUMtJ65zbvevZDm3McC3QMjj1BviJJBm3coUL4nrT6ZO9YlIxrW+Aqpx8mLQnDj
+mu29vIIjeFR7wVB6WgfA5Ulb8+6nm8lYWI5yHoNBO6Ky49taZrt57MpFISip7KAf
+meeqxjB7BcwsMymmijX+
+=9QBS
+-----END PGP SIGNATURE-----
+
+--q5r20fdKX+PFtYHw--
