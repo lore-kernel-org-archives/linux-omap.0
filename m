@@ -1,296 +1,119 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 1/7] ARM: OMAP: AM33xx hwmod: Corrects PWM subsystem
- HWMOD entries
-Date: Fri, 8 Feb 2013 15:14:10 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC06FB1@DBDE01.ent.ti.com>
-References: <1357133094-30806-1-git-send-email-avinashphilip@ti.com>
- <1357133094-30806-2-git-send-email-avinashphilip@ti.com>
- <alpine.DEB.2.00.1302081507480.28008@utopia.booyaka.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: PM: Fix the dt return condition in
+ pm_late_init()
+Date: Fri, 8 Feb 2013 17:20:15 +0200
+Message-ID: <20130208152015.GH23979@arwen.pp.htv.fi>
+References: <1360336306-18277-1-git-send-email-santosh.shilimkar@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1302081507480.28008@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Philip, Avinash" <avinashphilip@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lrvsYIebpInmECXG"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48303 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1946062Ab3BHPU2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Feb 2013 10:20:28 -0500
+Content-Disposition: inline
+In-Reply-To: <1360336306-18277-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Fri, Feb 08, 2013 at 20:40:18, Paul Walmsley wrote:
-> Hi
-> 
-> On Wed, 2 Jan 2013, Philip Avinash wrote:
-> 
-> > EQEP entry is HWMOD entry is not present in HWMOD entry.
-> 
-> Patch descriptions need to make sense.  This one does not.  I've fixed it 
-> for you this time, but please take more care in the future.
-> 
-> 
-> - Paul
-> 
-> 
-> From: Philip Avinash <avinashphilip@ti.com>
-> Date: Wed, 2 Jan 2013 18:54:48 +0530
-> Subject: [PATCH] ARM: OMAP: AM33xx hwmod: Corrects PWM subsystem HWMOD
->  entries
-> 
-> EQEP IP block integration data is not present in HWMOD data. Also
-> address ranges specified for EACP & EHRPWM are not correct & HWMOD
-> flags of ADDR_TYPE_RT are added to PWM subsystem register address
-> space. This patch:
-> 1. Corrects register address mapping for ECAP & EHRPWM
-> 2. Removes  HWMOD flags in PWM submodule register address space.
-> 3. Adds EQEP HWMOD entries.
-> 
-> Signed-off-by: Philip Avinash <avinashphilip@ti.com>
-> [paul@pwsan.com: tweaked patch description]
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+--lrvsYIebpInmECXG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Fri, Feb 08, 2013 at 08:41:44PM +0530, Santosh Shilimkar wrote:
+> Commit 1416408d {ARM: OMAP2+: PM: share some suspend-related functions
+> across OMAP2, 3, 4} moved suspend code to common place but now with
+> that change, for DT build on OMAP4, suspend hooks are not getting
+> registered which results in no suspend support.
+>=20
+> The DT return condition is limited to PMIC and smartreflex
+> initialization and hence restrict it so that suspend ops gets
+> registered.
+>=20
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>=20
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Feel free to add my Acked-by on this.
+makes sense to me, we still need to set the global suspend_ops pointer
+to something valid in DT boots:
 
-Thanks,
-Vaibhav
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 
 > ---
->  arch/arm/mach-omap2/omap_hwmod_33xx_data.c |  158 +++++++++++++++++++++++++---
->  1 file changed, 145 insertions(+), 13 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> index 9e34d4c..4b1cc4d 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> @@ -784,7 +784,7 @@ static struct omap_hwmod am33xx_elm_hwmod = {
->  };
->  
->  /*
-> - * 'epwmss' class: ecap0,1,2,  ehrpwm0,1,2
-> + * 'epwmss' class: ehrpwm0,1,2 eqep0,1,2 ecap0,1,2
->   */
->  static struct omap_hwmod_class_sysconfig am33xx_epwmss_sysc = {
->  	.rev_offs	= 0x0,
-> @@ -864,6 +864,66 @@ static struct omap_hwmod am33xx_ehrpwm2_hwmod = {
->  	},
->  };
->  
-> +/* eqep0 */
-> +static struct omap_hwmod_irq_info am33xx_eqep0_irqs[] = {
-> +	{ .irq = 79 + OMAP_INTC_START, },
-> +	{ .irq = -1 },
-> +};
-> +
-> +static struct omap_hwmod am33xx_eqep0_hwmod = {
-> +	.name		= "eqep0",
-> +	.class		= &am33xx_epwmss_hwmod_class,
-> +	.clkdm_name	= "l4ls_clkdm",
-> +	.mpu_irqs	= am33xx_eqep0_irqs,
-> +	.main_clk	= "l4ls_gclk",
-> +	.prcm		= {
-> +		.omap4	= {
-> +			.clkctrl_offs	= AM33XX_CM_PER_EPWMSS0_CLKCTRL_OFFSET,
-> +			.modulemode	= MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +};
-> +
-> +/* eqep1 */
-> +static struct omap_hwmod_irq_info am33xx_eqep1_irqs[] = {
-> +	{ .irq = 88 + OMAP_INTC_START, },
-> +	{ .irq = -1 },
-> +};
-> +
-> +static struct omap_hwmod am33xx_eqep1_hwmod = {
-> +	.name		= "eqep1",
-> +	.class		= &am33xx_epwmss_hwmod_class,
-> +	.clkdm_name	= "l4ls_clkdm",
-> +	.mpu_irqs	= am33xx_eqep1_irqs,
-> +	.main_clk	= "l4ls_gclk",
-> +	.prcm		= {
-> +		.omap4	= {
-> +			.clkctrl_offs	= AM33XX_CM_PER_EPWMSS1_CLKCTRL_OFFSET,
-> +			.modulemode	= MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +};
-> +
-> +/* eqep2 */
-> +static struct omap_hwmod_irq_info am33xx_eqep2_irqs[] = {
-> +	{ .irq = 89 + OMAP_INTC_START, },
-> +	{ .irq = -1 },
-> +};
-> +
-> +static struct omap_hwmod am33xx_eqep2_hwmod = {
-> +	.name		= "eqep2",
-> +	.class		= &am33xx_epwmss_hwmod_class,
-> +	.clkdm_name	= "l4ls_clkdm",
-> +	.mpu_irqs	= am33xx_eqep2_irqs,
-> +	.main_clk	= "l4ls_gclk",
-> +	.prcm		= {
-> +		.omap4	= {
-> +			.clkctrl_offs	= AM33XX_CM_PER_EPWMSS2_CLKCTRL_OFFSET,
-> +			.modulemode	= MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +};
-> +
->  /* ecap0 */
->  static struct omap_hwmod_irq_info am33xx_ecap0_irqs[] = {
->  	{ .irq = 31 + OMAP_INTC_START, },
-> @@ -2559,8 +2619,7 @@ static struct omap_hwmod_addr_space am33xx_ehrpwm0_addr_space[] = {
->  	},
->  	{
->  		.pa_start	= 0x48300200,
-> -		.pa_end		= 0x48300200 + SZ_256 - 1,
-> -		.flags		= ADDR_TYPE_RT
-> +		.pa_end		= 0x48300200 + SZ_128 - 1,
->  	},
->  	{ }
->  };
-> @@ -2585,8 +2644,7 @@ static struct omap_hwmod_addr_space am33xx_ehrpwm1_addr_space[] = {
->  	},
->  	{
->  		.pa_start	= 0x48302200,
-> -		.pa_end		= 0x48302200 + SZ_256 - 1,
-> -		.flags		= ADDR_TYPE_RT
-> +		.pa_end		= 0x48302200 + SZ_128 - 1,
->  	},
->  	{ }
->  };
-> @@ -2611,8 +2669,7 @@ static struct omap_hwmod_addr_space am33xx_ehrpwm2_addr_space[] = {
->  	},
->  	{
->  		.pa_start	= 0x48304200,
-> -		.pa_end		= 0x48304200 + SZ_256 - 1,
-> -		.flags		= ADDR_TYPE_RT
-> +		.pa_end		= 0x48304200 + SZ_128 - 1,
->  	},
->  	{ }
->  };
-> @@ -2629,6 +2686,81 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__ehrpwm2 = {
->   * Splitting the resources to handle access of PWMSS config space
->   * and module specific part independently
->   */
-> +static struct omap_hwmod_addr_space am33xx_eqep0_addr_space[] = {
-> +	{
-> +		.pa_start	= 0x48300000,
-> +		.pa_end		= 0x48300000 + SZ_16 - 1,
-> +		.flags		= ADDR_TYPE_RT
-> +	},
-> +	{
-> +		.pa_start	= 0x48300180,
-> +		.pa_end		= 0x48300180 + SZ_128 - 1,
-> +	},
-> +	{ }
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am33xx_l4_ls__eqep0 = {
-> +	.master		= &am33xx_l4_ls_hwmod,
-> +	.slave		= &am33xx_eqep0_hwmod,
-> +	.clk		= "l4ls_gclk",
-> +	.addr		= am33xx_eqep0_addr_space,
-> +	.user		= OCP_USER_MPU,
-> +};
-> +
-> +/*
-> + * Splitting the resources to handle access of PWMSS config space
-> + * and module specific part independently
-> + */
-> +static struct omap_hwmod_addr_space am33xx_eqep1_addr_space[] = {
-> +	{
-> +		.pa_start	= 0x48302000,
-> +		.pa_end		= 0x48302000 + SZ_16 - 1,
-> +		.flags		= ADDR_TYPE_RT
-> +	},
-> +	{
-> +		.pa_start	= 0x48302180,
-> +		.pa_end		= 0x48302180 + SZ_128 - 1,
-> +	},
-> +	{ }
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am33xx_l4_ls__eqep1 = {
-> +	.master		= &am33xx_l4_ls_hwmod,
-> +	.slave		= &am33xx_eqep1_hwmod,
-> +	.clk		= "l4ls_gclk",
-> +	.addr		= am33xx_eqep1_addr_space,
-> +	.user		= OCP_USER_MPU,
-> +};
-> +
-> +/*
-> + * Splitting the resources to handle access of PWMSS config space
-> + * and module specific part independently
-> + */
-> +static struct omap_hwmod_addr_space am33xx_eqep2_addr_space[] = {
-> +	{
-> +		.pa_start	= 0x48304000,
-> +		.pa_end		= 0x48304000 + SZ_16 - 1,
-> +		.flags		= ADDR_TYPE_RT
-> +	},
-> +	{
-> +		.pa_start	= 0x48304180,
-> +		.pa_end		= 0x48304180 + SZ_128 - 1,
-> +	},
-> +	{ }
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am33xx_l4_ls__eqep2 = {
-> +	.master		= &am33xx_l4_ls_hwmod,
-> +	.slave		= &am33xx_eqep2_hwmod,
-> +	.clk		= "l4ls_gclk",
-> +	.addr		= am33xx_eqep2_addr_space,
-> +	.user		= OCP_USER_MPU,
-> +};
-> +
-> +/*
-> + * Splitting the resources to handle access of PWMSS config space
-> + * and module specific part independently
-> + */
->  static struct omap_hwmod_addr_space am33xx_ecap0_addr_space[] = {
->  	{
->  		.pa_start	= 0x48300000,
-> @@ -2637,8 +2769,7 @@ static struct omap_hwmod_addr_space am33xx_ecap0_addr_space[] = {
->  	},
->  	{
->  		.pa_start	= 0x48300100,
-> -		.pa_end		= 0x48300100 + SZ_256 - 1,
-> -		.flags		= ADDR_TYPE_RT
-> +		.pa_end		= 0x48300100 + SZ_128 - 1,
->  	},
->  	{ }
->  };
-> @@ -2663,8 +2794,7 @@ static struct omap_hwmod_addr_space am33xx_ecap1_addr_space[] = {
->  	},
->  	{
->  		.pa_start	= 0x48302100,
-> -		.pa_end		= 0x48302100 + SZ_256 - 1,
-> -		.flags		= ADDR_TYPE_RT
-> +		.pa_end		= 0x48302100 + SZ_128 - 1,
->  	},
->  	{ }
->  };
-> @@ -2689,8 +2819,7 @@ static struct omap_hwmod_addr_space am33xx_ecap2_addr_space[] = {
->  	},
->  	{
->  		.pa_start	= 0x48304100,
-> -		.pa_end		= 0x48304100 + SZ_256 - 1,
-> -		.flags		= ADDR_TYPE_RT
-> +		.pa_end		= 0x48304100 + SZ_128 - 1,
->  	},
->  	{ }
->  };
-> @@ -3395,6 +3524,9 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
->  	&am33xx_l4_ls__ehrpwm0,
->  	&am33xx_l4_ls__ehrpwm1,
->  	&am33xx_l4_ls__ehrpwm2,
-> +	&am33xx_l4_ls__eqep0,
-> +	&am33xx_l4_ls__eqep1,
-> +	&am33xx_l4_ls__eqep2,
->  	&am33xx_l4_ls__ecap0,
->  	&am33xx_l4_ls__ecap1,
->  	&am33xx_l4_ls__ecap2,
-> -- 
-> 1.7.10.4
-> 
-> 
+>  arch/arm/mach-omap2/pm.c |   20 ++++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index f4b3143..1ec4299 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -345,19 +345,19 @@ int __init omap2_common_pm_late_init(void)
+>  	 * a completely different mechanism.
+>  	 * Disable this part if a DT blob is available.
+>  	 */
+> -	if (of_have_populated_dt())
+> -		return 0;
+> +	if (!of_have_populated_dt()) {
+> =20
+> -	/* Init the voltage layer */
+> -	omap_pmic_late_init();
+> -	omap_voltage_late_init();
+> +		/* Init the voltage layer */
+> +		omap_pmic_late_init();
+> +		omap_voltage_late_init();
+> =20
+> -	/* Initialize the voltages */
+> -	omap3_init_voltages();
+> -	omap4_init_voltages();
+> +		/* Initialize the voltages */
+> +		omap3_init_voltages();
+> +		omap4_init_voltages();
+> =20
+> -	/* Smartreflex device init */
+> -	omap_devinit_smartreflex();
+> +		/* Smartreflex device init */
+> +		omap_devinit_smartreflex();
+> +	}
+> =20
+>  #ifdef CONFIG_SUSPEND
+>  	suspend_set_ops(&omap_pm_ops);
+> --=20
+> 1.7.9.5
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=20
+balbi
+
+--lrvsYIebpInmECXG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRFReuAAoJEIaOsuA1yqREgiwQAI+iHj0bPnqulCkV5go4J5bS
+nw6pdt5O5KAsN/AqZllpYOatFUo+B9gjGo1YnTopg5oAMNdv0VVylN3YeTJrnKHA
+T7xZTacnt/D3OksZfc9/3r4OwN0Zc/ROx8xcJxAmXbid7hud3SOeSIHhPI0OUltJ
+AIuMtiPXCmF/+8ivTX40FyFg9z8ea9CXnG1zITdvYb+XVzCrdIFPu7RPMuix294t
+EMdTfNZ929RexSA8i/W4qAFSaWVU4+wgLEngcd+3bvfFa6KPqjn0UPZX/ztNR+UW
+fOu3JIkpVFozyi2Yh5xRgokFWAWs7F2Sfs3UzLJLm9byBaRXT8dA3QxpL4nNsr34
+t0/lGcBYRsTOxBuINS5wQuZ/w9eQlNrJNbelJe7/N/lI8iXQoI82YjBguqSQ3Yp3
+SDjCZF9oZOaPuU4IcMXC08w+CVngLVS1vnQDi7hunLrZnwMKulTcR/mwUTVv7b0N
+vIhs4z4hHNWcjft9qD/59XRyzoajsSPexNp2sJggJdo8xuz7PTyJSTUVJReN5UWv
+IRccHOtpCkkOADTvCiHP36BPzw732LtTA6yqDELVFF8qP18iogMlDfTaCwiHy5jr
+pHGZ+jHoKzgME02xTpJqzd7+fNhTpvLn6BcMxX1N4loTfoqfDvsRwX+KxNN2b1dp
+LdCrKNivp+nX+5xPg7f1
+=8Sqd
+-----END PGP SIGNATURE-----
+
+--lrvsYIebpInmECXG--
