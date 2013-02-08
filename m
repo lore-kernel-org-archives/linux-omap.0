@@ -1,77 +1,36 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH V2 0/2] ARM: dts: Add DT bindings for OMAP SDMA
-Date: Fri, 8 Feb 2013 14:58:18 +0530
-Message-ID: <5114C532.1050506@ti.com>
-References: <1360285506-22354-1-git-send-email-jon-hunter@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Build error: OMAP randconfig / mvebu
+Date: Fri, 8 Feb 2013 10:08:13 +0000
+Message-ID: <20130208100813.GN17833@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57571 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946100Ab3BHJ1a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Feb 2013 04:27:30 -0500
-In-Reply-To: <1360285506-22354-1-git-send-email-jon-hunter@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38006 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760052Ab3BHKNX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Feb 2013 05:13:23 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Vinod Koul <vinod.koul@intel.com>, Russell King <linux@arm.linux.org.uk>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Matt Porter <mporter@ti.com>, Felipe Balbi <balbi@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Balaji T K <balajitk@ti.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, arm@kernel.org, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@free-electrons.com>
 
-On Friday 08 February 2013 06:35 AM, Jon Hunter wrote:
-> Adds device-tree bindings from SDMA on OMAP2+ devices. DMA client
-> bindings are also added for devices that have SPI and MMC bindings
-> populated. Client binding data is based upon existing HWMOD data for
-> OMAP and has been checked against OMAP documentation.
->
-> Please note that the underlying (legacy) OMAP SDMA driver has not been
-> ported over to DT and this still needs to be done. However, this allows
-> DMA clients to look-up the DMA resource information via device-tree.
->
-> Testing includes ...
-> 1. Boot tested on OMAP3430 Beagle board, OMAP4430 Panda board and
->     OMAP4460 Panda board with and without device-tree present.
-> 2. Testing of MMC1 with SD card on OMAP3430 Beagle board, OMAP4430
->     Panda board and OMAP4460 Panda board with and without device-tree
->     present.
->
-> Testing branch available here [1].
->
-> Series is based upon Tony Lindgren's omap-for-v3.9/multiplatform-v2
-> branch [2] on top of the following ...
-> - Vinod's topic/dmaengine_dt branch [3]
-> - Matt Porter's series "DMA Engine support for AM33XX" [4]
-> - Matt Porter's series "omap_hsmmc DT DMA Client support" [5]
-> - Sourav Poddar's series "add omap mcspi device tree data" [6]
->
-> V2 changes:
-> - Updated to Tony's omap-for-v3.9/multiplatform-v2 branch to pull in
->    DMA changes for v3.9
-> - Added comma to omap_dma_driver structure as pointed out by Arnd.
-> - Updated OMAP SDMA DT binding compatible strings to indicate which
->    devices are bit compatible with each other with respect to the SDMA
->    controller. Grant had mentioned in the past that he wants the
->    compatible string to be based upon a particular device and not
->    something generic like "ti,omap-sdma".
->
-> [1] https://github.com/jonhunter/linux/commits/dev-dt-dma
-> [2] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git omap-for-v3.9/multiplatform-v2
-> [3] http://git.infradead.org/users/vkoul/slave-dma.git/shortlog/refs/heads/topic/dmaengine_dt
-> [4] http://permalink.gmane.org/gmane.linux.kernel.spi.devel/12508
-> [5] http://permalink.gmane.org/gmane.linux.ports.arm.omap/93165
-> [6] http://permalink.gmane.org/gmane.linux.kernel/1435002
->
-> Jon Hunter (2):
->    ARM: dts: OMAP2+: Add SDMA controller bindings and nodes
->    dmaengine: OMAP: Register SDMA controller with Device Tree DMA driver
->
->   .../devicetree/bindings/dma/omap-sdma.txt          |   51 ++++++++++++++++++++
->   arch/arm/boot/dts/omap2.dtsi                       |   12 +++++
->   arch/arm/boot/dts/omap3.dtsi                       |   40 +++++++++++++++
->   arch/arm/boot/dts/omap4.dtsi                       |   41 ++++++++++++++++
->   arch/arm/boot/dts/omap5.dtsi                       |   41 ++++++++++++++++
->   arch/arm/mach-omap2/dma.c                          |    4 ++
->   drivers/dma/omap-dma.c                             |   37 +++++++++++++-
->   7 files changed, 224 insertions(+), 2 deletions(-)
->   create mode 100644 Documentation/devicetree/bindings/dma/omap-sdma.txt
->
-Acked-Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Last night's OMAP4430SDP randconfig build failed with:
+
+arch/arm/mach-mvebu/built-in.o: In function `armada_xp_smp_init_cpus':
+hotplug.c:(.init.text+0x70): undefined reference to `coherency_get_cpu_count'
+hotplug.c:(.init.text+0xb4): undefined reference to `armada_mpic_send_doorbell'
+arch/arm/mach-mvebu/built-in.o: In function `armada_xp_smp_prepare_cpus':
+hotplug.c:(.init.text+0x254): undefined reference to `set_cpu_coherent'
+arch/arm/mach-mvebu/built-in.o: In function `armada_xp_boot_secondary':
+hotplug.c:(.cpuinit.text+0x10): undefined reference to `armada_xp_boot_cpu'
+arch/arm/mach-mvebu/built-in.o: In function `armada_xp_secondary_init':
+hotplug.c:(.cpuinit.text+0x2c): undefined reference to `armada_xp_mpic_smp_cpu_init'
+arch/arm/mach-mvebu/built-in.o: In function `armada_xp_secondary_startup':
+hotplug.c:(.cpuinit.text+0x40): undefined reference to `ll_set_cpu_coherent'
+
+This seems to be because we ended up with CONFIG_ARCH_MVEBU=y but without
+CONFIG_MACH_ARMADA_370_XP being set - and because of OMAP, we have SMP
+and hotplug CPU enabled.
+
+Usual configs/logs available via the website.
+
