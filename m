@@ -1,50 +1,87 @@
-From: Andi Shyti <andi@etezian.org>
-Subject: Re: [PATCH 1/1] OMAP4: DSS: Add panel for Blaze Tablet boards
-Date: Fri, 8 Feb 2013 13:48:30 +0100
-Message-ID: <20130208124829.GB10564@jack.whiskey>
-References: <1360248051-16541-1-git-send-email-ruslan.bilovol@ti.com>
- <1360248051-16541-2-git-send-email-ruslan.bilovol@ti.com>
- <20130207145952.GA7860@jack.whiskey>
- <CAB=otbTH8bQp5X4Y2cvMYKwYqMbT0HQxmuRD9gRtna=-vy2ptA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAB=otbTH8bQp5X4Y2cvMYKwYqMbT0HQxmuRD9gRtna=-vy2ptA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: Andi Shyti <andi@etezian.org>, tomi.valkeinen@ti.com, FlorianSchandinat@gmx.de, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH] mmc: omap_hsmmc: Enable SDIO IRQ using a GPIO in idle mode.
+Date: Fri, 08 Feb 2013 13:05:20 +0000
+Message-ID: <20130208130520.4B1203E2B73@localhost>
+References: <20121220220444.GA350@blumentopf> <1356041532-919-1-git-send-email-andreas.fenkart@streamunlimited.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1356041532-919-1-git-send-email-andreas.fenkart@streamunlimited.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Andreas Fenkart <andreas.fenkart@streamunlimited.com>, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, santosh.shilimkar@ti.com, cjb@laptop.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-> Thanks for looking into
-
-if you want you can put me in CC and I can review the next
-patches (perhaps V2 of the patches)
-
-> >> +     mutex_lock(&tc358765_i2c->xfer_lock);
-> >> +     ret = i2c_transfer(tc358765_i2c->client->adapter, &msg, 1);
-> >> +     mutex_unlock(&tc358765_i2c->xfer_lock);
-> >
-> > What about using smbus?
+On Thu, 20 Dec 2012 23:12:12 +0100, Andreas Fenkart <andreas.fenkart@streamunlimited.com> wrote:
+> Without functional clock the omap_hsmmc module can't forward
+> SDIO IRQs to the system. This patch reconfigures dat1 line
+> as a gpio while the fclk is off. And uses SDIO IRQ detection of
+> the module, while fclk is present.
 > 
-> OMAP2+ SoCs have full I2C controller so panel drivers traditionally use I2C.
-> Since implementation is OMAP-specific, I don't think we need to use smbus here.
+> Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+> ---
+>  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   42 ++++
+>  arch/arm/plat-omap/include/plat/mmc.h              |    4 +
+>  drivers/mmc/host/omap_hsmmc.c                      |  219 ++++++++++++++++++--
+>  3 files changed, 247 insertions(+), 18 deletions(-)
 > 
-> Also please look at other panels implementation:
-> drivers/video/omap2/displays/panel-tfp410.c
-> drivers/video/omap2/displays/panel-picodlp.c
+> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> index d1b8932..4d57637 100644
+> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> @@ -24,6 +24,29 @@ One tx and one rx pair is required.
+>  dma-names: DMA request names. These strings correspond 1:1 with
+>  the ordered pairs in dmas. The RX request must be "rx" and the
+>  TX request must be "tx".
+> +ti,cirq-gpio: When omap_hsmmc module is suspended, its functional
+> +clock is turned off. Without fclk it can't forward SDIO IRQs to the
+> +system. For that to happen, it needs to tell the PRCM to restore
+> +its fclk, which is done through the swakeup line.
+> +
+> +                   ------
+> +                  | PRCM |
+> +                   ------
+> +                    | ^
+> +               fclk | | swakeup
+> +                    v |
+> +                  -------               ------
+> +      <-- IRQ -- | hsmmc | <-- CIRQ -- | card |
+> +                  -------               ------
+> +
+> +The problem is, that on the AM335x family the swakeup line is
+> +missing, it has not been routed from the module to the PRCM.
+> +The way to work around this, is to reconfigure the dat1 line as a
+> +GPIO upon suspend. Beyond this option you also need to set named
+> +states "default" and "idle "in the .dts file for the pins, using
+> +pinctrl-single.c. The MMC driver will then then toggle between
+> +default and idle during the runtime.
+> +
+>  
+>  Examples:
+>  
+> @@ -53,3 +76,22 @@ Examples:
+>  			&edma 25>;
+>  		dma-names = "tx", "rx";
+>  	};
+> +
+> +[am335x with with gpio for sdio irq]
+> +
+> +	mmc1_cirq_pin: pinmux_cirq_pin {
+> +		pinctrl-single,pins = <
+> +			0x0f8 0x3f	/* MMC0_DAT1 as GPIO2_28 */
+> +		>;
+> +	};
+> +
+> +	mmc1: mmc@48060000 {
+> +		pinctrl-names = "default", "idle";
+> +		pinctrl-0 = <&mmc1_pins>;
+> +		pinctrl-1 = <&mmc1_cirq_pin>;
+> +		ti,cirq-gpio = <&gpio3 28 0>;
+> +		ti,non-removable;
+> +		bus-width = <4>;
+> +		vmmc-supply = <&ldo2_reg>;
+> +		vmmc_aux-supply = <&vmmc>;
+> +	};
 
-Yeah, it's the same problem with other i2c drivers, they should
-be written to be working as much as possible with the emulated
-smbus.
+Binding looks reasonable.
 
-I don't actually know the internals of the omap2 driver
-controller, but not being able to use smbus, definitely sucks!
+Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
 
-> Will be fixed in next patchset
-
-What about sending a patch V2? :)
-
-Andi
