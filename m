@@ -1,59 +1,85 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: Build error: OMAP randconfig / mvebu
-Date: Fri, 08 Feb 2013 14:33:29 +0100
-Message-ID: <4351524.MQWtq16mqg@wuerfel>
-References: <20130208100813.GN17833@n2100.arm.linux.org.uk> <2213733.Wbjy3dFgom@wuerfel> <5114DC44.7000107@free-electrons.com>
+From: "AnilKumar" <anilk4.v@gmail.com>
+Subject: RE: [PATCH] ARM: dts: add minimal DT support for DevKit8000
+Date: Fri, 8 Feb 2013 19:05:32 +0530
+Message-ID: <007b01ce0601$2f46b4e0$8dd41ea0$@gmail.com>
+References: <1360246297-5500-1-git-send-email-anilk4.v@gmail.com> <20130207173949.GA21723@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:53521 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946022Ab3BHNeN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Feb 2013 08:34:13 -0500
-In-Reply-To: <5114DC44.7000107@free-electrons.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130207173949.GA21723@e106331-lin.cambridge.arm.com>
+Content-Language: en-in
+Sender: linux-kernel-owner@vger.kernel.org
+To: 'Mark Rutland' <mark.rutland@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, grant.likely@secretlab.ca, thomas@tomweber.eu
 List-Id: linux-omap@vger.kernel.org
-To: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, arm@kernel.org, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>
 
-On Friday 08 February 2013 12:06:44 Gregory CLEMENT wrote:
+Hi Mark,
+
+Thanks for the review comments. Please find my comments inline.
+
+On Thu, Feb 07, 2013 at 23:09:49, Mark Rutland wrote:
+> Hello,
 > 
-> I don't know what to do here, there is no point to build any of the files
-> in mach-mvebu if no SoCs are selected. So either we force to have at least
-> one SoCS selected if ARCH_MVEBU is selected, or we unselect  ARCH_MVEB if
-> no SoCs are selected.
+> I have a couple of minor comments.
+> 
+> On Thu, Feb 07, 2013 at 02:11:37PM +0000, Anil Kumar wrote:
+> > DevKit8000 is a beagle board clone from Timll, sold by armkits.com.
+> > The DevKit8000 has RS232 serial port, LCD, DVI-D, S-Video, Ethernet, 
+> > SD/MMC, keyboard, camera, SPI, I2C, USB and JTAG interface.
+> >
+> > This patch adds the basic DT support for devkit8000. At this time, 
+> > Information of twl4030, MMC1, I2C1, leds and there pim mux 
+> > information are
+> added.
+> >
+> > Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
+> > Tested-by: Thomas Weber <thomas@tomweber.eu>
+> > ---
+> >
+> >  -This patch is based on top of kernel 3.8-rc5.
+> >
+> >  -Tested on Devkit8000.
+> >
+> 
+> [...]
+> 
+> > diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts
+> > b/arch/arm/boot/dts/omap3-devkit8000.dts
+> > new file mode 100644
+> > index 0000000..9864fd7
+> > --- /dev/null
+> > +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+> > @@ -0,0 +1,125 @@
+> > +/*
+> > + * Anil Kumar <anilk4.v@gmail.com>
+> > + *
+> > + * This program is free software; you can redistribute it and/or 
+> > +modify
+> > + * it under the terms of the GNU General Public License version 2 
+> > +as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +/dts-v1/;
+> > +
+> > +/include/ "omap3.dtsi"
+> > +/ {
+> > +	model = "TI OMAP3 Devkit8000";
+> 
+> Should this not be "TimLL Devkit8000" ?
 
-The latter does not work, because that would introduce a circular
-dependency in Kconfig.
+Hmm..  I think it will be better as  "TimLL OMAP3 Devkit8000"  as this board
+is omap3 based.
 
-I suppose rearranging the mvebu Makefile like this would do.
+> 
+> > +	compatible = "ti,omap3-devkit8000", "ti,omap3";
+> 
+> "timll,devkit8000" ?
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-diff --git a/arch/arm/mach-mvebu/Makefile b/arch/arm/mach-mvebu/Makefile
-index 99df4df..c0434dc 100644
---- a/arch/arm/mach-mvebu/Makefile
-+++ b/arch/arm/mach-mvebu/Makefile
-@@ -1,9 +1,15 @@
- ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
- 	-I$(srctree)/arch/arm/plat-orion/include
+I think it will be better  as  "timll,omap3-devkit8000"  as this board is
+omap3 based.
  
--AFLAGS_coherency_ll.o		:= -Wa,-march=armv7-a
-+AFLAGS_coherency_ll.o		 := -Wa,-march=armv7-a
- 
--obj-y += system-controller.o
--obj-$(CONFIG_MACH_ARMADA_370_XP) += armada-370-xp.o irq-armada-370-xp.o addr-map.o coherency.o coherency_ll.o pmsu.o
--obj-$(CONFIG_SMP)                += platsmp.o headsmp.o
--obj-$(CONFIG_HOTPLUG_CPU)        += hotplug.o
-+obj-$(CONFIG_MACH_ARMADA_370_XP) += $(armada-y)
-+armada-y			 += system-controller.o
-+armada-y			 += armada-370-xp.o
-+armada-y			 += irq-armada-370-xp.o
-+armada-y			 += addr-map.o
-+armada-y			 += coherency.o
-+armada-y			 += coherency_ll.o
-+armada-y			 += pmsu.o
-+armada-$(CONFIG_SMP)		 += platsmp.o headsmp.o
-+armada-$(CONFIG_HOTPLUG_CPU)	 += hotplug.o
-
+Thanks,
+Anil
+[...]
