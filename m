@@ -1,64 +1,133 @@
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] dmaengine: OMAP: Register SDMA controller with Device
- Tree DMA driver
-Date: Fri, 8 Feb 2013 12:52:43 -0600
-Message-ID: <5115497B.3070106@ti.com>
-References: <1360184596-1603-1-git-send-email-jon-hunter@ti.com>
- <201302071439.13720.arnd@arndb.de> <5113CD6F.3060108@ti.com>
- <10081370.NaeII8M1Pj@wuerfel> <51144C3E.7070603@ti.com>
- <20130208014402.GA7556@atomide.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v2 09/11] mfd: twl-core: Collect global variables behind
+ one private structure (global)
+Date: Fri, 8 Feb 2013 12:56:58 -0600
+Message-ID: <51154A7A.2010709@ti.com>
+References: <1358344439-23017-1-git-send-email-peter.ujfalusi@ti.com> <1358344439-23017-10-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20130208014402.GA7556-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "Ujfalusi,
- Peter" <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358344439-23017-10-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 
-On 02/07/2013 07:44 PM, Tony Lindgren wrote:
-> * Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org> [130207 16:55]:
->>
->> Ugh, looks like linux-next is broken for omap2+ boards at the moment
->> and is panic'ing in the twl i2c code ... some else to look into ...
->>
->> Peter have you seen this on linux-next? I am seeing this on omap2-4 boards.
+On 01/16/2013 07:53 AM, Peter Ujfalusi wrote:
+> Gather the global variables under a single structure and allocate it with
+> devm_kzalloc(). It is easier to see them and if in the future we try to add
+> support for multiple instance of twl in the system it is going to be much
+> simpler.
 > 
-> Does not happen with arm-soc/for-next, probably related to the
-> drivers/mfd/*twl* changes?
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  drivers/mfd/twl-core.c | 104 +++++++++++++++++++++++++++----------------------
+>  1 file changed, 57 insertions(+), 47 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index 1827088..e2895a4 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -141,33 +141,28 @@
+>  
+>  /*----------------------------------------------------------------------*/
+>  
+> -/* is driver active, bound to a chip? */
+> -static bool inuse;
+> -
+> -/* TWL IDCODE Register value */
+> -static u32 twl_idcode;
+> -
+> -static unsigned int twl_id;
+> -unsigned int twl_rev(void)
+> -{
+> -	return twl_id;
+> -}
+> -EXPORT_SYMBOL(twl_rev);
+> -
+>  /* Structure for each TWL4030/TWL6030 Slave */
+>  struct twl_client {
+>  	struct i2c_client *client;
+>  	struct regmap *regmap;
+>  };
+>  
+> -static struct twl_client *twl_modules;
+> -
+>  /* mapping the module id to slave id and base address */
+>  struct twl_mapping {
+>  	unsigned char sid;	/* Slave ID */
+>  	unsigned char base;	/* base address */
+>  };
+> -static struct twl_mapping *twl_map;
+> +
+> +struct twl_private {
+> +	bool ready; /* The core driver is ready to be used */
+> +	u32 twl_idcode; /* TWL IDCODE Register value */
+> +	unsigned int twl_id;
+> +
+> +	struct twl_mapping *twl_map;
+> +	struct twl_client *twl_modules;
+> +};
+> +
+> +static struct twl_private *twl_priv;
+>  
+>  static struct twl_mapping twl4030_map[] = {
+>  	/*
+> @@ -300,6 +295,12 @@ static inline int twl_get_last_module(void)
+>  
+>  /* Exported Functions */
+>  
+> +unsigned int twl_rev(void)
+> +{
+> +	return twl_priv ? twl_priv->twl_id : 0;
+> +}
+> +EXPORT_SYMBOL(twl_rev);
+> +
+>  /**
+>   * twl_i2c_write - Writes a n bit register in TWL4030/TWL5030/TWL60X0
+>   * @mod_no: module number
+> @@ -322,16 +323,17 @@ int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+>  		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
+>  		return -EPERM;
+>  	}
+> -	if (unlikely(!inuse)) {
+> +	if (unlikely(!twl_priv->ready)) {
 
-Looks like it is caused by ...
+This is causing the kernel to panic on all my omap2 boards when booting linux-next
+because twl_priv is not initialised yet.
 
-commit 8a6aaa33bc6db516b7cb286c9b8d3ed90a0f06f9
-Author: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Date:   Wed Jan 16 14:53:57 2013 +0100
+>  		pr_err("%s: not initialized\n", DRIVER_NAME);
+>  		return -EPERM;
+>  	}
+>  
+> -	sid = twl_map[mod_no].sid;
+> -	twl = &twl_modules[sid];
+> +	sid = twl_priv->twl_map[mod_no].sid;
+> +	twl = &twl_priv->twl_modules[sid];
+>  
+> -	ret = regmap_bulk_write(twl->regmap, twl_map[mod_no].base + reg,
+> -				value, num_bytes);
+> +	ret = regmap_bulk_write(twl->regmap,
+> +				twl_priv->twl_map[mod_no].base + reg, value,
+> +				num_bytes);
+>  
+>  	if (ret)
+>  		pr_err("%s: Write failed (mod %d, reg 0x%02x count %d)\n",
+> @@ -360,16 +362,17 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+>  		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
+>  		return -EPERM;
+>  	}
+> -	if (unlikely(!inuse)) {
+> +	if (unlikely(!twl_priv->ready)) {
 
-    mfd: twl-core: Collect global variables behind one private structure (global)
-    
-    Gather the global variables under a single structure and allocate it with
-    devm_kzalloc(). It is easier to see them and if in the future we try to add
-    support for multiple instance of twl in the system it is going to be much
-    simpler.
-    
-    Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-    Signed-off-by: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Same problem here. 
 
-Here is a fix. I will send out for review later ...
+Here is a fix ...
 
 >From 141fcbbdee6bdc14d5a444ff20fad6b3440215dc Mon Sep 17 00:00:00 2001
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+From: Jon Hunter <jon-hunter@ti.com>
 Date: Fri, 8 Feb 2013 12:42:20 -0600
 Subject: [PATCH] ARM: OMAP2+: Fix kernel panic on boot
 
@@ -71,7 +140,7 @@ before checking if twl_priv is initialised. Fix this and move this test
 to the beginning of the twl_i2c_read/write function because
 twl_get_last_module() also uses the twl_priv structure.
 
-Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
  drivers/mfd/twl-core.c |   16 ++++++++--------
  1 file changed, 8 insertions(+), 8 deletions(-)
