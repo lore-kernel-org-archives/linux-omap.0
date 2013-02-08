@@ -1,52 +1,74 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: OMAP baseline test results for v3.8-rc6
-Date: Fri, 8 Feb 2013 14:02:54 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC06EB2@DBDE01.ent.ti.com>
-References: <alpine.DEB.2.00.1302062333270.12769@utopia.booyaka.com>
- <20130207083217.GA15462@arwen.pp.htv.fi>
- <79CD15C6BA57404B839C016229A409A83EC06CEA@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302081306230.11464@utopia.booyaka.com>
- <87ehgqlxca.fsf@dell.be.48ers.dk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 9/9] ARM: OMAP2+: AM33XX: control: Add some control
+ module registers and APIs
+Date: Fri, 8 Feb 2013 14:17:04 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1302081415540.11464@utopia.booyaka.com>
+References: <1359458108-8489-1-git-send-email-vaibhav.bedia@ti.com> <1359458108-8489-10-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87ehgqlxca.fsf@dell.be.48ers.dk>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Korsgaard <jacmet@sunsite.dk>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:49205 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760102Ab3BHORF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Feb 2013 09:17:05 -0500
+In-Reply-To: <1359458108-8489-10-git-send-email-vaibhav.bedia@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: tony@atomide.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, khilman@deeprootsystems.com
 
-On Fri, Feb 08, 2013 at 19:30:21, Peter Korsgaard wrote:
-> >>>>> "Paul" == Paul Walmsley <paul@pwsan.com> writes:
-> 
-> Hi,
-> 
->  Paul> So what I'd like to know is why it doesn't work with >= v3.8-rc1
->  Paul> with an appended DTB:
-> 
->  Paul> http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/boot/am335xbone/am335xbone_log.txt
-> 
->  Paul> The point is to try to minimize bootloader dependencies.
-> 
->  Paul> Haven't had the chance to try Felipe's suggestion yet re fdt_high.
-> 
-> That shouldn't matter when using appended dtb.
-> 
+Hi Vaibhav,
 
-That's correct, relocating dtb should not matter for appended DTB kernel 
-image.
+a comment on this one:
 
-I am trying now with appended DTB, 
+On Tue, 29 Jan 2013, Vaibhav Bedia wrote:
 
-Thanks,
-Vaibhav
+> Add minimal APIs for writing to the IPC and the M3_TXEV registers
+> in the Control module. These will be used in a subsequent patch which
+> adds suspend-resume support for AM33XX.
+> 
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
+> ---
+> v3: Add Peter's Acked-by
+> v2: No change
+> 
+>  arch/arm/mach-omap2/control.c | 20 ++++++++++++++++++++
+>  arch/arm/mach-omap2/control.h | 41 +++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 61 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> index 2adb268..c5d54ae 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -604,3 +604,23 @@ int omap3_ctrl_save_padconf(void)
+>  }
+>  
+>  #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
+> +
+> +#if defined(CONFIG_SOC_AM33XX) && defined(CONFIG_PM)
+> +void am33xx_txev_eoi(void)
+> +{
+> +	omap_ctrl_writel(AM33XX_M3_TXEV_ACK, AM33XX_CONTROL_M3_TXEV_EOI);
+> +}
+> +
+> +void am33xx_txev_enable(void)
+> +{
+> +	omap_ctrl_writel(AM33XX_M3_TXEV_ENABLE, AM33XX_CONTROL_M3_TXEV_EOI);
+> +}
+> +
+> +void am33xx_wkup_m3_ipc_cmd(struct am33xx_ipc_data *data)
+> +{
+> +	omap_ctrl_writel(data->resume_addr, AM33XX_CONTROL_IPC_MSG_REG0);
+> +	omap_ctrl_writel(data->sleep_mode, AM33XX_CONTROL_IPC_MSG_REG1);
+> +	omap_ctrl_writel(data->param1, AM33XX_CONTROL_IPC_MSG_REG2);
+> +	omap_ctrl_writel(data->param2, AM33XX_CONTROL_IPC_MSG_REG3);
+> +}
+
+Could you please add some kerneldoc-style comments to these functions so 
+others can understand what they're intended to do, any side-effects they 
+have, any prerequisites, etc.?
+
+
+- Paul
