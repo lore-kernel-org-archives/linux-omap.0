@@ -1,44 +1,46 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: PM: Fix the dt return condition in pm_late_init()
-Date: Fri, 8 Feb 2013 21:06:11 +0530
-Message-ID: <51151B6B.9000505@ti.com>
-References: <1360336306-18277-1-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1302081533270.28008@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47257 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754926Ab3BHPe5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Feb 2013 10:34:57 -0500
-In-Reply-To: <alpine.DEB.2.00.1302081533270.28008@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: [PATCH v2 0/1] OMAP4: DSS: Add panel for Blaze Tablet boards
+Date: Fri,  8 Feb 2013 17:43:39 +0200
+Message-ID: <1360338220-12753-1-git-send-email-ruslan.bilovol@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: andi@etezian.org, tomi.valkeinen@ti.com, FlorianSchandinat@gmx.de, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Friday 08 February 2013 09:04 PM, Paul Walmsley wrote:
-> On Fri, 8 Feb 2013, Santosh Shilimkar wrote:
->
->> Commit 1416408d {ARM: OMAP2+: PM: share some suspend-related functions
->> across OMAP2, 3, 4} moved suspend code to common place but now with
->> that change, for DT build on OMAP4, suspend hooks are not getting
->> registered which results in no suspend support.
->>
->> The DT return condition is limited to PMIC and smartreflex
->> initialization and hence restrict it so that suspend ops gets
->> registered.
->>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>
->> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->
-> Thanks, queued here with Felipe's Reviewed-by: along with the other OMAP4
-> PM fixes.
->
-Thanks Paul !!
+Hi,
 
-Regards,
-Santosh
+This patch adds support for TC358765 DSI-to-LVDS transmitter
+from Toshiba, that is used in OMAP4 Blaze Tablet development
+platform. It was originally developed a long time ago and
+was used internally survived few kernel migrations.
+Different people worked in this driver during last two
+years changing its sources to what each new version of
+kernel expects.
 
+Current version is ported from internal kernel v3.4 to 3.8.0-rc6
+Tested basic functioning under busybox.
+
+------------------------------------------------
+v2:
+- added returns of correct errno instead of magic numbers
+- used delays, based on hrtimers where possible
+- fixed typo
+- switched to devres management of resources instead of raw
+  calls
+
+
+Tomi Valkeinen (1):
+  OMAP4: DSS: Add panel for Blaze Tablet boards
+
+ drivers/video/omap2/displays/Kconfig          |   15 +
+ drivers/video/omap2/displays/Makefile         |    1 +
+ drivers/video/omap2/displays/panel-tc358765.c | 1000 +++++++++++++++++++++++++
+ drivers/video/omap2/displays/panel-tc358765.h |  170 +++++
+ include/video/omap-panel-tc358765.h           |   53 ++
+ 5 files changed, 1239 insertions(+)
+ create mode 100644 drivers/video/omap2/displays/panel-tc358765.c
+ create mode 100644 drivers/video/omap2/displays/panel-tc358765.h
+ create mode 100644 include/video/omap-panel-tc358765.h
+
+-- 
+1.7.9.5
