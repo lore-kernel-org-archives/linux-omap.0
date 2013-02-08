@@ -1,85 +1,41 @@
-From: "AnilKumar" <anilk4.v@gmail.com>
-Subject: RE: [PATCH] ARM: dts: add minimal DT support for DevKit8000
-Date: Fri, 8 Feb 2013 19:05:32 +0530
-Message-ID: <007b01ce0601$2f46b4e0$8dd41ea0$@gmail.com>
-References: <1360246297-5500-1-git-send-email-anilk4.v@gmail.com> <20130207173949.GA21723@e106331-lin.cambridge.arm.com>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: OMAP baseline test results for v3.8-rc6
+Date: Fri, 08 Feb 2013 15:00:21 +0100
+Message-ID: <87ehgqlxca.fsf@dell.be.48ers.dk>
+References: <alpine.DEB.2.00.1302062333270.12769@utopia.booyaka.com>
+	<20130207083217.GA15462@arwen.pp.htv.fi>
+	<79CD15C6BA57404B839C016229A409A83EC06CEA@DBDE01.ent.ti.com>
+	<alpine.DEB.2.00.1302081306230.11464@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130207173949.GA21723@e106331-lin.cambridge.arm.com>
-Content-Language: en-in
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'Mark Rutland' <mark.rutland@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, grant.likely@secretlab.ca, thomas@tomweber.eu
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:59520 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758353Ab3BHOAZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Feb 2013 09:00:25 -0500
+Received: by mail-wi0-f172.google.com with SMTP id ez12so877433wid.17
+        for <linux-omap@vger.kernel.org>; Fri, 08 Feb 2013 06:00:24 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1302081306230.11464@utopia.booyaka.com> (Paul
+	Walmsley's message of "Fri, 8 Feb 2013 13:13:17 +0000 (UTC)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Mark,
+>>>>> "Paul" == Paul Walmsley <paul@pwsan.com> writes:
 
-Thanks for the review comments. Please find my comments inline.
+Hi,
 
-On Thu, Feb 07, 2013 at 23:09:49, Mark Rutland wrote:
-> Hello,
-> 
-> I have a couple of minor comments.
-> 
-> On Thu, Feb 07, 2013 at 02:11:37PM +0000, Anil Kumar wrote:
-> > DevKit8000 is a beagle board clone from Timll, sold by armkits.com.
-> > The DevKit8000 has RS232 serial port, LCD, DVI-D, S-Video, Ethernet, 
-> > SD/MMC, keyboard, camera, SPI, I2C, USB and JTAG interface.
-> >
-> > This patch adds the basic DT support for devkit8000. At this time, 
-> > Information of twl4030, MMC1, I2C1, leds and there pim mux 
-> > information are
-> added.
-> >
-> > Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
-> > Tested-by: Thomas Weber <thomas@tomweber.eu>
-> > ---
-> >
-> >  -This patch is based on top of kernel 3.8-rc5.
-> >
-> >  -Tested on Devkit8000.
-> >
-> 
-> [...]
-> 
-> > diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts
-> > b/arch/arm/boot/dts/omap3-devkit8000.dts
-> > new file mode 100644
-> > index 0000000..9864fd7
-> > --- /dev/null
-> > +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
-> > @@ -0,0 +1,125 @@
-> > +/*
-> > + * Anil Kumar <anilk4.v@gmail.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or 
-> > +modify
-> > + * it under the terms of the GNU General Public License version 2 
-> > +as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +/dts-v1/;
-> > +
-> > +/include/ "omap3.dtsi"
-> > +/ {
-> > +	model = "TI OMAP3 Devkit8000";
-> 
-> Should this not be "TimLL Devkit8000" ?
+ Paul> So what I'd like to know is why it doesn't work with >= v3.8-rc1
+ Paul> with an appended DTB:
 
-Hmm..  I think it will be better as  "TimLL OMAP3 Devkit8000"  as this board
-is omap3 based.
+ Paul> http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/boot/am335xbone/am335xbone_log.txt
 
-> 
-> > +	compatible = "ti,omap3-devkit8000", "ti,omap3";
-> 
-> "timll,devkit8000" ?
+ Paul> The point is to try to minimize bootloader dependencies.
 
-I think it will be better  as  "timll,omap3-devkit8000"  as this board is
-omap3 based.
- 
-Thanks,
-Anil
-[...]
+ Paul> Haven't had the chance to try Felipe's suggestion yet re fdt_high.
+
+That shouldn't matter when using appended dtb.
+
+-- 
+Bye, Peter Korsgaard
