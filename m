@@ -1,86 +1,86 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: Prevent potential crash if GPMC probe
- fails
-Date: Fri, 8 Feb 2013 16:56:19 -0600
-Message-ID: <51158293.8010101@ti.com>
-References: <1359736726-10193-1-git-send-email-jon-hunter@ti.com> <1359736726-10193-2-git-send-email-jon-hunter@ti.com> <20130201220804.GZ22517@atomide.com>
+Subject: Re: DT GPMC SRAM and NOR flash support ?
+Date: Fri, 8 Feb 2013 18:43:48 -0600
+Message-ID: <51159BC4.1040208@ti.com>
+References: <510BF3D3.3000304@mimc.co.uk> <510BF766.5090608@ti.com> <510C19FC.8090906@mimc.co.uk> <5111304C.7090706@mimc.co.uk> <511134C8.8000008@ti.com> <511137CF.1090706@mimc.co.uk> <51113C74.4070607@ti.com> <51137923.4070301@mimc.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42544 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48581 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757385Ab3BHW4X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Feb 2013 17:56:23 -0500
-In-Reply-To: <20130201220804.GZ22517@atomide.com>
+	id S932195Ab3BIAnv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Feb 2013 19:43:51 -0500
+In-Reply-To: <51137923.4070301@mimc.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Afzal Mohammed <afzal@ti.com>
+To: Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Afzal Mohammed <afzal@ti.com>
 
 
-On 02/01/2013 04:08 PM, Tony Lindgren wrote:
-> * Jon Hunter <jon-hunter@ti.com> [130201 08:42]:
->> If the GPMC probe fails, devices that use the GPMC (such as ethernet
->> chips, flash memories, etc) can still allocate a GPMC chip-select and
->> register the device. On the OMAP2420 H4 board, this was causing the
->> kernel to crash after the gpmc probe failed and the board attempted
->> to start networking. Prevent this by marking all the chip-selects as
->> reserved by default and only make them available for devices to request
->> if the GPMC probe succeeds.
+On 02/07/2013 03:51 AM, Mark Jackson wrote:
+> Okay ... I have made some progress, but it's not ideal.
 > 
-> Thanks applying into omap-for-v3.9/gpmc.
+> Currently I've hacked the GPMC DT driver (gpmc_probe_dt(), etc) so it now handles setting up the
+> chip selects and timings for NOR devices, e.g.
+> 
+> 		gpmc: gpmc@50000000 {
+> 			status = "okay";
+> 			ranges = <0 0 0x08000000 0x08000000>;	/* CS0: NOR 16M */
+> 			
+> 			nor@0,0 {
+> 				compatible = "spansion,s29gl064n90t", "cfi-flash";
+> 				reg = <0 0 0>;
+> 				bank-width = <2>;
+> 
+> 				gpmc,sync-clk = <0>;
+> 				gpmc,cs-on = <10>;
+> 				gpmc,cs-rd-off = <150>;
+> 				gpmc,cs-wr-off = <150>;
+> 				gpmc,adv-on = <10>;
+> 				gpmc,adv-rd-off = <10>;
+> 				gpmc,adv-wr-off = <10>;
+> 				gpmc,oe-on = <30>;
+> 				gpmc,oe-off = <150>;
+> 				gpmc,we-on = <30>;
+> 				gpmc,we-off = <150>;
+> 				gpmc,rd-cycle = <150>;
+> 				gpmc,wr-cycle = <150>;
+> 				gpmc,access = <130>;
+> 				gpmc,page-burst-access = <10>;
+> 				gpmc,cycle2cycle-diff = <1>;
+> 				gpmc,cycle2cycle-same = <1>;
+> 				gpmc,cycle2cycle-delay = <10>;
+> 				gpmc,wr-data-mux-bus = <60>;
+> 			};
+> 		};
+> 
+> But the physmap driver (of_flash_probe()) is unable to use this information.  It seems that although
+> I can call of_flash_probe() from my NOR setup code, the platform_device being reference is wrong.
+> 
+> The platform_device passed to my gpmc_probe_nor_child() routine from gpmc_probe_dt() points to my
+> gpmc entry (above), but the physmap probe requires its own DT entry (rather than a node child such
+> as my NOR entry with the GPMC device entry).
+> 
+> So I need to have any extra entry in the DT file as follows:-
+> 
+> 	nor-flash@08000000 {
+> 		compatible = "spansion,s29gl064n90t", "cfi-flash";
+> 		reg = <0x08000000 0x00800000>;
+> 		bank-width = <2>;
+> 	};
+> 
+> So the GPMC entry handles all the chip select and timing setup, but the 2nd entry is the only one
+> the physmap driver can see.
+> 
+> Would it be acceptable to re-code of_flash_probe() to allow either a child device_node to be passed
+> or a platform_device ?
 
-Hi Tony, this one appears to be merged incorrectly. The unreserve ended 
-up in the gpmc_calc_timings() function. Here is a patch to fix.
+Ideally, it should be a child device of the gpmc so that if the gpmc
+device fails to init correctly, the child is not registered.
+
+I need to think about this some more to figure out the best way to
+handle nor.
 
 Cheers
 Jon
-
->From ebc0613fb5a70f36fcb119cbe58724f9b442903a Mon Sep 17 00:00:00 2001
-From: Jon Hunter <jon-hunter@ti.com>
-Date: Fri, 8 Feb 2013 16:48:25 -0600
-Subject: [PATCH] ARM: OMAP2+: Fix-up gpmc merge error
-
-Commit "ARM: OMAP2+: Prevent potential crash if GPMC probe fails" added
-code to ensure that GPMC chip-selects could not be requested until the
-device probe was successful. The chip-selects should have been
-unreserved at the end of the probe function, but the code to unreserve
-them appears to have ended up in the gpmc_calc_timings() function and
-hence, this is causing problems requesting chip-selects. Fix this merge
-error by unreserving the chip-selects at the end of the probe, but
-before we call the gpmc child probe functions (for device-tree) which
-request a chip-select.
-
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/gpmc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 1adb2d4..1e8bcb4 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1125,9 +1125,6 @@ int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
- 	/* TODO: remove, see function definition */
- 	gpmc_convert_ps_to_ns(gpmc_t);
- 
--	/* Now the GPMC is initialised, unreserve the chip-selects */
--	gpmc_cs_map = 0;
--
- 	return 0;
- }
- 
-@@ -1388,6 +1385,9 @@ static int gpmc_probe(struct platform_device *pdev)
- 	if (IS_ERR_VALUE(gpmc_setup_irq()))
- 		dev_warn(gpmc_dev, "gpmc_setup_irq failed\n");
- 
-+	/* Now the GPMC is initialised, unreserve the chip-selects */
-+	gpmc_cs_map = 0;
-+
- 	rc = gpmc_probe_dt(pdev);
- 	if (rc < 0) {
- 		clk_disable_unprepare(gpmc_l3_clk);
--- 
-1.7.10.4
-
