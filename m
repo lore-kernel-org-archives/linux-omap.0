@@ -1,40 +1,29 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2 3/4] mtd: devices: elm: Low power transition support
-Date: Sat, 9 Feb 2013 10:22:44 +0000
-Message-ID: <20130209102243.GH17852@n2100.arm.linux.org.uk>
-References: <1360240618-11094-1-git-send-email-avinashphilip@ti.com> <1360240618-11094-4-git-send-email-avinashphilip@ti.com>
+Subject: Re: [PATCH 2/2] dmaengine: OMAP: Register SDMA controller with
+	Device Tree DMA driver
+Date: Sat, 9 Feb 2013 10:52:33 +0000
+Message-ID: <20130209105233.GI17852@n2100.arm.linux.org.uk>
+References: <1360184596-1603-1-git-send-email-jon-hunter@ti.com> <1360184596-1603-3-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39165 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39188 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752556Ab3BIKX1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Feb 2013 05:23:27 -0500
+	with ESMTP id S1753186Ab3BIKw4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Feb 2013 05:52:56 -0500
 Content-Disposition: inline
-In-Reply-To: <1360240618-11094-4-git-send-email-avinashphilip@ti.com>
+In-Reply-To: <1360184596-1603-3-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Philip Avinash <avinashphilip@ti.com>
-Cc: khilman@ti.com, tony@atomide.com, dwmw2@infradead.org, artem.bityutskiy@linux.intel.com, afzal@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, hvaibhav@ti.com
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Vinod Koul <vinod.koul@intel.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Matt Porter <mporter@ti.com>, Felipe Balbi <balbi@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Balaji T K <balajitk@ti.com>
 
-On Thu, Feb 07, 2013 at 06:06:57PM +0530, Philip Avinash wrote:
-> +static int elm_suspend(struct device *dev)
-> +{
-> +	struct elm_info *info = dev_get_drvdata(dev);
-> +	wait_queue_head_t wq;
-> +	DECLARE_WAITQUEUE(wait, current);
-> +
-> +	init_waitqueue_head(&wq);
-> +	while (1) {
-> +		/* Make sure that ELM not running */
-> +		if (info->idle) {
-> +			add_wait_queue(&wq, &wait);
-> +			schedule();
-> +			remove_wait_queue(&wq, &wait);
-> +		} else {
-> +			break;
-> +		}
-> +	}
+On Wed, Feb 06, 2013 at 03:03:16PM -0600, Jon Hunter wrote:
+> @@ -673,7 +702,7 @@ static int omap_dma_init(void)
+>  {
+>  	int rc = platform_driver_register(&omap_dma_driver);
+>  
+> -	if (rc == 0) {
+> +	if ((rc == 0) && (!of_have_populated_dt())) {
 
-The above code looks really wrong - it will just spin endlessly with the
-waitqueues doing nothing useful.  What are you trying to do here?
+Looks good, the worst I can find is this over-use of parens...
