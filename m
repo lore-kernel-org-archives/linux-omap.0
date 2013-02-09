@@ -1,87 +1,114 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH RFC 7/7] ARM: dts: omap3-igep0020: Add SMSC911x LAN chip support
-Date: Sat,  9 Feb 2013 21:44:31 +0100
-Message-ID: <1360442671-15216-8-git-send-email-javier.martinez@collabora.co.uk>
-References: <1360442671-15216-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 3/7] ARM: omap2: gpmc: Fix gpmc_cs_reserved() return value
+Date: Sat, 9 Feb 2013 22:56:52 +0200
+Message-ID: <20130209205632.GA14543@arwen.pp.htv.fi>
+References: <1360427896-12004-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <1360427896-12004-4-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20130209165335.GA13338@arwen.pp.htv.fi>
+ <20130209181432.GD32349@localhost>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cvVnyQ+4j833TQvp"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:40118 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932490Ab3BIUpJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Feb 2013 15:45:09 -0500
-In-Reply-To: <1360442671-15216-1-git-send-email-javier.martinez@collabora.co.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:41904 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932572Ab3BIU5A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 9 Feb 2013 15:57:00 -0500
+Content-Disposition: inline
+In-Reply-To: <20130209181432.GD32349@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Linus Walleij <linus.walleij@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>
 
-IGEPv2 boards has an SMSC LAN9221i ethernet chip connected to
-the OMAP3 processor though the General-Purpose Memory Controller.
+--cvVnyQ+4j833TQvp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch adds a device node for the ethernet chip so the GPMC
-driver will call the gpmc-smsc911x setup code.
+Hi,
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
- arch/arm/boot/dts/omap3-igep.dtsi    |    6 ++++++
- arch/arm/boot/dts/omap3-igep0020.dts |   24 ++++++++++++++++++++++++
- 2 files changed, 30 insertions(+), 0 deletions(-)
+On Sat, Feb 09, 2013 at 03:14:33PM -0300, Ezequiel Garcia wrote:
+> > >  static int gpmc_cs_reserved(int cs)
+> > >  {
+> > >  	if (cs > GPMC_CS_NUM)
+> > >  		return -ENODEV;
+> > > =20
+> > > -	return gpmc_cs_map & (1 << cs);
+> > > +	if (gpmc_cs_map & (1 << cs))
+> > > +		return -EBUSY;
+> > > +
+> > > +	return 0;
+> >=20
+> > you could use a ternary operator here:
+> >=20
+> > bit =3D gpmc_cs_map & (1 << cs);
+> >=20
+> > return bit ? -EBUSY : 0;
+> >=20
+> > But to be frank, I'm not sure this makes that much sense, I'd expect
+> > gpmc_cs_reserved() to return 0 or 1 depending on the state (just as it
+> > was before). The name of the method asks for a boolean return value.
+> >=20
+>=20
+> Well, we can change the return value to a boolean.
+>=20
+> However, note that the function 'as it was before' was somewhat inconsist=
+ent:
+> gpmc_cs_reserved returned -ENODEV if the given 'cs' was out of range and
+> a non-negative integer otherwise, 0 if the cs is available and positive
+> integer otherwise.
+>=20
+> So, what I'm doing here is fixing this by returning an appropriate error
+> condition or 0 if the CS is available.
+>=20
+> If we change it to return a boolean, we won't be able to distinguish
+> between EBUSY and ENODEV.
 
-diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-index 100eb41..2f02581 100644
---- a/arch/arm/boot/dts/omap3-igep.dtsi
-+++ b/arch/arm/boot/dts/omap3-igep.dtsi
-@@ -48,6 +48,12 @@
- 			0x126 0x0100	/* sdmmc1_dat7.sdmmc1_dat7 INPUT | MODE 0 */
- 		>;
- 	};
-+
-+        smsc911x_pins: pinmux_smsc911x_pins {
-+                pinctrl-single,pins = <
-+                        0x1a2 0x0104    /* mcspi1_cs2.gpio_176 INPUT | MODE4 */
-+                >;
-+        };
- };
- 
- &i2c1 {
-diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
-index e2b9849..68b7cf3 100644
---- a/arch/arm/boot/dts/omap3-igep0020.dts
-+++ b/arch/arm/boot/dts/omap3-igep0020.dts
-@@ -40,6 +40,18 @@
- 			gpios = <&twl_gpio 19 1>;
- 		};
- 	};
-+
-+        vddvario: regulator-vddvario {
-+                compatible = "regulator-fixed";
-+                regulator-name = "vddvario";
-+                regulator-always-on;
-+        };
-+
-+        vdd33a: regulator-vdd33a {
-+                compatible = "regulator-fixed";
-+                regulator-name = "vdd33a";
-+                regulator-always-on;
-+        };
- };
- 
- &i2c3 {
-@@ -54,3 +66,15 @@
- 		reg = <0x50>;
- 	};
- };
-+
-+&gpmc {
-+	gpmc_smsc911x@0 {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&smsc911x_pins>;
-+		gpmc,cs = <5>; /* IGEP2_SMSC911X_CS */
-+		gpmc,gpio_irq = <176>; /* IGEP2_SMSC911X_GPIO */
-+		gpmc,flags = <18>; /* SMSC911X_USE_32BIT | SMSC911X_SAVE_MAC_ADDRESS */
-+		vmmc-supply = <&vddvario>;
-+		vmmc_aux-supply = <&vdd33a>;
-+      };
-+};
--- 
-1.7.7.6
+that's the thing. IMO this should return 1 if it is available and 0 if
+it's not. The method looks like a yes/no question:
 
+Q: Is this GPMC CS reserved ?
+A: Yes (1)
+
+or
+
+A: No (0)
+
+then it's als far easier to use, just as code was before:
+
+if (gpmc_cs_reserved(cs)) {
+	dev_dbg(dev, "Oops, CS #%d is busy\n", cs);
+	return -EBUSY;
+} else {
+	dev_dbg(dev, "Hurray!\n");
+	return 0;
+}
+
+--=20
+balbi
+
+--cvVnyQ+4j833TQvp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRFrgUAAoJEIaOsuA1yqREst0P/0CkCAFZmiOErk4U2CY77fEg
+Vm7agtj1ORr8UG3+WNOD9NZakQbQk3Y6WNuGezECVTWbBTvHnR/c94LIsA25gZpk
+oRK2Xc/SjYRwBglmCqAvJ2Msf2vggfg3BtC+6cZcRcT0nMTqRIF+qKF3i6psQelP
+3d7i7JPj3SRdj5oVcWS0pIXtU4BOMSvV+bQslIh3JulmHMt6fdKh4rlp/R6c9BaZ
+ikztwTAbjEnARrRmrd9GxcNWaynzL5CDrvqQS6T9Dbbb/EktF3rNB1mU1vPxg0ol
+mmtb60K7BsK+Fpu4Vkz7aOU/DN0DULz+ROrXejkKJrDcUYOh7owN+l7y0hcV14Fi
+/UiqCCwYqJ8hmwnUb9FmDnttDL7ueMeSPxAGgOdWy1IkhMaAN3n72c6WtgVmB0ec
+sjg4RypAIMFQKp6piCvyzGK81XYsB1oSgTklIym43Y1omd26iw6nR8MGfjS+ieL8
+dDKT1yekru16ijsuxAgpcY6tWR/14N3BTeDd4VifyKPJLSTKiLZgvsgfWNGna/H2
+gcvukNZl3+Bev6/QEHQN2DfHIi6Nnbphm4HICFsO7UC6IsBZnhejER7zYptubc/n
+Ql7H8LQLWwBnbdBQaMf8XrFWRew8qYJdIKlXooSLRRGkh+KrYt6R3aQ57i7XawYI
+yOs5zByU1uiim6ruScWS
+=gAUk
+-----END PGP SIGNATURE-----
+
+--cvVnyQ+4j833TQvp--
