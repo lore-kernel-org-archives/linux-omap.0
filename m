@@ -1,86 +1,141 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: DT GPMC SRAM and NOR flash support ?
-Date: Fri, 8 Feb 2013 18:43:48 -0600
-Message-ID: <51159BC4.1040208@ti.com>
-References: <510BF3D3.3000304@mimc.co.uk> <510BF766.5090608@ti.com> <510C19FC.8090906@mimc.co.uk> <5111304C.7090706@mimc.co.uk> <511134C8.8000008@ti.com> <511137CF.1090706@mimc.co.uk> <51113C74.4070607@ti.com> <51137923.4070301@mimc.co.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 09/11] mfd: twl-core: Collect global variables behind
+ one private structure (global)
+Date: Sat, 9 Feb 2013 06:50:49 +0100
+Message-ID: <5115E3B9.6090100@ti.com>
+References: <1358344439-23017-1-git-send-email-peter.ujfalusi@ti.com> <1358344439-23017-10-git-send-email-peter.ujfalusi@ti.com> <51154A7A.2010709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48581 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932195Ab3BIAnv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Feb 2013 19:43:51 -0500
-In-Reply-To: <51137923.4070301@mimc.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51154A7A.2010709@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Afzal Mohammed <afzal@ti.com>
+
+On 02/08/2013 07:56 PM, Jon Hunter wrote:
+>>  /**
+>>   * twl_i2c_write - Writes a n bit register in TWL4030/TWL5030/TWL60=
+X0
+>>   * @mod_no: module number
+>> @@ -322,16 +323,17 @@ int twl_i2c_write(u8 mod_no, u8 *value, u8 reg=
+, unsigned num_bytes)
+>>  		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
+>>  		return -EPERM;
+>>  	}
+>> -	if (unlikely(!inuse)) {
+>> +	if (unlikely(!twl_priv->ready)) {
+>=20
+> This is causing the kernel to panic on all my omap2 boards when booti=
+ng linux-next
+> because twl_priv is not initialised yet.
+
+Good catch.
+I just wonder from where the twl_* call is coming on OMAP2. AFAIK the t=
+wl code
+is for OMAP3/4, for OMAP2 Menelaus is the one which is used.
+I'm currently working on to remove all those twl_* calls from random pl=
+aces in
+the kernel so we will only access twl via the MFD stack.
+
+>=20
+>>  		pr_err("%s: not initialized\n", DRIVER_NAME);
+>>  		return -EPERM;
+>>  	}
+>> =20
+>> -	sid =3D twl_map[mod_no].sid;
+>> -	twl =3D &twl_modules[sid];
+>> +	sid =3D twl_priv->twl_map[mod_no].sid;
+>> +	twl =3D &twl_priv->twl_modules[sid];
+>> =20
+>> -	ret =3D regmap_bulk_write(twl->regmap, twl_map[mod_no].base + reg,
+>> -				value, num_bytes);
+>> +	ret =3D regmap_bulk_write(twl->regmap,
+>> +				twl_priv->twl_map[mod_no].base + reg, value,
+>> +				num_bytes);
+>> =20
+>>  	if (ret)
+>>  		pr_err("%s: Write failed (mod %d, reg 0x%02x count %d)\n",
+>> @@ -360,16 +362,17 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg,=
+ unsigned num_bytes)
+>>  		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
+>>  		return -EPERM;
+>>  	}
+>> -	if (unlikely(!inuse)) {
+>> +	if (unlikely(!twl_priv->ready)) {
+>=20
+> Same problem here.=20
+>=20
+> Here is a fix ...
+>=20
+> From 141fcbbdee6bdc14d5a444ff20fad6b3440215dc Mon Sep 17 00:00:00 200=
+1
+> From: Jon Hunter <jon-hunter@ti.com>
+> Date: Fri, 8 Feb 2013 12:42:20 -0600
+> Subject: [PATCH] ARM: OMAP2+: Fix kernel panic on boot
+>=20
+> Commit 8a6aaa3 (mfd: twl-core: Collect global variables behind one
+> private structure (global)) removed the variable "inuse" that is used
+> to determine if the device has been initialised and now use the
+> twl_priv structure instead. This is causing the kernel to panic on al=
+l
+> OMAP2+ devices, because we try to access the twl_priv->ready member
+> before checking if twl_priv is initialised. Fix this and move this te=
+st
+> to the beginning of the twl_i2c_read/write function because
+> twl_get_last_module() also uses the twl_priv structure.
+>=20
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+> ---
+>  drivers/mfd/twl-core.c |   16 ++++++++--------
+>  1 file changed, 8 insertions(+), 8 deletions(-)
+>=20
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index 557f9ee..89ab4d9 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -316,12 +316,12 @@ int twl_i2c_write(u8 mod_no, u8 *value, u8 reg,=
+ unsigned num_bytes)
+>  	int sid;
+>  	struct twl_client *twl;
+> =20
+> -	if (unlikely(mod_no >=3D twl_get_last_module())) {
+> -		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
+> +	if (unlikely(!twl_priv || !twl_priv->ready)) {
+> +		pr_err("%s: not initialized\n", DRIVER_NAME);
+>  		return -EPERM;
+>  	}
+> -	if (unlikely(!twl_priv->ready)) {
+> -		pr_err("%s: not initialized\n", DRIVER_NAME);
+> +	if (unlikely(mod_no >=3D twl_get_last_module())) {
+> +		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
+>  		return -EPERM;
+>  	}
+> =20
+> @@ -355,12 +355,12 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, =
+unsigned num_bytes)
+>  	int sid;
+>  	struct twl_client *twl;
+> =20
+> -	if (unlikely(mod_no >=3D twl_get_last_module())) {
+> -		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
+> +	if (unlikely(!twl_priv || !twl_priv->ready)) {
+> +		pr_err("%s: not initialized\n", DRIVER_NAME);
+>  		return -EPERM;
+>  	}
+> -	if (unlikely(!twl_priv->ready)) {
+> -		pr_err("%s: not initialized\n", DRIVER_NAME);
+> +	if (unlikely(mod_no >=3D twl_get_last_module())) {
+> +		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
+>  		return -EPERM;
+>  	}
+> =20
+>=20
 
 
-On 02/07/2013 03:51 AM, Mark Jackson wrote:
-> Okay ... I have made some progress, but it's not ideal.
-> 
-> Currently I've hacked the GPMC DT driver (gpmc_probe_dt(), etc) so it now handles setting up the
-> chip selects and timings for NOR devices, e.g.
-> 
-> 		gpmc: gpmc@50000000 {
-> 			status = "okay";
-> 			ranges = <0 0 0x08000000 0x08000000>;	/* CS0: NOR 16M */
-> 			
-> 			nor@0,0 {
-> 				compatible = "spansion,s29gl064n90t", "cfi-flash";
-> 				reg = <0 0 0>;
-> 				bank-width = <2>;
-> 
-> 				gpmc,sync-clk = <0>;
-> 				gpmc,cs-on = <10>;
-> 				gpmc,cs-rd-off = <150>;
-> 				gpmc,cs-wr-off = <150>;
-> 				gpmc,adv-on = <10>;
-> 				gpmc,adv-rd-off = <10>;
-> 				gpmc,adv-wr-off = <10>;
-> 				gpmc,oe-on = <30>;
-> 				gpmc,oe-off = <150>;
-> 				gpmc,we-on = <30>;
-> 				gpmc,we-off = <150>;
-> 				gpmc,rd-cycle = <150>;
-> 				gpmc,wr-cycle = <150>;
-> 				gpmc,access = <130>;
-> 				gpmc,page-burst-access = <10>;
-> 				gpmc,cycle2cycle-diff = <1>;
-> 				gpmc,cycle2cycle-same = <1>;
-> 				gpmc,cycle2cycle-delay = <10>;
-> 				gpmc,wr-data-mux-bus = <60>;
-> 			};
-> 		};
-> 
-> But the physmap driver (of_flash_probe()) is unable to use this information.  It seems that although
-> I can call of_flash_probe() from my NOR setup code, the platform_device being reference is wrong.
-> 
-> The platform_device passed to my gpmc_probe_nor_child() routine from gpmc_probe_dt() points to my
-> gpmc entry (above), but the physmap probe requires its own DT entry (rather than a node child such
-> as my NOR entry with the GPMC device entry).
-> 
-> So I need to have any extra entry in the DT file as follows:-
-> 
-> 	nor-flash@08000000 {
-> 		compatible = "spansion,s29gl064n90t", "cfi-flash";
-> 		reg = <0x08000000 0x00800000>;
-> 		bank-width = <2>;
-> 	};
-> 
-> So the GPMC entry handles all the chip select and timing setup, but the 2nd entry is the only one
-> the physmap driver can see.
-> 
-> Would it be acceptable to re-code of_flash_probe() to allow either a child device_node to be passed
-> or a platform_device ?
-
-Ideally, it should be a child device of the gpmc so that if the gpmc
-device fails to init correctly, the child is not registered.
-
-I need to think about this some more to figure out the best way to
-handle nor.
-
-Cheers
-Jon
+--=20
+P=E9ter
