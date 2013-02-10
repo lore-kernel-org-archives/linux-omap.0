@@ -1,44 +1,60 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: Latest additional build warnings
-Date: Sat, 9 Feb 2013 19:01:41 -0800
-Message-ID: <CAOesGMgvEVsB7OWs43EWjgsR8af2_RZS9Dod3PURu6Tvdi4QJw@mail.gmail.com>
-References: <20130205142218.GB17833@n2100.arm.linux.org.uk>
-	<20130209114918.GJ17852@n2100.arm.linux.org.uk>
-	<20130210030032.GC4801@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: Include soc.h to fix compiling
+Date: Sat, 9 Feb 2013 19:11:39 -0800
+Message-ID: <20130210031139.GD4801@atomide.com>
+References: <5112DC75.8070806@dawncrow.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:54212 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760987Ab3BJDBn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Feb 2013 22:01:43 -0500
-Received: by mail-wg0-f46.google.com with SMTP id fg15so3790647wgb.25
-        for <linux-omap@vger.kernel.org>; Sat, 09 Feb 2013 19:01:42 -0800 (PST)
-In-Reply-To: <20130210030032.GC4801@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20495 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756944Ab3BJDLp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Feb 2013 22:11:45 -0500
+Content-Disposition: inline
+In-Reply-To: <5112DC75.8070806@dawncrow.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, arm@kernel.org
+To: =?utf-8?B?QW5kcsOp?= Hentschel <nerv@dawncrow.de>
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Feb 9, 2013 at 7:00 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [130209 03:53]:
->> On Tue, Feb 05, 2013 at 02:22:18PM +0000, Russell King - ARM Linux wrote:
->> > arch/arm/mach-omap2/hwspinlock.c:60:1: warning: data definition has no type or storage class
->> > arch/arm/mach-omap2/hwspinlock.c:60:1: warning: type defaults to 'int' in declaration of 'omap_postcore_initcall'
->> > arch/arm/mach-omap2/hwspinlock.c:60:1: warning: parameter names (without types) in function declaration
->> > arch/arm/mach-omap2/hwspinlock.c:31:122: warning: 'hwspinlocks_init' defined but not used
->>
->> I'm still seeing the above in the build of Friday's merge.  I'm also
->> seeing additional warnings in the randconfig similar to the above for
->> arch/arm/mach-omap2/omap-iommu.c.
->
-> Thanks for letting me know about the omap-iommu.c one. Looks like
-> there's also one patch for drm.c.
->
-> Olof, if you did not yet apply the hwspinlock.c warning fix, I'll
-> just do a branch with all three of them for you.
+* Andr=C3=A9 Hentschel <nerv@dawncrow.de> [130206 14:46]:
+> I needed this when compiling for pandaboard at commit: 0944c0a0346571=
+8909ba8e800a5230528aeabafb
+>=20
+> Signed-off-by: Andr=C3=A9 Hentschel <nerv@dawncrow.de>From: =3D?UTF-8=
+?q?Andr=3DC3=3DA9=3D20Hentschel?=3D <nerv@dawncrow.de>
+> From: =3D?UTF-8?q?Andr=3DC3=3DA9=3D20Hentschel?=3D <nerv@dawncrow.de>
+> Date: Wed, 6 Feb 2013 23:16:20 +0100
+> Subject: [PATCH] arm: Include soc.h to fix compiling
 
-I haven't (must have missed it), so please just send a branch.
+Thanks, applying into omap-for-v3.9/multiplatform-fixes
+with the comments fixed up a bit.
 
-
--Olof
+Tony
+=20
+> ---
+>  arch/arm/mach-omap2/drm.c | 1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
+> index 4c7566c..b4faf96 100644
+> --- a/arch/arm/mach-omap2/drm.c
+> +++ b/arch/arm/mach-omap2/drm.c
+> @@ -27,6 +27,7 @@
+> =20
+>  #include "omap_device.h"
+>  #include "omap_hwmod.h"
+> +#include "soc.h"
+> =20
+>  #if defined(CONFIG_DRM_OMAP) || (CONFIG_DRM_OMAP_MODULE)
+> =20
+> --=20
+> 1.8.0
+>=20
+> Best Regards, Andr=C3=A9 Hentschel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
