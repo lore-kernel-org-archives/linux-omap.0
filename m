@@ -1,63 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Latest additional build warnings
-Date: Sat, 9 Feb 2013 19:47:31 -0800
-Message-ID: <20130210034731.GF4801@atomide.com>
-References: <20130205142218.GB17833@n2100.arm.linux.org.uk>
- <20130209114918.GJ17852@n2100.arm.linux.org.uk>
- <20130210030032.GC4801@atomide.com>
- <CAOesGMgvEVsB7OWs43EWjgsR8af2_RZS9Dod3PURu6Tvdi4QJw@mail.gmail.com>
- <20130210032234.GE4801@atomide.com>
+Subject: [GIT PULL] omap multiplatform warning fixes for v3.9 merge window
+Date: Sat, 9 Feb 2013 20:19:49 -0800
+Message-ID: <20130210041949.GG4801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54757 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1761033Ab3BJDrf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Feb 2013 22:47:35 -0500
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:63561 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1761058Ab3BJETy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Feb 2013 23:19:54 -0500
 Content-Disposition: inline
-In-Reply-To: <20130210032234.GE4801@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [130209 19:29]:
-> 
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Sat, 9 Feb 2013 19:20:57 -0800
-> Subject: [PATCH] ARCH: OMAP2+: Make sure files with omap initcalls include soc.h
+The following changes since commit ad1bb1b4e01c5ecbe32133ce6921d0e76cb7=
+6dcf:
 
-Oops, will fix up the subject to say ARM: OMAP2+ instead of ARCH..
- 
-> Looks like there are few more places that I missed that can cause
-> compiler warnings. After grepping for omap initcall, all files
-> needing soc.h should now have it.
-> 
-> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> --- a/arch/arm/mach-omap2/omap-iommu.c
-> +++ b/arch/arm/mach-omap2/omap-iommu.c
-> @@ -16,6 +16,7 @@
->  #include <linux/slab.h>
->  
->  #include <linux/platform_data/iommu-omap.h>
-> +#include "soc.h"
->  #include "omap_hwmod.h"
->  #include "omap_device.h"
->  
-> --- a/arch/arm/mach-omap2/smartreflex-class3.c
-> +++ b/arch/arm/mach-omap2/smartreflex-class3.c
-> @@ -12,6 +12,7 @@
->   */
->  
->  #include <linux/power/smartreflex.h>
-> +#include "soc.h"
->  #include "voltage.h"
->  
->  static int sr_class3_enable(struct omap_sr *sr)
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+  ARM: OMAP2+: Remove now obsolete uncompress.h and debug-macro.S (2013=
+-01-11 11:24:20 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/=
+omap-for-v3.9/multiplatform-fixes-signed-v2
+
+for you to fetch changes up to 09cee18dbced86b27c6c7d4501126cf2a287d089=
+:
+
+  ARM: OMAP2+: Make sure files with omap initcalls include soc.h (2013-=
+02-09 19:20:57 -0800)
+
+----------------------------------------------------------------
+=46ew trivial compile warning fixes if omap initcalls are
+used but soc.h is not included.
+
+----------------------------------------------------------------
+Andr=C3=A9 Hentschel (1):
+      ARM: OMAP2+: Include soc.h to drm.c to fix compiling
+
+Tony Lindgren (2):
+      ARM: OMAP2+: Fix warning for hwspinlock omap_postcore_initcall
+      ARM: OMAP2+: Make sure files with omap initcalls include soc.h
+
+ arch/arm/mach-omap2/drm.c                | 1 +
+ arch/arm/mach-omap2/hwspinlock.c         | 1 +
+ arch/arm/mach-omap2/omap-iommu.c         | 1 +
+ arch/arm/mach-omap2/smartreflex-class3.c | 1 +
+ 4 files changed, 4 insertions(+)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
