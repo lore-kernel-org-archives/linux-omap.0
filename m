@@ -1,93 +1,39 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 7/7] ARM: omap2: gpmc-onenand: Replace printk KERN_ERR
- with dev_warn()
-Date: Sat, 9 Feb 2013 22:58:31 +0200
-Message-ID: <20130209205831.GB14543@arwen.pp.htv.fi>
-References: <1360427896-12004-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <1360427896-12004-8-git-send-email-ezequiel.garcia@free-electrons.com>
- <20130209165532.GB13338@arwen.pp.htv.fi>
- <20130209180530.GC32349@localhost>
-Reply-To: <balbi@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap twl platform init changes for v3.9 merge window
+Date: Sat, 9 Feb 2013 16:58:24 -0800
+Message-ID: <20130210005824.GJ16278@quad.lixom.net>
+References: <20130206172500.GA25185@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0vzXIDBeUiKkjNJl"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41964 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932572Ab3BIU6h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 9 Feb 2013 15:58:37 -0500
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:57176 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760892Ab3BJA6V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Feb 2013 19:58:21 -0500
+Received: by mail-pa0-f54.google.com with SMTP id fa10so2688745pad.41
+        for <linux-omap@vger.kernel.org>; Sat, 09 Feb 2013 16:58:20 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20130209180530.GC32349@localhost>
+In-Reply-To: <20130206172500.GA25185@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
---0vzXIDBeUiKkjNJl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, Feb 06, 2013 at 09:25:00AM -0800, Tony Lindgren wrote:
+> The following changes since commit 949db153b6466c6f7cad5a427ecea94985927311:
+> 
+>   Linux 3.8-rc5 (2013-01-25 11:57:28 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/twl-signed-v2
 
-On Sat, Feb 09, 2013 at 03:05:31PM -0300, Ezequiel Garcia wrote:
-> On Sat, Feb 09, 2013 at 06:55:32PM +0200, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Sat, Feb 09, 2013 at 01:38:16PM -0300, Ezequiel Garcia wrote:
-> > > Since the condition is not an error but a warning, replace
-> > > printk KERN_ERR with dev_warn.
-> > >=20
-> > > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> > > ---
-> > >  arch/arm/mach-omap2/gpmc-onenand.c |    2 +-
-> > >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > >=20
-> > > diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2=
-/gpmc-onenand.c
-> > > index 4771945..fd6e35b 100644
-> > > --- a/arch/arm/mach-omap2/gpmc-onenand.c
-> > > +++ b/arch/arm/mach-omap2/gpmc-onenand.c
-> > > @@ -367,7 +367,7 @@ void gpmc_onenand_init(struct omap_onenand_platfo=
-rm_data *_onenand_data)
-> > > =20
-> > >  	if (cpu_is_omap24xx() &&
-> > >  			(gpmc_onenand_data->flags & ONENAND_SYNC_READWRITE)) {
-> > > -		printk(KERN_ERR "Onenand using only SYNC_READ on 24xx\n");
-> > > +		dev_warn(dev, "OneNAND using only SYNC_READ on 24xx\n");
-> >=20
-> > it would seem more natural to use dev_err() instead.
-> >=20
->=20
-> Are you sure? The error seems more a warning to me,
-> although I guess it's arguable.
->=20
-> Let me know and I'll fix it in v2.
+<standard complaint>
+It would be nice to see TI enabling device-tree on these platforms/drivers
+instead of adding to legacy board files.
+</standard complaint>
 
-my bad, should've read the code more carefuly. Indeed it looks more like
-a warning as we continue to try to use the IP. My bad.
+Pulled into next/boards.
 
---=20
-balbi
 
---0vzXIDBeUiKkjNJl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRFrh3AAoJEIaOsuA1yqREjiYP/Rkj6MQBVPT7LtaeusIlDv6X
-wZuFpy8LyK/Iyx6W9YyUu1AT+9omaS007PfF07CkAF33xaYWr30CP/E9OCBLnr9U
-QvGNGFAwPwLcy9f+wZsABFah/pH6FVETG/+3MtXqrOXLIv9z8RbYIrRfz5EvYZB1
-dCQXOPEbSwKyzrer7yfc+j1en6cUAkpc7YQFAnYBNF52wEetP1624mdU5X/hGwQu
-nZYCh4LrDltzgTbEf8Jp3p/1h5tYRKCTqN6lyZU9oRt46g/BxT9n9DqQa4Ftcd5F
-VjWXk9an9d9SnGZIZ1642lLmwIFz7SUY7EAjJWlv1I2xvNZHetNvcuNlzQAXiZ3n
-CQjFkbONhcQCzkhVSBB5LZGXFvWPWEdu78iHt2VGQBh1wrO8Ritwl++pNwRl4dbE
-uwggBBzdltMkqgWMspQWq2vCsauI1Xr6sSHSkizFx93zFjFAAVL5kMjtGpTtl5Fg
-W46U9EWsukuw3zbCsYAa33jr/N4w/ZrMe9jqY6zppqAyZ6epS/nwlCHEZSkSTLUZ
-Z9AKSNCTOavFL95dGKBDaPm0CIrQwtfP9am1TkoiJCxe7K9wFkCBu+PNAhMkXA3/
-TXttdxMpJx1K7DbCXFVHevs0mmnB0tJiJuGGtq3Ct60FdT8S++n07WkkSANh4sak
-nsZpcTl34+g6cjQ7XpVy
-=mvnj
------END PGP SIGNATURE-----
-
---0vzXIDBeUiKkjNJl--
+-Olof
