@@ -1,48 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap multiplatform warning fixes for v3.9 merge
- window
-Date: Sat, 9 Feb 2013 20:35:22 -0800
-Message-ID: <20130210043522.GH4801@atomide.com>
-References: <20130210041949.GG4801@atomide.com>
- <CAOesGMjC2NVOuY1D3HK33esJpWa65Nbgj90LoD=6ALcsePeWmA@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH RFC 1/7] platform: add a device node
+Date: Sun, 10 Feb 2013 09:37:08 +0000
+Message-ID: <20130210093708.GL17852@n2100.arm.linux.org.uk>
+References: <1360442671-15216-1-git-send-email-javier.martinez@collabora.co.uk> <1360442671-15216-2-git-send-email-javier.martinez@collabora.co.uk> <20130210010246.GA1455@kroah.com> <5116FCA1.40703@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:24207 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755047Ab3BJEf2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Feb 2013 23:35:28 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39605 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751708Ab3BJJhr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Feb 2013 04:37:47 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOesGMjC2NVOuY1D3HK33esJpWa65Nbgj90LoD=6ALcsePeWmA@mail.gmail.com>
+In-Reply-To: <5116FCA1.40703@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>
 
-* Olof Johansson <olof@lixom.net> [130209 20:31]:
-> Hi,
+On Sun, Feb 10, 2013 at 02:49:21AM +0100, Javier Martinez Canillas wrote:
+> I knew this would be controversial and that's why I didn't mean it to be a patch
+> but a RFC :)
 > 
-> 
-> On Sat, Feb 9, 2013 at 8:19 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > The following changes since commit ad1bb1b4e01c5ecbe32133ce6921d0e76cb76dcf:
-> >
-> >   ARM: OMAP2+: Remove now obsolete uncompress.h and debug-macro.S (2013-01-11 11:24:20 -0800)
-> >
-> > are available in the git repository at:
-> >
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/multiplatform-fixes-signed-v2
-> 
-> Sorry for the confusion on this; I obviously already had the
-> hwspinlock patch but I hadn't pushed it out.
-> 
-> So, to make things a little easier I just cherry-picked over the two I
-> didn't have. Thanks for staging them though. :)
+> The problem basically is that you have to associate the platform device with its
+> corresponding DT device node because it can be used in the driver probe function.
 
-OK no problem. 
- 
-> They're all in next/multiplatform now. I'll push out shortly as soon
-> as my test build completes.
+When DT is being used, doesn't DT create the platform devices for you,
+with the device node already set correctly?
 
-Thanks
-
-Tony
+Manually creating platform devices and adding DT nodes to it sounds like
+the wrong thing to be doing.
