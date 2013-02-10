@@ -1,78 +1,204 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH RFC 1/7] platform: add a device node
-Date: Sun, 10 Feb 2013 12:35:43 +0100
-Message-ID: <CAAwP0s0fCJmUfTJweGhXj5bXsQ0Gov9JbUJtqYMwL7duNLZv_Q@mail.gmail.com>
-References: <1360442671-15216-1-git-send-email-javier.martinez@collabora.co.uk>
- <1360442671-15216-2-git-send-email-javier.martinez@collabora.co.uk>
- <20130210010246.GA1455@kroah.com> <5116FCA1.40703@collabora.co.uk> <20130210093708.GL17852@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Anil Kumar <anilk4.v@gmail.com>
+Subject: [PATCH V2] ARM: dts: add minimal DT support for DevKit8000
+Date: Sun, 10 Feb 2013 21:35:53 +0530
+Message-ID: <1360512354-3804-1-git-send-email-anilk4.v@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:56656 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116Ab3BJLgG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Feb 2013 06:36:06 -0500
-Received: by mail-ie0-f174.google.com with SMTP id k10so6714055iea.33
-        for <linux-omap@vger.kernel.org>; Sun, 10 Feb 2013 03:36:04 -0800 (PST)
-In-Reply-To: <20130210093708.GL17852@n2100.arm.linux.org.uk>
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:38624 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755774Ab3BJQGF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Feb 2013 11:06:05 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <b-cousson@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Cc: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, grant.likely@secretlab.ca, weber@corscience.de, anilk4.v@gmail.com
 
-On Sun, Feb 10, 2013 at 10:37 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Sun, Feb 10, 2013 at 02:49:21AM +0100, Javier Martinez Canillas wrote:
->> I knew this would be controversial and that's why I didn't mean it to be a patch
->> but a RFC :)
->>
->> The problem basically is that you have to associate the platform device with its
->> corresponding DT device node because it can be used in the driver probe function.
->
-> When DT is being used, doesn't DT create the platform devices for you,
-> with the device node already set correctly?
->
+DevKit8000 is a beagle board clone from Timll, sold by
+armkits.com. The DevKit8000 has RS232 serial port, LCD, DVI-D,
+S-Video, Ethernet, SD/MMC, keyboard, camera, SPI, I2C, USB and
+JTAG interface.
 
-Well they usually do but not always just like usually you have a
-platform_device in your board code and call platform_device_register().
+This patch adds the basic DT support for devkit8000. At this time, Information
+of twl4030, MMC1, I2C1, leds and there pim mux information are added.
 
-But in some configurations you can't just define the platform_device
-required resources (I/O memory, IRQ, etc) as static platform data.
-In some cases you need a level of indirection.
+Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
+Tested-by: Thomas Weber <thomas@tomweber.eu>
+---
 
-In this particular case a SMSC ethernet chip is connected to an
-OMAP3 processor through its General-Purpose Memory Controller.
+ -This patch is based on top of kernel 3.8-rc5.
 
-You can't just define the I/O memory used by the device since you first
-need to request that address to the GPMC. The same happens with the
-IRQ line since a OMAP GPIO pin is used so you have to first configure
-the GPIO line as input.
+ -Tested on Devkit8000.
 
-So in platform code you call to gpmc_smsc911x_init() passing all the
-GPMC specific configurations (GPIO used for IRQ, GPMC chip select, etc)
+For V2:
 
-Then gpmc_smsc911x_init() does all the needed setup, fills a platform_data
-for the real platform_device and calls  platform_device_register_resndata().
+ -Change model name as "TimLL OMAP3 Devkit8000"
+ -Change compatible as "timll,omap3-devkit8000"
+ -Doing i2c1 pinmux default with pinctrl-single driver instead of i2c1
+  driver probe time.
 
->From the smsc911x platform_driver probe function point of view it just have
-resources and doesn't know if it's I/O memory is directly mapped or is
-through a memory controller as the GPMC. It also doesn't know if the IRQ is
-a GPIO or not.
+:100644 100644 5ebb44f... 22ebc76... M	arch/arm/boot/dts/Makefile
+:000000 100644 0000000... dc59272... A	arch/arm/boot/dts/omap3-devkit8000.dts
+:100644 100644 53cb380b.. ccecb76... M	arch/arm/mach-omap2/board-generic.c
+ arch/arm/boot/dts/Makefile             |    1 +
+ arch/arm/boot/dts/omap3-devkit8000.dts |  126 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-generic.c    |    1 +
+ 3 files changed, 128 insertions(+), 0 deletions(-)
 
-Another approach could be extending the current SMSC LAN DT binding with
-GPMC-specific properties so the platform driver could do this setup when the
-device node is found and the probe function is called.
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 5ebb44f..22ebc76 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -102,6 +102,7 @@ dtb-$(CONFIG_ARCH_MXS) += imx23-evk.dtb \
+ 	imx28-tx28.dtb
+ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	omap3-beagle.dtb \
++	omap3-devkit8000.dtb \
+ 	omap3-beagle-xm.dtb \
+ 	omap3-evm.dtb \
+ 	omap3-tobi.dtb \
+diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
+new file mode 100644
+index 0000000..dc59272
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+@@ -0,0 +1,126 @@
++/*
++ * Author: Anil Kumar <anilk4.v@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "omap3.dtsi"
++/ {
++	model = "TimLL OMAP3 Devkit8000";
++	compatible = "timll,omap3-devkit8000", "ti,omap3";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>;	/* 256 MB */
++	};
++
++	leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&leds_pins>;
++
++		heartbeat {
++			label = "devkit8000::led1";
++			gpios = <&gpio6 26 0>;	/* 186 -> LED1 */
++			default-state = "on";
++			linux,default-trigger = "heartbeat";
++		};
++
++		mmc {
++			label = "devkit8000::led2";
++			gpios = <&gpio6 3 0>;	/* 163 -> LED2 */
++			default-state = "on";
++			linux,default-trigger = "none";
++		};
++
++		usr {
++			label = "devkit8000::led3";
++			gpios = <&gpio6 4 0>;	/* 164 -> LED3 */
++			default-state = "on";
++			linux,default-trigger = "usr";
++                };
++
++	};
++};
++
++&omap3_pmx_core {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
++	leds_pins: pinmux_led_pins {
++		pinctrl-single,pins = <
++			0x168 0x4	/* GPIO_163 */
++			0x16c 0x4	/* GPIO_164 */
++			0x1b0 0x4	/* GPIO_186 */
++
++		>;
++	};
++
++	i2c1_pins: pinmux_i2c1_pins {
++		pinctrl-single,pins = <
++			0x188 0x118	/* I2C1_SCL */
++			0x18c 0x118	/* I2C1_SDA */
++                >;
++	};
++};
++
++&i2c1 {
++	clock-frequency = <2600000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>;	/* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++	};
++};
++
++&i2c2 {
++	status = "disabled";
++};
++
++&i2c3 {
++	status = "disabled";
++};
++
++/include/ "twl4030.dtsi"
++
++&mmc1 {
++	vmmc-supply = <&vmmc1>;
++	vmmc_aux-supply = <&vsim>;
++	bus-width = <8>;
++};
++
++&mmc2 {
++	status = "disabled";
++};
++
++&mmc3 {
++	status = "disabled";
++};
++
++&wdt2 {
++	status = "disabled";
++};
++
++&mcbsp1 {
++	status = "disabled";
++};
++
++&mcbsp2 {
++	status = "disabled";
++};
++
++&mcbsp3 {
++	status = "disabled";
++};
++
++&mcbsp4 {
++	status = "disabled";
++};
++
++&mcbsp5 {
++	status = "disabled";
++};
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 53cb380..ccecb76 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -110,6 +110,7 @@ MACHINE_END
+ 
+ static const char *omap3_gp_boards_compat[] __initdata = {
+ 	"ti,omap3-beagle",
++	"timll,omap3-devkit8000",
+ 	NULL,
+ };
+ 
+-- 
+1.7.0.4
 
-> Manually creating platform devices and adding DT nodes to it sounds like
-> the wrong thing to be doing.
-> --
-
-Yes, I don't like this approach to much either but I didn't find a better way to
-do it. That was the main point of this RFC.
-
-I'm still learning about Device Trees so I hope that someone with more
-experience with DT or more familiarized with OMAP GPMC and the SMSC
-driver could take a step forward and help me giving a better idea.
-
-Thanks a lot for your feedback and best regards,
-Javier
