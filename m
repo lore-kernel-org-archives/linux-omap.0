@@ -1,48 +1,48 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-Date: Mon, 11 Feb 2013 16:24:55 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229B972C@DBDE01.ent.ti.com>
-References: <1359966525-7603-1-git-send-email-j-keerthy@ti.com>
- <alpine.DEB.2.00.1302080248550.8539@utopia.booyaka.com>
- <DC88CAD03C0052499C1907B327FC63229B92FF@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302081805450.28008@utopia.booyaka.com>
- <alpine.DEB.2.00.1302081855370.28008@utopia.booyaka.com>
-  <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH v2] mmc: omap_hsmmc: MAINTAINERS: update
+Date: Mon, 11 Feb 2013 11:44:26 -0500
+Message-ID: <87fw12ssut.fsf@octavius.laptop.org>
+References: <510FCEA2.8010507@ti.com>
+	<1360161283-28956-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44108 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752494Ab3BKQZD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 11:25:03 -0500
-In-Reply-To: <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1360161283-28956-1-git-send-email-balajitk@ti.com> (Balaji
+	T. K.'s message of "Wed, 6 Feb 2013 20:04:43 +0530")
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+Hi,
 
+On Wed, Feb 06 2013, Balaji T K wrote:
+> Update Maintainer email for omap_hsmmc,
+> as Venkatraman will no longer be able to maintain omap_hsmmc driver.
+>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> Acked-by: Venkatraman S <svenkatr@gmail.com>
+> ---
+>  MAINTAINERS |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 92e726c..f319237 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -5498,7 +5498,7 @@ S:	Maintained
+>  F:	drivers/mmc/host/omap.c
+>  
+>  OMAP HS MMC SUPPORT
+> -M:	Venkatraman S <svenkatr@ti.com>
+> +M:	Balaji T K <balajitk@ti.com>
+>  L:	linux-mmc@vger.kernel.org
+>  L:	linux-omap@vger.kernel.org
+>  S:	Maintained
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Monday, February 11, 2013 9:10 PM
-> To: J, KEERTHY
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-> 
-> On Mon, 11 Feb 2013, J, KEERTHY wrote:
-> 
-> > Can I pull the other patches and rebase this patch on top of them?
-> > I need the branch where I can pull the other clock related patches.
-> > I will rebase this patch on top, Verify the PM suspend on OMAP4460
-> > And post it.
-> 
-> It's based on Tony's omap-for-v3.9/pm branch.
+Thanks, pushed to mmc-next for 3.9.
 
-Thanks Paul.
-
-> 
-> - Paul
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
