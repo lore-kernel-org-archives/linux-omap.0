@@ -1,43 +1,48 @@
-From: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: Allow clock alias provision from device
- tree
-Date: Mon, 11 Feb 2013 17:07:52 +0100
-Message-ID: <20130211160752.GG1906@pengutronix.de>
-References: <1360597464-8491-1-git-send-email-rogerq@ti.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
+Date: Mon, 11 Feb 2013 16:24:55 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229B972C@DBDE01.ent.ti.com>
+References: <1359966525-7603-1-git-send-email-j-keerthy@ti.com>
+ <alpine.DEB.2.00.1302080248550.8539@utopia.booyaka.com>
+ <DC88CAD03C0052499C1907B327FC63229B92FF@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1302081805450.28008@utopia.booyaka.com>
+ <alpine.DEB.2.00.1302081855370.28008@utopia.booyaka.com>
+  <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1360597464-8491-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44108 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752494Ab3BKQZD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 11:25:03 -0500
+In-Reply-To: <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Feb 11, 2013 at 05:44:23PM +0200, Roger Quadros wrote:
-> Currently on OMAP, it is not possible to specify a clock consumer
-> to any of the OMAP generated clocks using the device tree. This can pose
-> a problem for external devices that run off an OMAP clock as we
-> can't reliably provide a reference to the clock in the device tree.
 
-There is an established way of providing clocks in the devicetree using
-the clocks/clock-names properties. Wouldn't it be better using this
-for OMAP aswell?
 
-Sascha
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Monday, February 11, 2013 9:10 PM
+> To: J, KEERTHY
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
+> 
+> On Mon, 11 Feb 2013, J, KEERTHY wrote:
+> 
+> > Can I pull the other patches and rebase this patch on top of them?
+> > I need the branch where I can pull the other clock related patches.
+> > I will rebase this patch on top, Verify the PM suspend on OMAP4460
+> > And post it.
+> 
+> It's based on Tony's omap-for-v3.9/pm branch.
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Thanks Paul.
+
+> 
+> - Paul
