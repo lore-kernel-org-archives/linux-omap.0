@@ -1,62 +1,64 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH RFC 2/7] net: smsc911x: add pinctrl support
-Date: Mon, 11 Feb 2013 15:29:33 +0100
-Message-ID: <CAAwP0s2V6x7d_8V037JrBSA1UsPa9W14Kp_1z05BhFCW=XFy4Q@mail.gmail.com>
-References: <1360442671-15216-1-git-send-email-javier.martinez@collabora.co.uk>
- <1360442671-15216-3-git-send-email-javier.martinez@collabora.co.uk> <CACRpkdY8FBoMCO1hjEOhCir=5mNJpiY7sG3PMvKeXJ-hHXXmjQ@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 01/14] usb: phy: nop: Add device tree support and binding
+ information
+Date: Mon, 11 Feb 2013 17:14:26 +0200
+Message-ID: <51190AD2.3030006@ti.com>
+References: <1360252974-7912-1-git-send-email-rogerq@ti.com> <1360252974-7912-2-git-send-email-rogerq@ti.com> <20130211114040.GA2726@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:37951 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757095Ab3BKO3y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 09:29:54 -0500
-Received: by mail-ie0-f171.google.com with SMTP id 10so7670743ied.16
-        for <linux-omap@vger.kernel.org>; Mon, 11 Feb 2013 06:29:54 -0800 (PST)
-In-Reply-To: <CACRpkdY8FBoMCO1hjEOhCir=5mNJpiY7sG3PMvKeXJ-hHXXmjQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130211114040.GA2726@e106331-lin.cambridge.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "b-cousson@ti.com" <b-cousson@ti.com>, "balbi@ti.com" <balbi@ti.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "kishon@ti.com" <kishon@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Feb 11, 2013 at 3:23 PM, Linus Walleij <linus.walleij@linaro.org> wrote:
-> On Sat, Feb 9, 2013 at 9:44 PM, Javier Martinez Canillas
-> <javier.martinez@collabora.co.uk> wrote:
->
->> If no pinctrl is available just report a warning since
->> it may not needed in some cases (e.g: non-DT kernels).
+On 02/11/2013 01:40 PM, Mark Rutland wrote:
+> Hello,
+> 
+> On Thu, Feb 07, 2013 at 04:02:41PM +0000, Roger Quadros wrote:
+>> The PHY clock, clock rate, VCC regulator and RESET regulator
+>> can now be provided via device tree.
 >>
->> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> (...)
->> +       struct pinctrl *pinctrl;
-> (...)
->> +       pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
->> +       if (IS_ERR(pinctrl)) {
->> +               retval = PTR_ERR(pinctrl);
->> +               if (retval == -EPROBE_DEFER)
->> +                       goto out_0;
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Acked-by: Felipe Balbi <balbi@ti.com>
+>> ---
+>>  .../devicetree/bindings/usb/usb-nop-xceiv.txt      |   34 ++++++++++++++++++
+>>  drivers/usb/otg/nop-usb-xceiv.c                    |   36 +++++++++++++++----
+>>  2 files changed, 62 insertions(+), 8 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+>> new file mode 100644
+>> index 0000000..d7e2726
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+>> @@ -0,0 +1,34 @@
+>> +USB NOP PHY
 >> +
->> +               dev_warn(&pdev->dev, "No pinctrl provided\n");
->> +       }
->
-> NACK.
->
-> This will be handled from the device core after the v3.9 merge
-> window.
->
-> See:
-> http://marc.info/?l=linux-kernel&m=135887740715083&w=2
->
+>> +Required properties:
+>> +- compatible: should be usb-nop-xceiv
+> 
+> This might be better as "linux,usb-no-xceiv", given this is a Linux-specific
+> 'device'.
+> 
+> Saying that, I'm not sure I understand why this device needs to be instantiated
+> from devicetree. As I understand it from looking at the driver, it's purely a
+> Linux implementation detail used in the case of autonomous PHYs, and not an
+> actual piece of hardware or firmware system. I must admit to being unfamiliar
+> with this area of hardware, have I misunderstood somethign here?
 
-Great, I also wondered why it couldn't be part of the device core
-since we basically duplicate this in all the DT aware drivers and
-pinctrl was not used anywhere after setting to its default state.
+The PHY is a physical device and may need resources like power and clock to be functional.
+The only reason that driver is named NOP is that many USB controllers know how to talk to
+the standard PHYs and don't need any interface/management software.
 
-This is a nice improvement.
+The PHY driver you are looking at most likely doesn't have the recent changes I wrote to
+manage the PHY clock/reset/power. i.e. patches 3, 4 and 5 in the series
+ https://lkml.org/lkml/2013/1/28/275
 
-> Yours,
-> Linus Walleij
-> --
+Before this, the ehci-omap driver was trying to manage the PHY power and reset, which was
+wrong.
 
-Thanks a lot and best regards,
-Javier
+regards,
+-roger
