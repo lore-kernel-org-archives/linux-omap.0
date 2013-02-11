@@ -1,81 +1,64 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: Latest additional build warnings
-Date: Mon, 11 Feb 2013 11:06:27 -0800
-Message-ID: <CAOesGMiEt9fmkL+fyhQKAD-qu_KRFcAds8EtMTx1i0TwhkO3Rg@mail.gmail.com>
-References: <20130205142218.GB17833@n2100.arm.linux.org.uk>
-	<20130209114918.GJ17852@n2100.arm.linux.org.uk>
-	<20130210030032.GC4801@atomide.com>
-	<CAOesGMgvEVsB7OWs43EWjgsR8af2_RZS9Dod3PURu6Tvdi4QJw@mail.gmail.com>
-	<20130210032234.GE4801@atomide.com>
-	<CAOesGMjQEJesfDqSHoV727=pTHjQ4CE+La2QWikG0r4gZ9iSjA@mail.gmail.com>
-	<20130211190513.GU4801@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: omap1_defconfig build broken in linux next
+Date: Mon, 11 Feb 2013 11:31:32 -0800
+Message-ID: <20130211193132.GV4801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f176.google.com ([74.125.82.176]:39047 "EHLO
-	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758187Ab3BKTG3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 14:06:29 -0500
-Received: by mail-we0-f176.google.com with SMTP id s43so4998437wey.7
-        for <linux-omap@vger.kernel.org>; Mon, 11 Feb 2013 11:06:27 -0800 (PST)
-In-Reply-To: <20130211190513.GU4801@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:25651 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758792Ab3BKTbf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 14:31:35 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Mon, Feb 11, 2013 at 11:05 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Olof Johansson <olof@lixom.net> [130209 20:25]:
->> On Sat, Feb 9, 2013 at 7:22 PM, Tony Lindgren <tony@atomide.com> wrote:
->> > * Olof Johansson <olof@lixom.net> [130209 19:08]:
->> >> On Sat, Feb 9, 2013 at 7:00 PM, Tony Lindgren <tony@atomide.com> wrote:
->> >> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [130209 03:53]:
->> >> >> On Tue, Feb 05, 2013 at 02:22:18PM +0000, Russell King - ARM Linux wrote:
->> >> >> > arch/arm/mach-omap2/hwspinlock.c:60:1: warning: data definition has no type or storage class
->> >> >> > arch/arm/mach-omap2/hwspinlock.c:60:1: warning: type defaults to 'int' in declaration of 'omap_postcore_initcall'
->> >> >> > arch/arm/mach-omap2/hwspinlock.c:60:1: warning: parameter names (without types) in function declaration
->> >> >> > arch/arm/mach-omap2/hwspinlock.c:31:122: warning: 'hwspinlocks_init' defined but not used
->> >> >>
->> >> >> I'm still seeing the above in the build of Friday's merge.  I'm also
->> >> >> seeing additional warnings in the randconfig similar to the above for
->> >> >> arch/arm/mach-omap2/omap-iommu.c.
->> >> >
->> >> > Thanks for letting me know about the omap-iommu.c one. Looks like
->> >> > there's also one patch for drm.c.
->> >> >
->> >> > Olof, if you did not yet apply the hwspinlock.c warning fix, I'll
->> >> > just do a branch with all three of them for you.
->> >>
->> >> I haven't (must have missed it), so please just send a branch.
->> >
->> > OK will do. Probably you started fixing up the bad Reported-by
->> > line in my patch and then got disrupted :)
->> >
->> > Found one more after some grepping, after the following patch they
->> > should be all fixed up. Pull request coming shortly.
->>
->> Oh wait -- I got confused there for a bit (this came in right as I had
->> to step out for a while).
->>
->> I definitely picked up the hwspinlock patch, and it's there in my
->> local for-next. Looks like I missed pushing it out though. That
->> explains why Russell didn't see the fix. :(
->>
->>
->> So, the hwspinlock patch is already applied. The soc.h one is not, and
->> I'm not sure what the third one is?
->
-> Maybe check that you have these in your multiplatform branch:
->
-> 09cee18dbced86b27c6c7d4501126cf2a287d089 ARM: OMAP2+: Make sure files with omap initcalls include soc.h
-> b9a30021abeaf9687640c13ef8006346736dc29f ARM: OMAP2+: Include soc.h to drm.c to fix compiling
-> f3533403b5a8ac970f6159664d145cb88b1aa6bf ARM: OMAP2+: Fix warning for hwspinlock omap_postcore_initcall
->
-> You can cherry pick the missing ones from my omap-for-v3.9/multiplatform-fixes
-> branch.
+FYI, looks like something broke compile recently, have not yet
+figured out the breaking commit. Might be the same issue
+with some other defconfigs too.
 
-Yeah, that email was from before I had cherry-picked in from your last
-pull request. Sorry for the confusion. :)
+Probably something was indirectly included earlier?
+
+This fixes it, still need to dig the breaking commit
+for the description.
+
+Regards,
+
+Tony
 
 
--Olof
+--- a/arch/arm/mach-omap1/common.h
++++ b/arch/arm/mach-omap1/common.h
+@@ -31,6 +31,8 @@
+ 
+ #include <plat/i2c.h>
+ 
++#include <mach/irqs.h>
++
+ #if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+ void omap7xx_map_io(void);
+ #else
+--- a/drivers/video/omap/lcd_ams_delta.c
++++ b/drivers/video/omap/lcd_ams_delta.c
+@@ -27,6 +27,7 @@
+ #include <linux/lcd.h>
+ #include <linux/gpio.h>
+ 
++#include <mach/hardware.h>
+ #include <mach/board-ams-delta.h>
+ 
+ #include "omapfb.h"
+--- a/drivers/video/omap/lcd_osk.c
++++ b/drivers/video/omap/lcd_osk.c
+@@ -24,7 +24,10 @@
+ #include <linux/platform_device.h>
+ 
+ #include <asm/gpio.h>
++
++#include <mach/hardware.h>
+ #include <mach/mux.h>
++
+ #include "omapfb.h"
+ 
+ static int osk_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
