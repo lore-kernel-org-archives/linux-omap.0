@@ -1,42 +1,29 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v2 07/14] USB: ohci-omap3: Add device tree support and
- binding information
-Date: Mon, 11 Feb 2013 15:32:17 +0000
-Message-ID: <20130211153217.GB15013@e106331-lin.cambridge.arm.com>
-References: <1360252974-7912-1-git-send-email-rogerq@ti.com>
- <1360252974-7912-8-git-send-email-rogerq@ti.com>
- <20130211114611.GB2726@e106331-lin.cambridge.arm.com>
- <51190CA7.7010705@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
+Date: Mon, 11 Feb 2013 15:39:56 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com>
+References: <1359966525-7603-1-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.00.1302080248550.8539@utopia.booyaka.com> <DC88CAD03C0052499C1907B327FC63229B92FF@DBDE01.ent.ti.com> <alpine.DEB.2.00.1302081805450.28008@utopia.booyaka.com>
+ <alpine.DEB.2.00.1302081855370.28008@utopia.booyaka.com>  <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51190CA7.7010705@ti.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "b-cousson@ti.com" <b-cousson@ti.com>, "balbi@ti.com" <balbi@ti.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "kishon@ti.com" <kishon@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:33435 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754209Ab3BKPj6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 10:39:58 -0500
+In-Reply-To: <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "J, KEERTHY" <j-keerthy@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-> >> +Required properties:
-> >> +
-> >> +- compatible: should be "ti,ohci-omap3"
-> >> +- reg: should contain one register range i.e. start and length
-> >> +- interrupt-parent: phandle to the interrupt controller
-> > 
-> > I'm not sure that needs to be documented as a required property. It's a
-> > standard property, and if it's defined for the parent node, you won't need it
-> > here.
-> 
-> The last time I tried without 'interrupt-parent' it complained. Doesn't do it anymore.
-> Maybe I did something wrong the last time. I'll remove it.
-> 
-> > 
-> > Otherwise, this looks fine to me.
-> 
-> Thanks. I'll add your reviewed-by tag after addressing the above comment.
+On Mon, 11 Feb 2013, J, KEERTHY wrote:
 
-Sure.
+> Can I pull the other patches and rebase this patch on top of them?
+> I need the branch where I can pull the other clock related patches.
+> I will rebase this patch on top, Verify the PM suspend on OMAP4460
+> And post it.
 
-Thanks,
-Mark.
+It's based on Tony's omap-for-v3.9/pm branch.
+
+- Paul
