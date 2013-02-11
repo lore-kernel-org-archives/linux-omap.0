@@ -1,80 +1,78 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: omap2_gpio_prepare_for_idle not functioning in suspend
-Date: Mon, 11 Feb 2013 07:29:46 -0800
-Message-ID: <87pq06yil1.fsf@linaro.org>
-References: <CA+Bv8XaWKob_t-S7geuYZveVtxQNa2Bg2awRt49gZ0UQW3nK+g@mail.gmail.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v2 01/14] usb: phy: nop: Add device tree support and
+ binding information
+Date: Mon, 11 Feb 2013 15:31:13 +0000
+Message-ID: <20130211153112.GA15013@e106331-lin.cambridge.arm.com>
+References: <1360252974-7912-1-git-send-email-rogerq@ti.com>
+ <1360252974-7912-2-git-send-email-rogerq@ti.com>
+ <20130211114040.GA2726@e106331-lin.cambridge.arm.com>
+ <51190AD2.3030006@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:37550 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756758Ab3BKP3u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 10:29:50 -0500
-Received: by mail-pa0-f47.google.com with SMTP id bj3so3076777pad.6
-        for <linux-omap@vger.kernel.org>; Mon, 11 Feb 2013 07:29:49 -0800 (PST)
-In-Reply-To: <CA+Bv8XaWKob_t-S7geuYZveVtxQNa2Bg2awRt49gZ0UQW3nK+g@mail.gmail.com>
-	(Russ Dill's message of "Sun, 10 Feb 2013 16:39:14 -0800")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51190AD2.3030006@ti.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "b-cousson@ti.com" <b-cousson@ti.com>, "balbi@ti.com" <balbi@ti.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "kishon@ti.com" <kishon@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Charulatha V <charu@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Russ,
+Hi Roger,
 
-Russ Dill <Russ.Dill@ti.com> writes:
+On Mon, Feb 11, 2013 at 03:14:26PM +0000, Roger Quadros wrote:
+> On 02/11/2013 01:40 PM, Mark Rutland wrote:
+> > Hello,
+> > 
+> > On Thu, Feb 07, 2013 at 04:02:41PM +0000, Roger Quadros wrote:
+> >> The PHY clock, clock rate, VCC regulator and RESET regulator
+> >> can now be provided via device tree.
+> >>
+> >> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >> Acked-by: Felipe Balbi <balbi@ti.com>
+> >> ---
+> >>  .../devicetree/bindings/usb/usb-nop-xceiv.txt      |   34 ++++++++++++++++++
+> >>  drivers/usb/otg/nop-usb-xceiv.c                    |   36 +++++++++++++++----
+> >>  2 files changed, 62 insertions(+), 8 deletions(-)
+> >>  create mode 100644 Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+> >>
+> >> diff --git a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+> >> new file mode 100644
+> >> index 0000000..d7e2726
+> >> --- /dev/null
+> >> +++ b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+> >> @@ -0,0 +1,34 @@
+> >> +USB NOP PHY
+> >> +
+> >> +Required properties:
+> >> +- compatible: should be usb-nop-xceiv
+> > 
+> > This might be better as "linux,usb-no-xceiv", given this is a Linux-specific
+> > 'device'.
+> > 
+> > Saying that, I'm not sure I understand why this device needs to be instantiated
+> > from devicetree. As I understand it from looking at the driver, it's purely a
+> > Linux implementation detail used in the case of autonomous PHYs, and not an
+> > actual piece of hardware or firmware system. I must admit to being unfamiliar
+> > with this area of hardware, have I misunderstood somethign here?
+> 
+> The PHY is a physical device and may need resources like power and clock to be functional.
+> The only reason that driver is named NOP is that many USB controllers know how to talk to
+> the standard PHYs and don't need any interface/management software.
 
-> After the gpio-omap runtime PM changes, I noticed that the
-> omap2_gpio_prepare_for_idle/omap2_gpio_resume_after_idle functions are
-> a NOP in the case of suspend.
->
-> void omap2_gpio_prepare_for_idle(int pwr_mode)
-> {
-> 	struct gpio_bank *bank;
->
-> 	list_for_each_entry(bank, &omap_gpio_list, node) {
-> 		if (!bank->mod_usage)
-> 			continue;
->
-> 		bank->power_mode = pwr_mode;
->
-> 		pm_runtime_put_sync_suspend(bank->dev);
-> 	}
-> }
->
-> void omap2_gpio_resume_after_idle(void)
-> {
-> 	struct gpio_bank *bank;
->
-> 	list_for_each_entry(bank, &omap_gpio_list, node) {
-> 		if (!bank->mod_usage)
-> 			continue;
->
-> 		pm_runtime_get_sync(bank->dev);
-> 	}
-> }
->
-> (called from omap_pm_enter->omap3_pm_suspend->omap_sram_idle)
->
-> At the point that platform_suspend_ops.enter is called,
-> dpm_suspend_end has already been called which disables runtime_pm.
-> During a suspend/resume where power is lost to certain GPIO banks, the
-> context will not be restored.
+Ok. That makes sense. Apologies for the noise.
 
-Did you actually observe context not being restored, or is this an
-observation by looking at the code?
+> 
+> The PHY driver you are looking at most likely doesn't have the recent changes I wrote to
+> manage the PHY clock/reset/power. i.e. patches 3, 4 and 5 in the series
+>  https://lkml.org/lkml/2013/1/28/275
+> 
+> Before this, the ehci-omap driver was trying to manage the PHY power and reset, which was
+> wrong.
 
-The PM domain layer (implemented in omap_device) is supposed to be
-handling the case where runtime PM has been disabled by the PM core.
-Specifically, check the 'noirq' hooks in the omap_device PM domain.
-These check whether omap_devices are runtime_suspended, and
-runtime_suspends them if they are not.   Then during resume, the
-resume_noirq hook will runtime resume them if they were "forcibly"
-runtime suspended during the noirq phase.
+Yes. That makes a lot more sense now.
 
-That being said, there may have been some recent PM core changes that
-have caused this not to work anymore, so I'd be very curious exactly how
-to reproduce this.
+Thanks for the info!
 
 Thanks,
-
-Kevin
+Mark.
