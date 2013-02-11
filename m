@@ -1,160 +1,93 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH RFC 3/7] ARM: OMAP: gpmc-smsc911x: add DT dev node init
- function
-Date: Mon, 11 Feb 2013 10:30:51 +0000
-Message-ID: <20130211103051.GA32455@e106331-lin.cambridge.arm.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH RFC 1/7] platform: add a device node
+Date: Mon, 11 Feb 2013 11:33:19 +0100
+Message-ID: <CAAwP0s0_HivRRDuBAEi4TJMB6DnbicDy1FiT7G3NcNs996V7qA@mail.gmail.com>
 References: <1360442671-15216-1-git-send-email-javier.martinez@collabora.co.uk>
- <1360442671-15216-4-git-send-email-javier.martinez@collabora.co.uk>
+ <1360442671-15216-2-git-send-email-javier.martinez@collabora.co.uk>
+ <20130210010246.GA1455@kroah.com> <5116FCA1.40703@collabora.co.uk>
+ <20130210093708.GL17852@n2100.arm.linux.org.uk> <CAAwP0s0fCJmUfTJweGhXj5bXsQ0Gov9JbUJtqYMwL7duNLZv_Q@mail.gmail.com>
+ <20130211081632.GI1906@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:56191 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755410Ab3BKKa6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 05:30:58 -0500
-In-Reply-To: <1360442671-15216-4-git-send-email-javier.martinez@collabora.co.uk>
-Content-Disposition: inline
+Received: from mail-vb0-f44.google.com ([209.85.212.44]:45840 "EHLO
+	mail-vb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755256Ab3BKKdk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 05:33:40 -0500
+Received: by mail-vb0-f44.google.com with SMTP id fr13so3603941vbb.31
+        for <linux-omap@vger.kernel.org>; Mon, 11 Feb 2013 02:33:39 -0800 (PST)
+In-Reply-To: <20130211081632.GI1906@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, devicetree-discuss@lists.ozlabs.org, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On Mon, Feb 11, 2013 at 9:16 AM, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+> On Sun, Feb 10, 2013 at 12:35:43PM +0100, Javier Martinez Canillas wrote:
+>> On Sun, Feb 10, 2013 at 10:37 AM, Russell King - ARM Linux
+>> <linux@arm.linux.org.uk> wrote:
+>> > On Sun, Feb 10, 2013 at 02:49:21AM +0100, Javier Martinez Canillas wrote:
+>> >> I knew this would be controversial and that's why I didn't mean it to be a patch
+>> >> but a RFC :)
+>> >>
+>> >> The problem basically is that you have to associate the platform device with its
+>> >> corresponding DT device node because it can be used in the driver probe function.
+>> >
+>> > When DT is being used, doesn't DT create the platform devices for you,
+>> > with the device node already set correctly?
+>> >
+>>
+>> Well they usually do but not always just like usually you have a
+>> platform_device in your board code and call platform_device_register().
+>>
+>> But in some configurations you can't just define the platform_device
+>> required resources (I/O memory, IRQ, etc) as static platform data.
+>> In some cases you need a level of indirection.
+>>
+>> In this particular case a SMSC ethernet chip is connected to an
+>> OMAP3 processor through its General-Purpose Memory Controller.
+>>
+>> You can't just define the I/O memory used by the device since you first
+>> need to request that address to the GPMC. The same happens with the
+>> IRQ line since a OMAP GPIO pin is used so you have to first configure
+>> the GPIO line as input.
+>
+> For the gpio interrupt you can use, example taken from omap4-var-som.dts:
+>
+>         interrupt-parent = <&gpio6>;
+>         interrupts = <11>; /* gpio line 171 */
+>
+> Other architectures allow to specify the edge/level hi/low active
+> parameters from the devicetree aswell. The gpio direction should be
+> handled by the gpio driver as necessary, at least that's what done on
+> other architectures.
+>
+> If the SMSC hangs on the GPMC then the SMSC should be a child node of
+> the GPMC. The GPMC would then act as a bus driver and configure the
+> chipselects and timings for its children automatically, maybe based
+> on timing information from the devicetree. I've never tried this before,
+> but I think that's the way things should be.
+>
 
-I have a few comments on the binding and the way it's parsed.
+Hi Sasha,
 
-On Sat, Feb 09, 2013 at 08:44:27PM +0000, Javier Martinez Canillas wrote:
-> This patch adds a helper function to parse a device node that
-> contains all the properties needed to initialize an smsc911x
-> device connected to an OMAP processor through OMAP's GPMC.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> ---
->  .../devicetree/bindings/net/gpmc-smsc911x.txt      |   39 ++++++++++++++++++++
->  arch/arm/mach-omap2/gpmc-smsc911x.c                |   29 +++++++++++++++
->  arch/arm/mach-omap2/gpmc-smsc911x.h                |    6 +++
->  3 files changed, 74 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/net/gpmc-smsc911x.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/net/gpmc-smsc911x.txt b/Documentation/devicetree/bindings/net/gpmc-smsc911x.txt
-> new file mode 100644
-> index 0000000..8bb0df2
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/net/gpmc-smsc911x.txt
-> @@ -0,0 +1,39 @@
-> +* GPMC connected Smart Mixed-Signal Connectivity (SMSC) LAN911x/912x Controller
-> +
-> +GPMC connected SMSC LAN911x/912x Controllers are represented as child nodes
-> +of the OMAP General-Purpose Memory Controller with a name of "gpmc_smsc911x".
-> +
-> +All timing relevant properties as well as generic gpmc child properties are
-> +explained in a separate documents - please refer to
-> +Documentation/devicetree/bindings/bus/ti-gpmc.txt
-> +
-> +Required properties:
-> +- gpmc,cs : The chip select line the pheripheral is connected to
-> +- gpmc,gpio_irq : The GPIO pin that is connected to the SMSC LAN IRQ line
+The SMSC is already a child node of the GPMC in the device tree but instead
+using the generic SMSC binding I added a GPMC-specific SMSC binding.
 
-In devicetree land, we use '-' in preference of '_' in property names.
+Since the SMSC binding doesn't have a chip select property and it expects
+the I/O memory address to be explicitly defined in the reg property while
+the GPMC needs to request this memory according to the chip select used.
 
-So this should be "gpio-irq"
+> No need to manually create platform devices from the devicetree.
+>
 
-> +
-> +Optional properties:
-> +- gpmc,flags : SMSC LAN flags - please refer to include/linux/smsc911x.h
+Thanks a lot for your feedback, I'll go back and think more about this and try
+to solve this using a different approach that won't require changing
+the platform
+device info structure and reusing the generic SMSC LAN DT binding.
 
-Please don't do this. It should only be necessary to read binding documents and
-hardware datasheets to write a dts. Referring to Linux internals creates a
-flaky ABI that's only going to break when things get renamed/moved/modified.
+> Sascha
+>
 
-The flags variable used internally by the driver don't have to have a 1-1
-correspondence with a single property in the binding. You can have boolean
-properties (named, but without a value) in the dt specifying each flag
-individually. That way the dts is easier to read, is less tied to linux
-internals (and every property is *fully* documented), and it's far easier to
-add new flags in future if necessary.
-
-> +- gpmc,gpio_reset : The GPIO pin connected to the SMSC LAN reset line
-
-Preferably: "gpio-reset".
-
-> +
-> +Note: Besides these properties, the gpmc_smsc911x device node could need
-> +aditional setup such as pin/pad mux settings and voltage regulators. This
-> +depend on how the pheripheral is wired and his board specific.
-> +
-> +Example (for an OMAP3 board):
-> +
-> +gpmc@6e000000 {
-> +	      compatible = "ti,omap3430-gpmc";
-> +	      ti,hwmods = "gpmc";
-> +	      reg = <0x6e000000 0x1000000>;
-> +	      interrupts = <20>;
-> +	      gpmc,num-cs = <8>;
-> +	      gpmc,num-waitpins = <4>;
-> +	      #address-cells = <2>;
-> +	      #size-cells = <1>;
-> +
-> +	      gpmc_smsc911x@0 {
-> +			      gpmc,cs = <5>;
-> +			      gpmc,gpio_irq = <176>;
-> +			      gpmc,flags = <4>; /* SMSC911X_USE_32BIT */
-
-Here you could have a boolean property "gpmc,use-32bit" (or possibly
-"gpmc,use-bits", which can either be 32 or 16).
-
-> +	      };
-> +};
-> diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
-> index 5ce00ad2..59a2ee4 100644
-> --- a/arch/arm/mach-omap2/gpmc-smsc911x.c
-> +++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
-> @@ -19,6 +19,7 @@
->  #include <linux/interrupt.h>
->  #include <linux/io.h>
->  #include <linux/smsc911x.h>
-> +#include <linux/of.h>
->  
->  #include "gpmc.h"
->  #include "gpmc-smsc911x.h"
-> @@ -98,3 +99,31 @@ free1:
->  
->  	pr_err("Could not initialize smsc911x device\n");
->  }
-> +
-> +int gpmc_smsc911x_init_dt(struct device_node *node)
-> +{
-> +	struct omap_smsc911x_platform_data gpmc_cfg;
-> +
-> +	if (WARN_ON(!node))
-> +		return -ENODEV;
-> +
-> +	if (of_property_read_u32(node, "gpmc,cs", &gpmc_cfg.cs)) {
-> +		pr_err("Unable to get GPMC smsc911x chip select\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (of_property_read_u32(node, "gpmc,gpio_irq", &gpmc_cfg.gpio_irq)) {
-> +		pr_err("Unable to get GPMC smsc911x GPIO IRQ\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (of_property_read_u32(node, "gpmc,gpio_reset", &gpmc_cfg.gpio_reset))
-> +		gpmc_cfg.gpio_reset = -EINVAL;
-> +
-> +	if (of_property_read_u32(node, "gpmc,flags", &gpmc_cfg.flags))
-> +		gpmc_cfg.flags = 0;
-
-Is no sanity checking required for any of the above properties?
-
-To handle separate flags here, you can use something like:
-
-if (of_property_read_bool(node, "gpmc,use-32bit")
-	flags |= SMSC911X_USE_32BIT;
-
-[...]
-
-Thanks,
-Mark.
-
+Best regards,
+Javier
