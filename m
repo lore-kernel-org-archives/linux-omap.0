@@ -1,33 +1,80 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH 0/3] omap_hsmmc DT DMA Client support
-Date: Mon, 11 Feb 2013 12:34:15 -0500
-Message-ID: <87y5eupxew.fsf@octavius.laptop.org>
-References: <1359752479-29427-1-git-send-email-mporter@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: clean up and standardize WFI handling
+ for 3.9
+Date: Mon, 11 Feb 2013 09:37:32 -0800
+Message-ID: <20130211173731.GO4801@atomide.com>
+References: <alpine.DEB.2.00.1302081726480.28008@utopia.booyaka.com>
+ <20130210170827.GK4801@atomide.com>
+ <alpine.DEB.2.00.1302101726020.2672@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1359752479-29427-1-git-send-email-mporter@ti.com> (Matt Porter's
-	message of "Fri, 1 Feb 2013 16:01:16 -0500")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Porter <mporter@ti.com>
-Cc: Venkatraman S <svenkatr@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Jon Hunter <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:27724 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758256Ab3BKRhe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 12:37:34 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1302101726020.2672@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Matt,
+* Paul Walmsley <paul@pwsan.com> [130210 09:31]:
+> Hi Tony
+> 
+> On Sun, 10 Feb 2013, Tony Lindgren wrote:
+> 
+> > * Paul Walmsley <paul@pwsan.com> [130208 09:31]:
+> > > 
+> > > ----------------------------------------------------------------
+> > > On OMAP2+ devices, standardize and clean up WFI entry and WFI blocking.
+> > > 
+> > > Basic test logs are available here:
+> > > 
+> > >    http://www.pwsan.com/omap/testlogs/wfi_devel_a_3.9/20130208085027/
+> > 
+> > Thanks pulled into omap-for-v3.9/pm-wfi. While merging this into
+> > omap-for-v3.9/tmp-merge, got the following merge conlict. Maybe
+> > take a look if it's correct merge?
+> 
+> ...
+> 
+> >   	}
+> >   
+> > - 	omap2_sram_idle();
+> > - 
+> > - 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+> > + 	/* WFI */
+> > + 	asm("mcr p15, 0, %0, c7, c0, 4" : : "r" (zero) : "memory", "cc");
+> >   }
+> 
+> The inline asm is intended to replace the omap2_sram_idle() call.  I'd 
+> suggest:
+> 
+>         }
+> 
+>         /* WFI */
+>         asm("mcr p15, 0, %0, c7, c0, 4" : : "r" (zero) : "memory", "cc");
+> 
+>         pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+>  }
+> 
+> as the end product.
 
-On Fri, Feb 01 2013, Matt Porter wrote:
-> This series adds DT DMA Engine Client support to the omap_hsmmc.
-> It leverages the generic DMA OF helpers in -next and the
-> dma_request_slave_channel_compat() wrapper introduced in the
-> AM33XX DMA Engine series to support DMA in omap_hsmmc on platforms
-> booting via DT. These platforms include omap2/3/4/5 and am33xx.
->
-> These patches were split out from the v5 version of the AM33XX DMA
-> series and split from the EDMA-specific omap_hsmmc changes.
+OK thanks.
 
-Thanks, pushed to mmc-next for 3.9.
+This branch should probably have been based on your earlier PM branch
+based on v3.8-rc5 that was already merged as omap-for-v3.9/pm-signed into
+arm-soc for-next.
 
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Now merging this branch based on v3.8-rc6 requires me to create a merge
+base by merging the earlier branch with v3.8-rc6 and then resolving
+the self-inflicted merge conflict in order for me to generate a pull request
+without a non-trivial merge conflict. Just a bunch of extra hassle to
+deal with with additional risk of merging things wrong. Anyways merging
+into omap-for-v3.9/pm-wfi-take2.
+
+Regards,
+
+Tony
