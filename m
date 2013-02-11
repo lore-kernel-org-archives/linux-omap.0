@@ -1,46 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 2/2] ARM: OMAP2+: Export SoC information to userspace
-Date: Mon, 11 Feb 2013 09:56:53 -0800
-Message-ID: <20130211175653.GQ4801@atomide.com>
-References: <1360191049-24017-1-git-send-email-ruslan.bilovol@ti.com>
- <1360191049-24017-3-git-send-email-ruslan.bilovol@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH 03/15] ARM: OMAP3xxx: hwmod: Convert SHAM crypto device
+ data to hwmod
+Date: Mon, 11 Feb 2013 11:07:47 -0700
+Message-ID: <20130211180747.GB27656@animalcreek.com>
+References: <1356107295-11121-1-git-send-email-mgreer@animalcreek.com>
+ <1356107295-11121-4-git-send-email-mgreer@animalcreek.com>
+ <alpine.DEB.2.00.1302081630150.28008@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from p3plsmtpa01-06.prod.phx3.secureserver.net ([72.167.82.86]:34995
+	"HELO p3plsmtpa01-06.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758601Ab3BKSHs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Feb 2013 13:07:48 -0500
 Content-Disposition: inline
-In-Reply-To: <1360191049-24017-3-git-send-email-ruslan.bilovol@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <alpine.DEB.2.00.1302081630150.28008@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Ruslan Bilovol <ruslan.bilovol@ti.com> [130206 14:54]:
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -602,6 +602,7 @@ void __init omap4430_init_late(void)
->  	omap2_common_pm_late_init();
->  	omap4_pm_init();
->  	omap2_clk_enable_autoidle_all();
-> +	omap_soc_device_init();
->  }
->  #endif
+On Fri, Feb 08, 2013 at 05:42:13PM +0000, Paul Walmsley wrote:
+> Hi Mark,
+> 
+> On Fri, 21 Dec 2012, Mark A. Greer wrote:
+> 
+> > From: "Mark A. Greer" <mgreer@animalcreek.com>
+> > 
+> > Convert the device data for the OMAP3 SHAM2 (SHA1/MD5) crypto IP
+> > from explicit platform_data to hwmod.
+> > 
+> > CC: Paul Walmsley <paul@pwsan.com>
+> > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+> 
+> This one has been updated here to split the OMAP3xxx GP hwmod lists, as we 
+> discussed.  Updated patch follows.
 
-Looks like this should be called for all omaps instead
-of just omap4430?
-
-I suggest you create omap_common_init_late() that
-calls all the common init_late functions:
-
-static void __init omap_common_init_late(void)
-{
-	omap_mux_late_init();
-	omap2_common_pm_late_init();
-	omap_soc_device_init();
-}
-
-Needs to be verified that these really are common to
-all omap2+ though :)
-
-Regards,
-
-Tony
+Thanks Paul.
