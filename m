@@ -1,109 +1,160 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-Date: Mon, 11 Feb 2013 10:17:42 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com>
-References: <1359966525-7603-1-git-send-email-j-keerthy@ti.com>
- <alpine.DEB.2.00.1302080248550.8539@utopia.booyaka.com>
- <DC88CAD03C0052499C1907B327FC63229B92FF@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302081805450.28008@utopia.booyaka.com>
- <alpine.DEB.2.00.1302081855370.28008@utopia.booyaka.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH RFC 3/7] ARM: OMAP: gpmc-smsc911x: add DT dev node init
+ function
+Date: Mon, 11 Feb 2013 10:30:51 +0000
+Message-ID: <20130211103051.GA32455@e106331-lin.cambridge.arm.com>
+References: <1360442671-15216-1-git-send-email-javier.martinez@collabora.co.uk>
+ <1360442671-15216-4-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57263 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754732Ab3BKKRu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 05:17:50 -0500
-Content-Language: en-US
+Received: from service87.mimecast.com ([91.220.42.44]:56191 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755410Ab3BKKa6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 05:30:58 -0500
+In-Reply-To: <1360442671-15216-4-git-send-email-javier.martinez@collabora.co.uk>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Paul,
+Hi,
 
-> -----Original Message-----
-> From: J, KEERTHY
-> Sent: Monday, February 11, 2013 10:16 AM
-> To: 'Paul Walmsley'
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-> 
-> Hi Paul,
-> 
-> > -----Original Message-----
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > Sent: Saturday, February 09, 2013 12:29 AM
-> > To: J, KEERTHY
-> > Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> > Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-> >
-> > Hi Keerthy,
-> >
-> > On Fri, 8 Feb 2013, Paul Walmsley wrote:
-> >
-> > > On Fri, 8 Feb 2013, J, KEERTHY wrote:
-> > >
-> > > > Thanks for updating. Yes renaming the
-> > > > 'omap_clocks_register_links() Is fine. I had blindly followed the
-> > > > hwmod function naming
-> > convention.
-> > > > The new name makes sense.
-> > >
-> > > OK great.  BTW don't forget to cc the linux-arm-kernel mailing list
-> > for
-> > > all patches, otherwise we won't be able to merge the patches.
-> > > Taking
-> > care
-> > > of it now in this case.
-> >
-> > Just noticed during final testing of this patch that it causes some
-> > problems with power management on OMAP4460: (see the suspend/resume
-> > messages)
-> >
-> 
-> I understand that retention is broken from the logs.
-> I first tried seeing if the retention is working without the patch And
-> I see that even without the patch retention fails.
-> 
-> I am attaching the log.
-> 
-> I just want to confirm if the retention is working fine without
-> Applying the patch on mainline.
-> 
-> Top Commit ID: 836dc9e3fbbab0c30aa6e664417225f5c1fb1c39
-> Defconfig: omap2plus_defconfig
-> 
-> Am I missing something here?
+I have a few comments on the binding and the way it's parsed.
 
-That was a bootloader issue. I am able to see that the mainline uImage
-Hits retention. I could not apply the updated version of this patch from
-You. I guess the updated version is on top of other non merged patches.
-
-I just applied the earlier version of this patch and saw that
-Retention is fine on OMAP4460.
-
-Can I pull the other patches and rebase this patch on top of them?
-I need the branch where I can pull the other clock related patches.
-I will rebase this patch on top, Verify the PM suspend on OMAP4460
-And post it.
-
+On Sat, Feb 09, 2013 at 08:44:27PM +0000, Javier Martinez Canillas wrote:
+> This patch adds a helper function to parse a device node that
+> contains all the properties needed to initialize an smsc911x
+> device connected to an OMAP processor through OMAP's GPMC.
 > 
-> >
-> http://www.pwsan.com/omap/testlogs/jk_clock_flags_cleanup_3.9/20130207
-> > 1 83613/pm/4460pandaes/4460pandaes_log.txt
-> >
-> > Could you please take a look at this and see what happened?  I
-> suspect
-> > that I screwed something up as I was rebasing the patch.
-> > Unfortunately I don't have the time to debug it further.
-> >
-> >
-> > - Paul
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> ---
+>  .../devicetree/bindings/net/gpmc-smsc911x.txt      |   39 ++++++++++++++++++++
+>  arch/arm/mach-omap2/gpmc-smsc911x.c                |   29 +++++++++++++++
+>  arch/arm/mach-omap2/gpmc-smsc911x.h                |    6 +++
+>  3 files changed, 74 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/net/gpmc-smsc911x.txt
 > 
-> Regards,
-> Keerthy
+> diff --git a/Documentation/devicetree/bindings/net/gpmc-smsc911x.txt b/Documentation/devicetree/bindings/net/gpmc-smsc911x.txt
+> new file mode 100644
+> index 0000000..8bb0df2
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/net/gpmc-smsc911x.txt
+> @@ -0,0 +1,39 @@
+> +* GPMC connected Smart Mixed-Signal Connectivity (SMSC) LAN911x/912x Controller
+> +
+> +GPMC connected SMSC LAN911x/912x Controllers are represented as child nodes
+> +of the OMAP General-Purpose Memory Controller with a name of "gpmc_smsc911x".
+> +
+> +All timing relevant properties as well as generic gpmc child properties are
+> +explained in a separate documents - please refer to
+> +Documentation/devicetree/bindings/bus/ti-gpmc.txt
+> +
+> +Required properties:
+> +- gpmc,cs : The chip select line the pheripheral is connected to
+> +- gpmc,gpio_irq : The GPIO pin that is connected to the SMSC LAN IRQ line
 
-Regards,
-Keerthy
+In devicetree land, we use '-' in preference of '_' in property names.
+
+So this should be "gpio-irq"
+
+> +
+> +Optional properties:
+> +- gpmc,flags : SMSC LAN flags - please refer to include/linux/smsc911x.h
+
+Please don't do this. It should only be necessary to read binding documents and
+hardware datasheets to write a dts. Referring to Linux internals creates a
+flaky ABI that's only going to break when things get renamed/moved/modified.
+
+The flags variable used internally by the driver don't have to have a 1-1
+correspondence with a single property in the binding. You can have boolean
+properties (named, but without a value) in the dt specifying each flag
+individually. That way the dts is easier to read, is less tied to linux
+internals (and every property is *fully* documented), and it's far easier to
+add new flags in future if necessary.
+
+> +- gpmc,gpio_reset : The GPIO pin connected to the SMSC LAN reset line
+
+Preferably: "gpio-reset".
+
+> +
+> +Note: Besides these properties, the gpmc_smsc911x device node could need
+> +aditional setup such as pin/pad mux settings and voltage regulators. This
+> +depend on how the pheripheral is wired and his board specific.
+> +
+> +Example (for an OMAP3 board):
+> +
+> +gpmc@6e000000 {
+> +	      compatible = "ti,omap3430-gpmc";
+> +	      ti,hwmods = "gpmc";
+> +	      reg = <0x6e000000 0x1000000>;
+> +	      interrupts = <20>;
+> +	      gpmc,num-cs = <8>;
+> +	      gpmc,num-waitpins = <4>;
+> +	      #address-cells = <2>;
+> +	      #size-cells = <1>;
+> +
+> +	      gpmc_smsc911x@0 {
+> +			      gpmc,cs = <5>;
+> +			      gpmc,gpio_irq = <176>;
+> +			      gpmc,flags = <4>; /* SMSC911X_USE_32BIT */
+
+Here you could have a boolean property "gpmc,use-32bit" (or possibly
+"gpmc,use-bits", which can either be 32 or 16).
+
+> +	      };
+> +};
+> diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+> index 5ce00ad2..59a2ee4 100644
+> --- a/arch/arm/mach-omap2/gpmc-smsc911x.c
+> +++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/io.h>
+>  #include <linux/smsc911x.h>
+> +#include <linux/of.h>
+>  
+>  #include "gpmc.h"
+>  #include "gpmc-smsc911x.h"
+> @@ -98,3 +99,31 @@ free1:
+>  
+>  	pr_err("Could not initialize smsc911x device\n");
+>  }
+> +
+> +int gpmc_smsc911x_init_dt(struct device_node *node)
+> +{
+> +	struct omap_smsc911x_platform_data gpmc_cfg;
+> +
+> +	if (WARN_ON(!node))
+> +		return -ENODEV;
+> +
+> +	if (of_property_read_u32(node, "gpmc,cs", &gpmc_cfg.cs)) {
+> +		pr_err("Unable to get GPMC smsc911x chip select\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (of_property_read_u32(node, "gpmc,gpio_irq", &gpmc_cfg.gpio_irq)) {
+> +		pr_err("Unable to get GPMC smsc911x GPIO IRQ\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (of_property_read_u32(node, "gpmc,gpio_reset", &gpmc_cfg.gpio_reset))
+> +		gpmc_cfg.gpio_reset = -EINVAL;
+> +
+> +	if (of_property_read_u32(node, "gpmc,flags", &gpmc_cfg.flags))
+> +		gpmc_cfg.flags = 0;
+
+Is no sanity checking required for any of the above properties?
+
+To handle separate flags here, you can use something like:
+
+if (of_property_read_bool(node, "gpmc,use-32bit")
+	flags |= SMSC911X_USE_32BIT;
+
+[...]
+
+Thanks,
+Mark.
+
