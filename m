@@ -1,121 +1,80 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 09/14] mfd: omap-usb-host: Add device tree support
- and binding information
-Date: Mon, 11 Feb 2013 17:24:31 +0200
-Message-ID: <51190D2F.70306@ti.com>
-References: <1360252974-7912-1-git-send-email-rogerq@ti.com> <1360252974-7912-10-git-send-email-rogerq@ti.com> <20130211120026.GD2726@e106331-lin.cambridge.arm.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: omap2_gpio_prepare_for_idle not functioning in suspend
+Date: Mon, 11 Feb 2013 07:29:46 -0800
+Message-ID: <87pq06yil1.fsf@linaro.org>
+References: <CA+Bv8XaWKob_t-S7geuYZveVtxQNa2Bg2awRt49gZ0UQW3nK+g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130211120026.GD2726@e106331-lin.cambridge.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "b-cousson@ti.com" <b-cousson@ti.com>, "balbi@ti.com" <balbi@ti.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "kishon@ti.com" <kishon@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:37550 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756758Ab3BKP3u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 10:29:50 -0500
+Received: by mail-pa0-f47.google.com with SMTP id bj3so3076777pad.6
+        for <linux-omap@vger.kernel.org>; Mon, 11 Feb 2013 07:29:49 -0800 (PST)
+In-Reply-To: <CA+Bv8XaWKob_t-S7geuYZveVtxQNa2Bg2awRt49gZ0UQW3nK+g@mail.gmail.com>
+	(Russ Dill's message of "Sun, 10 Feb 2013 16:39:14 -0800")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russ Dill <Russ.Dill@ti.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Charulatha V <charu@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On 02/11/2013 02:00 PM, Mark Rutland wrote:
-> On Thu, Feb 07, 2013 at 04:02:49PM +0000, Roger Quadros wrote:
->> Allows the OMAP HS USB host controller to be specified
->> via device tree.
->>
->> CC: Samuel Ortiz <sameo@linux.intel.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  .../devicetree/bindings/mfd/omap-usb-host.txt      |   80 ++++++++++
->>  drivers/mfd/omap-usb-host.c                        |  160 +++++++++++++++++++-
->>  2 files changed, 234 insertions(+), 6 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/mfd/omap-usb-host.txt
->>
->> diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
->> new file mode 100644
->> index 0000000..b381fa6
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
->> @@ -0,0 +1,80 @@
->> +OMAP HS USB Host
->> +
->> +Required properties:
->> +
->> +- compatible: should be "ti,usbhs-host"
->> +- reg: should contain one register range i.e. start and length
->> +- ti,hwmods: must contain "usb_host_hs"
->> +
->> +Optional properties:
->> +
->> +- num-ports: number of USB ports. Usually this is automatically detected
->> +  from the IP's revision register but can be overridden by specifying
->> +  this property. A maximum of 3 ports are supported at the moment.
->> +
->> +- portN-mode: String specifying the port mode for port N, where N can be
->> +  from 1 to 3. If the port mode is not specified, that port is treated
->> +  as unused. When specified, it must be one of the following.
->> +	"ehci-phy",
->> +        "ehci-tll",
->> +        "ehci-hsic",
->> +        "ohci-phy-6pin-datse0",
->> +        "ohci-phy-6pin-dpdm",
->> +        "ohci-phy-3pin-datse0",
->> +        "ohci-phy-4pin-dpdm",
->> +        "ohci-tll-6pin-datse0",
->> +        "ohci-tll-6pin-dpdm",
->> +        "ohci-tll-3pin-datse0",
->> +        "ohci-tll-4pin-dpdm",
->> +        "ohci-tll-2pin-datse0",
->> +        "ohci-tll-2pin-dpdm",
->> +
-> 
-> [...]
-> 
->> +/**
->> + * Map 'enum usbhs_omap_port_mode' found in <linux/platform_data/usb-omap.h>
->> + * to the device tree binding portN-mode found in
->> + * 'Documentation/devicetree/bindings/mfd/omap-usb-host.txt'
->> + */
->> +static const char *port_modes[] = {
->> +	[OMAP_USBHS_PORT_MODE_UNUSED]	= "",
->> +	[OMAP_EHCI_PORT_MODE_PHY]	= "ehci-phy",
->> +	[OMAP_EHCI_PORT_MODE_TLL]	= "ehci-tll",
->> +	[OMAP_EHCI_PORT_MODE_HSIC]	= "ehci-hsic",
->> +	[OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0]	= "ohci-phy-6pin-datse0",
->> +	[OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM]	= "ohci-phy-6pin-dpdm",
->> +	[OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0]	= "ohci-phy-3pin-datse0",
->> +	[OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM]	= "ohci-phy-4pin-dpdm",
->> +	[OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0]	= "ohci-tll-6pin-datse0",
->> +	[OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM]	= "ohci-tll-6pin-dpdm",
->> +	[OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0]	= "ohci-tll-3pin-datse0",
->> +	[OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM]	= "ohci-tll-4pin-dpdm",
->> +	[OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0]	= "ohci-tll-2pin-datse0",
->> +	[OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM]	= "ohci-tll-2pin-dpdm",
->> +};
->> +
->> +/**
->> + * omap_usbhs_get_dt_port_mode - Get the 'enum usbhs_omap_port_mode'
->> + * from the port mode string.
->> + * @mode: The port mode string, usually obtained from device tree.
->> + *
->> + * The function returns the 'enum usbhs_omap_port_mode' that matches the
->> + * provided port mode string as per the port_modes table.
->> + * If no match is found it returns -ENODEV
->> + */
->> +static const int omap_usbhs_get_dt_port_mode(const char *mode)
->> +{
->> +	int i;
->> +
->> +	for (i = 0; i < ARRAY_SIZE(port_modes); i++) {
->> +		if (!strcasecmp(mode, port_modes[i]))
->> +			return i;
->> +	}
-> 
-> Any reason for using strcasecmp rather than strcmp? The binding only specified
-> lower case versions, and this allows people to write "oHcI-PhY-6PiN-DaTsE0"
-> with impunity.
+Hi Russ,
 
-:). No specific reason. I'll change it to strcmp.
-> 
-> Otherwise, this looks fine to me.
+Russ Dill <Russ.Dill@ti.com> writes:
 
-Thanks.
+> After the gpio-omap runtime PM changes, I noticed that the
+> omap2_gpio_prepare_for_idle/omap2_gpio_resume_after_idle functions are
+> a NOP in the case of suspend.
+>
+> void omap2_gpio_prepare_for_idle(int pwr_mode)
+> {
+> 	struct gpio_bank *bank;
+>
+> 	list_for_each_entry(bank, &omap_gpio_list, node) {
+> 		if (!bank->mod_usage)
+> 			continue;
+>
+> 		bank->power_mode = pwr_mode;
+>
+> 		pm_runtime_put_sync_suspend(bank->dev);
+> 	}
+> }
+>
+> void omap2_gpio_resume_after_idle(void)
+> {
+> 	struct gpio_bank *bank;
+>
+> 	list_for_each_entry(bank, &omap_gpio_list, node) {
+> 		if (!bank->mod_usage)
+> 			continue;
+>
+> 		pm_runtime_get_sync(bank->dev);
+> 	}
+> }
+>
+> (called from omap_pm_enter->omap3_pm_suspend->omap_sram_idle)
+>
+> At the point that platform_suspend_ops.enter is called,
+> dpm_suspend_end has already been called which disables runtime_pm.
+> During a suspend/resume where power is lost to certain GPIO banks, the
+> context will not be restored.
 
-cheers,
--roger
+Did you actually observe context not being restored, or is this an
+observation by looking at the code?
+
+The PM domain layer (implemented in omap_device) is supposed to be
+handling the case where runtime PM has been disabled by the PM core.
+Specifically, check the 'noirq' hooks in the omap_device PM domain.
+These check whether omap_devices are runtime_suspended, and
+runtime_suspends them if they are not.   Then during resume, the
+resume_noirq hook will runtime resume them if they were "forcibly"
+runtime suspended during the noirq phase.
+
+That being said, there may have been some recent PM core changes that
+have caused this not to work anymore, so I'd be very curious exactly how
+to reproduce this.
+
+Thanks,
+
+Kevin
