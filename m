@@ -1,41 +1,53 @@
 From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [PATCH v2 5/8] ARM: omap2: gpmc-onenand: Print something useful on CS request failure
-Date: Tue, 12 Feb 2013 12:18:22 -0300
-Message-ID: <1360682305-20935-6-git-send-email-ezequiel.garcia@free-electrons.com>
+Subject: [PATCH v2 3/8] ARM: omap2: gpmc: Fix gpmc_cs_reserved() return value
+Date: Tue, 12 Feb 2013 12:18:20 -0300
+Message-ID: <1360682305-20935-4-git-send-email-ezequiel.garcia@free-electrons.com>
 References: <1360682305-20935-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:45385 "EHLO
+Received: from mail.free-electrons.com ([94.23.35.102]:45369 "EHLO
 	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932967Ab3BLPSd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 10:18:33 -0500
+	with ESMTP id S932967Ab3BLPS1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 10:18:27 -0500
 In-Reply-To: <1360682305-20935-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Jon Hunter <jon-hunter@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-If CS request fails the current error message is rather unhelpful.
-Fix it by printing the failing chip select and the error code.
+Currently gpmc_cs_reserved() return value is somewhat inconsistent,
+returning a negative value on an error condition, a positive value
+if the chip select is reserved and zero if it's available.
 
+Fix this by returning a boolean value as the function name suggests:
+  * true if the chip select is reserved,
+  * false if it's available
+
+Suggested-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
- arch/arm/mach-omap2/gpmc-onenand.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Changelog from v1:
+ * As suggested by Felipe Balbi, fix return code to a boolean
 
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index fadd8743..0ee5317 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -379,7 +379,8 @@ void gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
- 	err = gpmc_cs_request(gpmc_onenand_data->cs, ONENAND_IO_SIZE,
- 				(unsigned long *)&gpmc_onenand_resource.start);
- 	if (err < 0) {
--		pr_err("%s: Cannot request GPMC CS\n", __func__);
-+		pr_err("%s: Cannot request GPMC CS %d, error %d\n",
-+		       __func__, gpmc_onenand_data->cs, err);
- 		return;
- 	}
+ arch/arm/mach-omap2/gpmc.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index bd3bc93..fa4764f 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -452,10 +452,10 @@ static int gpmc_cs_set_reserved(int cs, int reserved)
+ 	return 0;
+ }
  
+-static int gpmc_cs_reserved(int cs)
++static bool gpmc_cs_reserved(int cs)
+ {
+ 	if (cs > GPMC_CS_NUM)
+-		return -ENODEV;
++		return true;
+ 
+ 	return gpmc_cs_map & (1 << cs);
+ }
 -- 
 1.7.8.6
 
