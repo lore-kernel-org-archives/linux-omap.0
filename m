@@ -1,146 +1,76 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 1/3] ARM: OMAP2xxx: PM: enter WFI via inline asm if CORE stays active
-Date: Tue, 12 Feb 2013 07:28:41 -0800
-Message-ID: <87wqudv9ee.fsf@linaro.org>
-References: <20121230182745.30526.47072.stgit@dusk.lan>
-	<20121230182826.30526.27155.stgit@dusk.lan>
-	<alpine.DEB.2.00.1302062119540.12769@utopia.booyaka.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v2 09/11] mfd: twl-core: Collect global variables behind
+ one private structure (global)
+Date: Tue, 12 Feb 2013 10:15:08 -0600
+Message-ID: <511A6A8C.2020000@ti.com>
+References: <1358344439-23017-1-git-send-email-peter.ujfalusi@ti.com> <1358344439-23017-10-git-send-email-peter.ujfalusi@ti.com> <51154A7A.2010709@ti.com> <5115E3B9.6090100@ti.com> <51195301.8000606@ti.com> <5119EEB4.70508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:34070 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758571Ab3BLP2q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 10:28:46 -0500
-Received: by mail-pa0-f41.google.com with SMTP id fb11so144188pad.0
-        for <linux-omap@vger.kernel.org>; Tue, 12 Feb 2013 07:28:46 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1302062119540.12769@utopia.booyaka.com> (Paul
-	Walmsley's message of "Wed, 6 Feb 2013 21:21:59 +0000 (UTC)")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5119EEB4.70508@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Richard Woodruff <r-woodruff2@ti.com>
 
-Paul Walmsley <paul@pwsan.com> writes:
 
-> On Sun, 30 Dec 2012, Paul Walmsley wrote:
->
->> There shouldn't be any need to jump to SRAM code if the OMAP CORE
->> clockdomain (and consequently the SDRAM controller and CORE PLL) stays
->> active during MPU WFI.  The SRAM code should only be needed when the RAM
->> enters self-refresh.  So in the case where CORE stays active, just call
->> WFI directly from the mach-omap2/pm24xx.c code.  This removes some
->> unnecessary SRAM code.
->> 
->> Signed-off-by: Paul Walmsley <paul@pwsan.com>
->> Cc: Richard Woodruff <r-woodruff2@ti.com>
->> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->
-> Here's an updated version of this one.
->
->
-> - Paul
->
-> From: Paul Walmsley <paul@pwsan.com>
-> Date: Sun, 30 Dec 2012 10:15:48 -0700
-> Subject: [PATCH] ARM: OMAP2xxx: PM: enter WFI via inline asm if CORE stays
->  active
->
-> There shouldn't be any need to jump to SRAM code if the OMAP CORE
-> clockdomain (and consequently the SDRAM controller and CORE PLL) stays
-> active during MPU WFI.  The SRAM code should only be needed when the RAM
-> enters self-refresh.  So in the case where CORE stays active, just call
-> WFI directly from the mach-omap2/pm24xx.c code.  This removes some
-> unnecessary SRAM code.
->
-> This second version replaces the inline WFI with the corresponding
-> coprocessor register call, using tlbflush.h as an example.  This is
-> because the assembler doesn't recognize WFI as a valid ARMv6
-> instruction.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Richard Woodruff <r-woodruff2@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+On 02/12/2013 01:26 AM, Peter Ujfalusi wrote:
+> On 02/11/2013 09:22 PM, Jon Hunter wrote:
+>> Good point. I just noticed that none of my omap2+ board were booting and
+>> on omap3/4 I was the panic in the twl code. I can't say that I checked
+>> the panic on omap2, so may be that was another problem?
+> 
+> Do you have insights on the code path leading to a crash on OMAP3/4? I have
+> been running this code on several boards (BeagleBoard, Zoom2, PandaBoard,
+> Blaze) and have not seen a crash.
 
-Acked-by: Kevin Hilman <khilman@linaro.org>
+Here is the panic log ...
 
-> ---
->  arch/arm/mach-omap2/pm24xx.c    |   12 ++++++------
->  arch/arm/mach-omap2/sleep24xx.S |   19 -------------------
->  2 files changed, 6 insertions(+), 25 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-> index c333fa6..8914b9e 100644
-> --- a/arch/arm/mach-omap2/pm24xx.c
-> +++ b/arch/arm/mach-omap2/pm24xx.c
-> @@ -54,7 +54,6 @@
->  #include "powerdomain.h"
->  #include "clockdomain.h"
->  
-> -static void (*omap2_sram_idle)(void);
->  static void (*omap2_sram_suspend)(u32 dllctrl, void __iomem *sdrc_dlla_ctrl,
->  				  void __iomem *sdrc_power);
->  
-> @@ -172,6 +171,8 @@ static int omap2_allow_mpu_retention(void)
->  
->  static void omap2_enter_mpu_retention(void)
->  {
-> +	const int zero = 0;
-> +
->  	/* Putting MPU into the WFI state while a transfer is active
->  	 * seems to cause the I2C block to timeout. Why? Good question. */
->  	if (omap2_i2c_active())
-> @@ -196,7 +197,8 @@ static void omap2_enter_mpu_retention(void)
->  						 OMAP2_PM_PWSTCTRL);
->  	}
->  
-> -	omap2_sram_idle();
-> +	/* WFI */
-> +	asm("mcr p15, 0, %0, c7, c0, 4" : : "r" (zero) : "memory", "cc");
->  }
->  
->  static int omap2_can_sleep(void)
-> @@ -356,11 +358,9 @@ int __init omap2_pm_init(void)
->  	/*
->  	 * We copy the assembler sleep/wakeup routines to SRAM.
->  	 * These routines need to be in SRAM as that's the only
-> -	 * memory the MPU can see when it wakes up.
-> +	 * memory the MPU can see when it wakes up after the entire
-> +	 * chip enters idle.
->  	 */
-> -	omap2_sram_idle = omap_sram_push(omap24xx_idle_loop_suspend,
-> -					 omap24xx_idle_loop_suspend_sz);
-> -
->  	omap2_sram_suspend = omap_sram_push(omap24xx_cpu_suspend,
->  					    omap24xx_cpu_suspend_sz);
->  
-> diff --git a/arch/arm/mach-omap2/sleep24xx.S b/arch/arm/mach-omap2/sleep24xx.S
-> index ce0ccd2..1d3cb25 100644
-> --- a/arch/arm/mach-omap2/sleep24xx.S
-> +++ b/arch/arm/mach-omap2/sleep24xx.S
-> @@ -37,25 +37,6 @@
->  	.text
->  
->  /*
-> - * Forces OMAP into idle state
-> - *
-> - * omap24xx_idle_loop_suspend() - This bit of code just executes the WFI
-> - * for normal idles.
-> - *
-> - * Note: This code get's copied to internal SRAM at boot. When the OMAP
-> - *	 wakes up it continues execution at the point it went to sleep.
-> - */
-> -	.align	3
-> -ENTRY(omap24xx_idle_loop_suspend)
-> -	stmfd	sp!, {r0, lr}		@ save registers on stack
-> -	mov	r0, #0			@ clear for mcr setup
-> -	mcr	p15, 0, r0, c7, c0, 4	@ wait for interrupt
-> -	ldmfd	sp!, {r0, pc}		@ restore regs and return
-> -
-> -ENTRY(omap24xx_idle_loop_suspend_sz)
-> -	.word	. - omap24xx_idle_loop_suspend
-> -
-> -/*
->   * omap24xx_cpu_suspend() - Forces OMAP into deep sleep state by completing
->   * SDRC shutdown then ARM shutdown.  Upon wake MPU is back on so just restore
->   * SDRC.
+[    2.286132] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+[    2.294738] pgd = c0004000
+[    2.297576] [00000000] *pgd=00000000
+[    2.301361] Internal error: Oops: 5 [#1] SMP ARM
+[    2.306243] Modules linked in:
+[    2.309448] CPU: 0    Not tainted  (3.8.0-rc6-next-20130207-00016-g735c237 #35)
+[    2.317169] PC is at twl_i2c_read+0x3c/0xec
+[    2.321563] LR is at twl_i2c_read+0x1c/0xec
+[    2.325988] pc : [<c0333950>]    lr : [<c0333930>]    psr: 80000153
+[    2.325988] sp : c702fed0  ip : 00000000  fp : 00000000
+[    2.338043] r10: c702e000  r9 : c06e84e8  r8 : c06e51c8
+[    2.343536] r7 : 00000001  r6 : 00000006  r5 : c702fef6  r4 : 00000004
+[    2.350402] r3 : c129508c  r2 : 00000006  r1 : c702fef6  r0 : 0000000e
+[    2.357269] Flags: Nzcv  IRQs on  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
+[    2.365051] Control: 10c5387d  Table: 80004019  DAC: 00000017
+[    2.371093] Process swapper/0 (pid: 1, stack limit = 0xc702e240)
+[    2.377410] Stack: (0xc702fed0 to 0xc7030000)
+[    2.382019] fec0:                                     c0d42180 c0d429d0 c70a7640 c07354c4
+[    2.390624] fee0: 00000001 c0719798 c0d42180 c06f2cc0 c04e76cc c06ee1ac 00000000 c07354c4
+[    2.399230] ff00: 00000007 c06f2d64 00000017 c06fb308 00000000 c06f07a4 c0cb8580 c06edee0
+[    2.407836] ff20: c06eded4 c06e8504 c0d42180 c0008768 0000009e c00611b4 00000001 00000000
+[    2.416442] ff40: c061994c c06b7548 00000007 00000007 00000000 c07354c4 00000007 c0719798
+[    2.425048] ff60: c0d42180 c06e51c8 c07197a0 0000009e 00000000 c06e590c 00000007 00000007
+[    2.433654] ff80: c06e51c8 00000000 00000000 c04d26ec 00000000 00000000 00000000 00000000
+[    2.442260] ffa0: 00000000 c04d26f4 00000000 c00137b0 00000000 00000000 00000000 00000000
+[    2.450866] ffc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.459472] ffe0: 00000000 00000000 00000000 00000000 00000013 00000000 80fb6c10 71bbcd20
+[    2.468078] [<c0333950>] (twl_i2c_read+0x3c/0xec) from [<c06f2cc0>] (omap3_twl_set_sr_bit+0x3c/0xb4)
+[    2.477722] [<c06f2cc0>] (omap3_twl_set_sr_bit+0x3c/0xb4) from [<c06f2d64>] (omap3_twl_init+0x2c/0x70)
+[    2.487518] [<c06f2d64>] (omap3_twl_init+0x2c/0x70) from [<c06fb308>] (omap_pmic_late_init+0x18/0x24)
+[    2.497222] [<c06fb308>] (omap_pmic_late_init+0x18/0x24) from [<c06f07a4>] (omap2_common_pm_late_init+0x18/0xd0)
+[    2.507934] [<c06f07a4>] (omap2_common_pm_late_init+0x18/0xd0) from [<c06edee0>] (omap3_init_late+0xc/0x18)
+[    2.518188] [<c06edee0>] (omap3_init_late+0xc/0x18) from [<c06e8504>] (init_machine_late+0x1c/0x28)
+[    2.527740] [<c06e8504>] (init_machine_late+0x1c/0x28) from [<c0008768>] (do_one_initcall+0x100/0x16c)
+[    2.537536] [<c0008768>] (do_one_initcall+0x100/0x16c) from [<c06e590c>] (kernel_init_freeable+0xfc/0x1c8)
+[    2.547698] [<c06e590c>] (kernel_init_freeable+0xfc/0x1c8) from [<c04d26f4>] (kernel_init+0x8/0xe4)
+[    2.557250] [<c04d26f4>] (kernel_init+0x8/0xe4) from [<c00137b0>] (ret_from_fork+0x14/0x24)
+
+> But the fix is valid.
+ 
+Thanks. I saw this on linux-next earlier this week, but now I am not seeing it and the fix
+I posted is not there. So I am not sure what changed to cause this to occur earlier this
+week but the problem appears to be gone again. However, at least the fix will prevent such
+panics if someone is calling twl_i2c_read/write too early.
+
+Cheers
+Jon
