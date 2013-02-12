@@ -1,1054 +1,709 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH v2 04/13] mailbox: rename omap_mbox in mailbox
-Date: Mon, 11 Feb 2013 22:57:03 -0600
-Message-ID: <1360645032-9668-5-git-send-email-s-anna@ti.com>
+Subject: [PATCH v2 10/13] mailbox: create dbx500 mailbox driver
+Date: Mon, 11 Feb 2013 22:57:09 -0600
+Message-ID: <1360645032-9668-11-git-send-email-s-anna@ti.com>
 References: <1360645032-9668-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1360645032-9668-1-git-send-email-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Greg Kroah-Hartman <greg@linuxfoundation.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Loic Pallardy <loic.pallardy@st.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Felipe Contreras <felipe.contreras@nokia.com>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Loic Pallardy <loic.pallardy@st.com>
 
-In order to create a generic mailbox framework, functions
-and structures should be renamed in mailbox.
-
-Taking care of remoteproc and tidspbridge while at it.
+Add STEriccson DBX500 PRCM mailbox support.
 
 Signed-off-by: Loic Pallardy <loic.pallardy@st.com>
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@copitl.com>
 Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- drivers/mailbox/Kconfig                           |   2 +-
- drivers/mailbox/mailbox-omap1.c                   |  28 ++---
- drivers/mailbox/mailbox-omap2.c                   |  50 ++++----
- drivers/mailbox/mailbox.c                         | 133 +++++++++++-----------
- drivers/mailbox/mailbox_internal.h                |  54 ++++-----
- drivers/remoteproc/omap_remoteproc.c              |  18 +--
- drivers/staging/tidspbridge/core/_tiomap.h        |   2 +-
- drivers/staging/tidspbridge/core/chnl_sm.c        |   8 +-
- drivers/staging/tidspbridge/core/tiomap3430.c     |   6 +-
- drivers/staging/tidspbridge/core/tiomap3430_pwr.c |   6 +-
- drivers/staging/tidspbridge/core/tiomap_io.c      |   6 +-
- include/linux/mailbox.h                           |  22 ++--
- 12 files changed, 168 insertions(+), 167 deletions(-)
+ drivers/mailbox/Kconfig                      |   7 +
+ drivers/mailbox/Makefile                     |   1 +
+ drivers/mailbox/mailbox-dbx500.c             | 611 +++++++++++++++++++++++++++
+ include/linux/platform_data/mailbox-dbx500.h |  12 +
+ 4 files changed, 631 insertions(+)
+ create mode 100644 drivers/mailbox/mailbox-dbx500.c
+ create mode 100644 include/linux/platform_data/mailbox-dbx500.h
 
 diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
-index aafba0b..d4e0bf2 100644
+index c28897d..d352028 100644
 --- a/drivers/mailbox/Kconfig
 +++ b/drivers/mailbox/Kconfig
-@@ -25,7 +25,7 @@ config OMAP2PLUS_MBOX
+@@ -24,6 +24,12 @@ config OMAP2PLUS_MBOX
+          OMAP2/3; or IPU, IVA HD and DSP in OMAP4. Say Y here if you want
           to use OMAP2+ Mailbox framework support.
  
++config DBX500_MBOX
++	tristate "DBx500 Mailbox driver support"
++	depends on ARCH_U8500
++	help
++	  Say Y here if you want to use DBx500 Mailbox driver support for
++	  power coprocessor access on Ux500 and Ux540 families
  
--config OMAP_MBOX_KFIFO_SIZE
-+config MBOX_KFIFO_SIZE
+ config MBOX_KFIFO_SIZE
         int "Mailbox kfifo default buffer size (bytes)"
-        default 256
-        help
-diff --git a/drivers/mailbox/mailbox-omap1.c b/drivers/mailbox/mailbox-omap1.c
-index 4cac8ed..cadf971 100644
---- a/drivers/mailbox/mailbox-omap1.c
-+++ b/drivers/mailbox/mailbox-omap1.c
-@@ -50,7 +50,7 @@ static inline void mbox_write_reg(u32 val, size_t ofs)
- }
+@@ -35,6 +41,7 @@ config MBOX_KFIFO_SIZE
  
- /* msg */
--static mbox_msg_t omap1_mbox_fifo_read(struct omap_mbox *mbox)
-+static mbox_msg_t omap1_mbox_fifo_read(struct mailbox *mbox)
- {
- 	struct omap_mbox1_fifo *fifo =
- 		&((struct omap_mbox1_priv *)mbox->priv)->rx_fifo;
-@@ -63,7 +63,7 @@ static mbox_msg_t omap1_mbox_fifo_read(struct omap_mbox *mbox)
- }
+ config MBOX_DATA_SIZE
+ 	int "Mailbox associated data max size (bytes)"
++	default 64 if DBX500_MBOX
+ 	default 4
+ 	help
+ 	  Specify the default size of mailbox's associated data buffer
+diff --git a/drivers/mailbox/Makefile b/drivers/mailbox/Makefile
+index 4085b71..c04ce79 100644
+--- a/drivers/mailbox/Makefile
++++ b/drivers/mailbox/Makefile
+@@ -2,3 +2,4 @@ obj-$(CONFIG_MAILBOX) += mailbox.o
  
- static void
--omap1_mbox_fifo_write(struct omap_mbox *mbox, mbox_msg_t msg)
-+omap1_mbox_fifo_write(struct mailbox *mbox, mbox_msg_t msg)
- {
- 	struct omap_mbox1_fifo *fifo =
- 		&((struct omap_mbox1_priv *)mbox->priv)->tx_fifo;
-@@ -72,12 +72,12 @@ omap1_mbox_fifo_write(struct omap_mbox *mbox, mbox_msg_t msg)
- 	mbox_write_reg(msg >> 16, fifo->cmd);
- }
- 
--static int omap1_mbox_fifo_empty(struct omap_mbox *mbox)
-+static int omap1_mbox_fifo_empty(struct mailbox *mbox)
- {
- 	return 0;
- }
- 
--static int omap1_mbox_fifo_full(struct omap_mbox *mbox)
-+static int omap1_mbox_fifo_full(struct mailbox *mbox)
- {
- 	struct omap_mbox1_fifo *fifo =
- 		&((struct omap_mbox1_priv *)mbox->priv)->rx_fifo;
-@@ -87,29 +87,29 @@ static int omap1_mbox_fifo_full(struct omap_mbox *mbox)
- 
- /* irq */
- static void
--omap1_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_type_t irq)
-+omap1_mbox_enable_irq(struct mailbox *mbox, mailbox_type_t irq)
- {
- 	if (irq == IRQ_RX)
- 		enable_irq(mbox->irq);
- }
- 
- static void
--omap1_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_type_t irq)
-+omap1_mbox_disable_irq(struct mailbox *mbox, mailbox_type_t irq)
- {
- 	if (irq == IRQ_RX)
- 		disable_irq(mbox->irq);
- }
- 
- static int
--omap1_mbox_is_irq(struct omap_mbox *mbox, omap_mbox_type_t irq)
-+omap1_mbox_is_irq(struct mailbox *mbox, mailbox_type_t irq)
- {
- 	if (irq == IRQ_TX)
- 		return 0;
- 	return 1;
- }
- 
--static struct omap_mbox_ops omap1_mbox_ops = {
--	.type           = OMAP_MBOX_TYPE1,
-+static struct mailbox_ops omap1_mbox_ops = {
-+	.type           = MBOX_HW_FIFO1_TYPE,
- 	.fifo_read      = omap1_mbox_fifo_read,
- 	.fifo_write     = omap1_mbox_fifo_write,
- 	.fifo_empty     = omap1_mbox_fifo_empty,
-@@ -135,19 +135,19 @@ static struct omap_mbox1_priv omap1_mbox_dsp_priv = {
- 	},
- };
- 
--static struct omap_mbox mbox_dsp_info = {
-+static struct mailbox mbox_dsp_info = {
- 	.name   = "dsp",
- 	.ops    = &omap1_mbox_ops,
- 	.priv   = &omap1_mbox_dsp_priv,
- };
- 
--static struct omap_mbox *omap1_mboxes[] = { &mbox_dsp_info, NULL };
-+static struct mailbox *omap1_mboxes[] = { &mbox_dsp_info, NULL };
- 
- static int omap1_mbox_probe(struct platform_device *pdev)
- {
- 	struct resource *mem;
- 	int ret;
--	struct omap_mbox **list;
-+	struct mailbox **list;
- 
- 	list = omap1_mboxes;
- 	list[0]->irq = platform_get_irq_byname(pdev, "dsp");
-@@ -157,7 +157,7 @@ static int omap1_mbox_probe(struct platform_device *pdev)
- 	if (!mbox_base)
- 		return -ENOMEM;
- 
--	ret = omap_mbox_register(&pdev->dev, list);
-+	ret = mailbox_register(&pdev->dev, list);
- 	if (ret) {
- 		iounmap(mbox_base);
- 		return ret;
-@@ -168,7 +168,7 @@ static int omap1_mbox_probe(struct platform_device *pdev)
- 
- static int omap1_mbox_remove(struct platform_device *pdev)
- {
--	omap_mbox_unregister();
-+	mailbox_unregister();
- 	iounmap(mbox_base);
- 	return 0;
- }
-diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
-index ecbbd7d..32e5816 100644
---- a/drivers/mailbox/mailbox-omap2.c
-+++ b/drivers/mailbox/mailbox-omap2.c
-@@ -62,8 +62,8 @@ struct omap_mbox2_priv {
- 	u32 intr_type;
- };
- 
--static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
--		omap_mbox_type_t irq);
-+static void omap2_mbox_enable_irq(struct mailbox *mbox,
-+		mailbox_type_t irq);
- 
- static inline unsigned int mbox_read_reg(size_t ofs)
- {
-@@ -76,7 +76,7 @@ static inline void mbox_write_reg(u32 val, size_t ofs)
- }
- 
- /* Mailbox H/W preparations */
--static int omap2_mbox_startup(struct omap_mbox *mbox)
-+static int omap2_mbox_startup(struct mailbox *mbox)
- {
- 	u32 l;
- 
-@@ -89,35 +89,35 @@ static int omap2_mbox_startup(struct omap_mbox *mbox)
- 	return 0;
- }
- 
--static void omap2_mbox_shutdown(struct omap_mbox *mbox)
-+static void omap2_mbox_shutdown(struct mailbox *mbox)
- {
- 	pm_runtime_put_sync(mbox->dev->parent);
- 	pm_runtime_disable(mbox->dev->parent);
- }
- 
- /* Mailbox FIFO handle functions */
--static mbox_msg_t omap2_mbox_fifo_read(struct omap_mbox *mbox)
-+static mbox_msg_t omap2_mbox_fifo_read(struct mailbox *mbox)
- {
- 	struct omap_mbox2_fifo *fifo =
- 		&((struct omap_mbox2_priv *)mbox->priv)->rx_fifo;
- 	return (mbox_msg_t) mbox_read_reg(fifo->msg);
- }
- 
--static void omap2_mbox_fifo_write(struct omap_mbox *mbox, mbox_msg_t msg)
-+static void omap2_mbox_fifo_write(struct mailbox *mbox, mbox_msg_t msg)
- {
- 	struct omap_mbox2_fifo *fifo =
- 		&((struct omap_mbox2_priv *)mbox->priv)->tx_fifo;
- 	mbox_write_reg(msg, fifo->msg);
- }
- 
--static int omap2_mbox_fifo_empty(struct omap_mbox *mbox)
-+static int omap2_mbox_fifo_empty(struct mailbox *mbox)
- {
- 	struct omap_mbox2_fifo *fifo =
- 		&((struct omap_mbox2_priv *)mbox->priv)->rx_fifo;
- 	return (mbox_read_reg(fifo->msg_stat) == 0);
- }
- 
--static int omap2_mbox_fifo_full(struct omap_mbox *mbox)
-+static int omap2_mbox_fifo_full(struct mailbox *mbox)
- {
- 	struct omap_mbox2_fifo *fifo =
- 		&((struct omap_mbox2_priv *)mbox->priv)->tx_fifo;
-@@ -125,8 +125,8 @@ static int omap2_mbox_fifo_full(struct omap_mbox *mbox)
- }
- 
- /* Mailbox IRQ handle functions */
--static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
--		omap_mbox_type_t irq)
-+static void omap2_mbox_enable_irq(struct mailbox *mbox,
-+		mailbox_type_t irq)
- {
- 	struct omap_mbox2_priv *p = mbox->priv;
- 	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
-@@ -136,8 +136,8 @@ static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
- 	mbox_write_reg(l, p->irqenable);
- }
- 
--static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
--		omap_mbox_type_t irq)
-+static void omap2_mbox_disable_irq(struct mailbox *mbox,
-+		mailbox_type_t irq)
- {
- 	struct omap_mbox2_priv *p = mbox->priv;
- 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
-@@ -148,8 +148,8 @@ static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
- 	mbox_write_reg(bit, p->irqdisable);
- }
- 
--static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
--		omap_mbox_type_t irq)
-+static void omap2_mbox_ack_irq(struct mailbox *mbox,
-+		mailbox_type_t irq)
- {
- 	struct omap_mbox2_priv *p = mbox->priv;
- 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
-@@ -160,8 +160,8 @@ static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
- 	mbox_read_reg(p->irqstatus);
- }
- 
--static int omap2_mbox_is_irq(struct omap_mbox *mbox,
--		omap_mbox_type_t irq)
-+static int omap2_mbox_is_irq(struct mailbox *mbox,
-+		mailbox_type_t irq)
- {
- 	struct omap_mbox2_priv *p = mbox->priv;
- 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
-@@ -171,7 +171,7 @@ static int omap2_mbox_is_irq(struct omap_mbox *mbox,
- 	return (int)(enable & status & bit);
- }
- 
--static void omap2_mbox_save_ctx(struct omap_mbox *mbox)
-+static void omap2_mbox_save_ctx(struct mailbox *mbox)
- {
- 	int i;
- 	struct omap_mbox2_priv *p = mbox->priv;
-@@ -189,7 +189,7 @@ static void omap2_mbox_save_ctx(struct omap_mbox *mbox)
- 	}
- }
- 
--static void omap2_mbox_restore_ctx(struct omap_mbox *mbox)
-+static void omap2_mbox_restore_ctx(struct mailbox *mbox)
- {
- 	int i;
- 	struct omap_mbox2_priv *p = mbox->priv;
-@@ -207,8 +207,8 @@ static void omap2_mbox_restore_ctx(struct omap_mbox *mbox)
- 	}
- }
- 
--static struct omap_mbox_ops omap2_mbox_ops = {
--	.type           = OMAP_MBOX_TYPE2,
-+static struct mailbox_ops omap2_mbox_ops = {
-+	.type           = MBOX_HW_FIFO2_TYPE,
- 	.startup        = omap2_mbox_startup,
- 	.shutdown       = omap2_mbox_shutdown,
- 	.fifo_read      = omap2_mbox_fifo_read,
-@@ -227,7 +227,7 @@ static int omap2_mbox_probe(struct platform_device *pdev)
- {
- 	struct resource *mem;
- 	int ret;
--	struct omap_mbox **list, *mbox;
-+	struct mailbox **list, *mbox;
- 	struct omap_mbox_pdata *pdata = pdev->dev.platform_data;
- 	struct omap_mbox_dev_info *info;
- 	struct omap_mbox2_priv *priv;
-@@ -286,7 +286,7 @@ static int omap2_mbox_probe(struct platform_device *pdev)
- 		goto free;
- 	}
- 
--	ret = omap_mbox_register(&pdev->dev, list);
-+	ret = mailbox_register(&pdev->dev, list);
- 	if (ret) {
- 		iounmap(mbox_base);
- 		goto free;
-@@ -306,13 +306,13 @@ free:
- static int omap2_mbox_remove(struct platform_device *pdev)
- {
- 	int i;
--	struct omap_mbox **list = platform_get_drvdata(pdev);
-+	struct mailbox **list = platform_get_drvdata(pdev);
- 
--	omap_mbox_unregister();
-+	mailbox_unregister();
- 	iounmap(mbox_base);
- 
- 	for (i = 0; list[i]; i++) {
--		struct omap_mbox *mbox = list[i];
-+		struct mailbox *mbox = list[i];
- 		kfree(mbox->priv);
- 		kfree(mbox);
- 	}
-diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-index 31303c5..7856fbd 100644
---- a/drivers/mailbox/mailbox.c
-+++ b/drivers/mailbox/mailbox.c
-@@ -1,9 +1,10 @@
- /*
-- * OMAP mailbox driver
-+ * Mailbox framework
-  *
-  * Copyright (C) 2006-2009 Nokia Corporation. All rights reserved.
-  *
-  * Contact: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+ obj-$(CONFIG_OMAP1_MBOX)       += mailbox-omap1.o
+ obj-$(CONFIG_OMAP2PLUS_MBOX)   += mailbox-omap2.o
++obj-$(CONFIG_DBX500_MBOX)      += mailbox-dbx500.o
+diff --git a/drivers/mailbox/mailbox-dbx500.c b/drivers/mailbox/mailbox-dbx500.c
+new file mode 100644
+index 0000000..90f91cd
+--- /dev/null
++++ b/drivers/mailbox/mailbox-dbx500.c
+@@ -0,0 +1,611 @@
++/*
++ * Copyright (C) ST-Ericsson SA 2012
++ *
++ * License Terms: GNU General Public License v2
 + * Author: Loic Pallardy <loic.pallardy@st.com> for ST-Ericsson
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -33,40 +34,40 @@
- 
- #include "mailbox_internal.h"
- 
--static struct omap_mbox **mboxes;
-+static struct mailbox **mboxes;
- 
- static int mbox_configured;
- static DEFINE_MUTEX(mbox_configured_lock);
- 
--static unsigned int mbox_kfifo_size = CONFIG_OMAP_MBOX_KFIFO_SIZE;
-+static unsigned int mbox_kfifo_size = CONFIG_MBOX_KFIFO_SIZE;
- module_param(mbox_kfifo_size, uint, S_IRUGO);
--MODULE_PARM_DESC(mbox_kfifo_size, "Size of omap's mailbox kfifo (bytes)");
-+MODULE_PARM_DESC(mbox_kfifo_size, "Size of mailbox kfifo (bytes)");
- 
- /* Mailbox FIFO handle functions */
--static inline mbox_msg_t mbox_fifo_read(struct omap_mbox *mbox)
-+static inline mbox_msg_t mbox_fifo_read(struct mailbox *mbox)
- {
- 	return mbox->ops->fifo_read(mbox);
- }
--static inline void mbox_fifo_write(struct omap_mbox *mbox, mbox_msg_t msg)
-+static inline void mbox_fifo_write(struct mailbox *mbox, mbox_msg_t msg)
- {
- 	mbox->ops->fifo_write(mbox, msg);
- }
--static inline int mbox_fifo_empty(struct omap_mbox *mbox)
-+static inline int mbox_fifo_empty(struct mailbox *mbox)
- {
- 	return mbox->ops->fifo_empty(mbox);
- }
--static inline int mbox_fifo_full(struct omap_mbox *mbox)
-+static inline int mbox_fifo_full(struct mailbox *mbox)
- {
- 	return mbox->ops->fifo_full(mbox);
- }
- 
- /* Mailbox IRQ handle functions */
--static inline void ack_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
-+static inline void ack_mbox_irq(struct mailbox *mbox, mailbox_irq_t irq)
- {
- 	if (mbox->ops->ack_irq)
- 		mbox->ops->ack_irq(mbox, irq);
- }
--static inline int is_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
-+static inline int is_mbox_irq(struct mailbox *mbox, mailbox_irq_t irq)
- {
- 	return mbox->ops->is_irq(mbox, irq);
- }
-@@ -74,12 +75,12 @@ static inline int is_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- /*
-  * message sender
-  */
--static int __mbox_poll_for_space(struct omap_mbox *mbox)
-+static int __mbox_poll_for_space(struct mailbox *mbox)
- {
- 	int ret = 0, i = 1000;
- 
- 	while (mbox_fifo_full(mbox)) {
--		if (mbox->ops->type == OMAP_MBOX_TYPE2)
-+		if (mbox->ops->type == MBOX_HW_FIFO2_TYPE)
- 			return -1;
- 		if (--i == 0)
- 			return -1;
-@@ -88,9 +89,9 @@ static int __mbox_poll_for_space(struct omap_mbox *mbox)
- 	return ret;
- }
- 
--int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
-+int mailbox_msg_send(struct mailbox *mbox, mbox_msg_t msg)
- {
--	struct omap_mbox_queue *mq = mbox->txq;
-+	struct mailbox_queue *mq = mbox->txq;
- 	int ret = 0, len;
- 
- 	spin_lock_bh(&mq->lock);
-@@ -114,9 +115,9 @@ out:
- 	spin_unlock_bh(&mq->lock);
- 	return ret;
- }
--EXPORT_SYMBOL(omap_mbox_msg_send);
-+EXPORT_SYMBOL(mailbox_msg_send);
- 
--void omap_mbox_save_ctx(struct omap_mbox *mbox)
-+void mailbox_save_ctx(struct mailbox *mbox)
- {
- 	if (!mbox->ops->save_ctx) {
- 		dev_err(mbox->dev, "%s:\tno save\n", __func__);
-@@ -125,9 +126,9 @@ void omap_mbox_save_ctx(struct omap_mbox *mbox)
- 
- 	mbox->ops->save_ctx(mbox);
- }
--EXPORT_SYMBOL(omap_mbox_save_ctx);
-+EXPORT_SYMBOL(mailbox_save_ctx);
- 
--void omap_mbox_restore_ctx(struct omap_mbox *mbox)
-+void mailbox_restore_ctx(struct mailbox *mbox)
- {
- 	if (!mbox->ops->restore_ctx) {
- 		dev_err(mbox->dev, "%s:\tno restore\n", __func__);
-@@ -136,30 +137,30 @@ void omap_mbox_restore_ctx(struct omap_mbox *mbox)
- 
- 	mbox->ops->restore_ctx(mbox);
- }
--EXPORT_SYMBOL(omap_mbox_restore_ctx);
-+EXPORT_SYMBOL(mailbox_restore_ctx);
- 
--void omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
-+void mailbox_enable_irq(struct mailbox *mbox, mailbox_irq_t irq)
- {
- 	mbox->ops->enable_irq(mbox, irq);
- }
--EXPORT_SYMBOL(omap_mbox_enable_irq);
-+EXPORT_SYMBOL(mailbox_enable_irq);
- 
--void omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
-+void mailbox_disable_irq(struct mailbox *mbox, mailbox_irq_t irq)
- {
- 	mbox->ops->disable_irq(mbox, irq);
- }
--EXPORT_SYMBOL(omap_mbox_disable_irq);
-+EXPORT_SYMBOL(mailbox_disable_irq);
- 
- static void mbox_tx_tasklet(unsigned long tx_data)
- {
--	struct omap_mbox *mbox = (struct omap_mbox *)tx_data;
--	struct omap_mbox_queue *mq = mbox->txq;
-+	struct mailbox *mbox = (struct mailbox *)tx_data;
-+	struct mailbox_queue *mq = mbox->txq;
- 	mbox_msg_t msg;
- 	int ret;
- 
- 	while (kfifo_len(&mq->fifo)) {
- 		if (__mbox_poll_for_space(mbox)) {
--			omap_mbox_enable_irq(mbox, IRQ_TX);
-+			mailbox_enable_irq(mbox, IRQ_TX);
- 			break;
- 		}
- 
-@@ -176,8 +177,8 @@ static void mbox_tx_tasklet(unsigned long tx_data)
-  */
- static void mbox_rx_work(struct work_struct *work)
- {
--	struct omap_mbox_queue *mq =
--		container_of(work, struct omap_mbox_queue, work);
-+	struct mailbox_queue *mq =
-+		container_of(work, struct mailbox_queue, work);
- 	mbox_msg_t msg;
- 	int len;
- 
-@@ -190,7 +191,7 @@ static void mbox_rx_work(struct work_struct *work)
- 		spin_lock_irq(&mq->lock);
- 		if (mq->full) {
- 			mq->full = false;
--			omap_mbox_enable_irq(mq->mbox, IRQ_RX);
-+			mailbox_enable_irq(mq->mbox, IRQ_RX);
- 		}
- 		spin_unlock_irq(&mq->lock);
- 	}
-@@ -199,22 +200,22 @@ static void mbox_rx_work(struct work_struct *work)
- /*
-  * Mailbox interrupt handler
-  */
--static void __mbox_tx_interrupt(struct omap_mbox *mbox)
-+static void __mbox_tx_interrupt(struct mailbox *mbox)
- {
--	omap_mbox_disable_irq(mbox, IRQ_TX);
-+	mailbox_disable_irq(mbox, IRQ_TX);
- 	ack_mbox_irq(mbox, IRQ_TX);
- 	tasklet_schedule(&mbox->txq->tasklet);
- }
- 
--static void __mbox_rx_interrupt(struct omap_mbox *mbox)
-+static void __mbox_rx_interrupt(struct mailbox *mbox)
- {
--	struct omap_mbox_queue *mq = mbox->rxq;
-+	struct mailbox_queue *mq = mbox->rxq;
- 	mbox_msg_t msg;
- 	int len;
- 
- 	while (!mbox_fifo_empty(mbox)) {
- 		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
--			omap_mbox_disable_irq(mbox, IRQ_RX);
-+			mailbox_disable_irq(mbox, IRQ_RX);
- 			mq->full = true;
- 			goto nomem;
- 		}
-@@ -224,7 +225,7 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
- 		len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
- 		WARN_ON(len != sizeof(msg));
- 
--		if (mbox->ops->type == OMAP_MBOX_TYPE1)
-+		if (mbox->ops->type == MBOX_HW_FIFO1_TYPE)
- 			break;
- 	}
- 
-@@ -236,7 +237,7 @@ nomem:
- 
- static irqreturn_t mbox_interrupt(int irq, void *p)
- {
--	struct omap_mbox *mbox = p;
-+	struct mailbox *mbox = p;
- 
- 	if (is_mbox_irq(mbox, IRQ_TX))
- 		__mbox_tx_interrupt(mbox);
-@@ -247,13 +248,13 @@ static irqreturn_t mbox_interrupt(int irq, void *p)
- 	return IRQ_HANDLED;
- }
- 
--static struct omap_mbox_queue *mbox_queue_alloc(struct omap_mbox *mbox,
-+static struct mailbox_queue *mbox_queue_alloc(struct mailbox *mbox,
- 		void (*work) (struct work_struct *),
- 		void (*tasklet)(unsigned long))
- {
--	struct omap_mbox_queue *mq;
-+	struct mailbox_queue *mq;
- 
--	mq = kzalloc(sizeof(struct omap_mbox_queue), GFP_KERNEL);
-+	mq = kzalloc(sizeof(struct mailbox_queue), GFP_KERNEL);
- 	if (!mq)
- 		return NULL;
- 
-@@ -273,16 +274,16 @@ error:
- 	return NULL;
- }
- 
--static void mbox_queue_free(struct omap_mbox_queue *q)
-+static void mbox_queue_free(struct mailbox_queue *q)
- {
- 	kfifo_free(&q->fifo);
- 	kfree(q);
- }
- 
--static int omap_mbox_startup(struct omap_mbox *mbox)
-+static int mailbox_startup(struct mailbox *mbox)
- {
- 	int ret = 0;
--	struct omap_mbox_queue *mq;
-+	struct mailbox_queue *mq;
- 
- 	mutex_lock(&mbox_configured_lock);
- 	if (!mbox_configured++) {
-@@ -317,7 +318,7 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
- 		mbox->rxq = mq;
- 		mq->mbox = mbox;
- 
--		omap_mbox_enable_irq(mbox, IRQ_RX);
-+		mailbox_enable_irq(mbox, IRQ_RX);
- 	}
- 	mutex_unlock(&mbox_configured_lock);
- 	return 0;
-@@ -336,12 +337,12 @@ fail_startup:
- 	return ret;
- }
- 
--static void omap_mbox_fini(struct omap_mbox *mbox)
-+static void mailbox_fini(struct mailbox *mbox)
- {
- 	mutex_lock(&mbox_configured_lock);
- 
- 	if (!--mbox->use_count) {
--		omap_mbox_disable_irq(mbox, IRQ_RX);
-+		mailbox_disable_irq(mbox, IRQ_RX);
- 		free_irq(mbox->irq, mbox);
- 		tasklet_kill(&mbox->txq->tasklet);
- 		flush_work(&mbox->rxq->work);
-@@ -357,9 +358,9 @@ static void omap_mbox_fini(struct omap_mbox *mbox)
- 	mutex_unlock(&mbox_configured_lock);
- }
- 
--struct omap_mbox *omap_mbox_get(const char *name, struct notifier_block *nb)
-+struct mailbox *mailbox_get(const char *name, struct notifier_block *nb)
- {
--	struct omap_mbox *_mbox, *mbox = NULL;
-+	struct mailbox *_mbox, *mbox = NULL;
- 	int i, ret;
- 
- 	if (!mboxes)
-@@ -378,7 +379,7 @@ struct omap_mbox *omap_mbox_get(const char *name, struct notifier_block *nb)
- 	if (nb)
- 		blocking_notifier_chain_register(&mbox->notifier, nb);
- 
--	ret = omap_mbox_startup(mbox);
-+	ret = mailbox_startup(mbox);
- 	if (ret) {
- 		blocking_notifier_chain_unregister(&mbox->notifier, nb);
- 		return ERR_PTR(-ENODEV);
-@@ -386,18 +387,18 @@ struct omap_mbox *omap_mbox_get(const char *name, struct notifier_block *nb)
- 
- 	return mbox;
- }
--EXPORT_SYMBOL(omap_mbox_get);
-+EXPORT_SYMBOL(mailbox_get);
- 
--void omap_mbox_put(struct omap_mbox *mbox, struct notifier_block *nb)
-+void mailbox_put(struct mailbox *mbox, struct notifier_block *nb)
- {
- 	blocking_notifier_chain_unregister(&mbox->notifier, nb);
--	omap_mbox_fini(mbox);
-+	mailbox_fini(mbox);
- }
--EXPORT_SYMBOL(omap_mbox_put);
-+EXPORT_SYMBOL(mailbox_put);
- 
--static struct class omap_mbox_class = { .name = "mbox", };
-+static struct class mailbox_class = { .name = "mbox", };
- 
--int omap_mbox_register(struct device *parent, struct omap_mbox **list)
-+int mailbox_register(struct device *parent, struct mailbox **list)
- {
- 	int ret;
- 	int i;
-@@ -407,8 +408,8 @@ int omap_mbox_register(struct device *parent, struct omap_mbox **list)
- 		return -EINVAL;
- 
- 	for (i = 0; mboxes[i]; i++) {
--		struct omap_mbox *mbox = mboxes[i];
--		mbox->dev = device_create(&omap_mbox_class,
-+		struct mailbox *mbox = mboxes[i];
-+		mbox->dev = device_create(&mailbox_class,
- 				parent, 0, mbox, "%s", mbox->name);
- 		if (IS_ERR(mbox->dev)) {
- 			ret = PTR_ERR(mbox->dev);
-@@ -424,9 +425,9 @@ err_out:
- 		device_unregister(mboxes[i]->dev);
- 	return ret;
- }
--EXPORT_SYMBOL(omap_mbox_register);
-+EXPORT_SYMBOL(mailbox_register);
- 
--int omap_mbox_unregister(void)
-+int mailbox_unregister(void)
- {
- 	int i;
- 
-@@ -438,13 +439,13 @@ int omap_mbox_unregister(void)
- 	mboxes = NULL;
- 	return 0;
- }
--EXPORT_SYMBOL(omap_mbox_unregister);
-+EXPORT_SYMBOL(mailbox_unregister);
- 
--static int __init omap_mbox_init(void)
-+static int __init mailbox_init(void)
- {
- 	int err;
- 
--	err = class_register(&omap_mbox_class);
-+	err = class_register(&mailbox_class);
- 	if (err)
- 		return err;
- 
-@@ -455,15 +456,15 @@ static int __init omap_mbox_init(void)
- 
- 	return 0;
- }
--subsys_initcall(omap_mbox_init);
-+subsys_initcall(mailbox_init);
- 
--static void __exit omap_mbox_exit(void)
-+static void __exit mailbox_exit(void)
- {
--	class_unregister(&omap_mbox_class);
-+	class_unregister(&mailbox_class);
- }
--module_exit(omap_mbox_exit);
-+module_exit(mailbox_exit);
- 
- MODULE_LICENSE("GPL v2");
--MODULE_DESCRIPTION("omap mailbox: interrupt driven messaging");
-+MODULE_DESCRIPTION("mailbox framework: interrupt driven messaging");
- MODULE_AUTHOR("Toshihiro Kobayashi");
- MODULE_AUTHOR("Hiroshi DOYU");
-diff --git a/drivers/mailbox/mailbox_internal.h b/drivers/mailbox/mailbox_internal.h
-index e533440..db144d7 100644
---- a/drivers/mailbox/mailbox_internal.h
-+++ b/drivers/mailbox/mailbox_internal.h
-@@ -16,54 +16,54 @@
- #include <linux/spinlock.h>
- #include <linux/workqueue.h>
- 
--typedef int __bitwise omap_mbox_type_t;
--#define OMAP_MBOX_TYPE1 ((__force omap_mbox_type_t) 1)
--#define OMAP_MBOX_TYPE2 ((__force omap_mbox_type_t) 2)
-+typedef int __bitwise mailbox_type_t;
-+#define MBOX_HW_FIFO1_TYPE ((__force mailbox_type_t) 1)
-+#define MBOX_HW_FIFO2_TYPE ((__force mailbox_type_t) 2)
- 
--struct omap_mbox_ops {
--	omap_mbox_type_t        type;
--	int             (*startup)(struct omap_mbox *mbox);
--	void            (*shutdown)(struct omap_mbox *mbox);
-+struct mailbox_ops {
-+	mailbox_type_t        type;
-+	int             (*startup)(struct mailbox *mbox);
-+	void            (*shutdown)(struct mailbox *mbox);
- 	/* fifo */
--	mbox_msg_t      (*fifo_read)(struct omap_mbox *mbox);
--	void            (*fifo_write)(struct omap_mbox *mbox, mbox_msg_t msg);
--	int             (*fifo_empty)(struct omap_mbox *mbox);
--	int             (*fifo_full)(struct omap_mbox *mbox);
-+	mbox_msg_t      (*fifo_read)(struct mailbox *mbox);
-+	void            (*fifo_write)(struct mailbox *mbox, mbox_msg_t msg);
-+	int             (*fifo_empty)(struct mailbox *mbox);
-+	int             (*fifo_full)(struct mailbox *mbox);
- 	/* irq */
--	void            (*enable_irq)(struct omap_mbox *mbox,
--			omap_mbox_irq_t irq);
--	void            (*disable_irq)(struct omap_mbox *mbox,
--			omap_mbox_irq_t irq);
--	void            (*ack_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
--	int             (*is_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
-+	void            (*enable_irq)(struct mailbox *mbox,
-+			mailbox_irq_t irq);
-+	void            (*disable_irq)(struct mailbox *mbox,
-+			mailbox_irq_t irq);
-+	void            (*ack_irq)(struct mailbox *mbox, mailbox_irq_t irq);
-+	int             (*is_irq)(struct mailbox *mbox, mailbox_irq_t irq);
- 	/* ctx */
--	void            (*save_ctx)(struct omap_mbox *mbox);
--	void            (*restore_ctx)(struct omap_mbox *mbox);
-+	void            (*save_ctx)(struct mailbox *mbox);
-+	void            (*restore_ctx)(struct mailbox *mbox);
- };
- 
--struct omap_mbox_queue {
-+struct mailbox_queue {
- 	spinlock_t              lock;
- 	struct kfifo            fifo;
- 	struct work_struct      work;
- 	struct tasklet_struct   tasklet;
--	struct omap_mbox        *mbox;
-+	struct mailbox        *mbox;
- 	bool full;
- };
- 
--struct omap_mbox {
-+struct mailbox {
- 	char                    *name;
- 	unsigned int            irq;
--	struct omap_mbox_queue  *txq, *rxq;
--	struct omap_mbox_ops    *ops;
-+	struct mailbox_queue  *txq, *rxq;
-+	struct mailbox_ops    *ops;
- 	struct device           *dev;
- 	void                    *priv;
- 	int                     use_count;
- 	struct blocking_notifier_head   notifier;
- };
- 
--void omap_mbox_init_seq(struct omap_mbox *);
-+void mailbox_init_seq(struct mailbox *);
- 
--int omap_mbox_register(struct device *parent, struct omap_mbox **);
--int omap_mbox_unregister(void);
-+int mailbox_register(struct device *parent, struct mailbox **);
-+int mailbox_unregister(void);
- 
- #endif /* MAILBOX_INTERNAL_H */
-diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-index 49a04d5..8ecd2e7 100644
---- a/drivers/remoteproc/omap_remoteproc.c
-+++ b/drivers/remoteproc/omap_remoteproc.c
-@@ -41,7 +41,7 @@
-  * @rproc: rproc handle
-  */
- struct omap_rproc {
--	struct omap_mbox *mbox;
-+	struct mailbox *mbox;
- 	struct notifier_block nb;
- 	struct rproc *rproc;
- };
-@@ -96,9 +96,9 @@ static void omap_rproc_kick(struct rproc *rproc, int vqid)
- 	int ret;
- 
- 	/* send the index of the triggered virtqueue in the mailbox payload */
--	ret = omap_mbox_msg_send(oproc->mbox, vqid);
-+	ret = mailbox_msg_send(oproc->mbox, vqid);
- 	if (ret)
--		dev_err(dev, "omap_mbox_msg_send failed: %d\n", ret);
-+		dev_err(dev, "mailbox_msg_send failed: %d\n", ret);
- }
- 
- /*
-@@ -122,10 +122,10 @@ static int omap_rproc_start(struct rproc *rproc)
- 	oproc->nb.notifier_call = omap_rproc_mbox_callback;
- 
- 	/* every omap rproc is assigned a mailbox instance for messaging */
--	oproc->mbox = omap_mbox_get(pdata->mbox_name, &oproc->nb);
-+	oproc->mbox = mailbox_get(pdata->mbox_name, &oproc->nb);
- 	if (IS_ERR(oproc->mbox)) {
- 		ret = PTR_ERR(oproc->mbox);
--		dev_err(dev, "omap_mbox_get failed: %d\n", ret);
-+		dev_err(dev, "mailbox_get failed: %d\n", ret);
- 		return ret;
- 	}
- 
-@@ -136,9 +136,9 @@ static int omap_rproc_start(struct rproc *rproc)
- 	 * Note that the reply will _not_ arrive immediately: this message
- 	 * will wait in the mailbox fifo until the remote processor is booted.
- 	 */
--	ret = omap_mbox_msg_send(oproc->mbox, RP_MBOX_ECHO_REQUEST);
-+	ret = mailbox_msg_send(oproc->mbox, RP_MBOX_ECHO_REQUEST);
- 	if (ret) {
--		dev_err(dev, "omap_mbox_get failed: %d\n", ret);
-+		dev_err(dev, "mailbox_get failed: %d\n", ret);
- 		goto put_mbox;
- 	}
- 
-@@ -151,7 +151,7 @@ static int omap_rproc_start(struct rproc *rproc)
- 	return 0;
- 
- put_mbox:
--	omap_mbox_put(oproc->mbox, &oproc->nb);
-+	mailbox_put(oproc->mbox, &oproc->nb);
- 	return ret;
- }
- 
-@@ -168,7 +168,7 @@ static int omap_rproc_stop(struct rproc *rproc)
- 	if (ret)
- 		return ret;
- 
--	omap_mbox_put(oproc->mbox, &oproc->nb);
-+	mailbox_put(oproc->mbox, &oproc->nb);
- 
- 	return 0;
- }
-diff --git a/drivers/staging/tidspbridge/core/_tiomap.h b/drivers/staging/tidspbridge/core/_tiomap.h
-index b783bfa..f71a89d 100644
---- a/drivers/staging/tidspbridge/core/_tiomap.h
-+++ b/drivers/staging/tidspbridge/core/_tiomap.h
-@@ -338,7 +338,7 @@ struct bridge_dev_context {
- 	u32 dsp_start_add;	/* API Boot vector */
- 	u32 internal_size;	/* Internal memory size */
- 
--	struct omap_mbox *mbox;		/* Mail box handle */
-+	struct mailbox *mbox;		/* Mail box handle */
- 
- 	struct cfg_hostres *resources;	/* Host Resources */
- 
-diff --git a/drivers/staging/tidspbridge/core/chnl_sm.c b/drivers/staging/tidspbridge/core/chnl_sm.c
-index 16fa346..1cae172 100644
---- a/drivers/staging/tidspbridge/core/chnl_sm.c
-+++ b/drivers/staging/tidspbridge/core/chnl_sm.c
-@@ -155,7 +155,7 @@ func_cont:
- 	 * we disable ALL DPCs. We will try to disable ONLY IO DPC later. */
- 	chnl_mgr_obj = pchnl->chnl_mgr_obj;
- 	spin_lock_bh(&chnl_mgr_obj->chnl_mgr_lock);
--	omap_mbox_disable_irq(dev_ctxt->mbox, IRQ_RX);
-+	mailbox_disable_irq(dev_ctxt->mbox, IRQ_RX);
- 	if (pchnl->chnl_type == CHNL_PCPY) {
- 		/* This is a processor-copy channel. */
- 		if (CHNL_IS_OUTPUT(pchnl->chnl_mode)) {
-@@ -210,7 +210,7 @@ func_cont:
- 			 IO_OUTPUT), &mb_val);
- 	sched_dpc = true;
- out:
--	omap_mbox_enable_irq(dev_ctxt->mbox, IRQ_RX);
-+	mailbox_enable_irq(dev_ctxt->mbox, IRQ_RX);
- 	spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
- 	if (mb_val != 0)
- 		sm_interrupt_dsp(dev_ctxt, mb_val);
-@@ -570,7 +570,7 @@ int bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 timeout,
- 	}
- 	/* See comment in AddIOReq */
- 	spin_lock_bh(&pchnl->chnl_mgr_obj->chnl_mgr_lock);
--	omap_mbox_disable_irq(dev_ctxt->mbox, IRQ_RX);
-+	mailbox_disable_irq(dev_ctxt->mbox, IRQ_RX);
- 	if (dequeue_ioc) {
- 		/* Dequeue IOC and set chan_ioc; */
- 		chnl_packet_obj = list_first_entry(&pchnl->io_completions,
-@@ -616,7 +616,7 @@ int bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 timeout,
- 		/* else, if list is empty, ensure event is reset. */
- 		sync_reset_event(pchnl->sync_event);
- 	}
--	omap_mbox_enable_irq(dev_ctxt->mbox, IRQ_RX);
-+	mailbox_enable_irq(dev_ctxt->mbox, IRQ_RX);
- 	spin_unlock_bh(&pchnl->chnl_mgr_obj->chnl_mgr_lock);
- 	if (dequeue_ioc
- 	    && (pchnl->chnl_type == CHNL_PCPY && pchnl->chnl_id > 1)) {
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index f619fb3..310820d 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -562,7 +562,7 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
- 		 * Enable Mailbox events and also drain any pending
- 		 * stale messages.
- 		 */
--		dev_context->mbox = omap_mbox_get("dsp", &dsp_mbox_notifier);
-+		dev_context->mbox = mailbox_get("dsp", &dsp_mbox_notifier);
- 		if (IS_ERR(dev_context->mbox)) {
- 			dev_context->mbox = NULL;
- 			pr_err("%s: Failed to get dsp mailbox handle\n",
-@@ -697,8 +697,8 @@ static int bridge_brd_stop(struct bridge_dev_context *dev_ctxt)
- 	}
- 	/* Disable the mailbox interrupts */
- 	if (dev_context->mbox) {
--		omap_mbox_disable_irq(dev_context->mbox, IRQ_RX);
--		omap_mbox_put(dev_context->mbox, &dsp_mbox_notifier);
-+		mailbox_disable_irq(dev_context->mbox, IRQ_RX);
-+		mailbox_put(dev_context->mbox, &dsp_mbox_notifier);
- 		dev_context->mbox = NULL;
- 	}
- 	/* Reset IVA2 clocks*/
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430_pwr.c b/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
-index dafa6d9..e50f404 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
-@@ -108,7 +108,7 @@ int handle_hibernation_from_dsp(struct bridge_dev_context *dev_context)
- 	} else {
- 
- 		/* Save mailbox settings */
--		omap_mbox_save_ctx(dev_context->mbox);
-+		mailbox_save_ctx(dev_context->mbox);
- 
- 		/* Turn off DSP Peripheral clocks and DSP Load monitor timer */
- 		status = dsp_clock_disable_all(dev_context->dsp_per_clks);
-@@ -165,7 +165,7 @@ int sleep_dsp(struct bridge_dev_context *dev_context, u32 dw_cmd,
- 
- 	switch (dev_context->brd_state) {
- 	case BRD_RUNNING:
--		omap_mbox_save_ctx(dev_context->mbox);
-+		mailbox_save_ctx(dev_context->mbox);
- 		if (dsp_test_sleepstate == PWRDM_POWER_OFF) {
- 			sm_interrupt_dsp(dev_context, MBX_PM_DSPHIBERNATE);
- 			dev_dbg(bridge, "PM: %s - sent hibernate cmd to DSP\n",
-@@ -177,7 +177,7 @@ int sleep_dsp(struct bridge_dev_context *dev_context, u32 dw_cmd,
- 		}
- 		break;
- 	case BRD_RETENTION:
--		omap_mbox_save_ctx(dev_context->mbox);
-+		mailbox_save_ctx(dev_context->mbox);
- 		if (dsp_test_sleepstate == PWRDM_POWER_OFF) {
- 			sm_interrupt_dsp(dev_context, MBX_PM_DSPHIBERNATE);
- 			target_pwr_state = PWRDM_POWER_OFF;
-diff --git a/drivers/staging/tidspbridge/core/tiomap_io.c b/drivers/staging/tidspbridge/core/tiomap_io.c
-index f53ed98..41bcb1a 100644
---- a/drivers/staging/tidspbridge/core/tiomap_io.c
-+++ b/drivers/staging/tidspbridge/core/tiomap_io.c
-@@ -416,7 +416,7 @@ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val)
- 				OMAP3430_IVA2_MOD, OMAP3430_CM_CLKEN_PLL);
- 
- 		/* Restore mailbox settings */
--		omap_mbox_restore_ctx(dev_context->mbox);
-+		mailbox_restore_ctx(dev_context->mbox);
- 
- 		/* Access MMU SYS CONFIG register to generate a short wakeup */
- 		temp = readl(resources->dmmu_base + 0x10);
-@@ -427,10 +427,10 @@ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val)
- 		dsp_clock_enable_all(dev_context->dsp_per_clks);
- 	}
- 
--	status = omap_mbox_msg_send(dev_context->mbox, mb_val);
-+	status = mailbox_msg_send(dev_context->mbox, mb_val);
- 
- 	if (status) {
--		pr_err("omap_mbox_msg_send Fail and status = %d\n", status);
-+		pr_err("mailbox_msg_send Fail and status = %d\n", status);
- 		status = -EPERM;
- 	}
- 
-diff --git a/include/linux/mailbox.h b/include/linux/mailbox.h
-index e97824e..54dd305 100644
---- a/include/linux/mailbox.h
-+++ b/include/linux/mailbox.h
-@@ -10,20 +10,20 @@
- #define MAILBOX_H
- 
- typedef u32 mbox_msg_t;
--struct omap_mbox;
-+struct mailbox;
- 
--typedef int __bitwise omap_mbox_irq_t;
--#define IRQ_TX ((__force omap_mbox_irq_t) 1)
--#define IRQ_RX ((__force omap_mbox_irq_t) 2)
-+typedef int __bitwise mailbox_irq_t;
-+#define IRQ_TX ((__force mailbox_irq_t) 1)
-+#define IRQ_RX ((__force mailbox_irq_t) 2)
- 
--int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
-+int mailbox_msg_send(struct mailbox *, mbox_msg_t msg);
- 
--struct omap_mbox *omap_mbox_get(const char *, struct notifier_block *nb);
--void omap_mbox_put(struct omap_mbox *mbox, struct notifier_block *nb);
-+struct mailbox *mailbox_get(const char *, struct notifier_block *nb);
-+void mailbox_put(struct mailbox *mbox, struct notifier_block *nb);
- 
--void omap_mbox_save_ctx(struct omap_mbox *mbox);
--void omap_mbox_restore_ctx(struct omap_mbox *mbox);
--void omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq);
--void omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq);
-+void mailbox_save_ctx(struct mailbox *mbox);
-+void mailbox_restore_ctx(struct mailbox *mbox);
-+void mailbox_enable_irq(struct mailbox *mbox, mailbox_irq_t irq);
-+void mailbox_disable_irq(struct mailbox *mbox, mailbox_irq_t irq);
- 
- #endif /* MAILBOX_H */
++ * DBX500 PRCM Mailbox driver
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/platform_device.h>
++#include <linux/irq.h>
++#include <linux/io.h>
++#include <linux/platform_data/mailbox-dbx500.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/irqdomain.h>
++
++#include "mailbox_internal.h"
++
++#define MAILBOX_LEGACY		0
++#define MAILBOX_UPAP		1
++
++enum {
++	MAILBOX_BLOCKING,
++	MAILBOX_ATOMIC,
++};
++
++/* CPU mailbox registers */
++#define PRCM_MBOX_CPU_VAL	0x0fc
++#define PRCM_MBOX_CPU_SET	0x100
++#define PRCM_MBOX_CPU_CLR	0x104
++
++#define PRCM_ARM_IT1_CLR	0x48C
++#define PRCM_ARM_IT1_VAL	0x494
++
++#define NUM_MB 8
++#define MBOX_BIT BIT
++#define ALL_MBOX_BITS (MBOX_BIT(NUM_MB) - 1)
++
++/* CPU mailbox share memory */
++#define _PRCM_MBOX_HEADER		0x214 /* 16 bytes */
++#define PRCM_MBOX_HEADER_REQ_MB0	(_PRCM_MBOX_HEADER + 0x0)
++#define PRCM_MBOX_HEADER_REQ_MB1	(_PRCM_MBOX_HEADER + 0x1)
++#define PRCM_MBOX_HEADER_REQ_MB2	(_PRCM_MBOX_HEADER + 0x2)
++#define PRCM_MBOX_HEADER_REQ_MB3	(_PRCM_MBOX_HEADER + 0x3)
++#define PRCM_MBOX_HEADER_REQ_MB4	(_PRCM_MBOX_HEADER + 0x4)
++#define PRCM_MBOX_HEADER_REQ_MB5	(_PRCM_MBOX_HEADER + 0x5)
++#define PRCM_MBOX_HEADER_ACK_MB0	(_PRCM_MBOX_HEADER + 0x8)
++
++/* Req Mailboxes */
++#define PRCM_REQ_MB0			0x208 /* 12 bytes  */
++#define PRCM_REQ_MB1			0x1FC /* 12 bytes  */
++#define PRCM_REQ_MB2			0x1EC /* 16 bytes  */
++#define PRCM_REQ_MB3			0x78  /* 372 bytes  */
++#define PRCM_REQ_MB4			0x74  /* 4 bytes  */
++#define PRCM_REQ_MB5			0x70  /* 4 bytes  */
++#define PRCM_REQ_PASR			0x30 /* 4 bytes */
++
++/* Ack Mailboxes */
++#define PRCM_ACK_MB0			0x34 /* 52 bytes  */
++#define PRCM_ACK_MB1			0x30 /* 4 bytes */
++#define PRCM_ACK_MB2			0x2C /* 4 bytes */
++#define PRCM_ACK_MB3			0x28 /* 4 bytes */
++#define PRCM_ACK_MB4			0x24 /* 4 bytes */
++#define PRCM_ACK_MB5			0x20 /* 4 bytes */
++
++/* Ack Mailboxe sizes */
++#define PRCM_ACK_MB0_SIZE		0x24 /* 52 bytes  */
++#define PRCM_ACK_MB1_SIZE		0x4 /* 4 bytes */
++#define PRCM_ACK_MB2_SIZE		0x1 /* 1 bytes */
++#define PRCM_ACK_MB3_SIZE		0x2 /* 2 bytes */
++#define PRCM_ACK_MB4_SIZE		0x0 /* 0 bytes */
++#define PRCM_ACK_MB5_SIZE		0x4 /* 4 bytes */
++
++static void __iomem *mbox_base;
++static void __iomem *tcdm_mem_base;
++
++static u8 prcm_mbox_irq_mask; /* masked by default */
++static DEFINE_SPINLOCK(prcm_mbox_irqs_lock);
++
++struct dbx500_mbox_priv {
++	int			access_mode;
++	int			type;
++	int			header_size;
++	unsigned int		tx_header_offset;
++	unsigned int		rx_header_offset;
++	unsigned int		tx_offset;
++	unsigned int		rx_offset;
++	unsigned int		rx_size;
++	unsigned int		sw_irq;
++	bool			empty_flag;
++};
++
++static inline unsigned int mbox_read_reg(size_t ofs)
++{
++	return __raw_readl(mbox_base + ofs);
++}
++
++static inline void mbox_write_reg(u32 val, size_t ofs)
++{
++	__raw_writel(val, mbox_base + ofs);
++}
++
++/* Mailbox H/W preparations */
++static struct irq_chip dbx500_mbox_irq_chip;
++static struct irq_domain *dbx500_mbox_irq_domain;
++
++static int dbx500_mbox_startup(struct mailbox *mbox)
++{
++	/* Nothing to do */
++	return 0;
++}
++
++/* Mailbox IRQ handle functions */
++
++static void dbx500_mbox_enable_irq(struct mailbox *mbox, mailbox_irq_t irq)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&prcm_mbox_irqs_lock, flags);
++
++	prcm_mbox_irq_mask |= MBOX_BIT(mbox->id);
++
++	spin_unlock_irqrestore(&prcm_mbox_irqs_lock, flags);
++
++}
++
++static void dbx500_mbox_disable_irq(struct mailbox *mbox, mailbox_irq_t irq)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&prcm_mbox_irqs_lock, flags);
++
++	prcm_mbox_irq_mask &= ~MBOX_BIT(mbox->id);
++
++	spin_unlock_irqrestore(&prcm_mbox_irqs_lock, flags);
++
++}
++
++static void dbx500_mbox_ack_irq(struct mailbox *mbox, mailbox_irq_t irq)
++{
++	if (irq == IRQ_RX)
++		mbox_write_reg(MBOX_BIT(mbox->id), PRCM_ARM_IT1_CLR);
++}
++
++static int dbx500_mbox_is_irq(struct mailbox *mbox, mailbox_irq_t irq)
++{
++	struct dbx500_mbox_priv *priv = (struct dbx500_mbox_priv *)mbox->priv;
++
++	if (irq == IRQ_RX) {
++		if (mbox_read_reg(PRCM_ARM_IT1_VAL) & MBOX_BIT(mbox->id)) {
++			priv->empty_flag = true;
++			return 1;
++		} else {
++			return 0;
++		}
++	} else {
++		return 0;
++	}
++}
++
++/* message management */
++
++static int dbx500_mbox_is_ready(struct mailbox *mbox)
++{
++	return mbox_read_reg(PRCM_MBOX_CPU_VAL) & MBOX_BIT(mbox->id);
++}
++
++static int dbx500_mbox_write(struct mailbox *mbox,
++		struct mailbox_msg *msg)
++{
++	int j;
++	struct dbx500_mbox_priv *priv = (struct dbx500_mbox_priv *)mbox->priv;
++
++	if (msg->size && !msg->pdata)
++		return -EINVAL;
++
++	while (dbx500_mbox_is_ready(mbox))
++		cpu_relax();
++
++	/* write header */
++	if (priv->header_size)
++		writeb(msg->header, tcdm_mem_base + priv->tx_header_offset);
++
++	/* write data */
++	for (j = 0; j < msg->size; j++)
++		writeb(((unsigned char *)msg->pdata)[j],
++				tcdm_mem_base + priv->tx_offset + j);
++
++	/* send event */
++	mbox_write_reg(MBOX_BIT(mbox->id), PRCM_MBOX_CPU_SET);
++
++	return 0;
++}
++
++static void dbx500_mbox_read(struct mailbox *mbox, struct mailbox_msg *msg)
++{
++	struct dbx500_mbox_priv *priv = (struct dbx500_mbox_priv *)mbox->priv;
++
++	msg->header = readb(tcdm_mem_base + priv->rx_header_offset);
++	msg->pdata = (unsigned char *)(tcdm_mem_base + priv->rx_offset);
++
++	msg->size = priv->rx_size;
++	priv->empty_flag = false;
++}
++
++static int dbx500_mbox_empty(struct mailbox *mbox)
++{
++	struct dbx500_mbox_priv *priv = (struct dbx500_mbox_priv *)mbox->priv;
++	if (priv->empty_flag)
++		return 0;
++	else
++		return 1;
++}
++
++static int dbx500_mbox_poll_for_space(struct mailbox *mbox)
++{
++	return 0;
++}
++/*  interrupt management */
++
++/*  mask/unmask must be managed by SW */
++
++static void mbox_irq_mask(struct irq_data *d)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&prcm_mbox_irqs_lock, flags);
++
++	prcm_mbox_irq_mask &= ~MBOX_BIT(d->hwirq);
++
++	spin_unlock_irqrestore(&prcm_mbox_irqs_lock, flags);
++}
++
++static void mbox_irq_unmask(struct irq_data *d)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&prcm_mbox_irqs_lock, flags);
++
++	prcm_mbox_irq_mask |= MBOX_BIT(d->hwirq);
++
++	spin_unlock_irqrestore(&prcm_mbox_irqs_lock, flags);
++}
++
++static void mbox_irq_ack(struct irq_data *d)
++{
++	mbox_write_reg(MBOX_BIT(d->hwirq), PRCM_ARM_IT1_CLR);
++}
++
++static struct irq_chip dbx500_mbox_irq_chip = {
++	.name		= "dbx500_mbox",
++	.irq_disable	= mbox_irq_unmask,
++	.irq_ack	= mbox_irq_ack,
++	.irq_mask	= mbox_irq_mask,
++	.irq_unmask	= mbox_irq_unmask,
++};
++
++static int dbx500_mbox_irq_map(struct irq_domain *d, unsigned int irq,
++			       irq_hw_number_t hwirq)
++{
++	irq_set_chip_and_handler(irq, &dbx500_mbox_irq_chip,
++				handle_simple_irq);
++	set_irq_flags(irq, IRQF_VALID);
++
++	return 0;
++}
++
++static struct irq_domain_ops dbx500_mbox_irq_ops = {
++	.map    = dbx500_mbox_irq_map,
++	.xlate  = irq_domain_xlate_twocell,
++};
++
++static irqreturn_t dbx500_mbox_irq_handler(int irq, void *data)
++{
++	u32 bits;
++	u8 n;
++
++	bits = (mbox_read_reg(PRCM_ARM_IT1_VAL) & ALL_MBOX_BITS);
++	if (unlikely(!bits))
++		return IRQ_NONE;
++
++	bits &= prcm_mbox_irq_mask;
++
++	for (n = 0; bits; n++) {
++		if (bits & MBOX_BIT(n)) {
++			bits -= MBOX_BIT(n);
++			generic_handle_irq(
++				irq_find_mapping(dbx500_mbox_irq_domain, n));
++		}
++	}
++	return IRQ_HANDLED;
++}
++
++/* 5 mailboxes AP <--> PRCMU */
++static struct mailbox_ops dbx500_mbox_ops = {
++	.type		= MBOX_SHARED_MEM_TYPE,
++	.startup	= dbx500_mbox_startup,
++	.enable_irq	= dbx500_mbox_enable_irq,
++	.disable_irq	= dbx500_mbox_disable_irq,
++	.ack_irq	= dbx500_mbox_ack_irq,
++	.is_irq		= dbx500_mbox_is_irq,
++	.read		= dbx500_mbox_read,
++	.write		= dbx500_mbox_write,
++	.empty		= dbx500_mbox_empty,
++	.poll_for_space = dbx500_mbox_poll_for_space,
++};
++
++struct dbx500_mbox_priv mbox0_priv = {
++	.access_mode		= MAILBOX_ATOMIC,
++	.type			= MAILBOX_LEGACY,
++	.tx_header_offset	= PRCM_MBOX_HEADER_REQ_MB0,
++	.header_size		= 1,
++	.tx_offset		= PRCM_REQ_MB0,
++	.rx_header_offset	= PRCM_MBOX_HEADER_ACK_MB0,
++	.rx_offset		= PRCM_ACK_MB0,
++	.rx_size		= PRCM_ACK_MB0_SIZE,
++};
++
++struct mailbox mbox0_info = {
++	.name	= "mbox0",
++	.id	= 0,
++	.ops	= &dbx500_mbox_ops,
++	.priv	= &mbox0_priv,
++};
++
++struct dbx500_mbox_priv mbox1_priv = {
++	.access_mode		= MAILBOX_BLOCKING,
++	.type			= MAILBOX_LEGACY,
++	.tx_header_offset	= PRCM_MBOX_HEADER_REQ_MB1,
++	.header_size		= 1,
++	.tx_offset		= PRCM_REQ_MB1,
++	.rx_header_offset	= PRCM_MBOX_HEADER_REQ_MB1,
++	.rx_offset		= PRCM_ACK_MB1,
++	.rx_size		= PRCM_ACK_MB1_SIZE,
++};
++
++struct mailbox mbox1_info = {
++	.name	= "mbox1",
++	.id	= 1,
++	.ops	= &dbx500_mbox_ops,
++	.priv	= &mbox1_priv,
++};
++
++struct dbx500_mbox_priv mbox2_priv = {
++	.access_mode		= MAILBOX_BLOCKING,
++	.type			= MAILBOX_LEGACY,
++	.tx_header_offset	= PRCM_MBOX_HEADER_REQ_MB2,
++	.header_size		= 1,
++	.tx_offset		= PRCM_REQ_MB2,
++	.rx_header_offset	= PRCM_MBOX_HEADER_REQ_MB2,
++	.rx_offset		= PRCM_ACK_MB2,
++	.rx_size		= PRCM_ACK_MB2_SIZE,
++};
++
++struct mailbox mbox2_info = {
++	.name	= "mbox2",
++	.id	= 2,
++	.ops	= &dbx500_mbox_ops,
++	.priv	= &mbox2_priv,
++};
++
++struct dbx500_mbox_priv mbox3_priv = {
++	.access_mode		= MAILBOX_BLOCKING,
++	.type			= MAILBOX_LEGACY,
++	.tx_header_offset	= PRCM_MBOX_HEADER_REQ_MB3,
++	.header_size		= 1,
++	.tx_offset		= PRCM_REQ_MB3,
++	.rx_header_offset	= PRCM_MBOX_HEADER_REQ_MB3,
++	.rx_offset		= PRCM_ACK_MB3,
++	.rx_size		= PRCM_ACK_MB3_SIZE,
++};
++
++struct mailbox mbox3_info = {
++	.name	= "mbox3",
++	.id	= 3,
++	.ops	= &dbx500_mbox_ops,
++	.priv	= &mbox3_priv,
++};
++
++struct dbx500_mbox_priv mbox4_priv = {
++	.access_mode		= MAILBOX_BLOCKING,
++	.type			= MAILBOX_LEGACY,
++	.tx_header_offset	= PRCM_MBOX_HEADER_REQ_MB4,
++	.header_size		= 1,
++	.tx_offset		= PRCM_REQ_MB4,
++	.rx_header_offset	= PRCM_MBOX_HEADER_REQ_MB4,
++	.rx_offset		= PRCM_ACK_MB4,
++	.rx_size		= PRCM_ACK_MB4_SIZE,
++};
++
++struct mailbox mbox4_info = {
++	.name	= "mbox4",
++	.id	= 4,
++	.ops	= &dbx500_mbox_ops,
++	.priv	= &mbox4_priv,
++};
++
++struct dbx500_mbox_priv mbox5_priv = {
++	.access_mode		= MAILBOX_BLOCKING,
++	.type			= MAILBOX_LEGACY,
++	.tx_header_offset	= PRCM_MBOX_HEADER_REQ_MB5,
++	.header_size		= 1,
++	.tx_offset		= PRCM_REQ_MB5,
++	.rx_header_offset	= PRCM_MBOX_HEADER_REQ_MB5,
++	.rx_offset		= PRCM_ACK_MB5,
++	.rx_size		= PRCM_ACK_MB5_SIZE,
++};
++
++struct mailbox mbox5_info = {
++	.name	= "mbox5",
++	.id	= 5,
++	.ops	= &dbx500_mbox_ops,
++	.priv	= &mbox5_priv,
++};
++
++struct mailbox mbox6_info = {
++	.name	= "mbox6",
++	.id	= 6,
++	.ops	= &dbx500_mbox_ops,
++};
++
++struct mailbox mbox7_info = {
++	.name	= "mbox7",
++	.id	= 7,
++	.ops	= &dbx500_mbox_ops,
++};
++
++/* x540 mailbox definition */
++struct dbx500_mbox_priv mbox1_upap_priv = {
++	.access_mode	= MAILBOX_BLOCKING,
++	.type			= MAILBOX_UPAP,
++	.tx_header_offset	= 0,
++	.header_size	= 0,
++	.tx_offset	= 0,
++	.rx_offset	= 0, /* TODO to be replaced by dynamic detection */
++	.rx_size	= 0x40,
++};
++
++struct mailbox mbox1_upap_info = {
++	.name	= "mbox1_upap",
++	.id	= 1,
++	.ops	= &dbx500_mbox_ops,
++	.priv	= &mbox1_upap_priv,
++};
++
++struct mailbox *db8500_mboxes[] = { &mbox0_info, &mbox1_info, &mbox2_info,
++	&mbox3_info, &mbox4_info, &mbox5_info, &mbox6_info, &mbox7_info,
++	NULL };
++
++struct mailbox *dbx540_mboxes[] = { &mbox0_info, &mbox2_info,
++	&mbox3_info, &mbox4_info, &mbox5_info, &mbox6_info, &mbox7_info,
++	&mbox1_upap_info, NULL };
++
++static const struct of_device_id dbx500_mailbox_match[] = {
++	{ .compatible = "stericsson,db8500-mailbox",
++		.data = (void *)db8500_mboxes,
++	},
++	{ .compatible = "stericsson,db9540-mailbox",
++		.data = (void *)dbx540_mboxes,
++	},
++	{ /* sentinel */}
++};
++
++static int dbx500_mbox_probe(struct platform_device *pdev)
++{
++	const struct platform_device_id *platid = platform_get_device_id(pdev);
++	struct resource *mem;
++	int ret, i, legacy_offset = 0, upap_offset;
++	struct mailbox **list;
++	int irq;
++	struct dbx500_plat_data *pdata = dev_get_platdata(&pdev->dev);
++	struct device_node *np = pdev->dev.of_node;
++
++	if (!pdata) {
++		if (np) {
++			of_property_read_u32(np, "legacy-offset",
++							&legacy_offset);
++			of_property_read_u32(np, "upap-offset", &upap_offset);
++			list = (struct mailbox **)of_match_device(
++					dbx500_mailbox_match, &pdev->dev)->data;
++			if (!list) {
++				/* No mailbox configuration */
++				dev_err(&pdev->dev, "No configuration found\n");
++				return -ENODEV;
++			}
++		} else {
++			/* No mailbox configuration */
++			dev_err(&pdev->dev, "No configuration found\n");
++			return -ENODEV;
++		}
++	} else {
++		list = (struct mailbox **)platid->driver_data;
++		legacy_offset = pdata->legacy_offset;
++		upap_offset = pdata->upap_offset;
++	}
++
++	mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "prcm_reg");
++	mbox_base = devm_ioremap(&pdev->dev, mem->start, resource_size(mem));
++	if (!mbox_base) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "prcmu_tcdm");
++	tcdm_mem_base = devm_ioremap(&pdev->dev, mem->start,
++							resource_size(mem));
++	if (!tcdm_mem_base) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	irq = platform_get_irq(pdev, 0);
++	/* clean all mailboxes */
++	mbox_write_reg(ALL_MBOX_BITS, PRCM_ARM_IT1_CLR);
++	ret = request_irq(irq, dbx500_mbox_irq_handler,
++			IRQF_NO_SUSPEND, "db8500_mbox", NULL);
++	if (ret) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	dbx500_mbox_irq_domain = irq_domain_add_linear(
++		np, NUM_MB, &dbx500_mbox_irq_ops, NULL);
++
++	if (!dbx500_mbox_irq_domain) {
++		dev_err(&pdev->dev, "Failed to create irqdomain\n");
++		ret = -ENOSYS;
++		goto irq_free;
++	}
++
++	/*
++	 * Update mailbox shared memory buffer offset according to mailbox
++	 * type
++	 */
++	for (i = 0; list[i]; i++) {
++		struct mailbox *mbox = list[i];
++		struct dbx500_mbox_priv *priv =
++			(struct dbx500_mbox_priv *)mbox->priv;
++		if (!priv)
++			continue;
++		mbox->irq = irq_create_mapping(dbx500_mbox_irq_domain,
++								mbox->id);
++		if (priv->type == MAILBOX_LEGACY) {
++			priv->rx_offset += legacy_offset;
++			priv->rx_header_offset += legacy_offset;
++			priv->tx_offset += legacy_offset;
++			priv->tx_header_offset += legacy_offset;
++		} else if (priv->type == MAILBOX_UPAP) {
++			priv->tx_offset += upap_offset;
++			priv->rx_offset += upap_offset;
++		}
++	}
++
++	ret = mailbox_register(&pdev->dev, list);
++irq_free:
++	if (ret)
++		free_irq(irq, NULL);
++
++out:
++	return ret;
++}
++
++static int dbx500_mbox_remove(struct platform_device *pdev)
++{
++	mailbox_unregister();
++	iounmap(mbox_base);
++	return 0;
++}
++
++static const struct platform_device_id dbx500_mbox_id[] = {
++	{
++		.name = "db8500-mailbox",
++		.driver_data = (unsigned long) db8500_mboxes,
++	}, {
++		.name = "db9540-mailbox",
++		.driver_data = (unsigned long) dbx540_mboxes,
++	}, {
++		/* sentinel */
++	}
++};
++
++static struct platform_driver dbx500_mbox_driver = {
++	.probe = dbx500_mbox_probe,
++	.remove = dbx500_mbox_remove,
++	.driver = {
++		.name = "dbx500-mailbox",
++		.of_match_table = dbx500_mailbox_match,
++	},
++	.id_table = dbx500_mbox_id,
++};
++
++static int __init dbx500_mbox_init(void)
++{
++	return platform_driver_register(&dbx500_mbox_driver);
++}
++
++static void __exit dbx500_mbox_exit(void)
++{
++	platform_driver_unregister(&dbx500_mbox_driver);
++}
++
++postcore_initcall(dbx500_mbox_init);
++module_exit(dbx500_mbox_exit);
++
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("ST-Ericsson mailbox: dbx500 architecture specific functions");
++MODULE_AUTHOR("Loic Pallardy <loic.pallardy@st.com>");
++MODULE_ALIAS("platform:dbx500-mailbox");
+diff --git a/include/linux/platform_data/mailbox-dbx500.h b/include/linux/platform_data/mailbox-dbx500.h
+new file mode 100644
+index 0000000..d5aebd9
+--- /dev/null
++++ b/include/linux/platform_data/mailbox-dbx500.h
+@@ -0,0 +1,12 @@
++/*
++ * mailbox-dbx500.h
++ *
++ * Copyright (C) ST-Ericsson SA 2012
++ * Author:  <loic.pallardy@st.com> for ST-Ericsson.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++struct dbx500_plat_data {
++	unsigned int legacy_offset;
++	unsigned int upap_offset;
++};
 -- 
 1.8.1.2
