@@ -1,123 +1,47 @@
-From: Anil Kumar <anilk4.v@gmail.com>
-Subject: [PATCH] ARM: dts: omap3-devkit8000: Enable audio support
-Date: Tue, 12 Feb 2013 17:51:57 +0530
-Message-ID: <1360671717-32050-1-git-send-email-anilk4.v@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
-Cc: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, grant.likely@secretlab.ca, peter.ujfalusi@ti.com, thomas@tomweber.eu, anilk4.v@gmail.com
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: DT GPMC SRAM and NOR flash support ?
+Date: Tue, 12 Feb 2013 11:36:23 -0300
+Message-ID: <CALF0-+U-N3_EZiTtdTuZUiTEpUOhNktfXDG0RMORX1yOA_4Jjg@mail.gmail.com>
+References: <510BF3D3.3000304@mimc.co.uk>
+	<510BF766.5090608@ti.com>
+	<510C19FC.8090906@mimc.co.uk>
+	<5111304C.7090706@mimc.co.uk>
+	<511134C8.8000008@ti.com>
+	<511137CF.1090706@mimc.co.uk>
+	<51113C74.4070607@ti.com>
+	<51137923.4070301@mimc.co.uk>
+	<CALF0-+VQ3CJ+GU+Gp7TFDpzND8K48Q_d2yoEy=Y1TdyD1Nb9kA@mail.gmail.com>
+	<51196F07.1020600@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ia0-f177.google.com ([209.85.210.177]:47890 "EHLO
+	mail-ia0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759654Ab3BLOgY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 09:36:24 -0500
+Received: by mail-ia0-f177.google.com with SMTP id k38so125890iah.22
+        for <linux-omap@vger.kernel.org>; Tue, 12 Feb 2013 06:36:23 -0800 (PST)
+In-Reply-To: <51196F07.1020600@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Mark Jackson <mpfj-list@mimc.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Afzal Mohammed <afzal@ti.com>
 
-Add the needed sections to enable audio support and related pin mux on
-Devkit8000 when booted with DT blob.
+Hi Jon
 
-Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
----
-This patch is based on top of kernel 3.8-rc5 and
-the following patches.
+On Mon, Feb 11, 2013 at 7:21 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+>
+> This is being call from the mach-omap2/board-generic.c file on boot.
+> Where are you suggesting this is called from?
+>
 
-Peter Ujfalusi:-
-ASoC: twl4030: Correct the support for Voice port
-ASoC: twl4030: Convert MICBIAS to SUPPLY widget
-ASoC: omap-twl4030: Add support for routing, voice port and jack detect
+I was suggesting this could be called in gpmc_probe_dt() in gpmc.c.
+Instead of using for_each_node_by_name() and initialize manually each node,
+it should be possibly (perhaps with some ugly hack) to use
+of_platform_populate()
+to initialize gpmc child devices.
 
-Anil Kumar:-
-ARM: dts: add minimal DT support for DevKit8000
-https://patchwork.kernel.org/patch/2122461/
+But I'm not exactly sure how this would work.
 
--Tested for playback and capture on Devkit8000.
-
- Test process:-
-
- #amixer set 'PredriveR Mixer AudioR2' on
- #amixer set 'PredriveL Mixer AudioL2' on
- #amixer set PreDriv 100 unmute
- #amixer set 'DAC2 Digital Fine' 100
- #amixer cset numid=27 1
- #arecord | aplay
-
-:100644 100644 dc59272... 1e2c931... M	arch/arm/boot/dts/omap3-devkit8000.dts
- arch/arm/boot/dts/omap3-devkit8000.dts |   43 ++++++++++++++++++++++++++++---
- 1 files changed, 38 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
-index dc59272..1e2c931 100644
---- a/arch/arm/boot/dts/omap3-devkit8000.dts
-+++ b/arch/arm/boot/dts/omap3-devkit8000.dts
-@@ -44,11 +44,27 @@
-                 };
- 
- 	};
-+
-+	sound {
-+		compatible = "ti,omap-twl4030";
-+		ti,model = "devkit8000";
-+
-+		ti,mcbsp = <&mcbsp2>;
-+		ti,codec = <&twl_audio>;
-+		ti,audio-routing =
-+			"Ext Spk", "PREDRIVEL",
-+			"Ext Spk", "PREDRIVER",
-+			"MAINMIC", "Main Mic",
-+			"Main Mic", "Mic Bias 1";
-+	};
- };
- 
- &omap3_pmx_core {
- 	pinctrl-names = "default";
--	pinctrl-0 = <&i2c1_pins>;
-+	pinctrl-0 = <
-+			&i2c1_pins
-+			&mcbsp2_pins
-+		>;
- 
- 	leds_pins: pinmux_led_pins {
- 		pinctrl-single,pins = <
-@@ -65,6 +81,21 @@
- 			0x18c 0x118	/* I2C1_SDA */
-                 >;
- 	};
-+
-+	mcbsp2_pins: pinmux_mcbsp2_pins {
-+                pinctrl-single,pins = <
-+			/*
-+			 * MCBSP2_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT,
-+			 * MCBSP2_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT
-+			 */
-+			0x10c 0x01000100
-+			/*
-+			 * MCBSP2_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT,
-+			 * MCBSP2_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT
-+			 */
-+			0x110 0x00000100
-+		>;
-+	};
- };
- 
- &i2c1 {
-@@ -74,6 +105,12 @@
- 		reg = <0x48>;
- 		interrupts = <7>;	/* SYS_NIRQ cascaded to intc */
- 		interrupt-parent = <&intc>;
-+
-+		twl_audio: audio {
-+			compatible = "ti,twl4030-audio";
-+			codec {
-+			};
-+		};
- 	};
- };
- 
-@@ -109,10 +146,6 @@
- 	status = "disabled";
- };
- 
--&mcbsp2 {
--	status = "disabled";
--};
--
- &mcbsp3 {
- 	status = "disabled";
- };
 -- 
-1.7.0.4
+    Ezequiel
