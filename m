@@ -1,46 +1,35 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: [PATCH] ARM: OMAP2+: SmartReflex: soc.h is needed for omap initcalls
-Date: Tue, 12 Feb 2013 14:23:56 -0800
-Message-ID: <1360707836-2545-1-git-send-email-khilman@linaro.org>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] ARM: OMAP1: fix USB host on 1710
+Date: Wed, 13 Feb 2013 01:13:54 +0200
+Message-ID: <20130212231353.GA9991@blackmetal.musicnaut.iki.fi>
+References: <1359066295-20382-1-git-send-email-aaro.koskinen@iki.fi>
+ <alpine.DEB.2.00.1301250809500.471@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:64779 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752035Ab3BLWX7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 17:23:59 -0500
-Received: by mail-pa0-f45.google.com with SMTP id kl14so344691pab.4
-        for <linux-omap@vger.kernel.org>; Tue, 12 Feb 2013 14:23:59 -0800 (PST)
+Received: from filtteri5.pp.htv.fi ([213.243.153.188]:58914 "EHLO
+	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758831Ab3BLXOC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 18:14:02 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1301250809500.471@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-commit aa4f99638b (ARM: OMAP2+: Use omap initcalls) converted
-the initcalls here, but did not #include "soc.h" where the omap
-inicalls are defined.
+Hi,
 
-To fix, #include <soc.h>
+On Fri, Jan 25, 2013 at 08:10:05AM +0000, Paul Walmsley wrote:
+> On Fri, 25 Jan 2013, Aaro Koskinen wrote:
+> 
+> > There is a long-standing bug that OHCI USB host controller does
+> > not respond on 1710, because of wrong clock definitions. See e.g.
+> > http://marc.info/?l=linux-omap&m=119634441229321&w=2. All register reads
+> > return just zeroes:
+> 
+> Thanks, queued for v3.8-rc fixes.
 
-Signed-off-by: Kevin Hilman <khilman@linaro.org>
----
-Tony, the patch that broke this was introduced in your
-omap-for-v3.9/multiplatform-enable-signed branch, and this problem was
-found only when compiling with PM (specifically, SmartReflex) enabled.
+What happened to this patch? Will it go to 3.9?
 
- arch/arm/mach-omap2/smartreflex-class3.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-index 80f3acb..b2dcbd3 100644
---- a/arch/arm/mach-omap2/smartreflex-class3.c
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -13,6 +13,7 @@
- 
- #include <linux/power/smartreflex.h>
- #include "voltage.h"
-+#include "soc.h"
- 
- static int sr_class3_enable(struct omap_sr *sr)
- {
--- 
-1.8.1.2
-
+A.
