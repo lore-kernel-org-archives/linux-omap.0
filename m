@@ -1,54 +1,83 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: [PATCH] ARM: omap: board-h4: remove warning for is_gpmc_muxed
-Date: Mon, 11 Feb 2013 19:47:16 -0800
-Message-ID: <1360640836-18792-1-git-send-email-olof@lixom.net>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] ARM: OMAP2+: fix some omap_device_build() calls that aren't
+ compiled by default
+Date: Tue, 12 Feb 2013 03:58:35 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1302120358130.14983@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:44278 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752817Ab3BLDr0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 22:47:26 -0500
-Received: by mail-pa0-f41.google.com with SMTP id fb11so3449789pad.28
-        for <linux-omap@vger.kernel.org>; Mon, 11 Feb 2013 19:47:26 -0800 (PST)
+Received: from utopia.booyaka.com ([74.50.51.50]:37217 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752817Ab3BLD6g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 22:58:36 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-If the ethernet driver is not selected, you otherwise get:
 
-arch/arm/mach-omap2/board-h4.c:237:12: warning: 'is_gpmc_muxed' defined but not used [-Wunused-function]
+Commit c1d1cd597fc77af3086470f8627d77f52f7f8b6c ("ARM: OMAP2+:
+omap_device: remove obsolete pm_lats and early_device code") missed a
+few omap_device_build() calls that aren't included as part of the default
+OMAP2+ Kconfig, omap2plus_defconfig.
 
-I guess it could be argued that the device setup should/could always
-be done even if the driver isn't enabled, but hopefully the board files
-will all go away some day so let's stick to the smaller delta.
+Ideally, all devices that are present on the SoC should be created by
+default, and only the corresponding device driver should be configured
+or deconfigured in Kconfig.  This allows drivers to be built as
+modules and loaded later, even if they weren't part of the original
+kernel build.  Unfortunately, we're not quite there yet.
 
-Signed-off-by: Olof Johansson <olof@lixom.net>
+Thanks to Tony Lindgren for reporting this, found during his
+randconfig tests.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-h4.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/am35xx-emac.c |    3 +--
+ arch/arm/mach-omap2/devices.c     |    2 +-
+ arch/arm/mach-omap2/sr_device.c   |    2 +-
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index 812c829..e34541d 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -229,6 +229,8 @@ static u32 get_sysboot_value(void)
- 		 OMAP2_SYSBOOT_1_MASK | OMAP2_SYSBOOT_0_MASK));
- }
+diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
+index a00d391..25b79a2 100644
+--- a/arch/arm/mach-omap2/am35xx-emac.c
++++ b/arch/arm/mach-omap2/am35xx-emac.c
+@@ -62,8 +62,7 @@ static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
+ {
+ 	struct platform_device *pdev;
  
-+#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91x_MODULE)
-+
- /* H4-2420's always used muxed mode, H4-2422's always use non-muxed
-  *
-  * Note: OMAP-GIT doesn't correctly do is_cpu_omap2422 and is_cpu_omap2423
-@@ -246,8 +248,6 @@ static u32 is_gpmc_muxed(void)
- 		return 0;
- }
+-	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len,
+-				 false);
++	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len);
+ 	if (IS_ERR(pdev)) {
+ 		WARN(1, "Can't build omap_device for %s:%s.\n",
+ 		     oh->class->name, oh->name);
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index d8a0cc3..6ecc89a 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -382,7 +382,7 @@ static void __init omap_init_hdmi_audio(void)
+ 		return;
+ 	}
  
--#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91x_MODULE)
--
- static struct omap_smc91x_platform_data board_smc91x_data = {
- 	.cs		= 1,
- 	.gpio_irq	= 92,
+-	pdev = omap_device_build("omap-hdmi-audio-dai", -1, oh, NULL, 0, 0);
++	pdev = omap_device_build("omap-hdmi-audio-dai", -1, oh, NULL, 0);
+ 	WARN(IS_ERR(pdev),
+ 	     "Can't build omap_device for omap-hdmi-audio-dai.\n");
+ 
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index bb829e0..d7bc33f 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -152,7 +152,7 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
+ 
+ 	sr_data->enable_on_init = sr_enable_on_init;
+ 
+-	pdev = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data), 0);
++	pdev = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data));
+ 	if (IS_ERR(pdev))
+ 		pr_warning("%s: Could not build omap_device for %s: %s.\n\n",
+ 			__func__, name, oh->name);
 -- 
-1.8.1.192.gc4361b8
+1.7.10.4
 
