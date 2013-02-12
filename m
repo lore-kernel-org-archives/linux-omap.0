@@ -1,103 +1,109 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-Date: Tue, 12 Feb 2013 10:22:20 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229B98DD@DBDE01.ent.ti.com>
-References: <1359966525-7603-1-git-send-email-j-keerthy@ti.com>
- <alpine.DEB.2.00.1302080248550.8539@utopia.booyaka.com>
- <DC88CAD03C0052499C1907B327FC63229B92FF@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302081805450.28008@utopia.booyaka.com>
- <alpine.DEB.2.00.1302081855370.28008@utopia.booyaka.com>
-  <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com>
- <DC88CAD03C0052499C1907B327FC63229B989B@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302120638580.14983@utopia.booyaka.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v2 10/13] mailbox: create dbx500 mailbox driver
+Date: Tue, 12 Feb 2013 10:39:49 +0000
+Message-ID: <20130212103949.GA826@e106331-lin.cambridge.arm.com>
+References: <1360645032-9668-1-git-send-email-s-anna@ti.com>
+ <1360645032-9668-11-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59690 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755459Ab3BLKWb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 05:22:31 -0500
-In-Reply-To: <alpine.DEB.2.00.1302120638580.14983@utopia.booyaka.com>
-Content-Language: en-US
+Received: from service87.mimecast.com ([91.220.42.44]:44342 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932906Ab3BLKj5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 05:39:57 -0500
+In-Reply-To: <1360645032-9668-11-git-send-email-s-anna@ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Suman Anna <s-anna@ti.com>
+Cc: Greg Kroah-Hartman <greg@linuxfoundation.org>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Paul,
+Hello,
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Tuesday, February 12, 2013 12:09 PM
-> To: J, KEERTHY
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
->=20
-> On Tue, 12 Feb 2013, J, KEERTHY wrote:
->=20
-> > > -----Original Message-----
-> > > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > > Sent: Monday, February 11, 2013 9:10 PM
-> > > To: J, KEERTHY
-> > > Cc: linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org
-> > > Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-> > >
-> > > On Mon, 11 Feb 2013, J, KEERTHY wrote:
-> > >
-> > > > Can I pull the other patches and rebase this patch on top of
-> them?
-> > > > I need the branch where I can pull the other clock related
-> patches.
-> > > > I will rebase this patch on top, Verify the PM suspend on
-> OMAP4460
-> > > > And post it.
-> > >
-> > > It's based on Tony's omap-for-v3.9/pm branch.
-> > >
-> >
-> > I am on the above branch. I am not seeing retention with/without th=
-e
-> patch.
->=20
-> Sounds like you get to do some bisecting :-)
->=20
+I have a few comments on the devicetree binding and the way it's parsed.
 
-Heh :-). It narrowed down to this patch:
+> +static const struct of_device_id dbx500_mailbox_match[] = {
+> +       { .compatible = "stericsson,db8500-mailbox",
+> +               .data = (void *)db8500_mboxes,
+> +       },
+> +       { .compatible = "stericsson,db9540-mailbox",
+> +               .data = (void *)dbx540_mboxes,
+> +       },
+> +       { /* sentinel */}
+> +};
+> +
 
-commit 17b7e7d33530e2bbd3bdc90f4db09b91cfdde2bb
-Author: Paul Walmsley <paul@pwsan.com>
-Date:   Sat Jan 26 00:48:54 2013 -0700
+The binding for the compatible strings above and property parsing below should
+be documented.
 
-    ARM: OMAP4: clock/hwmod data: start to remove some IP block control=
- "clocks"
-   =20
-    Remove some leaf "clocks" that are actually IP block idle control
-    points, since these should now be handled by the hwmod code.
-   =20
-    There are still a few types of MODULEMODE clocks that need to be
-    cleaned up:
-   =20
-    - those still in use by driver or integration code
-   =20
-    - those in DEFINE_CLK_OMAP_MUX_GATE() blocks; the gate portion of
-      these should be removed
-   =20
-    A similar process may also be possible on OMAP2/3.
-   =20
-    Signed-off-by: Paul Walmsley <paul@pwsan.com>
-    Cc: Beno=EEt Cousson <b-cousson@ti.com>
-    Cc: Mike Turquette <mturquette@linaro.org>
+> +static int dbx500_mbox_probe(struct platform_device *pdev)
+> +{
+> +       const struct platform_device_id *platid = platform_get_device_id(pdev);
+> +       struct resource *mem;
+> +       int ret, i, legacy_offset = 0, upap_offset;
+> +       struct mailbox **list;
+> +       int irq;
+> +       struct dbx500_plat_data *pdata = dev_get_platdata(&pdev->dev);
+> +       struct device_node *np = pdev->dev.of_node;
+> +
+> +       if (!pdata) {
+> +               if (np) {
+> +                       of_property_read_u32(np, "legacy-offset",
+> +                                                       &legacy_offset);
 
->=20
-> - Paul
+I see that legacy_offset is initialised to 0, and there's no check on the
+return value of of_property_read_u32. Does that mean this is an optional
+property? This needs to be documented.
 
-Regards,
-Keerthy
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +                       of_property_read_u32(np, "upap-offset", &upap_offset);
+
+However, upap_offset isn't initialised, but there's no check on the return
+value. If "upap-offset" isn't defined in the dt, upap_offset won't have been
+initialised. 
+
+Is there no basic sanity checking that could be done here? I assume there's a
+maximum offset we expect that's less than 4GB?
+
+Additionally, of_property_read_u32 takes a *u32, not *int. It would be nice to
+be consistent with the interface.
+
+I'm not familiar with the hardware. What's the difference between the legacy
+and upap cases?
+
+> +                       list = (struct mailbox **)of_match_device(
+> +                                       dbx500_mailbox_match, &pdev->dev)->data;
+> +                       if (!list) {
+> +                               /* No mailbox configuration */
+> +                               dev_err(&pdev->dev, "No configuration found\n");
+> +                               return -ENODEV;
+> +                       }
+> +               } else {
+> +                       /* No mailbox configuration */
+> +                       dev_err(&pdev->dev, "No configuration found\n");
+> +                       return -ENODEV;
+> +               }
+> +       } else {
+> +               list = (struct mailbox **)platid->driver_data;
+> +               legacy_offset = pdata->legacy_offset;
+> +               upap_offset = pdata->upap_offset;
+> +       }
+> +
+> +       mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "prcm_reg");
+
+Does this work for dt? I wasn't aware we got anything more than anonymous
+memory and interrupts.
+
+> +       mbox_base = devm_ioremap(&pdev->dev, mem->start, resource_size(mem));
+> +       if (!mbox_base) {
+> +               ret = -ENOMEM;
+> +               goto out;
+> +       }
+> +
+> +       mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "prcmu_tcdm");
+
+Same here.
+
+Thanks,
+Mark.
+
