@@ -1,102 +1,42 @@
-From: Philip Avinash <avinashphilip@ti.com>
-Subject: [PATCH v2] ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK
-Date: Tue, 12 Feb 2013 13:02:56 +0530
-Message-ID: <1360654376-27057-1-git-send-email-avinashphilip@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: Allow clock alias provision from device
+ tree
+Date: Tue, 12 Feb 2013 09:47:40 +0200
+Message-ID: <5119F39C.2080206@ti.com>
+References: <1360597464-8491-1-git-send-email-rogerq@ti.com>
+ <20130211160752.GG1906@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk
-Cc: hvaibhav@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, "Philip, Avinash" <avinashphilip@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130211160752.GG1906-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Philip, Avinash" <avinashphilip@ti.com>
+On 02/11/2013 06:07 PM, Sascha Hauer wrote:
+> On Mon, Feb 11, 2013 at 05:44:23PM +0200, Roger Quadros wrote:
+>> Currently on OMAP, it is not possible to specify a clock consumer
+>> to any of the OMAP generated clocks using the device tree. This can pose
+>> a problem for external devices that run off an OMAP clock as we
+>> can't reliably provide a reference to the clock in the device tree.
+> 
+> There is an established way of providing clocks in the devicetree using
+> the clocks/clock-names properties. Wouldn't it be better using this
+> for OMAP aswell?
+> 
+I agree with you, but I'm not sure when this migration will be done.
+Rajendra/Santosh might know better.
 
-EHRPWM module requires explicit clock gating of TBCLK from control
-module. Hence add TBCLK clock node in clock tree for EHRPWM modules.
-
-Signed-off-by: Philip Avinash <avinashphilip@ti.com>
----
-Changes since v1:
-	- Remove sparse warnings
-	arch/arm/mach-omap2/cclock33xx_data.c:844:1: warning: Using plain
-	integer as NULL pointer
-	arch/arm/mach-omap2/cclock33xx_data.c:850:1: warning: Using plain 
-	integer as NULL pointer
-	arch/arm/mach-omap2/cclock33xx_data.c:856:1: warning: Using plain 
-	integer as NULL pointer
-
-
- arch/arm/mach-omap2/cclock33xx_data.c |   30 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/control.h         |    8 ++++++++
- 2 files changed, 38 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
-index ea64ad6..22387fa 100644
---- a/arch/arm/mach-omap2/cclock33xx_data.c
-+++ b/arch/arm/mach-omap2/cclock33xx_data.c
-@@ -832,6 +832,33 @@ static struct clk_hw_omap wdt1_fck_hw = {
- 
- DEFINE_STRUCT_CLK(wdt1_fck, wdt_ck_parents, gpio_fck_ops);
- 
-+static const char *pwmss_clk_parents[] = {
-+	"dpll_per_m2_ck",
-+};
-+
-+static const struct clk_ops ehrpwm_tbclk_ops = {
-+	.enable		= &omap2_dflt_clk_enable,
-+	.disable	= &omap2_dflt_clk_disable,
-+};
-+
-+DEFINE_CLK_OMAP_MUX_GATE(ehrpwm0_tbclk, "l4ls_clkdm",
-+			 NULL, NULL, 0,
-+			 AM33XX_CTRL_REGADDR(AM33XX_PWMSS_TBCLK_CLKCTRL),
-+			 AM33XX_PWMSS0_TBCLKEN_SHIFT,
-+			 NULL, pwmss_clk_parents, ehrpwm_tbclk_ops);
-+
-+DEFINE_CLK_OMAP_MUX_GATE(ehrpwm1_tbclk, "l4ls_clkdm",
-+			 NULL, NULL, 0,
-+			 AM33XX_CTRL_REGADDR(AM33XX_PWMSS_TBCLK_CLKCTRL),
-+			 AM33XX_PWMSS1_TBCLKEN_SHIFT,
-+			 NULL, pwmss_clk_parents, ehrpwm_tbclk_ops);
-+
-+DEFINE_CLK_OMAP_MUX_GATE(ehrpwm2_tbclk, "l4ls_clkdm",
-+			 NULL, NULL, 0,
-+			 AM33XX_CTRL_REGADDR(AM33XX_PWMSS_TBCLK_CLKCTRL),
-+			 AM33XX_PWMSS2_TBCLKEN_SHIFT,
-+			 NULL, pwmss_clk_parents, ehrpwm_tbclk_ops);
-+
- /*
-  * clkdev
-  */
-@@ -910,6 +937,9 @@ static struct omap_clk am33xx_clks[] = {
- 	CLK(NULL,	"clkout2_div_ck",	&clkout2_div_ck,	CK_AM33XX),
- 	CLK(NULL,	"timer_32k_ck",		&clkdiv32k_ick,	CK_AM33XX),
- 	CLK(NULL,	"timer_sys_ck",		&sys_clkin_ck,	CK_AM33XX),
-+	CLK("48300200.ehrpwm",	"tbclk",	&ehrpwm0_tbclk,	CK_AM33XX),
-+	CLK("48302200.ehrpwm",	"tbclk",	&ehrpwm1_tbclk,	CK_AM33XX),
-+	CLK("48304200.ehrpwm",	"tbclk",	&ehrpwm2_tbclk,	CK_AM33XX),
- };
- 
- 
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index 4b05eb9..2fe2812 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -389,6 +389,14 @@
- #define AM33XX_DDR_DATA0_IOCTRL		0x1440
- #define AM33XX_DDR_DATA1_IOCTRL		0x1444
- 
-+/* AM33XX PWMSS Control register */
-+#define AM33XX_PWMSS_TBCLK_CLKCTRL			0x664
-+
-+/* AM33XX  PWMSS Control bitfields */
-+#define AM33XX_PWMSS0_TBCLKEN_SHIFT			0
-+#define AM33XX_PWMSS1_TBCLKEN_SHIFT			1
-+#define AM33XX_PWMSS2_TBCLKEN_SHIFT			2
-+
- /* CONTROL OMAP STATUS register to identify OMAP3 features */
- #define OMAP3_CONTROL_OMAP_STATUS	0x044c
- 
--- 
-1.7.9.5
+regards,
+-roger
