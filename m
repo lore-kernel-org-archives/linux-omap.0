@@ -1,44 +1,57 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-Date: Tue, 12 Feb 2013 06:39:28 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1302120638580.14983@utopia.booyaka.com>
-References: <1359966525-7603-1-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.00.1302080248550.8539@utopia.booyaka.com> <DC88CAD03C0052499C1907B327FC63229B92FF@DBDE01.ent.ti.com> <alpine.DEB.2.00.1302081805450.28008@utopia.booyaka.com>
- <alpine.DEB.2.00.1302081855370.28008@utopia.booyaka.com>  <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com> <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com> <DC88CAD03C0052499C1907B327FC63229B989B@DBDE01.ent.ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH 4/7] ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK
+Date: Tue, 12 Feb 2013 06:55:18 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3EA73534@DBDE01.ent.ti.com>
+References: <1357133094-30806-1-git-send-email-avinashphilip@ti.com>
+ <1357133094-30806-5-git-send-email-avinashphilip@ti.com>
+ <alpine.DEB.2.00.1302081505350.28008@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:37834 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753801Ab3BLGj3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 01:39:29 -0500
-In-Reply-To: <DC88CAD03C0052499C1907B327FC63229B989B@DBDE01.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40186 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753508Ab3BLG4b convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 01:56:31 -0500
+In-Reply-To: <alpine.DEB.2.00.1302081505350.28008@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
 
-On Tue, 12 Feb 2013, J, KEERTHY wrote:
-
-> > -----Original Message-----
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > Sent: Monday, February 11, 2013 9:10 PM
-> > To: J, KEERTHY
-> > Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> > Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-> > 
-> > On Mon, 11 Feb 2013, J, KEERTHY wrote:
-> > 
-> > > Can I pull the other patches and rebase this patch on top of them?
-> > > I need the branch where I can pull the other clock related patches.
-> > > I will rebase this patch on top, Verify the PM suspend on OMAP4460
-> > > And post it.
-> > 
-> > It's based on Tony's omap-for-v3.9/pm branch.
-> > 
+On Fri, Feb 08, 2013 at 20:36:53, Paul Walmsley wrote:
+> Hi,
 > 
-> I am on the above branch. I am not seeing retention with/without the patch.
+> On Wed, 2 Jan 2013, Philip Avinash wrote:
+> 
+> > EHRPWM module requires explicit clock gating of TBCLK from control
+> > module. Hence add TBCLK clock node in clock tree for EHRPWM modules.
+> > 
+> > Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+> 
+> This patch adds some sparse[1] warnings:
+> 
+> > arch/arm/mach-omap2/cclock33xx_data.c:844:1: warning: Using plain 
+> integer as NULL pointer
+> > arch/arm/mach-omap2/cclock33xx_data.c:850:1: warning: Using plain 
+> integer as NULL pointer
+> > arch/arm/mach-omap2/cclock33xx_data.c:856:1: warning: Using plain 
+> integer as NULL pointer
+> 
+> Could you fix these, please?
 
-Sounds like you get to do some bisecting :-)
+Sorry for late response. I will send an updated version with fix for
+sparse warnings.
 
+Thanks
+Avinash
 
-- Paul
+> 
+> 
+> - Paul
+> 
+> 1. Sparse: https://sparse.wiki.kernel.org/index.php/Main_Page
+> 
+> 
+
