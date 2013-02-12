@@ -1,79 +1,106 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 5/5] omap4 pm late changes for v3.9 merge window
-Date: Tue, 12 Feb 2013 10:11:02 -0800
-Message-ID: <E1U5KKg-0003th-9T@merlin.infradead.org>
-References: <pull-1360692662-889112>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH v2 0/8] ARM: omap2: GPMC cleanup
+Date: Tue, 12 Feb 2013 15:26:15 -0300
+Message-ID: <20130212182614.GA2574@localhost>
+References: <1360682305-20935-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <511A6EA1.80301@ti.com>
+ <20130212171253.GI4801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.free-electrons.com ([94.23.35.102]:46831 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933421Ab3BLS0J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 13:26:09 -0500
 Content-Disposition: inline
-In-Reply-To: <pull-1360692662-889112>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20130212171253.GI4801@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Afzal Mohammed <afzal@ti.com>
 
-The following changes since commit 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7:
+On Tue, Feb 12, 2013 at 09:12:53AM -0800, Tony Lindgren wrote:
+> * Jon Hunter <jon-hunter@ti.com> [130212 08:36]:
+> >=20
+> > On 02/12/2013 09:18 AM, Ezequiel Garcia wrote:
+> > > This patchset is v2 of the small cleanup consisting in:
+> > >  * mark some functions as 'static' when appropriate
+> > >  * remove an unused function from gpmc.c
+> > >  * improve error messages when a CS request fails
+> > >  * migrate to dev_err and dev_warn
+> > >=20
+> > > Changelog from v1:
+> > >  * fix gpmc_cs_reserved to return a boolean instead
+> > >    of an integer error code
+> > >  * add a new patch to the patchset cleaning redundant checks
+> > >=20
+> > > It has been tested on a IGEP v2 board with OneNAND,
+> > > which means the gpmc-nand patch is tested by compilation only.
+> > >=20
+> > > Altough these patchset is almost trivial,
+> > > any feedback or testing is more than welcome.
+> > >=20
+> > > Ezequiel Garcia (8):
+> > >   ARM: omap2: gpmc: Mark local scoped functions static
+> > >   ARM: omap2: gpmc: Remove unused gpmc_round_ns_to_ticks() functi=
+on
+> > >   ARM: omap2: gpmc: Fix gpmc_cs_reserved() return value
+> > >   ARM: omap2: gpmc-nand: Print something useful on CS request fai=
+lure
+> > >   ARM: omap2: gpmc-onenand: Print something useful on CS request =
+failure
+> > >   ARM: omap2: gpmc-onenand: Replace pr_err() with dev_err()
+> > >   ARM: omap2: gpmc-onenand: Replace printk KERN_ERR with dev_warn=
+()
+> > >   ARM: omap2: gpmc: Remove redundant chip select out of range che=
+ck
+> > >=20
+> > >  arch/arm/mach-omap2/gpmc-nand.c    |    3 ++-
+> > >  arch/arm/mach-omap2/gpmc-onenand.c |    8 +++++---
+> > >  arch/arm/mach-omap2/gpmc.c         |   27 ++++++----------------=
+-----
+> > >  arch/arm/mach-omap2/gpmc.h         |    7 -------
+> > >  4 files changed, 13 insertions(+), 32 deletions(-)
+> >=20
+> > Looks good to me. I noticed that for some patches there is no chang=
+elog
+> > and I understand that that is because they are some what trivial
+> > clean-ups and the subject explains the patch. However, typically it=
+ is
+> > good to have a changelog in the patch no matter how trivial it is. =
+Tony
+> > may ask you to add a changelog. Otherwise ...
+> >=20
+> > Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+>=20
+> Yes please add a changelog.
+>=20
 
-  Linux 3.8-rc6 (2013-02-01 12:08:14 +1100)
+Patches with no changelog have no changelog ;-)
 
-are available in the git repository at:
+My usual workflow is to re-send a whole series, and only
+add a changelog to the ones that actually change.
+=46or instance, for this patchset, the only one that actually changed
+is "ARM: omap2: gpmc: Fix gpmc_cs_reserved() return value".
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/pm-omap4-signed
+The rest is just the same it was in v1.
 
-for you to fetch changes up to 93b23711b7132400d4d76f31c660d27a2bb0afdb:
+I like to do it this way, because I think it keeps the patches
+together, and I hope I make maintainers life easier; of course,
+I might be wrong.
 
-  Merge tag 'omap-devel-d2-for-3.9' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.9/pm-omap4 (2013-02-11 09:40:45 -0800)
+So, should I use a different workflow and send only the patches
+that change with new versions?
 
-----------------------------------------------------------------
+Thanks,
 
-omap4 pm changes via Paul Walmsley <paul@pwsan.com>:
-
-Some OMAP4 power management fixes and audio device integration
-patches.  This pull request contains a fix for an issue discovered during
-branch integration.
-
-Basic test logs are available at:
-
-    http://www.pwsan.com/omap/testlogs/omap4_prcm_devel_a_3.9/20130210112717/
-
-----------------------------------------------------------------
-Paul Walmsley (4):
-      ARM: OMAP2+: hwmod: add enable_preprogram hook
-      ASoC: TI AESS: add autogating-enable function, callable from architecture code
-      ARM: OMAP4+: AESS: enable internal auto-gating during initial setup
-      Merge branches 'sg_aess_reset_devel_3.9' and 'omap4_pm_fixes_a_3.9' into omap4_prcm_devel_a_3.9
-
-Rajendra Nayak (1):
-      ARM: OMAP4: PM: Warn users about usage of older bootloaders
-
-Santosh Shilimkar (1):
-      ARM: OMAP2+: PM: Fix the dt return condition in pm_late_init()
-
-Sebastien Guiriec (2):
-      ARM: OMAP4: hwmod data: Update AESS data with memory bank area
-      ARM: OMAP4: hwmod data: Enable AESS hwmod device
-
-Tony Lindgren (1):
-      Merge tag 'omap-devel-d2-for-3.9' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.9/pm-omap4
-
- arch/arm/mach-omap2/Makefile               |  2 +-
- arch/arm/mach-omap2/omap_hwmod.c           | 18 ++++++++++
- arch/arm/mach-omap2/omap_hwmod.h           |  8 +++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 51 +++++++++++++++++++++++++---
- arch/arm/mach-omap2/omap_hwmod_reset.c     | 52 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.c                   | 20 +++++------
- arch/arm/mach-omap2/pm44xx.c               | 21 ++++++++++--
- include/sound/aess.h                       | 53 ++++++++++++++++++++++++++++++
- 8 files changed, 208 insertions(+), 17 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_reset.c
- create mode 100644 include/sound/aess.h
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
