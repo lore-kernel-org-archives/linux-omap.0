@@ -1,56 +1,146 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [PATCH v2 8/8] ARM: omap2: gpmc: Remove redundant chip select out of range check
-Date: Tue, 12 Feb 2013 12:18:25 -0300
-Message-ID: <1360682305-20935-9-git-send-email-ezequiel.garcia@free-electrons.com>
-References: <1360682305-20935-1-git-send-email-ezequiel.garcia@free-electrons.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 1/3] ARM: OMAP2xxx: PM: enter WFI via inline asm if CORE stays active
+Date: Tue, 12 Feb 2013 07:28:41 -0800
+Message-ID: <87wqudv9ee.fsf@linaro.org>
+References: <20121230182745.30526.47072.stgit@dusk.lan>
+	<20121230182826.30526.27155.stgit@dusk.lan>
+	<alpine.DEB.2.00.1302062119540.12769@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:45399 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932967Ab3BLPSm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 10:18:42 -0500
-In-Reply-To: <1360682305-20935-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:34070 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758571Ab3BLP2q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 10:28:46 -0500
+Received: by mail-pa0-f41.google.com with SMTP id fb11so144188pad.0
+        for <linux-omap@vger.kernel.org>; Tue, 12 Feb 2013 07:28:46 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1302062119540.12769@utopia.booyaka.com> (Paul
+	Walmsley's message of "Wed, 6 Feb 2013 21:21:59 +0000 (UTC)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Jon Hunter <jon-hunter@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Richard Woodruff <r-woodruff2@ti.com>
 
-This check is done before the call to gpmc_cs_reserved() and
-gpmc_cs_set_reserved() and it's redundant to do it again in each
-function. This simplifies the code a bit.
+Paul Walmsley <paul@pwsan.com> writes:
 
-Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
----
- arch/arm/mach-omap2/gpmc.c |   10 +---------
- 1 files changed, 1 insertions(+), 9 deletions(-)
+> On Sun, 30 Dec 2012, Paul Walmsley wrote:
+>
+>> There shouldn't be any need to jump to SRAM code if the OMAP CORE
+>> clockdomain (and consequently the SDRAM controller and CORE PLL) stays
+>> active during MPU WFI.  The SRAM code should only be needed when the RAM
+>> enters self-refresh.  So in the case where CORE stays active, just call
+>> WFI directly from the mach-omap2/pm24xx.c code.  This removes some
+>> unnecessary SRAM code.
+>> 
+>> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+>> Cc: Richard Woodruff <r-woodruff2@ti.com>
+>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>
+> Here's an updated version of this one.
+>
+>
+> - Paul
+>
+> From: Paul Walmsley <paul@pwsan.com>
+> Date: Sun, 30 Dec 2012 10:15:48 -0700
+> Subject: [PATCH] ARM: OMAP2xxx: PM: enter WFI via inline asm if CORE stays
+>  active
+>
+> There shouldn't be any need to jump to SRAM code if the OMAP CORE
+> clockdomain (and consequently the SDRAM controller and CORE PLL) stays
+> active during MPU WFI.  The SRAM code should only be needed when the RAM
+> enters self-refresh.  So in the case where CORE stays active, just call
+> WFI directly from the mach-omap2/pm24xx.c code.  This removes some
+> unnecessary SRAM code.
+>
+> This second version replaces the inline WFI with the corresponding
+> coprocessor register call, using tlbflush.h as an example.  This is
+> because the assembler doesn't recognize WFI as a valid ARMv6
+> instruction.
+>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Richard Woodruff <r-woodruff2@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index fa4764f..0201ea9 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -441,22 +441,14 @@ static int gpmc_cs_mem_enabled(int cs)
- 	return l & GPMC_CONFIG7_CSVALID;
- }
- 
--static int gpmc_cs_set_reserved(int cs, int reserved)
-+static void gpmc_cs_set_reserved(int cs, int reserved)
- {
--	if (cs > GPMC_CS_NUM)
--		return -ENODEV;
--
- 	gpmc_cs_map &= ~(1 << cs);
- 	gpmc_cs_map |= (reserved ? 1 : 0) << cs;
--
--	return 0;
- }
- 
- static bool gpmc_cs_reserved(int cs)
- {
--	if (cs > GPMC_CS_NUM)
--		return true;
--
- 	return gpmc_cs_map & (1 << cs);
- }
- 
--- 
-1.7.8.6
+Acked-by: Kevin Hilman <khilman@linaro.org>
 
+> ---
+>  arch/arm/mach-omap2/pm24xx.c    |   12 ++++++------
+>  arch/arm/mach-omap2/sleep24xx.S |   19 -------------------
+>  2 files changed, 6 insertions(+), 25 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+> index c333fa6..8914b9e 100644
+> --- a/arch/arm/mach-omap2/pm24xx.c
+> +++ b/arch/arm/mach-omap2/pm24xx.c
+> @@ -54,7 +54,6 @@
+>  #include "powerdomain.h"
+>  #include "clockdomain.h"
+>  
+> -static void (*omap2_sram_idle)(void);
+>  static void (*omap2_sram_suspend)(u32 dllctrl, void __iomem *sdrc_dlla_ctrl,
+>  				  void __iomem *sdrc_power);
+>  
+> @@ -172,6 +171,8 @@ static int omap2_allow_mpu_retention(void)
+>  
+>  static void omap2_enter_mpu_retention(void)
+>  {
+> +	const int zero = 0;
+> +
+>  	/* Putting MPU into the WFI state while a transfer is active
+>  	 * seems to cause the I2C block to timeout. Why? Good question. */
+>  	if (omap2_i2c_active())
+> @@ -196,7 +197,8 @@ static void omap2_enter_mpu_retention(void)
+>  						 OMAP2_PM_PWSTCTRL);
+>  	}
+>  
+> -	omap2_sram_idle();
+> +	/* WFI */
+> +	asm("mcr p15, 0, %0, c7, c0, 4" : : "r" (zero) : "memory", "cc");
+>  }
+>  
+>  static int omap2_can_sleep(void)
+> @@ -356,11 +358,9 @@ int __init omap2_pm_init(void)
+>  	/*
+>  	 * We copy the assembler sleep/wakeup routines to SRAM.
+>  	 * These routines need to be in SRAM as that's the only
+> -	 * memory the MPU can see when it wakes up.
+> +	 * memory the MPU can see when it wakes up after the entire
+> +	 * chip enters idle.
+>  	 */
+> -	omap2_sram_idle = omap_sram_push(omap24xx_idle_loop_suspend,
+> -					 omap24xx_idle_loop_suspend_sz);
+> -
+>  	omap2_sram_suspend = omap_sram_push(omap24xx_cpu_suspend,
+>  					    omap24xx_cpu_suspend_sz);
+>  
+> diff --git a/arch/arm/mach-omap2/sleep24xx.S b/arch/arm/mach-omap2/sleep24xx.S
+> index ce0ccd2..1d3cb25 100644
+> --- a/arch/arm/mach-omap2/sleep24xx.S
+> +++ b/arch/arm/mach-omap2/sleep24xx.S
+> @@ -37,25 +37,6 @@
+>  	.text
+>  
+>  /*
+> - * Forces OMAP into idle state
+> - *
+> - * omap24xx_idle_loop_suspend() - This bit of code just executes the WFI
+> - * for normal idles.
+> - *
+> - * Note: This code get's copied to internal SRAM at boot. When the OMAP
+> - *	 wakes up it continues execution at the point it went to sleep.
+> - */
+> -	.align	3
+> -ENTRY(omap24xx_idle_loop_suspend)
+> -	stmfd	sp!, {r0, lr}		@ save registers on stack
+> -	mov	r0, #0			@ clear for mcr setup
+> -	mcr	p15, 0, r0, c7, c0, 4	@ wait for interrupt
+> -	ldmfd	sp!, {r0, pc}		@ restore regs and return
+> -
+> -ENTRY(omap24xx_idle_loop_suspend_sz)
+> -	.word	. - omap24xx_idle_loop_suspend
+> -
+> -/*
+>   * omap24xx_cpu_suspend() - Forces OMAP into deep sleep state by completing
+>   * SDRC shutdown then ARM shutdown.  Upon wake MPU is back on so just restore
+>   * SDRC.
