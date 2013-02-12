@@ -1,75 +1,65 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH v2 13/13] mailbox: call request_irq after mbox queues are allocated
-Date: Mon, 11 Feb 2013 22:57:12 -0600
-Message-ID: <1360645032-9668-14-git-send-email-s-anna@ti.com>
+Subject: [PATCH v2 11/13] mailbox/omap: check iomem resource before
+ dereferencing it
+Date: Mon, 11 Feb 2013 22:57:10 -0600
+Message-ID: <1360645032-9668-12-git-send-email-s-anna@ti.com>
 References: <1360645032-9668-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1360645032-9668-1-git-send-email-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Greg Kroah-Hartman <greg@linuxfoundation.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Loic Pallardy <loic.pallardy@st.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Felipe Contreras <felipe.contreras@nokia.com>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>, Suman Anna <s-anna@ti.com>, Fernando Guzman Lugo <lugo.fernando@gmail.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Suman Anna <s-anna@ti.com>, linux-kernel@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Fernando Guzman Lugo <lugo.fernando@gmail.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The mailbox startup code is enabling the interrupt even before
-any of the associated mailbox queues are allocated. Any pending
-received mailbox message could cause a kernel panic as soon as
-the interrupt is enabled due to the dereferencing of non-existing
-mailbox queues within the ISR.
+Add a NULL check for iomem resource in mailbox probe functions.
 
 Signed-off-by: Fernando Guzman Lugo <lugo.fernando@gmail.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/mailbox/mailbox.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/mailbox/mailbox-omap1.c | 3 +++
+ drivers/mailbox/mailbox-omap2.c | 5 +++++
+ 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-index c38241a..5fea5c2 100644
---- a/drivers/mailbox/mailbox.c
-+++ b/drivers/mailbox/mailbox.c
-@@ -377,14 +377,6 @@ static int mailbox_startup(struct mailbox *mbox)
+diff --git a/drivers/mailbox/mailbox-omap1.c b/drivers/mailbox/mailbox-omap1.c
+index 295c32a..5b0f2c1 100644
+--- a/drivers/mailbox/mailbox-omap1.c
++++ b/drivers/mailbox/mailbox-omap1.c
+@@ -179,6 +179,9 @@ static int omap1_mbox_probe(struct platform_device *pdev)
+ 	list[0]->irq = platform_get_irq_byname(pdev, "dsp");
+ 
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!mem)
++		return -ENOMEM;
++
+ 	mbox_base = ioremap(mem->start, resource_size(mem));
+ 	if (!mbox_base)
+ 		return -ENOMEM;
+diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
+index d3a3d84..9fbd491 100644
+--- a/drivers/mailbox/mailbox-omap2.c
++++ b/drivers/mailbox/mailbox-omap2.c
+@@ -293,6 +293,11 @@ static int omap2_mbox_probe(struct platform_device *pdev)
  	}
  
- 	if (!mbox->use_count++) {
--		ret = request_irq(mbox->irq, mbox_interrupt,
--				IRQF_SHARED | IRQF_NO_SUSPEND,
--				mbox->name, mbox);
--		if (unlikely(ret)) {
--			pr_err("failed to register mailbox interrupt:%d\n",
--					ret);
--			goto fail_request_irq;
--		}
- 		mq = mbox_queue_alloc(mbox, NULL, mbox_tx_tasklet);
- 		if (!mq) {
- 			ret = -ENOMEM;
-@@ -399,17 +391,25 @@ static int mailbox_startup(struct mailbox *mbox)
- 		}
- 		mbox->rxq = mq;
- 		mq->mbox = mbox;
-+		ret = request_irq(mbox->irq, mbox_interrupt,
-+				IRQF_SHARED | IRQF_NO_SUSPEND,
-+				mbox->name, mbox);
-+		if (unlikely(ret)) {
-+			pr_err("failed to register mailbox interrupt:%d\n",
-+					ret);
-+			goto fail_request_irq;
-+		}
- 
- 		mailbox_enable_irq(mbox, IRQ_RX);
- 	}
- 	mutex_unlock(&mbox_configured_lock);
- 	return 0;
- 
-+fail_request_irq:
-+	mbox_queue_free(mbox->rxq);
- fail_alloc_rxq:
- 	mbox_queue_free(mbox->txq);
- fail_alloc_txq:
--	free_irq(mbox->irq, mbox);
--fail_request_irq:
- 	if (mbox->ops->shutdown)
- 		mbox->ops->shutdown(mbox);
- 	mbox->use_count--;
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!mem) {
++		ret = -ENOMEM;
++		goto free;
++	}
++
+ 	mbox_base = ioremap(mem->start, resource_size(mem));
+ 	if (!mbox_base) {
+ 		ret = -ENOMEM;
 -- 
 1.8.1.2
