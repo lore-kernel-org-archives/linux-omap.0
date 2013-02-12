@@ -1,64 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap: board-h4: remove warning for is_gpmc_muxed
-Date: Tue, 12 Feb 2013 08:49:11 -0800
-Message-ID: <20130212164910.GF4801@atomide.com>
-References: <1360640836-18792-1-git-send-email-olof@lixom.net>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v7 07/10] dmaengine: add
+ dma_request_slave_channel_compat()
+Date: Tue, 12 Feb 2013 08:38:38 -0800
+Message-ID: <20130212163838.GR3789@intel.com>
+References: <1359742975-10421-1-git-send-email-mporter@ti.com>
+ <1359742975-10421-8-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:52394 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758698Ab3BLQtQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 11:49:16 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1360640836-18792-1-git-send-email-olof@lixom.net>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1359742975-10421-8-git-send-email-mporter@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Porter <mporter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Rob Herring <rob.herring@calxeda.com>
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Olof Johansson <olof@lixom.net> [130211 19:51]:
-> If the ethernet driver is not selected, you otherwise get:
+On Fri, Feb 01, 2013 at 01:22:52PM -0500, Matt Porter wrote:
+> Adds a dma_request_slave_channel_compat() wrapper which accepts
+> both the arguments from dma_request_channel() and
+> dma_request_slave_channel(). Based on whether the driver is
+> instantiated via DT, the appropriate channel request call will be
+> made.
 > 
-> arch/arm/mach-omap2/board-h4.c:237:12: warning: 'is_gpmc_muxed' defined but not used [-Wunused-function]
+> This allows for a much cleaner migration of drivers to the
+> dmaengine DT API as platforms continue to be mixed between those
+> that boot using DT and those that do not.
 > 
-> I guess it could be argued that the device setup should/could always
-> be done even if the driver isn't enabled, but hopefully the board files
-> will all go away some day so let's stick to the smaller delta.
+> Suggested-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Matt Porter <mporter@ti.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Vinod Koul <vinod.koul@intel.com>
 
-Looks right to me. The only thing stopping us from removing board-h4.c
-is the GPMC + smc91x DT binding for NFS root. I doubt anybody is using
-H4 for anything else.
-
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
-> Signed-off-by: Olof Johansson <olof@lixom.net>
 > ---
->  arch/arm/mach-omap2/board-h4.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  include/linux/dmaengine.h |   16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
 > 
-> diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-> index 812c829..e34541d 100644
-> --- a/arch/arm/mach-omap2/board-h4.c
-> +++ b/arch/arm/mach-omap2/board-h4.c
-> @@ -229,6 +229,8 @@ static u32 get_sysboot_value(void)
->  		 OMAP2_SYSBOOT_1_MASK | OMAP2_SYSBOOT_0_MASK));
->  }
->  
-> +#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91x_MODULE)
+> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+> index bfcdecb..17d8ffd 100644
+> --- a/include/linux/dmaengine.h
+> +++ b/include/linux/dmaengine.h
+> @@ -1001,6 +1001,22 @@ void dma_run_dependencies(struct dma_async_tx_descriptor *tx);
+>  struct dma_chan *dma_find_channel(enum dma_transaction_type tx_type);
+>  struct dma_chan *net_dma_find_channel(void);
+>  #define dma_request_channel(mask, x, y) __dma_request_channel(&(mask), x, y)
+> +#define dma_request_slave_channel_compat(mask, x, y, dev, name) \
+> +	__dma_request_slave_channel_compat(&(mask), x, y, dev, name)
 > +
->  /* H4-2420's always used muxed mode, H4-2422's always use non-muxed
->   *
->   * Note: OMAP-GIT doesn't correctly do is_cpu_omap2422 and is_cpu_omap2423
-> @@ -246,8 +248,6 @@ static u32 is_gpmc_muxed(void)
->  		return 0;
->  }
+> +static inline struct dma_chan
+> +*__dma_request_slave_channel_compat(dma_cap_mask_t *mask, dma_filter_fn fn,
+> +				  void *fn_param, struct device *dev,
+> +				  char *name)
+> +{
+> +	struct dma_chan *chan;
+> +
+> +	chan = dma_request_slave_channel(dev, name);
+> +	if (chan)
+> +		return chan;
+> +
+> +	return __dma_request_channel(mask, fn, fn_param);
+> +}
 >  
-> -#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91x_MODULE)
-> -
->  static struct omap_smc91x_platform_data board_smc91x_data = {
->  	.cs		= 1,
->  	.gpio_irq	= 92,
+>  /* --- Helper iov-locking functions --- */
+>  
 > -- 
-> 1.8.1.192.gc4361b8
+> 1.7.9.5
 > 
