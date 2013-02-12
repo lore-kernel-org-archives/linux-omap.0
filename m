@@ -1,39 +1,82 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-Date: Tue, 12 Feb 2013 20:49:00 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1302122028480.29149@utopia.booyaka.com>
-References: <1359966525-7603-1-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.00.1302080248550.8539@utopia.booyaka.com> <DC88CAD03C0052499C1907B327FC63229B92FF@DBDE01.ent.ti.com> <alpine.DEB.2.00.1302081805450.28008@utopia.booyaka.com>
- <alpine.DEB.2.00.1302081855370.28008@utopia.booyaka.com>  <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com> <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com> <DC88CAD03C0052499C1907B327FC63229B989B@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302120638580.14983@utopia.booyaka.com> <DC88CAD03C0052499C1907B327FC63229B98DD@DBDE01.ent.ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] usb: musb: fix context save over suspend.
+Date: Tue, 12 Feb 2013 13:03:36 -0800
+Message-ID: <87zjz9i6s7.fsf@linaro.org>
+References: <20130121202831.40a09bbc@notabene.brown>
+	<50FD28D3.5070107@compulab.co.il>
+	<20130122083832.7a3026c9@notabene.brown>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42441 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758579Ab3BLUtB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 15:49:01 -0500
-In-Reply-To: <DC88CAD03C0052499C1907B327FC63229B98DD@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130122083832.7a3026c9@notabene.brown> (NeilBrown's message of
+	"Tue, 22 Jan 2013 08:38:32 +1100")
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 12 Feb 2013, J, KEERTHY wrote:
+NeilBrown <neilb@suse.de> writes:
 
-> Heh :-). It narrowed down to this patch:
-> 
-> commit 17b7e7d33530e2bbd3bdc90f4db09b91cfdde2bb
-> Author: Paul Walmsley <paul@pwsan.com>
-> Date:   Sat Jan 26 00:48:54 2013 -0700
-> 
->     ARM: OMAP4: clock/hwmod data: start to remove some IP block control "clocks"
+> On Mon, 21 Jan 2013 13:38:59 +0200 Igor Grinberg <grinberg@compulab.co.il>
+> wrote:
+>
+>> -----BEGIN PGP SIGNED MESSAGE-----
+>> Hash: SHA1
+>> 
+>> Hi Neil,
+>> 
+>> On 01/21/13 11:28, NeilBrown wrote:
+>> > 
+>> > 
+>> > The standard suspend sequence involves runtime_resuming
+>> > devices before suspending the system.
+>> > So just saving context in runtime_suspend and restoring it
+>> > in runtime resume isn't enough.  We  must also save in "suspend"
+>> > and restore in "resume".
+>> > 
+>> > Without this patch, and OMAP3 system with off_mode enabled will find
+>> > the musb port non-functional after suspend/resume.  With the patch it
+>> > works perfectly.
+>> 
+>> Hmmm... Some time ago, this has been removed in
+>> 5d193ce8 (usb: musb: PM: fix context save/restore in suspend/resume path)
+>> 
+>> Am I missing something? Or things changed and now this patch is correct?
+>
+> Hi Igor,
+>  thanks for alerting me to that patch .... does anyone else get the feeling
+>  that power management to too complex to be understood by a mere human?
 
-Thanks, this fixes it:
+Yes.  ;)
 
-http://marc.info/?l=linux-omap&m=136070089529743&w=2
+>  That commit (5d193ce8) suggests that the musb-hdrc device is an
+>  'omap_device', or maybe has a PM domain set to something else.
+>  However it isn't/doesn't.  dev->pm_domain is NULL.  So no PM domain layer
+>  will ever call the musb_core musb_runtime_suspend/resume.
+>
+>  The parent device - musb-omap2430 - is an omap device, does have pm_domain
+>  set, and does have its omap2430_runtime_suspend/resume called for system
+>  suspend and so the context for that device is saved and restored.
+>  However that doesn't help the context for musb-hdrc.
+>
+>  Whether musb ever was an omap_device is beyond my archaeological skills to
+>  determine.
+>
+>  Kevin:  Was musb-hdrc ever a device with a pm_domain? or was it only ever
+>      the various possible parents that had domains?
+>      Are you able to defend your earlier patch in today's kernel?  It
+>      certainly causes my device not to work properly.
 
-But at this point, I've rescheduled your patch to the 3.10-cleanup time 
-frame, since we're pretty close to the 3.9 merge window.
+Sorry for the delay here, I'm back to a place where I can test this on
+real hardware.
 
+My patch was fixing a real hang when musb was built-in (or loaded), in
+host-mode (mini-A cable attached) but no devices attached.  I just tried
+to reproduce this, and with your patch, the system hangs during suspend.
 
-- Paul
+That being said, your description makes sense why this context
+save/restore is needed.  Perhaps your patch needs to add a check whether
+the device is runtime suspended (I gather this is what Ruslan's patch is
+doing.)
+
+Kevin
