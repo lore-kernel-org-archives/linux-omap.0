@@ -1,41 +1,56 @@
 From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [PATCH v2 4/8] ARM: omap2: gpmc-nand: Print something useful on CS request failure
-Date: Tue, 12 Feb 2013 12:18:21 -0300
-Message-ID: <1360682305-20935-5-git-send-email-ezequiel.garcia@free-electrons.com>
+Subject: [PATCH v2 6/8] ARM: omap2: gpmc-onenand: Replace pr_err() with dev_err()
+Date: Tue, 12 Feb 2013 12:18:23 -0300
+Message-ID: <1360682305-20935-7-git-send-email-ezequiel.garcia@free-electrons.com>
 References: <1360682305-20935-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:45380 "EHLO
+Received: from mail.free-electrons.com ([94.23.35.102]:45388 "EHLO
 	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933181Ab3BLPSa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 10:18:30 -0500
+	with ESMTP id S932967Ab3BLPSg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 10:18:36 -0500
 In-Reply-To: <1360682305-20935-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Jon Hunter <jon-hunter@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-If CS request fails the current error message is rather unhelpful.
-Fix it by printing the failing chip select and the error code.
-
 Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
- arch/arm/mach-omap2/gpmc-nand.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/gpmc-onenand.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index afc1e8c..e50e438 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -122,7 +122,8 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
- 				(unsigned long *)&gpmc_nand_resource[0].start);
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index 0ee5317..4771945 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -359,6 +359,7 @@ static int gpmc_onenand_setup(void __iomem *onenand_base, int *freq_ptr)
+ void gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
+ {
+ 	int err;
++	struct device *dev = &gpmc_onenand_device.dev;
+ 
+ 	gpmc_onenand_data = _onenand_data;
+ 	gpmc_onenand_data->onenand_setup = gpmc_onenand_setup;
+@@ -379,8 +380,8 @@ void gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
+ 	err = gpmc_cs_request(gpmc_onenand_data->cs, ONENAND_IO_SIZE,
+ 				(unsigned long *)&gpmc_onenand_resource.start);
  	if (err < 0) {
--		dev_err(dev, "Cannot request GPMC CS\n");
+-		pr_err("%s: Cannot request GPMC CS %d, error %d\n",
+-		       __func__, gpmc_onenand_data->cs, err);
 +		dev_err(dev, "Cannot request GPMC CS %d, error %d\n",
-+			gpmc_nand_data->cs, err);
- 		return err;
++			gpmc_onenand_data->cs, err);
+ 		return;
  	}
  
+@@ -388,7 +389,7 @@ void gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
+ 							ONENAND_IO_SIZE - 1;
+ 
+ 	if (platform_device_register(&gpmc_onenand_device) < 0) {
+-		pr_err("%s: Unable to register OneNAND device\n", __func__);
++		dev_err(dev, "Unable to register OneNAND device\n");
+ 		gpmc_cs_free(gpmc_onenand_data->cs);
+ 		return;
+ 	}
 -- 
 1.7.8.6
 
