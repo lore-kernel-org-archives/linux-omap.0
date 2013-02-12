@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/5] omap pm wfi late changes for v3.9 merge window
+Subject: [GIT PULL 4/5] omap clock late changes for v3.9 merge window
 Date: Tue, 12 Feb 2013 10:11:01 -0800
-Message-ID: <E1U5KKJ-0003nJ-SI@merlin.infradead.org>
+Message-ID: <E1U5KKV-0003q6-Tz@merlin.infradead.org>
 References: <pull-1360692662-889112>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,53 +22,53 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 8d61d7f94522a0c023ed79d4f690f2bfc8a41d96:
+The following changes since commit 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7:
 
-  Merge tag 'omap-for-v3.9/pm-signed' into omap-for-v3.9/pm-wfi-take2 (2013-02-11 09:19:44 -0800)
+  Linux 3.8-rc6 (2013-02-01 12:08:14 +1100)
 
 are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/clock-signed
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/pm-wfi-take2-signed-v2
+for you to fetch changes up to 14211e2fd223212ee6498a707e01ac45fef22b10:
 
-for you to fetch changes up to 25e4d0f6df356ec7c2a09f6744c36a84b5537f33:
-
-  Merge branch 'omap-for-v3.9/pm-fix' into omap-for-v3.9/pm-wfi-take2 (2013-02-12 09:01:25 -0800)
+  Merge tag 'omap-devel-e-for-3.9' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.9/clock (2013-02-09 19:59:34 -0800)
 
 ----------------------------------------------------------------
 
-omap pm wfi changes via Paul Walmsley <paul@pwsan.com>:
+omap clock changes via Paul Walmsley <paul@pwsan.com>:
 
-On OMAP2+ devices, standardize and clean up WFI entry and WFI blocking.
+Some miscellaneous OMAP2+ clock fixes, mostly related to the recent
+common clock framework conversion.
 
 Basic test logs are available here:
 
-   http://www.pwsan.com/omap/testlogs/wfi_devel_a_3.9/20130208085027/
-
-Conflicts:
-    arch/arm/mach-omap2/pm24xx.c
-
-Note that this is based on earlier omap-for-v3.9/pm-signed because
-of a non-trivial merge conflict. This branch also contains a fix
-for c1d1cd59 ("ARM: OMAP2+: omap_device: remove obsolete pm_lats
-and early_device code").
+    http://www.pwsan.com/omap/testlogs/clock_devel_a_3.9/20130208120108/
 
 ----------------------------------------------------------------
-Paul Walmsley (5):
-      ARM: OMAP2xxx: PM: enter WFI via inline asm if CORE stays active
-      ARM: OMAP2+: hwmod: add support for blocking WFI when a device is active
-      ARM: OMAP2420: hwmod data/PM: use hwmod to block WFI when I2C active
-      ARM: OMAP AM3517/05: hwmod data: block WFI when EMAC active
-      ARM: OMAP2+: fix some omap_device_build() calls that aren't compiled by default
+Afzal Mohammed (3):
+      ARM: OMAP2+: dpll: am335x - avoid freqsel
+      ARM: OMAP2+: clock data: add DEFINE_STRUCT_CLK_FLAGS helper
+      ARM: OMAP AM33XX: clock data: SET_RATE_PARENT in lcd path
 
-Tony Lindgren (2):
-      Merge tag 'omap-devel-b-for-3.9' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.9/pm-wfi-take2
-      Merge branch 'omap-for-v3.9/pm-fix' into omap-for-v3.9/pm-wfi-take2
+Laurent Pinchart (2):
+      ARM: OMAP3: clock: Back-propagate rate change from cam_mclk to dpll4_m5
+      omap3isp: Set cam_mclk rate directly
 
- arch/arm/mach-omap2/am35xx-emac.c          |  3 +--
- arch/arm/mach-omap2/devices.c              |  2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  7 ++++++-
- arch/arm/mach-omap2/pm24xx.c               | 12 ++++++------
- arch/arm/mach-omap2/sleep24xx.S            | 19 -------------------
- arch/arm/mach-omap2/sr_device.c            |  2 +-
- 6 files changed, 15 insertions(+), 30 deletions(-)
+Paul Walmsley (1):
+      Merge branch 'clock_misc_devel_a_3.9', remote-tracking branch 'remotes/pinchart/omap3isp/clock' into clock_devel_a_3.9
+
+Rajendra Nayak (1):
+      ARM: OMAP4: clock data: Add missing clkdm association for dpll_usb
+
+Tony Lindgren (1):
+      Merge tag 'omap-devel-e-for-3.9' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.9/clock
+
+ arch/arm/mach-omap2/cclock33xx_data.c | 10 ++++++----
+ arch/arm/mach-omap2/cclock3xxx_data.c | 10 +++++++++-
+ arch/arm/mach-omap2/cclock44xx_data.c | 13 ++++++++++++-
+ arch/arm/mach-omap2/clock.h           | 11 +++++++++++
+ arch/arm/mach-omap2/dpll3xxx.c        |  5 +++--
+ drivers/media/platform/omap3isp/isp.c | 18 ++----------------
+ drivers/media/platform/omap3isp/isp.h |  8 +++-----
+ 7 files changed, 46 insertions(+), 29 deletions(-)
