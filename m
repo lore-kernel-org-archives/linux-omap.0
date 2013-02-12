@@ -1,109 +1,123 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v2 10/13] mailbox: create dbx500 mailbox driver
-Date: Tue, 12 Feb 2013 10:39:49 +0000
-Message-ID: <20130212103949.GA826@e106331-lin.cambridge.arm.com>
-References: <1360645032-9668-1-git-send-email-s-anna@ti.com>
- <1360645032-9668-11-git-send-email-s-anna@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:44342 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932906Ab3BLKj5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 05:39:57 -0500
-In-Reply-To: <1360645032-9668-11-git-send-email-s-anna@ti.com>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+From: Anil Kumar <anilk4.v@gmail.com>
+Subject: [PATCH] ARM: dts: omap3-devkit8000: Enable audio support
+Date: Tue, 12 Feb 2013 17:51:57 +0530
+Message-ID: <1360671717-32050-1-git-send-email-anilk4.v@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Cc: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, grant.likely@secretlab.ca, peter.ujfalusi@ti.com, thomas@tomweber.eu, anilk4.v@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Greg Kroah-Hartman <greg@linuxfoundation.org>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hello,
+Add the needed sections to enable audio support and related pin mux on
+Devkit8000 when booted with DT blob.
 
-I have a few comments on the devicetree binding and the way it's parsed.
+Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
+---
+This patch is based on top of kernel 3.8-rc5 and
+the following patches.
 
-> +static const struct of_device_id dbx500_mailbox_match[] = {
-> +       { .compatible = "stericsson,db8500-mailbox",
-> +               .data = (void *)db8500_mboxes,
-> +       },
-> +       { .compatible = "stericsson,db9540-mailbox",
-> +               .data = (void *)dbx540_mboxes,
-> +       },
-> +       { /* sentinel */}
-> +};
-> +
+Peter Ujfalusi:-
+ASoC: twl4030: Correct the support for Voice port
+ASoC: twl4030: Convert MICBIAS to SUPPLY widget
+ASoC: omap-twl4030: Add support for routing, voice port and jack detect
 
-The binding for the compatible strings above and property parsing below should
-be documented.
+Anil Kumar:-
+ARM: dts: add minimal DT support for DevKit8000
+https://patchwork.kernel.org/patch/2122461/
 
-> +static int dbx500_mbox_probe(struct platform_device *pdev)
-> +{
-> +       const struct platform_device_id *platid = platform_get_device_id(pdev);
-> +       struct resource *mem;
-> +       int ret, i, legacy_offset = 0, upap_offset;
-> +       struct mailbox **list;
-> +       int irq;
-> +       struct dbx500_plat_data *pdata = dev_get_platdata(&pdev->dev);
-> +       struct device_node *np = pdev->dev.of_node;
-> +
-> +       if (!pdata) {
-> +               if (np) {
-> +                       of_property_read_u32(np, "legacy-offset",
-> +                                                       &legacy_offset);
+-Tested for playback and capture on Devkit8000.
 
-I see that legacy_offset is initialised to 0, and there's no check on the
-return value of of_property_read_u32. Does that mean this is an optional
-property? This needs to be documented.
+ Test process:-
 
-> +                       of_property_read_u32(np, "upap-offset", &upap_offset);
+ #amixer set 'PredriveR Mixer AudioR2' on
+ #amixer set 'PredriveL Mixer AudioL2' on
+ #amixer set PreDriv 100 unmute
+ #amixer set 'DAC2 Digital Fine' 100
+ #amixer cset numid=27 1
+ #arecord | aplay
 
-However, upap_offset isn't initialised, but there's no check on the return
-value. If "upap-offset" isn't defined in the dt, upap_offset won't have been
-initialised. 
+:100644 100644 dc59272... 1e2c931... M	arch/arm/boot/dts/omap3-devkit8000.dts
+ arch/arm/boot/dts/omap3-devkit8000.dts |   43 ++++++++++++++++++++++++++++---
+ 1 files changed, 38 insertions(+), 5 deletions(-)
 
-Is there no basic sanity checking that could be done here? I assume there's a
-maximum offset we expect that's less than 4GB?
-
-Additionally, of_property_read_u32 takes a *u32, not *int. It would be nice to
-be consistent with the interface.
-
-I'm not familiar with the hardware. What's the difference between the legacy
-and upap cases?
-
-> +                       list = (struct mailbox **)of_match_device(
-> +                                       dbx500_mailbox_match, &pdev->dev)->data;
-> +                       if (!list) {
-> +                               /* No mailbox configuration */
-> +                               dev_err(&pdev->dev, "No configuration found\n");
-> +                               return -ENODEV;
-> +                       }
-> +               } else {
-> +                       /* No mailbox configuration */
-> +                       dev_err(&pdev->dev, "No configuration found\n");
-> +                       return -ENODEV;
-> +               }
-> +       } else {
-> +               list = (struct mailbox **)platid->driver_data;
-> +               legacy_offset = pdata->legacy_offset;
-> +               upap_offset = pdata->upap_offset;
-> +       }
-> +
-> +       mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "prcm_reg");
-
-Does this work for dt? I wasn't aware we got anything more than anonymous
-memory and interrupts.
-
-> +       mbox_base = devm_ioremap(&pdev->dev, mem->start, resource_size(mem));
-> +       if (!mbox_base) {
-> +               ret = -ENOMEM;
-> +               goto out;
-> +       }
-> +
-> +       mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "prcmu_tcdm");
-
-Same here.
-
-Thanks,
-Mark.
-
+diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
+index dc59272..1e2c931 100644
+--- a/arch/arm/boot/dts/omap3-devkit8000.dts
++++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+@@ -44,11 +44,27 @@
+                 };
+ 
+ 	};
++
++	sound {
++		compatible = "ti,omap-twl4030";
++		ti,model = "devkit8000";
++
++		ti,mcbsp = <&mcbsp2>;
++		ti,codec = <&twl_audio>;
++		ti,audio-routing =
++			"Ext Spk", "PREDRIVEL",
++			"Ext Spk", "PREDRIVER",
++			"MAINMIC", "Main Mic",
++			"Main Mic", "Mic Bias 1";
++	};
+ };
+ 
+ &omap3_pmx_core {
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <&i2c1_pins>;
++	pinctrl-0 = <
++			&i2c1_pins
++			&mcbsp2_pins
++		>;
+ 
+ 	leds_pins: pinmux_led_pins {
+ 		pinctrl-single,pins = <
+@@ -65,6 +81,21 @@
+ 			0x18c 0x118	/* I2C1_SDA */
+                 >;
+ 	};
++
++	mcbsp2_pins: pinmux_mcbsp2_pins {
++                pinctrl-single,pins = <
++			/*
++			 * MCBSP2_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT,
++			 * MCBSP2_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT
++			 */
++			0x10c 0x01000100
++			/*
++			 * MCBSP2_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT,
++			 * MCBSP2_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT
++			 */
++			0x110 0x00000100
++		>;
++	};
+ };
+ 
+ &i2c1 {
+@@ -74,6 +105,12 @@
+ 		reg = <0x48>;
+ 		interrupts = <7>;	/* SYS_NIRQ cascaded to intc */
+ 		interrupt-parent = <&intc>;
++
++		twl_audio: audio {
++			compatible = "ti,twl4030-audio";
++			codec {
++			};
++		};
+ 	};
+ };
+ 
+@@ -109,10 +146,6 @@
+ 	status = "disabled";
+ };
+ 
+-&mcbsp2 {
+-	status = "disabled";
+-};
+-
+ &mcbsp3 {
+ 	status = "disabled";
+ };
+-- 
+1.7.0.4
