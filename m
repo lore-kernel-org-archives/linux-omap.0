@@ -1,57 +1,136 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [PATCH v3 8/8] ARM: omap2: gpmc: Remove redundant chip select out of range check
-Date: Tue, 12 Feb 2013 16:22:24 -0300
-Message-ID: <1360696944-3371-9-git-send-email-ezequiel.garcia@free-electrons.com>
-References: <1360696944-3371-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:47141 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932165Ab3BLTWw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 14:22:52 -0500
-In-Reply-To: <1360696944-3371-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Loic PALLARDY <loic.pallardy@st.com>
+Subject: Re: [PATCH v2 10/13] mailbox: create dbx500 mailbox driver
+Date: Tue, 12 Feb 2013 21:01:05 +0100
+Message-ID: <511A9F81.1040608@st.com>
+References: <1360645032-9668-1-git-send-email-s-anna@ti.com>
+ <1360645032-9668-11-git-send-email-s-anna@ti.com>
+ <20130212103949.GA826@e106331-lin.cambridge.arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130212103949.GA826@e106331-lin.cambridge.arm.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Suman Anna <s-anna@ti.com>, Greg Kroah-Hartman <greg@linuxfoundation.org>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Jon Hunter <jon-hunter@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-This check is done before the call to gpmc_cs_reserved() and
-gpmc_cs_set_reserved() and it's redundant to do it again in each
-function. This simplifies the code a bit.
+Hi Mark,
 
-Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Reviewed-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/gpmc.c |   10 +---------
- 1 files changed, 1 insertions(+), 9 deletions(-)
+Thanks for your comments.
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index fa4764f..0201ea9 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -441,22 +441,14 @@ static int gpmc_cs_mem_enabled(int cs)
- 	return l & GPMC_CONFIG7_CSVALID;
- }
- 
--static int gpmc_cs_set_reserved(int cs, int reserved)
-+static void gpmc_cs_set_reserved(int cs, int reserved)
- {
--	if (cs > GPMC_CS_NUM)
--		return -ENODEV;
--
- 	gpmc_cs_map &= ~(1 << cs);
- 	gpmc_cs_map |= (reserved ? 1 : 0) << cs;
--
--	return 0;
- }
- 
- static bool gpmc_cs_reserved(int cs)
- {
--	if (cs > GPMC_CS_NUM)
--		return true;
--
- 	return gpmc_cs_map & (1 << cs);
- }
- 
--- 
-1.7.8.6
+On 02/12/2013 11:39 AM, Mark Rutland wrote:
+> Hello,
+>
+> I have a few comments on the devicetree binding and the way it's parsed.
+>
+>> +static const struct of_device_id dbx500_mailbox_match[] = {
+>> +       { .compatible = "stericsson,db8500-mailbox",
+>> +               .data = (void *)db8500_mboxes,
+>> +       },
+>> +       { .compatible = "stericsson,db9540-mailbox",
+>> +               .data = (void *)dbx540_mboxes,
+>> +       },
+>> +       { /* sentinel */}
+>> +};
+>> +
+>
+> The binding for the compatible strings above and property parsing below should
+> be documented.
+>
+Yes you're right. I will add a description in 
+Documentation/devicetree/bindings/mailbox/...
 
+>> +static int dbx500_mbox_probe(struct platform_device *pdev)
+>> +{
+>> +       const struct platform_device_id *platid = platform_get_device_id(pdev);
+>> +       struct resource *mem;
+>> +       int ret, i, legacy_offset = 0, upap_offset;
+>> +       struct mailbox **list;
+>> +       int irq;
+>> +       struct dbx500_plat_data *pdata = dev_get_platdata(&pdev->dev);
+>> +       struct device_node *np = pdev->dev.of_node;
+>> +
+>> +       if (!pdata) {
+>> +               if (np) {
+>> +                       of_property_read_u32(np, "legacy-offset",
+>> +&legacy_offset);
+>
+> I see that legacy_offset is initialised to 0, and there's no check on the
+> return value of of_property_read_u32. Does that mean this is an optional
+> property? This needs to be documented.
+>
+Correct, I'll add a check. This offset must be compared to shared memory 
+size.
+
+>> +                       of_property_read_u32(np, "upap-offset",&upap_offset);
+>
+> However, upap_offset isn't initialised, but there's no check on the return
+> value. If "upap-offset" isn't defined in the dt, upap_offset won't have been
+> initialised.
+Should be documented too. upap_offset is optional since not supported by 
+all STE platforms.
+Anyway, value must be checked when used.
+>
+> Is there no basic sanity checking that could be done here? I assume there's a
+> maximum offset we expect that's less than 4GB?
+>
+> Additionally, of_property_read_u32 takes a *u32, not *int. It would be nice to
+> be consistent with the interface.
+OK
+>
+> I'm not familiar with the hardware. What's the difference between the legacy
+> and upap cases?
+Same HW, but different way to access and manage shared memory.
+Link to coprocessor firmware version.
+>
+>> +                       list = (struct mailbox **)of_match_device(
+>> +                                       dbx500_mailbox_match,&pdev->dev)->data;
+>> +                       if (!list) {
+>> +                               /* No mailbox configuration */
+>> +                               dev_err(&pdev->dev, "No configuration found\n");
+>> +                               return -ENODEV;
+>> +                       }
+>> +               } else {
+>> +                       /* No mailbox configuration */
+>> +                       dev_err(&pdev->dev, "No configuration found\n");
+>> +                       return -ENODEV;
+>> +               }
+>> +       } else {
+>> +               list = (struct mailbox **)platid->driver_data;
+>> +               legacy_offset = pdata->legacy_offset;
+>> +               upap_offset = pdata->upap_offset;
+>> +       }
+>> +
+>> +       mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "prcm_reg");
+>
+> Does this work for dt? I wasn't aware we got anything more than anonymous
+> memory and interrupts.
+>
+Yes this is working with and without dt.
+dt declaration will be the following
+mailbox {
+	compatible = "stericsson,db8500-mailbox";
+	reg = <0x80157000 0x1000>, <0x801B8000 0x2000>;
+	reg-names = "prcm-reg", "prcmu-tcdm";
+	interrupts = <0 47 0x4>;
+	interrupt-names = "irq";
+	legacy-offset = <0xdd4>;
+};
+
+>> +       mbox_base = devm_ioremap(&pdev->dev, mem->start, resource_size(mem));
+>> +       if (!mbox_base) {
+>> +               ret = -ENOMEM;
+>> +               goto out;
+>> +       }
+>> +
+>> +       mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "prcmu_tcdm");
+>
+> Same here.
+>
+> Thanks,
+> Mark.
+>
+Regards,
+Loic
