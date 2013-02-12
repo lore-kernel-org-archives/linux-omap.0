@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/5] omap clock late changes for v3.9 merge window
-Date: Tue, 12 Feb 2013 10:11:01 -0800
-Message-ID: <E1U5KKV-0003q6-Tz@merlin.infradead.org>
+Subject: [GIT PULL 5/5] omap4 pm late changes for v3.9 merge window
+Date: Tue, 12 Feb 2013 10:11:02 -0800
+Message-ID: <E1U5KKg-0003th-9T@merlin.infradead.org>
 References: <pull-1360692662-889112>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -28,47 +28,52 @@ The following changes since commit 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/clock-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/pm-omap4-signed
 
-for you to fetch changes up to 14211e2fd223212ee6498a707e01ac45fef22b10:
+for you to fetch changes up to 93b23711b7132400d4d76f31c660d27a2bb0afdb:
 
-  Merge tag 'omap-devel-e-for-3.9' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.9/clock (2013-02-09 19:59:34 -0800)
-
-----------------------------------------------------------------
-
-omap clock changes via Paul Walmsley <paul@pwsan.com>:
-
-Some miscellaneous OMAP2+ clock fixes, mostly related to the recent
-common clock framework conversion.
-
-Basic test logs are available here:
-
-    http://www.pwsan.com/omap/testlogs/clock_devel_a_3.9/20130208120108/
+  Merge tag 'omap-devel-d2-for-3.9' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.9/pm-omap4 (2013-02-11 09:40:45 -0800)
 
 ----------------------------------------------------------------
-Afzal Mohammed (3):
-      ARM: OMAP2+: dpll: am335x - avoid freqsel
-      ARM: OMAP2+: clock data: add DEFINE_STRUCT_CLK_FLAGS helper
-      ARM: OMAP AM33XX: clock data: SET_RATE_PARENT in lcd path
 
-Laurent Pinchart (2):
-      ARM: OMAP3: clock: Back-propagate rate change from cam_mclk to dpll4_m5
-      omap3isp: Set cam_mclk rate directly
+omap4 pm changes via Paul Walmsley <paul@pwsan.com>:
 
-Paul Walmsley (1):
-      Merge branch 'clock_misc_devel_a_3.9', remote-tracking branch 'remotes/pinchart/omap3isp/clock' into clock_devel_a_3.9
+Some OMAP4 power management fixes and audio device integration
+patches.  This pull request contains a fix for an issue discovered during
+branch integration.
+
+Basic test logs are available at:
+
+    http://www.pwsan.com/omap/testlogs/omap4_prcm_devel_a_3.9/20130210112717/
+
+----------------------------------------------------------------
+Paul Walmsley (4):
+      ARM: OMAP2+: hwmod: add enable_preprogram hook
+      ASoC: TI AESS: add autogating-enable function, callable from architecture code
+      ARM: OMAP4+: AESS: enable internal auto-gating during initial setup
+      Merge branches 'sg_aess_reset_devel_3.9' and 'omap4_pm_fixes_a_3.9' into omap4_prcm_devel_a_3.9
 
 Rajendra Nayak (1):
-      ARM: OMAP4: clock data: Add missing clkdm association for dpll_usb
+      ARM: OMAP4: PM: Warn users about usage of older bootloaders
+
+Santosh Shilimkar (1):
+      ARM: OMAP2+: PM: Fix the dt return condition in pm_late_init()
+
+Sebastien Guiriec (2):
+      ARM: OMAP4: hwmod data: Update AESS data with memory bank area
+      ARM: OMAP4: hwmod data: Enable AESS hwmod device
 
 Tony Lindgren (1):
-      Merge tag 'omap-devel-e-for-3.9' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.9/clock
+      Merge tag 'omap-devel-d2-for-3.9' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.9/pm-omap4
 
- arch/arm/mach-omap2/cclock33xx_data.c | 10 ++++++----
- arch/arm/mach-omap2/cclock3xxx_data.c | 10 +++++++++-
- arch/arm/mach-omap2/cclock44xx_data.c | 13 ++++++++++++-
- arch/arm/mach-omap2/clock.h           | 11 +++++++++++
- arch/arm/mach-omap2/dpll3xxx.c        |  5 +++--
- drivers/media/platform/omap3isp/isp.c | 18 ++----------------
- drivers/media/platform/omap3isp/isp.h |  8 +++-----
- 7 files changed, 46 insertions(+), 29 deletions(-)
+ arch/arm/mach-omap2/Makefile               |  2 +-
+ arch/arm/mach-omap2/omap_hwmod.c           | 18 ++++++++++
+ arch/arm/mach-omap2/omap_hwmod.h           |  8 +++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 51 +++++++++++++++++++++++++---
+ arch/arm/mach-omap2/omap_hwmod_reset.c     | 52 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.c                   | 20 +++++------
+ arch/arm/mach-omap2/pm44xx.c               | 21 ++++++++++--
+ include/sound/aess.h                       | 53 ++++++++++++++++++++++++++++++
+ 8 files changed, 208 insertions(+), 17 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_reset.c
+ create mode 100644 include/sound/aess.h
