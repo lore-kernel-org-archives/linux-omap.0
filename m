@@ -1,83 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] ARM: OMAP2+: fix some omap_device_build() calls that aren't
- compiled by default
-Date: Tue, 12 Feb 2013 03:58:35 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1302120358130.14983@utopia.booyaka.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: PM: Avoid expensive cpu_suspend() path for
+ all CPU power states except off
+Date: Tue, 12 Feb 2013 10:25:09 +0530
+Message-ID: <5119CB2D.9040001@ti.com>
+References: <1360336306-18277-1-git-send-email-santosh.shilimkar@ti.com> <1360336306-18277-3-git-send-email-santosh.shilimkar@ti.com> <87d2wazep6.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:37217 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752817Ab3BLD6g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 22:58:36 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:34141 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760247Ab3BLEx7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Feb 2013 23:53:59 -0500
+In-Reply-To: <87d2wazep6.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
+To: Kevin Hilman <khilman@linaro.org>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On Saturday 09 February 2013 02:49 AM, Kevin Hilman wrote:
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>
+>> Current CPU PM code code make use of common cpu_suspend() path for all the
+>> CPU power states which is not optimal. In fact cpu_suspend() path is needed
+>> only when we put CPU power domain to off state where the CPU context is lost.
+>>
+>> Update the code accordingly so that the expensive cpu_suspend() path
+>> can be avoided for the shallow CPU power states like CPU PD INA/CSWR.
+>>
+>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>>
+>> Reported-by: Richard Woodruff <r-woodruff2@ti.com>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>
+> Looks OK at first glance, but are you sure this is right for the
+> various ways both clusters might idle using coupled CPUidle?
+>
+Yes it is perfectly safe from all C-states. This patch has been part of
+the OMAP4/OMAP5 product port for some time. I forgot to send it upstream
+some how :(
 
-Commit c1d1cd597fc77af3086470f8627d77f52f7f8b6c ("ARM: OMAP2+:
-omap_device: remove obsolete pm_lats and early_device code") missed a
-few omap_device_build() calls that aren't included as part of the default
-OMAP2+ Kconfig, omap2plus_defconfig.
+> Some description of the testing would be helpful here.
+>
+Sorry. Should have mentioned it in first place.
+Patch is being tested on OMAP4430 (idle/suspend) and OMAP5 with
+few out of tree patches.
 
-Ideally, all devices that are present on the SoC should be created by
-default, and only the corresponding device driver should be configured
-or deconfigured in Kconfig.  This allows drivers to be built as
-modules and loaded later, even if they weren't part of the original
-kernel build.  Unfortunately, we're not quite there yet.
-
-Thanks to Tony Lindgren for reporting this, found during his
-randconfig tests.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/am35xx-emac.c |    3 +--
- arch/arm/mach-omap2/devices.c     |    2 +-
- arch/arm/mach-omap2/sr_device.c   |    2 +-
- 3 files changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
-index a00d391..25b79a2 100644
---- a/arch/arm/mach-omap2/am35xx-emac.c
-+++ b/arch/arm/mach-omap2/am35xx-emac.c
-@@ -62,8 +62,7 @@ static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
- {
- 	struct platform_device *pdev;
- 
--	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len,
--				 false);
-+	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len);
- 	if (IS_ERR(pdev)) {
- 		WARN(1, "Can't build omap_device for %s:%s.\n",
- 		     oh->class->name, oh->name);
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index d8a0cc3..6ecc89a 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -382,7 +382,7 @@ static void __init omap_init_hdmi_audio(void)
- 		return;
- 	}
- 
--	pdev = omap_device_build("omap-hdmi-audio-dai", -1, oh, NULL, 0, 0);
-+	pdev = omap_device_build("omap-hdmi-audio-dai", -1, oh, NULL, 0);
- 	WARN(IS_ERR(pdev),
- 	     "Can't build omap_device for omap-hdmi-audio-dai.\n");
- 
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-index bb829e0..d7bc33f 100644
---- a/arch/arm/mach-omap2/sr_device.c
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -152,7 +152,7 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
- 
- 	sr_data->enable_on_init = sr_enable_on_init;
- 
--	pdev = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data), 0);
-+	pdev = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data));
- 	if (IS_ERR(pdev))
- 		pr_warning("%s: Could not build omap_device for %s: %s.\n\n",
- 			__func__, name, oh->name);
--- 
-1.7.10.4
-
+Regards,
+Santosh
