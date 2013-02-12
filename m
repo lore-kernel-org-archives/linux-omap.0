@@ -1,136 +1,120 @@
-From: Loic PALLARDY <loic.pallardy@st.com>
-Subject: Re: [PATCH v2 10/13] mailbox: create dbx500 mailbox driver
-Date: Tue, 12 Feb 2013 21:01:05 +0100
-Message-ID: <511A9F81.1040608@st.com>
-References: <1360645032-9668-1-git-send-email-s-anna@ti.com>
- <1360645032-9668-11-git-send-email-s-anna@ti.com>
- <20130212103949.GA826@e106331-lin.cambridge.arm.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] ARM: OMAP4: PM: fix PM regression introduced by recent clock
+ cleanup
+Date: Tue, 12 Feb 2013 20:28:12 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1302122026530.29149@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130212103949.GA826@e106331-lin.cambridge.arm.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Suman Anna <s-anna@ti.com>, Greg Kroah-Hartman <greg@linuxfoundation.org>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-869192503-1360700892=:29149"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:42153 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750895Ab3BLU2N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 15:28:13 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, j-keerthy@ti.com, b-cousson@ti.com
 
-Hi Mark,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Thanks for your comments.
+--843723315-869192503-1360700892=:29149
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-On 02/12/2013 11:39 AM, Mark Rutland wrote:
-> Hello,
->
-> I have a few comments on the devicetree binding and the way it's parsed.
->
->> +static const struct of_device_id dbx500_mailbox_match[] = {
->> +       { .compatible = "stericsson,db8500-mailbox",
->> +               .data = (void *)db8500_mboxes,
->> +       },
->> +       { .compatible = "stericsson,db9540-mailbox",
->> +               .data = (void *)dbx540_mboxes,
->> +       },
->> +       { /* sentinel */}
->> +};
->> +
->
-> The binding for the compatible strings above and property parsing below should
-> be documented.
->
-Yes you're right. I will add a description in 
-Documentation/devicetree/bindings/mailbox/...
 
->> +static int dbx500_mbox_probe(struct platform_device *pdev)
->> +{
->> +       const struct platform_device_id *platid = platform_get_device_id(pdev);
->> +       struct resource *mem;
->> +       int ret, i, legacy_offset = 0, upap_offset;
->> +       struct mailbox **list;
->> +       int irq;
->> +       struct dbx500_plat_data *pdata = dev_get_platdata(&pdev->dev);
->> +       struct device_node *np = pdev->dev.of_node;
->> +
->> +       if (!pdata) {
->> +               if (np) {
->> +                       of_property_read_u32(np, "legacy-offset",
->> +&legacy_offset);
->
-> I see that legacy_offset is initialised to 0, and there's no check on the
-> return value of of_property_read_u32. Does that mean this is an optional
-> property? This needs to be documented.
->
-Correct, I'll add a check. This offset must be compared to shared memory 
-size.
+Commit 17b7e7d33530e2bbd3bdc90f4db09b91cfdde2bb ("ARM: OMAP4:
+clock/hwmod data: start to remove some IP block control "clocks"")
+introduced a regression preventing the L3INIT clockdomain of OMAP4
+systems from entering idle.  This in turn prevented these systems from
+entering full chip clock-stop.
 
->> +                       of_property_read_u32(np, "upap-offset",&upap_offset);
->
-> However, upap_offset isn't initialised, but there's no check on the return
-> value. If "upap-offset" isn't defined in the dt, upap_offset won't have been
-> initialised.
-Should be documented too. upap_offset is optional since not supported by 
-all STE platforms.
-Anyway, value must be checked when used.
->
-> Is there no basic sanity checking that could be done here? I assume there's a
-> maximum offset we expect that's less than 4GB?
->
-> Additionally, of_property_read_u32 takes a *u32, not *int. It would be nice to
-> be consistent with the interface.
-OK
->
-> I'm not familiar with the hardware. What's the difference between the legacy
-> and upap cases?
-Same HW, but different way to access and manage shared memory.
-Link to coprocessor firmware version.
->
->> +                       list = (struct mailbox **)of_match_device(
->> +                                       dbx500_mailbox_match,&pdev->dev)->data;
->> +                       if (!list) {
->> +                               /* No mailbox configuration */
->> +                               dev_err(&pdev->dev, "No configuration found\n");
->> +                               return -ENODEV;
->> +                       }
->> +               } else {
->> +                       /* No mailbox configuration */
->> +                       dev_err(&pdev->dev, "No configuration found\n");
->> +                       return -ENODEV;
->> +               }
->> +       } else {
->> +               list = (struct mailbox **)platid->driver_data;
->> +               legacy_offset = pdata->legacy_offset;
->> +               upap_offset = pdata->upap_offset;
->> +       }
->> +
->> +       mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "prcm_reg");
->
-> Does this work for dt? I wasn't aware we got anything more than anonymous
-> memory and interrupts.
->
-Yes this is working with and without dt.
-dt declaration will be the following
-mailbox {
-	compatible = "stericsson,db8500-mailbox";
-	reg = <0x80157000 0x1000>, <0x801B8000 0x2000>;
-	reg-names = "prcm-reg", "prcmu-tcdm";
-	interrupts = <0 47 0x4>;
-	interrupt-names = "irq";
-	legacy-offset = <0xdd4>;
-};
+The regression was caused by the incorrect removal of a so-called
+"optional functional clock" from the OMAP4 clock data.  This wasn't
+caught for two reasons.  First, I missed the retention entry failure
+in the branch test logs:
 
->> +       mbox_base = devm_ioremap(&pdev->dev, mem->start, resource_size(mem));
->> +       if (!mbox_base) {
->> +               ret = -ENOMEM;
->> +               goto out;
->> +       }
->> +
->> +       mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "prcmu_tcdm");
->
-> Same here.
->
-> Thanks,
-> Mark.
->
-Regards,
-Loic
+http://www.pwsan.com/omap/testlogs/cleanup_a_3.9/20130126014242/pm/4460pand=
+aes/4460pandaes_log.txt
+
+Second, the integration data for the OCP2SCP PHY IP block, added by
+commit 0c6688753f9912c6a7013549ec31c8844020bbc1 ("ARM: OMAP4: hwmod
+data: add remaining USB-related IP blocks"), should have associated this
+clock with the IP block, but did not.
+
+Fix by adding back the so-called "optional" functional clock to the
+clock data, and by linking that clock to the OCP2SCP PHY IP block
+integration hwmod data.
+
+The problem patch was discovered by J, Keerthy <j-keerthy@ti.com>.
+
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Beno=EEt Cousson <b-cousson@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+
+It'd be nice, but certainly not necessary, to get this in for the v3.9=20
+merge window.  Otherwise, will send it for -rc1.
+
+ arch/arm/mach-omap2/cclock44xx_data.c      |    5 +++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    6 ++++++
+ 2 files changed, 11 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cc=
+lock44xx_data.c
+index cebe2b3..54ebb89 100644
+--- a/arch/arm/mach-omap2/cclock44xx_data.c
++++ b/arch/arm/mach-omap2/cclock44xx_data.c
+@@ -1000,6 +1000,10 @@ DEFINE_CLK_OMAP_MUX(hsmmc2_fclk, "l3_init_clkdm", hs=
+mmc1_fclk_sel,
+ =09=09    OMAP4430_CM_L3INIT_MMC2_CLKCTRL, OMAP4430_CLKSEL_MASK,
+ =09=09    hsmmc1_fclk_parents, func_dmic_abe_gfclk_ops);
+=20
++DEFINE_CLK_GATE(ocp2scp_usb_phy_phy_48m, "func_48m_fclk", &func_48m_fclk, =
+0x0,
++=09=09OMAP4430_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL,
++=09=09OMAP4430_OPTFCLKEN_PHY_48M_SHIFT, 0x0, NULL);
++
+ DEFINE_CLK_GATE(sha2md5_fck, "l3_div_ck", &l3_div_ck, 0x0,
+ =09=09OMAP4430_CM_L4SEC_SHA2MD51_CLKCTRL,
+ =09=09OMAP4430_MODULEMODE_SWCTRL_SHIFT, 0x0, NULL);
+@@ -1527,6 +1531,7 @@ static struct omap_clk omap44xx_clks[] =3D {
+ =09CLK(NULL,=09"per_mcbsp4_gfclk",=09=09=09&per_mcbsp4_gfclk,=09CK_443X),
+ =09CLK(NULL,=09"hsmmc1_fclk",=09=09=09&hsmmc1_fclk,=09CK_443X),
+ =09CLK(NULL,=09"hsmmc2_fclk",=09=09=09&hsmmc2_fclk,=09CK_443X),
++=09CLK(NULL,=09"ocp2scp_usb_phy_phy_48m",=09&ocp2scp_usb_phy_phy_48m,=09CK=
+_443X),
+ =09CLK(NULL,=09"sha2md5_fck",=09=09=09&sha2md5_fck,=09CK_443X),
+ =09CLK(NULL,=09"slimbus1_fclk_1",=09=09&slimbus1_fclk_1,=09CK_443X),
+ =09CLK(NULL,=09"slimbus1_fclk_0",=09=09&slimbus1_fclk_0,=09CK_443X),
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-oma=
+p2/omap_hwmod_44xx_data.c
+index a1849a8..d55c769 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2720,6 +2720,10 @@ static struct omap_ocp2scp_dev ocp2scp_dev_attr[] =
+=3D {
+ =09{ }
+ };
+=20
++static struct omap_hwmod_opt_clk ocp2scp_usb_phy_opt_clks[] =3D {
++=09{ .role =3D "48mhz", .clk =3D "ocp2scp_usb_phy_phy_48m" },
++};
++
+ /* ocp2scp_usb_phy */
+ static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwmod =3D {
+ =09.name=09=09=3D "ocp2scp_usb_phy",
+@@ -2734,6 +2738,8 @@ static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwm=
+od =3D {
+ =09=09},
+ =09},
+ =09.dev_attr=09=3D ocp2scp_dev_attr,
++=09.opt_clks=09=3D ocp2scp_usb_phy_opt_clks,
++=09.opt_clks_cnt=09=3D ARRAY_SIZE(ocp2scp_usb_phy_opt_clks),
+ };
+=20
+ /*
+--=20
+1.7.10.4
+
+--843723315-869192503-1360700892=:29149--
