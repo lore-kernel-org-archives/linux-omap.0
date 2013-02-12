@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/5] am33xx related late changes for v3.8 merge window
+Subject: [GIT PULL 3/5] omap pm wfi late changes for v3.9 merge window
 Date: Tue, 12 Feb 2013 10:11:01 -0800
-Message-ID: <E1U5KK8-0003lf-2K@merlin.infradead.org>
+Message-ID: <E1U5KKJ-0003nJ-SI@merlin.infradead.org>
 References: <pull-1360692662-889112>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,61 +22,53 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7:
+The following changes since commit 8d61d7f94522a0c023ed79d4f690f2bfc8a41d96:
 
-  Linux 3.8-rc6 (2013-02-01 12:08:14 +1100)
+  Merge tag 'omap-for-v3.9/pm-signed' into omap-for-v3.9/pm-wfi-take2 (2013-02-11 09:19:44 -0800)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/am33xx-signed
 
-for you to fetch changes up to 3ad4a33158b7a2589149bc5ab29a6723d755c4ba:
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/pm-wfi-take2-signed-v2
 
-  Merge tag 'omap-devel-a-for-3.9' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.9/am33xx (2013-02-09 19:55:41 -0800)
+for you to fetch changes up to 25e4d0f6df356ec7c2a09f6744c36a84b5537f33:
 
-----------------------------------------------------------------
-
-am33xx updates via Paul Walmsley <paul@pwsan.com>:
-
-Fixes and IP block support for the TI AM33xx family of SoCs.  These
-are prerequisites for power management and some PWM driver changes.
-
-Basic test logs are available from:
-
-   http://www.pwsan.com/omap/testlogs/am33xx_fixes_a_3.9/20130208084835/
-
-although it must be noted that I am unable to test these patches on
-AM33xx due to an unknown problem with v3.8-rc kernels:
-
-   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg83525.html
+  Merge branch 'omap-for-v3.9/pm-fix' into omap-for-v3.9/pm-wfi-take2 (2013-02-12 09:01:25 -0800)
 
 ----------------------------------------------------------------
-Hebbar Gururaja (2):
-      ARM: OMAP2+: AM33xx: hwmod: add missing HWMOD_NO_IDLEST flags
-      ARM: OMAP2: am33xx-hwmod: Fix "register offset NULL check" bug
 
-Philip Avinash (2):
-      ARM: OMAP: AM33xx hwmod: Corrects PWM subsystem HWMOD entries
-      ARM: OMAP: AM33xx hwmod: Add parent-child relationship for PWM subsystem
+omap pm wfi changes via Paul Walmsley <paul@pwsan.com>:
 
-Tony Lindgren (1):
-      Merge tag 'omap-devel-a-for-3.9' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.9/am33xx
+On OMAP2+ devices, standardize and clean up WFI entry and WFI blocking.
 
-Vaibhav Bedia (8):
-      ARM: OMAP2+: AM33XX: CM: Get rid of unnecessary header inclusions
-      ARM: OMAP2+: AM33XX: CM/PRM: Use __ASSEMBLER__ macros in header files
-      ARM: OMAP2+: AM33XX: hwmod: Register OCMC RAM hwmod
-      ARM: OMAP2+: AM33XX: hwmod: Update TPTC0 hwmod with the right flags
-      ARM: OMAP2+: AM33XX: hwmod: Fixup cpgmac0 hwmod entry
-      ARM: OMAP2+: AM33XX: hwmod: Update the WKUP-M3 hwmod with reset status bit
-      ARM: OMAP2+: AM33XX: Update the hardreset API
-      ARM: DTS: AM33XX: Add nodes for OCMC RAM and WKUP-M3
+Basic test logs are available here:
 
- arch/arm/boot/dts/am33xx.dtsi              |  14 +
- arch/arm/mach-omap2/cm33xx.c               |   3 -
- arch/arm/mach-omap2/cm33xx.h               |   9 +-
- arch/arm/mach-omap2/omap_hwmod.c           |   5 +-
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 443 ++++++++++++++++++-----------
- arch/arm/mach-omap2/prm33xx.c              |  11 +-
- arch/arm/mach-omap2/prm33xx.h              |   4 +-
- 7 files changed, 306 insertions(+), 183 deletions(-)
+   http://www.pwsan.com/omap/testlogs/wfi_devel_a_3.9/20130208085027/
+
+Conflicts:
+    arch/arm/mach-omap2/pm24xx.c
+
+Note that this is based on earlier omap-for-v3.9/pm-signed because
+of a non-trivial merge conflict. This branch also contains a fix
+for c1d1cd59 ("ARM: OMAP2+: omap_device: remove obsolete pm_lats
+and early_device code").
+
+----------------------------------------------------------------
+Paul Walmsley (5):
+      ARM: OMAP2xxx: PM: enter WFI via inline asm if CORE stays active
+      ARM: OMAP2+: hwmod: add support for blocking WFI when a device is active
+      ARM: OMAP2420: hwmod data/PM: use hwmod to block WFI when I2C active
+      ARM: OMAP AM3517/05: hwmod data: block WFI when EMAC active
+      ARM: OMAP2+: fix some omap_device_build() calls that aren't compiled by default
+
+Tony Lindgren (2):
+      Merge tag 'omap-devel-b-for-3.9' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.9/pm-wfi-take2
+      Merge branch 'omap-for-v3.9/pm-fix' into omap-for-v3.9/pm-wfi-take2
+
+ arch/arm/mach-omap2/am35xx-emac.c          |  3 +--
+ arch/arm/mach-omap2/devices.c              |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  7 ++++++-
+ arch/arm/mach-omap2/pm24xx.c               | 12 ++++++------
+ arch/arm/mach-omap2/sleep24xx.S            | 19 -------------------
+ arch/arm/mach-omap2/sr_device.c            |  2 +-
+ 6 files changed, 15 insertions(+), 30 deletions(-)
