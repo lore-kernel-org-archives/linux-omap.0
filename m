@@ -1,38 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 1/5] omap SoC related late changes for v3.9 merge
- window
-Date: Tue, 12 Feb 2013 17:11:01 -0800
-Message-ID: <20130213011101.GB11362@atomide.com>
-References: <511a85b9.8473dc0a.41ed.ffffa70dSMTPIN_ADDED_BROKEN@mx.google.com>
- <20130212233716.GA5498@quad.lixom.net>
+Subject: Re: [PATCH] ARM: OMAP2+: SmartReflex: soc.h is needed for omap
+ initcalls
+Date: Tue, 12 Feb 2013 17:12:33 -0800
+Message-ID: <20130213011233.GC11362@atomide.com>
+References: <1360707836-2545-1-git-send-email-khilman@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17228 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19612 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752304Ab3BMBLH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 20:11:07 -0500
+	with ESMTP id S1752252Ab3BMBMf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 20:12:35 -0500
 Content-Disposition: inline
-In-Reply-To: <20130212233716.GA5498@quad.lixom.net>
+In-Reply-To: <1360707836-2545-1-git-send-email-khilman@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Olof Johansson <olof@lixom.net> [130212 15:40]:
-> On Tue, Feb 12, 2013 at 10:11:01AM -0800, Tony Lindgren wrote:
-> > The following changes since commit 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7:
-> > 
-> >   Linux 3.8-rc6 (2013-02-01 12:08:14 +1100)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9/soc-signed
+* Kevin Hilman <khilman@linaro.org> [130212 14:27]:
+> commit aa4f99638b (ARM: OMAP2+: Use omap initcalls) converted
+> the initcalls here, but did not #include "soc.h" where the omap
+> inicalls are defined.
 > 
-> Pulled 1-5 into a late/omap branch. As usual with late branches, there's no
-> commitment that we'll be able to merge it, but we'll do best-effort depending
-> on how the merge window turns out.
+> To fix, #include <soc.h>
 
-Thanks yes totally understood.
+Thanks, this should be already fixed in arm-soc/for-next. I might
+have forgotten to merge these into omap-for-v3.9/tmp-merge though.
+
+Regards,
 
 Tony
+
+ 
+> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+> ---
+> Tony, the patch that broke this was introduced in your
+> omap-for-v3.9/multiplatform-enable-signed branch, and this problem was
+> found only when compiling with PM (specifically, SmartReflex) enabled.
+> 
+>  arch/arm/mach-omap2/smartreflex-class3.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+> index 80f3acb..b2dcbd3 100644
+> --- a/arch/arm/mach-omap2/smartreflex-class3.c
+> +++ b/arch/arm/mach-omap2/smartreflex-class3.c
+> @@ -13,6 +13,7 @@
+>  
+>  #include <linux/power/smartreflex.h>
+>  #include "voltage.h"
+> +#include "soc.h"
+>  
+>  static int sr_class3_enable(struct omap_sr *sr)
+>  {
+> -- 
+> 1.8.1.2
+> 
