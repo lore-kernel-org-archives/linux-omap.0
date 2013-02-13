@@ -1,127 +1,127 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 07/33] arm: omap: board-am3517: use generic dpi panel's gpio handling
-Date: Wed, 13 Feb 2013 19:51:59 +0530
-Message-ID: <1360765345-19312-8-git-send-email-archit@ti.com>
+Subject: [PATCH 08/33] arm: omap: board-ldp: use generic dpi panel's gpio handling
+Date: Wed, 13 Feb 2013 19:52:00 +0530
+Message-ID: <1360765345-19312-9-git-send-email-archit@ti.com>
 References: <1360765345-19312-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56522 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934024Ab3BMOXf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 09:23:35 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39911 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755963Ab3BMOXi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Feb 2013 09:23:38 -0500
 In-Reply-To: <1360765345-19312-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>, Tony Lindgren <tony@atomide.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>, Tony Lindgren <tony@atomide.com>
 
-The am3517 board file currently requests gpios required to configure the sharp
-lq DPI panel, and provides platform_enable/disable callbacks to configure them.
+The ldp board file currently requests gpios required to configure the NEC DPI
+panel, and provides platform_enable/disable callbacks to configure them.
 
 These tasks have been moved to the generic dpi panel driver itself and shouldn't
 be done in the board files.
 
 Remove the gpio requests and the platform callbacks from the board file.
-Add the gpio information to generic dpi panel's platform data so that it's
+Configure the gpio information in generic dpi panel's platform data so that it's
 passed to the panel driver.
 
-Note: It's not clear why the GPIOs were muxed as input signals in PULL down mode
-in am3517_evm_display_init(). Also, only the LCD_PANEL_PWR was toggled in the
-platform_enable/disable calls, the generic DPI panel driver will now toggle all
-the three gpios on panel's disable/enable. We need to test if these changes to
-see if they have any impact or not.
-
 Cc: Tony Lindgren <tony@atomide.com>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- arch/arm/mach-omap2/board-am3517evm.c |   63 ++++-----------------------------
- 1 file changed, 6 insertions(+), 57 deletions(-)
+ arch/arm/mach-omap2/board-ldp.c |   61 ++++++---------------------------------
+ 1 file changed, 9 insertions(+), 52 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 2988049..eb245a6 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -120,63 +120,14 @@ static int __init am3517_evm_i2c_init(void)
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 68e56f1..c88d01a 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -180,34 +180,13 @@ static inline void __init ldp_init_smsc911x(void)
  
--static int lcd_enabled;
--static int dvi_enabled;
+ /* LCD */
+ 
+-static int ldp_backlight_gpio;
+-static int ldp_lcd_enable_gpio;
 -
--#if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
--		defined(CONFIG_PANEL_SHARP_LQ043T1DG01_MODULE)
--static struct gpio am3517_evm_dss_gpios[] __initdata = {
--	/* GPIO 182 = LCD Backlight Power */
--	{ LCD_PANEL_BKLIGHT_PWR, GPIOF_OUT_INIT_HIGH, "lcd_backlight_pwr" },
--	/* GPIO 181 = LCD Panel PWM */
--	{ LCD_PANEL_PWM,	 GPIOF_OUT_INIT_HIGH, "lcd bl enable"	  },
--	/* GPIO 176 = LCD Panel Power enable pin */
--	{ LCD_PANEL_PWR,	 GPIOF_OUT_INIT_HIGH, "dvi enable"	  },
--};
--
--static void __init am3517_evm_display_init(void)
+ #define LCD_PANEL_RESET_GPIO		55
+ #define LCD_PANEL_QVGA_GPIO		56
+ 
+-static int ldp_panel_enable_lcd(struct omap_dss_device *dssdev)
 -{
--	int r;
--
--	omap_mux_init_gpio(LCD_PANEL_PWR, OMAP_PIN_INPUT_PULLUP);
--	omap_mux_init_gpio(LCD_PANEL_BKLIGHT_PWR, OMAP_PIN_INPUT_PULLDOWN);
--	omap_mux_init_gpio(LCD_PANEL_PWM, OMAP_PIN_INPUT_PULLDOWN);
--
--	r = gpio_request_array(am3517_evm_dss_gpios,
--			       ARRAY_SIZE(am3517_evm_dss_gpios));
--	if (r) {
--		printk(KERN_ERR "failed to get DSS panel control GPIOs\n");
--		return;
--	}
--
--	printk(KERN_INFO "Display initialized successfully\n");
--}
--#else
--static void __init am3517_evm_display_init(void) {}
--#endif
--
--static int am3517_evm_panel_enable_lcd(struct omap_dss_device *dssdev)
--{
--	if (dvi_enabled) {
--		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
--		return -EINVAL;
--	}
--	gpio_set_value(LCD_PANEL_PWR, 1);
--	lcd_enabled = 1;
+-	if (gpio_is_valid(ldp_lcd_enable_gpio))
+-		gpio_direction_output(ldp_lcd_enable_gpio, 1);
+-	if (gpio_is_valid(ldp_backlight_gpio))
+-		gpio_direction_output(ldp_backlight_gpio, 1);
 -
 -	return 0;
 -}
 -
--static void am3517_evm_panel_disable_lcd(struct omap_dss_device *dssdev)
+-static void ldp_panel_disable_lcd(struct omap_dss_device *dssdev)
 -{
--	gpio_set_value(LCD_PANEL_PWR, 0);
--	lcd_enabled = 0;
+-	if (gpio_is_valid(ldp_lcd_enable_gpio))
+-		gpio_direction_output(ldp_lcd_enable_gpio, 0);
+-	if (gpio_is_valid(ldp_backlight_gpio))
+-		gpio_direction_output(ldp_backlight_gpio, 0);
 -}
 -
- static struct panel_generic_dpi_data lcd_panel = {
- 	.name			= "sharp_lq",
--	.platform_enable	= am3517_evm_panel_enable_lcd,
--	.platform_disable	= am3517_evm_panel_disable_lcd,
-+	.num_gpios		= 3,
-+	.gpios			= {
-+		LCD_PANEL_PWR,
-+		LCD_PANEL_BKLIGHT_PWR,
-+		LCD_PANEL_PWM,
-+	},
+ static struct panel_generic_dpi_data ldp_panel_data = {
+ 	.name			= "nec_nl2432dr22-11b",
+-	.platform_enable	= ldp_panel_enable_lcd,
+-	.platform_disable	= ldp_panel_disable_lcd,
++	.num_gpios		= 4,
++	/* gpios filled in code */
  };
  
- static struct omap_dss_device am3517_evm_lcd_device = {
-@@ -362,8 +313,6 @@ static void __init am3517_evm_init(void)
- 	omap_mux_init_gpio(57, OMAP_PIN_OUTPUT);
- 	usbhs_init(&usbhs_bdata);
- 	am3517_evm_hecc_init(&am3517_evm_hecc_pdata);
--	/* DSS */
--	am3517_evm_display_init();
+ static struct omap_dss_device ldp_lcd_device = {
+@@ -230,41 +209,19 @@ static struct omap_dss_board_info ldp_dss_data = {
  
- 	/* RTC - S35390A */
- 	am3517_evm_rtc_init();
+ static void __init ldp_display_init(void)
+ {
+-	int r;
+-
+-	static struct gpio gpios[] __initdata = {
+-		{LCD_PANEL_RESET_GPIO, GPIOF_OUT_INIT_HIGH, "LCD RESET"},
+-		{LCD_PANEL_QVGA_GPIO, GPIOF_OUT_INIT_HIGH, "LCD QVGA"},
+-	};
+-
+-	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
+-	if (r) {
+-		pr_err("Cannot request LCD GPIOs, error %d\n", r);
+-		return;
+-	}
++	ldp_panel_data.gpios[2] = LCD_PANEL_RESET_GPIO;
++	ldp_panel_data.gpios[3] = LCD_PANEL_QVGA_GPIO;
+ 
+ 	omap_display_init(&ldp_dss_data);
+ }
+ 
+ static int ldp_twl_gpio_setup(struct device *dev, unsigned gpio, unsigned ngpio)
+ {
+-	int r;
+-
+-	struct gpio gpios[] = {
+-		{gpio + 7 , GPIOF_OUT_INIT_LOW, "LCD ENABLE"},
+-		{gpio + 15, GPIOF_OUT_INIT_LOW, "LCD BACKLIGHT"},
+-	};
+-
+-	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
+-	if (r) {
+-		pr_err("Cannot request LCD GPIOs, error %d\n", r);
+-		ldp_backlight_gpio = -EINVAL;
+-		ldp_lcd_enable_gpio = -EINVAL;
+-		return r;
+-	}
+-
+-	ldp_backlight_gpio = gpio + 15;
+-	ldp_lcd_enable_gpio = gpio + 7;
++	ldp_panel_data.gpios[0] = gpio + 7;
++	ldp_panel_data.gpio_invert[0] = true;
++
++	ldp_panel_data.gpios[1] = gpio + 15;
++	ldp_panel_data.gpio_invert[1] = true;
+ 
+ 	return 0;
+ }
 -- 
 1.7.9.5
 
