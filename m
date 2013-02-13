@@ -1,92 +1,107 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 3/5] arm: dts: omap4-panda: Add I2c pinctrl data
-Date: Wed, 13 Feb 2013 09:57:02 -0600
-Message-ID: <511BB7CE.1020505@ti.com>
-References: <1360747710-1532-1-git-send-email-sourav.poddar@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 05/33] arm: omap: board-cm-t35: use generic dpi panel's
+ gpio handling
+Date: Wed, 13 Feb 2013 17:59:58 +0200
+Message-ID: <511BB87E.60003@ti.com>
+References: <1360765345-19312-1-git-send-email-archit@ti.com> <1360765345-19312-6-git-send-email-archit@ti.com> <511BAE50.2090507@compulab.co.il> <511BB113.3020108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig8F7467E38DAD39865B469EDB"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44462 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44954 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759796Ab3BMP5K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 10:57:10 -0500
-In-Reply-To: <1360747710-1532-1-git-send-email-sourav.poddar@ti.com>
+	id S934209Ab3BMQAD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Feb 2013 11:00:03 -0500
+In-Reply-To: <511BB113.3020108@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: balbi@ti.com, santosh.shilimkar@ti.com, b-cousson@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+
+--------------enig8F7467E38DAD39865B469EDB
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 2013-02-13 17:28, Tomi Valkeinen wrote:
+> On 2013-02-13 17:16, Igor Grinberg wrote:
+>> Hi Archit,
+>>
+>> On 02/13/13 16:21, Archit Taneja wrote:
+>>> The cm-t35 board file currently requests gpios required to configure =
+the tdo35s
+>>> panel, and provides platform_enable/disable callbacks to configure th=
+em.
+>>>
+>>> These tasks have been moved to the generic dpi panel driver itself an=
+d shouldn't
+>>> be done in the board files.
+>>>
+>>> Remove the gpio requests and the platform callbacks from the board fi=
+le.
+>>> Add the gpio information to generic dpi panel's platform data so that=
+ it's
+>>> passed to the panel driver.
+>>>
+>>> Note: In cm_t35_init_display(), the gpios were disabled, and the LCD_=
+EN gpio was
+>>> enabled after a 50 millisecond delay. This code has been removed and =
+is not
+>>> taken care of in the generic panel driver. The impact of this needs t=
+o be
+>>> tested. The panel's gpios are also not exported any more. Hence, they=
+ can't be
+>>> accessed via sysfs interface.
+>>
+>> Indeed, there is an impact - the LCD no longer works.
+>> The reason for the LCD_EN gpio being pushed high after the 50ms delay,=
+
+>> is to get the LCD out of reset, so the SPI transaction will succeed
+>> and initialize the LCD.
+>> Now, when you remove the gpio handling for the LCD_EN pin,
+>> the LCD no longer works.
+>=20
+> So between what is the sleep done? It's not clear from the code. LCD_EN=
+
+> needs to be 0 for 50ms, or...?
+>=20
+> If the panel requires specific reset handling, does it work right even
+> currently when the panel is turned off and later turned on? The msleep
+> is only used at boot time.
+
+Okay, so I just realized there's an spi backlight driver used here, and
+that backlight driver is actually handling the SPI transactions with the
+panel, instead of the panel driver. So this looks quite messed up.
+
+For a quick solution, can we just set the LCD_EN at boot time (with the
+msleep), and not touch it after that?
+
+ Tomi
 
 
-On 02/13/2013 03:28 AM, Sourav Poddar wrote:
-> Booting 3.8-rc6 on omap4 panda results in the following error
-> 
-> [    0.444427] omap_i2c 48070000.i2c: did not get pins for i2c error: -19
-> [    0.445770] omap_i2c 48070000.i2c: bus 0 rev0.11 at 400 kHz
-> [    0.473937] omap_i2c 48072000.i2c: did not get pins for i2c error: -19
-> [    0.474670] omap_i2c 48072000.i2c: bus 1 rev0.11 at 400 kHz
-> [    0.474822] omap_i2c 48060000.i2c: did not get pins for i2c error: -19
-> [    0.476379] omap_i2c 48060000.i2c: bus 2 rev0.11 at 100 kHz
-> [    0.477294] omap_i2c 48350000.i2c: did not get pins for i2c error: -19
-> [    0.477996] omap_i2c 48350000.i2c: bus 3 rev0.11 at 400 kHz
-> [    0.483398] Switching to clocksource 32k_counter
-> 
-> This happens because omap4 panda dts file is not adapted to use i2c through
-> pinctrl framework. Populating i2c pinctrl data to get rid of the error.
 
-What about the panda-es and panda-a4?
+--------------enig8F7467E38DAD39865B469EDB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-> Tested on omap4460 panda with 3.8-rc6 kernel.
-> 
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> Reported-by: Luciano Coelho <coelho@ti.com>
-> ---
->  arch/arm/boot/dts/omap4-panda.dts |   40 +++++++++++++++++++++++++++++++++++++
->  1 files changed, 40 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-> index 4122efe..f951e6b 100644
-> --- a/arch/arm/boot/dts/omap4-panda.dts
-> +++ b/arch/arm/boot/dts/omap4-panda.dts
-> @@ -110,9 +110,40 @@
->  			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
->  		>;
->  	};
-> +
-> +	i2c1_pins: pinmux_i2c1_pins {
-> +		pinctrl-single,pins = <
-> +			0xe2 0x118        /* i2c1_scl PULLUP | INPUTENABLE | MODE0 */
-> +			0xe4 0x118        /* i2c1_sda PULLUP | INPUTENABLE | MODE0 */
-> +		>;
-> +	};
-> +
-> +	i2c2_pins: pinmux_i2c2_pins {
-> +		pinctrl-single,pins = <
-> +			0xe6 0x118        /* i2c2_scl PULLUP | INPUTENABLE | MODE0 */
-> +			0xe8 0x118        /* i2c2_sda PULLUP | INPUTENABLE | MODE0 */
-> +		>;
-> +	};
-> +
-> +	i2c3_pins: pinmux_i2c3_pins {
-> +		pinctrl-single,pins = <
-> +			0xea 0x118        /* i2c3_scl PULLUP | INPUTENABLE | MODE0 */
-> +			0xec 0x118     /* i2c3_sda PULLUP | INPUTENABLE | MODE0 */
-> +		>;
-> +	};
-> +
-> +	i2c4_pins: pinmux_i2c4_pins {
-> +		pinctrl-single,pins = <
-> +			0xee 0x118        /* i2c4_scl PULLUP | INPUTENABLE | MODE0 */
-> +			0xf0 0x118     /* i2c4_sda PULLUP | INPUTENABLE | MODE0 */
-> +		>;
-> +	};
->  };
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-A quick look at the data manual shows that omap4430 and omap4460 has the
-same pin mux options for i2c. Furthermore, the data manual shows only
-one mux option for i2c1-4. Therefore, should these mux options be placed
-in omap4.dtsi? Boards not using specific i2c controllers can disabled
-them in there board dts file (same way we do for mmc).
+iQIcBAEBAgAGBQJRG7h+AAoJEPo9qoy8lh71CI8P/RMP4RheaGqbNZKW9gEWk8KJ
+2LVpV7NrZOVSgXfpOHUwL6mfxu4+0ePnBhho/pVjISQp/bU3Cq064Cb6De6eMh2l
+o1KgQVcGHzDA+QEWZo2EZel6o71U4E9ONPrmCaLhhDJZvQ23ZE/r6kIUZGzQa887
+V5IssXSfiE53eEN4o/S/nbL12fsu0d/1HU8SsFUct5V7RgyY1IBX7ppDl8l6P+5P
+B6LXFa42on+3JmgklkJw6FVL/IgpnVzfL0XlOf+vM04/jjfRLF5MXmkv6RZKnnEb
+JvkUwzHPeW6p/6OMpuY6qgi4UQgjN8r6YXYkoEmYmdVX9f9T0M+NuuMXuJXy2DZD
++tha4Evajt5rNUZH9OLo5NCajc1IeGhDGKyXV8RX3tqf/c05qwzXZKtKjWkZLIBb
+u0l4RUKy+iSS6FKaPlgusGtudwBshTGCEkj/+WCm5zVrBxnr+JKtn3S3adwfQYXO
+bTvckcJOG1JvBbr5GkaX2VQfl93ly8/4ckZJE6D6qdaS88OSsbtfrokDuxentoeE
+jW9PC3rVKGfffyYTkw7tsNEQ7DZrqPZixtzpn5QkzP261mebrDoiJkJCzw0xOTtK
+nBTqrLWHRz1R6A3wQRUyl8D5lEmY/3H8zRM8pvm4fgrWRu9qzVUAn6e0umwRE8cB
+5cOx8O6J5lA7d5DLXqhX
+=uqHj
+-----END PGP SIGNATURE-----
 
-Cheers
-Jon
+--------------enig8F7467E38DAD39865B469EDB--
