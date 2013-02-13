@@ -1,63 +1,136 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 00/11] OMAPDSS: Misc cleanups
-Date: Wed, 13 Feb 2013 19:37:03 +0530
-Message-ID: <1360764434-18788-1-git-send-email-archit@ti.com>
+Subject: [PATCH 02/11] OMAPDSS: ls037v7dw01: remove platform backlight calls
+Date: Wed, 13 Feb 2013 19:37:05 +0530
+Message-ID: <1360764434-18788-3-git-send-email-archit@ti.com>
+References: <1360764434-18788-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55791 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:55793 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757163Ab3BMOHy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 09:07:54 -0500
+	with ESMTP id S1759352Ab3BMOIA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 09:08:00 -0500
+In-Reply-To: <1360764434-18788-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-These patches perform cleanups which will help the omapdss driver to migrate
-to DT more easily:
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-- omapdss panel drivers call platform specific backlight functions defined in
-  board files. These callbacks are removed. Setting of max backlight level
-  in the board file is also removed.
-- other misc changes which thin down the omap_dss_device struct by removing
-  some unnecessary fields.
-- usage of devm_kzalloc in panel drivers.
+Sharp ls037v7dw01 driver contains support to call platform backlight
+functions. These are not used by any board, and can be removed.
 
-Reference branch:
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   62 --------------------
+ 1 file changed, 62 deletions(-)
 
-git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git for-3.9/misc_cleanups 
-
-Archit Taneja (7):
-  OMAPDSS: ZOOM/NEC-nl8048hl11: remove platform backlight support
-  OMAPDSS: Generic DPI Panel: use devm_kzalloc for allocating driver
-    data
-  OMAPDSS: lb035q02: use devm_kzalloc for allocating driver data
-  OMAPDSS: picodlp: use devm_kzalloc for allocating driver data
-  OMAPDSS: remove unnecessary DSI external TE pin platform info from
-    omap_dss_device
-  OMAPDSS: panel acx565akm: remove omap_dss_device maximum backlight
-    level usage
-  OMAPDSS: Remove max_backlight_level form omap_dss_device
-
-Tomi Valkeinen (4):
-  OMAPDSS: acx565akm: remove platform backlight calls
-  OMAPDSS: ls037v7dw01: remove platform backlight calls
-  OMAPDSS: n8x0: remove platform backlight calls
-  OMAPDSS: remove set_backlight/get_backlight function ptrs
-
- arch/arm/mach-omap2/board-zoom-display.c           |    2 -
- drivers/video/omap2/displays/panel-acx565akm.c     |   11 +--
- drivers/video/omap2/displays/panel-generic-dpi.c   |    6 +-
- .../omap2/displays/panel-lgphilips-lb035q02.c      |   16 ++---
- drivers/video/omap2/displays/panel-n8x0.c          |   74 --------------------
- .../omap2/displays/panel-nec-nl8048hl11-01b.c      |   74 --------------------
- drivers/video/omap2/displays/panel-picodlp.c       |   16 ++---
- .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   62 ----------------
- include/video/omap-panel-n8x0.h                    |    2 -
- include/video/omapdss.h                            |    7 --
- 10 files changed, 14 insertions(+), 256 deletions(-)
-
+diff --git a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+index cada8c6..eb6bd81 100644
+--- a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
++++ b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+@@ -20,7 +20,6 @@
+ #include <linux/module.h>
+ #include <linux/delay.h>
+ #include <linux/device.h>
+-#include <linux/backlight.h>
+ #include <linux/fb.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
+@@ -28,7 +27,6 @@
+ #include <video/omapdss.h>
+ 
+ struct sharp_data {
+-	struct backlight_device *bl;
+ };
+ 
+ static struct omap_video_timings sharp_ls_timings = {
+@@ -52,45 +50,10 @@ static struct omap_video_timings sharp_ls_timings = {
+ 	.sync_pclk_edge	= OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES,
+ };
+ 
+-static int sharp_ls_bl_update_status(struct backlight_device *bl)
+-{
+-	struct omap_dss_device *dssdev = dev_get_drvdata(&bl->dev);
+-	int level;
+-
+-	if (!dssdev->set_backlight)
+-		return -EINVAL;
+-
+-	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
+-			bl->props.power == FB_BLANK_UNBLANK)
+-		level = bl->props.brightness;
+-	else
+-		level = 0;
+-
+-	return dssdev->set_backlight(dssdev, level);
+-}
+-
+-static int sharp_ls_bl_get_brightness(struct backlight_device *bl)
+-{
+-	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
+-			bl->props.power == FB_BLANK_UNBLANK)
+-		return bl->props.brightness;
+-
+-	return 0;
+-}
+-
+-static const struct backlight_ops sharp_ls_bl_ops = {
+-	.get_brightness = sharp_ls_bl_get_brightness,
+-	.update_status  = sharp_ls_bl_update_status,
+-};
+-
+-
+ 
+ static int sharp_ls_panel_probe(struct omap_dss_device *dssdev)
+ {
+-	struct backlight_properties props;
+-	struct backlight_device *bl;
+ 	struct sharp_data *sd;
+-	int r;
+ 
+ 	dssdev->panel.timings = sharp_ls_timings;
+ 
+@@ -100,37 +63,12 @@ static int sharp_ls_panel_probe(struct omap_dss_device *dssdev)
+ 
+ 	dev_set_drvdata(&dssdev->dev, sd);
+ 
+-	memset(&props, 0, sizeof(struct backlight_properties));
+-	props.max_brightness = dssdev->max_backlight_level;
+-	props.type = BACKLIGHT_RAW;
+-
+-	bl = backlight_device_register("sharp-ls", &dssdev->dev, dssdev,
+-			&sharp_ls_bl_ops, &props);
+-	if (IS_ERR(bl)) {
+-		r = PTR_ERR(bl);
+-		kfree(sd);
+-		return r;
+-	}
+-	sd->bl = bl;
+-
+-	bl->props.fb_blank = FB_BLANK_UNBLANK;
+-	bl->props.power = FB_BLANK_UNBLANK;
+-	bl->props.brightness = dssdev->max_backlight_level;
+-	r = sharp_ls_bl_update_status(bl);
+-	if (r < 0)
+-		dev_err(&dssdev->dev, "failed to set lcd brightness\n");
+-
+ 	return 0;
+ }
+ 
+ static void __exit sharp_ls_panel_remove(struct omap_dss_device *dssdev)
+ {
+ 	struct sharp_data *sd = dev_get_drvdata(&dssdev->dev);
+-	struct backlight_device *bl = sd->bl;
+-
+-	bl->props.power = FB_BLANK_POWERDOWN;
+-	sharp_ls_bl_update_status(bl);
+-	backlight_device_unregister(bl);
+ 
+ 	kfree(sd);
+ }
 -- 
 1.7.9.5
 
