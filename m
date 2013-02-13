@@ -1,78 +1,62 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 24/33] OMAPDSS: picodlp panel: handle gpio data in panel driver
-Date: Wed, 13 Feb 2013 19:52:16 +0530
-Message-ID: <1360765345-19312-25-git-send-email-archit@ti.com>
+Subject: [PATCH 23/33] OMAPDSS: tpo-td043: remove platform_enable/disable callbacks
+Date: Wed, 13 Feb 2013 19:52:15 +0530
+Message-ID: <1360765345-19312-24-git-send-email-archit@ti.com>
 References: <1360765345-19312-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39941 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60122 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934079Ab3BMOY1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 09:24:27 -0500
+	id S934079Ab3BMOYY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Feb 2013 09:24:24 -0500
 In-Reply-To: <1360765345-19312-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The picodlp panel driver leaves gpio requests to the platform's board file.
-These should happen in the panel driver itself.
+The tpo-td043 panel driver now manages the gpios required to configure the panel.
+This was previously done in omap_dss_device's platform_enable/disable callbacks
+defined in board files using this panel.
 
-A platform data struct called picodlp_panel_data already exists to hold gpio
-numbers and other platform data. Request all the gpios in the panel driver so
-that the board files which use the the panel don't need to do it.
-
-This will help in removing the need for the panel drivers to have platform
-related callbacks.
+All the board files using this panel now pass the gpio information as platform
+data via the panel_tpo_td043_data struct, which is needed by the panel driver to
+configure the gpios connected to the panel. Hence, the platform_enable/disable
+ops can be safely removed now.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/displays/panel-picodlp.c |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ .../video/omap2/displays/panel-tpo-td043mtea1.c    |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff --git a/drivers/video/omap2/displays/panel-picodlp.c b/drivers/video/omap2/displays/panel-picodlp.c
-index 56d536c..bc8ac77 100644
---- a/drivers/video/omap2/displays/panel-picodlp.c
-+++ b/drivers/video/omap2/displays/panel-picodlp.c
-@@ -423,10 +423,13 @@ static int picodlp_panel_probe(struct omap_dss_device *dssdev)
- 	struct picodlp_panel_data *picodlp_pdata = get_panel_data(dssdev);
- 	struct i2c_adapter *adapter;
- 	struct i2c_client *picodlp_i2c_client;
--	int picodlp_adapter_id;
-+	int r, picodlp_adapter_id;
+diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+index c8244bc..24bb0ff 100644
+--- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
++++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+@@ -348,12 +348,6 @@ static int tpo_td043_enable_dss(struct omap_dss_device *dssdev)
+ 	if (r)
+ 		goto err0;
  
- 	dssdev->panel.timings = pico_ls_timings;
+-	if (dssdev->platform_enable) {
+-		r = dssdev->platform_enable(dssdev);
+-		if (r)
+-			goto err1;
+-	}
+-
+ 	/*
+ 	 * If we are resuming from system suspend, SPI clocks might not be
+ 	 * enabled yet, so we'll program the LCD from SPI PM resume callback.
+@@ -380,9 +374,6 @@ static void tpo_td043_disable_dss(struct omap_dss_device *dssdev)
+ 	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
+ 		return;
  
-+	if (!picodlp_pdata)
-+		return -EINVAL;
-+
- 	picod = devm_kzalloc(&dssdev->dev, sizeof(*picod), GFP_KERNEL);
- 	if (!picod)
- 		return -ENOMEM;
-@@ -452,6 +455,22 @@ static int picodlp_panel_probe(struct omap_dss_device *dssdev)
+-	if (dssdev->platform_disable)
+-		dssdev->platform_disable(dssdev);
+-
+ 	omapdss_dpi_display_disable(dssdev);
  
- 	dev_set_drvdata(&dssdev->dev, picod);
- 
-+	if (gpio_is_valid(picodlp_pdata->emu_done_gpio)) {
-+		r = devm_gpio_request_one(&dssdev->dev,
-+				picodlp_pdata->emu_done_gpio,
-+				GPIOF_IN, "DLP EMU DONE");
-+		if (r)
-+			return r;
-+	}
-+
-+	if (gpio_is_valid(picodlp_pdata->pwrgood_gpio)) {
-+		r = devm_gpio_request_one(&dssdev->dev,
-+				picodlp_pdata->pwrgood_gpio,
-+				GPIOF_OUT_INIT_LOW, "DLP PWRGOOD");
-+		if (r)
-+			return r;
-+	}
-+
- 	return 0;
- }
- 
+ 	if (!tpo_td043->spi_suspended)
 -- 
 1.7.9.5
 
