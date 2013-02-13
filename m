@@ -1,190 +1,163 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 03/11] OMAPDSS: ZOOM/NEC-nl8048hl11: remove platform backlight support
-Date: Wed, 13 Feb 2013 19:37:06 +0530
-Message-ID: <1360764434-18788-4-git-send-email-archit@ti.com>
+Subject: [PATCH 04/11] OMAPDSS: n8x0: remove platform backlight calls
+Date: Wed, 13 Feb 2013 19:37:07 +0530
+Message-ID: <1360764434-18788-5-git-send-email-archit@ti.com>
 References: <1360764434-18788-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59379 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933917Ab3BMOIE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 09:08:04 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:55796 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933917Ab3BMOIH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 09:08:07 -0500
 In-Reply-To: <1360764434-18788-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-omap_dss_device provides a callback function to set backlight. Panel backlight
-on Zoom board is implemented by the function zoom_set_bl_intensity() in the
-board file. This needs to be removed. The PWM backlight should be implemented
-with the pwm_bl driver.
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-For now, function zoom_set_bl_intensity() is left as is, but omap_dss_device's
-set_backlight func pointer and max_brightness_level are removed. NEC-nl8048hl11
-panel driver contains support to call platform backlight functions. These are
-not used any more in zoom and are now removed.
+The n8x0 panel contains support to call platform backlight functions.
+These are not used by any board, and can be removed.
 
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-zoom-display.c           |    2 -
- .../omap2/displays/panel-nec-nl8048hl11-01b.c      |   74 --------------------
+ drivers/video/omap2/displays/panel-n8x0.c |   74 -----------------------------
+ include/video/omap-panel-n8x0.h           |    2 -
  2 files changed, 76 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-zoom-display.c b/arch/arm/mach-omap2/board-zoom-display.c
-index 1c7c834..4717ed5 100644
---- a/arch/arm/mach-omap2/board-zoom-display.c
-+++ b/arch/arm/mach-omap2/board-zoom-display.c
-@@ -109,8 +109,6 @@ static struct omap_dss_device zoom_lcd_device = {
- 	.phy.dpi.data_lines	= 24,
- 	.platform_enable	= zoom_panel_enable_lcd,
- 	.platform_disable	= zoom_panel_disable_lcd,
--	.max_backlight_level	= 100,
--	.set_backlight		= zoom_set_bl_intensity,
- };
- 
- static struct omap_dss_device *zoom_dss_devices[] = {
-diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-index c4e9c2b..c197927 100644
---- a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-+++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-@@ -19,7 +19,6 @@
- #include <linux/module.h>
- #include <linux/delay.h>
+diff --git a/drivers/video/omap2/displays/panel-n8x0.c b/drivers/video/omap2/displays/panel-n8x0.c
+index dd12947..b750480 100644
+--- a/drivers/video/omap2/displays/panel-n8x0.c
++++ b/drivers/video/omap2/displays/panel-n8x0.c
+@@ -5,7 +5,6 @@
+ #include <linux/slab.h>
+ #include <linux/gpio.h>
  #include <linux/spi/spi.h>
 -#include <linux/backlight.h>
  #include <linux/fb.h>
  
  #include <video/omapdss.h>
-@@ -33,7 +32,6 @@
- #define LCD_PIXEL_CLOCK		23800
+@@ -69,7 +68,6 @@ static struct panel_drv_data {
  
- struct nec_8048_data {
--	struct backlight_device *bl;
+ 	struct omap_dss_device *dssdev;
+ 	struct spi_device *spidev;
+-	struct backlight_device *bldev;
+ 
+ 	int blizzard_ver;
+ } s_drv_data;
+@@ -424,55 +422,10 @@ static const struct rfbi_timings n8x0_panel_timings = {
+ 	.cs_pulse_width = 0,
  };
  
- static const struct {
-@@ -84,43 +82,9 @@ static struct omap_video_timings nec_8048_panel_timings = {
- 	.sync_pclk_edge	= OMAPDSS_DRIVE_SIG_RISING_EDGE,
- };
- 
--static int nec_8048_bl_update_status(struct backlight_device *bl)
+-static int n8x0_bl_update_status(struct backlight_device *dev)
 -{
--	struct omap_dss_device *dssdev = dev_get_drvdata(&bl->dev);
+-	struct omap_dss_device *dssdev = dev_get_drvdata(&dev->dev);
+-	struct panel_n8x0_data *bdata = get_board_data(dssdev);
+-	struct panel_drv_data *ddata = get_drv_data(dssdev);
+-	int r;
 -	int level;
 -
--	if (!dssdev->set_backlight)
--		return -EINVAL;
+-	mutex_lock(&ddata->lock);
 -
--	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
--			bl->props.power == FB_BLANK_UNBLANK)
--		level = bl->props.brightness;
+-	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
+-			dev->props.power == FB_BLANK_UNBLANK)
+-		level = dev->props.brightness;
 -	else
 -		level = 0;
 -
--	return dssdev->set_backlight(dssdev, level);
+-	dev_dbg(&dssdev->dev, "update brightness to %d\n", level);
+-
+-	if (!bdata->set_backlight)
+-		r = -EINVAL;
+-	else
+-		r = bdata->set_backlight(dssdev, level);
+-
+-	mutex_unlock(&ddata->lock);
+-
+-	return r;
 -}
 -
--static int nec_8048_bl_get_brightness(struct backlight_device *bl)
+-static int n8x0_bl_get_intensity(struct backlight_device *dev)
 -{
--	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
--			bl->props.power == FB_BLANK_UNBLANK)
--		return bl->props.brightness;
+-	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
+-			dev->props.power == FB_BLANK_UNBLANK)
+-		return dev->props.brightness;
 -
 -	return 0;
 -}
 -
--static const struct backlight_ops nec_8048_bl_ops = {
--	.get_brightness	= nec_8048_bl_get_brightness,
--	.update_status	= nec_8048_bl_update_status,
+-static const struct backlight_ops n8x0_bl_ops = {
+-	.get_brightness = n8x0_bl_get_intensity,
+-	.update_status  = n8x0_bl_update_status,
 -};
 -
- static int nec_8048_panel_probe(struct omap_dss_device *dssdev)
+ static int n8x0_panel_probe(struct omap_dss_device *dssdev)
  {
--	struct backlight_device *bl;
- 	struct nec_8048_data *necd;
+ 	struct panel_n8x0_data *bdata = get_board_data(dssdev);
+ 	struct panel_drv_data *ddata;
+-	struct backlight_device *bldev;
 -	struct backlight_properties props;
 -	int r;
  
- 	dssdev->panel.timings = nec_8048_panel_timings;
+ 	dev_dbg(&dssdev->dev, "probe\n");
  
-@@ -130,38 +94,12 @@ static int nec_8048_panel_probe(struct omap_dss_device *dssdev)
+@@ -491,40 +444,13 @@ static int n8x0_panel_probe(struct omap_dss_device *dssdev)
+ 	dssdev->ctrl.rfbi_timings = n8x0_panel_timings;
+ 	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
  
- 	dev_set_drvdata(&dssdev->dev, necd);
- 
--	memset(&props, 0, sizeof(struct backlight_properties));
--	props.max_brightness = 255;
--
--	bl = backlight_device_register("nec-8048", &dssdev->dev, dssdev,
--			&nec_8048_bl_ops, &props);
--	if (IS_ERR(bl)) {
--		r = PTR_ERR(bl);
--		kfree(necd);
+-	memset(&props, 0, sizeof(props));
+-	props.max_brightness = 127;
+-	props.type = BACKLIGHT_PLATFORM;
+-	bldev = backlight_device_register(dev_name(&dssdev->dev), &dssdev->dev,
+-			dssdev, &n8x0_bl_ops, &props);
+-	if (IS_ERR(bldev)) {
+-		r = PTR_ERR(bldev);
+-		dev_err(&dssdev->dev, "register backlight failed\n");
 -		return r;
 -	}
--	necd->bl = bl;
 -
--	bl->props.fb_blank = FB_BLANK_UNBLANK;
--	bl->props.power = FB_BLANK_UNBLANK;
--	bl->props.max_brightness = dssdev->max_backlight_level;
--	bl->props.brightness = dssdev->max_backlight_level;
+-	ddata->bldev = bldev;
 -
--	r = nec_8048_bl_update_status(bl);
--	if (r < 0)
--		dev_err(&dssdev->dev, "failed to set lcd brightness\n");
+-	bldev->props.fb_blank = FB_BLANK_UNBLANK;
+-	bldev->props.power = FB_BLANK_UNBLANK;
+-	bldev->props.brightness = 127;
+-
+-	n8x0_bl_update_status(bldev);
 -
  	return 0;
  }
  
- static void nec_8048_panel_remove(struct omap_dss_device *dssdev)
+ static void n8x0_panel_remove(struct omap_dss_device *dssdev)
  {
- 	struct nec_8048_data *necd = dev_get_drvdata(&dssdev->dev);
--	struct backlight_device *bl = necd->bl;
+-	struct panel_drv_data *ddata = get_drv_data(dssdev);
+-	struct backlight_device *bldev;
 -
--	bl->props.power = FB_BLANK_POWERDOWN;
--	nec_8048_bl_update_status(bl);
--	backlight_device_unregister(bl);
+ 	dev_dbg(&dssdev->dev, "remove\n");
  
- 	kfree(necd);
+-	bldev = ddata->bldev;
+-	bldev->props.power = FB_BLANK_POWERDOWN;
+-	n8x0_bl_update_status(bldev);
+-	backlight_device_unregister(bldev);
+-
+ 	dev_set_drvdata(&dssdev->dev, NULL);
  }
-@@ -169,8 +107,6 @@ static void nec_8048_panel_remove(struct omap_dss_device *dssdev)
- static int nec_8048_panel_power_on(struct omap_dss_device *dssdev)
- {
- 	int r;
--	struct nec_8048_data *necd = dev_get_drvdata(&dssdev->dev);
--	struct backlight_device *bl = necd->bl;
  
- 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
- 		return 0;
-@@ -188,10 +124,6 @@ static int nec_8048_panel_power_on(struct omap_dss_device *dssdev)
- 			goto err1;
- 	}
- 
--	r = nec_8048_bl_update_status(bl);
--	if (r < 0)
--		dev_err(&dssdev->dev, "failed to set lcd brightness\n");
+diff --git a/include/video/omap-panel-n8x0.h b/include/video/omap-panel-n8x0.h
+index 50a1302..9cc69c8 100644
+--- a/include/video/omap-panel-n8x0.h
++++ b/include/video/omap-panel-n8x0.h
+@@ -8,8 +8,6 @@ struct panel_n8x0_data {
+ 	void (*platform_disable)(struct omap_dss_device *dssdev);
+ 	int panel_reset;
+ 	int ctrl_pwrdown;
 -
- 	return 0;
- err1:
- 	omapdss_dpi_display_disable(dssdev);
-@@ -201,15 +133,9 @@ err0:
+-	int (*set_backlight)(struct omap_dss_device *dssdev, int level);
+ };
  
- static void nec_8048_panel_power_off(struct omap_dss_device *dssdev)
- {
--	struct nec_8048_data *necd = dev_get_drvdata(&dssdev->dev);
--	struct backlight_device *bl = necd->bl;
--
- 	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
- 		return;
- 
--	bl->props.brightness = 0;
--	nec_8048_bl_update_status(bl);
--
- 	if (dssdev->platform_disable)
- 		dssdev->platform_disable(dssdev);
- 
+ #endif
 -- 
 1.7.9.5
 
