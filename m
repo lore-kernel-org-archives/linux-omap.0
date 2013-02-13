@@ -1,46 +1,46 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 09/11] OMAPDSS: remove unnecessary DSI external TE pin platform info from omap_dss_device
-Date: Wed, 13 Feb 2013 19:37:12 +0530
-Message-ID: <1360764434-18788-10-git-send-email-archit@ti.com>
+Subject: [PATCH 10/11] OMAPDSS: panel acx565akm: remove omap_dss_device maximum backlight level usage
+Date: Wed, 13 Feb 2013 19:37:13 +0530
+Message-ID: <1360764434-18788-11-git-send-email-archit@ti.com>
 References: <1360764434-18788-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59393 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934052Ab3BMOIW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 09:08:22 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:55823 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934052Ab3BMOIY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 09:08:24 -0500
 In-Reply-To: <1360764434-18788-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The omap_dss_device provides platform related parameters ext_te and ext_te_gpio
-for DSI command mode panels. These parameters are now owned by a panel driver's
-platform_data instead.
-
-Remove these fields as they aren't used anymore.
+The omap_dss_device structs's max_backlight_level is used to pass maximum
+backlight level for the platform. However, no board file using this panel
+populates this field. Therefore, we remove it's usage from the panel driver.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- include/video/omapdss.h |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/video/omap2/displays/panel-acx565akm.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index d5dcd50..ec68769 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -579,9 +579,6 @@ struct omap_dss_device {
+diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
+index a980a11..a8fb26b 100644
+--- a/drivers/video/omap2/displays/panel-acx565akm.c
++++ b/drivers/video/omap2/displays/panel-acx565akm.c
+@@ -555,10 +555,7 @@ static int acx_panel_probe(struct omap_dss_device *dssdev)
+ 		md->cabc_mode = get_hw_cabc_mode(md);
+ 	}
  
- 		struct {
- 			int module;
--
--			bool ext_te;
--			u8 ext_te_gpio;
- 		} dsi;
+-	if (md->has_bc)
+-		max_brightness = 255;
+-	else
+-		max_brightness = dssdev->max_backlight_level;
++	max_brightness = 255;
  
- 		struct {
+ 	if (md->has_bc)
+ 		brightness = acx565akm_get_actual_brightness(md);
 -- 
 1.7.9.5
 
