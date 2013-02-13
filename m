@@ -1,66 +1,78 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 22/33] arm: omap: board-omap3pandora: use tpo panel's gpio handling
-Date: Wed, 13 Feb 2013 19:52:14 +0530
-Message-ID: <1360765345-19312-23-git-send-email-archit@ti.com>
+Subject: [PATCH 24/33] OMAPDSS: picodlp panel: handle gpio data in panel driver
+Date: Wed, 13 Feb 2013 19:52:16 +0530
+Message-ID: <1360765345-19312-25-git-send-email-archit@ti.com>
 References: <1360765345-19312-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40246 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39941 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932438Ab3BMOYW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 09:24:22 -0500
+	id S934079Ab3BMOY1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Feb 2013 09:24:27 -0500
 In-Reply-To: <1360765345-19312-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The omap3pandora board file currently passes the reset gpio number to the
-tpo-td043mtea1 panel driver via the reset_gpio field in omap_dss_device.
+The picodlp panel driver leaves gpio requests to the platform's board file.
+These should happen in the panel driver itself.
 
-Platform related information should be passed via the panel driver's platform
-data struct.
+A platform data struct called picodlp_panel_data already exists to hold gpio
+numbers and other platform data. Request all the gpios in the panel driver so
+that the board files which use the the panel don't need to do it.
 
-Add the reset gpio information to panel_tpo_td043_data so that it's passed to
-the panel driver.
+This will help in removing the need for the panel drivers to have platform
+related callbacks.
 
-Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3pandora.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/video/omap2/displays/panel-picodlp.c |   21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index a53a668..ddd6322 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -43,6 +43,7 @@
+diff --git a/drivers/video/omap2/displays/panel-picodlp.c b/drivers/video/omap2/displays/panel-picodlp.c
+index 56d536c..bc8ac77 100644
+--- a/drivers/video/omap2/displays/panel-picodlp.c
++++ b/drivers/video/omap2/displays/panel-picodlp.c
+@@ -423,10 +423,13 @@ static int picodlp_panel_probe(struct omap_dss_device *dssdev)
+ 	struct picodlp_panel_data *picodlp_pdata = get_panel_data(dssdev);
+ 	struct i2c_adapter *adapter;
+ 	struct i2c_client *picodlp_i2c_client;
+-	int picodlp_adapter_id;
++	int r, picodlp_adapter_id;
  
- #include "common.h"
- #include <video/omapdss.h>
-+#include <video/omap-panel-data.h>
- #include <linux/platform_data/mtd-nand-omap2.h>
+ 	dssdev->panel.timings = pico_ls_timings;
  
- #include "mux.h"
-@@ -229,12 +230,16 @@ static struct twl4030_keypad_data pandora_kp_data = {
- 	.rep		= 1,
- };
- 
-+static struct panel_tpo_td043_data lcd_data = {
-+	.nreset_gpio		= 157,
-+};
++	if (!picodlp_pdata)
++		return -EINVAL;
 +
- static struct omap_dss_device pandora_lcd_device = {
- 	.name			= "lcd",
- 	.driver_name		= "tpo_td043mtea1_panel",
- 	.type			= OMAP_DISPLAY_TYPE_DPI,
- 	.phy.dpi.data_lines	= 24,
--	.reset_gpio		= 157,
-+	.data			= &lcd_data,
- };
+ 	picod = devm_kzalloc(&dssdev->dev, sizeof(*picod), GFP_KERNEL);
+ 	if (!picod)
+ 		return -ENOMEM;
+@@ -452,6 +455,22 @@ static int picodlp_panel_probe(struct omap_dss_device *dssdev)
  
- static struct omap_dss_device pandora_tv_device = {
+ 	dev_set_drvdata(&dssdev->dev, picod);
+ 
++	if (gpio_is_valid(picodlp_pdata->emu_done_gpio)) {
++		r = devm_gpio_request_one(&dssdev->dev,
++				picodlp_pdata->emu_done_gpio,
++				GPIOF_IN, "DLP EMU DONE");
++		if (r)
++			return r;
++	}
++
++	if (gpio_is_valid(picodlp_pdata->pwrgood_gpio)) {
++		r = devm_gpio_request_one(&dssdev->dev,
++				picodlp_pdata->pwrgood_gpio,
++				GPIOF_OUT_INIT_LOW, "DLP PWRGOOD");
++		if (r)
++			return r;
++	}
++
+ 	return 0;
+ }
+ 
 -- 
 1.7.9.5
 
