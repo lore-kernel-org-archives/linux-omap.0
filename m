@@ -1,56 +1,123 @@
-From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: Re: [PATCH v3 2/2] ARM: OMAP2+: Export SoC information to userspace
-Date: Wed, 13 Feb 2013 16:17:03 +0200
-Message-ID: <CAB=otbS6NfHYZc3B__octSM_Jc6g-hZAtcYnnrb43Pc4cx3OAw@mail.gmail.com>
-References: <1360191049-24017-1-git-send-email-ruslan.bilovol@ti.com>
-	<1360191049-24017-3-git-send-email-ruslan.bilovol@ti.com>
-	<20130211175653.GQ4801@atomide.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH 00/33] OMAPDSS: platform_enable/disable callback removal from panel drivers
+Date: Wed, 13 Feb 2013 19:51:52 +0530
+Message-ID: <1360765345-19312-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130211175653.GQ4801@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60064 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757048Ab3BMOXM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Feb 2013 09:23:12 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On Mon, Feb 11, 2013 at 7:56 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Ruslan Bilovol <ruslan.bilovol@ti.com> [130206 14:54]:
->> --- a/arch/arm/mach-omap2/io.c
->> +++ b/arch/arm/mach-omap2/io.c
->> @@ -602,6 +602,7 @@ void __init omap4430_init_late(void)
->>       omap2_common_pm_late_init();
->>       omap4_pm_init();
->>       omap2_clk_enable_autoidle_all();
->> +     omap_soc_device_init();
->>  }
->>  #endif
->
-> Looks like this should be called for all omaps instead
-> of just omap4430?
->
-> I suggest you create omap_common_init_late() that
-> calls all the common init_late functions:
->
-> static void __init omap_common_init_late(void)
-> {
->         omap_mux_late_init();
->         omap2_common_pm_late_init();
->         omap_soc_device_init();
-> }
->
-> Needs to be verified that these really are common to
-> all omap2+ though :)
+init functions in omap board files request panel specific gpios, and provide
+functions which omapdss panel drivers call to enable or disable them.
 
-Yes, you are right, currently these functions are common to all
-init_late callbacks that we have right now in io.c
-I will prepare additional patch soon...
+Instead of the board files requesting these gpios, they should just pass the
+platform specific data(like the gpio numbers), the panel should retrieve the
+platform data and request the gpios. Doing this prevents the need of the panel
+driver calling platform functions in board files.
 
->
-> Regards,
->
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Panel drivers have their own platform data struct, and the board files populate
+these structs and pass the pointer to the 'data' field of omap_dss_device. This
+work will make it easier for the panel drivers be more adaptable to the
+DT model.
+
+There is also removal of passing panel reset_gpio numbers through
+omap_dss_device struct directly, reset gpios are passed through platform data
+only.
+
+Reference tree:
+
+git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git for-3.9/remove_enable_disable_callbacks
+
+Archit Taneja (32):
+  OMAPDSS: panels: keep platform data of all panels in a single header
+  arm: omap: board-2430: use generic dpi panel's gpio handling
+  arm: omap: board-devkit8000: use generic dpi panel's gpio handling
+  arm: omap: board-cm-t35: use generic dpi panel's gpio handling
+  arm: omap: board-apollon: use generic dpi panel's gpio handling
+  arm: omap: board-am3517: use generic dpi panel's gpio handling
+  arm: omap: board-ldp: use generic dpi panel's gpio handling
+  OMAPDSS: lb035q02: handle gpios in panel driver
+  arm: omap: board-overo: use lb035q02 dpi panel's gpio handling
+  OMAPDSS: lb035q02 panel: remove platform_enable/disable callbacks
+  OMAPDSS: generic dpi panel: remove platform_enable/disable ops from
+    platform_data
+  arm: omap: board-omap3evm: use sharp panel's gpio handling
+  arm: omap: board-sdp3430: use sharp panel's gpio handling
+  OMAPDSS: sharp-ls panel: remove platform_enable/disable callbacks
+  OMAPDSS: acx565akm panel: handle gpios in panel driver
+  arm: omap: board-rx-51: use acx565akm panel's gpio handling
+  OMAPDSS: nec-nl8048 panel: handle gpios ins panel driver
+  arm: omap: board-zoom: use NEC panel's gpio handling
+  OMAPDSS: nec-nl8048 panel: remove platform_enable/disable callbacks
+  OMAPDSS: tpo-td043 panel: handle gpios in panel driver
+  arm: omap: board-omap3pandora: use tpo panel's gpio handling
+  OMAPDSS: tpo-td043: remove platform_enable/disable callbacks
+  OMAPDSS: picodlp panel: handle gpio data in panel driver
+  arm: omap: dss-common: use picodlp panel's gpio handling
+  OMAPDSS: picodlp panel: remove platform_enable/disable callbacks
+  OMAPDSS: n8x0 panel: handle gpio data in panel driver
+  OMAPDSS: n8x0 panel: remove platform_enable/disable callbacks
+  arm: omap boards: Remove unnecessary platform_enable/disable
+    callbacks for VENC devices
+  OMAPDSS: VENC: remove platform_enable/disable calls
+  OMAPDSS: remove platform_enable/disable callbacks from
+    omap_dss_device
+  arm: dss-common: don't use reset_gpio from omap4_panda_dvi_device
+  OMAPDSS: remove reset_gpio field from omap_dss_device
+
+Tomi Valkeinen (1):
+  OMAPDSS: generic dpi panel: handle gpios in panel driver
+
+ arch/arm/mach-omap2/board-2430sdp.c                |   45 +-----
+ arch/arm/mach-omap2/board-3430sdp.c                |   55 +++-----
+ arch/arm/mach-omap2/board-am3517evm.c              |   77 +----------
+ arch/arm/mach-omap2/board-apollon.c                |   11 +-
+ arch/arm/mach-omap2/board-cm-t35.c                 |   60 +-------
+ arch/arm/mach-omap2/board-devkit8000.c             |   30 +---
+ arch/arm/mach-omap2/board-h4.c                     |    2 +-
+ arch/arm/mach-omap2/board-igep0020.c               |    2 +-
+ arch/arm/mach-omap2/board-ldp.c                    |   63 ++-------
+ arch/arm/mach-omap2/board-omap3beagle.c            |    2 +-
+ arch/arm/mach-omap2/board-omap3evm.c               |   72 +++-------
+ arch/arm/mach-omap2/board-omap3pandora.c           |    7 +-
+ arch/arm/mach-omap2/board-omap3stalker.c           |   14 +-
+ arch/arm/mach-omap2/board-overo.c                  |   61 ++-------
+ arch/arm/mach-omap2/board-rx51-video.c             |   26 +---
+ arch/arm/mach-omap2/board-zoom-display.c           |   38 ++----
+ arch/arm/mach-omap2/dss-common.c                   |   58 +++-----
+ drivers/video/omap2/displays/panel-acx565akm.c     |   48 +++++--
+ drivers/video/omap2/displays/panel-generic-dpi.c   |   33 +++--
+ .../omap2/displays/panel-lgphilips-lb035q02.c      |   44 ++++--
+ drivers/video/omap2/displays/panel-n8x0.c          |   29 ++--
+ .../omap2/displays/panel-nec-nl8048hl11-01b.c      |   53 ++++---
+ drivers/video/omap2/displays/panel-picodlp.c       |   35 +++--
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   78 ++++++++---
+ drivers/video/omap2/displays/panel-taal.c          |    2 +-
+ drivers/video/omap2/displays/panel-tfp410.c        |    2 +-
+ .../video/omap2/displays/panel-tpo-td043mtea1.c    |   45 +++---
+ drivers/video/omap2/dss/venc.c                     |    9 --
+ include/video/omap-panel-data.h                    |  144 ++++++++++++++++++++
+ include/video/omap-panel-generic-dpi.h             |   37 -----
+ include/video/omap-panel-n8x0.h                    |   13 --
+ include/video/omap-panel-nokia-dsi.h               |   32 -----
+ include/video/omap-panel-picodlp.h                 |   23 ----
+ include/video/omap-panel-tfp410.h                  |   35 -----
+ include/video/omapdss.h                            |    6 -
+ 35 files changed, 528 insertions(+), 763 deletions(-)
+ create mode 100644 include/video/omap-panel-data.h
+ delete mode 100644 include/video/omap-panel-generic-dpi.h
+ delete mode 100644 include/video/omap-panel-n8x0.h
+ delete mode 100644 include/video/omap-panel-nokia-dsi.h
+ delete mode 100644 include/video/omap-panel-picodlp.h
+ delete mode 100644 include/video/omap-panel-tfp410.h
+
+-- 
+1.7.9.5
+
