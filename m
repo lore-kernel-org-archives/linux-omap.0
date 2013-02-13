@@ -1,64 +1,45 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 30/33] OMAPDSS: VENC: remove platform_enable/disable calls
-Date: Wed, 13 Feb 2013 19:52:22 +0530
-Message-ID: <1360765345-19312-31-git-send-email-archit@ti.com>
-References: <1360765345-19312-1-git-send-email-archit@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [RFC 1/1] ARM: omap2: gpmc: Move binding documentation to memory-controller
+Date: Wed, 13 Feb 2013 09:13:27 -0600
+Message-ID: <511BAD97.5050602@ti.com>
+References: <1360754003-3988-1-git-send-email-ezequiel.garcia@free-electrons.com> <1360754003-3988-2-git-send-email-ezequiel.garcia@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40272 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934039Ab3BMOYp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 09:24:45 -0500
-In-Reply-To: <1360765345-19312-1-git-send-email-archit@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59097 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934031Ab3BMPNm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 10:13:42 -0500
+In-Reply-To: <1360754003-3988-2-git-send-email-ezequiel.garcia@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory Clement <gregory.clement@free-electrons.com>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
-The platform_enable/disable callbacks in board files for VENC omap_dss_device
-instances don't do anything. Hence, we can remove these callbacks from the VENC
-driver.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/dss/venc.c |    9 ---------
- 1 file changed, 9 deletions(-)
+On 02/13/2013 05:13 AM, Ezequiel Garcia wrote:
+> GPMC stands for General Purpose Memory Controller, and it's primarily
+> used to handle memories such as NOR, NAND, SRAM.
+> Note that this controller is also used to handle network controllers
+> such as smsc911x.
+> 
+> This patch moves the documentation binding to memory-controllers,
+> where it belongs.
+> 
+> Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+> ---
+>  .../ti-gpmc.txt => memory-controllers/ti/gpmc.txt} |    0
+>  1 files changed, 0 insertions(+), 0 deletions(-)
+>  rename Documentation/devicetree/bindings/{bus/ti-gpmc.txt => memory-controllers/ti/gpmc.txt} (100%)
+> 
+> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/memory-controllers/ti/gpmc.txt
+> similarity index 100%
+> rename from Documentation/devicetree/bindings/bus/ti-gpmc.txt
+> rename to Documentation/devicetree/bindings/memory-controllers/ti/gpmc.txt
 
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 006caf3..1598d27 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -519,10 +519,6 @@ int omapdss_venc_display_enable(struct omap_dss_device *dssdev)
- 		goto err0;
- 	}
- 
--	if (dssdev->platform_enable)
--		dssdev->platform_enable(dssdev);
--
--
- 	r = venc_power_on(dssdev);
- 	if (r)
- 		goto err1;
-@@ -533,8 +529,6 @@ int omapdss_venc_display_enable(struct omap_dss_device *dssdev)
- 
- 	return 0;
- err1:
--	if (dssdev->platform_disable)
--		dssdev->platform_disable(dssdev);
- 	omap_dss_stop_device(dssdev);
- err0:
- 	mutex_unlock(&venc.venc_lock);
-@@ -551,9 +545,6 @@ void omapdss_venc_display_disable(struct omap_dss_device *dssdev)
- 
- 	omap_dss_stop_device(dssdev);
- 
--	if (dssdev->platform_disable)
--		dssdev->platform_disable(dssdev);
--
- 	mutex_unlock(&venc.venc_lock);
- }
- 
--- 
-1.7.9.5
+I am fine with that. However, make sure you CC the device-tree mailing list.
+
+Cheers
+Jon
 
