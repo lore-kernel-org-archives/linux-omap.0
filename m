@@ -1,56 +1,76 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2] ARM: OMAP4: PM: Avoid expensive cpu_suspend() path for all CPU power states except off
-Date: Wed, 13 Feb 2013 14:25:24 +0530
-Message-ID: <1360745724-30058-1-git-send-email-santosh.shilimkar@ti.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v2 10/13] mailbox: create dbx500 mailbox driver
+Date: Wed, 13 Feb 2013 09:08:09 +0000
+Message-ID: <20130213090809.GD13775@e106331-lin.cambridge.arm.com>
+References: <1360645032-9668-1-git-send-email-s-anna@ti.com>
+ <1360645032-9668-11-git-send-email-s-anna@ti.com>
+ <20130212103949.GA826@e106331-lin.cambridge.arm.com>
+ <511A9F81.1040608@st.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48983 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752226Ab3BMIyT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 03:54:19 -0500
+Received: from service87.mimecast.com ([91.220.42.44]:39843 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753201Ab3BMJIR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 04:08:17 -0500
+In-Reply-To: <511A9F81.1040608@st.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Loic PALLARDY <loic.pallardy@st.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <greg@linuxfoundation.org>, Felipe Contreras <felipe.contreras@nokia.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Wim Van Sebroeck <wim@iguana.be>, Dom Cobley <popcornmix@gmail.com>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>, Suman Anna <s-anna@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Current CPU PM code code make use of common cpu_suspend() path for all the
-CPU power states which is not optimal. In fact cpu_suspend() path is needed
-only when we put CPU power domain to off state where the CPU context is lost.
+On Tue, Feb 12, 2013 at 08:01:05PM +0000, Loic PALLARDY wrote:
+> Hi Mark,
+> 
+> Thanks for your comments.
+> 
+> On 02/12/2013 11:39 AM, Mark Rutland wrote:
+> > Hello,
+> >
+> > I have a few comments on the devicetree binding and the way it's parsed.
+> >
+> >> +static const struct of_device_id dbx500_mailbox_match[] = {
+> >> +       { .compatible = "stericsson,db8500-mailbox",
+> >> +               .data = (void *)db8500_mboxes,
+> >> +       },
+> >> +       { .compatible = "stericsson,db9540-mailbox",
+> >> +               .data = (void *)dbx540_mboxes,
+> >> +       },
+> >> +       { /* sentinel */}
+> >> +};
+> >> +
+> >
+> > The binding for the compatible strings above and property parsing below should
+> > be documented.
+> >
+> Yes you're right. I will add a description in 
+> Documentation/devicetree/bindings/mailbox/...
 
-Update the code accordingly so that the expensive cpu_suspend() path
-can be avoided for the shallow CPU power states like CPU PD INA/CSWR.
+Great!
 
-The patch has been tested on OMAP4430 and OMAP5430(with few out of tree patches)
-devices for suspend and CPUidle.
+[...]
 
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> >> +       mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "prcm_reg");
+> >
+> > Does this work for dt? I wasn't aware we got anything more than anonymous
+> > memory and interrupts.
+> >
+> Yes this is working with and without dt.
+> dt declaration will be the following
+> mailbox {
+> 	compatible = "stericsson,db8500-mailbox";
+> 	reg = <0x80157000 0x1000>, <0x801B8000 0x2000>;
+> 	reg-names = "prcm-reg", "prcmu-tcdm";
+> 	interrupts = <0 47 0x4>;
+> 	interrupt-names = "irq";
+> 	legacy-offset = <0xdd4>;
+> };
 
-Reported-by: Richard Woodruff <r-woodruff2@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
-Update changelog to include testing details as suggested
-by Kevin Hilman.
+Ah, I wasn't aware of reg-names. Thanks for the example.
 
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Thanks,
+Mark.
 
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index aac46bf..abdd0f6 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -276,7 +276,10 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 	/*
- 	 * Call low level function  with targeted low power state.
- 	 */
--	cpu_suspend(save_state, omap4_finish_suspend);
-+	if (save_state)
-+		cpu_suspend(save_state, omap4_finish_suspend);
-+	else
-+		omap4_finish_suspend(save_state);
- 
- 	/*
- 	 * Restore the CPUx power state to ON otherwise CPUx
--- 
-1.7.9.5
 
