@@ -1,91 +1,54 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: omap-mcpdm: Clean up with devm_*
-	function
-Date: Wed, 13 Feb 2013 14:17:09 +0100
-Message-ID: <511B9255.7090505@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] ASoC: omap-mcpdm: Clean up with devm_* function
+Date: Wed, 13 Feb 2013 13:20:39 +0000
+Message-ID: <20130213132039.GG5062@opensource.wolfsonmicro.com>
 References: <1360740114-4117-1-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bO4vSxwwZtUjUWHo"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:40713 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756937Ab3BMNUl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Feb 2013 08:20:41 -0500
+Content-Disposition: inline
 In-Reply-To: <1360740114-4117-1-git-send-email-s-guiriec@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastien Guiriec <s-guiriec@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-On 02/13/2013 08:21 AM, Sebastien Guiriec wrote:
+
+--bO4vSxwwZtUjUWHo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, Feb 13, 2013 at 08:21:54AM +0100, Sebastien Guiriec wrote:
 > Clean up McPDM driver with devm_ function.
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Applied, thanks.
 
-> =
+--bO4vSxwwZtUjUWHo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
-> ---
->  sound/soc/omap/omap-mcpdm.c |   14 +++++---------
->  1 file changed, 5 insertions(+), 9 deletions(-)
-> =
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-> diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
-> index 5ca11bd..079f277 100644
-> --- a/sound/soc/omap/omap-mcpdm.c
-> +++ b/sound/soc/omap/omap-mcpdm.c
-> @@ -369,7 +369,7 @@ static int omap_mcpdm_probe(struct snd_soc_dai *dai)
->  	pm_runtime_get_sync(mcpdm->dev);
->  	omap_mcpdm_write(mcpdm, MCPDM_REG_CTRL, 0x00);
->  =
+iQIcBAEBAgAGBQJRG5MhAAoJELSic+t+oim9KycP/iDN+L2vIYBBrv+3ZKl7HwP1
+7n0g44VTkcYNg2L0MBKgkapgCL32UTotGTnVowMLHIYdVUXpCHYnYAhyZsgtIBQp
+b8hy4VXnoPK0Km4SUiIzXnEXHoC9xfg+n3OiJFUVevtk5a6xWcCxbz4JJ84wWYVX
+ks0KwDs0QBwYnyHSjzCwGLqK/MU0jAsquX5ZU2RZiMQOlF3PDUNIJf+YB35Up4mU
+eB+hotMeJesYGmdFCOONdz+AoA3JN1IwazpjiP3N1zPpgHfyewTDF/ukFHrQPp3c
+HhZan3hXAADZ/aD2gF8XUC8lHjIBPbAG4KoS6Wu74Tyn4w6SFL3lNiD3r129saqG
+xT+btLyq2WXhtfFDevWART0zLGnYTO/jwAL9WPq+6ZeSAs/bmeYRQIeHVACzUB0R
+6lY0R5z8vLE+k6ztCFrTDuEuyuy0UTZ8pHjHzmLVSSDvXfxE8aJNxjwScW2EkgBe
+AmCuDbo/jQWWjm+nQasmniiju5Q32PYZEG08w+Sp2eT1VBmsJx/nV7gTGAWk9+G6
+zZO9mr5aYt/lxlfZ9fRguOvSgt8jxvVFyIYWIZ8Wxj3NvJfU0IZhr1DqbKPwPXDG
+9WH5hO7gEvt7Z8Tq1o2f2p2AfHM+L87cksXph70AMtGqN/ELRQgwEC1sJTpOlc8Z
+/xaQfmKITjQaxj/W2YCD
+=YYao
+-----END PGP SIGNATURE-----
 
-> -	ret =3D request_irq(mcpdm->irq, omap_mcpdm_irq_handler,
-> +	ret =3D devm_request_irq(mcpdm->dev, mcpdm->irq, omap_mcpdm_irq_handler,
->  				0, "McPDM", (void *)mcpdm);
->  =
-
->  	pm_runtime_put_sync(mcpdm->dev);
-> @@ -389,7 +389,6 @@ static int omap_mcpdm_remove(struct snd_soc_dai *dai)
->  {
->  	struct omap_mcpdm *mcpdm =3D snd_soc_dai_get_drvdata(dai);
->  =
-
-> -	free_irq(mcpdm->irq, (void *)mcpdm);
->  	pm_runtime_disable(mcpdm->dev);
->  =
-
->  	return 0;
-> @@ -465,14 +464,11 @@ static int asoc_mcpdm_probe(struct platform_device =
-*pdev)
->  	if (res =3D=3D NULL)
->  		return -ENOMEM;
->  =
-
-> -	if (!devm_request_mem_region(&pdev->dev, res->start,
-> -				     resource_size(res), "McPDM"))
-> -		return -EBUSY;
-> -
-> -	mcpdm->io_base =3D devm_ioremap(&pdev->dev, res->start,
-> -				      resource_size(res));
-> -	if (!mcpdm->io_base)
-> +	mcpdm->io_base =3D devm_request_and_ioremap(&pdev->dev, res);
-> +	if (!mcpdm->io_base) {
-> +		dev_err(&pdev->dev, "cannot remap\n");
->  		return -ENOMEM;
-> +	}
->  =
-
->  	mcpdm->irq =3D platform_get_irq(pdev, 0);
->  	if (mcpdm->irq < 0)
-> =
-
-
-
--- =
-
-P=E9ter
+--bO4vSxwwZtUjUWHo--
