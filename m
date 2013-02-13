@@ -1,29 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-Date: Wed, 13 Feb 2013 19:43:32 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1302131942470.8234@utopia.booyaka.com>
-References: <1359966525-7603-1-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.00.1302080248550.8539@utopia.booyaka.com> <DC88CAD03C0052499C1907B327FC63229B92FF@DBDE01.ent.ti.com> <alpine.DEB.2.00.1302081805450.28008@utopia.booyaka.com>
- <alpine.DEB.2.00.1302081855370.28008@utopia.booyaka.com>  <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com> <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com> <DC88CAD03C0052499C1907B327FC63229B989B@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302120638580.14983@utopia.booyaka.com> <DC88CAD03C0052499C1907B327FC63229B98DD@DBDE01.ent.ti.com> <alpine.DEB.2.00.1302122028480.29149@utopia.booyaka.com> <DC88CAD03C0052499C1907B327FC63229BAB0B@DBDE01.ent.ti.com>
+From: Loic PALLARDY <loic.pallardy@st.com>
+Subject: Re: [PATCH v2 00/13] drivers: mailbox: framework creation
+Date: Wed, 13 Feb 2013 21:36:39 +0100
+Message-ID: <511BF957.4010501@st.com>
+References: <1360645032-9668-1-git-send-email-s-anna@ti.com>
+ <CACRpkdZayg-X11ZRnh2Z0i+egBn8Fhwya-6_Yr8wcv+6s0CVqQ@mail.gmail.com>
+ <20130213134207.GN17852@n2100.arm.linux.org.uk>
+ <37C860A02101E749A747FA2D3C1E3C50476638@DLEE12.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:50211 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757570Ab3BMTnd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 14:43:33 -0500
-In-Reply-To: <DC88CAD03C0052499C1907B327FC63229BAB0B@DBDE01.ent.ti.com>
+Received: from eu1sys200aog104.obsmtp.com ([207.126.144.117]:42335 "EHLO
+	eu1sys200aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934006Ab3BMUiW convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Feb 2013 15:38:22 -0500
+In-Reply-To: <37C860A02101E749A747FA2D3C1E3C50476638@DLEE12.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Anna, Suman" <s-anna@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Linus Walleij <linus.walleij@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>
 
-On Wed, 13 Feb 2013, J, KEERTHY wrote:
+Hi Suman,
 
-> So the patch needs to be rebased after 3.9 right?
+I'll send new version of patch 11 taking into account Mark Rutland's 
+comments.
 
-No, I've already done that.  At this point, I don't think there's anything 
-further that you need to do with it.  Will let you know if that turns out 
-not to be true.
+Regards,
+Loic
 
-- Paul
+On 02/13/2013 05:41 PM, Anna, Suman wrote:
+>> On Wed, Feb 13, 2013 at 02:36:32PM +0100, Linus Walleij wrote:
+>>> On Tue, Feb 12, 2013 at 5:56 AM, Suman Anna<s-anna@ti.com>  wrote:
+>>>
+>>>> I have hosted the series at [3].
+>>>> [3]
+>>>> https://github.com/sumananna/mailbox/commits/dbx500-prcmu-mailbox
+>>>
+>>> Suman, I suggest you ask Stepgen Rothwell to include this branch into
+>>> the linux-next tree, so we can get some rotation of this stuff in
+>>> preparation for the v3.10 merge window. (It's not going in now
+>>> anyway.)
+>>
+>> Best wait until after v3.9-rc1 - remember that linux-next is supposed to be a
+>> staging tree for the _next_ merge window only.
+>
+> Yes, will do. Anyway, we need a new revision of one patch (so far) to address Mark Rutland's comments.
+>
+> Thanks
+> Suman
