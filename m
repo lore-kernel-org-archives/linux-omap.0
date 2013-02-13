@@ -1,141 +1,107 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 02/33] OMAPDSS: generic dpi panel: handle gpios in panel driver
-Date: Wed, 13 Feb 2013 19:51:54 +0530
-Message-ID: <1360765345-19312-3-git-send-email-archit@ti.com>
+Subject: [PATCH 03/33] arm: omap: board-2430: use generic dpi panel's gpio handling
+Date: Wed, 13 Feb 2013 19:51:55 +0530
+Message-ID: <1360765345-19312-4-git-send-email-archit@ti.com>
 References: <1360765345-19312-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60068 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934024Ab3BMOXS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 09:23:18 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:56507 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934024Ab3BMOXW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 09:23:22 -0500
 In-Reply-To: <1360765345-19312-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>, Tony Lindgren <tony@atomide.com>
 
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+The 2430sdp board file currently requests gpios required to configure the NEC
+DPI panel, and provides platform_enable/disable callbacks to configure them.
 
-The generic dpi panel driver leaves gpio configurations to the platform_enable
-and disable calls in the platform's board file. These should happen in the
-panel driver itself.
+These tasks have been moved to the generic dpi panel driver itself and shouldn't
+be done in the board files.
 
-Add a generic way of passing gpio information to the generic dpi panel driver
-via it's platform_data. This information includes the number of gpios used by
-the panel, the gpio number and logic level (active high/low) for each gpio. This
-gpio data will be used by the driver to request and configure the gpios required
-by the panel.
+Remove the gpio requests and the platform callbacks from the board file.
+Add the gpio information to generic dpi panel's platform data so that it's
+passed to the panel driver.
 
-This will help in removing the need for the panel drivers to have platform
-related callbacks.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/displays/panel-generic-dpi.c |   25 ++++++++++++++++++++--
- include/video/omap-panel-data.h                  |    7 ++++++
- 2 files changed, 30 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/board-2430sdp.c |   43 +++++------------------------------
+ 1 file changed, 6 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-index d8d0cd5..4a12db6 100644
---- a/drivers/video/omap2/displays/panel-generic-dpi.c
-+++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -33,6 +33,7 @@
- #include <linux/module.h>
- #include <linux/delay.h>
- #include <linux/slab.h>
-+#include <linux/gpio.h>
- #include <video/omapdss.h>
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index 13a1a3b..c888a58 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -107,24 +107,13 @@ static struct platform_device *sdp2430_devices[] __initdata = {
+ #define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
+ #define SDP2430_LCD_PANEL_ENABLE_GPIO		154
  
- #include <video/omap-panel-data.h>
-@@ -557,7 +558,7 @@ static inline struct panel_generic_dpi_data
- 
- static int generic_dpi_panel_power_on(struct omap_dss_device *dssdev)
- {
--	int r;
-+	int r, i;
- 	struct panel_generic_dpi_data *panel_data = get_panel_data(dssdev);
- 	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
- 	struct panel_config *panel_config = drv_data->panel_config;
-@@ -582,6 +583,11 @@ static int generic_dpi_panel_power_on(struct omap_dss_device *dssdev)
- 			goto err1;
- 	}
- 
-+	for (i = 0; i < panel_data->num_gpios; ++i) {
-+		gpio_set_value_cansleep(panel_data->gpios[i],
-+				panel_data->gpio_invert[i] ? 0 : 1);
-+	}
-+
- 	return 0;
- err1:
- 	omapdss_dpi_display_disable(dssdev);
-@@ -594,10 +600,16 @@ static void generic_dpi_panel_power_off(struct omap_dss_device *dssdev)
- 	struct panel_generic_dpi_data *panel_data = get_panel_data(dssdev);
- 	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
- 	struct panel_config *panel_config = drv_data->panel_config;
-+	int i;
- 
- 	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
- 		return;
- 
-+	for (i = panel_data->num_gpios - 1; i >= 0; --i) {
-+		gpio_set_value_cansleep(panel_data->gpios[i],
-+				panel_data->gpio_invert[i] ? 1 : 0);
-+	}
-+
- 	if (panel_data->platform_disable)
- 		panel_data->platform_disable(dssdev);
- 
-@@ -613,7 +625,7 @@ static int generic_dpi_panel_probe(struct omap_dss_device *dssdev)
- 	struct panel_generic_dpi_data *panel_data = get_panel_data(dssdev);
- 	struct panel_config *panel_config = NULL;
- 	struct panel_drv_data *drv_data = NULL;
--	int i;
-+	int i, r;
- 
- 	dev_dbg(&dssdev->dev, "probe\n");
- 
-@@ -630,6 +642,15 @@ static int generic_dpi_panel_probe(struct omap_dss_device *dssdev)
- 	if (!panel_config)
- 		return -EINVAL;
- 
-+	for (i = 0; i < panel_data->num_gpios; ++i) {
-+		r = devm_gpio_request_one(&dssdev->dev, panel_data->gpios[i],
-+				panel_data->gpio_invert[i] ?
-+				GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW,
-+				"panel gpio");
-+		if (r)
-+			return r;
-+	}
-+
- 	dssdev->panel.timings = panel_config->timings;
- 
- 	drv_data = devm_kzalloc(&dssdev->dev, sizeof(*drv_data), GFP_KERNEL);
-diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index e8e30f9..eec93f1 100644
---- a/include/video/omap-panel-data.h
-+++ b/include/video/omap-panel-data.h
-@@ -34,11 +34,18 @@ struct omap_dss_device;
-  * @name: panel name
-  * @platform_enable: platform specific panel enable function
-  * @platform_disable: platform specific panel disable function
-+ * @num_gpios: number of gpios connected to panel
-+ * @gpios: gpio numbers on the platform
-+ * @gpio_invert: configure gpio as active high or low
-  */
- struct panel_generic_dpi_data {
- 	const char *name;
- 	int (*platform_enable)(struct omap_dss_device *dssdev);
- 	void (*platform_disable)(struct omap_dss_device *dssdev);
-+
-+	int num_gpios;
-+	int gpios[10];
-+	bool gpio_invert[10];
+-static int sdp2430_panel_enable_lcd(struct omap_dss_device *dssdev)
+-{
+-	gpio_direction_output(SDP2430_LCD_PANEL_ENABLE_GPIO, 1);
+-	gpio_direction_output(SDP2430_LCD_PANEL_BACKLIGHT_GPIO, 1);
+-
+-	return 0;
+-}
+-
+-static void sdp2430_panel_disable_lcd(struct omap_dss_device *dssdev)
+-{
+-	gpio_direction_output(SDP2430_LCD_PANEL_ENABLE_GPIO, 0);
+-	gpio_direction_output(SDP2430_LCD_PANEL_BACKLIGHT_GPIO, 0);
+-}
+-
+ static struct panel_generic_dpi_data sdp2430_panel_data = {
+ 	.name			= "nec_nl2432dr22-11b",
+-	.platform_enable	= sdp2430_panel_enable_lcd,
+-	.platform_disable	= sdp2430_panel_disable_lcd,
++	.num_gpios		= 2,
++	.gpios			= {
++		SDP2430_LCD_PANEL_ENABLE_GPIO,
++		SDP2430_LCD_PANEL_BACKLIGHT_GPIO,
++	},
  };
  
- /**
+ static struct omap_dss_device sdp2430_lcd_device = {
+@@ -145,26 +134,6 @@ static struct omap_dss_board_info sdp2430_dss_data = {
+ 	.default_device	= &sdp2430_lcd_device,
+ };
+ 
+-static void __init sdp2430_display_init(void)
+-{
+-	int r;
+-
+-	static struct gpio gpios[] __initdata = {
+-		{ SDP2430_LCD_PANEL_ENABLE_GPIO, GPIOF_OUT_INIT_LOW,
+-			"LCD reset" },
+-		{ SDP2430_LCD_PANEL_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW,
+-			"LCD Backlight" },
+-	};
+-
+-	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
+-	if (r) {
+-		pr_err("Cannot request LCD GPIOs, error %d\n", r);
+-		return;
+-	}
+-
+-	omap_display_init(&sdp2430_dss_data);
+-}
+-
+ #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91x_MODULE)
+ 
+ static struct omap_smc91x_platform_data board_smc91x_data = {
+@@ -271,7 +240,7 @@ static void __init omap_2430sdp_init(void)
+ 	gpio_request_one(SECONDARY_LCD_GPIO, GPIOF_OUT_INIT_LOW,
+ 			 "Secondary LCD backlight");
+ 
+-	sdp2430_display_init();
++	omap_display_init(&sdp2430_dss_data);
+ }
+ 
+ MACHINE_START(OMAP_2430SDP, "OMAP2430 sdp2430 board")
 -- 
 1.7.9.5
 
