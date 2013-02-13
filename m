@@ -1,28 +1,28 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 18/33] OMAPDSS: nec-nl8048 panel: handle gpios ins panel driver
-Date: Wed, 13 Feb 2013 19:52:10 +0530
-Message-ID: <1360765345-19312-19-git-send-email-archit@ti.com>
+Subject: [PATCH 16/33] OMAPDSS: acx565akm panel: handle gpios in panel driver
+Date: Wed, 13 Feb 2013 19:52:08 +0530
+Message-ID: <1360765345-19312-17-git-send-email-archit@ti.com>
 References: <1360765345-19312-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40237 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60100 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757028Ab3BMOYI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 09:24:08 -0500
+	id S1757028Ab3BMOYD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Feb 2013 09:24:03 -0500
 In-Reply-To: <1360765345-19312-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The nec-nl8048hl11-01 panel driver leaves gpio configurations to the
-platform_enable and disable calls in the platform's board file. These should
-happen in the panel driver itself.
+The acx565akm panel driver leaves gpio configurations to the platform_enable
+and disable calls in the platform's board file. These should happen in the panel
+driver itself.
 
-Create a platform data struct for the panel, this contains the gpio numbers
+Create a platform data struct for the panel, this contains the reset gpio number
 used by the panel driver, this struct will be passed to the panel driver as
-platform data. The driver will request and configure these gpios rather than
+platform data. The driver will request and configure the reset gpio rather than
 leaving it to platform callbacks in board files.
 
 This will help in removing the need for the panel drivers to have platform
@@ -30,131 +30,154 @@ related callbacks.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- .../omap2/displays/panel-nec-nl8048hl11-01b.c      |   45 +++++++++++++++-----
- include/video/omap-panel-data.h                    |   10 +++++
- 2 files changed, 44 insertions(+), 11 deletions(-)
+ drivers/video/omap2/displays/panel-acx565akm.c |   48 ++++++++++++++++--------
+ include/video/omap-panel-data.h                |    8 ++++
+ 2 files changed, 41 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-index c197927..3b85e2a 100644
---- a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-+++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-@@ -20,8 +20,10 @@
- #include <linux/delay.h>
- #include <linux/spi/spi.h>
+diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
+index a8fb26b..d7f69c0 100644
+--- a/drivers/video/omap2/displays/panel-acx565akm.c
++++ b/drivers/video/omap2/displays/panel-acx565akm.c
+@@ -29,8 +29,10 @@
+ #include <linux/sched.h>
+ #include <linux/backlight.h>
  #include <linux/fb.h>
 +#include <linux/gpio.h>
  
  #include <video/omapdss.h>
 +#include <video/omap-panel-data.h>
  
- #define LCD_XRES		800
- #define LCD_YRES		480
-@@ -31,9 +33,6 @@
-  */
- #define LCD_PIXEL_CLOCK		23800
- 
--struct nec_8048_data {
--};
--
- static const struct {
- 	unsigned char addr;
- 	unsigned char dat;
-@@ -82,30 +81,46 @@ static struct omap_video_timings nec_8048_panel_timings = {
- 	.sync_pclk_edge	= OMAPDSS_DRIVE_SIG_RISING_EDGE,
+ #define MIPID_CMD_READ_DISP_ID		0x04
+ #define MIPID_CMD_READ_RED		0x06
+@@ -494,21 +496,38 @@ static struct omap_video_timings acx_panel_timings = {
+ 	.sync_pclk_edge	= OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES,
  };
  
-+static inline struct panel_nec_nl8048_data
-+*get_panel_data(const struct omap_dss_device *dssdev)
++static struct panel_acx565akm_data *get_panel_data(struct omap_dss_device *dssdev)
 +{
-+	return (struct panel_nec_nl8048_data *) dssdev->data;
++	return (struct panel_acx565akm_data *) dssdev->data;
 +}
 +
- static int nec_8048_panel_probe(struct omap_dss_device *dssdev)
+ static int acx_panel_probe(struct omap_dss_device *dssdev)
  {
--	struct nec_8048_data *necd;
-+	struct panel_nec_nl8048_data *pd = get_panel_data(dssdev);
-+	int r;
-+
-+	if (!pd)
-+		return -EINVAL;
- 
- 	dssdev->panel.timings = nec_8048_panel_timings;
- 
--	necd = kzalloc(sizeof(*necd), GFP_KERNEL);
--	if (!necd)
--		return -ENOMEM;
-+	if (gpio_is_valid(pd->qvga_gpio)) {
-+		r = devm_gpio_request_one(&dssdev->dev, pd->qvga_gpio,
-+				GPIOF_OUT_INIT_HIGH, "lcd QVGA");
-+		if (r)
-+			return r;
-+	}
- 
--	dev_set_drvdata(&dssdev->dev, necd);
-+	if (gpio_is_valid(pd->res_gpio)) {
-+		r = devm_gpio_request_one(&dssdev->dev, pd->res_gpio,
-+				GPIOF_OUT_INIT_LOW, "lcd RES");
-+		if (r)
-+			return r;
-+	}
- 
- 	return 0;
- }
- 
- static void nec_8048_panel_remove(struct omap_dss_device *dssdev)
- {
--	struct nec_8048_data *necd = dev_get_drvdata(&dssdev->dev);
--
--	kfree(necd);
- }
- 
- static int nec_8048_panel_power_on(struct omap_dss_device *dssdev)
- {
-+	struct panel_nec_nl8048_data *pd = get_panel_data(dssdev);
  	int r;
+ 	struct acx565akm_device *md = &acx_dev;
++	struct panel_acx565akm_data *panel_data = get_panel_data(dssdev);
+ 	struct backlight_device *bldev;
+ 	int max_brightness, brightness;
+ 	struct backlight_properties props;
  
- 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-@@ -124,6 +139,9 @@ static int nec_8048_panel_power_on(struct omap_dss_device *dssdev)
- 			goto err1;
+ 	dev_dbg(&dssdev->dev, "%s\n", __func__);
+ 
++	if (!panel_data)
++		return -EINVAL;
++
+ 	/* FIXME AC bias ? */
+ 	dssdev->panel.timings = acx_panel_timings;
+ 
+-	if (dssdev->platform_enable)
+-		dssdev->platform_enable(dssdev);
++	if (gpio_is_valid(panel_data->reset_gpio)) {
++		r = devm_gpio_request_one(&dssdev->dev, panel_data->reset_gpio,
++				GPIOF_OUT_INIT_LOW, "lcd reset");
++		if (r)
++			return r;
++	}
++
++	if (gpio_is_valid(panel_data->reset_gpio))
++		gpio_set_value(panel_data->reset_gpio, 1);
++
+ 	/*
+ 	 * After reset we have to wait 5 msec before the first
+ 	 * command can be sent.
+@@ -520,8 +539,9 @@ static int acx_panel_probe(struct omap_dss_device *dssdev)
+ 	r = panel_detect(md);
+ 	if (r) {
+ 		dev_err(&dssdev->dev, "%s panel detect error\n", __func__);
+-		if (!md->enabled && dssdev->platform_disable)
+-			dssdev->platform_disable(dssdev);
++		if (!md->enabled && gpio_is_valid(panel_data->reset_gpio))
++			gpio_set_value(panel_data->reset_gpio, 0);
++
+ 		return r;
  	}
  
-+	if (gpio_is_valid(pd->res_gpio))
-+		gpio_set_value_cansleep(pd->res_gpio, 1);
-+
- 	return 0;
- err1:
- 	omapdss_dpi_display_disable(dssdev);
-@@ -133,9 +151,14 @@ err0:
+@@ -530,8 +550,8 @@ static int acx_panel_probe(struct omap_dss_device *dssdev)
+ 	mutex_unlock(&acx_dev.mutex);
  
- static void nec_8048_panel_power_off(struct omap_dss_device *dssdev)
+ 	if (!md->enabled) {
+-		if (dssdev->platform_disable)
+-			dssdev->platform_disable(dssdev);
++		if (gpio_is_valid(panel_data->reset_gpio))
++			gpio_set_value(panel_data->reset_gpio, 0);
+ 	}
+ 
+ 	/*------- Backlight control --------*/
+@@ -584,6 +604,7 @@ static void acx_panel_remove(struct omap_dss_device *dssdev)
+ static int acx_panel_power_on(struct omap_dss_device *dssdev)
  {
-+	struct panel_nec_nl8048_data *pd = get_panel_data(dssdev);
-+
- 	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
- 		return;
+ 	struct acx565akm_device *md = &acx_dev;
++	struct panel_acx565akm_data *panel_data = get_panel_data(dssdev);
+ 	int r;
  
-+	if (gpio_is_valid(pd->res_gpio))
-+		gpio_set_value_cansleep(pd->res_gpio, 0);
-+
- 	if (dssdev->platform_disable)
- 		dssdev->platform_disable(dssdev);
+ 	dev_dbg(&dssdev->dev, "%s\n", __func__);
+@@ -605,11 +626,8 @@ static int acx_panel_power_on(struct omap_dss_device *dssdev)
+ 	/*FIXME tweak me */
+ 	msleep(50);
  
+-	if (dssdev->platform_enable) {
+-		r = dssdev->platform_enable(dssdev);
+-		if (r)
+-			goto fail;
+-	}
++	if (gpio_is_valid(panel_data->reset_gpio))
++		gpio_set_value(panel_data->reset_gpio, 1);
+ 
+ 	if (md->enabled) {
+ 		dev_dbg(&md->spi->dev, "panel already enabled\n");
+@@ -638,8 +656,7 @@ static int acx_panel_power_on(struct omap_dss_device *dssdev)
+ 	mutex_unlock(&md->mutex);
+ 
+ 	return acx565akm_bl_update_status(md->bl_dev);
+-fail:
+-	omapdss_sdi_display_disable(dssdev);
++
+ fail_unlock:
+ 	mutex_unlock(&md->mutex);
+ 	return r;
+@@ -648,6 +665,7 @@ fail_unlock:
+ static void acx_panel_power_off(struct omap_dss_device *dssdev)
+ {
+ 	struct acx565akm_device *md = &acx_dev;
++	struct panel_acx565akm_data *panel_data = get_panel_data(dssdev);
+ 
+ 	dev_dbg(&dssdev->dev, "%s\n", __func__);
+ 
+@@ -671,8 +689,8 @@ static void acx_panel_power_off(struct omap_dss_device *dssdev)
+ 	 */
+ 	msleep(50);
+ 
+-	if (dssdev->platform_disable)
+-		dssdev->platform_disable(dssdev);
++	if (gpio_is_valid(panel_data->reset_gpio))
++		gpio_set_value(panel_data->reset_gpio, 0);
+ 
+ 	/* FIXME need to tweak this delay */
+ 	msleep(100);
 diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index 6faf0c7..e7698e2 100644
+index 86da8d3..6faf0c7 100644
 --- a/include/video/omap-panel-data.h
 +++ b/include/video/omap-panel-data.h
-@@ -125,4 +125,14 @@ struct panel_acx565akm_data {
- 	int reset_gpio;
+@@ -117,4 +117,12 @@ struct panel_sharp_ls037v7dw01_data {
+ 	int ud_gpio;
  };
  
 +/**
-+ * nec nl8048 panel driver configuration data
-+ * @res_gpio: reset signal
-+ * @qvga_gpio: selection for resolution(QVGA/WVGA)
++ * acx565akm panel driver configuration data
++ * @reset_gpio: reset signal
 + */
-+struct panel_nec_nl8048_data {
-+	int res_gpio;
-+	int qvga_gpio;
++struct panel_acx565akm_data {
++	int reset_gpio;
 +};
 +
  #endif /* __OMAP_PANEL_DATA_H */
