@@ -1,50 +1,118 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 0/5] omap[4/5] I2c/Spi dts patches
-Date: Wed, 13 Feb 2013 14:58:00 +0530
-Message-ID: <1360747680-1438-1-git-send-email-sourav.poddar@ti.com>
+From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/5] arm: dts: omap4-sdp: Add I2c pinctrl data
+Date: Wed, 13 Feb 2013 14:58:12 +0530
+Message-ID: <1360747692-1470-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50186 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752430Ab3BMJ2P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 04:28:15 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: balbi-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, santosh.shilimkar@ti.com, b-cousson@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Sourav Poddar <sourav.poddar@ti.com>
 
-Hi Tony, 
+Booting 3.8-rc6 on omap 4430sdp results in the following error
 
-These patches were send as seperate ones before[1], but did not recieve any 
-comments. Resending them all as a single patch series, as some affect the same files.
-[1]: https://patchwork.kernel.org/patch/2054891/
-     https://patchwork.kernel.org/patch/2054871/ 
-     https://patchwork.kernel.org/patch/2070991/ 	
-     https://patchwork.kernel.org/patch/2089751/
-     http://www.spinics.net/lists/linux-omap/msg86137.html	 
+omap_i2c 48070000.i2c: did not get pins for i2c error: -19
+[    1.024261] omap_i2c 48070000.i2c: bus 0 rev0.12 at 100 kHz
+[    1.030181] omap_i2c 48072000.i2c: did not get pins for i2c error: -19
+[    1.037384] omap_i2c 48072000.i2c: bus 1 rev0.12 at 400 kHz
+[    1.043762] omap_i2c 48060000.i2c: did not get pins for i2c error: -19
+[    1.050964] omap_i2c 48060000.i2c: bus 2 rev0.12 at 100 kHz
+[    1.056823] omap_i2c 4807a000.i2c: did not get pins for i2c error: -19
+[    1.064025] omap_i2c 4807a000.i2c: bus 3 rev0.12 at 400 kHz
 
-If you are Ok with the patch and there are no comments, Can it be picked?
-	
-The following changes since commit 6edacf05c8362f4c368991b55d85e8122cfc9a24:
+This happens because omap4 dts file is not adapted to use i2c through pinctrl
+framework. Populating i2c pinctrl data to get rid of the error.
 
-  Merge branch 'merge' of git://git.kernel.org/pub/scm/linux/kernel/git/benh/powerpc (2013-02-04 16:58:41 +1100)
+Tested on omap4430 sdp with 3.8-rc6 kernel.
 
-are available in the git repository at:
+Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Reported-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/omap4-sdp.dts |   40 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
 
-  git@gitorious.org:linux-connectivity/linux-connectivity.git spi_i2c_dev
-
-Felipe Balbi (1):
-      arm: dts: omap5: add SPI devices to OMAP5 DeviceTree file
-
-Sourav Poddar (4):
-      arm: dts: omap4-sdp: Add I2c pinctrl data
-      arm: dts: omap5-evm: Add I2c pinctrl data
-      arm: dts: omap4-panda: Add I2c pinctrl data
-      arm: dts: omap5-evm: Add mcspi data
-
- arch/arm/boot/dts/omap4-panda.dts |   40 ++++++++++++++
- arch/arm/boot/dts/omap4-sdp.dts   |   40 ++++++++++++++
- arch/arm/boot/dts/omap5-evm.dts   |  108 +++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap5.dtsi      |   40 ++++++++++++++
- 4 files changed, 228 insertions(+), 0 deletions(-)
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 43e5258..40a04c9 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -212,9 +212,40 @@
+ 			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
+ 		>;
+ 	};
++
++	i2c1_pins: pinmux_i2c1_pins {
++		pinctrl-single,pins = <
++			0xe2 0x118        /* i2c1_scl PULLUP | INPUTENABLE | MODE0 */
++			0xe4 0x118       /* i2c1_sda PULLUP | INPUTENABLE | MODE0 */
++		>;
++	};
++
++	i2c2_pins: pinmux_i2c2_pins {
++		pinctrl-single,pins = <
++                        0xe6 0x118        /* i2c2_scl PULLUP | INPUTENABLE | MODE0 */
++                        0xe8 0x118        /* i2c2_sda PULLUP | INPUTENABLE | MODE0 */
++		>;
++	};
++
++	i2c3_pins: pinmux_i2c3_pins {
++		pinctrl-single,pins = <
++			0xea 0x118        /* i2c3_scl PULLUP | INPUTENABLE | MODE0 */
++			0xec 0x118     /* i2c3_sda PULLUP | INPUTENABLE | MODE0 */
++		>;
++	};
++
++	i2c4_pins: pinmux_i2c4_pins {
++		pinctrl-single,pins = <
++			0xee 0x118        /* i2c4_scl PULLUP | INPUTENABLE | MODE0 */
++			0xf0 0x118     /* i2c4_sda PULLUP | INPUTENABLE | MODE0 */
++		>;
++	};
+ };
+ 
+ &i2c1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
+ 	clock-frequency = <400000>;
+ 
+ 	twl: twl@48 {
+@@ -253,10 +284,16 @@
+ /include/ "twl6030.dtsi"
+ 
+ &i2c2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++
+ 	clock-frequency = <400000>;
+ };
+ 
+ &i2c3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c3_pins>;
++
+ 	clock-frequency = <400000>;
+ 
+ 	/*
+@@ -279,6 +316,9 @@
+ };
+ 
+ &i2c4 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c4_pins>;
++
+ 	clock-frequency = <400000>;
+ 
+ 	/*
+-- 
+1.7.1
