@@ -1,43 +1,64 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 33/33] OMAPDSS: remove reset_gpio field from omap_dss_device
-Date: Wed, 13 Feb 2013 19:52:25 +0530
-Message-ID: <1360765345-19312-34-git-send-email-archit@ti.com>
+Subject: [PATCH 30/33] OMAPDSS: VENC: remove platform_enable/disable calls
+Date: Wed, 13 Feb 2013 19:52:22 +0530
+Message-ID: <1360765345-19312-31-git-send-email-archit@ti.com>
 References: <1360765345-19312-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60165 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40272 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934039Ab3BMOYy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 09:24:54 -0500
+	id S934039Ab3BMOYp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Feb 2013 09:24:45 -0500
 In-Reply-To: <1360765345-19312-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The reset_gpio field isn't used by any panel driver to retrieve a reset gpio
-number. All the panel drivers receive gpio data from their corresponding
-platform_data structs. Remove the reset_gpio field.
+The platform_enable/disable callbacks in board files for VENC omap_dss_device
+instances don't do anything. Hence, we can remove these callbacks from the VENC
+driver.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- include/video/omapdss.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/video/omap2/dss/venc.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index e1ebb48..fe8672c 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -629,8 +629,6 @@ struct omap_dss_device {
- 		struct rfbi_timings rfbi_timings;
- 	} ctrl;
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 006caf3..1598d27 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -519,10 +519,6 @@ int omapdss_venc_display_enable(struct omap_dss_device *dssdev)
+ 		goto err0;
+ 	}
  
--	int reset_gpio;
+-	if (dssdev->platform_enable)
+-		dssdev->platform_enable(dssdev);
 -
- 	const char *name;
+-
+ 	r = venc_power_on(dssdev);
+ 	if (r)
+ 		goto err1;
+@@ -533,8 +529,6 @@ int omapdss_venc_display_enable(struct omap_dss_device *dssdev)
  
- 	/* used to match device to driver */
+ 	return 0;
+ err1:
+-	if (dssdev->platform_disable)
+-		dssdev->platform_disable(dssdev);
+ 	omap_dss_stop_device(dssdev);
+ err0:
+ 	mutex_unlock(&venc.venc_lock);
+@@ -551,9 +545,6 @@ void omapdss_venc_display_disable(struct omap_dss_device *dssdev)
+ 
+ 	omap_dss_stop_device(dssdev);
+ 
+-	if (dssdev->platform_disable)
+-		dssdev->platform_disable(dssdev);
+-
+ 	mutex_unlock(&venc.venc_lock);
+ }
+ 
 -- 
 1.7.9.5
 
