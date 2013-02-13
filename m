@@ -1,67 +1,77 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 07/11] OMAPDSS: lb035q02: use devm_kzalloc for allocating driver data
-Date: Wed, 13 Feb 2013 19:37:10 +0530
-Message-ID: <1360764434-18788-8-git-send-email-archit@ti.com>
+Subject: [PATCH 08/11] OMAPDSS: picodlp: use devm_kzalloc for allocating driver data
+Date: Wed, 13 Feb 2013 19:37:11 +0530
+Message-ID: <1360764434-18788-9-git-send-email-archit@ti.com>
 References: <1360764434-18788-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39235 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39238 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934052Ab3BMOIQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 09:08:16 -0500
+	id S934052Ab3BMOIT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Feb 2013 09:08:19 -0500
 In-Reply-To: <1360764434-18788-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>, Steve Sakoman <steve@sakoman.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Use devm_kzalloc instead of kzalloc to allocate driver data for the lg phillips
+Use devm_kzalloc instead of kzalloc to allocate driver data for the picodlp
 panel driver. This simplifies the driver's probe and remove functions.
 
-Cc: Steve Sakoman <steve@sakoman.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- .../omap2/displays/panel-lgphilips-lb035q02.c      |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ drivers/video/omap2/displays/panel-picodlp.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-index 6e5abe8..8effea8 100644
---- a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-+++ b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-@@ -89,27 +89,21 @@ static void lb035q02_panel_power_off(struct omap_dss_device *dssdev)
- static int lb035q02_panel_probe(struct omap_dss_device *dssdev)
- {
- 	struct lb035q02_data *ld;
--	int r;
+diff --git a/drivers/video/omap2/displays/panel-picodlp.c b/drivers/video/omap2/displays/panel-picodlp.c
+index 1b94018..3864299 100644
+--- a/drivers/video/omap2/displays/panel-picodlp.c
++++ b/drivers/video/omap2/displays/panel-picodlp.c
+@@ -423,11 +423,11 @@ static int picodlp_panel_probe(struct omap_dss_device *dssdev)
+ 	struct picodlp_panel_data *picodlp_pdata = get_panel_data(dssdev);
+ 	struct i2c_adapter *adapter;
+ 	struct i2c_client *picodlp_i2c_client;
+-	int r = 0, picodlp_adapter_id;
++	int picodlp_adapter_id;
  
- 	dssdev->panel.timings = lb035q02_timings;
+ 	dssdev->panel.timings = pico_ls_timings;
  
--	ld = kzalloc(sizeof(*ld), GFP_KERNEL);
--	if (!ld) {
--		r = -ENOMEM;
+-	picod =  kzalloc(sizeof(struct picodlp_data), GFP_KERNEL);
++	picod = devm_kzalloc(&dssdev->dev, sizeof(*picod), GFP_KERNEL);
+ 	if (!picod)
+ 		return -ENOMEM;
+ 
+@@ -438,25 +438,21 @@ static int picodlp_panel_probe(struct omap_dss_device *dssdev)
+ 	adapter = i2c_get_adapter(picodlp_adapter_id);
+ 	if (!adapter) {
+ 		dev_err(&dssdev->dev, "can't get i2c adapter\n");
+-		r = -ENODEV;
 -		goto err;
--	}
-+	ld = devm_kzalloc(&dssdev->dev, sizeof(*ld), GFP_KERNEL);
-+	if (!ld)
-+		return -ENOMEM;
-+
- 	mutex_init(&ld->lock);
- 	dev_set_drvdata(&dssdev->dev, ld);
-+
- 	return 0;
--err:
++		return -ENODEV;
+ 	}
+ 
+ 	picodlp_i2c_client = i2c_new_device(adapter, &picodlp_i2c_board_info);
+ 	if (!picodlp_i2c_client) {
+ 		dev_err(&dssdev->dev, "can't add i2c device::"
+ 					 " picodlp_i2c_client is NULL\n");
+-		r = -ENODEV;
+-		goto err;
++		return -ENODEV;
+ 	}
+ 
+ 	picod->picodlp_i2c_client = picodlp_i2c_client;
+ 
+ 	dev_set_drvdata(&dssdev->dev, picod);
 -	return r;
+-err:
+-	kfree(picod);
+-	return r;
++
++	return 0;
  }
  
- static void lb035q02_panel_remove(struct omap_dss_device *dssdev)
- {
--	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
--
--	kfree(ld);
- }
- 
- static int lb035q02_panel_enable(struct omap_dss_device *dssdev)
+ static void picodlp_panel_remove(struct omap_dss_device *dssdev)
 -- 
 1.7.9.5
 
