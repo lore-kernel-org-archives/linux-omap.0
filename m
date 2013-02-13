@@ -1,121 +1,64 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 09/11] mfd: twl-core: Collect global variables behind
- one private structure (global)
-Date: Wed, 13 Feb 2013 14:59:17 +0100
-Message-ID: <511B9C35.907@ti.com>
-References: <1358344439-23017-1-git-send-email-peter.ujfalusi@ti.com> <1358344439-23017-10-git-send-email-peter.ujfalusi@ti.com> <51154A7A.2010709@ti.com> <5115E3B9.6090100@ti.com> <51195301.8000606@ti.com> <5119EEB4.70508@ti.com> <511A6A8C.2020000@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH 01/11] OMAPDSS: acx565akm: remove platform backlight calls
+Date: Wed, 13 Feb 2013 19:37:04 +0530
+Message-ID: <1360764434-18788-2-git-send-email-archit@ti.com>
+References: <1360764434-18788-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <511A6A8C.2020000@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:55792 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757646Ab3BMOH5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 09:07:57 -0500
+In-Reply-To: <1360764434-18788-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Hi Jon,
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On 02/12/2013 05:15 PM, Jon Hunter wrote:
->=20
-> On 02/12/2013 01:26 AM, Peter Ujfalusi wrote:
->> On 02/11/2013 09:22 PM, Jon Hunter wrote:
->>> Good point. I just noticed that none of my omap2+ board were bootin=
-g and
->>> on omap3/4 I was the panic in the twl code. I can't say that I chec=
-ked
->>> the panic on omap2, so may be that was another problem?
->>
->> Do you have insights on the code path leading to a crash on OMAP3/4?=
- I have
->> been running this code on several boards (BeagleBoard, Zoom2, PandaB=
-oard,
->> Blaze) and have not seen a crash.
->=20
-> Here is the panic log ...
+acx565akm has support to call set_backlight/get_backlight in platform
+code. They are not used by any board, and thus can be removed from the
+driver.
 
-Thanks.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/omap2/displays/panel-acx565akm.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
->=20
-> [    2.286132] Unable to handle kernel NULL pointer dereference at vi=
-rtual address 00000000
-> [    2.294738] pgd =3D c0004000
-> [    2.297576] [00000000] *pgd=3D00000000
-> [    2.301361] Internal error: Oops: 5 [#1] SMP ARM
-> [    2.306243] Modules linked in:
-> [    2.309448] CPU: 0    Not tainted  (3.8.0-rc6-next-20130207-00016-=
-g735c237 #35)
-> [    2.317169] PC is at twl_i2c_read+0x3c/0xec
-> [    2.321563] LR is at twl_i2c_read+0x1c/0xec
-> [    2.325988] pc : [<c0333950>]    lr : [<c0333930>]    psr: 8000015=
-3
-> [    2.325988] sp : c702fed0  ip : 00000000  fp : 00000000
-> [    2.338043] r10: c702e000  r9 : c06e84e8  r8 : c06e51c8
-> [    2.343536] r7 : 00000001  r6 : 00000006  r5 : c702fef6  r4 : 0000=
-0004
-> [    2.350402] r3 : c129508c  r2 : 00000006  r1 : c702fef6  r0 : 0000=
-000e
-> [    2.357269] Flags: Nzcv  IRQs on  FIQs off  Mode SVC_32  ISA ARM  =
-Segment kernel
-> [    2.365051] Control: 10c5387d  Table: 80004019  DAC: 00000017
-> [    2.371093] Process swapper/0 (pid: 1, stack limit =3D 0xc702e240)
-> [    2.377410] Stack: (0xc702fed0 to 0xc7030000)
-> [    2.382019] fec0:                                     c0d42180 c0d=
-429d0 c70a7640 c07354c4
-> [    2.390624] fee0: 00000001 c0719798 c0d42180 c06f2cc0 c04e76cc c06=
-ee1ac 00000000 c07354c4
-> [    2.399230] ff00: 00000007 c06f2d64 00000017 c06fb308 00000000 c06=
-f07a4 c0cb8580 c06edee0
-> [    2.407836] ff20: c06eded4 c06e8504 c0d42180 c0008768 0000009e c00=
-611b4 00000001 00000000
-> [    2.416442] ff40: c061994c c06b7548 00000007 00000007 00000000 c07=
-354c4 00000007 c0719798
-> [    2.425048] ff60: c0d42180 c06e51c8 c07197a0 0000009e 00000000 c06=
-e590c 00000007 00000007
-> [    2.433654] ff80: c06e51c8 00000000 00000000 c04d26ec 00000000 000=
-00000 00000000 00000000
-> [    2.442260] ffa0: 00000000 c04d26f4 00000000 c00137b0 00000000 000=
-00000 00000000 00000000
-> [    2.450866] ffc0: 00000000 00000000 00000000 00000000 00000000 000=
-00000 00000000 00000000
-> [    2.459472] ffe0: 00000000 00000000 00000000 00000000 00000013 000=
-00000 80fb6c10 71bbcd20
-> [    2.468078] [<c0333950>] (twl_i2c_read+0x3c/0xec) from [<c06f2cc0>=
-] (omap3_twl_set_sr_bit+0x3c/0xb4)
-> [    2.477722] [<c06f2cc0>] (omap3_twl_set_sr_bit+0x3c/0xb4) from [<c=
-06f2d64>] (omap3_twl_init+0x2c/0x70)
-> [    2.487518] [<c06f2d64>] (omap3_twl_init+0x2c/0x70) from [<c06fb30=
-8>] (omap_pmic_late_init+0x18/0x24)
-> [    2.497222] [<c06fb308>] (omap_pmic_late_init+0x18/0x24) from [<c0=
-6f07a4>] (omap2_common_pm_late_init+0x18/0xd0)
-> [    2.507934] [<c06f07a4>] (omap2_common_pm_late_init+0x18/0xd0) fro=
-m [<c06edee0>] (omap3_init_late+0xc/0x18)
-> [    2.518188] [<c06edee0>] (omap3_init_late+0xc/0x18) from [<c06e850=
-4>] (init_machine_late+0x1c/0x28)
-> [    2.527740] [<c06e8504>] (init_machine_late+0x1c/0x28) from [<c000=
-8768>] (do_one_initcall+0x100/0x16c)
-> [    2.537536] [<c0008768>] (do_one_initcall+0x100/0x16c) from [<c06e=
-590c>] (kernel_init_freeable+0xfc/0x1c8)
-> [    2.547698] [<c06e590c>] (kernel_init_freeable+0xfc/0x1c8) from [<=
-c04d26f4>] (kernel_init+0x8/0xe4)
-> [    2.557250] [<c04d26f4>] (kernel_init+0x8/0xe4) from [<c00137b0>] =
-(ret_from_fork+0x14/0x24)
+diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
+index 72699f8..a980a11 100644
+--- a/drivers/video/omap2/displays/panel-acx565akm.c
++++ b/drivers/video/omap2/displays/panel-acx565akm.c
+@@ -336,8 +336,6 @@ static int acx565akm_bl_update_status(struct backlight_device *dev)
+ 	r = 0;
+ 	if (md->has_bc)
+ 		acx565akm_set_brightness(md, level);
+-	else if (md->dssdev->set_backlight)
+-		r = md->dssdev->set_backlight(md->dssdev, level);
+ 	else
+ 		r = -ENODEV;
+ 
+@@ -352,7 +350,7 @@ static int acx565akm_bl_get_intensity(struct backlight_device *dev)
+ 
+ 	dev_dbg(&dev->dev, "%s\n", __func__);
+ 
+-	if (!md->has_bc && md->dssdev->set_backlight == NULL)
++	if (!md->has_bc)
+ 		return -ENODEV;
+ 
+ 	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
+@@ -564,8 +562,6 @@ static int acx_panel_probe(struct omap_dss_device *dssdev)
+ 
+ 	if (md->has_bc)
+ 		brightness = acx565akm_get_actual_brightness(md);
+-	else if (dssdev->get_backlight)
+-		brightness = dssdev->get_backlight(dssdev);
+ 	else
+ 		brightness = 0;
+ 
+-- 
+1.7.9.5
 
-This is exactly the sort of thing which should not ever existed in the =
-first
-place...
-The code in omap_twl.c, especially the omap3_twl_set_sr_bit() function =
-is
-executed in .init_late of the board. If the twl stack is not up by then=
- we are
-going to have issues.
-Right now I don't see how to solve this (the call chain is related to
-smartreflex) but IMHO we should not have these 'random' twl_write calls=
- spread
-across the kernel without integrating them to the twl stack in a proper
-manner. What I mean is that we should only have twl_* calls from driver=
-s,
-which has been created by the twl-core MFD core.
-
---=20
-P=E9ter
