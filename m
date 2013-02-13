@@ -1,41 +1,31 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [RFC v2 07/18] ARM: OMAP2+: AM33XX: hwmod: Update TPTC0 hwmod
- with the right flags
-Date: Wed, 13 Feb 2013 10:56:50 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433ED1CDEA@DBDE01.ent.ti.com>
-References: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com>
-	<1356959231-17335-8-git-send-email-vaibhav.bedia@ti.com>
- <87fw12xw70.fsf@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: [RFC 0/1] ARM: omap2: gpmc: Move binding documentation
+Date: Wed, 13 Feb 2013 08:13:22 -0300
+Message-ID: <1360754003-3988-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60793 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932451Ab3BMK5C convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 05:57:02 -0500
-In-Reply-To: <87fw12xw70.fsf@linaro.org>
-Content-Language: en-US
+Received: from mail.free-electrons.com ([94.23.35.102]:49957 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932536Ab3BMLNg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 06:13:36 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Jon Hunter <jon-hunter@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory Clement <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Hi Kevin,
+Following current trend of placing memory controllers drivers under
+drivers/memory, this patch anticipates this by moving the binding
+documentation to Documentation/devicetree/bindings/memory-controller.
 
-On Tue, Feb 12, 2013 at 05:03:23, Kevin Hilman wrote:
-> Vaibhav Bedia <vaibhav.bedia@ti.com> writes:
-> 
-> > TPTC0 needs to be idled and put to standby under SW control.
-> 
-> Please elaborate about why (e.g. HW support not available, HW support
-> broken/buggy, etc.) since these blocks are not well documented in the
-> docs that I have (spruh73f.)
-> 
+Some other SoCs will have similar memory controllers placed under
+drivers/memory and it seems a bit strange to put GPMC under drivers/bus.
 
-This change was picked up for v3.9. I'll submit a follow-up patch adding
-in a comment in the hwmod file for this.
+Ezequiel Garcia (1):
+  ARM: omap2: gpmc: Move binding documentation to memory-controller
 
-Regards,
-Vaibhav 
+ .../ti-gpmc.txt => memory-controllers/ti/gpmc.txt} |    0
+ 1 files changed, 0 insertions(+), 0 deletions(-)
+ rename Documentation/devicetree/bindings/{bus/ti-gpmc.txt => memory-controllers/ti/gpmc.txt} (100%)
+
+-- 
+1.7.8.6
 
