@@ -1,37 +1,61 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [RFC 1/1] ARM: omap2: gpmc: Move binding documentation to memory-controller
-Date: Wed, 13 Feb 2013 08:13:23 -0300
-Message-ID: <1360754003-3988-2-git-send-email-ezequiel.garcia@free-electrons.com>
-References: <1360754003-3988-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:49961 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932536Ab3BMLNj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 06:13:39 -0500
-In-Reply-To: <1360754003-3988-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH v2 3/4] mtd: devices: elm: Low power transition support
+Date: Wed, 13 Feb 2013 11:42:01 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3EA7491C@DBDE01.ent.ti.com>
+References: <1360240618-11094-1-git-send-email-avinashphilip@ti.com>
+ <1360240618-11094-4-git-send-email-avinashphilip@ti.com>
+ <20130209102243.GH17852@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130209102243.GH17852@n2100.arm.linux.org.uk>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Jon Hunter <jon-hunter@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory Clement <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-GPMC stands for General Purpose Memory Controller, and it's primarily
-used to handle memories such as NOR, NAND, SRAM.
-Note that this controller is also used to handle network controllers
-such as smsc911x.
+On Sat, Feb 09, 2013 at 15:52:44, Russell King - ARM Linux wrote:
+> On Thu, Feb 07, 2013 at 06:06:57PM +0530, Philip Avinash wrote:
+> > +static int elm_suspend(struct device *dev)
+> > +{
+> > +	struct elm_info *info = dev_get_drvdata(dev);
+> > +	wait_queue_head_t wq;
+> > +	DECLARE_WAITQUEUE(wait, current);
+> > +
+> > +	init_waitqueue_head(&wq);
+> > +	while (1) {
+> > +		/* Make sure that ELM not running */
+> > +		if (info->idle) {
+> > +			add_wait_queue(&wq, &wait);
+> > +			schedule();
+> > +			remove_wait_queue(&wq, &wait);
+> > +		} else {
+> > +			break;
+> > +		}
+> > +	}
+> 
+> The above code looks really wrong - it will just spin endlessly with the
+> waitqueues doing nothing useful.  What are you trying to do here?
 
-This patch moves the documentation binding to memory-controllers,
-where it belongs.
+The intention of waitqeue is to make the suspend process really wait till
+the ELM module finishes current activity. Although this type of protection
+already achieved in mtd layer using nand_suspend(), this one is particularly
+required for ELM module to really make sure that *any pending* corrections to
+finish really before gone to suspend.
 
-Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
----
- .../ti-gpmc.txt => memory-controllers/ti/gpmc.txt} |    0
- 1 files changed, 0 insertions(+), 0 deletions(-)
- rename Documentation/devicetree/bindings/{bus/ti-gpmc.txt => memory-controllers/ti/gpmc.txt} (100%)
+If suspend activity initiated and NAND driver requested service of ELM
+module for error correction, then suspend activity has to wait till
+(info->idle == false), so that ELM module finishes activity.
 
-diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/memory-controllers/ti/gpmc.txt
-similarity index 100%
-rename from Documentation/devicetree/bindings/bus/ti-gpmc.txt
-rename to Documentation/devicetree/bindings/memory-controllers/ti/gpmc.txt
--- 
-1.7.8.6
+I can think of adding different states to ELM module and take action.
+I will add following states.
 
+RUNNING
+SUSPEND
+
+Thanks
+Avinash
+
+> 
