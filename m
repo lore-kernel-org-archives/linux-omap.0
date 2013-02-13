@@ -1,90 +1,64 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] usb: musb: fix context save over suspend.
-Date: Tue, 12 Feb 2013 17:13:38 -0800
-Message-ID: <87ip5xggn1.fsf@linaro.org>
-References: <20130121202831.40a09bbc@notabene.brown>
-	<50FD28D3.5070107@compulab.co.il>
-	<20130122083832.7a3026c9@notabene.brown> <87zjz9i6s7.fsf@linaro.org>
-	<20130213120121.3df7dd88@notabene.brown>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
+Date: Wed, 13 Feb 2013 04:59:17 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229BAB0B@DBDE01.ent.ti.com>
+References: <1359966525-7603-1-git-send-email-j-keerthy@ti.com>
+ <alpine.DEB.2.00.1302080248550.8539@utopia.booyaka.com>
+ <DC88CAD03C0052499C1907B327FC63229B92FF@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1302081805450.28008@utopia.booyaka.com>
+ <alpine.DEB.2.00.1302081855370.28008@utopia.booyaka.com>
+  <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com>
+ <DC88CAD03C0052499C1907B327FC63229B989B@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1302120638580.14983@utopia.booyaka.com>
+ <DC88CAD03C0052499C1907B327FC63229B98DD@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1302122028480.29149@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130213120121.3df7dd88@notabene.brown> (NeilBrown's message of
-	"Wed, 13 Feb 2013 12:01:21 +1100")
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48931 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752490Ab3BME7Y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 23:59:24 -0500
+In-Reply-To: <alpine.DEB.2.00.1302122028480.29149@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-NeilBrown <neilb@suse.de> writes:
 
-> On Tue, 12 Feb 2013 13:03:36 -0800 Kevin Hilman <khilman@linaro.org> wrote:
->
->> NeilBrown <neilb@suse.de> writes:
->> 
 
-[...]
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Wednesday, February 13, 2013 2:19 AM
+> To: J, KEERTHY
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
+> 
+> On Tue, 12 Feb 2013, J, KEERTHY wrote:
+> 
+> > Heh :-). It narrowed down to this patch:
+> >
+> > commit 17b7e7d33530e2bbd3bdc90f4db09b91cfdde2bb
+> > Author: Paul Walmsley <paul@pwsan.com>
+> > Date:   Sat Jan 26 00:48:54 2013 -0700
+> >
+> >     ARM: OMAP4: clock/hwmod data: start to remove some IP block
+> control "clocks"
+> 
+> Thanks, this fixes it:
+> 
+> http://marc.info/?l=linux-omap&m=136070089529743&w=2
+> 
+Ok. Cool.
 
->> My patch was fixing a real hang when musb was built-in (or loaded), in
->> host-mode (mini-A cable attached) but no devices attached.  I just tried
->> to reproduce this, and with your patch, the system hangs during suspend.
->> 
+> But at this point, I've rescheduled your patch to the 3.10-cleanup time
+> frame, since we're pretty close to the 3.9 merge window.
 >
-> Odd.  I plug in a mini-A cable, note that the 'mode' file holds
-> 'a_idle' (sometimes just plugging in the cable isn't enough to trigger that,
-> but sometimes it is....) and suspend/resume work perfectly.  Though after
-> resume it is back to b_idle.
->
-> unplug/replug and it is back to  a_idle.  suspend/resume and back to b_idle.
->
->> That being said, your description makes sense why this context
->> save/restore is needed.  Perhaps your patch needs to add a check whether
->> the device is runtime suspended (I gather this is what Ruslan's patch is
->> doing.)
->
-> I'm not sure it is possible for the device to be runtime suspended at this
-> point.  Certainly my device never is, even if it was just before the suspend
-> sequence started. Something is waking it up...
-> (instruments the code).
->
-> Ahh - usb_suspend() calls choose_wakeup() which might call
-> pm_runtime_resume() if the could be a need to reprogram the wakeup setting.
-> As that is a 'might', the device might not be runtime-awake when 'suspend'
-> runs.
->
-> Can you see if this, on top of my previous patch, does any better on your
-> hardware?
 
-Yes, this patch adding the check on top of your previous one makes
-things work just fine on my hardware (3530/Overo).
+So the patch needs to be rebased after 3.9 right?
 
-Kevin
-
-> Thanks,
-> NeilBrown
->
->
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 956db0e..00deb94 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -2278,7 +2278,8 @@ static int musb_suspend(struct device *dev)
->  	}
->  
->  	spin_unlock_irqrestore(&musb->lock, flags);
-> -	musb_save_context(musb);
-> +	if (!pm_runtime_status_suspended(dev))
-> +		musb_save_context(musb);
->  	return 0;
->  }
->  
-> @@ -2289,7 +2290,8 @@ static int musb_resume_noirq(struct device *dev)
->  	 * module got reset through the PSC (vs just being disabled).
->  	 */
->  	struct musb	*musb = dev_to_musb(dev);
-> -	musb_restore_context(musb);
-> +	if (!pm_runtime_status_suspended(dev))
-> +		musb_restore_context(musb);
->  	return 0;
->  }
->  
+> 
+> - Paul
