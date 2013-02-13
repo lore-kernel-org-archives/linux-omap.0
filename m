@@ -1,139 +1,176 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 13/33] arm: omap: board-omap3evm: use sharp panel's gpio handling
-Date: Wed, 13 Feb 2013 19:52:05 +0530
-Message-ID: <1360765345-19312-14-git-send-email-archit@ti.com>
+Subject: [PATCH 29/33] arm: omap boards: Remove unnecessary platform_enable/disable callbacks for VENC devices
+Date: Wed, 13 Feb 2013 19:52:21 +0530
+Message-ID: <1360765345-19312-30-git-send-email-archit@ti.com>
 References: <1360765345-19312-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40215 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40270 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934098Ab3BMOXy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 09:23:54 -0500
+	id S934039Ab3BMOYm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Feb 2013 09:24:42 -0500
 In-Reply-To: <1360765345-19312-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>, Tony Lindgren <tony@atomide.com>
 
-The omap3evm board file currently requests gpios required by the sharp_ls dpi
-panel, and provides platform_enable/disable callbacks to configure them.
-
-These tasks have been moved to the sharp_ls panel driver itself and shouldn't
-be done in the board files.
-
-Remove the gpio requests and the platform callbacks from the board file.
-Add the gpio information to panel_sharp_ls037v7dw01_data so that it's passed
-to the panel driver.
-
-Note: The GPIOs OMAP3EVM_LCD_PANEL_ENVDD and OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO
-aren't directly connected to the sharp panel, hence they aren't passed to the
-panel driver as platform data. These are set to a default value such that LCD
-is enabled and backlight is on. These used to previously toggle through the
-platform_enable/disable callbacks, but now these are always on. This needs to
-be revisited.
+The omap_dss_device's platform_enable/disable callbacks don't do anything for
+any of the boards. The platform calls from the VENC driver will also be removed
+in the future. Remove these calls from the board which have a VENC device.
 
 Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |   59 ++++++++++++----------------------
- 1 file changed, 20 insertions(+), 39 deletions(-)
+ arch/arm/mach-omap2/board-3430sdp.c      |   11 -----------
+ arch/arm/mach-omap2/board-am3517evm.c    |   11 -----------
+ arch/arm/mach-omap2/board-cm-t35.c       |   11 -----------
+ arch/arm/mach-omap2/board-omap3evm.c     |   11 -----------
+ arch/arm/mach-omap2/board-omap3stalker.c |   11 -----------
+ 5 files changed, 55 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 335127d..dfb5e1b 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -154,61 +154,43 @@ static inline void __init omap3evm_init_smsc911x(void) { return; }
- #define OMAP3EVM_LCD_PANEL_LR		2
- #define OMAP3EVM_LCD_PANEL_UD		3
- #define OMAP3EVM_LCD_PANEL_INI		152
--#define OMAP3EVM_LCD_PANEL_ENVDD	153
- #define OMAP3EVM_LCD_PANEL_QVGA		154
- #define OMAP3EVM_LCD_PANEL_RESB		155
-+
-+#define OMAP3EVM_LCD_PANEL_ENVDD	153
- #define OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO	210
-+
-+/*
-+ * OMAP3EVM DVI control signals
-+ */
- #define OMAP3EVM_DVI_PANEL_EN_GPIO	199
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 13f1431..717dd15 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -124,15 +124,6 @@ static void __init sdp3430_display_init(void)
  
--static struct gpio omap3_evm_dss_gpios[] __initdata = {
--	{ OMAP3EVM_LCD_PANEL_RESB,  GPIOF_OUT_INIT_HIGH, "lcd_panel_resb"  },
--	{ OMAP3EVM_LCD_PANEL_INI,   GPIOF_OUT_INIT_HIGH, "lcd_panel_ini"   },
--	{ OMAP3EVM_LCD_PANEL_QVGA,  GPIOF_OUT_INIT_LOW,  "lcd_panel_qvga"  },
--	{ OMAP3EVM_LCD_PANEL_LR,    GPIOF_OUT_INIT_HIGH, "lcd_panel_lr"    },
--	{ OMAP3EVM_LCD_PANEL_UD,    GPIOF_OUT_INIT_HIGH, "lcd_panel_ud"    },
--	{ OMAP3EVM_LCD_PANEL_ENVDD, GPIOF_OUT_INIT_LOW,  "lcd_panel_envdd" },
-+static struct panel_sharp_ls037v7dw01_data omap3_evm_lcd_data = {
-+	.resb_gpio = OMAP3EVM_LCD_PANEL_RESB,
-+	.ini_gpio = OMAP3EVM_LCD_PANEL_INI,
-+	.mo_gpio = OMAP3EVM_LCD_PANEL_QVGA,
-+	.lr_gpio = OMAP3EVM_LCD_PANEL_LR,
-+	.ud_gpio = OMAP3EVM_LCD_PANEL_UD,
- };
+ }
  
--static int lcd_enabled;
--static int dvi_enabled;
--
- static void __init omap3_evm_display_init(void)
- {
- 	int r;
- 
--	r = gpio_request_array(omap3_evm_dss_gpios,
--			       ARRAY_SIZE(omap3_evm_dss_gpios));
-+	r = gpio_request_one(OMAP3EVM_LCD_PANEL_ENVDD, GPIOF_OUT_INIT_LOW,
-+				"lcd_panel_envdd");
- 	if (r)
--		printk(KERN_ERR "failed to get lcd_panel_* gpios\n");
--}
-+		pr_err("failed to get lcd_panel_envdd GPIO\n");
- 
--static int omap3_evm_enable_lcd(struct omap_dss_device *dssdev)
+-static int sdp3430_panel_enable_tv(struct omap_dss_device *dssdev)
 -{
--	if (dvi_enabled) {
--		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
--		return -EINVAL;
--	}
--	gpio_set_value(OMAP3EVM_LCD_PANEL_ENVDD, 0);
-+	r = gpio_request_one(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO,
-+				GPIOF_OUT_INIT_LOW, "lcd_panel_bklight");
-+	if (r)
-+		pr_err("failed to get lcd_panel_bklight GPIO\n");
- 
- 	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
- 		gpio_set_value_cansleep(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 0);
- 	else
- 		gpio_set_value_cansleep(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 1);
--
--	lcd_enabled = 1;
 -	return 0;
 -}
 -
--static void omap3_evm_disable_lcd(struct omap_dss_device *dssdev)
+-static void sdp3430_panel_disable_tv(struct omap_dss_device *dssdev)
 -{
--	gpio_set_value(OMAP3EVM_LCD_PANEL_ENVDD, 1);
+-}
 -
--	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
--		gpio_set_value_cansleep(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 1);
--	else
--		gpio_set_value_cansleep(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 0);
--
--	lcd_enabled = 0;
- }
- 
- static struct omap_dss_device omap3_evm_lcd_device = {
-@@ -216,8 +198,7 @@ static struct omap_dss_device omap3_evm_lcd_device = {
- 	.driver_name		= "sharp_ls_panel",
- 	.type			= OMAP_DISPLAY_TYPE_DPI,
- 	.phy.dpi.data_lines	= 18,
--	.platform_enable	= omap3_evm_enable_lcd,
--	.platform_disable	= omap3_evm_disable_lcd,
-+	.data			= &omap3_evm_lcd_data,
+ static struct panel_sharp_ls037v7dw01_data sdp3430_lcd_data = {
+ 	.resb_gpio = SDP3430_LCD_PANEL_ENABLE_GPIO,
+ 	.ini_gpio = -1,
+@@ -167,8 +158,6 @@ static struct omap_dss_device sdp3430_tv_device = {
+ 	.driver_name		= "venc",
+ 	.type			= OMAP_DISPLAY_TYPE_VENC,
+ 	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
+-	.platform_enable	= sdp3430_panel_enable_tv,
+-	.platform_disable	= sdp3430_panel_disable_tv,
  };
  
- static int omap3_evm_enable_tv(struct omap_dss_device *dssdev)
+ 
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index eb245a6..edb4cce 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -138,22 +138,11 @@ static struct omap_dss_device am3517_evm_lcd_device = {
+ 	.phy.dpi.data_lines 	= 16,
+ };
+ 
+-static int am3517_evm_panel_enable_tv(struct omap_dss_device *dssdev)
+-{
+-	return 0;
+-}
+-
+-static void am3517_evm_panel_disable_tv(struct omap_dss_device *dssdev)
+-{
+-}
+-
+ static struct omap_dss_device am3517_evm_tv_device = {
+ 	.type 			= OMAP_DISPLAY_TYPE_VENC,
+ 	.name 			= "tv",
+ 	.driver_name		= "venc",
+ 	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
+-	.platform_enable	= am3517_evm_panel_enable_tv,
+-	.platform_disable	= am3517_evm_panel_disable_tv,
+ };
+ 
+ static struct tfp410_platform_data dvi_panel = {
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 563d5ab..cb3b078 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -189,15 +189,6 @@ static inline void cm_t35_init_nand(void) {}
+ #define CM_T35_LCD_BL_GPIO 58
+ #define CM_T35_DVI_EN_GPIO 54
+ 
+-static int cm_t35_panel_enable_tv(struct omap_dss_device *dssdev)
+-{
+-	return 0;
+-}
+-
+-static void cm_t35_panel_disable_tv(struct omap_dss_device *dssdev)
+-{
+-}
+-
+ static struct panel_generic_dpi_data lcd_panel = {
+ 	.name			= "toppoly_tdo35s",
+ 	.num_gpios		= 2,
+@@ -233,8 +224,6 @@ static struct omap_dss_device cm_t35_tv_device = {
+ 	.driver_name		= "venc",
+ 	.type			= OMAP_DISPLAY_TYPE_VENC,
+ 	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
+-	.platform_enable	= cm_t35_panel_enable_tv,
+-	.platform_disable	= cm_t35_panel_disable_tv,
+ };
+ 
+ static struct omap_dss_device *cm_t35_dss_devices[] = {
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index dfb5e1b..a471476 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -201,22 +201,11 @@ static struct omap_dss_device omap3_evm_lcd_device = {
+ 	.data			= &omap3_evm_lcd_data,
+ };
+ 
+-static int omap3_evm_enable_tv(struct omap_dss_device *dssdev)
+-{
+-	return 0;
+-}
+-
+-static void omap3_evm_disable_tv(struct omap_dss_device *dssdev)
+-{
+-}
+-
+ static struct omap_dss_device omap3_evm_tv_device = {
+ 	.name			= "tv",
+ 	.driver_name		= "venc",
+ 	.type			= OMAP_DISPLAY_TYPE_VENC,
+ 	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
+-	.platform_enable	= omap3_evm_enable_tv,
+-	.platform_disable	= omap3_evm_disable_tv,
+ };
+ 
+ static struct tfp410_platform_data dvi_panel = {
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 621ace1..8f1b0a1 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -93,15 +93,6 @@ static void __init omap3_stalker_display_init(void)
+ 	return;
+ }
+ 
+-static int omap3_stalker_enable_tv(struct omap_dss_device *dssdev)
+-{
+-	return 0;
+-}
+-
+-static void omap3_stalker_disable_tv(struct omap_dss_device *dssdev)
+-{
+-}
+-
+ static struct omap_dss_device omap3_stalker_tv_device = {
+ 	.name			= "tv",
+ 	.driver_name		= "venc",
+@@ -111,8 +102,6 @@ static struct omap_dss_device omap3_stalker_tv_device = {
+ #elif defined(CONFIG_OMAP2_VENC_OUT_TYPE_COMPOSITE)
+ 	.u.venc.type		= OMAP_DSS_VENC_TYPE_COMPOSITE,
+ #endif
+-	.platform_enable	= omap3_stalker_enable_tv,
+-	.platform_disable	= omap3_stalker_disable_tv,
+ };
+ 
+ static struct tfp410_platform_data dvi_panel = {
 -- 
 1.7.9.5
 
