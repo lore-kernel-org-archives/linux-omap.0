@@ -1,54 +1,31 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] ASoC: omap-dmic: Clean up with devm_request_and_ioremap
-Date: Wed, 13 Feb 2013 13:24:11 +0000
-Message-ID: <20130213132410.GH5062@opensource.wolfsonmicro.com>
-References: <1360740127-4154-1-git-send-email-s-guiriec@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 00/13] drivers: mailbox: framework creation
+Date: Wed, 13 Feb 2013 14:36:32 +0100
+Message-ID: <CACRpkdZayg-X11ZRnh2Z0i+egBn8Fhwya-6_Yr8wcv+6s0CVqQ@mail.gmail.com>
+References: <1360645032-9668-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9sSKoi6Rw660DLir"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:47836 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932690Ab3BMNYN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Feb 2013 08:24:13 -0500
-Content-Disposition: inline
-In-Reply-To: <1360740127-4154-1-git-send-email-s-guiriec@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1360645032-9668-1-git-send-email-s-anna@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Greg Kroah-Hartman <greg@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Loic Pallardy <loic.pallardy@st.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Felipe Contreras <felipe.contreras@nokia.com>, Tejun Heo <tj@kernel.org>, Omar Ramirez Luna <omar.luna@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
+On Tue, Feb 12, 2013 at 5:56 AM, Suman Anna <s-anna@ti.com> wrote:
 
---9sSKoi6Rw660DLir
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> I have hosted the series at [3].
+> [3] https://github.com/sumananna/mailbox/commits/dbx500-prcmu-mailbox
 
-On Wed, Feb 13, 2013 at 08:22:07AM +0100, Sebastien Guiriec wrote:
-> Clean up dmic code with devm_request_and_ioremap function.
+Suman, I suggest you ask Stepgen Rothwell to include this
+branch into the linux-next tree, so we can get some
+rotation of this stuff in preparation for the v3.10 merge
+window. (It's not going in now anyway.)
 
-Applied, thanks.
+If it proves to survive some smoke testing there, I suggest
+we proceed to pull this into the ARM SoC tree early in
+the v3.10 kernel cycle, since all the dependencies will be
+in ARM SoC anyway.
 
---9sSKoi6Rw660DLir
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRG5MwAAoJELSic+t+oim9ED4QAIiNj4lO8F09++saMnmgevQ4
-jCBcwVlMsSmihCzy2w5KTre5Wum5Yz/r2/yGSERBGGvaMvHKJnf8gJX/t5o3XaEH
-3XoZRh18t1rRbuWc08k0TVt4u+BdK3Y5mjLNsmt50dLm0gsdquOFIw3qWQ//8Qg5
-h/sWZKiLdLSSvPhcnL1EcoxBP+jdG3INtU90gYapZGYBJWbKpJ5IBJNnhBxQfSFL
-hQTM/aODi92sQhOF5m4ToTxpHYACwc6laCQFuaKStrTqkVx4aSgojmH3yHQJ69u3
-kzRR0td28+x0eRLfpdAx5hvpUWQH4s9KL3yA5A49bxUMDFYMYsYDS4GMznT1u2lc
-QFiemxxYg/3RcmFU5xoyq4bDpvp5Z3/1kZwKalPGdLZfXD2DSQU+moTjlcCtTo+f
-azZoeRj9kYxl/2PivZgtEgLlgaKql4gAiSUOTWmOluLbKM4QMXm/PcDpQPtmqa/+
-lL/8/LnBn/aBDdP3RDEaiGEnZ+vXTTnDHdBZZTDefi1HCUlTLLISnzP3GtXRh1ja
-t+eqB0hfvcU0XoPVG2W88gSSaY4KafVoCavM/CcMMYQjuBPwRDx+d5zWUjwkLDKl
-iFEQQpfgpnkaC2E3eaFrz7mAH/OfjqrmrD+EZA+8C0+R65VmAsI1k69zwvpnqHOv
-13HVUBBoInQO/h4TdzqB
-=+GJh
------END PGP SIGNATURE-----
-
---9sSKoi6Rw660DLir--
+Yours,
+Linus Walleij
