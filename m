@@ -1,64 +1,59 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-Date: Wed, 13 Feb 2013 04:59:17 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229BAB0B@DBDE01.ent.ti.com>
-References: <1359966525-7603-1-git-send-email-j-keerthy@ti.com>
- <alpine.DEB.2.00.1302080248550.8539@utopia.booyaka.com>
- <DC88CAD03C0052499C1907B327FC63229B92FF@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302081805450.28008@utopia.booyaka.com>
- <alpine.DEB.2.00.1302081855370.28008@utopia.booyaka.com>
-  <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com>
- <DC88CAD03C0052499C1907B327FC63229B989B@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302120638580.14983@utopia.booyaka.com>
- <DC88CAD03C0052499C1907B327FC63229B98DD@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302122028480.29149@utopia.booyaka.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: PM: Avoid expensive cpu_suspend() path for
+ all CPU power states except off
+Date: Wed, 13 Feb 2013 10:35:15 +0530
+Message-ID: <511B1F0B.3020909@ti.com>
+References: <1360336306-18277-1-git-send-email-santosh.shilimkar@ti.com> <1360336306-18277-3-git-send-email-santosh.shilimkar@ti.com> <87d2wazep6.fsf@linaro.org> <5119CB2D.9040001@ti.com> <87bobpwog9.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48931 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41182 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752490Ab3BME7Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Feb 2013 23:59:24 -0500
-In-Reply-To: <alpine.DEB.2.00.1302122028480.29149@utopia.booyaka.com>
-Content-Language: en-US
+	id S1750776Ab3BMFEB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Feb 2013 00:04:01 -0500
+In-Reply-To: <87bobpwog9.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-
-
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Wednesday, February 13, 2013 2:19 AM
-> To: J, KEERTHY
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-> 
-> On Tue, 12 Feb 2013, J, KEERTHY wrote:
-> 
-> > Heh :-). It narrowed down to this patch:
-> >
-> > commit 17b7e7d33530e2bbd3bdc90f4db09b91cfdde2bb
-> > Author: Paul Walmsley <paul@pwsan.com>
-> > Date:   Sat Jan 26 00:48:54 2013 -0700
-> >
-> >     ARM: OMAP4: clock/hwmod data: start to remove some IP block
-> control "clocks"
-> 
-> Thanks, this fixes it:
-> 
-> http://marc.info/?l=linux-omap&m=136070089529743&w=2
-> 
-Ok. Cool.
-
-> But at this point, I've rescheduled your patch to the 3.10-cleanup time
-> frame, since we're pretty close to the 3.9 merge window.
+On Tuesday 12 February 2013 08:48 PM, Kevin Hilman wrote:
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 >
+>> On Saturday 09 February 2013 02:49 AM, Kevin Hilman wrote:
+>>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>>>
+>>>> Current CPU PM code code make use of common cpu_suspend() path for all the
+>>>> CPU power states which is not optimal. In fact cpu_suspend() path is needed
+>>>> only when we put CPU power domain to off state where the CPU context is lost.
+>>>>
+>>>> Update the code accordingly so that the expensive cpu_suspend() path
+>>>> can be avoided for the shallow CPU power states like CPU PD INA/CSWR.
+>>>>
+>>>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>>>>
+>>>> Reported-by: Richard Woodruff <r-woodruff2@ti.com>
+>>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>
+>>> Looks OK at first glance, but are you sure this is right for the
+>>> various ways both clusters might idle using coupled CPUidle?
+>>>
+>> Yes it is perfectly safe from all C-states. This patch has been part of
+>> the OMAP4/OMAP5 product port for some time. I forgot to send it upstream
+>> some how :(
+>>
+>>> Some description of the testing would be helpful here.
+>>>
+>> Sorry. Should have mentioned it in first place.
+>> Patch is being tested on OMAP4430 (idle/suspend) and OMAP5 with
+>> few out of tree patches.
+>
+> OK, please update changelog with a brief description of how it was
+> tested, and on which platforms.
+>
+Will update the changelog and post it
 
-So the patch needs to be rebased after 3.9 right?
+Regards,
+Santosh
 
-> 
-> - Paul
