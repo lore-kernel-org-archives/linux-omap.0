@@ -1,95 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
-Date: Thu, 14 Feb 2013 11:39:11 -0800
-Message-ID: <20130214193911.GD11806@atomide.com>
-References: <1360840554-26901-1-git-send-email-balbi@ti.com>
- <1360840554-26901-2-git-send-email-balbi@ti.com>
- <20130214171253.GC7144@atomide.com>
- <20130214175650.GA25891@arwen.pp.htv.fi>
- <20130214181217.GA11806@atomide.com>
- <20130214192719.GB26679@arwen.pp.htv.fi>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod
+ dependency
+Date: Thu, 14 Feb 2013 20:47:53 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com>
+References: <1360840554-26901-1-git-send-email-balbi@ti.com> <1360840554-26901-2-git-send-email-balbi@ti.com> <20130214171253.GC7144@atomide.com> <20130214175650.GA25891@arwen.pp.htv.fi> <20130214181217.GA11806@atomide.com> <20130214192719.GB26679@arwen.pp.htv.fi>
+ <20130214193911.GD11806@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:39825 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S934858Ab3BNTjN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 14:39:13 -0500
-Content-Disposition: inline
-In-Reply-To: <20130214192719.GB26679@arwen.pp.htv.fi>
+Received: from utopia.booyaka.com ([74.50.51.50]:57804 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758953Ab3BNUry (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 15:47:54 -0500
+In-Reply-To: <20130214193911.GD11806@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Felipe Balbi <balbi@ti.com> [130214 11:31]:
-> On Thu, Feb 14, 2013 at 10:12:17AM -0800, Tony Lindgren wrote:
-> 
-> > And only in the case there is no driver, hwmod can parse the address
-> > space from DT for the unclaimed hardware in the late_initcall.
-> 
-> sounds good. But then it means our DTS files should be 100% complete,
-> meaning that even for the IPs which we don't have drivers at all, we
-> should still provide DTS nodes.
+Hi,
 
-Yes, eventually. It's still better to have only one set of that data
-rather than number of supported SoCs times that data.. Parsing it
-should not be too bad if it's done one driver at a time during the
-driver probe.
+On Thu, 14 Feb 2013, Tony Lindgren wrote:
 
-> In that case, does it make sense to teach DT about the actual structure
-> of OMAP's interconnect ? I mean:
-> 
-> ocp {
-> 	l3@xxxxxxxx {
-> 		l4_per@xxxxxxxx {
-> 			...
-> 		};
-> 
-> 		l4_wakeup@xxxxxxxx {
-> 			...
-> 		};
-> 
-> 		...
-> 	};
-> };
-> 
-> That would mean that even interconnect PM could move to a driver under
-> drivers/bus/{l3,l4_per,l4_wakeup,..}.c
+> I don't think so as hwmod should only touch the sysconfig space
+> when no driver has claimed it.
 
-Yes makes sense to me.
- 
-> > So the shared inline function should just take the __iomem * and
-> > size instead of *drv so both the driver and hwmod code can tinker
-> > with the autoidle bit.
-> 
-> Should hwmod be touching that in the long run ? It _does_ belong in the
-> device's address space
-> 
-> > > Note sure if any of those are acceptable.
-> > 
-> > Hmm what issues do you see in the above suggestion?
-> 
-> driver and hwmod accessing SYSC simultaneously for instance. Imagine
-> something like:
-> 
-> hwmod						driver
-> ------						-------
-> 1. starts device reset
-> 2. polls RESET bit with X ms timeout		X' ms later starts reset
-> 3. times out since reset restarts		polls RESET bit with X ms timeout
-> 4. error!					reset completes
-> 
-> In such cases, what do we do ? There can be many such cases, don't
-> you think ?
+hwmod does need to touch the SYSCONFIG register during pm_runtime suspend 
+and resume operations, and during device enable and disable operations.  
+Here's the relevant code:
 
-I don't think so as hwmod should only touch the sysconfig space
-when no driver has claimed it. If hwmod sysconfig tinkering is
-only done in late_initcall, I don't think any drivers are probing
-at that time? Well there may be some deferred probe related issues
-there though, so we need some atomic way at that point to know if
-some hardware is being claimed by a driver.
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/arm/mach-omap2/omap_hwmod.c;h=4653efb87a2721ea20a9fe06a30a6c204d6d2282;hb=HEAD#l2157
 
-Regards,
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/arm/mach-omap2/omap_hwmod.c;h=4653efb87a2721ea20a9fe06a30a6c204d6d2282;hb=HEAD#l2195
 
-Tony 
+Drivers shouldn't touch their IP block's SYSCONFIG registers.  They don't 
+have anything specifically to do with the underlying device IP block, but 
+with the SoC integration, even though they live in the device's 
+memory-mapped address range.  It's unfortunate that TI didn't allocate a 
+separate, small address space for these registers, translated by the bus, 
+similar to the PCI-E Enhanced Configuration Access Mechanism:
+
+http://wiki.osdev.org/PCI_Express#Extended_Configuration_Space
+
+... but that's unfortunately the reality of the OMAP hardware.
+
+Regarding ioremap(), it seems reasonable for drivers to call ioremap(), as 
+long as the implementation of ioremap() can be overridden by the device's 
+bus.  PCI device drivers already do this -- albeit in a PCI-specific way 
+-- with pci_ioremap_bar():
+
+http://git.kernel.org/?p=linux%2Fkernel%2Fgit%2Ftorvalds%2Flinux.git&a=search&h=HEAD&st=grep&s=pci_ioremap_bar
+
+So instead of something bus-specific like that, a better way would be to 
+use something like:
+
+va = dev->bus->ioremap( ... );
+va = dev->bus->iounmap( ... );
+
+Any driver using such a mechanism would be intrinsically generic. 
+platform_bus could simply set its bus->ioremap to the existing ioremap() 
+function, while buses like a omap_hwmod_bus could use a function that 
+returned the address range that omap_hwmod_bus has already ioremap()ped.
+
+regards,
+
+- Paul
