@@ -1,54 +1,42 @@
 From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 27/33] OMAPDSS: n8x0 panel: handle gpio data in panel
+Subject: Re: [PATCH 16/33] OMAPDSS: acx565akm panel: handle gpios in panel
  driver
-Date: Thu, 14 Feb 2013 12:04:32 +0530
-Message-ID: <511C8578.1070907@ti.com>
-References: <1360765345-19312-1-git-send-email-archit@ti.com> <1360765345-19312-28-git-send-email-archit@ti.com> <20130213173527.GE21750@blackmetal.musicnaut.iki.fi>
+Date: Thu, 14 Feb 2013 12:21:24 +0530
+Message-ID: <511C896C.10007@ti.com>
+References: <1360765345-19312-1-git-send-email-archit@ti.com> <1360765345-19312-17-git-send-email-archit@ti.com> <20130213172913.GD21750@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53601 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52244 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752786Ab3BNGfU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Feb 2013 01:35:20 -0500
-In-Reply-To: <20130213173527.GE21750@blackmetal.musicnaut.iki.fi>
+	id S1755310Ab3BNGwL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Feb 2013 01:52:11 -0500
+In-Reply-To: <20130213172913.GD21750@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Aaro Koskinen <aaro.koskinen@iki.fi>
 Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi,
-
-On Wednesday 13 February 2013 11:05 PM, Aaro Koskinen wrote:
+On Wednesday 13 February 2013 10:59 PM, Aaro Koskinen wrote:
 > Hi,
 >
-> On Wed, Feb 13, 2013 at 07:52:19PM +0530, Archit Taneja wrote:
->> @@ -444,6 +445,20 @@ static int n8x0_panel_probe(struct omap_dss_device *dssdev)
->>   	dssdev->ctrl.rfbi_timings = n8x0_panel_timings;
->>   	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
->>
->> +	if (gpio_is_valid(bdata->panel_reset)) {
->> +		r = devm_gpio_request_one(&dssdev->dev, bdata->panel_reset,
->> +				GPIOF_OUT_INIT_LOW, "PANEL RESET");
->> +		if (r)
->> +			return r;
->> +	}
+> On Wed, Feb 13, 2013 at 07:52:08PM +0530, Archit Taneja wrote:
+>> +static struct panel_acx565akm_data *get_panel_data(struct omap_dss_device *dssdev)
+>> +{
+>> +	return (struct panel_acx565akm_data *) dssdev->data;
+>> +}
 >> +
->> +	if (gpio_is_valid(bdata->ctrl_pwrdown)) {
->> +		r = devm_gpio_request_one(&dssdev->dev, bdata->ctrl_pwrdown,
->> +				GPIOF_OUT_INIT_LOW, "PANEL PWRDOWN");
->> +		if (r)
->> +			return r;
->> +	}
->> +
+>>   static int acx_panel_probe(struct omap_dss_device *dssdev)
+>>   {
+>>   	int r;
+>>   	struct acx565akm_device *md = &acx_dev;
+>> +	struct panel_acx565akm_data *panel_data = get_panel_data(dssdev);
 >
-> In the error case, the other GPIO is not freed. Also maybe you should
-> free them on module removal, because now the module owns the GPIOs.
+> Why the get_panel_data function is needed, isn't the cast unnecessary?
 
-Wouldn't the usage of devm_* functions take care of this? If the device 
-isn't registered successfully, then all allocations/requests done using 
-devm_* functions will be free'd automatically.
+the 'data' member of omap_dss_device has the type 'void *', we need to 
+cast it to access the panel_acx565akm_data struct pointer.
 
 Archit
 
