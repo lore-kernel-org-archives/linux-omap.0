@@ -1,126 +1,63 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: Re: [PATCH] omapdrm: Make fixed resolution panels work
-Date: Thu, 14 Feb 2013 10:54:26 -0500
-Message-ID: <CAF6AEGvgQxYtV=FD_B29LCONALSieR+PWVpgOD0Wn4SM88zn2g@mail.gmail.com>
-References: <1360842744-8325-1-git-send-email-archit@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] arm-soc: OMAP USB Host cleanup for 3.9
+Date: Thu, 14 Feb 2013 08:48:08 -0800
+Message-ID: <20130214164808.GZ7144@atomide.com>
+References: <511CD215.8080005@ti.com>
+ <511CD2CE.2020802@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f172.google.com ([209.85.210.172]:58814 "EHLO
-	mail-ia0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757931Ab3BNPyn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 10:54:43 -0500
-Received: by mail-ia0-f172.google.com with SMTP id l29so363926iag.31
-        for <linux-omap@vger.kernel.org>; Thu, 14 Feb 2013 07:54:41 -0800 (PST)
-In-Reply-To: <1360842744-8325-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <511CD2CE.2020802@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: "sameo@linux.intel.com" <sameo@linux.intel.com>, "Balbi, Felipe" <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Kernel development list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, greg@kroah.com
 
-On Thu, Feb 14, 2013 at 6:52 AM, Archit Taneja <archit@ti.com> wrote:
-> The omapdrm driver requires omapdss panel drivers to expose ops like detect,
-> set_timings and check_timings. These can be NULL for fixed panel DPI, DBI, DSI
-> and SDI drivers. At some places, there are no checks to see if the panel driver
-> has these ops or not, and that leads to a crash.
->
-> The following things are done to make fixed panels work:
->
-> - The omap_connector's detect function is modified such that it considers panel
->   types which are generally fixed panels as always connected(provided the panel
->   driver doesn't have a detect op). Hence, the connector corresponding to these
->   panels is always in a 'connected' state.
->
-> - If a panel driver doesn't have a check_timings op, assume that it supports the
->   mode passed to omap_connector_mode_valid(the 'mode_valid' drm helper function)
->
-> - The function omap_encoder_update shouldn't really do anything for fixed
->   resolution panels, make sure that it calls set_timings only if the panel
->   driver has one.
->
-> I tested this with picodlp on a OMAP4 sdp board. I couldn't get any other
-> working boards with fixed DPI panels. I could try the DSI video mode panel
-> on an OMAP5 sevm, but that will require me to patch a lot of things to get
-> omap5 dss work with DT. I can try if needed.
->
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/staging/omapdrm/omap_connector.c |   10 ++++++++--
->  drivers/staging/omapdrm/omap_encoder.c   |    6 ++++--
->  2 files changed, 12 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/staging/omapdrm/omap_connector.c b/drivers/staging/omapdrm/omap_connector.c
-> index 4cc9ee7..839c6e4 100644
-> --- a/drivers/staging/omapdrm/omap_connector.c
-> +++ b/drivers/staging/omapdrm/omap_connector.c
-> @@ -110,6 +110,11 @@ static enum drm_connector_status omap_connector_detect(
->                         ret = connector_status_connected;
->                 else
->                         ret = connector_status_disconnected;
-> +       } else if (dssdev->type == OMAP_DISPLAY_TYPE_DPI ||
-> +                       dssdev->type == OMAP_DISPLAY_TYPE_DBI ||
-> +                       dssdev->type == OMAP_DISPLAY_TYPE_SDI ||
-> +                       dssdev->type == OMAP_DISPLAY_TYPE_DSI) {
-> +               ret = connector_status_connected;
+* Roger Quadros <rogerq@ti.com> [130214 04:08]:
+> Hi Tony,
+> 
+> This is the ARM-soc part of the OMAP USB Host cleanup series for 3.9.
+> It is based on 3.8-rc6 + usbhost17-common that I sent earlier.
+> 
+> Please pull. Thanks.
 
-hmm, why not just have a default detect fxn for panel drivers which
-always returns true?  Seems a bit cleaner.. otherwise, I guess we
-could just change omap_connector so that if dssdev->detect is null,
-assume always connected.  Seems maybe a slightly better way since
-currently omap_connector doesn't really know too much about different
-sorts of panels.  But I'm not too picky if that is a big pain because
-we probably end up changing all this as CFP starts coming into
-existence.
+Thanks for reworking this series! I'll pull this.
 
-Same goes for check_timings/set_timings..  it seems a bit cleaner just
-to have default fxns in the panel drivers that do-the-right-thing,
-although I suppose it might be a bit more convenient for out-of-tree
-panel drivers to just assume fixed panel if these fxns are null.
+Regards,
 
-BR,
--R
-
->         } else {
->                 ret = connector_status_unknown;
->         }
-> @@ -189,12 +194,13 @@ static int omap_connector_mode_valid(struct drm_connector *connector,
->         struct omap_video_timings timings = {0};
->         struct drm_device *dev = connector->dev;
->         struct drm_display_mode *new_mode;
-> -       int ret = MODE_BAD;
-> +       int r, ret = MODE_BAD;
->
->         copy_timings_drm_to_omap(&timings, mode);
->         mode->vrefresh = drm_mode_vrefresh(mode);
->
-> -       if (!dssdrv->check_timings(dssdev, &timings)) {
-> +       r = dssdrv->check_timings ? dssdrv->check_timings(dssdev, &timings) : 0;
-> +       if (!r) {
->                 /* check if vrefresh is still valid */
->                 new_mode = drm_mode_duplicate(dev, mode);
->                 new_mode->clock = timings.pixel_clock;
-> diff --git a/drivers/staging/omapdrm/omap_encoder.c b/drivers/staging/omapdrm/omap_encoder.c
-> index e053160..871af12e 100644
-> --- a/drivers/staging/omapdrm/omap_encoder.c
-> +++ b/drivers/staging/omapdrm/omap_encoder.c
-> @@ -128,13 +128,15 @@ int omap_encoder_update(struct drm_encoder *encoder,
->
->         dssdev->output->manager = mgr;
->
-> -       ret = dssdrv->check_timings(dssdev, timings);
-> +       ret = dssdrv->check_timings ?
-> +               dssdrv->check_timings(dssdev, timings) : 0;
->         if (ret) {
->                 dev_err(dev->dev, "could not set timings: %d\n", ret);
->                 return ret;
->         }
->
-> -       dssdrv->set_timings(dssdev, timings);
-> +       if (dssdrv->set_timings)
-> +               dssdrv->set_timings(dssdev, timings);
->
->         return 0;
->  }
+Tony
+ 
+> The following changes since commit 7f07863ec60f7d3dbeec5aff881ea074db3925ed:
+> 
+>   ARM: OMAP: Consolidate OMAP USB-HS platform data (part 1/3) (2013-02-13 13:22:34 +0200)
+> 
+> are available in the git repository at:
+>   git://github.com/rogerq/linux.git usbhost17-for-arm-soc
+> 
+> Roger Quadros (1):
+>       ARM: OMAP: Consolidate OMAP USB-HS platform data (part 3/3)
+> 
+>  arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
+>  arch/arm/mach-omap2/board-3630sdp.c        |    2 +-
+>  arch/arm/mach-omap2/board-am3517crane.c    |    2 +-
+>  arch/arm/mach-omap2/board-am3517evm.c      |    2 +-
+>  arch/arm/mach-omap2/board-cm-t35.c         |    2 +-
+>  arch/arm/mach-omap2/board-cm-t3517.c       |    2 +-
+>  arch/arm/mach-omap2/board-devkit8000.c     |    2 +-
+>  arch/arm/mach-omap2/board-igep0020.c       |    4 +-
+>  arch/arm/mach-omap2/board-omap3beagle.c    |    2 +-
+>  arch/arm/mach-omap2/board-omap3evm.c       |    2 +-
+>  arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
+>  arch/arm/mach-omap2/board-omap3stalker.c   |    2 +-
+>  arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
+>  arch/arm/mach-omap2/board-omap4panda.c     |    2 +-
+>  arch/arm/mach-omap2/board-overo.c          |    2 +-
+>  arch/arm/mach-omap2/board-zoom.c           |    2 +-
+>  arch/arm/mach-omap2/usb-host.c             |   29 ++++-----------------------
+>  arch/arm/mach-omap2/usb.h                  |   20 +------------------
+>  18 files changed, 23 insertions(+), 60 deletions(-)
+> 
 > --
-> 1.7.9.5
->
+> cheers,
+> -roger
