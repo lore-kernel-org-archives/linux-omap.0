@@ -1,98 +1,150 @@
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Subject: Re: Build error: OMAP randconfig / mvebu
-Date: Thu, 14 Feb 2013 13:35:38 +0100
-Message-ID: <511CDA1A.10401@free-electrons.com>
-References: <20130208100813.GN17833@n2100.arm.linux.org.uk> <201302141127.07378.arnd@arndb.de> <20130214120650.GA11345@localhost> <201302141221.16267.arnd@arndb.de>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 05/33] arm: omap: board-cm-t35: use generic dpi panel's
+ gpio handling
+Date: Thu, 14 Feb 2013 14:37:37 +0200
+Message-ID: <511CDA91.1050300@compulab.co.il>
+References: <1360765345-19312-1-git-send-email-archit@ti.com> <1360765345-19312-6-git-send-email-archit@ti.com> <511BAE50.2090507@compulab.co.il> <511BB113.3020108@ti.com> <511BB87E.60003@ti.com> <511C8A83.5070407@compulab.co.il> <511C8D8F.9060805@ti.com> <511CA247.80606@compulab.co.il> <511CA9B3.70401@ti.com> <511CB1B3.80605@compulab.co.il> <511CC37C.3020706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:54854 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757562Ab3BNMfm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 07:35:42 -0500
-In-Reply-To: <201302141221.16267.arnd@arndb.de>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:49021 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759579Ab3BNMho (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Feb 2013 07:37:44 -0500
+In-Reply-To: <511CC37C.3020706@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On 02/14/2013 01:21 PM, Arnd Bergmann wrote:
-> On Thursday 14 February 2013, Ezequiel Garcia wrote:
->> Now, using the random config there's a new error, unrelated to the
->> previous one:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+On 02/14/13 12:59, Tomi Valkeinen wrote:
+> On 2013-02-14 11:43, Igor Grinberg wrote:
+> 
+>>> True, it's generic, but does it work reliably? The panel hardware is now
+>>> partly handled in the backlight driver, and partly in the omap's panel
+>>> driver (and wherever on other platforms).
 >>
->> ERROR: "twl6030_interrupt_unmask" [drivers/usb/otg/twl6030-usb.ko] undefined!
->> ERROR: "twl_i2c_read_u8" [drivers/usb/otg/twl6030-usb.ko] undefined!
->> ERROR: "twl_i2c_write_u8" [drivers/usb/otg/twl6030-usb.ko] undefined!
->> ERROR: "twl6030_interrupt_mask" [drivers/usb/otg/twl6030-usb.ko] undefined!
+>> It works reliably on other platforms, but not on OMAP - because
+>> we need to cope with the OMAP specific framework...
 > 
-> Yes, I guess that is an unrelated error. However, my patch also wasn't
-> correct because it is not allowed to have an empty list of objects.
-> 
-> There is an updated patch below, I could add that straight to the branch
-> that caused the problem if it looks ok to you.
+> How do you handle the gpios on other platform? Those are the ones
+> causing the issues here, right?
 
-OK for me, this patch still fix the build error and I tested that we
-still have a valid kernel for Armada 370 for Armada XP
+Well, I'm also talking about something that is a history already.
+Remember, we had multiple panel drivers inside the
+video/omap2/displays and then they were consolidated into the
+"generic dpi/dsi/whatever".
 
-Tested-by: Gregory Clement <gregory.clement@free-electrons.com> on Armada 370 DB
-and Armada XP DB
+And yes you are right, on the platforms I'm aware of, the GPIO is not
+handled. Apparently its hardware default (pull resistor) is always on...
 
 > 
-> 	Arnd
-> ----
-> From 0860b5b4558ad777068826bc9a735b82f3cf0d88 Mon Sep 17 00:00:00 2001
-> From: Arnd Bergmann <arnd@arndb.de>
-> Date: Thu, 14 Feb 2013 13:14:53 +0100
-> Subject: [PATCH] ARM: mvebu: allow selecting mvebu without Armada XP
+> Or is there something else with OMAP DSS that you need to specifically
+> cope with?
+
+The fact there is a need to create a OMAP specific driver.
+I'm not talking about the generic driver which only needs to have the
+controller specific data (e.g. porches, pixel clock, bus width).
+The generic driver was one of the good ways to go.
+
 > 
-> Selecting only CONFIG_ARCH_MVEBU but not the respective
-> options for Armada 370 or Armada XP results in these
-> link errors:
+>>> Thinking about it, if you do move the gpio handling to the backlight
+>>> driver, the panel driver will only handle the DPI video stream. Then it
+>>> should not have any effect on the SPI side (presuming the panel doesn't
+>>> use the pixel clock as func clock), although there's probably still
+>>> possibility for display artifacts on enable and disable, if the order of
+>>> operations goes the wrong way.
+>>
+>> Yep, again, that is correct.
 > 
-> arch/arm/mach-mvebu/built-in.o: In function `armada_xp_smp_init_cpus':
-> arch/arm/mach-mvebu/platsmp.c:91: undefined reference to `coherency_get_cpu_count'
-> arch/arm/mach-mvebu/platsmp.c:104: undefined reference to `armada_mpic_send_doorbell'
-> arch/arm/mach-mvebu/built-in.o: In function `armada_xp_smp_prepare_cpus':
-> arch/arm/mach-mvebu/platsmp.c:111: undefined reference to `set_cpu_coherent'
-> arch/arm/mach-mvebu/built-in.o: In function `armada_xp_boot_secondary':
-> arch/arm/mach-mvebu/platsmp.c:83: undefined reference to `armada_xp_boot_cpu'
-> arch/arm/mach-mvebu/built-in.o: In function `armada_xp_secondary_init':
-> arch/arm/mach-mvebu/platsmp.c:75: undefined reference to `armada_xp_mpic_smp_cpu_init'
-> arch/arm/mach-mvebu/built-in.o: In function `armada_xp_secondary_startup':
-> arch/arm/mach-mvebu/headsmp.S:46: undefined reference to `ll_set_cpu_coherent'
+> It's correct that there may be artifacts? How do you manage the ordering
+> of the operations on other platforms?
+
+Yep, there might be artifacts if the ordering is incorrect.
+The ordering is something that should be solved by the CDF.
+
 > 
-> We can solve this by enabling all common MVEBU files that are
-> referenced by the SMP files. This means we enable code that
-> is not going to be used without a machine descriptor referencing
-> it, but only if the kernel is configured specifically for this
-> case.
+>>>> And since the toppoly was and is used on other systems, why the hell
+>>>> should anyone duplicate the driver just to please the OMAP specific
+>>>> panel framework? The real problem is that this framework should not be
+>>
+>>> Not to please. To make it reliable.
+>>
+>> Well, there are multiple ways to make it reliable.
+>> And I don't think that the best would be: make it OMAP specific.
 > 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Cc: Gregory Clement <gregory.clement@free-electrons.com>
-> Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+> I'm not saying it's the best option. I'm saying it's a realistic option
+> to get it working.
 > 
-> diff --git a/arch/arm/mach-mvebu/Makefile b/arch/arm/mach-mvebu/Makefile
-> index 99df4df..da93bcb 100644
-> --- a/arch/arm/mach-mvebu/Makefile
-> +++ b/arch/arm/mach-mvebu/Makefile
-> @@ -3,7 +3,8 @@ ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
->  
->  AFLAGS_coherency_ll.o		:= -Wa,-march=armv7-a
->  
-> -obj-y += system-controller.o
-> -obj-$(CONFIG_MACH_ARMADA_370_XP) += armada-370-xp.o irq-armada-370-xp.o addr-map.o coherency.o coherency_ll.o pmsu.o
-> +obj-y				 += system-controller.o
-> +obj-$(CONFIG_MACH_ARMADA_370_XP) += armada-370-xp.o
-> +obj-$(CONFIG_ARCH_MVEBU)	 += addr-map.o coherency.o coherency_ll.o pmsu.o irq-armada-370-xp.o 
->  obj-$(CONFIG_SMP)                += platsmp.o headsmp.o
->  obj-$(CONFIG_HOTPLUG_CPU)        += hotplug.o
+>>> Well, if duplicating the code gives us reliable drivers, versus
+>>> unreliable without duplicating, then... I don't see it as that bad.
+>>
+>> Hmmm... I don't think this fits the mainline (upstream) philosophy.
+>> This can be also extrapolated into: let's make our own Linux ARM fork
+>> so it will be more reliable...
+>> This is the way how vendor specific kernel releases work.
 > 
+> Well, we are talking about a smallish driver here. Not an arch fork. If
+> the options are a) platform specific driver that works, or b) generic
+> driver that's not reliable, or c) no driver at all, I can't really see
+> why a) would be such a horrible option for the time being.
+
+I think there is b.5) where the driver is both generic and reliable,
+but I haven't looked into this deep enough.
+
+> 
+> But this discussion is getting a bit out of hand. It sounds to me that
+> for this panel in question we can manage with the current approach, so
+> this whole line of discussion doesn't matter for this specific problem.
+> 
+>>> If it was easy, somebody would've done it.
+>>
+>> In fact this is done all the time on multiple drivers and frameworks.
+>> Also, I don't say this is easy, but I also don't think this too hard.
+>> It is also a function of resources (time/will/experience/etc.).
+> 
+> I think the CDF discussions have already proven that it is quite hard.
+> But feel free to contribute.
+
+I will contribute as much as I can in terms of my paid work.
+I always do...
+
+> 
+> And I've talked about a common display framework already years ago, and
+> I've tried to design OMAP DSS panels from start in such a way that they
+> try to depend on OMAP DSS features as little as possible, to make it
+> easier to generalize them. Just to prove I'm not indifferent about the
+> issue =).
+
+Yep, your work was fruitful and no one can take it from you!
+That's why I said that I'm not trying to blame or accuse anyone.
+That is more of a wish that the CDF will come as quickly as it can.
+Because currently it is clear that there are cases where we don't
+have a proper support...
 
 
--- 
-Gregory Clement, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+- -- 
+Regards,
+Igor.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.17 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRHNqRAAoJEBDE8YO64Efac08QAKBgU7xFkdBHU0ekAgRIafhO
+kd0EgPXwPZDvuAaoj5pzdMI65alRSuoQxp5ohHyz0aFfGRk0Q66f6/zXzTsGXPLP
+pRTkqGGTHD5Qtv2IvhHPvLMRGW+87QiuK0NU0BJqV/1JRPz1UyKMJrwc5U3Acf4J
+B7bQnWLlIcPftIt2zHwuvZZMYZUL8f5/dXGWMhxmTF7rse7YcTjCwQO4eabTIX5r
+/GUanF+qlwKJzk7nxQR1DFQdN+7Vv8vdumJi38sq9fouLgXlhmzOgXvxMgT7lq8T
+l+7Bg7l+E9yrHaXmWf3zjZBAk6/wBnzzrmmK5V6Gjg2PiEh6Rs5ARWPrdc/FQCpt
+4bXTKEktLonHj2rya8intrPLw7lP4AQN81QsQOLeRIPGoSCcDsi4RGAFrWdXR0Xt
+Du9ea/liAD3+qiNIErQcTlR5zDKAIhMvWycG+ZFj0kVFUFb6p/F1TKcqVy0O7HAG
+SLSsrCyO8jA/UxAKQifhiUU2Hoq9a3VhQi507lbXiN0NTsk686mp/W8YJPB/di+v
+44wayaE5Kyw5iawLj9WUyTpw29sOysiewp+z7XuaF3fM5lWeMy2e0/mNbe4iCcCG
+LYMl0NWcQn0S7okkQz5HHmCJp3L3/Se5sMfGKJRzpG0vK1DR+m8nJh0MGbEu/14C
+B9+3VrImRZS8te/wnPqE
+=BAnK
+-----END PGP SIGNATURE-----
