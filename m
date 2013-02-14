@@ -1,77 +1,80 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH 1/2] ARM: OMAP2+: Prevent potential crash if GPMC probe
- fails
-Date: Thu, 14 Feb 2013 12:04:57 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3EA754E2@DBDE01.ent.ti.com>
-References: <1359736726-10193-1-git-send-email-jon-hunter@ti.com>
- <1359736726-10193-2-git-send-email-jon-hunter@ti.com>
- <20130201220804.GZ22517@atomide.com> <51158293.8010101@ti.com>
- <20130209155547.GA5253@localhost>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: Build error: OMAP randconfig / mvebu
+Date: Thu, 14 Feb 2013 09:06:52 -0300
+Message-ID: <20130214120650.GA11345@localhost>
+References: <20130208100813.GN17833@n2100.arm.linux.org.uk>
+ <20130214110803.GP17852@n2100.arm.linux.org.uk>
+ <20130214111234.GB3059@localhost>
+ <201302141127.07378.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37312 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934236Ab3BNMGH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Feb 2013 07:06:07 -0500
-In-Reply-To: <20130209155547.GA5253@localhost>
-Content-Language: en-US
+Received: from mail.free-electrons.com ([94.23.35.102]:54711 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757522Ab3BNMHL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 07:07:11 -0500
+Content-Disposition: inline
+In-Reply-To: <201302141127.07378.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, arm@kernel.org, Gregory CLEMENT <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-SGkgVG9ueSwNCg0KT24gU2F0LCBGZWIgMDksIDIwMTMgYXQgMjE6MjU6NDksIEV6ZXF1aWVsIEdh
-cmNpYSB3cm90ZToNCj4gT24gRnJpLCBGZWIgMDgsIDIwMTMgYXQgMDQ6NTY6MTlQTSAtMDYwMCwg
-Sm9uIEh1bnRlciB3cm90ZToNCj4gPiANCj4gPiBPbiAwMi8wMS8yMDEzIDA0OjA4IFBNLCBUb255
-IExpbmRncmVuIHdyb3RlOg0KPiA+ID4gKiBKb24gSHVudGVyIDxqb24taHVudGVyQHRpLmNvbT4g
-WzEzMDIwMSAwODo0Ml06DQo+ID4gPj4gSWYgdGhlIEdQTUMgcHJvYmUgZmFpbHMsIGRldmljZXMg
-dGhhdCB1c2UgdGhlIEdQTUMgKHN1Y2ggYXMgZXRoZXJuZXQNCj4gPiA+PiBjaGlwcywgZmxhc2gg
-bWVtb3JpZXMsIGV0YykgY2FuIHN0aWxsIGFsbG9jYXRlIGEgR1BNQyBjaGlwLXNlbGVjdCBhbmQN
-Cj4gPiA+PiByZWdpc3RlciB0aGUgZGV2aWNlLiBPbiB0aGUgT01BUDI0MjAgSDQgYm9hcmQsIHRo
-aXMgd2FzIGNhdXNpbmcgdGhlDQo+ID4gPj4ga2VybmVsIHRvIGNyYXNoIGFmdGVyIHRoZSBncG1j
-IHByb2JlIGZhaWxlZCBhbmQgdGhlIGJvYXJkIGF0dGVtcHRlZA0KPiA+ID4+IHRvIHN0YXJ0IG5l
-dHdvcmtpbmcuIFByZXZlbnQgdGhpcyBieSBtYXJraW5nIGFsbCB0aGUgY2hpcC1zZWxlY3RzIGFz
-DQo+ID4gPj4gcmVzZXJ2ZWQgYnkgZGVmYXVsdCBhbmQgb25seSBtYWtlIHRoZW0gYXZhaWxhYmxl
-IGZvciBkZXZpY2VzIHRvIHJlcXVlc3QNCj4gPiA+PiBpZiB0aGUgR1BNQyBwcm9iZSBzdWNjZWVk
-cy4NCj4gPiA+IA0KPiA+ID4gVGhhbmtzIGFwcGx5aW5nIGludG8gb21hcC1mb3ItdjMuOS9ncG1j
-Lg0KPiA+IA0KPiA+IEhpIFRvbnksIHRoaXMgb25lIGFwcGVhcnMgdG8gYmUgbWVyZ2VkIGluY29y
-cmVjdGx5LiBUaGUgdW5yZXNlcnZlIGVuZGVkIA0KPiA+IHVwIGluIHRoZSBncG1jX2NhbGNfdGlt
-aW5ncygpIGZ1bmN0aW9uLiBIZXJlIGlzIGEgcGF0Y2ggdG8gZml4Lg0KPiA+IA0KPiA+IENoZWVy
-cw0KPiA+IEpvbg0KPiA+IA0KPiA+IEZyb20gZWJjMDYxM2ZiNWE3MGYzNmZjYjExOWNiZTU4NzI0
-ZjliNDQyOTAzYSBNb24gU2VwIDE3IDAwOjAwOjAwIDIwMDENCj4gPiBGcm9tOiBKb24gSHVudGVy
-IDxqb24taHVudGVyQHRpLmNvbT4NCj4gPiBEYXRlOiBGcmksIDggRmViIDIwMTMgMTY6NDg6MjUg
-LTA2MDANCj4gPiBTdWJqZWN0OiBbUEFUQ0hdIEFSTTogT01BUDIrOiBGaXgtdXAgZ3BtYyBtZXJn
-ZSBlcnJvcg0KPiA+IA0KPiA+IENvbW1pdCAiQVJNOiBPTUFQMis6IFByZXZlbnQgcG90ZW50aWFs
-IGNyYXNoIGlmIEdQTUMgcHJvYmUgZmFpbHMiIGFkZGVkDQo+ID4gY29kZSB0byBlbnN1cmUgdGhh
-dCBHUE1DIGNoaXAtc2VsZWN0cyBjb3VsZCBub3QgYmUgcmVxdWVzdGVkIHVudGlsIHRoZQ0KPiA+
-IGRldmljZSBwcm9iZSB3YXMgc3VjY2Vzc2Z1bC4gVGhlIGNoaXAtc2VsZWN0cyBzaG91bGQgaGF2
-ZSBiZWVuDQo+ID4gdW5yZXNlcnZlZCBhdCB0aGUgZW5kIG9mIHRoZSBwcm9iZSBmdW5jdGlvbiwg
-YnV0IHRoZSBjb2RlIHRvIHVucmVzZXJ2ZQ0KPiA+IHRoZW0gYXBwZWFycyB0byBoYXZlIGVuZGVk
-IHVwIGluIHRoZSBncG1jX2NhbGNfdGltaW5ncygpIGZ1bmN0aW9uIGFuZA0KPiA+IGhlbmNlLCB0
-aGlzIGlzIGNhdXNpbmcgcHJvYmxlbXMgcmVxdWVzdGluZyBjaGlwLXNlbGVjdHMuIEZpeCB0aGlz
-IG1lcmdlDQo+ID4gZXJyb3IgYnkgdW5yZXNlcnZpbmcgdGhlIGNoaXAtc2VsZWN0cyBhdCB0aGUg
-ZW5kIG9mIHRoZSBwcm9iZSwgYnV0DQo+ID4gYmVmb3JlIHdlIGNhbGwgdGhlIGdwbWMgY2hpbGQg
-cHJvYmUgZnVuY3Rpb25zIChmb3IgZGV2aWNlLXRyZWUpIHdoaWNoDQo+ID4gcmVxdWVzdCBhIGNo
-aXAtc2VsZWN0Lg0KPiA+IA0KPiA+IFNpZ25lZC1vZmYtYnk6IEpvbiBIdW50ZXIgPGpvbi1odW50
-ZXJAdGkuY29tPg0KPiANCj4gV2l0aG91dCB0aGlzIHBhdGNoLCBHUE1DIGlzIGN1cnJlbnRseSBi
-cm9rZW4gb24gbXkgaWdlcCBib2FyZCBzZXR1cCwNCj4gaWYgaW5pdGlhbGl6ZWQgdGhyb3VnaCBh
-IGRldmljZSB0cmVlLg0KPiANCj4gVGVzdGVkLWJ5OiBFemVxdWllbCBHYXJjaWEgPGV6ZXF1aWVs
-LmdhcmNpYUBmcmVlLWVsZWN0cm9ucy5jb20+DQoNCldpdGhvdXQgdGhpcyBwYXRjaCBHUE1DIGlz
-IG5vdCB3b3JraW5nIGluIGFtMzM1eC1ldm0uDQoNClRlc3RlZC1ieTogUGhpbGlwIEF2aW5hc2gg
-PGF2aW5hc2hwaGlsaXBAdGkuY29tPg0KDQpTZWUgSm9uJ3MgY29tbWVudHMuDQoNCkpPTiA+PiBI
-aSBUb255LCB0aGlzIG9uZSBhcHBlYXJzIHRvIGJlIG1lcmdlZCBpbmNvcnJlY3RseS4gVGhlIHVu
-cmVzZXJ2ZSBlbmRlZCANCkpPTiA+PiB1cCBpbiB0aGUgZ3BtY19jYWxjX3RpbWluZ3MoKSBmdW5j
-dGlvbi4gSGVyZSBpcyBhIHBhdGNoIHRvIGZpeC4NCg0KSSBoYXZlIHRlc3RlZCBiYXNlZCBvbiBs
-aW51eC1vbWFwL21hc3Rlci4NCg0KaHR0cDovL2dpdC5rZXJuZWwub3JnLz9wPWxpbnV4L2tlcm5l
-bC9naXQvdG1saW5kL2xpbnV4LW9tYXAuZ2l0O2E9c2hvcnRsb2c7aD1yZWZzL2hlYWRzL21hc3Rl
-cg0KDQpUaGFua3MNCkF2aW5hc2gNCg0KPiBXaXRob3V0IHRoaXMgcGF0Y2gsIEdQTUMgaXMgY3Vy
-cmVudGx5IGJyb2tlbiBvbiBteSBpZ2VwIGJvYXJkIHNldHVwLA0KPiBpZiBpbml0aWFsaXplZCB0
-aHJvdWdoIGEgZGV2aWNlIHRyZWUuDQo+IA0KPiBUaGFua3MgYSBsb3QgZm9yIHRoZSBmaXgsDQo+
-IA0KPiAtLSANCj4gRXplcXVpZWwgR2FyY8OtYSwgRnJlZSBFbGVjdHJvbnMNCj4gRW1iZWRkZWQg
-TGludXgsIEtlcm5lbCBhbmQgQW5kcm9pZCBFbmdpbmVlcmluZw0KPiBodHRwOi8vZnJlZS1lbGVj
-dHJvbnMuY29tDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRo
-ZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1vbWFwIiBpbg0KPiB0aGUgYm9keSBvZiBhIG1lc3Nh
-Z2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0
-ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gDQoNCg==
+Hi Arnd,
+
+On Thu, Feb 14, 2013 at 11:27:07AM +0000, Arnd Bergmann wrote:
+> On Thursday 14 February 2013, Ezequiel Garcia  wrote:
+> > On Thu, Feb 14, 2013 at 11:08:03AM +0000, Russell King - ARM Linux =
+wrote:
+> > >=20
+> > > It's all publically available via my website.
+> >=20
+> > I'm kind of new around here, and I have no clue where that may be.
+> >=20
+> > I hope you don't mind helping me this time.
+>=20
+>=20
+> Please have a look at http://www.arm.linux.org.uk/developer/build/
+
+Okey.
+
+=46YI, using the random config file for OMAP4430 and also with a manual
+config that chooses ARCH_MVEBU but doesn't choose MACH_ARMADA_XP or
+MACH_ARMADA_370, this make error is *gone* after applying your patch:
+
+arch/arm/mach-mvebu/built-in.o: In function `armada_xp_smp_init_cpus':
+:(.init.text+0x74): undefined reference to `coherency_get_cpu_count'
+:(.init.text+0xb8): undefined reference to `armada_mpic_send_doorbell'
+arch/arm/mach-mvebu/built-in.o: In function `armada_xp_smp_prepare_cpus=
+':
+:(.init.text+0x250): undefined reference to `set_cpu_coherent'
+arch/arm/mach-mvebu/built-in.o: In function `armada_xp_boot_secondary':
+:(.cpuinit.text+0x10): undefined reference to `armada_xp_boot_cpu'
+arch/arm/mach-mvebu/built-in.o: In function `armada_xp_secondary_init':
+:(.cpuinit.text+0x2c): undefined reference to `armada_xp_mpic_smp_cpu_i=
+nit'
+arch/arm/mach-mvebu/built-in.o: In function `armada_xp_secondary_startu=
+p':
+:(.cpuinit.text+0x40): undefined reference to `ll_set_cpu_coherent'
+
+Now, using the random config there's a new error, unrelated to the
+previous one:
+
+ERROR: "twl6030_interrupt_unmask" [drivers/usb/otg/twl6030-usb.ko] unde=
+fined!
+ERROR: "twl_i2c_read_u8" [drivers/usb/otg/twl6030-usb.ko] undefined!
+ERROR: "twl_i2c_write_u8" [drivers/usb/otg/twl6030-usb.ko] undefined!
+ERROR: "twl6030_interrupt_mask" [drivers/usb/otg/twl6030-usb.ko] undefi=
+ned!
+
+Regards,
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
