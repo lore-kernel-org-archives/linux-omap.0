@@ -1,76 +1,153 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: Build error: OMAP randconfig / mvebu
-Date: Thu, 14 Feb 2013 08:12:35 -0300
-Message-ID: <20130214111234.GB3059@localhost>
-References: <20130208100813.GN17833@n2100.arm.linux.org.uk>
- <2213733.Wbjy3dFgom@wuerfel>
- <5114DC44.7000107@free-electrons.com>
- <4351524.MQWtq16mqg@wuerfel>
- <20130214100926.GO17852@n2100.arm.linux.org.uk>
- <20130214110307.GA3059@localhost>
- <20130214110803.GP17852@n2100.arm.linux.org.uk>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
+Date: Thu, 14 Feb 2013 13:15:53 +0200
+Message-ID: <1360840554-26901-2-git-send-email-balbi@ti.com>
+References: <1360840554-26901-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:54467 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989Ab3BNLM5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 06:12:57 -0500
-Content-Disposition: inline
-In-Reply-To: <20130214110803.GP17852@n2100.arm.linux.org.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:55938 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753087Ab3BNLQH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Feb 2013 06:16:07 -0500
+In-Reply-To: <1360840554-26901-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, arm@kernel.org, Gregory CLEMENT <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-On Thu, Feb 14, 2013 at 11:08:03AM +0000, Russell King - ARM Linux wrot=
-e:
-> On Thu, Feb 14, 2013 at 08:03:08AM -0300, Ezequiel Garcia wrote:
-> > On Thu, Feb 14, 2013 at 10:09:26AM +0000, Russell King - ARM Linux =
-wrote:
-> > > On Fri, Feb 08, 2013 at 02:33:29PM +0100, Arnd Bergmann wrote:
-> > > > On Friday 08 February 2013 12:06:44 Gregory CLEMENT wrote:
-> > > > >=20
-> > > > > I don't know what to do here, there is no point to build any =
-of the files
-> > > > > in mach-mvebu if no SoCs are selected. So either we force to =
-have at least
-> > > > > one SoCS selected if ARCH_MVEBU is selected, or we unselect  =
-ARCH_MVEB if
-> > > > > no SoCs are selected.
-> > > >=20
-> > > > The latter does not work, because that would introduce a circul=
-ar
-> > > > dependency in Kconfig.
-> > > >=20
-> > > > I suppose rearranging the mvebu Makefile like this would do.
-> > > >=20
-> > > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > >=20
-> > > This error is still present in arm-soc.  We're getting close to t=
-he next
-> > > merge window, so either something needs to be dropped from arm-so=
-c, or
-> > > this needs to get fixed.
-> > >=20
-> >=20
-> > Can you point me to where can I get the config your building with?
->=20
-> It's all publically available via my website.
+Currently the omap-serial driver will not
+work properly if booted via DT with CPUIDLE
+enabled because it depends on function pointers
+provided by hwmod to change its own SYSCONFIG
+register.
 
-I'm kind of new around here, and I have no clue where that may be.
+Remove that relyance on hwmod by moving SYSCONFIG
+handling to driver itself. Note that this also
+fixes a possible corner case bug where we could
+be putting UART in Force Idle mode if we called
+omap_serial_enable_wakeup(up, false) after setting
+NOIDLE to the idle mode. This is because hwmod
+has no protection against that situation.
 
-I hope you don't mind helping me this time.
+NYET-Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/tty/serial/omap-serial.c | 67 +++++++++++++++++++---------------------
+ 1 file changed, 32 insertions(+), 35 deletions(-)
 
-Thanks,
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 57d6b29..078beb1 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -96,6 +96,18 @@
+ 
+ #define OMAP_UART_TCR_TRIG	0x0F
+ 
++#define OMAP_UART_SYSC		0x54
++#define OMAP_UART_AUTOIDLE	(1 << 0)
++#define OMAP_UART_SOFTRESET	(1 << 1)
++#define OMAP_UART_ENAWAKEUP	(1 << 2)
++
++#define OMAP_UART_IDLEMODE(n)	(((n) & 3) << 3)
++#define OMAP_UART_FORCE_IDLE	OMAP_UART_IDLEMODE(0)
++#define OMAP_UART_NO_IDLE	OMAP_UART_IDLEMODE(1)
++#define OMAP_UART_SMART_IDLE	OMAP_UART_IDLEMODE(2)
++#define OMAP_UART_SMART_IDLE_WKUP OMAP_UART_IDLEMODE(3)
++#define OMAP_UART_IDLEMODE_MASK	OMAP_UART_SMART_IDLE_WKUP
++
+ struct uart_omap_dma {
+ 	u8			uart_dma_tx;
+ 	u8			uart_dma_rx;
+@@ -191,44 +203,39 @@ static inline void serial_omap_clear_fifos(struct uart_omap_port *up)
+ 	serial_out(up, UART_FCR, 0);
+ }
+ 
+-static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
+-{
+-	struct omap_uart_port_info *pdata = up->dev->platform_data;
+-
+-	if (!pdata || !pdata->get_context_loss_count)
+-		return 0;
+-
+-	return pdata->get_context_loss_count(up->dev);
+-}
+-
+ static void serial_omap_set_forceidle(struct uart_omap_port *up)
+ {
+-	struct omap_uart_port_info *pdata = up->dev->platform_data;
+-
+-	if (!pdata || !pdata->set_forceidle)
+-		return;
++	u32 reg;
+ 
+-	pdata->set_forceidle(up->dev);
++	reg = serial_in(up, OMAP_UART_SYSC);
++	reg &= ~OMAP_UART_IDLEMODE_MASK;
++	reg |= OMAP_UART_FORCE_IDLE;
++	serial_out(up, OMAP_UART_SYSC, reg);
+ }
+ 
+ static void serial_omap_set_noidle(struct uart_omap_port *up)
+ {
+-	struct omap_uart_port_info *pdata = up->dev->platform_data;
++	u32 reg;
+ 
+-	if (!pdata || !pdata->set_noidle)
+-		return;
+-
+-	pdata->set_noidle(up->dev);
++	reg = serial_in(up, OMAP_UART_SYSC);
++	reg &= ~OMAP_UART_IDLEMODE_MASK;
++	reg |= OMAP_UART_NO_IDLE;
++	serial_out(up, OMAP_UART_SYSC, reg);
+ }
+ 
+ static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
+ {
+-	struct omap_uart_port_info *pdata = up->dev->platform_data;
++	u32 reg;
+ 
+-	if (!pdata || !pdata->enable_wakeup)
+-		return;
++	reg = serial_in(up, OMAP_UART_SYSC);
++	reg &= ~OMAP_UART_IDLEMODE_MASK;
++
++	if (enable)
++		reg |= OMAP_UART_SMART_IDLE_WKUP;
++	else
++		reg |= OMAP_UART_SMART_IDLE;
+ 
+-	pdata->enable_wakeup(up->dev, enable);
++	serial_out(up, OMAP_UART_SYSC, reg);
+ }
+ 
+ /*
+@@ -1596,8 +1603,6 @@ static int serial_omap_runtime_suspend(struct device *dev)
+ 	if (!pdata)
+ 		return 0;
+ 
+-	up->context_loss_cnt = serial_omap_get_context_loss_count(up);
+-
+ 	if (device_may_wakeup(dev)) {
+ 		if (!up->wakeups_enabled) {
+ 			serial_omap_enable_wakeup(up, true);
+@@ -1620,15 +1625,7 @@ static int serial_omap_runtime_resume(struct device *dev)
+ {
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
+ 
+-	int loss_cnt = serial_omap_get_context_loss_count(up);
+-
+-	if (loss_cnt < 0) {
+-		dev_err(dev, "serial_omap_get_context_loss_count failed : %d\n",
+-			loss_cnt);
+-		serial_omap_restore_context(up);
+-	} else if (up->context_loss_cnt != loss_cnt) {
+-		serial_omap_restore_context(up);
+-	}
++	serial_omap_restore_context(up);
+ 	up->latency = up->calc_latency;
+ 	schedule_work(&up->qos_work);
+ 
+-- 
+1.8.1.rc1.5.g7e0651a
 
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
