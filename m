@@ -1,81 +1,79 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: Use of of_parse_phandle()/of_node_put()
-Date: Thu, 14 Feb 2013 10:21:35 +0100
-Message-ID: <511CAC9F.4010308@ti.com>
-References: <F3DBB1B3EF102E4994C89758CFCA32412C6E52@DBDE01.ent.ti.com> <511BB6C2.3060105@ti.com> <CABYxbz6xEEVxL1BBM+Mb7net27d3zTD-6+uoS63LXXvifn_TNw@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 0/1] OMAP4: DSS: Add panel for Blaze Tablet boards
+Date: Thu, 14 Feb 2013 11:24:45 +0200
+Message-ID: <511CAD5D.2050502@ti.com>
+References: <1360338220-12753-1-git-send-email-ruslan.bilovol@ti.com> <511B4C60.50404@ti.com> <CAB=otbSX_O-zbHZuPWPSEU0D1s3uKfZfeatoguoRiwogS5tVHQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47762 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756740Ab3BNJV5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 04:21:57 -0500
-In-Reply-To: <CABYxbz6xEEVxL1BBM+Mb7net27d3zTD-6+uoS63LXXvifn_TNw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig1C80B7BA41BCEDB035534D44"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAB=otbSX_O-zbHZuPWPSEU0D1s3uKfZfeatoguoRiwogS5tVHQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Cc: andi@etezian.org, FlorianSchandinat@gmx.de, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anil Kumar <anilk4.v@gmail.com>
-Cc: Alsa Devel List <alsa-devel@alsa-project.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kumar, Anil" <anilkumar.v@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, "jarkko.nikula@bitmer.com" <jarkko.nikula@bitmer.com>
 
-On 02/13/2013 05:40 PM, Anil Kumar wrote:
-> It looks issue is different here.
-> I have done some testing here with patch[1]. In this patch i tried to
-> get same "of_device" node pointer
-> again and found refcount for this dt node is 1 [Result].
->=20
-> As of_parse_phandle() says it "returns the device_node pointer with
-> refcount incremented".
-> But why refcount  value is 1 [Result] again ?
+--------------enig1C80B7BA41BCEDB035534D44
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Documentation/kref.txt
+On 2013-02-14 02:07, Ruslan Bilovol wrote:
 
->=20
-> -----------------------------8---------------------
-> Patch[1]:-
-> diff --git a/sound/soc/omap/omap-twl4030.c b/sound/soc/omap/omap-twl4=
-030.c
-> index fd98509..0828a5c 100644
-> --- a/sound/soc/omap/omap-twl4030.c
-> +++ b/sound/soc/omap/omap-twl4030.c
-> @@ -297,6 +297,16 @@ static int omap_twl4030_probe(struct platform_de=
-vice *pdev)
->                         dev_err(&pdev->dev, "McBSP node is not provid=
-ed\n");
->                         return -EINVAL;
->                 }
-> +               printk(KERN_ERR"refcount 0x%x",
-> atomic_read(&dai_node->kref.refcount));
-> +
-> +               dai_node =3D of_parse_phandle(node, "ti,mcbsp", 0);
-> +                if (!dai_node) {
-> +                        dev_err(&pdev->dev, "McBSP node is not provi=
-ded\n");
-> +                        return -EINVAL;
-> +                }
-> +               printk(KERN_ERR"refcount 0x%x",
-> atomic_read(&dai_node->kref.refcount));
-> +
-> +
->                 omap_twl4030_dai_links[0].cpu_dai_name  =3D NULL;
->                 omap_twl4030_dai_links[0].cpu_of_node =3D dai_node;
->=20
-> [Result]:-
-> root@DevKit8000:/# insmod snd-soc-omap-twl4030.ko
-> [   95.718109] refcount 0x1
-> [   95.720611] refcount 0x1 [   95.818054] omap-twl4030 sound.20:
-> twl4030-hifi <-> 49022000.mcbsp mapping ok
->=20
->=20
-> Thanks,
-> Anil
-> [...]
->=20
+> This patch is exactly a part of mainlining of the BlazeTablet board sup=
+port :)
+> The goal is to have as much as possible support of this board in the
+> 'vanilla' kernel.
+> The BlazeTablet mainlining is already ongoing (
+> https://patchwork.kernel.org/patch/2118281/ )
+> and I hope we will have some support of this board in near future.
+> The BlazeTablet's LCD panel support is very important thing for us to
+> have it in mainline because
+> without it the BlazeTablet becomes a 'black brick' and it is painful
+> for us to port this
+> driver against each new version of kernel.
+
+Ok, good to hear you're pushing it to mainline. However, you should
+mentally prepare for it being a black brick =3D(.
+
+Tony said he's not adding new board files, only DT from now on. The
+display subsystem driver and the panel drivers do not work with DT yet,
+and it will still take some time for that to realize.
+
+Thus adding this driver would help nothing, as it couldn't be used. And
+after the DSS and the panel drivers are made to work with DT (which is a
+big job, needing large rewrites of the drivers), there's a rework that
+has to be done with this driver to make it compatible with the new DSS
+model.
+
+So, I'm still inclined to say that we shouldn't merge this.
+
+ Tomi
 
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--------------enig1C80B7BA41BCEDB035534D44
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRHK1dAAoJEPo9qoy8lh71iz8P/3Nw6J0iDl/Shfynnwr6kG0i
+F/x7PbGAvQ4IkvU5+gHle+vd9Wzsmmjv51MfTHu9uWKRtB2gCEsTS40PkPqa5Kn0
+2y5+sTXPmzVmvRLMRVBsaDaIolC48lz9IWsd4bUeP0KIcTjUi5BfkfmJhNiTT20h
+mnr3cWQSznf0wucY3HDcv7TI2QcpZmsQvQ1jKMuilhBgA62INbt2e9fkRIk1xNXJ
+UBfmbbYV12Svv8eprV/TnVZ0QwDY67DN31ZutGRwCo7N4DXs3ZHoi0+EOltfl0Ut
+4psmCSUrIaZQmQPoaVrUcdwwxYbdZZVNiV0CQHYPvoNEWbwfGu9JmcBgZtcxaUsR
+IxzWkrEj/JUw+NC2Z/gw9Cs18eoS76qSvqDdIqk7Ru0wmO2AxYg6iz6DXIEPJPhH
+I04IlNBURgT5/zWZKc51WOX4n83mGaeyJPIJ7tio3TEmFQ04zDfpD+d+dQViCBZ4
+eVdnsneGPgW9KQfMOtuRb+ViSHgaNI1+BKFO40AaqTx5W9L3pHs2sD3F0/ajjJld
+SFMwh/4GqWGs6y5DDQINY7p/OG6yfssMC8e8Z6WSiZblBeJk1R3n6p+7VIvtW6qf
+T7lUiSw+u75Vhf8A85+qbZPHBN3G0e/QHuHSYfEErP/PkRvQNt82A3YuhNecWZ67
+YeDkQXh+sYbGYrKIykFx
+=eTse
+-----END PGP SIGNATURE-----
+
+--------------enig1C80B7BA41BCEDB035534D44--
