@@ -1,55 +1,54 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-Date: Thu, 14 Feb 2013 04:54:15 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229BAE7D@DBDE01.ent.ti.com>
-References: <1359966525-7603-1-git-send-email-j-keerthy@ti.com>
- <alpine.DEB.2.00.1302080248550.8539@utopia.booyaka.com>
- <DC88CAD03C0052499C1907B327FC63229B92FF@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302081805450.28008@utopia.booyaka.com>
- <alpine.DEB.2.00.1302081855370.28008@utopia.booyaka.com>
-  <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com>
- <DC88CAD03C0052499C1907B327FC63229B989B@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302120638580.14983@utopia.booyaka.com>
- <DC88CAD03C0052499C1907B327FC63229B98DD@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302122028480.29149@utopia.booyaka.com>
- <DC88CAD03C0052499C1907B327FC63229BAB0B@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1302131942470.8234@utopia.booyaka.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 27/33] OMAPDSS: n8x0 panel: handle gpio data in panel
+ driver
+Date: Thu, 14 Feb 2013 12:04:32 +0530
+Message-ID: <511C8578.1070907@ti.com>
+References: <1360765345-19312-1-git-send-email-archit@ti.com> <1360765345-19312-28-git-send-email-archit@ti.com> <20130213173527.GE21750@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47607 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53601 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757518Ab3BNEy0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 23:54:26 -0500
-In-Reply-To: <alpine.DEB.2.00.1302131942470.8234@utopia.booyaka.com>
-Content-Language: en-US
+	id S1752786Ab3BNGfU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Feb 2013 01:35:20 -0500
+In-Reply-To: <20130213173527.GE21750@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
+Hi,
 
+On Wednesday 13 February 2013 11:05 PM, Aaro Koskinen wrote:
+> Hi,
+>
+> On Wed, Feb 13, 2013 at 07:52:19PM +0530, Archit Taneja wrote:
+>> @@ -444,6 +445,20 @@ static int n8x0_panel_probe(struct omap_dss_device *dssdev)
+>>   	dssdev->ctrl.rfbi_timings = n8x0_panel_timings;
+>>   	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
+>>
+>> +	if (gpio_is_valid(bdata->panel_reset)) {
+>> +		r = devm_gpio_request_one(&dssdev->dev, bdata->panel_reset,
+>> +				GPIOF_OUT_INIT_LOW, "PANEL RESET");
+>> +		if (r)
+>> +			return r;
+>> +	}
+>> +
+>> +	if (gpio_is_valid(bdata->ctrl_pwrdown)) {
+>> +		r = devm_gpio_request_one(&dssdev->dev, bdata->ctrl_pwrdown,
+>> +				GPIOF_OUT_INIT_LOW, "PANEL PWRDOWN");
+>> +		if (r)
+>> +			return r;
+>> +	}
+>> +
+>
+> In the error case, the other GPIO is not freed. Also maybe you should
+> free them on module removal, because now the module owns the GPIOs.
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Thursday, February 14, 2013 1:14 AM
-> To: J, KEERTHY
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
-> 
-> On Wed, 13 Feb 2013, J, KEERTHY wrote:
-> 
-> > So the patch needs to be rebased after 3.9 right?
-> 
-> No, I've already done that.  At this point, I don't think there's
-> anything
-> further that you need to do with it.  Will let you know if that turns
-> out
-> not to be true.
+Wouldn't the usage of devm_* functions take care of this? If the device 
+isn't registered successfully, then all allocations/requests done using 
+devm_* functions will be free'd automatically.
 
-Ok. Thanks Paul.
+Archit
 
-> 
-> - Paul
