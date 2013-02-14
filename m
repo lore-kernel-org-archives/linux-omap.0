@@ -1,77 +1,55 @@
-From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: Re: [PATCH v2 0/1] OMAP4: DSS: Add panel for Blaze Tablet boards
-Date: Thu, 14 Feb 2013 02:07:28 +0200
-Message-ID: <CAB=otbSX_O-zbHZuPWPSEU0D1s3uKfZfeatoguoRiwogS5tVHQ@mail.gmail.com>
-References: <1360338220-12753-1-git-send-email-ruslan.bilovol@ti.com>
-	<511B4C60.50404@ti.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
+Date: Thu, 14 Feb 2013 04:54:15 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229BAE7D@DBDE01.ent.ti.com>
+References: <1359966525-7603-1-git-send-email-j-keerthy@ti.com>
+ <alpine.DEB.2.00.1302080248550.8539@utopia.booyaka.com>
+ <DC88CAD03C0052499C1907B327FC63229B92FF@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1302081805450.28008@utopia.booyaka.com>
+ <alpine.DEB.2.00.1302081855370.28008@utopia.booyaka.com>
+  <DC88CAD03C0052499C1907B327FC63229B966E@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1302111538430.8260@utopia.booyaka.com>
+ <DC88CAD03C0052499C1907B327FC63229B989B@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1302120638580.14983@utopia.booyaka.com>
+ <DC88CAD03C0052499C1907B327FC63229B98DD@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1302122028480.29149@utopia.booyaka.com>
+ <DC88CAD03C0052499C1907B327FC63229BAB0B@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1302131942470.8234@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <511B4C60.50404@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: andi@etezian.org, FlorianSchandinat@gmx.de, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47607 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757518Ab3BNEy0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Feb 2013 23:54:26 -0500
+In-Reply-To: <alpine.DEB.2.00.1302131942470.8234@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tomi,
 
-On Wed, Feb 13, 2013 at 10:18 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> Hi,
->
-> On 2013-02-08 17:43, Ruslan Bilovol wrote:
->> Hi,
->>
->> This patch adds support for TC358765 DSI-to-LVDS transmitter
->> from Toshiba, that is used in OMAP4 Blaze Tablet development
->> platform. It was originally developed a long time ago and
->> was used internally survived few kernel migrations.
->> Different people worked in this driver during last two
->> years changing its sources to what each new version of
->> kernel expects.
->>
->> Current version is ported from internal kernel v3.4 to 3.8.0-rc6
->> Tested basic functioning under busybox.
->
-> Thanks for updating the driver to a recent kernel.
->
-> I didn't review the patch line by line, but with a brief look it looks
-> fine. However, I'm not quite sure what to do with this patch.
->
-> The problem is that the driver is a combined driver for the TC358765
-> chip and the panel on Blaze Tablet, and we are very much trying to fix
-> that design issue so that the drivers for the chip and panel could be
-> separate, as they should.
->
-> So I fear that if I now accept the patch, it'll increase my burden of
-> managing the display drivers during this design rework. Furthermore, to
-> my knowledge the Blaze Tablet is quite a rare board, and it's not even
-> supported in the mainline kernel, so this driver wouldn't be usable by
-> itself.
 
-This patch is exactly a part of mainlining of the BlazeTablet board support :)
-The goal is to have as much as possible support of this board in the
-'vanilla' kernel.
-The BlazeTablet mainlining is already ongoing (
-https://patchwork.kernel.org/patch/2118281/ )
-and I hope we will have some support of this board in near future.
-The BlazeTablet's LCD panel support is very important thing for us to
-have it in mainline because
-without it the BlazeTablet becomes a 'black brick' and it is painful
-for us to port this
-driver against each new version of kernel.
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Thursday, February 14, 2013 1:14 AM
+> To: J, KEERTHY
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: RE: [PATCH] ARM: OMAP: Clock: Remove CK_* flags
+> 
+> On Wed, 13 Feb 2013, J, KEERTHY wrote:
+> 
+> > So the patch needs to be rebased after 3.9 right?
+> 
+> No, I've already done that.  At this point, I don't think there's
+> anything
+> further that you need to do with it.  Will let you know if that turns
+> out
+> not to be true.
 
->
-> So if I'm right about the blaze tablet status, I'm inclined to say that
-> I think this should be still kept out of tree.
+Ok. Thanks Paul.
 
-Considering my information above, (and your information that design
-rework will be started later), can we pick this driver for now in its
-current state?
-
-Regards,
-Ruslan
-
->
->  Tomi
->
->
+> 
+> - Paul
