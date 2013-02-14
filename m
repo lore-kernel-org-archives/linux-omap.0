@@ -1,44 +1,33 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC/NOT FOR MERGING 1/3] arm: omap: use generic
-	implementation if !od
-Date: Thu, 14 Feb 2013 11:20:43 +0000
-Message-ID: <20130214112043.GQ17852@n2100.arm.linux.org.uk>
-References: <1360840554-26901-1-git-send-email-balbi@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: Build error: OMAP randconfig / mvebu
+Date: Thu, 14 Feb 2013 11:27:07 +0000
+Message-ID: <201302141127.07378.arnd@arndb.de>
+References: <20130208100813.GN17833@n2100.arm.linux.org.uk> <20130214110803.GP17852@n2100.arm.linux.org.uk> <20130214111234.GB3059@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42899 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756870Ab3BNLUu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 06:20:50 -0500
-Content-Disposition: inline
-In-Reply-To: <1360840554-26901-1-git-send-email-balbi@ti.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:63389 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754102Ab3BNL1Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 06:27:25 -0500
+In-Reply-To: <20130214111234.GB3059@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, arm@kernel.org, Gregory CLEMENT <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Feb 14, 2013 at 01:15:52PM +0200, Felipe Balbi wrote:
->  	struct platform_device *pdev = to_platform_device(dev);
-> +	struct omap_device *od = to_omap_device(pdev);
->  	int ret;
->  
->  	ret = pm_generic_runtime_suspend(dev);
->  
-> +	if (!od)
-> +		goto out;
-> +
->  	if (!ret)
+On Thursday 14 February 2013, Ezequiel Garcia  wrote:
+> On Thu, Feb 14, 2013 at 11:08:03AM +0000, Russell King - ARM Linux wrote:
+> > 
+> > It's all publically available via my website.
+> 
+> I'm kind of new around here, and I have no clue where that may be.
+> 
+> I hope you don't mind helping me this time.
 
-What's wrong with the single line change per function of:
 
--	if (!ret)
-+	if (!ret && to_omap_device(pdev))
+Please have a look at http://www.arm.linux.org.uk/developer/build/
 
-?
-
->  		omap_device_idle(pdev);
->  
-> +out:
->  	return ret;
->  }
+	Arnd
