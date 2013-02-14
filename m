@@ -1,55 +1,60 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 27/33] OMAPDSS: n8x0 panel: handle gpio data in panel
- driver
-Date: Thu, 14 Feb 2013 14:45:38 +0200
-Message-ID: <20130214124538.GB4499@blackmetal.musicnaut.iki.fi>
-References: <1360765345-19312-1-git-send-email-archit@ti.com>
- <1360765345-19312-28-git-send-email-archit@ti.com>
- <20130213173527.GE21750@blackmetal.musicnaut.iki.fi>
- <511C8578.1070907@ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: Build error: OMAP randconfig / mvebu
+Date: Thu, 14 Feb 2013 09:49:28 -0300
+Message-ID: <20130214124927.GB11345@localhost>
+References: <20130208100813.GN17833@n2100.arm.linux.org.uk>
+ <201302141127.07378.arnd@arndb.de>
+ <20130214120650.GA11345@localhost>
+ <201302141221.16267.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:39607 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759752Ab3BNMpn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 07:45:43 -0500
+Received: from mail.free-electrons.com ([94.23.35.102]:54916 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759809Ab3BNMth (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 07:49:37 -0500
 Content-Disposition: inline
-In-Reply-To: <511C8578.1070907@ti.com>
+In-Reply-To: <201302141221.16267.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, arm@kernel.org, Gregory CLEMENT <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Feb 14, 2013 at 12:04:32PM +0530, Archit Taneja wrote:
-> On Wednesday 13 February 2013 11:05 PM, Aaro Koskinen wrote:
-> >On Wed, Feb 13, 2013 at 07:52:19PM +0530, Archit Taneja wrote:
-> >>@@ -444,6 +445,20 @@ static int n8x0_panel_probe(struct omap_dss_device *dssdev)
-> >>  	dssdev->ctrl.rfbi_timings = n8x0_panel_timings;
-> >>  	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
-> >>
-> >>+	if (gpio_is_valid(bdata->panel_reset)) {
-> >>+		r = devm_gpio_request_one(&dssdev->dev, bdata->panel_reset,
-> >>+				GPIOF_OUT_INIT_LOW, "PANEL RESET");
-> >>+		if (r)
-> >>+			return r;
-> >>+	}
-> >>+
-> >>+	if (gpio_is_valid(bdata->ctrl_pwrdown)) {
-> >>+		r = devm_gpio_request_one(&dssdev->dev, bdata->ctrl_pwrdown,
-> >>+				GPIOF_OUT_INIT_LOW, "PANEL PWRDOWN");
-> >>+		if (r)
-> >>+			return r;
-> >>+	}
-> >>+
-> >
-> >In the error case, the other GPIO is not freed. Also maybe you should
-> >free them on module removal, because now the module owns the GPIOs.
-> 
-> Wouldn't the usage of devm_* functions take care of this? If the
-> device isn't registered successfully, then all allocations/requests
-> done using devm_* functions will be free'd automatically.
+Arnd,
 
-Sorry, I didn't realized they are devm_* now. You are right.
+On Thu, Feb 14, 2013 at 12:21:16PM +0000, Arnd Bergmann wrote:
+> On Thursday 14 February 2013, Ezequiel Garcia wrote:
+> > Now, using the random config there's a new error, unrelated to the
+> > previous one:
+> >=20
+> > ERROR: "twl6030_interrupt_unmask" [drivers/usb/otg/twl6030-usb.ko] =
+undefined!
+> > ERROR: "twl_i2c_read_u8" [drivers/usb/otg/twl6030-usb.ko] undefined=
+!
+> > ERROR: "twl_i2c_write_u8" [drivers/usb/otg/twl6030-usb.ko] undefine=
+d!
+> > ERROR: "twl6030_interrupt_mask" [drivers/usb/otg/twl6030-usb.ko] un=
+defined!
+>=20
+> Yes, I guess that is an unrelated error. However, my patch also wasn'=
+t
+> correct because it is not allowed to have an empty list of objects.
+>=20
+> There is an updated patch below, I could add that straight to the bra=
+nch
+> that caused the problem if it looks ok to you.
 
-A.
+The compile error is fixed here with this patch also.
+
+Thanks,
+
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
