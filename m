@@ -1,85 +1,112 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [GIT PULL] omapdss fixes for 3.8
-Date: Thu, 14 Feb 2013 19:27:21 +0200
-Message-ID: <511D1E79.8030909@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
+Date: Thu, 14 Feb 2013 19:56:50 +0200
+Message-ID: <20130214175650.GA25891@arwen.pp.htv.fi>
+References: <1360840554-26901-1-git-send-email-balbi@ti.com>
+ <1360840554-26901-2-git-send-email-balbi@ti.com>
+ <20130214171253.GC7144@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigBE1A649C6F70936B4C3DEA1B"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, linux-omap <linux-omap@vger.kernel.org>, linux-fbdev <linux-fbdev@vger.kernel.org>linux-omap <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52428 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761499Ab3BNR5A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Feb 2013 12:57:00 -0500
+Content-Disposition: inline
+In-Reply-To: <20130214171253.GC7144@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
---------------enigBE1A649C6F70936B4C3DEA1B
-Content-Type: text/plain; charset=ISO-8859-1
+--XsQoSWH+UP9D9v3l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Linus,
+Hi,
 
-It'd be great if these two late fixes would still make it into 3.8. The o=
-ther
-one fixes ARM kernel compilation when using 'allyesconfig', and the other=
- makes
-DPI displays function again on OMAP3630 boards.
+On Thu, Feb 14, 2013 at 09:12:53AM -0800, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [130214 03:19]:
+> > Currently the omap-serial driver will not
+> > work properly if booted via DT with CPUIDLE
+> > enabled because it depends on function pointers
+> > provided by hwmod to change its own SYSCONFIG
+> > register.
+> >=20
+> > Remove that relyance on hwmod by moving SYSCONFIG
+> > handling to driver itself. Note that this also
+> > fixes a possible corner case bug where we could
+> > be putting UART in Force Idle mode if we called
+> > omap_serial_enable_wakeup(up, false) after setting
+> > NOIDLE to the idle mode. This is because hwmod
+> > has no protection against that situation.
 
- Tomi
+Any comments to these last two sentences ?
 
-The following changes since commit 836dc9e3fbbab0c30aa6e664417225f5c1fb1c=
-39:
+> I agree the sysconfig stuff should be handled in the drivers.
+> But considering that we need to also reset or idle hardware
+> that may not have a driver loaded, it's best to put the
+> reset/idle function in to the driver specific header as
+> an inline function.
 
-  Linux 3.8-rc7 (2013-02-09 08:20:39 +1100)
+that is likely to cause quite a few isues, don't you think?
 
-are available in the git repository at:
+hwmod depending on driver code to reset particular IPs ? Seems like we
+need a generic device_reset() hook which can be called by platform code,
+no ? Not sure if that would help a lot though.
 
-  git://gitorious.org/linux-omap-dss2/linux.git tags/omapdss-for-3.8-rc8
+> This way the hwmod code can idle or reset the unclaimed
+> hardware in a late_initcall.
 
-for you to fetch changes up to 91e83ffd6d3ba4de21202b4f541777a7a8db02c8:
+The problem with this:
 
-  omapdrm: fix the dependency to omapdss (2013-02-14 13:08:29 +0200)
+my_driver.h:
 
-----------------------------------------------------------------
-* Fix ARM compilation with "allyesconfig" (omapdrm: fix the dependency to=
+static inline void my_driver_reset(struct my_driver *drv)
+{
+	writel(drv->regs, SYSS, RESET);
+}
 
-  omapdss)
+how will hwmod provide drv pointer ? Even if we use void __iomem * it
+would mean that hwmod would have to a) access driver's ioremaped area or
+b) ioremap() the same area again.
 
-* fix DPI displays on OMAP3630 (OMAPDSS: add FEAT_DPI_USES_VDDS_DSI to
-  omap3630_dss_feat_list)
+Note sure if any of those are acceptable.
 
-----------------------------------------------------------------
-NeilBrown (1):
-      OMAPDSS: add FEAT_DPI_USES_VDDS_DSI to omap3630_dss_feat_list
+> And probably the handling of sysconfig bits should be
+> done using a common header in include/linux/omap-hwmod.h
+> or something so it can be shared between drivers.
 
-Tomi Valkeinen (1):
-      omapdrm: fix the dependency to omapdss
+That could be done, though I think the header name could be different.
+Maybe it could match the document which define those registers, let me
+just check if we're allowed to use that publicly :-p
 
- drivers/staging/omapdrm/Kconfig        |    2 +-
- drivers/video/omap2/dss/dss_features.c |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+--=20
+balbi
 
-
---------------enigBE1A649C6F70936B4C3DEA1B
+--XsQoSWH+UP9D9v3l
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRHR55AAoJEPo9qoy8lh71RPwQAIwCZiZ4zXzZSg55Nf+umd2f
-ZQAwTROXos0fqf/cYsiCAu+/lXnNlpToTJTUpxb57cZtS8xKugg7g/1zd/9sN9h7
-SjEOiVL/Qi6MqBI7PCPFDWcc8D2OQlkp23r0IFfnimBbub55fdbtOwk3m4JDY8p7
-Ha+AuZmucphgncemrGRBcW2W9jw4HxXYc38J/BOFdBM8m3R5plpOu1P/A3d6pmhl
-FxL9Ypu6BZI5s75qBmN0SjcaMNuz7iHruqeSkVU6pU4wb5PLMt5xHRtqI082bPXQ
-0GoseBYvQptL+XcEQXriKnEKHg2KJBNpLoia0nw6nAr61iBiCBNjTY3ApF7PeZ4Y
-TY6LD96QQVwyeMAfArFQLXTQNeBEAOxtiJgFIp319N9JwfP/1d0usIgC+CQQM3Em
-bD4raYVu6o5tzJonti0Fx6uMLuqvoBkY+599aTlCkG5ZqVHikHqzKKk2cWHcD46u
-ZK55lYyIwI7RDC3pEJ4yA1vUfBMesw3CBsx/QLsy3lhDaBUAuI87TQl0lVRhLhSd
-Q16xSIkCOI3Egr8dRrbKDv2UD5zNcawrcN+Uj9IvaWevn26O1aBznVHSuSPSC5HR
-wvqGY7y01JrVTwfhBBm8OUdczWoFBI6tHpSSOEK5xHrYJH2nk41/kcBHgLgmz8Ad
-QJkVIMrbMiu1fUGUtY+5
-=Wzsp
+iQIcBAEBAgAGBQJRHSViAAoJEIaOsuA1yqRE0qEP/R/krP1xoOMwPDPTPFVI/cei
+GFpFOiFkQTnmnzml1+rR+lAeSxNdvCgemKMziehHyynGlpraoeatQYcVDK/KR3mM
+1+6WNkeJVL6XlaP9zqIgN99VSd5X87dXRvjbClzRLtTSAH7GSwQWzyn9NuvixpmG
+8e3/Vu1qenVOLl8FYhxJZy/lpDyMwjOh3IYCcFEbIBKPwWhj9S08eytyD429ltoL
+0xHm/uzlaqyeQ+3GSCFOYNTvXMUsA9sivytm1xzUoNfIckjYucHUp4fxcD7W7zmq
+0WqaxFhLHUfxWnwuSH70XldTNjXrxB1GtFpfekyZIMva5idG9GomSN42VU6S+82e
+QnRvuFflX7Fq3oJaSdEs7G9Ts0VjvQL+7nbeMbLhC/2WbFGOZ3+iUQ6/Eh8smtji
+IpnOicpvdnLSCmD8fPBcHqxJ9BV8Kf0d8QfR9cuwSrSEPdUpdtoLfZrUwnGdks/z
+/1PNgNKwfR5RTX+JSKzmqD2s3jeOSY4QHOc5hnuq17tMH1EjzXVa58i+i9qSuYve
+DMCtpcSqWTD50O3jyglUz1AVLKOU6LA7o7eVBxP2Xzs59QSUY9DoLL/1aWx6nuYY
+dFzaAFGb6lHCAue5AREOc7ed2uiewXAr/FgLO2UyE92UIwVzJLrSyZMKfAoZ6qIU
+iW37zYkW1c5ix1M3AY+L
+=JnFz
 -----END PGP SIGNATURE-----
 
---------------enigBE1A649C6F70936B4C3DEA1B--
+--XsQoSWH+UP9D9v3l--
