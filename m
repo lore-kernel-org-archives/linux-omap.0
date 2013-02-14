@@ -1,112 +1,77 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
-Date: Thu, 14 Feb 2013 19:56:50 +0200
-Message-ID: <20130214175650.GA25891@arwen.pp.htv.fi>
+Subject: Re: [RFC/NOT FOR MERGING 1/3] arm: omap: use generic implementation
+ if !od
+Date: Thu, 14 Feb 2013 19:57:19 +0200
+Message-ID: <20130214175719.GB25891@arwen.pp.htv.fi>
 References: <1360840554-26901-1-git-send-email-balbi@ti.com>
- <1360840554-26901-2-git-send-email-balbi@ti.com>
- <20130214171253.GC7144@atomide.com>
+ <20130214112043.GQ17852@n2100.arm.linux.org.uk>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
+	protocol="application/pgp-signature"; boundary="NMuMz9nt05w80d4+"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52428 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44738 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761499Ab3BNR5A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Feb 2013 12:57:00 -0500
+	id S1758307Ab3BNR5f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Feb 2013 12:57:35 -0500
 Content-Disposition: inline
-In-Reply-To: <20130214171253.GC7144@atomide.com>
+In-Reply-To: <20130214112043.GQ17852@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
---XsQoSWH+UP9D9v3l
+--NMuMz9nt05w80d4+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Thu, Feb 14, 2013 at 11:20:43AM +0000, Russell King - ARM Linux wrote:
+> On Thu, Feb 14, 2013 at 01:15:52PM +0200, Felipe Balbi wrote:
+> >  	struct platform_device *pdev =3D to_platform_device(dev);
+> > +	struct omap_device *od =3D to_omap_device(pdev);
+> >  	int ret;
+> > =20
+> >  	ret =3D pm_generic_runtime_suspend(dev);
+> > =20
+> > +	if (!od)
+> > +		goto out;
+> > +
+> >  	if (!ret)
+>=20
+> What's wrong with the single line change per function of:
+>=20
+> -	if (!ret)
+> +	if (!ret && to_omap_device(pdev))
+>=20
+> ?
 
-On Thu, Feb 14, 2013 at 09:12:53AM -0800, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [130214 03:19]:
-> > Currently the omap-serial driver will not
-> > work properly if booted via DT with CPUIDLE
-> > enabled because it depends on function pointers
-> > provided by hwmod to change its own SYSCONFIG
-> > register.
-> >=20
-> > Remove that relyance on hwmod by moving SYSCONFIG
-> > handling to driver itself. Note that this also
-> > fixes a possible corner case bug where we could
-> > be putting UART in Force Idle mode if we called
-> > omap_serial_enable_wakeup(up, false) after setting
-> > NOIDLE to the idle mode. This is because hwmod
-> > has no protection against that situation.
-
-Any comments to these last two sentences ?
-
-> I agree the sysconfig stuff should be handled in the drivers.
-> But considering that we need to also reset or idle hardware
-> that may not have a driver loaded, it's best to put the
-> reset/idle function in to the driver specific header as
-> an inline function.
-
-that is likely to cause quite a few isues, don't you think?
-
-hwmod depending on driver code to reset particular IPs ? Seems like we
-need a generic device_reset() hook which can be called by platform code,
-no ? Not sure if that would help a lot though.
-
-> This way the hwmod code can idle or reset the unclaimed
-> hardware in a late_initcall.
-
-The problem with this:
-
-my_driver.h:
-
-static inline void my_driver_reset(struct my_driver *drv)
-{
-	writel(drv->regs, SYSS, RESET);
-}
-
-how will hwmod provide drv pointer ? Even if we use void __iomem * it
-would mean that hwmod would have to a) access driver's ioremaped area or
-b) ioremap() the same area again.
-
-Note sure if any of those are acceptable.
-
-> And probably the handling of sysconfig bits should be
-> done using a common header in include/linux/omap-hwmod.h
-> or something so it can be shared between drivers.
-
-That could be done, though I think the header name could be different.
-Maybe it could match the document which define those registers, let me
-just check if we're allowed to use that publicly :-p
+nothing, will change. Let me just check if the other folks are ok with
+the patchset.
 
 --=20
 balbi
 
---XsQoSWH+UP9D9v3l
+--NMuMz9nt05w80d4+
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRHSViAAoJEIaOsuA1yqRE0qEP/R/krP1xoOMwPDPTPFVI/cei
-GFpFOiFkQTnmnzml1+rR+lAeSxNdvCgemKMziehHyynGlpraoeatQYcVDK/KR3mM
-1+6WNkeJVL6XlaP9zqIgN99VSd5X87dXRvjbClzRLtTSAH7GSwQWzyn9NuvixpmG
-8e3/Vu1qenVOLl8FYhxJZy/lpDyMwjOh3IYCcFEbIBKPwWhj9S08eytyD429ltoL
-0xHm/uzlaqyeQ+3GSCFOYNTvXMUsA9sivytm1xzUoNfIckjYucHUp4fxcD7W7zmq
-0WqaxFhLHUfxWnwuSH70XldTNjXrxB1GtFpfekyZIMva5idG9GomSN42VU6S+82e
-QnRvuFflX7Fq3oJaSdEs7G9Ts0VjvQL+7nbeMbLhC/2WbFGOZ3+iUQ6/Eh8smtji
-IpnOicpvdnLSCmD8fPBcHqxJ9BV8Kf0d8QfR9cuwSrSEPdUpdtoLfZrUwnGdks/z
-/1PNgNKwfR5RTX+JSKzmqD2s3jeOSY4QHOc5hnuq17tMH1EjzXVa58i+i9qSuYve
-DMCtpcSqWTD50O3jyglUz1AVLKOU6LA7o7eVBxP2Xzs59QSUY9DoLL/1aWx6nuYY
-dFzaAFGb6lHCAue5AREOc7ed2uiewXAr/FgLO2UyE92UIwVzJLrSyZMKfAoZ6qIU
-iW37zYkW1c5ix1M3AY+L
-=JnFz
+iQIcBAEBAgAGBQJRHSV/AAoJEIaOsuA1yqRE250P/0mBn85901nUoPwv2uaFtd0z
+yxDVLoxub2o//0GV6Uf19HyqlrYIBYQNwvzyMKWoqHt5RHpvERrepJxD5E4/oTi9
+4Cr9GpuF6xiTLh6aIcwZTN/16C3Iy2Mp55BWn8i3VUL63oSBCdbpMvUas61eMNtf
+U2NelDP5z3TvtZ3p23rh0luTLmKxeaJWX94I3pJVuFwXAI+yo1JIIk5LnS4D0Guz
+3CIit+nxbAi6TSmUrTn3vTy2eg25BsFJwGUzGQOp8ba7PNzO04SZ7ahxx+IIjIV5
+0i/APN2eaQCUMhCvCVHxNJz5DBmlWSj8BSBz2eS0GtWBFJ9REA5P9y8CKHEAKsb8
+7OX7CRvGmNCqVjxQq3Z4FEyKZ6T/0qtwoGQTsKY1VGrwCy55sKq+ltwPbdORaxyc
+Eka3CMNWzVUCkP+rPaDuYTKWIWDap7q510T+ZmOdlQXNmwHzcHbZhOfuaiLxPiF7
+lmHNlweUsizpRTM8mN/petqNJVsfbf6qoihumS/7mK4bqglzA4N3JMLSmbcdDsaS
+LR1XZ1HXfp0jeQJ0FzwrBoR5MaNEqgdX+HfsjTiX63NapVYkjxAQToEZRly4Kger
+Waf65Zc03Fdo4IkoDUyOdY4GeyPmj6uRHauoxdYVC2w2JEjgncwcFu0FG/JSs2Qq
+xg5uSErWpQ0LuMHO708f
+=ggkl
 -----END PGP SIGNATURE-----
 
---XsQoSWH+UP9D9v3l--
+--NMuMz9nt05w80d4+--
