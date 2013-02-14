@@ -1,81 +1,42 @@
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Subject: Re: Build error: OMAP randconfig / mvebu
-Date: Thu, 14 Feb 2013 13:21:46 +0100
-Message-ID: <511CD6DA.1020800@free-electrons.com>
-References: <20130208100813.GN17833@n2100.arm.linux.org.uk> <2213733.Wbjy3dFgom@wuerfel> <5114DC44.7000107@free-electrons.com> <4351524.MQWtq16mqg@wuerfel>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [GIT PULL] common: OMAP USB Host cleanup for 3.9
+Date: Thu, 14 Feb 2013 13:25:46 +0100
+Message-ID: <20130214122546.GE20996@sortiz-mobl>
+References: <511CD215.8080005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:54787 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934237Ab3BNMVw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 07:21:52 -0500
-In-Reply-To: <4351524.MQWtq16mqg@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <511CD215.8080005@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Balbi, Felipe" <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Kernel development list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, arm@kernel.org, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>
 
-On 02/08/2013 02:33 PM, Arnd Bergmann wrote:
-> On Friday 08 February 2013 12:06:44 Gregory CLEMENT wrote:
->>
->> I don't know what to do here, there is no point to build any of the files
->> in mach-mvebu if no SoCs are selected. So either we force to have at least
->> one SoCS selected if ARCH_MVEBU is selected, or we unselect  ARCH_MVEB if
->> no SoCs are selected.
+Hi Roger,
+
+On Thu, Feb 14, 2013 at 02:01:25PM +0200, Roger Quadros wrote:
+> Hi Tony & Samuel,
 > 
-> The latter does not work, because that would introduce a circular
-> dependency in Kconfig.
+> This is the common patch for the OMAP USB Host cleanup series for 3.9.
+> It makes changes to platform headers only.
+> The other 2 pull requests, one for each of you will be based on this.
 > 
-> I suppose rearranging the mvebu Makefile like this would do.
+> This is based on 3.8-rc6.
 > 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Please pull. Thanks.
 > 
-> diff --git a/arch/arm/mach-mvebu/Makefile b/arch/arm/mach-mvebu/Makefile
-> index 99df4df..c0434dc 100644
-> --- a/arch/arm/mach-mvebu/Makefile
-> +++ b/arch/arm/mach-mvebu/Makefile
-> @@ -1,9 +1,15 @@
->  ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
->  	-I$(srctree)/arch/arm/plat-orion/include
->  
-> -AFLAGS_coherency_ll.o		:= -Wa,-march=armv7-a
-> +AFLAGS_coherency_ll.o		 := -Wa,-march=armv7-a
->  
-> -obj-y += system-controller.o
-> -obj-$(CONFIG_MACH_ARMADA_370_XP) += armada-370-xp.o irq-armada-370-xp.o addr-map.o coherency.o coherency_ll.o pmsu.o
-> -obj-$(CONFIG_SMP)                += platsmp.o headsmp.o
-> -obj-$(CONFIG_HOTPLUG_CPU)        += hotplug.o
-> +obj-$(CONFIG_MACH_ARMADA_370_XP) += $(armada-y)
-> +armada-y			 += system-controller.o
-> +armada-y			 += armada-370-xp.o
-> +armada-y			 += irq-armada-370-xp.o
-> +armada-y			 += addr-map.o
-> +armada-y			 += coherency.o
-> +armada-y			 += coherency_ll.o
-> +armada-y			 += pmsu.o
-> +armada-$(CONFIG_SMP)		 += platsmp.o headsmp.o
-> +armada-$(CONFIG_HOTPLUG_CPU)	 += hotplug.o
+> The following changes since commit 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7:
 > 
+>   Linux 3.8-rc6 (2013-02-01 12:08:14 +1100)
+> 
+> are available in the git repository at:
+>   git://github.com/rogerq/linux.git usbhost17-common
+Pulled, thanks.
 
-I have also tested your patch with a config with SMP, MVEBU, SMP and
-not MACH_ARMADA_370_XP.
-
-It fixes the build error.
-
-You can add my
-Tested-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
-
-How do you want to proceed?
-As this patch come from you you should have it somewhere in your git
-tree, but I can take care of submitting a proper patch (ie with a
-commit log) if you want.
-
-Regards,
+Cheers,
+Samuel.
 
 -- 
-Gregory Clement, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+Intel Open Source Technology Centre
+http://oss.intel.com/
