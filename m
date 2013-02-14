@@ -1,33 +1,43 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: Build error: OMAP randconfig / mvebu
-Date: Thu, 14 Feb 2013 11:27:07 +0000
-Message-ID: <201302141127.07378.arnd@arndb.de>
-References: <20130208100813.GN17833@n2100.arm.linux.org.uk> <20130214110803.GP17852@n2100.arm.linux.org.uk> <20130214111234.GB3059@localhost>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH 1/1] ARM: dts: AM33XX: Add CPSW phy_id device tree data to am335x-evmsk
+Date: Thu, 14 Feb 2013 16:58:38 +0530
+Message-ID: <1360841318-11774-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:63389 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754102Ab3BNL1Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 06:27:25 -0500
-In-Reply-To: <20130214111234.GB3059@localhost>
+Received: from comal.ext.ti.com ([198.47.26.152]:56366 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759063Ab3BNL27 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Feb 2013 06:28:59 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, arm@kernel.org, Gregory CLEMENT <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: devicetree-discuss@lists.ozlabs.org
+Cc: b-cousson@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 
-On Thursday 14 February 2013, Ezequiel Garcia  wrote:
-> On Thu, Feb 14, 2013 at 11:08:03AM +0000, Russell King - ARM Linux wrote:
-> > 
-> > It's all publically available via my website.
-> 
-> I'm kind of new around here, and I have no clue where that may be.
-> 
-> I hope you don't mind helping me this time.
+Add phy_id device tree data to am335x-evmsk device to bring up CPSW
+ethernet present on am335x starter kit.
 
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ arch/arm/boot/dts/am335x-evmsk.dts |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Please have a look at http://www.arm.linux.org.uk/developer/build/
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index f5a6162..f297b85 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -248,3 +248,11 @@
+ 		};
+ 	};
+ };
++
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <0>;
++};
++
++&cpsw_emac1 {
++	phy_id = <&davinci_mdio>, <1>;
++};
+-- 
+1.7.9.5
 
-	Arnd
