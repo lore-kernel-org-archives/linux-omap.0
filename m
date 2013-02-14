@@ -1,83 +1,81 @@
-From: Arnd Bergmann <arnd@arndb.de>
+From: Gregory CLEMENT <gregory.clement@free-electrons.com>
 Subject: Re: Build error: OMAP randconfig / mvebu
-Date: Thu, 14 Feb 2013 12:21:16 +0000
-Message-ID: <201302141221.16267.arnd@arndb.de>
-References: <20130208100813.GN17833@n2100.arm.linux.org.uk> <201302141127.07378.arnd@arndb.de> <20130214120650.GA11345@localhost>
+Date: Thu, 14 Feb 2013 13:21:46 +0100
+Message-ID: <511CD6DA.1020800@free-electrons.com>
+References: <20130208100813.GN17833@n2100.arm.linux.org.uk> <2213733.Wbjy3dFgom@wuerfel> <5114DC44.7000107@free-electrons.com> <4351524.MQWtq16mqg@wuerfel>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:63048 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758549Ab3BNMVW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 07:21:22 -0500
-In-Reply-To: <20130214120650.GA11345@localhost>
+Received: from mail.free-electrons.com ([94.23.35.102]:54787 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934237Ab3BNMVw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 07:21:52 -0500
+In-Reply-To: <4351524.MQWtq16mqg@wuerfel>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, arm@kernel.org, Gregory CLEMENT <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, arm@kernel.org, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>
 
-On Thursday 14 February 2013, Ezequiel Garcia wrote:
-> Now, using the random config there's a new error, unrelated to the
-> previous one:
+On 02/08/2013 02:33 PM, Arnd Bergmann wrote:
+> On Friday 08 February 2013 12:06:44 Gregory CLEMENT wrote:
+>>
+>> I don't know what to do here, there is no point to build any of the files
+>> in mach-mvebu if no SoCs are selected. So either we force to have at least
+>> one SoCS selected if ARCH_MVEBU is selected, or we unselect  ARCH_MVEB if
+>> no SoCs are selected.
 > 
-> ERROR: "twl6030_interrupt_unmask" [drivers/usb/otg/twl6030-usb.ko] undefined!
-> ERROR: "twl_i2c_read_u8" [drivers/usb/otg/twl6030-usb.ko] undefined!
-> ERROR: "twl_i2c_write_u8" [drivers/usb/otg/twl6030-usb.ko] undefined!
-> ERROR: "twl6030_interrupt_mask" [drivers/usb/otg/twl6030-usb.ko] undefined!
+> The latter does not work, because that would introduce a circular
+> dependency in Kconfig.
+> 
+> I suppose rearranging the mvebu Makefile like this would do.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> 
+> diff --git a/arch/arm/mach-mvebu/Makefile b/arch/arm/mach-mvebu/Makefile
+> index 99df4df..c0434dc 100644
+> --- a/arch/arm/mach-mvebu/Makefile
+> +++ b/arch/arm/mach-mvebu/Makefile
+> @@ -1,9 +1,15 @@
+>  ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
+>  	-I$(srctree)/arch/arm/plat-orion/include
+>  
+> -AFLAGS_coherency_ll.o		:= -Wa,-march=armv7-a
+> +AFLAGS_coherency_ll.o		 := -Wa,-march=armv7-a
+>  
+> -obj-y += system-controller.o
+> -obj-$(CONFIG_MACH_ARMADA_370_XP) += armada-370-xp.o irq-armada-370-xp.o addr-map.o coherency.o coherency_ll.o pmsu.o
+> -obj-$(CONFIG_SMP)                += platsmp.o headsmp.o
+> -obj-$(CONFIG_HOTPLUG_CPU)        += hotplug.o
+> +obj-$(CONFIG_MACH_ARMADA_370_XP) += $(armada-y)
+> +armada-y			 += system-controller.o
+> +armada-y			 += armada-370-xp.o
+> +armada-y			 += irq-armada-370-xp.o
+> +armada-y			 += addr-map.o
+> +armada-y			 += coherency.o
+> +armada-y			 += coherency_ll.o
+> +armada-y			 += pmsu.o
+> +armada-$(CONFIG_SMP)		 += platsmp.o headsmp.o
+> +armada-$(CONFIG_HOTPLUG_CPU)	 += hotplug.o
+> 
 
-Yes, I guess that is an unrelated error. However, my patch also wasn't
-correct because it is not allowed to have an empty list of objects.
+I have also tested your patch with a config with SMP, MVEBU, SMP and
+not MACH_ARMADA_370_XP.
 
-There is an updated patch below, I could add that straight to the branch
-that caused the problem if it looks ok to you.
+It fixes the build error.
 
-	Arnd
-----
->From 0860b5b4558ad777068826bc9a735b82f3cf0d88 Mon Sep 17 00:00:00 2001
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 14 Feb 2013 13:14:53 +0100
-Subject: [PATCH] ARM: mvebu: allow selecting mvebu without Armada XP
+You can add my
+Tested-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
 
-Selecting only CONFIG_ARCH_MVEBU but not the respective
-options for Armada 370 or Armada XP results in these
-link errors:
+How do you want to proceed?
+As this patch come from you you should have it somewhere in your git
+tree, but I can take care of submitting a proper patch (ie with a
+commit log) if you want.
 
-arch/arm/mach-mvebu/built-in.o: In function `armada_xp_smp_init_cpus':
-arch/arm/mach-mvebu/platsmp.c:91: undefined reference to `coherency_get_cpu_count'
-arch/arm/mach-mvebu/platsmp.c:104: undefined reference to `armada_mpic_send_doorbell'
-arch/arm/mach-mvebu/built-in.o: In function `armada_xp_smp_prepare_cpus':
-arch/arm/mach-mvebu/platsmp.c:111: undefined reference to `set_cpu_coherent'
-arch/arm/mach-mvebu/built-in.o: In function `armada_xp_boot_secondary':
-arch/arm/mach-mvebu/platsmp.c:83: undefined reference to `armada_xp_boot_cpu'
-arch/arm/mach-mvebu/built-in.o: In function `armada_xp_secondary_init':
-arch/arm/mach-mvebu/platsmp.c:75: undefined reference to `armada_xp_mpic_smp_cpu_init'
-arch/arm/mach-mvebu/built-in.o: In function `armada_xp_secondary_startup':
-arch/arm/mach-mvebu/headsmp.S:46: undefined reference to `ll_set_cpu_coherent'
+Regards,
 
-We can solve this by enabling all common MVEBU files that are
-referenced by the SMP files. This means we enable code that
-is not going to be used without a machine descriptor referencing
-it, but only if the kernel is configured specifically for this
-case.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Gregory Clement <gregory.clement@free-electrons.com>
-Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-
-diff --git a/arch/arm/mach-mvebu/Makefile b/arch/arm/mach-mvebu/Makefile
-index 99df4df..da93bcb 100644
---- a/arch/arm/mach-mvebu/Makefile
-+++ b/arch/arm/mach-mvebu/Makefile
-@@ -3,7 +3,8 @@ ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
- 
- AFLAGS_coherency_ll.o		:= -Wa,-march=armv7-a
- 
--obj-y += system-controller.o
--obj-$(CONFIG_MACH_ARMADA_370_XP) += armada-370-xp.o irq-armada-370-xp.o addr-map.o coherency.o coherency_ll.o pmsu.o
-+obj-y				 += system-controller.o
-+obj-$(CONFIG_MACH_ARMADA_370_XP) += armada-370-xp.o
-+obj-$(CONFIG_ARCH_MVEBU)	 += addr-map.o coherency.o coherency_ll.o pmsu.o irq-armada-370-xp.o 
- obj-$(CONFIG_SMP)                += platsmp.o headsmp.o
- obj-$(CONFIG_HOTPLUG_CPU)        += hotplug.o
+-- 
+Gregory Clement, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
