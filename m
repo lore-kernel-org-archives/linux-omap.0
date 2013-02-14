@@ -1,94 +1,95 @@
-From: Jason Cooper <jason@lakedaemon.net>
-Subject: Re: Build error: OMAP randconfig / mvebu
-Date: Thu, 14 Feb 2013 14:36:32 -0500
-Message-ID: <20130214193632.GM14746@titan.lakedaemon.net>
-References: <20130208100813.GN17833@n2100.arm.linux.org.uk>
- <201302141127.07378.arnd@arndb.de>
- <20130214120650.GA11345@localhost>
- <201302141221.16267.arnd@arndb.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
+Date: Thu, 14 Feb 2013 11:39:11 -0800
+Message-ID: <20130214193911.GD11806@atomide.com>
+References: <1360840554-26901-1-git-send-email-balbi@ti.com>
+ <1360840554-26901-2-git-send-email-balbi@ti.com>
+ <20130214171253.GC7144@atomide.com>
+ <20130214175650.GA25891@arwen.pp.htv.fi>
+ <20130214181217.GA11806@atomide.com>
+ <20130214192719.GB26679@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:34810 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:39825 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S934868Ab3BNTgx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 14:36:53 -0500
+	with ESMTP id S934858Ab3BNTjN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 14:39:13 -0500
 Content-Disposition: inline
-In-Reply-To: <201302141221.16267.arnd@arndb.de>
+In-Reply-To: <20130214192719.GB26679@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, arm@kernel.org, Gregory CLEMENT <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Feb 14, 2013 at 12:21:16PM +0000, Arnd Bergmann wrote:
-> On Thursday 14 February 2013, Ezequiel Garcia wrote:
-> > Now, using the random config there's a new error, unrelated to the
-> > previous one:
+* Felipe Balbi <balbi@ti.com> [130214 11:31]:
+> On Thu, Feb 14, 2013 at 10:12:17AM -0800, Tony Lindgren wrote:
+> 
+> > And only in the case there is no driver, hwmod can parse the address
+> > space from DT for the unclaimed hardware in the late_initcall.
+> 
+> sounds good. But then it means our DTS files should be 100% complete,
+> meaning that even for the IPs which we don't have drivers at all, we
+> should still provide DTS nodes.
+
+Yes, eventually. It's still better to have only one set of that data
+rather than number of supported SoCs times that data.. Parsing it
+should not be too bad if it's done one driver at a time during the
+driver probe.
+
+> In that case, does it make sense to teach DT about the actual structure
+> of OMAP's interconnect ? I mean:
+> 
+> ocp {
+> 	l3@xxxxxxxx {
+> 		l4_per@xxxxxxxx {
+> 			...
+> 		};
+> 
+> 		l4_wakeup@xxxxxxxx {
+> 			...
+> 		};
+> 
+> 		...
+> 	};
+> };
+> 
+> That would mean that even interconnect PM could move to a driver under
+> drivers/bus/{l3,l4_per,l4_wakeup,..}.c
+
+Yes makes sense to me.
+ 
+> > So the shared inline function should just take the __iomem * and
+> > size instead of *drv so both the driver and hwmod code can tinker
+> > with the autoidle bit.
+> 
+> Should hwmod be touching that in the long run ? It _does_ belong in the
+> device's address space
+> 
+> > > Note sure if any of those are acceptable.
 > > 
-> > ERROR: "twl6030_interrupt_unmask" [drivers/usb/otg/twl6030-usb.ko] undefined!
-> > ERROR: "twl_i2c_read_u8" [drivers/usb/otg/twl6030-usb.ko] undefined!
-> > ERROR: "twl_i2c_write_u8" [drivers/usb/otg/twl6030-usb.ko] undefined!
-> > ERROR: "twl6030_interrupt_mask" [drivers/usb/otg/twl6030-usb.ko] undefined!
+> > Hmm what issues do you see in the above suggestion?
 > 
-> Yes, I guess that is an unrelated error. However, my patch also wasn't
-> correct because it is not allowed to have an empty list of objects.
+> driver and hwmod accessing SYSC simultaneously for instance. Imagine
+> something like:
 > 
-> There is an updated patch below, I could add that straight to the branch
-> that caused the problem if it looks ok to you.
+> hwmod						driver
+> ------						-------
+> 1. starts device reset
+> 2. polls RESET bit with X ms timeout		X' ms later starts reset
+> 3. times out since reset restarts		polls RESET bit with X ms timeout
+> 4. error!					reset completes
+> 
+> In such cases, what do we do ? There can be many such cases, don't
+> you think ?
 
-If Arnd or Olof want to take this straight in:
+I don't think so as hwmod should only touch the sysconfig space
+when no driver has claimed it. If hwmod sysconfig tinkering is
+only done in late_initcall, I don't think any drivers are probing
+at that time? Well there may be some deferred probe related issues
+there though, so we need some atomic way at that point to know if
+some hardware is being claimed by a driver.
 
-Acked-by: Jason Cooper <jason@lakedaemon.net>
+Regards,
 
-thx,
-
-Jason.
-> 
-> 	Arnd
-> ----
-> From 0860b5b4558ad777068826bc9a735b82f3cf0d88 Mon Sep 17 00:00:00 2001
-> From: Arnd Bergmann <arnd@arndb.de>
-> Date: Thu, 14 Feb 2013 13:14:53 +0100
-> Subject: [PATCH] ARM: mvebu: allow selecting mvebu without Armada XP
-> 
-> Selecting only CONFIG_ARCH_MVEBU but not the respective
-> options for Armada 370 or Armada XP results in these
-> link errors:
-> 
-> arch/arm/mach-mvebu/built-in.o: In function `armada_xp_smp_init_cpus':
-> arch/arm/mach-mvebu/platsmp.c:91: undefined reference to `coherency_get_cpu_count'
-> arch/arm/mach-mvebu/platsmp.c:104: undefined reference to `armada_mpic_send_doorbell'
-> arch/arm/mach-mvebu/built-in.o: In function `armada_xp_smp_prepare_cpus':
-> arch/arm/mach-mvebu/platsmp.c:111: undefined reference to `set_cpu_coherent'
-> arch/arm/mach-mvebu/built-in.o: In function `armada_xp_boot_secondary':
-> arch/arm/mach-mvebu/platsmp.c:83: undefined reference to `armada_xp_boot_cpu'
-> arch/arm/mach-mvebu/built-in.o: In function `armada_xp_secondary_init':
-> arch/arm/mach-mvebu/platsmp.c:75: undefined reference to `armada_xp_mpic_smp_cpu_init'
-> arch/arm/mach-mvebu/built-in.o: In function `armada_xp_secondary_startup':
-> arch/arm/mach-mvebu/headsmp.S:46: undefined reference to `ll_set_cpu_coherent'
-> 
-> We can solve this by enabling all common MVEBU files that are
-> referenced by the SMP files. This means we enable code that
-> is not going to be used without a machine descriptor referencing
-> it, but only if the kernel is configured specifically for this
-> case.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Cc: Gregory Clement <gregory.clement@free-electrons.com>
-> Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> 
-> diff --git a/arch/arm/mach-mvebu/Makefile b/arch/arm/mach-mvebu/Makefile
-> index 99df4df..da93bcb 100644
-> --- a/arch/arm/mach-mvebu/Makefile
-> +++ b/arch/arm/mach-mvebu/Makefile
-> @@ -3,7 +3,8 @@ ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
->  
->  AFLAGS_coherency_ll.o		:= -Wa,-march=armv7-a
->  
-> -obj-y += system-controller.o
-> -obj-$(CONFIG_MACH_ARMADA_370_XP) += armada-370-xp.o irq-armada-370-xp.o addr-map.o coherency.o coherency_ll.o pmsu.o
-> +obj-y				 += system-controller.o
-> +obj-$(CONFIG_MACH_ARMADA_370_XP) += armada-370-xp.o
-> +obj-$(CONFIG_ARCH_MVEBU)	 += addr-map.o coherency.o coherency_ll.o pmsu.o irq-armada-370-xp.o 
->  obj-$(CONFIG_SMP)                += platsmp.o headsmp.o
->  obj-$(CONFIG_HOTPLUG_CPU)        += hotplug.o
+Tony 
