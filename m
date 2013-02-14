@@ -1,110 +1,87 @@
-From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: [PATCH v4 2/3] ARM: OMAP2+: SoC name and revision unification
-Date: Thu, 14 Feb 2013 13:55:23 +0200
-Message-ID: <1360842924-32429-3-git-send-email-ruslan.bilovol@ti.com>
-References: <1360842924-32429-1-git-send-email-ruslan.bilovol@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1360842924-32429-1-git-send-email-ruslan.bilovol@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: AM335x : placing NAND @ address 0x0
+Date: Thu, 14 Feb 2013 11:59:44 +0000
+Message-ID: <511CD1B0.7020609@mimc.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mercuryimc.plus.com ([80.229.200.144]:46393 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758994Ab3BNL7p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 06:59:45 -0500
+Received: from [10.0.0.102] (unknown [10.0.0.102])
+	by centos1.newflow.co.uk (Postfix) with ESMTP id 86EAA26B8035
+	for <linux-omap@vger.kernel.org>; Thu, 14 Feb 2013 11:59:44 +0000 (GMT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This is a long story where for each new generation of
-OMAP we used different approaches for creating
-strings for SoCs names and revisions that this patch
-fixes. It makes future exporting of this information
-to SoC infrastructure easier.
+I'm hitting an issue where I want to register my GPMC connected NAND on CS0 at address 0x0.
 
-Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Here's the relevant error from the boot messages:-
+
+[    0.293834] omap-gpmc gpmc.3: GPMC revision 6.0
+[    0.294175] omap-gpmc gpmc.3: failed to reserve memory
+[    0.294267] omap-gpmc: probe of gpmc.3 failed with error -16
+
+The chip select and base address have already been setup under U-Boot and it appears to work fine
+(i.e. U-Boot can see the device).
+
+Am I not allowed to place the NAND at address 0x0 ?  If not, why not ?
+
+The GPMC section of my .dts file is shown below.
+
+Cheers
+Mark J.
+
 ---
- arch/arm/mach-omap2/id.c |   30 ++++++++++++++++++++++--------
- 1 file changed, 22 insertions(+), 8 deletions(-)
+		gpmc: gpmc@50000000 {
+			compatible = "ti,am3352-gpmc", "simple-bus";
+			ti,hwmods = "gpmc";
+			status = "okay";
+			#address-cells = <2>;
+			#size-cells = <1>;
+			ranges = <0 0 0x01000000 0x10000000>;	/* CS0: NAND 256M */
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 8a68f1e..3737700 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -31,8 +31,11 @@
- #define OMAP4_SILICON_TYPE_STANDARD		0x01
- #define OMAP4_SILICON_TYPE_PERFORMANCE		0x02
- 
-+#define OMAP_SOC_MAX_NAME_LENGTH		16
-+
- static unsigned int omap_revision;
--static const char *cpu_rev;
-+static char soc_name[OMAP_SOC_MAX_NAME_LENGTH];
-+static char soc_rev[OMAP_SOC_MAX_NAME_LENGTH];
- u32 omap_features;
- 
- unsigned int omap_rev(void)
-@@ -169,9 +172,12 @@ void __init omap2xxx_check_revision(void)
- 		j = i;
- 	}
- 
--	pr_info("OMAP%04x", omap_rev() >> 16);
-+	sprintf(soc_name, "OMAP%04x", omap_rev() >> 16);
-+	sprintf(soc_rev, "ES%x", (omap_rev() >> 12) & 0xf);
-+
-+	pr_info("%s", soc_name);
- 	if ((omap_rev() >> 8) & 0x0f)
--		pr_info("ES%x", (omap_rev() >> 12) & 0xf);
-+		pr_info("%s", soc_rev);
- 	pr_info("\n");
- }
- 
-@@ -211,8 +217,10 @@ static void __init omap3_cpuinfo(void)
- 		cpu_name = "OMAP3503";
- 	}
- 
-+	sprintf(soc_name, "%s", cpu_name);
-+
- 	/* Print verbose information */
--	pr_info("%s ES%s (", cpu_name, cpu_rev);
-+	pr_info("%s %s (", soc_name, soc_rev);
- 
- 	OMAP3_SHOW_FEATURE(l2cache);
- 	OMAP3_SHOW_FEATURE(iva);
-@@ -291,6 +299,7 @@ void __init ti81xx_check_features(void)
- 
- void __init omap3xxx_check_revision(void)
- {
-+	const char *cpu_rev;
- 	u32 cpuid, idcode;
- 	u16 hawkeye;
- 	u8 rev;
-@@ -438,6 +447,7 @@ void __init omap3xxx_check_revision(void)
- 		cpu_rev = "1.2";
- 		pr_warn("Warning: unknown chip type; assuming OMAP3630ES1.2\n");
- 	}
-+	sprintf(soc_rev, "ES%s", cpu_rev);
- }
- 
- void __init omap4xxx_check_revision(void)
-@@ -512,8 +522,10 @@ void __init omap4xxx_check_revision(void)
- 		omap_revision = OMAP4430_REV_ES2_3;
- 	}
- 
--	pr_info("OMAP%04x ES%d.%d\n", omap_rev() >> 16,
--		((omap_rev() >> 12) & 0xf), ((omap_rev() >> 8) & 0xf));
-+	sprintf(soc_name, "OMAP%04x", omap_rev() >> 16);
-+	sprintf(soc_rev, "ES%d.%d", (omap_rev() >> 12) & 0xf,
-+						(omap_rev() >> 8) & 0xf);
-+	pr_info("%s %s\n", soc_name, soc_rev);
- }
- 
- void __init omap5xxx_check_revision(void)
-@@ -547,8 +559,10 @@ void __init omap5xxx_check_revision(void)
- 		omap_revision = OMAP5430_REV_ES1_0;
- 	}
- 
--	pr_info("OMAP%04x ES%d.0\n",
--			omap_rev() >> 16, ((omap_rev() >> 12) & 0xf));
-+	sprintf(soc_name, "OMAP%04x", omap_rev() >> 16);
-+	sprintf(soc_rev, "ES%d.0", (omap_rev() >> 12) & 0xf);
-+
-+	pr_info("%s %s\n", soc_name, soc_rev);
- }
- 
- /*
--- 
-1.7.9.5
+			nand@0,0 {
+				reg = <0 0 0x10000000>; /* CS0, offset 0 */
+				nand-bus-width = <8>;
+				ti,nand-ecc-opt = "bch8";
+
+				gpmc,sync-clk = <0>;
+				gpmc,cs-on = <0>;
+				gpmc,cs-rd-off = <44>;
+				gpmc,cs-wr-off = <44>;
+				gpmc,adv-on = <6>;
+				gpmc,adv-rd-off = <34>;
+				gpmc,adv-wr-off = <44>;
+				gpmc,we-off = <40>;
+				gpmc,oe-off = <54>;
+				gpmc,access = <64>;
+				gpmc,rd-cycle = <82>;
+				gpmc,wr-cycle = <82>;
+				gpmc,wr-access = <40>;
+				gpmc,wr-data-mux-bus = <0>;
+
+				#address-cells = <1>;
+				#size-cells = <1>;
+				elm_id = <&elm>;
+
+				/* MTD partition table */
+				partition@1 {
+					label = "boot";
+					reg = <0x00000000 0x00100000>; /* 1MB */
+				};
+
+				partition@2 {
+					label = "rootfs";
+					reg = <0x00100000 0x04000000>; /* 64MB */
+				};
+
+				partition@3 {
+					label = "data";
+					reg = <0x04100000 0x0bf00000>; /* 191MB */
+				};
+			};
+		};
