@@ -1,79 +1,53 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 0/1] OMAP4: DSS: Add panel for Blaze Tablet boards
-Date: Thu, 14 Feb 2013 11:24:45 +0200
-Message-ID: <511CAD5D.2050502@ti.com>
-References: <1360338220-12753-1-git-send-email-ruslan.bilovol@ti.com> <511B4C60.50404@ti.com> <CAB=otbSX_O-zbHZuPWPSEU0D1s3uKfZfeatoguoRiwogS5tVHQ@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: Use of of_parse_phandle()/of_node_put()
+Date: Thu, 14 Feb 2013 10:26:41 +0100
+Message-ID: <511CADD1.9060104@ti.com>
+References: <F3DBB1B3EF102E4994C89758CFCA32412C6E52@DBDE01.ent.ti.com> <511BB6C2.3060105@ti.com> <CABYxbz6xEEVxL1BBM+Mb7net27d3zTD-6+uoS63LXXvifn_TNw@mail.gmail.com> <CABYxbz7_9cwgswHq2Pq3BWx-8-c0tkJNW8z16u45+pAJV6YS0w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig1C80B7BA41BCEDB035534D44"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAB=otbSX_O-zbHZuPWPSEU0D1s3uKfZfeatoguoRiwogS5tVHQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: andi@etezian.org, FlorianSchandinat@gmx.de, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58003 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756741Ab3BNJ1A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Feb 2013 04:27:00 -0500
+In-Reply-To: <CABYxbz7_9cwgswHq2Pq3BWx-8-c0tkJNW8z16u45+pAJV6YS0w@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Anil Kumar <anilk4.v@gmail.com>
+Cc: "Kumar, Anil" <anilkumar.v@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, "jarkko.nikula@bitmer.com" <jarkko.nikula@bitmer.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alsa Devel List <alsa-devel@alsa-project.org>
 
---------------enig1C80B7BA41BCEDB035534D44
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On 02/13/2013 06:02 PM, Anil Kumar wrote:
+> ------------8---------------
+> diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+> index b7e84a7..9000f4a 100644
+> --- a/sound/soc/soc-core.c
+> +++ b/sound/soc/soc-core.c
+> @@ -1044,6 +1044,13 @@ static void soc_remove_dai_links(struct
+> snd_soc_card *card)
+>                         soc_remove_link_dais(card, dai, order);
+>         }
+>=20
+> +       /* release cpu_of_node */
+> +       if(card->dai_link) {
+> +               int i;
+> +               for(i =3D 0; i < card->num_links; i++)
+> +                       of_node_put(card->dai_link[i].cpu_of_node);
 
-On 2013-02-14 02:07, Ruslan Bilovol wrote:
+and the same for codec_of_node and platform_of_node for that matter.
 
-> This patch is exactly a part of mainlining of the BlazeTablet board sup=
-port :)
-> The goal is to have as much as possible support of this board in the
-> 'vanilla' kernel.
-> The BlazeTablet mainlining is already ongoing (
-> https://patchwork.kernel.org/patch/2118281/ )
-> and I hope we will have some support of this board in near future.
-> The BlazeTablet's LCD panel support is very important thing for us to
-> have it in mainline because
-> without it the BlazeTablet becomes a 'black brick' and it is painful
-> for us to port this
-> driver against each new version of kernel.
+Mark: what do you think? Does it make sense to do this in the core or s=
+hould
+we let the machine drivers to take care of this?
 
-Ok, good to hear you're pushing it to mainline. However, you should
-mentally prepare for it being a black brick =3D(.
+> +       }
+> +
+>=20
 
-Tony said he's not adding new board files, only DT from now on. The
-display subsystem driver and the panel drivers do not work with DT yet,
-and it will still take some time for that to realize.
-
-Thus adding this driver would help nothing, as it couldn't be used. And
-after the DSS and the panel drivers are made to work with DT (which is a
-big job, needing large rewrites of the drivers), there's a rework that
-has to be done with this driver to make it compatible with the new DSS
-model.
-
-So, I'm still inclined to say that we shouldn't merge this.
-
- Tomi
-
-
-
---------------enig1C80B7BA41BCEDB035534D44
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRHK1dAAoJEPo9qoy8lh71iz8P/3Nw6J0iDl/Shfynnwr6kG0i
-F/x7PbGAvQ4IkvU5+gHle+vd9Wzsmmjv51MfTHu9uWKRtB2gCEsTS40PkPqa5Kn0
-2y5+sTXPmzVmvRLMRVBsaDaIolC48lz9IWsd4bUeP0KIcTjUi5BfkfmJhNiTT20h
-mnr3cWQSznf0wucY3HDcv7TI2QcpZmsQvQ1jKMuilhBgA62INbt2e9fkRIk1xNXJ
-UBfmbbYV12Svv8eprV/TnVZ0QwDY67DN31ZutGRwCo7N4DXs3ZHoi0+EOltfl0Ut
-4psmCSUrIaZQmQPoaVrUcdwwxYbdZZVNiV0CQHYPvoNEWbwfGu9JmcBgZtcxaUsR
-IxzWkrEj/JUw+NC2Z/gw9Cs18eoS76qSvqDdIqk7Ru0wmO2AxYg6iz6DXIEPJPhH
-I04IlNBURgT5/zWZKc51WOX4n83mGaeyJPIJ7tio3TEmFQ04zDfpD+d+dQViCBZ4
-eVdnsneGPgW9KQfMOtuRb+ViSHgaNI1+BKFO40AaqTx5W9L3pHs2sD3F0/ajjJld
-SFMwh/4GqWGs6y5DDQINY7p/OG6yfssMC8e8Z6WSiZblBeJk1R3n6p+7VIvtW6qf
-T7lUiSw+u75Vhf8A85+qbZPHBN3G0e/QHuHSYfEErP/PkRvQNt82A3YuhNecWZ67
-YeDkQXh+sYbGYrKIykFx
-=eTse
------END PGP SIGNATURE-----
-
---------------enig1C80B7BA41BCEDB035534D44--
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
