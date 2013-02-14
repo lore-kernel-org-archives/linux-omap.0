@@ -1,44 +1,36 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: support deferred probing for GPIOs
-Date: Thu, 14 Feb 2013 19:23:58 +0530
-Message-ID: <511CEC76.9020703@ti.com>
-References: <1359536837-14874-1-git-send-email-jlu@pengutronix.de> <1360838617.3892.27.camel@coredoba.hi.pengutronix.de>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [GIT PULL] usb: bug fixes for ehci-omap for 3.9
+Date: Thu, 14 Feb 2013 07:00:25 -0800
+Message-ID: <20130214150025.GC2033@kroah.com>
+References: <511CD513.5030100@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40854 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757719Ab3BNNyI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Feb 2013 08:54:08 -0500
-In-Reply-To: <1360838617.3892.27.camel@coredoba.hi.pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <511CD513.5030100@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, "Balbi, Felipe" <balbi@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, stable@vger.kernel.org, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?B?SmFuIEzDvGJiZQ==?= <jlu@pengutronix.de>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
 
-On Thursday 14 February 2013 04:13 PM, Jan L=C3=BCbbe wrote:
-> On Wed, 2013-01-30 at 10:07 +0100, Jan Luebbe wrote:
->> If the CD/WP-GPIOs are not provided by the SoC's GPIO controller,
->> we need to handle the case where omap_hsmmc is probed earlier than
->> the GPIO controller chosen in the device tree.
->>
->> Fix this by checking the return value of of_get_named_gpio against
->> -EPROBE_DEFER and passing it through to the probe function.
->>
->> Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
->
-> Balaji, since you seem to be the new OMAP HSMMC maintainer, do you ha=
-ve
-> any comments on this patch?
+On Thu, Feb 14, 2013 at 02:14:11PM +0200, Roger Quadros wrote:
+> Hi Greg,
+> 
+> This pull request contains 2 bug fixes for ehci-omap for 3.9 as well
+> as older kernels. It is based on 3.8-rc6.
+> 
+> Please pull. Thanks.
+> 
+> The following changes since commit 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7:
+> 
+>   Linux 3.8-rc6 (2013-02-01 12:08:14 +1100)
+> 
+> are available in the git repository at:
+>   git://github.com/rogerq/linux.git usbhost17-for-usb
 
-Looks good to me,
-Acked-by: Balaji T K <balajitk@ti.com>
+Sorry, I don't take git pulls, please just send these to me as patches
+in email.
 
+thanks,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+greg k-h
