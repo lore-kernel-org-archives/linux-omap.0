@@ -1,27 +1,37 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: AM335x : placing NAND @ address 0x0
-Date: Thu, 14 Feb 2013 12:14:06 +0000
-Message-ID: <511CD50E.80303@mimc.co.uk>
-References: <511CD1B0.7020609@mimc.co.uk>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [GIT PULL] usb: bug fixes for ehci-omap for 3.9
+Date: Thu, 14 Feb 2013 14:14:11 +0200
+Message-ID: <511CD513.5030100@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:46515 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S933987Ab3BNMOH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Feb 2013 07:14:07 -0500
-Received: from [10.0.0.102] (unknown [10.0.0.102])
-	by centos1.newflow.co.uk (Postfix) with ESMTP id B037726B8035
-	for <linux-omap@vger.kernel.org>; Thu, 14 Feb 2013 12:14:06 +0000 (GMT)
-In-Reply-To: <511CD1B0.7020609@mimc.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, "Balbi, Felipe" <balbi@ti.com>, Roger Quadros <rogerq@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, stable@vger.kernel.org, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 14/02/13 11:59, Mark Jackson wrote:
-> I'm hitting an issue where I want to register my GPMC connected NAND on CS0 at address 0x0.
+Hi Greg,
 
-Just found the existing thread that already covers this.
+This pull request contains 2 bug fixes for ehci-omap for 3.9 as well
+as older kernels. It is based on 3.8-rc6.
 
-Sorry for the noise.
+Please pull. Thanks.
+
+The following changes since commit 88b62b915b0b7e25870eb0604ed9a92ba4bfc9f7:
+
+  Linux 3.8-rc6 (2013-02-01 12:08:14 +1100)
+
+are available in the git repository at:
+  git://github.com/rogerq/linux.git usbhost17-for-usb
+
+Roger Quadros (2):
+      USB: ehci-omap: Don't free gpios that we didn't request
+      USB: ehci-omap: Fix autoloading of module
+
+ drivers/usb/host/ehci-omap.c |   10 +---------
+ 1 files changed, 1 insertions(+), 9 deletions(-)
+
+--
+cheers,
+-roger
