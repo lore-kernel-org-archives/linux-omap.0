@@ -1,55 +1,77 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [GIT PULL] arm-soc: OMAP USB Host cleanup for 3.9
-Date: Thu, 14 Feb 2013 14:04:30 +0200
-Message-ID: <511CD2CE.2020802@ti.com>
-References: <511CD215.8080005@ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH 1/2] ARM: OMAP2+: Prevent potential crash if GPMC probe
+ fails
+Date: Thu, 14 Feb 2013 12:04:57 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3EA754E2@DBDE01.ent.ti.com>
+References: <1359736726-10193-1-git-send-email-jon-hunter@ti.com>
+ <1359736726-10193-2-git-send-email-jon-hunter@ti.com>
+ <20130201220804.GZ22517@atomide.com> <51158293.8010101@ti.com>
+ <20130209155547.GA5253@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <511CD215.8080005@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: Roger Quadros <rogerq@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "Balbi, Felipe" <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Kernel development list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:37312 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934236Ab3BNMGH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Feb 2013 07:06:07 -0500
+In-Reply-To: <20130209155547.GA5253@localhost>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Hi Tony,
-
-This is the ARM-soc part of the OMAP USB Host cleanup series for 3.9.
-It is based on 3.8-rc6 + usbhost17-common that I sent earlier.
-
-Please pull. Thanks.
-
-The following changes since commit 7f07863ec60f7d3dbeec5aff881ea074db3925ed:
-
-  ARM: OMAP: Consolidate OMAP USB-HS platform data (part 1/3) (2013-02-13 13:22:34 +0200)
-
-are available in the git repository at:
-  git://github.com/rogerq/linux.git usbhost17-for-arm-soc
-
-Roger Quadros (1):
-      ARM: OMAP: Consolidate OMAP USB-HS platform data (part 3/3)
-
- arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
- arch/arm/mach-omap2/board-3630sdp.c        |    2 +-
- arch/arm/mach-omap2/board-am3517crane.c    |    2 +-
- arch/arm/mach-omap2/board-am3517evm.c      |    2 +-
- arch/arm/mach-omap2/board-cm-t35.c         |    2 +-
- arch/arm/mach-omap2/board-cm-t3517.c       |    2 +-
- arch/arm/mach-omap2/board-devkit8000.c     |    2 +-
- arch/arm/mach-omap2/board-igep0020.c       |    4 +-
- arch/arm/mach-omap2/board-omap3beagle.c    |    2 +-
- arch/arm/mach-omap2/board-omap3evm.c       |    2 +-
- arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
- arch/arm/mach-omap2/board-omap3stalker.c   |    2 +-
- arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
- arch/arm/mach-omap2/board-omap4panda.c     |    2 +-
- arch/arm/mach-omap2/board-overo.c          |    2 +-
- arch/arm/mach-omap2/board-zoom.c           |    2 +-
- arch/arm/mach-omap2/usb-host.c             |   29 ++++-----------------------
- arch/arm/mach-omap2/usb.h                  |   20 +------------------
- 18 files changed, 23 insertions(+), 60 deletions(-)
-
---
-cheers,
--roger
+SGkgVG9ueSwNCg0KT24gU2F0LCBGZWIgMDksIDIwMTMgYXQgMjE6MjU6NDksIEV6ZXF1aWVsIEdh
+cmNpYSB3cm90ZToNCj4gT24gRnJpLCBGZWIgMDgsIDIwMTMgYXQgMDQ6NTY6MTlQTSAtMDYwMCwg
+Sm9uIEh1bnRlciB3cm90ZToNCj4gPiANCj4gPiBPbiAwMi8wMS8yMDEzIDA0OjA4IFBNLCBUb255
+IExpbmRncmVuIHdyb3RlOg0KPiA+ID4gKiBKb24gSHVudGVyIDxqb24taHVudGVyQHRpLmNvbT4g
+WzEzMDIwMSAwODo0Ml06DQo+ID4gPj4gSWYgdGhlIEdQTUMgcHJvYmUgZmFpbHMsIGRldmljZXMg
+dGhhdCB1c2UgdGhlIEdQTUMgKHN1Y2ggYXMgZXRoZXJuZXQNCj4gPiA+PiBjaGlwcywgZmxhc2gg
+bWVtb3JpZXMsIGV0YykgY2FuIHN0aWxsIGFsbG9jYXRlIGEgR1BNQyBjaGlwLXNlbGVjdCBhbmQN
+Cj4gPiA+PiByZWdpc3RlciB0aGUgZGV2aWNlLiBPbiB0aGUgT01BUDI0MjAgSDQgYm9hcmQsIHRo
+aXMgd2FzIGNhdXNpbmcgdGhlDQo+ID4gPj4ga2VybmVsIHRvIGNyYXNoIGFmdGVyIHRoZSBncG1j
+IHByb2JlIGZhaWxlZCBhbmQgdGhlIGJvYXJkIGF0dGVtcHRlZA0KPiA+ID4+IHRvIHN0YXJ0IG5l
+dHdvcmtpbmcuIFByZXZlbnQgdGhpcyBieSBtYXJraW5nIGFsbCB0aGUgY2hpcC1zZWxlY3RzIGFz
+DQo+ID4gPj4gcmVzZXJ2ZWQgYnkgZGVmYXVsdCBhbmQgb25seSBtYWtlIHRoZW0gYXZhaWxhYmxl
+IGZvciBkZXZpY2VzIHRvIHJlcXVlc3QNCj4gPiA+PiBpZiB0aGUgR1BNQyBwcm9iZSBzdWNjZWVk
+cy4NCj4gPiA+IA0KPiA+ID4gVGhhbmtzIGFwcGx5aW5nIGludG8gb21hcC1mb3ItdjMuOS9ncG1j
+Lg0KPiA+IA0KPiA+IEhpIFRvbnksIHRoaXMgb25lIGFwcGVhcnMgdG8gYmUgbWVyZ2VkIGluY29y
+cmVjdGx5LiBUaGUgdW5yZXNlcnZlIGVuZGVkIA0KPiA+IHVwIGluIHRoZSBncG1jX2NhbGNfdGlt
+aW5ncygpIGZ1bmN0aW9uLiBIZXJlIGlzIGEgcGF0Y2ggdG8gZml4Lg0KPiA+IA0KPiA+IENoZWVy
+cw0KPiA+IEpvbg0KPiA+IA0KPiA+IEZyb20gZWJjMDYxM2ZiNWE3MGYzNmZjYjExOWNiZTU4NzI0
+ZjliNDQyOTAzYSBNb24gU2VwIDE3IDAwOjAwOjAwIDIwMDENCj4gPiBGcm9tOiBKb24gSHVudGVy
+IDxqb24taHVudGVyQHRpLmNvbT4NCj4gPiBEYXRlOiBGcmksIDggRmViIDIwMTMgMTY6NDg6MjUg
+LTA2MDANCj4gPiBTdWJqZWN0OiBbUEFUQ0hdIEFSTTogT01BUDIrOiBGaXgtdXAgZ3BtYyBtZXJn
+ZSBlcnJvcg0KPiA+IA0KPiA+IENvbW1pdCAiQVJNOiBPTUFQMis6IFByZXZlbnQgcG90ZW50aWFs
+IGNyYXNoIGlmIEdQTUMgcHJvYmUgZmFpbHMiIGFkZGVkDQo+ID4gY29kZSB0byBlbnN1cmUgdGhh
+dCBHUE1DIGNoaXAtc2VsZWN0cyBjb3VsZCBub3QgYmUgcmVxdWVzdGVkIHVudGlsIHRoZQ0KPiA+
+IGRldmljZSBwcm9iZSB3YXMgc3VjY2Vzc2Z1bC4gVGhlIGNoaXAtc2VsZWN0cyBzaG91bGQgaGF2
+ZSBiZWVuDQo+ID4gdW5yZXNlcnZlZCBhdCB0aGUgZW5kIG9mIHRoZSBwcm9iZSBmdW5jdGlvbiwg
+YnV0IHRoZSBjb2RlIHRvIHVucmVzZXJ2ZQ0KPiA+IHRoZW0gYXBwZWFycyB0byBoYXZlIGVuZGVk
+IHVwIGluIHRoZSBncG1jX2NhbGNfdGltaW5ncygpIGZ1bmN0aW9uIGFuZA0KPiA+IGhlbmNlLCB0
+aGlzIGlzIGNhdXNpbmcgcHJvYmxlbXMgcmVxdWVzdGluZyBjaGlwLXNlbGVjdHMuIEZpeCB0aGlz
+IG1lcmdlDQo+ID4gZXJyb3IgYnkgdW5yZXNlcnZpbmcgdGhlIGNoaXAtc2VsZWN0cyBhdCB0aGUg
+ZW5kIG9mIHRoZSBwcm9iZSwgYnV0DQo+ID4gYmVmb3JlIHdlIGNhbGwgdGhlIGdwbWMgY2hpbGQg
+cHJvYmUgZnVuY3Rpb25zIChmb3IgZGV2aWNlLXRyZWUpIHdoaWNoDQo+ID4gcmVxdWVzdCBhIGNo
+aXAtc2VsZWN0Lg0KPiA+IA0KPiA+IFNpZ25lZC1vZmYtYnk6IEpvbiBIdW50ZXIgPGpvbi1odW50
+ZXJAdGkuY29tPg0KPiANCj4gV2l0aG91dCB0aGlzIHBhdGNoLCBHUE1DIGlzIGN1cnJlbnRseSBi
+cm9rZW4gb24gbXkgaWdlcCBib2FyZCBzZXR1cCwNCj4gaWYgaW5pdGlhbGl6ZWQgdGhyb3VnaCBh
+IGRldmljZSB0cmVlLg0KPiANCj4gVGVzdGVkLWJ5OiBFemVxdWllbCBHYXJjaWEgPGV6ZXF1aWVs
+LmdhcmNpYUBmcmVlLWVsZWN0cm9ucy5jb20+DQoNCldpdGhvdXQgdGhpcyBwYXRjaCBHUE1DIGlz
+IG5vdCB3b3JraW5nIGluIGFtMzM1eC1ldm0uDQoNClRlc3RlZC1ieTogUGhpbGlwIEF2aW5hc2gg
+PGF2aW5hc2hwaGlsaXBAdGkuY29tPg0KDQpTZWUgSm9uJ3MgY29tbWVudHMuDQoNCkpPTiA+PiBI
+aSBUb255LCB0aGlzIG9uZSBhcHBlYXJzIHRvIGJlIG1lcmdlZCBpbmNvcnJlY3RseS4gVGhlIHVu
+cmVzZXJ2ZSBlbmRlZCANCkpPTiA+PiB1cCBpbiB0aGUgZ3BtY19jYWxjX3RpbWluZ3MoKSBmdW5j
+dGlvbi4gSGVyZSBpcyBhIHBhdGNoIHRvIGZpeC4NCg0KSSBoYXZlIHRlc3RlZCBiYXNlZCBvbiBs
+aW51eC1vbWFwL21hc3Rlci4NCg0KaHR0cDovL2dpdC5rZXJuZWwub3JnLz9wPWxpbnV4L2tlcm5l
+bC9naXQvdG1saW5kL2xpbnV4LW9tYXAuZ2l0O2E9c2hvcnRsb2c7aD1yZWZzL2hlYWRzL21hc3Rl
+cg0KDQpUaGFua3MNCkF2aW5hc2gNCg0KPiBXaXRob3V0IHRoaXMgcGF0Y2gsIEdQTUMgaXMgY3Vy
+cmVudGx5IGJyb2tlbiBvbiBteSBpZ2VwIGJvYXJkIHNldHVwLA0KPiBpZiBpbml0aWFsaXplZCB0
+aHJvdWdoIGEgZGV2aWNlIHRyZWUuDQo+IA0KPiBUaGFua3MgYSBsb3QgZm9yIHRoZSBmaXgsDQo+
+IA0KPiAtLSANCj4gRXplcXVpZWwgR2FyY8OtYSwgRnJlZSBFbGVjdHJvbnMNCj4gRW1iZWRkZWQg
+TGludXgsIEtlcm5lbCBhbmQgQW5kcm9pZCBFbmdpbmVlcmluZw0KPiBodHRwOi8vZnJlZS1lbGVj
+dHJvbnMuY29tDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRo
+ZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1vbWFwIiBpbg0KPiB0aGUgYm9keSBvZiBhIG1lc3Nh
+Z2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0
+ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gDQoNCg==
