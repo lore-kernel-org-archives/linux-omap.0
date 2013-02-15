@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
-Date: Fri, 15 Feb 2013 08:46:27 +0200
-Message-ID: <20130215064626.GB30038@arwen.pp.htv.fi>
+Date: Fri, 15 Feb 2013 08:53:08 +0200
+Message-ID: <20130215065308.GC30038@arwen.pp.htv.fi>
 References: <1360840554-26901-1-git-send-email-balbi@ti.com>
  <1360840554-26901-2-git-send-email-balbi@ti.com>
  <20130214171253.GC7144@atomide.com>
@@ -10,114 +10,133 @@ References: <1360840554-26901-1-git-send-email-balbi@ti.com>
  <20130214192719.GB26679@arwen.pp.htv.fi>
  <20130214193911.GD11806@atomide.com>
  <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com>
- <alpine.DEB.2.00.1302142124370.11016@utopia.booyaka.com>
- <20130214224710.GF11362@atomide.com>
+ <20130214222247.GE11362@atomide.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RASg3xLB4tUQ4RcS"
+	protocol="application/pgp-signature"; boundary="pAwQNkOnpTn9IO2O"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47530 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52836 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751357Ab3BOGqh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Feb 2013 01:46:37 -0500
+	id S1161118Ab3BOGxS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Feb 2013 01:53:18 -0500
 Content-Disposition: inline
-In-Reply-To: <20130214224710.GF11362@atomide.com>
+In-Reply-To: <20130214222247.GE11362@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
---RASg3xLB4tUQ4RcS
+--pAwQNkOnpTn9IO2O
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Feb 14, 2013 at 02:47:10PM -0800, Tony Lindgren wrote:
-> * Paul Walmsley <paul@pwsan.com> [130214 13:44]:
+On Thu, Feb 14, 2013 at 02:22:47PM -0800, Tony Lindgren wrote:
+> * Paul Walmsley <paul@pwsan.com> [130214 12:51]:
 > > Hi,
 > >=20
-> > On Thu, 14 Feb 2013, Paul Walmsley wrote:
+> > On Thu, 14 Feb 2013, Tony Lindgren wrote:
 > >=20
-> > > So instead of something bus-specific like that, a better way would be=
- to=20
-> > > use something like:
-> > >=20
-> > > va =3D dev->bus->ioremap( ... );
-> > > va =3D dev->bus->iounmap( ... );
+> > > I don't think so as hwmod should only touch the sysconfig space
+> > > when no driver has claimed it.
 > >=20
-> > Something like this is what I was thinking.  Obviously there would be m=
-ore
-> > patches needed, for the various arches, etc.; and I'm not convinced that
-> > the function pointer init is done at the right time yet. Comments welco=
-me.
+> > hwmod does need to touch the SYSCONFIG register during pm_runtime suspe=
+nd=20
+> > and resume operations, and during device enable and disable operations.=
+ =20
+> > Here's the relevant code:
 > >=20
+> > http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dblob=
+;f=3Darch/arm/mach-omap2/omap_hwmod.c;h=3D4653efb87a2721ea20a9fe06a30a6c204=
+d6d2282;hb=3DHEAD#l2157
 > >=20
-> > - Paul
-> >=20
-> >=20
-> > From: Paul Walmsley <paul@pwsan.com>
-> > Date: Thu, 14 Feb 2013 13:49:58 -0700
-> > Subject: [PATCH] EXPERIMENTAL: device/ARM: allow buses to override iore=
-map*()
-> >  and iounmap()
-> >=20
-> > On some hardware, such as OMAP, the bus abstraction code needs to call
-> > ioremap(), since some SoC-integration registers are located in the
-> > device address space.  But generic device drivers should be able to
-> > call ioremap() from driver code, for the majority of situations where
-> > this isn't necessary.  This experimental patch allows Linux bus abstrac=
-tion
-> > code to override all of the ioremap*() and iounmap() functions.  In the=
- OMAP
-> > case, this would be used to return the previously-mapped address range =
-=66rom
-> > the bus code, when called for the device's register area.  This would a=
-void
-> > a duplicate TLB mapping for that space.
-> >=20
-> > This might also be useful as a generic replacement for pci_ioremap_bar(=
-).
-> >=20
-> > Compile-tested only.
+> > http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dblob=
+;f=3Darch/arm/mach-omap2/omap_hwmod.c;h=3D4653efb87a2721ea20a9fe06a30a6c204=
+d6d2282;hb=3DHEAD#l2195
 >=20
-> The other option could be to allow custom ioremap function pointers=20
-> based on address range in __arm_ioremap_pfn_caller() the same way as
-> the SoC specific static mappings are allowed. That would require adding
-> a function pointer to struct map_desc.
+> But that's triggered by runtime PM from the device driver, right?
 >=20
-> Maybe that would do the trick?
+> I think it's fine for hwmod to do that as requested by the device
+> driver via runtime PM since hwmod is the bus glue making the drivers arch
+> independent.
+>=20
+> I think the only piece we're missing for that is for driver to run
+> something like pm_runtime_init() that initializes the address space
+> to hwmod. Or just bus specific ioremap like you're suggesting later
+> on.
+>=20
+> Just to recap what we've discussed earlier, the reasons why we want
+> reset and idle functions should be in the driver specific header are:
+>=20
+> 1. There's often driver specific logic needed in addition to the
+>    syconfig tinkering in the reset/idle functions.
 
-I'm not sure we should even try that. I mean, eventually (maybe in 100
-years) we wouldn't mach-* at all and even struct map_desc would be
-dynamically initialized by data passed in via DTB, right ? Just consider
-Arnd's patch for the "machine_desc-less" DT boot. If we add a function
-pointer to struct map_desc, it will just become yet another function
-pointer to be removed later.
+how about introducing generic device_reset() and device_idle() hooks
+which driver can implement and can be called by bus glue ?
+
+Something like:
+
+
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index 03d7bb1..9c921e2 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -256,6 +256,8 @@ typedef struct pm_message {
+  *	these conditions and handle the device as appropriate, possibly queueing
+  *	a suspend request for it.  The return value is ignored by the PM core.
+  *
++ * @runtime_reset: Resets the device and puts it in a known state.
++ *
+  * Refer to Documentation/power/runtime_pm.txt for more information about =
+the
+  * role of the above callbacks in device runtime power management.
+  *
+@@ -285,6 +287,7 @@ struct dev_pm_ops {
+ 	int (*runtime_suspend)(struct device *dev);
+ 	int (*runtime_resume)(struct device *dev);
+ 	int (*runtime_idle)(struct device *dev);
++	int (*runtime_reset)(struct device *dev);
+ };
+=20
+ #ifdef CONFIG_PM_SLEEP
+
+
+We already have ->runtime_idle() which we could be using...
+
+> 2. We need to be able to reset and idle some hardware even if the
+>    driver is not compiled in.
+
+yeah, this will be tricky. Even if you try late_initcall() there could
+still be issues with -EPROBE_DEFER. Maybe you don't need to reset the
+IPs but rather put those which have status =3D "disabled" to FORCE_IDLE.
+
+Wouldn't that be enough ? If a driver claims the device later, then
+pm_runtime_enable() + pm_runtime_get() will change that.
 
 --=20
 balbi
 
---RASg3xLB4tUQ4RcS
+--pAwQNkOnpTn9IO2O
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRHdnCAAoJEIaOsuA1yqREyq8P/1uQv8UDvjiST+/YhvTKd8W9
-pOq4/l+G4vMog6+WbS7bEctKoQHlskQ+HY5sjOxgm6hXAkN5be1c0rD3BdYFhyW4
-uyqt2cdMUh3pN/yu1/MM6AW/eSEM/yR7011HJrfAUZye56GYNHDkbjKkalOBzT2I
-eDsD+lT4fgE7QBOGBw84VpVf15DKqHlwSAUy/bqownkayKU5DCORvbFxi70mV+D2
-RLxL/zqQAGZ1QEi/RLAyMBunr2sL75RqD9dRwqU9qS6Kyv3T+VK1BwBuBCgRqD0Z
-+VVSXSRpSfo/7TZfauemFA82iwyzqcA/OGGlpr2pVMYNHetThihDaghD9GDll0+x
-FcuGiWtVCELLIH6LBraFpvrBz7rPDDH6Hcr3+638JDQdjyn9M9Pj7quJHojirByn
-aDRnuBls7pCcAI14yGXH+dZl8RLT7qzKszuC4FmccuQ0pIdBY9n/OlaouAiCLzfz
-nXSUJW9Qz6VbHZEQ6rdCqveADn10DiSYIhvYlGAvg3jrYyYZhx+BuhydZItDysnQ
-m74zriA1WSIKX37vwI71UgxYy6jnK5cxqrR8cs3Fm5AV+59LBc8vCDpEYrvDm6OD
-E1+6VY8I5/GzRouLJomOv4ULIpJ/+J4s39WBh2FDJkDriBc+HNM7pyjEX5fDKK4c
-F4TaK/bDTh69q4hy+Rsz
-=bXSH
+iQIcBAEBAgAGBQJRHdtUAAoJEIaOsuA1yqRECxwP/j9CwhYSesKxltKDOn7By8aJ
+1Bp5hjDMOMYxYpSRIZ3ca+fUi9gefHF13UD+kYDxxOwRIaSImIi9ODNs3KxHDPyU
+TaCfZK4sTtigVQQkBMKWFJgAMhjxXoAtiAi9C3nBAtxH5DHMn8rKlv0KY2As9JCW
+RoAzBRi+wFo49wv8H9QVRXYmM7SERdmNhJPwXhVNVatOeExF4zor51VehJuK502R
+AAugXaQIxNrym8MtM4H4KoORRTXoAEE9EXKYttLubk55M3pdPSY/Rbh2LXoUHg+d
+0yTTOrIjCrOMQ5Sh3j2EXnfvaBuAZim2kvP4Fy66R6T2S/pd0dgYlK8Lo2gPhGAr
+jwuzHSKFs250nKcUl/R/5+IO8Veg5EIVktOoyDnuGtnquoWsfFy9aFsi2TvEaQnT
+TYd7dG3qkyews0LcyzZGXjnBTbX5Zw20FSL3wc+Au+X/gLMw4iR0Wcn6RhIhme0N
+7g2Dveu5Qe3d369nakEK6RRC8SpSWXLMrQ0eHA4nauZ9y+JNt9qoohZV4PgDhGi2
+nGskQnVBCkr3GFv6mmHAOqyTdSt+84kpwQvdj0Kh7iZxMpuiKVmXEkbRYHtbfbNm
+OcLwe2IyxqLvfSs5QGlvFibAvR3myBAjJtfB2C0c1/NkFE469JYB0ucNEiCsmRUQ
+L6mq0ToraYH1TpfiWANr
+=ijjr
 -----END PGP SIGNATURE-----
 
---RASg3xLB4tUQ4RcS--
+--pAwQNkOnpTn9IO2O--
