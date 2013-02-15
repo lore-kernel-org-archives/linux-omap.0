@@ -1,39 +1,40 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: Guidelines to move mach-omap2/gpmc to drivers/memory-controller
-Date: Fri, 15 Feb 2013 14:08:08 -0600
-Message-ID: <511E95A8.2090709@ti.com>
-References: <20130215165840.GB2442@localhost> <alpine.DEB.2.00.1302151952410.19565@utopia.booyaka.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH v2 1/1] drivers: net: davinci_cpdma: acknowledge
+ interrupt properly
+Date: Fri, 15 Feb 2013 12:18:59 -0800
+Message-ID: <1360959539.21068.5.camel@joe-AO722>
+References: <1360866406-17261-1-git-send-email-mugunthanvnm@ti.com>
+	 <20130215.150506.499818568035818118.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55262 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750729Ab3BOUIM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Feb 2013 15:08:12 -0500
-In-Reply-To: <alpine.DEB.2.00.1302151952410.19565@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130215.150506.499818568035818118.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: mugunthanvnm@ti.com, netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap@vger.kernel.org
 
-
-On 02/15/2013 01:53 PM, Paul Walmsley wrote:
-> Hi,
+On Fri, 2013-02-15 at 15:05 -0500, David Miller wrote:
+> From: Mugunthan V N <mugunthanvnm@ti.com>
+> Date: Thu, 14 Feb 2013 23:56:46 +0530
 > 
-> On Fri, 15 Feb 2013, Ezequiel Garcia wrote:
+> > +enum {
+> > +     CPDMA_EOI_RX_THRESH = 0,
+> > +     CPDMA_EOI_RX,
+> > +     CPDMA_EOI_TX,
+> > +     CPDMA_EOI_MISC,
+> > +};
 > 
->> I imagine one of the biggest issues is GPMC's dependency on
->> hwmod code. Can anyone shed some light on how to handle this?
-> 
-> What dependency is this?  I'm not aware of any GPMC dependency to hwmod; 
-> there shouldn't be any.
+> Do not use enumerations for hardware register values, which must be
+> exact, otherwise you are potentially going to succumb to the vagaries
+> of C language enumeration value assignment.
 
-If Ezequiel is referring to the code in omap_gpmc_init() that is looking
-up the hwmod struct for gpmc, then this not a dependency. This function
-should remain in mach-omap2/gpmc.c and not be moved into drivers/.
-Eventually once we have migrated to DT, this function will be removed
-altogether.
+Vagaries?
 
-Cheers
-Jon
+In what way is c enumeration (6.7.2.2) vague?
+char vs int?  Isn't smaller mostly better?
+
+Concern about possible future reordering given an
+insertion or deletion might be the only consideration
+I could imagine.
