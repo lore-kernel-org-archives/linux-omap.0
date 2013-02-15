@@ -1,74 +1,142 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: OMAP EHCI having clock problems?
-Date: Thu, 14 Feb 2013 21:12:46 -0800
-Message-ID: <20130215051246.11471.99180@quantum>
-References: <87halea4s3.fsf@linaro.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
+Date: Fri, 15 Feb 2013 08:44:29 +0200
+Message-ID: <20130215064429.GA30038@arwen.pp.htv.fi>
+References: <1360840554-26901-1-git-send-email-balbi@ti.com>
+ <1360840554-26901-2-git-send-email-balbi@ti.com>
+ <20130214171253.GC7144@atomide.com>
+ <20130214175650.GA25891@arwen.pp.htv.fi>
+ <20130214181217.GA11806@atomide.com>
+ <20130214192719.GB26679@arwen.pp.htv.fi>
+ <20130214193911.GD11806@atomide.com>
+ <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bg08WKrSYDhXBjb5"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:59394 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750718Ab3BOFMw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Feb 2013 00:12:52 -0500
-Received: by mail-pa0-f48.google.com with SMTP id hz10so1625878pad.21
-        for <linux-omap@vger.kernel.org>; Thu, 14 Feb 2013 21:12:52 -0800 (PST)
-In-Reply-To: <87halea4s3.fsf@linaro.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47398 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161111Ab3BOGok (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Feb 2013 01:44:40 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>, Roger Quadros <rogerq@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Quoting Kevin Hilman (2013-02-14 14:50:52)
-> Any idea what's going on?
+--bg08WKrSYDhXBjb5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Looks like a couple of different things.
+Hi,
 
-> [    0.515747] usbhs_omap usbhs_omap: ehci_logic_fck failed:-2
+On Thu, Feb 14, 2013 at 08:47:53PM +0000, Paul Walmsley wrote:
+> Hi,
+>=20
+> On Thu, 14 Feb 2013, Tony Lindgren wrote:
+>=20
+> > I don't think so as hwmod should only touch the sysconfig space
+> > when no driver has claimed it.
+>=20
+> hwmod does need to touch the SYSCONFIG register during pm_runtime suspend=
+=20
+> and resume operations, and during device enable and disable operations. =
+=20
+> Here's the relevant code:
+>=20
+> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dblob;f=
+=3Darch/arm/mach-omap2/omap_hwmod.c;h=3D4653efb87a2721ea20a9fe06a30a6c204d6=
+d2282;hb=3DHEAD#l2157
+>=20
+> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dblob;f=
+=3Darch/arm/mach-omap2/omap_hwmod.c;h=3D4653efb87a2721ea20a9fe06a30a6c204d6=
+d2282;hb=3DHEAD#l2195
+>=20
+> Drivers shouldn't touch their IP block's SYSCONFIG registers.  They don't=
+=20
 
-Seems like the clk_get lookup failed here in usbhs_omap_probe.  So from
-this point on omap->ehci_logic_fck == -ENOENT.  This bogus value gets
-passed into all of the clk apis, which leads us to the below error.
+why not ? It's part of the driver's address space anyway. It's not part
+of the IP in question (usb, ethernet, etc) but it's part of the TI
+wrapper which usually involves a bridge (ocp2scp, ocp2axi, etc) plus the
+TI-specific integration registers (revision, sysc, syss...).
 
-> [    0.516021] ------------[ cut here ]------------
-> [    0.516082] WARNING: at /work/kernel/omap/dev/drivers/clk/clk.c:522 __clk_enable+0x8c/0x9c()
-> [    0.516082] Modules linked in:
-> [    0.516143] [<c00145a8>] (unwind_backtrace+0x0/0xf0) from [<c003bd6c>] (warn_slowpath_common+0x4c/0x64)
-> [    0.516143] [<c003bd6c>] (warn_slowpath_common+0x4c/0x64) from [<c003bda0>] (warn_slowpath_null+0x1c/0x24)
-> [    0.516174] [<c003bda0>] (warn_slowpath_null+0x1c/0x24) from [<c0412758>] (__clk_enable+0x8c/0x9c)
-> [    0.516174] [<c0412758>] (__clk_enable+0x8c/0x9c) from [<c0412788>] (clk_enable+0x20/0x3c)
-> [    0.516204] [<c0412788>] (clk_enable+0x20/0x3c) from [<c03317fc>] (usbhs_runtime_resume+0x60/0xa4)
-> [    0.516235] [<c03317fc>] (usbhs_runtime_resume+0x60/0xa4) from [<c031b408>] (pm_generic_runtime_resume+0x2c/0x40)
-> [    0.516265] [<c031b408>] (pm_generic_runtime_resume+0x2c/0x40) from [<c031f07c>] (__rpm_callback+0x34/0x70)
-> [    0.516296] [<c031f07c>] (__rpm_callback+0x34/0x70) from [<c0320040>] (rpm_resume+0x3bc/0x648)
-> [    0.516326] [<c0320040>] (rpm_resume+0x3bc/0x648) from [<c0320548>] (__pm_runtime_resume+0x48/0x60)
-> [    0.516326] [<c0320548>] (__pm_runtime_resume+0x48/0x60) from [<c0331bf0>] (usbhs_omap_probe+0x200/0x840)
-> [    0.516357] [<c0331bf0>] (usbhs_omap_probe+0x200/0x840) from [<c0317d24>] (platform_drv_probe+0x18/0x1c)
-> [    0.516387] [<c0317d24>] (platform_drv_probe+0x18/0x1c) from [<c0316ae4>] (driver_probe_device+0x78/0x210)
-> [    0.516387] [<c0316ae4>] (driver_probe_device+0x78/0x210) from [<c0316d10>] (__driver_attach+0x94/0x98)
-> [    0.516418] [<c0316d10>] (__driver_attach+0x94/0x98) from [<c03153e4>] (bus_for_each_dev+0x50/0x7c)
-> [    0.516448] [<c03153e4>] (bus_for_each_dev+0x50/0x7c) from [<c0316310>] (bus_add_driver+0x178/0x240)
-> [    0.516448] [<c0316310>] (bus_add_driver+0x178/0x240) from [<c03171dc>] (driver_register+0x78/0x144)
-> [    0.516479] [<c03171dc>] (driver_register+0x78/0x144) from [<c0317f14>] (platform_driver_probe+0x18/0x9c)
-> [    0.516479] [<c0317f14>] (platform_driver_probe+0x18/0x9c) from [<c00086e4>] (do_one_initcall+0x34/0x178)
-> [    0.516510] [<c00086e4>] (do_one_initcall+0x34/0x178) from [<c06ea8f8>] (kernel_init_freeable+0xfc/0x1cc)
-> [    0.516571] [<c06ea8f8>] (kernel_init_freeable+0xfc/0x1cc) from [<c04d7a78>] (kernel_init+0x8/0xe4)
-> [    0.516571] [<c04d7a78>] (kernel_init+0x8/0xe4) from [<c000dd10>] (ret_from_fork+0x14/0x24)
-> [    0.516693] ---[ end trace e713e7725948e018 ]---
+So they're not part of the licensed IP, but they're part of the TI
+wrapper around those.
 
-This WARN gets tripped when a clock is enabled but not prepared.  From
-__clk_enable in drivers/clk/clk.c:
+> have anything specifically to do with the underlying device IP block, but=
+=20
 
-        if (WARN_ON(clk->prepare_count == 0))
-                return -ESHUTDOWN;
+of course they do, soft reset touches the underlying IP, so does force
+idle, no idle, etc. But I agree that part is more changing the the
+asynchronous idle request handshake.
 
-So we're basically dereferencing a bogus struct clk pointer in
-__clk_enable and the memory address of clk->prepare_count just happens
-to be zero filled.
+> with the SoC integration, even though they live in the device's=20
+> memory-mapped address range.  It's unfortunate that TI didn't allocate a=
+=20
+> separate, small address space for these registers, translated by the bus,=
+=20
+> similar to the PCI-E Enhanced Configuration Access Mechanism:
+>=20
+> http://wiki.osdev.org/PCI_Express#Extended_Configuration_Space
+>=20
+> ... but that's unfortunately the reality of the OMAP hardware.
 
-On a related note, even if the clk_get lookup did not fail this WARN
-would still be hit since this driver never once calls clk_prepare.
+right.
 
-Regards,
-Mike
+> Regarding ioremap(), it seems reasonable for drivers to call ioremap(), a=
+s=20
+> long as the implementation of ioremap() can be overridden by the device's=
+=20
+> bus.  PCI device drivers already do this -- albeit in a PCI-specific way=
+=20
+> -- with pci_ioremap_bar():
+>=20
+> http://git.kernel.org/?p=3Dlinux%2Fkernel%2Fgit%2Ftorvalds%2Flinux.git&a=
+=3Dsearch&h=3DHEAD&st=3Dgrep&s=3Dpci_ioremap_bar
+>=20
+> So instead of something bus-specific like that, a better way would be to=
+=20
+> use something like:
+>=20
+> va =3D dev->bus->ioremap( ... );
+> va =3D dev->bus->iounmap( ... );
+>=20
+> Any driver using such a mechanism would be intrinsically generic.=20
+> platform_bus could simply set its bus->ioremap to the existing ioremap()=
+=20
+> function, while buses like a omap_hwmod_bus could use a function that=20
+> returned the address range that omap_hwmod_bus has already ioremap()ped.
 
+although I'm not sure I like the idea exposed here, ioremap() is the
+least of our problems :-) The biggest problem is having functioning PM
+for all drivers on a DT boot with CPUIDLE enabled.
+
+--=20
+balbi
+
+--bg08WKrSYDhXBjb5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRHdlNAAoJEIaOsuA1yqREmf8P/jI+gu6xbrFAnnMyflIKCJm6
+16dycJvwUNVaJTgPC2LtJSVXcYoeDdqBDdyHkr7Axu5SPvTAbwYdao1mCDF8a8cy
+XDaoCP+SEQrRi5UMte2817PHFQ9oV+wJLnJIPzzKOZrdtTCh5kvp1wKJlkRIPntu
+I5IgTz28DLtGJ45HG28vxzIy51dABuY8IRY7tbywnLwSwIz2I4XfIJhpmRVPp58u
+Vvuo0kF6S4/CxL3/QITw6RtHMTxjvvQAW86QwyEC8DNgVEimDDblkSyW/u5oeM6v
+m6WOUZrorUsYYnprnspQ5rrxJ+BUZ1BRX/Ts5j+iwadGlon60uYTuQfkxs8vEha1
+9okuKgnQZGweSY+iUUOtK+CcweNB2oQ04UKrzNQ6q7rIHrJqjPaskYkxISrCl2JT
+hJOA2wuPyop5a9vPuCbEcdXTP6tsWpjD6dGsF2aKHRP7XOnENrjsSbIkfjQFdqXU
+fHyaiF9q1RvsUal3pke0WzWdxkpVdyn846KPqSKWNqsTx01EW3y0UL20Xgmt5fn3
+3GeKD/8ZChe9VRTaKRj7qpEtsvXLlrsqCFCSlI3MbNRsdpLD0OnLtDvvXp2C3OGt
+++xoDJufQTNvHf13YRF8gjcU3rBjOwRLfwiV8cd9bagFxq8JpS+XW+KYIXvmW6zA
+ag4voHTjkkKHOHQuvLjg
+=zeee
+-----END PGP SIGNATURE-----
+
+--bg08WKrSYDhXBjb5--
