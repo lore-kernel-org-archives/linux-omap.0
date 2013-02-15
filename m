@@ -1,47 +1,52 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: OMAP EHCI having clock problems?
-Date: Fri, 15 Feb 2013 09:54:19 +0200
-Message-ID: <511DE9AB.5080403@ti.com>
-References: <87halea4s3.fsf@linaro.org>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Remove duplicate omap4430_init_late() declaration
+Date: Fri, 15 Feb 2013 15:05:35 +0530
+Message-ID: <511E0167.8020700@ti.com>
+References: <1360336306-18277-1-git-send-email-santosh.shilimkar@ti.com> <1360336306-18277-2-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55125 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54042 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932875Ab3BOHyW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Feb 2013 02:54:22 -0500
-In-Reply-To: <87halea4s3.fsf@linaro.org>
+	id S1753081Ab3BOJeV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Feb 2013 04:34:21 -0500
+In-Reply-To: <1360336306-18277-2-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shawn Guo <shawn.guo@linaro.org>
 
-Hi Kevin,
+Tony,
 
-On 02/15/2013 12:50 AM, Kevin Hilman wrote:
-> Felipe, Roger,
-> 
-> Using Tony's current master branch, and enabling EHCI support, I see 
-> the clock framework spitting loudly about the EHCI driver (full boot log
-> below.)   The same thing happens on v3.8-rc7.
-> 
-> Any idea what's going on?  Am I missing a set of fixes that's already
-> been posted?
+On Friday 08 February 2013 08:41 PM, Santosh Shilimkar wrote:
+> Commit bbd707ac {ARM: omap2: use machine specific hook for late init}
+> accidentally added two declarations for omap4430_init_late().
+>
+> Remove the duplicate declaration.
+>
+> Cc: Shawn Guo <shawn.guo@linaro.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>   arch/arm/mach-omap2/common.h |    1 -
+>   1 file changed, 1 deletion(-)
+>
+> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+> index 948bcaa..e0f9ea7 100644
+> --- a/arch/arm/mach-omap2/common.h
+> +++ b/arch/arm/mach-omap2/common.h
+> @@ -108,7 +108,6 @@ void omap35xx_init_late(void);
+>   void omap3630_init_late(void);
+>   void am35xx_init_late(void);
+>   void ti81xx_init_late(void);
+> -void omap4430_init_late(void);
+>   int omap2_common_pm_late_init(void);
+>
+>   #if defined(CONFIG_SOC_OMAP2420) || defined(CONFIG_SOC_OMAP2430)
+>
+Can you pick this up ?
 
-Thanks for pointing out. This series should fix the issues
-https://lkml.org/lkml/2013/1/23/155
-
-They should be on their way to linux-next.
-
-> 
-> On a related note, is anyone planning to fix the runtime PM problems in
-> this driver?  It's still disabled by default in omap2plus_defconfig
-> because the driver keeps CORE from hitting retention, even when no
-> devices are attached.
-
-I would be working on it. It is all about getting the silicon erratas
-worked around and making sure USB suspend/resume works.
-
-cheers,
--roger
+Regards,
+Santosh
