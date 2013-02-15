@@ -1,62 +1,75 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [RFC/RFT PATCH 0/2] SERIAL: OMAP: Remove idle handling from driver
-Date: Fri, 15 Feb 2013 19:20:45 +0530
-Message-ID: <511E3D35.4060909@ti.com>
-References: <1360929970-31934-1-git-send-email-santosh.shilimkar@ti.com> <511E323E.3050104@ti.com> <20130215130745.GC16558@arwen.pp.htv.fi> <20130215130842.GD16558@arwen.pp.htv.fi> <511E3B3F.1000609@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [RFC/NOT FOR MERGING 1/3] arm: omap: use generic implementation if !od
+Date: Fri, 15 Feb 2013 07:28:22 -0800
+Message-ID: <871uch7g15.fsf@linaro.org>
+References: <1360840554-26901-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42114 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935780Ab3BONt1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Feb 2013 08:49:27 -0500
-In-Reply-To: <511E3B3F.1000609@ti.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:33348 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755948Ab3BOP20 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Feb 2013 10:28:26 -0500
+Received: by mail-pb0-f46.google.com with SMTP id uo15so646432pbc.5
+        for <linux-omap@vger.kernel.org>; Fri, 15 Feb 2013 07:28:25 -0800 (PST)
+In-Reply-To: <1360840554-26901-1-git-send-email-balbi@ti.com> (Felipe Balbi's
+	message of "Thu, 14 Feb 2013 13:15:52 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: a0131647 <sourav.poddar@ti.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com, tony@atomide.com, vaibhav.bedia@ti.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Friday 15 February 2013 07:12 PM, a0131647 wrote:
-> Hi,
-> On Friday 15 February 2013 06:38 PM, Felipe Balbi wrote:
->> On Fri, Feb 15, 2013 at 03:07:45PM +0200, Felipe Balbi wrote:
->>> On Fri, Feb 15, 2013 at 06:33:58PM +0530, a0131647 wrote:
->>>> Hi,
->>>> On Friday 15 February 2013 05:36 PM, Santosh Shilimkar wrote:
->>>>> OMAP UART IP needs manual idle modes based on state of the
->>>>> IP. Currently this is handled by the driver with function pointers
->>>>> implemented in platform code.
->>>>>
->>>>> This however breaks in case of device tree because of missing
->>>>> idle handling.
->>>>>
->>>>> The series tries to address the issue
->>>>>
->>>>> Patches has been tested on OMAP4 and OMAP5 devices where the console
->>>>> slugishness was observed without idle mode handling. CPUIDLE and
->>>>> suspend tested ok on these devices.
->>>>>
->>>>> Need help in testing on OMAP2, OMAP3 and AM3XXX devices.
->>>>>
->>>> Tested this series on omap3630 beagle board for:
->>>> 1. Retention in idle and suspend.
->>>> 2. Off mode in idle and suspend.
->>>>
->>>> Tested-by: Sourav Poddar<sourav.poddar@ti.com>
->>> try setting autosuspend_delay to -1
->> Also try DT boot and try to wakeup from echo mem>  /sys/power/state by
->> sending data through UART console.
->>
-> Suspend/resume with dt is not functional with the current mainline.
+Hi Felipe,
+
+Felipe Balbi <balbi@ti.com> writes:
+
+> Eventually, we need to be able to remove
+> ti,hwmods DT attribute (or at a minimum
+> ignore it).
 >
-With DT, suspend driver itself are not getting registered.
-The patch is in Paul's queue [1]
+> For new platforms, this patch could enable
+> the transition by not relying on ti,hwmods
+> to have functioning PM and Idle implementation.
+>
+> Notice that this poses no differences for
+> platforms which are already supported, it
+> just gives us means of dropping the relyance
+> on hwmod for new platforms.
+>
+> NYET-Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_device.c | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
+>
+> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+> index e065daa..305eeb4 100644
+> --- a/arch/arm/mach-omap2/omap_device.c
+> +++ b/arch/arm/mach-omap2/omap_device.c
+> @@ -796,13 +796,18 @@ static int __init omap_early_device_register(struct platform_device *pdev)
+>  static int _od_runtime_suspend(struct device *dev)
+>  {
+>  	struct platform_device *pdev = to_platform_device(dev);
+> +	struct omap_device *od = to_omap_device(pdev);
+>  	int ret;
+>  
+>  	ret = pm_generic_runtime_suspend(dev);
+>  
+> +	if (!od)
+> +		goto out;
+> +
 
-regards,
-Santosh
+Rather than adding a check for every function, I think you will get the
+effect by simply not hooking up the PM domain.
 
-[1] https://patchwork-mail2.kernel.org/patch/2116671/
+IOW, in omap_device_build_from_dt(), conditionalize:
 
+	pdev->dev.pm_domain = &omap_device_pm_domain;
 
+then none of the callbacks will be called in the first place, so they
+won't need to be conditionalized.
 
+Without a PM domain, they will fallback to the bus level hooks, which in
+this case will be the platform_bus hooks, which will just call the
+pm_generic functions.
+
+Kevin
