@@ -1,85 +1,193 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/RFT PATCH 0/2] SERIAL: OMAP: Remove idle handling from
- driver
-Date: Fri, 15 Feb 2013 15:08:42 +0200
-Message-ID: <20130215130842.GD16558@arwen.pp.htv.fi>
-References: <1360929970-31934-1-git-send-email-santosh.shilimkar@ti.com>
- <511E323E.3050104@ti.com>
- <20130215130745.GC16558@arwen.pp.htv.fi>
-Reply-To: <balbi@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [RFC/RFT PATCH 2/2] SERIAL: OMAP: Remove the idle handling from
+ the driver
+Date: Fri, 15 Feb 2013 18:49:20 +0530
+Message-ID: <511E35D8.1030109@ti.com>
+References: <1360930135-32092-1-git-send-email-santosh.shilimkar@ti.com> <20130215125740.GB16558@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NtwzykIc2mflq5ck"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33081 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40942 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161260Ab3BONI4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Feb 2013 08:08:56 -0500
-Content-Disposition: inline
-In-Reply-To: <20130215130745.GC16558@arwen.pp.htv.fi>
+	id S1161258Ab3BONSR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Feb 2013 08:18:17 -0500
+In-Reply-To: <20130215125740.GB16558@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: a0131647 <sourav.poddar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com, tony@atomide.com, vaibhav.bedia@ti.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, Rajendra nayak <rnayak@ti.com>
 
---NtwzykIc2mflq5ck
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Friday 15 February 2013 06:27 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Fri, Feb 15, 2013 at 05:38:55PM +0530, Santosh Shilimkar wrote:
+>> UART IP idle handling now taken care by runtime pm apis so remove
+>> the hackery from the driver.
+>>
+>> Signed-off-by: Rajendra nayak <rnayak@ti.com>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/serial.c     |   31 -------------------------------
+>>   drivers/tty/serial/omap-serial.c |   23 -----------------------
+>>   2 files changed, 54 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+>> index 04fdbc4..037e691 100644
+>> --- a/arch/arm/mach-omap2/serial.c
+>> +++ b/arch/arm/mach-omap2/serial.c
+>> @@ -95,38 +95,9 @@ static void omap_uart_enable_wakeup(struct device *dev, bool enable)
+>>   		omap_hwmod_disable_wakeup(od->hwmods[0]);
+>>   }
+>>
+>> -/*
+>> - * Errata i291: [UART]:Cannot Acknowledge Idle Requests
+>> - * in Smartidle Mode When Configured for DMA Operations.
+>> - * WA: configure uart in force idle mode.
+>> - */
+>> -static void omap_uart_set_noidle(struct device *dev)
+>> -{
+>> -	struct platform_device *pdev = to_platform_device(dev);
+>> -	struct omap_device *od = to_omap_device(pdev);
+>> -
+>> -	omap_hwmod_set_slave_idlemode(od->hwmods[0], HWMOD_IDLEMODE_NO);
+>> -}
+>> -
+>> -static void omap_uart_set_smartidle(struct device *dev)
+>> -{
+>> -	struct platform_device *pdev = to_platform_device(dev);
+>> -	struct omap_device *od = to_omap_device(pdev);
+>> -	u8 idlemode;
+>> -
+>> -	if (od->hwmods[0]->class->sysc->idlemodes & SIDLE_SMART_WKUP)
+>> -		idlemode = HWMOD_IDLEMODE_SMART_WKUP;
+>> -	else
+>> -		idlemode = HWMOD_IDLEMODE_SMART;
+>> -
+>> -	omap_hwmod_set_slave_idlemode(od->hwmods[0], idlemode);
+>> -}
+>> -
+>>   #else
+>>   static void omap_uart_enable_wakeup(struct device *dev, bool enable)
+>>   {}
+>> -static void omap_uart_set_noidle(struct device *dev) {}
+>> -static void omap_uart_set_smartidle(struct device *dev) {}
+>>   #endif /* CONFIG_PM */
+>>
+>>   #ifdef CONFIG_OMAP_MUX
+>> @@ -299,8 +270,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
+>>   	omap_up.uartclk = OMAP24XX_BASE_BAUD * 16;
+>>   	omap_up.flags = UPF_BOOT_AUTOCONF;
+>>   	omap_up.get_context_loss_count = omap_pm_get_dev_context_loss_count;
+>> -	omap_up.set_forceidle = omap_uart_set_smartidle;
+>> -	omap_up.set_noidle = omap_uart_set_noidle;
+>>   	omap_up.enable_wakeup = omap_uart_enable_wakeup;
+>>   	omap_up.dma_rx_buf_size = info->dma_rx_buf_size;
+>>   	omap_up.dma_rx_timeout = info->dma_rx_timeout;
+>> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+>> index 57d6b29..5722eaf 100644
+>> --- a/drivers/tty/serial/omap-serial.c
+>> +++ b/drivers/tty/serial/omap-serial.c
+>> @@ -201,26 +201,6 @@ static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
+>>   	return pdata->get_context_loss_count(up->dev);
+>>   }
+>>
+>> -static void serial_omap_set_forceidle(struct uart_omap_port *up)
+>> -{
+>> -	struct omap_uart_port_info *pdata = up->dev->platform_data;
+>> -
+>> -	if (!pdata || !pdata->set_forceidle)
+>> -		return;
+>> -
+>> -	pdata->set_forceidle(up->dev);
+>> -}
+>> -
+>> -static void serial_omap_set_noidle(struct uart_omap_port *up)
+>> -{
+>> -	struct omap_uart_port_info *pdata = up->dev->platform_data;
+>> -
+>> -	if (!pdata || !pdata->set_noidle)
+>> -		return;
+>> -
+>> -	pdata->set_noidle(up->dev);
+>> -}
+>> -
+>>   static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
+>>   {
+>>   	struct omap_uart_port_info *pdata = up->dev->platform_data;
+>> @@ -279,8 +259,6 @@ static void serial_omap_stop_tx(struct uart_port *port)
+>>   		serial_out(up, UART_IER, up->ier);
+>>   	}
+>>
+>> -	serial_omap_set_forceidle(up);
+>> -
+>>   	pm_runtime_mark_last_busy(up->dev);
+>>   	pm_runtime_put_autosuspend(up->dev);
+>>   }
+>> @@ -348,7 +326,6 @@ static void serial_omap_start_tx(struct uart_port *port)
+>>
+>>   	pm_runtime_get_sync(up->dev);
+>>   	serial_omap_enable_ier_thri(up);
+>> -	serial_omap_set_noidle(up);
+>
+> this patch is changing behavior. Currently driver has:
+>
+> start_tx()
+> get_sync()
+> set_noidle()
+> put_autosuspend()
+>
+> ....
+>
+> stop_tx()
+> get_sync()
+> set_force_idle()
+> put_autosuspend()
+>
+> with this change, you will have:
+>
+> start_tx()
+> get_sync()
+> set_noidle()
+> put_autosuspend()
+> set_force_idle()
+>
+> this in itself might be enough to go back to corrupted serial if
+> put_autosuspend is so quick that set_force_idle() is called before all
+> data has been shifted out of FIFO and through the UART lines.
+>
+Really. Infact the old sequence was buggy because you are setting 
+force_idle even before suspending the device. And that force idle
+isn't really force idle but setting ip to smart idle. Just look at
+what serial.c
 
-On Fri, Feb 15, 2013 at 03:07:45PM +0200, Felipe Balbi wrote:
-> On Fri, Feb 15, 2013 at 06:33:58PM +0530, a0131647 wrote:
-> > Hi,
-> > On Friday 15 February 2013 05:36 PM, Santosh Shilimkar wrote:
-> > >OMAP UART IP needs manual idle modes based on state of the
-> > >IP. Currently this is handled by the driver with function pointers
-> > >implemented in platform code.
-> > >
-> > >This however breaks in case of device tree because of missing
-> > >idle handling.
-> > >
-> > >The series tries to address the issue
-> > >
-> > >Patches has been tested on OMAP4 and OMAP5 devices where the console
-> > >slugishness was observed without idle mode handling. CPUIDLE and
-> > >suspend tested ok on these devices.
-> > >
-> > >Need help in testing on OMAP2, OMAP3 and AM3XXX devices.
-> > >
-> > Tested this series on omap3630 beagle board for:
-> > 1. Retention in idle and suspend.
-> > 2. Off mode in idle and suspend.
-> >=20
-> > Tested-by: Sourav Poddar <sourav.poddar@ti.com>
->=20
-> try setting autosuspend_delay to -1
+> Before doing this, you should at least test that removing
+> pm_runtime_mark_last_busy() and pm_runtime_put_autosuspend() from
+> start_tx() and removing pm_runtime_get_sync() from stop_tx() works fine.
+>
+Seems to work for me with above changes as well. Can you please
+try out and see if you see any issue. I doubt you will...
 
-Also try DT boot and try to wakeup from echo mem > /sys/power/state by
-sending data through UART console.
+> Also, $SUBJECT isn't improving the situation regarding UART Wakeup,
+> there is still the regression of UART never being wakeup capable.
+>
+You are mixing the stuff here. The subject is correct.
 
---=20
-balbi
+> I wonder what are your ideas to sort that part out, I mean, how do you
+> plan to implement ->set_wake() for the tty port ?
+>
+That is not related to module idle modes. It is for ioring and that
+needs pin control support. As you can see the patch doesn't touch
+omap_uart_enable_wakeup(). Thats needs pincontrol support so that
+it can be made work with DT. Today hwmod handles that for you with
+pin information provided by platform code.
 
---NtwzykIc2mflq5ck
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> One last comment, to avoid conflicts, it'd be better to split driver
+> part from removal of platform_data function pointer initialization, so
+> that we can send driver changes in one merge window and the
+> platform_data part in another.
+>
+Agree. We can split the patch once everybody is ok with it.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRHjNaAAoJEIaOsuA1yqREBjMQAKFmRpbX1/UirvFCeV6xd74Z
-nYYCeyJng7V7EYGEeS/oXDXhoaOTuhjlKV9KMUQaskfT0iyAb9dyIoHJC6jqx6ZA
-VcfGRd8se7yCkbF2NripwRw3CI2Rl2HSNBq6vjFwW/2m8l5Rs9w8Xwb47jfdxq3B
-xoEFFY8w9nWlhtzBiK6YgML4fGTp0NCRgixwirpjvZBL12V6gQkgEyuNW2TJTpRD
-5cXUFZzRaisOpZ5OJy/OI9hZUJQS2oY/o7k6PUUHvbmWM6WAmkxO5la0PKemUB9b
-KVa4NQ4azfGOTKdew3xeK0ie/Lo+KrJTAPHfB2Yy81lfpJHjCJg2XprOEV+ZUL1M
-jky1Cg4AaXYg1jS2tgM/9/f1YYjTPehsG6Ty925fZuQlsMBy2MDrnN1BSN9sGwk5
-7rEVjsdvKiW18LSS1lMzOpmsiAcBzJF8dXIBcQ0qe/+0fVML+/1sN3DYUcejFE1x
-6vb4ZaUuUacRmc8hTjbIgPzrJ6M3F4cXV6F3YfrSFND+yxTWxU3XtmQL0IUGc6Is
-90+cSFMpfNzNcw/nxAkL0PJlVNFwL/X/TYhmQnyR6Pt2QhAoVxEv9+D7xsTkVb7d
-Ntrj1ZOPqH6i31+Gn+BSWQnqeesJAmDKsCy6Si8Pgp2nFsnHqIKIrXeS6cwuoTJY
-6HVmKH5WUgWKp9JRjNtR
-=+tcj
------END PGP SIGNATURE-----
-
---NtwzykIc2mflq5ck--
+Regards
+Santosh
