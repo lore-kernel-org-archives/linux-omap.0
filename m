@@ -1,109 +1,81 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
-Date: Fri, 15 Feb 2013 18:03:28 +0200
-Message-ID: <20130215160328.GA20334@arwen.pp.htv.fi>
-References: <1360840554-26901-1-git-send-email-balbi@ti.com>
- <1360840554-26901-2-git-send-email-balbi@ti.com>
- <87obfl60x7.fsf@linaro.org>
+Subject: Re: OMAP EHCI having clock problems?
+Date: Fri, 15 Feb 2013 18:04:10 +0200
+Message-ID: <20130215160410.GB20334@arwen.pp.htv.fi>
+References: <87halea4s3.fsf@linaro.org>
+ <511DE9AB.5080403@ti.com>
+ <87fw0x608o.fsf@linaro.org>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
+	protocol="application/pgp-signature"; boundary="s/l3CgOIzMHHjg/5"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37104 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758885Ab3BOQDl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Feb 2013 11:03:41 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44577 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752593Ab3BOQEU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Feb 2013 11:04:20 -0500
 Content-Disposition: inline
-In-Reply-To: <87obfl60x7.fsf@linaro.org>
+In-Reply-To: <87fw0x608o.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Cc: Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
---2fHTh5uZTiUOsy+g
+--s/l3CgOIzMHHjg/5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Fri, Feb 15, 2013 at 07:40:04AM -0800, Kevin Hilman wrote:
-> Felipe Balbi <balbi@ti.com> writes:
+On Fri, Feb 15, 2013 at 07:54:47AM -0800, Kevin Hilman wrote:
+> Roger Quadros <rogerq@ti.com> writes:
 >=20
-> > Currently the omap-serial driver will not
-> > work properly if booted via DT with CPUIDLE
-> > enabled because it depends on function pointers
-> > provided by hwmod to change its own SYSCONFIG
-> > register.
+> > Hi Kevin,
 > >
-> > Remove that relyance on hwmod by moving SYSCONFIG
-> > handling to driver itself. Note that this also
-> > fixes a possible corner case bug where we could
-> > be putting UART in Force Idle mode if we called
-> > omap_serial_enable_wakeup(up, false) after setting
-> > NOIDLE to the idle mode. This is because hwmod
-> > has no protection against that situation.
+> > On 02/15/2013 12:50 AM, Kevin Hilman wrote:
+> >> Felipe, Roger,
+> >>=20
+> >> Using Tony's current master branch, and enabling EHCI support, I see=
+=20
+> >> the clock framework spitting loudly about the EHCI driver (full boot l=
+og
+> >> below.)   The same thing happens on v3.8-rc7.
+> >>=20
+> >> Any idea what's going on?  Am I missing a set of fixes that's already
+> >> been posted?
 > >
-> > NYET-Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > Thanks for pointing out. This series should fix the issues
+> > https://lkml.org/lkml/2013/1/23/155
+> >
+> > They should be on their way to linux-next.
 >=20
-> Here's another approach to getting rid of the sysconfig twiddling in the
-> driver.  I wrote this some time ago at my former company ;) but don't
-> think I ever got around to posting it.
->=20
-> It doesn't solve the whole problem (e.g. doesn't address the
-> context_loss or enable_wakeup func pointers), but at least gets rid of
-> the need for any SYSCONFIG access in the driver for the idle modes.
+> Great.  But what about v3.8?  I see the same problems in v3.8-rc7.
 
-wakeup is still done by setting smart_idle_wakeup right, at least to
-some IPs. Following omap_serial_enable_wakeup() calls, I can see that it
-turns out to fiddle with sysconfig ;-)
-
-> @@ -229,8 +209,6 @@ static void serial_omap_stop_tx(struct uart_port *por=
-t)
->  		serial_out(up, UART_IER, up->ier);
->  	}
-> =20
-> -	serial_omap_set_forceidle(up);
-> -
->  	pm_runtime_mark_last_busy(up->dev);
->  	pm_runtime_put_autosuspend(up->dev);
->  }
-> @@ -298,7 +276,6 @@ static void serial_omap_start_tx(struct uart_port *po=
-rt)
-> =20
->  	pm_runtime_get_sync(up->dev);
->  	serial_omap_enable_ier_thri(up);
-> -	serial_omap_set_noidle(up);
-
-this is no different then the patches Santosh has sent just a few
-minutes ago, what gives ? It's exactly the same patch...
-
-Anyway, I have exposed a problem with this aproach.
+isn't it too late for v3.8 ? I guess the only way out would be to send
+the patch for stable.
 
 --=20
 balbi
 
---2fHTh5uZTiUOsy+g
+--s/l3CgOIzMHHjg/5
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRHlxQAAoJEIaOsuA1yqREn0gP/3Au3DkI3/DlmGMMqSLpEXCH
-IDzBNg1KgKYYsnyyFTHno6zywb1NlSl33MV2QDR0eaPlK+dkOJKqvfpGj4Nka7RK
-xWPlSZT/sxpWPTC/gowJWlbuzhpS9v25Y2kLhnp5lQTbH71XUtZ10CkFDWMDC//5
-GMytaAK4TruCWtM7sGFPcv2Tnq+oPJjWipkGUo0lnex45z7s+ZUilzCJActzJwlO
-NtsMKOhpWR0caClqgL0bkse39T9BA8Sj/bwz6nPUZoOhebDWF9eRdoh1E1y67cYt
-U50tj9qG2ks0jc0RnX0F/RbIJ277P5+NcgilcVG2ri6qiiQzWDfPwwB5x/EToTdn
-D5zLrc6HrH+RP1Ul7FRZub1pB8pIOwl1oXiewj3eKtU9A+jh7RQ23LhHJj8XbGSO
-0nr/VmWBp9yROpPCL2i/7ZP8lwPPlnHnhuAOl4wdmQnOfU/VU79cdJBflqZ8U7dm
-HfEGaFUXBtvt2AbO9UhFilJce5Yoh+LxT9j1JrmLBX9HFmLQXM9wK4pHUw3IG2ja
-mEJcig9MYQBlX3tZ4Pqg93jZsw4zdrFoem3tpln6zYdPTb/3HCWS1EsTVMpc4AVc
-YSM9lGML5ewEWkCBUUhcbUUJSKcmaVgv5tNPGZhbCbCYUQn2afh0PSpSFbMPMXa3
-JdiG7GdG+FD8ZWD6qgW6
-=crtt
+iQIcBAEBAgAGBQJRHlx6AAoJEIaOsuA1yqREH3kQAJ7b4Tj7QyXPnJwTLB9OfKLi
+fGWWcjYDPlaqaiyTI48/CyrFZ3WNBEaB69a7Nfkieq4AegriE9NHiepS36KNQAFj
+E0OPZlSPsK5p/uF2lOPNpUuWhyXMRQgFqzTmLJQTBJXd/cPWxgPDn640ffr6MXZ5
+smP6djPbIGZFAUP9zvXgzoe2NloUWyvLLP9bQATmLWi+iIUWVuaaJbQBWhlIa96E
+u2uqthfCKeq8aEnPTAfJWMiamCdOrd+HHOpbE+HqlbNaCGOGRSB84JmHuUb7rHn6
+uY0nNVhRT//k1mLaiwzz58p3VLvmz3OKXYNO5+vwLMybQQrF4yISgy+W4BbvlYAy
+MgKPpT6TdYsGWZlIXwGKbsas2LtSjqoAfzwxRJZ4N5e0wxhkMihM6VB1RU8Q7j7q
+GJmU7c4lSWmEu0Vay8nTE5BER4bIX1CAWDtzQRWsCcIrvbBCMNvcAlBG+/9K4N8w
+tQmD4GbsQWR5bP8FGgXWtvmcR9v2gN9OIN/O0U2CH5Ad31DaXkciBa0HkXwlg+ub
+0ISYt3PZky50doTUhjtiMx5ggB3VZVULgbcQTm+spHkmHB0hMkrsZD8CAVdt0BZ4
+HMonuTN7E+MjgY63RL3ccZdrJEROzVr2Gf7NnNcWQsYbbinjzFwKwwtw7zxA2zy3
+7/arUsZHTsi/PS9IJL5n
+=79+6
 -----END PGP SIGNATURE-----
 
---2fHTh5uZTiUOsy+g--
+--s/l3CgOIzMHHjg/5--
