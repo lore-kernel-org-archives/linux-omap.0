@@ -1,87 +1,73 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/NOT FOR MERGING 1/3] arm: omap: use generic implementation
- if !od
-Date: Fri, 15 Feb 2013 18:04:50 +0200
-Message-ID: <20130215160450.GC20334@arwen.pp.htv.fi>
-References: <1360840554-26901-1-git-send-email-balbi@ti.com>
- <871uch7g15.fsf@linaro.org>
-Reply-To: <balbi@ti.com>
+From: Anil Kumar <anilk4.v@gmail.com>
+Subject: Re: [PATCH v2 3/8] ARM: omap2: gpmc: Fix gpmc_cs_reserved() return value
+Date: Fri, 15 Feb 2013 21:49:21 +0530
+Message-ID: <CABYxbz6tZJjuz0NKorPSz_tWD42+HuHL3kwW0cegWW5QTDxH8g@mail.gmail.com>
+References: <1360682305-20935-1-git-send-email-ezequiel.garcia@free-electrons.com>
+	<1360682305-20935-4-git-send-email-ezequiel.garcia@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="E/DnYTRukya0zdZ1"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48333 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752593Ab3BOQFD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Feb 2013 11:05:03 -0500
-Content-Disposition: inline
-In-Reply-To: <871uch7g15.fsf@linaro.org>
+Received: from mail-ia0-f178.google.com ([209.85.210.178]:49499 "EHLO
+	mail-ia0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932625Ab3BOQTa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Feb 2013 11:19:30 -0500
+Received: by mail-ia0-f178.google.com with SMTP id y26so3367820iab.23
+        for <linux-omap@vger.kernel.org>; Fri, 15 Feb 2013 08:19:29 -0800 (PST)
+In-Reply-To: <1360682305-20935-4-git-send-email-ezequiel.garcia@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>, Jon Hunter <jon-hunter@ti.com>, Felipe Balbi <balbi@ti.com>
 
---E/DnYTRukya0zdZ1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-Hi Kevin,
+On Tue, Feb 12, 2013 at 8:48 PM, Ezequiel Garcia
+<ezequiel.garcia@free-electrons.com> wrote:
+> Currently gpmc_cs_reserved() return value is somewhat inconsistent,
+> returning a negative value on an error condition, a positive value
+> if the chip select is reserved and zero if it's available.
+>
+> Fix this by returning a boolean value as the function name suggests:
+>   * true if the chip select is reserved,
+>   * false if it's available
+>
+> Suggested-by: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+> ---
+> Changelog from v1:
+>  * As suggested by Felipe Balbi, fix return code to a boolean
+>
+>  arch/arm/mach-omap2/gpmc.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index bd3bc93..fa4764f 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -452,10 +452,10 @@ static int gpmc_cs_set_reserved(int cs, int reserved)
+>         return 0;
+>  }
+>
+> -static int gpmc_cs_reserved(int cs)
+> +static bool gpmc_cs_reserved(int cs)
+>  {
+>         if (cs > GPMC_CS_NUM)
+> -               return -ENODEV;
+> +               return true;
+>
+>         return gpmc_cs_map & (1 << cs);
+>  }
 
-On Fri, Feb 15, 2013 at 07:28:22AM -0800, Kevin Hilman wrote:
-> > @@ -796,13 +796,18 @@ static int __init omap_early_device_register(stru=
-ct platform_device *pdev)
-> >  static int _od_runtime_suspend(struct device *dev)
-> >  {
-> >  	struct platform_device *pdev =3D to_platform_device(dev);
-> > +	struct omap_device *od =3D to_omap_device(pdev);
-> >  	int ret;
-> > =20
-> >  	ret =3D pm_generic_runtime_suspend(dev);
-> > =20
-> > +	if (!od)
-> > +		goto out;
-> > +
->=20
-> Rather than adding a check for every function, I think you will get the
-> effect by simply not hooking up the PM domain.
->=20
-> IOW, in omap_device_build_from_dt(), conditionalize:
->=20
-> 	pdev->dev.pm_domain =3D &omap_device_pm_domain;
->=20
-> then none of the callbacks will be called in the first place, so they
-> won't need to be conditionalized.
->=20
-> Without a PM domain, they will fallback to the bus level hooks, which in
-> this case will be the platform_bus hooks, which will just call the
-> pm_generic functions.
+commit "6797b4fe0e554ce71f47038fd929c9ca929a9f3c"
+Marking all the chip-selects as reserved by default.
 
-good point, let's just sort out the other comments first though ;-)
+In this case gpmc_cs_map is 0xff. So it will return 0x1 if cs is 0.
+So gpmc_cs_request() function will fail in nand (gpmc-nand.c) case.
 
---=20
-balbi
+I am taking reference, branch "omap-for-v3.9/gpmc" of git tree
+http://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
 
---E/DnYTRukya0zdZ1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I am sorry if this question is very vague.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRHlyiAAoJEIaOsuA1yqRE5TYQAIByHN46dalD/bVNpW5Xr0vU
-sNxcBdLF+//7IWr3Vo+MurVrpe/JQKgSnXMkVUa0kUu7fuYJOkIS99PEvWmHamEG
-X0VlkHZUq5MsjQtFT0EDzJxgWs8pq8z0YLDXk6RwcNbbOqXPCezWksA9cALPRNDe
-vYOHwsRD2YaQ1ImqmwgQiYPxDMN4RykE8ANr94wPqG4qjNq7f34iCEJnQZ/RxhVs
-9H3fs6UEgoJo7iLj/ALHvLxUIbSFTDVGMVFQAlxYlrUO6dCGE9xJRrQwG8wTklUG
-u8pPvclOJKaiWQ7RHu8SEvpzWRdnVO8okrL5TAsRMJE9L7v2UokO0xGWK65sBMB4
-Y2M2NCGyf51Mp9J5YkH1CH32/OeXhyimkZuN3MQnwb8u3MlRH+kJoJhJzQtIV5Zo
-A82wggp4+6h2wLEOJswPU5NQFHurMI4//PxdP8S2X3cRli9aIZb5ZCtM2wCEDX29
-jMRAU8u7MOrwEc4XtaDPGwzihTMuIQyCWslpHD7tl2Kq4m9GpnvVH0syob520kAW
-3QE/MgyVTh9Iuv03KI4Rokj6pRtMlTTE5E1NYwYJAKe31zufXx+Wkez7EYU3Zhy2
-H/hoFPqaO9eAptYCLEg1zw3rCbXEku/ZmFUev5B7r3kDXc20ytRNuRhAde943AWK
-eH6wSrd2cO9gFbz+IE/w
-=CTJd
------END PGP SIGNATURE-----
-
---E/DnYTRukya0zdZ1--
+Thanks,
+Anil
