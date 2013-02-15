@@ -1,128 +1,54 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] arm: dts: Add uart1 and uart2 to igep boards.
-Date: Fri, 15 Feb 2013 11:03:51 +0100
-Message-ID: <511E0807.8000200@ti.com>
-References: <1355326422-12357-1-git-send-email-matthias.bgg@gmail.com>
- <50C8AC3C.9020908@ti.com>
- <CABuKBeJsHCq98Pe-BwPajbQ+2OLQpwrbtVTJe=j9thPDQCCBrg@mail.gmail.com>
- <CAAwP0s01Jxh0f-T0sd5D980dZPcEV0J1KzjPbNHkrXLaKA3YUg@mail.gmail.com>
- <CABuKBeJsg_P=aDr0s9iVOD+7YTNoVUFQJCJymJyJ7NqXHUBzKQ@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
+Date: Fri, 15 Feb 2013 10:16:10 +0000
+Message-ID: <20130215101610.GR17852@n2100.arm.linux.org.uk>
+References: <1360840554-26901-1-git-send-email-balbi@ti.com> <1360840554-26901-2-git-send-email-balbi@ti.com> <20130214171253.GC7144@atomide.com> <20130214175650.GA25891@arwen.pp.htv.fi> <20130214181217.GA11806@atomide.com> <20130214192719.GB26679@arwen.pp.htv.fi> <20130214193911.GD11806@atomide.com> <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CABuKBeJsg_P=aDr0s9iVOD+7YTNoVUFQJCJymJyJ7NqXHUBzKQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Javier Martinez Canillas <martinez.javier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org" <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, "ebutera-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <ebutera-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43678 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755253Ab3BOKQT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Feb 2013 05:16:19 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-Hi Matthias,
+On Thu, Feb 14, 2013 at 08:47:53PM +0000, Paul Walmsley wrote:
+> Regarding ioremap(), it seems reasonable for drivers to call ioremap(), as 
+> long as the implementation of ioremap() can be overridden by the device's 
+> bus.  PCI device drivers already do this -- albeit in a PCI-specific way 
+> -- with pci_ioremap_bar():
 
-On 2/15/2013 10:35 AM, Matthias Brugger wrote:
-> 2013/1/26 Javier Martinez Canillas <martinez.javier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
->> On Sat, Jan 26, 2013 at 4:16 PM, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> wrote:
->>> Hi Benoit,
->>>
->>> 2012/12/12 Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>:
->>>> Hi Matthias,
->>>>
->>>> On 12/12/2012 04:33 PM, Matthias Brugger wrote:
->>>>> This patch is a follow-up patch for Javier Martinez effort adding
->>>>> initial
->>>>> device tree support to IGEP technology devices. [1]
->>>>>
->>>>> It adds uart1 and uart2 bindings to the generic dtsi for the IGEP
->>>>> boards.
->>>>>
->>>>> [1] http://www.spinics.net/lists/linux-omap/msg83409.html
->>>>>
->>>>> Signed-off-by: Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->>>>> ---
->>>>>   arch/arm/boot/dts/omap3-igep.dtsi |   24 ++++++++++++++++++++++++
->>>>>   1 file changed, 24 insertions(+)
->>>>>
->>>>> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi
->>>>> b/arch/arm/boot/dts/omap3-igep.dtsi
->>>>> index 125fe00..c02e3c0 100644
->>>>> --- a/arch/arm/boot/dts/omap3-igep.dtsi
->>>>> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
->>>>> @@ -27,6 +27,20 @@
->>>>>   };
->>>>>
->>>>>   &omap3_pmx_core {
->>>>> +     uart1_pins: pinmux_uart1_pins {
->>>>> +             pinctrl-single,pins = <
->>>>> +                     0x152 0x100     /* uart1_rx.uart1_rx INPUT | MODE0
->>>>> */
->>>>> +                     0x14c 0         /* uart1_tx.uart1_tx OUTPUT |
->>>>> MODE0 */
->>>>> +             >;
->>>>> +     };
->>>>> +
->>>>> +     uart2_pins: pinmux_uart2_pins {
->>>>> +             pinctrl-single,pins = <
->>>>> +                     0x14a 0x100     /* uart2_rx.uart2_rx INPUT | MODE0
->>>>> */
->>>>> +                     0x148 0         /* uart2_tx.uart2_tx OUTPUT |
->>>>> MODE0 */
->>>>> +             >;
->>>>> +     };
->>>>> +
->>>>>        uart3_pins: pinmux_uart3_pins {
->>>>>                pinctrl-single,pins = <
->>>>>                        0x16e 0x100     /* uart3_rx.uart3_rx INPUT | MODE0
->>>>> */
->>>>> @@ -77,6 +91,16 @@
->>>>>        status = "disabled";
->>>>>   };
->>>>>
->>>>> +&uart1 {
->>>>> +       pinctrl-names = "default";
->>>>> +       pinctrl-0 = <&uart1_pins>;
->>>>> +};
->>>>> +
->>>>> +&uart2 {
->>>>> +       pinctrl-names = "default";
->>>>> +       pinctrl-0 = <&uart2_pins>;
->>>>> +};
->>>>> +
->>>>>   &uart3 {
->>>>>          pinctrl-names = "default";
->>>>>          pinctrl-0 = <&uart3_pins>;
->>>>>
->>>>
->>>> That looks good to me. I'll apply it on top of javier's series for 3.9.
->>>
->>> Can you pin-point me to the repository where this patches are in right
->>> now? I tried to figure it out these days, but didn't found where to
->>> clone the repository from.
->>>
->>> Thanks,
->>> Matthias
->>>
->>
->> Hi Matthias,
->>
->> OMAP DT tree is:
->> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
->
-> Hi all,
->
-> unfortunately I can't find the patch in this tree.
+Err no, that's just a helper to assist checking the resource type and
+remove all those pesky resource size mistakes - see the commit text:
 
-Sorry about that. I've never pushed the latest branch, and was busy the 
-past month. I'll refresh the branch with all the pending patches.
+    PCI: introduce an pci_ioremap(pdev, barnr) function
 
-Regards,
-Benoit
+    A common thing in many PCI drivers is to ioremap() an entire bar.  This
+    is a slightly fragile thing right now, needing both an address and a
+    size, and many driver writers do.. various things there.
+
+    This patch introduces an pci_ioremap() function taking just a PCI device
+    struct and the bar number as arguments, and figures this all out itself,
+    in one place.  In addition, we can add various sanity checks to this
+    function (the patch already checks to make sure that the bar in question
+    really is a MEM bar; few to no drivers do that sort of thing).
+
+    Hopefully with this type of API we get less chance of mistakes in
+    drivers with ioremap() operations.
+
+    Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+    Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+
+> So instead of something bus-specific like that, a better way would be to 
+> use something like:
+> 
+> va = dev->bus->ioremap( ... );
+> va = dev->bus->iounmap( ... );
+
+No.  ioremap() is already generic.  We don't need additional layers of
+indirection per bus type.
