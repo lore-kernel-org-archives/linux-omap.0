@@ -1,80 +1,177 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
-Date: Sat, 16 Feb 2013 11:31:21 +0530
-Message-ID: <511F20B1.8010502@ti.com>
-References: <20130214175650.GA25891@arwen.pp.htv.fi> <20130214181217.GA11806@atomide.com> <20130214192719.GB26679@arwen.pp.htv.fi> <20130214193911.GD11806@atomide.com> <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com> <20130215101610.GR17852@n2100.arm.linux.org.uk> <511E3797.2070802@ti.com> <20130215132726.GT17852@n2100.arm.linux.org.uk> <511E38C3.7080404@ti.com> <20130215163031.GA5724@atomide.com> <20130215164235.GA20840@arwen.pp.htv.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37567 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228Ab3BPGAQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Feb 2013 01:00:16 -0500
-In-Reply-To: <20130215164235.GA20840@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+From: Anil Kumar <anilk4.v@gmail.com>
+Subject: [PATCH V3] ARM: dts: add minimal DT support for DevKit8000
+Date: Sat, 16 Feb 2013 12:49:27 +0530
+Message-ID: <1360999167-17606-1-git-send-email-anilk4.v@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, grant.likely@secretlab.ca, thomas@tomweber.eu, anilk4.v@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Friday 15 February 2013 10:12 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Fri, Feb 15, 2013 at 08:30:32AM -0800, Tony Lindgren wrote:
->> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130215 05:34]:
->>> On Friday 15 February 2013 06:57 PM, Russell King - ARM Linux wrote:
->>>> On Fri, Feb 15, 2013 at 06:56:47PM +0530, Santosh Shilimkar wrote:
->>>>> Whats your view on use of arch_ioremap_caller() hook ? This can allow
->>>>> us to avoid the dual ioremap() issue discussed here if the hook
->>>>> maintains the list of mapped ios.
->>>>>
->>>>> I was even thinking of having such intelligence within the core
->>>>> ioremap code but thought that might be too invasive.
->>>>
->>>> Why do you even need it?  There's no problem with ioremapping the same
->>>> space multiple times (you end up with multiple mappings but that
->>>> shouldn't be a problem, except for the additional space used.)
->>>>
->>> It just waste of iospace and Tony insisted to have just single ioremap()
->>> hence all this discussion
->>
->> The main goal is to avoid duplicating data both in hwmod and DT.
->> That's pretty much solved as we can have the driver probe populate
->> the common data for hwmod from DT as Santosh has already demonstrated.
->>
->> Then we also want the driver specific idle and reset code to be done
->> in the drivers rather than in hwmod and glue it together with hwmod
->> using runtime PM. The biggest issue there is how do we reset and idle
->> some piece of hardware for PM purposes when there's no driver loaded.
->
-> right, this will be a tough nut to crack.
->
-> I guess the only way would be reset all IPs early in the boot process,
-> before even creating the platform-devices. Can we do that ? I mean, from
-> omap_device_build_from_dt() we have access to address space of all
-> devices, through ti,hwmods we can figure out which hwmods are linked to
-> that particular device, so whenever you build a device, you could just
-> call _reset().
->
-Thats what we do today and it works perfectly. As per Tony's suggestion,
-we need to move the non-probed devices reset and idle setup to late_init
-which is also doable.
+DevKit8000 is a beagle board clone from Timll, sold by
+armkits.com. The DevKit8000 has RS232 serial port, LCD, DVI-D,
+S-Video, Ethernet, SD/MMC, keyboard, camera, SPI, I2C, USB and
+JTAG interface.
 
-In that case when probed driver calls runtime_get(), we reset that
-device and setup the idle settings. And remainder of the devices
-are managed in late_init().
+This patch adds the basic DT support for devkit8000. At this time, Information
+of twl4030 (PMIC), MMC1, I2C1 and leds are added.
 
-> The only problem is that now omap_device_build_from_dt() is called after
-> we notify that a new device/driver pair has been registered with the
-> platform_bus, right ? So we would still need a way to call _reset() for
-> those which are on DTS but don't have a driver bound to them...
->
-The only special requirement for reset remains(which today handled by
-hwmod function calls) is for devices which needs specific reset
-sequence. And this one can be handled through a runtime_reset()
-kind of hook.
+Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
+Tested-by: Thomas Weber <thomas@tomweber.eu>
+---
+ -This patch is based on top of kernel 3.8-rc5.
 
-Does that sound reasonable ?
+ -Tested on Devkit8000.
 
-Regards,
-Santosh
+For V3:
+ - Remove pin mux as done at device boot time by default.
+
+For V2:
+ - Change model name as "TimLL OMAP3 Devkit8000"
+ - Change compatible as "timll,omap3-devkit8000"
+ - Doing i2c1 pinmux default with pinctrl-single driver instead of i2c1
+   driver probe time.
+
+:100644 100644 5ebb44f... 22ebc76... M	arch/arm/boot/dts/Makefile
+:000000 100644 0000000... 6338993... A	arch/arm/boot/dts/omap3-devkit8000.dts
+:100644 100644 53cb380b.. ccecb76... M	arch/arm/mach-omap2/board-generic.c
+ arch/arm/boot/dts/Makefile             |    1 +
+ arch/arm/boot/dts/omap3-devkit8000.dts |  103 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-generic.c    |    1 +
+ 3 files changed, 105 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 5ebb44f..22ebc76 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -102,6 +102,7 @@ dtb-$(CONFIG_ARCH_MXS) += imx23-evk.dtb \
+ 	imx28-tx28.dtb
+ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	omap3-beagle.dtb \
++	omap3-devkit8000.dtb \
+ 	omap3-beagle-xm.dtb \
+ 	omap3-evm.dtb \
+ 	omap3-tobi.dtb \
+diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
+new file mode 100644
+index 0000000..6338993
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+@@ -0,0 +1,103 @@
++/*
++ * Author: Anil Kumar <anilk4.v@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "omap3.dtsi"
++/ {
++	model = "TimLL OMAP3 Devkit8000";
++	compatible = "timll,omap3-devkit8000", "ti,omap3";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>;	/* 256 MB */
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		heartbeat {
++			label = "devkit8000::led1";
++			gpios = <&gpio6 26 0>;	/* 186 -> LED1 */
++			default-state = "on";
++			linux,default-trigger = "heartbeat";
++		};
++
++		mmc {
++			label = "devkit8000::led2";
++			gpios = <&gpio6 3 0>;	/* 163 -> LED2 */
++			default-state = "on";
++			linux,default-trigger = "none";
++		};
++
++		usr {
++			label = "devkit8000::led3";
++			gpios = <&gpio6 4 0>;	/* 164 -> LED3 */
++			default-state = "on";
++			linux,default-trigger = "usr";
++                };
++
++	};
++};
++
++&i2c1 {
++	clock-frequency = <2600000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>;	/* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++	};
++};
++
++&i2c2 {
++	status = "disabled";
++};
++
++&i2c3 {
++	status = "disabled";
++};
++
++/include/ "twl4030.dtsi"
++
++&mmc1 {
++	vmmc-supply = <&vmmc1>;
++	vmmc_aux-supply = <&vsim>;
++	bus-width = <8>;
++};
++
++&mmc2 {
++	status = "disabled";
++};
++
++&mmc3 {
++	status = "disabled";
++};
++
++&wdt2 {
++	status = "disabled";
++};
++
++&mcbsp1 {
++	status = "disabled";
++};
++
++&mcbsp2 {
++	status = "disabled";
++};
++
++&mcbsp3 {
++	status = "disabled";
++};
++
++&mcbsp4 {
++	status = "disabled";
++};
++
++&mcbsp5 {
++	status = "disabled";
++};
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 53cb380..ccecb76 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -110,6 +110,7 @@ MACHINE_END
+ 
+ static const char *omap3_gp_boards_compat[] __initdata = {
+ 	"ti,omap3-beagle",
++	"timll,omap3-devkit8000",
+ 	NULL,
+ };
+ 
+-- 
+1.7.0.4
