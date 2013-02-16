@@ -1,57 +1,64 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
-Date: Sat, 16 Feb 2013 10:29:49 +0530
-Message-ID: <511F1245.60208@ti.com>
-References: <1360840554-26901-1-git-send-email-balbi@ti.com> <1360840554-26901-2-git-send-email-balbi@ti.com> <87obfl60x7.fsf@linaro.org>
+Date: Sat, 16 Feb 2013 11:01:00 +0530
+Message-ID: <511F1994.90101@ti.com>
+References: <20130214171253.GC7144@atomide.com> <20130214175650.GA25891@arwen.pp.htv.fi> <20130214181217.GA11806@atomide.com> <20130214192719.GB26679@arwen.pp.htv.fi> <20130214193911.GD11806@atomide.com> <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com> <20130215101610.GR17852@n2100.arm.linux.org.uk> <511E3797.2070802@ti.com> <20130215132726.GT17852@n2100.arm.linux.org.uk> <511E38C3.7080404@ti.com> <20130215163031.GA5724@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36294 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:36909 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750828Ab3BPE6f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Feb 2013 23:58:35 -0500
-In-Reply-To: <87obfl60x7.fsf@linaro.org>
+	with ESMTP id S1750812Ab3BPF3w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Feb 2013 00:29:52 -0500
+In-Reply-To: <20130215163031.GA5724@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Friday 15 February 2013 09:10 PM, Kevin Hilman wrote:
-> Felipe Balbi <balbi@ti.com> writes:
+On Friday 15 February 2013 10:00 PM, Tony Lindgren wrote:
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130215 05:34]:
+>> On Friday 15 February 2013 06:57 PM, Russell King - ARM Linux wrote:
+>>> On Fri, Feb 15, 2013 at 06:56:47PM +0530, Santosh Shilimkar wrote:
+>>>> Whats your view on use of arch_ioremap_caller() hook ? This can allow
+>>>> us to avoid the dual ioremap() issue discussed here if the hook
+>>>> maintains the list of mapped ios.
+>>>>
+>>>> I was even thinking of having such intelligence within the core
+>>>> ioremap code but thought that might be too invasive.
+>>>
+>>> Why do you even need it?  There's no problem with ioremapping the same
+>>> space multiple times (you end up with multiple mappings but that
+>>> shouldn't be a problem, except for the additional space used.)
+>>>
+>> It just waste of iospace and Tony insisted to have just single ioremap()
+>> hence all this discussion
 >
->> Currently the omap-serial driver will not
->> work properly if booted via DT with CPUIDLE
->> enabled because it depends on function pointers
->> provided by hwmod to change its own SYSCONFIG
->> register.
->>
->> Remove that relyance on hwmod by moving SYSCONFIG
->> handling to driver itself. Note that this also
->> fixes a possible corner case bug where we could
->> be putting UART in Force Idle mode if we called
->> omap_serial_enable_wakeup(up, false) after setting
->> NOIDLE to the idle mode. This is because hwmod
->> has no protection against that situation.
->>
->> NYET-Signed-off-by: Felipe Balbi <balbi@ti.com>
+> The main goal is to avoid duplicating data both in hwmod and DT.
+> That's pretty much solved as we can have the driver probe populate
+> the common data for hwmod from DT as Santosh has already demonstrated.
 >
-> Here's another approach to getting rid of the sysconfig twiddling in the
-> driver.  I wrote this some time ago at my former company ;) but don't
-> think I ever got around to posting it.
->
-> It doesn't solve the whole problem (e.g. doesn't address the
-> context_loss or enable_wakeup func pointers), but at least gets rid of
-> the need for any SYSCONFIG access in the driver for the idle modes.
->
-> Needs more thorough testing.
->
-I posted similar patch series[1] yesterday after testing it on OMAP4/5
-devices. OMAP3 testing seems to be ok as well. AM3XXX and OMAP2 test
-results is what am waiting for.
+Right.
 
-Good to know that you had similar idea in mind to get rid of
-UART sysc hackery.
+> Then we also want the driver specific idle and reset code to be done
+> in the drivers rather than in hwmod and glue it together with hwmod
+> using runtime PM. The biggest issue there is how do we reset and idle
+> some piece of hardware for PM purposes when there's no driver loaded.
+>
+Driver idle functions is getting sorted out. There is no need for driver
+to fiddle around it since PM runtime back-end can take care of of it.
+One attempt to clean that is here [1]
+
+For the reset, we need to have a generic runtime hook as discussed and
+that should take care of reset as well. That way driver just calls
+generic
+
+> For the duplicate ioremapping, I don't think there's any need to
+> do it if we get things right.
+>
+Good to know. So overall, I think we do have a way to move forward
+and get right things done.
 
 Regards,
 Santosh
