@@ -1,80 +1,82 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 1/2] ARM: dts: OMAP3: Add GPMC controller
-Date: Sat, 16 Feb 2013 17:44:12 +0100
-Message-ID: <CABxcv=kDw6pSsdE29-dVqkk2cc-RKBZB6GN8cs+M+C4JEeSbdg@mail.gmail.com>
-References: <1359395648-2137-1-git-send-email-florian.vaussard@epfl.ch>
-	<1359395648-2137-2-git-send-email-florian.vaussard@epfl.ch>
-	<CAPjKCR_oh25c4NKUTWjU6BYp64GjPoi2LWDpRhTUkBkRmc_HUw@mail.gmail.com>
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH] i2c: Remove unneeded xxx_set_drvdata(..., NULL) calls
+Date: Sat, 16 Feb 2013 20:52:20 +0100
+Message-ID: <20130216205220.0a4f871c@endymion.delvare>
+References: <1360953682-25066-1-git-send-email-dianders@chromium.org>
+	<1360970315-32116-1-git-send-email-dianders@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:63055 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753521Ab3BPQoT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Feb 2013 11:44:19 -0500
-Received: by mail-wi0-f177.google.com with SMTP id hm14so2180856wib.16
-        for <linux-omap@vger.kernel.org>; Sat, 16 Feb 2013 08:44:17 -0800 (PST)
-In-Reply-To: <CAPjKCR_oh25c4NKUTWjU6BYp64GjPoi2LWDpRhTUkBkRmc_HUw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1360970315-32116-1-git-send-email-dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Sonic Zhang <sonic.zhang-OyLXuOCK7orQT0dZR+AlfA@public.gmane.org>, Vitaly Wool <vitalywool-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Deepak Sikri <deepak.sikri-qxv4g6HH51o@public.gmane.org>, Li Yang <leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Havard Skinnemoen <hskinnemoen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Uwe =?UTF-8?B?S2xlaW5l?= =?UTF-8?B?LUvDtm5pZw==?= <u.kleine-koenig>
 List-Id: linux-omap@vger.kernel.org
-To: Anil Kumar <anilkumar880@gmail.com>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-On Sat, Feb 16, 2013 at 2:09 PM, Anil Kumar <anilkumar880@gmail.com> wrote:
-> Hi Florian,
->
-> On Mon, Jan 28, 2013 at 11:24 PM, Florian Vaussard
-> <florian.vaussard@epfl.ch> wrote:
->> Add device-tree support for the GPMC controller on the OMAP3.
->>
->> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
->> ---
->>  arch/arm/boot/dts/omap3.dtsi |   11 +++++++++++
->>  1 files changed, 11 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
->> index 6c63118..2ddae38 100644
->> --- a/arch/arm/boot/dts/omap3.dtsi
->> +++ b/arch/arm/boot/dts/omap3.dtsi
->> @@ -403,5 +403,16 @@
->>                         ti,timer-alwon;
->>                         ti,timer-secure;
->>                 };
->> +
->> +               gpmc: gpmc@6e000000 {
->> +                       compatible = "ti,omap3430-gpmc";
->> +                       ti,hwmods = "gpmc";
->> +                       reg = <0x6e000000 0x1000000>;
->> +                       interrupts = <20>;
->> +                       gpmc,num-cs = <8>;
->> +                       gpmc,num-waitpins = <4>;
->> +                       #address-cells = <2>;
->> +                       #size-cells = <1>;
->> +               };
->>         };
->>  };
->
-> Tested on devkit8000 (omap3 based board)
->
-> Please take my Tested-by: Anil Kumar <anilk4.v@gmail.com>
->
-> Thanks,
-> Anil
->
+On Fri, 15 Feb 2013 15:18:35 -0800, Doug Anderson wrote:
+> There is simply no reason to be manually setting the private driver
+> data to NULL in the remove/fail to probe cases.  This is just extra
+> cruft code that can be removed.
+> 
+> A few notes:
+> * Nothing relies on drvdata being set to NULL.
+> * The __device_release_driver() function eventually calls
+>   dev_set_drvdata(dev, NULL) anyway, so there's no need to do it
+>   twice.
 
-Hello Tony and Benoit,
+I had not noticed this change. Very good news!
 
-Could this patch be merged to one of your branches?
+> * I verified that there were no cases where xxx_get_drvdata() was
+>   being called in these drivers and checking for / relying on the NULL
+>   return value.
+> 
+> This could be cleaned up kernel-wide but for now just take the baby
+> step and remove from the i2c subsystem.
+> 
+> Reported-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+> Reported-by: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+> Signed-off-by: Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+> ---
+> (...)
 
-It has already my Reviewed-by and now Anil's Tested-by.
+For i2c-taos-evm:
 
-Now that Daniel's OMAP GPMC binding were merged, there seems to be
-many people working on adding support on their boards DT for
-peripherals connected through the GPMC (NAND, OneNAND, SMSC LAN, etc).
+Reviewed-by: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
 
-I think it will be easier if people can base their work on top of this
-patch instead of duplicating the work and sending the same patch to
-add a GPMC device node to omap3.dtsi on each patch-set.
+Also a note:
 
-Thanks a lot and best regards,
-Javier
+> --- a/drivers/i2c/busses/i2c-octeon.c
+> +++ b/drivers/i2c/busses/i2c-octeon.c
+> @@ -595,7 +595,7 @@ static int octeon_i2c_probe(struct platform_device *pdev)
+>  	result = i2c_add_adapter(&i2c->adap);
+>  	if (result < 0) {
+>  		dev_err(i2c->dev, "failed to add adapter\n");
+> -		goto fail_add;
+> +		goto out;
+>  	}
+>  	dev_info(i2c->dev, "version %s\n", DRV_VERSION);
+>  
+> @@ -603,8 +603,6 @@ static int octeon_i2c_probe(struct platform_device *pdev)
+>  
+>  	return 0;
+>  
+> -fail_add:
+> -	platform_set_drvdata(pdev, NULL);
+>  out:
+>  	return result;
+>  };
+
+There no longer is any point in this error path, all gotos in this
+function could be changed to returns (in a separate patch, obviously.)
+
+-- 
+Jean Delvare
