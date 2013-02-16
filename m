@@ -1,177 +1,107 @@
-From: Anil Kumar <anilk4.v@gmail.com>
-Subject: [PATCH V3] ARM: dts: add minimal DT support for DevKit8000
-Date: Sat, 16 Feb 2013 12:49:27 +0530
-Message-ID: <1360999167-17606-1-git-send-email-anilk4.v@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, grant.likely@secretlab.ca, thomas@tomweber.eu, anilk4.v@gmail.com
+From: Anil Kumar <anilk4.v-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH V2] ARM: dts: omap3-devkit8000: Enable audio support
+Date: Sat, 16 Feb 2013 13:03:56 +0530
+Message-ID: <1361000036-18121-1-git-send-email-anilk4.v@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+Cc: peter.ujfalusi-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, thomas-xePHB1Atl/Dsq35pWSNszA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-DevKit8000 is a beagle board clone from Timll, sold by
-armkits.com. The DevKit8000 has RS232 serial port, LCD, DVI-D,
-S-Video, Ethernet, SD/MMC, keyboard, camera, SPI, I2C, USB and
-JTAG interface.
+Add the needed sections to enable audio support on
+Devkit8000 when booted with DT blob.
 
-This patch adds the basic DT support for devkit8000. At this time, Information
-of twl4030 (PMIC), MMC1, I2C1 and leds are added.
-
-Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
-Tested-by: Thomas Weber <thomas@tomweber.eu>
+Signed-off-by: Anil Kumar <anilk4.v-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- -This patch is based on top of kernel 3.8-rc5.
+This patch is based on top of kernel 3.8-rc5 and
+the following patches.
 
- -Tested on Devkit8000.
+Peter Ujfalusi:-
+ASoC: twl4030: Correct the support for Voice port
+ASoC: twl4030: Convert MICBIAS to SUPPLY widget
+ASoC: omap-twl4030: Add support for routing, voice port and jack detect
 
-For V3:
- - Remove pin mux as done at device boot time by default.
+Anil Kumar:-
+ARM: dts: add minimal DT support for DevKit8000
+https://patchwork.kernel.org/patch/2122461/
+
+-Tested for playback and capture on Devkit8000.
+
+ Test process:-
+
+ #amixer set 'PredriveR Mixer AudioR2' on
+ #amixer set 'PredriveL Mixer AudioL2' on
+ #amixer set PreDriv 100 unmute
+ #amixer set 'DAC2 Digital Fine' 100
+ #amixer cset numid=27 1
+ #arecord | aplay
 
 For V2:
- - Change model name as "TimLL OMAP3 Devkit8000"
- - Change compatible as "timll,omap3-devkit8000"
- - Doing i2c1 pinmux default with pinctrl-single driver instead of i2c1
-   driver probe time.
+ - Remove pin mux as done at device boot time by default.
 
-:100644 100644 5ebb44f... 22ebc76... M	arch/arm/boot/dts/Makefile
-:000000 100644 0000000... 6338993... A	arch/arm/boot/dts/omap3-devkit8000.dts
-:100644 100644 53cb380b.. ccecb76... M	arch/arm/mach-omap2/board-generic.c
- arch/arm/boot/dts/Makefile             |    1 +
- arch/arm/boot/dts/omap3-devkit8000.dts |  103 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-generic.c    |    1 +
- 3 files changed, 105 insertions(+), 0 deletions(-)
+:100644 100644 6338993... c70116f... M	arch/arm/boot/dts/omap3-devkit8000.dts
+ arch/arm/boot/dts/omap3-devkit8000.dts |   23 +++++++++++++++++++----
+ 1 files changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 5ebb44f..22ebc76 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -102,6 +102,7 @@ dtb-$(CONFIG_ARCH_MXS) += imx23-evk.dtb \
- 	imx28-tx28.dtb
- dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	omap3-beagle.dtb \
-+	omap3-devkit8000.dtb \
- 	omap3-beagle-xm.dtb \
- 	omap3-evm.dtb \
- 	omap3-tobi.dtb \
 diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
-new file mode 100644
-index 0000000..6338993
---- /dev/null
+index 6338993..c70116f 100644
+--- a/arch/arm/boot/dts/omap3-devkit8000.dts
 +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
-@@ -0,0 +1,103 @@
-+/*
-+ * Author: Anil Kumar <anilk4.v@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+/include/ "omap3.dtsi"
-+/ {
-+	model = "TimLL OMAP3 Devkit8000";
-+	compatible = "timll,omap3-devkit8000", "ti,omap3";
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>;	/* 256 MB */
-+	};
-+
-+	leds {
-+		compatible = "gpio-leds";
-+
-+		heartbeat {
-+			label = "devkit8000::led1";
-+			gpios = <&gpio6 26 0>;	/* 186 -> LED1 */
-+			default-state = "on";
-+			linux,default-trigger = "heartbeat";
-+		};
-+
-+		mmc {
-+			label = "devkit8000::led2";
-+			gpios = <&gpio6 3 0>;	/* 163 -> LED2 */
-+			default-state = "on";
-+			linux,default-trigger = "none";
-+		};
-+
-+		usr {
-+			label = "devkit8000::led3";
-+			gpios = <&gpio6 4 0>;	/* 164 -> LED3 */
-+			default-state = "on";
-+			linux,default-trigger = "usr";
-+                };
-+
-+	};
-+};
-+
-+&i2c1 {
-+	clock-frequency = <2600000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		interrupts = <7>;	/* SYS_NIRQ cascaded to intc */
-+		interrupt-parent = <&intc>;
-+	};
-+};
-+
-+&i2c2 {
-+	status = "disabled";
-+};
-+
-+&i2c3 {
-+	status = "disabled";
-+};
-+
-+/include/ "twl4030.dtsi"
-+
-+&mmc1 {
-+	vmmc-supply = <&vmmc1>;
-+	vmmc_aux-supply = <&vsim>;
-+	bus-width = <8>;
-+};
-+
-+&mmc2 {
-+	status = "disabled";
-+};
-+
-+&mmc3 {
-+	status = "disabled";
-+};
-+
-+&wdt2 {
-+	status = "disabled";
-+};
-+
-+&mcbsp1 {
-+	status = "disabled";
-+};
-+
-+&mcbsp2 {
-+	status = "disabled";
-+};
-+
-+&mcbsp3 {
-+	status = "disabled";
-+};
-+
-+&mcbsp4 {
-+	status = "disabled";
-+};
-+
-+&mcbsp5 {
-+	status = "disabled";
-+};
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 53cb380..ccecb76 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -110,6 +110,7 @@ MACHINE_END
+@@ -42,6 +42,19 @@
+                 };
  
- static const char *omap3_gp_boards_compat[] __initdata = {
- 	"ti,omap3-beagle",
-+	"timll,omap3-devkit8000",
- 	NULL,
+ 	};
++
++	sound {
++		compatible = "ti,omap-twl4030";
++		ti,model = "devkit8000";
++
++		ti,mcbsp = <&mcbsp2>;
++		ti,codec = <&twl_audio>;
++		ti,audio-routing =
++			"Ext Spk", "PREDRIVEL",
++			"Ext Spk", "PREDRIVER",
++			"MAINMIC", "Main Mic",
++			"Main Mic", "Mic Bias 1";
++	};
  };
  
+ &i2c1 {
+@@ -51,6 +64,12 @@
+ 		reg = <0x48>;
+ 		interrupts = <7>;	/* SYS_NIRQ cascaded to intc */
+ 		interrupt-parent = <&intc>;
++
++		twl_audio: audio {
++			compatible = "ti,twl4030-audio";
++			codec {
++			};
++		};
+ 	};
+ };
+ 
+@@ -86,10 +105,6 @@
+ 	status = "disabled";
+ };
+ 
+-&mcbsp2 {
+-	status = "disabled";
+-};
+-
+ &mcbsp3 {
+ 	status = "disabled";
+ };
 -- 
 1.7.0.4
