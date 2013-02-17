@@ -1,33 +1,22 @@
 From: Mugunthan V N <mugunthanvnm@ti.com>
 Subject: Re: [PATCH v2 1/1] drivers: net: davinci_cpdma: acknowledge interrupt
  properly
-Date: Sun, 17 Feb 2013 15:04:42 +0530
-Message-ID: <5120A432.5070302@ti.com>
-References: <1360866406-17261-1-git-send-email-mugunthanvnm@ti.com> <20130215.150506.499818568035818118.davem@davemloft.net>
+Date: Sun, 17 Feb 2013 15:05:47 +0530
+Message-ID: <5120A473.5080004@ti.com>
+References: <1360866406-17261-1-git-send-email-mugunthanvnm@ti.com> <20130215.150506.499818568035818118.davem@davemloft.net> <20130215.150533.2127506748282656571.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20130215.150506.499818568035818118.davem@davemloft.net>
+In-Reply-To: <20130215.150533.2127506748282656571.davem@davemloft.net>
 Sender: netdev-owner@vger.kernel.org
 To: David Miller <davem@davemloft.net>
 Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 On 2/16/2013 1:35 AM, David Miller wrote:
-> From: Mugunthan V N <mugunthanvnm@ti.com>
-> Date: Thu, 14 Feb 2013 23:56:46 +0530
->
->> +enum {
->> +	CPDMA_EOI_RX_THRESH = 0,
->> +	CPDMA_EOI_RX,
->> +	CPDMA_EOI_TX,
->> +	CPDMA_EOI_MISC,
->> +};
-> Do not use enumerations for hardware register values, which must be
-> exact, otherwise you are potentially going to succumb to the vagaries
-> of C language enumeration value assignment.
-Will change enum to define and submit next version patch.
+> Also please indicate, clearly, what tree your patch is targetted at.
+Sorry for not mentioning the tree, will mention in the future patches.
 
 Regards
 Mugunthan V N
