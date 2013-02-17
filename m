@@ -1,104 +1,54 @@
-From: Andi Shyti <andi.shyti@gmail.com>
-Subject: Re: [PATCH v2 1/1] OMAP4: DSS: Add panel for Blaze Tablet boards
-Date: Sun, 17 Feb 2013 15:17:57 +0100
-Message-ID: <20130217141757.GA5228@jack.whiskey>
-References: <1360338220-12753-1-git-send-email-ruslan.bilovol@ti.com>
- <1360338220-12753-2-git-send-email-ruslan.bilovol@ti.com>
- <20130210235125.GA8098@jack.whiskey>
- <CAB=otbSpspZ9Z_fOpBvE1mPtt+JwZydZrgcR2LdkD_4CrGa_eg@mail.gmail.com>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH] i2c: Remove unneeded xxx_set_drvdata(..., NULL) calls
+Date: Sun, 17 Feb 2013 16:12:31 +0100
+Message-ID: <87txpboty7.fsf@dell.be.48ers.dk>
+References: <1360953682-25066-1-git-send-email-dianders@chromium.org>
+ <1360970315-32116-1-git-send-email-dianders@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAB=otbSpspZ9Z_fOpBvE1mPtt+JwZydZrgcR2LdkD_4CrGa_eg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: Andi Shyti <andi@etezian.org>, tomi.valkeinen@ti.com, FlorianSchandinat@gmx.de, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <1360970315-32116-1-git-send-email-dianders@chromium.org> (Doug
+ Anderson's message of "Fri, 15 Feb 2013 15:18:35 -0800")
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Doug Anderson <dianders@chromium.org>
+Cc: Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Thierry Reding <thierry.reding@avionic-design.de>, Sekhar Nori <nsekhar@ti.com>, linux-i2c@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, Kevin Hilman <khilman@ti.com>, Sonic Zhang <sonic.zhang@analog.com>, linux-arm-kernel@lists.infradead.org, Deepak Sikri <deepak.sikri@st.com>, Havard Skinnemoen <hskinnemoen@gmail.com>, Marek Vasut <marex@denx.de>, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Sascha Hauer <s.hauer@pengutronix.de>, Uwe =?utf-8?Q?Kleine?= =?utf-8?Q?-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, uclinux-dist-devel@blackfin.uclinux.org, Jean Delvare <khali@linux-fr.org>, Lars-Peter Clausen <lars@metafoo.de>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Barry
 List-Id: linux-omap@vger.kernel.org
 
-> >> +     char name[30];
-> >> +     char buf[50];
-> >> +
-> >> +     if (size >= sizeof(buf))
-> >> +             size = sizeof(buf);
-> >
-> > what's the point of this?
-> 
-> This is a way to limit copied from userspace data by available buffer size,
-> widely used in current kernel sources. Are you implying there is some
-> better (more graceful) way?
+>>>>> "Doug" == Doug Anderson <dianders@chromium.org> writes:
 
-No indeed :)
-There is no other way, sorry for polluting the review :)
+ Doug> There is simply no reason to be manually setting the private driver
+ Doug> data to NULL in the remove/fail to probe cases.  This is just extra
+ Doug> cruft code that can be removed.
 
-> >> +     if ((pins[2] & 1) || (pins[3] & 1)) {
-> >> +             lanes |= (1 << 1);
-> >> +             ret |= tc358765_write_register(dssdev, PPI_D0S_CLRSIPOCOUNT,
-> >> +                                                     board_data->clrsipo);
-> >> +     }
-> >> +     if ((pins[4] & 1) || (pins[5] & 1)) {
-> >> +             lanes |= (1 << 2);
-> >> +             ret |= tc358765_write_register(dssdev, PPI_D1S_CLRSIPOCOUNT,
-> >> +                                                     board_data->clrsipo);
-> >> +     }
-> >> +     if ((pins[6] & 1) || (pins[7] & 1)) {
-> >> +             lanes |= (1 << 3);
-> >> +             ret |= tc358765_write_register(dssdev, PPI_D2S_CLRSIPOCOUNT,
-> >> +                                                     board_data->clrsipo);
-> >> +     }
-> >> +     if ((pins[8] & 1) || (pins[9] & 1)) {
-> >> +             lanes |= (1 << 4);
-> >> +             ret |= tc358765_write_register(dssdev, PPI_D3S_CLRSIPOCOUNT,
-> >> +                                                     board_data->clrsipo);
-> >> +     }
-> >
-> > Can't this be done in one single multiwrighting command since
-> > this registers are consecutive?
-> >
-> > You build once the array to write and you send it at once.
-> 
-> In this particular case I disagree. Yes, it will be a little bit
-> faster, however:
-> 1) we write this for panel initialization only (so no impact in other cases)
-> 2) multiwriting of array will make code reading more difficult
-> 
-> So I would like to leave it as-is
-> Same is for next your similar comment.
+ Doug> A few notes:
+ Doug> * Nothing relies on drvdata being set to NULL.
+ Doug> * The __device_release_driver() function eventually calls
+ Doug>   dev_set_drvdata(dev, NULL) anyway, so there's no need to do it
+ Doug>   twice.
+ Doug> * I verified that there were no cases where xxx_get_drvdata() was
+ Doug>   being called in these drivers and checking for / relying on the NULL
+ Doug>   return value.
 
-If the hw is providing us some ways for simplifying the code I
-would use it. In this case we are talking about the i2c feature
-of multiwriting and multireading.
+ Doug> This could be cleaned up kernel-wide but for now just take the baby
+ Doug> step and remove from the i2c subsystem.
 
-Let's assume that we want to write on 8 different consecutive
-registers. In my opinion this aproach is quite "heavy":
+ Doug> Reported-by: Wolfram Sang <wsa@the-dreams.de>
+ Doug> Reported-by: Stephen Warren <swarren@wwwdotorg.org>
+ Doug> Signed-off-by: Doug Anderson <dianders@chromium.org>
 
-  uX register;
+For i2c-ocores.c + i2c-mux-gpio.c:
 
-  register = value1;
-  i2c_write(REG1, register);
+Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
 
-  register = value2;
-  i2c_write(REG2, register);
-
-  ...
-
-Usually what I do is this:
-
-  uX register[8];
-
-  for (i = 0; i < 8; i++)
-    register |= valuei << i; (or register[i] = valuei or whatever)
-
-  i2c_multi_write(REG, register, 8);
-
-of course this is a simplified example in pseudocode. I think
-it's more readable and we are making a better use of the i2c
-protocol.
-
-In your case you have some if statement that are making the multi
-writing more difficult, but still is not impossible.
-
-At the end it's still a matter of taste, so that you are free to
-choose whatever you prefer :)
-
-Andi
+-- 
+Bye, Peter Korsgaard
