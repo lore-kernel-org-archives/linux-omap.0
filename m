@@ -1,67 +1,80 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
-Date: Mon, 18 Feb 2013 06:52:35 -0800
-Message-ID: <87vc9p4qto.fsf@linaro.org>
-References: <1360840554-26901-1-git-send-email-balbi@ti.com>
-	<1360840554-26901-2-git-send-email-balbi@ti.com>
-	<87obfl60x7.fsf@linaro.org> <511F1245.60208@ti.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 3/3] driver: net: ethernet: cpsw: dual emac interface
+ implementation
+Date: Mon, 18 Feb 2013 20:40:48 +0530
+Message-ID: <51224478.7050304@ti.com>
+References: <1360612340-9266-1-git-send-email-mugunthanvnm@ti.com>
+ <1360612340-9266-4-git-send-email-mugunthanvnm@ti.com>
+ <87mwv1kaln.fsf@dell.be.48ers.dk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:60528 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751893Ab3BROwi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Feb 2013 09:52:38 -0500
-Received: by mail-pb0-f42.google.com with SMTP id xb4so1708506pbc.15
-        for <linux-omap@vger.kernel.org>; Mon, 18 Feb 2013 06:52:38 -0800 (PST)
-In-Reply-To: <511F1245.60208@ti.com> (Santosh Shilimkar's message of "Sat, 16
-	Feb 2013 10:29:49 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <87mwv1kaln.fsf-D6SC8u56vOOJDPpyT6T3/w@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+On 2/18/2013 7:06 PM, Peter Korsgaard wrote:
+>>>>>> "M" == Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org> writes:
+>   M> The CPSW switch can act as Dual EMAC by segregating the switch ports
+>   M> using VLAN and port VLAN as per the TRM description in
+>   M> 14.3.2.10.2 Dual Mac Mode
+>
+>   M> Following CPSW components will be common for both the interfaces.
+>   M> * Interrupt source is common for both eth interfaces
+>   M> * Interrupt pacing is common for both interfaces
+>   M> * Hardware statistics is common for all the ports
+>   M> * CPDMA is common for both eth interface
+>   M> * CPTS is common for both the interface and it should not be enabled on
+>   M>   both the interface as timestamping information doesn't contain port
+>   M>   information.
+>
+>   M> Constrains
+>   M> * Reserved VID of One port should not be used in other interface which will
+>   M>   enable switching functionality
+>   M> * Same VID must not be used in both the interface which will enable switching
+>   M>   functionality
+>
+>   M> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+>   M> ---
+>   M>  Documentation/devicetree/bindings/net/cpsw.txt |    2 +
+>   M>  drivers/net/ethernet/ti/cpsw.c                 |  335 ++++++++++++++++++++----
+>   M>  include/linux/platform_data/cpsw.h             |    3 +
+>   M>  3 files changed, 288 insertions(+), 52 deletions(-)
+>
+>   M> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+>   M> index 6ddd028..ecfdf75 100644
+>   M> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+>   M> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+>   M> @@ -24,6 +24,8 @@ Required properties:
+>   M>  Optional properties:
+>   M>  - ti,hwmods		: Must be "cpgmac0"
+>   M>  - no_bd_ram		: Must be 0 or 1
+>   M> +- dual_emac		: Specifies Switch to act as Dual EMAC
+>   M> +- dual_emac_res_vlan	: Specifies VID to be used to segregate the ports
+>
+> You forgot to CC devicetree-discuss. Properties normally use dashes (-)
+> instead of underscores (_). These properties are more about
+> configuration and not hardware.
+>
+> It is not clear to me from the description that dual_emac is a boolean
+> (0/1). Shouldn't dual_emacs_res_vlan be a property of the slave?
+>
+> It would also be good to update the example below with this.
+Since the series is already applied in net-next tree, i will submit a 
+patch with incorporating
+the above comments. Will add devicetree-discuss in my future patches.
 
-> On Friday 15 February 2013 09:10 PM, Kevin Hilman wrote:
->> Felipe Balbi <balbi@ti.com> writes:
->>
->>> Currently the omap-serial driver will not
->>> work properly if booted via DT with CPUIDLE
->>> enabled because it depends on function pointers
->>> provided by hwmod to change its own SYSCONFIG
->>> register.
->>>
->>> Remove that relyance on hwmod by moving SYSCONFIG
->>> handling to driver itself. Note that this also
->>> fixes a possible corner case bug where we could
->>> be putting UART in Force Idle mode if we called
->>> omap_serial_enable_wakeup(up, false) after setting
->>> NOIDLE to the idle mode. This is because hwmod
->>> has no protection against that situation.
->>>
->>> NYET-Signed-off-by: Felipe Balbi <balbi@ti.com>
->>
->> Here's another approach to getting rid of the sysconfig twiddling in the
->> driver.  I wrote this some time ago at my former company ;) but don't
->> think I ever got around to posting it.
->>
->> It doesn't solve the whole problem (e.g. doesn't address the
->> context_loss or enable_wakeup func pointers), but at least gets rid of
->> the need for any SYSCONFIG access in the driver for the idle modes.
->>
->> Needs more thorough testing.
->>
-> I posted similar patch series[1] yesterday after testing it on OMAP4/5
-> devices. OMAP3 testing seems to be ok as well. AM3XXX and OMAP2 test
-> results is what am waiting for.
-
-Yeah, I saw yours after I posted mine.  Just continue with yours, I'll
-be glad to have someone else take this on.
-
-> Good to know that you had similar idea in mind to get rid of
-> UART sysc hackery.
-
-Likewise.
-
-Kevin
+Regards
+Mugunthan V N
