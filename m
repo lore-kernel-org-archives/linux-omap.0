@@ -1,441 +1,82 @@
-From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: [PATCH 1/1] ARM: DTS: OMAP4: Add OMAP4 Blaze Tablet support
-Date: Mon, 18 Feb 2013 14:41:57 +0200
-Message-ID: <1361191317-24988-2-git-send-email-ruslan.bilovol@ti.com>
-References: <1361191317-24988-1-git-send-email-ruslan.bilovol@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1361191317-24988-1-git-send-email-ruslan.bilovol@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+From: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: Enable SDIO IRQ using a GPIO in idle
+ mode.
+Date: Mon, 18 Feb 2013 13:42:27 +0100
+Message-ID: <20130218124227.GA24607@blumentopf>
+References: <20121220220444.GA350@blumentopf>
+ <1356041532-919-1-git-send-email-andreas.fenkart@streamunlimited.com>
+ <20130110202203.GD14149@atomide.com>
+ <512201DE.1070001@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <512201DE.1070001@gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Andreas Fenkart <andreas.fenkart@streamunlimited.com>, cjb@laptop.org, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP4 Blaze Tablet is TI OMAP4 processor-based
-development platform in a tablet formfactor.
-The platform contains many of the features found in
-present-day handsets (such as audio, video, wireless
-functions and user interfaces) and in addition
-contains features for software development and test.
+Hi,
 
-This patch adds initial support for the OMAP4 Blaze
-Tablet development platform. Additional functionality
-depends on different drivers and code modifications that
-are not upstreamed yet or do not support DT yet, so will
-be added later.
+On Mon, Feb 18, 2013 at 11:26:38AM +0100, Daniel Mack wrote:
+> On 10.01.2013 21:22, Tony Lindgren wrote:
+> > * Andreas Fenkart <andreas.fenkart@streamunlimited.com> [121220 14:15]:
+> >> Without functional clock the omap_hsmmc module can't forward
+> >> SDIO IRQs to the system. This patch reconfigures dat1 line
+> >> as a gpio while the fclk is off. And uses SDIO IRQ detection of
+> >> the module, while fclk is present.
+> > 
+> > Looks pretty good to me, however I could not figure out what
+> > to apply this on for testing. It fails to apply at least against
+> > current linux next, can you please update against that?
+> >  
+> >> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
+> >> +{
+> >> +	struct omap_hsmmc_host *host = mmc_priv(mmc);
+> >> +	u32 irq_mask;
+> >> +	unsigned long flags;
+> >> +
+> >> +	spin_lock_irqsave(&host->irq_lock, flags);
+> >> +
+> >> +	host->sdio_irq_en = (enable != 0) ? true : false;
+> >> +
+> >> +	if (host->active_pinmux) {
+> >> +		irq_mask = OMAP_HSMMC_READ(host->base, ISE);
+> >> +		if (enable)
+> >> +			irq_mask |= CIRQ_ENABLE;
+> >> +		else
+> >> +			irq_mask &= ~CIRQ_ENABLE;
+> >> +		OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
+> >> +
+> >> +		if (!host->req_in_progress)
+> >> +			OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
+> >> +
+> >> +#if 0
+> >> +		OMAP_HSMMC_READ(host->base, IE); /* flush posted write */
+> >> +#endif
+> > 
+> > Maybe just replace #if 0 with just a comment in case it turns out to be
+> > needed for some cases?
+> 
+> Is there any update on this series? Andreas, did you do more tests?
 
-Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
----
- arch/arm/boot/dts/Makefile              |    1 +
- arch/arm/boot/dts/omap4-blazetablet.dts |  390 +++++++++++++++++++++++++++++++
- 2 files changed, 391 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap4-blazetablet.dts
+Thanks for all the feedback so far. Yes I did more testing. After
+reducing the autosuspend delay, I found two more bugs.
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 5ebb44f..4f94a95 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -110,6 +110,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	omap4-panda-es.dtb \
- 	omap4-var-som.dtb \
- 	omap4-sdp.dtb \
-+	omap4-blazetablet.dtb \
- 	omap5-evm.dtb \
- 	am335x-evm.dtb \
- 	am335x-evmsk.dtb \
-diff --git a/arch/arm/boot/dts/omap4-blazetablet.dts b/arch/arm/boot/dts/omap4-blazetablet.dts
-new file mode 100644
-index 0000000..d6be4dc
---- /dev/null
-+++ b/arch/arm/boot/dts/omap4-blazetablet.dts
-@@ -0,0 +1,390 @@
-+/*
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * Author: Ruslan Bilovol <ruslan.bilovol@ti.com>
-+ *
-+ * based on omap4-sdp.dts
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+/include/ "omap4.dtsi"
-+/include/ "elpida_ecb240abacn.dtsi"
-+
-+/ {
-+	model = "TI OMAP4 Blaze Tablet";
-+	compatible = "ti,omap4-blazetablet", "ti,omap4430", "ti,omap4";
-+
-+	chosen {
-+		bootargs = "root=/dev/mmcblk0p2 rootwait console=ttyO2,115200";
-+	};
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x40000000>; /* 1 GB */
-+	};
-+
-+	vdd_eth: fixedregulator-vdd-eth {
-+		compatible = "regulator-fixed";
-+		regulator-name = "VDD_ETH";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&gpio2 16 0>;  /* gpio line 48 */
-+		enable-active-high;
-+		regulator-boot-on;
-+	};
-+
-+	vbat: fixedregulator-vbat {
-+		compatible = "regulator-fixed";
-+		regulator-name = "VBAT";
-+		regulator-min-microvolt = <3750000>;
-+		regulator-max-microvolt = <3750000>;
-+		regulator-boot-on;
-+	};
-+
-+	gpio_keys {
-+		compatible = "gpio-keys";
-+
-+		volume_up {
-+			label = "volume-up";
-+			linux,code = <115>;	/* KEY_VOLUMEUP */
-+			gpios = <&gpio2 11 0>;	/* 43 */
-+			gpio-key,wakeup;
-+		};
-+
-+		home {
-+			label = "home";
-+			linux,code = <102>;	/* KEY_HOME */
-+			gpios = <&gpio2 14 0>;	/* 46 */
-+			gpio-key,wakeup;
-+		};
-+
-+		volume_down {
-+			label = "volume-down";
-+			linux,code = <114>;	/* KEY_VOLUMEDOWN */
-+			gpios = <&gpio2 15 0>;	/* 47 */
-+			gpio-key,wakeup;
-+		};
-+	};
-+
-+	leds {
-+		compatible = "gpio-leds";
-+
-+		debug2 {
-+			label = "omap4:green:debug2";
-+			gpios = <&gpio6 13 0>; /* 173 */
-+		};
-+
-+		debug4 {
-+			label = "omap4:green:debug4";
-+			gpios = <&gpio2 18 0>; /* 50 */
-+		};
-+
-+		user1 {
-+			label = "omap4:blue:user";
-+			gpios = <&gpio6 9 0>; /* 169 */
-+		};
-+
-+		user2 {
-+			label = "omap4:red:user";
-+			gpios = <&gpio6 10 0>; /* 170 */
-+		};
-+
-+		user3 {
-+			label = "omap4:green:user";
-+			gpios = <&gpio6 14 0>; /* 174 */
-+		};
-+	};
-+
-+	sound {
-+		compatible = "ti,abe-twl6040";
-+		ti,model = "BlazeTablet";
-+
-+		ti,jack-detection = <1>;
-+		ti,mclk-freq = <38400000>;
-+
-+		ti,mcpdm = <&mcpdm>;
-+		ti,dmic = <&dmic>;
-+
-+		ti,twl6040 = <&twl6040>;
-+
-+		/* Audio routing */
-+		ti,audio-routing =
-+			"Headset Stereophone", "HSOL",
-+			"Headset Stereophone", "HSOR",
-+			"Ext Spk", "HFL",
-+			"Ext Spk", "HFR",
-+			"Line Out", "AUXL",
-+			"Line Out", "AUXR",
-+			"Vibrator", "VIBRAL",
-+			"Vibrator", "VIBRAR",
-+			"HSMIC", "Headset Mic",
-+			"Headset Mic", "Headset Mic Bias",
-+			"MAINMIC", "Main Handset Mic",
-+			"Main Handset Mic", "Main Mic Bias",
-+			"SUBMIC", "Sub Handset Mic",
-+			"Sub Handset Mic", "Main Mic Bias",
-+			"AFML", "Line In",
-+			"AFMR", "Line In",
-+			"DMic", "Digital Mic",
-+			"Digital Mic", "Digital Mic1 Bias";
-+	};
-+};
-+
-+&omap4_pmx_core {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+			&twl6040_pins
-+			&mcpdm_pins
-+			&dmic_pins
-+			&mcbsp1_pins
-+			&mcbsp2_pins
-+			&dss_hdmi_pins
-+			&tpd12s015_pins
-+			&gpio_keys_pins
-+			&leds_pins
-+	>;
-+
-+	gpio_keys_pins: pinmux_gpio_keys_pins {
-+		pinctrl-single,pins = <
-+			0x26 0x11B	/* gpmc_a19.gpio_43 INPUT_PULLUP | MODE3 */
-+			0x2C 0x11B	/* gpmc_a22.gpio_46 INPUT_PULLUP | MODE3 */
-+			0x2E 0x11B	/* gpmc_a22.gpio_47 INPUT_PULLUP | MODE3 */
-+		>;
-+	};
-+
-+	leds_pins: pinmux_led_pins {
-+		pinctrl-single,pins = <
-+			0x34 0x3	/* gpmc_ncs0.gpio_50 OUTPUT | MODE3 */
-+			0x138 0x3	/* usbb2_hsic_data.gpio_169 OUTPUT | MODE3 */
-+			0x13a 0x3	/* usbb2_hsic_strobe.gpio_170 OUTPUT | MODE3 */
-+			0x140 0x3	/* kpd_col5.gpio_173 OUTPUT | MODE3 */
-+			0x142 0x3	/* kpd_col5.gpio_174 OUTPUT | MODE3 */
-+		>;
-+	};
-+
-+	uart2_pins: pinmux_uart2_pins {
-+		pinctrl-single,pins = <
-+			0xd8 0x118	/* uart2_cts.uart2_cts INPUT_PULLUP | MODE0 */
-+			0xda 0		/* uart2_rts.uart2_rts OUTPUT | MODE0 */
-+			0xdc 0x118	/* uart2_rx.uart2_rx INPUT_PULLUP | MODE0 */
-+			0xde 0		/* uart2_tx.uart2_tx OUTPUT | MODE0 */
-+		>;
-+	};
-+
-+	uart3_pins: pinmux_uart3_pins {
-+		pinctrl-single,pins = <
-+			0x100 0x118	/* uart3_cts_rctx.uart3_cts_rctx INPUT_PULLUP | MODE0 */
-+			0x102 0		/* uart3_rts_sd.uart3_rts_sd OUTPUT | MODE0 */
-+			0x104 0x100	/* uart3_rx_irrx.uart3_rx_irrx INPUT | MODE0 */
-+			0x106 0		/* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
-+		>;
-+	};
-+
-+	uart4_pins: pinmux_uart4_pins {
-+		pinctrl-single,pins = <
-+			0x11c 0x100	/* uart4_rx.uart4_rx INPUT | MODE0 */
-+			0x11e 0		/* uart4_tx.uart4_tx OUTPUT | MODE0 */
-+		>;
-+	};
-+
-+	twl6040_pins: pinmux_twl6040_pins {
-+		pinctrl-single,pins = <
-+			0xe0 0x3	/* hdq_sio.gpio_127 OUTPUT | MODE3 */
-+			0x160 0x100	/* sys_nirq2.sys_nirq2 INPUT | MODE0 */
-+		>;
-+	};
-+
-+	mcpdm_pins: pinmux_mcpdm_pins {
-+		pinctrl-single,pins = <
-+			0xc6 0x108	/* abe_pdm_ul_data.abe_pdm_ul_data INPUT PULLDOWN | MODE0 */
-+			0xc8 0x108	/* abe_pdm_dl_data.abe_pdm_dl_data INPUT PULLDOWN | MODE0 */
-+			0xca 0x118	/* abe_pdm_frame.abe_pdm_frame INPUT PULLUP | MODE0 */
-+			0xcc 0x108	/* abe_pdm_lb_clk.abe_pdm_lb_clk INPUT PULLDOWN | MODE0 */
-+			0xce 0x108	/* abe_clks.abe_clks INPUT PULLDOWN | MODE0 */
-+		>;
-+	};
-+
-+	dmic_pins: pinmux_dmic_pins {
-+		pinctrl-single,pins = <
-+			0xd0 0		/* abe_dmic_clk1.abe_dmic_clk1 OUTPUT | MODE0 */
-+			0xd2 0x100	/* abe_dmic_din1.abe_dmic_din1 INPUT | MODE0 */
-+			0xd4 0x100	/* abe_dmic_din2.abe_dmic_din2 INPUT | MODE0 */
-+			0xd6 0x100	/* abe_dmic_din3.abe_dmic_din3 INPUT | MODE0 */
-+		>;
-+	};
-+
-+	mcbsp1_pins: pinmux_mcbsp1_pins {
-+		pinctrl-single,pins = <
-+			0xbe 0x100	/* abe_mcbsp1_clkx.abe_mcbsp1_clkx INPUT | MODE0 */
-+			0xc0 0x108	/* abe_mcbsp1_dr.abe_mcbsp1_dr INPUT PULLDOWN | MODE0 */
-+			0xc2 0x8	/* abe_mcbsp1_dx.abe_mcbsp1_dx OUTPUT PULLDOWN | MODE0 */
-+			0xc4 0x100	/* abe_mcbsp1_fsx.abe_mcbsp1_fsx INPUT | MODE0 */
-+		>;
-+	};
-+
-+	mcbsp2_pins: pinmux_mcbsp2_pins {
-+		pinctrl-single,pins = <
-+			0xb6 0x100	/* abe_mcbsp2_clkx.abe_mcbsp2_clkx INPUT | MODE0 */
-+			0xb8 0x108	/* abe_mcbsp2_dr.abe_mcbsp2_dr INPUT PULLDOWN | MODE0 */
-+			0xba 0x8	/* abe_mcbsp2_dx.abe_mcbsp2_dx OUTPUT PULLDOWN | MODE0 */
-+			0xbc 0x100	/* abe_mcbsp2_fsx.abe_mcbsp2_fsx INPUT | MODE0 */
-+		>;
-+	};
-+
-+	dss_hdmi_pins: pinmux_dss_hdmi_pins {
-+		pinctrl-single,pins = <
-+			0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
-+			0x5c 0x118	/* hdmi_scl.hdmi_scl INPUT PULLUP | MODE 0 */
-+			0x5e 0x118	/* hdmi_sda.hdmi_sda INPUT PULLUP | MODE 0 */
-+		>;
-+	};
-+
-+	tpd12s015_pins: pinmux_tpd12s015_pins {
-+		pinctrl-single,pins = <
-+			0x22 0x3	/* gpmc_a17.gpio_41 OUTPUT | MODE3 */
-+			0x48 0x3	/* gpmc_nbe1.gpio_60 OUTPUT | MODE3 */
-+			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
-+		>;
-+	};
-+};
-+
-+&i2c1 {
-+	clock-frequency = <400000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
-+		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
-+		interrupt-parent = <&gic>;
-+	};
-+
-+	twl6040: twl@4b {
-+		compatible = "ti,twl6040";
-+		reg = <0x4b>;
-+		/* SPI = 0, IRQ# = 119, 4 = active high level-sensitive */
-+		interrupts = <0 119 4>; /* IRQ_SYS_2N cascaded to gic */
-+		interrupt-parent = <&gic>;
-+		ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
-+
-+		vio-supply = <&v1v8>;
-+		v2v1-supply = <&v2v1>;
-+		enable-active-high;
-+
-+		/* regulators for vibra motor */
-+		vddvibl-supply = <&vbat>;
-+		vddvibr-supply = <&vbat>;
-+
-+		vibra {
-+			/* Vibra driver, motor resistance parameters */
-+			ti,vibldrv-res = <8>;
-+			ti,vibrdrv-res = <3>;
-+			ti,viblmotor-res = <10>;
-+			ti,vibrmotor-res = <10>;
-+			ti,vddvibl-uV = <0>;	/* fixed volt supply - VBAT */
-+			ti,vddvibr-uV = <0>;	/* fixed volt supply - VBAT */
-+		};
-+	};
-+};
-+
-+/include/ "twl6030.dtsi"
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+};
-+
-+&i2c3 {
-+	clock-frequency = <400000>;
-+
-+	/*
-+	 * Temperature Sensor
-+	 * http://www.ti.com/lit/ds/symlink/tmp105.pdf
-+	 */
-+	tmp105@48 {
-+		compatible = "ti,tmp105";
-+		reg = <0x48>;
-+	};
-+};
-+
-+&i2c4 {
-+	clock-frequency = <400000>;
-+
-+	/*
-+	 * BMP085 digital pressure sensor
-+	 */
-+	pressure@77 {
-+		compatible = "bosch,bmp085";
-+		reg = <0x77>;
-+	};
-+};
-+
-+&mcspi1 {
-+	eth@0 {
-+		compatible = "ks8851";
-+		spi-max-frequency = <24000000>;
-+		reg = <0>;
-+		interrupt-parent = <&gpio2>;
-+		interrupts = <2>; /* gpio line 34 */
-+		vdd-supply = <&vdd_eth>;
-+	};
-+};
-+
-+&mmc1 {
-+	vmmc-supply = <&vmmc>;
-+	bus-width = <8>;
-+};
-+
-+&mmc2 {
-+	vmmc-supply = <&vaux1>;
-+	bus-width = <8>;
-+	ti,non-removable;
-+};
-+
-+&mmc3 {
-+	status = "disabled";
-+};
-+
-+&mmc4 {
-+	status = "disabled";
-+};
-+
-+&mmc5 {
-+	bus-width = <4>;
-+	ti,non-removable;
-+};
-+
-+&emif1 {
-+	cs1-used;
-+	device-handle = <&elpida_ECB240ABACN>;
-+};
-+
-+&emif2 {
-+	cs1-used;
-+	device-handle = <&elpida_ECB240ABACN>;
-+};
-+
-+&uart2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart2_pins>;
-+};
-+
-+&uart3 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart3_pins>;
-+};
-+
-+&uart4 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart4_pins>;
-+};
-+
-+&mcbsp3 {
-+	status = "disabled";
-+};
-+
-+&twl_usb_comparator {
-+	usb-supply = <&vusb>;
-+};
--- 
-1.7.9.5
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -138,7 +138,7 @@ static void apply_clk_hack(void)
+ #define SOFTRESET              (1 << 1)
+ #define RESETDONE              (1 << 0)
+
+-#define MMC_AUTOSUSPEND_DELAY  100
++#define MMC_AUTOSUSPEND_DELAY  1
+ #define MMC_TIMEOUT_MS         20
+
+One is already fixed[1], the other I'm still working on.
+Hope to progress this week, then need to redo the testing.
+Plan is to resubmit latest next week.
+
+Andi
+
