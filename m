@@ -1,98 +1,70 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [RFC/RFT PATCH 0/2] SERIAL: OMAP: Remove idle handling from
  driver
-Date: Mon, 18 Feb 2013 12:10:32 +0200
-Message-ID: <20130218101032.GA32688@arwen.pp.htv.fi>
+Date: Mon, 18 Feb 2013 12:11:13 +0200
+Message-ID: <20130218101113.GB32688@arwen.pp.htv.fi>
 References: <1360929970-31934-1-git-send-email-santosh.shilimkar@ti.com>
  <5121FCC8.7090604@ti.com>
+ <20130218101032.GA32688@arwen.pp.htv.fi>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
+	protocol="application/pgp-signature"; boundary="mojUlQ0s9EVzWg2t"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58523 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754751Ab3BRKLG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Feb 2013 05:11:06 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40892 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754751Ab3BRKLg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Feb 2013 05:11:36 -0500
 Content-Disposition: inline
-In-Reply-To: <5121FCC8.7090604@ti.com>
+In-Reply-To: <20130218101032.GA32688@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, balbi@ti.com, khilman@deeprootsystems.com, paul@pwsan.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
 
---RnlQjJ0d97Da+TV1
+--mojUlQ0s9EVzWg2t
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Mon, Feb 18, 2013 at 03:34:56PM +0530, Santosh Shilimkar wrote:
-> On Friday 15 February 2013 05:36 PM, Santosh Shilimkar wrote:
-> >OMAP UART IP needs manual idle modes based on state of the
-> >IP. Currently this is handled by the driver with function pointers
-> >implemented in platform code.
-> >
-> >This however breaks in case of device tree because of missing
-> >idle handling.
-> >
-> >The series tries to address the issue
-> >
-> >Patches has been tested on OMAP4 and OMAP5 devices where the console
-> >slugishness was observed without idle mode handling. CPUIDLE and
-> >suspend tested ok on these devices.
-> >
-> >Need help in testing on OMAP2, OMAP3 and AM3XXX devices.
-> >
-> >Santosh Shilimkar (2):
-> >   ARM: OMAP2+: hwmod-data: UART IP needs software control of sidle
-> >     modes
-> >   SERIAL: OMAP: Remove the idle handling from the driver
-> >
-> HWMOD_SWSUP_SIDLE flag will is not what will help UART completely.
-> Also considering UART also needs async wakeup enabled as it implements
-> another such hook and attaches that through function pointer.
-
-this is exactly what I said at [1], which I quote:
-
-"Also, $SUBJECT isn't improving the situation regarding UART Wakeup,
-there is still the regression of UART never being wakeup capable.
-
-I wonder what are your ideas to sort that part out, I mean, how do you
-plan to implement ->set_wake() for the tty port ?"
-
-> So some more work is needed to get that sorted out at least from
-> sysc point of view. That way we can deal with io_ring stuff using
-> pin control APIs.
+On Mon, Feb 18, 2013 at 12:10:32PM +0200, Felipe Balbi wrote:
+> > HWMOD_SWSUP_SIDLE flag will is not what will help UART completely.
+> > Also considering UART also needs async wakeup enabled as it implements
+> > another such hook and attaches that through function pointer.
 >=20
-> Some patches will follow in attempt to address it. Stay tuned !!
+> this is exactly what I said at [1], which I quote:
+>=20
+> "Also, $SUBJECT isn't improving the situation regarding UART Wakeup,
+> there is still the regression of UART never being wakeup capable.
+>=20
+> I wonder what are your ideas to sort that part out, I mean, how do you
+> plan to implement ->set_wake() for the tty port ?"
 
-good
+[1] http://marc.info/?l=3Dlinux-omap&m=3D136093334914275&w=3D2
 
 --=20
 balbi
 
---RnlQjJ0d97Da+TV1
+--mojUlQ0s9EVzWg2t
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRIf4XAAoJEIaOsuA1yqREAHUQAKGlmBKzYJQfGCYY4AO2jRQW
-BWKkxB4iTJsO3gEdVFe7ctlYuRP4zjJZoEnjSWquFyvgHqUZf7+dYcRsRxTBF4P1
-rEAItvfyFF2iqKjU01x2bPpdeCLPMJXqQWljzhCVXs6K0pT7ZA0C5kpbcz5GcghB
-GSq8enxKsUxV6RbPgD64ERPhdFyZFMqZMZ1ZlGKVO8fwDsUsQEZc83cX3o8x9yVx
-KwEgWM8ZKtdX8wq+P8oVb9yDsf2rqgrDYawp08CY6Qy3iCqbqW5J89Jf11jWrPO0
-5mRclreKxag9CiFeW/0eEscv2xcHXBv6dao6YPGC9VqXMZf5XTD3LlnFTRmBa00R
-786gmQ1hOg0bckKvDRfi/ewTvMBoTzL6uW6gk4ojmITz/vppeTrtzT8WSthUaD1L
-VogTXMRncz0N6IrZD0VwUj5QZVzxstaY1VBcwQ0n3U1Qw/pjrHQLiRLgK8Ahgar9
-+0utvg4lOVR/n4xgHH091lmSPvuiEQyB7KElO1vCWIBHh3Flhtu0U1JK1H2/GmqK
-inZKSaFASuBvX3X8zW2A0UcUk+GT5uMAp6/rP3CDP3K6bZRuohm7lDj096u6JHpi
-HAjce+MKA6HxQzlOPfxvDSERtYEStfJfoDZ+g9nQjUMcUqODkJhkGV0xsBrAYOcn
-2z4J4Wx4pzryZzMvN8gq
-=gjFV
+iQIcBAEBAgAGBQJRIf5BAAoJEIaOsuA1yqRESCwP/A8AD3cq1wz4lN+1YtBpaiLB
+ReSemwQFgX+skkOb8zC4bBEbEqDs1JOAn1+kMCrRQ5DIKHGyOw8WJZPUJIXXYAwi
+9MsFA7dN3snFLWstL/EgpGxsh938IQ33bvHnIz7IUk23NlvGLGK8DcNBLVqI0SAt
+LKYKqYlSlX8LAlW4lLhdBNbDmzuM6sqpU0nGVyk0Hj77kLFYgI9rCLfDAbYXsd3+
+/73MguarpQ7JKyae9IfY9lI9CTx+ZcyQNPZXFJuKMZvLxpy62nuHof3wRd53jrIE
+mg354wF8tNf6Gsm5vvJZqztFSfpC7u69mV6JWEEFZ3MS/hUTen/zkTyWt2hsGjEA
+NZZcZyZXSWeQ9wuw3QoepMH7S+g3W9InJqgl7ZZqp1zUudGy57jMuG8iB13HNZsq
+BrcpDjmmMvsYmUtmeGuz5KPLKN548M3PwoAF0olHpH34AZaVaDc4MpaTDUpwuxpK
+d7ZvPk7im9H+BNeu7izdy2dPFSfrq2Fe1jz93hmF4Avc+xdKNcbCepkDluX3q81+
+uwAkw637+UZxeeWrB1M+x8uWtmxdv7t5yJGsLsCVJU5K65a9m9WypDincKlqnNfX
+VsK5l3VZbMPWogPsvgBfnyqVmR6QbFG5ppL32CJrAiX0isiOlmEyUKFZIfF/MakI
+8yflQE58hv5ET40hCOew
+=/Q9Y
 -----END PGP SIGNATURE-----
 
---RnlQjJ0d97Da+TV1--
+--mojUlQ0s9EVzWg2t--
