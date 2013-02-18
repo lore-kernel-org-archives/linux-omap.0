@@ -1,80 +1,101 @@
-From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 3/3] driver: net: ethernet: cpsw: dual emac interface
- implementation
-Date: Mon, 18 Feb 2013 20:40:48 +0530
-Message-ID: <51224478.7050304@ti.com>
-References: <1360612340-9266-1-git-send-email-mugunthanvnm@ti.com>
- <1360612340-9266-4-git-send-email-mugunthanvnm@ti.com>
- <87mwv1kaln.fsf@dell.be.48ers.dk>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
+Date: Mon, 18 Feb 2013 07:27:47 -0800
+Message-ID: <87mwv13amk.fsf@linaro.org>
+References: <20130214192719.GB26679@arwen.pp.htv.fi>
+	<20130214193911.GD11806@atomide.com>
+	<alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com>
+	<20130215101610.GR17852@n2100.arm.linux.org.uk>
+	<511E3797.2070802@ti.com>
+	<20130215132726.GT17852@n2100.arm.linux.org.uk>
+	<511E38C3.7080404@ti.com> <20130215163031.GA5724@atomide.com>
+	<20130215164235.GA20840@arwen.pp.htv.fi> <511F20B1.8010502@ti.com>
+	<20130216085528.GA19639@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <87mwv1kaln.fsf-D6SC8u56vOOJDPpyT6T3/w@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:51055 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753209Ab3BRP1v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Feb 2013 10:27:51 -0500
+Received: by mail-pb0-f52.google.com with SMTP id ma3so1705778pbc.25
+        for <linux-omap@vger.kernel.org>; Mon, 18 Feb 2013 07:27:51 -0800 (PST)
+In-Reply-To: <20130216085528.GA19639@arwen.pp.htv.fi> (Felipe Balbi's message
+	of "Sat, 16 Feb 2013 10:55:28 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On 2/18/2013 7:06 PM, Peter Korsgaard wrote:
->>>>>> "M" == Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org> writes:
->   M> The CPSW switch can act as Dual EMAC by segregating the switch ports
->   M> using VLAN and port VLAN as per the TRM description in
->   M> 14.3.2.10.2 Dual Mac Mode
->
->   M> Following CPSW components will be common for both the interfaces.
->   M> * Interrupt source is common for both eth interfaces
->   M> * Interrupt pacing is common for both interfaces
->   M> * Hardware statistics is common for all the ports
->   M> * CPDMA is common for both eth interface
->   M> * CPTS is common for both the interface and it should not be enabled on
->   M>   both the interface as timestamping information doesn't contain port
->   M>   information.
->
->   M> Constrains
->   M> * Reserved VID of One port should not be used in other interface which will
->   M>   enable switching functionality
->   M> * Same VID must not be used in both the interface which will enable switching
->   M>   functionality
->
->   M> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
->   M> ---
->   M>  Documentation/devicetree/bindings/net/cpsw.txt |    2 +
->   M>  drivers/net/ethernet/ti/cpsw.c                 |  335 ++++++++++++++++++++----
->   M>  include/linux/platform_data/cpsw.h             |    3 +
->   M>  3 files changed, 288 insertions(+), 52 deletions(-)
->
->   M> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
->   M> index 6ddd028..ecfdf75 100644
->   M> --- a/Documentation/devicetree/bindings/net/cpsw.txt
->   M> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
->   M> @@ -24,6 +24,8 @@ Required properties:
->   M>  Optional properties:
->   M>  - ti,hwmods		: Must be "cpgmac0"
->   M>  - no_bd_ram		: Must be 0 or 1
->   M> +- dual_emac		: Specifies Switch to act as Dual EMAC
->   M> +- dual_emac_res_vlan	: Specifies VID to be used to segregate the ports
->
-> You forgot to CC devicetree-discuss. Properties normally use dashes (-)
-> instead of underscores (_). These properties are more about
-> configuration and not hardware.
->
-> It is not clear to me from the description that dual_emac is a boolean
-> (0/1). Shouldn't dual_emacs_res_vlan be a property of the slave?
->
-> It would also be good to update the example below with this.
-Since the series is already applied in net-next tree, i will submit a 
-patch with incorporating
-the above comments. Will add devicetree-discuss in my future patches.
+Felipe Balbi <balbi@ti.com> writes:
 
-Regards
-Mugunthan V N
+> Hi,
+>
+> On Sat, Feb 16, 2013 at 11:31:21AM +0530, Santosh Shilimkar wrote:
+>> >>The main goal is to avoid duplicating data both in hwmod and DT.
+>> >>That's pretty much solved as we can have the driver probe populate
+>> >>the common data for hwmod from DT as Santosh has already demonstrated.
+>> >>
+>> >>Then we also want the driver specific idle and reset code to be done
+>> >>in the drivers rather than in hwmod and glue it together with hwmod
+>> >>using runtime PM. The biggest issue there is how do we reset and idle
+>> >>some piece of hardware for PM purposes when there's no driver loaded.
+>> >
+>> >right, this will be a tough nut to crack.
+>> >
+>> >I guess the only way would be reset all IPs early in the boot process,
+>> >before even creating the platform-devices. Can we do that ? I mean, from
+>> >omap_device_build_from_dt() we have access to address space of all
+>> >devices, through ti,hwmods we can figure out which hwmods are linked to
+>> >that particular device, so whenever you build a device, you could just
+>> >call _reset().
+>> >
+>> Thats what we do today and it works perfectly. As per Tony's suggestion,
+>> we need to move the non-probed devices reset and idle setup to late_init
+>> which is also doable.
+>> 
+>> In that case when probed driver calls runtime_get(), we reset that
+>> device and setup the idle settings. And remainder of the devices
+>> are managed in late_init().
+>
+> what's the point in moving it to late_initcall() ? It makes no
+> difference, if no driver binds to that device it will stay in reset
+> anyway. Maybe what we're missing is properly idling (not exactly) all
+> devices before driver probe kicks in.
+>
+>> >The only problem is that now omap_device_build_from_dt() is called after
+>> >we notify that a new device/driver pair has been registered with the
+>> >platform_bus, right ? So we would still need a way to call _reset() for
+>> >those which are on DTS but don't have a driver bound to them...
+>> >
+>> The only special requirement for reset remains(which today handled by
+>> hwmod function calls) is for devices which needs specific reset
+>> sequence. And this one can be handled through a runtime_reset()
+>> kind of hook.
+>> 
+>> Does that sound reasonable ?
+>
+> Depends on Rafael. If he says no to the ->runtime_reset() I suggested
+> earlier, another aproach needs to be found. In any case,
+> ->runtime_reset() is only for devices which actually have a driver, so
+> it matters little.
+
+Has somone tried this to see if it works on devices with the custom
+reset hooks?
+
+It should be relatively easy to add a ->runtime_reset hook, and hook it
+up to omap_device_shutdown() at the PM domain level.
+
+If we have a patch, showing how we use it in some drivers and making the
+case for why it is needed in some drivers, it will be easier to take
+this to Rafael and make a case for it.
+
+> The difficult part is handling special reset requirements for devices
+> without drivers as there'd be no ->runtime_reset() to call.
+
+IMO, this should not be difficult, as omap_device_shutdown() ->
+omap_hwmod_shutdown() does the heavy lifting here.  Also, We already
+track whether omap_devices have drivers bound, so adding support to
+reset/shutdown unbound drivers in late init will be straight forward.
+
+Kevin
