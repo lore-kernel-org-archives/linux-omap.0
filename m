@@ -1,69 +1,83 @@
-From: Marek Vasut <marex@denx.de>
-Subject: Re: [PATCH] i2c: Remove unneeded xxx_set_drvdata(..., NULL) calls
-Date: Mon, 18 Feb 2013 13:17:28 +0100
-Message-ID: <201302181317.28645.marex@denx.de>
-References: <1360953682-25066-1-git-send-email-dianders@chromium.org>
- <1360970315-32116-1-git-send-email-dianders@chromium.org>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/2] ARM: dts: OMAP3: Add GPMC controller
+Date: Mon, 18 Feb 2013 13:26:24 +0100
+Message-ID: <51221DF0.2050705@ti.com>
+References: <1359395648-2137-1-git-send-email-florian.vaussard@epfl.ch> <1359395648-2137-2-git-send-email-florian.vaussard@epfl.ch> <CAPjKCR_oh25c4NKUTWjU6BYp64GjPoi2LWDpRhTUkBkRmc_HUw@mail.gmail.com> <CABxcv=kDw6pSsdE29-dVqkk2cc-RKBZB6GN8cs+M+C4JEeSbdg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1360970315-32116-1-git-send-email-dianders@chromium.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Doug Anderson <dianders@chromium.org>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Walleij <linus.walleij@linaro.org>, Thierry Reding <thierry.reding@avionic-design.de>, Sekhar Nori <nsekhar@ti.com>, linux-i2c@vger.kernel.org, Peter Korsgaard <jacmet@sunsite.dk>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Kevin Hilman <khilman@ti.com>, Sonic Zhang <sonic.zhang@analog.com>, Vitaly Wool <vitalywool@gmail.com>, Jochen Friedrich <jochen@scram.de>, linux-arm-kernel@lists.infradead.org, Deepak Sikri <deepak.sikri@st.com>, Li Yang <leoli@freescale.com>, Havard Skinnemoen <hskinnemoen@gmail.com>, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Sascha Hauer <s.hauer@pengutronix.de>, Uwe =?iso-8859-1?q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, uclinux-dist-devel@blackfin.ucl
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:54962 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751426Ab3BRM0m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Feb 2013 07:26:42 -0500
+In-Reply-To: <CABxcv=kDw6pSsdE29-dVqkk2cc-RKBZB6GN8cs+M+C4JEeSbdg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Anil Kumar <anilkumar880@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Dear Doug Anderson,
+Hi Javier,
 
-> There is simply no reason to be manually setting the private driver
-> data to NULL in the remove/fail to probe cases.  This is just extra
-> cruft code that can be removed.
-> 
-> A few notes:
-> * Nothing relies on drvdata being set to NULL.
-> * The __device_release_driver() function eventually calls
->   dev_set_drvdata(dev, NULL) anyway, so there's no need to do it
->   twice.
-> * I verified that there were no cases where xxx_get_drvdata() was
->   being called in these drivers and checking for / relying on the NULL
->   return value.
-> 
-> This could be cleaned up kernel-wide but for now just take the baby
-> step and remove from the i2c subsystem.
-> 
-> Reported-by: Wolfram Sang <wsa@the-dreams.de>
-> Reported-by: Stephen Warren <swarren@wwwdotorg.org>
-> Signed-off-by: Doug Anderson <dianders@chromium.org>
+On 2/16/2013 5:44 PM, Javier Martinez Canillas wrote:
+> On Sat, Feb 16, 2013 at 2:09 PM, Anil Kumar <anilkumar880@gmail.com> wrote:
+>> Hi Florian,
+>>
+>> On Mon, Jan 28, 2013 at 11:24 PM, Florian Vaussard
+>> <florian.vaussard@epfl.ch> wrote:
+>>> Add device-tree support for the GPMC controller on the OMAP3.
+>>>
+>>> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+>>> ---
+>>>   arch/arm/boot/dts/omap3.dtsi |   11 +++++++++++
+>>>   1 files changed, 11 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+>>> index 6c63118..2ddae38 100644
+>>> --- a/arch/arm/boot/dts/omap3.dtsi
+>>> +++ b/arch/arm/boot/dts/omap3.dtsi
+>>> @@ -403,5 +403,16 @@
+>>>                          ti,timer-alwon;
+>>>                          ti,timer-secure;
+>>>                  };
+>>> +
+>>> +               gpmc: gpmc@6e000000 {
+>>> +                       compatible = "ti,omap3430-gpmc";
+>>> +                       ti,hwmods = "gpmc";
+>>> +                       reg = <0x6e000000 0x1000000>;
+>>> +                       interrupts = <20>;
+>>> +                       gpmc,num-cs = <8>;
+>>> +                       gpmc,num-waitpins = <4>;
+>>> +                       #address-cells = <2>;
+>>> +                       #size-cells = <1>;
+>>> +               };
+>>>          };
+>>>   };
+>>
+>> Tested on devkit8000 (omap3 based board)
+>>
+>> Please take my Tested-by: Anil Kumar <anilk4.v@gmail.com>
+>>
+>> Thanks,
+>> Anil
+>>
+>
+> Hello Tony and Benoit,
+>
+> Could this patch be merged to one of your branches?
 
-For
+I'll take it.
 
->  drivers/i2c/busses/i2c-mxs.c                | 2 --
+> It has already my Reviewed-by and now Anil's Tested-by.
+>
+> Now that Daniel's OMAP GPMC binding were merged, there seems to be
+> many people working on adding support on their boards DT for
+> peripherals connected through the GPMC (NAND, OneNAND, SMSC LAN, etc).
+>
+> I think it will be easier if people can base their work on top of this
+> patch instead of duplicating the work and sending the same patch to
+> add a GPMC device node to omap3.dtsi on each patch-set.
 
-[...]
+Regards,
+Benoit
 
-> diff --git a/drivers/i2c/busses/i2c-mxs.c b/drivers/i2c/busses/i2c-mxs.c
-> index 22d8ad3..120f246 100644
-> --- a/drivers/i2c/busses/i2c-mxs.c
-> +++ b/drivers/i2c/busses/i2c-mxs.c
-> @@ -697,8 +697,6 @@ static int mxs_i2c_remove(struct platform_device *pdev)
-> 
->  	writel(MXS_I2C_CTRL0_SFTRST, i2c->regs + MXS_I2C_CTRL0_SET);
-> 
-> -	platform_set_drvdata(pdev, NULL);
-> -
->  	return 0;
->  }
-
-[...]
-
-Add my:
-Reviewed-by: Marek Vasut <marex@denx.de>
