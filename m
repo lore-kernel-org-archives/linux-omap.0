@@ -1,80 +1,134 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/RFT PATCH 0/2] SERIAL: OMAP: Remove idle handling from
- driver
-Date: Mon, 18 Feb 2013 13:13:08 +0200
-Message-ID: <20130218111308.GE32688@arwen.pp.htv.fi>
-References: <1360929970-31934-1-git-send-email-santosh.shilimkar@ti.com>
- <5121FCC8.7090604@ti.com>
- <20130218101032.GA32688@arwen.pp.htv.fi>
- <20130218101113.GB32688@arwen.pp.htv.fi>
- <5122019D.9030100@ti.com>
- <20130218104216.GC32688@arwen.pp.htv.fi>
- <20130218104541.GD32688@arwen.pp.htv.fi>
- <512208BE.7060207@ti.com>
-Reply-To: <balbi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH V2] ARM: dts: omap3-devkit8000: Enable
+	audio support
+Date: Mon, 18 Feb 2013 12:20:24 +0100
+Message-ID: <51220E78.5000409@ti.com>
+References: <1361000036-18121-1-git-send-email-anilk4.v@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tVmo9FyGdCe4F4YN"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43051 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751598Ab3BRLNc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Feb 2013 06:13:32 -0500
-Content-Disposition: inline
-In-Reply-To: <512208BE.7060207@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
-
---tVmo9FyGdCe4F4YN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1361000036-18121-1-git-send-email-anilk4.v@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Anil Kumar <anilk4.v@gmail.com>
+Cc: alsa-devel@alsa-project.org, linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, thomas@tomweber.eu
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On 02/16/2013 08:33 AM, Anil Kumar wrote:
+> Add the needed sections to enable audio support on
+> Devkit8000 when booted with DT blob.
+> =
 
-On Mon, Feb 18, 2013 at 04:25:58PM +0530, Santosh Shilimkar wrote:
-> >>If I read the code correctly there's nothing setting oh->mux during DT
-> >>boot. The only caller to omap_hwmod_mux_init() (which allocates and
-> >>returns omap_hwmod_mux_info pointer) is
-> >>arch/arm/mach-omap2/devices.c::omap4_keyboard_init(). This has nothing
-> >
-> >actually arch/arm/mach-omap2/serial.c::omap_serial_init_port() also
-> >calls that, but it's also not used during DT boots.
-> >
-> DT boot, all the function pointers are broken so wakeup as well as slave
-> idle-mode is broken. Nothing new here. Serial file does set the pads
-> as you noticed and this is what can be offloaded to generic pint control
-> which can triggered from driver.
+> Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
 
-fair enough, understood now.
+Looks good:
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-cheers
+> ---
+> This patch is based on top of kernel 3.8-rc5 and
+> the following patches.
+> =
 
---=20
-balbi
+> Peter Ujfalusi:-
+> ASoC: twl4030: Correct the support for Voice port
+> ASoC: twl4030: Convert MICBIAS to SUPPLY widget
+> ASoC: omap-twl4030: Add support for routing, voice port and jack detect
+> =
 
---tVmo9FyGdCe4F4YN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> Anil Kumar:-
+> ARM: dts: add minimal DT support for DevKit8000
+> https://patchwork.kernel.org/patch/2122461/
+> =
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+> -Tested for playback and capture on Devkit8000.
+> =
 
-iQIcBAEBAgAGBQJRIgzEAAoJEIaOsuA1yqRE2nMQAIcStb2SkZVj+pC8hyrQEehh
-RmXZsZTKGvK21s9bK2aHi3xDBe5E5WhVJXKHemZX440QGDNB95GtPHYVq8OJ7DyS
-4jYoYobXgIjJRsh07vZ7a3U7WdKacTFhrouvZDVmI/q5FF8YNYT2R8uvAhp73C5T
-FmI6kpJOMMwPKpB/m8BZikm0Q7xSX3mD85Q2EC428yUj/nekBOk4KIuayeXHQ0Ak
-rQb5e/f9G54SP7POSKXTKB9wMchZIzObauoND+yISY4PGqJ85X3U03fpqmm02mNA
-5QiDKaDzNkG7/ttD4OhcptTEBVftcu/D0vmLAOqsklyZL4VVOn8DVF8w4aErX7bx
-mz+30OlxtLRj7ieECAf+SuRiAdRCuVj1gEh8FmgrUbUcf9l7uIQYvvaBQ4586+iB
-fGxhYSFqFXmj6mhxBpeIFjdf+jlkzOv+6bcm4tQvhek8CEdfd8umCbZqBtkdPO10
-hbSPg1Wgi6Ul3bYFQnYTqkLOxYPA0i3AYKVNHki0tZ8xmXwGeLfgpHI7t8+p0J/x
-L9I3LGDfIS3elndwwXoozkZ0G3UvrWDLe3PZ7o4S3SYiY3FY4GIrlbUUDqFjhveT
-cCjj31Zgh2mGsaXpFGQIH+gcRv/ezF0MqsSTbVc5M5H89hjnq8AUyRT1SOAN69vh
-NMw/m7TfQPzQddbAcXfZ
-=5G6I
------END PGP SIGNATURE-----
+>  Test process:-
+> =
 
---tVmo9FyGdCe4F4YN--
+>  #amixer set 'PredriveR Mixer AudioR2' on
+>  #amixer set 'PredriveL Mixer AudioL2' on
+>  #amixer set PreDriv 100 unmute
+>  #amixer set 'DAC2 Digital Fine' 100
+>  #amixer cset numid=3D27 1
+>  #arecord | aplay
+> =
+
+> For V2:
+>  - Remove pin mux as done at device boot time by default.
+> =
+
+> :100644 100644 6338993... c70116f... M	arch/arm/boot/dts/omap3-devkit8000=
+.dts
+>  arch/arm/boot/dts/omap3-devkit8000.dts |   23 +++++++++++++++++++----
+>  1 files changed, 19 insertions(+), 4 deletions(-)
+> =
+
+> diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/o=
+map3-devkit8000.dts
+> index 6338993..c70116f 100644
+> --- a/arch/arm/boot/dts/omap3-devkit8000.dts
+> +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+> @@ -42,6 +42,19 @@
+>                  };
+>  =
+
+>  	};
+> +
+> +	sound {
+> +		compatible =3D "ti,omap-twl4030";
+> +		ti,model =3D "devkit8000";
+> +
+> +		ti,mcbsp =3D <&mcbsp2>;
+> +		ti,codec =3D <&twl_audio>;
+> +		ti,audio-routing =3D
+> +			"Ext Spk", "PREDRIVEL",
+> +			"Ext Spk", "PREDRIVER",
+> +			"MAINMIC", "Main Mic",
+> +			"Main Mic", "Mic Bias 1";
+> +	};
+>  };
+>  =
+
+>  &i2c1 {
+> @@ -51,6 +64,12 @@
+>  		reg =3D <0x48>;
+>  		interrupts =3D <7>;	/* SYS_NIRQ cascaded to intc */
+>  		interrupt-parent =3D <&intc>;
+> +
+> +		twl_audio: audio {
+> +			compatible =3D "ti,twl4030-audio";
+> +			codec {
+> +			};
+> +		};
+>  	};
+>  };
+>  =
+
+> @@ -86,10 +105,6 @@
+>  	status =3D "disabled";
+>  };
+>  =
+
+> -&mcbsp2 {
+> -	status =3D "disabled";
+> -};
+> -
+>  &mcbsp3 {
+>  	status =3D "disabled";
+>  };
+> =
+
+
+
+-- =
+
+P=E9ter
