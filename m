@@ -1,98 +1,88 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [RFC 1/8] ARM: localtimer: return percpu clkevt on register
-Date: Mon, 18 Feb 2013 12:00:09 +0530
-Message-ID: <e7cbb10903841ba23a93f71e7a06ae34a43adc70.1361166003.git.afzal@ti.com>
+From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Subject: [RFC 3/8] ARM: twd: clock rate from DT (if no DT clk tree)
+Date: Mon, 18 Feb 2013 12:00:21 +0530
+Message-ID: <94cb377171f84ceefd667aead4602d70adab6619.1361166003.git.afzal@ti.com>
 References: <cover.1361166003.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <cover.1361166003.git.afzal@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>, Nicolas Pitre <nico@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Will Deacon <will.deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, Syed Mohammed Khasim <khasim@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <cover.1361166003.git.afzal-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Nicolas Pitre <nico-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Syed Mohammed Khasim <khasim-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Return percpu clock event on local timer register. It is the boot cpu
-that calls this and it can use the returned percpu clock event to
-register a clock event in the case of SMP configuration with one core.
-This helps to have a booting Kernel even if no other timer is
-registered for clock tick.
+Add an optional property to find clock-frequency from DT. This helps
+as a fallback mechanism in case there is no representation of clock
+tree in DT.
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/include/asm/localtimer.h | 7 ++++---
- arch/arm/kernel/smp.c             | 8 ++++----
- arch/arm/kernel/smp_twd.c         | 5 +++--
- 3 files changed, 11 insertions(+), 9 deletions(-)
+ Documentation/devicetree/bindings/arm/twd.txt | 7 ++++++-
+ arch/arm/kernel/smp_twd.c                     | 8 ++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/include/asm/localtimer.h b/arch/arm/include/asm/localtimer.h
-index f77ffc1..c3f89c0 100644
---- a/arch/arm/include/asm/localtimer.h
-+++ b/arch/arm/include/asm/localtimer.h
-@@ -23,11 +23,12 @@ struct local_timer_ops {
- /*
-  * Register a local timer driver
-  */
--int local_timer_register(struct local_timer_ops *);
-+struct clock_event_device *local_timer_register(struct local_timer_ops *);
- #else
--static inline int local_timer_register(struct local_timer_ops *ops)
-+static inline
-+struct clock_event_device *local_timer_register(struct local_timer_ops *ops)
- {
--	return -ENXIO;
-+	return ERR_PTR(-ENXIO);
- }
- #endif
+diff --git a/Documentation/devicetree/bindings/arm/twd.txt b/Documentation/devicetree/bindings/arm/twd.txt
+index 75b8610..fdafa4f 100644
+--- a/Documentation/devicetree/bindings/arm/twd.txt
++++ b/Documentation/devicetree/bindings/arm/twd.txt
+@@ -7,8 +7,9 @@ and watchdog.
+ The TWD is usually attached to a GIC to deliver its two per-processor
+ interrupts.
  
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index 5f73f70..42d95d6 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -491,16 +491,16 @@ static void __cpuinit broadcast_timer_setup(struct clock_event_device *evt)
- static struct local_timer_ops *lt_ops;
+-** Timer node required properties:
++** Timer node properties:
  
- #ifdef CONFIG_LOCAL_TIMERS
--int local_timer_register(struct local_timer_ops *ops)
-+struct clock_event_device *local_timer_register(struct local_timer_ops *ops)
- {
- 	if (!is_smp() || !setup_max_cpus)
--		return -ENXIO;
-+		return ERR_PTR(-ENXIO);
++Required properties:
+ - compatible : Should be one of:
+ 	"arm,cortex-a9-twd-timer"
+ 	"arm,cortex-a5-twd-timer"
+@@ -19,12 +20,16 @@ interrupts.
+ - reg : Specify the base address and the size of the TWD timer
+ 	register window.
  
- 	if (lt_ops)
--		return -EBUSY;
-+		return ERR_PTR(-EBUSY);
++Optional property:
++- clock-frequency : frequency(Hz) of peripheral clock fed to timer
++
+ Example:
  
- 	lt_ops = ops;
--	return 0;
-+	return &per_cpu(percpu_clockevent, smp_processor_id());
- }
- #endif
+ 	twd-timer@2c000600 {
+ 		compatible = "arm,arm11mp-twd-timer"";
+ 		reg = <0x2c000600 0x20>;
+ 		interrupts = <1 13 0xf01>;
++		clock-frequency = <300000000>;
+ 	};
  
+ ** Watchdog node properties:
 diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
-index c092115..616268c 100644
+index 118f4f2..aac0f9f 100644
 --- a/arch/arm/kernel/smp_twd.c
 +++ b/arch/arm/kernel/smp_twd.c
-@@ -315,6 +315,7 @@ static struct local_timer_ops twd_lt_ops __cpuinitdata = {
- static int __init twd_local_timer_common_register(struct device_node *np)
- {
- 	int err;
-+	struct clock_event_device *evt;
+@@ -247,7 +247,15 @@ static void twd_get_clock(struct device_node *np)
+ 		twd_clk = clk_get_sys("smp_twd", NULL);
  
- 	twd_evt = alloc_percpu(struct clock_event_device *);
- 	if (!twd_evt) {
-@@ -328,8 +329,8 @@ static int __init twd_local_timer_common_register(struct device_node *np)
- 		goto out_free;
+ 	if (IS_ERR(twd_clk)) {
++		u32 freq;
++
+ 		pr_err("smp_twd: clock not found %d\n", (int) PTR_ERR(twd_clk));
++
++		/* If there is no representation of clock tree in DT,
++		   provide a fallback option to obtain frequency
++		 */
++		if (np && !of_property_read_u32(np, "clock-frequency", &freq))
++			twd_timer_rate = freq;
+ 		return;
  	}
  
--	err = local_timer_register(&twd_lt_ops);
--	if (err)
-+	evt = local_timer_register(&twd_lt_ops);
-+	if (IS_ERR(evt))
- 		goto out_irq;
- 
- 	twd_get_clock(np);
 -- 
 1.7.12
-
