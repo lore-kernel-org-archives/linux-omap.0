@@ -1,51 +1,105 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
-Date: Mon, 18 Feb 2013 08:08:09 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433ED22A16@DBDE01.ent.ti.com>
-References: <20130214171253.GC7144@atomide.com>
- <20130214175650.GA25891@arwen.pp.htv.fi>
- <20130214181217.GA11806@atomide.com>
- <20130214192719.GB26679@arwen.pp.htv.fi>
- <20130214193911.GD11806@atomide.com>
- <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com>
- <20130215101610.GR17852@n2100.arm.linux.org.uk> <511E3797.2070802@ti.com>
- <20130215132726.GT17852@n2100.arm.linux.org.uk> <511E38C3.7080404@ti.com>
- <20130215163031.GA5724@atomide.com>
- <alpine.LFD.2.03.1302160035240.6419@syhkavp.arg> <511F1DB4.8030400@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 16/33] OMAPDSS: acx565akm panel: handle gpios in panel
+ driver
+Date: Mon, 18 Feb 2013 10:11:54 +0200
+Message-ID: <5121E24A.6090502@ti.com>
+References: <1360765345-19312-1-git-send-email-archit@ti.com> <1360765345-19312-17-git-send-email-archit@ti.com> <20130213172913.GD21750@blackmetal.musicnaut.iki.fi> <511C896C.10007@ti.com> <511C8B16.5060605@ti.com> <5121D941.3060609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig43BFD722BF35BE513738B58F"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36045 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36164 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751677Ab3BRIIZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Feb 2013 03:08:25 -0500
-In-Reply-To: <511F1DB4.8030400@ti.com>
-Content-Language: en-US
+	id S1752226Ab3BRIMG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Feb 2013 03:12:06 -0500
+In-Reply-To: <5121D941.3060609@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Nicolas Pitre <nico@fluxnic.net>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>
+To: Archit Taneja <archit@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Sat, Feb 16, 2013 at 11:18:36, Shilimkar, Santosh wrote:
-[...]
-> >>
-> >> For the duplicate ioremapping, I don't think there's any need to
-> >> do it if we get things right.
-> >
-> > Note that if the ioremap matches a static map area there is no cost to
-> > ioremap it multiple times.
-> >
-> >
-> Thats true though now on OMAP we removed most of the static mappings.
-> The main issue is waste of IO space because, we end up mapping same
-> area two times for all the OMAP drivers. This can be optimized with
-> a arch ioremap caller hook but as discussed here, its nice to have
-> rather than something important.
-> 
+--------------enig43BFD722BF35BE513738B58F
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Err.. I was looking at the iotable_init for OMAPx in mainline and it looks
-like most (all?) of the peripherals are already covered in the static mappings?
+On 2013-02-18 09:33, Archit Taneja wrote:
+> On Thursday 14 February 2013 12:28 PM, Tomi Valkeinen wrote:
+>> On 2013-02-14 08:51, Archit Taneja wrote:
+>>> On Wednesday 13 February 2013 10:59 PM, Aaro Koskinen wrote:
+>>>> Hi,
+>>>>
+>>>> On Wed, Feb 13, 2013 at 07:52:08PM +0530, Archit Taneja wrote:
+>>>>> +static struct panel_acx565akm_data *get_panel_data(struct
+>>>>> omap_dss_device *dssdev)
+>>>>> +{
+>>>>> +    return (struct panel_acx565akm_data *) dssdev->data;
+>>>>> +}
+>>>>> +
+>>>>>    static int acx_panel_probe(struct omap_dss_device *dssdev)
+>>>>>    {
+>>>>>        int r;
+>>>>>        struct acx565akm_device *md =3D &acx_dev;
+>>>>> +    struct panel_acx565akm_data *panel_data =3D get_panel_data(dss=
+dev);
+>>>>
+>>>> Why the get_panel_data function is needed, isn't the cast unnecessar=
+y?
+>>>
+>>> the 'data' member of omap_dss_device has the type 'void *', we need t=
+o
+>>> cast it to access the panel_acx565akm_data struct pointer.
+>>
+>> You don't need an explicit cast to assign a void pointer to a pointer =
+to
+>> something else (or vice versa, I think).
+>>
+>> I remember us having similar constructs in some other panel drivers
+>> also. I think they are unnecessary also.
+>=20
+> I was considering keeping the get_panel_data() funcs in the panel
+> drivers though. This way, whenever the way of retrieving platform data
+> changes because of DT or CDF or something else, we would just need to
+> modify the get_panel_data func.
 
-Regards,
-Vaibhav
+I think it's simpler if we manage the fetching of the platform data in
+probe one, and just store a struct panel_acx565akm_data or such to the
+panel driver's data.
+
+For DT we don't have platform data, but we can create the same platform
+data struct from the DT properties.
+
+So the above would become something like:
+
+struct acx565akm_device *md =3D &acx_dev;
+struct panel_acx565akm_data *panel_data =3D md->pdata;
+
+ Tomi
+
+
+
+--------------enig43BFD722BF35BE513738B58F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRIeJKAAoJEPo9qoy8lh71oHcQAIozu7L4LUkWQCICIQWzWlL3
+GSpUxD2KlYz1aej8cxi6W9dLbfAFK4MMRdWdp48oVmbEcxSNVDUTBcsH4NJ2W2wv
+Jfm1jesT/LSOaGMzysp7oJH7kO3kQEcN1YcfXeU+LQJnlA1XWMWGqmRxux7F97RV
+mkHa6Isyl74ISSZpVUae9unvLwLvz+t4kv49o38eVvNJOG1JkeZUcnFws0+XgETB
+mhNydzjSpeShtDFdTwWUjsh7fSII8b1iFc90/RA8rXb8jo6uwKIToRj8cgdgNd+3
+t79Kak8VyTltaQNGUWXYib0Sqc7qBySk+Mdv2AI6jrbL9DZ3D6UBQBTWlx2Zr+1X
+fd7urMrfsGfVEU2HB1BZ2FW5gXfSe/n78ZNsnznsW1XDx8oAguq523rMLSlSSOD6
+TniLC4sLFmqA5ZSLpQOiN40rMchpCAa+tZtGYcgucRJOEUeduwcbyNPj444oN9bh
+NlAJC8r8vXxuB6jb7rqELEXXQfpdOSqkPGC7/N5oTUiZ2fz9/gb3u8DYjEpbFzkj
+RqPcj9vT9KzYqnMdFpS1msB+yEUTysJ3I4ZYhtozRxps7/sBMpWSHBOQIo9VHwpP
+LmafYpitLn4FEZ6iPdJCE4ICIFZ2EfUIYRooYJNqYaYYVuxZ3qyljZOzmV5kfRyu
+v5oRMltI3UvPcGzWJKfh
+=t7PH
+-----END PGP SIGNATURE-----
+
+--------------enig43BFD722BF35BE513738B58F--
