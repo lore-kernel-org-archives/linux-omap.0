@@ -1,98 +1,53 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH, RFC 1/8] ARM: localtimer: return percpu clkevt on register
-Date: Mon, 18 Feb 2013 17:06:39 +0530
-Message-ID: <e7cbb10903841ba23a93f71e7a06ae34a43adc70.1361186097.git.afzal@ti.com>
+Subject: [PATCH, RFC 2/8] ARM: twd: register clock event for 1 core SMP
+Date: Mon, 18 Feb 2013 17:07:47 +0530
+Message-ID: <a7f62b8580aa4b33d5658f4f03371a453adaea9b.1361186097.git.afzal@ti.com>
 References: <cover.1361186097.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33211 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752463Ab3BRLiD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Feb 2013 06:38:03 -0500
 In-Reply-To: <cover.1361186097.git.afzal@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>, Nicolas Pitre <nico@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Will Deacon <will.deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, Syed Mohammed Khasim <khasim@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-Return percpu clock event on local timer register. It is the boot cpu
-that calls this and it can use the returned percpu clock event to
-register a clock event in the case of SMP configuration with one core.
-This helps to have a booting Kernel even if no other timer is
-registered for clock tick.
+Register percpu local timer for scheduler tick in the case of one core
+SMP configuration. In other cases - secondary cpu's as well as boot
+cpu's having more than one core, this is being registered as per
+existing boot flow, with a difference that they happens after delay
+calibration. Registering the clock for tick in case of one core should
+be done before Kernel calibrates delay (this is required to boot,
+unless local timer is the only one registered for tick). Registering
+twd local timer at init_time (which platforms are doing now) helps
+achieve that with the proposed change.
+
+This helps in an almost booting Kernel (minimal) by only relying on
+ARM parts for an A9 one core SMP.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/include/asm/localtimer.h | 7 ++++---
- arch/arm/kernel/smp.c             | 8 ++++----
- arch/arm/kernel/smp_twd.c         | 5 +++--
- 3 files changed, 11 insertions(+), 9 deletions(-)
+ arch/arm/kernel/smp_twd.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/arm/include/asm/localtimer.h b/arch/arm/include/asm/localtimer.h
-index f77ffc1..c3f89c0 100644
---- a/arch/arm/include/asm/localtimer.h
-+++ b/arch/arm/include/asm/localtimer.h
-@@ -23,11 +23,12 @@ struct local_timer_ops {
- /*
-  * Register a local timer driver
-  */
--int local_timer_register(struct local_timer_ops *);
-+struct clock_event_device *local_timer_register(struct local_timer_ops *);
- #else
--static inline int local_timer_register(struct local_timer_ops *ops)
-+static inline
-+struct clock_event_device *local_timer_register(struct local_timer_ops *ops)
- {
--	return -ENXIO;
-+	return ERR_PTR(-ENXIO);
- }
- #endif
- 
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index 5f73f70..42d95d6 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -491,16 +491,16 @@ static void __cpuinit broadcast_timer_setup(struct clock_event_device *evt)
- static struct local_timer_ops *lt_ops;
- 
- #ifdef CONFIG_LOCAL_TIMERS
--int local_timer_register(struct local_timer_ops *ops)
-+struct clock_event_device *local_timer_register(struct local_timer_ops *ops)
- {
- 	if (!is_smp() || !setup_max_cpus)
--		return -ENXIO;
-+		return ERR_PTR(-ENXIO);
- 
- 	if (lt_ops)
--		return -EBUSY;
-+		return ERR_PTR(-EBUSY);
- 
- 	lt_ops = ops;
--	return 0;
-+	return &per_cpu(percpu_clockevent, smp_processor_id());
- }
- #endif
- 
 diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
-index c092115..616268c 100644
+index 616268c..118f4f2 100644
 --- a/arch/arm/kernel/smp_twd.c
 +++ b/arch/arm/kernel/smp_twd.c
-@@ -315,6 +315,7 @@ static struct local_timer_ops twd_lt_ops __cpuinitdata = {
- static int __init twd_local_timer_common_register(struct device_node *np)
- {
- 	int err;
-+	struct clock_event_device *evt;
- 
- 	twd_evt = alloc_percpu(struct clock_event_device *);
- 	if (!twd_evt) {
-@@ -328,8 +329,8 @@ static int __init twd_local_timer_common_register(struct device_node *np)
- 		goto out_free;
- 	}
- 
--	err = local_timer_register(&twd_lt_ops);
--	if (err)
-+	evt = local_timer_register(&twd_lt_ops);
-+	if (IS_ERR(evt))
- 		goto out_irq;
+@@ -335,6 +335,9 @@ static int __init twd_local_timer_common_register(struct device_node *np)
  
  	twd_get_clock(np);
+ 
++	if (num_possible_cpus() == 1)
++		twd_timer_setup(evt);
++
+ 	return 0;
+ 
+ out_irq:
 -- 
 1.7.12
 
