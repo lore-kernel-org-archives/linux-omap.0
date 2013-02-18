@@ -1,38 +1,36 @@
 From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: [PATCH 0/1] ARM: DTS: OMAP4: Add OMAP4 Blaze Tablet support
-Date: Mon, 18 Feb 2013 14:41:56 +0200
-Message-ID: <1361191317-24988-1-git-send-email-ruslan.bilovol@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Subject: [PATCH] ARM: OMAP2+: omap2plus_defconfig: Add support for BMP085 pressure sensor
+Date: Mon, 18 Feb 2013 15:20:52 +0200
+Message-ID: <1361193652-25313-1-git-send-email-ruslan.bilovol@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f176.google.com ([74.125.82.176]:37417 "EHLO
+	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753982Ab3BRNVH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Feb 2013 08:21:07 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux@arm.linux.org.uk, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi,
+This patch enables BMP085 pressure sensor that can be
+found on OMAP4 Blaze Tablet development platform
 
-This patch is a second attempt to add basic support of OMAP4 Blaze Tablet
-software development platform - in this case using only Device Tree.
+Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+---
+ arch/arm/configs/omap2plus_defconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-Additional information about this platform can be found here:
-http://www.svtronics.com/omap?product_id=15
-
-Ruslan Bilovol (1):
-  ARM: DTS: OMAP4: Add OMAP4 Blaze Tablet support
-
- arch/arm/boot/dts/Makefile              |    1 +
- arch/arm/boot/dts/omap4-blazetablet.dts |  390 +++++++++++++++++++++++++++++++
- 2 files changed, 391 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap4-blazetablet.dts
-
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index b16bae2..6a4e9a2 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -93,6 +93,7 @@ CONFIG_BLK_DEV_RAM_SIZE=16384
+ CONFIG_SENSORS_LIS3LV02D=m
+ CONFIG_SENSORS_TSL2550=m
+ CONFIG_SENSORS_LIS3_I2C=m
++CONFIG_BMP085_I2C=m
+ CONFIG_SCSI=y
+ CONFIG_BLK_DEV_SD=y
+ CONFIG_SCSI_MULTI_LUN=y
 -- 
 1.7.9.5
+
