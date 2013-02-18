@@ -1,100 +1,96 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH] omapdrm: Make fixed resolution panels work
-Date: Mon, 18 Feb 2013 17:00:00 +0530
-Message-ID: <512210B8.6080400@ti.com>
-References: <1360842744-8325-1-git-send-email-archit@ti.com> <CAF6AEGvgQxYtV=FD_B29LCONALSieR+PWVpgOD0Wn4SM88zn2g@mail.gmail.com> <5121D705.6040908@ti.com> <5121E6F9.1030905@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH, RFC 0/8] ARM: AM43 (OMAP2+) boot support
+Date: Mon, 18 Feb 2013 17:05:00 +0530
+Message-ID: <cover.1361186097.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43585 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751149Ab3BRLap (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Feb 2013 06:30:45 -0500
-In-Reply-To: <5121E6F9.1030905@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>, Nicolas Pitre <nico@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Will Deacon <will.deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, Syed Mohammed Khasim <khasim@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, greg@kroah.com
 
-On Monday 18 February 2013 02:01 PM, Tomi Valkeinen wrote:
-> On 2013-02-18 09:23, Archit Taneja wrote:
->
->>>> diff --git a/drivers/staging/omapdrm/omap_connector.c
->>>> b/drivers/staging/omapdrm/omap_connector.c
->>>> index 4cc9ee7..839c6e4 100644
->>>> --- a/drivers/staging/omapdrm/omap_connector.c
->>>> +++ b/drivers/staging/omapdrm/omap_connector.c
->>>> @@ -110,6 +110,11 @@ static enum drm_connector_status
->>>> omap_connector_detect(
->>>>                           ret = connector_status_connected;
->>>>                   else
->>>>                           ret = connector_status_disconnected;
->>>> +       } else if (dssdev->type == OMAP_DISPLAY_TYPE_DPI ||
->>>> +                       dssdev->type == OMAP_DISPLAY_TYPE_DBI ||
->>>> +                       dssdev->type == OMAP_DISPLAY_TYPE_SDI ||
->>>> +                       dssdev->type == OMAP_DISPLAY_TYPE_DSI) {
->>>> +               ret = connector_status_connected;
->>>
->>> hmm, why not just have a default detect fxn for panel drivers which
->>> always returns true?  Seems a bit cleaner.. otherwise, I guess we
->>> could just change omap_connector so that if dssdev->detect is null,
->>> assume always connected.  Seems maybe a slightly better way since
->>> currently omap_connector doesn't really know too much about different
->>> sorts of panels.  But I'm not too picky if that is a big pain because
->>> we probably end up changing all this as CFP starts coming into
->>> existence.
->>>
->>> Same goes for check_timings/set_timings..  it seems a bit cleaner just
->>> to have default fxns in the panel drivers that do-the-right-thing,
->>> although I suppose it might be a bit more convenient for out-of-tree
->>> panel drivers to just assume fixed panel if these fxns are null.
->
-> Yeah, I can't make my mind about null pointer. It's nice to inform with
-> a null pointer that the panel doesn't support the given operation, or
-> that it doesn't make sense, but handling the null value makes the code a
-> bit complex.
->
-> For example, our VENC driver doesn't know if there's a TV connected or
-> not, so neither true or false as connect return value makes sense there.
-> Or, for a DSI command mode panel, set_timings doesn't really make much
-> sense.
->
->> Maybe having default functions in omapdss might be a better idea. There
->> is an option of adding default functions in omap_dss_register_driver()
->> (drivers/video/omap2/dss/core.c).
->>
->> Tomi, do you think it's fine to add some more default panel driver funcs?
->
-> We can add default funcs. However, adding them in
-> omap_dss_register_driver is not so nice, as it makes the omap_dss_driver
-> (which is essentially an "ops" struct) non-constable. Instead, we should
-> move the setting of the default funcs to the drivers.
->
-> If I'm not mistaken, we could manage that with a helper macro. Assigning
-> a value to the same field of a struct should be ok by the compiler, and
-> should cause only the last assignment to be taken into use. So:
->
-> static struct foo zab = {
-> 	.bar = 123, /* ignored */
-> 	.bar = 234, /* used */
-> };
->
-> And so we could have:
->
-> static struct omap_dss_driver my_panel_driver = {
-> 	OMAPDSS_DEFAULT_PANEL_OPS, /* macro for default ops */
->
-> 	.enable = my_panel_enable,
-> 	/* ... */
-> };
+(Resending, since it seems, LAKML doesn't accept patches with subject
+prefix only as "RFC", but requires "PATCH" prefix also)
 
-This sounds nice, but if the panel driver ops are going to be changed 
-again in CPF, then it might make sense to do this later, depending on 
-how it CPF handles default ops in panel drivers.
+Hi,
 
-Maybe we should leave this patch as-is, since we know it will be 
-modified later.
+This series adds minimal support to boot Linux on platforms having
+AM43 based SoC's.
 
-Archit
+This is being sent as an RFC to seek opinion about modification in
+twd to register percpu local timer clock event for scheduler tick in
+the case of one core SMP.
+
+AM43 SoC's are based on ARM Cortex-A9. It is an ARM Cortex-A9 SMP
+configuration with one core (not uniprocessor configuration). AM43 is
+similar to AM335x in it's peripheral capabilities, with many of the
+peripheral register mapping's similar like that of uart.
+
+AM43 is in pre-silicon stage and currently there are no public
+documents.
+
+This series has been tested on a pre-silicon platform that emulates
+AM43 SoC, changes proposed here are minimal - to get it booting.
+Kernel was directly run without the help of bootloader - Images were
+directly loaded onto a pre-initialized RAM and ARM registers updated
+as required for booting.
+
+Changes have been made over linux-next (next-20130213) with three "OF"
+related reverts (which otherwise causes problem in other platforms
+also) and compiled with omap2plus_defconfig. Multiplatform option was
+enabled, while most of CONFIG options were deselected for a faster
+boot. Beagle bone boots as earlier with these changes.
+
+An interesting observation is that it may be possible to boot this
+platform to console without any platform specific modification to
+proper Kernel (by that I mean excluding DT sources) using Arnd's,
+
+"[PATCH,RFC] default machine descriptor for multiplatform",
+
+along with a "CLOCKSOURCE_OF_DECLARE" for smp twd.
+
+But later on to make SoC do any really useful work or to get done
+things that the SoC is meant to do, platform changes like omap-hwmod,
+handling power management, clock tree, detecting SoC capabilities etc
+would have to be made, necessitating DT_MACHINE_START at least in
+the foreseeable future.
+
+Patch - 8 that makes AM43 boot on pre-silicon platform would be
+replaced later by a one for original board.
+
+Last but not least, thanks to Ankur Kishore <a-kishore@ti.com>
+(who first made Linux to boot on AM43) for all the help that made
+Linux bringup easier.
+
+Regards
+Afzal
+
+
+Afzal Mohammed (8):
+  ARM: localtimer: return percpu clkevt on register
+  ARM: twd: register clock event for 1 core SMP
+  ARM: twd: clock rate from DT (if no DT clk tree)
+  ARM: am33xx: ll debug config help
+  ARM: OMAP2+: am43: Kconfig
+  ARM: OMAP2+: am43: basic dt support
+  ARM: dts: am4372: initial support
+  ARM: dts: am43-pre-silicon support
+
+ Documentation/devicetree/bindings/arm/twd.txt |  7 +++-
+ arch/arm/Kconfig.debug                        |  3 ++
+ arch/arm/boot/dts/Makefile                    |  3 +-
+ arch/arm/boot/dts/am43-pre-silicon.dts        | 31 +++++++++++++++
+ arch/arm/boot/dts/am4372.dtsi                 | 55 +++++++++++++++++++++++++++
+ arch/arm/include/asm/localtimer.h             |  7 ++--
+ arch/arm/kernel/smp.c                         |  8 ++--
+ arch/arm/kernel/smp_twd.c                     | 16 +++++++-
+ arch/arm/mach-omap2/Kconfig                   | 11 ++++++
+ arch/arm/mach-omap2/board-generic.c           | 18 +++++++++
+ 10 files changed, 148 insertions(+), 11 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am43-pre-silicon.dts
+ create mode 100644 arch/arm/boot/dts/am4372.dtsi
+
+-- 
+1.7.12
 
