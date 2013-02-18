@@ -1,58 +1,63 @@
-From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [RFC 2/8] ARM: twd: register clock event for 1 core SMP
-Date: Mon, 18 Feb 2013 12:00:15 +0530
-Message-ID: <a7f62b8580aa4b33d5658f4f03371a453adaea9b.1361166003.git.afzal@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [RFC 6/8] ARM: OMAP2+: am43: basic dt support
+Date: Mon, 18 Feb 2013 12:00:36 +0530
+Message-ID: <64d18c5a07bf7680b8299f3ef98303e60522e738.1361166003.git.afzal@ti.com>
 References: <cover.1361166003.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <cover.1361166003.git.afzal-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Nicolas Pitre <nico-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Syed Mohammed Khasim <khasim-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1361166003.git.afzal@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>, Nicolas Pitre <nico@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Will Deacon <will.deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, Syed Mohammed Khasim <khasim@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Register percpu local timer for scheduler tick in the case of one core
-SMP configuration. In other cases - secondary cpu's as well as boot
-cpu's having more than one core, this is being registered as per
-existing boot flow, with a difference that they happens after delay
-calibration. Registering the clock for tick in case of one core should
-be done before Kernel calibrates delay (this is required to boot,
-unless local timer is the only one registered for tick). Registering
-twd local timer at init_time (which platforms are doing now) helps
-achieve that with the proposed change.
+Describe minimal DT boot machine details for AM43 based SoC's. AM43
+family of SoC's are ARM Cortex-A9 based with one core in SMP
+configuration. Low level debug could be achieved by selecting
+DEBUG_AM33XXUART1. To boot AM43 SoC, this change is sufficient w.r.t
+Kernel (considering the fact that strictly speaking DT sources does
+not classify as a part of Kernel). Here private timer of the one and
+only core is being used as clock event (as well as, as time source).
 
-This helps in an almost booting Kernel (minimal) by only relying on
-ARM parts for an A9 one core SMP.
-
-Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/kernel/smp_twd.c | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/mach-omap2/board-generic.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
-index 616268c..118f4f2 100644
---- a/arch/arm/kernel/smp_twd.c
-+++ b/arch/arm/kernel/smp_twd.c
-@@ -335,6 +335,9 @@ static int __init twd_local_timer_common_register(struct device_node *np)
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 0274ff7..e083f08 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -15,7 +15,10 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_platform.h>
+ #include <linux/irqdomain.h>
++#include <linux/irqchip.h>
  
- 	twd_get_clock(np);
++#include <asm/mach/map.h>
++#include <asm/smp_twd.h>
+ #include <asm/mach/arch.h>
  
-+	if (num_possible_cpus() == 1)
-+		twd_timer_setup(evt);
+ #include "common.h"
+@@ -182,3 +185,18 @@ DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
+ #endif
 +
- 	return 0;
- 
- out_irq:
++#ifdef CONFIG_SOC_AM43
++static const char *am43_boards_compat[] __initdata = {
++	"ti,am43",
++	NULL,
++};
++
++DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
++	.map_io		= debug_ll_io_init,
++	.init_irq	= irqchip_init,
++	.init_machine	= omap_generic_init,
++	.init_time	= twd_local_timer_of_register,
++	.dt_compat	= am43_boards_compat,
++MACHINE_END
++#endif
 -- 
 1.7.12
