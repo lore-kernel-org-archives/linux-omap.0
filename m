@@ -1,86 +1,57 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH, RFC 7/8] ARM: dts: am4372: initial support
-Date: Mon, 18 Feb 2013 17:08:16 +0530
-Message-ID: <c9c131c0508b875c0893e8557504372a1564568a.1361186097.git.afzal@ti.com>
-References: <cover.1361186097.git.afzal@ti.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] i2c: Remove unneeded xxx_set_drvdata(..., NULL) calls
+Date: Mon, 18 Feb 2013 12:35:15 +0200
+Message-ID: <20130218103515.GJ20771@intel.com>
+References: <1360953682-25066-1-git-send-email-dianders@chromium.org>
+ <1360970315-32116-1-git-send-email-dianders@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1361186097.git.afzal@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>, Nicolas Pitre <nico@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Will Deacon <will.deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, Syed Mohammed Khasim <khasim@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+Content-Disposition: inline
+In-Reply-To: <1360970315-32116-1-git-send-email-dianders@chromium.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Doug Anderson <dianders@chromium.org>
+Cc: Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Thierry Reding <thierry.reding@avionic-design.de>, Sekhar Nori <nsekhar@ti.com>, linux-i2c@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, Kevin Hilman <khilman@ti.com>, Sonic Zhang <sonic.zhang@analog.com>, linux-arm-kernel@lists.infradead.org, Deepak Sikri <deepak.sikri@st.com>, Havard Skinnemoen <hskinnemoen@gmail.com>, Marek Vasut <marex@denx.de>, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Sascha Hauer <s.hauer@pengutronix.de>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, uclinux-dist-devel@blackfin.uclinux.org, Jean Delvare <khali@linux-fr.org>, Lars-Peter Clausen <lars@metafoo.de>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Barry Song <baohua.son>
 List-Id: linux-omap@vger.kernel.org
 
-DT source (minimal) for AM4372 SoC. Those represented here are the
-minimal DT nodes necessary to get kernel booting.
+On Fri, Feb 15, 2013 at 03:18:35PM -0800, Doug Anderson wrote:
+> There is simply no reason to be manually setting the private driver
+> data to NULL in the remove/fail to probe cases.  This is just extra
+> cruft code that can be removed.
+> 
+> A few notes:
+> * Nothing relies on drvdata being set to NULL.
+> * The __device_release_driver() function eventually calls
+>   dev_set_drvdata(dev, NULL) anyway, so there's no need to do it
+>   twice.
+> * I verified that there were no cases where xxx_get_drvdata() was
+>   being called in these drivers and checking for / relying on the NULL
+>   return value.
+> 
+> This could be cleaned up kernel-wide but for now just take the baby
+> step and remove from the i2c subsystem.
+> 
+> Reported-by: Wolfram Sang <wsa@the-dreams.de>
+> Reported-by: Stephen Warren <swarren@wwwdotorg.org>
+> Signed-off-by: Doug Anderson <dianders@chromium.org>
+> ---
+>  drivers/i2c/busses/i2c-au1550.c             | 1 -
+>  drivers/i2c/busses/i2c-bfin-twi.c           | 2 --
+>  drivers/i2c/busses/i2c-cpm.c                | 2 --
+>  drivers/i2c/busses/i2c-davinci.c            | 2 --
+>  drivers/i2c/busses/i2c-designware-pcidrv.c  | 2 --
+>  drivers/i2c/busses/i2c-designware-platdrv.c | 2 --
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- arch/arm/boot/dts/am4372.dtsi | 55 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
- create mode 100644 arch/arm/boot/dts/am4372.dtsi
+For i2c-designware-pcidrv.c and i2c-designware-platdrv.c:
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-new file mode 100644
-index 0000000..178c41f
---- /dev/null
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -0,0 +1,55 @@
-+/*
-+ * Device Tree Source for AM4372 SoC
-+ *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
-+
-+/include/ "skeleton.dtsi"
-+
-+/ {
-+	compatible = "ti,am4372", "ti,am43";
-+	interrupt-parent = <&gic>;
-+
-+
-+	aliases {
-+		serial0 = &uart1;
-+	};
-+
-+	cpus {
-+		cpu@0 {
-+			compatible = "arm,cortex-a9";
-+		};
-+	};
-+
-+	gic: interrupt-controller@48241000 {
-+		compatible = "arm,cortex-a9-gic";
-+		interrupt-controller;
-+		#interrupt-cells = <3>;
-+		reg = <0x48241000 0x1000>,
-+		      <0x48240100 0x0100>;
-+	};
-+
-+	twd1: local-timer@0x48240600 {
-+		compatible = "arm,cortex-a9-twd-timer";
-+		reg = <0x48240600 0x20>;
-+		interrupts = <1 13 0x304>;
-+	};
-+
-+	ocp {
-+		compatible = "simple-bus";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+
-+		uart1: serial@44e09000 {
-+			compatible = "ti,am4372-uart","ti,omap2-uart";
-+			clock-frequency = <48000000>;
-+			reg = <0x44e09000 0x2000>;
-+			interrupts = <0 72 0x4>;
-+		};
-+	};
-+};
--- 
-1.7.12
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
