@@ -1,57 +1,67 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: OMAP EHCI having clock problems?
-Date: Mon, 18 Feb 2013 16:51:47 +0200
-Message-ID: <51224003.5080705@ti.com>
-References: <87halea4s3.fsf@linaro.org> <511DE9AB.5080403@ti.com> <87fw0x608o.fsf@linaro.org> <5121F945.1020907@ti.com> <87a9r165m7.fsf@linaro.org>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
+Date: Mon, 18 Feb 2013 06:52:35 -0800
+Message-ID: <87vc9p4qto.fsf@linaro.org>
+References: <1360840554-26901-1-git-send-email-balbi@ti.com>
+	<1360840554-26901-2-git-send-email-balbi@ti.com>
+	<87obfl60x7.fsf@linaro.org> <511F1245.60208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48369 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751853Ab3BROvw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Feb 2013 09:51:52 -0500
-In-Reply-To: <87a9r165m7.fsf@linaro.org>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:60528 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751893Ab3BROwi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Feb 2013 09:52:38 -0500
+Received: by mail-pb0-f42.google.com with SMTP id xb4so1708506pbc.15
+        for <linux-omap@vger.kernel.org>; Mon, 18 Feb 2013 06:52:38 -0800 (PST)
+In-Reply-To: <511F1245.60208@ti.com> (Santosh Shilimkar's message of "Sat, 16
+	Feb 2013 10:29:49 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Mike Turquette <mturquette@linaro.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On 02/18/2013 04:47 PM, Kevin Hilman wrote:
-> Roger Quadros <rogerq@ti.com> writes:
-> 
->> On 02/15/2013 05:54 PM, Kevin Hilman wrote:
->>> Roger Quadros <rogerq@ti.com> writes:
->>>
->>>> Hi Kevin,
->>>>
->>>> On 02/15/2013 12:50 AM, Kevin Hilman wrote:
->>>>> Felipe, Roger,
->>>>>
->>>>> Using Tony's current master branch, and enabling EHCI support, I see 
->>>>> the clock framework spitting loudly about the EHCI driver (full boot log
->>>>> below.)   The same thing happens on v3.8-rc7.
->>>>>
->>>>> Any idea what's going on?  Am I missing a set of fixes that's already
->>>>> been posted?
->>>>
->>>> Thanks for pointing out. This series should fix the issues
->>>> https://lkml.org/lkml/2013/1/23/155
->>>>
->>>> They should be on their way to linux-next.
->>>
->>> Great.  But what about v3.8?  I see the same problems in v3.8-rc7.
->>>
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+
+> On Friday 15 February 2013 09:10 PM, Kevin Hilman wrote:
+>> Felipe Balbi <balbi@ti.com> writes:
 >>
->> Kevin, the fix is below for older kernels.
-> 
-> Tested-by: Kevin Hilman <khilman@linaro.org>
-> 
-> Thanks, tested on v3.8-rc and works great.  Are you planning on
-> submitting this for v3.8 via stable? 
-> 
+>>> Currently the omap-serial driver will not
+>>> work properly if booted via DT with CPUIDLE
+>>> enabled because it depends on function pointers
+>>> provided by hwmod to change its own SYSCONFIG
+>>> register.
+>>>
+>>> Remove that relyance on hwmod by moving SYSCONFIG
+>>> handling to driver itself. Note that this also
+>>> fixes a possible corner case bug where we could
+>>> be putting UART in Force Idle mode if we called
+>>> omap_serial_enable_wakeup(up, false) after setting
+>>> NOIDLE to the idle mode. This is because hwmod
+>>> has no protection against that situation.
+>>>
+>>> NYET-Signed-off-by: Felipe Balbi <balbi@ti.com>
+>>
+>> Here's another approach to getting rid of the sysconfig twiddling in the
+>> driver.  I wrote this some time ago at my former company ;) but don't
+>> think I ever got around to posting it.
+>>
+>> It doesn't solve the whole problem (e.g. doesn't address the
+>> context_loss or enable_wakeup func pointers), but at least gets rid of
+>> the need for any SYSCONFIG access in the driver for the idle modes.
+>>
+>> Needs more thorough testing.
+>>
+> I posted similar patch series[1] yesterday after testing it on OMAP4/5
+> devices. OMAP3 testing seems to be ok as well. AM3XXX and OMAP2 test
+> results is what am waiting for.
 
-OK I'll do that.
+Yeah, I saw yours after I posted mine.  Just continue with yours, I'll
+be glad to have someone else take this on.
 
-cheers,
--roger
+> Good to know that you had similar idea in mind to get rid of
+> UART sysc hackery.
+
+Likewise.
+
+Kevin
