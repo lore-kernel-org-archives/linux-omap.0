@@ -1,55 +1,65 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [RFC/RFT PATCH 0/2] SERIAL: OMAP: Remove idle handling from driver
-Date: Mon, 18 Feb 2013 15:55:33 +0530
-Message-ID: <5122019D.9030100@ti.com>
-References: <1360929970-31934-1-git-send-email-santosh.shilimkar@ti.com> <5121FCC8.7090604@ti.com> <20130218101032.GA32688@arwen.pp.htv.fi> <20130218101113.GB32688@arwen.pp.htv.fi>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: Enable SDIO IRQ using a GPIO in idle
+ mode.
+Date: Mon, 18 Feb 2013 11:26:38 +0100
+Message-ID: <512201DE.1070001@gmail.com>
+References: <20121220220444.GA350@blumentopf> <1356041532-919-1-git-send-email-andreas.fenkart@streamunlimited.com> <20130110202203.GD14149@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38003 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757726Ab3BRKYW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Feb 2013 05:24:22 -0500
-In-Reply-To: <20130218101113.GB32688@arwen.pp.htv.fi>
+Received: from mail-bk0-f47.google.com ([209.85.214.47]:42393 "EHLO
+	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755908Ab3BRK0o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Feb 2013 05:26:44 -0500
+In-Reply-To: <20130110202203.GD14149@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Andreas Fenkart <andreas.fenkart@streamunlimited.com>, cjb@laptop.org, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com
 
-On Monday 18 February 2013 03:41 PM, Felipe Balbi wrote:
-> On Mon, Feb 18, 2013 at 12:10:32PM +0200, Felipe Balbi wrote:
->>> HWMOD_SWSUP_SIDLE flag will is not what will help UART completely.
->>> Also considering UART also needs async wakeup enabled as it implements
->>> another such hook and attaches that through function pointer.
->>
->> this is exactly what I said at [1], which I quote:
->>
->> "Also, $SUBJECT isn't improving the situation regarding UART Wakeup,
->> there is still the regression of UART never being wakeup capable.
->>
-I also mentioned that am not touching the wakeup function pointer. The
-reason an alternate is needed because wakeup function pointer back-end
-comes in between. And the existing SW control flag isn't intended
-completely for the purpose what we wanted to use for uart. And I didn't
-expected the wakeup crap will come in between an implementation of just
-slave idle bits.
+On 10.01.2013 21:22, Tony Lindgren wrote:
+> * Andreas Fenkart <andreas.fenkart@streamunlimited.com> [121220 14:15]:
+>> Without functional clock the omap_hsmmc module can't forward
+>> SDIO IRQs to the system. This patch reconfigures dat1 line
+>> as a gpio while the fclk is off. And uses SDIO IRQ detection of
+>> the module, while fclk is present.
+> 
+> Looks pretty good to me, however I could not figure out what
+> to apply this on for testing. It fails to apply at least against
+> current linux next, can you please update against that?
+>  
+>> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
+>> +{
+>> +	struct omap_hsmmc_host *host = mmc_priv(mmc);
+>> +	u32 irq_mask;
+>> +	unsigned long flags;
+>> +
+>> +	spin_lock_irqsave(&host->irq_lock, flags);
+>> +
+>> +	host->sdio_irq_en = (enable != 0) ? true : false;
+>> +
+>> +	if (host->active_pinmux) {
+>> +		irq_mask = OMAP_HSMMC_READ(host->base, ISE);
+>> +		if (enable)
+>> +			irq_mask |= CIRQ_ENABLE;
+>> +		else
+>> +			irq_mask &= ~CIRQ_ENABLE;
+>> +		OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
+>> +
+>> +		if (!host->req_in_progress)
+>> +			OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
+>> +
+>> +#if 0
+>> +		OMAP_HSMMC_READ(host->base, IE); /* flush posted write */
+>> +#endif
+> 
+> Maybe just replace #if 0 with just a comment in case it turns out to be
+> needed for some cases?
 
->> I wonder what are your ideas to sort that part out, I mean, how do you
->> plan to implement ->set_wake() for the tty port ?"
->
-> [1] http://marc.info/?l=linux-omap&m=136093334914275&w=2
->
-The main need for uart wakeup is the io_ring() trigger and that needs
-to happen via generic pin control API. SYSC wakeup bit isn't something
-needs to be toggled so that can be decoupled. So again the idea is
-to make SYSC handling transparent to UART drivers and let driver toggle
-the io_ring() based on ->set_wake() as it is done today.
-
-Regards,
-Santosh
+Is there any update on this series? Andreas, did you do more tests?
 
 
-
-
+Thanks and best regards,
+Daniel
 
