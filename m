@@ -1,134 +1,100 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH V2] ARM: dts: omap3-devkit8000: Enable
-	audio support
-Date: Mon, 18 Feb 2013 12:20:24 +0100
-Message-ID: <51220E78.5000409@ti.com>
-References: <1361000036-18121-1-git-send-email-anilk4.v@gmail.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH] omapdrm: Make fixed resolution panels work
+Date: Mon, 18 Feb 2013 17:00:00 +0530
+Message-ID: <512210B8.6080400@ti.com>
+References: <1360842744-8325-1-git-send-email-archit@ti.com> <CAF6AEGvgQxYtV=FD_B29LCONALSieR+PWVpgOD0Wn4SM88zn2g@mail.gmail.com> <5121D705.6040908@ti.com> <5121E6F9.1030905@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1361000036-18121-1-git-send-email-anilk4.v@gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Anil Kumar <anilk4.v@gmail.com>
-Cc: alsa-devel@alsa-project.org, linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, thomas@tomweber.eu
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43585 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751149Ab3BRLap (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Feb 2013 06:30:45 -0500
+In-Reply-To: <5121E6F9.1030905@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, greg@kroah.com
 
-On 02/16/2013 08:33 AM, Anil Kumar wrote:
-> Add the needed sections to enable audio support on
-> Devkit8000 when booted with DT blob.
-> =
+On Monday 18 February 2013 02:01 PM, Tomi Valkeinen wrote:
+> On 2013-02-18 09:23, Archit Taneja wrote:
+>
+>>>> diff --git a/drivers/staging/omapdrm/omap_connector.c
+>>>> b/drivers/staging/omapdrm/omap_connector.c
+>>>> index 4cc9ee7..839c6e4 100644
+>>>> --- a/drivers/staging/omapdrm/omap_connector.c
+>>>> +++ b/drivers/staging/omapdrm/omap_connector.c
+>>>> @@ -110,6 +110,11 @@ static enum drm_connector_status
+>>>> omap_connector_detect(
+>>>>                           ret = connector_status_connected;
+>>>>                   else
+>>>>                           ret = connector_status_disconnected;
+>>>> +       } else if (dssdev->type == OMAP_DISPLAY_TYPE_DPI ||
+>>>> +                       dssdev->type == OMAP_DISPLAY_TYPE_DBI ||
+>>>> +                       dssdev->type == OMAP_DISPLAY_TYPE_SDI ||
+>>>> +                       dssdev->type == OMAP_DISPLAY_TYPE_DSI) {
+>>>> +               ret = connector_status_connected;
+>>>
+>>> hmm, why not just have a default detect fxn for panel drivers which
+>>> always returns true?  Seems a bit cleaner.. otherwise, I guess we
+>>> could just change omap_connector so that if dssdev->detect is null,
+>>> assume always connected.  Seems maybe a slightly better way since
+>>> currently omap_connector doesn't really know too much about different
+>>> sorts of panels.  But I'm not too picky if that is a big pain because
+>>> we probably end up changing all this as CFP starts coming into
+>>> existence.
+>>>
+>>> Same goes for check_timings/set_timings..  it seems a bit cleaner just
+>>> to have default fxns in the panel drivers that do-the-right-thing,
+>>> although I suppose it might be a bit more convenient for out-of-tree
+>>> panel drivers to just assume fixed panel if these fxns are null.
+>
+> Yeah, I can't make my mind about null pointer. It's nice to inform with
+> a null pointer that the panel doesn't support the given operation, or
+> that it doesn't make sense, but handling the null value makes the code a
+> bit complex.
+>
+> For example, our VENC driver doesn't know if there's a TV connected or
+> not, so neither true or false as connect return value makes sense there.
+> Or, for a DSI command mode panel, set_timings doesn't really make much
+> sense.
+>
+>> Maybe having default functions in omapdss might be a better idea. There
+>> is an option of adding default functions in omap_dss_register_driver()
+>> (drivers/video/omap2/dss/core.c).
+>>
+>> Tomi, do you think it's fine to add some more default panel driver funcs?
+>
+> We can add default funcs. However, adding them in
+> omap_dss_register_driver is not so nice, as it makes the omap_dss_driver
+> (which is essentially an "ops" struct) non-constable. Instead, we should
+> move the setting of the default funcs to the drivers.
+>
+> If I'm not mistaken, we could manage that with a helper macro. Assigning
+> a value to the same field of a struct should be ok by the compiler, and
+> should cause only the last assignment to be taken into use. So:
+>
+> static struct foo zab = {
+> 	.bar = 123, /* ignored */
+> 	.bar = 234, /* used */
+> };
+>
+> And so we could have:
+>
+> static struct omap_dss_driver my_panel_driver = {
+> 	OMAPDSS_DEFAULT_PANEL_OPS, /* macro for default ops */
+>
+> 	.enable = my_panel_enable,
+> 	/* ... */
+> };
 
-> Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
+This sounds nice, but if the panel driver ops are going to be changed 
+again in CPF, then it might make sense to do this later, depending on 
+how it CPF handles default ops in panel drivers.
 
-Looks good:
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Maybe we should leave this patch as-is, since we know it will be 
+modified later.
 
-> ---
-> This patch is based on top of kernel 3.8-rc5 and
-> the following patches.
-> =
+Archit
 
-> Peter Ujfalusi:-
-> ASoC: twl4030: Correct the support for Voice port
-> ASoC: twl4030: Convert MICBIAS to SUPPLY widget
-> ASoC: omap-twl4030: Add support for routing, voice port and jack detect
-> =
-
-> Anil Kumar:-
-> ARM: dts: add minimal DT support for DevKit8000
-> https://patchwork.kernel.org/patch/2122461/
-> =
-
-> -Tested for playback and capture on Devkit8000.
-> =
-
->  Test process:-
-> =
-
->  #amixer set 'PredriveR Mixer AudioR2' on
->  #amixer set 'PredriveL Mixer AudioL2' on
->  #amixer set PreDriv 100 unmute
->  #amixer set 'DAC2 Digital Fine' 100
->  #amixer cset numid=3D27 1
->  #arecord | aplay
-> =
-
-> For V2:
->  - Remove pin mux as done at device boot time by default.
-> =
-
-> :100644 100644 6338993... c70116f... M	arch/arm/boot/dts/omap3-devkit8000=
-.dts
->  arch/arm/boot/dts/omap3-devkit8000.dts |   23 +++++++++++++++++++----
->  1 files changed, 19 insertions(+), 4 deletions(-)
-> =
-
-> diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/o=
-map3-devkit8000.dts
-> index 6338993..c70116f 100644
-> --- a/arch/arm/boot/dts/omap3-devkit8000.dts
-> +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
-> @@ -42,6 +42,19 @@
->                  };
->  =
-
->  	};
-> +
-> +	sound {
-> +		compatible =3D "ti,omap-twl4030";
-> +		ti,model =3D "devkit8000";
-> +
-> +		ti,mcbsp =3D <&mcbsp2>;
-> +		ti,codec =3D <&twl_audio>;
-> +		ti,audio-routing =3D
-> +			"Ext Spk", "PREDRIVEL",
-> +			"Ext Spk", "PREDRIVER",
-> +			"MAINMIC", "Main Mic",
-> +			"Main Mic", "Mic Bias 1";
-> +	};
->  };
->  =
-
->  &i2c1 {
-> @@ -51,6 +64,12 @@
->  		reg =3D <0x48>;
->  		interrupts =3D <7>;	/* SYS_NIRQ cascaded to intc */
->  		interrupt-parent =3D <&intc>;
-> +
-> +		twl_audio: audio {
-> +			compatible =3D "ti,twl4030-audio";
-> +			codec {
-> +			};
-> +		};
->  	};
->  };
->  =
-
-> @@ -86,10 +105,6 @@
->  	status =3D "disabled";
->  };
->  =
-
-> -&mcbsp2 {
-> -	status =3D "disabled";
-> -};
-> -
->  &mcbsp3 {
->  	status =3D "disabled";
->  };
-> =
-
-
-
--- =
-
-P=E9ter
