@@ -1,72 +1,44 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 16/33] OMAPDSS: acx565akm panel: handle gpios in panel
- driver
-Date: Mon, 18 Feb 2013 13:53:57 +0530
-Message-ID: <5121E51D.50808@ti.com>
-References: <1360765345-19312-1-git-send-email-archit@ti.com> <1360765345-19312-17-git-send-email-archit@ti.com> <20130213172913.GD21750@blackmetal.musicnaut.iki.fi> <511C896C.10007@ti.com> <511C8B16.5060605@ti.com> <5121D941.3060609@ti.com> <5121E24A.6090502@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
+Date: Mon, 18 Feb 2013 13:58:08 +0530
+Message-ID: <5121E618.1040304@ti.com>
+References: <20130214171253.GC7144@atomide.com> <20130214175650.GA25891@arwen.pp.htv.fi> <20130214181217.GA11806@atomide.com> <20130214192719.GB26679@arwen.pp.htv.fi> <20130214193911.GD11806@atomide.com> <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com> <20130215101610.GR17852@n2100.arm.linux.org.uk> <511E3797.2070802@ti.com> <20130215132726.GT17852@n2100.arm.linux.org.uk> <511E38C3.7080404@ti.com> <20130215163031.GA5724@atomide.com> <alpine.LFD.2.03.1302160035240.6419@syhkavp.arg> <511F1DB4.8030400@ti.com> <B5906170F1614E41A8A28DE3B8D121433ED22A16@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54567 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753976Ab3BRIYp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Feb 2013 03:24:45 -0500
-In-Reply-To: <5121E24A.6090502@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36730 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756623Ab3BRI05 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Feb 2013 03:26:57 -0500
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433ED22A16@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>
 
-On Monday 18 February 2013 01:41 PM, Tomi Valkeinen wrote:
-> On 2013-02-18 09:33, Archit Taneja wrote:
->> On Thursday 14 February 2013 12:28 PM, Tomi Valkeinen wrote:
->>> On 2013-02-14 08:51, Archit Taneja wrote:
->>>> On Wednesday 13 February 2013 10:59 PM, Aaro Koskinen wrote:
->>>>> Hi,
->>>>>
->>>>> On Wed, Feb 13, 2013 at 07:52:08PM +0530, Archit Taneja wrote:
->>>>>> +static struct panel_acx565akm_data *get_panel_data(struct
->>>>>> omap_dss_device *dssdev)
->>>>>> +{
->>>>>> +    return (struct panel_acx565akm_data *) dssdev->data;
->>>>>> +}
->>>>>> +
->>>>>>     static int acx_panel_probe(struct omap_dss_device *dssdev)
->>>>>>     {
->>>>>>         int r;
->>>>>>         struct acx565akm_device *md = &acx_dev;
->>>>>> +    struct panel_acx565akm_data *panel_data = get_panel_data(dssdev);
->>>>>
->>>>> Why the get_panel_data function is needed, isn't the cast unnecessary?
+On Monday 18 February 2013 01:38 PM, Bedia, Vaibhav wrote:
+> On Sat, Feb 16, 2013 at 11:18:36, Shilimkar, Santosh wrote:
+> [...]
 >>>>
->>>> the 'data' member of omap_dss_device has the type 'void *', we need to
->>>> cast it to access the panel_acx565akm_data struct pointer.
+>>>> For the duplicate ioremapping, I don't think there's any need to
+>>>> do it if we get things right.
 >>>
->>> You don't need an explicit cast to assign a void pointer to a pointer to
->>> something else (or vice versa, I think).
+>>> Note that if the ioremap matches a static map area there is no cost to
+>>> ioremap it multiple times.
 >>>
->>> I remember us having similar constructs in some other panel drivers
->>> also. I think they are unnecessary also.
+>>>
+>> Thats true though now on OMAP we removed most of the static mappings.
+>> The main issue is waste of IO space because, we end up mapping same
+>> area two times for all the OMAP drivers. This can be optimized with
+>> a arch ioremap caller hook but as discussed here, its nice to have
+>> rather than something important.
 >>
->> I was considering keeping the get_panel_data() funcs in the panel
->> drivers though. This way, whenever the way of retrieving platform data
->> changes because of DT or CDF or something else, we would just need to
->> modify the get_panel_data func.
 >
-> I think it's simpler if we manage the fetching of the platform data in
-> probe one, and just store a struct panel_acx565akm_data or such to the
-> panel driver's data.
->
-> For DT we don't have platform data, but we can create the same platform
-> data struct from the DT properties.
->
-> So the above would become something like:
->
-> struct acx565akm_device *md = &acx_dev;
-> struct panel_acx565akm_data *panel_data = md->pdata;
+Mostly L3 and L4 OCP slaves ones are covered because of L3/L4 map.
+If you boot a full blown kernel, you will see many dynamically allocated 
+as well.
 
-okay, that seems to be a better way.
-
-Archit
+Regards,
+Santosh
 
