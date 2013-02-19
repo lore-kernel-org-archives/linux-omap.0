@@ -1,23 +1,72 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH, RFC 4/8] ARM: am33xx: ll debug config help
-Date: Tue, 19 Feb 2013 10:30:05 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EAA867A@DBDE01.ent.ti.com>
-References: <cover.1361186097.git.afzal@ti.com>
- <bfe941adb98a5000c2817f9fd6160070e59e53c9.1361186097.git.afzal@ti.com>
- <51235337.60209@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH, RFC 6/8] ARM: OMAP2+: am43: basic dt support
+Date: Tue, 19 Feb 2013 16:02:39 +0530
+Message-ID: <512354C7.1000409@ti.com>
+References: <cover.1361186097.git.afzal@ti.com> <64d18c5a07bf7680b8299f3ef98303e60522e738.1361186097.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <51235337.60209@ti.com>
-Content-Language: en-US
+In-Reply-To: <64d18c5a07bf7680b8299f3ef98303e60522e738.1361186097.git.afzal@ti.com>
 Sender: linux-doc-owner@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>, Nicolas Pitre <nico@linaro.org>, Will Deacon <will.deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, "Nori, Sekhar" <nsekhar@ti.com>, "Syed Mohammed, Khasim" <khasim@ti.com>
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>, Nicolas Pitre <nico@linaro.org>, Will Deacon <will.deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, Syed Mohammed Khasim <khasim@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgU2FudG9zaCwNCg0KT24gVHVlLCBGZWIgMTksIDIwMTMgYXQgMTU6NTU6NTksIFNoaWxpbWth
-ciwgU2FudG9zaCB3cm90ZToNCg0KPiBXaXRoIERULCBJSVJDIERFQlVHTEwgaXMgYnJva2VuLiBT
-byBkaWQgeW91IGhhY2sgZGVidWctbWFjcm8uUw0KPiB0byBnZXQgdGhlIGVhcmx5cHJpbnRrIHdv
-cmtpbmcgPw0KDQpObywgb24gbGludXgtbmV4dCwgbGwgZGVidWcgd29ya3MgcHJvcGVybHkuDQoN
-ClJlZ2FyZHMNCkFmemFsIA0K
+On Monday 18 February 2013 05:08 PM, Afzal Mohammed wrote:
+> Describe minimal DT boot machine details for AM43 based SoC's. AM43
+> family of SoC's are ARM Cortex-A9 based with one core in SMP
+> configuration. Low level debug could be achieved by selecting
+> DEBUG_AM33XXUART1. To boot AM43 SoC, this change is sufficient w.r.t
+> Kernel (considering the fact that strictly speaking DT sources does
+> not classify as a part of Kernel). Here private timer of the one and
+> only core is being used as clock event (as well as, as time source).
+>
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+As discussed already, lets just call this as Cortex-A9 single core
+machine to avoid confusion.
+
+>   arch/arm/mach-omap2/board-generic.c | 18 ++++++++++++++++++
+>   1 file changed, 18 insertions(+)
+>
+> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> index 0274ff7..e083f08 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -15,7 +15,10 @@
+>   #include <linux/of_irq.h>
+>   #include <linux/of_platform.h>
+>   #include <linux/irqdomain.h>
+> +#include <linux/irqchip.h>
+>
+> +#include <asm/mach/map.h>
+> +#include <asm/smp_twd.h>
+>   #include <asm/mach/arch.h>
+>
+>   #include "common.h"
+> @@ -182,3 +185,18 @@ DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
+>   	.restart	= omap44xx_restart,
+>   MACHINE_END
+>   #endif
+> +
+> +#ifdef CONFIG_SOC_AM43
+> +static const char *am43_boards_compat[] __initdata = {
+> +	"ti,am43",
+> +	NULL,
+> +};
+> +
+> +DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
+> +	.map_io		= debug_ll_io_init,
+> +	.init_irq	= irqchip_init,
+With Arnds patch [1], the above can be dropped..
+
+> +	.init_machine	= omap_generic_init,
+> +	.init_time	= twd_local_timer_of_register,
+This one needs to take care of other timers as well from start. So
+better to take that approach from start.
+
+Regards,
+Santosh
+
+[1] https://patchwork.kernel.org/patch/2074871/
