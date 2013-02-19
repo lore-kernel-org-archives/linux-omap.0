@@ -1,83 +1,87 @@
-From: Kevin Hilman <khilman@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
-Date: Tue, 19 Feb 2013 11:16:38 -0800
-Message-ID: <87ppzww1ux.fsf@linaro.org>
-References: <1360840554-26901-1-git-send-email-balbi@ti.com>
-	<1360840554-26901-2-git-send-email-balbi@ti.com>
-	<20130214171253.GC7144@atomide.com>
-	<20130214175650.GA25891@arwen.pp.htv.fi>
-	<20130214181217.GA11806@atomide.com>
-	<20130214192719.GB26679@arwen.pp.htv.fi>
-	<20130214193911.GD11806@atomide.com>
-	<alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com>
-	<20130214222247.GE11362@atomide.com>
-	<alpine.DEB.2.00.1302191516150.32069@utopia.booyaka.com>
-	<20130219163820.GF5724@atomide.com>
+Date: Tue, 19 Feb 2013 11:31:22 -0800
+Message-ID: <20130219193122.GJ5724@atomide.com>
+References: <20130214181217.GA11806@atomide.com>
+ <20130214192719.GB26679@arwen.pp.htv.fi>
+ <20130214193911.GD11806@atomide.com>
+ <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com>
+ <alpine.DEB.2.00.1302142124370.11016@utopia.booyaka.com>
+ <20130214224710.GF11362@atomide.com>
+ <alpine.DEB.2.00.1302191527200.32069@utopia.booyaka.com>
+ <20130219154511.GU17852@n2100.arm.linux.org.uk>
+ <20130219163053.GE5724@atomide.com>
+ <20130219182257.GV17852@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:51362 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933885Ab3BSTQm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Feb 2013 14:16:42 -0500
-Received: by mail-pa0-f54.google.com with SMTP id fa10so3566857pad.27
-        for <linux-omap@vger.kernel.org>; Tue, 19 Feb 2013 11:16:41 -0800 (PST)
-In-Reply-To: <20130219163820.GF5724@atomide.com> (Tony Lindgren's message of
-	"Tue, 19 Feb 2013 08:38:20 -0800")
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:64348 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933416Ab3BSTb2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Feb 2013 14:31:28 -0500
+Content-Disposition: inline
+In-Reply-To: <20130219182257.GV17852@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-[...]
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [130219 10:26]:
+> On Tue, Feb 19, 2013 at 08:30:53AM -0800, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [130219 07:49]:
+> > > If you want such things as pci_enable_device(), then what you're actually
+> > > asking for is omap_enable_device() for OMAP devices.  OMAP devices are
+> > > already specific enough to OMAP SoCs (god knows, they have really complex
+> > > and obscure behaviours that no one else in their right mind would want
+> > > to copy) that calling out to omap specific functions would never really
+> > > be a problem.
+> > 
+> > I'd rather avoid adding omap_enable_device() calls to drivers as we really
+> > want to keep the drivers generic. But maybe there could be some generic
+> > bus_enable_device() function pointer that could be populated by the bus
+> > code during init.
+> 
+> What you're not getting is that pci_enable_device() is a PCI thing which
+> is mostly a no-op - and where it isn't a no-op, it's something that must
+> be done _before_ PCI resources are used or even reserved (because
+> conceptually, this is to do with getting the resources correct.)
+> 
+> The PCI case is:
+> 
+> pci_device_probe(pci_dev)
+> {
+> 	pci_enable_device(pci_dev);
+> 
+> 	pci_request_regions(pci_dev);
+> 
+> 	regs = pci_iomap(pci_dev, BAR, size);
+> ...
+> }
+> 
+> That's different from what you're wanting on OMAP - what you're wanting
+> there is some way to record the platform device has been ioremapped, so
+> that you can then fiddle with its idle/reset register from "bus" code.
+> 
+> If you think about it in light of the above sequence, the "enable device"
+> stage *doesn't* suit your needs because that happens before the driver
+> has done anything.
 
->> > Just to recap what we've discussed earlier, the reasons why we want
->> > reset and idle functions should be in the driver specific header are:
->> > 
->> > 1. There's often driver specific logic needed in addition to the
->> >    syconfig tinkering in the reset/idle functions.
->> 
->> It's been a while since I last tabulated this.  But my recollection was 
->> that some kind of IP block-specific reset code is needed for about 7% to 
->> 10% of the OMAP IP blocks.
->
-> Yes it's not too many, but the issue there is the driver specific code
-> that's duplicated in both places. And sounds like the solution to that
-> is to make driver specific reset code a static inline function in the
-> driver header as discussed earlier so bus code can call it when there's
-> no driver loaded.
+Right.. that won't help then. It sounds like the proper place would
+be something like pm_runtime_init() as these register manage things
+like autoidle etc.
+ 
+> However... if you think you're going to get away with another total
+> rewrite of OMAP device support away from hwmod to a new scheme with a
+> new load of huge churn, think again.  Remember, churn is evil.  I've
+> complained to you about the amount of churn that OMAP manufactures
+> in the past.  Linus has complained about it too.  You can't continue
+> like this.
 
-This thread is going in many directions and I've lost track.  
+I don't think there's any churn needed here if done properly. It's
+mostly a question of dropping duplicate data from hwmod that we
+already have available in device tree. That means we can shrink the
+hwmod data needed.
 
-I think we need to separate out the specific reset cases and look at
-examples, since there are not very many (in theory).  Specifically, IMO,
-we need to separate out the init-time reset needs from the runtime reset
-needs.
+Regards,
 
-It seems to me that init-time reset issues can (and should) be handled
-by omap_device/omap_hwmod.  For devices with drivers, this can be done
-easily before driver probe (using bus notifiers).  Any remaining devices
-that specifically need reset can be reset later (which devices are
-these?)
-
-The other problem is the where reset is need during runtime.  Again,
-what are the specific examples here?  The one I can think of off the top
-of my head is I2C, where it's needed in certain error recovery
-scenarios.
-
-Here, we need a way for the driver itself to initiate a full reset.
-Maybe a new runtime PM hook like ->runtime_reset() as Felipe has
-suggested (though I'm not yet sure runtime PM is the right place for
-this, since it's not strictly related to runtime PM).  Or, if these are
-mostly corner-case, error recovery scenarios, maybe a a way force the
-driver to remove itself and re-probe (which would trigger the
-bus-notifier based reset) as Tony has suggested is the better approach.
-
-Either way, it would be good to summarize the devices that need this to
-be sure what the actual needs are.
-
-The OMAP I2C driver is doing a reset and fully re-initializing itself,
-so it seems the forced remove/probe is the right approach there.  Any
-one have the other use cases handy?
-
-Kevin
+Tony
