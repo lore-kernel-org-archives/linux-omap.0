@@ -1,67 +1,228 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH, RFC 8/8] ARM: dts: am43-pre-silicon support
-Date: Tue, 19 Feb 2013 16:05:22 +0530
-Message-ID: <5123556A.9050109@ti.com>
-References: <cover.1361186097.git.afzal@ti.com>
- <e344f74da47579c11db68d9f6efe25259ed7f25d.1361186097.git.afzal@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] omap2: twl-common: Add default power configuration
+Date: Tue, 19 Feb 2013 11:37:03 +0100
+Message-ID: <512355CF.6070605@ti.com>
+References: <1358967038-6615-1-git-send-email-matthias.bgg@gmail.com> <CAOCHtYjufr+MS1=6Cnsn-EgvkPs+Y5oWejAG98aLkVjdQbu1ZA@mail.gmail.com> <20130201224242.GE22517@atomide.com> <CABuKBe+NrMiX0nuEgwnHBqu-DqHST+uGG_Zyc7Ek=4WCOV1T6g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <e344f74da47579c11db68d9f6efe25259ed7f25d.1361186097.git.afzal@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, devicetree-discuss@lists.ozlabs.org, Nicolas Pitre <nico@linaro.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Marc Zyngier <marc.zyngier@arm.com>, Syed Mohammed Khasim <khasim@ti.com>, Rob Landley <rob@landley.net>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:34095 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932498Ab3BSKhX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Feb 2013 05:37:23 -0500
+In-Reply-To: <CABuKBe+NrMiX0nuEgwnHBqu-DqHST+uGG_Zyc7Ek=4WCOV1T6g@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthias Brugger <matthias.bgg@gmail.com>, "Kristo, Tero" <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Robert Nelson <robertcnelson@gmail.com>, linux@arm.linux.org.uk, martinez.javier@gmail.com, eballetbo@iseebcn.com, ezequiel.garcia@free-electrons.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Monday 18 February 2013 05:08 PM, Afzal Mohammed wrote:
-> AM43 SoC is in pre-silicon stage, meanwhile it has been modelled in
-> a pre-silicon platform. To validate and boot Linux in pre-silicon
-> platform that emulates an AM43 SoC, add DT build support.
->
-> As bootloader is not used, bootargs is passed through DT.
->
-> Note: This would be replaced by an original board support.
->
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> ---
->   arch/arm/boot/dts/Makefile             |  3 ++-
->   arch/arm/boot/dts/am43-pre-silicon.dts | 31 +++++++++++++++++++++++++++++++
->   2 files changed, 33 insertions(+), 1 deletion(-)
->   create mode 100644 arch/arm/boot/dts/am43-pre-silicon.dts
->
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index 94d88b9..b434344 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -124,7 +124,8 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
->   	omap5-evm.dtb \
->   	am335x-evm.dtb \
->   	am335x-evmsk.dtb \
-> -	am335x-bone.dtb
-> +	am335x-bone.dtb \
-> +	am43-pre-silicon.dtb
->   dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-ethernet-disk-mini-v2.dtb
->   dtb-$(CONFIG_ARCH_PRIMA2) += prima2-evb.dtb
->   dtb-$(CONFIG_ARCH_U8500) += snowball.dtb \
-> diff --git a/arch/arm/boot/dts/am43-pre-silicon.dts b/arch/arm/boot/dts/am43-pre-silicon.dts
-> new file mode 100644
-> index 0000000..b9c6297
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am43-pre-silicon.dts
+Hi Matthias,
 
-Well the pre-silicon platform and the SOC are very
-close and at least the support you are adding here is
-exactly same. So lets just use am437x.dtb or something
-like that.
+On 02/15/2013 04:59 PM, Matthias Brugger wrote:
+> 2013/2/1 Tony Lindgren <tony@atomide.com>:
+>> Hi,
+>>
+>> * Robert Nelson <robertcnelson@gmail.com> [130124 07:58]:
+>>> On Wed, Jan 23, 2013 at 12:50 PM, Matthias Brugger
+>>> <matthias.bgg@gmail.com> wrote:
+>>>> This patch adds a generic power script configuration.
+>>>> When rebooting an OMAP3530 at 125 MHz, the reboot hangs.
+>>>> With the generic power script, TWL4030 will be reset
+>>>> when a warm reset occures. This way the OMAP3530 does not
+>>>> hang on reboot.
+>>
+>> Both look OK to me. I've added Peter to cc, it's best that he queues
+>> all the twl changes.
+>>
+>=20
+> Peter any comments on this patch?
 
-Regards,
-Santosh
+The patch looks good to me as well.
+
+> Are you maintaining the whole twl4030 support or just the codec drive=
+r?
+
+Right now I'm maintaining the audio support (audio MFD, vibra, ASoC) in=
+ twl*
+While I have done some cleanup in the twl-core and related drivers rece=
+ntly
+and I'm reviewing patches sent for any *twl* driver (if I'm in the CC) =
+I have
+not declared myself as Maintainer of the twl stack.
+The problem with the twl stack is that the drivers are spread around in
+different subsystem so if one takes maintainer responsibility for the s=
+tack,
+he/she need to have several entries in MAINTAINERS file to cover twl. I=
+ still
+don't think it is a good idea to 'bloat' the MAINTAINERS file for this.
+I'm happy to review patches. About a year ago we had internal discussio=
+n
+regarding to twl in upstream and Tero Kristo 'volunteered' to review pa=
+tches
+as well.
+
+I still think that the twl patches should be queued via the correspondi=
+ng
+subsystem (OMAP, MFD, Input, GPIO, PWM, etc).
+
+--=20
+P=E9ter
+
+>=20
+> Best regards,
+> Matthias
+>=20
+>=20
+>> Regards,
+>>
+>> Tony
+>>
+>>>> Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
+>>>> ---
+>>>>  arch/arm/mach-omap2/twl-common.c | 38 +++++++++++++++++++++++++++=
++++++++++++
+>>>>  arch/arm/mach-omap2/twl-common.h |  1 +
+>>>>  2 files changed, 39 insertions(+)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap=
+2/twl-common.c
+>>>> index e49b40b..f096beb 100644
+>>>> --- a/arch/arm/mach-omap2/twl-common.c
+>>>> +++ b/arch/arm/mach-omap2/twl-common.c
+>>>> @@ -120,6 +120,41 @@ static struct twl4030_audio_data omap3_audio_=
+pdata =3D {
+>>>>         .codec =3D &omap3_codec,
+>>>>  };
+>>>>
+>>>> +static struct twl4030_ins wrst_seq[] __initdata =3D {
+>>>> +       {MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
+>>>> +       {MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
+>>>> +       {MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
+>>>> +       {MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
+>>>> +       {MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
+>>>> +       {MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
+>>>> +};
+>>>> +
+>>>> +static struct twl4030_script wrst_script __initdata =3D {
+>>>> +       .script =3D wrst_seq,
+>>>> +       .size   =3D ARRAY_SIZE(wrst_seq),
+>>>> +       .flags  =3D TWL4030_WRST_SCRIPT,
+>>>> +};
+>>>> +
+>>>> +static struct twl4030_script *omap3_power_scripts[] __initdata =3D=
+ {
+>>>> +       &wrst_script,
+>>>> +};
+>>>> +
+>>>> +static struct twl4030_resconfig omap3_rconfig[] =3D {
+>>>> +       { .resource =3D RES_HFCLKOUT, .devgroup =3D DEV_GRP_P3, .t=
+ype =3D -1,
+>>>> +               .type2 =3D -1 },
+>>>> +       { .resource =3D RES_VDD1, .devgroup =3D DEV_GRP_P1, .type =
+=3D -1,
+>>>> +               .type2 =3D -1 },
+>>>> +       { .resource =3D RES_VDD2, .devgroup =3D DEV_GRP_P1, .type =
+=3D -1,
+>>>> +               .type2 =3D -1 },
+>>>> +       { 0, 0},
+>>>> +};
+>>>> +
+>>>> +static struct twl4030_power_data omap3_power_pdata =3D {
+>>>> +       .scripts        =3D omap3_power_scripts,
+>>>> +       .num            =3D ARRAY_SIZE(omap3_power_scripts),
+>>>> +       .resource_config =3D omap3_rconfig,
+>>>> +};
+>>>> +
+>>>>  static struct regulator_consumer_supply omap3_vdda_dac_supplies[]=
+ =3D {
+>>>>         REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+>>>>  };
+>>>> @@ -224,6 +259,9 @@ void __init omap3_pmic_get_config(struct twl40=
+30_platform_data *pmic_data,
+>>>>         if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->au=
+dio)
+>>>>                 pmic_data->audio =3D &omap3_audio_pdata;
+>>>>
+>>>> +       if (pdata_flags & TWL_COMMON_PDATA_POWER && !pmic_data->po=
+wer)
+>>>> +               pmic_data->power =3D &omap3_power_pdata;
+>>>> +
+>>>>         /* Common regulator configurations */
+>>>>         if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_=
+data->vdac)
+>>>>                 pmic_data->vdac =3D &omap3_vdac_idata;
+>>>> diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap=
+2/twl-common.h
+>>>> index dcfbad5..dbeb905 100644
+>>>> --- a/arch/arm/mach-omap2/twl-common.h
+>>>> +++ b/arch/arm/mach-omap2/twl-common.h
+>>>> @@ -7,6 +7,7 @@
+>>>>  #define TWL_COMMON_PDATA_BCI           (1 << 1)
+>>>>  #define TWL_COMMON_PDATA_MADC          (1 << 2)
+>>>>  #define TWL_COMMON_PDATA_AUDIO         (1 << 3)
+>>>> +#define TWL_COMMON_PDATA_POWER         (1 << 4)
+>>>>
+>>>>  /* Common LDO regulators for TWL4030/TWL6030 */
+>>>>  #define TWL_COMMON_REGULATOR_VDAC      (1 << 0)
+>>>> --
+>>>> 1.7.11.7
+>>>
+>>> Thanks for making this generic Matthias..
+>>>
+>>> Tested-by: Robert Nelson <robertcnelson@gmail.com>
+>>>
+>>> Tested on Beagle C4 (omap3530) and Beagle xM (DM3730, no regression=
+s)
+>>> with this patch to enable it on the Beagle..
+>>>
+>>> From 65004dafc8d37c69dd839803dc8ea5dcefd993df Mon Sep 17 00:00:00 2=
+001
+>>> From: Robert Nelson <robertcnelson@gmail.com>
+>>> Date: Thu, 24 Jan 2013 09:43:51 -0600
+>>> Subject: [PATCH] ARM: OMAP: Beagle: use TWL4030 generic reset scrip=
+t
+>>>
+>>> Enable TWL_COMMON_PDATA_POWER such that OMAP3530 revisions of the
+>>> Beagle (Bx/Cx) will not hang on reboot when running at 125 Mhz.
+>>>
+>>> Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+>>> ---
+>>>  arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
+>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
+>>> b/arch/arm/mach-omap2/board-omap3beagle.c
+>>> index 22c483d..0974e08 100644
+>>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+>>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+>>> @@ -353,7 +353,7 @@ static int __init omap3_beagle_i2c_init(void)
+>>>  {
+>>>       omap3_pmic_get_config(&beagle_twldata,
+>>>                       TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC =
+|
+>>> -                     TWL_COMMON_PDATA_AUDIO,
+>>> +                     TWL_COMMON_PDATA_AUDIO | TWL_COMMON_PDATA_POW=
+ER,
+>>>                       TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULA=
+TOR_VPLL2);
+>>>
+>>>       beagle_twldata.vpll2->constraints.name =3D "VDVI";
+>>> --
+>>> 1.7.10.4
+>>>
+>>> Regards,
+>>>
+>>> --
+>>> Robert Nelson
+>>> http://www.rcn-ee.com/
+>=20
+>=20
+>=20
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
