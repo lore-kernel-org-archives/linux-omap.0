@@ -1,85 +1,77 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH v2 3/4] mtd: devices: elm: Low power transition support
-Date: Tue, 19 Feb 2013 12:48:12 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3EA78558@DBDE01.ent.ti.com>
-References: <1360240618-11094-1-git-send-email-avinashphilip@ti.com>
- <1360240618-11094-4-git-send-email-avinashphilip@ti.com>
- <20130209102243.GH17852@n2100.arm.linux.org.uk>
- <518397C60809E147AF5323E0420B992E3EA7491C@DBDE01.ent.ti.com>
- <20130213124303.GM17852@n2100.arm.linux.org.uk>
+From: Philip Avinash <avinashphilip@ti.com>
+Subject: [PATCH v3 1/3] arm: gpmc: Converts GPMC driver to pm_runtime capable
+Date: Tue, 19 Feb 2013 18:20:17 +0530
+Message-ID: <1361278219-23108-2-git-send-email-avinashphilip@ti.com>
+References: <1361278219-23108-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130213124303.GM17852@n2100.arm.linux.org.uk>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38861 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754510Ab3BSMtM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Feb 2013 07:49:12 -0500
+In-Reply-To: <1361278219-23108-1-git-send-email-avinashphilip@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@ti.com, tony@atomide.com, linux@arm.linux.org.uk, dwmw2@infradead.org
+Cc: afzal@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, hvaibhav@ti.com, Philip Avinash <avinashphilip@ti.com>
 
-On Wed, Feb 13, 2013 at 18:13:03, Russell King - ARM Linux wrote:
-> On Wed, Feb 13, 2013 at 11:42:01AM +0000, Philip, Avinash wrote:
-> > On Sat, Feb 09, 2013 at 15:52:44, Russell King - ARM Linux wrote:
-> > > On Thu, Feb 07, 2013 at 06:06:57PM +0530, Philip Avinash wrote:
-> > > > +static int elm_suspend(struct device *dev)
-> > > > +{
-> > > > +	struct elm_info *info = dev_get_drvdata(dev);
-> > > > +	wait_queue_head_t wq;
-> > > > +	DECLARE_WAITQUEUE(wait, current);
-> > > > +
-> > > > +	init_waitqueue_head(&wq);
-> > > > +	while (1) {
-> > > > +		/* Make sure that ELM not running */
-> > > > +		if (info->idle) {
-> > > > +			add_wait_queue(&wq, &wait);
-> > > > +			schedule();
-> > > > +			remove_wait_queue(&wq, &wait);
-> > > > +		} else {
-> > > > +			break;
-> > > > +		}
-> > > > +	}
-> > > 
-> > > The above code looks really wrong - it will just spin endlessly with the
-> > > waitqueues doing nothing useful.  What are you trying to do here?
-> > 
-> > The intention of waitqeue is to make the suspend process really wait till
-> > the ELM module finishes current activity. Although this type of protection
-> > already achieved in mtd layer using nand_suspend(), this one is particularly
-> > required for ELM module to really make sure that *any pending* corrections to
-> > finish really before gone to suspend.
-> 
-> I don't think you understand what's going on with the above, and why the
-> above is completely ineffective.
-> 
-> 1. Your wait queue head is declared on stack, and there's no references
->    to it outside of this function.  So _nothing_ can activate the wait
->    queue.
-> 2. You're not changing the current thread's status away from TASK_RUNNING,
->    so schedule() will either return immediately or it will schedule another
->    task if it's time for this one to be preempted.
-> 
-> In other words, the above can be rewritten as:
-> 
-> 	while (info->idle)
-> 		schedule();
-> 
-> and it will still have the same effect.
-> 
-> Now, if you want to be kinder to the system, then you should use a
-> wait queue properly.  Put the waitqueue head in struct elm_info.  Use
-> wait_event() here.  And call wake_up() where you set info->idle to
-> false.
+Support for pm_runtime add to GPMC driver.
 
-I understood the issue. Thanks for the detailed explanation.
+Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-It seems the entire mechanism of ELM module state check is not required.
-The ELM suspend procedure initiated only after the current MTD transaction
-finishes and is ensured in MTD class driver.
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 2c57f81..b1cd6c1 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -29,6 +29,7 @@
+ #include <linux/of_mtd.h>
+ #include <linux/of_device.h>
+ #include <linux/mtd/nand.h>
++#include <linux/pm_runtime.h>
+ 
+ #include <linux/platform_data/mtd-nand-omap2.h>
+ 
+@@ -1317,7 +1318,8 @@ static int gpmc_probe(struct platform_device *pdev)
+ 		return PTR_ERR(gpmc_l3_clk);
+ 	}
+ 
+-	clk_prepare_enable(gpmc_l3_clk);
++	pm_runtime_enable(&pdev->dev);
++	pm_runtime_get_sync(&pdev->dev);
+ 
+ 	gpmc_dev = &pdev->dev;
+ 
+@@ -1329,7 +1331,7 @@ static int gpmc_probe(struct platform_device *pdev)
+ 
+ 	rc = gpmc_mem_init();
+ 	if (IS_ERR_VALUE(rc)) {
+-		clk_disable_unprepare(gpmc_l3_clk);
++		pm_runtime_put_sync(&pdev->dev);
+ 		clk_put(gpmc_l3_clk);
+ 		dev_err(gpmc_dev, "failed to reserve memory\n");
+ 		return rc;
+@@ -1340,7 +1342,7 @@ static int gpmc_probe(struct platform_device *pdev)
+ 
+ 	rc = gpmc_probe_dt(pdev);
+ 	if (rc < 0) {
+-		clk_disable_unprepare(gpmc_l3_clk);
++		pm_runtime_put_sync(&pdev->dev);
+ 		clk_put(gpmc_l3_clk);
+ 		dev_err(gpmc_dev, "failed to probe DT parameters\n");
+ 		return rc;
+@@ -1353,6 +1355,8 @@ static __devexit int gpmc_remove(struct platform_device *pdev)
+ {
+ 	gpmc_free_irq();
+ 	gpmc_mem_exit();
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
+ 	gpmc_dev = NULL;
+ 	return 0;
+ }
+-- 
+1.7.9.5
 
-So I can simply disable ELM module in suspend without any check.
-
-Thanks
-Avinash
-
-> 
