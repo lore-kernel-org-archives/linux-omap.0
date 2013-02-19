@@ -1,94 +1,70 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 0/5] Generic PHY Framework
-Date: Tue, 19 Feb 2013 11:23:13 +0530
-Message-ID: <1361253198-7401-1-git-send-email-kishon@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [RFC 2/8] ARM: twd: register clock event for 1 core SMP
+Date: Tue, 19 Feb 2013 08:00:07 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EAA8534@DBDE01.ent.ti.com>
+References: <cover.1361166003.git.afzal@ti.com>
+ <a7f62b8580aa4b33d5658f4f03371a453adaea9b.1361166003.git.afzal@ti.com>
+ <512230F1.8020208@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, kishon@ti.com, balbi@ti.com, gregkh@linuxfoundation.org, akpm@linux-foundation.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, arnd@arndb.de, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <512230F1.8020208@gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nico@linaro.org>, "Nori, Sekhar" <nsekhar@ti.com>, Will Deacon <will.deacon@arm.com>, Rob Herring <rob.herring@calxeda.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Syed Mohammed, Khasim" <khasim@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Added a generic PHY framework that provides a set of APIs for the PHY drivers
-to create/destroy a PHY and APIs for the PHY users to obtain a reference to
-the PHY with or without using phandle. To obtain a reference to the PHY
-without using phandle, the platform specfic intialization code (say from board
-file) should have already called phy_bind with the binding information. The
-binding information consists of phy's device name, phy user device name and an
-index. The index is used when the same phy user binds to mulitple phys.
-
-This framework will be of use only to devices that uses external PHY (PHY
-functionality is not embedded within the controller).
-
-The intention of creating this framework is to bring the phy drivers spread
-all over the Linux kernel to drivers/phy to increase code re-use and to
-increase code maintainability.
-
-Comments to make PHY as bus wasn't done because PHY devices can be part of
-other bus and making a same device attached to multiple bus leads to bad
-design.
-
-Changes from v1:
-* Added Documentation for the PHY framework
-* Added few more APIs mostly w.r.t devres
-* Modified omap-usb2 and twl4030 to make use of the new framework
-
-Did USB enumeration testing in panda and beagle.
-
-Kishon Vijay Abraham I (5):
-  drivers: phy: add generic PHY framework
-  usb: phy: omap-usb2: use the new generic PHY framework
-  usb: otg: twl4030: use the new generic PHY framework
-  ARM: OMAP: USB: Add phy binding information
-  usb: musb: omap2430: use the new generic PHY framework
-
- Documentation/ABI/testing/sysfs-class-phy    |   15 +
- Documentation/phy.txt                        |  113 ++++++
- MAINTAINERS                                  |    7 +
- arch/arm/mach-omap2/board-2430sdp.c          |    2 +
- arch/arm/mach-omap2/board-3430sdp.c          |    2 +
- arch/arm/mach-omap2/board-4430sdp.c          |    2 +
- arch/arm/mach-omap2/board-cm-t35.c           |    2 +
- arch/arm/mach-omap2/board-devkit8000.c       |    2 +
- arch/arm/mach-omap2/board-igep0020.c         |    2 +
- arch/arm/mach-omap2/board-ldp.c              |    2 +
- arch/arm/mach-omap2/board-omap3beagle.c      |    2 +
- arch/arm/mach-omap2/board-omap3evm.c         |    2 +
- arch/arm/mach-omap2/board-omap3logic.c       |    2 +
- arch/arm/mach-omap2/board-omap3pandora.c     |    2 +
- arch/arm/mach-omap2/board-omap3stalker.c     |    2 +
- arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +
- arch/arm/mach-omap2/board-omap4panda.c       |    2 +
- arch/arm/mach-omap2/board-overo.c            |    2 +
- arch/arm/mach-omap2/board-rm680.c            |    2 +
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +
- drivers/Kconfig                              |    2 +
- drivers/Makefile                             |    2 +
- drivers/phy/Kconfig                          |   13 +
- drivers/phy/Makefile                         |    5 +
- drivers/phy/phy-core.c                       |  519 ++++++++++++++++++++++++++
- drivers/usb/musb/musb_core.h                 |    2 +
- drivers/usb/musb/omap2430.c                  |   22 +-
- drivers/usb/otg/twl4030-usb.c                |   41 ++
- drivers/usb/phy/omap-usb2.c                  |   49 +++
- include/linux/phy/phy.h                      |  198 ++++++++++
- include/linux/usb/omap_usb.h                 |    3 +
- 31 files changed, 1019 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/ABI/testing/sysfs-class-phy
- create mode 100644 Documentation/phy.txt
- create mode 100644 drivers/phy/Kconfig
- create mode 100644 drivers/phy/Makefile
- create mode 100644 drivers/phy/phy-core.c
- create mode 100644 include/linux/phy/phy.h
-
--- 
-1.7.10.4
+SGkgUm9iLA0KDQpPbiBNb24sIEZlYiAxOCwgMjAxMyBhdCAxOToxNzoyOSwgUm9iIEhlcnJpbmcg
+d3JvdGU6DQo+IE9uIDAyLzE4LzIwMTMgMTI6MzAgQU0sIEFmemFsIE1vaGFtbWVkIHdyb3RlOg0K
+DQo+ID4gUmVnaXN0ZXIgcGVyY3B1IGxvY2FsIHRpbWVyIGZvciBzY2hlZHVsZXIgdGljayBpbiB0
+aGUgY2FzZSBvZiBvbmUgY29yZQ0KPiA+IFNNUCBjb25maWd1cmF0aW9uLiBJbiBvdGhlciBjYXNl
+cyAtIHNlY29uZGFyeSBjcHUncyBhcyB3ZWxsIGFzIGJvb3QNCj4gPiBjcHUncyBoYXZpbmcgbW9y
+ZSB0aGFuIG9uZSBjb3JlLCB0aGlzIGlzIGJlaW5nIHJlZ2lzdGVyZWQgYXMgcGVyDQo+ID4gZXhp
+c3RpbmcgYm9vdCBmbG93LCB3aXRoIGEgZGlmZmVyZW5jZSB0aGF0IHRoZXkgaGFwcGVucyBhZnRl
+ciBkZWxheQ0KPiA+IGNhbGlicmF0aW9uLiBSZWdpc3RlcmluZyB0aGUgY2xvY2sgZm9yIHRpY2sg
+aW4gY2FzZSBvZiBvbmUgY29yZSBzaG91bGQNCj4gPiBiZSBkb25lIGJlZm9yZSBLZXJuZWwgY2Fs
+aWJyYXRlcyBkZWxheSAodGhpcyBpcyByZXF1aXJlZCB0byBib290LA0KPiA+IHVubGVzcyBsb2Nh
+bCB0aW1lciBpcyB0aGUgb25seSBvbmUgcmVnaXN0ZXJlZCBmb3IgdGljaykuIFJlZ2lzdGVyaW5n
+DQo+ID4gdHdkIGxvY2FsIHRpbWVyIGF0IGluaXRfdGltZSAod2hpY2ggcGxhdGZvcm1zIGFyZSBk
+b2luZyBub3cpIGhlbHBzDQo+ID4gYWNoaWV2ZSB0aGF0IHdpdGggdGhlIHByb3Bvc2VkIGNoYW5n
+ZS4NCj4gPiANCj4gPiBUaGlzIGhlbHBzIGluIGFuIGFsbW9zdCBib290aW5nIEtlcm5lbCAobWlu
+aW1hbCkgYnkgb25seSByZWx5aW5nIG9uDQo+ID4gQVJNIHBhcnRzIGZvciBhbiBBOSBvbmUgY29y
+ZSBTTVAuDQoNCj4gPiAgYXJjaC9hcm0va2VybmVsL3NtcF90d2QuYyB8IDMgKysrDQo+ID4gIDEg
+ZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKykNCj4gPiANCj4gPiBkaWZmIC0tZ2l0IGEvYXJj
+aC9hcm0va2VybmVsL3NtcF90d2QuYyBiL2FyY2gvYXJtL2tlcm5lbC9zbXBfdHdkLmMNCj4gPiBp
+bmRleCA2MTYyNjhjLi4xMThmNGYyIDEwMDY0NA0KPiA+IC0tLSBhL2FyY2gvYXJtL2tlcm5lbC9z
+bXBfdHdkLmMNCj4gPiArKysgYi9hcmNoL2FybS9rZXJuZWwvc21wX3R3ZC5jDQo+ID4gQEAgLTMz
+NSw2ICszMzUsOSBAQCBzdGF0aWMgaW50IF9faW5pdCB0d2RfbG9jYWxfdGltZXJfY29tbW9uX3Jl
+Z2lzdGVyKHN0cnVjdCBkZXZpY2Vfbm9kZSAqbnApDQo+ID4gIA0KPiA+ICAJdHdkX2dldF9jbG9j
+ayhucCk7DQo+ID4gIA0KPiA+ICsJaWYgKG51bV9wb3NzaWJsZV9jcHVzKCkgPT0gMSkNCj4gPiAr
+CQl0d2RfdGltZXJfc2V0dXAoZXZ0KTsNCj4gPiArDQoNCj4gU2hvdWxkbid0IHRoaXMgYmUgZml4
+ZWQgaW4gdGhlIGNvcmUgY29kZSwgc28gdGhlIHNhbWUgaXNzdWUgaXMgZml4ZWQgZm9yDQo+IGFs
+bCB0aW1lcnM/DQoNCklzIHRoZSBmb2xsb3dpbmcgdGhhdCB5b3UgaGFkIGluIG1pbmQgPyAod2l0
+aCBpdCwgdGhpcyBwYXRjaCBhcyB3ZWxsIGFzDQoxLzggd291bGQgbm90IGJlIHJlcXVpcmVkKSwN
+Cg0KZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2luY2x1ZGUvYXNtL3NtcC5oIGIvYXJjaC9hcm0vaW5j
+bHVkZS9hc20vc21wLmgNCmluZGV4IGQzYTIyYmUuLjJiNjQxN2QgMTAwNjQ0DQotLS0gYS9hcmNo
+L2FybS9pbmNsdWRlL2FzbS9zbXAuaA0KKysrIGIvYXJjaC9hcm0vaW5jbHVkZS9hc20vc21wLmgN
+CkBAIC00Miw2ICs0Miw4IEBAIHZvaWQgaGFuZGxlX0lQSShpbnQgaXBpbnIsIHN0cnVjdCBwdF9y
+ZWdzICpyZWdzKTsNCiAgKi8NCiBleHRlcm4gdm9pZCBzbXBfaW5pdF9jcHVzKHZvaWQpOw0KIA0K
+K2V4dGVybiB2b2lkIHNtcF9tb25vY29yZV90aW1lcl9zZXR1cCh2b2lkKTsNCisNCiANCiAvKg0K
+ICAqIFByb3ZpZGUgYSBmdW5jdGlvbiB0byByYWlzZSBhbiBJUEkgY3Jvc3MgY2FsbCBvbiBDUFVz
+IGluIGNhbGxtYXAuDQpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0va2VybmVsL3NtcC5jIGIvYXJjaC9h
+cm0va2VybmVsL3NtcC5jDQppbmRleCA1ZjczZjcwLi43NDMxYjc3IDEwMDY0NA0KLS0tIGEvYXJj
+aC9hcm0va2VybmVsL3NtcC5jDQorKysgYi9hcmNoL2FybS9rZXJuZWwvc21wLmMNCkBAIC01MDQs
+NiArNTA0LDE1IEBAIGludCBsb2NhbF90aW1lcl9yZWdpc3RlcihzdHJ1Y3QgbG9jYWxfdGltZXJf
+b3BzICpvcHMpDQogfQ0KICNlbmRpZg0KIA0KK3ZvaWQgX19pbml0IHNtcF9tb25vY29yZV90aW1l
+cl9zZXR1cCh2b2lkKQ0KK3sNCisgICAgICAgdW5zaWduZWQgaW50IGNwdSA9IHNtcF9wcm9jZXNz
+b3JfaWQoKTsNCisgICAgICAgc3RydWN0IGNsb2NrX2V2ZW50X2RldmljZSAqZXZ0ID0gJnBlcl9j
+cHUocGVyY3B1X2Nsb2NrZXZlbnQsIGNwdSk7DQorDQorICAgICAgIGlmICghbHRfb3BzKQ0KKyAg
+ICAgICAgICAgICAgIGx0X29wcy0+c2V0dXAoZXZ0KTsNCit9DQorDQogc3RhdGljIHZvaWQgX19j
+cHVpbml0IHBlcmNwdV90aW1lcl9zZXR1cCh2b2lkKQ0KIHsNCiAgICAgICAgdW5zaWduZWQgaW50
+IGNwdSA9IHNtcF9wcm9jZXNzb3JfaWQoKTsNCmRpZmYgLS1naXQgYS9hcmNoL2FybS9rZXJuZWwv
+dGltZS5jIGIvYXJjaC9hcm0va2VybmVsL3RpbWUuYw0KaW5kZXggOTU1ZDkyZC4uZWIwMjNlZSAx
+MDA2NDQNCi0tLSBhL2FyY2gvYXJtL2tlcm5lbC90aW1lLmMNCisrKyBiL2FyY2gvYXJtL2tlcm5l
+bC90aW1lLmMNCkBAIC0xMTYsNSArMTE2LDYgQEAgaW50IF9faW5pdCByZWdpc3Rlcl9wZXJzaXN0
+ZW50X2Nsb2NrKGNsb2NrX2FjY2Vzc19mbiByZWFkX2Jvb3QsDQogdm9pZCBfX2luaXQgdGltZV9p
+bml0KHZvaWQpDQogew0KICAgICAgICBtYWNoaW5lX2Rlc2MtPmluaXRfdGltZSgpOw0KKyAgICAg
+ICBzbXBfbW9ub2NvcmVfdGltZXJfc2V0dXAoKTsNCiAgICAgICAgc2NoZWRfY2xvY2tfcG9zdGlu
+aXQoKTsNCiB9DQoNClJlZ2FyZHMNCkFmemFsDQoNCg==
