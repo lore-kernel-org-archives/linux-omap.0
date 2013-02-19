@@ -1,39 +1,72 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH, RFC 0/8] ARM: AM43 (OMAP2+) boot support
-Date: Tue, 19 Feb 2013 11:24:01 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EAA8776@DBDE01.ent.ti.com>
-References: <cover.1361186097.git.afzal@ti.com> <51234F5C.6050500@ti.com>
+From: kishon <kishon@ti.com>
+Subject: Re: [PATCH v2 0/5] Generic PHY Framework
+Date: Tue, 19 Feb 2013 16:58:48 +0530
+Message-ID: <512361F0.1070500@ti.com>
+References: <1361253198-7401-1-git-send-email-kishon@ti.com> <201302191044.28653.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="ISO-8859-15"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <51234F5C.6050500@ti.com>
-Content-Language: en-US
+In-Reply-To: <201302191044.28653.arnd@arndb.de>
 Sender: linux-doc-owner@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>, Nicolas Pitre <nico@linaro.org>, Will Deacon <will.deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, "Nori, Sekhar" <nsekhar@ti.com>, "Syed Mohammed, Khasim" <khasim@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, balbi@ti.com, gregkh@linuxfoundation.org, akpm@linux-foundation.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgU2FudG9zaCwNCg0KT24gVHVlLCBGZWIgMTksIDIwMTMgYXQgMTU6Mzk6MzIsIFNoaWxpbWth
-ciwgU2FudG9zaCB3cm90ZToNCg0KPiBBZnRlciBsb29raW5nIGF0IHRoZSBzcGVjcywgeW91IGRv
-bid0IG5lZWQgdGhlIFNNUCBtb2RlIHNpbmNlIEFDUA0KPiBpc24ndCBiZWluZyB1c2VkLg0KDQo+
-IFRXRCB1c2UgZm9yIEFNNDM3eCBpcyBhbHNvIGxpbWl0ZWQgYmVjYXVzZSB0aGVzZSB0aW1lcyBz
-dG9wcyBpbg0KPiBsb3cgcG93ZXIgc2F0ZXMgYW5kIHRoZXJlIHlvdSB3aWxsIG5lZWQgYnJvYWQt
-Y2FzdCBtZWNoYW5pc20gd2hpY2gNCj4gYWdhaW4gbW9yZSBvZiBTTVAgbWFjaGluZSBmZWF0dXJl
-Lg0KPiANCj4gU28gSSBzdWdnZXN0IHRvIHVzZSB0aGUgd2FrZXVwIHRpbWVyKEdQVDEpIGNsb2Nr
-LWV2ZW50IGluc3RlYWQNCj4gb2YgbG9jYWwgdGltZXIgZm9yIHRoZSBtZW50aW9uZWQgcmVhc29u
-Lg0KDQpPaywgYWxsIHlvdXIgcmVtYWluaW5nIGNvbW1lbnRzIGFyZSB3LnIudCBTTVAgYW5kIHVz
-YWdlIG9mIFRXRA0KYXMgY2xvY2sgZXZlbnQuDQoNCkkgYW0gbm90IHRoYXQgZmFtaWxpYXIgd2l0
-aCBTTVAgdGhpbmdzLCB1cG9uIHN0YXJ0aW5nIG9uIEFNNDMsDQpvYnNlcnZpbmcgdGhlIGZhY3Qg
-dGhhdCBpdCBpcyBhbiBTTVAgd2l0aCBvbmUgY29yZSBjb25maWd1cmF0aW9uDQphbmQgdGhhdCBh
-cyBwZXIgQVJNIE1QIENvcmUgVFJNIGl0IGNhbiBoYXZlIGxvY2FsIHRpbWVyLCBJIHNhdw0KaXQg
-YXMgYSByYXkgb2YgaG9wZSB0byBnZXQgS2VybmVsIGJvb3RpbmcgZWFybHkgd2l0aG91dCBod21v
-ZCwNCmFuZCBJIGp1bXBlZCBvbiB0aGF0IGlkZWEgd2hpY2ggSSBmZWVsIHdhcyBuYXR1cmFsLiBX
-aXRob3V0DQpzcGVuZGluZyB0b28gbXVjaCB0aW1lIG9uIGl0LCB0aG91Z2ggb2YgdGFraW5nIGZl
-ZWRiYWNrIG9uIHRoaXMNCmFwcHJvYWNoLCByZXN1bHRpbmcgdGhpcyByZmMuDQoNCkxldCBtZSB1
-bmRlcnN0YW5kIG1vcmUgb24gU01QLCBUV0QsIGFuZCBleHBsb3JlIHBvc3NpYmlsaXR5DQpvZiB1
-c2luZyBHUFQxIGluc3RlYWQgb2YgVFdEIGZvciBjbG9jayBldmVudC4NCg0KRnJvbSB0aGUgYmVn
-aW5uaW5nIEkgd29uZGVyZWQgb24gc2VlaW5nIHRoYXQgYXMgcGVyIEFSTSBUUk0ncw0KQ29ydGV4
-LUE5IGNhbiBiZSBNUCBjb3JlIHdpdGggMS00IGNvcmUgKGluc3RlYWQgb2YgMi00KSwgd2hpbGUN
-CmFub3RoZXIgdW5pcHJvY2Vzc29yIEE5IGNvbmZpZ3VyYXRpb24gaXMgcHJlc2VudC4NCg0KUmVn
-YXJkcw0KQWZ6YWwNCg0K
+Hi,
+
+On Tuesday 19 February 2013 04:14 PM, Arnd Bergmann wrote:
+> On Tuesday 19 February 2013, Kishon Vijay Abraham I wrote:
+>> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+>> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+>> the PHY with or without using phandle. To obtain a reference to the PHY
+>> without using phandle, the platform specfic intialization code (say from board
+>> file) should have already called phy_bind with the binding information. The
+>> binding information consists of phy's device name, phy user device name and an
+>> index. The index is used when the same phy user binds to mulitple phys.
+>>
+>> This framework will be of use only to devices that uses external PHY (PHY
+>> functionality is not embedded within the controller).
+>>
+>> The intention of creating this framework is to bring the phy drivers spread
+>> all over the Linux kernel to drivers/phy to increase code re-use and to
+>> increase code maintainability.
+>>
+>> Comments to make PHY as bus wasn't done because PHY devices can be part of
+>> other bus and making a same device attached to multiple bus leads to bad
+>> design.
+>
+> How does this relate to the generic PHY interfaces in drivers/net/phy?
+
+Currently drivers/phy and drivers/net/phy are independent and are not 
+related to each other. There are some fundamental differences on how 
+these frameworks work. IIUC, the *net* uses bus layer (MDIO bus) to 
+match a PHY device with a PHY driver and the Ethernet device uses the 
+bus layer to get the PHY.
+The Generic PHY Framework however doesn't have any bus layer. The PHY 
+should be like any other Platform Devices and Drivers and the framework 
+will provide some APIs to register with the framework. And there are 
+other APIs which any controller can use to get the PHY (for e.g., in the 
+case of dt boot, it can use phandle to get a reference to the PHY).
+>
+> Do you expect that to get merged into drivers/phy in the long run, or
+> do you want to keep the generic phy only for everything but ethernet?
+
+We'd like the PHY drivers spread all over the kernel to get merged to 
+drivers/phy including Ethernet. Having said that, Ethernet itself has a 
+huge PHY framework and it's going to be little challenging to adapt to 
+the new PHY framework (of course there'll be changes in this PHY 
+framework when we want to have network PHY added here). But adapting USB 
+PHYs to the new framework will be simpler and will be taken first. Also 
+when we add SATA PHY (OMAP5), it will make use of this framework as both 
+SATA and USB3 uses the same PHY IP.
+>
+> I think it would be problematic to have two alternative interfaces for
+> ethernet PHYs because then an ethernet driver still needs to decide
+> which subsystem to interface with.
+
+Right. For now Ethernet should continue to use their own PHY abstraction 
+layer till we are a bit more clear on how to move it to drivers/phy.
+
+Thanks
+Kishon
