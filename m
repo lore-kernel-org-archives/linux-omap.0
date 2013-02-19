@@ -1,72 +1,67 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH, RFC 6/8] ARM: OMAP2+: am43: basic dt support
-Date: Tue, 19 Feb 2013 16:02:39 +0530
-Message-ID: <512354C7.1000409@ti.com>
-References: <cover.1361186097.git.afzal@ti.com> <64d18c5a07bf7680b8299f3ef98303e60522e738.1361186097.git.afzal@ti.com>
+Subject: Re: [PATCH, RFC 8/8] ARM: dts: am43-pre-silicon support
+Date: Tue, 19 Feb 2013 16:05:22 +0530
+Message-ID: <5123556A.9050109@ti.com>
+References: <cover.1361186097.git.afzal@ti.com>
+ <e344f74da47579c11db68d9f6efe25259ed7f25d.1361186097.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <64d18c5a07bf7680b8299f3ef98303e60522e738.1361186097.git.afzal@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <e344f74da47579c11db68d9f6efe25259ed7f25d.1361186097.git.afzal@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Afzal Mohammed <afzal@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>, Nicolas Pitre <nico@linaro.org>, Will Deacon <will.deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Sekhar Nori <nsekhar@ti.com>, Syed Mohammed Khasim <khasim@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, devicetree-discuss@lists.ozlabs.org, Nicolas Pitre <nico@linaro.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Marc Zyngier <marc.zyngier@arm.com>, Syed Mohammed Khasim <khasim@ti.com>, Rob Landley <rob@landley.net>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 On Monday 18 February 2013 05:08 PM, Afzal Mohammed wrote:
-> Describe minimal DT boot machine details for AM43 based SoC's. AM43
-> family of SoC's are ARM Cortex-A9 based with one core in SMP
-> configuration. Low level debug could be achieved by selecting
-> DEBUG_AM33XXUART1. To boot AM43 SoC, this change is sufficient w.r.t
-> Kernel (considering the fact that strictly speaking DT sources does
-> not classify as a part of Kernel). Here private timer of the one and
-> only core is being used as clock event (as well as, as time source).
+> AM43 SoC is in pre-silicon stage, meanwhile it has been modelled in
+> a pre-silicon platform. To validate and boot Linux in pre-silicon
+> platform that emulates an AM43 SoC, add DT build support.
+>
+> As bootloader is not used, bootargs is passed through DT.
+>
+> Note: This would be replaced by an original board support.
 >
 > Signed-off-by: Afzal Mohammed <afzal@ti.com>
 > ---
-As discussed already, lets just call this as Cortex-A9 single core
-machine to avoid confusion.
+>   arch/arm/boot/dts/Makefile             |  3 ++-
+>   arch/arm/boot/dts/am43-pre-silicon.dts | 31 +++++++++++++++++++++++++++++++
+>   2 files changed, 33 insertions(+), 1 deletion(-)
+>   create mode 100644 arch/arm/boot/dts/am43-pre-silicon.dts
+>
+> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+> index 94d88b9..b434344 100644
+> --- a/arch/arm/boot/dts/Makefile
+> +++ b/arch/arm/boot/dts/Makefile
+> @@ -124,7 +124,8 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+>   	omap5-evm.dtb \
+>   	am335x-evm.dtb \
+>   	am335x-evmsk.dtb \
+> -	am335x-bone.dtb
+> +	am335x-bone.dtb \
+> +	am43-pre-silicon.dtb
+>   dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-ethernet-disk-mini-v2.dtb
+>   dtb-$(CONFIG_ARCH_PRIMA2) += prima2-evb.dtb
+>   dtb-$(CONFIG_ARCH_U8500) += snowball.dtb \
+> diff --git a/arch/arm/boot/dts/am43-pre-silicon.dts b/arch/arm/boot/dts/am43-pre-silicon.dts
+> new file mode 100644
+> index 0000000..b9c6297
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am43-pre-silicon.dts
 
->   arch/arm/mach-omap2/board-generic.c | 18 ++++++++++++++++++
->   1 file changed, 18 insertions(+)
->
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index 0274ff7..e083f08 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -15,7 +15,10 @@
->   #include <linux/of_irq.h>
->   #include <linux/of_platform.h>
->   #include <linux/irqdomain.h>
-> +#include <linux/irqchip.h>
->
-> +#include <asm/mach/map.h>
-> +#include <asm/smp_twd.h>
->   #include <asm/mach/arch.h>
->
->   #include "common.h"
-> @@ -182,3 +185,18 @@ DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
->   	.restart	= omap44xx_restart,
->   MACHINE_END
->   #endif
-> +
-> +#ifdef CONFIG_SOC_AM43
-> +static const char *am43_boards_compat[] __initdata = {
-> +	"ti,am43",
-> +	NULL,
-> +};
-> +
-> +DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
-> +	.map_io		= debug_ll_io_init,
-> +	.init_irq	= irqchip_init,
-With Arnds patch [1], the above can be dropped..
-
-> +	.init_machine	= omap_generic_init,
-> +	.init_time	= twd_local_timer_of_register,
-This one needs to take care of other timers as well from start. So
-better to take that approach from start.
+Well the pre-silicon platform and the SOC are very
+close and at least the support you are adding here is
+exactly same. So lets just use am437x.dtb or something
+like that.
 
 Regards,
 Santosh
-
-[1] https://patchwork.kernel.org/patch/2074871/
