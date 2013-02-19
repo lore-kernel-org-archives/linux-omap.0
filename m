@@ -1,130 +1,110 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 0/5] Generic PHY Framework
-Date: Tue, 19 Feb 2013 18:17:12 +0200
-Message-ID: <20130219161712.GB5736@arwen.pp.htv.fi>
-References: <1361253198-7401-1-git-send-email-kishon@ti.com>
- <201302191233.54677.arnd@arndb.de>
- <20130219131258.GV23197@arwen.pp.htv.fi>
- <201302191434.40495.arnd@arndb.de>
- <20130219150500.GG4390@arwen.pp.htv.fi>
- <5123A32D.4030005@pengutronix.de>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
+Date: Tue, 19 Feb 2013 08:30:53 -0800
+Message-ID: <20130219163053.GE5724@atomide.com>
+References: <20130214171253.GC7144@atomide.com>
+ <20130214175650.GA25891@arwen.pp.htv.fi>
+ <20130214181217.GA11806@atomide.com>
+ <20130214192719.GB26679@arwen.pp.htv.fi>
+ <20130214193911.GD11806@atomide.com>
+ <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com>
+ <alpine.DEB.2.00.1302142124370.11016@utopia.booyaka.com>
+ <20130214224710.GF11362@atomide.com>
+ <alpine.DEB.2.00.1302191527200.32069@utopia.booyaka.com>
+ <20130219154511.GU17852@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1LKvkjL3sHcu1TtY"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43314 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754764Ab3BSQSI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Feb 2013 11:18:08 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50627 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758549Ab3BSQa5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Feb 2013 11:30:57 -0500
 Content-Disposition: inline
-In-Reply-To: <5123A32D.4030005@pengutronix.de>
+In-Reply-To: <20130219154511.GU17852@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: balbi@ti.com, Arnd Bergmann <arnd@arndb.de>, linux-usb@vger.kernel.org, linux@arm.linux.org.uk, mchehab@redhat.com, davem@davemloft.net, tony@atomide.com, gregkh@linuxfoundation.org, broonie@opensource.wolfsonmicro.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, kishon <kishon@ti.com>, eballetbo@gmail.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, rob@landley.net, netdev@vger.kernel.org, swarren@nvidia.com, javier@dowhile0.org, linux-omap@vger.kernel.org, akpm@linux-foundation.org, cesarb@cesarb.net
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
---1LKvkjL3sHcu1TtY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Tue, Feb 19, 2013 at 05:07:09PM +0100, Marc Kleine-Budde wrote:
-> On 02/19/2013 04:05 PM, Felipe Balbi wrote:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [130219 07:49]:
+> On Tue, Feb 19, 2013 at 03:30:01PM +0000, Paul Walmsley wrote:
 > > Hi,
-> >=20
-> > On Tue, Feb 19, 2013 at 02:34:40PM +0000, Arnd Bergmann wrote:
-> >> On Tuesday 19 February 2013, Felipe Balbi wrote:
-> >>> On Tue, Feb 19, 2013 at 12:33:54PM +0000, Arnd Bergmann wrote:
-> >>>>> Currently drivers/phy and drivers/net/phy are independent and are n=
-ot=20
-> >>>>> related to each other. There are some fundamental differences on ho=
-w=20
-> >>>>> these frameworks work. IIUC, the *net* uses bus layer (MDIO bus) to=
-=20
-> >>>>> match a PHY device with a PHY driver and the Ethernet device uses t=
-he=20
-> >>>>> bus layer to get the PHY.
-> >>>>> The Generic PHY Framework however doesn't have any bus layer. The P=
-HY=20
-> >>>>> should be like any other Platform Devices and Drivers and the frame=
-work=20
-> >>>>> will provide some APIs to register with the framework. And there ar=
-e=20
-> >>>>> other APIs which any controller can use to get the PHY (for e.g., i=
-n the=20
-> >>>>> case of dt boot, it can use phandle to get a reference to the PHY).
-> >>>>
-> >>>> Hmm, I think the use of a bus_type for a PHY actually sounds quite
-> >>>> appropriate. The actual PHY device would then be a child of the
-> >>>
-> >>> really ? I'm not so sure, the *bus* used by the PHY is ULPI, UTMI,
-> >>> UTMI+, PIP3, I2C, etc... adding another 'fake' bus representation is a
-> >>> bit overkill IMO.
-> >>>
-> >>> Imagine an I2C-controlled PHY driver like isp1301, that driver will h=
-ave
-> >>> to register i2c_driver and phy_driver, which looks weird to me. If the
-> >>> only substitute for class is a bus, we can't drop classes just yet, I=
-'m
-> >>> afraid.
-> >>>
-> >>> Imagine a regulator bus, a pwm bus, an LED bus etc. They don't make
-> >>> sense IMHO.
-> >>
-> >> It's a fine line, but I think a phy is something that resembles a devi=
-ce
-> >> more than an LED does. When I read patch 1, I also noticed and comment=
-ed
-> >> on the fact that it does use a 'class'. Now, according to Greg, we sho=
-uld
-> >> use 'bus_type' instead of 'class' in new code. I originally disagreed =
-with
-> >> that concept, but he's the boss here and it's good if he has a vision
-> >> how things should be lined out.
-> >>
-> >> In practice, there is little difference between a 'bus_type' and a 'cl=
-ass',
-> >> so just replace any instance of the former with the latter in your head
-> >> when reading the code ;-)
-> >=20
-> > it's not so simple :-) if we must use bus_type we need to introduce all
-> > the device/driver matching mechanism which isn't necessary with a class.
->=20
-> You have the code for phy <-> device matching in your framework anyway.
-> Using the bus infrastructure brings changes the open coded matching into
-> bus callbacks.
+> > 
+> > On Thu, 14 Feb 2013, Tony Lindgren wrote:
+> > 
+> > > The other option could be to allow custom ioremap function pointers 
+> > > based on address range in __arm_ioremap_pfn_caller() the same way as
+> > > the SoC specific static mappings are allowed. That would require adding
+> > > a function pointer to struct map_desc.
+> > > 
+> > > Maybe that would do the trick?
+> > 
+> > That sounds fine to me too.
+> > 
+> > To me it makes sense to eventually handle the I/O mappings automatically 
+> > from data in the DT -- hence the association with a bus device, which 
+> > should be present in DT data.
+> 
+> No.  I really don't get why OMAP thinks it's soo special that it needs
+> to go around adding lots and lots of new abstractions all over the
+> place.
 
-it's not the same thing. Current matching is just to figure out which
-phy belongs to which user. The bus matching rules are to bind a device
-with its driver, but that part has been taken care of by the underlying
-control bus used by the phy, be it i2c, spi, or whatever else.
+Hey it's actually quite the opposite. We're trying to find a generic
+way of doing things in order to avoid omap specific driver hacks.
+ 
+> Indirect ioremap() through a function pointer so you can overload it with
+> OMAP specific crap?  No way.  Function pointers in map_desc - what the hell
+> for?
+> 
+> You must be totally mad if you think that's a way forward, I really don't
+> see how you think this kind of crap would be remotely acceptable.
+> 
+> Ok, so you have this problem that you need hwmod to touch a register which
+> is also contained within the device resources as well.  That's fine.  You
+> can do it one of two ways:
+> 
+> 1. Call out from the driver at the appropriate points (which seems to be
+>    _after_ you've ioremapped it) to access the register.
+> 
+> 2. Find the resource, temporarily map the register, access it, and then
+>    unmap it.
+> 
+> No requirement what so ever to override ioremap().  AT ALL.  So stop this
+> madness now.
+> 
+> As for a function pointer in struct map_desc.  You're bonkers, the lot of
+> you.  map_desc is a structure describing the boot time static mappings
+> which gets discarded.  Nothing keeps any references around to it, and it
+> is used at a time when *NOTHING ELSE* should be going on in the kernel
+> other than building those static mappings.  Not even any arch code poking
+> about at devices.  Or anything like that.  Because if you think that's
+> acceptable, then we'll need to flush the cache and TLB after each and
+> every map_desc entry is touched - which brings a whole load of new pain
+> and slowness to the kernel boot.
+> 
+> So please, stop this idiotic madness now.
 
---=20
-balbi
+OK good point. Also it would be risky for things going wrong trying to try
+set up more complex stuff that early as then debugging it again depends on
+DEBUG_LL.
+ 
+> If you want such things as pci_enable_device(), then what you're actually
+> asking for is omap_enable_device() for OMAP devices.  OMAP devices are
+> already specific enough to OMAP SoCs (god knows, they have really complex
+> and obscure behaviours that no one else in their right mind would want
+> to copy) that calling out to omap specific functions would never really
+> be a problem.
 
---1LKvkjL3sHcu1TtY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I'd rather avoid adding omap_enable_device() calls to drivers as we really
+want to keep the drivers generic. But maybe there could be some generic
+bus_enable_device() function pointer that could be populated by the bus
+code during init.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+> No need for any of this crazy dev->bus shit either.
 
-iQIcBAEBAgAGBQJRI6WIAAoJEIaOsuA1yqREdDkQAJ8mDf3XwVv9HFpfn3FLjckZ
-bpCeA/7sufKd+VOCk7gdvVN4tkNUAK59AxmviiaOxYDqqXPymlMiRx7d3Jex4WyP
-npNVpejP2g9eNynZLGxGPy8zF27dCKPxB+uuYMg+ugQB3wM1xYFZMVAgxJ50TqYS
-YTChNf8/E3xyl/GTrAE/qY4IKPSoDzq/dwvKKxJvz53oHfDoeqHdV2KMSpQ59ryX
-FfCjKZRPrdMycPuzi8XqXhz6vLn8VZPih7NMdnhi27JNAuraEjgKVdPScoKdJix8
-+x6oTo4FFHHnQz8CRBF+PRGkmx3lJ5OISbc9ehA8CZQKXQkc4r7WV7PuHPFtLJVV
-i4jeO/zEPOXahsqQXoLLKa/gbcDwyOUIseISR9Jtk4Gp2eiCkHQNQkppb4E/kxgo
-NcwjyF+1HiAvyvLZqKErASKeTN9HIThgQ9AuTFyHxskF6LjSLumYJeoF8393+Ph5
-Ljj0BhgCiuJNvX/kTHd8maQ65gNTSpgSFBPbbs+PHEiUlzswFUQicehHMofrfvq0
-ZIbu+TrLiM/WzxNTGHdGhTdIp2jtA+WCyZAoQO7axLXWT4ecRcVmPEuzlt7siiAs
-XhcYSnCCbhIbMPNPXiixh6BaNYfuP+7tokQVNMWSj/AudJb++r0vdlCqVTDdqd9h
-2Fgy0cqMpD61uqNuVqgQ
-=3Fy4
------END PGP SIGNATURE-----
+Paul's suggestion on configuring things with pm_runtime_get()
+seems doable and is generic.
 
---1LKvkjL3sHcu1TtY--
+Regards,
+
+Tony
