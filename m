@@ -1,46 +1,33 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v2 0/5] Generic PHY Framework
-Date: Tue, 19 Feb 2013 10:44:28 +0000
-Message-ID: <201302191044.28653.arnd@arndb.de>
-References: <1361253198-7401-1-git-send-email-kishon@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH, RFC 8/8] ARM: dts: am43-pre-silicon support
+Date: Tue, 19 Feb 2013 10:52:44 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EAA86DE@DBDE01.ent.ti.com>
+References: <cover.1361186097.git.afzal@ti.com>
+ <e344f74da47579c11db68d9f6efe25259ed7f25d.1361186097.git.afzal@ti.com>
+ <5123556A.9050109@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1361253198-7401-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, balbi@ti.com, gregkh@linuxfoundation.org, akpm@linux-foundation.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <5123556A.9050109@ti.com>
+Content-Language: en-US
+Sender: linux-doc-owner@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>, Nicolas Pitre <nico@linaro.org>, Will Deacon <will.deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, "Nori, Sekhar" <nsekhar@ti.com>, "Syed Mohammed, Khasim" <khasim@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 19 February 2013, Kishon Vijay Abraham I wrote:
-> Added a generic PHY framework that provides a set of APIs for the PHY drivers
-> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
-> the PHY with or without using phandle. To obtain a reference to the PHY
-> without using phandle, the platform specfic intialization code (say from board
-> file) should have already called phy_bind with the binding information. The
-> binding information consists of phy's device name, phy user device name and an
-> index. The index is used when the same phy user binds to mulitple phys.
-> 
-> This framework will be of use only to devices that uses external PHY (PHY
-> functionality is not embedded within the controller).
-> 
-> The intention of creating this framework is to bring the phy drivers spread
-> all over the Linux kernel to drivers/phy to increase code re-use and to
-> increase code maintainability.
-> 
-> Comments to make PHY as bus wasn't done because PHY devices can be part of
-> other bus and making a same device attached to multiple bus leads to bad
-> design.
-
-How does this relate to the generic PHY interfaces in drivers/net/phy?
-
-Do you expect that to get merged into drivers/phy in the long run, or
-do you want to keep the generic phy only for everything but ethernet?
-
-I think it would be problematic to have two alternative interfaces for
-ethernet PHYs because then an ethernet driver still needs to decide
-which subsystem to interface with.
-
-	Arnd
+SGkgU2FudG9zaCwNCg0KT24gVHVlLCBGZWIgMTksIDIwMTMgYXQgMTY6MDU6MjIsIFNoaWxpbWth
+ciwgU2FudG9zaCB3cm90ZToNCj4gT24gTW9uZGF5IDE4IEZlYnJ1YXJ5IDIwMTMgMDU6MDggUE0s
+IEFmemFsIE1vaGFtbWVkIHdyb3RlOg0KDQo+ID4gQU00MyBTb0MgaXMgaW4gcHJlLXNpbGljb24g
+c3RhZ2UsIG1lYW53aGlsZSBpdCBoYXMgYmVlbiBtb2RlbGxlZCBpbg0KPiA+IGEgcHJlLXNpbGlj
+b24gcGxhdGZvcm0uIFRvIHZhbGlkYXRlIGFuZCBib290IExpbnV4IGluIHByZS1zaWxpY29uDQo+
+ID4gcGxhdGZvcm0gdGhhdCBlbXVsYXRlcyBhbiBBTTQzIFNvQywgYWRkIERUIGJ1aWxkIHN1cHBv
+cnQuDQoNCj4gPiBOb3RlOiBUaGlzIHdvdWxkIGJlIHJlcGxhY2VkIGJ5IGFuIG9yaWdpbmFsIGJv
+YXJkIHN1cHBvcnQuDQoNCj4gPiAtCWFtMzM1eC1ib25lLmR0Yg0KPiA+ICsJYW0zMzV4LWJvbmUu
+ZHRiIFwNCj4gPiArCWFtNDMtcHJlLXNpbGljb24uZHRiDQoNCj4gV2VsbCB0aGUgcHJlLXNpbGlj
+b24gcGxhdGZvcm0gYW5kIHRoZSBTT0MgYXJlIHZlcnkNCj4gY2xvc2UgYW5kIGF0IGxlYXN0IHRo
+ZSBzdXBwb3J0IHlvdSBhcmUgYWRkaW5nIGhlcmUgaXMNCj4gZXhhY3RseSBzYW1lLiBTbyBsZXRz
+IGp1c3QgdXNlIGFtNDM3eC5kdGIgb3Igc29tZXRoaW5nDQo+IGxpa2UgdGhhdC4NCg0KU29DIHN1
+cHBvcnQgaXMgYWxyZWFkeSBhZGRlZCBpbiBwYXRjaCA3LzguIFRoaXMgaXMgYm9hcmQgKHdoaWNo
+IGRvZXNuJ3QNCmV4aXN0IG5vdykgc3VwcG9ydCwgaGVuY2UgYSBwcmUtc2lsaWNvbiB0ZW1wb3Jh
+cnkgb25lIHRvIHZhbGlkYXRlIGl0Lg0KDQpSZWdhcmRzDQpBZnphbA0KDQo=
