@@ -1,84 +1,72 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod
- dependency
-Date: Tue, 19 Feb 2013 15:27:12 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1302191516150.32069@utopia.booyaka.com>
-References: <1360840554-26901-1-git-send-email-balbi@ti.com> <1360840554-26901-2-git-send-email-balbi@ti.com> <20130214171253.GC7144@atomide.com> <20130214175650.GA25891@arwen.pp.htv.fi> <20130214181217.GA11806@atomide.com> <20130214192719.GB26679@arwen.pp.htv.fi>
- <20130214193911.GD11806@atomide.com> <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com> <20130214222247.GE11362@atomide.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v3 2/3] arm: gpmc: Low power transition support
+Date: Tue, 19 Feb 2013 07:27:10 -0800
+Message-ID: <87bobgz5m9.fsf@linaro.org>
+References: <1361278219-23108-1-git-send-email-avinashphilip@ti.com>
+	<1361278219-23108-3-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:56937 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933036Ab3BSP1N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Feb 2013 10:27:13 -0500
-In-Reply-To: <20130214222247.GE11362@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1361278219-23108-3-git-send-email-avinashphilip@ti.com> (Philip
+	Avinash's message of "Tue, 19 Feb 2013 18:20:18 +0530")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Philip Avinash <avinashphilip@ti.com>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, dwmw2@infradead.org, afzal@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, hvaibhav@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+Philip Avinash <avinashphilip@ti.com> writes:
 
-On Thu, 14 Feb 2013, Tony Lindgren wrote:
+> With GPMC converted to platform driver recently, adds low power
+> transition support in driver itself.
+>
+> Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+> ---
+> Changes since v1:
+> 	Module disable & enable added using pm_runtime support.
+>
+>  arch/arm/mach-omap2/gpmc.c |   20 ++++++++++++++++++++
+>  1 file changed, 20 insertions(+)
+>
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index b1cd6c1..cc57988 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1361,9 +1361,29 @@ static __devexit int gpmc_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_PM
 
-> * Paul Walmsley <paul@pwsan.com> [130214 12:51]:
-> > On Thu, 14 Feb 2013, Tony Lindgren wrote:
-> > 
-> > > I don't think so as hwmod should only touch the sysconfig space
-> > > when no driver has claimed it.
-> > 
-> > hwmod does need to touch the SYSCONFIG register during pm_runtime suspend 
-> > and resume operations, and during device enable and disable operations.  
-> > Here's the relevant code:
-> > 
-> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/arm/mach-omap2/omap_hwmod.c;h=4653efb87a2721ea20a9fe06a30a6c204d6d2282;hb=HEAD#l2157
-> > 
-> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/arm/mach-omap2/omap_hwmod.c;h=4653efb87a2721ea20a9fe06a30a6c204d6d2282;hb=HEAD#l2195
-> 
-> But that's triggered by runtime PM from the device driver, right?
+This should be CONFIG_PM_SLEEP for suspend/resume specific stuff.
 
-Yes - for devices with drivers, it will hopefully be called by the 
-driver.
+> +static int gpmc_suspend(struct platform_device *pdev, pm_message_t state)
+> +{
+> +	omap3_gpmc_save_context();
+> +	pm_runtime_put_sync(&pdev->dev);
+> +	return 0;
+> +}
+> +
+> +static int gpmc_resume(struct platform_device *pdev)
+> +{
+> +	pm_runtime_get_sync(&pdev->dev);
+> +	omap3_gpmc_restore_context();
+> +	return 0;
+> +}
+> +#endif
+> +
+>  static struct platform_driver gpmc_driver = {
+>  	.probe		= gpmc_probe,
+>  	.remove		= __devexit_p(gpmc_remove),
+> +#ifdef CONFIG_PM
+> +	.suspend	= gpmc_suspend,
+> +	.resume		= gpmc_resume,
+> +#endif
 
-> I think it's fine for hwmod to do that as requested by the device
-> driver via runtime PM since hwmod is the bus glue making the drivers arch
-> independent.
-> 
-> I think the only piece we're missing for that is for driver to run
-> something like pm_runtime_init() that initializes the address space
-> to hwmod. 
+These are the legacy PM operations, you need to use the ones in the
+drivers struct dev_pm_ops.
 
-In the current design, we might be able to do this during the driver's 
-first call to pm_runtime_get*().  I think that's the first point that we 
-can hook into the PM runtime code.
+>  	.driver		= {
+>  		.name	= DEVICE_NAME,
+>  		.owner	= THIS_MODULE,
 
-Once the hwmod code is moved out to be a bus, I'm hoping we can do this 
-through the driver making a dev->bus->enable_device() call - similar to 
-the way PCI drivers call pci_enable_device(), but not bus-specific.  That 
-should remove our current dependency on CONFIG_PM_RUNTIME for OMAP devices 
-to work correctly :-(
-
-> Just to recap what we've discussed earlier, the reasons why we want
-> reset and idle functions should be in the driver specific header are:
-> 
-> 1. There's often driver specific logic needed in addition to the
->    syconfig tinkering in the reset/idle functions.
-
-It's been a while since I last tabulated this.  But my recollection was 
-that some kind of IP block-specific reset code is needed for about 7% to 
-10% of the OMAP IP blocks.
-
-One thing that's unclear to me for the DT case is how we'll bind the 
-driver-specific parts of the reset code to the device, particularly in the 
-case where there's no driver present.  It should be possible to place an 
-initcall in the driver-specific header, but that seems like a hack.  Any 
-thoughts on this?
-
-> 2. We need to be able to reset and idle some hardware even if the
->    driver is not compiled in.
-
-Yep.
-
-
-- Paul
+Kevin
