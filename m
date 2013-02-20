@@ -1,59 +1,45 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3/8] ARM: OMAP5: prm: Allow prm init to success on OMAP5
- SOCs
-Date: Wed, 20 Feb 2013 17:30:49 +0200
-Message-ID: <20130220153049.GF16652@arwen.pp.htv.fi>
-References: <1361374034-21831-1-git-send-email-santosh.shilimkar@ti.com>
- <1361374034-21831-4-git-send-email-santosh.shilimkar@ti.com>
-Reply-To: <balbi@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/8] ARM: dts: OMAP5: ocp address space and few updates
+Date: Wed, 20 Feb 2013 21:08:47 +0530
+Message-ID: <1361374735-22018-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="A9z/3b/E4MkkD+7G"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47619 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935491Ab3BTPay (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Feb 2013 10:30:54 -0500
-Content-Disposition: inline
-In-Reply-To: <1361374034-21831-4-git-send-email-santosh.shilimkar@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54241 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934944Ab3BTPhf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Feb 2013 10:37:35 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
---A9z/3b/E4MkkD+7G
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Few updates for OMAP5 found during testing OMAP5 DT builds. Couple
+of patches were already posted on the list. The series also contains
+a patch which adds DMA request, IRQ lines and IO address space 
+DT extraction support to hwmod code so that we can get rid of
+such information from hwmod data files. It has been tested on OMAP5
+and OMAP4 devices.
 
-On Wed, Feb 20, 2013 at 08:57:09PM +0530, Santosh Shilimkar wrote:
-> Allow prm init to success on OMAP5 SOCs.
+Rajendra Nayak (1):
+  ARM: dts: OMAP5: Specify nonsecure PPI IRQ for arch timer
 
-s/success/succeed/
+Santosh Shilimkar (7):
+  ARM: dts: omap5-evm: Update available memory to 2032 MB
+  ARM: dts: OMAP5: Align the local timer dt node as per the current
+    binding code
+  ARM: dts: OMAP5: Move the gic node out of ocp space
+  ARM: dts: OMAP5: Update the timer and gic nodes for HYP kernel
+    support
+  ARM: dts: OMAP5: Update keypad reg property
+  ARM: OMAP: hwmod: extract module address space from DT blob
+  ARM: dts: OMAP5: Add ocp address space for all hwmods
 
---=20
-balbi
+ arch/arm/boot/dts/omap5-evm.dts  |    2 +-
+ arch/arm/boot/dts/omap5.dtsi     |  282 +++++++++++++++++++++++++++++++++++---
+ arch/arm/mach-omap2/omap_hwmod.c |   31 ++++-
+ 3 files changed, 293 insertions(+), 22 deletions(-)
 
---A9z/3b/E4MkkD+7G
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+-- 
+1.7.9.5
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRJOwoAAoJEIaOsuA1yqREkPoP/08Gp2GPKqUuQg5JySkoAtcG
-EoL5Eo8eiBhmBIFxz3sUVWGs+jNZteZKZz9VjgDYA+0c1cCHDJtYqfRAeyqTdvc+
-p3+M3TTJ8y+nYqqpDk1oba14az82yXH80ZLXHMioNfhywBer13aqx4ygYnnzcAUQ
-7MwSmS21o8YKdXFZu+KFeGmGbaZCr99NRhYCarrNVH8gJMqUsGwgxim6mBQy5t65
-sIkJWsFgYhrJX8+ym5ZLC8MWzWhLA7/gVp+je0zoi1iFv3cRuUpXqExnq5y2jhzR
-qa5+ccY3gtNfmtBUgTV2gzpqAGR5QeowL31gnwLbCjUmoVFBWvrxhpTFQRaLx6In
-M/p7pdxOcZE2DgAB/yAwAdl/jzcuwCcXxH5VhSI6yriZBB3BA5EN5e1FZW4LYlkP
-QgkH2H6aTyZPTqfrvm2jeW0/B6jWc9bScEUB3SqwzeErMr+hWHu1RkayQI/XLuhJ
-qyTCLP8S76+5g0nohYh3eTPsM1NPkgmHR5s0bBTV29pa1waSmTc89N2GBC6LIeJC
-OrQJrtpWXZQhOHZDQh5nfMNt7ocqicwL6GDYCg3HhcB2mVTn3k1nYfCFn3+v5Y2P
-d28DnVzNroAYko74ebldVHgO32cYLizg8njJHXM0hqO3nYz9ZUCVpcSevFhb1Jkb
-XTs7TZZA+444h4tlUGLs
-=j7qN
------END PGP SIGNATURE-----
-
---A9z/3b/E4MkkD+7G--
