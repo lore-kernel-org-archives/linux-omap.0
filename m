@@ -1,70 +1,87 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 7/8] ARM: OMAP5: Make errata i688 workaround available
-Date: Wed, 20 Feb 2013 20:57:13 +0530
-Message-ID: <1361374034-21831-8-git-send-email-santosh.shilimkar@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/8] ARM: OMAP5: Update SOC id detection code for ES2
+Date: Wed, 20 Feb 2013 17:29:40 +0200
+Message-ID: <20130220152940.GE16652@arwen.pp.htv.fi>
 References: <1361374034-21831-1-git-send-email-santosh.shilimkar@ti.com>
+ <1361374034-21831-2-git-send-email-santosh.shilimkar@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9l24NVCWtSuIVIod"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47384 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935413Ab3BTP0D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Feb 2013 10:26:03 -0500
-In-Reply-To: <1361374034-21831-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:58409 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933698Ab3BTP3r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Feb 2013 10:29:47 -0500
+Content-Disposition: inline
+In-Reply-To: <1361374034-21831-2-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-Errata i688 is also applicable for OMAP5 based devices. Update the
-code so that it can be enabled on OMAP5 devices.
+--9l24NVCWtSuIVIod
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/Kconfig |    2 +-
- arch/arm/mach-omap2/io.c    |    9 +++++++++
- 2 files changed, 10 insertions(+), 1 deletion(-)
+Hi,
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 41b581f..63a12d4 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -397,7 +397,7 @@ config OMAP3_SDRC_AC_TIMING
- 
- config OMAP4_ERRATA_I688
- 	bool "OMAP4 errata: Async Bridge Corruption"
--	depends on ARCH_OMAP4
-+	depends on ARCH_OMAP4 || SOC_OMAP5
- 	select ARCH_HAS_BARRIERS
- 	help
- 	  If a data is stalled inside asynchronous bridge because of back
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 2c3fdd6..2bef5a7 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -271,6 +271,14 @@ static struct map_desc omap54xx_io_desc[] __initdata = {
- 		.length		= L4_PER_54XX_SIZE,
- 		.type		= MT_DEVICE,
- 	},
-+#ifdef CONFIG_OMAP4_ERRATA_I688
-+	{
-+		.virtual	= OMAP4_SRAM_VA,
-+		.pfn		= __phys_to_pfn(OMAP4_SRAM_PA),
-+		.length		= PAGE_SIZE,
-+		.type		= MT_MEMORY_SO,
-+	},
-+#endif
- };
- #endif
- 
-@@ -323,6 +331,7 @@ void __init omap4_map_io(void)
- void __init omap5_map_io(void)
- {
- 	iotable_init(omap54xx_io_desc, ARRAY_SIZE(omap54xx_io_desc));
-+	omap_barriers_init();
- }
- #endif
- /*
--- 
-1.7.9.5
+On Wed, Feb 20, 2013 at 08:57:07PM +0530, Santosh Shilimkar wrote:
+>  	case 0xb998:
+>  		switch (rev) {
+>  		case 0:
+> -		default:
+>  			omap_revision =3D OMAP5432_REV_ES1_0;
+> +			break;
+> +		case 1:
+> +			omap_revision =3D OMAP5432_REV_ES2_0;
+> +			break;
+> +		default:
+> +			omap_revision =3D OMAP5432_REV_ES2_0;
 
+no need for the duplication:
+
++		case 1:
++		default:
++			omap_revision =3D OMAP5432_REV_ES2_0;
+
+will work just fine.
+
+>  		}
+>  		break;
+> =20
+>  	default:
+>  		/* Unknown default to latest silicon rev as default*/
+> -		omap_revision =3D OMAP5430_REV_ES1_0;
+> +		omap_revision =3D OMAP5430_REV_ES2_0;
+
+how about we default to 0xffffffff ? That's the highest possible
+version, just not sure if our revision macros can cope with it.
+
+--=20
+balbi
+
+--9l24NVCWtSuIVIod
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRJOvkAAoJEIaOsuA1yqRE0gMP/1tkcuq1a2JU2qKO8ZaJY5ZU
+cnW7e1+MjINWqzkqnncELz0EOkVpZEB6gxzGnJZW3ewgGCf+XHIn4bqSYHro65Ri
+IGeb0OzgklUVDTiQay9Vz4KHJbygJRbJM+PEi07nSbILqRHe2qH4qJh+4/TipN6T
+1SfjJXGP5jhJakVyoSvV2jegApR9nOlEeNzsvnMIhDytcq0cbzUDkGSc6grBDYbu
+m8K4WHIx9heGRH49e8IB4ZbfRvwxUMJ0Cs4Hjm52sbBzbn2ucdJn3gF8z+PXOBnq
+ZiEIgwi3icJ+wZO7ADyKOQy9Id6r2CgE2oEMBDxGq5N1EF7TAJNJmZkyfMp77gFN
+zE7aja4n3JUP6EnihWrFTuuntBMC/AgoHNXRSJRTl+QDVBS7TT8bXnVg+aMy3yaG
+FHjdo7e2OIFg2Endm184whsMAcTVKHwgjmnQNIJmBQ0I4IlbODchKe6OHyjPX82I
+yC4HTKkRpPOyMgwwFFoMI5122q6MmKEiMH8v6DEWBb20t8iyD7Ez4DkYBnOFoe4p
+eV2Ew0zs1VXGTofHHBD86B82xTxAJxnQII9jtW3xcI+RvcosiVY8Bk7tXBIbE1u6
+3U/wyX7CkkfweKDeqpK0NlNqhBtuo0GfiihZbRb0QSP2LvtVSkMCgP/LJf5s/8/F
+O2MBL7BlQMYVWDnn56Ei
+=VWa4
+-----END PGP SIGNATURE-----
+
+--9l24NVCWtSuIVIod--
