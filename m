@@ -1,78 +1,105 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 8/9] ARM: OMAP4: PM: Remove L4 wakeup depedency with MPU since errata fix exist now
-Date: Wed, 20 Feb 2013 20:48:46 +0530
-Message-ID: <1361373527-21695-9-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 7/9] ARM: OMAP4+: Move the CPU wakeup prepare code under smp_prepare_cpus()
+Date: Wed, 20 Feb 2013 20:48:45 +0530
+Message-ID: <1361373527-21695-8-git-send-email-santosh.shilimkar@ti.com>
 References: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43758 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43759 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935493Ab3BTPRz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S935502Ab3BTPRz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 20 Feb 2013 10:17:55 -0500
 In-Reply-To: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>
+Cc: khilman@deeprootsystems.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-With commit bfd6d021 {ARM: OMAP3+: Implement timer workaround for errata
-i103 and i767}, the sync and gptimer synchronization errata got fixed.
-
-Hence the l4_wakeup static dependency with MPU can  can be removed
-now. Static dependency was one of the proposed workaround but from
-power savings perspective, it isn't an ideal workaround.
-
-Cc: Jon Hunter <jon-hunter@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Move the secondary CPU wakeup prepare code under smp_prepare_cpus(). While at
+it drop the un-necessary sev() and barrier which was under prepare code.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/pm44xx.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/omap-smp.c |   51 ++++++++++++++++------------------------
+ 1 file changed, 20 insertions(+), 31 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index a96ae57..1fd9662 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -133,7 +133,7 @@ static void omap_default_idle(void)
- int __init omap4_pm_init(void)
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index 7d29a74..9711ecd 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -164,36 +164,6 @@ static int __cpuinit omap4_boot_secondary(unsigned int cpu, struct task_struct *
+ 	return 0;
+ }
+ 
+-static void __init wakeup_secondary(void)
+-{
+-	void *startup_addr = omap_secondary_startup;
+-	void __iomem *base = omap_get_wakeupgen_base();
+-
+-	if (cpu_is_omap446x()) {
+-		startup_addr = omap_secondary_startup_4460;
+-		pm44xx_errata |= PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD;
+-	}
+-
+-	/*
+-	 * Write the address of secondary startup routine into the
+-	 * AuxCoreBoot1 where ROM code will jump and start executing
+-	 * on secondary core once out of WFE
+-	 * A barrier is added to ensure that write buffer is drained
+-	 */
+-	if (omap_secure_apis_support())
+-		omap_auxcoreboot_addr(virt_to_phys(startup_addr));
+-	else
+-		__raw_writel(virt_to_phys(omap5_secondary_startup),
+-						base + OMAP_AUX_CORE_BOOT_1);
+-
+-	/*
+-	 * Send a 'sev' to wake the secondary core from WFE.
+-	 * Drain the outstanding writes to memory
+-	 */
+-	dsb_sev();
+-	mb();
+-}
+-
+ /*
+  * Initialise the CPU possible map early - this describes the CPUs
+  * which may be present or become present in the system.
+@@ -231,6 +201,8 @@ static void __init omap4_smp_init_cpus(void)
+ 
+ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
  {
- 	int ret;
--	struct clockdomain *emif_clkdm, *mpuss_clkdm, *l3_1_clkdm, *l4wkup;
-+	struct clockdomain *emif_clkdm, *mpuss_clkdm, *l3_1_clkdm;
- 	struct clockdomain *ducati_clkdm, *l3_2_clkdm, *l4_per_clkdm;
++	void *startup_addr = omap_secondary_startup;
++	void __iomem *base = omap_get_wakeupgen_base();
  
- 	if (omap_rev() == OMAP4430_REV_ES1_0) {
-@@ -154,19 +154,14 @@ int __init omap4_pm_init(void)
- 	 * MPUSS -> L4_PER/L3_* and DUCATI -> L3_* doesn't work as
- 	 * expected. The hardware recommendation is to enable static
- 	 * dependencies for these to avoid system lock ups or random crashes.
--	 * The L4 wakeup depedency is added to workaround the OCP sync hardware
--	 * BUG with 32K synctimer which lead to incorrect timer value read
--	 * from the 32K counter. The BUG applies for GPTIMER1 and WDT2 which
--	 * are part of L4 wakeup clockdomain.
+ 	/*
+ 	 * Initialise the SCU and wake up the secondary core using
+@@ -238,7 +210,24 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
  	 */
- 	mpuss_clkdm = clkdm_lookup("mpuss_clkdm");
- 	emif_clkdm = clkdm_lookup("l3_emif_clkdm");
- 	l3_1_clkdm = clkdm_lookup("l3_1_clkdm");
- 	l3_2_clkdm = clkdm_lookup("l3_2_clkdm");
- 	l4_per_clkdm = clkdm_lookup("l4_per_clkdm");
--	l4wkup = clkdm_lookup("l4_wkup_clkdm");
- 	ducati_clkdm = clkdm_lookup("ducati_clkdm");
--	if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) || (!l4wkup) ||
-+	if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) ||
- 		(!l3_2_clkdm) || (!ducati_clkdm) || (!l4_per_clkdm))
- 		goto err2;
+ 	if (scu_base)
+ 		scu_enable(scu_base);
+-	wakeup_secondary();
++
++	if (cpu_is_omap446x()) {
++		startup_addr = omap_secondary_startup_4460;
++		pm44xx_errata |= PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD;
++	}
++
++	/*
++	 * Write the address of secondary startup routine into the
++	 * AuxCoreBoot1 where ROM code will jump and start executing
++	 * on secondary core once out of WFE
++	 * A barrier is added to ensure that write buffer is drained
++	 */
++	if (omap_secure_apis_support())
++		omap_auxcoreboot_addr(virt_to_phys(startup_addr));
++	else
++		__raw_writel(virt_to_phys(omap5_secondary_startup),
++						base + OMAP_AUX_CORE_BOOT_1);
++
+ }
  
-@@ -174,7 +169,6 @@ int __init omap4_pm_init(void)
- 	ret |= clkdm_add_wkdep(mpuss_clkdm, l3_1_clkdm);
- 	ret |= clkdm_add_wkdep(mpuss_clkdm, l3_2_clkdm);
- 	ret |= clkdm_add_wkdep(mpuss_clkdm, l4_per_clkdm);
--	ret |= clkdm_add_wkdep(mpuss_clkdm, l4wkup);
- 	ret |= clkdm_add_wkdep(ducati_clkdm, l3_1_clkdm);
- 	ret |= clkdm_add_wkdep(ducati_clkdm, l3_2_clkdm);
- 	if (ret) {
+ struct smp_operations omap4_smp_ops __initdata = {
 -- 
 1.7.9.5
 
