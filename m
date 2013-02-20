@@ -1,57 +1,56 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 0/9] ARM: OMAP: Static deps, fiq, omap-smp cleanup
-Date: Wed, 20 Feb 2013 20:48:38 +0530
-Message-ID: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 1/9] ARM: OMAP4+: Use common scratchpad SAR RAM offsets for all architectures
+Date: Wed, 20 Feb 2013 20:48:39 +0530
+Message-ID: <1361373527-21695-2-git-send-email-santosh.shilimkar@ti.com>
+References: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46953 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:46954 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933505Ab3BTPRh (ORCPT
+	with ESMTP id S933491Ab3BTPRh (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Feb 2013 10:17:37 -0500
+In-Reply-To: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: khilman@deeprootsystems.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This series tries to clean-up the some of the areas like OMAP4 static
-deps, FIQ usage in OMAP code, SMP code. The patches are self explanatory 
-and quite independent but since I had them mantained in a branch, am
-sending them together not to loose track of them.
+From: Tero Kristo <t-kristo@ti.com>
 
-They have been tested on OMAP4 and OMAP3 devices for boot, suspend and
-CPUIDLE. OMAP1 patch isn't tested but I don't expect it to cause any
-breakage since it is just cleaning up the bogus fiq use.
+Simplifies code and also allows the re-use as is on OMAP5 devices.
 
-Santosh Shilimkar (8):
-  ARM: OMAP1: PM: Remove bogus fiq_[enable/disable] tuple
-  ARM: OMAP2+: PM: Remove bogus fiq_[enable/disable] tuple
-  ARM: OMAP4+: Remove the un-necessary cache flush from hotplug code
-  ARM: OMAP4+: Remove un-necessary cacheflush in secondary CPU boot
-    path
-  ARM: OMAP4+: Remove out of placed smp_wmb() in secondary wakeup code
-  ARM: OMAP4+: Move the CPU wakeup prepare code under
-    smp_prepare_cpus()
-  ARM: OMAP4: PM: Remove L4 wakeup depedency with MPU since errata fix
-    exist now
-  ARM: OMAP4: PM: Now remove L4 per clockdomain static depedency with
-    MPU
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/omap4-sar-layout.h |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-Tero Kristo (1):
-  ARM: OMAP4+: Use common scratchpad SAR RAM offsets for all
-    architectures
-
- arch/arm/mach-omap1/pm.c               |    6 ----
- arch/arm/mach-omap2/cpuidle34xx.c      |    4 ---
- arch/arm/mach-omap2/cpuidle44xx.c      |    7 ----
- arch/arm/mach-omap2/omap-hotplug.c     |    6 ----
- arch/arm/mach-omap2/omap-smp.c         |   57 +++++++++++---------------------
- arch/arm/mach-omap2/omap4-sar-layout.h |   14 ++++----
- arch/arm/mach-omap2/pm24xx.c           |   11 ++----
- arch/arm/mach-omap2/pm34xx.c           |    9 +----
- arch/arm/mach-omap2/pm44xx.c           |   20 +++--------
- 9 files changed, 35 insertions(+), 99 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
+index e170fe8..6822d0a 100644
+--- a/arch/arm/mach-omap2/omap4-sar-layout.h
++++ b/arch/arm/mach-omap2/omap4-sar-layout.h
+@@ -20,13 +20,13 @@
+ #define SAR_BANK4_OFFSET		0x3000
+ 
+ /* Scratch pad memory offsets from SAR_BANK1 */
+-#define SCU_OFFSET0				0xd00
+-#define SCU_OFFSET1				0xd04
+-#define OMAP_TYPE_OFFSET			0xd10
+-#define L2X0_SAVE_OFFSET0			0xd14
+-#define L2X0_SAVE_OFFSET1			0xd18
+-#define L2X0_AUXCTRL_OFFSET			0xd1c
+-#define L2X0_PREFETCH_CTRL_OFFSET		0xd20
++#define SCU_OFFSET0				0xfe4
++#define SCU_OFFSET1				0xfe8
++#define OMAP_TYPE_OFFSET			0xfec
++#define L2X0_SAVE_OFFSET0			0xff0
++#define L2X0_SAVE_OFFSET1			0xff4
++#define L2X0_AUXCTRL_OFFSET			0xff8
++#define L2X0_PREFETCH_CTRL_OFFSET		0xffc
+ 
+ /* CPUx Wakeup Non-Secure Physical Address offsets in SAR_BANK3 */
+ #define CPU0_WAKEUP_NS_PA_ADDR_OFFSET		0xa04
 -- 
 1.7.9.5
 
