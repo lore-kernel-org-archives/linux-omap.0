@@ -1,14 +1,14 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 4/9] ARM: OMAP4+: Remove the un-necessary cache flush from hotplug code
-Date: Wed, 20 Feb 2013 20:48:42 +0530
-Message-ID: <1361373527-21695-5-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 6/9] ARM: OMAP4+: Remove out of placed smp_wmb() in secondary wakeup code
+Date: Wed, 20 Feb 2013 20:48:44 +0530
+Message-ID: <1361373527-21695-7-git-send-email-santosh.shilimkar@ti.com>
 References: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53239 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53238 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933491Ab3BTPRt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S934210Ab3BTPRt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 20 Feb 2013 10:17:49 -0500
 In-Reply-To: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,43 +16,27 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This was added with intial port where OMAP PM support wasn't existing
-and only simple WFI based hooks were used.
-
-This should have been cleaned up while adding the PM support but some
-how fall through cracks.
+The smp_wmb() here is out of placed and redundant. So remove it. It is
+a left over of the pain_release cleanup mostly.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/omap-hotplug.c |    6 ------
- 1 file changed, 6 deletions(-)
+ arch/arm/mach-omap2/omap-smp.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
-index e712d17..458f72f 100644
---- a/arch/arm/mach-omap2/omap-hotplug.c
-+++ b/arch/arm/mach-omap2/omap-hotplug.c
-@@ -19,11 +19,8 @@
- #include <linux/smp.h>
- #include <linux/io.h>
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index 81fd489..7d29a74 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -186,8 +186,6 @@ static void __init wakeup_secondary(void)
+ 		__raw_writel(virt_to_phys(omap5_secondary_startup),
+ 						base + OMAP_AUX_CORE_BOOT_1);
  
--#include <asm/cacheflush.h>
- #include "omap-wakeupgen.h"
--
- #include "common.h"
--
- #include "powerdomain.h"
- 
- /*
-@@ -35,9 +32,6 @@ void __ref omap4_cpu_die(unsigned int cpu)
- 	unsigned int boot_cpu = 0;
- 	void __iomem *base = omap_get_wakeupgen_base();
- 
--	flush_cache_all();
--	dsb();
+-	smp_wmb();
 -
  	/*
- 	 * we're ready for shutdown now, so do it
- 	 */
+ 	 * Send a 'sev' to wake the secondary core from WFE.
+ 	 * Drain the outstanding writes to memory
 -- 
 1.7.9.5
 
