@@ -1,39 +1,49 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 6/8] SERIAL: OMAP: Remove the slave idle handling from the driver
-Date: Wed, 20 Feb 2013 07:24:56 -0800
-Message-ID: <87sj4rqa7r.fsf@linaro.org>
-References: <1361354444-18230-1-git-send-email-santosh.shilimkar@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/8] ARM: OMAP5: Few updates discovered with es2.0
+Date: Wed, 20 Feb 2013 20:57:06 +0530
+Message-ID: <1361374034-21831-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:33974 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934060Ab3BTPY7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Feb 2013 10:24:59 -0500
-Received: by mail-pb0-f52.google.com with SMTP id ma3so2917250pbc.11
-        for <linux-omap@vger.kernel.org>; Wed, 20 Feb 2013 07:24:59 -0800 (PST)
-In-Reply-To: <1361354444-18230-1-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Wed, 20 Feb 2013 15:30:44 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53683 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933698Ab3BTPZy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Feb 2013 10:25:54 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+Here are few OMAP5 updates discovered during es2.0 silicon validation.
+Tested on OMAP5430 and OMAP5432 devices after applying out of tree
+datafiles for OMAP5.
 
-> UART IP slave idle handling now taken care by runtime pm backend(hwmod layer)
-> so remove the hackery from the driver.
->
-> Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> Tested-by: Sourav Poddar <sourav.poddar@ti.com>
-> Signed-off-by: Rajendra nayak <rnayak@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->
-> ---
->  drivers/tty/serial/omap-serial.c |   23 -----------------------
->  1 file changed, 23 deletions(-)
+Rajendra Nayak (1):
+  ARM: OMAP5: clock: No Freqsel on OMAP5 devices
 
-This patch should also remove the hooks from
-<linux/platform_data/serial-omap.h>
+Santosh Shilimkar (6):
+  ARM: OMAP5: Update SOC id detection code for ES2
+  ARM: OMAP5: timer: Update the clocksource name as per clock data
+  ARM: OMAP5: prm: Allow prm init to success on OMAP5 SOCs
+  ARM: OMAP5: Update SAR RAM base address
+  ARM: OMAP5: Update SAR memory layout for WakeupGen
+  ARM: OMAP5: Make errata i688 workaround available
 
-Kevin
+Tero Kristo (1):
+  ARM: OMAP5: Reuse prm read_inst/write_inst
+
+ arch/arm/mach-omap2/Kconfig            |    2 +-
+ arch/arm/mach-omap2/dpll3xxx.c         |    6 ++++--
+ arch/arm/mach-omap2/id.c               |   16 +++++++++++++---
+ arch/arm/mach-omap2/io.c               |    9 +++++++++
+ arch/arm/mach-omap2/omap4-common.c     |   10 ++++++++--
+ arch/arm/mach-omap2/omap4-sar-layout.h |   14 +++++++-------
+ arch/arm/mach-omap2/omap54xx.h         |    1 +
+ arch/arm/mach-omap2/prm44xx.c          |    6 +++---
+ arch/arm/mach-omap2/soc.h              |    2 ++
+ arch/arm/mach-omap2/timer.c            |    5 +++--
+ 10 files changed, 51 insertions(+), 20 deletions(-)
+
+-- 
+1.7.9.5
+
