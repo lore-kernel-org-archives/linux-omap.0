@@ -1,76 +1,62 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: test jiffies on ARM SMP board
-Date: Wed, 20 Feb 2013 17:30:14 +0000
-Message-ID: <20130220173014.GY17852@n2100.arm.linux.org.uk>
-References: <BLU002-W18453B5FE6CB5CDDA18C8DBCF60@phx.gbl> <1361381081.16206.45.camel@anish-Inspiron-N5050>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod
+ dependency
+Date: Wed, 20 Feb 2013 17:38:49 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1302191530190.32069@utopia.booyaka.com>
+References: <1360840554-26901-1-git-send-email-balbi@ti.com> <1360840554-26901-2-git-send-email-balbi@ti.com> <20130214171253.GC7144@atomide.com> <20130214175650.GA25891@arwen.pp.htv.fi> <20130214181217.GA11806@atomide.com> <20130214192719.GB26679@arwen.pp.htv.fi>
+ <20130214193911.GD11806@atomide.com> <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com> <20130215064429.GA30038@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47166 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933238Ab3BTRbi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Feb 2013 12:31:38 -0500
-Content-Disposition: inline
-In-Reply-To: <1361381081.16206.45.camel@anish-Inspiron-N5050>
+Received: from utopia.booyaka.com ([74.50.51.50]:38001 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758878Ab3BTRiu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Feb 2013 12:38:50 -0500
+In-Reply-To: <20130215064429.GA30038@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: anish kumar <anish198519851985@gmail.com>
-Cc: buyitian <buyit@live.cn>, "kernelnewbies@kernelnewbies.org" <kernelnewbies@kernelnewbies.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Feb 20, 2013 at 10:54:41PM +0530, anish kumar wrote:
-> On Thu, 2013-02-21 at 00:39 +0800, buyitian wrote:
-> > i am confused about my test. in one device driver, 
-> > i put below code:
-> > 
-> >     printk("start to test test jiffies\n");
-> > 
-> >     local_irq_save(flags);
-> > 
-> >     jf1 = jiffies; // read jiffies first time
-> > 
-> >     // hold cpu for about 2 seconds(do some calculation)
-> > 
-> >     jf2 = jiffies; // read jiffies after 2 seconds
-> > 
-> >     local_irq_restore(flags);
-> > 
-> >     printk("jf1:%lu, jf2:%lu\n", jf1, jf2);
-> > 
-> > and the output is as below:
-> > 
-> >     <4>[  108.551124]start to test test jiffies
-> >     <4>[  110.367604]jf1:4294948151, jf2:4294948151
-> > 
-> > the jf1 and jf2 are the same value, although they are
-> > read between 2 seconds interval, i think this is because
-> > i disabled local interrupt.
-> > but the printk timestamp is from 108.551124 to 110.367604,
-> > which is about 2 seconds. and on my platform, printk timestamp
-> > is got from the function read_sched_clock:
-> >    static u32 __read_mostly (*read_sched_clock)(void) = jiffy_sched_clock_read;
-> > 
-> > and function jiffy_sched_clock_read() is to read from jiffies.
-> > 
-> > it seems that the jiffies is frozen when local irq is disabled,
-> > but after local_irq_restore(), the jiffies not only start
-> > to run, but also recover the lost 2 seconds.
-> > 
-> > is the jiffies updated from another cpu when irq is disabled on
-> > local cpu? 
-> > 
-> > is there some internel processor interrupt between cpu1 and cpu0
-> > after local irq is re-enabled so that jiffies recover the lost 2 seconds? 		 	   		  
-> I think it is because of the fact that some RTC registers keep the
+Hi,
 
-The RTC has nothing to do with this.
+I think Vaibhav has covered most of the ground here, but just a few 
+comments:
 
-As soon as the IRQs are allowed again (immediately after the
-local_irq_restore()) the pending interrupt - including the timer
-interrupt will be processed.
+On Fri, 15 Feb 2013, Felipe Balbi wrote:
 
-At this point, because we read the clocksource, we can see that two
-seconds have passed, and so we advance jiffies by the elapsed time.
+> On Thu, Feb 14, 2013 at 08:47:53PM +0000, Paul Walmsley wrote:
+>
+> > Drivers shouldn't touch their IP block's SYSCONFIG registers.  They don't 
+> 
+> why not ? It's part of the driver's address space anyway. It's not part
+> of the IP in question (usb, ethernet, etc) but it's part of the TI
+> wrapper which usually involves a bridge (ocp2scp, ocp2axi, etc) plus the
+> TI-specific integration registers (revision, sysc, syss...).
+> 
+> So they're not part of the licensed IP, but they're part of the TI
+> wrapper around those.
 
-This means printk() sees that the two seconds have passed.  But because
-you're reading from jiffies within the interrupt disabled region, that
-code can't see the missed ticks.
+Ideally Linux drivers would be as independent as possible from their SoC- 
+or board-specific integration.  This includes bus integration, etc.  That 
+way, an IP block like UART, where most or all of the registers are shared 
+with the common 8250 code, might be able to use a shared driver.
+
+Also, it should be noted that the TI wrapper isn't necessarily common to 
+all TI SoCs :-)  The wrapper bits and functions can change from TI SoC to 
+SoC.
+
+> > have anything specifically to do with the underlying device IP block, but 
+> 
+> of course they do, soft reset touches the underlying IP, so does force
+> idle, no idle, etc. 
+
+Force idle, no idle, etc. only affects what's reported to the PRCM via 
+the SIdleAck/MStandbyReq lines.  It shouldn't affect anything in the IP 
+block itself.
+
+As far as reset goes, the chip-wide reset bits affect the IP block too, 
+but we wouldn't put that code into the drivers :-)
+
+
+- Paul
