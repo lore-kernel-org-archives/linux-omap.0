@@ -1,94 +1,63 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 7/8] ARM: OMAP: hwmod: extract module address space from DT blob
-Date: Wed, 20 Feb 2013 21:08:54 +0530
-Message-ID: <1361374735-22018-8-git-send-email-santosh.shilimkar@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 7/8] ARM: OMAP: hwmod: extract module address space from
+ DT blob
+Date: Wed, 20 Feb 2013 17:42:58 +0200
+Message-ID: <20130220154258.GI16652@arwen.pp.htv.fi>
 References: <1361374735-22018-1-git-send-email-santosh.shilimkar@ti.com>
+ <1361374735-22018-8-git-send-email-santosh.shilimkar@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tctmm6wHVGT/P6vA"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54258 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54511 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935847Ab3BTPhr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Feb 2013 10:37:47 -0500
-In-Reply-To: <1361374735-22018-1-git-send-email-santosh.shilimkar@ti.com>
+	id S935543Ab3BTPnE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Feb 2013 10:43:04 -0500
+Content-Disposition: inline
+In-Reply-To: <1361374735-22018-8-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Patch adds the code for extracting the module ocp address space from device
-tree blob in case the hwmod address space look up fails.
+--tctmm6wHVGT/P6vA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The idea is to remove the address space data from hwmod and extract it from
-DT blob.
+Hi,
 
-Cc: Benoit Cousson <b-cousson@ti.com>
+On Wed, Feb 20, 2013 at 09:08:54PM +0530, Santosh Shilimkar wrote:
+> Patch adds the code for extracting the module ocp address space from devi=
+ce
+> tree blob in case the hwmod address space look up fails.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |   31 ++++++++++++++++++++++++++++++-
- 1 file changed, 30 insertions(+), 1 deletion(-)
+IMHO you should lookup on DT first and if that fails try hwmod ;-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 4653efb..5aad348 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -138,6 +138,7 @@
- #include <linux/spinlock.h>
- #include <linux/slab.h>
- #include <linux/bootmem.h>
-+#include <linux/of.h>
- 
- #include "clock.h"
- #include "omap_hwmod.h"
-@@ -2336,6 +2337,11 @@ static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
- {
- 	struct omap_hwmod_addr_space *mem;
- 	void __iomem *va_start;
-+	struct device_node *np;
-+	const void *reg_prop;
-+	const char *p;
-+	unsigned long start = 0, size = 0;
-+
- 
- 	if (!oh)
- 		return;
-@@ -2349,10 +2355,33 @@ static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
- 	if (!mem) {
- 		pr_debug("omap_hwmod: %s: no MPU register target found\n",
- 			 oh->name);
-+
-+		/* Extract the IO space from device tree blob */
-+		if (!of_have_populated_dt())
-+			return;
-+
-+		for_each_child_of_node(of_find_node_by_name(NULL, "ocp"), np) {
-+			if (of_find_property(np, "ti,hwmods", NULL)) {
-+				p = of_get_property(np, "ti,hwmods", NULL);
-+				if (!strcmp(p, oh->name)) {
-+					reg_prop = of_get_property(np, "reg",
-+									NULL);
-+					start = of_read_number(reg_prop, 1);
-+					size = of_read_number(reg_prop + 4, 1);
-+				}
-+			}
-+		}
-+	} else {
-+		start = mem->pa_start;
-+		size = mem->pa_end - mem->pa_start;
-+	}
-+
-+	if (!start) {
-+		pr_debug("omap_hwmod: %s: No address space found\n", oh->name);
- 		return;
- 	}
- 
--	va_start = ioremap(mem->pa_start, mem->pa_end - mem->pa_start);
-+	va_start = ioremap(start, size);
- 	if (!va_start) {
- 		pr_err("omap_hwmod: %s: Could not ioremap\n", oh->name);
- 		return;
--- 
-1.7.9.5
+--=20
+balbi
 
+--tctmm6wHVGT/P6vA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRJO8CAAoJEIaOsuA1yqREJ1kP/AtL/da4WfLYtK8ppHgxv856
+wz5nsZwBRchRfJ7wtF7NFiNxdsx6CGdurvE4J9OGMrxk32pfnM1PrsFWvFcJAZJv
+k4xBVRzX9L6gMNwzP3ar0QzSGDdN2HRXKC8o6dOe3y7sziOv7ImAW6J+OdYBh8Jr
+MsEAELNmTG+8hYutXRevj4TKz0nVPH8BjQS5hHK3Bzav617uri21DzNB+0fZUVkQ
+79FZfpY5PnQIxgAspd/ndM8nurGEaPJ9JYibBSIoMH97QJyq1gYp2vUAtXrBQq87
+JXH8uVWhAnjRbli6IEPMxqNu0tLXqbCjYQl5yz5r3POfxkVPDmltPEfkDiOiJpBi
+ofQ9zni5gM4OLXJg9unVdf9BJ9KD6EOZyZJLrHc3Obc1W+QpTtCRynzXj+wKTyZ7
+rXIHJKA7oKX7wZ0OSP39qxySHhPVxaLC7Oj4qZridleJ0uiSx1YaqAQl+ErJki76
+jAD5DLLVSuUAHcLnJxqkDpzyx96NDf9fuKPmoUJ5gNs4YQ/xeLf+4bDfFfz9PgZD
+0sdRWTpwjMf+q6auojh2tA4eCjVWFH2aVt5n9ecEybcmSjJXUNhtQ9WHsnZ7KMMV
+UCshzZQX1EFDPNY4+66s+M95i+7FE8uvSNpPlxYCrbcNIeUMxTmn85fNw0ZkCMKz
+jx4A2mktLT/ypIoJ+WpD
+=pQkX
+-----END PGP SIGNATURE-----
+
+--tctmm6wHVGT/P6vA--
