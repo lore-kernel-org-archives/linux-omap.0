@@ -1,67 +1,122 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 0/8] ARM; OMAP2+: hwmod and SERIAL: Remove sysc
-	handling from driver
-Date: Wed, 20 Feb 2013 11:51:17 +0000
-Message-ID: <20130220115117.GX17852@n2100.arm.linux.org.uk>
-References: <1361354272-18089-1-git-send-email-santosh.shilimkar@ti.com> <20130220101401.GW17852@n2100.arm.linux.org.uk> <5124A41A.3010900@ti.com>
+From: Manish Badarkhe <badarkhe.manish@gmail.com>
+Subject: Re: [PATCH V3] ARM: dts: add minimal DT support for DevKit8000
+Date: Wed, 20 Feb 2013 17:28:07 +0530
+Message-ID: <CAKDJKT6uMQN_MaPNDt4dDxEKNZHyuupBzD0KrFUQ2fpiUYzk3w@mail.gmail.com>
+References: <1360999167-17606-1-git-send-email-anilk4.v@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46925 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934759Ab3BTLv0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Feb 2013 06:51:26 -0500
-Content-Disposition: inline
-In-Reply-To: <5124A41A.3010900@ti.com>
+Received: from mail-vc0-f173.google.com ([209.85.220.173]:36640 "EHLO
+	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935047Ab3BTL6J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Feb 2013 06:58:09 -0500
+In-Reply-To: <1360999167-17606-1-git-send-email-anilk4.v@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org
+To: Anil Kumar <anilk4.v@gmail.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, grant.likely@secretlab.ca, thomas@tomweber.eu
 
-On Wed, Feb 20, 2013 at 03:53:22PM +0530, Santosh Shilimkar wrote:
-> Actually the clean-up will remove the serial driver dependency with
-> idle handling. Infact DMA support need not care about idle handling
-> anymore.
+On Sat, Feb 16, 2013 at 12:49 PM, Anil Kumar <anilk4.v@gmail.com> wrote:
+> DevKit8000 is a beagle board clone from Timll, sold by
+> armkits.com. The DevKit8000 has RS232 serial port, LCD, DVI-D,
+> S-Video, Ethernet, SD/MMC, keyboard, camera, SPI, I2C, USB and
+> JTAG interface.
+>
+> This patch adds the basic DT support for devkit8000. At this time,
+> Information
+> of twl4030 (PMIC), MMC1, I2C1 and leds are added.
+>
+> Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
+> Tested-by: Thomas Weber <thomas@tomweber.eu>
+> ---
+>  -This patch is based on top of kernel 3.8-rc5.
+>
+>  -Tested on Devkit8000.
+>
+> For V3:
+>  - Remove pin mux as done at device boot time by default.
+>
+> For V2:
+>  - Change model name as "TimLL OMAP3 Devkit8000"
+>  - Change compatible as "timll,omap3-devkit8000"
+>  - Doing i2c1 pinmux default with pinctrl-single driver instead of i2c1
+>    driver probe time.
+>
+> :100644 100644 5ebb44f... 22ebc76... M  arch/arm/boot/dts/Makefile
+> :000000 100644 0000000... 6338993... A
+> arch/arm/boot/dts/omap3-devkit8000.dts
+> :100644 100644 53cb380b.. ccecb76... M
+> arch/arm/mach-omap2/board-generic.c
+>  arch/arm/boot/dts/Makefile             |    1 +
+>  arch/arm/boot/dts/omap3-devkit8000.dts |  103
+> ++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-generic.c    |    1 +
+>  3 files changed, 105 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+> index 5ebb44f..22ebc76 100644
+> --- a/arch/arm/boot/dts/Makefile
+> +++ b/arch/arm/boot/dts/Makefile
+> @@ -102,6 +102,7 @@ dtb-$(CONFIG_ARCH_MXS) += imx23-evk.dtb \
+>         imx28-tx28.dtb
+>  dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+>         omap3-beagle.dtb \
+> +       omap3-devkit8000.dtb \
+>         omap3-beagle-xm.dtb \
+>         omap3-evm.dtb \
+>         omap3-tobi.dtb \
+> diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts
+> b/arch/arm/boot/dts/omap3-devkit8000.dts
+> new file mode 100644
+> index 0000000..6338993
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+> @@ -0,0 +1,103 @@
+> +/*
+> + * Author: Anil Kumar <anilk4.v@gmail.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +/dts-v1/;
+> +
+> +/include/ "omap3.dtsi"
+> +/ {
+> +       model = "TimLL OMAP3 Devkit8000";
+> +       compatible = "timll,omap3-devkit8000", "ti,omap3";
+> +
+> +       memory {
+> +               device_type = "memory";
+> +               reg = <0x80000000 0x10000000>;  /* 256 MB */
+> +       };
+> +
+> +       leds {
+> +               compatible = "gpio-leds";
+> +
+> +               heartbeat {
+> +                       label = "devkit8000::led1";
+> +                       gpios = <&gpio6 26 0>;  /* 186 -> LED1 */
+> +                       default-state = "on";
+> +                       linux,default-trigger = "heartbeat";
+> +               };
+> +
+> +               mmc {
+> +                       label = "devkit8000::led2";
+> +                       gpios = <&gpio6 3 0>;   /* 163 -> LED2 */
+> +                       default-state = "on";
+> +                       linux,default-trigger = "none";
+> +               };
+> +
+> +               usr {
+> +                       label = "devkit8000::led3";
+> +                       gpios = <&gpio6 4 0>;   /* 164 -> LED3 */
+> +                       default-state = "on";
+> +                       linux,default-trigger = "usr";
+> +                };
+> +
 
-How is that so?  Looking back at the driver source when it did have full
-DMA support shows that the handling of force idle state is different
-between PIO and DMA modes.
+No need of extra line over here.
 
-For example, for transmit (which is the only case I had taken the time
-to properly understand before the DMA code was unceremoniously ripped
-out):
-
-- On DMA transmit, the noidle setting is cleared.  runtime PM status is put.
-- If we switch from DMA to PIO transmit, the noidle setting it set.
-  runtime PM status is still put.
-- When stopping transmit, if we aren't using DMA, idle is forced.
-- In the runtime suspend, if we're using DMA and the i291 errata is in effect,
-  then idle state is forced
-- In the runtime resume, if we're using DMA and the i291 errata is in effect,
-  idle state is cleared.
-
-See - that information has been lost through ripping out the DMA code and
-then subsequently cleaning up the code to make these things "invisible".
-And now that you've lifted the forceidle/noidle functions out of the driver,
-there's now even less clue about how to preserve the above behaviour.
-
->> Therefore, tonight I am dropping and discarding what I have left over
->> from my work on getting DMA support working with the OMAP serial driver
->> again from the nightly test builds and my git tree, and I intend no
->> further involvement with this.
->>
-> Please please don't do that. We were at a point where we are unable
-> to use UART has just simple console with DT without the $subject
-> series. We can help you if some re-basing is needed for your
-> patches because of the $subject series.
-
-Actually, I've already dropped the TX DMA stuff out a while back when it
-became (a) just too painful to keep porting the thing forward and (b) it
-doesn't work properly anyway.  It's last update was back in October, and
-was based on v3.6 because it already became impossible to bring it
-forward across the utter buggeration of the OMAP serial driver.
-
-(That explains why I only ever pulled forward two patches - those which
-add the hooks into the serial core layer and into the OMAP serial driver
-to cleanly allocate a DMA-able transmit buffer, leaving the rest of the
-transmit DMA code to rot.)
+Thanks
+Manish Badarkhe
