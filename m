@@ -1,82 +1,179 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/8] ARM; OMAP2+: hwmod and SERIAL: Remove sysc handling
- from driver
-Date: Wed, 20 Feb 2013 18:56:56 +0530
-Message-ID: <5124CF20.4010303@ti.com>
-References: <1361354272-18089-1-git-send-email-santosh.shilimkar@ti.com> <20130220101401.GW17852@n2100.arm.linux.org.uk> <5124A41A.3010900@ti.com> <20130220115117.GX17852@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41868 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935161Ab3BTNZs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Feb 2013 08:25:48 -0500
-In-Reply-To: <20130220115117.GX17852@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+From: Anil Kumar <anilk4.v@gmail.com>
+Subject: [PATCH V4] ARM: dts: add minimal DT support for DevKit8000
+Date: Wed, 20 Feb 2013 19:14:15 +0530
+Message-ID: <1361367855-29208-1-git-send-email-anilk4.v@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, grant.likely@secretlab.ca, anilk4.v@gmail.com, thomas@tomweber.eu
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 20 February 2013 05:21 PM, Russell King - ARM Linux wrote:
-> On Wed, Feb 20, 2013 at 03:53:22PM +0530, Santosh Shilimkar wrote:
->> Actually the clean-up will remove the serial driver dependency with
->> idle handling. Infact DMA support need not care about idle handling
->> anymore.
->
-> How is that so?  Looking back at the driver source when it did have full
-> DMA support shows that the handling of force idle state is different
-> between PIO and DMA modes.
->
-> For example, for transmit (which is the only case I had taken the time
-> to properly understand before the DMA code was unceremoniously ripped
-> out):
->
-> - On DMA transmit, the noidle setting is cleared.  runtime PM status is put.
-> - If we switch from DMA to PIO transmit, the noidle setting it set.
->    runtime PM status is still put.
-> - When stopping transmit, if we aren't using DMA, idle is forced.
-> - In the runtime suspend, if we're using DMA and the i291 errata is in effect,
->    then idle state is forced
-> - In the runtime resume, if we're using DMA and the i291 errata is in effect,
->    idle state is cleared.
->
-> See - that information has been lost through ripping out the DMA code and
-> then subsequently cleaning up the code to make these things "invisible".
-> And now that you've lifted the forceidle/noidle functions out of the driver,
-> there's now even less clue about how to preserve the above behaviour.
->
-I looked at the history based on above and indeed the i291 DMA
-information got lost as part of cleanup. The UART DMA had a different 
-requirement though the DMA errata is applicable to only OMAP3 devices 
-and got fixed in subsequent OMAP based devices.
+DevKit8000 is a beagle board clone from Timll, sold by
+armkits.com. The DevKit8000 has RS232 serial port, LCD, DVI-D,
+S-Video, Ethernet, SD/MMC, keyboard, camera, SPI, I2C, USB and
+JTAG interface.
 
-So perhaps we can make dma use conditional based on devices
-*when* we add the tx DMA support. And the errata information
-flag can be passed from DT files.
+This patch adds the basic DT support for devkit8000. At this time, Information
+of twl4030 (PMIC), MMC1, I2C1 and leds are added.
 
->>> Therefore, tonight I am dropping and discarding what I have left over
->>> from my work on getting DMA support working with the OMAP serial driver
->>> again from the nightly test builds and my git tree, and I intend no
->>> further involvement with this.
->>>
->> Please please don't do that. We were at a point where we are unable
->> to use UART has just simple console with DT without the $subject
->> series. We can help you if some re-basing is needed for your
->> patches because of the $subject series.
->
-> Actually, I've already dropped the TX DMA stuff out a while back when it
-> became (a) just too painful to keep porting the thing forward and (b) it
-> doesn't work properly anyway.  It's last update was back in October, and
-> was based on v3.6 because it already became impossible to bring it
-> forward across the utter buggeration of the OMAP serial driver.
->
-> (That explains why I only ever pulled forward two patches - those which
-> add the hooks into the serial core layer and into the OMAP serial driver
-> to cleanly allocate a DMA-able transmit buffer, leaving the rest of the
-> transmit DMA code to rot.)
->
-Thanks for the information.
+Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
+Tested-by: Thomas Weber <thomas@tomweber.eu>
+---
+ -This patch is based on top of kernel 3.8-rc5.
 
-Regards,
-Santosh
+ -Tested on Devkit8000.
+
+For V4:
+ -Tiny nitpick.
+
+For V3:
+ - Remove pin mux as done at device boot time by default.
+
+For V2:
+ - Change model name as "TimLL OMAP3 Devkit8000"
+ - Change compatible as "timll,omap3-devkit8000"
+ - Doing i2c1 pinmux default with pinctrl-single driver instead of i2c1
+   driver probe time.
+
+:100644 100644 5ebb44f... 22ebc76... M	arch/arm/boot/dts/Makefile
+:000000 100644 0000000... 2e1463a... A	arch/arm/boot/dts/omap3-devkit8000.dts
+:100644 100644 53cb380b.. ccecb76... M	arch/arm/mach-omap2/board-generic.c
+ arch/arm/boot/dts/Makefile             |    1 +
+ arch/arm/boot/dts/omap3-devkit8000.dts |  102 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-generic.c    |    1 +
+ 3 files changed, 104 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 5ebb44f..22ebc76 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -102,6 +102,7 @@ dtb-$(CONFIG_ARCH_MXS) += imx23-evk.dtb \
+ 	imx28-tx28.dtb
+ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	omap3-beagle.dtb \
++	omap3-devkit8000.dtb \
+ 	omap3-beagle-xm.dtb \
+ 	omap3-evm.dtb \
+ 	omap3-tobi.dtb \
+diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
+new file mode 100644
+index 0000000..2e1463a
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+@@ -0,0 +1,102 @@
++/*
++ * Author: Anil Kumar <anilk4.v@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "omap3.dtsi"
++/ {
++	model = "TimLL OMAP3 Devkit8000";
++	compatible = "timll,omap3-devkit8000", "ti,omap3";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>;	/* 256 MB */
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		heartbeat {
++			label = "devkit8000::led1";
++			gpios = <&gpio6 26 0>;	/* 186 -> LED1 */
++			default-state = "on";
++			linux,default-trigger = "heartbeat";
++		};
++
++		mmc {
++			label = "devkit8000::led2";
++			gpios = <&gpio6 3 0>;	/* 163 -> LED2 */
++			default-state = "on";
++			linux,default-trigger = "none";
++		};
++
++		usr {
++			label = "devkit8000::led3";
++			gpios = <&gpio6 4 0>;	/* 164 -> LED3 */
++			default-state = "on";
++			linux,default-trigger = "usr";
++                };
++	};
++};
++
++&i2c1 {
++	clock-frequency = <2600000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>;	/* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++	};
++};
++
++&i2c2 {
++	status = "disabled";
++};
++
++&i2c3 {
++	status = "disabled";
++};
++
++/include/ "twl4030.dtsi"
++
++&mmc1 {
++	vmmc-supply = <&vmmc1>;
++	vmmc_aux-supply = <&vsim>;
++	bus-width = <8>;
++};
++
++&mmc2 {
++	status = "disabled";
++};
++
++&mmc3 {
++	status = "disabled";
++};
++
++&wdt2 {
++	status = "disabled";
++};
++
++&mcbsp1 {
++	status = "disabled";
++};
++
++&mcbsp2 {
++	status = "disabled";
++};
++
++&mcbsp3 {
++	status = "disabled";
++};
++
++&mcbsp4 {
++	status = "disabled";
++};
++
++&mcbsp5 {
++	status = "disabled";
++};
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 53cb380..ccecb76 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -110,6 +110,7 @@ MACHINE_END
+ 
+ static const char *omap3_gp_boards_compat[] __initdata = {
+ 	"ti,omap3-beagle",
++	"timll,omap3-devkit8000",
+ 	NULL,
+ };
+ 
+-- 
+1.7.0.4
