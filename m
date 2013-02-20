@@ -1,59 +1,37 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/8] ARM: OMAP5: Update SOC id detection code for ES2
-Date: Wed, 20 Feb 2013 21:33:32 +0530
-Message-ID: <5124F3D4.1060307@ti.com>
-References: <1361374034-21831-1-git-send-email-santosh.shilimkar@ti.com> <1361374034-21831-2-git-send-email-santosh.shilimkar@ti.com> <20130220152940.GE16652@arwen.pp.htv.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/9] ARM: OMAP1: PM: Remove bogus fiq_[enable/disable]
+ tuple
+Date: Wed, 20 Feb 2013 08:09:53 -0800
+Message-ID: <20130220160953.GO5724@atomide.com>
+References: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com>
+ <1361373527-21695-3-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55437 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935658Ab3BTQCM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Feb 2013 11:02:12 -0500
-In-Reply-To: <20130220152940.GE16652@arwen.pp.htv.fi>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59703 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758703Ab3BTQJ5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Feb 2013 11:09:57 -0500
+Content-Disposition: inline
+In-Reply-To: <1361373527-21695-3-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 20 February 2013 08:59 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Wed, Feb 20, 2013 at 08:57:07PM +0530, Santosh Shilimkar wrote:
->>   	case 0xb998:
->>   		switch (rev) {
->>   		case 0:
->> -		default:
->>   			omap_revision = OMAP5432_REV_ES1_0;
->> +			break;
->> +		case 1:
->> +			omap_revision = OMAP5432_REV_ES2_0;
->> +			break;
->> +		default:
->> +			omap_revision = OMAP5432_REV_ES2_0;
->
-> no need for the duplication:
->
-> +		case 1:
-> +		default:
-> +			omap_revision = OMAP5432_REV_ES2_0;
->
-> will work just fine.
-right. Will fix that.
+Hi,
 
->
->>   		}
->>   		break;
->>
->>   	default:
->>   		/* Unknown default to latest silicon rev as default*/
->> -		omap_revision = OMAP5430_REV_ES1_0;
->> +		omap_revision = OMAP5430_REV_ES2_0;
->
-> how about we default to 0xffffffff ? That's the highest possible
-> version, just not sure if our revision macros can cope with it.
->
-:D
-For record, it was decided that we will always have latest silicon
-spin as default and hence OMAP5_ES2
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130220 07:21]:
+> On OMAP platform, FIQ is reserved for secure environment only. If at all
+> the FIQ needs to be disabled, it involves going through security
+> API call. Hence the local_fiq_[enable/disable]() in the OMAP code is bogus.
+> 
+> So just get rid of it.
+
+This is not true for all omaps, needs to be checked carefully
+at what point it was made HS omap only. We have at least
+mach-omap1//ams-delta-fiq.c that's being used.
+
+Regards,
+
+Tony
