@@ -1,122 +1,73 @@
-From: Manish Badarkhe <badarkhe.manish@gmail.com>
-Subject: Re: [PATCH V3] ARM: dts: add minimal DT support for DevKit8000
-Date: Wed, 20 Feb 2013 17:28:07 +0530
-Message-ID: <CAKDJKT6uMQN_MaPNDt4dDxEKNZHyuupBzD0KrFUQ2fpiUYzk3w@mail.gmail.com>
-References: <1360999167-17606-1-git-send-email-anilk4.v@gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: AM33xx's PWM Time Base Clock Enable signals
+Date: Wed, 20 Feb 2013 14:36:24 +0200
+Message-ID: <20130220123624.GA16652@arwen.pp.htv.fi>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f173.google.com ([209.85.220.173]:36640 "EHLO
-	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935047Ab3BTL6J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Feb 2013 06:58:09 -0500
-In-Reply-To: <1360999167-17606-1-git-send-email-anilk4.v@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46491 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932390Ab3BTMg3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Feb 2013 07:36:29 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anil Kumar <anilk4.v@gmail.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, grant.likely@secretlab.ca, thomas@tomweber.eu
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Sat, Feb 16, 2013 at 12:49 PM, Anil Kumar <anilk4.v@gmail.com> wrote:
-> DevKit8000 is a beagle board clone from Timll, sold by
-> armkits.com. The DevKit8000 has RS232 serial port, LCD, DVI-D,
-> S-Video, Ethernet, SD/MMC, keyboard, camera, SPI, I2C, USB and
-> JTAG interface.
->
-> This patch adds the basic DT support for devkit8000. At this time,
-> Information
-> of twl4030 (PMIC), MMC1, I2C1 and leds are added.
->
-> Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
-> Tested-by: Thomas Weber <thomas@tomweber.eu>
-> ---
->  -This patch is based on top of kernel 3.8-rc5.
->
->  -Tested on Devkit8000.
->
-> For V3:
->  - Remove pin mux as done at device boot time by default.
->
-> For V2:
->  - Change model name as "TimLL OMAP3 Devkit8000"
->  - Change compatible as "timll,omap3-devkit8000"
->  - Doing i2c1 pinmux default with pinctrl-single driver instead of i2c1
->    driver probe time.
->
-> :100644 100644 5ebb44f... 22ebc76... M  arch/arm/boot/dts/Makefile
-> :000000 100644 0000000... 6338993... A
-> arch/arm/boot/dts/omap3-devkit8000.dts
-> :100644 100644 53cb380b.. ccecb76... M
-> arch/arm/mach-omap2/board-generic.c
->  arch/arm/boot/dts/Makefile             |    1 +
->  arch/arm/boot/dts/omap3-devkit8000.dts |  103
-> ++++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/board-generic.c    |    1 +
->  3 files changed, 105 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index 5ebb44f..22ebc76 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -102,6 +102,7 @@ dtb-$(CONFIG_ARCH_MXS) += imx23-evk.dtb \
->         imx28-tx28.dtb
->  dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
->         omap3-beagle.dtb \
-> +       omap3-devkit8000.dtb \
->         omap3-beagle-xm.dtb \
->         omap3-evm.dtb \
->         omap3-tobi.dtb \
-> diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts
-> b/arch/arm/boot/dts/omap3-devkit8000.dts
-> new file mode 100644
-> index 0000000..6338993
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
-> @@ -0,0 +1,103 @@
-> +/*
-> + * Author: Anil Kumar <anilk4.v@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +/dts-v1/;
-> +
-> +/include/ "omap3.dtsi"
-> +/ {
-> +       model = "TimLL OMAP3 Devkit8000";
-> +       compatible = "timll,omap3-devkit8000", "ti,omap3";
-> +
-> +       memory {
-> +               device_type = "memory";
-> +               reg = <0x80000000 0x10000000>;  /* 256 MB */
-> +       };
-> +
-> +       leds {
-> +               compatible = "gpio-leds";
-> +
-> +               heartbeat {
-> +                       label = "devkit8000::led1";
-> +                       gpios = <&gpio6 26 0>;  /* 186 -> LED1 */
-> +                       default-state = "on";
-> +                       linux,default-trigger = "heartbeat";
-> +               };
-> +
-> +               mmc {
-> +                       label = "devkit8000::led2";
-> +                       gpios = <&gpio6 3 0>;   /* 163 -> LED2 */
-> +                       default-state = "on";
-> +                       linux,default-trigger = "none";
-> +               };
-> +
-> +               usr {
-> +                       label = "devkit8000::led3";
-> +                       gpios = <&gpio6 4 0>;   /* 164 -> LED3 */
-> +                       default-state = "on";
-> +                       linux,default-trigger = "usr";
-> +                };
-> +
+--h31gzZEtNLTqOjlF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-No need of extra line over here.
+Hi Paul, Tony,
 
-Thanks
-Manish Badarkhe
+how do you guys want to handle PWM's Time Base clocks which are enabled
+via control module ?
+
+They're controlled via offset 0x664 (pwmss_ctrl). Page 793 of AM33xx's
+TRM has more information:
+
+"
+Table 9-42. pwmss_ctrl Register Field Descriptions
+
+Bit	Field		Type	Reset	Description
+31-3	Reserved	R	0h
+2	pwmss2_tbclken	R/W	0h	Timebase clock enable for PWMSS2
+1	pwmss1_tbclken	R/W	0h	Timebase clock enable for PWMSS1
+0	pwmss0_tbclken	R/W	0h	Timebase clock enable for PWMSS0
+"
+
+We don't have clock nodes for those, but they're needed to have
+functioning pwm drivers.
+
+cheers
+
+--=20
+balbi
+
+--h31gzZEtNLTqOjlF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRJMNHAAoJEIaOsuA1yqRELWsP/i5WUwsFmrmGw2XCC2HRYsIW
+QBIwCRtdL2TYAN6e1k3We9AFyZqitiG4N4eyc4MHM3oBbDJxMSn9JKF5Jei8BR/j
+pHqNtidz+EO/0v0iAgadcIiDDkIvgK3ejeWAOPXSmBrq+gYMnvoA5qSJQii02jQt
+GgiyU4+IWCXwnBDC8/iO+CdJxHlstY/pQomYDWQD1/jSw6Yd2FK+SXwetY8VyyaD
+sXpJZ7z/7bonBFjfpCkmxArICFGBJZtzT1BZQFxFpKydM65MHWkRoLeqfD1ndzTG
+s6jtS+D/nc2CBa72BQUuATdaeSNgOY0OtrZynz/UY+PzpcUEe/PAB06Yxm6+D5Zr
+Y1uuL2oTvFmw3Dd2HdPevz5Kqhku2hK+iruVLDuHtpdXld/86zBzoZR7EobvKlbi
+vg8KsI/RCR5Jkz1FXpmZ7aqk1XRIW5Z7A8vUexc//HB2Ql/qW5krHxbHqorx5X+8
+/Vft9WEUF+5U9S4kbDwzHfSkunux0Fleg1kt4uF0u8Fgw4EHwCTqvlAXMoCPNN97
+d+piLCxaNrIIyt4pDsFiIAgT+f4C1hVT6nfKWd7HH5sKy5XC6ftnhAbheVf6GBu+
+oAhemUtECUBnOE3Bb3tjtZnQlJmJ9sY2rYIUYYuOEd7gt/eulWCQYw8crWFp4niD
+eRb7EwdiHUdqbakgjtxo
+=5QNa
+-----END PGP SIGNATURE-----
+
+--h31gzZEtNLTqOjlF--
