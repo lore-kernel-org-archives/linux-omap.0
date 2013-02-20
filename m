@@ -1,67 +1,44 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: Guidelines to move mach-omap2/gpmc to drivers/memory-controller
-Date: Tue, 19 Feb 2013 21:36:12 -0300
-Message-ID: <20130220003611.GA4688@myrna.SFIH.local>
-References: <20130215165840.GB2442@localhost>
- <alpine.DEB.2.00.1302151952410.19565@utopia.booyaka.com>
- <511E95A8.2090709@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
+Date: Wed, 20 Feb 2013 11:56:45 +0530
+Message-ID: <51246CA5.5030403@ti.com>
+References: <1360840554-26901-1-git-send-email-balbi@ti.com> <1360840554-26901-2-git-send-email-balbi@ti.com> <20130214171253.GC7144@atomide.com> <20130214175650.GA25891@arwen.pp.htv.fi> <20130214181217.GA11806@atomide.com> <20130214192719.GB26679@arwen.pp.htv.fi> <20130214193911.GD11806@atomide.com> <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com> <20130214222247.GE11362@atomide.com> <alpine.DEB.2.00.1302191516150.32069@utopia.booyaka.com> <20130219163820.GF5724@atomide.com> <87ppzww1ux.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:45601 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932809Ab3BTAef (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Feb 2013 19:34:35 -0500
-Content-Disposition: inline
-In-Reply-To: <511E95A8.2090709@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54971 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934649Ab3BTGZi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Feb 2013 01:25:38 -0500
+In-Reply-To: <87ppzww1ux.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-Hi Jon,
-
-On Fri, Feb 15, 2013 at 02:08:08PM -0600, Jon Hunter wrote:
->=20
-> On 02/15/2013 01:53 PM, Paul Walmsley wrote:
-> > Hi,
-> >=20
-> > On Fri, 15 Feb 2013, Ezequiel Garcia wrote:
-> >=20
-> >> I imagine one of the biggest issues is GPMC's dependency on
-> >> hwmod code. Can anyone shed some light on how to handle this?
-> >=20
-> > What dependency is this?  I'm not aware of any GPMC dependency to h=
-wmod;=20
-> > there shouldn't be any.
->=20
-> If Ezequiel is referring to the code in omap_gpmc_init() that is look=
-ing
-> up the hwmod struct for gpmc, then this not a dependency. This functi=
-on
-> should remain in mach-omap2/gpmc.c and not be moved into drivers/.
-
-Yes, I was referring to that code.
-
-> Eventually once we have migrated to DT, this function will be removed
-> altogether.
+On Wednesday 20 February 2013 12:46 AM, Kevin Hilman wrote:
+> [...]
 >
+>>>> Just to recap what we've discussed earlier, the reasons why we want
+>>>> reset and idle functions should be in the driver specific header are:
+>>>>
+>>>> 1. There's often driver specific logic needed in addition to the
+>>>>     syconfig tinkering in the reset/idle functions.
+>>>
+>>> It's been a while since I last tabulated this.  But my recollection was
+>>> that some kind of IP block-specific reset code is needed for about 7% to
+>>> 10% of the OMAP IP blocks.
+>>
+>> Yes it's not too many, but the issue there is the driver specific code
+>> that's duplicated in both places. And sounds like the solution to that
+>> is to make driver specific reset code a static inline function in the
+>> driver header as discussed earlier so bus code can call it when there's
+>> no driver loaded.
+>
+> This thread is going in many directions and I've lost track.
+>
+Indeed. I lost track too and almost gave up further reading.
 
-Mmm, I see. So I might try to move GPMC and friends to drivers/memory
-keeping the hwmod code inside mach-omap2.
-
-I already did a few tests and I **think** that with a little luck=20
-we can have a not-so-intrusive patch that moves GPMC.
-
-@Jon: Do you think it's worth the effort?=20
-
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Santosh
