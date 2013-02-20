@@ -1,68 +1,79 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 0/8] ARM; OMAP2+: hwmod and SERIAL: Remove sysc handling from driver
-Date: Wed, 20 Feb 2013 15:27:44 +0530
-Message-ID: <1361354272-18089-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 1/8] ARM: OMAP2+: hwmod: Remove unused _HWMOD_WAKEUP_ENABLED flag
+Date: Wed, 20 Feb 2013 15:27:45 +0530
+Message-ID: <1361354272-18089-2-git-send-email-santosh.shilimkar@ti.com>
+References: <1361354272-18089-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59929 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59930 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758063Ab3BTJ4w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1758617Ab3BTJ4w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 20 Feb 2013 04:56:52 -0500
+In-Reply-To: <1361354272-18089-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: rnayak@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-OMAP UART IP needs manual idle modes based on functional state of the
-IP. Currently this is handled by the driver with function pointers
-implemented in platform code.
+From: Rajendra Nayak <rnayak@ti.com>
 
-This however breaks in case of device tree because of missing
-idle handling. 
+_HWMOD_WAKEUP_ENABLED is currently unused across the hwmod
+framework. Just get rid of it, so we have one less flag to
+worry about.
 
-The series tries to address the issue and tries to remove complete
-sysc handling from serial driver.
+Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |    4 ----
+ arch/arm/mach-omap2/omap_hwmod.h |    6 ++----
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
-Patches has been tested on OMAP4430 SDP and OMAP5 EVM where the console
-sluggishness was observed without idle mode handling. CPUIDLE and
-suspend tested ok on these devices.
-
-Thanks to Vaibhav Bedia for testing on Beaglebone(AM33XX) with suspend and
-also the UART async wakeup from suspend.
-
-Thanks to Sourav Poddar for Beagle XM(OMAP3630) devices testing with
-retention and offmode in Idle and suspend for non-DT builds.
-
-Serial driver platform code still has one more function pointer
-left which is used to trigger io_ring(). This one needs some
-discussion with pincontrol driver folks on how to implement
-such a feature with generic pincontrol driver.
-
-Rajendra Nayak (4):
-  ARM: OMAP2+: hwmod: Remove unused _HWMOD_WAKEUP_ENABLED flag
-  ARM: OMAP2+: hwmod: Cleanup sidle/mstandby programming
-  ARM: OMAP2+: hwmod: Always have OCP_SYSCONFIG.ENAWAKEUP enabled
-  ARM: OMAP2+: hwmod: Add a new flag to handle SIDLE in SWSUP only in
-    active
-
-Santosh Shilimkar (4):
-  ARM: OMAP2+: hwmod-data: UART IP needs software control to manage
-    sidle modes
-  SERIAL: OMAP: Remove the slave idle handling from the driver
-  ARM: OMAP2+: serial: Remove the un-used slave idle hooks
-  ARM: OMAP2+: hwmod: Remove sysc slave idle and auto idle apis
-
- arch/arm/mach-omap2/omap_hwmod.c                   |  141 ++++----------------
- arch/arm/mach-omap2/omap_hwmod.h                   |   13 +-
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    3 +
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    6 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    4 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 +-
- arch/arm/mach-omap2/serial.c                       |   31 -----
- drivers/tty/serial/omap-serial.c                   |   23 ----
- 8 files changed, 50 insertions(+), 177 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 4653efb..b45c8fb 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -608,8 +608,6 @@ static int _enable_wakeup(struct omap_hwmod *oh, u32 *v)
+ 
+ 	/* XXX test pwrdm_get_wken for this hwmod's subsystem */
+ 
+-	oh->_int_flags |= _HWMOD_WAKEUP_ENABLED;
+-
+ 	return 0;
+ }
+ 
+@@ -643,8 +641,6 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
+ 
+ 	/* XXX test pwrdm_get_wken for this hwmod's subsystem */
+ 
+-	oh->_int_flags &= ~_HWMOD_WAKEUP_ENABLED;
+-
+ 	return 0;
+ }
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index 3ae852a..23f530b 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -468,15 +468,13 @@ struct omap_hwmod_omap4_prcm {
+  * These are for internal use only and are managed by the omap_hwmod code.
+  *
+  * _HWMOD_NO_MPU_PORT: no path exists for the MPU to write to this module
+- * _HWMOD_WAKEUP_ENABLED: set when the omap_hwmod code has enabled ENAWAKEUP
+  * _HWMOD_SYSCONFIG_LOADED: set when the OCP_SYSCONFIG value has been cached
+  * _HWMOD_SKIP_ENABLE: set if hwmod enabled during init (HWMOD_INIT_NO_IDLE) -
+  *     causes the first call to _enable() to only update the pinmux
+  */
+ #define _HWMOD_NO_MPU_PORT			(1 << 0)
+-#define _HWMOD_WAKEUP_ENABLED			(1 << 1)
+-#define _HWMOD_SYSCONFIG_LOADED			(1 << 2)
+-#define _HWMOD_SKIP_ENABLE			(1 << 3)
++#define _HWMOD_SYSCONFIG_LOADED			(1 << 1)
++#define _HWMOD_SKIP_ENABLE			(1 << 2)
+ 
+ /*
+  * omap_hwmod._state definitions
 -- 
 1.7.9.5
 
