@@ -1,49 +1,61 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: AM335x mpurate + bogomips
-Date: Thu, 21 Feb 2013 16:36:15 +0000
-Message-ID: <51264CFF.8050200@mimc.co.uk>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [U-Boot] [RFC] Kbuild support for ARM FIT images
+Date: Thu, 21 Feb 2013 12:25:21 -0500 (EST)
+Message-ID: <alpine.LFD.2.03.1302211144240.6419@syhkavp.arg>
+References: <CAD=GYpbF_3uRzhUnV=MwDiy-ekvZKJztJbkhNM0u_pvG-UCw4w@mail.gmail.com>
+ <20130221103705.GB17852@n2100.arm.linux.org.uk> <51261F38.2030902@ti.com>
+ <20130221134656.GC17852@n2100.arm.linux.org.uk> <51262A7A.8040103@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:46788 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754401Ab3BUQgR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Feb 2013 11:36:17 -0500
-Received: from [10.0.0.102] (unknown [10.0.0.102])
-	by centos1.newflow.co.uk (Postfix) with ESMTP id EA67126B8035
-	for <linux-omap@vger.kernel.org>; Thu, 21 Feb 2013 16:36:15 +0000 (GMT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kbuild-owner@vger.kernel.org>
+In-reply-to: <51262A7A.8040103@ti.com>
+Sender: linux-kbuild-owner@vger.kernel.org
+To: Tom Rini <trini@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Fernandes, Joel A" <joelagnel@ti.com>, Grant Likely <glikely@secretlab.ca>, linux-kbuild@vger.kernel.org, tony@atomide.com, Grant Likely <grant.likely@secretlab.ca>, u-boot@lists.denx.de, Linux@theia.denx.de, OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Before I dig any deeper, can anyone tell me if the bootarg "mpurate" is meant to
-be supported for AM335x SoCs ?
+On Thu, 21 Feb 2013, Tom Rini wrote:
 
-I've tried it on our custom board using 3v8, but no joy.
+> FIT isn't required.  FIT is just trying to offer a nice usability
+> thing to folks.
 
-The boot log shows:-
+Usability is often counter-balanced by maintenance costs.
 
-[    0.000000] Booting Linux on physical CPU 0x0
-[    0.000000] Linux version 3.8.0-03059-g621553c-dirty (mpfj@mpfj-nanobone) (gcc version 4.5.4 (Buildroot 2012.11) ) #113 SMP Thu Feb 21 16:29:48 GMT 2013
-[    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7d
-[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
-[    0.000000] Machine: Generic AM33XX (Flattened Device Tree), model: Newflow NanoBone
-[    0.000000] Memory policy: ECC disabled, Data cache writeback
-[    0.000000] CPU: All CPU(s) started in SVC mode.
-[    0.000000] AM335X ES1.0 (neon )
-...
-[    0.000000] Kernel command line: console=ttyO0,115200n8 mpurate=720 root=/dev/mmcblk0p2 ro rootfstype=ext2 rootwait
-...
-[    0.001119] Calibrating delay loop... 364.48 BogoMIPS (lpj=1425408)
+> A point of device trees is a single image works in a
+> lot of places.  FIT gives you a single file works in a lot of places.
 
-I have seen other boot logs outputs [1] from other people where they are getting nearly double that.
+The whole _point_ for bringing DT into the ARM land was to decouple the 
+the various platform specific stuff from the kernel, and even allow 
+existing distros to work on yet-to-be-created devices unchanged, just 
+like X86 PC class machines.  Now you're suggesting that the kernel and 
+the DT information should be glued together again.  That looks like a 
+move backward to me.  Yet, having that platform stuff in plain C code as 
+we had before, given it is maintained properly, is still the most 
+efficient way to achieve that usability wise.
 
-Looking at omap2xxx_clk_arch_init(), only ompa24xx devices are supported.
+So let's stop kidding ourselves and be coherent please: either we move 
+device specifics away from the kernel, or we keep them together.  In 
+other words, the DT should ideally come preinstalled with the bootloader 
+on a given board/device for distros to not even have to care about it, 
+or we put that data back inside the kernel and dispense ourselves from 
+all the added DT overhead entirely.  But an hybrid mixed solution like 
+FIT is IMHO the worst of both worlds and sending a wrong message.
 
-Am I missing something obvious (like it's not yet supported !!) ?
+> > uboot dug _itself_ into this hole.  It's uboot's problem.
+> 
+> A whole lot  of people dug this particular hole.  Joel is trying to
+> offer up a solution that maybe makes things easier for everyone.  Or
+> it gets rejected here too and distros will come up with their N
+> different ways to try and provide easier experiences to the end user.
 
-Cheers
-Mark J.
+Nothing being perfect, it is probably unreasonable to think that every 
+board will start shipping with complete and correct DT description, etc.  
+But so is the state of FIT support right now.  That solution to make 
+things easier for everyone should actually make that DT vs kernel 
+separation more effective and provide better mechanisms for gluing the 
+various DTBs to their respective boards, and not to glue them to the 
+kernel to populate a distro filesystem with them.
 
-[1] http://e2e.ti.com/support/embedded/linux/f/354/t/245316.aspx
+
+Nicolas
