@@ -1,73 +1,75 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [RFC] Kbuild support for ARM FIT images
-Date: Thu, 21 Feb 2013 12:03:22 -0700
-Message-ID: <51266F7A.4080609@wwwdotorg.org>
-References: <CAD=GYpbF_3uRzhUnV=MwDiy-ekvZKJztJbkhNM0u_pvG-UCw4w@mail.gmail.com> <5125A1FE.5000604@wwwdotorg.org> <5126213E.9010809@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [U-Boot] [RFC] Kbuild support for ARM FIT images
+Date: Thu, 21 Feb 2013 19:08:20 +0000
+Message-ID: <20130221190820.GF17852@n2100.arm.linux.org.uk>
+References: <CAD=GYpbF_3uRzhUnV=MwDiy-ekvZKJztJbkhNM0u_pvG-UCw4w@mail.gmail.com> <20130221103705.GB17852@n2100.arm.linux.org.uk> <51261F38.2030902@ti.com> <20130221134656.GC17852@n2100.arm.linux.org.uk> <51262A7A.8040103@ti.com> <alpine.LFD.2.03.1302211144240.6419@syhkavp.arg> <20130221182724.GA14329@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-Reply-To: <5126213E.9010809@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20130221182724.GA14329@obsidianresearch.com>
 Sender: linux-kbuild-owner@vger.kernel.org
-To: Tom Rini <trini@ti.com>
-Cc: Joel A Fernandes <agnel.joel@gmail.com>, u-boot@lists.denx.de, Linux OMAP List <linux-omap@vger.kernel.org>, linux-kbuild@vger.kernel.org, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, tony@atomide.com, "Fernandes, Joel A" <joelagnel@ti.com>, Grant Likely <glikely@secretlab.ca>, Grant Likely <grant.likely@secretlab.ca>
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>, Tom Rini <trini@ti.com>, "Fernandes, Joel A" <joelagnel@ti.com>, linux-kbuild@vger.kernel.org, tony@atomide.com, Linux@theia.denx.de, Grant Likely <grant.likely@secretlab.ca>, u-boot@lists.denx.de, Grant Likely <glikely@secretlab.ca>, OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/21/2013 06:29 AM, Tom Rini wrote:
-> On 02/20/2013 11:26 PM, Stephen Warren wrote:
->> On 02/20/2013 06:37 PM, Joel A Fernandes wrote:
->>> Hello, I've been spinning some work-in-progress patches for
->>> FIT build support in the kernel. With the move to
->>> multiplatform support on OMAP, I feel it is a good time to add
->>> FIT support, also looking at the proliferating number of dtbs,
->>> as it is a nice way
+On Thu, Feb 21, 2013 at 11:27:24AM -0700, Jason Gunthorpe wrote:
+> On Thu, Feb 21, 2013 at 12:25:21PM -0500, Nicolas Pitre wrote:
 > 
->> To my mind, FIT is pointless. And forcing the kernel build
->> process to create bootloader-specific files doesn't seem like a
->> good idea. Doing so would require pulling in even more outside
->> tools into the kernel build flow.
+> > So let's stop kidding ourselves and be coherent please: either we move 
+> > device specifics away from the kernel, or we keep them together.  In 
+> > other words, the DT should ideally come preinstalled with the bootloader 
+> > on a given board/device for distros to not even have to care about it, 
+> > or we put that data back inside the kernel and dispense ourselves from 
+> > all the added DT overhead entirely.  But an hybrid mixed solution like 
+> > FIT is IMHO the worst of both worlds and sending a wrong message.
 > 
-> No, it requires no more tools than we have today.  It's still just 
-> mkimage and a device tree file.
-
-mkimage isn't required today, if you use the bootz target rather than
-bootm. Using bootz is a huge improvement since you don't need to use
-bootloader-specific tools to create the kernel boot images; just slap
-them on the disk, and you're done. Nothing could be simpler.
-
->> All you need is to copy the zImage and any relevant .dtb files 
->> into /boot, and have U-Boot load the relevant .dtb file by 
->> constructing the filename as roughly ${soc}-${board}.dtb, then
->> use the bootz command to boot it. You can have a completely
->> generic boot.scr (or built-in script).
+> Just to thread jack a bit here..
 > 
-> Note you still have to copy N dtb files into the filesystem.  Or
-> one file, the FIT image.
+> We've been using DT on production embedded stuff sice about 2.6.20ish
+> on PPC and now ARM. We treat the dtb as a kernel version specific
+> file, much like an initrd and ensure that the kernel only ever boots
+> with its proper dtb. This is based on experience that the dtbs change
+> depending on the state of the drivers in the kernel, what gets
+> mainlined and when, etc.
 
-But you have to generate the FIT image that packages all the files
-together.
+Just be aware that on ARM at some point, the DT files will be moved
+out of the kernel source and held in an independent git tree; there
+won't be any intention of "kernel version dependence" - if there is
+then kernel maintanence has failed - and the use of DT has failed too.
 
-The long-term goal for device tree is to move the *.dts files out of
-the kernel source. It's unclear if there will be some single central
-repository for them, or whether vendors will host their own repository
-just for their own boards. The latter would probably scale the best.
-Having separate distro packages for different vendors' or different
-SoCs' device tree would also scale the best; forcing usage of FIT
-where everything gets merged together doesn't interact well with that.
+The stated point of DT is that it describes the hardware.  If there's
+a dependence on the kernel version, then it's doing more than describing
+the hardware - it would be describing the kernel implementation as well.
 
->> Note: Not all (many?) U-Boot support FIT anyway, so you'd need
->> to flash a new U-Boot to support FIT, so you may as well just
->> flash a new U-Boot that implements the ${soc} and ${board}
->> variables instead. IIRC, there may also be a ${boardname} or
->> similar that's like ${board}, but represents the runtime-detected
->> board for when one U-Boot build actually supports multiple
->> different boards.
-> 
-> And enable bootz as well.  Just about as many boards enable that as
-> do FIT.  And FIT has been around for years, bootz not so.  So in
-> theory folks with old/odd boards that didn't bother to get
-> mainlined in U-Boot could still have FIT support added, easily.
+> Embedding this stuff into the bootloader is *not* desirable for my
+> embedded scenarios. We don't use FIT (or uboot) but we do the same
+> thing: a single image is constructed with the proper dtb, kernel and
+> initrd, and that is what the bootloader boots.
 
-I guess that's true, but enabling bootz in a U-Boot ends up bringing
-in a lot less conceptual complexity, and I would guess a bit less code
-too.
+Note that the combined zImage plus DTB today on ARM is just a stop-gap
+for boot loaders which provide only an ATAG based booting solution.
+It's not there as a long term kernel facility.  It will probably be
+going away when the DT files are moved out of the kernel source tree.
+
+> Why? This is an embedded appliance product. We need to be able to
+> deliver firmware upgrades that *work*. We can't brick the board
+> because the bootloader and kernel get out of sync. The boot loader has
+> to be *simple*, it has to boot every past, present and future kernel
+> or we start taking risks that a firmware flash will end up bricking
+> it.
+
+If the DT file describes the hardware properly, then you shouldn't
+need to update it.  Or if the DT file contains a bug (eg, because it
+doesn't describe how things are wired) then it's wrong whatever.
+
+But whatever.  There's absolutely no problem storing the DT file
+separately from the boot loader, and also separately from the kernel
+itself (this is something that has been stated will be the normal
+way that DT will be dealt with when DT on ARM was first mooted.)
+
+If that's not the case, then we're really just playing one huge game
+with DT, causing lots of pointless churn for no benefit to people
+like you, and we might as well stop kidding ourselves that DT gives
+us any advantages what so ever.  We might as well go back to putting
+this data right back into the kernel in C file form.
