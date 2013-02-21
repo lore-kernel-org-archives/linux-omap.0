@@ -1,60 +1,84 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [U-Boot] [RFC] Kbuild support for ARM FIT images
-Date: Thu, 21 Feb 2013 11:27:24 -0700
-Message-ID: <20130221182724.GA14329@obsidianresearch.com>
-References: <CAD=GYpbF_3uRzhUnV=MwDiy-ekvZKJztJbkhNM0u_pvG-UCw4w@mail.gmail.com>
- <20130221103705.GB17852@n2100.arm.linux.org.uk>
- <51261F38.2030902@ti.com>
- <20130221134656.GC17852@n2100.arm.linux.org.uk>
- <51262A7A.8040103@ti.com>
- <alpine.LFD.2.03.1302211144240.6419@syhkavp.arg>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: AM335x mpurate + bogomips
+Date: Thu, 21 Feb 2013 18:30:16 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EC133EB@DBDE01.ent.ti.com>
+References: <51264CFF.8050200@mimc.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from quartz.orcorp.ca ([184.70.90.242]:38880 "EHLO quartz.orcorp.ca"
+Received: from bear.ext.ti.com ([192.94.94.41]:55960 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756132Ab3BUS1l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Feb 2013 13:27:41 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.03.1302211144240.6419@syhkavp.arg>
+	id S1755577Ab3BUSaY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Feb 2013 13:30:24 -0500
+In-Reply-To: <51264CFF.8050200@mimc.co.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Tom Rini <trini@ti.com>, "Fernandes, Joel A" <joelagnel@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-kbuild@vger.kernel.org, tony@atomide.com, Linux@theia.denx.de, Grant Likely <grant.likely@secretlab.ca>, u-boot@lists.denx.de, Grant Likely <glikely@secretlab.ca>, OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Mark Jackson <mpfj-list@mimc.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Feb 21, 2013 at 12:25:21PM -0500, Nicolas Pitre wrote:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Mark Jackson
+> Sent: Thursday, February 21, 2013 10:06 PM
+> To: linux-omap@vger.kernel.org
+> Subject: AM335x mpurate + bogomips
+> 
+> Before I dig any deeper, can anyone tell me if the bootarg "mpurate" is
+> meant to
+> be supported for AM335x SoCs ?
+> 
+No, certainly not. "mpurate" bootargs was supported long time back, 
+If you are probably using 2.6.32 based kernel from TI on top of AM37x.
 
-> So let's stop kidding ourselves and be coherent please: either we move 
-> device specifics away from the kernel, or we keep them together.  In 
-> other words, the DT should ideally come preinstalled with the bootloader 
-> on a given board/device for distros to not even have to care about it, 
-> or we put that data back inside the kernel and dispense ourselves from 
-> all the added DT overhead entirely.  But an hybrid mixed solution like 
-> FIT is IMHO the worst of both worlds and sending a wrong message.
+> I've tried it on our custom board using 3v8, but no joy.
+> 
+> The boot log shows:-
+> 
+> [    0.000000] Booting Linux on physical CPU 0x0
+> [    0.000000] Linux version 3.8.0-03059-g621553c-dirty (mpfj@mpfj-
+> nanobone) (gcc version 4.5.4 (Buildroot 2012.11) ) #113 SMP Thu Feb 21
+> 16:29:48 GMT 2013
+> [    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7),
+> cr=10c53c7d
+> [    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing
+> instruction cache
+> [    0.000000] Machine: Generic AM33XX (Flattened Device Tree), model:
+> Newflow NanoBone
+> [    0.000000] Memory policy: ECC disabled, Data cache writeback
+> [    0.000000] CPU: All CPU(s) started in SVC mode.
+> [    0.000000] AM335X ES1.0 (neon )
+> ...
+> [    0.000000] Kernel command line: console=ttyO0,115200n8 mpurate=720
+> root=/dev/mmcblk0p2 ro rootfstype=ext2 rootwait
+> ...
+> [    0.001119] Calibrating delay loop... 364.48 BogoMIPS (lpj=1425408)
+> 
+> I have seen other boot logs outputs [1] from other people where they
+> are getting nearly double that.
+> 
+> Looking at omap2xxx_clk_arch_init(), only ompa24xx devices are
+> supported.
+> 
+> Am I missing something obvious (like it's not yet supported !!) ?
+> 
+I also seen same issue, and its there from long time now. 
+Didn't get chance to nail down this.
 
-Just to thread jack a bit here..
+Does anybody know, whether Bogomips represents right value in case of OMAP??
 
-We've been using DT on production embedded stuff sice about 2.6.20ish
-on PPC and now ARM. We treat the dtb as a kernel version specific
-file, much like an initrd and ensure that the kernel only ever boots
-with its proper dtb. This is based on experience that the dtbs change
-depending on the state of the drivers in the kernel, what gets
-mainlined and when, etc.
+On the other side, CPUFREQ is supported in the mainline kernel.
 
-Embedding this stuff into the bootloader is *not* desirable for my
-embedded scenarios. We don't use FIT (or uboot) but we do the same
-thing: a single image is constructed with the proper dtb, kernel and
-initrd, and that is what the bootloader boots.
+Thanks,
+Vaibhav
 
-Why? This is an embedded appliance product. We need to be able to
-deliver firmware upgrades that *work*. We can't brick the board
-because the bootloader and kernel get out of sync. The boot loader has
-to be *simple*, it has to boot every past, present and future kernel
-or we start taking risks that a firmware flash will end up bricking
-it.
 
-People making dev boards and distros for them certainly have different
-requirements, but we've decided that the single image approach is the
-best for appliance style products.
-
-Jason
+> Cheers
+> Mark J.
+> 
+> [1] http://e2e.ti.com/support/embedded/linux/f/354/t/245316.aspx
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
