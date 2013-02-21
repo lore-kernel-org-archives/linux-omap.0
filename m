@@ -1,47 +1,51 @@
-From: Wolfgang Denk <wd@denx.de>
+From: Peter Korsgaard <jacmet@sunsite.dk>
 Subject: Re: [U-Boot] [RFC] Kbuild support for ARM FIT images
-Date: Thu, 21 Feb 2013 21:18:41 +0100
-Message-ID: <20130221201841.31A3B200663@gemini.denx.de>
-References: <CAD=GYpbF_3uRzhUnV=MwDiy-ekvZKJztJbkhNM0u_pvG-UCw4w@mail.gmail.com> <20130221103705.GB17852@n2100.arm.linux.org.uk> <51261F38.2030902@ti.com> <20130221134656.GC17852@n2100.arm.linux.org.uk> <51262A7A.8040103@ti.com> <alpine.LFD.2.03.1302211144240.6419@syhkavp.arg> <51265BF1.5000302@ti.com> <alpine.LFD.2.03.1302211358070.6419@syhkavp.arg> <5126778A.4040705@wwwdotorg.org> <20130221195746.70EB6200672@gemini.denx.de> <51267E0A.3060204@wwwdotorg.org>
+Date: Thu, 21 Feb 2013 21:56:05 +0100
+Message-ID: <878v6hfkt6.fsf@dell.be.48ers.dk>
+References: <CAD=GYpbF_3uRzhUnV=MwDiy-ekvZKJztJbkhNM0u_pvG-UCw4w@mail.gmail.com>
+	<20130221103705.GB17852@n2100.arm.linux.org.uk>
+	<51261F38.2030902@ti.com>
+	<20130221134656.GC17852@n2100.arm.linux.org.uk>
+	<51262A7A.8040103@ti.com>
+	<alpine.LFD.2.03.1302211144240.6419@syhkavp.arg>
+	<20130221182724.GA14329@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-reply-to: <51267E0A.3060204@wwwdotorg.org>
+In-Reply-To: <20130221182724.GA14329@obsidianresearch.com> (Jason Gunthorpe's
+	message of "Thu, 21 Feb 2013 11:27:24 -0700")
 Sender: linux-kbuild-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Nicolas Pitre <nico@fluxnic.net>, "Fernandes, Joel A" <joelagnel@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-kbuild@vger.kernel.org, tony@atomide.com, Grant Likely <grant.likely@secretlab.ca>, u-boot@lists.denx.de, Tom Rini <trini@ti.com>, Grant Likely <glikely@secretlab.ca>, OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>, Tom Rini <trini@ti.com>, "Fernandes, Joel A" <joelagnel@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-kbuild@vger.kernel.org, tony@atomide.com, Linux@theia.denx.de, Grant Likely <grant.likely@secretlab.ca>, u-boot@lists.denx.de, Grant Likely <glikely@secretlab.ca>, OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Dear Stephen,
+>>>>> "Jason" == Jason Gunthorpe <jgunthorpe@obsidianresearch.com> writes:
 
-In message <51267E0A.3060204@wwwdotorg.org> you wrote:
->
-> > so.  Just consider the typical "diskless" system that boots over the
-> > network, using DHCP + TFTP, where the server will provide a single
-> > file only.
-> 
-> I use TFTP routinely to boot my boards, and load separate zImage and DTB
-> files from the server without issue, using the exact same filenames as
-> when I load them from a /boot directory on eMMC or SD.
+Hi,
 
-You may do this in a development environment; I do the same routinely
-here.  But there are users out there who commission large
-installations like that; they simply do not want to have multiple
-files for each system (and not even for each configuration).
+ Jason> We've been using DT on production embedded stuff sice about 2.6.20ish
+ Jason> on PPC and now ARM. We treat the dtb as a kernel version specific
+ Jason> file, much like an initrd and ensure that the kernel only ever boots
+ Jason> with its proper dtb. This is based on experience that the dtbs change
+ Jason> depending on the state of the drivers in the kernel, what gets
+ Jason> mainlined and when, etc.
 
-> And besides, there's always some script, whether it's a boot.scr file or
-> built into the U-Boot environment.
+ Jason> Embedding this stuff into the bootloader is *not* desirable for my
+ Jason> embedded scenarios. We don't use FIT (or uboot) but we do the same
+ Jason> thing: a single image is constructed with the proper dtb, kernel and
+ Jason> initrd, and that is what the bootloader boots.
 
-Not really - especially not when booting using Falcon mode.
+ Jason> Why? This is an embedded appliance product. We need to be able to
+ Jason> deliver firmware upgrades that *work*. We can't brick the board
+ Jason> because the bootloader and kernel get out of sync. The boot loader has
+ Jason> to be *simple*, it has to boot every past, present and future kernel
+ Jason> or we start taking risks that a firmware flash will end up bricking
+ Jason> it.
 
-Best regards,
+I'm having the exact same experience (and handle it in the same way).
 
-Wolfgang Denk
+I know this was not the intention of DT, but unfortunately this is how
+things have turned out so far.
 
 -- 
-DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
-If you can't beat it or corrupt it, you pretend it was your  idea  in
-the first place.                 - Terry Pratchett, _Guards! Guards!_
+Bye, Peter Korsgaard
