@@ -1,84 +1,67 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: AM335x mpurate + bogomips
-Date: Thu, 21 Feb 2013 18:30:16 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC133EB@DBDE01.ent.ti.com>
-References: <51264CFF.8050200@mimc.co.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC] Kbuild support for ARM FIT images
+Date: Thu, 21 Feb 2013 18:33:25 +0000
+Message-ID: <20130221183325.GE17852@n2100.arm.linux.org.uk>
+References: <CAD=GYpbF_3uRzhUnV=MwDiy-ekvZKJztJbkhNM0u_pvG-UCw4w@mail.gmail.com> <20130221103705.GB17852@n2100.arm.linux.org.uk> <51261F38.2030902@ti.com> <20130221134656.GC17852@n2100.arm.linux.org.uk> <20130221173707.76A7D200671@gemini.denx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55960 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755577Ab3BUSaY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Feb 2013 13:30:24 -0500
-In-Reply-To: <51264CFF.8050200@mimc.co.uk>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kbuild-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130221173707.76A7D200671@gemini.denx.de>
+Sender: linux-kbuild-owner@vger.kernel.org
+To: Wolfgang Denk <wd@denx.de>
+Cc: Tom Rini <trini@ti.com>, "Fernandes, Joel A" <joelagnel@ti.com>, Grant Likely <glikely@secretlab.ca>, linux-kbuild@vger.kernel.org, tony@atomide.com, Grant Likely <grant.likely@secretlab.ca>, Joel A Fernandes <agnel.joel@gmail.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Mark Jackson
-> Sent: Thursday, February 21, 2013 10:06 PM
-> To: linux-omap@vger.kernel.org
-> Subject: AM335x mpurate + bogomips
-> 
-> Before I dig any deeper, can anyone tell me if the bootarg "mpurate" is
-> meant to
-> be supported for AM335x SoCs ?
-> 
-No, certainly not. "mpurate" bootargs was supported long time back, 
-If you are probably using 2.6.32 based kernel from TI on top of AM37x.
+[uboot list deleted again]
 
-> I've tried it on our custom board using 3v8, but no joy.
+On Thu, Feb 21, 2013 at 06:37:07PM +0100, Wolfgang Denk wrote:
+> Dear Russell,
 > 
-> The boot log shows:-
+> In message <20130221134656.GC17852@n2100.arm.linux.org.uk> you wrote:
+> >
+> > > Note that FIT images are relatively old (docs date back to March
+> > > 2008).  This is more of another effort to try and update what the
+> > > kernel uses.
+> > 
+> > So it's five years old and people haven't been that interested in it so
+> > far.  That speaks volumes...
 > 
-> [    0.000000] Booting Linux on physical CPU 0x0
-> [    0.000000] Linux version 3.8.0-03059-g621553c-dirty (mpfj@mpfj-
-> nanobone) (gcc version 4.5.4 (Buildroot 2012.11) ) #113 SMP Thu Feb 21
-> 16:29:48 GMT 2013
-> [    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7),
-> cr=10c53c7d
-> [    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing
-> instruction cache
-> [    0.000000] Machine: Generic AM33XX (Flattened Device Tree), model:
-> Newflow NanoBone
-> [    0.000000] Memory policy: ECC disabled, Data cache writeback
-> [    0.000000] CPU: All CPU(s) started in SVC mode.
-> [    0.000000] AM335X ES1.0 (neon )
-> ...
-> [    0.000000] Kernel command line: console=ttyO0,115200n8 mpurate=720
-> root=/dev/mmcblk0p2 ro rootfstype=ext2 rootwait
-> ...
-> [    0.001119] Calibrating delay loop... 364.48 BogoMIPS (lpj=1425408)
-> 
-> I have seen other boot logs outputs [1] from other people where they
-> are getting nearly double that.
-> 
-> Looking at omap2xxx_clk_arch_init(), only ompa24xx devices are
-> supported.
-> 
-> Am I missing something obvious (like it's not yet supported !!) ?
-> 
-I also seen same issue, and its there from long time now. 
-Didn't get chance to nail down this.
+> Well, your attitude to (not) accept anything like that is well known;
+> there have been few previews attempts, which have all been rejected in
+> basicly the same way.
 
-Does anybody know, whether Bogomips represents right value in case of OMAP??
+_My_ attitude?
 
-On the other side, CPUFREQ is supported in the mainline kernel.
+I'll point out something fundamental here: _our_ kernels native format
+has not changed over the last 15+ years, and continues to work everywhere
+where uboot is not involved, and continues to work where uboot is
+involved provided its wrapped up in silly uboot formats.
 
-Thanks,
-Vaibhav
+That means we designed it right back in the early days.  The fact that
+uboot has to reinvent the wheel shows that there were wrong design
+decisions made that did not cater for the situations that people
+encountered in the future.
 
+Now, as for "have all been rejected in basic_al_ly the same way" that's
+not true.  What you'll notice is that there's been discussions over the
+years about FIT, which never went anywhere for various reasons (some of
+them I was not involved with.)  And during those discussions, uboot's
+continued refusal to use the native zImage format ended up getting
+fixed by those who raised (and continue to raise) concerns about uboots
+fixation with its file formats and the built-in restrictions of them.
 
-> Cheers
-> Mark J.
-> 
-> [1] http://e2e.ti.com/support/embedded/linux/f/354/t/245316.aspx
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> But now the situation has changed - multiplatform support adds a
+> number of use cases where this feature comes in handy, so it pops up
+> again.
+
+No, the situation hasn't changed.  We're still talking about booting
+a kernel image in several platforms.  That's been the situation since
+the 1990s.
+
+And boot loaders from the 1990s and early 2000s have been able to do
+this _long_ before uboot.
+
+What's changed is the number of platforms, and the apparant acceptance
+of uboot as "the official boot loader" because it's seen as having its
+own format integrated into the kernel itself.
