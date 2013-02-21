@@ -1,46 +1,40 @@
-From: Carl <broszkigroszki@gmail.com>
-Subject: ARM:OMAP3:DSS - LCD communication path
-Date: Thu, 21 Feb 2013 10:09:42 +0000 (UTC)
-Message-ID: <loom.20130221T094755-400@post.gmane.org>
+From: Peter De Schrijver <pdeschrijver@nvidia.com>
+Subject: Re: [RFC/NOT FOR MERGING 2/3] serial: omap: remove hwmod dependency
+Date: Thu, 21 Feb 2013 12:16:03 +0200
+Message-ID: <20130221101603.GI23234@tbergstrom-lnx.Nvidia.com>
+References: <1360840554-26901-2-git-send-email-balbi@ti.com>
+ <20130214171253.GC7144@atomide.com>
+ <20130214175650.GA25891@arwen.pp.htv.fi>
+ <20130214181217.GA11806@atomide.com>
+ <20130214192719.GB26679@arwen.pp.htv.fi>
+ <20130214193911.GD11806@atomide.com>
+ <alpine.DEB.2.00.1302141946110.11016@utopia.booyaka.com>
+ <20130215064429.GA30038@arwen.pp.htv.fi>
+ <alpine.DEB.2.00.1302191530190.32069@utopia.booyaka.com>
+ <20130220191638.GA25609@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:51181 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752137Ab3BUKOq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Feb 2013 05:14:46 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1U8TBB-0005Rc-61
-	for linux-omap@vger.kernel.org; Thu, 21 Feb 2013 11:15:05 +0100
-Received: from 38.11.static.dcenter.pl ([38.11.static.dcenter.pl])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Thu, 21 Feb 2013 11:15:05 +0100
-Received: from broszkigroszki by 38.11.static.dcenter.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Thu, 21 Feb 2013 11:15:05 +0100
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:8770 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751685Ab3BUKQ0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Feb 2013 05:16:26 -0500
+Content-Disposition: inline
+In-Reply-To: <20130220191638.GA25609@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+> 
+> Also, IMHO reset should always be done during probe() so driver can be
+> dead sure that we're starting from a known state. This is even more
 
-My colleagues (hardware guys) have made some EMC tests and there is some 
-increased emission when there is a static picture on the screen (different
-than some animation takes place). They asked me to check if there 
-is a possibility to make such test which can help to determine the source of
-the problem (lcd display or path between DSS and display - data/clock lines).
+Depends on the IP block. Eg: you might want to keep the screen showing the
+contents drawn by the bootloader while booting the kernel and smoothly
+change to a new image when userspace comes online. In that case you probably
+don't want to blindly reset the display controller for example.
 
-Omap DSS is quite new thing for me and I need an information if a simple 
-injection of a picture to fb0 device can be some kind of case when traffic on 
-data lines (DPI/RGB interface) is only after some data is put into fb0 or 
-it is refreshed periodically. I suspect that if DSS hardware on Sitara AM3703
-has some data in buffer it manages the vram contests on its own (refreshes 
-LCD etc.). 
+Cheers,
 
-Regards,
-Carl
-
-
+Peter.
