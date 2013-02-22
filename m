@@ -1,61 +1,69 @@
 From: Jason Kridner <jkridner@beagleboard.org>
-Subject: Re: [U-Boot] [RFC] Kbuild support for ARM FIT images
-Date: Fri, 22 Feb 2013 02:56:33 -0500
-Message-ID: <CA+T6QP=gHtOuZbjsbv5_GswZu7FUXW+9KVw6K06+5X_PNzqODw@mail.gmail.com>
-References: <20130221134656.GC17852@n2100.arm.linux.org.uk>
-	<51262A7A.8040103@ti.com>
-	<alpine.LFD.2.03.1302211144240.6419@syhkavp.arg>
-	<20130221182724.GA14329@obsidianresearch.com>
-	<alpine.LFD.2.03.1302211423190.6419@syhkavp.arg>
-	<20130221211444.GB20114@obsidianresearch.com>
-	<alpine.LFD.2.03.1302211624561.6419@syhkavp.arg>
-	<20130221231848.880DE200552@gemini.denx.de>
-	<20130221232821.GA2823@obsidianresearch.com>
-	<5126B979.5000205@gmail.com>
-	<20130222022212.GB11169@obsidianresearch.com>
+Subject: Re: AM335x mpurate + bogomips
+Date: Fri, 22 Feb 2013 03:03:37 -0500
+Message-ID: <CA+T6QPkOE1pS3YL4WNpT3-LJq2zjy9mU1iB7FTX+TNYL6aao8Q@mail.gmail.com>
+References: <51264CFF.8050200@mimc.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-Reply-To: <20130222022212.GB11169@obsidianresearch.com>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Rob Herring <robherring2@gmail.com>, "Fernandes, Joel A" <joelagnel@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kbuild@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, "u-boot@lists.denx.de" <u-boot@lists.denx.de>, Tom Rini <trini@ti.com>, Grant Likely <glikely@secretlab.ca>, OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ia0-f171.google.com ([209.85.210.171]:64051 "EHLO
+	mail-ia0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754143Ab3BVIDj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Feb 2013 03:03:39 -0500
+Received: by mail-ia0-f171.google.com with SMTP id z13so321829iaz.30
+        for <linux-omap@vger.kernel.org>; Fri, 22 Feb 2013 00:03:38 -0800 (PST)
+Received: by mail-ie0-f177.google.com with SMTP id 16so396556iea.22
+        for <linux-omap@vger.kernel.org>; Fri, 22 Feb 2013 00:03:37 -0800 (PST)
+In-Reply-To: <51264CFF.8050200@mimc.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Feb 21, 2013 at 9:22 PM, Jason Gunthorpe
-<jgunthorpe@obsidianresearch.com> wrote:
-> On Thu, Feb 21, 2013 at 06:19:05PM -0600, Rob Herring wrote:
+On Thu, Feb 21, 2013 at 11:36 AM, Mark Jackson <mpfj-list@mimc.co.uk> wrote:
+> Before I dig any deeper, can anyone tell me if the bootarg "mpurate" is meant to
+> be supported for AM335x SoCs ?
 >
->> The desired FPGA use case is DT updates after booting the kernel. This
->> has nothing to do with FIT images. And if the FPGA tools generate the
->> DTB, then it is certainly not tied to the kernel.
+> I've tried it on our custom board using 3v8, but no joy.
 >
-> Completely unrelated, but do you have any pointer for how to do this?
-> Hot plugging a 'dtb fragment' into the kernel would be really handy..
+> The boot log shows:-
+>
+> [    0.000000] Booting Linux on physical CPU 0x0
+> [    0.000000] Linux version 3.8.0-03059-g621553c-dirty (mpfj@mpfj-nanobone) (gcc version 4.5.4 (Buildroot 2012.11) ) #113 SMP Thu Feb 21 16:29:48 GMT 2013
+> [    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7d
+> [    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+> [    0.000000] Machine: Generic AM33XX (Flattened Device Tree), model: Newflow NanoBone
+> [    0.000000] Memory policy: ECC disabled, Data cache writeback
+> [    0.000000] CPU: All CPU(s) started in SVC mode.
+> [    0.000000] AM335X ES1.0 (neon )
+> ...
+> [    0.000000] Kernel command line: console=ttyO0,115200n8 mpurate=720 root=/dev/mmcblk0p2 ro rootfstype=ext2 rootwait
+> ...
+> [    0.001119] Calibrating delay loop... 364.48 BogoMIPS (lpj=1425408)
 
-This doesn't answer the full question on how FPGA tools generate DTB,
-but it is a huge problem for BeagleBone add-on hardware that we have
-some mechanism to dynamically load DT fragments. Pantelis posted some
-work in that direction[1] and has continued development of his patches
-and we've been using those extensively with BeagleBone kernel
-development[2].
+I don't think mpurate does anything on AM335x, though I could be
+wrong---just that I've not heard of anyone using it for any purpose.
 
-It would be great if the FPGA folks would get on-board in supporting
-the dynamically loadable DT overlay fragments by reviewing and
-supporting upstream acceptance of the code.
-
-[1] http://lwn.net/Articles/531569/
-[2] http://github.com/beagleboard/kernel/tree/3.8
+The BogoMIPS values don't seem to be very useful. I'm not sure of
+their purpose, but the hopefully useful information I can offer you is
+that if you are running a kernel supporting dynamic frequency scaling
+on AM335x, the number tends to be lower.
 
 >
-> I'm thinking something like adding a tree below a PCI controller
-> describing a PCI device and sub nodes, similar to what Thierry was
-> doing for his Avionics. How would interrupt maps and phandles be
-> managed across the main dtb and the 'hot plugged' dtb?
+> I have seen other boot logs outputs [1] from other people where they are getting nearly double that.
 >
-> Regards,
-> Jason
-> _______________________________________________
-> U-Boot mailing list
-> U-Boot@lists.denx.de
-> http://lists.denx.de/mailman/listinfo/u-boot
+> Looking at omap2xxx_clk_arch_init(), only ompa24xx devices are supported.
+>
+> Am I missing something obvious (like it's not yet supported !!) ?
+
+Use the cpufreq tools to determine and set the frequency.
+
+>
+> Cheers
+> Mark J.
+>
+> [1] http://e2e.ti.com/support/embedded/linux/f/354/t/245316.aspx
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
