@@ -1,40 +1,38 @@
 From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 Subject: Re: [U-Boot] [RFC] Kbuild support for ARM FIT images
-Date: Thu, 21 Feb 2013 19:22:12 -0700
-Message-ID: <20130222022212.GB11169@obsidianresearch.com>
-References: <20130221134656.GC17852@n2100.arm.linux.org.uk>
- <51262A7A.8040103@ti.com>
- <alpine.LFD.2.03.1302211144240.6419@syhkavp.arg>
- <20130221182724.GA14329@obsidianresearch.com>
- <alpine.LFD.2.03.1302211423190.6419@syhkavp.arg>
- <20130221211444.GB20114@obsidianresearch.com>
- <alpine.LFD.2.03.1302211624561.6419@syhkavp.arg>
- <20130221231848.880DE200552@gemini.denx.de>
- <20130221232821.GA2823@obsidianresearch.com>
- <5126B979.5000205@gmail.com>
+Date: Thu, 21 Feb 2013 19:39:02 -0700
+Message-ID: <20130222023902.GC11169@obsidianresearch.com>
+References: <20130221231106.GA24426@obsidianresearch.com>
+ <1361492355.1574.7@snotra>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kbuild-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5126B979.5000205@gmail.com>
+In-Reply-To: <1361492355.1574.7@snotra>
 Sender: linux-kbuild-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Wolfgang Denk <wd@denx.de>, "Fernandes, Joel A" <joelagnel@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-kbuild@vger.kernel.org, tony@atomide.com, Nicolas Pitre <nico@fluxnic.net>, Grant Likely <grant.likely@secretlab.ca>, u-boot@lists.denx.de, Tom Rini <trini@ti.com>, Grant Likely <glikely@secretlab.ca>, OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Scott Wood <scottwood@freescale.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>, "Fernandes, Joel A" <joelagnel@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-kbuild@vger.kernel.org, tony@atomide.com, Grant Likely <grant.likely@secretlab.ca>, Tom Rini <trini@ti.com>, Grant Likely <glikely@secretlab.ca>, OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Feb 21, 2013 at 06:19:05PM -0600, Rob Herring wrote:
+On Thu, Feb 21, 2013 at 06:19:15PM -0600, Scott Wood wrote:
 
-> The desired FPGA use case is DT updates after booting the kernel. This
-> has nothing to do with FIT images. And if the FPGA tools generate the
-> DTB, then it is certainly not tied to the kernel.
+> >While embedded focused PPC stuff seems to tend to keep the kernel and
+> >DT together.
+> 
+> At least on the Freescale side of "embedded focused PPC stuff", we
+> have not kept the kernel and DT together.  It's actually U-Boot that
+> the dts files in the kernel tree are tied to, since they contain
 
-Completely unrelated, but do you have any pointer for how to do this?
-Hot plugging a 'dtb fragment' into the kernel would be really handy..
+Sorry to be unclear, I only ment that the dt sources themselves are in
+the kernel, not say, in the uboot repository or otherwise.
 
-I'm thinking something like adding a tree below a PCI controller
-describing a PCI device and sub nodes, similar to what Thierry was
-doing for his Avionics. How would interrupt maps and phandles be
-managed across the main dtb and the 'hot plugged' dtb?
+> out where to make the modification.  Usually U-Boot is the only
+> relevant loader for a particular board, but not always -- hence
+> "adder875-redboot.dts" and "adder875-uboot.dts".  Even when U-Boot
 
-Regards,
+At least on ARM Kirkwood these sorts of differences are minimized by
+having Linux know how to reprogram the SOC's address map registers
+when it starts up .. Although that is helped by having all the boot
+loaders put the address map control registers at the same address ;)
+
 Jason
