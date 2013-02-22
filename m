@@ -1,67 +1,50 @@
-From: Frank Agius <ftagius@yahoo.com>
-Subject: Re: AM335x mpurate + bogomips
-Date: Fri, 22 Feb 2013 11:43:25 -0500
-Message-ID: <5127A02D.8040200@yahoo.com>
-References: <51264CFF.8050200@mimc.co.uk>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [U-Boot] [RFC] Kbuild support for ARM FIT images
+Date: Fri, 22 Feb 2013 10:43:47 -0700
+Message-ID: <20130222174347.GA10206@obsidianresearch.com>
+References: <alpine.LFD.2.03.1302211144240.6419@syhkavp.arg>
+ <20130221182724.GA14329@obsidianresearch.com>
+ <alpine.LFD.2.03.1302211423190.6419@syhkavp.arg>
+ <20130221211444.GB20114@obsidianresearch.com>
+ <alpine.LFD.2.03.1302211624561.6419@syhkavp.arg>
+ <20130221231848.880DE200552@gemini.denx.de>
+ <20130221232821.GA2823@obsidianresearch.com>
+ <5126B979.5000205@gmail.com>
+ <20130222022212.GB11169@obsidianresearch.com>
+ <CA+T6QP=gHtOuZbjsbv5_GswZu7FUXW+9KVw6K06+5X_PNzqODw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:43363 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757880Ab3BVQng (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Feb 2013 11:43:36 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1U8vj1-0004c3-5e
-	for linux-omap@vger.kernel.org; Fri, 22 Feb 2013 17:43:55 +0100
-Received: from 99-178-168-231.lightspeed.rlghnc.sbcglobal.net ([99.178.168.231])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Fri, 22 Feb 2013 17:43:55 +0100
-Received: from ftagius by 99-178-168-231.lightspeed.rlghnc.sbcglobal.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Fri, 22 Feb 2013 17:43:55 +0100
-In-Reply-To: <51264CFF.8050200@mimc.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kbuild-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CA+T6QP=gHtOuZbjsbv5_GswZu7FUXW+9KVw6K06+5X_PNzqODw@mail.gmail.com>
+Sender: linux-kbuild-owner@vger.kernel.org
+To: Jason Kridner <jkridner@beagleboard.org>
+Cc: Rob Herring <robherring2@gmail.com>, "Fernandes, Joel A" <joelagnel@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kbuild@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, "u-boot@lists.denx.de" <u-boot@lists.denx.de>, Tom Rini <trini@ti.com>, Grant Likely <glikely@secretlab.ca>, OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 2/21/2013 11:36 AM, Mark Jackson wrote:
-> Before I dig any deeper, can anyone tell me if the bootarg "mpurate" is meant to
-> be supported for AM335x SoCs ?
->
-> I've tried it on our custom board using 3v8, but no joy.
->
-> The boot log shows:-
->
-> [    0.000000] Booting Linux on physical CPU 0x0
-> [    0.000000] Linux version 3.8.0-03059-g621553c-dirty (mpfj@mpfj-nanobone) (gcc version 4.5.4 (Buildroot 2012.11) ) #113 SMP Thu Feb 21 16:29:48 GMT 2013
-> [    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7d
-> [    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
-> [    0.000000] Machine: Generic AM33XX (Flattened Device Tree), model: Newflow NanoBone
-> [    0.000000] Memory policy: ECC disabled, Data cache writeback
-> [    0.000000] CPU: All CPU(s) started in SVC mode.
-> [    0.000000] AM335X ES1.0 (neon )
-> ...
-> [    0.000000] Kernel command line: console=ttyO0,115200n8 mpurate=720 root=/dev/mmcblk0p2 ro rootfstype=ext2 rootwait
-> ...
-> [    0.001119] Calibrating delay loop... 364.48 BogoMIPS (lpj=1425408)
->
-> I have seen other boot logs outputs [1] from other people where they are getting nearly double that.
->
+On Fri, Feb 22, 2013 at 02:56:33AM -0500, Jason Kridner wrote:
+> >> The desired FPGA use case is DT updates after booting the kernel. This
+> >> has nothing to do with FIT images. And if the FPGA tools generate the
+> >> DTB, then it is certainly not tied to the kernel.
+> >
+> > Completely unrelated, but do you have any pointer for how to do this?
+> > Hot plugging a 'dtb fragment' into the kernel would be really handy..
+> 
+> This doesn't answer the full question on how FPGA tools generate DTB,
+> but it is a huge problem for BeagleBone add-on hardware that we have
 
-I have also observed a drop in the reported BogoMIPS value when using 
-the latest kernel.  Previously (with a 3.5 kernel) the BogoMIPS value 
-was approximately equal to the CPU frequency. I finally found the reason 
-for the BogoMIPS change:
+In all my cases I hand code the DT's for the FPGA IP, they get quite
+big, the one I'm looking at now has over 17 DT nodes inside the FPGA
+already. This is why we are re-using the DT framework to describe the
+chip, not building a C coded PCI driver to do the same work.
 
-http://www.spinics.net/lists/arm-kernel/msg221672.html
+> some mechanism to dynamically load DT fragments. Pantelis posted some
+> work in that direction[1] and has continued development of his patches
+> and we've been using those extensively with BeagleBone kernel
+> development[2].
 
-It looks like BogoMIPS reporting changed because of the delay routine 
-patch introduced in 3.6.  So the change in BogoMIPS is real, but should 
-not be a concern.
+Yes, I saw this. They look really interesting, I think the notion of
+hot plugging a DT fragment into the main DT is useful for many
+applications..
 
-frank agius
-
-
+Jason
