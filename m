@@ -1,48 +1,49 @@
-From: Joel A Fernandes <agnel.joel@gmail.com>
-Subject: Re: [RFC] Kbuild support for ARM FIT images
-Date: Sat, 23 Feb 2013 02:38:01 -0600
-Message-ID: <CAD=GYpY4eTsRyYtbtoG-2TuSqOyXAANgjazpWDNE2B36Z6aokw@mail.gmail.com>
-References: <CAD=GYpbF_3uRzhUnV=MwDiy-ekvZKJztJbkhNM0u_pvG-UCw4w@mail.gmail.com>
-	<20130221103705.GB17852@n2100.arm.linux.org.uk>
+From: Rob Landley <rob@landley.net>
+Subject: Re: [PATCH v2 0/5] Generic PHY Framework
+Date: Sat, 23 Feb 2013 14:05:42 -0600
+Message-ID: <1361649942.11282.13@driftwood>
+References: <20130219150500.GG4390@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-Reply-To: <20130221103705.GB17852@n2100.arm.linux.org.uk>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: u-boot@lists.denx.de, Linux OMAP List <linux-omap@vger.kernel.org>, linux-kbuild@vger.kernel.org, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, tony@atomide.com, "Fernandes, Joel A" <joelagnel@ti.com>, "Rini, Tom" <trini@ti.com>, Grant Likely <glikely@secretlab.ca>, Grant Likely <grant.likely@secretlab.ca>
+Content-Type: text/plain; charset=us-ascii; DelSp=Yes; Format=Flowed
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130219150500.GG4390@arwen.pp.htv.fi> (from balbi@ti.com on
+	Tue Feb 19 09:05:00 2013)
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, balbi@ti.com, kishon <kishon@ti.com>, tony@atomide.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Feb 21, 2013 at 4:37 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Wed, Feb 20, 2013 at 07:37:10PM -0600, Joel A Fernandes wrote:
->> Hello,
->> I've been spinning some work-in-progress patches for FIT build support
->> in the kernel.
->> With the move to multiplatform support on OMAP, I feel it is a good
->> time to add  FIT support, also looking at the proliferating number of
->> dtbs, as it is a nice way
->
-> I'm not looking to add yet another crappy uboot image format to the kernel
-> just for the hell of uboot.
->
-> And don't think that the dtbs in the kernel are going to stay there.  The
-> longer term plan is for them to end up in an external git tree, entirely
-> separate from the kernel source.  So anything that ties them with the
-> kernel build process will ultimately have to be removed again.
+On 02/19/2013 09:05:00 AM, Felipe Balbi wrote:
+> Greg, can you pitch your suggestion here ? It would be great to hear
+> your rationale behind dropping class infrastructure, couldn't find
+> anything through Google and since feature-removal-schedule.txt has  
+> been
+> removed (without adding it to feature-removal-schedule.txt, I must add
+> :-) I don't know what's the idea behind removing classes.
 
-Sorry for hopping in late as I have been travelling.
+I actually went through and poked a couple of people about old entries  
+in feature-removal-shedule.txt last year, but I haven't been very  
+active since the kernel.org breakin because my account got disabled,  
+and I needed to meet kernel developers in person to get keys signed to  
+get it switched back on (or set up a separate git tree with signed  
+commits -next could pull from).
 
-Guess much has been said, but for courtesy sake till dts/u-boot build
-support is dropped, would you consider accepting a simple extension to
-mkuboot.sh with minimal Kbuild changes? I can promise there will be
-quite a few users.
+I don't get out much; as a consultant I have to take time off from work  
+and pay for my own travel and lodging. So I've been to exactly two  
+conferences in the past 3 years: last year's Texas Linux Fest (my house  
+got broken into and a netbook with the key on it stolen the following  
+wednesday), and CELF (which I'm on the plane back from now, Greg KH  
+signed my key! Woo!).
 
-Lots of folks want embedded device trees and there are already out of
-tree hacks floating as you know that do this. FIT approach to this is
-more cleaner I feel.
+If I can use that to get my account back, set up a tree feeding into  
+linux-next, and maybe even recover the ability to update  
+http://kernel.org/doc, I'd happily field some sort of  
+feature-removal-schedule list and make sure it stays current. (Linus  
+didn't ask me about removing the old one, I found out about it from the  
+git log. But I can't blame him, I haven't exactly been tearing through  
+the bureaucracy to get my access back. "Volunteer work" and "painful"  
+tend not to combine well on my todo list in terms of scheduling  
+priority...)
 
-Let me know what you can do.
-
-Thanks,
-Joel
+Rob
