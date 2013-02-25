@@ -1,185 +1,207 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
 Subject: Re: [PATCH RFC] usb: dwc3: Set GCTL.PrtCapDir based on selected mode.
-Date: Mon, 25 Feb 2013 10:17:23 +0200
-Message-ID: <20130225081723.GD25749@arwen.pp.htv.fi>
+Date: Mon, 25 Feb 2013 14:21:46 +0530
+Message-ID: <CAFp+6iHaP96F0OF9_C1DTsfmkPNZMVC78tj7m0YGdV=d_znWrA@mail.gmail.com>
 References: <1360071958-20797-1-git-send-email-gautam.vivek@samsung.com>
-Reply-To: <balbi@ti.com>
+	<20130225081723.GD25749@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fOHHtNG4YXGJ0yqR"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1360071958-20797-1-git-send-email-gautam.vivek@samsung.com>
+In-Reply-To: <20130225081723.GD25749@arwen.pp.htv.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, kishon@ti.com
+To: balbi@ti.com
+Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---fOHHtNG4YXGJ0yqR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Balbi,
 
-Hi,
 
-On Tue, Feb 05, 2013 at 07:15:58PM +0530, Vivek Gautam wrote:
-> Now that machines may select the mode of working of DWC3,
-> we can set the Port capability direction based on selected mode.
->=20
-> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
-> ---
->  drivers/usb/dwc3/core.c |   11 ++++++++---
->  1 files changed, 8 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> index 177f4c6..f4c47f7 100644
-> --- a/drivers/usb/dwc3/core.c
-> +++ b/drivers/usb/dwc3/core.c
-> @@ -479,7 +479,6 @@ static int dwc3_probe(struct platform_device *pdev)
-> =20
->  	switch (mode) {
->  	case DWC3_MODE_DEVICE:
-> -		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
->  		ret =3D dwc3_gadget_init(dwc);
->  		if (ret) {
->  			dev_err(dev, "failed to initialize gadget\n");
-> @@ -487,7 +486,6 @@ static int dwc3_probe(struct platform_device *pdev)
->  		}
->  		break;
->  	case DWC3_MODE_HOST:
-> -		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
->  		ret =3D dwc3_host_init(dwc);
->  		if (ret) {
->  			dev_err(dev, "failed to initialize host\n");
-> @@ -495,7 +493,6 @@ static int dwc3_probe(struct platform_device *pdev)
->  		}
->  		break;
->  	case DWC3_MODE_DRD:
-> -		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
->  		ret =3D dwc3_host_init(dwc);
->  		if (ret) {
->  			dev_err(dev, "failed to initialize host\n");
-> @@ -514,6 +511,14 @@ static int dwc3_probe(struct platform_device *pdev)
->  	}
->  	dwc->mode =3D mode;
-> =20
-> +#if IS_ENABLED(CONFIG_USB_DWC3_HOST)
-> +	dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
-> +#elif IS_ENABLED(CONFIG_USB_DWC3_GADGET)
-> +	dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
-> +#else
-> +	dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
-> +#endif
+On Mon, Feb 25, 2013 at 1:47 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Tue, Feb 05, 2013 at 07:15:58PM +0530, Vivek Gautam wrote:
+>> Now that machines may select the mode of working of DWC3,
+>> we can set the Port capability direction based on selected mode.
+>>
+>> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>> ---
+>>  drivers/usb/dwc3/core.c |   11 ++++++++---
+>>  1 files changed, 8 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>> index 177f4c6..f4c47f7 100644
+>> --- a/drivers/usb/dwc3/core.c
+>> +++ b/drivers/usb/dwc3/core.c
+>> @@ -479,7 +479,6 @@ static int dwc3_probe(struct platform_device *pdev)
+>>
+>>       switch (mode) {
+>>       case DWC3_MODE_DEVICE:
+>> -             dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
+>>               ret = dwc3_gadget_init(dwc);
+>>               if (ret) {
+>>                       dev_err(dev, "failed to initialize gadget\n");
+>> @@ -487,7 +486,6 @@ static int dwc3_probe(struct platform_device *pdev)
+>>               }
+>>               break;
+>>       case DWC3_MODE_HOST:
+>> -             dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
+>>               ret = dwc3_host_init(dwc);
+>>               if (ret) {
+>>                       dev_err(dev, "failed to initialize host\n");
+>> @@ -495,7 +493,6 @@ static int dwc3_probe(struct platform_device *pdev)
+>>               }
+>>               break;
+>>       case DWC3_MODE_DRD:
+>> -             dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
+>>               ret = dwc3_host_init(dwc);
+>>               if (ret) {
+>>                       dev_err(dev, "failed to initialize host\n");
+>> @@ -514,6 +511,14 @@ static int dwc3_probe(struct platform_device *pdev)
+>>       }
+>>       dwc->mode = mode;
+>>
+>> +#if IS_ENABLED(CONFIG_USB_DWC3_HOST)
+>> +     dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
+>> +#elif IS_ENABLED(CONFIG_USB_DWC3_GADGET)
+>> +     dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
+>> +#else
+>> +     dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
+>> +#endif
+>
+> you can actually use:
+>
+> if (IS_ENABLED(CONFIG_USB_DWC3_HOST))
+>         dwc3_set_mode(dwc...
+> else if (IS_ENABLED( ...
+>         ...
+> else
+>         ...
+>
 
-you can actually use:
+I am actually hoping to change this to something like below (after
+of course changing the preprocessor conditionals) :
 
-if (IS_ENABLED(CONFIG_USB_DWC3_HOST))
-	dwc3_set_mode(dwc...
-else if (IS_ENABLED( ...
-	...
-else
-	...
+commit 9a62ed948dcb6ac5d78aff41f5355c0a5ea86475
+Author: Vivek Gautam <gautam.vivek@samsung.com>
+Date:   Thu Jan 24 11:58:05 2013 +0530
 
-instead of pre-processor conditionals. In fact, I have recently written
-a patch converting #if IS_ENABLED() to if (IS_ENABLED()) but I haven't
-posted yet:
+    usb: dwc3: Set GCTL.PrtCapDir based on selected mode.
 
-commit 42dbbbc272bc941ec2b0cac51342609e61e13a01
-Author: Felipe Balbi <balbi@ti.com>
-Date:   Fri Feb 22 16:24:49 2013 +0200
+    Now that machines may select the mode of working of DWC3,
+    we can set the Port capability direction based on selected mode.
 
-    usb: dwc3: debugfs: improve debugfs file creation
-   =20
-    when commit 388e5c5 (usb: dwc3: remove dwc3
-    dependency on host AND gadget.) changed the
-    way debugfs files are created, it failed to
-    note that 'mode' is necessary in Dual Role
-    mode only while 'testmode' and 'link_state'
-    are valid in Dual Role and Peripheral-only
-    builds. Fix this while also converting pre-
-    processor conditional to C conditionals.
-   =20
-    Signed-off-by: Felipe Balbi <balbi@ti.com>
+    Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
 
-diff --git a/drivers/usb/dwc3/debugfs.c b/drivers/usb/dwc3/debugfs.c
-index a1bac9a..8b23d045 100644
---- a/drivers/usb/dwc3/debugfs.c
-+++ b/drivers/usb/dwc3/debugfs.c
-@@ -667,28 +667,31 @@ int dwc3_debugfs_init(struct dwc3 *dwc)
- 		goto err1;
- 	}
-=20
--#if IS_ENABLED(CONFIG_USB_DWC3_GADGET)
--	file =3D debugfs_create_file("mode", S_IRUGO | S_IWUSR, root,
--			dwc, &dwc3_mode_fops);
--	if (!file) {
--		ret =3D -ENOMEM;
--		goto err1;
-+	if (IS_ENABLED(CONFIG_USB_DWC3_DUAL_ROLE)) {
-+		file =3D debugfs_create_file("mode", S_IRUGO | S_IWUSR, root,
-+				dwc, &dwc3_mode_fops);
-+		if (!file) {
-+			ret =3D -ENOMEM;
-+			goto err1;
-+		}
- 	}
-=20
--	file =3D debugfs_create_file("testmode", S_IRUGO | S_IWUSR, root,
--			dwc, &dwc3_testmode_fops);
--	if (!file) {
--		ret =3D -ENOMEM;
--		goto err1;
--	}
--
--	file =3D debugfs_create_file("link_state", S_IRUGO | S_IWUSR, root,
--			dwc, &dwc3_link_state_fops);
--	if (!file) {
--		ret =3D -ENOMEM;
--		goto err1;
-+	if (IS_ENABLED(CONFIG_USB_DWC3_DUAL_ROLE) ||
-+			IS_ENABLED(CONFIG_USB_DWC3_GADGET)) {
-+		file =3D debugfs_create_file("testmode", S_IRUGO | S_IWUSR, root,
-+				dwc, &dwc3_testmode_fops);
-+		if (!file) {
-+			ret =3D -ENOMEM;
-+			goto err1;
-+		}
-+
-+		file =3D debugfs_create_file("link_state", S_IRUGO | S_IWUSR, root,
-+				dwc, &dwc3_link_state_fops);
-+		if (!file) {
-+			ret =3D -ENOMEM;
-+			goto err1;
-+		}
- 	}
--#endif
-=20
- 	return 0;
-=20
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 79f335f..9444fbe 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -478,7 +478,13 @@ static int dwc3_probe(struct platform_device *pdev)
+                goto err1;
+        }
 
---=20
-balbi
+-       mode = DWC3_MODE(dwc->hwparams.hwparams0);
++#if IS_ENABLED(CONFIG_USB_DWC3_HOST)
++       mode = DWC3_MODE_HOST;
++#elif IS_ENABLED(CONFIG_USB_DWC3_GADGET)
++       mode = DWC3_MODE_DEVICE;
++#else
++       mode = DWC3_MODE_DRD;
++#endif
 
---fOHHtNG4YXGJ0yqR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+        switch (mode) {
+        case DWC3_MODE_DEVICE:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRKx4TAAoJEIaOsuA1yqREu9cP/jP6kpdzJQ5Ow65s3pfiEL+t
-AdGH2p1jiR1PZx5yR9VsJ3tv1AK4in12dIx0m5BSWn9kzFWERBlPLBzJqavR86e0
-4/JirtAwxSAQxmNFZ8lQS0AOixMNPtGS+0XFn6lcDU0mSkejRVSEqItgzGQDGFTP
-xHyM8qKXBTOIimM3flnGyY4iLfJNizkerNHPJ8Kskj5qub0fz6hZu4nBB11uqkwN
-fKvE7UbPFOhFSgk/H/xLDY2vHY+7VoVRm6Zti6hjIprAo2VBiGujXEyTiAMd3mp/
-v/wu9oFT/R8JCbQd0WsqeoVNmi9+nfF3DcjNVmYQ6NyDgVmppwTDYiJSIjzWewAj
-vHaxkREpKOkQVegKvPm+fXTtVALLqPXoP9SP8/PssO6jHlsogs3vqqcUIiUE+lrB
-hnspK97zEr0YfhYxayZbORsOLhEI8dHCKsvaqbikg2RqjlUpN6CoePuLrba+GB3U
-0iNsWcWhwvHZC61ov2TDbscNCMN8ROg+90zdVjT89J8jI20Ip4vLiW1ozKsNiBuB
-MlAZXno+53HcwlraXQIY22kGy899H1cWDhrTAKb9x/v0+pk90w66SfV7BOIyYob0
-sqQP4PSC3Y6XpLZ6dHff2nDUCxDhpKutjHWfLBvN3rJE+x1tKHTyq1wzzXiiIfy5
-3gRRKaieLXDoTEUUGOtc
-=Ir6p
------END PGP SIGNATURE-----
+Since the mode is now software dependent, we can skip
+initializing gadget/host in case of Host-only/Gadget-only modes respectively.
+Can't guess how much this is valid though :-(
 
---fOHHtNG4YXGJ0yqR--
+> instead of pre-processor conditionals. In fact, I have recently written
+> a patch converting #if IS_ENABLED() to if (IS_ENABLED()) but I haven't
+> posted yet:
+>
+
+Right, very valid change. Missed this in earlier change :-(
+
+> commit 42dbbbc272bc941ec2b0cac51342609e61e13a01
+> Author: Felipe Balbi <balbi@ti.com>
+> Date:   Fri Feb 22 16:24:49 2013 +0200
+>
+>     usb: dwc3: debugfs: improve debugfs file creation
+>
+>     when commit 388e5c5 (usb: dwc3: remove dwc3
+>     dependency on host AND gadget.) changed the
+>     way debugfs files are created, it failed to
+>     note that 'mode' is necessary in Dual Role
+>     mode only while 'testmode' and 'link_state'
+>     are valid in Dual Role and Peripheral-only
+>     builds. Fix this while also converting pre-
+>     processor conditional to C conditionals.
+>
+>     Signed-off-by: Felipe Balbi <balbi@ti.com>
+>
+> diff --git a/drivers/usb/dwc3/debugfs.c b/drivers/usb/dwc3/debugfs.c
+> index a1bac9a..8b23d045 100644
+> --- a/drivers/usb/dwc3/debugfs.c
+> +++ b/drivers/usb/dwc3/debugfs.c
+> @@ -667,28 +667,31 @@ int dwc3_debugfs_init(struct dwc3 *dwc)
+>                 goto err1;
+>         }
+>
+> -#if IS_ENABLED(CONFIG_USB_DWC3_GADGET)
+> -       file = debugfs_create_file("mode", S_IRUGO | S_IWUSR, root,
+> -                       dwc, &dwc3_mode_fops);
+> -       if (!file) {
+> -               ret = -ENOMEM;
+> -               goto err1;
+> +       if (IS_ENABLED(CONFIG_USB_DWC3_DUAL_ROLE)) {
+> +               file = debugfs_create_file("mode", S_IRUGO | S_IWUSR, root,
+> +                               dwc, &dwc3_mode_fops);
+> +               if (!file) {
+> +                       ret = -ENOMEM;
+> +                       goto err1;
+> +               }
+>         }
+>
+> -       file = debugfs_create_file("testmode", S_IRUGO | S_IWUSR, root,
+> -                       dwc, &dwc3_testmode_fops);
+> -       if (!file) {
+> -               ret = -ENOMEM;
+> -               goto err1;
+> -       }
+> -
+> -       file = debugfs_create_file("link_state", S_IRUGO | S_IWUSR, root,
+> -                       dwc, &dwc3_link_state_fops);
+> -       if (!file) {
+> -               ret = -ENOMEM;
+> -               goto err1;
+> +       if (IS_ENABLED(CONFIG_USB_DWC3_DUAL_ROLE) ||
+> +                       IS_ENABLED(CONFIG_USB_DWC3_GADGET)) {
+> +               file = debugfs_create_file("testmode", S_IRUGO | S_IWUSR, root,
+> +                               dwc, &dwc3_testmode_fops);
+> +               if (!file) {
+> +                       ret = -ENOMEM;
+> +                       goto err1;
+> +               }
+> +
+> +               file = debugfs_create_file("link_state", S_IRUGO | S_IWUSR, root,
+> +                               dwc, &dwc3_link_state_fops);
+> +               if (!file) {
+> +                       ret = -ENOMEM;
+> +                       goto err1;
+> +               }
+>         }
+> -#endif
+>
+>         return 0;
+>
+>
+> --
+> balbi
+
+
+
+-- 
+Thanks & Regards
+Vivek
