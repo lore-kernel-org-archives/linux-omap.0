@@ -1,139 +1,144 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH v2 1/5] drivers: phy: add generic PHY framework
-Date: Mon, 25 Feb 2013 12:11:48 +0530
-Message-ID: <512B07AC.5090809@ti.com>
-References: <1361659480.11282.15@driftwood>
+From: bill4carson <bill4carson@gmail.com>
+Subject: Re: test jiffies on ARM SMP board
+Date: Mon, 25 Feb 2013 15:04:32 +0800
+Message-ID: <512B0D00.3000403@gmail.com>
+References: <BLU002-W18453B5FE6CB5CDDA18C8DBCF60@phx.gbl> <1361381081.16206.45.camel@anish-Inspiron-N5050> <20130220173014.GY17852@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40192 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755436Ab3BYGmj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Feb 2013 01:42:39 -0500
-In-Reply-To: <1361659480.11282.15@driftwood>
+Received: from mail-da0-f42.google.com ([209.85.210.42]:56859 "EHLO
+	mail-da0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753687Ab3BYHDx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Feb 2013 02:03:53 -0500
+Received: by mail-da0-f42.google.com with SMTP id z17so1330104dal.29
+        for <linux-omap@vger.kernel.org>; Sun, 24 Feb 2013 23:03:53 -0800 (PST)
+In-Reply-To: <20130220173014.GY17852@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Landley <rob@landley.net>
-Cc: tony@atomide.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, balbi@ti.com, gregkh@linuxfoundation.org, akpm@linux-foundation.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, arnd@arndb.de, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, netdev@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: anish kumar <anish198519851985@gmail.com>, linux-omap@vger.kernel.org, buyitian <buyit@live.cn>, linux-arm-kernel@lists.infradead.org, "kernelnewbies@kernelnewbies.org" <kernelnewbies@kernelnewbies.org>
 
-Hi,
 
-On Sunday 24 February 2013 04:14 AM, Rob Landley wrote:
-> On 02/18/2013 11:53:14 PM, Kishon Vijay Abraham I wrote:
->> The PHY framework provides a set of APIs for the PHY drivers to
->> create/destroy a PHY and APIs for the PHY users to obtain a reference
->> to the
->> PHY with or without using phandle. To obtain a reference to the PHY
->> without
->> using phandle, the platform specfic intialization code (say from board
->> file)
->> should have already called phy_bind with the binding information. The
->> binding
->> information consists of phy's device name, phy user device name and an
->> index.
->> The index is used when the same phy user binds to mulitple phys.
->
-> Given that this has a separately selectable config option, I'm guessing
-> that it's useful all by itself even in the absence of a driver using
 
-Not really. It has to be thought of like a bridge that connects the 
-device (can be USB/SATA/..) and the PHY. The PHY driver will register 
-the PHY in this framework and the device controller driver can obtain a 
-reference to this PHY from this framework.
-> this phy? (Or it gives user visibility to the phy buried in an E1000 or
-> SATA drive or some such?)
+On 2013=E5=B9=B402=E6=9C=8821=E6=97=A5 01:30, Russell King - ARM Linux =
+wrote:
+> On Wed, Feb 20, 2013 at 10:54:41PM +0530, anish kumar wrote:
+>> On Thu, 2013-02-21 at 00:39 +0800, buyitian wrote:
+>>> i am confused about my test. in one device driver,
+>>> i put below code:
+>>>
+>>>      printk("start to test test jiffies\n");
+>>>
+>>>      local_irq_save(flags);
+>>>
+>>>      jf1 =3D jiffies; // read jiffies first time
+>>>
+>>>      // hold cpu for about 2 seconds(do some calculation)
+>>>
+>>>      jf2 =3D jiffies; // read jiffies after 2 seconds
+>>>
+>>>      local_irq_restore(flags);
+>>>
+>>>      printk("jf1:%lu, jf2:%lu\n", jf1, jf2);
+>>>
+>>> and the output is as below:
+>>>
+>>>      <4>[  108.551124]start to test test jiffies
+>>>      <4>[  110.367604]jf1:4294948151, jf2:4294948151
+>>>
+>>> the jf1 and jf2 are the same value, although they are
+>>> read between 2 seconds interval, i think this is because
+>>> i disabled local interrupt.
+>>> but the printk timestamp is from 108.551124 to 110.367604,
+>>> which is about 2 seconds. and on my platform, printk timestamp
+>>> is got from the function read_sched_clock:
+>>>     static u32 __read_mostly (*read_sched_clock)(void) =3D jiffy_sc=
+hed_clock_read;
+>>>
+>>> and function jiffy_sched_clock_read() is to read from jiffies.
+>>>
+>>> it seems that the jiffies is frozen when local irq is disabled,
+>>> but after local_irq_restore(), the jiffies not only start
+>>> to run, but also recover the lost 2 seconds.
+>>>
+>>> is the jiffies updated from another cpu when irq is disabled on
+>>> local cpu?
+>>>
+>>> is there some internel processor interrupt between cpu1 and cpu0
+>>> after local irq is re-enabled so that jiffies recover the lost 2 se=
+conds? 		 	   	=09
+>> I think it is because of the fact that some RTC registers keep the
+>
+> The RTC has nothing to do with this.
+>
+> As soon as the IRQs are allowed again (immediately after the
+> local_irq_restore()) the pending interrupt - including the timer
+> interrupt will be processed.
+>
+> At this point, because we read the clocksource, we can see that two
+> seconds have passed, and so we advance jiffies by the elapsed time.
 
-The PHY and the device are generally independent entities and there has 
-to be a way to bind them in-order for the device controller to use the 
-PHY. For e.g., MUSB in OMAP4 uses a PHY which is different from PHY in 
-OMAP3 and it's going to be different from a PHY used in other SoCs. So 
-in-order for MUSB to use the correct PHY, there has to be a framework 
-that maintains the list of PHY and returns the correct PHY when a device 
-controller driver requests for it. So whenever the PHY driver gets 
-probed, it registers itself with this framework and then the MUSB can 
-get the reference to the PHY from this framework. The use of this 
-framework is more prevalent when there are multiple MUSB controllers 
-each using a different PHY in a single SoC.
+  80 /*
+  81  * Event handler for periodic ticks
+  82  */
+  83 void tick_handle_periodic(struct clock_event_device *dev)
+  84 {
+  85     int cpu =3D smp_processor_id();
+  86     ktime_t next;
+  87
+  88     tick_periodic(cpu);
+  89
+  90     if (dev->mode !=3D CLOCK_EVT_MODE_ONESHOT)
+  91         return;
+  92     /*
+  93      * Setup the next period for devices, which do not have
+  94      * periodic mode:
+  95      */
+  96     next =3D ktime_add(dev->next_event, tick_period);
+  97     for (;;) {
+  98         if (!clockevents_program_event(dev, next, ktime_get()))   =
+<--- once irq enabled, here we got -ETIME, then
+  99             return;
+100         /*
+101          * Have to be careful here. If we're in oneshot mode,
+102          * before we call tick_periodic() in a loop, we need
+103          * to be sure we're using a real hardware clocksource.
+104          * Otherwise we could get trapped in an infinite
+105          * loop, as the tick_periodic() increments jiffies,
+106          * when then will increment time, posibly causing
+107          * the loop to trigger again and again.
+108          */
+109         if (timekeeping_valid_for_hres())
+110             tick_periodic(cpu);                                  <-=
+--- here, we add missing jiffies
+111         next =3D ktime_add(next, tick_period);
+112     }
+113 }
 
-This holds true for other device controllers as well.
->
->> +1. Introduction
->> +
->> +*PHY* is the abbreviation for physical layer. It is used to connect a
->> device
->> +to the physical medium e.g., the USB controller has a PHY to provide
->> functions
->> +such as serialization, de-serialization, encoding, decoding and is
->> responsible
->> +for obtaining the required data transmission rate. Note that some USB
->> +controller has PHY functionality embedded into it and others use an
->> external
->> +PHY. Other peripherals that uses a PHY include Wireless LAN, Ethernet,
->> +SATA etc.
->
-> I've usually heard the word "transciever" used to describe these.
 
-hmm.. IMO there is a thin line differentiating "transceiver" and "PHY" 
-and can be used interchangeably. Since it's been referred as "PHY" in 
-data sheets and TRMs, I preferred to call it PHY.
 >
->> +The intention of creating this framework is to bring the phy drivers
->> spread
->> +all over the Linux kernel to drivers/phy to increase code re-use and to
->> +increase code maintainability.
->> +
->> +This framework will be of use only to devices that uses external PHY
->> (PHY
->> +functionality is not embedded within the controller).
->> +
->> +2. Creating the PHY
->> +
->> +The PHY driver should create the PHY in order for other peripheral
->> controllers
->> +to make use of it. The PHY framework provides 2 APIs to create the PHY.
+> This means printk() sees that the two seconds have passed.  But becau=
+se
+> you're reading from jiffies within the interrupt disabled region, tha=
+t
+> code can't see the missed ticks.
 >
-> Given that a PHY is a chip (random example
-> http://ark.intel.com/products/47620/Intel-82579LM-Gigabit-Ethernet-PHY),
-> you seem to be saying that software should manifest a piece of hardware
-> out of thin air through sheer willpower. I'm pretty sure I've
-> misunderstood this phrasing.
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 >
->> +struct phy *phy_create(struct device *dev, struct phy_descriptor *desc);
->> +struct phy *devm_phy_create(struct device *dev, struct phy_descriptor
->> *desc);
->> +
->> +The PHY drivers can use one of the above 2 APIs to create the PHY by
->> passing
->
-> Um, the driver should _bind_ to the phy, maybe? Allocate? Initialize?
 
-There is actually difference between allocating/initializing and 
-binding. Binding is to bind the device controller with the PHY. My 
-previous explanation might help to clarify it.
->
->> +6. Destroying the PHY
->
-> I've run drivers like that. I try not to, though.
->
->> +7. Current Status
->> +
->> +Currently only USB in OMAP is made to use this framework. However
->> using the
->> +USB PHY library cannot be completely removed because it is
->> intertwined with
->> +OTG. Once we move OTG out of PHY completely, using the old PHY
->> library can be
->> +completely removed. SATA in OMAP will also more likely use this new
->> framework
->> +and we should have a patch for it soon.
->
-> Does this paragraph belong in the documentation? (Git commit, sure, but
-> I've seen a lot of stale paragraphs like these hang around a
-> surprisingly long time.)
+--=20
+=E5=85=AB=E7=99=BE=E9=87=8C=E7=A7=A6=E5=B7=9D=E5=B0=98=E5=9C=9F=E9=A3=9E=
+=E6=89=AC,=E4=B8=89=E5=8D=83=E4=B8=87=E8=80=81=E9=99=95=E9=BD=90=E5=90=BC=
+=E7=A7=A6=E8=85=94=E3=80=82
 
-hmm.. there are a few others who raised concern on having this 
-paragraph. I've planned to remove it in my next version.
-
-Thanks
-Kishon
+--bill
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
