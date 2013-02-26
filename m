@@ -1,96 +1,137 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 07/14] ARM: OMAP2+: Convert SMC91x to use gpmc_cs_program_settings()
-Date: Tue, 26 Feb 2013 11:30:34 -0600
-Message-ID: <1361899842-30303-8-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 10/14] ARM: OMAP2+: Add function to read GPMC settings from device-tree
+Date: Tue, 26 Feb 2013 11:30:37 -0600
+Message-ID: <1361899842-30303-11-git-send-email-jon-hunter@ti.com>
 References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46929 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46939 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756797Ab3BZRbT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Feb 2013 12:31:19 -0500
+	id S1756797Ab3BZRbW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Feb 2013 12:31:22 -0500
 In-Reply-To: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Jon Hunter <jon-hunter@ti.com>
 
-Convert the OMAP2+ SMC91x code to use the gpmc_cs_program_settings()
-function for configuring the various GPMC options instead of directly
-programming the CONFIG1 register.
+Adds a function to read the various GPMC chip-select settings from
+device-tree and store them in the gpmc_settings structure.
 
-Move configuration of the GPMC settings outside retime function and
-this does not need to be done if the timings are changed dynamically
-at runtime.
+Update the GPMC device-tree binding documentation to describe these
+options.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-smc91x.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt |   19 ++++++++
+ arch/arm/mach-omap2/gpmc.c                        |   50 +++++++++++++++++++++
+ arch/arm/mach-omap2/gpmc.h                        |    2 +
+ 3 files changed, 71 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/gpmc-smc91x.c b/arch/arm/mach-omap2/gpmc-smc91x.c
-index 4b78338..0871662 100644
---- a/arch/arm/mach-omap2/gpmc-smc91x.c
-+++ b/arch/arm/mach-omap2/gpmc-smc91x.c
-@@ -49,6 +49,10 @@ static struct platform_device gpmc_smc91x_device = {
- 	.resource	= gpmc_smc91x_resources,
+diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+index 5ddb2e9..a31c32a 100644
+--- a/Documentation/devicetree/bindings/bus/ti-gpmc.txt
++++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+@@ -65,6 +65,25 @@ The following are only applicable to OMAP3+ and AM335x:
+  - gpmc,wr-access
+  - gpmc,wr-data-mux-bus
+ 
++GPMC chip-select settings properties for child nodes. All are optional.
++
++- gpmc,burst-length	Page/burst length. Must be 4, 8 or 16.
++- gpmc,burst-wrap	Enables wrap bursting
++- gpmc,burst-read	Enables read page/burst mode
++- gpmc,burst-write	Enables write page/burst mode
++- gpmc,device-nand	Device is NAND
++- gpmc,device-width	Width of device connected to the GPMC in bytes. The
++			GPMC supports 8-bit and 16-bit devices and so this
++			property must be 1 or 2.
++- gpmc,mux-add-data	Enables address and data multiplexing
++- gpmc,sync-read	Enables synchronous read. Defaults to asynchronous
++			is this is not set.
++- gpmc,sync-write	Enables synchronous writes. Defaults to asynchronous
++			is this is not set.
++- gpmc,wait-pin		Wait-pin used by client. Must be less than
++			"gpmc,num-waitpins".
++- gpmc,wait-on-read	Enables wait monitoring on reads.
++- gpmc,wait-on-write	Enables wait monitoring on writes.
+ 
+ Example for an AM33xx board:
+ 
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 7cf3d98..e822d2b 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1182,6 +1182,56 @@ static struct of_device_id gpmc_dt_ids[] = {
  };
+ MODULE_DEVICE_TABLE(of, gpmc_dt_ids);
  
-+static struct gpmc_settings smc91x_settings = {
-+	.device_width = GPMC_DEVWIDTH_16BIT,
-+};
++/**
++ * gpmc_read_settings_dt - read gpmc settings from device-tree
++ * @np:		pointer to device-tree node for a gpmc child device
++ * @p:		pointer to gpmc settings structure
++ *
++ * Reads the GPMC settings for a GPMC child device from device-tree and
++ * stores them in the GPMC settings structure passed. The GPMC settings
++ * structure is initialise to zero by this function and so any previously
++ * stored settings will be clearer.
++ */
++void gpmc_read_settings_dt(struct device_node *np, struct gpmc_settings *p)
++{
++	memset(p, 0, sizeof(struct gpmc_settings));
 +
- /*
-  * Set the gpmc timings for smc91c96. The timings are taken
-  * from the data sheet available at:
-@@ -67,18 +71,6 @@ static int smc91c96_gpmc_retime(void)
- 	const int t7 = 5;	/* Figure 12.4 write */
- 	const int t8 = 5;	/* Figure 12.4 write */
- 	const int t20 = 185;	/* Figure 12.2 read and 12.4 write */
--	u32 l;
--
--	l = GPMC_CONFIG1_DEVICESIZE_16;
--	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
--		l |= GPMC_CONFIG1_MUXADDDATA;
--	if (gpmc_cfg->flags & GPMC_READ_MON)
--		l |= GPMC_CONFIG1_WAIT_READ_MON;
--	if (gpmc_cfg->flags & GPMC_WRITE_MON)
--		l |= GPMC_CONFIG1_WAIT_WRITE_MON;
--	if (gpmc_cfg->wait_pin)
--		l |= GPMC_CONFIG1_WAIT_PIN_SEL(gpmc_cfg->wait_pin);
--	gpmc_cs_write_reg(gpmc_cfg->cs, GPMC_CS_CONFIG1, l);
- 
- 	/*
- 	 * FIXME: Calculate the address and data bus muxed timings.
-@@ -104,7 +96,7 @@ static int smc91c96_gpmc_retime(void)
- 	dev_t.t_cez_w = t4_w * 1000;
- 	dev_t.t_wr_cycle = (t20 - t3) * 1000;
- 
--	gpmc_calc_timings(&t, NULL, &dev_t);
-+	gpmc_calc_timings(&t, &smc91x_settings, &dev_t);
- 
- 	return gpmc_cs_set_timings(gpmc_cfg->cs, &t);
- }
-@@ -133,6 +125,18 @@ void __init gpmc_smc91x_init(struct omap_smc91x_platform_data *board_data)
- 	gpmc_smc91x_resources[0].end = cs_mem_base + 0x30f;
- 	gpmc_smc91x_resources[1].flags |= (gpmc_cfg->flags & IRQF_TRIGGER_MASK);
- 
-+	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
-+		smc91x_settings.mux_add_data = true;
-+	if (gpmc_cfg->flags & GPMC_READ_MON)
-+		smc91x_settings.wait_on_read = true;
-+	if (gpmc_cfg->flags & GPMC_WRITE_MON)
-+		smc91x_settings.wait_on_write = true;
-+	if (gpmc_cfg->wait_pin)
-+		smc91x_settings.wait_pin = gpmc_cfg->wait_pin;
-+	ret = gpmc_cs_program_settings(gpmc_cfg->cs, &smc91x_settings);
-+	if (IS_ERR_VALUE(ret))
-+		goto free1;
++	if (of_find_property(np, "gpmc,sync-read", NULL))
++		p->sync_read = true;
++	if (of_find_property(np, "gpmc,sync-write", NULL))
++		p->sync_write = true;
 +
- 	if (gpmc_cfg->retime) {
- 		ret = gpmc_cfg->retime();
- 		if (ret != 0)
++	if (!of_property_read_u32(np, "gpmc,burst-length", &p->burst_len)) {
++		if (of_find_property(np, "gpmc,burst-wrap", NULL))
++			p->burst_wrap = true;
++		if (of_find_property(np, "gpmc,burst-read", NULL))
++			p->burst_read = true;
++		if (of_find_property(np, "gpmc,burst-write", NULL))
++			p->burst_write = true;
++		if (!p->burst_read && !p->burst_write)
++			pr_warn("%s: page/burst-length set but not used!\n",
++				__func__);
++	}
++
++	if (!of_property_read_u32(np, "gpmc,wait-pin", &p->wait_pin)) {
++		if (of_find_property(np, "gpmc,wait-on-read", NULL))
++			p->wait_on_read = true;
++		if (of_find_property(np, "gpmc,wait-on-write", NULL))
++			p->wait_on_write = true;
++		if (!p->wait_on_read && !p->wait_on_write)
++			pr_warn("%s: read/write wait monitoring not enabled!\n",
++				__func__);
++	}
++
++	of_property_read_u32(np, "gpmc,device-width", &p->device_width);
++
++	if (of_find_property(np, "gpmc,device-nand", NULL))
++		p->device_nand = true;
++
++	if (of_find_property(np, "gpmc,mux-add-data", NULL))
++		p->mux_add_data = true;
++}
++
+ static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
+ 						struct gpmc_timings *gpmc_t)
+ {
+diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
+index d73fda0..c517eaa 100644
+--- a/arch/arm/mach-omap2/gpmc.h
++++ b/arch/arm/mach-omap2/gpmc.h
+@@ -230,5 +230,7 @@ extern int gpmc_cs_reserved(int cs);
+ extern void omap3_gpmc_save_context(void);
+ extern void omap3_gpmc_restore_context(void);
+ extern int gpmc_configure(int cmd, int wval);
++extern void gpmc_read_settings_dt(struct device_node *np,
++				  struct gpmc_settings *p);
+ 
+ #endif
 -- 
 1.7.10.4
 
