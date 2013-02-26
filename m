@@ -1,151 +1,140 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 1/3] usb: dwc3-omap: Minor fixes to get dt working
-Date: Tue, 26 Feb 2013 20:03:27 +0530
-Message-ID: <1361889210-12875-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 3/3] usb: dwc3-omap: stop using nop-usb-xceiv
+Date: Tue, 26 Feb 2013 20:03:29 +0530
+Message-ID: <1361889210-12875-3-git-send-email-kishon@ti.com>
+References: <1361889210-12875-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, gregkh@linuxfoundation.org, kishon@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1361889210-12875-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: balbi-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Includes few minor fixes in dwc3-omap like populating the compatible
-string in a correct way, extracting the utmi-mode property properly and
-changing the index of get_irq since irq of core is removed from hwmod
-entry.
-Also updated the documentation with dwc3-omap device tree binding
-information.
+Now that we have drivers for omap-usb2 phy and omap-usb3 phy, stop
+using nop-usb-xceiv.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- Documentation/devicetree/bindings/usb/omap-usb.txt |   28 ++++++++++++
- drivers/usb/dwc3/dwc3-omap.c                       |   45 +++++++++-----------
- 2 files changed, 49 insertions(+), 24 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c |   67 ------------------------------------------
+ 1 file changed, 67 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-index 1ef0ce7..1b9f55f 100644
---- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-@@ -41,6 +41,34 @@ Board specific device node entry
- 	power = <50>;
- };
- 
-+OMAP DWC3 GLUE
-+ - compatible : Should be "ti,dwc3"
-+ - ti,hwmods : Should be "usb_otg_ss"
-+ - reg : Address and length of the register set for the device.
-+ - interrupts : The irq number of this device that is used to interrupt the
-+   MPU
-+ - #address-cells, #size-cells : Must be present if the device has sub-nodes
-+ - utmi-mode : controls the source of UTMI/PIPE status for VBUS and OTG ID.
-+   It should be set to "1" for HW mode and "2" for SW mode.
-+ - ranges: the child address space are mapped 1:1 onto the parent address space
-+
-+Sub-nodes:
-+The dwc3 core should be added as subnode to omap dwc3 glue.
-+- dwc3 :
-+   The binding details of dwc3 can be found in:
-+   Documentation/devicetree/bindings/usb/dwc3.txt
-+
-+omap_dwc3 {
-+	compatible = "ti,dwc3";
-+	ti,hwmods = "usb_otg_ss";
-+	reg = <0x4a020000 0x1ff>;
-+	interrupts = <0 93 4>;
-+	#address-cells = <1>;
-+	#size-cells = <1>;
-+	utmi-mode = <2>;
-+	ranges;
-+};
-+
- OMAP CONTROL USB
- 
- Required properties:
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 22f337f..bafff68 100644
+index 38d0516..84f64a5 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -318,11 +318,11 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 	struct resource		*res;
- 	struct device		*dev = &pdev->dev;
+@@ -52,7 +52,6 @@
+ #include <linux/of_platform.h>
  
--	int			size;
- 	int			ret = -ENOMEM;
+ #include <linux/usb/otg.h>
+-#include <linux/usb/nop-usb-xceiv.h>
+ 
+ #include "core.h"
+ 
+@@ -119,8 +118,6 @@ struct dwc3_omap {
+ 	/* device lock */
+ 	spinlock_t		lock;
+ 
+-	struct platform_device	*usb2_phy;
+-	struct platform_device	*usb3_phy;
+ 	struct device		*dev;
+ 
  	int			irq;
+@@ -195,60 +192,6 @@ void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
+ }
+ EXPORT_SYMBOL_GPL(dwc3_omap_mailbox);
  
--	const u32		*utmi_mode;
-+	int			utmi_mode;
-+
- 	u32			reg;
- 
- 	void __iomem		*base;
-@@ -336,13 +336,13 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, omap);
- 
--	irq = platform_get_irq(pdev, 1);
-+	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
- 		dev_err(dev, "missing IRQ resource\n");
- 		return -EINVAL;
+-static int dwc3_omap_register_phys(struct dwc3_omap *omap)
+-{
+-	struct nop_usb_xceiv_platform_data pdata;
+-	struct platform_device	*pdev;
+-	int			ret;
+-
+-	memset(&pdata, 0x00, sizeof(pdata));
+-
+-	pdev = platform_device_alloc("nop_usb_xceiv", PLATFORM_DEVID_AUTO);
+-	if (!pdev)
+-		return -ENOMEM;
+-
+-	omap->usb2_phy = pdev;
+-	pdata.type = USB_PHY_TYPE_USB2;
+-
+-	ret = platform_device_add_data(omap->usb2_phy, &pdata, sizeof(pdata));
+-	if (ret)
+-		goto err1;
+-
+-	pdev = platform_device_alloc("nop_usb_xceiv", PLATFORM_DEVID_AUTO);
+-	if (!pdev) {
+-		ret = -ENOMEM;
+-		goto err1;
+-	}
+-
+-	omap->usb3_phy = pdev;
+-	pdata.type = USB_PHY_TYPE_USB3;
+-
+-	ret = platform_device_add_data(omap->usb3_phy, &pdata, sizeof(pdata));
+-	if (ret)
+-		goto err2;
+-
+-	ret = platform_device_add(omap->usb2_phy);
+-	if (ret)
+-		goto err2;
+-
+-	ret = platform_device_add(omap->usb3_phy);
+-	if (ret)
+-		goto err3;
+-
+-	return 0;
+-
+-err3:
+-	platform_device_del(omap->usb2_phy);
+-
+-err2:
+-	platform_device_put(omap->usb3_phy);
+-
+-err1:
+-	platform_device_put(omap->usb2_phy);
+-
+-	return ret;
+-}
+-
+ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
+ {
+ 	struct dwc3_omap	*omap = _omap;
+@@ -358,12 +301,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
  	}
  
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
- 		dev_err(dev, "missing memory base resource\n");
- 		return -EINVAL;
-@@ -389,25 +389,22 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+-	ret = dwc3_omap_register_phys(omap);
+-	if (ret) {
+-		dev_err(dev, "couldn't register PHYs\n");
+-		return ret;
+-	}
+-
+ 	context = devm_kzalloc(dev, resource_size(res), GFP_KERNEL);
+ 	if (!context) {
+ 		dev_err(dev, "couldn't allocate dwc3 context memory\n");
+@@ -447,10 +384,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
  
- 	reg = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
- 
--	utmi_mode = of_get_property(node, "utmi-mode", &size);
--	if (utmi_mode && size == sizeof(*utmi_mode)) {
--		reg |= *utmi_mode;
--	} else {
--		if (!pdata) {
--			dev_dbg(dev, "missing platform data\n");
--		} else {
--			switch (pdata->utmi_mode) {
--			case DWC3_OMAP_UTMI_MODE_SW:
--				reg |= USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
--				break;
--			case DWC3_OMAP_UTMI_MODE_HW:
--				reg &= ~USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
--				break;
--			default:
--				dev_dbg(dev, "UNKNOWN utmi mode %d\n",
--						pdata->utmi_mode);
--			}
--		}
-+	if (node)
-+		of_property_read_u32(node, "utmi-mode", &utmi_mode);
-+	else if (pdata)
-+		utmi_mode = pdata->utmi_mode;
-+	else
-+		dev_dbg(dev, "missing platform data\n");
-+
-+	switch (utmi_mode) {
-+	case DWC3_OMAP_UTMI_MODE_SW:
-+		reg |= USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
-+		break;
-+	case DWC3_OMAP_UTMI_MODE_HW:
-+		reg &= ~USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
-+		break;
-+	default:
-+		dev_dbg(dev, "UNKNOWN utmi mode %d\n", utmi_mode);
- 	}
- 
- 	dwc3_omap_writel(omap->base, USBOTGSS_UTMI_OTG_STATUS, reg);
-@@ -467,7 +464,7 @@ static int dwc3_omap_remove(struct platform_device *pdev)
- 
- static const struct of_device_id of_dwc3_matach[] = {
- 	{
--		"ti,dwc3",
-+		.compatible =	"ti,dwc3"
- 	},
- 	{ },
- };
+ static int dwc3_omap_remove(struct platform_device *pdev)
+ {
+-	struct dwc3_omap	*omap = platform_get_drvdata(pdev);
+-
+-	platform_device_unregister(omap->usb2_phy);
+-	platform_device_unregister(omap->usb3_phy);
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+ 	device_for_each_child(&pdev->dev, NULL, dwc3_omap_remove_core);
 -- 
 1.7.10.4
