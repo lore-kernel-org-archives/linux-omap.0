@@ -1,151 +1,96 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 05/14] ARM: OMAP2+: Convert ONENAND to use gpmc_cs_program_settings()
-Date: Tue, 26 Feb 2013 11:30:32 -0600
-Message-ID: <1361899842-30303-6-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 07/14] ARM: OMAP2+: Convert SMC91x to use gpmc_cs_program_settings()
+Date: Tue, 26 Feb 2013 11:30:34 -0600
+Message-ID: <1361899842-30303-8-git-send-email-jon-hunter@ti.com>
 References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40039 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46929 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757122Ab3BZRbO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Feb 2013 12:31:14 -0500
+	id S1756797Ab3BZRbT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Feb 2013 12:31:19 -0500
 In-Reply-To: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Jon Hunter <jon-hunter@ti.com>
 
-Convert the OMAP2+ ONENAND code to use the gpmc_cs_program_settings()
+Convert the OMAP2+ SMC91x code to use the gpmc_cs_program_settings()
 function for configuring the various GPMC options instead of directly
 programming the CONFIG1 register.
 
+Move configuration of the GPMC settings outside retime function and
+this does not need to be done if the timings are changed dynamically
+at runtime.
+
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-onenand.c |   61 +++++++++++++++---------------------
- 1 file changed, 25 insertions(+), 36 deletions(-)
+ arch/arm/mach-omap2/gpmc-smc91x.c |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index 8b1c08e..1e2191c 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -49,17 +49,21 @@ static struct platform_device gpmc_onenand_device = {
- 
- static struct gpmc_settings onenand_async = {
- 	.mux_add_data	= true,
-+	.device_width	= GPMC_DEVWIDTH_16BIT,
+diff --git a/arch/arm/mach-omap2/gpmc-smc91x.c b/arch/arm/mach-omap2/gpmc-smc91x.c
+index 4b78338..0871662 100644
+--- a/arch/arm/mach-omap2/gpmc-smc91x.c
++++ b/arch/arm/mach-omap2/gpmc-smc91x.c
+@@ -49,6 +49,10 @@ static struct platform_device gpmc_smc91x_device = {
+ 	.resource	= gpmc_smc91x_resources,
  };
  
- static struct gpmc_settings onenand_sync = {
- 	.burst_read	= true,
-+	.burst_wrap	= true,
- 	.mux_add_data	= true,
-+	.burst_len	= GPMC_BURST_16,
-+	.device_width	= GPMC_DEVWIDTH_16BIT,
-+	.wait_pin	= 0,
- };
- 
- static void omap2_onenand_calc_async_timings(struct gpmc_timings *t)
- {
- 	struct gpmc_device_timings dev_t;
++static struct gpmc_settings smc91x_settings = {
++	.device_width = GPMC_DEVWIDTH_16BIT,
++};
++
+ /*
+  * Set the gpmc timings for smc91c96. The timings are taken
+  * from the data sheet available at:
+@@ -67,18 +71,6 @@ static int smc91c96_gpmc_retime(void)
+ 	const int t7 = 5;	/* Figure 12.4 write */
+ 	const int t8 = 5;	/* Figure 12.4 write */
+ 	const int t20 = 185;	/* Figure 12.2 read and 12.4 write */
+-	u32 l;
 -
- 	const int t_cer = 15;
- 	const int t_avdp = 12;
- 	const int t_aavdh = 7;
-@@ -86,16 +90,6 @@ static void omap2_onenand_calc_async_timings(struct gpmc_timings *t)
- 	gpmc_calc_timings(t, &onenand_async, &dev_t);
+-	l = GPMC_CONFIG1_DEVICESIZE_16;
+-	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
+-		l |= GPMC_CONFIG1_MUXADDDATA;
+-	if (gpmc_cfg->flags & GPMC_READ_MON)
+-		l |= GPMC_CONFIG1_WAIT_READ_MON;
+-	if (gpmc_cfg->flags & GPMC_WRITE_MON)
+-		l |= GPMC_CONFIG1_WAIT_WRITE_MON;
+-	if (gpmc_cfg->wait_pin)
+-		l |= GPMC_CONFIG1_WAIT_PIN_SEL(gpmc_cfg->wait_pin);
+-	gpmc_cs_write_reg(gpmc_cfg->cs, GPMC_CS_CONFIG1, l);
+ 
+ 	/*
+ 	 * FIXME: Calculate the address and data bus muxed timings.
+@@ -104,7 +96,7 @@ static int smc91c96_gpmc_retime(void)
+ 	dev_t.t_cez_w = t4_w * 1000;
+ 	dev_t.t_wr_cycle = (t20 - t3) * 1000;
+ 
+-	gpmc_calc_timings(&t, NULL, &dev_t);
++	gpmc_calc_timings(&t, &smc91x_settings, &dev_t);
+ 
+ 	return gpmc_cs_set_timings(gpmc_cfg->cs, &t);
  }
+@@ -133,6 +125,18 @@ void __init gpmc_smc91x_init(struct omap_smc91x_platform_data *board_data)
+ 	gpmc_smc91x_resources[0].end = cs_mem_base + 0x30f;
+ 	gpmc_smc91x_resources[1].flags |= (gpmc_cfg->flags & IRQF_TRIGGER_MASK);
  
--static int gpmc_set_async_mode(int cs, struct gpmc_timings *t)
--{
--	/* Configure GPMC for asynchronous read */
--	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
--			  GPMC_CONFIG1_DEVICESIZE_16 |
--			  GPMC_CONFIG1_MUXADDDATA);
--
--	return gpmc_cs_set_timings(cs, t);
--}
--
- static void omap2_onenand_set_async_mode(void __iomem *onenand_base)
- {
- 	u32 reg;
-@@ -243,8 +237,11 @@ static void omap2_onenand_calc_sync_timings(struct gpmc_timings *t,
- 	/* Set synchronous read timings */
- 	memset(&dev_t, 0, sizeof(dev_t));
- 
-+	if (onenand_flags & ONENAND_FLAG_SYNCREAD)
-+		onenand_sync.sync_read = true;
- 	if (onenand_flags & ONENAND_FLAG_SYNCWRITE) {
- 		onenand_sync.sync_write = true;
-+		onenand_sync.burst_write = true;
- 	} else {
- 		dev_t.t_avdp_w = max(t_avdp, t_cer) * 1000;
- 		dev_t.t_wpl = t_wpl * 1000;
-@@ -270,29 +267,6 @@ static void omap2_onenand_calc_sync_timings(struct gpmc_timings *t,
- 	gpmc_calc_timings(t, &onenand_sync, &dev_t);
- }
- 
--static int gpmc_set_sync_mode(int cs, struct gpmc_timings *t)
--{
--	unsigned sync_read = onenand_flags & ONENAND_FLAG_SYNCREAD;
--	unsigned sync_write = onenand_flags & ONENAND_FLAG_SYNCWRITE;
--
--	/* Configure GPMC for synchronous read */
--	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
--			  GPMC_CONFIG1_WRAPBURST_SUPP |
--			  GPMC_CONFIG1_READMULTIPLE_SUPP |
--			  (sync_read ? GPMC_CONFIG1_READTYPE_SYNC : 0) |
--			  (sync_write ? GPMC_CONFIG1_WRITEMULTIPLE_SUPP : 0) |
--			  (sync_write ? GPMC_CONFIG1_WRITETYPE_SYNC : 0) |
--			  GPMC_CONFIG1_PAGE_LEN(2) |
--			  (cpu_is_omap34xx() ? 0 :
--				(GPMC_CONFIG1_WAIT_READ_MON |
--				 GPMC_CONFIG1_WAIT_PIN_SEL(0))) |
--			  GPMC_CONFIG1_DEVICESIZE_16 |
--			  GPMC_CONFIG1_DEVICETYPE_NOR |
--			  GPMC_CONFIG1_MUXADDDATA);
--
--	return gpmc_cs_set_timings(cs, t);
--}
--
- static int omap2_onenand_setup_async(void __iomem *onenand_base)
- {
- 	struct gpmc_timings t;
-@@ -302,7 +276,11 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
- 
- 	omap2_onenand_calc_async_timings(&t);
- 
--	ret = gpmc_set_async_mode(gpmc_onenand_data->cs, &t);
-+	ret = gpmc_cs_program_settings(gpmc_onenand_data->cs, &onenand_async);
++	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
++		smc91x_settings.mux_add_data = true;
++	if (gpmc_cfg->flags & GPMC_READ_MON)
++		smc91x_settings.wait_on_read = true;
++	if (gpmc_cfg->flags & GPMC_WRITE_MON)
++		smc91x_settings.wait_on_write = true;
++	if (gpmc_cfg->wait_pin)
++		smc91x_settings.wait_pin = gpmc_cfg->wait_pin;
++	ret = gpmc_cs_program_settings(gpmc_cfg->cs, &smc91x_settings);
 +	if (IS_ERR_VALUE(ret))
-+		return ret;
++		goto free1;
 +
-+	ret = gpmc_cs_set_timings(gpmc_onenand_data->cs, &t);
- 	if (IS_ERR_VALUE(ret))
- 		return ret;
- 
-@@ -322,9 +300,20 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
- 		set_onenand_cfg(onenand_base);
- 	}
- 
-+	/*
-+	 * FIXME: Appears to be legacy code from initial ONENAND commit.
-+	 * Unclear what boards this is for and if this can be removed.
-+	 */
-+	if (!cpu_is_omap34xx())
-+		onenand_sync.wait_on_read = true;
-+
- 	omap2_onenand_calc_sync_timings(&t, gpmc_onenand_data->flags, freq);
- 
--	ret = gpmc_set_sync_mode(gpmc_onenand_data->cs, &t);
-+	ret = gpmc_cs_program_settings(gpmc_onenand_data->cs, &onenand_sync);
-+	if (IS_ERR_VALUE(ret))
-+		return ret;
-+
-+	ret = gpmc_cs_set_timings(gpmc_onenand_data->cs, &t);
- 	if (IS_ERR_VALUE(ret))
- 		return ret;
- 
+ 	if (gpmc_cfg->retime) {
+ 		ret = gpmc_cfg->retime();
+ 		if (ret != 0)
 -- 
 1.7.10.4
 
