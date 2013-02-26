@@ -1,79 +1,78 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 15/15] staging: omap-thermal: update clock prepare count
-Date: Tue, 26 Feb 2013 18:53:38 -0400
-Message-ID: <1361919218-9788-16-git-send-email-eduardo.valentin@ti.com>
-References: <1361919218-9788-1-git-send-email-eduardo.valentin@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
+Date: Tue, 26 Feb 2013 17:01:22 -0600
+Message-ID: <512D3EC2.6050408@ti.com>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <1329321854-24490-4-git-send-email-b-cousson@ti.com> <4F44FA56.7020000@gmail.com> <4F44FC37.2000701@ti.com> <4F452484.5080503@gmail.com> <74CDBE0F657A3D45AFBB94109FB122FF17BD8BC6C1@HQMAIL01.nvidia.com> <4F47AD08.4030504@ti.com> <CAAwP0s0cB368R2mtbJpTZJreR-5GSRLfxC+8DJLo5nw3_OwBuA@mail.gmail.com> <512D39DA.7020306@ti.com> <512D3AB1.1080202@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51048 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755909Ab3BZW7Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Feb 2013 17:59:24 -0500
-In-Reply-To: <1361919218-9788-1-git-send-email-eduardo.valentin@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51172 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753473Ab3BZXBd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Feb 2013 18:01:33 -0500
+In-Reply-To: <512D3AB1.1080202@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: gregkh@linuxfoundation.org
-Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-This patch changes the clock management code to also update
-the clock prepare counter, this way we won't skip the enable/disable
-operation due to prepare dependencies.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- drivers/staging/omap-thermal/omap-bandgap.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+On 02/26/2013 04:44 PM, Stephen Warren wrote:
+> On 02/26/2013 03:40 PM, Jon Hunter wrote:
+>>
+>> On 02/26/2013 04:01 AM, Javier Martinez Canillas wrote:
+>>
+>> [snip]
+>>
+>>> I was wondering if the level/edge settings for gpios is working on OMAP.
+>>>
+>>> I'm adding DT support for an SMSC911x ethernet chip connected to the
+>>> GPMC for an OMAP3 SoC based board.
+>>>
+>>> In the smsc911x driver probe function (smsc911x_drv_probe() in
+>>> drivers/net/ethernet/smsc/smsc911x.c), a call to request_irq() with
+>>> the flag IRQF_TRIGGER_LOW is needed because of the wiring on my board.
+>>>
+>>> Reading the gpio-omap.txt documentation it says that #interrupt-cells
+>>> should be <2> and that a value of 8 is "active low level-sensitive".
+>>>
+>>> So I tried this:
+>>>
+>>> &gpmc {
+>>> 	ethernet@5,0 {
+>>> 		pinctrl-names = "default";
+>>> 		pinctrl-0 = <&smsc911x_pins>;
+>>> 		compatible = "smsc,lan9221", "smsc,lan9115";
+>>> 		reg = <5 0 0xff>; /* CS5 */
+>>> 		interrupt-parent = <&gpio6>;
+>>> 		interrupts = <16 8>; /* gpio line 176 */
+>>> 		interrupt-names = "smsc911x irq";
+>>> 		vmmc-supply = <&vddvario>;
+>>> 		vmmc_aux-supply = <&vdd33a>;
+>>> 		reg-io-width = <4>;
+>>>
+>>> 		smsc,save-mac-address;
+>>>       };
+>>> };
+>>
+>> Are you requesting the gpio anywhere? If not then this is not going to
+>> work as-is. This was discussed fairly recently [1] and the conclusion
+>> was that the gpio needs to be requested before we can use as an interrupt.
+> 
+> That seems wrong; the GPIO/IRQ driver should handle this internally. The
+> Ethernet driver shouldn't know/care whether the interrupt it's given is
+> some form of dedicated interrupt or a GPIO-based interrupt, and even if
+> it somehow did, there's no irq_to_gpio() any more, so the driver can't
+> tell which GPIO ID it should request, unless it's given yet another
+> property to represent this.
 
-diff --git a/drivers/staging/omap-thermal/omap-bandgap.c b/drivers/staging/omap-thermal/omap-bandgap.c
-index 83f74f4..d4a3788 100644
---- a/drivers/staging/omap-thermal/omap-bandgap.c
-+++ b/drivers/staging/omap-thermal/omap-bandgap.c
-@@ -943,7 +943,7 @@ int omap_bandgap_probe(struct platform_device *pdev)
- 
- 	bg_ptr->clk_rate = clk_rate;
- 	if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
--		clk_enable(bg_ptr->fclock);
-+		clk_prepare_enable(bg_ptr->fclock);
- 
- 
- 	mutex_init(&bg_ptr->bg_mutex);
-@@ -1013,7 +1013,7 @@ int omap_bandgap_probe(struct platform_device *pdev)
- 
- disable_clk:
- 	if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
--		clk_disable(bg_ptr->fclock);
-+		clk_disable_unprepare(bg_ptr->fclock);
- put_clks:
- 	clk_put(bg_ptr->fclock);
- 	clk_put(bg_ptr->div_clk);
-@@ -1044,7 +1044,7 @@ int omap_bandgap_remove(struct platform_device *pdev)
- 	omap_bandgap_power(bg_ptr, false);
- 
- 	if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
--		clk_disable(bg_ptr->fclock);
-+		clk_disable_unprepare(bg_ptr->fclock);
- 	clk_put(bg_ptr->fclock);
- 	clk_put(bg_ptr->div_clk);
- 
-@@ -1143,7 +1143,7 @@ static int omap_bandgap_suspend(struct device *dev)
- 	omap_bandgap_power(bg_ptr, false);
- 
- 	if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
--		clk_disable(bg_ptr->fclock);
-+		clk_disable_unprepare(bg_ptr->fclock);
- 
- 	return err;
- }
-@@ -1153,7 +1153,7 @@ static int omap_bandgap_resume(struct device *dev)
- 	struct omap_bandgap *bg_ptr = dev_get_drvdata(dev);
- 
- 	if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
--		clk_enable(bg_ptr->fclock);
-+		clk_prepare_enable(bg_ptr->fclock);
- 
- 	omap_bandgap_power(bg_ptr, true);
- 
--- 
-1.7.7.1.488.ge8e1c
+I agree that ideally this should be handled internally. Did you read the
+discussion on the thread that I referenced [1]? If you have any thoughts
+we are open to ideas :-)
+
+Cheers
+Jon
+
+[1] http://comments.gmane.org/gmane.linux.ports.arm.omap/92192
 
