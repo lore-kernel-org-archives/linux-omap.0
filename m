@@ -1,66 +1,84 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
-Date: Tue, 26 Feb 2013 09:33:24 -0700
-Message-ID: <512CE3D4.7040101@wwwdotorg.org>
-References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <1329321854-24490-4-git-send-email-b-cousson@ti.com> <4F44FA56.7020000@gmail.com> <4F44FC37.2000701@ti.com> <4F452484.5080503@gmail.com> <74CDBE0F657A3D45AFBB94109FB122FF17BD8BC6C1@HQMAIL01.nvidia.com> <4F47AD08.4030504@ti.com> <CAAwP0s0cB368R2mtbJpTZJreR-5GSRLfxC+8DJLo5nw3_OwBuA@mail.gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH 00/14] ARM: OMAP2+: GPMC clean-up and DT update
+Date: Tue, 26 Feb 2013 11:30:27 -0600
+Message-ID: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:47065 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932495Ab3BZQd2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Feb 2013 11:33:28 -0500
-In-Reply-To: <CAAwP0s0cB368R2mtbJpTZJreR-5GSRLfxC+8DJLo5nw3_OwBuA@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:36714 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754984Ab3BZRbE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Feb 2013 12:31:04 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Jon Hunter <jon-hunter@ti.com>
 
-On 02/26/2013 03:01 AM, Javier Martinez Canillas wrote:
-...
-> I was wondering if the level/edge settings for gpios is working on OMAP.
-...
-> Reading the gpio-omap.txt documentation it says that #interrupt-cells
-> should be <2> and that a value of 8 is "active low level-sensitive".
-> 
-> So I tried this:
-> 
-> &gpmc {
-> 	ethernet@5,0 {
-...
-> 		interrupt-parent = <&gpio6>;
-> 		interrupts = <16 8>; /* gpio line 176 */
-> 		interrupt-names = "smsc911x irq";
-...
-> 
-> But in the smsc911x probe function:
-> 
-> irq_res->flags & IRQF_TRIGGER_MASK;
-> 
-> returns 0 which means that no trigger flags where set.
-> 
-> I took a look to the GPIOs device node definition on omap{3,4,5}.dtsi
-> and all look like this:
-> 
-> e.g from omap3.dtsi:
-> 
->                 gpio6: gpio@49058000 {
-...
->                         #interrupt-cells = <1>;
-...
-> So, even when the documentation says that all the GPIO device nodes in
-> OMAP2+ should use a #interrupt-cells property value of <2>, they are
-> only using <1>. Changing that value to 2 makes hangs the kernel and it
-> does not boot.
+While adding device-tree support for NOR memories, it became apparent
+that there is no common way for configuring various GPMC settings for
+devices that interface to the GPMC. These settings include bus-width,
+synchronous/asynchronous mode, burst settings, wait monitoring etc.
+Therefore, to simplify the GPMC code and add device-tree support for
+NOR, it was first necessary to consolidate how these settings are
+programmed.
 
-Take a look at what the OMAP GPIO driver is plugging in for the of_xlate
-function; does it correctly handle the case where there are two cells?
+Summary of changes:
+- Clean-up/simplification of ONENAND initialisation code.
+- Add a new GPMC structure to unify storage of various GPMC settings
+  (that are non-timing related) for client devices and add a new
+  function to program these settings in a common way.
+- Migrate initialisation code for existing flash, usb and networking
+  devices to use the new structure and function for GPMC settings.
+- Add device-tree support for NOR flash memories.
+- Add additional GPMC timing parameters to GPMC device-tree binding.
+- Update GPMC NAND and ONENAND device-tree support to retrieve GPMC
+  settings from device-tree.
 
-Is there a default for the flags when no second cell is provided, such
-that when you set #interrupt-cells to <2>, you're changing away from the
-default and mis-configuring things?
+Testing includes:
+- Boot testing on OMAP2420 H4, OMAP3430 SDP and OMAP4430 SDP with
+  and without device-tree present.
+- OMAP2420 H4 board has NOR flash and OMAP3430 SDP has NOR, NAND
+  and ONENAND flash. So verified that flash is detected on boot
+  as expected. Note additional patches [1] are required for OMAP2420
+  H4 and OMAP3430 SDP dts files in order to enable flash memory
+  support.
+- All of the above boards use GPMC for interfacing to a networking
+  chip and so verified that networking is working wit this series.
+  However, please note that networking is not currently supported
+  on these boards when booting with DT and so networking is only
+  tested without DT.
 
-And, did you check for any other interrupts hooked through the GPIO
-module, for which you'll need to add the second cell into their GPIO
-specifier throughout the entire device tree?
+[1] https://github.com/jonhunter/linux/tree/dev-gpmc
+
+Jon Hunter (14):
+  ARM: OMAP2+: Simplify code configuring ONENAND devices
+  ARM: OMAP2+: Add variable to store number of GPMC waitpins
+  ARM: OMAP2+: Add structure for storing GPMC settings
+  ARM: OMAP2+: Add function for configuring GPMC settings
+  ARM: OMAP2+: Convert ONENAND to use gpmc_cs_program_settings()
+  ARM: OMAP2+: Convert NAND to use gpmc_cs_program_settings()
+  ARM: OMAP2+: Convert SMC91x to use gpmc_cs_program_settings()
+  ARM: OMAP2+: Convert TUSB to use gpmc_cs_program_settings()
+  ARM: OMAP2+: Don't configure of chip-select options in
+    gpmc_cs_configure()
+  ARM: OMAP2+: Add function to read GPMC settings from device-tree
+  ARM: OMAP2+: Add device-tree support for NOR flash
+  ARM: OMAP2+: Add additional GPMC timing parameters
+  ARM: OMAP2+: Convert NAND to retrieve GPMC settings from DT
+  ARM: OMAP2+: Convert ONENAND to retrieve GPMC settings from DT
+
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt  |   44 ++-
+ Documentation/devicetree/bindings/mtd/gpmc-nor.txt |   98 ++++++
+ .../devicetree/bindings/mtd/gpmc-onenand.txt       |    3 +
+ arch/arm/mach-omap2/gpmc-nand.c                    |   38 +-
+ arch/arm/mach-omap2/gpmc-onenand.c                 |  110 +++---
+ arch/arm/mach-omap2/gpmc-smc91x.c                  |   30 +-
+ arch/arm/mach-omap2/gpmc.c                         |  367 +++++++++++++++++---
+ arch/arm/mach-omap2/gpmc.h                         |   32 +-
+ arch/arm/mach-omap2/usb-tusb6010.c                 |   62 ++--
+ 9 files changed, 605 insertions(+), 179 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nor.txt
+
+-- 
+1.7.10.4
+
