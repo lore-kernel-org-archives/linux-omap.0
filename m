@@ -1,36 +1,78 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: omap4: 3.8: IPV6 + PREEMPT_VOLUNTARY +
-	!DEBUG_[SPINLOCK|MUTEXES] = BUG()
-Date: Mon, 25 Feb 2013 16:14:01 +0000
-Message-ID: <20130225161401.GB30923@n2100.arm.linux.org.uk>
-References: <20130221094819.GA4580@luxor.wired.org> <20130222123637.GA30923@n2100.arm.linux.org.uk> <20130225142048.GA6616@luxor.wired.org>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: Fix the init code to have OMAP4460 errata
+ available in DT build
+Date: Tue, 26 Feb 2013 13:13:14 +0530
+Message-ID: <512C6792.5070407@ti.com>
+References: <1361794156-9789-1-git-send-email-santosh.shilimkar@ti.com> <512B7CF6.8030905@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49801 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759059Ab3BYQTT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Feb 2013 11:19:19 -0500
-Content-Disposition: inline
-In-Reply-To: <20130225142048.GA6616@luxor.wired.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42299 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757513Ab3BZHlx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Feb 2013 02:41:53 -0500
+In-Reply-To: <512B7CF6.8030905@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paolo Pisati <p.pisati@gmail.com>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-On Mon, Feb 25, 2013 at 03:20:48PM +0100, Paolo Pisati wrote:
-> On Fri, Feb 22, 2013 at 12:36:37PM +0000, Russell King - ARM Linux wrote:
-> > On Thu, Feb 21, 2013 at 10:48:19AM +0100, Paolo Pisati wrote:
-> > > any idea how can i debug this?
-> > 
-> > Please try this patch, and report back whether it solves your problem.
-> > Thanks.
-> 
-> yes, it solves my problem: any chance we can see it in 3.9 or 3.8.x?
+On Monday 25 February 2013 08:32 PM, Jon Hunter wrote:
+>
+> On 02/25/2013 06:09 AM, Santosh Shilimkar wrote:
+>> OMAP4460 ROM code bug needs the GIC distributor and local timer
+>> bases to be available for the bug work around. In current code, dt
+>> case these bases are not initialized leading to failure of the
+>> errata work-around.
+>>
+>> Fix it by extracting the bases from dt blob and populating them.
+>>
+>> Reported-by: Sourav Poddar <sourav.poddar@ti.com>
+>> Tested-by: Sourav Poddar <sourav.poddar@ti.com>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>> Posting this one seperatly but will add along with rest of
+>> my fixes so that it doesn't get lost on the list.
+>>
+>>   arch/arm/mach-omap2/omap4-common.c |   32 ++++++++++++++++++++++++++++++++
+>>   1 file changed, 32 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+>> index 6897ae2..d07740e 100644
+>> --- a/arch/arm/mach-omap2/omap4-common.c
+>> +++ b/arch/arm/mach-omap2/omap4-common.c
+>> @@ -261,8 +261,40 @@ static struct of_device_id irq_match[] __initdata = {
+>>   	{ }
+>>   };
+>>
+>> +static struct of_device_id twd_match[] __initdata = {
+>> +	{ .compatible = "arm,cortex-a9-twd-timer", },
+>> +	{ }
+>> +};
+>> +
+>>   void __init omap_gic_of_init(void)
+>>   {
+>> +	struct device_node *np;
+>> +	const void *reg_prop;
+>> +	unsigned long start = 0, size = 0;
+>> +
+>> +	/* Extract GIC distributor and TWD bases for OMAP4460 ROM Errata WA */
+>> +	if (!cpu_is_omap446x())
+>> +		goto skip_errata_init;
+>> +
+>> +	np = of_find_matching_node(NULL, irq_match);
+>> +	if (np) {
+>> +		reg_prop = of_get_property(np, "reg", NULL);
+>> +		start = of_read_number(reg_prop, 1);
+>> +		size = of_read_number(reg_prop + 4, 1);
+>
+> Alternatively, you could replace the above 3 lines with ...
+>
+> gic_dist_base_addr = of_iomap(np, 0);
+>
+Nice !!
+Will use the alternative. Thanks Jon for pointer.
 
-I was just looking to send a chase for this, because I'm about to
-remerge my tree and I wanted this patch committed.
-
-Can I use your name and email address in the commit for the Reported-by
-and Tested-by tags (which will be published in the kernel repository)
-please?  Thanks.
+Regards,
+Santosh
