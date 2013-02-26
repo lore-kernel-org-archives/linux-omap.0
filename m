@@ -1,130 +1,114 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 09/14] ARM: OMAP2+: Don't configure of chip-select options in gpmc_cs_configure()
-Date: Tue, 26 Feb 2013 11:30:36 -0600
-Message-ID: <1361899842-30303-10-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 08/14] ARM: OMAP2+: Convert TUSB to use gpmc_cs_program_settings()
+Date: Tue, 26 Feb 2013 11:30:35 -0600
+Message-ID: <1361899842-30303-9-git-send-email-jon-hunter@ti.com>
 References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36744 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756797Ab3BZRbR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Feb 2013 12:31:17 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:46931 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757465Ab3BZRbU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Feb 2013 12:31:20 -0500
 In-Reply-To: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Jon Hunter <jon-hunter@ti.com>
 
-With the addition of the gpmc_cs_program_settings(), we no longer need
-or use gpmc_cs_configure() to configure some of the GPMC chip-select
-options. So rename the function to gpmc_configure() and remove code that
-modifies options in the CONFIG1 register.
+Convert the OMAP2+ TUSB code to use the gpmc_cs_program_settings()
+function for configuring the various GPMC options instead of directly
+programming the CONFIG1 register.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-nand.c |    2 +-
- arch/arm/mach-omap2/gpmc.c      |   45 ++++++---------------------------------
- arch/arm/mach-omap2/gpmc.h      |    2 +-
- 3 files changed, 9 insertions(+), 40 deletions(-)
+ arch/arm/mach-omap2/usb-tusb6010.c |   43 ++++++++++++++++--------------------
+ 1 file changed, 19 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 4bdfea2..a4c8537 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -153,7 +153,7 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 		if (IS_ERR_VALUE(err))
- 			goto out_free_cs;
- 
--		err = gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_WP, 0);
-+		err = gpmc_configure(GPMC_CONFIG_WP, 0);
- 		if (IS_ERR_VALUE(err))
- 			goto out_free_cs;
- 	}
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index fb8dfd2..7cf3d98 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -564,16 +564,14 @@ void gpmc_cs_free(int cs)
- EXPORT_SYMBOL(gpmc_cs_free);
- 
- /**
-- * gpmc_cs_configure - write request to configure gpmc
-- * @cs: chip select number
-+ * gpmc_configure - write request to configure gpmc
-  * @cmd: command type
-  * @wval: value to write
-  * @return status of the operation
+diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
+index 940410a..f38efd0 100644
+--- a/arch/arm/mach-omap2/usb-tusb6010.c
++++ b/arch/arm/mach-omap2/usb-tusb6010.c
+@@ -8,6 +8,7 @@
+  * published by the Free Software Foundation.
   */
--int gpmc_cs_configure(int cs, int cmd, int wval)
-+int gpmc_configure(int cmd, int wval)
- {
--	int err = 0;
--	u32 regval = 0;
-+	u32 regval;
  
- 	switch (cmd) {
- 	case GPMC_ENABLE_IRQ:
-@@ -593,43 +591,14 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
- 		gpmc_write_reg(GPMC_CONFIG, regval);
- 		break;
++#include <linux/err.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
+ #include <linux/errno.h>
+@@ -28,12 +29,21 @@ static unsigned		refclk_psec;
  
--	case GPMC_CONFIG_RDY_BSY:
--		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--		if (wval)
--			regval |= WR_RD_PIN_MONITORING;
--		else
--			regval &= ~WR_RD_PIN_MONITORING;
--		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
--		break;
--
--	case GPMC_CONFIG_DEV_SIZE:
--		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--
--		/* clear 2 target bits */
--		regval &= ~GPMC_CONFIG1_DEVICESIZE(3);
--
--		/* set the proper value */
--		regval |= GPMC_CONFIG1_DEVICESIZE(wval);
--
--		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
--		break;
--
--	case GPMC_CONFIG_DEV_TYPE:
--		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--		regval |= GPMC_CONFIG1_DEVICETYPE(wval);
--		if (wval == GPMC_DEVICETYPE_NOR)
--			regval |= GPMC_CONFIG1_MUXADDDATA;
--		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
--		break;
--
- 	default:
--		printk(KERN_ERR "gpmc_configure_cs: Not supported\n");
--		err = -EINVAL;
-+		pr_err("%s: command not supported\n", __func__);
-+		return -EINVAL;
+ static struct gpmc_settings tusb_async = {
+ 	.mux_add_data	= true,
++	.wait_on_read	= true,
++	.wait_on_write	= true,
++	.device_width	= GPMC_DEVWIDTH_16BIT,
+ };
+ 
+ static struct gpmc_settings tusb_sync = {
++	.burst_read	= true,
++	.burst_write	= true,
+ 	.mux_add_data	= true,
+ 	.sync_read	= true,
+ 	.sync_write	= true,
++	.wait_on_read	= true,
++	.wait_on_write	= true,
++	.burst_len	= GPMC_BURST_16,
++	.device_width	= GPMC_DEVWIDTH_16BIT,
+ };
+ 
+ /* NOTE:  timings are from tusb 6010 datasheet Rev 1.8, 12-Sept 2006 */
+@@ -168,18 +178,12 @@ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
+ 		return status;
  	}
+ 	tusb_resources[0].end = tusb_resources[0].start + 0x9ff;
++	tusb_async.wait_pin = waitpin;
+ 	async_cs = async;
+-	gpmc_cs_write_reg(async, GPMC_CS_CONFIG1,
+-			  GPMC_CONFIG1_PAGE_LEN(2)
+-			| GPMC_CONFIG1_WAIT_READ_MON
+-			| GPMC_CONFIG1_WAIT_WRITE_MON
+-			| GPMC_CONFIG1_WAIT_PIN_SEL(waitpin)
+-			| GPMC_CONFIG1_READTYPE_ASYNC
+-			| GPMC_CONFIG1_WRITETYPE_ASYNC
+-			| GPMC_CONFIG1_DEVICESIZE_16
+-			| GPMC_CONFIG1_DEVICETYPE_NOR
+-			| GPMC_CONFIG1_MUXADDDATA);
  
--	return err;
-+	return 0;
- }
--EXPORT_SYMBOL(gpmc_cs_configure);
-+EXPORT_SYMBOL(gpmc_configure);
++	status = gpmc_cs_program_settings(async_cs, &tusb_async);
++	if (IS_ERR_VALUE(status))
++		return status;
  
- void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
- {
-diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
-index 638f94a..d73fda0 100644
---- a/arch/arm/mach-omap2/gpmc.h
-+++ b/arch/arm/mach-omap2/gpmc.h
-@@ -229,6 +229,6 @@ extern int gpmc_cs_set_reserved(int cs, int reserved);
- extern int gpmc_cs_reserved(int cs);
- extern void omap3_gpmc_save_context(void);
- extern void omap3_gpmc_restore_context(void);
--extern int gpmc_cs_configure(int cs, int cmd, int wval);
-+extern int gpmc_configure(int cmd, int wval);
+ 	/* SYNC region, primarily for DMA */
+ 	status = gpmc_cs_request(sync, SZ_16M, (unsigned long *)
+@@ -189,21 +193,12 @@ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
+ 		return status;
+ 	}
+ 	tusb_resources[1].end = tusb_resources[1].start + 0x9ff;
++	tusb_sync.wait_pin = waitpin;
+ 	sync_cs = sync;
+-	gpmc_cs_write_reg(sync, GPMC_CS_CONFIG1,
+-			  GPMC_CONFIG1_READMULTIPLE_SUPP
+-			| GPMC_CONFIG1_READTYPE_SYNC
+-			| GPMC_CONFIG1_WRITEMULTIPLE_SUPP
+-			| GPMC_CONFIG1_WRITETYPE_SYNC
+-			| GPMC_CONFIG1_PAGE_LEN(2)
+-			| GPMC_CONFIG1_WAIT_READ_MON
+-			| GPMC_CONFIG1_WAIT_WRITE_MON
+-			| GPMC_CONFIG1_WAIT_PIN_SEL(waitpin)
+-			| GPMC_CONFIG1_DEVICESIZE_16
+-			| GPMC_CONFIG1_DEVICETYPE_NOR
+-			| GPMC_CONFIG1_MUXADDDATA
+-			/* fclk divider gets set later */
+-			);
++
++	status = gpmc_cs_program_settings(sync_cs, &tusb_sync);
++	if (IS_ERR_VALUE(status))
++		return status;
  
- #endif
+ 	/* IRQ */
+ 	status = gpio_request_one(irq, GPIOF_IN, "TUSB6010 irq");
 -- 
 1.7.10.4
 
