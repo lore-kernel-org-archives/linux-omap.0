@@ -1,49 +1,72 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: crypto: omap-sham, omap-aes and dma_request_slave_channel_compat()
-Date: Tue, 26 Feb 2013 15:52:05 -0700
-Message-ID: <20130226225205.GA13338@animalcreek.com>
-References: <512D00BE.8090204@canonical.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCH 00/15] staging: omap-thermal fixes and ports
+Date: Tue, 26 Feb 2013 18:53:23 -0400
+Message-ID: <1361919218-9788-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <512D00BE.8090204@canonical.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tim Gardner <tim.gardner@canonical.com>
-Cc: herbert@gondor.apana.org.au, Arnd Bergmann <arnd@arndb.de>, Vinod Koul <vinod.koul@intel.com>, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, dmitry.kasatkin@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50892 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754265Ab3BZWyK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Feb 2013 17:54:10 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: gregkh@linuxfoundation.org
+Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-[CC'ing more people & lists.]
+Hello Greg,
 
-On Tue, Feb 26, 2013 at 11:36:46AM -0700, Tim Gardner wrote:
-> Whats up with commits 0e87e73f4abe1ada69cf780fe2550c6361a1b53b and
-> b4b87a934c30fb91cbdd18ae028acdc361e1cf0f. As far as I can tell,
-> dma_request_slave_channel_compat() does not exist in 3.9 as of
-> 52caa59ed335616c5254adff7911465a57ed9f14, nor does it exist in
-> linux-next as of Feb 26. Am I just being dense ?
 
-Yeah, order got a little messed up.  The problem is known and the
-sub-thread talking about it starts about here:
+Several compilation fixes and a couple of debugging prints
+added. This time I am also preparing the driver to receive
+fixes and patches from omapzoom. So, this series starts to
+port patches from omapzoom to staging area. Most of this
+changes are related to OMAP5 support.
 
-	http://www.spinics.net/lists/arm-kernel/msg225241.html
+All these are based on linux-2.6/master.
 
-with the conclusion (AFAICT) that Vinod is to push it:
+Patches are also available here:
 
-	http://www.spinics.net/lists/arm-kernel/msg226062.html
+git@gitorious.org:thermal-framework/thermal-framework.git thermal_work/omap/omap-thermal-fixes
+https://git.gitorious.org/thermal-framework/thermal-framework.git thermal_work/omap/omap-thermal-fixes
 
-> Reverting those 2 commits at least allows the compile complete.
+Cheers,
 
-When the dependencies are sorted out, will you revert the revert
-or do I need to do something?
+Eduardo Valentin (12):
+  staging: omap-thermal: standardize register nomenclature to use 'GPU'
+  staging: omap-thermal: remove from register map soc and mode on OMAP5
+  staging: omap-thermal: introduce new features of OMAP54xx
+  staging: omap-thermal: update OMAP54xx clock sources
+  staging: omap-thermal: update feature bitfield for OMAP54xx
+  staging: omap-thermal: remove dedicated counter register for OMAP5
+  staging: omap-thermal: introduze FREEZE_BIT feature
+  staging: omap-thermal: update DT entry documentation
+  staging: omap-thermal: add DT example for OMAP54xx devices
+  staging: omap-thermal: Remove double conv_table reference
+  staging: omap-thermal: name data files accordingly
+  staging: omap-thermal: update clock prepare count
 
-Mark
---
+Radhesh Fadnis (2):
+  staging: omap-thermal: introduce clock feature flag
+  staging: omap-thermal: update OMAP54xx conv_table
+
+Ruslan Ruslichenko (1):
+  staging: omap-thermal: Add print when TSHUT temperature reached
+
+ drivers/staging/omap-thermal/Makefile             |    4 +-
+ drivers/staging/omap-thermal/omap-bandgap.c       |   89 ++++--
+ drivers/staging/omap-thermal/omap-bandgap.h       |   94 +++++-
+ drivers/staging/omap-thermal/omap4-thermal-data.c |  262 +++++++++++++++
+ drivers/staging/omap-thermal/omap4-thermal.c      |  259 ---------------
+ drivers/staging/omap-thermal/omap5-thermal-data.c |  357 +++++++++++++++++++++
+ drivers/staging/omap-thermal/omap5-thermal.c      |  297 -----------------
+ drivers/staging/omap-thermal/omap_bandgap.txt     |   36 ++-
+ 8 files changed, 794 insertions(+), 604 deletions(-)
+ create mode 100644 drivers/staging/omap-thermal/omap4-thermal-data.c
+ delete mode 100644 drivers/staging/omap-thermal/omap4-thermal.c
+ create mode 100644 drivers/staging/omap-thermal/omap5-thermal-data.c
+ delete mode 100644 drivers/staging/omap-thermal/omap5-thermal.c
+
+-- 
+1.7.7.1.488.ge8e1c
+
