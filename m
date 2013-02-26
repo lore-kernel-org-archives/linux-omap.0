@@ -1,119 +1,84 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 01/14] ARM: OMAP2+: Simplify code configuring ONENAND devices
-Date: Tue, 26 Feb 2013 11:30:28 -0600
-Message-ID: <1361899842-30303-2-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 02/14] ARM: OMAP2+: Add variable to store number of GPMC waitpins
+Date: Tue, 26 Feb 2013 11:30:29 -0600
+Message-ID: <1361899842-30303-3-git-send-email-jon-hunter@ti.com>
 References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46900 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46911 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754984Ab3BZRbH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Feb 2013 12:31:07 -0500
+	id S1754984Ab3BZRbM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Feb 2013 12:31:12 -0500
 In-Reply-To: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Jon Hunter <jon-hunter@ti.com>
 
-The OMAP2+ code that configures the GPMC for ONENAND devices is copying
-structures between functions unnecessarily. Avoid this by passing
-pointers instead and simplify the code.
+The GPMC has wait-pin signals that can be assigned to a chip-select
+to monitor the ready signal of an external device. Add a variable to
+indicate the total number of wait-pins for a given device. This will
+allow us to detect if the wait-pin being selected is valid or not.
 
-A pointer to structure "omap_onenand_platform_data" is passed to the
-function omap2_onenand_calc_sync_timings(), but only the flags member
-of the structure is used. Simplify the code by only passing the flags
-member and not the entire structure.
+When booting with device-tree read the number of wait-pins from the
+device-tree blob. When device-tree is not used set the number of
+wait-pins to 4 which is valid for OMAP2-5 devices. Newer devices
+that have less wait-pins (such as AM335x) only support booting with
+device-tree and so hard-coding the wait-pin number when not using
+device-tree is fine.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-onenand.c |   26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/gpmc.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index fadd8743..758b09c 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -47,10 +47,9 @@ static struct platform_device gpmc_onenand_device = {
- 	.resource	= &gpmc_onenand_resource,
- };
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 410e1ba..1c63de0 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -108,6 +108,8 @@
+ #define	GPMC_HAS_WR_ACCESS		0x1
+ #define	GPMC_HAS_WR_DATA_MUX_BUS	0x2
  
--static struct gpmc_timings omap2_onenand_calc_async_timings(void)
-+static void omap2_onenand_calc_async_timings(struct gpmc_timings *t)
- {
- 	struct gpmc_device_timings dev_t;
--	struct gpmc_timings t;
++#define GPMC_NR_WAITPINS		4
++
+ /* XXX: Only NAND irq has been considered,currently these are the only ones used
+  */
+ #define	GPMC_NR_IRQ		2
+@@ -153,6 +155,7 @@ static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
+ static DEFINE_SPINLOCK(gpmc_mem_lock);
+ /* Define chip-selects as reserved by default until probe completes */
+ static unsigned int gpmc_cs_map = ((1 << GPMC_CS_NUM) - 1);
++static unsigned int gpmc_nr_waitpins;
+ static struct device *gpmc_dev;
+ static int gpmc_irq;
+ static resource_size_t phys_base, mem_size;
+@@ -1305,6 +1308,14 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+ 	if (!of_id)
+ 		return 0;
  
- 	const int t_cer = 15;
- 	const int t_avdp = 12;
-@@ -76,9 +75,7 @@ static struct gpmc_timings omap2_onenand_calc_async_timings(void)
- 	dev_t.t_wpl = t_wpl * 1000;
- 	dev_t.t_wph = t_wph * 1000;
++	ret = of_property_read_u32(pdev->dev.of_node, "gpmc,num-waitpins",
++				   &gpmc_nr_waitpins);
++	if (ret) {
++		pr_err("%s: number of wait pins not found!\n", __func__);
++		return ret;
++	}
++
++
+ 	for_each_node_by_name(child, "nand") {
+ 		ret = gpmc_probe_nand_child(pdev, child);
+ 		if (ret < 0) {
+@@ -1383,6 +1394,9 @@ static int gpmc_probe(struct platform_device *pdev)
+ 	/* Now the GPMC is initialised, unreserve the chip-selects */
+ 	gpmc_cs_map = 0;
  
--	gpmc_calc_timings(&t, &dev_t);
--
--	return t;
-+	gpmc_calc_timings(t, &dev_t);
- }
- 
- static int gpmc_set_async_mode(int cs, struct gpmc_timings *t)
-@@ -158,12 +155,11 @@ static int omap2_onenand_get_freq(struct omap_onenand_platform_data *cfg,
- 	return freq;
- }
- 
--static struct gpmc_timings
--omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
--				int freq)
-+static void omap2_onenand_calc_sync_timings(struct gpmc_timings *t,
-+					    unsigned int flags,
-+					    int freq)
- {
- 	struct gpmc_device_timings dev_t;
--	struct gpmc_timings t;
- 	const int t_cer  = 15;
- 	const int t_avdp = 12;
- 	const int t_cez  = 20; /* max of t_cez, t_oez */
-@@ -172,9 +168,9 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
- 	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
- 	int div, gpmc_clk_ns;
- 
--	if (cfg->flags & ONENAND_SYNC_READ)
-+	if (flags & ONENAND_SYNC_READ)
- 		onenand_flags = ONENAND_FLAG_SYNCREAD;
--	else if (cfg->flags & ONENAND_SYNC_READWRITE)
-+	else if (flags & ONENAND_SYNC_READWRITE)
- 		onenand_flags = ONENAND_FLAG_SYNCREAD | ONENAND_FLAG_SYNCWRITE;
- 
- 	switch (freq) {
-@@ -265,9 +261,7 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
- 	dev_t.cyc_aavdh_oe = 1;
- 	dev_t.t_rdyo = t_rdyo * 1000 + min_gpmc_clk_period;
- 
--	gpmc_calc_timings(&t, &dev_t);
--
--	return t;
-+	gpmc_calc_timings(t, &dev_t);
- }
- 
- static int gpmc_set_sync_mode(int cs, struct gpmc_timings *t)
-@@ -300,7 +294,7 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
- 
- 	omap2_onenand_set_async_mode(onenand_base);
- 
--	t = omap2_onenand_calc_async_timings();
-+	omap2_onenand_calc_async_timings(&t);
- 
- 	ret = gpmc_set_async_mode(gpmc_onenand_data->cs, &t);
- 	if (IS_ERR_VALUE(ret))
-@@ -322,7 +316,7 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
- 		set_onenand_cfg(onenand_base);
- 	}
- 
--	t = omap2_onenand_calc_sync_timings(gpmc_onenand_data, freq);
-+	omap2_onenand_calc_sync_timings(&t, gpmc_onenand_data->flags, freq);
- 
- 	ret = gpmc_set_sync_mode(gpmc_onenand_data->cs, &t);
- 	if (IS_ERR_VALUE(ret))
++	if (!pdev->dev.of_node)
++		gpmc_nr_waitpins = GPMC_NR_WAITPINS;
++
+ 	rc = gpmc_probe_dt(pdev);
+ 	if (rc < 0) {
+ 		clk_disable_unprepare(gpmc_l3_clk);
 -- 
 1.7.10.4
 
