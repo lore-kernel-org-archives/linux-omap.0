@@ -1,84 +1,119 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 00/14] ARM: OMAP2+: GPMC clean-up and DT update
-Date: Tue, 26 Feb 2013 11:30:27 -0600
-Message-ID: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 01/14] ARM: OMAP2+: Simplify code configuring ONENAND devices
+Date: Tue, 26 Feb 2013 11:30:28 -0600
+Message-ID: <1361899842-30303-2-git-send-email-jon-hunter@ti.com>
+References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36714 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754984Ab3BZRbE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Feb 2013 12:31:04 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:46900 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754984Ab3BZRbH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Feb 2013 12:31:07 -0500
+In-Reply-To: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Jon Hunter <jon-hunter@ti.com>
 
-While adding device-tree support for NOR memories, it became apparent
-that there is no common way for configuring various GPMC settings for
-devices that interface to the GPMC. These settings include bus-width,
-synchronous/asynchronous mode, burst settings, wait monitoring etc.
-Therefore, to simplify the GPMC code and add device-tree support for
-NOR, it was first necessary to consolidate how these settings are
-programmed.
+The OMAP2+ code that configures the GPMC for ONENAND devices is copying
+structures between functions unnecessarily. Avoid this by passing
+pointers instead and simplify the code.
 
-Summary of changes:
-- Clean-up/simplification of ONENAND initialisation code.
-- Add a new GPMC structure to unify storage of various GPMC settings
-  (that are non-timing related) for client devices and add a new
-  function to program these settings in a common way.
-- Migrate initialisation code for existing flash, usb and networking
-  devices to use the new structure and function for GPMC settings.
-- Add device-tree support for NOR flash memories.
-- Add additional GPMC timing parameters to GPMC device-tree binding.
-- Update GPMC NAND and ONENAND device-tree support to retrieve GPMC
-  settings from device-tree.
+A pointer to structure "omap_onenand_platform_data" is passed to the
+function omap2_onenand_calc_sync_timings(), but only the flags member
+of the structure is used. Simplify the code by only passing the flags
+member and not the entire structure.
 
-Testing includes:
-- Boot testing on OMAP2420 H4, OMAP3430 SDP and OMAP4430 SDP with
-  and without device-tree present.
-- OMAP2420 H4 board has NOR flash and OMAP3430 SDP has NOR, NAND
-  and ONENAND flash. So verified that flash is detected on boot
-  as expected. Note additional patches [1] are required for OMAP2420
-  H4 and OMAP3430 SDP dts files in order to enable flash memory
-  support.
-- All of the above boards use GPMC for interfacing to a networking
-  chip and so verified that networking is working wit this series.
-  However, please note that networking is not currently supported
-  on these boards when booting with DT and so networking is only
-  tested without DT.
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/gpmc-onenand.c |   26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
 
-[1] https://github.com/jonhunter/linux/tree/dev-gpmc
-
-Jon Hunter (14):
-  ARM: OMAP2+: Simplify code configuring ONENAND devices
-  ARM: OMAP2+: Add variable to store number of GPMC waitpins
-  ARM: OMAP2+: Add structure for storing GPMC settings
-  ARM: OMAP2+: Add function for configuring GPMC settings
-  ARM: OMAP2+: Convert ONENAND to use gpmc_cs_program_settings()
-  ARM: OMAP2+: Convert NAND to use gpmc_cs_program_settings()
-  ARM: OMAP2+: Convert SMC91x to use gpmc_cs_program_settings()
-  ARM: OMAP2+: Convert TUSB to use gpmc_cs_program_settings()
-  ARM: OMAP2+: Don't configure of chip-select options in
-    gpmc_cs_configure()
-  ARM: OMAP2+: Add function to read GPMC settings from device-tree
-  ARM: OMAP2+: Add device-tree support for NOR flash
-  ARM: OMAP2+: Add additional GPMC timing parameters
-  ARM: OMAP2+: Convert NAND to retrieve GPMC settings from DT
-  ARM: OMAP2+: Convert ONENAND to retrieve GPMC settings from DT
-
- Documentation/devicetree/bindings/bus/ti-gpmc.txt  |   44 ++-
- Documentation/devicetree/bindings/mtd/gpmc-nor.txt |   98 ++++++
- .../devicetree/bindings/mtd/gpmc-onenand.txt       |    3 +
- arch/arm/mach-omap2/gpmc-nand.c                    |   38 +-
- arch/arm/mach-omap2/gpmc-onenand.c                 |  110 +++---
- arch/arm/mach-omap2/gpmc-smc91x.c                  |   30 +-
- arch/arm/mach-omap2/gpmc.c                         |  367 +++++++++++++++++---
- arch/arm/mach-omap2/gpmc.h                         |   32 +-
- arch/arm/mach-omap2/usb-tusb6010.c                 |   62 ++--
- 9 files changed, 605 insertions(+), 179 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nor.txt
-
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index fadd8743..758b09c 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -47,10 +47,9 @@ static struct platform_device gpmc_onenand_device = {
+ 	.resource	= &gpmc_onenand_resource,
+ };
+ 
+-static struct gpmc_timings omap2_onenand_calc_async_timings(void)
++static void omap2_onenand_calc_async_timings(struct gpmc_timings *t)
+ {
+ 	struct gpmc_device_timings dev_t;
+-	struct gpmc_timings t;
+ 
+ 	const int t_cer = 15;
+ 	const int t_avdp = 12;
+@@ -76,9 +75,7 @@ static struct gpmc_timings omap2_onenand_calc_async_timings(void)
+ 	dev_t.t_wpl = t_wpl * 1000;
+ 	dev_t.t_wph = t_wph * 1000;
+ 
+-	gpmc_calc_timings(&t, &dev_t);
+-
+-	return t;
++	gpmc_calc_timings(t, &dev_t);
+ }
+ 
+ static int gpmc_set_async_mode(int cs, struct gpmc_timings *t)
+@@ -158,12 +155,11 @@ static int omap2_onenand_get_freq(struct omap_onenand_platform_data *cfg,
+ 	return freq;
+ }
+ 
+-static struct gpmc_timings
+-omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+-				int freq)
++static void omap2_onenand_calc_sync_timings(struct gpmc_timings *t,
++					    unsigned int flags,
++					    int freq)
+ {
+ 	struct gpmc_device_timings dev_t;
+-	struct gpmc_timings t;
+ 	const int t_cer  = 15;
+ 	const int t_avdp = 12;
+ 	const int t_cez  = 20; /* max of t_cez, t_oez */
+@@ -172,9 +168,9 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+ 	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
+ 	int div, gpmc_clk_ns;
+ 
+-	if (cfg->flags & ONENAND_SYNC_READ)
++	if (flags & ONENAND_SYNC_READ)
+ 		onenand_flags = ONENAND_FLAG_SYNCREAD;
+-	else if (cfg->flags & ONENAND_SYNC_READWRITE)
++	else if (flags & ONENAND_SYNC_READWRITE)
+ 		onenand_flags = ONENAND_FLAG_SYNCREAD | ONENAND_FLAG_SYNCWRITE;
+ 
+ 	switch (freq) {
+@@ -265,9 +261,7 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+ 	dev_t.cyc_aavdh_oe = 1;
+ 	dev_t.t_rdyo = t_rdyo * 1000 + min_gpmc_clk_period;
+ 
+-	gpmc_calc_timings(&t, &dev_t);
+-
+-	return t;
++	gpmc_calc_timings(t, &dev_t);
+ }
+ 
+ static int gpmc_set_sync_mode(int cs, struct gpmc_timings *t)
+@@ -300,7 +294,7 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
+ 
+ 	omap2_onenand_set_async_mode(onenand_base);
+ 
+-	t = omap2_onenand_calc_async_timings();
++	omap2_onenand_calc_async_timings(&t);
+ 
+ 	ret = gpmc_set_async_mode(gpmc_onenand_data->cs, &t);
+ 	if (IS_ERR_VALUE(ret))
+@@ -322,7 +316,7 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
+ 		set_onenand_cfg(onenand_base);
+ 	}
+ 
+-	t = omap2_onenand_calc_sync_timings(gpmc_onenand_data, freq);
++	omap2_onenand_calc_sync_timings(&t, gpmc_onenand_data->flags, freq);
+ 
+ 	ret = gpmc_set_sync_mode(gpmc_onenand_data->cs, &t);
+ 	if (IS_ERR_VALUE(ret))
 -- 
 1.7.10.4
 
