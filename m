@@ -1,297 +1,138 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 11/14] ARM: OMAP2+: Add device-tree support for NOR flash
-Date: Tue, 26 Feb 2013 11:30:38 -0600
-Message-ID: <1361899842-30303-12-git-send-email-jon-hunter@ti.com>
-References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V3 2/2] dmaengine: OMAP: Register SDMA controller with Device Tree DMA driver
+Date: Tue, 26 Feb 2013 12:27:24 -0600
+Message-ID: <1361903244-19837-3-git-send-email-jon-hunter@ti.com>
+References: <1361903244-19837-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46947 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49627 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757465Ab3BZRb0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Feb 2013 12:31:26 -0500
-In-Reply-To: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
+	id S1759729Ab3BZS1w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Feb 2013 13:27:52 -0500
+In-Reply-To: <1361903244-19837-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Jon Hunter <jon-hunter@ti.com>
+To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Vinod Koul <vinod.koul@intel.com>, Russell King <linux@arm.linux.org.uk>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-NOR flash is not currently supported when booting with device-tree
-on OMAP2+ devices. Add support to detect and configure NOR devices
-when booting with device-tree.
-
-Add documentation for the TI GPMC NOR binding.
+If the device-tree blob is present during boot, then register the SDMA
+controller with the device-tree DMA driver so that we can use device-tree
+to look-up DMA client information.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- Documentation/devicetree/bindings/mtd/gpmc-nor.txt |   98 ++++++++++++++++
- arch/arm/mach-omap2/gpmc.c                         |  120 ++++++++++++++++++++
- 2 files changed, 218 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nor.txt
+ arch/arm/mach-omap2/dma.c |    4 ++++
+ drivers/dma/omap-dma.c    |   38 ++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 40 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nor.txt b/Documentation/devicetree/bindings/mtd/gpmc-nor.txt
-new file mode 100644
-index 0000000..8c638fc
---- /dev/null
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-nor.txt
-@@ -0,0 +1,98 @@
-+Device tree bindings for NOR flash connect to TI GPMC
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index dab9fc0..49fd0d5 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -28,6 +28,7 @@
+ #include <linux/init.h>
+ #include <linux/device.h>
+ #include <linux/dma-mapping.h>
++#include <linux/of.h>
+ #include <linux/omap-dma.h>
+ 
+ #include "soc.h"
+@@ -304,6 +305,9 @@ static int __init omap2_system_dma_init(void)
+ 	if (res)
+ 		return res;
+ 
++	if (of_have_populated_dt())
++		return res;
 +
-+NOR flash connected to the TI GPMC (found on OMAP boards) are represented as
-+child nodes of the GPMC controller with a name of "nor".
-+
-+All timing relevant properties as well as generic GPMC child properties are
-+explained in a separate documents. Please refer to
-+Documentation/devicetree/bindings/bus/ti-gpmc.txt
-+
-+Required properties:
-+- bank-width: 		Width of NOR flash in bytes. GPMC supports 8-bit and
-+			16-bit devices and so must be either 1 or 2 bytes.
-+- compatible:		Documentation/devicetree/bindings/mtd/mtd-physmap.txt
-+- gpmc,cs-on:		Chip-select assertion time
-+- gpmc,cs-rd-off:	Chip-select de-assertion time for reads
-+- gpmc,cs-wr-off:	Chip-select de-assertion time for writes
-+- gpmc,oe-on:		Output-enable assertion time
-+- gpmc,oe-off		Output-enable de-assertion time
-+- gpmc,we-on:		Write-enable assertion time
-+- gpmc,we-off:		Write-enable de-assertion time
-+- gpmc,access:		Start cycle to first data capture (read access)
-+- gpmc,rd-cycle:	Total read cycle time
-+- gpmc,wr-cycle:	Total write cycle time
-+- linux,mtd-name:	Documentation/devicetree/bindings/mtd/mtd-physmap.txt
-+- reg:			Chip-select, base address (relative to chip-select)
-+			and size of NOR flash. Note that base address will be
-+			typically 0 as this is the start of the chip-select.
-+
-+Optional properties:
-+- gpmc,XXX		Additional GPMC timings and settings parameters. See
-+			Documentation/devicetree/bindings/bus/ti-gpmc.txt
-+
-+Optional properties for partiton table parsing:
-+- #address-cells: should be set to 1
-+- #size-cells: should be set to 1
-+
-+Example:
-+
-+gpmc: gpmc@6e000000 {
-+	compatible = "ti,omap3430-gpmc", "simple-bus";
-+	ti,hwmods = "gpmc";
-+	reg = <0x6e000000 0x1000>;
-+	interrupts = <20>;
-+	gpmc,num-cs = <8>;
-+	gpmc,num-waitpins = <4>;
-+	#address-cells = <2>;
-+	#size-cells = <1>;
-+
-+	ranges = <0 0 0x10000000 0x08000000>;
-+
-+	nor@0,0 {
-+		compatible = "cfi-flash";
-+		linux,mtd-name= "intel,pf48f6000m0y1be";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		reg = <0 0 0x08000000>;
-+		bank-width = <2>;
-+
-+		gpmc,mux-add-data;
-+		gpmc,cs-on = <0>;
-+		gpmc,cs-rd-off = <186>;
-+		gpmc,cs-wr-off = <186>;
-+		gpmc,adv-on = <12>;
-+		gpmc,adv-rd-off = <48>;
-+		gpmc,adv-wr-off = <48>;
-+		gpmc,oe-on = <54>;
-+		gpmc,oe-off = <168>;
-+		gpmc,we-on = <54>;
-+		gpmc,we-off = <168>;
-+		gpmc,rd-cycle = <186>;
-+		gpmc,wr-cycle = <186>;
-+		gpmc,access = <114>;
-+		gpmc,page-burst-access = <6>;
-+		gpmc,bus-turnaround = <12>;
-+		gpmc,cycle2cycle-delay = <18>;
-+		gpmc,wr-data-mux-bus = <90>;
-+		gpmc,wr-access = <186>;
-+		gpmc,cycle2cycle-samecsen;
-+		gpmc,cycle2cycle-diffcsen;
-+
-+		partition@0 {
-+			label = "bootloader-nor";
-+			reg = <0 0x40000>;
-+		};
-+		partition@0x40000 {
-+			label = "params-nor";
-+			reg = <0x40000 0x40000>;
-+		};
-+		partition@0x80000 {
-+			label = "kernel-nor";
-+			reg = <0x80000 0x200000>;
-+		};
-+		partition@0x280000 {
-+			label = "filesystem-nor";
-+			reg = <0x240000 0x7d80000>;
-+		};
-+	};
-+};
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index e822d2b..eb167b3 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -26,6 +26,7 @@
- #include <linux/interrupt.h>
+ 	pdev = platform_device_register_full(&omap_dma_dev_info);
+ 	if (IS_ERR(pdev))
+ 		return PTR_ERR(pdev);
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index c4b4fd2..2ea3d7e 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -16,6 +16,8 @@
  #include <linux/platform_device.h>
- #include <linux/of.h>
-+#include <linux/of_address.h>
- #include <linux/of_mtd.h>
- #include <linux/of_device.h>
- #include <linux/mtd/nand.h>
-@@ -513,6 +514,37 @@ static int gpmc_cs_delete_mem(int cs)
- 	return r;
- }
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
++#include <linux/of_dma.h>
++#include <linux/of_device.h>
  
-+/**
-+ * gpmc_cs_remap - remaps a chip-select physical base address
-+ * @cs:		chip-select to remap
-+ * @base:	physical base address to re-map chip-select to
-+ *
-+ * Re-maps a chip-select to a new physical base address specified by
-+ * "base". Returns 0 on success and appropriate negative error code
-+ * on failure.
-+ */
-+static int gpmc_cs_remap(int cs, u32 base)
-+{
-+	int ret;
-+	u32 old_base, size;
-+
-+	if (cs > GPMC_CS_NUM)
-+		return -ENODEV;
-+	gpmc_cs_get_memconf(cs, &old_base, &size);
-+	if (base == old_base)
-+		return 0;
-+	gpmc_cs_disable_mem(cs);
-+	ret = gpmc_cs_delete_mem(cs);
-+	if (IS_ERR_VALUE(ret))
-+		return ret;
-+	ret = gpmc_cs_insert_mem(cs, base, size);
-+	if (IS_ERR_VALUE(ret))
-+		return ret;
-+	gpmc_cs_enable_mem(cs, base, size);
-+
-+	return 0;
-+}
-+
- int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
- {
- 	struct resource *res = &gpmc_cs_mem[cs];
-@@ -1172,6 +1204,12 @@ int gpmc_cs_program_settings(int cs, struct gpmc_settings *p)
- }
+ #include "virt-dma.h"
  
- #ifdef CONFIG_OF
-+static struct property device_disabled = {
-+	.name = "status",
-+	.length = sizeof("disabled"),
-+	.value = "disabled",
+@@ -67,6 +69,10 @@ static const unsigned es_bytes[] = {
+ 	[OMAP_DMA_DATA_TYPE_S32] = 4,
+ };
+ 
++static struct of_dma_filter_info omap_dma_info = {
++	.filter_fn = omap_dma_filter_fn,
 +};
 +
- static struct of_device_id gpmc_dt_ids[] = {
- 	{ .compatible = "ti,omap2420-gpmc" },
- 	{ .compatible = "ti,omap2430-gpmc" },
-@@ -1391,6 +1429,79 @@ static int gpmc_probe_onenand_child(struct platform_device *pdev,
- }
- #endif
- 
-+/**
-+ * gpmc_probe_nor_child - configures the gpmc for a nor device
-+ * @pdev:	pointer to gpmc platform device
-+ * @child:	pointer to device-tree node for nor device
-+ *
-+ * Allocates and configures a GPMC chip-select for a NOR flash device.
-+ * Returns 0 on success and appropriate negative error code on failure.
-+ */
-+static int gpmc_probe_nor_child(struct platform_device *pdev,
-+				struct device_node *child)
-+{
-+	struct gpmc_settings gpmc_s;
-+	struct gpmc_timings gpmc_t;
-+	struct resource res;
-+	unsigned long base;
-+	int ret, cs;
-+
-+	if (of_property_read_u32(child, "reg", &cs) < 0) {
-+		dev_err(&pdev->dev, "%s has no 'reg' property\n",
-+			child->full_name);
-+		return -ENODEV;
-+	}
-+
-+	if (of_address_to_resource(child, 0, &res)) {
-+		dev_err(&pdev->dev, "%s has malformed 'reg' property\n",
-+			child->full_name);
-+		return -ENODEV;
-+	}
-+
-+	ret = gpmc_cs_request(cs, res.end - res.start, &base);
-+	if (IS_ERR_VALUE(ret)) {
-+		dev_err(&pdev->dev, "cannot request GPMC CS %d\n", cs);
-+		goto err1;
-+	}
-+
-+	/*
-+	 * FIXME: gpmc_cs_request() will map the CS to an arbitary
-+	 * location in the gpmc address space. When booting with
-+	 * device-tree we want the NOR flash to be mapped to the
-+	 * location specified in the device-tree blob. So remap the
-+	 * CS to this location. Once DT migration is complete should
-+	 * just make gpmc_cs_request() map a specific address.
-+	 */
-+	ret = gpmc_cs_remap(cs, res.start);
-+	if (IS_ERR_VALUE(ret)) {
-+		dev_err(&pdev->dev, "cannot remap GPMC CS %d to 0x%x\n",
-+			cs, res.start);
-+		goto err2;
-+	}
-+
-+	gpmc_read_settings_dt(child, &gpmc_s);
-+
-+	ret = of_property_read_u32(child, "bank-width", &gpmc_s.device_width);
-+	if (IS_ERR_VALUE(ret))
-+		goto err2;
-+
-+	ret = gpmc_cs_program_settings(cs, &gpmc_s);
-+	if (IS_ERR_VALUE(ret))
-+		goto err2;
-+
-+	gpmc_read_timings_dt(child, &gpmc_t);
-+	gpmc_cs_set_timings(cs, &gpmc_t);
-+
-+	return 0;
-+err2:
-+	gpmc_cs_free(cs);
-+err1:
-+	/* Prevent registering child device on error */
-+	of_add_property(child, &device_disabled);
-+
-+	return ret;
-+}
-+
- static int gpmc_probe_dt(struct platform_device *pdev)
+ static inline struct omap_dmadev *to_omap_dma_dev(struct dma_device *d)
  {
- 	int ret;
-@@ -1424,6 +1535,15 @@ static int gpmc_probe_dt(struct platform_device *pdev)
- 			return ret;
- 		}
- 	}
-+
-+	for_each_node_by_name(child, "nor") {
-+		ret = gpmc_probe_nor_child(pdev, child);
-+		if (ret < 0) {
-+			of_node_put(child);
-+			return ret;
-+		}
+ 	return container_of(d, struct omap_dmadev, ddev);
+@@ -621,8 +627,22 @@ static int omap_dma_probe(struct platform_device *pdev)
+ 		pr_warn("OMAP-DMA: failed to register slave DMA engine device: %d\n",
+ 			rc);
+ 		omap_dma_free(od);
+-	} else {
+-		platform_set_drvdata(pdev, od);
++		return rc;
 +	}
 +
++	platform_set_drvdata(pdev, od);
++
++	if (pdev->dev.of_node) {
++		omap_dma_info.dma_cap = od->ddev.cap_mask;
++
++		/* Device-tree DMA controller registration */
++		rc = of_dma_controller_register(pdev->dev.of_node,
++				of_dma_simple_xlate, &omap_dma_info);
++		if (rc) {
++			pr_warn("OMAP-DMA: failed to register DMA controller\n");
++			dma_async_device_unregister(&od->ddev);
++			omap_dma_free(od);
++		}
+ 	}
+ 
+ 	dev_info(&pdev->dev, "OMAP DMA engine driver\n");
+@@ -634,18 +654,32 @@ static int omap_dma_remove(struct platform_device *pdev)
+ {
+ 	struct omap_dmadev *od = platform_get_drvdata(pdev);
+ 
++	if (pdev->dev.of_node)
++		of_dma_controller_free(pdev->dev.of_node);
++
+ 	dma_async_device_unregister(&od->ddev);
+ 	omap_dma_free(od);
+ 
  	return 0;
  }
- #else
+ 
++static const struct of_device_id omap_dma_match[] = {
++	{ .compatible = "ti,omap2420-sdma", },
++	{ .compatible = "ti,omap2430-sdma", },
++	{ .compatible = "ti,omap3430-sdma", },
++	{ .compatible = "ti,omap3630-sdma", },
++	{ .compatible = "ti,omap4430-sdma", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, omap_dma_match);
++
+ static struct platform_driver omap_dma_driver = {
+ 	.probe	= omap_dma_probe,
+ 	.remove	= omap_dma_remove,
+ 	.driver = {
+ 		.name = "omap-dma-engine",
+ 		.owner = THIS_MODULE,
++		.of_match_table = of_match_ptr(omap_dma_match),
+ 	},
+ };
+ 
 -- 
 1.7.10.4
 
