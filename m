@@ -1,40 +1,82 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: OMAP CLK / CM data move to /drivers/clk
-Date: Wed, 27 Feb 2013 10:44:19 +0200
-Message-ID: <1361954659.8362.70.camel@sokoban>
-Reply-To: <t-kristo@ti.com>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH 2/4] USB: dwc3: Adjust runtime pm the dwc3 driver to allow
+ runtime suspend
+Date: Wed, 27 Feb 2013 14:23:27 +0530
+Message-ID: <CAFp+6iH0pDPV9bZ32m6sS1fCRF4E+Z0ocgwMtodji3RT=akGJA@mail.gmail.com>
+References: <1359373348-18320-1-git-send-email-gautam.vivek@samsung.com>
+	<1359373348-18320-3-git-send-email-gautam.vivek@samsung.com>
+	<20130128114554.GE28698@arwen.pp.htv.fi>
+	<CAFp+6iFcZwu3=2u5ig_F14UKxTXwb2Czrv3JjCqR6QGLPHzFqg@mail.gmail.com>
+	<20130227080617.GD8016@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49007 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757014Ab3B0IoY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Feb 2013 03:44:24 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20130227080617.GD8016@arwen.pp.htv.fi>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, dianders@chromium.org, sylvester.nawrocki@gmail.com, tomasz.figa@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, mturquette@linaro.org, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-Hi Paul and Mike,
-
-It looks like we need to start putting more effort into this clock data
-move now, as this is starting to hinder us on several fronts.
-Unfortunately I still can't personally participate in this work myself
-as I am now allocated to some hwmod related work, but Eduardo should
-have plenty of time to help with this...
-
-Anyway, Paul, I think you have been working a bit with this topic, what
-is the latest status with this? Do you see any areas Eduardo can help
-with? If you have some partially finished work also which you don't have
-time yourself, we can even take a look at that.
-
-Also, I would like to receive some initial comments about the approach
-we should take, and I added Mike here for this as you are the maintainer
-for the /drivers/clk. I believe we should start by moving the clock data
-under /drivers/clk/omap, and potentially move also some other stuff
-here, like CM code, clockdomain code and clockdomain data even. Do you
-have any opinions on this?
-
--Tero
+Hi Felipe,
 
 
+On Wed, Feb 27, 2013 at 1:36 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> sorry for the delay
+>
+
+That's alright ;-)
+
+> On Mon, Jan 28, 2013 at 07:06:56PM +0530, Vivek Gautam wrote:
+>> Hi Felipe,
+>>
+>>
+>> On Mon, Jan 28, 2013 at 5:15 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> > On Mon, Jan 28, 2013 at 05:12:26PM +0530, Vivek Gautam wrote:
+>> >> The current code in the dwc3 probe effectively disables runtime pm
+>> >> from ever working because it calls a get() that was never put() until
+>> >> device removal.  Change the runtime pm code to match the standard
+>> >> formula and allow runtime pm to function.
+>> >>
+>> >> Note that this doesn't enable full runtime pm on the DWC3 device in
+>> >> that the port isn't put into a lower power mode when not used.
+>> >> However it does allow users of dwc3 (like dwc3-exynos) to do some
+>> >> amount of runtime power management.
+>> >>
+>> >> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>> >> Signed-off-by: Doug Anderson <dianders@chromium.org>
+>> >> ---
+>> >>  drivers/usb/dwc3/core.c |    4 +++-
+>> >>  1 files changed, 3 insertions(+), 1 deletions(-)
+>> >>
+>> >> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>> >> index 3a4004a..59c2494 100644
+>> >> --- a/drivers/usb/dwc3/core.c
+>> >> +++ b/drivers/usb/dwc3/core.c
+>> >> @@ -453,6 +453,7 @@ static int dwc3_probe(struct platform_device *pdev)
+>> >>       if (of_get_property(node, "tx-fifo-resize", NULL))
+>> >>               dwc->needs_fifo_resize = true;
+>> >>
+>> >> +     pm_runtime_set_active(dev);
+>> >
+>> > this usage of pm_runtime_set_active() actually makes me a bit scared. At
+>> > least OMAP starts with the device switched off, so this will probably
+>> > break OMAP at least.
+>>
+>> I am fine with dropping pm_runtime_set_active(), actually thought
+>> to put device in active state so that as and when system finds it idle,
+>> force into suspend state.
+>>
+>> I fact should i drop  pm_runtime_set_active() calls from other places too
+>> (xhci-plat, dwc3-exynos, and samsung-usb3 phy) and call get_sync() alongwith
+>> enable() ?
+>
+> that's correct, make sure it works fine for you ;-)
+>
+Yeah sure.
+
+
+-- 
+Thanks & Regards
+Vivek
