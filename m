@@ -1,106 +1,103 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH 15/15] staging: omap-thermal: update clock prepare count
-Date: Tue, 26 Feb 2013 21:35:23 -0800
-Message-ID: <20130227053523.14870.20885@quantum>
-References: <1361919218-9788-1-git-send-email-eduardo.valentin@ti.com>
- <1361919218-9788-16-git-send-email-eduardo.valentin@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/4] USB: dwc3: Adjust runtime pm the dwc3 driver to
+ allow runtime suspend
+Date: Wed, 27 Feb 2013 10:06:18 +0200
+Message-ID: <20130227080617.GD8016@arwen.pp.htv.fi>
+References: <1359373348-18320-1-git-send-email-gautam.vivek@samsung.com>
+ <1359373348-18320-3-git-send-email-gautam.vivek@samsung.com>
+ <20130128114554.GE28698@arwen.pp.htv.fi>
+ <CAFp+6iFcZwu3=2u5ig_F14UKxTXwb2Czrv3JjCqR6QGLPHzFqg@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:33879 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750715Ab3B0Ff3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Feb 2013 00:35:29 -0500
-Received: by mail-pa0-f42.google.com with SMTP id kq12so200180pab.29
-        for <linux-omap@vger.kernel.org>; Tue, 26 Feb 2013 21:35:28 -0800 (PST)
-In-Reply-To: <1361919218-9788-16-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OROCMA9jn6tkzFBc"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAFp+6iFcZwu3=2u5ig_F14UKxTXwb2Czrv3JjCqR6QGLPHzFqg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vivek Gautam <gautamvivek1987@gmail.com>
+Cc: balbi@ti.com, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, dianders@chromium.org, sylvester.nawrocki@gmail.com, tomasz.figa@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: gregkh@linuxfoundation.org
-Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-Quoting Eduardo Valentin (2013-02-26 14:53:38)
-> This patch changes the clock management code to also update
-> the clock prepare counter, this way we won't skip the enable/disable
-> operation due to prepare dependencies.
-> 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+--OROCMA9jn6tkzFBc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi Eduardo,
+Hi,
 
-I didn't look through the other patches in this series (or even the
-existing driver that is merged).  With that said, I have a question:
-does this driver aggressively call clk_enable/clk_disable in call sites
-other than those listed in this patch?
+sorry for the delay
 
-If so it might be a good idea to call clk_prepare_enable and
-clk_disable_unprepare in those location.  Of course only call it if the
-context can sleep (e.g. not an interrupt handler).
+On Mon, Jan 28, 2013 at 07:06:56PM +0530, Vivek Gautam wrote:
+> Hi Felipe,
+>=20
+>=20
+> On Mon, Jan 28, 2013 at 5:15 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > On Mon, Jan 28, 2013 at 05:12:26PM +0530, Vivek Gautam wrote:
+> >> The current code in the dwc3 probe effectively disables runtime pm
+> >> from ever working because it calls a get() that was never put() until
+> >> device removal.  Change the runtime pm code to match the standard
+> >> formula and allow runtime pm to function.
+> >>
+> >> Note that this doesn't enable full runtime pm on the DWC3 device in
+> >> that the port isn't put into a lower power mode when not used.
+> >> However it does allow users of dwc3 (like dwc3-exynos) to do some
+> >> amount of runtime power management.
+> >>
+> >> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> >> Signed-off-by: Doug Anderson <dianders@chromium.org>
+> >> ---
+> >>  drivers/usb/dwc3/core.c |    4 +++-
+> >>  1 files changed, 3 insertions(+), 1 deletions(-)
+> >>
+> >> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> >> index 3a4004a..59c2494 100644
+> >> --- a/drivers/usb/dwc3/core.c
+> >> +++ b/drivers/usb/dwc3/core.c
+> >> @@ -453,6 +453,7 @@ static int dwc3_probe(struct platform_device *pdev)
+> >>       if (of_get_property(node, "tx-fifo-resize", NULL))
+> >>               dwc->needs_fifo_resize =3D true;
+> >>
+> >> +     pm_runtime_set_active(dev);
+> >
+> > this usage of pm_runtime_set_active() actually makes me a bit scared. At
+> > least OMAP starts with the device switched off, so this will probably
+> > break OMAP at least.
+>=20
+> I am fine with dropping pm_runtime_set_active(), actually thought
+> to put device in active state so that as and when system finds it idle,
+> force into suspend state.
+>=20
+> I fact should i drop  pm_runtime_set_active() calls from other places too
+> (xhci-plat, dwc3-exynos, and samsung-usb3 phy) and call get_sync() alongw=
+ith
+> enable() ?
 
-If the driver doesn't aggressively call enable/disable elsewhere than
-you can disregard my message ;-)
+that's correct, make sure it works fine for you ;-)
 
-Regards,
-Mike
+--=20
+balbi
 
-> ---
->  drivers/staging/omap-thermal/omap-bandgap.c |   10 +++++-----
->  1 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/staging/omap-thermal/omap-bandgap.c b/drivers/staging/omap-thermal/omap-bandgap.c
-> index 83f74f4..d4a3788 100644
-> --- a/drivers/staging/omap-thermal/omap-bandgap.c
-> +++ b/drivers/staging/omap-thermal/omap-bandgap.c
-> @@ -943,7 +943,7 @@ int omap_bandgap_probe(struct platform_device *pdev)
->  
->         bg_ptr->clk_rate = clk_rate;
->         if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
-> -               clk_enable(bg_ptr->fclock);
-> +               clk_prepare_enable(bg_ptr->fclock);
->  
->  
->         mutex_init(&bg_ptr->bg_mutex);
-> @@ -1013,7 +1013,7 @@ int omap_bandgap_probe(struct platform_device *pdev)
->  
->  disable_clk:
->         if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
-> -               clk_disable(bg_ptr->fclock);
-> +               clk_disable_unprepare(bg_ptr->fclock);
->  put_clks:
->         clk_put(bg_ptr->fclock);
->         clk_put(bg_ptr->div_clk);
-> @@ -1044,7 +1044,7 @@ int omap_bandgap_remove(struct platform_device *pdev)
->         omap_bandgap_power(bg_ptr, false);
->  
->         if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
-> -               clk_disable(bg_ptr->fclock);
-> +               clk_disable_unprepare(bg_ptr->fclock);
->         clk_put(bg_ptr->fclock);
->         clk_put(bg_ptr->div_clk);
->  
-> @@ -1143,7 +1143,7 @@ static int omap_bandgap_suspend(struct device *dev)
->         omap_bandgap_power(bg_ptr, false);
->  
->         if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
-> -               clk_disable(bg_ptr->fclock);
-> +               clk_disable_unprepare(bg_ptr->fclock);
->  
->         return err;
->  }
-> @@ -1153,7 +1153,7 @@ static int omap_bandgap_resume(struct device *dev)
->         struct omap_bandgap *bg_ptr = dev_get_drvdata(dev);
->  
->         if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
-> -               clk_enable(bg_ptr->fclock);
-> +               clk_prepare_enable(bg_ptr->fclock);
->  
->         omap_bandgap_power(bg_ptr, true);
->  
-> -- 
-> 1.7.7.1.488.ge8e1c
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--OROCMA9jn6tkzFBc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRLb55AAoJEIaOsuA1yqREepoP/jCPKn/Xg63Ne1Rk7nfdEUUz
+7Z+t2PCdxCdqSQIL/mo0yydkSO4aBozmxoXqPKOpALa8xa008GnIFW0+Hbl5Wn6G
+G1o/E23GWFZEOuhhNzLmo5eNf8hIzCkWKjdvdcjPBLvtJ8vUN7LAYc8anF+HoF6k
+PPIn6NSnEUj1/j2jmC3RXYXwnGo0iNgjp8S32H3eu4QU4GFg7jakZyR5VxFkTQ7F
+u0XC8YAGleiPjqiEAkSXA57MJUj9XD0/bE5KYvXkTMdiGh9NTxc3uF5ke00FJ1qR
+mxYWyAz/pBy4K9xJGq8YMkZKK3p/5K8YjSgk0ETHbKx4fjQw5B/2eGpUATK9EmMx
+hn5fTruT7Z9sIsbZy0cqP2MY89wZwYf898u7Ibw8ZRwkCUw6Pwbx8rGMEiEPF18x
+51r34jLQ89aViG5kLAik49g2HkHx/HRxr6sxMSv8vTg4rQMQaX9vzjkgu3m3hRO8
+H+MkLNUcr0e/TVkvAPd9tWmMw1+5Jmt89kg4bfhwjy4EoZ84htT+EjHvE3RPIfWj
+yga/J4WtzFqL1m4InX4HepQGLS/IeVcycwbH96JUJj4PRZT2xGNNEdRCEYI75Gkj
+mtly4g1EWflqs5GwVcysA7/JYRYn1Pcb3qACxCUFN1SHDgPA2o+sNzNlRG05t56E
+/l+AwSiCyP883Mj592pc
+=EVen
+-----END PGP SIGNATURE-----
+
+--OROCMA9jn6tkzFBc--
