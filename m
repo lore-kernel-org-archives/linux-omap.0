@@ -1,120 +1,198 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
-Date: Tue, 26 Feb 2013 19:07:36 -0600
-Message-ID: <512D5C58.4090500@ti.com>
-References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <1329321854-24490-4-git-send-email-b-cousson@ti.com> <4F44FA56.7020000@gmail.com> <4F44FC37.2000701@ti.com> <4F452484.5080503@gmail.com> <74CDBE0F657A3D45AFBB94109FB122FF17BD8BC6C1@HQMAIL01.nvidia.com> <4F47AD08.4030504@ti.com> <CAAwP0s0cB368R2mtbJpTZJreR-5GSRLfxC+8DJLo5nw3_OwBuA@mail.gmail.com> <512D39DA.7020306@ti.com> <512D3AB1.1080202@wwwdotorg.org> <512D3EC2.6050408@ti.com> <512D3FE6.1010300@wwwdotorg.org> <512D490B.70900@ti.com> <512D4FC4.2060505@wwwdotorg.org>
+From: Anil Kumar <anilk4.v@gmail.com>
+Subject: Re: FW: [PATCH V4] ARM: dts: add minimal DT support for DevKit8000.
+Date: Wed, 27 Feb 2013 08:03:24 +0530
+Message-ID: <CABYxbz5GyxYaHANgdpwBNaaR6tnu=6LJuUNSvL7DEzU=4CPHcA@mail.gmail.com>
+References: <F3DBB1B3EF102E4994C89758CFCA32412CC4E9@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38467 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934123Ab3B0BHr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Feb 2013 20:07:47 -0500
-In-Reply-To: <512D4FC4.2060505@wwwdotorg.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <F3DBB1B3EF102E4994C89758CFCA32412CC4E9@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux@arm.linux.org.uk, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Anil Kumar <anilk4.v@gmail.com>, thomas@tomweber.eu, b-cousson@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>
 
+Hi,
+>
+> DevKit8000 is a beagle board clone from Timll, sold by
+> armkits.com. The DevKit8000 has RS232 serial port, LCD, DVI-D,
+> S-Video, Ethernet, SD/MMC, keyboard, camera, SPI, I2C, USB and
+> JTAG interface.
+>
+> This patch adds the basic DT support for devkit8000. At this time, Information
+> of twl4030 (PMIC), MMC1, I2C1 and leds are added.
+>
+> Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
+> Tested-by: Thomas Weber <thomas@tomweber.eu>
 
-On 02/26/2013 06:13 PM, Stephen Warren wrote:
-> On 02/26/2013 04:45 PM, Jon Hunter wrote:
->>
->> On 02/26/2013 05:06 PM, Stephen Warren wrote:
->>> On 02/26/2013 04:01 PM, Jon Hunter wrote:
->>>>
->>>> On 02/26/2013 04:44 PM, Stephen Warren wrote:
->>>>> On 02/26/2013 03:40 PM, Jon Hunter wrote:
->>>>>>
->>>>>> On 02/26/2013 04:01 AM, Javier Martinez Canillas wrote:
->>>>>>
->>>>>> [snip]
->>>>>>
->>>>>>> I was wondering if the level/edge settings for gpios is working on OMAP.
->>>>>>>
->>>>>>> I'm adding DT support for an SMSC911x ethernet chip connected to the
->>>>>>> GPMC for an OMAP3 SoC based board.
->>>>>>>
->>>>>>> In the smsc911x driver probe function (smsc911x_drv_probe() in
->>>>>>> drivers/net/ethernet/smsc/smsc911x.c), a call to request_irq() with
->>>>>>> the flag IRQF_TRIGGER_LOW is needed because of the wiring on my board.
->>>>>>>
->>>>>>> Reading the gpio-omap.txt documentation it says that #interrupt-cells
->>>>>>> should be <2> and that a value of 8 is "active low level-sensitive".
->>>>>>>
->>>>>>> So I tried this:
->>>>>>>
->>>>>>> &gpmc {
->>>>>>> 	ethernet@5,0 {
->>>>>>> 		pinctrl-names = "default";
->>>>>>> 		pinctrl-0 = <&smsc911x_pins>;
->>>>>>> 		compatible = "smsc,lan9221", "smsc,lan9115";
->>>>>>> 		reg = <5 0 0xff>; /* CS5 */
->>>>>>> 		interrupt-parent = <&gpio6>;
->>>>>>> 		interrupts = <16 8>; /* gpio line 176 */
->>>>>>> 		interrupt-names = "smsc911x irq";
->>>>>>> 		vmmc-supply = <&vddvario>;
->>>>>>> 		vmmc_aux-supply = <&vdd33a>;
->>>>>>> 		reg-io-width = <4>;
->>>>>>>
->>>>>>> 		smsc,save-mac-address;
->>>>>>>       };
->>>>>>> };
->>>>>>
->>>>>> Are you requesting the gpio anywhere? If not then this is not going to
->>>>>> work as-is. This was discussed fairly recently [1] and the conclusion
->>>>>> was that the gpio needs to be requested before we can use as an interrupt.
->>>>>
->>>>> That seems wrong; the GPIO/IRQ driver should handle this internally. The
->>>>> Ethernet driver shouldn't know/care whether the interrupt it's given is
->>>>> some form of dedicated interrupt or a GPIO-based interrupt, and even if
->>>>> it somehow did, there's no irq_to_gpio() any more, so the driver can't
->>>>> tell which GPIO ID it should request, unless it's given yet another
->>>>> property to represent this.
->>>>
->>>> I agree that ideally this should be handled internally. Did you read the
->>>> discussion on the thread that I referenced [1]? If you have any thoughts
->>>> we are open to ideas :-)
->>>>
->>>> Cheers
->>>> Jon
->>>>
->>>> [1] http://comments.gmane.org/gmane.linux.ports.arm.omap/92192
->>>
->>> Oh, when I clicked that link the first time, all I saw was the patch,
->>> not any discussion. I guess it must have timed out finding the other
->>> emails or something.
->>
->> Actually, I sent a slightly different link the 2nd time to ensure you
->> saw the thread. So my fault ;-)
->>
->>> I disagree that the GPIO needs to be requested, and that a custom DT
->>> property and associated code are needed for that; simply requesting the
->>> IRQ should be enough to make everything work.
->>>
->>> In the Tegra GPIO IRQ driver for example, the irq_set_type irq_chip op
->>> goes and configures the base GPIO HW to enable the pin as a GPIO, just
->>> like gpio_request() would. I imagine the OMAP driver can do whatever
->>> similar action it needs.
->>
->> Yes that is similar to what the patch in the thread was attempting to
->> do, but this got shot down.
->>
->> One issue I see is that by not calling gpio_request, then potentially
->> you could have someone request a gpio via gpio_request() and someone
->> trying to use it as an interrupt source via request_irq(). Now obviously
->> that represents a bug because there is only one physical gpio, but I
->> gather it is something we need to protect against.
-> 
-> I'm not sure it's really that much of an issue, but presumably the
-> solution is for a combined GPIO+IRQ driver to simply call gpio_request
-> internally from within some irq_chip function. It looks like struct
-> irq_chip doesn't have a request/free, but perhaps they could be added to
-> solve this?
+Gentle Ping. As there are no review comments on this patch,
+Could you please pull this patch ?
 
-Yes I was wondering if we could do something like that. That would work,
-may be that's what we should propose.
+Thanks,
+Anil
 
-Thanks
-Jon
+> ---
+>  -This patch is based on top of kernel 3.8-rc5.
+>
+>  -Tested on Devkit8000.
+>
+> For V4:
+>  -Tiny nitpick.
+>
+> For V3:
+>  - Remove pin mux as done at device boot time by default.
+>
+> For V2:
+>  - Change model name as "TimLL OMAP3 Devkit8000"
+>  - Change compatible as "timll,omap3-devkit8000"
+>  - Doing i2c1 pinmux default with pinctrl-single driver instead of i2c1
+>    driver probe time.
+>
+> :100644 100644 5ebb44f... 22ebc76... M  arch/arm/boot/dts/Makefile
+> :000000 100644 0000000... 2e1463a... A  arch/arm/boot/dts/omap3-devkit8000.dts
+> :100644 100644 53cb380b.. ccecb76... M  arch/arm/mach-omap2/board-generic.c
+>  arch/arm/boot/dts/Makefile             |    1 +
+>  arch/arm/boot/dts/omap3-devkit8000.dts |  102 ++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-generic.c    |    1 +
+>  3 files changed, 104 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+> index 5ebb44f..22ebc76 100644
+> --- a/arch/arm/boot/dts/Makefile
+> +++ b/arch/arm/boot/dts/Makefile
+> @@ -102,6 +102,7 @@ dtb-$(CONFIG_ARCH_MXS) += imx23-evk.dtb \
+>         imx28-tx28.dtb
+>  dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+>         omap3-beagle.dtb \
+> +       omap3-devkit8000.dtb \
+>         omap3-beagle-xm.dtb \
+>         omap3-evm.dtb \
+>         omap3-tobi.dtb \
+> diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
+> new file mode 100644
+> index 0000000..2e1463a
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+> @@ -0,0 +1,102 @@
+> +/*
+> + * Author: Anil Kumar <anilk4.v@gmail.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +/dts-v1/;
+> +
+> +/include/ "omap3.dtsi"
+> +/ {
+> +       model = "TimLL OMAP3 Devkit8000";
+> +       compatible = "timll,omap3-devkit8000", "ti,omap3";
+> +
+> +       memory {
+> +               device_type = "memory";
+> +               reg = <0x80000000 0x10000000>;  /* 256 MB */
+> +       };
+> +
+> +       leds {
+> +               compatible = "gpio-leds";
+> +
+> +               heartbeat {
+> +                       label = "devkit8000::led1";
+> +                       gpios = <&gpio6 26 0>;  /* 186 -> LED1 */
+> +                       default-state = "on";
+> +                       linux,default-trigger = "heartbeat";
+> +               };
+> +
+> +               mmc {
+> +                       label = "devkit8000::led2";
+> +                       gpios = <&gpio6 3 0>;   /* 163 -> LED2 */
+> +                       default-state = "on";
+> +                       linux,default-trigger = "none";
+> +               };
+> +
+> +               usr {
+> +                       label = "devkit8000::led3";
+> +                       gpios = <&gpio6 4 0>;   /* 164 -> LED3 */
+> +                       default-state = "on";
+> +                       linux,default-trigger = "usr";
+> +                };
+> +       };
+> +};
+> +
+> +&i2c1 {
+> +       clock-frequency = <2600000>;
+> +
+> +       twl: twl@48 {
+> +               reg = <0x48>;
+> +               interrupts = <7>;       /* SYS_NIRQ cascaded to intc */
+> +               interrupt-parent = <&intc>;
+> +       };
+> +};
+> +
+> +&i2c2 {
+> +       status = "disabled";
+> +};
+> +
+> +&i2c3 {
+> +       status = "disabled";
+> +};
+> +
+> +/include/ "twl4030.dtsi"
+> +
+> +&mmc1 {
+> +       vmmc-supply = <&vmmc1>;
+> +       vmmc_aux-supply = <&vsim>;
+> +       bus-width = <8>;
+> +};
+> +
+> +&mmc2 {
+> +       status = "disabled";
+> +};
+> +
+> +&mmc3 {
+> +       status = "disabled";
+> +};
+> +
+> +&wdt2 {
+> +       status = "disabled";
+> +};
+> +
+> +&mcbsp1 {
+> +       status = "disabled";
+> +};
+> +
+> +&mcbsp2 {
+> +       status = "disabled";
+> +};
+> +
+> +&mcbsp3 {
+> +       status = "disabled";
+> +};
+> +
+> +&mcbsp4 {
+> +       status = "disabled";
+> +};
+> +
+> +&mcbsp5 {
+> +       status = "disabled";
+> +};
+> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> index 53cb380..ccecb76 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -110,6 +110,7 @@ MACHINE_END
+>
+>  static const char *omap3_gp_boards_compat[] __initdata = {
+>         "ti,omap3-beagle",
+> +       "timll,omap3-devkit8000",
+>         NULL,
+>  };
+>
+> --
+> 1.7.0.4
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
