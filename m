@@ -1,75 +1,86 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: OMAP CLK / CM data move to /drivers/clk
-Date: Wed, 27 Feb 2013 10:43:45 -0800
-Message-ID: <20130227184345.14870.23049@quantum>
-References: <1361954659.8362.70.camel@sokoban>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
+Date: Wed, 27 Feb 2013 21:00:13 +0100
+Message-ID: <CAAwP0s03suVxJiD2yBfSxC1d7HgPPSEeRsArZH-EaMr7x6xWTQ@mail.gmail.com>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
+ <1329321854-24490-4-git-send-email-b-cousson@ti.com> <4F44FA56.7020000@gmail.com>
+ <4F44FC37.2000701@ti.com> <4F452484.5080503@gmail.com> <74CDBE0F657A3D45AFBB94109FB122FF17BD8BC6C1@HQMAIL01.nvidia.com>
+ <4F47AD08.4030504@ti.com> <CAAwP0s0cB368R2mtbJpTZJreR-5GSRLfxC+8DJLo5nw3_OwBuA@mail.gmail.com>
+ <512D39DA.7020306@ti.com> <CAAwP0s3oNaALFfLvEQnZ1m90BXh5pF2_-8FUyi6pQMzb0_FSVQ@mail.gmail.com>
+ <512E46BB.907@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:38122 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753580Ab3B0Sn7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Feb 2013 13:43:59 -0500
-Received: by mail-pb0-f54.google.com with SMTP id rr4so533846pbb.41
-        for <linux-omap@vger.kernel.org>; Wed, 27 Feb 2013 10:43:58 -0800 (PST)
-In-Reply-To: <1361954659.8362.70.camel@sokoban>
+Received: from mail-ia0-f171.google.com ([209.85.210.171]:40146 "EHLO
+	mail-ia0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750896Ab3B0UAe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Feb 2013 15:00:34 -0500
+Received: by mail-ia0-f171.google.com with SMTP id z13so827007iaz.16
+        for <linux-omap@vger.kernel.org>; Wed, 27 Feb 2013 12:00:33 -0800 (PST)
+In-Reply-To: <512E46BB.907@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.comTero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Jon Hunter <jon-hunter@ti.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Quoting Tero Kristo (2013-02-27 00:44:19)
-> Hi Paul and Mike,
-> 
-> It looks like we need to start putting more effort into this clock data
-> move now, as this is starting to hinder us on several fronts.
-> Unfortunately I still can't personally participate in this work myself
-> as I am now allocated to some hwmod related work, but Eduardo should
-> have plenty of time to help with this...
-> 
-> Anyway, Paul, I think you have been working a bit with this topic, what
-> is the latest status with this? Do you see any areas Eduardo can help
-> with? If you have some partially finished work also which you don't have
-> time yourself, we can even take a look at that.
-> 
-> Also, I would like to receive some initial comments about the approach
-> we should take, and I added Mike here for this as you are the maintainer
-> for the /drivers/clk. I believe we should start by moving the clock data
-> under /drivers/clk/omap, and potentially move also some other stuff
-> here, like CM code, clockdomain code and clockdomain data even. Do you
-> have any opinions on this?
-> 
+On Wed, Feb 27, 2013 at 6:47 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
+> On 02/26/2013 08:33 PM, Javier Martinez Canillas wrote:
+> ...
+>> Yes, I realized that requesting the gpio was necessary so what I did
+>> is to use the "regulator-fixed" optional property "gpio" and define
+>> the GPIO used as an IRQ in a regulator used by the SMSC chip. So, I
+>> have this on my board DT:
+>>
+>> vddvario: regulator-vddvario {
+>>       compatible = "regulator-fixed";
+>>       regulator-name = "vddvario";
+>>       regulator-always-on;
+>>       gpio = <&gpio6 16 8>;  /* gpio line 176 */
+>>       enable-active-high;
+>>       gpio-open-drain;
+>
+> While admittedly it's configured as open-drain, that will configure the
+> GPIO to be an output, whereas for usage as an interrupt, it really
+> should be configured as an input... Perhaps it makes no difference on
+> OMAP HW since the I/O paths are separate, but I can easily imagine HW
+> where this hack wouldn't work.
+>
+>>       regulator-boot-on;
+>> };
+>>
+>> &gpmc {
+>>       ethernet@5,0 {
+>>               pinctrl-names = "default";
+>>               pinctrl-0 = <&smsc911x_pins>;
+>>               compatible = "smsc,lan9221", "smsc,lan9115";
+>>               reg = <5 0 0xff>;
+>>               interrupt-parent = <&gpio6>;
+>>               interrupts = <16 8>; /* gpio line 176 */
+>>               interrupt-names = "smsc911x irq";
+>>               vmmc-supply = <&vddvario>;
+>>               vmmc_aux-supply = <&vdd33a>;
+>>               reg-io-width = <4>;
+>>
+>>               smsc,save-mac-address;
+>>       };
+>> };
+>>
+>> That way a call to gpio_request_one() is made and the GPIO is requested.
+>>
+>> This look a little hack-ish for me but I've seen this in other
+>> DeviceTrees like omap4-sdp.dts so I thought it was a common DT
+>> pattern.
+>
+> Indeed; the GPIO is in no way a regulator, so while the above is fine
+> for testing, it's in no way a solution that can actually be used and
+> checked in.
 
-My gut reaction is that I do not want the clockdomain or CM code under
-drivers/clk.  The clock code and data is welcome under drivers/clk.  If
-there are zero users of the CM and clockdomain code outside of the clock
-code, then I'll consider it, but otherwise the CM and clockdomain code
-must find a proper home.
+Yes, this is just a work-in-progress and is not meant to be taken as a
+patch submission.
 
-There was some discussion about a general place to put power controller
-code [1] and some stuff about power sequencing on the list [2], perhaps
-that is a better destination for the CM and clockdomain code?  I admit
-it is a stretch.
+I'm just doing some testing with DT and figuring out how much effort
+will take to have the same hardware support we currently with board
+files for IGEP boards.
 
-There are two other points to consider when migrating this data:
-
-1) Has the hwmod initialization been changed to run after early init,
-when slab is up?  If so then that removes the barrier keeping the OMAP
-clock data statically initialized via clk-private.h.  Whoever is going
-to migrate this data should think about registering the clocks
-dynamically and using clk-provider.h instead of clk-private.h.  I'd like
-to remove the latter header and after Tegra's latest CCF patches I
-believe that only OMAP is making use of it.
-
-2) Migrating the clock data to device tree.  This seems to be the way
-everyone is going.  I care less about this one as the maintainer of
-drivers/clk and more about getting rid of clk-private.h users once and
-for all.
-
-Regards,
-Mike
-
-[1] http://article.gmane.org/gmane.linux.ports.arm.omap/90425
-[2] http://article.gmane.org/gmane.linux.kernel/1395912/match=runtime+interpreted+power+sequences
-
-> -Tero
+Thanks a lot for your feedback and best regards,
+Javier
