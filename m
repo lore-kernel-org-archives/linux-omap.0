@@ -1,51 +1,106 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: crypto: omap-sham, omap-aes and
- dma_request_slave_channel_compat()
-Date: Wed, 27 Feb 2013 11:01:09 +0530
-Message-ID: <20130227053109.GA28537@intel.com>
-References: <512D00BE.8090204@canonical.com>
- <20130226225205.GA13338@animalcreek.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH 15/15] staging: omap-thermal: update clock prepare count
+Date: Tue, 26 Feb 2013 21:35:23 -0800
+Message-ID: <20130227053523.14870.20885@quantum>
+References: <1361919218-9788-1-git-send-email-eduardo.valentin@ti.com>
+ <1361919218-9788-16-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130226225205.GA13338@animalcreek.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: Tim Gardner <tim.gardner@canonical.com>, herbert@gondor.hengli.com.au, dmitry.kasatkin@intel.com, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:33879 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750715Ab3B0Ff3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Feb 2013 00:35:29 -0500
+Received: by mail-pa0-f42.google.com with SMTP id kq12so200180pab.29
+        for <linux-omap@vger.kernel.org>; Tue, 26 Feb 2013 21:35:28 -0800 (PST)
+In-Reply-To: <1361919218-9788-16-git-send-email-eduardo.valentin@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: gregkh@linuxfoundation.org
+Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-On Tue, Feb 26, 2013 at 03:52:05PM -0700, Mark A. Greer wrote:
-> [CC'ing more people & lists.]
+Quoting Eduardo Valentin (2013-02-26 14:53:38)
+> This patch changes the clock management code to also update
+> the clock prepare counter, this way we won't skip the enable/disable
+> operation due to prepare dependencies.
 > 
-> On Tue, Feb 26, 2013 at 11:36:46AM -0700, Tim Gardner wrote:
-> > Whats up with commits 0e87e73f4abe1ada69cf780fe2550c6361a1b53b and
-> > b4b87a934c30fb91cbdd18ae028acdc361e1cf0f. As far as I can tell,
-> > dma_request_slave_channel_compat() does not exist in 3.9 as of
-> > 52caa59ed335616c5254adff7911465a57ed9f14, nor does it exist in
-> > linux-next as of Feb 26. Am I just being dense ?
-> 
-> Yeah, order got a little messed up.  The problem is known and the
-> sub-thread talking about it starts about here:
-> 
-> 	http://www.spinics.net/lists/arm-kernel/msg225241.html
-> 
-> with the conclusion (AFAICT) that Vinod is to push it:
-> 
-> 	http://www.spinics.net/lists/arm-kernel/msg226062.html
-> 
-> > Reverting those 2 commits at least allows the compile complete.
-> 
-> When the dependencies are sorted out, will you revert the revert
-> or do I need to do something?
-Yes we had agreed that I will send it.
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 
-I have applied this one now, and will send second PULL request to Linus soon.
+Hi Eduardo,
 
-Arnd,
-The second patch of dw_dmac you wnated to send me fails to apply for me. Can you
-either rebase or send with your updates with my ack?
+I didn't look through the other patches in this series (or even the
+existing driver that is merged).  With that said, I have a question:
+does this driver aggressively call clk_enable/clk_disable in call sites
+other than those listed in this patch?
 
-Either ways let me know
---
-~Vinod
+If so it might be a good idea to call clk_prepare_enable and
+clk_disable_unprepare in those location.  Of course only call it if the
+context can sleep (e.g. not an interrupt handler).
+
+If the driver doesn't aggressively call enable/disable elsewhere than
+you can disregard my message ;-)
+
+Regards,
+Mike
+
+> ---
+>  drivers/staging/omap-thermal/omap-bandgap.c |   10 +++++-----
+>  1 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/staging/omap-thermal/omap-bandgap.c b/drivers/staging/omap-thermal/omap-bandgap.c
+> index 83f74f4..d4a3788 100644
+> --- a/drivers/staging/omap-thermal/omap-bandgap.c
+> +++ b/drivers/staging/omap-thermal/omap-bandgap.c
+> @@ -943,7 +943,7 @@ int omap_bandgap_probe(struct platform_device *pdev)
+>  
+>         bg_ptr->clk_rate = clk_rate;
+>         if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
+> -               clk_enable(bg_ptr->fclock);
+> +               clk_prepare_enable(bg_ptr->fclock);
+>  
+>  
+>         mutex_init(&bg_ptr->bg_mutex);
+> @@ -1013,7 +1013,7 @@ int omap_bandgap_probe(struct platform_device *pdev)
+>  
+>  disable_clk:
+>         if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
+> -               clk_disable(bg_ptr->fclock);
+> +               clk_disable_unprepare(bg_ptr->fclock);
+>  put_clks:
+>         clk_put(bg_ptr->fclock);
+>         clk_put(bg_ptr->div_clk);
+> @@ -1044,7 +1044,7 @@ int omap_bandgap_remove(struct platform_device *pdev)
+>         omap_bandgap_power(bg_ptr, false);
+>  
+>         if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
+> -               clk_disable(bg_ptr->fclock);
+> +               clk_disable_unprepare(bg_ptr->fclock);
+>         clk_put(bg_ptr->fclock);
+>         clk_put(bg_ptr->div_clk);
+>  
+> @@ -1143,7 +1143,7 @@ static int omap_bandgap_suspend(struct device *dev)
+>         omap_bandgap_power(bg_ptr, false);
+>  
+>         if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
+> -               clk_disable(bg_ptr->fclock);
+> +               clk_disable_unprepare(bg_ptr->fclock);
+>  
+>         return err;
+>  }
+> @@ -1153,7 +1153,7 @@ static int omap_bandgap_resume(struct device *dev)
+>         struct omap_bandgap *bg_ptr = dev_get_drvdata(dev);
+>  
+>         if (OMAP_BANDGAP_HAS(bg_ptr, CLK_CTRL))
+> -               clk_enable(bg_ptr->fclock);
+> +               clk_prepare_enable(bg_ptr->fclock);
+>  
+>         omap_bandgap_power(bg_ptr, true);
+>  
+> -- 
+> 1.7.7.1.488.ge8e1c
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
