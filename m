@@ -1,324 +1,80 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH] OMAP3 ROM Random Number Generator support
-Date: Thu, 28 Feb 2013 19:05:47 +0100
-Message-ID: <201302281905.48546@pali>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1557775.NvWmvZgbeZ";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Juha Yrjola <juha.yrjola@solidboot.com>, Russell King <linux@arm.linux.org.uk>, Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: [PATCH] arm/omap2: Fix build failures
+Date: Thu, 28 Feb 2013 10:53:03 -0800
+Message-ID: <1362077583-11184-1-git-send-email-linux@roeck-us.net>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.active-venture.com ([67.228.131.205]:62940 "EHLO
+	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754349Ab3B1TSA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Feb 2013 14:18:00 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Guenter Roeck <linux@roeck-us.net>
 
---nextPart1557775.NvWmvZgbeZ
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Commit c1d1cd59 (omap_device: remove obsolete pm_lats and early_device code)
+changed the number of parameters to omap_device_build(), but did not fix all
+calling code correctly. This causes build failures with some configurations.
 
-This driver provides kernel-side support for the Random Number
-Generator hardware found on OMAP34xx processors.
+arch/arm/mach-omap2/devices.c: In function 'omap_init_hdmi_audio':
+arch/arm/mach-omap2/devices.c:429:2: error: too many arguments to function 'omap_device_build'
+arch/arm/mach-omap2/omap_device.h:74:25: note: declared here
+make[2]: [arch/arm/mach-omap2/devices.o] Error 1 (ignored)
+arch/arm/mach-omap2/sr_device.c: In function 'sr_dev_init':
+arch/arm/mach-omap2/sr_device.c:155:2: error: too many arguments to function 'omap_device_build'
+arch/arm/mach-omap2/omap_device.h:74:25: note: declared here
+make[2]: [arch/arm/mach-omap2/sr_device.o] Error 1 (ignored)
+arch/arm/mach-omap2/am35xx-emac.c: In function 'omap_davinci_emac_dev_init':
+arch/arm/mach-omap2/am35xx-emac.c:66:6: error: too many arguments to function 'omap_device_build'
+arch/arm/mach-omap2/omap_device.h:74:25: note: declared here
 
-This driver is included in Maemo 2.6.28 kernel used on Nokia N900.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ arch/arm/mach-omap2/am35xx-emac.c |    3 +--
+ arch/arm/mach-omap2/devices.c     |    2 +-
+ arch/arm/mach-omap2/sr_device.c   |    2 +-
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-I fixed driver to work with 3.8 kernel and added platform_driver
-code to autoload it on omap3 devices.
-
+diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
+index a00d391..25b79a2 100644
+--- a/arch/arm/mach-omap2/am35xx-emac.c
++++ b/arch/arm/mach-omap2/am35xx-emac.c
+@@ -62,8 +62,7 @@ static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
+ {
+ 	struct platform_device *pdev;
+ 
+-	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len,
+-				 false);
++	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len);
+ 	if (IS_ERR(pdev)) {
+ 		WARN(1, "Can't build omap_device for %s:%s.\n",
+ 		     oh->class->name, oh->name);
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 626f3ea..48e40f3 100644
-=2D-- a/arch/arm/mach-omap2/devices.c
+index 142d9c6..1ec7f05 100644
+--- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
-@@ -446,6 +446,18 @@ static void omap_init_mcspi(void)
- static inline void omap_init_mcspi(void) {}
- #endif
-=20
-+static struct platform_device omap3_rom_rng_device =3D {
-+	.name		=3D "omap3-rom-rng",
-+	.id		=3D -1,
-+};
-+
-+static void omap_init_rom_rng(void)
-+{
-+	if (!cpu_is_omap34xx() || omap_type() =3D=3D OMAP2_DEVICE_TYPE_GP)
-+		return;
-+	platform_device_register(&omap3_rom_rng_device);
-+}
-+
- /**
-  * omap_init_rng - bind the RNG hwmod to the RNG omap_device
-  *
-@@ -727,6 +739,7 @@ static int __init omap2_init_devices(void)
+@@ -426,7 +426,7 @@ static void __init omap_init_hdmi_audio(void)
+ 		return;
  	}
- 	omap_init_sti();
- 	omap_init_rng();
-+	omap_init_rom_rng();
- 	omap_init_sham();
- 	omap_init_aes();
- 	omap_init_vout();
-diff --git a/drivers/char/hw_random/Kconfig b/drivers/char/hw_random/Kconfig
-index c5a0262..2d51db6 100644
-=2D-- a/drivers/char/hw_random/Kconfig
-+++ b/drivers/char/hw_random/Kconfig
-@@ -153,6 +153,19 @@ config HW_RANDOM_OMAP
-=20
-  	  If unsure, say Y.
-=20
-+config HW_RANDOM_OMAP3_ROM
-+	tristate "OMAP3 ROM Random Number Generator support"
-+	depends on HW_RANDOM && ARCH_OMAP3
-+	default HW_RANDOM
-+	---help---
-+	  This driver provides kernel-side support for the Random Number
-+	  Generator hardware found on OMAP34xx processors.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called omap3-rom-rng.
-+
-+	  If unsure, say Y.
-+
- config HW_RANDOM_OCTEON
- 	tristate "Octeon Random Number Generator support"
- 	depends on HW_RANDOM && CPU_CAVIUM_OCTEON
-diff --git a/drivers/char/hw_random/Makefile b/drivers/char/hw_random/Makef=
-ile
-index 1fd7eec..d227cd6 100644
-=2D-- a/drivers/char/hw_random/Makefile
-+++ b/drivers/char/hw_random/Makefile
-@@ -15,6 +15,8 @@ n2-rng-y :=3D n2-drv.o n2-asm.o
- obj-$(CONFIG_HW_RANDOM_VIA) +=3D via-rng.o
- obj-$(CONFIG_HW_RANDOM_IXP4XX) +=3D ixp4xx-rng.o
- obj-$(CONFIG_HW_RANDOM_OMAP) +=3D omap-rng.o
-+obj-$(CONFIG_HW_RANDOM_OMAP3_ROM) +=3D omap3-rom-rng.o
-+omap3-rom-rng-y :=3D omap3-rom-drv.o omap3-rom-asm.o
- obj-$(CONFIG_HW_RANDOM_PASEMI) +=3D pasemi-rng.o
- obj-$(CONFIG_HW_RANDOM_VIRTIO) +=3D virtio-rng.o
- obj-$(CONFIG_HW_RANDOM_TX4939) +=3D tx4939-rng.o
-diff --git a/drivers/char/hw_random/omap3-rom-asm.S b/drivers/char/hw_rando=
-m/omap3-rom-asm.S
-new file mode 100644
-index 0000000..ce82e16
-=2D-- /dev/null
-+++ b/drivers/char/hw_random/omap3-rom-asm.S
-@@ -0,0 +1,27 @@
-+/*
-+ * Copyright (C) 2009 Nokia Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/linkage.h>
-+#include <asm/assembler.h>
-+
-+ENTRY(omap3_rng_call_rom_asm)
-+	.arch_extension sec
-+	stmfd	sp!, {r4-r12, lr}
-+	stmfd	sp!, {r0-r3}
-+	bl	v7_flush_dcache_all
-+	ldmfd	sp!, {r0-r3}
-+	mov	r6, #0xff
-+	mov	r12, r0
-+	smc	#1
-+	mov	r12, r0
-+	bl	v7_flush_dcache_all
-+	mov	r0, #0
-+	mcr	p15, 0, r0, c7, c5, 0
-+	mov	r0, r12
-+	ldmfd	sp!, {r4-r12, pc}
-diff --git a/drivers/char/hw_random/omap3-rom-drv.c b/drivers/char/hw_rando=
-m/omap3-rom-drv.c
-new file mode 100644
-index 0000000..4e2c0ff
-=2D-- /dev/null
-+++ b/drivers/char/hw_random/omap3-rom-drv.c
-@@ -0,0 +1,167 @@
-+/*
-+ * omap3-rom-drv.c - RNG driver for TI OMAP3 CPU family
-+ *
-+ * Copyright (C) 2009 Nokia Corporation
-+ * Author: Juha Yrjola <juha.yrjola@solidboot.com>
-+ *
-+ * This file is licensed under  the terms of the GNU General Public
-+ * License version 2. This program is licensed "as is" without any
-+ * warranty of any kind, whether express or implied.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/random.h>
-+#include <linux/hw_random.h>
-+#include <linux/timer.h>
-+#include <linux/clk.h>
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
-+
-+#include "../../../arch/arm/mach-omap2/soc.h"
-+
-+#define SEC_HAL_RNG_GENERATE		29
-+#define RNG_RESET			0x01
-+#define RNG_GEN_PRNG_HW_INIT		0x02
-+#define RNG_GEN_HW			0x08
-+
-+static const char *omap3_rom_rng_name =3D "OMAP3 ROM RNG";
-+
-+extern u32 omap3_rng_call_rom_asm(u32 id, u32 proc, u32 flags, u32 va_ptr);
-+
-+static int call_sec_rom(u32 appl_id, u32 proc_id, u32 flag, ...)
-+{
-+	va_list ap;
-+	u32 ret;
-+	u32 val;
-+
-+	va_start(ap, flag);
-+	val =3D *(u32 *) &ap;
-+	local_irq_disable();
-+	local_fiq_disable();
-+	ret =3D omap3_rng_call_rom_asm(appl_id, proc_id, flag,
-+				     (u32) virt_to_phys((void *) val));
-+	local_fiq_enable();
-+	local_irq_enable();
-+	va_end(ap);
-+
-+	return ret;
-+}
-+
-+static struct timer_list idle_timer;
-+static int rng_idle;
-+static struct clk *rng_clk;
-+
-+static void omap3_rom_idle_rng(unsigned long data)
-+{
-+	int r;
-+
-+	r =3D call_sec_rom(SEC_HAL_RNG_GENERATE, 0, 0, 3, NULL, 0,
-+			 RNG_RESET);
-+	if (r !=3D 0) {
-+		printk(KERN_ERR "%s: reset failed: %d\n",
-+		       omap3_rom_rng_name, r);
-+		return;
-+	}
-+	clk_disable_unprepare(rng_clk);
-+	rng_idle =3D 1;
-+}
-+
-+static int omap3_rom_get_random(void *buf, unsigned int count)
-+{
-+	u32 r;
-+	u32 ptr;
-+
-+	del_timer_sync(&idle_timer);
-+	if (rng_idle) {
-+		clk_prepare_enable(rng_clk);
-+		r =3D call_sec_rom(SEC_HAL_RNG_GENERATE, 0, 0, 3, NULL, 0,
-+				 RNG_GEN_PRNG_HW_INIT);
-+		if (r !=3D 0) {
-+			clk_disable_unprepare(rng_clk);
-+			printk(KERN_ERR "%s: HW init failed: %d\n",
-+			       omap3_rom_rng_name, r);
-+			return -EIO;
-+		}
-+		rng_idle =3D 0;
-+	}
-+
-+	ptr =3D virt_to_phys(buf);
-+	r =3D call_sec_rom(SEC_HAL_RNG_GENERATE, 0, 0, 3, ptr,
-+			 count, RNG_GEN_HW);
-+	mod_timer(&idle_timer, jiffies + msecs_to_jiffies(500));
-+	if (r !=3D 0)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+static int omap3_rom_rng_data_present(struct hwrng *rng, int wait)
-+{
-+	return 1;
-+}
-+
-+static int omap3_rom_rng_data_read(struct hwrng *rng, u32 *data)
-+{
-+	int r;
-+
-+	r =3D omap3_rom_get_random(data, 4);
-+	if (r < 0)
-+		return r;
-+	return 4;
-+}
-+
-+static struct hwrng omap3_rom_rng_ops =3D {
-+	.name		=3D "omap3-rom",
-+	.data_present	=3D omap3_rom_rng_data_present,
-+	.data_read	=3D omap3_rom_rng_data_read,
-+};
-+
-+static int omap3_rom_rng_probe(struct platform_device *pdev)
-+{
-+	printk(KERN_INFO "%s: initializing\n", omap3_rom_rng_name);
-+	if (!cpu_is_omap34xx()) {
-+		printk(KERN_ERR "%s: currently supports only OMAP34xx CPUs\n",
-+		       omap3_rom_rng_name);
-+		return -ENODEV;
-+	}
-+	if (omap_type() =3D=3D OMAP2_DEVICE_TYPE_GP) {
-+		printk(KERN_ERR "%s: GP OMAPs not supported\n",
-+		       omap3_rom_rng_name);
-+		return -ENODEV;
-+	}
-+
-+	setup_timer(&idle_timer, omap3_rom_idle_rng, 0);
-+	rng_clk =3D clk_get_sys("omap_rng", "ick");
-+	if (IS_ERR(rng_clk)) {
-+		printk(KERN_ERR "%s: unable to get RNG clock\n",
-+		       omap3_rom_rng_name);
-+		return IS_ERR(rng_clk);
-+	}
-+
-+	/* Leave the RNG in reset state. */
-+	clk_prepare_enable(rng_clk);
-+	omap3_rom_idle_rng(0);
-+
-+	return hwrng_register(&omap3_rom_rng_ops);
-+}
-+
-+static int omap3_rom_rng_remove(struct platform_device *pdev)
-+{
-+	hwrng_unregister(&omap3_rom_rng_ops);
-+	return 0;
-+}
-+
-+static struct platform_driver omap3_rom_rng_driver =3D {
-+	.driver =3D {
-+		.name		=3D "omap3-rom-rng",
-+		.owner		=3D THIS_MODULE,
-+	},
-+	.probe		=3D omap3_rom_rng_probe,
-+	.remove		=3D omap3_rom_rng_remove,
-+};
-+
-+module_platform_driver(omap3_rom_rng_driver);
-+
-+MODULE_ALIAS("platform:omap3-rom-rng");
-+MODULE_AUTHOR("Juha Yrjola");
-+MODULE_LICENSE("GPL");
+ 
+-	pdev = omap_device_build("omap-hdmi-audio-dai", -1, oh, NULL, 0, 0);
++	pdev = omap_device_build("omap-hdmi-audio-dai", -1, oh, NULL, 0);
+ 	WARN(IS_ERR(pdev),
+ 	     "Can't build omap_device for omap-hdmi-audio-dai.\n");
+ 
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index bb829e0..d7bc33f 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -152,7 +152,7 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
+ 
+ 	sr_data->enable_on_init = sr_enable_on_init;
+ 
+-	pdev = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data), 0);
++	pdev = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data));
+ 	if (IS_ERR(pdev))
+ 		pr_warning("%s: Could not build omap_device for %s: %s.\n\n",
+ 			__func__, name, oh->name);
+-- 
+1.7.9.7
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1557775.NvWmvZgbeZ
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlEvnHwACgkQi/DJPQPkQ1I7MwCgiX6TOuUwpnxPdWWxGWLIGPKm
-hb4AoMnNfdAmf606OVyd/Hg0NNKQBFeI
-=2Mjq
------END PGP SIGNATURE-----
-
---nextPart1557775.NvWmvZgbeZ--
