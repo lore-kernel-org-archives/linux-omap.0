@@ -1,95 +1,100 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
-Date: Thu, 28 Feb 2013 14:04:32 +0100
-Message-ID: <512F55E0.8050501@ti.com>
-References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <1329321854-24490-4-git-send-email-b-cousson@ti.com> <CACRpkdabXa8tXNeGRPntvY9cx4XWCa7XaEXHmVREeWN-x793ZA@mail.gmail.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: OMAP CLK / CM data move to /drivers/clk
+Date: Thu, 28 Feb 2013 09:48:14 -0400
+Message-ID: <512F601E.9070200@ti.com>
+References: <1361954659.8362.70.camel@sokoban> <20130227184345.14870.23049@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44376 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751332Ab3B1NEq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Feb 2013 08:04:46 -0500
-In-Reply-To: <CACRpkdabXa8tXNeGRPntvY9cx4XWCa7XaEXHmVREeWN-x793ZA@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:37217 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752436Ab3B1Ns1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Feb 2013 08:48:27 -0500
+In-Reply-To: <20130227184345.14870.23049@quantum>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Jon Hunter <jon-hunter@ti.com>
-Cc: grant.likely@secretlab.ca, khilman@linaro.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-+ Jon who was brave enough to take over the OMAP GPIO  driver
-+ New email address for Kevin since he is no longer at TI :-(.
-- Tarun that left TI but I don't have his new email
+Mike,
 
-Hi Linus,
-
-On 02/28/2013 12:41 AM, Linus Walleij wrote:
-> On Wed, Feb 15, 2012 at 5:04 PM, Benoit Cousson <b-cousson@ti.com> wrote:
-
-Gosh! That's pretty old stuff :-)
-
->> @@ -52,7 +55,8 @@ struct gpio_bank {
->>         struct list_head node;
->>         void __iomem *base;
->>         u16 irq;
->> -       u16 virtual_irq_start;
->> +       int irq_base;
->> +       struct irq_domain *domain;
-> 
-> This seems wrong. IRQ domains are used to avoid keeping track of
-> irq base offsets. I would even say it's the whole point of irq domains.
-
-Well at that time, it was not the only point. We were trying to boot
-with DT, and for that irq_domain was mandatory. At the very same time,
-Grant was cleaning and consolidating the whole irq_domain
-infrastructure, and thus most of the following API were not really
-stabilized or even available.
-
-So, this idea was to avoid any regression while allowing DT boot... And
-obviously a lot of stuff happened since that good old time.
-
->> @@ -669,7 +673,7 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
->>                 if (!isr)
->>                         break;
+On 27-02-2013 14:43, Mike Turquette wrote:
+> Quoting Tero Kristo (2013-02-27 00:44:19)
+>> Hi Paul and Mike,
 >>
->> -               gpio_irq = bank->virtual_irq_start;
->> +               gpio_irqkhilman@ti.com = bank->irq_base;
->>                 for (; isr != 0; isr >>= 1, gpio_irq++) {
->>                         gpio_index = GPIO_INDEX(bank, irq_to_gpio(gpio_irq));
+>> It looks like we need to start putting more effort into this clock data
+>> move now, as this is starting to hinder us on several fronts.
+>> Unfortunately I still can't personally participate in this work myself
+>> as I am now allocated to some hwmod related work, but Eduardo should
+>> have plenty of time to help with this...
 >>
-> 
-> Use irq_find_mapping(irqdomain, hwirq) in this function.
-> 
-> 
->> @@ -915,7 +919,7 @@ static int gpio_2irq(struct gpio_chip *chip, unsigned offset)
->>         struct gpio_bank *bank;
+>> Anyway, Paul, I think you have been working a bit with this topic, what
+>> is the latest status with this? Do you see any areas Eduardo can help
+>> with? If you have some partially finished work also which you don't have
+>> time yourself, we can even take a look at that.
 >>
->>         bank = container_of(chip, struct gpio_bank, chip);
->> -       return bank->virtual_irq_start + offset;
->> +       return bank->irq_base + offset;
-> 
-> Use irq_create_mapping() in this function.
-> 
->> +       bank->irq_base = irq_alloc_descs(-1, 0, bank->width, 0);
->> +       if (bank->irq_base < 0) {
->> +               dev_err(dev, "Couldn't allocate IRQ numbers\n");
->> +               return -ENODEV;
->> +       }
->> +
->> +       bank->domain = irq_domain_add_legacy(node, bank->width, bank->irq_base,
->> +                                            0, &irq_domain_simple_ops, NULL);
-> 
-> Use irq_domain_add_simple() and the descs will be allocated for
-> you as part of the domain creation, when using a pre-fixed base.
+>> Also, I would like to receive some initial comments about the approach
+>> we should take, and I added Mike here for this as you are the maintainer
+>> for the /drivers/clk. I believe we should start by moving the clock data
+>> under /drivers/clk/omap, and potentially move also some other stuff
+>> here, like CM code, clockdomain code and clockdomain data even. Do you
+>> have any opinions on this?
+>>
+>
+> My gut reaction is that I do not want the clockdomain or CM code under
+> drivers/clk.  The clock code and data is welcome under drivers/clk.  If
+> there are zero users of the CM and clockdomain code outside of the clock
+> code, then I'll consider it, but otherwise the CM and clockdomain code
+> must find a proper home.
+>
+> There was some discussion about a general place to put power controller
+> code [1] and some stuff about power sequencing on the list [2], perhaps
+> that is a better destination for the CM and clockdomain code?  I admit
+> it is a stretch.
+>
+> There are two other points to consider when migrating this data:
+>
+> 1) Has the hwmod initialization been changed to run after early init,
+> when slab is up?  If so then that removes the barrier keeping the OMAP
+> clock data statically initialized via clk-private.h.  Whoever is going
+> to migrate this data should think about registering the clocks
+> dynamically and using clk-provider.h instead of clk-private.h.  I'd like
+> to remove the latter header and after Tegra's latest CCF patches I
+> believe that only OMAP is making use of it.
 
-Funny, that API was removed while I was writing this patch, and is now
-back in town...
+The documentation under "Documentation/clk.txt" states somewhat different:
+"
+To get around this problem struct clk's definition is exposed in
+include/linux/clk-private.h along with some macros for more easily
+initializing instances of the basic clock types.  These clocks must
+still be initialized with the common clock framework via a call to
+__clk_init."
 
-> If you fix this I suspect the device tree discussion also will fix
-> itself :-)
+Despite the fact that OMAP is the only real user of clk-private.h, I 
+believe one must update the documentation to clear discourage the usage 
+of clk-provider.h by any means, outside the core CCF code, even for 
+static definition of clk data, considering your statement above.
 
-Mmm, I hope it is the case, but I'm not sure it will be that easy :-)
+>
+> 2) Migrating the clock data to device tree.  This seems to be the way
+> everyone is going.  I care less about this one as the maintainer of
+> drivers/clk and more about getting rid of clk-private.h users once and
+> for all.
 
-Thanks,
-Benoit
+Tegra folks has already stepped into that direction. I agree that this 
+is ideal for declaring the clock static data. This is obviously more 
+complicated for OMAP legacy code. That would need to be done into two 
+steps at least, so that we won't break support on older OMAP versions.
+
+>
+> Regards,
+> Mike
+>
+> [1] http://article.gmane.org/gmane.linux.ports.arm.omap/90425
+> [2] http://article.gmane.org/gmane.linux.kernel/1395912/match=runtime+interpreted+power+sequences
+>
+>> -Tero
+>
+>
 
