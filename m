@@ -1,100 +1,82 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: OMAP CLK / CM data move to /drivers/clk
-Date: Thu, 28 Feb 2013 09:48:14 -0400
-Message-ID: <512F601E.9070200@ti.com>
-References: <1361954659.8362.70.camel@sokoban> <20130227184345.14870.23049@quantum>
+From: Vivek Gautam <gautamvivek1987-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC] usb: dwc3: Get PHY from platform specific dwc3 dt
+ node.
+Date: Thu, 28 Feb 2013 20:09:33 +0530
+Message-ID: <CAFp+6iGTqZY=+crcYyu9o5uEP9Nv2=haSqB+nCuqA2_iUand6A@mail.gmail.com>
+References: <1359631232-7107-1-git-send-email-gautam.vivek@samsung.com>
+ <510A56BF.3040804@ti.com>
+ <CAFp+6iFkb=U0CJA=3zmQvd5XfMwbROuRJjXoJG7zvvq4_upzNw@mail.gmail.com>
+ <20130131152527.GE4064@arwen.pp.htv.fi>
+ <CAFp+6iHvKYiF_neANRq5roAEJwhvcaLk7pAd7Dy94Z5XiDkhgA@mail.gmail.com>
+ <20130131153836.GF4064@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37217 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752436Ab3B1Ns1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Feb 2013 08:48:27 -0500
-In-Reply-To: <20130227184345.14870.23049@quantum>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130131153836.GF4064-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, kishon <kishon-l0cyMroinI0@public.gmane.org>, Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-Mike,
+Hi,
 
-On 27-02-2013 14:43, Mike Turquette wrote:
-> Quoting Tero Kristo (2013-02-27 00:44:19)
->> Hi Paul and Mike,
+On Thu, Jan 31, 2013 at 9:08 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> On Thu, Jan 31, 2013 at 09:00:37PM +0530, Vivek Gautam wrote:
+>> Hi Felipe,
 >>
->> It looks like we need to start putting more effort into this clock data
->> move now, as this is starting to hinder us on several fronts.
->> Unfortunately I still can't personally participate in this work myself
->> as I am now allocated to some hwmod related work, but Eduardo should
->> have plenty of time to help with this...
 >>
->> Anyway, Paul, I think you have been working a bit with this topic, what
->> is the latest status with this? Do you see any areas Eduardo can help
->> with? If you have some partially finished work also which you don't have
->> time yourself, we can even take a look at that.
+>> On Thu, Jan 31, 2013 at 8:55 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+>> > Hi,
+>> >
+>> > On Thu, Jan 31, 2013 at 08:53:27PM +0530, Vivek Gautam wrote:
+>> >> >> Moreover, SoCs having multiple dwc3 controllers will have multiple
+>> >> >> PHYs, which eventually be added using usb_add_phy_dev(), and not
+>> >> >> using usb_add_phy(). So each dwc3 controller won't be able to
+>> >> >> get PHYs by simply calling devm_usb_get_phy() also.
+>> >> >
+>> >> > No. We have added usb_get_phy_dev() for that purpose in the case of non-dt.
+>> >> > I think, instead you can have a patch to use devm_usb_get_phy_dev() here and
+>> >> > in exynos platform specific code use usb_bind_phy() to bind the phy and
+>> >> > controller till you change it to dt.
+>> >> >
+>> >>
+>> >> We have dt support for dwc3-exynos, in such case we should go ahead with
+>> >> of_platform_populate(), right ?
+>> >> But if when i use of_platform_populate() i will not be able to set
+>> >> dma_mask to dwc3->dev. :-(
+>> >
+>> > do you have a special need for dma_mask because OF already sets it.
+>> >
+>> If i am not wrong of_platform_device_create_pdata() will set
+>> "dev->dev.coherent_dma_mask = DMA_BIT_MASK(32)"
+>> and not dma_mask.
+>> I fact we had some discussion sometime back when we needed the same
+>> for dwc3-exynos in the thread:
+>> [PATCH v2 1/2] USB: dwc3-exynos: Add support for device tree
 >>
->> Also, I would like to receive some initial comments about the approach
->> we should take, and I added Mike here for this as you are the maintainer
->> for the /drivers/clk. I believe we should start by moving the clock data
->> under /drivers/clk/omap, and potentially move also some other stuff
->> here, like CM code, clockdomain code and clockdomain data even. Do you
->> have any opinions on this?
->>
+>> But couldn't get final node on it.
+>> So suggestions here please. :-)
 >
-> My gut reaction is that I do not want the clockdomain or CM code under
-> drivers/clk.  The clock code and data is welcome under drivers/clk.  If
-> there are zero users of the CM and clockdomain code outside of the clock
-> code, then I'll consider it, but otherwise the CM and clockdomain code
-> must find a proper home.
->
-> There was some discussion about a general place to put power controller
-> code [1] and some stuff about power sequencing on the list [2], perhaps
-> that is a better destination for the CM and clockdomain code?  I admit
-> it is a stretch.
->
-> There are two other points to consider when migrating this data:
->
-> 1) Has the hwmod initialization been changed to run after early init,
-> when slab is up?  If so then that removes the barrier keeping the OMAP
-> clock data statically initialized via clk-private.h.  Whoever is going
-> to migrate this data should think about registering the clocks
-> dynamically and using clk-provider.h instead of clk-private.h.  I'd like
-> to remove the latter header and after Tegra's latest CCF patches I
-> believe that only OMAP is making use of it.
-
-The documentation under "Documentation/clk.txt" states somewhat different:
-"
-To get around this problem struct clk's definition is exposed in
-include/linux/clk-private.h along with some macros for more easily
-initializing instances of the basic clock types.  These clocks must
-still be initialized with the common clock framework via a call to
-__clk_init."
-
-Despite the fact that OMAP is the only real user of clk-private.h, I 
-believe one must update the documentation to clear discourage the usage 
-of clk-provider.h by any means, outside the core CCF code, even for 
-static definition of clk data, considering your statement above.
-
->
-> 2) Migrating the clock data to device tree.  This seems to be the way
-> everyone is going.  I care less about this one as the maintainer of
-> drivers/clk and more about getting rid of clk-private.h users once and
-> for all.
-
-Tegra folks has already stepped into that direction. I agree that this 
-is ideal for declaring the clock static data. This is obviously more 
-complicated for OMAP legacy code. That would need to be done into two 
-steps at least, so that we won't break support on older OMAP versions.
-
->
-> Regards,
-> Mike
->
-> [1] http://article.gmane.org/gmane.linux.ports.arm.omap/90425
-> [2] http://article.gmane.org/gmane.linux.kernel/1395912/match=runtime+interpreted+power+sequences
->
->> -Tero
->
+> hmm.. you're right there. Grant, Rob ? Any hints ?
 >
 
+Any suggestions on this ?
+
+> --
+> balbi
+
+
+
+-- 
+Thanks & Regards
+Vivek
