@@ -1,114 +1,86 @@
 From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH 04/14] ARM: OMAP2+: Add function for configuring GPMC
- settings
-Date: Fri, 1 Mar 2013 05:33:39 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3EA90C2F@DBDE01.ent.ti.com>
+Subject: RE: [PATCH 06/14] ARM: OMAP2+: Convert NAND to use
+ gpmc_cs_program_settings()
+Date: Fri, 1 Mar 2013 05:40:31 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3EA90C46@DBDE01.ent.ti.com>
 References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
- <1361899842-30303-5-git-send-email-jon-hunter@ti.com>
- <518397C60809E147AF5323E0420B992E3EA8F007@DBDE01.ent.ti.com>
- <512F7D58.90706@ti.com> <512F9005.7040908@ti.com>
+ <1361899842-30303-7-git-send-email-jon-hunter@ti.com>
+ <518397C60809E147AF5323E0420B992E3EA8F235@DBDE01.ent.ti.com>
+ <512F7F79.4020900@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47899 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751098Ab3CAFe5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Mar 2013 00:34:57 -0500
-In-Reply-To: <512F9005.7040908@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45591 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750696Ab3CAFls convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Mar 2013 00:41:48 -0500
+In-Reply-To: <512F7F79.4020900@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>
 
-On Thu, Feb 28, 2013 at 22:42:37, Hunter, Jon wrote:
+On Thu, Feb 28, 2013 at 21:32:01, Hunter, Jon wrote:
 > 
-> On 02/28/2013 09:52 AM, Jon Hunter wrote:
-> > 
-> > On 02/28/2013 12:05 AM, Philip, Avinash wrote:
-> >> On Tue, Feb 26, 2013 at 23:00:31, Hunter, Jon wrote:
-> >>> The GPMC has various different configuration options such as bus-width,
-> >>> synchronous or asychronous mode selection, burst mode options etc.
-> >>> Currently, there is no common function for configuring these options and
-> >>> various devices set these options by either programming the GPMC CONFIG1
-> >>> register directly or by calling gpmc_cs_configure() to set some of the
-> >>> options.
-> >>>
-> >>> Add a new function for configuring all of the GPMC options. Having a common
-> >>> function for configuring this options will simplify code and ease the
-> >>> migration to device-tree.
-> >>>
-> >>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> >>> ---
-> >>>  arch/arm/mach-omap2/gpmc.c |   65 ++++++++++++++++++++++++++++++++++++++++++++
-> >>>  arch/arm/mach-omap2/gpmc.h |    6 ++++
-> >>>  2 files changed, 71 insertions(+)
-> >>>
-> >>> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> >>> index 465cac9..fb8dfd2 100644
-> >>> --- a/arch/arm/mach-omap2/gpmc.c
-> >>> +++ b/arch/arm/mach-omap2/gpmc.c
-> >>> @@ -1137,6 +1137,71 @@ int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
-> >>>  	return 0;
-> >>>  }
-> >>>  
-> >>> +int gpmc_cs_program_settings(int cs, struct gpmc_settings *p)
-> >>> +{
-> >>> +	u32 config1;
-> >>> +
-> >>> +	if ((!p->device_width) || (p->device_width > GPMC_DEVWIDTH_16BIT)) {
-> >>> +		pr_err("%s: invalid width %d!", __func__, p->device_width);
-> >>> +		return -EINVAL;
-> >>> +	}
-> >>> +
-> >>> +	/* Address-data multiplexing not supported for NAND devices */
-> >>> +	if (p->device_nand && p->mux_add_data) {
-> >>> +		pr_err("%s: invalid configuration!\n", __func__);
-> >>> +		return -EINVAL;
-> >>> +	}
-> >>> +
-> >>> +	/* Page/burst mode supports lengths of 4, 8 and 16 bytes */
-> >>> +	if (p->burst_read || p->burst_write) {
-> >>> +		switch (p->burst_len) {
-> >>> +		case GPMC_BURST_4:
-> >>> +		case GPMC_BURST_8:
-> >>> +		case GPMC_BURST_16:
-> >>> +			break;
-> >>> +		default:
-> >>> +			pr_err("%s: invalid page/burst-length (%d)\n",
-> >>> +			       __func__, p->burst_len);
-> >>> +			return -EINVAL;
-> >>> +		}
-> >>> +	}
-> >>> +
-> >>> +	if ((p->wait_on_read || p->wait_on_write) &&
-> >>> +	    (p->wait_pin > gpmc_nr_waitpins)) {
-> >>> +		pr_err("%s: invalid wait-pin (%d)\n", __func__, p->wait_pin);
-> >>> +		return -EINVAL;
-> >>> +	}
-> >>> +
-> >>> +	config1 = GPMC_CONFIG1_DEVICESIZE((p->device_width - 1));
+> On 02/28/2013 04:38 AM, Philip, Avinash wrote:
+> > On Tue, Feb 26, 2013 at 23:00:33, Hunter, Jon wrote:
+> >> Convert the OMAP2+ NAND code to use the gpmc_cs_program_settings()
+> >> function for configuring the various GPMC options instead of directly
+> >> programming the CONFIG1 register.
 > >>
-> >> Can you consider read_modify approach?
+> >> This moves the configuration of some GPMC options outside the
+> >> nand_gpmc_retime() because these options should only need to be set once
+> >> regardless of whether the gpmc timing is changing dynamically at runtime.
+> >> The programming of where the wait-pin is also moved slightly, but this
+> >> will not have any impact to existing devices as no boards are currently
+> >> setting the dev_ready variable.
+> >>
+> >> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> >> ---
+> >>  arch/arm/mach-omap2/gpmc-nand.c |   35 +++++++++++++++++++++++------------
+> >>  1 file changed, 23 insertions(+), 12 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+> >> index afc1e8c..4bdfea2 100644
+> >> --- a/arch/arm/mach-omap2/gpmc-nand.c
+> >> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+> >> @@ -43,6 +43,10 @@ static struct platform_device gpmc_nand_device = {
+> >>  	.resource	= gpmc_nand_resource,
+> >>  };
+> >>  
+> >> +static struct gpmc_settings nand_settings = {
+> >> +	.device_nand = true,
+> >> +};
+> >> +
 > > 
-> > I was purposely trying to avoid that. The intent here is to program all
-> > the settings and get away from any boot-loader dependencies. If we use a
-> > read-modify approach then it will never be clear in the kernel what
-> > should actually be programmed.
+> > Is it possible to make it local variable?
+> > It would help GPMC to support NAND device on multiple chip select.
 > 
-> By the way, it would be good to know what your motivation for this is.
-> 
-> My goal is for all gpmc settings to eventually live in the DT blob and
-> there be no dependency on the bootloader whatsoever. That may mean that
-> settings are re-programmed again by the kernel but IMO that is best.
+> Well gpmc_nand_init() will be called for each NAND device and so I don't
+> see why this would prevent supporting multiple NANDs on multiple
+> chip-selects.
 
-Yes I understood now and the right thing to do.
-Suggested read modify approach because of some confusion as GPMC_CONFIG1 is already
-modified in gpmc_cs_set_timings() and is called from omap2_nand_gpmc_retime().
-So the data modified in gpmc_cs_set_timings() will lost (not significant)
-May be better and cleaner solution is to remove GPMC_CONFIG1 modification in
-gpmc_cs_set_timings() also.
+Problem exactly lies here. Here platform device initialized as statically.
+So multiple requests will points to same platform device.
+
+Recently this issue raised in TI e2e forum and solution being proposed.
+Details can found from
+http://e2e.ti.com/support/arm/sitara_arm/f/791/p/246997/865379.aspx#865379
+
+I doubt the same is the case for other GPMC client devices also.
+
+> 
+> Once migration to device-tree is complete we could definitely make it
+> local as there will be no need for any static initialisations of the
+> structure as all fields would be read from device-tree.
+> 
+> I can make it local now if that is preferred and seeing that will be the
+> direction once we have migrated to device-tree, is does make sense.
+
+As far as I understood, here usage of local variable won't break anything?
+If that is the case, better solution would be usage of local variable.
 
 Thanks
 Avinash
