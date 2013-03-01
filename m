@@ -1,313 +1,135 @@
-From: =?UTF-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?=
-	<freemangordon@abv.bg>
-Subject: Re: [PATCH] arm: omap: RX-51: ARM errata 430973 workaround
-Date: Fri, 1 Mar 2013 09:47:03 +0200 (EET)
-Message-ID: <517283541.62064.1362124023621.JavaMail.apache@mail81.abv.bg>
+From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
+Subject: 1GHz support for OMAP3
+Date: Fri, 1 Mar 2013 09:17:04 +0100
+Message-ID: <5448984682E7954C9BFF27F747A9C6CA5F34C6@dolphin.TIGRIS.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: pali.rohar@gmail.com, tony@atomide.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg="sha1"; boundary="----9451F8E7E6F23950CD1CE870FD50F8BF"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www45.your-server.de ([213.133.104.45]:60160 "EHLO
+	www45.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750721Ab3CAIpU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Mar 2013 03:45:20 -0500
+Received: from [77.186.59.242] (helo=TIGRIS-Firewall)
+	by www45.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.74)
+	(envelope-from <prvs=0772d5bc22=maximilian.schwerin@tigris.de>)
+	id 1UBL9W-0007DY-6f
+	for linux-omap@vger.kernel.org; Fri, 01 Mar 2013 09:17:15 +0100
+Received: from dolphin.tigris.local ([192.168.0.10]:2686)
+	by TIGRIS-Firewall with esmtp (Exim 4.76)
+	(envelope-from <Maximilian.Schwerin@tigris.de>)
+	id 1UBL9M-0004c7-2S
+	for linux-omap@vger.kernel.org; Fri, 01 Mar 2013 09:17:04 +0100
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-  =20
-They look similar, but they are not equivalent :). The first major diff=
-erence is here (code taken from omap-smc.S)
+This is an S/MIME signed message
 
-> ENTRY(omap_smc2)
->          stmfd   sp!, {r4-r12, lr}
->          mov     r3, r2
->          mov     r2, r1
->          mov     r1, #0x0        @ Process ID
->          mov     r6, #0xff
->          mov     r12, #0x00      @ Secure Service ID
+------9451F8E7E6F23950CD1CE870FD50F8BF
+Content-class: urn:content-classes:message
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Always zero, while RX51 PPA expects a real value. I wonder if it is a b=
-ug, but anyway I don't see the id parameter (R0) used.
+Hi all,
 
->          mov     r7, #0
->          mcr     p15, 0, r7, c7, c5, 6
+we've built a beagleboard xm clone last year and successfully managed to =
+get it running it at 1GHz with a 3.1 kernel. Our current 3.3 kernel only =
+runs at 800MHz stabely. This fact and some issues we've been having with =
+the USB stack make us want to update to a more recent kernel version. So =
+my question is what the current state of 1 GHz support for said platform =
+is. Last time I looked the beagleboard still did not have this enabled.
 
-According to ARM TRM, this is "Invalidate entire branch predictor array=
-"(IIUC). NFC why it is needed here, but this will not work on RX-51 unt=
-il IBE bit in ACR is set.=20
+Is 1GHz support coming some time soon? Is there a possibility to speed =
+up development by paying a developer to finish work on this?
 
->          dsb
->          dmb
->          smc     #0
+Regards,
 
-RX-51 needs smc #1 ;)
+Maximilian
 
->          ldmfd   sp!, {r4-r12, pc}
+_________________________________________________________________________=
+_________________
 
+=A0Maximilian Schwerin | maximilian.schwerin@tigris.de
 
-The next major difference is that RX-51 expects parameter count passed =
-in R3[0] to be the count of the remaining parameters +1, but omap_secur=
-e_dispatcher (in omap-secure.c) is passing the exact count of the remai=
-ning parameters.
+=A0Tigris Elektronik GmbH | Wikingerufer 7 | 10555 Berlin, Germany | =
+http://www.tigris.de
+=A0Tel: +49 (30) 301048-30 | Fax: +49 (30) 301048-59
 
-I guess all of the above problems can be fixed/workarounded, but I wond=
-er does it worth. Not to say that I don't have BB around to test if the=
- code still works if I make changes to omap2-secure.c/omap-smc.S :)
+=A0Gesch=E4ftsf=FChrer/CEO: Henry Westphal, Guido Kuhlmann
+=A0Sitz der Gesellschaft/Company's registered office: Berlin
+=A0Amtsgericht/Register: Berlin-Charlottenburg, HRB 71737
 
+=A0PGP-Keys: mailto:pgp@tigris.de
+_________________________________________________________________________=
+_________________
 
- >-------- =D0=9E=D1=80=D0=B8=D0=B3=D0=B8=D0=BD=D0=B0=D0=BB=D0=BD=D0=BE=
- =D0=BF=D0=B8=D1=81=D0=BC=D0=BE --------
- >=D0=9E=D1=82:  Nishanth Menon=20
- >=D0=9E=D1=82=D0=BD=D0=BE=D1=81=D0=BD=D0=BE: Re: [PATCH] arm: omap: RX=
--51: ARM errata 430973 workaround
- >=D0=94=D0=BE: Pali Roh=C3=A1r=20
- >=D0=98=D0=B7=D0=BF=D1=80=D0=B0=D1=82=D0=B5=D0=BD=D0=BE =D0=BD=D0=B0: =
-=D0=A7=D0=B5=D1=82=D0=B2=D1=8A=D1=80=D1=82=D1=8A=D0=BA, 2013, =D0=A4=D0=
-=B5=D0=B2=D1=80=D1=83=D0=B0=D1=80=D0=B8 28 16:40:05 EET
- >
- >
- >On 10:42-20130228, Pali Roh=C3=A1r wrote:
- >> Signed-off-by: Ivaylo Dimitrov=20
- >> Signed-off-by: Pali Roh=C3=A1r=20
- >> ---
- >>  arch/arm/mach-omap2/Makefile            |    1 +
- >>  arch/arm/mach-omap2/board-rx51-secure.c |   66 +++++++++++++++++++=
-++++++++++++
- >>  arch/arm/mach-omap2/board-rx51-secure.h |   36 +++++++++++++++++
- >>  arch/arm/mach-omap2/board-rx51-smc.S    |   34 ++++++++++++++++
- >>  arch/arm/mach-omap2/board-rx51.c        |    7 ++++
- >
- >Wondering if we can integrate these into=20
- >arch/arm/mach-omap2/omap-smc.S
- >and
- >arch/arm/mach-omap2/omap-secure.c
- >on a quick look, it does seem there are commonalities.
- >
- >>  5 files changed, 144 insertions(+)
- >>  create mode 100644 arch/arm/mach-omap2/board-rx51-secure.c
- >>  create mode 100644 arch/arm/mach-omap2/board-rx51-secure.h
- >>  create mode 100644 arch/arm/mach-omap2/board-rx51-smc.S
- >>=20
- >> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Mak=
-efile
- >> index 0ebbdd50..8eb4fb4 100644
- >> --- a/arch/arm/mach-omap2/Makefile
- >> +++ b/arch/arm/mach-omap2/Makefile
- >> @@ -241,6 +241,7 @@ obj-&#36;(CONFIG_MACH_NOKIA_RX51)		+=3D board-r=
-x51.o sdram-nokia.o
- >>  obj-&#36;(CONFIG_MACH_NOKIA_RX51)		+=3D board-rx51-peripherals.o
- >>  obj-&#36;(CONFIG_MACH_NOKIA_RX51)		+=3D board-rx51-video.o
- >>  obj-&#36;(CONFIG_MACH_NOKIA_RX51)		+=3D board-rx51-camera.o
- >> +obj-&#36;(CONFIG_MACH_NOKIA_RX51)		+=3D board-rx51-smc.o board-rx5=
-1-secure.o
- >>  obj-&#36;(CONFIG_MACH_OMAP_ZOOM2)		+=3D board-zoom.o board-zoom-pe=
-ripherals.o
- >>  obj-&#36;(CONFIG_MACH_OMAP_ZOOM2)		+=3D board-zoom-display.o
- >>  obj-&#36;(CONFIG_MACH_OMAP_ZOOM2)		+=3D board-zoom-debugboard.o
- >> diff --git a/arch/arm/mach-omap2/board-rx51-secure.c b/arch/arm/mac=
-h-omap2/board-rx51-secure.c
- >> new file mode 100644
- >> index 0000000..361dc78
- >> --- /dev/null
- >> +++ b/arch/arm/mach-omap2/board-rx51-secure.c
- >> @@ -0,0 +1,66 @@
- >> +/*
- >> + * RX51 Secure PPA API.
- >> + *
- >> + * Copyright (C) 2012 Ivaylo Dimitrov=20
- >> + *
- >> + *
- >> + * This program is free software,you can redistribute it and/or mo=
-dify
- >> + * it under the terms of the GNU General Public License version 2 =
-as
- >> + * published by the Free Software Foundation.
- >> + */
- >> +#include=20
- >> +
- >> +#include &quot;board-rx51-secure.h&quot;
- >> +
- >> +/**
- >> + * rx51_secure_dispatcher: Routine to dispatch secure PPA API call=
-s
- >> + * @idx: The PPA API index
- >> + * @flag: The flag indicating criticality of operation
- >> + * @nargs: Number of valid arguments out of four.
- >> + * @arg1, arg2, arg3 args4: Parameters passed to secure API
- >> + *
- >> + * Return the non-zero error value on failure.
- >> + */
- >> +u32 rx51_secure_dispatcher(u32 idx, u32 flag, u32 nargs, u32 arg1,=
- u32 arg2,
- >> +			   u32 arg3, u32 arg4)
- >> +{
- >> +	u32 ret;
- >> +	u32 param[5];
- >> +
- >> +	param[0] =3D nargs+1;
- >> +	param[1] =3D arg1;
- >> +	param[2] =3D arg2;
- >> +	param[3] =3D arg3;
- >> +	param[4] =3D arg4;
- >> +
- >> +	/*
- >> +	 * Secure API needs physical address
- >> +	 * pointer for the parameters
- >> +	 */
- >> +	flush_cache_all();
- >> +	outer_clean_range(__pa(param), __pa(param + 5));
- >> +	ret =3D rx51_ppa_smc(idx, flag, __pa(param));
- >> +
- >> +	return ret;
- >> +}
- >> +
- >> +/**
- >> + * rx51_secure_update_aux_cr: Routine to modify the contents of Au=
-xiliary Control Register
- >> + *  @set_bits: bits to set in ACR
- >> + *  @clr_bits: bits to clear in ACR
- >> + *
- >> + * Return the non-zero error value on failure.
- >> +*/
- >> +u32 rx51_secure_update_aux_cr(u32 set_bits, u32 clear_bits)
- >> +{
- >> +	u32 acr;
- >> +
- >> +	/* Read ACR */
- >> +	asm volatile (&quot;mrc p15, 0, %0, c1, c0, 1&quot; : &quot;=3Dr&=
-quot; (acr));
- >> +	acr &amp;=3D ~clear_bits;
- >> +	acr |=3D set_bits;
- >> +
- >> +	return rx51_secure_dispatcher(RX51_PPA_WRITE_ACR,
- >> +			       FLAG_START_CRITICAL,
- >> +			       1,acr,0,0,0);
- >> +}
- >> diff --git a/arch/arm/mach-omap2/board-rx51-secure.h b/arch/arm/mac=
-h-omap2/board-rx51-secure.h
- >> new file mode 100644
- >> index 0000000..61c760b
- >> --- /dev/null
- >> +++ b/arch/arm/mach-omap2/board-rx51-secure.h
- >> @@ -0,0 +1,36 @@
- >> +/*
- >> + * board-rx51-secure.h: OMAP Secure infrastructure header.
- >> + *
- >> + * Copyright (C) 2012 Ivaylo Dimitrov=20
- >> + *
- >> + * This program is free software; you can redistribute it and/or m=
-odify
- >> + * it under the terms of the GNU General Public License version 2 =
-as
- >> + * published by the Free Software Foundation.
- >> + */
- >> +#ifndef OMAP_RX51_SECURE_H
- >> +#define OMAP_RX51_SECURE_H
- >> +
- >> +/* HAL API error codes */
- >> +#define  API_HAL_RET_VALUE_OK           0x00
- >> +#define  API_HAL_RET_VALUE_FAIL         0x01
- >> +
- >> +/* Secure HAL API flags */
- >> +#define FLAG_START_CRITICAL             0x4
- >> +#define FLAG_IRQFIQ_MASK                0x3
- >> +#define FLAG_IRQ_ENABLE                 0x2
- >> +#define FLAG_FIQ_ENABLE                 0x1
- >> +#define NO_FLAG                         0x0
- >> +
- >> +/* Secure PPA(Primary Protected Application) APIs */
- >> +#define RX51_PPA_L2_INVAL               40
- >> +#define RX51_PPA_WRITE_ACR              42
- >> +
- >> +#ifndef __ASSEMBLER__
- >> +
- >> +extern u32 rx51_secure_dispatcher(u32 idx, u32 flag, u32 nargs,
- >> +                                u32 arg1, u32 arg2, u32 arg3, u32 =
-arg4);
- >> +extern u32 rx51_ppa_smc(u32 id, u32 flag, u32 pargs);
- >> +
- >> +extern u32 rx51_secure_update_aux_cr(u32 set_bits, u32 clear_bits)=
-;
- >> +#endif /* __ASSEMBLER__ */
- >> +#endif /* OMAP_RX51_SECURE_H */
- >> diff --git a/arch/arm/mach-omap2/board-rx51-smc.S b/arch/arm/mach-o=
-map2/board-rx51-smc.S
- >> new file mode 100644
- >> index 0000000..70e2eb7
- >> --- /dev/null
- >> +++ b/arch/arm/mach-omap2/board-rx51-smc.S
- >> @@ -0,0 +1,34 @@
- >> +/*
- >> + * RX51 secure APIs file.
- >> + *
- >> + * Copyright (C) 2012 Ivaylo Dimitrov=20
- >> + *
- >> + *
- >> + * This program is free software,you can redistribute it and/or mo=
-dify
- >> + * it under the terms of the GNU General Public License version 2 =
-as
- >> + * published by the Free Software Foundation.
- >> + */
- >> +
- >> +#include=20
- >> +
- >> +/**
- >> + * u32 rx51_ppa_smc(u32 id, u32 flag, u32 pargs)
- >> + * Low level common routine for secure HAL and PPA APIs.
- >> + * @id: Secure Service ID
- >> + * @flag: Flag to indicate the criticality of operation
- >> + * @pargs: Physical address of parameter list starting
- >> + *          with number of parametrs
- >> + */
- >> +ENTRY(rx51_ppa_smc)
- >> +	.arch_extension sec
- >> +	stmfd	sp!, {r4-r12, lr}
- >> +	mov	r12, r0		@ Copy the secure service ID
- >> +	mov	r3, r2		@ Copy the pointer to va_list in R3
- >> +	mov	r2, r1		@ Copy the flags in R2
- >> +	mov	r1, #0x0	@ Process ID - 0
- >> +	mov	r6, #0xff	@ Indicate new Task call
- >> +	dsb
- >> +	dmb
- >> +	smc	#1		@ call PPA service
- >> +	ldmfd	sp!, {r4-r12, pc}
- >> +ENDPROC(rx51_ppa_smc)
- >> diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2=
-/board-rx51.c
- >> index 92117a13..fd85081 100644
- >> --- a/arch/arm/mach-omap2/board-rx51.c
- >> +++ b/arch/arm/mach-omap2/board-rx51.c
- >> @@ -31,6 +31,7 @@
- >>  #include &quot;gpmc.h&quot;
- >>  #include &quot;pm.h&quot;
- >>  #include &quot;sdram-nokia.h&quot;
- >> +#include &quot;board-rx51-secure.h&quot;
- >> =20
- >>  #define RX51_GPIO_SLEEP_IND 162
- >> =20
- >> @@ -103,6 +104,12 @@ static void __init rx51_init(void)
- >>  	rx51_peripherals_init();
- >>  	rx51_camera_init();
- >> =20
- >> +#ifdef CONFIG_ARM_ERRATA_430973
- >> +	printk(KERN_INFO &quot;Enabling ARM errata 430973 workaround.&#92=
-;n&quot;);
- >> +	/* set IBE to 1 */
- >> +	rx51_secure_update_aux_cr(1 << 6, 0);
- >> +#endif
- >> +
- >>  	/* Ensure SDRC pins are mux'd for self-refresh */
- >>  	omap_mux_init_signal(&quot;sdrc_cke0&quot;, OMAP_PIN_OUTPUT);
- >>  	omap_mux_init_signal(&quot;sdrc_cke1&quot;, OMAP_PIN_OUTPUT);
- >> --=20
- >> 1.7.10.4
- >>=20
- >>=20
- >> _______________________________________________
- >> linux-arm-kernel mailing list
- >> linux-arm-kernel@lists.infradead.org
- >> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
- >
- >--=20
- >Regards,
- >Nishanth Menon
- >
+------9451F8E7E6F23950CD1CE870FD50F8BF
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+
+MIIK+wYJKoZIhvcNAQcCoIIK7DCCCugCAQExCzAJBgUrDgMCGgUAMAsGCSqGSIb3
+DQEHAaCCCFIwggQeMIIDBqADAgECAgkA2/wCRO4eMnwwDQYJKoZIhvcNAQEFBQAw
+ZzELMAkGA1UEBhMCZGUxDzANBgNVBAcTBkJlcmxpbjEfMB0GA1UEChMWVElHUklT
+IEVsZWt0cm9uaWsgR21iSDEQMA4GA1UECxMHR2F0ZXdheTEUMBIGA1UEAxMLSVQt
+VVRNMTEwLTEwHhcNMTMwMTE4MTk0ODI1WhcNMzcxMjMxMTk0ODI1WjBnMQswCQYD
+VQQGEwJkZTEPMA0GA1UEBxMGQmVybGluMR8wHQYDVQQKExZUSUdSSVMgRWxla3Ry
+b25payBHbWJIMRAwDgYDVQQLEwdHYXRld2F5MRQwEgYDVQQDEwtJVC1VVE0xMTAt
+MTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL22qaDPxjnURGMSqAHh
+bazQDjQuUrjgfztSea0q1HDqvSh0s46mcDaH4fQ0ZgSDHfKI68RA5zGZGUM3uxUP
+ljA/Whxyel4eC4x2v7j2l2+FbwD6yE4P2NdMhlRdhShI62jFyk1zBAabfsHF4Bwx
+qS9NK6lcCtYeCMrFaKZ6ljYDPKrTGoxlCpoJcRV5k2CSLgvwrfSQm8ak96D/73xE
+mbjz3F2I8VnePr31sHsLLtrYRS6IVtYERPk0mFRawKhWfZfG3i+rjkwdHLheSHnv
+X0n2WPsvGjioh3+mD1dU1zovnQhA3pccc4XszADMcTBNewtYyWzpb9sKr3xi7sZI
+P+kCAwEAAaOBzDCByTAdBgNVHQ4EFgQU6mWdO7KvJFHkCkEssZu8Bj/BPIUwgZkG
+A1UdIwSBkTCBjoAU6mWdO7KvJFHkCkEssZu8Bj/BPIWha6RpMGcxCzAJBgNVBAYT
+AmRlMQ8wDQYDVQQHEwZCZXJsaW4xHzAdBgNVBAoTFlRJR1JJUyBFbGVrdHJvbmlr
+IEdtYkgxEDAOBgNVBAsTB0dhdGV3YXkxFDASBgNVBAMTC0lULVVUTTExMC0xggkA
+2/wCRO4eMnwwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQUFAAOCAQEAnYB+fTOK
+EL0MHLTM+thX5JntcJEPq4B5gBSLu6EvATFbIuaeqO7IKfOSbHumDWHSnhRPN997
+NNgEaQQdInrP5Pv5ny4fUO6OAqDNHvnQYLvJsT8aAXW+IB4/gd2b6Mk44pyRZYvz
+sEIsS92WJQ5SwqfmcdW4zwz0uJUonYbFpb3BbLtKMruWP3ETwEPH4DeijpgTpvSK
+vxd4r1T8JLGtm2ofDOGIQmR9PXH8NYZ2gPzKG/7733HEeCp5/4uenEYE7tNY/1pJ
+0UFvMvCwU7AFfq1R9v8NRJ8BQHwgWphqKVTxsxjGuie2W8lKGa/HylCCje9EKvqM
+fe1PXdjZW4pp2DCCBCwwggMUoAMCAQICBFEAC28wDQYJKoZIhvcNAQEFBQAwZzEL
+MAkGA1UEBhMCZGUxDzANBgNVBAcTBkJlcmxpbjEfMB0GA1UEChMWVElHUklTIEVs
+ZWt0cm9uaWsgR21iSDEQMA4GA1UECxMHR2F0ZXdheTEUMBIGA1UEAxMLSVQtVVRN
+MTEwLTEwHhcNMTMwMTIzMTYxMDI2WhcNMzMwMTE4MTYxMDI2WjCBjDELMAkGA1UE
+BhMCZGUxHzAdBgNVBAoTFlRJR1JJUyBFbGVrdHJvbmlrIEdtYkgxEDAOBgNVBAsT
+B0dhdGV3YXkxHDAaBgNVBAMTE01heGltaWxpYW4gU2Nod2VyaW4xLDAqBgkqhkiG
+9w0BCQEWHU1heGltaWxpYW4uU2Nod2VyaW5AdGlncmlzLmRlMIIBIjANBgkqhkiG
+9w0BAQEFAAOCAQ8AMIIBCgKCAQEArctwEgU8ol7Ja3LKvcMZLoXIQXkFDBHQbCFC
+G5whbJJSreOn6edddBhiCspnJo7BAy6ZkoOehZ018ndux9dVVtzBga4xQBkANNIx
+sHcLVcg5ux2IMQYD5OuUgwCGUqgRpRgzsTPNLe1Rz2rsjiJhFsuMQDLtSrqqPYRj
+NN532qKTo73uKvFnqkJrXSUe5pfUUs4Q3Be2v3bj/z3xm5tugSIw383qwN345KQj
+RYAudObwsJANgA3bG2ZoRbjITm6B4rSLl2M3+cGFQPjLLM7/JgNxqcN8LSL7AJJH
+6elgPkqOFMQcBElSg+I3DT3OXGPaF3IALc3YhojZXcmQVF87EwIDAQABo4G5MIG2
+MAkGA1UdEwQCMAAwEQYJYIZIAYb4QgEBBAQDAgSwMCwGCWCGSAGG+EIBDQQfFh1P
+cGVuU1NMIEdlbmVyYXRlZCBDZXJ0aWZpY2F0ZTAdBgNVHQ4EFgQUofgM7snJ0yVM
+GqdHHKxtCfyh+PgwHwYDVR0jBBgwFoAU6mWdO7KvJFHkCkEssZu8Bj/BPIUwKAYD
+VR0RBCEwH4EdTWF4aW1pbGlhbi5TY2h3ZXJpbkB0aWdyaXMuZGUwDQYJKoZIhvcN
+AQEFBQADggEBALvTWg4UNW8JjdWpkR2sR8l5wRYYcnrgcjwboh9jBHjQq36j6mOu
+GjgvMJyh7mPJfAcUU709MsE29O9xRMAAiv6iMthe8flbb8Pw3anCw6ey6gL0TU+G
+z/jLUiuv56E5wdWyGs47w+A70dsC54LyLvWp897OP2PAbJYbh0Mf1jUdYbBwHhMx
+KGnkVbmCeXLgp48cd1vJynxLiG7/+ioNpgCKlBB+8CElxX7z9XKX5M6Pb2KjhbgW
+71lcRjanX5yEN5rDcQFdw7XT/IcjOAw4avs9VpFX+KJEVafxa3j50zWdDr0YXJwc
+X6Jyd1BYE42KGB11CZ+fQLZbdLNqwjwVvMwxggJxMIICbQIBATBvMGcxCzAJBgNV
+BAYTAmRlMQ8wDQYDVQQHEwZCZXJsaW4xHzAdBgNVBAoTFlRJR1JJUyBFbGVrdHJv
+bmlrIEdtYkgxEDAOBgNVBAsTB0dhdGV3YXkxFDASBgNVBAMTC0lULVVUTTExMC0x
+AgRRAAtvMAkGBSsOAwIaBQCggdgwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAc
+BgkqhkiG9w0BCQUxDxcNMTMwMzAxMDgxNzEwWjAjBgkqhkiG9w0BCQQxFgQUg0ts
+/CwZvxz3qV2S1vYTxkzp2KIweQYJKoZIhvcNAQkPMWwwajALBglghkgBZQMEASow
+CwYJYIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzAOBggqhkiG9w0D
+AgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwDQYJ
+KoZIhvcNAQEBBQAEggEAizKAEEYmsysNY6mt0lpLYLiWh0Hk64G7h+u7BsVYCwP5
+awMhNT37Mcikd5KgaMWWYNdVWy1JE6f3B7Rhw3wri7mAqXm7EyyOGBCtJ8a1HFmv
+6ouT1EQ7ReYA2uyuIk75ow8jbp9/4tgC1+kZvk+5x5x/ZNNHX9owqWtVoJWKYEda
+lHfOvzbdXYiBVjifRJMDPzR5RraP9k8Bjz3/U9V2Se2Vx01J6JSB4Twr6ylV96yx
+KviAEYrXEgPdTKJ/rN2VwBVZ0HxrovuFE+rztCBpH+/rFg/ZToR+v60e2hlOdTQ0
+2syjMv5N2BYcHKfOTdtGRzdCkDRBPSOdszrSUK8pPQ==
+
+------9451F8E7E6F23950CD1CE870FD50F8BF--
+
