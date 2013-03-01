@@ -1,153 +1,78 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 10/15] ARM: OMAP5: PM: Add MPU Open Switch Retention support
-Date: Fri, 1 Mar 2013 17:40:59 +0530
-Message-ID: <1362139864-9233-11-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 15/15] ARM: OMAP5: PM: handle device instance for for coldreset
+Date: Fri, 1 Mar 2013 17:41:04 +0530
+Message-ID: <1362139864-9233-16-git-send-email-santosh.shilimkar@ti.com>
 References: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33034 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47183 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752467Ab3CAMKV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Mar 2013 07:10:21 -0500
+	id S1752481Ab3CAMKX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Mar 2013 07:10:23 -0500
 In-Reply-To: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-In MPUSS OSWR(Open Switch Retention), entire CPU cluster is powered down
-except L2 cache memory. For MPUSS OSWR state, both CPU's needs to be in
-power off state.
+From: Nishanth Menon <nm@ti.com>
 
+OMAP5 and OMAP4 have different device instance offsets.
+
+So to handle them properly, use a runtime detected instance offset
+Other bit offsets and register offsets remained constant.
+
+Creating a new function is not really worthwhile here as the logic
+will be replicated without much benefit.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+santosh.shilimkar@ti.com: Refreshed patch against 3.8
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |    2 ++
- arch/arm/mach-omap2/omap-secure.h         |    5 +++++
- arch/arm/mach-omap2/omap-wakeupgen.c      |   11 ++++++-----
- arch/arm/mach-omap2/sleep_omap4plus.S     |   23 +++++++++++++++++++++++
- 4 files changed, 36 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/prminst44xx.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 275f9a4..c1c6b9d 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -82,6 +82,7 @@ struct cpu_pm_ops {
- extern int omap4_finish_suspend(unsigned long cpu_state);
- extern void omap4_cpu_resume(void);
- extern int omap5_finish_suspend(unsigned long cpu_state);
-+extern void omap5_cpu_resume(void);
+diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+index c12320c..430fb1d 100644
+--- a/arch/arm/mach-omap2/prminst44xx.c
++++ b/arch/arm/mach-omap2/prminst44xx.c
+@@ -20,10 +20,12 @@
+ #include "common.h"
+ #include "prcm-common.h"
+ #include "prm44xx.h"
++#include "prm54xx.h"
+ #include "prminst44xx.h"
+ #include "prm-regbits-44xx.h"
+ #include "prcm44xx.h"
+ #include "prcm_mpu44xx.h"
++#include "soc.h"
  
- static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
- static struct powerdomain *mpuss_pd;
-@@ -459,6 +460,7 @@ int __init omap4_mpuss_init(void)
- 	} else if (soc_is_omap54xx()) {
- 		omap_pm_ops.finish_suspend = omap5_finish_suspend;
- 		omap_pm_ops.hotplug_restart = omap5_secondary_startup;
-+		omap_pm_ops.resume = omap5_cpu_resume;
- 		cpu_context_offset = OMAP54XX_RM_CPU0_CPU0_CONTEXT_OFFSET;
- 		enable_mercury_retention_mode();
- 	}
-diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
-index 6f4dbee..1739468 100644
---- a/arch/arm/mach-omap2/omap-secure.h
-+++ b/arch/arm/mach-omap2/omap-secure.h
-@@ -34,6 +34,10 @@
- #define OMAP4_HAL_SAVEHW_INDEX		0x1b
- #define OMAP4_HAL_SAVEALL_INDEX		0x1c
- #define OMAP4_HAL_SAVEGIC_INDEX		0x1d
-+#define OMAP5_HAL_SAVESECURERAM_INDEX	0x1c
-+#define OMAP5_HAL_SAVEHW_INDEX		0x1d
-+#define OMAP5_HAL_SAVEALL_INDEX		0x1e
-+#define OMAP5_HAL_SAVEGIC_INDEX		0x1f
+ static void __iomem *_prm_bases[OMAP4_MAX_PRCM_PARTITIONS];
  
- /* Secure Monitor mode APIs */
- #define OMAP4_MON_SCU_PWR_INDEX		0x108
-@@ -42,6 +46,7 @@
- #define OMAP4_MON_L2X0_AUXCTRL_INDEX	0x109
- #define OMAP4_MON_L2X0_PREFETCH_INDEX	0x113
- #define OMAP5_MON_CACHES_CLEAN_INDEX	0x103
-+#define OMAP5_MON_AUX_CTRL_INDEX	0x107
- 
- #define OMAP5_MON_AMBA_IF_INDEX		0x108
- 
-diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-index a7350dd..f57b0b8 100644
---- a/arch/arm/mach-omap2/omap-wakeupgen.c
-+++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-@@ -50,7 +50,7 @@ static DEFINE_SPINLOCK(wakeupgen_lock);
- static unsigned int irq_target_cpu[MAX_IRQS];
- static unsigned int irq_banks = MAX_NR_REG_BANKS;
- static unsigned int max_irqs = MAX_IRQS;
--static unsigned int omap_secure_apis;
-+static unsigned int omap_secure_apis, secure_api_index;
- 
- /*
-  * Static helper functions.
-@@ -315,7 +315,7 @@ static void irq_sar_clear(void)
- static void irq_save_secure_context(void)
+@@ -165,17 +167,19 @@ int omap4_prminst_deassert_hardreset(u8 shift, u8 part, s16 inst,
+ void omap4_prminst_global_warm_sw_reset(void)
  {
- 	u32 ret;
--	ret = omap_secure_dispatcher(OMAP4_HAL_SAVEGIC_INDEX,
-+	ret = omap_secure_dispatcher(secure_api_index,
- 				FLAG_START_CRITICAL,
- 				0, 0, 0, 0, 0);
- 	if (ret != API_HAL_RET_VALUE_OK)
-@@ -377,9 +377,7 @@ static struct notifier_block irq_notifier_block = {
+ 	u32 v;
++	s16 dev_inst = cpu_is_omap44xx() ? OMAP4430_PRM_DEVICE_INST :
++					   OMAP54XX_PRM_DEVICE_INST;
  
- static void __init irq_pm_init(void)
- {
--	/* FIXME: Remove this when MPU OSWR support is added */
--	if (!soc_is_omap54xx())
--		cpu_pm_register_notifier(&irq_notifier_block);
-+	cpu_pm_register_notifier(&irq_notifier_block);
+ 	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
+-				    OMAP4430_PRM_DEVICE_INST,
++				    dev_inst,
+ 				    OMAP4_PRM_RSTCTRL_OFFSET);
+ 	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
+ 	omap4_prminst_write_inst_reg(v, OMAP4430_PRM_PARTITION,
+-				 OMAP4430_PRM_DEVICE_INST,
++				 dev_inst,
+ 				 OMAP4_PRM_RSTCTRL_OFFSET);
+ 
+ 	/* OCP barrier */
+ 	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
+-				    OMAP4430_PRM_DEVICE_INST,
++				    dev_inst,
+ 				    OMAP4_PRM_RSTCTRL_OFFSET);
  }
- #else
- static void __init irq_pm_init(void)
-@@ -420,6 +418,9 @@ int __init omap_wakeupgen_init(void)
- 		irq_banks = OMAP4_NR_BANKS;
- 		max_irqs = OMAP4_NR_IRQS;
- 		omap_secure_apis = 1;
-+		secure_api_index = OMAP4_HAL_SAVEGIC_INDEX;
-+	} else if (soc_is_omap54xx()) {
-+		secure_api_index = OMAP5_HAL_SAVEGIC_INDEX;
- 	}
- 
- 	/* Clear all IRQ bitmasks at wakeupGen level */
-diff --git a/arch/arm/mach-omap2/sleep_omap4plus.S b/arch/arm/mach-omap2/sleep_omap4plus.S
-index 3322fc8..f4874e5 100644
---- a/arch/arm/mach-omap2/sleep_omap4plus.S
-+++ b/arch/arm/mach-omap2/sleep_omap4plus.S
-@@ -406,6 +406,29 @@ do_wfi:
- 	dsb
- 	ldmfd	sp!, {r4-r12, pc}
- ENDPROC(omap5_finish_suspend)
-+
-+ENTRY(omap5_cpu_resume)
-+#ifdef CONFIG_ARM_ERRATA_761171
-+	/*
-+	 * Work around for errata for 761171. Streaming write that will not
-+	 * allocate in L2 could lead to data corruption.
-+	 */
-+	mrc	p15, 0, r0, c0, c0, 0		@ read main ID register
-+	and	r5, r0, #0x00f00000		@ variant
-+	and	r6, r0, #0x0000000f		@ revision
-+	orr	r6, r6, r5, lsr #20-4		@ combine variant and revision
-+	cmp	r6, #0x03			@ Present before r0p3
-+	bgt	1f
-+	mrc	p15, 0, r0, c1, c0, 1		@ Read Auxctrl
-+	orr	r0, r0, #0x3 << 27		@ bits[28:27]-L1_mode3_threshold
-+	ldr	r12, =OMAP5_MON_AUX_CTRL_INDEX
-+	dsb
-+	smc	#0
-+	dsb
-+1:
-+#endif
-+	b	cpu_resume			@ Jump to generic resume
-+ENDPROC(omap5_cpu_resume)
- #endif
- 
- #ifndef CONFIG_OMAP4_ERRATA_I688
 -- 
 1.7.9.5
 
