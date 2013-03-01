@@ -1,144 +1,60 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: Re: [PATCH] arm/dts: Add basic support for gta04 (Openmoko next
- generation) board.
-Date: Fri, 1 Mar 2013 21:40:49 +0100
-Message-ID: <CAAfyv35SUNL81O95JC+7i3-=MmY=1PE7DG2Y=DD7k3oY4bSi0w@mail.gmail.com>
-References: <1359052445-18560-1-git-send-email-marek.belisko@open-nandra.com>
+From: =?UTF-8?Q?Andreas_M=C3=BCller?= <schnitzeltony@googlemail.com>
+Subject: Re: omapdss wakeup issues
+Date: Fri, 1 Mar 2013 22:06:36 +0100
+Message-ID: <CALbNGRSgPj69TTQjsjGMGk34n+ZcrSuYhy3BghEsrtwxvtqrjA@mail.gmail.com>
+References: <CALbNGRThXXuSE9Q9h7rcSHYm_s4nUcdGjC-xRFD23f0-Ncy3-w@mail.gmail.com>
+	<CABuKBe+==L3+3t0A0MxLWAu4HovG2vmfY3LXHVJakOw8=nP5MQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1359052445-18560-1-git-send-email-marek.belisko@open-nandra.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: b-cousson@ti.com, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek.belisko@open-nandra.com>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ve0-f180.google.com ([209.85.128.180]:38937 "EHLO
+	mail-ve0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751847Ab3CAVGh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Mar 2013 16:06:37 -0500
+Received: by mail-ve0-f180.google.com with SMTP id jx10so3241724veb.25
+        for <linux-omap@vger.kernel.org>; Fri, 01 Mar 2013 13:06:36 -0800 (PST)
+In-Reply-To: <CABuKBe+==L3+3t0A0MxLWAu4HovG2vmfY3LXHVJakOw8=nP5MQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Ping. Any objections to that patch?
-
-On Thu, Jan 24, 2013 at 7:34 PM, Marek Belisko
-<marek.belisko@open-nandra.com> wrote:
-> Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
-> ---
->  arch/arm/boot/dts/omap3-gta04.dts |   94 +++++++++++++++++++++++++++++++++++++
->  1 file changed, 94 insertions(+)
->  create mode 100644 arch/arm/boot/dts/omap3-gta04.dts
+On Fri, Mar 1, 2013 at 2:25 PM, Matthias Brugger <matthias.bgg@gmail.co=
+m> wrote:
+> Hi Andreas,
 >
-> diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
-> new file mode 100644
-> index 0000000..9e7e3ec
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-gta04.dts
-> @@ -0,0 +1,94 @@
-> +/*
-> + * Copyright (C) 2013 Marek Belisko <marek.belisko@open-nandra.com>
-> + *
-> + * Based on omap3-beagle-xm.dts
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +/dts-v1/;
-> +
-> +/include/ "omap3.dtsi"
-> +
-> +/ {
-> +       model = "OMAP3 GTA04";
-> +       compatible = "ti,omap3-gta04", "ti,omap3";
-> +
-> +       memory {
-> +               device_type = "memory";
-> +               reg = <0x80000000 0x20000000>; /* 512 MB */
-> +       };
-> +
-> +       gpio-keys {
-> +               compatible = "gpio-keys";
-> +               #address-cells = <1>;
-> +               #size-cells = <0>;
-> +               aux-button {
-> +                       label = "AUX";
-> +                       linux,code = <169>;
-> +                       gpios = <&gpio1 7 1>;
-> +                       gpio-key,wakeup;
-> +               };
-> +       };
-> +};
-> +
-> +&i2c1 {
-> +       clock-frequency = <2600000>;
-> +
-> +       twl: twl@48 {
-> +               reg = <0x48>;
-> +               interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-> +               interrupt-parent = <&intc>;
-> +       };
-> +};
-> +
-> +/include/ "twl4030.dtsi"
-> +
-> +&i2c2 {
-> +       clock-frequency = <400000>;
-> +       /* Pressure Sensor */
-> +       bmp085@77 {
-> +               compatible = "bosch,bmp085";
-> +               reg = <0x77>;
-> +       };
-> +
-> +       /* leds */
-> +       tca6507@45 {
-> +               compatible = "ti,tca6507";
-> +               #address-cells = <1>;
-> +               #size-cells = <0>;
-> +               reg = <0x45>;
-> +
-> +               gta04_led0: red_aux@0 {
-> +                       label = "gta04:red:aux";
-> +                       reg = <0x0>;
-> +               };
-> +
-> +               gta04_led1: green_aux@1 {
-> +                       label = "gta04:green:aux";
-> +                       reg = <0x1>;
-> +               };
-> +
-> +               gta04_led3: red_power@3 {
-> +                       label = "gta04:red:power";
-> +                       reg = <0x3>;
-> +                       linux,default-trigger = "default-on";
-> +               };
-> +
-> +               gta04_led4: green_power@4 {
-> +                       label = "gta04:green:power";
-> +                       reg = <0x4>;
-> +               };
-> +       };
-> +};
-> +
-> +&i2c3 {
-> +       clock-frequency = <100000>;
-> +};
-> +
-> +&mmc1 {
-> +       vmmc-supply = <&vmmc1>;
-> +       bus-width = <4>;
-> +};
-> +
-> --
-> 1.7.10.4
+> 2013/2/28 Andreas M=C3=BCller <schnitzeltony@googlemail.com>:
+>> Hi,
+>>
+>> I am preparing 3.8 mainline for gumstix overo and have the following
+>> issue: waking Monitor connected by HDMI from power save makes Monito=
+r
+>> complain for unsupported frequency and console says:
+>>
+>> | omapdss APPLY error: FIFO UNDERFLOW on gfx, disabling the overlay
+>>
+>> Is this a known issue?
 >
+> I'm not sure if it's the same issue, but you might give it a shot.
+> The problem is, that when changing the CPU frequency in OMAP3530, the
+> frequency of L3 is changed. This frequency is used in DSS.
+> The result is a fifo underflow on gfx.
+>
+> First check, if you use some dynamic cpufreq governor, which might be
+> changing the frequency.
+> A workaround (although not very nice) is to set fixed l3_main values
+> in mach-omap2/opp3xxx_data.c
+>
+> Best regards,
+> Matthias
+>
+I have gouvernor 'performance' selected which AFAIK keeps frequency at
+maximum. Some more details in another mail which I already prepared.
 
-Regards,
-
-marek
-
--- 
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-Freelance Developer
-
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-twitter: #opennandra
-web: http://open-nandra.com
+Andreas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
