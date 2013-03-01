@@ -1,49 +1,100 @@
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: Re: [PATCH 12/14] ARM: OMAP2+: Add additional GPMC timing parameters
-Date: Fri, 1 Mar 2013 17:12:47 -0300
-Message-ID: <CALF0-+X4RR2YFAH-W64MV=xuXRnbx04hvYa694DiN8C8h5U_Vg@mail.gmail.com>
-References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
-	<1361899842-30303-13-git-send-email-jon-hunter@ti.com>
-	<CALF0-+VVmZHkRggN0Xj-6=gQ9Rm09qU4hKuLoD-iE6_jqPbm+g@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 07/15] ARM: OMAP5: Add init_late() hook to enable pm
+ initialization
+Date: Fri, 1 Mar 2013 14:12:35 -0600
+Message-ID: <20130301201235.GC22626@kahuna>
+References: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
+ <1362139864-9233-8-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f170.google.com ([209.85.210.170]:64172 "EHLO
-	mail-ia0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753737Ab3CAUMs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Mar 2013 15:12:48 -0500
-Received: by mail-ia0-f170.google.com with SMTP id k20so3066005iak.29
-        for <linux-omap@vger.kernel.org>; Fri, 01 Mar 2013 12:12:47 -0800 (PST)
-In-Reply-To: <CALF0-+VVmZHkRggN0Xj-6=gQ9Rm09qU4hKuLoD-iE6_jqPbm+g@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58882 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753199Ab3CAUMj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Mar 2013 15:12:39 -0500
+Content-Disposition: inline
+In-Reply-To: <1362139864-9233-8-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org
 
-On Fri, Mar 1, 2013 at 5:11 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> Hi Jon,
->
-> On Tue, Feb 26, 2013 at 2:30 PM, Jon Hunter <jon-hunter@ti.com> wrote:
-> [...]
->>
->> +       if (!of_property_read_u32(np, "gpmc,bus-turnaround", &val))
->> +               gpmc_t->bus_turnaround = val;
->> +
->
-> AFAIK, you don't need to test if the property is defined.
-> You can just read it straightforward, and if the property is not defined
-> then nothing will be stored in your variable:
->
-> of_property_read_u32(np, "gpmc,bus-turnaround", &gpmc_t->bus_turnaround);
->
-> You can simplify *a lot* your patch with this, and I believe you could
-> also clean
-> existent code.
->
+On 17:40-20130301, Santosh Shilimkar wrote:
+> With consolidated code, now we can add the .init_late hook for
+> OMAP5 to enable power management and mux initialization.
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-generic.c |    1 +
+>  arch/arm/mach-omap2/common.h        |    3 ++-
+>  arch/arm/mach-omap2/io.c            |    8 ++++++++
+>  3 files changed, 11 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> index 53cb380b..eac4ec5 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -179,6 +179,7 @@ DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
+>  	.init_irq	= omap_gic_of_init,
+>  	.handle_irq	= gic_handle_irq,
+>  	.init_machine	= omap_generic_init,
+> +	.init_late	= omap5_init_late,
+>  	.timer		= &omap5_timer,
+>  	.dt_compat	= omap5_boards_compat,
+>  	.restart	= omap44xx_restart,
+> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+> index e0f9ea7..44fcf65 100644
+> --- a/arch/arm/mach-omap2/common.h
+> +++ b/arch/arm/mach-omap2/common.h
+> @@ -59,7 +59,7 @@ static inline int omap3_pm_init(void)
+>  }
+>  #endif
+>  
+> -#if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP4)
+> +#if defined(CONFIG_PM) && (defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5))
+>  int omap4_pm_init(void);
+>  #else
+>  static inline int omap4_pm_init(void)
+> @@ -108,6 +108,7 @@ void omap35xx_init_late(void);
+>  void omap3630_init_late(void);
+>  void am35xx_init_late(void);
+>  void ti81xx_init_late(void);
+> +void omap5_init_late(void);
+>  int omap2_common_pm_late_init(void);
+>  
+>  #if defined(CONFIG_SOC_OMAP2420) || defined(CONFIG_SOC_OMAP2430)
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index 2c3fdd6..e6ba596 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -620,6 +620,14 @@ void __init omap5_init_early(void)
+>  	omap_cm_base_init();
+>  	omap5xxx_check_revision();
+>  }
+> +
+> +void __init omap5_init_late(void)
+> +{
+> +	omap_mux_late_init();
+> +	omap2_common_pm_late_init();
+> +	omap4_pm_init();
+as part of init sequence, we'd late_initcall *after* module_inits,
+implying probes of drivers will be called (for built-in drivers) prior
+to PM getting ready.
 
-Also, since this is somewhat large patchset: would you mind pushing it somewhere
-so I can just pull a branch?
+This basically makes key features like dvfs not available for drivers until
+late_init is complete.
 
-Thanks,
+We have faced tons of problems in the past with this approach, cant we
+improve this? One solution(we used in Android kernel fork) might be to
+ensure all core framework initialized before module_init either in
+arch_init or subsys_init. I am aware that machine_desc does not provide us
+that flexibility - should'nt we rather extend it for the same instead of
+having to go through the same pain all over again?
+
+> +	omap2_clk_enable_autoidle_all();
+> +}
+>  #endif
+>  
 -- 
-    Ezequiel
+Regards,
+Nishanth Menon
