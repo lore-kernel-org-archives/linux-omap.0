@@ -1,14 +1,14 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 02/15] ARM: OMAP5: PM: Update CPU context register offset
-Date: Fri, 1 Mar 2013 17:40:51 +0530
-Message-ID: <1362139864-9233-3-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 05/15] ARM: OMAP5: PM: Enables ES2 PM mode by default
+Date: Fri, 1 Mar 2013 17:40:54 +0530
+Message-ID: <1362139864-9233-6-git-send-email-santosh.shilimkar@ti.com>
 References: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47170 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47171 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751660Ab3CAMKK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752268Ab3CAMKK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 1 Mar 2013 07:10:10 -0500
 In-Reply-To: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,63 +16,78 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On OMAP5, RM_CPUi_CPUi_CONTEXT offset has changed. Update the code
-so that same code works for OMAP4+ devices.
+Enables MPUSS ES2 power management mode using ES2_PM_MODE in
+AMBA_IF_MODE register.
+
+0x0: ES1 behavior, CPU cores would enter and exit OFF mode together. Broken
+0x1: ES2 behavior, CPU cores are allowed to enter/exit OFF mode independently.
+
+This is one time settings thanks to always ON domain.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/omap-secure.h    |    2 ++
+ arch/arm/mach-omap2/omap-wakeupgen.c |   14 ++++++++++++++
+ arch/arm/mach-omap2/omap-wakeupgen.h |    1 +
+ 3 files changed, 17 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index ee8a1e4..bcd2efb 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -56,6 +56,7 @@
- #include "omap4-sar-layout.h"
- #include "pm.h"
- #include "prcm_mpu44xx.h"
-+#include "prcm_mpu54xx.h"
- #include "prminst44xx.h"
- #include "prcm44xx.h"
- #include "prm44xx.h"
-@@ -83,6 +84,7 @@ extern void omap4_cpu_resume(void);
- static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
- static struct powerdomain *mpuss_pd;
- static void __iomem *sar_base;
-+static u32 cpu_context_offset;
+diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
+index 0e72917..82b3c4c 100644
+--- a/arch/arm/mach-omap2/omap-secure.h
++++ b/arch/arm/mach-omap2/omap-secure.h
+@@ -42,6 +42,8 @@
+ #define OMAP4_MON_L2X0_AUXCTRL_INDEX	0x109
+ #define OMAP4_MON_L2X0_PREFETCH_INDEX	0x113
  
- static int default_finish_suspend(unsigned long cpu_state)
++#define OMAP5_MON_AMBA_IF_INDEX		0x108
++
+ /* Secure PPA(Primary Protected Application) APIs */
+ #define OMAP4_PPA_L2_POR_INDEX		0x23
+ #define OMAP4_PPA_CPU_ACTRL_SMP_INDEX	0x25
+diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
+index 5d3b4f4..a7350dd 100644
+--- a/arch/arm/mach-omap2/omap-wakeupgen.c
++++ b/arch/arm/mach-omap2/omap-wakeupgen.c
+@@ -403,6 +403,7 @@ int __init omap_wakeupgen_init(void)
  {
-@@ -186,14 +188,14 @@ static inline void cpu_clear_prev_logic_pwrst(unsigned int cpu_id)
+ 	int i;
+ 	unsigned int boot_cpu = smp_processor_id();
++	u32 val;
  
- 	if (cpu_id) {
- 		reg = omap4_prcm_mpu_read_inst_reg(OMAP4430_PRCM_MPU_CPU1_INST,
--					OMAP4_RM_CPU1_CPU1_CONTEXT_OFFSET);
-+					cpu_context_offset);
- 		omap4_prcm_mpu_write_inst_reg(reg, OMAP4430_PRCM_MPU_CPU1_INST,
--					OMAP4_RM_CPU1_CPU1_CONTEXT_OFFSET);
-+					cpu_context_offset);
- 	} else {
- 		reg = omap4_prcm_mpu_read_inst_reg(OMAP4430_PRCM_MPU_CPU0_INST,
--					OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET);
-+					cpu_context_offset);
- 		omap4_prcm_mpu_write_inst_reg(reg, OMAP4430_PRCM_MPU_CPU0_INST,
--					OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET);
-+					cpu_context_offset);
- 	}
- }
+ 	/* Not supported on OMAP4 ES1.0 silicon */
+ 	if (omap_rev() == OMAP4430_REV_ES1_0) {
+@@ -444,6 +445,19 @@ int __init omap_wakeupgen_init(void)
+ 	for (i = 0; i < max_irqs; i++)
+ 		irq_target_cpu[i] = boot_cpu;
  
-@@ -431,6 +433,9 @@ int __init omap4_mpuss_init(void)
- 		omap_pm_ops.finish_suspend = omap4_finish_suspend;
- 		omap_pm_ops.resume = omap4_cpu_resume;
- 		omap_pm_ops.scu_prepare = scu_pwrst_prepare;
-+		cpu_context_offset = OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET;
-+	} else if (soc_is_omap54xx()) {
-+		cpu_context_offset = OMAP54XX_RM_CPU0_CPU0_CONTEXT_OFFSET;
- 	}
++	/*
++	 * Enables OMAP5 ES2 PM Mode using ES2_PM_MODE in AMBA_IF_MODE
++	 * 0x0:	ES1 behavior, CPU cores would enter and exit OFF mode together.
++	 * 0x1:	ES2 behavior, CPU cores are allowed to enter/exit OFF mode
++	 * independently.
++	 * This needs to be set one time thanks to always ON domain.
++	 */
++	if (soc_is_omap54xx()) {
++		val = __raw_readl(wakeupgen_base + OMAP_AMBA_IF_MODE);
++		val |= BIT(5);
++		omap_smc1(OMAP5_MON_AMBA_IF_INDEX, val);
++	}
++
+ 	irq_hotplug_init();
+ 	irq_pm_init();
  
- 	return 0;
+diff --git a/arch/arm/mach-omap2/omap-wakeupgen.h b/arch/arm/mach-omap2/omap-wakeupgen.h
+index b0fd16f..b3c8ecc 100644
+--- a/arch/arm/mach-omap2/omap-wakeupgen.h
++++ b/arch/arm/mach-omap2/omap-wakeupgen.h
+@@ -27,6 +27,7 @@
+ #define OMAP_WKG_ENB_E_1			0x420
+ #define OMAP_AUX_CORE_BOOT_0			0x800
+ #define OMAP_AUX_CORE_BOOT_1			0x804
++#define OMAP_AMBA_IF_MODE			0x80c
+ #define OMAP_PTMSYNCREQ_MASK			0xc00
+ #define OMAP_PTMSYNCREQ_EN			0xc04
+ #define OMAP_TIMESTAMPCYCLELO			0xc08
 -- 
 1.7.9.5
 
