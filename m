@@ -1,60 +1,64 @@
-From: =?UTF-8?Q?Andreas_M=C3=BCller?= <schnitzeltony@googlemail.com>
-Subject: Re: omapdss wakeup issues
-Date: Fri, 1 Mar 2013 22:06:36 +0100
-Message-ID: <CALbNGRSgPj69TTQjsjGMGk34n+ZcrSuYhy3BghEsrtwxvtqrjA@mail.gmail.com>
-References: <CALbNGRThXXuSE9Q9h7rcSHYm_s4nUcdGjC-xRFD23f0-Ncy3-w@mail.gmail.com>
-	<CABuKBe+==L3+3t0A0MxLWAu4HovG2vmfY3LXHVJakOw8=nP5MQ@mail.gmail.com>
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: DT GPMC SRAM and NOR flash support ?
+Date: Fri, 1 Mar 2013 18:08:13 -0300
+Message-ID: <CALF0-+U6ynTvM0wzBnz2oWDSWQnZ_+1u44Wd-rLL+3qFEt8-2Q@mail.gmail.com>
+References: <510BF3D3.3000304@mimc.co.uk>
+	<510BF766.5090608@ti.com>
+	<510C19FC.8090906@mimc.co.uk>
+	<5111304C.7090706@mimc.co.uk>
+	<511134C8.8000008@ti.com>
+	<511137CF.1090706@mimc.co.uk>
+	<51113C74.4070607@ti.com>
+	<51137923.4070301@mimc.co.uk>
+	<511C007A.7080103@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ve0-f180.google.com ([209.85.128.180]:38937 "EHLO
-	mail-ve0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751847Ab3CAVGh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Mar 2013 16:06:37 -0500
-Received: by mail-ve0-f180.google.com with SMTP id jx10so3241724veb.25
-        for <linux-omap@vger.kernel.org>; Fri, 01 Mar 2013 13:06:36 -0800 (PST)
-In-Reply-To: <CABuKBe+==L3+3t0A0MxLWAu4HovG2vmfY3LXHVJakOw8=nP5MQ@mail.gmail.com>
+Received: from mail-ia0-f180.google.com ([209.85.210.180]:56754 "EHLO
+	mail-ia0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752282Ab3CAVIO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Mar 2013 16:08:14 -0500
+Received: by mail-ia0-f180.google.com with SMTP id f27so3103422iae.11
+        for <linux-omap@vger.kernel.org>; Fri, 01 Mar 2013 13:08:13 -0800 (PST)
+In-Reply-To: <511C007A.7080103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Mark Jackson <mpfj-list@mimc.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Afzal Mohammed <afzal@ti.com>
 
-On Fri, Mar 1, 2013 at 2:25 PM, Matthias Brugger <matthias.bgg@gmail.co=
-m> wrote:
-> Hi Andreas,
->
-> 2013/2/28 Andreas M=C3=BCller <schnitzeltony@googlemail.com>:
->> Hi,
->>
->> I am preparing 3.8 mainline for gumstix overo and have the following
->> issue: waking Monitor connected by HDMI from power save makes Monito=
-r
->> complain for unsupported frequency and console says:
->>
->> | omapdss APPLY error: FIFO UNDERFLOW on gfx, disabling the overlay
->>
->> Is this a known issue?
->
-> I'm not sure if it's the same issue, but you might give it a shot.
-> The problem is, that when changing the CPU frequency in OMAP3530, the
-> frequency of L3 is changed. This frequency is used in DSS.
-> The result is a fifo underflow on gfx.
->
-> First check, if you use some dynamic cpufreq governor, which might be
-> changing the frequency.
-> A workaround (although not very nice) is to set fixed l3_main values
-> in mach-omap2/opp3xxx_data.c
->
-> Best regards,
-> Matthias
->
-I have gouvernor 'performance' selected which AFAIK keeps frequency at
-maximum. Some more details in another mail which I already prepared.
+Hi Jon,
 
-Andreas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yet more questions :-) See below...
+
+On Wed, Feb 13, 2013 at 7:07 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+>
+>
+> You don't need this extra entry if you add "simple-bus" to
+> the gpmc node compatible string.
+>
+> +               gpmc: gpmc@6800a000 {
+> +                       compatible = "ti,omap2420-gpmc", "simple-bus";
+> +                       ti,hwmods = "gpmc";
+> +                       reg = <0x6800a000 0x1000>;
+> +                       interrupts = <20>;
+> +
+
+This "simple-bus" trick is great and very clean!
+
+I'm working on a new driver, similar to gpmc, called device-bus for Marvell SoC.
+One remarkable difference is that I need to *setup* the address space
+(sort of allocate the address region) for a child device, before I can
+access it.
+
+Using simple-bus is a very clean solution. However I'm facing a strange issue:
+the child (physmap driver) probe() is being called *before* the parent
+(device-bus driver)
+probe(), and so the flash device address space cannot get accessed because
+it hasn't been setup yet.
+
+Am I doing something wrong? Or is this the expected behavior?
+
+In the latter case, I won't be able to use a compatible "simple-bus"
+at all, right?
+-- 
+    Ezequiel
