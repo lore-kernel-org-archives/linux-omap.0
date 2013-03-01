@@ -1,78 +1,101 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 15/15] ARM: OMAP5: PM: handle device instance for for coldreset
-Date: Fri, 1 Mar 2013 17:41:04 +0530
-Message-ID: <1362139864-9233-16-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 13/15] ARM: OMAP4+: CPUidle: Deprecate use of omap4_mpuss_read_prev_context_state()
+Date: Fri, 1 Mar 2013 17:41:02 +0530
+Message-ID: <1362139864-9233-14-git-send-email-santosh.shilimkar@ti.com>
 References: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47183 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752481Ab3CAMKX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Mar 2013 07:10:23 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:35861 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752384Ab3CAMKX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Mar 2013 07:10:23 -0500
 In-Reply-To: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Nishanth Menon <nm@ti.com>
+Current OMAP4 CPUIdle driver is using omap4_mpuss_read_prev_context_state()
+function to check whether the MPU cluster lost context or not. Thanks to
+couple CPUIdle, cluster low power entry is almost guaranteed and hence
+the programmed cluster check is enough in idle exit path. The API was
+more of an optimization for corner cases, where if the cluster low power
+entry fails for some reason, the cluster context restore gets skipped.
 
-OMAP5 and OMAP4 have different device instance offsets.
+Moving forward, OMAP CPUidle drivers needs to be moved to drivers/idle/*
+once the PRM/CM code gets moved to drivers. This patch also reduces one
+dependency with platform code for idle driver movement.
 
-So to handle them properly, use a runtime detected instance offset
-Other bit offsets and register offsets remained constant.
-
-Creating a new function is not really worthwhile here as the logic
-will be replicated without much benefit.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
-santosh.shilimkar@ti.com: Refreshed patch against 3.8
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/prminst44xx.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/common.h              |    5 -----
+ arch/arm/mach-omap2/cpuidle44xx.c         |    3 ++-
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |   14 --------------
+ 3 files changed, 2 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
-index c12320c..430fb1d 100644
---- a/arch/arm/mach-omap2/prminst44xx.c
-+++ b/arch/arm/mach-omap2/prminst44xx.c
-@@ -20,10 +20,12 @@
- #include "common.h"
- #include "prcm-common.h"
- #include "prm44xx.h"
-+#include "prm54xx.h"
- #include "prminst44xx.h"
- #include "prm-regbits-44xx.h"
- #include "prcm44xx.h"
- #include "prcm_mpu44xx.h"
-+#include "soc.h"
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 44fcf65..7f9b217 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -242,7 +242,6 @@ extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
+ extern int omap4_finish_suspend(unsigned long cpu_state);
+ extern void omap4_cpu_resume(void);
+ extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
+-extern u32 omap4_mpuss_read_prev_context_state(void);
+ #else
+ static inline int omap4_enter_lowpower(unsigned int cpu,
+ 					unsigned int power_state)
+@@ -270,10 +269,6 @@ static inline int omap4_finish_suspend(unsigned long cpu_state)
+ static inline void omap4_cpu_resume(void)
+ {}
  
- static void __iomem *_prm_bases[OMAP4_MAX_PRCM_PARTITIONS];
+-static inline u32 omap4_mpuss_read_prev_context_state(void)
+-{
+-	return 0;
+-}
+ #endif
  
-@@ -165,17 +167,19 @@ int omap4_prminst_deassert_hardreset(u8 shift, u8 part, s16 inst,
- void omap4_prminst_global_warm_sw_reset(void)
- {
- 	u32 v;
-+	s16 dev_inst = cpu_is_omap44xx() ? OMAP4430_PRM_DEVICE_INST :
-+					   OMAP54XX_PRM_DEVICE_INST;
+ struct omap_sdrc_params;
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index df81243..23286c1 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -147,7 +147,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	 * Call idle CPU cluster PM exit notifier chain
+ 	 * to restore GIC and wakeupgen context.
+ 	 */
+-	if (omap4_mpuss_read_prev_context_state())
++	if ((cx->mpu_state == PWRDM_POWER_RET) &&
++		(cx->mpu_logic_state == PWRDM_POWER_OFF))
+ 		cpu_cluster_pm_exit();
  
- 	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
--				    OMAP4430_PRM_DEVICE_INST,
-+				    dev_inst,
- 				    OMAP4_PRM_RSTCTRL_OFFSET);
- 	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
- 	omap4_prminst_write_inst_reg(v, OMAP4430_PRM_PARTITION,
--				 OMAP4430_PRM_DEVICE_INST,
-+				 dev_inst,
- 				 OMAP4_PRM_RSTCTRL_OFFSET);
- 
- 	/* OCP barrier */
- 	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
--				    OMAP4430_PRM_DEVICE_INST,
-+				    dev_inst,
- 				    OMAP4_PRM_RSTCTRL_OFFSET);
+ 	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index c1c6b9d..5d32444 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -203,20 +203,6 @@ static inline void cpu_clear_prev_logic_pwrst(unsigned int cpu_id)
+ 	}
  }
+ 
+-/**
+- * omap4_mpuss_read_prev_context_state:
+- * Function returns the MPUSS previous context state
+- */
+-u32 omap4_mpuss_read_prev_context_state(void)
+-{
+-	u32 reg;
+-
+-	reg = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
+-		OMAP4430_PRM_MPU_INST, OMAP4_RM_MPU_MPU_CONTEXT_OFFSET);
+-	reg &= OMAP4430_LOSTCONTEXT_DFF_MASK;
+-	return reg;
+-}
+-
+ /*
+  * Store the CPU cluster state for L2X0 low power operations.
+  */
 -- 
 1.7.9.5
 
