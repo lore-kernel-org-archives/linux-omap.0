@@ -1,87 +1,145 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 00/15] ARM: OMAP5: PM: Add MPUSS suspend and CPUidle support
-Date: Fri, 1 Mar 2013 17:40:49 +0530
-Message-ID: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 01/15] ARM: OMAP4+: PM: Consolidate MPU subsystem PM code for re-use
+Date: Fri, 1 Mar 2013 17:40:50 +0530
+Message-ID: <1362139864-9233-2-git-send-email-santosh.shilimkar@ti.com>
+References: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44857 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44871 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752157Ab3CAMJt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Mar 2013 07:09:49 -0500
+	id S1752224Ab3CAMKE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Mar 2013 07:10:04 -0500
+In-Reply-To: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Series adds OMAP5 MPUSS power management support for system wide suspend
-and CPUidle. Its heavy re-use from OMAP4 and hence only ~390 odd lines are
-needed to add OMAP5 PM support on top of existing OMAP4 PM support.
+OMAP5 and future OMAP based SOCs has backward compatible MPUSS
+IP block with OMAP4. It's programming model is mostly similar.
+Hence consolidate the OMAP MPUSS code so that it can be re-used
+on OMAP5 and future SOCs.
 
-OMAP5 adds a mercury retention feature which is an enhancement of
-existing retention feature to reduce the leakage. No change in
-programming model except one time enabling of mercury retention
-during init.
+No functional change.
 
-One more notable change in OMAP5 vs OMAP4 devices, CPUx power domains
-support retention state which lets you hit MPUSS and Core retention with
-very low latency C-state.
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |   56 +++++++++++++++++++++++------
+ 1 file changed, 45 insertions(+), 11 deletions(-)
 
-Series is built on top of my OMAP5 clean-up series posted earlier but there
-is no hard dependency as such. For testing though, you also need out
-of tree data files and hence I have put together a testing branch which
-can be found here [1]
-
-Tested on OMAP4430 SDP, OMAP4460 Panda, OMAP5430 SDP and OMAP5432 Panda
-devices with suspend and CPUIdle. On OMAP5 DT build though, there is an
-issue with UART wakeup from suspend as discussed already on lists.
-
-Nishanth Menon (1):
-  ARM: OMAP5: PM: handle device instance for for coldreset
-
-Santosh Shilimkar (14):
-  ARM: OMAP4+: PM: Consolidate MPU subsystem PM code for re-use
-  ARM: OMAP5: PM: Update CPU context register offset
-  ARM: OMAP4+: PM: Consolidate and use OMAP4 PM code for OMAP5
-  ARM: OMAP5: PM: Set MPUSS-EMIF clock-domain static dependency
-  ARM: OMAP5: PM: Enables ES2 PM mode by default
-  ARM: OMAP5: PM: Enable Mercury retention mode on CPUx powerdomains
-  ARM: OMAP5: Add init_late() hook to enable pm initialization
-  ARM: OMAP5: PM: Add CPU power off mode support
-  ARM: OMAP4+: PM: Restore CPU power state to ON with clockdomain force
-    wakeup method
-  ARM: OMAP5: PM: Add MPU Open Switch Retention support
-  ARM: OMAP5: PM: Add L2 memory power down support
-  ARM: OMAP4+: CPUidle: Cleanup idle driver for OMAP5 support
-  ARM: OMAP4+: CPUidle: Deprecate use of
-    omap4_mpuss_read_prev_context_state()
-  ARM: OMAP4+: CPUidle: Add OMAP5 idle driver support
-
- arch/arm/mach-omap2/Kconfig                        |    1 +
- arch/arm/mach-omap2/Makefile                       |   13 +-
- arch/arm/mach-omap2/board-generic.c                |    1 +
- arch/arm/mach-omap2/common.h                       |    8 +-
- .../{cpuidle44xx.c => cpuidle_omap4plus.c}         |  133 ++++++++++++++++---
- arch/arm/mach-omap2/io.c                           |    8 ++
- arch/arm/mach-omap2/omap-mpuss-lowpower.c          |  134 ++++++++++++++------
- arch/arm/mach-omap2/omap-secure.h                  |    9 ++
- arch/arm/mach-omap2/omap-smp.c                     |   12 +-
- arch/arm/mach-omap2/omap-wakeupgen.c               |   25 +++-
- arch/arm/mach-omap2/omap-wakeupgen.h               |    1 +
- arch/arm/mach-omap2/omap4-sar-layout.h             |    2 +
- arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c}   |  111 +++++++++++-----
- arch/arm/mach-omap2/prminst44xx.c                  |   10 +-
- .../mach-omap2/{sleep44xx.S => sleep_omap4plus.S}  |  133 +++++++++++++++++++
- 15 files changed, 498 insertions(+), 103 deletions(-)
- rename arch/arm/mach-omap2/{cpuidle44xx.c => cpuidle_omap4plus.c} (61%)
- rename arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c} (66%)
- rename arch/arm/mach-omap2/{sleep44xx.S => sleep_omap4plus.S} (74%)
-
-Regards,
-Santosh
-
-[1] git://github.com/SantoshShilimkar/linux.git	testing/3.10/omap5-int-rebuild
-
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index abdd0f6..ee8a1e4 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -71,10 +71,37 @@ struct omap4_cpu_pm_info {
+ 	void (*secondary_startup)(void);
+ };
+ 
++struct cpu_pm_ops {
++	int (*finish_suspend)(unsigned long cpu_state);
++	void (*resume)(void);
++	void (*scu_prepare)(unsigned int cpu_id, unsigned int cpu_state);
++};
++
++extern int omap4_finish_suspend(unsigned long cpu_state);
++extern void omap4_cpu_resume(void);
++
+ static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
+ static struct powerdomain *mpuss_pd;
+ static void __iomem *sar_base;
+ 
++static int default_finish_suspend(unsigned long cpu_state)
++{
++	omap_do_wfi();
++	return 0;
++}
++
++static void dummy_cpu_resume(void)
++{}
++
++void dummy_scu_prepare(unsigned int cpu_id, unsigned int cpu_state)
++{}
++
++struct cpu_pm_ops omap_pm_ops = {
++	.finish_suspend		= default_finish_suspend,
++	.resume			= dummy_cpu_resume,
++	.scu_prepare		= dummy_scu_prepare,
++};
++
+ /*
+  * Program the wakeup routine address for the CPU0 and CPU1
+  * used for OFF or DORMANT wakeup.
+@@ -203,11 +230,12 @@ static void save_l2x0_context(void)
+ {
+ 	u32 val;
+ 	void __iomem *l2x0_base = omap4_get_l2cache_base();
+-
+-	val = __raw_readl(l2x0_base + L2X0_AUX_CTRL);
+-	__raw_writel(val, sar_base + L2X0_AUXCTRL_OFFSET);
+-	val = __raw_readl(l2x0_base + L2X0_PREFETCH_CTRL);
+-	__raw_writel(val, sar_base + L2X0_PREFETCH_CTRL_OFFSET);
++	if (l2x0_base) {
++		val = __raw_readl(l2x0_base + L2X0_AUX_CTRL);
++		__raw_writel(val, sar_base + L2X0_AUXCTRL_OFFSET);
++		val = __raw_readl(l2x0_base + L2X0_PREFETCH_CTRL);
++		__raw_writel(val, sar_base + L2X0_PREFETCH_CTRL_OFFSET);
++	}
+ }
+ #else
+ static void save_l2x0_context(void)
+@@ -269,17 +297,17 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 
+ 	cpu_clear_prev_logic_pwrst(cpu);
+ 	set_cpu_next_pwrst(cpu, power_state);
+-	set_cpu_wakeup_addr(cpu, virt_to_phys(omap4_cpu_resume));
+-	scu_pwrst_prepare(cpu, power_state);
++	set_cpu_wakeup_addr(cpu, virt_to_phys(omap_pm_ops.resume));
++	omap_pm_ops.scu_prepare(cpu, power_state);
+ 	l2x0_pwrst_prepare(cpu, save_state);
+ 
+ 	/*
+ 	 * Call low level function  with targeted low power state.
+ 	 */
+ 	if (save_state)
+-		cpu_suspend(save_state, omap4_finish_suspend);
++		cpu_suspend(save_state, omap_pm_ops.finish_suspend);
+ 	else
+-		omap4_finish_suspend(save_state);
++		omap_pm_ops.finish_suspend(save_state);
+ 
+ 	/*
+ 	 * Restore the CPUx power state to ON otherwise CPUx
+@@ -315,14 +343,14 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
+ 	clear_cpu_prev_pwrst(cpu);
+ 	set_cpu_next_pwrst(cpu, power_state);
+ 	set_cpu_wakeup_addr(cpu, virt_to_phys(pm_info->secondary_startup));
+-	scu_pwrst_prepare(cpu, power_state);
++	omap_pm_ops.scu_prepare(cpu, power_state);
+ 
+ 	/*
+ 	 * CPU never retuns back if targeted power state is OFF mode.
+ 	 * CPU ONLINE follows normal CPU ONLINE ptah via
+ 	 * omap_secondary_startup().
+ 	 */
+-	omap4_finish_suspend(cpu_state);
++	omap_pm_ops.finish_suspend(cpu_state);
+ 
+ 	set_cpu_next_pwrst(cpu, PWRDM_POWER_ON);
+ 	return 0;
+@@ -399,6 +427,12 @@ int __init omap4_mpuss_init(void)
+ 
+ 	save_l2x0_context();
+ 
++	if (cpu_is_omap44xx()) {
++		omap_pm_ops.finish_suspend = omap4_finish_suspend;
++		omap_pm_ops.resume = omap4_cpu_resume;
++		omap_pm_ops.scu_prepare = scu_pwrst_prepare;
++	}
++
+ 	return 0;
+ }
+ 
 -- 
 1.7.9.5
 
