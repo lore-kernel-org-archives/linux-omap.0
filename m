@@ -1,161 +1,93 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 12/15] ARM: OMAP4+: CPUidle: Cleanup idle driver for OMAP5 support
-Date: Fri, 1 Mar 2013 17:41:01 +0530
-Message-ID: <1362139864-9233-13-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 11/15] ARM: OMAP5: PM: Add L2 memory power down support
+Date: Fri, 1 Mar 2013 17:41:00 +0530
+Message-ID: <1362139864-9233-12-git-send-email-santosh.shilimkar@ti.com>
 References: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44898 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33028 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752385Ab3CAMKX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Mar 2013 07:10:23 -0500
+	id S1752472Ab3CAMKS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Mar 2013 07:10:18 -0500
 In-Reply-To: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-The OMAP5 idle driver can re-use most of OMAP4 CPUidle driver
-implementation. Also the next derivative SOCs are going to re-use
-the MPUSS so, same driver with minor updates can be re-used.
+When the entire MPUSS cluster is powered down in device off state, L2 cache
+memory looses it's content and hence while targetting such a state,
+l2 cache needs to be flushed to main memory.
 
-Prepare the code so that its easier to add CPUidle support for
-OMAP5 devices.
+Add the necessary low power code support for the same.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle44xx.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/omap-secure.h     |    1 +
+ arch/arm/mach-omap2/sleep_omap4plus.S |   30 ++++++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index 9de47a7..df81243 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -1,7 +1,7 @@
- /*
-- * OMAP4 CPU idle Routines
-+ * OMAP4PLUS CPU idle Routines
-  *
-- * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Copyright (C) 2011-2013 Texas Instruments, Inc.
-  * Santosh Shilimkar <santosh.shilimkar@ti.com>
-  * Rajendra Nayak <rnayak@ti.com>
-  *
-@@ -22,15 +22,16 @@
- #include "pm.h"
- #include "prm.h"
- #include "clockdomain.h"
-+#include "soc.h"
+diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
+index 1739468..a171a5a 100644
+--- a/arch/arm/mach-omap2/omap-secure.h
++++ b/arch/arm/mach-omap2/omap-secure.h
+@@ -47,6 +47,7 @@
+ #define OMAP4_MON_L2X0_PREFETCH_INDEX	0x113
+ #define OMAP5_MON_CACHES_CLEAN_INDEX	0x103
+ #define OMAP5_MON_AUX_CTRL_INDEX	0x107
++#define OMAP5_MON_L2AUX_CTRL_INDEX	0x104
  
- /* Machine specific information */
--struct omap4_idle_statedata {
-+struct idle_statedata {
- 	u32 cpu_state;
- 	u32 mpu_logic_state;
- 	u32 mpu_state;
- };
+ #define OMAP5_MON_AMBA_IF_INDEX		0x108
  
--static struct omap4_idle_statedata omap4_idle_data[] = {
-+static struct idle_statedata omap4_idle_data[] = {
- 	{
- 		.cpu_state = PWRDM_POWER_ON,
- 		.mpu_state = PWRDM_POWER_ON,
-@@ -53,11 +54,12 @@ static struct clockdomain *cpu_clkdm[NR_CPUS];
+diff --git a/arch/arm/mach-omap2/sleep_omap4plus.S b/arch/arm/mach-omap2/sleep_omap4plus.S
+index f4874e5..ea318be 100644
+--- a/arch/arm/mach-omap2/sleep_omap4plus.S
++++ b/arch/arm/mach-omap2/sleep_omap4plus.S
+@@ -386,6 +386,27 @@ skip_secure_l1_clean_op:
+ 	isb
+ 	dsb
  
- static atomic_t abort_barrier;
- static bool cpu_done[NR_CPUS];
-+static struct idle_statedata *state_ptr;
++	bl	omap4_get_sar_ram_base
++	mov	r8, r0
++	mrc	p15, 0, r5, c0, c0, 5		@ Read MPIDR
++	ands	r5, r5, #0x0f
++	ldreq	r0, [r8, #L2X0_SAVE_OFFSET0]	@ Retrieve L2 state
++	ldrne	r0, [r8, #L2X0_SAVE_OFFSET1]
++	cmp	r0, #3
++	bne	do_wfi
++	bl	omap4_get_sar_ram_base
++	ldr	r9, [r0, #OMAP_TYPE_OFFSET]
++	cmp	r9, #0x1			@ Check for HS device
++	bne	skip_secure_l2_clean_op
++	mov	r0, #1				@ Clean secure L2
++	stmfd   r13!, {r4-r12, r14}
++	ldr	r12, =OMAP5_MON_CACHES_CLEAN_INDEX
++	DO_SMC
++	ldmfd   r13!, {r4-r12, r14}
++skip_secure_l2_clean_op:
++	mov	r0, #2				@ Flush L2
++	bl	v7_flush_dcache_all
++
+ do_wfi:
+ 	bl	omap_do_wfi
  
- /* Private functions */
- 
- /**
-- * omap4_enter_idle_coupled_[simple/coupled] - OMAP4 cpuidle entry functions
-+ * omap_enter_idle_[simple/coupled] - OMAP4PLUS cpuidle entry functions
-  * @dev: cpuidle device
-  * @drv: cpuidle driver
-  * @index: the index of state to be entered
-@@ -66,7 +68,7 @@ static bool cpu_done[NR_CPUS];
-  * specified low power state selected by the governor.
-  * Returns the amount of time spent in the low power state.
-  */
--static int omap4_enter_idle_simple(struct cpuidle_device *dev,
-+static int omap_enter_idle_simple(struct cpuidle_device *dev,
- 			struct cpuidle_driver *drv,
- 			int index)
- {
-@@ -74,11 +76,11 @@ static int omap4_enter_idle_simple(struct cpuidle_device *dev,
- 	return index;
- }
- 
--static int omap4_enter_idle_coupled(struct cpuidle_device *dev,
-+static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- 			struct cpuidle_driver *drv,
- 			int index)
- {
--	struct omap4_idle_statedata *cx = &omap4_idle_data[index];
-+	struct idle_statedata *cx = state_ptr + index;
- 	int cpu_id = smp_processor_id();
- 
- 	/*
-@@ -167,7 +169,7 @@ static void omap_setup_broadcast_timer(void *arg)
- 	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &cpu);
- }
- 
--static DEFINE_PER_CPU(struct cpuidle_device, omap4_idle_dev);
-+static DEFINE_PER_CPU(struct cpuidle_device, omap_idle_dev);
- 
- static struct cpuidle_driver omap4_idle_driver = {
- 	.name				= "omap4_idle",
-@@ -179,7 +181,7 @@ static struct cpuidle_driver omap4_idle_driver = {
- 			.exit_latency = 2 + 2,
- 			.target_residency = 5,
- 			.flags = CPUIDLE_FLAG_TIME_VALID,
--			.enter = omap4_enter_idle_simple,
-+			.enter = omap_enter_idle_simple,
- 			.name = "C1",
- 			.desc = "MPUSS ON"
- 		},
-@@ -188,7 +190,7 @@ static struct cpuidle_driver omap4_idle_driver = {
- 			.exit_latency = 328 + 440,
- 			.target_residency = 960,
- 			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
--			.enter = omap4_enter_idle_coupled,
-+			.enter = omap_enter_idle_coupled,
- 			.name = "C2",
- 			.desc = "MPUSS CSWR",
- 		},
-@@ -197,7 +199,7 @@ static struct cpuidle_driver omap4_idle_driver = {
- 			.exit_latency = 460 + 518,
- 			.target_residency = 1100,
- 			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
--			.enter = omap4_enter_idle_coupled,
-+			.enter = omap_enter_idle_coupled,
- 			.name = "C3",
- 			.desc = "MPUSS OSWR",
- 		},
-@@ -219,6 +221,7 @@ int __init omap4_idle_init(void)
- 	struct cpuidle_device *dev;
- 	unsigned int cpu_id = 0;
- 
-+	/* Configure the broadcast timer on each cpu */
- 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
- 	cpu_pd[0] = pwrdm_lookup("cpu0_pwrdm");
- 	cpu_pd[1] = pwrdm_lookup("cpu1_pwrdm");
-@@ -234,11 +237,12 @@ int __init omap4_idle_init(void)
- 	on_each_cpu(omap_setup_broadcast_timer, NULL, 1);
- 
- 	for_each_cpu(cpu_id, cpu_online_mask) {
--		dev = &per_cpu(omap4_idle_dev, cpu_id);
-+		dev = &per_cpu(omap_idle_dev, cpu_id);
- 		dev->cpu = cpu_id;
- #ifdef CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED
- 		dev->coupled_cpus = *cpu_online_mask;
+@@ -427,6 +448,15 @@ ENTRY(omap5_cpu_resume)
+ 	dsb
+ 1:
  #endif
-+		state_ptr = &omap4_idle_data[0];
- 		cpuidle_register_driver(&omap4_idle_driver);
- 
- 		if (cpuidle_register_device(dev)) {
++	mrc	p15, 1, r0, c15, c0, 0		@ Read L2 ACTLR
++	cmp	r0, #0x118			@ Check if it is already set
++	beq	skip_sec_l2
++	ldr	r0, =0x118			@ Setup L2 ACTLR = 0x118
++	ldr	r12, =OMAP5_MON_L2AUX_CTRL_INDEX
++	dsb
++	smc     #0
++	dsb
++skip_sec_l2:
+ 	b	cpu_resume			@ Jump to generic resume
+ ENDPROC(omap5_cpu_resume)
+ #endif
 -- 
 1.7.9.5
 
