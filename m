@@ -1,110 +1,83 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/2] gpio/omap: convert gpio irq domain to linear mapping
-Date: Sat, 2 Mar 2013 13:48:11 +0200
-Message-ID: <20130302114742.GA9965@arwen.pp.htv.fi>
+Subject: Re: [PATCH 2/2] gpio/omap: warn if bank is not enabled on setting
+ irq type
+Date: Sat, 2 Mar 2013 13:49:35 +0200
+Message-ID: <20130302114934.GB9965@arwen.pp.htv.fi>
 References: <1362158568-1624-1-git-send-email-jon-hunter@ti.com>
- <1362158568-1624-2-git-send-email-jon-hunter@ti.com>
+ <1362158568-1624-3-git-send-email-jon-hunter@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JYK4vJDZwFMowpUq"
+	protocol="application/pgp-signature"; boundary="hYooF8G/hrfVAmum"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55264 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720Ab3CBLs0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 2 Mar 2013 06:48:26 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:41156 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751747Ab3CBLtu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 2 Mar 2013 06:49:50 -0500
 Content-Disposition: inline
-In-Reply-To: <1362158568-1624-2-git-send-email-jon-hunter@ti.com>
+In-Reply-To: <1362158568-1624-3-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jon Hunter <jon-hunter@ti.com>
 Cc: Kevin Hilman <khilman@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
---JYK4vJDZwFMowpUq
+--hYooF8G/hrfVAmum
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Mar 01, 2013 at 11:22:47AM -0600, Jon Hunter wrote:
-> Currently the OMAP GPIO driver uses a legacy mapping for the GPIO IRQ
-> domain. This is not necessary because we do not need to assign a
-> specific interrupt number to the GPIO IRQ domain. Therefore, convert
-> the OMAP GPIO driver to use a linear mapping instead.
+On Fri, Mar 01, 2013 at 11:22:48AM -0600, Jon Hunter wrote:
+> For OMAP devices, if a gpio is being used as an interrupt source but has
+> not been requested by calling gpio_request(), a call to request_irq()
+> may cause the kernel hang because the gpio bank may be disabled and
+> hence the register access will fail. To prevent such hangs, test for
+> this case and warn if this is detected.
 >=20
-> Please note that this also allows to simplify the logic in the OMAP
-> gpio_irq_handler() routine, by using irq_find_mapping() to obtain the
-> virtual irq number from the GPIO bank and bank index.
->=20
-> Reported-by: Linus Walleij <linus.walleij@linaro.org>
 > Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+>  drivers/gpio/gpio-omap.c |    3 +++
+>  1 file changed, 3 insertions(+)
+>=20
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index c3598d1..0d30c7a 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -427,6 +427,9 @@ static int gpio_irq_type(struct irq_data *d, unsigned=
+ type)
+>  	int retval;
+>  	unsigned long flags;
+> =20
+> +	if (WARN_ON(!bank->mod_usage))
+
+It would be better to use WARN(!bank->mod_usage, "error message\n") IMO.
+
+no strong feelings however:
 
 Reviewed-by: Felipe Balbi <balbi@ti.com>
-
-Just one suggestion below for a later patch.
-
-> @@ -680,7 +686,7 @@ static void gpio_irq_handler(unsigned int irq, struct=
- irq_desc *desc)
->  {
->  	void __iomem *isr_reg =3D NULL;
->  	u32 isr;
-> -	unsigned int gpio_irq, gpio_index;
-> +	unsigned int i;
->  	struct gpio_bank *bank;
->  	int unmasked =3D 0;
->  	struct irq_chip *chip =3D irq_desc_get_chip(desc);
-> @@ -721,15 +727,10 @@ static void gpio_irq_handler(unsigned int irq, stru=
-ct irq_desc *desc)
->  		if (!isr)
->  			break;
-> =20
-> -		gpio_irq =3D bank->irq_base;
-> -		for (; isr !=3D 0; isr >>=3D 1, gpio_irq++) {
-> -			int gpio =3D irq_to_gpio(bank, gpio_irq);
-> -
-> +		for (i =3D 0; isr !=3D 0; isr >>=3D 1, i++) {
->  			if (!(isr & 1))
->  				continue;
-
-this will iterate over all 32 GPIOs, a better way to handle this would
-be to have something like:
-
-while (isr) {
-	unsigned long bit =3D __ffs(isr);
-
-	/* clear this bit */
-	isr &=3D ~bit;
-
-	generic_handle_irq(irq_find_mapping(bank->domain, bit);
-}
-
-this way you will only iterate the amount of bits enabled in the isr
-register.
-
-ps: completely untested ;-)
 
 --=20
 balbi
 
---JYK4vJDZwFMowpUq
+--hYooF8G/hrfVAmum
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRMeb7AAoJEIaOsuA1yqREiGIQAKHLwunnP0wjxwIemuYj92p+
-MVaW8i+i/xKKC01b/AQhKOKc3p6IqqDPrfVsqMZSyJvPsEdketmm228IMb/7Dcuq
-lvs2LOVicB+QHlmg3LNi2UdERELGqiOZOl0wEHq+zS6PS2++wRb4efwkTNtOWpmd
-9qEh641qW+1LIZSj6yadUPysiqpL9w/iZK7pfHGPjKpcCAopQKfItKu5D1Xah0X+
-9tDmW47ea2+g8K6UEnEaA3aB5/YZ1pJtAwOiuqtm7UHNx64m7RIvm/kilm5PqddO
-zstic88VtyrZ2ZE8cDlrMckUyp0mpRqZZSoftDGczOkCIyHryKillEy58e4yeDbf
-Kfvo5o/qTYZbGUQX0aHxHBF+yQ89wjJJ57HjbyzUjxW+ZCFXN/5RkTV5kQhFQ/qX
-X/iMSE0RJnbUHAFmBmtWljqmBMQJL0wpL6Gtvh2HOz53eFnCXrJ3aE1hPet6pf8m
-NNeQhGEd35g3xJxhxhajQcJlve6HOM9nAkUYbJAv/21gALF7NfpHd9OeFB/5o5xD
-JvNe3BJFvq/iwMFspv+5/yEoWSn4JV+6pOELIWM068J124yQZtO2cOvnTrOoV7sD
-Cw59xoRQfG6cYymqsEgAw0C/H7LN7Q8wLni3ab9Npfr2BaCqM8r+zDlO21HKRm5f
-3PycDtmwPkPW/Nc12bPf
-=2npb
+iQIcBAEBAgAGBQJRMedOAAoJEIaOsuA1yqREEycP/AigZ00nyfzng2FThb2ONfg4
+Wxf++T5PXjcp1S3YvA5Urckcfviqm5vJ66fbCPIRWf6vpveZLtAt4k9nYYTLNQ0w
+KVYhj780ge2PxXnYKXcnPtxMpKX3AI8+YWW67ZZTtRHVjGHYBGl4D3tWb3DVaVb+
+iYdAMLBkyIj3boegSKyXBDbZ9+mxu1XbzVySKNREBkX4NEmJxR0O3j6CVP/egrg7
+vrXYXdAQt0VDySGuRxWX2BVOzWagX8EB9SOtLaJEjg0ycgYeJ6QHyDWQWhDu5GBS
+iPJDwLN3BaF+oGmCUSdHV0APoOzHZ/7+Z2tSWi3l9Qr7aDWKQ4s2clr0kgvNjURg
+QHqt7OIVm/IlryDcQ5LLC8DaPf4EFG2B3YVtJCXk6bwZezUX/lb6v6k/QFaCwv78
+bBCbm4mHAJOwFq8HTrWUE945xafegwzF1CIxlt3gW53L+n/DuEi+GRKahX3Z4Rzk
+ad+1S0M+Lb6cdOOcfre87N0a64iBt2dW/AXm8haKAQmT4cxbOz5Pe0zWMLE9Scbe
+jQSMKYCHA/zPFwy0Ecgm2cLJcaBzKzvR/BP2qg95ykLG4e+kZCCr/OmHeojkS+wT
+jSLvAhwlx1mJfjWllyM6To1xFiSJdgl1kFXayxCUHgczzkrXpKL+bmzVeOz4yWFS
+HSRo7Zf6tOC04s/NjJ5l
+=1Wws
 -----END PGP SIGNATURE-----
 
---JYK4vJDZwFMowpUq--
+--hYooF8G/hrfVAmum--
