@@ -1,57 +1,57 @@
-From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: [PATCH v2 00/10] usb: dwc3/xhci/phy: Enable runtime power management
-Date: Sat, 02 Mar 2013 18:53:01 +0530
-Message-ID: <1362230590-20960-1-git-send-email-gautam.vivek@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, kishon@ti.com
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ASoC: omap: Check regulator enable for DAC
+	on Pandora
+Date: Sat, 2 Mar 2013 16:02:06 +0100
+Message-ID: <5132146E.602@ti.com>
+References: <1362210594-17633-1-git-send-email-broonie@opensource.wolfsonmicro.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1362210594-17633-1-git-send-email-broonie@opensource.wolfsonmicro.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch-series enables runtime power management on xhci-plat,
-dwc3-core, dwc3-exynos as well as on samsung-usb3 type PHY.
-This allows usb 3.0 host ports to be power managed at runtime.
-We also turn off the PHY ref_clk PLL, which supplies reference clock
-to USB3 type phy, when ports are not in use.
+On 03/02/2013 08:49 AM, Mark Brown wrote:
+> This will probably never fail but it's better style.
+> 
+> Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> ---
+>  sound/soc/omap/omap3pandora.c |    6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+> 
+> diff --git a/sound/soc/omap/omap3pandora.c b/sound/soc/omap/omap3pandora.c
+> index 805512f..953483e 100644
+> --- a/sound/soc/omap/omap3pandora.c
+> +++ b/sound/soc/omap/omap3pandora.c
+> @@ -85,7 +85,11 @@ static int omap3pandora_dac_event(struct snd_soc_dapm_widget *w,
+>  	 * VCC power on/off and /PD pin high/low
+>  	 */
+>  	if (SND_SOC_DAPM_EVENT_ON(event)) {
+> -		regulator_enable(omap3pandora_dac_reg);
+> +		ret = regulator_enable(omap3pandora_dac_reg);
+> +		if (ret != 0) {
 
-Based on 'usb-next' alongwith following patch series:
-  [PATCH v4 00/11] usb: dwc3: PM support patchset
-  http://www.mail-archive.com/linux-usb@vger.kernel.org/msg14676.html
+The rest of this machine driver uses "if (ret < 0)" or "if (ret)". I would use:
+ +		if (ret) {
 
-  [PATCH v2] usb: xhci: add the suspend/resume functionality
-  http://www.mail-archive.com/linux-usb@vger.kernel.org/msg14614.html
+> +			dev_err(w->dapm.dev, "Failed to power DAC: %d\n", ret);
+> +			return ret;
+> +		}
+>  		mdelay(1);
+>  		gpio_set_value(OMAP3_PANDORA_DAC_POWER_GPIO, 1);
+>  	} else {
+> 
 
-  [PATCH v6 0/2] Adding USB 3.0 DRD-phy support for exynos5250
-  http://www.mail-archive.com/linux-usb@vger.kernel.org/msg15813.html
-
-Changes from v1:
- - Adding required PHY APIs to handle runtime power management
-   instead of directly twiddling with phy->dev.
- - Handling runtime power management of usb PHYs in dwc3 core
-   driver instead of in any glue layer.
- - Splitting the patch "[PATCH 4/4] usb: phy: samsung: Enable runtime power management on samsung-usb"
-   to required number to bifurcate functionality.
-
-Vivek Gautam (10):
-  usb: phy: Add APIs for runtime power management
-  USB: dwc3: Adjust runtime pm to allow autosuspend
-  usb: dwc3: Enable runtime pm only after PHYs are initialized
-  usb: dwc3: Add runtime power management callbacks
-  usb: dwc3: exynos: Enable runtime power management
-  usb: xhci: Enable runtime pm in xhci-plat
-  usb: phy: samsung: Enable runtime power management on usb3phy
-  usb: phy: samsung: Add support for external reference clock
-  usb: phy: samsung: Add support for PHY ref_clk gpio
-  usb: phy: samsung: Add support for PHY refclk switching
-
- drivers/usb/dwc3/core.c           |   40 +++++++++++--
- drivers/usb/dwc3/dwc3-exynos.c    |   13 ++++
- drivers/usb/host/xhci-plat.c      |    7 ++
- drivers/usb/phy/samsung-usb3phy.c |  122 +++++++++++++++++++++++++++++++++++--
- drivers/usb/phy/samsung-usbphy.c  |   26 ++++++++
- drivers/usb/phy/samsung-usbphy.h  |    1 +
- include/linux/usb/phy.h           |   26 ++++++++
- 7 files changed, 224 insertions(+), 11 deletions(-)
-
--- 
-1.7.6.5
+Otherwise:
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
