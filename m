@@ -1,81 +1,143 @@
-From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/5] usb: musb: am335x support
-Date: Sat, 02 Mar 2013 02:36:48 +0100
-Message-ID: <513157B0.7010703@gmail.com>
-References: <cover.1351870620.git.afzal@ti.com>,<509420D8.1030307@gmail.com> <C8443D0743D26F4388EA172BF4E2A7A93EA0A1F2@DBDE01.ent.ti.com> <51312430.6060306@gmail.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH] arm: dts: Add uart1 and uart2 to igep boards.
+Date: Sat, 2 Mar 2013 02:52:53 +0100
+Message-ID: <CAAwP0s3bs=uqCRPgQiXQUnHq-6L61ayrP0WrXdJrNxNuGfmV0A@mail.gmail.com>
+References: <1355326422-12357-1-git-send-email-matthias.bgg@gmail.com>
+ <50C8AC3C.9020908@ti.com> <CABuKBeJsHCq98Pe-BwPajbQ+2OLQpwrbtVTJe=j9thPDQCCBrg@mail.gmail.com>
+ <CAAwP0s01Jxh0f-T0sd5D980dZPcEV0J1KzjPbNHkrXLaKA3YUg@mail.gmail.com>
+ <CABuKBeJsg_P=aDr0s9iVOD+7YTNoVUFQJCJymJyJ7NqXHUBzKQ@mail.gmail.com> <511E0807.8000200@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51312430.6060306-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "Santhapuri, Damodar" <damodar.santhapuri-l0cyMroinI0@public.gmane.org>, "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <511E0807.8000200@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "eballetbo@gmail.com" <eballetbo@gmail.com>, "elezegarcia@gmail.com" <elezegarcia@gmail.com>, "ebutera@gmail.com" <ebutera@gmail.com>, "javier.martinez@collabora.co.uk" <javier.martinez@collabora.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 01.03.2013 22:57, Daniel Mack wrote:
-> Hi Afzal, everyone,
-> 
-> On 03.11.2012 08:33, Mohammed, Afzal wrote:
->> * Daniel Mack, November 03, 2012 1:06 AM:
+On Fri, Feb 15, 2013 at 11:03 AM, Cousson, Benoit <b-cousson@ti.com> wrote:
+> Hi Matthias,
+>
+>
+> On 2/15/2013 10:35 AM, Matthias Brugger wrote:
 >>
->>> I'm testing these patches with an AM33xx board that has the first musb
->>> port wired to an USB type A plug, but it doesn't yet work for me.
+>> 2013/1/26 Javier Martinez Canillas <martinez.javier@gmail.com>:
+>>>
+>>> On Sat, Jan 26, 2013 at 4:16 PM, Matthias Brugger
+>>> <matthias.bgg@gmail.com>
+>>> wrote:
+>>>>
+>>>> Hi Benoit,
+>>>>
+>>>> 2012/12/12 Benoit Cousson <b-cousson@ti.com>:
+>>>>>
+>>>>> Hi Matthias,
+>>>>>
+>>>>> On 12/12/2012 04:33 PM, Matthias Brugger wrote:
+>>>>>>
+>>>>>> This patch is a follow-up patch for Javier Martinez effort adding
+>>>>>> initial
+>>>>>> device tree support to IGEP technology devices. [1]
+>>>>>>
+>>>>>> It adds uart1 and uart2 bindings to the generic dtsi for the IGEP
+>>>>>> boards.
+>>>>>>
+>>>>>> [1] http://www.spinics.net/lists/linux-omap/msg83409.html
+>>>>>>
+>>>>>> Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
+>>>>>> ---
+>>>>>>   arch/arm/boot/dts/omap3-igep.dtsi |   24 ++++++++++++++++++++++++
+>>>>>>   1 file changed, 24 insertions(+)
+>>>>>>
+>>>>>> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi
+>>>>>> b/arch/arm/boot/dts/omap3-igep.dtsi
+>>>>>> index 125fe00..c02e3c0 100644
+>>>>>> --- a/arch/arm/boot/dts/omap3-igep.dtsi
+>>>>>> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+>>>>>> @@ -27,6 +27,20 @@
+>>>>>>   };
+>>>>>>
+>>>>>>   &omap3_pmx_core {
+>>>>>> +     uart1_pins: pinmux_uart1_pins {
+>>>>>> +             pinctrl-single,pins = <
+>>>>>> +                     0x152 0x100     /* uart1_rx.uart1_rx INPUT |
+>>>>>> MODE0
+>>>>>> */
+>>>>>> +                     0x14c 0         /* uart1_tx.uart1_tx OUTPUT |
+>>>>>> MODE0 */
+>>>>>> +             >;
+>>>>>> +     };
+>>>>>> +
+>>>>>> +     uart2_pins: pinmux_uart2_pins {
+>>>>>> +             pinctrl-single,pins = <
+>>>>>> +                     0x14a 0x100     /* uart2_rx.uart2_rx INPUT |
+>>>>>> MODE0
+>>>>>> */
+>>>>>> +                     0x148 0         /* uart2_tx.uart2_tx OUTPUT |
+>>>>>> MODE0 */
+>>>>>> +             >;
+>>>>>> +     };
+>>>>>> +
+>>>>>>        uart3_pins: pinmux_uart3_pins {
+>>>>>>                pinctrl-single,pins = <
+>>>>>>                        0x16e 0x100     /* uart3_rx.uart3_rx INPUT |
+>>>>>> MODE0
+>>>>>> */
+>>>>>> @@ -77,6 +91,16 @@
+>>>>>>        status = "disabled";
+>>>>>>   };
+>>>>>>
+>>>>>> +&uart1 {
+>>>>>> +       pinctrl-names = "default";
+>>>>>> +       pinctrl-0 = <&uart1_pins>;
+>>>>>> +};
+>>>>>> +
+>>>>>> +&uart2 {
+>>>>>> +       pinctrl-names = "default";
+>>>>>> +       pinctrl-0 = <&uart2_pins>;
+>>>>>> +};
+>>>>>> +
+>>>>>>   &uart3 {
+>>>>>>          pinctrl-names = "default";
+>>>>>>          pinctrl-0 = <&uart3_pins>;
+>>>>>>
+>>>>>
+>>>>> That looks good to me. I'll apply it on top of javier's series for 3.9.
+>>>>
+>>>>
+>>>> Can you pin-point me to the repository where this patches are in right
+>>>> now? I tried to figure it out these days, but didn't found where to
+>>>> clone the repository from.
+>>>>
+>>>> Thanks,
+>>>> Matthias
+>>>>
+>>>
+>>> Hi Matthias,
+>>>
+>>> OMAP DT tree is:
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
 >>
->>> So there is no host interface registered. I'm unsure on how to fix this,
->>> and I didn't get an answer yet to that question when I asked Felipe
->>> about how interface drivers like dsps are supposed to act in order to
->>> get host mode back after the recent musb cleanups.
 >>
->>> What type of hardware do you test this with? Does host mode work for you?
+>> Hi all,
 >>
->> To add to those details mentioned by Ravi,
->>
->> This was tested on Beagle Bone with USB0 as usb-ethernet.
->>
->> For purely Kernel part, this series is sufficient (along with
->> dependency mentioned in cover letter), considering
->> the fact that dt node is strictly not a part of Kernel.
->>
->> To test this series, node for usbss should be present in dt.
->> Example in dt documentation can be pasted onto dtsi file
->> to get USB0 working.
-> 
-> I have to pick up this old thread because I'm still having trouble
-> understanding how the AM335x musb driver is meant to be used as HCD.
-> 
-> I used to have it working based on 3.7 with a terrible hack that reverts
-> a couple of old commits partly. Now I started over with a fresh setup
-> based on Linus' current soon-to-be 3.9-rc tip, actually hoping that the
-> issues are solved.
-> 
-> On my board, the USB is purely used as host interface, with a type B
-> plug soldered. In the DT, I'm using the following sniplet in accordance
-> to the documentation of the bindings:
-> 
-> 	usb_otg_hs: usb@47400000 {
-> 		compatible = "ti,musb-am33xx";
-> 		reg = <0x47400000 0x1000	/* usbss */
-> 		       0x47401000 0x800		/* musb instance 0 */
-> 		       0x47401800 0x800>;	/* musb instance 1 */
-> 		interrupt-parent = <&intc>;
-> 		interrupts = <17		/* usbss */
-> 			      18		/* musb instance 0 */
-> 			      19>;		/* musb instance 1 */
-> 		multipoint = <1>;
-> 		num-eps = <16>;
-> 		ram-bits = <12>;
-> 		port0-mode = <3>;
-> 		port1-mode = <3>;
+>> unfortunately I can't find the patch in this tree.
+>
+>
+> Sorry about that. I've never pushed the latest branch, and was busy the past
+> month. I'll refresh the branch with all the pending patches.
+>
+> Regards,
+> Benoit
+>
 
-Btw, same happens for:
+Hi Benoit,
 
- 		port0-mode = <1>;
+I realized that your for_3.9/dts branch has not landed in mainline yet
+and we are near to the end of the merge window.
 
+Are you still planing to include those changes for 3.9 or are you
+going to wait until the next release?
 
-Daniel
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks a lot and best regards,
+Javier
