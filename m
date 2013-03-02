@@ -1,105 +1,68 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 05/15] ARM: OMAP5: PM: Enables ES2 PM mode by default
-Date: Sat, 2 Mar 2013 11:17:31 +0530
-Message-ID: <51319273.5090703@ti.com>
-References: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com> <1362139864-9233-6-git-send-email-santosh.shilimkar@ti.com> <20130301193745.GA22626@kahuna>
+Subject: Re: [PATCH 06/15] ARM: OMAP5: PM: Enable Mercury retention mode on
+ CPUx powerdomains
+Date: Sat, 2 Mar 2013 11:22:03 +0530
+Message-ID: <51319383.7090903@ti.com>
+References: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com> <1362139864-9233-7-git-send-email-santosh.shilimkar@ti.com> <20130301194216.GB22626@kahuna>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:32837 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751115Ab3CBFqE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 2 Mar 2013 00:46:04 -0500
-In-Reply-To: <20130301193745.GA22626@kahuna>
+Received: from devils.ext.ti.com ([198.47.26.153]:47945 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017Ab3CBFuf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 2 Mar 2013 00:50:35 -0500
+In-Reply-To: <20130301194216.GB22626@kahuna>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
 Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org
 
-On Saturday 02 March 2013 01:07 AM, Nishanth Menon wrote:
+On Saturday 02 March 2013 01:12 AM, Nishanth Menon wrote:
 > On 17:40-20130301, Santosh Shilimkar wrote:
->> Enables MPUSS ES2 power management mode using ES2_PM_MODE in
->> AMBA_IF_MODE register.
+>> In addition to the standard power-management technique, the OMAP5
+>> MPU subsystem also employs an SR3-APG (mercury) power management
+>> technology to reduce leakage.
+> Mercury fast is employed here - might be good to note that.
+Slow is completly descoped from validation and only supported mode
+is mercury fast which was the intention. So lets not add any confusion
+since other state isn't supported. 
 >>
->> 0x0: ES1 behavior, CPU cores would enter and exit OFF mode together. Broken
->> 0x1: ES2 behavior, CPU cores are allowed to enter/exit OFF mode independently.
->>
->> This is one time settings thanks to always ON domain.
+>> It allows for full logic and memories retention on MPU_C0 and MPU_C1 and
+>> is controlled by the PRCM_MPU.
 >>
 >> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 >> ---
->>  arch/arm/mach-omap2/omap-secure.h    |    2 ++
->>  arch/arm/mach-omap2/omap-wakeupgen.c |   14 ++++++++++++++
->>  arch/arm/mach-omap2/omap-wakeupgen.h |    1 +
->>  3 files changed, 17 insertions(+)
+>>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   17 +++++++++++++++++
+>>  1 file changed, 17 insertions(+)
 >>
->> diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
->> index 0e72917..82b3c4c 100644
->> --- a/arch/arm/mach-omap2/omap-secure.h
->> +++ b/arch/arm/mach-omap2/omap-secure.h
->> @@ -42,6 +42,8 @@
->>  #define OMAP4_MON_L2X0_AUXCTRL_INDEX	0x109
->>  #define OMAP4_MON_L2X0_PREFETCH_INDEX	0x113
+>> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+>> index bcd2efb..9fda96b 100644
+>> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+>> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+>> @@ -360,6 +360,20 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
 >>  
->> +#define OMAP5_MON_AMBA_IF_INDEX		0x108
+>>  
+>>  /*
+>> + * Enable Mercury Fast HG retention mode by default.
+>> + */
+>> +static void enable_mercury_retention_mode(void)
+>> +{
+>> +	u32 reg;
 >> +
->>  /* Secure PPA(Primary Protected Application) APIs */
->>  #define OMAP4_PPA_L2_POR_INDEX		0x23
->>  #define OMAP4_PPA_CPU_ACTRL_SMP_INDEX	0x25
->> diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
->> index 5d3b4f4..a7350dd 100644
->> --- a/arch/arm/mach-omap2/omap-wakeupgen.c
->> +++ b/arch/arm/mach-omap2/omap-wakeupgen.c
->> @@ -403,6 +403,7 @@ int __init omap_wakeupgen_init(void)
->>  {
->>  	int i;
->>  	unsigned int boot_cpu = smp_processor_id();
->> +	u32 val;
->>  
->>  	/* Not supported on OMAP4 ES1.0 silicon */
->>  	if (omap_rev() == OMAP4430_REV_ES1_0) {
->> @@ -444,6 +445,19 @@ int __init omap_wakeupgen_init(void)
->>  	for (i = 0; i < max_irqs; i++)
->>  		irq_target_cpu[i] = boot_cpu;
->>  
->> +	/*
->> +	 * Enables OMAP5 ES2 PM Mode using ES2_PM_MODE in AMBA_IF_MODE
->> +	 * 0x0:	ES1 behavior, CPU cores would enter and exit OFF mode together.
->> +	 * 0x1:	ES2 behavior, CPU cores are allowed to enter/exit OFF mode
->> +	 * independently.
->> +	 * This needs to be set one time thanks to always ON domain.
->> +	 */
->> +	if (soc_is_omap54xx()) {
->> +		val = __raw_readl(wakeupgen_base + OMAP_AMBA_IF_MODE);
->> +		val |= BIT(5);
-> BIT(5) is ES2_PM_MODE for es2.0 only - we dont have a OMAP5 revision check atm.
-> maybe 
->> +		omap_smc1(OMAP5_MON_AMBA_IF_INDEX, val);
->> +	}
->> +
->>  	irq_hotplug_init();
->>  	irq_pm_init();
->>  
->> diff --git a/arch/arm/mach-omap2/omap-wakeupgen.h b/arch/arm/mach-omap2/omap-wakeupgen.h
->> index b0fd16f..b3c8ecc 100644
->> --- a/arch/arm/mach-omap2/omap-wakeupgen.h
->> +++ b/arch/arm/mach-omap2/omap-wakeupgen.h
->> @@ -27,6 +27,7 @@
->>  #define OMAP_WKG_ENB_E_1			0x420
->>  #define OMAP_AUX_CORE_BOOT_0			0x800
->>  #define OMAP_AUX_CORE_BOOT_1			0x804
->> +#define OMAP_AMBA_IF_MODE			0x80c
->>  #define OMAP_PTMSYNCREQ_MASK			0xc00
->>  #define OMAP_PTMSYNCREQ_EN			0xc04
->>  #define OMAP_TIMESTAMPCYCLELO			0xc08
-> 
-> Curious, I see OMAP5_AMBA_IF_MODE_OFFSET in
-> arch/arm/mach-omap2/omap4-sar-layout.h
-> if we dont save new modified contents there, Wont restore logic just
-> reset it back to 0?
-> 
-It is already restored in the wakeup-gen restore code.
+>> +	reg = omap4_prcm_mpu_read_inst_reg(OMAP54XX_PRCM_MPU_DEVICE_INST,
+>> +			OMAP54XX_PRCM_MPU_PRM_PSCON_COUNT_OFFSET);
+>> +	reg |= BIT(24) | BIT(25);
+> Can we please use macros here?
+> we are setting BIT(25) - fast ramp-up (Mercury fast) Vs 0 (which would
+> have been mercury slow)
+> BIT(24) is mercury enable basically. OMAP4 prm-regbits-44xx.h did not
+> have these ofcourse, so might be a different bit file or so?
+As already commented above, only mode supported is mercury fast and
+hence to avoid any further confusion, i have used bit fields.
+In short, to enable the mercury on O5, both bits needs to be set.
+And to avoid any fast/slow confusion, I haven't used macro's.
 
 Regards
 Santosh
+
