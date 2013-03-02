@@ -1,53 +1,55 @@
-From: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] usb: dwc3: Set DWC3 context's mode based on selected mode.
-Date: Sat, 02 Mar 2013 18:55:24 +0530
-Message-ID: <1362230724-21017-1-git-send-email-gautam.vivek@samsung.com>
-References: <CAFp+6iGGAY=nMg03-bqHz=XuNP+1t9mQR=M53HGoqCXv=t+f0Q@mail.gmail.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <CAFp+6iGGAY=nMg03-bqHz=XuNP+1t9mQR=M53HGoqCXv=t+f0Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+From: Vivek Gautam <gautam.vivek@samsung.com>
+Subject: [PATCH v2 02/10] USB: dwc3: Adjust runtime pm to allow autosuspend
+Date: Sat, 02 Mar 2013 18:53:03 +0530
+Message-ID: <1362230590-20960-3-git-send-email-gautam.vivek@samsung.com>
+References: <1362230590-20960-1-git-send-email-gautam.vivek@samsung.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <1362230590-20960-1-git-send-email-gautam.vivek@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, kishon@ti.com, Doug Anderson <dianders@chromium.org>
 List-Id: linux-omap@vger.kernel.org
 
-Now that machines may select the mode of working of DWC3 (HOST only,
-GADGET only or DUAL_ROLE), lets set DWC3 mode based on that
-rather than fixing it to whatever DWC3 hardware says.
-This way we can skip initializing Gadget/Host in case
-we are using Host-only/Gadget-only mode respectively.
+The current code in the dwc3 probe effectively disables runtime pm
+from ever working because it calls a get() that was never put() until
+device removal.  Change the runtime pm code to match the standard
+formula and allow runtime pm to function.
 
-Signed-off-by: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+CC: Doug Anderson <dianders@chromium.org>
 ---
-
-Changes from RFC patch "usb: dwc3: Set GCTL.PrtCapDir based on selected mode"
- - Setting the mode in dwc3 context structure based on
-   selected mode in machine, rather than programming PrtCapDir
-
- drivers/usb/dwc3/core.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ drivers/usb/dwc3/core.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index 79f335f..be0672f 100644
+index be0672f..85914e0 100644
 --- a/drivers/usb/dwc3/core.c
 +++ b/drivers/usb/dwc3/core.c
-@@ -478,7 +478,12 @@ static int dwc3_probe(struct platform_device *pdev)
- 		goto err1;
+@@ -528,6 +528,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		goto err3;
  	}
  
--	mode = DWC3_MODE(dwc->hwparams.hwparams0);
-+	if (IS_ENABLED(CONFIG_USB_DWC3_HOST))
-+		mode = DWC3_MODE_HOST;
-+	else if (IS_ENABLED(CONFIG_USB_DWC3_GADGET))
-+		mode = DWC3_MODE_DEVICE;
-+	else
-+		mode = DWC3_MODE_DRD;
++	pm_runtime_put_sync(dev);
+ 	pm_runtime_allow(dev);
  
- 	switch (mode) {
- 	case DWC3_MODE_DEVICE:
+ 	return 0;
+@@ -557,6 +558,7 @@ err1:
+ 
+ err0:
+ 	dwc3_free_event_buffers(dwc);
++	pm_runtime_disable(&pdev->dev);
+ 
+ 	return ret;
+ }
+@@ -568,7 +570,8 @@ static int dwc3_remove(struct platform_device *pdev)
+ 	usb_phy_set_suspend(dwc->usb2_phy, 1);
+ 	usb_phy_set_suspend(dwc->usb3_phy, 1);
+ 
+-	pm_runtime_put(&pdev->dev);
++	if (!pm_runtime_suspended(&pdev->dev))
++		pm_runtime_put(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	dwc3_debugfs_exit(dwc);
 -- 
 1.7.6.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
