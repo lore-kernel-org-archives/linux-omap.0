@@ -1,31 +1,70 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 2/2] gpio/omap: warn if bank is not enabled on setting irq type
-Date: Sat, 02 Mar 2013 19:40:07 +0000
-Message-ID: <20130302194007.2307C3E1165@localhost>
-References: <1362158568-1624-1-git-send-email-jon-hunter@ti.com> <1362158568-1624-3-git-send-email-jon-hunter@ti.com>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH 0/5] usb: musb: am335x support
+Date: Sun, 03 Mar 2013 23:24:05 +0100
+Message-ID: <87sj4cunp6.fsf@dell.be.48ers.dk>
+References: <cover.1351870620.git.afzal@ti.com> <509420D8.1030307@gmail.com>
+	<C8443D0743D26F4388EA172BF4E2A7A93EA0A1F2@DBDE01.ent.ti.com>
+	<51312430.6060306@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:56628 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753217Ab3CCMHu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 3 Mar 2013 07:07:50 -0500
-Received: by mail-pa0-f41.google.com with SMTP id fb11so2658160pad.28
-        for <linux-omap@vger.kernel.org>; Sun, 03 Mar 2013 04:07:50 -0800 (PST)
-In-Reply-To: <1362158568-1624-3-git-send-email-jon-hunter@ti.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:58840 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754649Ab3CCWYL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 3 Mar 2013 17:24:11 -0500
+In-Reply-To: <51312430.6060306@gmail.com> (Daniel Mack's message of "Fri, 01
+	Mar 2013 22:57:04 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Daniel Mack <zonque@gmail.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "Balbi, Felipe" <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, "Santhapuri, Damodar" <damodar.santhapuri@ti.com>, "B, Ravi" <ravibabu@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Kishon Vijay Abraham I <kishon@ti.com>
 
-On Fri, 1 Mar 2013 11:22:48 -0600, Jon Hunter <jon-hunter@ti.com> wrote:
-> For OMAP devices, if a gpio is being used as an interrupt source but has
-> not been requested by calling gpio_request(), a call to request_irq()
-> may cause the kernel hang because the gpio bank may be disabled and
-> hence the register access will fail. To prevent such hangs, test for
-> this case and warn if this is detected.
-> 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>>>>> "Daniel" == Daniel Mack <zonque@gmail.com> writes:
 
-Applied, thanks.
+Hi,
 
-g.
+ Daniel> On my board, the USB is purely used as host interface, with a
+ Daniel> type B plug soldered. In the DT, I'm using the following
+ Daniel> sniplet in accordance to the documentation of the bindings:
 
+ Daniel> 	usb_otg_hs: usb@47400000 {
+ Daniel> 		compatible = "ti,musb-am33xx";
+ Daniel> 		reg = <0x47400000 0x1000	/* usbss */
+ Daniel> 		       0x47401000 0x800		/* musb instance 0 */
+ Daniel> 		       0x47401800 0x800>;	/* musb instance 1 */
+ Daniel> 		interrupt-parent = <&intc>;
+ Daniel> 		interrupts = <17		/* usbss */
+ Daniel> 			      18		/* musb instance 0 */
+ 19> ;		/* musb instance 1 */
+ Daniel> 		multipoint = <1>;
+ Daniel> 		num-eps = <16>;
+ Daniel> 		ram-bits = <12>;
+ Daniel> 		port0-mode = <3>;
+ Daniel> 		port1-mode = <3>;
+ Daniel> 		power = <250>;
+ Daniel> 		ti,hwmods = "usb_otg_hs";
+ Daniel> 	};
+
+ Daniel> The relevant config options are
+
+ Daniel> CONFIG_USB_MUSB_HDRC=y
+ Daniel> # CONFIG_USB_MUSB_TUSB6010 is not set
+ Daniel> # CONFIG_USB_MUSB_OMAP2PLUS is not set
+ Daniel> # CONFIG_USB_MUSB_AM35X is not set
+ Daniel> CONFIG_USB_MUSB_DSPS=y
+ Daniel> CONFIG_MUSB_PIO_ONLY=y
+ Daniel> CONFIG_USB_GADGET=y
+ Daniel> CONFIG_USB_GADGET_DEBUG=y
+ Daniel> CONFIG_USB_GADGET_DEBUG_FILES=y
+ Daniel> CONFIG_USB_GADGET_DEBUG_FS=y
+ Daniel> CONFIG_USB_GADGET_VBUS_DRAW=2
+ Daniel> CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS=2
+ Daniel> CONFIG_USB_GADGET_MUSB_HDRC=y
+
+Ehh, I'm confused here. You talk about host mode, a single 'B' (gadget)
+connector and your device tree mentions 2 OTG ports.
+
+What is the configuration exactly?
+
+-- 
+Bye, Peter Korsgaard
