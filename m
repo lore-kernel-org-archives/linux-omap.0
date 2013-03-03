@@ -1,51 +1,48 @@
-From: Cesar Eduardo Barros <cesarb@cesarb.net>
-Subject: [PATCH 08/14] MAINTAINERS: fix mach-omap2 clockdomain/powerdomain
-Date: Sat,  2 Mar 2013 22:53:46 -0300
-Message-ID: <1362275632-20242-9-git-send-email-cesarb@cesarb.net>
-References: <1362275632-20242-1-git-send-email-cesarb@cesarb.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362275632-20242-1-git-send-email-cesarb@cesarb.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Joe Perches <joe@perches.com>, Cesar Eduardo Barros <cesarb@cesarb.net>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Russ Dill <Russ.Dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH] ASoC: omap: Check regulator enable for DAC
+	on Pandora
+Date: Sun, 03 Mar 2013 11:11:50 +0200
+Message-ID: <1362301910.2226.4.camel@puukko.homenet-68>
+References: <1362210594-17633-1-git-send-email-broonie@opensource.wolfsonmicro.com>
+ <5132146E.602@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <5132146E.602@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-The code in these files was moved to cm*.[ch] and prm*.[ch] in the same
-directory by commits 4981539 (ARM: OMAP2+: powerdomain/PRM: move the
-low-level powerdomain functions into PRM) and 4bd5259 (ARM: OMAP2/3:
-clockdomain/PRM/CM: move the low-level clockdomain functions into
-PRM/CM).
+On Sat, 2013-03-02 at 16:02 +0100, Peter Ujfalusi wrote:
+> > diff --git a/sound/soc/omap/omap3pandora.c b/sound/soc/omap/omap3pandora.c
+> > index 805512f..953483e 100644
+> > --- a/sound/soc/omap/omap3pandora.c
+> > +++ b/sound/soc/omap/omap3pandora.c
+> > @@ -85,7 +85,11 @@ static int omap3pandora_dac_event(struct snd_soc_dapm_widget *w,
+> >  	 * VCC power on/off and /PD pin high/low
+> >  	 */
+> >  	if (SND_SOC_DAPM_EVENT_ON(event)) {
+> > -		regulator_enable(omap3pandora_dac_reg);
+> > +		ret = regulator_enable(omap3pandora_dac_reg);
+> > +		if (ret != 0) {
+> 
+> The rest of this machine driver uses "if (ret < 0)" or "if (ret)". I would use:
+>  +		if (ret) {
+> 
+...
+> Otherwise:
+> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> 
+To whatever version of (ret != 0), (ret) or (ret < 0) is used :-)
 
-I am not sure if this fix is correct, since there are other things in
-these files. Please NAK this patch (and propose a better one) if it is
-wrong.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Russ Dill <Russ.Dill@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
----
- MAINTAINERS | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 92718d8..46c1288 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5651,10 +5651,8 @@ M:	Rajendra Nayak <rnayak@ti.com>
- M:	Paul Walmsley <paul@pwsan.com>
- L:	linux-omap@vger.kernel.org
- S:	Maintained
--F:	arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
--F:	arch/arm/mach-omap2/powerdomain44xx.c
--F:	arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
--F:	arch/arm/mach-omap2/clockdomain44xx.c
-+F:	arch/arm/mach-omap2/cm*.[ch]
-+F:	arch/arm/mach-omap2/prm*.[ch]
- 
- OMAP AUDIO SUPPORT
- M:	Peter Ujfalusi <peter.ujfalusi@ti.com>
--- 
-1.7.11.7
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
