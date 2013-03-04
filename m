@@ -1,145 +1,122 @@
-From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 04/14] ARM: OMAP2+: Add function for configuring GPMC
- settings
-Date: Mon, 4 Mar 2013 10:05:41 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3EA91D17@DBDE01.ent.ti.com>
-References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
- <1361899842-30303-5-git-send-email-jon-hunter@ti.com>
- <518397C60809E147AF5323E0420B992E3EA8F007@DBDE01.ent.ti.com>
- <512F7D58.90706@ti.com> <512F9005.7040908@ti.com>
- <518397C60809E147AF5323E0420B992E3EA90C2F@DBDE01.ent.ti.com>
- <5130CCA9.10905@ti.com>
+From: <hvaibhav@ti.com>
+Subject: [RFC PATCH 1/3] ARM: AM33XX: clock: Add debugSS clock nodes to clock tree
+Date: Mon, 4 Mar 2013 17:05:55 +0530
+Message-ID: <1362396957-30113-2-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <5130CCA9.10905-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Hunter, Jon" <jon-hunter-l0cyMroinI0@public.gmane.org>
-Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42328 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757156Ab3CDLgb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Mar 2013 06:36:31 -0500
+In-Reply-To: <hvaibhav@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@linaro.org, paul@pwsan.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-On Fri, Mar 01, 2013 at 21:13:37, Hunter, Jon wrote:
-> 
-> On 02/28/2013 11:33 PM, Philip, Avinash wrote:
-> > On Thu, Feb 28, 2013 at 22:42:37, Hunter, Jon wrote:
-> >>
-> >> On 02/28/2013 09:52 AM, Jon Hunter wrote:
-> >>>
-> >>> On 02/28/2013 12:05 AM, Philip, Avinash wrote:
-> >>>> On Tue, Feb 26, 2013 at 23:00:31, Hunter, Jon wrote:
-> >>>>> The GPMC has various different configuration options such as bus-width,
-> >>>>> synchronous or asychronous mode selection, burst mode options etc.
-> >>>>> Currently, there is no common function for configuring these options and
-> >>>>> various devices set these options by either programming the GPMC CONFIG1
-> >>>>> register directly or by calling gpmc_cs_configure() to set some of the
-> >>>>> options.
-> >>>>>
-> >>>>> Add a new function for configuring all of the GPMC options. Having a common
-> >>>>> function for configuring this options will simplify code and ease the
-> >>>>> migration to device-tree.
-> >>>>>
-> >>>>> Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-> >>>>> ---
-> >>>>>  arch/arm/mach-omap2/gpmc.c |   65 ++++++++++++++++++++++++++++++++++++++++++++
-> >>>>>  arch/arm/mach-omap2/gpmc.h |    6 ++++
-> >>>>>  2 files changed, 71 insertions(+)
-> >>>>>
-> >>>>> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> >>>>> index 465cac9..fb8dfd2 100644
-> >>>>> --- a/arch/arm/mach-omap2/gpmc.c
-> >>>>> +++ b/arch/arm/mach-omap2/gpmc.c
-> >>>>> @@ -1137,6 +1137,71 @@ int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
-> >>>>>  	return 0;
-> >>>>>  }
-> >>>>>  
-> >>>>> +int gpmc_cs_program_settings(int cs, struct gpmc_settings *p)
-> >>>>> +{
-> >>>>> +	u32 config1;
-> >>>>> +
-> >>>>> +	if ((!p->device_width) || (p->device_width > GPMC_DEVWIDTH_16BIT)) {
-> >>>>> +		pr_err("%s: invalid width %d!", __func__, p->device_width);
-> >>>>> +		return -EINVAL;
-> >>>>> +	}
-> >>>>> +
-> >>>>> +	/* Address-data multiplexing not supported for NAND devices */
-> >>>>> +	if (p->device_nand && p->mux_add_data) {
-> >>>>> +		pr_err("%s: invalid configuration!\n", __func__);
-> >>>>> +		return -EINVAL;
-> >>>>> +	}
-> >>>>> +
-> >>>>> +	/* Page/burst mode supports lengths of 4, 8 and 16 bytes */
-> >>>>> +	if (p->burst_read || p->burst_write) {
-> >>>>> +		switch (p->burst_len) {
-> >>>>> +		case GPMC_BURST_4:
-> >>>>> +		case GPMC_BURST_8:
-> >>>>> +		case GPMC_BURST_16:
-> >>>>> +			break;
-> >>>>> +		default:
-> >>>>> +			pr_err("%s: invalid page/burst-length (%d)\n",
-> >>>>> +			       __func__, p->burst_len);
-> >>>>> +			return -EINVAL;
-> >>>>> +		}
-> >>>>> +	}
-> >>>>> +
-> >>>>> +	if ((p->wait_on_read || p->wait_on_write) &&
-> >>>>> +	    (p->wait_pin > gpmc_nr_waitpins)) {
-> >>>>> +		pr_err("%s: invalid wait-pin (%d)\n", __func__, p->wait_pin);
-> >>>>> +		return -EINVAL;
-> >>>>> +	}
-> >>>>> +
-> >>>>> +	config1 = GPMC_CONFIG1_DEVICESIZE((p->device_width - 1));
-> >>>>
-> >>>> Can you consider read_modify approach?
-> >>>
-> >>> I was purposely trying to avoid that. The intent here is to program all
-> >>> the settings and get away from any boot-loader dependencies. If we use a
-> >>> read-modify approach then it will never be clear in the kernel what
-> >>> should actually be programmed.
-> >>
-> >> By the way, it would be good to know what your motivation for this is.
-> >>
-> >> My goal is for all gpmc settings to eventually live in the DT blob and
-> >> there be no dependency on the bootloader whatsoever. That may mean that
-> >> settings are re-programmed again by the kernel but IMO that is best.
-> > 
-> > Yes I understood now and the right thing to do.
-> > Suggested read modify approach because of some confusion as GPMC_CONFIG1 is already
-> > modified in gpmc_cs_set_timings() and is called from omap2_nand_gpmc_retime().
-> > So the data modified in gpmc_cs_set_timings() will lost (not significant)
-> > May be better and cleaner solution is to remove GPMC_CONFIG1 modification in
-> > gpmc_cs_set_timings() also.
-> 
-> Actually that is a good point. There are some timings in CONFIG1 that
-> are not being configured in gpmc_cs_program_settings() but
-> gpmc_cs_set_timings(). I had left it this way intentionally to keep
-> timings together, which makes sense for where gpmc clock could change at
-> run time. However, this means that gpmc_cs_program_settings() needs to
-> be called before gpmc_cs_set_timings(). Really this is no different to
-> how the code was before, because the code was writing directly to
-> CONFIG1 and now we have a function.
-> 
-> So the intent is for gpmc_cs_program_settings() to only be called once
-> for a given device and then gpmc_cs_set_timings() be called whenever the
-> timings need to be updated. May be I can updated the kernel-doc for
-> gpmc_cs_program_settings() to reflect this. Let me know if you have any
-> other concerns with this.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Fine enough.
+Represent debugSS clock interface as provided in
+CM_WKUP_DEBUGSS_CLKCTRL register, which includes,
+	- Clock gate for optional DEBUG_CLKA and DBGSYSCLK
+	- Clock Mux for TRC_PMD and STM_PMD
+	- Clock divider for STM and TPIU
 
-Thanks
-Avinash
-> 
-> Cheers
-> Jon
-> 
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/cclock33xx_data.c |   47 +++++++++++++++++++++++++++++---
+ 1 files changed, 42 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
+index 3d5a0e5..12db88c 100644
+--- a/arch/arm/mach-omap2/cclock33xx_data.c
++++ b/arch/arm/mach-omap2/cclock33xx_data.c
+@@ -422,15 +422,11 @@ DEFINE_STRUCT_CLK(smartreflex1_fck, dpll_core_ck_parents, clk_ops_null);
+  *  - Driver code is not yet migrated to use hwmod/runtime pm
+  *  - Modules outside kernel access (to disable them by default)
+  *
+- *     - debugss
+  *     - mmu (gfx domain)
+  *     - cefuse
+  *     - usbotg_fck (its additional clock and not really a modulemode)
+  *     - ieee5000
+  */
+-DEFINE_CLK_GATE(debugss_ick, "dpll_core_m4_ck", &dpll_core_m4_ck, 0x0,
+-		AM33XX_CM_WKUP_DEBUGSS_CLKCTRL, AM33XX_MODULEMODE_SWCTRL_SHIFT,
+-		0x0, NULL);
+
+ DEFINE_CLK_GATE(mmu_fck, "dpll_core_m4_ck", &dpll_core_m4_ck, 0x0,
+ 		AM33XX_CM_GFX_MMUDATA_CLKCTRL, AM33XX_MODULEMODE_SWCTRL_SHIFT,
+@@ -833,6 +829,42 @@ static struct clk_hw_omap wdt1_fck_hw = {
+ DEFINE_STRUCT_CLK(wdt1_fck, wdt_ck_parents, gpio_fck_ops);
+
+ /*
++ * debugss optional clocks
++ */
++DEFINE_CLK_GATE(dbg_sysclk_ck, "sys_clkin_ck", &sys_clkin_ck,
++		0x0, AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
++		AM33XX_OPTFCLKEN_DBGSYSCLK_SHIFT, 0x0, NULL);
++
++DEFINE_CLK_GATE(dbg_clka_ck, "dpll_core_m4_ck", &dpll_core_m4_ck,
++		0x0, AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
++		AM33XX_OPTCLK_DEBUG_CLKA_SHIFT, 0x0, NULL);
++
++static const char *stm_pmd_clock_mux_ck_parents[] = {
++	"dbg_sysclk_ck", "dbg_clka_ck",
++};
++
++DEFINE_CLK_MUX(stm_pmd_clock_mux_ck, stm_pmd_clock_mux_ck_parents, NULL, 0x0,
++	       AM33XX_CM_WKUP_DEBUGSS_CLKCTRL, AM33XX_STM_PMD_CLKSEL_SHIFT,
++	       AM33XX_STM_PMD_CLKSEL_WIDTH, 0x0, NULL);
++
++DEFINE_CLK_MUX(trace_pmd_clk_mux_ck, stm_pmd_clock_mux_ck_parents, NULL, 0x0,
++	       AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
++	       AM33XX_TRC_PMD_CLKSEL_SHIFT,
++	       AM33XX_TRC_PMD_CLKSEL_WIDTH, 0x0, NULL);
++
++DEFINE_CLK_DIVIDER(stm_clk_div_ck, "stm_pmd_clock_mux_ck",
++		   &stm_pmd_clock_mux_ck, 0x0, AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
++		   AM33XX_STM_PMD_CLKDIVSEL_SHIFT,
++		   AM33XX_STM_PMD_CLKDIVSEL_WIDTH, CLK_DIVIDER_POWER_OF_TWO,
++		   NULL);
++
++DEFINE_CLK_DIVIDER(trace_clk_div_ck, "trace_pmd_clk_mux_ck",
++		   &trace_pmd_clk_mux_ck, 0x0, AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
++		   AM33XX_TRC_PMD_CLKDIVSEL_SHIFT,
++		   AM33XX_TRC_PMD_CLKDIVSEL_WIDTH, CLK_DIVIDER_POWER_OF_TWO,
++		   NULL);
++
++/*
+  * clkdev
+  */
+ static struct omap_clk am33xx_clks[] = {
+@@ -869,7 +901,6 @@ static struct omap_clk am33xx_clks[] = {
+ 	CLK("481cc000.d_can",	NULL,		&dcan0_fck,	CK_AM33XX),
+ 	CLK(NULL,	"dcan1_fck",		&dcan1_fck,	CK_AM33XX),
+ 	CLK("481d0000.d_can",	NULL,		&dcan1_fck,	CK_AM33XX),
+-	CLK(NULL,	"debugss_ick",		&debugss_ick,	CK_AM33XX),
+ 	CLK(NULL,	"pruss_ocp_gclk",	&pruss_ocp_gclk,	CK_AM33XX),
+ 	CLK(NULL,	"mcasp0_fck",		&mcasp0_fck,	CK_AM33XX),
+ 	CLK(NULL,	"mcasp1_fck",		&mcasp1_fck,	CK_AM33XX),
+@@ -910,6 +941,12 @@ static struct omap_clk am33xx_clks[] = {
+ 	CLK(NULL,	"clkout2_div_ck",	&clkout2_div_ck,	CK_AM33XX),
+ 	CLK(NULL,	"timer_32k_ck",		&clkdiv32k_ick,	CK_AM33XX),
+ 	CLK(NULL,	"timer_sys_ck",		&sys_clkin_ck,	CK_AM33XX),
++	CLK(NULL,	"dbg_sysclk_ck",	&dbg_sysclk_ck,	CK_AM33XX),
++	CLK(NULL,	"dbg_clka_ck",		&dbg_clka_ck,	CK_AM33XX),
++	CLK(NULL,	"stm_pmd_clock_mux_ck",	&stm_pmd_clock_mux_ck,	CK_AM33XX),
++	CLK(NULL,	"trace_pmd_clk_mux_ck",	&trace_pmd_clk_mux_ck,	CK_AM33XX),
++	CLK(NULL,	"stm_clk_div_ck",	&stm_clk_div_ck,	CK_AM33XX),
++	CLK(NULL,	"trace_clk_div_ck",	&trace_clk_div_ck,	CK_AM33XX),
+ };
+
+
+--
+1.7.0.4
+
