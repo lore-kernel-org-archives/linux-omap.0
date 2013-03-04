@@ -1,70 +1,94 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 11/14] ARM: OMAP2+: Add device-tree support for NOR flash
-Date: Mon, 4 Mar 2013 11:51:38 -0600
-Message-ID: <5134DF2A.4050209@ti.com>
-References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com> <1361899842-30303-12-git-send-email-jon-hunter@ti.com> <CALF0-+V3A-fL7q2nPRmcgnFKmzRt8KwSLuzrwzyyce6MqHjVpw@mail.gmail.com>
+Subject: Re: [PATCH 1/2] gpio/omap: convert gpio irq domain to linear mapping
+Date: Mon, 4 Mar 2013 11:58:23 -0600
+Message-ID: <5134E0BF.7050306@ti.com>
+References: <1362158568-1624-1-git-send-email-jon-hunter@ti.com> <1362158568-1624-2-git-send-email-jon-hunter@ti.com> <20130302114742.GA9965@arwen.pp.htv.fi> <5134D484.8070307@ti.com> <20130304171159.GB14507@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49783 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34285 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758585Ab3CDRvs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Mar 2013 12:51:48 -0500
-In-Reply-To: <CALF0-+V3A-fL7q2nPRmcgnFKmzRt8KwSLuzrwzyyce6MqHjVpw@mail.gmail.com>
+	id S1757486Ab3CDR61 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Mar 2013 12:58:27 -0500
+In-Reply-To: <20130304171159.GB14507@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>
+To: balbi@ti.com
+Cc: Kevin Hilman <khilman@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
 
-On 03/04/2013 05:57 AM, Ezequiel Garcia wrote:
-> Hi Jon,
+On 03/04/2013 11:11 AM, Felipe Balbi wrote:
+> On Mon, Mar 04, 2013 at 11:06:12AM -0600, Jon Hunter wrote:
+>>
+>> On 03/02/2013 05:48 AM, Felipe Balbi wrote:
+>>> On Fri, Mar 01, 2013 at 11:22:47AM -0600, Jon Hunter wrote:
+>>>> Currently the OMAP GPIO driver uses a legacy mapping for the GPIO IRQ
+>>>> domain. This is not necessary because we do not need to assign a
+>>>> specific interrupt number to the GPIO IRQ domain. Therefore, convert
+>>>> the OMAP GPIO driver to use a linear mapping instead.
+>>>>
+>>>> Please note that this also allows to simplify the logic in the OMAP
+>>>> gpio_irq_handler() routine, by using irq_find_mapping() to obtain the
+>>>> virtual irq number from the GPIO bank and bank index.
+>>>>
+>>>> Reported-by: Linus Walleij <linus.walleij@linaro.org>
+>>>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>>>
+>>> Reviewed-by: Felipe Balbi <balbi@ti.com>
+>>>
+>>> Just one suggestion below for a later patch.
+>>>
+>>>> @@ -680,7 +686,7 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+>>>>  {
+>>>>  	void __iomem *isr_reg = NULL;
+>>>>  	u32 isr;
+>>>> -	unsigned int gpio_irq, gpio_index;
+>>>> +	unsigned int i;
+>>>>  	struct gpio_bank *bank;
+>>>>  	int unmasked = 0;
+>>>>  	struct irq_chip *chip = irq_desc_get_chip(desc);
+>>>> @@ -721,15 +727,10 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+>>>>  		if (!isr)
+>>>>  			break;
+>>>>  
+>>>> -		gpio_irq = bank->irq_base;
+>>>> -		for (; isr != 0; isr >>= 1, gpio_irq++) {
+>>>> -			int gpio = irq_to_gpio(bank, gpio_irq);
+>>>> -
+>>>> +		for (i = 0; isr != 0; isr >>= 1, i++) {
+>>>>  			if (!(isr & 1))
+>>>>  				continue;
+>>>
+>>> this will iterate over all 32 GPIOs, a better way to handle this would
+>>> be to have something like:
+>>
+>> Worse case, if only bit 31 was set then I agree this is not that
+>> efficient. Or even if one bit is set. However, the loop itself will
+>> iterate while isr != 0 so not always over each bit. No different to the
+>> existing code.
+>>
+>>> while (isr) {
+>>> 	unsigned long bit = __ffs(isr);
+>>>
+>>> 	/* clear this bit */
+>>> 	isr &= ~bit;
+>>>
+>>> 	generic_handle_irq(irq_find_mapping(bank->domain, bit);
+>>> }
+>>>
+>>> this way you will only iterate the amount of bits enabled in the isr
+>>> register.
+>>
+>> Definitely cleaner but I am wondering which approach would be more
+>> efficient from an instruction standpoint. This could definitely be much
+>> more efficient if there is only a couple bits set.
 > 
-> On Tue, Feb 26, 2013 at 2:30 PM, Jon Hunter <jon-hunter@ti.com> wrote:
->> +
->> +Example:
->> +
->> +gpmc: gpmc@6e000000 {
->> +       compatible = "ti,omap3430-gpmc", "simple-bus";
-> 
-> I'm concern about using simple-bus, and I'm not entirely sure this will work.
-> 
-> AFAIK, you can't correlate a parent-child relationship in the device tree
-> to the order in which drivers will be probed,
-> so it's only a matter of coincidence if this is working for you right now.
+> __ffs() is done with CLZ instruction, so it's pretty fast.
 
-Ummm, I am not sure I am convinced. Have you looked at
-of_platform_bus_create() which creates the devices? It is clearly
-creating the child devices after creating the parent device.
+Ok, yes I see that now for ARMv5 onwards. Grant has pushed the patch,
+but may be we can update this as an optimisation separately.
 
-> The GPMC code is in "arch/arm/mach-omap2", is located *before* the mtd code
-> in the Makefile, and thus the GPMC driver loads *before* the MTD code.
-
-But shouldn't it only matter in the order in which devices are
-registered? Unless you have a situation in which the devices are
-registered in order (parent then child) but only the driver for the
-child is registered before the parent and child devices are registered.
-I could see that being a problem.
-
-The only other thing that I can think of is if you happen to be creating
-a device both via device-tree and may be you are creating a duplicate
-device and calling platform_device_register() somewhere else in your code.
-
-> Morevore, I believe that when we move GPMC from arch/arm/mach-omap2
-> to drivers/memory where it should be, this 'simple-bus' will stop
-> working properly.
-
-Why? I don't see how the location of files would change this.
-
-> Of course, I can be wrong, but I think you will have to find some other way
-> to initialize the GPMC's childs.
-
-Well isn't this how device-tree is meant to work?
-
-It would be great if you could debug your problem and fully understand
-why this is not working for you, so we can see if there is a real
-problem here. Otherwise this appears to be just guess work.
-
+Thanks
 Jon
 
