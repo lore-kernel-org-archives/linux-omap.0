@@ -1,91 +1,118 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 03/15] ARM: OMAP4+: PM: Consolidate and use OMAP4 PM code
- for OMAP5
-Date: Mon, 4 Mar 2013 12:21:01 -0600
-Message-ID: <20130304182101.GB14860@kahuna>
+Subject: Re: [PATCH 05/15] ARM: OMAP5: PM: Enables ES2 PM mode by default
+Date: Mon, 4 Mar 2013 12:29:21 -0600
+Message-ID: <20130304182921.GC14860@kahuna>
 References: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
- <1362139864-9233-4-git-send-email-santosh.shilimkar@ti.com>
- <20130301174300.GA22220@kahuna>
- <51319189.1060302@ti.com>
+ <1362139864-9233-6-git-send-email-santosh.shilimkar@ti.com>
+ <20130301193745.GA22626@kahuna>
+ <51319273.5090703@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50862 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:51359 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758684Ab3CDSVH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 13:21:07 -0500
+	with ESMTP id S1758126Ab3CDS32 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 13:29:28 -0500
 Content-Disposition: inline
-In-Reply-To: <51319189.1060302@ti.com>
+In-Reply-To: <51319273.5090703@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org
 
-On 11:13-20130302, Santosh Shilimkar wrote:
-> On Friday 01 March 2013 11:13 PM, Nishanth Menon wrote:
+On 11:17-20130302, Santosh Shilimkar wrote:
+> On Saturday 02 March 2013 01:07 AM, Nishanth Menon wrote:
 > > On 17:40-20130301, Santosh Shilimkar wrote:
-> >> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm_omap4plus.c
-> >> similarity index 74%
-[..]
-> >>  	mpuss_clkdm = clkdm_lookup("mpuss_clkdm");
-> >>  	emif_clkdm = clkdm_lookup("l3_emif_clkdm");
-> >>  	l3_1_clkdm = clkdm_lookup("l3_1_clkdm");
-> >>  	l3_2_clkdm = clkdm_lookup("l3_2_clkdm");
-> >> +	l4_per_clkdm = clkdm_lookup("l4_per_clkdm");
-> >> +	l4wkup = clkdm_lookup("l4_wkup_clkdm");
-> > These static dependencies now seems added for OMAP4?
-> > Sounds like a separate patch as it is not exactly what $subject claims.
-> >>  	ducati_clkdm = clkdm_lookup("ducati_clkdm");
-> These are accidently added. I have removed these two in another series.
-> Will remove this one from the patch.
-Thanks.
-> 
-> >> -	if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) ||
-> >> -		(!l3_2_clkdm) || (!ducati_clkdm))
-> >> -		goto err2;
-> >> +	if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) || (!l4wkup) ||
-> >> +		(!l3_2_clkdm) || (!ducati_clkdm) || (!l4_per_clkdm))
-> >> +		return -EINVAL;
+> >> Enables MPUSS ES2 power management mode using ES2_PM_MODE in
+> >> AMBA_IF_MODE register.
+> >>
+> >> 0x0: ES1 behavior, CPU cores would enter and exit OFF mode together. Broken
+> >> 0x1: ES2 behavior, CPU cores are allowed to enter/exit OFF mode independently.
+> >>
+> >> This is one time settings thanks to always ON domain.
+> >>
+> >> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >> ---
+> >>  arch/arm/mach-omap2/omap-secure.h    |    2 ++
+> >>  arch/arm/mach-omap2/omap-wakeupgen.c |   14 ++++++++++++++
+> >>  arch/arm/mach-omap2/omap-wakeupgen.h |    1 +
+> >>  3 files changed, 17 insertions(+)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
+> >> index 0e72917..82b3c4c 100644
+> >> --- a/arch/arm/mach-omap2/omap-secure.h
+> >> +++ b/arch/arm/mach-omap2/omap-secure.h
+> >> @@ -42,6 +42,8 @@
+> >>  #define OMAP4_MON_L2X0_AUXCTRL_INDEX	0x109
+> >>  #define OMAP4_MON_L2X0_PREFETCH_INDEX	0x113
 > >>  
-> >>  	ret = clkdm_add_wkdep(mpuss_clkdm, emif_clkdm);
-> >>  	ret |= clkdm_add_wkdep(mpuss_clkdm, l3_1_clkdm);
-> >>  	ret |= clkdm_add_wkdep(mpuss_clkdm, l3_2_clkdm);
-> >> +	ret |= clkdm_add_wkdep(mpuss_clkdm, l4_per_clkdm);
-> >> +	ret |= clkdm_add_wkdep(mpuss_clkdm, l4wkup);
-> >>  	ret |= clkdm_add_wkdep(ducati_clkdm, l3_1_clkdm);
-> >>  	ret |= clkdm_add_wkdep(ducati_clkdm, l3_2_clkdm);
-> >>  	if (ret) {
-> >>  		pr_err("Failed to add MPUSS -> L3/EMIF/L4PER, DUCATI -> L3 wakeup dependency\n");
+> >> +#define OMAP5_MON_AMBA_IF_INDEX		0x108
+> >> +
+> >>  /* Secure PPA(Primary Protected Application) APIs */
+> >>  #define OMAP4_PPA_L2_POR_INDEX		0x23
+> >>  #define OMAP4_PPA_CPU_ACTRL_SMP_INDEX	0x25
+> >> diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
+> >> index 5d3b4f4..a7350dd 100644
+> >> --- a/arch/arm/mach-omap2/omap-wakeupgen.c
+> >> +++ b/arch/arm/mach-omap2/omap-wakeupgen.c
+> >> @@ -403,6 +403,7 @@ int __init omap_wakeupgen_init(void)
+> >>  {
+> >>  	int i;
+> >>  	unsigned int boot_cpu = smp_processor_id();
+> >> +	u32 val;
+> >>  
+> >>  	/* Not supported on OMAP4 ES1.0 silicon */
+> >>  	if (omap_rev() == OMAP4430_REV_ES1_0) {
+> >> @@ -444,6 +445,19 @@ int __init omap_wakeupgen_init(void)
+> >>  	for (i = 0; i < max_irqs; i++)
+> >>  		irq_target_cpu[i] = boot_cpu;
+> >>  
+> >> +	/*
+> >> +	 * Enables OMAP5 ES2 PM Mode using ES2_PM_MODE in AMBA_IF_MODE
+> >> +	 * 0x0:	ES1 behavior, CPU cores would enter and exit OFF mode together.
+> >> +	 * 0x1:	ES2 behavior, CPU cores are allowed to enter/exit OFF mode
+> >> +	 * independently.
+> >> +	 * This needs to be set one time thanks to always ON domain.
+> >> +	 */
+> >> +	if (soc_is_omap54xx()) {
+> >> +		val = __raw_readl(wakeupgen_base + OMAP_AMBA_IF_MODE);
+> >> +		val |= BIT(5);
+> > BIT(5) is ES2_PM_MODE for es2.0 only - we dont have a OMAP5 revision check atm.
+> > maybe 
+OK on ES1.0 bit from previous discussion. I still suggest having a macro for
+BIT(5) instead of having to review TRM to ensure this is right.
+> >> +		omap_smc1(OMAP5_MON_AMBA_IF_INDEX, val);
 > >> +	}
 > >> +
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +/**
-> >> + * omap4_pm_init - Init routine for OMAP4+ devices
-> >> + *
-> >> + * Initializes all powerdomain and clockdomain target states
-> >> + * and all PRCM settings.
-> >> + */
-> >> +int __init omap4_pm_init(void)
-> > could we rename it as omap4plus_pm_init while we are at it?
-> > This will help differentiate at least functions which are omap4 only and
-> > ones which we reuse for omap4plus?
-> Not needed. That way we have to rename all our omap2_* varients to
-> omap2plus. omap4_* is assumed to be omap4 and onwards just like
-> omap2_*
-hmm true.. :(
-> 
-> >> +{
-> >> +	int ret;
-> >> +
-> >> +	if (omap_rev() == OMAP4430_REV_ES1_0) {
-> > we have ID detection for OMAP5430_REV_ES1_0 in arch/arm/mach-omap2/id.c
-> > However, we do not support PM, so might as well use it to skip init?
-> Well the plan is to remove OMAP5 ES1.0 completely so no need to add
-> more checks. As already mentioned ES1.0 is not going to be supported
-> in mainline kernel.
-OK.
+> >>  	irq_hotplug_init();
+> >>  	irq_pm_init();
+> >>  
+> >> diff --git a/arch/arm/mach-omap2/omap-wakeupgen.h b/arch/arm/mach-omap2/omap-wakeupgen.h
+> >> index b0fd16f..b3c8ecc 100644
+> >> --- a/arch/arm/mach-omap2/omap-wakeupgen.h
+> >> +++ b/arch/arm/mach-omap2/omap-wakeupgen.h
+> >> @@ -27,6 +27,7 @@
+> >>  #define OMAP_WKG_ENB_E_1			0x420
+> >>  #define OMAP_AUX_CORE_BOOT_0			0x800
+> >>  #define OMAP_AUX_CORE_BOOT_1			0x804
+> >> +#define OMAP_AMBA_IF_MODE			0x80c
+> >>  #define OMAP_PTMSYNCREQ_MASK			0xc00
+> >>  #define OMAP_PTMSYNCREQ_EN			0xc04
+> >>  #define OMAP_TIMESTAMPCYCLELO			0xc08
+> > 
+> > Curious, I see OMAP5_AMBA_IF_MODE_OFFSET in
+> > arch/arm/mach-omap2/omap4-sar-layout.h
+> > if we dont save new modified contents there, Wont restore logic just
+> > reset it back to 0?
+> > 
+> It is already restored in the wakeup-gen restore code.
+I apologize, I do not see it in:
+https://github.com/SantoshShilimkar/linux/blob/testing/3.10/omap5-int-rebuild/arch/arm/mach-omap2/omap-wakeupgen.c
+I might have expected an save of val to sar offset to ensure this is
+done, but since you indicate this is in wakeupgen restore logic, which I
+presume is done by ROM, we might expect an write to sar_base +
+OMAP5_AMBA_IF_MODE_OFFSET with the val for it to function?
+
 -- 
 Regards,
 Nishanth Menon
