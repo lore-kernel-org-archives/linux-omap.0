@@ -1,53 +1,71 @@
-From: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 01/10] ARM: davinci: move private EDMA API to arm/common
-Date: Mon, 4 Mar 2013 17:12:51 -0500
-Message-ID: <20130304221251.GG6209@beef>
-References: <1359742975-10421-1-git-send-email-mporter@ti.com>
-	<1359742975-10421-2-git-send-email-mporter@ti.com>
-	<511673E1.7000908@ti.com>
-	<e92425fefcc04bb4ab739ec8d4e82672@DLEE74.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] omapfb: fix broken build on Amstrad E3/Delta
+Date: Mon, 4 Mar 2013 14:39:13 -0800
+Message-ID: <20130304223911.GZ11806@atomide.com>
+References: <1362431000-15141-1-git-send-email-aaro.koskinen@iki.fi>
+ <1362431000-15141-2-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33374 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758655Ab3CDWjQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 17:39:16 -0500
 Content-Disposition: inline
-In-Reply-To: <e92425fefcc04bb4ab739ec8d4e82672-0VoBT8GTp4aIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Cousson,
-	Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "Nori,
-	Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <1362431000-15141-2-git-send-email-aaro.koskinen@iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Sat, Feb 09, 2013 at 08:08:50PM +0000, Russell King wrote:
-> On Sat, Feb 09, 2013 at 09:35:53PM +0530, Sekhar Nori wrote:
-> > On 2/1/2013 11:52 PM, Matt Porter wrote:
-> > > +	ret = of_address_to_resource(node, 1, &res);
-> > 
-> > of_address_to_resource() needs <linux/of_address.h>
-> > 
-> > > +	if (IS_ERR_VALUE(ret))
-> > 
-> > This needs <linux/err.h>
+Hi,
+
+* Aaro Koskinen <aaro.koskinen@iki.fi> [130304 13:08]:
+> Fix the following build regression in 3.9-rc1 by including
+> <machine/hardware.h>:
 > 
-> More importantly, is this the correct way to check for errors from
-> of_address_to_resource() ?  Grepping the source shows that either less
-> than 0 or non-zero are the commonly used conditions here.
+> drivers/video/omap/lcd_ams_delta.c: In function 'ams_delta_lcd_set_power':
+> drivers/video/omap/lcd_ams_delta.c:48:4: error: implicit declaration of function 'omap_writeb' [-Werror=implicit-function-declaration]
+> drivers/video/omap/lcd_ams_delta.c:49:6: error: 'OMAP_PWL_ENABLE' undeclared (first use in this function)
+> drivers/video/omap/lcd_ams_delta.c:49:6: note: each undeclared identifier is reported only once for each function it appears in
+> drivers/video/omap/lcd_ams_delta.c:50:19: error: 'OMAP_PWL_CLK_ENABLE' undeclared (first use in this function)
+> drivers/video/omap/lcd_ams_delta.c: In function 'ams_delta_lcd_set_contrast':
+> drivers/video/omap/lcd_ams_delta.c:66:22: error: 'OMAP_PWL_ENABLE' undeclared (first use in this function)
 
-Yes, it's not correct. Fixed to check for non-zero/zero in the two cases
-where of_address_to_resource() is used.
+I have this already queued up in omap-for-v3.9-rc1/fixes as 0adcbaf78
+(ARM: OMAP1: Fix build related to kgdb.h no longer including serial_8250.h)
+and for lcd_osk.c as omap1_defconfig was broken.
 
--Matt
+I don't anything for the first patch you posted, so I suggest
+Tomi applies that one.
 
-------------------------------------------------------------------------------
-Everyone hates slow websites. So do we.
-Make your web apps faster with AppDynamics
-Download AppDynamics Lite for free today:
-http://p.sf.net/sfu/appdyn_d2d_feb
+Regards,
+
+Tony
+
+
+ 
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> ---
+>  drivers/video/omap/lcd_ams_delta.c |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/video/omap/lcd_ams_delta.c b/drivers/video/omap/lcd_ams_delta.c
+> index ed4cad8..4a5f2cd 100644
+> --- a/drivers/video/omap/lcd_ams_delta.c
+> +++ b/drivers/video/omap/lcd_ams_delta.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/lcd.h>
+>  #include <linux/gpio.h>
+>  
+> +#include <mach/hardware.h>
+>  #include <mach/board-ams-delta.h>
+>  
+>  #include "omapfb.h"
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
