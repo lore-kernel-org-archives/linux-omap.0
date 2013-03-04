@@ -1,15 +1,15 @@
 From: <hvaibhav@ti.com>
-Subject: [RFC PATCH 0/3] ARM: OMAP2+: Add command line parameter for debugSS module control
-Date: Mon, 4 Mar 2013 17:05:54 +0530
-Message-ID: <1362396957-30113-1-git-send-email-hvaibhav@ti.com>
+Subject: [RFC PATCH 3/3] ARM: OMAP2+: Add command line parameter for debugSS module control
+Date: Mon, 4 Mar 2013 17:05:57 +0530
+Message-ID: <1362396957-30113-4-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42327 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55497 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757132Ab3CDLgb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Mar 2013 06:36:31 -0500
+	id S1757224Ab3CDLgk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Mar 2013 06:36:40 -0500
 In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,50 +21,144 @@ From: Vaibhav Hiremath <hvaibhav@ti.com>
 Currently there is no clean mechanism to control debugSS module and
 you have to always keep clocks enabled, either,
 
-    - By enabling it during boot as part of clk_init function
-      (post common-clock migration).
+    - By enabling it during boot as part of clk_init function.
     Or
-    - By having HWMOD_INIT_NO_IDLE flag in hwmod data
-      (Joel submitted patch for AM335x earlier).
+    - By having HWMOD_INIT_NO_IDLE flag in hwmod data.
 
-Based on the discussion with Kevin H,
+Based on the discussion,
 http://www.mail-archive.com/linux-omap@vger.kernel.org/msg81771.html
 
 This patch introduces new kernel parameter "omap_debugss_en",
 which will allow user to control debugSS module enable/disable
 part during boot-time.
 
-In case of OMAP3, the debugSS is part of EMU domain and
-is currently controlled by clock tree alone.
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+Tested on
+	- AM335x based EVM and BeagleBone platforms
 
-In case of OMAP4, the debugSS is part of EMU domain and
-is currently controlled by clock tree, as MODULEMODE_SWCTRL
-is not defined for hwmod.
-
-In case of AM335x, the debugSS is in wakeup domain and is currently
-controlled through hwmod alone. Currently we keep it always enabled.
-
-Testing:
-	- Tested on AM335x based EVM and BeagleBone platform
-
-	  As required, without this flag the debugSS module will be disabled
-	  during kernel boot.
-
-OMAP (2/3/4) may require some changes from clock/hwmod perspective
-in order to use this new parameter.
-I am still looking into OMAP spec and this RFC version of patch-series
-is to get comments or opinion from list.
-
-Vaibhav Hiremath (3):
-  ARM: AM33XX: clock: Add debugSS clock nodes to clock tree
-  ARM: AM33XX: hwmod: Add hwmod data for debugSS
-  ARM: OMAP2+: Add command line parameter for debugSS module control
-
- Documentation/kernel-parameters.txt        |    3 +
- arch/arm/mach-omap2/Makefile               |    2 +-
- arch/arm/mach-omap2/cclock33xx_data.c      |   47 +++++++++++++++--
- arch/arm/mach-omap2/debugss.c              |   80 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   69 ++++++++++++++++--------
- 5 files changed, 173 insertions(+), 28 deletions(-)
+ Documentation/kernel-parameters.txt |    3 +
+ arch/arm/mach-omap2/Makefile        |    2 +-
+ arch/arm/mach-omap2/debugss.c       |   80 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 84 insertions(+), 1 deletions(-)
  create mode 100644 arch/arm/mach-omap2/debugss.c
+
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 6c72381..bf1c822 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -2051,6 +2051,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			For example, to override I2C bus2:
+ 			omap_mux=i2c2_scl.i2c2_scl=0x100,i2c2_sda.i2c2_sda=0x100
+
++	omap_debugss_en	[OMAP] Enable Debug Sub-System module required
++			for JTAG debugging.
++
+ 	oprofile.timer=	[HW]
+ 			Use timer interrupt instead of performance counters
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index d1156cf..aaf5cc2 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -5,7 +5,7 @@
+ # Common support
+ obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o gpmc.o timer.o pm.o \
+ 	 common.o gpio.o dma.o wd_timer.o display.o i2c.o hdq1w.o omap_hwmod.o \
+-	 omap_device.o sram.o
++	 omap_device.o sram.o debugss.o
+
+ omap-2-3-common				= irq.o
+ hwmod-common				= omap_hwmod.o \
+diff --git a/arch/arm/mach-omap2/debugss.c b/arch/arm/mach-omap2/debugss.c
+new file mode 100644
+index 0000000..b45bf2c
+--- /dev/null
++++ b/arch/arm/mach-omap2/debugss.c
+@@ -0,0 +1,80 @@
++/*
++ * debugss.c: Debug Sus-System related code goes in here
++ *
++ * Copyright (C) {2013} Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is automatically generated from the AM33XX hardware databases.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++
++#include "omap_hwmod.h"
++
++static bool is_debugss_en;
++
++/**
++ * omap_debugss_en - Enable debugss clock/module based on user config
++ *
++ * During kernel bootup, omap2 hwmod framework will disable all the
++ * unused/unclaimed modules, which in turn also disables debugss module.
++ * This breaks any further debugging capability provided by HW.
++ *
++ *
++ * Introduce early param which allows user to enable clock/module -
++ *
++ *   omap_debugss_en	(For all OMAP2 architectures)
++ *
++ * Please note that, with this command-line param, module always remain
++ * enabled.
++ */
++static int __init omap_debugss_en(char *str)
++{
++	is_debugss_en = true;
++	return 0;
++}
++early_param("omap_debugss_en", omap_debugss_en);
++
++static int __init _omap2_debugss_enable(void)
++{
++	const char oh_name[10] = "debugss";
++	struct omap_hwmod *oh;
++	int ret;
++
++	if (is_debugss_en) {
++		struct omap_hwmod_opt_clk *oc;
++		int i;
++
++		oh = omap_hwmod_lookup(oh_name);
++		if (!oh) {
++			pr_err("debugss device not found\n");
++			return 0;
++		}
++
++		/* Make sure that hwmod internal data structures are setup */
++		ret = omap_hwmod_setup_one(oh_name);
++		if (ret) {
++			pr_err("failed to setup hwmod for %s\n", oh_name);
++			return 0;
++		}
++		/* Enable optional clocks */
++		for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)	{
++			if (oc->_clk)
++				clk_prepare_enable(oc->_clk);
++		}
++		/* Enable debugss clock/module  */
++		omap_hwmod_enable(oh);
++	}
++
++	return 0;
++}
++device_initcall(_omap2_debugss_enable);
+--
+1.7.0.4
 
