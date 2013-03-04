@@ -1,14 +1,14 @@
 From: <hvaibhav@ti.com>
-Subject: [RFC PATCH 3/3] ARM: OMAP2+: Add command line parameter for debugSS module control
-Date: Mon, 4 Mar 2013 17:05:57 +0530
-Message-ID: <1362396957-30113-4-git-send-email-hvaibhav@ti.com>
+Subject: [RFC PATCH 2/3] ARM: AM33XX: hwmod: Add hwmod data for debugSS
+Date: Mon, 4 Mar 2013 17:05:56 +0530
+Message-ID: <1362396957-30113-3-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55497 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55498 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757224Ab3CDLgk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1757266Ab3CDLgk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 4 Mar 2013 06:36:40 -0500
 In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -18,147 +18,128 @@ Cc: tony@atomide.com, khilman@linaro.org, paul@pwsan.com, rnayak@ti.com, linux-a
 
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Currently there is no clean mechanism to control debugSS module and
-you have to always keep clocks enabled, either,
+In the original hwmod data file, DebugSS entry was disabled,
+since we didn't (and do not) have SW to control it.
 
-    - By enabling it during boot as part of clk_init function.
-    Or
-    - By having HWMOD_INIT_NO_IDLE flag in hwmod data.
-
-Based on the discussion,
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg81771.html
-
-This patch introduces new kernel parameter "omap_debugss_en",
-which will allow user to control debugSS module enable/disable
-part during boot-time.
+This patch enables it back with right data, as now we will
+have control through command line argument "omap_debugss_en".
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Cc: Kevin Hilman <khilman@linaro.org>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
-Tested on
-	- AM335x based EVM and BeagleBone platforms
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   69 +++++++++++++++++++---------
+ 1 files changed, 47 insertions(+), 22 deletions(-)
 
- Documentation/kernel-parameters.txt |    3 +
- arch/arm/mach-omap2/Makefile        |    2 +-
- arch/arm/mach-omap2/debugss.c       |   80 +++++++++++++++++++++++++++++++++++
- 3 files changed, 84 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/debugss.c
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index 50da58c..e2a0ed0 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -415,7 +415,6 @@ static struct omap_hwmod am33xx_adc_tsc_hwmod = {
+  *
+  *    - cEFUSE (doesn't fall under any ocp_if)
+  *    - clkdiv32k
+- *    - debugss
+  *    - ocmc ram
+  *    - ocp watch point
+  *    - aes0
+@@ -462,27 +461,6 @@ static struct omap_hwmod am33xx_clkdiv32k_hwmod = {
+ 	},
+ };
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 6c72381..bf1c822 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -2051,6 +2051,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 			For example, to override I2C bus2:
- 			omap_mux=i2c2_scl.i2c2_scl=0x100,i2c2_sda.i2c2_sda=0x100
+-/*
+- * 'debugss' class
+- * debug sub system
+- */
+-static struct omap_hwmod_class am33xx_debugss_hwmod_class = {
+-	.name		= "debugss",
+-};
+-
+-static struct omap_hwmod am33xx_debugss_hwmod = {
+-	.name		= "debugss",
+-	.class		= &am33xx_debugss_hwmod_class,
+-	.clkdm_name	= "l3_aon_clkdm",
+-	.main_clk	= "debugss_ick",
+-	.prcm		= {
+-		.omap4	= {
+-			.clkctrl_offs	= AM33XX_CM_WKUP_DEBUGSS_CLKCTRL_OFFSET,
+-			.modulemode	= MODULEMODE_SWCTRL,
+-		},
+-	},
+-};
+-
+ /* ocmcram */
+ static struct omap_hwmod_class am33xx_ocmcram_hwmod_class = {
+ 	.name = "ocmcram",
+@@ -572,6 +550,34 @@ static struct omap_hwmod am33xx_sha0_hwmod = {
 
-+	omap_debugss_en	[OMAP] Enable Debug Sub-System module required
-+			for JTAG debugging.
-+
- 	oprofile.timer=	[HW]
- 			Use timer interrupt instead of performance counters
+ #endif
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index d1156cf..aaf5cc2 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -5,7 +5,7 @@
- # Common support
- obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o gpmc.o timer.o pm.o \
- 	 common.o gpio.o dma.o wd_timer.o display.o i2c.o hdq1w.o omap_hwmod.o \
--	 omap_device.o sram.o
-+	 omap_device.o sram.o debugss.o
-
- omap-2-3-common				= irq.o
- hwmod-common				= omap_hwmod.o \
-diff --git a/arch/arm/mach-omap2/debugss.c b/arch/arm/mach-omap2/debugss.c
-new file mode 100644
-index 0000000..b45bf2c
---- /dev/null
-+++ b/arch/arm/mach-omap2/debugss.c
-@@ -0,0 +1,80 @@
 +/*
-+ * debugss.c: Debug Sus-System related code goes in here
-+ *
-+ * Copyright (C) {2013} Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This file is automatically generated from the AM33XX hardware databases.
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
++ * 'debugss' class
++ * debug sub system
 + */
++static struct omap_hwmod_opt_clk debugss_opt_clks[] = {
++	{ .role = "dbg_sysclk", .clk = "dbg_sysclk_ck" },
++	{ .role = "dbg_clka", .clk = "dbg_clka_ck" },
++};
 +
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
++static struct omap_hwmod_class am33xx_debugss_hwmod_class = {
++	.name		= "debugss",
++};
 +
-+#include "omap_hwmod.h"
++static struct omap_hwmod am33xx_debugss_hwmod = {
++	.name		= "debugss",
++	.class		= &am33xx_debugss_hwmod_class,
++	.clkdm_name	= "l3_aon_clkdm",
++	.main_clk	= "trace_clk_div_ck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= AM33XX_CM_WKUP_DEBUGSS_CLKCTRL_OFFSET,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++	.opt_clks	= debugss_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(debugss_opt_clks),
++};
 +
-+static bool is_debugss_en;
+ /* 'smartreflex' class */
+ static struct omap_hwmod_class am33xx_smartreflex_hwmod_class = {
+ 	.name		= "smartreflex",
+@@ -2291,6 +2297,24 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__gfx = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+
++/* l3_main -> debugss */
++static struct omap_hwmod_addr_space am33xx_debugss_addrs[] = {
++	{
++		.pa_start	= 0x4b000000,
++		.pa_end		= 0x4b000000 + SZ_16M - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
 +
-+/**
-+ * omap_debugss_en - Enable debugss clock/module based on user config
-+ *
-+ * During kernel bootup, omap2 hwmod framework will disable all the
-+ * unused/unclaimed modules, which in turn also disables debugss module.
-+ * This breaks any further debugging capability provided by HW.
-+ *
-+ *
-+ * Introduce early param which allows user to enable clock/module -
-+ *
-+ *   omap_debugss_en	(For all OMAP2 architectures)
-+ *
-+ * Please note that, with this command-line param, module always remain
-+ * enabled.
-+ */
-+static int __init omap_debugss_en(char *str)
-+{
-+	is_debugss_en = true;
-+	return 0;
-+}
-+early_param("omap_debugss_en", omap_debugss_en);
++static struct omap_hwmod_ocp_if am33xx_l3_main__debugss = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_debugss_hwmod,
++	.clk		= "dpll_core_m4_ck",
++	.addr		= am33xx_debugss_addrs,
++	.user		= OCP_USER_MPU,
++};
 +
-+static int __init _omap2_debugss_enable(void)
-+{
-+	const char oh_name[10] = "debugss";
-+	struct omap_hwmod *oh;
-+	int ret;
-+
-+	if (is_debugss_en) {
-+		struct omap_hwmod_opt_clk *oc;
-+		int i;
-+
-+		oh = omap_hwmod_lookup(oh_name);
-+		if (!oh) {
-+			pr_err("debugss device not found\n");
-+			return 0;
-+		}
-+
-+		/* Make sure that hwmod internal data structures are setup */
-+		ret = omap_hwmod_setup_one(oh_name);
-+		if (ret) {
-+			pr_err("failed to setup hwmod for %s\n", oh_name);
-+			return 0;
-+		}
-+		/* Enable optional clocks */
-+		for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)	{
-+			if (oc->_clk)
-+				clk_prepare_enable(oc->_clk);
-+		}
-+		/* Enable debugss clock/module  */
-+		omap_hwmod_enable(oh);
-+	}
-+
-+	return 0;
-+}
-+device_initcall(_omap2_debugss_enable);
+ /* l4 wkup -> smartreflex0 */
+ static struct omap_hwmod_addr_space am33xx_smartreflex0_addrs[] = {
+ 	{
+@@ -3360,6 +3384,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_pruss__l3_main,
+ 	&am33xx_wkup_m3__l4_wkup,
+ 	&am33xx_gfx__l3_main,
++	&am33xx_l3_main__debugss,
+ 	&am33xx_l4_wkup__wkup_m3,
+ 	&am33xx_l4_wkup__control,
+ 	&am33xx_l4_wkup__smartreflex0,
 --
 1.7.0.4
 
