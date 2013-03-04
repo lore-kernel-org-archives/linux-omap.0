@@ -1,68 +1,41 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v2 1/1] gpio: omap: dts: Move interrupt-controller from #interrupt-cells description
-Date: Mon,  4 Mar 2013 21:56:37 +0100
-Message-ID: <1362430597-5855-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH 1/2] omapfb: fix broken build on OMAP1
+Date: Mon,  4 Mar 2013 23:03:19 +0200
+Message-ID: <1362431000-15141-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:53723 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932218Ab3CDU6E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 15:58:04 -0500
+Received: from filtteri5.pp.htv.fi ([213.243.153.188]:42480 "EHLO
+	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758775Ab3CDVEN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 16:04:13 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Landley <rob@landley.net>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-The binding documentation for the OMAP GPIO controller has the description
-for the "#interrupt-cells" property after the "interrupt-controller".
-This is confusing so is better to move the "interrupt-controller" after
-"#interrupt-cells" description.
+Fix the following build regression in 3.9-rc1 by including
+<mach/hardware.h>:
 
-While being there, change the properties order to be consistent with
-Documentation/devicetree/bindings/interrupt-controller/interrupts.txt and
-Documentation/devicetree/bindings/gpio/gpio.txt.
+drivers/video/omap/omapfb_main.c: In function 'set_fb_var':
+drivers/video/omap/omapfb_main.c:505:3: error: implicit declaration of function 'cpu_is_omap15xx' [-Werror=implicit-function-declaration]
 
-Reported-by: Stephen Warren <swarren@nvidia.com>
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Acked-by: Jon Hunter <jon-hunter@ti.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
+ drivers/video/omap/omapfb_main.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Changes since v1:
-  - Change the properties order to be consistent with the rest of the
-    DT bindings docs suggested by Jon Hunter.
-
- .../devicetree/bindings/gpio/gpio-omap.txt         |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-index bff51a2..a56e3a5 100644
---- a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-+++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-@@ -5,12 +5,12 @@ Required properties:
-   - "ti,omap2-gpio" for OMAP2 controllers
-   - "ti,omap3-gpio" for OMAP3 controllers
-   - "ti,omap4-gpio" for OMAP4 controllers
-+- gpio-controller : Marks the device node as a GPIO controller.
- - #gpio-cells : Should be two.
-   - first cell is the pin number
-   - second cell is used to specify optional parameters (unused)
--- gpio-controller : Marks the device node as a GPIO controller.
-+- interrupt-controller: Mark the device node as an interrupt controller.
- - #interrupt-cells : Should be 2.
--- interrupt-controller: Mark the device node as an interrupt controller
-   The first cell is the GPIO number.
-   The second cell is used to specify flags:
-     bits[3:0] trigger type and level flags:
-@@ -29,8 +29,8 @@ Example:
- gpio4: gpio4 {
-     compatible = "ti,omap4-gpio";
-     ti,hwmods = "gpio4";
--    #gpio-cells = <2>;
-     gpio-controller;
--    #interrupt-cells = <2>;
-+    #gpio-cells = <2>;
-     interrupt-controller;
-+    #interrupt-cells = <2>;
- };
+diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+index e31f5b3..d40612c 100644
+--- a/drivers/video/omap/omapfb_main.c
++++ b/drivers/video/omap/omapfb_main.c
+@@ -32,6 +32,8 @@
+ 
+ #include <linux/omap-dma.h>
+ 
++#include <mach/hardware.h>
++
+ #include "omapfb.h"
+ #include "lcdc.h"
+ 
 -- 
-1.7.7.6
+1.7.10.4
 
