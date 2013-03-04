@@ -1,52 +1,145 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Latest randconfig build errors
-Date: Mon, 4 Mar 2013 09:51:36 +0000
-Message-ID: <20130304095136.GI17833@n2100.arm.linux.org.uk>
+From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 04/14] ARM: OMAP2+: Add function for configuring GPMC
+ settings
+Date: Mon, 4 Mar 2013 10:05:41 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3EA91D17@DBDE01.ent.ti.com>
+References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
+ <1361899842-30303-5-git-send-email-jon-hunter@ti.com>
+ <518397C60809E147AF5323E0420B992E3EA8F007@DBDE01.ent.ti.com>
+ <512F7D58.90706@ti.com> <512F9005.7040908@ti.com>
+ <518397C60809E147AF5323E0420B992E3EA90C2F@DBDE01.ent.ti.com>
+ <5130CCA9.10905@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53440 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756124Ab3CDJwx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 04:52:53 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <5130CCA9.10905-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Hunter, Jon" <jon-hunter-l0cyMroinI0@public.gmane.org>
+Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, arm@kernel.org, linux-kernel@vger.kernel.org
 
-Last nights automated ARM build found the following errors with randconfig.
+On Fri, Mar 01, 2013 at 21:13:37, Hunter, Jon wrote:
+> 
+> On 02/28/2013 11:33 PM, Philip, Avinash wrote:
+> > On Thu, Feb 28, 2013 at 22:42:37, Hunter, Jon wrote:
+> >>
+> >> On 02/28/2013 09:52 AM, Jon Hunter wrote:
+> >>>
+> >>> On 02/28/2013 12:05 AM, Philip, Avinash wrote:
+> >>>> On Tue, Feb 26, 2013 at 23:00:31, Hunter, Jon wrote:
+> >>>>> The GPMC has various different configuration options such as bus-width,
+> >>>>> synchronous or asychronous mode selection, burst mode options etc.
+> >>>>> Currently, there is no common function for configuring these options and
+> >>>>> various devices set these options by either programming the GPMC CONFIG1
+> >>>>> register directly or by calling gpmc_cs_configure() to set some of the
+> >>>>> options.
+> >>>>>
+> >>>>> Add a new function for configuring all of the GPMC options. Having a common
+> >>>>> function for configuring this options will simplify code and ease the
+> >>>>> migration to device-tree.
+> >>>>>
+> >>>>> Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+> >>>>> ---
+> >>>>>  arch/arm/mach-omap2/gpmc.c |   65 ++++++++++++++++++++++++++++++++++++++++++++
+> >>>>>  arch/arm/mach-omap2/gpmc.h |    6 ++++
+> >>>>>  2 files changed, 71 insertions(+)
+> >>>>>
+> >>>>> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> >>>>> index 465cac9..fb8dfd2 100644
+> >>>>> --- a/arch/arm/mach-omap2/gpmc.c
+> >>>>> +++ b/arch/arm/mach-omap2/gpmc.c
+> >>>>> @@ -1137,6 +1137,71 @@ int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
+> >>>>>  	return 0;
+> >>>>>  }
+> >>>>>  
+> >>>>> +int gpmc_cs_program_settings(int cs, struct gpmc_settings *p)
+> >>>>> +{
+> >>>>> +	u32 config1;
+> >>>>> +
+> >>>>> +	if ((!p->device_width) || (p->device_width > GPMC_DEVWIDTH_16BIT)) {
+> >>>>> +		pr_err("%s: invalid width %d!", __func__, p->device_width);
+> >>>>> +		return -EINVAL;
+> >>>>> +	}
+> >>>>> +
+> >>>>> +	/* Address-data multiplexing not supported for NAND devices */
+> >>>>> +	if (p->device_nand && p->mux_add_data) {
+> >>>>> +		pr_err("%s: invalid configuration!\n", __func__);
+> >>>>> +		return -EINVAL;
+> >>>>> +	}
+> >>>>> +
+> >>>>> +	/* Page/burst mode supports lengths of 4, 8 and 16 bytes */
+> >>>>> +	if (p->burst_read || p->burst_write) {
+> >>>>> +		switch (p->burst_len) {
+> >>>>> +		case GPMC_BURST_4:
+> >>>>> +		case GPMC_BURST_8:
+> >>>>> +		case GPMC_BURST_16:
+> >>>>> +			break;
+> >>>>> +		default:
+> >>>>> +			pr_err("%s: invalid page/burst-length (%d)\n",
+> >>>>> +			       __func__, p->burst_len);
+> >>>>> +			return -EINVAL;
+> >>>>> +		}
+> >>>>> +	}
+> >>>>> +
+> >>>>> +	if ((p->wait_on_read || p->wait_on_write) &&
+> >>>>> +	    (p->wait_pin > gpmc_nr_waitpins)) {
+> >>>>> +		pr_err("%s: invalid wait-pin (%d)\n", __func__, p->wait_pin);
+> >>>>> +		return -EINVAL;
+> >>>>> +	}
+> >>>>> +
+> >>>>> +	config1 = GPMC_CONFIG1_DEVICESIZE((p->device_width - 1));
+> >>>>
+> >>>> Can you consider read_modify approach?
+> >>>
+> >>> I was purposely trying to avoid that. The intent here is to program all
+> >>> the settings and get away from any boot-loader dependencies. If we use a
+> >>> read-modify approach then it will never be clear in the kernel what
+> >>> should actually be programmed.
+> >>
+> >> By the way, it would be good to know what your motivation for this is.
+> >>
+> >> My goal is for all gpmc settings to eventually live in the DT blob and
+> >> there be no dependency on the bootloader whatsoever. That may mean that
+> >> settings are re-programmed again by the kernel but IMO that is best.
+> > 
+> > Yes I understood now and the right thing to do.
+> > Suggested read modify approach because of some confusion as GPMC_CONFIG1 is already
+> > modified in gpmc_cs_set_timings() and is called from omap2_nand_gpmc_retime().
+> > So the data modified in gpmc_cs_set_timings() will lost (not significant)
+> > May be better and cleaner solution is to remove GPMC_CONFIG1 modification in
+> > gpmc_cs_set_timings() also.
+> 
+> Actually that is a good point. There are some timings in CONFIG1 that
+> are not being configured in gpmc_cs_program_settings() but
+> gpmc_cs_set_timings(). I had left it this way intentionally to keep
+> timings together, which makes sense for where gpmc clock could change at
+> run time. However, this means that gpmc_cs_program_settings() needs to
+> be called before gpmc_cs_set_timings(). Really this is no different to
+> how the code was before, because the code was writing directly to
+> CONFIG1 and now we have a function.
+> 
+> So the intent is for gpmc_cs_program_settings() to only be called once
+> for a given device and then gpmc_cs_set_timings() be called whenever the
+> timings need to be updated. May be I can updated the kernel-doc for
+> gpmc_cs_program_settings() to reflect this. Let me know if you have any
+> other concerns with this.
 
-All information as usual at http://www.arm.linux.org.uk/developer/build/
+Fine enough.
 
-
-Versatile randconfig:
-
-ERROR: "irq_domain_add_simple" [drivers/gpio/gpio-em.ko] undefined!
-
-OMAP4430 randconfig:
-
-drivers/gpu/drm/tilcdc/tilcdc_slave.o:(.data+0x54): multiple definition of `__mod_of_device_table'
-drivers/gpu/drm/tilcdc/tilcdc_tfp410.o:(.data+0x54): first defined here
-drivers/gpu/drm/tilcdc/tilcdc_panel.o:(.data+0x54): multiple definition of `__mod_of_device_table'
-drivers/gpu/drm/tilcdc/tilcdc_tfp410.o:(.data+0x54): first defined here
-drivers/gpu/drm/tilcdc/tilcdc_drv.o:(.data+0x184): multiple definition of `__mod_of_device_table'
-drivers/gpu/drm/tilcdc/tilcdc_tfp410.o:(.data+0x54): first defined here
-drivers/tty/serial/8250/8250.c:57:32: error: 'CONFIG_SERIAL_8250_RUNTIME_UARTS' undeclared here (not in a function)
-drivers/tty/serial/8250/8250.c:2712:47: error: 'CONFIG_SERIAL_8250_NR_UARTS' undeclared here (not in a function)
-drivers/tty/serial/8250/8250.c:2971:95: error: negative width in bit-field '<anonymous>' 
-
-The last three are caused by incorrect use of 'select':
-
-warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3 && MWAVE) selects SERIAL_8250 which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS)
-warning: (USB_MUSB_HDRC) selects TWL4030_USB which has unmet direct dependencies (USB_SUPPORT && (USB || USB_GADGET) && TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS)
-warning: (USB_MUSB_HDRC) selects TWL6030_USB which has unmet direct dependencies (USB_SUPPORT && (USB || USB_GADGET) && TWL4030_CORE && OMAP_USB2 && USB_MUSB_OMAP2PLUS)
-warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3) selects SERIAL_8250_CONSOLE which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS && SERIAL_8250=y)
-warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3) selects SERIAL_CORE_CONSOLE which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS)
-warning: (VIDEO_DM6446_CCDC && VIDEO_DM355_CCDC && VIDEO_ISIF && VIDEO_DAVINCI_VPBE_DISPLAY) selects VIDEO_VPSS_SYSTEM which has unmet direct dependencies (MEDIA_SUPPORT && V4L_PLATFORM_DRIVERS && ARCH_DAVINCI)
-warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3 && MWAVE) selects SERIAL_8250 which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS)
-warning: (USB_MUSB_HDRC) selects TWL4030_USB which has unmet direct dependencies (USB_SUPPORT && (USB || USB_GADGET) && TWL4030_CORE && OMAP_USB2 && USB_MUSB_OMAP2PLUS)
-warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3) selects SERIAL_8250_CONSOLE which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS && SERIAL_8250=y)
-warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3) selects SERIAL_CORE_CONSOLE which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS)
-warning: (VIDEO_DM6446_CCDC && VIDEO_DM355_CCDC && VIDEO_ISIF && VIDEO_DAVINCI_VPBE_DISPLAY) selects VIDEO_VPSS_SYSTEM which has unmet direct dependencies (MEDIA_SUPPORT && V4L_PLATFORM_DRIVERS && ARCH_DAVINCI)
-
-This 'select' madness of driver symbols *HAS* *TO* *STOP*.
+Thanks
+Avinash
+> 
+> Cheers
+> Jon
+> 
