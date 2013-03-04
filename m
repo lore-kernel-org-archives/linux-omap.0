@@ -1,83 +1,43 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v2 06/10] usb: xhci: Enable runtime pm in xhci-plat
-Date: Mon, 4 Mar 2013 10:57:14 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1303041038390.1750-100000@iolanthe.rowland.org>
-References: <20130302232132.GB14558@arwen.pp.htv.fi>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP CLK / CM data move to /drivers/clk
+Date: Mon, 4 Mar 2013 16:01:11 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1303041600280.23192@utopia.booyaka.com>
+References: <1361954659.8362.70.camel@sokoban>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:44982 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1758476Ab3CDP5Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 10:57:16 -0500
-In-Reply-To: <20130302232132.GB14558@arwen.pp.htv.fi>
+Received: from utopia.booyaka.com ([74.50.51.50]:42496 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754493Ab3CDQBM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 11:01:12 -0500
+In-Reply-To: <1361954659.8362.70.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, kishon@ti.com, Doug Anderson <dianders@chromium.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, mturquette@linaro.org, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Sun, 3 Mar 2013, Felipe Balbi wrote:
+Hi guys,
 
-> > > this is good point and, in fact, a doubt I have myself. How are we
-> > > supposed to check if device is suspended ? In case it _is_ suspended we
-> > > might not be able to read device's registers due to clocks possibly
-> > > being gated.
-> > 
-> > That's really a separate question.  It has a simple answer, though: If 
-> > you want to access a device's registers, call pm_runtime_get_sync() 
-> > beforehand and pm_runtime_put() (or _put_sync()) afterward.  Then it 
-> > won't matter if the device was suspended originally.
+On Wed, 27 Feb 2013, Tero Kristo wrote:
+
+> It looks like we need to start putting more effort into this clock data
+> move now, as this is starting to hinder us on several fronts.
+> Unfortunately I still can't personally participate in this work myself
+> as I am now allocated to some hwmod related work, but Eduardo should
+> have plenty of time to help with this...
 > 
-> that's alright, but how do you want me to check if my device is enabled
-> or not before pm_runtime_enable() ?
-
-You're not supposed to check.  Just make sure your own 
-pm_runtime_enable() and _disable() calls are done correctly, and let 
-the PM core worry about the rest.  :-)
-
-More to the point, the question of what code enables a device for
-runtime PM is decided by the subsystem.  Many subsystems will do it
-automatically so that their drivers don't have to worry about it.  
-Other subsystems will leave it entirely up to the drivers.  You have to
-know what the subsystem wants.
-
-In this case, it's appropriate to do the enable here in the probe
-routine because the platform core doesn't do it for you.  This also
-means the driver should disable the device in the remove routine.
-
-> > I don't know much about clock handling.  In general, the
-> > pm_runtime_set_active() and pm_runtime_enable() parts should be done by
-> > the subsystem, not the driver, whenever possible.
+> Anyway, Paul, I think you have been working a bit with this topic, what
+> is the latest status with this? Do you see any areas Eduardo can help
+> with? If you have some partially finished work also which you don't have
+> time yourself, we can even take a look at that.
 > 
-> good to know :-) Though I disagree with calling pm_runtime_enable() at
-> the subsystem level.
+> Also, I would like to receive some initial comments about the approach
+> we should take, and I added Mike here for this as you are the maintainer
+> for the /drivers/clk. I believe we should start by moving the clock data
+> under /drivers/clk/omap, and potentially move also some other stuff
+> here, like CM code, clockdomain code and clockdomain data even. Do you
+> have any opinions on this?
 
-It depends on the subsystem.  For some (like the USB host subsystem),
-it is appropriate.
+Will respond soon to this...
 
-> > Whichever piece of code is responsible for associating a clock with a
-> > device should also be responsible for making sure that neither is
-> > suspended when the driver's probe routine runs.  I'm not sure how 
-> > different platforms do this; using a PM domain could be one answer.
-> 
-> that's alright, but it generates a different set of problems. That same
-> piece of code which associates a device with its clock, doesn't really
-> know if the driver is even available which means we could be enabling
-> clocks for no reason and just wasting precious battery juice ;-)
-
-Better than wasting our precious bodily fluids...  :-)
-
-I guess the best answer is to set up the association but then leave the
-device and clocks in a runtime-suspended status.  Then do a
-pm_runtime_get_sync() just before calling the driver's probe routine
-and a pm_runtime_put_sync() just after calling the remove routine.  
-That should leave the device and the clocks in the state the driver
-expects.  (But be careful that these two calls don't invoke the
-driver's runtime-PM callbacks!)
-
-Probably nobody has thought these problems through very carefully for 
-the platform subsystem.  Nevertheless, that's where the decisions need 
-to be made.
-
-Alan Stern
-
+- Paul
