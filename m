@@ -1,145 +1,47 @@
-From: <hvaibhav@ti.com>
-Subject: [RFC PATCH 2/3] ARM: AM33XX: hwmod: Add hwmod data for debugSS
-Date: Mon, 4 Mar 2013 17:05:56 +0530
-Message-ID: <1362396957-30113-3-git-send-email-hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [PATCH 11/14] ARM: OMAP2+: Add device-tree support for NOR flash
+Date: Mon, 4 Mar 2013 08:57:51 -0300
+Message-ID: <CALF0-+V3A-fL7q2nPRmcgnFKmzRt8KwSLuzrwzyyce6MqHjVpw@mail.gmail.com>
+References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
+	<1361899842-30303-12-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55498 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757266Ab3CDLgk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Mar 2013 06:36:40 -0500
-In-Reply-To: <hvaibhav@ti.com>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:55792 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753720Ab3CDL5w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 06:57:52 -0500
+Received: by mail-ie0-f172.google.com with SMTP id c10so6034841ieb.3
+        for <linux-omap@vger.kernel.org>; Mon, 04 Mar 2013 03:57:51 -0800 (PST)
+In-Reply-To: <1361899842-30303-12-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@linaro.org, paul@pwsan.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Hi Jon,
 
-In the original hwmod data file, DebugSS entry was disabled,
-since we didn't (and do not) have SW to control it.
+On Tue, Feb 26, 2013 at 2:30 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+> +
+> +Example:
+> +
+> +gpmc: gpmc@6e000000 {
+> +       compatible = "ti,omap3430-gpmc", "simple-bus";
 
-This patch enables it back with right data, as now we will
-have control through command line argument "omap_debugss_en".
+I'm concern about using simple-bus, and I'm not entirely sure this will work.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   69 +++++++++++++++++++---------
- 1 files changed, 47 insertions(+), 22 deletions(-)
+AFAIK, you can't correlate a parent-child relationship in the device tree
+to the order in which drivers will be probed,
+so it's only a matter of coincidence if this is working for you right now.
+The GPMC code is in "arch/arm/mach-omap2", is located *before* the mtd code
+in the Makefile, and thus the GPMC driver loads *before* the MTD code.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 50da58c..e2a0ed0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -415,7 +415,6 @@ static struct omap_hwmod am33xx_adc_tsc_hwmod = {
-  *
-  *    - cEFUSE (doesn't fall under any ocp_if)
-  *    - clkdiv32k
-- *    - debugss
-  *    - ocmc ram
-  *    - ocp watch point
-  *    - aes0
-@@ -462,27 +461,6 @@ static struct omap_hwmod am33xx_clkdiv32k_hwmod = {
- 	},
- };
+Morevore, I believe that when we move GPMC from arch/arm/mach-omap2
+to drivers/memory where it should be, this 'simple-bus' will stop
+working properly.
 
--/*
-- * 'debugss' class
-- * debug sub system
-- */
--static struct omap_hwmod_class am33xx_debugss_hwmod_class = {
--	.name		= "debugss",
--};
--
--static struct omap_hwmod am33xx_debugss_hwmod = {
--	.name		= "debugss",
--	.class		= &am33xx_debugss_hwmod_class,
--	.clkdm_name	= "l3_aon_clkdm",
--	.main_clk	= "debugss_ick",
--	.prcm		= {
--		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_WKUP_DEBUGSS_CLKCTRL_OFFSET,
--			.modulemode	= MODULEMODE_SWCTRL,
--		},
--	},
--};
--
- /* ocmcram */
- static struct omap_hwmod_class am33xx_ocmcram_hwmod_class = {
- 	.name = "ocmcram",
-@@ -572,6 +550,34 @@ static struct omap_hwmod am33xx_sha0_hwmod = {
+Of course, I can be wrong, but I think you will have to find some other way
+to initialize the GPMC's childs.
 
- #endif
-
-+/*
-+ * 'debugss' class
-+ * debug sub system
-+ */
-+static struct omap_hwmod_opt_clk debugss_opt_clks[] = {
-+	{ .role = "dbg_sysclk", .clk = "dbg_sysclk_ck" },
-+	{ .role = "dbg_clka", .clk = "dbg_clka_ck" },
-+};
-+
-+static struct omap_hwmod_class am33xx_debugss_hwmod_class = {
-+	.name		= "debugss",
-+};
-+
-+static struct omap_hwmod am33xx_debugss_hwmod = {
-+	.name		= "debugss",
-+	.class		= &am33xx_debugss_hwmod_class,
-+	.clkdm_name	= "l3_aon_clkdm",
-+	.main_clk	= "trace_clk_div_ck",
-+	.prcm		= {
-+		.omap4	= {
-+			.clkctrl_offs	= AM33XX_CM_WKUP_DEBUGSS_CLKCTRL_OFFSET,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+		},
-+	},
-+	.opt_clks	= debugss_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(debugss_opt_clks),
-+};
-+
- /* 'smartreflex' class */
- static struct omap_hwmod_class am33xx_smartreflex_hwmod_class = {
- 	.name		= "smartreflex",
-@@ -2291,6 +2297,24 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__gfx = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
-
-+/* l3_main -> debugss */
-+static struct omap_hwmod_addr_space am33xx_debugss_addrs[] = {
-+	{
-+		.pa_start	= 0x4b000000,
-+		.pa_end		= 0x4b000000 + SZ_16M - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
-+static struct omap_hwmod_ocp_if am33xx_l3_main__debugss = {
-+	.master		= &am33xx_l3_main_hwmod,
-+	.slave		= &am33xx_debugss_hwmod,
-+	.clk		= "dpll_core_m4_ck",
-+	.addr		= am33xx_debugss_addrs,
-+	.user		= OCP_USER_MPU,
-+};
-+
- /* l4 wkup -> smartreflex0 */
- static struct omap_hwmod_addr_space am33xx_smartreflex0_addrs[] = {
- 	{
-@@ -3360,6 +3384,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_pruss__l3_main,
- 	&am33xx_wkup_m3__l4_wkup,
- 	&am33xx_gfx__l3_main,
-+	&am33xx_l3_main__debugss,
- 	&am33xx_l4_wkup__wkup_m3,
- 	&am33xx_l4_wkup__control,
- 	&am33xx_l4_wkup__smartreflex0,
---
-1.7.0.4
-
+-- 
+    Ezequiel
