@@ -1,41 +1,47 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH 1/2] omapfb: fix broken build on OMAP1
-Date: Mon,  4 Mar 2013 23:03:19 +0200
-Message-ID: <1362431000-15141-1-git-send-email-aaro.koskinen@iki.fi>
+Subject: [PATCH 2/2] omapfb: fix broken build on Amstrad E3/Delta
+Date: Mon,  4 Mar 2013 23:03:20 +0200
+Message-ID: <1362431000-15141-2-git-send-email-aaro.koskinen@iki.fi>
+References: <1362431000-15141-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri5.pp.htv.fi ([213.243.153.188]:42480 "EHLO
-	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758775Ab3CDVEN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 16:04:13 -0500
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:59436 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758775Ab3CDVEP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 16:04:15 -0500
+In-Reply-To: <1362431000-15141-1-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
 Fix the following build regression in 3.9-rc1 by including
-<mach/hardware.h>:
+<machine/hardware.h>:
 
-drivers/video/omap/omapfb_main.c: In function 'set_fb_var':
-drivers/video/omap/omapfb_main.c:505:3: error: implicit declaration of function 'cpu_is_omap15xx' [-Werror=implicit-function-declaration]
+drivers/video/omap/lcd_ams_delta.c: In function 'ams_delta_lcd_set_power':
+drivers/video/omap/lcd_ams_delta.c:48:4: error: implicit declaration of function 'omap_writeb' [-Werror=implicit-function-declaration]
+drivers/video/omap/lcd_ams_delta.c:49:6: error: 'OMAP_PWL_ENABLE' undeclared (first use in this function)
+drivers/video/omap/lcd_ams_delta.c:49:6: note: each undeclared identifier is reported only once for each function it appears in
+drivers/video/omap/lcd_ams_delta.c:50:19: error: 'OMAP_PWL_CLK_ENABLE' undeclared (first use in this function)
+drivers/video/omap/lcd_ams_delta.c: In function 'ams_delta_lcd_set_contrast':
+drivers/video/omap/lcd_ams_delta.c:66:22: error: 'OMAP_PWL_ENABLE' undeclared (first use in this function)
 
 Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- drivers/video/omap/omapfb_main.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/omap/lcd_ams_delta.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
-index e31f5b3..d40612c 100644
---- a/drivers/video/omap/omapfb_main.c
-+++ b/drivers/video/omap/omapfb_main.c
-@@ -32,6 +32,8 @@
- 
- #include <linux/omap-dma.h>
+diff --git a/drivers/video/omap/lcd_ams_delta.c b/drivers/video/omap/lcd_ams_delta.c
+index ed4cad8..4a5f2cd 100644
+--- a/drivers/video/omap/lcd_ams_delta.c
++++ b/drivers/video/omap/lcd_ams_delta.c
+@@ -27,6 +27,7 @@
+ #include <linux/lcd.h>
+ #include <linux/gpio.h>
  
 +#include <mach/hardware.h>
-+
- #include "omapfb.h"
- #include "lcdc.h"
+ #include <mach/board-ams-delta.h>
  
+ #include "omapfb.h"
 -- 
 1.7.10.4
 
