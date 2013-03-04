@@ -1,64 +1,52 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 1/1] gpio: omap: dts: Move interrupt-controller from #interrupt-cells
- description
-Date: Mon, 4 Mar 2013 13:23:52 -0600
-Message-ID: <5134F4C8.4010003@ti.com>
-References: <1362422157-32196-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH v3 0/8] ARM: omap2: GPMC cleanup
+Date: Mon, 4 Mar 2013 13:25:32 -0600
+Message-ID: <5134F52C.1010300@ti.com>
+References: <1360696944-3371-1-git-send-email-ezequiel.garcia@free-electrons.com> <20130304185259.GQ11806@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54716 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54826 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758166Ab3CDTYD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Mar 2013 14:24:03 -0500
-In-Reply-To: <1362422157-32196-1-git-send-email-javier.martinez@collabora.co.uk>
+	id S1758166Ab3CDTZl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Mar 2013 14:25:41 -0500
+In-Reply-To: <20130304185259.GQ11806@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Afzal Mohammed <afzal@ti.com>
 
 
-On 03/04/2013 12:35 PM, Javier Martinez Canillas wrote:
-> The binding documentation for the OMAP GPIO controller has the description
-> for the "#interrupt-cells" property after the "interrupt-controller"
-> definition. This is confusing so is better to move "interrupt-controller"
-> after the "#interrupt-cells" description.
+On 03/04/2013 12:53 PM, Tony Lindgren wrote:
+> * Ezequiel Garcia <ezequiel.garcia@free-electrons.com> [130212 11:26]:
+>> This patchset is v3 of the small cleanup consisting in:
+>>  * mark some functions as 'static' when appropriate
+>>  * remove an unused function from gpmc.c
+>>  * improve error messages when a CS request fails
+>>  * migrate to dev_err and dev_warn
+>>
+>> Changes from v2:
+>>  * add a commit message to some trivial patches,
+>>    that omitted it due to author's laziness.
+>>
+>> Changes from v1:
+>>  * fix gpmc_cs_reserved to return a boolean instead
+>>    of an integer error code
+>>  * add a new patch to the patchset cleaning redundant checks
+>>
+>> It has been tested on a IGEP v2 board with OneNAND,
+>> which means the gpmc-nand patch is tested by compilation only.
+>>
+>> Altough this patchset is almost trivial,
+>> any feedback or testing is more than welcome.
+>>
+>> Thanks to Jon Hunter for his kind review!
 > 
-> Reported-by: Stephen Warren <swarren@nvidia.com>
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> ---
->  .../devicetree/bindings/gpio/gpio-omap.txt         |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> index bff51a2..8b9914c 100644
-> --- a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> @@ -10,7 +10,6 @@ Required properties:
->    - second cell is used to specify optional parameters (unused)
->  - gpio-controller : Marks the device node as a GPIO controller.
->  - #interrupt-cells : Should be 2.
-> -- interrupt-controller: Mark the device node as an interrupt controller
->    The first cell is the GPIO number.
->    The second cell is used to specify flags:
->      bits[3:0] trigger type and level flags:
-> @@ -18,6 +17,7 @@ Required properties:
->        2 = high-to-low edge triggered.
->        4 = active high level-sensitive.
->        8 = active low level-sensitive.
-> +- interrupt-controller: Mark the device node as an interrupt controller.
->  
->  OMAP specific properties:
->  - ti,hwmods: Name of the hwmod associated to the GPIO:
-> 
+> Looks good to me. Jon, can you please queue all the GPMC related
+> patches into one pull request around -rc2 time assuming no more
+> comments? 
 
-Thanks. Do you mind putting "interrupt-controller" before
-"#interrupt-cells" as I see this is how they have it in
-Documenation/devicetree/bindings/interrupt-controller/interrupts.txt?
-Otherwise ...
+Yes will do.
 
-Acked-by: Jon Hunter <jon-hunter@ti.com>
-
-Cheers
 Jon
