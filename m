@@ -1,64 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Clear GPMC bits when applying new setting
-Date: Mon, 4 Mar 2013 09:37:06 -0800
-Message-ID: <20130304173706.GL11806@atomide.com>
-References: <51126586.9030308@mimc.co.uk>
- <51126B2C.6080009@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 11/14] ARM: OMAP2+: Add device-tree support for NOR flash
+Date: Mon, 4 Mar 2013 11:51:38 -0600
+Message-ID: <5134DF2A.4050209@ti.com>
+References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com> <1361899842-30303-12-git-send-email-jon-hunter@ti.com> <CALF0-+V3A-fL7q2nPRmcgnFKmzRt8KwSLuzrwzyyce6MqHjVpw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:25880 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757390Ab3CDRhL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 12:37:11 -0500
-Content-Disposition: inline
-In-Reply-To: <51126B2C.6080009@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49783 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758585Ab3CDRvs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Mar 2013 12:51:48 -0500
+In-Reply-To: <CALF0-+V3A-fL7q2nPRmcgnFKmzRt8KwSLuzrwzyyce6MqHjVpw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Mark Jackson <mpfj-list@mimc.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>
 
-* Jon Hunter <jon-hunter@ti.com> [130206 06:43]:
-> 
-> On 02/06/2013 08:15 AM, Mark Jackson wrote:
-> > When setting the GPMC device type, make sure any previous
-> > bits are cleared down, before applying the new setting.
-> > 
-> > Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
-> > ---
-> >  arch/arm/mach-omap2/gpmc.c |    4 ++++
-> >  1 file changed, 4 insertions(+)
-> > 
-> > diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> > index 1adb2d4..026e786 100644
-> > --- a/arch/arm/mach-omap2/gpmc.c
-> > +++ b/arch/arm/mach-omap2/gpmc.c
-> > @@ -613,6 +613,10 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
-> > 
-> >  	case GPMC_CONFIG_DEV_TYPE:
-> >  		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
-> > +		/* clear 3 target bits */
-> > +		regval &= ~(GPMC_CONFIG1_DEVICETYPE(3) |
-> > +			    GPMC_CONFIG1_MUXADDDATA);
-> 
-> MUXADDDATA is actually a 2-bit field on current devices (OMAP4+ and
-> AM335x). For OMAP2/3 devices it was only a one bit field. So it may be
-> worth clearing both bits for all devices. For OMAP2 devices bit 8 is
-> reserved but the TRM says to writes a 0, so clearing bit 8 on OMAP2/3
-> devices should not be a problem. In fact bit 8 should read as 0 on OMAP2/3.
-> 
-> > +		/* set the proper value */
-> >  		regval |= GPMC_CONFIG1_DEVICETYPE(wval);
-> >  		if (wval == GPMC_DEVICETYPE_NOR)
-> >  			regval |= GPMC_CONFIG1_MUXADDDATA;
-> > 
-> 
-> Otherwise ...
-> 
-> Acked-by: Jon Hunter <jon-hunter@ti.com>
 
-Mark, can you please repost this patch with Jon's comment addressed?
+On 03/04/2013 05:57 AM, Ezequiel Garcia wrote:
+> Hi Jon,
+> 
+> On Tue, Feb 26, 2013 at 2:30 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+>> +
+>> +Example:
+>> +
+>> +gpmc: gpmc@6e000000 {
+>> +       compatible = "ti,omap3430-gpmc", "simple-bus";
+> 
+> I'm concern about using simple-bus, and I'm not entirely sure this will work.
+> 
+> AFAIK, you can't correlate a parent-child relationship in the device tree
+> to the order in which drivers will be probed,
+> so it's only a matter of coincidence if this is working for you right now.
 
-Thanks,
+Ummm, I am not sure I am convinced. Have you looked at
+of_platform_bus_create() which creates the devices? It is clearly
+creating the child devices after creating the parent device.
 
-Tony
+> The GPMC code is in "arch/arm/mach-omap2", is located *before* the mtd code
+> in the Makefile, and thus the GPMC driver loads *before* the MTD code.
+
+But shouldn't it only matter in the order in which devices are
+registered? Unless you have a situation in which the devices are
+registered in order (parent then child) but only the driver for the
+child is registered before the parent and child devices are registered.
+I could see that being a problem.
+
+The only other thing that I can think of is if you happen to be creating
+a device both via device-tree and may be you are creating a duplicate
+device and calling platform_device_register() somewhere else in your code.
+
+> Morevore, I believe that when we move GPMC from arch/arm/mach-omap2
+> to drivers/memory where it should be, this 'simple-bus' will stop
+> working properly.
+
+Why? I don't see how the location of files would change this.
+
+> Of course, I can be wrong, but I think you will have to find some other way
+> to initialize the GPMC's childs.
+
+Well isn't this how device-tree is meant to work?
+
+It would be great if you could debug your problem and fully understand
+why this is not working for you, so we can see if there is a real
+problem here. Otherwise this appears to be just guess work.
+
+Jon
+
