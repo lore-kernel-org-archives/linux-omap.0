@@ -1,136 +1,118 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 11/15] ARM: OMAP5: PM: Add L2 memory power down support
-Date: Mon, 4 Mar 2013 12:41:52 -0600
-Message-ID: <20130304184152.GC14958@kahuna>
-References: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com>
- <1362139864-9233-12-git-send-email-santosh.shilimkar@ti.com>
- <20130301234355.GC23856@kahuna>
- <51319B32.3070106@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Latest randconfig build errors
+Date: Mon, 4 Mar 2013 10:46:50 -0800
+Message-ID: <20130304184649.GO11806@atomide.com>
+References: <20130304095136.GI17833@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52583 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932139Ab3CDSl6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Mar 2013 13:41:58 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51319B32.3070106@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20130304095136.GI17833@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Rob Clark <robdclark@gmail.com>, Felipe Balbi <balbi@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, arm@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org
 
-On 11:54-20130302, Santosh Shilimkar wrote:
-> On Saturday 02 March 2013 05:13 AM, Nishanth Menon wrote:
-> > On 17:41-20130301, Santosh Shilimkar wrote:
-> >> When the entire MPUSS cluster is powered down in device off state, L2 cache
-> >> memory looses it's content and hence while targetting such a state,
-> >> l2 cache needs to be flushed to main memory.
-> >>
-> >> Add the necessary low power code support for the same.
-> >>
-> >> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> >> ---
-> >>  arch/arm/mach-omap2/omap-secure.h     |    1 +
-> >>  arch/arm/mach-omap2/sleep_omap4plus.S |   30 ++++++++++++++++++++++++++++++
-> >>  2 files changed, 31 insertions(+)
-> >>
-> >> diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
-> >> index 1739468..a171a5a 100644
-> >> --- a/arch/arm/mach-omap2/omap-secure.h
-> >> +++ b/arch/arm/mach-omap2/omap-secure.h
-> >> @@ -47,6 +47,7 @@
-> >>  #define OMAP4_MON_L2X0_PREFETCH_INDEX	0x113
-> >>  #define OMAP5_MON_CACHES_CLEAN_INDEX	0x103
-> >>  #define OMAP5_MON_AUX_CTRL_INDEX	0x107
-> >> +#define OMAP5_MON_L2AUX_CTRL_INDEX	0x104
-> >>  
-> >>  #define OMAP5_MON_AMBA_IF_INDEX		0x108
-> >>  
-> >> diff --git a/arch/arm/mach-omap2/sleep_omap4plus.S b/arch/arm/mach-omap2/sleep_omap4plus.S
-> >> index f4874e5..ea318be 100644
-> >> --- a/arch/arm/mach-omap2/sleep_omap4plus.S
-> >> +++ b/arch/arm/mach-omap2/sleep_omap4plus.S
-> >> @@ -386,6 +386,27 @@ skip_secure_l1_clean_op:
-> >>  	isb
-> >>  	dsb
-> >>  
-> >> +	bl	omap4_get_sar_ram_base
-> >> +	mov	r8, r0
-> >> +	mrc	p15, 0, r5, c0, c0, 5		@ Read MPIDR
-> >> +	ands	r5, r5, #0x0f
-> >> +	ldreq	r0, [r8, #L2X0_SAVE_OFFSET0]	@ Retrieve L2 state
-> >> +	ldrne	r0, [r8, #L2X0_SAVE_OFFSET1]
-> >> +	cmp	r0, #3
-> > umm, we store l2x0_pwrst_prepare(cpu, save_state);
-> > which in turn stores into L2X0_SAVE_OFFSET - I am with you so far
-> > save_state in omap4_enter_lowpower is:
-> > PWRDM_POWER_INACTIVE: 0
-> > PWRDM_POWER_OFF: 1
-> > or 2 in the case of OSWR
-> > what is 3? ref:
-> > https://github.com/SantoshShilimkar/linux/blob/testing/3.10/omap5-int-rebuild/arch/arm/mach-omap2/omap-mpuss-lowpower.c#L298
-> This was obviosly for the case where L2 can be destroyed. As I said it can happen
-> with MPU OSWR + L2 OFF setting or device OFF. 
-Then please use macros for this.
-> 
-> >> +	bne	do_wfi
-> >> +	bl	omap4_get_sar_ram_base
-> >> +	ldr	r9, [r0, #OMAP_TYPE_OFFSET]
-> >> +	cmp	r9, #0x1			@ Check for HS device
-> > my 2c:
-> > off topic: somewhere down the line, I think we need to clear up these
-> > into macros so that as in this case, omap4_mpuss_init populated value
-> > should be the same as here with usage of same macro without reviewer
-> > needing to track down where it was set with what.
-> >
-> Patches welcome :)
-Sure as long as we don't add even more "magic handshakes to the code" it
-makes sense to cleanup older code.
-> 
->  
-> >> +	bne	skip_secure_l2_clean_op
-> >> +	mov	r0, #1				@ Clean secure L2
-> >> +	stmfd   r13!, {r4-r12, r14}
-> >> +	ldr	r12, =OMAP5_MON_CACHES_CLEAN_INDEX
-> >> +	DO_SMC
-> >> +	ldmfd   r13!, {r4-r12, r14}
-> >> +skip_secure_l2_clean_op:
-> >> +	mov	r0, #2				@ Flush L2
-> > v7_flush_dcache_all does not take parameters, right?
-> >> +	bl	v7_flush_dcache_all
-> >> +
-> >>  do_wfi:
-> >>  	bl	omap_do_wfi
-> >>  
-> >> @@ -427,6 +448,15 @@ ENTRY(omap5_cpu_resume)
-> >>  	dsb
-> >>  1:
-> >>  #endif
-> >> +	mrc	p15, 1, r0, c15, c0, 0		@ Read L2 ACTLR
-> >> +	cmp	r0, #0x118			@ Check if it is already set
-> > 
-> >> 	beq	skip_sec_l2
-> >> +	ldr	r0, =0x118			@ Setup L2 ACTLR = 0x118
-> >> +	ldr	r12, =OMAP5_MON_L2AUX_CTRL_INDEX
-> > I hope I am looking at the right place:
-> > http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0438g/BABIAICD.html
-> It is correct.
-> 
-> > 
-> > Is'nt it better to configure on boot, save it into SAR memory and restore it
-> > from SAR using monitor call? I mean it is possible that we start boot
-> > with L2 ACTLR != 0x118 and then hit off and come out of OFF mode with
-> > 0x118.
-> No need because it is more of re-initing the value rather than save/restore.
-> I should have used macro instead of value though.
-> 
-> btw. I might drop this special setting based on some experiments am doing
-> with benchmarks. Either case, if I keep the L2AUX code, I will use
-> a macro.
-Thanks. As long as it remains constant at boot and across OFF, it is
-fine with me.
+Hi Rob & Felipe,
 
--- 
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [130304 01:56]:
+> Last nights automated ARM build found the following errors with randconfig.
+> 
+> All information as usual at http://www.arm.linux.org.uk/developer/build/
+> 
+> 
+> Versatile randconfig:
+> 
+> ERROR: "irq_domain_add_simple" [drivers/gpio/gpio-em.ko] undefined!
+> 
+> OMAP4430 randconfig:
+> 
+> drivers/gpu/drm/tilcdc/tilcdc_slave.o:(.data+0x54): multiple definition of `__mod_of_device_table'
+> drivers/gpu/drm/tilcdc/tilcdc_tfp410.o:(.data+0x54): first defined here
+> drivers/gpu/drm/tilcdc/tilcdc_panel.o:(.data+0x54): multiple definition of `__mod_of_device_table'
+> drivers/gpu/drm/tilcdc/tilcdc_tfp410.o:(.data+0x54): first defined here
+> drivers/gpu/drm/tilcdc/tilcdc_drv.o:(.data+0x184): multiple definition of `__mod_of_device_table'
+> drivers/gpu/drm/tilcdc/tilcdc_tfp410.o:(.data+0x54): first defined here
+
+Rob, I assume you'll do a patch for this one?
+
+> drivers/tty/serial/8250/8250.c:57:32: error: 'CONFIG_SERIAL_8250_RUNTIME_UARTS' undeclared here (not in a function)
+> drivers/tty/serial/8250/8250.c:2712:47: error: 'CONFIG_SERIAL_8250_NR_UARTS' undeclared here (not in a function)
+> drivers/tty/serial/8250/8250.c:2971:95: error: negative width in bit-field '<anonymous>' 
+
+The patch below fixes the 8250 related issue by removing the
+selects from Kconfig and adding them to omap2plus_defconfig.
+ 
+> The last three are caused by incorrect use of 'select':
+> 
+> warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3 && MWAVE) selects SERIAL_8250 which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS)
+> warning: (USB_MUSB_HDRC) selects TWL4030_USB which has unmet direct dependencies (USB_SUPPORT && (USB || USB_GADGET) && TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS)
+> warning: (USB_MUSB_HDRC) selects TWL6030_USB which has unmet direct dependencies (USB_SUPPORT && (USB || USB_GADGET) && TWL4030_CORE && OMAP_USB2 && USB_MUSB_OMAP2PLUS)
+> warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3) selects SERIAL_8250_CONSOLE which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS && SERIAL_8250=y)
+> warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3) selects SERIAL_CORE_CONSOLE which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS)
+> warning: (VIDEO_DM6446_CCDC && VIDEO_DM355_CCDC && VIDEO_ISIF && VIDEO_DAVINCI_VPBE_DISPLAY) selects VIDEO_VPSS_SYSTEM which has unmet direct dependencies (MEDIA_SUPPORT && V4L_PLATFORM_DRIVERS && ARCH_DAVINCI)
+> warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3 && MWAVE) selects SERIAL_8250 which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS)
+> warning: (USB_MUSB_HDRC) selects TWL4030_USB which has unmet direct dependencies (USB_SUPPORT && (USB || USB_GADGET) && TWL4030_CORE && OMAP_USB2 && USB_MUSB_OMAP2PLUS)
+> warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3) selects SERIAL_8250_CONSOLE which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS && SERIAL_8250=y)
+> warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3) selects SERIAL_CORE_CONSOLE which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS)
+> warning: (VIDEO_DM6446_CCDC && VIDEO_DM355_CCDC && VIDEO_ISIF && VIDEO_DAVINCI_VPBE_DISPLAY) selects VIDEO_VPSS_SYSTEM which has unmet direct dependencies (MEDIA_SUPPORT && V4L_PLATFORM_DRIVERS && ARCH_DAVINCI)
+> 
+> This 'select' madness of driver symbols *HAS* *TO* *STOP*.
+
+Felipe, can you take a look at removing the MUSB selects from Kconfig?
+You might be able to just have MUSB depends on TWL if omap.
+
 Regards,
-Nishanth Menon
+
+Tony
+
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 4 Mar 2013 10:28:21 -0800
+Subject: [PATCH] ARM: OMAP2+: Fix unmet direct dependencies for zoom for 8250 serial
+
+We should not select drivers from kconfig as they should by default
+be optional. Otherwise we'll be chasing broken dependencies forever:
+
+warning: (MACH_OMAP_ZOOM2 && MACH_OMAP_ZOOM3 && MWAVE) selects SERIAL_8250
+which has unmet direct dependencies (TTY && HAS_IOMEM && GENERIC_HARDIRQS)
+
+Fix the issue by removing the selects for zoom and add them to
+omap2plus_defconfig.
+
+Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -126,6 +126,8 @@ CONFIG_INPUT_MISC=y
+ CONFIG_INPUT_TWL4030_PWRBUTTON=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+ # CONFIG_LEGACY_PTYS is not set
++CONFIG_SERIAL_8250=y
++CONFIG_SERIAL_8250_CONSOLE=y
+ CONFIG_SERIAL_8250_NR_UARTS=32
+ CONFIG_SERIAL_8250_EXTENDED=y
+ CONFIG_SERIAL_8250_MANY_PORTS=y
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -311,9 +311,6 @@ config MACH_OMAP_ZOOM2
+ 	default y
+ 	select OMAP_PACKAGE_CBB
+ 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
+-	select SERIAL_8250
+-	select SERIAL_8250_CONSOLE
+-	select SERIAL_CORE_CONSOLE
+ 
+ config MACH_OMAP_ZOOM3
+ 	bool "OMAP3630 Zoom3 board"
+@@ -321,9 +318,6 @@ config MACH_OMAP_ZOOM3
+ 	default y
+ 	select OMAP_PACKAGE_CBP
+ 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
+-	select SERIAL_8250
+-	select SERIAL_8250_CONSOLE
+-	select SERIAL_CORE_CONSOLE
+ 
+ config MACH_CM_T35
+ 	bool "CompuLab CM-T35/CM-T3730 modules"
