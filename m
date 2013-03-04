@@ -1,32 +1,27 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ARM: OMAP1: Fix build related to kgdb.h no longer including serial_8250.h
-Date: Mon, 4 Mar 2013 20:32:50 +0000
-Message-ID: <201303042032.50856.arnd@arndb.de>
-References: <20130211224600.GB4801@atomide.com> <20130304190238.GU11806@atomide.com>
+Subject: Re: Latest randconfig build errors
+Date: Mon, 4 Mar 2013 20:34:43 +0000
+Message-ID: <201303042034.43833.arnd@arndb.de>
+References: <20130304095136.GI17833@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:51650 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932185Ab3CDUcz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 15:32:55 -0500
-In-Reply-To: <20130304190238.GU11806@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130304095136.GI17833@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, arm@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Monday 04 March 2013, Tony Lindgren wrote:
-> > Arnd & Olof, can you please apply this to your non-critical fixes
-> > or some other branch that gets merged early on during the merge
-> > window?
+On Monday 04 March 2013, Russell King - ARM Linux wrote:
+
+> Versatile randconfig:
 > 
-> I'll apply this into omap-for-v3.9-rc1/fixes.
+> ERROR: "irq_domain_add_simple" [drivers/gpio/gpio-em.ko] undefined!
 > 
 
-I totally missed this one from you, and I have a couple more such
-fixes for OMAP1 (and others) that I'll try to send out ASAP.
+I'm pretty sure I submitted a patch for this one before. I'll go looking
+for it. IIRC the solution was to export that symbol.
 
 	Arnd
