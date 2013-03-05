@@ -1,57 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 3.8 -> 3.9-rc1 upgrade: old configs broken
-Date: Mon, 4 Mar 2013 16:35:28 -0800
-Message-ID: <20130305003527.GK1622@atomide.com>
-References: <20130304232252.GA14552@blackmetal.musicnaut.iki.fi>
+From: =?UTF-8?Q?Andreas_M=C3=BCller?= <schnitzeltony@googlemail.com>
+Subject: Re: [PATCH] board-overo.c: enable TWL4030 power off
+Date: Tue, 5 Mar 2013 09:09:53 +0100
+Message-ID: <CALbNGRTcu-xozY_h4wqjXJkW6wX-ba65d9oA52TbRNv08gG=cQ@mail.gmail.com>
+References: <1362055461-27154-1-git-send-email-schnitzeltony@googlemail.com>
+	<20130304190035.GT11806@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:42575 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932575Ab3CEAfb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Mar 2013 19:35:31 -0500
-Content-Disposition: inline
-In-Reply-To: <20130304232252.GA14552@blackmetal.musicnaut.iki.fi>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:47796 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913Ab3CEIJy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 03:09:54 -0500
+Received: by mail-vc0-f174.google.com with SMTP id n11so3925447vch.5
+        for <linux-omap@vger.kernel.org>; Tue, 05 Mar 2013 00:09:53 -0800 (PST)
+In-Reply-To: <20130304190035.GT11806@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, steve@sakoman.com, Ash Charles <ash@gumstix.com>
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [130304 15:26]:
-> Hi,
-> 
-> How should I upgrade my .config files when upgrading to 3.9-rc1?
-> 
-> So far I have been doing it like this:
-> 
-> 	cp <old config from previous kernel release> .config
-> 	make ARCH=arm oldnoconfig
-> 	<compile>
-> 
-> But now I see that none of my boards boot up... Except OMAP1 (well, after
-> fixing the build issues). I believe this is because ARCH_MULTIPLATFORM
-> changes. I can always redo my configs with menuconfig, it's a PITA job...
-> 
-> So I guess .config files are not supposed to be upwards compatible?
+On Mon, Mar 4, 2013 at 8:00 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Andreas M=C3=BCller <schnitzeltony@googlemail.com> [130228 04:50]:
+>
+> Can you please add a description here? Preferrably something
+> like "With commit XYZ overo poweroff stopped working. Fix this
+> by blah blah blah" so this can be queued as a fix.
+>
+> Regards,
+>
+> Tony
+>
+>> Signed-off-by: Andreas M=C3=BCller <schnitzeltony@googlemail.com>
+>> ---
+>>  arch/arm/mach-omap2/board-overo.c |    5 +++++
+>>  1 files changed, 5 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2=
+/board-overo.c
+>> index 86bab51..b975c72 100644
+>> --- a/arch/arm/mach-omap2/board-overo.c
+>> +++ b/arch/arm/mach-omap2/board-overo.c
+>> @@ -418,9 +418,14 @@ static struct regulator_init_data overo_vmmc1 =3D=
+ {
+>>       .consumer_supplies      =3D overo_vmmc1_supply,
+>>  };
+>>
+>> +static struct twl4030_power_data overo_power_data =3D {
+>> +     .use_poweroff   =3D true,
+>> +};
+>> +
+>>  static struct twl4030_platform_data overo_twldata =3D {
+>>       .gpio           =3D &overo_gpio_data,
+>>       .vmmc1          =3D &overo_vmmc1,
+>> +     .power          =3D &overo_power_data,
+>>  };
+>>
+>>  static int __init overo_i2c_init(void)
+>> --
+AFAIK this has never been implemented mainline. Up to now I used a
+patch from Steve Sakoman implementing the commands for TWL to shut
+down - but this was never sent here and is no more required with TWL
+framework.
 
-Well in this case you need to update your config files by adding
-the following manually to your .config:
+I will send V2 with more descriptive commit message till end of week.
 
-CONFIG_ARCH_MULTIPLATFORM=y
-CONFIG_ARCH_MULTI_V7=y
-CONFIG_ARCH_OMAP2PLUS=y
-
-And maybe also:
-
-CONFIG_ARCH_MULTI_V6=y
-
-That's because after the multiplatform Kconfig changes we cannot
-select omap2+ automatically as that would not be nice for the
-other arm architectures.
-
-Then if using uImage, you need to define LOADADDR in the
-environment when building. Or run mkimage manually.
-
-Regards,
-
-Tony
+Andreas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
