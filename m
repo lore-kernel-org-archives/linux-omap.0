@@ -1,16 +1,16 @@
 From: kishon <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/4] usb: dwc3: dwc3-omap: set dma_mask for dwc3 inorder
- for host mode to work
-Date: Tue, 5 Mar 2013 20:29:34 +0530
-Message-ID: <51360856.8030306@ti.com>
+Subject: Re: [PATCH 2/4] usb: dwc3: dwc3-omap: return -EPROBE_DEFER if probe
+ has not yet executed
+Date: Tue, 5 Mar 2013 20:31:58 +0530
+Message-ID: <513608E6.3010502@ti.com>
 References: <1362493320-13913-1-git-send-email-kishon@ti.com>
- <1362493320-13913-2-git-send-email-kishon@ti.com>
- <20130305145458.GF12123@arwen.pp.htv.fi>
+ <1362493320-13913-3-git-send-email-kishon@ti.com>
+ <20130305145645.GG12123@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20130305145458.GF12123-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+In-Reply-To: <20130305145645.GG12123-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
  <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
@@ -27,55 +27,49 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Tuesday 05 March 2013 08:24 PM, Felipe Balbi wrote:
-> On Tue, Mar 05, 2013 at 07:51:57PM +0530, Kishon Vijay Abraham I wrote:
->> While creating the child devices, *of_platform_populate* sets only
->> coherent_dma_mask but USBHCD sets *uses_dma* (determines whether the
->> controller is DMA'able) based on dma_mask. So If we haven't explicitly set
->> dma_mask, the HCD thinks the controller is not DMA'able and the
->> controller will fail. So explicity set dma_mask for dwc3 after
->> *of_platform_populate*.
+On Tuesday 05 March 2013 08:26 PM, Felipe Balbi wrote:
+> On Tue, Mar 05, 2013 at 07:51:58PM +0530, Kishon Vijay Abraham I wrote:
+>> return -EPROBE_DEFER from dwc3_omap_mailbox in dwc3-omap.c, if the probe of
+>> dwc3-omap has not yet been executed or failed.
 >>
 >> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 >> ---
->>   drivers/usb/dwc3/dwc3-omap.c |   10 ++++++++++
->>   1 file changed, 10 insertions(+)
+>>   drivers/usb/dwc3/dwc3-omap.c  |    7 +++++--
+>>   include/linux/usb/dwc3-omap.h |    6 +++---
+>>   2 files changed, 8 insertions(+), 5 deletions(-)
 >>
 >> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
->> index 35b9673..19c6e72 100644
+>> index 19c6e72..9428f4e 100644
 >> --- a/drivers/usb/dwc3/dwc3-omap.c
 >> +++ b/drivers/usb/dwc3/dwc3-omap.c
->> @@ -277,6 +277,14 @@ static void dwc3_omap_disable_irqs(struct dwc3_omap *omap)
->>   	dwc3_omap_writel(omap->base, USBOTGSS_IRQENABLE_SET_0, 0x00);
+>> @@ -138,11 +138,14 @@ static inline void dwc3_omap_writel(void __iomem *base, u32 offset, u32 value)
+>>   	writel(value, base + offset);
 >>   }
 >>
->> +static u64 dwc3_omap_dma_mask = DMA_BIT_MASK(32);
->> +
->> +static int dwc3_omap_set_dmamask(struct device *dev, void *c)
->> +{
->> +	dev->dma_mask = &dwc3_omap_dma_mask;
->> +	return 0;
->> +}
->> +
->>   static int dwc3_omap_probe(struct platform_device *pdev)
+>> -void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
+>> +int dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
 >>   {
->>   	struct device_node	*node = pdev->dev.of_node;
->> @@ -381,6 +389,8 @@ static int dwc3_omap_probe(struct platform_device *pdev)
->>   		return ret;
+>>   	u32			val;
+>>   	struct dwc3_omap	*omap = _omap;
+>>
+>> +	if (!omap)
+>> +		return -EPROBE_DEFER;
+>> +
+>>   	switch (status) {
+>>   	case OMAP_DWC3_ID_GROUND:
+>>   		dev_dbg(omap->dev, "ID GND\n");
+>> @@ -185,7 +188,7 @@ void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
+>>   		dev_dbg(omap->dev, "ID float\n");
 >>   	}
 >>
->> +	device_for_each_child(&pdev->dev, NULL, dwc3_omap_set_dmamask);
+>> -	return;
+>> +	return IRQ_HANDLED;
 >
-> I don't think this is correct. Child should be setting its own by
-> copying from parent. In summary I think we should add this to dwc3 core:
->
-> dma_set_coherent_mask(&pdev->dev, pdev->dev.parent->coherent_dma_mask);
-> pdev->dev.dma_mask = pdev->dev.parent->dma_mask;
-> pdev->dev.dma_parms = pdev->dev.parent->dma_parms;
->
-> And add the same thing to xhci-plat.c btw.
+> IRQ_HANDLED ????
 
-hmm.. ok.
+Actually I did it that way since palmas_vbus_wakeup_irq can directly 
+return the return value from dwc3_omap_mailbox. If this seems hacky to 
+you, I'll change it.
 
 Thanks
 Kishon
