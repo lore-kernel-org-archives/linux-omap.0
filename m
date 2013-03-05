@@ -1,103 +1,69 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 5/9] ARM: omap1: add back missing includes
-Date: Tue,  5 Mar 2013 23:16:45 +0100
-Message-ID: <1362521809-22989-6-git-send-email-arnd@arndb.de>
-References: <1362521809-22989-1-git-send-email-arnd@arndb.de>
+Subject: [PATCH 0/9] fixes for ARM build regressions in 3.9-rc1
+Date: Tue,  5 Mar 2013 23:16:40 +0100
+Message-ID: <1362521809-22989-1-git-send-email-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362521809-22989-1-git-send-email-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@linux-foundation.org>, Bill Pemberton <wfp5p@virginia.edu>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, Kukjin Kim <kgene.kim@samsung.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Mike Turquette <mturquette@linaro.org>, Tony Lindgren <tony@atomide.com>, Tony Prisk <linux@prisktech.co.nz>, Viresh Kumar <viresh.kumar@linaro.org>, iommu@lists.linux-foundation.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The recent reorganization of OMAP header files caused a couple of
-files that used to be implicitly included now missing from OMAP1.
-This adds explicit inclusions of mach/irqs.h and mach/hardware.h
-in all files that need them for an OMAP1 allyesconfig build.
+This is the result of my my build tests on 3.9-rc1, mostly bugs
+that I had not caught before the merge window, or where the fix
+for some reason has not yet made it in.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+I hope the subsystem maintainers can take care of applying these,
+for the arch/arm/mach-* patches I can either apply them directly
+to the arm-soc tree with an Ack or do a round-trip through
+the platform maintainer tree. I think Tony already has some of
+the OMAP1 fixes, so we should try not to duplicate them.
+
+	Arnd
+
+Arnd Bergmann (9):
+  clk: vt8500: Fix "fix device clock divisor calculations"
+  Revert parts of "hlist: drop the node parameter from iterators"
+  mfd: remove __exit_p annotation for twl4030_madc_remove
+  usb: gadget: fix omap_udc build errors
+  ARM: omap1: add back missing includes
+  [media] ir-rx51: fix clock API related build issues
+  [media] s5p-fimc: fix s5pv210 build
+  iommu: OMAP: build only on OMAP2+
+  ARM: spear3xx: Use correct pl080 header file
+
+ arch/arm/mach-omap1/board-fsample.c  |  1 +
+ arch/arm/mach-omap1/board-h2.c       |  1 +
+ arch/arm/mach-omap1/board-perseus2.c |  1 +
+ arch/arm/mach-omap1/board-sx1.c      |  1 +
+ arch/arm/mach-s5pv210/mach-goni.c    |  2 +-
+ arch/arm/mach-spear3xx/spear3xx.c    |  2 +-
+ arch/arm/plat-omap/dmtimer.c         | 16 ++++++++--------
+ drivers/clk/clk-vt8500.c             |  2 +-
+ drivers/iommu/Kconfig                |  2 +-
+ drivers/media/rc/ir-rx51.c           |  4 ++--
+ drivers/mfd/twl4030-madc.c           |  2 +-
+ drivers/usb/gadget/omap_udc.c        |  3 ++-
+ drivers/video/omap/lcd_ams_delta.c   |  1 +
+ drivers/video/omap/lcd_osk.c         |  1 +
+ kernel/smpboot.c                     |  2 +-
+ net/9p/trans_virtio.c                |  2 +-
+ 16 files changed, 25 insertions(+), 18 deletions(-)
+
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Bill Pemberton <wfp5p@virginia.edu>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mike Turquette <mturquette@linaro.org>
 Cc: Tony Lindgren <tony@atomide.com>
+Cc: Tony Prisk <linux@prisktech.co.nz>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: iommu@lists.linux-foundation.org
+Cc: linux-media@vger.kernel.org
 Cc: linux-omap@vger.kernel.org
----
- arch/arm/mach-omap1/board-fsample.c  | 1 +
- arch/arm/mach-omap1/board-h2.c       | 1 +
- arch/arm/mach-omap1/board-perseus2.c | 1 +
- arch/arm/mach-omap1/board-sx1.c      | 1 +
- drivers/video/omap/lcd_ams_delta.c   | 1 +
- drivers/video/omap/lcd_osk.c         | 1 +
- 6 files changed, 6 insertions(+)
 
-diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
-index 702d580..512b33a 100644
---- a/arch/arm/mach-omap1/board-fsample.c
-+++ b/arch/arm/mach-omap1/board-fsample.c
-@@ -33,6 +33,7 @@
- #include <linux/platform_data/keypad-omap.h>
- 
- #include <mach/hardware.h>
-+#include <mach/irqs.h>
- 
- #include "iomap.h"
- #include "common.h"
-diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-index 0dac3d2..99ee4d7 100644
---- a/arch/arm/mach-omap1/board-h2.c
-+++ b/arch/arm/mach-omap1/board-h2.c
-@@ -47,6 +47,7 @@
- 
- #include <mach/hardware.h>
- #include <mach/usb.h>
-+#include <mach/irqs.h>
- 
- #include "common.h"
- #include "board-h2.h"
-diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
-index 8b2f712..403efcc 100644
---- a/arch/arm/mach-omap1/board-perseus2.c
-+++ b/arch/arm/mach-omap1/board-perseus2.c
-@@ -31,6 +31,7 @@
- #include <mach/tc.h>
- #include <mach/mux.h>
- #include <mach/flash.h>
-+#include <mach/irqs.h>
- 
- #include <mach/hardware.h>
- 
-diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
-index 9732a98..b31e77c 100644
---- a/arch/arm/mach-omap1/board-sx1.c
-+++ b/arch/arm/mach-omap1/board-sx1.c
-@@ -43,6 +43,7 @@
- 
- #include <mach/hardware.h>
- #include <mach/usb.h>
-+#include <mach/irqs.h>
- 
- #include "common.h"
- #include "dma.h"
-diff --git a/drivers/video/omap/lcd_ams_delta.c b/drivers/video/omap/lcd_ams_delta.c
-index ed4cad8..7539276 100644
---- a/drivers/video/omap/lcd_ams_delta.c
-+++ b/drivers/video/omap/lcd_ams_delta.c
-@@ -28,6 +28,7 @@
- #include <linux/gpio.h>
- 
- #include <mach/board-ams-delta.h>
-+#include <mach/hardware.h>
- 
- #include "omapfb.h"
- 
-diff --git a/drivers/video/omap/lcd_osk.c b/drivers/video/omap/lcd_osk.c
-index 3aa62da..cad2338 100644
---- a/drivers/video/omap/lcd_osk.c
-+++ b/drivers/video/omap/lcd_osk.c
-@@ -25,6 +25,7 @@
- 
- #include <asm/gpio.h>
- #include <mach/mux.h>
-+#include <mach/hardware.h>
- #include "omapfb.h"
- 
- static int osk_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+
 -- 
 1.8.1.2
