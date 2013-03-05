@@ -1,56 +1,177 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 7/8] ARM: dts: omap5: add dwc3 omap dt data
-Date: Tue, 5 Mar 2013 20:07:02 +0530
-Message-ID: <1362494223-14151-8-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 3/8] ARM: dts: omap: Add usb_otg and glue data
+Date: Tue, 5 Mar 2013 20:06:58 +0530
+Message-ID: <1362494223-14151-4-git-send-email-kishon@ti.com>
 References: <1362494223-14151-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1362494223-14151-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1362494223-14151-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add dwc3 omap glue data to the omap5 dt data file. The information about
-the dt node added here is available @
+Add usb otg data node in omap4/omap3 device tree file. Also update
+the node with board specific setting in omapx-<board>.dts file.
+The dt data specifies among others the interface type (ULPI or UTMI), mode
+which is mostly OTG, power that specifies the amount of power this can supply
+when in host mode.
+The information about usb otg node is available @
 Documentation/devicetree/bindings/usb/omap-usb.txt
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/omap5.dtsi |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/devicetree/bindings/usb/omap-usb.txt |    1 +
+ arch/arm/boot/dts/omap3-beagle-xm.dts              |    6 ++++++
+ arch/arm/boot/dts/omap3-evm.dts                    |    6 ++++++
+ arch/arm/boot/dts/omap3-overo.dtsi                 |    6 ++++++
+ arch/arm/boot/dts/omap3.dtsi                       |   12 ++++++++++++
+ arch/arm/boot/dts/omap4-panda.dts                  |    6 ++++++
+ arch/arm/boot/dts/omap4-sdp.dts                    |    6 ++++++
+ arch/arm/boot/dts/omap4.dtsi                       |   13 +++++++++++++
+ arch/arm/boot/dts/twl4030.dtsi                     |    2 +-
+ 9 files changed, 57 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index bd73257..c4eb2ec 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -505,6 +505,17 @@
- 			ti,type = <2>;
- 		};
+diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
+index b198935..4af63b5 100644
+--- a/Documentation/devicetree/bindings/usb/omap-usb.txt
++++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+@@ -18,6 +18,7 @@ OMAP MUSB GLUE
+    represents PERIPHERAL.
+  - power : Should be "50". This signifies the controller can supply upto
+    100mA when operating in host mode.
++ - usb-phy : the phandle for the PHY device
  
-+		omap_dwc3@4a020000 {
-+			compatible = "ti,dwc3";
-+			ti,hwmods = "usb_otg_ss";
-+			reg = <0x4a020000 0x1000>;
-+			interrupts = <0 93 4>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			utmi-mode = <2>;
-+			ranges;
-+		};
+ Optional properties:
+  - ctrl-module : phandle of the control module this glue uses to write to
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+index 3705a81..5f8226a 100644
+--- a/arch/arm/boot/dts/omap3-beagle-xm.dts
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+@@ -107,3 +107,9 @@
+ 	 */
+ 	ti,pulldowns = <0x03a1c4>;
+ };
 +
- 		ocp2scp {
- 			compatible = "ti,omap-ocp2scp";
- 			#address-cells = <1>;
++&usb_otg_hs {
++	interface-type = <0>;
++	mode = <3>;
++	power = <50>;
++};
+diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
+index e8ba1c2..6e6f80d 100644
+--- a/arch/arm/boot/dts/omap3-evm.dts
++++ b/arch/arm/boot/dts/omap3-evm.dts
+@@ -59,3 +59,9 @@
+ &twl_gpio {
+ 	ti,use-leds;
+ };
++
++&usb_otg_hs {
++	interface-type = <0>;
++	mode = <3>;
++	power = <50>;
++};
+diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
+index 89808ce..e3979b1 100644
+--- a/arch/arm/boot/dts/omap3-overo.dtsi
++++ b/arch/arm/boot/dts/omap3-overo.dtsi
+@@ -55,3 +55,9 @@
+ &twl_gpio {
+ 	ti,use-leds;
+ };
++
++&usb_otg_hs {
++	interface-type = <0>;
++	mode = <3>;
++	power = <50>;
++};
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 1acc261..1e21565 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -397,5 +397,17 @@
+ 			ti,timer-alwon;
+ 			ti,timer-secure;
+ 		};
++
++		usb_otg_hs: usb_otg_hs@480ab000 {
++			compatible = "ti,omap3-musb";
++			reg = <0x480ab000 0x1000>;
++			interrupts = <0 92 0x4>, <0 93 0x4>;
++			interrupt-names = "mc", "dma";
++			ti,hwmods = "usb_otg_hs";
++			usb-phy = <&usb2_phy>;
++			multipoint = <1>;
++			num-eps = <16>;
++			ram-bits = <12>;
++		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index 4122efe..6531f75 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -206,3 +206,9 @@
+ &twl_usb_comparator {
+ 	usb-supply = <&vusb>;
+ };
++
++&usb_otg_hs {
++	interface-type = <1>;
++	mode = <3>;
++	power = <50>;
++};
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 43e5258..f3adbf51 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -428,3 +428,9 @@
+ &twl_usb_comparator {
+ 	usb-supply = <&vusb>;
+ };
++
++&usb_otg_hs {
++	interface-type = <1>;
++	mode = <3>;
++	power = <50>;
++};
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index c829d7e..06d044e 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -542,5 +542,18 @@
+ 			reg-names = "control_dev_conf", "otghs_control";
+ 			ti,type = <1>;
+ 		};
++
++		usb_otg_hs: usb_otg_hs@4a0ab000 {
++			compatible = "ti,omap4-musb";
++			reg = <0x4a0ab000 0x7ff>;
++			interrupts = <0 92 0x4>, <0 93 0x4>;
++			interrupt-names = "mc", "dma";
++			ti,hwmods = "usb_otg_hs";
++			usb-phy = <&usb2_phy>;
++			multipoint = <1>;
++			num-eps = <16>;
++			ram-bits = <12>;
++			ti,has-mailbox;
++		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
+index ed0bc95..398d2c3 100644
+--- a/arch/arm/boot/dts/twl4030.dtsi
++++ b/arch/arm/boot/dts/twl4030.dtsi
+@@ -67,7 +67,7 @@
+ 		#interrupt-cells = <1>;
+ 	};
+ 
+-	twl4030-usb {
++	usb2_phy: twl4030-usb {
+ 		compatible = "ti,twl4030-usb";
+ 		interrupts = <10>, <4>;
+ 		usb1v5-supply = <&vusb1v5>;
 -- 
 1.7.10.4
