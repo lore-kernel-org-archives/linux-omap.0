@@ -1,43 +1,50 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 1/8] ARM: dts: omap: Add omap control usb data
-Date: Tue, 5 Mar 2013 20:06:56 +0530
-Message-ID: <1362494223-14151-2-git-send-email-kishon@ti.com>
-References: <1362494223-14151-1-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 0/8] ARM: dts: omap: Add dts data for USB
+Date: Tue, 5 Mar 2013 20:06:55 +0530
+Message-ID: <1362494223-14151-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362494223-14151-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add omap control usb data in omap4 device tree file. This will have the
-register address of registers to power on the PHY and to write to
-mailbox. The information about this data node is available @
-Documentation/devicetree/bindings/usb/omap-usb.txt
+Hi Benoit,
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/boot/dts/omap4.dtsi |    8 ++++++++
- 1 file changed, 8 insertions(+)
+Here are the dt data patches to get usb device functional in OMAP platforms.
+This series applies cleanly in both for_3.9/dts and 3.8-rc6.
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 739bb79..ffc7352 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -529,5 +529,13 @@
- 			ti,hwmods = "timer11";
- 			ti,timer-pwm;
- 		};
-+
-+		omap_control_usb: omap-control-usb@4a002300 {
-+			compatible = "ti,omap-control-usb";
-+			reg = <0x4a002300 0x4>,
-+			      <0x4a00233c 0x4>;
-+			reg-names = "control_dev_conf", "otghs_control";
-+			ti,type = <1>;
-+		};
- 	};
- };
+All the patches deal with modifying arch/arm/boot except one which modifies
+Documentation/../usb/omap-usb.txt
+
+Changes from v1:
+
+Patch *ARM: dts: omap: Add usb_otg and glue data* has some properties with
+names that has "_". It's replaced with a "-" here.
+
+This patch is developed on Linux 3.9-rc1.
+
+Kishon Vijay Abraham I (8):
+  ARM: dts: omap: Add omap control usb data
+  ARM: dts: omap: Add omap-usb2 dt data
+  ARM: dts: omap: Add usb_otg and glue data
+  ARM: dts: omap5: Add omap control usb data
+  ARM: dts: omap5: Add ocp2scp data
+  ARM: dts: omap5: Add omap-usb3 and omap-usb2 dt data
+  ARM: dts: omap5: add dwc3 omap dt data
+  ARM: dts: omap5: add dwc3 core dt data
+
+ Documentation/devicetree/bindings/usb/omap-usb.txt |    1 +
+ arch/arm/boot/dts/omap3-beagle-xm.dts              |    6 +++
+ arch/arm/boot/dts/omap3-evm.dts                    |    6 +++
+ arch/arm/boot/dts/omap3-overo.dtsi                 |    6 +++
+ arch/arm/boot/dts/omap3.dtsi                       |   12 +++++
+ arch/arm/boot/dts/omap4-panda.dts                  |    6 +++
+ arch/arm/boot/dts/omap4-sdp.dts                    |    6 +++
+ arch/arm/boot/dts/omap4.dtsi                       |   26 +++++++++++
+ arch/arm/boot/dts/omap5.dtsi                       |   48 ++++++++++++++++++++
+ arch/arm/boot/dts/twl4030.dtsi                     |    2 +-
+ 10 files changed, 118 insertions(+), 1 deletion(-)
+
 -- 
 1.7.10.4
