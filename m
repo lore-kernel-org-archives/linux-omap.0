@@ -1,84 +1,72 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: [PATCH 11/14] ARM: OMAP2+: Add device-tree support for NOR flash
-Date: Tue, 05 Mar 2013 16:20:22 +0000
-Message-ID: <51361B46.507@mimc.co.uk>
-References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com> <1361899842-30303-12-git-send-email-jon-hunter@ti.com> <51360271.1030302@mimc.co.uk> <51360562.20309@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: RX-51: add missing USB phy binding
+Date: Tue, 5 Mar 2013 08:26:17 -0800
+Message-ID: <20130305162616.GA11806@atomide.com>
+References: <1362481780-11018-1-git-send-email-aaro.koskinen@iki.fi>
+ <20130305113618.GB19290@arwen.pp.htv.fi>
+ <5135DA02.8070801@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:37087 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752404Ab3CEQUY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 11:20:24 -0500
-In-Reply-To: <51360562.20309@ti.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:44612 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754928Ab3CEQ0W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 11:26:22 -0500
+Content-Disposition: inline
+In-Reply-To: <5135DA02.8070801@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>
+To: kishon <kishon@ti.com>
+Cc: balbi@ti.com, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 05/03/13 14:46, Jon Hunter wrote:
+* kishon <kishon@ti.com> [130305 03:46]:
+> On Tuesday 05 March 2013 05:06 PM, Felipe Balbi wrote:
+> >On Tue, Mar 05, 2013 at 01:09:40PM +0200, Aaro Koskinen wrote:
+> >>Commit 51482be9 (ARM: OMAP: USB: Add phy binding information) forgot to
+> >>add phy binding for RX-51, and as a result USB does not work anymore on
+> >>3.9-rc1. Add the missing binding.
+> >>
+> >>Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> >
+> >Acked-by: Felipe Balbi <balbi@ti.com>
+> Reviewed-by: Kishon Vijay Abraham I <kishon@ti.com>
+
+Thanks, applying into omap-for-v3.9-rc1/fixes.
+
+Regards,
+
+Tony
+
+> >>---
+> >>  arch/arm/mach-omap2/board-rx51.c |    2 ++
+> >>  1 file changed, 2 insertions(+)
+> >>
+> >>diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+> >>index f7c4616..d2ea68e 100644
+> >>--- a/arch/arm/mach-omap2/board-rx51.c
+> >>+++ b/arch/arm/mach-omap2/board-rx51.c
+> >>@@ -17,6 +17,7 @@
+> >>  #include <linux/io.h>
+> >>  #include <linux/gpio.h>
+> >>  #include <linux/leds.h>
+> >>+#include <linux/usb/phy.h>
+> >>  #include <linux/usb/musb.h>
+> >>  #include <linux/platform_data/spi-omap2-mcspi.h>
+> >>
+> >>@@ -98,6 +99,7 @@ static void __init rx51_init(void)
+> >>  	sdrc_params = nokia_get_sdram_timings();
+> >>  	omap_sdrc_init(sdrc_params, sdrc_params);
+> >>
+> >>+	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
+> >>  	usb_musb_init(&musb_board_data);
+> >>  	rx51_peripherals_init();
+> >>
+> >>--
+> >>1.7.10.4
+> >>
+> >>--
+> >>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> >>the body of a message to majordomo@vger.kernel.org
+> >>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
 > 
-> On 03/05/2013 08:34 AM, Mark Jackson wrote:
->> On 26/02/13 17:30, Jon Hunter wrote:
->>> NOR flash is not currently supported when booting with device-tree
->>> on OMAP2+ devices. Add support to detect and configure NOR devices
->>> when booting with device-tree.
->>>
->>> Add documentation for the TI GPMC NOR binding.
->>>
->>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->>
->> I'm trying to test this series, and am unable get my NOR device recognised.
->>
->> If I remove all reference to NOR (and keep only my NAND device definition), then
->> everything seems to boot fine (so I'm assuming I've got at least the basics of
->> the patch set working).
->>
->> My GPMC tree looks like this:-
-
-<snip>
-
->> 	nor@1,0 {
->> 		reg = <3 0x00000000 0x04000000>;
->> 		compatible = "cfi-flash";
->> 		linux,mtd-name = "spansion,s29gl064n90t";
->> 		bank-width = <2>;
->>
->> 		gpmc,device-width = <1>;
-> 
-> Only bank-width should be necessary for NOR (per the binding
-> documentation). However, if you do specify both, then they should match.
-> Do you have two 8-bits devices? If so may be I need to update the
-> documentation to make it clear this is the total width of all devices
-> for a given chip-select.
-
-No ... that was wrong, so I've fixed that.
-
-<snip>
-
->> Booting with this NOR device produces the following oops:-
->>
->> [    0.000000] Booting Linux on physical CPU 0x0
->> [    0.000000] Linux version 3.9.0-rc1-12191-ga00d6d1-dirty (mpfj@mpfj-nanobone) (gcc version 4.5.4 (Buildroot 2012.11) ) #33 Tue Mar 5 13:08:25 GMT 2013
->> [    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7d
-
-<snip>
-
->> [    0.236730] omap-gpmc 50000000.gpmc: could not find pctldev for node /pinmux@44e10800/gpmc_pins, deferring probe
->> [    0.236781] platform 50000000.gpmc: Driver omap-gpmc requests probe deferral
-> 
-> This look like your problem. I would figure out why this is failing and
-> try again.
-
-Hmmmm ... I get this even when I've no NOR device defined and the board boots up fine.
-
-But I can see in physmap_of.c that the device gets registered without any call to
-devm_pinctrl_get_select_default() and hence no probe deferring takes place is the
-pinctrl device hasn't yet been started (which it hasn't).
-
-Does probe deferral need adding to physmap_of.c, or should the pinctrl device really
-be registered sooner ?
-
-Cheers
-Mark J.
