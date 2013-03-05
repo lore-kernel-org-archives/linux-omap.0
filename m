@@ -1,56 +1,46 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH 1/2] usb: musb: omap2430: fix omap_musb_mailbox glue check again
-Date: Tue,  5 Mar 2013 13:04:23 +0200
-Message-ID: <1362481464-10813-1-git-send-email-aaro.koskinen@iki.fi>
+Subject: [PATCH] ARM: OMAP: RX-51: add missing USB phy binding
+Date: Tue,  5 Mar 2013 13:09:40 +0200
+Message-ID: <1362481780-11018-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:56424 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750934Ab3CELEa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 06:04:30 -0500
+Received: from filtteri5.pp.htv.fi ([213.243.153.188]:52100 "EHLO
+	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752558Ab3CELJu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 06:09:50 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>
 Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Commit 80ab72e1 (usb: musb: omap2430: fix the readiness check
-in omap_musb_mailbox) made the check incorrect, as we will lose the
-glue/link status during the normal built-in probe order (twl4030_usb is
-probed after musb omap2430, but before musb core is ready).
-
-As a result, if you boot with USB cable on and load g_ether, the
-connection does not work as the code thinks the cable is off and the
-phy gets powered down immediately. This is a major regression in 3.9-rc1.
-
-So the proper check should be: exit if _glue is NULL, but if it's
-initialized we memorize the status, and then check if the musb core
-is ready.
+Commit 51482be9 (ARM: OMAP: USB: Add phy binding information) forgot to
+add phy binding for RX-51, and as a result USB does not work anymore on
+3.9-rc1. Add the missing binding.
 
 Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- drivers/usb/musb/omap2430.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/board-rx51.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 1762354..2a39c11 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -237,9 +237,13 @@ void omap_musb_mailbox(enum omap_musb_vbus_id_status status)
- {
- 	struct omap2430_glue	*glue = _glue;
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index f7c4616..d2ea68e 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -17,6 +17,7 @@
+ #include <linux/io.h>
+ #include <linux/gpio.h>
+ #include <linux/leds.h>
++#include <linux/usb/phy.h>
+ #include <linux/usb/musb.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
  
--	if (glue && glue_to_musb(glue)) {
--		glue->status = status;
--	} else {
-+	if (!glue) {
-+		pr_err("%s: musb core is not yet initialized\n", __func__);
-+		return;
-+	}
-+	glue->status = status;
-+
-+	if (!glue_to_musb(glue)) {
- 		pr_err("%s: musb core is not yet ready\n", __func__);
- 		return;
- 	}
+@@ -98,6 +99,7 @@ static void __init rx51_init(void)
+ 	sdrc_params = nokia_get_sdram_timings();
+ 	omap_sdrc_init(sdrc_params, sdrc_params);
+ 
++	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(&musb_board_data);
+ 	rx51_peripherals_init();
+ 
 -- 
 1.7.10.4
 
