@@ -1,83 +1,84 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.8
-Date: Tue, 5 Mar 2013 16:10:43 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1303051558001.14763@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1303041619500.23192@utopia.booyaka.com>
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: Re: [PATCH 11/14] ARM: OMAP2+: Add device-tree support for NOR flash
+Date: Tue, 05 Mar 2013 16:20:22 +0000
+Message-ID: <51361B46.507@mimc.co.uk>
+References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com> <1361899842-30303-12-git-send-email-jon-hunter@ti.com> <51360271.1030302@mimc.co.uk> <51360562.20309@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:49122 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757503Ab3CEQKo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 11:10:44 -0500
-In-Reply-To: <alpine.DEB.2.00.1303041619500.23192@utopia.booyaka.com>
+Received: from mercuryimc.plus.com ([80.229.200.144]:37087 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752404Ab3CEQUY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 11:20:24 -0500
+In-Reply-To: <51360562.20309@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>
 
-On Mon, 4 Mar 2013, Paul Walmsley wrote:
-
-> Here are some basic OMAP test results for Linux v3.8.
-> Logs and other details at:
+On 05/03/13 14:46, Jon Hunter wrote:
 > 
->     http://www.pwsan.com/omap/testlogs/test_v3.8/20130218214403/
+> On 03/05/2013 08:34 AM, Mark Jackson wrote:
+>> On 26/02/13 17:30, Jon Hunter wrote:
+>>> NOR flash is not currently supported when booting with device-tree
+>>> on OMAP2+ devices. Add support to detect and configure NOR devices
+>>> when booting with device-tree.
+>>>
+>>> Add documentation for the TI GPMC NOR binding.
+>>>
+>>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>>
+>> I'm trying to test this series, and am unable get my NOR device recognised.
+>>
+>> If I remove all reference to NOR (and keep only my NAND device definition), then
+>> everything seems to boot fine (so I'm assuming I've got at least the basics of
+>> the patch set working).
+>>
+>> My GPMC tree looks like this:-
 
-And here's the bloat data, which I usually try to append to the previous 
-report.
+<snip>
 
+>> 	nor@1,0 {
+>> 		reg = <3 0x00000000 0x04000000>;
+>> 		compatible = "cfi-flash";
+>> 		linux,mtd-name = "spansion,s29gl064n90t";
+>> 		bank-width = <2>;
+>>
+>> 		gpmc,device-width = <1>;
+> 
+> Only bank-width should be necessary for NOR (per the binding
+> documentation). However, if you do specify both, then they should match.
+> Do you have two 8-bits devices? If so may be I need to update the
+> documentation to make it clear this is the total width of all devices
+> for a given chip-select.
 
-Boot-time memory difference
-(delta in bytes from test_v3.7 (29594404d7fe73cd80eaa4ee8c43dcc53970c60e))
-  avail  rsrvd   high  freed  board          kconfig
-   212k  -212k      .   -12k  2420n800       n800_only_a
-  -188k   188k      .     8k  2430sdp        omap2plus_defconfig
-  -188k   188k      .     8k  3517evm        omap2plus_defconfig
-  -188k   188k      .     8k  3530es3beagle  omap2plus_defconfig
- 12100k -12100k      .     8k  3730beaglexm   omap2plus_defconfig
-  -188k   188k      .     8k  37xxevm        omap2plus_defconfig
- 16196k -16196k      .     8k  4430es2panda   omap2plus_defconfig
- 32592k -32592k      .     8k  4460pandaes    omap2plus_defconfig
-   -88k    88k      .      .  5912osk        omap1_defconfig
- -100768k -30304k      .  -192k  am335xbone     am33xx_only
+No ... that was wrong, so I've fixed that.
 
-Some remarkable changes in the 3730 Beagle XM, 4430ES2 Panda, and 4460 
-Panda ES runtime memory consumption figures.
+<snip>
 
-The AM33xx delta is spurious and is due to the fact that none of the 
-v3.8-rc/v3.8 kernels have booted in my appended device tree scenario for 
-AM33xx.  This previously worked with v3.7-rc.
+>> Booting with this NOR device produces the following oops:-
+>>
+>> [    0.000000] Booting Linux on physical CPU 0x0
+>> [    0.000000] Linux version 3.9.0-rc1-12191-ga00d6d1-dirty (mpfj@mpfj-nanobone) (gcc version 4.5.4 (Buildroot 2012.11) ) #33 Tue Mar 5 13:08:25 GMT 2013
+>> [    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7d
 
+<snip>
 
-vmlinux object size
-(delta in bytes from test_v3.7 (29594404d7fe73cd80eaa4ee8c43dcc53970c60e)):
-   text     data      bss    total  kernel
-+476081   +12728    +3904  +492713  am33xx_only
--180478    -9360   -30332  -220170  n800_multi_omap2xxx
--178466   -11512   -30300  -220278  n800_only_a
- +89769    +1048     +164   +90981  omap1_defconfig
- +89946    +1632     +132   +91710  omap1_defconfig_1510innovator_only
- +88997    +1464     +164   +90625  omap1_defconfig_5912osk_only
-+172883   +22832     +904  +196619  omap2plus_defconfig
-+120690   +14080     +112  +134882  omap2plus_defconfig_2430sdp_only
-+178467   +23072     +904  +202443  omap2plus_defconfig_cpupm
-+172839   +25904     +904  +199647  omap2plus_defconfig_no_pm
-+135978   +13672     +776  +150426  omap2plus_defconfig_omap2_4_only
-+169593   +45416     +904  +215913  omap2plus_defconfig_omap3_4_only
- +76120   +19916    -3032   +93004  rmk_omap3430_ldp_allnoconfig
-+102197   +16132      -48  +118281  rmk_omap3430_ldp_oldconfig
- +76120   +19916    -3032   +93004  rmk_omap4430_sdp_allnoconfig
- +91359    +7040     +196   +98595  rmk_omap4430_sdp_oldconfig
+>> [    0.236730] omap-gpmc 50000000.gpmc: could not find pctldev for node /pinmux@44e10800/gpmc_pins, deferring probe
+>> [    0.236781] platform 50000000.gpmc: Driver omap-gpmc requests probe deferral
+> 
+> This look like your problem. I would figure out why this is failing and
+> try again.
 
-The N800 data can be ignored.  They are colored by the radical changes to 
-the Kconfig that are necessary to keep a mainline kernel booting on it, 
-due to its bootloader's 2MiB kernel size limit.
+Hmmmm ... I get this even when I've no NOR device defined and the board boots up fine.
 
-In my view, the notable change here is the ~200KB size increase for 
-omap2plus_defconfig.  I'd guess that much of this is due to the common 
-clock framework conversion.  Even OMAP1 registered a ~90KB size increase.  
-By comparison, again for OMAP1: v3.5->v3.6 saw a 52KB size increase, 
-v3.6->v3.7 saw a 65KB increase.
+But I can see in physmap_of.c that the device gets registered without any call to
+devm_pinctrl_get_select_default() and hence no probe deferring takes place is the
+pinctrl device hasn't yet been started (which it hasn't).
 
+Does probe deferral need adding to physmap_of.c, or should the pinctrl device really
+be registered sooner ?
 
-- Paul
+Cheers
+Mark J.
