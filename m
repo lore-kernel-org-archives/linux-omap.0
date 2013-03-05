@@ -1,111 +1,88 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/4] usb: dwc3: dwc3-omap: set dma_mask for dwc3 inorder
- for host mode to work
-Date: Tue, 5 Mar 2013 17:11:04 +0200
-Message-ID: <20130305151104.GJ12123@arwen.pp.htv.fi>
-References: <1362493320-13913-1-git-send-email-kishon@ti.com>
- <1362493320-13913-2-git-send-email-kishon@ti.com>
- <20130305145458.GF12123@arwen.pp.htv.fi>
- <51360856.8030306@ti.com>
-Reply-To: <balbi@ti.com>
+From: kishon <kishon@ti.com>
+Subject: Re: [PATCH 2/4] usb: dwc3: dwc3-omap: return -EPROBE_DEFER if probe
+ has not yet executed
+Date: Tue, 5 Mar 2013 20:48:24 +0530
+Message-ID: <51360CC0.9080108@ti.com>
+References: <1362493320-13913-1-git-send-email-kishon@ti.com> <1362493320-13913-3-git-send-email-kishon@ti.com> <20130305145645.GG12123@arwen.pp.htv.fi> <513608E6.3010502@ti.com> <20130305150608.GI12123@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kr14OxHsRwZHHqxS"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51360856.8030306@ti.com>
+In-Reply-To: <20130305150608.GI12123@arwen.pp.htv.fi>
 Sender: linux-doc-owner@vger.kernel.org
-To: kishon <kishon@ti.com>
-Cc: balbi@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, gregkh@linuxfoundation.org, s-guiriec@ti.com, gg@slimlogic.co.uk, sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com, ldewangan@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, gregkh@linuxfoundation.org, s-guiriec@ti.com, gg@slimlogic.co.uk, sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com, ldewangan@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---kr14OxHsRwZHHqxS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Tue, Mar 05, 2013 at 08:29:34PM +0530, kishon wrote:
-> Hi,
->=20
-> On Tuesday 05 March 2013 08:24 PM, Felipe Balbi wrote:
-> >On Tue, Mar 05, 2013 at 07:51:57PM +0530, Kishon Vijay Abraham I wrote:
-> >>While creating the child devices, *of_platform_populate* sets only
-> >>coherent_dma_mask but USBHCD sets *uses_dma* (determines whether the
-> >>controller is DMA'able) based on dma_mask. So If we haven't explicitly =
-set
-> >>dma_mask, the HCD thinks the controller is not DMA'able and the
-> >>controller will fail. So explicity set dma_mask for dwc3 after
-> >>*of_platform_populate*.
-> >>
-> >>Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> >>---
-> >>  drivers/usb/dwc3/dwc3-omap.c |   10 ++++++++++
-> >>  1 file changed, 10 insertions(+)
-> >>
-> >>diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-> >>index 35b9673..19c6e72 100644
-> >>--- a/drivers/usb/dwc3/dwc3-omap.c
-> >>+++ b/drivers/usb/dwc3/dwc3-omap.c
-> >>@@ -277,6 +277,14 @@ static void dwc3_omap_disable_irqs(struct dwc3_oma=
-p *omap)
-> >>  	dwc3_omap_writel(omap->base, USBOTGSS_IRQENABLE_SET_0, 0x00);
-> >>  }
-> >>
-> >>+static u64 dwc3_omap_dma_mask =3D DMA_BIT_MASK(32);
-> >>+
-> >>+static int dwc3_omap_set_dmamask(struct device *dev, void *c)
-> >>+{
-> >>+	dev->dma_mask =3D &dwc3_omap_dma_mask;
-> >>+	return 0;
-> >>+}
-> >>+
-> >>  static int dwc3_omap_probe(struct platform_device *pdev)
-> >>  {
-> >>  	struct device_node	*node =3D pdev->dev.of_node;
-> >>@@ -381,6 +389,8 @@ static int dwc3_omap_probe(struct platform_device *=
-pdev)
-> >>  		return ret;
-> >>  	}
-> >>
-> >>+	device_for_each_child(&pdev->dev, NULL, dwc3_omap_set_dmamask);
-> >
-> >I don't think this is correct. Child should be setting its own by
-> >copying from parent. In summary I think we should add this to dwc3 core:
-> >
-> >dma_set_coherent_mask(&pdev->dev, pdev->dev.parent->coherent_dma_mask);
-> >pdev->dev.dma_mask =3D pdev->dev.parent->dma_mask;
-> >pdev->dev.dma_parms =3D pdev->dev.parent->dma_parms;
-> >
-> >And add the same thing to xhci-plat.c btw.
->=20
-> hmm.. ok.
+On Tuesday 05 March 2013 08:36 PM, Felipe Balbi wrote:
+> On Tue, Mar 05, 2013 at 08:31:58PM +0530, kishon wrote:
+>> Hi,
+>>
+>> On Tuesday 05 March 2013 08:26 PM, Felipe Balbi wrote:
+>>> On Tue, Mar 05, 2013 at 07:51:58PM +0530, Kishon Vijay Abraham I wrote:
+>>>> return -EPROBE_DEFER from dwc3_omap_mailbox in dwc3-omap.c, if the probe of
+>>>> dwc3-omap has not yet been executed or failed.
+>>>>
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>> ---
+>>>>   drivers/usb/dwc3/dwc3-omap.c  |    7 +++++--
+>>>>   include/linux/usb/dwc3-omap.h |    6 +++---
+>>>>   2 files changed, 8 insertions(+), 5 deletions(-)
+>>>>
+>>>> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+>>>> index 19c6e72..9428f4e 100644
+>>>> --- a/drivers/usb/dwc3/dwc3-omap.c
+>>>> +++ b/drivers/usb/dwc3/dwc3-omap.c
+>>>> @@ -138,11 +138,14 @@ static inline void dwc3_omap_writel(void __iomem *base, u32 offset, u32 value)
+>>>>   	writel(value, base + offset);
+>>>>   }
+>>>>
+>>>> -void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
+>>>> +int dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
+>>>>   {
+>>>>   	u32			val;
+>>>>   	struct dwc3_omap	*omap = _omap;
+>>>>
+>>>> +	if (!omap)
+>>>> +		return -EPROBE_DEFER;
+>>>> +
+>>>>   	switch (status) {
+>>>>   	case OMAP_DWC3_ID_GROUND:
+>>>>   		dev_dbg(omap->dev, "ID GND\n");
+>>>> @@ -185,7 +188,7 @@ void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
+>>>>   		dev_dbg(omap->dev, "ID float\n");
+>>>>   	}
+>>>>
+>>>> -	return;
+>>>> +	return IRQ_HANDLED;
+>>>
+>>> IRQ_HANDLED ????
+>>
+>> Actually I did it that way since palmas_vbus_wakeup_irq can directly
+>> return the return value from dwc3_omap_mailbox. If this seems hacky
+>> to you, I'll change it.
+>
+> it does seem hacky :-) Try something like:
+>
+> ret = dwc3_omap_mailbox();
+> if (ret)
+> 	print_error();
+>
+> return IRQ_HANDLED;
 
-another thing, this means that we can remove similar code from
-dwc3-pci.c and dwc3-exynos.c ;-)
+hmm.. But there is one case where palmas_vbus_wakeup_irq should return 
+EPROBE_DEFER. In the cold plug case, if palmas gets loaded before 
+dwc3-omap, omap in dwc3_omap_mailbox will be NULL. So ideally palmas 
+should be probed after dwc3-omap for this case. Returning IRQ_HANDLED or 
+IRQ_NONE wont help here.
 
---=20
-balbi
+Thanks
+Kishon
 
---kr14OxHsRwZHHqxS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRNgsIAAoJEIaOsuA1yqREIlwP/2jDPkNYP+/YPXcfkxgAcgoV
-1EAxKGBm0db1OPOCWwSukjflP5GtlP0n1+5w1WHNwVwNI1qMMLw2GdhTHLmdfRVd
-XATBCWWOWctA8o6+ivQcPBO/XR/jCaNWlQD+aNFShxh7io6gYpHQ0L5ZcIn4gxHl
-HGjiEwDHx5l3UhKMLzqflqyo8eOQEtKSOmubhkD92zVbbCJ+mwotKl8AGY3+/TLq
-AKUv8pMAjUbKyOsDWuM3EDB4jbRvXOOilYeNmY/uAtU/w7AbfeJyTzRYRMZQydJp
-hPfO4EkIzLmtwthipvLd+5ZysZ4vH3PLHkV2eK6mMaJ3RLNGkaJcn8jYzNddTQCb
-5sjjg5bVzMO2+B/RB0Y5wjfeFU5qQkKK4QivJNGzGrYY7PGKifMsoYXD2ONvXK4W
-TaTdu4BRNJ1AJX0TCWnHazI1idMnvs+qTqFZpP3DYXfIVrtTxI/cNXZzDPVqgJFo
-VJIM6rjZ5GQ6AgKR9gp+ziz2qM4uHAY8J2Ssc3xG8D10VYqNgzcqXQyupGaV5oBw
-rTYmtOg/wcjC/tbPx6SNFpdmUqo0MYvi/qaKkQ5pE2y8B+zKArxF3Dk9wRsjQvTQ
-nitPxxwvKvy6vJerD7SKeej8n0RELfRYpIGS21IRwDMcRU6oowrUMqhpFqwzQUxU
-pFA81UqPmsj3oJAEP7Dg
-=1zlL
------END PGP SIGNATURE-----
 
---kr14OxHsRwZHHqxS--
+>
+
