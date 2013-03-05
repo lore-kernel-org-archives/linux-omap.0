@@ -1,64 +1,41 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: [PATCH v2] ARM: OMAP: Clear GPMC bits when applying new setting.
-Date: Tue, 05 Mar 2013 10:13:40 +0000
-Message-ID: <5135C554.5090502@mimc.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:35265 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750906Ab3CEKNm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 05:13:42 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Subject: [PATCH 2/2] usb: musb: omap2430: fix sparse warning
+Date: Tue,  5 Mar 2013 13:04:24 +0200
+Message-ID: <1362481464-10813-2-git-send-email-aaro.koskinen@iki.fi>
+References: <1362481464-10813-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1362481464-10813-1-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Jon Hunter <jon-hunter@ti.com>
 
-When setting the GPMC device type, make sure any previous
-bits are cleared down, before applying the new setting.
+Fix the following sparse warning:
 
-Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
+drivers/usb/musb/omap2430.c:54:33: warning: symbol '_glue' was not declared. Should it be static?
+
+Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 ---
-Changes in v2:
-- Change mux type to 2 bits
-- Add extra mux types in gpmc.h
+ drivers/usb/musb/omap2430.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- arch/arm/mach-omap2/gpmc.c |    4 ++++
- arch/arm/mach-omap2/gpmc.h |    5 ++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 410e1ba..479369c 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -613,6 +613,10 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 2a39c11..1a42a45 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -51,7 +51,7 @@ struct omap2430_glue {
+ };
+ #define glue_to_musb(g)		platform_get_drvdata(g->musb)
  
- 	case GPMC_CONFIG_DEV_TYPE:
- 		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
-+		/* clear 4 target bits */
-+		regval &= ~(GPMC_CONFIG1_DEVICETYPE(3) |
-+			    GPMC_CONFIG1_MUXTYPE(3));
-+		/* set the proper value */
- 		regval |= GPMC_CONFIG1_DEVICETYPE(wval);
- 		if (wval == GPMC_DEVICETYPE_NOR)
- 			regval |= GPMC_CONFIG1_MUXADDDATA;
-diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
-index fe0a844..f79cbde 100644
---- a/arch/arm/mach-omap2/gpmc.h
-+++ b/arch/arm/mach-omap2/gpmc.h
-@@ -58,7 +58,10 @@
- #define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
- #define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
- #define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
--#define GPMC_CONFIG1_MUXADDDATA         (1 << 9)
-+#define GPMC_CONFIG1_MUXTYPE(val)       ((val & 3) << 8)
-+#define GPMC_CONFIG1_MUXNONMUX          GPMC_CONFIG1_MUXTYPE(0)
-+#define GPMC_CONFIG1_MUXAAD             GPMC_CONFIG1_MUXTYPE(1)
-+#define GPMC_CONFIG1_MUXADDDATA         GPMC_CONFIG1_MUXTYPE(2)
- #define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
- #define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
- #define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
+-struct omap2430_glue		*_glue;
++static struct omap2430_glue	*_glue;
+ 
+ static struct timer_list musb_idle_timer;
+ 
 -- 
-1.7.9.5
+1.7.10.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
