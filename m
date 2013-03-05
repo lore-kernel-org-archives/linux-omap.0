@@ -1,24 +1,24 @@
 From: =?UTF-8?Q?Andreas_M=C3=BCller?= <schnitzeltony@googlemail.com>
 Subject: Re: [PATCH] board-overo.c: enable TWL4030 power off
-Date: Tue, 5 Mar 2013 09:09:53 +0100
-Message-ID: <CALbNGRTcu-xozY_h4wqjXJkW6wX-ba65d9oA52TbRNv08gG=cQ@mail.gmail.com>
+Date: Tue, 5 Mar 2013 09:15:25 +0100
+Message-ID: <CALbNGRQbAq4NdS4JFmJABG_kwOWsHeY9xOuk=x7AzCk3zb9eBA@mail.gmail.com>
 References: <1362055461-27154-1-git-send-email-schnitzeltony@googlemail.com>
 	<20130304190035.GT11806@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:47796 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751913Ab3CEIJy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 03:09:54 -0500
-Received: by mail-vc0-f174.google.com with SMTP id n11so3925447vch.5
-        for <linux-omap@vger.kernel.org>; Tue, 05 Mar 2013 00:09:53 -0800 (PST)
+Received: from mail-ve0-f171.google.com ([209.85.128.171]:52099 "EHLO
+	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754503Ab3CEIPZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 03:15:25 -0500
+Received: by mail-ve0-f171.google.com with SMTP id b10so5560014vea.30
+        for <linux-omap@vger.kernel.org>; Tue, 05 Mar 2013 00:15:25 -0800 (PST)
 In-Reply-To: <20130304190035.GT11806@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, steve@sakoman.com, Ash Charles <ash@gumstix.com>
+Cc: linux-omap@vger.kernel.org
 
 On Mon, Mar 4, 2013 at 8:00 PM, Tony Lindgren <tony@atomide.com> wrote:
 > * Andreas M=C3=BCller <schnitzeltony@googlemail.com> [130228 04:50]:
@@ -58,12 +58,9 @@ On Mon, Mar 4, 2013 at 8:00 PM, Tony Lindgren <tony@atomide.com> wrote:
 >>
 >>  static int __init overo_i2c_init(void)
 >> --
-AFAIK this has never been implemented mainline. Up to now I used a
-patch from Steve Sakoman implementing the commands for TWL to shut
-down - but this was never sent here and is no more required with TWL
-framework.
-
-I will send V2 with more descriptive commit message till end of week.
+Sorry for the noise but I am newbie here and have one question:
+Against which branch should patches send here be based on. Up to now I
+used Linus' mainline branch - is that OK?
 
 Andreas
 --
