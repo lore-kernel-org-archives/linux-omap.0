@@ -1,96 +1,81 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/4] usb: dwc3: dwc3-omap: return -EPROBE_DEFER if probe
- has not yet executed
-Date: Tue, 5 Mar 2013 16:56:45 +0200
-Message-ID: <20130305145645.GG12123@arwen.pp.htv.fi>
+From: kishon <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/4] usb: dwc3: dwc3-omap: set dma_mask for dwc3 inorder
+ for host mode to work
+Date: Tue, 5 Mar 2013 20:29:34 +0530
+Message-ID: <51360856.8030306@ti.com>
 References: <1362493320-13913-1-git-send-email-kishon@ti.com>
- <1362493320-13913-3-git-send-email-kishon@ti.com>
-Reply-To: <balbi@ti.com>
+ <1362493320-13913-2-git-send-email-kishon@ti.com>
+ <20130305145458.GF12123@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="df+09Je9rNq3P+GE"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55282 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751320Ab3CEO5L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 09:57:11 -0500
-Content-Disposition: inline
-In-Reply-To: <1362493320-13913-3-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130305145458.GF12123-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, s-guiriec-l0cyMroinI0@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, s-guiriec@ti.com, gg@slimlogic.co.uk, sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com, ldewangan@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
---df+09Je9rNq3P+GE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Tue, Mar 05, 2013 at 07:51:58PM +0530, Kishon Vijay Abraham I wrote:
-> return -EPROBE_DEFER from dwc3_omap_mailbox in dwc3-omap.c, if the probe =
-of
-> dwc3-omap has not yet been executed or failed.
->=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/usb/dwc3/dwc3-omap.c  |    7 +++++--
->  include/linux/usb/dwc3-omap.h |    6 +++---
->  2 files changed, 8 insertions(+), 5 deletions(-)
->=20
-> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-> index 19c6e72..9428f4e 100644
-> --- a/drivers/usb/dwc3/dwc3-omap.c
-> +++ b/drivers/usb/dwc3/dwc3-omap.c
-> @@ -138,11 +138,14 @@ static inline void dwc3_omap_writel(void __iomem *b=
-ase, u32 offset, u32 value)
->  	writel(value, base + offset);
->  }
-> =20
-> -void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
-> +int dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
->  {
->  	u32			val;
->  	struct dwc3_omap	*omap =3D _omap;
-> =20
-> +	if (!omap)
-> +		return -EPROBE_DEFER;
-> +
->  	switch (status) {
->  	case OMAP_DWC3_ID_GROUND:
->  		dev_dbg(omap->dev, "ID GND\n");
-> @@ -185,7 +188,7 @@ void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status =
-status)
->  		dev_dbg(omap->dev, "ID float\n");
->  	}
-> =20
-> -	return;
-> +	return IRQ_HANDLED;
+On Tuesday 05 March 2013 08:24 PM, Felipe Balbi wrote:
+> On Tue, Mar 05, 2013 at 07:51:57PM +0530, Kishon Vijay Abraham I wrote:
+>> While creating the child devices, *of_platform_populate* sets only
+>> coherent_dma_mask but USBHCD sets *uses_dma* (determines whether the
+>> controller is DMA'able) based on dma_mask. So If we haven't explicitly set
+>> dma_mask, the HCD thinks the controller is not DMA'able and the
+>> controller will fail. So explicity set dma_mask for dwc3 after
+>> *of_platform_populate*.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   drivers/usb/dwc3/dwc3-omap.c |   10 ++++++++++
+>>   1 file changed, 10 insertions(+)
+>>
+>> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+>> index 35b9673..19c6e72 100644
+>> --- a/drivers/usb/dwc3/dwc3-omap.c
+>> +++ b/drivers/usb/dwc3/dwc3-omap.c
+>> @@ -277,6 +277,14 @@ static void dwc3_omap_disable_irqs(struct dwc3_omap *omap)
+>>   	dwc3_omap_writel(omap->base, USBOTGSS_IRQENABLE_SET_0, 0x00);
+>>   }
+>>
+>> +static u64 dwc3_omap_dma_mask = DMA_BIT_MASK(32);
+>> +
+>> +static int dwc3_omap_set_dmamask(struct device *dev, void *c)
+>> +{
+>> +	dev->dma_mask = &dwc3_omap_dma_mask;
+>> +	return 0;
+>> +}
+>> +
+>>   static int dwc3_omap_probe(struct platform_device *pdev)
+>>   {
+>>   	struct device_node	*node = pdev->dev.of_node;
+>> @@ -381,6 +389,8 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+>>   		return ret;
+>>   	}
+>>
+>> +	device_for_each_child(&pdev->dev, NULL, dwc3_omap_set_dmamask);
+>
+> I don't think this is correct. Child should be setting its own by
+> copying from parent. In summary I think we should add this to dwc3 core:
+>
+> dma_set_coherent_mask(&pdev->dev, pdev->dev.parent->coherent_dma_mask);
+> pdev->dev.dma_mask = pdev->dev.parent->dma_mask;
+> pdev->dev.dma_parms = pdev->dev.parent->dma_parms;
+>
+> And add the same thing to xhci-plat.c btw.
 
-IRQ_HANDLED ????
+hmm.. ok.
 
---=20
-balbi
-
---df+09Je9rNq3P+GE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRNgetAAoJEIaOsuA1yqRE+7YP/2TwLfmHDDw6P9y3LyGISIS3
-34GgGJLOPO+LORBu/AaAz9w+vjxpkdo17BIMAl5AsfYg6DeZaJF6yO4EA/I2cS0N
-0HJhn/7HFyuxzd1zDHAFHthehdVcLf68q+C3VoCwip382Usverbz0EquVlyg2CTm
-iXXYFiFaWCG/ZTfVbhBtPeMdSs0Y0m8oAUduaTXOIIgZUNUSfFl447KPe/6obtgG
-URjJ/vOQx0RgR75k58mLd97N60jaevVQPRCcvcwtt0+hna0TQNd1SYKixmWjagvu
-BO/r0alGUNoJkxtJVg/BB/8zuvpf4ciDZb5X5RuynzlSqtzdVYzQ90iZ04UucdmT
-jFpUexGMOhavm5yyewWjFJ3ijuiRzi4iZgyNO7TfArSet4In+C/HaeLycVL70+P7
-mLTm4NL3fsC5hHYfYg+DyhgUUa4GS4+SYiL/LOf+CUAwl1LvqfHMjGnWJWOWdMig
-9dQVijJTuekPLOXoG5NYX+aKW3W2d9ILqDSgg8M4BLwhQHnydfLtGalbyXJ2n1bT
-OP+I++VOiNYEU789418obJzjhFoANbgtKgoDrceT+CTOyEEurnrn+mC5yGuchwE6
-greWUtDYheTpkeCDAtOXEbR+Q82OKA+ps1UKUlO9buDINGN1sWLVj6NA3p6JSnvb
-Rf9ho/O1Y7dWGrFeKaRn
-=5IBN
------END PGP SIGNATURE-----
-
---df+09Je9rNq3P+GE--
+Thanks
+Kishon
