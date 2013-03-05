@@ -1,70 +1,64 @@
-From: =?UTF-8?Q?Andreas_M=C3=BCller?= <schnitzeltony@googlemail.com>
-Subject: Re: [PATCH] board-overo.c: enable TWL4030 power off
-Date: Tue, 5 Mar 2013 09:15:25 +0100
-Message-ID: <CALbNGRQbAq4NdS4JFmJABG_kwOWsHeY9xOuk=x7AzCk3zb9eBA@mail.gmail.com>
-References: <1362055461-27154-1-git-send-email-schnitzeltony@googlemail.com>
-	<20130304190035.GT11806@atomide.com>
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: [PATCH v2] ARM: OMAP: Clear GPMC bits when applying new setting.
+Date: Tue, 05 Mar 2013 10:13:40 +0000
+Message-ID: <5135C554.5090502@mimc.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ve0-f171.google.com ([209.85.128.171]:52099 "EHLO
-	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754503Ab3CEIPZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 03:15:25 -0500
-Received: by mail-ve0-f171.google.com with SMTP id b10so5560014vea.30
-        for <linux-omap@vger.kernel.org>; Tue, 05 Mar 2013 00:15:25 -0800 (PST)
-In-Reply-To: <20130304190035.GT11806@atomide.com>
+Received: from mercuryimc.plus.com ([80.229.200.144]:35265 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750906Ab3CEKNm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 05:13:42 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Jon Hunter <jon-hunter@ti.com>
 
-On Mon, Mar 4, 2013 at 8:00 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Andreas M=C3=BCller <schnitzeltony@googlemail.com> [130228 04:50]:
->
-> Can you please add a description here? Preferrably something
-> like "With commit XYZ overo poweroff stopped working. Fix this
-> by blah blah blah" so this can be queued as a fix.
->
-> Regards,
->
-> Tony
->
->> Signed-off-by: Andreas M=C3=BCller <schnitzeltony@googlemail.com>
->> ---
->>  arch/arm/mach-omap2/board-overo.c |    5 +++++
->>  1 files changed, 5 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2=
-/board-overo.c
->> index 86bab51..b975c72 100644
->> --- a/arch/arm/mach-omap2/board-overo.c
->> +++ b/arch/arm/mach-omap2/board-overo.c
->> @@ -418,9 +418,14 @@ static struct regulator_init_data overo_vmmc1 =3D=
- {
->>       .consumer_supplies      =3D overo_vmmc1_supply,
->>  };
->>
->> +static struct twl4030_power_data overo_power_data =3D {
->> +     .use_poweroff   =3D true,
->> +};
->> +
->>  static struct twl4030_platform_data overo_twldata =3D {
->>       .gpio           =3D &overo_gpio_data,
->>       .vmmc1          =3D &overo_vmmc1,
->> +     .power          =3D &overo_power_data,
->>  };
->>
->>  static int __init overo_i2c_init(void)
->> --
-Sorry for the noise but I am newbie here and have one question:
-Against which branch should patches send here be based on. Up to now I
-used Linus' mainline branch - is that OK?
+When setting the GPMC device type, make sure any previous
+bits are cleared down, before applying the new setting.
 
-Andreas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
+---
+Changes in v2:
+- Change mux type to 2 bits
+- Add extra mux types in gpmc.h
+
+ arch/arm/mach-omap2/gpmc.c |    4 ++++
+ arch/arm/mach-omap2/gpmc.h |    5 ++++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 410e1ba..479369c 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -613,6 +613,10 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
+ 
+ 	case GPMC_CONFIG_DEV_TYPE:
+ 		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
++		/* clear 4 target bits */
++		regval &= ~(GPMC_CONFIG1_DEVICETYPE(3) |
++			    GPMC_CONFIG1_MUXTYPE(3));
++		/* set the proper value */
+ 		regval |= GPMC_CONFIG1_DEVICETYPE(wval);
+ 		if (wval == GPMC_DEVICETYPE_NOR)
+ 			regval |= GPMC_CONFIG1_MUXADDDATA;
+diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
+index fe0a844..f79cbde 100644
+--- a/arch/arm/mach-omap2/gpmc.h
++++ b/arch/arm/mach-omap2/gpmc.h
+@@ -58,7 +58,10 @@
+ #define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
+ #define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
+ #define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
+-#define GPMC_CONFIG1_MUXADDDATA         (1 << 9)
++#define GPMC_CONFIG1_MUXTYPE(val)       ((val & 3) << 8)
++#define GPMC_CONFIG1_MUXNONMUX          GPMC_CONFIG1_MUXTYPE(0)
++#define GPMC_CONFIG1_MUXAAD             GPMC_CONFIG1_MUXTYPE(1)
++#define GPMC_CONFIG1_MUXADDDATA         GPMC_CONFIG1_MUXTYPE(2)
+ #define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
+ #define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
+ #define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
+-- 
+1.7.9.5
+
