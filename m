@@ -1,55 +1,56 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 4/4] omapdss: features: fixed supported outputs for OMAP4
-Date: Tue, 5 Mar 2013 19:47:50 +0530
-Message-ID: <1362493070-17706-5-git-send-email-archit@ti.com>
-References: <1362493070-17706-1-git-send-email-archit@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 1/4] usb: dwc3: dwc3-omap: set dma_mask for dwc3 inorder for host mode to work
+Date: Tue, 5 Mar 2013 19:51:57 +0530
+Message-ID: <1362493320-13913-2-git-send-email-kishon@ti.com>
+References: <1362493320-13913-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32839 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755138Ab3CEOSz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Mar 2013 09:18:55 -0500
-In-Reply-To: <1362493070-17706-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1362493320-13913-1-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, kishon@ti.com, s-guiriec@ti.com, gg@slimlogic.co.uk, sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com, ldewangan@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: robdclark@gmail.com, tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Archit Taneja <archit@ti.com>
 
-The support outputs struct for overlay managers is incorrect for OMAP4. Make
-these changes:
+While creating the child devices, *of_platform_populate* sets only
+coherent_dma_mask but USBHCD sets *uses_dma* (determines whether the
+controller is DMA'able) based on dma_mask. So If we haven't explicitly set
+dma_mask, the HCD thinks the controller is not DMA'able and the
+controller will fail. So explicity set dma_mask for dwc3 after
+*of_platform_populate*.
 
-- DPI isn't supported via the LCD1 overlay manager, remove DPI as a supported
-  output.
-- the TV manager can suppport DPI, but the omapdss driver doesn't support that
-  yet, we require some muxing at the DSS level, and we also need to configure
-  the hdmi pll in the DPI driver so that the TV manager has a pixel clock. We
-  don't support that yet.
-
-Signed-off-by: Archit Taneja <archit@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/video/omap2/dss/dss_features.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index d7d66ef..7f791ae 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -202,12 +202,10 @@ static const enum omap_dss_output_id omap3630_dss_supported_outputs[] = {
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 35b9673..19c6e72 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -277,6 +277,14 @@ static void dwc3_omap_disable_irqs(struct dwc3_omap *omap)
+ 	dwc3_omap_writel(omap->base, USBOTGSS_IRQENABLE_SET_0, 0x00);
+ }
  
- static const enum omap_dss_output_id omap4_dss_supported_outputs[] = {
- 	/* OMAP_DSS_CHANNEL_LCD */
--	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
--	OMAP_DSS_OUTPUT_DSI1,
-+	OMAP_DSS_OUTPUT_DBI | OMAP_DSS_OUTPUT_DSI1,
++static u64 dwc3_omap_dma_mask = DMA_BIT_MASK(32);
++
++static int dwc3_omap_set_dmamask(struct device *dev, void *c)
++{
++	dev->dma_mask = &dwc3_omap_dma_mask;
++	return 0;
++}
++
+ static int dwc3_omap_probe(struct platform_device *pdev)
+ {
+ 	struct device_node	*node = pdev->dev.of_node;
+@@ -381,6 +389,8 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
  
- 	/* OMAP_DSS_CHANNEL_DIGIT */
--	OMAP_DSS_OUTPUT_VENC | OMAP_DSS_OUTPUT_HDMI |
--	OMAP_DSS_OUTPUT_DPI,
-+	OMAP_DSS_OUTPUT_VENC | OMAP_DSS_OUTPUT_HDMI,
++	device_for_each_child(&pdev->dev, NULL, dwc3_omap_set_dmamask);
++
+ 	return 0;
+ }
  
- 	/* OMAP_DSS_CHANNEL_LCD2 */
- 	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
 -- 
 1.7.10.4
 
