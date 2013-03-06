@@ -1,61 +1,98 @@
-From: =?UTF-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?=
-	<freemangordon@abv.bg>
-Subject: Re: [PATCH] arm: omap: RX-51: ARM errata 430973 workaround
-Date: Wed, 6 Mar 2013 11:32:12 +0200 (EET)
-Message-ID: <107742828.129755.1362562332955.JavaMail.apache@mail81.abv.bg>
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: Re: [PATCH 11/14] ARM: OMAP2+: Add device-tree support for NOR flash
+Date: Wed, 06 Mar 2013 10:23:42 +0000
+Message-ID: <5137192E.1010101@mimc.co.uk>
+References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com> <1361899842-30303-12-git-send-email-jon-hunter@ti.com> <51360271.1030302@mimc.co.uk> <51360562.20309@ti.com> <51361B46.507@mimc.co.uk> <51362BAB.10403@ti.com> <513664EC.2050508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: pdeschrijver@nvidia.com, pali.rohar@gmail.com, tony@atomide.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mercuryimc.plus.com ([80.229.200.144]:40668 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756487Ab3CFKXo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Mar 2013 05:23:44 -0500
+In-Reply-To: <513664EC.2050508@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>
 
-=20
+On 05/03/13 21:34, Jon Hunter wrote:
+> 
+> On 03/05/2013 11:30 AM, Jon Hunter wrote:
+>> On 03/05/2013 10:20 AM, Mark Jackson wrote:
+> 
+> [snip]
+> 
+>>> But I can see in physmap_of.c that the device gets registered without any call to
+>>> devm_pinctrl_get_select_default() and hence no probe deferring takes place is the
+>>> pinctrl device hasn't yet been started (which it hasn't).
+>>>
+>>> Does probe deferral need adding to physmap_of.c, or should the pinctrl device really
+>>> be registered sooner ?
+>>
+>> I see, so the pinctrl driver is not getting probed until later.
+> 
+> Can you give this version of the patch a go? I have re-worked the patch
+> so the NOR device will only be registered after the GPMC probe completes.
+> 
+> By the way, with this version you should remove "simple-bus" from your
+> gpmc node compatible strings. I now call of_platform_device_create() to
+> create the child device during the GPMC probe. I think that this is a
+> safer approach.
 
+This is better in that the probe *is* now delayed until the gpmc has been setup,
+but I still get an oops.
 
+However, this time it's in the actual cfi query code.
 
+I've traced it down to when it tries to physically access the memory associated
+with the chip select in question (in this case CS3 @ 0x1a000000).
 
- >-------- =D0=9E=D1=80=D0=B8=D0=B3=D0=B8=D0=BD=D0=B0=D0=BB=D0=BD=D0=BE=
- =D0=BF=D0=B8=D1=81=D0=BC=D0=BE --------
- >=D0=9E=D1=82:  Aaro Koskinen=20
- >=D0=9E=D1=82=D0=BD=D0=BE=D1=81=D0=BD=D0=BE: Re: [PATCH] arm: omap: RX=
--51: ARM errata 430973 workaround
- >=D0=94=D0=BE: =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE =D0=94=D0=B8=D0=BC=
-=D0=B8=D1=82=D1=80=D0=BE=D0=B2=20
- >=D0=98=D0=B7=D0=BF=D1=80=D0=B0=D1=82=D0=B5=D0=BD=D0=BE =D0=BD=D0=B0: =
-=D0=A1=D1=8A=D0=B1=D0=BE=D1=82=D0=B0, 2013, =D0=9C=D0=B0=D1=80=D1=82 2 =
-01:51:39 EET
- >
- >
- >On Fri, Mar 01, 2013 at 12:09:12PM +0200, =D0=98=D0=B2=D0=B0=D0=B9=D0=
-=BB=D0=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2 wrote:
- >> Unfortunately it is necessary, on RX-51 PPA/NOLO leaves IBE bit uns=
-et.
- >
- >You sure? I think you need to explain this more - the commit message =
-in
- >the original patch is empty/missing...
- >
- >A.
- >
+I printed some debug info to show that the GPMC CONFIG7 register is being setup
+correctly, and I show the physical to virtual memory mapping values, as performed
+in of_flash_probe(), but when I try to do a test raw_readw() on the virtual address,
+I get the following:-
 
-Yes, I am sure, NOLO leaves IBE bit in ACR unset, I've verified that by=
- reading/printing the contents of ACR from both u-boot and the kernel i=
-tself. With IBE bit unset, "mcr p15, 0, rX, c7, c5, 6" - flush BTAC/BTB=
- instruction(which is needed to workaround errata 430973) is a noop.
+[    1.222950] omap-gpmc 50000000.gpmc: GPMC revision 6.0
+[    1.229002] gpmc_read_settings_dt: read/write wait monitoring not enabled!
+[    1.237916] enabling NAND BCH ecc with 8-bit correction
+[    1.243843] ONFI param page 0 valid
+[    1.247531] ONFI flash detected
+[    1.250856] NAND device: Manufacturer ID: 0x2c, Chip ID: 0xda (Micron MT29F2G08ABAEAWP), 256MiB, page size: 2048, OOB size: 64
+[    1.263149] 8 ofpart partitions found on MTD device omap2-nand.0
+[    1.269492] Creating 8 MTD partitions on "omap2-nand.0":
+[    1.275150] 0x000000000000-0x000000020000 : "spl1"
+[    1.282593] 0x000000020000-0x000000040000 : "spl2"
+[    1.288524] 0x000000040000-0x000000060000 : "spl3"
+[    1.294456] 0x000000060000-0x000000080000 : "spl4"
+[    1.300270] 0x000000080000-0x0000001e0000 : "boot"
+[    1.307224] 0x0000001e0000-0x000000200000 : "env"
+[    1.313093] 0x000000200000-0x000004200000 : "rootfs"
+[    1.373589] 0x000004200000-0x000010000000 : "data"
+[    1.541884] gpmc_probe_nor_child 1
+[    1.545483] GPMC_CS_CONFIG7_0 : 00000f48
+[    1.549621] GPMC_CS_CONFIG7_1 : 00000f58
+[    1.553812] GPMC_CS_CONFIG7_2 : 00000f00
+[    1.557951] GPMC_CS_CONFIG7_3 : 00000c5a
+[    1.564789] of_flash_probe ioremap : phys 1a000000 -> virt d3000000
+[    1.571468] of_flash_probe test read d3000000 ...
+[    1.576440] Unhandled fault: external abort on non-linefetch (0x1028) at 0xd3000000
+[    1.584525] Internal error: : 1028 [#1] ARM
+[    1.588946] CPU: 0    Not tainted  (3.9.0-rc1-12191-ga00d6d1-dirty #57)
+[    1.595943] PC is at of_flash_probe+0x22c/0x5dc
+[    1.600724] LR is at of_flash_probe+0x228/0x5dc
+[    1.605506] pc : [<c023b28c>]    lr : [<c023b288>]    psr: 20000113
+[    1.605506] sp : cf077ba0  ip : cf06c080  fp : c0492150
+[    1.617621] r10: 04000000  r9 : cf2ac6d0  r8 : 00000000
+[    1.623135] r7 : cf2ac6d0  r6 : cf2b9010  r5 : cf2b9000  r4 : c0c81f60
+[    1.630027] r3 : d3000000  r2 : 00000000  r1 : cf06c4d8  r0 : 00000025
+[    1.636921] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+[    1.644635] Control: 10c5387d  Table: 80004019  DAC: 00000015
+[    1.650703] Process kworker/u:0 (pid: 6, stack limit = 0xcf076238)
+[    1.657225] Stack: (0xcf077ba0 to 0xcf078000)
 
-Yes, I am sure, IBE but must be set by using a call to PPA, on RX-51 se=
-tting that bit from the kernel (as it is done in the "ARM errata: Stale=
- prediction on replaced interworking branch" kernel patch, see http://k=
-erneltrap.org/mailarchive/git-commits-head/2009/5/3/5622724) does not w=
-ork, see the comment at the end: "Note that setting specific bits in th=
-e ACTLR register may not be available in non-secure mode.". This is exa=
-ctly the case for RX-51. I've verified that too.
+Any ideas ?
 
-If you need anything else elaborated on, I'm fine, just ask :)
-
-
-Regards,
-Ivo
+Cheers
+Mark J.
