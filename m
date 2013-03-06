@@ -1,83 +1,51 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: [PATCH 11/14] ARM: OMAP2+: Add device-tree support for NOR flash
-Date: Wed, 06 Mar 2013 13:30:28 +0000
-Message-ID: <513744F4.7050503@mimc.co.uk>
-References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com> <1361899842-30303-12-git-send-email-jon-hunter@ti.com> <51360271.1030302@mimc.co.uk> <51360562.20309@ti.com> <51361B46.507@mimc.co.uk> <51362BAB.10403@ti.com> <513664EC.2050508@ti.com> <5137192E.1010101@mimc.co.uk>
+From: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] omap_hsmmc DT DMA Client support
+Date: Wed, 6 Mar 2013 08:37:17 -0500
+Message-ID: <20130306133717.GJ6209@beef>
+References: <1362518004-7083-1-git-send-email-mporter@ti.com>
+ <201303052126.01572.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:41275 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755649Ab3CFNaa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Mar 2013 08:30:30 -0500
-In-Reply-To: <5137192E.1010101@mimc.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <201303052126.01572.arnd-r2nGTMty4D4@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>
 
-On 06/03/13 10:23, Mark Jackson wrote:
-> On 05/03/13 21:34, Jon Hunter wrote:
->>
->> On 03/05/2013 11:30 AM, Jon Hunter wrote:
->>> On 03/05/2013 10:20 AM, Mark Jackson wrote:
->>
->> [snip]
->>
->>>> But I can see in physmap_of.c that the device gets registered without any call to
->>>> devm_pinctrl_get_select_default() and hence no probe deferring takes place is the
->>>> pinctrl device hasn't yet been started (which it hasn't).
->>>>
->>>> Does probe deferral need adding to physmap_of.c, or should the pinctrl device really
->>>> be registered sooner ?
->>>
->>> I see, so the pinctrl driver is not getting probed until later.
->>
->> Can you give this version of the patch a go? I have re-worked the patch
->> so the NOR device will only be registered after the GPMC probe completes.
->>
->> By the way, with this version you should remove "simple-bus" from your
->> gpmc node compatible strings. I now call of_platform_device_create() to
->> create the child device during the GPMC probe. I think that this is a
->> safer approach.
+On Tue, Mar 05, 2013 at 09:26:01PM +0000, Arnd Bergmann wrote:
+> On Tuesday 05 March 2013, Matt Porter wrote:
+> > Changes since v1:
+> >         - rebase to 3.9-rc1, previous dependencies upstream
+> > 
+> > This series adds DT DMA Engine Client support to the omap_hsmmc.
+> > It leverages the generic DMA OF helpers in -next and the
+> > dma_request_slave_channel_compat() wrapper introduced in the
+> > AM33XX DMA Engine series to support DMA in omap_hsmmc on platforms
+> > booting via DT. These platforms include omap2/3/4/5 and am33xx.
+> > 
+> > These patches were split out from the v5 version of the AM33XX DMA
+> > series and split from the EDMA-specific omap_hsmmc changes.
+> > 
 > 
-> This is better in that the probe *is* now delayed until the gpmc has been setup,
-> but I still get an oops.
+> The description seems stale, but the patches all look good to me.
 > 
-> However, this time it's in the actual cfi query code.
+> I guess they can now get merged in any order.
 > 
-> I've traced it down to when it tries to physically access the memory associated
-> with the chip select in question (in this case CS3 @ 0x1a000000).
-> 
-> I printed some debug info to show that the GPMC CONFIG7 register is being setup
-> correctly, and I show the physical to virtual memory mapping values, as performed
-> in of_flash_probe(), but when I try to do a test raw_readw() on the virtual address,
-> I get the following:-
-> 
-> [    1.222950] omap-gpmc 50000000.gpmc: GPMC revision 6.0
-> [    1.229002] gpmc_read_settings_dt: read/write wait monitoring not enabled!
-> [    1.237916] enabling NAND BCH ecc with 8-bit correction
-> [    1.243843] ONFI param page 0 valid
-> [    1.247531] ONFI flash detected
-> [    1.250856] NAND device: Manufacturer ID: 0x2c, Chip ID: 0xda (Micron MT29F2G08ABAEAWP), 256MiB, page size: 2048, OOB size: 64
-> [    1.263149] 8 ofpart partitions found on MTD device omap2-nand.0
-> [    1.269492] Creating 8 MTD partitions on "omap2-nand.0":
-> [    1.275150] 0x000000000000-0x000000020000 : "spl1"
-> [    1.282593] 0x000000020000-0x000000040000 : "spl2"
-> [    1.288524] 0x000000040000-0x000000060000 : "spl3"
-> [    1.294456] 0x000000060000-0x000000080000 : "spl4"
-> [    1.300270] 0x000000080000-0x0000001e0000 : "boot"
-> [    1.307224] 0x0000001e0000-0x000000200000 : "env"
-> [    1.313093] 0x000000200000-0x000004200000 : "rootfs"
-> [    1.373589] 0x000004200000-0x000010000000 : "data"
-> [    1.541884] gpmc_probe_nor_child 1
-> [    1.545483] GPMC_CS_CONFIG7_0 : 00000f48
-> [    1.549621] GPMC_CS_CONFIG7_1 : 00000f58
-> [    1.553812] GPMC_CS_CONFIG7_2 : 00000f00
-> [    1.557951] GPMC_CS_CONFIG7_3 : 00000c5a
+> Acked-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 
-0x00000c5a is an invalid mode !!
+Yes, missed updating that to indicating that those are now in
+3.9-rc1.
 
-I'm trying to use a 64MB address space but not on a 64MB boundary ... oops.
-
+-Matt
