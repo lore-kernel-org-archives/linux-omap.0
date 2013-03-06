@@ -1,54 +1,56 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 11/14] ARM: OMAP2+: Add device-tree support for NOR flash
-Date: Wed, 6 Mar 2013 11:00:28 -0600
-Message-ID: <5137762C.6090300@ti.com>
-References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com> <1361899842-30303-12-git-send-email-jon-hunter@ti.com> <51360271.1030302@mimc.co.uk> <51360562.20309@ti.com> <51361B46.507@mimc.co.uk> <51362BAB.10403@ti.com> <513664EC.2050508@ti.com> <5137192E.1010101@mimc.co.uk> <513744F4.7050503@mimc.co.uk> <5137726D.10702@ti.com> <5137736B.9050501@mimc.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 5/9] ARM: omap1: add back missing includes
+Date: Wed, 6 Mar 2013 09:44:36 -0800
+Message-ID: <20130306174435.GO11806@atomide.com>
+References: <1362521809-22989-1-git-send-email-arnd@arndb.de>
+ <201303052227.33430.arnd@arndb.de>
+ <20130306005951.GH11806@atomide.com>
+ <201303061123.30789.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56102 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752866Ab3CFRAo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Mar 2013 12:00:44 -0500
-In-Reply-To: <5137736B.9050501@mimc.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201303061123.30789.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>
 
+* Arnd Bergmann <arnd@arndb.de> [130306 03:27]:
+> On Wednesday 06 March 2013, Tony Lindgren wrote:
+> > * Arnd Bergmann <arnd@arndb.de> [130305 14:31]:
+> > > On Tuesday 05 March 2013, Arnd Bergmann wrote:
+> > > > The recent reorganization of OMAP header files caused a couple of
+> > > > files that used to be implicitly included now missing from OMAP1.
+> > > > This adds explicit inclusions of mach/irqs.h and mach/hardware.h
+> > > > in all files that need them for an OMAP1 allyesconfig build.
+> > > > 
+> > > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > > > Cc: Tony Lindgren <tony@atomide.com>
+> > > > Cc: linux-omap@vger.kernel.org
+> > > > ---
+> > > >  arch/arm/mach-omap1/board-fsample.c  | 1 +
+> > > >  arch/arm/mach-omap1/board-h2.c       | 1 +
+> > > >  arch/arm/mach-omap1/board-perseus2.c | 1 +
+> > > >  arch/arm/mach-omap1/board-sx1.c      | 1 +
+> > > >  drivers/video/omap/lcd_ams_delta.c   | 1 +
+> > > >  drivers/video/omap/lcd_osk.c         | 1 +
+> > > >  6 files changed, 6 insertions(+)
+> > > 
+> > > I saw that Tony has already addressed the latter two changes, but
+> > > did not see a fix for the four board files.
+> > 
+> > Hmm I wonder why I have not seen the board-*.c related ones?
+> > 
+> > Anyways thanks for fixing those:
+> > 
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+> 
+> Actually I cannot reproduce them myself now, I think I'll just drop
+> the patch for now, but will remember your Ack if the problem comes
+> back. The patch would be needed if we decide to use SPARSE_IRQ on
+> OMAP1.
 
-On 03/06/2013 10:48 AM, Mark Jackson wrote:
-> On 06/03/13 16:44, Jon Hunter wrote:
->>
->> On 03/06/2013 07:30 AM, Mark Jackson wrote:
->>> On 06/03/13 10:23, Mark Jackson wrote:
-> 
-> <snip>
-> 
->>>> [    1.541884] gpmc_probe_nor_child 1
->>>> [    1.545483] GPMC_CS_CONFIG7_0 : 00000f48
->>>> [    1.549621] GPMC_CS_CONFIG7_1 : 00000f58
->>>> [    1.553812] GPMC_CS_CONFIG7_2 : 00000f00
->>>> [    1.557951] GPMC_CS_CONFIG7_3 : 00000c5a
->>>
->>> 0x00000c5a is an invalid mode !!
->>>
->>> I'm trying to use a 64MB address space but not on a 64MB boundary ... oops.
->>
->> Good catch. So this is now working for you then?
-> 
-> Not yet ... I got distracted by something else !?!
-> 
-> I'll take another look tomorrow.
-> 
-> Do you think it might be worth adding some sanity checking to the cs config
-> routines to trap similar errors ?
+OK sounds good to me.
 
-Yes, I see what you mean. We should check to ensure that the the base is
-aligned on a boundary that matches the size being configured.
-
-I can add some checking for this case.
-
-Cheers
-Jon
+Tony
