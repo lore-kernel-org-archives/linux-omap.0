@@ -1,77 +1,74 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
-Date: Wed, 6 Mar 2013 22:44:41 +0100
-Message-ID: <20130306214440.GA11874@earth.universe>
-References: <201302171616.50152@pali>
- <20130217190303.GC2317@blackmetal.musicnaut.iki.fi>
- <201303062112.06417@pali>
- <201303062120.17303@pali>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201303062120.17303@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@retiisi.org.uk, sakari.ailus@iki.fi
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH] ARM: OMAP1: fix omap_udc registration
+Date: Thu,  7 Mar 2013 00:23:25 +0200
+Message-ID: <1362608605-26611-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:56277 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753136Ab3CFW0T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Mar 2013 17:26:19 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
+omap_udc platform device is not registered properly anymore:
+CONFIG_USB_GADGET_OMAP was deleted by 193ab2a6 (usb: gadget: allow
+multiple gadgets to be built) already in v3.1.
 
---C7zPtVaVf+AK4Oqc
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fix by using CONFIG_USB_OMAP instead. Tested on Nokia 770 by checking
+that omap_udc is probed & working properly when built as a module.
 
-On Wed, Mar 06, 2013 at 09:20:16PM +0100, Pali Roh=E1r wrote:
-> On Wednesday 06 March 2013 21:12:06 Pali Roh=E1r wrote:
-> > On Sunday 17 February 2013 20:03:03 Aaro Koskinen wrote:
-> > > On Sun, Feb 17, 2013 at 04:16:49PM +0100, Pali Roh=E1r wrote:
-> > > > +/*
-> > > > + * arch/arm/mach-omap2/board-rx51-camera.c
-> > > > + *
-> > > > + * Copyright (C) 2008 Nokia Corporation
-> > > > + *
-> > > > + * Contact: Sakari Ailus <sakari.ailus@nokia.com>
-> > > > + *          Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-> > >=20
-> > > You should put these people to CC... Just to see if the
-> > > addresses are still valid (which I doubt).
-> >=20
-> > Ok, trying :-)
-> >=20
->=20
-> I got "Delivery Status Notification (Failure)" for both addresses.
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ arch/arm/mach-omap1/include/mach/usb.h |    2 +-
+ arch/arm/mach-omap1/usb.c              |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-Sakari Ailus hosts some code on github [0], which has the following
-email address: sakari.ailus+gitorious@retiisi.org.uk
+diff --git a/arch/arm/mach-omap1/include/mach/usb.h b/arch/arm/mach-omap1/include/mach/usb.h
+index 753cd5c..8b2150e 100644
+--- a/arch/arm/mach-omap1/include/mach/usb.h
++++ b/arch/arm/mach-omap1/include/mach/usb.h
+@@ -2,7 +2,7 @@
+  * FIXME correct answer depends on hmc_mode,
+  * as does (on omap1) any nonzero value for config->otg port number
+  */
+-#ifdef	CONFIG_USB_GADGET_OMAP
++#if defined(CONFIG_USB_OMAP) || defined(CONFIG_USB_OMAP_MODULE)
+ #define	is_usb0_device(config)	1
+ #else
+ #define	is_usb0_device(config)	0
+diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
+index 1a1db59..5cced13 100644
+--- a/arch/arm/mach-omap1/usb.c
++++ b/arch/arm/mach-omap1/usb.c
+@@ -123,7 +123,7 @@ omap_otg_init(struct omap_usb_config *config)
+ 	syscon = omap_readl(OTG_SYSCON_1);
+ 	syscon |= HST_IDLE_EN|DEV_IDLE_EN|OTG_IDLE_EN;
+ 
+-#ifdef	CONFIG_USB_GADGET_OMAP
++#if defined(CONFIG_USB_OMAP) || defined(CONFIG_USB_OMAP_MODULE)
+ 	if (config->otg || config->register_dev) {
+ 		struct platform_device *udc_device = config->udc_device;
+ 		int status;
+@@ -169,7 +169,7 @@ omap_otg_init(struct omap_usb_config *config)
+ void omap_otg_init(struct omap_usb_config *config) {}
+ #endif
+ 
+-#ifdef	CONFIG_USB_GADGET_OMAP
++#if defined(CONFIG_USB_OMAP) || defined(CONFIG_USB_OMAP_MODULE)
+ 
+ static struct resource udc_resources[] = {
+ 	/* order is significant! */
+@@ -600,7 +600,7 @@ static void __init omap_1510_usb_init(struct omap_usb_config *config)
+ 	while (!(omap_readw(ULPD_DPLL_CTRL) & DPLL_LOCK))
+ 		cpu_relax();
+ 
+-#ifdef	CONFIG_USB_GADGET_OMAP
++#if defined(CONFIG_USB_OMAP) || defined(CONFIG_USB_OMAP_MODULE)
+ 	if (config->register_dev) {
+ 		int status;
+ 
+-- 
+1.7.10.4
 
-I added it to this mail's CC.
-
-[0] https://gitorious.org/~sailus
-
--- Sebastian
-
---C7zPtVaVf+AK4Oqc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCAAGBQJRN7jIAAoJENju1/PIO/qaxVsP/0JOBKZ0vMVkFzhmLUTvo3/M
-0O83NYJhPbpa0rIJheesIi+kbXoyEiSKPhW7EhqGzEgqV417670nANhO5Tn22Qk+
-8xGxPZqJA1VwJ9fq6XbGcMKJMD6NKeGHl7ePO9xqeHVKYKdRfRuXmUiu1qSLkOZF
-gHXOli9WghjXjlygpPFyDrSFsD8CtAh5wNIkgFCDoe/3ig/5On9h45XSku+PoWJG
-+H/oaCGC4mqxv7bX1mR8gTDbERTTNIID9bo3NU2EnBgPRH0YRWvE7TuFJcnQaHxe
-RpHynXb3nxRWaSOKGcTmTOJibFULApDIoCQXO4lHoFjND8FloUE4N7w7JVC+GiVG
-rTLN70+cA1P/cgfT3cpwGtyS5ucllVl2op2H8gsTLI1Cj502ioJdsQzjXlBtCLQz
-/3scdYC/GpQq0dxfzNPWHkOAlIVZykwUiiQtlZ0mauMZ3n/uXZm/bsSo21zGbK1x
-31ZTNU0EFrBTtuQbCf4bdoMcVCIgSCiWqiS7JFNXVH3RJSqoTcJfhIFNxWxBIFuO
-eALAzUZNcawAathCw8prP85ALaKBRApqgZaocpsOIws7RA8BDrdx4xDrP6glfuRi
-vqqQNM8gSyw9QX2Kn0EFuBFKNOw5wG7sKgjiXMM+38avozd+25hVW+bOCkF1t3Aa
-SKnwoyicu+bSE7oHfzI6
-=wZS1
------END PGP SIGNATURE-----
-
---C7zPtVaVf+AK4Oqc--
