@@ -1,76 +1,52 @@
-From: "Kumar, Anil" <anilkumar.v@ti.com>
-Subject: RE: [PATCH v8 6/9] ARM: dts: add AM33XX EDMA support
-Date: Wed, 6 Mar 2013 04:19:58 +0000
-Message-ID: <F3DBB1B3EF102E4994C89758CFCA32412CD652@DBDE01.ent.ti.com>
-References: <1362516795-6346-1-git-send-email-mporter@ti.com>
- <1362516795-6346-7-git-send-email-mporter@ti.com>
+From: kishon <kishon@ti.com>
+Subject: Re: [PATCH v2 8/8] ARM: dts: omap5: add dwc3 core dt data
+Date: Wed, 6 Mar 2013 14:25:48 +0530
+Message-ID: <51370494.7090902@ti.com>
+References: <1362494223-14151-1-git-send-email-kishon@ti.com> <1362494223-14151-9-git-send-email-kishon@ti.com> <20130305143934.GB12123@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1362516795-6346-7-git-send-email-mporter@ti.com>
-Content-Language: en-US
+In-Reply-To: <20130305143934.GB12123@arwen.pp.htv.fi>
 Sender: linux-doc-owner@vger.kernel.org
-To: "Porter, Matt" <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Cousson, Benoit" <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Rob Landley <rob@landley.net>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: balbi@ti.com
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Wed, Mar 06, 2013 at 02:23:12, Porter, Matt wrote:
-> Adds AM33XX EDMA support to the am33xx.dtsi as documented in
-> Documentation/devicetree/bindings/dma/ti-edma.txt
-> 
-> Signed-off-by: Matt Porter <mporter@ti.com>
-> ---
->  arch/arm/boot/dts/am33xx.dtsi |   20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 0957645..aaf44122 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -87,6 +87,26 @@
->  			reg = <0x48200000 0x1000>;
->  		};
->  
-> +		edma: edma@49000000 {
-> +			compatible = "ti,edma3";
-> +			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-> +			reg =	<0x49000000 0x10000>,
-> +				<0x44e10f90 0x10>;
-> +			interrupt-parent = <&intc>;
+On Tuesday 05 March 2013 08:09 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Tue, Mar 05, 2013 at 08:07:03PM +0530, Kishon Vijay Abraham I wrote:
+>> Add dwc3 core dt data as a subnode to dwc3 omap glue data in omap5 dt
+>> data file. The information for the entered data node is available @
+>> Documentation/devicetree/bindings/usb/dwc3.txt
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>   arch/arm/boot/dts/omap5.dtsi |    7 +++++++
+>>   1 file changed, 7 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+>> index c4eb2ec..24dd69f 100644
+>> --- a/arch/arm/boot/dts/omap5.dtsi
+>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>> @@ -514,6 +514,13 @@
+>>   			#size-cells = <1>;
+>>   			utmi-mode = <2>;
+>>   			ranges;
+>> +			dwc3@4a030000 {
+>> +				compatible = "synopsys,dwc3";
+>> +				reg = <0x4a030000 0x1000>;
+>> +				interrupts = <0 92 4>;
+>> +				usb-phy = <&usb2_phy>, <&usb3_phy>;
+>> +				tx-fifo-resize;
+>
+> I think this should be merged with previous patch. Also, we need to
+> check whether tx-fifo-resize is needed with ES2 or not ;-)
 
-Is it really need of "interrupt-parent = <&intc>" here ?
-as this property is already with root node.  
-I am taking reference of 3.9-rc1
+yeah. ES2 works without tx-fifo-resize.
 
-Thanks,
-Anil
-
-> +			interrupts = <12 13 14>;
-> +			#dma-cells = <1>;
-> +			dma-channels = <64>;
-> +			ti,edma-regions = <4>;
-> +			ti,edma-slots = <256>;
-> +			ti,edma-queue-tc-map = <0 0
-> +						1 1
-> +						2 2>;
-> +			ti,edma-queue-priority-map = <0 0
-> +						      1 1
-> +						      2 2>;
-> +			ti,edma-default-queue = <0>;
-> +		};
-> +
->  		gpio1: gpio@44e07000 {
->  			compatible = "ti,omap4-gpio";
->  			ti,hwmods = "gpio1";
-> -- 
-> 1.7.9.5
-> 
-> _______________________________________________
-> Davinci-linux-open-source mailing list
-> Davinci-linux-open-source@linux.davincidsp.com
-> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
-> 
-
+Thanks
+Kishon
