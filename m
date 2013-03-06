@@ -1,129 +1,118 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 11/14] ARM: OMAP2+: Add device-tree support for NOR flash
-Date: Wed, 6 Mar 2013 12:01:28 -0600
-Message-ID: <51378478.4050504@ti.com>
-References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com> <1361899842-30303-12-git-send-email-jon-hunter@ti.com> <51360271.1030302@mimc.co.uk> <51360562.20309@ti.com> <51361B46.507@mimc.co.uk> <51362BAB.10403@ti.com> <513664EC.2050508@ti.com> <5137192E.1010101@mimc.co.uk> <513744F4.7050503@mimc.co.uk> <5137726D.10702@ti.com> <5137736B.9050501@mimc.co.uk> <5137762C.6090300@ti.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] arm: omap: RX-51: ARM errata 430973 workaround
+Date: Wed, 6 Mar 2013 20:13:15 +0100
+Message-ID: <201303062013.16302@pali>
+References: <517283541.62064.1362124023621.JavaMail.apache@mail81.abv.bg> <201303061509.07905@pali> <20130306175120.GP11806@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: multipart/signed;
+  boundary="nextPart1568464.I2SDZNDIls";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55593 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752653Ab3CFSBn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Mar 2013 13:01:43 -0500
-In-Reply-To: <5137762C.6090300@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130306175120.GP11806@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, =?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?= =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
+--nextPart1568464.I2SDZNDIls
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 03/06/2013 11:00 AM, Jon Hunter wrote:
-> 
-> On 03/06/2013 10:48 AM, Mark Jackson wrote:
->> On 06/03/13 16:44, Jon Hunter wrote:
->>>
->>> On 03/06/2013 07:30 AM, Mark Jackson wrote:
->>>> On 06/03/13 10:23, Mark Jackson wrote:
->>
->> <snip>
->>
->>>>> [    1.541884] gpmc_probe_nor_child 1
->>>>> [    1.545483] GPMC_CS_CONFIG7_0 : 00000f48
->>>>> [    1.549621] GPMC_CS_CONFIG7_1 : 00000f58
->>>>> [    1.553812] GPMC_CS_CONFIG7_2 : 00000f00
->>>>> [    1.557951] GPMC_CS_CONFIG7_3 : 00000c5a
->>>>
->>>> 0x00000c5a is an invalid mode !!
->>>>
->>>> I'm trying to use a 64MB address space but not on a 64MB boundary ... oops.
->>>
->>> Good catch. So this is now working for you then?
->>
->> Not yet ... I got distracted by something else !?!
->>
->> I'll take another look tomorrow.
->>
->> Do you think it might be worth adding some sanity checking to the cs config
->> routines to trap similar errors ?
-> 
-> Yes, I see what you mean. We should check to ensure that the the base is
-> aligned on a boundary that matches the size being configured.
-> 
-> I can add some checking for this case.
+On Wednesday 06 March 2013 18:51:21 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130306 06:13]:
+> > On Monday 04 March 2013 19:58:06 Tony Lindgren wrote:
+> > > * Nishanth Menon <nm@ti.com> [130301 06:42]:
+> > > > On Fri, Mar 1, 2013 at 1:47 AM, =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=
+=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2
+> >=20
+> > <freemangordon@abv.bg> wrote:
+> > > > > They look similar, but they are not equivalent :). The
+> > > > > first major difference is here (code taken from
+> > > > > omap-smc.S)
+> > > > >=20
+> > > > >> ENTRY(omap_smc2)
+> > > > >>=20
+> > > > >>          stmfd   sp!, {r4-r12, lr}
+> > > > >>          mov     r3, r2
+> > > > >>          mov     r2, r1
+> > > > >>          mov     r1, #0x0        @ Process ID
+> > > > >>          mov     r6, #0xff
+> > > > >>          mov     r12, #0x00      @ Secure Service ID
+> > > > >=20
+> > > > > Always zero, while RX51 PPA expects a real value. I
+> > > > > wonder if it is a bug, but anyway I don't see the id
+> > > > > parameter (R0) used.
+> > > > >=20
+> > > > >>          mov     r7, #0
+> > > > >>          mcr     p15, 0, r7, c7, c5, 6
+> > > > >=20
+> > > > > According to ARM TRM, this is "Invalidate entire
+> > > > > branch predictor array"(IIUC). NFC why it is needed
+> > > > > here, but this will not work on RX-51 until IBE bit
+> > > > > in ACR is set.
+> > > > >=20
+> > > > >>          dsb
+> > > > >>          dmb
+> > > > >>          smc     #0
+> > > > >=20
+> > > > > RX-51 needs smc #1 ;)
+> > > > >=20
+> > > > >>          ldmfd   sp!, {r4-r12, pc}
+> > > > >=20
+> > > > > The next major difference is that RX-51 expects
+> > > > > parameter count passed in R3[0] to be the count of
+> > > > > the remaining parameters +1, but
+> > > > > omap_secure_dispatcher (in omap-secure.c) is passing
+> > > > > the exact count of the remaining parameters.
+> > > > >=20
+> > > > > I guess all of the above problems can be
+> > > > > fixed/workarounded, but I wonder does it worth. Not to
+> > > > > say that I don't have BB around to test if the code
+> > > > > still works if I make changes to
+> > > > > omap2-secure.c/omap-smc.S :)
+> > > >=20
+> > > > Yep, that was my point - instead of introducing new
+> > > > functions, extending the existing functions to handle
+> > > > new requirements is better solution, IMHO.
+> > >=20
+> > > I think there have been patches posted for ARM generic SMC
+> > > handling. Might be worth looking at those a bit and see if
+> > > this can be made generic. I think only the SMC call
+> > > numbering is different for various SoCs?
+> > >=20
+> > > Regards,
+> > >=20
+> > > Tony
+> >=20
+> > Hi Tony, where are patches for ARM generic SMC handling?
+>=20
+> Sorry don't have the link available, but I recall seeing some
+> patch on linux-arm-kernel within past six months that added a
+> generic smc function.. Or maybe I was dreaming or something.
+>=20
+> Regards,
+>=20
+> Tony
 
-How about something like ...
+I am not able to find that patch...
 
-Cheers
-Jon
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
->From 4d6396ef49e34b06085a4036b795ab6faf29509c Mon Sep 17 00:00:00 2001
-From: Jon Hunter <jon-hunter@ti.com>
-Date: Wed, 6 Mar 2013 12:00:10 -0600
-Subject: [PATCH] ARM: OMAP2+: Detect incorrectly aligned GPMC base address
+--nextPart1568464.I2SDZNDIls
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
----
- arch/arm/mach-omap2/gpmc.c |   22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 8e6f019..aeef0a2 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -410,11 +410,18 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
- 	return 0;
- }
- 
--static void gpmc_cs_enable_mem(int cs, u32 base, u32 size)
-+static int gpmc_cs_enable_mem(int cs, u32 base, u32 size)
- {
- 	u32 l;
- 	u32 mask;
- 
-+	/*
-+	 * Ensure that base address is aligned
-+	 * on a boundary greater than size.
-+	 */
-+	if (base & (size - 1))
-+		return -EINVAL;
-+
- 	mask = (1 << GPMC_SECTION_SHIFT) - size;
- 	l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
- 	l &= ~0x3f;
-@@ -423,6 +430,8 @@ static void gpmc_cs_enable_mem(int cs, u32 base, u32 size)
- 	l |= ((mask >> GPMC_CHUNK_SHIFT) & 0x0f) << 8;
- 	l |= GPMC_CONFIG7_CSVALID;
- 	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG7, l);
-+
-+	return 0;
- }
- 
- static void gpmc_cs_disable_mem(int cs)
-@@ -541,7 +550,9 @@ static int gpmc_cs_remap(int cs, u32 base)
- 	ret = gpmc_cs_insert_mem(cs, base, size);
- 	if (IS_ERR_VALUE(ret))
- 		return ret;
--	gpmc_cs_enable_mem(cs, base, size);
-+	ret = gpmc_cs_enable_mem(cs, base, size);
-+	if (IS_ERR_VALUE(ret))
-+		return ret;
- 
- 	return 0;
- }
-@@ -571,7 +582,12 @@ int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
- 	if (r < 0)
- 		goto out;
- 
--	gpmc_cs_enable_mem(cs, res->start, resource_size(res));
-+	r = gpmc_cs_enable_mem(cs, res->start, resource_size(res));
-+	if (IS_ERR_VALUE(r)) {
-+		release_resource(res);
-+		goto out;
-+	}
-+
- 	*base = res->start;
- 	gpmc_cs_set_reserved(cs, 1);
- out:
--- 
-1.7.10.4
+iEYEABECAAYFAlE3lUwACgkQi/DJPQPkQ1KjLwCgoaftjx2LfJtTtjJKvVVYMjFG
++yEAoKshlFVQE0UmXHQtd01/vFub7No+
+=y8dF
+-----END PGP SIGNATURE-----
 
+--nextPart1568464.I2SDZNDIls--
