@@ -1,74 +1,74 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] ARM: OMAP1: fix omap_udc registration
-Date: Thu,  7 Mar 2013 00:23:25 +0200
-Message-ID: <1362608605-26611-1-git-send-email-aaro.koskinen@iki.fi>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v2] ARM: OMAP: Clear GPMC bits when applying new setting.
+Date: Wed, 6 Mar 2013 16:39:14 -0600
+Message-ID: <5137C592.6070503@ti.com>
+References: <5135C554.5090502@mimc.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:56277 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753136Ab3CFW0T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Mar 2013 17:26:19 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:49498 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922Ab3CFWkD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Mar 2013 17:40:03 -0500
+In-Reply-To: <5135C554.5090502@mimc.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-omap_udc platform device is not registered properly anymore:
-CONFIG_USB_GADGET_OMAP was deleted by 193ab2a6 (usb: gadget: allow
-multiple gadgets to be built) already in v3.1.
 
-Fix by using CONFIG_USB_OMAP instead. Tested on Nokia 770 by checking
-that omap_udc is probed & working properly when built as a module.
+On 03/05/2013 04:13 AM, Mark Jackson wrote:
+> When setting the GPMC device type, make sure any previous
+> bits are cleared down, before applying the new setting.
+> 
+> Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
+> ---
+> Changes in v2:
+> - Change mux type to 2 bits
+> - Add extra mux types in gpmc.h
+> 
+>  arch/arm/mach-omap2/gpmc.c |    4 ++++
+>  arch/arm/mach-omap2/gpmc.h |    5 ++++-
+>  2 files changed, 8 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 410e1ba..479369c 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -613,6 +613,10 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
+>  
+>  	case GPMC_CONFIG_DEV_TYPE:
+>  		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+> +		/* clear 4 target bits */
+> +		regval &= ~(GPMC_CONFIG1_DEVICETYPE(3) |
+> +			    GPMC_CONFIG1_MUXTYPE(3));
+> +		/* set the proper value */
+>  		regval |= GPMC_CONFIG1_DEVICETYPE(wval);
+>  		if (wval == GPMC_DEVICETYPE_NOR)
+>  			regval |= GPMC_CONFIG1_MUXADDDATA;
+> diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
+> index fe0a844..f79cbde 100644
+> --- a/arch/arm/mach-omap2/gpmc.h
+> +++ b/arch/arm/mach-omap2/gpmc.h
+> @@ -58,7 +58,10 @@
+>  #define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
+>  #define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
+>  #define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
+> -#define GPMC_CONFIG1_MUXADDDATA         (1 << 9)
+> +#define GPMC_CONFIG1_MUXTYPE(val)       ((val & 3) << 8)
+> +#define GPMC_CONFIG1_MUXNONMUX          GPMC_CONFIG1_MUXTYPE(0)
+> +#define GPMC_CONFIG1_MUXAAD             GPMC_CONFIG1_MUXTYPE(1)
+> +#define GPMC_CONFIG1_MUXADDDATA         GPMC_CONFIG1_MUXTYPE(2)
+>  #define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
+>  #define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
+>  #define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- arch/arm/mach-omap1/include/mach/usb.h |    2 +-
- arch/arm/mach-omap1/usb.c              |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Thanks for updating. I do plan to get rid of the part of the
+gpmc_cs_configure() function [1]. However, I will pull in and based my
+series on top of this.
 
-diff --git a/arch/arm/mach-omap1/include/mach/usb.h b/arch/arm/mach-omap1/include/mach/usb.h
-index 753cd5c..8b2150e 100644
---- a/arch/arm/mach-omap1/include/mach/usb.h
-+++ b/arch/arm/mach-omap1/include/mach/usb.h
-@@ -2,7 +2,7 @@
-  * FIXME correct answer depends on hmc_mode,
-  * as does (on omap1) any nonzero value for config->otg port number
-  */
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#if defined(CONFIG_USB_OMAP) || defined(CONFIG_USB_OMAP_MODULE)
- #define	is_usb0_device(config)	1
- #else
- #define	is_usb0_device(config)	0
-diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
-index 1a1db59..5cced13 100644
---- a/arch/arm/mach-omap1/usb.c
-+++ b/arch/arm/mach-omap1/usb.c
-@@ -123,7 +123,7 @@ omap_otg_init(struct omap_usb_config *config)
- 	syscon = omap_readl(OTG_SYSCON_1);
- 	syscon |= HST_IDLE_EN|DEV_IDLE_EN|OTG_IDLE_EN;
- 
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#if defined(CONFIG_USB_OMAP) || defined(CONFIG_USB_OMAP_MODULE)
- 	if (config->otg || config->register_dev) {
- 		struct platform_device *udc_device = config->udc_device;
- 		int status;
-@@ -169,7 +169,7 @@ omap_otg_init(struct omap_usb_config *config)
- void omap_otg_init(struct omap_usb_config *config) {}
- #endif
- 
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#if defined(CONFIG_USB_OMAP) || defined(CONFIG_USB_OMAP_MODULE)
- 
- static struct resource udc_resources[] = {
- 	/* order is significant! */
-@@ -600,7 +600,7 @@ static void __init omap_1510_usb_init(struct omap_usb_config *config)
- 	while (!(omap_readw(ULPD_DPLL_CTRL) & DPLL_LOCK))
- 		cpu_relax();
- 
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#if defined(CONFIG_USB_OMAP) || defined(CONFIG_USB_OMAP_MODULE)
- 	if (config->register_dev) {
- 		int status;
- 
--- 
-1.7.10.4
+Jon
+
+[1] https://patchwork.kernel.org/patch/2186631/
 
