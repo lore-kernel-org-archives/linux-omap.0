@@ -1,103 +1,35 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] arm: omap: RX-51: ARM errata 430973 workaround
-Date: Wed, 6 Mar 2013 15:09:07 +0100
-Message-ID: <201303061509.07905@pali>
-References: <517283541.62064.1362124023621.JavaMail.apache@mail81.abv.bg> <CAGo_u6omQdSzpfthHNAU1UvgSvkgq3ZC6g1Ha9oi0nc9QJ71nA@mail.gmail.com> <20130304185806.GS11806@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3768089.BVa7NHh81d";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130304185806.GS11806@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, =?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?= =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Matt Porter <mporter@ti.com>
+Subject: [PATCH v3 0/2] omap_hsmmc DT DMA Client support
+Date: Wed,  6 Mar 2013 09:12:06 -0500
+Message-ID: <1362579128-5312-1-git-send-email-mporter@ti.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>, Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
+Cc: Vinod Koul <vinod.koul@intel.com>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Jon Hunter <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart3768089.BVa7NHh81d
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Changes since v2:
+	- dropped skip platform_get_resource_byname() patch
+Changes since v1:
+	- rebase to 3.9-rc1, previous dependencies upstream
 
-On Monday 04 March 2013 19:58:06 Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [130301 06:42]:
-> > On Fri, Mar 1, 2013 at 1:47 AM, =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE =
-=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2=20
-<freemangordon@abv.bg> wrote:
-> > > They look similar, but they are not equivalent :). The
-> > > first major difference is here (code taken from
-> > > omap-smc.S)
-> > >=20
-> > >> ENTRY(omap_smc2)
-> > >>=20
-> > >>          stmfd   sp!, {r4-r12, lr}
-> > >>          mov     r3, r2
-> > >>          mov     r2, r1
-> > >>          mov     r1, #0x0        @ Process ID
-> > >>          mov     r6, #0xff
-> > >>          mov     r12, #0x00      @ Secure Service ID
-> > >=20
-> > > Always zero, while RX51 PPA expects a real value. I wonder
-> > > if it is a bug, but anyway I don't see the id parameter
-> > > (R0) used.
-> > >=20
-> > >>          mov     r7, #0
-> > >>          mcr     p15, 0, r7, c7, c5, 6
-> > >=20
-> > > According to ARM TRM, this is "Invalidate entire branch
-> > > predictor array"(IIUC). NFC why it is needed here, but
-> > > this will not work on RX-51 until IBE bit in ACR is set.
-> > >=20
-> > >>          dsb
-> > >>          dmb
-> > >>          smc     #0
-> > >=20
-> > > RX-51 needs smc #1 ;)
-> > >=20
-> > >>          ldmfd   sp!, {r4-r12, pc}
-> > >=20
-> > > The next major difference is that RX-51 expects parameter
-> > > count passed in R3[0] to be the count of the remaining
-> > > parameters +1, but omap_secure_dispatcher (in
-> > > omap-secure.c) is passing the exact count of the
-> > > remaining parameters.
-> > >=20
-> > > I guess all of the above problems can be
-> > > fixed/workarounded, but I wonder does it worth. Not to
-> > > say that I don't have BB around to test if the code still
-> > > works if I make changes to omap2-secure.c/omap-smc.S :)
-> >=20
-> > Yep, that was my point - instead of introducing new
-> > functions, extending the existing functions to handle new
-> > requirements is better solution, IMHO.
->=20
-> I think there have been patches posted for ARM generic SMC
-> handling. Might be worth looking at those a bit and see if
-> this can be made generic. I think only the SMC call numbering
-> is different for various SoCs?
->=20
-> Regards,
->=20
-> Tony
+This series adds DT DMA Engine Client support to the omap_hsmmc.
+It leverages the generic DMA OF helpers and the
+dma_request_slave_channel_compat() wrapper to support DMA in
+omap_hsmmc on platforms booting via DT. These platforms include
+omap2/3/4/5 and am33xx.
 
-Hi Tony, where are patches for ARM generic SMC handling?
+These patches were split out from the v5 version of the AM33XX DMA
+series and split from the EDMA-specific omap_hsmmc changes.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Matt Porter (2):
+  mmc: omap_hsmmc: convert to dma_request_slave_channel_compat()
+  mmc: omap_hsmmc: add generic DMA request support to the DT binding
 
---nextPart3768089.BVa7NHh81d
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   26 +++++++++++++++++++-
+ drivers/mmc/host/omap_hsmmc.c                      |   10 ++++++--
+ 2 files changed, 33 insertions(+), 3 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+-- 
+1.7.9.5
 
-iEYEABECAAYFAlE3TgMACgkQi/DJPQPkQ1Jc2wCglSMKzNqUje2f2/9GUJjGVVwf
-U8wAoKBtlyuslMGS0SWvl7zQPWIoFE+Y
-=ezzW
------END PGP SIGNATURE-----
-
---nextPart3768089.BVa7NHh81d--
