@@ -1,115 +1,126 @@
-From: Matthias Brugger <matthias.bgg@gmail.com>
-Subject: Re: omapdss wakeup issues
-Date: Wed, 6 Mar 2013 10:16:31 +0100
-Message-ID: <CABuKBeJY8gRUQAVsFf3PZ7SUf1DArOpo4XXAX-B=5c8WohyzjA@mail.gmail.com>
-References: <CALbNGRThXXuSE9Q9h7rcSHYm_s4nUcdGjC-xRFD23f0-Ncy3-w@mail.gmail.com>
-	<CALbNGRT_brQi11s+FxDHm_pfeM2HnMAUcxrtGDrG9MQ-KyL-+A@mail.gmail.com>
-	<CALbNGRSDEYuSKrPvo3pXa85YOTmq3+qJNnzhwPAuE1A5cj4xvg@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 8/8] ARM: dts: omap5: add dwc3 core dt data
+Date: Wed, 6 Mar 2013 11:19:43 +0200
+Message-ID: <20130306091942.GJ28587@arwen.pp.htv.fi>
+References: <1362494223-14151-1-git-send-email-kishon@ti.com>
+ <1362494223-14151-9-git-send-email-kishon@ti.com>
+ <20130305143934.GB12123@arwen.pp.htv.fi>
+ <51370494.7090902@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UlxN1C6awaFNesUv"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:55431 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755186Ab3CFJQd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Mar 2013 04:16:33 -0500
-Received: by mail-wg0-f44.google.com with SMTP id dr12so6968562wgb.11
-        for <linux-omap@vger.kernel.org>; Wed, 06 Mar 2013 01:16:32 -0800 (PST)
-In-Reply-To: <CALbNGRSDEYuSKrPvo3pXa85YOTmq3+qJNnzhwPAuE1A5cj4xvg@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43885 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750812Ab3CFJUR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Mar 2013 04:20:17 -0500
+Content-Disposition: inline
+In-Reply-To: <51370494.7090902@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Andreas_M=FCller?= <schnitzeltony@googlemail.com>
-Cc: linux-omap@vger.kernel.org
+To: kishon <kishon@ti.com>
+Cc: balbi@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-2013/3/5 Andreas M=FCller <schnitzeltony@googlemail.com>:
-> On Fri, Mar 1, 2013 at 10:07 PM, Andreas M=FCller
-> <schnitzeltony@googlemail.com> wrote:
->> On Thu, Feb 28, 2013 at 5:27 PM, Andreas M=FCller
->> <schnitzeltony@googlemail.com> wrote:
->>> Hi,
->>>
->>> I am preparing 3.8 mainline for gumstix overo and have the followin=
-g
->>> issue: waking Monitor connected by HDMI from power save makes Monit=
-or
->>> complain for unsupported frequency and console says:
->>>
->>> | omapdss APPLY error: FIFO UNDERFLOW on gfx, disabling the overlay
->>>
->>> Is this a known issue?
->>>
->> Sorry for the noise but this is the only issue I have with 3.8.1
->> stable (currently). Some further notes:
->>
->> * with old OMAP 3530 (only 600MHz capable) the HDMI does not work fo=
-r
->> warm restart and not for pressing reset. The only way out is power-o=
-ff
->> / power on. This I saw with 3.6 the first time but I did not follow =
-it
->> at that time.
->> * My kernel command line is
->>     console=3DttyO2,115200n8 mpurate=3D800 vram=3D12M
->> omapfb.mode=3Ddvi:1280x1024MR-24@60 omapdss.def_disp=3Ddvi
->> root=3D/dev/mmcblk0p2 rw rootfstype=3Dext4 rootwait
->>  I added omapdss.debug=3Dy and omapdss.debug=3D1 but that did give m=
-e
->> further information. Are there other settings available helping to
->> debug this?
->> * I attached kernel config and bootlog for proper start - maybe this
->> gives some hint.
->> * Monitor power down is caused by XFCE power management
->>
->> Is there any other information I can give to solve this?
->>
-> FWIW DM3730 (Overo fire storm) the wakeup causes some additional warn=
-ing
+--UlxN1C6awaFNesUv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It happens on DM3730 right now as well.
-That's bad news.
-When I was working on the problem I read this discussion, maybe it can =
-help you:
-http://thread.gmane.org/gmane.linux.ports.arm.omap/76021/focus=3D76030
+Hi,
 
->
-> omapdss APPLY error: FIFO UNDERFLOW on gfx, disabling the overlay
-> ------------[ cut here ]------------
-> WARNING: at drivers/video/omap2/dss/dispc.c:543 dispc_mgr_go+0x20/0x5=
-4()
-> Modules linked in: libertas_sdio libertas lib80211 cfg80211 rfkill
-> ads7846 gpio_keys
-> [<c001254c>] (unwind_backtrace+0x0/0xe0) from [<c002e7fc>]
-> (warn_slowpath_common+0x4c/0x64)
-> [<c002e7fc>] (warn_slowpath_common+0x4c/0x64) from [<c002e82c>]
-> (warn_slowpath_null+0x18/0x1c)
-> [<c002e82c>] (warn_slowpath_null+0x18/0x1c) from [<c0370cc0>]
-> (dispc_mgr_go+0x20/0x54)
-> [<c0370cc0>] (dispc_mgr_go+0x20/0x54) from [<c037a900>]
-> (dispc_error_worker+0x6c/0x18c)
-> [<c037a900>] (dispc_error_worker+0x6c/0x18c) from [<c004667c>]
-> (process_one_work+0x1fc/0x3dc)
-> [<c004667c>] (process_one_work+0x1fc/0x3dc) from [<c0046c08>]
-> (worker_thread+0x238/0x34c)
-> [<c0046c08>] (worker_thread+0x238/0x34c) from [<c004ad08>] (kthread+0=
-xa0/0xb0)
-> [<c004ad08>] (kthread+0xa0/0xb0) from [<c000d938>] (ret_from_fork+0x1=
-4/0x3c)
-> ---[ end trace 40fcd9df3dd2aaf5 ]---
->
-> Andreas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, Mar 06, 2013 at 02:25:48PM +0530, kishon wrote:
+> Hi,
+>=20
+> On Tuesday 05 March 2013 08:09 PM, Felipe Balbi wrote:
+> >Hi,
+> >
+> >On Tue, Mar 05, 2013 at 08:07:03PM +0530, Kishon Vijay Abraham I wrote:
+> >>Add dwc3 core dt data as a subnode to dwc3 omap glue data in omap5 dt
+> >>data file. The information for the entered data node is available @
+> >>Documentation/devicetree/bindings/usb/dwc3.txt
+> >>
+> >>Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >>---
+> >>  arch/arm/boot/dts/omap5.dtsi |    7 +++++++
+> >>  1 file changed, 7 insertions(+)
+> >>
+> >>diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> >>index c4eb2ec..24dd69f 100644
+> >>--- a/arch/arm/boot/dts/omap5.dtsi
+> >>+++ b/arch/arm/boot/dts/omap5.dtsi
+> >>@@ -514,6 +514,13 @@
+> >>  			#size-cells =3D <1>;
+> >>  			utmi-mode =3D <2>;
+> >>  			ranges;
+> >>+			dwc3@4a030000 {
+> >>+				compatible =3D "synopsys,dwc3";
+> >>+				reg =3D <0x4a030000 0x1000>;
+> >>+				interrupts =3D <0 92 4>;
+> >>+				usb-phy =3D <&usb2_phy>, <&usb3_phy>;
+> >>+				tx-fifo-resize;
+> >
+> >I think this should be merged with previous patch. Also, we need to
+> >check whether tx-fifo-resize is needed with ES2 or not ;-)
+>=20
+> yeah. ES2 works without tx-fifo-resize.
+
+Great, I guess we can deprecate that attribute. Can you check if ES2
+still works with:
+
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 82e160e..cad0131 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -2029,6 +2029,8 @@ static void dwc3_gadget_usb3_phy_suspend(struct dwc3 =
+*dwc, int suspend)
+ {
+ 	u32			reg;
+=20
++	return;
++
+ 	reg =3D dwc3_readl(dwc->regs, DWC3_GUSB3PIPECTL(0));
+=20
+ 	if (suspend)
+@@ -2043,6 +2045,8 @@ static void dwc3_gadget_usb2_phy_suspend(struct dwc3 =
+*dwc, int suspend)
+ {
+ 	u32			reg;
+=20
++	return;
++
+ 	reg =3D dwc3_readl(dwc->regs, DWC3_GUSB2PHYCFG(0));
+=20
+ 	if (suspend)
 
 
+starting on 1.94a (IIRC) core was supposed to control PHYs directly and
+since there's nobody in linux mainline using any version prior to 1.94a,
+we could drop that too.
 
 --=20
----
-motzblog.wordpress.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+balbi
+
+--UlxN1C6awaFNesUv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIbBAEBAgAGBQJRNwouAAoJEIaOsuA1yqREoEYP9A3VqnODoGvvDfrS1/0zev7a
+d5lx9xjbsAQsRYhPSbMCzp8H6tv74db7odL9eUZlD+2BRT1/1reYkwQKD7NT8zLi
+nXoBVwAlgC+o3kKcLnTOc50QUHhnCNRw1y06zyDOudDJQu2q1TnlekFaJtpZW8VX
+HhHcJMcXdUP6xKSobqKUGDmxbb8p/5ue+2l3uzygZO31buMi+Y6Vz22iUKZMePWE
+R/sgMEgwEAY6pMYMP9ASuz7MluWnCcpj9I3Us3lQKkolTSBxBrGDPqfzs9v/kb4z
+zSxSjXZ+FXUEugcCg+3gI4EeyPWRqiuKuDIpm0AIpTqNJIda5fP3FN9JNx8iZ4o9
+onO4NdsVyn7B11kctxWecX3obuRbXh5+SqzPy1V14ShADcxW/0Z3ligwYt6YmrrX
+k3pi1tjsTP5L+qTO76Vsjym21XsCbddOeW+ko5vB399s9XwrrYE2D2wIDGxU93lo
+S+ObeTTIKB/204nKUWRN1XBZV4SN4Eo7s2fZks3+sqxpxno3D08vetun4ilLcc49
+6p7LFosb09SFtrrmHgAX83KmdBRlNCGPMWLuDS57KsFEDhh9NFh3CTAKFQJeGst2
+XuD9r9QB0GIUzqdptlImTDnM8y2dsIS+qEARHAT9LV7fKuYUx4nkkG2U4gJ92z5T
+c7dnJArp/rxjjzRZqb8=
+=8tDv
+-----END PGP SIGNATURE-----
+
+--UlxN1C6awaFNesUv--
