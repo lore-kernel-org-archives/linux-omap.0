@@ -1,89 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap: RX-51: ARM errata 430973 workaround
-Date: Wed, 6 Mar 2013 09:51:21 -0800
-Message-ID: <20130306175120.GP11806@atomide.com>
-References: <517283541.62064.1362124023621.JavaMail.apache@mail81.abv.bg>
- <CAGo_u6omQdSzpfthHNAU1UvgSvkgq3ZC6g1Ha9oi0nc9QJ71nA@mail.gmail.com>
- <20130304185806.GS11806@atomide.com>
- <201303061509.07905@pali>
+Subject: Re: [PATCH V4] ARM: dts: add minimal DT support for DevKit8000.
+Date: Wed, 6 Mar 2013 09:53:13 -0800
+Message-ID: <20130306175313.GQ11806@atomide.com>
+References: <F3DBB1B3EF102E4994C89758CFCA32412CC4E9@DBDE01.ent.ti.com>
+ <CABYxbz5GyxYaHANgdpwBNaaR6tnu=6LJuUNSvL7DEzU=4CPHcA@mail.gmail.com>
+ <F3DBB1B3EF102E4994C89758CFCA32412CC74F@DBDE01.ent.ti.com>
+ <CABYxbz62JrMB95p5i9iu2G=B4ETXLrYbLsyFEFR5F+WVD6YNnQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201303061509.07905@pali>
+In-Reply-To: <CABYxbz62JrMB95p5i9iu2G=B4ETXLrYbLsyFEFR5F+WVD6YNnQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Anil Kumar <anilk4.v@gmail.com>
+Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, b-cousson@ti.com, Grant Likely <grant.likely@secretlab.ca>, Thomas Weber <thomas@tomweber.eu>
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130306 06:13]:
-> On Monday 04 March 2013 19:58:06 Tony Lindgren wrote:
-> > * Nishanth Menon <nm@ti.com> [130301 06:42]:
-> > > On Fri, Mar 1, 2013 at 1:47 AM, =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=
-=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2=20
-> <freemangordon@abv.bg> wrote:
-> > > > They look similar, but they are not equivalent :). The
-> > > > first major difference is here (code taken from
-> > > > omap-smc.S)
-> > > >=20
-> > > >> ENTRY(omap_smc2)
-> > > >>=20
-> > > >>          stmfd   sp!, {r4-r12, lr}
-> > > >>          mov     r3, r2
-> > > >>          mov     r2, r1
-> > > >>          mov     r1, #0x0        @ Process ID
-> > > >>          mov     r6, #0xff
-> > > >>          mov     r12, #0x00      @ Secure Service ID
-> > > >=20
-> > > > Always zero, while RX51 PPA expects a real value. I wonder
-> > > > if it is a bug, but anyway I don't see the id parameter
-> > > > (R0) used.
-> > > >=20
-> > > >>          mov     r7, #0
-> > > >>          mcr     p15, 0, r7, c7, c5, 6
-> > > >=20
-> > > > According to ARM TRM, this is "Invalidate entire branch
-> > > > predictor array"(IIUC). NFC why it is needed here, but
-> > > > this will not work on RX-51 until IBE bit in ACR is set.
-> > > >=20
-> > > >>          dsb
-> > > >>          dmb
-> > > >>          smc     #0
-> > > >=20
-> > > > RX-51 needs smc #1 ;)
-> > > >=20
-> > > >>          ldmfd   sp!, {r4-r12, pc}
-> > > >=20
-> > > > The next major difference is that RX-51 expects parameter
-> > > > count passed in R3[0] to be the count of the remaining
-> > > > parameters +1, but omap_secure_dispatcher (in
-> > > > omap-secure.c) is passing the exact count of the
-> > > > remaining parameters.
-> > > >=20
-> > > > I guess all of the above problems can be
-> > > > fixed/workarounded, but I wonder does it worth. Not to
-> > > > say that I don't have BB around to test if the code still
-> > > > works if I make changes to omap2-secure.c/omap-smc.S :)
-> > >=20
-> > > Yep, that was my point - instead of introducing new
-> > > functions, extending the existing functions to handle new
-> > > requirements is better solution, IMHO.
-> >=20
-> > I think there have been patches posted for ARM generic SMC
-> > handling. Might be worth looking at those a bit and see if
-> > this can be made generic. I think only the SMC call numbering
-> > is different for various SoCs?
-> >=20
-> > Regards,
-> >=20
-> > Tony
->=20
-> Hi Tony, where are patches for ARM generic SMC handling?
+* Anil Kumar <anilk4.v@gmail.com> [130305 18:40]:
+> Hi Tony,
+> 
+> >> From: linux-arm-kernel [mailto:linux-arm-kernel-
+> >> bounces@lists.infradead.org] On Behalf Of Anil Kumar
+> >> Sent: Wednesday, February 27, 2013 8:03 AM
+> >> To: devicetree-discuss@lists.ozlabs.org; linux-omap@vger.kernel.org;
+> >> linux-kernel@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> >> Cc: linux@arm.linux.org.uk; Cousson, Benoit; Tony Lindgren; Grant
+> >> Likely; Anil Kumar; thomas@tomweber.eu
+> >> Subject: Re: FW: [PATCH V4] ARM: dts: add minimal DT support for
+> >> DevKit8000.
+> >>
+> >> Hi,
+> >> >
+> >> > DevKit8000 is a beagle board clone from Timll, sold by
+> >> > armkits.com. The DevKit8000 has RS232 serial port, LCD, DVI-D,
+> >> > S-Video, Ethernet, SD/MMC, keyboard, camera, SPI, I2C, USB and
+> >> > JTAG interface.
+> >> >
+> >> > This patch adds the basic DT support for devkit8000. At this time,
+> >> Information
+> >> > of twl4030 (PMIC), MMC1, I2C1 and leds are added.
+> >> >
+> >> > Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
+> >> > Tested-by: Thomas Weber <thomas@tomweber.eu>
+> >>
+> >> Gentle Ping. As there are no review comments on this patch,
+> >> Could you please pull this patch ?
+> 
+> Gentle Ping.
+> 
+> This patch also got Reviewed-by: Manish Badarkhe <badarkhe.manish@gmail.com>
+> and as patch "ARM: dts: omap3-devkit8000: Enable audio support"  has already got
+> "Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>" but it is on the
+> top of this patch.
+> So, Could you please pull this patch in one of your omap branch? or
+> you want me to
+> do rebase this patch on top of v3.9-rc1 ?
 
-Sorry don't have the link available, but I recall seeing some patch
-on linux-arm-kernel within past six months that added a generic
-smc function.. Or maybe I was dreaming or something.
+Let's wait for Benoit to queue it as he has a bunch of .dts changes already
+applied. Too bad we missed v3.9 merge window for those, but hopefully
+we can get them queued early for v3.10.
 
 Regards,
 
