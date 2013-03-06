@@ -1,40 +1,65 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap fixes for v3.9-rc1
-Date: Tue, 5 Mar 2013 22:28:24 +0000
-Message-ID: <201303052228.24821.arnd@arndb.de>
-References: <20130305172313.GB11806@atomide.com>
+From: Rob Clark <robdclark@gmail.com>
+Subject: Re: [PATCH 1/4] drm/omap: Don't return from modeset_init if a panel
+ doesn't satisfy omapdrm requirements
+Date: Tue, 5 Mar 2013 19:34:50 -0500
+Message-ID: <CAF6AEGtSZ_rQQbt3JWYooduPhHHEEhv8Ra9yp5WrpWUxZOtTrA@mail.gmail.com>
+References: <1362493070-17706-1-git-send-email-archit@ti.com>
+	<1362493070-17706-2-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:61439 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755326Ab3CEW2b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 17:28:31 -0500
-In-Reply-To: <20130305172313.GB11806@atomide.com>
+Received: from mail-ia0-f180.google.com ([209.85.210.180]:53699 "EHLO
+	mail-ia0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752175Ab3CFAev (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Mar 2013 19:34:51 -0500
+Received: by mail-ia0-f180.google.com with SMTP id f27so6712328iae.25
+        for <linux-omap@vger.kernel.org>; Tue, 05 Mar 2013 16:34:50 -0800 (PST)
+In-Reply-To: <1362493070-17706-2-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-On Tuesday 05 March 2013, Tony Lindgren wrote:
-> The following changes since commit 6dbe51c251a327e012439c4772097a13df43c5b8:
-> 
->   Linux 3.9-rc1 (2013-03-03 15:11:05 -0800)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9-rc1/fixes-signed
-> 
-> for you to fetch changes up to b0ad0995e92fdf6b25056da76c906c51bb06d6a5:
-> 
->   ARM: OMAP: RX-51: add missing USB phy binding (2013-03-05 08:24:56 -0800)
-> 
-> ----------------------------------------------------------------
-> Fix few regressions, omap3 pm init with device tree, and some
-> issues with the legacy mux code.
+On Tue, Mar 5, 2013 at 9:17 AM, Archit Taneja <archit@ti.com> wrote:
+> modeset_init iterates through all the registered omapdss devices and has some
+> initial checks to see if the panel has a driver and the required driver ops for
+> it to be usable by omapdrm.
+>
+> The function bails out from modeset_init if a panel doesn't meet the
+> requirements, and stops the registration of the future panels and encoders which
+> come after it, that isn't the correct thing to do, we should go through the rest
+> of the panels. Replace the 'return's with 'continue's.
+>
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
-Pulled into fixes branch, thanks!
+Reviewed-by: Rob Clark <robdclark@gmail.com>
 
-	Arnd
+> ---
+>  drivers/gpu/drm/omapdrm/omap_drv.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
+> index 079c54c..77b7225 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_drv.c
+> +++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+> @@ -121,7 +121,7 @@ static int omap_modeset_init(struct drm_device *dev)
+>                 if (!dssdev->driver) {
+>                         dev_warn(dev->dev, "%s has no driver.. skipping it\n",
+>                                         dssdev->name);
+> -                       return 0;
+> +                       continue;
+>                 }
+>
+>                 if (!(dssdev->driver->get_timings ||
+> @@ -129,7 +129,7 @@ static int omap_modeset_init(struct drm_device *dev)
+>                         dev_warn(dev->dev, "%s driver does not support "
+>                                 "get_timings or read_edid.. skipping it!\n",
+>                                 dssdev->name);
+> -                       return 0;
+> +                       continue;
+>                 }
+>
+>                 encoder = omap_encoder_init(dev, dssdev);
+> --
+> 1.7.10.4
+>
