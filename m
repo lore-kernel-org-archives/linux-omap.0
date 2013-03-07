@@ -1,57 +1,60 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 7/7] ARM: dts: omap5: add dwc3 omap and dwc3 core dt data
-Date: Thu, 7 Mar 2013 19:05:20 +0530
-Message-ID: <1362663320-23799-8-git-send-email-kishon@ti.com>
-References: <1362663320-23799-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 0/7] ARM: dts: omap: Add dts data for USB
+Date: Thu, 7 Mar 2013 19:05:13 +0530
+Message-ID: <1362663320-23799-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362663320-23799-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add dwc3 omap glue data to the omap5 dt data file. The information about
-the dt node added here is available @
-Documentation/devicetree/bindings/usb/omap-usb.txt.
+Hi Benoit,
 
-Also added dwc3 core dt data as a subnode to dwc3 omap glue data in omap5 dt
-data file. The information for the entered data node is available @
-Documentation/devicetree/bindings/usb/dwc3.txt
+Here are the dt data patches to get usb device functional in OMAP platforms.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/boot/dts/omap5.dtsi |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+All the patches deal with modifying arch/arm/boot except one which modifies
+Documentation/../usb/omap-usb.txt
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index bd73257..24dd69f 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -505,6 +505,24 @@
- 			ti,type = <2>;
- 		};
- 
-+		omap_dwc3@4a020000 {
-+			compatible = "ti,dwc3";
-+			ti,hwmods = "usb_otg_ss";
-+			reg = <0x4a020000 0x1000>;
-+			interrupts = <0 93 4>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			utmi-mode = <2>;
-+			ranges;
-+			dwc3@4a030000 {
-+				compatible = "synopsys,dwc3";
-+				reg = <0x4a030000 0x1000>;
-+				interrupts = <0 92 4>;
-+				usb-phy = <&usb2_phy>, <&usb3_phy>;
-+				tx-fifo-resize;
-+			};
-+		};
-+
- 		ocp2scp {
- 			compatible = "ti,omap-ocp2scp";
- 			#address-cells = <1>;
+Changes from v2:
+* squashed the dt data for dwc3-omap with dwc3 core into a single patch.
+
+Changes from v1:
+Patch *ARM: dts: omap: Add usb_otg and glue data* has some properties with
+names that has "_". It's replaced with a "-" here.
+
+This patch is developed on Linux 3.9-rc1.
+
+Kishon Vijay Abraham I (7):
+  ARM: dts: omap: Add omap control usb data
+  ARM: dts: omap: Add omap-usb2 dt data
+  ARM: dts: omap: Add usb_otg and glue data
+  ARM: dts: omap5: Add omap control usb data
+  ARM: dts: omap5: Add ocp2scp data
+  ARM: dts: omap5: Add omap-usb3 and omap-usb2 dt data
+  ARM: dts: omap5: add dwc3 omap and dwc3 core dt data
+
+ Documentation/devicetree/bindings/usb/omap-usb.txt |    1 +
+ arch/arm/boot/dts/omap3-beagle-xm.dts              |    6 +++
+ arch/arm/boot/dts/omap3-evm.dts                    |    6 +++
+ arch/arm/boot/dts/omap3-overo.dtsi                 |    6 +++
+ arch/arm/boot/dts/omap3.dtsi                       |   12 +++++
+ arch/arm/boot/dts/omap4-panda.dts                  |    6 +++
+ arch/arm/boot/dts/omap4-sdp.dts                    |    6 +++
+ arch/arm/boot/dts/omap4.dtsi                       |   26 +++++++++++
+ arch/arm/boot/dts/omap5.dtsi                       |   48 ++++++++++++++++++++
+ arch/arm/boot/dts/twl4030.dtsi                     |    2 +-
+ 10 files changed, 118 insertions(+), 1 deletion(-)
+
 -- 
 1.7.10.4
