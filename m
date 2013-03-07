@@ -1,73 +1,70 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 00/10] usb: phy: cleanups to Kconfig and directories
-Date: Thu, 7 Mar 2013 18:41:49 +0200
-Message-ID: <20130307164149.GA16548@arwen.pp.htv.fi>
-References: <1362648969-13737-1-git-send-email-balbi@ti.com>
- <Pine.LNX.4.44L0.1303071101190.1646-100000@iolanthe.rowland.org>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/3] driver: net: ethernet: cpsw: implement ethtool get/set
+ phy setting
+Date: Thu, 7 Mar 2013 22:43:12 +0530
+Message-ID: <5138CAA8.1060106@ti.com>
+References: <1362659421-11884-1-git-send-email-mugunthanvnm@ti.com>
+ <1362659421-11884-2-git-send-email-mugunthanvnm@ti.com>
+ <8762135on4.fsf@dell.be.48ers.dk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1303071101190.1646-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, cbou-JGs/UdohzUI@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <8762135on4.fsf-D6SC8u56vOOJDPpyT6T3/w@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 3/7/2013 6:54 PM, Peter Korsgaard wrote:
+>>>>>> "M" == Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org> writes:
+>   M> This patch implements get/set of the phy settings via ethtool apis
+>   M> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+>   M> ---
+>   M>  Documentation/devicetree/bindings/net/cpsw.txt |    3 +++
+>   M>  drivers/net/ethernet/ti/cpsw.c                 |   32 ++++++++++++++++++++++++
+>   M>  include/linux/platform_data/cpsw.h             |    1 +
+>   M>  3 files changed, 36 insertions(+)
+>
+>   M> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+>   M> index ecfdf75..8d61300 100644
+>   M> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+>   M> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+>   M> @@ -20,6 +20,7 @@ Required properties:
+>   M>  - cpts_clock_shift	: Denominator to convert input clock ticks into nanoseconds
+>   M>  - phy_id		: Specifies slave phy id
+>   M>  - mac-address		: Specifies slave MAC address
+>   M> +- ethtool-active-slave	: Specifies the slave to use for ethtool command
+>
+> That again sounds like something Linux specific rather than a hardware
+> property.
+>
+> It would be good if all these special things (dual emac mode, vlan
+> handling, switching) could be handled using the existing kernel
+> (bridging/vlan) infrastructure, and the driver always just exposing 2
+> network interfaces instead of these configuration properties.
+>
+Switch and Dual Emac modes of operation of CPSW are two different 
+features of the
+hardware and packet routing between the slaves in the hardware are 
+different in
+both the modes.
 
-On Thu, Mar 07, 2013 at 11:01:47AM -0500, Alan Stern wrote:
-> On Thu, 7 Mar 2013, Felipe Balbi wrote:
->=20
-> > Hi folks,
-> >=20
-> > inspired by Paul's DWC2 patchset which added usb_otg_state_string()
-> > (a copy of otg_state_string()) I have now renamed otg_state_string()
-> > to usb_otg_state_string(), moved it to usb-common, then moved all
-> > phy drivers to drivers/usb/phy/ and completely deleted the otg director=
-y.
-> >=20
-> > We're also removing CONFIG_USB_OTG_UTILS since that has lots its
-> > meaning long ago.
-> >=20
-> > I have compiled all patches with allyes, allno and allmod configs,
-> > but please make sure to test on your platforms to make sure we're
-> > not leaking any more problems to mainline.
->=20
-> Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
->=20
-> for the EHCI changes.
+If by default it is brought up as Dual EMAC then hardware switching is 
+blocked and
+use-cases like IP phone etc cannot be achieved.
 
-thanks, added your ack to the patches.
+Since CPSW as a hardware Switch, it cannot not be handled in existing kernel
+feature.
 
---=20
-balbi
-
---T4sUOijqQbZv57TR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJROMNNAAoJEIaOsuA1yqREbyQQAIFYccU0inPdvI5GN2p4t1VO
-M9oexdwowW22Ogcw/CMYTFUcIYgZz+6SWYIFiCZpu5lKxdsWxPGjQxlWx97DQQNu
-Ad8HGEMu29/ghlW+J4Ajhf3ATLcJjZI3lny1U1R98vMs6GIO8MgCsoApnoiXcvGG
-fgxI4D8uW61ImIhIX4fwCH33mXn/b759sFP7V2TeGRCuFb2tVFvL/Wa11mtCF9bL
-5to1srypqlmtZUEVpeVL2XyPK4S/5IY5D+d0chRU2n9qvAAicOE2YFtCy+JOLUw4
-Pz+9FViVVfpvMOGqHNPOh4qzxE4TjydYhTmB/2i59ABEozfpBK2xqxEsS0SEKeLk
-ejZRjBu2ffSgY7EAzijwznUo2Aa+zX6fQoTzQ3nLM972IWt0vmkbpjcYSa6tN9WZ
-+yHHsSHqT+WdQNIIZx2FirlP/Jld8DNftDHoiRK+jQ8rrTZEKY0XhPpIFFFdgcbS
-i1KOZed7pXkAXKTQLg6MUaFgxFPg9iTk0X0cN7Fo+w7lPERicyqCvtaSXEFgqGSY
-rRkVCF7rxyxKTSjmDPSrvheEO+BE57TuxREPspTMSVyrZIuVLcrH6p/Ymhhpunf7
-HJPsGfAJ61cs0e0Ks5yDyZOxiwK1iFblgGLt0VDFgseJhk5kOF1ZfuYbebh/U3ha
-3V1KVzBpxdV7UWuK8vSx
-=6z/b
------END PGP SIGNATURE-----
-
---T4sUOijqQbZv57TR--
+Regards
+Mugunthan V N
