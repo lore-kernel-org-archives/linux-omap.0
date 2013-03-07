@@ -1,33 +1,30 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 4/4] USB: OMAP: Tahvo USB transceiver driver
-Date: Thu, 7 Mar 2013 08:20:35 -0800
-Message-ID: <20130307162034.GX11806@atomide.com>
+From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [RFC PATCH 3/4] USB: OMAP: move omap-otg out from isp1301_omap
+Date: Thu, 7 Mar 2013 19:59:07 +0200
+Message-ID: <20130307175907.GD14552@blackmetal.musicnaut.iki.fi>
 References: <1362667221-30659-1-git-send-email-aaro.koskinen@iki.fi>
- <1362667221-30659-5-git-send-email-aaro.koskinen@iki.fi>
+ <1362667221-30659-4-git-send-email-aaro.koskinen@iki.fi>
+ <20130307145158.GE16577@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:17862 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759164Ab3CGRSW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Mar 2013 12:18:22 -0500
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1362667221-30659-5-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20130307145158.GE16577-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [130307 06:44]:
-> +#include <mach/usb.h>
+Hi,
 
-We should be getting rid of the plat and mach includes for
-drivers for omap1 also, so let's not make it harder by adding
-more of it. We should have just the following:
+On Thu, Mar 07, 2013 at 04:51:59PM +0200, Felipe Balbi wrote:
+> why is this otg_dev even needed ? Can you refresh my memory ?
 
-include/linux/platform_data/usb-omap.h	this contains just minimal pdata
-include/linux/usb/something.h		if needed and cannot be local to driver
+If you want to handle OTG controller interrupt you need it... Though looks
+like tahvo does not really need it, and it can be disabled.
 
-Regards,
-
-Tony
+A.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
