@@ -1,81 +1,50 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH v2] ARM: OMAP1: fix omap_udc registration
-Date: Thu,  7 Mar 2013 15:30:12 +0200
-Message-ID: <1362663013-28794-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:33577 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753177Ab3CGNaz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Mar 2013 08:30:55 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3 6/7] ARM: dts: omap5: Add omap-usb3 and omap-usb2 dt data
+Date: Thu, 7 Mar 2013 19:05:19 +0530
+Message-ID: <1362663320-23799-7-git-send-email-kishon@ti.com>
+References: <1362663320-23799-1-git-send-email-kishon@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1362663320-23799-1-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-omap_udc platform device is not registered properly anymore:
-CONFIG_USB_GADGET_OMAP was deleted by 193ab2a6 (usb: gadget: allow
-multiple gadgets to be built) already in v3.1.
+Add omap-usb3 and omap-usb2 data node in omap5 device tree file.
+The information for the node added here is available @
+Documentation/devicetree/bindings/usb/usb-phy.txt
 
-Fix by using CONFIG_USB_OMAP instead. Tested on Nokia 770 by checking
-that omap_udc is probed & working properly when built as a module.
-
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
+ arch/arm/boot/dts/omap5.dtsi |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-	Patch history:
-
-	v2: use IS_ENABLED()
-
-	v1: http://marc.info/?t=136260886600006&r=1&w=2
-
- arch/arm/mach-omap1/include/mach/usb.h |    2 +-
- arch/arm/mach-omap1/usb.c              |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/include/mach/usb.h b/arch/arm/mach-omap1/include/mach/usb.h
-index 753cd5c..45e5ac7 100644
---- a/arch/arm/mach-omap1/include/mach/usb.h
-+++ b/arch/arm/mach-omap1/include/mach/usb.h
-@@ -2,7 +2,7 @@
-  * FIXME correct answer depends on hmc_mode,
-  * as does (on omap1) any nonzero value for config->otg port number
-  */
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#if IS_ENABLED(CONFIG_USB_OMAP)
- #define	is_usb0_device(config)	1
- #else
- #define	is_usb0_device(config)	0
-diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
-index 1a1db59..4118db5 100644
---- a/arch/arm/mach-omap1/usb.c
-+++ b/arch/arm/mach-omap1/usb.c
-@@ -123,7 +123,7 @@ omap_otg_init(struct omap_usb_config *config)
- 	syscon = omap_readl(OTG_SYSCON_1);
- 	syscon |= HST_IDLE_EN|DEV_IDLE_EN|OTG_IDLE_EN;
- 
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#if IS_ENABLED(CONFIG_USB_OMAP)
- 	if (config->otg || config->register_dev) {
- 		struct platform_device *udc_device = config->udc_device;
- 		int status;
-@@ -169,7 +169,7 @@ omap_otg_init(struct omap_usb_config *config)
- void omap_otg_init(struct omap_usb_config *config) {}
- #endif
- 
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#if IS_ENABLED(CONFIG_USB_OMAP)
- 
- static struct resource udc_resources[] = {
- 	/* order is significant! */
-@@ -600,7 +600,7 @@ static void __init omap_1510_usb_init(struct omap_usb_config *config)
- 	while (!(omap_readw(ULPD_DPLL_CTRL) & DPLL_LOCK))
- 		cpu_relax();
- 
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#if IS_ENABLED(CONFIG_USB_OMAP)
- 	if (config->register_dev) {
- 		int status;
- 
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 230b779..bd73257 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -511,6 +511,20 @@
+ 			#size-cells = <1>;
+ 			ranges;
+ 			ti,hwmods = "ocp2scp1";
++			usb2_phy: usb2phy@4a084000 {
++				compatible = "ti,omap-usb2";
++				reg = <0x4a084000 0x7c>;
++				ctrl-module = <&omap_control_usb>;
++			};
++
++			usb3_phy: usb3phy@4a084400 {
++				compatible = "ti,omap-usb3";
++				reg = <0x4a084400 0x80>,
++				      <0x4a084800 0x64>,
++				      <0x4a084c00 0x40>;
++				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
++				ctrl-module = <&omap_control_usb>;
++			};
+ 		};
+ 	};
+ };
 -- 
 1.7.10.4
 
