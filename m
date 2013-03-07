@@ -1,72 +1,129 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH 4/4] USB: OMAP: Tahvo USB transceiver driver
-Date: Thu, 7 Mar 2013 16:54:50 +0200
-Message-ID: <20130307145450.GF16577@arwen.pp.htv.fi>
-References: <1362667221-30659-1-git-send-email-aaro.koskinen@iki.fi>
- <1362667221-30659-5-git-send-email-aaro.koskinen@iki.fi>
-Reply-To: <balbi@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+Date: Thu, 7 Mar 2013 14:59:42 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EC20CCA@DBDE01.ent.ti.com>
+References: <1362629799-22485-1-git-send-email-mporter@ti.com>
+ <1362629799-22485-3-git-send-email-mporter@ti.com>
+ <41fde401c8e646689123d7c6d3a2dffc@DLEE71.ent.ti.com>
+ <20130307141235.GQ6209@beef>
+ <79CD15C6BA57404B839C016229A409A83EC20C57@DBDE01.ent.ti.com>
+ <20130307144656.GR6209@beef>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1Y7d0dPL928TPQbc"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58183 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932269Ab3CGOzF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Mar 2013 09:55:05 -0500
-Content-Disposition: inline
-In-Reply-To: <1362667221-30659-5-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>, "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>
+Cc: Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
---1Y7d0dPL928TPQbc
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 07, 2013 at 04:40:21PM +0200, Aaro Koskinen wrote:
-> Add Tahvo USB transceiver driver.
->=20
-> Based on old code from linux-omap tree. The original driver was written
-> by Juha Yrj=F6l=E4, Tony Lindgren, and Timo Ter=E4s.
->=20
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> ---
->  drivers/usb/otg/Kconfig     |   16 ++
->  drivers/usb/otg/Makefile    |    1 +
->  drivers/usb/otg/tahvo-usb.c |  643 +++++++++++++++++++++++++++++++++++++=
-++++++
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Thursday, March 07, 2013 8:24 PM
+> To: Porter, Matt
+> Cc: Linux OMAP List; Russell King; Krishnamoorthy, Balaji T; Devicetree
+> Discuss; Linux MMC List; Linux Kernel Mailing List; Chris Ball; Linux
+> ARM Kernel List
+> Subject: RE: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+> 
+> > -----Original Message-----
+> > From: Matt Porter [mailto:ohiomdp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On Behalf Of Porter,
+> Matt
+> > Sent: Thursday, March 07, 2013 8:17 PM
+> > To: Hiremath, Vaibhav
+> > Cc: Linux OMAP List; Russell King; Krishnamoorthy, Balaji T;
+> Devicetree
+> > Discuss; Linux MMC List; Linux Kernel Mailing List; Chris Ball; Linux
+> > ARM Kernel List
+> > Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+> >
+> > On Thu, Mar 07, 2013 at 02:39:55PM +0000, Vaibhav Hiremath wrote:
+> > >
+> > > > -----Original Message-----
+> > > > From: Matt Porter [mailto:ohiomdp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On Behalf Of Porter,
+> > Matt
+> > > > Sent: Thursday, March 07, 2013 7:43 PM
+> > > > To: Hiremath, Vaibhav
+> > > > Cc: Krishnamoorthy, Balaji T; Chris Ball; Cousson, Benoit; Tony
+> > > > Lindgren; Russell King; Devicetree Discuss; Linux ARM Kernel
+> List;
+> > > > Linux OMAP List; Linux Kernel Mailing List; Linux MMC List
+> > > > Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+> > > >
+> > > > On Thu, Mar 07, 2013 at 05:29:24AM +0000, Vaibhav Hiremath wrote:
+> > > > > > -----Original Message-----
+> > > > > > From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-
+> > > > > > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Porter, Matt
+> > > > > > Sent: Thursday, March 07, 2013 9:47 AM
+> > > > > > To: Krishnamoorthy, Balaji T; Chris Ball; Cousson, Benoit;
+> Tony
+> > > > > > Lindgren; Russell King
+> > > > > > Cc: Devicetree Discuss; Linux ARM Kernel List; Linux OMAP
+> List;
+> > > > Linux
+> > > > > > Kernel Mailing List; Linux MMC List
+> > > > > > Subject: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+> > > > > >
+<snip>
+> 
+> I believe you meant "CONFIG_TI_EDMA" right?
+> 
+> Yes, I just enabled it and the result is still same.
+> 
+> 
+> 
+> [root@arago /]# dmesg | grep -ir mmc
+> [    0.506844] vmmc: 1800 <--> 3300 mV at 3300 mV
+> [    0.506970] vmmc: supplied by vbat
+> [root@arago /]#
+> [root@arago /]#
+> [root@arago /]# dmesg | grep -ir dma
+> [    0.217063] DMA: preallocated 256 KiB pool for atomic coherent
+> allocations
+> [    0.236321] platform 49000000.edma: alias fck already exists
+> [    0.236360] platform 49000000.edma: alias fck already exists
+> [    0.236381] platform 49000000.edma: alias fck already exists
+> [    0.370705] edma-dma-engine edma-dma-engine.0: TI EDMA DMA engine
+> driver
+> [    0.445156] omap-dma-engine omap-dma-engine: OMAP DMA engine driver
+> [root@arago /]#
+> [root@arago /]#
+> 
+> 
+I have applied below patches from your recent post
 
-let's call this:
 
-drivers/usb/phy/phy-tahvo.c
+[2/2] ARM: dts: add AM33XX MMC support 	
+[1/2] mmc: omap_hsmmc: set max_segs based on dma engine limits 	
+[v4,3/3] mmc: davinci: get SG segment limits with dma_get_slave_sg_limits()
+[v4,2/3] dma: edma: add device_slave_sg_limits() support 
+[v4,1/3] dmaengine: add dma_get_slave_sg_limits()
+[v9,9/9] ARM: dts: add AM33XX SPI DMA support
+[v9,8/9] spi: omap2-mcspi: add generic DMA request support to the DT binding
+[v9,7/9] spi: omap2-mcspi: convert to dma_request_slave_channel_compat() 
+[v9,6/9] ARM: dts: add AM33XX EDMA support 
+[v9,5/9] dmaengine: edma: Add TI EDMA device tree binding
+[v9,4/9] dmaengine: edma: enable build for AM33XX
+[v9,3/9] ARM: edma: add AM33XX support to the private EDMA API
+[v9,2/9] ARM: edma: remove unused transfer controller handlers
+[v9,1/9] ARM: davinci: move private EDMA API to arm/common
+[v3,2/2] mmc: omap_hsmmc: add generic DMA request support to the DT binding
+[v3,1/2] mmc: omap_hsmmc: convert to dma_request_slave_channel_compat()
 
-I'll rename all phy drivers in a bit.
 
---=20
-balbi
 
---1Y7d0dPL928TPQbc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Am I missing anything here?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJROKo6AAoJEIaOsuA1yqREuNMP/iwlc6aZQ85s3AJhjHEVPzjq
-Qv7FJF+4DzkEPPw2QM3l/Z4heWbTRXCPvlrYXcMFczwVXTxhqCM8FhXqquokCR+s
-IqBG6Bjb/CbJxOKV3LojodDerIaZSSdshxWypJqQv1d40AKIdYC+KMuRbD/4cZCk
-dITgovgoGoVxM5RRRzlhnh6MYyoOFx4Mbaai9Czvoz/QIPrara+WV6sDhcshNrOn
-NCivWM6R4rDXzAHNDr62fxa+MFQD/Ka7vUknr3L+UMk22Vq9D88K+IPLvOD72eGZ
-ruM11WrvDsjznHlIbu4ePI1gQlnisbFrq9ggvkglxroxwBhtr55n6YIb+II/CsdK
-iHq67kM6MUJ0N4w6xRi+KRxFnXX1+UHCi4OLV2yc/JoBhjwq4J8omRiJCYz3yViN
-L3tvIpVPuCRx6F+3vlWuOIq5Ipmams1mLZtJA0ivr18noCT3TkHI07meOhNthRoJ
-X3VMI+G6ajf1NJBrsswr8MRSZSEK6WJTS+YtWvzl6vpZ64bo1bB4D5FLJy2bybiv
-u0vomuzZj8qhspJURlS/imbpujwDUazYQvpBSXRJ3qCky0wcH0eRtv2Zf4jDEml3
-IdDrG5eZ8wV0sCUMY2ZtKH8wn427Tluwc+XSX56Um+bnfIdH259MNS78GWjGpAMl
-cisF8MctK8nNMdp/1QP/
-=L9k7
------END PGP SIGNATURE-----
-
---1Y7d0dPL928TPQbc--
+Thanks,
+Vaibhav
