@@ -1,65 +1,25 @@
-From: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
-Subject: [PATCH] ARM: OMAP2+: am33xx: preserve JTAG clock aka debugss_ick.
-Date: Thu,  7 Mar 2013 14:13:27 +0100
-Message-ID: <1362662007-13782-2-git-send-email-andreas.fenkart@streamunlimited.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:55325 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751874Ab3CGNO3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Mar 2013 08:14:29 -0500
-Received: from mailout-de.gmx.net ([10.1.76.20]) by mrigmx.server.lan
- (mrigmx001) with ESMTP (Nemesis) id 0MSXbW-1UNb531oqC-00RWkJ for
- <linux-omap@vger.kernel.org>; Thu, 07 Mar 2013 14:14:25 +0100
-Sender: linux-omap-owner@vger.kernel.org
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH] ARM: OMAP2+: am33xx: preserve JTAG clock aka
+ debugss_ick.
+Date: Thu, 7 Mar 2013 13:20:55 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433ED3E287@DBDE01.ent.ti.com>
+References: <1362662007-13782-2-git-send-email-andreas.fenkart@streamunlimited.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1362662007-13782-2-git-send-email-andreas.fenkart@streamunlimited.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andreas Fenkart <andreas.fenkart@streamunlimited.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Mohammed, Afzal" <afzal@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "daniel@zonque.org" <daniel@zonque.org>
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, tony@atomide.com
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, afzal@ti.com, hvaibhav@ti.com, daniel@zonque.org, Andreas Fenkart <andreas.fenkart@streamunlimited.com>
 
-This fixes JTAG support on am33xx.
+On Thu, Mar 07, 2013 at 18:43:27, Andreas Fenkart wrote:
+> This fixes JTAG support on am33xx.
+> 
 
-Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
----
- arch/arm/Kconfig.debug                |    6 ++++++
- arch/arm/mach-omap2/cclock33xx_data.c |   11 ++++++++---
- 2 files changed, 14 insertions(+), 3 deletions(-)
+Please refer to http://www.spinics.net/lists/linux-omap/msg87476.html
 
-diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
-index acdddda..8120940 100644
---- a/arch/arm/Kconfig.debug
-+++ b/arch/arm/Kconfig.debug
-@@ -632,4 +632,10 @@ config PID_IN_CONTEXTIDR
- 	  additional instructions during context switch. Say Y here only if you
- 	  are planning to use hardware trace tools with this kernel.
- 
-+config JTAG
-+	bool "Enable JTAG clock"
-+	depends on SOC_AM33XX
-+	help
-+	  Enable or keep JTAG clock enabled
-+
- endmenu
-diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
-index 476b820..b7470de 100644
---- a/arch/arm/mach-omap2/cclock33xx_data.c
-+++ b/arch/arm/mach-omap2/cclock33xx_data.c
-@@ -429,9 +429,14 @@ DEFINE_STRUCT_CLK(smartreflex1_fck, dpll_core_ck_parents, clk_ops_null);
-  *     - usbotg_fck (its additional clock and not really a modulemode)
-  *     - ieee5000
-  */
--DEFINE_CLK_GATE(debugss_ick, "dpll_core_m4_ck", &dpll_core_m4_ck, 0x0,
--		AM33XX_CM_WKUP_DEBUGSS_CLKCTRL, AM33XX_MODULEMODE_SWCTRL_SHIFT,
--		0x0, NULL);
-+#ifdef CONFIG_JTAG
-+#define DEBUGSS_FLAGS CLK_IGNORE_UNUSED
-+#else
-+#define DEBUGSS_FLAGS 0x0
-+#endif
-+DEFINE_CLK_GATE(debugss_ick, "dpll_core_m4_ck", &dpll_core_m4_ck,
-+		DEBUGSS_FLAGS, AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
-+		AM33XX_MODULEMODE_SWCTRL_SHIFT, 0x0, NULL);
- 
- DEFINE_CLK_GATE(mmu_fck, "dpll_core_m4_ck", &dpll_core_m4_ck, 0x0,
- 		AM33XX_CM_GFX_MMUDATA_CLKCTRL, AM33XX_MODULEMODE_SWCTRL_SHIFT,
--- 
-1.7.10.4
-
+Regards,
+Vaibhav
