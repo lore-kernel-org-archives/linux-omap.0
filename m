@@ -1,117 +1,179 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 05/10] usb: phy: make it a menuconfig
-Date: Thu, 7 Mar 2013 11:36:04 +0200
-Message-ID: <1362648969-13737-6-git-send-email-balbi@ti.com>
+Subject: [PATCH 10/10] usb: phy: remove CONFIG_USB_OTG_UTILS
+Date: Thu, 7 Mar 2013 11:36:09 +0200
+Message-ID: <1362648969-13737-11-git-send-email-balbi@ti.com>
 References: <1362648969-13737-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36490 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43883 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755826Ab3CGJgd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Mar 2013 04:36:33 -0500
+	id S932528Ab3CGJgq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 Mar 2013 04:36:46 -0500
 In-Reply-To: <1362648969-13737-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux USB Mailing List <linux-usb@vger.kernel.org>
 Cc: Greg KH <gregkh@linuxfoundation.org>, cbou@mail.ru, dwmw2@infradead.org, stern@rowland.harvard.edu, swarren@wwwdotorg.org, arnd@arndb.de, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-We already have a considerable amount of USB
-PHY drivers, making it a menuconfig just
-prevents us from adding too much churn to
-USB's menuconfig.
-
-While at that, also select USB_OTG_UTILS from
-this new menuconfig just to keep backwards
-compatibility until we manage to remove
-that symbol.
+there are no more users of CONFIG_USB_OTG_UTILS
+left in tree, we can remove it just fine.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/Makefile         |  2 +-
- drivers/usb/phy/Kconfig  | 17 ++++++++++++-----
- drivers/usb/phy/Makefile |  2 +-
- include/linux/usb/phy.h  |  2 +-
- 4 files changed, 15 insertions(+), 8 deletions(-)
+ drivers/usb/phy/Kconfig | 23 -----------------------
+ 1 file changed, 23 deletions(-)
 
-diff --git a/drivers/Makefile b/drivers/Makefile
-index dce39a9..3c200a2 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -79,7 +79,7 @@ obj-$(CONFIG_ATA_OVER_ETH)	+= block/aoe/
- obj-$(CONFIG_PARIDE) 		+= block/paride/
- obj-$(CONFIG_TC)		+= tc/
- obj-$(CONFIG_UWB)		+= uwb/
--obj-$(CONFIG_USB_OTG_UTILS)	+= usb/
-+obj-$(CONFIG_USB_PHY)		+= usb/
- obj-$(CONFIG_USB)		+= usb/
- obj-$(CONFIG_PCI)		+= usb/
- obj-$(CONFIG_USB_GADGET)	+= usb/
 diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
-index 32ce740..832cd69 100644
+index 832cd69..97de6de 100644
 --- a/drivers/usb/phy/Kconfig
 +++ b/drivers/usb/phy/Kconfig
-@@ -1,8 +1,17 @@
+@@ -3,7 +3,6 @@
  #
- # Physical Layer USB driver configuration
- #
--comment "USB Physical Layer drivers"
--	depends on USB || USB_GADGET
-+menuconfig USB_PHY
-+	tristate "USB Physical Layer drivers"
-+	select USB_OTG_UTILS
-+	help
-+	  USB controllers (those which are host, device or DRD) need a
-+	  device to handle the physical layer signalling, commonly called
-+	  a PHY.
-+
-+	  The following drivers add support for such PHY devices.
-+
-+if USB_PHY
+ menuconfig USB_PHY
+ 	tristate "USB Physical Layer drivers"
+-	select USB_OTG_UTILS
+ 	help
+ 	  USB controllers (those which are host, device or DRD) need a
+ 	  device to handle the physical layer signalling, commonly called
+@@ -13,19 +12,12 @@ menuconfig USB_PHY
  
- config USB_OTG_UTILS
- 	bool
-@@ -10,8 +19,6 @@ config USB_OTG_UTILS
- 	  Select this to make sure the build includes objects from
- 	  the OTG infrastructure directory.
+ if USB_PHY
  
--if USB || USB_GADGET
+-config USB_OTG_UTILS
+-	bool
+-	help
+-	  Select this to make sure the build includes objects from
+-	  the OTG infrastructure directory.
 -
  #
  # USB Transceiver Drivers
  #
-@@ -206,4 +213,4 @@ config USB_ULPI_VIEWPORT
- 	  Provides read/write operations to the ULPI phy register set for
- 	  controllers with a viewport register (e.g. Chipidea/ARC controllers).
+ config AB8500_USB
+ 	tristate "AB8500 USB Transceiver Driver"
+ 	depends on AB8500_CORE
+-	select USB_OTG_UTILS
+ 	help
+ 	  Enable this to support the USB OTG transceiver in AB8500 chip.
+ 	  This transceiver supports high and full speed devices plus,
+@@ -35,14 +27,12 @@ config FSL_USB2_OTG
+ 	bool "Freescale USB OTG Transceiver Driver"
+ 	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_SUSPEND
+ 	select USB_OTG
+-	select USB_OTG_UTILS
+ 	help
+ 	  Enable this to support Freescale USB OTG transceiver.
  
--endif # USB || OTG
-+endif # USB_PHY
-diff --git a/drivers/usb/phy/Makefile b/drivers/usb/phy/Makefile
-index 34488ce..d10a8b3 100644
---- a/drivers/usb/phy/Makefile
-+++ b/drivers/usb/phy/Makefile
-@@ -4,7 +4,7 @@
+ config ISP1301_OMAP
+ 	tristate "Philips ISP1301 with OMAP OTG"
+ 	depends on I2C && ARCH_OMAP_OTG
+-	select USB_OTG_UTILS
+ 	help
+ 	  If you say yes here you get support for the Philips ISP1301
+ 	  USB-On-The-Go transceiver working with the OMAP OTG controller.
+@@ -56,14 +46,12 @@ config ISP1301_OMAP
+ config MV_U3D_PHY
+ 	bool "Marvell USB 3.0 PHY controller Driver"
+ 	depends on USB_MV_U3D
+-	select USB_OTG_UTILS
+ 	help
+ 	  Enable this to support Marvell USB 3.0 phy controller for Marvell
+ 	  SoC.
  
- ccflags-$(CONFIG_USB_DEBUG) := -DDEBUG
+ config NOP_USB_XCEIV
+ 	tristate "NOP USB Transceiver Driver"
+-	select USB_OTG_UTILS
+ 	help
+ 	  This driver is to be used by all the usb transceiver which are either
+ 	  built-in with usb ip or which are autonomous and doesn't require any
+@@ -81,7 +69,6 @@ config OMAP_CONTROL_USB
+ config OMAP_USB2
+ 	tristate "OMAP USB2 PHY Driver"
+ 	depends on ARCH_OMAP2PLUS
+-	select USB_OTG_UTILS
+ 	select OMAP_CONTROL_USB
+ 	help
+ 	  Enable this to support the transceiver that is part of SOC. This
+@@ -91,7 +78,6 @@ config OMAP_USB2
  
--obj-$(CONFIG_USB_OTG_UTILS)		+= phy.o
-+obj-$(CONFIG_USB_PHY)			+= phy.o
+ config OMAP_USB3
+ 	tristate "OMAP USB3 PHY Driver"
+-	select USB_OTG_UTILS
+ 	select OMAP_CONTROL_USB
+ 	help
+ 	  Enable this to support the USB3 PHY that is part of SOC. This
+@@ -102,7 +88,6 @@ config OMAP_USB3
+ config SAMSUNG_USBPHY
+ 	bool "Samsung USB PHY controller Driver"
+ 	depends on USB_S3C_HSOTG || USB_EHCI_S5P || USB_OHCI_EXYNOS
+-	select USB_OTG_UTILS
+ 	help
+ 	  Enable this to support Samsung USB phy controller for samsung
+ 	  SoCs.
+@@ -110,7 +95,6 @@ config SAMSUNG_USBPHY
+ config TWL4030_USB
+ 	tristate "TWL4030 USB Transceiver Driver"
+ 	depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
+-	select USB_OTG_UTILS
+ 	help
+ 	  Enable this to support the USB OTG transceiver on TWL4030
+ 	  family chips (including the TWL5030 and TPS659x0 devices).
+@@ -120,7 +104,6 @@ config TWL4030_USB
+ config TWL6030_USB
+ 	tristate "TWL6030 USB Transceiver Driver"
+ 	depends on TWL4030_CORE && OMAP_USB2 && USB_MUSB_OMAP2PLUS
+-	select USB_OTG_UTILS
+ 	help
+ 	  Enable this to support the USB OTG transceiver on TWL6030
+ 	  family chips. This TWL6030 transceiver has the VBUS and ID GND
+@@ -132,7 +115,6 @@ config TWL6030_USB
+ config USB_GPIO_VBUS
+ 	tristate "GPIO based peripheral-only VBUS sensing 'transceiver'"
+ 	depends on GENERIC_GPIO
+-	select USB_OTG_UTILS
+ 	help
+ 	  Provides simple GPIO VBUS sensing for controllers with an
+ 	  internal transceiver via the usb_phy interface, and
+@@ -154,7 +136,6 @@ config USB_ISP1301
+ config USB_MSM_OTG
+ 	tristate "OTG support for Qualcomm on-chip USB controller"
+ 	depends on (USB || USB_GADGET) && ARCH_MSM
+-	select USB_OTG_UTILS
+ 	help
+ 	  Enable this to support the USB OTG transceiver on MSM chips. It
+ 	  handles PHY initialization, clock management, and workarounds
+@@ -168,7 +149,6 @@ config USB_MV_OTG
+ 	tristate "Marvell USB OTG support"
+ 	depends on USB_EHCI_MV && USB_MV_UDC && USB_SUSPEND
+ 	select USB_OTG
+-	select USB_OTG_UTILS
+ 	help
+ 	  Say Y here if you want to build Marvell USB OTG transciever
+ 	  driver in kernel (including PXA and MMP series). This driver
+@@ -180,7 +160,6 @@ config USB_MXS_PHY
+ 	tristate "Freescale MXS USB PHY support"
+ 	depends on ARCH_MXC || ARCH_MXS
+ 	select STMP_DEVICE
+-	select USB_OTG_UTILS
+ 	help
+ 	  Enable this to support the Freescale MXS USB PHY.
  
- # transceiver drivers, keep the list sorted
- 
-diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
-index 15847cb..b001dc3 100644
---- a/include/linux/usb/phy.h
-+++ b/include/linux/usb/phy.h
-@@ -161,7 +161,7 @@ usb_phy_shutdown(struct usb_phy *x)
- }
- 
- /* for usb host and peripheral controller drivers */
--#ifdef CONFIG_USB_OTG_UTILS
-+#if IS_ENABLED(CONFIG_USB_PHY)
- extern struct usb_phy *usb_get_phy(enum usb_phy_type type);
- extern struct usb_phy *devm_usb_get_phy(struct device *dev,
- 	enum usb_phy_type type);
+@@ -189,7 +168,6 @@ config USB_MXS_PHY
+ config USB_RCAR_PHY
+ 	tristate "Renesas R-Car USB phy support"
+ 	depends on USB || USB_GADGET
+-	select USB_OTG_UTILS
+ 	help
+ 	  Say Y here to add support for the Renesas R-Car USB phy driver.
+ 	  This chip is typically used as USB phy for USB host, gadget.
+@@ -201,7 +179,6 @@ config USB_RCAR_PHY
+ config USB_ULPI
+ 	bool "Generic ULPI Transceiver Driver"
+ 	depends on ARM
+-	select USB_OTG_UTILS
+ 	help
+ 	  Enable this to support ULPI connected USB OTG transceivers which
+ 	  are likely found on embedded boards.
 -- 
 1.8.1.rc1.5.g7e0651a
 
