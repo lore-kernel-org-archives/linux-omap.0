@@ -1,71 +1,78 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 1/4] usb: dwc3: set dma_mask for dwc3_omap device
-Date: Thu, 7 Mar 2013 18:51:43 +0530
-Message-ID: <1362662506-14823-2-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 4/4] usb: musb: omap2430: replace *_* with *-* in property names
+Date: Thu, 7 Mar 2013 18:51:46 +0530
+Message-ID: <1362662506-14823-5-git-send-email-kishon@ti.com>
 References: <1362662506-14823-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1362662506-14823-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, s-guiriec-l0cyMroinI0@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ruchika-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1362662506-14823-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, kishon@ti.com, s-guiriec@ti.com, gg@slimlogic.co.uk, sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com, ldewangan@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, ruchika@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-*dma_mask* is not set for devices created from dt data. So filled dma_mask
-for dwc3_omap device here. And dwc3 core will copy the dma_mask from its
-parent.
+No functional change. Replace *_* with *-* in property names of otg to
+follow the general convention.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/dwc3/core.c      |    4 ++++
- drivers/usb/dwc3/dwc3-omap.c |    3 +++
- 2 files changed, 7 insertions(+)
+ Documentation/devicetree/bindings/usb/omap-usb.txt |   12 ++++++------
+ drivers/usb/musb/omap2430.c                        |    6 +++---
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index 66c0572..c845e70 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -454,6 +454,10 @@ static int dwc3_probe(struct platform_device *pdev)
- 	dwc->regs_size	= resource_size(res);
- 	dwc->dev	= dev;
+diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
+index 1b9f55f..662f0f1 100644
+--- a/Documentation/devicetree/bindings/usb/omap-usb.txt
++++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+@@ -8,10 +8,10 @@ OMAP MUSB GLUE
+    and disconnect.
+  - multipoint : Should be "1" indicating the musb controller supports
+    multipoint. This is a MUSB configuration-specific setting.
+- - num_eps : Specifies the number of endpoints. This is also a
++ - num-eps : Specifies the number of endpoints. This is also a
+    MUSB configuration-specific setting. Should be set to "16"
+- - ram_bits : Specifies the ram address size. Should be set to "12"
+- - interface_type : This is a board specific setting to describe the type of
++ - ram-bits : Specifies the ram address size. Should be set to "12"
++ - interface-type : This is a board specific setting to describe the type of
+    interface between the controller and the phy. It should be "0" or "1"
+    specifying ULPI and UTMI respectively.
+  - mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
+@@ -29,14 +29,14 @@ usb_otg_hs: usb_otg_hs@4a0ab000 {
+ 	ti,hwmods = "usb_otg_hs";
+ 	ti,has-mailbox;
+ 	multipoint = <1>;
+-	num_eps = <16>;
+-	ram_bits = <12>;
++	num-eps = <16>;
++	ram-bits = <12>;
+ 	ctrl-module = <&omap_control_usb>;
+ };
  
-+	dev->dma_mask	= dev->parent->dma_mask;
-+	dev->dma_parms	= dev->parent->dma_parms;
-+	dma_set_coherent_mask(dev, dev->parent->coherent_dma_mask);
-+
- 	if (!strncmp("super", maximum_speed, 5))
- 		dwc->maximum_speed = DWC3_DCFG_SUPERSPEED;
- 	else if (!strncmp("high", maximum_speed, 4))
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 35b9673..546f1fd 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -277,6 +277,8 @@ static void dwc3_omap_disable_irqs(struct dwc3_omap *omap)
- 	dwc3_omap_writel(omap->base, USBOTGSS_IRQENABLE_SET_0, 0x00);
- }
+ Board specific device node entry
+ &usb_otg_hs {
+-	interface_type = <1>;
++	interface-type = <1>;
+ 	mode = <3>;
+ 	power = <50>;
+ };
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 1762354..dde2802 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -522,10 +522,10 @@ static int omap2430_probe(struct platform_device *pdev)
+ 		}
  
-+static u64 dwc3_omap_dma_mask = DMA_BIT_MASK(32);
-+
- static int dwc3_omap_probe(struct platform_device *pdev)
- {
- 	struct device_node	*node = pdev->dev.of_node;
-@@ -330,6 +332,7 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 	omap->dev	= dev;
- 	omap->irq	= irq;
- 	omap->base	= base;
-+	dev->dma_mask	= &dwc3_omap_dma_mask;
- 
- 	/*
- 	 * REVISIT if we ever have two instances of the wrapper, we will be
+ 		of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
+-		of_property_read_u32(np, "interface_type",
++		of_property_read_u32(np, "interface-type",
+ 						(u32 *)&data->interface_type);
+-		of_property_read_u32(np, "num_eps", (u32 *)&config->num_eps);
+-		of_property_read_u32(np, "ram_bits", (u32 *)&config->ram_bits);
++		of_property_read_u32(np, "num-eps", (u32 *)&config->num_eps);
++		of_property_read_u32(np, "ram-bits", (u32 *)&config->ram_bits);
+ 		of_property_read_u32(np, "power", (u32 *)&pdata->power);
+ 		config->multipoint = of_property_read_bool(np, "multipoint");
+ 		pdata->has_mailbox = of_property_read_bool(np,
 -- 
 1.7.10.4
