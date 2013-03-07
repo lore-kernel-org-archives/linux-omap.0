@@ -1,52 +1,73 @@
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: Re: [PATCH 11/14] ARM: OMAP2+: Add device-tree support for NOR flash
-Date: Thu, 7 Mar 2013 10:02:27 -0300
-Message-ID: <CALF0-+VaX8i5E8ggh3=NaLfAJm2gMOv2Ssk9-RXb07h1+nPqEg@mail.gmail.com>
-References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
-	<1361899842-30303-12-git-send-email-jon-hunter@ti.com>
-	<51360271.1030302@mimc.co.uk>
-	<51360562.20309@ti.com>
-	<51361B46.507@mimc.co.uk>
-	<51362BAB.10403@ti.com>
-	<513664EC.2050508@ti.com>
-	<CALF0-+VeU9tGy-dKgmVg1pT0z0ghJBSsughV7kzT5nX7u=9BhA@mail.gmail.com>
-	<51377300.3040809@ti.com>
-	<CALF0-+W_soY9-ZLO3eS7pTXUTKtcuygJeXkJ3As9U-gkdzabCg@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/5] ASoC: OMAP2+: Update Audio IP with sDMA binding for
+ DT boot
+Date: Thu, 7 Mar 2013 14:03:31 +0100
+Message-ID: <51389023.2000907@ti.com>
+References: <1362660204-27074-1-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f178.google.com ([209.85.210.178]:63804 "EHLO
-	mail-ia0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752494Ab3CGNC1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Mar 2013 08:02:27 -0500
-Received: by mail-ia0-f178.google.com with SMTP id o25so381208iad.9
-        for <linux-omap@vger.kernel.org>; Thu, 07 Mar 2013 05:02:27 -0800 (PST)
-In-Reply-To: <CALF0-+W_soY9-ZLO3eS7pTXUTKtcuygJeXkJ3As9U-gkdzabCg@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60129 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752494Ab3CGNDv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Mar 2013 08:03:51 -0500
+In-Reply-To: <1362660204-27074-1-git-send-email-s-guiriec@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Mark Jackson <mpfj-list@mimc.co.uk>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>
+To: Sebastien Guiriec <s-guiriec@ti.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-On Wed, Mar 6, 2013 at 1:54 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> On Wed, Mar 6, 2013 at 1:46 PM, Jon Hunter <jon-hunter@ti.com> wrote:
->>
->> On 03/06/2013 05:58 AM, Ezequiel Garcia wrote:
->>> I'll submit this driver by the end of this week, in case you want
->>> to take a look at it.
->>
->> Ok, but this is not for omap right?
->>
->
-> No, this is a new driver for a memory controller that's available on
-> some Marvell SoC. It will be located in drivers/memory/.
->
+Hi Sebastien,
 
-Slightly OT: if anyone wants to see the memory-controller driver
-for mvebu platforms, I just posted in lakml.
+On 03/07/2013 01:43 PM, Sebastien Guiriec wrote:
+> This patch serie is converting OMAP Audio IPs in order to use OMAP sD=
+MA DT
+> binding in case of DT boot on OMAP2+ platforms.
 
-It's this patchset:
+The content of the patches looks about right for me, however I would sq=
+uash
+together the IP and platform driver patches so we avoid breakage within=
+ the
+series. Also I would put the patch for the .dtsi files as first one.
 
-"[PATCH 0/5] Device Bus support for Marvell EBU SoC"
+--=20
+P=E9ter
 
--- 
-    Ezequiel
+> It is depending on the next patches:
+>=20
+> [1] http://www.spinics.net/lists/arm-kernel/msg227836.html
+> [2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg84668.h=
+tml
+>=20
+> It has been tested on:
+> - OMAP5 (sEVM/panda)in DT boot (McPDM/DMIC).
+> - OMAP4 (SDP4430/Panda) in both DT/non DT boot (McPDM/DMIC)
+> - OMAP3 (Beagle XM) in both DT/non DT boot (McBSP)
+>=20
+> Sebastien Guiriec (5):
+>   ASoC: omap-pcm: Move to generic DMA for DT binding
+>   ASoC: omap-dmic: Update driver for DMA DT binding.
+>   ASoC: omap-mcpdm: Update driver for DMA DT binding.
+>   ASoC: omap-mcbsp:Update driver for DMA DT binding.
+>   ARM: dts: OMAP2+: Add SDMA Audio IPs bindings
+>=20
+>  arch/arm/boot/dts/omap2420.dtsi |    6 ++++++
+>  arch/arm/boot/dts/omap2430.dtsi |   15 +++++++++++++++
+>  arch/arm/boot/dts/omap3.dtsi    |   15 +++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi    |   17 +++++++++++++++++
+>  arch/arm/boot/dts/omap5.dtsi    |   14 ++++++++++++++
+>  sound/soc/omap/mcbsp.c          |   26 ++++++++++++++++----------
+>  sound/soc/omap/omap-dmic.c      |   15 +++++++++------
+>  sound/soc/omap/omap-mcpdm.c     |   22 ++++++++++++++--------
+>  sound/soc/omap/omap-pcm.c       |   12 ++++++++++--
+>  sound/soc/omap/omap-pcm.h       |    1 +
+>  10 files changed, 117 insertions(+), 26 deletions(-)
+>=20
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
