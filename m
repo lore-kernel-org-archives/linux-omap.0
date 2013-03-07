@@ -1,83 +1,108 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH V4] ARM: dts: add minimal DT support for DevKit8000.
-Date: Thu, 7 Mar 2013 07:51:30 +0100
-Message-ID: <513838F2.60101@ti.com>
-References: <F3DBB1B3EF102E4994C89758CFCA32412CC4E9@DBDE01.ent.ti.com>
- <CABYxbz5GyxYaHANgdpwBNaaR6tnu=6LJuUNSvL7DEzU=4CPHcA@mail.gmail.com>
- <F3DBB1B3EF102E4994C89758CFCA32412CC74F@DBDE01.ent.ti.com>
- <CABYxbz62JrMB95p5i9iu2G=B4ETXLrYbLsyFEFR5F+WVD6YNnQ@mail.gmail.com>
- <20130306175313.GQ11806@atomide.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 3/4] drm/omap: Make fixed resolution panels work
+Date: Thu, 7 Mar 2013 12:59:58 +0530
+Message-ID: <513841F6.1020405@ti.com>
+References: <1362493070-17706-1-git-send-email-archit@ti.com> <1362493070-17706-4-git-send-email-archit@ti.com> <CAF6AEGvua0r8Ri0YNAT7051XAKGooEcDbfCNQB_rrGzGoOfOUQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20130306175313.GQ11806-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Thomas Weber <thomas-xePHB1Atl/Dsq35pWSNszA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39881 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751485Ab3CGHas (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 Mar 2013 02:30:48 -0500
+In-Reply-To: <CAF6AEGvua0r8Ri0YNAT7051XAKGooEcDbfCNQB_rrGzGoOfOUQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Clark <robdclark@gmail.com>
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-Hi,
-
-On 03/06/2013 06:53 PM, Tony Lindgren wrote:
-> * Anil Kumar <anilk4.v-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [130305 18:40]:
->> Hi Tony,
+On Wednesday 06 March 2013 06:15 AM, Rob Clark wrote:
+> On Tue, Mar 5, 2013 at 9:17 AM, Archit Taneja <archit@ti.com> wrote:
+>> The omapdrm driver requires omapdss panel drivers to expose ops like detect,
+>> set_timings and check_timings. These can be NULL for fixed panel DPI, DBI, DSI
+>> and SDI drivers. At some places, there are no checks to see if the panel driver
+>> has these ops or not, and that leads to a crash.
 >>
->>>> From: linux-arm-kernel [mailto:linux-arm-kernel-
->>>> bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org] On Behalf Of Anil Kumar
->>>> Sent: Wednesday, February 27, 2013 8:03 AM
->>>> To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
->>>> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
->>>> Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org; Cousson, Benoit; Tony Lindgren; Grant
->>>> Likely; Anil Kumar; thomas-xePHB1Atl/Dsq35pWSNszA@public.gmane.org
->>>> Subject: Re: FW: [PATCH V4] ARM: dts: add minimal DT support for
->>>> DevKit8000.
->>>>
->>>> Hi,
->>>>>
->>>>> DevKit8000 is a beagle board clone from Timll, sold by
->>>>> armkits.com. The DevKit8000 has RS232 serial port, LCD, DVI-D,
->>>>> S-Video, Ethernet, SD/MMC, keyboard, camera, SPI, I2C, USB and
->>>>> JTAG interface.
->>>>>
->>>>> This patch adds the basic DT support for devkit8000. At this time,
->>>> Information
->>>>> of twl4030 (PMIC), MMC1, I2C1 and leds are added.
->>>>>
->>>>> Signed-off-by: Anil Kumar <anilk4.v-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->>>>> Tested-by: Thomas Weber <thomas-xePHB1Atl/Dsq35pWSNszA@public.gmane.org>
->>>>
->>>> Gentle Ping. As there are no review comments on this patch,
->>>> Could you please pull this patch ?
+>> The following things are done to make fixed panels work:
 >>
->> Gentle Ping.
+>> - The omap_connector's detect function is modified such that it considers panel
+>>    types which are generally fixed panels as always connected(provided the panel
+>>    driver doesn't have a detect op). Hence, the connector corresponding to these
+>>    panels is always in a 'connected' state.
 >>
->> This patch also got Reviewed-by: Manish Badarkhe <badarkhe.manish-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> and as patch "ARM: dts: omap3-devkit8000: Enable audio support"  has already got
->> "Acked-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>" but it is on the
->> top of this patch.
->> So, Could you please pull this patch in one of your omap branch? or
->> you want me to
->> do rebase this patch on top of v3.9-rc1 ?
-> 
-> Let's wait for Benoit to queue it as he has a bunch of .dts changes already
-> applied. Too bad we missed v3.9 merge window for those, but hopefully
-> we can get them queued early for v3.10.
+>> - If a panel driver doesn't have a check_timings op, assume that it supports the
+>>    mode passed to omap_connector_mode_valid(the 'mode_valid' drm helper function)
+>>
+>> - The function omap_encoder_update shouldn't really do anything for fixed
+>>    resolution panels, make sure that it calls set_timings only if the panel
+>>    driver has one.
+>>
+>> Signed-off-by: Archit Taneja <archit@ti.com>
+>> ---
+>>   drivers/gpu/drm/omapdrm/omap_connector.c |   10 ++++++++--
+>>   drivers/gpu/drm/omapdrm/omap_encoder.c   |    6 ++++--
+>>   2 files changed, 12 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm/omapdrm/omap_connector.c
+>> index c451c41..c952324 100644
+>> --- a/drivers/gpu/drm/omapdrm/omap_connector.c
+>> +++ b/drivers/gpu/drm/omapdrm/omap_connector.c
+>> @@ -110,6 +110,11 @@ static enum drm_connector_status omap_connector_detect(
+>>                          ret = connector_status_connected;
+>>                  else
+>>                          ret = connector_status_disconnected;
+>> +       } else if (dssdev->type == OMAP_DISPLAY_TYPE_DPI ||
+>> +                       dssdev->type == OMAP_DISPLAY_TYPE_DBI ||
+>> +                       dssdev->type == OMAP_DISPLAY_TYPE_SDI ||
+>> +                       dssdev->type == OMAP_DISPLAY_TYPE_DSI) {
+>> +               ret = connector_status_connected;
+>>          } else {
+>>                  ret = connector_status_unknown;
+>>          }
+>> @@ -189,12 +194,13 @@ static int omap_connector_mode_valid(struct drm_connector *connector,
+>>          struct omap_video_timings timings = {0};
+>>          struct drm_device *dev = connector->dev;
+>>          struct drm_display_mode *new_mode;
+>> -       int ret = MODE_BAD;
+>> +       int r, ret = MODE_BAD;
+>>
+>>          copy_timings_drm_to_omap(&timings, mode);
+>>          mode->vrefresh = drm_mode_vrefresh(mode);
+>>
+>> -       if (!dssdrv->check_timings(dssdev, &timings)) {
+>> +       r = dssdrv->check_timings ? dssdrv->check_timings(dssdev, &timings) : 0;
+>> +       if (!r) {
+>>                  /* check if vrefresh is still valid */
+>>                  new_mode = drm_mode_duplicate(dev, mode);
+>>                  new_mode->clock = timings.pixel_clock;
+>> diff --git a/drivers/gpu/drm/omapdrm/omap_encoder.c b/drivers/gpu/drm/omapdrm/omap_encoder.c
+>> index d48df71..9aed178 100644
+>> --- a/drivers/gpu/drm/omapdrm/omap_encoder.c
+>> +++ b/drivers/gpu/drm/omapdrm/omap_encoder.c
+>> @@ -135,13 +135,15 @@ int omap_encoder_update(struct drm_encoder *encoder,
+>>
+>>          dssdev->output->manager = mgr;
+>>
+>> -       ret = dssdrv->check_timings(dssdev, timings);
+>> +       ret = dssdrv->check_timings ?
+>> +               dssdrv->check_timings(dssdev, timings) : 0;
+>>          if (ret) {
+>>                  dev_err(dev->dev, "could not set timings: %d\n", ret);
+>>                  return ret;
+>>          }
+>>
+>> -       dssdrv->set_timings(dssdev, timings);
+>> +       if (dssdrv->set_timings)
+>> +               dssdrv->set_timings(dssdev, timings);
+>
+> maybe either here or _mode_valid(), for panels that don't have
+> set_timings(), we should double check that the new timings match what
+> we get from the panel's get_timings().  Other than that, it looks
+> fine.
 
-Yep, sorry for having missed 3.9, I was a little bit sick at the wrong
-moment :-(
+Yeah, we should do that. I guess it makes more sense to do it earlier, 
+i.e, in mode_vaild.
 
-I'm starting queuing the pending patches, and should have enough to push
-to you just after Linaro Connect.
+Archit
 
-Regards,
-Benoit
