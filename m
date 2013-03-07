@@ -1,73 +1,65 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/5] ASoC: OMAP2+: Update Audio IP with sDMA binding for
- DT boot
-Date: Thu, 7 Mar 2013 14:03:31 +0100
-Message-ID: <51389023.2000907@ti.com>
-References: <1362660204-27074-1-git-send-email-s-guiriec@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Subject: [PATCH] ARM: OMAP2+: am33xx: preserve JTAG clock aka debugss_ick.
+Date: Thu,  7 Mar 2013 14:13:27 +0100
+Message-ID: <1362662007-13782-2-git-send-email-andreas.fenkart@streamunlimited.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60129 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752494Ab3CGNDv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Mar 2013 08:03:51 -0500
-In-Reply-To: <1362660204-27074-1-git-send-email-s-guiriec@ti.com>
+Received: from mout.gmx.net ([212.227.15.19]:55325 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751874Ab3CGNO3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 Mar 2013 08:14:29 -0500
+Received: from mailout-de.gmx.net ([10.1.76.20]) by mrigmx.server.lan
+ (mrigmx001) with ESMTP (Nemesis) id 0MSXbW-1UNb531oqC-00RWkJ for
+ <linux-omap@vger.kernel.org>; Thu, 07 Mar 2013 14:14:25 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: paul@pwsan.com, tony@atomide.com
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, afzal@ti.com, hvaibhav@ti.com, daniel@zonque.org, Andreas Fenkart <andreas.fenkart@streamunlimited.com>
 
-Hi Sebastien,
+This fixes JTAG support on am33xx.
 
-On 03/07/2013 01:43 PM, Sebastien Guiriec wrote:
-> This patch serie is converting OMAP Audio IPs in order to use OMAP sD=
-MA DT
-> binding in case of DT boot on OMAP2+ platforms.
+Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+---
+ arch/arm/Kconfig.debug                |    6 ++++++
+ arch/arm/mach-omap2/cclock33xx_data.c |   11 ++++++++---
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
-The content of the patches looks about right for me, however I would sq=
-uash
-together the IP and platform driver patches so we avoid breakage within=
- the
-series. Also I would put the patch for the .dtsi files as first one.
+diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
+index acdddda..8120940 100644
+--- a/arch/arm/Kconfig.debug
++++ b/arch/arm/Kconfig.debug
+@@ -632,4 +632,10 @@ config PID_IN_CONTEXTIDR
+ 	  additional instructions during context switch. Say Y here only if you
+ 	  are planning to use hardware trace tools with this kernel.
+ 
++config JTAG
++	bool "Enable JTAG clock"
++	depends on SOC_AM33XX
++	help
++	  Enable or keep JTAG clock enabled
++
+ endmenu
+diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
+index 476b820..b7470de 100644
+--- a/arch/arm/mach-omap2/cclock33xx_data.c
++++ b/arch/arm/mach-omap2/cclock33xx_data.c
+@@ -429,9 +429,14 @@ DEFINE_STRUCT_CLK(smartreflex1_fck, dpll_core_ck_parents, clk_ops_null);
+  *     - usbotg_fck (its additional clock and not really a modulemode)
+  *     - ieee5000
+  */
+-DEFINE_CLK_GATE(debugss_ick, "dpll_core_m4_ck", &dpll_core_m4_ck, 0x0,
+-		AM33XX_CM_WKUP_DEBUGSS_CLKCTRL, AM33XX_MODULEMODE_SWCTRL_SHIFT,
+-		0x0, NULL);
++#ifdef CONFIG_JTAG
++#define DEBUGSS_FLAGS CLK_IGNORE_UNUSED
++#else
++#define DEBUGSS_FLAGS 0x0
++#endif
++DEFINE_CLK_GATE(debugss_ick, "dpll_core_m4_ck", &dpll_core_m4_ck,
++		DEBUGSS_FLAGS, AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
++		AM33XX_MODULEMODE_SWCTRL_SHIFT, 0x0, NULL);
+ 
+ DEFINE_CLK_GATE(mmu_fck, "dpll_core_m4_ck", &dpll_core_m4_ck, 0x0,
+ 		AM33XX_CM_GFX_MMUDATA_CLKCTRL, AM33XX_MODULEMODE_SWCTRL_SHIFT,
+-- 
+1.7.10.4
 
---=20
-P=E9ter
-
-> It is depending on the next patches:
->=20
-> [1] http://www.spinics.net/lists/arm-kernel/msg227836.html
-> [2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg84668.h=
-tml
->=20
-> It has been tested on:
-> - OMAP5 (sEVM/panda)in DT boot (McPDM/DMIC).
-> - OMAP4 (SDP4430/Panda) in both DT/non DT boot (McPDM/DMIC)
-> - OMAP3 (Beagle XM) in both DT/non DT boot (McBSP)
->=20
-> Sebastien Guiriec (5):
->   ASoC: omap-pcm: Move to generic DMA for DT binding
->   ASoC: omap-dmic: Update driver for DMA DT binding.
->   ASoC: omap-mcpdm: Update driver for DMA DT binding.
->   ASoC: omap-mcbsp:Update driver for DMA DT binding.
->   ARM: dts: OMAP2+: Add SDMA Audio IPs bindings
->=20
->  arch/arm/boot/dts/omap2420.dtsi |    6 ++++++
->  arch/arm/boot/dts/omap2430.dtsi |   15 +++++++++++++++
->  arch/arm/boot/dts/omap3.dtsi    |   15 +++++++++++++++
->  arch/arm/boot/dts/omap4.dtsi    |   17 +++++++++++++++++
->  arch/arm/boot/dts/omap5.dtsi    |   14 ++++++++++++++
->  sound/soc/omap/mcbsp.c          |   26 ++++++++++++++++----------
->  sound/soc/omap/omap-dmic.c      |   15 +++++++++------
->  sound/soc/omap/omap-mcpdm.c     |   22 ++++++++++++++--------
->  sound/soc/omap/omap-pcm.c       |   12 ++++++++++--
->  sound/soc/omap/omap-pcm.h       |    1 +
->  10 files changed, 117 insertions(+), 26 deletions(-)
->=20
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
