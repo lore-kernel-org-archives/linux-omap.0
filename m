@@ -1,30 +1,53 @@
-From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [RFC PATCH 3/4] USB: OMAP: move omap-otg out from isp1301_omap
-Date: Thu, 7 Mar 2013 19:59:07 +0200
-Message-ID: <20130307175907.GD14552@blackmetal.musicnaut.iki.fi>
-References: <1362667221-30659-1-git-send-email-aaro.koskinen@iki.fi>
- <1362667221-30659-4-git-send-email-aaro.koskinen@iki.fi>
- <20130307145158.GE16577@arwen.pp.htv.fi>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH 1/3] driver: net: ethernet: cpsw: implement ethtool get/set phy setting
+Date: Thu, 07 Mar 2013 19:49:30 +0100
+Message-ID: <87txon3v0l.fsf@dell.be.48ers.dk>
+References: <1362659421-11884-1-git-send-email-mugunthanvnm@ti.com>
+	<1362659421-11884-2-git-send-email-mugunthanvnm@ti.com>
+	<8762135on4.fsf@dell.be.48ers.dk> <5138CAA8.1060106@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20130307145158.GE16577-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <5138CAA8.1060106@ti.com> (Mugunthan V. N.'s message of "Thu, 7
+	Mar 2013 22:43:12 +0530")
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
+
+>>>>> "Mugunthan" == Mugunthan V N <mugunthanvnm@ti.com> writes:
 
 Hi,
 
-On Thu, Mar 07, 2013 at 04:51:59PM +0200, Felipe Balbi wrote:
-> why is this otg_dev even needed ? Can you refresh my memory ?
+ M> +- ethtool-active-slave	: Specifies the slave to use for ethtool command
+ >> 
+ >> That again sounds like something Linux specific rather than a hardware
+ >> property.
+ >> 
+ >> It would be good if all these special things (dual emac mode, vlan
+ >> handling, switching) could be handled using the existing kernel
+ >> (bridging/vlan) infrastructure, and the driver always just exposing 2
+ >> network interfaces instead of these configuration properties.
 
-If you want to handle OTG controller interrupt you need it... Though looks
-like tahvo does not really need it, and it can be disabled.
+ Mugunthan> Switch and Dual Emac modes of operation of CPSW are two
+ Mugunthan> different features of the hardware and packet routing
+ Mugunthan> between the slaves in the hardware are different in both the
+ Mugunthan> modes.
 
-A.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Mugunthan> If by default it is brought up as Dual EMAC then hardware
+ Mugunthan> switching is blocked and use-cases like IP phone etc cannot
+ Mugunthan> be achieved.
+
+Well, you could use the (sw) bridge functionality of the kernel network
+stack, but performance naturally wouldn't be as good.
+
+ Mugunthan> Since CPSW as a hardware Switch, it cannot not be handled in
+ Mugunthan> existing kernel feature.
+
+Well, we do have net/dsa, which is conceptually quite similar (even
+though it has never been extended to hook into the bridging stuff). I
+agree that we don't have infrastructure to handle hw like cpsw in a
+really good way today, but it would be very nice to move towards it.
+
+-- 
+Bye, Peter Korsgaard
