@@ -1,90 +1,52 @@
-From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/5] usb: musb: am335x support
-Date: Thu, 07 Mar 2013 13:51:48 +0100
-Message-ID: <51388D64.9000005@gmail.com>
-References: <cover.1351870620.git.afzal@ti.com> <509420D8.1030307@gmail.com> <C8443D0743D26F4388EA172BF4E2A7A93EA0A1F2@DBDE01.ent.ti.com> <51312430.6060306@gmail.com> <87sj4cunp6.fsf@dell.be.48ers.dk> <5133E268.5010604@gmail.com>
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [PATCH 11/14] ARM: OMAP2+: Add device-tree support for NOR flash
+Date: Thu, 7 Mar 2013 10:02:27 -0300
+Message-ID: <CALF0-+VaX8i5E8ggh3=NaLfAJm2gMOv2Ssk9-RXb07h1+nPqEg@mail.gmail.com>
+References: <1361899842-30303-1-git-send-email-jon-hunter@ti.com>
+	<1361899842-30303-12-git-send-email-jon-hunter@ti.com>
+	<51360271.1030302@mimc.co.uk>
+	<51360562.20309@ti.com>
+	<51361B46.507@mimc.co.uk>
+	<51362BAB.10403@ti.com>
+	<513664EC.2050508@ti.com>
+	<CALF0-+VeU9tGy-dKgmVg1pT0z0ghJBSsughV7kzT5nX7u=9BhA@mail.gmail.com>
+	<51377300.3040809@ti.com>
+	<CALF0-+W_soY9-ZLO3eS7pTXUTKtcuygJeXkJ3As9U-gkdzabCg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5133E268.5010604-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
-Cc: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "Santhapuri, Damodar" <damodar.santhapuri-l0cyMroinI0@public.gmane.org>, "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ia0-f178.google.com ([209.85.210.178]:63804 "EHLO
+	mail-ia0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752494Ab3CGNC1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Mar 2013 08:02:27 -0500
+Received: by mail-ia0-f178.google.com with SMTP id o25so381208iad.9
+        for <linux-omap@vger.kernel.org>; Thu, 07 Mar 2013 05:02:27 -0800 (PST)
+In-Reply-To: <CALF0-+W_soY9-ZLO3eS7pTXUTKtcuygJeXkJ3As9U-gkdzabCg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Mark Jackson <mpfj-list@mimc.co.uk>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>
 
-On 04.03.2013 00:53, Daniel Mack wrote:
-> Hi Peter,
-> 
-> On 03.03.2013 23:24, Peter Korsgaard wrote:
->>>>>>> "Daniel" == Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+On Wed, Mar 6, 2013 at 1:54 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> On Wed, Mar 6, 2013 at 1:46 PM, Jon Hunter <jon-hunter@ti.com> wrote:
 >>
->> Hi,
+>> On 03/06/2013 05:58 AM, Ezequiel Garcia wrote:
+>>> I'll submit this driver by the end of this week, in case you want
+>>> to take a look at it.
 >>
->>  Daniel> On my board, the USB is purely used as host interface, with a
->>  Daniel> type B plug soldered. In the DT, I'm using the following
->>  Daniel> sniplet in accordance to the documentation of the bindings:
+>> Ok, but this is not for omap right?
 >>
->>  Daniel> 	usb_otg_hs: usb@47400000 {
->>  Daniel> 		compatible = "ti,musb-am33xx";
->>  Daniel> 		reg = <0x47400000 0x1000	/* usbss */
->>  Daniel> 		       0x47401000 0x800		/* musb instance 0 */
->>  Daniel> 		       0x47401800 0x800>;	/* musb instance 1 */
->>  Daniel> 		interrupt-parent = <&intc>;
->>  Daniel> 		interrupts = <17		/* usbss */
->>  Daniel> 			      18		/* musb instance 0 */
->>  19> ;		/* musb instance 1 */
->>  Daniel> 		multipoint = <1>;
->>  Daniel> 		num-eps = <16>;
->>  Daniel> 		ram-bits = <12>;
->>  Daniel> 		port0-mode = <3>;
->>  Daniel> 		port1-mode = <3>;
->>  Daniel> 		power = <250>;
->>  Daniel> 		ti,hwmods = "usb_otg_hs";
->>  Daniel> 	};
->>
->>  Daniel> The relevant config options are
->>
->>  Daniel> CONFIG_USB_MUSB_HDRC=y
->>  Daniel> # CONFIG_USB_MUSB_TUSB6010 is not set
->>  Daniel> # CONFIG_USB_MUSB_OMAP2PLUS is not set
->>  Daniel> # CONFIG_USB_MUSB_AM35X is not set
->>  Daniel> CONFIG_USB_MUSB_DSPS=y
->>  Daniel> CONFIG_MUSB_PIO_ONLY=y
->>  Daniel> CONFIG_USB_GADGET=y
->>  Daniel> CONFIG_USB_GADGET_DEBUG=y
->>  Daniel> CONFIG_USB_GADGET_DEBUG_FILES=y
->>  Daniel> CONFIG_USB_GADGET_DEBUG_FS=y
->>  Daniel> CONFIG_USB_GADGET_VBUS_DRAW=2
->>  Daniel> CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS=2
->>  Daniel> CONFIG_USB_GADGET_MUSB_HDRC=y
->>
->> Ehh, I'm confused here. You talk about host mode, a single 'B' (gadget)
->> connector
-> 
-> I'm sorry for the confusion caused. This is a stupid mistake - I'm in
-> fact talking about an 'A' type plug of course (host mode).
-> 
->> and your device tree mentions 2 OTG ports.
-> 
-> That's what I said in a follow up - the same happens for mode '1'.
-> 
->> What is the configuration exactly?
-> 
-> Again to summarize: host-only mode, type 'A' plug.
-> 
-> The gadget driver is is enabled in the config because the only
-> occurrence of usb_add_hcd() in the musb driver is in the gagdget part,
-> so supposedly, there has to be a gadget driver loaded in order to make
-> the host interface going.
+>
+> No, this is a new driver for a memory controller that's available on
+> some Marvell SoC. It will be located in drivers/memory/.
+>
 
-Just be clear: I'd happily help and dig for the reason of this, I'd just
-need to know how things are _supposed_ to work ...
+Slightly OT: if anyone wants to see the memory-controller driver
+for mvebu platforms, I just posted in lakml.
 
+It's this patchset:
 
-Daniel
+"[PATCH 0/5] Device Bus support for Marvell EBU SoC"
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+    Ezequiel
