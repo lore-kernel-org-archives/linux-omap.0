@@ -1,72 +1,46 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 2/4] usb: dwc3: dwc3-omap: return -EPROBE_DEFER if probe has not yet executed
-Date: Thu, 7 Mar 2013 18:51:44 +0530
-Message-ID: <1362662506-14823-3-git-send-email-kishon@ti.com>
-References: <1362662506-14823-1-git-send-email-kishon@ti.com>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH 1/3] driver: net: ethernet: cpsw: implement ethtool get/set phy setting
+Date: Thu, 07 Mar 2013 14:24:15 +0100
+Message-ID: <8762135on4.fsf@dell.be.48ers.dk>
+References: <1362659421-11884-1-git-send-email-mugunthanvnm@ti.com>
+	<1362659421-11884-2-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362662506-14823-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, kishon@ti.com, s-guiriec@ti.com, gg@slimlogic.co.uk, sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com, ldewangan@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, ruchika@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1362659421-11884-2-git-send-email-mugunthanvnm@ti.com>
+	(Mugunthan V. N.'s message of "Thu, 7 Mar 2013 18:00:19 +0530")
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
 
-return -EPROBE_DEFER from dwc3_omap_mailbox in dwc3-omap.c, if the probe of
-dwc3-omap has not yet been executed or failed.
+>>>>> "M" == Mugunthan V N <mugunthanvnm@ti.com> writes:
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/usb/dwc3/dwc3-omap.c  |    7 +++++--
- include/linux/usb/dwc3-omap.h |    6 +++---
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ M> This patch implements get/set of the phy settings via ethtool apis
+ M> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+ M> ---
+ M>  Documentation/devicetree/bindings/net/cpsw.txt |    3 +++
+ M>  drivers/net/ethernet/ti/cpsw.c                 |   32 ++++++++++++++++++++++++
+ M>  include/linux/platform_data/cpsw.h             |    1 +
+ M>  3 files changed, 36 insertions(+)
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 546f1fd..2fe9723f 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -138,11 +138,14 @@ static inline void dwc3_omap_writel(void __iomem *base, u32 offset, u32 value)
- 	writel(value, base + offset);
- }
- 
--void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
-+int dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
- {
- 	u32			val;
- 	struct dwc3_omap	*omap = _omap;
- 
-+	if (!omap)
-+		return -EPROBE_DEFER;
-+
- 	switch (status) {
- 	case OMAP_DWC3_ID_GROUND:
- 		dev_dbg(omap->dev, "ID GND\n");
-@@ -185,7 +188,7 @@ void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
- 		dev_dbg(omap->dev, "ID float\n");
- 	}
- 
--	return;
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(dwc3_omap_mailbox);
- 
-diff --git a/include/linux/usb/dwc3-omap.h b/include/linux/usb/dwc3-omap.h
-index 51eae14..5615f4d 100644
---- a/include/linux/usb/dwc3-omap.h
-+++ b/include/linux/usb/dwc3-omap.h
-@@ -19,11 +19,11 @@ enum omap_dwc3_vbus_id_status {
- };
- 
- #if (defined(CONFIG_USB_DWC3) || defined(CONFIG_USB_DWC3_MODULE))
--extern void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status);
-+extern int dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status);
- #else
--static inline void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
-+static inline int dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
- {
--	return;
-+	return -ENODEV;
- }
- #endif
- 
+ M> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+ M> index ecfdf75..8d61300 100644
+ M> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+ M> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+ M> @@ -20,6 +20,7 @@ Required properties:
+ M>  - cpts_clock_shift	: Denominator to convert input clock ticks into nanoseconds
+ M>  - phy_id		: Specifies slave phy id
+ M>  - mac-address		: Specifies slave MAC address
+ M> +- ethtool-active-slave	: Specifies the slave to use for ethtool command
+
+That again sounds like something Linux specific rather than a hardware
+property.
+
+It would be good if all these special things (dual emac mode, vlan
+handling, switching) could be handled using the existing kernel
+(bridging/vlan) infrastructure, and the driver always just exposing 2
+network interfaces instead of these configuration properties.
+
 -- 
-1.7.10.4
+Bye, Peter Korsgaard
