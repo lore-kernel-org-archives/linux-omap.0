@@ -1,81 +1,56 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
-Date: Fri, 8 Mar 2013 00:18:27 +0200
-Message-ID: <20130307221827.GE31984@valkosipuli.retiisi.org.uk>
-References: <201302171616.50152@pali>
- <20130217190303.GC2317@blackmetal.musicnaut.iki.fi>
- <201303062112.06417@pali>
- <201303062120.17303@pali>
- <20130306214440.GA11874@earth.universe>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
+Date: Thu, 7 Mar 2013 17:14:09 -0600
+Message-ID: <51391F41.5000303@ti.com>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <1329321854-24490-4-git-send-email-b-cousson@ti.com> <4F44FA56.7020000@gmail.com> <4F44FC37.2000701@ti.com> <4F452484.5080503@gmail.com> <74CDBE0F657A3D45AFBB94109FB122FF17BD8BC6C1@HQMAIL01.nvidia.com> <4F47AD08.4030504@ti.com> <CAAwP0s0cB368R2mtbJpTZJreR-5GSRLfxC+8DJLo5nw3_OwBuA@mail.gmail.com> <512D39DA.7020306@ti.com> <512D3AB1.1080202@wwwdotorg.org> <512D3EC2.6050408@ti.com> <20130302200524.D230F3E1571@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130306214440.GA11874@earth.universe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54432 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759994Ab3CGXOX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 Mar 2013 18:14:23 -0500
+In-Reply-To: <20130302200524.D230F3E1571@localhost>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <martinez.javier@gmail.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi guys,
 
-On Wed, Mar 06, 2013 at 10:44:41PM +0100, Sebastian Reichel wrote:
-> On Wed, Mar 06, 2013 at 09:20:16PM +0100, Pali Roh=E1r wrote:
-> > On Wednesday 06 March 2013 21:12:06 Pali Roh=E1r wrote:
-> > > On Sunday 17 February 2013 20:03:03 Aaro Koskinen wrote:
-> > > > On Sun, Feb 17, 2013 at 04:16:49PM +0100, Pali Roh=E1r wrote:
-> > > > > +/*
-> > > > > + * arch/arm/mach-omap2/board-rx51-camera.c
-> > > > > + *
-> > > > > + * Copyright (C) 2008 Nokia Corporation
-> > > > > + *
-> > > > > + * Contact: Sakari Ailus <sakari.ailus@nokia.com>
-> > > > > + *          Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-> > > >=20
-> > > > You should put these people to CC... Just to see if the
-> > > > addresses are still valid (which I doubt).
-> > >=20
-> > > Ok, trying :-)
-> > >=20
-> >=20
-> > I got "Delivery Status Notification (Failure)" for both addresses.
+On 03/02/2013 02:05 PM, Grant Likely wrote:
+> On Tue, 26 Feb 2013 17:01:22 -0600, Jon Hunter <jon-hunter@ti.com> wrote:
+>>
+>> On 02/26/2013 04:44 PM, Stephen Warren wrote:
+>>> On 02/26/2013 03:40 PM, Jon Hunter wrote:
+>>>> On 02/26/2013 04:01 AM, Javier Martinez Canillas wrote:
+>>>> Are you requesting the gpio anywhere? If not then this is not going to
+>>>> work as-is. This was discussed fairly recently [1] and the conclusion
+>>>> was that the gpio needs to be requested before we can use as an interrupt.
+>>>
+>>> That seems wrong; the GPIO/IRQ driver should handle this internally. The
+>>> Ethernet driver shouldn't know/care whether the interrupt it's given is
+>>> some form of dedicated interrupt or a GPIO-based interrupt, and even if
+>>> it somehow did, there's no irq_to_gpio() any more, so the driver can't
+>>> tell which GPIO ID it should request, unless it's given yet another
+>>> property to represent this.
+>>
+>> I agree that ideally this should be handled internally. Did you read the
+>> discussion on the thread that I referenced [1]? If you have any thoughts
+>> we are open to ideas :-)
+> 
+> I'm on an airplane right now, but I agree 100% with Stephen. I'll try to
+> remember to go read that thread and respond, but this falls firmly in
+> the its-a-bug category for me.  :-)
 
-This is expected.
+Grant, did you have chance to review the thread [1]?
 
-> Sakari Ailus hosts some code on github [0], which has the following
-> email address: sakari.ailus+gitorious@retiisi.org.uk
->=20
-> I added it to this mail's CC.
->=20
-> [0] https://gitorious.org/~sailus
+I am trying to figure out if we should just take the original patch
+proposed in the thread (although Linus had some objections) or look at
+alternative solutions such as adding a irq_chip request as Stephen
+suggested.
 
-Nice to hear people are interested in this. ;-)
+Cheers
+Jon
 
-The primary reason I haven't tried submitting this to mainline is that =
-ARM
-board code has a bad reputation these days. The N900 does not have yet
-support for device tree (AFAIK), which also would require a few bits an=
-d
-pieces on the flash driver to work.
-
-Also the sensor and lens drivers would need at least some work before b=
-eing
-ready for submission to mainline for camera to be usable. Unfortunately=
- I
-haven't had recently time to work on this. N9(50) support has higher
-priority for myself. That, too, is pending the DT support for the devic=
-e.
-
-There's indeed more up-to-date code in my repository. Even if it's not =
-too
-close to mainline anymore it should be a better starting point than the=
- old
-kernel from MeeGo.
-
-<URL:https://gitorious.org/omap3camera/pages/Home>
-
---=20
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+[1] comments.gmane.org/gmane.linux.ports.arm.omap/92192
