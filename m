@@ -1,128 +1,170 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2] ARM: OMAP1: fix omap_udc registration
-Date: Thu, 7 Mar 2013 15:41:17 +0200
-Message-ID: <20130307134117.GA16577@arwen.pp.htv.fi>
-References: <1362663013-28794-1-git-send-email-aaro.koskinen@iki.fi>
-Reply-To: <balbi@ti.com>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+Date: Thu, 7 Mar 2013 09:12:35 -0500
+Message-ID: <20130307141235.GQ6209@beef>
+References: <1362629799-22485-1-git-send-email-mporter@ti.com>
+ <1362629799-22485-3-git-send-email-mporter@ti.com>
+ <41fde401c8e646689123d7c6d3a2dffc@DLEE71.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1yeeQ81UyVL57Vl7"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53668 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753586Ab3CGNlm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Mar 2013 08:41:42 -0500
-Content-Disposition: inline
-In-Reply-To: <1362663013-28794-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
---1yeeQ81UyVL57Vl7
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <41fde401c8e646689123d7c6d3a2dffc@DLEE71.ent.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Chris Ball <cjb@laptop.org>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thu, Mar 07, 2013 at 05:29:24AM +0000, Vaibhav Hiremath wrote:
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Porter, Matt
+> > Sent: Thursday, March 07, 2013 9:47 AM
+> > To: Krishnamoorthy, Balaji T; Chris Ball; Cousson, Benoit; Tony
+> > Lindgren; Russell King
+> > Cc: Devicetree Discuss; Linux ARM Kernel List; Linux OMAP List; Linux
+> > Kernel Mailing List; Linux MMC List
+> > Subject: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+> > 
+> > Adds AM33XX MMC support for am335x-bone, am335x-evm, and
+> > am335x-evmsk.
+> > 
+> > Signed-off-by: Matt Porter <mporter@ti.com>
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  arch/arm/boot/dts/am335x-bone.dts  |    7 +++++++
+> >  arch/arm/boot/dts/am335x-evm.dts   |    7 +++++++
+> >  arch/arm/boot/dts/am335x-evmsk.dts |    7 +++++++
+> >  arch/arm/boot/dts/am33xx.dtsi      |   28 ++++++++++++++++++++++++++++
+> >  4 files changed, 49 insertions(+)
+> > 
+> > diff --git a/arch/arm/boot/dts/am335x-bone.dts
+> > b/arch/arm/boot/dts/am335x-bone.dts
+> > index 11b240c..a154ce0 100644
+> > --- a/arch/arm/boot/dts/am335x-bone.dts
+> > +++ b/arch/arm/boot/dts/am335x-bone.dts
+> > @@ -120,6 +120,8 @@
+> >  		};
+> > 
+> >  		ldo3_reg: regulator@5 {
+> > +			regulator-min-microvolt = <1800000>;
+> > +			regulator-max-microvolt = <3300000>;
+> >  			regulator-always-on;
+> >  		};
+> > 
+> > @@ -136,3 +138,8 @@
+> >  &cpsw_emac1 {
+> >  	phy_id = <&davinci_mdio>, <1>;
+> >  };
+> > +
+> > +&mmc1 {
+> > +	status = "okay";
+> > +	vmmc-supply = <&ldo3_reg>;
+> > +};
+> > diff --git a/arch/arm/boot/dts/am335x-evm.dts
+> > b/arch/arm/boot/dts/am335x-evm.dts
+> > index d649644..2907da6 100644
+> > --- a/arch/arm/boot/dts/am335x-evm.dts
+> > +++ b/arch/arm/boot/dts/am335x-evm.dts
+> > @@ -232,6 +232,8 @@
+> >  		};
+> > 
+> >  		vmmc_reg: regulator@12 {
+> > +			regulator-min-microvolt = <1800000>;
+> > +			regulator-max-microvolt = <3300000>;
+> >  			regulator-always-on;
+> >  		};
+> >  	};
+> > @@ -244,3 +246,8 @@
+> >  &cpsw_emac1 {
+> >  	phy_id = <&davinci_mdio>, <1>;
+> >  };
+> > +
+> > +&mmc1 {
+> > +	status = "okay";
+> > +	vmmc-supply = <&vmmc_reg>;
+> > +};
+> > diff --git a/arch/arm/boot/dts/am335x-evmsk.dts
+> > b/arch/arm/boot/dts/am335x-evmsk.dts
+> > index f5a6162..f050c46 100644
+> > --- a/arch/arm/boot/dts/am335x-evmsk.dts
+> > +++ b/arch/arm/boot/dts/am335x-evmsk.dts
+> > @@ -244,7 +244,14 @@
+> >  		};
+> > 
+> >  		vmmc_reg: regulator@12 {
+> > +			regulator-min-microvolt = <1800000>;
+> > +			regulator-max-microvolt = <3300000>;
+> >  			regulator-always-on;
+> >  		};
+> >  	};
+> >  };
+> > +
+> > +&mmc1 {
+> > +	status = "okay";
+> > +	vmmc-supply = <&vmmc_reg>;
+> > +};
+> > diff --git a/arch/arm/boot/dts/am33xx.dtsi
+> > b/arch/arm/boot/dts/am33xx.dtsi
+> > index c3c781a..e029eea 100644
+> > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > @@ -234,6 +234,34 @@
+> >  			status = "disabled";
+> >  		};
+> > 
+> > +		mmc1: mmc@48060000 {
+> > +			compatible = "ti,omap3-hsmmc";
+> > +			ti,hwmods = "mmc1";
+> > +			ti,dual-volt;
+> > +			ti,needs-special-reset;
+> > +			dmas = <&edma 24
+> > +				&edma 25>;
+> > +			dma-names = "tx", "rx";
+> > +			status = "disabled";
+> > +		};
+> > +
+> > +		mmc2: mmc@481d8000 {
+> > +			compatible = "ti,omap3-hsmmc";
+> > +			ti,hwmods = "mmc2";
+> > +			ti,needs-special-reset;
+> > +			dmas = <&edma 2
+> > +				&edma 3>;
+> > +			dma-names = "tx", "rx";
+> > +			status = "disabled";
+> > +		};
+> > +
+> > +		mmc3: mmc@47810000 {
+> > +			compatible = "ti,omap3-hsmmc";
+> > +			ti,hwmods = "mmc3";
+> > +			ti,needs-special-reset;
+> > +			status = "disabled";
+> > +		};
+> Any specific reason why you did not add edma entry here as well?
 
-On Thu, Mar 07, 2013 at 03:30:12PM +0200, Aaro Koskinen wrote:
-> omap_udc platform device is not registered properly anymore:
-> CONFIG_USB_GADGET_OMAP was deleted by 193ab2a6 (usb: gadget: allow
-> multiple gadgets to be built) already in v3.1.
->=20
-> Fix by using CONFIG_USB_OMAP instead. Tested on Nokia 770 by checking
-> that omap_udc is probed & working properly when built as a module.
->=20
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Yes, I've answered this one before and I think this illustrates a need
+for a comment in the .dtsi. mmc3 edma event are on the crossbar and so
+the event that will be mapped is system-specific. Since Luca is still
+working on DT support for WiLink, there's no way to show an example of
+how this is used upstream as that's the only in-kernel user.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+I have a test driver I've cited in the postings that shows how the
+crossbar is configured via the board .dts. It doesn't belong in the
+.dtsi, however, in this case. When WiLink DT support is ready we can
+have an entry in the am335x-evmsk.dts that shows this case.
 
-> ---
->=20
-> 	Patch history:
->=20
-> 	v2: use IS_ENABLED()
->=20
-> 	v1: http://marc.info/?t=3D136260886600006&r=3D1&w=3D2
->=20
->  arch/arm/mach-omap1/include/mach/usb.h |    2 +-
->  arch/arm/mach-omap1/usb.c              |    6 +++---
->  2 files changed, 4 insertions(+), 4 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap1/include/mach/usb.h b/arch/arm/mach-omap1=
-/include/mach/usb.h
-> index 753cd5c..45e5ac7 100644
-> --- a/arch/arm/mach-omap1/include/mach/usb.h
-> +++ b/arch/arm/mach-omap1/include/mach/usb.h
-> @@ -2,7 +2,7 @@
->   * FIXME correct answer depends on hmc_mode,
->   * as does (on omap1) any nonzero value for config->otg port number
->   */
-> -#ifdef	CONFIG_USB_GADGET_OMAP
-> +#if IS_ENABLED(CONFIG_USB_OMAP)
->  #define	is_usb0_device(config)	1
->  #else
->  #define	is_usb0_device(config)	0
-> diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
-> index 1a1db59..4118db5 100644
-> --- a/arch/arm/mach-omap1/usb.c
-> +++ b/arch/arm/mach-omap1/usb.c
-> @@ -123,7 +123,7 @@ omap_otg_init(struct omap_usb_config *config)
->  	syscon =3D omap_readl(OTG_SYSCON_1);
->  	syscon |=3D HST_IDLE_EN|DEV_IDLE_EN|OTG_IDLE_EN;
-> =20
-> -#ifdef	CONFIG_USB_GADGET_OMAP
-> +#if IS_ENABLED(CONFIG_USB_OMAP)
->  	if (config->otg || config->register_dev) {
->  		struct platform_device *udc_device =3D config->udc_device;
->  		int status;
-> @@ -169,7 +169,7 @@ omap_otg_init(struct omap_usb_config *config)
->  void omap_otg_init(struct omap_usb_config *config) {}
->  #endif
-> =20
-> -#ifdef	CONFIG_USB_GADGET_OMAP
-> +#if IS_ENABLED(CONFIG_USB_OMAP)
-> =20
->  static struct resource udc_resources[] =3D {
->  	/* order is significant! */
-> @@ -600,7 +600,7 @@ static void __init omap_1510_usb_init(struct omap_usb=
-_config *config)
->  	while (!(omap_readw(ULPD_DPLL_CTRL) & DPLL_LOCK))
->  		cpu_relax();
-> =20
-> -#ifdef	CONFIG_USB_GADGET_OMAP
-> +#if IS_ENABLED(CONFIG_USB_OMAP)
->  	if (config->register_dev) {
->  		int status;
-> =20
-> --=20
-> 1.7.10.4
->=20
+> Also, I wonder why "interrupt" property is not coming here, I understand
+> That hwmod is filling the gap here; but I would still recommend you to complete
+> The DT node, as we only support DT boot.
 
---=20
-balbi
+Yeah, I only added needed properties so as to not confuse people as to
+where the interrupt resources are coming from. If you feel strongly
+about this I don't have a problem with adding unused data in the dts.
+I suppose this will help clear things to have a switch away from using
+the hwmod data.
 
---1yeeQ81UyVL57Vl7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> I will test the whole patch series today and update you.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Thanks.
 
-iQIcBAEBAgAGBQJROJj9AAoJEIaOsuA1yqRExQIP/1X9n0XmizNDsCGX8+/OgaX3
-SFsEYzGjFwWGkjKk4gPpvFKOwf8cSItR6pR2dBha0NkatpSmCz0RQDihmJS70d+j
-x9XtAQ2rudDyzIgtkMRufXf0BHe2WwikfDfodXCYFUROUEFT9PZ5iltDw+TFGUQo
-s6DC6DQtT8rJ9mh0W1G4ZbvdmTm66P+DUu+fLk6Hrkom31xR186tLCjrqyLQsM5D
-+u+NA7Fn6d5Yf2kmMW5YYd2eQ3bTZGrR7rs5Qhv7MYjDRqsXIshpPR7U8p+ZcTKf
-TceEJMjs6s8w90JdL5U5Uvrmm9Deq+98cS034qkW+HuG/IM8dF4WFh4GbhtKHpZH
-d12Egj9rDEVMhfUHtnsjWaOYKTVRCrVGJ47yTXT0PSgszwe0rK1l20ATDI1zycw0
-Nmtfb/wBHa8ZqQkYBJnusA00/3W7C2PeRGlKakBsr6jvlkTz8Vg51FCHZhTpfhP1
-3datmDVdXn4vRpmI/+o8Gq/rBqCygTYB5ta77zaORLFJv1CNgaWjM2e12miLiWrM
-nJApC9/9lcEh+NMG1LFQKvTSO8hn/ll0JgOMsW0pK7NJ0rtCv1v3WSDOxufv/Zn2
-8/Qiettk/UqkK5i2Rd+WS2JxUU4DVC/W1PyaD88R8p9fOfgVlBs+VtMagXtqrK+G
-iIzoMdZERIh3KEGmkX+Z
-=9yCO
------END PGP SIGNATURE-----
-
---1yeeQ81UyVL57Vl7--
+-Matt
