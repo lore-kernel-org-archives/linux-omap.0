@@ -1,80 +1,109 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] ARM: OMAP1: fix omap_udc registration
-Date: Thu, 7 Mar 2013 09:34:34 +0200
-Message-ID: <20130307073434.GB9171@arwen.pp.htv.fi>
-References: <1362608605-26611-1-git-send-email-aaro.koskinen@iki.fi>
-Reply-To: <balbi@ti.com>
+Subject: [PATCH 00/10] usb: phy: cleanups to Kconfig and directories
+Date: Thu, 7 Mar 2013 11:35:59 +0200
+Message-ID: <1362648969-13737-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lEGEL1/lMxI0MVQ2"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59082 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751485Ab3CGHes (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Mar 2013 02:34:48 -0500
-Content-Disposition: inline
-In-Reply-To: <1362608605-26611-1-git-send-email-aaro.koskinen@iki.fi>
+Received: from devils.ext.ti.com ([198.47.26.153]:51722 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755771Ab3CGJgZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Mar 2013 04:36:25 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Linux USB Mailing List <linux-usb@vger.kernel.org>
+Cc: Greg KH <gregkh@linuxfoundation.org>, cbou@mail.ru, dwmw2@infradead.org, stern@rowland.harvard.edu, swarren@wwwdotorg.org, arnd@arndb.de, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
---lEGEL1/lMxI0MVQ2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi folks,
 
-On Thu, Mar 07, 2013 at 12:23:25AM +0200, Aaro Koskinen wrote:
-> omap_udc platform device is not registered properly anymore:
-> CONFIG_USB_GADGET_OMAP was deleted by 193ab2a6 (usb: gadget: allow
-> multiple gadgets to be built) already in v3.1.
->=20
-> Fix by using CONFIG_USB_OMAP instead. Tested on Nokia 770 by checking
-> that omap_udc is probed & working properly when built as a module.
->=20
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> ---
->  arch/arm/mach-omap1/include/mach/usb.h |    2 +-
->  arch/arm/mach-omap1/usb.c              |    6 +++---
->  2 files changed, 4 insertions(+), 4 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap1/include/mach/usb.h b/arch/arm/mach-omap1=
-/include/mach/usb.h
-> index 753cd5c..8b2150e 100644
-> --- a/arch/arm/mach-omap1/include/mach/usb.h
-> +++ b/arch/arm/mach-omap1/include/mach/usb.h
-> @@ -2,7 +2,7 @@
->   * FIXME correct answer depends on hmc_mode,
->   * as does (on omap1) any nonzero value for config->otg port number
->   */
-> -#ifdef	CONFIG_USB_GADGET_OMAP
-> +#if defined(CONFIG_USB_OMAP) || defined(CONFIG_USB_OMAP_MODULE)
+inspired by Paul's DWC2 patchset which added usb_otg_state_string()
+(a copy of otg_state_string()) I have now renamed otg_state_string()
+to usb_otg_state_string(), moved it to usb-common, then moved all
+phy drivers to drivers/usb/phy/ and completely deleted the otg directory.
 
-could use IS_ENABLED()
+We're also removing CONFIG_USB_OTG_UTILS since that has lots its
+meaning long ago.
 
---=20
-balbi
+I have compiled all patches with allyes, allno and allmod configs,
+but please make sure to test on your platforms to make sure we're
+not leaking any more problems to mainline.
 
---lEGEL1/lMxI0MVQ2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Felipe Balbi (10):
+  usb: otg: prefix otg_state_string with usb_
+  usb: otg: move usb_otg_state_string to usb-common.c
+  usb: phy: convert EXPORT_SYMBOL to EXPORT_SYMBOL_GPL
+  usb: phy: move all PHY drivers to drivers/usb/phy/
+  usb: phy: make it a menuconfig
+  usb: power: pda_power: check against CONFIG_USB_PHY
+  usb: gadget: mv_udc_core: check against CONFIG_USB_PHY
+  usb: ehci: marvel: check against CONFIG_USB_PHY
+  usb: ehci: tegra: check against CONFIG_USB_PHY
+  usb: phy: remove CONFIG_USB_OTG_UTILS
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+ drivers/Makefile                         |   2 +-
+ drivers/power/pda_power.c                |  14 +--
+ drivers/usb/Kconfig                      |   2 -
+ drivers/usb/Makefile                     |   2 -
+ drivers/usb/gadget/mv_udc_core.c         |   2 +-
+ drivers/usb/host/ehci-mv.c               |   4 +-
+ drivers/usb/host/ehci-tegra.c            |   6 +-
+ drivers/usb/musb/am35x.c                 |   8 +-
+ drivers/usb/musb/blackfin.c              |   6 +-
+ drivers/usb/musb/da8xx.c                 |   8 +-
+ drivers/usb/musb/davinci.c               |   4 +-
+ drivers/usb/musb/musb_core.c             |  39 ++++----
+ drivers/usb/musb/musb_dsps.c             |   8 +-
+ drivers/usb/musb/musb_gadget.c           |   8 +-
+ drivers/usb/musb/musb_host.c             |   2 +-
+ drivers/usb/musb/musb_virthub.c          |   4 +-
+ drivers/usb/musb/omap2430.c              |   6 +-
+ drivers/usb/musb/tusb6010.c              |  14 +--
+ drivers/usb/otg/Kconfig                  | 141 --------------------------
+ drivers/usb/otg/Makefile                 |  24 -----
+ drivers/usb/otg/otg.c                    |  47 ---------
+ drivers/usb/phy/Kconfig                  | 166 ++++++++++++++++++++++++++-----
+ drivers/usb/phy/Makefile                 |  26 ++++-
+ drivers/usb/{otg => phy}/ab8500-usb.c    |   0
+ drivers/usb/{otg => phy}/fsl_otg.c       |   2 +-
+ drivers/usb/{otg => phy}/fsl_otg.h       |   0
+ drivers/usb/{otg => phy}/gpio_vbus.c     |   0
+ drivers/usb/{otg => phy}/isp1301_omap.c  |   6 +-
+ drivers/usb/{otg => phy}/msm_otg.c       |   0
+ drivers/usb/{otg => phy}/mv_otg.c        |   0
+ drivers/usb/{otg => phy}/mv_otg.h        |   0
+ drivers/usb/{otg => phy}/mxs-phy.c       |   0
+ drivers/usb/{otg => phy}/nop-usb-xceiv.c |   0
+ drivers/usb/{otg => phy}/otg_fsm.c       |   2 +-
+ drivers/usb/{otg => phy}/otg_fsm.h       |   0
+ drivers/usb/phy/phy.c                    |  20 ++--
+ drivers/usb/{otg => phy}/twl4030-usb.c   |   0
+ drivers/usb/{otg => phy}/twl6030-usb.c   |   0
+ drivers/usb/{otg => phy}/ulpi.c          |   0
+ drivers/usb/{otg => phy}/ulpi_viewport.c |   0
+ drivers/usb/usb-common.c                 |  26 +++++
+ include/linux/usb/otg.h                  |   9 +-
+ include/linux/usb/phy.h                  |   2 +-
+ 43 files changed, 274 insertions(+), 336 deletions(-)
+ delete mode 100644 drivers/usb/otg/Kconfig
+ delete mode 100644 drivers/usb/otg/Makefile
+ delete mode 100644 drivers/usb/otg/otg.c
+ rename drivers/usb/{otg => phy}/ab8500-usb.c (100%)
+ rename drivers/usb/{otg => phy}/fsl_otg.c (99%)
+ rename drivers/usb/{otg => phy}/fsl_otg.h (100%)
+ rename drivers/usb/{otg => phy}/gpio_vbus.c (100%)
+ rename drivers/usb/{otg => phy}/isp1301_omap.c (99%)
+ rename drivers/usb/{otg => phy}/msm_otg.c (100%)
+ rename drivers/usb/{otg => phy}/mv_otg.c (100%)
+ rename drivers/usb/{otg => phy}/mv_otg.h (100%)
+ rename drivers/usb/{otg => phy}/mxs-phy.c (100%)
+ rename drivers/usb/{otg => phy}/nop-usb-xceiv.c (100%)
+ rename drivers/usb/{otg => phy}/otg_fsm.c (99%)
+ rename drivers/usb/{otg => phy}/otg_fsm.h (100%)
+ rename drivers/usb/{otg => phy}/twl4030-usb.c (100%)
+ rename drivers/usb/{otg => phy}/twl6030-usb.c (100%)
+ rename drivers/usb/{otg => phy}/ulpi.c (100%)
+ rename drivers/usb/{otg => phy}/ulpi_viewport.c (100%)
 
-iQIcBAEBAgAGBQJROEMKAAoJEIaOsuA1yqREvDIP/ju4hk5Wuh9BqeL4sf1axtL4
-WKAGrnTTzmzvD4/H0L+bY7o7+G1Ghal8hMFCHtWKj9CfsZ+zdx0fEWx0U1sJfpZi
-RXi5eUmuB7sI9evNdNQxJC4ZM2egek8QkmTwRhjISbn3uaHfONL0TcxJuRGF3qrX
-3Ft0ypSGXy6/Hch0VQdssTlmwjkVlZyH9VAlbhZa4DONzRUS/YO55wbH4bU2bWQq
-9FxwTJWvbf1RtI3l0Rah7OEQ2CK2wKdzV2ZqN3vIW/KimAYIUPwsCRmANRop5E6l
-YXAKA8n/7+RdFrh41bOwaBuNnsUO0P2/9Pd7dwCUMoVvQ+ciApPou2VgPXMfDiQ3
-VKO8X/Vg8c5J4654oON3A3vzWfNQKcHq9YFXOr1dNIRsZ59i3/7dUBF/BmY2pJ4u
-k/n6SKP9V8d31SY8MGLJuyFNZ5dXy2WiQttCFmCjAQyKRFMv/Meq/qNtQRxbw8dv
-JHHEAMFgtb5Sn21zmhRKrA4/hn2xdvnla0Jk8vOGxg5G4Lyputt0GxyakSzOMyZQ
-ptgs0Mm/ZGqXk1v2ALFD9E7K3VmqcSTvLixM3v13zIzGClaBX7IkIik/fGrTqVYN
-tTJXIvVUoHTRBzpC6h3W27+qUKjTKSkm7skj711yiTjyMmHt15SV4qn5F7CWb7yP
-r8cpgeP11WBfh19KPj7N
-=ZJD1
------END PGP SIGNATURE-----
+-- 
+1.8.1.rc1.5.g7e0651a
 
---lEGEL1/lMxI0MVQ2--
