@@ -1,84 +1,113 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 06/14] OMAPDSS: DSI remove unneeded clk source setup code
-Date: Fri, 8 Mar 2013 13:52:41 +0200
-Message-ID: <1362743569-10289-7-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 10/14] OMAPDSS: SDI: use new clock calculation code
+Date: Fri, 8 Mar 2013 13:52:45 +0200
+Message-ID: <1362743569-10289-11-git-send-email-tomi.valkeinen@ti.com>
 References: <1362743569-10289-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44142 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933870Ab3CHLxV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Mar 2013 06:53:21 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57921 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933870Ab3CHLx0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Mar 2013 06:53:26 -0500
 In-Reply-To: <1362743569-10289-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-We always use the same clock sources for DSI, so let's remove the
-unnecessary clock source fields from dsi_data.
+Use the new clock calculation code in the SDI driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dsi.c |   24 ++++++------------------
- 1 file changed, 6 insertions(+), 18 deletions(-)
+ drivers/video/omap2/dss/sdi.c |   68 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 67 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 7faad58..aabe472 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -269,10 +269,6 @@ struct dsi_data {
- 	struct dispc_clock_info user_dispc_cinfo;
- 	struct dsi_clock_info user_dsi_cinfo;
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index eb4ee17..5754245 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -41,6 +41,72 @@ static struct {
+ 	struct omap_dss_output output;
+ } sdi;
  
--	enum omap_dss_clk_source user_dispc_fclk_src;
--	enum omap_dss_clk_source user_lcd_clk_src;
--	enum omap_dss_clk_source user_dsi_fclk_src;
--
- 	struct dsi_clock_info current_cinfo;
++struct sdi_clk_calc_ctx {
++	unsigned long pck_min, pck_max;
++
++	struct dss_clock_info dss_cinfo;
++	struct dispc_clock_info dispc_cinfo;
++};
++
++static bool dpi_calc_dispc_cb(int lckd, int pckd, unsigned long lck,
++		unsigned long pck, void *data)
++{
++	struct sdi_clk_calc_ctx *ctx = data;
++
++	ctx->dispc_cinfo.lck_div = lckd;
++	ctx->dispc_cinfo.pck_div = pckd;
++	ctx->dispc_cinfo.lck = lck;
++	ctx->dispc_cinfo.pck = pck;
++
++	return true;
++}
++
++static bool dpi_calc_dss_cb(int fckd, unsigned long fck, void *data)
++{
++	struct sdi_clk_calc_ctx *ctx = data;
++
++	ctx->dss_cinfo.fck = fck;
++	ctx->dss_cinfo.fck_div = fckd;
++
++	return dispc_div_calc(fck, ctx->pck_min, ctx->pck_max,
++			dpi_calc_dispc_cb, ctx);
++}
++
++static int sdi_calc_clock_div(unsigned long pclk,
++		struct dss_clock_info *dss_cinfo,
++		struct dispc_clock_info *dispc_cinfo)
++{
++	int i;
++	struct sdi_clk_calc_ctx ctx;
++
++	/*
++	 * DSS fclk gives us very few possibilities, so finding a good pixel
++	 * clock may not be possible. We try multiple times to find the clock,
++	 * each time widening the pixel clock range we look for, up to
++	 * +/- 1MHz.
++	 */
++
++	for (i = 0; i < 10; ++i) {
++		bool ok;
++
++		memset(&ctx, 0, sizeof(ctx));
++		if (pclk > 1000 * i * i * i)
++			ctx.pck_min = max(pclk - 1000 * i * i * i, 0lu);
++		else
++			ctx.pck_min = 0;
++		ctx.pck_max = pclk + 1000 * i * i * i;
++
++		ok = dss_div_calc(ctx.pck_min, dpi_calc_dss_cb, &ctx);
++		if (ok) {
++			*dss_cinfo = ctx.dss_cinfo;
++			*dispc_cinfo = ctx.dispc_cinfo;
++			return 0;
++		}
++	}
++
++	return -EINVAL;
++}
++
+ static void sdi_config_lcd_manager(struct omap_dss_device *dssdev)
+ {
+ 	struct omap_overlay_manager *mgr = dssdev->output->manager;
+@@ -88,7 +154,7 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ 	t->data_pclk_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE;
+ 	t->sync_pclk_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE;
  
- 	bool vdds_dsi_enabled;
-@@ -4327,18 +4323,6 @@ static int dsi_set_clocks(struct omap_dss_device *dssdev,
- 	dsi->user_dispc_cinfo.lck_div = dispc_cinfo.lck_div;
- 	dsi->user_dispc_cinfo.pck_div = dispc_cinfo.pck_div;
- 
--	dsi->user_dispc_fclk_src = OMAP_DSS_CLK_SRC_FCK;
--
--	dsi->user_lcd_clk_src =
--		dsi->module_id == 0 ?
--		OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC :
--		OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DISPC;
--
--	dsi->user_dsi_fclk_src =
--		dsi->module_id == 0 ?
--		OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DSI :
--		OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DSI;
--
- 	return 0;
- err:
- 	return r;
-@@ -4635,7 +4619,9 @@ static int dsi_display_init_dispc(struct platform_device *dsidev,
- 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
- 	int r;
- 
--	dss_select_lcd_clk_source(mgr->id, dsi->user_lcd_clk_src);
-+	dss_select_lcd_clk_source(mgr->id, dsi->module_id == 0 ?
-+			OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC :
-+			OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DISPC);
- 
- 	if (dsi->mode == OMAP_DSS_DSI_CMD_MODE) {
- 		dsi->timings.hsw = 1;
-@@ -4741,7 +4727,9 @@ static int dsi_display_init_dsi(struct platform_device *dsidev)
+-	r = dss_calc_clock_div(t->pixel_clock * 1000, &dss_cinfo, &dispc_cinfo);
++	r = sdi_calc_clock_div(t->pixel_clock * 1000, &dss_cinfo, &dispc_cinfo);
  	if (r)
- 		goto err1;
- 
--	dss_select_dsi_clk_source(dsi->module_id, dsi->user_dsi_fclk_src);
-+	dss_select_dsi_clk_source(dsi->module_id, dsi->module_id == 0 ?
-+			OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DSI :
-+			OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DSI);
- 
- 	DSSDBG("PLL OK\n");
+ 		goto err_calc_clock_div;
  
 -- 
 1.7.10.4
