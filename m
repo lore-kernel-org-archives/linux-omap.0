@@ -1,199 +1,67 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 2/2] ARM: dts: add AM33XX MMC support
-Date: Fri, 8 Mar 2013 12:29:02 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC213C8@DBDE01.ent.ti.com>
-References: <1362629799-22485-1-git-send-email-mporter@ti.com>
- <1362629799-22485-3-git-send-email-mporter@ti.com>
- <41fde401c8e646689123d7c6d3a2dffc@DLEE71.ent.ti.com>
- <20130307141235.GQ6209@beef>
- <79CD15C6BA57404B839C016229A409A83EC20C57@DBDE01.ent.ti.com>
- <20130307144656.GR6209@beef>
- <79CD15C6BA57404B839C016229A409A83EC20CCA@DBDE01.ent.ti.com>
- <20130307150408.GU6209@beef>
- <79CD15C6BA57404B839C016229A409A83EC20D27@DBDE01.ent.ti.com>
- <20130307160236.GV6209@beef>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: Re: [PATCH 1/3] driver: net: ethernet: cpsw: implement ethtool
+ get/set phy setting
+Date: Fri, 8 Mar 2013 14:53:21 +0000
+Message-ID: <1362754401.3248.8.camel@bwh-desktop.uk.solarflarecom.com>
+References: <1362659421-11884-1-git-send-email-mugunthanvnm@ti.com>
+	  <1362659421-11884-2-git-send-email-mugunthanvnm@ti.com>
+	  <8762135on4.fsf@dell.be.48ers.dk>
+	 <1362686350.2936.43.camel@bwh-desktop.uk.solarflarecom.com>
+	 <513991E6.5080400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20130307160236.GV6209@beef>
-Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Porter, Matt" <mporter@ti.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <513991E6.5080400@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Peter Korsgaard <jacmet@sunsite.dk>, netdev@vger.kernel.org, davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Matt Porter [mailto:ohiomdp@gmail.com] On Behalf Of Porter, Matt
-> Sent: Thursday, March 07, 2013 9:33 PM
-> To: Hiremath, Vaibhav
-> Cc: Linux OMAP List; Russell King; Krishnamoorthy, Balaji T; Devicetree
-> Discuss; Linux MMC List; Linux Kernel Mailing List; Chris Ball; Linux
-> ARM Kernel List
-> Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
-> 
-> On Thu, Mar 07, 2013 at 03:50:01PM +0000, Vaibhav Hiremath wrote:
+On Fri, 2013-03-08 at 12:53 +0530, Mugunthan V N wrote:
+> On 3/8/2013 1:29 AM, Ben Hutchings wrote:
+> > On Thu, 2013-03-07 at 14:24 +0100, Peter Korsgaard wrote:
+> >>>>>>> "M" == Mugunthan V N <mugunthanvnm@ti.com> writes:
+> >>   M> This patch implements get/set of the phy settings via ethtool apis
+> >>   M> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> >>   M> ---
+> >>   M>  Documentation/devicetree/bindings/net/cpsw.txt |    3 +++
+> >>   M>  drivers/net/ethernet/ti/cpsw.c                 |   32 ++++++++++++++++++++++++
+> >>   M>  include/linux/platform_data/cpsw.h             |    1 +
+> >>   M>  3 files changed, 36 insertions(+)
+> >>
+> >>   M> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+> >>   M> index ecfdf75..8d61300 100644
+> >>   M> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+> >>   M> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+> >>   M> @@ -20,6 +20,7 @@ Required properties:
+> >>   M>  - cpts_clock_shift	: Denominator to convert input clock ticks into nanoseconds
+> >>   M>  - phy_id		: Specifies slave phy id
+> >>   M>  - mac-address		: Specifies slave MAC address
+> >>   M> +- ethtool-active-slave	: Specifies the slave to use for ethtool command
+> >>
+> >> That again sounds like something Linux specific rather than a hardware
+> >> property.
+> > Yes, indeed.  Isn't it redundant with the phy_id?
 > >
-> > > -----Original Message-----
-> > > From: Matt Porter [mailto:ohiomdp@gmail.com] On Behalf Of Porter,
-> Matt
-> > > Sent: Thursday, March 07, 2013 8:34 PM
-> > > To: Hiremath, Vaibhav
-> > > Cc: Chris Ball; Russell King; Krishnamoorthy, Balaji T; Devicetree
-> > > Discuss; Linux MMC List; Linux Kernel Mailing List; Linux OMAP
-> List;
-> > > Linux ARM Kernel List
-> > > Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
-> > >
-> > > On Thu, Mar 07, 2013 at 02:59:42PM +0000, Vaibhav Hiremath wrote:
-> > > >
-> > > > > -----Original Message-----
-> > > > > From: Hiremath, Vaibhav
-> > > > > Sent: Thursday, March 07, 2013 8:24 PM
-> > > > > To: Porter, Matt
-> > > > > Cc: Linux OMAP List; Russell King; Krishnamoorthy, Balaji T;
-> > > Devicetree
-> > > > > Discuss; Linux MMC List; Linux Kernel Mailing List; Chris Ball;
-> > > Linux
-> > > > > ARM Kernel List
-> > > > > Subject: RE: [PATCH 2/2] ARM: dts: add AM33XX MMC support
-> > > > >
-> > > > > > -----Original Message-----
-> > > > > > From: Matt Porter [mailto:ohiomdp@gmail.com] On Behalf Of
-> Porter,
-> > > > > Matt
-> > > > > > Sent: Thursday, March 07, 2013 8:17 PM
-> > > > > > To: Hiremath, Vaibhav
-> > > > > > Cc: Linux OMAP List; Russell King; Krishnamoorthy, Balaji T;
-> > > > > Devicetree
-> > > > > > Discuss; Linux MMC List; Linux Kernel Mailing List; Chris
-> Ball;
-> > > Linux
-> > > > > > ARM Kernel List
-> > > > > > Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
-> > > > > >
-> > > > > > On Thu, Mar 07, 2013 at 02:39:55PM +0000, Vaibhav Hiremath
-> wrote:
-> > > > > > >
-> > > > > > > > -----Original Message-----
-> > > > > > > > From: Matt Porter [mailto:ohiomdp@gmail.com] On Behalf Of
-> > > Porter,
-> > > > > > Matt
-> > > > > > > > Sent: Thursday, March 07, 2013 7:43 PM
-> > > > > > > > To: Hiremath, Vaibhav
-> > > > > > > > Cc: Krishnamoorthy, Balaji T; Chris Ball; Cousson,
-> Benoit;
-> > > Tony
-> > > > > > > > Lindgren; Russell King; Devicetree Discuss; Linux ARM
-> Kernel
-> > > > > List;
-> > > > > > > > Linux OMAP List; Linux Kernel Mailing List; Linux MMC
-> List
-> > > > > > > > Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
-> > > > > > > >
-> > > > > > > > On Thu, Mar 07, 2013 at 05:29:24AM +0000, Vaibhav
-> Hiremath
-> > > wrote:
-> > > > > > > > > > -----Original Message-----
-> > > > > > > > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-
-> > > omap-
-> > > > > > > > > > owner@vger.kernel.org] On Behalf Of Porter, Matt
-> > > > > > > > > > Sent: Thursday, March 07, 2013 9:47 AM
-> > > > > > > > > > To: Krishnamoorthy, Balaji T; Chris Ball; Cousson,
-> > > Benoit;
-> > > > > Tony
-> > > > > > > > > > Lindgren; Russell King
-> > > > > > > > > > Cc: Devicetree Discuss; Linux ARM Kernel List; Linux
-> OMAP
-> > > > > List;
-> > > > > > > > Linux
-> > > > > > > > > > Kernel Mailing List; Linux MMC List
-> > > > > > > > > > Subject: [PATCH 2/2] ARM: dts: add AM33XX MMC support
-> > > > > > > > > >
-> > > > <snip>
-> > > > >
-> > > > > I believe you meant "CONFIG_TI_EDMA" right?
-> > > > >
-> > > > > Yes, I just enabled it and the result is still same.
-> > > > >
-> > > > >
-> > > > >
-> > > > > [root@arago /]# dmesg | grep -ir mmc
-> > > > > [    0.506844] vmmc: 1800 <--> 3300 mV at 3300 mV
-> > > > > [    0.506970] vmmc: supplied by vbat
-> > > > > [root@arago /]#
-> > > > > [root@arago /]#
-> > > > > [root@arago /]# dmesg | grep -ir dma
-> > > > > [    0.217063] DMA: preallocated 256 KiB pool for atomic
-> coherent
-> > > > > allocations
-> > > > > [    0.236321] platform 49000000.edma: alias fck already exists
-> > > > > [    0.236360] platform 49000000.edma: alias fck already exists
-> > > > > [    0.236381] platform 49000000.edma: alias fck already exists
-> > > > > [    0.370705] edma-dma-engine edma-dma-engine.0: TI EDMA DMA
-> > > engine
-> > > > > driver
-> > > > > [    0.445156] omap-dma-engine omap-dma-engine: OMAP DMA engine
-> > > driver
-> > > > > [root@arago /]#
-> > > > > [root@arago /]#
-> > > > >
-> > > > >
-> > > > I have applied below patches from your recent post
-> > > >
-> > > >
-> > > > [2/2] ARM: dts: add AM33XX MMC support
-> > > > [1/2] mmc: omap_hsmmc: set max_segs based on dma engine limits
-> > > > [v4,3/3] mmc: davinci: get SG segment limits with
-> > > dma_get_slave_sg_limits()
-> > > > [v4,2/3] dma: edma: add device_slave_sg_limits() support
-> > > > [v4,1/3] dmaengine: add dma_get_slave_sg_limits()
-> > > > [v9,9/9] ARM: dts: add AM33XX SPI DMA support
-> > > > [v9,8/9] spi: omap2-mcspi: add generic DMA request support to the
-> DT
-> > > binding
-> > > > [v9,7/9] spi: omap2-mcspi: convert to
-> > > dma_request_slave_channel_compat()
-> > > > [v9,6/9] ARM: dts: add AM33XX EDMA support
-> > > > [v9,5/9] dmaengine: edma: Add TI EDMA device tree binding
-> > > > [v9,4/9] dmaengine: edma: enable build for AM33XX
-> > > > [v9,3/9] ARM: edma: add AM33XX support to the private EDMA API
-> > > > [v9,2/9] ARM: edma: remove unused transfer controller handlers
-> > > > [v9,1/9] ARM: davinci: move private EDMA API to arm/common
-> > > > [v3,2/2] mmc: omap_hsmmc: add generic DMA request support to the
-> DT
-> > > binding
-> > > > [v3,1/2] mmc: omap_hsmmc: convert to
-> > > dma_request_slave_channel_compat()
-> > > >
-> > > >
-> > > >
-> > > > Am I missing anything here?
-> > >
-> > > Yes, you missed the
-> > > http://www.spinics.net/lists/arm-kernel/msg227886.html dependency
-> > > mentioned first in the cover letter.
-> > >
-> >
-> > Matt, I manually edited the file with above patch and result is still
-> the same.
-> > Can you point me to branch where you have tested MMC code?
-> 
-> git://github.com/ohporter/linux.git edma-dmaengine-am33xx-mmc-v1
-> 
-> omap2plus_defconfig + CONFIG_TI_EDMA
-> 
-> I just doublechecked MMC rootfs on bone and evmsk as it's the standard
-> smoke test. My EVM is intermittent now so trying to coax it to power up
-> to reverify.
-> 
+> > Ben.
+> phy_id is part of slave data and will be present for both the slaves.
+> so phy_id cannot be used for get/set phy setting until phy framework
+> allows to change settings without going through eth interface.
 
-Matt,
+Now I've looked at the examples in this file, I think I see what you're
+getting at.  What confused me is that you're adding to a single list of
+properties without a proper distinction of which devices they are
+applied to.  It really ought to be properly divided between switch and
+'slave' properties.
 
-Your branch is working for me, I tested it on EVM. Not sure what is wrong with manual rebasing
-I did yesterday. I will try to nail-down root-cause here.
+The 'active slave' property would also be needed for the SIOCGMIIPHY
+ioctl and not just ethtool.  But it's really quite arbitrary.  Perhaps
+each of them should have their own net device (as with DSA).
 
-And you can submit the next version fixing the comments I have given.
+Ben.
 
-Thanks,
-Vaibhav
+-- 
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
