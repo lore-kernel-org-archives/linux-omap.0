@@ -1,119 +1,230 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 5/9] ARM: dts: Add GPMC node for OMAP2, OMAP4 and OMAP5
-Date: Fri, 8 Mar 2013 11:27:29 -0600
-Message-ID: <1362763654-9660-6-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 8/9] ARM: dts: OMAP3+: Correct gpio #interrupts-cells property
+Date: Fri, 8 Mar 2013 11:27:32 -0600
+Message-ID: <1362763654-9660-9-git-send-email-jon-hunter@ti.com>
 References: <1362763654-9660-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44913 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44920 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933093Ab3CHR2A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Mar 2013 12:28:00 -0500
+	id S933093Ab3CHR2G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Mar 2013 12:28:06 -0500
 In-Reply-To: <1362763654-9660-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Add the device-tree node for GPMC on OMAP2, OMAP4 and OMAP5 devices.
+The OMAP gpio binding documention [1] states that the #interrupts-cells
+property for gpio controllers should be 2. Currently, for OMAP3+ devices
+the #interrupt-cells is set to 1. By setting this property to 2, it
+allows clients to pass a 2nd parameter indicating the sensitivity (level
+or edge) and polarity (high or low) of the interrupt. The OMAP gpio
+controllers support these options and so update the #interrupt-cells
+property for OMAP3+ devices to 2.
+
+[1] Documentation/devicetree/bindings/gpio/gpio-omap.txt
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/boot/dts/omap2420.dtsi |   11 +++++++++++
- arch/arm/boot/dts/omap2430.dtsi |   11 +++++++++++
- arch/arm/boot/dts/omap4.dtsi    |   11 +++++++++++
- arch/arm/boot/dts/omap5.dtsi    |   11 +++++++++++
- 4 files changed, 44 insertions(+)
+ arch/arm/boot/dts/omap3.dtsi |   12 ++++++------
+ arch/arm/boot/dts/omap4.dtsi |   12 ++++++------
+ arch/arm/boot/dts/omap5.dtsi |   16 ++++++++--------
+ 3 files changed, 20 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
-index af65609..d4ce6c2 100644
---- a/arch/arm/boot/dts/omap2420.dtsi
-+++ b/arch/arm/boot/dts/omap2420.dtsi
-@@ -29,6 +29,17 @@
- 			pinctrl-single,function-mask = <0x3f>;
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 5b36de5..c9bedf7 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -117,7 +117,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
  		};
  
-+		gpmc: gpmc@6800a000 {
-+			compatible = "ti,omap2420-gpmc";
-+			reg = <0x6800a000 0x1000>;
-+			#address-cells = <2>;
-+			#size-cells = <1>;
-+			interrupts = <20>;
-+			gpmc,num-cs = <8>;
-+			gpmc,num-waitpins = <4>;
-+			ti,hwmods = "gpmc";
-+		};
-+
- 		mcbsp1: mcbsp@48074000 {
- 			compatible = "ti,omap2420-mcbsp";
- 			reg = <0x48074000 0xff>;
-diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
-index c392445..832f184 100644
---- a/arch/arm/boot/dts/omap2430.dtsi
-+++ b/arch/arm/boot/dts/omap2430.dtsi
-@@ -29,6 +29,17 @@
- 			pinctrl-single,function-mask = <0x3f>;
+ 		gpio2: gpio@49050000 {
+@@ -126,7 +126,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
  		};
  
-+		gpmc: gpmc@6e000000 {
-+			compatible = "ti,omap2430-gpmc";
-+			reg = <0x6e000000 0x1000>;
-+			#address-cells = <2>;
-+			#size-cells = <1>;
-+			interrupts = <20>;
-+			gpmc,num-cs = <8>;
-+			gpmc,num-waitpins = <4>;
-+			ti,hwmods = "gpmc";
-+		};
-+
- 		mcbsp1: mcbsp@48074000 {
- 			compatible = "ti,omap2430-mcbsp";
- 			reg = <0x48074000 0xff>;
+ 		gpio3: gpio@49052000 {
+@@ -135,7 +135,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio4: gpio@49054000 {
+@@ -144,7 +144,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio5: gpio@49056000 {
+@@ -153,7 +153,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio6: gpio@49058000 {
+@@ -162,7 +162,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		uart1: serial@4806a000 {
 diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 827f6f3..726ef11 100644
+index 726ef11..544be06 100644
 --- a/arch/arm/boot/dts/omap4.dtsi
 +++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -196,6 +196,17 @@
- 			#interrupt-cells = <1>;
+@@ -138,7 +138,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
  		};
  
-+		gpmc: gpmc@50000000 {
-+			compatible = "ti,omap4430-gpmc";
-+			reg = <0x50000000 0x1000>;
-+			#address-cells = <2>;
-+			#size-cells = <1>;
-+			interrupts = <0 20 0x4>;
-+			gpmc,num-cs = <8>;
-+			gpmc,num-waitpins = <4>;
-+			ti,hwmods = "gpmc";
-+		};
-+
- 		uart1: serial@4806a000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x4806a000 0x100>;
+ 		gpio2: gpio@48055000 {
+@@ -149,7 +149,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio3: gpio@48057000 {
+@@ -160,7 +160,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio4: gpio@48059000 {
+@@ -171,7 +171,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio5: gpio@4805b000 {
+@@ -182,7 +182,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio6: gpio@4805d000 {
+@@ -193,7 +193,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpmc: gpmc@50000000 {
 diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 06d21d6..34f41ad 100644
+index 34f41ad..93feb50 100644
 --- a/arch/arm/boot/dts/omap5.dtsi
 +++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -208,6 +208,17 @@
- 			#interrupt-cells = <1>;
+@@ -128,7 +128,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
  		};
  
-+		gpmc: gpmc@50000000 {
-+			compatible = "ti,omap4430-gpmc";
-+			reg = <0x50000000 0x1000>;
-+			#address-cells = <2>;
-+			#size-cells = <1>;
-+			interrupts = <0 20 0x4>;
-+			gpmc,num-cs = <8>;
-+			gpmc,num-waitpins = <4>;
-+			ti,hwmods = "gpmc";
-+		};
-+
- 		i2c1: i2c@48070000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48070000 0x100>;
+ 		gpio2: gpio@48055000 {
+@@ -139,7 +139,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio3: gpio@48057000 {
+@@ -150,7 +150,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio4: gpio@48059000 {
+@@ -161,7 +161,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio5: gpio@4805b000 {
+@@ -172,7 +172,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio6: gpio@4805d000 {
+@@ -183,7 +183,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio7: gpio@48051000 {
+@@ -194,7 +194,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpio8: gpio@48053000 {
+@@ -205,7 +205,7 @@
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+-			#interrupt-cells = <1>;
++			#interrupt-cells = <2>;
+ 		};
+ 
+ 		gpmc: gpmc@50000000 {
 -- 
 1.7.10.4
 
