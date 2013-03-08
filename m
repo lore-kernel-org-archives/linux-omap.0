@@ -1,150 +1,109 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 7/9] ARM: dts: Add OMAP2 gpio bindings
-Date: Fri, 8 Mar 2013 11:27:31 -0600
-Message-ID: <1362763654-9660-8-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 2/9] ARM: dts: OMAP2+: Add PMU nodes
+Date: Fri, 8 Mar 2013 11:27:26 -0600
+Message-ID: <1362763654-9660-3-git-send-email-jon-hunter@ti.com>
 References: <1362763654-9660-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44480 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933767Ab3CHR2D (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Mar 2013 12:28:03 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:33676 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933093Ab3CHR17 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Mar 2013 12:27:59 -0500
 In-Reply-To: <1362763654-9660-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Add gpios bindings for OMAP2420 and OMAP2430 devices.
+Add PMU nodes for OMAP2, OMAP3 and OMAP4460 devices.
+
+Please note that the node for OMAP4460 has been placed in a separate
+header file for OMAP4460, because the node is not compatible with
+OMAP4430. The node for OMAP4430 is not included because PMU is not
+currently supported on OMAP4430 due to the absence of a cross-trigger
+interface driver.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/boot/dts/omap2420.dtsi |   44 +++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap2430.dtsi |   55 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 99 insertions(+)
+ arch/arm/boot/dts/omap2.dtsi         |    5 +++++
+ arch/arm/boot/dts/omap3.dtsi         |    6 ++++++
+ arch/arm/boot/dts/omap4-panda-es.dts |    2 ++
+ arch/arm/boot/dts/omap4460.dtsi      |   18 ++++++++++++++++++
+ 4 files changed, 31 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap4460.dtsi
 
-diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
-index d4ce6c2..eee902f 100644
---- a/arch/arm/boot/dts/omap2420.dtsi
-+++ b/arch/arm/boot/dts/omap2420.dtsi
-@@ -29,6 +29,50 @@
- 			pinctrl-single,function-mask = <0x3f>;
+diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+index 761c4b6..27f5ea1 100644
+--- a/arch/arm/boot/dts/omap2.dtsi
++++ b/arch/arm/boot/dts/omap2.dtsi
+@@ -26,6 +26,11 @@
  		};
+ 	};
  
-+		gpio1: gpio@48018000 {
-+			compatible = "ti,omap2-gpio";
-+			reg = <0x48018000 0x200>;
-+			interrupts = <29>;
-+			ti,hwmods = "gpio1";
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+			#interrupt-cells = <2>;
-+			interrupt-controller;
-+		};
++	pmu {
++		compatible = "arm,arm1136-pmu";
++		interrupts = <3>;
++	};
 +
-+		gpio2: gpio@4801a000 {
-+			compatible = "ti,omap2-gpio";
-+			reg = <0x4801a000 0x200>;
-+			interrupts = <30>;
-+			ti,hwmods = "gpio2";
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+			#interrupt-cells = <2>;
-+			interrupt-controller;
-+		};
-+
-+		gpio3: gpio@4801c000 {
-+			compatible = "ti,omap2-gpio";
-+			reg = <0x4801c000 0x200>;
-+			interrupts = <31>;
-+			ti,hwmods = "gpio3";
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+			#interrupt-cells = <2>;
-+			interrupt-controller;
-+		};
-+
-+		gpio4: gpio@4801e000 {
-+			compatible = "ti,omap2-gpio";
-+			reg = <0x4801e000 0x200>;
-+			interrupts = <32>;
-+			ti,hwmods = "gpio4";
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+			#interrupt-cells = <2>;
-+			interrupt-controller;
-+		};
-+
- 		gpmc: gpmc@6800a000 {
- 			compatible = "ti,omap2420-gpmc";
- 			reg = <0x6800a000 0x1000>;
-diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
-index 832f184..fb74382 100644
---- a/arch/arm/boot/dts/omap2430.dtsi
-+++ b/arch/arm/boot/dts/omap2430.dtsi
-@@ -29,6 +29,61 @@
- 			pinctrl-single,function-mask = <0x3f>;
+ 	soc {
+ 		compatible = "ti,omap-infra";
+ 		mpu {
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 9f36531..2ddae38 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -26,6 +26,12 @@
  		};
+ 	};
  
-+		gpio1: gpio@4900c000 {
-+			compatible = "ti,omap2-gpio";
-+			reg = <0x4900c000 0x200>;
-+			interrupts = <29>;
-+			ti,hwmods = "gpio1";
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+			#interrupt-cells = <2>;
-+			interrupt-controller;
-+		};
++	pmu {
++		compatible = "arm,cortex-a8-pmu";
++		interrupts = <3>;
++		ti,hwmods = "debugss";
++	};
 +
-+		gpio2: gpio@4900e000 {
-+			compatible = "ti,omap2-gpio";
-+			reg = <0x4900e000 0x200>;
-+			interrupts = <30>;
-+			ti,hwmods = "gpio2";
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+			#interrupt-cells = <2>;
-+			interrupt-controller;
-+		};
+ 	/*
+ 	 * The soc node represents the soc top level view. It is uses for IPs
+ 	 * that are not memory mapped in the MPU view or for the MPU itself.
+diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+index 73bc1a6..2a6e344 100644
+--- a/arch/arm/boot/dts/omap4-panda-es.dts
++++ b/arch/arm/boot/dts/omap4-panda-es.dts
+@@ -5,7 +5,9 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
 +
-+		gpio3: gpio@49010000 {
-+			compatible = "ti,omap2-gpio";
-+			reg = <0x49010000 0x200>;
-+			interrupts = <31>;
-+			ti,hwmods = "gpio3";
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+			#interrupt-cells = <2>;
-+			interrupt-controller;
-+		};
+ /include/ "omap4-panda.dts"
++/include/ "omap4460.dtsi"
+ 
+ /* Audio routing is differnet between PandaBoard4430 and PandaBoardES */
+ &sound {
+diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
+new file mode 100644
+index 0000000..0a1d38b
+--- /dev/null
++++ b/arch/arm/boot/dts/omap4460.dtsi
+@@ -0,0 +1,18 @@
++/*
++ * Device Tree Source for OMAP4460 SoC
++ *
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
 +
-+		gpio4: gpio@49012000 {
-+			compatible = "ti,omap2-gpio";
-+			reg = <0x49012000 0x200>;
-+			interrupts = <32>;
-+			ti,hwmods = "gpio4";
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+			#interrupt-cells = <2>;
-+			interrupt-controller;
-+		};
-+
-+		gpio5: gpio@480b6000 {
-+			compatible = "ti,omap2-gpio";
-+			reg = <0x480b6000 0x200>;
-+			interrupts = <33>;
-+			ti,hwmods = "gpio5";
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+			#interrupt-cells = <2>;
-+			interrupt-controller;
-+		};
-+
- 		gpmc: gpmc@6e000000 {
- 			compatible = "ti,omap2430-gpmc";
- 			reg = <0x6e000000 0x1000>;
++/ {
++	pmu {
++		compatible = "arm,cortex-a9-pmu";
++		interrupts = <0 54 0x4>,
++			     <0 55 0x4>;
++		ti,hwmods = "debugss";
++	};
++};
 -- 
 1.7.10.4
 
