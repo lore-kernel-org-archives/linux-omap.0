@@ -1,283 +1,105 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 11/17] ARM: OMAP2+: Add device-tree support for NOR flash
-Date: Fri, 8 Mar 2013 10:58:32 -0600
-Message-ID: <1362761918-8696-12-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V2 14/17] ARM: OMAP2+: Convert ONENAND to retrieve GPMC settings from DT
+Date: Fri, 8 Mar 2013 10:58:35 -0600
+Message-ID: <1362761918-8696-15-git-send-email-jon-hunter@ti.com>
 References: <1362761918-8696-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43399 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47956 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934352Ab3CHQ7h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Mar 2013 11:59:37 -0500
+	id S934456Ab3CHQ7l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Mar 2013 11:59:41 -0500
 In-Reply-To: <1362761918-8696-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
 
-NOR flash is not currently supported when booting with device-tree
-on OMAP2+ devices. Add support to detect and configure NOR devices
-when booting with device-tree.
+When booting with device-tree, retrieve GPMC settings for ONENAND from
+the device-tree blob. This will allow us to remove all static settings
+stored in the gpmc-nand.c in the future once the migration to
+device-tree is complete.
 
-Add documentation for the TI GPMC NOR binding.
+The user must now specify the ONENAND device width in the device-tree
+binding so that the GPMC can be programmed correctly. Therefore, update
+the device-tree binding documentation for ONENAND devices connected to
+the GPMC to reflect this.
+
+Please note that this does not include GPMC timings for ONENAND. The
+timings are being calculated at runtime.
+
+There is some legacy code that only enables read wait monitoring for
+non-OMAP3 devices. There are no known OMAP3 device issues that prevent
+this feature being enabled and so when booting with device-tree use the
+wait-monitoring settings described in the device-tree blob.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- Documentation/devicetree/bindings/mtd/gpmc-nor.txt |   98 +++++++++++++++++
- arch/arm/mach-omap2/gpmc.c                         |  113 ++++++++++++++++++++
- 2 files changed, 211 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nor.txt
+ .../devicetree/bindings/mtd/gpmc-onenand.txt       |    3 +++
+ arch/arm/mach-omap2/gpmc-onenand.c                 |   21 ++++++++++++++------
+ 2 files changed, 18 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nor.txt b/Documentation/devicetree/bindings/mtd/gpmc-nor.txt
-new file mode 100644
-index 0000000..8c638fc
---- /dev/null
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-nor.txt
-@@ -0,0 +1,98 @@
-+Device tree bindings for NOR flash connect to TI GPMC
-+
-+NOR flash connected to the TI GPMC (found on OMAP boards) are represented as
-+child nodes of the GPMC controller with a name of "nor".
-+
-+All timing relevant properties as well as generic GPMC child properties are
-+explained in a separate documents. Please refer to
-+Documentation/devicetree/bindings/bus/ti-gpmc.txt
-+
-+Required properties:
-+- bank-width: 		Width of NOR flash in bytes. GPMC supports 8-bit and
-+			16-bit devices and so must be either 1 or 2 bytes.
-+- compatible:		Documentation/devicetree/bindings/mtd/mtd-physmap.txt
-+- gpmc,cs-on:		Chip-select assertion time
-+- gpmc,cs-rd-off:	Chip-select de-assertion time for reads
-+- gpmc,cs-wr-off:	Chip-select de-assertion time for writes
-+- gpmc,oe-on:		Output-enable assertion time
-+- gpmc,oe-off		Output-enable de-assertion time
-+- gpmc,we-on:		Write-enable assertion time
-+- gpmc,we-off:		Write-enable de-assertion time
-+- gpmc,access:		Start cycle to first data capture (read access)
-+- gpmc,rd-cycle:	Total read cycle time
-+- gpmc,wr-cycle:	Total write cycle time
-+- linux,mtd-name:	Documentation/devicetree/bindings/mtd/mtd-physmap.txt
-+- reg:			Chip-select, base address (relative to chip-select)
-+			and size of NOR flash. Note that base address will be
-+			typically 0 as this is the start of the chip-select.
-+
-+Optional properties:
-+- gpmc,XXX		Additional GPMC timings and settings parameters. See
-+			Documentation/devicetree/bindings/bus/ti-gpmc.txt
-+
-+Optional properties for partiton table parsing:
-+- #address-cells: should be set to 1
-+- #size-cells: should be set to 1
-+
-+Example:
-+
-+gpmc: gpmc@6e000000 {
-+	compatible = "ti,omap3430-gpmc", "simple-bus";
-+	ti,hwmods = "gpmc";
-+	reg = <0x6e000000 0x1000>;
-+	interrupts = <20>;
-+	gpmc,num-cs = <8>;
-+	gpmc,num-waitpins = <4>;
-+	#address-cells = <2>;
-+	#size-cells = <1>;
-+
-+	ranges = <0 0 0x10000000 0x08000000>;
-+
-+	nor@0,0 {
-+		compatible = "cfi-flash";
-+		linux,mtd-name= "intel,pf48f6000m0y1be";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		reg = <0 0 0x08000000>;
-+		bank-width = <2>;
-+
-+		gpmc,mux-add-data;
-+		gpmc,cs-on = <0>;
-+		gpmc,cs-rd-off = <186>;
-+		gpmc,cs-wr-off = <186>;
-+		gpmc,adv-on = <12>;
-+		gpmc,adv-rd-off = <48>;
-+		gpmc,adv-wr-off = <48>;
-+		gpmc,oe-on = <54>;
-+		gpmc,oe-off = <168>;
-+		gpmc,we-on = <54>;
-+		gpmc,we-off = <168>;
-+		gpmc,rd-cycle = <186>;
-+		gpmc,wr-cycle = <186>;
-+		gpmc,access = <114>;
-+		gpmc,page-burst-access = <6>;
-+		gpmc,bus-turnaround = <12>;
-+		gpmc,cycle2cycle-delay = <18>;
-+		gpmc,wr-data-mux-bus = <90>;
-+		gpmc,wr-access = <186>;
-+		gpmc,cycle2cycle-samecsen;
-+		gpmc,cycle2cycle-diffcsen;
-+
-+		partition@0 {
-+			label = "bootloader-nor";
-+			reg = <0 0x40000>;
-+		};
-+		partition@0x40000 {
-+			label = "params-nor";
-+			reg = <0x40000 0x40000>;
-+		};
-+		partition@0x80000 {
-+			label = "kernel-nor";
-+			reg = <0x80000 0x200000>;
-+		};
-+		partition@0x280000 {
-+			label = "filesystem-nor";
-+			reg = <0x240000 0x7d80000>;
-+		};
-+	};
-+};
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 80808ad..05ca0af 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -26,6 +26,7 @@
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
- #include <linux/of.h>
-+#include <linux/of_address.h>
- #include <linux/of_mtd.h>
- #include <linux/of_device.h>
- #include <linux/mtd/nand.h>
-@@ -499,6 +500,37 @@ static int gpmc_cs_delete_mem(int cs)
- 	return r;
- }
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+index deec9da..b752942 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+@@ -10,6 +10,8 @@ Documentation/devicetree/bindings/bus/ti-gpmc.txt
+ Required properties:
  
-+/**
-+ * gpmc_cs_remap - remaps a chip-select physical base address
-+ * @cs:		chip-select to remap
-+ * @base:	physical base address to re-map chip-select to
-+ *
-+ * Re-maps a chip-select to a new physical base address specified by
-+ * "base". Returns 0 on success and appropriate negative error code
-+ * on failure.
-+ */
-+static int gpmc_cs_remap(int cs, u32 base)
-+{
-+	int ret;
-+	u32 old_base, size;
-+
-+	if (cs > GPMC_CS_NUM)
-+		return -ENODEV;
-+	gpmc_cs_get_memconf(cs, &old_base, &size);
-+	if (base == old_base)
-+		return 0;
-+	gpmc_cs_disable_mem(cs);
-+	ret = gpmc_cs_delete_mem(cs);
-+	if (IS_ERR_VALUE(ret))
-+		return ret;
-+	ret = gpmc_cs_insert_mem(cs, base, size);
-+	if (IS_ERR_VALUE(ret))
-+		return ret;
-+	gpmc_cs_enable_mem(cs, base, size);
-+
-+	return 0;
-+}
-+
- int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
- {
- 	struct resource *res = &gpmc_cs_mem[cs];
-@@ -1398,6 +1430,78 @@ static int gpmc_probe_onenand_child(struct platform_device *pdev,
- }
- #endif
+  - reg:			The CS line the peripheral is connected to
++ - gpmc,device-width	Width of the ONENAND device connected to the GPMC
++			in bytes. Must be 1 or 2.
  
-+/**
-+ * gpmc_probe_nor_child - configures the gpmc for a nor device
-+ * @pdev:	pointer to gpmc platform device
-+ * @child:	pointer to device-tree node for nor device
-+ *
-+ * Allocates and configures a GPMC chip-select for a NOR flash device.
-+ * Returns 0 on success and appropriate negative error code on failure.
-+ */
-+static int gpmc_probe_nor_child(struct platform_device *pdev,
-+				struct device_node *child)
-+{
-+	struct gpmc_settings gpmc_s;
-+	struct gpmc_timings gpmc_t;
-+	struct resource res;
-+	unsigned long base;
-+	int ret, cs;
-+
-+	if (of_property_read_u32(child, "reg", &cs) < 0) {
-+		dev_err(&pdev->dev, "%s has no 'reg' property\n",
-+			child->full_name);
-+		return -ENODEV;
-+	}
-+
-+	if (of_address_to_resource(child, 0, &res)) {
-+		dev_err(&pdev->dev, "%s has malformed 'reg' property\n",
-+			child->full_name);
-+		return -ENODEV;
-+	}
-+
-+	ret = gpmc_cs_request(cs, resource_size(&res), &base);
-+	if (IS_ERR_VALUE(ret)) {
-+		dev_err(&pdev->dev, "cannot request GPMC CS %d\n", cs);
-+		return ret;
-+	}
-+
-+	/*
-+	 * FIXME: gpmc_cs_request() will map the CS to an arbitary
-+	 * location in the gpmc address space. When booting with
-+	 * device-tree we want the NOR flash to be mapped to the
-+	 * location specified in the device-tree blob. So remap the
-+	 * CS to this location. Once DT migration is complete should
-+	 * just make gpmc_cs_request() map a specific address.
-+	 */
-+	ret = gpmc_cs_remap(cs, res.start);
-+	if (IS_ERR_VALUE(ret)) {
-+		dev_err(&pdev->dev, "cannot remap GPMC CS %d to 0x%x\n",
-+			cs, res.start);
-+		goto err;
-+	}
-+
-+	gpmc_read_settings_dt(child, &gpmc_s);
-+
-+	ret = of_property_read_u32(child, "bank-width", &gpmc_s.device_width);
-+	if (IS_ERR_VALUE(ret))
-+		goto err;
-+
-+	ret = gpmc_cs_program_settings(cs, &gpmc_s);
-+	if (IS_ERR_VALUE(ret))
-+		goto err;
-+
-+	gpmc_read_timings_dt(child, &gpmc_t);
-+	gpmc_cs_set_timings(cs, &gpmc_t);
-+
-+	of_platform_device_create(child, NULL, &pdev->dev);
-+
-+	return 0;
-+err:
-+	gpmc_cs_free(cs);
-+
-+	return ret;
-+}
-+
- static int gpmc_probe_dt(struct platform_device *pdev)
- {
+ Optional properties:
+ 
+@@ -34,6 +36,7 @@ Example for an OMAP3430 board:
+ 
+ 		onenand@0 {
+ 			reg = <0 0 0>; /* CS0, offset 0 */
++			gpmc,device-width = <2>;
+ 
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index aa3f53e..454371b 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -272,6 +272,10 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
+ 	struct gpmc_timings t;
  	int ret;
-@@ -1430,6 +1534,15 @@ static int gpmc_probe_dt(struct platform_device *pdev)
- 			return ret;
- 		}
+ 
++	if (gpmc_onenand_data->of_node)
++		gpmc_read_settings_dt(gpmc_onenand_data->of_node,
++				      &onenand_async);
++
+ 	omap2_onenand_set_async_mode(onenand_base);
+ 
+ 	omap2_onenand_calc_async_timings(&t);
+@@ -300,12 +304,17 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
+ 		set_onenand_cfg(onenand_base);
  	}
-+
-+	for_each_node_by_name(child, "nor") {
-+		ret = gpmc_probe_nor_child(pdev, child);
-+		if (ret < 0) {
-+			of_node_put(child);
-+			return ret;
-+		}
+ 
+-	/*
+-	 * FIXME: Appears to be legacy code from initial ONENAND commit.
+-	 * Unclear what boards this is for and if this can be removed.
+-	 */
+-	if (!cpu_is_omap34xx())
+-		onenand_sync.wait_on_read = true;
++	if (gpmc_onenand_data->of_node) {
++		gpmc_read_settings_dt(gpmc_onenand_data->of_node,
++				      &onenand_sync);
++	} else {
++		/*
++		 * FIXME: Appears to be legacy code from initial ONENAND commit.
++		 * Unclear what boards this is for and if this can be removed.
++		 */
++		if (!cpu_is_omap34xx())
++			onenand_sync.wait_on_read = true;
 +	}
-+
- 	return 0;
- }
- #else
+ 
+ 	omap2_onenand_calc_sync_timings(&t, gpmc_onenand_data->flags, freq);
+ 
 -- 
 1.7.10.4
 
