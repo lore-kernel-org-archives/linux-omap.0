@@ -1,78 +1,31 @@
 From: Paul Bolle <pebolle@tiscali.nl>
 Subject: Re: [PATCH] ARM: OMAP: drop "select MACH_NOKIA_RM696"
-Date: Fri, 08 Mar 2013 18:18:40 +0100
-Message-ID: <1362763120.5994.73.camel@x61.thuisdomein>
+Date: Fri, 08 Mar 2013 18:20:32 +0100
+Message-ID: <1362763232.5994.75.camel@x61.thuisdomein>
 References: <1362738596.5994.48.camel@x61.thuisdomein>
 	 <20130308161159.GE14552@blackmetal.musicnaut.iki.fi>
+	 <20130308163507.GC26093@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130308161159.GE14552@blackmetal.musicnaut.iki.fi>
+In-Reply-To: <20130308163507.GC26093@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 2013-03-08 at 18:11 +0200, Aaro Koskinen wrote:
-> On Fri, Mar 08, 2013 at 11:29:56AM +0100, Paul Bolle wrote:
-> > When support was added for Nokia N9 (RM-696), with commit
-> > 63fc5f3bb3d0ca9ab4767a801b518aa6335f87ad ("ARM: OMAP: add minimal
-> > support for Nokia RM-696"), a select statement for MACH_NOKIA_RM696 was
-> > added to the tree. But there's no Kconfig symbol with that name. That
-> > symbol would be superfluous, since support for that machine piggybacks
-> > on MACH_NOKIA_RM680. So drop that select.
+On Fri, 2013-03-08 at 08:35 -0800, Tony Lindgren wrote:
+> I think the righ fix is to just add
 > 
-> This is needed because of arch/arm/tools/mach-types. See
-> include/generated/mach-types.h.
+> config MACH_NOKIA_RM680
+> 	bool
 
-How does that file actually need this select statement?
+I guess you meant MACH_NOKIA_RM696.
 
-> If you have just CONFIG_MACH_NOKIA_RM680 and run the kernel on RM-696,
-> then machine_is_nokia_rm696() will return false. If I rememeber correctly,
-> this broke at least early printk / uncompressor output at the time.
-> 
-> I guess people may still want to use machine_is_... macros e.g. for
-> debugging.
+> to the mach-omap2/Kconfig like we have for n8x0 also.
 
-What in the current mainline kernel cares about a
-machine_is_nokia_rm696() macro?
-    $ git grep -n machine_is_nokia v3.9-rc1
-    v3.9-rc1:arch/arm/mach-omap2/board-n8x0.c:349:  if (machine_is_nokia_n800() || slot == 0)
-    v3.9-rc1:arch/arm/mach-omap2/board-n8x0.c:395:  if (machine_is_nokia_n800()) {
-    v3.9-rc1:arch/arm/mach-omap2/board-n8x0.c:428:  if (machine_is_nokia_n800())
-    v3.9-rc1:arch/arm/mach-omap2/board-n8x0.c:451:  if (machine_is_nokia_n800()) {
-    v3.9-rc1:arch/arm/mach-omap2/board-n8x0.c:478:  if (machine_is_nokia_n800())
-    v3.9-rc1:arch/arm/mach-omap2/board-n8x0.c:493:  if (machine_is_nokia_n810()) {
-    v3.9-rc1:arch/arm/mach-omap2/board-n8x0.c:544:  if (machine_is_nokia_n810()) {
-    v3.9-rc1:arch/arm/mach-omap2/board-n8x0.c:562:  if (machine_is_nokia_n810()) {
-    v3.9-rc1:arch/arm/mach-omap2/board-n8x0.c:714:  if (machine_is_nokia_n810())
-    v3.9-rc1:arch/arm/mach-omap2/board-rx51-video.c:71:     if (!machine_is_nokia_rx51())
-    v3.9-rc1:drivers/usb/host/ohci-omap.c:267:      } else if (machine_is_nokia770()) {
-    v3.9-rc1:sound/soc/omap/n810.c:309:     if (!(machine_is_nokia_n810() || machine_is_nokia_n810_wimax()))
-    v3.9-rc1:sound/soc/omap/rx51.c:400:     if (!machine_is_nokia_rx51())
-
-    $ git grep -n rm696 v3.9-rc1
-    v3.9-rc1:arch/arm/tools/mach-types:589:nokia_rm696		MACH_NOKIA_RM696	NOKIA_RM696		3522
-
-I don't find any actual usage of that macro. Are its uses also
-generated? 
-
-> > 0) Tested with "git grep".
-> 
-> git grep won't search generated source files.
-
-Of course. That's one of the reasons why I explicitly state that I only
-tested it that way.
-
-> > 1) Some searching on the web didn't return a "config MACH_NOKIA_RM696".
-> > So apparently there's not even a development tree that uses this symbol.
-> 
-> You can see machine_is_nokia_rm696() used in the public kernel source
-> for Nokia N9 product. :-)
-
-Where would that be? And does that tree actually have a Kconfig entry
-MACH_NOKIA_RM696?
+Should I draft a patch?
 
 
 Paul Bolle
