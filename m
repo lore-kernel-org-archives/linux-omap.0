@@ -1,48 +1,38 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 1/3] driver: net: ethernet: cpsw: implement ethtool get/set
- phy setting
-Date: Fri, 8 Mar 2013 12:53:18 +0530
-Message-ID: <513991E6.5080400@ti.com>
-References: <1362659421-11884-1-git-send-email-mugunthanvnm@ti.com>  <1362659421-11884-2-git-send-email-mugunthanvnm@ti.com>  <8762135on4.fsf@dell.be.48ers.dk> <1362686350.2936.43.camel@bwh-desktop.uk.solarflarecom.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH 0/5] ASoC: OMAP2+: Update Audio IP with sDMA binding for
+ DT boot
+Date: Fri, 8 Mar 2013 09:25:43 +0200
+Message-ID: <20130308092543.c355b2c6235c297efbe162e0@bitmer.com>
+References: <1362660204-27074-1-git-send-email-s-guiriec@ti.com>
+	<51389023.2000907@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1362686350.2936.43.camel@bwh-desktop.uk.solarflarecom.com>
-Sender: netdev-owner@vger.kernel.org
-To: Ben Hutchings <bhutchings@solarflare.com>
-Cc: Peter Korsgaard <jacmet@sunsite.dk>, netdev@vger.kernel.org, davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bitmer.com ([213.157.87.50]:55445 "EHLO bitmer.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754871Ab3CHHZZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Mar 2013 02:25:25 -0500
+In-Reply-To: <51389023.2000907@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Sebastien Guiriec <s-guiriec@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-On 3/8/2013 1:29 AM, Ben Hutchings wrote:
-> On Thu, 2013-03-07 at 14:24 +0100, Peter Korsgaard wrote:
->>>>>>> "M" == Mugunthan V N <mugunthanvnm@ti.com> writes:
->>   M> This patch implements get/set of the phy settings via ethtool apis
->>   M> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
->>   M> ---
->>   M>  Documentation/devicetree/bindings/net/cpsw.txt |    3 +++
->>   M>  drivers/net/ethernet/ti/cpsw.c                 |   32 ++++++++++++++++++++++++
->>   M>  include/linux/platform_data/cpsw.h             |    1 +
->>   M>  3 files changed, 36 insertions(+)
->>
->>   M> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
->>   M> index ecfdf75..8d61300 100644
->>   M> --- a/Documentation/devicetree/bindings/net/cpsw.txt
->>   M> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
->>   M> @@ -20,6 +20,7 @@ Required properties:
->>   M>  - cpts_clock_shift	: Denominator to convert input clock ticks into nanoseconds
->>   M>  - phy_id		: Specifies slave phy id
->>   M>  - mac-address		: Specifies slave MAC address
->>   M> +- ethtool-active-slave	: Specifies the slave to use for ethtool command
->>
->> That again sounds like something Linux specific rather than a hardware
->> property.
-> Yes, indeed.  Isn't it redundant with the phy_id?
->
-> Ben.
-phy_id is part of slave data and will be present for both the slaves.
-so phy_id cannot be used for get/set phy setting until phy framework
-allows to change settings without going through eth interface.
+On Thu, 7 Mar 2013 14:03:31 +0100
+Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
 
-Regards
-Mugunthan V N
+> Hi Sebastien,
+> 
+> On 03/07/2013 01:43 PM, Sebastien Guiriec wrote:
+> > This patch serie is converting OMAP Audio IPs in order to use OMAP sDMA DT
+> > binding in case of DT boot on OMAP2+ platforms.
+> 
+> The content of the patches looks about right for me, however I would squash
+> together the IP and platform driver patches so we avoid breakage within the
+> series. Also I would put the patch for the .dtsi files as first one.
+> 
+Looks ok to me too at quick look. Would it be possible to avoid possible breakage if first patch is divided to omap-pcm.h change which come before audio link driver changes and do omap-pcm.c change last?
+
+-- 
+Jarkko
