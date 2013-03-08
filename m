@@ -1,79 +1,81 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 01/13] usb: phy: nop: Add device tree support and binding
- information
-Date: Fri, 8 Mar 2013 17:04:50 +0200
-Message-ID: <5139FE12.6000700@ti.com>
-References: <1359993540-20780-1-git-send-email-rogerq@ti.com> <1359993540-20780-2-git-send-email-rogerq@ti.com> <5139C174.7030401@pengutronix.de>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/3] driver: net: ethernet: cpsw: implement ethtool get/set
+ phy setting
+Date: Fri, 8 Mar 2013 20:37:00 +0530
+Message-ID: <5139FE94.6090004@ti.com>
+References: <1362659421-11884-1-git-send-email-mugunthanvnm@ti.com>
+ <1362659421-11884-2-git-send-email-mugunthanvnm@ti.com>
+ <8762135on4.fsf@dell.be.48ers.dk>
+ <1362686350.2936.43.camel@bwh-desktop.uk.solarflarecom.com>
+ <513991E6.5080400@ti.com>
+ <1362754401.3248.8.camel@bwh-desktop.uk.solarflarecom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36783 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934233Ab3CHPFZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Mar 2013 10:05:25 -0500
-In-Reply-To: <5139C174.7030401@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1362754401.3248.8.camel-/LGg1Z1CJKReKY3V0RtoKmatzQS1i7+A3tAM5lWOD0I@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Ben Hutchings <bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: tony@atomide.com, b-cousson@ti.com, balbi@ti.com, stern@rowland.harvard.edu, linux@arm.linux.org.uk, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, paul@pwsan.com
 
-On 03/08/2013 12:46 PM, Marc Kleine-Budde wrote:
-> On 02/04/2013 04:58 PM, Roger Quadros wrote:
->> The PHY clock, clock rate, VCC regulator and RESET regulator
->> can now be provided via device tree.
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  .../devicetree/bindings/usb/usb-nop-xceiv.txt      |   34 ++++++++++++++++++++
->>  drivers/usb/otg/nop-usb-xceiv.c                    |   31 ++++++++++++++++++
->>  2 files changed, 65 insertions(+), 0 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
->>
->> diff --git a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
->> new file mode 100644
->> index 0000000..d7e2726
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
->> @@ -0,0 +1,34 @@
->> +USB NOP PHY
->> +
->> +Required properties:
->> +- compatible: should be usb-nop-xceiv
->> +
->> +Optional properties:
->> +- clocks: phandle to the PHY clock. Use as per Documentation/devicetree
->> +  /bindings/clock/clock-bindings.txt
->> +  This property is required if clock-frequency is specified.
->> +
->> +- clock-names: Should be "main_clk"
->> +
->> +- clock-frequency: the clock frequency (in Hz) that the PHY clock must
->> +  be configured to.
->> +
->> +- vcc-supply: phandle to the regulator that provides RESET to the PHY.
->> +
->> +- reset-supply: phandle to the regulator that provides power to the PHY.
->> +
->> +Example:
->> +
->> +	hsusb1_phy {
->> +		compatible = "usb-nop-xceiv";
->> +		clock-frequency = <19200000>;
-> 
-> Why do you hardcode the clock frequency here? You should use
-> clk_get_rate() to get the frequency from the clock tree.
+On 3/8/2013 8:23 PM, Ben Hutchings wrote:
+> On Fri, 2013-03-08 at 12:53 +0530, Mugunthan V N wrote:
+>> On 3/8/2013 1:29 AM, Ben Hutchings wrote:
+>>> On Thu, 2013-03-07 at 14:24 +0100, Peter Korsgaard wrote:
+>>>>>>>>> "M" == Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org> writes:
+>>>>    M> This patch implements get/set of the phy settings via ethtool apis
+>>>>    M> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+>>>>    M> ---
+>>>>    M>  Documentation/devicetree/bindings/net/cpsw.txt |    3 +++
+>>>>    M>  drivers/net/ethernet/ti/cpsw.c                 |   32 ++++++++++++++++++++++++
+>>>>    M>  include/linux/platform_data/cpsw.h             |    1 +
+>>>>    M>  3 files changed, 36 insertions(+)
+>>>>
+>>>>    M> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+>>>>    M> index ecfdf75..8d61300 100644
+>>>>    M> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+>>>>    M> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+>>>>    M> @@ -20,6 +20,7 @@ Required properties:
+>>>>    M>  - cpts_clock_shift	: Denominator to convert input clock ticks into nanoseconds
+>>>>    M>  - phy_id		: Specifies slave phy id
+>>>>    M>  - mac-address		: Specifies slave MAC address
+>>>>    M> +- ethtool-active-slave	: Specifies the slave to use for ethtool command
+>>>>
+>>>> That again sounds like something Linux specific rather than a hardware
+>>>> property.
+>>> Yes, indeed.  Isn't it redundant with the phy_id?
+>>>
+>>> Ben.
+>> phy_id is part of slave data and will be present for both the slaves.
+>> so phy_id cannot be used for get/set phy setting until phy framework
+>> allows to change settings without going through eth interface.
+> Now I've looked at the examples in this file, I think I see what you're
+> getting at.  What confused me is that you're adding to a single list of
+> properties without a proper distinction of which devices they are
+> applied to.  It really ought to be properly divided between switch and
+> 'slave' properties.
+Will fix this in next patch series.
+> The 'active slave' property would also be needed for the SIOCGMIIPHY
+> ioctl and not just ethtool.  But it's really quite arbitrary.  Perhaps
+> each of them should have their own net device (as with DSA).
+But if we have net device for each of the slaves then it is dual EMAC 
+which will kill
+hardware switching functionality. To achieve switching bridge has to be 
+done and
+there will be a performance drop as well.
 
-That would work only if the clock was programmed to the correct frequency
-by someone.
+As Peter Korsgaard mentioned we need to have infrastructure to handle CPSW
+kind of hardware.
 
-e.g. In the OMAP case nobody programs the auxiliary clock on Panda which clocks
-the USB PHY.
-
-The usb-nop-xceiv device driver must program the clock rate using clk_set_rate(),
-but it needs to know what frequency it must program it to. Different boards/PHYs
-might use a different clock frequency. The 'clock-frequency' property
-is used to pass on this information to the driver.
-
-cheers,
--roger
+Regards
+Mugunthan V N
