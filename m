@@ -1,106 +1,192 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 00/17] ARM: OMAP2+: GPMC clean-up and DT update
-Date: Fri, 8 Mar 2013 10:58:21 -0600
-Message-ID: <1362761918-8696-1-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V2 04/17] ARM: OMAP2+: Add function for configuring GPMC settings
+Date: Fri, 8 Mar 2013 10:58:25 -0600
+Message-ID: <1362761918-8696-5-git-send-email-jon-hunter@ti.com>
+References: <1362761918-8696-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43367 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47928 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933517Ab3CHQ7K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Mar 2013 11:59:10 -0500
+	id S934352Ab3CHQ7T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Mar 2013 11:59:19 -0500
+In-Reply-To: <1362761918-8696-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
 
-While adding device-tree support for NOR memories, it became apparent
-that there is no common way for configuring various GPMC settings for
-devices that interface to the GPMC. These settings include bus-width,
-synchronous/asynchronous mode, burst settings, wait monitoring etc.
-Therefore, to simplify the GPMC code and add device-tree support for
-NOR, it was first necessary to consolidate how these settings are
-programmed.
+The GPMC has various different configuration options such as bus-width,
+synchronous or asychronous mode selection, burst mode options etc.
+Currently, there is no common function for configuring these options and
+various devices set these options by either programming the GPMC CONFIG1
+register directly or by calling gpmc_cs_configure() to set some of the
+options.
 
-Series based upon Mark Jackson's patch [1] and Ezequiel Garcia GPMC
-clean-up series [2]. Entire series available here [3].
+Add a new function for configuring all of the GPMC options. Having a common
+function for configuring this options will simplify code and ease the
+migration to device-tree.
 
-V2 changes:
-- Made gpmc_settings structure local in gpmc_nand_init().
-- Use resource_size() API in probe_nor().
-- Add kernel-doc for gpmc_cs_program_settings() function.
-- Use of_platform_device_create() to register NOR devices in probe_nor().
-- Add support for GPMC address-address-data multiplexing which required
-  changing GPMC DT property "gpmc,mux-add-data" to store a 32-bit value
-  and changing mux_add_data member of gpmc_settings to be a 32-bit type
-  instead of bool.
-- Add detection for incorrect GPMC chip-select base addresses.
-- Cleaned-up code in gpmc_mem_init() and changed gpmc_mem_init() so that
-  it would not return an error when the GPMC driver is being probed.
+Also add a new capability flag to detect devices that support the
+address-address-data multiplexing mode.
 
-V1 changes:
-- Clean-up/simplification of ONENAND initialisation code.
-- Add a new GPMC structure to unify storage of various GPMC settings
-  (that are non-timing related) for client devices and add a new
-  function to program these settings in a common way.
-- Migrate initialisation code for existing flash, usb and networking
-  devices to use the new structure and function for GPMC settings.
-- Add device-tree support for NOR flash memories.
-- Add additional GPMC timing parameters to GPMC device-tree binding.
-- Update GPMC NAND and ONENAND device-tree support to retrieve GPMC
-  settings from device-tree.
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c |  100 ++++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/gpmc.h |    6 +++
+ 2 files changed, 106 insertions(+)
 
-Testing includes:
-- Boot testing on OMAP2420 H4, OMAP3430 SDP and OMAP4430 SDP with
-  and without device-tree present.
-- OMAP2420 H4 board has NOR flash and OMAP3430 SDP has NOR, NAND
-  and ONENAND flash. So verified that flash is detected on boot
-  as expected. Note additional patches [4] are required for OMAP2420
-  H4 and OMAP3430 SDP dts files in order to enable flash memory
-  support.
-- All of the above boards use GPMC for interfacing to a networking
-  chip and so verified that networking is working wit this series.
-  However, please note that networking is not currently supported
-  on these boards when booting with DT and so networking is only
-  tested without DT.
-
-[1] http://permalink.gmane.org/gmane.linux.ports.arm.omap/94765
-[2] http://comments.gmane.org/gmane.linux.ports.arm.omap/93784
-[3] https://github.com/jonhunter/linux/tree/omap-gpmc-for-v3.10
-[4] https://github.com/jonhunter/linux/tree/omap-dt-for-v3.10
-
-Jon Hunter (17):
-  ARM: OMAP2+: Simplify code configuring ONENAND devices
-  ARM: OMAP2+: Add variable to store number of GPMC waitpins
-  ARM: OMAP2+: Add structure for storing GPMC settings
-  ARM: OMAP2+: Add function for configuring GPMC settings
-  ARM: OMAP2+: Convert ONENAND to use gpmc_cs_program_settings()
-  ARM: OMAP2+: Convert NAND to use gpmc_cs_program_settings()
-  ARM: OMAP2+: Convert SMC91x to use gpmc_cs_program_settings()
-  ARM: OMAP2+: Convert TUSB to use gpmc_cs_program_settings()
-  ARM: OMAP2+: Don't configure of chip-select options in
-    gpmc_cs_configure()
-  ARM: OMAP2+: Add function to read GPMC settings from device-tree
-  ARM: OMAP2+: Add device-tree support for NOR flash
-  ARM: OMAP2+: Add additional GPMC timing parameters
-  ARM: OMAP2+: Convert NAND to retrieve GPMC settings from DT
-  ARM: OMAP2+: Convert ONENAND to retrieve GPMC settings from DT
-  ARM: OMAP2+: Detect incorrectly aligned GPMC base address
-  ARM: OMAP2+: Remove unnecesssary GPMC definitions and variable
-  ARM: OMAP2+: Allow GPMC probe to complete even if CS mapping fails
-
- Documentation/devicetree/bindings/bus/ti-gpmc.txt  |   48 +-
- Documentation/devicetree/bindings/mtd/gpmc-nor.txt |   98 ++++
- .../devicetree/bindings/mtd/gpmc-onenand.txt       |    3 +
- arch/arm/mach-omap2/gpmc-nand.c                    |   37 +-
- arch/arm/mach-omap2/gpmc-onenand.c                 |  110 ++---
- arch/arm/mach-omap2/gpmc-smc91x.c                  |   30 +-
- arch/arm/mach-omap2/gpmc.c                         |  521 +++++++++++++++-----
- arch/arm/mach-omap2/gpmc.h                         |   37 +-
- arch/arm/mach-omap2/usb-tusb6010.c                 |   62 ++-
- 9 files changed, 686 insertions(+), 260 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nor.txt
-
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 38c7f50..1b81ca1 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -107,6 +107,7 @@
+ 
+ #define	GPMC_HAS_WR_ACCESS		0x1
+ #define	GPMC_HAS_WR_DATA_MUX_BUS	0x2
++#define	GPMC_HAS_MUX_AAD		0x4
+ 
+ #define GPMC_NR_WAITPINS		4
+ 
+@@ -1129,6 +1130,90 @@ int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
+ 	return 0;
+ }
+ 
++/**
++ * gpmc_cs_program_settings - programs non-timing related settings
++ * @cs:		GPMC chip-select to program
++ * @p:		pointer to GPMC settings structure
++ *
++ * Programs non-timing related settings for a GPMC chip-select, such as
++ * bus-width, burst configuration, etc. Function should be called once
++ * for each chip-select that is being used and must be called before
++ * calling gpmc_cs_set_timings() as timing parameters in the CONFIG1
++ * register will be initialised to zero by this function. Returns 0 on
++ * success and appropriate negative error code on failure.
++ */
++int gpmc_cs_program_settings(int cs, struct gpmc_settings *p)
++{
++	u32 config1;
++
++	if ((!p->device_width) || (p->device_width > GPMC_DEVWIDTH_16BIT)) {
++		pr_err("%s: invalid width %d!", __func__, p->device_width);
++		return -EINVAL;
++	}
++
++	/* Address-data multiplexing not supported for NAND devices */
++	if (p->device_nand && p->mux_add_data) {
++		pr_err("%s: invalid configuration!\n", __func__);
++		return -EINVAL;
++	}
++
++	if ((p->mux_add_data > GPMC_MUX_AD) ||
++	    ((p->mux_add_data == GPMC_MUX_AAD) &&
++	     !(gpmc_capability & GPMC_HAS_MUX_AAD))) {
++		pr_err("%s: invalid multiplex configuration!\n", __func__);
++		return -EINVAL;
++	}
++
++	/* Page/burst mode supports lengths of 4, 8 and 16 bytes */
++	if (p->burst_read || p->burst_write) {
++		switch (p->burst_len) {
++		case GPMC_BURST_4:
++		case GPMC_BURST_8:
++		case GPMC_BURST_16:
++			break;
++		default:
++			pr_err("%s: invalid page/burst-length (%d)\n",
++			       __func__, p->burst_len);
++			return -EINVAL;
++		}
++	}
++
++	if ((p->wait_on_read || p->wait_on_write) &&
++	    (p->wait_pin > gpmc_nr_waitpins)) {
++		pr_err("%s: invalid wait-pin (%d)\n", __func__, p->wait_pin);
++		return -EINVAL;
++	}
++
++	config1 = GPMC_CONFIG1_DEVICESIZE((p->device_width - 1));
++
++	if (p->sync_read)
++		config1 |= GPMC_CONFIG1_READTYPE_SYNC;
++	if (p->sync_write)
++		config1 |= GPMC_CONFIG1_WRITETYPE_SYNC;
++	if (p->wait_on_read)
++		config1 |= GPMC_CONFIG1_WAIT_READ_MON;
++	if (p->wait_on_write)
++		config1 |= GPMC_CONFIG1_WAIT_WRITE_MON;
++	if (p->wait_on_read || p->wait_on_write)
++		config1 |= GPMC_CONFIG1_WAIT_PIN_SEL(p->wait_pin);
++	if (p->device_nand)
++		config1	|= GPMC_CONFIG1_DEVICETYPE(GPMC_DEVICETYPE_NAND);
++	if (p->mux_add_data)
++		config1	|= GPMC_CONFIG1_MUXTYPE(p->mux_add_data);
++	if (p->burst_read)
++		config1 |= GPMC_CONFIG1_READMULTIPLE_SUPP;
++	if (p->burst_write)
++		config1 |= GPMC_CONFIG1_WRITEMULTIPLE_SUPP;
++	if (p->burst_read || p->burst_write) {
++		config1 |= GPMC_CONFIG1_PAGE_LEN(p->burst_len >> 3);
++		config1 |= p->burst_wrap ? GPMC_CONFIG1_WRAPBURST_SUPP : 0;
++	}
++
++	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, config1);
++
++	return 0;
++}
++
+ #ifdef CONFIG_OF
+ static struct of_device_id gpmc_dt_ids[] = {
+ 	{ .compatible = "ti,omap2420-gpmc" },
+@@ -1375,8 +1460,23 @@ static int gpmc_probe(struct platform_device *pdev)
+ 	gpmc_dev = &pdev->dev;
+ 
+ 	l = gpmc_read_reg(GPMC_REVISION);
++
++	/*
++	 * FIXME: Once device-tree migration is complete the below flags
++	 * should be populated based upon the device-tree compatible
++	 * string. For now just use the IP revision. OMAP3+ devices have
++	 * the wr_access and wr_data_mux_bus register fields. OMAP4+
++	 * devices support the addr-addr-data multiplex protocol.
++	 *
++	 * GPMC IP revisions:
++	 * - OMAP24xx			= 2.0
++	 * - OMAP3xxx			= 5.0
++	 * - OMAP44xx/54xx/AM335x	= 6.0
++	 */
+ 	if (GPMC_REVISION_MAJOR(l) > 0x4)
+ 		gpmc_capability = GPMC_HAS_WR_ACCESS | GPMC_HAS_WR_DATA_MUX_BUS;
++	if (GPMC_REVISION_MAJOR(l) > 0x5)
++		gpmc_capability |= GPMC_HAS_MUX_AAD;
+ 	dev_info(gpmc_dev, "GPMC revision %d.%d\n", GPMC_REVISION_MAJOR(l),
+ 		 GPMC_REVISION_MINOR(l));
+ 
+diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
+index 39e4e04..ce6ae21 100644
+--- a/arch/arm/mach-omap2/gpmc.h
++++ b/arch/arm/mach-omap2/gpmc.h
+@@ -76,6 +76,11 @@
+ #define GPMC_IRQ_FIFOEVENTENABLE	0x01
+ #define GPMC_IRQ_COUNT_EVENT		0x02
+ 
++#define GPMC_BURST_4			4	/* 4 word burst */
++#define GPMC_BURST_8			8	/* 8 word burst */
++#define GPMC_BURST_16			16	/* 16 word burst */
++#define GPMC_DEVWIDTH_8BIT		1	/* 8-bit device width */
++#define GPMC_DEVWIDTH_16BIT		2	/* 16-bit device width */
+ #define GPMC_MUX_AAD			1	/* Addr-Addr-Data multiplex */
+ #define GPMC_MUX_AD			2	/* Addr-Data multiplex */
+ 
+@@ -217,6 +222,7 @@ extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
+ extern void gpmc_cs_write_reg(int cs, int idx, u32 val);
+ extern int gpmc_calc_divider(unsigned int sync_clk);
+ extern int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t);
++extern int gpmc_cs_program_settings(int cs, struct gpmc_settings *p);
+ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
+ extern void gpmc_cs_free(int cs);
+ extern void omap3_gpmc_save_context(void);
 -- 
 1.7.10.4
 
