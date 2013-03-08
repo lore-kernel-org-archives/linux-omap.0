@@ -1,59 +1,58 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 0/5] ASoC: OMAP2+: Update Audio IP with sDMA binding for
- DT boot
-Date: Sat, 9 Mar 2013 01:24:41 +0800
-Message-ID: <20130308172439.GE26088@opensource.wolfsonmicro.com>
-References: <1362660204-27074-1-git-send-email-s-guiriec@ti.com>
- <51389023.2000907@ti.com>
- <20130308092543.c355b2c6235c297efbe162e0@bitmer.com>
- <5139AE1D.3080102@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH 0/9] ARM: dts: Various OMAP2+ device-tree updates
+Date: Fri, 8 Mar 2013 11:27:24 -0600
+Message-ID: <1362763654-9660-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2qXFWqzzG3v1+95a"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:45088 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933174Ab3CHRYs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Mar 2013 12:24:48 -0500
-Content-Disposition: inline
-In-Reply-To: <5139AE1D.3080102@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49617 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756146Ab3CHR1t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Mar 2013 12:27:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Sebastien Guiriec <s-guiriec@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
+Various OMAP device-tree updates for PMU, DMA, GPIO, GPMC and boards.
 
---2qXFWqzzG3v1+95a
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The DMA, PMU and OMAP3430 SDP board changes have been sent before
+individually but re-sending here as a complete series for v3.10.
 
-On Fri, Mar 08, 2013 at 10:23:41AM +0100, Peter Ujfalusi wrote:
+This is based upon v3.9-rc1 and the OMAP3 GPMC binding from Florian
+Vaussard [1] and OMAP5 DT SPI patch from Felipe Balbi [2].
 
-> If we have them as separate we will have runtime regression between the
-> patches. It is better to have them squashed together.
+[1] https://patchwork.kernel.org/patch/2057111/
+[2] https://patchwork.kernel.org/patch/2134711/
 
-Other than the issues mentioned this looks OK to me.
+Jon Hunter (9):
+  ARM: OMAP2+: Prepare for device-tree PMU support
+  ARM: dts: OMAP2+: Add PMU nodes
+  ARM: dts: OMAP2+: Add SDMA controller bindings and nodes
+  ARM: dts: OMAP3: Add support for OMAP3430 SDP board
+  ARM: dts: Add GPMC node for OMAP2, OMAP4 and OMAP5
+  ARM: dts: Add OMAP3430 SDP flash memory bindings
+  ARM: dts: Add OMAP2 gpio bindings
+  ARM: dts: OMAP3+: Correct gpio #interrupts-cells property
+  ARM: dts: OMAP3: Add reg and interrupt properties for gpio
 
---2qXFWqzzG3v1+95a
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+ .../devicetree/bindings/dma/omap-sdma.txt          |   51 +++++++
+ arch/arm/boot/dts/Makefile                         |    1 +
+ arch/arm/boot/dts/omap2.dtsi                       |   17 +++
+ arch/arm/boot/dts/omap2420.dtsi                    |   55 ++++++++
+ arch/arm/boot/dts/omap2430.dtsi                    |   66 +++++++++
+ arch/arm/boot/dts/omap3.dtsi                       |   70 +++++++++-
+ arch/arm/boot/dts/omap3430-sdp.dts                 |  141 ++++++++++++++++++++
+ arch/arm/boot/dts/omap4-panda-es.dts               |    2 +
+ arch/arm/boot/dts/omap4.dtsi                       |   64 ++++++++-
+ arch/arm/boot/dts/omap4460.dtsi                    |   18 +++
+ arch/arm/boot/dts/omap5.dtsi                       |   68 ++++++++--
+ arch/arm/mach-omap2/pmu.c                          |   14 +-
+ 12 files changed, 544 insertions(+), 23 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/dma/omap-sdma.txt
+ create mode 100644 arch/arm/boot/dts/omap3430-sdp.dts
+ create mode 100644 arch/arm/boot/dts/omap4460.dtsi
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+-- 
+1.7.10.4
 
-iQIcBAEBAgAGBQJROh7OAAoJELSic+t+oim9PvIP/jGgkQ0iIjnLH70X1AMESqsP
-ezM4N1Aj37X+lXWvzDJWcVwR6SI1rohxGM9YlOHmDTNS/T5RiXF2GGhvpju9pQX3
-X61xOKHz3+3Frs2n+DDkYcMRooqjdQLCm8B5n8Ygzx1aZ/K11VFj2Cv0r+sWIMWo
-0+Bd5z0hYZGVDmIO2/gXqO61+6zBNiGWzcxyBTDijOr66KBcSaYNVrIKtYbgyVAp
-0QJzmM4RLFgXPSMZilppUKFthIKZAfALDUl7jAPbMuJpbgQj+slZsCzN8DF7b6Y5
-hchDdRHoeZsNE5+ppQ3x872KHYCxYf7lZd19E2BAJXbTo+LUGKBtqBpdXuxtSiL7
-w66WkCcjbUUJdMs3BJpQQjXeL1ThpOEWyBPsr3kJFaNeI/8FXdEOGdL8HMm810EK
-rEtsu0sPE5LyebFz6+KJ45H6+GkwQpwPIwHma0oUM/oT4455Gt8WDxrL8yNJvlKE
-T5vcTDHWRq5cjEFT1xEf94JMLkUOYUtIpYWcxAUxRbdmkDz3lW9YjUtss49y6S9Z
-u8Q+dPeE7sTEXrZhpl/ErX6BfHJNTE+9T8dQYN9y7gN0QhOJ5zbV74R88Hdy/wpr
-3d1PtAP74xuPHyZKyjRbYOoqamCyAyHxlmcrYfdPm3OFfqvlpN2I/pl2whYsC7Wg
-YNBcyWNENynF3IgA+02E
-=pqYa
------END PGP SIGNATURE-----
-
---2qXFWqzzG3v1+95a--
