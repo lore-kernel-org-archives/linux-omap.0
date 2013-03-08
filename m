@@ -1,59 +1,199 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: [PATCH] ARM: OMAP: fix typo "CONFIG_SMC91x_MODULE"
-Date: Fri, 08 Mar 2013 13:06:37 +0100
-Message-ID: <1362744397.5994.58.camel@x61.thuisdomein>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+Date: Fri, 8 Mar 2013 12:29:02 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EC213C8@DBDE01.ent.ti.com>
+References: <1362629799-22485-1-git-send-email-mporter@ti.com>
+ <1362629799-22485-3-git-send-email-mporter@ti.com>
+ <41fde401c8e646689123d7c6d3a2dffc@DLEE71.ent.ti.com>
+ <20130307141235.GQ6209@beef>
+ <79CD15C6BA57404B839C016229A409A83EC20C57@DBDE01.ent.ti.com>
+ <20130307144656.GR6209@beef>
+ <79CD15C6BA57404B839C016229A409A83EC20CCA@DBDE01.ent.ti.com>
+ <20130307150408.GU6209@beef>
+ <79CD15C6BA57404B839C016229A409A83EC20D27@DBDE01.ent.ti.com>
+ <20130307160236.GV6209@beef>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cpsmtpb-ews08.kpnxchange.com ([213.75.39.13]:61796 "EHLO
-	cpsmtpb-ews08.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933734Ab3CHMGk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Mar 2013 07:06:40 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20130307160236.GV6209@beef>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: "Porter, Matt" <mporter@ti.com>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-There's a (rather subtle) typo in "CONFIG_SMC91x_MODULE". Fix it once
-and for all by using IS_ENABLED(), which is designed to avoid issues
-like this.
+> -----Original Message-----
+> From: Matt Porter [mailto:ohiomdp@gmail.com] On Behalf Of Porter, Matt
+> Sent: Thursday, March 07, 2013 9:33 PM
+> To: Hiremath, Vaibhav
+> Cc: Linux OMAP List; Russell King; Krishnamoorthy, Balaji T; Devicetree
+> Discuss; Linux MMC List; Linux Kernel Mailing List; Chris Ball; Linux
+> ARM Kernel List
+> Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+> 
+> On Thu, Mar 07, 2013 at 03:50:01PM +0000, Vaibhav Hiremath wrote:
+> >
+> > > -----Original Message-----
+> > > From: Matt Porter [mailto:ohiomdp@gmail.com] On Behalf Of Porter,
+> Matt
+> > > Sent: Thursday, March 07, 2013 8:34 PM
+> > > To: Hiremath, Vaibhav
+> > > Cc: Chris Ball; Russell King; Krishnamoorthy, Balaji T; Devicetree
+> > > Discuss; Linux MMC List; Linux Kernel Mailing List; Linux OMAP
+> List;
+> > > Linux ARM Kernel List
+> > > Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+> > >
+> > > On Thu, Mar 07, 2013 at 02:59:42PM +0000, Vaibhav Hiremath wrote:
+> > > >
+> > > > > -----Original Message-----
+> > > > > From: Hiremath, Vaibhav
+> > > > > Sent: Thursday, March 07, 2013 8:24 PM
+> > > > > To: Porter, Matt
+> > > > > Cc: Linux OMAP List; Russell King; Krishnamoorthy, Balaji T;
+> > > Devicetree
+> > > > > Discuss; Linux MMC List; Linux Kernel Mailing List; Chris Ball;
+> > > Linux
+> > > > > ARM Kernel List
+> > > > > Subject: RE: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+> > > > >
+> > > > > > -----Original Message-----
+> > > > > > From: Matt Porter [mailto:ohiomdp@gmail.com] On Behalf Of
+> Porter,
+> > > > > Matt
+> > > > > > Sent: Thursday, March 07, 2013 8:17 PM
+> > > > > > To: Hiremath, Vaibhav
+> > > > > > Cc: Linux OMAP List; Russell King; Krishnamoorthy, Balaji T;
+> > > > > Devicetree
+> > > > > > Discuss; Linux MMC List; Linux Kernel Mailing List; Chris
+> Ball;
+> > > Linux
+> > > > > > ARM Kernel List
+> > > > > > Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+> > > > > >
+> > > > > > On Thu, Mar 07, 2013 at 02:39:55PM +0000, Vaibhav Hiremath
+> wrote:
+> > > > > > >
+> > > > > > > > -----Original Message-----
+> > > > > > > > From: Matt Porter [mailto:ohiomdp@gmail.com] On Behalf Of
+> > > Porter,
+> > > > > > Matt
+> > > > > > > > Sent: Thursday, March 07, 2013 7:43 PM
+> > > > > > > > To: Hiremath, Vaibhav
+> > > > > > > > Cc: Krishnamoorthy, Balaji T; Chris Ball; Cousson,
+> Benoit;
+> > > Tony
+> > > > > > > > Lindgren; Russell King; Devicetree Discuss; Linux ARM
+> Kernel
+> > > > > List;
+> > > > > > > > Linux OMAP List; Linux Kernel Mailing List; Linux MMC
+> List
+> > > > > > > > Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+> > > > > > > >
+> > > > > > > > On Thu, Mar 07, 2013 at 05:29:24AM +0000, Vaibhav
+> Hiremath
+> > > wrote:
+> > > > > > > > > > -----Original Message-----
+> > > > > > > > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-
+> > > omap-
+> > > > > > > > > > owner@vger.kernel.org] On Behalf Of Porter, Matt
+> > > > > > > > > > Sent: Thursday, March 07, 2013 9:47 AM
+> > > > > > > > > > To: Krishnamoorthy, Balaji T; Chris Ball; Cousson,
+> > > Benoit;
+> > > > > Tony
+> > > > > > > > > > Lindgren; Russell King
+> > > > > > > > > > Cc: Devicetree Discuss; Linux ARM Kernel List; Linux
+> OMAP
+> > > > > List;
+> > > > > > > > Linux
+> > > > > > > > > > Kernel Mailing List; Linux MMC List
+> > > > > > > > > > Subject: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+> > > > > > > > > >
+> > > > <snip>
+> > > > >
+> > > > > I believe you meant "CONFIG_TI_EDMA" right?
+> > > > >
+> > > > > Yes, I just enabled it and the result is still same.
+> > > > >
+> > > > >
+> > > > >
+> > > > > [root@arago /]# dmesg | grep -ir mmc
+> > > > > [    0.506844] vmmc: 1800 <--> 3300 mV at 3300 mV
+> > > > > [    0.506970] vmmc: supplied by vbat
+> > > > > [root@arago /]#
+> > > > > [root@arago /]#
+> > > > > [root@arago /]# dmesg | grep -ir dma
+> > > > > [    0.217063] DMA: preallocated 256 KiB pool for atomic
+> coherent
+> > > > > allocations
+> > > > > [    0.236321] platform 49000000.edma: alias fck already exists
+> > > > > [    0.236360] platform 49000000.edma: alias fck already exists
+> > > > > [    0.236381] platform 49000000.edma: alias fck already exists
+> > > > > [    0.370705] edma-dma-engine edma-dma-engine.0: TI EDMA DMA
+> > > engine
+> > > > > driver
+> > > > > [    0.445156] omap-dma-engine omap-dma-engine: OMAP DMA engine
+> > > driver
+> > > > > [root@arago /]#
+> > > > > [root@arago /]#
+> > > > >
+> > > > >
+> > > > I have applied below patches from your recent post
+> > > >
+> > > >
+> > > > [2/2] ARM: dts: add AM33XX MMC support
+> > > > [1/2] mmc: omap_hsmmc: set max_segs based on dma engine limits
+> > > > [v4,3/3] mmc: davinci: get SG segment limits with
+> > > dma_get_slave_sg_limits()
+> > > > [v4,2/3] dma: edma: add device_slave_sg_limits() support
+> > > > [v4,1/3] dmaengine: add dma_get_slave_sg_limits()
+> > > > [v9,9/9] ARM: dts: add AM33XX SPI DMA support
+> > > > [v9,8/9] spi: omap2-mcspi: add generic DMA request support to the
+> DT
+> > > binding
+> > > > [v9,7/9] spi: omap2-mcspi: convert to
+> > > dma_request_slave_channel_compat()
+> > > > [v9,6/9] ARM: dts: add AM33XX EDMA support
+> > > > [v9,5/9] dmaengine: edma: Add TI EDMA device tree binding
+> > > > [v9,4/9] dmaengine: edma: enable build for AM33XX
+> > > > [v9,3/9] ARM: edma: add AM33XX support to the private EDMA API
+> > > > [v9,2/9] ARM: edma: remove unused transfer controller handlers
+> > > > [v9,1/9] ARM: davinci: move private EDMA API to arm/common
+> > > > [v3,2/2] mmc: omap_hsmmc: add generic DMA request support to the
+> DT
+> > > binding
+> > > > [v3,1/2] mmc: omap_hsmmc: convert to
+> > > dma_request_slave_channel_compat()
+> > > >
+> > > >
+> > > >
+> > > > Am I missing anything here?
+> > >
+> > > Yes, you missed the
+> > > http://www.spinics.net/lists/arm-kernel/msg227886.html dependency
+> > > mentioned first in the cover letter.
+> > >
+> >
+> > Matt, I manually edited the file with above patch and result is still
+> the same.
+> > Can you point me to branch where you have tested MMC code?
+> 
+> git://github.com/ohporter/linux.git edma-dmaengine-am33xx-mmc-v1
+> 
+> omap2plus_defconfig + CONFIG_TI_EDMA
+> 
+> I just doublechecked MMC rootfs on bone and evmsk as it's the standard
+> smoke test. My EVM is intermittent now so trying to coax it to power up
+> to reverify.
+> 
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-Untested! And this needs build- and runtime testing, especially for the
-MODULE case!
+Matt,
 
- arch/arm/mach-omap2/board-2430sdp.c | 2 +-
- arch/arm/mach-omap2/board-h4.c      | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Your branch is working for me, I tested it on EVM. Not sure what is wrong with manual rebasing
+I did yesterday. I will try to nail-down root-cause here.
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index a3e0aaa..cb0596b 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -166,7 +166,7 @@ static void __init sdp2430_display_init(void)
- 	omap_display_init(&sdp2430_dss_data);
- }
- 
--#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91x_MODULE)
-+#if IS_ENABLED(CONFIG_SMC91X)
- 
- static struct omap_smc91x_platform_data board_smc91x_data = {
- 	.cs		= 5,
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index 812c829..5b4ec51 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -246,7 +246,7 @@ static u32 is_gpmc_muxed(void)
- 		return 0;
- }
- 
--#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91x_MODULE)
-+#if IS_ENABLED(CONFIG_SMC91X)
- 
- static struct omap_smc91x_platform_data board_smc91x_data = {
- 	.cs		= 1,
--- 
-1.7.11.7
+And you can submit the next version fixing the comments I have given.
 
+Thanks,
+Vaibhav
