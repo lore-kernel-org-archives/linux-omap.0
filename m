@@ -1,95 +1,150 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 4/9] ARM: dts: OMAP3: Add support for OMAP3430 SDP board
-Date: Fri, 8 Mar 2013 11:27:28 -0600
-Message-ID: <1362763654-9660-5-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 7/9] ARM: dts: Add OMAP2 gpio bindings
+Date: Fri, 8 Mar 2013 11:27:31 -0600
+Message-ID: <1362763654-9660-8-git-send-email-jon-hunter@ti.com>
 References: <1362763654-9660-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33670 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933093Ab3CHR1y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Mar 2013 12:27:54 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:44480 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933767Ab3CHR2D (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Mar 2013 12:28:03 -0500
 In-Reply-To: <1362763654-9660-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Adds basic device-tree support for OMAP3430 SDP board which has 256MB
-of RAM and uses the TWL4030 power management IC.
+Add gpios bindings for OMAP2420 and OMAP2430 devices.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/boot/dts/Makefile         |    1 +
- arch/arm/boot/dts/omap3430-sdp.dts |   46 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap3430-sdp.dts
+ arch/arm/boot/dts/omap2420.dtsi |   44 +++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap2430.dtsi |   55 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 99 insertions(+)
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 9c62558..89013ed 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -119,6 +119,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	omap3-beagle-xm.dtb \
- 	omap3-evm.dtb \
- 	omap3-tobi.dtb \
-+	omap3430-sdp.dtb \
- 	omap4-panda.dtb \
- 	omap4-panda-a4.dtb \
- 	omap4-panda-es.dtb \
-diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
-new file mode 100644
-index 0000000..be0650d
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3430-sdp.dts
-@@ -0,0 +1,46 @@
-+/*
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
+diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
+index d4ce6c2..eee902f 100644
+--- a/arch/arm/boot/dts/omap2420.dtsi
++++ b/arch/arm/boot/dts/omap2420.dtsi
+@@ -29,6 +29,50 @@
+ 			pinctrl-single,function-mask = <0x3f>;
+ 		};
+ 
++		gpio1: gpio@48018000 {
++			compatible = "ti,omap2-gpio";
++			reg = <0x48018000 0x200>;
++			interrupts = <29>;
++			ti,hwmods = "gpio1";
++			#gpio-cells = <2>;
++			gpio-controller;
++			#interrupt-cells = <2>;
++			interrupt-controller;
++		};
 +
-+/include/ "omap3.dtsi"
++		gpio2: gpio@4801a000 {
++			compatible = "ti,omap2-gpio";
++			reg = <0x4801a000 0x200>;
++			interrupts = <30>;
++			ti,hwmods = "gpio2";
++			#gpio-cells = <2>;
++			gpio-controller;
++			#interrupt-cells = <2>;
++			interrupt-controller;
++		};
 +
-+/ {
-+	model = "TI OMAP3430 SDP";
-+	compatible = "ti,omap3430-sdp", "ti,omap3";
++		gpio3: gpio@4801c000 {
++			compatible = "ti,omap2-gpio";
++			reg = <0x4801c000 0x200>;
++			interrupts = <31>;
++			ti,hwmods = "gpio3";
++			#gpio-cells = <2>;
++			gpio-controller;
++			#interrupt-cells = <2>;
++			interrupt-controller;
++		};
 +
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>; /* 256 MB */
-+	};
-+};
++		gpio4: gpio@4801e000 {
++			compatible = "ti,omap2-gpio";
++			reg = <0x4801e000 0x200>;
++			interrupts = <32>;
++			ti,hwmods = "gpio4";
++			#gpio-cells = <2>;
++			gpio-controller;
++			#interrupt-cells = <2>;
++			interrupt-controller;
++		};
 +
-+&i2c1 {
-+	clock-frequency = <2600000>;
+ 		gpmc: gpmc@6800a000 {
+ 			compatible = "ti,omap2420-gpmc";
+ 			reg = <0x6800a000 0x1000>;
+diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+index 832f184..fb74382 100644
+--- a/arch/arm/boot/dts/omap2430.dtsi
++++ b/arch/arm/boot/dts/omap2430.dtsi
+@@ -29,6 +29,61 @@
+ 			pinctrl-single,function-mask = <0x3f>;
+ 		};
+ 
++		gpio1: gpio@4900c000 {
++			compatible = "ti,omap2-gpio";
++			reg = <0x4900c000 0x200>;
++			interrupts = <29>;
++			ti,hwmods = "gpio1";
++			#gpio-cells = <2>;
++			gpio-controller;
++			#interrupt-cells = <2>;
++			interrupt-controller;
++		};
 +
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+		interrupt-parent = <&intc>;
-+	};
-+};
++		gpio2: gpio@4900e000 {
++			compatible = "ti,omap2-gpio";
++			reg = <0x4900e000 0x200>;
++			interrupts = <30>;
++			ti,hwmods = "gpio2";
++			#gpio-cells = <2>;
++			gpio-controller;
++			#interrupt-cells = <2>;
++			interrupt-controller;
++		};
 +
-+/include/ "twl4030.dtsi"
++		gpio3: gpio@49010000 {
++			compatible = "ti,omap2-gpio";
++			reg = <0x49010000 0x200>;
++			interrupts = <31>;
++			ti,hwmods = "gpio3";
++			#gpio-cells = <2>;
++			gpio-controller;
++			#interrupt-cells = <2>;
++			interrupt-controller;
++		};
 +
-+&mmc1 {
-+	vmmc-supply = <&vmmc1>;
-+	vmmc_aux-supply = <&vsim>;
-+	bus-width = <8>;
-+};
++		gpio4: gpio@49012000 {
++			compatible = "ti,omap2-gpio";
++			reg = <0x49012000 0x200>;
++			interrupts = <32>;
++			ti,hwmods = "gpio4";
++			#gpio-cells = <2>;
++			gpio-controller;
++			#interrupt-cells = <2>;
++			interrupt-controller;
++		};
 +
-+&mmc2 {
-+	status = "disabled";
-+};
++		gpio5: gpio@480b6000 {
++			compatible = "ti,omap2-gpio";
++			reg = <0x480b6000 0x200>;
++			interrupts = <33>;
++			ti,hwmods = "gpio5";
++			#gpio-cells = <2>;
++			gpio-controller;
++			#interrupt-cells = <2>;
++			interrupt-controller;
++		};
 +
-+&mmc3 {
-+	status = "disabled";
-+};
+ 		gpmc: gpmc@6e000000 {
+ 			compatible = "ti,omap2430-gpmc";
+ 			reg = <0x6e000000 0x1000>;
 -- 
 1.7.10.4
 
