@@ -1,70 +1,87 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 09/10] usb: ehci: tegra: check against CONFIG_USB_PHY
-Date: Fri, 8 Mar 2013 09:10:59 +0200
-Message-ID: <20130308071059.GC21589@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 00/10] usb: phy: cleanups to Kconfig and directories
+Date: Fri, 8 Mar 2013 09:14:53 +0200
+Message-ID: <20130308071453.GD21589@arwen.pp.htv.fi>
 References: <1362648969-13737-1-git-send-email-balbi@ti.com>
- <1362648969-13737-10-git-send-email-balbi@ti.com>
- <5138FE9D.7040702@wwwdotorg.org>
-Reply-To: <balbi@ti.com>
+ <513904A4.7040101@wwwdotorg.org>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="E13BgyNx05feLLmH"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42795 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753811Ab3CHHLQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Mar 2013 02:11:16 -0500
+	protocol="application/pgp-signature"; boundary="k4f25fnPtRuIRUb3"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5138FE9D.7040702@wwwdotorg.org>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <513904A4.7040101-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, cbou-JGs/UdohzUI@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, cbou@mail.ru, dwmw2@infradead.org, stern@rowland.harvard.edu, arnd@arndb.de, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
 
---E13BgyNx05feLLmH
+--k4f25fnPtRuIRUb3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 07, 2013 at 01:54:53PM -0700, Stephen Warren wrote:
-> On 03/07/2013 02:36 AM, Felipe Balbi wrote:
-> > CONFIG_USB_OTG_UTILS will be removed very
-> > soon, so we should check CONFIG_USB_PHY
-> > instead.
+Hi,
+
+On Thu, Mar 07, 2013 at 02:20:36PM -0700, Stephen Warren wrote:
+> On 03/07/2013 02:35 AM, Felipe Balbi wrote:
+> > Hi folks,
+> >=20
+> > inspired by Paul's DWC2 patchset which added usb_otg_state_string()
+> > (a copy of otg_state_string()) I have now renamed otg_state_string()
+> > to usb_otg_state_string(), moved it to usb-common, then moved all
+> > phy drivers to drivers/usb/phy/ and completely deleted the otg director=
+y.
+> >=20
+> > We're also removing CONFIG_USB_OTG_UTILS since that has lots its
+> > meaning long ago.
+> >=20
+> > I have compiled all patches with allyes, allno and allmod configs,
+> > but please make sure to test on your platforms to make sure we're
+> > not leaking any more problems to mainline.
 >=20
-> The Tegra EHCI driver isn't very useful without the Tegra PHY driver.
-> Perhaps its Kconfig should simply "select USB_PHY", and the ifdefs be
+> What branch do the patches apply to? They didn't "git am" for me on
+> either next-20130305, nor
+> git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git next.
 
-no selects anymore.
+they're on top of my testing branch. There were a few other patches
+touching drivers/phy which you need. Namely :
 
-> removed rather than modified?
+0e3b847 usb: phy: mxs: use readl(), writel() instead of the _relaxed() vers=
+ions
+35f0683 usb: phy: mxs-phy: register phy with framework
+f6797d0 usb: phy: move bulk of otg/otg.c to phy/phy.c
 
-One can still compile-test the driver without a PHY. Ideally, though, we
-would teach EHCI-core about PHYs.
+It's easier to cherry-pick them all from my testing branch, or merge the
+full branch which contains a bunch of other cleanups.
 
 --=20
 balbi
 
---E13BgyNx05feLLmH
+--k4f25fnPtRuIRUb3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJROY8DAAoJEIaOsuA1yqREeBcP/jmg/+xJ8yDJqp6ITZzyKkUn
-PnLTz61ArsYgmzQVaV2kY9tJS7muiGT2ZeM+fbvT6JRXXSbR5XwbdjZtDgK1i28r
-gmEM38NyB4s7PjIRifAocMHj7/cCC4eNqgoyaulBInvRsPczWR9ZNSELMfqHu8sc
-Hta00KDesRpyZqKNZY//dwPEPjdfuWEwrbUW+gqCokKCruv8/1YwRRvPdhvwS+hv
-XSLT2sCsDc3kVa0aCqCpHetyqlS/ELsBTllVFU1T/voMt0ZvM5aXZ1Fj5fIfN0BE
-09xbRWkwC2GiSZ73YtASWc7qgm78sDP9ihmqriVNaaAxoqVDx+TQIvNn5G8+WHkO
-u9Ml/Z9wiNn7IYZ5es2sK0j2VKXJ/AsU+E9eV758GP6heW6hylt91Abt9UDwSpkN
-Gd20EE21oDU4PDd4f2sFNV2eFuVeFisEKvJeFPl1p7tHli3jazYhcdf/JkmlRSkp
-XVC2fiDjujmmsIn0YMg6XgnsqHbS1i6Y+RJuq1MgcdYx3NQL6S35EZrpTQ25m54T
-r1I568B5tVgvDqTag0tJRm48vCoqbP7pf2PAwG9wTEHZ60ycQqmYF0EgXOZNxNhf
-cuGD6b2oCZQ13iBY3ttwQEH8ECQ5CS+E4MT6LyZa/Pil1GikzqLDsdPV3ukQWH5c
-oNHOkUZwY+c+OgfOcj2K
-=F5U1
+iQIcBAEBAgAGBQJROY/tAAoJEIaOsuA1yqRERagP/2DOQE1e0QtgGChXmhYjcyLY
+0T8fKzQ3VIc9c1lsDqLGxDgpGQK4cSUwNAqZsBPorZoU7SdSt+bCowU8S1gJ1beG
+PnWj/FWnbxaXTyq4D3Rcgir76pPW5nxH5NB4ySfP5RTAX4WeCZ9K4rer4vqkO9vH
+VrMyarK4CC1V3BBr8zEehA67oWVtyx4TQ3OMwVG6xgmAwhTMXO1QhRsNHsWh0FbO
+OYwMdbFZLqgAY0nyL2rkAjYYxF0372HL/7EOMYl8RQqgD5tNCgmGJhfFb7t3wCrd
+ixRERZauIXuyepBxm8btrlA4l/rn7G2ijSALNUP2aIEwvZZEQwbuwDjFu3iZdfIF
+GvwywgYoISzmL2XX4nNgzOK9iqYd/YeuaEBMhutMmT3iafztC56At9Cj0WFf8XKh
+ihJh11MeO7OBWJzAZ3p+oXdTc09xwNK/wxc1fXCGAUe5JwjAWFDcTNa0ecr45nyZ
+exFTHIG4aywH8dxkNMd728lR1lJo9I9+UJ64KjzE1blUJnFoAzJKmkLkqxBSsmwn
+71LT0UrCcWZWBy33eWu6zO2ZEmlmhfFHaDaO+R0L3p7oM4+xmZtHyc+w7V7ESway
+vexo+ca6AKk9+wlh8miWQV9F0Hlre6zAP5QTjUl/DIysQlQdM6Wp+DrZnkPQRz++
+rOlt1yPnI3xGGxWBua12
+=ar37
 -----END PGP SIGNATURE-----
 
---E13BgyNx05feLLmH--
+--k4f25fnPtRuIRUb3--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
