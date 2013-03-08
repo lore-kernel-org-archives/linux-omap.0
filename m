@@ -1,46 +1,70 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: 3.8 -> 3.9-rc1 upgrade: old configs broken
-Date: Fri, 8 Mar 2013 09:42:15 +0530
-Message-ID: <5139651F.6010404@ti.com>
-References: <51376E2F.9090005@broadcom.com> <20130306203332.GR11806@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 09/10] usb: ehci: tegra: check against CONFIG_USB_PHY
+Date: Fri, 8 Mar 2013 09:10:59 +0200
+Message-ID: <20130308071059.GC21589@arwen.pp.htv.fi>
+References: <1362648969-13737-1-git-send-email-balbi@ti.com>
+ <1362648969-13737-10-git-send-email-balbi@ti.com>
+ <5138FE9D.7040702@wwwdotorg.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="E13BgyNx05feLLmH"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34879 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42795 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760164Ab3CHEMj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Mar 2013 23:12:39 -0500
-In-Reply-To: <20130306203332.GR11806@atomide.com>
+	id S1753811Ab3CHHLQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Mar 2013 02:11:16 -0500
+Content-Disposition: inline
+In-Reply-To: <5138FE9D.7040702@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Piotr Haber <phaber@broadcom.com>, Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, cbou@mail.ru, dwmw2@infradead.org, stern@rowland.harvard.edu, arnd@arndb.de, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Thursday 07 March 2013 02:03 AM, Tony Lindgren wrote:
-> So basically what's going is that __clk_init() calls kzalloc() before
-> kmem_cache_init() is done. This happens the first time for sys_clkin_ck
-> where we do have clk->num_parents.
-> 
-> With CONFIG_DEBUG_SLAB we actually get an error in __find_general_cachep()
-> as generic caches are not yet initialized.
-> 
-> It seems that in the omap case we need to statically allocate clk->parents
-> to fix this. I believe we now are overwriting parent clocks..
+--E13BgyNx05feLLmH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Actually we are not. It was a known issue that the kzalloc() calls in
-__clk_init() for OMAP would fail, since our clock inits happen quite
-early. And hence I submitted this patch 'clk: Allow late cache allocation
- for clk->parent, commit 7975059d' to Mike, hoping to work this around in some way.
-However I seem to have overlooked the fact that we have BUG() some places
-with DEBUG turned on.
-The right fix obviously is to move all the static clocks for OMAP over to
-use dynamic registrations and do them much after the slab is available.
-While we are at this, for now like you rightly said, we would need to have
-static clk->parents sent over to __clk_init() to fix these crashes with SLAB_DEBUG
-enabled.
-I am in the middle of travel with no access to hardware. I will get to this on
-monday and send a fix over.
+On Thu, Mar 07, 2013 at 01:54:53PM -0700, Stephen Warren wrote:
+> On 03/07/2013 02:36 AM, Felipe Balbi wrote:
+> > CONFIG_USB_OTG_UTILS will be removed very
+> > soon, so we should check CONFIG_USB_PHY
+> > instead.
+>=20
+> The Tegra EHCI driver isn't very useful without the Tegra PHY driver.
+> Perhaps its Kconfig should simply "select USB_PHY", and the ifdefs be
 
-regards,
-Rajendra
+no selects anymore.
+
+> removed rather than modified?
+
+One can still compile-test the driver without a PHY. Ideally, though, we
+would teach EHCI-core about PHYs.
+
+--=20
+balbi
+
+--E13BgyNx05feLLmH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJROY8DAAoJEIaOsuA1yqREeBcP/jmg/+xJ8yDJqp6ITZzyKkUn
+PnLTz61ArsYgmzQVaV2kY9tJS7muiGT2ZeM+fbvT6JRXXSbR5XwbdjZtDgK1i28r
+gmEM38NyB4s7PjIRifAocMHj7/cCC4eNqgoyaulBInvRsPczWR9ZNSELMfqHu8sc
+Hta00KDesRpyZqKNZY//dwPEPjdfuWEwrbUW+gqCokKCruv8/1YwRRvPdhvwS+hv
+XSLT2sCsDc3kVa0aCqCpHetyqlS/ELsBTllVFU1T/voMt0ZvM5aXZ1Fj5fIfN0BE
+09xbRWkwC2GiSZ73YtASWc7qgm78sDP9ihmqriVNaaAxoqVDx+TQIvNn5G8+WHkO
+u9Ml/Z9wiNn7IYZ5es2sK0j2VKXJ/AsU+E9eV758GP6heW6hylt91Abt9UDwSpkN
+Gd20EE21oDU4PDd4f2sFNV2eFuVeFisEKvJeFPl1p7tHli3jazYhcdf/JkmlRSkp
+XVC2fiDjujmmsIn0YMg6XgnsqHbS1i6Y+RJuq1MgcdYx3NQL6S35EZrpTQ25m54T
+r1I568B5tVgvDqTag0tJRm48vCoqbP7pf2PAwG9wTEHZ60ycQqmYF0EgXOZNxNhf
+cuGD6b2oCZQ13iBY3ttwQEH8ECQ5CS+E4MT6LyZa/Pil1GikzqLDsdPV3ukQWH5c
+oNHOkUZwY+c+OgfOcj2K
+=F5U1
+-----END PGP SIGNATURE-----
+
+--E13BgyNx05feLLmH--
