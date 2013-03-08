@@ -1,178 +1,160 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 01/20] OMAPDSS: DSI: remove DSI & DISPC clk divisors from dssdev
-Date: Fri, 8 Mar 2013 13:51:36 +0200
-Message-ID: <1362743515-10152-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 03/20] OMAPDSS: DPI: remove omap_dss_device uses
+Date: Fri, 8 Mar 2013 13:51:38 +0200
+Message-ID: <1362743515-10152-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1362743515-10152-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56447 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56449 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753110Ab3CHLwI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Mar 2013 06:52:08 -0500
+	id S1753110Ab3CHLwL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Mar 2013 06:52:11 -0500
 In-Reply-To: <1362743515-10152-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-struct omap_dss_device contains DSS clock divisors. The idea is that the
-board file can pass precalculated divisors to the display driver.
-However, these divsors are no longer needed, as the omapdss driver can
-calculate the divisors during runtime.
+The role of struct omap_dss_device will change in the future. The exact
+details of that are still a bit unclear. However, the less uses of
+omap_dss_device we have, the easier the change is in the future.
 
-This patch removes the divisors from omap_dss_device, and their uses
-from the dsi driver.
+This patch removes uses of omap_dss_device from dpi.c, where it can be
+done neatly, by, for example, passing some lower level parameter in
+function parameters.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dsi.c |   47 +++++++++++++++++++++++------------------
- include/video/omapdss.h       |   21 ------------------
- 2 files changed, 26 insertions(+), 42 deletions(-)
+ drivers/video/omap2/dss/dpi.c |   35 +++++++++++++++--------------------
+ 1 file changed, 15 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 28d41d1..9eb7845 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -261,6 +261,13 @@ struct dsi_data {
- 	struct clk *dss_clk;
- 	struct clk *sys_clk;
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index 4af136a..cb6b280 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -91,11 +91,10 @@ static enum omap_dss_clk_source dpi_get_alt_clk_src(enum omap_channel channel)
+ 	}
+ }
  
-+	struct dispc_clock_info user_dispc_cinfo;
-+	struct dsi_clock_info user_dsi_cinfo;
-+
-+	enum omap_dss_clk_source user_dispc_fclk_src;
-+	enum omap_dss_clk_source user_lcd_clk_src;
-+	enum omap_dss_clk_source user_dsi_fclk_src;
-+
- 	struct dsi_clock_info current_cinfo;
- 
- 	bool vdds_dsi_enabled;
-@@ -1200,7 +1207,7 @@ static int dsi_set_lp_clk_divisor(struct omap_dss_device *dssdev)
- 	unsigned lp_clk_div;
- 	unsigned long lp_clk;
- 
--	lp_clk_div = dssdev->clocks.dsi.lp_clk_div;
-+	lp_clk_div = dsi->user_dsi_cinfo.lp_clk_div;
- 
- 	if (lp_clk_div == 0 || lp_clk_div > dsi->lpdiv_max)
- 		return -EINVAL;
-@@ -3910,7 +3917,7 @@ static void dsi_config_cmd_mode_interleaving(struct omap_dss_device *dssdev)
- 	struct omap_video_timings *timings = &dsi->timings;
- 	int bpp = dsi_get_pixel_size(dsi->pix_fmt);
- 	int ndl = dsi->num_lanes_used - 1;
--	int dsi_fclk_hsdiv = dssdev->clocks.dsi.regm_dsi + 1;
-+	int dsi_fclk_hsdiv = dsi->user_dsi_cinfo.regm_dsi + 1;
- 	int hsa_interleave_hs = 0, hsa_interleave_lp = 0;
- 	int hfp_interleave_hs = 0, hfp_interleave_lp = 0;
- 	int hbp_interleave_hs = 0, hbp_interleave_lp = 0;
-@@ -4302,24 +4309,24 @@ int omapdss_dsi_set_clocks(struct omap_dss_device *dssdev,
- 	dsi_fclk = cinfo.dsi_pll_hsdiv_dsi_clk;
- 	lp_clk_div = DIV_ROUND_UP(dsi_fclk, lp_clk * 2);
- 
--	dssdev->clocks.dsi.regn = cinfo.regn;
--	dssdev->clocks.dsi.regm = cinfo.regm;
--	dssdev->clocks.dsi.regm_dispc = cinfo.regm_dispc;
--	dssdev->clocks.dsi.regm_dsi = cinfo.regm_dsi;
-+	dsi->user_dsi_cinfo.regn = cinfo.regn;
-+	dsi->user_dsi_cinfo.regm = cinfo.regm;
-+	dsi->user_dsi_cinfo.regm_dispc = cinfo.regm_dispc;
-+	dsi->user_dsi_cinfo.regm_dsi = cinfo.regm_dsi;
- 
--	dssdev->clocks.dsi.lp_clk_div = lp_clk_div;
-+	dsi->user_dsi_cinfo.lp_clk_div = lp_clk_div;
- 
--	dssdev->clocks.dispc.channel.lck_div = dispc_cinfo.lck_div;
--	dssdev->clocks.dispc.channel.pck_div = dispc_cinfo.pck_div;
-+	dsi->user_dispc_cinfo.lck_div = dispc_cinfo.lck_div;
-+	dsi->user_dispc_cinfo.pck_div = dispc_cinfo.pck_div;
- 
--	dssdev->clocks.dispc.dispc_fclk_src = OMAP_DSS_CLK_SRC_FCK;
-+	dsi->user_dispc_fclk_src = OMAP_DSS_CLK_SRC_FCK;
- 
--	dssdev->clocks.dispc.channel.lcd_clk_src =
-+	dsi->user_lcd_clk_src =
- 		dsi->module_id == 0 ?
- 		OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC :
- 		OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DISPC;
- 
--	dssdev->clocks.dsi.dsi_fclk_src =
-+	dsi->user_dsi_fclk_src =
- 		dsi->module_id == 0 ?
- 		OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DSI :
- 		OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DSI;
-@@ -4589,8 +4596,8 @@ static int dsi_configure_dispc_clocks(struct omap_dss_device *dssdev)
- 
- 	fck = dsi_get_pll_hsdiv_dispc_rate(dsidev);
- 
--	dispc_cinfo.lck_div = dssdev->clocks.dispc.channel.lck_div;
--	dispc_cinfo.pck_div = dssdev->clocks.dispc.channel.pck_div;
-+	dispc_cinfo.lck_div = dsi->user_dispc_cinfo.lck_div;
-+	dispc_cinfo.pck_div = dsi->user_dispc_cinfo.pck_div;
- 
- 	r = dispc_calc_clock_rates(fck, &dispc_cinfo);
- 	if (r) {
-@@ -4679,13 +4686,12 @@ static void dsi_display_uninit_dispc(struct omap_dss_device *dssdev)
- static int dsi_configure_dsi_clocks(struct omap_dss_device *dssdev)
+-static int dpi_set_dsi_clk(struct omap_dss_device *dssdev,
++static int dpi_set_dsi_clk(enum omap_channel channel,
+ 		unsigned long pck_req, unsigned long *fck, int *lck_div,
+ 		int *pck_div)
  {
- 	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
-+	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
- 	struct dsi_clock_info cinfo;
+-	struct omap_overlay_manager *mgr = dssdev->output->manager;
+ 	struct dsi_clock_info dsi_cinfo;
+ 	struct dispc_clock_info dispc_cinfo;
+ 	int r;
+@@ -109,8 +108,8 @@ static int dpi_set_dsi_clk(struct omap_dss_device *dssdev,
+ 	if (r)
+ 		return r;
+ 
+-	dss_select_lcd_clk_source(mgr->id,
+-			dpi_get_alt_clk_src(mgr->id));
++	dss_select_lcd_clk_source(channel,
++			dpi_get_alt_clk_src(channel));
+ 
+ 	dpi.mgr_config.clock_info = dispc_cinfo;
+ 
+@@ -121,9 +120,8 @@ static int dpi_set_dsi_clk(struct omap_dss_device *dssdev,
+ 	return 0;
+ }
+ 
+-static int dpi_set_dispc_clk(struct omap_dss_device *dssdev,
+-		unsigned long pck_req, unsigned long *fck, int *lck_div,
+-		int *pck_div)
++static int dpi_set_dispc_clk(unsigned long pck_req, unsigned long *fck,
++		int *lck_div, int *pck_div)
+ {
+ 	struct dss_clock_info dss_cinfo;
+ 	struct dispc_clock_info dispc_cinfo;
+@@ -146,20 +144,19 @@ static int dpi_set_dispc_clk(struct omap_dss_device *dssdev,
+ 	return 0;
+ }
+ 
+-static int dpi_set_mode(struct omap_dss_device *dssdev)
++static int dpi_set_mode(struct omap_overlay_manager *mgr)
+ {
+ 	struct omap_video_timings *t = &dpi.timings;
+-	struct omap_overlay_manager *mgr = dssdev->output->manager;
+ 	int lck_div = 0, pck_div = 0;
+ 	unsigned long fck = 0;
+ 	unsigned long pck;
+ 	int r = 0;
+ 
+ 	if (dpi.dsidev)
+-		r = dpi_set_dsi_clk(dssdev, t->pixel_clock * 1000, &fck,
++		r = dpi_set_dsi_clk(mgr->id, t->pixel_clock * 1000, &fck,
+ 				&lck_div, &pck_div);
+ 	else
+-		r = dpi_set_dispc_clk(dssdev, t->pixel_clock * 1000, &fck,
++		r = dpi_set_dispc_clk(t->pixel_clock * 1000, &fck,
+ 				&lck_div, &pck_div);
+ 	if (r)
+ 		return r;
+@@ -179,10 +176,8 @@ static int dpi_set_mode(struct omap_dss_device *dssdev)
+ 	return 0;
+ }
+ 
+-static void dpi_config_lcd_manager(struct omap_dss_device *dssdev)
++static void dpi_config_lcd_manager(struct omap_overlay_manager *mgr)
+ {
+-	struct omap_overlay_manager *mgr = dssdev->output->manager;
+-
+ 	dpi.mgr_config.io_pad_mode = DSS_IO_PAD_MODE_BYPASS;
+ 
+ 	dpi.mgr_config.stallmode = false;
+@@ -197,7 +192,7 @@ static void dpi_config_lcd_manager(struct omap_dss_device *dssdev)
+ 
+ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
+ {
+-	struct omap_dss_output *out = dssdev->output;
++	struct omap_dss_output *out = &dpi.output;
  	int r;
  
--	cinfo.regn  = dssdev->clocks.dsi.regn;
--	cinfo.regm  = dssdev->clocks.dsi.regm;
--	cinfo.regm_dispc = dssdev->clocks.dsi.regm_dispc;
--	cinfo.regm_dsi = dssdev->clocks.dsi.regm_dsi;
-+	cinfo = dsi->user_dsi_cinfo;
-+
- 	r = dsi_calc_clock_rates(dsidev, &cinfo);
- 	if (r) {
- 		DSSERR("Failed to calc dsi clocks\n");
-@@ -4716,9 +4722,8 @@ static int dsi_display_init_dsi(struct omap_dss_device *dssdev)
+ 	mutex_lock(&dpi.lock);
+@@ -230,7 +225,7 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
  	if (r)
- 		goto err1;
+ 		goto err_get_dispc;
  
--	dss_select_dsi_clk_source(dsi->module_id, dssdev->clocks.dsi.dsi_fclk_src);
--	dss_select_lcd_clk_source(mgr->id,
--			dssdev->clocks.dispc.channel.lcd_clk_src);
-+	dss_select_dsi_clk_source(dsi->module_id, dsi->user_dsi_fclk_src);
-+	dss_select_lcd_clk_source(mgr->id, dsi->user_lcd_clk_src);
+-	r = dss_dpi_select_source(dssdev->channel);
++	r = dss_dpi_select_source(out->manager->id);
+ 	if (r)
+ 		goto err_src_sel;
  
- 	DSSDBG("PLL OK\n");
+@@ -244,11 +239,11 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
+ 			goto err_dsi_pll_init;
+ 	}
  
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index caefa09..255bcf5 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -592,27 +592,6 @@ struct omap_dss_device {
+-	r = dpi_set_mode(dssdev);
++	r = dpi_set_mode(out->manager);
+ 	if (r)
+ 		goto err_set_mode;
  
- 	struct {
- 		struct {
--			struct {
--				u16 lck_div;
--				u16 pck_div;
--				enum omap_dss_clk_source lcd_clk_src;
--			} channel;
--
--			enum omap_dss_clk_source dispc_fclk_src;
--		} dispc;
--
--		struct {
--			/* regn is one greater than TRM's REGN value */
--			u16 regn;
--			u16 regm;
--			u16 regm_dispc;
--			u16 regm_dsi;
--
--			u16 lp_clk_div;
--			enum omap_dss_clk_source dsi_fclk_src;
--		} dsi;
--
--		struct {
- 			/* regn is one greater than TRM's REGN value */
- 			u16 regn;
- 			u16 regm2;
+-	dpi_config_lcd_manager(dssdev);
++	dpi_config_lcd_manager(out->manager);
+ 
+ 	mdelay(2);
+ 
+@@ -285,7 +280,7 @@ EXPORT_SYMBOL(omapdss_dpi_display_enable);
+ 
+ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
+ {
+-	struct omap_overlay_manager *mgr = dssdev->output->manager;
++	struct omap_overlay_manager *mgr = dpi.output.manager;
+ 
+ 	mutex_lock(&dpi.lock);
+ 
+@@ -325,7 +320,7 @@ int dpi_check_timings(struct omap_dss_device *dssdev,
+ 			struct omap_video_timings *timings)
+ {
+ 	int r;
+-	struct omap_overlay_manager *mgr = dssdev->output->manager;
++	struct omap_overlay_manager *mgr = dpi.output.manager;
+ 	int lck_div, pck_div;
+ 	unsigned long fck;
+ 	unsigned long pck;
 -- 
 1.7.10.4
 
