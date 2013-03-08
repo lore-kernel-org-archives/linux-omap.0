@@ -1,36 +1,79 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH 1/3] driver: net: ethernet: cpsw: implement ethtool get/set phy setting
-Date: Fri, 08 Mar 2013 16:04:28 +0100
-Message-ID: <87ip523pc3.fsf@dell.be.48ers.dk>
-References: <1362659421-11884-1-git-send-email-mugunthanvnm@ti.com>
-	<1362659421-11884-2-git-send-email-mugunthanvnm@ti.com>
-	<8762135on4.fsf@dell.be.48ers.dk>
-	<1362686350.2936.43.camel@bwh-desktop.uk.solarflarecom.com>
-	<513991E6.5080400@ti.com>
-	<1362754401.3248.8.camel@bwh-desktop.uk.solarflarecom.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 01/13] usb: phy: nop: Add device tree support and binding
+ information
+Date: Fri, 8 Mar 2013 17:04:50 +0200
+Message-ID: <5139FE12.6000700@ti.com>
+References: <1359993540-20780-1-git-send-email-rogerq@ti.com> <1359993540-20780-2-git-send-email-rogerq@ti.com> <5139C174.7030401@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:63456 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933073Ab3CHPEe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Mar 2013 10:04:34 -0500
-In-Reply-To: <1362754401.3248.8.camel@bwh-desktop.uk.solarflarecom.com> (Ben
-	Hutchings's message of "Fri, 8 Mar 2013 14:53:21 +0000")
+Received: from comal.ext.ti.com ([198.47.26.152]:36783 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934233Ab3CHPFZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Mar 2013 10:05:25 -0500
+In-Reply-To: <5139C174.7030401@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ben Hutchings <bhutchings@solarflare.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, netdev@vger.kernel.org, davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com
+To: Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: tony@atomide.com, b-cousson@ti.com, balbi@ti.com, stern@rowland.harvard.edu, linux@arm.linux.org.uk, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, paul@pwsan.com
 
->>>>> "Ben" == Ben Hutchings <bhutchings@solarflare.com> writes:
+On 03/08/2013 12:46 PM, Marc Kleine-Budde wrote:
+> On 02/04/2013 04:58 PM, Roger Quadros wrote:
+>> The PHY clock, clock rate, VCC regulator and RESET regulator
+>> can now be provided via device tree.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  .../devicetree/bindings/usb/usb-nop-xceiv.txt      |   34 ++++++++++++++++++++
+>>  drivers/usb/otg/nop-usb-xceiv.c                    |   31 ++++++++++++++++++
+>>  2 files changed, 65 insertions(+), 0 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+>> new file mode 100644
+>> index 0000000..d7e2726
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+>> @@ -0,0 +1,34 @@
+>> +USB NOP PHY
+>> +
+>> +Required properties:
+>> +- compatible: should be usb-nop-xceiv
+>> +
+>> +Optional properties:
+>> +- clocks: phandle to the PHY clock. Use as per Documentation/devicetree
+>> +  /bindings/clock/clock-bindings.txt
+>> +  This property is required if clock-frequency is specified.
+>> +
+>> +- clock-names: Should be "main_clk"
+>> +
+>> +- clock-frequency: the clock frequency (in Hz) that the PHY clock must
+>> +  be configured to.
+>> +
+>> +- vcc-supply: phandle to the regulator that provides RESET to the PHY.
+>> +
+>> +- reset-supply: phandle to the regulator that provides power to the PHY.
+>> +
+>> +Example:
+>> +
+>> +	hsusb1_phy {
+>> +		compatible = "usb-nop-xceiv";
+>> +		clock-frequency = <19200000>;
+> 
+> Why do you hardcode the clock frequency here? You should use
+> clk_get_rate() to get the frequency from the clock tree.
 
-Hi,
+That would work only if the clock was programmed to the correct frequency
+by someone.
 
- Ben> The 'active slave' property would also be needed for the SIOCGMIIPHY
- Ben> ioctl and not just ethtool.  But it's really quite arbitrary.  Perhaps
- Ben> each of them should have their own net device (as with DSA).
+e.g. In the OMAP case nobody programs the auxiliary clock on Panda which clocks
+the USB PHY.
 
-Indeed, I think that would simplify all of this quite a bit.
+The usb-nop-xceiv device driver must program the clock rate using clk_set_rate(),
+but it needs to know what frequency it must program it to. Different boards/PHYs
+might use a different clock frequency. The 'clock-frequency' property
+is used to pass on this information to the driver.
 
--- 
-Bye, Peter Korsgaard
+cheers,
+-roger
