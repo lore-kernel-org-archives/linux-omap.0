@@ -1,105 +1,144 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 14/17] ARM: OMAP2+: Convert ONENAND to retrieve GPMC settings from DT
-Date: Fri, 8 Mar 2013 10:58:35 -0600
-Message-ID: <1362761918-8696-15-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V2 09/17] ARM: OMAP2+: Don't configure of chip-select options in gpmc_cs_configure()
+Date: Fri, 8 Mar 2013 10:58:30 -0600
+Message-ID: <1362761918-8696-10-git-send-email-jon-hunter@ti.com>
 References: <1362761918-8696-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47956 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43398 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934456Ab3CHQ7l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Mar 2013 11:59:41 -0500
+	id S934448Ab3CHQ7h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Mar 2013 11:59:37 -0500
 In-Reply-To: <1362761918-8696-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
 
-When booting with device-tree, retrieve GPMC settings for ONENAND from
-the device-tree blob. This will allow us to remove all static settings
-stored in the gpmc-nand.c in the future once the migration to
-device-tree is complete.
-
-The user must now specify the ONENAND device width in the device-tree
-binding so that the GPMC can be programmed correctly. Therefore, update
-the device-tree binding documentation for ONENAND devices connected to
-the GPMC to reflect this.
-
-Please note that this does not include GPMC timings for ONENAND. The
-timings are being calculated at runtime.
-
-There is some legacy code that only enables read wait monitoring for
-non-OMAP3 devices. There are no known OMAP3 device issues that prevent
-this feature being enabled and so when booting with device-tree use the
-wait-monitoring settings described in the device-tree blob.
+With the addition of the gpmc_cs_program_settings(), we no longer need
+or use gpmc_cs_configure() to configure some of the GPMC chip-select
+options. So rename the function to gpmc_configure() and remove code that
+modifies options in the CONFIG1 register.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- .../devicetree/bindings/mtd/gpmc-onenand.txt       |    3 +++
- arch/arm/mach-omap2/gpmc-onenand.c                 |   21 ++++++++++++++------
- 2 files changed, 18 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/gpmc-nand.c |    2 +-
+ arch/arm/mach-omap2/gpmc.c      |   49 ++++++---------------------------------
+ arch/arm/mach-omap2/gpmc.h      |    5 +---
+ 3 files changed, 9 insertions(+), 47 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
-index deec9da..b752942 100644
---- a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
-@@ -10,6 +10,8 @@ Documentation/devicetree/bindings/bus/ti-gpmc.txt
- Required properties:
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 1c57755..d673155 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -152,7 +152,7 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 		if (IS_ERR_VALUE(err))
+ 			goto out_free_cs;
  
-  - reg:			The CS line the peripheral is connected to
-+ - gpmc,device-width	Width of the ONENAND device connected to the GPMC
-+			in bytes. Must be 1 or 2.
+-		err = gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_WP, 0);
++		err = gpmc_configure(GPMC_CONFIG_WP, 0);
+ 		if (IS_ERR_VALUE(err))
+ 			goto out_free_cs;
+ 	}
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 1b81ca1..e4323ca 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -550,16 +550,14 @@ void gpmc_cs_free(int cs)
+ EXPORT_SYMBOL(gpmc_cs_free);
  
- Optional properties:
+ /**
+- * gpmc_cs_configure - write request to configure gpmc
+- * @cs: chip select number
++ * gpmc_configure - write request to configure gpmc
+  * @cmd: command type
+  * @wval: value to write
+  * @return status of the operation
+  */
+-int gpmc_cs_configure(int cs, int cmd, int wval)
++int gpmc_configure(int cmd, int wval)
+ {
+-	int err = 0;
+-	u32 regval = 0;
++	u32 regval;
  
-@@ -34,6 +36,7 @@ Example for an OMAP3430 board:
+ 	switch (cmd) {
+ 	case GPMC_ENABLE_IRQ:
+@@ -579,47 +577,14 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
+ 		gpmc_write_reg(GPMC_CONFIG, regval);
+ 		break;
  
- 		onenand@0 {
- 			reg = <0 0 0>; /* CS0, offset 0 */
-+			gpmc,device-width = <2>;
- 
- 			#address-cells = <1>;
- 			#size-cells = <1>;
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index aa3f53e..454371b 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -272,6 +272,10 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
- 	struct gpmc_timings t;
- 	int ret;
- 
-+	if (gpmc_onenand_data->of_node)
-+		gpmc_read_settings_dt(gpmc_onenand_data->of_node,
-+				      &onenand_async);
-+
- 	omap2_onenand_set_async_mode(onenand_base);
- 
- 	omap2_onenand_calc_async_timings(&t);
-@@ -300,12 +304,17 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
- 		set_onenand_cfg(onenand_base);
+-	case GPMC_CONFIG_RDY_BSY:
+-		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+-		if (wval)
+-			regval |= WR_RD_PIN_MONITORING;
+-		else
+-			regval &= ~WR_RD_PIN_MONITORING;
+-		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
+-		break;
+-
+-	case GPMC_CONFIG_DEV_SIZE:
+-		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+-
+-		/* clear 2 target bits */
+-		regval &= ~GPMC_CONFIG1_DEVICESIZE(3);
+-
+-		/* set the proper value */
+-		regval |= GPMC_CONFIG1_DEVICESIZE(wval);
+-
+-		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
+-		break;
+-
+-	case GPMC_CONFIG_DEV_TYPE:
+-		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+-		/* clear 4 target bits */
+-		regval &= ~(GPMC_CONFIG1_DEVICETYPE(3) |
+-			    GPMC_CONFIG1_MUXTYPE(3));
+-		/* set the proper value */
+-		regval |= GPMC_CONFIG1_DEVICETYPE(wval);
+-		if (wval == GPMC_DEVICETYPE_NOR)
+-			regval |= GPMC_CONFIG1_MUXADDDATA;
+-		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
+-		break;
+-
+ 	default:
+-		printk(KERN_ERR "gpmc_configure_cs: Not supported\n");
+-		err = -EINVAL;
++		pr_err("%s: command not supported\n", __func__);
++		return -EINVAL;
  	}
  
--	/*
--	 * FIXME: Appears to be legacy code from initial ONENAND commit.
--	 * Unclear what boards this is for and if this can be removed.
--	 */
--	if (!cpu_is_omap34xx())
--		onenand_sync.wait_on_read = true;
-+	if (gpmc_onenand_data->of_node) {
-+		gpmc_read_settings_dt(gpmc_onenand_data->of_node,
-+				      &onenand_sync);
-+	} else {
-+		/*
-+		 * FIXME: Appears to be legacy code from initial ONENAND commit.
-+		 * Unclear what boards this is for and if this can be removed.
-+		 */
-+		if (!cpu_is_omap34xx())
-+			onenand_sync.wait_on_read = true;
-+	}
+-	return err;
++	return 0;
+ }
+-EXPORT_SYMBOL(gpmc_cs_configure);
++EXPORT_SYMBOL(gpmc_configure);
  
- 	omap2_onenand_calc_sync_timings(&t, gpmc_onenand_data->flags, freq);
+ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+ {
+diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
+index ce6ae21..87d2a22 100644
+--- a/arch/arm/mach-omap2/gpmc.h
++++ b/arch/arm/mach-omap2/gpmc.h
+@@ -59,9 +59,6 @@
+ #define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
+ #define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
+ #define GPMC_CONFIG1_MUXTYPE(val)       ((val & 3) << 8)
+-#define GPMC_CONFIG1_MUXNONMUX          GPMC_CONFIG1_MUXTYPE(0)
+-#define GPMC_CONFIG1_MUXAAD             GPMC_CONFIG1_MUXTYPE(GPMC_MUX_AAD)
+-#define GPMC_CONFIG1_MUXADDDATA         GPMC_CONFIG1_MUXTYPE(GPMC_MUX_AD)
+ #define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
+ #define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
+ #define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
+@@ -227,6 +224,6 @@ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
+ extern void gpmc_cs_free(int cs);
+ extern void omap3_gpmc_save_context(void);
+ extern void omap3_gpmc_restore_context(void);
+-extern int gpmc_cs_configure(int cs, int cmd, int wval);
++extern int gpmc_configure(int cmd, int wval);
  
+ #endif
 -- 
 1.7.10.4
 
