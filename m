@@ -1,339 +1,106 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 03/17] ARM: OMAP2+: Add structure for storing GPMC settings
-Date: Fri, 8 Mar 2013 10:58:24 -0600
-Message-ID: <1362761918-8696-4-git-send-email-jon-hunter@ti.com>
-References: <1362761918-8696-1-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V2 00/17] ARM: OMAP2+: GPMC clean-up and DT update
+Date: Fri, 8 Mar 2013 10:58:21 -0600
+Message-ID: <1362761918-8696-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42812 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43367 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933505Ab3CHQ7J (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Mar 2013 11:59:09 -0500
-In-Reply-To: <1362761918-8696-1-git-send-email-jon-hunter@ti.com>
+	id S933517Ab3CHQ7K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Mar 2013 11:59:10 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
 
-The GPMC has various different configuration options such as bus-width,
-synchronous or asychronous mode selection, burst mode options etc.
-Currently, there is no central structure for storing all these options
-when configuring the GPMC for a given device. Some of the options are
-stored in the GPMC timing structure and some are directly programmed
-into the GPMC configuration register. Add a new structure to store
-these options and convert code to use this structure. Adding this
-structure will allow us to create a common function for configuring
-these options.
+While adding device-tree support for NOR memories, it became apparent
+that there is no common way for configuring various GPMC settings for
+devices that interface to the GPMC. These settings include bus-width,
+synchronous/asynchronous mode, burst settings, wait monitoring etc.
+Therefore, to simplify the GPMC code and add device-tree support for
+NOR, it was first necessary to consolidate how these settings are
+programmed.
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/gpmc-onenand.c |   18 ++++++++++-----
- arch/arm/mach-omap2/gpmc-smc91x.c  |    2 +-
- arch/arm/mach-omap2/gpmc.c         |   45 +++++++++++++++++++++---------------
- arch/arm/mach-omap2/gpmc.h         |   28 ++++++++++++++++------
- arch/arm/mach-omap2/usb-tusb6010.c |   19 ++++++++-------
- 5 files changed, 72 insertions(+), 40 deletions(-)
+Series based upon Mark Jackson's patch [1] and Ezequiel Garcia GPMC
+clean-up series [2]. Entire series available here [3].
 
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index 9f4c937..261eed1 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -47,6 +47,15 @@ static struct platform_device gpmc_onenand_device = {
- 	.resource	= &gpmc_onenand_resource,
- };
- 
-+static struct gpmc_settings onenand_async = {
-+	.mux_add_data	= GPMC_MUX_AD,
-+};
-+
-+static struct gpmc_settings onenand_sync = {
-+	.burst_read	= true,
-+	.mux_add_data	= GPMC_MUX_AD,
-+};
-+
- static void omap2_onenand_calc_async_timings(struct gpmc_timings *t)
- {
- 	struct gpmc_device_timings dev_t;
-@@ -63,7 +72,6 @@ static void omap2_onenand_calc_async_timings(struct gpmc_timings *t)
- 
- 	memset(&dev_t, 0, sizeof(dev_t));
- 
--	dev_t.mux = true;
- 	dev_t.t_avdp_r = max_t(int, t_avdp, t_cer) * 1000;
- 	dev_t.t_avdp_w = dev_t.t_avdp_r;
- 	dev_t.t_aavdh = t_aavdh * 1000;
-@@ -75,7 +83,7 @@ static void omap2_onenand_calc_async_timings(struct gpmc_timings *t)
- 	dev_t.t_wpl = t_wpl * 1000;
- 	dev_t.t_wph = t_wph * 1000;
- 
--	gpmc_calc_timings(t, &dev_t);
-+	gpmc_calc_timings(t, &onenand_async, &dev_t);
- }
- 
- static int gpmc_set_async_mode(int cs, struct gpmc_timings *t)
-@@ -235,10 +243,8 @@ static void omap2_onenand_calc_sync_timings(struct gpmc_timings *t,
- 	/* Set synchronous read timings */
- 	memset(&dev_t, 0, sizeof(dev_t));
- 
--	dev_t.mux = true;
--	dev_t.sync_read = true;
- 	if (onenand_flags & ONENAND_FLAG_SYNCWRITE) {
--		dev_t.sync_write = true;
-+		onenand_sync.sync_write = true;
- 	} else {
- 		dev_t.t_avdp_w = max(t_avdp, t_cer) * 1000;
- 		dev_t.t_wpl = t_wpl * 1000;
-@@ -261,7 +267,7 @@ static void omap2_onenand_calc_sync_timings(struct gpmc_timings *t,
- 	dev_t.cyc_aavdh_oe = 1;
- 	dev_t.t_rdyo = t_rdyo * 1000 + min_gpmc_clk_period;
- 
--	gpmc_calc_timings(t, &dev_t);
-+	gpmc_calc_timings(t, &onenand_sync, &dev_t);
- }
- 
- static int gpmc_set_sync_mode(int cs, struct gpmc_timings *t)
-diff --git a/arch/arm/mach-omap2/gpmc-smc91x.c b/arch/arm/mach-omap2/gpmc-smc91x.c
-index 11d0b75..4b78338 100644
---- a/arch/arm/mach-omap2/gpmc-smc91x.c
-+++ b/arch/arm/mach-omap2/gpmc-smc91x.c
-@@ -104,7 +104,7 @@ static int smc91c96_gpmc_retime(void)
- 	dev_t.t_cez_w = t4_w * 1000;
- 	dev_t.t_wr_cycle = (t20 - t3) * 1000;
- 
--	gpmc_calc_timings(&t, &dev_t);
-+	gpmc_calc_timings(&t, NULL, &dev_t);
- 
- 	return gpmc_cs_set_timings(gpmc_cfg->cs, &t);
- }
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 452617b..38c7f50 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -817,9 +817,9 @@ static u32 gpmc_round_ps_to_sync_clk(u32 time_ps, u32 sync_clk)
- 
- /* XXX: can the cycles be avoided ? */
- static int gpmc_calc_sync_read_timings(struct gpmc_timings *gpmc_t,
--				struct gpmc_device_timings *dev_t)
-+				       struct gpmc_device_timings *dev_t,
-+				       bool mux)
- {
--	bool mux = dev_t->mux;
- 	u32 temp;
- 
- 	/* adv_rd_off */
-@@ -872,9 +872,9 @@ static int gpmc_calc_sync_read_timings(struct gpmc_timings *gpmc_t,
- }
- 
- static int gpmc_calc_sync_write_timings(struct gpmc_timings *gpmc_t,
--				struct gpmc_device_timings *dev_t)
-+					struct gpmc_device_timings *dev_t,
-+					bool mux)
- {
--	bool mux = dev_t->mux;
- 	u32 temp;
- 
- 	/* adv_wr_off */
-@@ -934,9 +934,9 @@ static int gpmc_calc_sync_write_timings(struct gpmc_timings *gpmc_t,
- }
- 
- static int gpmc_calc_async_read_timings(struct gpmc_timings *gpmc_t,
--				struct gpmc_device_timings *dev_t)
-+					struct gpmc_device_timings *dev_t,
-+					bool mux)
- {
--	bool mux = dev_t->mux;
- 	u32 temp;
- 
- 	/* adv_rd_off */
-@@ -974,9 +974,9 @@ static int gpmc_calc_async_read_timings(struct gpmc_timings *gpmc_t,
- }
- 
- static int gpmc_calc_async_write_timings(struct gpmc_timings *gpmc_t,
--				struct gpmc_device_timings *dev_t)
-+					 struct gpmc_device_timings *dev_t,
-+					 bool mux)
- {
--	bool mux = dev_t->mux;
- 	u32 temp;
- 
- 	/* adv_wr_off */
-@@ -1046,7 +1046,8 @@ static int gpmc_calc_sync_common_timings(struct gpmc_timings *gpmc_t,
- }
- 
- static int gpmc_calc_common_timings(struct gpmc_timings *gpmc_t,
--			struct gpmc_device_timings *dev_t)
-+				    struct gpmc_device_timings *dev_t,
-+				    bool sync)
- {
- 	u32 temp;
- 
-@@ -1060,7 +1061,7 @@ static int gpmc_calc_common_timings(struct gpmc_timings *gpmc_t,
- 				gpmc_t->cs_on + dev_t->t_ce_avd);
- 	gpmc_t->adv_on = gpmc_round_ps_to_ticks(temp);
- 
--	if (dev_t->sync_write || dev_t->sync_read)
-+	if (sync)
- 		gpmc_calc_sync_common_timings(gpmc_t, dev_t);
- 
- 	return 0;
-@@ -1095,21 +1096,29 @@ static void gpmc_convert_ps_to_ns(struct gpmc_timings *t)
- }
- 
- int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
--			struct gpmc_device_timings *dev_t)
-+		      struct gpmc_settings *gpmc_s,
-+		      struct gpmc_device_timings *dev_t)
- {
-+	bool mux = false, sync = false;
-+
-+	if (gpmc_s) {
-+		mux = gpmc_s->mux_add_data ? true : false;
-+		sync = (gpmc_s->sync_read || gpmc_s->sync_write);
-+	}
-+
- 	memset(gpmc_t, 0, sizeof(*gpmc_t));
- 
--	gpmc_calc_common_timings(gpmc_t, dev_t);
-+	gpmc_calc_common_timings(gpmc_t, dev_t, sync);
- 
--	if (dev_t->sync_read)
--		gpmc_calc_sync_read_timings(gpmc_t, dev_t);
-+	if (gpmc_s && gpmc_s->sync_read)
-+		gpmc_calc_sync_read_timings(gpmc_t, dev_t, mux);
- 	else
--		gpmc_calc_async_read_timings(gpmc_t, dev_t);
-+		gpmc_calc_async_read_timings(gpmc_t, dev_t, mux);
- 
--	if (dev_t->sync_write)
--		gpmc_calc_sync_write_timings(gpmc_t, dev_t);
-+	if (gpmc_s && gpmc_s->sync_write)
-+		gpmc_calc_sync_write_timings(gpmc_t, dev_t, mux);
- 	else
--		gpmc_calc_async_write_timings(gpmc_t, dev_t);
-+		gpmc_calc_async_write_timings(gpmc_t, dev_t, mux);
- 
- 	/* TODO: remove, see function definition */
- 	gpmc_convert_ps_to_ns(gpmc_t);
-diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
-index 697ff42..39e4e04 100644
---- a/arch/arm/mach-omap2/gpmc.h
-+++ b/arch/arm/mach-omap2/gpmc.h
-@@ -60,8 +60,8 @@
- #define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
- #define GPMC_CONFIG1_MUXTYPE(val)       ((val & 3) << 8)
- #define GPMC_CONFIG1_MUXNONMUX          GPMC_CONFIG1_MUXTYPE(0)
--#define GPMC_CONFIG1_MUXAAD             GPMC_CONFIG1_MUXTYPE(1)
--#define GPMC_CONFIG1_MUXADDDATA         GPMC_CONFIG1_MUXTYPE(2)
-+#define GPMC_CONFIG1_MUXAAD             GPMC_CONFIG1_MUXTYPE(GPMC_MUX_AAD)
-+#define GPMC_CONFIG1_MUXADDDATA         GPMC_CONFIG1_MUXTYPE(GPMC_MUX_AD)
- #define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
- #define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
- #define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
-@@ -76,6 +76,8 @@
- #define GPMC_IRQ_FIFOEVENTENABLE	0x01
- #define GPMC_IRQ_COUNT_EVENT		0x02
- 
-+#define GPMC_MUX_AAD			1	/* Addr-Addr-Data multiplex */
-+#define GPMC_MUX_AD			2	/* Addr-Data multiplex */
- 
- /* bool type time settings */
- struct gpmc_bool_timings {
-@@ -181,10 +183,6 @@ struct gpmc_device_timings {
- 	u8 cyc_wpl;	/* write deassertion time in cycles */
- 	u32 cyc_iaa;	/* initial access time in cycles */
- 
--	bool mux;	/* address & data muxed */
--	bool sync_write;/* synchronous write */
--	bool sync_read;	/* synchronous read */
--
- 	/* extra delays */
- 	bool ce_xdelay;
- 	bool avd_xdelay;
-@@ -192,8 +190,24 @@ struct gpmc_device_timings {
- 	bool we_xdelay;
- };
- 
-+struct gpmc_settings {
-+	bool burst_wrap;	/* enables wrap bursting */
-+	bool burst_read;	/* enables read page/burst mode */
-+	bool burst_write;	/* enables write page/burst mode */
-+	bool device_nand;	/* device is NAND */
-+	bool sync_read;		/* enables synchronous reads */
-+	bool sync_write;	/* enables synchronous writes */
-+	bool wait_on_read;	/* monitor wait on reads */
-+	bool wait_on_write;	/* monitor wait on writes */
-+	u32 burst_len;		/* page/burst length */
-+	u32 device_width;	/* device bus width (8 or 16 bit) */
-+	u32 mux_add_data;	/* multiplex address & data */
-+	u32 wait_pin;		/* wait-pin to be used */
-+};
-+
- extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
--				struct gpmc_device_timings *dev_t);
-+			     struct gpmc_settings *gpmc_s,
-+			     struct gpmc_device_timings *dev_t);
- 
- extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
- extern int gpmc_get_client_irq(unsigned irq_config);
-diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
-index c5a3c6f..faaf96d 100644
---- a/arch/arm/mach-omap2/usb-tusb6010.c
-+++ b/arch/arm/mach-omap2/usb-tusb6010.c
-@@ -26,6 +26,15 @@
- static u8		async_cs, sync_cs;
- static unsigned		refclk_psec;
- 
-+static struct gpmc_settings tusb_async = {
-+	.mux_add_data	= GPMC_MUX_AD,
-+};
-+
-+static struct gpmc_settings tusb_sync = {
-+	.sync_read	= true,
-+	.sync_write	= true,
-+	.mux_add_data	= GPMC_MUX_AD,
-+};
- 
- /* NOTE:  timings are from tusb 6010 datasheet Rev 1.8, 12-Sept 2006 */
- 
-@@ -37,8 +46,6 @@ static int tusb_set_async_mode(unsigned sysclk_ps)
- 
- 	memset(&dev_t, 0, sizeof(dev_t));
- 
--	dev_t.mux = true;
--
- 	dev_t.t_ceasu = 8 * 1000;
- 	dev_t.t_avdasu = t_acsnh_advnh - 7000;
- 	dev_t.t_ce_avd = 1000;
-@@ -52,7 +59,7 @@ static int tusb_set_async_mode(unsigned sysclk_ps)
- 	dev_t.t_wpl = 300;
- 	dev_t.cyc_aavdh_we = 1;
- 
--	gpmc_calc_timings(&t, &dev_t);
-+	gpmc_calc_timings(&t, &tusb_async, &dev_t);
- 
- 	return gpmc_cs_set_timings(async_cs, &t);
- }
-@@ -65,10 +72,6 @@ static int tusb_set_sync_mode(unsigned sysclk_ps)
- 
- 	memset(&dev_t, 0, sizeof(dev_t));
- 
--	dev_t.mux = true;
--	dev_t.sync_read = true;
--	dev_t.sync_write = true;
--
- 	dev_t.clk = 11100;
- 	dev_t.t_bacc = 1000;
- 	dev_t.t_ces = 1000;
-@@ -84,7 +87,7 @@ static int tusb_set_sync_mode(unsigned sysclk_ps)
- 	dev_t.cyc_wpl = 6;
- 	dev_t.t_ce_rdyz = 7000;
- 
--	gpmc_calc_timings(&t, &dev_t);
-+	gpmc_calc_timings(&t, &tusb_sync, &dev_t);
- 
- 	return gpmc_cs_set_timings(sync_cs, &t);
- }
+V2 changes:
+- Made gpmc_settings structure local in gpmc_nand_init().
+- Use resource_size() API in probe_nor().
+- Add kernel-doc for gpmc_cs_program_settings() function.
+- Use of_platform_device_create() to register NOR devices in probe_nor().
+- Add support for GPMC address-address-data multiplexing which required
+  changing GPMC DT property "gpmc,mux-add-data" to store a 32-bit value
+  and changing mux_add_data member of gpmc_settings to be a 32-bit type
+  instead of bool.
+- Add detection for incorrect GPMC chip-select base addresses.
+- Cleaned-up code in gpmc_mem_init() and changed gpmc_mem_init() so that
+  it would not return an error when the GPMC driver is being probed.
+
+V1 changes:
+- Clean-up/simplification of ONENAND initialisation code.
+- Add a new GPMC structure to unify storage of various GPMC settings
+  (that are non-timing related) for client devices and add a new
+  function to program these settings in a common way.
+- Migrate initialisation code for existing flash, usb and networking
+  devices to use the new structure and function for GPMC settings.
+- Add device-tree support for NOR flash memories.
+- Add additional GPMC timing parameters to GPMC device-tree binding.
+- Update GPMC NAND and ONENAND device-tree support to retrieve GPMC
+  settings from device-tree.
+
+Testing includes:
+- Boot testing on OMAP2420 H4, OMAP3430 SDP and OMAP4430 SDP with
+  and without device-tree present.
+- OMAP2420 H4 board has NOR flash and OMAP3430 SDP has NOR, NAND
+  and ONENAND flash. So verified that flash is detected on boot
+  as expected. Note additional patches [4] are required for OMAP2420
+  H4 and OMAP3430 SDP dts files in order to enable flash memory
+  support.
+- All of the above boards use GPMC for interfacing to a networking
+  chip and so verified that networking is working wit this series.
+  However, please note that networking is not currently supported
+  on these boards when booting with DT and so networking is only
+  tested without DT.
+
+[1] http://permalink.gmane.org/gmane.linux.ports.arm.omap/94765
+[2] http://comments.gmane.org/gmane.linux.ports.arm.omap/93784
+[3] https://github.com/jonhunter/linux/tree/omap-gpmc-for-v3.10
+[4] https://github.com/jonhunter/linux/tree/omap-dt-for-v3.10
+
+Jon Hunter (17):
+  ARM: OMAP2+: Simplify code configuring ONENAND devices
+  ARM: OMAP2+: Add variable to store number of GPMC waitpins
+  ARM: OMAP2+: Add structure for storing GPMC settings
+  ARM: OMAP2+: Add function for configuring GPMC settings
+  ARM: OMAP2+: Convert ONENAND to use gpmc_cs_program_settings()
+  ARM: OMAP2+: Convert NAND to use gpmc_cs_program_settings()
+  ARM: OMAP2+: Convert SMC91x to use gpmc_cs_program_settings()
+  ARM: OMAP2+: Convert TUSB to use gpmc_cs_program_settings()
+  ARM: OMAP2+: Don't configure of chip-select options in
+    gpmc_cs_configure()
+  ARM: OMAP2+: Add function to read GPMC settings from device-tree
+  ARM: OMAP2+: Add device-tree support for NOR flash
+  ARM: OMAP2+: Add additional GPMC timing parameters
+  ARM: OMAP2+: Convert NAND to retrieve GPMC settings from DT
+  ARM: OMAP2+: Convert ONENAND to retrieve GPMC settings from DT
+  ARM: OMAP2+: Detect incorrectly aligned GPMC base address
+  ARM: OMAP2+: Remove unnecesssary GPMC definitions and variable
+  ARM: OMAP2+: Allow GPMC probe to complete even if CS mapping fails
+
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt  |   48 +-
+ Documentation/devicetree/bindings/mtd/gpmc-nor.txt |   98 ++++
+ .../devicetree/bindings/mtd/gpmc-onenand.txt       |    3 +
+ arch/arm/mach-omap2/gpmc-nand.c                    |   37 +-
+ arch/arm/mach-omap2/gpmc-onenand.c                 |  110 ++---
+ arch/arm/mach-omap2/gpmc-smc91x.c                  |   30 +-
+ arch/arm/mach-omap2/gpmc.c                         |  521 +++++++++++++++-----
+ arch/arm/mach-omap2/gpmc.h                         |   37 +-
+ arch/arm/mach-omap2/usb-tusb6010.c                 |   62 ++-
+ 9 files changed, 686 insertions(+), 260 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nor.txt
+
 -- 
 1.7.10.4
 
