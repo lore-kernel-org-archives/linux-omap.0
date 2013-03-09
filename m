@@ -1,35 +1,130 @@
-From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Subject: Re: [PATCH 00/10] usb: phy: cleanups to Kconfig and directories
-Date: Fri, 08 Mar 2013 17:10:52 -0700
-Message-ID: <513A7E0C.3060904@wwwdotorg.org>
-References: <1362648969-13737-1-git-send-email-balbi@ti.com> <201303082308.31499.arnd@arndb.de> <513A72E8.2070707@wwwdotorg.org> <201303082356.35033.arnd@arndb.de>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH 5/9] ARM: dts: Add GPMC node for OMAP2, OMAP4 and OMAP5
+Date: Sat, 9 Mar 2013 02:25:13 +0100
+Message-ID: <CABxcv=kEi9yKRCx56dt_GRwQ7aKvrRpwCAxO6BwH4_U6jp-=JA@mail.gmail.com>
+References: <1362763654-9660-1-git-send-email-jon-hunter@ti.com>
+	<1362763654-9660-6-git-send-email-jon-hunter@ti.com>
+	<CABxcv==OKX4z8x7ztqDJ5CozNmTQ5UaD43mTLWfQuqUt-y7xcQ@mail.gmail.com>
+	<513A5B23.5070302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201303082356.35033.arnd-r2nGTMty4D4@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, cbou-JGs/UdohzUI@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f50.google.com ([74.125.82.50]:46133 "EHLO
+	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754898Ab3CIBZO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Mar 2013 20:25:14 -0500
+Received: by mail-wg0-f50.google.com with SMTP id es5so3215002wgb.29
+        for <linux-omap@vger.kernel.org>; Fri, 08 Mar 2013 17:25:13 -0800 (PST)
+In-Reply-To: <513A5B23.5070302@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 03/08/2013 04:56 PM, Arnd Bergmann wrote:
-> On Friday 08 March 2013, Stephen Warren wrote:
->>> config USB_ULPI_VIEWPORT
->>>       def_bool y
->>>       depends on USB_EHCI_TEGRA
+On Fri, Mar 8, 2013 at 10:41 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+>
+> On 03/08/2013 02:25 PM, Javier Martinez Canillas wrote:
+>> On Fri, Mar 8, 2013 at 6:27 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+>>> Add the device-tree node for GPMC on OMAP2, OMAP4 and OMAP5 devices.
 >>>
->>> If USB_ULPI_VIEWPORT has any other dependencies, the best solution
->>> in the above scenario is to make USB_EHCI_TEGRA depend on those.
+>>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>>> ---
+>>>  arch/arm/boot/dts/omap2420.dtsi |   11 +++++++++++
+>>>  arch/arm/boot/dts/omap2430.dtsi |   11 +++++++++++
+>>>  arch/arm/boot/dts/omap4.dtsi    |   11 +++++++++++
+>>>  arch/arm/boot/dts/omap5.dtsi    |   11 +++++++++++
+>>>  4 files changed, 44 insertions(+)
+>>>
+>>> diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
+>>> index af65609..d4ce6c2 100644
+>>> --- a/arch/arm/boot/dts/omap2420.dtsi
+>>> +++ b/arch/arm/boot/dts/omap2420.dtsi
+>>> @@ -29,6 +29,17 @@
+>>>                         pinctrl-single,function-mask = <0x3f>;
+>>>                 };
+>>>
+>>> +               gpmc: gpmc@6800a000 {
+>>> +                       compatible = "ti,omap2420-gpmc";
+>>> +                       reg = <0x6800a000 0x1000>;
+>>> +                       #address-cells = <2>;
+>>> +                       #size-cells = <1>;
+>>> +                       interrupts = <20>;
+>>> +                       gpmc,num-cs = <8>;
+>>> +                       gpmc,num-waitpins = <4>;
+>>> +                       ti,hwmods = "gpmc";
+>>> +               };
+>>> +
+>>>                 mcbsp1: mcbsp@48074000 {
+>>>                         compatible = "ti,omap2420-mcbsp";
+>>>                         reg = <0x48074000 0xff>;
+>>> diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+>>> index c392445..832f184 100644
+>>> --- a/arch/arm/boot/dts/omap2430.dtsi
+>>> +++ b/arch/arm/boot/dts/omap2430.dtsi
+>>> @@ -29,6 +29,17 @@
+>>>                         pinctrl-single,function-mask = <0x3f>;
+>>>                 };
+>>>
+>>> +               gpmc: gpmc@6e000000 {
+>>> +                       compatible = "ti,omap2430-gpmc";
+>>> +                       reg = <0x6e000000 0x1000>;
+>>> +                       #address-cells = <2>;
+>>> +                       #size-cells = <1>;
+>>> +                       interrupts = <20>;
+>>> +                       gpmc,num-cs = <8>;
+>>> +                       gpmc,num-waitpins = <4>;
+>>> +                       ti,hwmods = "gpmc";
+>>> +               };
+>>> +
+>>>                 mcbsp1: mcbsp@48074000 {
+>>>                         compatible = "ti,omap2430-mcbsp";
+>>>                         reg = <0x48074000 0xff>;
+>>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>>> index 827f6f3..726ef11 100644
+>>> --- a/arch/arm/boot/dts/omap4.dtsi
+>>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>>> @@ -196,6 +196,17 @@
+>>>                         #interrupt-cells = <1>;
+>>>                 };
+>>>
+>>> +               gpmc: gpmc@50000000 {
+>>> +                       compatible = "ti,omap4430-gpmc";
+>>> +                       reg = <0x50000000 0x1000>;
 >>
->> USB_ULPI_VIEWPORT is, AFAIK, a generic piece of infra-structure that
->> USB_EHCI_TEGRA depends upon.
-> 
-> Sorry, I was probably confusing the symbol names. I meant whatever
-> you were going to "select" from USB_EHCI_TEGRA.
+>> Hi Jon,
+>>
+>> By looking at the GPMC Register Summary from both the OMAP4460 and OMAP OMAP35x
+>> Technical Reference Manuals I see that the GPMC register address space
+>> is only 720 bytes length. From base address + 0x0 to base address +
+>> 0x02d0.
+>>
+>> So shouldn't the regs property be <0x50000000 0x2d0> instead?
+>>
+>> Of course are only a few kilobytes but still I wonder if it makes
+>> sense to map them when they are not going to be used.
+>
+> Yes you are correct. In general, I have been trying to stay some-what
+> consistent with what hwmod was doing as this was being auto-generated by
+> some hardware design specs and I believe they wanted to eventually get
+> to the point where DT files would be auto-generated too for OMAP.
+> Furthermore my understanding is that the smallest page that can be
+> mapped by the kernel for ARM is 4kB. So if you declare it as 0x2d0 or
+> 0x1000 it will map a 4kB page (I could be wrong here).
+>
+> I don't have any strong feelings here but will do what the consensus
+> prefers.
+>
 
-Ah OK, that'd be the Tegra PHY driver. Except now that I look, it
-doesn't actually have its own Kconfig symbol (the Makefile builds it if
-the Tegra EHCI driver is enabled). Perhaps it should? Otherwise, I guess
-the Tegra EHCI driver Kconfig symbol would just have to depend on
-everything that it and the PHY driver depend on.
+Yes, you are right here.
+
+I forget that ioremap() does a page-aligned mapping and since the
+minimum page size for ARM is 4KB as you said, there is no difference
+between using 0x2d0 and 0x1000. Sorry for the noise.
+
+Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+
+> Cheers
+> Jon
+
+Best regards,
+Javier
