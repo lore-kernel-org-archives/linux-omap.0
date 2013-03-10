@@ -1,60 +1,66 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 05/15] ARM: OMAP5: PM: Enables ES2 PM mode by default
-Date: Sun, 10 Mar 2013 23:37:58 +0530
-Message-ID: <513CCBFE.3000700@ti.com>
-References: <1362139864-9233-1-git-send-email-santosh.shilimkar@ti.com> <1362139864-9233-6-git-send-email-santosh.shilimkar@ti.com> <20130301193745.GA22626@kahuna> <51319273.5090703@ti.com> <20130304182921.GC14860@kahuna>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP3: hwmod data: disable MIDLEMODE control for
+ musb
+Date: Sun, 10 Mar 2013 23:15:19 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1303102304490.774@utopia.booyaka.com>
+References: <1362876391-6801-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1236641472-1362957319=:774"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51633 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751562Ab3CJSGV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 10 Mar 2013 14:06:21 -0400
-In-Reply-To: <20130304182921.GC14860@kahuna>
+Received: from utopia.booyaka.com ([74.50.51.50]:49805 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753331Ab3CJXPU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Mar 2013 19:15:20 -0400
+In-Reply-To: <1362876391-6801-1-git-send-email-notasas@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-On Monday 04 March 2013 11:59 PM, Nishanth Menon wrote:
-> On 11:17-20130302, Santosh Shilimkar wrote:
->> On Saturday 02 March 2013 01:07 AM, Nishanth Menon wrote:
->>> On 17:40-20130301, Santosh Shilimkar wrote:
->>>> Enables MPUSS ES2 power management mode using ES2_PM_MODE in
->>>> AMBA_IF_MODE register.
->>>>
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-[..]
+--843723315-1236641472-1362957319=:774
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
->>>> diff --git a/arch/arm/mach-omap2/omap-wakeupgen.h b/arch/arm/mach-omap2/omap-wakeupgen.h
->>>> index b0fd16f..b3c8ecc 100644
->>>> --- a/arch/arm/mach-omap2/omap-wakeupgen.h
->>>> +++ b/arch/arm/mach-omap2/omap-wakeupgen.h
->>>> @@ -27,6 +27,7 @@
->>>>  #define OMAP_WKG_ENB_E_1			0x420
->>>>  #define OMAP_AUX_CORE_BOOT_0			0x800
->>>>  #define OMAP_AUX_CORE_BOOT_1			0x804
->>>> +#define OMAP_AMBA_IF_MODE			0x80c
->>>>  #define OMAP_PTMSYNCREQ_MASK			0xc00
->>>>  #define OMAP_PTMSYNCREQ_EN			0xc04
->>>>  #define OMAP_TIMESTAMPCYCLELO			0xc08
->>>
->>> Curious, I see OMAP5_AMBA_IF_MODE_OFFSET in
->>> arch/arm/mach-omap2/omap4-sar-layout.h
->>> if we dont save new modified contents there, Wont restore logic just
->>> reset it back to 0?
->>>
->> It is already restored in the wakeup-gen restore code.
-> I apologize, I do not see it in:
-> https://github.com/SantoshShilimkar/linux/blob/testing/3.10/omap5-int-rebuild/arch/arm/mach-omap2/omap-wakeupgen.c
-> I might have expected an save of val to sar offset to ensure this is
-> done, but since you indicate this is in wakeupgen restore logic, which I
-> presume is done by ROM, we might expect an write to sar_base +
-> OMAP5_AMBA_IF_MODE_OFFSET with the val for it to function?
-> 
-Arr.. Looks like I missed the hunk while updating the patches. Will
-fix the appropriate patch which updates the wakeupgen SAR offsets.
+Hi Gra=B8vydas,
 
-Regards,
-Santosh
+On Sun, 10 Mar 2013, Grazvydas Ignotas wrote:
+
+> For some unknown reason, allowing hwmod to control MIDLEMODE causes
+> core_pwrdm to not hit idle states for musb in DM3730 at least.
+> I've verified that setting any MIDLEMODE value other than "force
+> standby" before enabling the device causes subsequent suspend
+> attempts to fail with core_pwrdm not entering idle states, even
+> if the driver is unloaded and "force standby" is restored before
+> suspend attempt.
+
+Ugh sounds like a broken bootloader/previous OS could easily block full=20
+chip idle in this case :-( Does that match your understanding?  That, even=
+=20
+if the new kernel does everything right in terms of initialization and=20
+reset, the PRCM's perception of whether the device is in STANDBY is=20
+permanently stuck?
+
+> Keeping the register set at force standby (reset value) makes it work
+> and device still functions properly. musb has driver-controlled
+> OTG_FORCESTDBY register that controls MSTANDBY signal, so perhaps
+> MIDLEMODE is not even needed? Note that TI PSP kernels also have
+> similar workarounds.
+
+Would like to get your opinion on a different implementation.  For other
+situations where IP blocks don't work in the standard, expected way, we've=
+=20
+defined hwmod flags for those situations, like HWMOD_SWSUP_*, and=20
+HWMOD_NO_OCP_AUTOIDLE.  The motivation is to affirmatively mark IP=20
+blocks that don't work as expected, rather than changing the existing,=20
+documented hardware bits, which are ideally autogenerated.
+
+So what do you think about adding a hwmod flag, HWMOD_FORCE_MSTDBY, and=20
+using that in the hwmod code to program the MSTDBYMODE to FORCE_STANDBY=20
+and then skipping all other attempts to write to it?
+
+
+- Paul
+--843723315-1236641472-1362957319=:774--
