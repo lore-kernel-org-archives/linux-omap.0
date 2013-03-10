@@ -1,43 +1,39 @@
-From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] usb: musb: gadget: clear gadget_driver when gadget is stopped
-Date: Sun, 10 Mar 2013 02:49:14 +0200
-Message-ID: <1362876554-7053-1-git-send-email-notasas@gmail.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] usb: musb: log VBUS error
+Date: Sun, 10 Mar 2013 02:49:28 +0200
+Message-ID: <1362876568-7082-1-git-send-email-notasas@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f52.google.com ([74.125.83.52]:48325 "EHLO
+	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751580Ab3CJAte (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Mar 2013 19:49:34 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-Some musb glue drivers use gadget_driver pointer to know if any gadget
-drivers are loaded at some moment and base further decisions on it,
-like to do runtime suspend/resume or not. Right now the pointer is
-left alone on stop and OMAP musb glue later does wrong runtime_pm
-decisions because of it.
+VBUS_ERROR is a serious error that the driver often doesn't recover from
+in my tests, so we should at least inform the user about it.
 
-Clear the gadget_driver pointer on remove, it's invalid after stop
-anyway.
-
-Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 ---
- drivers/usb/musb/musb_gadget.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/usb/musb/musb_core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 19998e9..1ddb889 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -2057,6 +2057,7 @@ static int musb_gadget_stop(struct usb_gadget *g,
- 	dev_dbg(musb->controller, "unregistering driver %s\n", driver->function);
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index f95404e..df6a54e 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -602,7 +602,8 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
+ 			break;
+ 		}
  
- 	musb->is_active = 0;
-+	musb->gadget_driver = NULL;
- 	musb_platform_try_idle(musb, 0);
- 	spin_unlock_irqrestore(&musb->lock, flags);
- 
+-		dev_dbg(musb->controller, "VBUS_ERROR in %s (%02x, %s), retry #%d, port1 %08x\n",
++		dev_printk(ignore ? KERN_DEBUG : KERN_ERR, musb->controller,
++			   "VBUS_ERROR in %s (%02x, %s), retry #%d, port1 %08x\n",
+ 				otg_state_string(musb->xceiv->state),
+ 				devctl,
+ 				({ char *s;
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
