@@ -1,71 +1,63 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: Re: [PATCH] ARM: OMAP: drop "select MACH_NOKIA_RM696"
-Date: Sat, 09 Mar 2013 20:48:30 +0100
-Message-ID: <1362858510.3137.31.camel@x61.thuisdomein>
-References: <1362738596.5994.48.camel@x61.thuisdomein>
-	 <20130308161159.GE14552@blackmetal.musicnaut.iki.fi>
-	 <20130308163507.GC26093@atomide.com>
-	 <1362763232.5994.75.camel@x61.thuisdomein>
-	 <20130308175539.GG26093@atomide.com>
-	 <1362765764.5994.87.camel@x61.thuisdomein>
-	 <20130309000157.GE30923@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130309000157.GE30923@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] ARM: OMAP3: hwmod data: disable MIDLEMODE control for musb
+Date: Sun, 10 Mar 2013 02:46:31 +0200
+Message-ID: <1362876391-6801-1-git-send-email-notasas@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:56323 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751237Ab3CJAqz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Mar 2013 19:46:55 -0500
+Received: by mail-ee0-f42.google.com with SMTP id b47so1679610eek.29
+        for <linux-omap@vger.kernel.org>; Sat, 09 Mar 2013 16:46:54 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-On Sat, 2013-03-09 at 00:01 +0000, Russell King - ARM Linux wrote:
-> It's actually quite clever.  There's two levels to it.
-> 
-> The first is that CONFIG_MACH_xxx result in their machine_is_xxx() macros
-> being defined to constant zero if the CONFIG option is not enabled.  That
-> allows the compiler to throw away code for disabled platforms because
-> the expression is always false.
-> 
-> Otherwise, they end up as (machine_arch_type == MACH_TYPE_xxx).
-> 
-> The second is the magic which happens when two CONFIG_MACH_xxx are
-> selected.  If only one is selected, then machine_arch_type is defined
-> to the appropriate MACH_TYPE_xxx.  This means that the above expression
-> becomes constant-true, and the conditional is eliminated.
-> 
-> If more than one is selected, then machine_arch_type is defined to a
-> variable which is appropriately set to one of the MACH_TYPE_xxx values.
+For some unknown reason, allowing hwmod to control MIDLEMODE causes
+core_pwrdm to not hit idle states for musb in DM3730 at least.
+I've verified that setting any MIDLEMODE value other than "force
+standby" before enabling the device causes subsequent suspend
+attempts to fail with core_pwrdm not entering idle states, even
+if the driver is unloaded and "force standby" is restored before
+suspend attempt.
 
-At boot?
+Keeping the register set at force standby (reset value) makes it work
+and device still functions properly. musb has driver-controlled
+OTG_FORCESTDBY register that controls MSTANDBY signal, so perhaps
+MIDLEMODE is not even needed? Note that TI PSP kernels also have
+similar workarounds.
 
-> So, the result is that:
-> - de-selected platforms have their if (machine_is_xxx()) { } optimised
->   out of the kernel.
-> - for a kernel built targetting one platform, all the
->   if (machine_is_xxx()) tests are optimised away, leaving only the
->   relevant code behind.
-> - otherwise, we get the _appropriate_ conditional code for the
->   configuration generated.
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-Thanks for clarifying this. Quite clever indeed. 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index ac7e03e..0388bba 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -1666,11 +1666,15 @@ static struct omap_hwmod_class_sysconfig omap3xxx_usbhsotg_sysc = {
+ 	.rev_offs	= 0x0400,
+ 	.sysc_offs	= 0x0404,
+ 	.syss_offs	= 0x0408,
+-	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
+-			  SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
+-			  SYSC_HAS_AUTOIDLE),
+-	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+-			  MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
++	/*
++	 * musb has MMIDLEMODE, but if we ever enable the device not in force
++	 * idle mode, core_pwrdm does not enter idle states at least on 36xx.
++	 * Note that musb also has OTG_FORCESTDBY register that the driver
++	 * uses to control MSTANDBY signal manually.
++	 */
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_ENAWAKEUP |
++			  SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+ 	.sysc_fields	= &omap_hwmod_sysc_type1,
+ };
+ 
+-- 
+1.7.9.5
 
-> However, going back to that MACH_NOKIA_RM696.  If there exists only a
-> select of this symbol and no "config MACH_NOKIA_RM696" entry, then the
-> symbol will never be generated in the output .config file.
-> 
->[...]
-> 
-> My conclusion is... it's a mess.
-
-That mess can only be fully cleaned up if the code for the RM-696 that
-now is maintained in some unknown to me repository gets merged into
-mainline, can't it?
-
-In the meantime, how do you prefer I solve the (trivial) issue of an
-useless select for MACH_NOKIA_RM696? Drop that select or add an (equally
-useless) config entry for MACH_NOKIA_RM696? Or should I try to ignore it
-for the time being?
-
-
-Paul Bolle
