@@ -1,93 +1,118 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 4/7] usb: otg: twl4030-usb: poll for ID disconnect
-Date: Sun, 10 Mar 2013 16:49:38 +0200
-Message-ID: <CANOLnOOfZrNz3VO10CfyS2jLYnc1-zJftRPWu5wtKE2Q+hXfBQ@mail.gmail.com>
-References: <1362877681-8102-1-git-send-email-notasas@gmail.com>
-	<1362877681-8102-5-git-send-email-notasas@gmail.com>
-	<513C6878.2000309@amarulasolutions.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 1/1] ARM: OMAP: gpmc: request CS address space for ethernet chips
+Date: Sun, 10 Mar 2013 18:18:22 +0100
+Message-ID: <1362935902-29720-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:58100 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751837Ab3CJOtj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Mar 2013 10:49:39 -0400
-In-Reply-To: <513C6878.2000309@amarulasolutions.com>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:39319 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751619Ab3CJRSq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Mar 2013 13:18:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Trimarchi <michael@amarulasolutions.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, NeilBrown <neilb@suse.de>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@secretlab.ca>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-On Sun, Mar 10, 2013 at 1:03 PM, Michael Trimarchi
-<michael@amarulasolutions.com> wrote:
-> Hi
->
-> just one comment.
->
-> On 10/03/13 02:07, Grazvydas Ignotas wrote:
->> On pandora, STS_USB interrupt doesn't arrive on USB host cable disco=
-nnect
->> for some reason while VBUS is driven by twl itself, but STS_HW_CONDI=
-TIONS
->> is updated correctly. It does work fine when PHY is powered down tho=
-ugh.
->> To work around that we have to poll.
->>
->> TI PSP kernels have similar workarounds, so (many?) more boards are =
-likely
->> affected.
->>
->> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
->> ---
->>  drivers/usb/otg/twl4030-usb.c |   37 ++++++++++++++++++++++++++++++=
-+++++++
->>  1 file changed, 37 insertions(+)
->>
->> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030=
--usb.c
->> index 90a19ff..2c1c27e 100644
->> --- a/drivers/usb/otg/twl4030-usb.c
->> +++ b/drivers/usb/otg/twl4030-usb.c
-=2E..
->> @@ -513,6 +525,28 @@ static irqreturn_t twl4030_usb_irq(int irq, voi=
-d *_twl)
->>       return IRQ_HANDLED;
->>  }
->>
->> +static void twl4030_id_workaround_work(struct work_struct *work)
->> +{
->> +     struct twl4030_usb *twl =3D container_of(work, struct twl4030_=
-usb,
->> +             id_workaround_work.work);
->> +     enum omap_musb_vbus_id_status status_prev =3D twl->linkstat;
->> +     enum omap_musb_vbus_id_status status;
->> +
->> +     status =3D twl4030_usb_linkstat(twl);
->> +     if (status !=3D status_prev) {
->> +             dev_dbg(twl->dev, "handle missing status change: %d->%=
-d\n",
->> +                     status_prev, status);
->> +             twl->linkstat =3D status_prev;
->> +             twl4030_usb_irq(0, twl);
->
-> As I understand from the subject this happen in Pandora board and
-> many boards can be affected.
-> do you need any protection between the worker and the irq when
-> the irq arrive as expected?
+Besides being used to interface with external memory devices,
+the General-Purpose Memory Controller can be used to connect
+Pseudo-SRAM devices such as ethernet controllers to OMAP2+
+processors using the GPMC as a data bus.
 
-Hmm I guess i do, I'll add some locking in v2, which I'll send after
-collecting more feedback.
+The actual mapping between the GPMC address space and OMAP2+
+address space is made using the GPMC DT "ranges" property.
+But also a explicit call to gpmc_cs_request() is needed.
 
->
-> Michael
->
+So, this patch allows an ethernet chip to be defined as an
+GPMC child node an its chip-select memory address be requested.
 
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
 
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jon,
+
+This patch assumes that we have solved somehow the issue that a
+call to request_irq() is needed before before using a GPIO as an
+IRQ and this is no longer the case when using from Device Trees.
+
+Anyway, this is independent as how we solve this, whether is
+using Jan's patch [1], adding a .request function pointer to
+irq_chip as suggested by Stephen [2], or any other approach.
+
+[1]: https://patchwork.kernel.org/patch/2009331/
+[2]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85592.html
+
+ arch/arm/mach-omap2/gpmc.c |   45 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 45 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 4fe9ee7..d1bf48b 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -29,6 +29,7 @@
+ #include <linux/of.h>
+ #include <linux/of_mtd.h>
+ #include <linux/of_device.h>
++#include <linux/of_address.h>
+ #include <linux/mtd/nand.h>
+ 
+ #include <linux/platform_data/mtd-nand-omap2.h>
+@@ -1296,6 +1297,42 @@ static int gpmc_probe_onenand_child(struct platform_device *pdev,
+ }
+ #endif
+ 
++static int gpmc_probe_ethernet_child(struct platform_device *pdev,
++				     struct device_node *child)
++{
++	int ret, cs;
++	unsigned long base;
++	struct resource res;
++	struct platform_device *of_dev;
++
++	if (of_property_read_u32(child, "reg", &cs) < 0) {
++		dev_err(&pdev->dev, "%s has no 'reg' property\n",
++			child->full_name);
++		return -ENODEV;
++	}
++
++	if (of_address_to_resource(child, 0, &res)) {
++		dev_err(&pdev->dev, "%s has malformed 'reg' property\n",
++			child->full_name);
++		return -ENODEV;
++	}
++
++	ret = gpmc_cs_request(cs, resource_size(&res), &base);
++	if (IS_ERR_VALUE(ret)) {
++		dev_err(&pdev->dev, "cannot request GPMC CS %d\n", cs);
++		return ret;
++	}
++
++	of_dev = of_platform_device_create(child, NULL, &pdev->dev);
++	if (!of_dev) {
++		dev_err(&pdev->dev, "cannot create platform device for %s\n",
++			child->full_name);
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
+ static int gpmc_probe_dt(struct platform_device *pdev)
+ {
+ 	int ret;
+@@ -1326,6 +1363,14 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+ 			return ret;
+ 		}
+ 	}
++
++	for_each_node_by_name(child, "ethernet") {
++		ret = gpmc_probe_ethernet_child(pdev, child);
++		if (ret < 0) {
++			of_node_put(child);
++			return ret;
++		}
++	}
+ 	return 0;
+ }
+ #else
+-- 
+1.7.7.6
+
