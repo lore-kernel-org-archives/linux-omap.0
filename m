@@ -1,72 +1,123 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH 1/7] usb: otg: twl4030-usb: don't enable PHY during init
-Date: Sun, 10 Mar 2013 03:07:55 +0200
-Message-ID: <1362877681-8102-2-git-send-email-notasas@gmail.com>
-References: <1362877681-8102-1-git-send-email-notasas@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f176.google.com ([209.85.215.176]:52787 "EHLO
-	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356Ab3CJBQV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Mar 2013 20:16:21 -0500
-In-Reply-To: <1362877681-8102-1-git-send-email-notasas@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 4/7] usb: otg: twl4030-usb: poll for ID disconnect
+Date: Sun, 10 Mar 2013 12:03:20 +0100
+Message-ID: <513C6878.2000309@amarulasolutions.com>
+References: <1362877681-8102-1-git-send-email-notasas@gmail.com> <1362877681-8102-5-git-send-email-notasas@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1362877681-8102-5-git-send-email-notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, NeilBrown <neilb@suse.de>, Grazvydas Ignotas <notasas@gmail.com>
 
-There is no need to do it, otg.set_suspend(false) (which itself
-comes from runtime_pm OMAP glue calls) will enable it later anyway.
-This used to be the place where things were enabled if booted with
-cable connected before runtime_pm conversion, but now can be dropped.
+Hi
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
- drivers/usb/otg/twl4030-usb.c |   23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+just one comment.
 
-diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
-index a994715..1515c0b 100644
---- a/drivers/usb/otg/twl4030-usb.c
-+++ b/drivers/usb/otg/twl4030-usb.c
-@@ -522,19 +522,17 @@ static void twl4030_usb_phy_init(struct twl4030_usb *twl)
- {
- 	enum omap_musb_vbus_id_status status;
- 
--	status = twl4030_usb_linkstat(twl);
--	if (status > 0) {
--		if (status == OMAP_MUSB_VBUS_OFF ||
--				status == OMAP_MUSB_ID_FLOAT) {
--			__twl4030_phy_power(twl, 0);
--			twl->asleep = 1;
--		} else {
--			__twl4030_phy_resume(twl);
--			twl->asleep = 0;
--		}
-+	/*
-+	 * Start in sleep state, we'll get called through set_suspend()
-+	 * callback when musb is runtime resumed and it's time to start.
-+	 */
-+	__twl4030_phy_power(twl, 0);
-+	twl->asleep = 1;
- 
-+	status = twl4030_usb_linkstat(twl);
-+	if (status > 0)
- 		omap_musb_mailbox(twl->linkstat);
--	}
-+
- 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
- }
- 
-@@ -649,9 +647,6 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 		return status;
- 	}
- 
--	/* Power down phy or make it work according to
--	 * current link state.
--	 */
- 	twl4030_usb_phy_init(twl);
- 
- 	dev_info(&pdev->dev, "Initialized TWL4030 USB module\n");
--- 
-1.7.9.5
+On 10/03/13 02:07, Grazvydas Ignotas wrote:
+> On pandora, STS_USB interrupt doesn't arrive on USB host cable disconnect
+> for some reason while VBUS is driven by twl itself, but STS_HW_CONDITIONS
+> is updated correctly. It does work fine when PHY is powered down though.
+> To work around that we have to poll.
+> 
+> TI PSP kernels have similar workarounds, so (many?) more boards are likely
+> affected.
+> 
+> Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/usb/otg/twl4030-usb.c |   37 +++++++++++++++++++++++++++++++++++++
+>  1 file changed, 37 insertions(+)
+> 
+> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+> index 90a19ff..2c1c27e 100644
+> --- a/drivers/usb/otg/twl4030-usb.c
+> +++ b/drivers/usb/otg/twl4030-usb.c
+> @@ -163,6 +163,8 @@ struct twl4030_usb {
+>  	bool			vbus_supplied;
+>  	u8			asleep;
+>  	bool			irq_enabled;
+> +
+> +	struct delayed_work	id_workaround_work;
+>  };
+>  
+>  /* internal define on top of container_of */
+> @@ -412,6 +414,16 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
+>  	__twl4030_phy_resume(twl);
+>  	twl->asleep = 0;
+>  	dev_dbg(twl->dev, "%s\n", __func__);
+> +
+> +	/*
+> +	 * XXX When VBUS gets driven after musb goes to A mode,
+> +	 * ID_PRES related interrupts no longer arrive, why?
+> +	 * Register itself is updated fine though, so we must poll.
+> +	 */
+> +	if (twl->linkstat == OMAP_MUSB_ID_GROUND) {
+> +		cancel_delayed_work(&twl->id_workaround_work);
+> +		schedule_delayed_work(&twl->id_workaround_work, HZ);
+> +	}
+>  }
+>  
+>  static int twl4030_usb_ldo_init(struct twl4030_usb *twl)
+> @@ -513,6 +525,28 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> +static void twl4030_id_workaround_work(struct work_struct *work)
+> +{
+> +	struct twl4030_usb *twl = container_of(work, struct twl4030_usb,
+> +		id_workaround_work.work);
+> +	enum omap_musb_vbus_id_status status_prev = twl->linkstat;
+> +	enum omap_musb_vbus_id_status status;
+> +
+> +	status = twl4030_usb_linkstat(twl);
+> +	if (status != status_prev) {
+> +		dev_dbg(twl->dev, "handle missing status change: %d->%d\n",
+> +			status_prev, status);
+> +		twl->linkstat = status_prev;
+> +		twl4030_usb_irq(0, twl);
 
+As I understand from the subject this happen in Pandora board and
+many boards can be affected.
+do you need any protection between the worker and the irq when
+the irq arrive as expected?
+
+> +	}
+> +
+> +	/* don't schedule during sleep - irq works right then */
+> +	if (status == OMAP_MUSB_ID_GROUND && !twl->asleep) {
+> +		cancel_delayed_work(&twl->id_workaround_work);
+> +		schedule_delayed_work(&twl->id_workaround_work, HZ);
+> +	}
+> +}
+> +
+>  static void twl4030_usb_phy_init(struct twl4030_usb *twl)
+>  {
+>  	enum omap_musb_vbus_id_status status;
+> @@ -613,6 +647,8 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+>  	/* init spinlock for workqueue */
+>  	spin_lock_init(&twl->lock);
+>  
+> +	INIT_DELAYED_WORK(&twl->id_workaround_work, twl4030_id_workaround_work);
+> +
+>  	err = twl4030_usb_ldo_init(twl);
+>  	if (err) {
+>  		dev_err(&pdev->dev, "ldo init failed\n");
+> @@ -653,6 +689,7 @@ static int __exit twl4030_usb_remove(struct platform_device *pdev)
+>  	struct twl4030_usb *twl = platform_get_drvdata(pdev);
+>  	int val;
+>  
+> +	cancel_delayed_work(&twl->id_workaround_work);
+>  	free_irq(twl->irq, twl);
+>  	device_remove_file(twl->dev, &dev_attr_vbus);
+>  
+> 
+
+Michael
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
