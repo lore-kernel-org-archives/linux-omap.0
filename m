@@ -1,60 +1,56 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH V2 2/2] ASoC: OMAP2+: Move McBSP, DMIC and McPDM to
- generic DMA DT binding
-Date: Mon, 11 Mar 2013 14:33:03 +0000
-Message-ID: <20130311143303.GC10617@opensource.wolfsonmicro.com>
-References: <1362988223-22455-1-git-send-email-s-guiriec@ti.com>
- <1362988223-22455-3-git-send-email-s-guiriec@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [Resend/PATCH 0/5] omap4/5: i2c/spi: device tree data
+Date: Mon, 11 Mar 2013 21:12:26 +0530
+Message-ID: <513DFB62.5030709@ti.com>
+References: <1363009486-19430-1-git-send-email-sourav.poddar@ti.com> <513DEAE1.1050606@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xesSdrSSBC0PokLI"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:53296 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751093Ab3CKOdG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Mar 2013 10:33:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1362988223-22455-3-git-send-email-s-guiriec@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41528 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753234Ab3CKPmj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Mar 2013 11:42:39 -0400
+In-Reply-To: <513DEAE1.1050606@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, santosh.shilimkar@ti.com, Andrew Morton <akpm@osdl.org>
 
+On Monday 11 March 2013 08:02 PM, Benoit Cousson wrote:
+> Hi Sourav,
+>
+> On 03/11/2013 02:44 PM, Sourav Poddar wrote:
+>> Hi Tony/Benoit,
+>>
+>> These patches had been sent couple of times before, but there were no comments on it.
+> Sorry for that. I got a big flu in Jan and was in Linaro Connect last week.
+> Patches look good, I just have to check that they apply nicely to the
+> dts/for_3.9 I already prepared.
+>
+Ok. Thanks!!
+> I still have to rebase that branch on top of a recent master branch and
+> then check your branch.
+>
+>> If there are no comments, Can these be picked ?
+>> Cc: Andrew Morton<akpm@osdl.org>
+>>
+>> The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b6ec9:
+>>
+>>    Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
+>>
+>> are available in the git repository at:
+>>    git@gitorious.org:linux-connectivity/linux-connectivity.git omap_i2c_spi_dts_data
+>>
+>> Felipe Balbi (1):
+>>        arm: dts: omap5: add SPI devices to OMAP5 DeviceTree file
+>>
+>> Sourav Poddar (4):
+>>        arm: dts: omap4-sdp: Add I2c pinctrl data
+>>        arm: dts: omap5-evm: Add I2c pinctrl data
+>>        arm: dts: omap4-panda: Add I2c pinctrl data
+>>        arm: dts: omap5-evm: Add mcspi data
+> Thanks,
+> Benoit
+>
 
---xesSdrSSBC0PokLI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Mar 11, 2013 at 08:50:22AM +0100, Sebastien Guiriec wrote:
-> Update OMAP2+ driver in order to use OMAP DMA DT binding for OMAP2+.
-> In case of DT boot snd_dmaengine_generic_pcm_open function is used.
-
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-
-or I can apply to ASoC if people prefer, I don't think it makes much
-difference either way.
-
---xesSdrSSBC0PokLI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRPesSAAoJELSic+t+oim9OzsP/jeqct/lwEiSuCtkBOC9YnXb
-Ngrq4OTQtgPhrosdE7lDExDLDKeyhJe0binhaPmlW87nrgrYphfVe+j/jU6qWMOZ
-gigzqL0Kl7d0OYPZ2vpXSYT2pmId1LUrF7vec68gLfelu68iPh/6zlVmfIHmxDfg
-PzlYna830BsTESUhBoFEmAYKaAHFG6LHntXojc20CjrPh4cuM/ZsimYwtAQy4Eu8
-8Xxl0IcgkwxeSoM3cUHET5gtAZ4BWx9T/DMOnD8HZdd172+9eFZE7AlhT5SSJW9k
-fm+/+6p5m5XdIqwIo4X4UPq2hH4BH/EW8Op0+0YCSy/7IUZuEhK9GvC6WNA9Pua4
-8QIo/5/4jk6HEQ34EaHbv1hyq/PIFvs0XRh17KY0ICeCfAQA+ezgPXPNSnxT+xDh
-t8mtf47oLVVOYZv2RehMhtKhhiF4B9zSvBxCke1NDgL+43uZcFlkU1S0nQgTBSNT
-4FSTaG7bEeJIUE02P1/t9XITWqHo7NBtoouRr8ZaFdeqbp8sgn7EcdJDv12bs8ik
-4hr01pAGrXqpXKbo5Z8+xhA4e74QPAYrPtTZGhuw+GJnRjK1k8dLya6WaSNoWV80
-fpzwma/heVPH7TUl4ho9f8NrjeZ7Wld19eT/gfJ1naRFqN3Vq2/Wtgq3BOUEgxBq
-cw8kOgSTVpTD7j/ln9Oc
-=CKC/
------END PGP SIGNATURE-----
-
---xesSdrSSBC0PokLI--
