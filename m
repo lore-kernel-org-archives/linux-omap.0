@@ -1,47 +1,48 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [Resend/PATCH 1/5] arm: dts: omap4-sdp: Add I2c pinctrl data
-Date: Mon, 11 Mar 2013 19:15:33 +0530
-Message-ID: <1363009533-19472-1-git-send-email-sourav.poddar@ti.com>
+Subject: [Resend/PATCH 3/5] arm: dts: omap4-panda: Add I2c pinctrl data
+Date: Mon, 11 Mar 2013 19:15:59 +0530
+Message-ID: <1363009559-19534-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60077 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44527 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752658Ab3CKNpv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Mar 2013 09:45:51 -0400
+	id S1752041Ab3CKNqM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Mar 2013 09:46:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, santosh.shilimkar@ti.com, b-cousson@ti.com
 Cc: Sourav Poddar <sourav.poddar@ti.com>, Andrew Morton <akpm@osdl.org>
 
-Booting 3.9-rc2 on omap 4430sdp results in the following error
+Booting 3.9-rc2 on omap4 panda results in the following error
 
-omap_i2c 48070000.i2c: did not get pins for i2c error: -19
-[    1.024261] omap_i2c 48070000.i2c: bus 0 rev0.12 at 100 kHz
-[    1.030181] omap_i2c 48072000.i2c: did not get pins for i2c error: -19
-[    1.037384] omap_i2c 48072000.i2c: bus 1 rev0.12 at 400 kHz
-[    1.043762] omap_i2c 48060000.i2c: did not get pins for i2c error: -19
-[    1.050964] omap_i2c 48060000.i2c: bus 2 rev0.12 at 100 kHz
-[    1.056823] omap_i2c 4807a000.i2c: did not get pins for i2c error: -19
-[    1.064025] omap_i2c 4807a000.i2c: bus 3 rev0.12 at 400 kHz
+[    0.444427] omap_i2c 48070000.i2c: did not get pins for i2c error: -19
+[    0.445770] omap_i2c 48070000.i2c: bus 0 rev0.11 at 400 kHz
+[    0.473937] omap_i2c 48072000.i2c: did not get pins for i2c error: -19
+[    0.474670] omap_i2c 48072000.i2c: bus 1 rev0.11 at 400 kHz
+[    0.474822] omap_i2c 48060000.i2c: did not get pins for i2c error: -19
+[    0.476379] omap_i2c 48060000.i2c: bus 2 rev0.11 at 100 kHz
+[    0.477294] omap_i2c 48350000.i2c: did not get pins for i2c error: -19
+[    0.477996] omap_i2c 48350000.i2c: bus 3 rev0.11 at 400 kHz
+[    0.483398] Switching to clocksource 32k_counter
 
-This happens because omap4 dts file is not adapted to use i2c through pinctrl
-framework. Populating i2c pinctrl data to get rid of the error.
+This happens because omap4 panda dts file is not adapted to use i2c through
+pinctrl framework. Populating i2c pinctrl data to get rid of the error.
 
-Tested on omap4430 sdp with 3.9-rc2 kernel.
+Tested on omap4460 panda with 3.9-rc2 kernel.
 
 Cc: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-Reported-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Reported-by: Luciano Coelho <coelho@ti.com>
 ---
- arch/arm/boot/dts/omap4-sdp.dts |   40 +++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4-panda.dts |   40 +++++++++++++++++++++++++++++++++++++
  1 files changed, 40 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 43e5258..40a04c9 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -212,9 +212,40 @@
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index 4122efe..f951e6b 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -110,9 +110,40 @@
  			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
  		>;
  	};
@@ -49,14 +50,14 @@ index 43e5258..40a04c9 100644
 +	i2c1_pins: pinmux_i2c1_pins {
 +		pinctrl-single,pins = <
 +			0xe2 0x118        /* i2c1_scl PULLUP | INPUTENABLE | MODE0 */
-+			0xe4 0x118       /* i2c1_sda PULLUP | INPUTENABLE | MODE0 */
++			0xe4 0x118        /* i2c1_sda PULLUP | INPUTENABLE | MODE0 */
 +		>;
 +	};
 +
 +	i2c2_pins: pinmux_i2c2_pins {
 +		pinctrl-single,pins = <
-+                        0xe6 0x118        /* i2c2_scl PULLUP | INPUTENABLE | MODE0 */
-+                        0xe8 0x118        /* i2c2_sda PULLUP | INPUTENABLE | MODE0 */
++			0xe6 0x118        /* i2c2_scl PULLUP | INPUTENABLE | MODE0 */
++			0xe8 0x118        /* i2c2_sda PULLUP | INPUTENABLE | MODE0 */
 +		>;
 +	};
 +
@@ -82,7 +83,7 @@ index 43e5258..40a04c9 100644
  	clock-frequency = <400000>;
  
  	twl: twl@48 {
-@@ -253,10 +284,16 @@
+@@ -139,10 +170,16 @@
  /include/ "twl6030.dtsi"
  
  &i2c2 {
@@ -96,10 +97,10 @@ index 43e5258..40a04c9 100644
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&i2c3_pins>;
 +
- 	clock-frequency = <400000>;
+ 	clock-frequency = <100000>;
  
  	/*
-@@ -279,6 +316,9 @@
+@@ -156,6 +193,9 @@
  };
  
  &i2c4 {
@@ -107,8 +108,8 @@ index 43e5258..40a04c9 100644
 +	pinctrl-0 = <&i2c4_pins>;
 +
  	clock-frequency = <400000>;
+ };
  
- 	/*
 -- 
 1.7.1
 
