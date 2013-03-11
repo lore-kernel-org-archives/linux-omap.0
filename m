@@ -1,64 +1,51 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 5/8] memory: emif: use restart if power_off not present
- when out of spec
-Date: Mon, 11 Mar 2013 11:09:57 +0530
-Message-ID: <513D6E2D.4040805@ti.com>
-References: <1362978365-5593-1-git-send-email-lokeshvutla@ti.com> <1362978365-5593-6-git-send-email-lokeshvutla@ti.com>
+Subject: Re: [PATCH 6/8] memory: emif: fix timings initialization issue
+Date: Mon, 11 Mar 2013 11:14:32 +0530
+Message-ID: <513D6F40.6080202@ti.com>
+References: <1362978365-5593-1-git-send-email-lokeshvutla@ti.com> <1362978365-5593-7-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362978365-5593-6-git-send-email-lokeshvutla@ti.com>
+In-Reply-To: <1362978365-5593-7-git-send-email-lokeshvutla@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
+Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+$subject is too vague. What issue ?
+Some thing like "Fix the incorrect 'size' parameter in memcpy' etc
+
 On Monday 11 March 2013 10:36 AM, Lokesh Vutla wrote:
-> From: Nishanth Menon <nm@ti.com>
+> From: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
 > 
-> Some machine or kernel variants might have missed implementation
-> of power off handlers. We DONOT want to let the system be in
-> "out of spec" state in this condition. So, WARN and attempt
-> a machine restart in the hopes of clearing the out-of-spec
-> temperature condition.
-> 
-> NOTE: This is not the safest option, but safer than leaving the
-> system in unstable conditions.
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> The issue was that only the first timings table was added to the
+> emif platform data at the emif driver registration. All other
+> timings tables was filled with zeros. Now all emif timings table
+> are added to the platform data.
+>
+Luckily, most of the cases, first table has been re-used for
+symmetric configuration.
+ 
+> Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
 > Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 > ---
->  drivers/memory/emif.c |    9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
+>  drivers/memory/emif.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
 > diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
-> index 927fb55..02a94fc 100644
+> index 02a94fc..f75806a 100644
 > --- a/drivers/memory/emif.c
 > +++ b/drivers/memory/emif.c
-> @@ -25,6 +25,7 @@
->  #include <linux/module.h>
->  #include <linux/list.h>
->  #include <linux/spinlock.h>
-> +#include <linux/pm.h>
->  #include <memory/jedec_ddr.h>
->  #include "emif.h"
->  #include "of_memory.h"
-> @@ -1011,7 +1012,13 @@ static irqreturn_t emif_threaded_isr(int irq, void *dev_id)
->  
->  	if (emif->temperature_level == SDRAM_TEMP_VERY_HIGH_SHUTDOWN) {
->  		dev_emerg(emif->dev, "SDRAM temperature exceeds operating limit.. Needs shut down!!!\n");
-> -		kernel_power_off();
-Extra line here would be good here.
-> +		/* If we have Power OFF ability, use it, else try restarting */
-> +		if (pm_power_off) {
-> +			kernel_power_off();
-> +		} else {
-> +			WARN(1, "FIXME: NO pm_power_off!!! trying restart\n");
-> +			kernel_restart("SDRAM Over-temp Emergency restart");
-> +		}
->  		return IRQ_HANDLED;
->  	}
->  
-Otherwise,
+> @@ -1463,7 +1463,7 @@ static struct emif_data *__init_or_module get_device_details(
+>  	if (pd->timings) {
+>  		temp = devm_kzalloc(dev, size, GFP_KERNEL);
+>  		if (temp) {
+> -			memcpy(temp, pd->timings, sizeof(*pd->timings));
+> +			memcpy(temp, pd->timings, size);
+>  			pd->timings = temp;
+>  		} else {
+>  			dev_warn(dev, "%s:%d: allocation error\n", __func__,
+> 
+Patch as such looks good to me.
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
