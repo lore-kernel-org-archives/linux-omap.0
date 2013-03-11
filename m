@@ -1,51 +1,99 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 6/8] memory: emif: fix timings initialization issue
-Date: Mon, 11 Mar 2013 11:14:32 +0530
-Message-ID: <513D6F40.6080202@ti.com>
-References: <1362978365-5593-1-git-send-email-lokeshvutla@ti.com> <1362978365-5593-7-git-send-email-lokeshvutla@ti.com>
+Subject: Re: [PATCH 7/8] memory: emif: errata i743: Prohibit usage of Power-Down
+ mode
+Date: Mon, 11 Mar 2013 11:20:05 +0530
+Message-ID: <513D708D.1000501@ti.com>
+References: <1362978365-5593-1-git-send-email-lokeshvutla@ti.com> <1362978365-5593-8-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362978365-5593-7-git-send-email-lokeshvutla@ti.com>
+In-Reply-To: <1362978365-5593-8-git-send-email-lokeshvutla@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
+Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grygorii Strashko <grygorii.strashko@ti.com>, Vitaly Chernooky <vitaly.chernooky@ti.com>, Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-$subject is too vague. What issue ?
-Some thing like "Fix the incorrect 'size' parameter in memcpy' etc
-
 On Monday 11 March 2013 10:36 AM, Lokesh Vutla wrote:
-> From: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
+> From: Grygorii Strashko <grygorii.strashko@ti.com>
 > 
-> The issue was that only the first timings table was added to the
-> emif platform data at the emif driver registration. All other
-> timings tables was filled with zeros. Now all emif timings table
-> are added to the platform data.
->
-Luckily, most of the cases, first table has been re-used for
-symmetric configuration.
- 
+> ERRATA DESCRIPTION :
+> The EMIF supports power-down state for low power. The EMIF
+> automatically puts the SDRAM into power-down after the memory is
+> not accessed for a defined number of cycles and the
+> EMIF_PWR_MGMT_CTRL[10:8] REG_LP_MODE bit field is set to 0x4.
+> As the EMIF supports automatic output impedance calibration, a ZQ
+> calibration long command is issued every time it exits active
+> power-down and precharge power-down modes. The EMIF waits and
+> blocks any other command during this calibration.
+> The EMIF does not allow selective disabling of ZQ calibration upon
+> exit of power-down mode. Due to very short periods of power-down
+> cycles, ZQ calibration overhead creates bandwidth issues and
+> increases overall system power consumption. On the other hand,
+> issuing ZQ calibration long commands when exiting self-refresh is
+> still required.
+> 
+> WORKAROUND :
+> Because there is no power consumption benefit of the power-down due
+> to the calibration and there is a performance risk, the guideline
+> is to not allow power-down state and, therefore, to not have set
+> the EMIF_PWR_MGMT_CTRL[10:8] REG_LP_MODE bit field to 0x4.
+> 
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Signed-off-by: Vitaly Chernooky <vitaly.chernooky@ti.com>
 > Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
 > Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 > ---
->  drivers/memory/emif.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+Nice changelog.
+
+>  drivers/memory/emif.c |   35 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 35 insertions(+)
 > 
 > diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
-> index 02a94fc..f75806a 100644
+> index f75806a..119503a 100644
 > --- a/drivers/memory/emif.c
 > +++ b/drivers/memory/emif.c
-> @@ -1463,7 +1463,7 @@ static struct emif_data *__init_or_module get_device_details(
->  	if (pd->timings) {
->  		temp = devm_kzalloc(dev, size, GFP_KERNEL);
->  		if (temp) {
-> -			memcpy(temp, pd->timings, sizeof(*pd->timings));
-> +			memcpy(temp, pd->timings, size);
->  			pd->timings = temp;
->  		} else {
->  			dev_warn(dev, "%s:%d: allocation error\n", __func__,
-> 
-Patch as such looks good to me.
+> @@ -257,6 +257,41 @@ static void set_lpmode(struct emif_data *emif, u8 lpmode)
+>  	u32 temp;
+>  	void __iomem *base = emif->base;
+>  
+> +	/*
+> +	 * Workaround for errata i743 - LPDDR2 Power-Down State is Not
+> +	 * Efficient
+> +	 *
+> +	 * i743 DESCRIPTION:
+> +	 * The EMIF supports power-down state for low power. The EMIF
+> +	 * automatically puts the SDRAM into power-down after the memory is
+> +	 * not accessed for a defined number of cycles and the
+> +	 * EMIF_PWR_MGMT_CTRL[10:8] REG_LP_MODE bit field is set to 0x4.
+> +	 * As the EMIF supports automatic output impedance calibration, a ZQ
+> +	 * calibration long command is issued every time it exits active
+> +	 * power-down and precharge power-down modes. The EMIF waits and
+> +	 * blocks any other command during this calibration.
+> +	 * The EMIF does not allow selective disabling of ZQ calibration upon
+> +	 * exit of power-down mode. Due to very short periods of power-down
+> +	 * cycles, ZQ calibration overhead creates bandwidth issues and
+> +	 * increases overall system power consumption. On the other hand,
+> +	 * issuing ZQ calibration long commands when exiting self-refresh is
+> +	 * still required.
+> +	 *
+> +	 * WORKAROUND
+> +	 * Because there is no power consumption benefit of the power-down due
+> +	 * to the calibration and there is a performance risk, the guideline
+> +	 * is to not allow power-down state and, therefore, to not have set
+> +	 * the EMIF_PWR_MGMT_CTRL[10:8] REG_LP_MODE bit field to 0x4.
+> +	 */
+> +	if ((emif->plat_data->ip_rev == EMIF_4D) &&
+> +	    (EMIF_LP_MODE_PWR_DN == lpmode)) {
+Ok. So the errata is limited to only 'EMIF_4D' version and not applicable
+for next EMIF version used in OMAP5 devices, right ? If yes, would be good
+to just mention that in already good changelog.
+
+> +		WARN_ONCE(1,
+> +			  "REG_LP_MODE = LP_MODE_PWR_DN(4) is prohibited by"
+> +			  "erratum i743 switch to LP_MODE_SELF_REFRESH(2)\n");
+> +		/* rallback LP_MODE to Self-refresh mode */
+s/rallback/rollback ?
+
+With above updates,
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
