@@ -1,28 +1,30 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH 10/20] OMAPDSS: Resolve channels for outputs
-Date: Mon, 11 Mar 2013 14:01:45 +0200
-Message-ID: <513DC7A9.5000405@ti.com>
-References: <1362743515-10152-1-git-send-email-tomi.valkeinen@ti.com> <1362743515-10152-11-git-send-email-tomi.valkeinen@ti.com> <513D716C.2050807@ti.com>
+Date: Mon, 11 Mar 2013 14:05:04 +0200
+Message-ID: <513DC870.3030908@ti.com>
+References: <1362743515-10152-1-git-send-email-tomi.valkeinen@ti.com> <1362743515-10152-11-git-send-email-tomi.valkeinen@ti.com> <513D6D06.7030902@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="------------enig83AEF23C369237EB65820988"
+	boundary="------------enig37F4569D775F257B6E69B057"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36647 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39350 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753751Ab3CKMBr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Mar 2013 08:01:47 -0400
-In-Reply-To: <513D716C.2050807@ti.com>
+	id S1753735Ab3CKMFG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Mar 2013 08:05:06 -0400
+In-Reply-To: <513D6D06.7030902@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
---------------enig83AEF23C369237EB65820988
+--------------enig37F4569D775F257B6E69B057
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2013-03-11 07:53, Archit Taneja wrote:
+On 2013-03-11 07:35, Archit Taneja wrote:
+> Hi,
+>=20
 > On Friday 08 March 2013 05:21 PM, Tomi Valkeinen wrote:
 >> The DISPC channel used for each output is currently passed in panel
 >> platform data from the board files.
@@ -86,87 +88,306 @@ ser
 >> +        return OMAP_DSS_CHANNEL_LCD;
 >> +    }
 >> +}
+>> +
+>>   static int __init dpi_init_display(struct omap_dss_device *dssdev)
+>>   {
+>>       struct platform_device *dsidev;
+>>
+>>       DSSDBG("init_display\n");
+>>
+>> +    dssdev->channel =3D dpi_get_channel();
 >=20
-> I had another comment for this patch. On OMAP5, it makes sense for us t=
-o
-> not use LCD2 as the recommended channel. LCD2_CLK's only source is
-> DSS_CLK from PRCM. So it's not a very flexible channel to use. We could=
+> In patch 14 of the series, we remove these dssdev->channel assignments.=
 
-> use LCD3 (at the cost of not using DSI2).
+> I don't see the point of adding them in this patch in the first place.
+> The dssdev->channel assignments will not be modified in this series, so=
+
+> we don't need to worry about a kernel crash or something after this pat=
+ch.
 >=20
-> We also need to fix dpi_get_dsidev() for OMAP5. Currently, it assumes
-> that LCD2_CLK can be sourced from DSI2 PLL, we need to ensure DPI has a=
+> I feel this patch should only add the dpi_get_channel and
+> dsi_get_channel funcs.
 
-> dsidev only if it's LCD1 or LCD3.
-
-I fixed it this way:
+Here's the combined patch. I changed the recommended_channel to dispc_cha=
+nnel.
+"recommended" was not that good name, as currently the channel cannot be =
+changed
+later, because, for example in DPI case, we store the DSI PLL which is ba=
+sed on
+the channel.
 
 
 Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date:   Mon Mar 11 13:57:38 2013 +0200
+Date:   Wed Feb 13 11:23:54 2013 +0200
 
-    OMAPDSS: DPI: fix dpi_get_dsidev() for omap5
+    OMAPDSS: add output->dispc_channel
    =20
-    On OMAP5 the DISPC channels and DSI PLLs are not connected the same w=
-ay.
-    LCD2 on OMAP5 cannot use any DSI PLL as a source clock, but LCD3 can =
-use
-    DSI2's PLL.
+    The DISPC channel used for each output is currently passed in panel
+    platform data from the board files.
    =20
-    This patch fixes dpi_get_dsidev() by adding separate case for OMAP5 t=
-o
-    handle the difference.
+    To simplify this, and to make the panel drivers less dependent on OMA=
+P,
+    this patch changes omapdss to resolve the channel independently. The
+    channel is resolved based on the OMAP version and, in case of DSI, th=
+e
+    DSI module id. This resolved channel is stored into a new field in
+    output, dispc_channel.
+   =20
+    The few places where dssdev->channel was used are changed to use
+    output->recommended_channel. After this patch, dssdev->channel is
+    obsolete.
    =20
     Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
 diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.=
 c
-index 409e53b..433eff7 100644
+index e282456..409e53b 100644
 --- a/drivers/video/omap2/dss/dpi.c
 +++ b/drivers/video/omap2/dss/dpi.c
-@@ -63,15 +63,29 @@ static struct platform_device *dpi_get_dsidev(enum om=
-ap_channel channel)
- 	case OMAPDSS_VER_OMAP3630:
- 	case OMAPDSS_VER_AM35xx:
- 		return NULL;
--	default:
--		break;
--	}
+@@ -396,6 +396,36 @@ static int __init dpi_verify_dsi_pll(struct platform=
+_device *dsidev)
+ 	return 0;
+ }
 =20
--	switch (channel) {
--	case OMAP_DSS_CHANNEL_LCD:
--		return dsi_get_dsidev_from_id(0);
--	case OMAP_DSS_CHANNEL_LCD2:
--		return dsi_get_dsidev_from_id(1);
++/*
++ * Return a hardcoded channel for the DPI output. This should work for
++ * current use cases, but this can be later expanded to either resolve
++ * the channel in some more dynamic manner, or get the channel as a user=
+
++ * parameter.
++ */
++static enum omap_channel dpi_get_channel(void)
++{
++	switch (omapdss_get_version()) {
++	case OMAPDSS_VER_OMAP24xx:
++	case OMAPDSS_VER_OMAP34xx_ES1:
++	case OMAPDSS_VER_OMAP34xx_ES3:
++	case OMAPDSS_VER_OMAP3630:
++	case OMAPDSS_VER_AM35xx:
++		return OMAP_DSS_CHANNEL_LCD;
++
 +	case OMAPDSS_VER_OMAP4430_ES1:
 +	case OMAPDSS_VER_OMAP4430_ES2:
 +	case OMAPDSS_VER_OMAP4:
-+		switch (channel) {
-+		case OMAP_DSS_CHANNEL_LCD:
-+			return dsi_get_dsidev_from_id(0);
-+		case OMAP_DSS_CHANNEL_LCD2:
-+			return dsi_get_dsidev_from_id(1);
++		return OMAP_DSS_CHANNEL_LCD2;
++
++	case OMAPDSS_VER_OMAP5:
++		return OMAP_DSS_CHANNEL_LCD3;
++
++	default:
++		DSSWARN("unsupported DSS version\n");
++		return OMAP_DSS_CHANNEL_LCD;
++	}
++}
++
+ static int __init dpi_init_display(struct omap_dss_device *dssdev)
+ {
+ 	struct platform_device *dsidev;
+@@ -416,12 +446,7 @@ static int __init dpi_init_display(struct omap_dss_d=
+evice *dssdev)
+ 		dpi.vdds_dsi_reg =3D vdds_dsi;
+ 	}
+=20
+-	/*
+-	 * XXX We shouldn't need dssdev->channel for this. The dsi pll clock
+-	 * source for DPI is SoC integration detail, not something that should
+-	 * be configured in the dssdev
+-	 */
+-	dsidev =3D dpi_get_dsidev(dssdev->channel);
++	dsidev =3D dpi_get_dsidev(dpi.output.dispc_channel);
+=20
+ 	if (dsidev && dpi_verify_dsi_pll(dsidev)) {
+ 		dsidev =3D NULL;
+@@ -513,6 +538,7 @@ static void __init dpi_init_output(struct platform_de=
+vice *pdev)
+ 	out->id =3D OMAP_DSS_OUTPUT_DPI;
+ 	out->type =3D OMAP_DISPLAY_TYPE_DPI;
+ 	out->name =3D "dpi";
++	out->dispc_channel =3D dpi_get_channel();
+=20
+ 	dss_register_output(out);
+ }
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.=
+c
+index 1a6ad6f..28e0b99 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -4946,6 +4946,55 @@ void omapdss_dsi_set_videomode_timings(struct omap=
+_dss_device *dssdev,
+ }
+ EXPORT_SYMBOL(omapdss_dsi_set_videomode_timings);
+=20
++/*
++ * Return a hardcoded channel for the DSI output. This should work for
++ * current use cases, but this can be later expanded to either resolve
++ * the channel in some more dynamic manner, or get the channel as a user=
+
++ * parameter.
++ */
++static enum omap_channel dsi_get_channel(int module_id)
++{
++	switch (omapdss_get_version()) {
++	case OMAPDSS_VER_OMAP24xx:
++		DSSWARN("DSI not supported\n");
++		return OMAP_DSS_CHANNEL_LCD;
++
++	case OMAPDSS_VER_OMAP34xx_ES1:
++	case OMAPDSS_VER_OMAP34xx_ES3:
++	case OMAPDSS_VER_OMAP3630:
++	case OMAPDSS_VER_AM35xx:
++		return OMAP_DSS_CHANNEL_LCD;
++
++	case OMAPDSS_VER_OMAP4430_ES1:
++	case OMAPDSS_VER_OMAP4430_ES2:
++	case OMAPDSS_VER_OMAP4:
++		switch (module_id) {
++		case 0:
++			return OMAP_DSS_CHANNEL_LCD;
++		case 1:
++			return OMAP_DSS_CHANNEL_LCD2;
 +		default:
-+			return NULL;
++			DSSWARN("unsupported module id\n");
++			return OMAP_DSS_CHANNEL_LCD;
 +		}
 +
 +	case OMAPDSS_VER_OMAP5:
-+		switch (channel) {
-+		case OMAP_DSS_CHANNEL_LCD:
-+			return dsi_get_dsidev_from_id(0);
-+		case OMAP_DSS_CHANNEL_LCD3:
-+			return dsi_get_dsidev_from_id(1);
++		switch (module_id) {
++		case 0:
++			return OMAP_DSS_CHANNEL_LCD;
++		case 1:
++			return OMAP_DSS_CHANNEL_LCD3;
 +		default:
-+			return NULL;
++			DSSWARN("unsupported module id\n");
++			return OMAP_DSS_CHANNEL_LCD;
 +		}
 +
- 	default:
- 		return NULL;
- 	}
++	default:
++		DSSWARN("unsupported DSS version\n");
++		return OMAP_DSS_CHANNEL_LCD;
++	}
++}
++
+ static int __init dsi_init_display(struct omap_dss_device *dssdev)
+ {
+ 	struct platform_device *dsidev =3D
+@@ -5184,6 +5233,7 @@ static void __init dsi_init_output(struct platform_=
+device *dsidev)
+=20
+ 	out->type =3D OMAP_DISPLAY_TYPE_DSI;
+ 	out->name =3D dsi->module_id =3D=3D 0 ? "dsi0" : "dsi1";
++	out->dispc_channel =3D dsi_get_channel(dsi->module_id);
+=20
+ 	dss_register_output(out);
+ }
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdm=
+i.c
+index 888cfe3..e03619a 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -1012,8 +1012,6 @@ static void __init hdmi_probe_pdata(struct platform=
+_device *pdev)
+ 	hdmi.ls_oe_gpio =3D priv->ls_oe_gpio;
+ 	hdmi.hpd_gpio =3D priv->hpd_gpio;
+=20
+-	dssdev->channel =3D OMAP_DSS_CHANNEL_DIGIT;
+-
+ 	r =3D hdmi_init_display(dssdev);
+ 	if (r) {
+ 		DSSERR("device %s init failed: %d\n", dssdev->name, r);
+@@ -1047,6 +1045,7 @@ static void __init hdmi_init_output(struct platform=
+_device *pdev)
+ 	out->id =3D OMAP_DSS_OUTPUT_HDMI;
+ 	out->type =3D OMAP_DISPLAY_TYPE_HDMI;
+ 	out->name =3D "hdmi";
++	out->dispc_channel =3D OMAP_DSS_CHANNEL_DIGIT;
+=20
+ 	dss_register_output(out);
+ }
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfb=
+i.c
+index a47a9e5..05c0646 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -1026,6 +1026,7 @@ static void __init rfbi_init_output(struct platform=
+_device *pdev)
+ 	out->id =3D OMAP_DSS_OUTPUT_DBI;
+ 	out->type =3D OMAP_DISPLAY_TYPE_DBI;
+ 	out->name =3D "rfbi";
++	out->dispc_channel =3D OMAP_DSS_CHANNEL_LCD;
+=20
+ 	dss_register_output(out);
+ }
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.=
+c
+index 0802927..5d37db5 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -279,6 +279,7 @@ static void __init sdi_init_output(struct platform_de=
+vice *pdev)
+ 	out->id =3D OMAP_DSS_OUTPUT_SDI;
+ 	out->type =3D OMAP_DISPLAY_TYPE_SDI;
+ 	out->name =3D "sdi";
++	out->dispc_channel =3D OMAP_DSS_CHANNEL_LCD;
+=20
+ 	dss_register_output(out);
+ }
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/ven=
+c.c
+index c8130f8..866e015 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -786,8 +786,6 @@ static void __init venc_probe_pdata(struct platform_d=
+evice *vencdev)
+=20
+ 	dss_copy_device_pdata(dssdev, plat_dssdev);
+=20
+-	dssdev->channel =3D OMAP_DSS_CHANNEL_DIGIT;
+-
+ 	r =3D venc_init_display(dssdev);
+ 	if (r) {
+ 		DSSERR("device %s init failed: %d\n", dssdev->name, r);
+@@ -820,6 +818,7 @@ static void __init venc_init_output(struct platform_d=
+evice *pdev)
+ 	out->id =3D OMAP_DSS_OUTPUT_VENC;
+ 	out->type =3D OMAP_DISPLAY_TYPE_VENC;
+ 	out->name =3D "venc";
++	out->dispc_channel =3D OMAP_DSS_CHANNEL_DIGIT;
+=20
+ 	dss_register_output(out);
+ }
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/oma=
+p2/omapfb/omapfb-main.c
+index ca585ef..f38348e 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -2388,7 +2388,7 @@ static int omapfb_init_connections(struct omapfb2_d=
+evice *fbdev,
+ 		struct omap_dss_device *dssdev =3D fbdev->displays[i].dssdev;
+ 		struct omap_dss_output *out =3D dssdev->output;
+=20
+-		mgr =3D omap_dss_get_overlay_manager(dssdev->channel);
++		mgr =3D omap_dss_get_overlay_manager(out->dispc_channel);
+=20
+ 		if (!mgr || !out)
+ 			continue;
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index ba9cea7..ec322a7 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -547,6 +547,9 @@ struct omap_dss_output {
+ 	/* display type supported by the output */
+ 	enum omap_display_type type;
+=20
++	/* DISPC channel for this output */
++	enum omap_channel dispc_channel;
++
+ 	/* output instance */
+ 	enum omap_dss_output_id id;
+=20
 
 
 
---------------enig83AEF23C369237EB65820988
+--------------enig37F4569D775F257B6E69B057
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -175,19 +396,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.11 (GNU/Linux)
 Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJRPcepAAoJEPo9qoy8lh71/cEQAJ8w0l680m8oqWwGupuET06A
-/bdFJ1FSEsxSLmBQ+2ZQ32IMb5IOI5oPFF4HVF6azI49KSqZfzj8Tz8RUN6pl0xu
-fOAKqncR6ml3YS9efK1SkJ12WZFF3HyUjhYYKIcyDAHta9SmyIZbYEgArfs4grgQ
-YqHHXftAzxJZArDTtbwsiDJrRZsiG/13SN7o7Te06gmXa5y1B8rrvAOsac7Jz/Ve
-C7fxf42IpDuH2cpYIjDSEyw+wVm7zhMf7bTwrVdElzr1e7Jq2tWcLnHWyvD6zfdr
-z/Ci3qWEia+sz64OQTwUuUJinqoO61BpVRCnu5M7GOsGuptVNYynXBjKnYdXx5tR
-8SW5pmFLCB6f52snGKoQbk4QhoUomzC94NyYl9EGzMO3I340sSNtzknakAVDKrLd
-KnrQJPOH+Mg0l6Yv90t3PDZaq/lpkTGlnNdPBpt7XnBOYc7jtDbL6NxH9DbyWGzM
-xtWDfPGuf6rpK/kCKTvaCcbRS+GiiWO45sBLdDF0jwLrjQpcIxFhOEr8SdWhewmO
-b+BLXEJngQT99ItrnJdtGnCAqjB0iCA19o9wkTTwv2V+1lHf8cIk38tRlbxz+i2u
-k0xMA5Cb540qFKzCAcR1YJpr5Z8E3bVQVCRcNY0WDKOYo4BwkPiaAK/4bwjpYFvp
-Y4A4vRywxRev8OvsP+cl
-=xCS2
+iQIcBAEBAgAGBQJRPchwAAoJEPo9qoy8lh71ELIP/AjMBMghfT6LyzsCbsJd2IqG
+8ah8XdJaYyodp+P93qrK5xu88Nq83xYvrhvHm/zx/kTw7uNteGdH5OMlNjEolXi4
+LNt+Uty7q5QURgQI/mnYO7SCCmRaSdUJWkumaYX+VH1XHh9dirt2GToN3/7Gax/U
+/ICInN/XohDcxpDn5WrQKGG2c+Y5VhfShCIht0mrbljTL0e7oKlBi4gLDSEGAMVr
+1xAy6krvveXkNUiiJ6hOo9V5s7bu6yJAF/MXZicVKr61yYlHMJt1GRtf+LjMetfl
+ftI36SETZzReythXYfAdP1SyqZAUEtFzWLpTSJlkntyMM7hkUK3n3DmqmK1mRUZB
+c7NYcUelAsoUWOKxfuA+pauD/WEANYp7VsuXL4PkLGmlc/GSyV0cETgP0UAlcn8E
+H3WH1DHY0USz1HVeZY+nGJ4JJE2YpbsDOuhO7hRvhaI265DM4GuAboWQmY7lx3kR
+nqpusitVZ9/gSCDnlqp8saSBSstaUxj1/fzsZPfW5h5SqdAtNPJiMtA168faC7ql
+7CncSUER3vE2fHSeWIXKBPQzc99tCtS/foPesXsqAS2lhoSQRQ9VwJ8vuRLWSg9N
+Gwp5FzXsMS+/oS4vydfU50vf9Gnv0l/CxPt8aYH8m3mEmpdGeUUWZraoReaj3N4s
+UKicU36rpdCkg7iRAZ4t
+=4KOP
 -----END PGP SIGNATURE-----
 
---------------enig83AEF23C369237EB65820988--
+--------------enig37F4569D775F257B6E69B057--
