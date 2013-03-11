@@ -1,43 +1,58 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH 2/8] memory: emif: setup LP settings on freq update
-Date: Mon, 11 Mar 2013 10:35:59 +0530
-Message-ID: <1362978365-5593-3-git-send-email-lokeshvutla@ti.com>
-References: <1362978365-5593-1-git-send-email-lokeshvutla@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/8] memory: emif: Correct the lpmode timeout calculation
+Date: Mon, 11 Mar 2013 11:04:02 +0530
+Message-ID: <513D6CCA.4000906@ti.com>
+References: <1362978365-5593-1-git-send-email-lokeshvutla@ti.com> <1362978365-5593-2-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362978365-5593-1-git-send-email-lokeshvutla@ti.com>
+In-Reply-To: <1362978365-5593-2-git-send-email-lokeshvutla@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, gregkh@linuxfoundation.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ambresh K <ambresh@ti.com>, Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Ambresh K <ambresh@ti.com>
+minor nit.
+$subject
+s/Correct/Fix
 
-Program the power management shadow register on freq update
-Else the concept of threshold frequencies dont really matter
-as the system always uses the performance mode timing for LP
-which is programmed in at init time.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Ambresh K <ambresh@ti.com>
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- drivers/memory/emif.c |    2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
-index 622638c..16f5089 100644
---- a/drivers/memory/emif.c
-+++ b/drivers/memory/emif.c
-@@ -815,6 +815,8 @@ static void setup_registers(struct emif_data *emif, struct emif_regs *regs)
+On Monday 11 March 2013 10:35 AM, Lokesh Vutla wrote:
+> The driver tries to round up the specified timeout cycles to
+> the next power of 2 value. But this is done wrongly.
+> Correcting this here.
+>
+Change needs to be improved here. See below.
  
- 	writel(regs->sdram_tim2_shdw, base + EMIF_SDRAM_TIMING_2_SHDW);
- 	writel(regs->phy_ctrl_1_shdw, base + EMIF_DDR_PHY_CTRL_1_SHDW);
-+	writel(regs->pwr_mgmt_ctrl_shdw,
-+	       base + EMIF_POWER_MANAGEMENT_CTRL_SHDW);
- 
- 	/* Settings specific for EMIF4D5 */
- 	if (emif->plat_data->ip_rev != EMIF_4D5)
--- 
-1.7.9.5
+> Reported-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> ---
+>  drivers/memory/emif.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
+> index df08736..622638c 100644
+> --- a/drivers/memory/emif.c
+> +++ b/drivers/memory/emif.c
+> @@ -732,9 +732,9 @@ static u32 get_pwr_mgmt_ctrl(u32 freq, struct emif_data *emif, u32 ip_rev)
+>  	if (timeout < 16) {
+>  		timeout = 0;
+>  	} else {
+> -		timeout = __fls(timeout) - 3;
+>  		if (timeout & (timeout - 1))
+So from the change, it appears that, the timeout
+check for power of 2 should be done before updating
+the variable which seems to be the right fix.
+
+> -			timeout++;
+> +			timeout <<= 1;
+> +		timeout = __fls(timeout) - 3;
+>  	}
+>  
+>  	switch (lpmode) {
+> 
+So just make changelog verbose as well as add a
+comment about the calculation in the code.
+
+Otherwise, patch looks fine to me.
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
