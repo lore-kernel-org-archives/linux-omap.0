@@ -1,36 +1,29 @@
 From: Jon Hunter <jon-hunter@ti.com>
 Subject: Re: [PATCH 4/9] ARM: dts: OMAP3: Add support for OMAP3430 SDP board
-Date: Mon, 11 Mar 2013 12:53:32 -0500
-Message-ID: <513E1A1C.8070206@ti.com>
-References: <1362763654-9660-1-git-send-email-jon-hunter@ti.com> <1362763654-9660-5-git-send-email-jon-hunter@ti.com> <CABYxbz7Bg3Uf2wkhH=4d6nEPUjyHF8BiixN6rGCOgEVG_us8Jw@mail.gmail.com>
+Date: Mon, 11 Mar 2013 12:54:02 -0500
+Message-ID: <513E1A3A.3030900@ti.com>
+References: <1362763654-9660-1-git-send-email-jon-hunter@ti.com> <1362763654-9660-5-git-send-email-jon-hunter@ti.com> <CABYxbz78Eu_+__5QGrm5bM2ypJSyds_KJcjWF4SRDj+ZOdV43w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46364 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753404Ab3CKRxk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Mar 2013 13:53:40 -0400
-In-Reply-To: <CABYxbz7Bg3Uf2wkhH=4d6nEPUjyHF8BiixN6rGCOgEVG_us8Jw@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49121 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751636Ab3CKRyN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Mar 2013 13:54:13 -0400
+In-Reply-To: <CABYxbz78Eu_+__5QGrm5bM2ypJSyds_KJcjWF4SRDj+ZOdV43w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Anil Kumar <anilk4.v@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
 
-On 03/08/2013 08:25 PM, Anil Kumar wrote:
+On 03/10/2013 09:45 PM, Anil Kumar wrote:
 > Hi Jon,
 > 
 > On Fri, Mar 8, 2013 at 10:57 PM, Jon Hunter <jon-hunter@ti.com> wrote:
 >> Adds basic device-tree support for OMAP3430 SDP board which has 256MB
 >> of RAM and uses the TWL4030 power management IC.
-> 
-> I think this board support should be in separate patch series with
-> related patches.
-
-Well I wanted to keep them altogether so that I can send a pull request
-to Benoit and Tony.
-
 >>
 >> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 >> ---
@@ -71,13 +64,6 @@ to Benoit and Tony.
 >> +/ {
 >> +       model = "TI OMAP3430 SDP";
 >> +       compatible = "ti,omap3430-sdp", "ti,omap3";
-> 
-> I have not seen any related changes in "board-generic.c" for your board.
-> So just wanted know, how this board is booting ?
-
-If you look at board-generic.c you will see that "ti,omap3" will match
-the OMAP3 generic machine. So you don't need to modify the board-generic.c.
-
 >> +
 >> +       memory {
 >> +               device_type = "memory";
@@ -92,37 +78,11 @@ the OMAP3 generic machine. So you don't need to modify the board-generic.c.
 >> +               reg = <0x48>;
 >> +               interrupts = <7>; /* SYS_NIRQ cascaded to intc */
 >> +               interrupt-parent = <&intc>;
->> +       };
->> +};
->> +
->> +/include/ "twl4030.dtsi"
->> +
->> +&mmc1 {
->> +       vmmc-supply = <&vmmc1>;
->> +       vmmc_aux-supply = <&vsim>;
->> +       bus-width = <8>;
->> +};
->> +
->> +&mmc2 {
->> +       status = "disabled";
->> +};
->> +
->> +&mmc3 {
->> +       status = "disabled";
->> +};
 > 
-> I think you should disable modules those are not currently used
-> as they are enabled by default in omap3.dtsi.
-> 
-> exp:-
-> 
-> &mcbsp2 {
->         status = "disabled";
-> };
+> No need of  "interrupt-parent = <&intc>" as it is with root node
+> already.
 
-Well may be we could do that in a follow-up patch. If you look at other
-omap3 boards we have not gone through and disabled all unused modules
-either. So although I agree, right now I just want to get minimal
-support added.
+Yes you are correct. Will update.
 
+Thanks
 Jon
