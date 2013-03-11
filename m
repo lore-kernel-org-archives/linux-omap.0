@@ -1,89 +1,79 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 01/13] usb: phy: nop: Add device tree support and binding
- information
-Date: Mon, 11 Mar 2013 10:40:51 +0200
-Message-ID: <513D9893.50703@ti.com>
-References: <1359993540-20780-1-git-send-email-rogerq@ti.com>
- <1359993540-20780-2-git-send-email-rogerq@ti.com>
- <5139C174.7030401@pengutronix.de> <513A079A.1020106@pengutronix.de>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: omap4 pandaboard: clock input for TiWi module inactive
+Date: Mon, 11 Mar 2013 10:58:31 +0200
+Message-ID: <513D9CB7.2010402@ti.com>
+References: <CAEYbN3QotnnAUU=7c7=r1sHDnZ5VhgNfXfP6ANf3+ssCzmEa=A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <513A079A.1020106-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59310 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753279Ab3CKI6g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Mar 2013 04:58:36 -0400
+In-Reply-To: <CAEYbN3QotnnAUU=7c7=r1sHDnZ5VhgNfXfP6ANf3+ssCzmEa=A@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Levi Pearson <levipearson@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "Coelho, Luciano" <coelho@ti.com>, Balaji T Krishnamoorthy <balajitk@ti.com>
 
-On 03/08/2013 05:45 PM, Marc Kleine-Budde wrote:
-> On 03/08/2013 11:46 AM, Marc Kleine-Budde wrote:
->> On 02/04/2013 04:58 PM, Roger Quadros wrote:
->>> The PHY clock, clock rate, VCC regulator and RESET regulator
->>> can now be provided via device tree.
->>>
->>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->>> ---
->>>  .../devicetree/bindings/usb/usb-nop-xceiv.txt      |   34 ++++++++++++++++++++
->>>  drivers/usb/otg/nop-usb-xceiv.c                    |   31 ++++++++++++++++++
->>>  2 files changed, 65 insertions(+), 0 deletions(-)
->>>  create mode 100644 Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
->>>
->>> diff --git a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
->>> new file mode 100644
->>> index 0000000..d7e2726
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
->>> @@ -0,0 +1,34 @@
->>> +USB NOP PHY
->>> +
->>> +Required properties:
->>> +- compatible: should be usb-nop-xceiv
->>> +
->>> +Optional properties:
->>> +- clocks: phandle to the PHY clock. Use as per Documentation/devicetree
->>> +  /bindings/clock/clock-bindings.txt
->>> +  This property is required if clock-frequency is specified.
->>> +
->>> +- clock-names: Should be "main_clk"
->>> +
->>> +- clock-frequency: the clock frequency (in Hz) that the PHY clock must
->>> +  be configured to.
->>> +
->>> +- vcc-supply: phandle to the regulator that provides RESET to the PHY.
->>> +
->>> +- reset-supply: phandle to the regulator that provides power to the PHY.
->>> +
->>> +Example:
->>> +
->>> +	hsusb1_phy {
->>> +		compatible = "usb-nop-xceiv";
->>> +		clock-frequency = <19200000>;
->>
->> Why do you hardcode the clock frequency here? You should use
->> clk_get_rate() to get the frequency from the clock tree.
+(+ Peter, Luca, Balaji)
+
+else your e-mail might just go unnoticed ;)
+
+On 03/07/2013 10:37 PM, Levi Pearson wrote:
+> I recently upgraded from a 3.4 kernel to a 3.8 kernel and found that
+> the drivers for the functionality provided by the TiWi module on the
+> pandaboard (Bluetooth, WiFI, etc.) could no longer probe the device.
+> After some investigation, it turned out that the TiWi clock is
+> provided by the twl6030 PMIC chip.
 > 
-> What about declaring a "fixed-clock" node in the device tree? Then it
-> should be possible to keep the driver free of any omap specific code.
+> The clock output of the twl6030 was first enabled via these commits:
+> 
+> https://patchwork.kernel.org/patch/546381/
+> https://patchwork.kernel.org/patch/546401/
+> 
+> Since most of the functionality of the TWL6030 is power regulation and
+> the clock is enabled via a similar mechanism to the power outputs, the
+> clock was added as a 'pseudo-regulator' to
+> drivers/regulator/twl-regulator.c.
+> 
+> Some time later, a series of commits removed the clock functionality
+> from twl-regulator.c, apparently due to being out-of-place in the
+> Device Tree listings or something.
+> 
+> The first of these is recorded here: https://lkml.org/lkml/2012/6/4/330
+> The next two just clean up the code that was orphaned by the previous:
+>  e76ab829 "regulator: twl: Remove references to the twl4030 regulator"
+>  029dd3ce "regulator: twl: Remove another unused variable warning"
+> 
+> Luciano Cuelho, who maintains the driver for the WiFi portion of the
+> TiWi modules, reported the resulting breakage some time later on the
+> LKML: https://lkml.org/lkml/2012/11/15/72
+> 
+> Despite the protestation of Mark Brown that his code removal wasn't
+> the cause of the problem, reverting his changes does indeed enable the
+> clock.  However, it also seems to be the case that there ought to be a
+> better home for the clock than twl-regulator.c.  At the time of the
+> previous discussion, it wasn't clear if the framework was in place to
+> support a clock driver for the twl6030's clock, but it seems like the
+> support exists now, since there's a clock driver for the twl6030's
+> companion, the twl6040 audio chip.
+> 
+> So: Is there any chance of simply reverting the 3 commits that broke
+> the clock?  I have done this locally, but I hate to see pandaboard
+> support in the mainstream kernel continue to be broken in this way.
+> 
+> If for whatever reason the commits cannot be reverted, would creating
+> a driver like drivers/clk/clk-twl6040.c that enabled the twl6030's
+> clock output be a suitable alternative?  I'd be willing to take a stab
+> at writing it if there's not something like that in the works already.
+> 
+> ---
+> Levi Pearson
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 
-The current implementation is not OMAP specific and is not limited to a
-fixed frequency clock. The PHY driver is using standard clock APIs to set
-the clock rate 'only' if the 'clock-frequency' property is present in the
-device tree node.
-
-What is the benefit of declaring it as a "fixed-clock"?
-FYI. The clock may not necessarily be a fixed frequency clock and someone
-needs to program the rate.
-
-cheers,
--roger
