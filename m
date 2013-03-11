@@ -1,57 +1,128 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: log VBUS error
-Date: Mon, 11 Mar 2013 10:19:54 -0700
-Message-ID: <20130311171954.GN26093@atomide.com>
-References: <1362876568-7082-1-git-send-email-notasas@gmail.com>
- <20130311162409.GH26093@atomide.com>
- <CANOLnOOp0xHq6KP3yNPYhneuxUtCy4w1tBQjw1kW7UHibV1_0A@mail.gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 4/9] ARM: dts: OMAP3: Add support for OMAP3430 SDP board
+Date: Mon, 11 Mar 2013 12:53:32 -0500
+Message-ID: <513E1A1C.8070206@ti.com>
+References: <1362763654-9660-1-git-send-email-jon-hunter@ti.com> <1362763654-9660-5-git-send-email-jon-hunter@ti.com> <CABYxbz7Bg3Uf2wkhH=4d6nEPUjyHF8BiixN6rGCOgEVG_us8Jw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CANOLnOOp0xHq6KP3yNPYhneuxUtCy4w1tBQjw1kW7UHibV1_0A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46364 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753404Ab3CKRxk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Mar 2013 13:53:40 -0400
+In-Reply-To: <CABYxbz7Bg3Uf2wkhH=4d6nEPUjyHF8BiixN6rGCOgEVG_us8Jw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Anil Kumar <anilk4.v@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-* Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [130311 10:12]:
-> On Mon, Mar 11, 2013 at 6:24 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> > * Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [130309 16:53]:
-> >> VBUS_ERROR is a serious error that the driver often doesn't recover from
-> >> in my tests, so we should at least inform the user about it.
-> >
-> > Patch makes sens to me, just a related question..
-> >
-> > Do you get this when trying to enable the host mode, right? Or have you seen
-> > this in other situations too?
+
+On 03/08/2013 08:25 PM, Anil Kumar wrote:
+> Hi Jon,
 > 
-> I sometimes see it when booting with cable connected to PC or
-> connecting cable to PC after using a host adapter. In those cases OTG
-> port dies completely until a powercycle :(
-
-Hmm OK. I suspect there's some kernel bug currently with the OTG id pin
-detection where it's initial state during the boot is ignored. But replugging
-the cable should fix that, and in your case it sounds like that's not
-the case.
- 
-> > If the error happens when enabling the host mode, my experience is that
-> > the VBUS_ERROR is caused by the musb trying to be too smart and doing the
-> > timeouts automatically. If the VBUS on the hardware does not raise fast
-> > enough to the right range for whatever reason, musb can produce this
-> > error.
+> On Fri, Mar 8, 2013 at 10:57 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+>> Adds basic device-tree support for OMAP3430 SDP board which has 256MB
+>> of RAM and uses the TWL4030 power management IC.
 > 
-> Yeah the driver seems to expect that and has a "ignore" variable, I
-> use KERN_DEBUG level in case it's set.
+> I think this board support should be in separate patch series with
+> related patches.
 
-Yes in the host case I think we then just retry enabling the session bit
-and don't have anything in place to check that the VBUS regulator is ready
-or not. Have not looked at that code for a while though.
+Well I wanted to keep them altogether so that I can send a pull request
+to Benoit and Tony.
 
-Regards,
+>>
+>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>> ---
+>>  arch/arm/boot/dts/Makefile         |    1 +
+>>  arch/arm/boot/dts/omap3430-sdp.dts |   46 ++++++++++++++++++++++++++++++++++++
+>>  2 files changed, 47 insertions(+)
+>>  create mode 100644 arch/arm/boot/dts/omap3430-sdp.dts
+>>
+>> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+>> index 9c62558..89013ed 100644
+>> --- a/arch/arm/boot/dts/Makefile
+>> +++ b/arch/arm/boot/dts/Makefile
+>> @@ -119,6 +119,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+>>         omap3-beagle-xm.dtb \
+>>         omap3-evm.dtb \
+>>         omap3-tobi.dtb \
+>> +       omap3430-sdp.dtb \
+>>         omap4-panda.dtb \
+>>         omap4-panda-a4.dtb \
+>>         omap4-panda-es.dtb \
+>> diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
+>> new file mode 100644
+>> index 0000000..be0650d
+>> --- /dev/null
+>> +++ b/arch/arm/boot/dts/omap3430-sdp.dts
+>> @@ -0,0 +1,46 @@
+>> +/*
+>> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +/dts-v1/;
+>> +
+>> +/include/ "omap3.dtsi"
+>> +
+>> +/ {
+>> +       model = "TI OMAP3430 SDP";
+>> +       compatible = "ti,omap3430-sdp", "ti,omap3";
+> 
+> I have not seen any related changes in "board-generic.c" for your board.
+> So just wanted know, how this board is booting ?
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If you look at board-generic.c you will see that "ti,omap3" will match
+the OMAP3 generic machine. So you don't need to modify the board-generic.c.
+
+>> +
+>> +       memory {
+>> +               device_type = "memory";
+>> +               reg = <0x80000000 0x10000000>; /* 256 MB */
+>> +       };
+>> +};
+>> +
+>> +&i2c1 {
+>> +       clock-frequency = <2600000>;
+>> +
+>> +       twl: twl@48 {
+>> +               reg = <0x48>;
+>> +               interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+>> +               interrupt-parent = <&intc>;
+>> +       };
+>> +};
+>> +
+>> +/include/ "twl4030.dtsi"
+>> +
+>> +&mmc1 {
+>> +       vmmc-supply = <&vmmc1>;
+>> +       vmmc_aux-supply = <&vsim>;
+>> +       bus-width = <8>;
+>> +};
+>> +
+>> +&mmc2 {
+>> +       status = "disabled";
+>> +};
+>> +
+>> +&mmc3 {
+>> +       status = "disabled";
+>> +};
+> 
+> I think you should disable modules those are not currently used
+> as they are enabled by default in omap3.dtsi.
+> 
+> exp:-
+> 
+> &mcbsp2 {
+>         status = "disabled";
+> };
+
+Well may be we could do that in a follow-up patch. If you look at other
+omap3 boards we have not gone through and disabled all unused modules
+either. So although I agree, right now I just want to get minimal
+support added.
+
+Jon
