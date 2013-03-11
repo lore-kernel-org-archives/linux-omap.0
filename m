@@ -1,137 +1,81 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [Resend/PATCH 2/5] arm: dts: omap5-evm: Add I2c pinctrl data
-Date: Mon, 11 Mar 2013 19:15:51 +0530
-Message-ID: <1363009551-19503-1-git-send-email-sourav.poddar@ti.com>
+Subject: [Resend/PATCH 4/5] arm: dts: omap5: add SPI devices to OMAP5 DeviceTree file
+Date: Mon, 11 Mar 2013 19:16:05 +0530
+Message-ID: <1363009565-19565-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33866 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751822Ab3CKNqJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Mar 2013 09:46:09 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60113 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751665Ab3CKNqU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Mar 2013 09:46:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, santosh.shilimkar@ti.com, b-cousson@ti.com
-Cc: Sourav Poddar <sourav.poddar@ti.com>, Andrew Morton <akpm@osdl.org>
+Cc: Andrew Morton <akpm@osdl.org>, Sourav Poddar <sourav.poddar@ti.com>
 
-Booting 3.9-rc2 on omap 5430evm results in the following error
+From: Felipe Balbi <balbi@ti.com>
 
-omap_i2c 48070000.i2c: did not get pins for i2c error: -19
-[    1.024261] omap_i2c 48070000.i2c: bus 0 rev0.12 at 100 kHz
-[    1.030181] omap_i2c 48072000.i2c: did not get pins for i2c error: -19
-[    1.037384] omap_i2c 48072000.i2c: bus 1 rev0.12 at 400 kHz
-[    1.043762] omap_i2c 48060000.i2c: did not get pins for i2c error: -19
-[    1.050964] omap_i2c 48060000.i2c: bus 2 rev0.12 at 100 kHz
-[    1.056823] omap_i2c 4807a000.i2c: did not get pins for i2c error: -19
-[    1.064025] omap_i2c 4807a000.i2c: bus 3 rev0.12 at 400 kHz
-
-This happens because omap5 dts file is not adapted to use i2c through pinctrl
-framework. Populating i2c pinctrl data to get rid of the error.
-
-Tested on omap5430 evm with 3.9-rc2 kernel.
+Add all 4 mcspi instances to omap5.dtsi file.
 
 Cc: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 ---
- arch/arm/boot/dts/omap5-evm.dts |   62 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 62 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap5.dtsi |   40 ++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
-index 8722c15..a4784be 100644
---- a/arch/arm/boot/dts/omap5-evm.dts
-+++ b/arch/arm/boot/dts/omap5-evm.dts
-@@ -80,6 +80,41 @@
- 			0x15a 0x100	/* abemcbsp2_clkx.abemcbsp2_clkx INPUT | MODE0 */
- 		>;
- 	};
-+
-+        i2c1_pins: pinmux_i2c1_pins {
-+                pinctrl-single,pins = <
-+                        0x1b2 0x118        /* i2c1_scl PULLUP | INPUTENABLE | MODE0 */
-+                        0x1b4 0x118        /* i2c1_sda PULLUP | INPUTENABLE | MODE0 */
-+                >;
-+        };
-+
-+	i2c2_pins: pinmux_i2c2_pins {
-+		pinctrl-single,pins = <
-+			0x178 0x100        /* i2c2_scl INPUTENABLE | MODE0 */
-+			0x17a 0x100        /* i2c2_sda INPUTENABLE | MODE0 */
-+		>;
-+	};
-+
-+	i2c3_pins: pinmux_i2c3_pins {
-+		pinctrl-single,pins = <
-+			0x13a 0x100        /* i2c3_scl INPUTENABLE | MODE0 */
-+			0x13c 0x100     /* i2c3_sda INPUTENABLE | MODE0 */
-+		>;
-+	};
-+
-+	i2c4_pins: pinmux_i2c4_pins {
-+		pinctrl-single,pins = <
-+			0xb8 0x100        /* i2c4_scl INPUTENABLE | MODE0 */
-+			0xba 0x100     /* i2c4_sda INPUTENABLE | MODE0 */
-+		>;
-+	};
-+
-+	i2c5_pins: pinmux_i2c5_pins {
-+		pinctrl-single,pins = <
-+			0x184 0x100        /* i2c5_scl INPUTENABLE | MODE0 */
-+			0x186 0x100     /* i2c5_sda INPUTENABLE | MODE0 */
-+		>;
-+	};
- };
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 790bb2a..9e182a9 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -241,6 +241,46 @@
+ 			ti,hwmods = "i2c5";
+ 		};
  
- &mmc1 {
-@@ -106,7 +141,17 @@
- 	status = "disabled";
- };
- 
-+&i2c1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c1_pins>;
++		mcspi1: spi@48098000 {
++			compatible = "ti,omap4-mcspi";
++			reg = <0x48098000 0x200>;
++			interrupts = <0 65 0x4>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcspi1";
++			ti,spi-num-cs = <4>;
++		};
 +
-+	clock-frequency = <400000>;
-+};
++		mcspi2: spi@4809a000 {
++			compatible = "ti,omap4-mcspi";
++			reg = <0x4809a000 0x200>;
++			interrupts = <0 66 0x4>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcspi2";
++			ti,spi-num-cs = <2>;
++		};
 +
- &i2c2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c2_pins>;
++		mcspi3: spi@480b8000 {
++			compatible = "ti,omap4-mcspi";
++			reg = <0x480b8000 0x200>;
++			interrupts = <0 91 0x4>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcspi3";
++			ti,spi-num-cs = <2>;
++		};
 +
- 	clock-frequency = <400000>;
- 
- 	/* Pressure Sensor */
-@@ -116,7 +161,17 @@
- 	};
- };
- 
-+&i2c3 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c3_pins>;
++		mcspi4: spi@480ba000 {
++			compatible = "ti,omap4-mcspi";
++			reg = <0x480ba000 0x200>;
++			interrupts = <0 48 0x4>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcspi4";
++			ti,spi-num-cs = <1>;
++		};
 +
-+	clock-frequency = <400000>;
-+};
-+
- &i2c4 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c4_pins>;
-+
- 	clock-frequency = <400000>;
- 
- 	/* Temperature Sensor */
-@@ -126,6 +181,13 @@
- 	};
- };
- 
-+&i2c5 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c5_pins>;
-+
-+	clock-frequency = <400000>;
-+};
-+
- &keypad {
- 	keypad,num-rows = <8>;
- 	keypad,num-columns = <8>;
+ 		uart1: serial@4806a000 {
+ 			compatible = "ti,omap4-uart";
+ 			reg = <0x4806a000 0x100>;
 -- 
 1.7.1
 
