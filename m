@@ -1,188 +1,193 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: OMAP: zoom: Use pwm stack for lcd and keyboard backlight
-Date: Mon, 11 Mar 2013 12:57:56 +0100
-Message-ID: <1363003076-17360-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 10/20] OMAPDSS: Resolve channels for outputs
+Date: Mon, 11 Mar 2013 14:01:45 +0200
+Message-ID: <513DC7A9.5000405@ti.com>
+References: <1362743515-10152-1-git-send-email-tomi.valkeinen@ti.com> <1362743515-10152-11-git-send-email-tomi.valkeinen@ti.com> <513D716C.2050807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig83AEF23C369237EB65820988"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54939 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36647 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753735Ab3CKL6G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Mar 2013 07:58:06 -0400
+	id S1753751Ab3CKMBr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Mar 2013 08:01:47 -0400
+In-Reply-To: <513D716C.2050807@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Use pwm_leds driver for the keyboard light and pwm-backlight for the lcd
-backlight control (instead of implementing the PWM driver part in the board
-file).
+--------------enig83AEF23C369237EB65820988
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/mach-omap2/board-zoom-display.c     | 56 ----------------------------
- arch/arm/mach-omap2/board-zoom-peripherals.c | 53 +++++++++++++++++++++++++-
- 2 files changed, 52 insertions(+), 57 deletions(-)
+On 2013-03-11 07:53, Archit Taneja wrote:
+> On Friday 08 March 2013 05:21 PM, Tomi Valkeinen wrote:
+>> The DISPC channel used for each output is currently passed in panel
+>> platform data from the board files.
+>>
+>> To simplify this, and to make the panel drivers less dependent on OMAP=
+,
+>> this patch changes omapdss to resolve the channel independently. The
+>> channel is resolved based on the OMAP version and, in case of DSI, the=
 
-diff --git a/arch/arm/mach-omap2/board-zoom-display.c b/arch/arm/mach-omap2/board-zoom-display.c
-index 8cef477..9a7174f 100644
---- a/arch/arm/mach-omap2/board-zoom-display.c
-+++ b/arch/arm/mach-omap2/board-zoom-display.c
-@@ -12,7 +12,6 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
--#include <linux/i2c/twl.h>
- #include <linux/spi/spi.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
- #include <video/omapdss.h>
-@@ -49,59 +48,6 @@ static void zoom_panel_disable_lcd(struct omap_dss_device *dssdev)
- {
- }
- 
--/* Register offsets in TWL4030_MODULE_INTBR */
--#define TWL_INTBR_PMBR1	0xD
--#define TWL_INTBR_GPBR1	0xC
+>> DSI module id.
+>>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> ---
+>>   drivers/video/omap2/dss/dpi.c  |   37 ++++++++++++++++++++++++++----=
 -
--/* Register offsets in TWL_MODULE_PWM */
--#define TWL_LED_PWMON	0x3
--#define TWL_LED_PWMOFF	0x4
--
--static int zoom_set_bl_intensity(struct omap_dss_device *dssdev, int level)
--{
--#ifdef CONFIG_TWL4030_CORE
--	unsigned char c;
--	u8 mux_pwm, enb_pwm;
--
--	if (level > 100)
--		return -1;
--
--	twl_i2c_read_u8(TWL4030_MODULE_INTBR, &mux_pwm, TWL_INTBR_PMBR1);
--	twl_i2c_read_u8(TWL4030_MODULE_INTBR, &enb_pwm, TWL_INTBR_GPBR1);
--
--	if (level == 0) {
--		/* disable pwm1 output and clock */
--		enb_pwm = enb_pwm & 0xF5;
--		/* change pwm1 pin to gpio pin */
--		mux_pwm = mux_pwm & 0xCF;
--		twl_i2c_write_u8(TWL4030_MODULE_INTBR,
--					enb_pwm, TWL_INTBR_GPBR1);
--		twl_i2c_write_u8(TWL4030_MODULE_INTBR,
--					mux_pwm, TWL_INTBR_PMBR1);
--		return 0;
+>>   drivers/video/omap2/dss/dsi.c  |   48
+>> ++++++++++++++++++++++++++++++++++++++++
+>>   drivers/video/omap2/dss/rfbi.c |    2 ++
+>>   drivers/video/omap2/dss/sdi.c  |    2 ++
+>>   4 files changed, 84 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/video/omap2/dss/dpi.c
+>> b/drivers/video/omap2/dss/dpi.c
+>> index e282456..3261644 100644
+>> --- a/drivers/video/omap2/dss/dpi.c
+>> +++ b/drivers/video/omap2/dss/dpi.c
+>> @@ -396,12 +396,44 @@ static int __init dpi_verify_dsi_pll(struct
+>> platform_device *dsidev)
+>>       return 0;
+>>   }
+>>
+>> +/*
+>> + * Return a hardcoded channel for the DPI output. This should work fo=
+r
+>> + * current use cases, but this can be later expanded to either resolv=
+e
+>> + * the channel in some more dynamic manner, or get the channel as a u=
+ser
+>> + * parameter.
+>> + */
+>> +static enum omap_channel dpi_get_channel(void)
+>> +{
+>> +    switch (omapdss_get_version()) {
+>> +    case OMAPDSS_VER_OMAP24xx:
+>> +    case OMAPDSS_VER_OMAP34xx_ES1:
+>> +    case OMAPDSS_VER_OMAP34xx_ES3:
+>> +    case OMAPDSS_VER_OMAP3630:
+>> +    case OMAPDSS_VER_AM35xx:
+>> +        return OMAP_DSS_CHANNEL_LCD;
+>> +
+>> +    case OMAPDSS_VER_OMAP4430_ES1:
+>> +    case OMAPDSS_VER_OMAP4430_ES2:
+>> +    case OMAPDSS_VER_OMAP4:
+>> +        return OMAP_DSS_CHANNEL_LCD2;
+>> +
+>> +    case OMAPDSS_VER_OMAP5:
+>> +        return OMAP_DSS_CHANNEL_LCD2;
+>> +
+>> +    default:
+>> +        DSSWARN("unsupported DSS version\n");
+>> +        return OMAP_DSS_CHANNEL_LCD;
+>> +    }
+>> +}
+>=20
+> I had another comment for this patch. On OMAP5, it makes sense for us t=
+o
+> not use LCD2 as the recommended channel. LCD2_CLK's only source is
+> DSS_CLK from PRCM. So it's not a very flexible channel to use. We could=
+
+> use LCD3 (at the cost of not using DSI2).
+>=20
+> We also need to fix dpi_get_dsidev() for OMAP5. Currently, it assumes
+> that LCD2_CLK can be sourced from DSI2 PLL, we need to ensure DPI has a=
+
+> dsidev only if it's LCD1 or LCD3.
+
+I fixed it this way:
+
+
+Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date:   Mon Mar 11 13:57:38 2013 +0200
+
+    OMAPDSS: DPI: fix dpi_get_dsidev() for omap5
+   =20
+    On OMAP5 the DISPC channels and DSI PLLs are not connected the same w=
+ay.
+    LCD2 on OMAP5 cannot use any DSI PLL as a source clock, but LCD3 can =
+use
+    DSI2's PLL.
+   =20
+    This patch fixes dpi_get_dsidev() by adding separate case for OMAP5 t=
+o
+    handle the difference.
+   =20
+    Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.=
+c
+index 409e53b..433eff7 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -63,15 +63,29 @@ static struct platform_device *dpi_get_dsidev(enum om=
+ap_channel channel)
+ 	case OMAPDSS_VER_OMAP3630:
+ 	case OMAPDSS_VER_AM35xx:
+ 		return NULL;
+-	default:
+-		break;
 -	}
--
--	if (!((enb_pwm & 0xA) && (mux_pwm & 0x30))) {
--		/* change gpio pin to pwm1 pin */
--		mux_pwm = mux_pwm | 0x30;
--		/* enable pwm1 output and clock*/
--		enb_pwm = enb_pwm | 0x0A;
--		twl_i2c_write_u8(TWL4030_MODULE_INTBR,
--					mux_pwm, TWL_INTBR_PMBR1);
--		twl_i2c_write_u8(TWL4030_MODULE_INTBR,
--					enb_pwm, TWL_INTBR_GPBR1);
--	}
--
--	c = ((50 * (100 - level)) / 100) + 1;
--	twl_i2c_write_u8(TWL_MODULE_PWM, 0x7F, TWL_LED_PWMOFF);
--	twl_i2c_write_u8(TWL_MODULE_PWM, c, TWL_LED_PWMON);
--#else
--	pr_warn("Backlight not enabled\n");
--#endif
--
--	return 0;
--}
--
- static struct omap_dss_device zoom_lcd_device = {
- 	.name			= "lcd",
- 	.driver_name		= "NEC_8048_panel",
-@@ -109,8 +55,6 @@ static struct omap_dss_device zoom_lcd_device = {
- 	.phy.dpi.data_lines	= 24,
- 	.platform_enable	= zoom_panel_enable_lcd,
- 	.platform_disable	= zoom_panel_disable_lcd,
--	.max_backlight_level	= 100,
--	.set_backlight		= zoom_set_bl_intensity,
- };
- 
- static struct omap_dss_device *zoom_dss_devices[] = {
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index cdc0c10..a90375d 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -22,6 +22,9 @@
- #include <linux/platform_data/gpio-omap.h>
- #include <linux/platform_data/omap-twl4030.h>
- #include <linux/usb/phy.h>
-+#include <linux/pwm.h>
-+#include <linux/leds_pwm.h>
-+#include <linux/pwm_backlight.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -193,6 +196,53 @@ static struct platform_device omap_vwlan_device = {
- 	},
- };
- 
-+static struct pwm_lookup zoom_pwm_lookup[] = {
-+	PWM_LOOKUP("twl-pwm", 0, "leds_pwm", "zoom::keypad"),
-+	PWM_LOOKUP("twl-pwm", 1, "pwm-backlight", "backlight"),
-+};
+=20
+-	switch (channel) {
+-	case OMAP_DSS_CHANNEL_LCD:
+-		return dsi_get_dsidev_from_id(0);
+-	case OMAP_DSS_CHANNEL_LCD2:
+-		return dsi_get_dsidev_from_id(1);
++	case OMAPDSS_VER_OMAP4430_ES1:
++	case OMAPDSS_VER_OMAP4430_ES2:
++	case OMAPDSS_VER_OMAP4:
++		switch (channel) {
++		case OMAP_DSS_CHANNEL_LCD:
++			return dsi_get_dsidev_from_id(0);
++		case OMAP_DSS_CHANNEL_LCD2:
++			return dsi_get_dsidev_from_id(1);
++		default:
++			return NULL;
++		}
 +
-+static struct led_pwm zoom_pwm_leds[] = {
-+	{
-+		.name		= "zoom::keypad",
-+		.max_brightness	= 127,
-+		.pwm_period_ns	= 7812500,
-+	},
-+};
++	case OMAPDSS_VER_OMAP5:
++		switch (channel) {
++		case OMAP_DSS_CHANNEL_LCD:
++			return dsi_get_dsidev_from_id(0);
++		case OMAP_DSS_CHANNEL_LCD3:
++			return dsi_get_dsidev_from_id(1);
++		default:
++			return NULL;
++		}
 +
-+static struct led_pwm_platform_data zoom_pwm_data = {
-+	.num_leds	= ARRAY_SIZE(zoom_pwm_leds),
-+	.leds		= zoom_pwm_leds,
-+};
-+
-+static struct platform_device zoom_leds_pwm = {
-+	.name	= "leds_pwm",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data = &zoom_pwm_data,
-+	},
-+};
-+
-+static struct platform_pwm_backlight_data zoom_backlight_data = {
-+	.pwm_id = 1,
-+	.max_brightness = 127,
-+	.dft_brightness = 127,
-+	.pwm_period_ns = 7812500,
-+};
-+
-+static struct platform_device zoom_backlight_pwm = {
-+	.name   = "pwm-backlight",
-+	.id     = -1,
-+	.dev    = {
-+		.platform_data = &zoom_backlight_data,
-+	},
-+};
-+
-+static struct platform_device *zoom_devices[] __initdata = {
-+	&omap_vwlan_device,
-+	&zoom_leds_pwm,
-+	&zoom_backlight_pwm,
-+};
-+
- static struct wl12xx_platform_data omap_zoom_wlan_data __initdata = {
- 	.board_ref_clock = WL12XX_REFCLOCK_26, /* 26 MHz */
- };
-@@ -301,7 +351,8 @@ void __init zoom_peripherals_init(void)
- 
- 	omap_hsmmc_init(mmc);
- 	omap_i2c_init();
--	platform_device_register(&omap_vwlan_device);
-+	pwm_add_table(zoom_pwm_lookup, ARRAY_SIZE(zoom_pwm_lookup));
-+	platform_add_devices(zoom_devices, ARRAY_SIZE(zoom_devices));
- 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	enable_board_wakeup_source();
--- 
-1.8.1.5
+ 	default:
+ 		return NULL;
+ 	}
 
+
+
+--------------enig83AEF23C369237EB65820988
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRPcepAAoJEPo9qoy8lh71/cEQAJ8w0l680m8oqWwGupuET06A
+/bdFJ1FSEsxSLmBQ+2ZQ32IMb5IOI5oPFF4HVF6azI49KSqZfzj8Tz8RUN6pl0xu
+fOAKqncR6ml3YS9efK1SkJ12WZFF3HyUjhYYKIcyDAHta9SmyIZbYEgArfs4grgQ
+YqHHXftAzxJZArDTtbwsiDJrRZsiG/13SN7o7Te06gmXa5y1B8rrvAOsac7Jz/Ve
+C7fxf42IpDuH2cpYIjDSEyw+wVm7zhMf7bTwrVdElzr1e7Jq2tWcLnHWyvD6zfdr
+z/Ci3qWEia+sz64OQTwUuUJinqoO61BpVRCnu5M7GOsGuptVNYynXBjKnYdXx5tR
+8SW5pmFLCB6f52snGKoQbk4QhoUomzC94NyYl9EGzMO3I340sSNtzknakAVDKrLd
+KnrQJPOH+Mg0l6Yv90t3PDZaq/lpkTGlnNdPBpt7XnBOYc7jtDbL6NxH9DbyWGzM
+xtWDfPGuf6rpK/kCKTvaCcbRS+GiiWO45sBLdDF0jwLrjQpcIxFhOEr8SdWhewmO
+b+BLXEJngQT99ItrnJdtGnCAqjB0iCA19o9wkTTwv2V+1lHf8cIk38tRlbxz+i2u
+k0xMA5Cb540qFKzCAcR1YJpr5Z8E3bVQVCRcNY0WDKOYo4BwkPiaAK/4bwjpYFvp
+Y4A4vRywxRev8OvsP+cl
+=xCS2
+-----END PGP SIGNATURE-----
+
+--------------enig83AEF23C369237EB65820988--
