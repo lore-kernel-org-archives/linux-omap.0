@@ -1,49 +1,82 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2 2/2] ASoC: OMAP2+: Move McBSP, DMIC and McPDM to
- generic DMA DT binding
-Date: Mon, 11 Mar 2013 09:38:00 -0700
-Message-ID: <20130311163800.GK26093@atomide.com>
-References: <1362988223-22455-1-git-send-email-s-guiriec@ti.com>
- <1362988223-22455-3-git-send-email-s-guiriec@ti.com>
- <20130311143303.GC10617@opensource.wolfsonmicro.com>
- <20130311162700.GI26093@atomide.com>
- <20130311162814.GD10617@opensource.wolfsonmicro.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP3: hwmod data: disable MIDLEMODE control for musb
+Date: Mon, 11 Mar 2013 18:43:19 +0200
+Message-ID: <CANOLnOMUHzbGW-Yz_cXhW1+KNvP-4k6vMDodE94K5G2pwrSf7Q@mail.gmail.com>
+References: <1362876391-6801-1-git-send-email-notasas@gmail.com>
+	<alpine.DEB.2.00.1303102304490.774@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:27846 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753423Ab3CKQiG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Mar 2013 12:38:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20130311162814.GD10617@opensource.wolfsonmicro.com>
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:39000 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751868Ab3CKQnU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Mar 2013 12:43:20 -0400
+Received: by mail-oa0-f44.google.com with SMTP id h1so4734569oag.17
+        for <linux-omap@vger.kernel.org>; Mon, 11 Mar 2013 09:43:20 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1303102304490.774@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Sebastien Guiriec <s-guiriec@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-* Mark Brown <broonie@opensource.wolfsonmicro.com> [130311 09:32]:
-> On Mon, Mar 11, 2013 at 09:27:00AM -0700, Tony Lindgren wrote:
-> 
-> > I suggest you take the driver changes and Benoit takes the .dts
-> > changes as those should be queued separately to avoid unnecessary
-> > merge conflicts with the .dts files.
-> 
-> Won't that cause a bisect issue if the driver starts looking for generic
-> DT stuff that's not in the DTS files?
+On Mon, Mar 11, 2013 at 1:15 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hi Gra=C5=BEvydas,
+>
+> On Sun, 10 Mar 2013, Grazvydas Ignotas wrote:
+>
+>> For some unknown reason, allowing hwmod to control MIDLEMODE causes
+>> core_pwrdm to not hit idle states for musb in DM3730 at least.
+>> I've verified that setting any MIDLEMODE value other than "force
+>> standby" before enabling the device causes subsequent suspend
+>> attempts to fail with core_pwrdm not entering idle states, even
+>> if the driver is unloaded and "force standby" is restored before
+>> suspend attempt.
+>
+> Ugh sounds like a broken bootloader/previous OS could easily block fu=
+ll
+> chip idle in this case :-( Does that match your understanding?  That,=
+ even
+> if the new kernel does everything right in terms of initialization an=
+d
+> reset, the PRCM's perception of whether the device is in STANDBY is
+> permanently stuck?
 
-It should only affect additional features being enabled. When the .dts
-changes get merged the new features just starts working. Or if the .dts
-changes go in first, the driver starts working when the driver changes
-go in.
+Soft reset seems to recover from this so there is no problem, but you
+can't reset before every suspend so a workaround is still needed..
 
-If there's some dependency between the driver and the .dts changes
-breaking booting etc, that should be fixed in the patches by
-for example removing old legacy code later on in a separate series.
+>> Keeping the register set at force standby (reset value) makes it wor=
+k
+>> and device still functions properly. musb has driver-controlled
+>> OTG_FORCESTDBY register that controls MSTANDBY signal, so perhaps
+>> MIDLEMODE is not even needed? Note that TI PSP kernels also have
+>> similar workarounds.
+>
+> Would like to get your opinion on a different implementation.  For ot=
+her
+> situations where IP blocks don't work in the standard, expected way, =
+we've
+> defined hwmod flags for those situations, like HWMOD_SWSUP_*, and
+> HWMOD_NO_OCP_AUTOIDLE.  The motivation is to affirmatively mark IP
+> blocks that don't work as expected, rather than changing the existing=
+,
+> documented hardware bits, which are ideally autogenerated.
+>
+> So what do you think about adding a hwmod flag, HWMOD_FORCE_MSTDBY, a=
+nd
+> using that in the hwmod code to program the MSTDBYMODE to FORCE_STAND=
+BY
+> and then skipping all other attempts to write to it?
 
-This allows us to break the dependency between arch/arm code and
-drivers in most cases to keep things simpler.
+Well as long as it works it's good for me, although it'll bloat the
+code a bit compared to just changing the data. Should I attempt an
+implementation?
 
-Regards,
 
-Tony
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
