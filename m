@@ -1,94 +1,52 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 19/20] OMAPDSS: DSI: fix DSI channel source initialization
-Date: Mon, 11 Mar 2013 09:02:48 +0200
-Message-ID: <513D8198.7070702@ti.com>
-References: <1362743515-10152-1-git-send-email-tomi.valkeinen@ti.com> <1362743515-10152-20-git-send-email-tomi.valkeinen@ti.com> <513D754A.4000607@ti.com>
+From: Sebastien Guiriec <s-guiriec@ti.com>
+Subject: [PATCH V2 0/2] ASoC: OMAP2+: Update Audio IP with sDMA binding for DT boot
+Date: Mon, 11 Mar 2013 08:50:20 +0100
+Message-ID: <1362988223-22455-1-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigEDCDE25C04DEEBF8DF720727"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42160 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55578 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750944Ab3CKHCu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Mar 2013 03:02:50 -0400
-In-Reply-To: <513D754A.4000607@ti.com>
+	id S1751403Ab3CKHvJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Mar 2013 03:51:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Sebastien Guiriec <s-guiriec@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
---------------enigEDCDE25C04DEEBF8DF720727
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+This patch serie is converting OMAP Audio IPs in order to use OMAP sDMA DT
+binding in case of DT boot on OMAP2+ platforms.
 
-On 2013-03-11 08:10, Archit Taneja wrote:
-> Hi,
->=20
-> On Friday 08 March 2013 05:21 PM, Tomi Valkeinen wrote:
->> During the initialization of the DSI protocol registers, we always set=
+It is depending on the next patches:
 
->> the sources of all DSI channels to L4. However, we don't update the
->> value in the dsi_data, so we may end up with a different value in the
->> register and in the dsi_data, leading to DSI problems.
->>
->> This patch fixes the issue by initializing also the channel source in
->> the dsi_data.
->=20
-> We set in omap_dsihw_probe:
->=20
-> static int __init omap_dsihw_probe(struct platform_device *dsidev)
-> {
->     ...
->     ...
->         /* DSI VCs initialization */
->         for (i =3D 0; i < ARRAY_SIZE(dsi->vc); i++) {
->                 dsi->vc[i].source =3D DSI_VC_SOURCE_L4;
->                 dsi->vc[i].dssdev =3D NULL;
->                 dsi->vc[i].vc_id =3D 0;
->         }
->     ...
->     ...
-> }
+[1] http://www.spinics.net/lists/arm-kernel/msg227836.html
+[2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg84668.html
 
-Hmm... I did have a bug related to this when prototyping CDF. Ah.
-Consider this:
+It has been tested on:
+- OMAP5 (sEVM/panda)in DT boot (McPDM/DMIC).
+- OMAP4 (SDP4430/Panda) in both DT/non DT boot (McPDM/DMIC)
+- OMAP3 (Beagle XM) in both DT/non DT boot (McBSP)
 
-Panel powers up and uses DSI normally. A DSI VC is set to video mode.
-Then the panel power down. Then it powers up again, and enables DSI. At
-this time, dsi_vc_initial_config() is called again, setting the source
-in the registers to L4. But the source in dsi_data is still VP.
+Update since v1:
+- Put DTS patch in first.
+- Squash all OMAP IPs patch together.
 
-So perhaps the whole piece of code from omap_dsihw_probe should be moved
-to somewhere else (dsi_vc_initial_config() sounds like a good place), so
-that they are initialized each time the registers are initialized.
+Sebastien Guiriec (2):
+  ARM: dts: OMAP2+: Add SDMA Audio IPs bindings
+  ASoC: OMAP2+: Move McBSP, DMIC and McPDM to generic DMA DT binding
 
- Tomi
+ arch/arm/boot/dts/omap2420.dtsi |    6 ++++++
+ arch/arm/boot/dts/omap2430.dtsi |   15 +++++++++++++++
+ arch/arm/boot/dts/omap3.dtsi    |   15 +++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi    |   17 +++++++++++++++++
+ arch/arm/boot/dts/omap5.dtsi    |   14 ++++++++++++++
+ sound/soc/omap/mcbsp.c          |   26 ++++++++++++++++----------
+ sound/soc/omap/omap-dmic.c      |   15 +++++++++------
+ sound/soc/omap/omap-mcpdm.c     |   22 ++++++++++++++--------
+ sound/soc/omap/omap-pcm.c       |   12 ++++++++++--
+ sound/soc/omap/omap-pcm.h       |    1 +
+ 10 files changed, 117 insertions(+), 26 deletions(-)
 
+-- 
+1.7.10.4
 
-
---------------enigEDCDE25C04DEEBF8DF720727
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRPYGYAAoJEPo9qoy8lh71KwsP/j06cdMm6zmhh6gz8rAcJE+V
-9Em6Hlr3Vi6gpQ07q26ZTEqpsOhZAZijmtrqmDjPj7PDaVZZOCneYZojegpIYeNt
-qqw7VxR+RFbWIiaEqSaaPPiJzMgg2kicjj5mElsr0Fo2Xpdd7ZpHidTUwOA8x0Da
-4ftVBiL1w2eZlG1sliImvX08IiWJlGSGDPLRzru5DMfl/RenSs596CkNa0BCxBdw
-PpdwL0YaRTSOAPjl4zQmpEdFIqHuQr1OUZv+quQinV7LVJxIgM99BxjTz2CNZ6pI
-ihVX6V5EzyFNO2xoA8DgD7DXpa42DoUYR0tpeax6tnyq0anRjxnXw13RNkoCkQ4O
-LHpCut1RyXxu4wdsYYl2vDdeQzU32gmAhLu6C8WKWMTvxnn9K44JsqfXaMUnTpLW
-CHSFNvSVZ35mV11B35uqhbC9OvEOxaEJqGQWsfJx9qpkyKhte8NdDxoyd7ZjmqnP
-o/boB5pFlVWC44diqY4jAfW3Tv/PXxzMvQoPvGK7bH+Sgu0kWLvBbMO6ETgoAHxQ
-2D/7j68KVUsSax9th/VFrxw7eLWH9lEtJ7y1VACOu/nEnJL+W8wcUI61vGSCcGup
-JKTXxHWh+QXFJX3rIwh0tOAZMM8RmL8zqgLrdyXxFpWjgiBvZypnprw5vCCdunLM
-9/dP+28joVG9mQTY927N
-=fN3t
------END PGP SIGNATURE-----
-
---------------enigEDCDE25C04DEEBF8DF720727--
