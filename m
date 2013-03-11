@@ -1,117 +1,192 @@
-From: "Vishwanathrao Badarkhe, Manish" <manishv.b-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: omap2plus: remove interrupt-parent property
-Date: Mon, 11 Mar 2013 15:30:02 +0530
-Message-ID: <1362996002-15552-1-git-send-email-manishv.b@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 10/20] OMAPDSS: Resolve channels for outputs
+Date: Mon, 11 Mar 2013 13:02:09 +0200
+Message-ID: <513DB9B1.1030900@ti.com>
+References: <1362743515-10152-1-git-send-email-tomi.valkeinen@ti.com> <1362743515-10152-11-git-send-email-tomi.valkeinen@ti.com> <513D6D06.7030902@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: manishv.b-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig630E65D549D6AD6E42228551"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:54393 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753735Ab3CKLCM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Mar 2013 07:02:12 -0400
+In-Reply-To: <513D6D06.7030902@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Removed interrupt-parent property from dts file as it is already
-with root node in dtsi file.
+--------------enig630E65D549D6AD6E42228551
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Vishwanathrao Badarkhe, Manish <manishv.b-l0cyMroinI0@public.gmane.org>
----
-:100644 100644 f624dc8... 36e839a... M	arch/arm/boot/dts/omap3-beagle.dts
-:100644 100644 e8ba1c2... a5375fd... M	arch/arm/boot/dts/omap3-evm.dts
-:100644 100644 4122efe... 389c9c7... M	arch/arm/boot/dts/omap4-panda.dts
-:100644 100644 43e5258... cdf5dfd... M	arch/arm/boot/dts/omap4-sdp.dts
-:100644 100644 6601e6a... 1d4a9d4... M	arch/arm/boot/dts/omap4-var-som.dts
- arch/arm/boot/dts/omap3-beagle.dts  |    1 -
- arch/arm/boot/dts/omap3-evm.dts     |    1 -
- arch/arm/boot/dts/omap4-panda.dts   |    2 --
- arch/arm/boot/dts/omap4-sdp.dts     |    2 --
- arch/arm/boot/dts/omap4-var-som.dts |    1 -
- 5 files changed, 0 insertions(+), 7 deletions(-)
+On 2013-03-11 07:35, Archit Taneja wrote:
+> Hi,
+>=20
+> On Friday 08 March 2013 05:21 PM, Tomi Valkeinen wrote:
+>> The DISPC channel used for each output is currently passed in panel
+>> platform data from the board files.
+>>
+>> To simplify this, and to make the panel drivers less dependent on OMAP=
+,
+>> this patch changes omapdss to resolve the channel independently. The
+>> channel is resolved based on the OMAP version and, in case of DSI, the=
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index f624dc8..36e839a 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -46,7 +46,6 @@
- 	twl: twl@48 {
- 		reg = <0x48>;
- 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
--		interrupt-parent = <&intc>;
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-index e8ba1c2..a5375fd 100644
---- a/arch/arm/boot/dts/omap3-evm.dts
-+++ b/arch/arm/boot/dts/omap3-evm.dts
-@@ -34,7 +34,6 @@
- 	twl: twl@48 {
- 		reg = <0x48>;
- 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
--		interrupt-parent = <&intc>;
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index 4122efe..389c9c7 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -119,7 +119,6 @@
- 		reg = <0x48>;
- 		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
- 		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
--		interrupt-parent = <&gic>;
- 	};
- 
- 	twl6040: twl@4b {
-@@ -127,7 +126,6 @@
- 		reg = <0x4b>;
- 		/* SPI = 0, IRQ# = 119, 4 = active high level-sensitive */
- 		interrupts = <0 119 4>; /* IRQ_SYS_2N cascaded to gic */
--		interrupt-parent = <&gic>;
- 		ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
- 
- 		vio-supply = <&v1v8>;
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 43e5258..cdf5dfd 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -221,7 +221,6 @@
- 		reg = <0x48>;
- 		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
- 		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
--		interrupt-parent = <&gic>;
- 	};
- 
- 	twl6040: twl@4b {
-@@ -229,7 +228,6 @@
- 		reg = <0x4b>;
- 		/* SPI = 0, IRQ# = 119, 4 = active high level-sensitive */
- 		interrupts = <0 119 4>; /* IRQ_SYS_2N cascaded to gic */
--		interrupt-parent = <&gic>;
- 		ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
- 
- 		vio-supply = <&v1v8>;
-diff --git a/arch/arm/boot/dts/omap4-var-som.dts b/arch/arm/boot/dts/omap4-var-som.dts
-index 6601e6a..1d4a9d4 100644
---- a/arch/arm/boot/dts/omap4-var-som.dts
-+++ b/arch/arm/boot/dts/omap4-var-som.dts
-@@ -35,7 +35,6 @@
- 		reg = <0x48>;
- 		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
- 		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
--		interrupt-parent = <&gic>;
- 	};
- };
- 
--- 
-1.7.4.1
+>> DSI module id.
+>>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> ---
+>>   drivers/video/omap2/dss/dpi.c  |   37 ++++++++++++++++++++++++++----=
+-
+>>   drivers/video/omap2/dss/dsi.c  |   48
+>> ++++++++++++++++++++++++++++++++++++++++
+>>   drivers/video/omap2/dss/rfbi.c |    2 ++
+>>   drivers/video/omap2/dss/sdi.c  |    2 ++
+>>   4 files changed, 84 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/video/omap2/dss/dpi.c
+>> b/drivers/video/omap2/dss/dpi.c
+>> index e282456..3261644 100644
+>> --- a/drivers/video/omap2/dss/dpi.c
+>> +++ b/drivers/video/omap2/dss/dpi.c
+>> @@ -396,12 +396,44 @@ static int __init dpi_verify_dsi_pll(struct
+>> platform_device *dsidev)
+>>       return 0;
+>>   }
+>>
+>> +/*
+>> + * Return a hardcoded channel for the DPI output. This should work fo=
+r
+>> + * current use cases, but this can be later expanded to either resolv=
+e
+>> + * the channel in some more dynamic manner, or get the channel as a u=
+ser
+>> + * parameter.
+>> + */
+>> +static enum omap_channel dpi_get_channel(void)
+>> +{
+>> +    switch (omapdss_get_version()) {
+>> +    case OMAPDSS_VER_OMAP24xx:
+>> +    case OMAPDSS_VER_OMAP34xx_ES1:
+>> +    case OMAPDSS_VER_OMAP34xx_ES3:
+>> +    case OMAPDSS_VER_OMAP3630:
+>> +    case OMAPDSS_VER_AM35xx:
+>> +        return OMAP_DSS_CHANNEL_LCD;
+>> +
+>> +    case OMAPDSS_VER_OMAP4430_ES1:
+>> +    case OMAPDSS_VER_OMAP4430_ES2:
+>> +    case OMAPDSS_VER_OMAP4:
+>> +        return OMAP_DSS_CHANNEL_LCD2;
+>> +
+>> +    case OMAPDSS_VER_OMAP5:
+>> +        return OMAP_DSS_CHANNEL_LCD2;
+>> +
+>> +    default:
+>> +        DSSWARN("unsupported DSS version\n");
+>> +        return OMAP_DSS_CHANNEL_LCD;
+>> +    }
+>> +}
+>> +
+>>   static int __init dpi_init_display(struct omap_dss_device *dssdev)
+>>   {
+>>       struct platform_device *dsidev;
+>>
+>>       DSSDBG("init_display\n");
+>>
+>> +    dssdev->channel =3D dpi_get_channel();
+>=20
+> In patch 14 of the series, we remove these dssdev->channel assignments.=
+
+> I don't see the point of adding them in this patch in the first place.
+> The dssdev->channel assignments will not be modified in this series, so=
+
+> we don't need to worry about a kernel crash or something after this pat=
+ch.
+>=20
+> I feel this patch should only add the dpi_get_channel and
+> dsi_get_channel funcs.
+
+Yes, you're right. It's just extra going back and forth. I think I'll
+merge this with the patch adding recommended channel.
+
+>> +
+>>       if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI) &&
+>>                       dpi.vdds_dsi_reg =3D=3D NULL) {
+>>           struct regulator *vdds_dsi;
+>> @@ -416,11 +448,6 @@ static int __init dpi_init_display(struct
+>> omap_dss_device *dssdev)
+>>           dpi.vdds_dsi_reg =3D vdds_dsi;
+>>       }
+>>
+>> -    /*
+>> -     * XXX We shouldn't need dssdev->channel for this. The dsi pll cl=
+ock
+>> -     * source for DPI is SoC integration detail, not something that
+>> should
+>> -     * be configured in the dssdev
+>> -     */
+>>       dsidev =3D dpi_get_dsidev(dssdev->channel);
+>>
+>>       if (dsidev && dpi_verify_dsi_pll(dsidev)) {
+>> diff --git a/drivers/video/omap2/dss/dsi.c
+>> b/drivers/video/omap2/dss/dsi.c
+>> index 1a6ad6f..c39ca86 100644
+>> --- a/drivers/video/omap2/dss/dsi.c
+>> +++ b/drivers/video/omap2/dss/dsi.c
+>> @@ -4946,6 +4946,52 @@ void omapdss_dsi_set_videomode_timings(struct
+>> omap_dss_device *dssdev,
+>>   }
+>>   EXPORT_SYMBOL(omapdss_dsi_set_videomode_timings);
+>>
+>> +/*
+>> + * Return a hardcoded channel for the DSI output. This should work fo=
+r
+>> + * current use cases, but this can be later expanded to either resolv=
+e
+>> + * the channel in some more dynamic manner, or get the channel as a u=
+ser
+>> + * parameter.
+>> + */
+>> +static enum omap_channel dsi_get_channel(int module_id)
+>> +{
+>> +    switch (omapdss_get_version()) {
+>> +    case OMAPDSS_VER_OMAP24xx:
+>=20
+> We should remove the above case so that we hit the default case and get=
+
+> a warning about omap2 not having DSI.
+
+Yep, I'll fix that.
+
+ Tomi
+
+
+
+
+--------------enig630E65D549D6AD6E42228551
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRPbmxAAoJEPo9qoy8lh716DUQALGCo1ZcCKS3NsjRjdxPosvx
+nxNmbAq+LrC/FyJZKTyj7FF4BdYS9u4zMmePivgW/aQBqvMHzRJ8Ein9s148cVQB
+m+vNWzbC6riCBO29WlWnUhGPbZa5VKkr0JCfQ3M1WHrXsZet9/QA+ApEAKGznJo4
+BLDAXaCc/L/h4pi5Pjv/gzYVzPgG8HC0HjGjRo0HEmRrylIE6d9SQEWVtd0EY5IB
+Qdcf99VxY52LkpEfv6XziP6VyzQbARwa0DtUTt7L9owfO9FMErGNsvl16awSrU0F
+SNP0H9TG0gkZ3Wz9UN0vHOkzMIeJuQn+ohgScndtD/uUXGgm//EwHxq2AgN1L2vU
+JXjAJuQM72lwo2aEyM5BPKFC9P7r9D+OVSnp9CyMyZ0l9QDLiZDrRekCjLKNTofI
+0AI2utGngeqv/Q7wUmSP62vFdq/9jHuR2HlXcj2qnKOsyQ4NjO8CZ2JBWZyAmdHd
+lfTIwppIz2MMbK+mCuRlRVCbYSJhtbrl46eZfzd8wTp9FGdh+ENK5QuASZhMBdOv
+sx2zSpEhwvQNnvV8//S6t7F5Pu1XOb7aD3AU/NVLfrgjHUfDUwmR3ctO/xkNOC5W
+Rca0MsJ+Al4tFyj1SgMDZOFU7h31CjzLC7RwQtMmuKkCdNj2PwN8SKIJmpz9afUh
+jQ44SS0eNm5vsgd+4nHs
+=XJNm
+-----END PGP SIGNATURE-----
+
+--------------enig630E65D549D6AD6E42228551--
