@@ -1,49 +1,48 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] mach_omap2: use PTR_RET instead of IS_ERR + PTR_ERR
-Date: Tue, 12 Mar 2013 11:05:57 +0000
-Message-ID: <20130312110557.GF30923@n2100.arm.linux.org.uk>
-References: <1363075109-27038-1-git-send-email-silviupopescu1990@gmail.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP: gpmc: request CS address space for
+	ethernet chips
+Date: Tue, 12 Mar 2013 11:08:48 +0000
+Message-ID: <20130312110848.GG30923@n2100.arm.linux.org.uk>
+References: <1362935902-29720-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33152 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33162 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754198Ab3CLLGE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 07:06:04 -0400
+	with ESMTP id S1752623Ab3CLLJG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 07:09:06 -0400
 Content-Disposition: inline
-In-Reply-To: <1363075109-27038-1-git-send-email-silviupopescu1990@gmail.com>
+In-Reply-To: <1362935902-29720-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Jon Hunter <jon-hunter@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Mar 12, 2013 at 09:58:29AM +0200, Silviu-Mihai Popescu wrote:
-> This uses PTR_RET instead of IS_ERR and PTR_ERR in order to increase
-> readability.
-> 
-> Signed-off-by: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
-> ---
->  arch/arm/mach-omap2/devices.c |    4 ++--
->  arch/arm/mach-omap2/fb.c      |    5 +----
->  arch/arm/mach-omap2/gpmc.c    |    2 +-
->  arch/arm/mach-omap2/pmu.c     |    5 +----
->  4 files changed, 5 insertions(+), 11 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 1ec7f05..2a0816e 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -66,7 +66,7 @@ static int __init omap3_l3_init(void)
->  
->  	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
->  
-> -	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
-> +	return PTR_RET(pdev);
+On Sun, Mar 10, 2013 at 06:18:22PM +0100, Javier Martinez Canillas wrote:
+> +static int gpmc_probe_ethernet_child(struct platform_device *pdev,
+> +				     struct device_node *child)
+> +{
+> +	int ret, cs;
+> +	unsigned long base;
+> +	struct resource res;
+> +	struct platform_device *of_dev;
+> +
+> +	if (of_property_read_u32(child, "reg", &cs) < 0) {
+> +		dev_err(&pdev->dev, "%s has no 'reg' property\n",
+> +			child->full_name);
+> +		return -ENODEV;
+> +	}
+> +
+> +	if (of_address_to_resource(child, 0, &res)) {
+> +		dev_err(&pdev->dev, "%s has malformed 'reg' property\n",
+> +			child->full_name);
+> +		return -ENODEV;
+> +	}
+> +
+> +	ret = gpmc_cs_request(cs, resource_size(&res), &base);
+> +	if (IS_ERR_VALUE(ret)) {
 
-This is incorrect.
-
-The return value will be tested for < 0.  Kernel pointers in general are
-all above 3GB, and so are all "< 0".
-
-I'm afraid none of these changes stuff is an improvement - they all
-introduce bugs.
+NAK.  ret < 0 is the correct way to test here.  Don't use IS_ERR_VALUE
+unless you have a _very_ good reason to.  That's a good bit of advice
+for everything in linux/err.h.  Don't use *anything* from there without
+a damned good reason.
