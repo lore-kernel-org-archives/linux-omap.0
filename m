@@ -1,100 +1,107 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v9 5/9] dmaengine: edma: Add TI EDMA device tree binding
-Date: Tue, 12 Mar 2013 12:23:03 +0530
-Message-ID: <513ED0CF.6070302@ti.com>
-References: <1362586540-10393-1-git-send-email-mporter@ti.com>
- <1362586540-10393-6-git-send-email-mporter@ti.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: [PATCH 1/1] ARM: OMAP: board-4430sdp: Provide regulator to
+ pwm-backlight
+Date: Tue, 12 Mar 2013 08:01:04 +0100
+Message-ID: <20130312070104.GB6467@avionic-0098.mockup.avionic-design.de>
+References: <1363053266-515-1-git-send-email-achew@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1362586540-10393-6-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gatW/ieO32f1wygP"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.9]:50391 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753017Ab3CLHB1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 03:01:27 -0400
+Content-Disposition: inline
+In-Reply-To: <1363053266-515-1-git-send-email-achew@nvidia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andrew Chew <achew@nvidia.com>
+Cc: peter.ujfalusi@ti.com, acourbot@nvidia.com, linux-omap@vger.kernel.org
 
-On 3/6/2013 9:45 PM, Matt Porter wrote:
-> The binding definition is based on the generic DMA controller
-> binding.
-> 
-> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
 
-Okay the bindings the documented after they are used leading to some
-confusion. This patch should be moved up the series. As I noted in my
-other e-mail, some of these bindings are not really hardware description
-and need to be re-looked.
+--gatW/ieO32f1wygP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Sekhar
-
+On Mon, Mar 11, 2013 at 06:54:26PM -0700, Andrew Chew wrote:
+> The pwm-backlight driver now takes a mandatory regulator that is gotten
+> during driver probe.  Initialize a dummy regulator to satisfy this
+> requirement.
+>=20
+> Signed-off-by: Andrew Chew <achew@nvidia.com>
 > ---
->  Documentation/devicetree/bindings/dma/ti-edma.txt |   49 +++++++++++++++++++++
->  1 file changed, 49 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/dma/ti-edma.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
-> new file mode 100644
-> index 0000000..075a60e3
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
-> @@ -0,0 +1,49 @@
-> +TI EDMA
+> This patch, along with many more soon to follow, attempts to satisfy the =
+new
+> mandatory regulator that pwm-backlight will grab during probe.  The only
+> board in mach-omap2 to use the pwm-backlight appears to be the 4430sdp.
+>=20
+> I thought I'd start small and use this board as an example.
+>=20
+> I tested similar code in my Tegra board, so it should be okay.  Of course,
+> I don't have a 4430sdp to test with.
+
+Hi Andrew,
+
+This looks good, one minor comment below. I think it might make sense to
+post this patch as part of a series that includes the change to the
+pwm-backlight driver. This will make things easier on potential testers.
+You can later extend that series to include all the other users and
+eventually the whole series can be merged.
+
+>  arch/arm/mach-omap2/board-4430sdp.c |    5 +++++
+>  1 file changed, 5 insertions(+)
+>=20
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/bo=
+ard-4430sdp.c
+> index 35f3ad0..62022c0 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -291,6 +291,10 @@ static struct platform_device sdp4430_leds_pwm =3D {
+>  	},
+>  };
+> =20
+> +/* Dummy regulator for pwm-backlight driver */
+> +static struct regulator_consumer_supply backlight_supply =3D
+> +	REGULATOR_SUPPLY("enable", NULL);
 > +
-> +Required properties:
-> +- compatible : "ti,edma3"
-> +- ti,hwmods: Name of the hwmods associated to the EDMA
-> +- ti,edma-regions: Number of regions
-> +- ti,edma-slots: Number of slots
-> +- ti,edma-queue-tc-map: List of transfer control to queue mappings
-> +- ti,edma-queue-priority-map: List of queue priority mappings
-> +- ti,edma-default-queue: Default queue value
-> +
-> +Optional properties:
-> +- ti,edma-reserved-channels: List of reserved channel regions
-> +- ti,edma-reserved-slots: List of reserved slot regions
-> +- ti,edma-xbar-event-map: Crossbar event to channel map
-> +
-> +Example:
-> +
-> +edma: edma@49000000 {
-> +	reg = <0x49000000 0x10000>;
-> +	interrupt-parent = <&intc>;
-> +	interrupts = <12 13 14>;
-> +	compatible = "ti,edma3";
-> +	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-> +	#dma-cells = <1>;
-> +	dma-channels = <64>;
-> +	ti,edma-regions = <4>;
-> +	ti,edma-slots = <256>;
-> +	ti,edma-reserved-channels = <0  2
-> +				     14 2
-> +				     26 6
-> +				     48 4
-> +				     56 8>;
-> +	ti,edma-reserved-slots = <0  2
-> +				  14 2
-> +				  26 6
-> +				  48 4
-> +				  56 8
-> +				  64 127>;
-> +	ti,edma-queue-tc-map = <0 0
-> +				1 1
-> +				2 2>;
-> +	ti,edma-queue-priority-map = <0 0
-> +				      1 1
-> +				      2 2>;
-> +	ti,edma-default-queue = <0>;
-> +	ti,edma-xbar-event-map = <1 12
-> +				  2 13>;
-> +};
-> 
+>  static struct platform_pwm_backlight_data sdp4430_backlight_data =3D {
+>  	.max_brightness =3D 127,
+>  	.dft_brightness =3D 127,
+> @@ -718,6 +722,7 @@ static void __init omap_4430sdp_init(void)
+> =20
+>  	omap4_i2c_init();
+>  	omap_sfh7741prox_init();
+> +	regulator_register_always_on(-1, "bl-enable", &backlight_supply, 1, 0);
+
+I think I'd prefer to spell out "backlight-enable". I know it's rather
+long but I find it is much easier on the eye to look at the various
+outputs where the string is used and see "backlight" instead of "bl".
+But it's really up to the OMAP crowd, if everybody else is fine with
+"bl-enable" I'll shut up.
+
+Thierry
+
+--gatW/ieO32f1wygP
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRPtKwAAoJEN0jrNd/PrOh/C4P/jKe5/j+qRQSJoepSFCQytqq
+4eFW2DJ/zets3QVt7BK3eqp3FUfRAKKW6UY2CiEyJoMVW0CgA9fzE9kQrAQ+qbOy
+Zve4kh3EEC4LlmFCqeeSSLjipVnlKgFFChgPNZSHJqQwONLyo+Al0vbNIB/fa/Vz
+NeIPPgG1OTmT4q3iKWjiRt3xn+bUlBh6Du4jmE/08QJnH4YhJdDmLBbD4ii+JZX+
+LAS7bAA14x2Ijd7pijp8t3TgHuh4DkkNIbcUXYfgDbxY7eUftw9w0HqKJCI2hNDS
+CulaDQTNKOYUQmtY/IaP14yEVGfdyfSp7awN2BJ0N+4rGpm9tmCoaIzdwga46BMG
+doRspXrTfYujgVzeGom2xKcInbkXrqiyyUbzHRCsvEsNidY/udf2zpMo+9pngT1W
+cCgt0ts0ovM7NnJPHI0Xhnq370REkLPi0949RjHDmdFQzk2RyCIFXSZc+G0ILOcb
+h0AeCd9Tf0JFZ17cNDuaJ6TKe0azKylSLWIHHns3phsaaMP2mBM6dJA1lo6Als84
+I1ojyGufemZoc8P+Duonpprn+q/Yi/XDokjNchjErkQBkIyl/r4zBJ4F8x3YgW3r
+cct3xwQIYo4zQ0dd5ilueGz2EVFC7ZPHdooaaWwv+SenTaeEWq3jtvIu7kko+1J1
+euHDvzMaW1rwqzTKB/Ct
+=j594
+-----END PGP SIGNATURE-----
+
+--gatW/ieO32f1wygP--
