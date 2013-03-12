@@ -1,57 +1,54 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH V2 2/2] ASoC: OMAP2+: Move McBSP, DMIC and McPDM to
- generic DMA DT binding
-Date: Tue, 12 Mar 2013 18:26:34 +0000
-Message-ID: <20130312182634.GG19942@opensource.wolfsonmicro.com>
-References: <1362988223-22455-1-git-send-email-s-guiriec@ti.com>
- <1362988223-22455-3-git-send-email-s-guiriec@ti.com>
+Subject: Re: [PATCH] omap: convert to devm_ioremap_resource()
+Date: Tue, 12 Mar 2013 18:44:28 +0000
+Message-ID: <20130312184428.GN19942@opensource.wolfsonmicro.com>
+References: <1363017537-11602-1-git-send-email-silviupopescu1990@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HKEL+t8MFpg/ASTE"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:51781 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932355Ab3CLS0g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Mar 2013 14:26:36 -0400
+	protocol="application/pgp-signature"; boundary="R92lf0Oi2sxyK3LA"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1362988223-22455-3-git-send-email-s-guiriec@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1363017537-11602-1-git-send-email-silviupopescu1990@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
+Cc: linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, lgirdwood@gmail.com, perex@perex.cz, tiwai@suse.de, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
 
---HKEL+t8MFpg/ASTE
+--R92lf0Oi2sxyK3LA
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Mar 11, 2013 at 08:50:22AM +0100, Sebastien Guiriec wrote:
-> Update OMAP2+ driver in order to use OMAP DMA DT binding for OMAP2+.
-> In case of DT boot snd_dmaengine_generic_pcm_open function is used.
+On Mon, Mar 11, 2013 at 05:58:57PM +0200, Silviu-Mihai Popescu wrote:
+> Convert all uses of devm_request_and_ioremap() to the newly introduced
+> devm_ioremap_resource() which provides more consistent error handling.
+>=20
+> devm_ioremap_resource() provides its own error messages so all explicit
+> error messages can be removed from the failure code paths.
 
-Applied, thanks.
+Applied, thanks.  Please use subject lines appropriate to the subsystem.
 
---HKEL+t8MFpg/ASTE
+--R92lf0Oi2sxyK3LA
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRP3NTAAoJELSic+t+oim9lIcP/0wVeLOZfRLb8OKvb9mZnKE0
-E+8JPeQIyC8M93AlQUJWP8Bjgtnb+d4qkaSHT6yVObsLVNvPm6QhU+smwNax4AGq
-e1DDLOGSeGDjfXeUwx37ONyLWI4lj8PytwAgZSeTwKeJ2z8etRI7SXzhRQixzdlK
-yMLmhzxmsqY79M3ZUWn+mf94PUVI3cOSSxNEmyeKrHdevgNFbvbqfhVGJZ2njhRW
-2go72VWhGgGOsYCt9r0eg8qzKqhYsddC7zeaGC0J0X0vDy0vtyMKzE6J7RT85k64
-NsSdGJZ2JJDEMInx6jWmWXpWK8kGCWDEyG7180hpwPr3bjwU+BfBvcVZr0eHk/RK
-pDnkTRm/L16iakjabRP9hOynozYWSVzJKAHh9s3fpvdpdHueLGqEN/hejMwJqoVb
-nkFJxXu/Pxevo/REFl4INH8KG5BAWAvRFQhkmBjpb6uQzQgaog0i1x47a7mT1sbq
-imFV8GATkAk4ZEjEsiBngNtmGqjQjjNb8CQHMVic4hgZJxHBFF2JqhBZapSGqMqn
-CyGD4Iq8ZHyGE01yoDGEgeS+go9+4BfzjMZ+fPRNUZsUcBiobTb8KREzhtzYvMLj
-L1U05WL4XtnvcTfohUd7omK1jfLkZFgl0ESbqS3lOmElk7I7ot/sZZbOfO8/VTGg
-vD8F8JsdnJWFTX9/jqpa
-=2DyV
+iQIcBAEBAgAGBQJRP3eFAAoJELSic+t+oim9ALkP/2nF5//KmXxUPFsESx/eInNW
+jBt5NsaSwhUMzWpY8zvkIe+RwQ2WWfDxaTSF6/U1mAE8/6ZjP7SvfCtUpJHB1JHW
+EKuO2Ye6mwkAEoG55whSfAUlsoBS0I+OCJYPFXlE1D6n899SBynztsYSk7L9fT8h
+XVKqUt2uGWclFUjepcQtW+cRyNIx+2vnQLqyEHZuHbXEoKl0tmgjcgkCRtgd00nM
+dHqtQeg1zAMnEnQj6oUqzXHkdLMN9mIX9NeHqShYr3msO3LF7IkAucinzBeggPuR
+0Qn45nlsuUqnkq9IRSAYXg+99k4yrkjxW+1spnUn0t3a37VVtebHXBDq/4HZDkTq
+9vqu/rjUZPhoORRabRGWUsoCy6f7/2dGvic3012Ug97+q97dbcy6mTdigjVppXYO
+0zplXDndjGj0AjxWAuJvjlyvxMxsofQAoys2WoxeTbFLTJpVgXJlMFYOvmj7Jgwh
+xaxMlazphyfL+a52IWyHcCNJwSWT74WNR16aaoJUBXjMpM6KUlf16go0jQpVMD1P
+nnIkM5jwrFBE3cBjfsYZ6bwA0wXHyQhEBhgo1MyHEfpvVOJMj9e4FbzmdqPGPfun
+7IeUBsUr3UDG8D77idT/nMZVeJ4eQVoTZBFfyFhyb7SU9kLz/eTRTHufZ7Xw+RKM
+iWaAQ3uGroIh1+Jh9yFO
+=tJ1Y
 -----END PGP SIGNATURE-----
 
---HKEL+t8MFpg/ASTE--
+--R92lf0Oi2sxyK3LA--
