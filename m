@@ -1,128 +1,160 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 4/4] omapdss: features: fixed supported outputs for OMAP4
-Date: Tue, 12 Mar 2013 19:31:51 +0530
-Message-ID: <513F354F.40701@ti.com>
-References: <1362493070-17706-1-git-send-email-archit@ti.com> <1362493070-17706-5-git-send-email-archit@ti.com> <513DCE08.20404@ti.com> <513EC63A.5060707@ti.com> <513F05A0.6040204@ti.com> <513F2639.5060008@ti.com> <513F2F82.2040604@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 3/4] drm/omap: Make fixed resolution panels work
+Date: Tue, 12 Mar 2013 16:06:16 +0200
+Message-ID: <513F3658.3000300@ti.com>
+References: <1362493070-17706-1-git-send-email-archit@ti.com> <1363093583-28285-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig8C3C4C96A82AB5AB88680B2E"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51592 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753889Ab3CLOCg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 10:02:36 -0400
-In-Reply-To: <513F2F82.2040604@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46674 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755156Ab3CLOGT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Mar 2013 10:06:19 -0400
+In-Reply-To: <1363093583-28285-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: robdclark@gmail.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+To: Archit Taneja <archit@ti.com>
+Cc: robdclark@gmail.com, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 
-On Tuesday 12 March 2013 07:07 PM, Tomi Valkeinen wrote:
-> On 2013-03-12 14:57, Archit Taneja wrote:
->
->>>> We could also use the recommended channel way for omapdrm, I can't
->>>> figure out what's the better approach at the moment.
->>>
->>> Hmm, I think it'd be safer to use the recommended channel from omapdss
->>> for now. The current omapdss code doesn't really let you use any other
->>> channel than the recommended one (which was thus renamed to
->>> dispc_channel in my later version).
->>
->> I think omapdss needs to give the freedom to set a different dispc
->> manager for an output. This is because in omapdrm crtcs are sort of
->> floating, and when a connector(and it's encoder) needs to be enabled, it
->> tries to look search for a crtc it can connect to. If omapdss sort of
->> fixes the output->manager link, which is not how it should work.
->>
->> I think it is fine for us to use this approach for omapfb when creating
->> the links, but not within dss.
->>
->> For example, the code here:
->>
->> -    /*
->> -     * XXX We shouldn't need dssdev->channel for this. The dsi pll clock
->> -     * source for DPI is SoC integration detail, not something that should
->> -     * be configured in the dssdev
->> -     */
->> -    dsidev = dpi_get_dsidev(dssdev->channel);
->> +    dsidev = dpi_get_dsidev(dpi.output.dispc_channel);
->>
->> We are sort of using the recommended channel to figure out which DSI pll
->> to use. We don't have much of an option here because dpi_init_display()
->> happens much earlier. But if it were to connect to a different manager
->> later on, we would get into trouble.
->
-> Right. It should be changed to allow dynamic dispc channel changes (as I
-> said in my mail). But that requires changing how the output drivers and
-> the output.c work. Perhaps nothing too difficult, but just something
-> that has not been done =).
->
->>> Or does your patch do a better job at selecting the outputs (I'm mostly
->>> thinking about OMAP5 here, which has a bit more conflicts with the mgrs
->>> and outputs than earlier omaps).
->>
->> My approach is very drm oriented, the problem with omapdrm right now is
->> that we want to limit the number of crtcs(which map to managers). The
->> lesser the number of crtcs, the more free planes we have for overlaying.
->>
->> If through bootargs or CONFIG, we set NUM_CRTCs to 2. We can only set up
->> only 2 overlay managers. My patch just tries to figure out which are the
->> best 2 managers to choose out of the total number of managers, in such a
->> way that most encoders/panels on the platform are supported.
->>
->> The drm framework(I think) keeps the connections between crtc and
->> encoders flexible through the possible_crtcs flag maintained by
->> encoders. It figures out which crtc is free, and tries to use that one
->> at that moment. Once that encoder is done using it, the crtc can be used
->> by another encoder later. We can also change the crtc of an
->> encoder(after it's off).
->>
->> So omapdss fixing the dispc channel for an output doesn't seem suitable
->> for drm.
->
-> So, I don't disagree with you. But I don't quite understand why we could
-> not use the fixed channels for now? They should work in all the boards
-> we have, right? Or is there something with DRM that forces the driver to
-> select the channel dynamically?
+--------------enig8C3C4C96A82AB5AB88680B2E
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-I think we can use fixed channels, but if the number of different fixed 
-channels crosses the number of crtcs the kernel wants, then we would 
-need to atleast change the channels of some of the outputs.
+On 2013-03-12 15:06, Archit Taneja wrote:
+> The omapdrm driver requires omapdss panel drivers to expose ops like de=
+tect,
+> set_timings and check_timings. These can be NULL for fixed panel DPI, D=
+BI, DSI
+> and SDI drivers. At some places, there are no checks to see if the pane=
+l driver
+> has these ops or not, and that leads to a crash.
+>=20
+> The following things are done to make fixed panels work:
+>=20
+> - The omap_connector's detect function is modified such that it conside=
+rs panel
+>   types which are generally fixed panels as always connected(provided t=
+he panel
+>   driver doesn't have a detect op). Hence, the connector corresponding =
+to these
+>   panels is always in a 'connected' state.
+>=20
+> - If a panel driver doesn't have a check_timings op, assume that it sup=
+ports the
+>   mode passed to omap_connector_mode_valid(the 'mode_valid' drm helper =
+function)
+>=20
+> - The function omap_encoder_update shouldn't really do anything for fix=
+ed
+>   resolution panels, make sure that it calls set_timings only if the pa=
+nel
+>   driver has one.
+>=20
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+> Note: In v2, we make sure that the mode passed on to omapdrm matches th=
+e timings
+> of the fixed resolution panel.
+>=20
+>  drivers/gpu/drm/omapdrm/omap_connector.c |   27 ++++++++++++++++++++++=
++++--
+>  drivers/gpu/drm/omapdrm/omap_encoder.c   |   17 +++++++++++++++--
+>  2 files changed, 40 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm=
+/omapdrm/omap_connector.c
+> index c451c41..a72fedd 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_connector.c
+> +++ b/drivers/gpu/drm/omapdrm/omap_connector.c
+> @@ -110,6 +110,11 @@ static enum drm_connector_status omap_connector_de=
+tect(
+>  			ret =3D connector_status_connected;
+>  		else
+>  			ret =3D connector_status_disconnected;
+> +	} else if (dssdev->type =3D=3D OMAP_DISPLAY_TYPE_DPI ||
+> +			dssdev->type =3D=3D OMAP_DISPLAY_TYPE_DBI ||
+> +			dssdev->type =3D=3D OMAP_DISPLAY_TYPE_SDI ||
+> +			dssdev->type =3D=3D OMAP_DISPLAY_TYPE_DSI) {
+> +		ret =3D connector_status_connected;
 
-For example, suppose omapdrm is asked to use only 2 crtcs, and it picks 
-up LCD2 and TV managers. Now if there is some panel which says it's 
-recommended channel is LCD, then things won't work.
+I have to say I don't like this. We shouldn't care about the type here.
+I think it's better just to default to connected if there's no detect
+function (or unknown? I'm not sure what is the practical difference).
 
-At the moment, omapdrm maps a crtc with a manger using a function called 
-pipe2chan() which just selects a manager with the biggest channel no. So 
-if the kernel is configured to have num_crtcs as 1. The single crtc will 
-be mapped to LCD2. This method is wrong, as it doesn't even look at the 
-type of panels at all. For an omap5 panda, the most suitable manager to 
-map to the crtc would be TV(for hdmi).
+If it works fine without using dssdev->type, we have one less place to
+worry when doing dss dev model changes =3D).
 
-I think what we probably need to do is to combine both the methods. I.e, 
-make each output connectible to only one channel, and also iterate 
-through the panels in omapdrm to find the most suitable channels. So in 
-my patch, instead of looking at all the supported managers for an 
-output(checking with dss_feat_get_supported_outputs() on each manager), 
-I just look at the recommended channel, and try to map that manager.
+>  	} else {
+>  		ret =3D connector_status_unknown;
+>  	}
+> @@ -189,12 +194,30 @@ static int omap_connector_mode_valid(struct drm_c=
+onnector *connector,
+>  	struct omap_video_timings timings =3D {0};
+>  	struct drm_device *dev =3D connector->dev;
+>  	struct drm_display_mode *new_mode;
+> -	int ret =3D MODE_BAD;
+> +	int r, ret =3D MODE_BAD;
+> =20
+>  	copy_timings_drm_to_omap(&timings, mode);
+>  	mode->vrefresh =3D drm_mode_vrefresh(mode);
+> =20
+> -	if (!dssdrv->check_timings(dssdev, &timings)) {
+> +	/*
+> +	 * if the panel driver doesn't have a check_timings, it's most likely=
 
-This way, we have a better approach than the pipe2chan() thing, but we 
-restrict each encoder to connect to only one crtc, which we could extend 
-later if the need arises.
+> +	 * a fixed resolution panel, check if the timings match with the
+> +	 * panel's timings
+> +	 */
+> +	if (dssdrv->check_timings) {
+> +		r =3D dssdrv->check_timings(dssdev, &timings);
+> +	} else {
+> +		struct omap_video_timings t;
+> +
+> +		dssdrv->get_timings(dssdev, &t);
+> +
+> +		if (memcmp(&timings, &t, sizeof(struct omap_video_timings)))
+> +			r =3D -EINVAL;
+> +		else
+> +			r =3D 0;
 
-Should we go with this approach then?
+memcmp on two structs is often not a good idea. There could be padding
+bytes there, with uninitialized data. I'm not sure if that's the case
+here, though, but it could well change any time (perhaps even depending
+on compiler version).
 
->
-> As long as omapdss doesn't handle switching the clock sources (and
-> perhaps some other settings also, like OMAP5's DPI video source
-> selection. we've never had support for changing the channel later.),
-> having omapdrm select the channels could lead to problems if it happens
-> to select the wrong channel.
+I'm still pondering whether it'd just be simpler to require all the
+dssdrv ops to be filled, probably using a helper macro in the panel
+drivers... Did you consider that approach? I'm not saying to go for it,
+I'm saying I can't make my mind which would be better =3D).
 
-Yes, most of the other combinations wont work because of missing things 
-like clock source selection in DSS_CTRL and using the other video port 
-of DSI.
+ Tomi
 
-Archit
 
+
+--------------enig8C3C4C96A82AB5AB88680B2E
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRPzZYAAoJEPo9qoy8lh71wTsP+wYp0NdxIT7LcpbU+DKidTyi
+5jjKlYJMtn00gdl+A9cJnNDJLBG1K6Rq2oytPJLIX2NXYyzZJLfbOxvqCBQktsEV
+GytFisr15yEb56HAXqPsNcIOlByWHwec0ueQtLgW4D8Ydem5lOj5iIGJU5HhB4sy
+mkHZJBhqpkQJnS7ThISogqz3j8rICwA1CNydP+/ohGUhm64UL4VefswmO4pteA8i
+lL6osncwlJrCj7lnGFehiMN16pmWU0os529Y1TShjCCE/aHvPpgUOWQlA3c0LIMg
+8UMI+KSe6ojRUjM4LHKyZQbMjItnWJGFbgi5TwWLDP25nN+OY5OHSijjlRrChTVL
+tDtBKr4jjNPUlm3FVTpKaaQv9sWufyxO1cE9j1URreBnp8GTwMqlBcN0Bk0LEGyc
++4xfjG/9+p4hUIIlY0Vo2oeqmXltNTKcZjhbXGcIcEhQDu2fh1FxI2MPbgxR7YU9
+4S5KQo7nOO3QV0Z4ejzC9wRkIlI6af4NocfYS3iqK7ipjGeNT8ikUV4hlfTJSHJv
+V2bKMqLCiowHlZ3Uj34TTkfBRyLRDjbBowjtH+JtuSMpX6goBPxEmS8cbvwWFrPo
+EvhU9pXcSOHgTCxhvVzV4NpHRRq/BXvePA6oxi11TXrcUFYGjQILlhkEOyjJOCLD
+/9yAGszyMzo/Fyfmk5nv
+=8oXd
+-----END PGP SIGNATURE-----
+
+--------------enig8C3C4C96A82AB5AB88680B2E--
