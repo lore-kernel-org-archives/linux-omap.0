@@ -1,8 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 03/12] USB: ehci-omap: Use PHY APIs to get the PHY device and
- put it out of suspend
-Date: Tue, 12 Mar 2013 12:44:41 +0200
-Message-ID: <1363085090-24676-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH 04/12] USB: ehci-omap: Remove PHY reset handling code
+Date: Tue, 12 Mar 2013 12:44:42 +0200
+Message-ID: <1363085090-24676-5-git-send-email-rogerq@ti.com>
 References: <1363085090-24676-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,156 +22,109 @@ To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
 Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-For each port that is in PHY mode we obtain a PHY device using the USB PHY
-library and put it out of suspend.
-
-It is up to platform code to associate the PHY to the controller's
-port and it is up to the PHY driver to manage the PHY's resources.
-
-Also remove weird spacing around declarations we come across.
+Reset GPIO handling for the PHY must be done in the PHY
+driver. We use the PHY helpers instead to reset the PHY.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 ---
- drivers/usb/host/ehci-omap.c |   76 ++++++++++++++++++++++++++++++++++--------
- 1 files changed, 62 insertions(+), 14 deletions(-)
+ drivers/usb/host/ehci-omap.c |   72 ++++++------------------------------------
+ 1 files changed, 10 insertions(+), 62 deletions(-)
 
 diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 70e8e6f..6b8b7e5 100644
+index 6b8b7e5..0bbfdc1 100644
 --- a/drivers/usb/host/ehci-omap.c
 +++ b/drivers/usb/host/ehci-omap.c
-@@ -4,10 +4,11 @@
-  * Bus Glue for the EHCI controllers in OMAP3/4
-  * Tested on several OMAP3 boards, and OMAP4 Pandaboard
-  *
-- * Copyright (C) 2007-2011 Texas Instruments, Inc.
-+ * Copyright (C) 2007-2013 Texas Instruments, Inc.
-  *	Author: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-  *	Author: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-  *	Author: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-+ *	Author: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-  *
-  * Copyright (C) 2009 Nokia Corporation
-  *	Contact: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-@@ -70,6 +71,10 @@ static const char hcd_name[] = "ehci-omap";
+@@ -86,79 +86,27 @@ static inline u32 ehci_read(void __iomem *base, u32 reg)
+ 	return __raw_readl(base + reg);
+ }
  
- /*-------------------------------------------------------------------------*/
- 
-+struct omap_hcd {
-+	struct usb_phy *phy[OMAP3_HS_USB_PORTS]; /* one PHY for each port */
-+	int nports;
-+};
- 
- static inline void ehci_write(void __iomem *base, u32 reg, u32 val)
+-
+-static void omap_ehci_soft_phy_reset(struct usb_hcd *hcd, u8 port)
+-{
+-	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
+-	unsigned reg = 0;
+-
+-	reg = ULPI_FUNC_CTRL_RESET
+-		/* FUNCTION_CTRL_SET register */
+-		| (ULPI_SET(ULPI_FUNC_CTRL) << EHCI_INSNREG05_ULPI_REGADD_SHIFT)
+-		/* Write */
+-		| (2 << EHCI_INSNREG05_ULPI_OPSEL_SHIFT)
+-		/* PORTn */
+-		| ((port + 1) << EHCI_INSNREG05_ULPI_PORTSEL_SHIFT)
+-		/* start ULPI access*/
+-		| (1 << EHCI_INSNREG05_ULPI_CONTROL_SHIFT);
+-
+-	ehci_write(hcd->regs, EHCI_INSNREG05_ULPI, reg);
+-
+-	/* Wait for ULPI access completion */
+-	while ((ehci_read(hcd->regs, EHCI_INSNREG05_ULPI)
+-			& (1 << EHCI_INSNREG05_ULPI_CONTROL_SHIFT))) {
+-		cpu_relax();
+-
+-		if (time_after(jiffies, timeout)) {
+-			dev_dbg(hcd->self.controller,
+-					"phy reset operation timed out\n");
+-			break;
+-		}
+-	}
+-}
+-
+ static int omap_ehci_init(struct usb_hcd *hcd)
  {
-@@ -178,7 +183,8 @@ static void disable_put_regulator(
- static struct hc_driver __read_mostly ehci_omap_hc_driver;
+-	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
+-	int			rc;
+-	struct usbhs_omap_platform_data	*pdata;
+-
+-	pdata = hcd->self.controller->platform_data;
++	struct ehci_hcd	*ehci = hcd_to_ehci(hcd);
++	struct omap_hcd	*omap = (struct omap_hcd *)ehci->priv;
++	int rc, i;
  
- static const struct ehci_driver_overrides ehci_omap_overrides __initdata = {
--	.reset =		omap_ehci_init,
-+	.reset = omap_ehci_init,
-+	.extra_priv_size = sizeof(struct omap_hcd),
- };
- 
- /**
-@@ -190,15 +196,16 @@ static const struct ehci_driver_overrides ehci_omap_overrides __initdata = {
-  */
- static int ehci_hcd_omap_probe(struct platform_device *pdev)
- {
--	struct device				*dev = &pdev->dev;
--	struct usbhs_omap_platform_data		*pdata = dev->platform_data;
--	struct resource				*res;
--	struct usb_hcd				*hcd;
--	void __iomem				*regs;
--	int					ret = -ENODEV;
--	int					irq;
--	int					i;
--	char					supply[7];
-+	struct device *dev = &pdev->dev;
-+	struct usbhs_omap_platform_data *pdata = dev->platform_data;
-+	struct resource	*res;
-+	struct usb_hcd	*hcd;
-+	void __iomem *regs;
-+	int ret = -ENODEV;
-+	int irq;
-+	int i;
-+	char supply[7];
-+	struct omap_hcd	*omap;
- 
- 	if (usb_disabled())
- 		return -ENODEV;
-@@ -231,6 +238,33 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	hcd->rsrc_len = resource_size(res);
- 	hcd->regs = regs;
- 
-+	omap = (struct omap_hcd *)hcd_to_ehci(hcd)->priv;
-+	omap->nports = pdata->nports;
-+
-+	platform_set_drvdata(pdev, hcd);
-+
-+	/* get the PHY devices if needed */
-+	for (i = 0 ; i < omap->nports ; i++) {
-+		struct usb_phy *phy;
-+
-+		if (pdata->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY)
-+			continue;
-+
-+		/* get the PHY device */
-+		phy = devm_usb_get_phy_dev(dev, i);
-+		if (IS_ERR(phy) || !phy) {
-+			ret = IS_ERR(phy) ? PTR_ERR(phy) : -ENODEV;
-+			dev_err(dev, "Can't get PHY device for port %d: %d\n",
-+					i, ret);
-+			goto err_phy;
-+		}
-+
-+		omap->phy[i] = phy;
-+		usb_phy_init(omap->phy[i]);
-+		/* bring PHY out of suspend */
-+		usb_phy_set_suspend(omap->phy[i], 0);
-+	}
-+
- 	/* get ehci regulator and enable */
- 	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
- 		if (pdata->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY) {
-@@ -275,6 +309,13 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- err_pm_runtime:
- 	disable_put_regulator(pdata);
- 	pm_runtime_put_sync(dev);
-+
-+err_phy:
+ 	/* Hold PHYs in reset while initializing EHCI controller */
+-	if (pdata->phy_reset) {
+-		if (gpio_is_valid(pdata->reset_gpio_port[0]))
+-			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 0);
+-
+-		if (gpio_is_valid(pdata->reset_gpio_port[1]))
+-			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 0);
+-
+-		/* Hold the PHY in RESET for enough time till DIR is high */
+-		udelay(10);
 +	for (i = 0; i < omap->nports; i++) {
 +		if (omap->phy[i])
 +			usb_phy_shutdown(omap->phy[i]);
-+	}
-+
- 	usb_put_hcd(hcd);
+ 	}
  
- 	return ret;
-@@ -291,13 +332,20 @@ err_pm_runtime:
-  */
- static int ehci_hcd_omap_remove(struct platform_device *pdev)
- {
--	struct device *dev				= &pdev->dev;
--	struct usb_hcd *hcd				= dev_get_drvdata(dev);
-+	struct device *dev = &pdev->dev;
-+	struct usb_hcd *hcd = dev_get_drvdata(dev);
-+	struct omap_hcd *omap = (struct omap_hcd *)hcd_to_ehci(hcd)->priv;
-+	int i;
+-	/* Soft reset the PHY using PHY reset command over ULPI */
+-	if (pdata->port_mode[0] == OMAP_EHCI_PORT_MODE_PHY)
+-		omap_ehci_soft_phy_reset(hcd, 0);
+-	if (pdata->port_mode[1] == OMAP_EHCI_PORT_MODE_PHY)
+-		omap_ehci_soft_phy_reset(hcd, 1);
+-
+ 	/* we know this is the memory we want, no need to ioremap again */
+ 	ehci->caps = hcd->regs;
  
- 	usb_remove_hcd(hcd);
- 	disable_put_regulator(dev->platform_data);
--	usb_put_hcd(hcd);
+ 	rc = ehci_setup(hcd);
  
+-	if (pdata->phy_reset) {
+-		/* Hold the PHY in RESET for enough time till
+-		 * PHY is settled and ready
+-		 */
+-		udelay(10);
+-
+-		if (gpio_is_valid(pdata->reset_gpio_port[0]))
+-			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 1);
+-
+-		if (gpio_is_valid(pdata->reset_gpio_port[1]))
+-			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
++	/* Bring PHYs out of reset */
 +	for (i = 0; i < omap->nports; i++) {
 +		if (omap->phy[i])
-+			usb_phy_shutdown(omap->phy[i]);
-+	}
-+
-+	usb_put_hcd(hcd);
- 	pm_runtime_put_sync(dev);
- 	pm_runtime_disable(dev);
++			usb_phy_init(omap->phy[i]);
+ 	}
  
+ 	return rc;
 -- 
 1.7.4.1
