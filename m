@@ -1,168 +1,172 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 23/24] ARM: OMAP2+: Allow clock alias provision from device tree
-Date: Tue, 12 Mar 2013 13:43:25 +0200
-Message-ID: <1363088606-2692-24-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 05/24] ARM: OMAP3: 3430SDP: Adapt to ehci-omap changes
+Date: Tue, 12 Mar 2013 13:43:07 +0200
+Message-ID: <1363088606-2692-6-git-send-email-rogerq@ti.com>
 References: <1363088606-2692-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53380 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932208Ab3CLLoa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Mar 2013 07:44:30 -0400
-In-Reply-To: <1363088606-2692-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1363088606-2692-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: balbi@ti.com, b-cousson@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rogerq@ti.com, Russell King <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Currently on OMAP, it is not possible to specify a clock consumer
-to any of the OMAP generated clocks using the device tree. This can pose
-a problem for external devices that run off an OMAP clock as we
-can't reliably provide a reference to the clock in the device tree.
+Add 2 platform devices for 'nop-usb-xceiv'. These will be used
+as PHYs for HS USB ports 1 and 2 so provide binding information
+for them.
 
-This patch allows device trees to provide a node that contains the
-clock identifier, clock alias and the device phandle. The board
-initialization code then creates a clock alias to this clock id,
-and associates it with the device whose phandle was supplied.
+Model RESET for HS USB Ports 1 and 2 as GPIO fixed regulators and
+link them to the 2 PHYs we just created.
 
-Discussion
-http://www.spinics.net/lists/linux-omap/msg86241.html
-
-CC: Russell King <linux@arm.linux.org.uk>
-CC: Rajendra Nayak <rnayak@ti.com>
-CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- .../devicetree/bindings/clock/ti-clock-alias.txt   |   26 ++++++++
- arch/arm/mach-omap2/board-generic.c                |   67 ++++++++++++++++++++
- 2 files changed, 93 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/clock/ti-clock-alias.txt
+ arch/arm/mach-omap2/board-3430sdp.c |   97 ++++++++++++++++++++++++++++++++--
+ 1 files changed, 91 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/clock/ti-clock-alias.txt b/Documentation/devicetree/bindings/clock/ti-clock-alias.txt
-new file mode 100644
-index 0000000..87ef4c3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti-clock-alias.txt
-@@ -0,0 +1,26 @@
-+* Clock alias provision for TI OMAP2+ boards
-+
-+This binding allows the board's device tree file to specify a clock name,
-+device phandle and clock alias so that that clock can be associated
-+to the device with the alias.
-+
-+This is required in cases where an external device is clocked by an
-+OMAP generated clock and needs to be assocated to it.
-+
-+NOTE: The node's name should be clock_alias
-+
-+Required properties
-+- clock-name: The clock identifier string. Should be one of the
-+  clock ids defined in OMAP common clock data.
-+- clock-alias: A string specifying the alias that must be created to the clock.
-+- device: A phandle to the device this clock should be associated to.
-+
-+e.g. On the OMAP4 Panda board, the USB PHY device is clocked by the
-+FREF_CLK3 (auxclk3_ck) from the OMAP. The PHY driver expexts the clock to
-+be named "main_clk". This binding can be provided like so
-+
-+clock_alias {
-+	clock-name = "auxclk3_ck";
-+	clock-alias = "main_clk";
-+	device = <&hsusb1_phy>;
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index ce812de..7e3c88a 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -21,6 +21,8 @@
+ #include <linux/spi/spi.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/regulator/machine.h>
++#include <linux/regulator/fixed.h>
++#include <linux/usb/phy.h>
+ #include <linux/io.h>
+ #include <linux/gpio.h>
+ #include <linux/mmc/host.h>
+@@ -445,16 +447,86 @@ static void enable_board_wakeup_source(void)
+ 		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
+ }
+ 
++/* PHY device on HS USB Port 1 i.e. nop_usb_xceiv.1 */
++static struct platform_device hsusb1_phy_device = {
++	.name = "nop_usb_xceiv",
++	.id = 1,
 +};
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 0274ff7..2fc48f9 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -15,6 +15,9 @@
- #include <linux/of_irq.h>
- #include <linux/of_platform.h>
- #include <linux/irqdomain.h>
-+#include <linux/clk.h>
-+#include <linux/string.h>
-+#include <linux/slab.h>
++
++/* Regulator for HS USB Port 1 PHY reset */
++static struct regulator_consumer_supply hsusb1_reset_supplies[] = {
++	/* Link PHY device to reset supply so it gets used in the PHY driver */
++	REGULATOR_SUPPLY("reset", "nop_usb_xceiv.1"),
++};
++
++static struct regulator_init_data hsusb1_reset_data = {
++	.constraints = {
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
++	.consumer_supplies = hsusb1_reset_supplies,
++	.num_consumer_supplies = ARRAY_SIZE(hsusb1_reset_supplies),
++};
++
++static struct fixed_voltage_config hsusb1_reset_config = {
++	.supply_name = "hsusb1_reset",
++	.microvolts = 3300000,
++	.gpio = 57,
++	.startup_delay = 70000, /* 70msec */
++	.enable_high = 1,
++	.enabled_at_boot = 0,   /* keep in RESET */
++	.init_data = &hsusb1_reset_data,
++};
++
++static struct platform_device hsusb1_reset_device = {
++	.name = "reg-fixed-voltage",
++	.id = PLATFORM_DEVID_AUTO,
++	.dev = {
++		.platform_data = &hsusb1_reset_config,
++	},
++};
++
++/* PHY device on HS USB Port 2 i.e. nop_usb_xceiv.2 */
++static struct platform_device hsusb2_phy_device = {
++	.name = "nop_usb_xceiv",
++	.id = 2,
++};
++
++/* Regulator for HS USB Port 2 PHY reset */
++static struct regulator_consumer_supply hsusb2_reset_supplies[] = {
++	/* Link PHY device to reset supply so it gets used in the PHY driver */
++	REGULATOR_SUPPLY("reset", "nop_usb_xceiv.2"),
++};
++
++static struct regulator_init_data hsusb2_reset_data = {
++	.constraints = {
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
++	.consumer_supplies = hsusb2_reset_supplies,
++	.num_consumer_supplies = ARRAY_SIZE(hsusb2_reset_supplies),
++};
++
++static struct fixed_voltage_config hsusb2_reset_config = {
++	.supply_name = "hsusb2_reset",
++	.microvolts = 3300000,
++	.gpio = 61,
++	.startup_delay = 70000, /* 70msec */
++	.enable_high = 1,
++	.enabled_at_boot = 0,   /* keep in RESET */
++	.init_data = &hsusb2_reset_data,
++};
++
++static struct platform_device hsusb2_reset_device = {
++	.name = "reg-fixed-voltage",
++	.id = PLATFORM_DEVID_AUTO,
++	.dev = {
++		.platform_data = &hsusb2_reset_config,
++	},
++};
++
+ static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
  
- #include <asm/mach/arch.h>
- 
-@@ -35,12 +38,76 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
- 	{ }
+ 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
+ 	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
+-	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
+-
+-	.phy_reset  = true,
+-	.reset_gpio_port[0]  = 57,
+-	.reset_gpio_port[1]  = 61,
+-	.reset_gpio_port[2]  = -EINVAL
  };
  
-+static int __init omap_create_clk_alias(struct device_node *np)
-+{
-+	int ret = 0;
-+	const char *s, *alias;
-+	char *clk_id;
-+	struct device_node *dev_np;
-+	struct platform_device *pdev;
+ #ifdef CONFIG_OMAP_MUX
+@@ -585,6 +657,13 @@ static struct flash_partitions sdp_flash_partitions[] = {
+ 	},
+ };
+ 
++static struct platform_device *sdp3430_devices[] __initdata = {
++	&hsusb1_phy_device,
++	&hsusb1_reset_device,
++	&hsusb2_phy_device,
++	&hsusb2_reset_device,
++};
 +
-+	of_property_read_string(np, "clock-name", &s);
-+	if (!s) {
-+		pr_err("%s: couldn't find clock-name property in node %s\n",
-+				__func__, np->name);
-+		return -ENODEV;
-+	}
-+
-+	clk_id = kstrdup(s, GFP_KERNEL);
-+	if (!clk_id)
-+		return -ENOMEM;
-+
-+	dev_np = of_parse_phandle(np, "device", 0);
-+	if (!dev_np) {
-+		pr_err("%s: couldn't find device phandle for \'%s\'\n",
-+				__func__, clk_id);
-+		ret = -ENODEV;
-+		goto exit;
-+	}
-+
-+	pdev = of_find_device_by_node(dev_np);
-+	if (!pdev) {
-+		pr_err("%s: couldn't find device for clock \'%s\'\n",
-+				__func__, clk_id);
-+		ret = -ENODEV;
-+		goto exit;
-+	}
-+
-+	ret = of_property_read_string(np, "clock-alias", &alias);
-+	if (ret) {
-+		pr_err("%s: couldn't find alias for clock \'%s\'\n",
-+				__func__, clk_id);
-+		ret = -ENODEV;
-+		goto exit;
-+	}
-+
-+	ret = clk_add_alias(alias, dev_name(&pdev->dev), clk_id, NULL);
-+	if (ret) {
-+		pr_err("%s: couldn't add alias \'%s\' to clock \'%s\'\n",
-+				__func__, alias, clk_id);
-+		ret = -ENODEV;
-+		goto exit;
-+	}
-+
-+exit:
-+	kfree(clk_id);
-+	return ret;
-+}
-+
- static void __init omap_generic_init(void)
+ static void __init omap_3430sdp_init(void)
  {
-+	struct device_node *np;
+ 	int gpio_pendown;
+@@ -606,6 +685,12 @@ static void __init omap_3430sdp_init(void)
+ 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
+ 	sdp3430_display_init();
+ 	enable_board_wakeup_source();
 +
- 	omap_sdrc_init(NULL, NULL);
++	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
++	/* PHY on HSUSB Port 1 i.e. index 0 */
++	usb_bind_phy("ehci-omap.0", 0, "nop_usb_xceiv.1");
++	/* PHY on HSUSB Port 2 i.e. index 1 */
++	usb_bind_phy("ehci-omap.0", 1, "nop_usb_xceiv.2");
+ 	usbhs_init(&usbhs_bdata);
+ }
  
- 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
- 
-+	/* create clock aliases based on 'clock_alias' nodes */
-+	for_each_node_by_name(np, "clock_alias") {
-+		omap_create_clk_alias(np);
-+		of_node_put(np);
-+	}
-+
- 	/*
- 	 * HACK: call display setup code for selected boards to enable omapdss.
- 	 * This will be removed when omapdss supports DT.
 -- 
 1.7.4.1
-
