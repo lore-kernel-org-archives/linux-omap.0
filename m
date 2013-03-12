@@ -1,68 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: IS_ERR_VALUE()
-Date: Tue, 12 Mar 2013 09:34:22 -0700
-Message-ID: <20130312163422.GY26093@atomide.com>
-References: <20130312141604.GV4977@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH 00/24] ARM: OMAP2+: Adapt to ehci-omap changes for 3.10
+Date: Tue, 12 Mar 2013 09:40:07 -0700
+Message-ID: <20130312164007.GZ26093@atomide.com>
+References: <1363088606-2692-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:10312 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932206Ab3CLQe1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 12:34:27 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130312141604.GV4977@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1363088606-2692-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, b-cousson@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [130312 07:25]:
-> I am removing almost all references to the above macro from arch/arm.
-> Many of them are wrong.  Some of them are buggy.
+* Roger Quadros <rogerq@ti.com> [130312 04:47]:
+> Hi Tony,
 > 
-> For instance:
-> 
-> int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
-> {
->         int div;
->         div = gpmc_calc_divider(t->sync_clk);
->         if (div < 0)
->                 return div;
-> static int gpmc_set_async_mode(int cs, struct gpmc_timings *t)
-> {
-> ...
->         return gpmc_cs_set_timings(cs, t);
-> 
-> .....
->         ret = gpmc_set_async_mode(gpmc_onenand_data->cs, &t);
->         if (IS_ERR_VALUE(ret))
->                 return ret;
-> 
-> So, gpmc_cs_set_timings() thinks any negative return value is an error,
-> but where we check that in higher levels, only a limited range are
-> errors... seriously?  Come on guys, get with the program.  Get your
-> error checking in order.
-> 
-> There is only _one_ use of IS_ERR_VALUE() in arch/arm which is correct,
-> and that is in arch/arm/include/asm/syscall.h:
-> 
-> static inline long syscall_get_error(struct task_struct *task,
->                                      struct pt_regs *regs)
-> {
->         unsigned long error = regs->ARM_r0;
->         return IS_ERR_VALUE(error) ? error : 0;
-> }
-> 
-> So, here's a patch to remove them all, except for the above.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
-> This patch will be going into my "cleanup" branch along with the removal
-> of many wrong IS_ERR_OR_NULL() uses - with any errors anyone spots fixed.
+> These patches provide the SoC side code required to support
+> the changes in the OMAP USB Host drivers done in [1], [2] & [3].
+... 
 
-Looks good to me. Can you please also let us know some immutable
-commit for your cleanup branch? I'd like to use that as a base
-to pull in further GPMC changes to avoid unnecessary merge conflicts.
+>  arch/arm/mach-omap2/board-3430sdp.c                |   97 +++++++++++++++-
+>  arch/arm/mach-omap2/board-3630sdp.c                |  100 +++++++++++++++-
+>  arch/arm/mach-omap2/board-am3517crane.c            |   95 +++++++++++++--
+>  arch/arm/mach-omap2/board-am3517evm.c              |   66 ++++++++++-
+>  arch/arm/mach-omap2/board-cm-t35.c                 |   95 ++++++++++++++-
+>  arch/arm/mach-omap2/board-cm-t3517.c               |   97 +++++++++++++++-
+>  arch/arm/mach-omap2/board-devkit8000.c             |   20 ++--
+>  arch/arm/mach-omap2/board-generic.c                |   67 +++++++++++
+>  arch/arm/mach-omap2/board-igep0020.c               |  112 ++++++++++++++++---
+>  arch/arm/mach-omap2/board-omap3beagle.c            |   93 +++++++++++++--
+>  arch/arm/mach-omap2/board-omap3evm.c               |   62 ++++++++--
+>  arch/arm/mach-omap2/board-omap3pandora.c           |   52 +++++++--
+>  arch/arm/mach-omap2/board-omap3stalker.c           |   52 +++++++-
+>  arch/arm/mach-omap2/board-omap3touchbook.c         |   62 +++++++++-
+>  arch/arm/mach-omap2/board-omap4panda.c             |  122 ++++++++++++++------
+>  arch/arm/mach-omap2/board-overo.c                  |   54 ++++++++-
+>  arch/arm/mach-omap2/board-zoom.c                   |   56 ++++++++-
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Can't you have some mach-omap2/ehci-common.c that takes care
+of the initializiation to avoid this much addition to the
+board-*.c files? You may be able to have just a common function
+to do it and pass few parameters?
+
+Regards,
+
+Tony
