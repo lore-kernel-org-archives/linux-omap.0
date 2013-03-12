@@ -1,64 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap2: twl-common: Add default power configuration
-Date: Tue, 12 Mar 2013 09:57:05 -0700
-Message-ID: <20130312165705.GA22059@atomide.com>
-References: <1358967038-6615-1-git-send-email-matthias.bgg@gmail.com>
- <CAOCHtYjufr+MS1=6Cnsn-EgvkPs+Y5oWejAG98aLkVjdQbu1ZA@mail.gmail.com>
- <20130201224242.GE22517@atomide.com>
- <CABuKBe+NrMiX0nuEgwnHBqu-DqHST+uGG_Zyc7Ek=4WCOV1T6g@mail.gmail.com>
- <512355CF.6070605@ti.com>
- <CABuKBeLFfvCVyt9VhvwHVGuVGA7RDx9bZH_6gHk7yhfe-nmH5A@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH V2 2/2] ASoC: OMAP2+: Move McBSP, DMIC and McPDM to
+ generic DMA DT binding
+Date: Tue, 12 Mar 2013 18:26:34 +0000
+Message-ID: <20130312182634.GG19942@opensource.wolfsonmicro.com>
+References: <1362988223-22455-1-git-send-email-s-guiriec@ti.com>
+ <1362988223-22455-3-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HKEL+t8MFpg/ASTE"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:55884 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932153Ab3CLQ5O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 12:57:14 -0400
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:51781 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932355Ab3CLS0g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Mar 2013 14:26:36 -0400
 Content-Disposition: inline
-In-Reply-To: <CABuKBeLFfvCVyt9VhvwHVGuVGA7RDx9bZH_6gHk7yhfe-nmH5A@mail.gmail.com>
+In-Reply-To: <1362988223-22455-3-git-send-email-s-guiriec@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, "Kristo, Tero" <t-kristo@ti.com>, Robert Nelson <robertcnelson@gmail.com>, linux@arm.linux.org.uk, martinez.javier@gmail.com, eballetbo@iseebcn.com, ezequiel.garcia@free-electrons.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sebastien Guiriec <s-guiriec@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-Hi,
 
-* Matthias Brugger <matthias.bgg@gmail.com> [130308 11:02]:
-> Hello Tony and Peter,
-> 
-> 2013/2/19 Peter Ujfalusi <peter.ujfalusi@ti.com>:
-> > Hi Matthias,
-> >
-> > On 02/15/2013 04:59 PM, Matthias Brugger wrote:
-> >> 2013/2/1 Tony Lindgren <tony@atomide.com>:
-> >>> Hi,
-> >>>
-> >>> * Robert Nelson <robertcnelson@gmail.com> [130124 07:58]:
-> >>>> On Wed, Jan 23, 2013 at 12:50 PM, Matthias Brugger
-> >>>> <matthias.bgg@gmail.com> wrote:
-> >>>>> This patch adds a generic power script configuration.
-> >>>>> When rebooting an OMAP3530 at 125 MHz, the reboot hangs.
-> >>>>> With the generic power script, TWL4030 will be reset
-> >>>>> when a warm reset occures. This way the OMAP3530 does not
-> >>>>> hang on reboot.
-> >>>
-> >>> Both look OK to me. I've added Peter to cc, it's best that he queues
-> >>> all the twl changes.
-> >>>
-> >>
-> >> Peter any comments on this patch?
-> >
-> > The patch looks good to me as well.
-> 
-> It looks like the patch wasn't added to the 3.9 series. Is there any
-> reason for that, or was it just a misunderstanding between you two,
-> about who will push it to Linus?
+--HKEL+t8MFpg/ASTE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Sorry looks like this got missed. I suggest Peter collects the twl
-patches and then provides me + mfd + asoc and whoever needs the
-pull requests.
+On Mon, Mar 11, 2013 at 08:50:22AM +0100, Sebastien Guiriec wrote:
+> Update OMAP2+ driver in order to use OMAP DMA DT binding for OMAP2+.
+> In case of DT boot snd_dmaengine_generic_pcm_open function is used.
 
-Regards,
+Applied, thanks.
 
-Tony
+--HKEL+t8MFpg/ASTE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRP3NTAAoJELSic+t+oim9lIcP/0wVeLOZfRLb8OKvb9mZnKE0
+E+8JPeQIyC8M93AlQUJWP8Bjgtnb+d4qkaSHT6yVObsLVNvPm6QhU+smwNax4AGq
+e1DDLOGSeGDjfXeUwx37ONyLWI4lj8PytwAgZSeTwKeJ2z8etRI7SXzhRQixzdlK
+yMLmhzxmsqY79M3ZUWn+mf94PUVI3cOSSxNEmyeKrHdevgNFbvbqfhVGJZ2njhRW
+2go72VWhGgGOsYCt9r0eg8qzKqhYsddC7zeaGC0J0X0vDy0vtyMKzE6J7RT85k64
+NsSdGJZ2JJDEMInx6jWmWXpWK8kGCWDEyG7180hpwPr3bjwU+BfBvcVZr0eHk/RK
+pDnkTRm/L16iakjabRP9hOynozYWSVzJKAHh9s3fpvdpdHueLGqEN/hejMwJqoVb
+nkFJxXu/Pxevo/REFl4INH8KG5BAWAvRFQhkmBjpb6uQzQgaog0i1x47a7mT1sbq
+imFV8GATkAk4ZEjEsiBngNtmGqjQjjNb8CQHMVic4hgZJxHBFF2JqhBZapSGqMqn
+CyGD4Iq8ZHyGE01yoDGEgeS+go9+4BfzjMZ+fPRNUZsUcBiobTb8KREzhtzYvMLj
+L1U05WL4XtnvcTfohUd7omK1jfLkZFgl0ESbqS3lOmElk7I7ot/sZZbOfO8/VTGg
+vD8F8JsdnJWFTX9/jqpa
+=2DyV
+-----END PGP SIGNATURE-----
+
+--HKEL+t8MFpg/ASTE--
