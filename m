@@ -1,107 +1,155 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Booting 3.9.0-rc2 on Beaglebone ?
-Date: Tue, 12 Mar 2013 20:44:04 +0000
-Message-ID: <513F9394.6010306@mimc.co.uk>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: IS_ERR_VALUE()
+Date: Tue, 12 Mar 2013 22:18:50 +0100
+Message-ID: <20130312211850.GT15375@pengutronix.de>
+References: <20130312141604.GV4977@n2100.arm.linux.org.uk>
+ <20130312195659.GR15375@pengutronix.de>
+ <20130312202237.GH30923@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:41482 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932514Ab3CLUoI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 16:44:08 -0400
-Received: from [10.1.0.107] (unknown [176.62.209.156])
-	by centos1.newflow.co.uk (Postfix) with ESMTP id 734A226B8039
-	for <linux-omap@vger.kernel.org>; Tue, 12 Mar 2013 20:44:05 +0000 (GMT)
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54312 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755685Ab3CLVSz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 17:18:55 -0400
+Content-Disposition: inline
+In-Reply-To: <20130312202237.GH30923@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-I'm struggling to get the latest kernel git to load on my beaglebone.
+Hello Russell,
 
-My build process is:-
+On Tue, Mar 12, 2013 at 08:22:38PM +0000, Russell King - ARM Linux wrot=
+e:
+> On Tue, Mar 12, 2013 at 08:56:59PM +0100, Uwe Kleine-K=F6nig wrote:
+> > Hello,
+> >=20
+> > On Tue, Mar 12, 2013 at 02:16:04PM +0000, Russell King - ARM Linux =
+wrote:
+> > > I am removing almost all references to the above macro from arch/=
+arm.
+> > > Many of them are wrong.  Some of them are buggy.
+> > >=20
+> > > For instance:
+> > >=20
+> > > int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
+> > > {
+> > >         int div;
+> > >         div =3D gpmc_calc_divider(t->sync_clk);
+> > >         if (div < 0)
+> > >                 return div;
+> > > static int gpmc_set_async_mode(int cs, struct gpmc_timings *t)
+> > > {
+> > > ...
+> > >         return gpmc_cs_set_timings(cs, t);
+> > >=20
+> > > .....
+> > >         ret =3D gpmc_set_async_mode(gpmc_onenand_data->cs, &t);
+> > >         if (IS_ERR_VALUE(ret))
+> > >                 return ret;
+> >=20
+> > Well, gpmc_calc_divider returns -1 on failure, so I agree that it's
+> > wrong to use IS_ERR_VALUE on it.
+>=20
+> So what you've just told me is that on error, it returns -1, which is
+> -EPERM.  So we end up passing an "Operation not permitted" error up?
+> Yes, really, -EPERM all the way up and returning it as an error code
+> for an out of range divisor value.
+>=20
+> Is that really appropriate.  How many times have I said to never use
+> -1 as an error value?  See what a screwed situation this causes?  See
+> what *not* having a clear policy on this in your mind causes?
+We agree here that -1 is a bad idea. So I take this "your" as "the
+author's".
 
-$ make -j 8 ARCH=arm CROSS_COMPILE=arm-linux- distclean
-$ make -j 8 ARCH=arm CROSS_COMPILE=arm-linux- omap2plus_defconfig
-CONFIG_DEBUG_LL=y
-CONFIG_DEBUG_OMAP2PLUS_UART=y
-CONFIG_DEBUG_AM33XXUART1=y
-CONFIG_EARLY_PRINTK=y
-CONFIG_ARM_APPENDED_DTB=y
-CONFIG_ARM_ATAG_DTB_COMPAT=y
-CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
-$ make -j 8 ARCH=arm CROSS_COMPILE=arm-linux-
-$ cat arch/arm/boot/zImage arch/arm/boot/am335x-bone.dtb > 
-arch/arm/boot/zImage-dtb.am335x-bone
-$ scripts/mkuboot.sh -A arm -O linux -C none  -T kernel -a 0x80008000 -e 
-0x80008000 -n 'Linux' -d arch/arm/boot/zImage-dtb.am335x-bone 
-arch/arm/boot/uImage-dtb.am335x-bone
+> If you always treat -ve values as errors, and _always_ return a -ve
+> error number as defined in the errno.h headers, then you won't ever
+> make this mistake.
+>=20
+> > Still I don't get what is really wrong in your examples (but I didn=
+'t
+> > check all). If a function returning an int is supposed to return 0 =
+on
+> > success and -ESOMEERROR on failure it doesn't matter much if I do (=
+ret <
+> > 0) or IS_ERR_VALUE(ret). (Even if ret is signed, the check (x) >=3D
+> > (unsigned long)-MAX_ERRNO in IS_ERR_VALUE does the right thing.)
+> >=20
+> > There is only a semantical difference between the two checks for
+> > (unsigned)ret being between MAX_INT+1 and (unsigned)-MAX_ERRNO. But=
+ a
+> > value in this range isn't allowed for such a function. So you could=
+ also
+> > just check using "if (ret)". All but the previous sentence also app=
+ly to
+> > functions returning an int >=3D0 on success and -ESOMEERROR on fail=
+ure.
+> >=20
+> > So unless I missed something---and if I do, please tell me---your p=
+atch
+> > is not about correctness, but "only" about style and consistency?!
+>=20
+> So what about if the function returns a -ve number outside of MAX_ERR=
+NO?
+Then it's a bug in this function.
 
-But this produces the following when booting:-
+> We have an inconsistent situation then - we have some functions
+> believing that it's an error, others believing it's not an error.
+If my function calls a buggy function I think it doesn't matter for the
+correctness of my function if there is an inconsistent situation after
+the buggy call.
 
-## Booting kernel from Legacy Image at 80000000 ...
-    Image Name:   Linux
-    Image Type:   ARM Linux Kernel Image (uncompressed)
-    Data Size:    3995640 Bytes = 3.8 MiB
-    Load Address: 80008000
-    Entry Point:  80008000
-    Verifying Checksum ... OK
-    Loading Kernel Image ... OK
-OK
+So in my opinion the fix goes to the called function. Still this doesn'=
+t
+(and shouldn't) stop a patch like yours that adds consistency.
 
-Starting kernel ...
+> So, it _is_ about correctness _and_ consistency.  Not style.  Style
+> doesn't come into this.  See where I've replied above about the
+> importance of having this stuff clear and always doing it the same
+> way.
+>=20
+> As soon as you start messing around doing crap like this, then you
+> start allowing minor bugs to creap in.
+>=20
+> If you want buggy software, go and develop for Windows or something
+> else.
+>=20
+> You clearly don't know me either.  I strive for correctness.  When
+> fixing a bug, I want the bug fixed, not some sticky plaster over it.
+> I hate crap like this where there's stupid idiotic differences just
+> because of no good reason what so ever, which then lead to subtle
+> bugs.  If you start out with a clear idea at the beginning then
+> you'll be a far better coder and you'll make less mistakes.  And you
+> won't mess up your error checking.
+>=20
+> It's people with my kind of attitude on this issue which keeps stuff
+> sane and maintainable in the kernel.
+I think to understand that your goal is to use the same pattern for all
+functions unless it's not sensible. And yes, that's important for a
+project with that many contributors.
 
+Still if I had authored your patch I wouldn't call the usage "wrong" as
+you did in your changelog. I would have written about consistency.
 
-Error: unrecognized/unsupported machine ID (r1 = 0x00000e05).
+=46or writing my mail I looked around a bit in other areas of the kerne=
+l.
+I think there are many more instances to fix. E.g. drivers/base/core.c
+is full of "if (retval)", "if (error)" and "if (err)".
 
-Available machine support:
+Best regards
+Uwe
 
-ID (hex)        NAME
-ffffffff        Generic OMAP5 (Flattened Device Tree)
-ffffffff        Generic OMAP4 (Flattened Device Tree)
-ffffffff        Generic AM33XX (Flattened Device Tree)
-ffffffff        Generic OMAP3-GP (Flattened Device Tree)
-ffffffff        Generic OMAP3 (Flattened Device Tree)
-ffffffff        Generic OMAP2430 (Flattened Device Tree)
-ffffffff        Generic OMAP2420 (Flattened Device Tree)
-000001fe        OMAP2420 H4 board
-00000384        OMAP2430 sdp2430 board
-0000060a        OMAP3 Beagle Board
-0000091a        OMAP3 Devkit8000
-00000667        OMAP LDP board
-000006ed        OMAP Logic 3530 LV SOM board
-00000882        Logic OMAP3 Torpedo board
-00000706        Gumstix Overo
-000005ff        OMAP3 EVM
-000006e1        Pandora Handheld Console
-00000472        OMAP3430 3430SDP board
-000006bf        Nokia N810 WiMAX
-0000060c        Nokia N810
-000004f7        Nokia N800
-00000dc2        Nokia RM-696 board
-00000c94        Nokia RM-680 board
-000007a3        Nokia RX-51 board
-000009a0        OMAP Zoom3 board
-000007af        OMAP Zoom2 board
-000009a1        OMAP 3630SDP board
-00000cda        Compulab CM-T3730
-00000925        Compulab CM-T35
-00000abe        Compulab CM-T3517
-00000a9d        IGEP OMAP3 module
-00000928        IGEP v2 board
-00000959        OMAP3 touchbook Board
-00000870        OMAP4430 4430SDP board
-00000ae7        OMAP4 Panda board
-00000898        OMAP3517/AM3517 EVM
-00000aa2        OMAP3 STALKER
-00000bbc        ti8148evm
-00000af0        ti8168evm
-ffffffff        ARM-Versatile Express
-000008e0        ARM-Versatile Express
-
-Please check your kernel config and/or bootloader.
-
-I guess I'm missing some vital step ?
-
-Thanks for any help
-Mark J.
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
