@@ -1,73 +1,159 @@
-From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 6/7] usb: musb: omap2430: turn off vbus on cable disconnect
-Date: Tue, 12 Mar 2013 17:03:31 +0200
-Message-ID: <CANOLnOP+wh344jZT_yqnxdQwmhqJ2U+eAs=cvsywLSUe+gP-9A@mail.gmail.com>
-References: <1362877681-8102-1-git-send-email-notasas@gmail.com>
-	<1362877681-8102-7-git-send-email-notasas@gmail.com>
-	<513F2F7C.3040803@ti.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: RE: [PATCH 1/2] cpufreq: cpufreq-cpu0: support for clock which are
+ not in DT yet.
+Date: Tue, 12 Mar 2013 15:17:20 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229BF816@DBDE01.ent.ti.com>
+References: <1363043130-30270-1-git-send-email-nm@ti.com>
+ <1363043130-30270-2-git-send-email-nm@ti.com> <513EB704.8030907@ti.com>
+ <513F3A88.5060903@ti.com> <20130312143535.GA21599@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <513F2F7C.3040803-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kishon <kishon-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <20130312143535.GA21599@kahuna>
+Content-Language: en-US
+Sender: cpufreq-owner@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, cpufreq <cpufreq@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Shawn Guo <shawn.guo@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 12, 2013 at 3:37 PM, kishon <kishon-l0cyMroinI0@public.gmane.org> wrote:
-> Hi,
->
->
-> On Sunday 10 March 2013 06:38 AM, Grazvydas Ignotas wrote:
->>
->> On USB_EVENT_ID event the musb glue enables VBUS by calling
->> omap2430_musb_set_vbus(musb, 1) that sets the session bit, but on
->> USB_EVENT_NONE reverse action is never made, and that breaks PM.
->>
->> Disable VBUS unconditionally on USB_EVENT_NONE to be sure musb
->> session is ended on cable unplug so that PM works.
->>
->> Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> ---
->>   drivers/usb/musb/omap2430.c |    1 +
->>   1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430=
-=2Ec
->> index 2a39c11..d430677 100644
->> --- a/drivers/usb/musb/omap2430.c
->> +++ b/drivers/usb/musb/omap2430.c
->> @@ -296,6 +296,7 @@ static void omap_musb_set_mailbox(struct omap243=
-0_glue
->> *glue)
->>                         pm_runtime_put_autosuspend(dev);
->>                 }
->>
->> +               omap2430_musb_set_vbus(musb, 0);
->>                 if (data->interface_type =3D=3D MUSB_INTERFACE_UTMI)=
- {
->>                         if (musb->xceiv->otg->set_vbus)
->>                                 otg_set_vbus(musb->xceiv->otg, 0);
->
-> Shouldn't this otg_set_vbus be done inside omap2430_musb_set_vbus? An=
-y idea
-> why they were doing this only for UTMI?
+Hi Nishanth,
 
-I would think so too, there is otg_set_vbus() in
-omap2430_musb_set_vbus() for enable but not for disable.
-I don't know history of this code and didn't want to break existing
-functionality.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Menon, Nishanth
+> Sent: Tuesday, March 12, 2013 8:06 PM
+> To: Cousson, Benoit
+> Cc: Shilimkar, Santosh; cpufreq; Rafael J. Wysocki; Shawn Guo; linux-
+> kernel@vger.kernel.org; linux-pm@vger.kernel.org; linux-
+> omap@vger.kernel.org
+> Subject: Re: [PATCH 1/2] cpufreq: cpufreq-cpu0: support for clock which
+> are not in DT yet.
+> 
+> On 15:24-20130312, Benoit Cousson wrote:
+> > Hi Guys,
+> >
+> > On 03/12/2013 06:03 AM, Santosh Shilimkar wrote:
+> > > On Tuesday 12 March 2013 04:35 AM, Nishanth Menon wrote:
+> > >> On certain SoCs like variants of OMAP, the clock conversion to DT
+> > >> is not complete. In short, the ability to:
+> > >> cpus {
+> > >>     cpu@0 {
+> > >> 	clocks = <&cpuclk 0>;
+> > >>     };
+> > >>  };
+> > >> is not possible. However, the clock node is registered.
+> > >> Allow for clk names to be provided as string so as to be used when
+> needed.
+> > >> Example (for OMAP3630):
+> > >> cpus {
+> > >>     cpu@0 {
+> > >> 	clock-name = "cpufreq_ck";
+> > >>     };
+> > >>  };
+> > >>
+> > >> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> > >> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > >> Cc: Shawn Guo <shawn.guo@linaro.org>
+> > >> Cc: linux-kernel@vger.kernel.org
+> > >> Cc: cpufreq@vger.kernel.org
+> > >> Cc: linux-pm@vger.kernel.org
+> > >> Cc: linux-omap@vger.kernel.org
+> > >>
+> > >> Signed-off-by: Nishanth Menon <nm@ti.com>
+> > >> ---
+> > > Seems a reasonable to me.
+> >
+> > No, it is not...
+> >
+> > You cannot add a temp binding just because the OMAP support is not
+> > there, since the real binding already exist.
+> >
+> > You need to register properly a clock provider to be able to
+> reference
+> > it.
+> > If you do need a hacky temp code you could do it in OMAP code but not
+> > in the binding.
+> 
+> OK. My intent is to remove omap-cpufreq.c. So, I guess I could do
+> something like the following (not tested yet), but would that be the
+> right approach?
 
->
-> Thanks
-> Kishon
+Similar attempt was done for am33xx_clks in this by Shawn:
 
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg84157.html
 
+> 
+> diff --git a/arch/arm/mach-omap2/cclock2420_data.c b/arch/arm/mach-
+> omap2/cclock2420_data.c
+> index 0f0a97c..c3017deb 100644
+> --- a/arch/arm/mach-omap2/cclock2420_data.c
+> +++ b/arch/arm/mach-omap2/cclock2420_data.c
+> @@ -1885,7 +1885,7 @@ static struct omap_clk omap2420_clks[] = {
+>  	CLK(NULL,	"timer_32k_ck",	&func_32k_ck,	CK_242X),
+>  	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_242X),
+>  	CLK(NULL,	"timer_ext_ck",	&alt_ck,	CK_242X),
+> -	CLK(NULL,	"cpufreq_ck",	&virt_prcm_set,	CK_242X),
+> +	CLK(NULL,	"cpufreq-cpu0.0",	&virt_prcm_set,	CK_242X),
+>  };
+> 
+> 
+> diff --git a/arch/arm/mach-omap2/cclock2430_data.c b/arch/arm/mach-
+> omap2/cclock2430_data.c
+> index aed8f74..7000ca4 100644
+> --- a/arch/arm/mach-omap2/cclock2430_data.c
+> +++ b/arch/arm/mach-omap2/cclock2430_data.c
+> @@ -2001,7 +2001,7 @@ static struct omap_clk omap2430_clks[] = {
+>  	CLK(NULL,	"timer_32k_ck",  &func_32k_ck,   CK_243X),
+>  	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_243X),
+>  	CLK(NULL,	"timer_ext_ck",	&alt_ck,	CK_243X),
+> -	CLK(NULL,	"cpufreq_ck",	&virt_prcm_set,	CK_243X),
+> +	CLK(NULL,	"cpufreq-cpu0.0",	&virt_prcm_set,	CK_243X),
 
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Device name and the clk_name should be interchanged right?
+
+Something like this?
+
+CLK("cpufreq-cpu0.0",	 NULL,	&virt_prcm_set,	CK_243X),
+
+If yes the same should apply to all the instances.
+
+>  };
+> 
+>  static const char *enable_init_clks[] = { diff --git a/arch/arm/mach-
+> omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
+> index 4579c3c..7a1dfde 100644
+> --- a/arch/arm/mach-omap2/cclock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/cclock3xxx_data.c
+> @@ -3501,7 +3501,7 @@ static struct omap_clk omap3xxx_clks[] = {
+>  	CLK(NULL,	"uart4_ick",	&uart4_ick_am35xx,	CK_AM35XX),
+>  	CLK(NULL,	"timer_32k_ck",	&omap_32k_fck,  CK_3XXX),
+>  	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_3XXX),
+> -	CLK(NULL,	"cpufreq_ck",	&dpll1_ck,	CK_3XXX),
+> +	CLK(NULL,	"cpufreq-cpu0.0",	&dpll1_ck,	CK_3XXX),
+>  };
+> 
+>  static const char *enable_init_clks[] = { diff --git a/arch/arm/mach-
+> omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+> index 3d58f33..5fad1da 100644
+> --- a/arch/arm/mach-omap2/cclock44xx_data.c
+> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
+> @@ -1660,7 +1660,7 @@ static struct omap_clk omap44xx_clks[] = {
+>  	CLK("4013a000.timer",	"timer_sys_ck",	&syc_clk_div_ck,
+> 	CK_443X),
+>  	CLK("4013c000.timer",	"timer_sys_ck",	&syc_clk_div_ck,
+> 	CK_443X),
+>  	CLK("4013e000.timer",	"timer_sys_ck",	&syc_clk_div_ck,
+> 	CK_443X),
+> -	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
+> +	CLK(NULL,	"cpufreq-cpu0.0",	&dpll_mpu_ck,	CK_443X),
+>  };
+> 
+>  int __init omap4xxx_clk_init(void)
+> --
+> Regards,
+> Nishanth Menon
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
