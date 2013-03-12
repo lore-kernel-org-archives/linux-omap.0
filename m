@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 05/12] USB: ehci-omap: Remove PHY regulator handling code
-Date: Tue, 12 Mar 2013 12:44:43 +0200
-Message-ID: <1363085090-24676-6-git-send-email-rogerq@ti.com>
+Subject: [PATCH 02/12] USB: ehci-omap: Use devm_ioremap_resource()
+Date: Tue, 12 Mar 2013 12:44:40 +0200
+Message-ID: <1363085090-24676-3-git-send-email-rogerq@ti.com>
 References: <1363085090-24676-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,94 +12,63 @@ To: gregkh@linuxfoundation.org
 Cc: stern@rowland.harvard.edu, balbi@ti.com, b-cousson@ti.com, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-PHY regulator handling must be done in the PHY driver
+Make use of devm_ioremap_resource() and correct comment.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
 Acked-by: Alan Stern <stern@rowland.harvard.edu>
 ---
- drivers/usb/host/ehci-omap.c |   34 ----------------------------------
- 1 files changed, 0 insertions(+), 34 deletions(-)
+ drivers/usb/host/ehci-omap.c |   21 +++++----------------
+ 1 files changed, 5 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 0bbfdc1..57fe985 100644
+index fa66757..70e8e6f 100644
 --- a/drivers/usb/host/ehci-omap.c
 +++ b/drivers/usb/host/ehci-omap.c
-@@ -43,7 +43,6 @@
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/usb/ulpi.h>
--#include <linux/regulator/consumer.h>
- #include <linux/pm_runtime.h>
- #include <linux/gpio.h>
- #include <linux/clk.h>
-@@ -112,19 +111,6 @@ static int omap_ehci_init(struct usb_hcd *hcd)
- 	return rc;
- }
+@@ -216,23 +216,15 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
  
--static void disable_put_regulator(
--		struct usbhs_omap_platform_data *pdata)
--{
--	int i;
--
--	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
--		if (pdata->regulator[i]) {
--			regulator_disable(pdata->regulator[i]);
--			regulator_put(pdata->regulator[i]);
--		}
+ 	res =  platform_get_resource_byname(pdev,
+ 				IORESOURCE_MEM, "ehci");
+-	if (!res) {
+-		dev_err(dev, "UHH EHCI get resource failed\n");
+-		return -ENODEV;
 -	}
--}
 -
- /* configure so an HC device and id are always provided */
- /* always called with process context; sleeping is OK */
+-	regs = ioremap(res->start, resource_size(res));
+-	if (!regs) {
+-		dev_err(dev, "UHH EHCI ioremap failed\n");
+-		return -ENOMEM;
+-	}
++	regs = devm_ioremap_resource(dev, res);
++	if (IS_ERR(regs))
++		return PTR_ERR(regs);
  
-@@ -152,7 +138,6 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	int ret = -ENODEV;
- 	int irq;
- 	int i;
--	char supply[7];
- 	struct omap_hcd	*omap;
- 
- 	if (usb_disabled())
-@@ -213,23 +198,6 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 		usb_phy_set_suspend(omap->phy[i], 0);
+ 	hcd = usb_create_hcd(&ehci_omap_hc_driver, dev,
+ 			dev_name(dev));
+ 	if (!hcd) {
+-		dev_err(dev, "failed to create hcd with err %d\n", ret);
+-		ret = -ENOMEM;
+-		goto err_io;
++		dev_err(dev, "Failed to create HCD\n");
++		return -ENOMEM;
  	}
  
--	/* get ehci regulator and enable */
--	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
--		if (pdata->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY) {
--			pdata->regulator[i] = NULL;
--			continue;
--		}
--		snprintf(supply, sizeof(supply), "hsusb%d", i);
--		pdata->regulator[i] = regulator_get(dev, supply);
--		if (IS_ERR(pdata->regulator[i])) {
--			pdata->regulator[i] = NULL;
--			dev_dbg(dev,
--			"failed to get ehci port%d regulator\n", i);
--		} else {
--			regulator_enable(pdata->regulator[i]);
--		}
--	}
--
- 	pm_runtime_enable(dev);
- 	pm_runtime_get_sync(dev);
- 
-@@ -255,7 +223,6 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	return 0;
- 
- err_pm_runtime:
--	disable_put_regulator(pdata);
+ 	hcd->rsrc_start = res->start;
+@@ -285,8 +277,6 @@ err_pm_runtime:
  	pm_runtime_put_sync(dev);
+ 	usb_put_hcd(hcd);
  
- err_phy:
-@@ -286,7 +253,6 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
- 	int i;
+-err_io:
+-	iounmap(regs);
+ 	return ret;
+ }
+ 
+@@ -306,7 +296,6 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
  
  	usb_remove_hcd(hcd);
--	disable_put_regulator(dev->platform_data);
+ 	disable_put_regulator(dev->platform_data);
+-	iounmap(hcd->regs);
+ 	usb_put_hcd(hcd);
  
- 	for (i = 0; i < omap->nports; i++) {
- 		if (omap->phy[i])
+ 	pm_runtime_put_sync(dev);
 -- 
 1.7.4.1
