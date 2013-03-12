@@ -1,165 +1,64 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 10/24] ARM: OMAP3: cm-t3517: Adapt to ehci-omap changes
-Date: Tue, 12 Mar 2013 13:43:12 +0200
-Message-ID: <1363088606-2692-11-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 19/24] ARM: dts: OMAP4: Add HS USB Host IP nodes
+Date: Tue, 12 Mar 2013 13:43:21 +0200
+Message-ID: <1363088606-2692-20-git-send-email-rogerq@ti.com>
 References: <1363088606-2692-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1363088606-2692-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1363088606-2692-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: balbi@ti.com, b-cousson@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add 2 platform devices for 'nop-usb-xceiv'. These will be used
-as PHYs for HS USB ports 1 and 2 so provide binding information
-for them.
+Adds device nodes for HS USB Host module, TLL module,
+OHCI and EHCI controllers.
 
-Model RESET for HS USB Ports 1 and 2 as GPIO fixed regulators and
-link them to the 2 PHYs we just created.
-
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/board-cm-t3517.c |   97 ++++++++++++++++++++++++++++++++--
- 1 files changed, 92 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi |   30 ++++++++++++++++++++++++++++++
+ 1 files changed, 30 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index a66da80..de470c8 100644
---- a/arch/arm/mach-omap2/board-cm-t3517.c
-+++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -34,6 +34,9 @@
- #include <linux/mtd/partitions.h>
- #include <linux/mmc/host.h>
- #include <linux/can/platform/ti_hecc.h>
-+#include <linux/regulator/machine.h>
-+#include <linux/regulator/fixed.h>
-+#include <linux/usb/phy.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -188,15 +191,92 @@ static inline void cm_t3517_init_rtc(void) {}
- #define HSUSB2_RESET_GPIO	(147)
- #define USB_HUB_RESET_GPIO	(152)
- 
-+/* PHY device on HS USB Port 1 i.e. nop_usb_xceiv.1 */
-+static struct platform_device hsusb1_phy_device = {
-+	.name = "nop_usb_xceiv",
-+	.id = 1,
-+};
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 739bb79..b7db1a2 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -529,5 +529,35 @@
+ 			ti,hwmods = "timer11";
+ 			ti,timer-pwm;
+ 		};
 +
-+/* Regulator for HS USB Port 1 PHY reset */
-+static struct regulator_consumer_supply hsusb1_reset_supplies[] = {
-+	/* Link PHY device to reset supply so it gets used in the PHY driver */
-+	REGULATOR_SUPPLY("reset", "nop_usb_xceiv.1"),
-+};
++		usbhstll: usbhstll@4a062000 {
++			compatible = "ti,usbhs-tll";
++			reg = <0x4a062000 0x1000>;
++			interrupts = <0 78 0x4>;
++			ti,hwmods = "usb_tll_hs";
++		};
 +
-+static struct regulator_init_data hsusb1_reset_data = {
-+	.constraints = {
-+		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+	},
-+	.consumer_supplies = hsusb1_reset_supplies,
-+	.num_consumer_supplies = ARRAY_SIZE(hsusb1_reset_supplies),
-+};
++		usbhshost: usbhshost@4a064000 {
++			compatible = "ti,usbhs-host";
++			reg = <0x4a064000 0x800>;
++			ti,hwmods = "usb_host_hs";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
 +
-+static struct fixed_voltage_config hsusb1_reset_config = {
-+	.supply_name = "hsusb1_reset",
-+	.microvolts = 3300000,
-+	.gpio = HSUSB1_RESET_GPIO,
-+	.startup_delay = 70000, /* 70msec */
-+	.enable_high = 1,
-+	.enabled_at_boot = 0,   /* keep in RESET */
-+	.init_data = &hsusb1_reset_data,
-+};
++			usbhsohci: ohci@4a064800 {
++				compatible = "ti,ohci-omap3", "usb-ohci";
++				reg = <0x4a064800 0x400>;
++				interrupt-parent = <&gic>;
++				interrupts = <0 76 0x4>;
++			};
 +
-+static struct platform_device hsusb1_reset_device = {
-+	.name = "reg-fixed-voltage",
-+	.id = PLATFORM_DEVID_AUTO,
-+	.dev = {
-+		.platform_data = &hsusb1_reset_config,
-+	},
-+};
-+
-+/* PHY device on HS USB Port 2 i.e. nop_usb_xceiv.2 */
-+static struct platform_device hsusb2_phy_device = {
-+	.name = "nop_usb_xceiv",
-+	.id = 2,
-+};
-+
-+/* Regulator for HS USB Port 2 PHY reset */
-+static struct regulator_consumer_supply hsusb2_reset_supplies[] = {
-+	/* Link PHY device to reset supply so it gets used in the PHY driver */
-+	REGULATOR_SUPPLY("reset", "nop_usb_xceiv.2"),
-+};
-+
-+static struct regulator_init_data hsusb2_reset_data = {
-+	.constraints = {
-+		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+	},
-+	.consumer_supplies = hsusb2_reset_supplies,
-+	.num_consumer_supplies = ARRAY_SIZE(hsusb2_reset_supplies),
-+};
-+
-+static struct fixed_voltage_config hsusb2_reset_config = {
-+	.supply_name = "hsusb2_reset",
-+	.microvolts = 3300000,
-+	.gpio = HSUSB2_RESET_GPIO,
-+	.startup_delay = 70000, /* 70msec */
-+	.enable_high = 1,
-+	.enabled_at_boot = 0,   /* keep in RESET */
-+	.init_data = &hsusb2_reset_data,
-+};
-+
-+static struct platform_device hsusb2_reset_device = {
-+	.name = "reg-fixed-voltage",
-+	.id = PLATFORM_DEVID_AUTO,
-+	.dev = {
-+		.platform_data = &hsusb2_reset_config,
-+	},
-+};
-+
- static struct usbhs_omap_platform_data cm_t3517_ehci_pdata __initdata = {
- 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
- 	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
--	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
-+};
- 
--	.phy_reset  = true,
--	.reset_gpio_port[0]  = HSUSB1_RESET_GPIO,
--	.reset_gpio_port[1]  = HSUSB2_RESET_GPIO,
--	.reset_gpio_port[2]  = -EINVAL,
-+static struct platform_device *usbhs_devices[] = {
-+	&hsusb1_phy_device,
-+	&hsusb1_reset_device,
-+	&hsusb2_phy_device,
-+	&hsusb2_reset_device,
++			usbhsehci: ehci@4a064c00 {
++				compatible = "ti,ehci-omap", "usb-ehci";
++				reg = <0x4a064c00 0x400>;
++				interrupt-parent = <&gic>;
++				interrupts = <0 77 0x4>;
++			};
++		};
+ 	};
  };
- 
- static int __init cm_t3517_init_usbh(void)
-@@ -213,6 +293,13 @@ static int __init cm_t3517_init_usbh(void)
- 		msleep(1);
- 	}
- 
-+	platform_add_devices(usbhs_devices, ARRAY_SIZE(usbhs_devices));
-+
-+	/* PHY on HSUSB Port 1 i.e. index 0 */
-+	usb_bind_phy("ehci-omap.0", 0, "nop_usb_xceiv.1");
-+	/* PHY on HSUSB Port 2 i.e. index 1 */
-+	usb_bind_phy("ehci-omap.0", 1, "nop_usb_xceiv.2");
-+
- 	usbhs_init(&cm_t3517_ehci_pdata);
- 
- 	return 0;
 -- 
 1.7.4.1
