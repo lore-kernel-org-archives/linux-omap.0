@@ -1,103 +1,90 @@
-From: Shawn Guo <shawn.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/2] cpufreq: cpufreq-cpu0: provide compatibility string
- for DT matchup
-Date: Tue, 12 Mar 2013 15:57:19 +0800
-Message-ID: <20130312075716.GH18574@S2101-09.ap.freescale.net>
-References: <1363043130-30270-1-git-send-email-nm@ti.com>
- <1363043130-30270-3-git-send-email-nm@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1363043130-30270-3-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cpufreq <cpufreq-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
+Subject: [PATCH] mach_omap2: use PTR_RET instead of IS_ERR + PTR_ERR
+Date: Tue, 12 Mar 2013 09:58:29 +0200
+Message-ID: <1363075109-27038-1-git-send-email-silviupopescu1990@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Copied devicetree-discuss list.
+This uses PTR_RET instead of IS_ERR and PTR_ERR in order to increase
+readability.
 
-On Mon, Mar 11, 2013 at 06:05:30PM -0500, Nishanth Menon wrote:
-> commit 5553f9e (cpufreq: instantiate cpufreq-cpu0 as a platform_driver)
-> now forces platform device to be registered for allowing cpufreq-cpu0
-> to be used by SoCs. example: drivers/cpufreq/highbank-cpufreq.c
-> 
-> However, for SoCs that wish to link up using device tree, instead
-> of platform device, provide compatibility string match:
-> compatible = "cpufreq,cpu0";
+Signed-off-by: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
+---
+ arch/arm/mach-omap2/devices.c |    4 ++--
+ arch/arm/mach-omap2/fb.c      |    5 +----
+ arch/arm/mach-omap2/gpmc.c    |    2 +-
+ arch/arm/mach-omap2/pmu.c     |    5 +----
+ 4 files changed, 5 insertions(+), 11 deletions(-)
 
-This compatible is merely added for asking DT core code to populate
-a platform_device for cpufreq driver.  It's not describing
-hardware/cpus, and it does not belong to device tree.
-
-Shawn
-
-> 
-> Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-> Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-> Cc: Shawn Guo <shawn.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: cpufreq-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> 
-> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> ---
->  .../devicetree/bindings/cpufreq/cpufreq-cpu0.txt   |    3 +++
->  drivers/cpufreq/cpufreq-cpu0.c                     |    6 ++++++
->  2 files changed, 9 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt b/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
-> index f180963..a5699f0 100644
-> --- a/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
-> +++ b/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
-> @@ -10,6 +10,8 @@ under node /cpus/cpu@0.
->  Required properties:
->  - operating-points: Refer to Documentation/devicetree/bindings/power/opp.txt
->    for details
-> +- compatible: if platform_device is *not* used, should be:
-> +  "cpufreq,cpu0"
->  
->  Optional properties:
->  - clock-name: If the clock is not converted to device tree, then describe
-> @@ -24,6 +26,7 @@ Examples:
->  cpus {
->  	#address-cells = <1>;
->  	#size-cells = <0>;
-> +	compatible = "cpufreq,cpu0";
->  
->  	cpu@0 {
->  		compatible = "arm,cortex-a9";
-> diff --git a/drivers/cpufreq/cpufreq-cpu0.c b/drivers/cpufreq/cpufreq-cpu0.c
-> index 28223c9..a6f0a9b 100644
-> --- a/drivers/cpufreq/cpufreq-cpu0.c
-> +++ b/drivers/cpufreq/cpufreq-cpu0.c
-> @@ -277,9 +277,15 @@ static int cpu0_cpufreq_remove(struct platform_device *pdev)
->  	return 0;
->  }
->  
-> +static struct of_device_id of_cpu0_cpufreq_match[] = {
-> +	{ .compatible = "cpufreq,cpu0", },
-> +	{ /* end */ }
-> +};
-> +
->  static struct platform_driver cpu0_cpufreq_platdrv = {
->  	.driver = {
->  		.name	= "cpufreq-cpu0",
-> +		.of_match_table = of_cpu0_cpufreq_match,
->  		.owner	= THIS_MODULE,
->  	},
->  	.probe		= cpu0_cpufreq_probe,
-> -- 
-> 1.7.9.5
-> 
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 1ec7f05..2a0816e 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -66,7 +66,7 @@ static int __init omap3_l3_init(void)
+ 
+ 	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
+ 
+-	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
++	return PTR_RET(pdev);
+ }
+ omap_postcore_initcall(omap3_l3_init);
+ 
+@@ -100,7 +100,7 @@ static int __init omap4_l3_init(void)
+ 
+ 	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
+ 
+-	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
++	return PTR_RET(pdev);
+ }
+ omap_postcore_initcall(omap4_l3_init);
+ 
+diff --git a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
+index 190ae49..2ca33cc 100644
+--- a/arch/arm/mach-omap2/fb.c
++++ b/arch/arm/mach-omap2/fb.c
+@@ -83,10 +83,7 @@ static int __init omap_init_vrfb(void)
+ 	pdev = platform_device_register_resndata(NULL, "omapvrfb", -1,
+ 			res, num_res, NULL, 0);
+ 
+-	if (IS_ERR(pdev))
+-		return PTR_ERR(pdev);
+-	else
+-		return 0;
++	return PTR_RET(pdev);
+ }
+ 
+ omap_arch_initcall(omap_init_vrfb);
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 410e1ba..c665721 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1448,7 +1448,7 @@ static int __init omap_gpmc_init(void)
+ 	pdev = omap_device_build(DEVICE_NAME, -1, oh, NULL, 0);
+ 	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
+ 
+-	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
++	return PTR_RET(pdev);
+ }
+ omap_postcore_initcall(omap_gpmc_init);
+ 
+diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
+index 9debf82..13ff2f5 100644
+--- a/arch/arm/mach-omap2/pmu.c
++++ b/arch/arm/mach-omap2/pmu.c
+@@ -52,10 +52,7 @@ static int __init omap2_init_pmu(unsigned oh_num, char *oh_names[])
+ 	WARN(IS_ERR(omap_pmu_dev), "Can't build omap_device for %s.\n",
+ 	     dev_name);
+ 
+-	if (IS_ERR(omap_pmu_dev))
+-		return PTR_ERR(omap_pmu_dev);
+-
+-	return 0;
++	return PTR_RET(omap_pmu_dev);
+ }
+ 
+ static int __init omap_init_pmu(void)
+-- 
+1.7.9.5
