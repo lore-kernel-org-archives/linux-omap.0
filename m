@@ -1,35 +1,53 @@
-From: Andrew Chew <AChew@nvidia.com>
-Subject: RE: [PATCH 1/1] ARM: OMAP: board-4430sdp: Provide regulator to
- pwm-backlight
-Date: Tue, 12 Mar 2013 15:21:16 -0700
-Message-ID: <643E69AA4436674C8F39DCC2C05F7638629CA5179F@HQMAIL03.nvidia.com>
-References: <1363053266-515-1-git-send-email-achew@nvidia.com>
- <513EF43F.4030107@ti.com>
+From: Andrew Chew <achew@nvidia.com>
+Subject: [PATCH 1/2 v2] ARM: OMAP: board-4430sdp: Provide regulator to pwm-backlight
+Date: Tue, 12 Mar 2013 15:22:13 -0700
+Message-ID: <1363126934-8754-2-git-send-email-achew@nvidia.com>
+References: <1363126934-8754-1-git-send-email-achew@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hqemgate03.nvidia.com ([216.228.121.140]:8714 "EHLO
+Received: from hqemgate03.nvidia.com ([216.228.121.140]:8761 "EHLO
 	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755736Ab3CLWVW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 18:21:22 -0400
-In-Reply-To: <513EF43F.4030107@ti.com>
-Content-Language: en-US
+	with ESMTP id S932302Ab3CLWWU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 18:22:20 -0400
+In-Reply-To: <1363126934-8754-1-git-send-email-achew@nvidia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: "thierry.reding@avionic-design.de" <thierry.reding@avionic-design.de>, Alex Courbot <acourbot@nvidia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: peter.ujfalusi@ti.com
+Cc: thierry.reding@avionic-design.de, acourbot@nvidia.com, achew@nvidia.com, linux-omap@vger.kernel.org
 
-> On 03/12/2013 02:54 AM, Andrew Chew wrote:
-> > The pwm-backlight driver now takes a mandatory regulator that is
-> > gotten during driver probe.  Initialize a dummy regulator to satisfy
-> > this requirement.
-> 
-> Can you point me to the commit which makes a regulator mandatory for
-> pwm-backlight?
-> Why the regulator is mandatory?
-> The 4430SDP (or Blaze) and Zoom2 is just happy alone with the PWM why
-> should we have dummy regulators?
+The pwm-backlight driver now takes a mandatory regulator that is gotten
+during driver probe.  Initialize a dummy regulator to satisfy this
+requirement.
 
-I'm resubmitting the patch as a patch series that includes the pwm-backlight
-change.  See the cover letter for an explanation of why this is needed.
+Signed-off-by: Andrew Chew <achew@nvidia.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 35f3ad0..62022c0 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -291,6 +291,10 @@ static struct platform_device sdp4430_leds_pwm = {
+ 	},
+ };
+ 
++/* Dummy regulator for pwm-backlight driver */
++static struct regulator_consumer_supply backlight_supply =
++	REGULATOR_SUPPLY("enable", NULL);
++
+ static struct platform_pwm_backlight_data sdp4430_backlight_data = {
+ 	.max_brightness = 127,
+ 	.dft_brightness = 127,
+@@ -718,6 +722,7 @@ static void __init omap_4430sdp_init(void)
+ 
+ 	omap4_i2c_init();
+ 	omap_sfh7741prox_init();
++	regulator_register_always_on(-1, "bl-enable", &backlight_supply, 1, 0);
+ 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+ 	omap_serial_init();
+ 	omap_sdrc_init(NULL, NULL);
+-- 
+1.7.9.5
+
