@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/8] usb: phy: nop: Add some parameters to platform data
-Date: Tue, 12 Mar 2013 13:24:19 +0200
-Message-ID: <1363087466-32444-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH 2/8] usb: phy: nop: use devm_kzalloc()
+Date: Tue, 12 Mar 2013 13:24:20 +0200
+Message-ID: <1363087466-32444-3-git-send-email-rogerq@ti.com>
 References: <1363087466-32444-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,34 +22,66 @@ To: balbi-l0cyMroinI0@public.gmane.org
 Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add clk_rate parameter to platform data. If supplied, the
-NOP phy driver will program the clock to that rate during probe.
-
-Also add 2 flags, needs_vcc and needs_reset.
-If the flag is set and the regulator couldn't be found
-then the driver will bail out with -EPROBE_DEFER.
+Use resource managed kzalloc.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- include/linux/usb/nop-usb-xceiv.h |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ drivers/usb/otg/nop-usb-xceiv.c |   17 +++++------------
+ 1 files changed, 5 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/usb/nop-usb-xceiv.h b/include/linux/usb/nop-usb-xceiv.h
-index 28884c7..148d351 100644
---- a/include/linux/usb/nop-usb-xceiv.h
-+++ b/include/linux/usb/nop-usb-xceiv.h
-@@ -5,6 +5,11 @@
+diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
+index a3ce24b..af52870 100644
+--- a/drivers/usb/otg/nop-usb-xceiv.c
++++ b/drivers/usb/otg/nop-usb-xceiv.c
+@@ -100,15 +100,14 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+ 	enum usb_phy_type	type = USB_PHY_TYPE_USB2;
+ 	int err;
  
- struct nop_usb_xceiv_platform_data {
- 	enum usb_phy_type type;
-+	unsigned long clk_rate;
-+
-+	/* if set fails with -EPROBE_DEFER if can't get regulator */
-+	unsigned int needs_vcc:1;
-+	unsigned int needs_reset:1;
- };
+-	nop = kzalloc(sizeof *nop, GFP_KERNEL);
++	nop = devm_kzalloc(&pdev->dev, sizeof(*nop), GFP_KERNEL);
+ 	if (!nop)
+ 		return -ENOMEM;
  
- #if defined(CONFIG_NOP_USB_XCEIV) || (defined(CONFIG_NOP_USB_XCEIV_MODULE) && defined(MODULE))
+-	nop->phy.otg = kzalloc(sizeof *nop->phy.otg, GFP_KERNEL);
+-	if (!nop->phy.otg) {
+-		kfree(nop);
++	nop->phy.otg = devm_kzalloc(&pdev->dev, sizeof(*nop->phy.otg),
++							GFP_KERNEL);
++	if (!nop->phy.otg)
+ 		return -ENOMEM;
+-	}
+ 
+ 	if (pdata)
+ 		type = pdata->type;
+@@ -127,7 +126,7 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+ 	if (err) {
+ 		dev_err(&pdev->dev, "can't register transceiver, err: %d\n",
+ 			err);
+-		goto exit;
++		return err;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, nop);
+@@ -135,10 +134,6 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+ 	ATOMIC_INIT_NOTIFIER_HEAD(&nop->phy.notifier);
+ 
+ 	return 0;
+-exit:
+-	kfree(nop->phy.otg);
+-	kfree(nop);
+-	return err;
+ }
+ 
+ static int nop_usb_xceiv_remove(struct platform_device *pdev)
+@@ -148,8 +143,6 @@ static int nop_usb_xceiv_remove(struct platform_device *pdev)
+ 	usb_remove_phy(&nop->phy);
+ 
+ 	platform_set_drvdata(pdev, NULL);
+-	kfree(nop->phy.otg);
+-	kfree(nop);
+ 
+ 	return 0;
+ }
 -- 
 1.7.4.1
