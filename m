@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 14/24] ARM: OMAP3: omap3pandora: Adapt to ehci-omap changes
-Date: Tue, 12 Mar 2013 13:43:16 +0200
-Message-ID: <1363088606-2692-15-git-send-email-rogerq@ti.com>
+Subject: [PATCH 15/24] ARM: OMAP3: omap3stalker: Adapt to ehci-omap changes
+Date: Tue, 12 Mar 2013 13:43:17 +0200
+Message-ID: <1363088606-2692-16-git-send-email-rogerq@ti.com>
 References: <1363088606-2692-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -31,25 +31,24 @@ it to the 'nop-usb-xceiv' PHY.
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-omap3pandora.c |   52 +++++++++++++++++++++++++----
- 1 files changed, 44 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/board-omap3stalker.c |   52 ++++++++++++++++++++++++++----
+ 1 files changed, 45 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 2bba362..85e5685 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -23,6 +23,8 @@
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 95c10b3..e38c0bd 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -26,6 +26,7 @@
  
- #include <linux/spi/spi.h>
+ #include <linux/regulator/fixed.h>
  #include <linux/regulator/machine.h>
-+#include <linux/regulator/fixed.h>
 +#include <linux/usb/phy.h>
  #include <linux/i2c/twl.h>
- #include <linux/wl12xx.h>
- #include <linux/mtd/partitions.h>
-@@ -561,23 +563,55 @@ fail:
- 	printk(KERN_ERR "wl1251 board initialisation failed\n");
- }
+ #include <linux/mmc/host.h>
+ #include <linux/input/matrix_keypad.h>
+@@ -358,19 +359,52 @@ static int __init omap3_stalker_i2c_init(void)
+ 
+ #define OMAP3_STALKER_TS_GPIO	175
  
 +/* PHY device on HS USB Port 2 i.e. nop_usb_xceiv.2 */
 +static struct platform_device hsusb2_phy_device = {
@@ -74,7 +73,7 @@ index 2bba362..85e5685 100644
 +static struct fixed_voltage_config hsusb2_reset_config = {
 +	.supply_name = "hsusb2_reset",
 +	.microvolts = 3300000,
-+	.gpio = 16,
++	.gpio = 21,
 +	.startup_delay = 70000, /* 70msec */
 +	.enable_high = 1,
 +	.enabled_at_boot = 0,   /* keep in RESET */
@@ -89,36 +88,34 @@ index 2bba362..85e5685 100644
 +	},
 +};
 +
- static struct platform_device *omap3pandora_devices[] __initdata = {
- 	&pandora_leds_gpio,
- 	&pandora_keys_gpio,
- 	&pandora_vwlan_device,
- 	&pandora_backlight,
+ static struct platform_device *omap3_stalker_devices[] __initdata = {
+ 	&keys_gpio,
 +	&hsusb2_phy_device,
 +	&hsusb2_reset_device,
  };
  
  static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
--
 -	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
  	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
 -	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
 -
--	.phy_reset  = true,
--	.reset_gpio_port[0]  = -EINVAL,
--	.reset_gpio_port[1]  = 16,
--	.reset_gpio_port[2]  = -EINVAL
+-	.phy_reset = true,
+-	.reset_gpio_port[0] = -EINVAL,
+-	.reset_gpio_port[1] = 21,
+-	.reset_gpio_port[2] = -EINVAL,
  };
  
  #ifdef CONFIG_OMAP_MUX
-@@ -601,6 +635,8 @@ static void __init omap3pandora_init(void)
- 	spi_register_board_info(omap3pandora_spi_board_info,
- 			ARRAY_SIZE(omap3pandora_spi_board_info));
- 	omap_ads7846_init(1, OMAP3_PANDORA_TS_GPIO, 0, NULL);
-+	/* PHY on HSUSB Port 2 i.e. index 1 */
-+	usb_bind_phy("ehci-omap.0", 1, "nop_usb_xceiv.2");
- 	usbhs_init(&usbhs_bdata);
+@@ -407,6 +441,10 @@ static void __init omap3_stalker_init(void)
+ 	omap_sdrc_init(mt46h32m32lf6_sdrc_params, NULL);
  	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
  	usb_musb_init(NULL);
++
++	/* PHY on HSUSB Port 2 i.e. index 1 */
++	usb_bind_phy("ehci-omap.0", 1, "nop_usb_xceiv.2");
++
+ 	usbhs_init(&usbhs_bdata);
+ 	omap_ads7846_init(1, OMAP3_STALKER_TS_GPIO, 310, NULL);
+ 
 -- 
 1.7.4.1
