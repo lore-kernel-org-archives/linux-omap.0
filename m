@@ -1,155 +1,101 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 03/24] ARM: OMAP2+: omap4panda: Adapt to ehci-omap changes
-Date: Tue, 12 Mar 2013 13:43:05 +0200
-Message-ID: <1363088606-2692-4-git-send-email-rogerq@ti.com>
-References: <1363088606-2692-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 00/24] ARM: OMAP2+: Adapt to ehci-omap changes for 3.10
+Date: Tue, 12 Mar 2013 13:43:02 +0200
+Message-ID: <1363088606-2692-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363088606-2692-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: balbi@ti.com, b-cousson@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rogerq@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Model RESET and Power for HS USB Port 1 as GPIO fixed regulators
-and link them to the 'nop-usb-xceiv' PHY by making them as "reset"
-and "vcc" supplies.
+Hi Tony,
 
-The RESET and Power will then be managed by the PHY driver.
+These patches provide the SoC side code required to support
+the changes in the OMAP USB Host drivers done in [1], [2] & [3].
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/board-omap4panda.c |   92 +++++++++++++++++++++++---------
- 1 files changed, 66 insertions(+), 26 deletions(-)
+Device tree support is added for Beagleboard and Panda.
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index feffde6..3f34db3 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -147,6 +147,70 @@ static struct platform_device hsusb1_phy_device = {
- 	},
- };
- 
-+/* Regulator for USB HUB/PHY reset */
-+static struct regulator_consumer_supply hsusb1_reset_supplies[] = {
-+/* Link PHY device to reset supply so it gets used in the PHY driver */
-+	REGULATOR_SUPPLY("reset", "nop_usb_xceiv.1"),
-+};
-+
-+static struct regulator_init_data hsusb1_reset_data = {
-+	.constraints = {
-+		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+	},
-+	.consumer_supplies	= hsusb1_reset_supplies,
-+	.num_consumer_supplies	= ARRAY_SIZE(hsusb1_reset_supplies),
-+};
-+
-+static struct fixed_voltage_config hsusb1_reset_config = {
-+	.supply_name    = "hsusb1_reset",
-+	.microvolts = 3300000,
-+	.gpio = GPIO_HUB_NRESET,
-+	.startup_delay = 70000, /* 70msec */
-+	.enable_high = 1,
-+	.enabled_at_boot = 0,	/* keep in RESET */
-+	.init_data = &hsusb1_reset_data,
-+};
-+
-+static struct platform_device hsusb1_reset_device = {
-+	.name	= "reg-fixed-voltage",
-+	.id	= PLATFORM_DEVID_AUTO,
-+	.dev = {
-+		.platform_data = &hsusb1_reset_config,
-+	},
-+};
-+
-+/* Regulator for USB HUB supply */
-+static struct regulator_consumer_supply hsusb1_power_supplies[] = {
-+/* Link PHY device to USB HUB supply so it gets enabled in the PHY driver */
-+	REGULATOR_SUPPLY("vcc", "nop_usb_xceiv.1"),
-+};
-+
-+static struct regulator_init_data hsusb1_power_data = {
-+	.constraints = {
-+		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+	},
-+	.consumer_supplies	= hsusb1_power_supplies,
-+	.num_consumer_supplies	= ARRAY_SIZE(hsusb1_power_supplies),
-+};
-+
-+static struct fixed_voltage_config hsusb1_power_config = {
-+	.supply_name    = "hsusb1_vbus",
-+	.microvolts = 3300000,
-+	.gpio = GPIO_HUB_POWER,
-+	.startup_delay = 70000, /* 70msec */
-+	.enable_high = 1,
-+	.enabled_at_boot = 0,
-+	.init_data = &hsusb1_power_data,
-+};
-+
-+static struct platform_device hsusb1_power_device = {
-+	.name	= "reg-fixed-voltage",
-+	.id	= PLATFORM_DEVID_AUTO,
-+	.dev = {
-+		.platform_data = &hsusb1_power_config,
-+	},
-+};
-+
- static struct platform_device *panda_devices[] __initdata = {
- 	&leds_gpio,
- 	&wl1271_device,
-@@ -154,39 +218,18 @@ static struct platform_device *panda_devices[] __initdata = {
- 	&panda_hdmi_audio_codec,
- 	&btwilink_device,
- 	&hsusb1_phy_device,
-+	&hsusb1_power_device,
-+	&hsusb1_reset_device,
- };
- 
- static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
- 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
--	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
--	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
--	.phy_reset  = false,
--	.reset_gpio_port[0]  = -EINVAL,
--	.reset_gpio_port[1]  = -EINVAL,
--	.reset_gpio_port[2]  = -EINVAL
--};
--
--static struct gpio panda_ehci_gpios[] __initdata = {
--	{ GPIO_HUB_POWER,	GPIOF_OUT_INIT_LOW,  "hub_power"  },
--	{ GPIO_HUB_NRESET,	GPIOF_OUT_INIT_LOW,  "hub_nreset" },
- };
- 
- static void __init omap4_ehci_init(void)
- {
- 	int ret;
- 
--	/* disable the power to the usb hub prior to init and reset phy+hub */
--	ret = gpio_request_array(panda_ehci_gpios,
--				 ARRAY_SIZE(panda_ehci_gpios));
--	if (ret) {
--		pr_err("Unable to initialize EHCI power/reset\n");
--		return;
--	}
--
--	gpio_export(GPIO_HUB_POWER, 0);
--	gpio_export(GPIO_HUB_NRESET, 0);
--	gpio_set_value(GPIO_HUB_NRESET, 1);
--
- 	/* FREF_CLK3 provides the 19.2 MHz reference clock to the PHY */
- 	ret = clk_add_alias("main_clk", "nop_usb_xceiv.1", "auxclk3_ck", NULL);
- 	if (ret)
-@@ -196,9 +239,6 @@ static void __init omap4_ehci_init(void)
- 	usb_bind_phy("ehci-omap.0", 0, "nop_usb_xceiv.1");
- 
- 	usbhs_init(&usbhs_bdata);
--
--	/* enable power to hub */
--	gpio_set_value(GPIO_HUB_POWER, 1);
- }
- 
- static struct omap_musb_board_data musb_board_data = {
--- 
-1.7.4.1
+NOTE: The first patch needs to be shared between the
+OMAP tree and Felipe's USB tree.
+
+[1] MFD side changes to omap-usb-host and omap-usb-tll
+  https://lkml.org/lkml/2013/3/12/179
+[2] USB EHCI side changes to ehci-omap 
+  http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg86265.html
+[3] USB PHY driver changes
+  http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg86293.html
+
+The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b6ec9:
+
+  Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
+
+are available in the git repository at:
+  git://github.com/rogerq/linux.git usbhost-arm-next
+
+Roger Quadros (24):
+  usb: phy: nop: Add some parameters to platform data
+  ARM: OMAP2+: omap4panda: Provide USB Host's PHY platform data
+  ARM: OMAP2+: omap4panda: Adapt to ehci-omap changes
+  ARM: OMAP3: Beagle: Adapt to ehci-omap changes
+  ARM: OMAP3: 3430SDP: Adapt to ehci-omap changes
+  ARM: OMAP3: 3630SDP: Adapt to ehci-omap changes
+  ARM: OMAP: AM3517crane: Adapt to ehci-omap changes
+  ARM: OMAP: AM3517evm: Adapt to ehci-omap changes
+  ARM: OMAP3: cm-t35: Adapt to ehci-omap changes
+  ARM: OMAP3: cm-t3517: Adapt to ehci-omap changes
+  ARM: OMAP: devkit8000: Adapt to ehci-omap changes
+  ARM: OMAP3: igep0020: Adapt to ehci-omap changes
+  ARM: OMAP3: omap3evm: Adapt to ehci-omap changes
+  ARM: OMAP3: omap3pandora: Adapt to ehci-omap changes
+  ARM: OMAP3: omap3stalker: Adapt to ehci-omap changes
+  ARM: OMAP3: omap3touchbook: Adapt to ehci-omap changes
+  ARM: OMAP3: overo: Adapt to ehci-omap changes
+  ARM: OMAP: zoom: Adapt to ehci-omap changes
+  ARM: dts: OMAP4: Add HS USB Host IP nodes
+  ARM: dts: omap4-panda: Add USB Host support
+  ARM: dts: OMAP3: Add HS USB Host IP nodes
+  ARM: dts: omap3-beagle: Add USB Host support
+  ARM: OMAP2+: Allow clock alias provision from device tree
+  ARM: dts: omap4-panda: Add clock alias for USB PHY
+
+ .../devicetree/bindings/clock/ti-clock-alias.txt   |   26 ++++
+ arch/arm/boot/dts/omap3-beagle.dts                 |   71 +++++++++++
+ arch/arm/boot/dts/omap3.dtsi                       |   31 +++++
+ arch/arm/boot/dts/omap4-panda.dts                  |   63 ++++++++++
+ arch/arm/boot/dts/omap4.dtsi                       |   30 +++++
+ arch/arm/mach-omap2/board-3430sdp.c                |   97 +++++++++++++++-
+ arch/arm/mach-omap2/board-3630sdp.c                |  100 +++++++++++++++-
+ arch/arm/mach-omap2/board-am3517crane.c            |   95 +++++++++++++--
+ arch/arm/mach-omap2/board-am3517evm.c              |   66 ++++++++++-
+ arch/arm/mach-omap2/board-cm-t35.c                 |   95 ++++++++++++++-
+ arch/arm/mach-omap2/board-cm-t3517.c               |   97 +++++++++++++++-
+ arch/arm/mach-omap2/board-devkit8000.c             |   20 ++--
+ arch/arm/mach-omap2/board-generic.c                |   67 +++++++++++
+ arch/arm/mach-omap2/board-igep0020.c               |  112 ++++++++++++++++---
+ arch/arm/mach-omap2/board-omap3beagle.c            |   93 +++++++++++++--
+ arch/arm/mach-omap2/board-omap3evm.c               |   62 ++++++++--
+ arch/arm/mach-omap2/board-omap3pandora.c           |   52 +++++++--
+ arch/arm/mach-omap2/board-omap3stalker.c           |   52 +++++++-
+ arch/arm/mach-omap2/board-omap3touchbook.c         |   62 +++++++++-
+ arch/arm/mach-omap2/board-omap4panda.c             |  122 ++++++++++++++------
+ arch/arm/mach-omap2/board-overo.c                  |   54 ++++++++-
+ arch/arm/mach-omap2/board-zoom.c                   |   56 ++++++++-
+ include/linux/usb/nop-usb-xceiv.h                  |    5 +
+ 23 files changed, 1377 insertions(+), 151 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/clock/ti-clock-alias.txt
+
+--
+cheers,
+-roger 
