@@ -1,143 +1,113 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 08/24] ARM: OMAP: AM3517evm: Adapt to ehci-omap changes
-Date: Tue, 12 Mar 2013 13:43:10 +0200
-Message-ID: <1363088606-2692-9-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 22/24] ARM: dts: omap3-beagle: Add USB Host support
+Date: Tue, 12 Mar 2013 13:43:24 +0200
+Message-ID: <1363088606-2692-23-git-send-email-rogerq@ti.com>
 References: <1363088606-2692-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1363088606-2692-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1363088606-2692-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: balbi@ti.com, b-cousson@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add 2 platform devices for 'nop-usb-xceiv'. These will be used as a
-PHY for HS USB Port 1 and 2, so provide binding information for them.
+Provide RESET and Power regulators for the USB PHY,
+the USB Host port mode and the PHY device.
 
-Model RESET for HS USB Port 1 as GPIO fixed regulator and link it
-to the 'nop-usb-xceiv' PHY on port 1.
+Also provide pin multiplexer information for USB host
+pins.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/board-am3517evm.c |   66 ++++++++++++++++++++++++++++++---
- 1 files changed, 60 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/omap3-beagle.dts |   71 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 71 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 9fb8590..36c00fb 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -25,6 +25,9 @@
- #include <linux/can/platform/ti_hecc.h>
- #include <linux/davinci_emac.h>
- #include <linux/mmc/host.h>
-+#include <linux/regulator/machine.h>
-+#include <linux/regulator/fixed.h>
-+#include <linux/usb/phy.h>
- #include <linux/usb/musb.h>
- #include <linux/platform_data/gpio-omap.h>
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index f624dc8..02d23f1 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -38,6 +38,57 @@
+ 		};
+ 	};
  
-@@ -274,6 +277,50 @@ static __init void am3517_evm_mcbsp1_init(void)
- 	omap_ctrl_writel(devconf0, OMAP2_CONTROL_DEVCONF0);
- }
- 
-+/* PHY device on HS USB Port 1 i.e. nop_usb_xceiv.1 */
-+static struct platform_device hsusb1_phy_device = {
-+	.name = "nop_usb_xceiv",
-+	.id = 1,
++	/* HS USB Port 2 RESET */
++	hsusb2_reset: hsusb2_reset_reg {
++		compatible = "regulator-fixed";
++		regulator-name = "hsusb2_reset";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		gpio = <&gpio5 19 0>;	/* gpio_147 */
++		startup-delay-us = <70000>;
++		enable-active-high;
++	};
++
++	/* HS USB Port 2 Power */
++	hsusb2_power: hsusb2_power_reg {
++		compatible = "regulator-fixed";
++		regulator-name = "hsusb2_vbus";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		gpio = <&twl_gpio 18 0>;	/* GPIO LEDA */
++		startup-delay-us = <70000>;
++	};
++
++	/* HS USB Host PHY on PORT 2 */
++	hsusb2_phy: hsusb2_phy {
++		compatible = "usb-nop-xceiv";
++		reset-supply = <&hsusb2_reset>;
++		vcc-supply = <&hsusb2_power>;
++	};
 +};
 +
-+/* Regulator for HS USB Port 1 PHY reset */
-+static struct regulator_consumer_supply hsusb1_reset_supplies[] = {
-+	/* Link PHY device to reset supply so it gets used in the PHY driver */
-+	REGULATOR_SUPPLY("reset", "nop_usb_xceiv.1"),
-+};
++&omap3_pmx_core {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++			&hsusbb2_pins
++	>;
 +
-+static struct regulator_init_data hsusb1_reset_data = {
-+	.constraints = {
-+		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+	},
-+	.consumer_supplies = hsusb1_reset_supplies,
-+	.num_consumer_supplies = ARRAY_SIZE(hsusb1_reset_supplies),
-+};
-+
-+static struct fixed_voltage_config hsusb1_reset_config = {
-+	.supply_name = "hsusb1_reset",
-+	.microvolts = 3300000,
-+	.gpio = 57,
-+	.startup_delay = 70000, /* 70msec */
-+	.enable_high = 1,
-+	.enabled_at_boot = 0,   /* keep in RESET */
-+	.init_data = &hsusb1_reset_data,
-+};
-+
-+static struct platform_device hsusb1_reset_device = {
-+	.name = "reg-fixed-voltage",
-+	.id = PLATFORM_DEVID_AUTO,
-+	.dev = {
-+		.platform_data = &hsusb1_reset_config,
-+	},
-+};
-+
-+/* PHY device on HS USB Port 2 i.e. nop_usb_xceiv.2 */
-+static struct platform_device hsusb2_phy_device = {
-+	.name = "nop_usb_xceiv",
-+	.id = 2,
-+};
-+
- static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
- 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
- #if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
-@@ -282,12 +329,6 @@ static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
- #else
- 	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
- #endif
--	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
--
--	.phy_reset  = true,
--	.reset_gpio_port[0]  = 57,
--	.reset_gpio_port[1]  = -EINVAL,
--	.reset_gpio_port[2]  = -EINVAL
++	hsusbb2_pins: pinmux_hsusbb2_pins {
++		pinctrl-single,pins = <
++			0x5c0 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_clk OUTPUT */
++			0x5c2 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_stp OUTPUT */
++			0x5c4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dir INPUT | PULLDOWN */
++			0x5c6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_nxt INPUT | PULLDOWN */
++			0x5c8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat0 INPUT | PULLDOWN */
++			0x5cA 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat1 INPUT | PULLDOWN */
++			0x1a4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat2 INPUT | PULLDOWN */
++			0x1a6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat3 INPUT | PULLDOWN */
++			0x1a8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat4 INPUT | PULLDOWN */
++			0x1aa 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat5 INPUT | PULLDOWN */
++			0x1ac 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat6 INPUT | PULLDOWN */
++			0x1ae 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat7 INPUT | PULLDOWN */
++		>;
++	};
  };
  
- #ifdef CONFIG_OMAP_MUX
-@@ -349,6 +390,11 @@ static struct omap2_hsmmc_info mmc[] = {
- 	{}      /* Terminator */
+ &i2c1 {
+@@ -65,3 +116,23 @@
+ &mmc3 {
+ 	status = "disabled";
  };
- 
-+static struct platform_device *am3517evm_devices[] __initdata = {
-+	&hsusb1_phy_device,
-+	&hsusb1_reset_device,
-+	&hsusb2_phy_device,
++
++&usbhshost {
++	port2-mode = "ehci-phy";
 +};
- 
- static void __init am3517_evm_init(void)
- {
-@@ -361,6 +407,14 @@ static void __init am3517_evm_init(void)
- 
- 	/* Configure GPIO for EHCI port */
- 	omap_mux_init_gpio(57, OMAP_PIN_OUTPUT);
 +
-+	platform_add_devices(am3517evm_devices, ARRAY_SIZE(am3517evm_devices));
++&usbhsehci {
++	phys = <0 &hsusb2_phy>;
++};
 +
-+	/* PHY on HSUSB Port 1 i.e. index 0 */
-+	usb_bind_phy("ehci-omap.0", 0, "nop_usb_xceiv.1");
-+	/* PHY on HSUSB Port 2 i.e. index 1 */
-+	usb_bind_phy("ehci-omap.0", 1, "nop_usb_xceiv.2");
-+
- 	usbhs_init(&usbhs_bdata);
- 	am3517_evm_hecc_init(&am3517_evm_hecc_pdata);
- 	/* DSS */
++&twl_gpio {
++	ti,use-leds;
++	/* pullups: BIT(1) */
++	ti,pullups = <0x000002>;
++	/*
++	 * pulldowns:
++	 * BIT(2), BIT(6), BIT(7), BIT(8), BIT(13)
++	 * BIT(15), BIT(16), BIT(17)
++	 */
++	ti,pulldowns = <0x03a1c4>;
++};
 -- 
 1.7.4.1
