@@ -1,60 +1,61 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/8] usb: phy: nop: Add some parameters to platform data
-Date: Tue, 12 Mar 2013 16:28:14 +0200
-Message-ID: <513F3B7E.8000002@ti.com>
-References: <1363087466-32444-1-git-send-email-rogerq@ti.com>
- <1363087466-32444-2-git-send-email-rogerq@ti.com>
- <513F177D.40500@pengutronix.de> <513F37DD.9030301@ti.com>
- <513F38DF.5040404@pengutronix.de>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 2/2] cpufreq: cpufreq-cpu0: provide compatibility string
+ for DT matchup
+Date: Tue, 12 Mar 2013 15:28:40 +0100
+Message-ID: <513F3B98.6050909@ti.com>
+References: <1363043130-30270-1-git-send-email-nm@ti.com> <1363043130-30270-3-git-send-email-nm@ti.com> <513EB7FE.1070000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <513F38DF.5040404-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:34713 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932293Ab3CLO2w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Mar 2013 10:28:52 -0400
+In-Reply-To: <513EB7FE.1070000@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>
+Cc: linux-pm@vger.kernel.org, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-kernel@vger.kernel.org, cpufreq <cpufreq@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org
 
-On 03/12/2013 04:17 PM, Marc Kleine-Budde wrote:
-> On 03/12/2013 03:12 PM, Roger Quadros wrote:
->> On 03/12/2013 01:54 PM, Marc Kleine-Budde wrote:
->>> On 03/12/2013 12:24 PM, Roger Quadros wrote:
->>>> Add clk_rate parameter to platform data. If supplied, the
->>>> NOP phy driver will program the clock to that rate during probe.
->>>>
->>>> Also add 2 flags, needs_vcc and needs_reset.
->>>> If the flag is set and the regulator couldn't be found
->>>> then the driver will bail out with -EPROBE_DEFER.
->>>
->>> Is there a platform which fills out pdata.needs_vcc and
->>> pdata.needs_reset? IMHO it makes no sense to add features for the non DT
->>> case, if there isn't any user for it.
->>>
+On 03/12/2013 06:07 AM, Santosh Shilimkar wrote:
+> On Tuesday 12 March 2013 04:35 AM, Nishanth Menon wrote:
+>> commit 5553f9e (cpufreq: instantiate cpufreq-cpu0 as a platform_driver)
+>> now forces platform device to be registered for allowing cpufreq-cpu0
+>> to be used by SoCs. example: drivers/cpufreq/highbank-cpufreq.c
 >>
->> There can be a user in the non DT case as well. Consider the following example:
+>> However, for SoCs that wish to link up using device tree, instead
+>> of platform device, provide compatibility string match:
+>> compatible = "cpufreq,cpu0";
+
+You cannot add a non-HW relative binding... DT is supposed to represent
+the pure HW.
+AFAIK, cpufreq has nothing to do with the HW definition.
+
+>>
+>> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> Cc: Shawn Guo <shawn.guo@linaro.org>
+>> Cc: linux-kernel@vger.kernel.org
+>> Cc: cpufreq@vger.kernel.org
+>> Cc: linux-pm@vger.kernel.org
+>> Cc: linux-omap@vger.kernel.org
+>>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> ---
+>>  .../devicetree/bindings/cpufreq/cpufreq-cpu0.txt   |    3 +++
+>>  drivers/cpufreq/cpufreq-cpu0.c                     |    6 ++++++
+>>  2 files changed, 9 insertions(+)
+>>
+> Looks fine to me. CC'ing dt list in case some one has
+> comments on binding updates.
 > 
-> I'm just saying, let the implementation up to a real user for the non DT
-> case. Beagleboard is ARM and there's no point of implementing non DT
-> fall backs for ARM, IMHO.
-> 
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Why do you say so?
+Not-Acked-by-me.
 
-It doesn't depend on the CPU architecture. It depends on how the board designer
-wired the board. A non ARM platform could also face the same problem as beagle.
+Regards,
+Benoit
 
-It is not a non DT fallback. I believe many are still using non DT boot and it
-needs to work at least till we move all functionality to purely DT.
 
-cheers,
--roger
+
