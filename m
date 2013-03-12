@@ -1,83 +1,49 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Excessive ethernet interrupts on AM335x board
-Date: Tue, 12 Mar 2013 15:35:52 +0000
-Message-ID: <513F4B58.1000204@mimc.co.uk>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: [PATCH 1/1] Fix sprz319 erratum 2.1
+Date: Tue, 12 Mar 2013 10:50:45 -0500
+Message-ID: <CAOCHtYivQAf=sHc_m3D83-jLkZCkkf0ZcCdMdwXS=Qma-2B--A@mail.gmail.com>
+References: <4F4289C2.90707@kynesim.co.uk>
+	<CAOd_LFzegrdpJ9W_DDGCVJrCtdm6bsvAwEg5o1g6+Tjb2EMCjQ@mail.gmail.com>
+	<alpine.DEB.2.00.1303121456230.25871@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:33868 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755519Ab3CLPuq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 11:50:46 -0400
+Received: by mail-ie0-f171.google.com with SMTP id 10so6602451ied.16
+        for <linux-omap@vger.kernel.org>; Tue, 12 Mar 2013 08:50:46 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1303121456230.25871@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Cliff Brake <cliff.brake@gmail.com>, Richard Watts <rrw@kynesim.co.uk>, paul@pswan.com, linux-omap@vger.kernel.org
 
-I'm just fighting an issue with ethernet on our custom AM335x board:-
+>> Has any more testing been done with this?  We're running into a
+>> situation where the USB subsystem crashes in a beagleboard xM after
+>> running for a couple hours to a day.  A USB camera is running
+>> continuously during this time.  The error message typically something
+>> like:
+>>
+>> [ 2817.415710] hub 1-0:1.0: port 2 disabled by hub (EMI?), re-enabling...
+>> [ 2817.422607] usb 1-2: USB disconnect, device number 2
+>> [ 2817.427886] usb 1-2.1: USB disconnect, device number 3
+>> [ 2817.441986] usb 1-2.4: USB disconnect, device number 4
+>> [ 2817.450134] usb 1-2.5: USB disconnect, device number 5
+>
+> Are you in a position to test whether the patch works for you?
+>
+> I'd still like to find someone whose USB problem is fixed by the patch and
+> is willing to try a slight modification of it before applying...
 
-# uname -a
-Linux nanobone 3.9.0-rc2-00113-gd60f039 #139 Tue Mar 12 15:14:01 GMT 2013 armv7l GNU/Linux
+HI Paul,
 
-Every now and then, the whole unit slows to a crawl.  The only indication of any problem is:-
+I just recently traded with one of our customers for his "bad" xM.  If
+you have something, I'm always running on mainline kernel's..
 
-(a) the serial tty port becomes much less responsive
-(b) normal ping times jump from 1ms to >10sec (sometimes >20sec !!)
-(c) the ethernet interrupt count rockets (see below)
+Regards,
 
-I've tried to force the problem by flood pinging from my PC.
-
-# while true
-> do grep "58:" /proc/interrupts; sleep 10
-> done
- 58:       1291      INTC  4a100000.ethernet  <<< normal pinging (about 100 irqs per 10sec)
- 58:       1333      INTC  4a100000.ethernet
- 58:       1372      INTC  4a100000.ethernet
- 58:       3979      INTC  4a100000.ethernet  <<< start flood ping (about 4k irqs per 10sec)
- 58:       6540      INTC  4a100000.ethernet
- 58:      17519      INTC  4a100000.ethernet  <<< big jump >>>
- 58:      20169      INTC  4a100000.ethernet
- 58:      22775      INTC  4a100000.ethernet
- 58:      25368      INTC  4a100000.ethernet
- 58:      34598      INTC  4a100000.ethernet  <<< big jump >>>
- 58:      37182      INTC  4a100000.ethernet
- 58:      39730      INTC  4a100000.ethernet
- 58:     141220      INTC  4a100000.ethernet  <<< whoa !!! >>>
- 58:     146080      INTC  4a100000.ethernet
- 58:     149351      INTC  4a100000.ethernet
- 58:     152922      INTC  4a100000.ethernet
- 58:     156420      INTC  4a100000.ethernet
- 58:     159538      INTC  4a100000.ethernet
- 58:     162711      INTC  4a100000.ethernet
- 58:     165746      INTC  4a100000.ethernet
- 58:     168973      INTC  4a100000.ethernet
- 58:     172128      INTC  4a100000.ethernet
- 58:     175030      INTC  4a100000.ethernet
- 58:     177957      INTC  4a100000.ethernet
- 58:     180782      INTC  4a100000.ethernet
- 58:     183618      INTC  4a100000.ethernet
- 58:     186450      INTC  4a100000.ethernet
- 58:     189242      INTC  4a100000.ethernet
- 58:     191909      INTC  4a100000.ethernet
- 58:     194565      INTC  4a100000.ethernet
- 58:     197153      INTC  4a100000.ethernet
- 58:     199730      INTC  4a100000.ethernet  <<< another big jump >>>
- 58:     252629      INTC  4a100000.ethernet
- 58:     262955      INTC  4a100000.ethernet
- 58:     265557      INTC  4a100000.ethernet
- 58:     268131      INTC  4a100000.ethernet
- 58:     272586      INTC  4a100000.ethernet
- 58:     275623      INTC  4a100000.ethernet  <<< here I stop flood pings >>>
-[  631.727758] nfs: server 10.0.0.100 not responding, still trying
-[  638.738864] nfs: server 10.0.0.100 OK
- 58:     277694      INTC  4a100000.ethernet
- 58:     277703      INTC  4a100000.ethernet
- 58:     277709      INTC  4a100000.ethernet
- 58:     277719      INTC  4a100000.ethernet
- 58:     277725      INTC  4a100000.ethernet
- 58:     277734      INTC  4a100000.ethernet
- 58:     277745      INTC  4a100000.ethernet
-
-As you can see, when I stop the flood pings, the nfs link is now reported
-as being lost.
-
-Any ideas ?
-
-Cheers
-Mark J.
+-- 
+Robert Nelson
+http://www.rcn-ee.com/
