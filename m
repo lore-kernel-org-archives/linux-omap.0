@@ -1,11 +1,13 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 00/12] USB: ehci-omap: Device tree support for 3.10
-Date: Tue, 12 Mar 2013 12:44:38 +0200
-Message-ID: <1363085090-24676-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH 01/12] USB: EHCI: split ehci-omap out to a separate driver
+Date: Tue, 12 Mar 2013 12:44:39 +0200
+Message-ID: <1363085090-24676-2-git-send-email-rogerq@ti.com>
+References: <1363085090-24676-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1363085090-24676-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
  <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
@@ -20,52 +22,195 @@ To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
 Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Greg,
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 
-These patches implement device tree support for the OMAP's
-EHCI host controller. The corresponding MFD/SoC patches will be sent
-separately and this set has no dependeny with them.
+This patch (as1645) converts ehci-omap over to the new "ehci-hcd is a
+library" approach, so that it can coexist peacefully with other EHCI
+platform drivers and can make use of the private area allocated at
+the end of struct ehci_hcd.
 
-NOTE: Last 2 patches are new and still need and Ack from Alan Stern.
-Please accept this set after he has acked them. Thanks.
+Signed-off-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+---
+ drivers/usb/host/Kconfig     |    2 +-
+ drivers/usb/host/Makefile    |    1 +
+ drivers/usb/host/ehci-hcd.c  |    6 +---
+ drivers/usb/host/ehci-omap.c |   76 +++++++++++++++++++-----------------------
+ 4 files changed, 37 insertions(+), 48 deletions(-)
 
-cheers,
--roger
-
-The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b6ec9:
-
-  Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
-
-are available in the git repository at:
-  git://github.com/rogerq/linux.git usbhost-usb-next
-
-Alan Stern (1):
-  USB: EHCI: split ehci-omap out to a separate driver
-
-Roger Quadros (11):
-  USB: ehci-omap: Use devm_ioremap_resource()
-  USB: ehci-omap: Use PHY APIs to get the PHY device and put it out of
-    suspend
-  USB: ehci-omap: Remove PHY reset handling code
-  USB: ehci-omap: Remove PHY regulator handling code
-  USB: ehci-omap: Select NOP USB transceiver driver
-  USB: ehci-omap: Get platform resources by index rather than by name
-  USB: ohci-omap3: Get platform resources by index rather than by name
-  USB: ohci-omap3: Add device tree support and binding information
-  USB: ehci-omap: Add device tree support and binding information
-  USB: ehci-omap: Try to get PHY even if not in PHY mode
-  USB: ehci-omap: Fix detection in HSIC mode
-
- .../devicetree/bindings/usb/ehci-omap.txt          |   32 ++
- .../devicetree/bindings/usb/ohci-omap3.txt         |   15 +
- drivers/usb/host/Kconfig                           |    3 +-
- drivers/usb/host/Makefile                          |    1 +
- drivers/usb/host/ehci-hcd.c                        |    6 +-
- drivers/usb/host/ehci-omap.c                       |  312 +++++++++-----------
- drivers/usb/host/ohci-omap3.c                      |   24 ++-
- 7 files changed, 214 insertions(+), 179 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/usb/ehci-omap.txt
- create mode 100644 Documentation/devicetree/bindings/usb/ohci-omap3.txt
-
+diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
+index c59a112..62f4e9a 100644
+--- a/drivers/usb/host/Kconfig
++++ b/drivers/usb/host/Kconfig
+@@ -155,7 +155,7 @@ config USB_EHCI_MXC
+ 	  Variation of ARC USB block used in some Freescale chips.
+ 
+ config USB_EHCI_HCD_OMAP
+-	bool "EHCI support for OMAP3 and later chips"
++	tristate "EHCI support for OMAP3 and later chips"
+ 	depends on USB_EHCI_HCD && ARCH_OMAP
+ 	default y
+ 	---help---
+diff --git a/drivers/usb/host/Makefile b/drivers/usb/host/Makefile
+index 001fbff..56de410 100644
+--- a/drivers/usb/host/Makefile
++++ b/drivers/usb/host/Makefile
+@@ -27,6 +27,7 @@ obj-$(CONFIG_USB_EHCI_HCD)	+= ehci-hcd.o
+ obj-$(CONFIG_USB_EHCI_PCI)	+= ehci-pci.o
+ obj-$(CONFIG_USB_EHCI_HCD_PLATFORM)	+= ehci-platform.o
+ obj-$(CONFIG_USB_EHCI_MXC)	+= ehci-mxc.o
++obj-$(CONFIG_USB_EHCI_HCD_OMAP)	+= ehci-omap.o
+ 
+ obj-$(CONFIG_USB_OXU210HP_HCD)	+= oxu210hp-hcd.o
+ obj-$(CONFIG_USB_ISP116X_HCD)	+= isp116x-hcd.o
+diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
+index b416a3f..303b022 100644
+--- a/drivers/usb/host/ehci-hcd.c
++++ b/drivers/usb/host/ehci-hcd.c
+@@ -1252,11 +1252,6 @@ MODULE_LICENSE ("GPL");
+ #define PLATFORM_DRIVER		ehci_hcd_sh_driver
+ #endif
+ 
+-#ifdef CONFIG_USB_EHCI_HCD_OMAP
+-#include "ehci-omap.c"
+-#define        PLATFORM_DRIVER         ehci_hcd_omap_driver
+-#endif
+-
+ #ifdef CONFIG_PPC_PS3
+ #include "ehci-ps3.c"
+ #define	PS3_SYSTEM_BUS_DRIVER	ps3_ehci_driver
+@@ -1346,6 +1341,7 @@ MODULE_LICENSE ("GPL");
+ 	!IS_ENABLED(CONFIG_USB_EHCI_HCD_PLATFORM) && \
+ 	!IS_ENABLED(CONFIG_USB_CHIPIDEA_HOST) && \
+ 	!IS_ENABLED(CONFIG_USB_EHCI_MXC) && \
++	!IS_ENABLED(CONFIG_USB_EHCI_HCD_OMAP) && \
+ 	!defined(PLATFORM_DRIVER) && \
+ 	!defined(PS3_SYSTEM_BUS_DRIVER) && \
+ 	!defined(OF_PLATFORM_DRIVER) && \
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 0555ee4..fa66757 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -36,6 +36,9 @@
+  *	- convert to use hwmod and runtime PM
+  */
+ 
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/usb/ulpi.h>
+@@ -43,6 +46,10 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/gpio.h>
+ #include <linux/clk.h>
++#include <linux/usb.h>
++#include <linux/usb/hcd.h>
++
++#include "ehci.h"
+ 
+ #include <linux/platform_data/usb-omap.h>
+ 
+@@ -57,9 +64,11 @@
+ #define	EHCI_INSNREG05_ULPI_EXTREGADD_SHIFT		8
+ #define	EHCI_INSNREG05_ULPI_WRDATA_SHIFT		0
+ 
+-/*-------------------------------------------------------------------------*/
++#define DRIVER_DESC "OMAP-EHCI Host Controller driver"
+ 
+-static const struct hc_driver ehci_omap_hc_driver;
++static const char hcd_name[] = "ehci-omap";
++
++/*-------------------------------------------------------------------------*/
+ 
+ 
+ static inline void ehci_write(void __iomem *base, u32 reg, u32 val)
+@@ -166,6 +175,12 @@ static void disable_put_regulator(
+ /* configure so an HC device and id are always provided */
+ /* always called with process context; sleeping is OK */
+ 
++static struct hc_driver __read_mostly ehci_omap_hc_driver;
++
++static const struct ehci_driver_overrides ehci_omap_overrides __initdata = {
++	.reset =		omap_ehci_init,
++};
++
+ /**
+  * ehci_hcd_omap_probe - initialize TI-based HCDs
+  *
+@@ -315,56 +330,33 @@ static struct platform_driver ehci_hcd_omap_driver = {
+ 	/*.suspend		= ehci_hcd_omap_suspend, */
+ 	/*.resume		= ehci_hcd_omap_resume, */
+ 	.driver = {
+-		.name		= "ehci-omap",
++		.name		= hcd_name,
+ 	}
+ };
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-static const struct hc_driver ehci_omap_hc_driver = {
+-	.description		= hcd_name,
+-	.product_desc		= "OMAP-EHCI Host Controller",
+-	.hcd_priv_size		= sizeof(struct ehci_hcd),
+-
+-	/*
+-	 * generic hardware linkage
+-	 */
+-	.irq			= ehci_irq,
+-	.flags			= HCD_MEMORY | HCD_USB2,
+-
+-	/*
+-	 * basic lifecycle operations
+-	 */
+-	.reset			= omap_ehci_init,
+-	.start			= ehci_run,
+-	.stop			= ehci_stop,
+-	.shutdown		= ehci_shutdown,
+-
+-	/*
+-	 * managing i/o requests and associated device resources
+-	 */
+-	.urb_enqueue		= ehci_urb_enqueue,
+-	.urb_dequeue		= ehci_urb_dequeue,
+-	.endpoint_disable	= ehci_endpoint_disable,
+-	.endpoint_reset		= ehci_endpoint_reset,
++static int __init ehci_omap_init(void)
++{
++	if (usb_disabled())
++		return -ENODEV;
+ 
+-	/*
+-	 * scheduling support
+-	 */
+-	.get_frame_number	= ehci_get_frame,
++	pr_info("%s: " DRIVER_DESC "\n", hcd_name);
+ 
+-	/*
+-	 * root hub support
+-	 */
+-	.hub_status_data	= ehci_hub_status_data,
+-	.hub_control		= ehci_hub_control,
+-	.bus_suspend		= ehci_bus_suspend,
+-	.bus_resume		= ehci_bus_resume,
++	ehci_init_driver(&ehci_omap_hc_driver, &ehci_omap_overrides);
++	return platform_driver_register(&ehci_hcd_omap_driver);
++}
++module_init(ehci_omap_init);
+ 
+-	.clear_tt_buffer_complete = ehci_clear_tt_buffer_complete,
+-};
++static void __exit ehci_omap_cleanup(void)
++{
++	platform_driver_unregister(&ehci_hcd_omap_driver);
++}
++module_exit(ehci_omap_cleanup);
+ 
+ MODULE_ALIAS("platform:ehci-omap");
+ MODULE_AUTHOR("Texas Instruments, Inc.");
+ MODULE_AUTHOR("Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>");
+ 
++MODULE_DESCRIPTION(DRIVER_DESC);
++MODULE_LICENSE("GPL");
 -- 
 1.7.4.1
