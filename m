@@ -1,94 +1,45 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 12/24] ARM: OMAP3: igep0020: Adapt to ehci-omap changes
-Date: Tue, 12 Mar 2013 13:43:14 +0200
-Message-ID: <1363088606-2692-13-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 17/24] ARM: OMAP3: overo: Adapt to ehci-omap changes
+Date: Tue, 12 Mar 2013 13:43:19 +0200
+Message-ID: <1363088606-2692-18-git-send-email-rogerq@ti.com>
 References: <1363088606-2692-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1363088606-2692-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1363088606-2692-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: balbi@ti.com, b-cousson@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add 2 platform devices for 'nop-usb-xceiv'. These will be used
-as PHYs for HS USB ports 1 and 2 so provide binding information
-for them.
+Add platform device for 'nop-usb-xceiv'. This will be used as a
+PHY for HS USB Port 2, so provide binding information for it.
 
-Model RESET for HS USB Ports 1 and 2 as GPIO fixed regulators and
-link them to the 2 PHYs we just created.
+Model RESET for HS USB Port 2 as GPIO fixed regulator and link
+it to the 'nop-usb-xceiv' PHY.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/board-igep0020.c |  112 +++++++++++++++++++++++++++++----
- 1 files changed, 98 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap2/board-overo.c |   54 ++++++++++++++++++++++++++++++++----
+ 1 files changed, 48 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index bf92678..c4730c6 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -22,6 +22,7 @@
- 
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 86bab51..5f93ba0 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -31,6 +31,7 @@
  #include <linux/regulator/machine.h>
  #include <linux/regulator/fixed.h>
+ #include <linux/spi/spi.h>
 +#include <linux/usb/phy.h>
- #include <linux/i2c/twl.h>
- #include <linux/mmc/host.h>
  
-@@ -527,26 +528,98 @@ static void __init igep_i2c_init(void)
- 	omap3_pmic_init("twl4030", &igep_twldata);
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+@@ -458,14 +459,51 @@ static int __init overo_spi_init(void)
+ 	return 0;
  }
  
-+/* PHY device on HS USB Port 1 i.e. nop_usb_xceiv.1 */
-+static struct platform_device hsusb1_phy_device = {
-+	.name = "nop_usb_xceiv",
-+	.id = 1,
-+};
-+
-+/* Regulator for HS USB Port 1 PHY reset */
-+static struct regulator_consumer_supply hsusb1_reset_supplies[] = {
-+	/* Link PHY device to reset supply so it gets used in the PHY driver */
-+	REGULATOR_SUPPLY("reset", "nop_usb_xceiv.1"),
-+};
-+
-+static struct regulator_init_data hsusb1_reset_data = {
-+	.constraints = {
-+		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+	},
-+	.consumer_supplies = hsusb1_reset_supplies,
-+	.num_consumer_supplies = ARRAY_SIZE(hsusb1_reset_supplies),
-+};
-+
-+static struct fixed_voltage_config hsusb1_reset_config = {
-+	.supply_name = "hsusb1_reset",
-+	.microvolts = 3300000,
-+	.gpio = IGEP2_GPIO_USBH_NRESET,
-+	.startup_delay = 70000, /* 70msec */
-+	.enable_high = 1,
-+	.enabled_at_boot = 0,   /* keep in RESET */
-+	.init_data = &hsusb1_reset_data,
-+};
-+
-+static struct platform_device hsusb1_reset_device = {
-+	.name = "reg-fixed-voltage",
-+	.id = PLATFORM_DEVID_AUTO,
-+	.dev = {
-+		.platform_data = &hsusb1_reset_config,
-+	},
-+};
-+
 +/* PHY device on HS USB Port 2 i.e. nop_usb_xceiv.2 */
 +static struct platform_device hsusb2_phy_device = {
 +	.name = "nop_usb_xceiv",
@@ -112,7 +63,7 @@ index bf92678..c4730c6 100644
 +static struct fixed_voltage_config hsusb2_reset_config = {
 +	.supply_name = "hsusb2_reset",
 +	.microvolts = 3300000,
-+	.gpio = IGEP3_GPIO_USBH_NRESET,
++	.gpio = OVERO_GPIO_USBH_NRESET,
 +	.startup_delay = 70000, /* 70msec */
 +	.enable_high = 1,
 +	.enabled_at_boot = 0,   /* keep in RESET */
@@ -127,58 +78,32 @@ index bf92678..c4730c6 100644
 +	},
 +};
 +
-+static struct platform_device *igep2_devices[] __initdata = {
-+	&hsusb1_phy_device,
-+	&hsusb1_reset_device,
-+};
-+
-+static struct platform_device *igep3_devices[] __initdata = {
++static struct platform_device *overo_devices[] __initdata = {
 +	&hsusb2_phy_device,
 +	&hsusb2_reset_device,
 +};
 +
- static struct usbhs_omap_platform_data igep2_usbhs_bdata __initdata = {
- 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
--	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
--	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
--
--	.phy_reset = true,
--	.reset_gpio_port[0] = IGEP2_GPIO_USBH_NRESET,
--	.reset_gpio_port[1] = -EINVAL,
--	.reset_gpio_port[2] = -EINVAL,
- };
- 
- static struct usbhs_omap_platform_data igep3_usbhs_bdata __initdata = {
+ static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
 -	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
  	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
 -	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
--
--	.phy_reset = true,
--	.reset_gpio_port[0] = -EINVAL,
--	.reset_gpio_port[1] = IGEP3_GPIO_USBH_NRESET,
--	.reset_gpio_port[2] = -EINVAL,
+-	.phy_reset  = true,
+-	.reset_gpio_port[0]  = -EINVAL,
+-	.reset_gpio_port[1]  = OVERO_GPIO_USBH_NRESET,
+-	.reset_gpio_port[2]  = -EINVAL
  };
  
  #ifdef CONFIG_OMAP_MUX
-@@ -642,8 +715,19 @@ static void __init igep_init(void)
- 	if (machine_is_igep0020()) {
- 		omap_display_init(&igep2_dss_data);
- 		igep2_init_smsc911x();
+@@ -502,6 +540,10 @@ static void __init overo_init(void)
+ 			ARRAY_SIZE(overo_nand_partitions), NAND_CS, 0, NULL);
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
 +
-+		platform_add_devices(igep2_devices, ARRAY_SIZE(igep2_devices));
-+
-+		/* PHY on HSUSB Port 1 i.e. index 0 */
-+		usb_bind_phy("ehci-omap.0", 0, "nop_usb_xceiv.1");
-+
- 		usbhs_init(&igep2_usbhs_bdata);
- 	} else {
-+		platform_add_devices(igep3_devices, ARRAY_SIZE(igep3_devices));
-+
-+		/* PHY on HSUSB Port 2 i.e. index 1 */
-+		usb_bind_phy("ehci-omap.0", 1, "nop_usb_xceiv.2");
-+
- 		usbhs_init(&igep3_usbhs_bdata);
- 	}
- }
++	platform_add_devices(overo_devices, ARRAY_SIZE(overo_devices));
++	/* PHY on HSUSB Port 2 i.e. index 1 */
++	usb_bind_phy("ehci-omap.0", 1, "nop_usb_xceiv.2");
+ 	usbhs_init(&usbhs_bdata);
+ 	overo_spi_init();
+ 	overo_init_smsc911x();
 -- 
 1.7.4.1
