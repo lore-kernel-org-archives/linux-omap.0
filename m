@@ -1,39 +1,83 @@
-From: Cliff Brake <cliff.brake@gmail.com>
-Subject: Re: [PATCH 1/1] Fix sprz319 erratum 2.1
-Date: Tue, 12 Mar 2013 11:33:09 -0400
-Message-ID: <CAOd_LFzZiq+WhCp6GUavfBfArCZ-UEPFfzS2uUsfzjUD=pXOhg@mail.gmail.com>
-References: <4F4289C2.90707@kynesim.co.uk>
-	<CAOd_LFzegrdpJ9W_DDGCVJrCtdm6bsvAwEg5o1g6+Tjb2EMCjQ@mail.gmail.com>
-	<alpine.DEB.2.00.1303121456230.25871@utopia.booyaka.com>
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: Excessive ethernet interrupts on AM335x board
+Date: Tue, 12 Mar 2013 15:35:52 +0000
+Message-ID: <513F4B58.1000204@mimc.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:36409 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932095Ab3CLPdM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 11:33:12 -0400
-Received: by mail-la0-f52.google.com with SMTP id fs12so5261390lab.25
-        for <linux-omap@vger.kernel.org>; Tue, 12 Mar 2013 08:33:10 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1303121456230.25871@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Richard Watts <rrw@kynesim.co.uk>, paul@pswan.com, linux-omap@vger.kernel.org
 
-On Tue, Mar 12, 2013 at 10:57 AM, Paul Walmsley <paul@pwsan.com> wrote:
+I'm just fighting an issue with ethernet on our custom AM335x board:-
 
-> Are you in a position to test whether the patch works for you?
->
-> I'd still like to find someone whose USB problem is fixed by the patch and
-> is willing to try a slight modification of it before applying...
+# uname -a
+Linux nanobone 3.9.0-rc2-00113-gd60f039 #139 Tue Mar 12 15:14:01 GMT 2013 armv7l GNU/Linux
 
-Yes, I'm in a position to test.  Please send me any updates as I'm
-working on getting the patch applied now.  We have been running a
-fairly old kernel (2.6.39), but could run any version you recommend.
+Every now and then, the whole unit slows to a crawl.  The only indication of any problem is:-
 
-Thanks,
-Cliff
+(a) the serial tty port becomes much less responsive
+(b) normal ping times jump from 1ms to >10sec (sometimes >20sec !!)
+(c) the ethernet interrupt count rockets (see below)
 
--- 
-=================
-http://bec-systems.com
+I've tried to force the problem by flood pinging from my PC.
+
+# while true
+> do grep "58:" /proc/interrupts; sleep 10
+> done
+ 58:       1291      INTC  4a100000.ethernet  <<< normal pinging (about 100 irqs per 10sec)
+ 58:       1333      INTC  4a100000.ethernet
+ 58:       1372      INTC  4a100000.ethernet
+ 58:       3979      INTC  4a100000.ethernet  <<< start flood ping (about 4k irqs per 10sec)
+ 58:       6540      INTC  4a100000.ethernet
+ 58:      17519      INTC  4a100000.ethernet  <<< big jump >>>
+ 58:      20169      INTC  4a100000.ethernet
+ 58:      22775      INTC  4a100000.ethernet
+ 58:      25368      INTC  4a100000.ethernet
+ 58:      34598      INTC  4a100000.ethernet  <<< big jump >>>
+ 58:      37182      INTC  4a100000.ethernet
+ 58:      39730      INTC  4a100000.ethernet
+ 58:     141220      INTC  4a100000.ethernet  <<< whoa !!! >>>
+ 58:     146080      INTC  4a100000.ethernet
+ 58:     149351      INTC  4a100000.ethernet
+ 58:     152922      INTC  4a100000.ethernet
+ 58:     156420      INTC  4a100000.ethernet
+ 58:     159538      INTC  4a100000.ethernet
+ 58:     162711      INTC  4a100000.ethernet
+ 58:     165746      INTC  4a100000.ethernet
+ 58:     168973      INTC  4a100000.ethernet
+ 58:     172128      INTC  4a100000.ethernet
+ 58:     175030      INTC  4a100000.ethernet
+ 58:     177957      INTC  4a100000.ethernet
+ 58:     180782      INTC  4a100000.ethernet
+ 58:     183618      INTC  4a100000.ethernet
+ 58:     186450      INTC  4a100000.ethernet
+ 58:     189242      INTC  4a100000.ethernet
+ 58:     191909      INTC  4a100000.ethernet
+ 58:     194565      INTC  4a100000.ethernet
+ 58:     197153      INTC  4a100000.ethernet
+ 58:     199730      INTC  4a100000.ethernet  <<< another big jump >>>
+ 58:     252629      INTC  4a100000.ethernet
+ 58:     262955      INTC  4a100000.ethernet
+ 58:     265557      INTC  4a100000.ethernet
+ 58:     268131      INTC  4a100000.ethernet
+ 58:     272586      INTC  4a100000.ethernet
+ 58:     275623      INTC  4a100000.ethernet  <<< here I stop flood pings >>>
+[  631.727758] nfs: server 10.0.0.100 not responding, still trying
+[  638.738864] nfs: server 10.0.0.100 OK
+ 58:     277694      INTC  4a100000.ethernet
+ 58:     277703      INTC  4a100000.ethernet
+ 58:     277709      INTC  4a100000.ethernet
+ 58:     277719      INTC  4a100000.ethernet
+ 58:     277725      INTC  4a100000.ethernet
+ 58:     277734      INTC  4a100000.ethernet
+ 58:     277745      INTC  4a100000.ethernet
+
+As you can see, when I stop the flood pings, the nfs link is now reported
+as being lost.
+
+Any ideas ?
+
+Cheers
+Mark J.
