@@ -1,38 +1,74 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCHv3 03/14] mailbox: OMAP: introduce mailbox framework
-Date: Wed, 13 Mar 2013 19:00:02 +0100
-Message-ID: <CACRpkdY8ZWNUVHJorbhN7XvOys9KJH8hKeCBYARih=1FiNk-CQ@mail.gmail.com>
-References: <1363145044-14442-1-git-send-email-s-anna@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [Resend/PATCH 0/5] omap4/5: i2c/spi: device tree data
+Date: Wed, 13 Mar 2013 23:37:41 +0530
+Message-ID: <5140C06D.8030507@ti.com>
+References: <1363009486-19430-1-git-send-email-sourav.poddar@ti.com> <513DEAE1.1050606@ti.com> <513DFB62.5030709@ti.com> <5140AD75.2050900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:43412 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933024Ab3CMSAD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 14:00:03 -0400
-Received: by mail-ie0-f181.google.com with SMTP id 17so1805729iea.40
-        for <linux-omap@vger.kernel.org>; Wed, 13 Mar 2013 11:00:02 -0700 (PDT)
-In-Reply-To: <1363145044-14442-1-git-send-email-s-anna@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51476 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756375Ab3CMSH7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 14:07:59 -0400
+In-Reply-To: <5140AD75.2050900@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic Pallardy <loic.pallardy@st.com>, Omar Ramirez Luna <omar.luna@linaro.org>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, santosh.shilimkar@ti.com, Andrew Morton <akpm@osdl.org>
 
-On Wed, Mar 13, 2013 at 4:24 AM, Suman Anna <s-anna@ti.com> wrote:
 
-> From: Omar Ramirez Luna <omar.luna@linaro.org>
-(...)
+On Wednesday 13 March 2013 10:16 PM, Benoit Cousson wrote:
+> Hi Sourav,
 >
-> Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
-> [s-anna@ti.com: Kconfig fixes for build errors]
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+> I've just applied your branch after a minor subject cleanup for consistency.
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.10/dts
+>
+Thanks Benoit!
+> Regards,
+> Benoit
+>
+>
+> On 03/11/2013 04:42 PM, Sourav Poddar wrote:
+>> On Monday 11 March 2013 08:02 PM, Benoit Cousson wrote:
+>>> Hi Sourav,
+>>>
+>>> On 03/11/2013 02:44 PM, Sourav Poddar wrote:
+>>>> Hi Tony/Benoit,
+>>>>
+>>>> These patches had been sent couple of times before, but there were no
+>>>> comments on it.
+>>> Sorry for that. I got a big flu in Jan and was in Linaro Connect last
+>>> week.
+>>> Patches look good, I just have to check that they apply nicely to the
+>>> dts/for_3.9 I already prepared.
+>>>
+>> Ok. Thanks!!
+>>> I still have to rebase that branch on top of a recent master branch and
+>>> then check your branch.
+>>>
+>>>> If there are no comments, Can these be picked ?
+>>>> Cc: Andrew Morton<akpm@osdl.org>
+>>>>
+>>>> The following changes since commit
+>>>> f6161aa153581da4a3867a2d1a7caf4be19b6ec9:
+>>>>
+>>>>     Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
+>>>>
+>>>> are available in the git repository at:
+>>>>     git@gitorious.org:linux-connectivity/linux-connectivity.git
+>>>> omap_i2c_spi_dts_data
+>>>>
+>>>> Felipe Balbi (1):
+>>>>         arm: dts: omap5: add SPI devices to OMAP5 DeviceTree file
+>>>>
+>>>> Sourav Poddar (4):
+>>>>         arm: dts: omap4-sdp: Add I2c pinctrl data
+>>>>         arm: dts: omap5-evm: Add I2c pinctrl data
+>>>>         arm: dts: omap4-panda: Add I2c pinctrl data
+>>>>         arm: dts: omap5-evm: Add mcspi data
+>>> Thanks,
+>>> Benoit
+>>>
 
-It's not like I care super-much, but I think your SoB should
-be at the bottom.
-
-It's a simple git rebase -i anyway...
-
-Yours,
-Linus Walleij
