@@ -1,73 +1,44 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv3 14/14] mailbox: call request_irq after mbox queues are allocated
-Date: Tue, 12 Mar 2013 22:24:31 -0500
-Message-ID: <1363145071-14820-1-git-send-email-s-anna@ti.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCHv3 01/14] mailbox: rename pl320-ipc specific mailbox.h
+Date: Tue, 12 Mar 2013 20:52:52 -0700
+Message-ID: <20130313035252.GA1515@kroah.com>
+References: <1363145030-14373-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic Pallardy <loic.pallardy@st.com>, Suman Anna <s-anna@ti.com>, Fernando Guzman Lugo <lugo.fernando@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:63984 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755895Ab3CMDwA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Mar 2013 23:52:00 -0400
+Received: by mail-ie0-f179.google.com with SMTP id k11so842717iea.24
+        for <linux-omap@vger.kernel.org>; Tue, 12 Mar 2013 20:51:59 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1363145030-14373-1-git-send-email-s-anna@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ohad Ben-Cohen <ohad@wizery.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic Pallardy <loic.pallardy@st.com>, Mark Langsdorf <mark.langsdorf@calxeda.com>
 
-The mailbox startup code is enabling the interrupt even before
-any of the associated mailbox queues are allocated. Any pending
-received mailbox message could cause a kernel panic as soon as
-the interrupt is enabled due to the dereferencing of non-existing
-mailbox queues within the ISR.
+On Tue, Mar 12, 2013 at 10:23:50PM -0500, Suman Anna wrote:
+> The patch 30058677 "ARM / highbank: add support for pl320 IPC"
+> added a pl320 IPC specific header file as a generic mailbox.h.
+> This file has been renamed appropriately to allow the
+> introduction of the generic mailbox API framework.
+> 
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Cc: Mark Langsdorf <mark.langsdorf@calxeda.com>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/cpufreq/highbank-cpufreq.c |  2 +-
+>  drivers/mailbox/pl320-ipc.c        |  2 +-
+>  include/linux/mailbox.h            | 17 -----------------
+>  include/linux/pl320-ipc.h          | 17 +++++++++++++++++
+>  4 files changed, 19 insertions(+), 19 deletions(-)
+>  delete mode 100644 include/linux/mailbox.h
+>  create mode 100644 include/linux/pl320-ipc.h
 
-Signed-off-by: Fernando Guzman Lugo <lugo.fernando@gmail.com>
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- drivers/mailbox/mailbox.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+Why are you sending these To: me?  I'm not the mailbox maintainer, and
+have never handled them before that I can remember.  Who is the
+maintainer?
 
-diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-index c38241a..5fea5c2 100644
---- a/drivers/mailbox/mailbox.c
-+++ b/drivers/mailbox/mailbox.c
-@@ -377,14 +377,6 @@ static int mailbox_startup(struct mailbox *mbox)
- 	}
- 
- 	if (!mbox->use_count++) {
--		ret = request_irq(mbox->irq, mbox_interrupt,
--				IRQF_SHARED | IRQF_NO_SUSPEND,
--				mbox->name, mbox);
--		if (unlikely(ret)) {
--			pr_err("failed to register mailbox interrupt:%d\n",
--					ret);
--			goto fail_request_irq;
--		}
- 		mq = mbox_queue_alloc(mbox, NULL, mbox_tx_tasklet);
- 		if (!mq) {
- 			ret = -ENOMEM;
-@@ -399,17 +391,25 @@ static int mailbox_startup(struct mailbox *mbox)
- 		}
- 		mbox->rxq = mq;
- 		mq->mbox = mbox;
-+		ret = request_irq(mbox->irq, mbox_interrupt,
-+				IRQF_SHARED | IRQF_NO_SUSPEND,
-+				mbox->name, mbox);
-+		if (unlikely(ret)) {
-+			pr_err("failed to register mailbox interrupt:%d\n",
-+					ret);
-+			goto fail_request_irq;
-+		}
- 
- 		mailbox_enable_irq(mbox, IRQ_RX);
- 	}
- 	mutex_unlock(&mbox_configured_lock);
- 	return 0;
- 
-+fail_request_irq:
-+	mbox_queue_free(mbox->rxq);
- fail_alloc_rxq:
- 	mbox_queue_free(mbox->txq);
- fail_alloc_txq:
--	free_irq(mbox->irq, mbox);
--fail_request_irq:
- 	if (mbox->ops->shutdown)
- 		mbox->ops->shutdown(mbox);
- 	mbox->use_count--;
--- 
-1.8.1.2
+greg k-h
