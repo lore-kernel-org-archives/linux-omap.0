@@ -1,39 +1,33 @@
 From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: OMAP baseline test results for v3.9-rc1
-Date: Wed, 13 Mar 2013 10:20:22 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1303131019240.32131@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1303121634080.2723@utopia.booyaka.com> <20130312190030.GB8798@blackmetal.musicnaut.iki.fi>
+Date: Wed, 13 Mar 2013 10:22:17 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1303131020270.32131@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1303121634080.2723@utopia.booyaka.com> <51402BE9.5040402@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40407 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:40417 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755521Ab3CMKUX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 06:20:23 -0400
-In-Reply-To: <20130312190030.GB8798@blackmetal.musicnaut.iki.fi>
+	with ESMTP id S1755224Ab3CMKWS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 06:22:18 -0400
+In-Reply-To: <51402BE9.5040402@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Igor Grinberg <grinberg@compulab.co.il>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Aaro,
+Hi Igor,
 
-On Tue, 12 Mar 2013, Aaro Koskinen wrote:
+On Wed, 13 Mar 2013, Igor Grinberg wrote:
 
-> On Tue, Mar 12, 2013 at 04:40:19PM +0000, Paul Walmsley wrote:
-> > * 2420N800: powers down 30 seconds after boot
-> >   - Presumably due to missing CBUS patches for watchdog control
-> >   - http://lkml.org/lkml/2012/9/3/265
-> >   - http://marc.info/?l=linux-omap&m=135274739624125&w=2
-> >   - http://marc.info/?l=linux-omap&m=135664195831104&w=2
-> >   - Should be working in v3.9-rc1 when CONFIG_RETU_WATCHDOG=y ?
+> This should have been fixed by:
+> ff95793 (ARM: OMAP3: cm-t3517: add MMC support)
 > 
-> Yes, you need also CONFIG_I2C_CBUS_GPIO and CONFIG_MFD_RETU.
+> I also can't find the MMC rootfs boot log on your website.
 
-OK thanks, will add that in for the v3.9-rc2 test.
-
-Would it make sense to add those dependencies to the Kconfig file for 
-CONFIG_RETU_WATCHDOG?
+Hmm, I thought I had switched the CM-T3517 over to use MMC booting, but 
+looks like it's still trying to use nfsroot.  Thanks for letting me know.  
+Will switch to MMC and try again.
 
 
 - Paul
