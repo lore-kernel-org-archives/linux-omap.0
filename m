@@ -1,33 +1,89 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.9-rc1
-Date: Wed, 13 Mar 2013 10:22:17 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1303131020270.32131@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1303121634080.2723@utopia.booyaka.com> <51402BE9.5040402@compulab.co.il>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: Excessive ethernet interrupts on AM335x board
+Date: Wed, 13 Mar 2013 11:32:22 +0100
+Message-ID: <CACTFLAPv=OGaWaz+BdPxr56e56c=cx8QYuc9TUK61Bk4WD5=vg@mail.gmail.com>
+References: <513F4B58.1000204@mimc.co.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40417 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755224Ab3CMKWS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 06:22:18 -0400
-In-Reply-To: <51402BE9.5040402@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <513F4B58.1000204@mimc.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Igor,
+On Tue, Mar 12, 2013 at 4:35 PM, Mark Jackson <mpfj-list@mimc.co.uk> wrote:
+> I'm just fighting an issue with ethernet on our custom AM335x board:-
+>
+> # uname -a
+> Linux nanobone 3.9.0-rc2-00113-gd60f039 #139 Tue Mar 12 15:14:01 GMT 2013 armv7l GNU/Linux
+>
+> Every now and then, the whole unit slows to a crawl.  The only indication of any problem is:-
+>
+> (a) the serial tty port becomes much less responsive
+> (b) normal ping times jump from 1ms to >10sec (sometimes >20sec !!)
+> (c) the ethernet interrupt count rockets (see below)
+>
+> I've tried to force the problem by flood pinging from my PC.
+>
+> # while true
+>> do grep "58:" /proc/interrupts; sleep 10
+>> done
+>  58:       1291      INTC  4a100000.ethernet  <<< normal pinging (about 100 irqs per 10sec)
+>  58:       1333      INTC  4a100000.ethernet
+>  58:       1372      INTC  4a100000.ethernet
+>  58:       3979      INTC  4a100000.ethernet  <<< start flood ping (about 4k irqs per 10sec)
+>  58:       6540      INTC  4a100000.ethernet
+>  58:      17519      INTC  4a100000.ethernet  <<< big jump >>>
+>  58:      20169      INTC  4a100000.ethernet
+>  58:      22775      INTC  4a100000.ethernet
+>  58:      25368      INTC  4a100000.ethernet
+>  58:      34598      INTC  4a100000.ethernet  <<< big jump >>>
+>  58:      37182      INTC  4a100000.ethernet
+>  58:      39730      INTC  4a100000.ethernet
+>  58:     141220      INTC  4a100000.ethernet  <<< whoa !!! >>>
+>  58:     146080      INTC  4a100000.ethernet
+>  58:     149351      INTC  4a100000.ethernet
+>  58:     152922      INTC  4a100000.ethernet
+>  58:     156420      INTC  4a100000.ethernet
+>  58:     159538      INTC  4a100000.ethernet
+>  58:     162711      INTC  4a100000.ethernet
+>  58:     165746      INTC  4a100000.ethernet
+>  58:     168973      INTC  4a100000.ethernet
+>  58:     172128      INTC  4a100000.ethernet
+>  58:     175030      INTC  4a100000.ethernet
+>  58:     177957      INTC  4a100000.ethernet
+>  58:     180782      INTC  4a100000.ethernet
+>  58:     183618      INTC  4a100000.ethernet
+>  58:     186450      INTC  4a100000.ethernet
+>  58:     189242      INTC  4a100000.ethernet
+>  58:     191909      INTC  4a100000.ethernet
+>  58:     194565      INTC  4a100000.ethernet
+>  58:     197153      INTC  4a100000.ethernet
+>  58:     199730      INTC  4a100000.ethernet  <<< another big jump >>>
+>  58:     252629      INTC  4a100000.ethernet
+>  58:     262955      INTC  4a100000.ethernet
+>  58:     265557      INTC  4a100000.ethernet
+>  58:     268131      INTC  4a100000.ethernet
+>  58:     272586      INTC  4a100000.ethernet
+>  58:     275623      INTC  4a100000.ethernet  <<< here I stop flood pings >>>
+> [  631.727758] nfs: server 10.0.0.100 not responding, still trying
+> [  638.738864] nfs: server 10.0.0.100 OK
+>  58:     277694      INTC  4a100000.ethernet
+>  58:     277703      INTC  4a100000.ethernet
+>  58:     277709      INTC  4a100000.ethernet
+>  58:     277719      INTC  4a100000.ethernet
+>  58:     277725      INTC  4a100000.ethernet
+>  58:     277734      INTC  4a100000.ethernet
+>  58:     277745      INTC  4a100000.ethernet
+>
+> As you can see, when I stop the flood pings, the nfs link is now reported
+> as being lost.
 
-On Wed, 13 Mar 2013, Igor Grinberg wrote:
+I had the same problem. Please check this patch, I'm sure it will fix you issue:
 
-> This should have been fixed by:
-> ff95793 (ARM: OMAP3: cm-t3517: add MMC support)
-> 
-> I also can't find the MMC rootfs boot log on your website.
-
-Hmm, I thought I had switched the CM-T3517 over to use MMC booting, but 
-looks like it's still trying to use nfsroot.  Thanks for letting me know.  
-Will switch to MMC and try again.
+  https://git.kernel.org/cgit/linux/kernel/git/davem/net.git/commit/?id=d35162f89b8f00537d7b240b76d2d0e8b8d29aa0
 
 
-- Paul
+
+Daniel
