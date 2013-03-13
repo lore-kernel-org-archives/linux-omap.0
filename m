@@ -1,89 +1,61 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: Excessive ethernet interrupts on AM335x board
-Date: Wed, 13 Mar 2013 11:32:22 +0100
-Message-ID: <CACTFLAPv=OGaWaz+BdPxr56e56c=cx8QYuc9TUK61Bk4WD5=vg@mail.gmail.com>
-References: <513F4B58.1000204@mimc.co.uk>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH V2 2/2] ASoC: OMAP2+: Move McBSP, DMIC and McPDM to
+ generic DMA DT binding
+Date: Wed, 13 Mar 2013 10:36:48 +0000
+Message-ID: <20130313103648.GE25610@opensource.wolfsonmicro.com>
+References: <1362988223-22455-1-git-send-email-s-guiriec@ti.com>
+ <1362988223-22455-3-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <513F4B58.1000204@mimc.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zjcmjzIkjQU2rmur"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54894 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756279Ab3CMKgw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Mar 2013 06:36:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1362988223-22455-3-git-send-email-s-guiriec@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On Tue, Mar 12, 2013 at 4:35 PM, Mark Jackson <mpfj-list@mimc.co.uk> wrote:
-> I'm just fighting an issue with ethernet on our custom AM335x board:-
->
-> # uname -a
-> Linux nanobone 3.9.0-rc2-00113-gd60f039 #139 Tue Mar 12 15:14:01 GMT 2013 armv7l GNU/Linux
->
-> Every now and then, the whole unit slows to a crawl.  The only indication of any problem is:-
->
-> (a) the serial tty port becomes much less responsive
-> (b) normal ping times jump from 1ms to >10sec (sometimes >20sec !!)
-> (c) the ethernet interrupt count rockets (see below)
->
-> I've tried to force the problem by flood pinging from my PC.
->
-> # while true
->> do grep "58:" /proc/interrupts; sleep 10
->> done
->  58:       1291      INTC  4a100000.ethernet  <<< normal pinging (about 100 irqs per 10sec)
->  58:       1333      INTC  4a100000.ethernet
->  58:       1372      INTC  4a100000.ethernet
->  58:       3979      INTC  4a100000.ethernet  <<< start flood ping (about 4k irqs per 10sec)
->  58:       6540      INTC  4a100000.ethernet
->  58:      17519      INTC  4a100000.ethernet  <<< big jump >>>
->  58:      20169      INTC  4a100000.ethernet
->  58:      22775      INTC  4a100000.ethernet
->  58:      25368      INTC  4a100000.ethernet
->  58:      34598      INTC  4a100000.ethernet  <<< big jump >>>
->  58:      37182      INTC  4a100000.ethernet
->  58:      39730      INTC  4a100000.ethernet
->  58:     141220      INTC  4a100000.ethernet  <<< whoa !!! >>>
->  58:     146080      INTC  4a100000.ethernet
->  58:     149351      INTC  4a100000.ethernet
->  58:     152922      INTC  4a100000.ethernet
->  58:     156420      INTC  4a100000.ethernet
->  58:     159538      INTC  4a100000.ethernet
->  58:     162711      INTC  4a100000.ethernet
->  58:     165746      INTC  4a100000.ethernet
->  58:     168973      INTC  4a100000.ethernet
->  58:     172128      INTC  4a100000.ethernet
->  58:     175030      INTC  4a100000.ethernet
->  58:     177957      INTC  4a100000.ethernet
->  58:     180782      INTC  4a100000.ethernet
->  58:     183618      INTC  4a100000.ethernet
->  58:     186450      INTC  4a100000.ethernet
->  58:     189242      INTC  4a100000.ethernet
->  58:     191909      INTC  4a100000.ethernet
->  58:     194565      INTC  4a100000.ethernet
->  58:     197153      INTC  4a100000.ethernet
->  58:     199730      INTC  4a100000.ethernet  <<< another big jump >>>
->  58:     252629      INTC  4a100000.ethernet
->  58:     262955      INTC  4a100000.ethernet
->  58:     265557      INTC  4a100000.ethernet
->  58:     268131      INTC  4a100000.ethernet
->  58:     272586      INTC  4a100000.ethernet
->  58:     275623      INTC  4a100000.ethernet  <<< here I stop flood pings >>>
-> [  631.727758] nfs: server 10.0.0.100 not responding, still trying
-> [  638.738864] nfs: server 10.0.0.100 OK
->  58:     277694      INTC  4a100000.ethernet
->  58:     277703      INTC  4a100000.ethernet
->  58:     277709      INTC  4a100000.ethernet
->  58:     277719      INTC  4a100000.ethernet
->  58:     277725      INTC  4a100000.ethernet
->  58:     277734      INTC  4a100000.ethernet
->  58:     277745      INTC  4a100000.ethernet
->
-> As you can see, when I stop the flood pings, the nfs link is now reported
-> as being lost.
-
-I had the same problem. Please check this patch, I'm sure it will fix you issue:
-
-  https://git.kernel.org/cgit/linux/kernel/git/davem/net.git/commit/?id=d35162f89b8f00537d7b240b76d2d0e8b8d29aa0
+To: Sebastien Guiriec <s-guiriec@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
 
+--zjcmjzIkjQU2rmur
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Daniel
+On Mon, Mar 11, 2013 at 08:50:22AM +0100, Sebastien Guiriec wrote:
+> Update OMAP2+ driver in order to use OMAP DMA DT binding for OMAP2+.
+> In case of DT boot snd_dmaengine_generic_pcm_open function is used.
+>=20
+> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
+
+Discarded since it breaks the build as a result of depending on unmerged
+patches.
+
+--zjcmjzIkjQU2rmur
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRQFa3AAoJELSic+t+oim9iEgQAIUvX0F2PWh9PmcTULj8kr6q
+oxDE9jnqXGP1b9CdwWMtxwIecv/STKE+5AwOYZGrXlKyauBbzdakYhWS6Yy0SJHh
+vIXCYX/BPPS3LxHnJKPEZOBhI+L7UNAJFJMIeyiHUq+7OOcYzTBLfuDMu1Qmb202
+WaFvhOBiEy1llbjkwzfCFD8oiPo1bXvXenyWKDVr4rvJKX4qo/iL8+P9k82u/1oD
+DBD8utP61w+W5Skj0boREFWwvDrlEcvNlCct+ZPg4BeWDCPik1PAx6E5//7BV9pp
+XwC8UtuK5izkWFORbAXSla6mWduqasjXe3z8H4h+9dJZmGGEHbXY+qo34oNO9+5K
+Up+UNfAAb7hj3IS2m0zWbbjPPjhV+J1G/SIGY6uLWOHJ7TLvF5fazb75V6BZC9OU
+jEFWOSe+zt20mrgNFvhpvpnVXvlWuM6PLZjK4oFbYKw6jdgJpUcJxe1xTtMNCfWK
+I7EgfdGDSC1d3NrvckuInlHhtzYY4M4AdOgI9xpMyTAmq+izO6PK90UvoJLeVbbO
+e5uB2hS4PhSpBMtiG/IrkgM361mcY9bqKI1kgsQWyBOcRdP1HwQIU89/O/E6NeqI
+ov/N/g/4TlbvE58bCBdhIKCJSQLDzioVxE0+BDA8Nlb29xQcou6k43aAYrQuxnjl
+Y7Aqd8/6NNpR3cLve/kq
+=mRDZ
+-----END PGP SIGNATURE-----
+
+--zjcmjzIkjQU2rmur--
