@@ -1,102 +1,101 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
- of always dummy
-Date: Wed, 13 Mar 2013 16:54:01 +0530
-Message-ID: <514061D1.20603@ti.com>
-References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com> <514046B6.9020005@ti.com> <20130313101641.GA13483@e106331-lin.cambridge.arm.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 12/12] USB: ehci-omap: Fix detection in HSIC mode
+Date: Wed, 13 Mar 2013 13:48:11 +0200
+Message-ID: <5140677B.4030505@ti.com>
+References: <Pine.LNX.4.44L0.1303121201050.2153-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59070 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756178Ab3CMLWh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 07:22:37 -0400
-In-Reply-To: <20130313101641.GA13483@e106331-lin.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1303121201050.2153-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>, Thomas Gleixner <tglx@linutronix.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
 
-On Wednesday 13 March 2013 03:46 PM, Mark Rutland wrote:
-> Hi Santosh,
+On 03/12/2013 06:07 PM, Alan Stern wrote:
+> On Tue, 12 Mar 2013, Roger Quadros wrote:
 > 
-> On Wed, Mar 13, 2013 at 09:28:22AM +0000, Santosh Shilimkar wrote:
->> (Forgot to CC Thomas)
+>> The HSIC devices need to be kept in reset while the EHCI controller
+>> is being initialized and only brought out of reset after the
+>> initialization is complete, else HSIC devices will not be detected.
+> 
+> This is not a great description of what the patch does.  You should say
+> that it moves PHY initialization until after EHCI initialization is
+> complete, instead of initializing the PHYs first, shutting them down
+> again, and then initializing them a second time.
+> 
+
+Okay will update the description.
+
+>> Also remove outdated TODO list from header.
 >>
->> On Wednesday 13 March 2013 02:36 PM, Santosh Shilimkar wrote:
->>> With recent arm broadcast time clean-up from Mark Rutland, the dummy
->>> broadcast device is always registered with timer subsystem. And since
->>> the rating of the dummy clock event is very high, it is preferred
->>> over a real broad-cast clock event.
->>>
->>> This is a change in behavior from past and not an intended
->>> one. So reduce the rating of the dummy clockevent so that
->>> real broadcast device is selected when available.
->>>
->>> Without this all the C states with C3STOP won't work since
->>> the broad cast notifier will take an abort.
->>>
->>> Cc: Mark Rutland <mark.rutland@arm.com>
->>> Cc: Russell King <linux@arm.linux.org.uk>
->>>
->>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> ---
->>> Its a regression so hopefully can get into the 3.9-rcx. Noticed
->>> this one on A15 platform. A9 platform the issue may not be seen
->>> since the local timer check avoids dummy timer registration.
->>>
->> Some one pointed me to a fix made by Mark which was discussed
->> under '[BUG] ARM Architected timers appear broken in 3.9-rc1' subject.
->> That patch seems to be more of work around since the root of the
->> problem is incorrect dummy timer rating. Either way, both patches
->> fix the issue.
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> CC: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+>> ---
+>>  drivers/usb/host/ehci-omap.c |   38 +++++++++++++++-----------------------
+>>  1 files changed, 15 insertions(+), 23 deletions(-)
+>>
+>> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+>> index 1ba1df8..dc2de47 100644
+>> --- a/drivers/usb/host/ehci-omap.c
+>> +++ b/drivers/usb/host/ehci-omap.c
+>> @@ -29,12 +29,6 @@
+>>   * along with this program; if not, write to the Free Software
+>>   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+>>   *
+>> - * TODO (last updated Feb 27, 2010):
+>> - *	- add kernel-doc
+>> - *	- enable AUTOIDLE
+>> - *	- add suspend/resume
+>> - *	- add HSIC and TLL support
+>> - *	- convert to use hwmod and runtime PM
+>>   */
+>>  
+>>  #include <linux/kernel.h>
+>> @@ -90,26 +84,13 @@ static inline u32 ehci_read(void __iomem *base, u32 reg)
+>>  static int omap_ehci_init(struct usb_hcd *hcd)
+>>  {
+>>  	struct ehci_hcd	*ehci = hcd_to_ehci(hcd);
+>> -	struct omap_hcd	*omap = (struct omap_hcd *)ehci->priv;
+>> -	int rc, i;
+>> -
+>> -	/* Hold PHYs in reset while initializing EHCI controller */
+>> -	for (i = 0; i < omap->nports; i++) {
+>> -		if (omap->phy[i])
+>> -			usb_phy_shutdown(omap->phy[i]);
+>> -	}
+>> +	int rc;
+>>  
+>>  	/* we know this is the memory we want, no need to ioremap again */
+>>  	ehci->caps = hcd->regs;
+>>  
+>>  	rc = ehci_setup(hcd);
+>>  
+>> -	/* Bring PHYs out of reset */
+>> -	for (i = 0; i < omap->nports; i++) {
+>> -		if (omap->phy[i])
+>> -			usb_phy_init(omap->phy[i]);
+>> -	}
+>> -
+>>  	return rc;
+>>  }
 > 
-> Is the problem that the dummy timer is being registered as the broadcast
-> source, or that it is selected as a local timer in preference of real timers?
->
-Dummy timer is preferred over real broadcast timer.
- 
-> If it is the former, Then I believe my patch solve the issue more generally -
-> if you happen to register a dummy timer before other timers, it will become the
-> broadcast source. Regardless of how temporary this is, it should never happen,
-> and lowering the rating of the dummy won't fix this.
-> 
-Well by the time we need active broadcast functionality, clock-events are
-already chosen if the ratings are appropriate.
+> Now that there's almost nothing left of this function, you can get rid
+> of it completely.  Move the assignment to ehci->caps into
+> ehci_hcd_omap_probe() and remove the init entry in the overrides
+> structure.
 
-> If it is the latter, then this patch would ensure that a real timer with a
-> rating over 100 is selected in preference to the dummy, which is certainly what
-> we want. The proposed generic dummy timer in Stephen Boyd's local timer API
-> removal series [1] similarly uses a low rating to ensure that real timers are
-> selected in preference to an always-registered dummy. I note that the
-> architected timer has a higher rating (450) than the dummy (400), so this
-> shouldn't currently be a problem.
-> 
-Because we always register dummy broadcast on ARM now 
-and with higher rating, it is picked as broadcast source. We definitely don't
-want such a behavior when we have real broadcast device is available.
+Right. Sounds good.
 
-
-With your patch, we are trying to avoid the registration which goes
-against the the whole idea of registering it always and picking
-the right clock-event based on rating by clock-event core.
-The clock-event core except the proper ratings to be provided based on
-the capability of the timer source and its resolution and in that case
-dummy should have the lowest rating which is what I tried to patch.
-
-> Have I missed something?
-> 
-Not much. I was just looking at x86 code as well after your email
-to see how the LAPIC issue is handled. They seems to also have
-correct rating to take care of the selection.
-
-Probably we can merge both the fixes but from clock-event core
-code perspective, the ratings fix is more than enough.
-
-Thomas might be able to comment better.
-
-Regards,
-Santosh
-
-
+cheers,
+-roger
