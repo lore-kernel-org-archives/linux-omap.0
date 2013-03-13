@@ -1,103 +1,159 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv3 01/14] mailbox: rename pl320-ipc specific mailbox.h
-Date: Tue, 12 Mar 2013 22:23:50 -0500
-Message-ID: <1363145030-14373-1-git-send-email-s-anna@ti.com>
+Subject: [PATCHv3 00/14] drivers: mailbox: framework creation
+Date: Tue, 12 Mar 2013 22:23:41 -0500
+Message-ID: <1363145021-14339-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ohad Ben-Cohen <ohad@wizery.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic Pallardy <loic.pallardy@st.com>, Suman Anna <s-anna@ti.com>, Mark Langsdorf <mark.langsdorf@calxeda.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Suman Anna <s-anna@ti.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, Loic Pallardy <loic.pallardy@st.com>, Mark Langsdorf <mark.langsdorf@calxeda.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The patch 30058677 "ARM / highbank: add support for pl320 IPC"
-added a pl320 IPC specific header file as a generic mailbox.h.
-This file has been renamed appropriately to allow the
-introduction of the generic mailbox API framework.
+Hi,
+Please find the updated mailbox patch series for pulling into linux-next.
+The series is rebased on top of 3.9-rc2, and includes one new patch to
+rename an existing mailbox.h added as part of the highbank cpufreq
+support for 3.9 merge window [1]. 
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Cc: Mark Langsdorf <mark.langsdorf@calxeda.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/cpufreq/highbank-cpufreq.c |  2 +-
- drivers/mailbox/pl320-ipc.c        |  2 +-
- include/linux/mailbox.h            | 17 -----------------
- include/linux/pl320-ipc.h          | 17 +++++++++++++++++
- 4 files changed, 19 insertions(+), 19 deletions(-)
- delete mode 100644 include/linux/mailbox.h
+The rest of the patches are mostly unchanged from the previous version,
+other than the required changes as part of rebasing. The main changes
+are:
+- a new patch to rename existing mailbox.h to pl320-ipc.h (patch 1)
+- updated patch to fix cleanup issues in probe & remove of omap2 mailbox
+  file including minor variable name changes in hwmod files (patch 2)
+- includes the updated dbx500 mailbox patch addressing review
+  comments, same as [2] (patch 11)
+- removes the MULTIPLATFORM Kconfig dependencies added to mailbox and
+  remoteproc drivers for 3.9
+- minor rebase changes include whitespace formatting
+
+I am wondering if Patch 1 can be absorbed into 3.9 itself, since the
+PL320 IPC and associated header file is introduced in 3.9-rc1.
+
+Stephen,
+I have hosted the series at [3]. Can you pull this into linux-next
+sometime next week?
+
+v2: [4]
+After commit e8d3d47 (ARM: OMAP2+: Drop plat/cpu.h for omap2plus), the
+cpu_is_xxx() checks for OMAP are restricted to arch/arm/mach-omap2. The
+series includes 4 new patches, first patch removes these arch specific
+calls of OMAP mailbox driver code (dependencies with soc.h), and the
+last three patches include minor fixes in mailbox driver code.
+
+This series is based on v3.8-rc7 and includes the necessary updates/fixes
+required for validating remoteproc on OMAP4 and tidspbridge on OMAP3.
+
+Other changes include:
+- adaptations to remoteproc and tidspbridge to use the new mailbox
+  api, and relying on the pdata field in the mailbox_msg structure
+  instead of the previous header field (addressing review comments)
+- ST-Ericsson driver update
+- Kconfig fixes to fix build errors and choose proper ARCH dependencies
+- 3 new patches for minor fixes in mailbox driver code
+- rebased to include the devinit/devexit cleanup changes
+- checkpatch errors/warnings fixes
+
+v1:
+OMAP and ST-Ericsson platforms are both using mailbox to communicate with some coprocessors.
+Based on OMAP existing mailbox framework, this series proposes a generic framework, living under drivers/mailbox.
+
+This series:
+- moves omap-mailbox framework to a newly drivers/mailbox folder
+  (part of plat-omap code cleaning)
+- creates API header file
+- replaces "omap" prefix by "mailbox"
+- opens interface and make framework independent from omap HW
+- adapts existing omap1 and omap2 drivers to new changes
+- creates dbx500 mailbox driver for ST-Ericsson platforms
+
+[1] http://www.spinics.net/lists/cpufreq/msg04031.html
+[2] http://marc.info/?l=linux-omap&m=136079313704751&w=2
+[3] https://github.com/sumananna/mailbox/commits/dbx500-prcmu-mailbox
+[4] http://marc.info/?l=linux-omap&m=136064540007076&w=2
+
+Loic Pallardy (7):
+  mailbox: rename omap_mbox in mailbox
+  mailbox: create opened message type
+  mailbox: change protection mechanisms
+  mailbox: add shared memory mailbox type
+  mailbox: add IRQF_NO_SUSPEND flag
+  mailbox: add no_irq send message
+  mailbox: create dbx500 mailbox driver
+
+Omar Ramirez Luna (2):
+  mailbox: OMAP: introduce mailbox framework
+  mailbox: split internal header from API header
+
+Suman Anna (5):
+  mailbox: rename pl320-ipc specific mailbox.h
+  ARM: OMAP2+: mbox: remove dependencies with soc.h
+  mailbox/omap: check iomem resource before dereferencing it
+  mailbox: check for NULL nb in mailbox_put
+  mailbox: call request_irq after mbox queues are allocated
+
+ .../devicetree/bindings/mailbox/dbx500-mailbox.txt |  27 +
+ arch/arm/configs/omap1_defconfig                   |   3 +-
+ arch/arm/mach-omap1/Makefile                       |   4 -
+ arch/arm/mach-omap1/mailbox.c                      | 199 -------
+ arch/arm/mach-omap2/Makefile                       |   3 -
+ arch/arm/mach-omap2/devices.c                      |  13 +-
+ arch/arm/mach-omap2/mailbox.c                      | 430 --------------
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  12 +
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  11 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  11 +
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  13 +
+ arch/arm/plat-omap/Kconfig                         |  16 -
+ arch/arm/plat-omap/Makefile                        |   3 -
+ arch/arm/plat-omap/include/plat/mailbox.h          | 105 ----
+ arch/arm/plat-omap/mailbox.c                       | 435 --------------
+ drivers/cpufreq/highbank-cpufreq.c                 |   2 +-
+ drivers/mailbox/Kconfig                            |  41 ++
+ drivers/mailbox/Makefile                           |   5 +
+ drivers/mailbox/mailbox-dbx500.c                   | 648 +++++++++++++++++++++
+ drivers/mailbox/mailbox-omap1.c                    | 229 ++++++++
+ drivers/mailbox/mailbox-omap2.c                    | 370 ++++++++++++
+ drivers/mailbox/mailbox.c                          | 552 ++++++++++++++++++
+ drivers/mailbox/mailbox_internal.h                 |  70 +++
+ drivers/mailbox/pl320-ipc.c                        |   2 +-
+ drivers/remoteproc/Kconfig                         |   3 +-
+ drivers/remoteproc/omap_remoteproc.c               |  36 +-
+ drivers/staging/tidspbridge/Kconfig                |   3 +-
+ drivers/staging/tidspbridge/core/_tiomap.h         |   2 +-
+ drivers/staging/tidspbridge/core/chnl_sm.c         |   8 +-
+ drivers/staging/tidspbridge/core/io_sm.c           |   5 +-
+ drivers/staging/tidspbridge/core/tiomap3430.c      |   6 +-
+ drivers/staging/tidspbridge/core/tiomap3430_pwr.c  |   6 +-
+ drivers/staging/tidspbridge/core/tiomap_io.c       |   9 +-
+ .../tidspbridge/include/dspbridge/host_os.h        |   2 +-
+ include/linux/mailbox.h                            |  52 +-
+ include/linux/pl320-ipc.h                          |  17 +
+ include/linux/platform_data/mailbox-dbx500.h       |  12 +
+ include/linux/platform_data/mailbox-omap.h         |  53 ++
+ 38 files changed, 2170 insertions(+), 1248 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mailbox/dbx500-mailbox.txt
+ delete mode 100644 arch/arm/mach-omap1/mailbox.c
+ delete mode 100644 arch/arm/mach-omap2/mailbox.c
+ delete mode 100644 arch/arm/plat-omap/include/plat/mailbox.h
+ delete mode 100644 arch/arm/plat-omap/mailbox.c
+ create mode 100644 drivers/mailbox/mailbox-dbx500.c
+ create mode 100644 drivers/mailbox/mailbox-omap1.c
+ create mode 100644 drivers/mailbox/mailbox-omap2.c
+ create mode 100644 drivers/mailbox/mailbox.c
+ create mode 100644 drivers/mailbox/mailbox_internal.h
  create mode 100644 include/linux/pl320-ipc.h
+ create mode 100644 include/linux/platform_data/mailbox-dbx500.h
+ create mode 100644 include/linux/platform_data/mailbox-omap.h
 
-diff --git a/drivers/cpufreq/highbank-cpufreq.c b/drivers/cpufreq/highbank-cpufreq.c
-index b61b5a3..3118b87 100644
---- a/drivers/cpufreq/highbank-cpufreq.c
-+++ b/drivers/cpufreq/highbank-cpufreq.c
-@@ -19,7 +19,7 @@
- #include <linux/cpu.h>
- #include <linux/err.h>
- #include <linux/of.h>
--#include <linux/mailbox.h>
-+#include <linux/pl320-ipc.h>
- #include <linux/platform_device.h>
- 
- #define HB_CPUFREQ_CHANGE_NOTE	0x80000001
-diff --git a/drivers/mailbox/pl320-ipc.c b/drivers/mailbox/pl320-ipc.c
-index d873cba..f3755e0 100644
---- a/drivers/mailbox/pl320-ipc.c
-+++ b/drivers/mailbox/pl320-ipc.c
-@@ -26,7 +26,7 @@
- #include <linux/device.h>
- #include <linux/amba/bus.h>
- 
--#include <linux/mailbox.h>
-+#include <linux/pl320-ipc.h>
- 
- #define IPCMxSOURCE(m)		((m) * 0x40)
- #define IPCMxDSET(m)		(((m) * 0x40) + 0x004)
-diff --git a/include/linux/mailbox.h b/include/linux/mailbox.h
-deleted file mode 100644
-index 5161f63..0000000
---- a/include/linux/mailbox.h
-+++ /dev/null
-@@ -1,17 +0,0 @@
--/*
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms and conditions of the GNU General Public License,
-- * version 2, as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope it will be useful, but WITHOUT
-- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-- * more details.
-- *
-- * You should have received a copy of the GNU General Public License along with
-- * this program.  If not, see <http://www.gnu.org/licenses/>.
-- */
--
--int pl320_ipc_transmit(u32 *data);
--int pl320_ipc_register_notifier(struct notifier_block *nb);
--int pl320_ipc_unregister_notifier(struct notifier_block *nb);
-diff --git a/include/linux/pl320-ipc.h b/include/linux/pl320-ipc.h
-new file mode 100644
-index 0000000..5161f63
---- /dev/null
-+++ b/include/linux/pl320-ipc.h
-@@ -0,0 +1,17 @@
-+/*
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+int pl320_ipc_transmit(u32 *data);
-+int pl320_ipc_register_notifier(struct notifier_block *nb);
-+int pl320_ipc_unregister_notifier(struct notifier_block *nb);
 -- 
 1.8.1.2
