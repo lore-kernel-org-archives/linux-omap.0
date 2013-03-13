@@ -1,55 +1,71 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection
- instead of always dummy
-Date: Wed, 13 Mar 2013 16:18:12 +0000
-Message-ID: <20130313161811.GF13483@e106331-lin.cambridge.arm.com>
-References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com>
- <514046B6.9020005@ti.com>
- <20130313101641.GA13483@e106331-lin.cambridge.arm.com>
- <514061D1.20603@ti.com>
- <20130313122550.GD13483@e106331-lin.cambridge.arm.com>
- <51409EC3.5050905@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/24] ARM: OMAP2+: Adapt to ehci-omap changes for 3.10
+Date: Wed, 13 Mar 2013 09:24:54 -0700
+Message-ID: <20130313162454.GE26093@atomide.com>
+References: <1363088606-2692-1-git-send-email-rogerq@ti.com>
+ <20130312164007.GZ26093@atomide.com>
+ <5140821B.2030902@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:50515 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932610Ab3CMQSl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Mar 2013 12:18:41 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51409EC3.5050905@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <5140821B.2030902@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, b-cousson@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
 
-On Wed, Mar 13, 2013 at 03:44:03PM +0000, Santosh Shilimkar wrote:
-> On Wednesday 13 March 2013 05:55 PM, Mark Rutland wrote:
-> > On Wed, Mar 13, 2013 at 11:24:01AM +0000, Santosh Shilimkar wrote:
-> >> On Wednesday 13 March 2013 03:46 PM, Mark Rutland wrote:
-> >>> Hi Santosh,
-> 
-> [..]
-> 
-> >>>
-> >>> Is the problem that the dummy timer is being registered as the broadcast
-> >>> source, or that it is selected as a local timer in preference of real timers?
-> >>>
-> >> Dummy timer is preferred over real broadcast timer.
+* Roger Quadros <rogerq@ti.com> [130313 06:46]:
+> On 03/12/2013 06:40 PM, Tony Lindgren wrote:
+> > * Roger Quadros <rogerq@ti.com> [130312 04:47]:
+> >> Hi Tony,
+> >>
+> >> These patches provide the SoC side code required to support
+> >> the changes in the OMAP USB Host drivers done in [1], [2] & [3].
+> > ... 
 > > 
-> > Ok.
-
-[...]
-
-> > I do agree it'd be worth lowering the dummy timer's rating to ensure it doesn't
-> > override a real timer elsewhere. 
+> >>  arch/arm/mach-omap2/board-3430sdp.c                |   97 +++++++++++++++-
+> >>  arch/arm/mach-omap2/board-3630sdp.c                |  100 +++++++++++++++-
+> >>  arch/arm/mach-omap2/board-am3517crane.c            |   95 +++++++++++++--
+> >>  arch/arm/mach-omap2/board-am3517evm.c              |   66 ++++++++++-
+> >>  arch/arm/mach-omap2/board-cm-t35.c                 |   95 ++++++++++++++-
+> >>  arch/arm/mach-omap2/board-cm-t3517.c               |   97 +++++++++++++++-
+> >>  arch/arm/mach-omap2/board-devkit8000.c             |   20 ++--
+> >>  arch/arm/mach-omap2/board-generic.c                |   67 +++++++++++
+> >>  arch/arm/mach-omap2/board-igep0020.c               |  112 ++++++++++++++++---
+> >>  arch/arm/mach-omap2/board-omap3beagle.c            |   93 +++++++++++++--
+> >>  arch/arm/mach-omap2/board-omap3evm.c               |   62 ++++++++--
+> >>  arch/arm/mach-omap2/board-omap3pandora.c           |   52 +++++++--
+> >>  arch/arm/mach-omap2/board-omap3stalker.c           |   52 +++++++-
+> >>  arch/arm/mach-omap2/board-omap3touchbook.c         |   62 +++++++++-
+> >>  arch/arm/mach-omap2/board-omap4panda.c             |  122 ++++++++++++++------
+> >>  arch/arm/mach-omap2/board-overo.c                  |   54 ++++++++-
+> >>  arch/arm/mach-omap2/board-zoom.c                   |   56 ++++++++-
 > > 
-> Yep. Can I add you acked-by tag then for $subject patch ?
-> Would be good to get this one merged as well.
+> > Can't you have some mach-omap2/ehci-common.c that takes care
+> > of the initializiation to avoid this much addition to the
+> > board-*.c files? You may be able to have just a common function
+> > to do it and pass few parameters?
+> 
+> Since we moved reset and power handling for the USB PHYs from omap-echi
+> driver into the USB PHY driver we need to define the regulator data
+> for RESET and Power line of each PHY. So most of the code added is just
+> regulator data for the PHY rather than omap-ehci.
 
-Sure. Though could you reword the commit message? The patch solves the more
-general issue of a dummy being preferred over real hardware even outside of
-choosing the broadcast device.
+It seems that you're now repeating minor variations of the same PHY
+over and over again though.
+ 
+> Instead of a common function, I can implement some macros that make it
+> easier to define the regulators for the PHY in the board files.
+> Does this sound OK?
+> 
+> Personally I don't like such macros because it hides the implementation
+> and is difficult to read/debug.
 
-Acked-by: Mark Rutland <mark.rutland@arm.com>
+I'd prefer a common function to initialize the PHY though as it sounds
+like using macros would just allocate similar PHY many times which seems
+unnecessary.
+
+Regards,
+
+Tony
