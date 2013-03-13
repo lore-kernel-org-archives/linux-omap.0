@@ -1,54 +1,78 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP3: hwmod data: keep MIDLEMODE in force-standby
- for musb
-Date: Wed, 13 Mar 2013 10:14:22 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1303131013270.32131@utopia.booyaka.com>
-References: <1363031340-9382-1-git-send-email-notasas@gmail.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection
+ instead of always dummy
+Date: Wed, 13 Mar 2013 10:16:41 +0000
+Message-ID: <20130313101641.GA13483@e106331-lin.cambridge.arm.com>
+References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com>
+ <514046B6.9020005@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-998023820-1363169662=:32131"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40361 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755506Ab3CMKOX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 06:14:23 -0400
-In-Reply-To: <1363031340-9382-1-git-send-email-notasas@gmail.com>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:42815 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755457Ab3CMKRJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Mar 2013 06:17:09 -0400
+Content-Disposition: inline
+In-Reply-To: <514046B6.9020005@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Santosh,
 
---843723315-998023820-1363169662=:32131
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On Wed, Mar 13, 2013 at 09:28:22AM +0000, Santosh Shilimkar wrote:
+> (Forgot to CC Thomas)
+> 
+> On Wednesday 13 March 2013 02:36 PM, Santosh Shilimkar wrote:
+> > With recent arm broadcast time clean-up from Mark Rutland, the dummy
+> > broadcast device is always registered with timer subsystem. And since
+> > the rating of the dummy clock event is very high, it is preferred
+> > over a real broad-cast clock event.
+> > 
+> > This is a change in behavior from past and not an intended
+> > one. So reduce the rating of the dummy clockevent so that
+> > real broadcast device is selected when available.
+> > 
+> > Without this all the C states with C3STOP won't work since
+> > the broad cast notifier will take an abort.
+> > 
+> > Cc: Mark Rutland <mark.rutland@arm.com>
+> > Cc: Russell King <linux@arm.linux.org.uk>
+> > 
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > ---
+> > Its a regression so hopefully can get into the 3.9-rcx. Noticed
+> > this one on A15 platform. A9 platform the issue may not be seen
+> > since the local timer check avoids dummy timer registration.
+> > 
+> Some one pointed me to a fix made by Mark which was discussed
+> under '[BUG] ARM Architected timers appear broken in 3.9-rc1' subject.
+> That patch seems to be more of work around since the root of the
+> problem is incorrect dummy timer rating. Either way, both patches
+> fix the issue.
 
-Hello Gra=B8vydas,
+Is the problem that the dummy timer is being registered as the broadcast
+source, or that it is selected as a local timer in preference of real timers?
 
-On Mon, 11 Mar 2013, Grazvydas Ignotas wrote:
+If it is the former, Then I believe my patch solve the issue more generally -
+if you happen to register a dummy timer before other timers, it will become the
+broadcast source. Regardless of how temporary this is, it should never happen,
+and lowering the rating of the dummy won't fix this.
 
-> For some unknown reason, allowing hwmod to control MIDLEMODE causes
-> core_pwrdm to not hit idle states for musb in DM3730 at least.
-> I've verified that setting any MIDLEMODE value other than "force
-> standby" before enabling the device causes subsequent suspend
-> attempts to fail with core_pwrdm not entering idle states, even
-> if the driver is unloaded and "force standby" is restored before
-> suspend attempt. To recover from this, soft reset can be used, but
-> that's not suitable solution for suspend.
->=20
-> Keeping the register set at force standby (reset value) makes it work
-> and device still functions properly, as musb has driver-controlled
-> OTG_FORCESTDBY register that controls MSTANDBY signal.
-> Note that TI PSP kernels also have similar workarounds.
->=20
-> This patch also fixes HWMOD_SWSUP_MSTANDBY documentation to match the
-> actual flag name.
->=20
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+If it is the latter, then this patch would ensure that a real timer with a
+rating over 100 is selected in preference to the dummy, which is certainly what
+we want. The proposed generic dummy timer in Stephen Boyd's local timer API
+removal series [1] similarly uses a low rating to ensure that real timers are
+selected in preference to an always-registered dummy. I note that the
+architected timer has a higher rating (450) than the dummy (400), so this
+shouldn't currently be a problem.
 
-Thanks for the good patch description and for making those changes. =20
-Queued for v3.9-rc.
+Have I missed something?
 
-- Paul
---843723315-998023820-1363169662=:32131--
+[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-March/153208.html
+
+Thanks,
+Mark.
