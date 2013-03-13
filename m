@@ -1,73 +1,67 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/8] usb: phy: nop: Add some parameters to platform data
-Date: Wed, 13 Mar 2013 16:17:52 +0100
-Message-ID: <514098A0.1030809@ti.com>
-References: <1363087466-32444-1-git-send-email-rogerq@ti.com>
- <1363087466-32444-2-git-send-email-rogerq@ti.com>
- <513F177D.40500@pengutronix.de> <513F37DD.9030301@ti.com>
- <513F38DF.5040404@pengutronix.de> <513F3B7E.8000002@ti.com>
- <513F3EF0.3030609@pengutronix.de> <513F47B4.2060004@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
+ of always dummy
+Date: Wed, 13 Mar 2013 21:07:01 +0530
+Message-ID: <51409D1D.9000500@ti.com>
+References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com> <514046B6.9020005@ti.com> <alpine.LFD.2.02.1303131516090.22263@ionos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <513F47B4.2060004-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53867 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932391Ab3CMPgF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Mar 2013 11:36:05 -0400
+In-Reply-To: <alpine.LFD.2.02.1303131516090.22263@ionos>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>
 
-On 03/12/2013 04:20 PM, Roger Quadros wrote:
-> Adding Peter to the loop. I faintly remember him mentioning this issue be=
-fore
-> for beagle. We really need the deferred probe mechanism or we need to res=
-ort
-> to device registering order.
+On Wednesday 13 March 2013 07:49 PM, Thomas Gleixner wrote:
+> On Wed, 13 Mar 2013, Santosh Shilimkar wrote:
+>> On Wednesday 13 March 2013 02:36 PM, Santosh Shilimkar wrote:
+>>> With recent arm broadcast time clean-up from Mark Rutland, the dummy
+>>> broadcast device is always registered with timer subsystem. And since
+>>> the rating of the dummy clock event is very high, it is preferred
+>>> over a real broad-cast clock event.
+>>>
+>>> This is a change in behavior from past and not an intended
+>>> one. So reduce the rating of the dummy clockevent so that
+>>> real broadcast device is selected when available.
+>>>
+>>> Without this all the C states with C3STOP won't work since
+>>> the broad cast notifier will take an abort.
+>>>
+>>> Cc: Mark Rutland <mark.rutland@arm.com>
+>>> Cc: Russell King <linux@arm.linux.org.uk>
+>>>
+>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>> ---
+>>> Its a regression so hopefully can get into the 3.9-rcx. Noticed
+>>> this one on A15 platform. A9 platform the issue may not be seen
+>>> since the local timer check avoids dummy timer registration.
+>>>
+>> Some one pointed me to a fix made by Mark which was discussed
+>> under '[BUG] ARM Architected timers appear broken in 3.9-rc1' subject.
+>> That patch seems to be more of work around since the root of the
+>> problem is incorrect dummy timer rating. Either way, both patches
+>> fix the issue.
+> 
+> Well, using a dummy timer as the broadcast event device is a bug, no
+> matter what the rating is. The fix is in Linus tree already.
+>
+Agree.
+ 
+> Though making the rating of the dummy lower is definitely a good
+> thing, so a real hardware device which is detected later can replace
+> the dummy device. So yes, the rating should be low for the dummy
+> timer.
+> 
+Exactly. As Mark pointed out, you have already applied Mark's patch.
+I was just wondering whether you can take the $subject patch as well
+with ack from Russell, Mark.
 
-Yes, BeagleBoard is a good example. Long story short: we have external
-dependency and the correct way to handle that is via deferred probe.
+Regards,
+Santosh
 
-As of now we are not ready to kill the legacy support but over time we shou=
-ld
-move as much as we can to DT only mode.
-
-> The first user for needs_vcc flag will be the beagleboard file. I just di=
-dn't
-> implement it in this patch [1].
-> =
-
-> On second thoughts, since [1] does work on beagleboard without requiring =
-the
-> needs_vcc flag, I think we can just live without it.
-
-The BeagleBoard works because the bootloader happen to enable the PWM
-generator which is used as a GPIO for the external HUB enable port. As soon=
- as
-the bootloader stops doing this we are going to be in trouble.
-
-> =
-
-> Felipe, Peter, what do you think?
-> =
-
-> cheers,
-> -roger
-> =
-
-> [1] https://lkml.org/lkml/2013/3/12/244
-> =
-
-
-
--- =
-
-P=E9ter
