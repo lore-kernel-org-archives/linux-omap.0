@@ -1,76 +1,154 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 00/24] ARM: OMAP2+: Adapt to ehci-omap changes for 3.10
-Date: Wed, 13 Mar 2013 18:36:13 +0200
-Message-ID: <5140AAFD.4080508@ti.com>
-References: <1363088606-2692-1-git-send-email-rogerq@ti.com> <20130312164007.GZ26093@atomide.com> <5140821B.2030902@ti.com> <20130313162454.GE26093@atomide.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH] arm: dts: Add uart1 and uart2 to igep boards.
+Date: Wed, 13 Mar 2013 17:41:16 +0100
+Message-ID: <5140AC2C.50309@ti.com>
+References: <1355326422-12357-1-git-send-email-matthias.bgg@gmail.com> <50C8AC3C.9020908@ti.com> <CABuKBeJsHCq98Pe-BwPajbQ+2OLQpwrbtVTJe=j9thPDQCCBrg@mail.gmail.com> <CAAwP0s01Jxh0f-T0sd5D980dZPcEV0J1KzjPbNHkrXLaKA3YUg@mail.gmail.com> <CABuKBeJsg_P=aDr0s9iVOD+7YTNoVUFQJCJymJyJ7NqXHUBzKQ@mail.gmail.com> <511E0807.8000200@ti.com> <CAAwP0s3bs=uqCRPgQiXQUnHq-6L61ayrP0WrXdJrNxNuGfmV0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130313162454.GE26093@atomide.com>
+In-Reply-To: <CAAwP0s3bs=uqCRPgQiXQUnHq-6L61ayrP0WrXdJrNxNuGfmV0A@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, b-cousson@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "eballetbo@gmail.com" <eballetbo@gmail.com>, "elezegarcia@gmail.com" <elezegarcia@gmail.com>, "ebutera@gmail.com" <ebutera@gmail.com>, "javier.martinez@collabora.co.uk" <javier.martinez@collabora.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/13/2013 06:24 PM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [130313 06:46]:
->> On 03/12/2013 06:40 PM, Tony Lindgren wrote:
->>> * Roger Quadros <rogerq@ti.com> [130312 04:47]:
->>>> Hi Tony,
+Hi Javier,
+
+On 03/02/2013 02:52 AM, Javier Martinez Canillas wrote:
+> On Fri, Feb 15, 2013 at 11:03 AM, Cousson, Benoit <b-cousson@ti.com> wrote:
+>> Hi Matthias,
+>>
+>>
+>> On 2/15/2013 10:35 AM, Matthias Brugger wrote:
+>>>
+>>> 2013/1/26 Javier Martinez Canillas <martinez.javier@gmail.com>:
 >>>>
->>>> These patches provide the SoC side code required to support
->>>> the changes in the OMAP USB Host drivers done in [1], [2] & [3].
->>> ... 
+>>>> On Sat, Jan 26, 2013 at 4:16 PM, Matthias Brugger
+>>>> <matthias.bgg@gmail.com>
+>>>> wrote:
+>>>>>
+>>>>> Hi Benoit,
+>>>>>
+>>>>> 2012/12/12 Benoit Cousson <b-cousson@ti.com>:
+>>>>>>
+>>>>>> Hi Matthias,
+>>>>>>
+>>>>>> On 12/12/2012 04:33 PM, Matthias Brugger wrote:
+>>>>>>>
+>>>>>>> This patch is a follow-up patch for Javier Martinez effort adding
+>>>>>>> initial
+>>>>>>> device tree support to IGEP technology devices. [1]
+>>>>>>>
+>>>>>>> It adds uart1 and uart2 bindings to the generic dtsi for the IGEP
+>>>>>>> boards.
+>>>>>>>
+>>>>>>> [1] http://www.spinics.net/lists/linux-omap/msg83409.html
+>>>>>>>
+>>>>>>> Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
+>>>>>>> ---
+>>>>>>>   arch/arm/boot/dts/omap3-igep.dtsi |   24 ++++++++++++++++++++++++
+>>>>>>>   1 file changed, 24 insertions(+)
+>>>>>>>
+>>>>>>> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi
+>>>>>>> b/arch/arm/boot/dts/omap3-igep.dtsi
+>>>>>>> index 125fe00..c02e3c0 100644
+>>>>>>> --- a/arch/arm/boot/dts/omap3-igep.dtsi
+>>>>>>> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+>>>>>>> @@ -27,6 +27,20 @@
+>>>>>>>   };
+>>>>>>>
+>>>>>>>   &omap3_pmx_core {
+>>>>>>> +     uart1_pins: pinmux_uart1_pins {
+>>>>>>> +             pinctrl-single,pins = <
+>>>>>>> +                     0x152 0x100     /* uart1_rx.uart1_rx INPUT |
+>>>>>>> MODE0
+>>>>>>> */
+>>>>>>> +                     0x14c 0         /* uart1_tx.uart1_tx OUTPUT |
+>>>>>>> MODE0 */
+>>>>>>> +             >;
+>>>>>>> +     };
+>>>>>>> +
+>>>>>>> +     uart2_pins: pinmux_uart2_pins {
+>>>>>>> +             pinctrl-single,pins = <
+>>>>>>> +                     0x14a 0x100     /* uart2_rx.uart2_rx INPUT |
+>>>>>>> MODE0
+>>>>>>> */
+>>>>>>> +                     0x148 0         /* uart2_tx.uart2_tx OUTPUT |
+>>>>>>> MODE0 */
+>>>>>>> +             >;
+>>>>>>> +     };
+>>>>>>> +
+>>>>>>>        uart3_pins: pinmux_uart3_pins {
+>>>>>>>                pinctrl-single,pins = <
+>>>>>>>                        0x16e 0x100     /* uart3_rx.uart3_rx INPUT |
+>>>>>>> MODE0
+>>>>>>> */
+>>>>>>> @@ -77,6 +91,16 @@
+>>>>>>>        status = "disabled";
+>>>>>>>   };
+>>>>>>>
+>>>>>>> +&uart1 {
+>>>>>>> +       pinctrl-names = "default";
+>>>>>>> +       pinctrl-0 = <&uart1_pins>;
+>>>>>>> +};
+>>>>>>> +
+>>>>>>> +&uart2 {
+>>>>>>> +       pinctrl-names = "default";
+>>>>>>> +       pinctrl-0 = <&uart2_pins>;
+>>>>>>> +};
+>>>>>>> +
+>>>>>>>   &uart3 {
+>>>>>>>          pinctrl-names = "default";
+>>>>>>>          pinctrl-0 = <&uart3_pins>;
+>>>>>>>
+>>>>>>
+>>>>>> That looks good to me. I'll apply it on top of javier's series for 3.9.
+>>>>>
+>>>>>
+>>>>> Can you pin-point me to the repository where this patches are in right
+>>>>> now? I tried to figure it out these days, but didn't found where to
+>>>>> clone the repository from.
+>>>>>
+>>>>> Thanks,
+>>>>> Matthias
+>>>>>
+>>>>
+>>>> Hi Matthias,
+>>>>
+>>>> OMAP DT tree is:
+>>>> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
 >>>
->>>>  arch/arm/mach-omap2/board-3430sdp.c                |   97 +++++++++++++++-
->>>>  arch/arm/mach-omap2/board-3630sdp.c                |  100 +++++++++++++++-
->>>>  arch/arm/mach-omap2/board-am3517crane.c            |   95 +++++++++++++--
->>>>  arch/arm/mach-omap2/board-am3517evm.c              |   66 ++++++++++-
->>>>  arch/arm/mach-omap2/board-cm-t35.c                 |   95 ++++++++++++++-
->>>>  arch/arm/mach-omap2/board-cm-t3517.c               |   97 +++++++++++++++-
->>>>  arch/arm/mach-omap2/board-devkit8000.c             |   20 ++--
->>>>  arch/arm/mach-omap2/board-generic.c                |   67 +++++++++++
->>>>  arch/arm/mach-omap2/board-igep0020.c               |  112 ++++++++++++++++---
->>>>  arch/arm/mach-omap2/board-omap3beagle.c            |   93 +++++++++++++--
->>>>  arch/arm/mach-omap2/board-omap3evm.c               |   62 ++++++++--
->>>>  arch/arm/mach-omap2/board-omap3pandora.c           |   52 +++++++--
->>>>  arch/arm/mach-omap2/board-omap3stalker.c           |   52 +++++++-
->>>>  arch/arm/mach-omap2/board-omap3touchbook.c         |   62 +++++++++-
->>>>  arch/arm/mach-omap2/board-omap4panda.c             |  122 ++++++++++++++------
->>>>  arch/arm/mach-omap2/board-overo.c                  |   54 ++++++++-
->>>>  arch/arm/mach-omap2/board-zoom.c                   |   56 ++++++++-
 >>>
->>> Can't you have some mach-omap2/ehci-common.c that takes care
->>> of the initializiation to avoid this much addition to the
->>> board-*.c files? You may be able to have just a common function
->>> to do it and pass few parameters?
+>>> Hi all,
+>>>
+>>> unfortunately I can't find the patch in this tree.
 >>
->> Since we moved reset and power handling for the USB PHYs from omap-echi
->> driver into the USB PHY driver we need to define the regulator data
->> for RESET and Power line of each PHY. So most of the code added is just
->> regulator data for the PHY rather than omap-ehci.
-> 
-> It seems that you're now repeating minor variations of the same PHY
-> over and over again though.
-
-Yes it is the vcc and reset regulator data for the PHY that
-is getting repeated with variations in the GPIO number.
-
->  
->> Instead of a common function, I can implement some macros that make it
->> easier to define the regulators for the PHY in the board files.
->> Does this sound OK?
 >>
->> Personally I don't like such macros because it hides the implementation
->> and is difficult to read/debug.
+>> Sorry about that. I've never pushed the latest branch, and was busy the past
+>> month. I'll refresh the branch with all the pending patches.
+>>
+>> Regards,
+>> Benoit
+>>
 > 
-> I'd prefer a common function to initialize the PHY though as it sounds
-> like using macros would just allocate similar PHY many times which seems
-> unnecessary.
+> Hi Benoit,
 > 
-OK, so we want to create the regulator data at runtime to save some memory?
-I'll come up with something.
+> I realized that your for_3.9/dts branch has not landed in mainline yet
+> and we are near to the end of the merge window.
+> 
+> Are you still planing to include those changes for 3.9 or are you
+> going to wait until the next release?
 
-cheers,
--roger
+I'm really sorry about that. I was not available to push it at the proper time.
+
+I've just rebased it on 3.9-rc2 and pushed it to a new branch.
+git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.10/dts
+
+It includes the one from Matthias and yours as well. I'm still checking my inbox to catch up on the new ones I missed.
+
+I'm planning to push this ASAP to avoid missing the deadline again.
+
+
+Regards,
+Benoit
