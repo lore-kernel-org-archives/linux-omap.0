@@ -1,79 +1,70 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 13/13] USB: ehci-omap: Get rid of omap_ehci_init()
-Date: Wed, 13 Mar 2013 15:16:03 +0200
-Message-ID: <1363180563-10658-1-git-send-email-rogerq@ti.com>
-References: <1363085090-24676-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 00/24] ARM: OMAP2+: Adapt to ehci-omap changes for 3.10
+Date: Wed, 13 Mar 2013 15:41:47 +0200
+Message-ID: <5140821B.2030902@ti.com>
+References: <1363088606-2692-1-git-send-email-rogerq@ti.com>
+ <20130312164007.GZ26093@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363085090-24676-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, stern@rowland.harvard.edu
-Cc: balbi@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, kishon@ti.com, rogerq@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130312164007.GZ26093-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-As it does almost nothing, get rid of omap_ehci_init()
-and move the ehci->caps initialization part into probe().
+On 03/12/2013 06:40 PM, Tony Lindgren wrote:
+> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [130312 04:47]:
+>> Hi Tony,
+>>
+>> These patches provide the SoC side code required to support
+>> the changes in the OMAP USB Host drivers done in [1], [2] & [3].
+> ... 
+> 
+>>  arch/arm/mach-omap2/board-3430sdp.c                |   97 +++++++++++++++-
+>>  arch/arm/mach-omap2/board-3630sdp.c                |  100 +++++++++++++++-
+>>  arch/arm/mach-omap2/board-am3517crane.c            |   95 +++++++++++++--
+>>  arch/arm/mach-omap2/board-am3517evm.c              |   66 ++++++++++-
+>>  arch/arm/mach-omap2/board-cm-t35.c                 |   95 ++++++++++++++-
+>>  arch/arm/mach-omap2/board-cm-t3517.c               |   97 +++++++++++++++-
+>>  arch/arm/mach-omap2/board-devkit8000.c             |   20 ++--
+>>  arch/arm/mach-omap2/board-generic.c                |   67 +++++++++++
+>>  arch/arm/mach-omap2/board-igep0020.c               |  112 ++++++++++++++++---
+>>  arch/arm/mach-omap2/board-omap3beagle.c            |   93 +++++++++++++--
+>>  arch/arm/mach-omap2/board-omap3evm.c               |   62 ++++++++--
+>>  arch/arm/mach-omap2/board-omap3pandora.c           |   52 +++++++--
+>>  arch/arm/mach-omap2/board-omap3stalker.c           |   52 +++++++-
+>>  arch/arm/mach-omap2/board-omap3touchbook.c         |   62 +++++++++-
+>>  arch/arm/mach-omap2/board-omap4panda.c             |  122 ++++++++++++++------
+>>  arch/arm/mach-omap2/board-overo.c                  |   54 ++++++++-
+>>  arch/arm/mach-omap2/board-zoom.c                   |   56 ++++++++-
+> 
+> Can't you have some mach-omap2/ehci-common.c that takes care
+> of the initializiation to avoid this much addition to the
+> board-*.c files? You may be able to have just a common function
+> to do it and pass few parameters?
 
-Also remove the outdated TODO list from header.
+Since we moved reset and power handling for the USB PHYs from omap-echi
+driver into the USB PHY driver we need to define the regulator data
+for RESET and Power line of each PHY. So most of the code added is just
+regulator data for the PHY rather than omap-ehci.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-CC: Alan Stern <stern@rowland.harvard.edu>
----
- drivers/usb/host/ehci-omap.c |   21 +--------------------
- 1 files changed, 1 insertions(+), 20 deletions(-)
+Instead of a common function, I can implement some macros that make it
+easier to define the regulators for the PHY in the board files.
+Does this sound OK?
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 755b428..5de3e43 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -29,12 +29,6 @@
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-  *
-- * TODO (last updated Feb 27, 2010):
-- *	- add kernel-doc
-- *	- enable AUTOIDLE
-- *	- add suspend/resume
-- *	- add HSIC and TLL support
-- *	- convert to use hwmod and runtime PM
-  */
- 
- #include <linux/kernel.h>
-@@ -87,26 +81,12 @@ static inline u32 ehci_read(void __iomem *base, u32 reg)
- 	return __raw_readl(base + reg);
- }
- 
--static int omap_ehci_init(struct usb_hcd *hcd)
--{
--	struct ehci_hcd	*ehci = hcd_to_ehci(hcd);
--	int rc;
--
--	/* we know this is the memory we want, no need to ioremap again */
--	ehci->caps = hcd->regs;
--
--	rc = ehci_setup(hcd);
--
--	return rc;
--}
--
- /* configure so an HC device and id are always provided */
- /* always called with process context; sleeping is OK */
- 
- static struct hc_driver __read_mostly ehci_omap_hc_driver;
- 
- static const struct ehci_driver_overrides ehci_omap_overrides __initdata = {
--	.reset = omap_ehci_init,
- 	.extra_priv_size = sizeof(struct omap_hcd),
- };
- 
-@@ -179,6 +159,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	hcd->rsrc_start = res->start;
- 	hcd->rsrc_len = resource_size(res);
- 	hcd->regs = regs;
-+	hcd_to_ehci(hcd)->caps = regs;
- 
- 	omap = (struct omap_hcd *)hcd_to_ehci(hcd)->priv;
- 	omap->nports = pdata->nports;
--- 
-1.7.4.1
+Personally I don't like such macros because it hides the implementation
+and is difficult to read/debug.
+
+cheers,
+-roger
