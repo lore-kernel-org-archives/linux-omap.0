@@ -1,42 +1,152 @@
-From: "Anna, Suman" <s-anna@ti.com>
-Subject: RE: [PATCHv3 01/14] mailbox: rename pl320-ipc specific mailbox.h
-Date: Wed, 13 Mar 2013 05:31:53 +0000
-Message-ID: <37C860A02101E749A747FA2D3C1E3C504978B9@DLEE11.ent.ti.com>
-References: <1363145030-14373-1-git-send-email-s-anna@ti.com>
- <20130313035252.GA1515@kroah.com>
+From: "Vishwanathrao Badarkhe, Manish" <manishv.b@ti.com>
+Subject: [PATCH] rtc: omap: update to devm_* API
+Date: Wed, 13 Mar 2013 12:21:04 +0530
+Message-ID: <1363157464-9962-1-git-send-email-manishv.b@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130313035252.GA1515@kroah.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ohad Ben-Cohen <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic Pallardy <loic.pallardy@st.com>, Mark Langsdorf <mark.langsdorf@calxeda.com>
+To: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
+Cc: a.zummo@towertech.it, "Vishwanathrao Badarkhe, Manish" <manishv.b@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-> On Tue, Mar 12, 2013 at 10:23:50PM -0500, Suman Anna wrote:
-> > The patch 30058677 "ARM / highbank: add support for pl320 IPC"
-> > added a pl320 IPC specific header file as a generic mailbox.h.
-> > This file has been renamed appropriately to allow the introduction of
-> > the generic mailbox API framework.
-> >
-> > Signed-off-by: Suman Anna <s-anna@ti.com>
-> > Cc: Mark Langsdorf <mark.langsdorf@calxeda.com>
-> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/cpufreq/highbank-cpufreq.c |  2 +-
-> >  drivers/mailbox/pl320-ipc.c        |  2 +-
-> >  include/linux/mailbox.h            | 17 -----------------
-> >  include/linux/pl320-ipc.h          | 17 +++++++++++++++++
-> >  4 files changed, 19 insertions(+), 19 deletions(-)  delete mode
-> > 100644 include/linux/mailbox.h  create mode 100644
-> > include/linux/pl320-ipc.h
-> 
-> Why are you sending these To: me?  I'm not the mailbox maintainer, and have
-> never handled them before that I can remember.  Who is the maintainer?
+From: Vishwanathrao Badarkhe, Manish <manishv.b@ti.com> 
 
-Er.. sorry Greg, I have taken the recipient list from the original series posting, but this series should have been directed to the ARM-SoC maintainer. The patches are generalizing the OMAP mailbox driver to add support for ST's mailbox as well,  and moving it to under /drivers/mailbox. The folder is new in 3.9, and the code under this, so far,  has all been for ARM based chips. I guess the maintainer for this folder needs to be sorted out for the long-term.
+Update the code to use devm_* API so that driver
+core will manage resources.
 
-Regards
-Suman
+Signed-off-by: Vishwanathrao Badarkhe, Manish <manishv.b@ti.com>
+---
+Applied on top of linux-next: 
+git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+with tag next-20130312.
+
+:100644 100644 172cc5c... a1f9d30... M	drivers/rtc/rtc-omap.c
+ drivers/rtc/rtc-omap.c |   45 +++++++++------------------------------------
+ 1 files changed, 9 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+index 172cc5c..a1f9d30 100644
+--- a/drivers/rtc/rtc-omap.c
++++ b/drivers/rtc/rtc-omap.c
+@@ -324,7 +324,7 @@ MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
+ 
+ static int __init omap_rtc_probe(struct platform_device *pdev)
+ {
+-	struct resource		*res, *mem;
++	struct resource		*res;
+ 	struct rtc_device	*rtc;
+ 	u8			reg, new_ctrl;
+ 	const struct platform_device_id *id_entry;
+@@ -352,18 +352,9 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 		return -ENOENT;
+ 	}
+ 
+-	mem = request_mem_region(res->start, resource_size(res), pdev->name);
+-	if (!mem) {
+-		pr_debug("%s: RTC registers at %08x are not free\n",
+-			pdev->name, res->start);
+-		return -EBUSY;
+-	}
+-
+-	rtc_base = ioremap(res->start, resource_size(res));
+-	if (!rtc_base) {
+-		pr_debug("%s: RTC registers can't be mapped\n", pdev->name);
+-		goto fail;
+-	}
++	rtc_base = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(rtc_base))
++		return PTR_ERR(rtc_base);
+ 
+ 	/* Enable the clock/module so that we can access the registers */
+ 	pm_runtime_enable(&pdev->dev);
+@@ -375,7 +366,7 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 		rtc_writel(KICK1_VALUE, OMAP_RTC_KICK1_REG);
+ 	}
+ 
+-	rtc = rtc_device_register(pdev->name, &pdev->dev,
++	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 			&omap_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+ 		pr_debug("%s: can't register RTC device, err %ld\n",
+@@ -383,7 +374,6 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 		goto fail0;
+ 	}
+ 	platform_set_drvdata(pdev, rtc);
+-	dev_set_drvdata(&rtc->dev, mem);
+ 
+ 	/* clear pending irqs, and set 1/second periodic,
+ 	 * which we'll use instead of update irqs
+@@ -401,18 +391,18 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 		rtc_write(OMAP_RTC_STATUS_ALARM, OMAP_RTC_STATUS_REG);
+ 
+ 	/* handle periodic and alarm irqs */
+-	if (request_irq(omap_rtc_timer, rtc_irq, 0,
++	if (devm_request_irq(&pdev->dev, omap_rtc_timer, rtc_irq, 0,
+ 			dev_name(&rtc->dev), rtc)) {
+ 		pr_debug("%s: RTC timer interrupt IRQ%d already claimed\n",
+ 			pdev->name, omap_rtc_timer);
+-		goto fail1;
++		goto fail0;
+ 	}
+ 	if ((omap_rtc_timer != omap_rtc_alarm) &&
+-		(request_irq(omap_rtc_alarm, rtc_irq, 0,
++		(devm_request_irq(&pdev->dev, omap_rtc_alarm, rtc_irq, 0,
+ 			dev_name(&rtc->dev), rtc))) {
+ 		pr_debug("%s: RTC alarm interrupt IRQ%d already claimed\n",
+ 			pdev->name, omap_rtc_alarm);
+-		goto fail2;
++		goto fail0;
+ 	}
+ 
+ 	/* On boards with split power, RTC_ON_NOFF won't reset the RTC */
+@@ -446,25 +436,16 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
+-fail2:
+-	free_irq(omap_rtc_timer, rtc);
+-fail1:
+-	rtc_device_unregister(rtc);
+ fail0:
+ 	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER))
+ 		rtc_writel(0, OMAP_RTC_KICK0_REG);
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-	iounmap(rtc_base);
+-fail:
+-	release_mem_region(mem->start, resource_size(mem));
+ 	return -EIO;
+ }
+ 
+ static int __exit omap_rtc_remove(struct platform_device *pdev)
+ {
+-	struct rtc_device	*rtc = platform_get_drvdata(pdev);
+-	struct resource		*mem = dev_get_drvdata(&rtc->dev);
+ 	const struct platform_device_id *id_entry =
+ 				platform_get_device_id(pdev);
+ 
+@@ -473,12 +454,6 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
+ 	/* leave rtc running, but disable irqs */
+ 	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+ 
+-	free_irq(omap_rtc_timer, rtc);
+-
+-	if (omap_rtc_timer != omap_rtc_alarm)
+-		free_irq(omap_rtc_alarm, rtc);
+-
+-	rtc_device_unregister(rtc);
+ 	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER))
+ 		rtc_writel(0, OMAP_RTC_KICK0_REG);
+ 
+@@ -486,8 +461,6 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+ 
+-	iounmap(rtc_base);
+-	release_mem_region(mem->start, resource_size(mem));
+ 	return 0;
+ }
+ 
+-- 
+1.7.4.1
