@@ -1,39 +1,102 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: MTD : Kernel oops when remounting ubifs as read/write
-Date: Wed, 13 Mar 2013 11:21:49 +0000
-Message-ID: <5140614D.2060102@mimc.co.uk>
-References: <5134CEF9.5070502@mimc.co.uk>  <1363087506.3348.62.camel@sauron.fi.intel.com>  <51405F3A.3090901@mimc.co.uk> <1363173638.11441.24.camel@sauron.fi.intel.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
+ of always dummy
+Date: Wed, 13 Mar 2013 16:54:01 +0530
+Message-ID: <514061D1.20603@ti.com>
+References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com> <514046B6.9020005@ti.com> <20130313101641.GA13483@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363173638.11441.24.camel@sauron.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dedekind1@gmail.com
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, adrian.hunter@intel.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59070 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756178Ab3CMLWh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 07:22:37 -0400
+In-Reply-To: <20130313101641.GA13483@e106331-lin.cambridge.arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
 
-On 13/03/13 11:20, Artem Bityutskiy wrote:
-> On Wed, 2013-03-13 at 11:12 +0000, Mark Jackson wrote:
->>> -	if (c->space_fixup) {
->>> -		err = ubifs_fixup_free_space(c);
->>> -		if (err)
->>> -			goto out;
->>> -	}
->>> -
->>>  	mutex_unlock(&c->umount_mutex);
->>>  	return err;
->>>
+On Wednesday 13 March 2013 03:46 PM, Mark Rutland wrote:
+> Hi Santosh,
+> 
+> On Wed, Mar 13, 2013 at 09:28:22AM +0000, Santosh Shilimkar wrote:
+>> (Forgot to CC Thomas)
 >>
->> Sorry ... this just locks up the unit.
+>> On Wednesday 13 March 2013 02:36 PM, Santosh Shilimkar wrote:
+>>> With recent arm broadcast time clean-up from Mark Rutland, the dummy
+>>> broadcast device is always registered with timer subsystem. And since
+>>> the rating of the dummy clock event is very high, it is preferred
+>>> over a real broad-cast clock event.
+>>>
+>>> This is a change in behavior from past and not an intended
+>>> one. So reduce the rating of the dummy clockevent so that
+>>> real broadcast device is selected when available.
+>>>
+>>> Without this all the C states with C3STOP won't work since
+>>> the broad cast notifier will take an abort.
+>>>
+>>> Cc: Mark Rutland <mark.rutland@arm.com>
+>>> Cc: Russell King <linux@arm.linux.org.uk>
+>>>
+>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>> ---
+>>> Its a regression so hopefully can get into the 3.9-rcx. Noticed
+>>> this one on A15 platform. A9 platform the issue may not be seen
+>>> since the local timer check avoids dummy timer registration.
+>>>
+>> Some one pointed me to a fix made by Mark which was discussed
+>> under '[BUG] ARM Architected timers appear broken in 3.9-rc1' subject.
+>> That patch seems to be more of work around since the root of the
+>> problem is incorrect dummy timer rating. Either way, both patches
+>> fix the issue.
 > 
-> Am I right that to reproduce it I need any image with the 'fixup' flag
-> set, then I should put it on the flash, mount it R/O and then remount
-> R/W. Right?
+> Is the problem that the dummy timer is being registered as the broadcast
+> source, or that it is selected as a local timer in preference of real timers?
+>
+Dummy timer is preferred over real broadcast timer.
+ 
+> If it is the former, Then I believe my patch solve the issue more generally -
+> if you happen to register a dummy timer before other timers, it will become the
+> broadcast source. Regardless of how temporary this is, it should never happen,
+> and lowering the rating of the dummy won't fix this.
 > 
+Well by the time we need active broadcast functionality, clock-events are
+already chosen if the ratings are appropriate.
 
-Yes ... this is on a custom AM335x board, where the ubi image must be created
-with the "-F" flag.
+> If it is the latter, then this patch would ensure that a real timer with a
+> rating over 100 is selected in preference to the dummy, which is certainly what
+> we want. The proposed generic dummy timer in Stephen Boyd's local timer API
+> removal series [1] similarly uses a low rating to ensure that real timers are
+> selected in preference to an always-registered dummy. I note that the
+> architected timer has a higher rating (450) than the dummy (400), so this
+> shouldn't currently be a problem.
+> 
+Because we always register dummy broadcast on ARM now 
+and with higher rating, it is picked as broadcast source. We definitely don't
+want such a behavior when we have real broadcast device is available.
 
-Cheers
-Mark J.
+
+With your patch, we are trying to avoid the registration which goes
+against the the whole idea of registering it always and picking
+the right clock-event based on rating by clock-event core.
+The clock-event core except the proper ratings to be provided based on
+the capability of the timer source and its resolution and in that case
+dummy should have the lowest rating which is what I tried to patch.
+
+> Have I missed something?
+> 
+Not much. I was just looking at x86 code as well after your email
+to see how the LAPIC issue is handled. They seems to also have
+correct rating to take care of the selection.
+
+Probably we can merge both the fixes but from clock-event core
+code perspective, the ratings fix is more than enough.
+
+Thomas might be able to comment better.
+
+Regards,
+Santosh
+
+
