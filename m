@@ -1,47 +1,79 @@
 From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: Excessive ethernet interrupts on AM335x board
-Date: Wed, 13 Mar 2013 10:36:59 +0000
-Message-ID: <514056CB.6070808@mimc.co.uk>
-References: <513F4B58.1000204@mimc.co.uk> <CACTFLAPv=OGaWaz+BdPxr56e56c=cx8QYuc9TUK61Bk4WD5=vg@mail.gmail.com>
+Subject: Re: MTD : Kernel oops when remounting ubifs as read/write
+Date: Wed, 13 Mar 2013 11:12:58 +0000
+Message-ID: <51405F3A.3090901@mimc.co.uk>
+References: <5134CEF9.5070502@mimc.co.uk> <1363087506.3348.62.camel@sauron.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:44248 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756308Ab3CMKhB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 06:37:01 -0400
-In-Reply-To: <CACTFLAPv=OGaWaz+BdPxr56e56c=cx8QYuc9TUK61Bk4WD5=vg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1363087506.3348.62.camel@sauron.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dedekind1@gmail.com
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, adrian.hunter@intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
 
-On 13/03/13 10:32, Daniel Mack wrote:
-> On Tue, Mar 12, 2013 at 4:35 PM, Mark Jackson <mpfj-list@mimc.co.uk> wrote:
->> I'm just fighting an issue with ethernet on our custom AM335x board:-
+On 12/03/13 11:25, Artem Bityutskiy wrote:
+> On Mon, 2013-03-04 at 16:42 +0000, Mark Jackson wrote:
+>> I'm encountering an oops when remounting my ubifs volume as read/write.
 >>
->> # uname -a
->> Linux nanobone 3.9.0-rc2-00113-gd60f039 #139 Tue Mar 12 15:14:01 GMT 2013 armv7l GNU/Linux
+>> # mount -o remount,rw /
+>> [   89.434974] UBIFS assert failed in ubifs_write_node at 869 (pid 628)
+>> [   89.442122] [<c001b124>] (unwind_backtrace+0x0/0xf0) from [<c01ad7d4>] (ubifs_write_node+0x180/0x1c4)
+>> [   89.451896] [<c01ad7d4>] (ubifs_write_node+0x180/0x1c4) from [<c01b3878>] (ubifs_write_master+0x9c/0x134)
+>> [   89.462018] [<c01b3878>] (ubifs_write_master+0x9c/0x134) from [<c01a79a4>] (ubifs_remount_fs+0x5d4/0x7f8)
+>> [   89.472133] [<c01a79a4>] (ubifs_remount_fs+0x5d4/0x7f8) from [<c010dbf4>] (do_remount_sb+0x98/0x16c)
+>> [   89.481790] [<c010dbf4>] (do_remount_sb+0x98/0x16c) from [<c0128268>] (do_mount+0x830/0x888)
+>> [   89.490708] [<c0128268>] (do_mount+0x830/0x888) from [<c0128344>] (sys_mount+0x84/0xb8)
+>> [   89.499178] [<c0128344>] (sys_mount+0x84/0xb8) from [<c0013800>] (ret_fast_syscall+0x0/0x3c)
+>> [   89.510997] UBIFS assert failed in ubifs_write_node at 869 (pid 628)
+>> [   89.517884] [<c001b124>] (unwind_backtrace+0x0/0xf0) from [<c01ad7d4>] (ubifs_write_node+0x180/0x1c4)
+>> [   89.527641] [<c01ad7d4>] (ubifs_write_node+0x180/0x1c4) from [<c01b38b4>] (ubifs_write_master+0xd8/0x134)
+>> [   89.537760] [<c01b38b4>] (ubifs_write_master+0xd8/0x134) from [<c01a79a4>] (ubifs_remount_fs+0x5d4/0x7f8)
+>> [   89.547869] [<c01a79a4>] (ubifs_remount_fs+0x5d4/0x7f8) from [<c010dbf4>] (do_remount_sb+0x98/0x16c)
+>> [   89.557526] [<c010dbf4>] (do_remount_sb+0x98/0x16c) from [<c0128268>] (do_mount+0x830/0x888)
+>> [   89.566435] [<c0128268>] (do_mount+0x830/0x888) from [<c0128344>] (sys_mount+0x84/0xb8)
+>> [   89.574905] [<c0128344>] (sys_mount+0x84/0xb8) from [<c0013800>] (ret_fast_syscall+0x0/0x3c)
+>> [   89.585939] UBIFS: start fixing up free space
+>> [   89.592237] UBIFS: background thread "ubifs_bgt0_0" started, PID 629
+>> [   91.419951] UBIFS: free space fixup complete
+>> #
 >>
->> Every now and then, the whole unit slows to a crawl.  The only indication of any problem is:-
->>
->> (a) the serial tty port becomes much less responsive
->> (b) normal ping times jump from 1ms to >10sec (sometimes >20sec !!)
->> (c) the ethernet interrupt count rockets (see below)
->>
->> I've tried to force the problem by flood pinging from my PC.
-
-<snip>
-
->> As you can see, when I stop the flood pings, the nfs link is now reported
->> as being lost.
+>> If it's any help, if the remount is put into my inittab, I don't get any oops.
 > 
-> I had the same problem. Please check this patch, I'm sure it will fix you issue:
+> Would you please try this patch (also attached):
 > 
->   https://git.kernel.org/cgit/linux/kernel/git/davem/net.git/commit/?id=d35162f89b8f00537d7b240b76d2d0e8b8d29aa0
+> diff --git a/fs/ubifs/super.c b/fs/ubifs/super.c
+> index ac838b8..9791b3c 100644
+> --- a/fs/ubifs/super.c
+> +++ b/fs/ubifs/super.c
+> @@ -1568,6 +1568,12 @@ static int ubifs_remount_rw(struct ubifs_info *c)
+>  	c->remounting_rw = 1;
+>  	c->ro_mount = 0;
+>  
+> +	if (c->space_fixup) {
+> +		err = ubifs_fixup_free_space(c);
+> +		if (err)
+> +			goto out;
+> +	}
+> +
+>  	err = check_free_space(c);
+>  	if (err)
+>  		goto out;
+> @@ -1684,12 +1690,6 @@ static int ubifs_remount_rw(struct ubifs_info *c)
+>  		err = dbg_check_space_info(c);
+>  	}
+>  
+> -	if (c->space_fixup) {
+> -		err = ubifs_fixup_free_space(c);
+> -		if (err)
+> -			goto out;
+> -	}
+> -
+>  	mutex_unlock(&c->umount_mutex);
+>  	return err;
+> 
 
-Brilliant ... that's the one !!  
+Sorry ... this just locks up the unit.
 
-Cheers
 Mark J.
