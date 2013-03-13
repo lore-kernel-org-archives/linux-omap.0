@@ -1,134 +1,90 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH V3 1/2] ARM: dts: OMAP2+: Add SDMA controller bindings
- and nodes
-Date: Wed, 13 Mar 2013 16:35:47 +0100
-Message-ID: <51409CD3.10301@ti.com>
-References: <1361903244-19837-1-git-send-email-jon-hunter@ti.com> <1361903244-19837-2-git-send-email-jon-hunter@ti.com> <513F0AE3.6030408@ti.com> <513FA19C.60904@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
+ of always dummy
+Date: Wed, 13 Mar 2013 21:14:03 +0530
+Message-ID: <51409EC3.5050905@ti.com>
+References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com> <514046B6.9020005@ti.com> <20130313101641.GA13483@e106331-lin.cambridge.arm.com> <514061D1.20603@ti.com> <20130313122550.GD13483@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43590 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:43917 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932391Ab3CMPgL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 11:36:11 -0400
-In-Reply-To: <513FA19C.60904@ti.com>
+	with ESMTP id S932391Ab3CMPmc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 11:42:32 -0400
+In-Reply-To: <20130313122550.GD13483@e106331-lin.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, Russell King <linux@arm.linux.org.uk>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Sebastien Guiriec <s-guiriec@ti.com>
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
 
-Salut Jon,
+On Wednesday 13 March 2013 05:55 PM, Mark Rutland wrote:
+> On Wed, Mar 13, 2013 at 11:24:01AM +0000, Santosh Shilimkar wrote:
+>> On Wednesday 13 March 2013 03:46 PM, Mark Rutland wrote:
+>>> Hi Santosh,
 
-On 03/12/2013 10:43 PM, Jon Hunter wrote:
-> Salut Benoit!
-> 
-> On 03/12/2013 06:00 AM, Benoit Cousson wrote:
->> + Seb G.
->>
->> Hi Jon,
->>
->> How to you plan to merge that series?
-> 
-> Good question ... my thinking was that you or Tony would take 1/2 and
-> once that is queued then I would ask Tony to ack 2/2 and Vinod take that
-> patch.
+[..]
 
-Yep, this is what I was thinking too.
-
-> By the way, I have accumulated several DT patches which I sent out
-> altogether [1] (at least for my own sanity if no one elses ;-) and I
-> have included the below patch with it. I was hoping that may be I could
-> create a branch for you to pull. If you would rather cherry-pick the
-> various patches and merge yourself then I can separate them too.
-
-Merging your branch is indeed even better for me. So go ahead.
-
-Thanks,
-Benoit
-
-> 
->> Seb's just posted a McBSP adaptation to SDMA binding, so I'll have to
->> take this one before being able to merge any other SDMA driver
->> adaptation patches.
->>
->> I'm fine to take that one, if you are OK, to avoid merge conflict in DTS
->> later.
-> 
-> Fine with me and that would be preferred. I don't see any downside in
-> taking this one and then having Vinod take the other later.
-
-
-> 
->> On 02/26/2013 07:27 PM, Jon Hunter wrote:
->>> Add SDMA controller binding for OMAP2+ devices and populate DMA client
->>> information for SPI and MMC periperhal on OMAP3+ devices. Please note
->>
->> typo-------------------------------^
-> 
-> Thanks! Will fix.
-> 
->>> that OMAP24xx devices do not have SPI and MMC bindings available yet and
->>> so DMA client information is not populated.
 >>>
->>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->>> Reviewed-by: Felipe Balbi <balbi@ti.com>
->>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> ---
->>>  .../devicetree/bindings/dma/omap-sdma.txt          |   51 ++++++++++++++++++++
->>
->> That's a detail, but the bindings should be introduced along with the
->> driver DT adaptation since it does represent its "interface".
-> 
-> Ok, I can add that to patch 2/2 instead.
-> 
->>>  arch/arm/boot/dts/omap2.dtsi                       |   12 +++++
->>>  arch/arm/boot/dts/omap3.dtsi                       |   40 +++++++++++++++
->>>  arch/arm/boot/dts/omap4.dtsi                       |   41 ++++++++++++++++
->>>  arch/arm/boot/dts/omap5.dtsi                       |   41 ++++++++++++++++
->>>  5 files changed, 185 insertions(+)
->>>  create mode 100644 Documentation/devicetree/bindings/dma/omap-sdma.txt
+>>> Is the problem that the dummy timer is being registered as the broadcast
+>>> source, or that it is selected as a local timer in preference of real timers?
 >>>
->>> diff --git a/Documentation/devicetree/bindings/dma/omap-sdma.txt b/Documentation/devicetree/bindings/dma/omap-sdma.txt
->>> new file mode 100644
->>> index 0000000..22aab28
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/dma/omap-sdma.txt
->>> @@ -0,0 +1,51 @@
->>> +* TI OMAP SDMA controller
->>> +
->>> +Required properties:
->>> +- compatible:		Should be set to one of the following:
->>> +
->>> +			ti,omap2420-sdma (omap2420)
->>> +			ti,omap2430-sdma (omap2430)
->>> +			ti,omap3430-sdma (omap3430)
->>> +			ti,omap3630-sdma (omap3630)
->>> +			ti,omap4430-sdma (omap4430 & omap4460 & omap543x)
->>> +
->>> +- reg: 			Contains DMA registers location and length.
->>> +- interrupts: 		Contains DMA interrupt information.
->>> +- #dma-cells: 		Must be 1.
->>> +- #dma-channels:	Contains total number of programmable DMA channels.
->>> +- #dma-requests:	Contains total number of DMA requests.
->>> +
->>> +Example:
->>> +
->>> +	sdma: dma-controller@4A056000 {
->>> +		compatible = "ti,omap-sdma";
->>> +		reg = <0x4A056000 0x1000>;
+>> Dummy timer is preferred over real broadcast timer.
+> 
+> Ok.
+> 
+>>  
+>>> If it is the former, Then I believe my patch solve the issue more generally -
+>>> if you happen to register a dummy timer before other timers, it will become the
+>>> broadcast source. Regardless of how temporary this is, it should never happen,
+>>> and lowering the rating of the dummy won't fix this.
+>>>
+>> Well by the time we need active broadcast functionality, clock-events are
+>> already chosen if the ratings are appropriate.
+> 
+> That's a fair point. I still think it's worth having the check in the core
+> broadcast code - rejecting dummy timers is always a sensible thing to do, and
+> it prevents future crashes if new timers are added without sensible rating
+> values.
+> 
 >>
+>>> If it is the latter, then this patch would ensure that a real timer with a
+>>> rating over 100 is selected in preference to the dummy, which is certainly what
+>>> we want. The proposed generic dummy timer in Stephen Boyd's local timer API
+>>> removal series [1] similarly uses a low rating to ensure that real timers are
+>>> selected in preference to an always-registered dummy. I note that the
+>>> architected timer has a higher rating (450) than the dummy (400), so this
+>>> shouldn't currently be a problem.
+>>>
+>> Because we always register dummy broadcast on ARM now 
+>> and with higher rating, it is picked as broadcast source. We definitely don't
+>> want such a behavior when we have real broadcast device is available.
+> 
+> Agreed. We *never* want to pick a dummy timer as a broadcast source, as this
+> never makes sense.
+> 
+>> With your patch, we are trying to avoid the registration which goes
+>> against the the whole idea of registering it always and picking
+>> the right clock-event based on rating by clock-event core.
+>> The clock-event core except the proper ratings to be provided based on
+>> the capability of the timer source and its resolution and in that case
+>> dummy should have the lowest rating which is what I tried to patch.
 >>
->> Nit: you do have several hexa values in upper case, here and in some dts
->> as well.
+>>> Have I missed something?
+>>>
+>> Not much. I was just looking at x86 code as well after your email
+>> to see how the LAPIC issue is handled. They seems to also have
+>> correct rating to take care of the selection.
+>>
+>> Probably we can merge both the fixes but from clock-event core
+>> code perspective, the ratings fix is more than enough.
 > 
-> Yes will fix that too.
+> I do agree it'd be worth lowering the dummy timer's rating to ensure it doesn't
+> override a real timer elsewhere. 
 > 
-> Cheers
-> Jon
-> 
-> [1]
-> http://www.mail-archive.com/devicetree-discuss@lists.ozlabs.org/msg28050.html
-> 
+Yep. Can I add you acked-by tag then for $subject patch ?
+Would be good to get this one merged as well.
+
+Regards
+Santosh
 
