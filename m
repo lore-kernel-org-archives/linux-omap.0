@@ -1,38 +1,67 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: Excessive ethernet interrupts on AM335x board
-Date: Wed, 13 Mar 2013 09:44:15 +0100
-Message-ID: <85569979-6B4C-46D0-BDC8-B70785375D64@dominion.thruhere.net>
-References: <513F4B58.1000204@mimc.co.uk>
-Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:44809 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755287Ab3CMIoT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 04:44:19 -0400
-Received: by mail-ee0-f46.google.com with SMTP id e49so308915eek.19
-        for <linux-omap@vger.kernel.org>; Wed, 13 Mar 2013 01:44:18 -0700 (PDT)
-In-Reply-To: <513F4B58.1000204@mimc.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 5/5] usb: otg: twl4030: fix cold plug on OMAP3
+Date: Wed, 13 Mar 2013 14:17:10 +0530
+Message-ID: <1363164430-19118-6-git-send-email-kishon@ti.com>
+References: <1363164430-19118-1-git-send-email-kishon@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1363164430-19118-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: tony@atomide.com, notasas@gmail.com, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
 
+Having twl4030_usb_phy_init() (detects if a cable is connected before
+twl4030 is probed) in twl4030 probe makes cable connect events to be
+missed by musb glue, since it gets loaded after twl4030. Having
+twl4030_usb_phy_init as a usb_phy ops lets twl4030_usb_phy_init to be
+called when glue is ready.
 
-Op 12 mrt. 2013, om 16:35 heeft Mark Jackson <mpfj-list@mimc.co.uk> het volgende geschreven:
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/usb/otg/twl4030-usb.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-> I'm just fighting an issue with ethernet on our custom AM335x board:-
-> 
-> # uname -a
-> Linux nanobone 3.9.0-rc2-00113-gd60f039 #139 Tue Mar 12 15:14:01 GMT 2013 armv7l GNU/Linux
-> 
-> Every now and then, the whole unit slows to a crawl.  The only indication of any problem is:-
-> 
-> (a) the serial tty port becomes much less responsive
-> (b) normal ping times jump from 1ms to >10sec (sometimes >20sec !!)
-> (c) the ethernet interrupt count rockets (see below)
-
-You probably have PG2.x silicon, have a look at this patch: https://github.com/beagleboard/kernel/blob/3.8/patches/net/0003-cpsw-Fix-interrupt-storm-among-other-things.patch
-
-I saw some patches going into net-next today that might address this in a different way, but I haven't tried 3.9rc on an am335x yet.
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 5b20bb4..4040124 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -565,8 +565,9 @@ static void twl4030_id_workaround_work(struct work_struct *work)
+ 	}
+ }
+ 
+-static void twl4030_usb_phy_init(struct twl4030_usb *twl)
++static int twl4030_usb_phy_init(struct usb_phy *phy)
+ {
++	struct twl4030_usb *twl = phy_to_twl(phy);
+ 	enum omap_musb_vbus_id_status status;
+ 
+ 	/*
+@@ -581,6 +582,7 @@ static void twl4030_usb_phy_init(struct twl4030_usb *twl)
+ 		omap_musb_mailbox(twl->linkstat);
+ 
+ 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
++	return 0;
+ }
+ 
+ static int twl4030_set_suspend(struct usb_phy *x, int suspend)
+@@ -657,6 +659,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 	twl->phy.otg		= otg;
+ 	twl->phy.type		= USB_PHY_TYPE_USB2;
+ 	twl->phy.set_suspend	= twl4030_set_suspend;
++	twl->phy.init		= twl4030_usb_phy_init;
+ 
+ 	otg->phy		= &twl->phy;
+ 	otg->set_host		= twl4030_set_host;
+@@ -696,8 +699,6 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 		return status;
+ 	}
+ 
+-	twl4030_usb_phy_init(twl);
+-
+ 	dev_info(&pdev->dev, "Initialized TWL4030 USB module\n");
+ 	return 0;
+ }
+-- 
+1.7.10.4
