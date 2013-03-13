@@ -1,104 +1,67 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH 1/1] ARM: OMAP: board-4430sdp: Provide regulator to
- pwm-backlight
-Date: Wed, 13 Mar 2013 08:09:02 +0100
-Message-ID: <20130313070902.GB25940@avionic-0098.mockup.avionic-design.de>
-References: <1363053266-515-1-git-send-email-achew@nvidia.com>
- <20130312070104.GB6467@avionic-0098.mockup.avionic-design.de>
- <643E69AA4436674C8F39DCC2C05F7638629CA516BD@HQMAIL03.nvidia.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 4/4] omapdss: features: fixed supported outputs for OMAP4
+Date: Wed, 13 Mar 2013 09:28:52 +0200
+Message-ID: <51402AB4.50702@ti.com>
+References: <1362493070-17706-1-git-send-email-archit@ti.com> <1362493070-17706-5-git-send-email-archit@ti.com> <513DCE08.20404@ti.com> <513EC63A.5060707@ti.com> <513F05A0.6040204@ti.com> <513F2639.5060008@ti.com> <513F2F82.2040604@ti.com> <513F354F.40701@ti.com> <513F3BBA.6010209@ti.com> <513F4348.3080203@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Bn2rw/3z4jIqBvZU"
+	protocol="application/pgp-signature";
+	boundary="------------enigC87E4F3F9D3117C265AA7D9D"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:64741 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755280Ab3CMHJK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 03:09:10 -0400
-Content-Disposition: inline
-In-Reply-To: <643E69AA4436674C8F39DCC2C05F7638629CA516BD@HQMAIL03.nvidia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:32830 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754489Ab3CMH3A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Mar 2013 03:29:00 -0400
+In-Reply-To: <513F4348.3080203@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Chew <AChew@nvidia.com>
-Cc: "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, Alex Courbot <acourbot@nvidia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Archit Taneja <archit@ti.com>
+Cc: robdclark@gmail.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-
---Bn2rw/3z4jIqBvZU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--------------enigC87E4F3F9D3117C265AA7D9D
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Mar 12, 2013 at 12:11:54PM -0700, Andrew Chew wrote:
-> > From: Thierry Reding [mailto:thierry.reding@avionic-design.de]
-> > Sent: Tuesday, March 12, 2013 12:01 AM
-> > To: Andrew Chew
-> > Cc: peter.ujfalusi@ti.com; Alex Courbot; linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH 1/1] ARM: OMAP: board-4430sdp: Provide regulator to
-> > pwm-backlight
-> >=20
-> > * PGP Signed by an unknown key
-> >=20
-> > On Mon, Mar 11, 2013 at 06:54:26PM -0700, Andrew Chew wrote:
-> > > The pwm-backlight driver now takes a mandatory regulator that is
-> > > gotten during driver probe.  Initialize a dummy regulator to satisfy
-> > > this requirement.
-> > >
-> > > Signed-off-by: Andrew Chew <achew@nvidia.com>
-> > > ---
-> > > This patch, along with many more soon to follow, attempts to satisfy
-> > > the new mandatory regulator that pwm-backlight will grab during probe.
-> > > The only board in mach-omap2 to use the pwm-backlight appears to be t=
-he
-> > 4430sdp.
-> > >
-> > > I thought I'd start small and use this board as an example.
-> > >
-> > > I tested similar code in my Tegra board, so it should be okay.  Of
-> > > course, I don't have a 4430sdp to test with.
-> >=20
-> > Hi Andrew,
-> >=20
-> > This looks good, one minor comment below. I think it might make sense to
-> > post this patch as part of a series that includes the change to the pwm-
-> > backlight driver. This will make things easier on potential testers.
-> > You can later extend that series to include all the other users and eve=
-ntually
-> > the whole series can be merged.
+On 2013-03-12 17:01, Archit Taneja wrote:
+
+> So, what I'm saying is that we should stick to output->dispc_channel. W=
+e
+> iterate through all the panels, and by using output->dispc_channel, we
+> get the manager for an output, and map that manager to a crtc, and make=
+
+> sure the number of unique managers we finally use is equal to NUM_CRTC.=
+
 >=20
-> Do you mean I should do a single patch series, accumulating other boards
-> as I go?
+> Does that sound good?
 
-Yes, that way everything needed will be in one patch series and people
-can easily apply that to their trees. It will also make things easier if
-we decide to merge all of them through one tree in the end.
+Yes, I think that sounds good.
 
-> And by the way, do I have your reviewed-by for the pwm-backlight regulator
-> patch?
+ Tomi
 
-I think it looks good, but I'll go over it again in your repost of the
-whole series. I don't think you need my Reviewed-by, though, since I
-maintain the pwm-backlight driver. =3D)
 
-Thierry
 
---Bn2rw/3z4jIqBvZU
-Content-Type: application/pgp-signature
+--------------enigC87E4F3F9D3117C265AA7D9D
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJRQCYOAAoJEN0jrNd/PrOhc+UP/1NYnkDe7hCZFGx2M7kUvOgX
-priIkb1i725TuCOqz6Q/45kyS88BRsFXVLTblDQW7IlT9igknPnLff+WtSc+kefg
-qZaSkNHJx4cuUoNuyxwhbFBqI7Czi9BRUrsLC++Q/Lm4/qkJC+eVb7LiH6I26lRe
-QI/OEchJPjjqMoZ+MX/Td/0VDDMvYuC4uKofN/1WYQtxVaPdT3xmm3l3t9Rj1mc4
-29seYAMVE7PblqUqtk+WNczPgWBQhodbpJs6HivQx23ZN5P90NSVpRxWc5/84Oi7
-h6MG7ISUywt/1vv9DkK6ftLrxwyyPB+2M5zepsh/qNoLH8FbgEZoRMJr+DcEpwFN
-qncvi7UCLyMn5q6ct0YUyl5kfvhCGOLNysZVDuJSs1UEqybsaddZPkrYXoay94Sc
-SMO+QtqiTygNLGtRlrLzv0JqrNd/BtNUSuCrqYqinTAwE+zbLucSRXyLPHp34Lr5
-8nCCzQ9tE0Nok3JpKiTW6qSJKO/lu/Rrrx0808fHWPX2IAnh+NYiGuVwlS7g4rJD
-2QOhDtOvoIaQWJpXJACbYktXiPaXc+H+eG/Fe8CkfyKOO8YHlDRQgmtkD7yX8u/x
-CdAHPdb8+U9/cVpAeGt2Z34Fz6us6dXuJhY2ZE+B8UHlqdV5mda2L++ZdfGO2C54
-VZr6JlQU942/BSlaapoy
-=fG7t
+iQIcBAEBAgAGBQJRQCq3AAoJEPo9qoy8lh71km4P/jO3QzITp9LO8j9HwcbcsLQX
+AsKce5Vt38BLCpaS6D42CIBEsivY3XSzqsfJ0QKUMw1ecVTEe8TJhIcA2121OVAX
+Ijw8but3PSbzZBJz8LTMUasDf97/u/H/ZR0WwS3ONmlpfX1n2bE1LWkZg8nlR0Cu
+IfDfs447ywRrFADgQ7j0+bySoFuLke5sh0/5kfvrnncOcBwijypXcg71gtkuCoBp
+7bD8N/mN5e2UL8SOEmzkzFkD6ceg75brSHEwg+E/dPUpxeA4aD5XZ12/dkCPVPkx
+G68elo6SnERZ7GAG6VY3vtRVRZwkrn94pqo8/fGmiM4B+ItlD73dYFlKRSVEg53O
+Xy7R5QBQZs53N6wXfb5ch0OngNT4wXGfOs6zYM9gITkifmX+fS6rjWj0fnZ3fG3A
+OVQ3YZyR7LlOFXKwWdDoxDoGKPBdERAR/NqLDaIOEHtaTCDsHqtqWLir6af6aBxS
+xlecKGgFFFYSNzbtZRX96XtGxVJbvViBpKI8IwX/5BtSK3zfd7oIj7d1JT0Zcuhr
+RFQ5RR1nzSLUnvoqny9p2K2KXcNDpUrhqPIogYv2hn5kkHhz6DZh7uqOOmQ5i0oU
+hdCs8LmuIvddYFH46k7TbHRBoBhSMqV2mTgSOX8qkKT5JTe/FvVaIG9ar8kIpZQ1
+cv0RFQGBMDYrN20X+bq7
+=DPDE
 -----END PGP SIGNATURE-----
 
---Bn2rw/3z4jIqBvZU--
+--------------enigC87E4F3F9D3117C265AA7D9D--
