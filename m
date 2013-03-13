@@ -1,79 +1,38 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
+From: Artem Bityutskiy <dedekind1@gmail.com>
 Subject: Re: MTD : Kernel oops when remounting ubifs as read/write
-Date: Wed, 13 Mar 2013 11:12:58 +0000
-Message-ID: <51405F3A.3090901@mimc.co.uk>
-References: <5134CEF9.5070502@mimc.co.uk> <1363087506.3348.62.camel@sauron.fi.intel.com>
+Date: Wed, 13 Mar 2013 13:20:38 +0200
+Message-ID: <1363173638.11441.24.camel@sauron.fi.intel.com>
+References: <5134CEF9.5070502@mimc.co.uk>
+	 <1363087506.3348.62.camel@sauron.fi.intel.com>
+	 <51405F3A.3090901@mimc.co.uk>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363087506.3348.62.camel@sauron.fi.intel.com>
+In-Reply-To: <51405F3A.3090901@mimc.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: dedekind1@gmail.com
+To: Mark Jackson <mpfj-list@mimc.co.uk>
 Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, adrian.hunter@intel.com
 List-Id: linux-omap@vger.kernel.org
 
-On 12/03/13 11:25, Artem Bityutskiy wrote:
-> On Mon, 2013-03-04 at 16:42 +0000, Mark Jackson wrote:
->> I'm encountering an oops when remounting my ubifs volume as read/write.
->>
->> # mount -o remount,rw /
->> [   89.434974] UBIFS assert failed in ubifs_write_node at 869 (pid 628)
->> [   89.442122] [<c001b124>] (unwind_backtrace+0x0/0xf0) from [<c01ad7d4>] (ubifs_write_node+0x180/0x1c4)
->> [   89.451896] [<c01ad7d4>] (ubifs_write_node+0x180/0x1c4) from [<c01b3878>] (ubifs_write_master+0x9c/0x134)
->> [   89.462018] [<c01b3878>] (ubifs_write_master+0x9c/0x134) from [<c01a79a4>] (ubifs_remount_fs+0x5d4/0x7f8)
->> [   89.472133] [<c01a79a4>] (ubifs_remount_fs+0x5d4/0x7f8) from [<c010dbf4>] (do_remount_sb+0x98/0x16c)
->> [   89.481790] [<c010dbf4>] (do_remount_sb+0x98/0x16c) from [<c0128268>] (do_mount+0x830/0x888)
->> [   89.490708] [<c0128268>] (do_mount+0x830/0x888) from [<c0128344>] (sys_mount+0x84/0xb8)
->> [   89.499178] [<c0128344>] (sys_mount+0x84/0xb8) from [<c0013800>] (ret_fast_syscall+0x0/0x3c)
->> [   89.510997] UBIFS assert failed in ubifs_write_node at 869 (pid 628)
->> [   89.517884] [<c001b124>] (unwind_backtrace+0x0/0xf0) from [<c01ad7d4>] (ubifs_write_node+0x180/0x1c4)
->> [   89.527641] [<c01ad7d4>] (ubifs_write_node+0x180/0x1c4) from [<c01b38b4>] (ubifs_write_master+0xd8/0x134)
->> [   89.537760] [<c01b38b4>] (ubifs_write_master+0xd8/0x134) from [<c01a79a4>] (ubifs_remount_fs+0x5d4/0x7f8)
->> [   89.547869] [<c01a79a4>] (ubifs_remount_fs+0x5d4/0x7f8) from [<c010dbf4>] (do_remount_sb+0x98/0x16c)
->> [   89.557526] [<c010dbf4>] (do_remount_sb+0x98/0x16c) from [<c0128268>] (do_mount+0x830/0x888)
->> [   89.566435] [<c0128268>] (do_mount+0x830/0x888) from [<c0128344>] (sys_mount+0x84/0xb8)
->> [   89.574905] [<c0128344>] (sys_mount+0x84/0xb8) from [<c0013800>] (ret_fast_syscall+0x0/0x3c)
->> [   89.585939] UBIFS: start fixing up free space
->> [   89.592237] UBIFS: background thread "ubifs_bgt0_0" started, PID 629
->> [   91.419951] UBIFS: free space fixup complete
->> #
->>
->> If it's any help, if the remount is put into my inittab, I don't get any oops.
+On Wed, 2013-03-13 at 11:12 +0000, Mark Jackson wrote:
+> > -	if (c->space_fixup) {
+> > -		err = ubifs_fixup_free_space(c);
+> > -		if (err)
+> > -			goto out;
+> > -	}
+> > -
+> >  	mutex_unlock(&c->umount_mutex);
+> >  	return err;
+> > 
 > 
-> Would you please try this patch (also attached):
-> 
-> diff --git a/fs/ubifs/super.c b/fs/ubifs/super.c
-> index ac838b8..9791b3c 100644
-> --- a/fs/ubifs/super.c
-> +++ b/fs/ubifs/super.c
-> @@ -1568,6 +1568,12 @@ static int ubifs_remount_rw(struct ubifs_info *c)
->  	c->remounting_rw = 1;
->  	c->ro_mount = 0;
->  
-> +	if (c->space_fixup) {
-> +		err = ubifs_fixup_free_space(c);
-> +		if (err)
-> +			goto out;
-> +	}
-> +
->  	err = check_free_space(c);
->  	if (err)
->  		goto out;
-> @@ -1684,12 +1690,6 @@ static int ubifs_remount_rw(struct ubifs_info *c)
->  		err = dbg_check_space_info(c);
->  	}
->  
-> -	if (c->space_fixup) {
-> -		err = ubifs_fixup_free_space(c);
-> -		if (err)
-> -			goto out;
-> -	}
-> -
->  	mutex_unlock(&c->umount_mutex);
->  	return err;
-> 
+> Sorry ... this just locks up the unit.
 
-Sorry ... this just locks up the unit.
+Am I right that to reproduce it I need any image with the 'fixup' flag
+set, then I should put it on the flash, mount it R/O and then remount
+R/W. Right?
 
-Mark J.
+-- 
+Best Regards,
+Artem Bityutskiy
