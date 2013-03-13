@@ -1,70 +1,59 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 00/24] ARM: OMAP2+: Adapt to ehci-omap changes for 3.10
-Date: Wed, 13 Mar 2013 15:41:47 +0200
-Message-ID: <5140821B.2030902@ti.com>
-References: <1363088606-2692-1-git-send-email-rogerq@ti.com>
- <20130312164007.GZ26093@atomide.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
+ of always dummy
+Date: Wed, 13 Mar 2013 15:19:07 +0100 (CET)
+Message-ID: <alpine.LFD.2.02.1303131516090.22263@ionos>
+References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com> <514046B6.9020005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20130312164007.GZ26093-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:46575 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933440Ab3CMOTM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 10:19:12 -0400
+In-Reply-To: <514046B6.9020005@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>
 
-On 03/12/2013 06:40 PM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [130312 04:47]:
->> Hi Tony,
->>
->> These patches provide the SoC side code required to support
->> the changes in the OMAP USB Host drivers done in [1], [2] & [3].
-> ... 
-> 
->>  arch/arm/mach-omap2/board-3430sdp.c                |   97 +++++++++++++++-
->>  arch/arm/mach-omap2/board-3630sdp.c                |  100 +++++++++++++++-
->>  arch/arm/mach-omap2/board-am3517crane.c            |   95 +++++++++++++--
->>  arch/arm/mach-omap2/board-am3517evm.c              |   66 ++++++++++-
->>  arch/arm/mach-omap2/board-cm-t35.c                 |   95 ++++++++++++++-
->>  arch/arm/mach-omap2/board-cm-t3517.c               |   97 +++++++++++++++-
->>  arch/arm/mach-omap2/board-devkit8000.c             |   20 ++--
->>  arch/arm/mach-omap2/board-generic.c                |   67 +++++++++++
->>  arch/arm/mach-omap2/board-igep0020.c               |  112 ++++++++++++++++---
->>  arch/arm/mach-omap2/board-omap3beagle.c            |   93 +++++++++++++--
->>  arch/arm/mach-omap2/board-omap3evm.c               |   62 ++++++++--
->>  arch/arm/mach-omap2/board-omap3pandora.c           |   52 +++++++--
->>  arch/arm/mach-omap2/board-omap3stalker.c           |   52 +++++++-
->>  arch/arm/mach-omap2/board-omap3touchbook.c         |   62 +++++++++-
->>  arch/arm/mach-omap2/board-omap4panda.c             |  122 ++++++++++++++------
->>  arch/arm/mach-omap2/board-overo.c                  |   54 ++++++++-
->>  arch/arm/mach-omap2/board-zoom.c                   |   56 ++++++++-
-> 
-> Can't you have some mach-omap2/ehci-common.c that takes care
-> of the initializiation to avoid this much addition to the
-> board-*.c files? You may be able to have just a common function
-> to do it and pass few parameters?
+On Wed, 13 Mar 2013, Santosh Shilimkar wrote:
+> On Wednesday 13 March 2013 02:36 PM, Santosh Shilimkar wrote:
+> > With recent arm broadcast time clean-up from Mark Rutland, the dummy
+> > broadcast device is always registered with timer subsystem. And since
+> > the rating of the dummy clock event is very high, it is preferred
+> > over a real broad-cast clock event.
+> > 
+> > This is a change in behavior from past and not an intended
+> > one. So reduce the rating of the dummy clockevent so that
+> > real broadcast device is selected when available.
+> > 
+> > Without this all the C states with C3STOP won't work since
+> > the broad cast notifier will take an abort.
+> > 
+> > Cc: Mark Rutland <mark.rutland@arm.com>
+> > Cc: Russell King <linux@arm.linux.org.uk>
+> > 
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > ---
+> > Its a regression so hopefully can get into the 3.9-rcx. Noticed
+> > this one on A15 platform. A9 platform the issue may not be seen
+> > since the local timer check avoids dummy timer registration.
+> > 
+> Some one pointed me to a fix made by Mark which was discussed
+> under '[BUG] ARM Architected timers appear broken in 3.9-rc1' subject.
+> That patch seems to be more of work around since the root of the
+> problem is incorrect dummy timer rating. Either way, both patches
+> fix the issue.
 
-Since we moved reset and power handling for the USB PHYs from omap-echi
-driver into the USB PHY driver we need to define the regulator data
-for RESET and Power line of each PHY. So most of the code added is just
-regulator data for the PHY rather than omap-ehci.
+Well, using a dummy timer as the broadcast event device is a bug, no
+matter what the rating is. The fix is in Linus tree already.
 
-Instead of a common function, I can implement some macros that make it
-easier to define the regulators for the PHY in the board files.
-Does this sound OK?
+Though making the rating of the dummy lower is definitely a good
+thing, so a real hardware device which is detected later can replace
+the dummy device. So yes, the rating should be low for the dummy
+timer.
 
-Personally I don't like such macros because it hides the implementation
-and is difficult to read/debug.
+Thanks,
 
-cheers,
--roger
+	tglx
