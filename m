@@ -1,121 +1,89 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection
- instead of always dummy
-Date: Wed, 13 Mar 2013 12:25:50 +0000
-Message-ID: <20130313122550.GD13483@e106331-lin.cambridge.arm.com>
-References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com>
- <514046B6.9020005@ti.com>
- <20130313101641.GA13483@e106331-lin.cambridge.arm.com>
- <514061D1.20603@ti.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if system
+ supports 'has_ossr'
+Date: Wed, 13 Mar 2013 17:59:20 +0530
+Message-ID: <51407120.7030709@ti.com>
+References: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com> <51406BA7.8010306@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:45654 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751901Ab3CMM0N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Mar 2013 08:26:13 -0400
-Content-Disposition: inline
-In-Reply-To: <514061D1.20603@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51406BA7.8010306@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Will Deacon <Will.Deacon@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
 
-On Wed, Mar 13, 2013 at 11:24:01AM +0000, Santosh Shilimkar wrote:
-> On Wednesday 13 March 2013 03:46 PM, Mark Rutland wrote:
-> > Hi Santosh,
-> > 
-> > On Wed, Mar 13, 2013 at 09:28:22AM +0000, Santosh Shilimkar wrote:
-> >> (Forgot to CC Thomas)
-> >>
-> >> On Wednesday 13 March 2013 02:36 PM, Santosh Shilimkar wrote:
-> >>> With recent arm broadcast time clean-up from Mark Rutland, the dummy
-> >>> broadcast device is always registered with timer subsystem. And since
-> >>> the rating of the dummy clock event is very high, it is preferred
-> >>> over a real broad-cast clock event.
-> >>>
-> >>> This is a change in behavior from past and not an intended
-> >>> one. So reduce the rating of the dummy clockevent so that
-> >>> real broadcast device is selected when available.
-> >>>
-> >>> Without this all the C states with C3STOP won't work since
-> >>> the broad cast notifier will take an abort.
-> >>>
-> >>> Cc: Mark Rutland <mark.rutland@arm.com>
-> >>> Cc: Russell King <linux@arm.linux.org.uk>
-> >>>
-> >>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> >>> ---
-> >>> Its a regression so hopefully can get into the 3.9-rcx. Noticed
-> >>> this one on A15 platform. A9 platform the issue may not be seen
-> >>> since the local timer check avoids dummy timer registration.
-> >>>
-> >> Some one pointed me to a fix made by Mark which was discussed
-> >> under '[BUG] ARM Architected timers appear broken in 3.9-rc1' subject.
-> >> That patch seems to be more of work around since the root of the
-> >> problem is incorrect dummy timer rating. Either way, both patches
-> >> fix the issue.
-> > 
-> > Is the problem that the dummy timer is being registered as the broadcast
-> > source, or that it is selected as a local timer in preference of real timers?
-> >
-> Dummy timer is preferred over real broadcast timer.
+Hi Dietmar,
+On Wednesday 13 March 2013 05:35 PM, Dietmar Eggemann wrote:
+> On 13/03/13 06:52, Lokesh Vutla wrote:
+>> Commit {9a6eb31 ARM: hw_breakpoint: Debug powerdown support for
+>> self-hosted
+>> debug} introduces debug powerdown support for self-hosted debug.
+>> While merging the patch 'has_ossr' check was removed which
+>> was needed for hardwares which doesn't support self-hosted debug.
+>> Pandaboard (A9) is one such hardware and Dietmar's orginial
+>> patch did mention this issue.
+>> Without that check on Panda with CPUIDLE enabled, a flood of
+>> below messages thrown.
+>>
+>> [ 3.597930] hw-breakpoint: CPU 0 failed to disable vector catch
+>> [ 3.597991] hw-breakpoint: CPU 1 failed to disable vector catch
+>>
+>
+> Hi Lokesh,
+>
+> I confirm that this has_ossr condition has to go back into the
+> pm_init(void) call. I just verified it again on my Panda board and I get
+> the same issue like you without it.
+>
+> I guess what was happening is that Will asked me if this check is really
+> necessary and I said No without re-testing on my Panda board as an V7
+> debug architecture example where OSSR is not implemented. Since then I
+> only tested in on V7.1 debug architectures where OSSR is mandatory.
+> Sorry about this and thanks for catching this.
+Thanks for confirming..:)
 
-Ok.
+Regards,
+Lokesh
 
->  
-> > If it is the former, Then I believe my patch solve the issue more generally -
-> > if you happen to register a dummy timer before other timers, it will become the
-> > broadcast source. Regardless of how temporary this is, it should never happen,
-> > and lowering the rating of the dummy won't fix this.
-> > 
-> Well by the time we need active broadcast functionality, clock-events are
-> already chosen if the ratings are appropriate.
-
-That's a fair point. I still think it's worth having the check in the core
-broadcast code - rejecting dummy timers is always a sensible thing to do, and
-it prevents future crashes if new timers are added without sensible rating
-values.
-
-> 
-> > If it is the latter, then this patch would ensure that a real timer with a
-> > rating over 100 is selected in preference to the dummy, which is certainly what
-> > we want. The proposed generic dummy timer in Stephen Boyd's local timer API
-> > removal series [1] similarly uses a low rating to ensure that real timers are
-> > selected in preference to an always-registered dummy. I note that the
-> > architected timer has a higher rating (450) than the dummy (400), so this
-> > shouldn't currently be a problem.
-> > 
-> Because we always register dummy broadcast on ARM now 
-> and with higher rating, it is picked as broadcast source. We definitely don't
-> want such a behavior when we have real broadcast device is available.
-
-Agreed. We *never* want to pick a dummy timer as a broadcast source, as this
-never makes sense.
-
-> With your patch, we are trying to avoid the registration which goes
-> against the the whole idea of registering it always and picking
-> the right clock-event based on rating by clock-event core.
-> The clock-event core except the proper ratings to be provided based on
-> the capability of the timer source and its resolution and in that case
-> dummy should have the lowest rating which is what I tried to patch.
-> 
-> > Have I missed something?
-> > 
-> Not much. I was just looking at x86 code as well after your email
-> to see how the LAPIC issue is handled. They seems to also have
-> correct rating to take care of the selection.
-> 
-> Probably we can merge both the fixes but from clock-event core
-> code perspective, the ratings fix is more than enough.
-
-I do agree it'd be worth lowering the dummy timer's rating to ensure it doesn't
-override a real timer elsewhere. 
-
-Thomas has already pulled my fix into tip timers/urgent [1].
-
-[1] https://git.kernel.org/cgit/linux/kernel/git/tip/tip.git/commit/?h=timers/urgent&id=a7dc19b8652c862d5b7c4d2339bd3c428bd29c4a
-
-Thanks,
-Mark.
+>
+> You can add my Acked-by: if you wish.
+>
+> -- Dietmar
+>
+>> So restore that check back to avoid the mentioned issue.
+>>
+>> Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+>> Cc: Will Deacon <will.deacon@arm.com>
+>> Reported-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>> ---
+>>   arch/arm/kernel/hw_breakpoint.c |    3 ++-
+>>   1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/kernel/hw_breakpoint.c
+>> b/arch/arm/kernel/hw_breakpoint.c
+>> index 96093b7..0ba062d 100644
+>> --- a/arch/arm/kernel/hw_breakpoint.c
+>> +++ b/arch/arm/kernel/hw_breakpoint.c
+>> @@ -1049,7 +1049,8 @@ static struct notifier_block __cpuinitdata
+>> dbg_cpu_pm_nb = {
+>>
+>>   static void __init pm_init(void)
+>>   {
+>> -     cpu_pm_register_notifier(&dbg_cpu_pm_nb);
+>> +     if (has_ossr)
+>> +             cpu_pm_register_notifier(&dbg_cpu_pm_nb);
+>>   }
+>>   #else
+>>   static inline void pm_init(void)
+>>
+>
+> -- IMPORTANT NOTICE: The contents of this email and any attachments are
+> confidential and may also be privileged. If you are not the intended
+> recipient, please notify the sender immediately and do not disclose the
+> contents to any other person, use it for any purpose, or store or copy
+> the information in any medium.  Thank you.
+>
