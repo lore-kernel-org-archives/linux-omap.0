@@ -1,50 +1,103 @@
-From: "Kumar, Anil" <anilkumar.v@ti.com>
-Subject: RE: [PATCH 4/9] ARM: dts: OMAP3: Add support for OMAP3430 SDP board
-Date: Wed, 13 Mar 2013 02:59:59 +0000
-Message-ID: <F3DBB1B3EF102E4994C89758CFCA32412CE851@DBDE01.ent.ti.com>
-References: <1362763654-9660-1-git-send-email-jon-hunter@ti.com>
- <1362763654-9660-5-git-send-email-jon-hunter@ti.com>
- <CABYxbz7Bg3Uf2wkhH=4d6nEPUjyHF8BiixN6rGCOgEVG_us8Jw@mail.gmail.com>
- <513E1A1C.8070206@ti.com>
- <F3DBB1B3EF102E4994C89758CFCA32412CE371@DBDE01.ent.ti.com>
- <513F9DA8.4090200@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCHv3 01/14] mailbox: rename pl320-ipc specific mailbox.h
+Date: Tue, 12 Mar 2013 22:23:50 -0500
+Message-ID: <1363145030-14373-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49377 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755587Ab3CMDAK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Mar 2013 23:00:10 -0400
-In-Reply-To: <513F9DA8.4090200@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ohad Ben-Cohen <ohad@wizery.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic Pallardy <loic.pallardy@st.com>, Suman Anna <s-anna@ti.com>, Mark Langsdorf <mark.langsdorf@calxeda.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Anil Kumar <anilk4.v@gmail.com>
 
-T24gV2VkLCBNYXIgMTMsIDIwMTMgYXQgMDI6NTc6MDQsIEh1bnRlciwgSm9uIHdyb3RlOg0KPiAN
-Cj4gT24gMDMvMTEvMjAxMyAwOTo0MiBQTSwgS3VtYXIsIEFuaWwgd3JvdGU6DQo+ID4gDQo+ID4g
-T24gTW9uLCBNYXIgMTEsIDIwMTMgYXQgMjM6MjM6MzIsIEh1bnRlciwgSm9uIHdyb3RlOg0KPiA+
-Pg0KPiA+PiBPbiAwMy8wOC8yMDEzIDA4OjI1IFBNLCBBbmlsIEt1bWFyIHdyb3RlOg0KPiA+Pj4g
-SGkgSm9uLA0KPiA+Pj4NCj4gPj4+IE9uIEZyaSwgTWFyIDgsIDIwMTMgYXQgMTA6NTcgUE0sIEpv
-biBIdW50ZXIgPGpvbi1odW50ZXJAdGkuY29tPiB3cm90ZToNCj4gPj4+PiBBZGRzIGJhc2ljIGRl
-dmljZS10cmVlIHN1cHBvcnQgZm9yIE9NQVAzNDMwIFNEUCBib2FyZCB3aGljaCBoYXMgMjU2TUIN
-Cj4gPj4+PiBvZiBSQU0gYW5kIHVzZXMgdGhlIFRXTDQwMzAgcG93ZXIgbWFuYWdlbWVudCBJQy4N
-Cj4gPj4+DQo+ID4+PiBJIHRoaW5rIHRoaXMgYm9hcmQgc3VwcG9ydCBzaG91bGQgYmUgaW4gc2Vw
-YXJhdGUgcGF0Y2ggc2VyaWVzIHdpdGgNCj4gPj4+IHJlbGF0ZWQgcGF0Y2hlcy4NCj4gPj4NCj4g
-Pj4gV2VsbCBJIHdhbnRlZCB0byBrZWVwIHRoZW0gYWx0b2dldGhlciBzbyB0aGF0IEkgY2FuIHNl
-bmQgYSBwdWxsIHJlcXVlc3QNCj4gPj4gdG8gQmVub2l0IGFuZCBUb255Lg0KPiA+IA0KPiA+IFNv
-cnJ5LCBidXQgY2FuIHlvdSBwbGVhc2UgdGVsbCB3aGF0IG1ha2VzIHlvdSB0byB0aGluayB0aGF0
-IHlvdQ0KPiA+IGNhbiBzZW5kIHB1bGwgcmVxdWVzdCBvbmx5IHdoZW4gdGhleSBhcmUgYWx0b2dl
-dGhlciA/DQo+IA0KPiBUaGF0J3Mgbm90IHRoZSBwb2ludC4NCj4gIA0KPiA+IElzIHRoZXJlIGFu
-eSBsb2dpY2FsIGRlcGVuZGVuY3kgd2l0aCBvdGhlciBwYXRjaGVzIGV4Y2VwdCANCj4gPiAiW1BB
-VENIIDYvOV0gQVJNOiBkdHM6IEFkZCBPTUFQMzQzMCBTRFAgZmxhc2ggbWVtb3J5IGJpbmRpbmdz
-IiBpcyBvbiANCj4gPiB0b3Agb2YgdGhpcyBwYXRjaCA/DQo+IA0KPiBQZXIgdGhlICRzdWJqZWN0
-IG9mIHRoZSBzZXJpZXMgdGhlc2UgYSB2YXJpb3VzIERUIHBhdGNoZXMgSSBoYXZlIHBlbmRpbmcu
-DQo+IFllcyBJIGNvdWxkIGJyZWFrIHRoaXMgc2VyaWVzIHVwIGludG8gbWFueSBzZXBhcmF0ZSBz
-ZXJpZXMsIG9uZSBmb3IgUE1VLA0KPiBvbmUgZm9yIERNQSwgb25lIGZvciBHUE1DLCBvbmUgZm9y
-IE9NQVAzIFNEUCwgYnV0IEkgdGhvdWdodCBpdCB3b3VsZCBiZQ0KPiBlYXNpZXIgZm9yIFRvbnkg
-YW5kIEJlbm9pdCB0byBwdWxsIGFzIGEgc2luZ2xlIHNlcmllcy4NCg0KSSBhbSByZWFsbHkgU29y
-cnksIElmIEkgc2FpZCBhbnkgbm9uc2Vuc2UgaGVyZS4gSSBkaWQgbm90IGtub3cgdGhhdCANCndl
-IGNhbiBkbyBsaWtlIHRoYXQgYWxzby4NCg0KVGhhbmtzLA0KQW5pbA0K
+The patch 30058677 "ARM / highbank: add support for pl320 IPC"
+added a pl320 IPC specific header file as a generic mailbox.h.
+This file has been renamed appropriately to allow the
+introduction of the generic mailbox API framework.
+
+Signed-off-by: Suman Anna <s-anna@ti.com>
+Cc: Mark Langsdorf <mark.langsdorf@calxeda.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/cpufreq/highbank-cpufreq.c |  2 +-
+ drivers/mailbox/pl320-ipc.c        |  2 +-
+ include/linux/mailbox.h            | 17 -----------------
+ include/linux/pl320-ipc.h          | 17 +++++++++++++++++
+ 4 files changed, 19 insertions(+), 19 deletions(-)
+ delete mode 100644 include/linux/mailbox.h
+ create mode 100644 include/linux/pl320-ipc.h
+
+diff --git a/drivers/cpufreq/highbank-cpufreq.c b/drivers/cpufreq/highbank-cpufreq.c
+index b61b5a3..3118b87 100644
+--- a/drivers/cpufreq/highbank-cpufreq.c
++++ b/drivers/cpufreq/highbank-cpufreq.c
+@@ -19,7 +19,7 @@
+ #include <linux/cpu.h>
+ #include <linux/err.h>
+ #include <linux/of.h>
+-#include <linux/mailbox.h>
++#include <linux/pl320-ipc.h>
+ #include <linux/platform_device.h>
+ 
+ #define HB_CPUFREQ_CHANGE_NOTE	0x80000001
+diff --git a/drivers/mailbox/pl320-ipc.c b/drivers/mailbox/pl320-ipc.c
+index d873cba..f3755e0 100644
+--- a/drivers/mailbox/pl320-ipc.c
++++ b/drivers/mailbox/pl320-ipc.c
+@@ -26,7 +26,7 @@
+ #include <linux/device.h>
+ #include <linux/amba/bus.h>
+ 
+-#include <linux/mailbox.h>
++#include <linux/pl320-ipc.h>
+ 
+ #define IPCMxSOURCE(m)		((m) * 0x40)
+ #define IPCMxDSET(m)		(((m) * 0x40) + 0x004)
+diff --git a/include/linux/mailbox.h b/include/linux/mailbox.h
+deleted file mode 100644
+index 5161f63..0000000
+--- a/include/linux/mailbox.h
++++ /dev/null
+@@ -1,17 +0,0 @@
+-/*
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- *
+- * You should have received a copy of the GNU General Public License along with
+- * this program.  If not, see <http://www.gnu.org/licenses/>.
+- */
+-
+-int pl320_ipc_transmit(u32 *data);
+-int pl320_ipc_register_notifier(struct notifier_block *nb);
+-int pl320_ipc_unregister_notifier(struct notifier_block *nb);
+diff --git a/include/linux/pl320-ipc.h b/include/linux/pl320-ipc.h
+new file mode 100644
+index 0000000..5161f63
+--- /dev/null
++++ b/include/linux/pl320-ipc.h
+@@ -0,0 +1,17 @@
++/*
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++int pl320_ipc_transmit(u32 *data);
++int pl320_ipc_register_notifier(struct notifier_block *nb);
++int pl320_ipc_unregister_notifier(struct notifier_block *nb);
+-- 
+1.8.1.2
