@@ -1,45 +1,68 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH] usb: dwc3: Set DWC3 context's mode based on selected mode.
-Date: Wed, 13 Mar 2013 14:45:35 +0530
-Message-ID: <CAFp+6iHs6U9YRLn5-x4JwAyzF4rbfQYnBT1i0oCk-Lw6K2dkLQ@mail.gmail.com>
-References: <CAFp+6iGGAY=nMg03-bqHz=XuNP+1t9mQR=M53HGoqCXv=t+f0Q@mail.gmail.com>
-	<1362230724-21017-1-git-send-email-gautam.vivek@samsung.com>
-	<CAFp+6iFjiOPbZhdpWCq0agWBeSC+Vc19Ff++_3vxa6r-MburWg@mail.gmail.com>
-	<20130313091453.GE6270@arwen.pp.htv.fi>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
+ of always dummy
+Date: Wed, 13 Mar 2013 14:58:22 +0530
+Message-ID: <514046B6.9020005@ti.com>
+References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20130313091453.GE6270@arwen.pp.htv.fi>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, gregkh@linuxfoundation.org, Vivek Gautam <gautam.vivek@samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48135 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753114Ab3CMJ07 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Mar 2013 05:26:59 -0400
+In-Reply-To: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>
 
-On Wed, Mar 13, 2013 at 2:44 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Wed, Mar 13, 2013 at 02:42:22PM +0530, Vivek Gautam wrote:
->> Hi Balbi,
->>
->>
->> On Sat, Mar 2, 2013 at 6:55 PM, Vivek Gautam <gautam.vivek@samsung.com> wrote:
->> > Now that machines may select the mode of working of DWC3 (HOST only,
->> > GADGET only or DUAL_ROLE), lets set DWC3 mode based on that
->> > rather than fixing it to whatever DWC3 hardware says.
->> > This way we can skip initializing Gadget/Host in case
->> > we are using Host-only/Gadget-only mode respectively.
->> >
->>
->> Hope this patch if fine, and mainlinable ?
->
-> yes, it's in my testing branch, you will receive mail soon
->
+(Forgot to CC Thomas)
 
-Sure, thanks.
+On Wednesday 13 March 2013 02:36 PM, Santosh Shilimkar wrote:
+> With recent arm broadcast time clean-up from Mark Rutland, the dummy
+> broadcast device is always registered with timer subsystem. And since
+> the rating of the dummy clock event is very high, it is preferred
+> over a real broad-cast clock event.
+> 
+> This is a change in behavior from past and not an intended
+> one. So reduce the rating of the dummy clockevent so that
+> real broadcast device is selected when available.
+> 
+> Without this all the C states with C3STOP won't work since
+> the broad cast notifier will take an abort.
+> 
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+> Its a regression so hopefully can get into the 3.9-rcx. Noticed
+> this one on A15 platform. A9 platform the issue may not be seen
+> since the local timer check avoids dummy timer registration.
+> 
+Some one pointed me to a fix made by Mark which was discussed
+under '[BUG] ARM Architected timers appear broken in 3.9-rc1' subject.
+That patch seems to be more of work around since the root of the
+problem is incorrect dummy timer rating. Either way, both patches
+fix the issue.
 
-> --
-> balbi
+>  arch/arm/kernel/smp.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+> index 31644f1..79078ed 100644
+> --- a/arch/arm/kernel/smp.c
+> +++ b/arch/arm/kernel/smp.c
+> @@ -480,7 +480,7 @@ static void __cpuinit broadcast_timer_setup(struct clock_event_device *evt)
+>  	evt->features	= CLOCK_EVT_FEAT_ONESHOT |
+>  			  CLOCK_EVT_FEAT_PERIODIC |
+>  			  CLOCK_EVT_FEAT_DUMMY;
+> -	evt->rating	= 400;
+> +	evt->rating	= 100;
+>  	evt->mult	= 1;
+>  	evt->set_mode	= broadcast_timer_set_mode;
+>  
+> 
 
-
-
--- 
-Thanks & Regards
-Vivek
