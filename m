@@ -1,38 +1,35 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 11/12] USB: ehci-omap: Try to get PHY even if not in PHY
- mode
-Date: Thu, 14 Mar 2013 11:08:50 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1303141107420.1983-100000@iolanthe.rowland.org>
-References: <20130314140832.GH26080@arwen.pp.htv.fi>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130314140832.GH26080@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, gregkh@linuxfoundation.org, b-cousson@ti.com, mark.rutland@arm.com, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 0/3] ARM: OMAP2+: Add GPMC DT support for Ethernet child
+Date: Thu, 14 Mar 2013 16:09:19 +0100
+Message-ID: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:46294 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089Ab3CNPJg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 11:09:36 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On Thu, 14 Mar 2013, Felipe Balbi wrote:
+Hello Jon,
 
-> > >  		if (IS_ERR(phy) || !phy) {
-> > > +			/* Don't bail out if PHY is not absolutely necessary */
-> > > +			if (pdata->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY)
-> > > +				continue;
-> > > +
-> > >  			ret = IS_ERR(phy) ? PTR_ERR(phy) : -ENODEV;
-> > >  			dev_err(dev, "Can't get PHY device for port %d: %d\n",
-> > >  					i, ret);
-> > 
-> > Felipe, this is a strange interface.  Why do we sometimes get an 
-> > error-pointer and sometimes get just NULL?  Why not always an 
-> > error-pointer?
-> 
-> looks like we get NULL when PHY layer is disabled. Sounds like an
-> oversight to me. Do you want to send a patch, or do I cook one and put
-> yourself as Reported-by ?
+As discussed before [1], this patch-set adds DT support for ethernet
+controllers connected to a TI GPMC by making gpmc_probe_nor_child()
+a generic function and reusing it to initialize "ethernet" child
+devices nodes too. It also adds documentation about the DT binding.
 
-You're more familiar with that code.  "Reported-by" is good enough for 
-me.  :-)
+The patch-set is based on top of your omap-gpmc-for-v3.10 branch [2]
+and is composed of the following patches:
 
-Alan Stern
+[PATCH 1/3] ARM: OMAP2+: return -ENODEV if GPMC child device
+[PATCH 2/3] ARM: OMAP2+: rename gpmc_probe_nor_child() to gpmc_probe_generic_child()
+[PATCH 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet child
+
+This was tested on an TI OMAP3 DM3735 based board (IGEPv2)
+
+Thanks a lot and best regards,
+Javier
+
+[1]: https://patchwork.kernel.org/patch/2245111/
+[2]: https://github.com/jonhunter/linux/tree/omap-gpmc-for-v3.10
