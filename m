@@ -1,39 +1,37 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: MTD : Kernel oops when remounting ubifs as read/write
-Date: Thu, 14 Mar 2013 09:54:02 +0000
-Message-ID: <51419E3A.8030007@mimc.co.uk>
-References: <5134CEF9.5070502@mimc.co.uk>  <1363087506.3348.62.camel@sauron.fi.intel.com>  <51405F3A.3090901@mimc.co.uk> <1363252425.11441.94.camel@sauron.fi.intel.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH v3 net-next 1/1] drivers: net: davinci_cpdma: acknowledge
+ interrupt properly
+Date: Thu, 14 Mar 2013 15:51:23 +0530
+Message-ID: <5141A4A3.4050204@ti.com>
+References: <1361175560-600-1-git-send-email-mugunthanvnm@ti.com> <51404838.2040008@mimc.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363252425.11441.94.camel@sauron.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dedekind1@gmail.com
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, adrian.hunter@intel.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <51404838.2040008@mimc.co.uk>
+Sender: netdev-owner@vger.kernel.org
+To: Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 14/03/13 09:13, Artem Bityutskiy wrote:
-> On Wed, 2013-03-13 at 11:12 +0000, Mark Jackson wrote:
->> Sorry ... this just locks up the unit.
-> 
-> OK, I've reproduced the issue with 3.9-rc2 in nandsim, see the details
-> below. The patch I proposed did not get the error path correctly, but it
-> does fix the issue.
-> 
-> I think what you treat as "lockup" is the fixup process. UBIFS basically
-> reads the entire UBI volume and writes it back. And it uses the atomic
-> change UBI service, which means it also calculates CRC of everything it
-> writes. And this all just takes a lot of time. This has to be done only
-> once on the first mount.
+On 3/13/2013 3:04 PM, Mark Jackson wrote:
+> On 18/02/13 08:19, Mugunthan V N wrote:
+>> >CPDMA interrupts are not properly acknowledged which leads to interrupt
+>> >storm, only cpdma interrupt 0 is acknowledged in Davinci CPDMA driver.
+>> >Changed cpdma_ctlr_eoi api to acknowledge 1 and 2 interrupts which are
+>> >used for rx and tx respectively.
+>> >
+>> >Reported-by: Pantelis Antoniou<panto@antoniou-consulting.com>
+>> >Signed-off-by: Mugunthan V N<mugunthanvnm@ti.com>
+> Not sure if I'm seeing this same problem [1], but it doesn't appear fixed to me.
+>
+> I've tried both mainline -rc2 and -next.
+>
+> [1]https://lkml.org/lkml/2013/3/12/376
+Without this patch, PG2.0 was not usable as CPSW interrupt was never acked
+and CPU spent most of the time in CPSW ISR.
 
-Okay ... I've retried, but how long is "a lot of time" ?
-
-I've waited 15 minutes and still nothing.
-
-And I can see that there's no activity on the NAND chip select !?!
-
-I'll put some debug info into the fixup routines to see if I can trace what's going on.
+I have checked -rc2 and it is working fine.
 
 Regards
-Mark J.
+Mugunthan V N
