@@ -1,42 +1,44 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCHv3 03/14] mailbox: OMAP: introduce mailbox framework
-Date: Thu, 14 Mar 2013 09:14:26 +0100
-Message-ID: <CACRpkdbUBkhkQ-ZiqkLUmsDBp3hw4k3Z1s4i4SD3C2ZfuGUF+w@mail.gmail.com>
-References: <1363145044-14442-1-git-send-email-s-anna@ti.com>
-	<CACRpkdY8ZWNUVHJorbhN7XvOys9KJH8hKeCBYARih=1FiNk-CQ@mail.gmail.com>
-	<37C860A02101E749A747FA2D3C1E3C50498B8E@DLEE11.ent.ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH V3 0/2] Add mandatory regulator for all users of pwm-backlight.
+Date: Thu, 14 Mar 2013 09:44:51 +0100
+Message-ID: <51418E03.6020103@ti.com>
+References: <1363214006-10662-1-git-send-email-achew@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <37C860A02101E749A747FA2D3C1E3C50498B8E@DLEE11.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Anna, Suman" <s-anna@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic Pallardy <loic.pallardy@st.com>, Omar Ramirez Luna <omar.luna@linaro.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:46499 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751408Ab3CNIo4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Mar 2013 04:44:56 -0400
+In-Reply-To: <1363214006-10662-1-git-send-email-achew@nvidia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andrew Chew <achew@nvidia.com>
+Cc: thierry.reding@avionic-design.de, acourbot@nvidia.com, linux-omap@vger.kernel.org
 
-On Wed, Mar 13, 2013 at 10:34 PM, Anna, Suman <s-anna@ti.com> wrote:
->> On Wed, Mar 13, 2013 at 4:24 AM, Suman Anna <s-anna@ti.com> wrote:
->>
->> > From: Omar Ramirez Luna <omar.luna@linaro.org>
->> (...)
->> >
->> > Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
->> > [s-anna@ti.com: Kconfig fixes for build errors]
->> > Signed-off-by: Suman Anna <s-anna@ti.com>
->> > Acked-by: Tony Lindgren <tony@atomide.com>
->> > Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
->>
->> It's not like I care super-much, but I think your SoB should be at the bottom.
->>
->> It's a simple git rebase -i anyway...
->
-> Sure, will do. Only this patch, right? I have my SoB only on one another original patch, will adjust on that as well, but all the remaining ones will have yours at the bottom.
+On 03/13/2013 11:33 PM, Andrew Chew wrote:
+> Many backlights are enabled via GPIO.  We can generalize the GPIO to a
+> fixed regulator.
+> 
+> The enable regulator needs to be mandatory because there was no good way
+> to determine the difference between opting out of the regulator, and probe
+> deferral.
+> 
+> This series of patches is intended to add a dummy regulator (or a GPIO
+> regulator) for all users of the pwm-backlight.
+> 
+> The last patch in the series will always be the pwm-backlight change to add
+> this mandatory regulator.  Patches following up to that patch add the
+> mandatory regulator on a per mach family basis.  Once all users of
+> pwm-backlight have been patched, this series can be applied in order to
+> maintain bisectability.
 
-No I mean that the SoB-order should reflect the code flow path, and
-yours should be
-at the bottom of all of them, but as noted I don't care much. In my
-case the only thing
-I did was to pass the code :-)
+I'm not really happy with the mandatory regulator since for example the
+SDP4430 should not need one... Other than that the backlight works after the
+series.
 
-Yours,
-Linus Walleij
+To both patch:
+
+Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
