@@ -1,109 +1,48 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 11/12] USB: ehci-omap: Try to get PHY even if not in PHY
- mode
-Date: Thu, 14 Mar 2013 16:08:32 +0200
-Message-ID: <20130314140832.GH26080@arwen.pp.htv.fi>
-References: <1363085090-24676-12-git-send-email-rogerq@ti.com>
- <Pine.LNX.4.44L0.1303121155540.2153-100000@iolanthe.rowland.org>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: kishon <kishon@ti.com>
+Subject: Re: [PATCH v2 0/4] usb: musb/otg: cleanup and fixes
+Date: Thu, 14 Mar 2013 20:15:00 +0530
+Message-ID: <5141E26C.10700@ti.com>
+References: <1363242239-1061-1-git-send-email-kishon@ti.com> <20130314133313.GB26080@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8506832750621722025=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1303121155540.2153-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel development list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130314133313.GB26080@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, notasas@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
---===============8506832750621722025==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6cMF9JLEeZkfJjkP"
-Content-Disposition: inline
+On Thursday 14 March 2013 07:03 PM, Felipe Balbi wrote:
+> On Thu, Mar 14, 2013 at 11:53:55AM +0530, Kishon Vijay Abraham I wrote:
+>> This series has some misc cleanup and fixes. The fix solves the cold
+>> plug issue in omap3 which some have reported. Developed these patches on
+>> fixes-for-v3.9-rc3 after applying
+>> http://www.spinics.net/lists/linux-usb/msg81563.html
+>> (Grazvydas Ignotas patch series)
+>>
+>> Tested for g_zero enumeration in pandaboard and beagleboard in both
+>> cold plug and hot plug case. Any kind of testing for this series is welcome.
+>>
+>> Changes from v1:
+>> * removed *usb: musb: omap: remove the check before calling otg_set_vbus*
 
---6cMF9JLEeZkfJjkP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+er.. removed *usb: musb: omap: always glue have the correct vbus/id 
+status* since a patch similar to it is already merged.
+>
+> it's still on your list of patches :-p
+>
+>> a similar patch is already merged.
+>>
+>> Kishon Vijay Abraham I (4):
+>>    usb: musb: omap: remove the check before calling otg_set_vbus
+>
+> see ^^
+>
+> please fix it up and when resending add Grazvydas' Tested-by since he
+> has tested this patchset
 
-On Tue, Mar 12, 2013 at 11:57:56AM -0400, Alan Stern wrote:
-> On Tue, 12 Mar 2013, Roger Quadros wrote:
->=20
-> > Even when not in PHY mode, the USB device on the port (e.g. HUB)
-> > might need resources like RESET which can be modelled as a PHY
-> > device. So try to get the PHY device in any case.
-> >=20
-> > Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> > CC: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
->=20
-> Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
->=20
-> >  		/* get the PHY device */
-> >  		if (dev->of_node)
-> >  			phy =3D devm_usb_get_phy_by_phandle(dev, "phys", i);
-> >  		else
-> >  			phy =3D devm_usb_get_phy_dev(dev, i);
-> >  		if (IS_ERR(phy) || !phy) {
-> > +			/* Don't bail out if PHY is not absolutely necessary */
-> > +			if (pdata->port_mode[i] !=3D OMAP_EHCI_PORT_MODE_PHY)
-> > +				continue;
-> > +
-> >  			ret =3D IS_ERR(phy) ? PTR_ERR(phy) : -ENODEV;
-> >  			dev_err(dev, "Can't get PHY device for port %d: %d\n",
-> >  					i, ret);
->=20
-> Felipe, this is a strange interface.  Why do we sometimes get an=20
-> error-pointer and sometimes get just NULL?  Why not always an=20
-> error-pointer?
+Ok.
 
-looks like we get NULL when PHY layer is disabled. Sounds like an
-oversight to me. Do you want to send a patch, or do I cook one and put
-yourself as Reported-by ?
-
---=20
-balbi
-
---6cMF9JLEeZkfJjkP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRQdngAAoJEIaOsuA1yqRE714P/iT6BVFaP3kAzslEGu1ZzOSQ
-9IUvWbpjPHdwn7D0Nrnno0u7R9OZHWNPl7hI+be4V/8qbqKtpJpKmfYQisPYEHzS
-Wk5HPVOIQzgoWODFp5+afYpbyOuMBTpwZm5zrHPkVVGv94Gsxmk1/x3/buaDgUg0
-0ycXRP0Z+SRa0uSIV3mF5oSILFjWoA4flppCWBCFTBjubLUHOCcbMCs6tPEA4J6j
-ep7a5dQUDoLj7a1tKbM55ZSPSdGhj/Uwvxh9/r1tP6I2tkmasQ0R4u235JSQ7vDH
-iXEXR3Yfm1S+7jGC7iiK/T/UUTU9sk46H8HqzG3xPNFhHdZxuDE2s0hECpXu85sd
-j/rELZBhlh2+tYMNBmS/piKFOoEVM3ODuwccZLnmDqreTzpMy6xnQdZI9jGKnDxw
-bVSAIC/6o1bjXCndCy7kH2E3l3g+7u+NmuV7+6oWVNBz27iHnLUzLEVLIOpiQs2p
-FirC9NjHTW815oPB9Fpo+KJY55zeZLFb7bNsHlWFvmqJwIqHDvFipBSTusl3d+W4
-IDeqinZC27I8D+5bIr7Z8bUnOMvwFV1++6/KQoqdlYoRPdYbtGrXRL1JEKcJfr0Z
-pqw8JDJ/4eFbtemirGHpwzJtflB+Bk7A9P1TCV33yXHpgb8r5E4wnqPuO30Jct8u
-BktaECJHo+BCO0+6rFtE
-=jd80
------END PGP SIGNATURE-----
-
---6cMF9JLEeZkfJjkP--
-
---===============8506832750621722025==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============8506832750621722025==--
+Thanks
+Kishon
