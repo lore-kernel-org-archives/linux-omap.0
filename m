@@ -1,91 +1,55 @@
-From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: [PATCH RESEND 1/1] omap4: control: Add the CONTROL_SMART2IO_PADCONF_2 register definition
-Date: Thu, 14 Mar 2013 02:11:48 +0200
-Message-ID: <1363219908-32007-2-git-send-email-ruslan.bilovol@ti.com>
-References: <1363219908-32007-1-git-send-email-ruslan.bilovol@ti.com>
+From: Chen Gang <gang.chen@asianux.com>
+Subject: [PATCH] ARM:OMAP2: an issue about curr_pwrst, u8 is never < 0
+Date: Thu, 14 Mar 2013 12:21:28 +0800
+Message-ID: <51415048.6000607@asianux.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:53130 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932618Ab3CNAL7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Mar 2013 20:11:59 -0400
-Received: by mail-la0-f50.google.com with SMTP id ec20so1822789lab.37
-        for <linux-omap@vger.kernel.org>; Wed, 13 Mar 2013 17:11:58 -0700 (PDT)
-In-Reply-To: <1363219908-32007-1-git-send-email-ruslan.bilovol@ti.com>
+Received: from intranet.asianux.com ([58.214.24.6]:6981 "EHLO
+	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751015Ab3CNEVz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 00:21:55 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 
-This patch adds missing CONTROL_SMART2IO_PADCONF_2 register
-definition
 
-Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+  if pwrdm_read_pwrst returns negative number, curr_pwrst can not notice it.
+  since really need check curr_pwrst whether is negative,
+    need let the check valid in _pwrdm_save_clkdm_state_and_activate.
+    and also better to check the return value of pwrdm_read_pwrst, firstly.
+
+Signed-off-by: Chen Gang <gang.chen@asianux.com>
 ---
- arch/arm/mach-omap2/ctrl_module_pad_core_44xx.h |   45 +++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ arch/arm/mach-omap2/powerdomain.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/ctrl_module_pad_core_44xx.h b/arch/arm/mach-omap2/ctrl_module_pad_core_44xx.h
-index c88420d..d512ade 100644
---- a/arch/arm/mach-omap2/ctrl_module_pad_core_44xx.h
-+++ b/arch/arm/mach-omap2/ctrl_module_pad_core_44xx.h
-@@ -46,6 +46,7 @@
- #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SMART3IO_PADCONF_2	0x05c0
- #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_USBB_HSIC		0x05c4
- #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SLIMBUS		0x05c8
-+#define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SMART2IO_PADCONF_2	0x05cc
- #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_PBIASLITE		0x0600
- #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_I2C_0		0x0604
- #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX		0x0608
-@@ -764,6 +765,50 @@
- #define OMAP4_HSI_DR0_LB_SHIFT					10
- #define OMAP4_HSI_DR0_LB_MASK					(1 << 10)
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 43ac20c..876d067 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -233,7 +233,7 @@ static u8 _pwrdm_save_clkdm_state_and_activate(struct powerdomain *pwrdm,
+ {
+ 	u8 sleep_switch;
  
-+/* CONTROL_SMART2IO_PADCONF_2 */
-+#define OMAP4_DPM_DR1_DS_SHIFT					31
-+#define OMAP4_DPM_DR1_DS_MASK					(1 << 31)
-+#define OMAP4_DPM_DR2_DS_SHIFT					30
-+#define OMAP4_DPM_DR2_DS_MASK					(1 << 30)
-+#define OMAP4_DPM_DR3_DS_SHIFT					29
-+#define OMAP4_DPM_DR3_DS_MASK					(1 << 29)
-+#define OMAP4_GPIO_DR10_DS_SHIFT				28
-+#define OMAP4_GPIO_DR10_DS_MASK					(1 << 28)
-+#define OMAP4_HSI2_DR0_DS_SHIFT					27
-+#define OMAP4_HSI2_DR0_DS_MASK					(1 << 27)
-+#define OMAP4_HSI2_DR1_DS_SHIFT					26
-+#define OMAP4_HSI2_DR1_DS_MASK					(1 << 26)
-+#define OMAP4_HSI2_DR2_DS_SHIFT					25
-+#define OMAP4_HSI2_DR2_DS_MASK					(1 << 25)
-+#define OMAP4_SDMMC3_DR0_DS_SHIFT				24
-+#define OMAP4_SDMMC3_DR0_DS_MASK				(1 << 24)
-+#define OMAP4_SDMMC4_DR0_DS_SHIFT				23
-+#define OMAP4_SDMMC4_DR0_DS_MASK				(1 << 23)
-+#define OMAP4_SDMMC4_DR1_DS_SHIFT				22
-+#define OMAP4_SDMMC4_DR1_DS_MASK				(1 << 22)
-+#define OMAP4_SPI3_DR0_DS_SHIFT					21
-+#define OMAP4_SPI3_DR0_DS_MASK					(1 << 21)
-+#define OMAP4_SPI3_DR1_DS_SHIFT					20
-+#define OMAP4_SPI3_DR1_DS_MASK					(1 << 20)
-+#define OMAP4_UART3_DR2_DS_SHIFT				19
-+#define OMAP4_UART3_DR2_DS_MASK					(1 << 19)
-+#define OMAP4_UART3_DR3_DS_SHIFT				18
-+#define OMAP4_UART3_DR3_DS_MASK					(1 << 18)
-+#define OMAP4_UART3_DR4_DS_SHIFT				17
-+#define OMAP4_UART3_DR4_DS_MASK					(1 << 17)
-+#define OMAP4_UART3_DR5_DS_SHIFT				16
-+#define OMAP4_UART3_DR5_DS_MASK					(1 << 16)
-+#define OMAP4_USBA0_DR0_DS_SHIFT				15
-+#define OMAP4_USBA0_DR0_DS_MASK					(1 << 15)
-+#define OMAP4_USBA0_DR1_DS_SHIFT				14
-+#define OMAP4_USBA0_DR1_DS_MASK					(1 << 14)
-+#define OMAP4_USBA_DR2_DS_SHIFT					13
-+#define OMAP4_USBA_DR2_DS_MASK					(1 << 13)
-+#define OMAP4_USBB2_DR0_DS_SHIFT				12
-+#define OMAP4_USBB2_DR0_DS_MASK					(1 << 12)
-+#define OMAP4_USBB1_DR0_DS_SHIFT				11
-+#define OMAP4_USBB1_DR0_DS_MASK					(1 << 11)
-+
- /* CONTROL_USBB_HSIC */
- #define OMAP4_USBB2_DR1_SR_SHIFT				30
- #define OMAP4_USBB2_DR1_SR_MASK					(0x3 << 30)
+-	if (curr_pwrst < 0) {
++	if ((char)curr_pwrst < 0) {
+ 		WARN_ON(1);
+ 		sleep_switch = ERROR_SWITCH;
+ 	} else if (curr_pwrst < PWRDM_POWER_ON) {
+@@ -1106,7 +1106,10 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 pwrst)
+ 
+ 	pwrdm_lock(pwrdm);
+ 
+-	curr_pwrst = pwrdm_read_pwrst(pwrdm);
++	ret = pwrdm_read_pwrst(pwrdm);
++	if (ret < 0)
++		goto osps_out;
++	curr_pwrst = (u8)(unsigned int)ret;
+ 	next_pwrst = pwrdm_read_next_pwrst(pwrdm);
+ 	if (curr_pwrst == pwrst && next_pwrst == pwrst)
+ 		goto osps_out;
 -- 
-1.7.9.5
-
+1.7.7.6
