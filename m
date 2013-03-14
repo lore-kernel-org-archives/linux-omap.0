@@ -1,96 +1,109 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC PATCH 0/3] ARM: OMAP2+: Add command line parameter for
- debugSS module control
-Date: Thu, 14 Mar 2013 11:29:33 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC281C1@DBDE01.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1362396957-30113-1-git-send-email-hvaibhav@ti.com>
+Subject: RE: OMAP baseline test results for v3.9-rc1
+Date: Thu, 14 Mar 2013 11:29:12 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EC281B4@DBDE01.ent.ti.com>
+References: <alpine.DEB.2.00.1303121634080.2723@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58402 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757118Ab3CNL3r convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 07:29:47 -0400
-In-Reply-To: <1362396957-30113-1-git-send-email-hvaibhav@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1303121634080.2723@utopia.booyaka.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "khilman@linaro.org" <khilman@linaro.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 
 > -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Monday, March 04, 2013 5:06 PM
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> Sent: Tuesday, March 12, 2013 10:10 PM
 > To: linux-omap@vger.kernel.org
-> Cc: tony@atomide.com; khilman@linaro.org; paul@pwsan.com; Nayak,
-> Rajendra; linux-arm-kernel@lists.infradead.org; Hiremath, Vaibhav
-> Subject: [RFC PATCH 0/3] ARM: OMAP2+: Add command line parameter for
-> debugSS module control
+> Cc: linux-arm-kernel@lists.infradead.org
+> Subject: OMAP baseline test results for v3.9-rc1
 > 
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
 > 
-> Currently there is no clean mechanism to control debugSS module and
-> you have to always keep clocks enabled, either,
+> Here are some basic OMAP test results for Linux v3.9-rc1.
+> Logs and other details at:
 > 
->     - By enabling it during boot as part of clk_init function
->       (post common-clock migration).
->     Or
->     - By having HWMOD_INIT_NO_IDLE flag in hwmod data
->       (Joel submitted patch for AM335x earlier).
+>     http://www.pwsan.com/omap/testlogs/test_v3.9-rc1/20130312100243/
 > 
-> Based on the discussion with Kevin H,
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg81771.html
 > 
-> This patch introduces new kernel parameter "omap_debugss_en",
-> which will allow user to control debugSS module enable/disable
-> part during boot-time.
+> Test summary
+> ------------
 > 
-> In case of OMAP3, the debugSS is part of EMU domain and
-> is currently controlled by clock tree alone.
-> 
-> In case of OMAP4, the debugSS is part of EMU domain and
-> is currently controlled by clock tree, as MODULEMODE_SWCTRL
-> is not defined for hwmod.
-> 
-> In case of AM335x, the debugSS is in wakeup domain and is currently
-> controlled through hwmod alone. Currently we keep it always enabled.
-> 
-> Testing:
-> 	- Tested on AM335x based EVM and BeagleBone platform
-> 
-> 	  As required, without this flag the debugSS module will be
-> disabled
-> 	  during kernel boot.
-> 
-> OMAP (2/3/4) may require some changes from clock/hwmod perspective
-> in order to use this new parameter.
-> I am still looking into OMAP spec and this RFC version of patch-series
-> is to get comments or opinion from list.
-> 
-> Vaibhav Hiremath (3):
->   ARM: AM33XX: clock: Add debugSS clock nodes to clock tree
->   ARM: AM33XX: hwmod: Add hwmod data for debugSS
->   ARM: OMAP2+: Add command line parameter for debugSS module control
-> 
->  Documentation/kernel-parameters.txt        |    3 +
->  arch/arm/mach-omap2/Makefile               |    2 +-
->  arch/arm/mach-omap2/cclock33xx_data.c      |   47 +++++++++++++++--
->  arch/arm/mach-omap2/debugss.c              |   80
-> ++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   69 ++++++++++++++++----
-> ----
->  5 files changed, 173 insertions(+), 28 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/debugss.c
+> Build:
+>     FAIL ( 4/16): am33xx_only, omap1_defconfig,
+This requires some cleanup in Makefile and Kconfig handling,
 
-Kevin/Tony,
+Either you disable SMP support for non-SMP devices like AM33xx 
 
-Any comments or input on this patch series?
+OR
+
+Fix the Makefile to resolve the build dependencies (may not be trivial)
+
+OR
+
+Make functions __weak so that build will go through.
+
+
+
+I have created below patch, if it is ok with you then I can
+Submit patch for the same (build tested with am33xx_only and omap2plus_defconfig).
+
+
+
+
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 0a6b9c7..cb0d55d 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -233,9 +233,9 @@ extern void omap_do_wfi(void);
+ /* Needed for secondary core boot */
+ extern void omap_secondary_startup(void);
+ extern void omap_secondary_startup_4460(void);
+-extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
+-extern void omap_auxcoreboot_addr(u32 cpu_addr);
+-extern u32 omap_read_auxcoreboot0(void);
++extern u32 __weak omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
++extern void __weak omap_auxcoreboot_addr(u32 cpu_addr);
++extern u32 __weak omap_read_auxcoreboot0(void);
+
+ extern void omap4_cpu_die(unsigned int cpu);
+
+@@ -249,7 +249,7 @@ extern int omap4_mpuss_init(void);
+ extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
+ extern int omap4_finish_suspend(unsigned long cpu_state);
+ extern void omap4_cpu_resume(void);
+-extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
++extern int __weak omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
+ extern u32 omap4_mpuss_read_prev_context_state(void);
+ #else
+ static inline int omap4_enter_lowpower(unsigned int cpu,
+diff --git a/arch/arm/mach-omap2/omap-wakeupgen.h b/arch/arm/mach-omap2/omap-wakeupgen.h
+index b0fd16f..94f5281 100644
+--- a/arch/arm/mach-omap2/omap-wakeupgen.h
++++ b/arch/arm/mach-omap2/omap-wakeupgen.h
+@@ -33,6 +33,6 @@
+ #define OMAP_TIMESTAMPCYCLEHI                  0xc0c
+
+ extern int __init omap_wakeupgen_init(void);
+-extern void __iomem *omap_get_wakeupgen_base(void);
+-extern int omap_secure_apis_support(void);
++extern void __weak __iomem *omap_get_wakeupgen_base(void);
++extern int __weak omap_secure_apis_support(void);
+ #endif
+
+
 
 Thanks,
 Vaibhav
-
-
-
