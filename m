@@ -1,48 +1,72 @@
-From: kishon <kishon@ti.com>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH v2 0/4] usb: musb/otg: cleanup and fixes
-Date: Thu, 14 Mar 2013 20:15:00 +0530
-Message-ID: <5141E26C.10700@ti.com>
-References: <1363242239-1061-1-git-send-email-kishon@ti.com> <20130314133313.GB26080@arwen.pp.htv.fi>
+Date: Thu, 14 Mar 2013 16:47:45 +0200
+Message-ID: <20130314144744.GM26080@arwen.pp.htv.fi>
+References: <1363242239-1061-1-git-send-email-kishon@ti.com>
+ <20130314133313.GB26080@arwen.pp.htv.fi>
+ <5141E26C.10700@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KSyhVCl2eeZHT0Rn"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130314133313.GB26080@arwen.pp.htv.fi>
+Content-Disposition: inline
+In-Reply-To: <5141E26C.10700@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, notasas@gmail.com
+To: kishon <kishon@ti.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, notasas@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 14 March 2013 07:03 PM, Felipe Balbi wrote:
-> On Thu, Mar 14, 2013 at 11:53:55AM +0530, Kishon Vijay Abraham I wrote:
->> This series has some misc cleanup and fixes. The fix solves the cold
->> plug issue in omap3 which some have reported. Developed these patches on
->> fixes-for-v3.9-rc3 after applying
->> http://www.spinics.net/lists/linux-usb/msg81563.html
->> (Grazvydas Ignotas patch series)
->>
->> Tested for g_zero enumeration in pandaboard and beagleboard in both
->> cold plug and hot plug case. Any kind of testing for this series is welcome.
->>
->> Changes from v1:
->> * removed *usb: musb: omap: remove the check before calling otg_set_vbus*
+--KSyhVCl2eeZHT0Rn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-er.. removed *usb: musb: omap: always glue have the correct vbus/id 
-status* since a patch similar to it is already merged.
->
-> it's still on your list of patches :-p
->
->> a similar patch is already merged.
->>
->> Kishon Vijay Abraham I (4):
->>    usb: musb: omap: remove the check before calling otg_set_vbus
->
-> see ^^
->
-> please fix it up and when resending add Grazvydas' Tested-by since he
-> has tested this patchset
+On Thu, Mar 14, 2013 at 08:15:00PM +0530, kishon wrote:
+> On Thursday 14 March 2013 07:03 PM, Felipe Balbi wrote:
+> >On Thu, Mar 14, 2013 at 11:53:55AM +0530, Kishon Vijay Abraham I wrote:
+> >>This series has some misc cleanup and fixes. The fix solves the cold
+> >>plug issue in omap3 which some have reported. Developed these patches on
+> >>fixes-for-v3.9-rc3 after applying
+> >>http://www.spinics.net/lists/linux-usb/msg81563.html
+> >>(Grazvydas Ignotas patch series)
+> >>
+> >>Tested for g_zero enumeration in pandaboard and beagleboard in both
+> >>cold plug and hot plug case. Any kind of testing for this series is wel=
+come.
+> >>
+> >>Changes from v1:
+> >>* removed *usb: musb: omap: remove the check before calling otg_set_vbu=
+s*
+>=20
+> er.. removed *usb: musb: omap: always glue have the correct vbus/id
+> status* since a patch similar to it is already merged.
 
-Ok.
+alright, I'll apply this series soonish.
 
-Thanks
-Kishon
+--=20
+balbi
+
+--KSyhVCl2eeZHT0Rn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRQeMQAAoJEIaOsuA1yqRE2KIP/3WZtZjO/RRDKLh7W0NhQi0Q
+mPrDwGEp8TVIOeYqJlTbYARNl2nLcW/bVsGvww4F7VDWPzKLphHT+OyD0EPEg0UY
+zQbA91a8hoXobTW5D7fTrSeO4cfzQX4WYecBW6/yJU/x4NyzuUW9ryLUaoHSQLSd
+MiqsUDVddcbNkDwnPrDJy9PcyRf4P41zWX5gr6RTPgBoRjlSiwp3/8sHT93Dxhc8
+FN8stsIknMYWL0QQK5rUfR7xsodezpH/qkQgWHnsYxHbvi/yeFigSg2iyXpBE+My
+GEshnNmP2MM1VZSYRhHoe+DiMacnW4LybwN57uZDH6nAr6gUAWciy2DXSmDrlU3K
+TYrKRDnfP3e2AaHxPfJGQy81S60Hl88ZOGRQkk0TeDvPYtHXOLvm+QlbRTGwsr5y
+R9pn4RZGprJKH4YVrh2CG2TKkUnSnTvZzenBGzGPteYZry0IcCQrMphSaecRr6jI
+QfYYcwx4IrNMNM9XUt4aSpSemf+Zfb8wDymvt1chSJZb3I1AndN7Wl5WSNpkNZe3
+YKtYz9V0kM9CP7FHCSO57wvieN1w+yeW3yCpBBuKg1UJszimD1h8tHHOq+zEJlqW
+p17rapqng9sd8bBKTPg77+g2ogdeRXirJTSEoFshafOjTj7n2S1q/mMQmNIaDSQi
+P5KJhx8VRYOrd7c3wDQJ
+=9Ti/
+-----END PGP SIGNATURE-----
+
+--KSyhVCl2eeZHT0Rn--
