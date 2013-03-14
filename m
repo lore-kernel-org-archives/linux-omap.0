@@ -1,31 +1,38 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [Resend/PATCH 0/5] omap4/5: i2c/spi: device tree data
-Date: Thu, 14 Mar 2013 11:40:49 +0530
-Message-ID: <514169E9.1080105@ti.com>
-References: <1363009486-19430-1-git-send-email-sourav.poddar@ti.com> <513DEAE1.1050606@ti.com> <513DFB62.5030709@ti.com> <5140AD75.2050900@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 3/4] usb: musb: omap: add usb_phy_init in omap2430_musb_init
+Date: Thu, 14 Mar 2013 11:53:58 +0530
+Message-ID: <1363242239-1061-4-git-send-email-kishon@ti.com>
+References: <1363242239-1061-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48336 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753837Ab3CNGJO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Mar 2013 02:09:14 -0400
-In-Reply-To: <5140AD75.2050900@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1363242239-1061-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: tony@atomide.com, notasas@gmail.com, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Andrew Morton <akpm@osdl.org>
 
-On Wednesday 13 March 2013 10:16 PM, Benoit Cousson wrote:
-> Hi Sourav,
-> 
-> I've just applied your branch after a minor subject cleanup for consistency.
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.10/dts
-> 
-Thanks for the tree Benoit. I shall update my v2 DT series against this branch then.
+Some PHYs load too early (twl4030) making omap glue to miss cable connect events
+if the board is booted with cable connected. So adding usb_phy_init in
+omap2430_musb_init lets PHYs to report events once glue is ready.
 
-Regards,
-Santosh
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/usb/musb/omap2430.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 6071484..8876741 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -391,6 +391,8 @@ static int omap2430_musb_init(struct musb *musb)
+ 	if (glue->status != OMAP_MUSB_UNKNOWN)
+ 		omap_musb_set_mailbox(glue);
+ 
++	usb_phy_init(musb->xceiv);
++
+ 	pm_runtime_put_noidle(musb->controller);
+ 	return 0;
+ 
+-- 
+1.7.10.4
