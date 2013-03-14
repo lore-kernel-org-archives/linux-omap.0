@@ -1,35 +1,46 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 0/3] ARM: OMAP2+: Add GPMC DT support for Ethernet child
-Date: Thu, 14 Mar 2013 16:09:19 +0100
-Message-ID: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH 1/3] ARM: OMAP2+: return -ENODEV if GPMC child device creation fails
+Date: Thu, 14 Mar 2013 16:09:20 +0100
+Message-ID: <1363273762-17441-2-git-send-email-javier.martinez@collabora.co.uk>
+References: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:46294 "EHLO
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:46305 "EHLO
 	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089Ab3CNPJg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 11:09:36 -0400
+	with ESMTP id S1751089Ab3CNPJh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 11:09:37 -0400
+In-Reply-To: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jon Hunter <jon-hunter@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-Hello Jon,
+gpmc_probe_nor_child() calls of_platform_device_create() to create a
+platform device for the NOR child. If this function fails the value
+of ret is returned to the caller but this value is zero since it was
+assigned the return of a previous call to gpmc_cs_program_settings()
+that had to succeed or otherwise gpmc_probe_nor_child() would have
+returned before.
 
-As discussed before [1], this patch-set adds DT support for ethernet
-controllers connected to a TI GPMC by making gpmc_probe_nor_child()
-a generic function and reusing it to initialize "ethernet" child
-devices nodes too. It also adds documentation about the DT binding.
+This means that if of_platform_device_create() fails, 0 will be returned
+to the caller instead of an appropriate error code.
 
-The patch-set is based on top of your omap-gpmc-for-v3.10 branch [2]
-and is composed of the following patches:
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
+ arch/arm/mach-omap2/gpmc.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-[PATCH 1/3] ARM: OMAP2+: return -ENODEV if GPMC child device
-[PATCH 2/3] ARM: OMAP2+: rename gpmc_probe_nor_child() to gpmc_probe_generic_child()
-[PATCH 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet child
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index d594e1d..8799aed 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1505,6 +1505,7 @@ static int gpmc_probe_nor_child(struct platform_device *pdev,
+ 		return 0;
+ 
+ 	dev_err(&pdev->dev, "failed to create gpmc child %s\n", child->name);
++	ret = -ENODEV;
+ 
+ err:
+ 	gpmc_cs_free(cs);
+-- 
+1.7.7.6
 
-This was tested on an TI OMAP3 DM3735 based board (IGEPv2)
-
-Thanks a lot and best regards,
-Javier
-
-[1]: https://patchwork.kernel.org/patch/2245111/
-[2]: https://github.com/jonhunter/linux/tree/omap-gpmc-for-v3.10
