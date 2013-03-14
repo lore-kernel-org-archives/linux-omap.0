@@ -1,100 +1,241 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
- of always dummy
-Date: Thu, 14 Mar 2013 09:50:17 +0100 (CET)
-Message-ID: <alpine.LFD.2.02.1303140950000.22263@ionos>
-References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com> <514046B6.9020005@ti.com> <20130313101641.GA13483@e106331-lin.cambridge.arm.com> <514061D1.20603@ti.com> <20130313122550.GD13483@e106331-lin.cambridge.arm.com> <51409EC3.5050905@ti.com>
- <20130313161811.GF13483@e106331-lin.cambridge.arm.com> <5141800A.2000307@ti.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: MTD : Kernel oops when remounting ubifs as read/write
+Date: Thu, 14 Mar 2013 11:13:45 +0200
+Message-ID: <1363252425.11441.94.camel@sauron.fi.intel.com>
+References: <5134CEF9.5070502@mimc.co.uk>
+	 <1363087506.3348.62.camel@sauron.fi.intel.com>
+	 <51405F3A.3090901@mimc.co.uk>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:50204 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751771Ab3CNIuV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 04:50:21 -0400
-In-Reply-To: <5141800A.2000307@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="=-YlVgXk/tIznaGNfH/Lkm"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51405F3A.3090901@mimc.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, adrian.hunter@intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
 
-On Thu, 14 Mar 2013, Santosh Shilimkar wrote:
 
-> On Wednesday 13 March 2013 09:48 PM, Mark Rutland wrote:
-> > On Wed, Mar 13, 2013 at 03:44:03PM +0000, Santosh Shilimkar wrote:
-> >> On Wednesday 13 March 2013 05:55 PM, Mark Rutland wrote:
-> >>> On Wed, Mar 13, 2013 at 11:24:01AM +0000, Santosh Shilimkar wrote:
-> >>>> On Wednesday 13 March 2013 03:46 PM, Mark Rutland wrote:
-> >>>>> Hi Santosh,
-> >>
-> >> [..]
-> >>
-> >>>>>
-> >>>>> Is the problem that the dummy timer is being registered as the broadcast
-> >>>>> source, or that it is selected as a local timer in preference of real timers?
-> >>>>>
-> >>>> Dummy timer is preferred over real broadcast timer.
-> >>>
-> >>> Ok.
-> > 
-> > [...]
-> > 
-> >>> I do agree it'd be worth lowering the dummy timer's rating to ensure it doesn't
-> >>> override a real timer elsewhere. 
-> >>>
-> >> Yep. Can I add you acked-by tag then for $subject patch ?
-> >> Would be good to get this one merged as well.
-> > 
-> > Sure. Though could you reword the commit message? The patch solves the more
-> > general issue of a dummy being preferred over real hardware even outside of
-> > choosing the broadcast device.
-> > 
-> > Acked-by: Mark Rutland <mark.rutland@arm.com>
-> 
-> Thanks. For record, patch is in end of the email which I plan
-> to put into patch system.
-> 
-> Regards,
-> Santosh
-> 
-> >From 57c501bcdc88c7ff26a5c63956be07e94a5083c5 Mon Sep 17 00:00:00 2001
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Date: Wed, 13 Mar 2013 12:33:16 +0530
-> Subject: [PATCH 1/2] ARM: smp: Avoid dummy clockevent being preferred over real hardware clock-event
-> 
-> With recent arm broadcast time clean-up from Mark Rutland, the dummy
-> broadcast device is always registered with timer subsystem. And since
-> the rating of the dummy clock event is very high, it may be preferred
-> over a real clock event.
-> 
-> This is a change in behavior from past and not an intended
-> one. So reduce the rating of the dummy clockevent so that
-> real clockevent device is selected when available.
-> 
-> Acked-by: Mark Rutland <mark.rutland@arm.com>
+--=-YlVgXk/tIznaGNfH/Lkm
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+On Wed, 2013-03-13 at 11:12 +0000, Mark Jackson wrote:
+> Sorry ... this just locks up the unit.
 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/kernel/smp.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-> index 31644f1..79078ed 100644
-> --- a/arch/arm/kernel/smp.c
-> +++ b/arch/arm/kernel/smp.c
-> @@ -480,7 +480,7 @@ static void __cpuinit broadcast_timer_setup(struct clock_event_device *evt)
->  	evt->features	= CLOCK_EVT_FEAT_ONESHOT |
->  			  CLOCK_EVT_FEAT_PERIODIC |
->  			  CLOCK_EVT_FEAT_DUMMY;
-> -	evt->rating	= 400;
-> +	evt->rating	= 100;
->  	evt->mult	= 1;
->  	evt->set_mode	= broadcast_timer_set_mode;
->  
-> -- 
-> 1.7.9.5
-> 
-> 
-> 
+OK, I've reproduced the issue with 3.9-rc2 in nandsim, see the details
+below. The patch I proposed did not get the error path correctly, but it
+does fix the issue.
+
+I think what you treat as "lockup" is the fixup process. UBIFS basically
+reads the entire UBI volume and writes it back. And it uses the atomic
+change UBI service, which means it also calculates CRC of everything it
+writes. And this all just takes a lot of time. This has to be done only
+once on the first mount.
+
+I've attached the following:
+
+1. The patch which fixes the issue when I use nandsim. It is also
+   inlined in the end. Please, give it a try and be more patient -
+   wait longer. Please, do report your results back.
+2. 'reproduce.sh' - a quick and dirty shell script which reproduces the
+    problem
+3. ubinize.cfg - is needed for 'reproduce.sh'.
+
+
+Thanks!
+
+>From a173f8e9296562e5ece3dd2936d799001897d6c6 Mon Sep 17 00:00:00 2001
+From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Date: Thu, 14 Mar 2013 10:49:23 +0200
+Subject: [PATCH] UBIFS: make space fixup work in the remount case
+
+The UBIFS space fixup is a useful feature which allows to fixup the "broken"
+flash space at the time of the first mount. The "broken" space is usually the
+result of using a "dumb" industrial flasher which is not able to skip empty
+NAND pages and just writes all 0xFFs to the empty space, which has grave
+side-effects for UBIFS when UBIFS trise to write useful data to those empty
+pages.
+
+The fix-up feature works roughly like this:
+1. mkfs.ubifs sets the fixup flag in UBIFS superblock when creating the image
+   (see -F option)
+2. when the file-system is mounted for the first time, UBIFS notices the fixup
+   flag and re-writes the entire media atomically, which may take really a lot
+   of time.
+3. UBIFS clears the fixup flag in the superblock.
+
+This works fine when the file system is mounted R/W for the very first time.
+But it did not really work in the case when we first mount the file-system R/O,
+and then re-mount R/W. The reason was that we started the fixup procedure too
+late, which we cannot really do because we have to fixup the space before it
+starts being used.
+
+Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Reported-by: Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: stable@vger.kernel.org # 3.0+
+---
+ fs/ubifs/super.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/fs/ubifs/super.c b/fs/ubifs/super.c
+index ac838b8..fa4aec6 100644
+--- a/fs/ubifs/super.c
++++ b/fs/ubifs/super.c
+@@ -1568,10 +1568,17 @@ static int ubifs_remount_rw(struct ubifs_info *c)
+ 	c->remounting_rw = 1;
+ 	c->ro_mount = 0;
+ 
++	if (c->space_fixup) {
++		err = ubifs_fixup_free_space(c);
++		if (err)
++			return err;
++	}
++
+ 	err = check_free_space(c);
+ 	if (err)
+ 		goto out;
+ 
++
+ 	if (c->old_leb_cnt != c->leb_cnt) {
+ 		struct ubifs_sb_node *sup;
+ 
+@@ -1684,12 +1691,6 @@ static int ubifs_remount_rw(struct ubifs_info *c)
+ 		err = dbg_check_space_info(c);
+ 	}
+ 
+-	if (c->space_fixup) {
+-		err = ubifs_fixup_free_space(c);
+-		if (err)
+-			goto out;
+-	}
+-
+ 	mutex_unlock(&c->umount_mutex);
+ 	return err;
+ 
+-- 
+1.7.7.6
+
+-- 
+Best Regards,
+Artem Bityutskiy
+
+--=-YlVgXk/tIznaGNfH/Lkm
+Content-Disposition: attachment;
+	filename="0001-UBIFS-make-space-fixup-work-in-the-remount-case.patch"
+Content-Type: text/x-patch;
+	name="0001-UBIFS-make-space-fixup-work-in-the-remount-case.patch";
+	charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+>From a173f8e9296562e5ece3dd2936d799001897d6c6 Mon Sep 17 00:00:00 2001
+From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Date: Thu, 14 Mar 2013 10:49:23 +0200
+Subject: [PATCH] UBIFS: make space fixup work in the remount case
+
+The UBIFS space fixup is a useful feature which allows to fixup the "broken"
+flash space at the time of the first mount. The "broken" space is usually the
+result of using a "dumb" industrial flasher which is not able to skip empty
+NAND pages and just writes all 0xFFs to the empty space, which has grave
+side-effects for UBIFS when UBIFS trise to write useful data to those empty
+pages.
+
+The fix-up feature works roughly like this:
+1. mkfs.ubifs sets the fixup flag in UBIFS superblock when creating the image
+   (see -F option)
+2. when the file-system is mounted for the first time, UBIFS notices the fixup
+   flag and re-writes the entire media atomically, which may take really a lot
+   of time.
+3. UBIFS clears the fixup flag in the superblock.
+
+This works fine when the file system is mounted R/W for the very first time.
+But it did not really work in the case when we first mount the file-system R/O,
+and then re-mount R/W. The reason was that we started the fixup procedure too
+late, which we cannot really do because we have to fixup the space before it
+starts being used.
+
+Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Cc: stable@vger.kernel.org # 3.0+
+---
+ fs/ubifs/super.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/fs/ubifs/super.c b/fs/ubifs/super.c
+index ac838b8..fa4aec6 100644
+--- a/fs/ubifs/super.c
++++ b/fs/ubifs/super.c
+@@ -1568,10 +1568,17 @@ static int ubifs_remount_rw(struct ubifs_info *c)
+ 	c->remounting_rw = 1;
+ 	c->ro_mount = 0;
+ 
++	if (c->space_fixup) {
++		err = ubifs_fixup_free_space(c);
++		if (err)
++			return err;
++	}
++
+ 	err = check_free_space(c);
+ 	if (err)
+ 		goto out;
+ 
++
+ 	if (c->old_leb_cnt != c->leb_cnt) {
+ 		struct ubifs_sb_node *sup;
+ 
+@@ -1684,12 +1691,6 @@ static int ubifs_remount_rw(struct ubifs_info *c)
+ 		err = dbg_check_space_info(c);
+ 	}
+ 
+-	if (c->space_fixup) {
+-		err = ubifs_fixup_free_space(c);
+-		if (err)
+-			goto out;
+-	}
+-
+ 	mutex_unlock(&c->umount_mutex);
+ 	return err;
+ 
+-- 
+1.7.7.6
+
+
+--=-YlVgXk/tIznaGNfH/Lkm
+Content-Type: application/x-shellscript; name="reproduce.sh"
+Content-Disposition: attachment; filename="reproduce.sh"
+Content-Transfer-Encoding: 7bit
+
+#!/bin/sh -euf
+
+umount /mnt/ubifs ||:
+rmmod ubifs ||:
+rmmod ubi ||:
+rmmod nandsim ||:
+
+modprobe nandsim first_id_byte=0x20 second_id_byte=0xaa third_id_byte=0x00 fourth_id_byte=0x15
+modprobe ubi
+modprobe ubifs
+
+mkfs.ubifs -F -r /home/dedekind/bin -m 2048 -e 129024 -c 2047 -o ubifs.img
+ubinize -o ubi.img -m 2048 -p 128KiB -s 512 ubinize.cfg
+
+dd if=ubi.img of=/dev/mtd0
+sync
+ubiattach -p /dev/mtd0
+mount -t ubifs -o ro ubi0_0 /mnt/ubifs
+mount -o remount ubi0_0 /mnt/ubifs
+
+--=-YlVgXk/tIznaGNfH/Lkm
+Content-Disposition: attachment; filename="ubinize.cfg"
+Content-Type: text/plain; name="ubinize.cfg"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+[ubifs]
+mode=ubi
+image=ubifs.img
+vol_id=0
+vol_size=200MiB
+vol_type=dynamic
+vol_name=rootfs
+vol_flags=autoresize
+
+--=-YlVgXk/tIznaGNfH/Lkm--
