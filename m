@@ -1,69 +1,47 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
- of always dummy
-Date: Thu, 14 Mar 2013 16:16:06 +0530
-Message-ID: <5141AA6E.3020805@ti.com>
-References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com> <514046B6.9020005@ti.com> <20130313101641.GA13483@e106331-lin.cambridge.arm.com> <514061D1.20603@ti.com> <20130313122550.GD13483@e106331-lin.cambridge.arm.com> <51409EC3.5050905@ti.com> <20130313161811.GF13483@e106331-lin.cambridge.arm.com> <5141800A.2000307@ti.com> <20130314102807.GG13483@e106331-lin.cambridge.arm.com>
+From: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/2] dwc3: exynos: Device tree fixes
+Date: Thu, 14 Mar 2013 16:14:56 +0530
+Message-ID: <1363257898-17504-1-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53780 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756728Ab3CNKos (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Mar 2013 06:44:48 -0400
-In-Reply-To: <20130314102807.GG13483@e106331-lin.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Cc: kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Stephen Boyd <sboyd@codeaurora.org>
 
-On Thursday 14 March 2013 03:58 PM, Mark Rutland wrote:
-> On Thu, Mar 14, 2013 at 07:45:14AM +0000, Santosh Shilimkar wrote:
->> On Wednesday 13 March 2013 09:48 PM, Mark Rutland wrote:
->>> On Wed, Mar 13, 2013 at 03:44:03PM +0000, Santosh Shilimkar wrote:
->>>> On Wednesday 13 March 2013 05:55 PM, Mark Rutland wrote:
->>>>> On Wed, Mar 13, 2013 at 11:24:01AM +0000, Santosh Shilimkar wrote:
->>>>>> On Wednesday 13 March 2013 03:46 PM, Mark Rutland wrote:
->>>>>>> Hi Santosh,
->>>>
->>>> [..]
->>>>
->>>>>>>
->>>>>>> Is the problem that the dummy timer is being registered as the broadcast
->>>>>>> source, or that it is selected as a local timer in preference of real timers?
->>>>>>>
->>>>>> Dummy timer is preferred over real broadcast timer.
->>>>>
->>>>> Ok.
->>>
->>> [...]
->>>
->>>>> I do agree it'd be worth lowering the dummy timer's rating to ensure it doesn't
->>>>> override a real timer elsewhere. 
->>>>>
->>>> Yep. Can I add you acked-by tag then for $subject patch ?
->>>> Would be good to get this one merged as well.
->>>
->>> Sure. Though could you reword the commit message? The patch solves the more
->>> general issue of a dummy being preferred over real hardware even outside of
->>> choosing the broadcast device.
->>>
->>> Acked-by: Mark Rutland <mark.rutland@arm.com>
->>
->> Thanks. For record, patch is in end of the email which I plan
->> to put into patch system.
->>
->> Regards,
->> Santosh
-> 
-> The below patch seems fine. Are you intending for this to go in as a fix for
-> 3.9-rc*, or as a cleanup for 3.10?
-> 
-Fix for 3.9-rc*. I have put already it in patch system.
+This patch-set modifies dwc3-exynos as per latest bindings
+available for dwc3. Now the dwc3 core also has device support,
+there's no need to add platform device for core in glue layers.
+This change has come as a result of discussion happened in:
+[PATCH RFC] usb: dwc3: Get PHY from platform specific dwc3 dt node.
 
-Regards,
-Santosh
+Additionally, now that Samsung exynos series has moved to common
+clock framework, we use clock_prepare_enable() and clock_disable_unprepare()
+APIs.
+Some cleanup is also done here.
 
+Based on 'usb-next' plus Felipe's 'testing' branch patches;
+(some 194 patches in fact ;-), on top of 3.9rc2 tag).
+Also based on: "usb: dwc3: set dma_mask for dwc3_omap device" by Kishon
+in which DMA mask for dwc3-core is being set from its parent.
 
+Vivek Gautam (2):
+  usb: dwc3: exynos: Use of_platform API to create dwc3 core pdev
+  usb: dwc3: exynos: use clk_prepare_enable and clk_disable_unprepare
 
+ drivers/usb/dwc3/dwc3-exynos.c |   54 ++++++++++++++--------------------------
+ 1 files changed, 19 insertions(+), 35 deletions(-)
+
+-- 
+1.7.6.5
