@@ -1,44 +1,42 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: Re: [PATCH] ARM: OMAP: drop "select MACH_NOKIA_RM696"
-Date: Thu, 14 Mar 2013 09:00:14 +0100
-Message-ID: <1363248014.1335.23.camel@x61.thuisdomein>
-References: <1362738596.5994.48.camel@x61.thuisdomein>
-	 <20130308161159.GE14552@blackmetal.musicnaut.iki.fi>
-	 <20130308163507.GC26093@atomide.com>
-	 <1362763232.5994.75.camel@x61.thuisdomein>
-	 <20130308175539.GG26093@atomide.com>
-	 <1362765764.5994.87.camel@x61.thuisdomein>
-	 <20130309000157.GE30923@n2100.arm.linux.org.uk>
-	 <1362858510.3137.31.camel@x61.thuisdomein>
-	 <20130311163351.GJ26093@atomide.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCHv3 03/14] mailbox: OMAP: introduce mailbox framework
+Date: Thu, 14 Mar 2013 09:14:26 +0100
+Message-ID: <CACRpkdbUBkhkQ-ZiqkLUmsDBp3hw4k3Z1s4i4SD3C2ZfuGUF+w@mail.gmail.com>
+References: <1363145044-14442-1-git-send-email-s-anna@ti.com>
+	<CACRpkdY8ZWNUVHJorbhN7XvOys9KJH8hKeCBYARih=1FiNk-CQ@mail.gmail.com>
+	<37C860A02101E749A747FA2D3C1E3C50498B8E@DLEE11.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cpsmtpb-ews03.kpnxchange.com ([213.75.39.6]:52812 "EHLO
-	cpsmtpb-ews03.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750913Ab3CNIAV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Mar 2013 04:00:21 -0400
-In-Reply-To: <20130311163351.GJ26093@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <37C860A02101E749A747FA2D3C1E3C50498B8E@DLEE11.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Anna, Suman" <s-anna@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic Pallardy <loic.pallardy@st.com>, Omar Ramirez Luna <omar.luna@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 2013-03-11 at 09:33 -0700, Tony Lindgren wrote:
-> * Paul Bolle <pebolle@tiscali.nl> [130309 11:52]:
-> > In the meantime, how do you prefer I solve the (trivial) issue of an
-> > useless select for MACH_NOKIA_RM696? Drop that select or add an (equally
-> > useless) config entry for MACH_NOKIA_RM696? Or should I try to ignore it
-> > for the time being?
-> 
-> Just adding the config MACH_NOKIA_RM696 to Kconfig as bool should fix
-> this unless I'm missing something here.
+On Wed, Mar 13, 2013 at 10:34 PM, Anna, Suman <s-anna@ti.com> wrote:
+>> On Wed, Mar 13, 2013 at 4:24 AM, Suman Anna <s-anna@ti.com> wrote:
+>>
+>> > From: Omar Ramirez Luna <omar.luna@linaro.org>
+>> (...)
+>> >
+>> > Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
+>> > [s-anna@ti.com: Kconfig fixes for build errors]
+>> > Signed-off-by: Suman Anna <s-anna@ti.com>
+>> > Acked-by: Tony Lindgren <tony@atomide.com>
+>> > Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+>>
+>> It's not like I care super-much, but I think your SoB should be at the bottom.
+>>
+>> It's a simple git rebase -i anyway...
+>
+> Sure, will do. Only this patch, right? I have my SoB only on one another original patch, will adjust on that as well, but all the remaining ones will have yours at the bottom.
 
-Yes, that should do. I already promised to draft that small patch last
-week. I hope to actually do that shortly.
+No I mean that the SoB-order should reflect the code flow path, and
+yours should be
+at the bottom of all of them, but as noted I don't care much. In my
+case the only thing
+I did was to pass the code :-)
 
-
-Paul Bolle
-
+Yours,
+Linus Walleij
