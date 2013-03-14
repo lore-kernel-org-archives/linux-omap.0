@@ -1,96 +1,44 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet child nodes
-Date: Thu, 14 Mar 2013 17:56:45 +0100
-Message-ID: <CAAwP0s3LXP4018M7nySiLsKj511PeZxZWfxJ3-_VpQDAAoMBOg@mail.gmail.com>
-References: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk>
- <1363273762-17441-4-git-send-email-javier.martinez@collabora.co.uk>
- <5141F13E.8040300@ti.com> <CAAwP0s2iJscf9nV7Ac7ysebciL=d4z1KiUk29f7A1DaakVY=Ww@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: clocks: Pass static parent pointers
+ to common clock core
+Date: Thu, 14 Mar 2013 10:06:01 -0700
+Message-ID: <20130314170601.GH26093@atomide.com>
+References: <1363264618-5071-1-git-send-email-rnayak@ti.com>
+ <1363264618-5071-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f174.google.com ([209.85.210.174]:38991 "EHLO
-	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755412Ab3CNQ5G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 12:57:06 -0400
-Received: by mail-ia0-f174.google.com with SMTP id k38so2241353iah.19
-        for <linux-omap@vger.kernel.org>; Thu, 14 Mar 2013 09:57:05 -0700 (PDT)
-In-Reply-To: <CAAwP0s2iJscf9nV7Ac7ysebciL=d4z1KiUk29f7A1DaakVY=Ww@mail.gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30251 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755540Ab3CNRGG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 13:06:06 -0400
+Content-Disposition: inline
+In-Reply-To: <1363264618-5071-3-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, phaber@broadcom.com
 
-On Thu, Mar 14, 2013 at 5:37 PM, Javier Martinez Canillas
-<martinez.javier@gmail.com> wrote:
-> On Thu, Mar 14, 2013 at 4:48 PM, Jon Hunter <jon-hunter@ti.com> wrote:
->> Hi Javier,
->>
->> On 03/14/2013 10:09 AM, Javier Martinez Canillas wrote:
->>> Besides being used to interface with external memory devices,
->>> the General-Purpose Memory Controller can be used to connect
->>> Pseudo-SRAM devices such as ethernet controllers to OMAP2+
->>> processors using the TI GPMC as a data bus.
->>>
->>> This patch allows an ethernet chip to be defined as an GPMC
->>> child device node.
->>>
->>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
->>> ---
->>>  Documentation/devicetree/bindings/net/gpmc-eth.txt |   90 ++++++++++++++++++++
->>>  arch/arm/mach-omap2/gpmc.c                         |    8 ++
->>>  2 files changed, 98 insertions(+), 0 deletions(-)
->>>  create mode 100644 Documentation/devicetree/bindings/net/gpmc-eth.txt
->>>
->>> diff --git a/Documentation/devicetree/bindings/net/gpmc-eth.txt b/Documentation/devicetree/bindings/net/gpmc-eth.txt
->>> new file mode 100644
->>> index 0000000..c45363c
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/net/gpmc-eth.txt
->>> @@ -0,0 +1,90 @@
->>> +Device tree bindings for Ethernet chip connected to TI GPMC
->>> +
->>> +Besides being used to interface with external memory devices, the
->>> +General-Purpose Memory Controller can be used to connect Pseudo-SRAM devices
->>> +such as ethernet controllers to processors using the TI GPMC as a data bus.
->>> +
->>> +Ethernet controllers connected to TI GPMC are represented as child nodes of
->>> +the GPMC controller with an "ethernet" name.
->>> +
->>> +All timing relevant properties as well as generic GPMC child properties are
->>> +explained in a separate documents. Please refer to
->>> +Documentation/devicetree/bindings/bus/ti-gpmc.txt
->>> +
->>> +Required properties:
->>> +- bank-width:                Address width of the device in bytes. GPMC supports 8-bit
->>> +                     and 16-bit devices and so must be either 1 or 2 bytes.
->>
->> I am wondering if we should use reg-io-width here. The smsc driver is
->> using this to determine the width of the device. And so I am wondering
->> if this could cause problems.
->>
->> Obviously this complicates gpmc_probe_generic_child() a little, but may
->> be would could pass the name of the width property to
->> gpmc_probe_generic_child() as well. What do you think?
->>
->
-> Hi Jon,
->
-> Well now I'm confused. I thought that both were needed since a
-> combination of bank-width 16-bit / reg-io-width 32-bit is also
-> possible (in fact that is how I'm testing on my IGEPv2) and we have
-> talked about this before [1].
->
-> By reading both the OMAP3 TRM and the smsc LAN9221 data-sheet, it
-> seems that the reg-io-width is not about the data bus address width
-> but the CPU address width. The smsc data-sheet says:
->
+* Rajendra Nayak <rnayak@ti.com> [130314 05:44]:
+> OMAP clock inits happen quite early, even before the slab is available.
+> As part of the clock init, the common clock core tries to cache parent
+> pointers (if not passed by the caller registering the clock) which
+> fails in case of OMAP since the slab isn't initied.
+> Without CONFIG_DEBUG_SLAB enabled, this just results in the common clock core
+> retrying the caching attempt at some point later.
+> However with CONFIG_DEBUG_SLAB enabled this results in a BUG() as reported
+> in the link below by Tony..
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85932.html
+> 
+> Fix this by passing static parent pointers to the common clock core
+> while registering clocks.
 
-Hi Jon,
+I wonder if we could easily fix this by initializing only some of the
+clocks that early?
 
-By the way, here is the smsc LAN9221 data-sheet if you don't have it
-and want to take it a look:
+If we had a two stage initialization we could dynamically allocate the
+rest of the parent clocks without having to add all the static data.
 
-http://www.smsc.com/Downloads/SMSC/Downloads_Public/Data_Sheets/9221.pdf
+Regards,
 
-Thanks a lot and best regards,
-Javier
+Tony
