@@ -1,241 +1,140 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: MTD : Kernel oops when remounting ubifs as read/write
-Date: Thu, 14 Mar 2013 11:13:45 +0200
-Message-ID: <1363252425.11441.94.camel@sauron.fi.intel.com>
-References: <5134CEF9.5070502@mimc.co.uk>
-	 <1363087506.3348.62.camel@sauron.fi.intel.com>
-	 <51405F3A.3090901@mimc.co.uk>
-Reply-To: dedekind1@gmail.com
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 6/8] SERIAL: OMAP: Remove the slave idle handling from
+ the driver
+Date: Thu, 14 Mar 2013 15:07:01 +0530
+Message-ID: <51419A3D.1000703@ti.com>
+References: <1361354444-18230-1-git-send-email-santosh.shilimkar@ti.com> <87sj4rqa7r.fsf@linaro.org> <5124EF59.5080206@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-YlVgXk/tIznaGNfH/Lkm"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51405F3A.3090901@mimc.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, adrian.hunter@intel.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:51462 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755622Ab3CNJgH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Mar 2013 05:36:07 -0400
+In-Reply-To: <5124EF59.5080206@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Kevin Hilman <khilman@linaro.org>, linux-omap@vger.kernel.org, rnayak@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org
 
+(Looping Greg KH.)
 
---=-YlVgXk/tIznaGNfH/Lkm
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Greg,
 
-On Wed, 2013-03-13 at 11:12 +0000, Mark Jackson wrote:
-> Sorry ... this just locks up the unit.
+On Wednesday 20 February 2013 09:14 PM, Santosh Shilimkar wrote:
+> On Wednesday 20 February 2013 08:54 PM, Kevin Hilman wrote:
+>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>>
+>>> UART IP slave idle handling now taken care by runtime pm backend(hwmod layer)
+>>> so remove the hackery from the driver.
+>>>
+>>> Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>>> Tested-by: Sourav Poddar <sourav.poddar@ti.com>
+>>> Signed-off-by: Rajendra nayak <rnayak@ti.com>
+>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>
+>>> ---
+>>>   drivers/tty/serial/omap-serial.c |   23 -----------------------
+>>>   1 file changed, 23 deletions(-)
+>>
+>> This patch should also remove the hooks from
+>> <linux/platform_data/serial-omap.h>
+>>
+> Right. Will fix that in next version. Thanks.
+> 
+Sorry for not CC'ing first place
+The subject patch is part of the series which cleans up the slave
+idle handling from OMAP serial driver. It will be best to queue
+it along with rest of the patches with your ack on $subject patch.
 
-OK, I've reproduced the issue with 3.9-rc2 in nandsim, see the details
-below. The patch I proposed did not get the error path correctly, but it
-does fix the issue.
+Here is the updated version which also removed the hooks
+from 'linux/platform_data/serial-omap.h' as per Kevin suggestion.
 
-I think what you treat as "lockup" is the fixup process. UBIFS basically
-reads the entire UBI volume and writes it back. And it uses the atomic
-change UBI service, which means it also calculates CRC of everything it
-writes. And this all just takes a lot of time. This has to be done only
-once on the first mount.
+>From 92916b8e0d895962c88fefbf99284967a4b94426 Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Fri, 15 Feb 2013 15:50:37 +0530
+Subject: [PATCH 6/8] SERIAL: OMAP: Remove the slave idle handling from the
+ driver
 
-I've attached the following:
+UART IP slave idle handling now taken care by runtime pm backend(hwmod layer)
+so remove the hackery from the driver.
 
-1. The patch which fixes the issue when I use nandsim. It is also
-   inlined in the end. Please, give it a try and be more patient -
-   wait longer. Please, do report your results back.
-2. 'reproduce.sh' - a quick and dirty shell script which reproduces the
-    problem
-3. ubinize.cfg - is needed for 'reproduce.sh'.
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-
-Thanks!
-
->From a173f8e9296562e5ece3dd2936d799001897d6c6 Mon Sep 17 00:00:00 2001
-From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Date: Thu, 14 Mar 2013 10:49:23 +0200
-Subject: [PATCH] UBIFS: make space fixup work in the remount case
-
-The UBIFS space fixup is a useful feature which allows to fixup the "broken"
-flash space at the time of the first mount. The "broken" space is usually the
-result of using a "dumb" industrial flasher which is not able to skip empty
-NAND pages and just writes all 0xFFs to the empty space, which has grave
-side-effects for UBIFS when UBIFS trise to write useful data to those empty
-pages.
-
-The fix-up feature works roughly like this:
-1. mkfs.ubifs sets the fixup flag in UBIFS superblock when creating the image
-   (see -F option)
-2. when the file-system is mounted for the first time, UBIFS notices the fixup
-   flag and re-writes the entire media atomically, which may take really a lot
-   of time.
-3. UBIFS clears the fixup flag in the superblock.
-
-This works fine when the file system is mounted R/W for the very first time.
-But it did not really work in the case when we first mount the file-system R/O,
-and then re-mount R/W. The reason was that we started the fixup procedure too
-late, which we cannot really do because we have to fixup the space before it
-starts being used.
-
-Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Reported-by: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: stable@vger.kernel.org # 3.0+
+Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Tested-by: Sourav Poddar <sourav.poddar@ti.com>
+Signed-off-by: Rajendra nayak <rnayak@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- fs/ubifs/super.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/tty/serial/omap-serial.c          |   23 -----------------------
+ include/linux/platform_data/serial-omap.h |    2 --
+ 2 files changed, 25 deletions(-)
 
-diff --git a/fs/ubifs/super.c b/fs/ubifs/super.c
-index ac838b8..fa4aec6 100644
---- a/fs/ubifs/super.c
-+++ b/fs/ubifs/super.c
-@@ -1568,10 +1568,17 @@ static int ubifs_remount_rw(struct ubifs_info *c)
- 	c->remounting_rw = 1;
- 	c->ro_mount = 0;
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 4dc4140..08332f3 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -202,26 +202,6 @@ static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
+ 	return pdata->get_context_loss_count(up->dev);
+ }
  
-+	if (c->space_fixup) {
-+		err = ubifs_fixup_free_space(c);
-+		if (err)
-+			return err;
-+	}
-+
- 	err = check_free_space(c);
- 	if (err)
- 		goto out;
- 
-+
- 	if (c->old_leb_cnt != c->leb_cnt) {
- 		struct ubifs_sb_node *sup;
- 
-@@ -1684,12 +1691,6 @@ static int ubifs_remount_rw(struct ubifs_info *c)
- 		err = dbg_check_space_info(c);
+-static void serial_omap_set_forceidle(struct uart_omap_port *up)
+-{
+-	struct omap_uart_port_info *pdata = up->dev->platform_data;
+-
+-	if (!pdata || !pdata->set_forceidle)
+-		return;
+-
+-	pdata->set_forceidle(up->dev);
+-}
+-
+-static void serial_omap_set_noidle(struct uart_omap_port *up)
+-{
+-	struct omap_uart_port_info *pdata = up->dev->platform_data;
+-
+-	if (!pdata || !pdata->set_noidle)
+-		return;
+-
+-	pdata->set_noidle(up->dev);
+-}
+-
+ static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
+ {
+ 	struct omap_uart_port_info *pdata = up->dev->platform_data;
+@@ -298,8 +278,6 @@ static void serial_omap_stop_tx(struct uart_port *port)
+ 		serial_out(up, UART_IER, up->ier);
  	}
  
--	if (c->space_fixup) {
--		err = ubifs_fixup_free_space(c);
--		if (err)
--			goto out;
--	}
+-	serial_omap_set_forceidle(up);
 -
- 	mutex_unlock(&c->umount_mutex);
- 	return err;
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
+ }
+@@ -364,7 +342,6 @@ static void serial_omap_start_tx(struct uart_port *port)
+ 
+ 	pm_runtime_get_sync(up->dev);
+ 	serial_omap_enable_ier_thri(up);
+-	serial_omap_set_noidle(up);
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
+ }
+diff --git a/include/linux/platform_data/serial-omap.h b/include/linux/platform_data/serial-omap.h
+index ff9b0aa..c860c1b 100644
+--- a/include/linux/platform_data/serial-omap.h
++++ b/include/linux/platform_data/serial-omap.h
+@@ -43,8 +43,6 @@ struct omap_uart_port_info {
+ 	int			DTR_present;
+ 
+ 	int (*get_context_loss_count)(struct device *);
+-	void (*set_forceidle)(struct device *);
+-	void (*set_noidle)(struct device *);
+ 	void (*enable_wakeup)(struct device *, bool);
+ };
  
 -- 
-1.7.7.6
-
--- 
-Best Regards,
-Artem Bityutskiy
-
---=-YlVgXk/tIznaGNfH/Lkm
-Content-Disposition: attachment;
-	filename="0001-UBIFS-make-space-fixup-work-in-the-remount-case.patch"
-Content-Type: text/x-patch;
-	name="0001-UBIFS-make-space-fixup-work-in-the-remount-case.patch";
-	charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
->From a173f8e9296562e5ece3dd2936d799001897d6c6 Mon Sep 17 00:00:00 2001
-From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Date: Thu, 14 Mar 2013 10:49:23 +0200
-Subject: [PATCH] UBIFS: make space fixup work in the remount case
-
-The UBIFS space fixup is a useful feature which allows to fixup the "broken"
-flash space at the time of the first mount. The "broken" space is usually the
-result of using a "dumb" industrial flasher which is not able to skip empty
-NAND pages and just writes all 0xFFs to the empty space, which has grave
-side-effects for UBIFS when UBIFS trise to write useful data to those empty
-pages.
-
-The fix-up feature works roughly like this:
-1. mkfs.ubifs sets the fixup flag in UBIFS superblock when creating the image
-   (see -F option)
-2. when the file-system is mounted for the first time, UBIFS notices the fixup
-   flag and re-writes the entire media atomically, which may take really a lot
-   of time.
-3. UBIFS clears the fixup flag in the superblock.
-
-This works fine when the file system is mounted R/W for the very first time.
-But it did not really work in the case when we first mount the file-system R/O,
-and then re-mount R/W. The reason was that we started the fixup procedure too
-late, which we cannot really do because we have to fixup the space before it
-starts being used.
-
-Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Cc: stable@vger.kernel.org # 3.0+
----
- fs/ubifs/super.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
-
-diff --git a/fs/ubifs/super.c b/fs/ubifs/super.c
-index ac838b8..fa4aec6 100644
---- a/fs/ubifs/super.c
-+++ b/fs/ubifs/super.c
-@@ -1568,10 +1568,17 @@ static int ubifs_remount_rw(struct ubifs_info *c)
- 	c->remounting_rw = 1;
- 	c->ro_mount = 0;
- 
-+	if (c->space_fixup) {
-+		err = ubifs_fixup_free_space(c);
-+		if (err)
-+			return err;
-+	}
-+
- 	err = check_free_space(c);
- 	if (err)
- 		goto out;
- 
-+
- 	if (c->old_leb_cnt != c->leb_cnt) {
- 		struct ubifs_sb_node *sup;
- 
-@@ -1684,12 +1691,6 @@ static int ubifs_remount_rw(struct ubifs_info *c)
- 		err = dbg_check_space_info(c);
- 	}
- 
--	if (c->space_fixup) {
--		err = ubifs_fixup_free_space(c);
--		if (err)
--			goto out;
--	}
--
- 	mutex_unlock(&c->umount_mutex);
- 	return err;
- 
--- 
-1.7.7.6
+1.7.9.5
 
 
---=-YlVgXk/tIznaGNfH/Lkm
-Content-Type: application/x-shellscript; name="reproduce.sh"
-Content-Disposition: attachment; filename="reproduce.sh"
-Content-Transfer-Encoding: 7bit
 
-#!/bin/sh -euf
 
-umount /mnt/ubifs ||:
-rmmod ubifs ||:
-rmmod ubi ||:
-rmmod nandsim ||:
-
-modprobe nandsim first_id_byte=0x20 second_id_byte=0xaa third_id_byte=0x00 fourth_id_byte=0x15
-modprobe ubi
-modprobe ubifs
-
-mkfs.ubifs -F -r /home/dedekind/bin -m 2048 -e 129024 -c 2047 -o ubifs.img
-ubinize -o ubi.img -m 2048 -p 128KiB -s 512 ubinize.cfg
-
-dd if=ubi.img of=/dev/mtd0
-sync
-ubiattach -p /dev/mtd0
-mount -t ubifs -o ro ubi0_0 /mnt/ubifs
-mount -o remount ubi0_0 /mnt/ubifs
-
---=-YlVgXk/tIznaGNfH/Lkm
-Content-Disposition: attachment; filename="ubinize.cfg"
-Content-Type: text/plain; name="ubinize.cfg"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
-[ubifs]
-mode=ubi
-image=ubifs.img
-vol_id=0
-vol_size=200MiB
-vol_type=dynamic
-vol_name=rootfs
-vol_flags=autoresize
-
---=-YlVgXk/tIznaGNfH/Lkm--
