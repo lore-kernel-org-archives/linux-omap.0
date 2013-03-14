@@ -1,121 +1,57 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection
- instead of always dummy
-Date: Thu, 14 Mar 2013 10:28:07 +0000
-Message-ID: <20130314102807.GG13483@e106331-lin.cambridge.arm.com>
-References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com>
- <514046B6.9020005@ti.com>
- <20130313101641.GA13483@e106331-lin.cambridge.arm.com>
- <514061D1.20603@ti.com>
- <20130313122550.GD13483@e106331-lin.cambridge.arm.com>
- <51409EC3.5050905@ti.com>
- <20130313161811.GF13483@e106331-lin.cambridge.arm.com>
- <5141800A.2000307@ti.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: MTD : Kernel oops when remounting ubifs as read/write
+Date: Thu, 14 Mar 2013 12:30:09 +0200
+Message-ID: <1363257009.11441.97.camel@sauron.fi.intel.com>
+References: <5134CEF9.5070502@mimc.co.uk>
+	  <1363087506.3348.62.camel@sauron.fi.intel.com>
+	  <51405F3A.3090901@mimc.co.uk>
+	 <1363252425.11441.94.camel@sauron.fi.intel.com>
+	 <51419E3A.8030007@mimc.co.uk>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:35851 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756205Ab3CNK2c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Mar 2013 06:28:32 -0400
-Content-Disposition: inline
-In-Reply-To: <5141800A.2000307@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51419E3A.8030007@mimc.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, adrian.hunter@intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Stephen Boyd <sboyd@codeaurora.org>
 
-On Thu, Mar 14, 2013 at 07:45:14AM +0000, Santosh Shilimkar wrote:
-> On Wednesday 13 March 2013 09:48 PM, Mark Rutland wrote:
-> > On Wed, Mar 13, 2013 at 03:44:03PM +0000, Santosh Shilimkar wrote:
-> >> On Wednesday 13 March 2013 05:55 PM, Mark Rutland wrote:
-> >>> On Wed, Mar 13, 2013 at 11:24:01AM +0000, Santosh Shilimkar wrote:
-> >>>> On Wednesday 13 March 2013 03:46 PM, Mark Rutland wrote:
-> >>>>> Hi Santosh,
-> >>
-> >> [..]
-> >>
-> >>>>>
-> >>>>> Is the problem that the dummy timer is being registered as the broadcast
-> >>>>> source, or that it is selected as a local timer in preference of real timers?
-> >>>>>
-> >>>> Dummy timer is preferred over real broadcast timer.
-> >>>
-> >>> Ok.
+On Thu, 2013-03-14 at 09:54 +0000, Mark Jackson wrote:
+> On 14/03/13 09:13, Artem Bityutskiy wrote:
+> > On Wed, 2013-03-13 at 11:12 +0000, Mark Jackson wrote:
+> >> Sorry ... this just locks up the unit.
 > > 
-> > [...]
+> > OK, I've reproduced the issue with 3.9-rc2 in nandsim, see the details
+> > below. The patch I proposed did not get the error path correctly, but it
+> > does fix the issue.
 > > 
-> >>> I do agree it'd be worth lowering the dummy timer's rating to ensure it doesn't
-> >>> override a real timer elsewhere. 
-> >>>
-> >> Yep. Can I add you acked-by tag then for $subject patch ?
-> >> Would be good to get this one merged as well.
-> > 
-> > Sure. Though could you reword the commit message? The patch solves the more
-> > general issue of a dummy being preferred over real hardware even outside of
-> > choosing the broadcast device.
-> > 
-> > Acked-by: Mark Rutland <mark.rutland@arm.com>
+> > I think what you treat as "lockup" is the fixup process. UBIFS basically
+> > reads the entire UBI volume and writes it back. And it uses the atomic
+> > change UBI service, which means it also calculates CRC of everything it
+> > writes. And this all just takes a lot of time. This has to be done only
+> > once on the first mount.
 > 
-> Thanks. For record, patch is in end of the email which I plan
-> to put into patch system.
+> Okay ... I've retried, but how long is "a lot of time" ?
 > 
-> Regards,
-> Santosh
+> I've waited 15 minutes and still nothing.
+> 
+> And I can see that there's no activity on the NAND chip select !?!
+> 
+> I'll put some debug info into the fixup routines to see if I can trace what's going on.
 
-The below patch seems fine. Are you intending for this to go in as a fix for
-3.9-rc*, or as a cleanup for 3.10?
+Just to make sure - try this last patch I sent. I did test it with
+nandsim at least, and I am sure it works. I did not test at all the
+first one.
 
-If you're aiming for the latter, it's going to clash with Stephen Boyd's local
-timer API removal [1], in which the generic dummy timer driver [2] (replacing
-the arm-specific dummy [3]) also has a rating of 100.
+And yes, debug messages would be useful, just do not forget to add the
+'ignore_loglevel' kernel boot option, otherwise you won't see the
+messages on your console, since they are of KERN_DEBUG level.
 
-It would be nice if we could reduce the possibility of a conflict.
+You may have other issues which cause lockup, e.g., in driver level. It
+makes sense to validate your flash with MTD test modules.
 
-[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-March/154724.html
-[2] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-March/154725.html
-[3] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-March/154726.html
-
-Thanks,
-Mark.
-
-> 
-> From 57c501bcdc88c7ff26a5c63956be07e94a5083c5 Mon Sep 17 00:00:00 2001
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Date: Wed, 13 Mar 2013 12:33:16 +0530
-> Subject: [PATCH 1/2] ARM: smp: Avoid dummy clockevent being preferred over real hardware clock-event
-> 
-> With recent arm broadcast time clean-up from Mark Rutland, the dummy
-> broadcast device is always registered with timer subsystem. And since
-> the rating of the dummy clock event is very high, it may be preferred
-> over a real clock event.
-> 
-> This is a change in behavior from past and not an intended
-> one. So reduce the rating of the dummy clockevent so that
-> real clockevent device is selected when available.
-> 
-> Acked-by: Mark Rutland <mark.rutland@arm.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/kernel/smp.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-> index 31644f1..79078ed 100644
-> --- a/arch/arm/kernel/smp.c
-> +++ b/arch/arm/kernel/smp.c
-> @@ -480,7 +480,7 @@ static void __cpuinit broadcast_timer_setup(struct clock_event_device *evt)
->  	evt->features	= CLOCK_EVT_FEAT_ONESHOT |
->  			  CLOCK_EVT_FEAT_PERIODIC |
->  			  CLOCK_EVT_FEAT_DUMMY;
-> -	evt->rating	= 400;
-> +	evt->rating	= 100;
->  	evt->mult	= 1;
->  	evt->set_mode	= broadcast_timer_set_mode;
->  
-> -- 
-> 1.7.9.5
-> 
-> 
-> 
+-- 
+Best Regards,
+Artem Bityutskiy
