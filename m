@@ -1,40 +1,125 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.9-rc1
-Date: Thu, 14 Mar 2013 16:14:20 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1303141558020.8075@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1303121634080.2723@utopia.booyaka.com> <20130312190030.GB8798@blackmetal.musicnaut.iki.fi>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet child nodes
+Date: Thu, 14 Mar 2013 17:37:46 +0100
+Message-ID: <CAAwP0s2iJscf9nV7Ac7ysebciL=d4z1KiUk29f7A1DaakVY=Ww@mail.gmail.com>
+References: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk>
+ <1363273762-17441-4-git-send-email-javier.martinez@collabora.co.uk> <5141F13E.8040300@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:49995 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755325Ab3CNQOV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 12:14:21 -0400
-In-Reply-To: <20130312190030.GB8798@blackmetal.musicnaut.iki.fi>
+Received: from mail-ia0-f178.google.com ([209.85.210.178]:51188 "EHLO
+	mail-ia0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932274Ab3CNQiH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 12:38:07 -0400
+Received: by mail-ia0-f178.google.com with SMTP id y10so18399iak.37
+        for <linux-omap@vger.kernel.org>; Thu, 14 Mar 2013 09:38:06 -0700 (PDT)
+In-Reply-To: <5141F13E.8040300@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-Hi Aaro,
+On Thu, Mar 14, 2013 at 4:48 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+> Hi Javier,
+>
+> On 03/14/2013 10:09 AM, Javier Martinez Canillas wrote:
+>> Besides being used to interface with external memory devices,
+>> the General-Purpose Memory Controller can be used to connect
+>> Pseudo-SRAM devices such as ethernet controllers to OMAP2+
+>> processors using the TI GPMC as a data bus.
+>>
+>> This patch allows an ethernet chip to be defined as an GPMC
+>> child device node.
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+>> ---
+>>  Documentation/devicetree/bindings/net/gpmc-eth.txt |   90 ++++++++++++++++++++
+>>  arch/arm/mach-omap2/gpmc.c                         |    8 ++
+>>  2 files changed, 98 insertions(+), 0 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/net/gpmc-eth.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/net/gpmc-eth.txt b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+>> new file mode 100644
+>> index 0000000..c45363c
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+>> @@ -0,0 +1,90 @@
+>> +Device tree bindings for Ethernet chip connected to TI GPMC
+>> +
+>> +Besides being used to interface with external memory devices, the
+>> +General-Purpose Memory Controller can be used to connect Pseudo-SRAM devices
+>> +such as ethernet controllers to processors using the TI GPMC as a data bus.
+>> +
+>> +Ethernet controllers connected to TI GPMC are represented as child nodes of
+>> +the GPMC controller with an "ethernet" name.
+>> +
+>> +All timing relevant properties as well as generic GPMC child properties are
+>> +explained in a separate documents. Please refer to
+>> +Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>> +
+>> +Required properties:
+>> +- bank-width:                Address width of the device in bytes. GPMC supports 8-bit
+>> +                     and 16-bit devices and so must be either 1 or 2 bytes.
+>
+> I am wondering if we should use reg-io-width here. The smsc driver is
+> using this to determine the width of the device. And so I am wondering
+> if this could cause problems.
+>
+> Obviously this complicates gpmc_probe_generic_child() a little, but may
+> be would could pass the name of the width property to
+> gpmc_probe_generic_child() as well. What do you think?
+>
 
-On Tue, 12 Mar 2013, Aaro Koskinen wrote:
+Hi Jon,
 
-> On Tue, Mar 12, 2013 at 04:40:19PM +0000, Paul Walmsley wrote:
-> > * 2420N800: powers down 30 seconds after boot
-> >   - Presumably due to missing CBUS patches for watchdog control
-> >   - http://lkml.org/lkml/2012/9/3/265
-> >   - http://marc.info/?l=linux-omap&m=135274739624125&w=2
-> >   - http://marc.info/?l=linux-omap&m=135664195831104&w=2
-> >   - Should be working in v3.9-rc1 when CONFIG_RETU_WATCHDOG=y ?
-> 
-> Yes, you need also CONFIG_I2C_CBUS_GPIO and CONFIG_MFD_RETU.
+Well now I'm confused. I thought that both were needed since a
+combination of bank-width 16-bit / reg-io-width 32-bit is also
+possible (in fact that is how I'm testing on my IGEPv2) and we have
+talked about this before [1].
 
-Just enabled these two, and finally the N800 doesn't power down!  Nice 
-work!  Amazing how exciting something like this can be :-)
+By reading both the OMAP3 TRM and the smsc LAN9221 data-sheet, it
+seems that the reg-io-width is not about the data bus address width
+but the CPU address width. The smsc data-sheet says:
 
-This will be reflected in the v3.9-rc2 test log & the v3.9-rc1 log has now 
-been fixed on the web.
+"The simple, yet highly functional host bus interface provides a
+glue-less connection to most common 16-bit microprocessors and
+microcontrollers as well as 32-bit microprocessors with a 16-bit
+external bus"
 
+By looking at the smsc911x driver
+(drivers/net/ethernet/smsc/smsc911x.c) I see that if you use
+reg-io-width = <4> (SMSC911X_USE_32BIT) then the smsc911x hardware
+registers can be read in one operation and if you use reg-io-width =
+<2> (SMSC911X_USE_16BIT) then you need two operations to read the
+register:
 
-- Paul
+static inline u32 __smsc911x_reg_read(struct smsc911x_data *pdata, u32 reg)
+{
+	if (pdata->config.flags & SMSC911X_USE_32BIT)
+		return readl(pdata->ioaddr + reg);
+
+	if (pdata->config.flags & SMSC911X_USE_16BIT)
+		return ((readw(pdata->ioaddr + reg) & 0xFFFF) |
+			((readw(pdata->ioaddr + reg + 2) & 0xFFFF) << 16));
+
+	BUG();
+	return 0;
+}
+
+Also, by reading at the OMAP3 TRM, I understand that even when the
+GPMC has a maximum 16-bit address width, it support devices that has
+32-bit registers by doing some sort of access adaptation.
+
+So, as far as I understand the "bank-width" is to configure the GPMC
+if is going to use a 8-bit or 16-bit width access and the
+"reg-io-width" is how the smsc911x driver is going to read its
+registers. So, I think we need both properties and there is no need to
+change gpmc_probe_generic_child() neither pass the child name to it.
+
+But to be honest I can be wrong here since data-sheet and technical
+reference manuals can be quite confusing sometimes :-)
+
+Thanks a lot for your feedback and best regards,
+Javier
+
+[1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85597.html
