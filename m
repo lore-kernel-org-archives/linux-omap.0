@@ -1,62 +1,74 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/1] omap: usb: host: remove deprecated flags and
- structures
-Date: Thu, 14 Mar 2013 15:27:19 +0200
-Message-ID: <20130314132719.GA26080@arwen.pp.htv.fi>
-References: <1363257673-24136-1-git-send-email-ruslan.bilovol@ti.com>
- <1363257673-24136-2-git-send-email-ruslan.bilovol@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 0/4] usb: musb/otg: cleanup and fixes
+Date: Thu, 14 Mar 2013 15:33:13 +0200
+Message-ID: <20130314133313.GB26080@arwen.pp.htv.fi>
+References: <1363242239-1061-1-git-send-email-kishon@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="uQr8t48UFsdbeI+V"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1363257673-24136-2-git-send-email-ruslan.bilovol-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1363242239-1061-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, notasas@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
---ZPt4rx8FFjLCG7dd
+--uQr8t48UFsdbeI+V
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 14, 2013 at 12:41:13PM +0200, Ruslan Bilovol wrote:
-> These flags and structures are deprecated and there is
-> no anymore users of them, so it's safe to remove them.
+On Thu, Mar 14, 2013 at 11:53:55AM +0530, Kishon Vijay Abraham I wrote:
+> This series has some misc cleanup and fixes. The fix solves the cold
+> plug issue in omap3 which some have reported. Developed these patches on
+> fixes-for-v3.9-rc3 after applying=20
+> http://www.spinics.net/lists/linux-usb/msg81563.html
+> (Grazvydas Ignotas patch series)
 >=20
-> Signed-off-by: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+> Tested for g_zero enumeration in pandaboard and beagleboard in both
+> cold plug and hot plug case. Any kind of testing for this series is welco=
+me.
+>=20
+> Changes from v1:
+> * removed *usb: musb: omap: remove the check before calling otg_set_vbus*
 
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+it's still on your list of patches :-p
+
+> a similar patch is already merged.
+>=20
+> Kishon Vijay Abraham I (4):
+>   usb: musb: omap: remove the check before calling otg_set_vbus
+
+see ^^
+
+please fix it up and when resending add Grazvydas' Tested-by since he
+has tested this patchset
 
 --=20
 balbi
 
---ZPt4rx8FFjLCG7dd
+--uQr8t48UFsdbeI+V
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRQdA2AAoJEIaOsuA1yqREdTcP/RiIy4hAdICwJSPaAnOvGU4L
-rwxtOPWDFpwFAHXcXz4r9bvZ5VSLvFmgdKKR5/Gxn9yhk8awlr110oTkfsxd3LEi
-5dHHULlUcDhyvqASFkQKvWbMSkh3NHr8i185nHX6ojln+DkxMbjYp3Cvsi7rKJuY
-Kitt2tI76vGsC6kvhYkgVwvU/0PdvDEdr0mjcc5fgRWK4Dkx8BPayWPqcWahPJhE
-Gib9tDyNXH059gL4Tb8IzBPAiHeeAwY67YrlkGHFPWloC0rZSIR7fsQkXrGCFFmf
-jQMIzD2w5C0IXrikdvUcRllD24kiNaEuAA8/IvJ3iImpiAHjWNdZJ922zyCh2r2/
-Od/NSbF8N27yA0S6HrNVDf8XbPR+DnXKDS3hwCTl0kGg221QhxGAp1Fe1lREpv6K
-lbDPJOuMQ1xer8TQG3kklLrroE93wBEFTM8Fq9aZiklhCp26BPSB9WrCyu3LYP0A
-ympu3t9/dejYbbWSMe/BWGsTOcRhUah4+liWZSVR3XvSNOlv48mnuvcYunJPVZ54
-1fe7dD7TyHgi37T18SbT85h2WIkCnXIOFb/uaMFy/IZz/ED7hY90HnTsYsicuU0n
-ya7PIOycln2s8jHQerCnf2EVlQNOEy49gBiHhEaLmNCWIFS3QpyGcmaeZm+OaQ06
-snGjC3ecZAf0oY7jDTo6
-=C76h
+iQIcBAEBAgAGBQJRQdGZAAoJEIaOsuA1yqREtKwP/jV1+GZGRfTYgDo5dNayf3Wl
+OPCsDHGCb44DO2xXX/VAAc2kXXljV3eM3Fb3esKSb2zvKMeWHzNhpnQCq6cBu41l
+yeZALqfYb5B0Dz9lngaDFL8UC7WiPdiZLNva6nLNUmpv6d8Kqa+vB4rpNyO3OPGM
+LsqJMOEV7cPFYO7cmtTd+yTmE8XWvdqFvBSMup7wZaeiglv2k4t8AvhaYLWjcViU
+T4kPgtR60TJ2G8QTYCI8UDFxv8FimHTTc6G5dN1fwclUSjwiZNwNFTL39USsZPd/
+1cv+1ZNGTfduEVDCX5CeMxcniq3eXDUktmSj4xP1GI8kEWsgvTfVlhvLnRTwXhBy
+dCNLWUB42euzUKKJ5siySTNFEnn0cHue4k/JNZiGmp3aG9QgFIaFt+MgrG5hkILW
+gBZ6nxH8G3nFACYJpkMFRIMrAhPNgn3XwsFu9sBSuAfUX4no5T2qpmOOfsiarjcH
+I5jlAInQSUMMMiYWag5hWlUBEJdPYJJqoLZckq03r+oZ9cU8u/Oxu0qHgtQ2V+c5
+401qOcjTV7S15YfqG7HT6Hry3q1Tf70buduBFN2vHGx4CwjIclNhi4Gu/7mu2YMY
+oqZVUpX7l7qnY+Mr/wa2nYDAhW2nm0HDa6ZoQeh2j+bEEN/JIaKi35Y9Ywaf0HDv
+Jb2k7s8gXlKHeT9m1LaI
+=HRL4
 -----END PGP SIGNATURE-----
 
---ZPt4rx8FFjLCG7dd--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--uQr8t48UFsdbeI+V--
