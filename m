@@ -1,55 +1,30 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: [PATCH] ARM:OMAP2: an issue about curr_pwrst, u8 is never < 0
-Date: Thu, 14 Mar 2013 12:21:28 +0800
-Message-ID: <51415048.6000607@asianux.com>
+From: kishon <kishon@ti.com>
+Subject: Re: [PATCH 2/5] usb: musb: omap: always glue have the correct vbus/id
+ status
+Date: Thu, 14 Mar 2013 10:56:05 +0530
+Message-ID: <51415F6D.1030503@ti.com>
+References: <1363164430-19118-1-git-send-email-kishon@ti.com> <1363164430-19118-3-git-send-email-kishon@ti.com> <CANOLnOPG9Rbj=XNXtyeReoEzHpegSuZT0QKhEy7QdbVjO4OUPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:6981 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751015Ab3CNEVz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 00:21:55 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CANOLnOPG9Rbj=XNXtyeReoEzHpegSuZT0QKhEy7QdbVjO4OUPw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 
+On Thursday 14 March 2013 03:29 AM, Grazvydas Ignotas wrote:
+> On Wed, Mar 13, 2013 at 10:47 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> In the case where omap glue is loaded and musb core is not, glue->status
+>> wont have a valid status if the phy drivers call omap_musb_mailbox. So
+>> fixed the conditions here.
+>
+> There already seems to be another patch named "usb: musb: omap2430:
+> fix omap_musb_mailbox glue check again" on it's way to mainline that
+> does mostly the same as first part of this patch.
 
-  if pwrdm_read_pwrst returns negative number, curr_pwrst can not notice it.
-  since really need check curr_pwrst whether is negative,
-    need let the check valid in _pwrdm_save_clkdm_state_and_activate.
-    and also better to check the return value of pwrdm_read_pwrst, firstly.
+Oh yeah. Missed that.
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
----
- arch/arm/mach-omap2/powerdomain.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 43ac20c..876d067 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -233,7 +233,7 @@ static u8 _pwrdm_save_clkdm_state_and_activate(struct powerdomain *pwrdm,
- {
- 	u8 sleep_switch;
- 
--	if (curr_pwrst < 0) {
-+	if ((char)curr_pwrst < 0) {
- 		WARN_ON(1);
- 		sleep_switch = ERROR_SWITCH;
- 	} else if (curr_pwrst < PWRDM_POWER_ON) {
-@@ -1106,7 +1106,10 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 pwrst)
- 
- 	pwrdm_lock(pwrdm);
- 
--	curr_pwrst = pwrdm_read_pwrst(pwrdm);
-+	ret = pwrdm_read_pwrst(pwrdm);
-+	if (ret < 0)
-+		goto osps_out;
-+	curr_pwrst = (u8)(unsigned int)ret;
- 	next_pwrst = pwrdm_read_next_pwrst(pwrdm);
- 	if (curr_pwrst == pwrst && next_pwrst == pwrst)
- 		goto osps_out;
--- 
-1.7.7.6
+Thanks
+Kishon
