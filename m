@@ -1,94 +1,44 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
- of always dummy
-Date: Thu, 14 Mar 2013 13:15:14 +0530
-Message-ID: <5141800A.2000307@ti.com>
-References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com> <514046B6.9020005@ti.com> <20130313101641.GA13483@e106331-lin.cambridge.arm.com> <514061D1.20603@ti.com> <20130313122550.GD13483@e106331-lin.cambridge.arm.com> <51409EC3.5050905@ti.com> <20130313161811.GF13483@e106331-lin.cambridge.arm.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: Re: [PATCH] ARM: OMAP: drop "select MACH_NOKIA_RM696"
+Date: Thu, 14 Mar 2013 09:00:14 +0100
+Message-ID: <1363248014.1335.23.camel@x61.thuisdomein>
+References: <1362738596.5994.48.camel@x61.thuisdomein>
+	 <20130308161159.GE14552@blackmetal.musicnaut.iki.fi>
+	 <20130308163507.GC26093@atomide.com>
+	 <1362763232.5994.75.camel@x61.thuisdomein>
+	 <20130308175539.GG26093@atomide.com>
+	 <1362765764.5994.87.camel@x61.thuisdomein>
+	 <20130309000157.GE30923@n2100.arm.linux.org.uk>
+	 <1362858510.3137.31.camel@x61.thuisdomein>
+	 <20130311163351.GJ26093@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43805 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751220Ab3CNHnu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Mar 2013 03:43:50 -0400
-In-Reply-To: <20130313161811.GF13483@e106331-lin.cambridge.arm.com>
+Received: from cpsmtpb-ews03.kpnxchange.com ([213.75.39.6]:52812 "EHLO
+	cpsmtpb-ews03.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750913Ab3CNIAV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Mar 2013 04:00:21 -0400
+In-Reply-To: <20130311163351.GJ26093@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday 13 March 2013 09:48 PM, Mark Rutland wrote:
-> On Wed, Mar 13, 2013 at 03:44:03PM +0000, Santosh Shilimkar wrote:
->> On Wednesday 13 March 2013 05:55 PM, Mark Rutland wrote:
->>> On Wed, Mar 13, 2013 at 11:24:01AM +0000, Santosh Shilimkar wrote:
->>>> On Wednesday 13 March 2013 03:46 PM, Mark Rutland wrote:
->>>>> Hi Santosh,
->>
->> [..]
->>
->>>>>
->>>>> Is the problem that the dummy timer is being registered as the broadcast
->>>>> source, or that it is selected as a local timer in preference of real timers?
->>>>>
->>>> Dummy timer is preferred over real broadcast timer.
->>>
->>> Ok.
+On Mon, 2013-03-11 at 09:33 -0700, Tony Lindgren wrote:
+> * Paul Bolle <pebolle@tiscali.nl> [130309 11:52]:
+> > In the meantime, how do you prefer I solve the (trivial) issue of an
+> > useless select for MACH_NOKIA_RM696? Drop that select or add an (equally
+> > useless) config entry for MACH_NOKIA_RM696? Or should I try to ignore it
+> > for the time being?
 > 
-> [...]
-> 
->>> I do agree it'd be worth lowering the dummy timer's rating to ensure it doesn't
->>> override a real timer elsewhere. 
->>>
->> Yep. Can I add you acked-by tag then for $subject patch ?
->> Would be good to get this one merged as well.
-> 
-> Sure. Though could you reword the commit message? The patch solves the more
-> general issue of a dummy being preferred over real hardware even outside of
-> choosing the broadcast device.
-> 
-> Acked-by: Mark Rutland <mark.rutland@arm.com>
+> Just adding the config MACH_NOKIA_RM696 to Kconfig as bool should fix
+> this unless I'm missing something here.
 
-Thanks. For record, patch is in end of the email which I plan
-to put into patch system.
+Yes, that should do. I already promised to draft that small patch last
+week. I hope to actually do that shortly.
 
-Regards,
-Santosh
 
->From 57c501bcdc88c7ff26a5c63956be07e94a5083c5 Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Wed, 13 Mar 2013 12:33:16 +0530
-Subject: [PATCH 1/2] ARM: smp: Avoid dummy clockevent being preferred over real hardware clock-event
-
-With recent arm broadcast time clean-up from Mark Rutland, the dummy
-broadcast device is always registered with timer subsystem. And since
-the rating of the dummy clock event is very high, it may be preferred
-over a real clock event.
-
-This is a change in behavior from past and not an intended
-one. So reduce the rating of the dummy clockevent so that
-real clockevent device is selected when available.
-
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/kernel/smp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index 31644f1..79078ed 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -480,7 +480,7 @@ static void __cpuinit broadcast_timer_setup(struct clock_event_device *evt)
- 	evt->features	= CLOCK_EVT_FEAT_ONESHOT |
- 			  CLOCK_EVT_FEAT_PERIODIC |
- 			  CLOCK_EVT_FEAT_DUMMY;
--	evt->rating	= 400;
-+	evt->rating	= 100;
- 	evt->mult	= 1;
- 	evt->set_mode	= broadcast_timer_set_mode;
- 
--- 
-1.7.9.5
-
+Paul Bolle
 
