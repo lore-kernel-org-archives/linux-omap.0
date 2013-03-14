@@ -1,113 +1,163 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v2 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet
- child nodes
-Date: Thu, 14 Mar 2013 15:43:15 -0500
-Message-ID: <51423663.2030108@ti.com>
-References: <1363293217-21926-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 0/8] ARM: OMAP3+: Switch to use DT based cpu0-cpufreq driver
+Date: Thu, 14 Mar 2013 15:58:07 -0500
+Message-ID: <1363294695-658-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57604 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751437Ab3CNUna (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Mar 2013 16:43:30 -0400
-In-Reply-To: <1363293217-21926-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <cpufreq-owner@vger.kernel.org>
+Sender: cpufreq-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
+The following series arose from trying to use BeagleBoard-XM (OMAP3 var=
+iant)
+for doing CPU DVFS using cpufreq-cpu0. This series will eventually resu=
+lt in
+migrating the cpufreq support only through device tree (part of the eff=
+ort
+to migrate away from non-DT configurations for OMAP). Unfortunately, as=
+ already
+known, we have a bunch of legacy code and mutually dependent device tre=
+e
+conversion that is pending.
+Key features pending:
+A) clock framework transition to DT - this should happen soon, so this =
+series hacks
+the clock node for the time being as suggested in review of original se=
+ries
+B) on processors that use voltage controller, voltage processor (VC/VP =
+hardware
+loop using I2C_SR path) - we have started work on transitioning them to=
+ regulator
+framework driven by DT.
+C) Adaptive Body Bias and SmartReflex AVS conversion to DT.
 
-On 03/14/2013 03:33 PM, Javier Martinez Canillas wrote:
-> Besides being used to interface with external memory devices,
-> the General-Purpose Memory Controller can be used to connect
-> Pseudo-SRAM devices such as ethernet controllers to OMAP2+
-> processors using the TI GPMC as a data bus.
-> 
-> This patch allows an ethernet chip to be defined as an GPMC
-> child device node.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> ---
-> 
-> Changes since v1:
->   - Improve the DT binding documentation explaining that even when the GPMC
->     maximum bus address width is 16-bit, it supports devices with 32-bit
->     registers address width and the device property especifying this has to
->     be set accordingly; suggested by Jon Hunter.
->     
-> 
->  Documentation/devicetree/bindings/net/gpmc-eth.txt |  101 ++++++++++++++++++++
->  arch/arm/mach-omap2/gpmc.c                         |    8 ++
->  2 files changed, 109 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/net/gpmc-eth.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/net/gpmc-eth.txt b/Documentation/devicetree/bindings/net/gpmc-eth.txt
-> new file mode 100644
-> index 0000000..8c8be58
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/net/gpmc-eth.txt
-> @@ -0,0 +1,101 @@
-> +Device tree bindings for Ethernet chip connected to TI GPMC
-> +
-> +Besides being used to interface with external memory devices, the
-> +General-Purpose Memory Controller can be used to connect Pseudo-SRAM devices
-> +such as ethernet controllers to processors using the TI GPMC as a data bus.
-> +
-> +Ethernet controllers connected to TI GPMC are represented as child nodes of
-> +the GPMC controller with an "ethernet" name.
-> +
-> +All timing relevant properties as well as generic GPMC child properties are
-> +explained in a separate documents. Please refer to
-> +Documentation/devicetree/bindings/bus/ti-gpmc.txt
-> +
-> +For the properties relevant to the ethernet controller connected to the GPMC
-> +refer to the binding documentation of the device. For example, the documentation
-> +for the SMSC 911x is Documentation/devicetree/bindings/net/smsc911x.txt
-> +
-> +Child nodes need to specify the GPMC bus address width using the "bank-width"
-> +property but is possible that an ethernet controller also has a property to
-> +specify the I/O registers address width. Even when the GPMC has a maximum 16-bit
-> +address width, it supports devices with 32-bit word registers.
-> +For example with an SMSC LAN911x/912x controller connected to the TI GPMC on an
-> +OMAP2+ board, "bank-width = <2>;" and "reg-io-width = <4>;".
-> +
-> +Required properties:
-> +- bank-width: 		Address width of the device in bytes. GPMC supports 8-bit
-> +			and 16-bit devices and so must be either 1 or 2 bytes.
-> +- compatible:		Compatible string property for the ethernet child device.
-> +- gpmc,cs-on:		Chip-select assertion time
-> +- gpmc,cs-rd-off:	Chip-select de-assertion time for reads
-> +- gpmc,cs-wr-off:	Chip-select de-assertion time for writes
-> +- gpmc,oe-on:		Output-enable assertion time
-> +- gpmc,oe-off		Output-enable de-assertion time
-> +- gpmc,we-on:		Write-enable assertion time
-> +- gpmc,we-off:		Write-enable de-assertion time
-> +- gpmc,access:		Start cycle to first data capture (read access)
-> +- gpmc,rd-cycle:	Total read cycle time
-> +- gpmc,wr-cycle:	Total write cycle time
-> +- reg:			Chip-select, base address (relative to chip-select)
-> +			and size of the memory mapped for the device.
-> +			Note that base address will be typically 0 as this
-> +			is the start of the chip-select.
-> +
-> +Optional properties:
-> +- gpmc,XXX		Additional GPMC timings and settings parameters. See
-> +			Documentation/devicetree/bindings/bus/ti-gpmc.txt
+As a result of these pending features:
+- OMAP4 TWL6030 and TPS62361 which set voltage ONLY over I2C_SR have no=
+ regulators
+associated at the moment - fortunately, we boot at highest voltage, so =
+things still
+work.
+- Missing ABB and AVS implies that for few of the SoCs (3630, OMAP4), I=
+ have not added
+those OPPs in DT yet - this also needs alignment with iMX, AM series li=
+ke pending work,
+where certain OPPs need enabling based on efuse programmed bit sequence=
+s - since it
+is an add-on work, it is not addressed here.
 
-Should we add "reg-io-width" here and say can be 2 or 4 and to refer to
-the above description?
+Note: Somewhere in the future, when we have regulators driven off CCF a=
+nd OMAP
+converted to CCF, we could remove the DT regulator requirements there a=
+s well.
 
-> +
-> +Optional properties for partiton table parsing:
-> +- #address-cells: should be set to 1
-> +- #size-cells: should be set to 1
+Key benefit of the series is to allow all relevant TI platforms now to =
+use a single
+cpufreq driver and equivalent frameworks in addition be part of the tra=
+nsition to
+DT. As a result of this series, CPUFreq feature will not be available f=
+or non-DT
+boot systems.
 
-Sorry should have caught this earlier. The above is not relevant for
-ethernet.
+Original discussion thread which triggered this series:
+	http://marc.info/?l=3Dlinux-pm&m=3D136304313700602&w=3D2
+	https://patchwork.kernel.org/patch/2251841/
+	https://patchwork.kernel.org/patch/2251851/
 
-Otherwise looks good.
+Test coverage:
+	test script: http://pastebin.com/MpCRY0SB
+Platforms verified:
+	beaglebone(rev A6a) - AM33xx compatible
+	beagleboard (rev C1D) - OMAP3430 compatible
+	omap3-beagle-xm -OMAP3630 compatible
+	Pandaboard -(OMAP4430 ES2.3) verified with omapconf
+	Pandaboard-ES -(OMAP4460 ES1.1) verified with omapconf
 
-Cheers
-Jon
+Series is based on v3.9-rc2 tag
+
+Also available at:
+	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cp=
+u0-omap-all-v1
+	git link: git://github.com/nmenon/linux-2.6-playground.git
+	branch: cpufreq-cpu0-omap-all-v1
+
+Nishanth Menon (8):
+  ARM: dts: OMAP34xx: move CPU OPP tables to device tree
+  ARM: dts: OMAP36xx: move CPU OPP tables to device tree
+  ARM: dts: OMAP3: use twl4030 vdd1 regulator for CPU
+  ARM: dts: OMAP443x: move CPU OPP tables to device tree
+  ARM: dts: omap4-panda: move generic sections to panda-common
+  ARM: dts: OMAP446x: move CPU OPP tables to device tree
+  ARM: OMAP3+: use cpu0-cpufreq driver
+  cpufreq: omap: remove omap-cpufreq
+
+ MAINTAINERS                               |    1 -
+ arch/arm/boot/dts/omap3-beagle-xm.dts     |    6 +
+ arch/arm/boot/dts/omap3-beagle.dts        |    6 +
+ arch/arm/boot/dts/omap3-evm.dts           |    6 +
+ arch/arm/boot/dts/omap3.dtsi              |   10 +
+ arch/arm/boot/dts/omap36xx.dtsi           |   12 ++
+ arch/arm/boot/dts/omap4-panda-a4.dts      |    5 +-
+ arch/arm/boot/dts/omap4-panda-common.dtsi |  205 ++++++++++++++++++++
+ arch/arm/boot/dts/omap4-panda-es.dts      |    5 +-
+ arch/arm/boot/dts/omap4-panda.dts         |  200 +-------------------
+ arch/arm/boot/dts/omap4.dtsi              |   10 +
+ arch/arm/boot/dts/omap446x.dtsi           |   27 +++
+ arch/arm/boot/dts/twl4030.dtsi            |    6 +
+ arch/arm/mach-omap2/board-generic.c       |    4 +
+ arch/arm/mach-omap2/cclock33xx_data.c     |    2 +-
+ arch/arm/mach-omap2/cclock3xxx_data.c     |    2 +-
+ arch/arm/mach-omap2/cclock44xx_data.c     |    2 +-
+ arch/arm/mach-omap2/opp3xxx_data.c        |   20 --
+ arch/arm/mach-omap2/opp4xxx_data.c        |   23 ---
+ drivers/cpufreq/Kconfig.arm               |    6 -
+ drivers/cpufreq/Makefile                  |    1 -
+ drivers/cpufreq/omap-cpufreq.c            |  291 ---------------------=
+--------
+ 22 files changed, 305 insertions(+), 545 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap4-panda-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap446x.dtsi
+ delete mode 100644 drivers/cpufreq/omap-cpufreq.c
+
+Size change information:
+add/remove: 0/0 grow/shrink: 3/5 up/down: 74/-291 (-217)
+function                                     old     new   delta
+omap_generic_init                             96     140     +44
+vermagic                                      49      64     +15
+linux_banner                                 130     145     +15
+kernel_config_data                         18333   18330      -3
+omap443x_opp_def_list                        144      80     -64
+omap36xx_opp_def_list                        160      96     -64
+omap446x_opp_def_list                        192     112     -80
+omap34xx_opp_def_list                        208     128     -80
+
+non-zero DTB size deltas(bytes):
+old	new	delta	 filename
+8068	8311	+243	omap3-beagle.dtb
+8647	8874	+227	omap3-beagle-xm.dtb
+7783	8026	+243	omap3-evm.dtb
+8000	8183	+183	omap3-tobi.dtb
+13646	13771	+125	omap4-panda-a4.dtb
+13646	13771	+125	omap4-panda.dtb
+13602	13719	+117	omap4-panda-es.dtb
+16256	16381	+125	omap4-sdp.dtb
+10889	11014	+125	omap4-var-som.dtb
+
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Beno=C3=AEt Cousson" <b-cousson@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org
+Cc: devicetree-discuss@lists.ozlabs.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: cpufreq@vger.kernel.org
+Cc: linux-pm@vger.kernel.org
+
+Regards,
+Nishanth Menon
+--=20
+1.7.9.5
+
