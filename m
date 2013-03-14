@@ -1,38 +1,30 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
- of always dummy
-Date: Thu, 14 Mar 2013 11:39:25 +0530
-Message-ID: <51416995.80408@ti.com>
-References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com> <514046B6.9020005@ti.com> <alpine.LFD.2.02.1303131516090.22263@ionos> <51409D1D.9000500@ti.com> <alpine.LFD.2.02.1303131931100.22263@ionos>
+Subject: Re: [Resend/PATCH 0/5] omap4/5: i2c/spi: device tree data
+Date: Thu, 14 Mar 2013 11:40:49 +0530
+Message-ID: <514169E9.1080105@ti.com>
+References: <1363009486-19430-1-git-send-email-sourav.poddar@ti.com> <513DEAE1.1050606@ti.com> <513DFB62.5030709@ti.com> <5140AD75.2050900@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39854 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48336 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753950Ab3CNGIE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Mar 2013 02:08:04 -0400
-In-Reply-To: <alpine.LFD.2.02.1303131931100.22263@ionos>
+	id S1753837Ab3CNGJO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Mar 2013 02:09:14 -0400
+In-Reply-To: <5140AD75.2050900@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Andrew Morton <akpm@osdl.org>
 
-On Thursday 14 March 2013 12:01 AM, Thomas Gleixner wrote:
-> On Wed, 13 Mar 2013, Santosh Shilimkar wrote:
->> On Wednesday 13 March 2013 07:49 PM, Thomas Gleixner wrote:
->>> Though making the rating of the dummy lower is definitely a good
->>> thing, so a real hardware device which is detected later can replace
->>> the dummy device. So yes, the rating should be low for the dummy
->>> timer.
->>>
->> Exactly. As Mark pointed out, you have already applied Mark's patch.
->> I was just wondering whether you can take the $subject patch as well
->> with ack from Russell, Mark.
+On Wednesday 13 March 2013 10:16 PM, Benoit Cousson wrote:
+> Hi Sourav,
 > 
-> It can go through the ARM tree as well, no dependencies on my stuff.
+> I've just applied your branch after a minor subject cleanup for consistency.
 > 
-Sure. I will push that through ARM tree.
+> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.10/dts
+> 
+Thanks for the tree Benoit. I shall update my v2 DT series against this branch then.
 
 Regards,
 Santosh
