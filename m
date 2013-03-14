@@ -1,59 +1,167 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 2/4] usb: otg: twl4030: use devres API for regulator
- get and request irq
-Date: Thu, 14 Mar 2013 17:48:11 +0200
-Message-ID: <20130314154811.GA3001@arwen.pp.htv.fi>
-References: <1363242239-1061-1-git-send-email-kishon@ti.com>
- <1363242239-1061-3-git-send-email-kishon@ti.com>
-Reply-To: <balbi@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet child
+ nodes
+Date: Thu, 14 Mar 2013 10:48:14 -0500
+Message-ID: <5141F13E.8040300@ti.com>
+References: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk> <1363273762-17441-4-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1363242239-1061-3-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, notasas@gmail.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:43276 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964808Ab3CNPsc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Mar 2013 11:48:32 -0400
+In-Reply-To: <1363273762-17441-4-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
---pf9I7BMVVzbSWLtt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Javier,
 
-On Thu, Mar 14, 2013 at 11:53:57AM +0530, Kishon Vijay Abraham I wrote:
-> Used devres APIs devm_request_threaded_irq and devm_regulator_get for
-> requesting irq and for getting regulator respectively.
->=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+On 03/14/2013 10:09 AM, Javier Martinez Canillas wrote:
+> Besides being used to interface with external memory devices,
+> the General-Purpose Memory Controller can be used to connect
+> Pseudo-SRAM devices such as ethernet controllers to OMAP2+
+> processors using the TI GPMC as a data bus.
+> 
+> This patch allows an ethernet chip to be defined as an GPMC
+> child device node.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> ---
+>  Documentation/devicetree/bindings/net/gpmc-eth.txt |   90 ++++++++++++++++++++
+>  arch/arm/mach-omap2/gpmc.c                         |    8 ++
+>  2 files changed, 98 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/net/gpmc-eth.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/net/gpmc-eth.txt b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+> new file mode 100644
+> index 0000000..c45363c
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+> @@ -0,0 +1,90 @@
+> +Device tree bindings for Ethernet chip connected to TI GPMC
+> +
+> +Besides being used to interface with external memory devices, the
+> +General-Purpose Memory Controller can be used to connect Pseudo-SRAM devices
+> +such as ethernet controllers to processors using the TI GPMC as a data bus.
+> +
+> +Ethernet controllers connected to TI GPMC are represented as child nodes of
+> +the GPMC controller with an "ethernet" name.
+> +
+> +All timing relevant properties as well as generic GPMC child properties are
+> +explained in a separate documents. Please refer to
+> +Documentation/devicetree/bindings/bus/ti-gpmc.txt
+> +
+> +Required properties:
+> +- bank-width: 		Address width of the device in bytes. GPMC supports 8-bit
+> +			and 16-bit devices and so must be either 1 or 2 bytes.
 
-please refresh this on top of my testing branch, you should be patching
-drivers/usb/phy/phy-twl4030-usb.c
+I am wondering if we should use reg-io-width here. The smsc driver is
+using this to determine the width of the device. And so I am wondering
+if this could cause problems.
 
---=20
-balbi
+Obviously this complicates gpmc_probe_generic_child() a little, but may
+be would could pass the name of the width property to
+gpmc_probe_generic_child() as well. What do you think?
 
---pf9I7BMVVzbSWLtt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> +- compatible:		Compatible string property for the ethernet child device.
+> +- gpmc,cs-on:		Chip-select assertion time
+> +- gpmc,cs-rd-off:	Chip-select de-assertion time for reads
+> +- gpmc,cs-wr-off:	Chip-select de-assertion time for writes
+> +- gpmc,oe-on:		Output-enable assertion time
+> +- gpmc,oe-off		Output-enable de-assertion time
+> +- gpmc,we-on:		Write-enable assertion time
+> +- gpmc,we-off:		Write-enable de-assertion time
+> +- gpmc,access:		Start cycle to first data capture (read access)
+> +- gpmc,rd-cycle:	Total read cycle time
+> +- gpmc,wr-cycle:	Total write cycle time
+> +- reg:			Chip-select, base address (relative to chip-select)
+> +			and size of the memory mapped for the device.
+> +			Note that base address will be typically 0 as this
+> +			is the start of the chip-select.
+> +
+> +Optional properties:
+> +- gpmc,XXX		Additional GPMC timings and settings parameters. See
+> +			Documentation/devicetree/bindings/bus/ti-gpmc.txt
+> +
+> +Optional properties for partiton table parsing:
+> +- #address-cells: should be set to 1
+> +- #size-cells: should be set to 1
+> +
+> +Example:
+> +
+> +gpmc: gpmc@6e000000 {
+> +	compatible = "ti,omap3430-gpmc";
+> +	ti,hwmods = "gpmc";
+> +	reg = <0x6e000000 0x1000>;
+> +	interrupts = <20>;
+> +	gpmc,num-cs = <8>;
+> +	gpmc,num-waitpins = <4>;
+> +	#address-cells = <2>;
+> +	#size-cells = <1>;
+> +
+> +	ranges = <5 0 0x2c000000 0x1000000>;
+> +
+> +	ethernet@5,0 {
+> +		compatible = "smsc,lan9221", "smsc,lan9115";
+> +		reg = <5 0 0xff>;
+> +		bank-width = <2>;
+> +
+> +		gpmc,mux-add-data;
+> +		gpmc,cs-on = <0>;
+> +		gpmc,cs-rd-off = <186>;
+> +		gpmc,cs-wr-off = <186>;
+> +		gpmc,adv-on = <12>;
+> +		gpmc,adv-rd-off = <48>;
+> +		gpmc,adv-wr-off = <48>;
+> +		gpmc,oe-on = <54>;
+> +		gpmc,oe-off = <168>;
+> +		gpmc,we-on = <54>;
+> +		gpmc,we-off = <168>;
+> +		gpmc,rd-cycle = <186>;
+> +		gpmc,wr-cycle = <186>;
+> +		gpmc,access = <114>;
+> +		gpmc,page-burst-access = <6>;
+> +		gpmc,bus-turnaround = <12>;
+> +		gpmc,cycle2cycle-delay = <18>;
+> +		gpmc,wr-data-mux-bus = <90>;
+> +		gpmc,wr-access = <186>;
+> +		gpmc,cycle2cycle-samecsen;
+> +		gpmc,cycle2cycle-diffcsen;
+> +
+> +		interrupt-parent = <&gpio6>;
+> +		interrupts = <16>;
+> +		vmmc-supply = <&vddvario>;
+> +		vmmc_aux-supply = <&vdd33a>;
+> +		reg-io-width = <2>;
+> +
+> +		smsc,save-mac-address;
+> +	};
+> +};
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 898b44d..2bc276b 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1559,6 +1559,14 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+>  		}
+>  	}
+>  
+> +	for_each_node_by_name(child, "ethernet") {
+> +		ret = gpmc_probe_generic_child(pdev, child);
+> +		if (ret < 0) {
+> +			of_node_put(child);
+> +			return ret;
+> +		}
+> +	}
+> +
+>  	return 0;
+>  }
+>  #else
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Otherwise looks good to me. Thanks!
 
-iQIcBAEBAgAGBQJRQfE7AAoJEIaOsuA1yqREpVwQAKkMT+Nk8sNv3/27fgtMdmif
-Xg2lRVQGc0dwCe04Wq5TXV0Sa198QWyD4/yddv/cipfncHwhPHTzz31B8IgGUSwg
-5eH1+LqAFLSbzZZvCuYzXzgZef1ntSOwXhHfYhr7//jkCpnR8mPuTN/nAohxg9NL
-OZbTQ7uTjs7apsjPGimztNoHiw8xeUc5nkxQezTKtQYZCj6Edzjy8mQ5wE3izuJJ
-YNYSbsWtuwrRtY+b0A7O7e8Ki+mXKIlCF2CdEydEs04EOI7n0fHHpwF5IOaKmBsL
-eRwvEVlhEyqNV6hrFThrYxW2n0bxo1hU+nls08TiGy5J/G9SyDgZ+EnEq8BTU3X2
-UdG3UqX086sTunCjhmqTNdfW1oTZo727VZSv7hZz5kqqF6udkZ5MwxNARRMdgFf1
-VejSF0D3bQkqYPbItRZqKhINtXGtc43dwTRQRBZw9jo2mO3891W4jyVl+cU/Gd6S
-lDAU7PckLdY3BK5WvijW17dUol9g2IU/3VL0e4gVp2yMm7hUuzXObAoRa2UlJVg0
-l5N7cuAN/UM5cC8tswZBqOQ8/8q//pTt9vuWrjY4CR/f9yyOK9L+E7EVC/2SlIFQ
-7NhUYDs8Lcy9n0WSFRwMTbuyNp5/M3N9SH4lHJQ19uQ936jt19w2Hw1in9zlIwMK
-QcxNk5EMMgijgj0BSW6r
-=oCVP
------END PGP SIGNATURE-----
+Jon
 
---pf9I7BMVVzbSWLtt--
