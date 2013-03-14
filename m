@@ -1,65 +1,149 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 2/3] ARM: OMAP2+: rename gpmc_probe_nor_child() to gpmc_probe_generic_child()
-Date: Thu, 14 Mar 2013 16:09:21 +0100
-Message-ID: <1363273762-17441-3-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet child nodes
+Date: Thu, 14 Mar 2013 16:09:22 +0100
+Message-ID: <1363273762-17441-4-git-send-email-javier.martinez@collabora.co.uk>
 References: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:46312 "EHLO
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:46321 "EHLO
 	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089Ab3CNPJn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 11:09:43 -0400
+	with ESMTP id S1757006Ab3CNPJs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 11:09:48 -0400
 In-Reply-To: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jon Hunter <jon-hunter@ti.com>
 Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-The gpmc_probe_nor_child() function is used in the GPMC driver to
-configure the GPMC for a NOR child device node.
+Besides being used to interface with external memory devices,
+the General-Purpose Memory Controller can be used to connect
+Pseudo-SRAM devices such as ethernet controllers to OMAP2+
+processors using the TI GPMC as a data bus.
 
-But this function is quite generic and all the NOR specific configuration
-is made by the driver of the actual NOR flash memory used.
-
-Other Pseudo-SRAM devices such as ethernet controllers need a similar
-setup so by making this function generic it can be used for those too.
+This patch allows an ethernet chip to be defined as an GPMC
+child device node.
 
 Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 ---
- arch/arm/mach-omap2/gpmc.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ Documentation/devicetree/bindings/net/gpmc-eth.txt |   90 ++++++++++++++++++++
+ arch/arm/mach-omap2/gpmc.c                         |    8 ++
+ 2 files changed, 98 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/net/gpmc-eth.txt
 
+diff --git a/Documentation/devicetree/bindings/net/gpmc-eth.txt b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+new file mode 100644
+index 0000000..c45363c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+@@ -0,0 +1,90 @@
++Device tree bindings for Ethernet chip connected to TI GPMC
++
++Besides being used to interface with external memory devices, the
++General-Purpose Memory Controller can be used to connect Pseudo-SRAM devices
++such as ethernet controllers to processors using the TI GPMC as a data bus.
++
++Ethernet controllers connected to TI GPMC are represented as child nodes of
++the GPMC controller with an "ethernet" name.
++
++All timing relevant properties as well as generic GPMC child properties are
++explained in a separate documents. Please refer to
++Documentation/devicetree/bindings/bus/ti-gpmc.txt
++
++Required properties:
++- bank-width: 		Address width of the device in bytes. GPMC supports 8-bit
++			and 16-bit devices and so must be either 1 or 2 bytes.
++- compatible:		Compatible string property for the ethernet child device.
++- gpmc,cs-on:		Chip-select assertion time
++- gpmc,cs-rd-off:	Chip-select de-assertion time for reads
++- gpmc,cs-wr-off:	Chip-select de-assertion time for writes
++- gpmc,oe-on:		Output-enable assertion time
++- gpmc,oe-off		Output-enable de-assertion time
++- gpmc,we-on:		Write-enable assertion time
++- gpmc,we-off:		Write-enable de-assertion time
++- gpmc,access:		Start cycle to first data capture (read access)
++- gpmc,rd-cycle:	Total read cycle time
++- gpmc,wr-cycle:	Total write cycle time
++- reg:			Chip-select, base address (relative to chip-select)
++			and size of the memory mapped for the device.
++			Note that base address will be typically 0 as this
++			is the start of the chip-select.
++
++Optional properties:
++- gpmc,XXX		Additional GPMC timings and settings parameters. See
++			Documentation/devicetree/bindings/bus/ti-gpmc.txt
++
++Optional properties for partiton table parsing:
++- #address-cells: should be set to 1
++- #size-cells: should be set to 1
++
++Example:
++
++gpmc: gpmc@6e000000 {
++	compatible = "ti,omap3430-gpmc";
++	ti,hwmods = "gpmc";
++	reg = <0x6e000000 0x1000>;
++	interrupts = <20>;
++	gpmc,num-cs = <8>;
++	gpmc,num-waitpins = <4>;
++	#address-cells = <2>;
++	#size-cells = <1>;
++
++	ranges = <5 0 0x2c000000 0x1000000>;
++
++	ethernet@5,0 {
++		compatible = "smsc,lan9221", "smsc,lan9115";
++		reg = <5 0 0xff>;
++		bank-width = <2>;
++
++		gpmc,mux-add-data;
++		gpmc,cs-on = <0>;
++		gpmc,cs-rd-off = <186>;
++		gpmc,cs-wr-off = <186>;
++		gpmc,adv-on = <12>;
++		gpmc,adv-rd-off = <48>;
++		gpmc,adv-wr-off = <48>;
++		gpmc,oe-on = <54>;
++		gpmc,oe-off = <168>;
++		gpmc,we-on = <54>;
++		gpmc,we-off = <168>;
++		gpmc,rd-cycle = <186>;
++		gpmc,wr-cycle = <186>;
++		gpmc,access = <114>;
++		gpmc,page-burst-access = <6>;
++		gpmc,bus-turnaround = <12>;
++		gpmc,cycle2cycle-delay = <18>;
++		gpmc,wr-data-mux-bus = <90>;
++		gpmc,wr-access = <186>;
++		gpmc,cycle2cycle-samecsen;
++		gpmc,cycle2cycle-diffcsen;
++
++		interrupt-parent = <&gpio6>;
++		interrupts = <16>;
++		vmmc-supply = <&vddvario>;
++		vmmc_aux-supply = <&vdd33a>;
++		reg-io-width = <2>;
++
++		smsc,save-mac-address;
++	};
++};
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 8799aed..898b44d 100644
+index 898b44d..2bc276b 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1439,14 +1439,14 @@ static int gpmc_probe_onenand_child(struct platform_device *pdev,
- #endif
- 
- /**
-- * gpmc_probe_nor_child - configures the gpmc for a nor device
-+ * gpmc_probe_generic_child - configures the gpmc for a child device
-  * @pdev:	pointer to gpmc platform device
-- * @child:	pointer to device-tree node for nor device
-+ * @child:	pointer to device-tree node for child device
-  *
-- * Allocates and configures a GPMC chip-select for a NOR flash device.
-+ * Allocates and configures a GPMC chip-select for a child device.
-  * Returns 0 on success and appropriate negative error code on failure.
-  */
--static int gpmc_probe_nor_child(struct platform_device *pdev,
-+static int gpmc_probe_generic_child(struct platform_device *pdev,
- 				struct device_node *child)
- {
- 	struct gpmc_settings gpmc_s;
-@@ -1552,7 +1552,7 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+@@ -1559,6 +1559,14 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+ 		}
  	}
  
- 	for_each_node_by_name(child, "nor") {
--		ret = gpmc_probe_nor_child(pdev, child);
++	for_each_node_by_name(child, "ethernet") {
 +		ret = gpmc_probe_generic_child(pdev, child);
- 		if (ret < 0) {
- 			of_node_put(child);
- 			return ret;
++		if (ret < 0) {
++			of_node_put(child);
++			return ret;
++		}
++	}
++
+ 	return 0;
+ }
+ #else
 -- 
 1.7.7.6
 
