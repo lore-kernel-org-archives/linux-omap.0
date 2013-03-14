@@ -1,57 +1,173 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
- of always dummy
-Date: Thu, 14 Mar 2013 12:41:12 -0700
-Message-ID: <514227D8.9010205@codeaurora.org>
-References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com> <514046B6.9020005@ti.com> <20130313101641.GA13483@e106331-lin.cambridge.arm.com> <514061D1.20603@ti.com> <20130313122550.GD13483@e106331-lin.cambridge.arm.com> <51409EC3.5050905@ti.com> <20130313161811.GF13483@e106331-lin.cambridge.arm.com> <5141800A.2000307@ti.com> <20130314102807.GG13483@e106331-lin.cambridge.arm.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet child nodes
+Date: Thu, 14 Mar 2013 21:28:15 +0100
+Message-ID: <CAAwP0s1vy6ht+vydqWJqf2yKYv5F9k6o1pfpNxxj6Kn0aFJogw@mail.gmail.com>
+References: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk>
+ <1363273762-17441-4-git-send-email-javier.martinez@collabora.co.uk>
+ <5141F13E.8040300@ti.com> <CAAwP0s2iJscf9nV7Ac7ysebciL=d4z1KiUk29f7A1DaakVY=Ww@mail.gmail.com>
+ <51421BA7.4080509@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:20548 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750844Ab3CNTlO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 15:41:14 -0400
-In-Reply-To: <20130314102807.GG13483@e106331-lin.cambridge.arm.com>
+Received: from mail-vc0-f172.google.com ([209.85.220.172]:38872 "EHLO
+	mail-vc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363Ab3CNU2g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 16:28:36 -0400
+Received: by mail-vc0-f172.google.com with SMTP id hr11so737827vcb.3
+        for <linux-omap@vger.kernel.org>; Thu, 14 Mar 2013 13:28:35 -0700 (PDT)
+In-Reply-To: <51421BA7.4080509@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On 03/14/13 03:28, Mark Rutland wrote:
-> On Thu, Mar 14, 2013 at 07:45:14AM +0000, Santosh Shilimkar wrote:
->> On Wednesday 13 March 2013 09:48 PM, Mark Rutland wrote:
->>> On Wed, Mar 13, 2013 at 03:44:03PM +0000, Santosh Shilimkar wrote:
->>>> On Wednesday 13 March 2013 05:55 PM, Mark Rutland wrote:
->>>>> I do agree it'd be worth lowering the dummy timer's rating to ensure it doesn't
->>>>> override a real timer elsewhere. 
->>>>>
->>>> Yep. Can I add you acked-by tag then for $subject patch ?
->>>> Would be good to get this one merged as well.
->>> Sure. Though could you reword the commit message? The patch solves the more
->>> general issue of a dummy being preferred over real hardware even outside of
->>> choosing the broadcast device.
->>>
->>> Acked-by: Mark Rutland <mark.rutland@arm.com>
->> Thanks. For record, patch is in end of the email which I plan
->> to put into patch system.
->>
->> Regards,
->> Santosh
-> The below patch seems fine. Are you intending for this to go in as a fix for
-> 3.9-rc*, or as a cleanup for 3.10?
+On Thu, Mar 14, 2013 at 7:49 PM, Jon Hunter <jon-hunter@ti.com> wrote:
 >
-> If you're aiming for the latter, it's going to clash with Stephen Boyd's local
-> timer API removal [1], in which the generic dummy timer driver [2] (replacing
-> the arm-specific dummy [3]) also has a rating of 100.
+> On 03/14/2013 11:37 AM, Javier Martinez Canillas wrote:
+>> On Thu, Mar 14, 2013 at 4:48 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+>>> Hi Javier,
+>>>
+>>> On 03/14/2013 10:09 AM, Javier Martinez Canillas wrote:
+>>>> Besides being used to interface with external memory devices,
+>>>> the General-Purpose Memory Controller can be used to connect
+>>>> Pseudo-SRAM devices such as ethernet controllers to OMAP2+
+>>>> processors using the TI GPMC as a data bus.
+>>>>
+>>>> This patch allows an ethernet chip to be defined as an GPMC
+>>>> child device node.
+>>>>
+>>>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+>>>> ---
+>>>>  Documentation/devicetree/bindings/net/gpmc-eth.txt |   90 ++++++++++++++++++++
+>>>>  arch/arm/mach-omap2/gpmc.c                         |    8 ++
+>>>>  2 files changed, 98 insertions(+), 0 deletions(-)
+>>>>  create mode 100644 Documentation/devicetree/bindings/net/gpmc-eth.txt
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/net/gpmc-eth.txt b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+>>>> new file mode 100644
+>>>> index 0000000..c45363c
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+>>>> @@ -0,0 +1,90 @@
+>>>> +Device tree bindings for Ethernet chip connected to TI GPMC
+>>>> +
+>>>> +Besides being used to interface with external memory devices, the
+>>>> +General-Purpose Memory Controller can be used to connect Pseudo-SRAM devices
+>>>> +such as ethernet controllers to processors using the TI GPMC as a data bus.
+>>>> +
+>>>> +Ethernet controllers connected to TI GPMC are represented as child nodes of
+>>>> +the GPMC controller with an "ethernet" name.
+>>>> +
+>>>> +All timing relevant properties as well as generic GPMC child properties are
+>>>> +explained in a separate documents. Please refer to
+>>>> +Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>>>> +
+>>>> +Required properties:
+>>>> +- bank-width:                Address width of the device in bytes. GPMC supports 8-bit
+>>>> +                     and 16-bit devices and so must be either 1 or 2 bytes.
+>>>
+>>> I am wondering if we should use reg-io-width here. The smsc driver is
+>>> using this to determine the width of the device. And so I am wondering
+>>> if this could cause problems.
+>>>
+>>> Obviously this complicates gpmc_probe_generic_child() a little, but may
+>>> be would could pass the name of the width property to
+>>> gpmc_probe_generic_child() as well. What do you think?
+>>>
+>>
+>> Hi Jon,
+>>
+>> Well now I'm confused. I thought that both were needed since a
+>> combination of bank-width 16-bit / reg-io-width 32-bit is also
+>> possible (in fact that is how I'm testing on my IGEPv2) and we have
+>> talked about this before [1].
+>
+> Yes you are right. Sorry about that ...
+>
+>> By reading both the OMAP3 TRM and the smsc LAN9221 data-sheet, it
+>> seems that the reg-io-width is not about the data bus address width
+>> but the CPU address width. The smsc data-sheet says:
+>>
+>> "The simple, yet highly functional host bus interface provides a
+>> glue-less connection to most common 16-bit microprocessors and
+>> microcontrollers as well as 32-bit microprocessors with a 16-bit
+>> external bus"
+>>
+>> By looking at the smsc911x driver
+>> (drivers/net/ethernet/smsc/smsc911x.c) I see that if you use
+>> reg-io-width = <4> (SMSC911X_USE_32BIT) then the smsc911x hardware
+>> registers can be read in one operation and if you use reg-io-width =
+>> <2> (SMSC911X_USE_16BIT) then you need two operations to read the
+>> register:
+>>
+>> static inline u32 __smsc911x_reg_read(struct smsc911x_data *pdata, u32 reg)
+>> {
+>>       if (pdata->config.flags & SMSC911X_USE_32BIT)
+>>               return readl(pdata->ioaddr + reg);
+>>
+>>       if (pdata->config.flags & SMSC911X_USE_16BIT)
+>>               return ((readw(pdata->ioaddr + reg) & 0xFFFF) |
+>>                       ((readw(pdata->ioaddr + reg + 2) & 0xFFFF) << 16));
+>>
+>>       BUG();
+>>       return 0;
+>> }
+>
+> Looking at the above, then I don't see any issue with this then.
+>
+>> Also, by reading at the OMAP3 TRM, I understand that even when the
+>> GPMC has a maximum 16-bit address width, it support devices that has
+>> 32-bit registers by doing some sort of access adaptation.
+>
+> Yes I believe that is correct.
+>
+>> So, as far as I understand the "bank-width" is to configure the GPMC
+>> if is going to use a 8-bit or 16-bit width access and the
+>> "reg-io-width" is how the smsc911x driver is going to read its
+>> registers. So, I think we need both properties and there is no need to
+>> change gpmc_probe_generic_child() neither pass the child name to it.
+>>
+>> But to be honest I can be wrong here since data-sheet and technical
+>> reference manuals can be quite confusing sometimes :-)
+>
+> Ok, so do you think that we should add some documentation to the
+> gpmc-eth.txt so say that set "reg-io-width = <4>;" for OMAP regardless
+> of bank-width?
 
-Thanks for the heads up. Looks like the conflict will be trivial, but I
-wonder why need to put the patch at all? Per my understanding the
-regression has been fixed by your patch in Thomas' tree and then in 3.10
-we can merge the local timer removal patches and fix up the rating at
-the same time.
+Yes, I think we can improve the documentation. I'll send a v2 with
+this delta patch squashed:
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-hosted by The Linux Foundation
+diff --git a/Documentation/devicetree/bindings/net/gpmc-eth.txt
+b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+index c45363c..711d28d 100644
+--- a/Documentation/devicetree/bindings/net/gpmc-eth.txt
++++ b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+@@ -11,6 +11,17 @@ All timing relevant properties as well as generic
+GPMC child properties are
+ explained in a separate documents. Please refer to
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt
 
++For the properties relevant to the ethernet controller connected to the GPMC
++refer to the binding documentation of the device. For example, the
+documentation
++for the SMSC 911x is Documentation/devicetree/bindings/net/smsc911x.txt
++
++Child nodes need to specify the GPMC bus address width using the "bank-width"
++property but is possible that an ethernet controller also has a property to
++specify the I/O registers address width. Even when the GPMC has a
+maximum 16-bit
++address width, it supports devices with 32-bit word registers.
++For example with an SMSC LAN911x/912x controller connected to the TI GPMC on an
++OMAP2+ board, "bank-width = <2>;" and "reg-io-width = <4>;".
++
+ Required properties:
+ - bank-width:          Address width of the device in bytes. GPMC
+supports 8-bit
+                        and 16-bit devices and so must be either 1 or 2 bytes.
+
+>
+> Cheers
+> Jon
+
+Best regards,
+Javier
