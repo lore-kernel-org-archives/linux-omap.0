@@ -1,47 +1,121 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: [PATCH v3 net-next 1/1] drivers: net: davinci_cpdma: acknowledge
- interrupt properly
-Date: Thu, 14 Mar 2013 10:27:49 +0000
-Message-ID: <5141A625.8000704@mimc.co.uk>
-References: <1361175560-600-1-git-send-email-mugunthanvnm@ti.com> <51404838.2040008@mimc.co.uk> <5141A4A3.4050204@ti.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection
+ instead of always dummy
+Date: Thu, 14 Mar 2013 10:28:07 +0000
+Message-ID: <20130314102807.GG13483@e106331-lin.cambridge.arm.com>
+References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com>
+ <514046B6.9020005@ti.com>
+ <20130313101641.GA13483@e106331-lin.cambridge.arm.com>
+ <514061D1.20603@ti.com>
+ <20130313122550.GD13483@e106331-lin.cambridge.arm.com>
+ <51409EC3.5050905@ti.com>
+ <20130313161811.GF13483@e106331-lin.cambridge.arm.com>
+ <5141800A.2000307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:48917 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756205Ab3CNK1w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 06:27:52 -0400
-In-Reply-To: <5141A4A3.4050204@ti.com>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:35851 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756205Ab3CNK2c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Mar 2013 06:28:32 -0400
+Content-Disposition: inline
+In-Reply-To: <5141800A.2000307@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Stephen Boyd <sboyd@codeaurora.org>
 
-On 14/03/13 10:21, Mugunthan V N wrote:
-> On 3/13/2013 3:04 PM, Mark Jackson wrote:
->> On 18/02/13 08:19, Mugunthan V N wrote:
->>> >CPDMA interrupts are not properly acknowledged which leads to interrupt
->>> >storm, only cpdma interrupt 0 is acknowledged in Davinci CPDMA driver.
->>> >Changed cpdma_ctlr_eoi api to acknowledge 1 and 2 interrupts which are
->>> >used for rx and tx respectively.
->>> >
->>> >Reported-by: Pantelis Antoniou<panto@antoniou-consulting.com>
->>> >Signed-off-by: Mugunthan V N<mugunthanvnm@ti.com>
->> Not sure if I'm seeing this same problem [1], but it doesn't appear fixed to me.
->>
->> I've tried both mainline -rc2 and -next.
->>
->> [1]https://lkml.org/lkml/2013/3/12/376
-> Without this patch, PG2.0 was not usable as CPSW interrupt was never acked
-> and CPU spent most of the time in CPSW ISR.
+On Thu, Mar 14, 2013 at 07:45:14AM +0000, Santosh Shilimkar wrote:
+> On Wednesday 13 March 2013 09:48 PM, Mark Rutland wrote:
+> > On Wed, Mar 13, 2013 at 03:44:03PM +0000, Santosh Shilimkar wrote:
+> >> On Wednesday 13 March 2013 05:55 PM, Mark Rutland wrote:
+> >>> On Wed, Mar 13, 2013 at 11:24:01AM +0000, Santosh Shilimkar wrote:
+> >>>> On Wednesday 13 March 2013 03:46 PM, Mark Rutland wrote:
+> >>>>> Hi Santosh,
+> >>
+> >> [..]
+> >>
+> >>>>>
+> >>>>> Is the problem that the dummy timer is being registered as the broadcast
+> >>>>> source, or that it is selected as a local timer in preference of real timers?
+> >>>>>
+> >>>> Dummy timer is preferred over real broadcast timer.
+> >>>
+> >>> Ok.
+> > 
+> > [...]
+> > 
+> >>> I do agree it'd be worth lowering the dummy timer's rating to ensure it doesn't
+> >>> override a real timer elsewhere. 
+> >>>
+> >> Yep. Can I add you acked-by tag then for $subject patch ?
+> >> Would be good to get this one merged as well.
+> > 
+> > Sure. Though could you reword the commit message? The patch solves the more
+> > general issue of a dummy being preferred over real hardware even outside of
+> > choosing the broadcast device.
+> > 
+> > Acked-by: Mark Rutland <mark.rutland@arm.com>
 > 
-> I have checked -rc2 and it is working fine.
+> Thanks. For record, patch is in end of the email which I plan
+> to put into patch system.
+> 
+> Regards,
+> Santosh
 
-I needed to add patch [1] to fix my problem.  See thread [2].
+The below patch seems fine. Are you intending for this to go in as a fix for
+3.9-rc*, or as a cleanup for 3.10?
 
-[1] https://git.kernel.org/cgit/linux/kernel/git/davem/net.git/commit/?id=d35162f89b8f00537d7b240b76d2d0e8b8d29aa0
-[2] https://lkml.org/lkml/2013/3/13/146
+If you're aiming for the latter, it's going to clash with Stephen Boyd's local
+timer API removal [1], in which the generic dummy timer driver [2] (replacing
+the arm-specific dummy [3]) also has a rating of 100.
 
-Cheers
-Mark J.
+It would be nice if we could reduce the possibility of a conflict.
+
+[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-March/154724.html
+[2] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-March/154725.html
+[3] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-March/154726.html
+
+Thanks,
+Mark.
+
+> 
+> From 57c501bcdc88c7ff26a5c63956be07e94a5083c5 Mon Sep 17 00:00:00 2001
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Date: Wed, 13 Mar 2013 12:33:16 +0530
+> Subject: [PATCH 1/2] ARM: smp: Avoid dummy clockevent being preferred over real hardware clock-event
+> 
+> With recent arm broadcast time clean-up from Mark Rutland, the dummy
+> broadcast device is always registered with timer subsystem. And since
+> the rating of the dummy clock event is very high, it may be preferred
+> over a real clock event.
+> 
+> This is a change in behavior from past and not an intended
+> one. So reduce the rating of the dummy clockevent so that
+> real clockevent device is selected when available.
+> 
+> Acked-by: Mark Rutland <mark.rutland@arm.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/kernel/smp.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+> index 31644f1..79078ed 100644
+> --- a/arch/arm/kernel/smp.c
+> +++ b/arch/arm/kernel/smp.c
+> @@ -480,7 +480,7 @@ static void __cpuinit broadcast_timer_setup(struct clock_event_device *evt)
+>  	evt->features	= CLOCK_EVT_FEAT_ONESHOT |
+>  			  CLOCK_EVT_FEAT_PERIODIC |
+>  			  CLOCK_EVT_FEAT_DUMMY;
+> -	evt->rating	= 400;
+> +	evt->rating	= 100;
+>  	evt->mult	= 1;
+>  	evt->set_mode	= broadcast_timer_set_mode;
+>  
+> -- 
+> 1.7.9.5
+> 
+> 
+> 
