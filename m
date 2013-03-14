@@ -1,31 +1,165 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 6/8] ARM: dts: OMAP446x: move CPU OPP tables to device
- tree
-Date: Thu, 14 Mar 2013 16:49:34 -0500
-Message-ID: <514245EE.6090906@ti.com>
-References: <1363294695-658-1-git-send-email-nm@ti.com> <1363294695-658-7-git-send-email-nm@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <1363294695-658-7-git-send-email-nm@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH v3 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet child nodes
+Date: Thu, 14 Mar 2013 22:54:11 +0100
+Message-ID: <1363298051-24574-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:46854 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753173Ab3CNVyV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 17:54:21 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
+Besides being used to interface with external memory devices,
+the General-Purpose Memory Controller can be used to connect
+Pseudo-SRAM devices such as ethernet controllers to OMAP2+
+processors using the TI GPMC as a data bus.
 
-On 03/14/2013 03:58 PM, Nishanth Menon wrote:
-> OMAP4430 and 4460 have different OPP definitions. So, create an SoC
-> variant dtsi file for 4460 and move the OPP definitions to it.
+This patch allows an ethernet chip to be defined as an GPMC
+child device node.
 
-FYI, I had to create a similar file for PMU [1]. However, I called it
-omap4460.dtsi and not omap446x.dtsi as there is only one omap446x
-device. That should go into to v3.10 and so may be worth basing this on
-top. I do like your omap4-panda-common.dtsi that is a nice clean-up.
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
 
-Cheers
-Jon
+Changes since v2:
+  - remove optional #address-cells and #size-cells since are not relevant for
+    ethernet chips; suggested by Jon Hunter.
 
-[1]
-http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/commit/?h=for_3.10/dts&id=5e64b6b1137a54f353528d6da60071c1ef0043ba
+Changes since v1:
+  - Improve the DT binding documentation explaining that even when the GPMC
+    maximum bus address width is 16-bit, it supports devices with 32-bit
+    registers address width and the device property especifying this has to
+    be set accordingly; suggested by Jon Hunter.
+
+ Documentation/devicetree/bindings/net/gpmc-eth.txt |   97 ++++++++++++++++++++
+ arch/arm/mach-omap2/gpmc.c                         |    8 ++
+ 2 files changed, 105 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/net/gpmc-eth.txt
+
+diff --git a/Documentation/devicetree/bindings/net/gpmc-eth.txt b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+new file mode 100644
+index 0000000..24cb4e4
+--- /dev/null
++++ b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+@@ -0,0 +1,97 @@
++Device tree bindings for Ethernet chip connected to TI GPMC
++
++Besides being used to interface with external memory devices, the
++General-Purpose Memory Controller can be used to connect Pseudo-SRAM devices
++such as ethernet controllers to processors using the TI GPMC as a data bus.
++
++Ethernet controllers connected to TI GPMC are represented as child nodes of
++the GPMC controller with an "ethernet" name.
++
++All timing relevant properties as well as generic GPMC child properties are
++explained in a separate documents. Please refer to
++Documentation/devicetree/bindings/bus/ti-gpmc.txt
++
++For the properties relevant to the ethernet controller connected to the GPMC
++refer to the binding documentation of the device. For example, the documentation
++for the SMSC 911x is Documentation/devicetree/bindings/net/smsc911x.txt
++
++Child nodes need to specify the GPMC bus address width using the "bank-width"
++property but is possible that an ethernet controller also has a property to
++specify the I/O registers address width. Even when the GPMC has a maximum 16-bit
++address width, it supports devices with 32-bit word registers.
++For example with an SMSC LAN911x/912x controller connected to the TI GPMC on an
++OMAP2+ board, "bank-width = <2>;" and "reg-io-width = <4>;".
++
++Required properties:
++- bank-width: 		Address width of the device in bytes. GPMC supports 8-bit
++			and 16-bit devices and so must be either 1 or 2 bytes.
++- compatible:		Compatible string property for the ethernet child device.
++- gpmc,cs-on:		Chip-select assertion time
++- gpmc,cs-rd-off:	Chip-select de-assertion time for reads
++- gpmc,cs-wr-off:	Chip-select de-assertion time for writes
++- gpmc,oe-on:		Output-enable assertion time
++- gpmc,oe-off		Output-enable de-assertion time
++- gpmc,we-on:		Write-enable assertion time
++- gpmc,we-off:		Write-enable de-assertion time
++- gpmc,access:		Start cycle to first data capture (read access)
++- gpmc,rd-cycle:	Total read cycle time
++- gpmc,wr-cycle:	Total write cycle time
++- reg:			Chip-select, base address (relative to chip-select)
++			and size of the memory mapped for the device.
++			Note that base address will be typically 0 as this
++			is the start of the chip-select.
++
++Optional properties:
++- gpmc,XXX		Additional GPMC timings and settings parameters. See
++			Documentation/devicetree/bindings/bus/ti-gpmc.txt
++
++Example:
++
++gpmc: gpmc@6e000000 {
++	compatible = "ti,omap3430-gpmc";
++	ti,hwmods = "gpmc";
++	reg = <0x6e000000 0x1000>;
++	interrupts = <20>;
++	gpmc,num-cs = <8>;
++	gpmc,num-waitpins = <4>;
++	#address-cells = <2>;
++	#size-cells = <1>;
++
++	ranges = <5 0 0x2c000000 0x1000000>;
++
++	ethernet@5,0 {
++		compatible = "smsc,lan9221", "smsc,lan9115";
++		reg = <5 0 0xff>;
++		bank-width = <2>;
++
++		gpmc,mux-add-data;
++		gpmc,cs-on = <0>;
++		gpmc,cs-rd-off = <186>;
++		gpmc,cs-wr-off = <186>;
++		gpmc,adv-on = <12>;
++		gpmc,adv-rd-off = <48>;
++		gpmc,adv-wr-off = <48>;
++		gpmc,oe-on = <54>;
++		gpmc,oe-off = <168>;
++		gpmc,we-on = <54>;
++		gpmc,we-off = <168>;
++		gpmc,rd-cycle = <186>;
++		gpmc,wr-cycle = <186>;
++		gpmc,access = <114>;
++		gpmc,page-burst-access = <6>;
++		gpmc,bus-turnaround = <12>;
++		gpmc,cycle2cycle-delay = <18>;
++		gpmc,wr-data-mux-bus = <90>;
++		gpmc,wr-access = <186>;
++		gpmc,cycle2cycle-samecsen;
++		gpmc,cycle2cycle-diffcsen;
++
++		interrupt-parent = <&gpio6>;
++		interrupts = <16>;
++		vmmc-supply = <&vddvario>;
++		vmmc_aux-supply = <&vdd33a>;
++		reg-io-width = <4>;
++
++		smsc,save-mac-address;
++	};
++};
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 898b44d..2bc276b 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1559,6 +1559,14 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	for_each_node_by_name(child, "ethernet") {
++		ret = gpmc_probe_generic_child(pdev, child);
++		if (ret < 0) {
++			of_node_put(child);
++			return ret;
++		}
++	}
++
+ 	return 0;
+ }
+ #else
+-- 
+1.7.7.6
+
