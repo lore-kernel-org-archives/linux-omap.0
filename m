@@ -1,42 +1,38 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: MTD : Kernel oops when remounting ubifs as read/write
-Date: Thu, 14 Mar 2013 14:23:32 +0200
-Message-ID: <1363263812.11441.112.camel@sauron.fi.intel.com>
-References: <5134CEF9.5070502@mimc.co.uk>
-	 <1363087506.3348.62.camel@sauron.fi.intel.com>
-	 <51405F3A.3090901@mimc.co.uk>
-	 <1363252425.11441.94.camel@sauron.fi.intel.com>
-	 <51419E3A.8030007@mimc.co.uk>
-	 <1363257009.11441.97.camel@sauron.fi.intel.com>
-	 <5141B154.6050504@mimc.co.uk>
-	 <1363260202.11441.108.camel@sauron.fi.intel.com>
-	 <5141BC63.6060501@mimc.co.uk>
-	 <1363263529.11441.109.camel@sauron.fi.intel.com>
-Reply-To: dedekind1@gmail.com
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 0/2] Fix crash on OMAP with CONFIG_DEBUG_SLAB
+Date: Thu, 14 Mar 2013 18:06:56 +0530
+Message-ID: <1363264618-5071-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363263529.11441.109.camel@sauron.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, adrian.hunter@intel.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48443 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755943Ab3CNMkC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 08:40:02 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, phaber@broadcom.com, Rajendra Nayak <rnayak@ti.com>
 
-On Thu, 2013-03-14 at 14:18 +0200, Artem Bityutskiy wrote:
-> > Is this size larger than the allocated buffer ?
-> 
-> I believe so.
+These patches mainly fix the crash that was reported with
+CONFIG_DEBUG_SLAB enabled on OMAPs, due to the early clock
+initializations.
 
-Err, I mean, the buffer is large enough. I do not believe there is a
-stupid bug like too small buffer. This code has worked for years and I
-do not think it was changes much.
+Tested on Panda ES (omap4460), beagle Xm (omap3630) and
+BeagleBoneBlack (AM335x)
 
-The oops may be cause by memory corruption - some of your drivers may
-corrupt memory. You need to spend more time debugging this carefully.
+Rajendra Nayak (2):
+  ARM: OMAP2+: clocks: Have consistent naming for parent name arrays
+  ARM: OMAP2+: clocks: Pass static parent pointers to common clock core
 
-Do you have fastmap UBI feature enabled?
+ arch/arm/mach-omap2/cclock2420_data.c |  314 ++++++++++-------
+ arch/arm/mach-omap2/cclock2430_data.c |  332 ++++++++++--------
+ arch/arm/mach-omap2/cclock33xx_data.c |   74 +++-
+ arch/arm/mach-omap2/cclock3xxx_data.c |  599 ++++++++++++++++++---------------
+ arch/arm/mach-omap2/cclock44xx_data.c |  240 ++++++++++---
+ arch/arm/mach-omap2/clock.h           |   15 +-
+ 6 files changed, 965 insertions(+), 609 deletions(-)
 
 -- 
-Best Regards,
-Artem Bityutskiy
+1.7.9.5
+
