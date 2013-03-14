@@ -1,57 +1,31 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: MTD : Kernel oops when remounting ubifs as read/write
-Date: Thu, 14 Mar 2013 12:30:09 +0200
-Message-ID: <1363257009.11441.97.camel@sauron.fi.intel.com>
-References: <5134CEF9.5070502@mimc.co.uk>
-	  <1363087506.3348.62.camel@sauron.fi.intel.com>
-	  <51405F3A.3090901@mimc.co.uk>
-	 <1363252425.11441.94.camel@sauron.fi.intel.com>
-	 <51419E3A.8030007@mimc.co.uk>
-Reply-To: dedekind1@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51419E3A.8030007@mimc.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, adrian.hunter@intel.com
+From: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 0/1] omap usb host platform_data cleanup
+Date: Thu, 14 Mar 2013 12:41:12 +0200
+Message-ID: <1363257673-24136-1-git-send-email-ruslan.bilovol@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 2013-03-14 at 09:54 +0000, Mark Jackson wrote:
-> On 14/03/13 09:13, Artem Bityutskiy wrote:
-> > On Wed, 2013-03-13 at 11:12 +0000, Mark Jackson wrote:
-> >> Sorry ... this just locks up the unit.
-> > 
-> > OK, I've reproduced the issue with 3.9-rc2 in nandsim, see the details
-> > below. The patch I proposed did not get the error path correctly, but it
-> > does fix the issue.
-> > 
-> > I think what you treat as "lockup" is the fixup process. UBIFS basically
-> > reads the entire UBI volume and writes it back. And it uses the atomic
-> > change UBI service, which means it also calculates CRC of everything it
-> > writes. And this all just takes a lot of time. This has to be done only
-> > once on the first mount.
-> 
-> Okay ... I've retried, but how long is "a lot of time" ?
-> 
-> I've waited 15 minutes and still nothing.
-> 
-> And I can see that there's no activity on the NAND chip select !?!
-> 
-> I'll put some debug info into the fixup routines to see if I can trace what's going on.
+Hello guys,
 
-Just to make sure - try this last patch I sent. I did test it with
-nandsim at least, and I am sure it works. I did not test at all the
-first one.
+This is v2 of my patch https://patchwork.kernel.org/patch/1232871/
+rebased on v3.9-rc2. Removes deprecated flags and structures
+and saves few bytes of memory.
 
-And yes, debug messages would be useful, just do not forget to add the
-'ignore_loglevel' kernel boot option, otherwise you won't see the
-messages on your console, since they are of KERN_DEBUG level.
+Regards,
+Ruslan
 
-You may have other issues which cause lockup, e.g., in driver level. It
-makes sense to validate your flash with MTD test modules.
+Ruslan Bilovol (1):
+  omap: usb: host: remove deprecated flags and structures
+
+ include/linux/platform_data/usb-omap.h |   20 --------------------
+ 1 file changed, 20 deletions(-)
 
 -- 
-Best Regards,
-Artem Bityutskiy
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
