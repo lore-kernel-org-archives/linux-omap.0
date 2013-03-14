@@ -1,26 +1,31 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 1/8] ARM: dts: OMAP34xx: move CPU OPP tables to device tree
-Date: Thu, 14 Mar 2013 15:58:08 -0500
-Message-ID: <1363294695-658-2-git-send-email-nm@ti.com>
+Subject: [PATCH 7/8] ARM: OMAP3+: use cpu0-cpufreq driver
+Date: Thu, 14 Mar 2013 15:58:14 -0500
+Message-ID: <1363294695-658-8-git-send-email-nm@ti.com>
 References: <1363294695-658-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47540 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751796Ab3CNU7E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 16:59:04 -0400
+Return-path: <cpufreq-owner@vger.kernel.org>
 In-Reply-To: <1363294695-658-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: cpufreq-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Add DT OPP table for OMAP34xx family of devices. This data is
-decoded by OF with of_init_opp_table() helper function.
+With OMAP3+ and AM33xx supported SoC having defined CPU DT
+entries with operating-points defined, we can now
+use the SoC generic cpu0-cpufreq driver to start
+using it, lets now switch to the generic driver.
 
-This is in preparation to use generic cpu0-cpufreq driver.
+As part of this change, switch the dummy clock node to use
+cpufreq-cpu0. This is an suggested solution till we have
+OMAP clock nodes in DT. Once the DT conversion is complete,
+we can then do: clocks =3D <&dpll_mpu_ck>; or the SoC specific
+equivalent.
+
+Inspired by patch: https://patchwork.kernel.org/patch/2067841/
+now made generic.
 
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: "Beno=C3=AEt Cousson" <b-cousson@ti.com>
@@ -35,62 +40,71 @@ Cc: linux-pm@vger.kernel.org
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/boot/dts/omap3.dtsi       |   10 ++++++++++
- arch/arm/mach-omap2/opp3xxx_data.c |   11 -----------
- 2 files changed, 10 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/board-generic.c   |    4 ++++
+ arch/arm/mach-omap2/cclock33xx_data.c |    2 +-
+ arch/arm/mach-omap2/cclock3xxx_data.c |    2 +-
+ arch/arm/mach-omap2/cclock44xx_data.c |    2 +-
+ 4 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dts=
-i
-index 1acc261..9a15066 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -23,6 +23,16 @@
- 	cpus {
- 		cpu@0 {
- 			compatible =3D "arm,cortex-a8";
-+			/* OMAP3430 variants OPP1-5 */
-+			operating-points =3D <
-+				/* kHz    uV */
-+				125000   975000
-+				250000  1075000
-+				500000  1200000
-+				550000  1270000
-+				600000  1350000
-+			>;
-+			clock-latency =3D <300000>; /* From legacy driver */
- 		};
- 	};
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/=
+board-generic.c
+index 0274ff7..970c6f4 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -49,6 +49,10 @@ static void __init omap_generic_init(void)
+ 		omap4_panda_display_init_of();
+ 	else if (of_machine_is_compatible("ti,omap4-sdp"))
+ 		omap_4430sdp_display_init_of();
++	if (IS_ENABLED(CONFIG_GENERIC_CPUFREQ_CPU0)) {
++		struct platform_device_info devinfo =3D { .name =3D "cpufreq-cpu0", =
+};
++		platform_device_register_full(&devinfo);
++	}
+ }
 =20
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/o=
-pp3xxx_data.c
-index fc67add..1de18c2 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -87,17 +87,6 @@ struct omap_volt_data omap36xx_vddcore_volt_data[] =3D=
- {
- /* OPP data */
+ #ifdef CONFIG_SOC_OMAP2420
+diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap=
+2/cclock33xx_data.c
+index 476b820..cf7e736 100644
+--- a/arch/arm/mach-omap2/cclock33xx_data.c
++++ b/arch/arm/mach-omap2/cclock33xx_data.c
+@@ -852,7 +852,7 @@ static struct omap_clk am33xx_clks[] =3D {
+ 	CLK(NULL,	"dpll_core_m5_ck",	&dpll_core_m5_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_core_m6_ck",	&dpll_core_m6_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_mpu_ck",		&dpll_mpu_ck,	CK_AM33XX),
+-	CLK("cpu0",	NULL,			&dpll_mpu_ck,	CK_AM33XX),
++	CLK("cpufreq-cpu0.0",	NULL,			&dpll_mpu_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_mpu_m2_ck",	&dpll_mpu_m2_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_ddr_ck",		&dpll_ddr_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_ddr_m2_ck",	&dpll_ddr_m2_ck,	CK_AM33XX),
+diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap=
+2/cclock3xxx_data.c
+index 4579c3c..5f68286 100644
+--- a/arch/arm/mach-omap2/cclock3xxx_data.c
++++ b/arch/arm/mach-omap2/cclock3xxx_data.c
+@@ -3501,7 +3501,7 @@ static struct omap_clk omap3xxx_clks[] =3D {
+ 	CLK(NULL,	"uart4_ick",	&uart4_ick_am35xx,	CK_AM35XX),
+ 	CLK(NULL,	"timer_32k_ck",	&omap_32k_fck,  CK_3XXX),
+ 	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_3XXX),
+-	CLK(NULL,	"cpufreq_ck",	&dpll1_ck,	CK_3XXX),
++	CLK("cpufreq-cpu0.0",	NULL,	&dpll1_ck,	CK_3XXX),
+ };
 =20
- static struct omap_opp_def __initdata omap34xx_opp_def_list[] =3D {
--	/* MPU OPP1 */
--	OPP_INITIALIZER("mpu", true, 125000000, OMAP3430_VDD_MPU_OPP1_UV),
--	/* MPU OPP2 */
--	OPP_INITIALIZER("mpu", true, 250000000, OMAP3430_VDD_MPU_OPP2_UV),
--	/* MPU OPP3 */
--	OPP_INITIALIZER("mpu", true, 500000000, OMAP3430_VDD_MPU_OPP3_UV),
--	/* MPU OPP4 */
--	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
--	/* MPU OPP5 */
--	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
--
- 	/*
- 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP i=
-s
- 	 * almost the same than the one at 83MHz thus providing very little
+ static const char *enable_init_clks[] =3D {
+diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap=
+2/cclock44xx_data.c
+index 3d58f33..6e933e3 100644
+--- a/arch/arm/mach-omap2/cclock44xx_data.c
++++ b/arch/arm/mach-omap2/cclock44xx_data.c
+@@ -1660,7 +1660,7 @@ static struct omap_clk omap44xx_clks[] =3D {
+ 	CLK("4013a000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+ 	CLK("4013c000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+ 	CLK("4013e000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+-	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
++	CLK("cpufreq-cpu0.0",	NULL,	&dpll_mpu_ck,	CK_443X),
+ };
+=20
+ int __init omap4xxx_clk_init(void)
 --=20
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
