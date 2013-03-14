@@ -1,55 +1,37 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if system supports 'has_ossr'
-Date: Thu, 14 Mar 2013 10:38:43 -0700
-Message-ID: <87txodnaos.fsf@linaro.org>
-References: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:43181 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755902Ab3CNRir (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 13:38:47 -0400
-Received: by mail-pb0-f52.google.com with SMTP id ma3so2552484pbc.39
-        for <linux-omap@vger.kernel.org>; Thu, 14 Mar 2013 10:38:47 -0700 (PDT)
-In-Reply-To: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com> (Lokesh
-	Vutla's message of "Wed, 13 Mar 2013 12:22:33 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+From: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH RESEND v2 0/1] usb: musb: improve throughput in HOST mode
+Date: Thu, 14 Mar 2013 20:12:08 +0200
+Message-ID: <1363284729-24228-1-git-send-email-ruslan.bilovol@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: will.deacon@arm.com, dietmar.eggemann@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com
 
-Lokesh Vutla <lokeshvutla@ti.com> writes:
+Hi guys,
 
-> Commit {9a6eb31 ARM: hw_breakpoint: Debug powerdown support for self-hosted
-> debug} introduces debug powerdown support for self-hosted debug.
-> While merging the patch 'has_ossr' check was removed which
-> was needed for hardwares which doesn't support self-hosted debug.
-> Pandaboard (A9) is one such hardware and Dietmar's orginial
-> patch did mention this issue.
-> Without that check on Panda with CPUIDLE enabled, a flood of
-> below messages thrown.
->
-> [ 3.597930] hw-breakpoint: CPU 0 failed to disable vector catch
-> [ 3.597991] hw-breakpoint: CPU 1 failed to disable vector catch
->
-> So restore that check back to avoid the mentioned issue.
->
-> Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Reported-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+This is a resend of my patch:
+http://permalink.gmane.org/gmane.linux.usb.general/67238
 
-I just noticed this on my Panda boards with CPUidle enabled, and
-$SUBJECT patch fixes it.
+At this moment it has been successfully tested and
+used on top of 3.0 and 3.4 kernels on omap4 devices
+so it would be great to have it in upstream too.
 
-FWIW,
-
-Tested-by: Kevin Hilman <khilman@linaro.org>
-
-I agree that this should get queued for v3.9-rc.
-
-Kevin
+Regards,
+Ruslan
 
 
+Ruslan Bilovol (1):
+  usb: musb: implement (un)map_urb_for_dma hooks
+
+ drivers/usb/musb/musb_core.c |   14 ++++++
+ drivers/usb/musb/musb_host.c |  102 +++++++++++++++++++++++++++++++++++++++++-
+ drivers/usb/musb/musb_host.h |    2 +-
+ 3 files changed, 116 insertions(+), 2 deletions(-)
+
+-- 
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
