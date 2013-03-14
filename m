@@ -1,149 +1,276 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet child nodes
-Date: Thu, 14 Mar 2013 16:09:22 +0100
-Message-ID: <1363273762-17441-4-git-send-email-javier.martinez@collabora.co.uk>
-References: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:46321 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757006Ab3CNPJs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 11:09:48 -0400
-In-Reply-To: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 00/24] ARM: OMAP2+: Adapt to ehci-omap changes for 3.10
+Date: Thu, 14 Mar 2013 17:41:34 +0200
+Message-ID: <5141EFAE.2040809@ti.com>
+References: <1363088606-2692-1-git-send-email-rogerq@ti.com> <20130312164007.GZ26093@atomide.com> <5140821B.2030902@ti.com> <20130313162454.GE26093@atomide.com> <5140AAFD.4080508@ti.com> <20130313165729.GF26093@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130313165729.GF26093@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: balbi@ti.com, b-cousson@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-Besides being used to interface with external memory devices,
-the General-Purpose Memory Controller can be used to connect
-Pseudo-SRAM devices such as ethernet controllers to OMAP2+
-processors using the TI GPMC as a data bus.
+On 03/13/2013 06:57 PM, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [130313 09:40]:
+>> On 03/13/2013 06:24 PM, Tony Lindgren wrote:
+>>> * Roger Quadros <rogerq@ti.com> [130313 06:46]:
+>>>> On 03/12/2013 06:40 PM, Tony Lindgren wrote:
+>>>>> * Roger Quadros <rogerq@ti.com> [130312 04:47]:
+>>>>>> Hi Tony,
+>>>>>>
+>>>>>> These patches provide the SoC side code required to support
+>>>>>> the changes in the OMAP USB Host drivers done in [1], [2] & [3].
+>>>>> ... 
+>>>>>
+>>>>>>  arch/arm/mach-omap2/board-3430sdp.c                |   97 +++++++++++++++-
+>>>>>>  arch/arm/mach-omap2/board-3630sdp.c                |  100 +++++++++++++++-
+>>>>>>  arch/arm/mach-omap2/board-am3517crane.c            |   95 +++++++++++++--
+>>>>>>  arch/arm/mach-omap2/board-am3517evm.c              |   66 ++++++++++-
+>>>>>>  arch/arm/mach-omap2/board-cm-t35.c                 |   95 ++++++++++++++-
+>>>>>>  arch/arm/mach-omap2/board-cm-t3517.c               |   97 +++++++++++++++-
+>>>>>>  arch/arm/mach-omap2/board-devkit8000.c             |   20 ++--
+>>>>>>  arch/arm/mach-omap2/board-generic.c                |   67 +++++++++++
+>>>>>>  arch/arm/mach-omap2/board-igep0020.c               |  112 ++++++++++++++++---
+>>>>>>  arch/arm/mach-omap2/board-omap3beagle.c            |   93 +++++++++++++--
+>>>>>>  arch/arm/mach-omap2/board-omap3evm.c               |   62 ++++++++--
+>>>>>>  arch/arm/mach-omap2/board-omap3pandora.c           |   52 +++++++--
+>>>>>>  arch/arm/mach-omap2/board-omap3stalker.c           |   52 +++++++-
+>>>>>>  arch/arm/mach-omap2/board-omap3touchbook.c         |   62 +++++++++-
+>>>>>>  arch/arm/mach-omap2/board-omap4panda.c             |  122 ++++++++++++++------
+>>>>>>  arch/arm/mach-omap2/board-overo.c                  |   54 ++++++++-
+>>>>>>  arch/arm/mach-omap2/board-zoom.c                   |   56 ++++++++-
+>>>>>
+>>>>> Can't you have some mach-omap2/ehci-common.c that takes care
+>>>>> of the initializiation to avoid this much addition to the
+>>>>> board-*.c files? You may be able to have just a common function
+>>>>> to do it and pass few parameters?
+>>>>
+>>>> Since we moved reset and power handling for the USB PHYs from omap-echi
+>>>> driver into the USB PHY driver we need to define the regulator data
+>>>> for RESET and Power line of each PHY. So most of the code added is just
+>>>> regulator data for the PHY rather than omap-ehci.
+>>>
+>>> It seems that you're now repeating minor variations of the same PHY
+>>> over and over again though.
+>>
+>> Yes it is the vcc and reset regulator data for the PHY that
+>> is getting repeated with variations in the GPIO number.
+>>
+>>>  
+>>>> Instead of a common function, I can implement some macros that make it
+>>>> easier to define the regulators for the PHY in the board files.
+>>>> Does this sound OK?
+>>>>
+>>>> Personally I don't like such macros because it hides the implementation
+>>>> and is difficult to read/debug.
+>>>
+>>> I'd prefer a common function to initialize the PHY though as it sounds
+>>> like using macros would just allocate similar PHY many times which seems
+>>> unnecessary.
+>>>
+>> OK, so we want to create the regulator data at runtime to save some memory?
+>> I'll come up with something.
+> 
+> Or I guess you can have just one instance that gets filled in by some PHY
+> platform init function.
+> 
 
-This patch allows an ethernet chip to be defined as an GPMC
-child device node.
+OK. Let me know how the below patch looks. After that, the board code
+will look like.
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
- Documentation/devicetree/bindings/net/gpmc-eth.txt |   90 ++++++++++++++++++++
- arch/arm/mach-omap2/gpmc.c                         |    8 ++
- 2 files changed, 98 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/net/gpmc-eth.txt
+static struct usbhs_phy_data phy_data[] = {
+	{
+		.reset_gpio = 147,
+		.vcc_gpio = 148
+		.vcc_polarity = 1,
+		.phy_id = "nop_usb_xceiv.2",
+	},
+	{}, /* Terminator */
+};
 
-diff --git a/Documentation/devicetree/bindings/net/gpmc-eth.txt b/Documentation/devicetree/bindings/net/gpmc-eth.txt
-new file mode 100644
-index 0000000..c45363c
---- /dev/null
-+++ b/Documentation/devicetree/bindings/net/gpmc-eth.txt
-@@ -0,0 +1,90 @@
-+Device tree bindings for Ethernet chip connected to TI GPMC
-+
-+Besides being used to interface with external memory devices, the
-+General-Purpose Memory Controller can be used to connect Pseudo-SRAM devices
-+such as ethernet controllers to processors using the TI GPMC as a data bus.
-+
-+Ethernet controllers connected to TI GPMC are represented as child nodes of
-+the GPMC controller with an "ethernet" name.
-+
-+All timing relevant properties as well as generic GPMC child properties are
-+explained in a separate documents. Please refer to
-+Documentation/devicetree/bindings/bus/ti-gpmc.txt
-+
-+Required properties:
-+- bank-width: 		Address width of the device in bytes. GPMC supports 8-bit
-+			and 16-bit devices and so must be either 1 or 2 bytes.
-+- compatible:		Compatible string property for the ethernet child device.
-+- gpmc,cs-on:		Chip-select assertion time
-+- gpmc,cs-rd-off:	Chip-select de-assertion time for reads
-+- gpmc,cs-wr-off:	Chip-select de-assertion time for writes
-+- gpmc,oe-on:		Output-enable assertion time
-+- gpmc,oe-off		Output-enable de-assertion time
-+- gpmc,we-on:		Write-enable assertion time
-+- gpmc,we-off:		Write-enable de-assertion time
-+- gpmc,access:		Start cycle to first data capture (read access)
-+- gpmc,rd-cycle:	Total read cycle time
-+- gpmc,wr-cycle:	Total write cycle time
-+- reg:			Chip-select, base address (relative to chip-select)
-+			and size of the memory mapped for the device.
-+			Note that base address will be typically 0 as this
-+			is the start of the chip-select.
-+
-+Optional properties:
-+- gpmc,XXX		Additional GPMC timings and settings parameters. See
-+			Documentation/devicetree/bindings/bus/ti-gpmc.txt
-+
-+Optional properties for partiton table parsing:
-+- #address-cells: should be set to 1
-+- #size-cells: should be set to 1
-+
-+Example:
-+
-+gpmc: gpmc@6e000000 {
-+	compatible = "ti,omap3430-gpmc";
-+	ti,hwmods = "gpmc";
-+	reg = <0x6e000000 0x1000>;
-+	interrupts = <20>;
-+	gpmc,num-cs = <8>;
-+	gpmc,num-waitpins = <4>;
-+	#address-cells = <2>;
-+	#size-cells = <1>;
-+
-+	ranges = <5 0 0x2c000000 0x1000000>;
-+
-+	ethernet@5,0 {
-+		compatible = "smsc,lan9221", "smsc,lan9115";
-+		reg = <5 0 0xff>;
-+		bank-width = <2>;
-+
-+		gpmc,mux-add-data;
-+		gpmc,cs-on = <0>;
-+		gpmc,cs-rd-off = <186>;
-+		gpmc,cs-wr-off = <186>;
-+		gpmc,adv-on = <12>;
-+		gpmc,adv-rd-off = <48>;
-+		gpmc,adv-wr-off = <48>;
-+		gpmc,oe-on = <54>;
-+		gpmc,oe-off = <168>;
-+		gpmc,we-on = <54>;
-+		gpmc,we-off = <168>;
-+		gpmc,rd-cycle = <186>;
-+		gpmc,wr-cycle = <186>;
-+		gpmc,access = <114>;
-+		gpmc,page-burst-access = <6>;
-+		gpmc,bus-turnaround = <12>;
-+		gpmc,cycle2cycle-delay = <18>;
-+		gpmc,wr-data-mux-bus = <90>;
-+		gpmc,wr-access = <186>;
-+		gpmc,cycle2cycle-samecsen;
-+		gpmc,cycle2cycle-diffcsen;
-+
-+		interrupt-parent = <&gpio6>;
-+		interrupts = <16>;
-+		vmmc-supply = <&vddvario>;
-+		vmmc_aux-supply = <&vdd33a>;
-+		reg-io-width = <2>;
-+
-+		smsc,save-mac-address;
-+	};
-+};
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 898b44d..2bc276b 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1559,6 +1559,14 @@ static int gpmc_probe_dt(struct platform_device *pdev)
- 		}
- 	}
+usbhs_init_phys(phy_data);
+
+Patch to implement usbhs_init_phys();
+
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 5706bdc..b9d6bff 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -22,8 +22,12 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/dma-mapping.h>
++#include <linux/regulator/machine.h>
++#include <linux/regulator/fixed.h>
++#include <linux/string.h>
  
-+	for_each_node_by_name(child, "ethernet") {
-+		ret = gpmc_probe_generic_child(pdev, child);
-+		if (ret < 0) {
-+			of_node_put(child);
-+			return ret;
-+		}
+ #include <asm/io.h>
++#include <asm/gpio.h>
+ 
+ #include "soc.h"
+ #include "omap_device.h"
+@@ -472,6 +476,141 @@ void __init setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 	}
+ }
+ 
++static const char *reset_supply = "reset";
++static const char *vcc_supply = "vcc";
++
++/* Template for PHY regulators */
++static struct regulator_consumer_supply hsusb_reg_supplies[] = {
++	{ /* .supply & .dev_name filled later */ },
++};
++
++static struct regulator_init_data hsusb_reg_data = {
++	.constraints = {
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
++	.consumer_supplies	= hsusb_reg_supplies,
++	.num_consumer_supplies	= ARRAY_SIZE(hsusb_reg_supplies),
++};
++
++static struct fixed_voltage_config hsusb_reg_config = {
++	/* .supply_name filled later */
++	.microvolts = 3300000,
++	.gpio = -1,		/* updated later */
++	.startup_delay = 70000, /* 70msec */
++	.enable_high = 1,	/* updated later */
++	.enabled_at_boot = 0,	/* keep in RESET */
++	/* .init_data filled later */
++};
++
++static struct platform_device_info hsusb_reg_pdev_info = {
++	.name	= "reg-fixed-voltage",
++	.id	= PLATFORM_DEVID_AUTO,
++};
++
++int __init usbhs_init_phys(struct usbhs_phy_data *phy)
++{
++	struct regulator_consumer_supply *supplies;
++	struct regulator_init_data *reg_data;
++	struct fixed_voltage_config *config;
++	char *supply_name;
++	int i;
++
++
++	for (i = 1; i <= OMAP3_HS_USB_PORTS; i++) {
++
++		if (!phy->phy_id)	/* Terminator ? */
++			break;
++
++		if (!gpio_is_valid(phy->reset_gpio))
++			goto check_vcc;
++
++		supplies = kmemdup(hsusb_reg_supplies,
++			    ARRAY_SIZE(hsusb_reg_supplies) *
++			    sizeof(struct regulator_consumer_supply),
++			    GFP_KERNEL);
++		if (!supplies)
++			return -ENOMEM;
++
++		supplies->supply = reset_supply;
++		supplies->dev_name = phy->phy_id;
++
++		reg_data = kmemdup(&hsusb_reg_data, sizeof(hsusb_reg_data),
++							GFP_KERNEL);
++		if (!reg_data)
++			return -ENOMEM;
++
++		reg_data->consumer_supplies = supplies;
++
++		config = kmemdup(&hsusb_reg_config, sizeof(hsusb_reg_config),
++							GFP_KERNEL);
++		if (!config)
++			return -ENOMEM;
++
++		supply_name = kmalloc(14, GFP_KERNEL);
++		if (!supply_name)
++			return -ENOMEM;
++
++		scnprintf(supply_name, 13, "hsusb%d_reset", i);
++		config->supply_name = supply_name;
++		config->gpio = phy->reset_gpio;
++		config->init_data = reg_data;
++
++		hsusb_reg_pdev_info.data = config;
++		hsusb_reg_pdev_info.size_data = sizeof(hsusb_reg_config);
++		platform_device_register_full(&hsusb_reg_pdev_info);
++
++check_vcc:
++		if (!gpio_is_valid(phy->vcc_gpio))
++			goto next;
++
++		supplies = kmemdup(hsusb_reg_supplies,
++			    ARRAY_SIZE(hsusb_reg_supplies) *
++			    sizeof(struct regulator_consumer_supply),
++			    GFP_KERNEL);
++		if (!supplies)
++			return -ENOMEM;
++
++		supplies->supply = vcc_supply;
++		supplies->dev_name = phy->phy_id;
++
++		reg_data = kmemdup(&hsusb_reg_data, sizeof(hsusb_reg_data),
++							GFP_KERNEL);
++		if (!reg_data)
++			return -ENOMEM;
++
++		reg_data->consumer_supplies = supplies;
++
++		config = kmemdup(&hsusb_reg_config, sizeof(hsusb_reg_config),
++							GFP_KERNEL);
++		if (!config)
++			return -ENOMEM;
++
++		supply_name = kmalloc(14, GFP_KERNEL);
++		if (!supply_name)
++			return -ENOMEM;
++
++		scnprintf(supply_name, 13, "hsusb%d_vcc", i);
++		config->supply_name = supply_name;
++		config->gpio = phy->vcc_gpio;
++		config->enable_high = phy->vcc_polarity;
++		config->init_data = reg_data;
++
++		hsusb_reg_pdev_info.data = config;
++		hsusb_reg_pdev_info.size_data = sizeof(hsusb_reg_config);
++		platform_device_register_full(&hsusb_reg_pdev_info);
++
++next:
++		phy++;
 +	}
 +
- 	return 0;
- }
- #else
--- 
-1.7.7.6
++	return 0;
++}
++
+ void __init usbhs_init(struct usbhs_omap_platform_data *pdata)
+ {
+ 	struct omap_hwmod	*uhh_hwm, *tll_hwm;
+diff --git a/arch/arm/mach-omap2/usb.h b/arch/arm/mach-omap2/usb.h
+index 3319f5c..70a8c63 100644
+--- a/arch/arm/mach-omap2/usb.h
++++ b/arch/arm/mach-omap2/usb.h
+@@ -53,8 +53,16 @@
+ #define USBPHY_OTGSESSEND_EN	(1 << 20)
+ #define USBPHY_DATA_POLARITY	(1 << 23)
+ 
++struct usbhs_phy_data {
++	int reset_gpio;
++	int vcc_gpio;
++	bool vcc_polarity;	/* 1 active high, 0 active low */
++	char *phy_id;
++};
++
+ extern void usb_musb_init(struct omap_musb_board_data *board_data);
+ extern void usbhs_init(struct usbhs_omap_platform_data *pdata);
++extern int usbhs_init_phys(struct usbhs_phy_data *phy);
+ 
+ extern void am35x_musb_reset(void);
+ extern void am35x_musb_phy_power(u8 on);
 
+--
+cheers,
+-roger
