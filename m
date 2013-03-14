@@ -1,103 +1,40 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 0/9] ARM: dts: Various OMAP2+ device-tree updates
-Date: Thu, 14 Mar 2013 17:08:47 +0100
-Message-ID: <5141F60F.7060207@ti.com>
-References: <1362763654-9660-1-git-send-email-jon-hunter@ti.com> <5141E55E.9040801@ti.com> <CAAwP0s2BW-GTKsS0UpAWiMbRTFyDzgeUmOCw2p0CaB3RDKOnBw@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.9-rc1
+Date: Thu, 14 Mar 2013 16:14:20 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1303141558020.8075@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1303121634080.2723@utopia.booyaka.com> <20130312190030.GB8798@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52860 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933603Ab3CNQJE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Mar 2013 12:09:04 -0400
-In-Reply-To: <CAAwP0s2BW-GTKsS0UpAWiMbRTFyDzgeUmOCw2p0CaB3RDKOnBw@mail.gmail.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:49995 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755325Ab3CNQOV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 12:14:21 -0400
+In-Reply-To: <20130312190030.GB8798@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Javier,
+Hi Aaro,
 
-On 03/14/2013 05:02 PM, Javier Martinez Canillas wrote:
-> On Thu, Mar 14, 2013 at 3:57 PM, Benoit Cousson <b-cousson@ti.com> wrote:
->> Salut Jon,
->>
->> On 03/08/2013 06:27 PM, Jon Hunter wrote:
->>> Various OMAP device-tree updates for PMU, DMA, GPIO, GPMC and boards.
->>>
->>> The DMA, PMU and OMAP3430 SDP board changes have been sent before
->>> individually but re-sending here as a complete series for v3.10.
->>>
->>> This is based upon v3.9-rc1 and the OMAP3 GPMC binding from Florian
->>> Vaussard [1] and OMAP5 DT SPI patch from Felipe Balbi [2].
->>>
->>> [1] https://patchwork.kernel.org/patch/2057111/
->>
->> I've tried to follow the series review, and it seems that Florian was
->> considering sending some other patches. It is not clear if this is a new
->> version of the series or some additional patches.
->>
-> 
-> Hi Benoit,
-> 
-> According to [1] Jon suggested that it was not necessary to map all
-> the 16MB for the GPMC mapped register address space since in practice
-> is a very small fraction of that size is used.
-> 
-> I had the following patch but I did never post it because Jon said
-> that the I/O memory mapping is page-aligned and the minimum page
-> size for ARM is 4KB anyways, so there is no functional difference
-> between using 0x1000 or 0x02d0.
-> 
-> But now reading [2] I see that you prefer to do what the documentation
-> said and don't assume any the page size / alignment.
-> 
-> [2]: https://patchwork.kernel.org/patch/2239741/
-> 
-> From 68edff5a102bb8fc81e006738baa456eb69f080a Mon Sep 17 00:00:00 2001
-> From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> Date: Wed, 27 Feb 2013 02:30:51 +0100
-> Subject: [PATCH] ARM: dts: OMAP3: reduce GPMC mapped registers address space
-> 
-> Currently the OMAP General-Purpose Memory Controller (GPMC) device
-> node maps 16 MB of address space for its hardware registers.
-> 
-> This is because the OMAP Technical Reference Manual says that the
-> GPMC module register address space size is 16 MB. But in practice
-> the maximum address offset used by a GPMC register is 0x02d0.
-> 
-> So, there is no need to map such a big address space for GPMC regs.
-> 
-> This change was suggested by Jon Hunter [1].
-> 
-> [1]: https://patchwork.kernel.org/patch/2057111/
-> 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+On Tue, 12 Mar 2013, Aaro Koskinen wrote:
 
-Thanks for that super fast patch :-)
-
-Applied.
-
-Regards,
-Benoit
-
-> ---
->  arch/arm/boot/dts/omap3.dtsi |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> On Tue, Mar 12, 2013 at 04:40:19PM +0000, Paul Walmsley wrote:
+> > * 2420N800: powers down 30 seconds after boot
+> >   - Presumably due to missing CBUS patches for watchdog control
+> >   - http://lkml.org/lkml/2012/9/3/265
+> >   - http://marc.info/?l=linux-omap&m=135274739624125&w=2
+> >   - http://marc.info/?l=linux-omap&m=135664195831104&w=2
+> >   - Should be working in v3.9-rc1 when CONFIG_RETU_WATCHDOG=y ?
 > 
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index 2ddae38..a60eaf1 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -407,7 +407,7 @@
->  		gpmc: gpmc@6e000000 {
->  			compatible = "ti,omap3430-gpmc";
->  			ti,hwmods = "gpmc";
-> -			reg = <0x6e000000 0x1000000>;
-> +			reg = <0x6e000000 0x02d0>;
->  			interrupts = <20>;
->  			gpmc,num-cs = <8>;
->  			gpmc,num-waitpins = <4>;
-> 
+> Yes, you need also CONFIG_I2C_CBUS_GPIO and CONFIG_MFD_RETU.
 
+Just enabled these two, and finally the N800 doesn't power down!  Nice 
+work!  Amazing how exciting something like this can be :-)
+
+This will be reflected in the v3.9-rc2 test log & the v3.9-rc1 log has now 
+been fixed on the web.
+
+
+- Paul
