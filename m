@@ -1,109 +1,94 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if system
- supports 'has_ossr'
-Date: Thu, 14 Mar 2013 13:08:00 +0530
-Message-ID: <51417E58.5050501@ti.com>
-References: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com> <51406BA7.8010306@arm.com> <51407120.7030709@ti.com>
+Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
+ of always dummy
+Date: Thu, 14 Mar 2013 13:15:14 +0530
+Message-ID: <5141800A.2000307@ti.com>
+References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com> <514046B6.9020005@ti.com> <20130313101641.GA13483@e106331-lin.cambridge.arm.com> <514061D1.20603@ti.com> <20130313122550.GD13483@e106331-lin.cambridge.arm.com> <51409EC3.5050905@ti.com> <20130313161811.GF13483@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45392 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43805 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751154Ab3CNHgY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Mar 2013 03:36:24 -0400
-In-Reply-To: <51407120.7030709@ti.com>
+	id S1751220Ab3CNHnu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Mar 2013 03:43:50 -0400
+In-Reply-To: <20130313161811.GF13483@e106331-lin.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <Will.Deacon@arm.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
 
-Will,
-
-On Wednesday 13 March 2013 05:59 PM, Lokesh Vutla wrote:
-> Hi Dietmar,
-> On Wednesday 13 March 2013 05:35 PM, Dietmar Eggemann wrote:
->> On 13/03/13 06:52, Lokesh Vutla wrote:
->>> Commit {9a6eb31 ARM: hw_breakpoint: Debug powerdown support for
->>> self-hosted
->>> debug} introduces debug powerdown support for self-hosted debug.
->>> While merging the patch 'has_ossr' check was removed which
->>> was needed for hardwares which doesn't support self-hosted debug.
->>> Pandaboard (A9) is one such hardware and Dietmar's orginial
->>> patch did mention this issue.
->>> Without that check on Panda with CPUIDLE enabled, a flood of
->>> below messages thrown.
+On Wednesday 13 March 2013 09:48 PM, Mark Rutland wrote:
+> On Wed, Mar 13, 2013 at 03:44:03PM +0000, Santosh Shilimkar wrote:
+>> On Wednesday 13 March 2013 05:55 PM, Mark Rutland wrote:
+>>> On Wed, Mar 13, 2013 at 11:24:01AM +0000, Santosh Shilimkar wrote:
+>>>> On Wednesday 13 March 2013 03:46 PM, Mark Rutland wrote:
+>>>>> Hi Santosh,
+>>
+>> [..]
+>>
+>>>>>
+>>>>> Is the problem that the dummy timer is being registered as the broadcast
+>>>>> source, or that it is selected as a local timer in preference of real timers?
+>>>>>
+>>>> Dummy timer is preferred over real broadcast timer.
 >>>
->>> [ 3.597930] hw-breakpoint: CPU 0 failed to disable vector catch
->>> [ 3.597991] hw-breakpoint: CPU 1 failed to disable vector catch
->>>
->>
->> Hi Lokesh,
->>
->> I confirm that this has_ossr condition has to go back into the
->> pm_init(void) call. I just verified it again on my Panda board and I get
->> the same issue like you without it.
->>
->> I guess what was happening is that Will asked me if this check is really
->> necessary and I said No without re-testing on my Panda board as an V7
->> debug architecture example where OSSR is not implemented. Since then I
->> only tested in on V7.1 debug architectures where OSSR is mandatory.
->> Sorry about this and thanks for catching this.
-> Thanks for confirming..:)
+>>> Ok.
 > 
-Can you please queue this one for 3.9-rc2+ ? Without this patch
-CPUIDLE is unusable on OMAP4 devices because of those flood
-of warning messages.
+> [...]
+> 
+>>> I do agree it'd be worth lowering the dummy timer's rating to ensure it doesn't
+>>> override a real timer elsewhere. 
+>>>
+>> Yep. Can I add you acked-by tag then for $subject patch ?
+>> Would be good to get this one merged as well.
+> 
+> Sure. Though could you reword the commit message? The patch solves the more
+> general issue of a dummy being preferred over real hardware even outside of
+> choosing the broadcast device.
+> 
+> Acked-by: Mark Rutland <mark.rutland@arm.com>
 
-I was also wondering whether we should just warn once rather
-than continuous warnings in the notifier. Patch is end of the
-email.
+Thanks. For record, patch is in end of the email which I plan
+to put into patch system.
 
 Regards,
 Santosh
 
->From b8db63f786719aef835f1ef4e20f3b3406b99b62 Mon Sep 17 00:00:00 2001
+>From 57c501bcdc88c7ff26a5c63956be07e94a5083c5 Mon Sep 17 00:00:00 2001
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Thu, 14 Mar 2013 13:03:25 +0530
-Subject: [PATCH] ARM: hw_breakpoints: Use warn_once to avoid message flood on
- unsupported ossr machines
+Date: Wed, 13 Mar 2013 12:33:16 +0530
+Subject: [PATCH 1/2] ARM: smp: Avoid dummy clockevent being preferred over real hardware clock-event
 
+With recent arm broadcast time clean-up from Mark Rutland, the dummy
+broadcast device is always registered with timer subsystem. And since
+the rating of the dummy clock event is very high, it may be preferred
+over a real clock event.
+
+This is a change in behavior from past and not an intended
+one. So reduce the rating of the dummy clockevent so that
+real clockevent device is selected when available.
+
+Acked-by: Mark Rutland <mark.rutland@arm.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/kernel/hw_breakpoint.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/kernel/smp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/kernel/hw_breakpoint.c b/arch/arm/kernel/hw_breakpoint.c
-index 96093b7..5dc1aa6 100644
---- a/arch/arm/kernel/hw_breakpoint.c
-+++ b/arch/arm/kernel/hw_breakpoint.c
-@@ -966,7 +966,7 @@ static void reset_ctrl_regs(void *unused)
- 	}
- 
- 	if (err) {
--		pr_warning("CPU %d debug is powered down!\n", cpu);
-+		pr_warn_once("CPU %d debug is powered down!\n", cpu);
- 		cpumask_or(&debug_err_mask, &debug_err_mask, cpumask_of(cpu));
- 		return;
- 	}
-@@ -987,7 +987,7 @@ clear_vcr:
- 	isb();
- 
- 	if (cpumask_intersects(&debug_err_mask, cpumask_of(cpu))) {
--		pr_warning("CPU %d failed to disable vector catch\n", cpu);
-+		pr_warn_once("CPU %d failed to disable vector catch\n", cpu);
- 		return;
- 	}
- 
-@@ -1007,7 +1007,7 @@ clear_vcr:
- 	}
- 
- 	if (cpumask_intersects(&debug_err_mask, cpumask_of(cpu))) {
--		pr_warning("CPU %d failed to clear debug register pairs\n", cpu);
-+		pr_warn_once("CPU %d failed to clear debug register pairs\n", cpu);
- 		return;
- 	}
+diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+index 31644f1..79078ed 100644
+--- a/arch/arm/kernel/smp.c
++++ b/arch/arm/kernel/smp.c
+@@ -480,7 +480,7 @@ static void __cpuinit broadcast_timer_setup(struct clock_event_device *evt)
+ 	evt->features	= CLOCK_EVT_FEAT_ONESHOT |
+ 			  CLOCK_EVT_FEAT_PERIODIC |
+ 			  CLOCK_EVT_FEAT_DUMMY;
+-	evt->rating	= 400;
++	evt->rating	= 100;
+ 	evt->mult	= 1;
+ 	evt->set_mode	= broadcast_timer_set_mode;
  
 -- 
 1.7.9.5
+
 
