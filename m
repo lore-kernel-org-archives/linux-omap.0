@@ -1,31 +1,51 @@
 From: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 0/1] omap usb host platform_data cleanup
-Date: Thu, 14 Mar 2013 12:41:12 +0200
-Message-ID: <1363257673-24136-1-git-send-email-ruslan.bilovol@ti.com>
+Subject: [PATCH v2 1/1] omap: usb: host: remove deprecated flags and structures
+Date: Thu, 14 Mar 2013 12:41:13 +0200
+Message-ID: <1363257673-24136-2-git-send-email-ruslan.bilovol@ti.com>
+References: <1363257673-24136-1-git-send-email-ruslan.bilovol@ti.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1363257673-24136-1-git-send-email-ruslan.bilovol-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello guys,
+These flags and structures are deprecated and there is
+no anymore users of them, so it's safe to remove them.
 
-This is v2 of my patch https://patchwork.kernel.org/patch/1232871/
-rebased on v3.9-rc2. Removes deprecated flags and structures
-and saves few bytes of memory.
-
-Regards,
-Ruslan
-
-Ruslan Bilovol (1):
-  omap: usb: host: remove deprecated flags and structures
-
+Signed-off-by: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+---
  include/linux/platform_data/usb-omap.h |   20 --------------------
  1 file changed, 20 deletions(-)
 
--- 
-1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/linux/platform_data/usb-omap.h b/include/linux/platform_data/usb-omap.h
+index fa579b4..4c7acbe 100644
+--- a/include/linux/platform_data/usb-omap.h
++++ b/include/linux/platform_data/usb-omap.h
+@@ -38,34 +38,14 @@ enum usbhs_omap_port_mode {
+ 	OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM
+ };
+ 
+-struct usbtll_omap_platform_data {
+-	enum usbhs_omap_port_mode		port_mode[OMAP3_HS_USB_PORTS];
+-};
+-
+-struct ehci_hcd_omap_platform_data {
+-	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+-	int				reset_gpio_port[OMAP3_HS_USB_PORTS];
+-	struct regulator		*regulator[OMAP3_HS_USB_PORTS];
+-	unsigned			phy_reset:1;
+-};
+-
+-struct ohci_hcd_omap_platform_data {
+-	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+-	unsigned			es2_compatibility:1;
+-};
+-
+ struct usbhs_omap_platform_data {
+ 	int				nports;
+ 	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+ 	int				reset_gpio_port[OMAP3_HS_USB_PORTS];
+ 	struct regulator		*regulator[OMAP3_HS_USB_PORTS];
+ 
+-	struct ehci_hcd_omap_platform_data	*ehci_data;
+-	struct ohci_hcd_omap_platform_data	*ohci_data;
