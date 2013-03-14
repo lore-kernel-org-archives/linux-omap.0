@@ -1,58 +1,38 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2] ARM: OMAP4: PM: Avoid expensive cpu_suspend() path
- for all CPU power states except off
-Date: Thu, 14 Mar 2013 11:38:30 +0530
-Message-ID: <5141695E.9070708@ti.com>
-References: <1360745724-30058-1-git-send-email-santosh.shilimkar@ti.com> <513DBB60.3010406@ti.com> <874ngfrybz.fsf@linaro.org>
+Subject: Re: [PATCH] ARM: smp: Allow real broadcast device selection instead
+ of always dummy
+Date: Thu, 14 Mar 2013 11:39:25 +0530
+Message-ID: <51416995.80408@ti.com>
+References: <1363165608-13739-1-git-send-email-santosh.shilimkar@ti.com> <514046B6.9020005@ti.com> <alpine.LFD.2.02.1303131516090.22263@ionos> <51409D1D.9000500@ti.com> <alpine.LFD.2.02.1303131931100.22263@ionos>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48234 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39854 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753768Ab3CNGGs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Mar 2013 02:06:48 -0400
-In-Reply-To: <874ngfrybz.fsf@linaro.org>
+	id S1753950Ab3CNGIE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Mar 2013 02:08:04 -0400
+In-Reply-To: <alpine.LFD.2.02.1303131931100.22263@ionos>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>
 
-On Wednesday 13 March 2013 11:12 PM, Kevin Hilman wrote:
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+On Thursday 14 March 2013 12:01 AM, Thomas Gleixner wrote:
+> On Wed, 13 Mar 2013, Santosh Shilimkar wrote:
+>> On Wednesday 13 March 2013 07:49 PM, Thomas Gleixner wrote:
+>>> Though making the rating of the dummy lower is definitely a good
+>>> thing, so a real hardware device which is detected later can replace
+>>> the dummy device. So yes, the rating should be low for the dummy
+>>> timer.
+>>>
+>> Exactly. As Mark pointed out, you have already applied Mark's patch.
+>> I was just wondering whether you can take the $subject patch as well
+>> with ack from Russell, Mark.
 > 
->> Kevin,
->>
->> On Wednesday 13 February 2013 02:25 PM, Santosh Shilimkar wrote:
->>> Current CPU PM code code make use of common cpu_suspend() path for all the
->>> CPU power states which is not optimal. In fact cpu_suspend() path is needed
->>> only when we put CPU power domain to off state where the CPU context is lost.
->>>
->>> Update the code accordingly so that the expensive cpu_suspend() path
->>> can be avoided for the shallow CPU power states like CPU PD INA/CSWR.
->>>
->>> The patch has been tested on OMAP4430 and OMAP5430(with few out of tree patches)
->>> devices for suspend and CPUidle.
->>>
->>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>>
->>> Reported-by: Richard Woodruff <r-woodruff2@ti.com>
->>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> ---
->>> Update changelog to include testing details as suggested
->>> by Kevin Hilman.
->>>
->> Ping.
->> It can get into rc's but since it is not strict regression,
->> and if it has to wait for 3.10 then I can add this one
->> along with rest of the PM patches posted towards 3.10
->>
->> Either way, let me know.
+> It can go through the ARM tree as well, no dependencies on my stuff.
 > 
-> I have this updated one queued for v3.10 in my PM cleanup branch
-> (for_3.10/cleanup/pm)
-> 
-Thanks Kevin.
+Sure. I will push that through ARM tree.
 
 Regards,
 Santosh
