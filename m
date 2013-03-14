@@ -1,44 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: clocks: Pass static parent pointers
- to common clock core
-Date: Thu, 14 Mar 2013 10:06:01 -0700
-Message-ID: <20130314170601.GH26093@atomide.com>
-References: <1363264618-5071-1-git-send-email-rnayak@ti.com>
- <1363264618-5071-3-git-send-email-rnayak@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if system supports 'has_ossr'
+Date: Thu, 14 Mar 2013 10:38:43 -0700
+Message-ID: <87txodnaos.fsf@linaro.org>
+References: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30251 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755540Ab3CNRGG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 13:06:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1363264618-5071-3-git-send-email-rnayak@ti.com>
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:43181 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755902Ab3CNRir (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 13:38:47 -0400
+Received: by mail-pb0-f52.google.com with SMTP id ma3so2552484pbc.39
+        for <linux-omap@vger.kernel.org>; Thu, 14 Mar 2013 10:38:47 -0700 (PDT)
+In-Reply-To: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com> (Lokesh
+	Vutla's message of "Wed, 13 Mar 2013 12:22:33 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, phaber@broadcom.com
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: will.deacon@arm.com, dietmar.eggemann@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com
 
-* Rajendra Nayak <rnayak@ti.com> [130314 05:44]:
-> OMAP clock inits happen quite early, even before the slab is available.
-> As part of the clock init, the common clock core tries to cache parent
-> pointers (if not passed by the caller registering the clock) which
-> fails in case of OMAP since the slab isn't initied.
-> Without CONFIG_DEBUG_SLAB enabled, this just results in the common clock core
-> retrying the caching attempt at some point later.
-> However with CONFIG_DEBUG_SLAB enabled this results in a BUG() as reported
-> in the link below by Tony..
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85932.html
-> 
-> Fix this by passing static parent pointers to the common clock core
-> while registering clocks.
+Lokesh Vutla <lokeshvutla@ti.com> writes:
 
-I wonder if we could easily fix this by initializing only some of the
-clocks that early?
+> Commit {9a6eb31 ARM: hw_breakpoint: Debug powerdown support for self-hosted
+> debug} introduces debug powerdown support for self-hosted debug.
+> While merging the patch 'has_ossr' check was removed which
+> was needed for hardwares which doesn't support self-hosted debug.
+> Pandaboard (A9) is one such hardware and Dietmar's orginial
+> patch did mention this issue.
+> Without that check on Panda with CPUIDLE enabled, a flood of
+> below messages thrown.
+>
+> [ 3.597930] hw-breakpoint: CPU 0 failed to disable vector catch
+> [ 3.597991] hw-breakpoint: CPU 1 failed to disable vector catch
+>
+> So restore that check back to avoid the mentioned issue.
+>
+> Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Reported-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 
-If we had a two stage initialization we could dynamically allocate the
-rest of the parent clocks without having to add all the static data.
+I just noticed this on my Panda boards with CPUidle enabled, and
+$SUBJECT patch fixes it.
 
-Regards,
+FWIW,
 
-Tony
+Tested-by: Kevin Hilman <khilman@linaro.org>
+
+I agree that this should get queued for v3.9-rc.
+
+Kevin
+
+
