@@ -1,100 +1,82 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] usb: dwc3: exynos: Use of_platform API to create
- dwc3 core pdev
-Date: Thu, 14 Mar 2013 12:51:55 +0200
-Message-ID: <20130314105155.GG32369@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] usb: dwc3: exynos: use clk_prepare_enable and
+ clk_disable_unprepare
+Date: Thu, 14 Mar 2013 12:53:20 +0200
+Message-ID: <20130314105320.GH32369@arwen.pp.htv.fi>
 References: <1363257898-17504-1-git-send-email-gautam.vivek@samsung.com>
- <1363257898-17504-2-git-send-email-gautam.vivek@samsung.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+ <1363257898-17504-3-git-send-email-gautam.vivek@samsung.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8732602415078739218=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1363257898-17504-2-git-send-email-gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6lXr1rPCNTf1w0X8"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1363257898-17504-3-git-send-email-gautam.vivek@samsung.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Vivek Gautam <gautam.vivek@samsung.com>
+Cc: linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, rob.herring@calxeda.com, kgene.kim@samsung.com, thomas.abraham@linaro.org, dianders@chromium.org
 List-Id: linux-omap@vger.kernel.org
 
---===============8732602415078739218==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YH9Qf6Fh2G5kB/85"
-Content-Disposition: inline
-
---YH9Qf6Fh2G5kB/85
+--6lXr1rPCNTf1w0X8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Mar 14, 2013 at 04:14:57PM +0530, Vivek Gautam wrote:
-> @@ -170,7 +155,6 @@ static int dwc3_exynos_remove(struct platform_device =
-*pdev)
->  {
->  	struct dwc3_exynos	*exynos =3D platform_get_drvdata(pdev);
+On Thu, Mar 14, 2013 at 04:14:58PM +0530, Vivek Gautam wrote:
+> Convert clk_enable/clk_disable to clk_prepare_enable/clk_disable_unprepare
+> calls as required by common clock framework.
+>=20
+> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> CC: Felipe Balbi <balbi@ti.com>
+> CC: Kukjin Kim <kgene.kim@samsung.com>
+> ---
+>  drivers/usb/dwc3/dwc3-exynos.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exyno=
+s.c
+> index 66ca9ac..b03f609 100644
+> --- a/drivers/usb/dwc3/dwc3-exynos.c
+> +++ b/drivers/usb/dwc3/dwc3-exynos.c
+> @@ -129,7 +129,7 @@ static int dwc3_exynos_probe(struct platform_device *=
+pdev)
+>  	exynos->dev	=3D dev;
+>  	exynos->clk	=3D clk;
 > =20
-> -	platform_device_unregister(exynos->dwc3);
+> -	clk_enable(exynos->clk);
+> +	clk_prepare_enable(exynos->clk);
 
-don't you want to do what Kishon did here and have:
+eventually we need to pass this clock handling to dwc3/core.c. Just make
+sure it's optional since not all platforms need it.
 
-static int dwc3_exynos_remove_child(struct device *dev, void *unused)
-{
-	struct platform_device	*pdev =3D to_platform_device(dev);
-
-	platform_device_unregister(pdev);
-
-	return 0;
-}
-
-device_for_each_child(&pdev->dev, NULL, dwc3_exynos_remove_child);
-
-???
+I guess the best way would be to handle clocks via
+->runtime_suspend()/->runtime_resume() ??
 
 --=20
 balbi
 
---YH9Qf6Fh2G5kB/85
+--6lXr1rPCNTf1w0X8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRQavLAAoJEIaOsuA1yqREcP0P/RW25dtnA4FyuLaD6Q7QMHPa
-771znPkwXxH4bdlt6u8FLLHMYTmG9ZQNXEGvKjHn3yCqBl4XEwpSVcOmAVcJgJfA
-KZvDnPbSjXLWVGdqn94YieiZQ/xaTm+Lam1LjokOnLJlgmZwbuNpX8baVSFfxWrP
-/GCjJl0Wh1Ps0Yldr+TpGH9XhMCHkuhe/4mtnUaTcM4Hdr3cpw4Y47oESxJHPgWh
-6+BiZ8G69vtEMpoMYpX/rybkI28LFseLEacbRe1aGPbP13MSqpY6Dy6z39s0y9Kc
-rU96hM9BJNxFI8i+6jNTd1WCf6YdzkQprc8v/k36Jatq7+CHn4I/Q7hnAt2bY+8X
-rAHpiSMN5peL1jMn/xW7zy2LIOO/bFpbPwCCOzD8XiffK4XxR690ZUcVPFL82eb4
-Oac7iXFxuoXqT2+ydi1vi60OSrqtK0bmk50NFpkPXMCjfpvfm0Z4AhtsCiVEUA+w
-+1SjOPhGsCwtFwwfPvV2jKDnPs/peBpCP0sjrf3TSMsFmwwa6180KyumuLNih6xj
-Syj/AoMPrqzhoQFGHhU/qnshOMYW1xGslPgy0kRn0w9UEE1YbapZAZImyWOzzwdS
-0zaTd/JFg82WEYyD08vXsr8XM5yAR+bhsJaPHq265TCSEFnDbtnmNb96uVEXWC7I
-I+3/2UAdHQ5gOg/79IqA
-=6nix
+iQIcBAEBAgAGBQJRQawgAAoJEIaOsuA1yqRERc8P/jGz7Czv57nw66tpzFV18XaX
+ckMJpC8gcdZYnSKxejFs6sPYkXrYgQajq9FqfAxRGIoYL1ki1DhdJRPCCKsTNBQq
+d42dsESXIFaX+F04SlZRQaDoxYnuNtNz76v9szcJyPiy1uyZgQiJq5h2BpTDWRzZ
+bQJqNKbCnZ3tsk1mJ3l81xmtJ9EpZ3jua+IWX04cARU/u7SaAFmL//eRZgmnx9Jz
+VEdudP/T37xhqeR1R1Q9D/OT8wWxpKtMNcvI9UC6EWBpqq/TuYGR22uc2TLW3Jpz
+Z4LYfdHn8rbvyS6Nz1fVQppm4XrZxCmm4rqS7g4GG5aaFqA5JcD9TZ57UYQTW+o2
+GN8rr74dSmVn8fPhiiOmuT7rX3/93YsdMtSKg+nJUasDL7Cp7TVSAQnG5r+mMccO
+11z+4RgttYNf8be3TUtXznZooGy88sZrZLc1flPcalsLps7xQ7SiQhDbMwQyFDvI
+J55FnStR4pa/tpaprr5sufFH65ul6bRRU49PyElvyq9r5ZaxlIt6YzqNOfrIRX0t
+S1+yX16jUxD918AlSmhKodFA6Vga6AN27RNHCXO1VZ8zXI51bZJvkYxebkwv5+Ip
+xf8pOCXm7j/BgCYEFz9iKAP0LNz5aVkpAGSLeboKjD7YZesv5AgE9CF21qnwqeVL
+x+Ttdo4qCETDN75/g+8v
+=6rTS
 -----END PGP SIGNATURE-----
 
---YH9Qf6Fh2G5kB/85--
-
---===============8732602415078739218==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============8732602415078739218==--
+--6lXr1rPCNTf1w0X8--
