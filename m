@@ -1,73 +1,96 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: MTD : Kernel oops when remounting ubifs as read/write
-Date: Thu, 14 Mar 2013 13:23:22 +0200
-Message-ID: <1363260202.11441.108.camel@sauron.fi.intel.com>
-References: <5134CEF9.5070502@mimc.co.uk>
-	   <1363087506.3348.62.camel@sauron.fi.intel.com>
-	   <51405F3A.3090901@mimc.co.uk>
-	  <1363252425.11441.94.camel@sauron.fi.intel.com>
-	  <51419E3A.8030007@mimc.co.uk>
-	 <1363257009.11441.97.camel@sauron.fi.intel.com>
-	 <5141B154.6050504@mimc.co.uk>
-Reply-To: dedekind1@gmail.com
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [RFC PATCH 0/3] ARM: OMAP2+: Add command line parameter for
+ debugSS module control
+Date: Thu, 14 Mar 2013 11:29:33 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EC281C1@DBDE01.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1362396957-30113-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5141B154.6050504@mimc.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, adrian.hunter@intel.com
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58402 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757118Ab3CNL3r convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Mar 2013 07:29:47 -0400
+In-Reply-To: <1362396957-30113-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "khilman@linaro.org" <khilman@linaro.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, 2013-03-14 at 11:15 +0000, Mark Jackson wrote:
-> [   28.538525] [d08ea004] *pgd=8f045811, *pte=00000000, *ppte=00000000
-> [   28.545173] Internal error: Oops: 7 [#1] ARM
-> [   28.549685] CPU: 0    Not tainted  (3.8.0-next-20130225-00002-g678576f-dirty #40)
-> [   28.557595] PC is at crc32_le+0x50/0x168
-> [   28.561735] LR is at ubi_eba_atomic_leb_change+0x1b4/0x410
-> [   28.567523] pc : [<c01e7244>]    lr : [<c026dd9c>]    psr: 20000013
-> [   28.567523] sp : cf385de0  ip : 180a985a  fp : c054f840
-> [   28.579632] r10: c054f040  r9 : c054fc40  r8 : 158a1232
-> [   28.585141] r7 : 4d506705  r6 : 9324fd72  r5 : 4dc8a10b  r4 : 4c162691
-> [   28.592025] r3 : c054e040  r2 : c054f440  r1 : d08ea000  r0 : 4c8ee09f
-> [   28.598912] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-> [   28.606439] Control: 10c5387d  Table: 8f3b8019  DAC: 00000015
-> [   28.612501] Process mount (pid: 659, stack limit = 0xcf384238)
-> [   28.618652] Stack: (0xcf385de0 to 0xcf386000)
-> [   28.623254] 5de0: cf2f8554 00000000 d08e6e8c 180a9e88 5a257c4f 58399ee9 c8d98a08 bb0ee864
-> [   28.631886] 5e00: eae10678 c054fc40 c054f040 c054f840 cf2f8000 00000000 d08caffc 00003c00
-> [   28.640517] 5e20: cf2f8000 cf357c00 00000000 0000000c cf2ec000 00000000 0000000c cf2f8554
-> [   28.649148] 5e40: d08cb000 0001e000 00000000 d08cb000 00008000 00000000 00000000 0001e000
-> [   28.657779] 5e60: 00000000 0000000c d08cb000 00000080 0000000c 0000000c 00000000 00000020
-> [   28.666409] 5e80: 00008000 c026c41c 0001e000 cf330000 cf330000 d08cb000 0001e000 c0179b14
-> [   28.675042] 5ea0: 0000000d c0177a68 0001e000 cf330000 00000000 cf330b20 0000000d c0179698
-> [   28.683672] 5ec0: cf330000 00000000 cf330a9c 00000000 cf385f48 c0175170 00000001 60000013
-> [   28.692303] 5ee0: cf32c800 00000000 00000000 00000000 cf385f48 00000000 00000020 c00c9e24
-> [   28.700934] 5f00: 00100100 00200200 cf3a6c80 00008000 cf384000 00208020 00000000 cf01a200
-> [   28.709564] 5f20: cf32c800 c00e3d6c 00000000 0000000c cf32c840 00000000 c0013968 cf31fb80
-> [   28.718195] 5f40: 0000000c 00000000 cf01a210 ce828858 0000000c cf3ac000 000a18b4 00000000
-> [   28.726827] 5f60: 00208020 c0013968 cf384000 00000000 00000003 c00e3e40 00000000 c0071e24
-> [   28.735459] 5f80: 00000000 00000000 cf31fb80 cf31fbc0 a0000010 00000000 bed87b68 b6ff148c
-> [   28.744091] 5fa0: 00000015 c00137c0 00000000 bed87b68 000a18b4 000a18c0 000a18c2 00208020
-> [   28.752720] 5fc0: 00000000 bed87b68 b6ff148c 00000015 00000000 00000000 00000000 00000003
-> [   28.761350] 5fe0: b6fa3f48 bed87a64 00042994 b6fa3f58 a0000010 000a18b4 00000000 00000000
-> [   28.769989] [<c01e7244>] (crc32_le+0x50/0x168) from [<cf2f8000>] (0xcf2f8000)
-> [   28.777522] Code: e58d8008 0a000026 e1a0c005 e58d2004 (e5916004)
-> [   28.784029] ---[ end trace f50f53afffe647f1 ]---
 
-OK, this is an independent problem which, as I think, has nothing to do
-with the first one.
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Monday, March 04, 2013 5:06 PM
+> To: linux-omap@vger.kernel.org
+> Cc: tony@atomide.com; khilman@linaro.org; paul@pwsan.com; Nayak,
+> Rajendra; linux-arm-kernel@lists.infradead.org; Hiremath, Vaibhav
+> Subject: [RFC PATCH 0/3] ARM: OMAP2+: Add command line parameter for
+> debugSS module control
+> 
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> Currently there is no clean mechanism to control debugSS module and
+> you have to always keep clocks enabled, either,
+> 
+>     - By enabling it during boot as part of clk_init function
+>       (post common-clock migration).
+>     Or
+>     - By having HWMOD_INIT_NO_IDLE flag in hwmod data
+>       (Joel submitted patch for AM335x earlier).
+> 
+> Based on the discussion with Kevin H,
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg81771.html
+> 
+> This patch introduces new kernel parameter "omap_debugss_en",
+> which will allow user to control debugSS module enable/disable
+> part during boot-time.
+> 
+> In case of OMAP3, the debugSS is part of EMU domain and
+> is currently controlled by clock tree alone.
+> 
+> In case of OMAP4, the debugSS is part of EMU domain and
+> is currently controlled by clock tree, as MODULEMODE_SWCTRL
+> is not defined for hwmod.
+> 
+> In case of AM335x, the debugSS is in wakeup domain and is currently
+> controlled through hwmod alone. Currently we keep it always enabled.
+> 
+> Testing:
+> 	- Tested on AM335x based EVM and BeagleBone platform
+> 
+> 	  As required, without this flag the debugSS module will be
+> disabled
+> 	  during kernel boot.
+> 
+> OMAP (2/3/4) may require some changes from clock/hwmod perspective
+> in order to use this new parameter.
+> I am still looking into OMAP spec and this RFC version of patch-series
+> is to get comments or opinion from list.
+> 
+> Vaibhav Hiremath (3):
+>   ARM: AM33XX: clock: Add debugSS clock nodes to clock tree
+>   ARM: AM33XX: hwmod: Add hwmod data for debugSS
+>   ARM: OMAP2+: Add command line parameter for debugSS module control
+> 
+>  Documentation/kernel-parameters.txt        |    3 +
+>  arch/arm/mach-omap2/Makefile               |    2 +-
+>  arch/arm/mach-omap2/cclock33xx_data.c      |   47 +++++++++++++++--
+>  arch/arm/mach-omap2/debugss.c              |   80
+> ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   69 ++++++++++++++++----
+> ----
+>  5 files changed, 173 insertions(+), 28 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/debugss.c
 
-I do not know why crc32 oopses on your system. You need to investigate
-this. I believe this is not UBI/UBIFS's fault.
+Kevin/Tony,
 
-One theory could be that UBI uses vmalloc'ed buffers for the atomic
-update operation, and submits the buffer to the MTD layer for the I/O.
-If your NAND driver is trying to DMA this memory, you may be in trouble,
-because vmalloced memory is often not DMA-able on many systems,
-especially ARM systems which do not have coherent cache support.
+Any comments or input on this patch series?
 
--- 
-Best Regards,
-Artem Bityutskiy
+Thanks,
+Vaibhav
+
+
+
