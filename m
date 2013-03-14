@@ -1,167 +1,64 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet child
- nodes
-Date: Thu, 14 Mar 2013 10:48:14 -0500
-Message-ID: <5141F13E.8040300@ti.com>
-References: <1363273762-17441-1-git-send-email-javier.martinez@collabora.co.uk> <1363273762-17441-4-git-send-email-javier.martinez@collabora.co.uk>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 4/4] usb: otg: twl4030: fix cold plug on OMAP3
+Date: Thu, 14 Mar 2013 17:49:02 +0200
+Message-ID: <20130314154901.GB3001@arwen.pp.htv.fi>
+References: <1363242239-1061-1-git-send-email-kishon@ti.com>
+ <1363242239-1061-5-git-send-email-kishon@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43276 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964808Ab3CNPsc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Mar 2013 11:48:32 -0400
-In-Reply-To: <1363273762-17441-4-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+g7M9IMkV8truYOl"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1363242239-1061-5-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-Hi Javier,
+--+g7M9IMkV8truYOl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 03/14/2013 10:09 AM, Javier Martinez Canillas wrote:
-> Besides being used to interface with external memory devices,
-> the General-Purpose Memory Controller can be used to connect
-> Pseudo-SRAM devices such as ethernet controllers to OMAP2+
-> processors using the TI GPMC as a data bus.
-> 
-> This patch allows an ethernet chip to be defined as an GPMC
-> child device node.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> ---
->  Documentation/devicetree/bindings/net/gpmc-eth.txt |   90 ++++++++++++++++++++
->  arch/arm/mach-omap2/gpmc.c                         |    8 ++
->  2 files changed, 98 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/net/gpmc-eth.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/net/gpmc-eth.txt b/Documentation/devicetree/bindings/net/gpmc-eth.txt
-> new file mode 100644
-> index 0000000..c45363c
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/net/gpmc-eth.txt
-> @@ -0,0 +1,90 @@
-> +Device tree bindings for Ethernet chip connected to TI GPMC
-> +
-> +Besides being used to interface with external memory devices, the
-> +General-Purpose Memory Controller can be used to connect Pseudo-SRAM devices
-> +such as ethernet controllers to processors using the TI GPMC as a data bus.
-> +
-> +Ethernet controllers connected to TI GPMC are represented as child nodes of
-> +the GPMC controller with an "ethernet" name.
-> +
-> +All timing relevant properties as well as generic GPMC child properties are
-> +explained in a separate documents. Please refer to
-> +Documentation/devicetree/bindings/bus/ti-gpmc.txt
-> +
-> +Required properties:
-> +- bank-width: 		Address width of the device in bytes. GPMC supports 8-bit
-> +			and 16-bit devices and so must be either 1 or 2 bytes.
+On Thu, Mar 14, 2013 at 11:53:59AM +0530, Kishon Vijay Abraham I wrote:
+> Having twl4030_usb_phy_init() (detects if a cable is connected before
+> twl4030 is probed) in twl4030 probe makes cable connect events to be
+> missed by musb glue, since it gets loaded after twl4030. Having
+> twl4030_usb_phy_init as a usb_phy ops lets twl4030_usb_phy_init to be
+> called when glue is ready.
+>=20
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 
-I am wondering if we should use reg-io-width here. The smsc driver is
-using this to determine the width of the device. And so I am wondering
-if this could cause problems.
+likewise. The other two I have taken
 
-Obviously this complicates gpmc_probe_generic_child() a little, but may
-be would could pass the name of the width property to
-gpmc_probe_generic_child() as well. What do you think?
+--=20
+balbi
 
-> +- compatible:		Compatible string property for the ethernet child device.
-> +- gpmc,cs-on:		Chip-select assertion time
-> +- gpmc,cs-rd-off:	Chip-select de-assertion time for reads
-> +- gpmc,cs-wr-off:	Chip-select de-assertion time for writes
-> +- gpmc,oe-on:		Output-enable assertion time
-> +- gpmc,oe-off		Output-enable de-assertion time
-> +- gpmc,we-on:		Write-enable assertion time
-> +- gpmc,we-off:		Write-enable de-assertion time
-> +- gpmc,access:		Start cycle to first data capture (read access)
-> +- gpmc,rd-cycle:	Total read cycle time
-> +- gpmc,wr-cycle:	Total write cycle time
-> +- reg:			Chip-select, base address (relative to chip-select)
-> +			and size of the memory mapped for the device.
-> +			Note that base address will be typically 0 as this
-> +			is the start of the chip-select.
-> +
-> +Optional properties:
-> +- gpmc,XXX		Additional GPMC timings and settings parameters. See
-> +			Documentation/devicetree/bindings/bus/ti-gpmc.txt
-> +
-> +Optional properties for partiton table parsing:
-> +- #address-cells: should be set to 1
-> +- #size-cells: should be set to 1
-> +
-> +Example:
-> +
-> +gpmc: gpmc@6e000000 {
-> +	compatible = "ti,omap3430-gpmc";
-> +	ti,hwmods = "gpmc";
-> +	reg = <0x6e000000 0x1000>;
-> +	interrupts = <20>;
-> +	gpmc,num-cs = <8>;
-> +	gpmc,num-waitpins = <4>;
-> +	#address-cells = <2>;
-> +	#size-cells = <1>;
-> +
-> +	ranges = <5 0 0x2c000000 0x1000000>;
-> +
-> +	ethernet@5,0 {
-> +		compatible = "smsc,lan9221", "smsc,lan9115";
-> +		reg = <5 0 0xff>;
-> +		bank-width = <2>;
-> +
-> +		gpmc,mux-add-data;
-> +		gpmc,cs-on = <0>;
-> +		gpmc,cs-rd-off = <186>;
-> +		gpmc,cs-wr-off = <186>;
-> +		gpmc,adv-on = <12>;
-> +		gpmc,adv-rd-off = <48>;
-> +		gpmc,adv-wr-off = <48>;
-> +		gpmc,oe-on = <54>;
-> +		gpmc,oe-off = <168>;
-> +		gpmc,we-on = <54>;
-> +		gpmc,we-off = <168>;
-> +		gpmc,rd-cycle = <186>;
-> +		gpmc,wr-cycle = <186>;
-> +		gpmc,access = <114>;
-> +		gpmc,page-burst-access = <6>;
-> +		gpmc,bus-turnaround = <12>;
-> +		gpmc,cycle2cycle-delay = <18>;
-> +		gpmc,wr-data-mux-bus = <90>;
-> +		gpmc,wr-access = <186>;
-> +		gpmc,cycle2cycle-samecsen;
-> +		gpmc,cycle2cycle-diffcsen;
-> +
-> +		interrupt-parent = <&gpio6>;
-> +		interrupts = <16>;
-> +		vmmc-supply = <&vddvario>;
-> +		vmmc_aux-supply = <&vdd33a>;
-> +		reg-io-width = <2>;
-> +
-> +		smsc,save-mac-address;
-> +	};
-> +};
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 898b44d..2bc276b 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -1559,6 +1559,14 @@ static int gpmc_probe_dt(struct platform_device *pdev)
->  		}
->  	}
->  
-> +	for_each_node_by_name(child, "ethernet") {
-> +		ret = gpmc_probe_generic_child(pdev, child);
-> +		if (ret < 0) {
-> +			of_node_put(child);
-> +			return ret;
-> +		}
-> +	}
-> +
->  	return 0;
->  }
->  #else
+--+g7M9IMkV8truYOl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Otherwise looks good to me. Thanks!
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Jon
+iQIcBAEBAgAGBQJRQfFtAAoJEIaOsuA1yqRE1+8P/1t5C+bVacIIXmTgxWQycxiF
+pJ0/FsY0uBSdMDA9LP3WvBtt6kqZ2FS37nnfsbf/8zpHZVG+B5Wck1K6QveHm7nm
+LIKxWEvc46fE8ZICx2TR09wam/crpD0vn0eiAj06F1UR93r9iy6Ia3AWvuy4D49c
+2NuMH9WOEC9+vL6mlFJS4qcIwTSnyKnv4iqhFVbaAK9/buFHXdItNbxfs45vhSwd
+VsBbNKGwp/rSrU8biji+Wcr5p5GLSJ7XF5VbSB6HM2Dg25NKGoPlvYre8TWSFw6+
+VxgrrO1lNbEF7t+DbveHvj5Wz6Md/dSRfzeUfD/Tl05QOHIZlgO3Ugv8xpB6eXZg
+NUiH8hIhWpncXk5DuCn/JuRGCNVSNXXGZDahI17V77s/DpZTmz6s8yiFuaRlUyT+
+8oqvWzvU3yPqhOVw23LtScAZZxDMS+zlCzUoaepFSBKq9D0hn1x7lWoSlNz5ZdCW
+ub51Xm5iLt80qu7Yrtq3lngYL5+s5aVFKRIpM4qHvfpZ2ueD3BN0f3/2xPjyDrIc
+LIhiZ8UXt5OzkjZxhTYJzuQPAdJcOy5T98Z+06DucBwrc9zYRNl4Hvs4Yew/GiHp
+pJtgR27VgTUiWNvHm10+0lDSn7s4oZDr6sXemjVRy4MmIm3UBRux1kwXgCU8BPkV
+VmaG7yJ99JbGNx+OlXE+
+=EbxY
+-----END PGP SIGNATURE-----
 
+--+g7M9IMkV8truYOl--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
