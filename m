@@ -1,53 +1,37 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH 1/2] usb: dwc3: exynos: Use of_platform API to create dwc3
- core pdev
-Date: Thu, 14 Mar 2013 17:40:12 +0530
-Message-ID: <CAFp+6iHZRfiSAXnbwhFNs4Rm7fzFx=v83pcWFJHsOo+JPya6VQ@mail.gmail.com>
-References: <1363257898-17504-1-git-send-email-gautam.vivek@samsung.com>
-	<1363257898-17504-2-git-send-email-gautam.vivek@samsung.com>
-	<20130314105155.GG32369@arwen.pp.htv.fi>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: MTD : Kernel oops when remounting ubifs as read/write
+Date: Thu, 14 Mar 2013 14:18:49 +0200
+Message-ID: <1363263529.11441.109.camel@sauron.fi.intel.com>
+References: <5134CEF9.5070502@mimc.co.uk>
+	    <1363087506.3348.62.camel@sauron.fi.intel.com>
+	    <51405F3A.3090901@mimc.co.uk>
+	   <1363252425.11441.94.camel@sauron.fi.intel.com>
+	   <51419E3A.8030007@mimc.co.uk>
+	  <1363257009.11441.97.camel@sauron.fi.intel.com>
+	  <5141B154.6050504@mimc.co.uk>
+	 <1363260202.11441.108.camel@sauron.fi.intel.com>
+	 <5141BC63.6060501@mimc.co.uk>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130314105155.GG32369@arwen.pp.htv.fi>
+In-Reply-To: <5141BC63.6060501@mimc.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, rob.herring@calxeda.com, kgene.kim@samsung.com, thomas.abraham@linaro.org, dianders@chromium.org, Kishon Vijay Abraham I <kishon@ti.com>
+To: Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, adrian.hunter@intel.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Mar 14, 2013 at 4:21 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Thu, Mar 14, 2013 at 04:14:57PM +0530, Vivek Gautam wrote:
->> @@ -170,7 +155,6 @@ static int dwc3_exynos_remove(struct platform_device *pdev)
->>  {
->>       struct dwc3_exynos      *exynos = platform_get_drvdata(pdev);
->>
->> -     platform_device_unregister(exynos->dwc3);
->
-> don't you want to do what Kishon did here and have:
->
-> static int dwc3_exynos_remove_child(struct device *dev, void *unused)
-> {
->         struct platform_device  *pdev = to_platform_device(dev);
->
->         platform_device_unregister(pdev);
->
->         return 0;
-> }
->
-> device_for_each_child(&pdev->dev, NULL, dwc3_exynos_remove_child);
->
-> ???
+On Thu, 2013-03-14 at 12:02 +0000, Mark Jackson wrote:
+> But there's also a call to crc with a size of 122880 bytes, and that's
+> when the oops occurs.
+> 
+This is when we do the atomic LEB change.
 
-Hmm, right. We need to do that. :-)
+> Is this size larger than the allocated buffer ?
 
->
-> --
-> balbi
-
-
+I believe so.
 
 -- 
-Thanks & Regards
-Vivek
+Best Regards,
+Artem Bityutskiy
