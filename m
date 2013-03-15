@@ -1,89 +1,74 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v3] drivers: video: use module_platform_driver_probe()
-Date: Fri, 15 Mar 2013 13:37:48 +0100
-Message-ID: <27269473.thyiPm2NyN@avalon>
-References: <1363338019-13092-1-git-send-email-fabio.porcedda@gmail.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v3 0/7] ARM: dts: omap: Add dts data for USB
+Date: Fri, 15 Mar 2013 13:41:30 +0100
+Message-ID: <514316FA.1090002@ti.com>
+References: <1362663320-23799-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38399 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754197Ab3COMhJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 08:37:09 -0400
-In-Reply-To: <1363338019-13092-1-git-send-email-fabio.porcedda@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1362663320-23799-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, David Howells <dhowells@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 
-Hi Fabio,
++ Jon
 
-Thank you for the patch.
+Hi Kishon,
 
-On Friday 15 March 2013 10:00:19 Fabio Porcedda wrote:
-> This patch converts the drivers to use the
-> module_platform_driver_probe() macro which makes the code smaller and
-> a bit simpler.
+On 03/07/2013 02:35 PM, Kishon Vijay Abraham I wrote:
+> Hi Benoit,
 > 
-> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-> Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: David Howells <dhowells@redhat.com>
-> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-> ---
+> Here are the dt data patches to get usb device functional in OMAP platforms.
 > 
-> Notes:
->     v3:
->      - add missing drivers: amifb, atmel_lcdfb, vrfb
->      - split patch set to each maintainer to easy up respin
->     v2:
->      - rebased over linux-next and remove already converted drivers
+> All the patches deal with modifying arch/arm/boot except one which modifies
+> Documentation/../usb/omap-usb.txt
 > 
->  drivers/video/amifb.c          | 14 +-------------
->  drivers/video/atmel_lcdfb.c    | 13 +------------
->  drivers/video/omap2/vrfb.c     | 13 +------------
->  drivers/video/sh_mipi_dsi.c    | 12 +-----------
->  drivers/video/sh_mobile_hdmi.c | 12 +-----------
->  5 files changed, 5 insertions(+), 59 deletions(-)
+> Changes from v2:
+> * squashed the dt data for dwc3-omap with dwc3 core into a single patch.
 > 
-> diff --git a/drivers/video/amifb.c b/drivers/video/amifb.c
-> index 7fa1bf8..03e2de2 100644
-> --- a/drivers/video/amifb.c
-> +++ b/drivers/video/amifb.c
-> @@ -3788,19 +3788,7 @@ static struct platform_driver amifb_driver = {
->  	},
->  };
+> Changes from v1:
+> Patch *ARM: dts: omap: Add usb_otg and glue data* has some properties with
+> names that has "_". It's replaced with a "-" here.
 > 
-> -static int __init amifb_init(void)
-> -{
-> -	return platform_driver_probe(&amifb_driver, amifb_probe);
-> -}
-> -
-> -module_init(amifb_init);
-> -
-> -static void __exit amifb_exit(void)
-> -{
-> -	platform_driver_unregister(&amifb_driver);
-> -}
-> -
-> -module_exit(amifb_exit);
-> +return module_platform_driver_probe(amifb_driver, amifb_probe);
+> This patch is developed on Linux 3.9-rc1.
 
-I think think you need a "return" here.
+The patches looks really good. I've just had to rebase on top of my HEAD due to some conflict with GPMC patch already applied.
 
-After fixing that,
+I cleaned as well some subject and changelog for consistency.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The patches are available here:
 
->  MODULE_LICENSE("GPL");
->  MODULE_ALIAS("platform:amiga-video");
+git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.10/dts
 
--- 
-Regards,
 
-Laurent Pinchart
+Jon,
 
+You might have to rebase your series on top of the new HEAD before reposting.
+
+Thanks,
+Benoit
+
+
+> Kishon Vijay Abraham I (7):
+>   ARM: dts: omap: Add omap control usb data
+>   ARM: dts: omap: Add omap-usb2 dt data
+>   ARM: dts: omap: Add usb_otg and glue data
+>   ARM: dts: omap5: Add omap control usb data
+>   ARM: dts: omap5: Add ocp2scp data
+>   ARM: dts: omap5: Add omap-usb3 and omap-usb2 dt data
+>   ARM: dts: omap5: add dwc3 omap and dwc3 core dt data
+> 
+>  Documentation/devicetree/bindings/usb/omap-usb.txt |    1 +
+>  arch/arm/boot/dts/omap3-beagle-xm.dts              |    6 +++
+>  arch/arm/boot/dts/omap3-evm.dts                    |    6 +++
+>  arch/arm/boot/dts/omap3-overo.dtsi                 |    6 +++
+>  arch/arm/boot/dts/omap3.dtsi                       |   12 +++++
+>  arch/arm/boot/dts/omap4-panda.dts                  |    6 +++
+>  arch/arm/boot/dts/omap4-sdp.dts                    |    6 +++
+>  arch/arm/boot/dts/omap4.dtsi                       |   26 +++++++++++
+>  arch/arm/boot/dts/omap5.dtsi                       |   48 ++++++++++++++++++++
+>  arch/arm/boot/dts/twl4030.dtsi                     |    2 +-
+>  10 files changed, 118 insertions(+), 1 deletion(-)
+> 
