@@ -1,14 +1,14 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 8/8] ARM: dts: OMAP3: Add support for OMAP3430 SDP board
-Date: Fri, 15 Mar 2013 08:57:41 -0500
-Message-ID: <1363355861-11773-9-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V2 3/8] ARM: dts: OMAP2+: Add SDMA controller bindings and nodes
+Date: Fri, 15 Mar 2013 08:57:36 -0500
+Message-ID: <1363355861-11773-4-git-send-email-jon-hunter@ti.com>
 References: <1363355861-11773-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45236 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45233 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754588Ab3CON6I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754460Ab3CON6I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 15 Mar 2013 09:58:08 -0400
 In-Reply-To: <1363355861-11773-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,176 +16,370 @@ List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Adds basic device-tree support for OMAP3430 SDP board which has 256MB
-of RAM, 128MB ONENAND flash, 256MB NAND flash and uses the TWL4030
-power management IC.
+Add SDMA controller binding for OMAP2+ devices and populate DMA client
+information for SPI and MMC peripheral on OMAP3+ devices. Please note
+that OMAP24xx devices do not have SPI and MMC bindings available yet and
+so DMA client information is not populated.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/boot/dts/Makefile         |    1 +
- arch/arm/boot/dts/omap3430-sdp.dts |  141 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 142 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap3430-sdp.dts
+ arch/arm/boot/dts/omap2.dtsi |   12 ++++++++++++
+ arch/arm/boot/dts/omap3.dtsi |   40 ++++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi |   41 +++++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap5.dtsi |   41 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 134 insertions(+)
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index de29da5..a38dcd4 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -115,6 +115,7 @@ dtb-$(CONFIG_ARCH_MXS) += imx23-evk.dtb \
- 	imx28-tx28.dtb
- dtb-$(CONFIG_ARCH_NOMADIK) += ste-nomadik-s8815.dtb
- dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
-+	omap3430-sdp.dtb \
- 	omap3-beagle.dtb \
- 	omap3-beagle-xm.dtb \
- 	omap3-evm.dtb \
-diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
-new file mode 100644
-index 0000000..535a6f9
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3430-sdp.dts
-@@ -0,0 +1,141 @@
-+/*
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+/include/ "omap3.dtsi"
-+
-+/ {
-+	model = "TI OMAP3430 SDP";
-+	compatible = "ti,omap3430-sdp", "ti,omap3";
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>; /* 256 MB */
-+	};
-+};
-+
-+&i2c1 {
-+	clock-frequency = <2600000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+	};
-+};
-+
-+/include/ "twl4030.dtsi"
-+
-+&mmc1 {
-+	vmmc-supply = <&vmmc1>;
-+	vmmc_aux-supply = <&vsim>;
-+	bus-width = <8>;
-+};
-+
-+&mmc2 {
-+	status = "disabled";
-+};
-+
-+&mmc3 {
-+	status = "disabled";
-+};
-+
-+&gpmc {
-+	ranges = <1 0 0x28000000 0x08000000>,
-+		 <2 0 0x20000000 0x10000000>;
-+
-+	nand@1,0 {
-+		linux,mtd-name= "micron,mt29f1g08abb";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		reg = <1 0 0x08000000>;
-+		nand-bus-width = <8>;
-+
-+		ti,nand-ecc-opt = "sw";
-+		gpmc,device-nand;
-+		gpmc,cs-on = <0>;
-+		gpmc,cs-rd-off = <36>;
-+		gpmc,cs-wr-off = <36>;
-+		gpmc,adv-on = <6>;
-+		gpmc,adv-rd-off = <24>;
-+		gpmc,adv-wr-off = <36>;
-+		gpmc,oe-on = <6>;
-+		gpmc,oe-off = <48>;
-+		gpmc,we-on = <6>;
-+		gpmc,we-off = <30>;
-+		gpmc,rd-cycle = <72>;
-+		gpmc,wr-cycle = <72>;
-+		gpmc,access = <54>;
-+		gpmc,wr-access = <30>;
-+
-+		partition@0 {
-+			label = "xloader-nand";
-+			reg = <0 0x80000>;
+diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+index 27f5ea1..84183f0 100644
+--- a/arch/arm/boot/dts/omap2.dtsi
++++ b/arch/arm/boot/dts/omap2.dtsi
+@@ -54,6 +54,18 @@
+ 			reg = <0x480FE000 0x1000>;
+ 		};
+ 
++		sdma: dma-controller@48056000 {
++			compatible = "ti,omap2430-sdma", "ti,omap2420-sdma";
++			reg = <0x48056000 0x1000>;
++			interrupts = <12>,
++				     <13>,
++				     <14>,
++				     <15>;
++			#dma-cells = <1>;
++			#dma-channels = <32>;
++			#dma-requests = <64>;
 +		};
-+		partition@0x80000 {
-+			label = "bootloader-nand";
-+			reg = <0x80000 0x140000>;
-+		};
-+		partition@0x1c0000 {
-+			label = "params-nand";
-+			reg = <0x1c0000 0xc0000>;
-+		};
-+		partition@0x280000 {
-+			label = "kernel-nand";
-+			reg = <0x280000 0x500000>;
-+		};
-+		partition@0x780000 {
-+			label = "filesystem-nand";
-+			reg = <0x780000 0x7880000>;
-+		};
-+	};
 +
-+	onenand@2,0 {
-+		linux,mtd-name= "samsung,kfm2g16q2m-deb8";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		reg = <2 0 0x10000000>;
+ 		uart1: serial@4806a000 {
+ 			compatible = "ti,omap2-uart";
+ 			ti,hwmods = "uart1";
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 0ec7d5c..1dc72ea 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -81,6 +81,18 @@
+ 			reg = <0x48200000 0x1000>;
+ 		};
+ 
++		sdma: dma-controller@48056000 {
++			compatible = "ti,omap3630-sdma", "ti,omap3430-sdma";
++			reg = <0x48056000 0x1000>;
++			interrupts = <12>,
++				     <13>,
++				     <14>,
++				     <15>;
++			#dma-cells = <1>;
++			#dma-channels = <32>;
++			#dma-requests = <96>;
++		};
 +
-+		gpmc,device-width = <2>;
-+		gpmc,mux-add-data = <2>;
-+		gpmc,cs-on = <0>;
-+		gpmc,cs-rd-off = <84>;
-+		gpmc,cs-wr-off = <72>;
-+		gpmc,adv-on = <0>;
-+		gpmc,adv-rd-off = <18>;
-+		gpmc,adv-wr-off = <18>;
-+		gpmc,oe-on = <30>;
-+		gpmc,oe-off = <84>;
-+		gpmc,we-on = <0>;
-+		gpmc,we-off = <42>;
-+		gpmc,rd-cycle = <108>;
-+		gpmc,wr-cycle = <96>;
-+		gpmc,access = <78>;
-+		gpmc,wr-data-mux-bus = <30>;
+ 		omap3_pmx_core: pinmux@48002030 {
+ 			compatible = "ti,omap3-padconf", "pinctrl-single";
+ 			reg = <0x48002030 0x05cc>;
+@@ -198,6 +210,16 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi1";
+ 			ti,spi-num-cs = <4>;
++			dmas = <&sdma 35>,
++			       <&sdma 36>,
++			       <&sdma 37>,
++			       <&sdma 38>,
++			       <&sdma 39>,
++			       <&sdma 40>,
++			       <&sdma 41>,
++			       <&sdma 42>;
++			dma-names = "tx0", "rx0", "tx1", "rx1",
++				    "tx2", "rx2", "tx3", "rx3";
+ 		};
+ 
+ 		mcspi2: spi@4809a000 {
+@@ -206,6 +228,11 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi2";
+ 			ti,spi-num-cs = <2>;
++			dmas = <&sdma 43>,
++			       <&sdma 44>,
++			       <&sdma 45>,
++			       <&sdma 46>;
++			dma-names = "tx0", "rx0", "tx1", "rx1";
+ 		};
+ 
+ 		mcspi3: spi@480b8000 {
+@@ -214,6 +241,11 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi3";
+ 			ti,spi-num-cs = <2>;
++			dmas = <&sdma 15>,
++			       <&sdma 16>,
++			       <&sdma 23>,
++			       <&sdma 24>;
++			dma-names = "tx0", "rx0", "tx1", "rx1";
+ 		};
+ 
+ 		mcspi4: spi@480ba000 {
+@@ -222,22 +254,30 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi4";
+ 			ti,spi-num-cs = <1>;
++			dmas = <&sdma 70>, <&sdma 71>;
++			dma-names = "tx0", "rx0";
+ 		};
+ 
+ 		mmc1: mmc@4809c000 {
+ 			compatible = "ti,omap3-hsmmc";
+ 			ti,hwmods = "mmc1";
+ 			ti,dual-volt;
++			dmas = <&sdma 61>, <&sdma 62>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		mmc2: mmc@480b4000 {
+ 			compatible = "ti,omap3-hsmmc";
+ 			ti,hwmods = "mmc2";
++			dmas = <&sdma 47>, <&sdma 48>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		mmc3: mmc@480ad000 {
+ 			compatible = "ti,omap3-hsmmc";
+ 			ti,hwmods = "mmc3";
++			dmas = <&sdma 77>, <&sdma 78>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		wdt2: wdt@48314000 {
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 06d044e..6669311 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -118,6 +118,18 @@
+ 			pinctrl-single,function-mask = <0x7fff>;
+ 		};
+ 
++		sdma: dma-controller@4a056000 {
++			compatible = "ti,omap4430-sdma";
++			reg = <0x4a056000 0x1000>;
++			interrupts = <0 12 0x4>,
++				     <0 13 0x4>,
++				     <0 14 0x4>,
++				     <0 15 0x4>;
++			#dma-cells = <1>;
++			#dma-channels = <32>;
++			#dma-requests = <127>;
++		};
 +
-+		partition@0 {
-+			label = "xloader-onenand";
-+			reg = <0 0x80000>;
+ 		gpio1: gpio@4a310000 {
+ 			compatible = "ti,omap4-gpio";
+ 			reg = <0x4a310000 0x200>;
+@@ -260,6 +272,16 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi1";
+ 			ti,spi-num-cs = <4>;
++			dmas = <&sdma 35>,
++			       <&sdma 36>,
++			       <&sdma 37>,
++			       <&sdma 38>,
++			       <&sdma 39>,
++			       <&sdma 40>,
++			       <&sdma 41>,
++			       <&sdma 42>;
++			dma-names = "tx0", "rx0", "tx1", "rx1",
++				    "tx2", "rx2", "tx3", "rx3";
+ 		};
+ 
+ 		mcspi2: spi@4809a000 {
+@@ -270,6 +292,11 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi2";
+ 			ti,spi-num-cs = <2>;
++			dmas = <&sdma 43>,
++			       <&sdma 44>,
++			       <&sdma 45>,
++			       <&sdma 46>;
++			dma-names = "tx0", "rx0", "tx1", "rx1";
+ 		};
+ 
+ 		mcspi3: spi@480b8000 {
+@@ -280,6 +307,8 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi3";
+ 			ti,spi-num-cs = <2>;
++			dmas = <&sdma 15>, <&sdma 16>;
++			dma-names = "tx0", "rx0";
+ 		};
+ 
+ 		mcspi4: spi@480ba000 {
+@@ -290,6 +319,8 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi4";
+ 			ti,spi-num-cs = <1>;
++			dmas = <&sdma 70>, <&sdma 71>;
++			dma-names = "tx0", "rx0";
+ 		};
+ 
+ 		mmc1: mmc@4809c000 {
+@@ -299,6 +330,8 @@
+ 			ti,hwmods = "mmc1";
+ 			ti,dual-volt;
+ 			ti,needs-special-reset;
++			dmas = <&sdma 61>, <&sdma 62>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		mmc2: mmc@480b4000 {
+@@ -307,6 +340,8 @@
+ 			interrupts = <0 86 0x4>;
+ 			ti,hwmods = "mmc2";
+ 			ti,needs-special-reset;
++			dmas = <&sdma 47>, <&sdma 48>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		mmc3: mmc@480ad000 {
+@@ -315,6 +350,8 @@
+ 			interrupts = <0 94 0x4>;
+ 			ti,hwmods = "mmc3";
+ 			ti,needs-special-reset;
++			dmas = <&sdma 77>, <&sdma 78>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		mmc4: mmc@480d1000 {
+@@ -323,6 +360,8 @@
+ 			interrupts = <0 96 0x4>;
+ 			ti,hwmods = "mmc4";
+ 			ti,needs-special-reset;
++			dmas = <&sdma 57>, <&sdma 58>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		mmc5: mmc@480d5000 {
+@@ -331,6 +370,8 @@
+ 			interrupts = <0 59 0x4>;
+ 			ti,hwmods = "mmc5";
+ 			ti,needs-special-reset;
++			dmas = <&sdma 59>, <&sdma 60>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		wdt2: wdt@4a314000 {
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 130fbf2..f840499 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -108,6 +108,18 @@
+ 			      <0x48212000 0x1000>;
+ 		};
+ 
++		sdma: dma-controller@4a056000 {
++			compatible = "ti,omap4430-sdma";
++			reg = <0x4a056000 0x1000>;
++			interrupts = <0 12 0x4>,
++				     <0 13 0x4>,
++				     <0 14 0x4>,
++				     <0 15 0x4>;
++			#dma-cells = <1>;
++			#dma-channels = <32>;
++			#dma-requests = <127>;
 +		};
-+		partition@0x80000 {
-+			label = "bootloader-onenand";
-+			reg = <0x80000 0x40000>;
-+		};
-+		partition@0xc0000 {
-+			label = "params-onenand";
-+			reg = <0xc0000 0x20000>;
-+		};
-+		partition@0xe0000 {
-+			label = "kernel-onenand";
-+			reg = <0xe0000 0x200000>;
-+		};
-+		partition@0x2e0000 {
-+			label = "filesystem-onenand";
-+			reg = <0x2e0000 0xfd20000>;
-+		};
-+	};
-+};
++
+ 		gpio1: gpio@4ae10000 {
+ 			compatible = "ti,omap4-gpio";
+ 			reg = <0x4ae10000 0x200>;
+@@ -249,6 +261,16 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi1";
+ 			ti,spi-num-cs = <4>;
++			dmas = <&sdma 35>,
++			       <&sdma 36>,
++			       <&sdma 37>,
++			       <&sdma 38>,
++			       <&sdma 39>,
++			       <&sdma 40>,
++			       <&sdma 41>,
++			       <&sdma 42>;
++			dma-names = "tx0", "rx0", "tx1", "rx1",
++				    "tx2", "rx2", "tx3", "rx3";
+ 		};
+ 
+ 		mcspi2: spi@4809a000 {
+@@ -259,6 +281,11 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi2";
+ 			ti,spi-num-cs = <2>;
++			dmas = <&sdma 43>,
++			       <&sdma 44>,
++			       <&sdma 45>,
++			       <&sdma 46>;
++			dma-names = "tx0", "rx0", "tx1", "rx1";
+ 		};
+ 
+ 		mcspi3: spi@480b8000 {
+@@ -269,6 +296,8 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi3";
+ 			ti,spi-num-cs = <2>;
++			dmas = <&sdma 15>, <&sdma 16>;
++			dma-names = "tx0", "rx0";
+ 		};
+ 
+ 		mcspi4: spi@480ba000 {
+@@ -279,6 +308,8 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi4";
+ 			ti,spi-num-cs = <1>;
++			dmas = <&sdma 70>, <&sdma 71>;
++			dma-names = "tx0", "rx0";
+ 		};
+ 
+ 		uart1: serial@4806a000 {
+@@ -336,6 +367,8 @@
+ 			ti,hwmods = "mmc1";
+ 			ti,dual-volt;
+ 			ti,needs-special-reset;
++			dmas = <&sdma 61>, <&sdma 62>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		mmc2: mmc@480b4000 {
+@@ -344,6 +377,8 @@
+ 			interrupts = <0 86 0x4>;
+ 			ti,hwmods = "mmc2";
+ 			ti,needs-special-reset;
++			dmas = <&sdma 47>, <&sdma 48>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		mmc3: mmc@480ad000 {
+@@ -352,6 +387,8 @@
+ 			interrupts = <0 94 0x4>;
+ 			ti,hwmods = "mmc3";
+ 			ti,needs-special-reset;
++			dmas = <&sdma 77>, <&sdma 78>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		mmc4: mmc@480d1000 {
+@@ -360,6 +397,8 @@
+ 			interrupts = <0 96 0x4>;
+ 			ti,hwmods = "mmc4";
+ 			ti,needs-special-reset;
++			dmas = <&sdma 57>, <&sdma 58>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		mmc5: mmc@480d5000 {
+@@ -368,6 +407,8 @@
+ 			interrupts = <0 59 0x4>;
+ 			ti,hwmods = "mmc5";
+ 			ti,needs-special-reset;
++			dmas = <&sdma 59>, <&sdma 60>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		keypad: keypad@4ae1c000 {
 -- 
 1.7.10.4
 
