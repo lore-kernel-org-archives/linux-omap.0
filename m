@@ -1,144 +1,192 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 09/18] ARM: OMAP2+: Don't configure of chip-select options in gpmc_cs_configure()
-Date: Fri, 15 Mar 2013 10:21:07 -0500
-Message-ID: <1363360876-13617-10-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V3 04/18] ARM: OMAP2+: Add function for configuring GPMC settings
+Date: Fri, 15 Mar 2013 10:21:02 -0500
+Message-ID: <1363360876-13617-5-git-send-email-jon-hunter@ti.com>
 References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51028 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755716Ab3COPV6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Mar 2013 11:21:58 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:40820 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932065Ab3COPVu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 11:21:50 -0400
 In-Reply-To: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
 
-With the addition of the gpmc_cs_program_settings(), we no longer need
-or use gpmc_cs_configure() to configure some of the GPMC chip-select
-options. So rename the function to gpmc_configure() and remove code that
-modifies options in the CONFIG1 register.
+The GPMC has various different configuration options such as bus-width,
+synchronous or asychronous mode selection, burst mode options etc.
+Currently, there is no common function for configuring these options and
+various devices set these options by either programming the GPMC CONFIG1
+register directly or by calling gpmc_cs_configure() to set some of the
+options.
+
+Add a new function for configuring all of the GPMC options. Having a common
+function for configuring this options will simplify code and ease the
+migration to device-tree.
+
+Also add a new capability flag to detect devices that support the
+address-address-data multiplexing mode.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-nand.c |    2 +-
- arch/arm/mach-omap2/gpmc.c      |   49 ++++++---------------------------------
- arch/arm/mach-omap2/gpmc.h      |    5 +---
- 3 files changed, 9 insertions(+), 47 deletions(-)
+ arch/arm/mach-omap2/gpmc.c |  100 ++++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/gpmc.h |    6 +++
+ 2 files changed, 106 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 75feb95..12e9753 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -154,7 +154,7 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 		if (err < 0)
- 			goto out_free_cs;
- 
--		err = gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_WP, 0);
-+		err = gpmc_configure(GPMC_CONFIG_WP, 0);
- 		if (err < 0)
- 			goto out_free_cs;
- 	}
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 760c26d..3ec1937 100644
+index 7cc07b5..760c26d 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -550,16 +550,14 @@ void gpmc_cs_free(int cs)
- EXPORT_SYMBOL(gpmc_cs_free);
+@@ -107,6 +107,7 @@
  
- /**
-- * gpmc_cs_configure - write request to configure gpmc
-- * @cs: chip select number
-+ * gpmc_configure - write request to configure gpmc
-  * @cmd: command type
-  * @wval: value to write
-  * @return status of the operation
-  */
--int gpmc_cs_configure(int cs, int cmd, int wval)
-+int gpmc_configure(int cmd, int wval)
- {
--	int err = 0;
--	u32 regval = 0;
-+	u32 regval;
+ #define	GPMC_HAS_WR_ACCESS		0x1
+ #define	GPMC_HAS_WR_DATA_MUX_BUS	0x2
++#define	GPMC_HAS_MUX_AAD		0x4
  
- 	switch (cmd) {
- 	case GPMC_ENABLE_IRQ:
-@@ -579,47 +577,14 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
- 		gpmc_write_reg(GPMC_CONFIG, regval);
- 		break;
+ #define GPMC_NR_WAITPINS		4
  
--	case GPMC_CONFIG_RDY_BSY:
--		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--		if (wval)
--			regval |= WR_RD_PIN_MONITORING;
--		else
--			regval &= ~WR_RD_PIN_MONITORING;
--		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
--		break;
--
--	case GPMC_CONFIG_DEV_SIZE:
--		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--
--		/* clear 2 target bits */
--		regval &= ~GPMC_CONFIG1_DEVICESIZE(3);
--
--		/* set the proper value */
--		regval |= GPMC_CONFIG1_DEVICESIZE(wval);
--
--		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
--		break;
--
--	case GPMC_CONFIG_DEV_TYPE:
--		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--		/* clear 4 target bits */
--		regval &= ~(GPMC_CONFIG1_DEVICETYPE(3) |
--			    GPMC_CONFIG1_MUXTYPE(3));
--		/* set the proper value */
--		regval |= GPMC_CONFIG1_DEVICETYPE(wval);
--		if (wval == GPMC_DEVICETYPE_NOR)
--			regval |= GPMC_CONFIG1_MUXADDDATA;
--		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
--		break;
--
- 	default:
--		printk(KERN_ERR "gpmc_configure_cs: Not supported\n");
--		err = -EINVAL;
-+		pr_err("%s: command not supported\n", __func__);
-+		return -EINVAL;
- 	}
- 
--	return err;
-+	return 0;
+@@ -1129,6 +1130,90 @@ int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
+ 	return 0;
  }
--EXPORT_SYMBOL(gpmc_cs_configure);
-+EXPORT_SYMBOL(gpmc_configure);
  
- void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
- {
++/**
++ * gpmc_cs_program_settings - programs non-timing related settings
++ * @cs:		GPMC chip-select to program
++ * @p:		pointer to GPMC settings structure
++ *
++ * Programs non-timing related settings for a GPMC chip-select, such as
++ * bus-width, burst configuration, etc. Function should be called once
++ * for each chip-select that is being used and must be called before
++ * calling gpmc_cs_set_timings() as timing parameters in the CONFIG1
++ * register will be initialised to zero by this function. Returns 0 on
++ * success and appropriate negative error code on failure.
++ */
++int gpmc_cs_program_settings(int cs, struct gpmc_settings *p)
++{
++	u32 config1;
++
++	if ((!p->device_width) || (p->device_width > GPMC_DEVWIDTH_16BIT)) {
++		pr_err("%s: invalid width %d!", __func__, p->device_width);
++		return -EINVAL;
++	}
++
++	/* Address-data multiplexing not supported for NAND devices */
++	if (p->device_nand && p->mux_add_data) {
++		pr_err("%s: invalid configuration!\n", __func__);
++		return -EINVAL;
++	}
++
++	if ((p->mux_add_data > GPMC_MUX_AD) ||
++	    ((p->mux_add_data == GPMC_MUX_AAD) &&
++	     !(gpmc_capability & GPMC_HAS_MUX_AAD))) {
++		pr_err("%s: invalid multiplex configuration!\n", __func__);
++		return -EINVAL;
++	}
++
++	/* Page/burst mode supports lengths of 4, 8 and 16 bytes */
++	if (p->burst_read || p->burst_write) {
++		switch (p->burst_len) {
++		case GPMC_BURST_4:
++		case GPMC_BURST_8:
++		case GPMC_BURST_16:
++			break;
++		default:
++			pr_err("%s: invalid page/burst-length (%d)\n",
++			       __func__, p->burst_len);
++			return -EINVAL;
++		}
++	}
++
++	if ((p->wait_on_read || p->wait_on_write) &&
++	    (p->wait_pin > gpmc_nr_waitpins)) {
++		pr_err("%s: invalid wait-pin (%d)\n", __func__, p->wait_pin);
++		return -EINVAL;
++	}
++
++	config1 = GPMC_CONFIG1_DEVICESIZE((p->device_width - 1));
++
++	if (p->sync_read)
++		config1 |= GPMC_CONFIG1_READTYPE_SYNC;
++	if (p->sync_write)
++		config1 |= GPMC_CONFIG1_WRITETYPE_SYNC;
++	if (p->wait_on_read)
++		config1 |= GPMC_CONFIG1_WAIT_READ_MON;
++	if (p->wait_on_write)
++		config1 |= GPMC_CONFIG1_WAIT_WRITE_MON;
++	if (p->wait_on_read || p->wait_on_write)
++		config1 |= GPMC_CONFIG1_WAIT_PIN_SEL(p->wait_pin);
++	if (p->device_nand)
++		config1	|= GPMC_CONFIG1_DEVICETYPE(GPMC_DEVICETYPE_NAND);
++	if (p->mux_add_data)
++		config1	|= GPMC_CONFIG1_MUXTYPE(p->mux_add_data);
++	if (p->burst_read)
++		config1 |= GPMC_CONFIG1_READMULTIPLE_SUPP;
++	if (p->burst_write)
++		config1 |= GPMC_CONFIG1_WRITEMULTIPLE_SUPP;
++	if (p->burst_read || p->burst_write) {
++		config1 |= GPMC_CONFIG1_PAGE_LEN(p->burst_len >> 3);
++		config1 |= p->burst_wrap ? GPMC_CONFIG1_WRAPBURST_SUPP : 0;
++	}
++
++	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, config1);
++
++	return 0;
++}
++
+ #ifdef CONFIG_OF
+ static struct of_device_id gpmc_dt_ids[] = {
+ 	{ .compatible = "ti,omap2420-gpmc" },
+@@ -1375,8 +1460,23 @@ static int gpmc_probe(struct platform_device *pdev)
+ 	gpmc_dev = &pdev->dev;
+ 
+ 	l = gpmc_read_reg(GPMC_REVISION);
++
++	/*
++	 * FIXME: Once device-tree migration is complete the below flags
++	 * should be populated based upon the device-tree compatible
++	 * string. For now just use the IP revision. OMAP3+ devices have
++	 * the wr_access and wr_data_mux_bus register fields. OMAP4+
++	 * devices support the addr-addr-data multiplex protocol.
++	 *
++	 * GPMC IP revisions:
++	 * - OMAP24xx			= 2.0
++	 * - OMAP3xxx			= 5.0
++	 * - OMAP44xx/54xx/AM335x	= 6.0
++	 */
+ 	if (GPMC_REVISION_MAJOR(l) > 0x4)
+ 		gpmc_capability = GPMC_HAS_WR_ACCESS | GPMC_HAS_WR_DATA_MUX_BUS;
++	if (GPMC_REVISION_MAJOR(l) > 0x5)
++		gpmc_capability |= GPMC_HAS_MUX_AAD;
+ 	dev_info(gpmc_dev, "GPMC revision %d.%d\n", GPMC_REVISION_MAJOR(l),
+ 		 GPMC_REVISION_MINOR(l));
+ 
 diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
-index ce6ae21..87d2a22 100644
+index 39e4e04..ce6ae21 100644
 --- a/arch/arm/mach-omap2/gpmc.h
 +++ b/arch/arm/mach-omap2/gpmc.h
-@@ -59,9 +59,6 @@
- #define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
- #define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
- #define GPMC_CONFIG1_MUXTYPE(val)       ((val & 3) << 8)
--#define GPMC_CONFIG1_MUXNONMUX          GPMC_CONFIG1_MUXTYPE(0)
--#define GPMC_CONFIG1_MUXAAD             GPMC_CONFIG1_MUXTYPE(GPMC_MUX_AAD)
--#define GPMC_CONFIG1_MUXADDDATA         GPMC_CONFIG1_MUXTYPE(GPMC_MUX_AD)
- #define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
- #define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
- #define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
-@@ -227,6 +224,6 @@ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
+@@ -76,6 +76,11 @@
+ #define GPMC_IRQ_FIFOEVENTENABLE	0x01
+ #define GPMC_IRQ_COUNT_EVENT		0x02
+ 
++#define GPMC_BURST_4			4	/* 4 word burst */
++#define GPMC_BURST_8			8	/* 8 word burst */
++#define GPMC_BURST_16			16	/* 16 word burst */
++#define GPMC_DEVWIDTH_8BIT		1	/* 8-bit device width */
++#define GPMC_DEVWIDTH_16BIT		2	/* 16-bit device width */
+ #define GPMC_MUX_AAD			1	/* Addr-Addr-Data multiplex */
+ #define GPMC_MUX_AD			2	/* Addr-Data multiplex */
+ 
+@@ -217,6 +222,7 @@ extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
+ extern void gpmc_cs_write_reg(int cs, int idx, u32 val);
+ extern int gpmc_calc_divider(unsigned int sync_clk);
+ extern int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t);
++extern int gpmc_cs_program_settings(int cs, struct gpmc_settings *p);
+ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
  extern void gpmc_cs_free(int cs);
  extern void omap3_gpmc_save_context(void);
- extern void omap3_gpmc_restore_context(void);
--extern int gpmc_cs_configure(int cs, int cmd, int wval);
-+extern int gpmc_configure(int cmd, int wval);
- 
- #endif
 -- 
 1.7.10.4
 
