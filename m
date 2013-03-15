@@ -1,285 +1,93 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 11/18] ARM: OMAP2+: Add device-tree support for NOR flash
-Date: Fri, 15 Mar 2013 10:21:09 -0500
-Message-ID: <1363360876-13617-12-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V3 17/18] ARM: OMAP2+: Allow GPMC probe to complete even if CS mapping fails
+Date: Fri, 15 Mar 2013 10:21:15 -0500
+Message-ID: <1363360876-13617-18-git-send-email-jon-hunter@ti.com>
 References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40875 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932150Ab3COPWK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 11:22:10 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59666 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755604Ab3COPWQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Mar 2013 11:22:16 -0400
 In-Reply-To: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
 
-NOR flash is not currently supported when booting with device-tree
-on OMAP2+ devices. Add support to detect and configure NOR devices
-when booting with device-tree.
+When the GPMC driver is probed, we call gpmc_mem_init() to see which
+chip-selects have already been configured and enabled by the boot-loader
+and allocate space for them. If we fail to allocate space for one
+chip-select, then we return failure from the probe and the GPMC driver
+will not be available.
 
-Add documentation for the TI GPMC NOR binding.
+Rather than render the GPMC useless for all GPMC devices, if we fail to
+allocate space for one chip-select print a warning and disable the
+chip-select. This way other GPMC clients can still be used.
+
+There is no downside to this approach, because all GPMC clients need to
+request a chip-select before they can use the GPMC and on requesting a
+chip-select, if memory has not already been reserved for the chip-select
+then it will be.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- Documentation/devicetree/bindings/mtd/gpmc-nor.txt |   98 +++++++++++++++++
- arch/arm/mach-omap2/gpmc.c                         |  115 ++++++++++++++++++++
- 2 files changed, 213 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nor.txt
+ arch/arm/mach-omap2/gpmc.c |   24 +++++++-----------------
+ 1 file changed, 7 insertions(+), 17 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nor.txt b/Documentation/devicetree/bindings/mtd/gpmc-nor.txt
-new file mode 100644
-index 0000000..8c638fc
---- /dev/null
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-nor.txt
-@@ -0,0 +1,98 @@
-+Device tree bindings for NOR flash connect to TI GPMC
-+
-+NOR flash connected to the TI GPMC (found on OMAP boards) are represented as
-+child nodes of the GPMC controller with a name of "nor".
-+
-+All timing relevant properties as well as generic GPMC child properties are
-+explained in a separate documents. Please refer to
-+Documentation/devicetree/bindings/bus/ti-gpmc.txt
-+
-+Required properties:
-+- bank-width: 		Width of NOR flash in bytes. GPMC supports 8-bit and
-+			16-bit devices and so must be either 1 or 2 bytes.
-+- compatible:		Documentation/devicetree/bindings/mtd/mtd-physmap.txt
-+- gpmc,cs-on:		Chip-select assertion time
-+- gpmc,cs-rd-off:	Chip-select de-assertion time for reads
-+- gpmc,cs-wr-off:	Chip-select de-assertion time for writes
-+- gpmc,oe-on:		Output-enable assertion time
-+- gpmc,oe-off		Output-enable de-assertion time
-+- gpmc,we-on:		Write-enable assertion time
-+- gpmc,we-off:		Write-enable de-assertion time
-+- gpmc,access:		Start cycle to first data capture (read access)
-+- gpmc,rd-cycle:	Total read cycle time
-+- gpmc,wr-cycle:	Total write cycle time
-+- linux,mtd-name:	Documentation/devicetree/bindings/mtd/mtd-physmap.txt
-+- reg:			Chip-select, base address (relative to chip-select)
-+			and size of NOR flash. Note that base address will be
-+			typically 0 as this is the start of the chip-select.
-+
-+Optional properties:
-+- gpmc,XXX		Additional GPMC timings and settings parameters. See
-+			Documentation/devicetree/bindings/bus/ti-gpmc.txt
-+
-+Optional properties for partiton table parsing:
-+- #address-cells: should be set to 1
-+- #size-cells: should be set to 1
-+
-+Example:
-+
-+gpmc: gpmc@6e000000 {
-+	compatible = "ti,omap3430-gpmc", "simple-bus";
-+	ti,hwmods = "gpmc";
-+	reg = <0x6e000000 0x1000>;
-+	interrupts = <20>;
-+	gpmc,num-cs = <8>;
-+	gpmc,num-waitpins = <4>;
-+	#address-cells = <2>;
-+	#size-cells = <1>;
-+
-+	ranges = <0 0 0x10000000 0x08000000>;
-+
-+	nor@0,0 {
-+		compatible = "cfi-flash";
-+		linux,mtd-name= "intel,pf48f6000m0y1be";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		reg = <0 0 0x08000000>;
-+		bank-width = <2>;
-+
-+		gpmc,mux-add-data;
-+		gpmc,cs-on = <0>;
-+		gpmc,cs-rd-off = <186>;
-+		gpmc,cs-wr-off = <186>;
-+		gpmc,adv-on = <12>;
-+		gpmc,adv-rd-off = <48>;
-+		gpmc,adv-wr-off = <48>;
-+		gpmc,oe-on = <54>;
-+		gpmc,oe-off = <168>;
-+		gpmc,we-on = <54>;
-+		gpmc,we-off = <168>;
-+		gpmc,rd-cycle = <186>;
-+		gpmc,wr-cycle = <186>;
-+		gpmc,access = <114>;
-+		gpmc,page-burst-access = <6>;
-+		gpmc,bus-turnaround = <12>;
-+		gpmc,cycle2cycle-delay = <18>;
-+		gpmc,wr-data-mux-bus = <90>;
-+		gpmc,wr-access = <186>;
-+		gpmc,cycle2cycle-samecsen;
-+		gpmc,cycle2cycle-diffcsen;
-+
-+		partition@0 {
-+			label = "bootloader-nor";
-+			reg = <0 0x40000>;
-+		};
-+		partition@0x40000 {
-+			label = "params-nor";
-+			reg = <0x40000 0x40000>;
-+		};
-+		partition@0x80000 {
-+			label = "kernel-nor";
-+			reg = <0x80000 0x200000>;
-+		};
-+		partition@0x280000 {
-+			label = "filesystem-nor";
-+			reg = <0x240000 0x7d80000>;
-+		};
-+	};
-+};
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 1e7eef3..85b1a35 100644
+index 5239d47..ee6601c 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -26,6 +26,7 @@
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
- #include <linux/of.h>
-+#include <linux/of_address.h>
- #include <linux/of_mtd.h>
- #include <linux/of_device.h>
- #include <linux/mtd/nand.h>
-@@ -499,6 +500,37 @@ static int gpmc_cs_delete_mem(int cs)
- 	return r;
+@@ -785,9 +785,9 @@ static void gpmc_mem_exit(void)
+ 
  }
  
-+/**
-+ * gpmc_cs_remap - remaps a chip-select physical base address
-+ * @cs:		chip-select to remap
-+ * @base:	physical base address to re-map chip-select to
-+ *
-+ * Re-maps a chip-select to a new physical base address specified by
-+ * "base". Returns 0 on success and appropriate negative error code
-+ * on failure.
-+ */
-+static int gpmc_cs_remap(int cs, u32 base)
-+{
-+	int ret;
-+	u32 old_base, size;
-+
-+	if (cs > GPMC_CS_NUM)
-+		return -ENODEV;
-+	gpmc_cs_get_memconf(cs, &old_base, &size);
-+	if (base == old_base)
-+		return 0;
-+	gpmc_cs_disable_mem(cs);
-+	ret = gpmc_cs_delete_mem(cs);
-+	if (ret < 0)
-+		return ret;
-+	ret = gpmc_cs_insert_mem(cs, base, size);
-+	if (ret < 0)
-+		return ret;
-+	gpmc_cs_enable_mem(cs, base, size);
-+
-+	return 0;
-+}
-+
- int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
+-static int gpmc_mem_init(void)
++static void gpmc_mem_init(void)
  {
- 	struct resource *res = &gpmc_cs_mem[cs];
-@@ -1398,6 +1430,80 @@ static int gpmc_probe_onenand_child(struct platform_device *pdev,
- }
- #endif
+-	int cs, rc;
++	int cs;
  
-+/**
-+ * gpmc_probe_nor_child - configures the gpmc for a nor device
-+ * @pdev:	pointer to gpmc platform device
-+ * @child:	pointer to device-tree node for nor device
-+ *
-+ * Allocates and configures a GPMC chip-select for a NOR flash device.
-+ * Returns 0 on success and appropriate negative error code on failure.
-+ */
-+static int gpmc_probe_nor_child(struct platform_device *pdev,
-+				struct device_node *child)
-+{
-+	struct gpmc_settings gpmc_s;
-+	struct gpmc_timings gpmc_t;
-+	struct resource res;
-+	unsigned long base;
-+	int ret, cs;
-+
-+	if (of_property_read_u32(child, "reg", &cs) < 0) {
-+		dev_err(&pdev->dev, "%s has no 'reg' property\n",
-+			child->full_name);
-+		return -ENODEV;
-+	}
-+
-+	if (of_address_to_resource(child, 0, &res) < 0) {
-+		dev_err(&pdev->dev, "%s has malformed 'reg' property\n",
-+			child->full_name);
-+		return -ENODEV;
-+	}
-+
-+	ret = gpmc_cs_request(cs, resource_size(&res), &base);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "cannot request GPMC CS %d\n", cs);
-+		return ret;
-+	}
-+
-+	/*
-+	 * FIXME: gpmc_cs_request() will map the CS to an arbitary
-+	 * location in the gpmc address space. When booting with
-+	 * device-tree we want the NOR flash to be mapped to the
-+	 * location specified in the device-tree blob. So remap the
-+	 * CS to this location. Once DT migration is complete should
-+	 * just make gpmc_cs_request() map a specific address.
-+	 */
-+	ret = gpmc_cs_remap(cs, res.start);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "cannot remap GPMC CS %d to 0x%x\n",
-+			cs, res.start);
-+		goto err;
-+	}
-+
-+	gpmc_read_settings_dt(child, &gpmc_s);
-+
-+	ret = of_property_read_u32(child, "bank-width", &gpmc_s.device_width);
-+	if (ret < 0)
-+		goto err;
-+
-+	ret = gpmc_cs_program_settings(cs, &gpmc_s);
-+	if (ret < 0)
-+		goto err;
-+
-+	gpmc_read_timings_dt(child, &gpmc_t);
-+	gpmc_cs_set_timings(cs, &gpmc_t);
-+
-+	if (of_platform_device_create(child, NULL, &pdev->dev))
-+		return 0;
-+
-+	dev_err(&pdev->dev, "failed to create gpmc child %s\n", child->name);
-+
-+err:
-+	gpmc_cs_free(cs);
-+
-+	return ret;
-+}
-+
- static int gpmc_probe_dt(struct platform_device *pdev)
- {
- 	int ret;
-@@ -1430,6 +1536,15 @@ static int gpmc_probe_dt(struct platform_device *pdev)
- 			return ret;
+ 	/*
+ 	 * The first 1MB of GPMC address space is typically mapped to
+@@ -804,16 +804,12 @@ static int gpmc_mem_init(void)
+ 		if (!gpmc_cs_mem_enabled(cs))
+ 			continue;
+ 		gpmc_cs_get_memconf(cs, &base, &size);
+-		rc = gpmc_cs_insert_mem(cs, base, size);
+-		if (rc < 0) {
+-			while (--cs >= 0)
+-				if (gpmc_cs_mem_enabled(cs))
+-					gpmc_cs_delete_mem(cs);
+-			return rc;
++		if (gpmc_cs_insert_mem(cs, base, size)) {
++			pr_warn("%s: disabling cs %d mapped at 0x%x-0x%x\n",
++				__func__, cs, base, base + size);
++			gpmc_cs_disable_mem(cs);
  		}
  	}
-+
-+	for_each_node_by_name(child, "nor") {
-+		ret = gpmc_probe_nor_child(pdev, child);
-+		if (ret < 0) {
-+			of_node_put(child);
-+			return ret;
-+		}
-+	}
-+
- 	return 0;
+-
+-	return 0;
  }
- #else
+ 
+ static u32 gpmc_round_ps_to_sync_clk(u32 time_ps, u32 sync_clk)
+@@ -1620,13 +1616,7 @@ static int gpmc_probe(struct platform_device *pdev)
+ 	dev_info(gpmc_dev, "GPMC revision %d.%d\n", GPMC_REVISION_MAJOR(l),
+ 		 GPMC_REVISION_MINOR(l));
+ 
+-	rc = gpmc_mem_init();
+-	if (rc < 0) {
+-		clk_disable_unprepare(gpmc_l3_clk);
+-		clk_put(gpmc_l3_clk);
+-		dev_err(gpmc_dev, "failed to reserve memory\n");
+-		return rc;
+-	}
++	gpmc_mem_init();
+ 
+ 	if (gpmc_setup_irq() < 0)
+ 		dev_warn(gpmc_dev, "gpmc_setup_irq failed\n");
 -- 
 1.7.10.4
 
