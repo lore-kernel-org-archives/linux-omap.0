@@ -1,121 +1,127 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 07/23] ARM: OMAP3: 3630SDP: Adapt to ehci-omap changes
-Date: Fri, 15 Mar 2013 17:16:28 +0200
-Message-ID: <1363360604-21368-8-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 21/23] ARM: dts: omap4-panda: Add USB Host support
+Date: Fri, 15 Mar 2013 17:16:42 +0200
+Message-ID: <1363360604-21368-22-git-send-email-rogerq@ti.com>
 References: <1363360604-21368-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1363360604-21368-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1363360604-21368-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rogerq@ti.com, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add 2 platform devices for 'nop-usb-xceiv'. These will be used
-as PHYs for HS USB ports 1 and 2 so provide binding information
-for them.
+Provide the RESET and Power regulators for the USB PHY,
+the USB Host port mode and the PHY device.
 
-Use usbhs_init_phys() to register the PHY's RESET regulators.
+Also provide pin multiplexer information for the USB host
+pins.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+CC: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/board-3630sdp.c |   48 ++++++++++++++++++++++++++++++----
- 1 files changed, 42 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/omap4-panda.dts |   56 +++++++++++++++++++++++++++++=
+++++++++
+ 1 files changed, 56 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index 67447bd..4c205e3 100644
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -12,6 +12,7 @@
- #include <linux/input.h>
- #include <linux/gpio.h>
- #include <linux/mtd/nand.h>
-+#include <linux/usb/phy.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -53,16 +54,37 @@ static void enable_board_wakeup_source(void)
- 		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
- }
- 
-+/* PHY device on HS USB Port 1 i.e. nop_usb_xceiv.1 */
-+static struct platform_device hsusb1_phy_device = {
-+	.name = "nop_usb_xceiv",
-+	.id = 1,
-+};
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap=
+4-panda.dts
+index 4122efe..cfc7683 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -57,6 +57,36 @@
+ 			"AFML", "Line In",
+ 			"AFMR", "Line In";
+ 	};
 +
-+/* PHY device on HS USB Port 2 i.e. nop_usb_xceiv.2 */
-+static struct platform_device hsusb2_phy_device = {
-+	.name = "nop_usb_xceiv",
-+	.id = 2,
-+};
++	/* HS USB Port 1 RESET */
++	hsusb1_reset: hsusb1_reset_reg {
++		compatible =3D "regulator-fixed";
++		regulator-name =3D "hsusb1_reset";
++		regulator-min-microvolt =3D <3300000>;
++		regulator-max-microvolt =3D <3300000>;
++		gpio =3D <&gpio2 30 0>;	/* gpio_62 */
++		startup-delay-us =3D <70000>;
++		enable-active-high;
++	};
 +
-+static struct usbhs_phy_data phy_data[] __initdata = {
-+	{
-+		.port = 1,
-+		.reset_gpio = 126,
-+		.vcc_gpio = -EINVAL,
-+		.phy_id = "nop_usb_xceiv.1",
-+	},
-+	{
-+		.port = 2,
-+		.reset_gpio = 61,
-+		.vcc_gpio = -EINVAL,
-+		.phy_id = "nop_usb_xceiv.2",
-+	},
-+};
++	/* HS USB Port 1 Power */
++	hsusb1_power: hsusb1_power_reg {
++		compatible =3D "regulator-fixed";
++		regulator-name =3D "hsusb1_vbus";
++		regulator-min-microvolt =3D <3300000>;
++		regulator-max-microvolt =3D <3300000>;
++		gpio =3D <&gpio1 1 0>;	/* gpio_1 */
++		startup-delay-us =3D <70000>;
++		enable-active-high;
++	};
 +
- static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
- 
- 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
- 	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
--	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
--
--	.phy_reset  = true,
--	.reset_gpio_port[0]  = 126,
--	.reset_gpio_port[1]  = 61,
--	.reset_gpio_port[2]  = -EINVAL
++	/* HS USB Host PHY on PORT 1 */
++	hsusb1_phy: hsusb1_phy {
++		compatible =3D "usb-nop-xceiv";
++		reset-supply =3D <&hsusb1_reset>;
++		vcc-supply =3D <&hsusb1_power>;
++		clock-frequency =3D <19200000>;
++	};
  };
- 
- #ifdef CONFIG_OMAP_MUX
-@@ -189,6 +211,11 @@ static struct flash_partitions sdp_flash_partitions[] = {
- 	},
+=20
+ &omap4_pmx_core {
+@@ -67,6 +97,7 @@
+ 			&mcbsp1_pins
+ 			&dss_hdmi_pins
+ 			&tpd12s015_pins
++			&hsusbb1_pins
+ 	>;
+=20
+ 	twl6040_pins: pinmux_twl6040_pins {
+@@ -110,6 +141,23 @@
+ 			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
+ 		>;
+ 	};
++
++	hsusbb1_pins: pinmux_hsusbb1_pins {
++		pinctrl-single,pins =3D <
++			0x82 0x10C	/* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_clk INPUT | P=
+ULLDOWN */
++			0x84 0x4	/* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_stp OUTPUT */
++			0x86 0x104	/* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dir INPUT | P=
+ULLDOWN */
++			0x88 0x104	/* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_nxt INPUT | P=
+ULLDOWN */
++			0x8a 0x104	/* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat0 INPUT | =
+PULLDOWN */
++			0x8c 0x104	/* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat1 INPUT | =
+PULLDOWN */
++			0x8e 0x104	/* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat2 INPUT | =
+PULLDOWN */
++			0x90 0x104	/* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat3 INPUT | =
+PULLDOWN */
++			0x92 0x104	/* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat4 INPUT | =
+PULLDOWN */
++			0x94 0x104	/* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat5 INPUT | =
+PULLDOWN */
++			0x96 0x104	/* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat6 INPUT | =
+PULLDOWN */
++			0x98 0x104	/* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat7 INPUT | =
+PULLDOWN */
++		>;
++	    };
  };
- 
-+static struct platform_device *sdp3630_devices[] __initdata = {
-+	&hsusb1_phy_device,
-+	&hsusb2_phy_device,
+=20
+ &i2c1 {
+@@ -206,3 +254,11 @@
+ &twl_usb_comparator {
+ 	usb-supply =3D <&vusb>;
+ };
++
++&usbhshost {
++	port1-mode =3D "ehci-phy";
 +};
 +
- static void __init omap_sdp_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
-@@ -199,6 +226,15 @@ static void __init omap_sdp_init(void)
- 	board_smc91x_init();
- 	board_flash_init(sdp_flash_partitions, chip_sel_sdp, NAND_BUSWIDTH_16);
- 	enable_board_wakeup_source();
-+
-+	platform_add_devices(sdp3630_devices, ARRAY_SIZE(sdp3630_devices));
-+
-+	/* PHY on HSUSB Port 1 i.e. index 0 */
-+	usb_bind_phy("ehci-omap.0", 0, "nop_usb_xceiv.1");
-+	/* PHY on HSUSB Port 2 i.e. index 1 */
-+	usb_bind_phy("ehci-omap.0", 1, "nop_usb_xceiv.2");
-+
-+	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
- 	usbhs_init(&usbhs_bdata);
- }
- 
--- 
++&usbhsehci {
++	phys =3D <&hsusb1_phy>;
++};
+--=20
 1.7.4.1
