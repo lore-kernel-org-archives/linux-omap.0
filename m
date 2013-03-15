@@ -1,7 +1,7 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 41/50] staging: omap-thermal: document _omap_bandgap_read_threshold function
-Date: Fri, 15 Mar 2013 09:00:29 -0400
-Message-ID: <1363352438-15935-42-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCH 42/50] staging: omap-thermal: document omap_bandgap_tshut_init function
+Date: Fri, 15 Mar 2013 09:00:30 -0400
+Message-ID: <1363352438-15935-43-git-send-email-eduardo.valentin@ti.com>
 References: <1363352438-15935-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,7 +12,7 @@ To: gregkh@linuxfoundation.org
 Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add documentation of the function for reading alert thresholds
+Add documentation for the function to setup TSHUT handling
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
@@ -20,27 +20,27 @@ Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
  1 files changed, 12 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/staging/omap-thermal/omap-bandgap.c b/drivers/staging/omap-thermal/omap-bandgap.c
-index 4cacfc1..aa90539 100644
+index aa90539..f2ebbcf 100644
 --- a/drivers/staging/omap-thermal/omap-bandgap.c
 +++ b/drivers/staging/omap-thermal/omap-bandgap.c
-@@ -510,6 +510,18 @@ exit:
- 	return ret;
+@@ -798,6 +798,18 @@ static int omap_bandgap_set_continuous_mode(struct omap_bandgap *bg_ptr)
+ 	return 0;
  }
  
 +/**
-+ * _omap_bandgap_read_threshold() - helper to read TALERT t_cold or t_hot
-+ * @bg_ptr: struct omap_bandgap pointer
-+ * @id: bandgap sensor id
-+ * @val: value (mCelsius) of a threshold
-+ * @hot: desired threshold to be read. true if threshold hot, false if
-+ *       threshold cold
++ * omap_bandgap_tshut_init() - setup and initialize tshut handling
++ * @bg_ptr: pointer to struct omap_bandgap
++ * @pdev: pointer to device struct platform_device
 + *
-+ * It will fetch the required thresholds (hot and cold) for TALERT signal.
-+ * This function can be used to read t_hot or t_cold, depending on @hot value.
-+ * Call this function only if bandgap features HAS(TALERT).
++ * Call this function only in case the bandgap features HAS(TSHUT).
++ * In this case, the driver needs to handle the TSHUT signal as an IRQ.
++ * The IRQ is wired as a GPIO, and for this purpose, it is required
++ * to specify which GPIO line is used. TSHUT IRQ is fired anytime
++ * one of the bandgap sensors violates the TSHUT high/hot threshold.
++ * And in that case, the system must go off.
 + */
- int _omap_bandgap_read_threshold(struct omap_bandgap *bg_ptr, int id,
- 				 int *val, bool hot)
+ static int omap_bandgap_tshut_init(struct omap_bandgap *bg_ptr,
+ 				   struct platform_device *pdev)
  {
 -- 
 1.7.7.1.488.ge8e1c
