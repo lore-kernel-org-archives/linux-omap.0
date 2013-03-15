@@ -1,67 +1,97 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 20/23] ARM: dts: OMAP4: Add HS USB Host IP nodes
-Date: Fri, 15 Mar 2013 17:16:41 +0200
-Message-ID: <1363360604-21368-21-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 17/23] ARM: OMAP3: omap3touchbook: Adapt to ehci-omap changes
+Date: Fri, 15 Mar 2013 17:16:38 +0200
+Message-ID: <1363360604-21368-18-git-send-email-rogerq@ti.com>
 References: <1363360604-21368-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1363360604-21368-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rogerq@ti.com, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Adds device nodes for HS USB Host module, TLL module,
-OHCI and EHCI controllers.
+Add 2 platform devices for 'nop-usb-xceiv'. These will be used as a
+PHY for HS USB Ports 1 and 2, so provide binding information for them.
 
-CC: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Use usbhs_init_phys() to register the PHY's RESET regulator.
+
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi |   30 ++++++++++++++++++++++++++++++
- 1 files changed, 30 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-omap3touchbook.c |   38 ++++++++++++++++++++++-----
+ 1 files changed, 31 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dts=
-i
-index 739bb79..b7db1a2 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -529,5 +529,35 @@
- 			ti,hwmods =3D "timer11";
- 			ti,timer-pwm;
- 		};
-+
-+		usbhstll: usbhstll@4a062000 {
-+			compatible =3D "ti,usbhs-tll";
-+			reg =3D <0x4a062000 0x1000>;
-+			interrupts =3D <0 78 0x4>;
-+			ti,hwmods =3D "usb_tll_hs";
-+		};
-+
-+		usbhshost: usbhshost@4a064000 {
-+			compatible =3D "ti,usbhs-host";
-+			reg =3D <0x4a064000 0x800>;
-+			ti,hwmods =3D "usb_host_hs";
-+			#address-cells =3D <1>;
-+			#size-cells =3D <1>;
-+			ranges;
-+
-+			usbhsohci: ohci@4a064800 {
-+				compatible =3D "ti,ohci-omap3", "usb-ohci";
-+				reg =3D <0x4a064800 0x400>;
-+				interrupt-parent =3D <&gic>;
-+				interrupts =3D <0 76 0x4>;
-+			};
-+
-+			usbhsehci: ehci@4a064c00 {
-+				compatible =3D "ti,ehci-omap", "usb-ehci";
-+				reg =3D <0x4a064c00 0x400>;
-+				interrupt-parent =3D <&gic>;
-+				interrupts =3D <0 77 0x4>;
-+			};
-+		};
- 	};
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index bcd44fb..e8fa884 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -36,6 +36,7 @@
+ #include <linux/spi/ads7846.h>
+ 
+ #include <linux/regulator/machine.h>
++#include <linux/usb/phy.h>
+ #include <linux/i2c/twl.h>
+ 
+ #include <asm/mach-types.h>
+@@ -305,21 +306,37 @@ static struct omap_board_mux board_mux[] __initdata = {
  };
---=20
+ #endif
+ 
++/* PHY device on HS USB Port 1 i.e. nop_usb_xceiv.1 */
++static struct platform_device hsusb1_phy_device = {
++	.name = "nop_usb_xceiv",
++	.id = 1,
++};
++
++/* PHY device on HS USB Port 2 i.e. nop_usb_xceiv.2 */
++static struct platform_device hsusb2_phy_device = {
++	.name = "nop_usb_xceiv",
++	.id = 2,
++};
++
++static struct usbhs_phy_data phy_data[] __initdata = {
++	{
++		.port = 2,
++		.reset_gpio = 147,
++		.vcc_gpio = -EINVAL,
++		.phy_id = "nop_usb_xceiv.2",
++	},
++};
++
+ static struct platform_device *omap3_touchbook_devices[] __initdata = {
+ 	&leds_gpio,
+ 	&keys_gpio,
++	&hsusb1_phy_device,
++	&hsusb2_phy_device,
+ };
+ 
+ static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
+-
+ 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
+ 	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
+-	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
+-
+-	.phy_reset  = true,
+-	.reset_gpio_port[0]  = -EINVAL,
+-	.reset_gpio_port[1]  = 147,
+-	.reset_gpio_port[2]  = -EINVAL
+ };
+ 
+ static void omap3_touchbook_poweroff(void)
+@@ -368,6 +385,13 @@ static void __init omap3_touchbook_init(void)
+ 	omap_ads7846_init(4, OMAP3_TS_GPIO, 310, &ads7846_pdata);
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
++
++	/* PHY on HSUSB Port 1 i.e. index 0 */
++	usb_bind_phy("ehci-omap.0", 0, "nop_usb_xceiv.1");
++	/* PHY on HSUSB Port 2 i.e. index 1 */
++	usb_bind_phy("ehci-omap.0", 1, "nop_usb_xceiv.2");
++
++	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
+ 	usbhs_init(&usbhs_bdata);
+ 	board_nand_init(omap3touchbook_nand_partitions,
+ 			ARRAY_SIZE(omap3touchbook_nand_partitions), NAND_CS,
+-- 
 1.7.4.1
