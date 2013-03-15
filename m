@@ -1,74 +1,55 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v3 0/7] ARM: dts: omap: Add dts data for USB
-Date: Fri, 15 Mar 2013 13:41:30 +0100
-Message-ID: <514316FA.1090002@ti.com>
-References: <1362663320-23799-1-git-send-email-kishon@ti.com>
+Subject: Re: [PATCH 0/8] ARM: dts: OMAP5: ocp address space and few updates
+Date: Fri, 15 Mar 2013 13:45:32 +0100
+Message-ID: <514317EC.6040400@ti.com>
+References: <1361374735-22018-1-git-send-email-santosh.shilimkar@ti.com> <5142F6EF.7010900@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362663320-23799-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59001 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754384Ab3COMpo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 08:45:44 -0400
+In-Reply-To: <5142F6EF.7010900@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-+ Jon
+Hi Santosh,
 
-Hi Kishon,
-
-On 03/07/2013 02:35 PM, Kishon Vijay Abraham I wrote:
-> Hi Benoit,
+On 03/15/2013 11:24 AM, Santosh Shilimkar wrote:
+> Benoit,
 > 
-> Here are the dt data patches to get usb device functional in OMAP platforms.
+> On Wednesday 20 February 2013 09:08 PM, Santosh Shilimkar wrote:
+>> Few updates for OMAP5 found during testing OMAP5 DT builds. Couple
+>> of patches were already posted on the list. The series also contains
+>> a patch which adds DMA request, IRQ lines and IO address space 
+>> DT extraction support to hwmod code so that we can get rid of
+>> such information from hwmod data files. It has been tested on OMAP5
+>> and OMAP4 devices.
+>>
+> [..]
 > 
-> All the patches deal with modifying arch/arm/boot except one which modifies
-> Documentation/../usb/omap-usb.txt
+>>   ARM: OMAP: hwmod: extract module address space from DT blob
+> Above patch even though dt extraction code touches the hwmod file.
+> Are you ok to keep this patch is the current series considering
+> both the patches needs to go through your tree. If it needs to
+> be in separate branch, then I can add that as part of the
+> other generic patches with your ack.
 > 
-> Changes from v2:
-> * squashed the dt data for dwc3-omap with dwc3 core into a single patch.
+>>  arch/arm/boot/dts/omap5-evm.dts  |    2 +-
+>>  arch/arm/boot/dts/omap5.dtsi     |  282 +++++++++++++++++++++++++++++++++++---
+>>  arch/arm/mach-omap2/omap_hwmod.c |   31 ++++-
+>>  3 files changed, 293 insertions(+), 22 deletions(-)
+>>
 > 
-> Changes from v1:
-> Patch *ARM: dts: omap: Add usb_otg and glue data* has some properties with
-> names that has "_". It's replaced with a "-" here.
-> 
-> This patch is developed on Linux 3.9-rc1.
+> Let me know your preference. Either way is fine by me.
 
-The patches looks really good. I've just had to rebase on top of my HEAD due to some conflict with GPMC patch already applied.
-
-I cleaned as well some subject and changelog for consistency.
-
-The patches are available here:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.10/dts
-
-
-Jon,
-
-You might have to rebase your series on top of the new HEAD before reposting.
+I can take both DTS and hwmod patches, so you can keep then in the same
+series.
 
 Thanks,
 Benoit
 
-
-> Kishon Vijay Abraham I (7):
->   ARM: dts: omap: Add omap control usb data
->   ARM: dts: omap: Add omap-usb2 dt data
->   ARM: dts: omap: Add usb_otg and glue data
->   ARM: dts: omap5: Add omap control usb data
->   ARM: dts: omap5: Add ocp2scp data
->   ARM: dts: omap5: Add omap-usb3 and omap-usb2 dt data
->   ARM: dts: omap5: add dwc3 omap and dwc3 core dt data
-> 
->  Documentation/devicetree/bindings/usb/omap-usb.txt |    1 +
->  arch/arm/boot/dts/omap3-beagle-xm.dts              |    6 +++
->  arch/arm/boot/dts/omap3-evm.dts                    |    6 +++
->  arch/arm/boot/dts/omap3-overo.dtsi                 |    6 +++
->  arch/arm/boot/dts/omap3.dtsi                       |   12 +++++
->  arch/arm/boot/dts/omap4-panda.dts                  |    6 +++
->  arch/arm/boot/dts/omap4-sdp.dts                    |    6 +++
->  arch/arm/boot/dts/omap4.dtsi                       |   26 +++++++++++
->  arch/arm/boot/dts/omap5.dtsi                       |   48 ++++++++++++++++++++
->  arch/arm/boot/dts/twl4030.dtsi                     |    2 +-
->  10 files changed, 118 insertions(+), 1 deletion(-)
-> 
