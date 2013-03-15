@@ -1,47 +1,64 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 2/8] ARM: dts: OMAP36xx: move CPU OPP tables to device
- tree
-Date: Fri, 15 Mar 2013 09:26:28 -0500
-Message-ID: <51432F94.7000306@ti.com>
-References: <1363294695-658-1-git-send-email-nm@ti.com> <1363294695-658-3-git-send-email-nm@ti.com> <514244B4.9050808@ti.com> <20130315135655.GA2939@kahuna>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH V2 0/2] ASoC: OMAP2+: Update Audio IP with sDMA binding
+ for DT boot
+Date: Fri, 15 Mar 2013 15:27:58 +0100
+Message-ID: <51432FEE.4060709@ti.com>
+References: <1362988223-22455-1-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <20130315135655.GA2939@kahuna>
-Sender: cpufreq-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47412 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754767Ab3COO20 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Mar 2013 10:28:26 -0400
+In-Reply-To: <1362988223-22455-1-git-send-email-s-guiriec@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastien Guiriec <s-guiriec@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
+Hi Seb,
 
-On 03/15/2013 08:56 AM, Nishanth Menon wrote:
-> On 16:44-20130314, Jon Hunter wrote:
->>
->> On 03/14/2013 03:58 PM, Nishanth Menon wrote:
->>> Add DT OPP table for OMAP36xx family of devices. This data is
->>> decoded by OF with of_init_opp_table() helper function. This
->>> overrides the default OMAP34xx CPU OPP table definition.
->>
->> Not sure I following the last sentence. The tables are in a different
->> dtsi file and only the relevant file should be included, right?
-> omap3630.dsi includes omap3.dtsi (which is meant for OMAP34xx).
-> The opp tables introduced by this patch in omap36xx.dtsi will override
-> the ones defined on omap3.dtsi. Will the following rephrase help clarify
-> this?
+On 03/11/2013 08:50 AM, Sebastien Guiriec wrote:
+> This patch serie is converting OMAP Audio IPs in order to use OMAP sDMA DT
+> binding in case of DT boot on OMAP2+ platforms.
 > 
-> Original:
-> This overrides the default OMAP34xx CPU OPP table definition.
-> Suggested;
-> This overrides the default OMAP34xx CPU OPP table definition in
-> omap3.dtsi.
+> It is depending on the next patches:
+> 
+> [1] http://www.spinics.net/lists/arm-kernel/msg227836.html
+> [2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg84668.html
 
-Sorry, I just missed that the omap3430 opps were in omap3.dtsi and not
-omap34xx.dtsi. I guess I am not familiar with how the DTC overrides
-nodes, however, at least from a readability standpoint it would seem
-nice to have the omap3430 opps in a omap3430 specific dtsi and not
-omap3.dtsi. However, thats just my opinion.
+I've just applied it in my for_3.10/dts branch on top of Jon's series
+that does add the SDMA binding.
 
-Cheers
-Jon
+Regards,
+Benoit
+
+> 
+> It has been tested on:
+> - OMAP5 (sEVM/panda)in DT boot (McPDM/DMIC).
+> - OMAP4 (SDP4430/Panda) in both DT/non DT boot (McPDM/DMIC)
+> - OMAP3 (Beagle XM) in both DT/non DT boot (McBSP)
+> 
+> Update since v1:
+> - Put DTS patch in first.
+> - Squash all OMAP IPs patch together.
+> 
+> Sebastien Guiriec (2):
+>   ARM: dts: OMAP2+: Add SDMA Audio IPs bindings
+>   ASoC: OMAP2+: Move McBSP, DMIC and McPDM to generic DMA DT binding
+> 
+>  arch/arm/boot/dts/omap2420.dtsi |    6 ++++++
+>  arch/arm/boot/dts/omap2430.dtsi |   15 +++++++++++++++
+>  arch/arm/boot/dts/omap3.dtsi    |   15 +++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi    |   17 +++++++++++++++++
+>  arch/arm/boot/dts/omap5.dtsi    |   14 ++++++++++++++
+>  sound/soc/omap/mcbsp.c          |   26 ++++++++++++++++----------
+>  sound/soc/omap/omap-dmic.c      |   15 +++++++++------
+>  sound/soc/omap/omap-mcpdm.c     |   22 ++++++++++++++--------
+>  sound/soc/omap/omap-pcm.c       |   12 ++++++++++--
+>  sound/soc/omap/omap-pcm.h       |    1 +
+>  10 files changed, 117 insertions(+), 26 deletions(-)
+> 
 
