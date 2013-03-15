@@ -1,58 +1,47 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/4] usb: Fix linker errors during build
-Date: Fri, 15 Mar 2013 16:25:56 +0200
-Message-ID: <20130315142556.GA23930@arwen.pp.htv.fi>
-References: <1363354132-27523-1-git-send-email-kishon@ti.com>
-Reply-To: <balbi@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 2/8] ARM: dts: OMAP36xx: move CPU OPP tables to device
+ tree
+Date: Fri, 15 Mar 2013 09:26:28 -0500
+Message-ID: <51432F94.7000306@ti.com>
+References: <1363294695-658-1-git-send-email-nm@ti.com> <1363294695-658-3-git-send-email-nm@ti.com> <514244B4.9050808@ti.com> <20130315135655.GA2939@kahuna>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1363354132-27523-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, notasas@gmail.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <20130315135655.GA2939@kahuna>
+Sender: cpufreq-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---cWoXeonUoKmBZSoM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Mar 15, 2013 at 06:58:49PM +0530, Kishon Vijay Abraham I wrote:
-> commit 63378a (usb: phy: remove CONFIG_USB_OTG_UTILS) removed
-> CONFIG_USB_OTG_UTILS from Kconfig but failed to removed from Makefile.
-> Fixed it here.
->=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+On 03/15/2013 08:56 AM, Nishanth Menon wrote:
+> On 16:44-20130314, Jon Hunter wrote:
+>>
+>> On 03/14/2013 03:58 PM, Nishanth Menon wrote:
+>>> Add DT OPP table for OMAP36xx family of devices. This data is
+>>> decoded by OF with of_init_opp_table() helper function. This
+>>> overrides the default OMAP34xx CPU OPP table definition.
+>>
+>> Not sure I following the last sentence. The tables are in a different
+>> dtsi file and only the relevant file should be included, right?
+> omap3630.dsi includes omap3.dtsi (which is meant for OMAP34xx).
+> The opp tables introduced by this patch in omap36xx.dtsi will override
+> the ones defined on omap3.dtsi. Will the following rephrase help clarify
+> this?
+> 
+> Original:
+> This overrides the default OMAP34xx CPU OPP table definition.
+> Suggested;
+> This overrides the default OMAP34xx CPU OPP table definition in
+> omap3.dtsi.
 
-I can fold it in original commit since that's not in mainline yet,
-thanks
+Sorry, I just missed that the omap3430 opps were in omap3.dtsi and not
+omap34xx.dtsi. I guess I am not familiar with how the DTC overrides
+nodes, however, at least from a readability standpoint it would seem
+nice to have the omap3430 opps in a omap3430 specific dtsi and not
+omap3.dtsi. However, thats just my opinion.
 
---=20
-balbi
+Cheers
+Jon
 
---cWoXeonUoKmBZSoM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRQy90AAoJEIaOsuA1yqRECUUP/R2QIGNXwBHRiyiPexS64HSX
-/EGgksFdDwLBuTDEi+Bypya28gnBZuBTdug7+YG2Nj3uOUtZx9ZreZf0xZi5Ddo7
-Dnlgf/owf8+5VjT7myYezouKiyOE70YwMgY9SZPri9dR1ZifpaERZ/k3favbuZbj
-CDFWVrRwmkrPQa+S16oGtbz//5+8Hcb+QlVpqN84vLNU7LR/Umw5gkvlAH1cqDyW
-BMjSAMVJB4RPCSn5vZ8h1xuZM8aA5ueqwJ+A7YKOY2Z/skiM4zlo6QHGCI83RWCt
-R70ZmOKESzha6Jepf/jRxyuXUE1wh2jhWaZEb0S/2tHHuZ75FiDkcoj6oTfqva+5
-o+PQ5ZVniQo9PHpfcOK5n25+T56dzllhilDfDjWckf9PlVd29uEU3WHsMI0U44MT
-Pmfa1r95PlRQcAtTTvzZc/zEjTQcvZYeWLADl3CQpwMmyyvZB0BijHM9SfhdiRDN
-bbIx+AoHi01Qq4VTEnRagNOk45M+SBvpiUqL01QbtXd4jTWCmduHm8skgogHSsfo
-e2cWMBAYJf+ty9b1/7pSdEWaNZdaU7K05M3MZvdXfksCzwkflOKoBzCl8LJd21we
-s+7/jcIpGXhPK9zZP3p+lHBmqIov2QXcLtU8U4irU5rIjV3ipD4LEvGpEB5ps2RN
-ZdD/8PtDEo2/wueVYdCd
-=fWBD
------END PGP SIGNATURE-----
-
---cWoXeonUoKmBZSoM--
