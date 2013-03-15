@@ -1,58 +1,89 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: clocks: Pass static parent pointers
- to common clock core
-Date: Fri, 15 Mar 2013 17:57:34 +0530
-Message-ID: <514313B6.4050905@ti.com>
-References: <1363264618-5071-1-git-send-email-rnayak@ti.com> <1363264618-5071-3-git-send-email-rnayak@ti.com> <20130314170601.GH26093@atomide.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v3] drivers: video: use module_platform_driver_probe()
+Date: Fri, 15 Mar 2013 13:37:48 +0100
+Message-ID: <27269473.thyiPm2NyN@avalon>
+References: <1363338019-13092-1-git-send-email-fabio.porcedda@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58217 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754106Ab3COM1s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 08:27:48 -0400
-In-Reply-To: <20130314170601.GH26093@atomide.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38399 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754197Ab3COMhJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 08:37:09 -0400
+In-Reply-To: <1363338019-13092-1-git-send-email-fabio.porcedda@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, phaber@broadcom.com
+To: Fabio Porcedda <fabio.porcedda@gmail.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, David Howells <dhowells@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 
-On Thursday 14 March 2013 10:36 PM, Tony Lindgren wrote:
-> * Rajendra Nayak <rnayak@ti.com> [130314 05:44]:
->> OMAP clock inits happen quite early, even before the slab is available.
->> As part of the clock init, the common clock core tries to cache parent
->> pointers (if not passed by the caller registering the clock) which
->> fails in case of OMAP since the slab isn't initied.
->> Without CONFIG_DEBUG_SLAB enabled, this just results in the common clock core
->> retrying the caching attempt at some point later.
->> However with CONFIG_DEBUG_SLAB enabled this results in a BUG() as reported
->> in the link below by Tony..
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85932.html
->>
->> Fix this by passing static parent pointers to the common clock core
->> while registering clocks.
+Hi Fabio,
+
+Thank you for the patch.
+
+On Friday 15 March 2013 10:00:19 Fabio Porcedda wrote:
+> This patch converts the drivers to use the
+> module_platform_driver_probe() macro which makes the code smaller and
+> a bit simpler.
 > 
-> I wonder if we could easily fix this by initializing only some of the
-> clocks that early?
-
-We actually don't need any clocks that early (I mean even before slab init)
-We only need them before timer init.
-
-This isn't something specific to OMAP so I started looking at what others
-in drivers/clk seem to do.
-
-I found imx, spear, mvebu all do their clk inits within .init_time callbacks.
-tegra seems to even do it within .init_irq callback.
-
-Either one would work for us too :)
-
+> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+> Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: David Howells <dhowells@redhat.com>
+> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+> ---
 > 
-> If we had a two stage initialization we could dynamically allocate the
-> rest of the parent clocks without having to add all the static data.
+> Notes:
+>     v3:
+>      - add missing drivers: amifb, atmel_lcdfb, vrfb
+>      - split patch set to each maintainer to easy up respin
+>     v2:
+>      - rebased over linux-next and remove already converted drivers
 > 
-> Regards,
+>  drivers/video/amifb.c          | 14 +-------------
+>  drivers/video/atmel_lcdfb.c    | 13 +------------
+>  drivers/video/omap2/vrfb.c     | 13 +------------
+>  drivers/video/sh_mipi_dsi.c    | 12 +-----------
+>  drivers/video/sh_mobile_hdmi.c | 12 +-----------
+>  5 files changed, 5 insertions(+), 59 deletions(-)
 > 
-> Tony
+> diff --git a/drivers/video/amifb.c b/drivers/video/amifb.c
+> index 7fa1bf8..03e2de2 100644
+> --- a/drivers/video/amifb.c
+> +++ b/drivers/video/amifb.c
+> @@ -3788,19 +3788,7 @@ static struct platform_driver amifb_driver = {
+>  	},
+>  };
 > 
+> -static int __init amifb_init(void)
+> -{
+> -	return platform_driver_probe(&amifb_driver, amifb_probe);
+> -}
+> -
+> -module_init(amifb_init);
+> -
+> -static void __exit amifb_exit(void)
+> -{
+> -	platform_driver_unregister(&amifb_driver);
+> -}
+> -
+> -module_exit(amifb_exit);
+> +return module_platform_driver_probe(amifb_driver, amifb_probe);
+
+I think think you need a "return" here.
+
+After fixing that,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  MODULE_LICENSE("GPL");
+>  MODULE_ALIAS("platform:amiga-video");
+
+-- 
+Regards,
+
+Laurent Pinchart
 
