@@ -1,65 +1,112 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/4] usb: otg: twl4030: fix cold plug on OMAP3
-Date: Fri, 15 Mar 2013 18:58:52 +0530
-Message-ID: <1363354132-27523-4-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 3/4] usb: otg: twl4030: use devres API for regulator get and request irq
+Date: Fri, 15 Mar 2013 18:58:51 +0530
+Message-ID: <1363354132-27523-3-git-send-email-kishon@ti.com>
 References: <1363354132-27523-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1363354132-27523-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60972 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754735Ab3CON3E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 09:29:04 -0400
+In-Reply-To: <1363354132-27523-1-git-send-email-kishon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: tony@atomide.com, notasas@gmail.com, Kishon Vijay Abraham I <kishon@ti.com>
 
-Having twl4030_usb_phy_init() (detects if a cable is connected before
-twl4030 is probed) in twl4030 probe makes cable connect events to be
-missed by musb glue, since it gets loaded after twl4030. Having
-twl4030_usb_phy_init as a usb_phy ops lets twl4030_usb_phy_init to be
-called when glue is ready.
+Used devres APIs devm_request_threaded_irq and devm_regulator_get for
+requesting irq and for getting regulator respectively.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Tested-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Tested-by: Grazvydas Ignotas <notasas@gmail.com>
 ---
- drivers/usb/phy/phy-twl4030-usb.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/usb/phy/phy-twl4030-usb.c |   28 ++++++++--------------------
+ 1 file changed, 8 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/usb/phy/phy-twl4030-usb.c
-index e14b03e..1986c78 100644
+index a994715..e14b03e 100644
 --- a/drivers/usb/phy/phy-twl4030-usb.c
 +++ b/drivers/usb/phy/phy-twl4030-usb.c
-@@ -510,8 +510,9 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
- 	return IRQ_HANDLED;
+@@ -432,7 +432,7 @@ static int twl4030_usb_ldo_init(struct twl4030_usb *twl)
+ 	/* Initialize 3.1V regulator */
+ 	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB3V1_DEV_GRP);
+ 
+-	twl->usb3v1 = regulator_get(twl->dev, "usb3v1");
++	twl->usb3v1 = devm_regulator_get(twl->dev, "usb3v1");
+ 	if (IS_ERR(twl->usb3v1))
+ 		return -ENODEV;
+ 
+@@ -441,18 +441,18 @@ static int twl4030_usb_ldo_init(struct twl4030_usb *twl)
+ 	/* Initialize 1.5V regulator */
+ 	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB1V5_DEV_GRP);
+ 
+-	twl->usb1v5 = regulator_get(twl->dev, "usb1v5");
++	twl->usb1v5 = devm_regulator_get(twl->dev, "usb1v5");
+ 	if (IS_ERR(twl->usb1v5))
+-		goto fail1;
++		return -ENODEV;
+ 
+ 	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB1V5_TYPE);
+ 
+ 	/* Initialize 1.8V regulator */
+ 	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB1V8_DEV_GRP);
+ 
+-	twl->usb1v8 = regulator_get(twl->dev, "usb1v8");
++	twl->usb1v8 = devm_regulator_get(twl->dev, "usb1v8");
+ 	if (IS_ERR(twl->usb1v8))
+-		goto fail2;
++		return -ENODEV;
+ 
+ 	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB1V8_TYPE);
+ 
+@@ -461,14 +461,6 @@ static int twl4030_usb_ldo_init(struct twl4030_usb *twl)
+ 			 TWL4030_PM_MASTER_PROTECT_KEY);
+ 
+ 	return 0;
+-
+-fail2:
+-	regulator_put(twl->usb1v5);
+-	twl->usb1v5 = NULL;
+-fail1:
+-	regulator_put(twl->usb3v1);
+-	twl->usb3v1 = NULL;
+-	return -ENODEV;
  }
  
--static void twl4030_usb_phy_init(struct twl4030_usb *twl)
-+static int twl4030_usb_phy_init(struct usb_phy *phy)
- {
-+	struct twl4030_usb *twl = phy_to_twl(phy);
- 	enum omap_musb_vbus_id_status status;
+ static ssize_t twl4030_usb_vbus_show(struct device *dev,
+@@ -640,9 +632,9 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 	 * need both handles, otherwise just one suffices.
+ 	 */
+ 	twl->irq_enabled = true;
+-	status = request_threaded_irq(twl->irq, NULL, twl4030_usb_irq,
+-			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING |
+-			IRQF_ONESHOT, "twl4030_usb", twl);
++	status = devm_request_threaded_irq(twl->dev, twl->irq, NULL,
++			twl4030_usb_irq, IRQF_TRIGGER_FALLING |
++			IRQF_TRIGGER_RISING | IRQF_ONESHOT, "twl4030_usb", twl);
+ 	if (status < 0) {
+ 		dev_dbg(&pdev->dev, "can't get IRQ %d, err %d\n",
+ 			twl->irq, status);
+@@ -663,7 +655,6 @@ static int __exit twl4030_usb_remove(struct platform_device *pdev)
+ 	struct twl4030_usb *twl = platform_get_drvdata(pdev);
+ 	int val;
  
- 	status = twl4030_usb_linkstat(twl);
-@@ -528,6 +529,7 @@ static void twl4030_usb_phy_init(struct twl4030_usb *twl)
- 		omap_musb_mailbox(twl->linkstat);
- 	}
- 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
-+	return 0;
+-	free_irq(twl->irq, twl);
+ 	device_remove_file(twl->dev, &dev_attr_vbus);
+ 
+ 	/* set transceiver mode to power on defaults */
+@@ -685,9 +676,6 @@ static int __exit twl4030_usb_remove(struct platform_device *pdev)
+ 
+ 	if (!twl->asleep)
+ 		twl4030_phy_power(twl, 0);
+-	regulator_put(twl->usb1v5);
+-	regulator_put(twl->usb1v8);
+-	regulator_put(twl->usb3v1);
+ 
+ 	return 0;
  }
- 
- static int twl4030_set_suspend(struct usb_phy *x, int suspend)
-@@ -604,6 +606,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	twl->phy.otg		= otg;
- 	twl->phy.type		= USB_PHY_TYPE_USB2;
- 	twl->phy.set_suspend	= twl4030_set_suspend;
-+	twl->phy.init		= twl4030_usb_phy_init;
- 
- 	otg->phy		= &twl->phy;
- 	otg->set_host		= twl4030_set_host;
-@@ -641,11 +644,6 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 		return status;
- 	}
- 
--	/* Power down phy or make it work according to
--	 * current link state.
--	 */
--	twl4030_usb_phy_init(twl);
+-- 
+1.7.10.4
+
