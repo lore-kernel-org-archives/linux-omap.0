@@ -1,103 +1,118 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 1/1] gpio: omap: dts: Move interrupt-controller from
- #interrupt-cells description
-Date: Fri, 15 Mar 2013 13:56:08 +0100
-Message-ID: <51431A68.5090605@ti.com>
-References: <1362430597-5855-1-git-send-email-javier.martinez@collabora.co.uk> <CAAwP0s1FynkxpFRK0oC7r2PAOQvxoATfrmU787n4k5PZmvt+XQ@mail.gmail.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCH 00/50] staging: omap-thermal: several code refactoring
+Date: Fri, 15 Mar 2013 08:59:48 -0400
+Message-ID: <1363352438-15935-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49752 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754221Ab3COM40 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Mar 2013 08:56:26 -0400
-In-Reply-To: <CAAwP0s1FynkxpFRK0oC7r2PAOQvxoATfrmU787n4k5PZmvt+XQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: gregkh@linuxfoundation.org
+Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Rob Landley <rob@landley.net>, Stephen Warren <swarren@nvidia.com>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Javier,
+Hello Greg,
 
-On 03/15/2013 01:18 PM, Javier Martinez Canillas wrote:
-> On Mon, Mar 4, 2013 at 9:56 PM, Javier Martinez Canillas
-> <javier.martinez@collabora.co.uk> wrote:
->> The binding documentation for the OMAP GPIO controller has the description
->> for the "#interrupt-cells" property after the "interrupt-controller".
->> This is confusing so is better to move the "interrupt-controller" after
->> "#interrupt-cells" description.
+Here is a series of patches improving the way the omap-thermal driver
+is written. There is a mix of added documentation, with functions rewrites
+and cleanups regarding coding style. I am also adding myself as maintainer
+of this driver.
 
-Mmm, your are doing the opposite  :-)
+Next I will be still improving the code in this way, but also working
+on the policy readiness and  testing on other devices. I will probably
+rename the driver also to something that reflect the support to AMxx devices
+as well.
 
-I guess what we do want is that:
+Hopefully, it should be soon ready for moving to drivers/thermal/.
 
-    gpio-controller;
-    #gpio-cells = <2>;
-    interrupt-controller;
-    #interrupt-cells = <2>;
+All these are based on your staging/staging-next branch.
 
-So we move "#interrupt-cells" after the "interrupt-controller" description.
+For those interested in testing and trying the driver, these patches are
+also available, as usual, here:
+git@gitorious.org:thermal-framework/thermal-framework.git thermal_work/omap/omap-thermal-optimizations
+https://git.gitorious.org/thermal-framework/thermal-framework.git thermal_work/omap/omap-thermal-optimizations
 
->> While being there, change the properties order to be consistent with
->> Documentation/devicetree/bindings/interrupt-controller/interrupts.txt and
->> Documentation/devicetree/bindings/gpio/gpio.txt.
->>
->> Reported-by: Stephen Warren <swarren@nvidia.com>
->> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
->> Acked-by: Jon Hunter <jon-hunter@ti.com>
->> ---
->>
->> Changes since v1:
->>   - Change the properties order to be consistent with the rest of the
->>     DT bindings docs suggested by Jon Hunter.
->>
->>  .../devicetree/bindings/gpio/gpio-omap.txt         |    8 ++++----
->>  1 files changed, 4 insertions(+), 4 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->> index bff51a2..a56e3a5 100644
->> --- a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->> @@ -5,12 +5,12 @@ Required properties:
->>    - "ti,omap2-gpio" for OMAP2 controllers
->>    - "ti,omap3-gpio" for OMAP3 controllers
->>    - "ti,omap4-gpio" for OMAP4 controllers
->> +- gpio-controller : Marks the device node as a GPIO controller.
->>  - #gpio-cells : Should be two.
->>    - first cell is the pin number
->>    - second cell is used to specify optional parameters (unused)
->> -- gpio-controller : Marks the device node as a GPIO controller.
->> +- interrupt-controller: Mark the device node as an interrupt controller.
->>  - #interrupt-cells : Should be 2.
->> -- interrupt-controller: Mark the device node as an interrupt controller
->>    The first cell is the GPIO number.
->>    The second cell is used to specify flags:
->>      bits[3:0] trigger type and level flags:
->> @@ -29,8 +29,8 @@ Example:
->>  gpio4: gpio4 {
->>      compatible = "ti,omap4-gpio";
->>      ti,hwmods = "gpio4";
->> -    #gpio-cells = <2>;
->>      gpio-controller;
->> -    #interrupt-cells = <2>;
->> +    #gpio-cells = <2>;
->>      interrupt-controller;
->> +    #interrupt-cells = <2>;
->>  };
->> --
->> 1.7.7.6
->>
-> 
-> Hello,
-> 
-> Any comments on this patch?
-> 
-> I know is just a trivial documentation fix but I think it can be quite
-> helpful for people referring to gpio-omap binding.
+For lo guys, I will appreciate your testing results on other devices.
 
-I do agree. The patch is good, but the changelog is confusing.
+Cheers,
 
-Regards,
-Benoit
+
+Eduardo Valentin (50):
+  staging: omap-thermal: use BIT() macro
+  staging: omap-thermal: remove unused _SHIFT macros
+  staging: omap-thermal: create header for register, bitfields and
+    definitions
+  staging: omap-thermal: update documentation of omap-bandgap.h
+  staging: omap-thermal: style cleanup on omap-bandgap.c
+  staging: omap-thermal: fix error checking
+  staging: omap-thermal: introduce RMW_BITS macro
+  staging: omap-thermal: add documentation for register access
+    functions
+  staging: omap-thermal: make a omap_bandgap_power with only one exit
+    point
+  staging: omap-thermal: add documentation for omap_bandgap_power
+  staging: omap-thermal: add documentation for omap_bandgap_read_temp
+  staging: omap-thermal: rename talert handler
+  staging: omap-thermal: update documentation for talert irq handler
+  staging: omap-thermal: update tshut IRQ handler documentation
+  staging: omap-thermal: remove duplicated code
+  staging: omap-thermal: read status only once inside alert IRQ
+  staging: omap-thermal: add a section of register manipulation
+  staging: omap-thermal: section of basic helpers
+  staging: omap-thermal: IRQ handler section
+  staging: omap-thermal: ADC section
+  staging: omap-thermal: name adc_to_temp_conversion in a better way
+  staging: omap-thermal: rewrite omap_bandgap_adc_to_mcelsius on kernel
+    coding style
+  staging: omap-thermal: add documentation for
+    omap_bandgap_adc_to_mcelsius
+  staging: omap-thermal: name temp_to_adc_conversion in a better way
+  staging: omap-thermal: rewrite omap_bandgap_mcelsius_to_adc on kernel
+    coding style
+  staging: omap-thermal: move conv table limits out of sensor data
+  staging: omap-thermal: add documentation for
+    omap_bandgap_mcelsius_to_adc
+  staging: omap-thermal: rename add_hyst to omap_bandgap_add_hyst
+  staging: omap-thermal: document omap_bandgap_add_hyst function
+  staging: omap-thermal: threshold manipulation section
+  staging: omap-thermal: refactor temp_sensor_unmask_interrupts
+  staging: omap-thermal: update omap_bandgap_unmask_interrupts
+    documentation
+  staging: omap-thermal: refactor APIs handling threshold values
+  staging: omap-thermal: device initialization section
+  staging: omap-thermal: section of device driver callbacks
+  staging: omap-thermal: rename enable_continuous_mode
+  staging: omap-thermal: update omap_bandgap_set_continous_mode
+    documentation
+  staging: omap-thermal: document omap_bandgap_force_single_read
+  staging: omap-thermal: document omap_bandgap_update_alert_threshold
+    function
+  staging: omap-thermal: document _omap_bandgap_write_threshold
+    function
+  staging: omap-thermal: document _omap_bandgap_read_threshold function
+  staging: omap-thermal: document omap_bandgap_tshut_init function
+  staging: omap-thermal: document omap_bandgap_alert_init function
+  staging: omap-thermal: document omap_bandgap_build function
+  staging: omap-thermal: change Kconfig dependency method
+  staging: Add a MAINTAINERS entry for TI bandgap and thermal driver
+  staging: omap-thermal: switch mutex to spinlock inside omap-bandgap
+  staging: omap-thermal: remove TODO entry suggesting regmap usage
+  staging: omap-thermal: remove TODO entry for exposed APIs
+  staging: omap-thermal: add documentation for omap_bandgap_validate
+
+ MAINTAINERS                                        |    6 +
+ drivers/staging/omap-thermal/Kconfig               |    2 +-
+ drivers/staging/omap-thermal/TODO                  |    4 -
+ drivers/staging/omap-thermal/omap-bandgap.c        |  793 +++++++++++---------
+ drivers/staging/omap-thermal/omap-bandgap.h        |  498 +++++--------
+ drivers/staging/omap-thermal/omap-thermal-common.c |    4 +-
+ drivers/staging/omap-thermal/omap4-thermal-data.c  |   11 +-
+ drivers/staging/omap-thermal/omap4xxx-bandgap.h    |  175 +++++
+ drivers/staging/omap-thermal/omap5-thermal-data.c  |    9 +-
+ drivers/staging/omap-thermal/omap5xxx-bandgap.h    |  199 +++++
+ 10 files changed, 1030 insertions(+), 671 deletions(-)
+ create mode 100644 drivers/staging/omap-thermal/omap4xxx-bandgap.h
+ create mode 100644 drivers/staging/omap-thermal/omap5xxx-bandgap.h
+
+-- 
+1.7.7.1.488.ge8e1c
 
