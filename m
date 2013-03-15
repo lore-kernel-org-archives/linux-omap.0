@@ -1,62 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: clocks: Pass static parent pointers
- to common clock core
-Date: Fri, 15 Mar 2013 09:20:50 -0700
-Message-ID: <20130315162049.GB9370@atomide.com>
-References: <1363264618-5071-1-git-send-email-rnayak@ti.com>
- <1363264618-5071-3-git-send-email-rnayak@ti.com>
- <20130314170601.GH26093@atomide.com>
- <514313B6.4050905@ti.com>
+Subject: Re: [GIT PULL] ARM: omap2: twl-common update
+Date: Fri, 15 Mar 2013 09:24:16 -0700
+Message-ID: <20130315162416.GC9370@atomide.com>
+References: <5142E376.9080407@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61575 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750821Ab3COQUy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 12:20:54 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:15116 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750903Ab3COQYW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 12:24:22 -0400
 Content-Disposition: inline
-In-Reply-To: <514313B6.4050905@ti.com>
+In-Reply-To: <5142E376.9080407@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, phaber@broadcom.com, Mike Turquette <mturquette@linaro.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Rajendra Nayak <rnayak@ti.com> [130315 05:31]:
-> On Thursday 14 March 2013 10:36 PM, Tony Lindgren wrote:
-> > * Rajendra Nayak <rnayak@ti.com> [130314 05:44]:
-> >> OMAP clock inits happen quite early, even before the slab is available.
-> >> As part of the clock init, the common clock core tries to cache parent
-> >> pointers (if not passed by the caller registering the clock) which
-> >> fails in case of OMAP since the slab isn't initied.
-> >> Without CONFIG_DEBUG_SLAB enabled, this just results in the common clock core
-> >> retrying the caching attempt at some point later.
-> >> However with CONFIG_DEBUG_SLAB enabled this results in a BUG() as reported
-> >> in the link below by Tony..
-> >> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85932.html
-> >>
-> >> Fix this by passing static parent pointers to the common clock core
-> >> while registering clocks.
-> > 
-> > I wonder if we could easily fix this by initializing only some of the
-> > clocks that early?
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [130315 02:05]:
+> Hi Tony,
 > 
-> We actually don't need any clocks that early (I mean even before slab init)
-> We only need them before timer init.
+> The branch is on top of today's mainline.
+> Is it still possible to send this for 3.9?
 
-Yes and only the timer clocks at that point. The others could be initialized
-later on so we get console error messages without having to turn on DEBUG_LL
-and earlyprintk.
+It seems that fixing reboot is a good reason to try to merge it during
+the -rc cycle. Is this a regression? If so it should mention what broke
+it.
+
+Also please base this on a recent mainline tag like v3.8 or v3.9-rc2..
  
-> This isn't something specific to OMAP so I started looking at what others
-> in drivers/clk seem to do.
+> The following changes since commit a2362d24764a4e9a3187fc46b14e1d2cd0657700:
 > 
-> I found imx, spear, mvebu all do their clk inits within .init_time callbacks.
-> tegra seems to even do it within .init_irq callback.
-> 
-> Either one would work for us too :)
+>   mm/fremap.c: fix possible oops on error path (2013-03-14 17:00:39 -0700)
 
-Well I suggest init_irq as that's when we need the first clocks for timer.
+..as this commit seems to be a random base and might cause confusion that
+there's some dependency to that patch.
 
 Regards,
 
 Tony
+ 
+> are available in the git repository at:
+> 
+>   git://gitorious.org/omap-audio/linux-audio.git peter/upstream/for-tony
+> 
+> for you to fetch changes up to 25d28e7988512eb4964eca5fc54a214ae69a7154:
+> 
+>   omap2: twl-common: Add default power configuration (2013-03-15 09:59:28 +0100)
+> 
+> ----------------------------------------------------------------
+> Matthias Brugger (1):
+>       omap2: twl-common: Add default power configuration
+> 
+>  arch/arm/mach-omap2/twl-common.c | 38 ++++++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/twl-common.h |  1 +
+>  2 files changed, 39 insertions(+)
