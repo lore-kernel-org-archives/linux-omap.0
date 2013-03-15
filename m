@@ -1,64 +1,78 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH V2 0/2] ASoC: OMAP2+: Update Audio IP with sDMA binding
- for DT boot
-Date: Fri, 15 Mar 2013 15:27:58 +0100
-Message-ID: <51432FEE.4060709@ti.com>
-References: <1362988223-22455-1-git-send-email-s-guiriec@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/4] usb: musb: gadget: do *unmap_dma_buffer* only for
+ valid DMA addr
+Date: Fri, 15 Mar 2013 16:30:24 +0200
+Message-ID: <20130315143023.GB23930@arwen.pp.htv.fi>
+References: <1363354132-27523-1-git-send-email-kishon@ti.com>
+ <1363354132-27523-2-git-send-email-kishon@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47412 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754767Ab3COO20 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Mar 2013 10:28:26 -0400
-In-Reply-To: <1362988223-22455-1-git-send-email-s-guiriec@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xXmbgvnjoT4axfJE"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1363354132-27523-2-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, notasas@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-Hi Seb,
+--xXmbgvnjoT4axfJE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 03/11/2013 08:50 AM, Sebastien Guiriec wrote:
-> This patch serie is converting OMAP Audio IPs in order to use OMAP sDMA DT
-> binding in case of DT boot on OMAP2+ platforms.
-> 
-> It is depending on the next patches:
-> 
-> [1] http://www.spinics.net/lists/arm-kernel/msg227836.html
-> [2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg84668.html
+On Fri, Mar 15, 2013 at 06:58:50PM +0530, Kishon Vijay Abraham I wrote:
+> musb does not use DMA buffer for ep0 but it uses the same giveback
+> function *musb_g_giveback* for all endpoints (*musb_g_ep0_giveback* calls
+> *musb_g_giveback*). So for ep0 case request.dma will be '0'
+> and will result in kernel OOPS if tried to *unmap_dma_buffer* for request=
+s in
+> ep0. Fixed it by doing *unmap_dma_buffer* only for valid DMA addr.
+>=20
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/usb/musb/musb_gadget.c |    5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadge=
+t.c
+> index c454375..ec3cf29 100644
+> --- a/drivers/usb/musb/musb_gadget.c
+> +++ b/drivers/usb/musb/musb_gadget.c
+> @@ -107,7 +107,10 @@ __acquires(ep->musb->lock)
+> =20
+>  	ep->busy =3D 1;
+>  	spin_unlock(&musb->lock);
+> -	unmap_dma_buffer(req, musb);
+> +
+> +	if (request->dma)
 
-I've just applied it in my for_3.10/dts branch on top of Jon's series
-that does add the SDMA binding.
+I have changed to if (!dma_mapping_error(request->dma)), is it alright ?
 
-Regards,
-Benoit
+--=20
+balbi
 
-> 
-> It has been tested on:
-> - OMAP5 (sEVM/panda)in DT boot (McPDM/DMIC).
-> - OMAP4 (SDP4430/Panda) in both DT/non DT boot (McPDM/DMIC)
-> - OMAP3 (Beagle XM) in both DT/non DT boot (McBSP)
-> 
-> Update since v1:
-> - Put DTS patch in first.
-> - Squash all OMAP IPs patch together.
-> 
-> Sebastien Guiriec (2):
->   ARM: dts: OMAP2+: Add SDMA Audio IPs bindings
->   ASoC: OMAP2+: Move McBSP, DMIC and McPDM to generic DMA DT binding
-> 
->  arch/arm/boot/dts/omap2420.dtsi |    6 ++++++
->  arch/arm/boot/dts/omap2430.dtsi |   15 +++++++++++++++
->  arch/arm/boot/dts/omap3.dtsi    |   15 +++++++++++++++
->  arch/arm/boot/dts/omap4.dtsi    |   17 +++++++++++++++++
->  arch/arm/boot/dts/omap5.dtsi    |   14 ++++++++++++++
->  sound/soc/omap/mcbsp.c          |   26 ++++++++++++++++----------
->  sound/soc/omap/omap-dmic.c      |   15 +++++++++------
->  sound/soc/omap/omap-mcpdm.c     |   22 ++++++++++++++--------
->  sound/soc/omap/omap-pcm.c       |   12 ++++++++++--
->  sound/soc/omap/omap-pcm.h       |    1 +
->  10 files changed, 117 insertions(+), 26 deletions(-)
-> 
+--xXmbgvnjoT4axfJE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRQzB/AAoJEIaOsuA1yqREFvMQAKEXjKgh7XGRRfzvKeGI5nZd
+f+n3tTFpOyUN4weTsvafIofY0mqbiEuQSN6iPcOKz1mPnfJemXTlmLLSNNR/tMO+
+tok6MKEkPFrFeaoDHJyLdestQDFfMDMR7y2TwntoZXLiKkGxrW72WMkRG/p/931T
+WH2mG64OpxDjKHQrngTG9fF39zPBAQjGGSD0laYT2lWg1RL0b7tEqMMLmP9xN4tm
+gMG6Ka+Su64odhcqLoyHZNVoD5vkCCXNiGoXi7heZY5IQ/uNqTjMHA4mhQaHD6A0
+18mM2QmGfbo0lZbpwwLc4fQ2pxGv8ceD4cubnlmZj7oGMfQ2yZPaDhuRdncrlLf7
+MqdzBQUxFjp+M34+S4RThJM0ZlmMQyBjbOHviMcEYIdAgImPc8BVrx2iiFqyoMWl
+5XpIi22s+eGaS9VIiO1gKDojnH9nVAQHV8DslfLzkVJVmoRrcPIeIu7lwI24vCCT
+9MejX1yHoGtvpGN8oTErlTzrzS/Ph5uBloohXi7n9Ebm5E8nLpSOLqI4YxDJQKsI
+RO/39K1/u7nGV563049PJOZ8BMhqaxetYxL0esZqVMMjtkUPleTNjYmNtwXeEPbi
+ONoMTesJJIODzeImifZdrkliuxhL26Ldkngl7MRrxNaUEqDJPQwaMavq28wgyIUk
+55czBhehZELNO0w9RNkr
+=1tik
+-----END PGP SIGNATURE-----
+
+--xXmbgvnjoT4axfJE--
