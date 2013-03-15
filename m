@@ -1,110 +1,73 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 06/23] ARM: OMAP3: 3430SDP: Adapt to ehci-omap changes
-Date: Fri, 15 Mar 2013 17:16:27 +0200
-Message-ID: <1363360604-21368-7-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 22/23] ARM: dts: OMAP3: Add HS USB Host IP nodes
+Date: Fri, 15 Mar 2013 17:16:43 +0200
+Message-ID: <1363360604-21368-23-git-send-email-rogerq@ti.com>
 References: <1363360604-21368-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363360604-21368-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rogerq@ti.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1363360604-21368-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add 2 platform devices for 'nop-usb-xceiv'. These will be used
-as PHYs for HS USB ports 1 and 2 so provide binding information
-for them.
+Adds device nodes for HS USB Host module, TLL module,
+OHCI and EHCI controllers.
 
-Use usbhs_init_phys() to register the PHY's RESET regulators.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+CC: Beno=C3=AEt Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |   47 ++++++++++++++++++++++++++++++----
- 1 files changed, 41 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/omap3.dtsi |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index ce812de..5584682 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -21,6 +21,7 @@
- #include <linux/spi/spi.h>
- #include <linux/i2c/twl.h>
- #include <linux/regulator/machine.h>
-+#include <linux/usb/phy.h>
- #include <linux/io.h>
- #include <linux/gpio.h>
- #include <linux/mmc/host.h>
-@@ -445,16 +446,37 @@ static void enable_board_wakeup_source(void)
- 		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
- }
- 
-+/* PHY device on HS USB Port 1 i.e. nop_usb_xceiv.1 */
-+static struct platform_device hsusb1_phy_device = {
-+	.name = "nop_usb_xceiv",
-+	.id = 1,
-+};
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dts=
+i
+index 1acc261..a14f74b 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -397,5 +397,36 @@
+ 			ti,timer-alwon;
+ 			ti,timer-secure;
+ 		};
 +
-+/* PHY device on HS USB Port 2 i.e. nop_usb_xceiv.2 */
-+static struct platform_device hsusb2_phy_device = {
-+	.name = "nop_usb_xceiv",
-+	.id = 2,
-+};
++		usbhstll: usbhstll@48062000 {
++			compatible =3D "ti,usbhs-tll";
++			reg =3D <0x48062000 0x1000>;
++			interrupts =3D <78>;
++			ti,hwmods =3D "usb_tll_hs";
++		};
 +
-+static struct usbhs_phy_data phy_data[] __initdata = {
-+	{
-+		.port = 1,
-+		.reset_gpio = 57,
-+		.vcc_gpio = -EINVAL,
-+		.phy_id = "nop_usb_xceiv.1",
-+	},
-+	{
-+		.port = 2,
-+		.reset_gpio = 61,
-+		.vcc_gpio = -EINVAL,
-+		.phy_id = "nop_usb_xceiv.2",
-+	},
-+};
++		usbhshost: usbhshost@48064000 {
++			compatible =3D "ti,usbhs-host";
++			reg =3D <0x48064000 0x400>;
++			ti,hwmods =3D "usb_host_hs";
++			#address-cells =3D <1>;
++			#size-cells =3D <1>;
++			ranges;
 +
- static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
- 
- 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
- 	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
--	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
--
--	.phy_reset  = true,
--	.reset_gpio_port[0]  = 57,
--	.reset_gpio_port[1]  = 61,
--	.reset_gpio_port[2]  = -EINVAL
++			usbhsohci: ohci@48064400 {
++				compatible =3D "ti,ohci-omap3", "usb-ohci";
++				reg =3D <0x48064400 0x400>;
++				interrupt-parent =3D <&intc>;
++				interrupts =3D <76>;
++			};
++
++			usbhsehci: ehci@48064800 {
++				compatible =3D "ti,ehci-omap", "usb-ehci";
++				reg =3D <0x48064800 0x400>;
++				interrupt-parent =3D <&intc>;
++				interrupts =3D <77>;
++			};
++		};
++
+ 	};
  };
- 
- #ifdef CONFIG_OMAP_MUX
-@@ -585,6 +607,11 @@ static struct flash_partitions sdp_flash_partitions[] = {
- 	},
- };
- 
-+static struct platform_device *sdp3430_devices[] __initdata = {
-+	&hsusb1_phy_device,
-+	&hsusb2_phy_device,
-+};
-+
- static void __init omap_3430sdp_init(void)
- {
- 	int gpio_pendown;
-@@ -606,6 +633,14 @@ static void __init omap_3430sdp_init(void)
- 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
- 	sdp3430_display_init();
- 	enable_board_wakeup_source();
-+
-+	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
-+	/* PHY on HSUSB Port 1 i.e. index 0 */
-+	usb_bind_phy("ehci-omap.0", 0, "nop_usb_xceiv.1");
-+	/* PHY on HSUSB Port 2 i.e. index 1 */
-+	usb_bind_phy("ehci-omap.0", 1, "nop_usb_xceiv.2");
-+
-+	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
- 	usbhs_init(&usbhs_bdata);
- }
- 
--- 
+--=20
 1.7.4.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
