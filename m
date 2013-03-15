@@ -1,73 +1,67 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 22/23] ARM: dts: OMAP3: Add HS USB Host IP nodes
-Date: Fri, 15 Mar 2013 17:16:43 +0200
-Message-ID: <1363360604-21368-23-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 20/23] ARM: dts: OMAP4: Add HS USB Host IP nodes
+Date: Fri, 15 Mar 2013 17:16:41 +0200
+Message-ID: <1363360604-21368-21-git-send-email-rogerq@ti.com>
 References: <1363360604-21368-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1363360604-21368-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1363360604-21368-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rogerq@ti.com, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 Adds device nodes for HS USB Host module, TLL module,
 OHCI and EHCI controllers.
 
-CC: Beno=C3=AEt Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+CC: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap3.dtsi |   31 +++++++++++++++++++++++++++++++
- 1 files changed, 31 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi |   30 ++++++++++++++++++++++++++++++
+ 1 files changed, 30 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dts=
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dts=
 i
-index 1acc261..a14f74b 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -397,5 +397,36 @@
- 			ti,timer-alwon;
- 			ti,timer-secure;
+index 739bb79..b7db1a2 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -529,5 +529,35 @@
+ 			ti,hwmods =3D "timer11";
+ 			ti,timer-pwm;
  		};
 +
-+		usbhstll: usbhstll@48062000 {
++		usbhstll: usbhstll@4a062000 {
 +			compatible =3D "ti,usbhs-tll";
-+			reg =3D <0x48062000 0x1000>;
-+			interrupts =3D <78>;
++			reg =3D <0x4a062000 0x1000>;
++			interrupts =3D <0 78 0x4>;
 +			ti,hwmods =3D "usb_tll_hs";
 +		};
 +
-+		usbhshost: usbhshost@48064000 {
++		usbhshost: usbhshost@4a064000 {
 +			compatible =3D "ti,usbhs-host";
-+			reg =3D <0x48064000 0x400>;
++			reg =3D <0x4a064000 0x800>;
 +			ti,hwmods =3D "usb_host_hs";
 +			#address-cells =3D <1>;
 +			#size-cells =3D <1>;
 +			ranges;
 +
-+			usbhsohci: ohci@48064400 {
++			usbhsohci: ohci@4a064800 {
 +				compatible =3D "ti,ohci-omap3", "usb-ohci";
-+				reg =3D <0x48064400 0x400>;
-+				interrupt-parent =3D <&intc>;
-+				interrupts =3D <76>;
++				reg =3D <0x4a064800 0x400>;
++				interrupt-parent =3D <&gic>;
++				interrupts =3D <0 76 0x4>;
 +			};
 +
-+			usbhsehci: ehci@48064800 {
++			usbhsehci: ehci@4a064c00 {
 +				compatible =3D "ti,ehci-omap", "usb-ehci";
-+				reg =3D <0x48064800 0x400>;
-+				interrupt-parent =3D <&intc>;
-+				interrupts =3D <77>;
++				reg =3D <0x4a064c00 0x400>;
++				interrupt-parent =3D <&gic>;
++				interrupts =3D <0 77 0x4>;
 +			};
 +		};
-+
  	};
  };
 --=20
 1.7.4.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
