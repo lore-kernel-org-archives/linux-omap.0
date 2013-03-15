@@ -1,67 +1,87 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 2/4] usb: otg: twl4030: use devres API for regulator
- get and request irq
-Date: Fri, 15 Mar 2013 14:05:33 +0200
-Message-ID: <20130315120533.GC21445@arwen.pp.htv.fi>
-References: <1363242239-1061-1-git-send-email-kishon@ti.com>
- <1363242239-1061-3-git-send-email-kishon@ti.com>
- <20130314154811.GA3001@arwen.pp.htv.fi>
- <CANOLnOMxej7dSbQeVKZEjEN+WAFR5qLz5hO0q8NiPvQguNKcgw@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH v2 1/1] gpio: omap: dts: Move interrupt-controller from
+ #interrupt-cells description
+Date: Fri, 15 Mar 2013 13:18:32 +0100
+Message-ID: <CAAwP0s1FynkxpFRK0oC7r2PAOQvxoATfrmU787n4k5PZmvt+XQ@mail.gmail.com>
+References: <1362430597-5855-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="f+W+jCU1fRNres8c"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CANOLnOMxej7dSbQeVKZEjEN+WAFR5qLz5hO0q8NiPvQguNKcgw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: balbi@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ia0-f172.google.com ([209.85.210.172]:58531 "EHLO
+	mail-ia0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754128Ab3COMSx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 08:18:53 -0400
+Received: by mail-ia0-f172.google.com with SMTP id l29so3170506iag.3
+        for <linux-omap@vger.kernel.org>; Fri, 15 Mar 2013 05:18:52 -0700 (PDT)
+In-Reply-To: <1362430597-5855-1-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Rob Landley <rob@landley.net>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>
 
---f+W+jCU1fRNres8c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, Mar 4, 2013 at 9:56 PM, Javier Martinez Canillas
+<javier.martinez@collabora.co.uk> wrote:
+> The binding documentation for the OMAP GPIO controller has the description
+> for the "#interrupt-cells" property after the "interrupt-controller".
+> This is confusing so is better to move the "interrupt-controller" after
+> "#interrupt-cells" description.
+>
+> While being there, change the properties order to be consistent with
+> Documentation/devicetree/bindings/interrupt-controller/interrupts.txt and
+> Documentation/devicetree/bindings/gpio/gpio.txt.
+>
+> Reported-by: Stephen Warren <swarren@nvidia.com>
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> Acked-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+>
+> Changes since v1:
+>   - Change the properties order to be consistent with the rest of the
+>     DT bindings docs suggested by Jon Hunter.
+>
+>  .../devicetree/bindings/gpio/gpio-omap.txt         |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+> index bff51a2..a56e3a5 100644
+> --- a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+> @@ -5,12 +5,12 @@ Required properties:
+>    - "ti,omap2-gpio" for OMAP2 controllers
+>    - "ti,omap3-gpio" for OMAP3 controllers
+>    - "ti,omap4-gpio" for OMAP4 controllers
+> +- gpio-controller : Marks the device node as a GPIO controller.
+>  - #gpio-cells : Should be two.
+>    - first cell is the pin number
+>    - second cell is used to specify optional parameters (unused)
+> -- gpio-controller : Marks the device node as a GPIO controller.
+> +- interrupt-controller: Mark the device node as an interrupt controller.
+>  - #interrupt-cells : Should be 2.
+> -- interrupt-controller: Mark the device node as an interrupt controller
+>    The first cell is the GPIO number.
+>    The second cell is used to specify flags:
+>      bits[3:0] trigger type and level flags:
+> @@ -29,8 +29,8 @@ Example:
+>  gpio4: gpio4 {
+>      compatible = "ti,omap4-gpio";
+>      ti,hwmods = "gpio4";
+> -    #gpio-cells = <2>;
+>      gpio-controller;
+> -    #interrupt-cells = <2>;
+> +    #gpio-cells = <2>;
+>      interrupt-controller;
+> +    #interrupt-cells = <2>;
+>  };
+> --
+> 1.7.7.6
+>
 
-On Fri, Mar 15, 2013 at 02:00:33PM +0200, Grazvydas Ignotas wrote:
-> On Thu, Mar 14, 2013 at 5:48 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Thu, Mar 14, 2013 at 11:53:57AM +0530, Kishon Vijay Abraham I wrote:
-> >> Used devres APIs devm_request_threaded_irq and devm_regulator_get for
-> >> requesting irq and for getting regulator respectively.
-> >>
-> >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> >
-> > please refresh this on top of my testing branch, you should be patching
-> > drivers/usb/phy/phy-twl4030-usb.c
->=20
-> Does that mean I need to rebase my series on your testing branch too?
+Hello,
 
-Oh yeah, sorry. Forgot to mention.
+Any comments on this patch?
 
---=20
-balbi
+I know is just a trivial documentation fix but I think it can be quite
+helpful for people referring to gpio-omap binding.
 
---f+W+jCU1fRNres8c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRQw6NAAoJEIaOsuA1yqRESh8P/0BxsL2+QVthi98K68/TCQp7
-/u/9iM/S4XIvzBG1yGMt1iIRbWOrZl1pSRevsFSzpsmUiA/TZ2k1Hds8Vb3M82xo
-Drg/Tu7uNoCoLKaKRw39g0DH/sBkgqA+uA0hY4B5az6ScgHrRUQGc0fCqsyttOHG
-dTbVYqXgqgciTVajAXjuIKAqVaG32tRo6Pi/4s9i3QiAoZo9f/dHRqKbHzyP9qmh
-2WUkdKU6O/2LGmGCTwf+6VZl2d+SKLD5ZT1CKQ8RXeGA4bRi0ZZn7vJZr8iZOpo4
-HPdmU19HheaqKIGYoiNg/Zn7I3IueQqJuzc7GwY7GdXDDGTYYymXrmHHuEVZgMak
-Jm8VWV4v9hRAKsCy08aXCCmsLNs6yxjBQBkl+yW1DLeoSLVwPDLEAlXKvxZjD0+D
-TN6wb9w8UnkzBuXZA0VY1g5jMZaLf8y8ZCnaMjLpPyAtO50u6qTX4YrkJSb3fWKq
-ZdSvnAt3T7xgW0i3hadHN9FNPTo6dRXnC1/ktwPSObpCNlkp6u4bmM1xF9vD1DP/
-HhJ5LRSThYXjEVK/VED++nbGbGmSGk1fixxg5F1aqgjM9duQ4ffhS2vvEWkWcknZ
-Sqc1FrIRFdVsE1uaVXJk30LnhWf4dbsgpM/w6Heg0cEv9Vii+qTHNIQ6swMkBGq2
-Ec9zliUZb/XJRqK/VD7Y
-=dQtc
------END PGP SIGNATURE-----
-
---f+W+jCU1fRNres8c--
+Best regards,
+Javier
