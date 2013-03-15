@@ -1,87 +1,58 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH v2 1/1] gpio: omap: dts: Move interrupt-controller from
- #interrupt-cells description
-Date: Fri, 15 Mar 2013 13:18:32 +0100
-Message-ID: <CAAwP0s1FynkxpFRK0oC7r2PAOQvxoATfrmU787n4k5PZmvt+XQ@mail.gmail.com>
-References: <1362430597-5855-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: clocks: Pass static parent pointers
+ to common clock core
+Date: Fri, 15 Mar 2013 17:57:34 +0530
+Message-ID: <514313B6.4050905@ti.com>
+References: <1363264618-5071-1-git-send-email-rnayak@ti.com> <1363264618-5071-3-git-send-email-rnayak@ti.com> <20130314170601.GH26093@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f172.google.com ([209.85.210.172]:58531 "EHLO
-	mail-ia0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754128Ab3COMSx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 08:18:53 -0400
-Received: by mail-ia0-f172.google.com with SMTP id l29so3170506iag.3
-        for <linux-omap@vger.kernel.org>; Fri, 15 Mar 2013 05:18:52 -0700 (PDT)
-In-Reply-To: <1362430597-5855-1-git-send-email-javier.martinez@collabora.co.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:58217 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754106Ab3COM1s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 08:27:48 -0400
+In-Reply-To: <20130314170601.GH26093@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Rob Landley <rob@landley.net>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, phaber@broadcom.com
 
-On Mon, Mar 4, 2013 at 9:56 PM, Javier Martinez Canillas
-<javier.martinez@collabora.co.uk> wrote:
-> The binding documentation for the OMAP GPIO controller has the description
-> for the "#interrupt-cells" property after the "interrupt-controller".
-> This is confusing so is better to move the "interrupt-controller" after
-> "#interrupt-cells" description.
->
-> While being there, change the properties order to be consistent with
-> Documentation/devicetree/bindings/interrupt-controller/interrupts.txt and
-> Documentation/devicetree/bindings/gpio/gpio.txt.
->
-> Reported-by: Stephen Warren <swarren@nvidia.com>
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> Acked-by: Jon Hunter <jon-hunter@ti.com>
-> ---
->
-> Changes since v1:
->   - Change the properties order to be consistent with the rest of the
->     DT bindings docs suggested by Jon Hunter.
->
->  .../devicetree/bindings/gpio/gpio-omap.txt         |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> index bff51a2..a56e3a5 100644
-> --- a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> @@ -5,12 +5,12 @@ Required properties:
->    - "ti,omap2-gpio" for OMAP2 controllers
->    - "ti,omap3-gpio" for OMAP3 controllers
->    - "ti,omap4-gpio" for OMAP4 controllers
-> +- gpio-controller : Marks the device node as a GPIO controller.
->  - #gpio-cells : Should be two.
->    - first cell is the pin number
->    - second cell is used to specify optional parameters (unused)
-> -- gpio-controller : Marks the device node as a GPIO controller.
-> +- interrupt-controller: Mark the device node as an interrupt controller.
->  - #interrupt-cells : Should be 2.
-> -- interrupt-controller: Mark the device node as an interrupt controller
->    The first cell is the GPIO number.
->    The second cell is used to specify flags:
->      bits[3:0] trigger type and level flags:
-> @@ -29,8 +29,8 @@ Example:
->  gpio4: gpio4 {
->      compatible = "ti,omap4-gpio";
->      ti,hwmods = "gpio4";
-> -    #gpio-cells = <2>;
->      gpio-controller;
-> -    #interrupt-cells = <2>;
-> +    #gpio-cells = <2>;
->      interrupt-controller;
-> +    #interrupt-cells = <2>;
->  };
-> --
-> 1.7.7.6
->
+On Thursday 14 March 2013 10:36 PM, Tony Lindgren wrote:
+> * Rajendra Nayak <rnayak@ti.com> [130314 05:44]:
+>> OMAP clock inits happen quite early, even before the slab is available.
+>> As part of the clock init, the common clock core tries to cache parent
+>> pointers (if not passed by the caller registering the clock) which
+>> fails in case of OMAP since the slab isn't initied.
+>> Without CONFIG_DEBUG_SLAB enabled, this just results in the common clock core
+>> retrying the caching attempt at some point later.
+>> However with CONFIG_DEBUG_SLAB enabled this results in a BUG() as reported
+>> in the link below by Tony..
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85932.html
+>>
+>> Fix this by passing static parent pointers to the common clock core
+>> while registering clocks.
+> 
+> I wonder if we could easily fix this by initializing only some of the
+> clocks that early?
 
-Hello,
+We actually don't need any clocks that early (I mean even before slab init)
+We only need them before timer init.
 
-Any comments on this patch?
+This isn't something specific to OMAP so I started looking at what others
+in drivers/clk seem to do.
 
-I know is just a trivial documentation fix but I think it can be quite
-helpful for people referring to gpio-omap binding.
+I found imx, spear, mvebu all do their clk inits within .init_time callbacks.
+tegra seems to even do it within .init_irq callback.
 
-Best regards,
-Javier
+Either one would work for us too :)
+
+> 
+> If we had a two stage initialization we could dynamically allocate the
+> rest of the parent clocks without having to add all the static data.
+> 
+> Regards,
+> 
+> Tony
+> 
+
