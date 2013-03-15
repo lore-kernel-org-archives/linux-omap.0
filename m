@@ -1,78 +1,71 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/4] usb: musb: gadget: do *unmap_dma_buffer* only for
- valid DMA addr
-Date: Fri, 15 Mar 2013 16:30:24 +0200
-Message-ID: <20130315143023.GB23930@arwen.pp.htv.fi>
-References: <1363354132-27523-1-git-send-email-kishon@ti.com>
- <1363354132-27523-2-git-send-email-kishon@ti.com>
-Reply-To: <balbi@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH V2 0/8] ARM: dts: Various OMAP2+ device-tree updates
+Date: Fri, 15 Mar 2013 15:30:44 +0100
+Message-ID: <51433094.1000104@ti.com>
+References: <1363355861-11773-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xXmbgvnjoT4axfJE"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1363354132-27523-2-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, notasas@gmail.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47543 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755132Ab3COObE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Mar 2013 10:31:04 -0400
+In-Reply-To: <1363355861-11773-1-git-send-email-jon-hunter@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
---xXmbgvnjoT4axfJE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Jon,
 
-On Fri, Mar 15, 2013 at 06:58:50PM +0530, Kishon Vijay Abraham I wrote:
-> musb does not use DMA buffer for ep0 but it uses the same giveback
-> function *musb_g_giveback* for all endpoints (*musb_g_ep0_giveback* calls
-> *musb_g_giveback*). So for ep0 case request.dma will be '0'
-> and will result in kernel OOPS if tried to *unmap_dma_buffer* for request=
-s in
-> ep0. Fixed it by doing *unmap_dma_buffer* only for valid DMA addr.
->=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/usb/musb/musb_gadget.c |    5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadge=
-t.c
-> index c454375..ec3cf29 100644
-> --- a/drivers/usb/musb/musb_gadget.c
-> +++ b/drivers/usb/musb/musb_gadget.c
-> @@ -107,7 +107,10 @@ __acquires(ep->musb->lock)
-> =20
->  	ep->busy =3D 1;
->  	spin_unlock(&musb->lock);
-> -	unmap_dma_buffer(req, musb);
-> +
-> +	if (request->dma)
+On 03/15/2013 02:57 PM, Jon Hunter wrote:
+> Various OMAP device-tree updates for PMU, DMA, GPIO, GPMC and boards.
+> 
+> The DMA, PMU and OMAP3430 SDP board changes have been sent before
+> individually but re-sending here as a complete series for v3.10.
+> 
+> This is based upon Benoit's for_3.10/dts branch [1]. Branch available
+> here [2].
+> 
+> V2 changes:
+> - Rebased on Benoit's for_3.10/dts branch
+> - Squashed patches adding support for OMAP3430 SDP board and patch
+>   to add flash support for OMAP3430 SDP board.
+> 
+> [1] http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.10/dts
+> [2] git://github.com/jonhunter/linux.git omap-dt-for-v3.10
 
-I have changed to if (!dma_mapping_error(request->dma)), is it alright ?
+Thanks for the repost. I've just applied your branch in my for_3.10/dts
+branch.
 
---=20
-balbi
+Regards,
+Benoit
 
---xXmbgvnjoT4axfJE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+> Jon Hunter (8):
+>   ARM: OMAP2+: Prepare for device-tree PMU support
+>   ARM: dts: OMAP2+: Add PMU nodes
+>   ARM: dts: OMAP2+: Add SDMA controller bindings and nodes
+>   ARM: dts: Add GPMC node for OMAP2, OMAP4 and OMAP5
+>   ARM: dts: Add OMAP2 gpio bindings
+>   ARM: dts: OMAP3+: Correct gpio #interrupts-cells property
+>   ARM: dts: OMAP3: Add reg and interrupt properties for gpio
+>   ARM: dts: OMAP3: Add support for OMAP3430 SDP board
+> 
+>  arch/arm/boot/dts/Makefile           |    1 +
+>  arch/arm/boot/dts/omap2.dtsi         |   17 ++++
+>  arch/arm/boot/dts/omap2420.dtsi      |   55 +++++++++++++
+>  arch/arm/boot/dts/omap2430.dtsi      |   66 ++++++++++++++++
+>  arch/arm/boot/dts/omap3.dtsi         |   70 +++++++++++++++--
+>  arch/arm/boot/dts/omap3430-sdp.dts   |  141 ++++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap4-panda-es.dts |    2 +
+>  arch/arm/boot/dts/omap4.dtsi         |   64 +++++++++++++--
+>  arch/arm/boot/dts/omap4460.dtsi      |   18 +++++
+>  arch/arm/boot/dts/omap5.dtsi         |   68 ++++++++++++++--
+>  arch/arm/mach-omap2/pmu.c            |   14 +++-
+>  11 files changed, 493 insertions(+), 23 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/omap3430-sdp.dts
+>  create mode 100644 arch/arm/boot/dts/omap4460.dtsi
+> 
 
-iQIcBAEBAgAGBQJRQzB/AAoJEIaOsuA1yqREFvMQAKEXjKgh7XGRRfzvKeGI5nZd
-f+n3tTFpOyUN4weTsvafIofY0mqbiEuQSN6iPcOKz1mPnfJemXTlmLLSNNR/tMO+
-tok6MKEkPFrFeaoDHJyLdestQDFfMDMR7y2TwntoZXLiKkGxrW72WMkRG/p/931T
-WH2mG64OpxDjKHQrngTG9fF39zPBAQjGGSD0laYT2lWg1RL0b7tEqMMLmP9xN4tm
-gMG6Ka+Su64odhcqLoyHZNVoD5vkCCXNiGoXi7heZY5IQ/uNqTjMHA4mhQaHD6A0
-18mM2QmGfbo0lZbpwwLc4fQ2pxGv8ceD4cubnlmZj7oGMfQ2yZPaDhuRdncrlLf7
-MqdzBQUxFjp+M34+S4RThJM0ZlmMQyBjbOHviMcEYIdAgImPc8BVrx2iiFqyoMWl
-5XpIi22s+eGaS9VIiO1gKDojnH9nVAQHV8DslfLzkVJVmoRrcPIeIu7lwI24vCCT
-9MejX1yHoGtvpGN8oTErlTzrzS/Ph5uBloohXi7n9Ebm5E8nLpSOLqI4YxDJQKsI
-RO/39K1/u7nGV563049PJOZ8BMhqaxetYxL0esZqVMMjtkUPleTNjYmNtwXeEPbi
-ONoMTesJJIODzeImifZdrkliuxhL26Ldkngl7MRrxNaUEqDJPQwaMavq28wgyIUk
-55czBhehZELNO0w9RNkr
-=1tik
------END PGP SIGNATURE-----
-
---xXmbgvnjoT4axfJE--
