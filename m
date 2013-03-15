@@ -1,250 +1,179 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 00/24] ARM: OMAP2+: Adapt to ehci-omap changes for 3.10
-Date: Fri, 15 Mar 2013 11:22:52 +0200
-Message-ID: <5142E86C.90805@ti.com>
-References: <1363088606-2692-1-git-send-email-rogerq@ti.com> <20130312164007.GZ26093@atomide.com> <5140821B.2030902@ti.com> <20130313162454.GE26093@atomide.com> <5140AAFD.4080508@ti.com> <20130313165729.GF26093@atomide.com> <5141EFAE.2040809@ti.com> <20130314165440.GG26093@atomide.com>
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: Re: [PATCH v3] drivers: video: use module_platform_driver_probe()
+Date: Fri, 15 Mar 2013 10:28:56 +0100
+Message-ID: <5142E9D8.5060801@atmel.com>
+References: <1363338019-13092-1-git-send-email-fabio.porcedda@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130314165440.GG26093@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, b-cousson@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:28201 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751965Ab3COJ3E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 05:29:04 -0400
+In-Reply-To: <1363338019-13092-1-git-send-email-fabio.porcedda@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Fabio Porcedda <fabio.porcedda@gmail.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, David Howells <dhowells@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 
-On 03/14/2013 06:54 PM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [130314 08:45]:
->>
->> OK. Let me know how the below patch looks. After that, the board code
->> will look like.
->>
->> static struct usbhs_phy_data phy_data[] = {
->> 	{
->> 		.reset_gpio = 147,
->> 		.vcc_gpio = 148
->> 		.vcc_polarity = 1,
->> 		.phy_id = "nop_usb_xceiv.2",
->> 	},
->> 	{}, /* Terminator */
->> };
->>
->> usbhs_init_phys(phy_data);
+On 03/15/2013 10:00 AM, Fabio Porcedda :
+> This patch converts the drivers to use the
+> module_platform_driver_probe() macro which makes the code smaller and
+> a bit simpler.
 > 
-> Great, looks good to me.
+> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+> Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+
+For atmel_lcdfb.c:
+
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+
+Thanks Fabio.
+
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: David Howells <dhowells@redhat.com>
+> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+> ---
+> 
+> Notes:
+>     v3:
+>      - add missing drivers: amifb, atmel_lcdfb, vrfb
+>      - split patch set to each maintainer to easy up respin
+>     v2:
+>      - rebased over linux-next and remove already converted drivers
+> 
+>  drivers/video/amifb.c          | 14 +-------------
+>  drivers/video/atmel_lcdfb.c    | 13 +------------
+>  drivers/video/omap2/vrfb.c     | 13 +------------
+>  drivers/video/sh_mipi_dsi.c    | 12 +-----------
+>  drivers/video/sh_mobile_hdmi.c | 12 +-----------
+>  5 files changed, 5 insertions(+), 59 deletions(-)
+> 
+> diff --git a/drivers/video/amifb.c b/drivers/video/amifb.c
+> index 7fa1bf8..03e2de2 100644
+> --- a/drivers/video/amifb.c
+> +++ b/drivers/video/amifb.c
+> @@ -3788,19 +3788,7 @@ static struct platform_driver amifb_driver = {
+>  	},
+>  };
 >  
->> Patch to implement usbhs_init_phys();
->>
->> diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
->> index 5706bdc..b9d6bff 100644
->> --- a/arch/arm/mach-omap2/usb-host.c
->> +++ b/arch/arm/mach-omap2/usb-host.c
->> @@ -22,8 +22,12 @@
->>  #include <linux/platform_device.h>
->>  #include <linux/slab.h>
->>  #include <linux/dma-mapping.h>
->> +#include <linux/regulator/machine.h>
->> +#include <linux/regulator/fixed.h>
->> +#include <linux/string.h>
->>  
->>  #include <asm/io.h>
->> +#include <asm/gpio.h>
-> 
-> Please change these both to linux/io.h and linux/gpio.h.
-
-OK.
-
->   
->>  #include "soc.h"
->>  #include "omap_device.h"
->> @@ -472,6 +476,141 @@ void __init setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
->>  	}
->>  }
->>  
->> +static const char *reset_supply = "reset";
->> +static const char *vcc_supply = "vcc";
->> +
->> +/* Template for PHY regulators */
->> +static struct regulator_consumer_supply hsusb_reg_supplies[] = {
->> +	{ /* .supply & .dev_name filled later */ },
->> +};
->> +
->> +static struct regulator_init_data hsusb_reg_data = {
->> +	.constraints = {
->> +		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
->> +	},
->> +	.consumer_supplies	= hsusb_reg_supplies,
->> +	.num_consumer_supplies	= ARRAY_SIZE(hsusb_reg_supplies),
->> +};
->> +
->> +static struct fixed_voltage_config hsusb_reg_config = {
->> +	/* .supply_name filled later */
->> +	.microvolts = 3300000,
->> +	.gpio = -1,		/* updated later */
->> +	.startup_delay = 70000, /* 70msec */
->> +	.enable_high = 1,	/* updated later */
->> +	.enabled_at_boot = 0,	/* keep in RESET */
->> +	/* .init_data filled later */
->> +};
->> +
->> +static struct platform_device_info hsusb_reg_pdev_info = {
->> +	.name	= "reg-fixed-voltage",
->> +	.id	= PLATFORM_DEVID_AUTO,
->> +};
->> +
->> +int __init usbhs_init_phys(struct usbhs_phy_data *phy)
->> +{
->> +	struct regulator_consumer_supply *supplies;
->> +	struct regulator_init_data *reg_data;
->> +	struct fixed_voltage_config *config;
->> +	char *supply_name;
->> +	int i;
->> +
->> +
->> +	for (i = 1; i <= OMAP3_HS_USB_PORTS; i++) {
-> 
-> Maybe pass the number of ports to initialize too to the
-> function? Might be more future proof, although it will only
-> be needed until we have converted to DT.
-> 
-
-OK. I'll add a port index parameter to the usbhs_phy_data structure
-to indicate which port the data belongs to and a number of ports
-to usbhs_init_phys()
-
-board code can then do
-
-static struct usbhs_phy_data phy_data[] = {
-	{
-		.port = 1,	/* First USB port */
-		.reset_gpio = 147,
-		.vcc_gpio = 148
-		.vcc_polarity = 1,
-		.phy_id = "nop_usb_xceiv.2",
-	},
-};
-
-usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
-
->> +
->> +		if (!phy->phy_id)	/* Terminator ? */
->> +			break;
->> +
->> +		if (!gpio_is_valid(phy->reset_gpio))
->> +			goto check_vcc;
->> +
->> +		supplies = kmemdup(hsusb_reg_supplies,
->> +			    ARRAY_SIZE(hsusb_reg_supplies) *
->> +			    sizeof(struct regulator_consumer_supply),
->> +			    GFP_KERNEL);
->> +		if (!supplies)
->> +			return -ENOMEM;
->> +
->> +		supplies->supply = reset_supply;
->> +		supplies->dev_name = phy->phy_id;
->> +
->> +		reg_data = kmemdup(&hsusb_reg_data, sizeof(hsusb_reg_data),
->> +							GFP_KERNEL);
->> +		if (!reg_data)
->> +			return -ENOMEM;
->> +
->> +		reg_data->consumer_supplies = supplies;
->> +
->> +		config = kmemdup(&hsusb_reg_config, sizeof(hsusb_reg_config),
->> +							GFP_KERNEL);
->> +		if (!config)
->> +			return -ENOMEM;
->> +
->> +		supply_name = kmalloc(14, GFP_KERNEL);
->> +		if (!supply_name)
->> +			return -ENOMEM;
->> +
->> +		scnprintf(supply_name, 13, "hsusb%d_reset", i);
->> +		config->supply_name = supply_name;
->> +		config->gpio = phy->reset_gpio;
->> +		config->init_data = reg_data;
->> +
->> +		hsusb_reg_pdev_info.data = config;
->> +		hsusb_reg_pdev_info.size_data = sizeof(hsusb_reg_config);
->> +		platform_device_register_full(&hsusb_reg_pdev_info);
->> +
->> +check_vcc:
->> +		if (!gpio_is_valid(phy->vcc_gpio))
->> +			goto next;
->> +
->> +		supplies = kmemdup(hsusb_reg_supplies,
->> +			    ARRAY_SIZE(hsusb_reg_supplies) *
->> +			    sizeof(struct regulator_consumer_supply),
->> +			    GFP_KERNEL);
->> +		if (!supplies)
->> +			return -ENOMEM;
->> +
->> +		supplies->supply = vcc_supply;
->> +		supplies->dev_name = phy->phy_id;
->> +
->> +		reg_data = kmemdup(&hsusb_reg_data, sizeof(hsusb_reg_data),
->> +							GFP_KERNEL);
->> +		if (!reg_data)
->> +			return -ENOMEM;
->> +
->> +		reg_data->consumer_supplies = supplies;
->> +
->> +		config = kmemdup(&hsusb_reg_config, sizeof(hsusb_reg_config),
->> +							GFP_KERNEL);
->> +		if (!config)
->> +			return -ENOMEM;
->> +
->> +		supply_name = kmalloc(14, GFP_KERNEL);
->> +		if (!supply_name)
->> +			return -ENOMEM;
->> +
->> +		scnprintf(supply_name, 13, "hsusb%d_vcc", i);
->> +		config->supply_name = supply_name;
->> +		config->gpio = phy->vcc_gpio;
->> +		config->enable_high = phy->vcc_polarity;
->> +		config->init_data = reg_data;
->> +
->> +		hsusb_reg_pdev_info.data = config;
->> +		hsusb_reg_pdev_info.size_data = sizeof(hsusb_reg_config);
->> +		platform_device_register_full(&hsusb_reg_pdev_info);
->> +
->> +next:
->> +		phy++;
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->>  void __init usbhs_init(struct usbhs_omap_platform_data *pdata)
->>  {
->>  	struct omap_hwmod	*uhh_hwm, *tll_hwm;
->> diff --git a/arch/arm/mach-omap2/usb.h b/arch/arm/mach-omap2/usb.h
->> index 3319f5c..70a8c63 100644
->> --- a/arch/arm/mach-omap2/usb.h
->> +++ b/arch/arm/mach-omap2/usb.h
->> @@ -53,8 +53,16 @@
->>  #define USBPHY_OTGSESSEND_EN	(1 << 20)
->>  #define USBPHY_DATA_POLARITY	(1 << 23)
->>  
->> +struct usbhs_phy_data {
->> +	int reset_gpio;
->> +	int vcc_gpio;
->> +	bool vcc_polarity;	/* 1 active high, 0 active low */
->> +	char *phy_id;
->> +};
->> +
->>  extern void usb_musb_init(struct omap_musb_board_data *board_data);
->>  extern void usbhs_init(struct usbhs_omap_platform_data *pdata);
->> +extern int usbhs_init_phys(struct usbhs_phy_data *phy);
-> 
-> Maybe need a static inline version when no EHCI is selected?
-> 
-Yes.
-
-> Otherwise looks good to me, thanks for updating it.
+> -static int __init amifb_init(void)
+> -{
+> -	return platform_driver_probe(&amifb_driver, amifb_probe);
+> -}
+> -
+> -module_init(amifb_init);
+> -
+> -static void __exit amifb_exit(void)
+> -{
+> -	platform_driver_unregister(&amifb_driver);
+> -}
+> -
+> -module_exit(amifb_exit);
+> +return module_platform_driver_probe(amifb_driver, amifb_probe);
+>  
+>  MODULE_LICENSE("GPL");
+>  MODULE_ALIAS("platform:amiga-video");
+> diff --git a/drivers/video/atmel_lcdfb.c b/drivers/video/atmel_lcdfb.c
+> index 12cf5f3..654e102 100644
+> --- a/drivers/video/atmel_lcdfb.c
+> +++ b/drivers/video/atmel_lcdfb.c
+> @@ -1150,18 +1150,7 @@ static struct platform_driver atmel_lcdfb_driver = {
+>  	},
+>  };
+>  
+> -static int __init atmel_lcdfb_init(void)
+> -{
+> -	return platform_driver_probe(&atmel_lcdfb_driver, atmel_lcdfb_probe);
+> -}
+> -
+> -static void __exit atmel_lcdfb_exit(void)
+> -{
+> -	platform_driver_unregister(&atmel_lcdfb_driver);
+> -}
+> -
+> -module_init(atmel_lcdfb_init);
+> -module_exit(atmel_lcdfb_exit);
+> +module_platform_driver_probe(atmel_lcdfb_driver, atmel_lcdfb_probe);
+>  
+>  MODULE_DESCRIPTION("AT91/AT32 LCD Controller framebuffer driver");
+>  MODULE_AUTHOR("Nicolas Ferre <nicolas.ferre@atmel.com>");
+> diff --git a/drivers/video/omap2/vrfb.c b/drivers/video/omap2/vrfb.c
+> index 10560ef..5261229 100644
+> --- a/drivers/video/omap2/vrfb.c
+> +++ b/drivers/video/omap2/vrfb.c
+> @@ -397,18 +397,7 @@ static struct platform_driver vrfb_driver = {
+>  	.remove		= __exit_p(vrfb_remove),
+>  };
+>  
+> -static int __init vrfb_init(void)
+> -{
+> -	return platform_driver_probe(&vrfb_driver, &vrfb_probe);
+> -}
+> -
+> -static void __exit vrfb_exit(void)
+> -{
+> -	platform_driver_unregister(&vrfb_driver);
+> -}
+> -
+> -module_init(vrfb_init);
+> -module_exit(vrfb_exit);
+> +module_platform_driver_probe(vrfb_driver, vrfb_probe);
+>  
+>  MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@ti.com>");
+>  MODULE_DESCRIPTION("OMAP VRFB");
+> diff --git a/drivers/video/sh_mipi_dsi.c b/drivers/video/sh_mipi_dsi.c
+> index 701b461..6cad530 100644
+> --- a/drivers/video/sh_mipi_dsi.c
+> +++ b/drivers/video/sh_mipi_dsi.c
+> @@ -581,17 +581,7 @@ static struct platform_driver sh_mipi_driver = {
+>  	},
+>  };
+>  
+> -static int __init sh_mipi_init(void)
+> -{
+> -	return platform_driver_probe(&sh_mipi_driver, sh_mipi_probe);
+> -}
+> -module_init(sh_mipi_init);
+> -
+> -static void __exit sh_mipi_exit(void)
+> -{
+> -	platform_driver_unregister(&sh_mipi_driver);
+> -}
+> -module_exit(sh_mipi_exit);
+> +module_platform_driver_probe(sh_mipi_driver, sh_mipi_probe);
+>  
+>  MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
+>  MODULE_DESCRIPTION("SuperH / ARM-shmobile MIPI DSI driver");
+> diff --git a/drivers/video/sh_mobile_hdmi.c b/drivers/video/sh_mobile_hdmi.c
+> index 930e550..bfe4728 100644
+> --- a/drivers/video/sh_mobile_hdmi.c
+> +++ b/drivers/video/sh_mobile_hdmi.c
+> @@ -1445,17 +1445,7 @@ static struct platform_driver sh_hdmi_driver = {
+>  	},
+>  };
+>  
+> -static int __init sh_hdmi_init(void)
+> -{
+> -	return platform_driver_probe(&sh_hdmi_driver, sh_hdmi_probe);
+> -}
+> -module_init(sh_hdmi_init);
+> -
+> -static void __exit sh_hdmi_exit(void)
+> -{
+> -	platform_driver_unregister(&sh_hdmi_driver);
+> -}
+> -module_exit(sh_hdmi_exit);
+> +module_platform_driver_probe(sh_hdmi_driver, sh_hdmi_probe);
+>  
+>  MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
+>  MODULE_DESCRIPTION("SuperH / ARM-shmobile HDMI driver");
 > 
 
-Cool. I'll update all boards and send it to you soon.
 
-cheers,
--roger
+-- 
+Nicolas Ferre
