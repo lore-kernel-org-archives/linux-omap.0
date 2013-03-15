@@ -1,55 +1,66 @@
-From: kishon <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 0/7] ARM: dts: omap: Add dts data for USB
-Date: Fri, 15 Mar 2013 19:03:04 +0530
-Message-ID: <51432310.7050201@ti.com>
-References: <1362663320-23799-1-git-send-email-kishon@ti.com>
- <514316FA.1090002@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 0/8] ARM: OMAP3+: Switch to use DT based cpu0-cpufreq
+ driver
+Date: Fri, 15 Mar 2013 08:52:27 -0500
+Message-ID: <20130315135227.GB2721@kahuna>
+References: <1363294695-658-1-git-send-email-nm@ti.com>
+ <5142443C.506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <514316FA.1090002-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <cpufreq-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5142443C.506@ti.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>, b@kahuna
+Cc: linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, cpufreq@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 15 March 2013 06:11 PM, Benoit Cousson wrote:
-> + Jon
->
-> Hi Kishon,
->
-> On 03/07/2013 02:35 PM, Kishon Vijay Abraham I wrote:
->> Hi Benoit,
->>
->> Here are the dt data patches to get usb device functional in OMAP platforms.
->>
->> All the patches deal with modifying arch/arm/boot except one which modifies
->> Documentation/../usb/omap-usb.txt
->>
->> Changes from v2:
->> * squashed the dt data for dwc3-omap with dwc3 core into a single patch.
->>
->> Changes from v1:
->> Patch *ARM: dts: omap: Add usb_otg and glue data* has some properties with
->> names that has "_". It's replaced with a "-" here.
->>
->> This patch is developed on Linux 3.9-rc1.
->
-> The patches looks really good. I've just had to rebase on top of my HEAD due to some conflict with GPMC patch already applied.
->
-> I cleaned as well some subject and changelog for consistency.
+On 16:42-20130314, Jon Hunter wrote:
+> 
+> On 03/14/2013 03:58 PM, Nishanth Menon wrote:
+> > The following series arose from trying to use BeagleBoard-XM (OMAP3 variant)
+> > for doing CPU DVFS using cpufreq-cpu0. This series will eventually result in
+> > migrating the cpufreq support only through device tree (part of the effort
+> > to migrate away from non-DT configurations for OMAP). Unfortunately, as already
+> > known, we have a bunch of legacy code and mutually dependent device tree
+> > conversion that is pending.
+> > Key features pending:
+> > A) clock framework transition to DT - this should happen soon, so this series hacks
+> > the clock node for the time being as suggested in review of original series
+> > B) on processors that use voltage controller, voltage processor (VC/VP hardware
+> > loop using I2C_SR path) - we have started work on transitioning them to regulator
+> > framework driven by DT.
+> > C) Adaptive Body Bias and SmartReflex AVS conversion to DT.
+> > 
+> > As a result of these pending features:
+> > - OMAP4 TWL6030 and TPS62361 which set voltage ONLY over I2C_SR have no regulators
+> > associated at the moment - fortunately, we boot at highest voltage, so things still
+> > work.
+> > - Missing ABB and AVS implies that for few of the SoCs (3630, OMAP4), I have not added
+> > those OPPs in DT yet - this also needs alignment with iMX, AM series like pending work,
+> > where certain OPPs need enabling based on efuse programmed bit sequences - since it
+> > is an add-on work, it is not addressed here.
+> > 
+> > Note: Somewhere in the future, when we have regulators driven off CCF and OMAP
+> > converted to CCF, we could remove the DT regulator requirements there as well.
+> 
+> OMAP has been converted to the common clock framework (CCF). Are you
+> referring to clock framework transition to DT or something else?
+I should have been explicit here - we do not have DT entries for clock
+nodes for OMAP. For example, compare:
+git grep clocks arch/arm/boot/dts/omap*.dts*
+Vs
+git grep clocks arch/arm/boot/dts/imx*.dts*
 
-Ok. Thanks :-)
+The specific comment above was intended to see the following series
+equivalent in upstream:
 
-Regards
-Kishon
+https://patchwork.kernel.org/patch/2195431/
+https://patchwork.kernel.org/patch/2195421/
+https://patchwork.kernel.org/patch/2195451/
+https://patchwork.kernel.org/patch/2195441/
+https://patchwork.kernel.org/patch/2195461/
+
+-- 
+Regards,
+Nishanth Menon
