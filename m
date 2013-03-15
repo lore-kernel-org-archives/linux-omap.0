@@ -1,57 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: omap2: twl-common update
-Date: Fri, 15 Mar 2013 09:24:16 -0700
-Message-ID: <20130315162416.GC9370@atomide.com>
-References: <5142E376.9080407@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH V2 0/2] ASoC: OMAP2+: Update Audio IP with sDMA binding
+ for DT boot
+Date: Fri, 15 Mar 2013 16:56:10 +0000
+Message-ID: <20130315165609.GB8988@opensource.wolfsonmicro.com>
+References: <1362988223-22455-1-git-send-email-s-guiriec@ti.com>
+ <51432FEE.4060709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zx4FCpZtqtKETZ7O"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:15116 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750903Ab3COQYW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 12:24:22 -0400
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:52390 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754767Ab3COQ4M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Mar 2013 12:56:12 -0400
 Content-Disposition: inline
-In-Reply-To: <5142E376.9080407@ti.com>
+In-Reply-To: <51432FEE.4060709@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Sebastien Guiriec <s-guiriec@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [130315 02:05]:
-> Hi Tony,
-> 
-> The branch is on top of today's mainline.
-> Is it still possible to send this for 3.9?
 
-It seems that fixing reboot is a good reason to try to merge it during
-the -rc cycle. Is this a regression? If so it should mention what broke
-it.
+--zx4FCpZtqtKETZ7O
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Also please base this on a recent mainline tag like v3.8 or v3.9-rc2..
- 
-> The following changes since commit a2362d24764a4e9a3187fc46b14e1d2cd0657700:
-> 
->   mm/fremap.c: fix possible oops on error path (2013-03-14 17:00:39 -0700)
+On Fri, Mar 15, 2013 at 03:27:58PM +0100, Benoit Cousson wrote:
 
-..as this commit seems to be a random base and might cause confusion that
-there's some dependency to that patch.
+> I've just applied it in my for_3.10/dts branch on top of Jon's series
+> that does add the SDMA binding.
 
-Regards,
+The ASoC side doesn't build at present due to an unmerged dependency.
 
-Tony
- 
-> are available in the git repository at:
-> 
->   git://gitorious.org/omap-audio/linux-audio.git peter/upstream/for-tony
-> 
-> for you to fetch changes up to 25d28e7988512eb4964eca5fc54a214ae69a7154:
-> 
->   omap2: twl-common: Add default power configuration (2013-03-15 09:59:28 +0100)
-> 
-> ----------------------------------------------------------------
-> Matthias Brugger (1):
->       omap2: twl-common: Add default power configuration
-> 
->  arch/arm/mach-omap2/twl-common.c | 38 ++++++++++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/twl-common.h |  1 +
->  2 files changed, 39 insertions(+)
+--zx4FCpZtqtKETZ7O
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRQ1KjAAoJELSic+t+oim9dt0P/398g+EhAYd1HJGB7M/Imo3D
+jtcs2lwHP5SE1r0xo/zzUZi4dS4G2fQhsZLiZZD2F0OR2HDXNjPIChWDbBufJ0S8
+9QgsCzXY4qJeMHFANx3qk0NLZd5vRlk6uAw6qgX+uNeMCdZ9jb+k3tSDmY7ghhNy
+eSN3IbsrK8H0WpZGvWqjeZu429UO4kp5JQwIMHkNcJW5wUm9iAfIkDleqbwcDJYa
+ZcLXcyig1SFmPGRSdzWgMS8IK7ha73ePKMtrVJ9+32FyS5/fmGRDMYwy+PaiybPa
+Ba9lS8iX3FuLfhLveGd4tKWcR6QOaXnW3IVkBCPKDGGwfoEVXEIjOBbPp/1lVxvd
+tvC/RkouKPs29w13ZzWVw2KaSEla7rEsb8ElpTlNEYgiirKCGEP1xrJ3cvGZx5vX
+ehLvi9IAtAaeTNpjcgXmbJ7a3Lcthfj+J9Ao2/ZhUKZOilNPPkmT4UAeyZ5Nc3jy
+m5ah4+MWBlHkTEExlMg64ertC1vjf88kM+YaCXl3z+M9il1YBsDxCXNaZ/w+bwut
+AUNdZHiejDxIrsKZpCAbvxVCqm6JQz72Q2H9/aIa1bj3sm3FN1bpsUAX3d2hW4TX
+KgiVdvWzCscV5+ZZV3KLPpltnBOcb6d+yGMAr358SaO4cFZOycEsKBEAA5uM+Hqo
+HMIPy2uHJvgS+NM2maVq
+=ztRf
+-----END PGP SIGNATURE-----
+
+--zx4FCpZtqtKETZ7O--
