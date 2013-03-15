@@ -1,100 +1,152 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 06/18] ARM: OMAP2+: Convert NAND to use gpmc_cs_program_settings()
-Date: Fri, 15 Mar 2013 10:21:04 -0500
-Message-ID: <1363360876-13617-7-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V3 05/18] ARM: OMAP2+: Convert ONENAND to use gpmc_cs_program_settings()
+Date: Fri, 15 Mar 2013 10:21:03 -0500
+Message-ID: <1363360876-13617-6-git-send-email-jon-hunter@ti.com>
 References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40842 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932065Ab3COPV5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 11:21:57 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:51012 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932065Ab3COPVw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Mar 2013 11:21:52 -0400
 In-Reply-To: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
 
-Convert the OMAP2+ NAND code to use the gpmc_cs_program_settings()
+Convert the OMAP2+ ONENAND code to use the gpmc_cs_program_settings()
 function for configuring the various GPMC options instead of directly
 programming the CONFIG1 register.
 
-This moves the configuration of some GPMC options outside the
-nand_gpmc_retime() because these options should only need to be set once
-regardless of whether the gpmc timing is changing dynamically at runtime.
-The programming of where the wait-pin is also moved slightly, but this
-will not have any impact to existing devices as no boards are currently
-setting the dev_ready variable.
-
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-nand.c |   35 +++++++++++++++++++++++------------
- 1 file changed, 23 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/gpmc-onenand.c |   61 +++++++++++++++---------------------
+ 1 file changed, 25 insertions(+), 36 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index e50e438..75feb95 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -74,14 +74,6 @@ static int omap2_nand_gpmc_retime(
- 	t.cs_wr_off = gpmc_t->cs_wr_off;
- 	t.wr_cycle = gpmc_t->wr_cycle;
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index e175ceb..46aac83 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -48,18 +48,22 @@ static struct platform_device gpmc_onenand_device = {
+ };
  
--	/* Configure GPMC */
--	if (gpmc_nand_data->devsize == NAND_BUSWIDTH_16)
--		gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_DEV_SIZE, 1);
--	else
--		gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_DEV_SIZE, 0);
--	gpmc_cs_configure(gpmc_nand_data->cs,
--			GPMC_CONFIG_DEV_TYPE, GPMC_DEVICETYPE_NAND);
--	gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_WP, 0);
- 	err = gpmc_cs_set_timings(gpmc_nand_data->cs, &t);
- 	if (err)
- 		return err;
-@@ -115,8 +107,11 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 		   struct gpmc_timings *gpmc_t)
+ static struct gpmc_settings onenand_async = {
++	.device_width	= GPMC_DEVWIDTH_16BIT,
+ 	.mux_add_data	= GPMC_MUX_AD,
+ };
+ 
+ static struct gpmc_settings onenand_sync = {
+ 	.burst_read	= true,
++	.burst_wrap	= true,
++	.burst_len	= GPMC_BURST_16,
++	.device_width	= GPMC_DEVWIDTH_16BIT,
+ 	.mux_add_data	= GPMC_MUX_AD,
++	.wait_pin	= 0,
+ };
+ 
+ static void omap2_onenand_calc_async_timings(struct gpmc_timings *t)
  {
- 	int err	= 0;
-+	struct gpmc_settings s;
- 	struct device *dev = &gpmc_nand_device.dev;
+ 	struct gpmc_device_timings dev_t;
+-
+ 	const int t_cer = 15;
+ 	const int t_avdp = 12;
+ 	const int t_aavdh = 7;
+@@ -86,16 +90,6 @@ static void omap2_onenand_calc_async_timings(struct gpmc_timings *t)
+ 	gpmc_calc_timings(t, &onenand_async, &dev_t);
+ }
  
-+	memset(&s, 0, sizeof(struct gpmc_settings));
-+
- 	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
+-static int gpmc_set_async_mode(int cs, struct gpmc_timings *t)
+-{
+-	/* Configure GPMC for asynchronous read */
+-	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
+-			  GPMC_CONFIG1_DEVICESIZE_16 |
+-			  GPMC_CONFIG1_MUXADDDATA);
+-
+-	return gpmc_cs_set_timings(cs, t);
+-}
+-
+ static void omap2_onenand_set_async_mode(void __iomem *onenand_base)
+ {
+ 	u32 reg;
+@@ -243,8 +237,11 @@ static void omap2_onenand_calc_sync_timings(struct gpmc_timings *t,
+ 	/* Set synchronous read timings */
+ 	memset(&dev_t, 0, sizeof(dev_t));
  
- 	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
-@@ -141,11 +136,27 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 			dev_err(dev, "Unable to set gpmc timings: %d\n", err);
- 			return err;
- 		}
--	}
++	if (onenand_flags & ONENAND_FLAG_SYNCREAD)
++		onenand_sync.sync_read = true;
+ 	if (onenand_flags & ONENAND_FLAG_SYNCWRITE) {
+ 		onenand_sync.sync_write = true;
++		onenand_sync.burst_write = true;
+ 	} else {
+ 		dev_t.t_avdp_w = max(t_avdp, t_cer) * 1000;
+ 		dev_t.t_wpl = t_wpl * 1000;
+@@ -270,29 +267,6 @@ static void omap2_onenand_calc_sync_timings(struct gpmc_timings *t,
+ 	gpmc_calc_timings(t, &onenand_sync, &dev_t);
+ }
  
--	/* Enable RD PIN Monitoring Reg */
--	if (gpmc_nand_data->dev_ready) {
--		gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_RDY_BSY, 1);
-+		s.device_nand = true;
+-static int gpmc_set_sync_mode(int cs, struct gpmc_timings *t)
+-{
+-	unsigned sync_read = onenand_flags & ONENAND_FLAG_SYNCREAD;
+-	unsigned sync_write = onenand_flags & ONENAND_FLAG_SYNCWRITE;
+-
+-	/* Configure GPMC for synchronous read */
+-	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
+-			  GPMC_CONFIG1_WRAPBURST_SUPP |
+-			  GPMC_CONFIG1_READMULTIPLE_SUPP |
+-			  (sync_read ? GPMC_CONFIG1_READTYPE_SYNC : 0) |
+-			  (sync_write ? GPMC_CONFIG1_WRITEMULTIPLE_SUPP : 0) |
+-			  (sync_write ? GPMC_CONFIG1_WRITETYPE_SYNC : 0) |
+-			  GPMC_CONFIG1_PAGE_LEN(2) |
+-			  (cpu_is_omap34xx() ? 0 :
+-				(GPMC_CONFIG1_WAIT_READ_MON |
+-				 GPMC_CONFIG1_WAIT_PIN_SEL(0))) |
+-			  GPMC_CONFIG1_DEVICESIZE_16 |
+-			  GPMC_CONFIG1_DEVICETYPE_NOR |
+-			  GPMC_CONFIG1_MUXADDDATA);
+-
+-	return gpmc_cs_set_timings(cs, t);
+-}
+-
+ static int omap2_onenand_setup_async(void __iomem *onenand_base)
+ {
+ 	struct gpmc_timings t;
+@@ -302,7 +276,11 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
+ 
+ 	omap2_onenand_calc_async_timings(&t);
+ 
+-	ret = gpmc_set_async_mode(gpmc_onenand_data->cs, &t);
++	ret = gpmc_cs_program_settings(gpmc_onenand_data->cs, &onenand_async);
++	if (ret < 0)
++		return ret;
 +
-+		/* Enable RD PIN Monitoring Reg */
-+		if (gpmc_nand_data->dev_ready) {
-+			s.wait_on_read = true;
-+			s.wait_on_write = true;
-+		}
-+
-+		if (gpmc_nand_data->devsize == NAND_BUSWIDTH_16)
-+			s.device_width = GPMC_DEVWIDTH_16BIT;
-+		else
-+			s.device_width = GPMC_DEVWIDTH_8BIT;
-+
-+		err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
-+		if (err < 0)
-+			goto out_free_cs;
-+
-+		err = gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_WP, 0);
-+		if (err < 0)
-+			goto out_free_cs;
++	ret = gpmc_cs_set_timings(gpmc_onenand_data->cs, &t);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -322,9 +300,20 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
+ 		set_onenand_cfg(onenand_base);
  	}
  
- 	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
++	/*
++	 * FIXME: Appears to be legacy code from initial ONENAND commit.
++	 * Unclear what boards this is for and if this can be removed.
++	 */
++	if (!cpu_is_omap34xx())
++		onenand_sync.wait_on_read = true;
++
+ 	omap2_onenand_calc_sync_timings(&t, gpmc_onenand_data->flags, freq);
+ 
+-	ret = gpmc_set_sync_mode(gpmc_onenand_data->cs, &t);
++	ret = gpmc_cs_program_settings(gpmc_onenand_data->cs, &onenand_sync);
++	if (ret < 0)
++		return ret;
++
++	ret = gpmc_cs_set_timings(gpmc_onenand_data->cs, &t);
+ 	if (ret < 0)
+ 		return ret;
+ 
 -- 
 1.7.10.4
 
