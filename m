@@ -1,71 +1,57 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH V2 0/8] ARM: dts: Various OMAP2+ device-tree updates
-Date: Fri, 15 Mar 2013 15:30:44 +0100
-Message-ID: <51433094.1000104@ti.com>
-References: <1363355861-11773-1-git-send-email-jon-hunter@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/8] ARM: dts: OMAP36xx: move CPU OPP tables to device
+ tree
+Date: Fri, 15 Mar 2013 09:38:07 -0500
+Message-ID: <20130315143806.GA3103@kahuna>
+References: <1363294695-658-1-git-send-email-nm@ti.com>
+ <1363294695-658-3-git-send-email-nm@ti.com>
+ <514244B4.9050808@ti.com>
+ <20130315135655.GA2939@kahuna>
+ <51432F94.7000306@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47543 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755132Ab3COObE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Mar 2013 10:31:04 -0400
-In-Reply-To: <1363355861-11773-1-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <cpufreq-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51432F94.7000306@ti.com>
+Sender: cpufreq-owner@vger.kernel.org
 To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Hi Jon,
+On 09:26-20130315, Jon Hunter wrote:
+> 
+> On 03/15/2013 08:56 AM, Nishanth Menon wrote:
+> > On 16:44-20130314, Jon Hunter wrote:
+> >>
+> >> On 03/14/2013 03:58 PM, Nishanth Menon wrote:
+> >>> Add DT OPP table for OMAP36xx family of devices. This data is
+> >>> decoded by OF with of_init_opp_table() helper function. This
+> >>> overrides the default OMAP34xx CPU OPP table definition.
+> >>
+> >> Not sure I following the last sentence. The tables are in a different
+> >> dtsi file and only the relevant file should be included, right?
+> > omap3630.dsi includes omap3.dtsi (which is meant for OMAP34xx).
+> > The opp tables introduced by this patch in omap36xx.dtsi will override
+> > the ones defined on omap3.dtsi. Will the following rephrase help clarify
+> > this?
+> > 
+> > Original:
+> > This overrides the default OMAP34xx CPU OPP table definition.
+> > Suggested;
+> > This overrides the default OMAP34xx CPU OPP table definition in
+> > omap3.dtsi.
+> 
+> Sorry, I just missed that the omap3430 opps were in omap3.dtsi and not
+> omap34xx.dtsi. I guess I am not familiar with how the DTC overrides
+> nodes, however, at least from a readability standpoint it would seem
+> nice to have the omap3430 opps in a omap3430 specific dtsi and not
+> omap3.dtsi. However, thats just my opinion.
+most of omap3630 is based off omap3430. I know from an readability point
+of view, it might have been good to split that to omap3-common.dtsi,
+omap34xx.dtsi, omap36xx.dtsi etc.. But there is no real need at this
+point in time to do that. Unless, ofcourse, we'd like to set that up as
+an standard for all OMAP SoCs...
 
-On 03/15/2013 02:57 PM, Jon Hunter wrote:
-> Various OMAP device-tree updates for PMU, DMA, GPIO, GPMC and boards.
-> 
-> The DMA, PMU and OMAP3430 SDP board changes have been sent before
-> individually but re-sending here as a complete series for v3.10.
-> 
-> This is based upon Benoit's for_3.10/dts branch [1]. Branch available
-> here [2].
-> 
-> V2 changes:
-> - Rebased on Benoit's for_3.10/dts branch
-> - Squashed patches adding support for OMAP3430 SDP board and patch
->   to add flash support for OMAP3430 SDP board.
-> 
-> [1] http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.10/dts
-> [2] git://github.com/jonhunter/linux.git omap-dt-for-v3.10
-
-Thanks for the repost. I've just applied your branch in my for_3.10/dts
-branch.
-
+-- 
 Regards,
-Benoit
-
-
-> Jon Hunter (8):
->   ARM: OMAP2+: Prepare for device-tree PMU support
->   ARM: dts: OMAP2+: Add PMU nodes
->   ARM: dts: OMAP2+: Add SDMA controller bindings and nodes
->   ARM: dts: Add GPMC node for OMAP2, OMAP4 and OMAP5
->   ARM: dts: Add OMAP2 gpio bindings
->   ARM: dts: OMAP3+: Correct gpio #interrupts-cells property
->   ARM: dts: OMAP3: Add reg and interrupt properties for gpio
->   ARM: dts: OMAP3: Add support for OMAP3430 SDP board
-> 
->  arch/arm/boot/dts/Makefile           |    1 +
->  arch/arm/boot/dts/omap2.dtsi         |   17 ++++
->  arch/arm/boot/dts/omap2420.dtsi      |   55 +++++++++++++
->  arch/arm/boot/dts/omap2430.dtsi      |   66 ++++++++++++++++
->  arch/arm/boot/dts/omap3.dtsi         |   70 +++++++++++++++--
->  arch/arm/boot/dts/omap3430-sdp.dts   |  141 ++++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap4-panda-es.dts |    2 +
->  arch/arm/boot/dts/omap4.dtsi         |   64 +++++++++++++--
->  arch/arm/boot/dts/omap4460.dtsi      |   18 +++++
->  arch/arm/boot/dts/omap5.dtsi         |   68 ++++++++++++++--
->  arch/arm/mach-omap2/pmu.c            |   14 +++-
->  11 files changed, 493 insertions(+), 23 deletions(-)
->  create mode 100644 arch/arm/boot/dts/omap3430-sdp.dts
->  create mode 100644 arch/arm/boot/dts/omap4460.dtsi
-> 
-
+Nishanth Menon
