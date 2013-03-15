@@ -1,73 +1,102 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/8] ARM: dts: OMAP36xx: move CPU OPP tables to device tree
-Date: Fri, 15 Mar 2013 10:02:32 -0500
-Message-ID: <20130315150232.GB3297@kahuna>
-References: <1363294695-658-1-git-send-email-nm@ti.com>
- <1363294695-658-3-git-send-email-nm@ti.com>
- <514244B4.9050808@ti.com> <20130315135655.GA2939@kahuna>
- <51432F94.7000306@ti.com> <20130315143806.GA3103@kahuna>
- <51433723.20107@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 00/23] ARM: OMAP2+: Adapt to ehci-omap changes for 3.10
+Date: Fri, 15 Mar 2013 17:16:21 +0200
+Message-ID: <1363360604-21368-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <51433723.20107@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Shawn Guo <shawn.guo@linaro.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-pm@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, cpufreq@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09:58-20130315, Jon Hunter wrote:
-> 
-> On 03/15/2013 09:38 AM, Nishanth Menon wrote:
-> > On 09:26-20130315, Jon Hunter wrote:
-> >>
-> >> On 03/15/2013 08:56 AM, Nishanth Menon wrote:
-> >>> On 16:44-20130314, Jon Hunter wrote:
-> >>>>
-> >>>> On 03/14/2013 03:58 PM, Nishanth Menon wrote:
-> >>>>> Add DT OPP table for OMAP36xx family of devices. This data is
-> >>>>> decoded by OF with of_init_opp_table() helper function. This
-> >>>>> overrides the default OMAP34xx CPU OPP table definition.
-> >>>>
-> >>>> Not sure I following the last sentence. The tables are in a different
-> >>>> dtsi file and only the relevant file should be included, right?
-> >>> omap3630.dsi includes omap3.dtsi (which is meant for OMAP34xx).
-> >>> The opp tables introduced by this patch in omap36xx.dtsi will override
-> >>> the ones defined on omap3.dtsi. Will the following rephrase help clarify
-> >>> this?
-> >>>
-> >>> Original:
-> >>> This overrides the default OMAP34xx CPU OPP table definition.
-> >>> Suggested;
-> >>> This overrides the default OMAP34xx CPU OPP table definition in
-> >>> omap3.dtsi.
-> >>
-> >> Sorry, I just missed that the omap3430 opps were in omap3.dtsi and not
-> >> omap34xx.dtsi. I guess I am not familiar with how the DTC overrides
-> >> nodes, however, at least from a readability standpoint it would seem
-> >> nice to have the omap3430 opps in a omap3430 specific dtsi and not
-> >> omap3.dtsi. However, thats just my opinion.
-> > most of omap3630 is based off omap3430. I know from an readability point
-> > of view, it might have been good to split that to omap3-common.dtsi,
-> > omap34xx.dtsi, omap36xx.dtsi etc.. But there is no real need at this
-> > point in time to do that. Unless, ofcourse, we'd like to set that up as
-> > an standard for all OMAP SoCs...
-> 
-> How would omap3-common.dtsi be any different from omap3.dtsi? I don't
-> wish us to go nuts with creating dtsi files either, but having an
-> omap3430.dtsi does not seem unreasonable to me, but that is just my opinion.
-considering omap34xx variants, omap343x.dtsi ;). Will do in v2.
+Hi Tony,
+
+These patches provide the SoC side code required to support
+the changes in the OMAP USB Host drivers done in [1], [2] & [3].
+
+Device tree support is added for Beagleboard and Panda.
+
+NOTE: The first patch needs to be shared between the
+OMAP tree and Felipe's USB tree.
+
+v2:
+- Added helper function usbhs_init_phys() that can be used by board files
+to simplify adding of PHY regulators for USB host ports.
+
+[1] MFD side changes to omap-usb-host and omap-usb-tll
+  https://lkml.org/lkml/2013/3/12/179
+[2] USB EHCI side changes to ehci-omap 
+  http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg86265.html
+[3] USB PHY driver changes
+  http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg86293.html
+
+The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b6ec9:
+
+  Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
+
+are available in the git repository at:
+  git://github.com/rogerq/linux.git usbhost-arm-next
+
+Roger Quadros (23):
+  usb: phy: nop: Add some parameters to platform data
+  ARM: OMAP2+: omap-usb-host: Add usbhs_init_phys()
+  ARM: OMAP2+: omap4panda: Provide USB Host's PHY platform data
+  ARM: OMAP2+: omap4panda: Adapt to ehci-omap changes
+  ARM: OMAP3: Beagle: Adapt to ehci-omap changes
+  ARM: OMAP3: 3430SDP: Adapt to ehci-omap changes
+  ARM: OMAP3: 3630SDP: Adapt to ehci-omap changes
+  ARM: OMAP: AM3517crane: Adapt to ehci-omap changes
+  ARM: OMAP: AM3517evm: Adapt to ehci-omap changes
+  ARM: OMAP3: cm-t35: Adapt to ehci-omap changes
+  ARM: OMAP3: cm-t3517: Adapt to ehci-omap changes
+  ARM: OMAP: devkit8000: Adapt to ehci-omap changes
+  ARM: OMAP3: igep0020: Adapt to ehci-omap changes
+  ARM: OMAP3: omap3evm: Adapt to ehci-omap changes
+  ARM: OMAP3: omap3pandora: Adapt to ehci-omap changes
+  ARM: OMAP3: omap3stalker: Adapt to ehci-omap changes
+  ARM: OMAP3: omap3touchbook: Adapt to ehci-omap changes
+  ARM: OMAP3: overo: Adapt to ehci-omap changes
+  ARM: OMAP: zoom: Adapt to ehci-omap changes
+  ARM: dts: OMAP4: Add HS USB Host IP nodes
+  ARM: dts: omap4-panda: Add USB Host support
+  ARM: dts: OMAP3: Add HS USB Host IP nodes
+  ARM: dts: omap3-beagle: Add USB Host support
+
+ arch/arm/boot/dts/omap3-beagle.dts         |   71 ++++++++++++++
+ arch/arm/boot/dts/omap3.dtsi               |   31 ++++++
+ arch/arm/boot/dts/omap4-panda.dts          |   56 +++++++++++
+ arch/arm/boot/dts/omap4.dtsi               |   30 ++++++
+ arch/arm/mach-omap2/board-3430sdp.c        |   47 ++++++++-
+ arch/arm/mach-omap2/board-3630sdp.c        |   48 +++++++++-
+ arch/arm/mach-omap2/board-am3517crane.c    |   38 +++++---
+ arch/arm/mach-omap2/board-am3517evm.c      |   41 +++++++-
+ arch/arm/mach-omap2/board-cm-t35.c         |   45 ++++++++-
+ arch/arm/mach-omap2/board-cm-t3517.c       |   45 ++++++++-
+ arch/arm/mach-omap2/board-devkit8000.c     |   20 +++--
+ arch/arm/mach-omap2/board-igep0020.c       |   66 +++++++++++---
+ arch/arm/mach-omap2/board-omap3beagle.c    |   44 +++++++--
+ arch/arm/mach-omap2/board-omap3evm.c       |   41 ++++++---
+ arch/arm/mach-omap2/board-omap3pandora.c   |   31 +++++--
+ arch/arm/mach-omap2/board-omap3stalker.c   |   29 +++++--
+ arch/arm/mach-omap2/board-omap3touchbook.c |   38 ++++++--
+ arch/arm/mach-omap2/board-omap4panda.c     |   67 +++++++-------
+ arch/arm/mach-omap2/board-overo.c          |   32 +++++-
+ arch/arm/mach-omap2/board-zoom.c           |   32 +++++-
+ arch/arm/mach-omap2/usb-host.c             |  138 +++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/usb.h                  |    9 ++
+ include/linux/usb/nop-usb-xceiv.h          |    5 +
+ 23 files changed, 849 insertions(+), 155 deletions(-)
 
 -- 
-Regards,
-Nishanth Menon
+1.7.4.1
