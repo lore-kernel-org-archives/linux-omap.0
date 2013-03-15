@@ -1,56 +1,93 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net PATCH 1/1] drivers: net: ethernet: ti: davinci_emac: fix usage of cpdma_check_free_tx_desc()
-Date: Fri, 15 Mar 2013 19:40:16 +0530
-Message-ID: <1363356616-32480-1-git-send-email-mugunthanvnm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 0/8] ARM: OMAP3+: Switch to use DT based cpu0-cpufreq
+ driver
+Date: Fri, 15 Mar 2013 09:21:57 -0500
+Message-ID: <20130315142157.GC2939@kahuna>
+References: <1363294695-658-1-git-send-email-nm@ti.com>
+ <5142AF41.7070003@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53416 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753551Ab3COOLo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Mar 2013 10:11:44 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:35912 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754507Ab3COOWE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 10:22:04 -0400
+Content-Disposition: inline
+In-Reply-To: <5142AF41.7070003@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
 
-Fix which was done in the following commit in cpsw driver has
-to be taken forward to davinci emac driver as well.
+On 10:48-20130315, Santosh Shilimkar wrote:
+> On Friday 15 March 2013 02:28 AM, Nishanth Menon wrote:
+> > The following series arose from trying to use BeagleBoard-XM (OMAP3 variant)
+> > for doing CPU DVFS using cpufreq-cpu0. This series will eventually result in
+> > migrating the cpufreq support only through device tree (part of the effort
+> > to migrate away from non-DT configurations for OMAP). Unfortunately, as already
+> > known, we have a bunch of legacy code and mutually dependent device tree
+> > conversion that is pending.
+> > Key features pending:
+> > A) clock framework transition to DT - this should happen soon, so this series hacks
+> > the clock node for the time being as suggested in review of original series
+> > B) on processors that use voltage controller, voltage processor (VC/VP hardware
+> > loop using I2C_SR path) - we have started work on transitioning them to regulator
+> > framework driven by DT.
+> > C) Adaptive Body Bias and SmartReflex AVS conversion to DT.
+> > 
+> > As a result of these pending features:
+> > - OMAP4 TWL6030 and TPS62361 which set voltage ONLY over I2C_SR have no regulators
+> > associated at the moment - fortunately, we boot at highest voltage, so things still
+> > work.
+> > - Missing ABB and AVS implies that for few of the SoCs (3630, OMAP4), I have not added
+> > those OPPs in DT yet - this also needs alignment with iMX, AM series like pending work,
+> > where certain OPPs need enabling based on efuse programmed bit sequences - since it
+> > is an add-on work, it is not addressed here.
+> > 
+> Thanks for looking into it.
+Yes, this should be the next stage to solve.
+> 
+> > Note: Somewhere in the future, when we have regulators driven off CCF and OMAP
+> > converted to CCF, we could remove the DT regulator requirements there as well.
+> > 
+> > Key benefit of the series is to allow all relevant TI platforms now to use a single
+> > cpufreq driver and equivalent frameworks in addition be part of the transition to
+> > DT. As a result of this series, CPUFreq feature will not be available for non-DT
+> > boot systems.
+> > 
+> As commented by Jon on internal thread, I am also against the idea of dropping
+> non-DT support now. Till we migrate to 100 % DT, it is best to keep support
+> alive. Especial OMAP3 based devices.
+> 
+> Why don't you take phased approach and have both supported for time being.
+> Then once we move to DT only, we just drop the non-DT support as we plan
+> to do for many more stuff.
+> 
+> BTW, we are using only CPUFreq driver before this series as well. I guess you
+> mean the common CPUFReq drivers used by other ARM SOCs.
+I had removed the entries for OPPs and clock nodes used by
+omap-cpufreq.c and deleted the omap-cpufreq.c as well - so the statement
+"CPUFreq wont work in non-DT" configuration was accurate.
 
-commit d35162f89b8f00537d7b240b76d2d0e8b8d29aa0
-Author: Daniel Mack <zonque@gmail.com>
-Date:   Tue Mar 12 06:31:19 2013 +0000
+My intent was as follows:
+- This series is driven mainly from maintenance angle - having to maintain
+two different drivers (legacy omap-cpufreq.c and cpufreq-cpu0.c),
+ensuring the data is proper in both OPP tables in kernel and DT entries
+is sure to cause mayhem sometime. This is not just an pain for OMAP
+community, but for cpufreq community as well (since there is absolutely
+no reason other than OMAP legacy burden for making cpu0-cpufreq work in non-DT
+world).
+- as long as non-DT supported boot provides all features, there is no
+real feature incentive to move to DT.
 
-    net: ethernet: cpsw: fix usage of cpdma_check_free_tx_desc()
+But, that said, there is one path I see possible:
+- keep omap-cpufreq alive (BUT I will add a patch that will not let it init
+  when in DT entries are present)
+- add DT entries for all relevant OMAPs - in DT mode, we will *only*
+support cpufreq-cpu0
+- All future SoCs will continue to use cpufreq-cpu0 using DT, as was the
+alignment I believe.
 
-    Commit fae50823d0 ("net: ethernet: davinci_cpdma: Add boundary for rx
-    and tx descriptors") introduced a function to check the current
-    allocation state of tx packets. The return value is taken into account
-    to stop the netqork queue on the adapter in case there are no free
-    slots.
-
-    However, cpdma_check_free_tx_desc() returns 'true' if there is room in
-    the bitmap, not 'false', so the usage of the function is wrong.
-
-Reported-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- drivers/net/ethernet/ti/davinci_emac.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
-index 52c0536..ae1b77a 100644
---- a/drivers/net/ethernet/ti/davinci_emac.c
-+++ b/drivers/net/ethernet/ti/davinci_emac.c
-@@ -1102,7 +1102,7 @@ static int emac_dev_xmit(struct sk_buff *skb, struct net_device *ndev)
- 	/* If there is no more tx desc left free then we need to
- 	 * tell the kernel to stop sending us tx frames.
- 	 */
--	if (unlikely(cpdma_check_free_tx_desc(priv->txchan)))
-+	if (unlikely(!cpdma_check_free_tx_desc(priv->txchan)))
- 		netif_stop_queue(ndev);
- 
- 	return NETDEV_TX_OK;
 -- 
-1.7.9.5
-
+Regards,
+Nishanth Menon
