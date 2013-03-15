@@ -1,53 +1,35 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [GIT PULL] ARM: omap2: twl-common update
-Date: Fri, 15 Mar 2013 10:01:42 +0100
-Message-ID: <5142E376.9080407@ti.com>
+Subject: Re: [PATCH] omap2: twl-common: Add default power configuration
+Date: Fri, 15 Mar 2013 10:11:14 +0100
+Message-ID: <5142E5B2.6090008@ti.com>
+References: <1358967038-6615-1-git-send-email-matthias.bgg@gmail.com> <CAOCHtYjufr+MS1=6Cnsn-EgvkPs+Y5oWejAG98aLkVjdQbu1ZA@mail.gmail.com> <20130201224242.GE22517@atomide.com> <CABuKBe+NrMiX0nuEgwnHBqu-DqHST+uGG_Zyc7Ek=4WCOV1T6g@mail.gmail.com> <512355CF.6070605@ti.com> <CABuKBeLFfvCVyt9VhvwHVGuVGA7RDx9bZH_6gHk7yhfe-nmH5A@mail.gmail.com> <20130312165705.GA22059@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48999 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753237Ab3COJBs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 05:01:48 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39460 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753522Ab3COJLd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Mar 2013 05:11:33 -0400
+In-Reply-To: <20130312165705.GA22059@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>, "Kristo, Tero" <t-kristo@ti.com>, Robert Nelson <robertcnelson@gmail.com>, linux@arm.linux.org.uk, martinez.javier@gmail.com, eballetbo@iseebcn.com, ezequiel.garcia@free-electrons.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 Hi Tony,
 
-The branch is on top of today's mainline.
-Is it still possible to send this for 3.9?
+On 03/12/2013 05:57 PM, Tony Lindgren wrote:
+> Sorry looks like this got missed. I suggest Peter collects the twl
+> patches and then provides me + mfd + asoc and whoever needs the
+> pull requests.
 
-Regards,
+OK. Lets get things going forward. I have sent a pull request for you w=
+ith
+this patch.
+
+--=20
 P=E9ter
----
-The following changes since commit a2362d24764a4e9a3187fc46b14e1d2cd065=
-7700:
-
-  mm/fremap.c: fix possible oops on error path (2013-03-14 17:00:39 -07=
-00)
-
-are available in the git repository at:
-
-  git://gitorious.org/omap-audio/linux-audio.git peter/upstream/for-ton=
-y
-
-for you to fetch changes up to 25d28e7988512eb4964eca5fc54a214ae69a7154=
-:
-
-  omap2: twl-common: Add default power configuration (2013-03-15 09:59:=
-28 +0100)
-
-----------------------------------------------------------------
-Matthias Brugger (1):
-      omap2: twl-common: Add default power configuration
-
- arch/arm/mach-omap2/twl-common.c | 38 ++++++++++++++++++++++++++++++++=
-++++++
- arch/arm/mach-omap2/twl-common.h |  1 +
- 2 files changed, 39 insertions(+)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
