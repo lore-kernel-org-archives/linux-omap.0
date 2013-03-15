@@ -1,30 +1,121 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH 1/4] usb: Fix linker errors during build
-Date: Fri, 15 Mar 2013 21:22:02 +0530
-Message-ID: <514343A2.5010702@ti.com>
-References: <1363354132-27523-1-git-send-email-kishon@ti.com> <20130315142556.GA23930@arwen.pp.htv.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 06/23] ARM: OMAP3: 3430SDP: Adapt to ehci-omap
+ changes
+Date: Fri, 15 Mar 2013 09:12:03 -0700
+Message-ID: <20130315161201.GA9370@atomide.com>
+References: <1363360604-21368-1-git-send-email-rogerq@ti.com>
+ <1363360604-21368-7-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130315142556.GA23930@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, notasas@gmail.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:43057 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754310Ab3COQMG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 12:12:06 -0400
+Content-Disposition: inline
+In-Reply-To: <1363360604-21368-7-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On Friday 15 March 2013 07:55 PM, Felipe Balbi wrote:
-> On Fri, Mar 15, 2013 at 06:58:49PM +0530, Kishon Vijay Abraham I wrote:
->> commit 63378a (usb: phy: remove CONFIG_USB_OTG_UTILS) removed
->> CONFIG_USB_OTG_UTILS from Kconfig but failed to removed from Makefile.
->> Fixed it here.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->
-> I can fold it in original commit since that's not in mainline yet,
-> thanks
+Hi,
 
-Sure.
+I think you can get rid of quite a bit more of the repeated data for
+most boards, see below.
 
-Thanks
-Kishon
+* Roger Quadros <rogerq@ti.com> [130315 08:21]:
+> Add 2 platform devices for 'nop-usb-xceiv'. These will be used
+> as PHYs for HS USB ports 1 and 2 so provide binding information
+> for them.
+> 
+> Use usbhs_init_phys() to register the PHY's RESET regulators.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-3430sdp.c |   47 ++++++++++++++++++++++++++++++----
+>  1 files changed, 41 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+> index ce812de..5584682 100644
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/spi/spi.h>
+>  #include <linux/i2c/twl.h>
+>  #include <linux/regulator/machine.h>
+> +#include <linux/usb/phy.h>
+>  #include <linux/io.h>
+>  #include <linux/gpio.h>
+>  #include <linux/mmc/host.h>
+> @@ -445,16 +446,37 @@ static void enable_board_wakeup_source(void)
+>  		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
+>  }
+>  
+> +/* PHY device on HS USB Port 1 i.e. nop_usb_xceiv.1 */
+> +static struct platform_device hsusb1_phy_device = {
+> +	.name = "nop_usb_xceiv",
+> +	.id = 1,
+> +};
+> +
+> +/* PHY device on HS USB Port 2 i.e. nop_usb_xceiv.2 */
+> +static struct platform_device hsusb2_phy_device = {
+> +	.name = "nop_usb_xceiv",
+> +	.id = 2,
+> +};
+
+Please allocate these in the common ehci platform init code
+so you don't have to repeat the same nop_usb_xceiv for each
+board-*.c file. If you need to override these, then you can
+pass something instead of NULL to the init function.
+
+> +static struct usbhs_phy_data phy_data[] __initdata = {
+> +	{
+> +		.port = 1,
+> +		.reset_gpio = 57,
+> +		.vcc_gpio = -EINVAL,
+> +		.phy_id = "nop_usb_xceiv.1",
+> +	},
+> +	{
+> +		.port = 2,
+> +		.reset_gpio = 61,
+> +		.vcc_gpio = -EINVAL,
+> +		.phy_id = "nop_usb_xceiv.2",
+> +	},
+> +};
+
+This is OK as it's the board specific data needed. If it's the
+same for many boards, then you might want to add some init function
+for the default case.
+
+> +static struct platform_device *sdp3430_devices[] __initdata = {
+> +	&hsusb1_phy_device,
+> +	&hsusb2_phy_device,
+> +};
+
+It then seems that this can be in the common ehci platform init
+code for most cases.
+
+>  static void __init omap_3430sdp_init(void)
+>  {
+>  	int gpio_pendown;
+> @@ -606,6 +633,14 @@ static void __init omap_3430sdp_init(void)
+>  	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
+>  	sdp3430_display_init();
+>  	enable_board_wakeup_source();
+> +
+> +	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
+> +	/* PHY on HSUSB Port 1 i.e. index 0 */
+> +	usb_bind_phy("ehci-omap.0", 0, "nop_usb_xceiv.1");
+> +	/* PHY on HSUSB Port 2 i.e. index 1 */
+> +	usb_bind_phy("ehci-omap.0", 1, "nop_usb_xceiv.2");
+
+And this part too in most cases.
+
+> +	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
+>  	usbhs_init(&usbhs_bdata);
+>  }
+
+Regards,
+
+Tony
