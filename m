@@ -1,60 +1,103 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/8] ARM: dts: OMAP5: ocp address space and few updates
-Date: Fri, 15 Mar 2013 18:23:28 +0530
-Message-ID: <514319C8.7020304@ti.com>
-References: <1361374735-22018-1-git-send-email-santosh.shilimkar@ti.com> <5142F6EF.7010900@ti.com> <514317EC.6040400@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v2 1/1] gpio: omap: dts: Move interrupt-controller from
+ #interrupt-cells description
+Date: Fri, 15 Mar 2013 13:56:08 +0100
+Message-ID: <51431A68.5090605@ti.com>
+References: <1362430597-5855-1-git-send-email-javier.martinez@collabora.co.uk> <CAAwP0s1FynkxpFRK0oC7r2PAOQvxoATfrmU787n4k5PZmvt+XQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59242 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754280Ab3COMvq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 08:51:46 -0400
-In-Reply-To: <514317EC.6040400@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:49752 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754221Ab3COM40 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Mar 2013 08:56:26 -0400
+In-Reply-To: <CAAwP0s1FynkxpFRK0oC7r2PAOQvxoATfrmU787n4k5PZmvt+XQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Rob Landley <rob@landley.net>, Stephen Warren <swarren@nvidia.com>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>
 
-On Friday 15 March 2013 06:15 PM, Benoit Cousson wrote:
-> Hi Santosh,
+Hi Javier,
+
+On 03/15/2013 01:18 PM, Javier Martinez Canillas wrote:
+> On Mon, Mar 4, 2013 at 9:56 PM, Javier Martinez Canillas
+> <javier.martinez@collabora.co.uk> wrote:
+>> The binding documentation for the OMAP GPIO controller has the description
+>> for the "#interrupt-cells" property after the "interrupt-controller".
+>> This is confusing so is better to move the "interrupt-controller" after
+>> "#interrupt-cells" description.
+
+Mmm, your are doing the opposite  :-)
+
+I guess what we do want is that:
+
+    gpio-controller;
+    #gpio-cells = <2>;
+    interrupt-controller;
+    #interrupt-cells = <2>;
+
+So we move "#interrupt-cells" after the "interrupt-controller" description.
+
+>> While being there, change the properties order to be consistent with
+>> Documentation/devicetree/bindings/interrupt-controller/interrupts.txt and
+>> Documentation/devicetree/bindings/gpio/gpio.txt.
+>>
+>> Reported-by: Stephen Warren <swarren@nvidia.com>
+>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+>> Acked-by: Jon Hunter <jon-hunter@ti.com>
+>> ---
+>>
+>> Changes since v1:
+>>   - Change the properties order to be consistent with the rest of the
+>>     DT bindings docs suggested by Jon Hunter.
+>>
+>>  .../devicetree/bindings/gpio/gpio-omap.txt         |    8 ++++----
+>>  1 files changed, 4 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+>> index bff51a2..a56e3a5 100644
+>> --- a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+>> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+>> @@ -5,12 +5,12 @@ Required properties:
+>>    - "ti,omap2-gpio" for OMAP2 controllers
+>>    - "ti,omap3-gpio" for OMAP3 controllers
+>>    - "ti,omap4-gpio" for OMAP4 controllers
+>> +- gpio-controller : Marks the device node as a GPIO controller.
+>>  - #gpio-cells : Should be two.
+>>    - first cell is the pin number
+>>    - second cell is used to specify optional parameters (unused)
+>> -- gpio-controller : Marks the device node as a GPIO controller.
+>> +- interrupt-controller: Mark the device node as an interrupt controller.
+>>  - #interrupt-cells : Should be 2.
+>> -- interrupt-controller: Mark the device node as an interrupt controller
+>>    The first cell is the GPIO number.
+>>    The second cell is used to specify flags:
+>>      bits[3:0] trigger type and level flags:
+>> @@ -29,8 +29,8 @@ Example:
+>>  gpio4: gpio4 {
+>>      compatible = "ti,omap4-gpio";
+>>      ti,hwmods = "gpio4";
+>> -    #gpio-cells = <2>;
+>>      gpio-controller;
+>> -    #interrupt-cells = <2>;
+>> +    #gpio-cells = <2>;
+>>      interrupt-controller;
+>> +    #interrupt-cells = <2>;
+>>  };
+>> --
+>> 1.7.7.6
+>>
 > 
-> On 03/15/2013 11:24 AM, Santosh Shilimkar wrote:
->> Benoit,
->>
->> On Wednesday 20 February 2013 09:08 PM, Santosh Shilimkar wrote:
->>> Few updates for OMAP5 found during testing OMAP5 DT builds. Couple
->>> of patches were already posted on the list. The series also contains
->>> a patch which adds DMA request, IRQ lines and IO address space 
->>> DT extraction support to hwmod code so that we can get rid of
->>> such information from hwmod data files. It has been tested on OMAP5
->>> and OMAP4 devices.
->>>
->> [..]
->>
->>>   ARM: OMAP: hwmod: extract module address space from DT blob
->> Above patch even though dt extraction code touches the hwmod file.
->> Are you ok to keep this patch is the current series considering
->> both the patches needs to go through your tree. If it needs to
->> be in separate branch, then I can add that as part of the
->> other generic patches with your ack.
->>
->>>  arch/arm/boot/dts/omap5-evm.dts  |    2 +-
->>>  arch/arm/boot/dts/omap5.dtsi     |  282 +++++++++++++++++++++++++++++++++++---
->>>  arch/arm/mach-omap2/omap_hwmod.c |   31 ++++-
->>>  3 files changed, 293 insertions(+), 22 deletions(-)
->>>
->>
->> Let me know your preference. Either way is fine by me.
+> Hello,
 > 
-> I can take both DTS and hwmod patches, so you can keep then in the same
-> series.
+> Any comments on this patch?
 > 
-Cool. I will wait for Jon to send you a branch and then post mine so
-that I have one less dependency for testing.
+> I know is just a trivial documentation fix but I think it can be quite
+> helpful for people referring to gpio-omap binding.
+
+I do agree. The patch is good, but the changelog is confusing.
 
 Regards,
-Santosh
-
+Benoit
 
