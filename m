@@ -1,164 +1,55 @@
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-Subject: [PATCH v3] drivers: video: use module_platform_driver_probe()
-Date: Fri, 15 Mar 2013 10:00:19 +0100
-Message-ID: <1363338019-13092-1-git-send-email-fabio.porcedda@gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [GIT PULL] ARM: omap2: twl-common update
+Date: Fri, 15 Mar 2013 10:01:42 +0100
+Message-ID: <5142E376.9080407@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:34625 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753895Ab3COJAa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 05:00:30 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:48999 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753237Ab3COJBs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 05:01:48 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, David Howells <dhowells@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-This patch converts the drivers to use the
-module_platform_driver_probe() macro which makes the code smaller and
-a bit simpler.
+Hi Tony,
 
-Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+The branch is on top of today's mainline.
+Is it still possible to send this for 3.9?
+
+Regards,
+P=E9ter
 ---
+The following changes since commit a2362d24764a4e9a3187fc46b14e1d2cd065=
+7700:
 
-Notes:
-    v3:
-     - add missing drivers: amifb, atmel_lcdfb, vrfb
-     - split patch set to each maintainer to easy up respin
-    v2:
-     - rebased over linux-next and remove already converted drivers
+  mm/fremap.c: fix possible oops on error path (2013-03-14 17:00:39 -07=
+00)
 
- drivers/video/amifb.c          | 14 +-------------
- drivers/video/atmel_lcdfb.c    | 13 +------------
- drivers/video/omap2/vrfb.c     | 13 +------------
- drivers/video/sh_mipi_dsi.c    | 12 +-----------
- drivers/video/sh_mobile_hdmi.c | 12 +-----------
- 5 files changed, 5 insertions(+), 59 deletions(-)
+are available in the git repository at:
 
-diff --git a/drivers/video/amifb.c b/drivers/video/amifb.c
-index 7fa1bf8..03e2de2 100644
---- a/drivers/video/amifb.c
-+++ b/drivers/video/amifb.c
-@@ -3788,19 +3788,7 @@ static struct platform_driver amifb_driver = {
- 	},
- };
- 
--static int __init amifb_init(void)
--{
--	return platform_driver_probe(&amifb_driver, amifb_probe);
--}
--
--module_init(amifb_init);
--
--static void __exit amifb_exit(void)
--{
--	platform_driver_unregister(&amifb_driver);
--}
--
--module_exit(amifb_exit);
-+return module_platform_driver_probe(amifb_driver, amifb_probe);
- 
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("platform:amiga-video");
-diff --git a/drivers/video/atmel_lcdfb.c b/drivers/video/atmel_lcdfb.c
-index 12cf5f3..654e102 100644
---- a/drivers/video/atmel_lcdfb.c
-+++ b/drivers/video/atmel_lcdfb.c
-@@ -1150,18 +1150,7 @@ static struct platform_driver atmel_lcdfb_driver = {
- 	},
- };
- 
--static int __init atmel_lcdfb_init(void)
--{
--	return platform_driver_probe(&atmel_lcdfb_driver, atmel_lcdfb_probe);
--}
--
--static void __exit atmel_lcdfb_exit(void)
--{
--	platform_driver_unregister(&atmel_lcdfb_driver);
--}
--
--module_init(atmel_lcdfb_init);
--module_exit(atmel_lcdfb_exit);
-+module_platform_driver_probe(atmel_lcdfb_driver, atmel_lcdfb_probe);
- 
- MODULE_DESCRIPTION("AT91/AT32 LCD Controller framebuffer driver");
- MODULE_AUTHOR("Nicolas Ferre <nicolas.ferre@atmel.com>");
-diff --git a/drivers/video/omap2/vrfb.c b/drivers/video/omap2/vrfb.c
-index 10560ef..5261229 100644
---- a/drivers/video/omap2/vrfb.c
-+++ b/drivers/video/omap2/vrfb.c
-@@ -397,18 +397,7 @@ static struct platform_driver vrfb_driver = {
- 	.remove		= __exit_p(vrfb_remove),
- };
- 
--static int __init vrfb_init(void)
--{
--	return platform_driver_probe(&vrfb_driver, &vrfb_probe);
--}
--
--static void __exit vrfb_exit(void)
--{
--	platform_driver_unregister(&vrfb_driver);
--}
--
--module_init(vrfb_init);
--module_exit(vrfb_exit);
-+module_platform_driver_probe(vrfb_driver, vrfb_probe);
- 
- MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@ti.com>");
- MODULE_DESCRIPTION("OMAP VRFB");
-diff --git a/drivers/video/sh_mipi_dsi.c b/drivers/video/sh_mipi_dsi.c
-index 701b461..6cad530 100644
---- a/drivers/video/sh_mipi_dsi.c
-+++ b/drivers/video/sh_mipi_dsi.c
-@@ -581,17 +581,7 @@ static struct platform_driver sh_mipi_driver = {
- 	},
- };
- 
--static int __init sh_mipi_init(void)
--{
--	return platform_driver_probe(&sh_mipi_driver, sh_mipi_probe);
--}
--module_init(sh_mipi_init);
--
--static void __exit sh_mipi_exit(void)
--{
--	platform_driver_unregister(&sh_mipi_driver);
--}
--module_exit(sh_mipi_exit);
-+module_platform_driver_probe(sh_mipi_driver, sh_mipi_probe);
- 
- MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
- MODULE_DESCRIPTION("SuperH / ARM-shmobile MIPI DSI driver");
-diff --git a/drivers/video/sh_mobile_hdmi.c b/drivers/video/sh_mobile_hdmi.c
-index 930e550..bfe4728 100644
---- a/drivers/video/sh_mobile_hdmi.c
-+++ b/drivers/video/sh_mobile_hdmi.c
-@@ -1445,17 +1445,7 @@ static struct platform_driver sh_hdmi_driver = {
- 	},
- };
- 
--static int __init sh_hdmi_init(void)
--{
--	return platform_driver_probe(&sh_hdmi_driver, sh_hdmi_probe);
--}
--module_init(sh_hdmi_init);
--
--static void __exit sh_hdmi_exit(void)
--{
--	platform_driver_unregister(&sh_hdmi_driver);
--}
--module_exit(sh_hdmi_exit);
-+module_platform_driver_probe(sh_hdmi_driver, sh_hdmi_probe);
- 
- MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
- MODULE_DESCRIPTION("SuperH / ARM-shmobile HDMI driver");
--- 
-1.8.1.5
+  git://gitorious.org/omap-audio/linux-audio.git peter/upstream/for-ton=
+y
 
+for you to fetch changes up to 25d28e7988512eb4964eca5fc54a214ae69a7154=
+:
+
+  omap2: twl-common: Add default power configuration (2013-03-15 09:59:=
+28 +0100)
+
+----------------------------------------------------------------
+Matthias Brugger (1):
+      omap2: twl-common: Add default power configuration
+
+ arch/arm/mach-omap2/twl-common.c | 38 ++++++++++++++++++++++++++++++++=
+++++++
+ arch/arm/mach-omap2/twl-common.h |  1 +
+ 2 files changed, 39 insertions(+)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
