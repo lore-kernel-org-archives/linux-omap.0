@@ -1,97 +1,112 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 17/23] ARM: OMAP3: omap3touchbook: Adapt to ehci-omap changes
-Date: Fri, 15 Mar 2013 17:16:38 +0200
-Message-ID: <1363360604-21368-18-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 03/23] ARM: OMAP2+: omap4panda: Provide USB Host's PHY
+ platform data
+Date: Fri, 15 Mar 2013 17:16:24 +0200
+Message-ID: <1363360604-21368-4-git-send-email-rogerq@ti.com>
 References: <1363360604-21368-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363360604-21368-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rogerq@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1363360604-21368-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add 2 platform devices for 'nop-usb-xceiv'. These will be used as a
-PHY for HS USB Ports 1 and 2, so provide binding information for them.
+Add platform device and data for 'nop-usb-xceiv'. This will be used
+as PHY for HS USB port 1, so provide binding information for it.
 
-Use usbhs_init_phys() to register the PHY's RESET regulator.
+Get rid of managing the PHY clock as it will be done by the PHY driver.
+For that to work we create a clock alias that links the PHY clock name
+to the PHY device name.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-omap3touchbook.c |   38 ++++++++++++++++++++++-----
- 1 files changed, 31 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/board-omap4panda.c |   34 ++++++++++++++++++++++---------
+ 1 files changed, 24 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index bcd44fb..e8fa884 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -36,6 +36,7 @@
- #include <linux/spi/ads7846.h>
- 
- #include <linux/regulator/machine.h>
-+#include <linux/usb/phy.h>
- #include <linux/i2c/twl.h>
- 
- #include <asm/mach-types.h>
-@@ -305,21 +306,37 @@ static struct omap_board_mux board_mux[] __initdata = {
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index b02c2f0..feffde6 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -31,6 +31,7 @@
+ #include <linux/ti_wilink_st.h>
+ #include <linux/usb/musb.h>
+ #include <linux/usb/phy.h>
++#include <linux/usb/nop-usb-xceiv.h>
+ #include <linux/wl12xx.h>
+ #include <linux/irqchip/arm-gic.h>
+ #include <linux/platform_data/omap-abe-twl6040.h>
+@@ -132,12 +133,27 @@ static struct platform_device btwilink_device = {
+ 	.id	= -1,
  };
- #endif
  
 +/* PHY device on HS USB Port 1 i.e. nop_usb_xceiv.1 */
++static struct nop_usb_xceiv_platform_data hsusb1_phy_data = {
++	/* FREF_CLK3 provides the 19.2 MHz reference clock to the PHY */
++	.clk_rate = 19200000,
++};
++
 +static struct platform_device hsusb1_phy_device = {
-+	.name = "nop_usb_xceiv",
-+	.id = 1,
-+};
-+
-+/* PHY device on HS USB Port 2 i.e. nop_usb_xceiv.2 */
-+static struct platform_device hsusb2_phy_device = {
-+	.name = "nop_usb_xceiv",
-+	.id = 2,
-+};
-+
-+static struct usbhs_phy_data phy_data[] __initdata = {
-+	{
-+		.port = 2,
-+		.reset_gpio = 147,
-+		.vcc_gpio = -EINVAL,
-+		.phy_id = "nop_usb_xceiv.2",
++	.name	= "nop_usb_xceiv",
++	.id	= 1,
++	.dev	= {
++		.platform_data = &hsusb1_phy_data,
 +	},
 +};
 +
- static struct platform_device *omap3_touchbook_devices[] __initdata = {
+ static struct platform_device *panda_devices[] __initdata = {
  	&leds_gpio,
- 	&keys_gpio,
+ 	&wl1271_device,
+ 	&panda_abe_audio,
+ 	&panda_hdmi_audio_codec,
+ 	&btwilink_device,
 +	&hsusb1_phy_device,
-+	&hsusb2_phy_device,
  };
  
  static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
+@@ -158,16 +174,6 @@ static struct gpio panda_ehci_gpios[] __initdata = {
+ static void __init omap4_ehci_init(void)
+ {
+ 	int ret;
+-	struct clk *phy_ref_clk;
 -
- 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
- 	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
--	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
--
--	.phy_reset  = true,
--	.reset_gpio_port[0]  = -EINVAL,
--	.reset_gpio_port[1]  = 147,
--	.reset_gpio_port[2]  = -EINVAL
- };
+-	/* FREF_CLK3 provides the 19.2 MHz reference clock to the PHY */
+-	phy_ref_clk = clk_get(NULL, "auxclk3_ck");
+-	if (IS_ERR(phy_ref_clk)) {
+-		pr_err("Cannot request auxclk3\n");
+-		return;
+-	}
+-	clk_set_rate(phy_ref_clk, 19200000);
+-	clk_prepare_enable(phy_ref_clk);
  
- static void omap3_touchbook_poweroff(void)
-@@ -368,6 +385,13 @@ static void __init omap3_touchbook_init(void)
- 	omap_ads7846_init(4, OMAP3_TS_GPIO, 310, &ads7846_pdata);
- 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
+ 	/* disable the power to the usb hub prior to init and reset phy+hub */
+ 	ret = gpio_request_array(panda_ehci_gpios,
+@@ -181,6 +187,14 @@ static void __init omap4_ehci_init(void)
+ 	gpio_export(GPIO_HUB_NRESET, 0);
+ 	gpio_set_value(GPIO_HUB_NRESET, 1);
+ 
++	/* FREF_CLK3 provides the 19.2 MHz reference clock to the PHY */
++	ret = clk_add_alias("main_clk", "nop_usb_xceiv.1", "auxclk3_ck", NULL);
++	if (ret)
++		pr_err("Failed to add main_clk alias to auxclk3_ck\n");
 +
-+	/* PHY on HSUSB Port 1 i.e. index 0 */
++	/* PHY on HS USB Port 1 i.e. index 0 */
 +	usb_bind_phy("ehci-omap.0", 0, "nop_usb_xceiv.1");
-+	/* PHY on HSUSB Port 2 i.e. index 1 */
-+	usb_bind_phy("ehci-omap.0", 1, "nop_usb_xceiv.2");
 +
-+	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
  	usbhs_init(&usbhs_bdata);
- 	board_nand_init(omap3touchbook_nand_partitions,
- 			ARRAY_SIZE(omap3touchbook_nand_partitions), NAND_CS,
+ 
+ 	/* enable power to hub */
 -- 
 1.7.4.1
