@@ -1,74 +1,119 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 1/8] ARM: OMAP2+: Prepare for device-tree PMU support
-Date: Fri, 15 Mar 2013 08:57:34 -0500
-Message-ID: <1363355861-11773-2-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V2 4/8] ARM: dts: Add GPMC node for OMAP2, OMAP4 and OMAP5
+Date: Fri, 15 Mar 2013 08:57:37 -0500
+Message-ID: <1363355861-11773-5-git-send-email-jon-hunter@ti.com>
 References: <1363355861-11773-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52749 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53189 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754432Ab3CON55 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Mar 2013 09:57:57 -0400
+	id S1754432Ab3CON57 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Mar 2013 09:57:59 -0400
 In-Reply-To: <1363355861-11773-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-If device-tree is present, then do not create the PMU device from within
-the OMAP specific PMU code. This is required to allow device-tree to
-create the PMU device from the PMU device-tree node.
-
-PMU is not currently supported for OMAP4430 (due to a dependency on
-having a cross-trigger interface driver) and so ensure that this
-indicated on boot with or without device-tree.
+Add the device-tree node for GPMC on OMAP2, OMAP4 and OMAP5 devices.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/pmu.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap2420.dtsi |   11 +++++++++++
+ arch/arm/boot/dts/omap2430.dtsi |   11 +++++++++++
+ arch/arm/boot/dts/omap4.dtsi    |   11 +++++++++++
+ arch/arm/boot/dts/omap5.dtsi    |   11 +++++++++++
+ 4 files changed, 44 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
-index 9debf82..9ace8ea 100644
---- a/arch/arm/mach-omap2/pmu.c
-+++ b/arch/arm/mach-omap2/pmu.c
-@@ -11,6 +11,8 @@
-  * the Free Software Foundation; either version 2 of the License, or
-  * (at your option) any later version.
-  */
-+#include <linux/of.h>
-+
- #include <asm/pmu.h>
+diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
+index af65609..d4ce6c2 100644
+--- a/arch/arm/boot/dts/omap2420.dtsi
++++ b/arch/arm/boot/dts/omap2420.dtsi
+@@ -29,6 +29,17 @@
+ 			pinctrl-single,function-mask = <0x3f>;
+ 		};
  
- #include "soc.h"
-@@ -63,6 +65,15 @@ static int __init omap_init_pmu(void)
- 	unsigned oh_num;
- 	char **oh_names;
++		gpmc: gpmc@6800a000 {
++			compatible = "ti,omap2420-gpmc";
++			reg = <0x6800a000 0x1000>;
++			#address-cells = <2>;
++			#size-cells = <1>;
++			interrupts = <20>;
++			gpmc,num-cs = <8>;
++			gpmc,num-waitpins = <4>;
++			ti,hwmods = "gpmc";
++		};
++
+ 		mcbsp1: mcbsp@48074000 {
+ 			compatible = "ti,omap2420-mcbsp";
+ 			reg = <0x48074000 0xff>;
+diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+index c392445..832f184 100644
+--- a/arch/arm/boot/dts/omap2430.dtsi
++++ b/arch/arm/boot/dts/omap2430.dtsi
+@@ -29,6 +29,17 @@
+ 			pinctrl-single,function-mask = <0x3f>;
+ 		};
  
-+	/* XXX Remove this check when the CTI driver is available */
-+	if (cpu_is_omap443x()) {
-+		pr_info("ARM PMU: not yet supported on OMAP4430 due to missing CTI driver\n");
-+		return 0;
-+	}
++		gpmc: gpmc@6e000000 {
++			compatible = "ti,omap2430-gpmc";
++			reg = <0x6e000000 0x1000>;
++			#address-cells = <2>;
++			#size-cells = <1>;
++			interrupts = <20>;
++			gpmc,num-cs = <8>;
++			gpmc,num-waitpins = <4>;
++			ti,hwmods = "gpmc";
++		};
 +
-+	if (of_have_populated_dt())
-+		return 0;
+ 		mcbsp1: mcbsp@48074000 {
+ 			compatible = "ti,omap2430-mcbsp";
+ 			reg = <0x48074000 0xff>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 6669311..bcd64f5 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -196,6 +196,17 @@
+ 			#interrupt-cells = <1>;
+ 		};
+ 
++		gpmc: gpmc@50000000 {
++			compatible = "ti,omap4430-gpmc";
++			reg = <0x50000000 0x1000>;
++			#address-cells = <2>;
++			#size-cells = <1>;
++			interrupts = <0 20 0x4>;
++			gpmc,num-cs = <8>;
++			gpmc,num-waitpins = <4>;
++			ti,hwmods = "gpmc";
++		};
 +
- 	/*
- 	 * To create an ARM-PMU device the following HWMODs
- 	 * are required for the various OMAP2+ devices.
-@@ -75,9 +86,6 @@ static int __init omap_init_pmu(void)
- 	if (cpu_is_omap443x()) {
- 		oh_num = ARRAY_SIZE(omap4430_pmu_oh_names);
- 		oh_names = omap4430_pmu_oh_names;
--		/* XXX Remove the next two lines when CTI driver available */
--		pr_info("ARM PMU: not yet supported on OMAP4430 due to missing CTI driver\n");
--		return 0;
- 	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
- 		oh_num = ARRAY_SIZE(omap3_pmu_oh_names);
- 		oh_names = omap3_pmu_oh_names;
+ 		uart1: serial@4806a000 {
+ 			compatible = "ti,omap4-uart";
+ 			reg = <0x4806a000 0x100>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index f840499..61cbd1c 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -208,6 +208,17 @@
+ 			#interrupt-cells = <1>;
+ 		};
+ 
++		gpmc: gpmc@50000000 {
++			compatible = "ti,omap4430-gpmc";
++			reg = <0x50000000 0x1000>;
++			#address-cells = <2>;
++			#size-cells = <1>;
++			interrupts = <0 20 0x4>;
++			gpmc,num-cs = <8>;
++			gpmc,num-waitpins = <4>;
++			ti,hwmods = "gpmc";
++		};
++
+ 		i2c1: i2c@48070000 {
+ 			compatible = "ti,omap4-i2c";
+ 			reg = <0x48070000 0x100>;
 -- 
 1.7.10.4
 
