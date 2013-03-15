@@ -1,110 +1,102 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] usb: dwc3: exynos: use clk_prepare_enable and
- clk_disable_unprepare
-Date: Fri, 15 Mar 2013 09:42:53 +0200
-Message-ID: <20130315074253.GE5074@arwen.pp.htv.fi>
-References: <1363257898-17504-1-git-send-email-gautam.vivek@samsung.com>
- <1363257898-17504-3-git-send-email-gautam.vivek@samsung.com>
- <20130314105320.GH32369@arwen.pp.htv.fi>
- <CAFp+6iEHVi4W-be4t1k3K=Yz8OP150rtBmNKXR0xnFiA3Oa3qg@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 8/8] ARM: OMAP5: clock: No Freqsel on OMAP5 devices
+Date: Fri, 15 Mar 2013 14:09:22 +0530
+Message-ID: <5142DE3A.1070804@ti.com>
+References: <1361374034-21831-1-git-send-email-santosh.shilimkar@ti.com> <1361374034-21831-9-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6e7ZaeXHKrTJCxdu"
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAFp+6iEHVi4W-be4t1k3K=Yz8OP150rtBmNKXR0xnFiA3Oa3qg@mail.gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Vivek Gautam <gautamvivek1987@gmail.com>
-Cc: balbi@ti.com, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, rob.herring@calxeda.com, kgene.kim@samsung.com, thomas.abraham@linaro.org, dianders@chromium.org, kishon <kishon@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37709 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751739Ab3COIhm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Mar 2013 04:37:42 -0400
+In-Reply-To: <1361374034-21831-9-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
---6e7ZaeXHKrTJCxdu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wednesday 20 February 2013 08:57 PM, Santosh Shilimkar wrote:
+> From: Rajendra Nayak <rnayak@ti.com>
+> 
+> OMAP5 does not have freqsel either, so add the missing
+> checks for !soc_is_omap54xx()
+> 
+> Reported-by: Archit Taneja <archit@ti.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/mach-omap2/dpll3xxx.c |    6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+> index 0a02aab5..6e3811b 100644
+> --- a/arch/arm/mach-omap2/dpll3xxx.c
+> +++ b/arch/arm/mach-omap2/dpll3xxx.c
+> @@ -310,7 +310,8 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
+>  	 * Set jitter correction. No jitter correction for OMAP4 and 3630
+>  	 * since freqsel field is no longer present
+>  	 */
+> -	if (!soc_is_am33xx() && !cpu_is_omap44xx() && !cpu_is_omap3630()) {
+> +	if (!soc_is_am33xx() && !cpu_is_omap44xx() && !cpu_is_omap3630()
+> +            && !soc_is_omap54xx()) {
+After re-looking at the freqsel patch, since the feature is available on
+only OMAP343X devices, its is better to just check that device to
+avoid future patching.
 
-Hi,
+For the record, updated patch end of the email.
 
-On Fri, Mar 15, 2013 at 11:36:00AM +0530, Vivek Gautam wrote:
-> >> Convert clk_enable/clk_disable to clk_prepare_enable/clk_disable_unpre=
-pare
-> >> calls as required by common clock framework.
-> >>
-> >> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
-> >> CC: Felipe Balbi <balbi@ti.com>
-> >> CC: Kukjin Kim <kgene.kim@samsung.com>
-> >> ---
-> >>  drivers/usb/dwc3/dwc3-exynos.c |    6 +++---
-> >>  1 files changed, 3 insertions(+), 3 deletions(-)
-> >>
-> >> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-ex=
-ynos.c
-> >> index 66ca9ac..b03f609 100644
-> >> --- a/drivers/usb/dwc3/dwc3-exynos.c
-> >> +++ b/drivers/usb/dwc3/dwc3-exynos.c
-> >> @@ -129,7 +129,7 @@ static int dwc3_exynos_probe(struct platform_devic=
-e *pdev)
-> >>       exynos->dev     =3D dev;
-> >>       exynos->clk     =3D clk;
-> >>
-> >> -     clk_enable(exynos->clk);
-> >> +     clk_prepare_enable(exynos->clk);
-> >
-> > eventually we need to pass this clock handling to dwc3/core.c. Just make
-> > sure it's optional since not all platforms need it.
-> >
-> True, as of now i could see only exynos platform getting a device
-> clock for dwc3-glue.
-> So, if not all platforms need to do this, why should we plan to move
-> this to dwc3/core.c ?
+Regards,
+Santosh
 
-what if dwc3.ko's probe fail ? Clock will be left enabled ;-)
+>From c31041957873bc524fe5d4fcd96688dc0d02e2db Mon Sep 17 00:00:00 2001
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Tue, 29 Jan 2013 18:33:49 +0530
+Subject: [PATCH 8/8] ARM: OMAP5: clock: No Freqsel on OMAP5 devices too
 
-> > I guess the best way would be to handle clocks via
-> > ->runtime_suspend()/->runtime_resume() ??
->=20
-> Right, but there was a doubt actually if you can please clear that.
-> In device probe, after enabling runtime_pm we would need to
-> 'pm_runtime_get_sync' the device.
-> Thereby, in runtime_resume the clocks will be enabled.
-> Now as soon as the device probe finishes, the device will go in
-> suspend state, calling runtime_suspend
-> and the clocks would be disabled.
-> Now would it be possible for the controller to detect any
-> connect/disconnect.
+OMAP5 does not have freqsel either, so checks needs to be extended.
 
-it depends on how you have configured your core in coreConsultant and
-how you're implementing the actual IP. If you have retention flip-flops
-then gating clocks (but not cutting Vcc) will not loose context and, if
-PHYs are still enabled, you will see new connect events.
+Infact only OMAP343X devices has the freqsel support, so fix the check
+accordingly so that future patching can be avoided.
 
-But that part of PM optimization has to be done as a last step, as it
-tends to break things apart.
+Reported-by: Archit Taneja <archit@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/dpll3xxx.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---=20
-balbi
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+index 3aed4b0..ae84c9d 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -307,10 +307,10 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
+ 	_omap3_noncore_dpll_bypass(clk);
+ 
+ 	/*
+-	 * Set jitter correction. No jitter correction for OMAP4 and 3630
+-	 * since freqsel field is no longer present
++	 * Set jitter correction. Jitter correction applicable for OMAP343X
++	 * only since freqsel field is no longer present on other devices.
+ 	 */
+-	if (!soc_is_am33xx() && !cpu_is_omap44xx() && !cpu_is_omap3630()) {
++	if (cpu_is_omap343x()) {
+ 		v = __raw_readl(dd->control_reg);
+ 		v &= ~dd->freqsel_mask;
+ 		v |= freqsel << __ffs(dd->freqsel_mask);
+@@ -500,9 +500,8 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
+ 		if (dd->last_rounded_rate == 0)
+ 			return -EINVAL;
+ 
+-		/* No freqsel on AM335x, OMAP4 and OMAP3630 */
+-		if (!soc_is_am33xx() && !cpu_is_omap44xx() &&
+-		    !cpu_is_omap3630()) {
++		/* Freqsel is available only on OMAP343X devices */
++		if (cpu_is_omap343x()) {
+ 			freqsel = _omap3_dpll_compute_freqsel(clk,
+ 						dd->last_rounded_n);
+ 			WARN_ON(!freqsel);
+-- 
+1.7.9.5
 
---6e7ZaeXHKrTJCxdu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRQtD9AAoJEIaOsuA1yqREFOkQAKCmOlnp7INARIevLDAXxWyb
-OPJz/CVvS8gF9WtBhokKWbi/3/bkkLzNiEYm3oYQaI2P6XQ3AGz4YyG1RbbtH04C
-+fIjXey6xrmI2gvYGLwp+vD8X2FoBCwdVjkG52v9A0wPt39W2X759e27sZdodP73
-RaGeCHFivEI6M6hoNzqg8JSxdMmwbncIlplRp6no6NaIdlrhIS4PkH1jxkMPSJxl
-kP0tvVue4W/N4iUrHK/LjIQb21r/Bzeo4LkwT02lRttMLKP6T0WAI7orXE/klLea
-cLT3ST+seQfEGNfZGTJS+E7Tf/hseyibmO8yKJY/slDfiRRcjfpnVegWCpKfH5M7
-hMYRw6KaYguTKFELbCIChMfmZ2mxiWeeCdkve4lkTH7QLn/VMyKDdCV40Kah7Ziz
-NkEZgEyCo8my9fdjaviB48RsfzJsXv+P7Rn4EAHIg4i0uWh61sRMx0Kui5bMYjwC
-oAstZK7mxS/i7YFKlPeA0sh/aiKByLaH8mgohRvIx06SxJP8B/69Kzh5M9Tav19I
-z8v/wTw6AcEJvkAd9tj2qlUsXgDG3/BAu8R4E7Es/w6Sh+fuN674wXarX8m4MBsi
-uj69fRe+RKzSmSNDiJmggVdBwt9CblZFGCUKetAtN+SI8Ku5jCSBZR9vyytfgPmX
-sqcNRx889bRiBQupY3Rx
-=VjjP
------END PGP SIGNATURE-----
-
---6e7ZaeXHKrTJCxdu--
