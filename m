@@ -1,74 +1,29 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v3 0/7] ARM: dts: omap: Add dts data for USB
-Date: Fri, 15 Mar 2013 11:26:51 +0100
-Message-ID: <5142F76B.2010907@ti.com>
-References: <1362663320-23799-1-git-send-email-kishon@ti.com> <514042BF.2090207@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] rtc: omap: update to devm_* API
+Date: Fri, 15 Mar 2013 16:19:45 +0530
+Message-ID: <5142FCC9.1030302@ti.com>
+References: <1363157464-9962-1-git-send-email-manishv.b@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <514042BF.2090207@ti.com>
+In-Reply-To: <1363157464-9962-1-git-send-email-manishv.b@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kishon <kishon@ti.com>
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Vishwanathrao Badarkhe, Manish" <manishv.b@ti.com>
+Cc: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, a.zummo@towertech.it
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kishon,
-
-On 03/13/2013 10:11 AM, kishon wrote:
-> Benoit,
+On 3/13/2013 12:21 PM, Vishwanathrao Badarkhe, Manish wrote:
+> From: Vishwanathrao Badarkhe, Manish <manishv.b@ti.com> 
 > 
-> Will you be queuing this patch series?
-
-I'm reviewing them right now.
-
-Regards,
-Benoit
-
+> Update the code to use devm_* API so that driver
+> core will manage resources.
 > 
-> Thanks
-> Kishon
-> 
-> On Thursday 07 March 2013 07:05 PM, Kishon Vijay Abraham I wrote:
->> Hi Benoit,
->>
->> Here are the dt data patches to get usb device functional in OMAP
->> platforms.
->>
->> All the patches deal with modifying arch/arm/boot except one which
->> modifies
->> Documentation/../usb/omap-usb.txt
->>
->> Changes from v2:
->> * squashed the dt data for dwc3-omap with dwc3 core into a single patch.
->>
->> Changes from v1:
->> Patch *ARM: dts: omap: Add usb_otg and glue data* has some properties
->> with
->> names that has "_". It's replaced with a "-" here.
->>
->> This patch is developed on Linux 3.9-rc1.
->>
->> Kishon Vijay Abraham I (7):
->>    ARM: dts: omap: Add omap control usb data
->>    ARM: dts: omap: Add omap-usb2 dt data
->>    ARM: dts: omap: Add usb_otg and glue data
->>    ARM: dts: omap5: Add omap control usb data
->>    ARM: dts: omap5: Add ocp2scp data
->>    ARM: dts: omap5: Add omap-usb3 and omap-usb2 dt data
->>    ARM: dts: omap5: add dwc3 omap and dwc3 core dt data
->>
->>   Documentation/devicetree/bindings/usb/omap-usb.txt |    1 +
->>   arch/arm/boot/dts/omap3-beagle-xm.dts              |    6 +++
->>   arch/arm/boot/dts/omap3-evm.dts                    |    6 +++
->>   arch/arm/boot/dts/omap3-overo.dtsi                 |    6 +++
->>   arch/arm/boot/dts/omap3.dtsi                       |   12 +++++
->>   arch/arm/boot/dts/omap4-panda.dts                  |    6 +++
->>   arch/arm/boot/dts/omap4-sdp.dts                    |    6 +++
->>   arch/arm/boot/dts/omap4.dtsi                       |   26 +++++++++++
->>   arch/arm/boot/dts/omap5.dtsi                       |   48
->> ++++++++++++++++++++
->>   arch/arm/boot/dts/twl4030.dtsi                     |    2 +-
->>   10 files changed, 118 insertions(+), 1 deletion(-)
->>
-> 
+> Signed-off-by: Vishwanathrao Badarkhe, Manish <manishv.b@ti.com>
+
+Tested on DA850 EVM.
+
+Tested-by: Sekhar Nori <nsekhar@ti.com>
+
+Thanks,
+Sekhar
