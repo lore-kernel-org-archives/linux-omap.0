@@ -1,64 +1,92 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 16/18] ARM: OMAP2+: Remove unnecesssary GPMC definitions and variable
-Date: Fri, 15 Mar 2013 10:21:14 -0500
-Message-ID: <1363360876-13617-17-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V3 15/18] ARM: OMAP2+: Detect incorrectly aligned GPMC base address
+Date: Fri, 15 Mar 2013 10:21:13 -0500
+Message-ID: <1363360876-13617-16-git-send-email-jon-hunter@ti.com>
 References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40884 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755604Ab3COPWP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Mar 2013 11:22:15 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:51063 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932148Ab3COPWN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Mar 2013 11:22:13 -0400
 In-Reply-To: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
 
-With commit 21cc2bd (ARM: OMAP2+: Remove apollon board support) the
-variable "boot_rom_space" is now not needed and the code surrounding
-this variable can be cleaned up and simplified. Remove unnecessary
-definitions and clean-up the comment as well.
+Each GPMC chip-select can be configured to map 16MB, 32MB, 64MB or 128MB
+of address space. The physical base address where a chip-select starts
+is also configurable and must be aligned on a boundary that is equal to
+or greater than the size of the address space mapped bt the chip-select.
+When enabling a GPMC chip-select, ensure that the base address is aligned
+to the appropriate boundary.
 
+Reported-by: Mark Jackson <mpfj-list@mimc.co.uk>
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/gpmc.c |   22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index a6f2b71..5239d47 100644
+index c928a8c..a6f2b71 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -92,9 +92,7 @@
- #define GPMC_CS_SIZE		0x30
- #define	GPMC_BCH_SIZE		0x10
+@@ -403,11 +403,18 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
+ 	return 0;
+ }
  
--#define GPMC_MEM_START		0x00000000
- #define GPMC_MEM_END		0x3FFFFFFF
--#define BOOT_ROM_SPACE		0x100000	/* 1MB */
- 
- #define GPMC_CHUNK_SHIFT	24		/* 16 MB */
- #define GPMC_SECTION_SHIFT	28		/* 128 MB */
-@@ -790,13 +788,13 @@ static void gpmc_mem_exit(void)
- static int gpmc_mem_init(void)
+-static void gpmc_cs_enable_mem(int cs, u32 base, u32 size)
++static int gpmc_cs_enable_mem(int cs, u32 base, u32 size)
  {
- 	int cs, rc;
--	unsigned long boot_rom_space = 0;
+ 	u32 l;
+ 	u32 mask;
  
--	/* never allocate the first page, to facilitate bug detection;
--	 * even if we didn't boot from ROM.
 +	/*
-+	 * The first 1MB of GPMC address space is typically mapped to
-+	 * the internal ROM. Never allocate the first page, to
-+	 * facilitate bug detection; even if we didn't boot from ROM.
- 	 */
--	boot_rom_space = BOOT_ROM_SPACE;
--	gpmc_mem_root.start = GPMC_MEM_START + boot_rom_space;
-+	gpmc_mem_root.start = SZ_1M;
- 	gpmc_mem_root.end = GPMC_MEM_END;
++	 * Ensure that base address is aligned on a
++	 * boundary equal to or greater than size.
++	 */
++	if (base & (size - 1))
++		return -EINVAL;
++
+ 	mask = (1 << GPMC_SECTION_SHIFT) - size;
+ 	l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
+ 	l &= ~0x3f;
+@@ -416,6 +423,8 @@ static void gpmc_cs_enable_mem(int cs, u32 base, u32 size)
+ 	l |= ((mask >> GPMC_CHUNK_SHIFT) & 0x0f) << 8;
+ 	l |= GPMC_CONFIG7_CSVALID;
+ 	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG7, l);
++
++	return 0;
+ }
  
- 	/* Reserve all regions that has been set up by bootloader */
+ static void gpmc_cs_disable_mem(int cs)
+@@ -526,7 +535,9 @@ static int gpmc_cs_remap(int cs, u32 base)
+ 	ret = gpmc_cs_insert_mem(cs, base, size);
+ 	if (ret < 0)
+ 		return ret;
+-	gpmc_cs_enable_mem(cs, base, size);
++	ret = gpmc_cs_enable_mem(cs, base, size);
++	if (ret < 0)
++		return ret;
+ 
+ 	return 0;
+ }
+@@ -556,7 +567,12 @@ int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
+ 	if (r < 0)
+ 		goto out;
+ 
+-	gpmc_cs_enable_mem(cs, res->start, resource_size(res));
++	r = gpmc_cs_enable_mem(cs, res->start, resource_size(res));
++	if (r < 0) {
++		release_resource(res);
++		goto out;
++	}
++
+ 	*base = res->start;
+ 	gpmc_cs_set_reserved(cs, 1);
+ out:
 -- 
 1.7.10.4
 
