@@ -1,58 +1,178 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 13/18] ARM: OMAP2+: Convert NAND to retrieve GPMC settings from DT
-Date: Fri, 15 Mar 2013 10:21:11 -0500
-Message-ID: <1363360876-13617-14-git-send-email-jon-hunter@ti.com>
-References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
+Subject: Re: [PATCH v3 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet
+ child nodes
+Date: Fri, 15 Mar 2013 10:24:46 -0500
+Message-ID: <51433D3E.1070002@ti.com>
+References: <1363298051-24574-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59428 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51236 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932152Ab3COPWL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Mar 2013 11:22:11 -0400
-In-Reply-To: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
+	id S1755461Ab3COPZB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Mar 2013 11:25:01 -0400
+In-Reply-To: <1363298051-24574-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-When booting with device-tree, retrieve GPMC settings for NAND from
-the device-tree blob. This will allow us to remove all static settings
-stored in the gpmc-nand.c in the future once the migration to
-device-tree is complete.
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/gpmc-nand.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+On 03/14/2013 04:54 PM, Javier Martinez Canillas wrote:
+> Besides being used to interface with external memory devices,
+> the General-Purpose Memory Controller can be used to connect
+> Pseudo-SRAM devices such as ethernet controllers to OMAP2+
+> processors using the TI GPMC as a data bus.
+> 
+> This patch allows an ethernet chip to be defined as an GPMC
+> child device node.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> ---
+> 
+> Changes since v2:
+>   - remove optional #address-cells and #size-cells since are not relevant for
+>     ethernet chips; suggested by Jon Hunter.
+> 
+> Changes since v1:
+>   - Improve the DT binding documentation explaining that even when the GPMC
+>     maximum bus address width is 16-bit, it supports devices with 32-bit
+>     registers address width and the device property especifying this has to
+>     be set accordingly; suggested by Jon Hunter.
+> 
+>  Documentation/devicetree/bindings/net/gpmc-eth.txt |   97 ++++++++++++++++++++
+>  arch/arm/mach-omap2/gpmc.c                         |    8 ++
+>  2 files changed, 105 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/net/gpmc-eth.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/net/gpmc-eth.txt b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+> new file mode 100644
+> index 0000000..24cb4e4
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/net/gpmc-eth.txt
+> @@ -0,0 +1,97 @@
+> +Device tree bindings for Ethernet chip connected to TI GPMC
+> +
+> +Besides being used to interface with external memory devices, the
+> +General-Purpose Memory Controller can be used to connect Pseudo-SRAM devices
+> +such as ethernet controllers to processors using the TI GPMC as a data bus.
+> +
+> +Ethernet controllers connected to TI GPMC are represented as child nodes of
+> +the GPMC controller with an "ethernet" name.
+> +
+> +All timing relevant properties as well as generic GPMC child properties are
+> +explained in a separate documents. Please refer to
+> +Documentation/devicetree/bindings/bus/ti-gpmc.txt
+> +
+> +For the properties relevant to the ethernet controller connected to the GPMC
+> +refer to the binding documentation of the device. For example, the documentation
+> +for the SMSC 911x is Documentation/devicetree/bindings/net/smsc911x.txt
+> +
+> +Child nodes need to specify the GPMC bus address width using the "bank-width"
+> +property but is possible that an ethernet controller also has a property to
+> +specify the I/O registers address width. Even when the GPMC has a maximum 16-bit
+> +address width, it supports devices with 32-bit word registers.
+> +For example with an SMSC LAN911x/912x controller connected to the TI GPMC on an
+> +OMAP2+ board, "bank-width = <2>;" and "reg-io-width = <4>;".
+> +
+> +Required properties:
+> +- bank-width: 		Address width of the device in bytes. GPMC supports 8-bit
+> +			and 16-bit devices and so must be either 1 or 2 bytes.
+> +- compatible:		Compatible string property for the ethernet child device.
+> +- gpmc,cs-on:		Chip-select assertion time
+> +- gpmc,cs-rd-off:	Chip-select de-assertion time for reads
+> +- gpmc,cs-wr-off:	Chip-select de-assertion time for writes
+> +- gpmc,oe-on:		Output-enable assertion time
+> +- gpmc,oe-off		Output-enable de-assertion time
+> +- gpmc,we-on:		Write-enable assertion time
+> +- gpmc,we-off:		Write-enable de-assertion time
+> +- gpmc,access:		Start cycle to first data capture (read access)
+> +- gpmc,rd-cycle:	Total read cycle time
+> +- gpmc,wr-cycle:	Total write cycle time
+> +- reg:			Chip-select, base address (relative to chip-select)
+> +			and size of the memory mapped for the device.
+> +			Note that base address will be typically 0 as this
+> +			is the start of the chip-select.
+> +
+> +Optional properties:
+> +- gpmc,XXX		Additional GPMC timings and settings parameters. See
+> +			Documentation/devicetree/bindings/bus/ti-gpmc.txt
+> +
+> +Example:
+> +
+> +gpmc: gpmc@6e000000 {
+> +	compatible = "ti,omap3430-gpmc";
+> +	ti,hwmods = "gpmc";
+> +	reg = <0x6e000000 0x1000>;
+> +	interrupts = <20>;
+> +	gpmc,num-cs = <8>;
+> +	gpmc,num-waitpins = <4>;
+> +	#address-cells = <2>;
+> +	#size-cells = <1>;
+> +
+> +	ranges = <5 0 0x2c000000 0x1000000>;
+> +
+> +	ethernet@5,0 {
+> +		compatible = "smsc,lan9221", "smsc,lan9115";
+> +		reg = <5 0 0xff>;
+> +		bank-width = <2>;
+> +
+> +		gpmc,mux-add-data;
+> +		gpmc,cs-on = <0>;
+> +		gpmc,cs-rd-off = <186>;
+> +		gpmc,cs-wr-off = <186>;
+> +		gpmc,adv-on = <12>;
+> +		gpmc,adv-rd-off = <48>;
+> +		gpmc,adv-wr-off = <48>;
+> +		gpmc,oe-on = <54>;
+> +		gpmc,oe-off = <168>;
+> +		gpmc,we-on = <54>;
+> +		gpmc,we-off = <168>;
+> +		gpmc,rd-cycle = <186>;
+> +		gpmc,wr-cycle = <186>;
+> +		gpmc,access = <114>;
+> +		gpmc,page-burst-access = <6>;
+> +		gpmc,bus-turnaround = <12>;
+> +		gpmc,cycle2cycle-delay = <18>;
+> +		gpmc,wr-data-mux-bus = <90>;
+> +		gpmc,wr-access = <186>;
+> +		gpmc,cycle2cycle-samecsen;
+> +		gpmc,cycle2cycle-diffcsen;
+> +
+> +		interrupt-parent = <&gpio6>;
+> +		interrupts = <16>;
+> +		vmmc-supply = <&vddvario>;
+> +		vmmc_aux-supply = <&vdd33a>;
+> +		reg-io-width = <4>;
+> +
+> +		smsc,save-mac-address;
+> +	};
+> +};
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 898b44d..2bc276b 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1559,6 +1559,14 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+>  		}
+>  	}
+>  
+> +	for_each_node_by_name(child, "ethernet") {
+> +		ret = gpmc_probe_generic_child(pdev, child);
+> +		if (ret < 0) {
+> +			of_node_put(child);
+> +			return ret;
+> +		}
+> +	}
+> +
+>  	return 0;
+>  }
+>  #else
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 12e9753..d9c2719 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -137,12 +137,16 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 			return err;
- 		}
- 
--		s.device_nand = true;
--
--		/* Enable RD PIN Monitoring Reg */
--		if (gpmc_nand_data->dev_ready) {
--			s.wait_on_read = true;
--			s.wait_on_write = true;
-+		if (gpmc_nand_data->of_node) {
-+			gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
-+		} else {
-+			s.device_nand = true;
-+
-+			/* Enable RD PIN Monitoring Reg */
-+			if (gpmc_nand_data->dev_ready) {
-+				s.wait_on_read = true;
-+				s.wait_on_write = true;
-+			}
- 		}
- 
- 		if (gpmc_nand_data->devsize == NAND_BUSWIDTH_16)
--- 
-1.7.10.4
+Thanks! I have added this to my gpmc branch [1].
+
+Cheers
+Jon
+
+[1] https://github.com/jonhunter/linux/commits/omap-gpmc-for-v3.10
 
