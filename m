@@ -1,63 +1,75 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/8] ARM: OMAP3+: Switch to use DT based cpu0-cpufreq
- driver
-Date: Fri, 15 Mar 2013 10:48:57 +0530
-Message-ID: <5142AF41.7070003@ti.com>
-References: <1363294695-658-1-git-send-email-nm@ti.com>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH 2/2] usb: dwc3: exynos: use clk_prepare_enable and clk_disable_unprepare
+Date: Fri, 15 Mar 2013 11:36:00 +0530
+Message-ID: <CAFp+6iEHVi4W-be4t1k3K=Yz8OP150rtBmNKXR0xnFiA3Oa3qg@mail.gmail.com>
+References: <1363257898-17504-1-git-send-email-gautam.vivek@samsung.com>
+	<1363257898-17504-3-git-send-email-gautam.vivek@samsung.com>
+	<20130314105320.GH32369@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <1363294695-658-1-git-send-email-nm@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20130314105320.GH32369@arwen.pp.htv.fi>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, rob.herring@calxeda.com, kgene.kim@samsung.com, thomas.abraham@linaro.org, dianders@chromium.org, kishon <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 15 March 2013 02:28 AM, Nishanth Menon wrote:
-> The following series arose from trying to use BeagleBoard-XM (OMAP3 variant)
-> for doing CPU DVFS using cpufreq-cpu0. This series will eventually result in
-> migrating the cpufreq support only through device tree (part of the effort
-> to migrate away from non-DT configurations for OMAP). Unfortunately, as already
-> known, we have a bunch of legacy code and mutually dependent device tree
-> conversion that is pending.
-> Key features pending:
-> A) clock framework transition to DT - this should happen soon, so this series hacks
-> the clock node for the time being as suggested in review of original series
-> B) on processors that use voltage controller, voltage processor (VC/VP hardware
-> loop using I2C_SR path) - we have started work on transitioning them to regulator
-> framework driven by DT.
-> C) Adaptive Body Bias and SmartReflex AVS conversion to DT.
-> 
-> As a result of these pending features:
-> - OMAP4 TWL6030 and TPS62361 which set voltage ONLY over I2C_SR have no regulators
-> associated at the moment - fortunately, we boot at highest voltage, so things still
-> work.
-> - Missing ABB and AVS implies that for few of the SoCs (3630, OMAP4), I have not added
-> those OPPs in DT yet - this also needs alignment with iMX, AM series like pending work,
-> where certain OPPs need enabling based on efuse programmed bit sequences - since it
-> is an add-on work, it is not addressed here.
-> 
-Thanks for looking into it.
+Hi,
 
-> Note: Somewhere in the future, when we have regulators driven off CCF and OMAP
-> converted to CCF, we could remove the DT regulator requirements there as well.
-> 
-> Key benefit of the series is to allow all relevant TI platforms now to use a single
-> cpufreq driver and equivalent frameworks in addition be part of the transition to
-> DT. As a result of this series, CPUFreq feature will not be available for non-DT
-> boot systems.
-> 
-As commented by Jon on internal thread, I am also against the idea of dropping
-non-DT support now. Till we migrate to 100 % DT, it is best to keep support
-alive. Especial OMAP3 based devices.
 
-Why don't you take phased approach and have both supported for time being.
-Then once we move to DT only, we just drop the non-DT support as we plan
-to do for many more stuff.
+On Thu, Mar 14, 2013 at 4:23 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Thu, Mar 14, 2013 at 04:14:58PM +0530, Vivek Gautam wrote:
+>> Convert clk_enable/clk_disable to clk_prepare_enable/clk_disable_unprepare
+>> calls as required by common clock framework.
+>>
+>> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>> CC: Felipe Balbi <balbi@ti.com>
+>> CC: Kukjin Kim <kgene.kim@samsung.com>
+>> ---
+>>  drivers/usb/dwc3/dwc3-exynos.c |    6 +++---
+>>  1 files changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
+>> index 66ca9ac..b03f609 100644
+>> --- a/drivers/usb/dwc3/dwc3-exynos.c
+>> +++ b/drivers/usb/dwc3/dwc3-exynos.c
+>> @@ -129,7 +129,7 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
+>>       exynos->dev     = dev;
+>>       exynos->clk     = clk;
+>>
+>> -     clk_enable(exynos->clk);
+>> +     clk_prepare_enable(exynos->clk);
+>
+> eventually we need to pass this clock handling to dwc3/core.c. Just make
+> sure it's optional since not all platforms need it.
+>
+True, as of now i could see only exynos platform getting a device
+clock for dwc3-glue.
+So, if not all platforms need to do this, why should we plan to move
+this to dwc3/core.c ?
 
-BTW, we are using only CPUFreq driver before this series as well. I guess you
-mean the common CPUFReq drivers used by other ARM SOCs.
+> I guess the best way would be to handle clocks via
+> ->runtime_suspend()/->runtime_resume() ??
 
-Regards,
-Santosh
+Right, but there was a doubt actually if you can please clear that.
+In device probe, after enabling runtime_pm we would need to
+'pm_runtime_get_sync' the device.
+Thereby, in runtime_resume the clocks will be enabled.
+Now as soon as the device probe finishes, the device will go in
+suspend state, calling runtime_suspend
+and the clocks would be disabled.
+Now would it be possible for the controller to detect any connect/disconnect.
+
+Pardon me if there is something very silly i am missing out.
+
+>
+> --
+> balbi
+
+
+
+-- 
+Thanks & Regards
+Vivek
