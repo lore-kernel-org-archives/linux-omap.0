@@ -1,67 +1,44 @@
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH 07/50] staging: omap-thermal: introduce RMW_BITS macro
-Date: Sat, 16 Mar 2013 17:00:42 +0300
-Message-ID: <20130316140042.GK9189@mwanda>
+Subject: Re: [PATCH 47/50] staging: omap-thermal: switch mutex to spinlock
+ inside omap-bandgap
+Date: Sat, 16 Mar 2013 17:22:16 +0300
+Message-ID: <20130316142216.GR9138@mwanda>
 References: <1363352438-15935-1-git-send-email-eduardo.valentin@ti.com>
- <1363352438-15935-8-git-send-email-eduardo.valentin@ti.com>
- <20130315210946.GK9138@mwanda>
- <51446763.5010606@ti.com>
+ <1363352438-15935-48-git-send-email-eduardo.valentin@ti.com>
+ <20130316085902.GP9138@mwanda>
+ <5144687A.7030007@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:42471 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755689Ab3CPOW0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Mar 2013 10:22:26 -0400
 Content-Disposition: inline
-In-Reply-To: <51446763.5010606@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+In-Reply-To: <5144687A.7030007@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: devel@driverdev.osuosl.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Sat, Mar 16, 2013 at 08:36:51AM -0400, Eduardo Valentin wrote:
-> >But that said, I don't care for the RMW_BITS() very much as a long
-> >term thing.  If we just used pointers instead of passing the offset
-> >into the bg_ptr->conf->sensors[] array then everything would be a
-> >lot cleaner.
+On Sat, Mar 16, 2013 at 08:41:30AM -0400, Eduardo Valentin wrote:
+> On 16-03-2013 04:59, Dan Carpenter wrote:
+> >On Fri, Mar 15, 2013 at 09:00:35AM -0400, Eduardo Valentin wrote:
+> >>@@ -502,9 +504,9 @@ int _omap_bandgap_write_threshold(struct omap_bandgap *bg_ptr, int id, int val,
+> >>  	if (ret < 0)
+> >>  		goto exit;
+> >>
+> >>-	mutex_lock(&bg_ptr->bg_mutex);
+> >>+	spin_lock(&bg_ptr->lock);
 > >
-> >In other words, instead of this:
-> >
-> >static u32 omap_bandgap_read_temp(struct omap_bandgap *bg_ptr, int id)
-> >
-> >We would have:
-> >
-> >static u32 omap_bandgap_read_temp(struct omap_bandgap *bg_ptr,
-> >				  struct temp_sensor_registers *tsr)
+> >These need to disable interrupts because we take the spin lock in
+> >the IRQ handler.
 > 
-> I see. That will require a change in the whole driver though. If you
-> see, the driver as of today uses the former approach, not only for
-> read_temp or rmw_bits.
+> This IRQ gets masked at the IRQ controller level when served
+> (ONE_SHOT). Not sure if your comment is applicable in this case..
 
-Yep.
-
-> 
-> >
-> >If you have the pointer then it's easy write RMW_BITS() as a
-> >function.
-> >
-> >static void rmw_bits(struct omap_bandgap *bg_ptr, u32 reg, u32 mask, u32 val)
-> >{
-> >	u32 r;
-> >
-> >	r = omap_bandgap_readl(bg_ptr, reg);
-> >	r &= ~mask;
-> >	r |= val << __ffs(mask);
-> >	omap_bandgap_writel(bg_ptr, r, reg);
-> >}
-> >
-> >It's called like:
-> >
-> >	rmw_bits(bg_ptr, tsr->bgap_mask_ctrl, tsr->mask_freeze_mask, 1);
-> 
-> This is nice, but it will require fetching tsr from .conf before
-> every call o rmw_bits. And for that you need the sensor index.
-> 
-
-No.  I'm suggesting that you re-write the driver to pass the tsr
-pointer directly instead of the index.
+Yes.  It still applies.  We need to disable IRQs from the current
+CPU while we are holding a spin_lock which they will need.
 
 regards,
 dan carpenter
