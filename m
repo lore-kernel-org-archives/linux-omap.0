@@ -1,47 +1,43 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 00/50] staging: omap-thermal: several code refactoring
-Date: Sat, 16 Mar 2013 09:16:41 -0700
-Message-ID: <20130316161641.GA2630@kroah.com>
-References: <1363352438-15935-1-git-send-email-eduardo.valentin@ti.com>
- <20130316090540.GQ9138@mwanda>
- <5144698B.9080703@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: commit 6797b4f causes boot hangs with nfsroot
+Date: Sat, 16 Mar 2013 19:39:48 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1303161925410.26959@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5144698B.9080703@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:33955 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751112Ab3CPTjt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Mar 2013 15:39:49 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: jon-hunter@ti.com
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-On Sat, Mar 16, 2013 at 08:46:03AM -0400, Eduardo Valentin wrote:
-> Hello Dan,
-> 
-> On 16-03-2013 05:05, Dan Carpenter wrote:
-> >I've reviewed this set.
-> >
-> >I hate to make people redo whole patchset sets, and I hate
-> >re-reviewing code.  Obviously, I don't really like the bunny hop
-> >patches and I'm trying to discourage that going forward.  ;P  But
-> >I wouldn't say it's a "Redo the whole thing" kind of problem.
-> >
-> >Could just resend patch 33 and 47?  You should probably be able to
-> >redo those without changing the rest.
-> 
-> I could of course change them if the comment is better clarified. As
-> I mentioned as reply to one of your comments, those changes are
-> following what is suggested in CodingStyle file.
-> 
-> I can of course send a diff on top of 33, to fix the introduce bug.
-> 
-> For 47, I'm not sure the comment is fully applicable.
 
-As I've taken all of these already (sorry Dan, I was fast and I didn't
-review them as well as you did), you will have to just send incremental
-patches on top of the whole series in order for me to be able to apply
-them.
+Hi Jon,
 
-thanks,
+Looks like commit 6797b4fe0e554ce71f47038fd929c9ca929a9f3c ("ARM: OMAP2+: 
+Prevent potential crash if GPMC probe fails") causes hangs on boot.  I 
+suspect it may only occur when the root filesystem is on NFS over 
+GPMC-based Ethernet.
 
-greg k-h
+Here's the current state of affairs at v3.9-rc1 on the two boards that 
+show the problem:
+
+http://www.pwsan.com/omap/testlogs/test_v3.9-rc1/20130312100243/boot/2430sdp/2430sdp_log.txt
+http://www.pwsan.com/omap/testlogs/test_v3.9-rc1/20130312100243/boot/37xxevm/37xxevm_log.txt
+
+and here are the bootlogs after reverting 6797b4f:
+
+http://www.pwsan.com/omap/testlogs/trace_boot_hang_3.9-rc/20130316132833/boot/2430sdp/2430sdp_log.txt
+http://www.pwsan.com/omap/testlogs/trace_boot_hang_3.9-rc/20130316132833/boot/37xxevm/37xxevm_log.txt
+
+... where the boards at least boot to userspace.  I don't know what's up 
+with the NFS-related lock problems.  Those look like yet another bug that 
+is presumably not OMAP-specific :-(
+
+Care to take a look at the commit 6797b4f bug?
+
+
+- Paul
