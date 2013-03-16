@@ -1,87 +1,48 @@
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH 09/50] staging: omap-thermal: make a omap_bandgap_power
- with only one exit point
-Date: Sat, 16 Mar 2013 16:56:18 +0300
-Message-ID: <20130316135618.GI9189@mwanda>
+Subject: Re: [PATCH 33/50] staging: omap-thermal: refactor APIs handling
+ threshold values
+Date: Sat, 16 Mar 2013 16:58:21 +0300
+Message-ID: <20130316135821.GJ9189@mwanda>
 References: <1363352438-15935-1-git-send-email-eduardo.valentin@ti.com>
- <1363352438-15935-10-git-send-email-eduardo.valentin@ti.com>
- <20130315212241.GL9138@mwanda>
- <514467EF.4010604@ti.com>
+ <1363352438-15935-34-git-send-email-eduardo.valentin@ti.com>
+ <20130316083952.GO9138@mwanda>
+ <51446A50.9070701@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <514467EF.4010604@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <51446A50.9070701@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
 To: Eduardo Valentin <eduardo.valentin@ti.com>
 Cc: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Mar 16, 2013 at 08:39:11AM -0400, Eduardo Valentin wrote:
-> Hey Dan,
-> 
-> On 15-03-2013 17:22, Dan Carpenter wrote:
-> >On Fri, Mar 15, 2013 at 08:59:57AM -0400, Eduardo Valentin wrote:
-> >>Change the way the omap_bandgap_power is written so that it has only
-> >>one exit entry (Documentation/CodingStyle).
+On Sat, Mar 16, 2013 at 08:49:20AM -0400, Eduardo Valentin wrote:
+> On 16-03-2013 04:39, Dan Carpenter wrote:
+> >On Fri, Mar 15, 2013 at 09:00:21AM -0400, Eduardo Valentin wrote:
+> >>  	if (ret) {
+> >>  		dev_err(bg_ptr->dev, "failed to read thot\n");
+> >>-		return -EIO;
+> >>+		ret = -EIO;
+> >>+		goto exit;
+> >>  	}
 > >>
+> >>-	*thot = temp;
+> >>+	*val = temp;
+> >>
+> >>+exit:
+> >>  	return 0;
+> >>  }
 > >
-> >It's only if there is an unlock or something that you should do
-> >this.  Otherwise the pointless bunny hop is misleading and annoying.
+> >
+> >The bunny hop has introduced a bug and this always returns success.
 > 
-> Well, if that is the case the Chapter 7 needs to be rewritten, don't
-> you think? The way it is stated, it is clear that it is a design
-> decision to use it for keeping only one exit point (quoting):
+> What was the bug introduced?
 > 
-> "Albeit deprecated by some people, the equivalent of the goto statement is
-> used frequently by compilers in form of the unconditional jump instruction.
-> 
-> The goto statement comes in handy when a function exits from multiple
-> locations and some common work such as cleanup has to be done.
-> 
-> The rationale is:
-> 
-> - unconditional statements are easier to understand and follow
-> - nesting is reduced
-> - errors by not updating individual exit points when making
->     modifications are prevented
-> - saves the compiler work to optimize redundant code away ;)"
-> 
-> I believe this patch falls into at least three of the above rationale.
+> I will send a patch to fix the return value.
 
-There isn't any cleanup work done.  That's what I was explaining
-about.  When I see a goto I expect cleanup work to be done, but in
-this case it was misleading.
-
-Where you would do the one exit point is when there is cleanup:
-
-	ret = function_one();
-	if (ret)
-		goto unlock;
-
-	ret = function_two();
-	if (ret)
-		goto unlock;
-
-
-That's better than:
-	ret = function_one();
-	if (ret) {
-		mutex_unlock();
-		return ret;
-	}
-
-	ret = function_two();
-	if (ret) {
-		mutex_unlock();
-		return ret;
-	}
-
-On the one hand, I think the documentation should be updated because
-obviously people get confused by it.  But on the other hand, to me
-the documentation is already pretty clear.  There is no style
-guideline that says every function should only have a single return.
-That would be silly.
+Returning the wrong value *is* the bug.
 
 regards,
 dan carpenter
+
