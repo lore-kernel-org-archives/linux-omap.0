@@ -1,7 +1,7 @@
 From: Grant Likely <grant.likely@secretlab.ca>
 Subject: Re: [PATCH 3/6] OF: Export all DT proc update functions
-Date: Sat, 16 Mar 2013 09:53:05 +0000
-Message-ID: <20130316095305.E65153E0A91@localhost>
+Date: Sat, 16 Mar 2013 09:45:56 +0000
+Message-ID: <20130316094556.7898E3E09B0@localhost>
 References: <1357327870-13615-1-git-send-email-panto@antoniou-consulting.com> <1357327870-13615-4-git-send-email-panto@antoniou-consulting.com>
 Return-path: <linux-doc-owner@vger.kernel.org>
 In-Reply-To: <1357327870-13615-4-git-send-email-panto@antoniou-consulting.com>
@@ -15,6 +15,13 @@ On Fri,  4 Jan 2013 21:31:07 +0200, Pantelis Antoniou <panto@antoniou-consulting
 > 
 > Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 
-Actually, I cannot find the user of this patch. Why is it needed?
+Hi Pantelis.
+
+Patches 1 & 2 look good. No comments there.
+
+This patch bothers me. The manipulation of the proc entries is part and
+parcel of adding and removing nodes. The real problem seems to be that
+the node addition/removal APIs need to be made usable by the overlay
+code.
 
 g.
