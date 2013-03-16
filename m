@@ -1,137 +1,54 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCH 07/50] staging: omap-thermal: introduce RMW_BITS macro
-Date: Sat, 16 Mar 2013 08:36:51 -0400
-Message-ID: <51446763.5010606@ti.com>
-References: <1363352438-15935-1-git-send-email-eduardo.valentin@ti.com>
- <1363352438-15935-8-git-send-email-eduardo.valentin@ti.com>
- <20130315210946.GK9138@mwanda>
+Subject: Re: [PATCH 09/50] staging: omap-thermal: make a omap_bandgap_power
+ with only one exit point
+Date: Sat, 16 Mar 2013 08:39:11 -0400
+Message-ID: <514467EF.4010604@ti.com>
+References: <1363352438-15935-1-git-send-email-eduardo.valentin@ti.com> <1363352438-15935-10-git-send-email-eduardo.valentin@ti.com> <20130315212241.GL9138@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20130315210946.GK9138@mwanda>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
- <mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel/>
-List-Post: <mailto:devel@linuxdriverproject.org>
-List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
- <mailto:devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: devel-bounces@linuxdriverproject.org
-Sender: "devel" <devel-bounces@linuxdriverproject.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130315212241.GL9138@mwanda>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: devel@driverdev.osuosl.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Dan,
+Hey Dan,
 
-On 15-03-2013 17:09, Dan Carpenter wrote:
-> On Fri, Mar 15, 2013 at 08:59:55AM -0400, Eduardo Valentin wrote:
->> This patch introduce a macro to read, update, write bitfields.
->> It will be specific to bandgap data structures.
+On 15-03-2013 17:22, Dan Carpenter wrote:
+> On Fri, Mar 15, 2013 at 08:59:57AM -0400, Eduardo Valentin wrote:
+>> Change the way the omap_bandgap_power is written so that it has only
+>> one exit entry (Documentation/CodingStyle).
 >>
->> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
->> ---
->>   drivers/staging/omap-thermal/omap-bandgap.c |  178 +++++++--------------------
->>   1 files changed, 46 insertions(+), 132 deletions(-)
->>
->> diff --git a/drivers/staging/omap-thermal/omap-bandgap.c b/drivers/staging/omap-thermal/omap-bandgap.c
->> index 9f2d7cc..1c1b905 100644
->> --- a/drivers/staging/omap-thermal/omap-bandgap.c
->> +++ b/drivers/staging/omap-thermal/omap-bandgap.c
->> @@ -52,25 +52,29 @@ static void omap_bandgap_writel(struct omap_bandgap *bg_ptr, u32 val, u32 reg)
->>   	writel(val, bg_ptr->base + reg);
->>   }
->>
->> +/* update bits, value will be shifted */
->> +#define RMW_BITS(bg_ptr, id, reg, mask, val)			\
->> +do {								\
->> +	struct temp_sensor_registers *t;			\
->> +	u32 r;							\
->> +								\
->> +	t = bg_ptr->conf->sensors[(id)].registers;		\
->> +	r = omap_bandgap_readl(bg_ptr, t->reg);			\
->> +	r &= ~t->mask;						\
->> +	r |= (val) << __ffs(t->mask);				\
->> +	omap_bandgap_writel(bg_ptr, r, t->reg);			\
->> +} while (0)
->> +
->>   static int omap_bandgap_power(struct omap_bandgap *bg_ptr, bool on)
->>   {
->> -	struct temp_sensor_registers *tsr;
->>   	int i;
->> -	u32 ctrl;
->>
->>   	if (!OMAP_BANDGAP_HAS(bg_ptr, POWER_SWITCH))
->>   		return 0;
->>
->> -	for (i = 0; i < bg_ptr->conf->sensor_count; i++) {
->> -		tsr = bg_ptr->conf->sensors[i].registers;
->> -		ctrl = omap_bandgap_readl(bg_ptr, tsr->temp_sensor_ctrl);
->> -		ctrl &= ~tsr->bgap_tempsoff_mask;
->> +	for (i = 0; i < bg_ptr->conf->sensor_count; i++)
->>   		/* active on 0 */
->> -		ctrl |= !on << __ffs(tsr->bgap_tempsoff_mask);
->> -
->> -		/* write BGAP_TEMPSOFF should be reset to 0 */
->> -		omap_bandgap_writel(bg_ptr, ctrl, tsr->temp_sensor_ctrl);
->> -	}
->> +		RMW_BITS(bg_ptr, i, temp_sensor_ctrl, bgap_tempsoff_mask, !on);
->>
->>   	return 0;
->>   }
->> @@ -78,15 +82,13 @@ static int omap_bandgap_power(struct omap_bandgap *bg_ptr, bool on)
->>   static u32 omap_bandgap_read_temp(struct omap_bandgap *bg_ptr, int id)
->>   {
 >
-> This patch is fine and it makes it cleaner than before.
->
-> But that said, I don't care for the RMW_BITS() very much as a long
-> term thing.  If we just used pointers instead of passing the offset
-> into the bg_ptr->conf->sensors[] array then everything would be a
-> lot cleaner.
->
-> In other words, instead of this:
->
-> static u32 omap_bandgap_read_temp(struct omap_bandgap *bg_ptr, int id)
->
-> We would have:
->
-> static u32 omap_bandgap_read_temp(struct omap_bandgap *bg_ptr,
-> 				  struct temp_sensor_registers *tsr)
+> It's only if there is an unlock or something that you should do
+> this.  Otherwise the pointless bunny hop is misleading and annoying.
 
-I see. That will require a change in the whole driver though. If you 
-see, the driver as of today uses the former approach, not only for 
-read_temp or rmw_bits.
+Well, if that is the case the Chapter 7 needs to be rewritten, don't you 
+think? The way it is stated, it is clear that it is a design decision to 
+use it for keeping only one exit point (quoting):
 
->
-> If you have the pointer then it's easy write RMW_BITS() as a
-> function.
->
-> static void rmw_bits(struct omap_bandgap *bg_ptr, u32 reg, u32 mask, u32 val)
-> {
-> 	u32 r;
->
-> 	r = omap_bandgap_readl(bg_ptr, reg);
-> 	r &= ~mask;
-> 	r |= val << __ffs(mask);
-> 	omap_bandgap_writel(bg_ptr, r, reg);
-> }
->
-> It's called like:
->
-> 	rmw_bits(bg_ptr, tsr->bgap_mask_ctrl, tsr->mask_freeze_mask, 1);
+"Albeit deprecated by some people, the equivalent of the goto statement is
+used frequently by compilers in form of the unconditional jump instruction.
 
-This is nice, but it will require fetching tsr from .conf before every 
-call o rmw_bits. And for that you need the sensor index.
+The goto statement comes in handy when a function exits from multiple
+locations and some common work such as cleanup has to be done.
+
+The rationale is:
+
+- unconditional statements are easier to understand and follow
+- nesting is reduced
+- errors by not updating individual exit points when making
+     modifications are prevented
+- saves the compiler work to optimize redundant code away ;)"
+
+I believe this patch falls into at least three of the above rationale.
+
 
 >
 > regards,
 > dan carpenter
-
-Thanks for your time reviewing this patch and suggesting improvements.
-
->
 >
 >
 >
