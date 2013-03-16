@@ -1,37 +1,39 @@
-From: Anil Kumar <anilk4.v@gmail.com>
-Subject: Getting kernel uImage build issue on omap2+
-Date: Sat, 16 Mar 2013 10:14:09 +0530
-Message-ID: <CABYxbz6ydTtHmLW1xETanHa9uZzZ5M=4wv3Wj5aNDE2Db1b2Rw@mail.gmail.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH 0/8] memory: emif: miscellaneous bug fixes for EMIF driver
+Date: Sat, 16 Mar 2013 11:43:50 +0530
+Message-ID: <51440D9E.3060202@ti.com>
+References: <1362978365-5593-1-git-send-email-lokeshvutla@ti.com> <20130315180856.GA30236@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:61556 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994Ab3CPEoK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Mar 2013 00:44:10 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35770 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751224Ab3CPGOF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 16 Mar 2013 02:14:05 -0400
+In-Reply-To: <20130315180856.GA30236@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
-
-I am getting kernel uImage build issue on omap2+ log[1]
-
-Taken kernel branch "for_3.10/dts" from
-https://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
-
-Taking reference from
-https://kernel.googlesource.com/pub/scm/linux/kernel/git/tmlind/linux-omap/+/omap-for-v3.9/multiplatform-enable-signed-v2
-
-Am I missing some thing ?
-
-[1]
-anil@anil-laptop:~/Anil/omap3/bcousson$  mkimage -A arm -O linux -T
-kernel -C none -a 0x80008000 -e 0x80008000 -n "Linux" -d
-zImage-omap2plus uImage-omap2plus
-mkimage: Can't open zImage-omap2plus: No such file or directory
-anil@anil-laptop:~/Anil/omap3/bcousson$
-
+On Friday 15 March 2013 11:38 PM, Greg KH wrote:
+> On Mon, Mar 11, 2013 at 10:35:57AM +0530, Lokesh Vutla wrote:
+>> This series resolves a few minor issues for EMIF driver.
+>>
+>> Tested all patches on OMAP4430-sdp.
+>> Patch : "memory: emif: setup LP settings on freq update"
+>> is tested on a local tree, since freq update cannot be
+>> tested on mainline.
+>
+> Can you please resend these with all of the requested changes made, and
+> acks added?
+Ok ill send V2 with necessary changes and acks added..
 Thanks,
-Anil
+Lokesh
+>
+> thanks,
+>
+> greg k-h
+>
+
