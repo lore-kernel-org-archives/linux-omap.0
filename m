@@ -1,28 +1,37 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH 09/50] staging: omap-thermal: make a omap_bandgap_power
- with only one exit point
-Date: Sat, 16 Mar 2013 00:22:41 +0300
-Message-ID: <20130315212241.GL9138@mwanda>
-References: <1363352438-15935-1-git-send-email-eduardo.valentin@ti.com>
- <1363352438-15935-10-git-send-email-eduardo.valentin@ti.com>
+From: Anil Kumar <anilk4.v@gmail.com>
+Subject: Getting kernel uImage build issue on omap2+
+Date: Sat, 16 Mar 2013 10:14:09 +0530
+Message-ID: <CABYxbz6ydTtHmLW1xETanHa9uZzZ5M=4wv3Wj5aNDE2Db1b2Rw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1363352438-15935-10-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:61556 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750994Ab3CPEoK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Mar 2013 00:44:10 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org
 
-On Fri, Mar 15, 2013 at 08:59:57AM -0400, Eduardo Valentin wrote:
-> Change the way the omap_bandgap_power is written so that it has only
-> one exit entry (Documentation/CodingStyle).
-> 
+Hi,
 
-It's only if there is an unlock or something that you should do
-this.  Otherwise the pointless bunny hop is misleading and annoying.
+I am getting kernel uImage build issue on omap2+ log[1]
 
-regards,
-dan carpenter
+Taken kernel branch "for_3.10/dts" from
+https://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
 
+Taking reference from
+https://kernel.googlesource.com/pub/scm/linux/kernel/git/tmlind/linux-omap/+/omap-for-v3.9/multiplatform-enable-signed-v2
+
+Am I missing some thing ?
+
+[1]
+anil@anil-laptop:~/Anil/omap3/bcousson$  mkimage -A arm -O linux -T
+kernel -C none -a 0x80008000 -e 0x80008000 -n "Linux" -d
+zImage-omap2plus uImage-omap2plus
+mkimage: Can't open zImage-omap2plus: No such file or directory
+anil@anil-laptop:~/Anil/omap3/bcousson$
+
+Thanks,
+Anil
