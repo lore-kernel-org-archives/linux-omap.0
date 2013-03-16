@@ -1,71 +1,34 @@
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: [net PATCH 1/1] drivers: net: ethernet: ti: davinci_emac: fix
- usage of cpdma_check_free_tx_desc()
-Date: Sat, 16 Mar 2013 12:43:14 +0530
-Message-ID: <CA+V-a8sM9q6eVqu8nMf1S1jhZEf3zJsPYr_8_waRinfeX17t5w@mail.gmail.com>
-References: <1363356616-32480-1-git-send-email-mugunthanvnm@ti.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH 22/50] staging: omap-thermal: rewrite
+ omap_bandgap_adc_to_mcelsius on kernel coding style
+Date: Sat, 16 Mar 2013 11:27:55 +0300
+Message-ID: <20130316082755.GM9138@mwanda>
+References: <1363352438-15935-1-git-send-email-eduardo.valentin@ti.com>
+ <1363352438-15935-23-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1363356616-32480-1-git-send-email-mugunthanvnm@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, dlos <davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <1363352438-15935-23-git-send-email-eduardo.valentin@ti.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
+ <mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel/>
+List-Post: <mailto:devel@linuxdriverproject.org>
+List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
+ <mailto:devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: devel-bounces@linuxdriverproject.org
+Sender: "devel" <devel-bounces@linuxdriverproject.org>
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: devel@driverdev.osuosl.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mugunthan
+On Fri, Mar 15, 2013 at 09:00:10AM -0400, Eduardo Valentin wrote:
+> Follow Documentation/CodingStyle while doing  omap_bandgap_adc_to_mcelsius.
 
-Thanks for the patch!
+Someone should probably fix CodingStyle to be more clear.  That's
+not what was intended at all...  :/
 
-On Fri, Mar 15, 2013 at 7:40 PM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
-> Fix which was done in the following commit in cpsw driver has
-> to be taken forward to davinci emac driver as well.
->
-> commit d35162f89b8f00537d7b240b76d2d0e8b8d29aa0
-> Author: Daniel Mack <zonque@gmail.com>
-> Date:   Tue Mar 12 06:31:19 2013 +0000
->
->     net: ethernet: cpsw: fix usage of cpdma_check_free_tx_desc()
->
->     Commit fae50823d0 ("net: ethernet: davinci_cpdma: Add boundary for rx
->     and tx descriptors") introduced a function to check the current
->     allocation state of tx packets. The return value is taken into account
->     to stop the netqork queue on the adapter in case there are no free
->     slots.
->
->     However, cpdma_check_free_tx_desc() returns 'true' if there is room in
->     the bitmap, not 'false', so the usage of the function is wrong.
->
-> Reported-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-
- Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-
-Cheers,
---Prabhakar Lad
-http://www.linkedin.com/pub/prabhakar-lad/19/92b/955
-
-> ---
->  drivers/net/ethernet/ti/davinci_emac.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
-> index 52c0536..ae1b77a 100644
-> --- a/drivers/net/ethernet/ti/davinci_emac.c
-> +++ b/drivers/net/ethernet/ti/davinci_emac.c
-> @@ -1102,7 +1102,7 @@ static int emac_dev_xmit(struct sk_buff *skb, struct net_device *ndev)
->         /* If there is no more tx desc left free then we need to
->          * tell the kernel to stop sending us tx frames.
->          */
-> -       if (unlikely(cpdma_check_free_tx_desc(priv->txchan)))
-> +       if (unlikely(!cpdma_check_free_tx_desc(priv->txchan)))
->                 netif_stop_queue(ndev);
->
->         return NETDEV_TX_OK;
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+dan carpenter
