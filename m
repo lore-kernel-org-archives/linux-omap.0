@@ -1,27 +1,37 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 3/6] OF: Export all DT proc update functions
-Date: Sat, 16 Mar 2013 09:45:56 +0000
-Message-ID: <20130316094556.7898E3E09B0@localhost>
-References: <1357327870-13615-1-git-send-email-panto@antoniou-consulting.com> <1357327870-13615-4-git-send-email-panto@antoniou-consulting.com>
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1357327870-13615-4-git-send-email-panto@antoniou-consulting.com>
-Sender: linux-doc-owner@vger.kernel.org
-Cc: Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, David Gibson <david@gibson.dropbear.id.au>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>, Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH 5/6] OF: Introduce Device Tree resolve support.
+Date: Sat, 16 Mar 2013 09:24:35 +0000
+Message-ID: <20130316092435.9FA4B3E095B@localhost>
+References: <1357327870-13615-1-git-send-email-panto@antoniou-consulting.com> <1357327870-13615-6-git-send-email-panto@antoniou-consulting.com> <20130121044836.GB24829@truffula.fritz.box> <EEEDB0B2-7410-456B-BED7-89FD5E407553@antoniou-consulting.com> <20130122040524.GG23500@truffula.fritz.box> <AB11FABF-6A45-493D-869D-7549FD758DD2@antoniou-consulting.com> <20130123044041.GS23500@truffula.fritz.box> <060132B1-BB52-4C7F-B8D3-82B49BE49BB7@antoniou-consulting.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:51680 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755656Ab3CPKev (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Mar 2013 06:34:51 -0400
+Received: by mail-wg0-f43.google.com with SMTP id e12so3315487wge.34
+        for <linux-omap@vger.kernel.org>; Sat, 16 Mar 2013 03:34:50 -0700 (PDT)
+In-Reply-To: <060132B1-BB52-4C7F-B8D3-82B49BE49BB7@antoniou-consulting.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>, David Gibson <david@gibson.dropbear.id.au>
+Cc: Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>
 
-On Fri,  4 Jan 2013 21:31:07 +0200, Pantelis Antoniou <panto@antoniou-consulting.com> wrote:
-> There are other users for the proc DT functions.
-> Export them.
+On Wed, 23 Jan 2013 12:58:02 +0200, Pantelis Antoniou <panto@antoniou-consulting.com> wrote:
+> Hi David,
 > 
-> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+> On Jan 23, 2013, at 6:40 AM, David Gibson wrote:
+> > Ok.  Nonetheless it's not hard to avoid a recursive approach here.
+> 
+> How can I find the maximum phandle value of a subtree without using recursion.
+> Note that the whole function is just 6 lines long.
 
-Hi Pantelis.
+It's a failure in the existing kernel DT data structures. We need a hash
+lookup for the phandles to eliminate the search entirely. Then you'd be
+able to allocated new phandles on the fly easily and resolve phandles
+without searching the whole tree (which has always been horrible).
 
-Patches 1 & 2 look good. No comments there.
-
-This patch bothers me. The manipulation of the proc entries is part and
-parcel of adding and removing nodes. The real problem seems to be that
-the node addition/removal APIs need to be made usable by the overlay
-code.
+That said, I'd like to punt on the whole phandle resolution thing. The
+DT overlay support can be merged without the phandle resolution support
+if the core rejects any overlays with phandle collisions.
 
 g.
