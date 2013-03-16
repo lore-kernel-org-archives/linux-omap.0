@@ -1,82 +1,20 @@
-From: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
-Subject: Re: Getting kernel uImage build issue on omap2+
-Date: Sat, 16 Mar 2013 10:23:01 +0100
-Message-ID: <CABxcv=mN7mayrtZN-t5VDfexpLTxMPJtPbUd3orkY6Oup6D-fg@mail.gmail.com>
-References: <CABYxbz6ydTtHmLW1xETanHa9uZzZ5M=4wv3Wj5aNDE2Db1b2Rw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CABYxbz6ydTtHmLW1xETanHa9uZzZ5M=4wv3Wj5aNDE2Db1b2Rw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Anil Kumar <anilk4.v-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 3/6] OF: Export all DT proc update functions
+Date: Sat, 16 Mar 2013 09:53:05 +0000
+Message-ID: <20130316095305.E65153E0A91@localhost>
+References: <1357327870-13615-1-git-send-email-panto@antoniou-consulting.com> <1357327870-13615-4-git-send-email-panto@antoniou-consulting.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1357327870-13615-4-git-send-email-panto@antoniou-consulting.com>
+Sender: linux-doc-owner@vger.kernel.org
+Cc: Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, David Gibson <david@gibson.dropbear.id.au>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>, Pantelis Antoniou <panto@antoniou-consulting.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Mar 16, 2013 at 5:44 AM, Anil Kumar <anilk4.v-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Hi,
->
-> I am getting kernel uImage build issue on omap2+ log[1]
->
-> Taken kernel branch "for_3.10/dts" from
-> https://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
->
-> Taking reference from
-> https://kernel.googlesource.com/pub/scm/linux/kernel/git/tmlind/linux-omap/+/omap-for-v3.9/multiplatform-enable-signed-v2
->
-> Am I missing some thing ?
->
-> [1]
-> anil@anil-laptop:~/Anil/omap3/bcousson$  mkimage -A arm -O linux -T
-> kernel -C none -a 0x80008000 -e 0x80008000 -n "Linux" -d
-> zImage-omap2plus uImage-omap2plus
-> mkimage: Can't open zImage-omap2plus: No such file or directory
-> anil@anil-laptop:~/Anil/omap3/bcousson$
->
-> Thanks,
-> Anil
->
+On Fri,  4 Jan 2013 21:31:07 +0200, Pantelis Antoniou <panto@antoniou-consulting.com> wrote:
+> There are other users for the proc DT functions.
+> Export them.
+> 
+> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 
-Hi Anil,
+Actually, I cannot find the user of this patch. Why is it needed?
 
-It seems that Tony's email assumed that you generated a bunch of
-zImages for different platforms and then naming them zImage-$platform.
-
-e.g:
-
-$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- omap2plus_defconfig
-$ make -j 4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- zImage modules
-zImage-omap2plus
-$ cp cp arch/arm/boot/zImage zImage-omap2plus
-
-and then you can use the command in [1]:
-
-$  mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e
-0x80008000 -n "Linux" -d zImage-omap2plus uImage-omap2plus
-
-anyways, the problem is that zImage-omap2plus does not exist and you
-have to use the zImage generated by "make zImage". What I usually do
-is just:
-
-$ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e
-0x80008000 -n "Linux" -d arch/arm/boot/zImage uImage-omap2plus
-
-and then copy uImage-omap2plus as uImage on either my board MMC/SD or
-Flash memory.
-
-Also, if you find this inconvenient, you can add CONFIG_CMD_BOOTZ to
-your board header config file in U-Boot so it can boot a zImage
-directly instead of an uImage. Not sure when did was introduced on
-U-Boot but should be available on any decent-ish version.
-
-Hope it helps,
-Javier
+g.
