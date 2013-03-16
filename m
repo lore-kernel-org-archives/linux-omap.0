@@ -1,111 +1,71 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH V2 4/8] memory: emif: Handle devices which are not rated for >85C
-Date: Sat, 16 Mar 2013 11:46:44 +0530
-Message-ID: <1363414608-7448-5-git-send-email-lokeshvutla@ti.com>
-References: <1363414608-7448-1-git-send-email-lokeshvutla@ti.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [net PATCH 1/1] drivers: net: ethernet: ti: davinci_emac: fix
+ usage of cpdma_check_free_tx_desc()
+Date: Sat, 16 Mar 2013 12:43:14 +0530
+Message-ID: <CA+V-a8sM9q6eVqu8nMf1S1jhZEf3zJsPYr_8_waRinfeX17t5w@mail.gmail.com>
+References: <1363356616-32480-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363414608-7448-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org
-Cc: santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lokeshvutla@ti.com, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1363356616-32480-1-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, dlos <davinci-linux-open-source@linux.davincidsp.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Nishanth Menon <nm@ti.com>
+Hi Mugunthan
 
-As per JESD209-2E specification for LPDDR2,
-      http://www.jedec.org/standards-documents/results/jesd209-2E
-Table 73, LPDDR2 memories come in two flavors - Standard and
-Extended. The Standard types can operate from -25C to +85C
-However, beyond that and upto +105C can only be supported by
-Extended types.
+Thanks for the patch!
 
-Unfortunately, it seems there is no info in MR0(device info) or
-MR[1,2](device feature) for run time detection of this capability
-as far as seen on the spec. Hence, we provide a custom_config
-flag to be populated by platforms which have these "extended"
-type memories.
+On Fri, Mar 15, 2013 at 7:40 PM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
+> Fix which was done in the following commit in cpsw driver has
+> to be taken forward to davinci emac driver as well.
+>
+> commit d35162f89b8f00537d7b240b76d2d0e8b8d29aa0
+> Author: Daniel Mack <zonque@gmail.com>
+> Date:   Tue Mar 12 06:31:19 2013 +0000
+>
+>     net: ethernet: cpsw: fix usage of cpdma_check_free_tx_desc()
+>
+>     Commit fae50823d0 ("net: ethernet: davinci_cpdma: Add boundary for rx
+>     and tx descriptors") introduced a function to check the current
+>     allocation state of tx packets. The return value is taken into account
+>     to stop the netqork queue on the adapter in case there are no free
+>     slots.
+>
+>     However, cpdma_check_free_tx_desc() returns 'true' if there is room in
+>     the bitmap, not 'false', so the usage of the function is wrong.
+>
+> Reported-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 
-For the "Standard" memories, we need to consider MR4 notifications
-of temperature triggers >85C as equivalent to thermal shutdown
-events (equivalent to Spec specified thermal shutdown events for
-"extended" parts).
+ Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Reported-by: Richard Woodruff <r-woodruff2@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
-Changes since V1: No changes
+Cheers,
+--Prabhakar Lad
+http://www.linkedin.com/pub/prabhakar-lad/19/92b/955
 
- drivers/memory/emif.c                   |   27 +++++++++++++++++++++++++++
- include/linux/platform_data/emif_plat.h |    1 +
- 2 files changed, 28 insertions(+)
-
-diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
-index e513889..827eb3b 100644
---- a/drivers/memory/emif.c
-+++ b/drivers/memory/emif.c
-@@ -918,6 +918,7 @@ static irqreturn_t handle_temp_alert(void __iomem *base, struct emif_data *emif)
- {
- 	u32		old_temp_level;
- 	irqreturn_t	ret = IRQ_HANDLED;
-+	struct emif_custom_configs *custom_configs;
- 
- 	spin_lock_irqsave(&emif_lock, irq_state);
- 	old_temp_level = emif->temperature_level;
-@@ -930,6 +931,29 @@ static irqreturn_t handle_temp_alert(void __iomem *base, struct emif_data *emif)
- 		goto out;
- 	}
- 
-+	custom_configs = emif->plat_data->custom_configs;
-+
-+	/*
-+	 * IF we detect higher than "nominal rating" from DDR sensor
-+	 * on an unsupported DDR part, shutdown system
-+	 */
-+	if (custom_configs && !(custom_configs->mask &
-+				EMIF_CUSTOM_CONFIG_EXTENDED_TEMP_PART)) {
-+		if (emif->temperature_level >= SDRAM_TEMP_HIGH_DERATE_REFRESH) {
-+			dev_err(emif->dev,
-+				"%s:NOT Extended temperature capable memory."
-+				"Converting MR4=0x%02x as shutdown event\n",
-+				__func__, emif->temperature_level);
-+			/*
-+			 * Temperature far too high - do kernel_power_off()
-+			 * from thread context
-+			 */
-+			emif->temperature_level = SDRAM_TEMP_VERY_HIGH_SHUTDOWN;
-+			ret = IRQ_WAKE_THREAD;
-+			goto out;
-+		}
-+	}
-+
- 	if (emif->temperature_level < old_temp_level ||
- 		emif->temperature_level == SDRAM_TEMP_VERY_HIGH_SHUTDOWN) {
- 		/*
-@@ -1228,6 +1252,9 @@ static void __init_or_module of_get_custom_configs(struct device_node *np_emif,
- 		cust_cfgs->temp_alert_poll_interval_ms = *poll_intvl;
- 	}
- 
-+	if (of_find_property(np_emif, "extended-temp-part", &len))
-+		cust_cfgs->mask |= EMIF_CUSTOM_CONFIG_EXTENDED_TEMP_PART;
-+
- 	if (!is_custom_config_valid(cust_cfgs, emif->dev)) {
- 		devm_kfree(emif->dev, cust_cfgs);
- 		return;
-diff --git a/include/linux/platform_data/emif_plat.h b/include/linux/platform_data/emif_plat.h
-index 03378ca..5c19a2a 100644
---- a/include/linux/platform_data/emif_plat.h
-+++ b/include/linux/platform_data/emif_plat.h
-@@ -40,6 +40,7 @@
- /* Custom config requests */
- #define EMIF_CUSTOM_CONFIG_LPMODE			0x00000001
- #define EMIF_CUSTOM_CONFIG_TEMP_ALERT_POLL_INTERVAL	0x00000002
-+#define EMIF_CUSTOM_CONFIG_EXTENDED_TEMP_PART		0x00000004
- 
- #ifndef __ASSEMBLY__
- /**
--- 
-1.7.9.5
+> ---
+>  drivers/net/ethernet/ti/davinci_emac.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+> index 52c0536..ae1b77a 100644
+> --- a/drivers/net/ethernet/ti/davinci_emac.c
+> +++ b/drivers/net/ethernet/ti/davinci_emac.c
+> @@ -1102,7 +1102,7 @@ static int emac_dev_xmit(struct sk_buff *skb, struct net_device *ndev)
+>         /* If there is no more tx desc left free then we need to
+>          * tell the kernel to stop sending us tx frames.
+>          */
+> -       if (unlikely(cpdma_check_free_tx_desc(priv->txchan)))
+> +       if (unlikely(!cpdma_check_free_tx_desc(priv->txchan)))
+>                 netif_stop_queue(ndev);
+>
+>         return NETDEV_TX_OK;
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
