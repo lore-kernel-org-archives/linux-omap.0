@@ -1,54 +1,49 @@
-From: Anil Kumar <anilk4.v@gmail.com>
-Subject: Re: [PATCH V2 0/8] ARM: dts: Various OMAP2+ device-tree updates
-Date: Sun, 17 Mar 2013 15:05:09 +0530
-Message-ID: <CABYxbz5cW0Jt12SGcMpN5L0n18C6Mis0gRoBgSHWnxuAz6chGA@mail.gmail.com>
-References: <1363355861-11773-1-git-send-email-jon-hunter@ti.com>
-	<51433094.1000104@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [net PATCH 1/1] drivers: net: ethernet: ti: davinci_emac: fix
+ usage of cpdma_check_free_tx_desc()
+Date: Sun, 17 Mar 2013 12:19:21 -0400 (EDT)
+Message-ID: <20130317.121921.1333305173173774055.davem@davemloft.net>
+References: <1363356616-32480-1-git-send-email-mugunthanvnm@ti.com>
+	<CA+V-a8sM9q6eVqu8nMf1S1jhZEf3zJsPYr_8_waRinfeX17t5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:55182 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752227Ab3CQJfK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 17 Mar 2013 05:35:10 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k10so5852245iea.5
-        for <linux-omap@vger.kernel.org>; Sun, 17 Mar 2013 02:35:09 -0700 (PDT)
-In-Reply-To: <51433094.1000104@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CA+V-a8sM9q6eVqu8nMf1S1jhZEf3zJsPYr_8_waRinfeX17t5w@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: prabhakar.csengg@gmail.com
+Cc: mugunthanvnm@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Benoit,
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sat, 16 Mar 2013 12:43:14 +0530
 
-On Fri, Mar 15, 2013 at 8:00 PM, Benoit Cousson <b-cousson@ti.com> wrote:
-> Hi Jon,
->
-> On 03/15/2013 02:57 PM, Jon Hunter wrote:
->> Various OMAP device-tree updates for PMU, DMA, GPIO, GPMC and boards.
+> Hi Mugunthan
+> 
+> Thanks for the patch!
+> 
+> On Fri, Mar 15, 2013 at 7:40 PM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
+>> Fix which was done in the following commit in cpsw driver has
+>> to be taken forward to davinci emac driver as well.
 >>
->> The DMA, PMU and OMAP3430 SDP board changes have been sent before
->> individually but re-sending here as a complete series for v3.10.
+>> commit d35162f89b8f00537d7b240b76d2d0e8b8d29aa0
+>> Author: Daniel Mack <zonque@gmail.com>
+>> Date:   Tue Mar 12 06:31:19 2013 +0000
 >>
->> This is based upon Benoit's for_3.10/dts branch [1]. Branch available
->> here [2].
+>>     net: ethernet: cpsw: fix usage of cpdma_check_free_tx_desc()
 >>
->> V2 changes:
->> - Rebased on Benoit's for_3.10/dts branch
->> - Squashed patches adding support for OMAP3430 SDP board and patch
->>   to add flash support for OMAP3430 SDP board.
+>>     Commit fae50823d0 ("net: ethernet: davinci_cpdma: Add boundary for rx
+>>     and tx descriptors") introduced a function to check the current
+>>     allocation state of tx packets. The return value is taken into account
+>>     to stop the netqork queue on the adapter in case there are no free
+>>     slots.
 >>
->> [1] http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.10/dts
->> [2] git://github.com/jonhunter/linux.git omap-dt-for-v3.10
->
-> Thanks for the repost. I've just applied your branch in my for_3.10/dts
-> branch.
+>>     However, cpdma_check_free_tx_desc() returns 'true' if there is room in
+>>     the bitmap, not 'false', so the usage of the function is wrong.
+>>
+>> Reported-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
+>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> 
+>  Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-I think you missed below patch which is needed for gpmc nand to work fine.
-Without this patch nand will not work on OMAP3430 SDP board.
-
-Jon Hunter:-
-  ARM: OMAP2+: Fix-up gpmc merge error
-
-Thanks,
-Anil
+Applied, thanks.
