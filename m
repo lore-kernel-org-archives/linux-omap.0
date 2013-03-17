@@ -1,101 +1,100 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH V3 02/18] ARM: OMAP2+: Add variable to store number of
- GPMC waitpins
-Date: Sat, 16 Mar 2013 17:59:17 -0300
-Message-ID: <20130316205916.GA3290@localhost>
-References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
- <1363360876-13617-3-git-send-email-jon-hunter@ti.com>
+From: Anil Kumar <anilk4.v@gmail.com>
+Subject: Re: [PATCH V4] ARM: dts: add minimal DT support for DevKit8000.
+Date: Sun, 17 Mar 2013 10:53:36 +0530
+Message-ID: <CABYxbz7bLZxX-6U3O9nRsKxAXbg0nEta55eO-ERuotPnw=X5BQ@mail.gmail.com>
+References: <F3DBB1B3EF102E4994C89758CFCA32412CC4E9@DBDE01.ent.ti.com>
+	<CABYxbz5GyxYaHANgdpwBNaaR6tnu=6LJuUNSvL7DEzU=4CPHcA@mail.gmail.com>
+	<F3DBB1B3EF102E4994C89758CFCA32412CC74F@DBDE01.ent.ti.com>
+	<CABYxbz62JrMB95p5i9iu2G=B4ETXLrYbLsyFEFR5F+WVD6YNnQ@mail.gmail.com>
+	<20130306175313.GQ11806@atomide.com>
+	<513838F2.60101@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:58529 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751325Ab3CPU7a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Mar 2013 16:59:30 -0400
-Content-Disposition: inline
-In-Reply-To: <1363360876-13617-3-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <513838F2.60101@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux@arm.linux.org.uk, Grant Likely <grant.likely@secretlab.ca>, Thomas Weber <thomas@tomweber.eu>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Ezequiel Garcia <elezegarcia@gmail.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Daniel Mack <zonque@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Mark Jackson <mpfj-list@mimc.co.uk>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Jon,
+Hi Benoit,
 
-On Fri, Mar 15, 2013 at 10:21:00AM -0500, Jon Hunter wrote:
-> The GPMC has wait-pin signals that can be assigned to a chip-select
-> to monitor the ready signal of an external device. Add a variable to
-> indicate the total number of wait-pins for a given device. This will
-> allow us to detect if the wait-pin being selected is valid or not.
->=20
-> When booting with device-tree read the number of wait-pins from the
-> device-tree blob. When device-tree is not used set the number of
-> wait-pins to 4 which is valid for OMAP2-5 devices. Newer devices
-> that have less wait-pins (such as AM335x) only support booting with
-> device-tree and so hard-coding the wait-pin number when not using
-> device-tree is fine.
->=20
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> ---
->  arch/arm/mach-omap2/gpmc.c |   16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
->=20
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index ef655d9..88a261c 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -108,6 +108,8 @@
->  #define	GPMC_HAS_WR_ACCESS		0x1
->  #define	GPMC_HAS_WR_DATA_MUX_BUS	0x2
-> =20
-> +#define GPMC_NR_WAITPINS		4
-> +
->  /* XXX: Only NAND irq has been considered,currently these are the on=
-ly ones used
->   */
->  #define	GPMC_NR_IRQ		2
-> @@ -153,6 +155,7 @@ static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
->  static DEFINE_SPINLOCK(gpmc_mem_lock);
->  /* Define chip-selects as reserved by default until probe completes =
-*/
->  static unsigned int gpmc_cs_map =3D ((1 << GPMC_CS_NUM) - 1);
-> +static unsigned int gpmc_nr_waitpins;
->  static struct device *gpmc_dev;
->  static int gpmc_irq;
->  static resource_size_t phys_base, mem_size;
-> @@ -1297,6 +1300,13 @@ static int gpmc_probe_dt(struct platform_devic=
-e *pdev)
->  	if (!of_id)
->  		return 0;
-> =20
-> +	ret =3D of_property_read_u32(pdev->dev.of_node, "gpmc,num-waitpins"=
-,
-> +				   &gpmc_nr_waitpins);
-> +	if (ret < 0) {
-> +		pr_err("%s: number of wait pins not found!\n", __func__);
-> +		return ret;
-> +	}
-> +
->  	for_each_node_by_name(child, "nand") {
->  		ret =3D gpmc_probe_nand_child(pdev, child);
->  		if (ret < 0) {
-> @@ -1372,6 +1382,12 @@ static int gpmc_probe(struct platform_device *=
-pdev)
->  	if (gpmc_setup_irq() < 0)
->  		dev_warn(gpmc_dev, "gpmc_setup_irq failed\n");
-> =20
-> +	/* Now the GPMC is initialised, unreserve the chip-selects */
-> +	gpmc_cs_map =3D 0;
+On Thu, Mar 7, 2013 at 12:21 PM, Benoit Cousson <b-cousson@ti.com> wrote:
+> Hi,
+>
+> On 03/06/2013 06:53 PM, Tony Lindgren wrote:
+>> * Anil Kumar <anilk4.v@gmail.com> [130305 18:40]:
+>>> Hi Tony,
+>>>
+>>>>> From: linux-arm-kernel [mailto:linux-arm-kernel-
+>>>>> bounces@lists.infradead.org] On Behalf Of Anil Kumar
+>>>>> Sent: Wednesday, February 27, 2013 8:03 AM
+>>>>> To: devicetree-discuss@lists.ozlabs.org; linux-omap@vger.kernel.org;
+>>>>> linux-kernel@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+>>>>> Cc: linux@arm.linux.org.uk; Cousson, Benoit; Tony Lindgren; Grant
+>>>>> Likely; Anil Kumar; thomas@tomweber.eu
+>>>>> Subject: Re: FW: [PATCH V4] ARM: dts: add minimal DT support for
+>>>>> DevKit8000.
+>>>>>
+>>>>> Hi,
+>>>>>>
+>>>>>> DevKit8000 is a beagle board clone from Timll, sold by
+>>>>>> armkits.com. The DevKit8000 has RS232 serial port, LCD, DVI-D,
+>>>>>> S-Video, Ethernet, SD/MMC, keyboard, camera, SPI, I2C, USB and
+>>>>>> JTAG interface.
+>>>>>>
+>>>>>> This patch adds the basic DT support for devkit8000. At this time,
+>>>>> Information
+>>>>>> of twl4030 (PMIC), MMC1, I2C1 and leds are added.
+>>>>>>
+>>>>>> Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
+>>>>>> Tested-by: Thomas Weber <thomas@tomweber.eu>
+>>>>>
+>>>>> Gentle Ping. As there are no review comments on this patch,
+>>>>> Could you please pull this patch ?
+>>>
+>>> Gentle Ping.
+>>>
+>>> This patch also got Reviewed-by: Manish Badarkhe <badarkhe.manish@gmail.com>
+>>> and as patch "ARM: dts: omap3-devkit8000: Enable audio support"  has already got
+>>> "Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>" but it is on the
+>>> top of this patch.
+>>> So, Could you please pull this patch in one of your omap branch? or
+>>> you want me to
+>>> do rebase this patch on top of v3.9-rc1 ?
+>>
+>> Let's wait for Benoit to queue it as he has a bunch of .dts changes already
+>> applied. Too bad we missed v3.9 merge window for those, but hopefully
+>> we can get them queued early for v3.10.
+>
+> Yep, sorry for having missed 3.9, I was a little bit sick at the wrong
+> moment :-(
+>
+> I'm starting queuing the pending patches, and should have enough to push
+> to you just after Linaro Connect.
 
-The above seems to be a remanent of another patch.
-I think you already sent that one, right?
+I think you missed below patch which is needed for gpmc nand to work fine.
 
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jon Hunter:-
+  ARM: OMAP2+: Fix-up gpmc merge error
+
+I have re based my changes on top of your repository to make pull
+easier for you.
+I hope you will pull these changes for 3.10.
+
+The following changes since Commit a7f7881de9c0b58de3b3aea8f01a8aef906d4ade
+
+are available in the git repository at:
+
+git://gitorious.org/devkit8000-for_3-10/devkit8000-for_3-10.git
+branch for_3.10/dts
+
+for you to fetch changes up to Commit 975abc8b2e7ec4ff7324d726c9775958945ccc5e
+
+Anil Kumar:
+ARM: dts: add minimal DT support for DevKit8000
+ARM: dts: omap3-devkit8000: Enable audio support
+ARM: dts: omap3-devkit8000: add nand dt node
+
+Thanks,
+Anil
