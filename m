@@ -1,100 +1,117 @@
-From: Anil Kumar <anilk4.v@gmail.com>
-Subject: Re: [PATCH V4] ARM: dts: add minimal DT support for DevKit8000.
-Date: Sun, 17 Mar 2013 10:53:36 +0530
-Message-ID: <CABYxbz7bLZxX-6U3O9nRsKxAXbg0nEta55eO-ERuotPnw=X5BQ@mail.gmail.com>
-References: <F3DBB1B3EF102E4994C89758CFCA32412CC4E9@DBDE01.ent.ti.com>
-	<CABYxbz5GyxYaHANgdpwBNaaR6tnu=6LJuUNSvL7DEzU=4CPHcA@mail.gmail.com>
-	<F3DBB1B3EF102E4994C89758CFCA32412CC74F@DBDE01.ent.ti.com>
-	<CABYxbz62JrMB95p5i9iu2G=B4ETXLrYbLsyFEFR5F+WVD6YNnQ@mail.gmail.com>
-	<20130306175313.GQ11806@atomide.com>
-	<513838F2.60101@ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH V3 10/18] ARM: OMAP2+: Add function to read GPMC settings
+ from device-tree
+Date: Sun, 17 Mar 2013 02:24:02 -0300
+Message-ID: <20130317052401.GA9796@localhost>
+References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
+ <1363360876-13617-11-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <513838F2.60101@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux@arm.linux.org.uk, Grant Likely <grant.likely@secretlab.ca>, Thomas Weber <thomas@tomweber.eu>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.free-electrons.com ([94.23.35.102]:58926 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793Ab3CQFYH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 17 Mar 2013 01:24:07 -0400
+Content-Disposition: inline
+In-Reply-To: <1363360876-13617-11-git-send-email-jon-hunter@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>
 
-Hi Benoit,
+Hi Jon,
 
-On Thu, Mar 7, 2013 at 12:21 PM, Benoit Cousson <b-cousson@ti.com> wrote:
-> Hi,
->
-> On 03/06/2013 06:53 PM, Tony Lindgren wrote:
->> * Anil Kumar <anilk4.v@gmail.com> [130305 18:40]:
->>> Hi Tony,
->>>
->>>>> From: linux-arm-kernel [mailto:linux-arm-kernel-
->>>>> bounces@lists.infradead.org] On Behalf Of Anil Kumar
->>>>> Sent: Wednesday, February 27, 2013 8:03 AM
->>>>> To: devicetree-discuss@lists.ozlabs.org; linux-omap@vger.kernel.org;
->>>>> linux-kernel@vger.kernel.org; linux-arm-kernel@lists.infradead.org
->>>>> Cc: linux@arm.linux.org.uk; Cousson, Benoit; Tony Lindgren; Grant
->>>>> Likely; Anil Kumar; thomas@tomweber.eu
->>>>> Subject: Re: FW: [PATCH V4] ARM: dts: add minimal DT support for
->>>>> DevKit8000.
->>>>>
->>>>> Hi,
->>>>>>
->>>>>> DevKit8000 is a beagle board clone from Timll, sold by
->>>>>> armkits.com. The DevKit8000 has RS232 serial port, LCD, DVI-D,
->>>>>> S-Video, Ethernet, SD/MMC, keyboard, camera, SPI, I2C, USB and
->>>>>> JTAG interface.
->>>>>>
->>>>>> This patch adds the basic DT support for devkit8000. At this time,
->>>>> Information
->>>>>> of twl4030 (PMIC), MMC1, I2C1 and leds are added.
->>>>>>
->>>>>> Signed-off-by: Anil Kumar <anilk4.v@gmail.com>
->>>>>> Tested-by: Thomas Weber <thomas@tomweber.eu>
->>>>>
->>>>> Gentle Ping. As there are no review comments on this patch,
->>>>> Could you please pull this patch ?
->>>
->>> Gentle Ping.
->>>
->>> This patch also got Reviewed-by: Manish Badarkhe <badarkhe.manish@gmail.com>
->>> and as patch "ARM: dts: omap3-devkit8000: Enable audio support"  has already got
->>> "Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>" but it is on the
->>> top of this patch.
->>> So, Could you please pull this patch in one of your omap branch? or
->>> you want me to
->>> do rebase this patch on top of v3.9-rc1 ?
->>
->> Let's wait for Benoit to queue it as he has a bunch of .dts changes already
->> applied. Too bad we missed v3.9 merge window for those, but hopefully
->> we can get them queued early for v3.10.
->
-> Yep, sorry for having missed 3.9, I was a little bit sick at the wrong
-> moment :-(
->
-> I'm starting queuing the pending patches, and should have enough to push
-> to you just after Linaro Connect.
+I have some tiny nitpicks...
 
-I think you missed below patch which is needed for gpmc nand to work fine.
+On Fri, Mar 15, 2013 at 10:21:08AM -0500, Jon Hunter wrote:
+> Adds a function to read the various GPMC chip-select settings from
+> device-tree and store them in the gpmc_settings structure.
+>=20
+> Update the GPMC device-tree binding documentation to describe these
+> options.
+>=20
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+>  Documentation/devicetree/bindings/bus/ti-gpmc.txt |   23 ++++++++++
+>  arch/arm/mach-omap2/gpmc.c                        |   49 +++++++++++=
+++++++++++
+>  arch/arm/mach-omap2/gpmc.h                        |    2 +
+>  3 files changed, 74 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Docu=
+mentation/devicetree/bindings/bus/ti-gpmc.txt
+> index 5ddb2e9..6fde1cf 100644
+> --- a/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+> @@ -65,6 +65,29 @@ The following are only applicable to OMAP3+ and AM=
+335x:
+>   - gpmc,wr-access
+>   - gpmc,wr-data-mux-bus
+> =20
+> +GPMC chip-select settings properties for child nodes. All are option=
+al.
+> +
+> +- gpmc,burst-length	Page/burst length. Must be 4, 8 or 16.
+> +- gpmc,burst-wrap	Enables wrap bursting
+> +- gpmc,burst-read	Enables read page/burst mode
+> +- gpmc,burst-write	Enables write page/burst mode
+> +- gpmc,device-nand	Device is NAND
+> +- gpmc,device-width	Total width of device(s) connected to a GPMC
+> +			chip-select in bytes. The GPMC supports 8-bit
+> +			and 16-bit devices and so this property must be
+> +			1 or 2.
+> +- gpmc,mux-add-data	Address and data multiplexing configuration.
+> +			Valid values are 1 for address-address-data
+> +			multiplexing mode and 2 for address-data
+> +			multiplexing mode.
+> +- gpmc,sync-read	Enables synchronous read. Defaults to asynchronous
+> +			is this is not set.
+> +- gpmc,sync-write	Enables synchronous writes. Defaults to asynchrono=
+us
+> +			is this is not set.
+> +- gpmc,wait-pin		Wait-pin used by client. Must be less than
+> +			"gpmc,num-waitpins".
+> +- gpmc,wait-on-read	Enables wait monitoring on reads.
+> +- gpmc,wait-on-write	Enables wait monitoring on writes.
+> =20
+>  Example for an AM33xx board:
+> =20
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 3ec1937..1e7eef3 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1190,6 +1190,55 @@ static struct of_device_id gpmc_dt_ids[] =3D {
+>  };
+>  MODULE_DEVICE_TABLE(of, gpmc_dt_ids);
+> =20
+> +/**
+> + * gpmc_read_settings_dt - read gpmc settings from device-tree
+> + * @np:		pointer to device-tree node for a gpmc child device
+> + * @p:		pointer to gpmc settings structure
+> + *
+> + * Reads the GPMC settings for a GPMC child device from device-tree =
+and
+> + * stores them in the GPMC settings structure passed. The GPMC setti=
+ngs
+> + * structure is initialise to zero by this function and so any previ=
+ously
 
-Jon Hunter:-
-  ARM: OMAP2+: Fix-up gpmc merge error
+s/initialise/initialized ?
 
-I have re based my changes on top of your repository to make pull
-easier for you.
-I hope you will pull these changes for 3.10.
+> + * stored settings will be clearer.
 
-The following changes since Commit a7f7881de9c0b58de3b3aea8f01a8aef906d4ade
+s/clearer/cleared ?
 
-are available in the git repository at:
+I'm not an english native speaker,
+so please bare with me if I'm wrong on these...
 
-git://gitorious.org/devkit8000-for_3-10/devkit8000-for_3-10.git
-branch for_3.10/dts
-
-for you to fetch changes up to Commit 975abc8b2e7ec4ff7324d726c9775958945ccc5e
-
-Anil Kumar:
-ARM: dts: add minimal DT support for DevKit8000
-ARM: dts: omap3-devkit8000: Enable audio support
-ARM: dts: omap3-devkit8000: add nand dt node
-
-Thanks,
-Anil
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
