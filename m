@@ -1,52 +1,58 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCHv2 3/7] usb: phy: twl4030-usb: don't switch the phy on/off needlessly
-Date: Sun, 17 Mar 2013 20:23:23 +0200
-Message-ID: <1363544607-17634-4-git-send-email-notasas@gmail.com>
+From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCHv2 2/7] usb: phy: twl4030-usb: ignore duplicate events
+Date: Sun, 17 Mar 2013 20:23:22 +0200
+Message-ID: <1363544607-17634-3-git-send-email-notasas@gmail.com>
 References: <1363544607-17634-1-git-send-email-notasas@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:47857 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932688Ab3CQSXr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 17 Mar 2013 14:23:47 -0400
-In-Reply-To: <1363544607-17634-1-git-send-email-notasas@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1363544607-17634-1-git-send-email-notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>, kishon <kishon-l0cyMroinI0@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, NeilBrown <neilb@suse.de>, kishon <kishon@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-With runtime_pm in place there is no longer need to turn the phy
-on/off in OTG layer on cable connect/disconnect, OMAP glue does
-this through otg.set_suspend() callback after it's called through
-omap_musb_mailbox() on VBUS/ID interrupt. Not doing this will save
-power when cable is connected but no gadget driver is loaded.
+In some rare cases we may get multiple interrupts that will generate
+duplicate omap_musb_mailbox() calls. This is a problem because each
+VBUS/ID event generates runtime_pm call in OMAP glue code, causing
+unbalanced gets or puts and breaking PM.
 
-This will also have side effect of automatic USB charging no longer
-working without twl4030_charger driver, because a regulator needed
-for charging will no longer be enabled, so be sure to enable charger
-driver if charging is needed.
+The same goes for initial state, glue already defaults to "no cable"
+state, so only bother it if we have VBUS or ID.
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/phy/phy-twl4030-usb.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/usb/phy/phy-twl4030-usb.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/usb/phy/phy-twl4030-usb.c
-index 305463b..b53a2a2 100644
+index 9e47118..305463b 100644
 --- a/drivers/usb/phy/phy-twl4030-usb.c
 +++ b/drivers/usb/phy/phy-twl4030-usb.c
-@@ -506,12 +506,6 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
- 		 * USB_LINK_VBUS state.  musb_hdrc won't care until it
- 		 * starts to handle softconnect right.
- 		 */
--		if (status == OMAP_MUSB_VBUS_OFF ||
--				status == OMAP_MUSB_ID_FLOAT)
--			twl4030_phy_suspend(twl, 0);
--		else
--			twl4030_phy_resume(twl);
--
+@@ -491,9 +491,10 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ {
+ 	struct twl4030_usb *twl = _twl;
+ 	enum omap_musb_vbus_id_status status;
++	enum omap_musb_vbus_id_status status_prev = twl->linkstat;
+ 
+ 	status = twl4030_usb_linkstat(twl);
+-	if (status > 0) {
++	if (status > 0 && status != status_prev) {
+ 		/* FIXME add a set_power() method so that B-devices can
+ 		 * configure the charger appropriately.  It's not always
+ 		 * correct to consume VBUS power, and how much current to
+@@ -530,7 +531,7 @@ static void twl4030_usb_phy_init(struct twl4030_usb *twl)
+ 	twl->asleep = 1;
+ 
+ 	status = twl4030_usb_linkstat(twl);
+-	if (status > 0)
++	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID)
  		omap_musb_mailbox(twl->linkstat);
- 	}
+ 
  	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
