@@ -1,49 +1,52 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [net PATCH 1/1] drivers: net: ethernet: ti: davinci_emac: fix
- usage of cpdma_check_free_tx_desc()
-Date: Sun, 17 Mar 2013 12:19:21 -0400 (EDT)
-Message-ID: <20130317.121921.1333305173173774055.davem@davemloft.net>
-References: <1363356616-32480-1-git-send-email-mugunthanvnm@ti.com>
-	<CA+V-a8sM9q6eVqu8nMf1S1jhZEf3zJsPYr_8_waRinfeX17t5w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CA+V-a8sM9q6eVqu8nMf1S1jhZEf3zJsPYr_8_waRinfeX17t5w@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: prabhakar.csengg@gmail.com
-Cc: mugunthanvnm@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCHv2 0/7] usb: phy: twl4030-usb fixes
+Date: Sun, 17 Mar 2013 20:23:20 +0200
+Message-ID: <1363544607-17634-1-git-send-email-notasas@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:36075 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756411Ab3CQSXl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 17 Mar 2013 14:23:41 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, NeilBrown <neilb@suse.de>, kishon <kishon@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sat, 16 Mar 2013 12:43:14 +0530
+I have a pandora board which has similar musb setup to beagleboard
+(OMAP3530 + TWL4030) and musb never worked well on it for me in mainline.
+Well it usually works if you plug the cable once, but as soon as you start
+replugging cables and mixing host adapter into the game it totally breaks
+and reboot is then needed. Host mode is especially broken, any replugs
+after musb has been in host mode result in dead port that needs reboot
+to recover.
 
-> Hi Mugunthan
-> 
-> Thanks for the patch!
-> 
-> On Fri, Mar 15, 2013 at 7:40 PM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
->> Fix which was done in the following commit in cpsw driver has
->> to be taken forward to davinci emac driver as well.
->>
->> commit d35162f89b8f00537d7b240b76d2d0e8b8d29aa0
->> Author: Daniel Mack <zonque@gmail.com>
->> Date:   Tue Mar 12 06:31:19 2013 +0000
->>
->>     net: ethernet: cpsw: fix usage of cpdma_check_free_tx_desc()
->>
->>     Commit fae50823d0 ("net: ethernet: davinci_cpdma: Add boundary for rx
->>     and tx descriptors") introduced a function to check the current
->>     allocation state of tx packets. The return value is taken into account
->>     to stop the netqork queue on the adapter in case there are no free
->>     slots.
->>
->>     However, cpdma_check_free_tx_desc() returns 'true' if there is room in
->>     the bitmap, not 'false', so the usage of the function is wrong.
->>
->> Reported-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
->> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-> 
->  Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+With this series I can switch host/peripheral cables any way I like and
+even suspend works with cable plugged with musb in peripheral mode!
+("ARM: OMAP3: hwmod data: keep MIDLEMODE in force-standby for musb" is
+needed that was sent separately). This also fixes power drain when cable
+is plugged an no gadget driver is loaded.
 
-Applied, thanks.
+Changed since v1:
+- rebased on Felipe's testing branch
+- added locking for patch 4 to take care of possible races
+  between work item and IRQ
+- changed patch 6 to only disable VBUS if not runtime suspended,
+  otherwise we get data abort on OMAP3
+
+Grazvydas Ignotas (7):
+  usb: phy: twl4030-usb: don't enable PHY during init
+  usb: phy: twl4030-usb: ignore duplicate events
+  usb: phy: twl4030-usb: don't switch the phy on/off needlessly
+  usb: phy: twl4030-usb: poll for ID disconnect
+  usb: phy: twl4030-usb: check if vbus is driven by twl itself
+  usb: musb: omap2430: turn off vbus on cable disconnect
+  usb: musb: gadget: use platform callback to enable vbus
+
+ drivers/usb/musb/musb_gadget.c    |    5 +-
+ drivers/usb/musb/omap2430.c       |    1 +
+ drivers/usb/phy/phy-twl4030-usb.c |  123 +++++++++++++++++++++++++++++--------
+ 3 files changed, 99 insertions(+), 30 deletions(-)
+
+-- 
+1.7.9.5
+
