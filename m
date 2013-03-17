@@ -1,47 +1,97 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCHv2 7/7] usb: musb: gadget: use platform callback to enable vbus
-Date: Sun, 17 Mar 2013 20:23:27 +0200
-Message-ID: <1363544607-17634-8-git-send-email-notasas@gmail.com>
+From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCHv2 5/7] usb: phy: twl4030-usb: check if vbus is driven by twl itself
+Date: Sun, 17 Mar 2013 20:23:25 +0200
+Message-ID: <1363544607-17634-6-git-send-email-notasas@gmail.com>
 References: <1363544607-17634-1-git-send-email-notasas@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f175.google.com ([209.85.215.175]:53696 "EHLO
-	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932689Ab3CQSXy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 17 Mar 2013 14:23:54 -0400
-In-Reply-To: <1363544607-17634-1-git-send-email-notasas@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1363544607-17634-1-git-send-email-notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>, kishon <kishon-l0cyMroinI0@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, NeilBrown <neilb@suse.de>, kishon <kishon@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-On some platform configurations (like OMAP3+twl4030) it's the platform
-code that enables VBUS, not OTG transceiver, so call vbus platform
-callback instead, it will then call the transceiver if needed.
+At least on pandora, STS_VBUS gets set even when VBUS is driven by twl
+itself. Reporting VBUS in this case confuses OMAP musb glue and charger
+driver, so check if OTG VBUS charge pump is on before reporting VBUS
+event to avoid this problem.
 
-This fixes a use case where USB cable is plugged first and gadget
-driver is loaded later after that.
-
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/usb/musb/musb_gadget.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/usb/phy/phy-twl4030-usb.c |   36 +++++++++++++++++++++++++++++++-----
+ 1 file changed, 31 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index ae59ee6..60eef20 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1799,9 +1799,8 @@ static int musb_gadget_start(struct usb_gadget *g,
- 		goto err;
+diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/usb/phy/phy-twl4030-usb.c
+index 425c18a..87bf11d 100644
+--- a/drivers/usb/phy/phy-twl4030-usb.c
++++ b/drivers/usb/phy/phy-twl4030-usb.c
+@@ -248,11 +248,31 @@ twl4030_usb_clear_bits(struct twl4030_usb *twl, u8 reg, u8 bits)
+ 
+ /*-------------------------------------------------------------------------*/
+ 
++static bool twl4030_is_driving_vbus(struct twl4030_usb *twl)
++{
++	int ret;
++
++	ret = twl4030_usb_read(twl, PHY_CLK_CTRL_STS);
++	if (ret < 0 || !(ret & PHY_DPLL_CLK))
++		/*
++		 * if clocks are off, registers are not updated,
++		 * but we can assume we don't drive VBUS in this case
++		 */
++		return false;
++
++	ret = twl4030_usb_read(twl, ULPI_OTG_CTRL);
++	if (ret < 0)
++		return false;
++
++	return (ret & (ULPI_OTG_DRVVBUS | ULPI_OTG_CHRGVBUS)) ? true : false;
++}
++
+ static enum omap_musb_vbus_id_status
+ 	twl4030_usb_linkstat(struct twl4030_usb *twl)
+ {
+ 	int	status;
+ 	enum omap_musb_vbus_id_status linkstat = OMAP_MUSB_UNKNOWN;
++	bool	driving_vbus = false;
+ 
+ 	twl->vbus_supplied = false;
+ 
+@@ -270,20 +290,26 @@ static enum omap_musb_vbus_id_status
+ 	if (status < 0)
+ 		dev_err(twl->dev, "USB link status err %d\n", status);
+ 	else if (status & (BIT(7) | BIT(2))) {
+-		if (status & (BIT(7)))
+-                        twl->vbus_supplied = true;
++		if (status & BIT(7)) {
++			driving_vbus = twl4030_is_driving_vbus(twl);
++			if (driving_vbus)
++				status &= ~BIT(7);
++		}
+ 
+ 		if (status & BIT(2))
+ 			linkstat = OMAP_MUSB_ID_GROUND;
+-		else
++		else if (status & BIT(7)) {
+ 			linkstat = OMAP_MUSB_VBUS_VALID;
++			twl->vbus_supplied = true;
++		} else
++			linkstat = OMAP_MUSB_VBUS_OFF;
+ 	} else {
+ 		if (twl->linkstat != OMAP_MUSB_UNKNOWN)
+ 			linkstat = OMAP_MUSB_VBUS_OFF;
  	}
  
--	if ((musb->xceiv->last_event == USB_EVENT_ID)
--				&& otg->set_vbus)
--		otg_set_vbus(otg, 1);
-+	if (musb->xceiv->last_event == USB_EVENT_ID)
-+		musb_platform_set_vbus(musb, 1);
+-	dev_dbg(twl->dev, "HW_CONDITIONS 0x%02x/%d; link %d\n",
+-			status, status, linkstat);
++	dev_dbg(twl->dev, "HW_CONDITIONS 0x%02x; link %d, driving_vbus %d\n",
++		status, linkstat, driving_vbus);
  
- 	hcd->self.uses_pio_for_control = 1;
- 
+ 	/* REVISIT this assumes host and peripheral controllers
+ 	 * are registered, and that both are active...
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
