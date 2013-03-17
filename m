@@ -1,111 +1,142 @@
 From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH V3 10/18] ARM: OMAP2+: Add function to read GPMC settings
- from device-tree
-Date: Sun, 17 Mar 2013 02:24:02 -0300
-Message-ID: <20130317052401.GA9796@localhost>
+Subject: Re: [PATCH V3 00/18] ARM: OMAP2+: GPMC clean-up and DT update
+Date: Sun, 17 Mar 2013 02:34:53 -0300
+Message-ID: <20130317053452.GB9796@localhost>
 References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
- <1363360876-13617-11-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:58926 "EHLO
+Received: from mail.free-electrons.com ([94.23.35.102]:58956 "EHLO
 	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793Ab3CQFYH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 17 Mar 2013 01:24:07 -0400
+	with ESMTP id S1750802Ab3CQFe6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 17 Mar 2013 01:34:58 -0400
 Content-Disposition: inline
-In-Reply-To: <1363360876-13617-11-git-send-email-jon-hunter@ti.com>
+In-Reply-To: <1363360876-13617-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jon Hunter <jon-hunter@ti.com>
 Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>
 
-Hi Jon,
-
-I have some tiny nitpicks...
-
-On Fri, Mar 15, 2013 at 10:21:08AM -0500, Jon Hunter wrote:
-> Adds a function to read the various GPMC chip-select settings from
-> device-tree and store them in the gpmc_settings structure.
+On Fri, Mar 15, 2013 at 10:20:58AM -0500, Jon Hunter wrote:
+> While adding device-tree support for NOR memories, it became apparent
+> that there is no common way for configuring various GPMC settings for
+> devices that interface to the GPMC. These settings include bus-width,
+> synchronous/asynchronous mode, burst settings, wait monitoring etc.
+> Therefore, to simplify the GPMC code and add device-tree support for
+> NOR, it was first necessary to consolidate how these settings are
+> programmed.
 >=20
-> Update the GPMC device-tree binding documentation to describe these
-> options.
+> Series based upon Mark Jackson's patch [1] and Ezequiel Garcia GPMC
+> clean-up series [2]. Entire series available here [3].
 >=20
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> ---
->  Documentation/devicetree/bindings/bus/ti-gpmc.txt |   23 ++++++++++
->  arch/arm/mach-omap2/gpmc.c                        |   49 +++++++++++=
-++++++++++
->  arch/arm/mach-omap2/gpmc.h                        |    2 +
->  3 files changed, 74 insertions(+)
+> V3 changes:
+> - Rebased on RMK's IS_ERR_VALUE() patch and removed usage of
+>   IS_ERR_VALUE() from series.
+> - Fixed BUG in NAND code introduced in V2 by making gpmc_settings
+>   structure a local variable (I forgot to initialise structure to zer=
+o).
+> - Added fix from Javier to correct return value from gpmc_probe_nor()=
+=2E
 >=20
-> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Docu=
-mentation/devicetree/bindings/bus/ti-gpmc.txt
-> index 5ddb2e9..6fde1cf 100644
-> --- a/Documentation/devicetree/bindings/bus/ti-gpmc.txt
-> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
-> @@ -65,6 +65,29 @@ The following are only applicable to OMAP3+ and AM=
-335x:
->   - gpmc,wr-access
->   - gpmc,wr-data-mux-bus
-> =20
-> +GPMC chip-select settings properties for child nodes. All are option=
-al.
-> +
-> +- gpmc,burst-length	Page/burst length. Must be 4, 8 or 16.
-> +- gpmc,burst-wrap	Enables wrap bursting
-> +- gpmc,burst-read	Enables read page/burst mode
-> +- gpmc,burst-write	Enables write page/burst mode
-> +- gpmc,device-nand	Device is NAND
-> +- gpmc,device-width	Total width of device(s) connected to a GPMC
-> +			chip-select in bytes. The GPMC supports 8-bit
-> +			and 16-bit devices and so this property must be
-> +			1 or 2.
-> +- gpmc,mux-add-data	Address and data multiplexing configuration.
-> +			Valid values are 1 for address-address-data
-> +			multiplexing mode and 2 for address-data
-> +			multiplexing mode.
-> +- gpmc,sync-read	Enables synchronous read. Defaults to asynchronous
-> +			is this is not set.
-> +- gpmc,sync-write	Enables synchronous writes. Defaults to asynchrono=
-us
-> +			is this is not set.
-> +- gpmc,wait-pin		Wait-pin used by client. Must be less than
-> +			"gpmc,num-waitpins".
-> +- gpmc,wait-on-read	Enables wait monitoring on reads.
-> +- gpmc,wait-on-write	Enables wait monitoring on writes.
-> =20
->  Example for an AM33xx board:
-> =20
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 3ec1937..1e7eef3 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -1190,6 +1190,55 @@ static struct of_device_id gpmc_dt_ids[] =3D {
->  };
->  MODULE_DEVICE_TABLE(of, gpmc_dt_ids);
-> =20
-> +/**
-> + * gpmc_read_settings_dt - read gpmc settings from device-tree
-> + * @np:		pointer to device-tree node for a gpmc child device
-> + * @p:		pointer to gpmc settings structure
-> + *
-> + * Reads the GPMC settings for a GPMC child device from device-tree =
-and
-> + * stores them in the GPMC settings structure passed. The GPMC setti=
-ngs
-> + * structure is initialise to zero by this function and so any previ=
-ously
+> V2 changes:
+> - Made gpmc_settings structure local in gpmc_nand_init().
+> - Use resource_size() API in probe_nor().
+> - Add kernel-doc for gpmc_cs_program_settings() function.
+> - Use of_platform_device_create() to register NOR devices in probe_no=
+r().
+> - Add support for GPMC address-address-data multiplexing which requir=
+ed
+>   changing GPMC DT property "gpmc,mux-add-data" to store a 32-bit val=
+ue
+>   and changing mux_add_data member of gpmc_settings to be a 32-bit ty=
+pe
+>   instead of bool.
+> - Add detection for incorrect GPMC chip-select base addresses.
+> - Cleaned-up code in gpmc_mem_init() and changed gpmc_mem_init() so t=
+hat
+>   it would not return an error when the GPMC driver is being probed.
+>=20
+> V1 changes:
+> - Clean-up/simplification of ONENAND initialisation code.
+> - Add a new GPMC structure to unify storage of various GPMC settings
+>   (that are non-timing related) for client devices and add a new
+>   function to program these settings in a common way.
+> - Migrate initialisation code for existing flash, usb and networking
+>   devices to use the new structure and function for GPMC settings.
+> - Add device-tree support for NOR flash memories.
+> - Add additional GPMC timing parameters to GPMC device-tree binding.
+> - Update GPMC NAND and ONENAND device-tree support to retrieve GPMC
+>   settings from device-tree.
+>=20
+> Testing includes:
+> - Boot testing on OMAP2420 H4, OMAP3430 SDP and OMAP4430 SDP with
+>   and without device-tree present.
+> - OMAP2420 H4 board has NOR flash and OMAP3430 SDP has NOR, NAND
+>   and ONENAND flash. So verified that flash is detected on boot
+>   as expected. Note additional patches [4] are required for OMAP2420
+>   H4 and OMAP3430 SDP dts files in order to enable flash memory
+>   support.
+> - All of the above boards use GPMC for interfacing to a networking
+>   chip and so verified that networking is working wit this series.
+>   However, please note that networking is not currently supported
+>   on these boards when booting with DT and so networking is only
+>   tested without DT.
+>=20
+> [1] http://permalink.gmane.org/gmane.linux.ports.arm.omap/94765
+> [2] http://comments.gmane.org/gmane.linux.ports.arm.omap/93784
+> [3] https://github.com/jonhunter/linux/tree/omap-gpmc-for-v3.10
+> [4] https://github.com/jonhunter/linux/tree/omap-dt-for-v3.10
+>=20
+> Javier Martinez Canillas (1):
+>   ARM: OMAP2+: return -ENODEV if GPMC child device creation fails
+>=20
+> Jon Hunter (17):
+>   ARM: OMAP2+: Simplify code configuring ONENAND devices
+>   ARM: OMAP2+: Add variable to store number of GPMC waitpins
+>   ARM: OMAP2+: Add structure for storing GPMC settings
+>   ARM: OMAP2+: Add function for configuring GPMC settings
+>   ARM: OMAP2+: Convert ONENAND to use gpmc_cs_program_settings()
+>   ARM: OMAP2+: Convert NAND to use gpmc_cs_program_settings()
+>   ARM: OMAP2+: Convert SMC91x to use gpmc_cs_program_settings()
+>   ARM: OMAP2+: Convert TUSB to use gpmc_cs_program_settings()
+>   ARM: OMAP2+: Don't configure of chip-select options in
+>     gpmc_cs_configure()
+>   ARM: OMAP2+: Add function to read GPMC settings from device-tree
+>   ARM: OMAP2+: Add device-tree support for NOR flash
+>   ARM: OMAP2+: Add additional GPMC timing parameters
+>   ARM: OMAP2+: Convert NAND to retrieve GPMC settings from DT
+>   ARM: OMAP2+: Convert ONENAND to retrieve GPMC settings from DT
+>   ARM: OMAP2+: Detect incorrectly aligned GPMC base address
+>   ARM: OMAP2+: Remove unnecesssary GPMC definitions and variable
+>   ARM: OMAP2+: Allow GPMC probe to complete even if CS mapping fails
+>=20
+>  Documentation/devicetree/bindings/bus/ti-gpmc.txt  |   48 +-
+>  Documentation/devicetree/bindings/mtd/gpmc-nor.txt |   98 ++++
+>  .../devicetree/bindings/mtd/gpmc-onenand.txt       |    3 +
+>  arch/arm/mach-omap2/gpmc-nand.c                    |   39 +-
+>  arch/arm/mach-omap2/gpmc-onenand.c                 |  110 ++--
+>  arch/arm/mach-omap2/gpmc-smc91x.c                  |   30 +-
+>  arch/arm/mach-omap2/gpmc.c                         |  524 ++++++++++=
++++++-----
+>  arch/arm/mach-omap2/gpmc.h                         |   37 +-
+>  arch/arm/mach-omap2/usb-tusb6010.c                 |   62 ++-
+>  9 files changed, 691 insertions(+), 260 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nor.tx=
+t
+>=20
+> --=20
+> 1.7.10.4
+>=20
 
-s/initialise/initialized ?
+Looks really good!
 
-> + * stored settings will be clearer.
+=46WIW, On my OMAP3630 (IGEPv2) board, both DT and non-DT
+booted and read the OneNAND device.
 
-s/clearer/cleared ?
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-I'm not an english native speaker,
-so please bare with me if I'm wrong on these...
-
+Thanks,
 --=20
 Ezequiel Garc=C3=ADa, Free Electrons
 Embedded Linux, Kernel and Android Engineering
