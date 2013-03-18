@@ -1,136 +1,75 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if system
- supports 'has_ossr'
-Date: Mon, 18 Mar 2013 12:21:30 +0530
-Message-ID: <5146B972.1010002@ti.com>
-References: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com> <51406BA7.8010306@arm.com> <51407120.7030709@ti.com> <51417E58.5050501@ti.com> <20130315050014.GA15706@tiny-lites>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: clocks: Pass static parent pointers
+ to common clock core
+Date: Mon, 18 Mar 2013 13:50:43 +0530
+Message-ID: <5146CE5B.6090705@ti.com>
+References: <1363264618-5071-1-git-send-email-rnayak@ti.com> <1363264618-5071-3-git-send-email-rnayak@ti.com> <20130314170601.GH26093@atomide.com> <514313B6.4050905@ti.com> <20130315162049.GB9370@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45946 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37400 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750890Ab3CRGtw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Mar 2013 02:49:52 -0400
-In-Reply-To: <20130315050014.GA15706@tiny-lites>
+	id S1751561Ab3CRIU6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Mar 2013 04:20:58 -0400
+In-Reply-To: <20130315162049.GB9370@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will@willdeacon.co.uk>
-Cc: Will Deacon <Will.Deacon@arm.com>, Lokesh Vutla <lokeshvutla@ti.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, phaber@broadcom.com, Mike Turquette <mturquette@linaro.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-On Friday 15 March 2013 10:30 AM, Will Deacon wrote:
-> On Thu, Mar 14, 2013 at 01:08:00PM +0530, Santosh Shilimkar wrote:
->> Will,
+On Friday 15 March 2013 09:50 PM, Tony Lindgren wrote:
+> * Rajendra Nayak <rnayak@ti.com> [130315 05:31]:
+>> On Thursday 14 March 2013 10:36 PM, Tony Lindgren wrote:
+>>> * Rajendra Nayak <rnayak@ti.com> [130314 05:44]:
+>>>> OMAP clock inits happen quite early, even before the slab is available.
+>>>> As part of the clock init, the common clock core tries to cache parent
+>>>> pointers (if not passed by the caller registering the clock) which
+>>>> fails in case of OMAP since the slab isn't initied.
+>>>> Without CONFIG_DEBUG_SLAB enabled, this just results in the common clock core
+>>>> retrying the caching attempt at some point later.
+>>>> However with CONFIG_DEBUG_SLAB enabled this results in a BUG() as reported
+>>>> in the link below by Tony..
+>>>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85932.html
+>>>>
+>>>> Fix this by passing static parent pointers to the common clock core
+>>>> while registering clocks.
+>>>
+>>> I wonder if we could easily fix this by initializing only some of the
+>>> clocks that early?
+>>
+>> We actually don't need any clocks that early (I mean even before slab init)
+>> We only need them before timer init.
 > 
-> Hi guys,
+> Yes and only the timer clocks at that point. The others could be initialized
+> later on so we get console error messages without having to turn on DEBUG_LL
+> and earlyprintk.
+
+but that wouldn't be possible with the hwmod dependency on clocks. We would
+need to move the hwmod inits further down too.
+
+>  
+>> This isn't something specific to OMAP so I started looking at what others
+>> in drivers/clk seem to do.
+>>
+>> I found imx, spear, mvebu all do their clk inits within .init_time callbacks.
+>> tegra seems to even do it within .init_irq callback.
+>>
+>> Either one would work for us too :)
 > 
-> I'm out of the office at the moment and have really terrible connectivity,
-> so I can't do too much until next week. However, I don't think adding the
-> has_ossr check is the right fix for this problem.
+> Well I suggest init_irq as that's when we need the first clocks for timer.
+
+For which platforms? I instead see them being needed only by init_timer, so
+was thinking thats a better place instead.
+
+For the -rc fix to fix the crash with DEBUG_SLAB, is it fine if I move *all*
+clock inits down to init_timer (or init_irq).
+
+Splitting clocks alone would not work for now, without hwmod being moved down also.
+
 > 
->> On Wednesday 13 March 2013 05:59 PM, Lokesh Vutla wrote:
->>> Hi Dietmar,
->>> On Wednesday 13 March 2013 05:35 PM, Dietmar Eggemann wrote:
->>>> On 13/03/13 06:52, Lokesh Vutla wrote:
->>>>> Commit {9a6eb31 ARM: hw_breakpoint: Debug powerdown support for
->>>>> self-hosted
->>>>> debug} introduces debug powerdown support for self-hosted debug.
->>>>> While merging the patch 'has_ossr' check was removed which
->>>>> was needed for hardwares which doesn't support self-hosted debug.
->>>>> Pandaboard (A9) is one such hardware and Dietmar's orginial
->>>>> patch did mention this issue.
->>>>> Without that check on Panda with CPUIDLE enabled, a flood of
->>>>> below messages thrown.
->>>>>
->>>>> [ 3.597930] hw-breakpoint: CPU 0 failed to disable vector catch
->>>>> [ 3.597991] hw-breakpoint: CPU 1 failed to disable vector catch
+> Regards,
 > 
-> Ok, so this means that we've taken an undefined instruction exception while
-> trying to reset the debug registers on the PM_EXIT path. Now, the code there
-> deals with CPUs that don't have the save/restore registers just fine, so
-> that shouldn't have anything to do with this problem, particularly if the
-> bit that is tripping us up is related to clearing vector catch.
->
-Agree.
- 
-> Furthermore, I was under the impression that hw_breakpoint did actually
-> work on panda, which implies that a cold boot *does* manage to reset the
-> registers (can you please confirm this by looking in your dmesg during
-> boot?). In that case, it seems as though a PM cycle is powering down a
-> bunch of debug logic that was powered up during boot, and then we trip over
-> because we can't access the register bank.
+> Tony
 > 
-Actually it seems to be without PM. Thanks to analysis from Lokesh, the issue
-can be seen even with just suspend or cpu hotplug. So cold boot as such is
-fine.
 
-> The proper solution to this problem requires us to establish exactly what is
-> turning off the debug registers, and then having an OMAP PM notifier to
-> enable it again. Assuming this has always been the case, I expect hardware
-> debug across PM fails silently with older kernels.
-> 
-This has been always the case it seems with CPU power cycle.
-After the CPU is power cycled, 'DBGAUTHSTATUS' reads '0xaa' rather
-than '0xaf' which means 'DBGEN = 0' and hence code fails to enable
-monitor mode. This happens on both secure and GP devices and it can not
-be patched since the secure code is ROM'ed. We didn't notice so far
-because hw_breakpoint support was not default enabled on OMAP till the
-multi-platform build.
-
->> I was also wondering whether we should just warn once rather
->> than continuous warnings in the notifier. Patch is end of the
->> email.
-> 
-> Could do, but I'd like to see a fix for the real issue before we simply hide
-> the warnings :)
-> 
-Agree here too. As evident above, the feature won't work on OMAP4
-devices with PM and hence some solution is needed.
-
-What you think of below ?
-
-
->From d74b4264f6a5967b0f7ada96aad77ab0ac30dbed Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Mon, 18 Mar 2013 11:59:04 +0530
-Subject: [PATCH] ARM: hw_breakpoints: Check for CPU debug availability before
- enabling it
-
-CPU debug features like hardware break, watchpoints can be used only when
-the debug mode is enabled and available for non-secure mode.
-
-Hence check 'DBGAUTHSTATUS.DBGEN' before proceeding to enable the
-features.
-
-Thanks to Will for pointers and Lokesh for the analysis of the issue on
-OMAP4 where after a CPU power cycle, debug mode gets disabled.
-
-Cc: Will Deacon <Will.Deacon@arm.com>
-
-Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/kernel/hw_breakpoint.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/arch/arm/kernel/hw_breakpoint.c b/arch/arm/kernel/hw_breakpoint.c
-index 96093b7..683a7cf 100644
---- a/arch/arm/kernel/hw_breakpoint.c
-+++ b/arch/arm/kernel/hw_breakpoint.c
-@@ -930,6 +930,14 @@ static void reset_ctrl_regs(void *unused)
- 	int i, raw_num_brps, err = 0, cpu = smp_processor_id();
- 	u32 val;
- 
-+	/* Check if we have access to CPU debug features */
-+	ARM_DBG_READ(c7, c14, 6, val);
-+	if ((val & 0x1) == 0) {
-+		pr_warn_once("CPU %d debug is unavailable\n", cpu);
-+		cpumask_or(&debug_err_mask, &debug_err_mask, cpumask_of(cpu));
-+		return;
-+	}
-+
- 	/*
- 	 * v7 debug contains save and restore registers so that debug state
- 	 * can be maintained across low-power modes without leaving the debug
--- 
-1.7.9.5
