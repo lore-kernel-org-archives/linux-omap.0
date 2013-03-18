@@ -1,54 +1,92 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC] Kbuild support for ARM FIT images
-Date: Mon, 18 Mar 2013 16:44:26 +0000
-Message-ID: <20130318164426.GI30923@n2100.arm.linux.org.uk>
-References: <CAD=GYpbF_3uRzhUnV=MwDiy-ekvZKJztJbkhNM0u_pvG-UCw4w@mail.gmail.com> <20130222160044.GA16357@quad.lixom.net> <20130318163648.GA3722@amd.pavel.ucw.cz>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if
+ system supports 'has_ossr'
+Date: Mon, 18 Mar 2013 17:06:49 +0000
+Message-ID: <20130318170649.GA29585@mudshark.cambridge.arm.com>
+References: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com>
+ <51406BA7.8010306@arm.com>
+ <51407120.7030709@ti.com>
+ <51417E58.5050501@ti.com>
+ <20130315050014.GA15706@tiny-lites>
+ <5146B972.1010002@ti.com>
+ <20130318150724.GC28585@mudshark.cambridge.arm.com>
+ <514736D4.4070906@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kbuild-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130318163648.GA3722@amd.pavel.ucw.cz>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Pavel Machek <pavel@denx.de>
-Cc: Olof Johansson <olof@lixom.net>, "Fernandes, Joel A" <joelagnel@ti.com>, Grant Likely <glikely@secretlab.ca>, linux-kbuild@vger.kernel.org, tony@atomide.com, Grant Likely <grant.likely@secretlab.ca>, u-boot@lists.denx.de, Joel A Fernandes <agnel.joel@gmail.com>, "Rini, Tom" <trini@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <514736D4.4070906@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Will Deacon <will@willdeacon.co.uk>, Lokesh Vutla <lokeshvutla@ti.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 18, 2013 at 05:36:53PM +0100, Pavel Machek wrote:
-> On Fri 2013-02-22 08:00:44, Olof Johansson wrote:
-> > On Wed, Feb 20, 2013 at 07:37:10PM -0600, Joel A Fernandes wrote:
-> > > Any comments on this approach? Is it better to merge mkfitsrc.sh with
-> > > mkuboot.sh?
+On Mon, Mar 18, 2013 at 03:46:28PM +0000, Santosh Shilimkar wrote:
+> On Monday 18 March 2013 08:37 PM, Will Deacon wrote:
+> > That really sucks :( Does this affect all OMAP-based boards?
 > > 
-> > I know this was discussed quite extensively yesterday, but here is my take on
-> > it:
+> All OMAP4 based boards..
+
+Brilliant. Is there any way that the secure code can be fixed in future
+products?
+
+> >> +	/* Check if we have access to CPU debug features */
+> >> +	ARM_DBG_READ(c7, c14, 6, val);
+> >> +	if ((val & 0x1) == 0) {
+> >> +		pr_warn_once("CPU %d debug is unavailable\n", cpu);
+> >> +		cpumask_or(&debug_err_mask, &debug_err_mask, cpumask_of(cpu));
+> >> +		return;
+> >> +	}
 > > 
-> > Given the recent complications from multiplatform, we really saw a strong
-> > reason to _not_ do the final boot wrapping in the kernel build system.
-> > Produce the zImage and the DTB files, and have a surrounding script that
-> > bundles the two in a format that your particular device needs.
+> > There are a few of problems here:
 > > 
-> > Most distros have scripts to handle the "make install" step of a kernel build.
-> > That's where this belongs, not in the actual build step.
-> 
-> Not sure I agree here:
-> 
-> 1) zImage was designed to boot from floppy, without any kind of
-> bootloader on i386
+> > 	1. That is only checking for non-secure access, which precludes
+> > 	   running Linux in secure mode.
+> > 
+> We can check bit 4 as well to take care linux running in secure mode.
 
-zImage on x86 != zImage on ARM.
+It still doesn't help unless we know whether Linux is running secure or
+non-secure.
 
-They only share the fact that they're both compressed and self-extracting.
+> > 	2. DBGAUTHSTATUS accesses are UNPREDICTABLE when the double-lock is
+> > 	   set for v7.1 processors.
+> >
+> > 	3. DBGAUTHSTATUS doesn't exist in ARMv6.
+> > 
+> We cans skip the code for these versions like...
+> 	if (!ARM_DEBUG_ARCH_V7_ECP14 == get_debug_arch())
+> 		goto skip_dbgsts_read;
 
-ARM has never supported any kind of floppy based boot - mainly because
-floppies have never been "executable" like they are on x86; all that
-previous boot loaders ever did was load the kernel into RAM using some
-method and call address 0, with a data structure (formerly struct
-params, later atags) at a fixed address, later passing that address to
-the kernel.
+Sure, I was just pointing out that the code needs fixing for this.
 
-The best floppies got was being able to run a script or load an executable
-off the floppy under the ROM'd OS, and our zImage itself doesn't fit the
-format required for that.
+> > 	4. CPUs without the security extensions have DBGAUTHSTATUS.NSE == 0
+> >
+> Which bit is that ? I don't find this bit in Cortex-A9 docs. With all
+> these checks, may be a separate function like 'is_debug_available()'
+> would be better.
 
-Our zImage has always been just a pure straight binary compressed kernel
-format.  Nothing more.
+NSE is bit 0 (the one you're checking).
+
+>  
+> > 	5. Accessing DBGAUTHSTATUS requires DBGEN to be driven high.
+> > 	   Assuming that your pr_warn_once is emitted, this implies that
+> > 	   DBGEN is driven high from cold boot, yet the NSE bit is low,
+> > 	   implying that DBGEN is also low. That's contradictory, so I have
+> > 	   no idea what's going on...
+> >
+> Me neither. The warning is emitted at least.
+
+Any chance you could follow up with your firmware/hardware guys about this
+please? I'd really like to understand how we end up in this state in case we
+can do something in the architecture to stop it from happening in future.
+
+> > Apart from that, it's fine!
+> > 
+> If you agree, I can update patch accordingly.
+> BTW, do you have any better trick to take care of
+> above scenraio ?
+
+Well, we could just add the warn_once prints but that doesn't stop debug
+from breaking after the first pm/suspend/hotplug operation.
+
+Will
