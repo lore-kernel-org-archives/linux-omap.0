@@ -1,210 +1,129 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 8/8] staging: ti-soc-thermal: fix several kernel-doc warnings and error
-Date: Mon, 18 Mar 2013 10:59:16 -0400
-Message-ID: <1363618756-15851-9-git-send-email-eduardo.valentin@ti.com>
-References: <1363618756-15851-1-git-send-email-eduardo.valentin@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if
+ system supports 'has_ossr'
+Date: Mon, 18 Mar 2013 15:07:24 +0000
+Message-ID: <20130318150724.GC28585@mudshark.cambridge.arm.com>
+References: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com>
+ <51406BA7.8010306@arm.com>
+ <51407120.7030709@ti.com>
+ <51417E58.5050501@ti.com>
+ <20130315050014.GA15706@tiny-lites>
+ <5146B972.1010002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1363618756-15851-1-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org
-Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5146B972.1010002@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Will Deacon <will@willdeacon.co.uk>, Lokesh Vutla <lokeshvutla@ti.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-This patch updates the documentation to remove
-all warnings and errors reported by scripts/kernel-doc.
-Most are missing arguments due to wrong format.
+Hi Santosh,
 
-Cc: Nishanth Menon <nm@ti.com>
+On Mon, Mar 18, 2013 at 06:51:30AM +0000, Santosh Shilimkar wrote:
+> On Friday 15 March 2013 10:30 AM, Will Deacon wrote:
+> > Furthermore, I was under the impression that hw_breakpoint did actually
+> > work on panda, which implies that a cold boot *does* manage to reset the
+> > registers (can you please confirm this by looking in your dmesg during
+> > boot?). In that case, it seems as though a PM cycle is powering down a
+> > bunch of debug logic that was powered up during boot, and then we trip over
+> > because we can't access the register bank.
+> > 
+> Actually it seems to be without PM. Thanks to analysis from Lokesh, the issue
+> can be seen even with just suspend or cpu hotplug. So cold boot as such is
+> fine.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+Right, so what you're saying is that monitor-mode hardware debug only works
+until the first pm/suspend/hotplug operation, then it's dead in the water?
 
-diff --git a/drivers/staging/ti-soc-thermal/ti-bandgap.c b/drivers/staging/ti-soc-thermal/ti-bandgap.c
-index 4382c0c..ca1b02d 100644
---- a/drivers/staging/ti-soc-thermal/ti-bandgap.c
-+++ b/drivers/staging/ti-soc-thermal/ti-bandgap.c
-@@ -341,6 +341,7 @@ exit:
- /**
-  * ti_bandgap_unmask_interrupts() - unmasks the events of thot & tcold
-  * @bgp: struct ti_bandgap pointer
-+ * @id: bandgap sensor id
-  * @t_hot: hot temperature value to trigger alert signal
-  * @t_cold: cold temperature value to trigger alert signal
-  *
-@@ -572,9 +573,9 @@ exit:
- 
- /**
-  * ti_bandgap_read_thot() - reads sensor current thot
-- * @bgp - pointer to bandgap instance
-- * @id - sensor id
-- * @thot - resulting current thot value
-+ * @bgp: pointer to bandgap instance
-+ * @id: sensor id
-+ * @thot: resulting current thot value
-  *
-  * returns 0 on success or the proper error code
-  */
-@@ -585,9 +586,9 @@ int ti_bandgap_read_thot(struct ti_bandgap *bgp, int id, int *thot)
- 
- /**
-  * ti_bandgap_write_thot() - sets sensor current thot
-- * @bgp - pointer to bandgap instance
-- * @id - sensor id
-- * @val - desired thot value
-+ * @bgp: pointer to bandgap instance
-+ * @id: sensor id
-+ * @val: desired thot value
-  *
-  * returns 0 on success or the proper error code
-  */
-@@ -598,9 +599,9 @@ int ti_bandgap_write_thot(struct ti_bandgap *bgp, int id, int val)
- 
- /**
-  * ti_bandgap_read_tcold() - reads sensor current tcold
-- * @bgp - pointer to bandgap instance
-- * @id - sensor id
-- * @tcold - resulting current tcold value
-+ * @bgp: pointer to bandgap instance
-+ * @id: sensor id
-+ * @tcold: resulting current tcold value
-  *
-  * returns 0 on success or the proper error code
-  */
-@@ -611,9 +612,9 @@ int ti_bandgap_read_tcold(struct ti_bandgap *bgp, int id, int *tcold)
- 
- /**
-  * ti_bandgap_write_tcold() - sets the sensor tcold
-- * @bgp - pointer to bandgap instance
-- * @id - sensor id
-- * @val - desired tcold value
-+ * @bgp: pointer to bandgap instance
-+ * @id: sensor id
-+ * @val: desired tcold value
-  *
-  * returns 0 on success or the proper error code
-  */
-@@ -624,9 +625,9 @@ int ti_bandgap_write_tcold(struct ti_bandgap *bgp, int id, int val)
- 
- /**
-  * ti_bandgap_read_update_interval() - read the sensor update interval
-- * @bgp - pointer to bandgap instance
-- * @id - sensor id
-- * @interval - resulting update interval in miliseconds
-+ * @bgp: pointer to bandgap instance
-+ * @id: sensor id
-+ * @interval: resulting update interval in miliseconds
-  *
-  * returns 0 on success or the proper error code
-  */
-@@ -656,9 +657,9 @@ int ti_bandgap_read_update_interval(struct ti_bandgap *bgp, int id,
- 
- /**
-  * ti_bandgap_write_update_interval() - set the update interval
-- * @bgp - pointer to bandgap instance
-- * @id - sensor id
-- * @interval - desired update interval in miliseconds
-+ * @bgp: pointer to bandgap instance
-+ * @id: sensor id
-+ * @interval: desired update interval in miliseconds
-  *
-  * returns 0 on success or the proper error code
-  */
-@@ -682,9 +683,9 @@ int ti_bandgap_write_update_interval(struct ti_bandgap *bgp,
- 
- /**
-  * ti_bandgap_read_temperature() - report current temperature
-- * @bgp - pointer to bandgap instance
-- * @id - sensor id
-- * @temperature - resulting temperature
-+ * @bgp: pointer to bandgap instance
-+ * @id: sensor id
-+ * @temperature: resulting temperature
-  *
-  * returns 0 on success or the proper error code
-  */
-@@ -714,9 +715,9 @@ int ti_bandgap_read_temperature(struct ti_bandgap *bgp, int id,
- /**
-  * ti_bandgap_set_sensor_data() - helper function to store thermal
-  * framework related data.
-- * @bgp - pointer to bandgap instance
-- * @id - sensor id
-- * @data - thermal framework related data to be stored
-+ * @bgp: pointer to bandgap instance
-+ * @id: sensor id
-+ * @data: thermal framework related data to be stored
-  *
-  * returns 0 on success or the proper error code
-  */
-@@ -734,8 +735,8 @@ int ti_bandgap_set_sensor_data(struct ti_bandgap *bgp, int id, void *data)
- /**
-  * ti_bandgap_get_sensor_data() - helper function to get thermal
-  * framework related data.
-- * @bgp - pointer to bandgap instance
-- * @id - sensor id
-+ * @bgp: pointer to bandgap instance
-+ * @id: sensor id
-  *
-  * returns data stored by set function with sensor id on success or NULL
-  */
-@@ -877,16 +878,15 @@ static int ti_bandgap_talert_init(struct ti_bandgap *bgp,
- 	return 0;
- }
- 
-+static const struct of_device_id of_ti_bandgap_match[];
- /**
-  * ti_bandgap_build() - parse DT and setup a struct ti_bandgap
-- * @bgp: pointer to struct ti_bandgap
-  * @pdev: pointer to device struct platform_device
-  *
-  * Used to read the device tree properties accordingly to the bandgap
-  * matching version. Based on bandgap version and its capabilities it
-  * will build a struct ti_bandgap out of the required DT entries.
-  */
--static const struct of_device_id of_ti_bandgap_match[];
- static struct ti_bandgap *ti_bandgap_build(struct platform_device *pdev)
- {
- 	struct device_node *node = pdev->dev.of_node;
-diff --git a/drivers/staging/ti-soc-thermal/ti-bandgap.h b/drivers/staging/ti-soc-thermal/ti-bandgap.h
-index 66bbd07..0ddf314 100644
---- a/drivers/staging/ti-soc-thermal/ti-bandgap.h
-+++ b/drivers/staging/ti-soc-thermal/ti-bandgap.h
-@@ -225,7 +225,7 @@ struct temp_sensor_regval {
-  * @regval: temperature sensor register values
-  * @fclock: pointer to functional clock of temperature sensor
-  * @div_clk: pointer to divider clock of temperature sensor fclk
-- * @bg_mutex: mutex for ti_bandgap structure
-+ * @lock: spinlock for ti_bandgap structure
-  * @irq: MPU IRQ number for thermal alert
-  * @tshut_gpio: GPIO where Tshut signal is routed
-  * @clk_rate: Holds current clock rate
-@@ -253,7 +253,7 @@ struct ti_bandgap {
-  * @registers: pointer to the list of register offsets and bitfields
-  * @domain: the name of the domain where the sensor is located
-  * @slope: sensor gradient slope info for hotspot extrapolation equation
-- * @const: sensor gradient const info for hotspot extrapolation equation
-+ * @constant: sensor gradient const info for hotspot extrapolation equation
-  * @slope_pcb: sensor gradient slope info for hotspot extrapolation equation
-  *             with no external influence
-  * @constant_pcb: sensor gradient const info for hotspot extrapolation equation
-@@ -281,7 +281,7 @@ struct ti_temp_sensor {
- };
- 
- /**
-- * DOC: omap bandgap feature types
-+ * DOC: ti bandgap feature types
-  *
-  * TI_BANDGAP_FEATURE_TSHUT - used when the thermal shutdown signal output
-  *      of a bandgap device instance is routed to the processor. This means
-@@ -325,7 +325,7 @@ struct ti_temp_sensor {
- 			((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
- 
- /**
-- * struct ti_bandgap_data - omap bandgap data configuration structure
-+ * struct ti_bandgap_data - ti bandgap data configuration structure
-  * @features: a bitwise flag set to describe the device features
-  * @conv_table: Pointer to ADC to temperature conversion table
-  * @adc_start_val: ADC conversion table starting value
--- 
-1.7.7.1.488.ge8e1c
+> > The proper solution to this problem requires us to establish exactly what is
+> > turning off the debug registers, and then having an OMAP PM notifier to
+> > enable it again. Assuming this has always been the case, I expect hardware
+> > debug across PM fails silently with older kernels.
+> > 
+> This has been always the case it seems with CPU power cycle.
+> After the CPU is power cycled, 'DBGAUTHSTATUS' reads '0xaa' rather
+> than '0xaf' which means 'DBGEN = 0' and hence code fails to enable
+> monitor mode. This happens on both secure and GP devices and it can not
+> be patched since the secure code is ROM'ed. We didn't notice so far
+> because hw_breakpoint support was not default enabled on OMAP till the
+> multi-platform build.
 
+That really sucks :( Does this affect all OMAP-based boards?
+
+> >> I was also wondering whether we should just warn once rather
+> >> than continuous warnings in the notifier. Patch is end of the
+> >> email.
+> > 
+> > Could do, but I'd like to see a fix for the real issue before we simply hide
+> > the warnings :)
+> > 
+> Agree here too. As evident above, the feature won't work on OMAP4
+> devices with PM and hence some solution is needed.
+> 
+> What you think of below ?
+
+Comments inline...
+
+> 
+> From d74b4264f6a5967b0f7ada96aad77ab0ac30dbed Mon Sep 17 00:00:00 2001
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Date: Mon, 18 Mar 2013 11:59:04 +0530
+> Subject: [PATCH] ARM: hw_breakpoints: Check for CPU debug availability before
+>  enabling it
+> 
+> CPU debug features like hardware break, watchpoints can be used only when
+> the debug mode is enabled and available for non-secure mode.
+> 
+> Hence check 'DBGAUTHSTATUS.DBGEN' before proceeding to enable the
+> features.
+> 
+> Thanks to Will for pointers and Lokesh for the analysis of the issue on
+> OMAP4 where after a CPU power cycle, debug mode gets disabled.
+> 
+> Cc: Will Deacon <Will.Deacon@arm.com>
+> 
+> Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/kernel/hw_breakpoint.c |    8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/arch/arm/kernel/hw_breakpoint.c b/arch/arm/kernel/hw_breakpoint.c
+> index 96093b7..683a7cf 100644
+> --- a/arch/arm/kernel/hw_breakpoint.c
+> +++ b/arch/arm/kernel/hw_breakpoint.c
+> @@ -930,6 +930,14 @@ static void reset_ctrl_regs(void *unused)
+>  	int i, raw_num_brps, err = 0, cpu = smp_processor_id();
+>  	u32 val;
+>  
+> +	/* Check if we have access to CPU debug features */
+> +	ARM_DBG_READ(c7, c14, 6, val);
+> +	if ((val & 0x1) == 0) {
+> +		pr_warn_once("CPU %d debug is unavailable\n", cpu);
+> +		cpumask_or(&debug_err_mask, &debug_err_mask, cpumask_of(cpu));
+> +		return;
+> +	}
+
+There are a few of problems here:
+
+	1. That is only checking for non-secure access, which precludes
+	   running Linux in secure mode.
+
+	2. DBGAUTHSTATUS accesses are UNPREDICTABLE when the double-lock is
+	   set for v7.1 processors.
+
+	3. DBGAUTHSTATUS doesn't exist in ARMv6.
+
+	4. CPUs without the security extensions have DBGAUTHSTATUS.NSE == 0
+
+	5. Accessing DBGAUTHSTATUS requires DBGEN to be driven high.
+	   Assuming that your pr_warn_once is emitted, this implies that
+	   DBGEN is driven high from cold boot, yet the NSE bit is low,
+	   implying that DBGEN is also low. That's contradictory, so I have
+	   no idea what's going on...
+
+Apart from that, it's fine!
+
+Will
