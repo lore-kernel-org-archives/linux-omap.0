@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 3/4] ARM: OMAP2+: omap4panda: Adapt to ehci-omap changes
-Date: Mon, 18 Mar 2013 14:51:17 +0200
-Message-ID: <1363611078-13002-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 2/4] ARM: OMAP2+: omap-usb-host: Add usbhs_init_phys()
+Date: Mon, 18 Mar 2013 14:51:16 +0200
+Message-ID: <1363611078-13002-3-git-send-email-rogerq@ti.com>
 References: <1363611078-13002-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,106 +12,229 @@ To: tony@atomide.com
 Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Use usbhs_init_phys() to register the PHY's VCC and RESET
-regulators and the NOP PHY device.
-
-Get rid of managing the PHY clock as it will be done by the PHY driver.
-For that to work we create a clock alias that links the PHY clock name
-to the PHY device name.
+This helper allows board support code to add the PHY's
+VCC and RESET regulators which are GPIO controlled as well
+as the NOP PHY device.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/board-omap4panda.c |   55 ++++++++++++-------------------
- 1 files changed, 21 insertions(+), 34 deletions(-)
+ arch/arm/mach-omap2/usb-host.c |  177 +++++++++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/usb.h      |    9 ++
+ 2 files changed, 184 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index b02c2f0..a71ad34 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -31,6 +31,7 @@
- #include <linux/ti_wilink_st.h>
- #include <linux/usb/musb.h>
- #include <linux/usb/phy.h>
-+#include <linux/usb/nop-usb-xceiv.h>
- #include <linux/wl12xx.h>
- #include <linux/irqchip/arm-gic.h>
- #include <linux/platform_data/omap-abe-twl6040.h>
-@@ -132,6 +133,22 @@ static struct platform_device btwilink_device = {
- 	.id	= -1,
- };
- 
-+/* PHY device on HS USB Port 1 i.e. nop_usb_xceiv.1 */
-+static struct nop_usb_xceiv_platform_data hsusb1_phy_data = {
-+	/* FREF_CLK3 provides the 19.2 MHz reference clock to the PHY */
-+	.clk_rate = 19200000,
-+};
-+
-+static struct usbhs_phy_data phy_data[] __initdata = {
-+	{
-+		.port = 1,
-+		.reset_gpio = GPIO_HUB_NRESET,
-+		.vcc_gpio = GPIO_HUB_POWER,
-+		.vcc_polarity = 1,
-+		.platform_data = &hsusb1_phy_data,
-+	},
-+};
-+
- static struct platform_device *panda_devices[] __initdata = {
- 	&leds_gpio,
- 	&wl1271_device,
-@@ -142,49 +159,19 @@ static struct platform_device *panda_devices[] __initdata = {
- 
- static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
- 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
--	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
--	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
--	.phy_reset  = false,
--	.reset_gpio_port[0]  = -EINVAL,
--	.reset_gpio_port[1]  = -EINVAL,
--	.reset_gpio_port[2]  = -EINVAL
--};
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 5706bdc..49a2c3f 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -22,8 +22,12 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/dma-mapping.h>
 -
--static struct gpio panda_ehci_gpios[] __initdata = {
--	{ GPIO_HUB_POWER,	GPIOF_OUT_INIT_LOW,  "hub_power"  },
--	{ GPIO_HUB_NRESET,	GPIOF_OUT_INIT_LOW,  "hub_nreset" },
- };
+-#include <asm/io.h>
++#include <linux/regulator/machine.h>
++#include <linux/regulator/fixed.h>
++#include <linux/string.h>
++#include <linux/io.h>
++#include <linux/gpio.h>
++#include <linux/usb/phy.h>
  
- static void __init omap4_ehci_init(void)
- {
- 	int ret;
--	struct clk *phy_ref_clk;
- 
- 	/* FREF_CLK3 provides the 19.2 MHz reference clock to the PHY */
--	phy_ref_clk = clk_get(NULL, "auxclk3_ck");
--	if (IS_ERR(phy_ref_clk)) {
--		pr_err("Cannot request auxclk3\n");
--		return;
--	}
--	clk_set_rate(phy_ref_clk, 19200000);
--	clk_prepare_enable(phy_ref_clk);
--
--	/* disable the power to the usb hub prior to init and reset phy+hub */
--	ret = gpio_request_array(panda_ehci_gpios,
--				 ARRAY_SIZE(panda_ehci_gpios));
--	if (ret) {
--		pr_err("Unable to initialize EHCI power/reset\n");
--		return;
--	}
--
--	gpio_export(GPIO_HUB_POWER, 0);
--	gpio_export(GPIO_HUB_NRESET, 0);
--	gpio_set_value(GPIO_HUB_NRESET, 1);
-+	ret = clk_add_alias("main_clk", "nop_usb_xceiv.1", "auxclk3_ck", NULL);
-+	if (ret)
-+		pr_err("Failed to add main_clk alias to auxclk3_ck\n");
- 
-+	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
- 	usbhs_init(&usbhs_bdata);
--
--	/* enable power to hub */
--	gpio_set_value(GPIO_HUB_POWER, 1);
+ #include "soc.h"
+ #include "omap_device.h"
+@@ -526,3 +530,172 @@ void __init usbhs_init(struct usbhs_omap_platform_data *pdata)
  }
  
- static struct omap_musb_board_data musb_board_data = {
+ #endif
++
++/* Template for PHY regulators */
++static struct regulator_consumer_supply hsusb_reg_supplies[] = {
++	{ /* .supply & .dev_name filled later */ },
++};
++
++static struct regulator_init_data hsusb_reg_data = {
++	.constraints = {
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
++	.consumer_supplies	= hsusb_reg_supplies,
++	.num_consumer_supplies	= ARRAY_SIZE(hsusb_reg_supplies),
++};
++
++static struct fixed_voltage_config hsusb_reg_config = {
++	/* .supply_name filled later */
++	.microvolts = 3300000,
++	.gpio = -1,		/* updated later */
++	.startup_delay = 70000, /* 70msec */
++	.enable_high = 1,	/* updated later */
++	.enabled_at_boot = 0,	/* keep in RESET */
++	/* .init_data filled later */
++};
++
++static struct platform_device_info hsusb_reg_pdev_info = {
++	.name	= "reg-fixed-voltage",
++	.id	= PLATFORM_DEVID_AUTO,
++};
++
++static const char *reset_supply = "reset";
++static const char *vcc_supply = "vcc";
++static const char *nop_name = "nop_usb_xceiv"; /* NOP PHY driver */
++
++int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
++{
++	struct regulator_consumer_supply *supplies;
++	struct regulator_init_data *reg_data;
++	struct fixed_voltage_config *config;
++	char *supply_name;
++	int i, len;
++	struct platform_device *pdev;
++	char *phy_id;
++
++	/* the phy_id will be something like "nop_usb_xceiv.1" */
++	len = strlen(nop_name) + 3; /* 3 -> ".1" and NULL terminator */
++
++	for (i = 0; i < num_phys; i++) {
++
++		if (!phy->port) {
++			pr_err("%s: Invalid port 0. Must start from 1\n",
++						__func__);
++			continue;
++		}
++
++		/* do we need a NOP PHY device ? */
++		if (!gpio_is_valid(phy->reset_gpio) &&
++			!gpio_is_valid(phy->vcc_gpio))
++			continue;
++
++		/* create a NOP PHY device */
++		pdev = kzalloc(sizeof(*pdev), GFP_KERNEL);
++		if (!pdev)
++			return -ENOMEM;
++
++		pdev->id = phy->port;
++		pdev->name = nop_name;
++		pdev->dev.platform_data = phy->platform_data;
++
++		phy_id = kmalloc(len, GFP_KERNEL);
++		if (!phy_id)
++			return -ENOMEM;
++
++		scnprintf(phy_id, len, "nop_usb_xceiv.%d\n",
++					pdev->id);
++
++		if (platform_device_register(pdev)) {
++			pr_err("%s: Failed to register device %s\n",
++				__func__,  phy_id);
++			continue;
++		}
++
++		usb_bind_phy("ehci-omap.0", phy->port - 1, phy_id);
++
++		/* Do we need RESET regulator ? */
++		if (!gpio_is_valid(phy->reset_gpio))
++			goto check_vcc;
++
++		supplies = kmemdup(hsusb_reg_supplies,
++			    ARRAY_SIZE(hsusb_reg_supplies) *
++			    sizeof(struct regulator_consumer_supply),
++			    GFP_KERNEL);
++		if (!supplies)
++			return -ENOMEM;
++
++		supplies->supply = reset_supply;
++		supplies->dev_name = phy_id;
++
++		reg_data = kmemdup(&hsusb_reg_data, sizeof(hsusb_reg_data),
++							GFP_KERNEL);
++		if (!reg_data)
++			return -ENOMEM;
++
++		reg_data->consumer_supplies = supplies;
++
++		config = kmemdup(&hsusb_reg_config, sizeof(hsusb_reg_config),
++							GFP_KERNEL);
++		if (!config)
++			return -ENOMEM;
++
++		supply_name = kmalloc(13, GFP_KERNEL);
++		if (!supply_name)
++			return -ENOMEM;
++
++		scnprintf(supply_name, 13, "hsusb%d_reset", phy->port);
++		config->supply_name = supply_name;
++		config->gpio = phy->reset_gpio;
++		config->init_data = reg_data;
++
++		hsusb_reg_pdev_info.data = config;
++		hsusb_reg_pdev_info.size_data = sizeof(hsusb_reg_config);
++		platform_device_register_full(&hsusb_reg_pdev_info);
++
++check_vcc:
++		/* Do we need VCC regulator? */
++		if (!gpio_is_valid(phy->vcc_gpio))
++			goto next;
++
++		supplies = kmemdup(hsusb_reg_supplies,
++			    ARRAY_SIZE(hsusb_reg_supplies) *
++			    sizeof(struct regulator_consumer_supply),
++			    GFP_KERNEL);
++		if (!supplies)
++			return -ENOMEM;
++
++		supplies->supply = vcc_supply;
++		supplies->dev_name = phy_id;
++
++		reg_data = kmemdup(&hsusb_reg_data, sizeof(hsusb_reg_data),
++							GFP_KERNEL);
++		if (!reg_data)
++			return -ENOMEM;
++
++		reg_data->consumer_supplies = supplies;
++
++		config = kmemdup(&hsusb_reg_config, sizeof(hsusb_reg_config),
++							GFP_KERNEL);
++		if (!config)
++			return -ENOMEM;
++
++		supply_name = kmalloc(13, GFP_KERNEL);
++		if (!supply_name)
++			return -ENOMEM;
++
++		scnprintf(supply_name, 13, "hsusb%d_vcc", phy->port);
++		config->supply_name = supply_name;
++		config->gpio = phy->vcc_gpio;
++		config->enable_high = phy->vcc_polarity;
++		config->init_data = reg_data;
++
++		hsusb_reg_pdev_info.data = config;
++		hsusb_reg_pdev_info.size_data = sizeof(hsusb_reg_config);
++		platform_device_register_full(&hsusb_reg_pdev_info);
++
++next:
++		phy++;
++	}
++
++	return 0;
++}
+diff --git a/arch/arm/mach-omap2/usb.h b/arch/arm/mach-omap2/usb.h
+index 3319f5c..e7261eb 100644
+--- a/arch/arm/mach-omap2/usb.h
++++ b/arch/arm/mach-omap2/usb.h
+@@ -53,8 +53,17 @@
+ #define USBPHY_OTGSESSEND_EN	(1 << 20)
+ #define USBPHY_DATA_POLARITY	(1 << 23)
+ 
++struct usbhs_phy_data {
++	int port;		/* 1 indexed port number */
++	int reset_gpio;
++	int vcc_gpio;
++	bool vcc_polarity;	/* 1 active high, 0 active low */
++	void *platform_data;
++};
++
+ extern void usb_musb_init(struct omap_musb_board_data *board_data);
+ extern void usbhs_init(struct usbhs_omap_platform_data *pdata);
++extern int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys);
+ 
+ extern void am35x_musb_reset(void);
+ extern void am35x_musb_phy_power(u8 on);
 -- 
 1.7.4.1
