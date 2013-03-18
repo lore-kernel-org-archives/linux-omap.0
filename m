@@ -1,144 +1,74 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if system
- supports 'has_ossr'
-Date: Mon, 18 Mar 2013 21:16:28 +0530
-Message-ID: <514736D4.4070906@ti.com>
-References: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com> <51406BA7.8010306@arm.com> <51407120.7030709@ti.com> <51417E58.5050501@ti.com> <20130315050014.GA15706@tiny-lites> <5146B972.1010002@ti.com> <20130318150724.GC28585@mudshark.cambridge.arm.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V3 12/18] ARM: OMAP2+: Add additional GPMC timing parameters
+Date: Mon, 18 Mar 2013 10:59:48 -0500
+Message-ID: <514739F4.8050307@ti.com>
+References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com> <1363360876-13617-13-git-send-email-jon-hunter@ti.com> <51471F8D.4060608@gmail.com> <51472592.4030402@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130318150724.GC28585@mudshark.cambridge.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Will Deacon <will@willdeacon.co.uk>, Lokesh Vutla <lokeshvutla@ti.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47689 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752681Ab3CRP77 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Mar 2013 11:59:59 -0400
+In-Reply-To: <51472592.4030402@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, Mark Jackson <mpfj-list@mimc.co.uk>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Monday 18 March 2013 08:37 PM, Will Deacon wrote:
-> Hi Santosh,
+
+On 03/18/2013 09:32 AM, Jon Hunter wrote:
 > 
-> On Mon, Mar 18, 2013 at 06:51:30AM +0000, Santosh Shilimkar wrote:
->> On Friday 15 March 2013 10:30 AM, Will Deacon wrote:
->>> Furthermore, I was under the impression that hw_breakpoint did actually
->>> work on panda, which implies that a cold boot *does* manage to reset the
->>> registers (can you please confirm this by looking in your dmesg during
->>> boot?). In that case, it seems as though a PM cycle is powering down a
->>> bunch of debug logic that was powered up during boot, and then we trip over
->>> because we can't access the register bank.
+> On 03/18/2013 09:07 AM, Rob Herring wrote:
+>> On 03/15/2013 10:21 AM, Jon Hunter wrote:
+>>> Some of the GPMC timings parameters are currently missing from the GPMC
+>>> device-tree binding. Add these parameters to the binding documentation
+>>> as well as code to read them.
 >>>
->> Actually it seems to be without PM. Thanks to analysis from Lokesh, the issue
->> can be seen even with just suspend or cpu hotplug. So cold boot as such is
->> fine.
-> 
-> Right, so what you're saying is that monitor-mode hardware debug only works
-> until the first pm/suspend/hotplug operation, then it's dead in the water?
-> 
->>> The proper solution to this problem requires us to establish exactly what is
->>> turning off the debug registers, and then having an OMAP PM notifier to
->>> enable it again. Assuming this has always been the case, I expect hardware
->>> debug across PM fails silently with older kernels.
+>>> The existing code in gpmc_read_timings_dt() is checking the value of
+>>> of_property_read_u32() and only is successful storing the value read
+>>> in the gpmc_timings structure. Checking the return value in this case
+>>> is not necessary and we can simply read the value, if present, and
+>>> store directly in the gpmc_timings structure. Therefore, simplify the
+>>> code by removing these checks.
 >>>
->> This has been always the case it seems with CPU power cycle.
->> After the CPU is power cycled, 'DBGAUTHSTATUS' reads '0xaa' rather
->> than '0xaf' which means 'DBGEN = 0' and hence code fails to enable
->> monitor mode. This happens on both secure and GP devices and it can not
->> be patched since the secure code is ROM'ed. We didn't notice so far
->> because hw_breakpoint support was not default enabled on OMAP till the
->> multi-platform build.
-> 
-> That really sucks :( Does this affect all OMAP-based boards?
-> 
-All OMAP4 based boards..
-
->>>> I was also wondering whether we should just warn once rather
->>>> than continuous warnings in the notifier. Patch is end of the
->>>> email.
+>>> The comment in the gpmc_read_timings_dt() function, "only for OMAP3430"
+>>> is also incorrect as it is applicable to all OMAP3+ devices. So correct
+>>> this too.
 >>>
->>> Could do, but I'd like to see a fix for the real issue before we simply hide
->>> the warnings :)
+>>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>>> ---
+>>>  Documentation/devicetree/bindings/bus/ti-gpmc.txt |   25 +++++-
+>>>  arch/arm/mach-omap2/gpmc.c                        |   93 ++++++++++-----------
+>>>  2 files changed, 66 insertions(+), 52 deletions(-)
 >>>
->> Agree here too. As evident above, the feature won't work on OMAP4
->> devices with PM and hence some solution is needed.
+>>> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>>> index 6fde1cf..a63bd93 100644
+>>> --- a/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>>> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>>> @@ -56,10 +56,27 @@ Timing properties for child nodes. All are optional and default to 0.
+>>>   - gpmc,oe-off:		Deassertion time
+>>>  
+>>>   Access time and cycle time timings corresponding to GPMC_CONFIG5:
+>>> - - gpmc,page-burst-access: Multiple access word delay
+>>> - - gpmc,access:		Start-cycle to first data valid delay
+>>> - - gpmc,rd-cycle:	Total read cycle time
+>>> - - gpmc,wr-cycle:	Total write cycle time
+>>> + - gpmc,page-burst-access: 	Multiple access word delay
+>>> + - gpmc,access:			Start-cycle to first data valid delay
+>>> + - gpmc,rd-cycle:		Total read cycle time
+>>> + - gpmc,wr-cycle:		Total write cycle time
+>>> + - gpmc,bus-turnaround:		Turn-around time between successive accesses
+>>> + - gpmc,cycle2cycle-delay:	Delay between chip-select pulses
+>>> + - gpmc,clk-activation: 	GPMC clock activation time
+>>> + - gpmc,wait-monitoring:	Start of wait monitoring with regard to valid
+>>> +				data
 >>
->> What you think of below ?
+>> What units are these in? If in nanoseconds, can you append "-ns"
 > 
-> Comments inline...
-> 
->>
->> From d74b4264f6a5967b0f7ada96aad77ab0ac30dbed Mon Sep 17 00:00:00 2001
->> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Date: Mon, 18 Mar 2013 11:59:04 +0530
->> Subject: [PATCH] ARM: hw_breakpoints: Check for CPU debug availability before
->>  enabling it
->>
->> CPU debug features like hardware break, watchpoints can be used only when
->> the debug mode is enabled and available for non-secure mode.
->>
->> Hence check 'DBGAUTHSTATUS.DBGEN' before proceeding to enable the
->> features.
->>
->> Thanks to Will for pointers and Lokesh for the analysis of the issue on
->> OMAP4 where after a CPU power cycle, debug mode gets disabled.
->>
->> Cc: Will Deacon <Will.Deacon@arm.com>
->>
->> Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
->> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> ---
->>  arch/arm/kernel/hw_breakpoint.c |    8 ++++++++
->>  1 file changed, 8 insertions(+)
->>
->> diff --git a/arch/arm/kernel/hw_breakpoint.c b/arch/arm/kernel/hw_breakpoint.c
->> index 96093b7..683a7cf 100644
->> --- a/arch/arm/kernel/hw_breakpoint.c
->> +++ b/arch/arm/kernel/hw_breakpoint.c
->> @@ -930,6 +930,14 @@ static void reset_ctrl_regs(void *unused)
->>  	int i, raw_num_brps, err = 0, cpu = smp_processor_id();
->>  	u32 val;
->>  
->> +	/* Check if we have access to CPU debug features */
->> +	ARM_DBG_READ(c7, c14, 6, val);
->> +	if ((val & 0x1) == 0) {
->> +		pr_warn_once("CPU %d debug is unavailable\n", cpu);
->> +		cpumask_or(&debug_err_mask, &debug_err_mask, cpumask_of(cpu));
->> +		return;
->> +	}
-> 
-> There are a few of problems here:
-> 
-> 	1. That is only checking for non-secure access, which precludes
-> 	   running Linux in secure mode.
-> 
-We can check bit 4 as well to take care linux running in secure mode.
+> These are cycles. I can update the comment to reflect that.
 
-> 	2. DBGAUTHSTATUS accesses are UNPREDICTABLE when the double-lock is
-> 	   set for v7.1 processors.
->
-> 	3. DBGAUTHSTATUS doesn't exist in ARMv6.
-> 
-We cans skip the code for these versions like...
-	if (!ARM_DEBUG_ARCH_V7_ECP14 == get_debug_arch())
-		goto skip_dbgsts_read;
+Sorry these are nanoseconds. I will update the properties to reflect that.
 
-> 	4. CPUs without the security extensions have DBGAUTHSTATUS.NSE == 0
->
-Which bit is that ? I don't find this bit in Cortex-A9 docs. With all
-these checks, may be a separate function like 'is_debug_available()'
-would be better.
- 
-> 	5. Accessing DBGAUTHSTATUS requires DBGEN to be driven high.
-> 	   Assuming that your pr_warn_once is emitted, this implies that
-> 	   DBGEN is driven high from cold boot, yet the NSE bit is low,
-> 	   implying that DBGEN is also low. That's contradictory, so I have
-> 	   no idea what's going on...
->
-Me neither. The warning is emitted at least.
- 
-> Apart from that, it's fine!
-> 
-If you agree, I can update patch accordingly.
-BTW, do you have any better trick to take care of
-above scenraio ?
-
-Regards,
-Santosh
+Jon
