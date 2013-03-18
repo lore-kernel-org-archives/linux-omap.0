@@ -1,107 +1,92 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V3 10/18] ARM: OMAP2+: Add function to read GPMC settings
- from device-tree
-Date: Mon, 18 Mar 2013 08:43:26 -0500
-Message-ID: <514719FE.4030607@ti.com>
-References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com> <1363360876-13617-11-git-send-email-jon-hunter@ti.com> <20130317052401.GA9796@localhost>
+Subject: Re: [PATCH V3 02/18] ARM: OMAP2+: Add variable to store number of
+ GPMC waitpins
+Date: Mon, 18 Mar 2013 08:43:47 -0500
+Message-ID: <51471A13.9060803@ti.com>
+References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com> <1363360876-13617-3-git-send-email-jon-hunter@ti.com> <20130316205916.GA3290@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52089 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52122 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751779Ab3CRNno (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Mar 2013 09:43:44 -0400
-In-Reply-To: <20130317052401.GA9796@localhost>
+	id S1751779Ab3CRNoD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Mar 2013 09:44:03 -0400
+In-Reply-To: <20130316205916.GA3290@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Ezequiel Garcia <elezegarcia@gmail.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Daniel Mack <zonque@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Mark Jackson <mpfj-list@mimc.co.uk>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
 
-On 03/17/2013 12:24 AM, Ezequiel Garcia wrote:
+
+On 03/16/2013 03:59 PM, Ezequiel Garcia wrote:
 > Hi Jon,
 > 
-> I have some tiny nitpicks...
-> 
-> On Fri, Mar 15, 2013 at 10:21:08AM -0500, Jon Hunter wrote:
->> Adds a function to read the various GPMC chip-select settings from
->> device-tree and store them in the gpmc_settings structure.
+> On Fri, Mar 15, 2013 at 10:21:00AM -0500, Jon Hunter wrote:
+>> The GPMC has wait-pin signals that can be assigned to a chip-select
+>> to monitor the ready signal of an external device. Add a variable to
+>> indicate the total number of wait-pins for a given device. This will
+>> allow us to detect if the wait-pin being selected is valid or not.
 >>
->> Update the GPMC device-tree binding documentation to describe these
->> options.
+>> When booting with device-tree read the number of wait-pins from the
+>> device-tree blob. When device-tree is not used set the number of
+>> wait-pins to 4 which is valid for OMAP2-5 devices. Newer devices
+>> that have less wait-pins (such as AM335x) only support booting with
+>> device-tree and so hard-coding the wait-pin number when not using
+>> device-tree is fine.
 >>
 >> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 >> ---
->>  Documentation/devicetree/bindings/bus/ti-gpmc.txt |   23 ++++++++++
->>  arch/arm/mach-omap2/gpmc.c                        |   49 +++++++++++++++++++++
->>  arch/arm/mach-omap2/gpmc.h                        |    2 +
->>  3 files changed, 74 insertions(+)
+>>  arch/arm/mach-omap2/gpmc.c |   16 ++++++++++++++++
+>>  1 file changed, 16 insertions(+)
 >>
->> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->> index 5ddb2e9..6fde1cf 100644
->> --- a/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->> @@ -65,6 +65,29 @@ The following are only applicable to OMAP3+ and AM335x:
->>   - gpmc,wr-access
->>   - gpmc,wr-data-mux-bus
->>  
->> +GPMC chip-select settings properties for child nodes. All are optional.
->> +
->> +- gpmc,burst-length	Page/burst length. Must be 4, 8 or 16.
->> +- gpmc,burst-wrap	Enables wrap bursting
->> +- gpmc,burst-read	Enables read page/burst mode
->> +- gpmc,burst-write	Enables write page/burst mode
->> +- gpmc,device-nand	Device is NAND
->> +- gpmc,device-width	Total width of device(s) connected to a GPMC
->> +			chip-select in bytes. The GPMC supports 8-bit
->> +			and 16-bit devices and so this property must be
->> +			1 or 2.
->> +- gpmc,mux-add-data	Address and data multiplexing configuration.
->> +			Valid values are 1 for address-address-data
->> +			multiplexing mode and 2 for address-data
->> +			multiplexing mode.
->> +- gpmc,sync-read	Enables synchronous read. Defaults to asynchronous
->> +			is this is not set.
->> +- gpmc,sync-write	Enables synchronous writes. Defaults to asynchronous
->> +			is this is not set.
->> +- gpmc,wait-pin		Wait-pin used by client. Must be less than
->> +			"gpmc,num-waitpins".
->> +- gpmc,wait-on-read	Enables wait monitoring on reads.
->> +- gpmc,wait-on-write	Enables wait monitoring on writes.
->>  
->>  Example for an AM33xx board:
->>  
 >> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
->> index 3ec1937..1e7eef3 100644
+>> index ef655d9..88a261c 100644
 >> --- a/arch/arm/mach-omap2/gpmc.c
 >> +++ b/arch/arm/mach-omap2/gpmc.c
->> @@ -1190,6 +1190,55 @@ static struct of_device_id gpmc_dt_ids[] = {
->>  };
->>  MODULE_DEVICE_TABLE(of, gpmc_dt_ids);
+>> @@ -108,6 +108,8 @@
+>>  #define	GPMC_HAS_WR_ACCESS		0x1
+>>  #define	GPMC_HAS_WR_DATA_MUX_BUS	0x2
 >>  
->> +/**
->> + * gpmc_read_settings_dt - read gpmc settings from device-tree
->> + * @np:		pointer to device-tree node for a gpmc child device
->> + * @p:		pointer to gpmc settings structure
->> + *
->> + * Reads the GPMC settings for a GPMC child device from device-tree and
->> + * stores them in the GPMC settings structure passed. The GPMC settings
->> + * structure is initialise to zero by this function and so any previously
+>> +#define GPMC_NR_WAITPINS		4
+>> +
+>>  /* XXX: Only NAND irq has been considered,currently these are the only ones used
+>>   */
+>>  #define	GPMC_NR_IRQ		2
+>> @@ -153,6 +155,7 @@ static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
+>>  static DEFINE_SPINLOCK(gpmc_mem_lock);
+>>  /* Define chip-selects as reserved by default until probe completes */
+>>  static unsigned int gpmc_cs_map = ((1 << GPMC_CS_NUM) - 1);
+>> +static unsigned int gpmc_nr_waitpins;
+>>  static struct device *gpmc_dev;
+>>  static int gpmc_irq;
+>>  static resource_size_t phys_base, mem_size;
+>> @@ -1297,6 +1300,13 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+>>  	if (!of_id)
+>>  		return 0;
+>>  
+>> +	ret = of_property_read_u32(pdev->dev.of_node, "gpmc,num-waitpins",
+>> +				   &gpmc_nr_waitpins);
+>> +	if (ret < 0) {
+>> +		pr_err("%s: number of wait pins not found!\n", __func__);
+>> +		return ret;
+>> +	}
+>> +
+>>  	for_each_node_by_name(child, "nand") {
+>>  		ret = gpmc_probe_nand_child(pdev, child);
+>>  		if (ret < 0) {
+>> @@ -1372,6 +1382,12 @@ static int gpmc_probe(struct platform_device *pdev)
+>>  	if (gpmc_setup_irq() < 0)
+>>  		dev_warn(gpmc_dev, "gpmc_setup_irq failed\n");
+>>  
+>> +	/* Now the GPMC is initialised, unreserve the chip-selects */
+>> +	gpmc_cs_map = 0;
 > 
-> s/initialise/initialized ?
+> The above seems to be a remanent of another patch.
+> I think you already sent that one, right?
 
-Thanks will add the "d". However, "initialise" is correct British
-English ;-)
-
->> + * stored settings will be clearer.
-> 
-> s/clearer/cleared ?
-> 
-> I'm not an english native speaker,
-> so please bare with me if I'm wrong on these...
-
-You are right here too. Will fix thanks!
+Good catch. I will fix this up.
 
 Jon
 
