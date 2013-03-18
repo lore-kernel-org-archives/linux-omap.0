@@ -1,60 +1,38 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 1/2] driver: serial-omap: move max uart count into generic header file.
-Date: Mon, 18 Mar 2013 11:45:26 -0700
-Message-ID: <87r4jcim2h.fsf@linaro.org>
-References: <1363604206-11264-1-git-send-email-sourav.poddar@ti.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH 2/8] staging: omap-thermal: use spin_lock_irqsave inside
+ IRQ handler
+Date: Mon, 18 Mar 2013 22:16:18 +0300
+Message-ID: <20130318191618.GU9138@mwanda>
+References: <1363618756-15851-1-git-send-email-eduardo.valentin@ti.com>
+ <1363618756-15851-3-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363604206-11264-1-git-send-email-sourav.poddar@ti.com> (Sourav
-	Poddar's message of "Mon, 18 Mar 2013 16:26:46 +0530")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1363618756-15851-3-git-send-email-eduardo.valentin@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Sourav Poddar <sourav.poddar@ti.com> writes:
+On Mon, Mar 18, 2013 at 10:59:10AM -0400, Eduardo Valentin wrote:
+> Even if the IRQ is not firing because it is ONE_SHOT and disable
+> at INTC level, the IRQ handler must use spin_lock_irqsave.
+> It is necessary to disable IRQs from the current
+> CPU while it is holding a spin_lock which is need.
+> 
 
-> OMAP_MAX_HSUART_PORTS is moved to omap_serial header file.
+Gar...  I think I was just totally wrong on this.  I think your
+original code was fine.  Sorry Eduardo and Greg.
 
-Why?  
+This is a threaded IRQ so the regular spin_lock is fine or even the
+mutex would have been.
 
-You started to explain it in the cover letter, but a full description
-belongs here for the permanent git history.
+IRQ_ONESHOT is about triggering a second IRQ before the first one
+has been finished, btw.
 
-Kevin
+I am an idiot.
 
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Rajendra nayak <rnayak@ti.com>
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
->  drivers/tty/serial/omap-serial.c          |    2 --
->  include/linux/platform_data/serial-omap.h |    1 +
->  2 files changed, 1 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> index 5722eaf..4c2ba9f 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -43,8 +43,6 @@
->  #include <linux/pinctrl/consumer.h>
->  #include <linux/platform_data/serial-omap.h>
->  
-> -#define OMAP_MAX_HSUART_PORTS	6
-> -
->  #define UART_BUILD_REVISION(x, y)	(((x) << 8) | (y))
->  
->  #define OMAP_UART_REV_42 0x0402
-> diff --git a/include/linux/platform_data/serial-omap.h b/include/linux/platform_data/serial-omap.h
-> index ff9b0aa..92c48c2 100644
-> --- a/include/linux/platform_data/serial-omap.h
-> +++ b/include/linux/platform_data/serial-omap.h
-> @@ -29,6 +29,7 @@
->   * is used as console uart.
->   */
->  #define OMAP_SERIAL_NAME	"ttyO"
-> +#define OMAP_MAX_HSUART_PORTS   6
->  
->  struct omap_uart_port_info {
->  	bool			dma_enabled;	/* To specify DMA Mode */
+regards,
+dan carpenter
+
