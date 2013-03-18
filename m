@@ -1,39 +1,54 @@
-From: Axel Lin <axel.lin@ingics.com>
-Subject: [PATCH] mmc: omap_hsmmc: Prevent potential NULL dereference
-Date: Mon, 18 Mar 2013 17:34:28 +0800
-Message-ID: <1363599268.20778.1.camel@phoenix>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [GIT PULL v2] ARM: omap2: twl-common update
+Date: Mon, 18 Mar 2013 11:12:37 +0100
+Message-ID: <5146E895.50709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: Balaji T K <balajitk@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57225 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752355Ab3CRKMl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Mar 2013 06:12:41 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@list.infradead.org
 
-of_get_hsmmc_pdata() may return NULL, thus ensure pdata is not NULL
-before dereference it.
+Hi Tony,
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
+I have rebased the branch on 3.9-rc3 tag.
+Is it still possible to send this for 3.9?
+
+Regards,
+P=E9ter
 ---
- drivers/mmc/host/omap_hsmmc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The following changes since commit a937536b868b8369b98967929045f1df5423=
+4323:
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index bc58078..a8f9717 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1774,7 +1774,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 	match = of_match_device(of_match_ptr(omap_mmc_of_match), &pdev->dev);
- 	if (match) {
- 		pdata = of_get_hsmmc_pdata(&pdev->dev);
--		if (match->data) {
-+		if (pdata && match->data) {
- 			const u16 *offsetp = match->data;
- 			pdata->reg_offset = *offsetp;
- 		}
--- 
-1.7.9.5
+  Linux 3.9-rc3 (2013-03-17 15:59:32 -0700)
 
+are available in the git repository at:
 
+  git://gitorious.org/omap-audio/linux-audio.git peter/upstream/for-ton=
+y
 
+for you to fetch changes up to 282f21df32df9a01c66d68e7009150ffc69e4e0c=
+:
+
+  omap2: twl-common: Add default power configuration (2013-03-18 11:08:=
+12 +0100)
+
+----------------------------------------------------------------
+Matthias Brugger (1):
+      omap2: twl-common: Add default power configuration
+
+ arch/arm/mach-omap2/twl-common.c | 38 ++++++++++++++++++++++++++++++++=
+++++++
+ arch/arm/mach-omap2/twl-common.h |  1 +
+ 2 files changed, 39 insertions(+)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
