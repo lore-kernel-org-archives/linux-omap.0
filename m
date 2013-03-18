@@ -1,45 +1,46 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 1/4] usb: phy: nop: Add some parameters to platform data
-Date: Mon, 18 Mar 2013 14:51:15 +0200
-Message-ID: <1363611078-13002-2-git-send-email-rogerq@ti.com>
-References: <1363611078-13002-1-git-send-email-rogerq@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCH 0/2] omap serial fix.
+Date: Mon, 18 Mar 2013 18:51:29 +0530
+Message-ID: <514714D9.1040702@ti.com>
+References: <1363604081-11169-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363611078-13002-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1363604081-11169-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add clk_rate parameter to platform data. If supplied, the
-NOP phy driver will program the clock to that rate during probe.
+Hi,
+On Monday 18 March 2013 04:24 PM, Sourav Poddar wrote:
+> The first patch is a rearrangement of a macro "OMAP_MAX_HSUART_PORTS"
+> to a header file so that it can be used in other file.
+> The second patch fixes the wakeup from uart issue while using "no_console_suspend" in the
+> bootargs.
+>
+> These patches are developed on 3.8 custom kernel containing omap5 supend/resume support.
+>
+Adding a bit more information,
+These patches are not omap5 specific and required for omap4 also.
+For OMAP5 testing purpose, I used 3.8 based internal tree.
 
-Also add 2 flags, needs_vcc and needs_reset.
-If the flag is set and the regulator couldn't be found
-then the driver will bail out with -EPROBE_DEFER.
+First patch gets applied cleanly on 3.9-rc3.
+Resending the second patch rebased on 3.9-rc3, as there is a small
+merge conflict.
+> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+> Cc: Felipe Balbi<balbi@ti.com>
+> Cc: Rajendra nayak<rnayak@ti.com>
+>
+> Sourav Poddar (2):
+>    driver: serial-omap: move max uart count into generic header file.
+>    arm: mach-omap2: prevent UART console idle on suspend while using
+>      "no_console_suspend"
+>
+>   arch/arm/mach-omap2/omap_device.c         |   36 ++++++++++++++++++++++++++++-
+>   drivers/tty/serial/omap-serial.c          |    2 -
+>   include/linux/platform_data/serial-omap.h |    1 +
+>   3 files changed, 36 insertions(+), 3 deletions(-)
+>
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
----
- include/linux/usb/nop-usb-xceiv.h |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/usb/nop-usb-xceiv.h b/include/linux/usb/nop-usb-xceiv.h
-index 28884c7..148d351 100644
---- a/include/linux/usb/nop-usb-xceiv.h
-+++ b/include/linux/usb/nop-usb-xceiv.h
-@@ -5,6 +5,11 @@
- 
- struct nop_usb_xceiv_platform_data {
- 	enum usb_phy_type type;
-+	unsigned long clk_rate;
-+
-+	/* if set fails with -EPROBE_DEFER if can't get regulator */
-+	unsigned int needs_vcc:1;
-+	unsigned int needs_reset:1;
- };
- 
- #if defined(CONFIG_NOP_USB_XCEIV) || (defined(CONFIG_NOP_USB_XCEIV_MODULE) && defined(MODULE))
--- 
-1.7.4.1
