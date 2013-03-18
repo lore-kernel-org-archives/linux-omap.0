@@ -1,78 +1,117 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 4/4] ARM: OMAP3: Beagle: Adapt to ehci-omap changes
-Date: Mon, 18 Mar 2013 14:51:18 +0200
-Message-ID: <1363611078-13002-5-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v3 3/4] ARM: OMAP2+: omap4panda: Adapt to ehci-omap changes
+Date: Mon, 18 Mar 2013 14:51:17 +0200
+Message-ID: <1363611078-13002-4-git-send-email-rogerq@ti.com>
 References: <1363611078-13002-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1363611078-13002-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1363611078-13002-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 Use usbhs_init_phys() to register the PHY's VCC and RESET
 regulators and the NOP PHY device.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- arch/arm/mach-omap2/board-omap3beagle.c |   32 +++++++++++++++++++++---------
- 1 files changed, 22 insertions(+), 10 deletions(-)
+Get rid of managing the PHY clock as it will be done by the PHY driver.
+For that to work we create a clock alias that links the PHY clock name
+to the PHY device name.
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index c3558f9..5382215 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -33,6 +33,7 @@
- #include <linux/mtd/nand.h>
- #include <linux/mmc/host.h>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/mach-omap2/board-omap4panda.c |   55 ++++++++++++-------------------
+ 1 files changed, 21 insertions(+), 34 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index b02c2f0..a71ad34 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -31,6 +31,7 @@
+ #include <linux/ti_wilink_st.h>
+ #include <linux/usb/musb.h>
  #include <linux/usb/phy.h>
 +#include <linux/usb/nop-usb-xceiv.h>
+ #include <linux/wl12xx.h>
+ #include <linux/irqchip/arm-gic.h>
+ #include <linux/platform_data/omap-abe-twl6040.h>
+@@ -132,6 +133,22 @@ static struct platform_device btwilink_device = {
+ 	.id	= -1,
+ };
  
- #include <linux/regulator/machine.h>
- #include <linux/i2c/twl.h>
-@@ -277,6 +278,21 @@ static struct regulator_consumer_supply beagle_vsim_supply[] = {
- 
- static struct gpio_led gpio_leds[];
- 
-+/* PHY's VCC regulator might be added later, so flag that we need it */
-+static struct nop_usb_xceiv_platform_data hsusb2_phy_data = {
-+	.needs_vcc = true,
++/* PHY device on HS USB Port 1 i.e. nop_usb_xceiv.1 */
++static struct nop_usb_xceiv_platform_data hsusb1_phy_data = {
++	/* FREF_CLK3 provides the 19.2 MHz reference clock to the PHY */
++	.clk_rate = 19200000,
 +};
 +
-+static struct usbhs_phy_data phy_data[] = {
++static struct usbhs_phy_data phy_data[] __initdata = {
 +	{
-+		.port = 2,
-+		.reset_gpio = 147,
-+		.vcc_gpio = -1,		/* updated in beagle_twl_gpio_setup */
-+		.vcc_polarity = 1,	/* updated in beagle_twl_gpio_setup */
-+		.platform_data = &hsusb2_phy_data,
++		.port = 1,
++		.reset_gpio = GPIO_HUB_NRESET,
++		.vcc_gpio = GPIO_HUB_POWER,
++		.vcc_polarity = 1,
++		.platform_data = &hsusb1_phy_data,
 +	},
 +};
 +
- static int beagle_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
-@@ -318,9 +334,11 @@ static int beagle_twl_gpio_setup(struct device *dev,
- 	}
- 	dvi_panel.power_down_gpio = beagle_config.dvi_pd_gpio;
- 
--	gpio_request_one(gpio + TWL4030_GPIO_MAX, beagle_config.usb_pwr_level,
--			"nEN_USB_PWR");
-+	/* TWL4030_GPIO_MAX i.e. LED_GPO controls HS USB Port 2 power */
-+	phy_data[0].vcc_gpio = gpio + TWL4030_GPIO_MAX;
-+	phy_data[0].vcc_polarity = beagle_config.usb_pwr_level;
- 
-+	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
- 	return 0;
- }
- 
-@@ -453,15 +471,7 @@ static struct platform_device *omap3_beagle_devices[] __initdata = {
- };
+ static struct platform_device *panda_devices[] __initdata = {
+ 	&leds_gpio,
+ 	&wl1271_device,
+@@ -142,49 +159,19 @@ static struct platform_device *panda_devices[] __initdata = {
  
  static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
--
--	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
- 	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
+ 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
+-	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
 -	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
+-	.phy_reset  = false,
+-	.reset_gpio_port[0]  = -EINVAL,
+-	.reset_gpio_port[1]  = -EINVAL,
+-	.reset_gpio_port[2]  = -EINVAL
+-};
+-
+-static struct gpio panda_ehci_gpios[] __initdata = {
+-	{ GPIO_HUB_POWER,	GPIOF_OUT_INIT_LOW,  "hub_power"  },
+-	{ GPIO_HUB_NRESET,	GPIOF_OUT_INIT_LOW,  "hub_nreset" },
+ };
+ 
+ static void __init omap4_ehci_init(void)
+ {
+ 	int ret;
+-	struct clk *phy_ref_clk;
+ 
+ 	/* FREF_CLK3 provides the 19.2 MHz reference clock to the PHY */
+-	phy_ref_clk = clk_get(NULL, "auxclk3_ck");
+-	if (IS_ERR(phy_ref_clk)) {
+-		pr_err("Cannot request auxclk3\n");
+-		return;
+-	}
+-	clk_set_rate(phy_ref_clk, 19200000);
+-	clk_prepare_enable(phy_ref_clk);
+-
+-	/* disable the power to the usb hub prior to init and reset phy+hub */
+-	ret = gpio_request_array(panda_ehci_gpios,
+-				 ARRAY_SIZE(panda_ehci_gpios));
+-	if (ret) {
+-		pr_err("Unable to initialize EHCI power/reset\n");
+-		return;
+-	}
+-
+-	gpio_export(GPIO_HUB_POWER, 0);
+-	gpio_export(GPIO_HUB_NRESET, 0);
+-	gpio_set_value(GPIO_HUB_NRESET, 1);
++	ret = clk_add_alias("main_clk", "nop_usb_xceiv.1", "auxclk3_ck", NULL);
++	if (ret)
++		pr_err("Failed to add main_clk alias to auxclk3_ck\n");
+ 
++	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
+ 	usbhs_init(&usbhs_bdata);
+-
+-	/* enable power to hub */
+-	gpio_set_value(GPIO_HUB_POWER, 1);
+ }
+ 
+ static struct omap_musb_board_data musb_board_data = {
+-- 
+1.7.4.1
