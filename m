@@ -1,129 +1,114 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if
- system supports 'has_ossr'
-Date: Mon, 18 Mar 2013 15:07:24 +0000
-Message-ID: <20130318150724.GC28585@mudshark.cambridge.arm.com>
-References: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com>
- <51406BA7.8010306@arm.com>
- <51407120.7030709@ti.com>
- <51417E58.5050501@ti.com>
- <20130315050014.GA15706@tiny-lites>
- <5146B972.1010002@ti.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH V4] ARM: dts: add minimal DT support for DevKit8000.
+Date: Mon, 18 Mar 2013 16:21:55 +0100
+Message-ID: <51473113.9060109@ti.com>
+References: <F3DBB1B3EF102E4994C89758CFCA32412CC4E9@DBDE01.ent.ti.com>
+ <CABYxbz5GyxYaHANgdpwBNaaR6tnu=6LJuUNSvL7DEzU=4CPHcA@mail.gmail.com>
+ <F3DBB1B3EF102E4994C89758CFCA32412CC74F@DBDE01.ent.ti.com>
+ <CABYxbz62JrMB95p5i9iu2G=B4ETXLrYbLsyFEFR5F+WVD6YNnQ@mail.gmail.com>
+ <20130306175313.GQ11806@atomide.com> <513838F2.60101@ti.com>
+ <CABYxbz7bLZxX-6U3O9nRsKxAXbg0nEta55eO-ERuotPnw=X5BQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5146B972.1010002@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Will Deacon <will@willdeacon.co.uk>, Lokesh Vutla <lokeshvutla@ti.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CABYxbz7bLZxX-6U3O9nRsKxAXbg0nEta55eO-ERuotPnw=X5BQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Anil Kumar <anilk4.v-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Thomas Weber <thomas-xePHB1Atl/Dsq35pWSNszA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Santosh,
+Hi Anil,
 
-On Mon, Mar 18, 2013 at 06:51:30AM +0000, Santosh Shilimkar wrote:
-> On Friday 15 March 2013 10:30 AM, Will Deacon wrote:
-> > Furthermore, I was under the impression that hw_breakpoint did actually
-> > work on panda, which implies that a cold boot *does* manage to reset the
-> > registers (can you please confirm this by looking in your dmesg during
-> > boot?). In that case, it seems as though a PM cycle is powering down a
-> > bunch of debug logic that was powered up during boot, and then we trip over
-> > because we can't access the register bank.
-> > 
-> Actually it seems to be without PM. Thanks to analysis from Lokesh, the issue
-> can be seen even with just suspend or cpu hotplug. So cold boot as such is
-> fine.
-
-Right, so what you're saying is that monitor-mode hardware debug only works
-until the first pm/suspend/hotplug operation, then it's dead in the water?
-
-> > The proper solution to this problem requires us to establish exactly what is
-> > turning off the debug registers, and then having an OMAP PM notifier to
-> > enable it again. Assuming this has always been the case, I expect hardware
-> > debug across PM fails silently with older kernels.
-> > 
-> This has been always the case it seems with CPU power cycle.
-> After the CPU is power cycled, 'DBGAUTHSTATUS' reads '0xaa' rather
-> than '0xaf' which means 'DBGEN = 0' and hence code fails to enable
-> monitor mode. This happens on both secure and GP devices and it can not
-> be patched since the secure code is ROM'ed. We didn't notice so far
-> because hw_breakpoint support was not default enabled on OMAP till the
-> multi-platform build.
-
-That really sucks :( Does this affect all OMAP-based boards?
-
-> >> I was also wondering whether we should just warn once rather
-> >> than continuous warnings in the notifier. Patch is end of the
-> >> email.
-> > 
-> > Could do, but I'd like to see a fix for the real issue before we simply hide
-> > the warnings :)
-> > 
-> Agree here too. As evident above, the feature won't work on OMAP4
-> devices with PM and hence some solution is needed.
+On 03/17/2013 06:23 AM, Anil Kumar wrote:
+> Hi Benoit,
 > 
-> What you think of below ?
-
-Comments inline...
-
+> On Thu, Mar 7, 2013 at 12:21 PM, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org> wrote:
+>> Hi,
+>>
+>> On 03/06/2013 06:53 PM, Tony Lindgren wrote:
+>>> * Anil Kumar <anilk4.v-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [130305 18:40]:
+>>>> Hi Tony,
+>>>>
+>>>>>> From: linux-arm-kernel [mailto:linux-arm-kernel-
+>>>>>> bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org] On Behalf Of Anil Kumar
+>>>>>> Sent: Wednesday, February 27, 2013 8:03 AM
+>>>>>> To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+>>>>>> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+>>>>>> Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org; Cousson, Benoit; Tony Lindgren; Grant
+>>>>>> Likely; Anil Kumar; thomas-xePHB1Atl/Dsq35pWSNszA@public.gmane.org
+>>>>>> Subject: Re: FW: [PATCH V4] ARM: dts: add minimal DT support for
+>>>>>> DevKit8000.
+>>>>>>
+>>>>>> Hi,
+>>>>>>>
+>>>>>>> DevKit8000 is a beagle board clone from Timll, sold by
+>>>>>>> armkits.com. The DevKit8000 has RS232 serial port, LCD, DVI-D,
+>>>>>>> S-Video, Ethernet, SD/MMC, keyboard, camera, SPI, I2C, USB and
+>>>>>>> JTAG interface.
+>>>>>>>
+>>>>>>> This patch adds the basic DT support for devkit8000. At this time,
+>>>>>> Information
+>>>>>>> of twl4030 (PMIC), MMC1, I2C1 and leds are added.
+>>>>>>>
+>>>>>>> Signed-off-by: Anil Kumar <anilk4.v-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>>>>>> Tested-by: Thomas Weber <thomas-xePHB1Atl/Dsq35pWSNszA@public.gmane.org>
+>>>>>>
+>>>>>> Gentle Ping. As there are no review comments on this patch,
+>>>>>> Could you please pull this patch ?
+>>>>
+>>>> Gentle Ping.
+>>>>
+>>>> This patch also got Reviewed-by: Manish Badarkhe <badarkhe.manish-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>>> and as patch "ARM: dts: omap3-devkit8000: Enable audio support"  has already got
+>>>> "Acked-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>" but it is on the
+>>>> top of this patch.
+>>>> So, Could you please pull this patch in one of your omap branch? or
+>>>> you want me to
+>>>> do rebase this patch on top of v3.9-rc1 ?
+>>>
+>>> Let's wait for Benoit to queue it as he has a bunch of .dts changesfor_3.10/dts already
+>>> applied. Too bad we missed v3.9 merge window for those, but hopefully
+>>> we can get them queued early for v3.10.
+>>
+>> Yep, sorry for having missed 3.9, I was a little bit sick at the wrong
+>> moment :-(
+>>
+>> I'm starting queuing the pending patches, and should have enough to push
+>> to you just after Linaro Connect.
 > 
-> From d74b4264f6a5967b0f7ada96aad77ab0ac30dbed Mon Sep 17 00:00:00 2001
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Date: Mon, 18 Mar 2013 11:59:04 +0530
-> Subject: [PATCH] ARM: hw_breakpoints: Check for CPU debug availability before
->  enabling it
+> I think you missed below patch which is needed for gpmc nand to work fine.
 > 
-> CPU debug features like hardware break, watchpoints can be used only when
-> the debug mode is enabled and available for non-secure mode.
+> Jon Hunter:-
+>   ARM: OMAP2+: Fix-up gpmc merge error
 > 
-> Hence check 'DBGAUTHSTATUS.DBGEN' before proceeding to enable the
-> features.
+> I have re based my changes on top of your repository to make pull
+> easier for you.
+> I hope you will pull these changes for 3.10.
 > 
-> Thanks to Will for pointers and Lokesh for the analysis of the issue on
-> OMAP4 where after a CPU power cycle, debug mode gets disabled.
+> The following changes since Commit a7f7881de9c0b58de3b3aea8f01a8aef906d4ade
 > 
-> Cc: Will Deacon <Will.Deacon@arm.com>
+> are available in the git repository at:
 > 
-> Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/kernel/hw_breakpoint.c |    8 ++++++++
->  1 file changed, 8 insertions(+)
+> git://gitorious.org/devkit8000-for_3-10/devkit8000-for_3-10.git
+> branch for_3.10/dts
 > 
-> diff --git a/arch/arm/kernel/hw_breakpoint.c b/arch/arm/kernel/hw_breakpoint.c
-> index 96093b7..683a7cf 100644
-> --- a/arch/arm/kernel/hw_breakpoint.c
-> +++ b/arch/arm/kernel/hw_breakpoint.c
-> @@ -930,6 +930,14 @@ static void reset_ctrl_regs(void *unused)
->  	int i, raw_num_brps, err = 0, cpu = smp_processor_id();
->  	u32 val;
->  
-> +	/* Check if we have access to CPU debug features */
-> +	ARM_DBG_READ(c7, c14, 6, val);
-> +	if ((val & 0x1) == 0) {
-> +		pr_warn_once("CPU %d debug is unavailable\n", cpu);
-> +		cpumask_or(&debug_err_mask, &debug_err_mask, cpumask_of(cpu));
-> +		return;
-> +	}
+> for you to fetch changes up to Commit 975abc8b2e7ec4ff7324d726c9775958945ccc5e
 
-There are a few of problems here:
+Thanks, I pulled the patches and rebased that on top of -rc3 to get the
+missing fix from Jon.
 
-	1. That is only checking for non-secure access, which precludes
-	   running Linux in secure mode.
+I cleaned as well some changelog / subject and pushed then in my
+for_3.10/dts branch.
 
-	2. DBGAUTHSTATUS accesses are UNPREDICTABLE when the double-lock is
-	   set for v7.1 processors.
-
-	3. DBGAUTHSTATUS doesn't exist in ARMv6.
-
-	4. CPUs without the security extensions have DBGAUTHSTATUS.NSE == 0
-
-	5. Accessing DBGAUTHSTATUS requires DBGEN to be driven high.
-	   Assuming that your pr_warn_once is emitted, this implies that
-	   DBGEN is driven high from cold boot, yet the NSE bit is low,
-	   implying that DBGEN is also low. That's contradictory, so I have
-	   no idea what's going on...
-
-Apart from that, it's fine!
-
-Will
+Regards,
+Benoit
