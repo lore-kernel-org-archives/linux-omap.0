@@ -1,74 +1,178 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V3 12/18] ARM: OMAP2+: Add additional GPMC timing parameters
-Date: Mon, 18 Mar 2013 10:59:48 -0500
-Message-ID: <514739F4.8050307@ti.com>
-References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com> <1363360876-13617-13-git-send-email-jon-hunter@ti.com> <51471F8D.4060608@gmail.com> <51472592.4030402@ti.com>
+From: Anca Emanuel <anca.emanuel@gmail.com>
+Subject: Re: OMAP baseline test results for v3.9-rc3
+Date: Mon, 18 Mar 2013 18:21:24 +0200
+Message-ID: <CAJL_dMsA+J6C4uJS_BXGJLvJiS1+YxTaW_j9=EdF70qDnQbwUg@mail.gmail.com>
+References: <alpine.DEB.2.00.1303181536230.29332@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47689 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752681Ab3CRP77 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Mar 2013 11:59:59 -0400
-In-Reply-To: <51472592.4030402@ti.com>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:54869 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751250Ab3CRQVZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Mar 2013 12:21:25 -0400
+Received: by mail-da0-f46.google.com with SMTP id y19so107863dan.33
+        for <linux-omap@vger.kernel.org>; Mon, 18 Mar 2013 09:21:24 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1303181536230.29332@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, Mark Jackson <mpfj-list@mimc.co.uk>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+You are not planning any resources to solve this ?
+You are listing this for a number of months now. It is time to solve them.
 
-On 03/18/2013 09:32 AM, Jon Hunter wrote:
-> 
-> On 03/18/2013 09:07 AM, Rob Herring wrote:
->> On 03/15/2013 10:21 AM, Jon Hunter wrote:
->>> Some of the GPMC timings parameters are currently missing from the GPMC
->>> device-tree binding. Add these parameters to the binding documentation
->>> as well as code to read them.
->>>
->>> The existing code in gpmc_read_timings_dt() is checking the value of
->>> of_property_read_u32() and only is successful storing the value read
->>> in the gpmc_timings structure. Checking the return value in this case
->>> is not necessary and we can simply read the value, if present, and
->>> store directly in the gpmc_timings structure. Therefore, simplify the
->>> code by removing these checks.
->>>
->>> The comment in the gpmc_read_timings_dt() function, "only for OMAP3430"
->>> is also incorrect as it is applicable to all OMAP3+ devices. So correct
->>> this too.
->>>
->>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->>> ---
->>>  Documentation/devicetree/bindings/bus/ti-gpmc.txt |   25 +++++-
->>>  arch/arm/mach-omap2/gpmc.c                        |   93 ++++++++++-----------
->>>  2 files changed, 66 insertions(+), 52 deletions(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->>> index 6fde1cf..a63bd93 100644
->>> --- a/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->>> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->>> @@ -56,10 +56,27 @@ Timing properties for child nodes. All are optional and default to 0.
->>>   - gpmc,oe-off:		Deassertion time
->>>  
->>>   Access time and cycle time timings corresponding to GPMC_CONFIG5:
->>> - - gpmc,page-burst-access: Multiple access word delay
->>> - - gpmc,access:		Start-cycle to first data valid delay
->>> - - gpmc,rd-cycle:	Total read cycle time
->>> - - gpmc,wr-cycle:	Total write cycle time
->>> + - gpmc,page-burst-access: 	Multiple access word delay
->>> + - gpmc,access:			Start-cycle to first data valid delay
->>> + - gpmc,rd-cycle:		Total read cycle time
->>> + - gpmc,wr-cycle:		Total write cycle time
->>> + - gpmc,bus-turnaround:		Turn-around time between successive accesses
->>> + - gpmc,cycle2cycle-delay:	Delay between chip-select pulses
->>> + - gpmc,clk-activation: 	GPMC clock activation time
->>> + - gpmc,wait-monitoring:	Start of wait monitoring with regard to valid
->>> +				data
->>
->> What units are these in? If in nanoseconds, can you append "-ns"
-> 
-> These are cycles. I can update the comment to reflect that.
-
-Sorry these are nanoseconds. I will update the properties to reflect that.
-
-Jon
+On Mon, Mar 18, 2013 at 5:38 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>
+> Here are some basic OMAP test results for Linux v3.9-rc3.
+> Logs and other details at:
+>
+>     http://www.pwsan.com/omap/testlogs/test_v3.9-rc3/20130314094808/
+>
+>
+> Test summary
+> ------------
+>
+> Build:
+>     FAIL ( 3/16): am33xx_only, omap1_defconfig_5912osk_only,
+>                   omap2plus_defconfig_2430sdp_only
+>     Pass (13/16): n800_multi_omap2xxx, n800_only_a, omap1_defconfig,
+>                   omap1_defconfig_1510innovator_only,
+>                   omap2plus_defconfig, omap2plus_defconfig_cpupm,
+>                   omap2plus_defconfig_no_pm,
+>                   omap2plus_defconfig_omap2_4_only,
+>                   omap2plus_defconfig_omap3_4_only,
+>                   rmk_omap3430_ldp_allnoconfig,
+>                   rmk_omap3430_ldp_oldconfig,
+>                   rmk_omap4430_sdp_allnoconfig
+>                   rmk_omap4430_sdp_oldconfig
+>
+> Boot to userspace:
+>     FAIL ( 1/11): am335xbone
+>     Pass (10/11): 2420n800, 2430sdp, 3517evm, 3530es3beagle,
+>                   3730beaglexm, 37xxevm, 4430es2panda, 4460pandaes,
+>                   5912osk, cmt3517
+>
+> PM ret, suspend:
+>     FAIL ( 4/ 6): 2430sdp, 37xxevm, 4430es2panda, 4460pandaes
+>     Pass ( 2/ 6): 3530es3beagle, 3730beaglexm
+>
+> PM ret, dynamic idle:
+>     FAIL ( 4/ 6): 2430sdp, 37xxevm, 4430es2panda, 4460pandaes
+>     Pass ( 2/ 6): 3530es3beagle, 3730beaglexm
+>
+> PM off, suspend:
+>     FAIL ( 3/ 5): 37xxevm, 4430es2panda, 4460pandaes
+>     Pass ( 2/ 5): 3530es3beagle, 3730beaglexm
+>
+> PM off, dynamic idle:
+>     FAIL ( 3/ 5): 37xxevm, 4430es2panda, 4460pandaes
+>     Pass ( 2/ 5): 3530es3beagle, 3730beaglexm
+>
+>
+> Failing tests: fixed by posted patches
+> --------------------------------------
+>
+> Build:
+>
+> * omap1_defconfig_5912osk_only: implicit declaration of function 'cpu_is_omap15xx'
+>   - Fixed by Aaro: http://www.spinics.net/lists/linux-omap/msg87523.html
+>
+> PM:
+>
+> * 4460pandaes: CORE, L3INIT didn't enter target state
+>   - Caused by 17b7e7d33530e2bbd3bdc90f4db09b91cfdde2bb
+>     (ARM: OMAP4: clock/hwmod data: start to remove some IP block control
+>      "clocks")
+>   - Fixed by "ARM: OMAP4: PM: fix PM regression introduced by recent clock
+>     cleanup"
+>     - http://www.spinics.net/lists/arm-kernel/msg224419.html
+>
+> Failing tests: needing investigation
+> ------------------------------------
+>
+> Build:
+>
+> * am33xx_only, omap2plus_defconfig_2430sdp_only: omap-{smp,hotplug}.c link errors
+>
+> Boot tests:
+>
+> * 3517EVM & CM-T3517: boot hangs with NFS root
+>   - Likely some Kconfig, board file, and PM issues with EMAC
+>   - Longstanding bug
+>
+> Boot warnings:
+>
+> * 2430sdp & 37xxevm: nasty lock warning due to NFS root
+>   - Cause unknown
+>   - Breaks most remaining tests
+>
+> * CM-T3517: L3 in-band error with IPSS during boot
+>   - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
+>   - Longstanding issue; does not occur on the 3517EVM
+>
+> PM tests:
+>
+> * 2430sdp: pwrdm state mismatch(dsp_pwrdm) 0 != 3
+>   - need to doublecheck wakeup dependencies
+>   - (am assuming it's still there; userspace problems prevent the test
+>      from running, probably due to the lock warning)
+>
+> * 2430sdp: power domains not entering retention
+>   - Cause unknown
+>   - (am assuming it's still there; userspace problems prevent the test
+>      from running, probably due to the lock warning)
+>
+> * 4430es2panda, 4460pandaes: pwrdm state mismatch on CAM, DSS, ABE
+>
+> * 4460pandaes: pwrdm state mismatch on IVAHD, TESLA
+>
+> * 4430es2panda: CORE, TESLA, IVAHD, L3INIT didn't enter target state
+>   - Probably due to lack of reset code for M3, DSP, SL2IF, FSUSB
+>     per discussion with Tero Kristo
+>   - Likely dependent on the bootloader version
+>     - fails with 2012.07-00136-g755de79
+>
+> * 4460pandaes: chip not entering retention in dynamic idle
+>   - Presumably 4430es2panda also fails this
+>   - Suspend-to-RAM enters full chip retention
+>
+> * 3730 Beagle XM: does not serial wake from off-idle suspend when console
+>   UART doesn't clock-gate ("debug ignore_loglevel")
+>   - Cause unknown
+>   - Not yet part of the automated test suite
+>   - Re-tested at v3.7; still failing:
+>     http://www.pwsan.com/omap/transcripts/20121211-3730beaglexm-3.7-pm-offmode-fail-debug.txt
+>
+> Other:
+>
+> * 4430es2panda: omap_hwmod: l3_instr: _wait_target_disable failed
+>   - Unknown cause; could be due to the lack of hierarchical enable/disable
+>     in hwmod code
+>   - Jon Hunter reports this does not appear with the same X-loader/bootloader
+>     on his 4430ES2.3 Panda, so could be ES-level dependent
+>
+>
+> vmlinux object size
+> (delta in bytes from test_v3.9-rc2
+> (f6161aa153581da4a3867a2d1a7caf4be19b6ec9)):
+>    text     data      bss    total  kernel
+>     +72      -64        0       +8  n800_multi_omap2xxx
+>     +56      -64        0       -8  n800_only_a
+> +5606576  +359420  +121728  +6087724  omap1_defconfig
+>    +108    +2592        0    +2700  omap1_defconfig_1510innovator_only
+>    +640    +2568        0    +3208  omap2plus_defconfig
+>    +704    +2560        0    +3264  omap2plus_defconfig_cpupm
+>    +704    +2560        0    +3264  omap2plus_defconfig_no_pm
+>    +640    +2560        0    +3200  omap2plus_defconfig_omap2_4_only
+>    +628    +2576        0    +3204  omap2plus_defconfig_omap3_4_only
+>  -20852     -460    +1732   -19580  rmk_omap3430_ldp_allnoconfig
+>   +4352      -64        0    +4288  rmk_omap3430_ldp_oldconfig
+>  -20740     -460    +1620   -19580  rmk_omap4430_sdp_allnoconfig
+>    +168       -8        0     +160  rmk_omap4430_sdp_oldconfig
+>
+> omap1_defconfig is building again.
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
