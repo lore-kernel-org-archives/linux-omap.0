@@ -1,108 +1,107 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH/Resend 2/2] arm: mach-omap2: prevent UART console idle on suspend while using "no_console_suspend"
-Date: Mon, 18 Mar 2013 18:52:04 +0530
-Message-ID: <1363612924-349-1-git-send-email-sourav.poddar@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V3 10/18] ARM: OMAP2+: Add function to read GPMC settings
+ from device-tree
+Date: Mon, 18 Mar 2013 08:43:26 -0500
+Message-ID: <514719FE.4030607@ti.com>
+References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com> <1363360876-13617-11-git-send-email-jon-hunter@ti.com> <20130317052401.GA9796@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, b-cousson@ti.com, Sourav Poddar <sourav.poddar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52089 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751779Ab3CRNno (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Mar 2013 09:43:44 -0400
+In-Reply-To: <20130317052401.GA9796@localhost>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>
 
-With dt boot, uart wakeup after suspend is non functional on omap4/5 while using
-"no_console_suspend" in the bootargs. With "no_console_suspend" used, od->flags
-should be ORed with "OMAP_DEVICE_NO_IDLE_ON_SUSPEND", thereby not allowing the console
-to idle in the suspend path. For non-dt case, this was taken care by platform data.
 
-Tested on omap5430evm, omap4430sdp.
+On 03/17/2013 12:24 AM, Ezequiel Garcia wrote:
+> Hi Jon,
+> 
+> I have some tiny nitpicks...
+> 
+> On Fri, Mar 15, 2013 at 10:21:08AM -0500, Jon Hunter wrote:
+>> Adds a function to read the various GPMC chip-select settings from
+>> device-tree and store them in the gpmc_settings structure.
+>>
+>> Update the GPMC device-tree binding documentation to describe these
+>> options.
+>>
+>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/bus/ti-gpmc.txt |   23 ++++++++++
+>>  arch/arm/mach-omap2/gpmc.c                        |   49 +++++++++++++++++++++
+>>  arch/arm/mach-omap2/gpmc.h                        |    2 +
+>>  3 files changed, 74 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>> index 5ddb2e9..6fde1cf 100644
+>> --- a/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>> @@ -65,6 +65,29 @@ The following are only applicable to OMAP3+ and AM335x:
+>>   - gpmc,wr-access
+>>   - gpmc,wr-data-mux-bus
+>>  
+>> +GPMC chip-select settings properties for child nodes. All are optional.
+>> +
+>> +- gpmc,burst-length	Page/burst length. Must be 4, 8 or 16.
+>> +- gpmc,burst-wrap	Enables wrap bursting
+>> +- gpmc,burst-read	Enables read page/burst mode
+>> +- gpmc,burst-write	Enables write page/burst mode
+>> +- gpmc,device-nand	Device is NAND
+>> +- gpmc,device-width	Total width of device(s) connected to a GPMC
+>> +			chip-select in bytes. The GPMC supports 8-bit
+>> +			and 16-bit devices and so this property must be
+>> +			1 or 2.
+>> +- gpmc,mux-add-data	Address and data multiplexing configuration.
+>> +			Valid values are 1 for address-address-data
+>> +			multiplexing mode and 2 for address-data
+>> +			multiplexing mode.
+>> +- gpmc,sync-read	Enables synchronous read. Defaults to asynchronous
+>> +			is this is not set.
+>> +- gpmc,sync-write	Enables synchronous writes. Defaults to asynchronous
+>> +			is this is not set.
+>> +- gpmc,wait-pin		Wait-pin used by client. Must be less than
+>> +			"gpmc,num-waitpins".
+>> +- gpmc,wait-on-read	Enables wait monitoring on reads.
+>> +- gpmc,wait-on-write	Enables wait monitoring on writes.
+>>  
+>>  Example for an AM33xx board:
+>>  
+>> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+>> index 3ec1937..1e7eef3 100644
+>> --- a/arch/arm/mach-omap2/gpmc.c
+>> +++ b/arch/arm/mach-omap2/gpmc.c
+>> @@ -1190,6 +1190,55 @@ static struct of_device_id gpmc_dt_ids[] = {
+>>  };
+>>  MODULE_DEVICE_TABLE(of, gpmc_dt_ids);
+>>  
+>> +/**
+>> + * gpmc_read_settings_dt - read gpmc settings from device-tree
+>> + * @np:		pointer to device-tree node for a gpmc child device
+>> + * @p:		pointer to gpmc settings structure
+>> + *
+>> + * Reads the GPMC settings for a GPMC child device from device-tree and
+>> + * stores them in the GPMC settings structure passed. The GPMC settings
+>> + * structure is initialise to zero by this function and so any previously
+> 
+> s/initialise/initialized ?
 
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Rajendra nayak <rnayak@ti.com>
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
- arch/arm/mach-omap2/omap_device.c |   34 +++++++++++++++++++++++++++++++++-
- 1 files changed, 33 insertions(+), 1 deletions(-)
+Thanks will add the "d". However, "initialise" is correct British
+English ;-)
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 381be7a..71f5a73 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -35,11 +35,17 @@
- #include <linux/pm_runtime.h>
- #include <linux/of.h>
- #include <linux/notifier.h>
-+#include <linux/platform_data/serial-omap.h>
- 
- #include "soc.h"
- #include "omap_device.h"
- #include "omap_hwmod.h"
- 
-+#define MAX_UART_HWMOD_NAME_LEN         16
-+
-+static u8 no_console_suspend;
-+static u8 console_uart_num;
-+
- /* Private functions */
- 
- static void _add_clkdev(struct omap_device *od, const char *clk_alias,
-@@ -108,6 +114,12 @@ static void _add_hwmod_clocks_clkdev(struct omap_device *od,
- 		_add_clkdev(od, oh->opt_clks[i].role, oh->opt_clks[i].clk);
- }
- 
-+static char *cmdline_find_option(char *str)
-+{
-+	extern char *saved_command_line;
-+
-+	return strstr(saved_command_line, str);
-+}
- 
- /**
-  * omap_device_build_from_dt - build an omap_device with multiple hwmods
-@@ -129,6 +141,7 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 	struct device_node *node = pdev->dev.of_node;
- 	const char *oh_name;
- 	int oh_cnt, i, ret = 0;
-+	static u8 console_uart_id;
- 
- 	oh_cnt = of_property_count_strings(node, "ti,hwmods");
- 	if (!oh_cnt || IS_ERR_VALUE(oh_cnt)) {
-@@ -170,7 +183,12 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 			r->name = dev_name(&pdev->dev);
- 	}
- 
--	if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
-+	if (no_console_suspend && !strncmp(oh->name, "uart", 4)) {
-+		if (console_uart_num == console_uart_id)
-+			omap_device_disable_idle_on_suspend(pdev);
-+		else
-+			console_uart_id++;
-+	} else if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
- 		omap_device_disable_idle_on_suspend(pdev);
- 
- 	pdev->dev.pm_domain = &omap_device_pm_domain;
-@@ -838,7 +856,21 @@ static struct notifier_block platform_nb = {
- 
- static int __init omap_device_init(void)
- {
-+	int i;
-+	char uart_name[MAX_UART_HWMOD_NAME_LEN];
-+
- 	bus_register_notifier(&platform_bus_type, &platform_nb);
-+
-+	if (cmdline_find_option("no_console_suspend")) {
-+		no_console_suspend = true;
-+		for (i = 0; i < OMAP_MAX_HSUART_PORTS; i++) {
-+			snprintf(uart_name, MAX_UART_HWMOD_NAME_LEN,
-+				"%s%d", OMAP_SERIAL_NAME, i);
-+			if (cmdline_find_option(uart_name))
-+				console_uart_num = i;
-+		}
-+	}
-+
- 	return 0;
- }
- omap_core_initcall(omap_device_init);
--- 
-1.7.1
+>> + * stored settings will be clearer.
+> 
+> s/clearer/cleared ?
+> 
+> I'm not an english native speaker,
+> so please bare with me if I'm wrong on these...
+
+You are right here too. Will fix thanks!
+
+Jon
+
