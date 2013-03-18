@@ -1,38 +1,38 @@
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH 2/8] staging: omap-thermal: use spin_lock_irqsave inside
- IRQ handler
-Date: Mon, 18 Mar 2013 22:16:18 +0300
-Message-ID: <20130318191618.GU9138@mwanda>
+Subject: Re: [PATCH 4/8] staging: rename omap-thermal driver to ti-soc-thermal
+Date: Mon, 18 Mar 2013 22:17:10 +0300
+Message-ID: <20130318191710.GV9138@mwanda>
 References: <1363618756-15851-1-git-send-email-eduardo.valentin@ti.com>
- <1363618756-15851-3-git-send-email-eduardo.valentin@ti.com>
+ <1363618756-15851-5-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1363618756-15851-3-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
+In-Reply-To: <1363618756-15851-5-git-send-email-eduardo.valentin@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org, Nishanth Menon <nm@ti.com>, Benoit <b-cousson@ti.com>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 18, 2013 at 10:59:10AM -0400, Eduardo Valentin wrote:
-> Even if the IRQ is not firing because it is ONE_SHOT and disable
-> at INTC level, the IRQ handler must use spin_lock_irqsave.
-> It is necessary to disable IRQs from the current
-> CPU while it is holding a spin_lock which is need.
+On Mon, Mar 18, 2013 at 10:59:12AM -0400, Eduardo Valentin wrote:
+> Because this driver will support also OMAP derivatives,
+> this patch does a big rename inside this driver, so it
+> better fits its usage.
 > 
 
-Gar...  I think I was just totally wrong on this.  I think your
-original code was fine.  Sorry Eduardo and Greg.
+It would be better to do a minimal move patch which just renames the
+files and updated the Makefile.  The following patches would rename
+the functions.  That makes it easier to review.
 
-This is a threaded IRQ so the regular spin_lock is fine or even the
-mutex would have been.
 
-IRQ_ONESHOT is about triggering a second IRQ before the first one
-has been finished, btw.
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Benoit <b-cousson@ti.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> 
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 
-I am an idiot.
+Put a --- line here after the Signed-off-by line so that "git am"
+doesn't include the diff stat in the changelog.
 
 regards,
 dan carpenter
-
