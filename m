@@ -1,205 +1,64 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V3 12/18] ARM: OMAP2+: Add additional GPMC timing parameters
-Date: Mon, 18 Mar 2013 09:32:50 -0500
-Message-ID: <51472592.4030402@ti.com>
-References: <1363360876-13617-1-git-send-email-jon-hunter@ti.com> <1363360876-13617-13-git-send-email-jon-hunter@ti.com> <51471F8D.4060608@gmail.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [PATCH 00/50] staging: omap-thermal: several code refactoring
+Date: Mon, 18 Mar 2013 10:44:59 -0400
+Message-ID: <5147286B.9090705@ti.com>
+References: <1363352438-15935-1-git-send-email-eduardo.valentin@ti.com>
+ <20130316090540.GQ9138@mwanda> <5144698B.9080703@ti.com>
+ <20130316161641.GA2630@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54920 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751996Ab3CROdL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Mar 2013 10:33:11 -0400
-In-Reply-To: <51471F8D.4060608@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20130316161641.GA2630@kroah.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
+ <mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel/>
+List-Post: <mailto:devel@linuxdriverproject.org>
+List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
+ <mailto:devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: devel-bounces@linuxdriverproject.org
+Sender: "devel" <devel-bounces@linuxdriverproject.org>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, Mark Jackson <mpfj-list@mimc.co.uk>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
+Greg, Dan,
 
-On 03/18/2013 09:07 AM, Rob Herring wrote:
-> On 03/15/2013 10:21 AM, Jon Hunter wrote:
->> Some of the GPMC timings parameters are currently missing from the GPMC
->> device-tree binding. Add these parameters to the binding documentation
->> as well as code to read them.
+On 16-03-2013 12:16, Greg KH wrote:
+> On Sat, Mar 16, 2013 at 08:46:03AM -0400, Eduardo Valentin wrote:
+>> Hello Dan,
 >>
->> The existing code in gpmc_read_timings_dt() is checking the value of
->> of_property_read_u32() and only is successful storing the value read
->> in the gpmc_timings structure. Checking the return value in this case
->> is not necessary and we can simply read the value, if present, and
->> store directly in the gpmc_timings structure. Therefore, simplify the
->> code by removing these checks.
+>> On 16-03-2013 05:05, Dan Carpenter wrote:
+>>> I've reviewed this set.
+>>>
+>>> I hate to make people redo whole patchset sets, and I hate
+>>> re-reviewing code.  Obviously, I don't really like the bunny hop
+>>> patches and I'm trying to discourage that going forward.  ;P  But
+>>> I wouldn't say it's a "Redo the whole thing" kind of problem.
+>>>
+>>> Could just resend patch 33 and 47?  You should probably be able to
+>>> redo those without changing the rest.
 >>
->> The comment in the gpmc_read_timings_dt() function, "only for OMAP3430"
->> is also incorrect as it is applicable to all OMAP3+ devices. So correct
->> this too.
+>> I could of course change them if the comment is better clarified. As
+>> I mentioned as reply to one of your comments, those changes are
+>> following what is suggested in CodingStyle file.
 >>
->> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->> ---
->>  Documentation/devicetree/bindings/bus/ti-gpmc.txt |   25 +++++-
->>  arch/arm/mach-omap2/gpmc.c                        |   93 ++++++++++-----------
->>  2 files changed, 66 insertions(+), 52 deletions(-)
+>> I can of course send a diff on top of 33, to fix the introduce bug.
 >>
->> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->> index 6fde1cf..a63bd93 100644
->> --- a/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->> @@ -56,10 +56,27 @@ Timing properties for child nodes. All are optional and default to 0.
->>   - gpmc,oe-off:		Deassertion time
->>  
->>   Access time and cycle time timings corresponding to GPMC_CONFIG5:
->> - - gpmc,page-burst-access: Multiple access word delay
->> - - gpmc,access:		Start-cycle to first data valid delay
->> - - gpmc,rd-cycle:	Total read cycle time
->> - - gpmc,wr-cycle:	Total write cycle time
->> + - gpmc,page-burst-access: 	Multiple access word delay
->> + - gpmc,access:			Start-cycle to first data valid delay
->> + - gpmc,rd-cycle:		Total read cycle time
->> + - gpmc,wr-cycle:		Total write cycle time
->> + - gpmc,bus-turnaround:		Turn-around time between successive accesses
->> + - gpmc,cycle2cycle-delay:	Delay between chip-select pulses
->> + - gpmc,clk-activation: 	GPMC clock activation time
->> + - gpmc,wait-monitoring:	Start of wait monitoring with regard to valid
->> +				data
-> 
-> What units are these in? If in nanoseconds, can you append "-ns"
+>> For 47, I'm not sure the comment is fully applicable.
+>
+> As I've taken all of these already (sorry Dan, I was fast and I didn't
+> review them as well as you did), you will have to just send incremental
+> patches on top of the whole series in order for me to be able to apply
+> them.
 
-These are cycles. I can update the comment to reflect that.
+No issues here, I am going to send soon incremental patches, copying 
+Dan, to fix the above mentioned issues on 33 and 47.
 
->> +
->> +Boolean timing parameters. If property is present parameter enabled and
->> +disabled if omitted:
->> + - gpmc,adv-extra-delay:	ADV signal is delayed by half GPMC clock
->> + - gpmc,cs-extra-delay:		CS signal is delayed by half GPMC clock
->> + - gpmc,cycle2cycle-diffcsen:	Add "cycle2cycle-delay" between successive
->> +				accesses to a different CS
->> + - gpmc,cycle2cycle-samecsen:	Add "cycle2cycle-delay" between successive
->> +				accesses to the same CS
->> + - gpmc,oe-extra-delay:		OE signal is delayed by half GPMC clock
->> + - gpmc,we-extra-delay:		WE signal is delayed by half GPMC clock
->> + - gpmc,time-para-granularity:	Multiply all access times by 2
->>  
->>  The following are only applicable to OMAP3+ and AM335x:
->>   - gpmc,wr-access
->> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
->> index 85b1a35..c928a8c 100644
->> --- a/arch/arm/mach-omap2/gpmc.c
->> +++ b/arch/arm/mach-omap2/gpmc.c
->> @@ -1274,67 +1274,64 @@ void gpmc_read_settings_dt(struct device_node *np, struct gpmc_settings *p)
->>  static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
->>  						struct gpmc_timings *gpmc_t)
->>  {
->> -	u32 val;
->> -
->>  	memset(gpmc_t, 0, sizeof(*gpmc_t));
->>  
->>  	/* minimum clock period for syncronous mode */
->> -	if (!of_property_read_u32(np, "gpmc,sync-clk", &val))
->> -		gpmc_t->sync_clk = val;
->> +	of_property_read_u32(np, "gpmc,sync-clk", &gpmc_t->sync_clk);
->>  
->>  	/* chip select timtings */
->> -	if (!of_property_read_u32(np, "gpmc,cs-on", &val))
->> -		gpmc_t->cs_on = val;
->> -
->> -	if (!of_property_read_u32(np, "gpmc,cs-rd-off", &val))
->> -		gpmc_t->cs_rd_off = val;
->> -
->> -	if (!of_property_read_u32(np, "gpmc,cs-wr-off", &val))
->> -		gpmc_t->cs_wr_off = val;
->> +	of_property_read_u32(np, "gpmc,cs-on", &gpmc_t->cs_on);
->> +	of_property_read_u32(np, "gpmc,cs-rd-off", &gpmc_t->cs_rd_off);
->> +	of_property_read_u32(np, "gpmc,cs-wr-off", &gpmc_t->cs_wr_off);
->>  
->>  	/* ADV signal timings */
->> -	if (!of_property_read_u32(np, "gpmc,adv-on", &val))
->> -		gpmc_t->adv_on = val;
->> -
->> -	if (!of_property_read_u32(np, "gpmc,adv-rd-off", &val))
->> -		gpmc_t->adv_rd_off = val;
->> -
->> -	if (!of_property_read_u32(np, "gpmc,adv-wr-off", &val))
->> -		gpmc_t->adv_wr_off = val;
->> +	of_property_read_u32(np, "gpmc,adv-on", &gpmc_t->adv_on);
->> +	of_property_read_u32(np, "gpmc,adv-rd-off", &gpmc_t->adv_rd_off);
->> +	of_property_read_u32(np, "gpmc,adv-wr-off", &gpmc_t->adv_wr_off);
->>  
->>  	/* WE signal timings */
->> -	if (!of_property_read_u32(np, "gpmc,we-on", &val))
->> -		gpmc_t->we_on = val;
->> -
->> -	if (!of_property_read_u32(np, "gpmc,we-off", &val))
->> -		gpmc_t->we_off = val;
->> +	of_property_read_u32(np, "gpmc,we-on", &gpmc_t->we_on);
->> +	of_property_read_u32(np, "gpmc,we-off", &gpmc_t->we_off);
->>  
->>  	/* OE signal timings */
->> -	if (!of_property_read_u32(np, "gpmc,oe-on", &val))
->> -		gpmc_t->oe_on = val;
->> -
->> -	if (!of_property_read_u32(np, "gpmc,oe-off", &val))
->> -		gpmc_t->oe_off = val;
->> +	of_property_read_u32(np, "gpmc,oe-on", &gpmc_t->oe_on);
->> +	of_property_read_u32(np, "gpmc,oe-off", &gpmc_t->oe_off);
->>  
->>  	/* access and cycle timings */
->> -	if (!of_property_read_u32(np, "gpmc,page-burst-access", &val))
->> -		gpmc_t->page_burst_access = val;
->> -
->> -	if (!of_property_read_u32(np, "gpmc,access", &val))
->> -		gpmc_t->access = val;
->> -
->> -	if (!of_property_read_u32(np, "gpmc,rd-cycle", &val))
->> -		gpmc_t->rd_cycle = val;
->> -
->> -	if (!of_property_read_u32(np, "gpmc,wr-cycle", &val))
->> -		gpmc_t->wr_cycle = val;
->> -
->> -	/* only for OMAP3430 */
->> -	if (!of_property_read_u32(np, "gpmc,wr-access", &val))
->> -		gpmc_t->wr_access = val;
->> -
->> -	if (!of_property_read_u32(np, "gpmc,wr-data-mux-bus", &val))
->> -		gpmc_t->wr_data_mux_bus = val;
->> +	of_property_read_u32(np, "gpmc,page-burst-access",
->> +			     &gpmc_t->page_burst_access);
->> +	of_property_read_u32(np, "gpmc,access", &gpmc_t->access);
->> +	of_property_read_u32(np, "gpmc,rd-cycle", &gpmc_t->rd_cycle);
->> +	of_property_read_u32(np, "gpmc,wr-cycle", &gpmc_t->wr_cycle);
->> +	of_property_read_u32(np, "gpmc,bus-turnaround",
->> +			     &gpmc_t->bus_turnaround);
->> +	of_property_read_u32(np, "gpmc,cycle2cycle-delay",
->> +			     &gpmc_t->cycle2cycle_delay);
->> +	of_property_read_u32(np, "gpmc,wait-monitoring",
->> +			     &gpmc_t->wait_monitoring);
->> +	of_property_read_u32(np, "gpmc,clk-activation",
->> +			     &gpmc_t->clk_activation);
->> +
->> +	/* only applicable to OMAP3+ */
->> +	of_property_read_u32(np, "gpmc,wr-access", &gpmc_t->wr_access);
->> +	of_property_read_u32(np, "gpmc,wr-data-mux-bus",
->> +			     &gpmc_t->wr_data_mux_bus);
->> +
->> +	/* bool timing parameters */
->> +	if (of_find_property(np, "gpmc,cycle2cycle-diffcsen", NULL))
->> +		gpmc_t->bool_timings.cycle2cyclediffcsen = true;
->> +	if (of_find_property(np, "gpmc,cycle2cycle-samecsen", NULL))
->> +		gpmc_t->bool_timings.cycle2cyclesamecsen = true;
->> +	if (of_find_property(np, "gpmc,we-extra-delay", NULL))
->> +		gpmc_t->bool_timings.we_extra_delay = true;
->> +	if (of_find_property(np, "gpmc,oe-extra-delay", NULL))
->> +		gpmc_t->bool_timings.oe_extra_delay = true;
->> +	if (of_find_property(np, "gpmc,adv-extra-delay", NULL))
->> +		gpmc_t->bool_timings.adv_extra_delay = true;
->> +	if (of_find_property(np, "gpmc,cs-extra-delay", NULL))
->> +		gpmc_t->bool_timings.cs_extra_delay = true;
->> +	if (of_find_property(np, "gpmc,time-para-granularity", NULL))
->> +		gpmc_t->bool_timings.time_para_granularity = true;
-> 
-> of_property_read_bool doesn't work for these?
-
-It should work fine, I wasn't aware of that. Will change.
-
-Cheers
-Jon
+>
+> thanks,
+>
+> greg k-h
+>
+>
