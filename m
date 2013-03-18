@@ -1,48 +1,59 @@
-From: Wolfgang Denk <wd@denx.de>
-Subject: Re: [U-Boot] [RFC] Kbuild support for ARM FIT images
-Date: Mon, 18 Mar 2013 20:57:25 +0100
-Message-ID: <20130318195725.CA8132014B1@gemini.denx.de>
-References: <CAD=GYpbF_3uRzhUnV=MwDiy-ekvZKJztJbkhNM0u_pvG-UCw4w@mail.gmail.com> <20130222160044.GA16357@quad.lixom.net> <20130318163648.GA3722@amd.pavel.ucw.cz> <20130318164426.GI30923@n2100.arm.linux.org.uk> <20130318174931.GB4230@amd.pavel.ucw.cz> <20130318175746.GJ30923@n2100.arm.linux.org.uk> <20130318180458.GC4230@amd.pavel.ucw.cz> <51475997.2060008@wwwdotorg.org>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH 2/8] staging: omap-thermal: use spin_lock_irqsave inside
+ IRQ handler
+Date: Mon, 18 Mar 2013 22:58:37 +0300
+Message-ID: <20130318195837.GS9189@mwanda>
+References: <1363618756-15851-1-git-send-email-eduardo.valentin@ti.com>
+ <1363618756-15851-3-git-send-email-eduardo.valentin@ti.com>
+ <20130318191618.GU9138@mwanda>
+ <51476D3E.6010305@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-reply-to: <51475997.2060008@wwwdotorg.org>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Pavel Machek <pavel@denx.de>, "Fernandes, Joel A" <joelagnel@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-kbuild@vger.kernel.org, tony@atomide.com, Grant Likely <grant.likely@secretlab.ca>, u-boot@lists.denx.de, "Rini, Tom" <trini@ti.com>, Grant Likely <glikely@secretlab.ca>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51476D3E.6010305@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Dear Stephen,
+On Mon, Mar 18, 2013 at 03:38:38PM -0400, Eduardo Valentin wrote:
+> On 18-03-2013 15:16, Dan Carpenter wrote:
+> >On Mon, Mar 18, 2013 at 10:59:10AM -0400, Eduardo Valentin wrote:
+> >>Even if the IRQ is not firing because it is ONE_SHOT and disable
+> >>at INTC level, the IRQ handler must use spin_lock_irqsave.
+> >>It is necessary to disable IRQs from the current
+> >>CPU while it is holding a spin_lock which is need.
+> >>
+> >
+> >Gar...  I think I was just totally wrong on this.  I think your
+> >original code was fine.  Sorry Eduardo and Greg.
+> >
+> >This is a threaded IRQ so the regular spin_lock is fine or even the
+> >mutex would have been.
+> 
+> In fact it is. But I rather prefer to use spinlocks there, just to
+> keep the irq handler sane, even if it is moved to non-threaded IRQ.
 
-In message <51475997.2060008@wwwdotorg.org> you wrote:
->
-> Raw zImage /is/ the useful format that should be adopted.
+Yep.  I'd agree there.
 
-This "one size fits all" approch does fit everywhere.  There are a
-number of users (including _big_ commercial ones, with _large_ numebrs
-of systems in the field) that have simple requirements like:
+> 
+> >
+> >IRQ_ONESHOT is about triggering a second IRQ before the first one
+> >has been finished, btw.
+> 
+> It is, and that gets done by masking the IRQ at INTC level.
+> 
+> >
+> >I am an idiot.
+> 
+> 
+> Not really. Thanks for your time reviewing the driver.
+> 
+>  I will resend this series. Drop this one and split patch 4/8 into
+> two I think (one for moving files, one for renaming functions)
 
-- how can I find out if the image I just loaded to RAM in OK (OK
-  maning some checksum is correct, or some crypto-key could be
-  verified, or ...) ?
+Great.  Much appreciated.
 
-- how can I find out which version of image is installed on this
-  device in the flash?  Can I print something like an ID string, or a
-  build timestamp, etc?
-
-etc. etc.
-
-zImage may work well in many cases, but there are also many cases
-where in image format that allows for additional meta-data is
-mandatory.
-
-Best regards,
-
-Wolfgang Denk
-
--- 
-DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
-Minds are like parachutes - they only function when open.
+regards,
+dan carpenter
