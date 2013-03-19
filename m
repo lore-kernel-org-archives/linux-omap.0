@@ -1,97 +1,106 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V4 07/18] ARM: OMAP2+: Convert SMC91x to use gpmc_cs_program_settings()
-Date: Tue, 19 Mar 2013 11:35:45 -0500
-Message-ID: <1363710956-26773-8-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V4 14/18] ARM: OMAP2+: Convert ONENAND to retrieve GPMC settings from DT
+Date: Tue, 19 Mar 2013 11:35:52 -0500
+Message-ID: <1363710956-26773-15-git-send-email-jon-hunter@ti.com>
 References: <1363710956-26773-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41001 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41014 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933120Ab3CSQgj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Mar 2013 12:36:39 -0400
+	id S1753544Ab3CSQgp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:36:45 -0400
 In-Reply-To: <1363710956-26773-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
 
-Convert the OMAP2+ SMC91x code to use the gpmc_cs_program_settings()
-function for configuring the various GPMC options instead of directly
-programming the CONFIG1 register.
+When booting with device-tree, retrieve GPMC settings for ONENAND from
+the device-tree blob. This will allow us to remove all static settings
+stored in the gpmc-nand.c in the future once the migration to
+device-tree is complete.
 
-Move configuration of the GPMC settings outside retime function and
-this does not need to be done if the timings are changed dynamically
-at runtime.
+The user must now specify the ONENAND device width in the device-tree
+binding so that the GPMC can be programmed correctly. Therefore, update
+the device-tree binding documentation for ONENAND devices connected to
+the GPMC to reflect this.
+
+Please note that this does not include GPMC timings for ONENAND. The
+timings are being calculated at runtime.
+
+There is some legacy code that only enables read wait monitoring for
+non-OMAP3 devices. There are no known OMAP3 device issues that prevent
+this feature being enabled and so when booting with device-tree use the
+wait-monitoring settings described in the device-tree blob.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
- arch/arm/mach-omap2/gpmc-smc91x.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ .../devicetree/bindings/mtd/gpmc-onenand.txt       |    3 +++
+ arch/arm/mach-omap2/gpmc-onenand.c                 |   21 ++++++++++++++------
+ 2 files changed, 18 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-smc91x.c b/arch/arm/mach-omap2/gpmc-smc91x.c
-index 4b78338..61a0635 100644
---- a/arch/arm/mach-omap2/gpmc-smc91x.c
-+++ b/arch/arm/mach-omap2/gpmc-smc91x.c
-@@ -49,6 +49,10 @@ static struct platform_device gpmc_smc91x_device = {
- 	.resource	= gpmc_smc91x_resources,
- };
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+index deec9da..b752942 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+@@ -10,6 +10,8 @@ Documentation/devicetree/bindings/bus/ti-gpmc.txt
+ Required properties:
  
-+static struct gpmc_settings smc91x_settings = {
-+	.device_width = GPMC_DEVWIDTH_16BIT,
-+};
+  - reg:			The CS line the peripheral is connected to
++ - gpmc,device-width	Width of the ONENAND device connected to the GPMC
++			in bytes. Must be 1 or 2.
+ 
+ Optional properties:
+ 
+@@ -34,6 +36,7 @@ Example for an OMAP3430 board:
+ 
+ 		onenand@0 {
+ 			reg = <0 0 0>; /* CS0, offset 0 */
++			gpmc,device-width = <2>;
+ 
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index 46aac83..64b5a83 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -272,6 +272,10 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
+ 	struct gpmc_timings t;
+ 	int ret;
+ 
++	if (gpmc_onenand_data->of_node)
++		gpmc_read_settings_dt(gpmc_onenand_data->of_node,
++				      &onenand_async);
 +
- /*
-  * Set the gpmc timings for smc91c96. The timings are taken
-  * from the data sheet available at:
-@@ -67,18 +71,6 @@ static int smc91c96_gpmc_retime(void)
- 	const int t7 = 5;	/* Figure 12.4 write */
- 	const int t8 = 5;	/* Figure 12.4 write */
- 	const int t20 = 185;	/* Figure 12.2 read and 12.4 write */
--	u32 l;
--
--	l = GPMC_CONFIG1_DEVICESIZE_16;
--	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
--		l |= GPMC_CONFIG1_MUXADDDATA;
--	if (gpmc_cfg->flags & GPMC_READ_MON)
--		l |= GPMC_CONFIG1_WAIT_READ_MON;
--	if (gpmc_cfg->flags & GPMC_WRITE_MON)
--		l |= GPMC_CONFIG1_WAIT_WRITE_MON;
--	if (gpmc_cfg->wait_pin)
--		l |= GPMC_CONFIG1_WAIT_PIN_SEL(gpmc_cfg->wait_pin);
--	gpmc_cs_write_reg(gpmc_cfg->cs, GPMC_CS_CONFIG1, l);
+ 	omap2_onenand_set_async_mode(onenand_base);
  
- 	/*
- 	 * FIXME: Calculate the address and data bus muxed timings.
-@@ -104,7 +96,7 @@ static int smc91c96_gpmc_retime(void)
- 	dev_t.t_cez_w = t4_w * 1000;
- 	dev_t.t_wr_cycle = (t20 - t3) * 1000;
+ 	omap2_onenand_calc_async_timings(&t);
+@@ -300,12 +304,17 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
+ 		set_onenand_cfg(onenand_base);
+ 	}
  
--	gpmc_calc_timings(&t, NULL, &dev_t);
-+	gpmc_calc_timings(&t, &smc91x_settings, &dev_t);
+-	/*
+-	 * FIXME: Appears to be legacy code from initial ONENAND commit.
+-	 * Unclear what boards this is for and if this can be removed.
+-	 */
+-	if (!cpu_is_omap34xx())
+-		onenand_sync.wait_on_read = true;
++	if (gpmc_onenand_data->of_node) {
++		gpmc_read_settings_dt(gpmc_onenand_data->of_node,
++				      &onenand_sync);
++	} else {
++		/*
++		 * FIXME: Appears to be legacy code from initial ONENAND commit.
++		 * Unclear what boards this is for and if this can be removed.
++		 */
++		if (!cpu_is_omap34xx())
++			onenand_sync.wait_on_read = true;
++	}
  
- 	return gpmc_cs_set_timings(gpmc_cfg->cs, &t);
- }
-@@ -133,6 +125,18 @@ void __init gpmc_smc91x_init(struct omap_smc91x_platform_data *board_data)
- 	gpmc_smc91x_resources[0].end = cs_mem_base + 0x30f;
- 	gpmc_smc91x_resources[1].flags |= (gpmc_cfg->flags & IRQF_TRIGGER_MASK);
+ 	omap2_onenand_calc_sync_timings(&t, gpmc_onenand_data->flags, freq);
  
-+	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
-+		smc91x_settings.mux_add_data = GPMC_MUX_AD;
-+	if (gpmc_cfg->flags & GPMC_READ_MON)
-+		smc91x_settings.wait_on_read = true;
-+	if (gpmc_cfg->flags & GPMC_WRITE_MON)
-+		smc91x_settings.wait_on_write = true;
-+	if (gpmc_cfg->wait_pin)
-+		smc91x_settings.wait_pin = gpmc_cfg->wait_pin;
-+	ret = gpmc_cs_program_settings(gpmc_cfg->cs, &smc91x_settings);
-+	if (ret < 0)
-+		goto free1;
-+
- 	if (gpmc_cfg->retime) {
- 		ret = gpmc_cfg->retime();
- 		if (ret != 0)
 -- 
 1.7.10.4
 
