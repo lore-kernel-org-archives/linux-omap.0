@@ -1,159 +1,110 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if system
- supports 'has_ossr'
-Date: Tue, 19 Mar 2013 12:09:38 +0530
-Message-ID: <5148082A.3060503@ti.com>
-References: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com> <51406BA7.8010306@arm.com> <51407120.7030709@ti.com> <51417E58.5050501@ti.com> <20130315050014.GA15706@tiny-lites> <5146B972.1010002@ti.com> <20130318150724.GC28585@mudshark.cambridge.arm.com> <514736D4.4070906@ti.com> <20130318170649.GA29585@mudshark.cambridge.arm.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v2 3/4] drm/omap: Make fixed resolution panels work
+Date: Tue, 19 Mar 2013 12:15:53 +0530
+Message-ID: <514809A1.9050108@ti.com>
+References: <1362493070-17706-1-git-send-email-archit@ti.com> <1363093583-28285-1-git-send-email-archit@ti.com> <513F3658.3000300@ti.com> <513F3DE5.2090903@ti.com> <513F4154.5040904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130318170649.GA29585@mudshark.cambridge.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Will Deacon <will@willdeacon.co.uk>, Lokesh Vutla <lokeshvutla@ti.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60620 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933945Ab3CSGqm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Mar 2013 02:46:42 -0400
+In-Reply-To: <513F4154.5040904@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: robdclark@gmail.com, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 
-On Monday 18 March 2013 10:36 PM, Will Deacon wrote:
-> On Mon, Mar 18, 2013 at 03:46:28PM +0000, Santosh Shilimkar wrote:
->> On Monday 18 March 2013 08:37 PM, Will Deacon wrote:
->>> That really sucks :( Does this affect all OMAP-based boards?
->>>
->> All OMAP4 based boards..
-> 
-> Brilliant. Is there any way that the secure code can be fixed in future
-> products?
-> 
-Nope. This can only be done with new silicon rev for GP devices which is
-not going to happen. For secure devices, some secure patching is possible
-but these are not development devices, so not much point.
+On Tuesday 12 March 2013 08:23 PM, Tomi Valkeinen wrote:
+> On 2013-03-12 16:38, Archit Taneja wrote:
+>
+>>> memcmp on two structs is often not a good idea. There could be padding
+>>> bytes there, with uninitialized data. I'm not sure if that's the case
+>>> here, though, but it could well change any time (perhaps even depending
+>>> on compiler version).
+>>
+>> I saw usage of memcmp on structs in the kernel, but then most of them
+>> were in drivers and not core, and could be mistakes :)
+>>
+>> adding '__attribute__((packed))' to omap_video_timings might be helpful
+>> I suppose. But I don't know if it's safe to do a memcmp even with a
+>> packed struct.
+>
+> I think it's safe to use memcmp if you know that both structs have been
+> initialized to zero with memset.
+>
+>>> I'm still pondering whether it'd just be simpler to require all the
+>>> dssdrv ops to be filled, probably using a helper macro in the panel
+>>> drivers... Did you consider that approach? I'm not saying to go for it,
+>>> I'm saying I can't make my mind which would be better =).
+>>
+>> I didn't consider it mainly because I thought we were going to get rid
+>> of our private omapdss panel drivers with CDF panels, and efforts in
+>> fixing it wouldn't be much useful. But if there isn't any other good
+>> alternative, then I can try to see what macros look like.
+>
+> Well, even if I was slightly optimistic earlier, I now have a feeling
+> CDF may take a while. I think we should just go for omapdss dev model
+> change first.
+>
+> One thing to note about the ops is that NULL is currently used to convey
+> information, something like "this ops is not possible or valid". So
+> adding all the ops may not quite work. For example, adding update op for
+> auto-update panels could tell that the panel supports manual update.
+> (Well, for that particular case we have a flag, but you get the idea).
+>
+> But if we can add only some of the ops to the drivers, and there is no
+> information lost when we won't have NULLs, I guess that could be the
+> simplest option. Then we don't need to add extra code in each place we
+> use the ops.
+>
+>> Of course, simpler options for this patch would be to do a manual
+>> compare of the fields instead of a memcmp, or adding default ops in
+>> omap_dss_register_driver.
+>
+> Adding default ops in omap_dss_register_driver() is not good. It
+> prevents us from having the ops as const in the future, and is also not
+> possible when we either move to CDF or change the omapdss dev model.
+>
+> So I think either we need to handle the NULLs as you do in this patch,
+> or add the ops to the panels. But the ops could still be the default
+> versions offered by the omapdss.
 
->>>> +	/* Check if we have access to CPU debug features */
->>>> +	ARM_DBG_READ(c7, c14, 6, val);
->>>> +	if ((val & 0x1) == 0) {
->>>> +		pr_warn_once("CPU %d debug is unavailable\n", cpu);
->>>> +		cpumask_or(&debug_err_mask, &debug_err_mask, cpumask_of(cpu));
->>>> +		return;
->>>> +	}
->>>
->>> There are a few of problems here:
->>>
->>> 	1. That is only checking for non-secure access, which precludes
->>> 	   running Linux in secure mode.
->>>
->> We can check bit 4 as well to take care linux running in secure mode.
-> 
-> It still doesn't help unless we know whether Linux is running secure or
-> non-secure.
-> 
-ok.
+I was trying to come up with a macro which could add default ops to the 
+omap_dss_driver. It isn't straight forward as I thought, because you 
+need to choose either the default op, or the panel driver's op if it 
+exists. For example, I can't create a macro which adds an op for 
+get_timings() to all panel drivers, the panel drivers which already this 
+op defined will have 2 instances of get_timings() in the omap_dss_driver 
+struct.
 
->>> 	2. DBGAUTHSTATUS accesses are UNPREDICTABLE when the double-lock is
->>> 	   set for v7.1 processors.
->>>
->>> 	3. DBGAUTHSTATUS doesn't exist in ARMv6.
->>>
->> We cans skip the code for these versions like...
->> 	if (!ARM_DEBUG_ARCH_V7_ECP14 == get_debug_arch())
->> 		goto skip_dbgsts_read;
-> 
-> Sure, I was just pointing out that the code needs fixing for this.
-> 
->>> 	4. CPUs without the security extensions have DBGAUTHSTATUS.NSE == 0
->>>
->> Which bit is that ? I don't find this bit in Cortex-A9 docs. With all
->> these checks, may be a separate function like 'is_debug_available()'
->> would be better.
-> 
-> NSE is bit 0 (the one you're checking).
-> 
-ok. So the subject patch might break those devices.
+I have been looking around in the kernel to see how undeclared ops in a 
+struct are generally dealt with. Till now, I've noticed that the code 
+which uses this ops takes the responsibility to check whether they are 
+NULL or not.
 
->>  
->>> 	5. Accessing DBGAUTHSTATUS requires DBGEN to be driven high.
->>> 	   Assuming that your pr_warn_once is emitted, this implies that
->>> 	   DBGEN is driven high from cold boot, yet the NSE bit is low,
->>> 	   implying that DBGEN is also low. That's contradictory, so I have
->>> 	   no idea what's going on...
->>>
->> Me neither. The warning is emitted at least.
-> 
-> Any chance you could follow up with your firmware/hardware guys about this
-> please? I'd really like to understand how we end up in this state in case we
-> can do something in the architecture to stop it from happening in future.
-> 
-I will check on this part and update you when I hear from them.
+The easiest way would be to have these default funcs inlined in a 
+header, and every panel driver's omap_dss_driver struct fills in the 
+default op. This way we can make the driver ops const. Do you have any 
+idea of a macro which could do the same as above, and leads to less 
+addition of code?
 
->>> Apart from that, it's fine!
->>>
->> If you agree, I can update patch accordingly.
->> BTW, do you have any better trick to take care of
->> above scenraio ?
-> 
-> Well, we could just add the warn_once prints but that doesn't stop debug
-> from breaking after the first pm/suspend/hotplug operation.
-> 
-Probably we should drop the $subject patch approach and use warn_once
-at least for current rc. Ofcourse it doesn't help to get working
-hw_breakpoint support. Patch end of the email with warn_once.
+Archit
 
-Regards,
-Santosh
+>
+>> One thing about common panel driver functions in general is that they
+>> won't use the panel driver's locking. So if a panel driver doesn't
+>> create a get_timings() op assuming that omapdss will make a default func
+>> for it, we would miss out on the panel lock. I don't know if that's
+>> really bad, and doing a memcmp or anything else in omapdrm also doesn't
+>> help with this case.
+>
+> That's true. The locking is a bit of a mess (read: broken =) anyway
+> currently.
+>
+>   Tomi
+>
+>
 
->From 6611d48eb5571e3e094c7a9c2479e652b37d35e3 Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Tue, 19 Mar 2013 11:53:41 +0530
-Subject: [PATCH] ARM: hw_breakpoints: Use warn_once to avoid debug message
- flood from reset_ctrl_regs()
-
-CPU debug features like hardware break, watchpoints can be used only when
-the debug mode is enabled and available. Unfortunately on OMAP4 based device,
-after a CPU power cycle, the debug feature gets disabled which leads to
-a flood of messages coming from reset_ctrl_regs() which gets called on
-every CPU_PM_EXIT with CPUidle enabled.
-
-So make use of warn_once() so that system is usable.
-
-Thanks to Will for pointers and Lokesh for the analysis of the issue.
-
-Cc: Will Deacon <Will.Deacon@arm.com>
-
-Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/kernel/hw_breakpoint.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/kernel/hw_breakpoint.c b/arch/arm/kernel/hw_breakpoint.c
-index 96093b7..5dc1aa6 100644
---- a/arch/arm/kernel/hw_breakpoint.c
-+++ b/arch/arm/kernel/hw_breakpoint.c
-@@ -966,7 +966,7 @@ static void reset_ctrl_regs(void *unused)
- 	}
- 
- 	if (err) {
--		pr_warning("CPU %d debug is powered down!\n", cpu);
-+		pr_warn_once("CPU %d debug is powered down!\n", cpu);
- 		cpumask_or(&debug_err_mask, &debug_err_mask, cpumask_of(cpu));
- 		return;
- 	}
-@@ -987,7 +987,7 @@ clear_vcr:
- 	isb();
- 
- 	if (cpumask_intersects(&debug_err_mask, cpumask_of(cpu))) {
--		pr_warning("CPU %d failed to disable vector catch\n", cpu);
-+		pr_warn_once("CPU %d failed to disable vector catch\n", cpu);
- 		return;
- 	}
- 
-@@ -1007,7 +1007,7 @@ clear_vcr:
- 	}
- 
- 	if (cpumask_intersects(&debug_err_mask, cpumask_of(cpu))) {
--		pr_warning("CPU %d failed to clear debug register pairs\n", cpu);
-+		pr_warn_once("CPU %d failed to clear debug register pairs\n", cpu);
- 		return;
- 	}
- 
--- 
-1.7.9.5
