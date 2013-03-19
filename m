@@ -1,122 +1,129 @@
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/5] ARM: OMAP: Simplify dmtimer context-loss handling
-Date: Tue, 19 Mar 2013 12:38:15 -0500
-Message-ID: <1363714699-29622-2-git-send-email-jon-hunter@ti.com>
-References: <1363714699-29622-1-git-send-email-jon-hunter@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH V2 7/8] ARM: OMAP3+: use cpu0-cpufreq driver in device tree supported boot
+Date: Tue, 19 Mar 2013 12:53:09 -0500
+Message-ID: <1363715590-5131-8-git-send-email-nm@ti.com>
+References: <1363715590-5131-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1363714699-29622-1-git-send-email-jon-hunter-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>, device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35962 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755162Ab3CSRxY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Mar 2013 13:53:24 -0400
+In-Reply-To: <1363715590-5131-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Jon Hunter <jon-hunter@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
 
-From: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+With OMAP3+ and AM33xx supported SoC having defined CPU device tree
+entries with operating-points defined, we can now use the SoC
+generic cpufreq-cpu0 driver by registering appropriate device.
 
-The context loss handling in dmtimer appears to assume that
-omap_dm_timer_set_load_start() or omap_dm_timer_start() and
-omap_dm_timer_stop() bracket all interactions.  Only the first two
-restore the context and the last updates the context loss counter.
-However omap_dm_timer_set_load() or omap_dm_timer_set_match() can
-reasonably be called outside this bracketing, and the fact that they
-call omap_dm_timer_enable() / omap_dm_timer_disable() suggest that
-is expected.
+As part of this change, add dummy clock node to use cpufreq-cpu0.
+This is an suggested solution till we have OMAP clock nodes in DT.
+Once the DT conversion is complete, we can then do:
+clocks =3D <&dpll_mpu_ck>; or the SoC specific equivalent.
 
-So if, after a transition into and out of off-mode which would cause
-the dm timer to loose all state, omap_dm_timer_set_match() is called
-before omap_dm_timer_start(), the value read from OMAP_TIMER_CTRL_REG
-will be 'wrong' and this wrong value will be stored context.tclr so
-a subsequent omap_dm_timer_start() can fail (As the control register
-is wrong).
+Inspired by patch: https://patchwork.kernel.org/patch/2067841/
+now made generic.
 
-Simplify this be doing the restore-from-context in
-omap_dm_timer_enable() so that whenever the timer is enabled, the
-context is correct. Also update the ctx_loss_count at the same time as
-we notice it is wrong - these is no value in delaying this until the
-omap_dm_timer_disable() as it cannot change while the timer is enabled.
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Jon Hunter <jon-hunter@ti.com>
+Cc: "Beno=C3=AEt Cousson" <b-cousson@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org
+Cc: devicetree-discuss@lists.ozlabs.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: cpufreq@vger.kernel.org
+Cc: linux-pm@vger.kernel.org
 
-Signed-off-by: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
-[jon-hunter-l0cyMroinI0@public.gmane.org: minor update to subject and changed variable name]
-Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c |   32 ++++++++++++--------------------
- 1 file changed, 12 insertions(+), 20 deletions(-)
+Changes in V2:
+	- no functional changes
+V1: https://patchwork.kernel.org/patch/2273621/
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index a0daa2f..5cae1dd 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -315,7 +315,19 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_free);
- 
- void omap_dm_timer_enable(struct omap_dm_timer *timer)
- {
-+	int c;
+ arch/arm/mach-omap2/board-generic.c   |    5 +++++
+ arch/arm/mach-omap2/cclock33xx_data.c |    2 +-
+ arch/arm/mach-omap2/cclock3xxx_data.c |    3 ++-
+ arch/arm/mach-omap2/cclock44xx_data.c |    3 ++-
+ 4 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/=
+board-generic.c
+index afa509a..5b147ef 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -49,6 +49,11 @@ static void __init omap_generic_init(void)
+ 		omap4_panda_display_init_of();
+ 	else if (of_machine_is_compatible("ti,omap4-sdp"))
+ 		omap_4430sdp_display_init_of();
 +
- 	pm_runtime_get_sync(&timer->pdev->dev);
-+
-+	if (!(timer->capability & OMAP_TIMER_ALWON)) {
-+		if (timer->get_context_loss_count) {
-+			c = timer->get_context_loss_count(&timer->pdev->dev);
-+			if (c != timer->ctx_loss_count) {
-+				omap_timer_restore_context(timer);
-+				timer->ctx_loss_count = c;
-+			}
-+		}
++	if (IS_ENABLED(CONFIG_GENERIC_CPUFREQ_CPU0)) {
++		struct platform_device_info devinfo =3D { .name =3D "cpufreq-cpu0", =
+};
++		platform_device_register_full(&devinfo);
 +	}
  }
- EXPORT_SYMBOL_GPL(omap_dm_timer_enable);
- 
-@@ -410,13 +422,6 @@ int omap_dm_timer_start(struct omap_dm_timer *timer)
- 
- 	omap_dm_timer_enable(timer);
- 
--	if (!(timer->capability & OMAP_TIMER_ALWON)) {
--		if (timer->get_context_loss_count &&
--			timer->get_context_loss_count(&timer->pdev->dev) !=
--				timer->ctx_loss_count)
--			omap_timer_restore_context(timer);
--	}
--
- 	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
- 	if (!(l & OMAP_TIMER_CTRL_ST)) {
- 		l |= OMAP_TIMER_CTRL_ST;
-@@ -441,12 +446,6 @@ int omap_dm_timer_stop(struct omap_dm_timer *timer)
- 
- 	__omap_dm_timer_stop(timer, timer->posted, rate);
- 
--	if (!(timer->capability & OMAP_TIMER_ALWON)) {
--		if (timer->get_context_loss_count)
--			timer->ctx_loss_count =
--				timer->get_context_loss_count(&timer->pdev->dev);
--	}
--
- 	/*
- 	 * Since the register values are computed and written within
- 	 * __omap_dm_timer_stop, we need to use read to retrieve the
-@@ -553,13 +552,6 @@ int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
- 
- 	omap_dm_timer_enable(timer);
- 
--	if (!(timer->capability & OMAP_TIMER_ALWON)) {
--		if (timer->get_context_loss_count &&
--			timer->get_context_loss_count(&timer->pdev->dev) !=
--				timer->ctx_loss_count)
--			omap_timer_restore_context(timer);
--	}
--
- 	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
- 	if (autoreload) {
- 		l |= OMAP_TIMER_CTRL_AR;
--- 
-1.7.10.4
+=20
+ #ifdef CONFIG_SOC_OMAP2420
+diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap=
+2/cclock33xx_data.c
+index 476b820..cf7e736 100644
+--- a/arch/arm/mach-omap2/cclock33xx_data.c
++++ b/arch/arm/mach-omap2/cclock33xx_data.c
+@@ -852,7 +852,7 @@ static struct omap_clk am33xx_clks[] =3D {
+ 	CLK(NULL,	"dpll_core_m5_ck",	&dpll_core_m5_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_core_m6_ck",	&dpll_core_m6_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_mpu_ck",		&dpll_mpu_ck,	CK_AM33XX),
+-	CLK("cpu0",	NULL,			&dpll_mpu_ck,	CK_AM33XX),
++	CLK("cpufreq-cpu0.0",	NULL,			&dpll_mpu_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_mpu_m2_ck",	&dpll_mpu_m2_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_ddr_ck",		&dpll_ddr_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_ddr_m2_ck",	&dpll_ddr_m2_ck,	CK_AM33XX),
+diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap=
+2/cclock3xxx_data.c
+index 4579c3c..5a5b471 100644
+--- a/arch/arm/mach-omap2/cclock3xxx_data.c
++++ b/arch/arm/mach-omap2/cclock3xxx_data.c
+@@ -3501,7 +3501,8 @@ static struct omap_clk omap3xxx_clks[] =3D {
+ 	CLK(NULL,	"uart4_ick",	&uart4_ick_am35xx,	CK_AM35XX),
+ 	CLK(NULL,	"timer_32k_ck",	&omap_32k_fck,  CK_3XXX),
+ 	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_3XXX),
+-	CLK(NULL,	"cpufreq_ck",	&dpll1_ck,	CK_3XXX),
++	CLK(NULL,	"cpufreq_ck",	&dpll1_ck,	CK_3XXX), /* used in non-device tr=
+ee boot */
++	CLK("cpufreq-cpu0.0",	NULL,	&dpll1_ck,	CK_3XXX), /* used in device tr=
+ee boot */
+ };
+=20
+ static const char *enable_init_clks[] =3D {
+diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap=
+2/cclock44xx_data.c
+index 3d58f33..bcea785 100644
+--- a/arch/arm/mach-omap2/cclock44xx_data.c
++++ b/arch/arm/mach-omap2/cclock44xx_data.c
+@@ -1660,7 +1660,8 @@ static struct omap_clk omap44xx_clks[] =3D {
+ 	CLK("4013a000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+ 	CLK("4013c000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+ 	CLK("4013e000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+-	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
++	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X), /* used in non-device=
+ tree boot */
++	CLK("cpufreq-cpu0.0",	NULL,	&dpll_mpu_ck,	CK_443X), /* used in device=
+ tree boot */
+ };
+=20
+ int __init omap4xxx_clk_init(void)
+--=20
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
