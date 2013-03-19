@@ -1,221 +1,90 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support for
- AUXCLKs
-Date: Tue, 19 Mar 2013 16:30:25 +0200
-Message-ID: <51487681.7060301@ti.com>
-References: <1363703220-4777-1-git-send-email-rogerq@ti.com>
- <1363703220-4777-2-git-send-email-rogerq@ti.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [PATCH 0/8] staging: [omap,ti-soc]-thermal: fixes and renaming
+Date: Tue, 19 Mar 2013 10:36:33 -0400
+Message-ID: <514877F1.8020204@ti.com>
+References: <1363618756-15851-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1363703220-4777-2-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1363618756-15851-1-git-send-email-eduardo.valentin@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/19/2013 04:26 PM, Roger Quadros wrote:
-> Register a device tree clock provider for AUX clocks
-> on the OMAP4 SoC. Also provide the binding information.
-> 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> ---
->  .../devicetree/bindings/clock/omap4-clock.txt      |   32 ++++++++++++++++++
->  arch/arm/boot/dts/omap4.dtsi                       |    5 +++
->  arch/arm/mach-omap2/board-generic.c                |    2 +-
->  arch/arm/mach-omap2/cclock44xx_data.c              |   35 ++++++++++++++++++++
->  arch/arm/mach-omap2/clock44xx.h                    |    1 +
->  arch/arm/mach-omap2/common.h                       |    9 +++++
->  arch/arm/mach-omap2/io.c                           |    6 +++
->  7 files changed, 89 insertions(+), 1 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/clock/omap4-clock.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/clock/omap4-clock.txt b/Documentation/devicetree/bindings/clock/omap4-clock.txt
-> new file mode 100644
-> index 0000000..9d5448b
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/clock/omap4-clock.txt
-> @@ -0,0 +1,32 @@
-> +* Clock bindings for Texas Instruments OMAP4 SCRM clocks
-> +
-> +Required properties:
-> +- compatible: Should be "ti,omap4-scrm"
-> +- #clock-cells: Should be <1>
-> +
-> +The clock consumer should specify the desired clock by having the clock
-> +ID in its "clocks" phandle cell.  The following is a full list of SCRM
-> +clocks and IDs.
-> +
-> +	Clock		ID
-> +	------------------
-> +	auxclk0_ck	0
-> +	auxclk1_ck	1
-> +	auxclk1_ck	1
-> +	auxclk1_ck	1
-> +	auxclk1_ck	1
+Hello Greg,
 
-Argh! should be 2,3,4,5
 
-> +
-> +Example:
-> +
-> +aux_clks: scrmclks {
-> +	compatible = "ti,omap4-scrm";
-> +	#clock-cells = <1>;
-> +};
-> +
-> +hsusb1_phy: hsusb1_phy {
-> +	compatible = "usb-nop-xceiv";
-> +	reset-supply = <&hsusb1_reset>;
-> +	clocks = <&aux_clks 3>;
-> +	clock-names = "main_clk";
-> +	clock-frequency = <19200000>;
-> +};
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index b7db1a2..97de56c 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -101,6 +101,11 @@
->  			ti,hwmods = "counter_32k";
->  		};
->  
-> +		aux_clks: scrmclks {
-> +			compatible = "ti,omap4-scrm";
-> +			#clock-cells = <1>;
-> +		};
-> +
->  		omap4_pmx_core: pinmux@4a100040 {
->  			compatible = "ti,omap4-padconf", "pinctrl-single";
->  			reg = <0x4a100040 0x0196>;
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index 0274ff7..23f2064 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -158,7 +158,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
->  	.init_irq	= omap_gic_of_init,
->  	.init_machine	= omap_generic_init,
->  	.init_late	= omap4430_init_late,
-> -	.init_time	= omap4_local_timer_init,
-> +	.init_time	= omap4_init_time,
->  	.dt_compat	= omap4_boards_compat,
->  	.restart	= omap44xx_restart,
->  MACHINE_END
-> diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-> index 3d58f33..bfc46c1 100644
-> --- a/arch/arm/mach-omap2/cclock44xx_data.c
-> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
-> @@ -27,6 +27,7 @@
->  #include <linux/clk-private.h>
->  #include <linux/clkdev.h>
->  #include <linux/io.h>
-> +#include <linux/of.h>
->  
->  #include "soc.h"
->  #include "iomap.h"
-> @@ -1663,6 +1664,40 @@ static struct omap_clk omap44xx_clks[] = {
->  	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
->  };
->  
-> +static struct clk *scrm_clks[] = {
-> +	&auxclk0_ck,
-> +	&auxclk1_ck,
-> +	&auxclk2_ck,
-> +	&auxclk3_ck,
-> +	&auxclk4_ck,
-> +	&auxclk5_ck,
-> +};
-> +
-> +static struct clk_onecell_data scrm_data;
-> +
-> +#ifdef CONFIG_OF
-> +int __init omap4_clk_init_dt(void)
-> +{
-> +	struct device_node *np;
-> +
-> +	np = of_find_compatible_node(NULL, NULL, "ti,omap4-scrm");
-> +	if (np) {
-> +		scrm_data.clks = scrm_clks;
-> +		scrm_data.clk_num = ARRAY_SIZE(scrm_clks);
-> +		of_clk_add_provider(np, of_clk_src_onecell_get,	&scrm_data);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +#else
-> +
-> +int __init omap4_clk_init_dt(void)
-> +{
-> +	return 0;
-> +}
-> +#endif /* CONFIG_OF */
-> +
->  int __init omap4xxx_clk_init(void)
->  {
->  	u32 cpu_clkflg;
-> diff --git a/arch/arm/mach-omap2/clock44xx.h b/arch/arm/mach-omap2/clock44xx.h
-> index 287a46f..6395f63 100644
-> --- a/arch/arm/mach-omap2/clock44xx.h
-> +++ b/arch/arm/mach-omap2/clock44xx.h
-> @@ -16,5 +16,6 @@
->  #define OMAP4430_REGM4XEN_MULT	4
->  
->  int omap4xxx_clk_init(void);
-> +int omap4_clk_init_dt(void);
->  
->  #endif
-> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-> index 0a6b9c7..1941d1c 100644
-> --- a/arch/arm/mach-omap2/common.h
-> +++ b/arch/arm/mach-omap2/common.h
-> @@ -98,6 +98,7 @@ void am35xx_init_early(void);
->  void ti81xx_init_early(void);
->  void am33xx_init_early(void);
->  void omap4430_init_early(void);
-> +void omap4_init_time(void);
->  void omap5_init_early(void);
->  void omap3_init_late(void);	/* Do not use this one */
->  void omap4430_init_late(void);
-> @@ -143,6 +144,14 @@ static inline void omap44xx_restart(char mode, const char *cmd)
->  }
->  #endif
->  
-> +#ifdef CONFIG_ARCH_OMAP4
-> +void omap4_init_time(void);
-> +#else
-> +static inline void omap4_init_time(void)
-> +{
-> +}
-> +#endif
-> +
->  /* This gets called from mach-omap2/io.c, do not call this */
->  void __init omap2_set_globals_tap(u32 class, void __iomem *tap);
->  
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 2c3fdd6..c504363 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -603,6 +603,12 @@ void __init omap4430_init_late(void)
->  	omap4_pm_init();
->  	omap2_clk_enable_autoidle_all();
->  }
-> +
-> +void __init omap4_init_time(void)
-> +{
-> +	omap4_clk_init_dt();
-> +	omap4_local_timer_init();
-> +}
->  #endif
->  
->  #ifdef CONFIG_SOC_OMAP5
-> 
+On 18-03-2013 10:59, Eduardo Valentin wrote:
+> Hi Greg,
+>
+> I am sending extra patches on omap-thermal driver, under staging.
+>
+> There are couple of fixes based on Dan Carpenter's review on
+> the last patch set I sent. On top of these, there are some
+> changes on the naming convention for this driver. This rename
+> is based on previous review cycles that this driver has got.
+> Besides, it must support other chip families, apart from OMAP,
+> that's mainly why there is a big rename on this patch set.
+> And as  usual, there are couple of extra fixes.
+
+I am going to resend this series, dropping  patch 02 and splitting 
+patch 04. It will also include extra fixes.
+
+
+>
+> All these are based on your staging/staging-next branch.
+>
+> For those interested in testing and trying the driver, these patches are
+> also available, as usual, here:
+> git@gitorious.org:thermal-framework/thermal-framework.git thermal_work/omap/ti-thermal-rename
+> https://git.gitorious.org/thermal-framework/thermal-framework.git thermal_work/omap/ti-thermal-rename
+>
+> BR,
+>
+> Eduardo Valentin (8):
+>    staging: omap-thermal: fix return value
+>    staging: omap-thermal: use spin_lock_irqsave inside IRQ handler
+>    staging: omap-thermal: rename bg_ptr to bgp
+>    staging: rename omap-thermal driver to ti-soc-thermal
+>    staging: ti-soc-thermal: make unexported functions local
+>    staging: ti-soc-thermal: split writable data from readonly data
+>    stating: ti-soc-thermal: use sizeof(*pointer) while allocating
+>    staging: ti-soc-thermal: fix several kernel-doc warnings and error
+>
+>   drivers/staging/Kconfig                            |    2 +-
+>   drivers/staging/Makefile                           |    2 +-
+>   drivers/staging/omap-thermal/Makefile              |    5 -
+>   drivers/staging/omap-thermal/omap-bandgap.c        | 1300 --------------------
+>   drivers/staging/omap-thermal/omap-thermal-common.c |  338 -----
+>   .../{omap-thermal => ti-soc-thermal}/Kconfig       |   14 +-
+>   drivers/staging/ti-soc-thermal/Makefile            |    5 +
+>   .../staging/{omap-thermal => ti-soc-thermal}/TODO  |    0
+>   .../omap4-thermal-data.c                           |   68 +-
+>   .../omap4xxx-bandgap.h                             |    0
+>   .../omap5-thermal-data.c                           |   20 +-
+>   .../omap5xxx-bandgap.h                             |    0
+>   .../omap_bandgap.txt                               |    0
+>   drivers/staging/ti-soc-thermal/ti-bandgap.c        | 1299 +++++++++++++++++++
+>   .../omap-bandgap.h => ti-soc-thermal/ti-bandgap.h} |  181 ++--
+>   drivers/staging/ti-soc-thermal/ti-thermal-common.c |  338 +++++
+>   .../omap-thermal.h => ti-soc-thermal/ti-thermal.h} |   30 +-
+>   17 files changed, 1803 insertions(+), 1799 deletions(-)
+>   delete mode 100644 drivers/staging/omap-thermal/Makefile
+>   delete mode 100644 drivers/staging/omap-thermal/omap-bandgap.c
+>   delete mode 100644 drivers/staging/omap-thermal/omap-thermal-common.c
+>   rename drivers/staging/{omap-thermal => ti-soc-thermal}/Kconfig (82%)
+>   create mode 100644 drivers/staging/ti-soc-thermal/Makefile
+>   rename drivers/staging/{omap-thermal => ti-soc-thermal}/TODO (100%)
+>   rename drivers/staging/{omap-thermal => ti-soc-thermal}/omap4-thermal-data.c (85%)
+>   rename drivers/staging/{omap-thermal => ti-soc-thermal}/omap4xxx-bandgap.h (100%)
+>   rename drivers/staging/{omap-thermal => ti-soc-thermal}/omap5-thermal-data.c (96%)
+>   rename drivers/staging/{omap-thermal => ti-soc-thermal}/omap5xxx-bandgap.h (100%)
+>   rename drivers/staging/{omap-thermal => ti-soc-thermal}/omap_bandgap.txt (100%)
+>   create mode 100644 drivers/staging/ti-soc-thermal/ti-bandgap.c
+>   rename drivers/staging/{omap-thermal/omap-bandgap.h => ti-soc-thermal/ti-bandgap.h} (75%)
+>   create mode 100644 drivers/staging/ti-soc-thermal/ti-thermal-common.c
+>   rename drivers/staging/{omap-thermal/omap-thermal.h => ti-soc-thermal/ti-thermal.h} (72%)
+>
+
