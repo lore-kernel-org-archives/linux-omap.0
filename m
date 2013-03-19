@@ -1,94 +1,255 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V4 17/18] ARM: OMAP2+: Allow GPMC probe to complete even if CS mapping fails
-Date: Tue, 19 Mar 2013 11:35:55 -0500
-Message-ID: <1363710956-26773-18-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V4 11/18] ARM: OMAP2+: Add additional GPMC timing parameters
+Date: Tue, 19 Mar 2013 11:35:49 -0500
+Message-ID: <1363710956-26773-12-git-send-email-jon-hunter@ti.com>
 References: <1363710956-26773-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42955 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34101 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757027Ab3CSQgq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Mar 2013 12:36:46 -0400
+	id S1757125Ab3CSQgw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:36:52 -0400
 In-Reply-To: <1363710956-26773-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
 
-When the GPMC driver is probed, we call gpmc_mem_init() to see which
-chip-selects have already been configured and enabled by the boot-loader
-and allocate space for them. If we fail to allocate space for one
-chip-select, then we return failure from the probe and the GPMC driver
-will not be available.
+Some of the GPMC timings parameters are currently missing from the GPMC
+device-tree binding. Add these parameters to the binding documentation
+as well as code to read them. Also add either "-ps" or "-ns" suffix to
+the GPMC timing properties to indicate whether the timing is in
+picoseconds or nanoseconds.
 
-Rather than render the GPMC useless for all GPMC devices, if we fail to
-allocate space for one chip-select print a warning and disable the
-chip-select. This way other GPMC clients can still be used.
+The existing code in gpmc_read_timings_dt() is checking the value of
+of_property_read_u32() and only is successful storing the value read
+in the gpmc_timings structure. Checking the return value in this case
+is not necessary and we can simply read the value, if present, and
+store directly in the gpmc_timings structure. Therefore, simplify the
+code by removing these checks.
 
-There is no downside to this approach, because all GPMC clients need to
-request a chip-select before they can use the GPMC and on requesting a
-chip-select, if memory has not already been reserved for the chip-select
-then it will be.
+The comment in the gpmc_read_timings_dt() function, "only for OMAP3430"
+is also incorrect as it is applicable to all OMAP3+ devices. So correct
+this too.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
- arch/arm/mach-omap2/gpmc.c |   24 +++++++-----------------
- 1 file changed, 7 insertions(+), 17 deletions(-)
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt |   78 +++++++++++------
+ arch/arm/mach-omap2/gpmc.c                        |   94 ++++++++++-----------
+ 2 files changed, 98 insertions(+), 74 deletions(-)
 
+diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+index 6fde1cf..4b87ea1 100644
+--- a/Documentation/devicetree/bindings/bus/ti-gpmc.txt
++++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+@@ -35,35 +35,59 @@ Required properties:
+ 
+ Timing properties for child nodes. All are optional and default to 0.
+ 
+- - gpmc,sync-clk:	Minimum clock period for synchronous mode, in picoseconds
+-
+- Chip-select signal timings corresponding to GPMC_CONFIG2:
+- - gpmc,cs-on:		Assertion time
+- - gpmc,cs-rd-off:	Read deassertion time
+- - gpmc,cs-wr-off:	Write deassertion time
+-
+- ADV signal timings corresponding to GPMC_CONFIG3:
+- - gpmc,adv-on:		Assertion time
+- - gpmc,adv-rd-off:	Read deassertion time
+- - gpmc,adv-wr-off:	Write deassertion time
+-
+- WE signals timings corresponding to GPMC_CONFIG4:
+- - gpmc,we-on:		Assertion time
+- - gpmc,we-off:		Deassertion time
+-
+- OE signals timings corresponding to GPMC_CONFIG4:
+- - gpmc,oe-on:		Assertion time
+- - gpmc,oe-off:		Deassertion time
+-
+- Access time and cycle time timings corresponding to GPMC_CONFIG5:
+- - gpmc,page-burst-access: Multiple access word delay
+- - gpmc,access:		Start-cycle to first data valid delay
+- - gpmc,rd-cycle:	Total read cycle time
+- - gpmc,wr-cycle:	Total write cycle time
++ - gpmc,sync-clk-ps:	Minimum clock period for synchronous mode, in picoseconds
++
++ Chip-select signal timings (in nanoseconds) corresponding to GPMC_CONFIG2:
++ - gpmc,cs-on-ns:	Assertion time
++ - gpmc,cs-rd-off-ns:	Read deassertion time
++ - gpmc,cs-wr-off-ns:	Write deassertion time
++
++ ADV signal timings (in nanoseconds) corresponding to GPMC_CONFIG3:
++ - gpmc,adv-on-ns:	Assertion time
++ - gpmc,adv-rd-off-ns:	Read deassertion time
++ - gpmc,adv-wr-off-ns:	Write deassertion time
++
++ WE signals timings (in nanoseconds) corresponding to GPMC_CONFIG4:
++ - gpmc,we-on-ns	Assertion time
++ - gpmc,we-off-ns:	Deassertion time
++
++ OE signals timings (in nanoseconds) corresponding to GPMC_CONFIG4:
++ - gpmc,oe-on-ns:	Assertion time
++ - gpmc,oe-off-ns:	Deassertion time
++
++ Access time and cycle time timings (in nanoseconds) corresponding to
++ GPMC_CONFIG5:
++ - gpmc,page-burst-access-ns: 	Multiple access word delay
++ - gpmc,access-ns:		Start-cycle to first data valid delay
++ - gpmc,rd-cycle-ns:		Total read cycle time
++ - gpmc,wr-cycle-ns:		Total write cycle time
++ - gpmc,bus-turnaround-ns:	Turn-around time between successive accesses
++ - gpmc,cycle2cycle-delay-ns:	Delay between chip-select pulses
++ - gpmc,clk-activation-ns: 	GPMC clock activation time
++ - gpmc,wait-monitoring-ns:	Start of wait monitoring with regard to valid
++				data
++
++Boolean timing parameters. If property is present parameter enabled and
++disabled if omitted:
++ - gpmc,adv-extra-delay:	ADV signal is delayed by half GPMC clock
++ - gpmc,cs-extra-delay:		CS signal is delayed by half GPMC clock
++ - gpmc,cycle2cycle-diffcsen:	Add "cycle2cycle-delay" between successive
++				accesses to a different CS
++ - gpmc,cycle2cycle-samecsen:	Add "cycle2cycle-delay" between successive
++				accesses to the same CS
++ - gpmc,oe-extra-delay:		OE signal is delayed by half GPMC clock
++ - gpmc,we-extra-delay:		WE signal is delayed by half GPMC clock
++ - gpmc,time-para-granularity:	Multiply all access times by 2
+ 
+ The following are only applicable to OMAP3+ and AM335x:
+- - gpmc,wr-access
+- - gpmc,wr-data-mux-bus
++ - gpmc,wr-access-ns:		In synchronous write mode, for single or
++				burst accesses, defines the number of
++				GPMC_FCLK cycles from start access time
++				to the GPMC_CLK rising edge used by the
++				memory device for the first data capture.
++ - gpmc,wr-data-mux-bus-ns:	In address-data multiplex mode, specifies
++				the time when the first data is driven on
++				the address-data bus.
+ 
+ GPMC chip-select settings properties for child nodes. All are optional.
+ 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index ebb88cf..9208d8e 100644
+index 85231b3..a54f14e 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -785,9 +785,9 @@ static void gpmc_mem_exit(void)
- 
- }
- 
--static int gpmc_mem_init(void)
-+static void gpmc_mem_init(void)
+@@ -1230,67 +1230,67 @@ void gpmc_read_settings_dt(struct device_node *np, struct gpmc_settings *p)
+ static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
+ 						struct gpmc_timings *gpmc_t)
  {
--	int cs, rc;
-+	int cs;
+-	u32 val;
++	struct gpmc_bool_timings *p;
++
++	if (!np || !gpmc_t)
++		return;
  
- 	/*
- 	 * The first 1MB of GPMC address space is typically mapped to
-@@ -804,16 +804,12 @@ static int gpmc_mem_init(void)
- 		if (!gpmc_cs_mem_enabled(cs))
- 			continue;
- 		gpmc_cs_get_memconf(cs, &base, &size);
--		rc = gpmc_cs_insert_mem(cs, base, size);
--		if (rc < 0) {
--			while (--cs >= 0)
--				if (gpmc_cs_mem_enabled(cs))
--					gpmc_cs_delete_mem(cs);
--			return rc;
-+		if (gpmc_cs_insert_mem(cs, base, size)) {
-+			pr_warn("%s: disabling cs %d mapped at 0x%x-0x%x\n",
-+				__func__, cs, base, base + size);
-+			gpmc_cs_disable_mem(cs);
- 		}
- 	}
+ 	memset(gpmc_t, 0, sizeof(*gpmc_t));
+ 
+ 	/* minimum clock period for syncronous mode */
+-	if (!of_property_read_u32(np, "gpmc,sync-clk", &val))
+-		gpmc_t->sync_clk = val;
++	of_property_read_u32(np, "gpmc,sync-clk-ps", &gpmc_t->sync_clk);
+ 
+ 	/* chip select timtings */
+-	if (!of_property_read_u32(np, "gpmc,cs-on", &val))
+-		gpmc_t->cs_on = val;
 -
--	return 0;
+-	if (!of_property_read_u32(np, "gpmc,cs-rd-off", &val))
+-		gpmc_t->cs_rd_off = val;
+-
+-	if (!of_property_read_u32(np, "gpmc,cs-wr-off", &val))
+-		gpmc_t->cs_wr_off = val;
++	of_property_read_u32(np, "gpmc,cs-on-ns", &gpmc_t->cs_on);
++	of_property_read_u32(np, "gpmc,cs-rd-off-ns", &gpmc_t->cs_rd_off);
++	of_property_read_u32(np, "gpmc,cs-wr-off-ns", &gpmc_t->cs_wr_off);
+ 
+ 	/* ADV signal timings */
+-	if (!of_property_read_u32(np, "gpmc,adv-on", &val))
+-		gpmc_t->adv_on = val;
+-
+-	if (!of_property_read_u32(np, "gpmc,adv-rd-off", &val))
+-		gpmc_t->adv_rd_off = val;
+-
+-	if (!of_property_read_u32(np, "gpmc,adv-wr-off", &val))
+-		gpmc_t->adv_wr_off = val;
++	of_property_read_u32(np, "gpmc,adv-on-ns", &gpmc_t->adv_on);
++	of_property_read_u32(np, "gpmc,adv-rd-off-ns", &gpmc_t->adv_rd_off);
++	of_property_read_u32(np, "gpmc,adv-wr-off-ns", &gpmc_t->adv_wr_off);
+ 
+ 	/* WE signal timings */
+-	if (!of_property_read_u32(np, "gpmc,we-on", &val))
+-		gpmc_t->we_on = val;
+-
+-	if (!of_property_read_u32(np, "gpmc,we-off", &val))
+-		gpmc_t->we_off = val;
++	of_property_read_u32(np, "gpmc,we-on-ns", &gpmc_t->we_on);
++	of_property_read_u32(np, "gpmc,we-off-ns", &gpmc_t->we_off);
+ 
+ 	/* OE signal timings */
+-	if (!of_property_read_u32(np, "gpmc,oe-on", &val))
+-		gpmc_t->oe_on = val;
+-
+-	if (!of_property_read_u32(np, "gpmc,oe-off", &val))
+-		gpmc_t->oe_off = val;
++	of_property_read_u32(np, "gpmc,oe-on-ns", &gpmc_t->oe_on);
++	of_property_read_u32(np, "gpmc,oe-off-ns", &gpmc_t->oe_off);
+ 
+ 	/* access and cycle timings */
+-	if (!of_property_read_u32(np, "gpmc,page-burst-access", &val))
+-		gpmc_t->page_burst_access = val;
+-
+-	if (!of_property_read_u32(np, "gpmc,access", &val))
+-		gpmc_t->access = val;
+-
+-	if (!of_property_read_u32(np, "gpmc,rd-cycle", &val))
+-		gpmc_t->rd_cycle = val;
+-
+-	if (!of_property_read_u32(np, "gpmc,wr-cycle", &val))
+-		gpmc_t->wr_cycle = val;
+-
+-	/* only for OMAP3430 */
+-	if (!of_property_read_u32(np, "gpmc,wr-access", &val))
+-		gpmc_t->wr_access = val;
+-
+-	if (!of_property_read_u32(np, "gpmc,wr-data-mux-bus", &val))
+-		gpmc_t->wr_data_mux_bus = val;
++	of_property_read_u32(np, "gpmc,page-burst-access-ns",
++			     &gpmc_t->page_burst_access);
++	of_property_read_u32(np, "gpmc,access-ns", &gpmc_t->access);
++	of_property_read_u32(np, "gpmc,rd-cycle-ns", &gpmc_t->rd_cycle);
++	of_property_read_u32(np, "gpmc,wr-cycle-ns", &gpmc_t->wr_cycle);
++	of_property_read_u32(np, "gpmc,bus-turnaround-ns",
++			     &gpmc_t->bus_turnaround);
++	of_property_read_u32(np, "gpmc,cycle2cycle-delay-ns",
++			     &gpmc_t->cycle2cycle_delay);
++	of_property_read_u32(np, "gpmc,wait-monitoring-ns",
++			     &gpmc_t->wait_monitoring);
++	of_property_read_u32(np, "gpmc,clk-activation-ns",
++			     &gpmc_t->clk_activation);
++
++	/* only applicable to OMAP3+ */
++	of_property_read_u32(np, "gpmc,wr-access-ns", &gpmc_t->wr_access);
++	of_property_read_u32(np, "gpmc,wr-data-mux-bus-ns",
++			     &gpmc_t->wr_data_mux_bus);
++
++	/* bool timing parameters */
++	*p = gpmc_t->bool_timings;
++
++	p->cycle2cyclediffcsen =
++		of_property_read_bool(np, "gpmc,cycle2cycle-diffcsen");
++	p->cycle2cyclesamecsen =
++		of_property_read_bool(np, "gpmc,cycle2cycle-samecsen");
++	p->we_extra_delay = of_property_read_bool(np, "gpmc,we-extra-delay");
++	p->oe_extra_delay = of_property_read_bool(np, "gpmc,oe-extra-delay");
++	p->adv_extra_delay = of_property_read_bool(np, "gpmc,adv-extra-delay");
++	p->cs_extra_delay = of_property_read_bool(np, "gpmc,cs-extra-delay");
++	p->time_para_granularity =
++		of_property_read_bool(np, "gpmc,time-para-granularity");
  }
  
- static u32 gpmc_round_ps_to_sync_clk(u32 time_ps, u32 sync_clk)
-@@ -1611,13 +1607,7 @@ static int gpmc_probe(struct platform_device *pdev)
- 	dev_info(gpmc_dev, "GPMC revision %d.%d\n", GPMC_REVISION_MAJOR(l),
- 		 GPMC_REVISION_MINOR(l));
- 
--	rc = gpmc_mem_init();
--	if (rc < 0) {
--		clk_disable_unprepare(gpmc_l3_clk);
--		clk_put(gpmc_l3_clk);
--		dev_err(gpmc_dev, "failed to reserve memory\n");
--		return rc;
--	}
-+	gpmc_mem_init();
- 
- 	if (gpmc_setup_irq() < 0)
- 		dev_warn(gpmc_dev, "gpmc_setup_irq failed\n");
+ #ifdef CONFIG_MTD_NAND
 -- 
 1.7.10.4
 
