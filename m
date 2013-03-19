@@ -1,33 +1,151 @@
-From: Guillaume Gardet <guillaume.gardet@free.fr>
-Subject: Beagleboard xM - Bogomips are very low
-Date: Tue, 19 Mar 2013 16:17:46 +0100
-Message-ID: <5148819A.5040500@free.fr>
-Reply-To: guillaume.gardet@free.fr
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V3 2/2] dmaengine: OMAP: Register SDMA controller with
+ Device Tree DMA driver
+Date: Tue, 19 Mar 2013 11:04:27 -0500
+Message-ID: <51488C8B.4010206@ti.com>
+References: <1361903244-19837-1-git-send-email-jon-hunter@ti.com> <1361903244-19837-3-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtpfb1-g21.free.fr ([212.27.42.9]:51930 "EHLO
-	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755843Ab3CSPS2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Mar 2013 11:18:28 -0400
-Received: from smtp6-g21.free.fr (smtp6-g21.free.fr [212.27.42.6])
-	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 933132DB43
-	for <linux-omap@vger.kernel.org>; Tue, 19 Mar 2013 16:18:25 +0100 (CET)
-Received: from [192.168.0.13] (unknown [82.244.147.214])
-	by smtp6-g21.free.fr (Postfix) with ESMTP id 587EB8231B
-	for <linux-omap@vger.kernel.org>; Tue, 19 Mar 2013 16:17:47 +0100 (CET)
+Received: from devils.ext.ti.com ([198.47.26.153]:58766 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754448Ab3CSQEo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Mar 2013 12:04:44 -0400
+In-Reply-To: <1361903244-19837-3-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+Vinod, Tony, Benoit,
 
-On a Beagleboard xM rev. B, I noticed that vanilla kernel 3.4.6 have the folowing bogomips for 300MHz and 800 MHz operations: 262.08 and 700.57.
+On 02/26/2013 12:27 PM, Jon Hunter wrote:
+> If the device-tree blob is present during boot, then register the SDMA
+> controller with the device-tree DMA driver so that we can use device-tree
+> to look-up DMA client information.
+> 
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/mach-omap2/dma.c |    4 ++++
+>  drivers/dma/omap-dma.c    |   38 ++++++++++++++++++++++++++++++++++++--
+>  2 files changed, 40 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+> index dab9fc0..49fd0d5 100644
+> --- a/arch/arm/mach-omap2/dma.c
+> +++ b/arch/arm/mach-omap2/dma.c
+> @@ -28,6 +28,7 @@
+>  #include <linux/init.h>
+>  #include <linux/device.h>
+>  #include <linux/dma-mapping.h>
+> +#include <linux/of.h>
+>  #include <linux/omap-dma.h>
+>  
+>  #include "soc.h"
+> @@ -304,6 +305,9 @@ static int __init omap2_system_dma_init(void)
+>  	if (res)
+>  		return res;
+>  
+> +	if (of_have_populated_dt())
+> +		return res;
+> +
+>  	pdev = platform_device_register_full(&omap_dma_dev_info);
+>  	if (IS_ERR(pdev))
+>  		return PTR_ERR(pdev);
+> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+> index c4b4fd2..2ea3d7e 100644
+> --- a/drivers/dma/omap-dma.c
+> +++ b/drivers/dma/omap-dma.c
+> @@ -16,6 +16,8 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/slab.h>
+>  #include <linux/spinlock.h>
+> +#include <linux/of_dma.h>
+> +#include <linux/of_device.h>
+>  
+>  #include "virt-dma.h"
+>  
+> @@ -67,6 +69,10 @@ static const unsigned es_bytes[] = {
+>  	[OMAP_DMA_DATA_TYPE_S32] = 4,
+>  };
+>  
+> +static struct of_dma_filter_info omap_dma_info = {
+> +	.filter_fn = omap_dma_filter_fn,
+> +};
+> +
+>  static inline struct omap_dmadev *to_omap_dma_dev(struct dma_device *d)
+>  {
+>  	return container_of(d, struct omap_dmadev, ddev);
+> @@ -621,8 +627,22 @@ static int omap_dma_probe(struct platform_device *pdev)
+>  		pr_warn("OMAP-DMA: failed to register slave DMA engine device: %d\n",
+>  			rc);
+>  		omap_dma_free(od);
+> -	} else {
+> -		platform_set_drvdata(pdev, od);
+> +		return rc;
+> +	}
+> +
+> +	platform_set_drvdata(pdev, od);
+> +
+> +	if (pdev->dev.of_node) {
+> +		omap_dma_info.dma_cap = od->ddev.cap_mask;
+> +
+> +		/* Device-tree DMA controller registration */
+> +		rc = of_dma_controller_register(pdev->dev.of_node,
+> +				of_dma_simple_xlate, &omap_dma_info);
+> +		if (rc) {
+> +			pr_warn("OMAP-DMA: failed to register DMA controller\n");
+> +			dma_async_device_unregister(&od->ddev);
+> +			omap_dma_free(od);
+> +		}
+>  	}
+>  
+>  	dev_info(&pdev->dev, "OMAP DMA engine driver\n");
+> @@ -634,18 +654,32 @@ static int omap_dma_remove(struct platform_device *pdev)
+>  {
+>  	struct omap_dmadev *od = platform_get_drvdata(pdev);
+>  
+> +	if (pdev->dev.of_node)
+> +		of_dma_controller_free(pdev->dev.of_node);
+> +
+>  	dma_async_device_unregister(&od->ddev);
+>  	omap_dma_free(od);
+>  
+>  	return 0;
+>  }
+>  
+> +static const struct of_device_id omap_dma_match[] = {
+> +	{ .compatible = "ti,omap2420-sdma", },
+> +	{ .compatible = "ti,omap2430-sdma", },
+> +	{ .compatible = "ti,omap3430-sdma", },
+> +	{ .compatible = "ti,omap3630-sdma", },
+> +	{ .compatible = "ti,omap4430-sdma", },
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(of, omap_dma_match);
+> +
+>  static struct platform_driver omap_dma_driver = {
+>  	.probe	= omap_dma_probe,
+>  	.remove	= omap_dma_remove,
+>  	.driver = {
+>  		.name = "omap-dma-engine",
+>  		.owner = THIS_MODULE,
+> +		.of_match_table = of_match_ptr(omap_dma_match),
+>  	},
+>  };
 
-With kernel 3.7.10, I have : 175.65 and 467.41 bogompis.
+Who's tree does it make most sense for this patch to go through?
 
-Any idea why bogomips are so low now?
+Benoit has queued up patch 1/2 and so I am not sure if this should go
+via Benoit tree to Tony or directly via Vinod's tree. What are your
+thoughts?
 
-Guillaume
+It would be great if this could make v3.10.
+
+Cheers
+Jon
 
