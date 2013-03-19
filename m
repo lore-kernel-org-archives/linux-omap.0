@@ -1,85 +1,69 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 3/4] drm/omap: Make fixed resolution panels work
-Date: Tue, 19 Mar 2013 15:25:15 +0200
-Message-ID: <5148673B.4020504@ti.com>
-References: <1362493070-17706-1-git-send-email-archit@ti.com> <1363093583-28285-1-git-send-email-archit@ti.com> <513F3658.3000300@ti.com> <513F3DE5.2090903@ti.com> <513F4154.5040904@ti.com> <514809A1.9050108@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: remove "config FB_OMAP_CONSISTENT_DMA_SIZE"
+Date: Tue, 19 Mar 2013 15:26:48 +0200
+Message-ID: <51486798.6020708@ti.com>
+References: <1363687677.1390.6.camel@x61.thuisdomein>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="------------enigA9662C138E67DE832BBA3302"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51398 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752651Ab3CSNZT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Mar 2013 09:25:19 -0400
-In-Reply-To: <514809A1.9050108@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+	boundary="------------enigF01983F3486A559A77047ACC"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1363687677.1390.6.camel@x61.thuisdomein>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: robdclark@gmail.com, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 
---------------enigA9662C138E67DE832BBA3302
-Content-Type: text/plain; charset=ISO-8859-1
+--------------enigF01983F3486A559A77047ACC
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On 2013-03-19 08:45, Archit Taneja wrote:
 
-> I was trying to come up with a macro which could add default ops to the=
+On 2013-03-19 12:07, Paul Bolle wrote:
+> The only user of Kconfig symbol FB_OMAP_CONSISTENT_DMA_SIZE got removed=
 
-> omap_dss_driver. It isn't straight forward as I thought, because you
-> need to choose either the default op, or the panel driver's op if it
-> exists. For example, I can't create a macro which adds an op for
-> get_timings() to all panel drivers, the panel drivers which already thi=
-s
-> op defined will have 2 instances of get_timings() in the omap_dss_drive=
-r
-> struct.
+> in v3.8, with commit 6ba54ab4a49bbad736b0254aa6bdf0cb83013815 ("ARM:
+> OMAP: Remove omap_init_consistent_dma_size()"). Remove this symbol too.=
 
-Yep, I noticed the same a few days ago.
-
-> I have been looking around in the kernel to see how undeclared ops in a=
-
-> struct are generally dealt with. Till now, I've noticed that the code
-> which uses this ops takes the responsibility to check whether they are
-> NULL or not.
 >=20
-> The easiest way would be to have these default funcs inlined in a
-> header, and every panel driver's omap_dss_driver struct fills in the
-> default op. This way we can make the driver ops const. Do you have any
-> idea of a macro which could do the same as above, and leads to less
-> addition of code?
+> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+> ---
+> Eyeball tested only.
+>=20
+>  drivers/video/omap/Kconfig | 11 -----------
+>  1 file changed, 11 deletions(-)
+>=20
+> diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
+> index e512581..0bc3a93 100644
+> --- a/drivers/video/omap/Kconfig
+> +++ b/drivers/video/omap/Kconfig
+> @@ -39,17 +39,6 @@ config FB_OMAP_LCD_MIPID
+>  	  the Mobile Industry Processor Interface DBI-C/DCS
+>  	  specification. (Supported LCDs: Philips LPH8923, Sharp LS041Y3)
+> =20
+> -config FB_OMAP_CONSISTENT_DMA_SIZE
+> -	int "Consistent DMA memory size (MB)"
+> -	depends on FB_OMAP
+> -	range 1 14
+> -	default 2
+> -	help
+> -	  Increase the DMA consistent memory size according to your video
+> -	  memory needs, for example if you want to use multiple planes.
+> -	  The size must be 2MB aligned.
+> -	  If unsure say 1.
+> -
+>  config FB_OMAP_DMA_TUNE
+>          bool "Set DMA SDRAM access priority high"
+>          depends on FB_OMAP
+>=20
 
-Why would they need to be inlined?
-
-Another option would be to create global funcs that are used to call the
-ops. So instead of:
-
-dssdev->dssdrv->foo(dssdev)
-
-the user would call this function:
-
-int dss_foo(struct omap_dss_device *dssdev)
-{
-	if (dssdev->dssdrv->foo =3D=3D NULL)
-		return 0; /* or error, depending on case */
-	return dssdev->dssdrv->foo(dssdev);
-}
-
-But that'd require adding a bunch of functions, and changing all the
-callers.
-
-I think the safest way to fix this for now is to add the checks into
-omapdrm as you do in your original patch. If we go for some other route,
-I fear that omapfb/omap_vout could be affected, as it could presume that
-an op being NULL or non-NULL means something. If we change the ops to be
-always non-NULL, we should go over the uses of those ops to verify they
-work correctly.
+Thanks, I'll add this to omapdss tree.
 
  Tomi
 
 
 
---------------enigA9662C138E67DE832BBA3302
+--------------enigF01983F3486A559A77047ACC
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -88,19 +72,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.11 (GNU/Linux)
 Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJRSGc7AAoJEPo9qoy8lh71twAP/1hnPsbaQn+ue06TirzaMr6N
-VX3FfVOC0GLTQLzHZsMSiJ8uw0YCtHWL7H/ZXZSmiuu3xg8ytxSpfdEFwtiyCjKs
-ZCaqsGD6e2aL3FP33NxLFKQi3JHs16ptpbO+GAUm7iaO+GkySxL3Nm492fTDVA97
-gXBU4eIusA/cyEbP6shWIMBq0WUzHLE0n6ml/9jec3muGa005ENCSxf3c+UB+3h0
-d7eQnSbqCyOd/UoyPeMr0RbehrSUe8TJkLhWdQh1649SZgudXU7MtD/v2xlIo3ep
-3TSmAIricxdNKDFJzLL+5RcgXhbzFhQHQea97lfGZO8pEhi3JlSY+wFjO8F94lzd
-PsJ9MaKEysBPb3fr50v8dPFEn72EFGRat7SoKzfRzfLULaZusRTU3JCDmKSSwVEC
-bb0a5DtcRa4dI2fZPJCVCN5SvC4poDZyA3VG6QVpYxHl1kgN3MXA2TEuriHcPQJF
-Hh4mJ3+tA0gJl5vXm+Q9ZcboyFMvIwVmt4hjLcDj9k98L+wguSmB/HtKx93KJ6NV
-cLzlAINPGYN3D0ad43+UgidAEc8PsMr3GpFzdBLOSB30E0ObC2Qfwj6FZ+qmIaKK
-BcP6To2YqO6iIZLOdK6f5e1icyMzBIVaNpHC/13LueS7aBQZopDe68eqxDIhLz//
-6ePv6ob9SCahvF/tt0ft
-=xB9s
+iQIcBAEBAgAGBQJRSGeYAAoJEPo9qoy8lh71V3QP/j5INq+LKbL/4PPq1p66C/q3
+0utfLS5KjUOXIHVtyRhiFkTaVIqBUdVKH6RyQAQOOvFssiGfUBt1zLVj/fMAGvfy
+ySTA+5KH3c+lYewrcLsSUVreXUGwGhmpxFMGDiCxZ40SFNr/P1ShHyVinN66q53C
+7cUT7aDUmms0l3NNS9+TFZq9xdKMfST6PtMe6AOSyXgVzpzUEwgyeXxScV29e4TW
+sV22p79eWClp1RYn/xWPdpknrdCbLxZNrqDhipP1FgFCwCW087a3wkK13rapOciJ
+5g5qdDAy9oCGlxoP1EIZvwFEyO6gINUbbgkSD/aGS3Dm0iyqMnMd7WiBC538pte0
+3gfkgPmr8eo1jlqj8CXWmp1NeZJtblto/eAFWgPLULomXUhpG9V1XZEPm70piupo
+bI9H2yRR4JivXiHo9ebqYlyPG3n07EP0/yK+SQWhY59F7tR7YvNXjn7VYyHAMHKQ
+cTzHf+YkxOcjB4mm+jRpC2n9MJd5hVNHm+mLtD+gQ0jkqPjcecYDOahdJKUEtLQz
+9BWxNbkKZhNuUStZNTldc5lOqwxxyXoA/3ej/dvC+ivnX6ytYdPA8KfnDKfVGP84
+lRJrrjClfljagKEXT/678mJIT7pWThNPmzn/xtHjtN8bT7aZOLeN0QBmPm/Ot+lM
+oNG4BWhr/cWLQio+WASe
+=YLHG
 -----END PGP SIGNATURE-----
 
---------------enigA9662C138E67DE832BBA3302--
+--------------enigF01983F3486A559A77047ACC--
