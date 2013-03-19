@@ -1,46 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL]: ARM: OMAP: miscellaneous PM/clock fixes for 3.9-rc
-Date: Tue, 19 Mar 2013 11:21:39 -0700
-Message-ID: <20130319182139.GD16413@atomide.com>
-References: <alpine.DEB.2.00.1303141850230.28203@utopia.booyaka.com>
+Subject: Re: [GIT PULL v2] ARM: omap2: twl-common update
+Date: Tue, 19 Mar 2013 11:23:37 -0700
+Message-ID: <20130319182336.GE16413@atomide.com>
+References: <5146E895.50709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56423 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61002 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S933386Ab3CSSVm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Mar 2013 14:21:42 -0400
+	with ESMTP id S933386Ab3CSSXj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Mar 2013 14:23:39 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1303141850230.28203@utopia.booyaka.com>
+In-Reply-To: <5146E895.50709@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@list.infradead.org
 
-* Paul Walmsley <paul@pwsan.com> [130314 11:56]:
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [130318 03:16]:
 > Hi Tony,
-> 
-> The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b6ec9:
-> 
->   Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-a-for-3.9-rc
-> 
-> for you to fetch changes up to 92702df3570e1ccfa050e135e50c450502251b79:
-> 
->   ARM: OMAP4: PM: fix PM regression introduced by recent clock cleanup (2013-03-13 04:27:32 -0600)
-> 
-> ----------------------------------------------------------------
-> Miscellaneous OMAP fixes for v3.9-rc.  These primarily deal with OMAP2+ power
-> management regressions.  There's also a fix for the OMAP1 OHCI controller.
-> 
-> Basic build, boot, and PM test logs are at:
-> 
->     http://www.pwsan.com/omap/testlogs/fixes_a_3.9-rc/20130314101856/
-> 
+>=20
+> I have rebased the branch on 3.9-rc3 tag.
+> Is it still possible to send this for 3.9?
 
-Thanks pulling into omap-for-v3.9-rc3/fixes.
+Let's see if we can still get this in. It's getting a bit late
+for v3.9, so I'll apply this into a separate branch from other fixes
+omap-for-v3.9-rc3/fix-twl-reboot branch just in case it's considered
+too intrusive for the -rc.
+
+Regards,
 
 Tony
+=20
+> Regards,
+> P=C3=A9ter
+> ---
+> The following changes since commit a937536b868b8369b98967929045f1df54=
+234323:
+>=20
+>   Linux 3.9-rc3 (2013-03-17 15:59:32 -0700)
+>=20
+> are available in the git repository at:
+>=20
+>   git://gitorious.org/omap-audio/linux-audio.git peter/upstream/for-t=
+ony
+>=20
+> for you to fetch changes up to 282f21df32df9a01c66d68e7009150ffc69e4e=
+0c:
+>=20
+>   omap2: twl-common: Add default power configuration (2013-03-18 11:0=
+8:12 +0100)
+>=20
+> ----------------------------------------------------------------
+> Matthias Brugger (1):
+>       omap2: twl-common: Add default power configuration
+>=20
+>  arch/arm/mach-omap2/twl-common.c | 38 ++++++++++++++++++++++++++++++=
+++++++++
+>  arch/arm/mach-omap2/twl-common.h |  1 +
+>  2 files changed, 39 insertions(+)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
