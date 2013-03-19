@@ -1,44 +1,71 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH 0/5] usb: musb: am335x support
-Date: Tue, 19 Mar 2013 14:27:37 +0100
-Message-ID: <87620nwmd2.fsf@dell.be.48ers.dk>
-References: <cover.1351870620.git.afzal@ti.com> <509420D8.1030307@gmail.com>
-	<C8443D0743D26F4388EA172BF4E2A7A93EA0A1F2@DBDE01.ent.ti.com>
-	<51312430.6060306@gmail.com> <87sj4cunp6.fsf@dell.be.48ers.dk>
-	<5133E268.5010604@gmail.com> <51388D64.9000005@gmail.com>
-	<513A1580.90303@gmail.com> <514863BD.5010503@gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH v2 00/11] ARM: dts: OMAP5: ocp address space and few updates for 3.10
+Date: Tue, 19 Mar 2013 19:00:46 +0530
+Message-ID: <1363699857-5505-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f44.google.com ([209.85.214.44]:46786 "EHLO
-	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754633Ab3CSN1m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Mar 2013 09:27:42 -0400
-In-Reply-To: <514863BD.5010503@gmail.com> (Daniel Mack's message of "Tue, 19
-	Mar 2013 14:10:21 +0100")
+Received: from devils.ext.ti.com ([198.47.26.153]:50248 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754808Ab3CSN3S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Mar 2013 09:29:18 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "Balbi, Felipe" <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, "Santhapuri, Damodar" <damodar.santhapuri@ti.com>, "B, Ravi" <ravibabu@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Kishon Vijay Abraham I <kishon@ti.com>
+To: b-cousson@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
->>>>> "Daniel" == Daniel Mack <zonque@gmail.com> writes:
+Benoit,
 
-Hi,
+Here is the branch rebased and updated against your 'for_3.10/dt' branch.
+Few minor updates about ocp/l3 node after our discussion at connect from
+last version. The series also contains couple of hwmod patches to deal
+with ocp address space from dt blob and avoiding iormap for some of
+the hwmods.
 
- >> I know this patch reintroduces bits that have been intentionally
- >> removed before, in particular by 032ec49f53 ("usb: musb: drop
- >> useless board_mode usage"), but I don't know how this usb driver is
- >> supposed to work in host mode without taking the configured port
- >> mode into account. If anyone can explain to me which information I'm
- >> missing here, I can happily test a patch. For now, this works for
- >> me.
+It has been tested on OMAP4 and OMAP5 devices. Though for OMAP5 testing, data
+files and other patches are needed which are also targeted for 3.10 merge
+window.
 
- Daniel> Hmm, nobody, really? Am I the only one who's running the musb
- Daniel> driver in host-only mode?
+The following changes since commit 44fab7a60d4c3929a04b7dc882ac1143b3f21b0f:
 
-Sorry, I'll be needing host mode as well, but am currently stuck working
-on non-am335x stuff - So I'm definately interested in getting it to
-work, but don't have free cycles to look into it right now.
+  ARM: dts: omap3-devkit8000: Add NAND DT node (2013-03-18 15:01:23 +0100)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.10/omap_dt_update
+
+for you to fetch changes up to c0c153b52b9ed4965b7496e462b2effa3e4fa9ce:
+
+  ARM: OMAP2+: omap_hwmod: Don't call _init_mpu_rt_base if no sysc (2013-03-19 17:11:39 +0530)
+
+----------------------------------------------------------------
+
+Lokesh Vutla (1):
+  ARM: dts: OMAP5: Add watchdog timer node
+
+Rajendra Nayak (1):
+  ARM: dts: OMAP5: Specify nonsecure PPI IRQ for arch timer
+
+Santosh Shilimkar (9):
+  ARM: dts: omap5-evm: Update available memory to 2032 MB
+  ARM: dts: OMAP5: Align the local timer dt node as per the current
+    binding code
+  ARM: dts: OMAP5: Move the gic node out of ocp space
+  ARM: dts: OMAP5: Update the timer and gic nodes for HYP kernel
+    support
+  ARM: dts: OMAP5: Update keypad reg property
+  Documentation: dt: OMAP: l3-noc: Add *reg* in required properties
+  ARM: dts: OMAP4/5: Update l3-noc dt nodes
+  ARM: OMAP2+: hwmod: extract module address space from DT blob
+  ARM: OMAP2+: omap_hwmod: Don't call _init_mpu_rt_base if no sysc
+
+ .../devicetree/bindings/arm/omap/l3-noc.txt        |    1 +
+ arch/arm/boot/dts/omap4.dtsi                       |    5 ++
+ arch/arm/boot/dts/omap5-evm.dts                    |    2 +-
+ arch/arm/boot/dts/omap5.dtsi                       |   56 +++++++++++++-------
+ arch/arm/mach-omap2/omap_hwmod.c                   |   48 +++++++++++++++--
+ 5 files changed, 87 insertions(+), 25 deletions(-)
 
 -- 
-Bye, Peter Korsgaard
+1.7.9.5
+
