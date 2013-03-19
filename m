@@ -1,106 +1,65 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V4 14/18] ARM: OMAP2+: Convert ONENAND to retrieve GPMC settings from DT
-Date: Tue, 19 Mar 2013 11:35:52 -0500
-Message-ID: <1363710956-26773-15-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V4 16/18] ARM: OMAP2+: Remove unnecesssary GPMC definitions and variable
+Date: Tue, 19 Mar 2013 11:35:54 -0500
+Message-ID: <1363710956-26773-17-git-send-email-jon-hunter@ti.com>
 References: <1363710956-26773-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41014 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42965 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753544Ab3CSQgp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Mar 2013 12:36:45 -0400
+	id S1757098Ab3CSQgv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:36:51 -0400
 In-Reply-To: <1363710956-26773-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
 
-When booting with device-tree, retrieve GPMC settings for ONENAND from
-the device-tree blob. This will allow us to remove all static settings
-stored in the gpmc-nand.c in the future once the migration to
-device-tree is complete.
-
-The user must now specify the ONENAND device width in the device-tree
-binding so that the GPMC can be programmed correctly. Therefore, update
-the device-tree binding documentation for ONENAND devices connected to
-the GPMC to reflect this.
-
-Please note that this does not include GPMC timings for ONENAND. The
-timings are being calculated at runtime.
-
-There is some legacy code that only enables read wait monitoring for
-non-OMAP3 devices. There are no known OMAP3 device issues that prevent
-this feature being enabled and so when booting with device-tree use the
-wait-monitoring settings described in the device-tree blob.
+With commit 21cc2bd (ARM: OMAP2+: Remove apollon board support) the
+variable "boot_rom_space" is now not needed and the code surrounding
+this variable can be cleaned up and simplified. Remove unnecessary
+definitions and clean-up the comment as well.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
- .../devicetree/bindings/mtd/gpmc-onenand.txt       |    3 +++
- arch/arm/mach-omap2/gpmc-onenand.c                 |   21 ++++++++++++++------
- 2 files changed, 18 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/gpmc.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
-index deec9da..b752942 100644
---- a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
-@@ -10,6 +10,8 @@ Documentation/devicetree/bindings/bus/ti-gpmc.txt
- Required properties:
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 9797f46..ebb88cf 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -92,9 +92,7 @@
+ #define GPMC_CS_SIZE		0x30
+ #define	GPMC_BCH_SIZE		0x10
  
-  - reg:			The CS line the peripheral is connected to
-+ - gpmc,device-width	Width of the ONENAND device connected to the GPMC
-+			in bytes. Must be 1 or 2.
+-#define GPMC_MEM_START		0x00000000
+ #define GPMC_MEM_END		0x3FFFFFFF
+-#define BOOT_ROM_SPACE		0x100000	/* 1MB */
  
- Optional properties:
+ #define GPMC_CHUNK_SHIFT	24		/* 16 MB */
+ #define GPMC_SECTION_SHIFT	28		/* 128 MB */
+@@ -790,13 +788,13 @@ static void gpmc_mem_exit(void)
+ static int gpmc_mem_init(void)
+ {
+ 	int cs, rc;
+-	unsigned long boot_rom_space = 0;
  
-@@ -34,6 +36,7 @@ Example for an OMAP3430 board:
+-	/* never allocate the first page, to facilitate bug detection;
+-	 * even if we didn't boot from ROM.
++	/*
++	 * The first 1MB of GPMC address space is typically mapped to
++	 * the internal ROM. Never allocate the first page, to
++	 * facilitate bug detection; even if we didn't boot from ROM.
+ 	 */
+-	boot_rom_space = BOOT_ROM_SPACE;
+-	gpmc_mem_root.start = GPMC_MEM_START + boot_rom_space;
++	gpmc_mem_root.start = SZ_1M;
+ 	gpmc_mem_root.end = GPMC_MEM_END;
  
- 		onenand@0 {
- 			reg = <0 0 0>; /* CS0, offset 0 */
-+			gpmc,device-width = <2>;
- 
- 			#address-cells = <1>;
- 			#size-cells = <1>;
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index 46aac83..64b5a83 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -272,6 +272,10 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
- 	struct gpmc_timings t;
- 	int ret;
- 
-+	if (gpmc_onenand_data->of_node)
-+		gpmc_read_settings_dt(gpmc_onenand_data->of_node,
-+				      &onenand_async);
-+
- 	omap2_onenand_set_async_mode(onenand_base);
- 
- 	omap2_onenand_calc_async_timings(&t);
-@@ -300,12 +304,17 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
- 		set_onenand_cfg(onenand_base);
- 	}
- 
--	/*
--	 * FIXME: Appears to be legacy code from initial ONENAND commit.
--	 * Unclear what boards this is for and if this can be removed.
--	 */
--	if (!cpu_is_omap34xx())
--		onenand_sync.wait_on_read = true;
-+	if (gpmc_onenand_data->of_node) {
-+		gpmc_read_settings_dt(gpmc_onenand_data->of_node,
-+				      &onenand_sync);
-+	} else {
-+		/*
-+		 * FIXME: Appears to be legacy code from initial ONENAND commit.
-+		 * Unclear what boards this is for and if this can be removed.
-+		 */
-+		if (!cpu_is_omap34xx())
-+			onenand_sync.wait_on_read = true;
-+	}
- 
- 	omap2_onenand_calc_sync_timings(&t, gpmc_onenand_data->flags, freq);
- 
+ 	/* Reserve all regions that has been set up by bootloader */
 -- 
 1.7.10.4
 
