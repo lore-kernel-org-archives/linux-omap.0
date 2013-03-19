@@ -1,70 +1,69 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.9-rc1
-Date: Tue, 19 Mar 2013 05:47:02 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1303190540130.11826@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1303121634080.2723@utopia.booyaka.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCH 1/2] driver: serial-omap: move max uart count into generic
+ header file.
+Date: Tue, 19 Mar 2013 11:30:34 +0530
+Message-ID: <5147FF02.1070900@ti.com>
+References: <1363604206-11264-1-git-send-email-sourav.poddar@ti.com> <87r4jcim2h.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:46175 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755001Ab3CSFrC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Mar 2013 01:47:02 -0400
-In-Reply-To: <alpine.DEB.2.00.1303121634080.2723@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87r4jcim2h.fsf@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
 
-Hi,
-
-here's the restated delta from v3.8 -> v3.9-rc1, after some script bug 
-fixes.
-
-On Tue, 12 Mar 2013, Paul Walmsley wrote:
-
-> vmlinux object size
-> (delta in bytes from test_v3.8 (19f949f52599ba7c3f67a5897ac6be14bfcb1200)):
->    text     data      bss    total  kernel
-> +195310   +37968    +1364  +234642  omap2plus_defconfig
-> +185362   +37128    +1364  +223854  omap2plus_defconfig_cpupm
-> +186719   +31416    +1300  +219435  omap2plus_defconfig_omap2_4_only
-> +181125   +41432    +1300  +223857  omap2plus_defconfig_omap3_4_only
->  +10460   +10272    +1184   +21916  rmk_omap3430_ldp_allnoconfig
->  +40867   +14672     +972   +56511  rmk_omap4430_sdp_oldconfig
-> 
-> Looks like v3.9 is well on target to exceed even the previous 
-> per-release bloat records.
-> 
-> There are some entries missing from the above table; this is probably due 
-> to some bug in my scripts that needs to be dealt with.
-
-And here's the correct results.
-
-vmlinux object size
-(delta in bytes from test_v3.8 
-(19f949f52599ba7c3f67a5897ac6be14bfcb1200)):
-   text     data      bss    total  kernel
--557629   +23472    -9252  -543409  n800_multi_omap2xxx
--557204   +26680    -9280  -539804  n800_only_a
- +49056    +2992     +424   +52472  omap1_defconfig_1510innovator_only
-+195310   +37968    +1364  +234642  omap2plus_defconfig
-+185362   +37128    +1364  +223854  omap2plus_defconfig_cpupm
-+192610   +36304    +1364  +230278  omap2plus_defconfig_no_pm
-+186719   +31416    +1300  +219435  omap2plus_defconfig_omap2_4_only
-+181125   +41432    +1300  +223857  omap2plus_defconfig_omap3_4_only
- +10460   +10272    +1184   +21916  rmk_omap3430_ldp_allnoconfig
- +40004   +27640     +788   +68432  rmk_omap3430_ldp_oldconfig
- +10348   +10272    +1296   +21916  rmk_omap4430_sdp_allnoconfig
- +40867   +14672     +972   +56511  rmk_omap4430_sdp_oldconfig
-
-The massive decrease in N800 kernel size is a result of an all-out attempt 
-to keep the kernel booting on N800, which has a 2MB kernel size limitation 
-in the bootloader.
-
-Same crazy bloat in the OMAP2+ kernels, and it's probably due to the 
-CONFIG_ARCH_MULTIPLATFORM changes.  Hey, at least we don't have to worry 
-about supporting embedded use-cases any more on ARM ;-)
-
-
-- Paul
+Hi Kevin,
+On Tuesday 19 March 2013 12:15 AM, Kevin Hilman wrote:
+> Sourav Poddar<sourav.poddar@ti.com>  writes:
+>
+>> OMAP_MAX_HSUART_PORTS is moved to omap_serial header file.
+> Why?
+>
+The patch is a prerequisitive for the next patch in the series, where I am
+making use of the max number of uarts, omap device supports. Hence, I
+am rearranging the macro from a driver file to a header file. So, it can 
+be used at
+multiple places.
+> You started to explain it in the cover letter, but a full description
+> belongs here for the permanent git history.
+>
+Sure, I will add the complete description for this here itself in my next
+version.
+> Kevin
+>
+>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>> Cc: Felipe Balbi<balbi@ti.com>
+>> Cc: Rajendra nayak<rnayak@ti.com>
+>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+>> ---
+>>   drivers/tty/serial/omap-serial.c          |    2 --
+>>   include/linux/platform_data/serial-omap.h |    1 +
+>>   2 files changed, 1 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+>> index 5722eaf..4c2ba9f 100644
+>> --- a/drivers/tty/serial/omap-serial.c
+>> +++ b/drivers/tty/serial/omap-serial.c
+>> @@ -43,8 +43,6 @@
+>>   #include<linux/pinctrl/consumer.h>
+>>   #include<linux/platform_data/serial-omap.h>
+>>
+>> -#define OMAP_MAX_HSUART_PORTS	6
+>> -
+>>   #define UART_BUILD_REVISION(x, y)	(((x)<<  8) | (y))
+>>
+>>   #define OMAP_UART_REV_42 0x0402
+>> diff --git a/include/linux/platform_data/serial-omap.h b/include/linux/platform_data/serial-omap.h
+>> index ff9b0aa..92c48c2 100644
+>> --- a/include/linux/platform_data/serial-omap.h
+>> +++ b/include/linux/platform_data/serial-omap.h
+>> @@ -29,6 +29,7 @@
+>>    * is used as console uart.
+>>    */
+>>   #define OMAP_SERIAL_NAME	"ttyO"
+>> +#define OMAP_MAX_HSUART_PORTS   6
+>>
+>>   struct omap_uart_port_info {
+>>   	bool			dma_enabled;	/* To specify DMA Mode */
