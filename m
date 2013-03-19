@@ -1,108 +1,106 @@
-From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/5] usb: musb: am335x support
-Date: Tue, 19 Mar 2013 14:10:21 +0100
-Message-ID: <514863BD.5010503@gmail.com>
-References: <cover.1351870620.git.afzal@ti.com> <509420D8.1030307@gmail.com> <C8443D0743D26F4388EA172BF4E2A7A93EA0A1F2@DBDE01.ent.ti.com> <51312430.6060306@gmail.com> <87sj4cunp6.fsf@dell.be.48ers.dk> <5133E268.5010604@gmail.com> <51388D64.9000005@gmail.com> <513A1580.90303@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 3/4] drm/omap: Make fixed resolution panels work
+Date: Tue, 19 Mar 2013 15:25:15 +0200
+Message-ID: <5148673B.4020504@ti.com>
+References: <1362493070-17706-1-git-send-email-archit@ti.com> <1363093583-28285-1-git-send-email-archit@ti.com> <513F3658.3000300@ti.com> <513F3DE5.2090903@ti.com> <513F4154.5040904@ti.com> <514809A1.9050108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <513A1580.90303-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
-Cc: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "Santhapuri, Damodar" <damodar.santhapuri-l0cyMroinI0@public.gmane.org>, "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigA9662C138E67DE832BBA3302"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:51398 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752651Ab3CSNZT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Mar 2013 09:25:19 -0400
+In-Reply-To: <514809A1.9050108@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: robdclark@gmail.com, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 
-On 08.03.2013 17:44, Daniel Mack wrote:
-> On 07.03.2013 13:51, Daniel Mack wrote:
->> On 04.03.2013 00:53, Daniel Mack wrote:
->>> Hi Peter,
->>>
->>> On 03.03.2013 23:24, Peter Korsgaard wrote:
->>>>>>>>> "Daniel" == Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
->>>>
->>>> Hi,
->>>>
->>>>  Daniel> On my board, the USB is purely used as host interface, with a
->>>>  Daniel> type B plug soldered. In the DT, I'm using the following
->>>>  Daniel> sniplet in accordance to the documentation of the bindings:
->>>>
->>>>  Daniel> 	usb_otg_hs: usb@47400000 {
->>>>  Daniel> 		compatible = "ti,musb-am33xx";
->>>>  Daniel> 		reg = <0x47400000 0x1000	/* usbss */
->>>>  Daniel> 		       0x47401000 0x800		/* musb instance 0 */
->>>>  Daniel> 		       0x47401800 0x800>;	/* musb instance 1 */
->>>>  Daniel> 		interrupt-parent = <&intc>;
->>>>  Daniel> 		interrupts = <17		/* usbss */
->>>>  Daniel> 			      18		/* musb instance 0 */
->>>>  19> ;		/* musb instance 1 */
->>>>  Daniel> 		multipoint = <1>;
->>>>  Daniel> 		num-eps = <16>;
->>>>  Daniel> 		ram-bits = <12>;
->>>>  Daniel> 		port0-mode = <3>;
->>>>  Daniel> 		port1-mode = <3>;
->>>>  Daniel> 		power = <250>;
->>>>  Daniel> 		ti,hwmods = "usb_otg_hs";
->>>>  Daniel> 	};
->>>>
->>>>  Daniel> The relevant config options are
->>>>
->>>>  Daniel> CONFIG_USB_MUSB_HDRC=y
->>>>  Daniel> # CONFIG_USB_MUSB_TUSB6010 is not set
->>>>  Daniel> # CONFIG_USB_MUSB_OMAP2PLUS is not set
->>>>  Daniel> # CONFIG_USB_MUSB_AM35X is not set
->>>>  Daniel> CONFIG_USB_MUSB_DSPS=y
->>>>  Daniel> CONFIG_MUSB_PIO_ONLY=y
->>>>  Daniel> CONFIG_USB_GADGET=y
->>>>  Daniel> CONFIG_USB_GADGET_DEBUG=y
->>>>  Daniel> CONFIG_USB_GADGET_DEBUG_FILES=y
->>>>  Daniel> CONFIG_USB_GADGET_DEBUG_FS=y
->>>>  Daniel> CONFIG_USB_GADGET_VBUS_DRAW=2
->>>>  Daniel> CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS=2
->>>>  Daniel> CONFIG_USB_GADGET_MUSB_HDRC=y
->>>>
->>>> Ehh, I'm confused here. You talk about host mode, a single 'B' (gadget)
->>>> connector
->>>
->>> I'm sorry for the confusion caused. This is a stupid mistake - I'm in
->>> fact talking about an 'A' type plug of course (host mode).
->>>
->>>> and your device tree mentions 2 OTG ports.
->>>
->>> That's what I said in a follow up - the same happens for mode '1'.
->>>
->>>> What is the configuration exactly?
->>>
->>> Again to summarize: host-only mode, type 'A' plug.
->>>
->>> The gadget driver is is enabled in the config because the only
->>> occurrence of usb_add_hcd() in the musb driver is in the gagdget part,
->>> so supposedly, there has to be a gadget driver loaded in order to make
->>> the host interface going.
->>
->> Just be clear: I'd happily help and dig for the reason of this, I'd just
->> need to know how things are _supposed_ to work ...
-> 
-> So I dug a little on this topic, and restored the behaviour I need with
-> the attached patch.
-> 
-> The funny part is that the value set in the port0-mode/port1-mode DT
-> properties are not even looked at by the code.
-> 
-> I know this patch reintroduces bits that have been intentionally removed
-> before, in particular by 032ec49f53 ("usb: musb: drop useless board_mode
-> usage"), but I don't know how this usb driver is supposed to work in
-> host mode without taking the configured port mode into account. If
-> anyone can explain to me which information I'm missing here, I can
-> happily test a patch. For now, this works for me.
+--------------enigA9662C138E67DE832BBA3302
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Hmm, nobody, really? Am I the only one who's running the musb driver in
-host-only mode?
+On 2013-03-19 08:45, Archit Taneja wrote:
+
+> I was trying to come up with a macro which could add default ops to the=
+
+> omap_dss_driver. It isn't straight forward as I thought, because you
+> need to choose either the default op, or the panel driver's op if it
+> exists. For example, I can't create a macro which adds an op for
+> get_timings() to all panel drivers, the panel drivers which already thi=
+s
+> op defined will have 2 instances of get_timings() in the omap_dss_drive=
+r
+> struct.
+
+Yep, I noticed the same a few days ago.
+
+> I have been looking around in the kernel to see how undeclared ops in a=
+
+> struct are generally dealt with. Till now, I've noticed that the code
+> which uses this ops takes the responsibility to check whether they are
+> NULL or not.
+>=20
+> The easiest way would be to have these default funcs inlined in a
+> header, and every panel driver's omap_dss_driver struct fills in the
+> default op. This way we can make the driver ops const. Do you have any
+> idea of a macro which could do the same as above, and leads to less
+> addition of code?
+
+Why would they need to be inlined?
+
+Another option would be to create global funcs that are used to call the
+ops. So instead of:
+
+dssdev->dssdrv->foo(dssdev)
+
+the user would call this function:
+
+int dss_foo(struct omap_dss_device *dssdev)
+{
+	if (dssdev->dssdrv->foo =3D=3D NULL)
+		return 0; /* or error, depending on case */
+	return dssdev->dssdrv->foo(dssdev);
+}
+
+But that'd require adding a bunch of functions, and changing all the
+callers.
+
+I think the safest way to fix this for now is to add the checks into
+omapdrm as you do in your original patch. If we go for some other route,
+I fear that omapfb/omap_vout could be affected, as it could presume that
+an op being NULL or non-NULL means something. If we change the ops to be
+always non-NULL, we should go over the uses of those ops to verify they
+work correctly.
+
+ Tomi
 
 
-Daniel
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--------------enigA9662C138E67DE832BBA3302
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRSGc7AAoJEPo9qoy8lh71twAP/1hnPsbaQn+ue06TirzaMr6N
+VX3FfVOC0GLTQLzHZsMSiJ8uw0YCtHWL7H/ZXZSmiuu3xg8ytxSpfdEFwtiyCjKs
+ZCaqsGD6e2aL3FP33NxLFKQi3JHs16ptpbO+GAUm7iaO+GkySxL3Nm492fTDVA97
+gXBU4eIusA/cyEbP6shWIMBq0WUzHLE0n6ml/9jec3muGa005ENCSxf3c+UB+3h0
+d7eQnSbqCyOd/UoyPeMr0RbehrSUe8TJkLhWdQh1649SZgudXU7MtD/v2xlIo3ep
+3TSmAIricxdNKDFJzLL+5RcgXhbzFhQHQea97lfGZO8pEhi3JlSY+wFjO8F94lzd
+PsJ9MaKEysBPb3fr50v8dPFEn72EFGRat7SoKzfRzfLULaZusRTU3JCDmKSSwVEC
+bb0a5DtcRa4dI2fZPJCVCN5SvC4poDZyA3VG6QVpYxHl1kgN3MXA2TEuriHcPQJF
+Hh4mJ3+tA0gJl5vXm+Q9ZcboyFMvIwVmt4hjLcDj9k98L+wguSmB/HtKx93KJ6NV
+cLzlAINPGYN3D0ad43+UgidAEc8PsMr3GpFzdBLOSB30E0ObC2Qfwj6FZ+qmIaKK
+BcP6To2YqO6iIZLOdK6f5e1icyMzBIVaNpHC/13LueS7aBQZopDe68eqxDIhLz//
+6ePv6ob9SCahvF/tt0ft
+=xB9s
+-----END PGP SIGNATURE-----
+
+--------------enigA9662C138E67DE832BBA3302--
