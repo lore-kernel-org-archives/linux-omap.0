@@ -1,100 +1,57 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: clocks: Pass static parent pointers
- to common clock core
-Date: Tue, 19 Mar 2013 10:46:50 +0530
-Message-ID: <5147F4C2.5050307@ti.com>
-References: <1363264618-5071-1-git-send-email-rnayak@ti.com> <1363264618-5071-3-git-send-email-rnayak@ti.com> <20130314170601.GH26093@atomide.com> <514313B6.4050905@ti.com> <20130315162049.GB9370@atomide.com> <5146CE5B.6090705@ti.com> <20130318163757.GD9462@atomide.com> <20130319012340.8663.43189@quantum>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.9-rc2
+Date: Tue, 19 Mar 2013 05:39:53 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1303190537230.11826@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1303141858320.28203@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35100 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754547Ab3CSFRH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Mar 2013 01:17:07 -0400
-In-Reply-To: <20130319012340.8663.43189@quantum>
+Received: from utopia.booyaka.com ([74.50.51.50]:46159 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754670Ab3CSFjy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Mar 2013 01:39:54 -0400
+In-Reply-To: <alpine.DEB.2.00.1303141858320.28203@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, phaber@broadcom.com, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Tuesday 19 March 2013 06:53 AM, Mike Turquette wrote:
-> Quoting Tony Lindgren (2013-03-18 09:37:58)
->> * Rajendra Nayak <rnayak@ti.com> [130318 01:25]:
->>> On Friday 15 March 2013 09:50 PM, Tony Lindgren wrote:
->>>> * Rajendra Nayak <rnayak@ti.com> [130315 05:31]:
->>>>> On Thursday 14 March 2013 10:36 PM, Tony Lindgren wrote:
->>>>>> * Rajendra Nayak <rnayak@ti.com> [130314 05:44]:
->>>>>>> OMAP clock inits happen quite early, even before the slab is available.
->>>>>>> As part of the clock init, the common clock core tries to cache parent
->>>>>>> pointers (if not passed by the caller registering the clock) which
->>>>>>> fails in case of OMAP since the slab isn't initied.
->>>>>>> Without CONFIG_DEBUG_SLAB enabled, this just results in the common clock core
->>>>>>> retrying the caching attempt at some point later.
->>>>>>> However with CONFIG_DEBUG_SLAB enabled this results in a BUG() as reported
->>>>>>> in the link below by Tony..
->>>>>>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85932.html
->>>>>>>
->>>>>>> Fix this by passing static parent pointers to the common clock core
->>>>>>> while registering clocks.
->>>>>>
->>>>>> I wonder if we could easily fix this by initializing only some of the
->>>>>> clocks that early?
->>>>>
->>>>> We actually don't need any clocks that early (I mean even before slab init)
->>>>> We only need them before timer init.
->>>>
->>>> Yes and only the timer clocks at that point. The others could be initialized
->>>> later on so we get console error messages without having to turn on DEBUG_LL
->>>> and earlyprintk.
->>>
->>> but that wouldn't be possible with the hwmod dependency on clocks. We would
->>> need to move the hwmod inits further down too.
->>>
->>>>  
->>>>> This isn't something specific to OMAP so I started looking at what others
->>>>> in drivers/clk seem to do.
->>>>>
->>>>> I found imx, spear, mvebu all do their clk inits within .init_time callbacks.
->>>>> tegra seems to even do it within .init_irq callback.
->>>>>
->>>>> Either one would work for us too :)
->>>>
->>>> Well I suggest init_irq as that's when we need the first clocks for timer.
->>>
->>> For which platforms? I instead see them being needed only by init_timer, so
->>> was thinking thats a better place instead.
->>>
->>> For the -rc fix to fix the crash with DEBUG_SLAB, is it fine if I move *all*
->>> clock inits down to init_timer (or init_irq).
->>
->> Sounds good to me for the -rc series. How about initialize omap_clk_init()
->> function pointer in the SoC specific omap*_init_early() then just call
->> omap_clk_init() in timer_init?
->>  
->>> Splitting clocks alone would not work for now, without hwmod being moved down also.
->>
->> Good point. For the -rc series the sounds like your suggestion is the
->> least intrusive fix and also gets us started removing few more early
->> boot time dependencies.
->>
-> 
-> +1 for removing the early init dependencies.  hwmod initialization was
-> the original impetus for all this static struct clk stuff.  If the
-> initialization for hwmod and the omap clocks can be moved to a later
-> callback then it is the first step in removing the static data and
-> getting rid of clk-private.h usage.
+Hi,
 
-I am working on that stuff to get rid of the dependency on clk-private.h
-Will post some RFC soon once I have omap4 working and if the approach seems
-fine, will move over all of omap so you can delete the clk-private.h
-completely :)
+restating these to reflect some bugfixes in the test log parsing scripts.
 
-> 
-> Regards,
-> Mike
-> 
->> Regards,
->>
->> Tony
+On Thu, 14 Mar 2013, Paul Walmsley wrote:
 
+> vmlinux object size
+> (delta in bytes from test_v3.9-rc1 
+> (6dbe51c251a327e012439c4772097a13df43c5b8)):
+>    text     data      bss    total  kernel
+>  +13528      +64        0   +13592  omap1_defconfig
+>   +9440     +120        0    +9560  omap2plus_defconfig
+>  +13472     +128        0   +13600  omap2plus_defconfig_cpupm
+>  +13472     +128        0   +13600  omap2plus_defconfig_omap2_4_only
+>   +9756     +120        0    +9876  omap2plus_defconfig_omap3_4_only
+>    +704      -64     -188     +452  rmk_omap3430_ldp_allnoconfig
+>    +556      -64        0     +492  rmk_omap4430_sdp_oldconfig
+
+The correct and complete delta should be:
+
+vmlinux object size
+(delta in bytes from test_v3.9-rc1 
+(6dbe51c251a327e012439c4772097a13df43c5b8)):
+   text     data      bss    total  kernel
+   +620      -72       +4     +552  n800_multi_omap2xxx
+  +5860     +648      +12    +6520  n800_only_a
+  +9180      +88        0    +9268  omap1_defconfig_1510innovator_only
+  +9440     +120        0    +9560  omap2plus_defconfig
+ +13472     +128        0   +13600  omap2plus_defconfig_cpupm
+ +13528      +64        0   +13592  omap2plus_defconfig_no_pm
+ +13472     +128        0   +13600  omap2plus_defconfig_omap2_4_only
+  +9756     +120        0    +9876  omap2plus_defconfig_omap3_4_only
+   +704      -64     -188     +452  rmk_omap3430_ldp_allnoconfig
+   +656      -64        0     +592  rmk_omap3430_ldp_oldconfig
+   +704      -64     -188     +452  rmk_omap4430_sdp_allnoconfig
+   +556      -64        0     +492  rmk_omap4430_sdp_oldconfig
+
+
+- Paul
