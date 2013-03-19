@@ -1,116 +1,273 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 5/5] ARM: OMAP2+: Populate DMTIMER errata when using device-tree
-Date: Tue, 19 Mar 2013 12:38:19 -0500
-Message-ID: <1363714699-29622-6-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 3/5] ARM: OMAP: Add function to request timer by node
+Date: Tue, 19 Mar 2013 12:38:17 -0500
+Message-ID: <1363714699-29622-4-git-send-email-jon-hunter@ti.com>
 References: <1363714699-29622-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37298 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46003 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753622Ab3CSRih (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Mar 2013 13:38:37 -0400
+	id S1753622Ab3CSRij (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Mar 2013 13:38:39 -0400
 In-Reply-To: <1363714699-29622-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Currently the DMTIMER errata flags are not being populated when using
-device-tree. Add static platform data to populate errata flags when
-using device-tree.
+Add a function so that OMAP dmtimers can be requested by device-tree
+node. This allows for devices, such as the internal DSP, or drivers,
+such as PWM, to reference a specific dmtimer node via the device-tree.
 
-Please note that DMTIMER erratum i767 is applicable to OMAP3-5 devices
-as well as AM335x devices.
+Given that there are several APIs available for requesting dmtimers
+(by ID, by capability or by node) consolidate the code for all these
+functions into a single helper function that can be used by these
+request functions.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c |   45 ++++++++++++++++++++++++++++++++++--------
- 1 file changed, 37 insertions(+), 8 deletions(-)
+ arch/arm/plat-omap/dmtimer.c              |  167 ++++++++++++++++-------------
+ arch/arm/plat-omap/include/plat/dmtimer.h |    1 +
+ 2 files changed, 94 insertions(+), 74 deletions(-)
 
 diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index b50d478..5d0af13 100644
+index 725d972..05efb37 100644
 --- a/arch/arm/plat-omap/dmtimer.c
 +++ b/arch/arm/plat-omap/dmtimer.c
-@@ -783,6 +783,8 @@ int omap_dm_timers_active(void)
- }
- EXPORT_SYMBOL_GPL(omap_dm_timers_active);
+@@ -52,6 +52,13 @@ static u32 omap_reserved_systimers;
+ static LIST_HEAD(omap_timer_list);
+ static DEFINE_SPINLOCK(dm_timer_lock);
  
-+static const struct of_device_id omap_timer_match[];
-+
- /**
-  * omap_dm_timer_probe - probe function called for every registered device
-  * @pdev:	pointer to current timer platform device
-@@ -796,7 +798,11 @@ static int omap_dm_timer_probe(struct platform_device *pdev)
- 	struct omap_dm_timer *timer;
- 	struct resource *mem, *irq;
- 	struct device *dev = &pdev->dev;
--	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
-+	const struct of_device_id *match;
-+	const struct dmtimer_platform_data *pdata;
-+
-+	match = of_match_device(of_match_ptr(omap_timer_match), dev);
-+	pdata = match ? match->data : dev->platform_data;
- 
- 	if (!pdata && !dev->of_node) {
- 		dev_err(dev, "%s: no platform data.\n", __func__);
-@@ -836,12 +842,14 @@ static int omap_dm_timer_probe(struct platform_device *pdev)
- 			timer->capability |= OMAP_TIMER_SECURE;
- 	} else {
- 		timer->id = pdev->id;
--		timer->errata = pdata->timer_errata;
- 		timer->capability = pdata->timer_capability;
- 		timer->reserved = omap_dm_timer_reserved_systimer(timer->id);
- 		timer->get_context_loss_count = pdata->get_context_loss_count;
- 	}
- 
-+	if (pdata)
-+		timer->errata = pdata->timer_errata;
-+
- 	timer->irq = irq->start;
- 	timer->pdev = pdev;
- 
-@@ -894,13 +902,34 @@ static int omap_dm_timer_remove(struct platform_device *pdev)
- 	return ret;
- }
- 
-+static const struct dmtimer_platform_data omap3plus_pdata = {
-+	.timer_errata = OMAP_TIMER_ERRATA_I103_I767,
++enum {
++	REQUEST_ANY = 0,
++	REQUEST_BY_ID,
++	REQUEST_BY_CAP,
++	REQUEST_BY_NODE,
 +};
 +
- static const struct of_device_id omap_timer_match[] = {
--	{ .compatible = "ti,omap2420-timer", },
--	{ .compatible = "ti,omap3430-timer", },
--	{ .compatible = "ti,omap4430-timer", },
--	{ .compatible = "ti,omap5430-timer", },
--	{ .compatible = "ti,am335x-timer", },
--	{ .compatible = "ti,am335x-timer-1ms", },
-+	{
-+		.compatible = "ti,omap2420-timer",
-+	},
-+	{
-+		.compatible = "ti,omap3430-timer",
-+		.data = &omap3plus_pdata,
-+	},
-+	{
-+		.compatible = "ti,omap4430-timer",
-+		.data = &omap3plus_pdata,
-+	},
-+	{
-+		.compatible = "ti,omap5430-timer",
-+		.data = &omap3plus_pdata,
-+	},
-+	{
-+		.compatible = "ti,am335x-timer",
-+		.data = &omap3plus_pdata,
-+	},
-+	{
-+		.compatible = "ti,am335x-timer-1ms",
-+		.data = &omap3plus_pdata,
-+	},
- 	{},
- };
- MODULE_DEVICE_TABLE(of, omap_timer_match);
+ /**
+  * omap_dm_timer_read_reg - read timer registers in posted and non-posted mode
+  * @timer:      timer pointer over which read operation to perform
+@@ -178,29 +185,82 @@ int omap_dm_timer_reserve_systimer(int id)
+ 	return 0;
+ }
+ 
+-struct omap_dm_timer *omap_dm_timer_request(void)
++static struct omap_dm_timer *_omap_dm_timer_request(int req_type, void *data)
+ {
+ 	struct omap_dm_timer *timer = NULL, *t;
++	struct device_node *np = NULL;
+ 	unsigned long flags;
+-	int ret = 0;
++	u32 cap = 0;
++	int id = 0;
++
++	switch (req_type) {
++	case REQUEST_BY_ID:
++		id = *(int *)data;
++		break;
++	case REQUEST_BY_CAP:
++		cap = *(u32 *)data;
++		break;
++	case REQUEST_BY_NODE:
++		np = (struct device_node *)data;
++		break;
++	default:
++		/* REQUEST_ANY */
++		break;
++	}
+ 
+ 	spin_lock_irqsave(&dm_timer_lock, flags);
+ 	list_for_each_entry(t, &omap_timer_list, node) {
+ 		if (t->reserved)
+ 			continue;
+ 
+-		timer = t;
+-		timer->reserved = 1;
+-		break;
++		switch (req_type) {
++		case REQUEST_BY_ID:
++			if (id == t->pdev->id) {
++				timer = t;
++				timer->reserved = 1;
++				goto found;
++			}
++			break;
++		case REQUEST_BY_CAP:
++			if (cap == (t->capability & cap)) {
++				/*
++				 * If timer is not NULL, we have already found
++				 * one timer but it was not an exact match
++				 * because it had more capabilites that what
++				 * was required. Therefore, unreserve the last
++				 * timer found and see if this one is a better
++				 * match.
++				 */
++				if (timer)
++					timer->reserved = 0;
++				timer = t;
++				timer->reserved = 1;
++
++				/* Exit loop early if we find an exact match */
++				if (t->capability == cap)
++					goto found;
++			}
++			break;
++		case REQUEST_BY_NODE:
++			if (np == t->pdev->dev.of_node) {
++				timer = t;
++				timer->reserved = 1;
++				goto found;
++			}
++			break;
++		default:
++			/* REQUEST_ANY */
++			timer = t;
++			timer->reserved = 1;
++			goto found;
++		}
+ 	}
++found:
+ 	spin_unlock_irqrestore(&dm_timer_lock, flags);
+ 
+-	if (timer) {
+-		ret = omap_dm_timer_prepare(timer);
+-		if (ret) {
+-			timer->reserved = 0;
+-			timer = NULL;
+-		}
++	if (timer && omap_dm_timer_prepare(timer)) {
++		timer->reserved = 0;
++		timer = NULL;
+ 	}
+ 
+ 	if (!timer)
+@@ -208,43 +268,23 @@ struct omap_dm_timer *omap_dm_timer_request(void)
+ 
+ 	return timer;
+ }
++
++struct omap_dm_timer *omap_dm_timer_request(void)
++{
++	return _omap_dm_timer_request(REQUEST_ANY, NULL);
++}
+ EXPORT_SYMBOL_GPL(omap_dm_timer_request);
+ 
+ struct omap_dm_timer *omap_dm_timer_request_specific(int id)
+ {
+-	struct omap_dm_timer *timer = NULL, *t;
+-	unsigned long flags;
+-	int ret = 0;
+-
+ 	/* Requesting timer by ID is not supported when device tree is used */
+ 	if (of_have_populated_dt()) {
+-		pr_warn("%s: Please use omap_dm_timer_request_by_cap()\n",
++		pr_warn("%s: Please use omap_dm_timer_request_by_cap/node()\n",
+ 			__func__);
+ 		return NULL;
+ 	}
+ 
+-	spin_lock_irqsave(&dm_timer_lock, flags);
+-	list_for_each_entry(t, &omap_timer_list, node) {
+-		if (t->pdev->id == id && !t->reserved) {
+-			timer = t;
+-			timer->reserved = 1;
+-			break;
+-		}
+-	}
+-	spin_unlock_irqrestore(&dm_timer_lock, flags);
+-
+-	if (timer) {
+-		ret = omap_dm_timer_prepare(timer);
+-		if (ret) {
+-			timer->reserved = 0;
+-			timer = NULL;
+-		}
+-	}
+-
+-	if (!timer)
+-		pr_debug("%s: timer%d request failed!\n", __func__, id);
+-
+-	return timer;
++	return _omap_dm_timer_request(REQUEST_BY_ID, &id);
+ }
+ EXPORT_SYMBOL_GPL(omap_dm_timer_request_specific);
+ 
+@@ -259,46 +299,25 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_request_specific);
+  */
+ struct omap_dm_timer *omap_dm_timer_request_by_cap(u32 cap)
+ {
+-	struct omap_dm_timer *timer = NULL, *t;
+-	unsigned long flags;
++	return _omap_dm_timer_request(REQUEST_BY_CAP, &cap);
++}
++EXPORT_SYMBOL_GPL(omap_dm_timer_request_by_cap);
+ 
+-	if (!cap)
++/**
++ * omap_dm_timer_request_by_node - Request a timer by device-tree node
++ * @np:		Pointer to device-tree timer node
++ *
++ * Request a timer based upon a device node pointer. Returns pointer to
++ * timer handle on success and a NULL pointer on failure.
++ */
++struct omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np)
++{
++	if (!np)
+ 		return NULL;
+ 
+-	spin_lock_irqsave(&dm_timer_lock, flags);
+-	list_for_each_entry(t, &omap_timer_list, node) {
+-		if ((!t->reserved) && ((t->capability & cap) == cap)) {
+-			/*
+-			 * If timer is not NULL, we have already found one timer
+-			 * but it was not an exact match because it had more
+-			 * capabilites that what was required. Therefore,
+-			 * unreserve the last timer found and see if this one
+-			 * is a better match.
+-			 */
+-			if (timer)
+-				timer->reserved = 0;
+-
+-			timer = t;
+-			timer->reserved = 1;
+-
+-			/* Exit loop early if we find an exact match */
+-			if (t->capability == cap)
+-				break;
+-		}
+-	}
+-	spin_unlock_irqrestore(&dm_timer_lock, flags);
+-
+-	if (timer && omap_dm_timer_prepare(timer)) {
+-		timer->reserved = 0;
+-		timer = NULL;
+-	}
+-
+-	if (!timer)
+-		pr_debug("%s: timer request failed!\n", __func__);
+-
+-	return timer;
++	return _omap_dm_timer_request(REQUEST_BY_NODE, np);
+ }
+-EXPORT_SYMBOL_GPL(omap_dm_timer_request_by_cap);
++EXPORT_SYMBOL_GPL(omap_dm_timer_request_by_node);
+ 
+ int omap_dm_timer_free(struct omap_dm_timer *timer)
+ {
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index a3fbc48..fb92abb 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -128,6 +128,7 @@ int omap_dm_timer_reserve_systimer(int id);
+ struct omap_dm_timer *omap_dm_timer_request(void);
+ struct omap_dm_timer *omap_dm_timer_request_specific(int timer_id);
+ struct omap_dm_timer *omap_dm_timer_request_by_cap(u32 cap);
++struct omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np);
+ int omap_dm_timer_free(struct omap_dm_timer *timer);
+ void omap_dm_timer_enable(struct omap_dm_timer *timer);
+ void omap_dm_timer_disable(struct omap_dm_timer *timer);
 -- 
 1.7.10.4
 
