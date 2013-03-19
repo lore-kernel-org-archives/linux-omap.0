@@ -1,69 +1,60 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCH 1/2] driver: serial-omap: move max uart count into generic
- header file.
-Date: Tue, 19 Mar 2013 11:30:34 +0530
-Message-ID: <5147FF02.1070900@ti.com>
-References: <1363604206-11264-1-git-send-email-sourav.poddar@ti.com> <87r4jcim2h.fsf@linaro.org>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 6/8] SERIAL: OMAP: Remove the slave idle handling from
+ the driver
+Date: Tue, 19 Mar 2013 12:03:33 +0530
+Message-ID: <514806BD.2090808@ti.com>
+References: <1361354444-18230-1-git-send-email-santosh.shilimkar@ti.com> <87sj4rqa7r.fsf@linaro.org> <5124EF59.5080206@ti.com> <51419A3D.1000703@ti.com> <20130319001105.GA13449@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87r4jcim2h.fsf@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59465 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754988Ab3CSGcA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Mar 2013 02:32:00 -0400
+In-Reply-To: <20130319001105.GA13449@kroah.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Kevin Hilman <khilman@linaro.org>, linux-omap@vger.kernel.org, rnayak@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi Kevin,
-On Tuesday 19 March 2013 12:15 AM, Kevin Hilman wrote:
-> Sourav Poddar<sourav.poddar@ti.com>  writes:
->
->> OMAP_MAX_HSUART_PORTS is moved to omap_serial header file.
-> Why?
->
-The patch is a prerequisitive for the next patch in the series, where I am
-making use of the max number of uarts, omap device supports. Hence, I
-am rearranging the macro from a driver file to a header file. So, it can 
-be used at
-multiple places.
-> You started to explain it in the cover letter, but a full description
-> belongs here for the permanent git history.
->
-Sure, I will add the complete description for this here itself in my next
-version.
-> Kevin
->
->> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
->> Cc: Felipe Balbi<balbi@ti.com>
->> Cc: Rajendra nayak<rnayak@ti.com>
->> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
->> ---
->>   drivers/tty/serial/omap-serial.c          |    2 --
->>   include/linux/platform_data/serial-omap.h |    1 +
->>   2 files changed, 1 insertions(+), 2 deletions(-)
+On Tuesday 19 March 2013 05:41 AM, Greg Kroah-Hartman wrote:
+> On Thu, Mar 14, 2013 at 03:07:01PM +0530, Santosh Shilimkar wrote:
+>> (Looping Greg KH.)
 >>
->> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
->> index 5722eaf..4c2ba9f 100644
->> --- a/drivers/tty/serial/omap-serial.c
->> +++ b/drivers/tty/serial/omap-serial.c
->> @@ -43,8 +43,6 @@
->>   #include<linux/pinctrl/consumer.h>
->>   #include<linux/platform_data/serial-omap.h>
+>> Greg,
 >>
->> -#define OMAP_MAX_HSUART_PORTS	6
->> -
->>   #define UART_BUILD_REVISION(x, y)	(((x)<<  8) | (y))
+
+[..]
+
+>>>
+>> Sorry for not CC'ing first place
+>> The subject patch is part of the series which cleans up the slave
+>> idle handling from OMAP serial driver. It will be best to queue
+>> it along with rest of the patches with your ack on $subject patch.
 >>
->>   #define OMAP_UART_REV_42 0x0402
->> diff --git a/include/linux/platform_data/serial-omap.h b/include/linux/platform_data/serial-omap.h
->> index ff9b0aa..92c48c2 100644
->> --- a/include/linux/platform_data/serial-omap.h
->> +++ b/include/linux/platform_data/serial-omap.h
->> @@ -29,6 +29,7 @@
->>    * is used as console uart.
->>    */
->>   #define OMAP_SERIAL_NAME	"ttyO"
->> +#define OMAP_MAX_HSUART_PORTS   6
+>> Here is the updated version which also removed the hooks
+>> from 'linux/platform_data/serial-omap.h' as per Kevin suggestion.
 >>
->>   struct omap_uart_port_info {
->>   	bool			dma_enabled;	/* To specify DMA Mode */
+>> >From 92916b8e0d895962c88fefbf99284967a4b94426 Mon Sep 17 00:00:00 2001
+>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> Date: Fri, 15 Feb 2013 15:50:37 +0530
+>> Subject: [PATCH 6/8] SERIAL: OMAP: Remove the slave idle handling from the
+>>  driver
+>>
+>> UART IP slave idle handling now taken care by runtime pm backend(hwmod layer)
+>> so remove the hackery from the driver.
+>>
+>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>>
+>> Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>> Tested-by: Sourav Poddar <sourav.poddar@ti.com>
+>> Signed-off-by: Rajendra nayak <rnayak@ti.com>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> 
+> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> 
+Thanks Greg !!
+
+Regards,
+Santosh
