@@ -1,30 +1,30 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 3/8] ARM: dts: OMAP3: use twl4030 vdd1 regulator for CPU
-Date: Tue, 19 Mar 2013 12:53:05 -0500
-Message-ID: <1363715590-5131-4-git-send-email-nm@ti.com>
+Subject: [PATCH V2 1/8] ARM: dts: OMAP34xx/35xx: Add CPU OPP table
+Date: Tue, 19 Mar 2013 12:53:03 -0500
+Message-ID: <1363715590-5131-2-git-send-email-nm@ti.com>
 References: <1363715590-5131-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <cpufreq-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 In-Reply-To: <1363715590-5131-1-git-send-email-nm@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
+Sender: linux-pm-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Jon Hunter <jon-hunter@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Define VDD1 regulator in twl4030 DT and mark it as the supply for the
-various OMAP34xx/35xx/36xx/37xx platforms (all use TWL4030 variants wit=
-h
-VDD1 supplying the CPU).
+Add DT OPP table for OMAP34xx/35xx family of devices. This data is
+decoded by OF with of_init_opp_table() helper function.
 
-NOTE: This currently will use I2C1 bus communication path to set the
-voltage in device tree boot. In the legacy non device tree boot, we
-continue to use twl-common.c which bypasses I2C1 bus communication path
-and uses I2C4 bus path using OMAP voltage libraries. We should
-eventually be able to use I2C4 path once we have voltage regulator for
-OMAP which is capable of using the voltage controller/voltage processor
-IP blocks.
+OPP data here is based on existing opp3xxx_data.c
+
+Since the omap36xx OPP tables would be different from OMAP34xx/35xx,
+introduce an new omap34xx.dtsi for 34xx/35xx specific entries and use
+existing omap3.dtsi as the common dtsi file for all OMAP3 platforms.
+
+This is in preparation to use generic cpufreq-cpu0 driver for device
+tree enabled boot. Legacy non device tree enabled boot continues to
+use omap-cpufreq.c and opp3xxx_data.c.
 
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Jon Hunter <jon-hunter@ti.com>
@@ -41,87 +41,174 @@ Cc: linux-pm@vger.kernel.org
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
 Changes in V2:
-	- little more verbose commit log (no functional changes)
-V1: https://patchwork.kernel.org/patch/2273701/
+	- introduce omap34xx.dtsi
+	- donot delete the OPP table entries in omap3xxx_data.c
+	- little more verbose commit log
+V1: https://patchwork.kernel.org/patch/2273571/
 
- arch/arm/boot/dts/omap3-beagle-xm.dts |    6 ++++++
- arch/arm/boot/dts/omap3-beagle.dts    |    6 ++++++
- arch/arm/boot/dts/omap3-evm.dts       |    6 ++++++
- arch/arm/boot/dts/twl4030.dtsi        |    6 ++++++
- 4 files changed, 24 insertions(+)
+ arch/arm/boot/dts/am3517-evm.dts        |    2 +-
+ arch/arm/boot/dts/am3517_mt_ventoux.dts |    2 +-
+ arch/arm/boot/dts/omap3-beagle.dts      |    2 +-
+ arch/arm/boot/dts/omap3-devkit8000.dts  |    2 +-
+ arch/arm/boot/dts/omap3-evm.dts         |    2 +-
+ arch/arm/boot/dts/omap3-igep.dtsi       |    2 +-
+ arch/arm/boot/dts/omap3-overo.dtsi      |    2 +-
+ arch/arm/boot/dts/omap3430-sdp.dts      |    2 +-
+ arch/arm/boot/dts/omap34xx.dtsi         |   28 +++++++++++++++++++++++=
++++++
+ 9 files changed, 36 insertions(+), 8 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap34xx.dtsi
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/=
-omap3-beagle-xm.dts
-index 1177ff6..5a31964 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -13,6 +13,12 @@
- 	model =3D "TI OMAP3 BeagleBoard xM";
- 	compatible =3D "ti,omap3-beagle-xm, ti,omap3-beagle", "ti,omap3";
+diff --git a/arch/arm/boot/dts/am3517-evm.dts b/arch/arm/boot/dts/am351=
+7-evm.dts
+index 474f760..e9b5bda 100644
+--- a/arch/arm/boot/dts/am3517-evm.dts
++++ b/arch/arm/boot/dts/am3517-evm.dts
+@@ -7,7 +7,7 @@
+  */
+ /dts-v1/;
 =20
-+	cpus {
-+		cpu@0 {
-+			cpu0-supply =3D <&vcc>;
-+		};
-+	};
-+
- 	memory {
- 		device_type =3D "memory";
- 		reg =3D <0x80000000 0x20000000>; /* 512 MB */
+-/include/ "omap3.dtsi"
++/include/ "omap34xx.dtsi"
+=20
+ / {
+ 	model =3D "TI AM3517 EVM (AM3517/05)";
+diff --git a/arch/arm/boot/dts/am3517_mt_ventoux.dts b/arch/arm/boot/dt=
+s/am3517_mt_ventoux.dts
+index 5eb26d7..5568683 100644
+--- a/arch/arm/boot/dts/am3517_mt_ventoux.dts
++++ b/arch/arm/boot/dts/am3517_mt_ventoux.dts
+@@ -7,7 +7,7 @@
+  */
+ /dts-v1/;
+=20
+-/include/ "omap3.dtsi"
++/include/ "omap34xx.dtsi"
+=20
+ / {
+ 	model =3D "TeeJet Mt.Ventoux";
 diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/oma=
 p3-beagle.dts
-index 418550c..07dea0a 100644
+index f624dc8..418550c 100644
 --- a/arch/arm/boot/dts/omap3-beagle.dts
 +++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -13,6 +13,12 @@
- 	model =3D "TI OMAP3 BeagleBoard";
- 	compatible =3D "ti,omap3-beagle", "ti,omap3";
+@@ -7,7 +7,7 @@
+  */
+ /dts-v1/;
 =20
-+	cpus {
-+		cpu@0 {
-+			cpu0-supply =3D <&vcc>;
-+		};
-+	};
-+
- 	memory {
- 		device_type =3D "memory";
- 		reg =3D <0x80000000 0x10000000>; /* 256 MB */
+-/include/ "omap3.dtsi"
++/include/ "omap34xx.dtsi"
+=20
+ / {
+ 	model =3D "TI OMAP3 BeagleBoard";
+diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts=
+/omap3-devkit8000.dts
+index 54d3da7..8a5cdcc 100644
+--- a/arch/arm/boot/dts/omap3-devkit8000.dts
++++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+@@ -7,7 +7,7 @@
+  */
+ /dts-v1/;
+=20
+-/include/ "omap3.dtsi"
++/include/ "omap34xx.dtsi"
+ / {
+ 	model =3D "TimLL OMAP3 Devkit8000";
+ 	compatible =3D "timll,omap3-devkit8000", "ti,omap3";
 diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-=
 evm.dts
-index f14370e..05f51e1 100644
+index 6e6f80d..f14370e 100644
 --- a/arch/arm/boot/dts/omap3-evm.dts
 +++ b/arch/arm/boot/dts/omap3-evm.dts
-@@ -13,6 +13,12 @@
- 	model =3D "TI OMAP3 EVM (OMAP3530, AM/DM37x)";
- 	compatible =3D "ti,omap3-evm", "ti,omap3";
+@@ -7,7 +7,7 @@
+  */
+ /dts-v1/;
 =20
+-/include/ "omap3.dtsi"
++/include/ "omap34xx.dtsi"
+=20
+ / {
+ 	model =3D "TI OMAP3 EVM (OMAP3530, AM/DM37x)";
+diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap=
+3-igep.dtsi
+index dd01c46..f8fe3b7 100644
+--- a/arch/arm/boot/dts/omap3-igep.dtsi
++++ b/arch/arm/boot/dts/omap3-igep.dtsi
+@@ -10,7 +10,7 @@
+  */
+ /dts-v1/;
+=20
+-/include/ "omap3.dtsi"
++/include/ "omap34xx.dtsi"
+=20
+ / {
+ 	memory {
+diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/oma=
+p3-overo.dtsi
+index 2d93a08..d4a7280 100644
+--- a/arch/arm/boot/dts/omap3-overo.dtsi
++++ b/arch/arm/boot/dts/omap3-overo.dtsi
+@@ -11,7 +11,7 @@
+  */
+ /dts-v1/;
+=20
+-/include/ "omap3.dtsi"
++/include/ "omap34xx.dtsi"
+=20
+ / {
+ 	pwmleds {
+diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/oma=
+p3430-sdp.dts
+index 535a6f9..05cd8ba 100644
+--- a/arch/arm/boot/dts/omap3430-sdp.dts
++++ b/arch/arm/boot/dts/omap3430-sdp.dts
+@@ -7,7 +7,7 @@
+  */
+ /dts-v1/;
+=20
+-/include/ "omap3.dtsi"
++/include/ "omap34xx.dtsi"
+=20
+ / {
+ 	model =3D "TI OMAP3430 SDP";
+diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34=
+xx.dtsi
+new file mode 100644
+index 0000000..75ed4ae
+--- /dev/null
++++ b/arch/arm/boot/dts/omap34xx.dtsi
+@@ -0,0 +1,28 @@
++/*
++ * Device Tree Source for OMAP34xx/OMAP35xx SoC
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.c=
+om/
++ *
++ * This file is licensed under the terms of the GNU General Public Lic=
+ense
++ * version 2.  This program is licensed "as is" without any warranty o=
+f any
++ * kind, whether express or implied.
++ */
++
++/include/ "omap3.dtsi"
++
++/ {
 +	cpus {
 +		cpu@0 {
-+			cpu0-supply =3D <&vcc>;
++			/* OMAP343x/OMAP35xx variants OPP1-5 */
++			operating-points =3D <
++				/* kHz    uV */
++				125000   975000
++				250000  1075000
++				500000  1200000
++				550000  1270000
++				600000  1350000
++			>;
++			clock-latency =3D <300000>; /* From legacy driver */
 +		};
 +	};
-+
- 	memory {
- 		device_type =3D "memory";
- 		reg =3D <0x80000000 0x10000000>; /* 256 MB */
-diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030=
-=2Edtsi
-index 23c0cdd..b3034da 100644
---- a/arch/arm/boot/dts/twl4030.dtsi
-+++ b/arch/arm/boot/dts/twl4030.dtsi
-@@ -23,6 +23,12 @@
- 		compatible =3D "ti,twl4030-wdt";
- 	};
-=20
-+	vcc: regulator-vdd1 {
-+		compatible =3D "ti,twl4030-vdd1";
-+		regulator-min-microvolt =3D <600000>;
-+		regulator-max-microvolt =3D <1450000>;
-+	};
-+
- 	vdac: regulator-vdac {
- 		compatible =3D "ti,twl4030-vdac";
- 		regulator-min-microvolt =3D <1800000>;
++};
 --=20
 1.7.9.5
 
