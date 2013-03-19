@@ -1,45 +1,52 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 01/11] ARM: dts: omap5-evm: Update available memory to 2032 MB
-Date: Tue, 19 Mar 2013 19:00:47 +0530
-Message-ID: <1363699857-5505-2-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 03/11] ARM: dts: OMAP5: Specify nonsecure PPI IRQ for arch timer
+Date: Tue, 19 Mar 2013 19:00:49 +0530
+Message-ID: <1363699857-5505-4-git-send-email-santosh.shilimkar@ti.com>
 References: <1363699857-5505-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57859 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754808Ab3CSN3e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Mar 2013 09:29:34 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:50275 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754808Ab3CSN3g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Mar 2013 09:29:36 -0400
 In-Reply-To: <1363699857-5505-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: b-cousson@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On OMAP5 to detect invalid/bad memory accesses, 16MB of DDR is used as a trap.
-Hence available memory for linux OS is 2032 MB on boards popullated with 2 GB
-memory.
+From: Rajendra Nayak <rnayak@ti.com>
+
+Specify both secure as well as nonsecure PPI IRQ for arch
+timer. This fixes the following errors seen on DT OMAP5 boot..
+
+[    0.000000] arch_timer: No interrupt available, giving up
 
 Cc: Benoit Cousson <b-cousson@ti.com>
 
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/boot/dts/omap5-evm.dts |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/omap5.dtsi |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
-index 64edd51..982acd1 100644
---- a/arch/arm/boot/dts/omap5-evm.dts
-+++ b/arch/arm/boot/dts/omap5-evm.dts
-@@ -16,7 +16,7 @@
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index aefecf7..71be239 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -41,8 +41,9 @@
  
- 	memory {
- 		device_type = "memory";
--		reg = <0x80000000 0x80000000>; /* 2 GB */
-+		reg = <0x80000000 0x7F000000>; /* 2032 MB */
+ 	timer {
+ 		compatible = "arm,armv7-timer";
+-		/* 14th PPI IRQ, active low level-sensitive */
+-		interrupts = <1 14 0x308>;
++		/* PPI secure/nonsecure IRQ, active low level-sensitive */
++		interrupts = <1 13 0x308>,
++			     <1 14 0x308>;
+ 		clock-frequency = <6144000>;
  	};
  
- 	vmmcsd_fixed: fixedregulator-mmcsd {
 -- 
 1.7.9.5
 
