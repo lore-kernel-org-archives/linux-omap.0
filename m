@@ -1,66 +1,46 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 5/6] OF: Introduce Device Tree resolve support.
-Date: Tue, 19 Mar 2013 17:18:48 +0000
-Message-ID: <20130319171848.733493E33F5@localhost>
-References: <1357327870-13615-1-git-send-email-panto@antoniou-consulting.com> <1357327870-13615-6-git-send-email-panto@antoniou-consulting.com> <20130121044836.GB24829@truffula.fritz.box> <EEEDB0B2-7410-456B-BED7-89FD5E407553@antoniou-consulting.com> <20130122040524.GG23500@truffula.fritz.box> <AB11FABF-6A45-493D-869D-7549FD758DD2@antoniou-consulting.com> <20130123044041.GS23500@truffula.fritz.box> <060132B1-BB52-4C7F-B8D3-82B49BE49BB7@antoniou-consulting.com> <20130316092435.9FA4B3E095B@localhost> <6BBAEB5D-D4E0-4276-B3B8-468C30547E75@antoniou-consulting.com>
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <6BBAEB5D-D4E0-4276-B3B8-468C30547E75@antoniou-consulting.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL]: ARM: OMAP: miscellaneous PM/clock fixes for 3.9-rc
+Date: Tue, 19 Mar 2013 11:21:39 -0700
+Message-ID: <20130319182139.GD16413@atomide.com>
+References: <alpine.DEB.2.00.1303141850230.28203@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56423 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933386Ab3CSSVm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Mar 2013 14:21:42 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1303141850230.28203@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, 19 Mar 2013 13:51:01 +0200, Pantelis Antoniou <panto@antoniou-consulting.com> wrote:
-> Hi Grant,
+* Paul Walmsley <paul@pwsan.com> [130314 11:56]:
+> Hi Tony,
 > 
-> On Mar 16, 2013, at 11:24 AM, Grant Likely wrote:
+> The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b6ec9:
 > 
-> > On Wed, 23 Jan 2013 12:58:02 +0200, Pantelis Antoniou <panto@antoniou-consulting.com> wrote:
-> >> Hi David,
-> >> 
-> >> On Jan 23, 2013, at 6:40 AM, David Gibson wrote:
-> >>> Ok.  Nonetheless it's not hard to avoid a recursive approach here.
-> >> 
-> >> How can I find the maximum phandle value of a subtree without using recursion.
-> >> Note that the whole function is just 6 lines long.
-> > 
-> > It's a failure in the existing kernel DT data structures. We need a hash
-> > lookup for the phandles to eliminate the search entirely. Then you'd be
-> > able to allocated new phandles on the fly easily and resolve phandles
-> > without searching the whole tree (which has always been horrible).
-> > 
+>   Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
 > 
-> Yes, it is pretty obvious that the in-kernel data structures are sub-optimal.
-> But I was not after modifying them, since that's a different kind of problem.
-
-Think about it this way; fixing up that aspect of the data structure
-makes the job you're trying to do a lot easier. I don't feel bad about
-asking you to add a radix tree for phandle lookups when it makes your
-patches a whole lot better.  :-)
-
-> Since we're having a 'sub-optimal' data structures, I'd like to point out that
-> the usage of of_find_by_name(), mostly by drivers trying to find a child
-> of their own node, works by a lucky accident of how the device nodes are instantiated
-> by the flat tree loader. Most of the use cases should be replaced by a call
-> to of_get_child_by_name() which does the right thing.
-
-It is true. In fact, calling of_find_node_by_name() when using .dtb is
-most likely a bug since using node name to determine behaviour is
-strongly discouraged.
-
-> Fair enough, but be warned that phandle resolution the overlay feature is mostly useless.
+> are available in the git repository at:
 > 
-> In actual practice the amount of driver nodes that can be overlaid without a single case
-> of referencing phandles outside (or within) their own blob is close to zero.
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-a-for-3.9-rc
+> 
+> for you to fetch changes up to 92702df3570e1ccfa050e135e50c450502251b79:
+> 
+>   ARM: OMAP4: PM: fix PM regression introduced by recent clock cleanup (2013-03-13 04:27:32 -0600)
+> 
+> ----------------------------------------------------------------
+> Miscellaneous OMAP fixes for v3.9-rc.  These primarily deal with OMAP2+ power
+> management regressions.  There's also a fix for the OMAP1 OHCI controller.
+> 
+> Basic build, boot, and PM test logs are at:
+> 
+>     http://www.pwsan.com/omap/testlogs/fixes_a_3.9-rc/20130314101856/
+> 
 
-That's not what I'm saying. I'm saying that (at least for now) we should
-require the overlay to already know the phandles from the parent and to
-refuse to load an overlay that defines phandles already in use in the
-base. Overlays do become usable at that point. A mechanism for phandle
-resolution so that conflicts can be found and resolved can be added
-as a feature enhancement. By splitting it out you'll be able to get the
-overlay feature merged even if we don't have agreement on the resolution
-mechanism yet.
+Thanks pulling into omap-for-v3.9-rc3/fixes.
 
-g.
-
+Tony
