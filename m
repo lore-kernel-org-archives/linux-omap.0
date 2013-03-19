@@ -1,60 +1,108 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 5/6] OF: Introduce Device Tree resolve support.
-Date: Tue, 19 Mar 2013 13:51:01 +0200
-Message-ID: <6BBAEB5D-D4E0-4276-B3B8-468C30547E75@antoniou-consulting.com>
-References: <1357327870-13615-1-git-send-email-panto@antoniou-consulting.com> <1357327870-13615-6-git-send-email-panto@antoniou-consulting.com> <20130121044836.GB24829@truffula.fritz.box> <EEEDB0B2-7410-456B-BED7-89FD5E407553@antoniou-consulting.com> <20130122040524.GG23500@truffula.fritz.box> <AB11FABF-6A45-493D-869D-7549FD758DD2@antoniou-consulting.com> <20130123044041.GS23500@truffula.fritz.box> <060132B1-BB52-4C7F-B8D3-82B49BE49BB7@antoniou-consulting.com> <20130316092435.9FA4B3E095B@localhost>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130316092435.9FA4B3E095B@localhost>
-Sender: linux-doc-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: David Gibson <david@gibson.dropbear.id.au>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>
+From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/5] usb: musb: am335x support
+Date: Tue, 19 Mar 2013 14:10:21 +0100
+Message-ID: <514863BD.5010503@gmail.com>
+References: <cover.1351870620.git.afzal@ti.com> <509420D8.1030307@gmail.com> <C8443D0743D26F4388EA172BF4E2A7A93EA0A1F2@DBDE01.ent.ti.com> <51312430.6060306@gmail.com> <87sj4cunp6.fsf@dell.be.48ers.dk> <5133E268.5010604@gmail.com> <51388D64.9000005@gmail.com> <513A1580.90303@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <513A1580.90303-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
+Cc: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "Santhapuri, Damodar" <damodar.santhapuri-l0cyMroinI0@public.gmane.org>, "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grant,
-
-On Mar 16, 2013, at 11:24 AM, Grant Likely wrote:
-
-> On Wed, 23 Jan 2013 12:58:02 +0200, Pantelis Antoniou <panto@antoniou-consulting.com> wrote:
->> Hi David,
->> 
->> On Jan 23, 2013, at 6:40 AM, David Gibson wrote:
->>> Ok.  Nonetheless it's not hard to avoid a recursive approach here.
->> 
->> How can I find the maximum phandle value of a subtree without using recursion.
->> Note that the whole function is just 6 lines long.
+On 08.03.2013 17:44, Daniel Mack wrote:
+> On 07.03.2013 13:51, Daniel Mack wrote:
+>> On 04.03.2013 00:53, Daniel Mack wrote:
+>>> Hi Peter,
+>>>
+>>> On 03.03.2013 23:24, Peter Korsgaard wrote:
+>>>>>>>>> "Daniel" == Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+>>>>
+>>>> Hi,
+>>>>
+>>>>  Daniel> On my board, the USB is purely used as host interface, with a
+>>>>  Daniel> type B plug soldered. In the DT, I'm using the following
+>>>>  Daniel> sniplet in accordance to the documentation of the bindings:
+>>>>
+>>>>  Daniel> 	usb_otg_hs: usb@47400000 {
+>>>>  Daniel> 		compatible = "ti,musb-am33xx";
+>>>>  Daniel> 		reg = <0x47400000 0x1000	/* usbss */
+>>>>  Daniel> 		       0x47401000 0x800		/* musb instance 0 */
+>>>>  Daniel> 		       0x47401800 0x800>;	/* musb instance 1 */
+>>>>  Daniel> 		interrupt-parent = <&intc>;
+>>>>  Daniel> 		interrupts = <17		/* usbss */
+>>>>  Daniel> 			      18		/* musb instance 0 */
+>>>>  19> ;		/* musb instance 1 */
+>>>>  Daniel> 		multipoint = <1>;
+>>>>  Daniel> 		num-eps = <16>;
+>>>>  Daniel> 		ram-bits = <12>;
+>>>>  Daniel> 		port0-mode = <3>;
+>>>>  Daniel> 		port1-mode = <3>;
+>>>>  Daniel> 		power = <250>;
+>>>>  Daniel> 		ti,hwmods = "usb_otg_hs";
+>>>>  Daniel> 	};
+>>>>
+>>>>  Daniel> The relevant config options are
+>>>>
+>>>>  Daniel> CONFIG_USB_MUSB_HDRC=y
+>>>>  Daniel> # CONFIG_USB_MUSB_TUSB6010 is not set
+>>>>  Daniel> # CONFIG_USB_MUSB_OMAP2PLUS is not set
+>>>>  Daniel> # CONFIG_USB_MUSB_AM35X is not set
+>>>>  Daniel> CONFIG_USB_MUSB_DSPS=y
+>>>>  Daniel> CONFIG_MUSB_PIO_ONLY=y
+>>>>  Daniel> CONFIG_USB_GADGET=y
+>>>>  Daniel> CONFIG_USB_GADGET_DEBUG=y
+>>>>  Daniel> CONFIG_USB_GADGET_DEBUG_FILES=y
+>>>>  Daniel> CONFIG_USB_GADGET_DEBUG_FS=y
+>>>>  Daniel> CONFIG_USB_GADGET_VBUS_DRAW=2
+>>>>  Daniel> CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS=2
+>>>>  Daniel> CONFIG_USB_GADGET_MUSB_HDRC=y
+>>>>
+>>>> Ehh, I'm confused here. You talk about host mode, a single 'B' (gadget)
+>>>> connector
+>>>
+>>> I'm sorry for the confusion caused. This is a stupid mistake - I'm in
+>>> fact talking about an 'A' type plug of course (host mode).
+>>>
+>>>> and your device tree mentions 2 OTG ports.
+>>>
+>>> That's what I said in a follow up - the same happens for mode '1'.
+>>>
+>>>> What is the configuration exactly?
+>>>
+>>> Again to summarize: host-only mode, type 'A' plug.
+>>>
+>>> The gadget driver is is enabled in the config because the only
+>>> occurrence of usb_add_hcd() in the musb driver is in the gagdget part,
+>>> so supposedly, there has to be a gadget driver loaded in order to make
+>>> the host interface going.
+>>
+>> Just be clear: I'd happily help and dig for the reason of this, I'd just
+>> need to know how things are _supposed_ to work ...
 > 
-> It's a failure in the existing kernel DT data structures. We need a hash
-> lookup for the phandles to eliminate the search entirely. Then you'd be
-> able to allocated new phandles on the fly easily and resolve phandles
-> without searching the whole tree (which has always been horrible).
+> So I dug a little on this topic, and restored the behaviour I need with
+> the attached patch.
 > 
-
-Yes, it is pretty obvious that the in-kernel data structures are sub-optimal.
-But I was not after modifying them, since that's a different kind of problem.
-
-Since we're having a 'sub-optimal' data structures, I'd like to point out that
-the usage of of_find_by_name(), mostly by drivers trying to find a child
-of their own node, works by a lucky accident of how the device nodes are instantiated
-by the flat tree loader. Most of the use cases should be replaced by a call
-to of_get_child_by_name() which does the right thing.
-
-> That said, I'd like to punt on the whole phandle resolution thing. The
-> DT overlay support can be merged without the phandle resolution support
-> if the core rejects any overlays with phandle collisions.
+> The funny part is that the value set in the port0-mode/port1-mode DT
+> properties are not even looked at by the code.
 > 
+> I know this patch reintroduces bits that have been intentionally removed
+> before, in particular by 032ec49f53 ("usb: musb: drop useless board_mode
+> usage"), but I don't know how this usb driver is supposed to work in
+> host mode without taking the configured port mode into account. If
+> anyone can explain to me which information I'm missing here, I can
+> happily test a patch. For now, this works for me.
+
+Hmm, nobody, really? Am I the only one who's running the musb driver in
+host-only mode?
 
 
-Fair enough, but be warned that phandle resolution the overlay feature is mostly useless.
+Daniel
 
-In actual practice the amount of driver nodes that can be overlaid without a single case
-of referencing phandles outside (or within) their own blob is close to zero.
-
-> g.
-
-Regards
-
--- Pantelis
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
