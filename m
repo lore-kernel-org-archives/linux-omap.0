@@ -1,53 +1,120 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: Beagleboard xM - Bogomips are very low
-Date: Tue, 19 Mar 2013 11:09:39 -0500
-Message-ID: <20130319160938.GA31417@kahuna>
-References: <5148819A.5040500@free.fr>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH V4 01/18] ARM: OMAP2+: Simplify code configuring ONENAND devices
+Date: Tue, 19 Mar 2013 11:35:39 -0500
+Message-ID: <1363710956-26773-2-git-send-email-jon-hunter@ti.com>
+References: <1363710956-26773-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60977 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34060 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756899Ab3CSQJl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Mar 2013 12:09:41 -0400
-Content-Disposition: inline
-In-Reply-To: <5148819A.5040500@free.fr>
+	id S1757014Ab3CSQgS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:36:18 -0400
+In-Reply-To: <1363710956-26773-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Guillaume Gardet <guillaume.gardet@free.fr>
-Cc: linux-omap@vger.kernel.org
+To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Daniel Mack <zonque@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Mark Jackson <mpfj-list@mimc.co.uk>, Jon Hunter <jon-hunter@ti.com>
 
-On 16:17-20130319, Guillaume Gardet wrote:
-> Hi,
-> 
-> On a Beagleboard xM rev. B, I noticed that vanilla kernel 3.4.6 have the folowing bogomips for 300MHz and 800 MHz operations: 262.08 and 700.57.
-> 
-> With kernel 3.7.10, I have : 175.65 and 467.41 bogompis.
-> 
-> Any idea why bogomips are so low now?
-using my DTS cpufreq series (which I am about to post to linux-omap):
-https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cpu0-omap-all-v2
-and a test script:
-http://pastebin.com/zrr8ptge
+The OMAP2+ code that configures the GPMC for ONENAND devices is copying
+structures between functions unnecessarily. Avoid this by passing
+pointers instead and simplify the code.
 
-I See (3.9-rc3):
-http://pastebin.com/4JCV3dnX
+A pointer to structure "omap_onenand_platform_data" is passed to the
+function omap2_onenand_calc_sync_timings(), but only the flags member
+of the structure is used. Simplify the code by only passing the flags
+member and not the entire structure.
 
-bogomips@ boot:
-BogoMIPS        : 395.67
-Boot scaling frequency =600000
-TESTING for 1 seconds at 300000
-current scaling frequency(for 300000) =300000
-bogomips@ frequency 300000:
-BogoMIPS        : 197.83
-TESTING for 1 seconds at 600000
-current scaling frequency(for 600000) =600000
-bogomips@ frequency 600000:
-BogoMIPS        : 395.67
-TESTING for 1 seconds at 800000
-current scaling frequency(for 800000) =800000
-bogomips@ frequency 800000:
-BogoMIPS        : 527.56
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ arch/arm/mach-omap2/gpmc-onenand.c |   26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index 4c91752..db52c4b 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -47,10 +47,9 @@ static struct platform_device gpmc_onenand_device = {
+ 	.resource	= &gpmc_onenand_resource,
+ };
+ 
+-static struct gpmc_timings omap2_onenand_calc_async_timings(void)
++static void omap2_onenand_calc_async_timings(struct gpmc_timings *t)
+ {
+ 	struct gpmc_device_timings dev_t;
+-	struct gpmc_timings t;
+ 
+ 	const int t_cer = 15;
+ 	const int t_avdp = 12;
+@@ -76,9 +75,7 @@ static struct gpmc_timings omap2_onenand_calc_async_timings(void)
+ 	dev_t.t_wpl = t_wpl * 1000;
+ 	dev_t.t_wph = t_wph * 1000;
+ 
+-	gpmc_calc_timings(&t, &dev_t);
+-
+-	return t;
++	gpmc_calc_timings(t, &dev_t);
+ }
+ 
+ static int gpmc_set_async_mode(int cs, struct gpmc_timings *t)
+@@ -158,12 +155,11 @@ static int omap2_onenand_get_freq(struct omap_onenand_platform_data *cfg,
+ 	return freq;
+ }
+ 
+-static struct gpmc_timings
+-omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+-				int freq)
++static void omap2_onenand_calc_sync_timings(struct gpmc_timings *t,
++					    unsigned int flags,
++					    int freq)
+ {
+ 	struct gpmc_device_timings dev_t;
+-	struct gpmc_timings t;
+ 	const int t_cer  = 15;
+ 	const int t_avdp = 12;
+ 	const int t_cez  = 20; /* max of t_cez, t_oez */
+@@ -172,9 +168,9 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+ 	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
+ 	int div, gpmc_clk_ns;
+ 
+-	if (cfg->flags & ONENAND_SYNC_READ)
++	if (flags & ONENAND_SYNC_READ)
+ 		onenand_flags = ONENAND_FLAG_SYNCREAD;
+-	else if (cfg->flags & ONENAND_SYNC_READWRITE)
++	else if (flags & ONENAND_SYNC_READWRITE)
+ 		onenand_flags = ONENAND_FLAG_SYNCREAD | ONENAND_FLAG_SYNCWRITE;
+ 
+ 	switch (freq) {
+@@ -265,9 +261,7 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+ 	dev_t.cyc_aavdh_oe = 1;
+ 	dev_t.t_rdyo = t_rdyo * 1000 + min_gpmc_clk_period;
+ 
+-	gpmc_calc_timings(&t, &dev_t);
+-
+-	return t;
++	gpmc_calc_timings(t, &dev_t);
+ }
+ 
+ static int gpmc_set_sync_mode(int cs, struct gpmc_timings *t)
+@@ -300,7 +294,7 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
+ 
+ 	omap2_onenand_set_async_mode(onenand_base);
+ 
+-	t = omap2_onenand_calc_async_timings();
++	omap2_onenand_calc_async_timings(&t);
+ 
+ 	ret = gpmc_set_async_mode(gpmc_onenand_data->cs, &t);
+ 	if (ret < 0)
+@@ -322,7 +316,7 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
+ 		set_onenand_cfg(onenand_base);
+ 	}
+ 
+-	t = omap2_onenand_calc_sync_timings(gpmc_onenand_data, freq);
++	omap2_onenand_calc_sync_timings(&t, gpmc_onenand_data->flags, freq);
+ 
+ 	ret = gpmc_set_sync_mode(gpmc_onenand_data->cs, &t);
+ 	if (ret < 0)
 -- 
-Regards,
-Nishanth Menon
+1.7.10.4
+
