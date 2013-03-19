@@ -1,74 +1,54 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: OMAP baseline test results for v3.9-rc3
-Date: Tue, 19 Mar 2013 11:12:53 +0200
-Message-ID: <1363684373.15426.137.camel@sokoban>
-References: <alpine.DEB.2.00.1303181536230.29332@utopia.booyaka.com>
-	 <51482707.6020501@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: [PATCH] ARM: OMAP: remove "config FB_OMAP_CONSISTENT_DMA_SIZE"
+Date: Tue, 19 Mar 2013 11:07:57 +0100
+Message-ID: <1363687677.1390.6.camel@x61.thuisdomein>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45264 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932199Ab3CSJM6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Mar 2013 05:12:58 -0400
-In-Reply-To: <51482707.6020501@ti.com>
+Received: from cpsmtpb-ews08.kpnxchange.com ([213.75.39.13]:63581 "EHLO
+	cpsmtpb-ews08.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750709Ab3CSKIA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Mar 2013 06:08:00 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 2013-03-19 at 14:21 +0530, Santosh Shilimkar wrote:
-> + Tero,
-> 
-> On Monday 18 March 2013 09:08 PM, Paul Walmsley wrote:
-> > 
-> > Here are some basic OMAP test results for Linux v3.9-rc3.
-> > Logs and other details at:
-> > 
-> >     http://www.pwsan.com/omap/testlogs/test_v3.9-rc3/20130314094808/
-> > 
-> > 
-> > Test summary
-> > ------------
-> > 
-> Thanks for the summary Paul. A usual, it is quite exhaustive. Few
-> questions and comments below.
-> 
-> [..]
-> 
-> > Failing tests: needing investigation
-> > ------------------------------------
-> > 
-> 
-> [..]
-> 
-> > PM tests:
-> > 
-> [..]
-> 
-> > 
-> > * 4430es2panda, 4460pandaes: pwrdm state mismatch on CAM, DSS, ABE
-> > 
-> I thought we discussed about boot-loader dependency already. 
-> 
-> > * 4460pandaes: pwrdm state mismatch on IVAHD, TESLA 
-> > 
-> Same here.
-> 
-> > * 4430es2panda: CORE, TESLA, IVAHD, L3INIT didn't enter target state
-> >   - Probably due to lack of reset code for M3, DSP, SL2IF, FSUSB
-> >     per discussion with Tero Kristo
-> >   - Likely dependent on the bootloader version
-> >     - fails with 2012.07-00136-g755de79
-> > 
-> Do you still see the issue after upgrading the boot-loader version ?
+The only user of Kconfig symbol FB_OMAP_CONSISTENT_DMA_SIZE got removed
+in v3.8, with commit 6ba54ab4a49bbad736b0254aa6bdf0cb83013815 ("ARM:
+OMAP: Remove omap_init_consistent_dma_size()"). Remove this symbol too.
 
-I think you should definitely upgrade your bootloader, the old one you
-are using is prone to cause trouble due to bugs it has, and we have no
-simple way to workaround the issues it causes on kernel side.
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+Eyeball tested only.
 
--Tero
+ drivers/video/omap/Kconfig | 11 -----------
+ 1 file changed, 11 deletions(-)
 
+diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
+index e512581..0bc3a93 100644
+--- a/drivers/video/omap/Kconfig
++++ b/drivers/video/omap/Kconfig
+@@ -39,17 +39,6 @@ config FB_OMAP_LCD_MIPID
+ 	  the Mobile Industry Processor Interface DBI-C/DCS
+ 	  specification. (Supported LCDs: Philips LPH8923, Sharp LS041Y3)
+ 
+-config FB_OMAP_CONSISTENT_DMA_SIZE
+-	int "Consistent DMA memory size (MB)"
+-	depends on FB_OMAP
+-	range 1 14
+-	default 2
+-	help
+-	  Increase the DMA consistent memory size according to your video
+-	  memory needs, for example if you want to use multiple planes.
+-	  The size must be 2MB aligned.
+-	  If unsure say 1.
+-
+ config FB_OMAP_DMA_TUNE
+         bool "Set DMA SDRAM access priority high"
+         depends on FB_OMAP
+-- 
+1.7.11.7
 
