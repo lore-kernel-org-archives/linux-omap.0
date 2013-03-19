@@ -1,54 +1,50 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: [PATCH] ARM: OMAP: remove "config FB_OMAP_CONSISTENT_DMA_SIZE"
-Date: Tue, 19 Mar 2013 11:07:57 +0100
-Message-ID: <1363687677.1390.6.camel@x61.thuisdomein>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if
+ system supports 'has_ossr'
+Date: Tue, 19 Mar 2013 10:28:03 +0000
+Message-ID: <20130319102803.GB22452@mudshark.cambridge.arm.com>
+References: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com>
+ <51406BA7.8010306@arm.com>
+ <51407120.7030709@ti.com>
+ <51417E58.5050501@ti.com>
+ <20130315050014.GA15706@tiny-lites>
+ <5146B972.1010002@ti.com>
+ <20130318150724.GC28585@mudshark.cambridge.arm.com>
+ <514736D4.4070906@ti.com>
+ <20130318170649.GA29585@mudshark.cambridge.arm.com>
+ <5148082A.3060503@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cpsmtpb-ews08.kpnxchange.com ([213.75.39.13]:63581 "EHLO
-	cpsmtpb-ews08.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750709Ab3CSKIA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Mar 2013 06:08:00 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5148082A.3060503@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Will Deacon <will@willdeacon.co.uk>, Lokesh Vutla <lokeshvutla@ti.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The only user of Kconfig symbol FB_OMAP_CONSISTENT_DMA_SIZE got removed
-in v3.8, with commit 6ba54ab4a49bbad736b0254aa6bdf0cb83013815 ("ARM:
-OMAP: Remove omap_init_consistent_dma_size()"). Remove this symbol too.
+On Tue, Mar 19, 2013 at 06:39:38AM +0000, Santosh Shilimkar wrote:
+> On Monday 18 March 2013 10:36 PM, Will Deacon wrote:
+> > Any chance you could follow up with your firmware/hardware guys about this
+> > please? I'd really like to understand how we end up in this state in case we
+> > can do something in the architecture to stop it from happening in future.
+> > 
+> I will check on this part and update you when I hear from them.
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-Eyeball tested only.
+Ok, thanks.
 
- drivers/video/omap/Kconfig | 11 -----------
- 1 file changed, 11 deletions(-)
+Dietmar -- I seem to remember that you thought GDB did actually work with
+hardware breakpoints on Pandaboard across low-power states. Can you
+confirm/deny this please?
 
-diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
-index e512581..0bc3a93 100644
---- a/drivers/video/omap/Kconfig
-+++ b/drivers/video/omap/Kconfig
-@@ -39,17 +39,6 @@ config FB_OMAP_LCD_MIPID
- 	  the Mobile Industry Processor Interface DBI-C/DCS
- 	  specification. (Supported LCDs: Philips LPH8923, Sharp LS041Y3)
- 
--config FB_OMAP_CONSISTENT_DMA_SIZE
--	int "Consistent DMA memory size (MB)"
--	depends on FB_OMAP
--	range 1 14
--	default 2
--	help
--	  Increase the DMA consistent memory size according to your video
--	  memory needs, for example if you want to use multiple planes.
--	  The size must be 2MB aligned.
--	  If unsure say 1.
--
- config FB_OMAP_DMA_TUNE
-         bool "Set DMA SDRAM access priority high"
-         depends on FB_OMAP
--- 
-1.7.11.7
+> > Well, we could just add the warn_once prints but that doesn't stop debug
+> > from breaking after the first pm/suspend/hotplug operation.
+> > 
+> Probably we should drop the $subject patch approach and use warn_once
+> at least for current rc. Ofcourse it doesn't help to get working
+> hw_breakpoint support. Patch end of the email with warn_once.
 
+Yeah, I'll merge that, but it's a real shame that this breaks hardware debug
+on one of the few platforms where it was reported to work.
+
+Will
