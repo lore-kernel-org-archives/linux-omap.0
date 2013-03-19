@@ -1,30 +1,34 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 1/8] ARM: dts: OMAP34xx/35xx: Add CPU OPP table
-Date: Tue, 19 Mar 2013 12:53:03 -0500
-Message-ID: <1363715590-5131-2-git-send-email-nm@ti.com>
+Subject: [PATCH V2 4/8] ARM: dts: OMAP443x: Add CPU OPP table
+Date: Tue, 19 Mar 2013 12:53:06 -0500
+Message-ID: <1363715590-5131-5-git-send-email-nm@ti.com>
 References: <1363715590-5131-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45140 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932135Ab3CSRxd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Mar 2013 13:53:33 -0400
 In-Reply-To: <1363715590-5131-1-git-send-email-nm@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Jon Hunter <jon-hunter@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
-Add DT OPP table for OMAP34xx/35xx family of devices. This data is
+Add DT OPP table for OMAP443x family of devices. This data is
 decoded by OF with of_init_opp_table() helper function.
 
-OPP data here is based on existing opp3xxx_data.c
+OPP data here is based on existing opp4xxx_data.c
 
-Since the omap36xx OPP tables would be different from OMAP34xx/35xx,
-introduce an new omap34xx.dtsi for 34xx/35xx specific entries and use
-existing omap3.dtsi as the common dtsi file for all OMAP3 platforms.
+Since the omap4460 OPP tables would be different from OMAP443x,
+introduce an new omap443x.dtsi for 443x specific entries and use
+existing omap4.dtsi as the common dtsi file for all OMAP4 platforms.
 
 This is in preparation to use generic cpufreq-cpu0 driver for device
 tree enabled boot. Legacy non device tree enabled boot continues to
-use omap-cpufreq.c and opp3xxx_data.c.
+use omap-cpufreq.c and opp4xxx_data.c.
 
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Jon Hunter <jon-hunter@ti.com>
@@ -41,145 +45,69 @@ Cc: linux-pm@vger.kernel.org
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
 Changes in V2:
-	- introduce omap34xx.dtsi
-	- donot delete the OPP table entries in omap3xxx_data.c
+	- introduce omap443x.dtsi
+	- donot delete the OPP table entries in omap4xxx_data.c
 	- little more verbose commit log
-V1: https://patchwork.kernel.org/patch/2273571/
+V1: https://patchwork.kernel.org/patch/2273581/
 
- arch/arm/boot/dts/am3517-evm.dts        |    2 +-
- arch/arm/boot/dts/am3517_mt_ventoux.dts |    2 +-
- arch/arm/boot/dts/omap3-beagle.dts      |    2 +-
- arch/arm/boot/dts/omap3-devkit8000.dts  |    2 +-
- arch/arm/boot/dts/omap3-evm.dts         |    2 +-
- arch/arm/boot/dts/omap3-igep.dtsi       |    2 +-
- arch/arm/boot/dts/omap3-overo.dtsi      |    2 +-
- arch/arm/boot/dts/omap3430-sdp.dts      |    2 +-
- arch/arm/boot/dts/omap34xx.dtsi         |   28 +++++++++++++++++++++++=
-+++++
- 9 files changed, 36 insertions(+), 8 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap34xx.dtsi
+ arch/arm/boot/dts/omap4-panda.dts   |    2 +-
+ arch/arm/boot/dts/omap4-sdp.dts     |    2 +-
+ arch/arm/boot/dts/omap4-var-som.dts |    2 +-
+ arch/arm/boot/dts/omap443x.dtsi     |   27 +++++++++++++++++++++++++++
+ 4 files changed, 30 insertions(+), 3 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap443x.dtsi
 
-diff --git a/arch/arm/boot/dts/am3517-evm.dts b/arch/arm/boot/dts/am351=
-7-evm.dts
-index 474f760..e9b5bda 100644
---- a/arch/arm/boot/dts/am3517-evm.dts
-+++ b/arch/arm/boot/dts/am3517-evm.dts
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap=
+4-panda.dts
+index 1751a25..e05b1b0 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
 @@ -7,7 +7,7 @@
   */
  /dts-v1/;
 =20
--/include/ "omap3.dtsi"
-+/include/ "omap34xx.dtsi"
+-/include/ "omap4.dtsi"
++/include/ "omap443x.dtsi"
+ /include/ "elpida_ecb240abacn.dtsi"
 =20
  / {
- 	model =3D "TI AM3517 EVM (AM3517/05)";
-diff --git a/arch/arm/boot/dts/am3517_mt_ventoux.dts b/arch/arm/boot/dt=
-s/am3517_mt_ventoux.dts
-index 5eb26d7..5568683 100644
---- a/arch/arm/boot/dts/am3517_mt_ventoux.dts
-+++ b/arch/arm/boot/dts/am3517_mt_ventoux.dts
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-=
+sdp.dts
+index a93a19d..c387bdc 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
 @@ -7,7 +7,7 @@
   */
  /dts-v1/;
 =20
--/include/ "omap3.dtsi"
-+/include/ "omap34xx.dtsi"
+-/include/ "omap4.dtsi"
++/include/ "omap443x.dtsi"
+ /include/ "elpida_ecb240abacn.dtsi"
 =20
  / {
- 	model =3D "TeeJet Mt.Ventoux";
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/oma=
-p3-beagle.dts
-index f624dc8..418550c 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
+diff --git a/arch/arm/boot/dts/omap4-var-som.dts b/arch/arm/boot/dts/om=
+ap4-var-som.dts
+index 6601e6a..222a413 100644
+--- a/arch/arm/boot/dts/omap4-var-som.dts
++++ b/arch/arm/boot/dts/omap4-var-som.dts
 @@ -7,7 +7,7 @@
   */
  /dts-v1/;
 =20
--/include/ "omap3.dtsi"
-+/include/ "omap34xx.dtsi"
+-/include/ "omap4.dtsi"
++/include/ "omap443x.dtsi"
 =20
  / {
- 	model =3D "TI OMAP3 BeagleBoard";
-diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts=
-/omap3-devkit8000.dts
-index 54d3da7..8a5cdcc 100644
---- a/arch/arm/boot/dts/omap3-devkit8000.dts
-+++ b/arch/arm/boot/dts/omap3-devkit8000.dts
-@@ -7,7 +7,7 @@
-  */
- /dts-v1/;
-=20
--/include/ "omap3.dtsi"
-+/include/ "omap34xx.dtsi"
- / {
- 	model =3D "TimLL OMAP3 Devkit8000";
- 	compatible =3D "timll,omap3-devkit8000", "ti,omap3";
-diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-=
-evm.dts
-index 6e6f80d..f14370e 100644
---- a/arch/arm/boot/dts/omap3-evm.dts
-+++ b/arch/arm/boot/dts/omap3-evm.dts
-@@ -7,7 +7,7 @@
-  */
- /dts-v1/;
-=20
--/include/ "omap3.dtsi"
-+/include/ "omap34xx.dtsi"
-=20
- / {
- 	model =3D "TI OMAP3 EVM (OMAP3530, AM/DM37x)";
-diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap=
-3-igep.dtsi
-index dd01c46..f8fe3b7 100644
---- a/arch/arm/boot/dts/omap3-igep.dtsi
-+++ b/arch/arm/boot/dts/omap3-igep.dtsi
-@@ -10,7 +10,7 @@
-  */
- /dts-v1/;
-=20
--/include/ "omap3.dtsi"
-+/include/ "omap34xx.dtsi"
-=20
- / {
- 	memory {
-diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/oma=
-p3-overo.dtsi
-index 2d93a08..d4a7280 100644
---- a/arch/arm/boot/dts/omap3-overo.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo.dtsi
-@@ -11,7 +11,7 @@
-  */
- /dts-v1/;
-=20
--/include/ "omap3.dtsi"
-+/include/ "omap34xx.dtsi"
-=20
- / {
- 	pwmleds {
-diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/oma=
-p3430-sdp.dts
-index 535a6f9..05cd8ba 100644
---- a/arch/arm/boot/dts/omap3430-sdp.dts
-+++ b/arch/arm/boot/dts/omap3430-sdp.dts
-@@ -7,7 +7,7 @@
-  */
- /dts-v1/;
-=20
--/include/ "omap3.dtsi"
-+/include/ "omap34xx.dtsi"
-=20
- / {
- 	model =3D "TI OMAP3430 SDP";
-diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34=
-xx.dtsi
+ 	model =3D "Variscite OMAP4 SOM";
+diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap44=
+3x.dtsi
 new file mode 100644
-index 0000000..75ed4ae
+index 0000000..cccf39a
 --- /dev/null
-+++ b/arch/arm/boot/dts/omap34xx.dtsi
-@@ -0,0 +1,28 @@
++++ b/arch/arm/boot/dts/omap443x.dtsi
+@@ -0,0 +1,27 @@
 +/*
-+ * Device Tree Source for OMAP34xx/OMAP35xx SoC
++ * Device Tree Source for OMAP443x SoC
 + *
 + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.c=
 om/
@@ -191,19 +119,18 @@ f any
 + * kind, whether express or implied.
 + */
 +
-+/include/ "omap3.dtsi"
++/include/ "omap4.dtsi"
 +
 +/ {
 +	cpus {
 +		cpu@0 {
-+			/* OMAP343x/OMAP35xx variants OPP1-5 */
++			/* OMAP443x variants OPP50-OPPNT */
 +			operating-points =3D <
 +				/* kHz    uV */
-+				125000   975000
-+				250000  1075000
-+				500000  1200000
-+				550000  1270000
-+				600000  1350000
++				300000  1025000
++				600000  1200000
++				800000  1313000
++				1008000 1375000
 +			>;
 +			clock-latency =3D <300000>; /* From legacy driver */
 +		};
@@ -212,3 +139,8 @@ f any
 --=20
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
