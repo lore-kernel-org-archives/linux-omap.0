@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 21/21] ARM: dts: omap3-beagle: Add USB Host support
-Date: Wed, 20 Mar 2013 17:45:00 +0200
-Message-ID: <1363794300-31526-22-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 19/21] ARM: dts: OMAP4: Add HS USB Host IP nodes
+Date: Wed, 20 Mar 2013 17:44:58 +0200
+Message-ID: <1363794300-31526-20-git-send-email-rogerq@ti.com>
 References: <1363794300-31526-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -13,115 +13,55 @@ To: tony@atomide.com
 Cc: balbi@ti.com, rogerq@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Provide RESET and Power regulators for the USB PHY,
-the USB Host port mode and the PHY device.
-
-Also provide pin multiplexer information for USB host
-pins.
+Adds device nodes for HS USB Host module, TLL module,
+OHCI and EHCI controllers.
 
 CC: Beno=C3=AEt Cousson <b-cousson@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap3-beagle.dts |   71 ++++++++++++++++++++++++++++=
-++++++++
- 1 files changed, 71 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi |   30 ++++++++++++++++++++++++++++++
+ 1 files changed, 30 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/oma=
-p3-beagle.dts
-index f624dc8..02d23f1 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -38,6 +38,57 @@
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dts=
+i
+index 739bb79..b7db1a2 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -529,5 +529,35 @@
+ 			ti,hwmods =3D "timer11";
+ 			ti,timer-pwm;
  		};
++
++		usbhstll: usbhstll@4a062000 {
++			compatible =3D "ti,usbhs-tll";
++			reg =3D <0x4a062000 0x1000>;
++			interrupts =3D <0 78 0x4>;
++			ti,hwmods =3D "usb_tll_hs";
++		};
++
++		usbhshost: usbhshost@4a064000 {
++			compatible =3D "ti,usbhs-host";
++			reg =3D <0x4a064000 0x800>;
++			ti,hwmods =3D "usb_host_hs";
++			#address-cells =3D <1>;
++			#size-cells =3D <1>;
++			ranges;
++
++			usbhsohci: ohci@4a064800 {
++				compatible =3D "ti,ohci-omap3", "usb-ohci";
++				reg =3D <0x4a064800 0x400>;
++				interrupt-parent =3D <&gic>;
++				interrupts =3D <0 76 0x4>;
++			};
++
++			usbhsehci: ehci@4a064c00 {
++				compatible =3D "ti,ehci-omap", "usb-ehci";
++				reg =3D <0x4a064c00 0x400>;
++				interrupt-parent =3D <&gic>;
++				interrupts =3D <0 77 0x4>;
++			};
++		};
  	};
-=20
-+	/* HS USB Port 2 RESET */
-+	hsusb2_reset: hsusb2_reset_reg {
-+		compatible =3D "regulator-fixed";
-+		regulator-name =3D "hsusb2_reset";
-+		regulator-min-microvolt =3D <3300000>;
-+		regulator-max-microvolt =3D <3300000>;
-+		gpio =3D <&gpio5 19 0>;	/* gpio_147 */
-+		startup-delay-us =3D <70000>;
-+		enable-active-high;
-+	};
-+
-+	/* HS USB Port 2 Power */
-+	hsusb2_power: hsusb2_power_reg {
-+		compatible =3D "regulator-fixed";
-+		regulator-name =3D "hsusb2_vbus";
-+		regulator-min-microvolt =3D <3300000>;
-+		regulator-max-microvolt =3D <3300000>;
-+		gpio =3D <&twl_gpio 18 0>;	/* GPIO LEDA */
-+		startup-delay-us =3D <70000>;
-+	};
-+
-+	/* HS USB Host PHY on PORT 2 */
-+	hsusb2_phy: hsusb2_phy {
-+		compatible =3D "usb-nop-xceiv";
-+		reset-supply =3D <&hsusb2_reset>;
-+		vcc-supply =3D <&hsusb2_power>;
-+	};
-+};
-+
-+&omap3_pmx_core {
-+	pinctrl-names =3D "default";
-+	pinctrl-0 =3D <
-+			&hsusbb2_pins
-+	>;
-+
-+	hsusbb2_pins: pinmux_hsusbb2_pins {
-+		pinctrl-single,pins =3D <
-+			0x5c0 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_clk OUTPUT */
-+			0x5c2 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_stp OUTPUT */
-+			0x5c4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dir INPUT |=
- PULLDOWN */
-+			0x5c6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_nxt INPUT |=
- PULLDOWN */
-+			0x5c8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat0 INPUT =
-| PULLDOWN */
-+			0x5cA 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat1 INPUT =
-| PULLDOWN */
-+			0x1a4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat2 INPUT =
-| PULLDOWN */
-+			0x1a6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat3 INPUT =
-| PULLDOWN */
-+			0x1a8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat4 INPUT =
-| PULLDOWN */
-+			0x1aa 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat5 INPUT =
-| PULLDOWN */
-+			0x1ac 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat6 INPUT =
-| PULLDOWN */
-+			0x1ae 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat7 INPUT =
-| PULLDOWN */
-+		>;
-+	};
  };
-=20
- &i2c1 {
-@@ -65,3 +116,23 @@
- &mmc3 {
- 	status =3D "disabled";
- };
-+
-+&usbhshost {
-+	port2-mode =3D "ehci-phy";
-+};
-+
-+&usbhsehci {
-+	phys =3D <0 &hsusb2_phy>;
-+};
-+
-+&twl_gpio {
-+	ti,use-leds;
-+	/* pullups: BIT(1) */
-+	ti,pullups =3D <0x000002>;
-+	/*
-+	 * pulldowns:
-+	 * BIT(2), BIT(6), BIT(7), BIT(8), BIT(13)
-+	 * BIT(15), BIT(16), BIT(17)
-+	 */
-+	ti,pulldowns =3D <0x03a1c4>;
-+};
 --=20
 1.7.4.1
