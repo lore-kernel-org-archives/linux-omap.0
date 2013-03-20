@@ -1,7 +1,7 @@
 From: Laurent Navet <laurent.navet@gmail.com>
-Subject: [PATCH 05/10] gpio: gpio-pxa.c: fix checkpatch errors
-Date: Wed, 20 Mar 2013 13:15:59 +0100
-Message-ID: <1363781764-17330-6-git-send-email-laurent.navet@gmail.com>
+Subject: [PATCH 03/10] gpio: gpio-omap.c: fix checkpatch error
+Date: Wed, 20 Mar 2013 13:15:57 +0100
+Message-ID: <1363781764-17330-4-git-send-email-laurent.navet@gmail.com>
 References: <1363781764-17330-1-git-send-email-laurent.navet@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1363781764-17330-1-git-send-email-laurent.navet@gmail.com>
@@ -11,35 +11,25 @@ Cc: santosh.shilimkar@ti.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-
 List-Id: linux-omap@vger.kernel.org
 
 Fix :
- gpio/gpio-pxa.c:605: ERROR: space required after that ',' (ctx:VxV)
- gpio/gpio-pxa.c:672: ERROR: space prohibited after that open parenthesis '('
+ gpio/gpio-omap.c:697: ERROR: space required before the open parenthesis '('
 
 Signed-off-by: Laurent Navet <laurent.navet@gmail.com>
 ---
- drivers/gpio/gpio-pxa.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpio/gpio-omap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/gpio/gpio-pxa.c b/drivers/gpio/gpio-pxa.c
-index 9cc108d..6d01914 100644
---- a/drivers/gpio/gpio-pxa.c
-+++ b/drivers/gpio/gpio-pxa.c
-@@ -602,7 +602,7 @@ static int pxa_gpio_probe(struct platform_device *pdev)
- 	for_each_gpio_chip(gpio, c) {
- 		writel_relaxed(0, c->regbase + GFER_OFFSET);
- 		writel_relaxed(0, c->regbase + GRER_OFFSET);
--		writel_relaxed(~0,c->regbase + GEDR_OFFSET);
-+		writel_relaxed(~0, c->regbase + GEDR_OFFSET);
- 		/* unmask GPIO edge detect for AP side */
- 		if (gpio_is_mmp_type(gpio_type))
- 			writel_relaxed(~0, c->regbase + ED_MASK_OFFSET);
-@@ -669,7 +669,7 @@ static void pxa_gpio_resume(void)
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 159f5c5..7e8f791 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -694,7 +694,7 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	if (WARN_ON(!isr_reg))
+ 		goto exit;
  
- 	for_each_gpio_chip(gpio, c) {
- 		/* restore level with set/clear */
--		writel_relaxed( c->saved_gplr, c->regbase + GPSR_OFFSET);
-+		writel_relaxed(c->saved_gplr, c->regbase + GPSR_OFFSET);
- 		writel_relaxed(~c->saved_gplr, c->regbase + GPCR_OFFSET);
+-	while(1) {
++	while (1) {
+ 		u32 isr_saved, level_mask = 0;
+ 		u32 enabled;
  
- 		writel_relaxed(c->saved_grer, c->regbase + GRER_OFFSET);
 -- 
 1.7.10.4
