@@ -1,1067 +1,415 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 1/6] drivers: phy: add generic PHY framework
-Date: Wed, 20 Mar 2013 14:42:00 +0530
-Message-ID: <1363770725-13717-2-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 4/6] ARM: OMAP: USB: Add phy binding information
+Date: Wed, 20 Mar 2013 14:42:03 +0530
+Message-ID: <1363770725-13717-5-git-send-email-kishon@ti.com>
 References: <1363770725-13717-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55260 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756898Ab3CTJNQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Mar 2013 05:13:16 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1363770725-13717-1-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: balbi@ti.com, gregkh@linuxfoundation.org, arnd@arndb.de, akpm@linux-foundation.org, rob@landley.net
-Cc: davem@davemloft.net, cesarb@cesarb.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, b-cousson@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, kishon@ti.com, mchehab@redhat.com, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Cc: broonie@opensource.wolfsonmicro.com, linux@arm.linux.org.uk, b-cousson@ti.com, linux-doc@vger.kernel.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, kishon@ti.com, grant.likely@secretlab.ca, eballetbo@gmail.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, swarren@nvidia.com, javier@dowhile0.org, linux-omap@vger.kernel.org, davem@davemloft.net, cesarb@cesarb.net, mchehab@redhat.com
+List-Id: linux-omap@vger.kernel.org
 
-The PHY framework provides a set of APIs for the PHY drivers to
-create/destroy a PHY and APIs for the PHY users to obtain a reference to the
-PHY with or without using phandle. To obtain a reference to the PHY without
-using phandle, the platform specfic intialization code (say from board file)
-should have already called phy_bind with the binding information. The binding
-information consists of phy's device name, phy user device name and an index.
-The index is used when the same phy user binds to mulitple phys.
-
-PHY drivers should create the PHY by passing phy_descriptor that has
-describes the PHY (label, type etc..) and ops like init, exit, suspend, resume,
-poweron, shutdown.
-
-The documentation for the generic PHY framework is added in
-Documentation/phy.txt and the documentation for the sysfs entry is added
-in Documentation/ABI/testing/sysfs-class-phy.
+In order for controllers to get PHY in case of non dt boot, the phy
+binding information should be added in the platform specific
+initialization code using phy_bind. The previously added usb_bind_phy
+can't be removed yet because the musb controller continues to use the
+old PHY library which has OTG in it (struct usb_phy has struct usb_otg
+as member). Until we have a separate OTG state machine to handle all of
+that, the new generic PHY framework and the old phy library will co-exist.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/ABI/testing/sysfs-class-phy |   15 +
- Documentation/phy.txt                     |  108 ++++++
- MAINTAINERS                               |    7 +
- drivers/Kconfig                           |    2 +
- drivers/Makefile                          |    2 +
- drivers/phy/Kconfig                       |   13 +
- drivers/phy/Makefile                      |    5 +
- drivers/phy/phy-core.c                    |  574 +++++++++++++++++++++++++++++
- include/linux/phy/phy.h                   |  218 +++++++++++
- 9 files changed, 944 insertions(+)
- create mode 100644 Documentation/ABI/testing/sysfs-class-phy
- create mode 100644 Documentation/phy.txt
- create mode 100644 drivers/phy/Kconfig
- create mode 100644 drivers/phy/Makefile
- create mode 100644 drivers/phy/phy-core.c
- create mode 100644 include/linux/phy/phy.h
+ arch/arm/mach-omap2/board-2430sdp.c          |    2 ++
+ arch/arm/mach-omap2/board-3430sdp.c          |    2 ++
+ arch/arm/mach-omap2/board-4430sdp.c          |    2 ++
+ arch/arm/mach-omap2/board-cm-t35.c           |    2 ++
+ arch/arm/mach-omap2/board-devkit8000.c       |    2 ++
+ arch/arm/mach-omap2/board-igep0020.c         |    2 ++
+ arch/arm/mach-omap2/board-ldp.c              |    2 ++
+ arch/arm/mach-omap2/board-omap3beagle.c      |    2 ++
+ arch/arm/mach-omap2/board-omap3evm.c         |    2 ++
+ arch/arm/mach-omap2/board-omap3logic.c       |    2 ++
+ arch/arm/mach-omap2/board-omap3pandora.c     |    2 ++
+ arch/arm/mach-omap2/board-omap3stalker.c     |    2 ++
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    2 ++
+ arch/arm/mach-omap2/board-omap4panda.c       |    2 ++
+ arch/arm/mach-omap2/board-overo.c            |    2 ++
+ arch/arm/mach-omap2/board-rm680.c            |    2 ++
+ arch/arm/mach-omap2/board-rx51.c             |    2 ++
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    2 ++
+ 18 files changed, 36 insertions(+)
 
-diff --git a/Documentation/ABI/testing/sysfs-class-phy b/Documentation/ABI/testing/sysfs-class-phy
-new file mode 100644
-index 0000000..47f17c9
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-phy
-@@ -0,0 +1,15 @@
-+What:		/sys/class/phy/<phy>/label
-+Date:		Feb 2013
-+KernelVersion:	3.10
-+Contact:	Kishon Vijay Abraham I <kishon@ti.com>
-+Description:
-+		This is a read-only file for getting the label of the phy.
-+
-+What:		/sys/class/phy/<phy>/phy_bind
-+Date:		Feb 2013
-+KernelVersion:	3.10
-+Contact:	Kishon Vijay Abraham I <kishon@ti.com>
-+Description:
-+		This is a read-only file for reading the phy binding
-+		information. It contains the device name of the controller,
-+		the index and the device name of the PHY in that order.
-diff --git a/Documentation/phy.txt b/Documentation/phy.txt
-new file mode 100644
-index 0000000..6ba3192
---- /dev/null
-+++ b/Documentation/phy.txt
-@@ -0,0 +1,108 @@
-+			The Generic PHY Framework
-+		  Kishon Vijay Abraham I <kishon@ti.com>
-+
-+This document explains the Generic PHY Framework along with the APIs provided,
-+how-to-use, current status and the future work list.
-+
-+1. Introduction
-+
-+*PHY* is the abbreviation for physical layer. It is used to connect a device
-+to the physical medium e.g., the USB controller has a PHY to provide functions
-+such as serialization, de-serialization, encoding, decoding and is responsible
-+for obtaining the required data transmission rate. Note that some USB
-+controller has PHY functionality embedded into it and others use an external
-+PHY. Other peripherals that uses a PHY include Wireless LAN, Ethernet,
-+SATA etc.
-+
-+The intention of creating this framework is to bring the phy drivers spread
-+all over the Linux kernel to drivers/phy to increase code re-use and to
-+increase code maintainability.
-+
-+This framework will be of use only to devices that uses external PHY (PHY
-+functionality is not embedded within the controller).
-+
-+2. Creating the PHY
-+
-+The PHY driver should create the PHY in order for other peripheral controllers
-+to make use of it. The PHY framework provides 2 APIs to create the PHY.
-+
-+struct phy *phy_create(struct device *dev, const char *label,
-+	struct device_node *of_node, int type, struct phy_ops *ops,
-+	void *priv);
-+struct phy *devm_phy_create(struct device *dev, const char *label,
-+	struct device_node *of_node, int type, struct phy_ops *ops,
-+	void *priv);
-+
-+The PHY drivers can use one of the above 2 APIs to create the PHY by passing
-+the device pointer, label, device node, type, phy ops and a driver data.
-+phy_ops is a set of function pointers for performing PHY operations such as
-+init, exit, suspend, resume, poweron and shutdown.
-+
-+3. Binding the PHY to the controller
-+
-+The framework provides an API for binding the controller to the PHY in the
-+case of non dt boot.
-+
-+struct phy_bind *phy_bind(const char *dev_name, int index,
-+				const char *phy_dev_name);
-+
-+The API fills the phy_bind structure with the dev_name (device name of the
-+controller), index and phy_dev_name (device name of the PHY). This will
-+be used when the controller requests this phy. This API should be used by
-+platform specific initialization code (board file).
-+
-+In the case of dt boot, the binding information should be added in the dt
-+data of the controller.
-+
-+4. Getting a reference to the PHY
-+
-+Before the controller can make use of the PHY, it has to get a reference to
-+it. This framework provides 6 APIs to get a reference to the PHY.
-+
-+struct phy *phy_get(struct device *dev, int index);
-+struct phy *devm_phy_get(struct device *dev, int index);
-+struct phy *of_phy_get(struct device *dev, const char *phandle, int index);
-+struct phy *devm_of_phy_get(struct device *dev, const char *phandle, int index);
-+struct phy *of_phy_get_byname(struct device *dev, const char *string);
-+struct phy *devm_of_phy_get_byname(struct device *dev, const char *string);
-+
-+phy_get and devm_phy_get can be used to get the PHY in non-dt boot. This API
-+uses the binding information added using the phy_bind API to find and return
-+the appropriate PHY. The only difference between the two APIs is that
-+devm_phy_get associates the device with the PHY using devres on successful PHY
-+get. On driver detach, release function is invoked on the the devres data and
-+devres data is freed.
-+
-+of_phy_get and devm_of_phy_get can be used to get the PHY in dt boot. These
-+APIs take the phandle and index to get a reference to the PHY. The only
-+difference between the two APIs is that devm_of_phy_get associates the device
-+with the PHY using devres on successful phy get. On driver detach, release
-+function is invoked on the devres data and it is freed.
-+
-+of_phy_get_byname and devm_of_phy_get_byname can also be used to get the PHY
-+in dt boot. It is same as the above API except that the user has to pass the
-+phy name as filled in "phy-names" phandle in dt data and the framework will
-+find the index and get the PHY.
-+
-+5. Releasing a reference to the PHY
-+
-+When the controller no longer needs the PHY, it has to release the reference
-+to the PHY it has obtained using the APIs mentioned in the above section. The
-+PHY framework provides 2 APIS to release a reference to the PHY.
-+
-+void phy_put(struct phy *phy);
-+void devm_phy_put(struct device *dev, struct phy *phy);
-+
-+Both these APIs are used to release a reference to the PHY and devm_phy_put
-+destroys the devres associated with this PHY.
-+
-+6. Destroying the PHY
-+
-+When the driver that created the PHY is unloaded, it should destroy the PHY it
-+created using one of the following 2 APIs.
-+
-+void phy_destroy(struct phy *phy);
-+void devm_phy_destroy(struct device *dev, struct phy *phy);
-+
-+Both these APIs destroys the PHY and devm_phy_destroy destroys the devres
-+associated with this PHY.
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 50b4d73..efb0498 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3474,6 +3474,13 @@ S:	Maintained
- F:	include/asm-generic
- F:	include/uapi/asm-generic
- 
-+GENERIC PHY FRAMEWORK
-+M:	Kishon Vijay Abraham I <kishon@ti.com>
-+L:	linux-kernel@vger.kernel.org
-+S:	Supported
-+F:	drivers/phy/
-+F:	include/linux/phy/
-+
- GENERIC UIO DRIVER FOR PCI DEVICES
- M:	"Michael S. Tsirkin" <mst@redhat.com>
- L:	kvm@vger.kernel.org
-diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 202fa6d..ad2c374a 100644
---- a/drivers/Kconfig
-+++ b/drivers/Kconfig
-@@ -162,4 +162,6 @@ source "drivers/irqchip/Kconfig"
- 
- source "drivers/ipack/Kconfig"
- 
-+source "drivers/phy/Kconfig"
-+
- endmenu
-diff --git a/drivers/Makefile b/drivers/Makefile
-index dce39a9..9da8321 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -45,6 +45,8 @@ obj-y				+= char/
- # gpu/ comes after char for AGP vs DRM startup
- obj-y				+= gpu/
- 
-+obj-y				+= phy/
-+
- obj-$(CONFIG_CONNECTOR)		+= connector/
- 
- # i810fb and intelfb depend on char/agp/
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-new file mode 100644
-index 0000000..5f85909
---- /dev/null
-+++ b/drivers/phy/Kconfig
-@@ -0,0 +1,13 @@
-+#
-+# PHY
-+#
-+
-+menuconfig GENERIC_PHY
-+	tristate "PHY Subsystem"
-+	help
-+	  Generic PHY support.
-+
-+	  This framework is designed to provide a generic interface for PHY
-+	  devices present in the kernel. This layer will have the generic
-+	  API by which phy drivers can create PHY using the phy framework and
-+	  phy users can obtain reference to the PHY.
-diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-new file mode 100644
-index 0000000..9e9560f
---- /dev/null
-+++ b/drivers/phy/Makefile
-@@ -0,0 +1,5 @@
-+#
-+# Makefile for the phy drivers.
-+#
-+
-+obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
-diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
-new file mode 100644
-index 0000000..1c87592
---- /dev/null
-+++ b/drivers/phy/phy-core.c
-@@ -0,0 +1,574 @@
-+/*
-+ * phy-core.c  --  Generic Phy framework.
-+ *
-+ * Copyright (C) 2013 Texas Instruments
-+ *
-+ * Author: Kishon Vijay Abraham I <kishon@ti.com>
-+ *
-+ * This program is free software; you can redistribute  it and/or modify it
-+ * under  the terms of  the GNU General  Public License as published by the
-+ * Free Software Foundation;  either version 2 of the  License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/export.h>
-+#include <linux/module.h>
-+#include <linux/err.h>
-+#include <linux/device.h>
-+#include <linux/slab.h>
-+#include <linux/of.h>
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index a3e0aaa..271458b 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -28,6 +28,7 @@
+ #include <linux/io.h>
+ #include <linux/gpio.h>
+ #include <linux/usb/phy.h>
 +#include <linux/phy/phy.h>
-+
-+static struct class *phy_class;
-+static DEFINE_MUTEX(phy_bind_mutex);
-+static LIST_HEAD(phy_bind_list);
-+
-+static void devm_phy_release(struct device *dev, void *res)
-+{
-+	struct phy *phy = *(struct phy **)res;
-+
-+	phy_put(phy);
-+}
-+
-+static void devm_phy_consume(struct device *dev, void *res)
-+{
-+	struct phy *phy = *(struct phy **)res;
-+
-+	phy_destroy(phy);
-+}
-+
-+static int devm_phy_match(struct device *dev, void *res, void *match_data)
-+{
-+	return res == match_data;
-+}
-+
-+static struct phy *phy_lookup(struct device *dev, int index)
-+{
-+	struct phy_bind *phy_bind = NULL;
-+
-+	list_for_each_entry(phy_bind, &phy_bind_list, list) {
-+		if (!(strcmp(phy_bind->dev_name, dev_name(dev)) &&
-+				phy_bind->index == index)) {
-+			if (phy_bind->phy)
-+				return phy_bind->phy;
-+			else
-+				return ERR_PTR(-EPROBE_DEFER);
-+		}
-+	}
-+
-+	return ERR_PTR(-ENODEV);
-+}
-+
-+static struct phy *of_phy_lookup(struct device *dev, struct device_node *node)
-+{
-+	struct phy *phy;
-+	struct class_dev_iter iter;
-+
-+	class_dev_iter_init(&iter, phy_class, NULL, NULL);
-+	while ((dev = class_dev_iter_next(&iter))) {
-+		phy = container_of(dev, struct phy, dev);
-+		if (node != phy->of_node)
-+			continue;
-+
-+		class_dev_iter_exit(&iter);
-+		return phy;
-+	}
-+
-+	class_dev_iter_exit(&iter);
-+	return ERR_PTR(-EPROBE_DEFER);
-+}
-+
-+/**
-+ * phy_put - release the PHY
-+ * @phy: the phy returned by phy_get()
-+ *
-+ * Releases a refcount the caller received from phy_get().
-+ */
-+void phy_put(struct phy *phy)
-+{
-+	if (phy) {
-+		module_put(phy->ops->owner);
-+		put_device(&phy->dev);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(phy_put);
-+
-+/**
-+ * devm_phy_put - release the PHY
-+ * @dev: device that wants to release this phy
-+ * @phy: the phy returned by devm_phy_get()
-+ *
-+ * destroys the devres associated with this phy and invokes phy_put
-+ * to release the phy.
-+ */
-+void devm_phy_put(struct device *dev, struct phy *phy)
-+{
-+	int r;
-+
-+	r = devres_destroy(dev, devm_phy_release, devm_phy_match, phy);
-+	dev_WARN_ONCE(dev, r, "couldn't find PHY resource\n");
-+}
-+EXPORT_SYMBOL_GPL(devm_phy_put);
-+
-+/**
-+ * of_phy_get - lookup and obtain a reference to a phy by phandle
-+ * @dev: device that requests this phy
-+ * @index - the index of the phy
-+ *
-+ * Returns the phy associated with the given phandle value,
-+ * after getting a refcount to it or -ENODEV if there is no such phy or
-+ * -EPROBE_DEFER if there is a phandle to the phy, but the device is
-+ * not yet loaded.
-+ */
-+struct phy *of_phy_get(struct device *dev, int index)
-+{
-+	struct phy *phy = NULL;
-+	struct phy_bind *phy_map = NULL;
-+	struct device_node *node;
-+
-+	if (!dev->of_node) {
-+		dev_dbg(dev, "device does not have a device node entry\n");
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	node = of_parse_phandle(dev->of_node, "phy", index);
-+	if (!node) {
-+		dev_dbg(dev, "failed to get phy in %s node\n",
-+			dev->of_node->full_name);
-+		return ERR_PTR(-ENODEV);
-+	}
-+
-+	phy = of_phy_lookup(dev, node);
-+	if (IS_ERR(phy) || !try_module_get(phy->ops->owner)) {
-+		phy = ERR_PTR(-EPROBE_DEFER);
-+		goto err0;
-+	}
-+
-+	mutex_lock(&phy_bind_mutex);
-+	phy_map = phy_bind(dev_name(dev), index, dev_name(&phy->dev));
-+	if (!IS_ERR(phy_map)) {
-+		phy_map->phy = phy;
-+		phy_map->auto_bind = true;
-+	}
-+	mutex_unlock(&phy_bind_mutex);
-+
-+	get_device(&phy->dev);
-+
-+err0:
-+	of_node_put(node);
-+
-+	return phy;
-+}
-+EXPORT_SYMBOL_GPL(of_phy_get);
-+
-+/**
-+ * devm_of_phy_get - lookup and obtain a reference to a phy by phandle
-+ * @dev: device that requests this phy
-+ * @index - the index of the phy
-+ *
-+ * Calls of_phy_get to get a reference to the PHY and passes on the return
-+ * value of of_phy_get. While at that, it also associates the device with the
-+ * phy using devres on successful phy get. On driver detach, release function
-+ * is invoked on the the devres data and devres data is freed.
-+ */
-+struct phy *devm_of_phy_get(struct device *dev, int index)
-+{
-+	struct phy *phy = NULL, **ptr;
-+
-+	ptr = devres_alloc(devm_phy_release, sizeof(*ptr), GFP_KERNEL);
-+	if (!ptr)
-+		return ERR_PTR(-ENOMEM);
-+
-+	phy = of_phy_get(dev, index);
-+	if (!IS_ERR(phy)) {
-+		*ptr = phy;
-+		devres_add(dev, ptr);
-+	} else {
-+		devres_free(ptr);
-+	}
-+
-+	return phy;
-+}
-+EXPORT_SYMBOL_GPL(devm_of_phy_get);
-+
-+/**
-+ * of_phy_get_byname - lookup and obtain a reference to a phy by name
-+ * @dev: device that requests this phy
-+ * @string - the phy name as given in the dt data
-+ *
-+ * Calls of_phy_get to get a reference to the PHY and passes on the return
-+ * value of of_phy_get.
-+ */
-+struct phy *of_phy_get_byname(struct device *dev, const char *string)
-+{
-+	int index;
-+
-+	if (!dev->of_node) {
-+		dev_dbg(dev, "device does not have a device node entry\n");
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	index = of_property_match_string(dev->of_node, "phy-names", string);
-+
-+	return of_phy_get(dev, index);
-+}
-+EXPORT_SYMBOL_GPL(of_phy_get_byname);
-+
-+/**
-+ * devm_of_phy_get_byname - lookup and obtain a reference to a phy by name
-+ * @dev: device that requests this phy
-+ * @string - the phy name as given in the dt data
-+ *
-+ * Calls devm_of_phy_get (which associates the device with the phy using devres
-+ * on successful phy get) and passes on the return value of devm_of_phy_get.
-+ */
-+struct phy *devm_of_phy_get_byname(struct device *dev, const char *string)
-+{
-+	int index;
-+
-+	if (!dev->of_node) {
-+		dev_dbg(dev, "device does not have a device node entry\n");
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	index = of_property_match_string(dev->of_node, "phy-names", string);
-+
-+	return devm_of_phy_get(dev, index);
-+}
-+EXPORT_SYMBOL_GPL(devm_of_phy_get_byname);
-+
-+/**
-+ * phy_get - lookup and obtain a reference to a phy.
-+ * @dev: device that requests this phy
-+ * @index: the index of the phy
-+ *
-+ * Returns the phy driver, after getting a refcount to it; or
-+ * -ENODEV if there is no such phy.  The caller is responsible for
-+ * calling phy_put() to release that count.
-+ */
-+struct phy *phy_get(struct device *dev, int index)
-+{
-+	struct phy *phy = NULL;
-+
-+	phy = phy_lookup(dev, index);
-+	if (IS_ERR(phy)) {
-+		dev_err(dev, "unable to find phy\n");
-+		goto err0;
-+	}
-+
-+	if (!try_module_get(phy->ops->owner)) {
-+		phy = ERR_PTR(-EPROBE_DEFER);
-+		goto err0;
-+	}
-+
-+	get_device(&phy->dev);
-+
-+err0:
-+	return phy;
-+}
-+EXPORT_SYMBOL_GPL(phy_get);
-+
-+/**
-+ * devm_phy_get - lookup and obtain a reference to a phy.
-+ * @dev: device that requests this phy
-+ * @index: the index of the phy
-+ *
-+ * Gets the phy using phy_get(), and associates a device with it using
-+ * devres. On driver detach, release function is invoked on the devres data,
-+ * then, devres data is freed.
-+ */
-+struct phy *devm_phy_get(struct device *dev, int index)
-+{
-+	struct phy **ptr, *phy;
-+
-+	ptr = devres_alloc(devm_phy_release, sizeof(*ptr), GFP_KERNEL);
-+	if (!ptr)
-+		return ERR_PTR(-ENOMEM);
-+
-+	phy = phy_get(dev, index);
-+	if (!IS_ERR(phy)) {
-+		*ptr = phy;
-+		devres_add(dev, ptr);
-+	} else {
-+		devres_free(ptr);
-+	}
-+
-+	return phy;
-+}
-+EXPORT_SYMBOL_GPL(devm_phy_get);
-+
-+/**
-+ * phy_create - create a new phy
-+ * @dev: device that is creating the new phy
-+ * @label: label given to phy
-+ * @of_node: device node of the phy
-+ * @type: specifies the phy type
-+ * @ops: function pointers for performing phy operations
-+ * @priv: private data from phy driver
-+ *
-+ * Called to create a phy using phy framework.
-+ */
-+struct phy *phy_create(struct device *dev, const char *label,
-+	struct device_node *of_node, int type, struct phy_ops *ops,
-+	void *priv)
-+{
-+	int ret;
-+	struct phy *phy;
-+	struct phy_bind *phy_bind;
-+	const char *devname = NULL;
-+
-+	if (!dev) {
-+		dev_err(dev, "no device provided for PHY\n");
-+		ret = -EINVAL;
-+		goto err0;
-+	}
-+
-+	if (!ops || !priv) {
-+		dev_err(dev, "no PHY ops/PHY data provided\n");
-+		ret = -EINVAL;
-+		goto err0;
-+	}
-+
-+	phy = kzalloc(sizeof(*phy), GFP_KERNEL);
-+	if (!phy) {
-+		ret = -ENOMEM;
-+		goto err0;
-+	}
-+
-+	devname = dev_name(dev);
-+	device_initialize(&phy->dev);
-+
-+	phy->dev.class = phy_class;
-+	phy->dev.parent = dev;
-+	phy->label = label;
-+	phy->of_node = of_node;
-+	phy->type = type;
-+	phy->ops = ops;
-+
-+	dev_set_drvdata(&phy->dev, priv);
-+
-+	ret = dev_set_name(&phy->dev, "%s", devname);
-+	if (ret)
-+		goto err1;
-+
-+	mutex_lock(&phy_bind_mutex);
-+	list_for_each_entry(phy_bind, &phy_bind_list, list)
-+		if (!(strcmp(phy_bind->phy_dev_name, devname)))
-+			phy_bind->phy = phy;
-+	mutex_unlock(&phy_bind_mutex);
-+
-+	ret = device_add(&phy->dev);
-+	if (ret)
-+		goto err2;
-+
-+	return phy;
-+
-+err2:
-+	phy_bind->phy = NULL;
-+
-+err1:
-+	put_device(&phy->dev);
-+	kfree(phy);
-+
-+err0:
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL_GPL(phy_create);
-+
-+/**
-+ * devm_phy_create - create a new phy
-+ * @dev: device that is creating the new phy
-+ * @dev: device that is creating the new phy
-+ * @label: label given to phy
-+ * @of_node: device node of the phy
-+ * @type: specifies the phy type
-+ * @ops: function pointers for performing phy operations
-+ * @priv: private data from phy driver
-+ *
-+ * Creates a new PHY device adding it to the PHY class.
-+ * While at that, it also associates the device with the phy using devres.
-+ * On driver detach, release function is invoked on the devres data,
-+ * then, devres data is freed.
-+ */
-+struct phy *devm_phy_create(struct device *dev, const char *label,
-+	struct device_node *of_node, int type, struct phy_ops *ops,
-+	void *priv)
-+{
-+	struct phy **ptr, *phy;
-+
-+	ptr = devres_alloc(devm_phy_consume, sizeof(*ptr), GFP_KERNEL);
-+	if (!ptr)
-+		return ERR_PTR(-ENOMEM);
-+
-+	phy = phy_create(dev, label, of_node, type, ops, priv);
-+	if (!IS_ERR(phy)) {
-+		*ptr = phy;
-+		devres_add(dev, ptr);
-+	} else {
-+		devres_free(ptr);
-+	}
-+
-+	return phy;
-+}
-+EXPORT_SYMBOL_GPL(devm_phy_create);
-+
-+/**
-+ * phy_destroy - destroy the phy
-+ * @phy: the phy to be destroyed
-+ *
-+ * Called to destroy the phy.
-+ */
-+void phy_destroy(struct phy *phy)
-+{
-+	struct phy_bind *phy_bind;
-+
-+	mutex_lock(&phy_bind_mutex);
-+	list_for_each_entry(phy_bind, &phy_bind_list, list) {
-+		if (phy_bind->phy == phy)
-+			phy_bind->phy = NULL;
-+
-+		if (phy_bind->auto_bind) {
-+			list_del(&phy_bind->list);
-+			kfree(phy_bind);
-+		}
-+	}
-+	mutex_unlock(&phy_bind_mutex);
-+
-+	device_unregister(&phy->dev);
-+}
-+EXPORT_SYMBOL_GPL(phy_destroy);
-+
-+/**
-+ * devm_phy_destroy - destroy the PHY
-+ * @dev: device that wants to release this phy
-+ * @phy: the phy returned by devm_phy_get()
-+ *
-+ * destroys the devres associated with this phy and invokes phy_destroy
-+ * to destroy the phy.
-+ */
-+void devm_phy_destroy(struct device *dev, struct phy *phy)
-+{
-+	int r;
-+
-+	r = devres_destroy(dev, devm_phy_consume, devm_phy_match, phy);
-+	dev_WARN_ONCE(dev, r, "couldn't find PHY resource\n");
-+}
-+EXPORT_SYMBOL_GPL(devm_phy_destroy);
-+
-+/**
-+ * phy_bind - bind the phy and the controller that uses the phy
-+ * @dev_name: the device name of the device that will bind to the phy
-+ * @index: index to specify the port number
-+ * @phy_dev_name: the device name of the phy
-+ *
-+ * Fills the phy_bind structure with the dev_name and phy_dev_name. This will
-+ * be used when the phy driver registers the phy and when the controller
-+ * requests this phy.
-+ *
-+ * To be used by platform specific initialization code.
-+ */
-+struct phy_bind *phy_bind(const char *dev_name, int index,
-+				const char *phy_dev_name)
-+{
-+	struct phy_bind *phy_bind;
-+
-+	phy_bind = kzalloc(sizeof(*phy_bind), GFP_KERNEL);
-+	if (!phy_bind)
-+		return ERR_PTR(-ENOMEM);
-+
-+	phy_bind->dev_name = dev_name;
-+	phy_bind->phy_dev_name = phy_dev_name;
-+	phy_bind->index = index;
-+	phy_bind->auto_bind = false;
-+
-+	list_add_tail(&phy_bind->list, &phy_bind_list);
-+
-+	return phy_bind;
-+}
-+EXPORT_SYMBOL_GPL(phy_bind);
-+
-+static ssize_t phy_name_show(struct device *dev,
-+			     struct device_attribute *attr, char *buf)
-+{
-+	struct phy *phy;
-+
-+	phy = container_of(dev, struct phy, dev);
-+
-+	return sprintf(buf, "%s\n", phy->label);
-+}
-+
-+static ssize_t phy_bind_show(struct device *dev,
-+			     struct device_attribute *attr, char *buf)
-+{
-+	struct phy_bind *phy_bind;
-+	struct phy *phy;
-+	char *p = buf;
-+	int len;
-+
-+	phy = container_of(dev, struct phy, dev);
-+
-+	list_for_each_entry(phy_bind, &phy_bind_list, list)
-+		if (phy_bind->phy == phy)
-+			p += sprintf(p, "%s %d %s\n", phy_bind->dev_name,
-+				phy_bind->index, phy_bind->phy_dev_name);
-+	len = (p - buf);
-+
-+	return len;
-+}
-+
-+static struct device_attribute phy_dev_attrs[] = {
-+	__ATTR(label, 0444, phy_name_show, NULL),
-+	__ATTR(phy_bind, 0444, phy_bind_show, NULL),
-+	__ATTR_NULL,
-+};
-+
-+/**
-+ * phy_release - release the phy
-+ * @dev: the dev member within phy
-+ *
-+ * when the last reference to the device is removed; it is called
-+ * from the embedded kobject as release method.
-+ */
-+static void phy_release(struct device *dev)
-+{
-+	struct phy *phy;
-+
-+	phy = container_of(dev, struct phy, dev);
-+	dev_dbg(dev, "releasing '%s'\n", dev_name(dev));
-+	kfree(phy);
-+}
-+
-+static int __init phy_core_init(void)
-+{
-+	phy_class = class_create(THIS_MODULE, "phy");
-+	if (IS_ERR(phy_class)) {
-+		pr_err("failed to create phy class --> %ld\n",
-+			PTR_ERR(phy_class));
-+		return PTR_ERR(phy_class);
-+	}
-+
-+	phy_class->dev_release = phy_release;
-+	phy_class->dev_attrs = phy_dev_attrs;
-+
-+	return 0;
-+}
-+subsys_initcall(phy_core_init);
-+
-+static void __exit phy_core_exit(void)
-+{
-+	class_destroy(phy_class);
-+}
-+module_exit(phy_core_exit);
-+
-+MODULE_DESCRIPTION("Generic PHY Framework");
-+MODULE_AUTHOR("Kishon Vijay Abraham I <kishon@ti.com>");
-+MODULE_LICENSE("GPL v2");
-diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
-new file mode 100644
-index 0000000..76952c6
---- /dev/null
-+++ b/include/linux/phy/phy.h
-@@ -0,0 +1,218 @@
-+/*
-+ * phy.h -- generic phy header file
-+ *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * Author: Kishon Vijay Abraham I <kishon@ti.com>
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#ifndef __DRIVERS_PHY_H
-+#define __DRIVERS_PHY_H
-+
-+#include <linux/err.h>
-+
-+struct phy;
-+
-+/**
-+ * struct phy_ops - set of function pointers for performing phy operations
-+ * @init: operation to be performed for initializing phy
-+ * @exit: operation to be performed while exiting
-+ * @suspend: suspending the phy
-+ * @resume: resuming the phy
-+ * @poweron: powering on the phy
-+ * @shutdown: shutting down the phy
-+ * @owner: the module owner containing the ops
-+ */
-+struct phy_ops {
-+	int	(*init)(struct phy *phy);
-+	int	(*exit)(struct phy *phy);
-+	int	(*suspend)(struct phy *phy);
-+	int	(*resume)(struct phy *phy);
-+	int	(*poweron)(struct phy *phy);
-+	int	(*shutdown)(struct phy *phy);
-+	struct module *owner;
-+};
-+
-+/**
-+ * struct phy - represent the phy device
-+ * @dev: phy device
-+ * @label: label given to phy
-+ * @type: specifies the phy type
-+ * @of_node: device node of the phy
-+ * @ops: function pointers for performing phy operations
-+ */
-+struct phy {
-+	struct device		dev;
-+	const char		*label;
-+	int			type;
-+	struct bus_type		*bus;
-+	struct device_node	*of_node;
-+	struct phy_ops		*ops;
-+};
-+
-+/**
-+ * struct phy_bind - represent the binding for the phy
-+ * @dev_name: the device name of the device that will bind to the phy
-+ * @phy_dev_name: the device name of the phy
-+ * @index: used if a single controller uses multiple phys
-+ * @auto_bind: tells if the binding is done explicitly from board file or not
-+ * @phy: reference to the phy
-+ * @list: to maintain a linked list of the binding information
-+ */
-+struct phy_bind {
-+	const char	*dev_name;
-+	const char	*phy_dev_name;
-+	int		index;
-+	int		auto_bind:1;
-+	struct phy	*phy;
-+	struct list_head list;
-+};
-+
-+#if IS_ENABLED(CONFIG_GENERIC_PHY)
-+extern struct phy *phy_get(struct device *dev, int index);
-+extern struct phy *devm_phy_get(struct device *dev, int index);
-+extern struct phy *of_phy_get(struct device *dev, int index);
-+extern struct phy *devm_of_phy_get(struct device *dev, int index);
-+extern struct phy *of_phy_get_byname(struct device *dev, const char *string);
-+extern struct phy *devm_of_phy_get_byname(struct device *dev,
-+	const char *string);
-+extern void phy_put(struct phy *phy);
-+extern void devm_phy_put(struct device *dev, struct phy *phy);
-+extern struct phy *phy_create(struct device *dev, const char *label,
-+	struct device_node *of_node, int type, struct phy_ops *ops,
-+	void *priv);
-+extern struct phy *devm_phy_create(struct device *dev, const char *label,
-+	struct device_node *of_node, int type, struct phy_ops *ops,
-+	void *priv);
-+extern void phy_destroy(struct phy *phy);
-+extern void devm_phy_destroy(struct device *dev, struct phy *phy);
-+extern struct phy_bind *phy_bind(const char *dev_name, int index,
-+				const char *phy_dev_name);
-+#else
-+static inline struct phy *phy_get(struct device *dev, int index)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+static inline struct phy *devm_phy_get(struct device *dev, int index)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+static inline struct phy *of_phy_get(struct device *dev, int index)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+static inline struct phy *devm_of_phy_get(struct device *dev, int index)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+static inline struct phy *of_phy_get_byname(struct device *dev,
-+	const char *string)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+static inline struct phy *devm_of_phy_get_byname(struct device *dev,
-+	const char *string)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+static inline void phy_put(struct phy *phy)
-+{
-+}
-+
-+static inline void devm_phy_put(struct device *dev, struct phy *phy)
-+{
-+}
-+
-+static inline struct phy *phy_create(struct device *dev, const char *label,
-+	struct device_node *of_node, int type, struct phy_ops *ops,
-+	void *priv)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+static inline struct phy *devm_phy_create(struct device *dev, const char *label,
-+	struct device_node *of_node, int type, struct phy_ops *ops,
-+	void *priv)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+static inline void phy_destroy(struct phy *phy)
-+{
-+}
-+
-+static inline void devm_phy_destroy(struct device *dev, struct phy *phy)
-+{
-+}
-+
-+static inline struct phy_bind *phy_bind(const char *dev_name, int index,
-+				const char *phy_dev_name)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+#endif
-+
-+static inline int phy_init(struct phy *phy)
-+{
-+	if (phy->ops->init)
-+		return phy->ops->init(phy);
-+
-+	return -EINVAL;
-+}
-+
-+static inline int phy_exit(struct phy *phy)
-+{
-+	if (phy->ops->exit)
-+		return phy->ops->exit(phy);
-+
-+	return -EINVAL;
-+}
-+
-+static inline int phy_suspend(struct phy *phy)
-+{
-+	if (phy->ops->suspend)
-+		return phy->ops->suspend(phy);
-+
-+	return -EINVAL;
-+}
-+
-+static inline int phy_resume(struct phy *phy)
-+{
-+	if (phy->ops->resume)
-+		return phy->ops->resume(phy);
-+
-+	return -EINVAL;
-+}
-+
-+static inline int phy_poweron(struct phy *phy)
-+{
-+	if (phy->ops->poweron)
-+		return phy->ops->poweron(phy);
-+
-+	return -EINVAL;
-+}
-+
-+static inline int phy_shutdown(struct phy *phy)
-+{
-+	if (phy->ops->shutdown)
-+		return phy->ops->shutdown(phy);
-+
-+	return -EINVAL;
-+}
-+#endif /* __DRIVERS_PHY_H */
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -265,6 +266,7 @@ static void __init omap_2430sdp_init(void)
+ 
+ 	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 
+ 	board_smc91x_init();
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index ce812de..bf6ce1d 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -27,6 +27,7 @@
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <linux/platform_data/omap-twl4030.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -601,6 +602,7 @@ static void __init omap_3430sdp_init(void)
+ 	omap_serial_init();
+ 	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 	board_smc91x_init();
+ 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 35f3ad0..1a236cb 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -32,6 +32,7 @@
+ #include <linux/platform_data/omap4-keypad.h>
+ #include <linux/usb/musb.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -725,6 +726,7 @@ static void __init omap_4430sdp_init(void)
+ 	omap4_twl6030_hsmmc_init(mmc);
+ 
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
++	phy_bind("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
+ 	usb_musb_init(&musb_board_data);
+ 
+ 	status = omap_ethernet_init();
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index af2bb21..6a2615a 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -31,6 +31,7 @@
+ #include <linux/regulator/machine.h>
+ #include <linux/mmc/host.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <linux/spi/spi.h>
+ #include <linux/spi/tdo24m.h>
+@@ -726,6 +727,7 @@ static void __init cm_t3x_common_init(void)
+ 	omap_twl4030_audio_init("cm-t3x", NULL);
+ 
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 	cm_t35_init_usbh();
+ 	cm_t35_init_camera();
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 53056c3..4ca7d23 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -30,6 +30,7 @@
+ #include <linux/mtd/nand.h>
+ #include <linux/mmc/host.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c/twl.h>
+@@ -624,6 +625,7 @@ static void __init devkit8000_init(void)
+ 	omap_ads7846_init(2, OMAP3_DEVKIT_TS_GPIO, 0, NULL);
+ 
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	board_nand_init(devkit8000_nand_partitions,
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index bf92678..f0c28bc 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -19,6 +19,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/input.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/fixed.h>
+@@ -627,6 +628,7 @@ static void __init igep_init(void)
+ 	omap_sdrc_init(m65kxxxxam_sdrc_params,
+ 				  m65kxxxxam_sdrc_params);
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 
+ 	igep_flash_init();
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index b12fe96..3f43626 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -29,6 +29,7 @@
+ #include <linux/smsc911x.h>
+ #include <linux/mmc/host.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ 
+ #include <asm/mach-types.h>
+@@ -420,6 +421,7 @@ static void __init omap_ldp_init(void)
+ 	omap_serial_init();
+ 	omap_sdrc_init(NULL, NULL);
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 	board_nand_init(ldp_nand_partitions, ARRAY_SIZE(ldp_nand_partitions),
+ 			ZOOM_NAND_CS, 0, nand_default_timings);
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index c3558f9..5dc0f81 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -33,6 +33,7 @@
+ #include <linux/mtd/nand.h>
+ #include <linux/mmc/host.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c/twl.h>
+@@ -542,6 +543,7 @@ static void __init omap3_beagle_init(void)
+ 				  mt46h32m32lf6_sdrc_params);
+ 
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	board_nand_init(omap3beagle_nand_partitions,
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 48789e0..47e68cd 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -42,6 +42,7 @@
+ #include <linux/mmc/host.h>
+ #include <linux/export.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -736,6 +737,7 @@ static void __init omap3_evm_init(void)
+ 		usbhs_bdata.reset_gpio_port[1] = 135;
+ 	}
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(&musb_board_data);
+ 	usbhs_init(&usbhs_bdata);
+ 	board_nand_init(omap3evm_nand_partitions,
+diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+index bab51e6..2c35ae2 100644
+--- a/arch/arm/mach-omap2/board-omap3logic.c
++++ b/arch/arm/mach-omap2/board-omap3logic.c
+@@ -30,6 +30,7 @@
+ #include <linux/i2c/twl.h>
+ #include <linux/mmc/host.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -217,6 +218,7 @@ static void __init omap3logic_init(void)
+ 	board_smsc911x_init();
+ 
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 2bba362..07cede4 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -36,6 +36,7 @@
+ #include <linux/mmc/card.h>
+ #include <linux/regulator/fixed.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ 
+ #include <asm/mach-types.h>
+@@ -603,6 +604,7 @@ static void __init omap3pandora_init(void)
+ 	omap_ads7846_init(1, OMAP3_PANDORA_TS_GPIO, 0, NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 	gpmc_nand_init(&pandora_nand_data, NULL);
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 95c10b3..bf2575b 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -34,6 +34,7 @@
+ #include <linux/smsc911x.h>
+ #include <linux/i2c/at24.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -406,6 +407,7 @@ static void __init omap3_stalker_init(void)
+ 	omap_serial_init();
+ 	omap_sdrc_init(mt46h32m32lf6_sdrc_params, NULL);
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	omap_ads7846_init(1, OMAP3_STALKER_TS_GPIO, 310, NULL);
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index bcd44fb..2665d47 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -29,6 +29,7 @@
+ #include <linux/mtd/nand.h>
+ #include <linux/mmc/host.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <linux/spi/spi.h>
+@@ -367,6 +368,7 @@ static void __init omap3_touchbook_init(void)
+ 	/* Touchscreen and accelerometer */
+ 	omap_ads7846_init(4, OMAP3_TS_GPIO, 310, &ads7846_pdata);
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	board_nand_init(omap3touchbook_nand_partitions,
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index b02c2f0..d977c11 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -31,6 +31,7 @@
+ #include <linux/ti_wilink_st.h>
+ #include <linux/usb/musb.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ #include <linux/wl12xx.h>
+ #include <linux/irqchip/arm-gic.h>
+ #include <linux/platform_data/omap-abe-twl6040.h>
+@@ -449,6 +450,7 @@ static void __init omap4_panda_init(void)
+ 	omap4_twl6030_hsmmc_init(mmc);
+ 	omap4_ehci_init();
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
++	phy_bind("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
+ 	usb_musb_init(&musb_board_data);
+ 	omap4_panda_display_init();
+ }
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 86bab51..f75cb33 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -37,6 +37,7 @@
+ #include <linux/mtd/partitions.h>
+ #include <linux/mmc/host.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <linux/platform_data/mtd-nand-omap2.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+@@ -501,6 +502,7 @@ static void __init overo_init(void)
+ 	board_nand_init(overo_nand_partitions,
+ 			ARRAY_SIZE(overo_nand_partitions), NAND_CS, 0, NULL);
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	overo_spi_init();
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+index 345e8c4..2895fe8 100644
+--- a/arch/arm/mach-omap2/board-rm680.c
++++ b/arch/arm/mach-omap2/board-rm680.c
+@@ -19,6 +19,7 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/platform_data/mtd-onenand-omap2.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <asm/mach/arch.h>
+ #include <asm/mach-types.h>
+@@ -136,6 +137,7 @@ static void __init rm680_init(void)
+ 	omap_sdrc_init(sdrc_params, sdrc_params);
+ 
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 	rm680_peripherals_init();
+ }
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index d2ea68e..508f8d9 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -18,6 +18,7 @@
+ #include <linux/gpio.h>
+ #include <linux/leds.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ #include <linux/usb/musb.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ 
+@@ -100,6 +101,7 @@ static void __init rx51_init(void)
+ 	omap_sdrc_init(sdrc_params, sdrc_params);
+ 
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(&musb_board_data);
+ 	rx51_peripherals_init();
+ 
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index cdc0c10..b58d7cd 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -22,6 +22,7 @@
+ #include <linux/platform_data/gpio-omap.h>
+ #include <linux/platform_data/omap-twl4030.h>
+ #include <linux/usb/phy.h>
++#include <linux/phy/phy.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -303,6 +304,7 @@ void __init zoom_peripherals_init(void)
+ 	omap_i2c_init();
+ 	platform_device_register(&omap_vwlan_device);
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 	enable_board_wakeup_source();
+ 	omap_serial_init();
 -- 
 1.7.10.4
-
