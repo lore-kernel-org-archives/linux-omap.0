@@ -1,24 +1,15 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 05/21] ARM: OMAP3: 3430SDP: Adapt to ehci-omap changes
-Date: Wed, 20 Mar 2013 17:44:44 +0200
-Message-ID: <1363794300-31526-6-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 12/21] ARM: OMAP3: igep0020: Adapt to ehci-omap changes
+Date: Wed, 20 Mar 2013 17:44:51 +0200
+Message-ID: <1363794300-31526-13-git-send-email-rogerq@ti.com>
 References: <1363794300-31526-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1363794300-31526-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
+Cc: balbi@ti.com, rogerq@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 Use usbhs_init_phys() to register the PHY's RESET regulators
@@ -26,51 +17,66 @@ and the NOP PHY devices.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |   21 +++++++++++++++------
- 1 files changed, 15 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/board-igep0020.c |   32 ++++++++++++++++++--------------
+ 1 files changed, 18 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index ce812de..7eb9651 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -445,16 +445,23 @@ static void enable_board_wakeup_source(void)
- 		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index bf92678..95ccec0 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -527,26 +527,28 @@ static void __init igep_i2c_init(void)
+ 	omap3_pmic_init("twl4030", &igep_twldata);
  }
  
-+static struct usbhs_phy_data phy_data[] __initdata = {
++static struct usbhs_phy_data igep2_phy_data[] __initdata = {
 +	{
 +		.port = 1,
-+		.reset_gpio = 57,
-+		.vcc_gpio = -EINVAL,
-+	},
-+	{
-+		.port = 2,
-+		.reset_gpio = 61,
++		.reset_gpio = IGEP2_GPIO_USBH_NRESET,
 +		.vcc_gpio = -EINVAL,
 +	},
 +};
 +
- static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
- 
++static struct usbhs_phy_data igep3_phy_data[] __initdata = {
++	{
++		.port = 2,
++		.reset_gpio = IGEP3_GPIO_USBH_NRESET,
++		.vcc_gpio = -EINVAL,
++	},
++};
++
+ static struct usbhs_omap_platform_data igep2_usbhs_bdata __initdata = {
  	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
+-	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
+-	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
+-
+-	.phy_reset = true,
+-	.reset_gpio_port[0] = IGEP2_GPIO_USBH_NRESET,
+-	.reset_gpio_port[1] = -EINVAL,
+-	.reset_gpio_port[2] = -EINVAL,
+ };
+ 
+ static struct usbhs_omap_platform_data igep3_usbhs_bdata __initdata = {
+-	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
  	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
 -	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
 -
--	.phy_reset  = true,
--	.reset_gpio_port[0]  = 57,
--	.reset_gpio_port[1]  = 61,
--	.reset_gpio_port[2]  = -EINVAL
+-	.phy_reset = true,
+-	.reset_gpio_port[0] = -EINVAL,
+-	.reset_gpio_port[1] = IGEP3_GPIO_USBH_NRESET,
+-	.reset_gpio_port[2] = -EINVAL,
  };
  
  #ifdef CONFIG_OMAP_MUX
-@@ -606,6 +613,8 @@ static void __init omap_3430sdp_init(void)
- 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
- 	sdp3430_display_init();
- 	enable_board_wakeup_source();
-+
-+	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
- 	usbhs_init(&usbhs_bdata);
+@@ -642,8 +644,10 @@ static void __init igep_init(void)
+ 	if (machine_is_igep0020()) {
+ 		omap_display_init(&igep2_dss_data);
+ 		igep2_init_smsc911x();
++		usbhs_init_phys(igep2_phy_data, ARRAY_SIZE(igep2_phy_data));
+ 		usbhs_init(&igep2_usbhs_bdata);
+ 	} else {
++		usbhs_init_phys(igep3_phy_data, ARRAY_SIZE(igep3_phy_data));
+ 		usbhs_init(&igep3_usbhs_bdata);
+ 	}
  }
- 
 -- 
 1.7.4.1
