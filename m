@@ -1,63 +1,66 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] mach_omap2: use PTR_RET instead of IS_ERR + PTR_ERR
-Date: Wed, 20 Mar 2013 13:28:47 -0500
-Message-ID: <5149FFDF.6050501@ti.com>
-References: <1363075109-27038-1-git-send-email-silviupopescu1990@gmail.com> <20130312110557.GF30923@n2100.arm.linux.org.uk>
+From: Andy Gross <andy.gross@ti.com>
+Subject: [PATCH v2 2/2] ARM: OMAP2+: Don't create DMM if DT present
+Date: Wed, 20 Mar 2013 15:50:42 -0500
+Message-ID: <1363812642-2921-3-git-send-email-andy.gross@ti.com>
+References: <1363812642-2921-1-git-send-email-andy.gross@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130312110557.GF30923@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36043 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751422Ab3CTUuy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Mar 2013 16:50:54 -0400
+In-Reply-To: <1363812642-2921-1-git-send-email-andy.gross@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, devicetree-discuss@lists.ozlabs.org, Andy Gross <andy.gross@ti.com>
 
+Added code to conditionally skip over creating a DMM device from the
+hwmod information if there is a DMM node present in the DT.
 
-On 03/12/2013 06:05 AM, Russell King - ARM Linux wrote:
-> On Tue, Mar 12, 2013 at 09:58:29AM +0200, Silviu-Mihai Popescu wrote:
->> This uses PTR_RET instead of IS_ERR and PTR_ERR in order to increase
->> readability.
->>
->> Signed-off-by: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
->> ---
->>  arch/arm/mach-omap2/devices.c |    4 ++--
->>  arch/arm/mach-omap2/fb.c      |    5 +----
->>  arch/arm/mach-omap2/gpmc.c    |    2 +-
->>  arch/arm/mach-omap2/pmu.c     |    5 +----
->>  4 files changed, 5 insertions(+), 11 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
->> index 1ec7f05..2a0816e 100644
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
->> @@ -66,7 +66,7 @@ static int __init omap3_l3_init(void)
->>  
->>  	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
->>  
->> -	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
->> +	return PTR_RET(pdev);
-> 
-> This is incorrect.
-> 
-> The return value will be tested for < 0.  Kernel pointers in general are
-> all above 3GB, and so are all "< 0".
-> 
-> I'm afraid none of these changes stuff is an improvement - they all
-> introduce bugs.
+Signed-off-by: Andy Gross <andy.gross@ti.com>
+---
+ arch/arm/mach-omap2/drm.c |   18 ++++++++++++------
+ 1 files changed, 12 insertions(+), 6 deletions(-)
 
-Sorry I am now not sure I follow you here. Someone just pointed out to
-me that PTR_RET() is defined as ...
+diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
+index 59a4af7..01a0c6a 100644
+--- a/arch/arm/mach-omap2/drm.c
++++ b/arch/arm/mach-omap2/drm.c
+@@ -24,6 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/platform_data/omap_drm.h>
++#include <linux/of.h>
+ 
+ #include "soc.h"
+ #include "omap_device.h"
+@@ -47,13 +48,18 @@ static int __init omap_init_drm(void)
+ 	struct omap_hwmod *oh = NULL;
+ 	struct platform_device *pdev;
+ 
+-	/* lookup and populate the DMM information, if present - OMAP4+ */
+-	oh = omap_hwmod_lookup("dmm");
++	if (!of_have_populated_dt()  ||
++		!of_find_compatible_node(NULL, NULL, "ti,dmm")) {
+ 
+-	if (oh) {
+-		pdev = omap_device_build(oh->name, -1, oh, NULL, 0);
+-		WARN(IS_ERR(pdev), "Could not build omap_device for %s\n",
+-			oh->name);
++		/* resort to hwmod lookup - LEGACY */
++		/* lookup and populate the DMM information, OMAP4+ only */
++		oh = omap_hwmod_lookup("dmm");
++
++		if (oh) {
++			pdev = omap_device_build(oh->name, -1, oh, NULL, 0);
++			WARN(IS_ERR(pdev), "Could not build device for %s\n",
++				oh->name);
++		}
+ 	}
+ 
+ 	platform_data.omaprev = GET_OMAP_TYPE;
+-- 
+1.7.5.4
 
-static inline int __must_check PTR_RET(const void *ptr)
-{
-	if (IS_ERR(ptr))
-		return PTR_ERR(ptr);
-	else
-		return 0;
-}
-
-So the above change appears to be equivalent. Is there something that is
-wrong with the current implementation that needs to be fixed?
-
-Jon
