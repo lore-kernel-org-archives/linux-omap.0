@@ -1,80 +1,36 @@
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v3 1/6] drivers: phy: add generic PHY framework
-Date: Wed, 20 Mar 2013 23:36:19 +0100
-Message-ID: <514A39E3.6090501@gmail.com>
-References: <1363770725-13717-1-git-send-email-kishon@ti.com> <1363770725-13717-2-git-send-email-kishon@ti.com>
+From: "Wenzhou Ourvis" <ourvis@ourvis.com>
+Subject: Re: Hello
+Date: Wed, 20 Mar 2013 20:34:06 -0300
+Message-ID: <20130320232438.C41F1719933@mail.swrs.ap.gov.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:42762 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752876Ab3CTWgZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Mar 2013 18:36:25 -0400
-In-Reply-To: <1363770725-13717-2-git-send-email-kishon@ti.com>
+Received: from mail.swrs.ap.gov.in ([110.234.138.54]:54058 "EHLO
+	mail.swrs.ap.gov.in" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751699Ab3CUAlo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Mar 2013 20:41:44 -0400
+Content-Description: Mail message body
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, arnd@arndb.de, akpm@linux-foundation.org, rob@landley.net, broonie@opensource.wolfsonmicro.com, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, eballetbo@gmail.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, swarren@nvidia.com, javier@dowhile0.org, linux-omap@vger.kernel.org, davem@davemloft.net, cesarb@cesarb.net, mchehab@redhat.com
+To: Recipients <ourvis@ourvis.com>
 
-Hi Kishon,
+Dear E-mail User,
 
-On 03/20/2013 10:12 AM, Kishon Vijay Abraham I wrote:
-> The PHY framework provides a set of APIs for the PHY drivers to
-> create/destroy a PHY and APIs for the PHY users to obtain a reference to the
-> PHY with or without using phandle. To obtain a reference to the PHY without
-> using phandle, the platform specfic intialization code (say from board file)
-> should have already called phy_bind with the binding information. The binding
-> information consists of phy's device name, phy user device name and an index.
-> The index is used when the same phy user binds to mulitple phys.
->
-> PHY drivers should create the PHY by passing phy_descriptor that has
-> describes the PHY (label, type etc..) and ops like init, exit, suspend, resume,
-> poweron, shutdown.
->
-> The documentation for the generic PHY framework is added in
-> Documentation/phy.txt and the documentation for the sysfs entry is added
-> in Documentation/ABI/testing/sysfs-class-phy.
->
-> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
-> ---
-[...]
-> +static inline struct phy *phy_get(struct device *dev, int index)
-> +{
-> +	return ERR_PTR(-EOPNOTSUPP);
 
-Shouldn't these be -ENOSYS ? EOPNOTSUPP is defined by POSIX as
-"Operation not supported on socket". And EOPNOTSUPP appears to be
-mostly used in the network code in the kernel.
+  This is to immediately inform you that your email address with Micros ID: IDJT-32238-EHI-676GI-8ED has won you 2,485,000.00 GBP and a brand new Range Rover SUV from the Wenzhou Ourvis yearly draw promo.
 
-> +}
-> +
-> +static inline struct phy *devm_phy_get(struct device *dev, int index)
-> +{
-> +	return ERR_PTR(-EOPNOTSUPP);
-> +}
-> +
-> +static inline struct phy *of_phy_get(struct device *dev, int index)
-> +{
-> +	return ERR_PTR(-EOPNOTSUPP);
-> +}
-> +
-> +static inline struct phy *devm_of_phy_get(struct device *dev, int index)
-> +{
-> +	return ERR_PTR(-EOPNOTSUPP);
-> +}
-> +
-> +static inline struct phy *of_phy_get_byname(struct device *dev,
-> +	const char *string)
-> +{
-> +	return ERR_PTR(-EOPNOTSUPP);
-> +}
-> +
-> +static inline struct phy *devm_of_phy_get_byname(struct device *dev,
-> +	const char *string)
-> +{
-> +	return ERR_PTR(-EOPNOTSUPP);
-> +}
+Use the details below to login and fill in the claim form to immediately begin your claims.
 
-Thanks,
-Sylwester
+
+
+WEBSITE: www.wenzhourvis.cla.fr
+USERNAME: ISO912PP
+PASSWORD: XNO87PS
+
+
+Regards,
+Dr. Warren Payne,
+Wenzhou Ourvis Company.
+European Zonal Coordinator,
+United Kingdom.
