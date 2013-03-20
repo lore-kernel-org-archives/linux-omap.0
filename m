@@ -1,7 +1,7 @@
 From: Laurent Navet <laurent.navet@gmail.com>
-Subject: [PATCH 09/10] gpio: gpio-timberdale.c: fix checkpatch error
-Date: Wed, 20 Mar 2013 13:16:03 +0100
-Message-ID: <1363781764-17330-10-git-send-email-laurent.navet@gmail.com>
+Subject: [PATCH 04/10] gpio: gpio-pca953x.c: fix checkpatch error
+Date: Wed, 20 Mar 2013 13:15:58 +0100
+Message-ID: <1363781764-17330-5-git-send-email-laurent.navet@gmail.com>
 References: <1363781764-17330-1-git-send-email-laurent.navet@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1363781764-17330-1-git-send-email-laurent.navet@gmail.com>
@@ -11,26 +11,26 @@ Cc: santosh.shilimkar@ti.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-
 List-Id: linux-omap@vger.kernel.org
 
 Fix :
- gpio/gpio-timberdale.c:171: ERROR: else should follow close brace '}'
+ gpio/gpio-pca953x.c:150: ERROR: else should follow close brace '}'
 
 Signed-off-by: Laurent Navet <laurent.navet@gmail.com>
 ---
- drivers/gpio/gpio-timberdale.c |    3 +--
+ drivers/gpio/gpio-pca953x.c |    3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/gpio/gpio-timberdale.c b/drivers/gpio/gpio-timberdale.c
-index 702cca9..4377405 100644
---- a/drivers/gpio/gpio-timberdale.c
-+++ b/drivers/gpio/gpio-timberdale.c
-@@ -167,8 +167,7 @@ static int timbgpio_irq_type(struct irq_data *d, unsigned trigger)
- 		if (ver < 3) {
- 			ret = -EINVAL;
- 			goto out;
--		}
--		else {
-+		} else {
- 			flr |= 1 << offset;
- 			bflr |= 1 << offset;
- 		}
+diff --git a/drivers/gpio/gpio-pca953x.c b/drivers/gpio/gpio-pca953x.c
+index 2405946..15dbc36 100644
+--- a/drivers/gpio/gpio-pca953x.c
++++ b/drivers/gpio/gpio-pca953x.c
+@@ -146,8 +146,7 @@ static int pca953x_write_regs(struct pca953x_chip *chip, int reg, u8 *val)
+ 		ret = i2c_smbus_write_i2c_block_data(chip->client,
+ 					(reg << bank_shift) | REG_ADDR_AI,
+ 					NBANK(chip), val);
+-	}
+-	else {
++	} else {
+ 		switch (chip->chip_type) {
+ 		case PCA953X_TYPE:
+ 			ret = i2c_smbus_write_word_data(chip->client,
 -- 
 1.7.10.4
