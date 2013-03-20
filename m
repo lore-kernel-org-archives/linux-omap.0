@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 17/21] ARM: OMAP3: overo: Adapt to ehci-omap changes
-Date: Wed, 20 Mar 2013 17:44:56 +0200
-Message-ID: <1363794300-31526-18-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 18/21] ARM: OMAP: zoom: Adapt to ehci-omap changes
+Date: Wed, 20 Mar 2013 17:44:57 +0200
+Message-ID: <1363794300-31526-19-git-send-email-rogerq@ti.com>
 References: <1363794300-31526-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,44 +17,44 @@ and the NOP PHY device.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/board-overo.c |   16 ++++++++++------
+ arch/arm/mach-omap2/board-zoom.c |   16 ++++++++++------
  1 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 86bab51..ab79a44 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -458,14 +458,16 @@ static int __init overo_spi_init(void)
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/board-zoom.c b/arch/arm/mach-omap2/board-zoom.c
+index 5e4d4c9..1a3dd86 100644
+--- a/arch/arm/mach-omap2/board-zoom.c
++++ b/arch/arm/mach-omap2/board-zoom.c
+@@ -92,14 +92,16 @@ static struct mtd_partition zoom_nand_partitions[] = {
+ 	},
+ };
  
 +static struct usbhs_phy_data phy_data[] __initdata = {
 +	{
 +		.port = 2,
-+		.reset_gpio = OVERO_GPIO_USBH_NRESET,
++		.reset_gpio = ZOOM3_EHCI_RESET_GPIO,
 +		.vcc_gpio = -EINVAL,
 +	},
 +};
 +
  static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
--	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
- 	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
--	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
--	.phy_reset  = true,
--	.reset_gpio_port[0]  = -EINVAL,
--	.reset_gpio_port[1]  = OVERO_GPIO_USBH_NRESET,
--	.reset_gpio_port[2]  = -EINVAL
+-	.port_mode[0]		= OMAP_USBHS_PORT_MODE_UNUSED,
+ 	.port_mode[1]		= OMAP_EHCI_PORT_MODE_PHY,
+-	.port_mode[2]		= OMAP_USBHS_PORT_MODE_UNUSED,
+-	.phy_reset		= true,
+-	.reset_gpio_port[0]	= -EINVAL,
+-	.reset_gpio_port[1]	= ZOOM3_EHCI_RESET_GPIO,
+-	.reset_gpio_port[2]	= -EINVAL,
  };
  
- #ifdef CONFIG_OMAP_MUX
-@@ -502,6 +504,8 @@ static void __init overo_init(void)
- 			ARRAY_SIZE(overo_nand_partitions), NAND_CS, 0, NULL);
- 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
+ static void __init omap_zoom_init(void)
+@@ -109,6 +111,8 @@ static void __init omap_zoom_init(void)
+ 	} else if (machine_is_omap_zoom3()) {
+ 		omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
+ 		omap_mux_init_gpio(ZOOM3_EHCI_RESET_GPIO, OMAP_PIN_OUTPUT);
 +
-+	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
- 	usbhs_init(&usbhs_bdata);
- 	overo_spi_init();
- 	overo_init_smsc911x();
++		usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
+ 		usbhs_init(&usbhs_bdata);
+ 	}
+ 
 -- 
 1.7.4.1
