@@ -1,121 +1,93 @@
 From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2 5/7] usb: phy: twl4030-usb: check if vbus is driven by
- twl itself
-Date: Wed, 20 Mar 2013 15:07:50 +0200
-Message-ID: <20130320130750.GR29659@arwen.pp.htv.fi>
+Subject: Re: [PATCHv2 0/7] usb: phy: twl4030-usb fixes
+Date: Wed, 20 Mar 2013 15:08:40 +0200
+Message-ID: <20130320130839.GS29659@arwen.pp.htv.fi>
 References: <1363544607-17634-1-git-send-email-notasas@gmail.com>
- <1363544607-17634-6-git-send-email-notasas@gmail.com>
+ <20130320125425.GQ29659@arwen.pp.htv.fi>
 Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zpd1bWBxfrI+71+6"
+	protocol="application/pgp-signature"; boundary="CYcXvPfqKSDi0QhV"
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1363544607-17634-6-git-send-email-notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20130320125425.GQ29659-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>, kishon <kishon-l0cyMroinI0@public.gmane.org>
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>, kishon <kishon-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---zpd1bWBxfrI+71+6
+--CYcXvPfqKSDi0QhV
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Mar 17, 2013 at 08:23:25PM +0200, Grazvydas Ignotas wrote:
-> At least on pandora, STS_VBUS gets set even when VBUS is driven by twl
-> itself. Reporting VBUS in this case confuses OMAP musb glue and charger
-> driver, so check if OTG VBUS charge pump is on before reporting VBUS
-> event to avoid this problem.
+On Wed, Mar 20, 2013 at 02:54:25PM +0200, Felipe Balbi wrote:
+> On Sun, Mar 17, 2013 at 08:23:20PM +0200, Grazvydas Ignotas wrote:
+> > I have a pandora board which has similar musb setup to beagleboard
+> > (OMAP3530 + TWL4030) and musb never worked well on it for me in mainlin=
+e.
+> > Well it usually works if you plug the cable once, but as soon as you st=
+art
+> > replugging cables and mixing host adapter into the game it totally brea=
+ks
+> > and reboot is then needed. Host mode is especially broken, any replugs
+> > after musb has been in host mode result in dead port that needs reboot
+> > to recover.
+> >=20
+> > With this series I can switch host/peripheral cables any way I like and
+> > even suspend works with cable plugged with musb in peripheral mode!
+> > ("ARM: OMAP3: hwmod data: keep MIDLEMODE in force-standby for musb" is
+> > needed that was sent separately). This also fixes power drain when cable
+> > is plugged an no gadget driver is loaded.
+> >=20
+> > Changed since v1:
+> > - rebased on Felipe's testing branch
+> > - added locking for patch 4 to take care of possible races
+> >   between work item and IRQ
+> > - changed patch 6 to only disable VBUS if not runtime suspended,
+> >   otherwise we get data abort on OMAP3
+> >=20
+> > Grazvydas Ignotas (7):
+> >   usb: phy: twl4030-usb: don't enable PHY during init
+> >   usb: phy: twl4030-usb: ignore duplicate events
+> >   usb: phy: twl4030-usb: don't switch the phy on/off needlessly
+> >   usb: phy: twl4030-usb: poll for ID disconnect
+> >   usb: phy: twl4030-usb: check if vbus is driven by twl itself
+> >   usb: musb: omap2430: turn off vbus on cable disconnect
+> >   usb: musb: gadget: use platform callback to enable vbus
 >=20
-> Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/usb/phy/phy-twl4030-usb.c |   36 +++++++++++++++++++++++++++++++=
------
->  1 file changed, 31 insertions(+), 5 deletions(-)
->=20
-> diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/usb/phy/phy-twl4=
-030-usb.c
-> index 425c18a..87bf11d 100644
-> --- a/drivers/usb/phy/phy-twl4030-usb.c
-> +++ b/drivers/usb/phy/phy-twl4030-usb.c
-> @@ -248,11 +248,31 @@ twl4030_usb_clear_bits(struct twl4030_usb *twl, u8 =
-reg, u8 bits)
-> =20
->  /*----------------------------------------------------------------------=
----*/
-> =20
-> +static bool twl4030_is_driving_vbus(struct twl4030_usb *twl)
-> +{
-> +	int ret;
-> +
-> +	ret =3D twl4030_usb_read(twl, PHY_CLK_CTRL_STS);
-> +	if (ret < 0 || !(ret & PHY_DPLL_CLK))
-> +		/*
-> +		 * if clocks are off, registers are not updated,
-> +		 * but we can assume we don't drive VBUS in this case
-> +		 */
-> +		return false;
-> +
-> +	ret =3D twl4030_usb_read(twl, ULPI_OTG_CTRL);
-> +	if (ret < 0)
-> +		return false;
-> +
-> +	return (ret & (ULPI_OTG_DRVVBUS | ULPI_OTG_CHRGVBUS)) ? true : false;
-> +}
-> +
->  static enum omap_musb_vbus_id_status
->  	twl4030_usb_linkstat(struct twl4030_usb *twl)
->  {
->  	int	status;
->  	enum omap_musb_vbus_id_status linkstat =3D OMAP_MUSB_UNKNOWN;
-> +	bool	driving_vbus =3D false;
-> =20
->  	twl->vbus_supplied =3D false;
-> =20
-> @@ -270,20 +290,26 @@ static enum omap_musb_vbus_id_status
->  	if (status < 0)
->  		dev_err(twl->dev, "USB link status err %d\n", status);
->  	else if (status & (BIT(7) | BIT(2))) {
-> -		if (status & (BIT(7)))
-> -                        twl->vbus_supplied =3D true;
-> +		if (status & BIT(7)) {
-> +			driving_vbus =3D twl4030_is_driving_vbus(twl);
-> +			if (driving_vbus)
+> since this falls into "has never worked before" I will apply them for
+> v3.10. If you have any objections, let me know.
 
-how about just:
-
-if (twl4030_is_driving_vbus(twl))
-	status &=3D ~BIT(7);
-
-????
+I have applied up to 'poll for ID disconnect'. Please rebase the others
+against my 'testing' branch once you update based on my comments.
 
 --=20
 balbi
 
---zpd1bWBxfrI+71+6
+--CYcXvPfqKSDi0QhV
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRSbSmAAoJEIaOsuA1yqREp5gP/AjBuWlfqcNeC8CTcBPUTiE2
-f50NbPggvpe82LCi4sEFUJgw6uDSz9Jt7L/TqC3CtM524Gy/TKvNtGhZqABco3Jo
-oq7CdqQmwTJGtKCjb4x9in0t7MJSi3IuLY4oK8djuz5WXqECJJBZg5+iVM23hRY5
-+VM0dg0p5mGKyZpiNrv+qQJEwBYGdJI4NNH6y0jfBhsAPGySj5vVj0WZzzjoCwYE
-JipUgFsNkrtO/rfXi7mrpHn+ZQyVR0ZmzUZOLl871z3b4pmiV+EoHCOkm+vPpQ2b
-QhWX8sFyUOzmoHzkEux4c3bV+hzmq4bEqp4Mha53UOn3ct2uED7XTlXTMDBNz2O5
-2F8I6YlhiTHb726Hi8o4x64+HrzaCxyNquNQSD/+MU4JrGPnv+r3s6/zq1mPY7Hi
-8qoLpiKUHrtXM1rapBgEjCVztvGHOgijHNnVaLHhLXKb+JkN/bnTy8GFJsaF588a
-oLrPAIBDRxCUdpUfRgpjb6x1ea/A2WgRa8fKmj4wYXYyk3ebeSqy9dUKfdt9jP+Y
-BANYjhS6yQMZKXyu/iBHtZbc8xCTK8MVUxuICOXaHGwiOL8CP/ijBnSQTj9olNB9
-hXy5JMs5YenjslegxdzMPc7GNR5Clg0KsFiCPceGkxAjfcXn5RWjVtb2dswhQKKX
-iA0mw2VCYWgs8NyF1/W1
-=MyLG
+iQIcBAEBAgAGBQJRSbTXAAoJEIaOsuA1yqREAncP+QF/dMNzQZsyT3rFWANn5019
+2OMjVWnGvFS0PDGL72kwB39vrkgYsT5pAoyH50Z6XDlX/0/ds5Nq8gWs51LpXJvG
+Kv4D4TVH/In9XZpZkbQdftwJw09Upz8vwk2Ph0AIQpWYSovxWolC/as0KU2lxyhf
+eN2e5RNAnsSQfdhXI7/rk/pPEx6VSG2nokPTGEqA8JoODB9uZ+Ichi9FTCS7tHI/
+tt2bDr2qgQigTVvsDIhevvzGqEG6Wn//TR40JR+agoMmI11n1i9+o8yO8VG3F4QE
+r/RGXtYh6/mcogWxMfqYVWEcsCZlvJppsGSdwIkFfeSkLr7u/oscDAv0cU1qUgio
+Nrwb8P3wcPXBXYSzGfN6eADrK2x55uEPRQHXimbGrBbTOdbyvCZmBPCaAzicmcEp
+5tgD0ltY+YBSSoAvPtys7jfkQVj2DycSqEUB9cc+Ltx9O3YP18njWiPNqYznE18N
+cDUT1CqWqu44IBxxtCaw4pKH/he4b2oXUErNRKJS/w1GNHi8gQDjQ2PcViES+5l8
+OFrOIBD+qNaYB7TSZWchD/P0GiZe3Fg5jq01jBAQyVf0zvZq3qaqmWEAWCE0z/C4
+vJxVaKnsM7/6cpnM244E1rpF4NyUrj3JB3G8EbFiFEy6pQn9g/Q64oqjkBLENo4/
+ibAEe6GhCwxlJXSN637a
+=caw5
 -----END PGP SIGNATURE-----
 
---zpd1bWBxfrI+71+6--
+--CYcXvPfqKSDi0QhV--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
