@@ -1,159 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V3 2/2] dmaengine: OMAP: Register SDMA controller with
- Device Tree DMA driver
-Date: Wed, 20 Mar 2013 09:36:55 -0700
-Message-ID: <20130320163654.GN16413@atomide.com>
-References: <1361903244-19837-1-git-send-email-jon-hunter@ti.com>
- <1361903244-19837-3-git-send-email-jon-hunter@ti.com>
- <51488C8B.4010206@ti.com>
+Subject: Re: [RFC 0/2] ARM: OMAP: dma.h cleanup
+Date: Wed, 20 Mar 2013 09:42:45 -0700
+Message-ID: <20130320164245.GO16413@atomide.com>
+References: <1363205749-9905-1-git-send-email-jarkko.nikula@bitmer.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:28529 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43857 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757893Ab3CTQhI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Mar 2013 12:37:08 -0400
+	with ESMTP id S1752066Ab3CTQms (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Mar 2013 12:42:48 -0400
 Content-Disposition: inline
-In-Reply-To: <51488C8B.4010206@ti.com>
+In-Reply-To: <1363205749-9905-1-git-send-email-jarkko.nikula@bitmer.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, "Cousson, Benoit" <b-cousson@ti.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Jon Hunter <jon-hunter@ti.com> [130319 09:08]:
-> Vinod, Tony, Benoit,
+* Jarkko Nikula <jarkko.nikula@bitmer.com> [130313 13:20]:
+> I don't know is this good or bad idea, thus RFC.
 > 
-> On 02/26/2013 12:27 PM, Jon Hunter wrote:
-> > If the device-tree blob is present during boot, then register the SDMA
-> > controller with the device-tree DMA driver so that we can use device-tree
-> > to look-up DMA client information.
-> > 
-> > Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> > Reviewed-by: Felipe Balbi <balbi@ti.com>
-> > Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/dma.c |    4 ++++
-> >  drivers/dma/omap-dma.c    |   38 ++++++++++++++++++++++++++++++++++++--
-> >  2 files changed, 40 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
-> > index dab9fc0..49fd0d5 100644
-> > --- a/arch/arm/mach-omap2/dma.c
-> > +++ b/arch/arm/mach-omap2/dma.c
-> > @@ -28,6 +28,7 @@
-> >  #include <linux/init.h>
-> >  #include <linux/device.h>
-> >  #include <linux/dma-mapping.h>
-> > +#include <linux/of.h>
-> >  #include <linux/omap-dma.h>
-> >  
-> >  #include "soc.h"
-> > @@ -304,6 +305,9 @@ static int __init omap2_system_dma_init(void)
-> >  	if (res)
-> >  		return res;
-> >  
-> > +	if (of_have_populated_dt())
-> > +		return res;
-> > +
-> >  	pdev = platform_device_register_full(&omap_dma_dev_info);
-> >  	if (IS_ERR(pdev))
-> >  		return PTR_ERR(pdev);
-
-AFAIK we don't currently have anything else touching this file..
-
-> > diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-> > index c4b4fd2..2ea3d7e 100644
-> > --- a/drivers/dma/omap-dma.c
-> > +++ b/drivers/dma/omap-dma.c
-> > @@ -16,6 +16,8 @@
-> >  #include <linux/platform_device.h>
-> >  #include <linux/slab.h>
-> >  #include <linux/spinlock.h>
-> > +#include <linux/of_dma.h>
-> > +#include <linux/of_device.h>
-> >  
-> >  #include "virt-dma.h"
-> >  
-> > @@ -67,6 +69,10 @@ static const unsigned es_bytes[] = {
-> >  	[OMAP_DMA_DATA_TYPE_S32] = 4,
-> >  };
-> >  
-> > +static struct of_dma_filter_info omap_dma_info = {
-> > +	.filter_fn = omap_dma_filter_fn,
-> > +};
-> > +
-> >  static inline struct omap_dmadev *to_omap_dma_dev(struct dma_device *d)
-> >  {
-> >  	return container_of(d, struct omap_dmadev, ddev);
-> > @@ -621,8 +627,22 @@ static int omap_dma_probe(struct platform_device *pdev)
-> >  		pr_warn("OMAP-DMA: failed to register slave DMA engine device: %d\n",
-> >  			rc);
-> >  		omap_dma_free(od);
-> > -	} else {
-> > -		platform_set_drvdata(pdev, od);
-> > +		return rc;
-> > +	}
-> > +
-> > +	platform_set_drvdata(pdev, od);
-> > +
-> > +	if (pdev->dev.of_node) {
-> > +		omap_dma_info.dma_cap = od->ddev.cap_mask;
-> > +
-> > +		/* Device-tree DMA controller registration */
-> > +		rc = of_dma_controller_register(pdev->dev.of_node,
-> > +				of_dma_simple_xlate, &omap_dma_info);
-> > +		if (rc) {
-> > +			pr_warn("OMAP-DMA: failed to register DMA controller\n");
-> > +			dma_async_device_unregister(&od->ddev);
-> > +			omap_dma_free(od);
-> > +		}
-> >  	}
-> >  
-> >  	dev_info(&pdev->dev, "OMAP DMA engine driver\n");
-> > @@ -634,18 +654,32 @@ static int omap_dma_remove(struct platform_device *pdev)
-> >  {
-> >  	struct omap_dmadev *od = platform_get_drvdata(pdev);
-> >  
-> > +	if (pdev->dev.of_node)
-> > +		of_dma_controller_free(pdev->dev.of_node);
-> > +
-> >  	dma_async_device_unregister(&od->ddev);
-> >  	omap_dma_free(od);
-> >  
-> >  	return 0;
-> >  }
-> >  
-> > +static const struct of_device_id omap_dma_match[] = {
-> > +	{ .compatible = "ti,omap2420-sdma", },
-> > +	{ .compatible = "ti,omap2430-sdma", },
-> > +	{ .compatible = "ti,omap3430-sdma", },
-> > +	{ .compatible = "ti,omap3630-sdma", },
-> > +	{ .compatible = "ti,omap4430-sdma", },
-> > +	{},
-> > +};
-> > +MODULE_DEVICE_TABLE(of, omap_dma_match);
-> > +
-> >  static struct platform_driver omap_dma_driver = {
-> >  	.probe	= omap_dma_probe,
-> >  	.remove	= omap_dma_remove,
-> >  	.driver = {
-> >  		.name = "omap-dma-engine",
-> >  		.owner = THIS_MODULE,
-> > +		.of_match_table = of_match_ptr(omap_dma_match),
-> >  	},
-> >  };
+> I got this idea after noticing that McBSP DMA channel definitions are no
+> longer used for OMAP2 and EAC DMA channel were never used in upstream.
+> Scripts here are used to remove all of those unused ones.
 > 
-> Who's tree does it make most sense for this patch to go through?
-> 
-> Benoit has queued up patch 1/2 and so I am not sure if this should go
-> via Benoit tree to Tony or directly via Vinod's tree. What are your
-> thoughts?
+> Build tested with omap1_defconfig and omap2plus_defconfig.
 
-OK
- 
-> It would be great if this could make v3.10.
+Yeah let's get rid of them. I'll apply these into omap-for-v3.10/cleanup.
 
-I suggest Vinod/Grant/Linus W queue this patch:
+Regards,
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Tony
