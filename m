@@ -1,14 +1,14 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [GIT PULL] ARM: OMAP5: Generic updates and es2 fixes for 3.10
-Date: Wed, 20 Mar 2013 14:10:22 +0530
-Message-ID: <1363768822-18084-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and updates for 3.10
+Date: Wed, 20 Mar 2013 14:10:52 +0530
+Message-ID: <1363768852-18125-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58635 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58664 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750928Ab3CTIid (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Mar 2013 04:38:33 -0400
+	id S1752728Ab3CTIjE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Mar 2013 04:39:04 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
@@ -16,9 +16,15 @@ Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Sh
 
 Tony,
 
-Here is the pull request for various OMAP5 generic updates which are posted
-earlier on the list. It contains OMAP5 es2 related updates like idcode,
-RAM base and couple of initialisation fixes.
+Here is the pull request for OMAP5 data file patches which are on list from
+last merge window. As aligned on list, I have dropped clock data from the
+series. That means for the boot, one clock data patch needs to be applied.
+It is available on my git tree in 'out_of_tree/omap5_clk_data' branch.
+
+As discussed already on list, you will notice hwmod data loc has come down
+from ~6000 lines to ~2000 lines becasue of removal of iospace, irq, dma data
+as well as unused hwmods. Few hwmods for which dt conversion is pending are
+not added as well but those would add max ~400 loc in future.
 
 The following changes since commit a937536b868b8369b98967929045f1df54234323:
 
@@ -26,35 +32,55 @@ The following changes since commit a937536b868b8369b98967929045f1df54234323:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.10/omap5_generic_updates
+  git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.10/omap5_data_files
 
-for you to fetch changes up to ecf51648c192377ea2830101b12fc3017bfd2b0c:
+for you to fetch changes up to 8a6a32e589a1a2a5a3fb8ebe8fc7426997bc6d89:
 
-  ARM: OMAP5: clock: No Freqsel on OMAP5 devices too (2013-03-19 12:57:03 +0530)
+  ARM: OMAP5: Enable build and frameowrk initialisations (2013-03-19 14:09:11 +0530)
 
 ----------------------------------------------------------------
-Rajendra Nayak (1):
-      ARM: OMAP5: clock: No Freqsel on OMAP5 devices too
+Benoit Cousson (7):
+      ARM: OMAP5: PRM: Add OMAP54XX register and bitfield files
+      ARM: OMAP5: CM: Add OMAP54XX register and bitfield files
+      ARM: OMAP5: PRCM: Add OMAP54XX local MPU PRCM registers
+      ARM: OMAP5: SCRM: Add OMAP54XX header file.
+      ARM: OMAP2+: clockdomain data: Add OMAP54XX data and update the header
+      ARM: OMAP5: powerdomain data: Add OMAP54XX data and update the header
+      ARM: OMAP5: hwmod data: Create initial OMAP5 SOC hwmod data
 
-Santosh Shilimkar (6):
-      ARM: OMAP5: Update SOC id detection code for ES2
-      ARM: OMAP5: timer: Update the clocksource name as per clock data
-      ARM: OMAP5: prm: Allow prm init to succeed
-      ARM: OMAP5: Update SAR RAM base address
-      ARM: OMAP5: Update SAR memory layout for WakeupGen
-      ARM: OMAP5: Make errata i688 workaround available
+Santosh Shilimkar (4):
+      ARM: OMAP5: hwmod_data: Fix UART sysc settings
+      ARM: OMAP5: hwmod-data: Add timer clock activity flags
+      ARM: OMAP5: voltagedomain data: Add OMAP5 voltage domain data
+      ARM: OMAP5: Enable build and frameowrk initialisations
 
-Tero Kristo (1):
-      ARM: OMAP5: Reuse prm read_inst/write_inst
-
- arch/arm/mach-omap2/Kconfig            |    2 +-
- arch/arm/mach-omap2/dpll3xxx.c         |   11 +++++------
- arch/arm/mach-omap2/id.c               |   12 +++++++++---
- arch/arm/mach-omap2/io.c               |    9 +++++++++
- arch/arm/mach-omap2/omap4-common.c     |   10 ++++++++--
- arch/arm/mach-omap2/omap4-sar-layout.h |   14 +++++++-------
- arch/arm/mach-omap2/omap54xx.h         |    1 +
- arch/arm/mach-omap2/prm44xx.c          |    6 +++---
- arch/arm/mach-omap2/soc.h              |    2 ++
- arch/arm/mach-omap2/timer.c            |    5 +++--
- 10 files changed, 48 insertions(+), 24 deletions(-)
+ arch/arm/mach-omap2/Makefile                  |    4 +
+ arch/arm/mach-omap2/clockdomain.h             |    1 +
+ arch/arm/mach-omap2/clockdomains54xx_data.c   |  464 +++++
+ arch/arm/mach-omap2/cm-regbits-54xx.h         | 1737 ++++++++++++++++
+ arch/arm/mach-omap2/cm1_54xx.h                |  216 ++
+ arch/arm/mach-omap2/cm2_54xx.h                |  392 ++++
+ arch/arm/mach-omap2/io.c                      |    7 +
+ arch/arm/mach-omap2/omap_hwmod.h              |    1 +
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c    | 2151 ++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h             |    1 +
+ arch/arm/mach-omap2/powerdomains54xx_data.c   |  331 +++
+ arch/arm/mach-omap2/prcm44xx.h                |    6 +
+ arch/arm/mach-omap2/prcm_mpu54xx.h            |   92 +
+ arch/arm/mach-omap2/prm-regbits-54xx.h        | 2701 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm54xx.h                 |  447 ++++
+ arch/arm/mach-omap2/scrm54xx.h                |  231 +++
+ arch/arm/mach-omap2/voltage.h                 |    1 +
+ arch/arm/mach-omap2/voltagedomains54xx_data.c |  102 +
+ 18 files changed, 8885 insertions(+)
+ create mode 100644 arch/arm/mach-omap2/clockdomains54xx_data.c
+ create mode 100644 arch/arm/mach-omap2/cm-regbits-54xx.h
+ create mode 100644 arch/arm/mach-omap2/cm1_54xx.h
+ create mode 100644 arch/arm/mach-omap2/cm2_54xx.h
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+ create mode 100644 arch/arm/mach-omap2/powerdomains54xx_data.c
+ create mode 100644 arch/arm/mach-omap2/prcm_mpu54xx.h
+ create mode 100644 arch/arm/mach-omap2/prm-regbits-54xx.h
+ create mode 100644 arch/arm/mach-omap2/prm54xx.h
+ create mode 100644 arch/arm/mach-omap2/scrm54xx.h
+ create mode 100644 arch/arm/mach-omap2/voltagedomains54xx_data.c
