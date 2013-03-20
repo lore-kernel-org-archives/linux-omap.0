@@ -1,60 +1,54 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [GIT PULL] ARM: OMAP2+: Serial driver sysc cleanup for 3.10
-Date: Wed, 20 Mar 2013 14:06:41 +0530
-Message-ID: <1363768601-17862-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: Booting 3.9.0-rc2 on Beaglebone ?
+Date: Wed, 20 Mar 2013 08:35:38 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EC2A7D1@DBDE01.ent.ti.com>
+References: <513F9394.6010306@mimc.co.uk>
+ <20130319183347.GF16413@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57957 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752260Ab3CTIex (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Mar 2013 04:34:53 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:49431 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750928Ab3CTIfo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Mar 2013 04:35:44 -0400
+In-Reply-To: <20130319183347.GF16413@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
-
-Tony,
-
-Here is the pull request for OMAP serial driver sysconfig cleanup. The series
-removes all the hackery of sysconfig from UART driver and let runtime backend
-handle it. Without this series serial console is almost un-usable on OMAP5.
-One of the patch touches driver/serial but I got an ack from Greg KH to get
-it queued via OMAP tree.
+To: Tony Lindgren <tony@atomide.com>, Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-The following changes since commit a937536b868b8369b98967929045f1df54234323:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Wednesday, March 20, 2013 12:04 AM
+> To: Mark Jackson
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: Booting 3.9.0-rc2 on Beaglebone ?
+> 
+> Hi,
+> 
+> * Mark Jackson <mpfj-list@mimc.co.uk> [130312 13:48]:
+> > I'm struggling to get the latest kernel git to load on my beaglebone.
+> >
+> > Error: unrecognized/unsupported machine ID (r1 = 0x00000e05).
+> >
+> > I guess I'm missing some vital step ?
+> 
+> We're changing the mainline kernel tree to use device tree
+> based booting only.
+> 
+> So you need to either upgrade your bootloader to support device
+> tree based booting, or enable CONFIG_ARM_APPENDED_DTB and
+> ARM_ATAG_DTB_COMPAT in your .config and build u-image manually
+> with the .dtb appended to the zImage. Doing make dtbs will generate
+> you the am335x-bone.dtb to append.
+> 
 
-  Linux 3.9-rc3 (2013-03-17 15:59:32 -0700)
+This might help you - 
+https://github.com/hvaibhav/am335x-linux/wiki/How-To-Use-Upstream-Tree
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.10/omap_serial_sysc_cleanup
-
-for you to fetch changes up to 0f78c88b107a25561d0830c7fb695134ac7e8892:
-
-  ARM: OMAP2+: hwmod: Remove sysc slave idle and auto idle apis (2013-03-19 12:07:49 +0530)
-
-----------------------------------------------------------------
-Rajendra Nayak (4):
-      ARM: OMAP2+: hwmod: Remove unused _HWMOD_WAKEUP_ENABLED flag
-      ARM: OMAP2+: hwmod: Cleanup sidle/mstandby programming
-      ARM: OMAP2+: hwmod: Always have OCP_SYSCONFIG.ENAWAKEUP enabled
-      ARM: OMAP2+: hwmod: Add a new flag to handle SIDLE in SWSUP only in active
-
-Santosh Shilimkar (4):
-      ARM: OMAP2+: hwmod-data: UART IP needs software control to manage sidle modes
-      SERIAL: OMAP: Remove the slave idle handling from the driver
-      ARM: OMAP2+: serial: Remove the un-used slave idle hooks
-      ARM: OMAP2+: hwmod: Remove sysc slave idle and auto idle apis
-
- arch/arm/mach-omap2/omap_hwmod.c                   |  142 ++++----------------
- arch/arm/mach-omap2/omap_hwmod.h                   |   13 +-
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    3 +
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    6 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    4 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 +-
- arch/arm/mach-omap2/serial.c                       |   31 -----
- drivers/tty/serial/omap-serial.c                   |   23 ----
- include/linux/platform_data/serial-omap.h          |    2 -
- 9 files changed, 50 insertions(+), 180 deletions(-)
+Thanks,
+Vaibhav
