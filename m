@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 06/21] ARM: OMAP3: 3630SDP: Adapt to ehci-omap changes
-Date: Wed, 20 Mar 2013 17:44:45 +0200
-Message-ID: <1363794300-31526-7-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 14/21] ARM: OMAP3: omap3pandora: Adapt to ehci-omap changes
+Date: Wed, 20 Mar 2013 17:44:53 +0200
+Message-ID: <1363794300-31526-15-git-send-email-rogerq@ti.com>
 References: <1363794300-31526-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,56 +12,68 @@ To: tony@atomide.com
 Cc: balbi@ti.com, rogerq@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Use usbhs_init_phys() to register the PHY's RESET regulators
-and the NOP PHY devices.
+Use usbhs_init_phys() to register the PHY's RESET regulator
+and NOP PHY device. VAUX2 supplies the PHY's VCC.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/board-3630sdp.c |   21 +++++++++++++++------
- 1 files changed, 15 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/board-omap3pandora.c |   21 ++++++++++++---------
+ 1 files changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index 67447bd..20d6d81 100644
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -53,16 +53,23 @@ static void enable_board_wakeup_source(void)
- 		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 2bba362..1004d2a 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -346,7 +346,7 @@ static struct regulator_consumer_supply pandora_vcc_lcd_supply[] = {
+ };
+ 
+ static struct regulator_consumer_supply pandora_usb_phy_supply[] = {
+-	REGULATOR_SUPPLY("hsusb1", "ehci-omap.0"),
++	REGULATOR_SUPPLY("vcc", "nop_usb_xceiv.2"),	/* hsusb port 2 */
+ };
+ 
+ /* ads7846 on SPI and 2 nub controllers on I2C */
+@@ -561,6 +561,14 @@ fail:
+ 	printk(KERN_ERR "wl1251 board initialisation failed\n");
  }
  
 +static struct usbhs_phy_data phy_data[] __initdata = {
 +	{
-+		.port = 1,
-+		.reset_gpio = 126,
-+		.vcc_gpio = -EINVAL,
-+	},
-+	{
 +		.port = 2,
-+		.reset_gpio = 61,
++		.reset_gpio = 16,
 +		.vcc_gpio = -EINVAL,
 +	},
 +};
 +
- static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
+ static struct platform_device *omap3pandora_devices[] __initdata = {
+ 	&pandora_leds_gpio,
+ 	&pandora_keys_gpio,
+@@ -569,15 +577,7 @@ static struct platform_device *omap3pandora_devices[] __initdata = {
+ };
  
- 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
+ static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
+-
+-	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
  	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
 -	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
 -
 -	.phy_reset  = true,
--	.reset_gpio_port[0]  = 126,
--	.reset_gpio_port[1]  = 61,
+-	.reset_gpio_port[0]  = -EINVAL,
+-	.reset_gpio_port[1]  = 16,
 -	.reset_gpio_port[2]  = -EINVAL
  };
  
  #ifdef CONFIG_OMAP_MUX
-@@ -199,6 +206,8 @@ static void __init omap_sdp_init(void)
- 	board_smc91x_init();
- 	board_flash_init(sdp_flash_partitions, chip_sel_sdp, NAND_BUSWIDTH_16);
- 	enable_board_wakeup_source();
+@@ -601,7 +601,10 @@ static void __init omap3pandora_init(void)
+ 	spi_register_board_info(omap3pandora_spi_board_info,
+ 			ARRAY_SIZE(omap3pandora_spi_board_info));
+ 	omap_ads7846_init(1, OMAP3_PANDORA_TS_GPIO, 0, NULL);
 +
 +	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
  	usbhs_init(&usbhs_bdata);
- }
- 
++
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+ 	gpmc_nand_init(&pandora_nand_data, NULL);
 -- 
 1.7.4.1
