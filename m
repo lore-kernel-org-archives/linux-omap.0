@@ -1,63 +1,77 @@
 From: Andy Gross <andy.gross@ti.com>
-Subject: [PATCH 1/2] ARM: dts: OMAP4+: Add DMM bindings
-Date: Tue, 19 Mar 2013 23:43:43 -0500
-Message-ID: <1363754624-5209-2-git-send-email-andy.gross@ti.com>
+Subject: [PATCH 2/2] ARM: OMAP2+: Remove dmm device creation
+Date: Tue, 19 Mar 2013 23:43:44 -0500
+Message-ID: <1363754624-5209-3-git-send-email-andy.gross@ti.com>
 References: <1363754624-5209-1-git-send-email-andy.gross@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47594 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46405 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752299Ab3CTEoP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Mar 2013 00:44:15 -0400
+	id S1752329Ab3CTEoQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Mar 2013 00:44:16 -0400
 In-Reply-To: <1363754624-5209-1-git-send-email-andy.gross@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Benoit Cousson <bicousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, devicetree-discuss@lists.ozlabs.org, Nishanth Menon <nm@ti.com>, Andy Gross <andy.gross@ti.com>
 
-Add DMM bindings for OMAP4 and OMAP5 devices.
+Remove DMM device creation via the hwmod entry.  The DMM device will
+now be enumerated as part of the device tree information for the
+processor.
 
 Signed-off-by: Andy Gross <andy.gross@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi |    7 +++++++
- arch/arm/boot/dts/omap5.dtsi |    7 +++++++
- 2 files changed, 14 insertions(+), 0 deletions(-)
+ Documentation/devicetree/bindings/arm/omap/dmm.txt |   16 ++++++++++++++++
+ arch/arm/mach-omap2/drm.c                          |   12 ------------
+ 2 files changed, 16 insertions(+), 12 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/dmm.txt
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index ddfc54a..749fe83 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -624,5 +624,12 @@
- 			ram-bits = <12>;
- 			ti,has-mailbox;
- 		};
+diff --git a/Documentation/devicetree/bindings/arm/omap/dmm.txt b/Documentation/devicetree/bindings/arm/omap/dmm.txt
+new file mode 100644
+index 0000000..5fd1134
+--- /dev/null
++++ b/Documentation/devicetree/bindings/arm/omap/dmm.txt
+@@ -0,0 +1,16 @@
++OMAP Dynamic Memory Manager (DMM) bindings
 +
-+		dmm: dmm@4e000000 {
-+			compatible = "ti,dmm";
-+			reg = <0x4e000000 0x800>;
-+			interrupts = <0 113 0x4>;
-+			ti,hwmods = "dmm";
-+		};
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index b760c11..c2d2ecc 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -650,5 +650,12 @@
- 				ctrl-module = <&omap_control_usb>;
- 			};
- 		};
++Required properties:
++- compatible:	Must be "ti,dmm" for OMAP processors containing DMM block
++- reg:		Contains timer register address range (base address and length)
++- interrupts:	Contains interrupt information (source, etc) for the DMM IRQ
++- ti,hwmods:	Name of the hwmod associated to the counter, which is typically
++		"dmm"
 +
-+		dmm: dmm@4e000000 {
-+			compatible = "ti,dmm";
-+			reg = <0x4e000000 0x800>;
-+			interrupts = <0 113 0x4>;
-+			ti,hwmods = "dmm";
-+		};
- 	};
- };
++Example:
++
++dmm: dmm@4e000000 {
++	compatible = "ti,dmm";
++	reg = <0x4e000000 0x800>;
++	ti,hwmods = "dmm";
++};
+diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
+index 59a4af7..1fd0487 100644
+--- a/arch/arm/mach-omap2/drm.c
++++ b/arch/arm/mach-omap2/drm.c
+@@ -44,18 +44,6 @@ static struct platform_device omap_drm_device = {
+ 
+ static int __init omap_init_drm(void)
+ {
+-	struct omap_hwmod *oh = NULL;
+-	struct platform_device *pdev;
+-
+-	/* lookup and populate the DMM information, if present - OMAP4+ */
+-	oh = omap_hwmod_lookup("dmm");
+-
+-	if (oh) {
+-		pdev = omap_device_build(oh->name, -1, oh, NULL, 0);
+-		WARN(IS_ERR(pdev), "Could not build omap_device for %s\n",
+-			oh->name);
+-	}
+-
+ 	platform_data.omaprev = GET_OMAP_TYPE;
+ 
+ 	return platform_device_register(&omap_drm_device);
 -- 
 1.7.5.4
 
