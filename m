@@ -1,72 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 4/6] ARM: OMAP: USB: Add phy binding information
-Date: Wed, 20 Mar 2013 09:51:41 -0700
-Message-ID: <20130320165141.GP16413@atomide.com>
-References: <1363770725-13717-1-git-send-email-kishon@ti.com>
- <1363770725-13717-5-git-send-email-kishon@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] drivers: video: omap2: dss: Use PTR_RET function
+Date: Wed, 20 Mar 2013 18:59:19 +0200
+Message-ID: <5149EAE7.7040800@ti.com>
+References: <1363680194-10404-1-git-send-email-gheorghiuandru@gmail.com> <5149A3D0.2010902@ti.com> <5149D95D.2030505@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig3DFCFFE47C963A6D568D3A58"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1363770725-13717-5-git-send-email-kishon@ti.com>
+In-Reply-To: <5149D95D.2030505@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, arnd@arndb.de, akpm@linux-foundation.org, rob@landley.net, davem@davemloft.net, cesarb@cesarb.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, rob.herring@calxeda.com, b-cousson@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, mchehab@redhat.com, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Alexandru Gheorghiu <gheorghiuandru@gmail.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [130320 02:17]:
-> 
-> --- a/arch/arm/mach-omap2/board-2430sdp.c
-> +++ b/arch/arm/mach-omap2/board-2430sdp.c
-> @@ -265,6 +266,7 @@ static void __init omap_2430sdp_init(void)
->  
->  	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
->  	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-> +	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
->  	usb_musb_init(NULL);
->  
->  	board_smc91x_init();
-> --- a/arch/arm/mach-omap2/board-3430sdp.c
-> +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -601,6 +602,7 @@ static void __init omap_3430sdp_init(void)
->  	omap_serial_init();
->  	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
->  	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-> +	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
->  	usb_musb_init(NULL);
->  	board_smc91x_init();
->  	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
+--------------enig3DFCFFE47C963A6D568D3A58
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Can't you call phy_bind() from usb_musb_init() with the default
-values automatically when usb_musb_init() is passed NULL?
+On 2013-03-20 17:44, Jon Hunter wrote:
+>=20
+> On 03/20/2013 06:56 AM, Tomi Valkeinen wrote:
+>> On 2013-03-19 10:03, Alexandru Gheorghiu wrote:
+>>> Use PTR_RET function instead of IS_ERR and PTR_ERR.
+>>> Patch found using coccinelle.
+>>>
+>>> Signed-off-by: Alexandru Gheorghiu <gheorghiuandru@gmail.com>
+>>> ---
+>>>  drivers/video/omap2/dss/core.c |    5 +----
+>>>  1 file changed, 1 insertion(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss=
+/core.c
+>>> index f8779d4..60cc6fe 100644
+>>> --- a/drivers/video/omap2/dss/core.c
+>>> +++ b/drivers/video/omap2/dss/core.c
+>>> @@ -181,10 +181,7 @@ int dss_debugfs_create_file(const char *name, vo=
+id (*write)(struct seq_file *))
+>>>  	d =3D debugfs_create_file(name, S_IRUGO, dss_debugfs_dir,
+>>>  			write, &dss_debug_fops);
+>>> =20
+>>> -	if (IS_ERR(d))
+>>> -		return PTR_ERR(d);
+>>> -
+>>> -	return 0;
+>>> +	return PTR_RET(d);
+>>>  }
+>>>  #else /* CONFIG_OMAP2_DSS_DEBUGFS */
+>>>  static inline int dss_initialize_debugfs(void)
+>>>
+>>
+>> Thanks. I'll apply to omapdss tree.
+>=20
+> Is this correct? If debugfs_create_file() returns a valid pointer, then=
 
-That way you don't have to patch every board-*.c file with the
-same lines, and don't need to include <linux/phy/phy.h> in each
-board-*.c file.
+> now dss_debugfs_create_file() will return a non-zero value on success. =
+I
+> don't think this is what you want. A similar case came up recently here=
+ [1].
 
-> --- a/arch/arm/mach-omap2/board-4430sdp.c
-> +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -32,6 +32,7 @@
->  #include <linux/platform_data/omap4-keypad.h>
->  #include <linux/usb/musb.h>
->  #include <linux/usb/phy.h>
-> +#include <linux/phy/phy.h>
->  
->  #include <asm/mach-types.h>
->  #include <asm/mach/arch.h>
-> @@ -725,6 +726,7 @@ static void __init omap_4430sdp_init(void)
->  	omap4_twl6030_hsmmc_init(mmc);
->  
->  	usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
-> +	phy_bind("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
->  	usb_musb_init(&musb_board_data);
->  
->  	status = omap_ethernet_init();
+Hmm. I don't follow. And I don't understand the post where you referred.
 
-Here usb_musb_init() gets called with musb_board_data, so
-keeping the phy_bind() in the board-4430sdp.c can then override
-the default in usb_musb_init().
+PTR_RET is defined as:
 
-Regards,
+if (IS_ERR(ptr))
+        return PTR_ERR(ptr);
+else
+        return 0;
 
-Tony
+How's that different from the original code?
+
+ Tomi
+
+
+
+--------------enig3DFCFFE47C963A6D568D3A58
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRSernAAoJEPo9qoy8lh71Z+UP/2p5ZVvjNTbzQUypqWowSGYo
+HYPhofYLt4fIR9k79f+M2R3XxA4yn8nGl6IjpezHjEpV2u8ngOZjcEU7zY8NXX1X
+pxW0KCTEOMzjRUc9CllmSERABDMLpoT0dbACvnmKZ3vj6/hYy+vapbjzmUq3OJJT
+fufZpvCiUA1oVpY6yeQXB1OWcUNqJSTErDqaHdlFL93n2sydE06tPKUV69DmIco3
+HoFnsPFDIFKdHeBbW7DfIXCvJlg0RM24fClmQlfl5tLtr24V4nPGWTH/vHy5KZWX
+bDdhw8BLmrP8srsR3IfR1J5wJT7mmBj554aj2HeNnTLROFYl5CdxAKXdyOjruc/o
+R6Lcde92s4d63H707+HlAjP/eTFfk/kZv7gx9Tbbqhx9R427xY8UdPrNnqPj+BVU
++Mb7NBdNUL3M+gCQj83bcNm9ksT39auQZ2aej71T2uDV8iH5iQrkkIpjGt2nuGpP
+T0j8peqq/EfTpHbY/l1ktCFr2dmlnGPZm5FBdISIbun7bNAMAGZ0z34gb/9RRVOx
++gYXEFD67ugTxckMnjJWC5jDafO8HqOzjFSdALbnZguMno93j1K8RfpCwa/mwpKj
+vGTxrr9y30RIrVBcvhouLbkKR8skRCjy0KMOzGkh/esvNjH8z8/a3ccIfNLNSqm4
+pXCBVgWiZ22OSGo2DA7o
+=H6B3
+-----END PGP SIGNATURE-----
+
+--------------enig3DFCFFE47C963A6D568D3A58--
