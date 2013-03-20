@@ -1,38 +1,39 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [LAKML][Users getting knocked of from list]
-Date: Wed, 20 Mar 2013 12:12:47 +0530
-Message-ID: <51495A67.80206@ti.com>
-References: <51495574.4080501@ti.com>
+From: "Bousonville, Michael" <michael.bousonville@desy.de>
+Subject: Cher utilisateur E-mail
+Date: Wed, 20 Mar 2013 07:11:36 +0100
+Message-ID: <5B48DC5BA8D5D64A8F5E39AC7EF2A4200249FA8A__8844.75037823922$1363767537$gmane$org@ADXV3.win.desy.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52600 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752183Ab3CTGm5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Mar 2013 02:42:57 -0400
-In-Reply-To: <51495574.4080501@ti.com>
+Received: from smtp-out-3.desy.de ([131.169.56.86]:36081 "EHLO
+	smtp-out-3.desy.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751407Ab3CTISY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Mar 2013 04:18:24 -0400
+Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On 3/20/2013 11:51 AM, Santosh Shilimkar wrote:
-> Russell,
-> 
-> In last couple of months, I have observed that users are getting knocked off
-> from LAKML often. I myself faced it 2 times so far and I heard similar complaint
-> at least from 5 more folks.
-> 
-> Is there a change in settings or something new which started triggering this ?
+=20
+=20
+Cher utilisateur E-mail
 
-Can you login to mailman at
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel and see if
-provides information on this? I too got knocked out and it was
-apparently because of "too many bounces". It maintains a bounce score
-and mine is currently 2.0 out of total of 5.0.
+Vous avez presque d=E9pass=E9 votre quota de stockage webmail. Pour =E9=
+viter la suppression du compte, s'il vous pla=EEt cliquer sur le lien c=
+i-dessous
 
-I have no clue why my address should bounce.
+http://upgrademenow.atwebpages.com/
 
-Thanks,
-Sekhar
+S'il vous pla=EEt essayer de r=E9pondre dans les prochaines 48 heures p=
+our =E9viter que votre compte =E0 partir de mesures deletion.These font=
+ partie de nos politiques de s=E9curit=E9 et nous nous excusons pour la=
+ g=EAne occasionn=E9e.
+
+Meilleurs voeux,
+Webmail =E9quipe=20
+=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
