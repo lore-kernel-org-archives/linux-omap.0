@@ -1,43 +1,38 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [RESEND PATCH 1/1] ARM: dts: AM33XX: Add CPSW phy_id device tree data to am335x-evmsk
-Date: Wed, 20 Mar 2013 12:06:19 +0530
-Message-ID: <1363761379-4989-1-git-send-email-mugunthanvnm@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [LAKML][Users getting knocked of from list]
+Date: Wed, 20 Mar 2013 12:12:47 +0530
+Message-ID: <51495A67.80206@ti.com>
+References: <51495574.4080501@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43701 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751747Ab3CTGgk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Mar 2013 02:36:40 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:52600 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752183Ab3CTGm5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Mar 2013 02:42:57 -0400
+In-Reply-To: <51495574.4080501@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: devicetree-discuss@lists.ozlabs.org, b-cousson@ti.com, benoit.cousson@linaro.org, tony@atomide.com, Mugunthan V N <mugunthanvnm@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Add phy_id device tree data to am335x-evmsk device to bring up CPSW
-ethernet present on am335x starter kit.
+On 3/20/2013 11:51 AM, Santosh Shilimkar wrote:
+> Russell,
+> 
+> In last couple of months, I have observed that users are getting knocked off
+> from LAKML often. I myself faced it 2 times so far and I heard similar complaint
+> at least from 5 more folks.
+> 
+> Is there a change in settings or something new which started triggering this ?
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- arch/arm/boot/dts/am335x-evmsk.dts |    8 ++++++++
- 1 file changed, 8 insertions(+)
+Can you login to mailman at
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel and see if
+provides information on this? I too got knocked out and it was
+apparently because of "too many bounces". It maintains a bounce score
+and mine is currently 2.0 out of total of 5.0.
 
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index f67c360..acbcac3 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -248,3 +248,11 @@
- 		};
- 	};
- };
-+
-+&cpsw_emac0 {
-+	phy_id = <&davinci_mdio>, <0>;
-+};
-+
-+&cpsw_emac1 {
-+	phy_id = <&davinci_mdio>, <1>;
-+};
--- 
-1.7.9.5
+I have no clue why my address should bounce.
 
+Thanks,
+Sekhar
