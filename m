@@ -1,42 +1,92 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: [PATCH] ARM: OMAP1: remove "config MACH_OMAP_HTCWIZARD"
-Date: Thu, 21 Mar 2013 22:36:09 +0100
-Message-ID: <1363901769.1390.159.camel@x61.thuisdomein>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [PATCHv3 00/14] drivers: mailbox: framework creation
+Date: Fri, 22 Mar 2013 10:22:57 +1100
+Message-ID: <20130322102257.89d3fd7c109c32faac4dcc7d@canb.auug.org.au>
+References: <1363145021-14339-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Fri__22_Mar_2013_10_22_57_+1100_/0bWcySyk5bUbMaN"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1363145021-14339-1-git-send-email-s-anna@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ohad Ben-Cohen <ohad@wizery.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic Pallardy <loic.pallardy@st.com>, Mark Langsdorf <mark.langsdorf@calxeda.com>
 List-Id: linux-omap@vger.kernel.org
 
-The Kconfig symbol MACH_OMAP_HTCWIZARD got added in v2.6.30. It has
-never been used. Its entry can safely be removed.
+--Signature=_Fri__22_Mar_2013_10_22_57_+1100_/0bWcySyk5bUbMaN
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-Untested.
+Hi Suman,
 
- arch/arm/mach-omap1/Kconfig | 6 ------
- 1 file changed, 6 deletions(-)
+On Tue, 12 Mar 2013 22:23:41 -0500 Suman Anna <s-anna@ti.com> wrote:
+>
+> Stephen,
+> I have hosted the series at [3]. Can you pull this into linux-next
+> sometime next week?
 
-diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
-index 903da8e..cdd05f2 100644
---- a/arch/arm/mach-omap1/Kconfig
-+++ b/arch/arm/mach-omap1/Kconfig
-@@ -55,12 +55,6 @@ config MACH_OMAP_H3
- 	  TI OMAP 1710 H3 board support. Say Y here if you have such
- 	  a board.
- 
--config MACH_OMAP_HTCWIZARD
--	bool "HTC Wizard"
--	depends on ARCH_OMAP850
--	help
--	  HTC Wizard smartphone support (AKA QTEK 9100, ...)
--
- config MACH_HERALD
- 	bool "HTC Herald"
- 	depends on ARCH_OMAP850
--- 
-1.7.11.7
+> [3] https://github.com/sumananna/mailbox/commits/dbx500-prcmu-mailbox
+
+Please quote git URLs ... I guessed you meant
+git://github.com/sumananna/mailbox.git, branch dbx500-prcmu-mailbox ?
+
+Added from today.
+
+Thanks for adding your subsystem tree as a participant of linux-next.  As
+you may know, this is not a judgment of your code.  The purpose of
+linux-next is for integration testing and to lower the impact of
+conflicts between subsystems in the next merge window.=20
+
+You will need to ensure that the patches/commits in your tree/series have
+been:
+     * submitted under GPL v2 (or later) and include the Contributor's
+	Signed-off-by,
+     * posted to the relevant mailing list,
+     * reviewed by you (or another maintainer of your subsystem tree),
+     * successfully unit tested, and=20
+     * destined for the current or next Linux merge window.
+
+Basically, this should be just what you would send to Linus (or ask him
+to fetch).  It is allowed to be rebased if you deem it necessary.
+
+--=20
+Cheers,
+Stephen Rothwell=20
+sfr@canb.auug.org.au
+
+Legal Stuff:
+By participating in linux-next, your subsystem tree contributions are
+public and will be included in the linux-next trees.  You may be sent
+e-mail messages indicating errors or other issues when the
+patches/commits from your subsystem tree are merged and tested in
+linux-next.  These messages may also be cross-posted to the linux-next
+mailing list, the linux-kernel mailing list, etc.  The linux-next tree
+project and IBM (my employer) make no warranties regarding the linux-next
+project, the testing procedures, the results, the e-mails, etc.  If you
+don't agree to these ground rules, let me know and I'll remove your tree
+from participation in linux-next.
+
+--Signature=_Fri__22_Mar_2013_10_22_57_+1100_/0bWcySyk5bUbMaN
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJRS5ZRAAoJEECxmPOUX5FEPuEQAIfyJplYR8RHGIPdswmBRuEq
+3MailOUyRlPhO9wqJuXKHUhBsVaFwJthQWdvmcIXaeBTAH/14Kg/cZxabhzttlbW
+2AsvOAAwTPCe83wE/leBXvVvzivqiS2gUfdIzPbTrH2Sow33tFfx+FCdj3VJbmIM
+pQYa/1NxjtH+ti6+d1BxSp3NpNeUM8bYWakijvJ3SaqDdyRF9J6ozdvJpU0MNayt
+ma0A0I9Ns2yNI91VDXFf/IceiYG2yWu92bs+g6vK7f2KHwFVnJzasoKyn7Vm0FJ7
+dmxvdyCeVqhe71Bu+eCqqDeMrw9jg79A9cUb008lWWMUQGykuOVuAYpAKhvfT7eK
+wr8w1rSBrdtuWRg0x0IL84gFDvQ9JNCk0QMUIr4brxDAsYbMNKPnwue97F8Eecvn
+hamoTDLAv+aYqq+3jitt/DzJEdzmqxu+DH3LetaQ60SO1zVP0WwKCxYvG1bPUdNJ
+K2vswNavtDJuMfoW8XBGRBVyCDmZcEX6FfBWeZ0azu2IeljY1AI0fRJoI5uOSFpj
+Iu+ZiW88Iypv+wjj5JChnUz/QGFUe1TAqPXOof32VntO5YuIenuPtz9DyKE3SX0Y
+zvGkhTNtZxKGSylLmGxoY8/o8sMM56sojXuO6TA1XHmZh97LvXt1Bfsz5j8oxhs8
+19O9wP4fcT6ojlUWqY3f
+=eNhc
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__22_Mar_2013_10_22_57_+1100_/0bWcySyk5bUbMaN--
