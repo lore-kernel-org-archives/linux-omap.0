@@ -1,55 +1,85 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: clock: Initialize USB DPLL
-Date: Thu, 21 Mar 2013 15:55:32 +0200
-Message-ID: <514B1154.1020100@ti.com>
-References: <1363873705-3224-1-git-send-email-rogerq@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support for
+ AUXCLKs
+Date: Thu, 21 Mar 2013 19:34:51 +0530
+Message-ID: <514B1383.1070102@ti.com>
+References: <1363703220-4777-1-git-send-email-rogerq@ti.com> <1363703220-4777-2-git-send-email-rogerq@ti.com> <514B0650.5070406@ti.com> <514B10FE.1000805@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363873705-3224-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <514B10FE.1000805@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, balbi@ti.com, rnayak@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: tony@atomide.com, b-cousson@ti.com, linux@arm.linux.org.uk, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/21/2013 03:48 PM, Roger Quadros wrote:
-> If the bootloader doesn't configure USB DPLL (e.g. in u-boot,
-> disable CONFIG_USB_EHCI_OMAP), then we get all sorts of problems
-> like
-> - division by zero errors at boot [1]
-> - USB DPLL fails to enter locked state
-> - USB EHCI Host is non functional
-> - Device can't enter OFF mode
+On Thursday 21 March 2013 07:24 PM, Roger Quadros wrote:
+> On 03/21/2013 03:08 PM, Rajendra Nayak wrote:
+>> []..
+>>
+>>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+>>> index 0274ff7..23f2064 100644
+>>> --- a/arch/arm/mach-omap2/board-generic.c
+>>> +++ b/arch/arm/mach-omap2/board-generic.c
+>>> @@ -158,7 +158,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
+>>>  	.init_irq	= omap_gic_of_init,
+>>>  	.init_machine	= omap_generic_init,
+>>>  	.init_late	= omap4430_init_late,
+>>> -	.init_time	= omap4_local_timer_init,
+>>> +	.init_time	= omap4_init_time,
+>>>  	.dt_compat	= omap4_boards_compat,
+>>>  	.restart	= omap44xx_restart,
+>>>  MACHINE_END
+>>
+>> []..
+>>> +#ifdef CONFIG_OF
+>>> +int __init omap4_clk_init_dt(void)
+>>> +{
+>>> +	struct device_node *np;
+>>> +
+>>> +	np = of_find_compatible_node(NULL, NULL, "ti,omap4-scrm");
+>>> +	if (np) {
+>>> +		scrm_data.clks = scrm_clks;
+>>> +		scrm_data.clk_num = ARRAY_SIZE(scrm_clks);
+>>> +		of_clk_add_provider(np, of_clk_src_onecell_get,	&scrm_data);
+>>> +	}
+>>> +
+>>> +	return 0;
+>>> +}
+>>
+>> []..
+>>> +
+>>> +void __init omap4_init_time(void)
+>>> +{
+>>> +	omap4_clk_init_dt();
+>>> +	omap4_local_timer_init();
+>>> +}
+>>
+>> I guess you did all this because of_clk_add_provider() needs
+>> slab to be initialized. With the below patch[1], now clk inits
+>> happen within .init_timer already, so none of this would
+>> be needed.
+>>
+>> [1] http://www.spinics.net/lists/arm-kernel/msg231288.html
+>>
 > 
-> Initializing the USB DPLL fixes all these issues.
+> Right. I can then call omap4_clk_init_dt() from within omap4xxx_clk_init().
 > 
-> [1]
-> 
-> [    0.000000] clock: dpll_usb_ck failed transition to 'locked'
-> [    0.000000] Division by zero in kernel.
-> [    0.000000] [<c001b00c>] (unwind_backtrace+0x0/0xf0) from [<c02b2378>] (Ldiv0+0x8/0x10)
-> [    0.000000] [<c02b2378>] (Ldiv0+0x8/0x10) from [<c041cf3c>] (clk_divider_set_rate+0x10/0x124)
-> [    0.000000] [<c041cf3c>] (clk_divider_set_rate+0x10/0x124) from [<c041bfc4>] (clk_change_rate+0x3c/0xb4)
-> [    0.000000] [<c041bfc4>] (clk_change_rate+0x3c/0xb4) from [<c041c028>] (clk_change_rate+0xa0/0xb4)
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  arch/arm/mach-omap2/cclock44xx_data.c |   19 +++++++++++++++++++
->  1 files changed, 19 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-> index bfc46c1..6127bb9 100644
-> --- a/arch/arm/mach-omap2/cclock44xx_data.c
-> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
-> @@ -53,6 +53,12 @@
->   */
->  #define OMAP4_DPLL_ABE_DEFFREQ				98304000
->  
-> +/*
-> + * OMAP4450 TRM Rev X, section "3.6.3.9.5 DPLL_USB Preferred Settings"
+> Any comments about the main subject? Does the approach look fine?
 
-4460 actually.
+It looks fine, except for the fact that I was wondering if the clock
+provider needs to restrict itself to SCRM.
+Nishant Menon brought up a need for specifying the mpu clock source
+from within DT, to be able to use a generic cpufreq driver.
+It could be a provider (not specific to scrm, but having only scrm
+clocks for now) which we could add clocks as and when we see a need for
+them to be specified from DT.
 
-cheers,
--roger
+Btw, you need to copy Paul Walmsley for any clock related patches as
+he is the OMAP clock maintainer.
+
+> 
+> cheers,
+> -roger
+> 
