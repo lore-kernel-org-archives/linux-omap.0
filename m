@@ -1,75 +1,81 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] ARM: OMAP4: clock: Initialize USB DPLL
-Date: Thu, 21 Mar 2013 15:48:25 +0200
-Message-ID: <1363873705-3224-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support for
+ AUXCLKs
+Date: Thu, 21 Mar 2013 15:54:06 +0200
+Message-ID: <514B10FE.1000805@ti.com>
+References: <1363703220-4777-1-git-send-email-rogerq@ti.com>
+ <1363703220-4777-2-git-send-email-rogerq@ti.com> <514B0650.5070406@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: balbi@ti.com, rnayak@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <514B0650.5070406-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-If the bootloader doesn't configure USB DPLL (e.g. in u-boot,
-disable CONFIG_USB_EHCI_OMAP), then we get all sorts of problems
-like
-- division by zero errors at boot [1]
-- USB DPLL fails to enter locked state
-- USB EHCI Host is non functional
-- Device can't enter OFF mode
+On 03/21/2013 03:08 PM, Rajendra Nayak wrote:
+> []..
+> 
+>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+>> index 0274ff7..23f2064 100644
+>> --- a/arch/arm/mach-omap2/board-generic.c
+>> +++ b/arch/arm/mach-omap2/board-generic.c
+>> @@ -158,7 +158,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
+>>  	.init_irq	= omap_gic_of_init,
+>>  	.init_machine	= omap_generic_init,
+>>  	.init_late	= omap4430_init_late,
+>> -	.init_time	= omap4_local_timer_init,
+>> +	.init_time	= omap4_init_time,
+>>  	.dt_compat	= omap4_boards_compat,
+>>  	.restart	= omap44xx_restart,
+>>  MACHINE_END
+> 
+> []..
+>> +#ifdef CONFIG_OF
+>> +int __init omap4_clk_init_dt(void)
+>> +{
+>> +	struct device_node *np;
+>> +
+>> +	np = of_find_compatible_node(NULL, NULL, "ti,omap4-scrm");
+>> +	if (np) {
+>> +		scrm_data.clks = scrm_clks;
+>> +		scrm_data.clk_num = ARRAY_SIZE(scrm_clks);
+>> +		of_clk_add_provider(np, of_clk_src_onecell_get,	&scrm_data);
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+> 
+> []..
+>> +
+>> +void __init omap4_init_time(void)
+>> +{
+>> +	omap4_clk_init_dt();
+>> +	omap4_local_timer_init();
+>> +}
+> 
+> I guess you did all this because of_clk_add_provider() needs
+> slab to be initialized. With the below patch[1], now clk inits
+> happen within .init_timer already, so none of this would
+> be needed.
+> 
+> [1] http://www.spinics.net/lists/arm-kernel/msg231288.html
+> 
 
-Initializing the USB DPLL fixes all these issues.
+Right. I can then call omap4_clk_init_dt() from within omap4xxx_clk_init().
 
-[1]
+Any comments about the main subject? Does the approach look fine?
 
-[    0.000000] clock: dpll_usb_ck failed transition to 'locked'
-[    0.000000] Division by zero in kernel.
-[    0.000000] [<c001b00c>] (unwind_backtrace+0x0/0xf0) from [<c02b2378>] (Ldiv0+0x8/0x10)
-[    0.000000] [<c02b2378>] (Ldiv0+0x8/0x10) from [<c041cf3c>] (clk_divider_set_rate+0x10/0x124)
-[    0.000000] [<c041cf3c>] (clk_divider_set_rate+0x10/0x124) from [<c041bfc4>] (clk_change_rate+0x3c/0xb4)
-[    0.000000] [<c041bfc4>] (clk_change_rate+0x3c/0xb4) from [<c041c028>] (clk_change_rate+0xa0/0xb4)
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/mach-omap2/cclock44xx_data.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-index bfc46c1..6127bb9 100644
---- a/arch/arm/mach-omap2/cclock44xx_data.c
-+++ b/arch/arm/mach-omap2/cclock44xx_data.c
-@@ -53,6 +53,12 @@
-  */
- #define OMAP4_DPLL_ABE_DEFFREQ				98304000
- 
-+/*
-+ * OMAP4450 TRM Rev X, section "3.6.3.9.5 DPLL_USB Preferred Settings"
-+ * states it must be at 960MHz
-+ */
-+#define OMAP4_DPLL_USB_DEFFREQ				960000000
-+
- /* Root clocks */
- 
- DEFINE_CLK_FIXED_RATE(extalt_clkin_ck, CLK_IS_ROOT, 59000000, 0x0);
-@@ -1729,6 +1735,19 @@ int __init omap4xxx_clk_init(void)
- 	omap2_clk_disable_autoidle_all();
- 
- 	/*
-+	 * Lock USB_DPLL to avoid issues with USB host and OFF mode
-+	 */
-+	rc = clk_set_rate(&dpll_usb_ck, OMAP4_DPLL_USB_DEFFREQ);
-+	if (rc) {
-+		pr_err("%s: failed to configure DPLL_USB: %d\n", __func__, rc);
-+	} else {
-+		rc = clk_set_rate(&dpll_usb_m2_ck, OMAP4_DPLL_USB_DEFFREQ/2);
-+		if (rc)
-+			pr_err("%s: failed to configure DPLL_USB_M2: %d\n",
-+								__func__, rc);
-+	}
-+
-+	/*
- 	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
- 	 * state when turning the ABE clock domain. Workaround this by
- 	 * locking the ABE DPLL on boot.
--- 
-1.7.4.1
+cheers,
+-roger
