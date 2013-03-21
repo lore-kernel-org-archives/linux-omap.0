@@ -1,105 +1,74 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH v2] ARM: OMAP: clocks: Delay clk inits atleast until slab is
- initialized
-Date: Thu, 21 Mar 2013 10:59:32 -0700
-Message-ID: <20130321175932.834.16657@quantum>
-References: <1363863892-6810-1-git-send-email-rnayak@ti.com> <514AEC70.9010801@ti.com>
+From: Silviu Popescu <silviupopescu1990@gmail.com>
+Subject: Re: [PATCH] mach_omap2: use PTR_RET instead of IS_ERR + PTR_ERR
+Date: Thu, 21 Mar 2013 20:33:01 +0200
+Message-ID: <CAPWTe+JYEZJ5Zn6Dt9mmr38raXdM8wc1eWFro2a4Czy-eCzSpQ@mail.gmail.com>
+References: <1363075109-27038-1-git-send-email-silviupopescu1990@gmail.com>
+	<20130312110557.GF30923@n2100.arm.linux.org.uk>
+	<5149FFDF.6050501@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:51177 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697Ab3CUR7i convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Mar 2013 13:59:38 -0400
-Received: by mail-pb0-f50.google.com with SMTP id up1so2394678pbc.23
-        for <linux-omap@vger.kernel.org>; Thu, 21 Mar 2013 10:59:38 -0700 (PDT)
-In-Reply-To: <514AEC70.9010801@ti.com>
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:48359 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750879Ab3CUSdB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Mar 2013 14:33:01 -0400
+In-Reply-To: <5149FFDF.6050501@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, phaber@broadcom.com, Tony Lindgren <tony@atomide.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Quoting Santosh Shilimkar (2013-03-21 04:18:08)
-> On Thursday 21 March 2013 04:34 PM, Rajendra Nayak wrote:
-> > clk inits on OMAP happen quite early, even before slab is available.
-> > The dependency comes from the fact that the timer init code starts to
-> > use clocks and hwmod and we need clocks to be initialized by then.
-> > 
-> > There are various problems doing clk inits this early, one is,
-> > not being able to do dynamic clk registrations and hence the
-> > dependency on clk-private.h. The other is, inability to debug
-> > early kernel crashes without enabling DEBUG_LL and earlyprintk.
-> > 
-> > Doing early clk init also exposed another instance of a kernel
-> > panic due to a BUG() when CONFIG_DEBUG_SLAB is enabled.
-> > 
-> > [    0.000000] Kernel BUG at c01174f8 [verbose debug info unavailable]
-> > [    0.000000] Internal error: Oops - BUG: 0 [#1] SMP ARM
-> > [    0.000000] Modules linked in:
-> > [    0.000000] CPU: 0    Not tainted  (3.9.0-rc1-12179-g72d48f9 #6)
-> > [    0.000000] PC is at __kmalloc+0x1d4/0x248
-> > [    0.000000] LR is at __clk_init+0x2e0/0x364
-> > [    0.000000] pc : [<c01174f8>]    lr : [<c0441f54>]    psr: 600001d3
-> > [    0.000000] sp : c076ff28  ip : c065cefc  fp : c0441f54
-> > [    0.000000] r10: 0000001c  r9 : 000080d0  r8 : c076ffd4
-> > [    0.000000] r7 : c074b578  r6 : c0794d88  r5 : 00000040  r4 : 00000000
-> > [    0.000000] r3 : 00000000  r2 : c07cac70  r1 : 000080d0  r0 : 0000001c
-> > [    0.000000] Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
-> > [    0.000000] Control: 10c53c7d  Table: 8000404a  DAC: 00000017
-> > [    0.000000] Process swapper (pid: 0, stack limit = 0xc076e240)
-> > [    0.000000] Stack: (0xc076ff28 to 0xc0770000)
-> > [    0.000000] ff20:                   22222222 c0794ec8 c06546e8 00000000 00000040 c0794d88
-> > [    0.000000] ff40: c074b578 c076ffd4 c07951c8 c076e000 00000000 c0441f54 c074b578 c076ffd4
-> > [    0.000000] ff60: c0793828 00000040 c0794d88 c074b578 c076ffd4 c0776900 c076e000 c07272ac
-> > [    0.000000] ff80: 2f800000 c074c968 c07f93d0 c0719780 c076ffa0 c076ff98 00000000 00000000
-> > [    0.000000] ffa0: 00000000 00000000 00000000 00000001 c074cd6c c077b1ec 8000406a c0715724
-> > [    0.000000] ffc0: 00000000 00000000 00000000 00000000 00000000 c074c968 10c53c7d c0776974
-> > [    0.000000] ffe0: c074cd6c c077b1ec 8000406a 411fc092 00000000 80008074 00000000 00000000
-> > [    0.000000] [<c01174f8>] (__kmalloc+0x1d4/0x248) from [<c0441f54>] (__clk_init+0x2e0/0x364)
-> > [    0.000000] [<c0441f54>] (__clk_init+0x2e0/0x364) from [<c07272ac>] (omap4xxx_clk_init+0xbc/0x140)
-> > [    0.000000] [<c07272ac>] (omap4xxx_clk_init+0xbc/0x140) from [<c0719780>] (setup_arch+0x15c/0x284)
-> > [    0.000000] [<c0719780>] (setup_arch+0x15c/0x284) from [<c0715724>] (start_kernel+0x7c/0x334)
-> > [    0.000000] [<c0715724>] (start_kernel+0x7c/0x334) from [<80008074>] (0x80008074)
-> > [    0.000000] Code: e5883004 e1a00006 e28dd00c e8bd8ff0 (e7f001f2)
-> > [    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
-> > [    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
-> > 
-> > It was a know issue, that slab allocations would fail when common
-> > clock core tries to cache parent pointers for mux clocks on OMAP,
-> > and hence a patch 'clk: Allow late cache allocation for clk->parents,
-> > commit 7975059d' was added to work this problem around.
-> > A BUG() within kmalloc() with CONFIG_DEBUG_SLAB enabled was completely
-> > overlooked causing this regression.
-> > 
-> > More details on the issue reported can be found here,
-> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85932.html
-> > 
-> > With all these issues around clk inits happening way too early, it
-> > makes sense to atleast move them to a point where dynamic memory
-> > allocations are possible. So move them to a point just before the
-> > timer code starts using clocks and hwmod.
-> > 
-> > This should atleast pave way for clk inits on OMAP moving to dynamic
-> > clock registrations instead of using the static macros defined in
-> > clk-private.h.
-> > 
-> > The issue with kernel panic while CONFIG_DEBUG_SLAB is enabled
-> > was reported by Piotr Haber and Tony Lindgren and this patch
-> > fixes the reported issue as well.
-> > 
-> > Reported-by: Piotr Haber <phaber@broadcom.com>
-> > Reported-by: Tony Lindgren <tony@atomide.com>
-> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> > ---
-> > applies on 3.9-rc3 and tested on omap4 pandaES, omap3 beagle XM,
-> > and am335x bone.
-> > 
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On Wed, Mar 20, 2013 at 8:28 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+>
+> On 03/12/2013 06:05 AM, Russell King - ARM Linux wrote:
+>> On Tue, Mar 12, 2013 at 09:58:29AM +0200, Silviu-Mihai Popescu wrote:
+>>> This uses PTR_RET instead of IS_ERR and PTR_ERR in order to increase
+>>> readability.
+>>>
+>>> Signed-off-by: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
+>>> ---
+>>>  arch/arm/mach-omap2/devices.c |    4 ++--
+>>>  arch/arm/mach-omap2/fb.c      |    5 +----
+>>>  arch/arm/mach-omap2/gpmc.c    |    2 +-
+>>>  arch/arm/mach-omap2/pmu.c     |    5 +----
+>>>  4 files changed, 5 insertions(+), 11 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+>>> index 1ec7f05..2a0816e 100644
+>>> --- a/arch/arm/mach-omap2/devices.c
+>>> +++ b/arch/arm/mach-omap2/devices.c
+>>> @@ -66,7 +66,7 @@ static int __init omap3_l3_init(void)
+>>>
+>>>      WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
+>>>
+>>> -    return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
+>>> +    return PTR_RET(pdev);
+>>
+>> This is incorrect.
+>>
+>> The return value will be tested for < 0.  Kernel pointers in general are
+>> all above 3GB, and so are all "< 0".
+>>
+>> I'm afraid none of these changes stuff is an improvement - they all
+>> introduce bugs.
+>
+> Sorry I am now not sure I follow you here. Someone just pointed out to
+> me that PTR_RET() is defined as ...
+>
+> static inline int __must_check PTR_RET(const void *ptr)
+> {
+>         if (IS_ERR(ptr))
+>                 return PTR_ERR(ptr);
+>         else
+>                 return 0;
+> }
+>
+> So the above change appears to be equivalent. Is there something that is
+> wrong with the current implementation that needs to be fixed?
 
-This is nice :)
 
-Reviewed-by: Mike Turquette <mturquette@linaro.org>
+As the patch message says, it's just for readability purposes.
+I used make coccicheck and it suggested this minor change.
 
-Regards,
-Mike
+--
+Silviu Popescu
