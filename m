@@ -1,50 +1,36 @@
-From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
-Subject: Re: [PATCH] mmc: omap_hsmmc: support deferred probing for GPIOs
-Date: Thu, 21 Mar 2013 12:39:05 +0100
-Message-ID: <1363865945.4115.51.camel@coredoba.hi.pengutronix.de>
-References: <1359536837-14874-1-git-send-email-jlu@pengutronix.de>
-	 <1360838617.3892.27.camel@coredoba.hi.pengutronix.de>
-	 <511CEC76.9020703@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCHv3 00/14] drivers: mailbox: framework creation
+Date: Thu, 21 Mar 2013 12:39:49 +0100
+Message-ID: <CACRpkdYpJLdTx_sVyLj+MVzXqcyfucyP8qy_b_8jiArU+NSMfQ@mail.gmail.com>
+References: <1363145021-14339-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <511CEC76.9020703@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1363145021-14339-1-git-send-email-s-anna@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Ohad Ben-Cohen <ohad@wizery.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic Pallardy <loic.pallardy@st.com>, Mark Langsdorf <mark.langsdorf@calxeda.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 2013-02-14 at 19:23 +0530, Balaji T K wrote:
-> On Thursday 14 February 2013 04:13 PM, Jan L=C3=BCbbe wrote:
-> > On Wed, 2013-01-30 at 10:07 +0100, Jan Luebbe wrote:
-> >> If the CD/WP-GPIOs are not provided by the SoC's GPIO controller,
-> >> we need to handle the case where omap_hsmmc is probed earlier than
-> >> the GPIO controller chosen in the device tree.
-> >>
-> >> Fix this by checking the return value of of_get_named_gpio against
-> >> -EPROBE_DEFER and passing it through to the probe function.
-> >>
-> >> Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
-> >
-> > Balaji, since you seem to be the new OMAP HSMMC maintainer, do you =
-have
-> > any comments on this patch?
->=20
-> Looks good to me,
-> Acked-by: Balaji T K <balajitk@ti.com>
+On Wed, Mar 13, 2013 at 4:23 AM, Suman Anna <s-anna@ti.com> wrote:
 
-Chris, would you take this?
+> Please find the updated mailbox patch series for pulling into linux-next.
+> The series is rebased on top of 3.9-rc2, and includes one new patch to
+> rename an existing mailbox.h added as part of the highbank cpufreq
+> support for 3.9 merge window [1].
 
-Thanks,
-Jan
---=20
-Pengutronix e.K.                           |                           =
-  |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0  =
-  |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-555=
-5 |
+ARM SoC folks:
 
+would you consider pulling this stuff into the ARM SoC tree?
+
+It turns out that ux500 multiplatform support is sort of relying
+on this refactoring since it helps us to break apart the huge
+PRCMU driver.
+
+I am proceeding with my multiplatform work but things like
+this not being upstream will make the patches look ugly
+and I cannot quite consider it properly done before this is
+fixed too.
+
+Yours,
+Linus Walleij
