@@ -1,103 +1,75 @@
-From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv2 5/7] usb: phy: twl4030-usb: check if vbus is driven by
- twl itself
-Date: Thu, 21 Mar 2013 15:42:46 +0200
-Message-ID: <CANOLnOOS6X95ijodL903zqLn3emNZ-rDX0xrxYQUXFJ1PR-PZw@mail.gmail.com>
-References: <1363544607-17634-1-git-send-email-notasas@gmail.com>
-	<1363544607-17634-6-git-send-email-notasas@gmail.com>
-	<20130320130750.GR29659@arwen.pp.htv.fi>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] ARM: OMAP4: clock: Initialize USB DPLL
+Date: Thu, 21 Mar 2013 15:48:25 +0200
+Message-ID: <1363873705-3224-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130320130750.GR29659-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>, kishon <kishon-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: balbi@ti.com, rnayak@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Mar 20, 2013 at 3:07 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> On Sun, Mar 17, 2013 at 08:23:25PM +0200, Grazvydas Ignotas wrote:
->> At least on pandora, STS_VBUS gets set even when VBUS is driven by t=
-wl
->> itself. Reporting VBUS in this case confuses OMAP musb glue and char=
-ger
->> driver, so check if OTG VBUS charge pump is on before reporting VBUS
->> event to avoid this problem.
->>
->> Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> ---
->>  drivers/usb/phy/phy-twl4030-usb.c |   36 ++++++++++++++++++++++++++=
-+++++-----
->>  1 file changed, 31 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/usb/phy/phy=
--twl4030-usb.c
->> index 425c18a..87bf11d 100644
->> --- a/drivers/usb/phy/phy-twl4030-usb.c
->> +++ b/drivers/usb/phy/phy-twl4030-usb.c
->> @@ -248,11 +248,31 @@ twl4030_usb_clear_bits(struct twl4030_usb *twl=
-, u8 reg, u8 bits)
->>
->>  /*-----------------------------------------------------------------=
---------*/
->>
->> +static bool twl4030_is_driving_vbus(struct twl4030_usb *twl)
->> +{
->> +     int ret;
->> +
->> +     ret =3D twl4030_usb_read(twl, PHY_CLK_CTRL_STS);
->> +     if (ret < 0 || !(ret & PHY_DPLL_CLK))
->> +             /*
->> +              * if clocks are off, registers are not updated,
->> +              * but we can assume we don't drive VBUS in this case
->> +              */
->> +             return false;
->> +
->> +     ret =3D twl4030_usb_read(twl, ULPI_OTG_CTRL);
->> +     if (ret < 0)
->> +             return false;
->> +
->> +     return (ret & (ULPI_OTG_DRVVBUS | ULPI_OTG_CHRGVBUS)) ? true :=
- false;
->> +}
->> +
->>  static enum omap_musb_vbus_id_status
->>       twl4030_usb_linkstat(struct twl4030_usb *twl)
->>  {
->>       int     status;
->>       enum omap_musb_vbus_id_status linkstat =3D OMAP_MUSB_UNKNOWN;
->> +     bool    driving_vbus =3D false;
->>
->>       twl->vbus_supplied =3D false;
->>
->> @@ -270,20 +290,26 @@ static enum omap_musb_vbus_id_status
->>       if (status < 0)
->>               dev_err(twl->dev, "USB link status err %d\n", status);
->>       else if (status & (BIT(7) | BIT(2))) {
->> -             if (status & (BIT(7)))
->> -                        twl->vbus_supplied =3D true;
->> +             if (status & BIT(7)) {
->> +                     driving_vbus =3D twl4030_is_driving_vbus(twl);
->> +                     if (driving_vbus)
->
-> how about just:
->
-> if (twl4030_is_driving_vbus(twl))
->         status &=3D ~BIT(7);
->
-> ????
+If the bootloader doesn't configure USB DPLL (e.g. in u-boot,
+disable CONFIG_USB_EHCI_OMAP), then we get all sorts of problems
+like
+- division by zero errors at boot [1]
+- USB DPLL fails to enter locked state
+- USB EHCI Host is non functional
+- Device can't enter OFF mode
 
-I'm logging driving_vbus below with dev_dbg(), so that it's easier to
-see what going on..
+Initializing the USB DPLL fixes all these issues.
 
->
-> --
-> balbi
+[1]
 
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[    0.000000] clock: dpll_usb_ck failed transition to 'locked'
+[    0.000000] Division by zero in kernel.
+[    0.000000] [<c001b00c>] (unwind_backtrace+0x0/0xf0) from [<c02b2378>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02b2378>] (Ldiv0+0x8/0x10) from [<c041cf3c>] (clk_divider_set_rate+0x10/0x124)
+[    0.000000] [<c041cf3c>] (clk_divider_set_rate+0x10/0x124) from [<c041bfc4>] (clk_change_rate+0x3c/0xb4)
+[    0.000000] [<c041bfc4>] (clk_change_rate+0x3c/0xb4) from [<c041c028>] (clk_change_rate+0xa0/0xb4)
+
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/mach-omap2/cclock44xx_data.c |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+index bfc46c1..6127bb9 100644
+--- a/arch/arm/mach-omap2/cclock44xx_data.c
++++ b/arch/arm/mach-omap2/cclock44xx_data.c
+@@ -53,6 +53,12 @@
+  */
+ #define OMAP4_DPLL_ABE_DEFFREQ				98304000
+ 
++/*
++ * OMAP4450 TRM Rev X, section "3.6.3.9.5 DPLL_USB Preferred Settings"
++ * states it must be at 960MHz
++ */
++#define OMAP4_DPLL_USB_DEFFREQ				960000000
++
+ /* Root clocks */
+ 
+ DEFINE_CLK_FIXED_RATE(extalt_clkin_ck, CLK_IS_ROOT, 59000000, 0x0);
+@@ -1729,6 +1735,19 @@ int __init omap4xxx_clk_init(void)
+ 	omap2_clk_disable_autoidle_all();
+ 
+ 	/*
++	 * Lock USB_DPLL to avoid issues with USB host and OFF mode
++	 */
++	rc = clk_set_rate(&dpll_usb_ck, OMAP4_DPLL_USB_DEFFREQ);
++	if (rc) {
++		pr_err("%s: failed to configure DPLL_USB: %d\n", __func__, rc);
++	} else {
++		rc = clk_set_rate(&dpll_usb_m2_ck, OMAP4_DPLL_USB_DEFFREQ/2);
++		if (rc)
++			pr_err("%s: failed to configure DPLL_USB_M2: %d\n",
++								__func__, rc);
++	}
++
++	/*
+ 	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
+ 	 * state when turning the ABE clock domain. Workaround this by
+ 	 * locking the ABE DPLL on boot.
+-- 
+1.7.4.1
