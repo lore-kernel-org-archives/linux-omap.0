@@ -1,69 +1,85 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH v3 5/6] ARM: dts: omap: update usb_otg_hs data
-Date: Thu, 21 Mar 2013 11:53:09 +0530
-Message-ID: <514AA74D.9070506@ti.com>
-References: <1363770725-13717-1-git-send-email-kishon@ti.com>
- <1363770725-13717-6-git-send-email-kishon@ti.com>
- <514A233F.8010105@wwwdotorg.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 08/14] OMAPDSS: DSS: add new clock calculation code
+Date: Thu, 21 Mar 2013 10:13:48 +0200
+Message-ID: <514AC13C.6030300@ti.com>
+References: <1362743569-10289-1-git-send-email-tomi.valkeinen@ti.com> <1362743569-10289-9-git-send-email-tomi.valkeinen@ti.com> <5149D30F.2010801@ti.com> <5149D5A7.204@ti.com> <514AA556.4040300@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <514A233F.8010105@wwwdotorg.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: linux-usb@vger.kernel.org, mchehab@redhat.com, linux-doc@vger.kernel.org, tony@atomide.com, grant.likely@secretlab.ca, linux@arm.linux.org.uk, javier@dowhile0.org, cesarb@cesarb.net, arnd@arndb.de, eballetbo@gmail.com, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, swarren@nvidia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, gregkh@linuxfoundation.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, rob@landley.net, akpm@linux-foundation.org, davem@davemloft.net
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig1AAAC4781BAB1477A217B314"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44340 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753244Ab3CUINz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Mar 2013 04:13:55 -0400
+In-Reply-To: <514AA556.4040300@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi,
+--------------enig1AAAC4781BAB1477A217B314
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday 21 March 2013 02:29 AM, Stephen Warren wrote:
-> On 03/20/2013 03:12 AM, Kishon Vijay Abraham I wrote:
->> Updated the usb_otg_hs dt data to include the *phy* and *phy-names*
->> binding in order for the driver to use the new generic PHY framework.
->> Also updated the Documentation to include the binding information.
->
->> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
->> index abce256..3d6f9f6 100644
->> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
->> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
->> @@ -19,6 +19,9 @@ OMAP MUSB GLUE
->>    - power : Should be "50". This signifies the controller can supply upto
->>      100mA when operating in host mode.
->>    - usb-phy : the phandle for the PHY device
->> + - phy : the phandle for the PHY device (used by generic PHY framework)
->> + - phy-names : the names of the PHY corresponding to the PHYs present in the
->> +   *phy* phandle.
->
-> If the intent is for those properties to be generic and used by any DT
-> binding that refers to a PHY node, I think you'd want to define those
-> properties in e.g. Documentation/devicetree/bindings/phy/phy.txt, just
-> like common clock/GPIO/... properties are defined in standalone common
-> files.
+On 2013-03-21 08:14, Archit Taneja wrote:
+> On Wednesday 20 March 2013 08:58 PM, Tomi Valkeinen wrote:
+>> On 2013-03-20 17:17, Archit Taneja wrote:
+>>> On Friday 08 March 2013 05:22 PM, Tomi Valkeinen wrote:
 
-Ok. Will add it.
->
-> I think you want to require that DT nodes that represent PHYs have a
-> #phy-cells property, and that the format of the phy property be
-> <&phy_phandle phy_specifier*>, where #phy-cells in the referenced node
-> defines how many cells are part of phy_specifier*, just like (almost)
-> any other DT property that references another node by phandle. That way,
-> if a single DT node represents a HW block that implements e.g. 3 PHYs,
-> it can use #phy-cells = <1>, and the referencing phy property can
-> include a cell that indicates which of those 3 PHYs is being referenced.
+>>>> +    if (dss.dpll4_m4_ck =3D=3D NULL) {
+>>>> +        /* XXX can we change the clock on omap2? */
+>>>
+>>> We can change dss_fclk1 on omap2, and the cclock2420_data.c and
+>>> cclock2430_data.c have clksel structs which allow a set of dividers. =
+The
+>>> dividers are not continuous though, 1 to 12 and 16 are allowed. So we=
 
-Currently, if a single phandle have reference to multiple PHYs, we can 
-get PHY by passing index or by name as give in phy-names.
-I'm not sure if we have <&phy_phandle phy_specifier*>, what could that 
-phy_specifier be? Maybe phy_type?
+>>> might need to change the code here a bit, if we want to change the cl=
+ock
+>>> in the first place.
+>>
+>> Ok, good to know. Note that the comment is copied from the old code. I=
 
-Thanks
-Kishon
+>> think I tried changing the clock on N800 with clk_set_rate long ago, b=
+ut
+>> I didn't get it to work. Things might have changed, but, well, I don't=
+
+>> think we should spend time on omap2 code. I'm sure we'll get a patch i=
+f
+>> somebody needs it =3D).
+>=20
+> We could change the comment to a TODO for now.
+
+Yep, not a bad idea. I'll make the change.
+
+ Tomi
+
+
+
+
+--------------enig1AAAC4781BAB1477A217B314
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRSsFAAAoJEPo9qoy8lh71XJoQAKbcpjcwM8C733TZg7vdl04g
+GN6KKsZ4n0J14iTZS8eZtqhQLyaN6xyiPEm/8G69Ic1+Xc5UUtU5kQuJsLBk+xmF
+YYiJpxN8Tw7Gjkmc+FeAPo46h9Cpt8TjfyZtDO7lllWokY/eBbBPA7r9Ct3VRvNb
+KK9gUnfCFLq8gwYEGab/2Eyb/XJqkd/vXkjqIz6dEckSH3aMme+Pp22TvDOsywEK
+TdlEC1eTmYOrlX/Aa1ALsdCkU7zvvNauWIAV3m82DVdHlclTfw1/qixyZwCtTJZV
+LOLUOldvA1FN6pAM8oIJwIxkGlJddQJJxPOb/yJ/ho7h8y2i15ZQmyUMH4JtERDG
+761H2CH2XVCHO5ncThP2Gxiu7WsQTFssE8g2kEZGd2m6D/hr1pNw9ulUx3vNoUrG
+Z9kJz8XzUO0TvmZ+u6Hwnd81n6kJv6F0uTp9OEuGMMu/jEj2IK3j0DBCvAnvndFb
+zNv1VUcSp4lV5aZV7hedbAGnapjYyvSix9KCeenjKP3WsNbiJchPoqvlFYxvGeJ7
+s5qcWzn4HLBb8Do7Pam7j2ETRCSJ5ZIpzIY+MxD8tygzwxZjE0j2+KuzuVFjETW6
+mF5SxKKOyB6ujsrRo7bkTK5uL/gVs2kL4dVTAV58gvikKAG48dG5C6k16xdue006
+jlazDJNv6a35lPXKxlWt
+=2CwS
+-----END PGP SIGNATURE-----
+
+--------------enig1AAAC4781BAB1477A217B314--
