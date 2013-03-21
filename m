@@ -1,93 +1,205 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 5/6] OF: Introduce Device Tree resolve support.
-Date: Thu, 21 Mar 2013 11:12:44 +0200
-Message-ID: <E7AB277F-5875-4533-8977-18E09CA1EEDC@antoniou-consulting.com>
-References: <1357327870-13615-1-git-send-email-panto@antoniou-consulting.com> <1357327870-13615-6-git-send-email-panto@antoniou-consulting.com> <20130121044836.GB24829@truffula.fritz.box> <EEEDB0B2-7410-456B-BED7-89FD5E407553@antoniou-consulting.com> <20130122040524.GG23500@truffula.fritz.box> <AB11FABF-6A45-493D-869D-7549FD758DD2@antoniou-consulting.com> <20130123044041.GS23500@truffula.fritz.box> <060132B1-BB52-4C7F-B8D3-82B49BE49BB7@antoniou-consulting.com> <20130316092435.9FA4B3E095B@localhost> <6BBAEB5D-D4E0-4276-B3B8-468C30547E75@antoniou-consulting.com> <20130319171848.733493E33F5@localhost>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130319171848.733493E33F5@localhost>
-Sender: linux-doc-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: David Gibson <david@gibson.dropbear.id.au>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v2] ARM: OMAP: clocks: Delay clk inits atleast until slab is initialized
+Date: Thu, 21 Mar 2013 16:34:52 +0530
+Message-ID: <1363863892-6810-1-git-send-email-rnayak@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45222 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753647Ab3CULF0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Mar 2013 07:05:26 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, phaber@broadcom.com, mturquette@linaro.org, santosh.shilimkar@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-Hi Grant,
+clk inits on OMAP happen quite early, even before slab is available.
+The dependency comes from the fact that the timer init code starts to
+use clocks and hwmod and we need clocks to be initialized by then.
 
-On Mar 19, 2013, at 7:18 PM, Grant Likely wrote:
+There are various problems doing clk inits this early, one is,
+not being able to do dynamic clk registrations and hence the
+dependency on clk-private.h. The other is, inability to debug
+early kernel crashes without enabling DEBUG_LL and earlyprintk.
 
-> On Tue, 19 Mar 2013 13:51:01 +0200, Pantelis Antoniou <panto@antoniou-consulting.com> wrote:
->> Hi Grant,
->> 
->> On Mar 16, 2013, at 11:24 AM, Grant Likely wrote:
->> 
->>> On Wed, 23 Jan 2013 12:58:02 +0200, Pantelis Antoniou <panto@antoniou-consulting.com> wrote:
->>>> Hi David,
->>>> 
->>>> On Jan 23, 2013, at 6:40 AM, David Gibson wrote:
->>>>> Ok.  Nonetheless it's not hard to avoid a recursive approach here.
->>>> 
->>>> How can I find the maximum phandle value of a subtree without using recursion.
->>>> Note that the whole function is just 6 lines long.
->>> 
->>> It's a failure in the existing kernel DT data structures. We need a hash
->>> lookup for the phandles to eliminate the search entirely. Then you'd be
->>> able to allocated new phandles on the fly easily and resolve phandles
->>> without searching the whole tree (which has always been horrible).
->>> 
->> 
->> Yes, it is pretty obvious that the in-kernel data structures are sub-optimal.
->> But I was not after modifying them, since that's a different kind of problem.
-> 
-> Think about it this way; fixing up that aspect of the data structure
-> makes the job you're trying to do a lot easier. I don't feel bad about
-> asking you to add a radix tree for phandle lookups when it makes your
-> patches a whole lot better.  :-)
-> 
+Doing early clk init also exposed another instance of a kernel
+panic due to a BUG() when CONFIG_DEBUG_SLAB is enabled.
 
-Oh that's going to be fun... maybe.
+[    0.000000] Kernel BUG at c01174f8 [verbose debug info unavailable]
+[    0.000000] Internal error: Oops - BUG: 0 [#1] SMP ARM
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0    Not tainted  (3.9.0-rc1-12179-g72d48f9 #6)
+[    0.000000] PC is at __kmalloc+0x1d4/0x248
+[    0.000000] LR is at __clk_init+0x2e0/0x364
+[    0.000000] pc : [<c01174f8>]    lr : [<c0441f54>]    psr: 600001d3
+[    0.000000] sp : c076ff28  ip : c065cefc  fp : c0441f54
+[    0.000000] r10: 0000001c  r9 : 000080d0  r8 : c076ffd4
+[    0.000000] r7 : c074b578  r6 : c0794d88  r5 : 00000040  r4 : 00000000
+[    0.000000] r3 : 00000000  r2 : c07cac70  r1 : 000080d0  r0 : 0000001c
+[    0.000000] Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
+[    0.000000] Control: 10c53c7d  Table: 8000404a  DAC: 00000017
+[    0.000000] Process swapper (pid: 0, stack limit = 0xc076e240)
+[    0.000000] Stack: (0xc076ff28 to 0xc0770000)
+[    0.000000] ff20:                   22222222 c0794ec8 c06546e8 00000000 00000040 c0794d88
+[    0.000000] ff40: c074b578 c076ffd4 c07951c8 c076e000 00000000 c0441f54 c074b578 c076ffd4
+[    0.000000] ff60: c0793828 00000040 c0794d88 c074b578 c076ffd4 c0776900 c076e000 c07272ac
+[    0.000000] ff80: 2f800000 c074c968 c07f93d0 c0719780 c076ffa0 c076ff98 00000000 00000000
+[    0.000000] ffa0: 00000000 00000000 00000000 00000001 c074cd6c c077b1ec 8000406a c0715724
+[    0.000000] ffc0: 00000000 00000000 00000000 00000000 00000000 c074c968 10c53c7d c0776974
+[    0.000000] ffe0: c074cd6c c077b1ec 8000406a 411fc092 00000000 80008074 00000000 00000000
+[    0.000000] [<c01174f8>] (__kmalloc+0x1d4/0x248) from [<c0441f54>] (__clk_init+0x2e0/0x364)
+[    0.000000] [<c0441f54>] (__clk_init+0x2e0/0x364) from [<c07272ac>] (omap4xxx_clk_init+0xbc/0x140)
+[    0.000000] [<c07272ac>] (omap4xxx_clk_init+0xbc/0x140) from [<c0719780>] (setup_arch+0x15c/0x284)
+[    0.000000] [<c0719780>] (setup_arch+0x15c/0x284) from [<c0715724>] (start_kernel+0x7c/0x334)
+[    0.000000] [<c0715724>] (start_kernel+0x7c/0x334) from [<80008074>] (0x80008074)
+[    0.000000] Code: e5883004 e1a00006 e28dd00c e8bd8ff0 (e7f001f2)
+[    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
+[    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
 
->> Since we're having a 'sub-optimal' data structures, I'd like to point out that
->> the usage of of_find_by_name(), mostly by drivers trying to find a child
->> of their own node, works by a lucky accident of how the device nodes are instantiated
->> by the flat tree loader. Most of the use cases should be replaced by a call
->> to of_get_child_by_name() which does the right thing.
-> 
-> It is true. In fact, calling of_find_node_by_name() when using .dtb is
-> most likely a bug since using node name to determine behaviour is
-> strongly discouraged.
+It was a know issue, that slab allocations would fail when common
+clock core tries to cache parent pointers for mux clocks on OMAP,
+and hence a patch 'clk: Allow late cache allocation for clk->parents,
+commit 7975059d' was added to work this problem around.
+A BUG() within kmalloc() with CONFIG_DEBUG_SLAB enabled was completely
+overlooked causing this regression.
 
-Maybe mark the function as deprecated then? Easier to get people to fix it.
+More details on the issue reported can be found here,
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85932.html
 
-> 
->> Fair enough, but be warned that phandle resolution the overlay feature is mostly useless.
->> 
->> In actual practice the amount of driver nodes that can be overlaid without a single case
->> of referencing phandles outside (or within) their own blob is close to zero.
-> 
-> That's not what I'm saying. I'm saying that (at least for now) we should
-> require the overlay to already know the phandles from the parent and to
-> refuse to load an overlay that defines phandles already in use in the
-> base. Overlays do become usable at that point. A mechanism for phandle
-> resolution so that conflicts can be found and resolved can be added
-> as a feature enhancement. By splitting it out you'll be able to get the
-> overlay feature merged even if we don't have agreement on the resolution
-> mechanism yet.
-> 
+With all these issues around clk inits happening way too early, it
+makes sense to atleast move them to a point where dynamic memory
+allocations are possible. So move them to a point just before the
+timer code starts using clocks and hwmod.
 
-As long as we don't come up with something that's too difficult to use for non
-kernel developers. I would hate to punt and push all the complexity of phandle
-resolution to the driver/cape developer.
+This should atleast pave way for clk inits on OMAP moving to dynamic
+clock registrations instead of using the static macros defined in
+clk-private.h.
 
-FWIW, the resolution mechanism we use on the beaglebone seems to work just fine,
-and people seem to handle it just fine. The part that trips them is mostly how
-to install the updated dtc compiler that's required.
+The issue with kernel panic while CONFIG_DEBUG_SLAB is enabled
+was reported by Piotr Haber and Tony Lindgren and this patch
+fixes the reported issue as well.
 
-> g.
-> 
+Reported-by: Piotr Haber <phaber@broadcom.com>
+Reported-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+applies on 3.9-rc3 and tested on omap4 pandaES, omap3 beagle XM,
+and am335x bone.
 
-Regards
+v2: updated changelog based on comments from Tony Lindgren
 
--- Pantelis
+ arch/arm/mach-omap2/common.h |    3 +++
+ arch/arm/mach-omap2/io.c     |   18 ++++++++++++------
+ arch/arm/mach-omap2/timer.c  |    4 ++++
+ 3 files changed, 19 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 40f4a03..d6ba13e 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -293,5 +293,8 @@ extern void omap_reserve(void);
+ struct omap_hwmod;
+ extern int omap_dss_reset(struct omap_hwmod *);
+ 
++/* SoC specific clock initializer */
++extern int (*omap_clk_init)(void);
++
+ #endif /* __ASSEMBLER__ */
+ #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 2c3fdd6..5c445ca 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -55,6 +55,12 @@
+ #include "prm44xx.h"
+ 
+ /*
++ * omap_clk_init: points to a function that does the SoC-specific
++ * clock initializations
++ */
++int (*omap_clk_init)(void);
++
++/*
+  * The machine specific code may provide the extra mapping besides the
+  * default mapping provided here.
+  */
+@@ -397,7 +403,7 @@ void __init omap2420_init_early(void)
+ 	omap242x_clockdomains_init();
+ 	omap2420_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap2420_clk_init();
++	omap_clk_init = omap2420_clk_init;
+ }
+ 
+ void __init omap2420_init_late(void)
+@@ -427,7 +433,7 @@ void __init omap2430_init_early(void)
+ 	omap243x_clockdomains_init();
+ 	omap2430_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap2430_clk_init();
++	omap_clk_init = omap2430_clk_init;
+ }
+ 
+ void __init omap2430_init_late(void)
+@@ -462,7 +468,7 @@ void __init omap3_init_early(void)
+ 	omap3xxx_clockdomains_init();
+ 	omap3xxx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap3xxx_clk_init();
++	omap_clk_init = omap3xxx_clk_init;
+ }
+ 
+ void __init omap3430_init_early(void)
+@@ -500,7 +506,7 @@ void __init ti81xx_init_early(void)
+ 	omap3xxx_clockdomains_init();
+ 	omap3xxx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap3xxx_clk_init();
++	omap_clk_init = omap3xxx_clk_init;
+ }
+ 
+ void __init omap3_init_late(void)
+@@ -568,7 +574,7 @@ void __init am33xx_init_early(void)
+ 	am33xx_clockdomains_init();
+ 	am33xx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	am33xx_clk_init();
++	omap_clk_init = am33xx_clk_init;
+ }
+ #endif
+ 
+@@ -593,7 +599,7 @@ void __init omap4430_init_early(void)
+ 	omap44xx_clockdomains_init();
+ 	omap44xx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap4xxx_clk_init();
++	omap_clk_init = omap4xxx_clk_init;
+ }
+ 
+ void __init omap4430_init_late(void)
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 2bdd4cf..f62b509 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -547,6 +547,8 @@ static inline void __init realtime_counter_init(void)
+ 			       clksrc_nr, clksrc_src)			\
+ void __init omap##name##_gptimer_timer_init(void)			\
+ {									\
++	if (omap_clk_init)						\
++		omap_clk_init();					\
+ 	omap_dmtimer_init();						\
+ 	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+ 	omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src);	\
+@@ -556,6 +558,8 @@ void __init omap##name##_gptimer_timer_init(void)			\
+ 				clksrc_nr, clksrc_src)			\
+ void __init omap##name##_sync32k_timer_init(void)		\
+ {									\
++	if (omap_clk_init)						\
++		omap_clk_init();					\
+ 	omap_dmtimer_init();						\
+ 	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+ 	/* Enable the use of clocksource="gp_timer" kernel parameter */	\
+-- 
+1.7.9.5
 
