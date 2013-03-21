@@ -1,205 +1,96 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH] ARM: convert arm/arm64 arch timer to use CLKSRC_OF init
-Date: Thu, 21 Mar 2013 11:06:47 +0000
-Message-ID: <20130321110646.GE15279@e106331-lin.cambridge.arm.com>
-References: <1363818875-15978-1-git-send-email-robherring2@gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2] ARM: OMAP: clocks: Delay clk inits atleast until slab
+ is initialized
+Date: Thu, 21 Mar 2013 16:48:08 +0530
+Message-ID: <514AEC70.9010801@ti.com>
+References: <1363863892-6810-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1363818875-15978-1-git-send-email-robherring2@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Magnus Damm <magnus.damm@gmail.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Simon Horman <horms@verge.net.au>, John Stultz <john.stultz@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52958 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751384Ab3CULQb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Mar 2013 07:16:31 -0400
+In-Reply-To: <1363863892-6810-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, phaber@broadcom.com, mturquette@linaro.org, Tony Lindgren <tony@atomide.com>
 
-Hi Rob,
-
-(adding Marc to Cc as he may have comments).
-
-On Wed, Mar 20, 2013 at 10:34:35PM +0000, Rob Herring wrote:
-> From: Rob Herring <rob.herring@calxeda.com>
+On Thursday 21 March 2013 04:34 PM, Rajendra Nayak wrote:
+> clk inits on OMAP happen quite early, even before slab is available.
+> The dependency comes from the fact that the timer init code starts to
+> use clocks and hwmod and we need clocks to be initialized by then.
 > 
-> This converts arm and arm64 to use CLKSRC_OF DT based initialization for
-> the arch timer. A new function arch_timer_arch_init is added to allow for
-> arch specific setup.
+> There are various problems doing clk inits this early, one is,
+> not being able to do dynamic clk registrations and hence the
+> dependency on clk-private.h. The other is, inability to debug
+> early kernel crashes without enabling DEBUG_LL and earlyprintk.
 > 
-> This has a side effect of enabling sched_clock on omap5 and exynos5. There
-> should not be any reason not to use the arch timers for sched_clock.
-
-Nice! I was just about to post a (slightly updated) version of Thomas Abraham's
-arch_timer clocksource_of_init patch, but this seems much more comprehensive.
-
-I have some other arch_timer patches which may clash, but they could be rebased
-atop of this.
-
+> Doing early clk init also exposed another instance of a kernel
+> panic due to a BUG() when CONFIG_DEBUG_SLAB is enabled.
 > 
-> Signed-off-by: Rob Herring <rob.herring@calxeda.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Kukjin Kim <kgene.kim@samsung.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Simon Horman <horms@verge.net.au>
-> Cc: Magnus Damm <magnus.damm@gmail.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: John Stultz <john.stultz@linaro.org>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: linux-samsung-soc@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-sh@vger.kernel.org
+> [    0.000000] Kernel BUG at c01174f8 [verbose debug info unavailable]
+> [    0.000000] Internal error: Oops - BUG: 0 [#1] SMP ARM
+> [    0.000000] Modules linked in:
+> [    0.000000] CPU: 0    Not tainted  (3.9.0-rc1-12179-g72d48f9 #6)
+> [    0.000000] PC is at __kmalloc+0x1d4/0x248
+> [    0.000000] LR is at __clk_init+0x2e0/0x364
+> [    0.000000] pc : [<c01174f8>]    lr : [<c0441f54>]    psr: 600001d3
+> [    0.000000] sp : c076ff28  ip : c065cefc  fp : c0441f54
+> [    0.000000] r10: 0000001c  r9 : 000080d0  r8 : c076ffd4
+> [    0.000000] r7 : c074b578  r6 : c0794d88  r5 : 00000040  r4 : 00000000
+> [    0.000000] r3 : 00000000  r2 : c07cac70  r1 : 000080d0  r0 : 0000001c
+> [    0.000000] Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
+> [    0.000000] Control: 10c53c7d  Table: 8000404a  DAC: 00000017
+> [    0.000000] Process swapper (pid: 0, stack limit = 0xc076e240)
+> [    0.000000] Stack: (0xc076ff28 to 0xc0770000)
+> [    0.000000] ff20:                   22222222 c0794ec8 c06546e8 00000000 00000040 c0794d88
+> [    0.000000] ff40: c074b578 c076ffd4 c07951c8 c076e000 00000000 c0441f54 c074b578 c076ffd4
+> [    0.000000] ff60: c0793828 00000040 c0794d88 c074b578 c076ffd4 c0776900 c076e000 c07272ac
+> [    0.000000] ff80: 2f800000 c074c968 c07f93d0 c0719780 c076ffa0 c076ff98 00000000 00000000
+> [    0.000000] ffa0: 00000000 00000000 00000000 00000001 c074cd6c c077b1ec 8000406a c0715724
+> [    0.000000] ffc0: 00000000 00000000 00000000 00000000 00000000 c074c968 10c53c7d c0776974
+> [    0.000000] ffe0: c074cd6c c077b1ec 8000406a 411fc092 00000000 80008074 00000000 00000000
+> [    0.000000] [<c01174f8>] (__kmalloc+0x1d4/0x248) from [<c0441f54>] (__clk_init+0x2e0/0x364)
+> [    0.000000] [<c0441f54>] (__clk_init+0x2e0/0x364) from [<c07272ac>] (omap4xxx_clk_init+0xbc/0x140)
+> [    0.000000] [<c07272ac>] (omap4xxx_clk_init+0xbc/0x140) from [<c0719780>] (setup_arch+0x15c/0x284)
+> [    0.000000] [<c0719780>] (setup_arch+0x15c/0x284) from [<c0715724>] (start_kernel+0x7c/0x334)
+> [    0.000000] [<c0715724>] (start_kernel+0x7c/0x334) from [<80008074>] (0x80008074)
+> [    0.000000] Code: e5883004 e1a00006 e28dd00c e8bd8ff0 (e7f001f2)
+> [    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
+> [    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
+> 
+> It was a know issue, that slab allocations would fail when common
+> clock core tries to cache parent pointers for mux clocks on OMAP,
+> and hence a patch 'clk: Allow late cache allocation for clk->parents,
+> commit 7975059d' was added to work this problem around.
+> A BUG() within kmalloc() with CONFIG_DEBUG_SLAB enabled was completely
+> overlooked causing this regression.
+> 
+> More details on the issue reported can be found here,
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85932.html
+> 
+> With all these issues around clk inits happening way too early, it
+> makes sense to atleast move them to a point where dynamic memory
+> allocations are possible. So move them to a point just before the
+> timer code starts using clocks and hwmod.
+> 
+> This should atleast pave way for clk inits on OMAP moving to dynamic
+> clock registrations instead of using the static macros defined in
+> clk-private.h.
+> 
+> The issue with kernel panic while CONFIG_DEBUG_SLAB is enabled
+> was reported by Piotr Haber and Tony Lindgren and this patch
+> fixes the reported issue as well.
+> 
+> Reported-by: Piotr Haber <phaber@broadcom.com>
+> Reported-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > ---
-> This is dependent on my CLKSRC_OF clean-up in arm-soc, my 64-bit sched_clock
-> support series, and Arnd's default machine descriptor patch (for default
-> clocksource_of_init call). This is only compile tested on arm.
+> applies on 3.9-rc3 and tested on omap4 pandaES, omap3 beagle XM,
+> and am335x bone.
 > 
-> The full series (including sp804 work) is available here:
-> git://sources.calxeda.com/kernel/linux.git arm-timers
-> 
-> Rob
-> 
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-[...]
-
-> diff --git a/arch/arm/mach-vexpress/v2m.c b/arch/arm/mach-vexpress/v2m.c
-> index d0ad789..6215717 100644
-> --- a/arch/arm/mach-vexpress/v2m.c
-> +++ b/arch/arm/mach-vexpress/v2m.c
-> @@ -1,6 +1,7 @@
->  /*
->   * Versatile Express V2M Motherboard Support
->   */
-> +#include <linux/clocksource.h>
->  #include <linux/device.h>
->  #include <linux/amba/bus.h>
->  #include <linux/amba/mmci.h>
-> @@ -23,7 +24,6 @@
->  #include <linux/regulator/machine.h>
->  #include <linux/vexpress.h>
-> 
-> -#include <asm/arch_timer.h>
->  #include <asm/mach-types.h>
->  #include <asm/sizes.h>
->  #include <asm/mach/arch.h>
-> @@ -446,10 +446,7 @@ static void __init v2m_dt_timer_init(void)
->                                 irq_of_parse_and_map(node, 0));
->         }
-> 
-> -       arch_timer_of_register();
-> -
-> -       if (arch_timer_sched_clock_init() != 0)
-> -               versatile_sched_clock_init(vexpress_get_24mhz_clock_base(),
-> +       versatile_sched_clock_init(vexpress_get_24mhz_clock_base(),
->                                 24000000);
->  }
-> 
-
-On TC2 this series leads to using the vexpress 24MHz clock as the sched clock
-in preference to the architected timer:
-
-  Architected local timer running at 24.00MHz (virt).
-  Switching to timer-based delay loop
-  Registered arch_counter_get_cntvct+0x0/0x14 as sched_clock source
-  sched_clock: 32 bits at 24MHz, resolution 41ns, wraps every 178956ms
-  Registered versatile_read_sched_clock+0x0/0x28 as sched_clock source
-
-As they both have the same frequency, neither overrides the other, and
-whichever gets registered last is used as the sched_clock. As accesses to the
-architected timer are going to have a much lower overhead, this isn't very nice
-(and it could be better to use it even if it had a lower frequency).
-
-We could move the versatile_sched_clock_init call before the
-clocksource_of_init, but that doesn't feel like an ideal solution. We may have
-similar problems elsewhere.
-
-[...]
-
-> diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
-> index b0ef18d..a551f88 100644
-> --- a/arch/arm64/kernel/time.c
-> +++ b/arch/arm64/kernel/time.c
-> @@ -32,6 +32,7 @@
->  #include <linux/timer.h>
->  #include <linux/irq.h>
->  #include <linux/delay.h>
-> +#include <linux/clocksource.h>
-> 
->  #include <clocksource/arm_arch_timer.h>
-> 
-> @@ -77,10 +78,11 @@ void __init time_init(void)
->  {
->         u32 arch_timer_rate;
-> 
-> -       if (arch_timer_init())
-> -               panic("Unable to initialise architected timer.\n");
-> +       clocksource_of_init();
-> 
->         arch_timer_rate = arch_timer_get_rate();
-> +       if (!arch_timer_rate)
-> +               panic("Unable to initialise architected timer.\n");
-> 
->         /* Cache the sched_clock multiplier to save a divide in the hot path. */
->         sched_clock_mult = NSEC_PER_SEC / arch_timer_rate;
-> diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-> index e507ab7..d98e7e1 100644
-> --- a/drivers/clocksource/Kconfig
-> +++ b/drivers/clocksource/Kconfig
-> @@ -62,6 +62,7 @@ config CLKSRC_DBX500_PRCMU_SCHED_CLOCK
-> 
->  config ARM_ARCH_TIMER
->         bool
-> +       select CLKSRC_OF if OF
-> 
->  config CLKSRC_METAG_GENERIC
->         def_bool y if METAG
-
-[...]
-
-> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> index d7ad425..afb70aa 100644
-> --- a/drivers/clocksource/arm_arch_timer.c
-> +++ b/drivers/clocksource/arm_arch_timer.c
-> @@ -337,24 +337,11 @@ out:
->         return err;
->  }
-> 
-> -static const struct of_device_id arch_timer_of_match[] __initconst = {
-> -       { .compatible   = "arm,armv7-timer",    },
-> -       { .compatible   = "arm,armv8-timer",    },
-> -       {},
-> -};
-> -
-> -int __init arch_timer_init(void)
-> +static void __init arch_timer_init(struct device_node *np)
->  {
-> -       struct device_node *np;
->         u32 freq;
->         int i;
-> 
-
-If we the following here:
-
-	if (arch_timer_get_rate()) {
-		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
-		return;
-	}
-
-We may save ourselves a whole world of pain with dts which (erroneously) have
-multiple timer nodes (though these are now disappearing). Otherwise we could
-have a memory leak and multiple instances of the cpu0 timer registered, which
-could lead to all sorts of weirdness. The existing code side-steps this issue
-by only grabbing the first node, so this would keep things consistent.
-
-> -       np = of_find_matching_node(NULL, arch_timer_of_match);
-> -       if (!np) {
-> -               pr_err("arch_timer: can't find DT node\n");
-> -               return -ENODEV;
-> -       }
-> -
->         /* Try to determine the frequency from the device tree or CNTFRQ */
->         if (!of_property_read_u32(np, "clock-frequency", &freq))
->                 arch_timer_rate = freq;
-
-[...]
-
-Thanks,
-Mark.
