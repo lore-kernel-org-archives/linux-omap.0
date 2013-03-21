@@ -1,76 +1,72 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH v3 4/6] ARM: OMAP: USB: Add phy binding information
-Date: Thu, 21 Mar 2013 11:18:12 +0530
-Message-ID: <514A9F1C.6080609@ti.com>
-References: <1363770725-13717-1-git-send-email-kishon@ti.com> <1363770725-13717-5-git-send-email-kishon@ti.com> <20130320165141.GP16413@atomide.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 08/14] OMAPDSS: DSS: add new clock calculation code
+Date: Thu, 21 Mar 2013 11:44:46 +0530
+Message-ID: <514AA556.4040300@ti.com>
+References: <1362743569-10289-1-git-send-email-tomi.valkeinen@ti.com> <1362743569-10289-9-git-send-email-tomi.valkeinen@ti.com> <5149D30F.2010801@ti.com> <5149D5A7.204@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130320165141.GP16413@atomide.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, arnd@arndb.de, akpm@linux-foundation.org, rob@landley.net, davem@davemloft.net, cesarb@cesarb.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, rob.herring@calxeda.com, b-cousson@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, mchehab@redhat.com, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37682 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754528Ab3CUGPe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Mar 2013 02:15:34 -0400
+In-Reply-To: <5149D5A7.204@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi,
+On Wednesday 20 March 2013 08:58 PM, Tomi Valkeinen wrote:
+> On 2013-03-20 17:17, Archit Taneja wrote:
+>> On Friday 08 March 2013 05:22 PM, Tomi Valkeinen wrote:
+>>> Add new way to iterate over DSS clock divisors. dss_div_calc() provides
+>>> a generic way to go over all the divisors, within given clock range.
+>>> dss_div_calc() will call a callback function for each divider set,
+>>> making the function reusable for all use cases.
+>>>
+>>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>>> ---
+>>>    drivers/video/omap2/dss/dss.c |   36
+>>> ++++++++++++++++++++++++++++++++++++
+>>>    drivers/video/omap2/dss/dss.h |    3 +++
+>>>    2 files changed, 39 insertions(+)
+>>>
+>>> diff --git a/drivers/video/omap2/dss/dss.c
+>>> b/drivers/video/omap2/dss/dss.c
+>>> index 054c2a2..21a3dc8 100644
+>>> --- a/drivers/video/omap2/dss/dss.c
+>>> +++ b/drivers/video/omap2/dss/dss.c
+>>> @@ -473,6 +473,42 @@ int dss_calc_clock_rates(struct dss_clock_info
+>>> *cinfo)
+>>>        return 0;
+>>>    }
+>>>
+>>> +bool dss_div_calc(unsigned long fck_min, dss_div_calc_func func, void
+>>> *data)
+>>> +{
+>>> +    int fckd, fckd_start, fckd_stop;
+>>> +    unsigned long fck;
+>>> +    unsigned long fck_hw_max;
+>>> +    unsigned long fckd_hw_max;
+>>> +    unsigned long prate;
+>>> +
+>>> +    if (dss.dpll4_m4_ck == NULL) {
+>>> +        /* XXX can we change the clock on omap2? */
+>>
+>> We can change dss_fclk1 on omap2, and the cclock2420_data.c and
+>> cclock2430_data.c have clksel structs which allow a set of dividers. The
+>> dividers are not continuous though, 1 to 12 and 16 are allowed. So we
+>> might need to change the code here a bit, if we want to change the clock
+>> in the first place.
+>
+> Ok, good to know. Note that the comment is copied from the old code. I
+> think I tried changing the clock on N800 with clk_set_rate long ago, but
+> I didn't get it to work. Things might have changed, but, well, I don't
+> think we should spend time on omap2 code. I'm sure we'll get a patch if
+> somebody needs it =).
 
-On Wednesday 20 March 2013 10:21 PM, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon@ti.com> [130320 02:17]:
->>
->> --- a/arch/arm/mach-omap2/board-2430sdp.c
->> +++ b/arch/arm/mach-omap2/board-2430sdp.c
->> @@ -265,6 +266,7 @@ static void __init omap_2430sdp_init(void)
->>
->>   	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
->>   	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
->> +	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
->>   	usb_musb_init(NULL);
->>
->>   	board_smc91x_init();
->> --- a/arch/arm/mach-omap2/board-3430sdp.c
->> +++ b/arch/arm/mach-omap2/board-3430sdp.c
->> @@ -601,6 +602,7 @@ static void __init omap_3430sdp_init(void)
->>   	omap_serial_init();
->>   	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
->>   	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
->> +	phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
->>   	usb_musb_init(NULL);
->>   	board_smc91x_init();
->>   	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
->
-> Can't you call phy_bind() from usb_musb_init() with the default
-> values automatically when usb_musb_init() is passed NULL?
->
-> That way you don't have to patch every board-*.c file with the
-> same lines, and don't need to include <linux/phy/phy.h> in each
-> board-*.c file.
->
->> --- a/arch/arm/mach-omap2/board-4430sdp.c
->> +++ b/arch/arm/mach-omap2/board-4430sdp.c
->> @@ -32,6 +32,7 @@
->>   #include <linux/platform_data/omap4-keypad.h>
->>   #include <linux/usb/musb.h>
->>   #include <linux/usb/phy.h>
->> +#include <linux/phy/phy.h>
->>
->>   #include <asm/mach-types.h>
->>   #include <asm/mach/arch.h>
->> @@ -725,6 +726,7 @@ static void __init omap_4430sdp_init(void)
->>   	omap4_twl6030_hsmmc_init(mmc);
->>
->>   	usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
->> +	phy_bind("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
->>   	usb_musb_init(&musb_board_data);
->>
->>   	status = omap_ethernet_init();
->
-> Here usb_musb_init() gets called with musb_board_data, so
-> keeping the phy_bind() in the board-4430sdp.c can then override
-> the default in usb_musb_init().
+We could change the comment to a TODO for now.
 
-Currently phy_bind has a limitation to do that. Will change phy_bind() 
-and have your comment incorporated.
+Archit
 
-Thanks
-Kishon
