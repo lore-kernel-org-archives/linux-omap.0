@@ -1,85 +1,83 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: clock: Initialize USB DPLL
-Date: Thu, 21 Mar 2013 16:12:35 +0200
-Message-ID: <514B1553.6030701@ti.com>
-References: <1363873705-3224-1-git-send-email-rogerq@ti.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [BUG] bisected: PandaBoard smsc95xx ethernet driver error from
+ USB timeout
+Date: Thu, 21 Mar 2013 10:41:46 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1303211037070.1899-100000@iolanthe.rowland.org>
+References: <514A7E81.9000501@am.sony.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:32972 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932457Ab3CUOMm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Mar 2013 10:12:42 -0400
-In-Reply-To: <1363873705-3224-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <514A7E81.9000501-mEdOJwZ7QcZBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Frank Rowand <frank.rowand-mEdOJwZ7QcZBDgjK7y7TUQ@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.orglinux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, steve.glendinning-sdUf+H5yV5I@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, balbi@ti.com, rnayak@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-+Paul
+On Wed, 20 Mar 2013, Frank Rowand wrote:
 
-On 03/21/2013 03:48 PM, Roger Quadros wrote:
-> If the bootloader doesn't configure USB DPLL (e.g. in u-boot,
-> disable CONFIG_USB_EHCI_OMAP), then we get all sorts of problems
-> like
-> - division by zero errors at boot [1]
-> - USB DPLL fails to enter locked state
-> - USB EHCI Host is non functional
-> - Device can't enter OFF mode
+> Hi All,
 > 
-> Initializing the USB DPLL fixes all these issues.
+> Not quite sure quite where the problem is (USB, OMAP, smsc95xx driver, other???),
+> so casting the nets wide...
 > 
-> [1]
+> The PandaBoard frequently fails to boot with an eth0 error when mounting
+> the root file system via NFS (ethernet driver fails due to a USB timeout;
+> no ethernet means NFS won't work).  A typical set of error messages is:
 > 
-> [    0.000000] clock: dpll_usb_ck failed transition to 'locked'
-> [    0.000000] Division by zero in kernel.
-> [    0.000000] [<c001b00c>] (unwind_backtrace+0x0/0xf0) from [<c02b2378>] (Ldiv0+0x8/0x10)
-> [    0.000000] [<c02b2378>] (Ldiv0+0x8/0x10) from [<c041cf3c>] (clk_divider_set_rate+0x10/0x124)
-> [    0.000000] [<c041cf3c>] (clk_divider_set_rate+0x10/0x124) from [<c041bfc4>] (clk_change_rate+0x3c/0xb4)
-> [    0.000000] [<c041bfc4>] (clk_change_rate+0x3c/0xb4) from [<c041c028>] (clk_change_rate+0xa0/0xb4)
+> [    3.264373] smsc95xx 1-1.1:1.0: usb_probe_interface
+> [    3.269500] smsc95xx 1-1.1:1.0: usb_probe_interface - got id
+> [    3.275543] smsc95xx v1.0.4
+> [    8.078674] smsc95xx 1-1.1:1.0: eth0: register 'smsc95xx' at usb-ehci-omap.0-1.1, smsc95xx USB 2.0 Ethernet, 82:b9:1d:fa:67:0d
+> [    8.091003] hub 1-1:1.0: state 7 ports 5 chg 0000 evt 0002
+> [   13.509918] usb 1-1.1: swapper/0 timed out on ep0out len=0/4
+> [   13.515869] smsc95xx 1-1.1:1.0: eth0: Failed to write register index 0x00000108
+> [   13.523559] smsc95xx 1-1.1:1.0: eth0: Failed to write ADDRL: -110
+> [   13.529998] IP-Config: Failed to open eth0
 > 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  arch/arm/mach-omap2/cclock44xx_data.c |   19 +++++++++++++++++++
->  1 files changed, 19 insertions(+), 0 deletions(-)
+> I have bisected this to:
 > 
-> diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-> index bfc46c1..6127bb9 100644
-> --- a/arch/arm/mach-omap2/cclock44xx_data.c
-> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
-> @@ -53,6 +53,12 @@
->   */
->  #define OMAP4_DPLL_ABE_DEFFREQ				98304000
->  
-> +/*
-> + * OMAP4450 TRM Rev X, section "3.6.3.9.5 DPLL_USB Preferred Settings"
-> + * states it must be at 960MHz
-> + */
-> +#define OMAP4_DPLL_USB_DEFFREQ				960000000
-> +
->  /* Root clocks */
->  
->  DEFINE_CLK_FIXED_RATE(extalt_clkin_ck, CLK_IS_ROOT, 59000000, 0x0);
-> @@ -1729,6 +1735,19 @@ int __init omap4xxx_clk_init(void)
->  	omap2_clk_disable_autoidle_all();
->  
->  	/*
-> +	 * Lock USB_DPLL to avoid issues with USB host and OFF mode
-> +	 */
-> +	rc = clk_set_rate(&dpll_usb_ck, OMAP4_DPLL_USB_DEFFREQ);
-> +	if (rc) {
-> +		pr_err("%s: failed to configure DPLL_USB: %d\n", __func__, rc);
-> +	} else {
-> +		rc = clk_set_rate(&dpll_usb_m2_ck, OMAP4_DPLL_USB_DEFFREQ/2);
-> +		if (rc)
-> +			pr_err("%s: failed to configure DPLL_USB_M2: %d\n",
-> +								__func__, rc);
-> +	}
-> +
-> +	/*
->  	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
->  	 * state when turning the ABE clock domain. Workaround this by
->  	 * locking the ABE DPLL on boot.
+>   commit 18aafe64d75d0e27dae206cacf4171e4e485d285
+>   Author: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+>   Date:   Wed Jul 11 11:23:04 2012 -0400
 > 
+>      USB: EHCI: use hrtimer for the I/O watchdog
 
+I don't understand how that commit could cause a timeout unless there 
+are at least two other bugs present in your system.
+
+> Note that to compile this version of the kernel, an additional fix must
+> also be applied:
+> 
+>   commit ba5952e0711b14d8d4fe172671f8aa6091ace3ee
+>   Author: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+>   Date:   Fri Jul 13 17:25:24 2012 +0800
+> 
+>      USB: ehci-omap: fix compile failure(v1)
+> 
+> The symptom can be worked around by retrying the USB access if a timeout
+> occurs.  This is clearly _not_ the fix, just a hack that I used to
+> investigate the problem:
+> 
+>   http://article.gmane.org/gmane.linux.rt.user/9773
+> 
+> My kernel configuration is:
+> 
+>   arch/arm/configs/omap2plus_defconfig
+> 
+>   plus to get the ethernet driver I add:
+> 
+>     CONFIG_USB_EHCI_HCD
+>     CONFIG_USB_NET_SMSC95XX
+> 
+> I found the problem on 3.6.11, but have not replicated it on 3.9-rcX
+> yet because my config fails to build on 3.9-rc1 and 3.9-rc2.  I'll try
+> to work on that issue tomorrow.
+
+Let me know how it works out.
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
