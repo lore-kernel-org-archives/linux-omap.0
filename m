@@ -1,74 +1,87 @@
-From: Silviu Popescu <silviupopescu1990@gmail.com>
-Subject: Re: [PATCH] mach_omap2: use PTR_RET instead of IS_ERR + PTR_ERR
-Date: Thu, 21 Mar 2013 20:33:01 +0200
-Message-ID: <CAPWTe+JYEZJ5Zn6Dt9mmr38raXdM8wc1eWFro2a4Czy-eCzSpQ@mail.gmail.com>
-References: <1363075109-27038-1-git-send-email-silviupopescu1990@gmail.com>
-	<20130312110557.GF30923@n2100.arm.linux.org.uk>
-	<5149FFDF.6050501@ti.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [RFC 1/8] RFC: CLK: OMAP: Add basic infrastructure for OMAP clocks
+Date: Thu, 21 Mar 2013 11:50:51 -0700
+Message-ID: <20130321185051.834.97551@quantum>
+References: <1363887347-4686-1-git-send-email-t-kristo@ti.com>
+ <1363887347-4686-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f44.google.com ([209.85.219.44]:48359 "EHLO
-	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750879Ab3CUSdB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Mar 2013 14:33:01 -0400
-In-Reply-To: <5149FFDF.6050501@ti.com>
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:49526 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751645Ab3CUSu5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Mar 2013 14:50:57 -0400
+Received: by mail-pb0-f51.google.com with SMTP id un15so2447881pbc.38
+        for <linux-omap@vger.kernel.org>; Thu, 21 Mar 2013 11:50:57 -0700 (PDT)
+In-Reply-To: <1363887347-4686-2-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@linaro.org, paul@pwsan.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Wed, Mar 20, 2013 at 8:28 PM, Jon Hunter <jon-hunter@ti.com> wrote:
->
-> On 03/12/2013 06:05 AM, Russell King - ARM Linux wrote:
->> On Tue, Mar 12, 2013 at 09:58:29AM +0200, Silviu-Mihai Popescu wrote:
->>> This uses PTR_RET instead of IS_ERR and PTR_ERR in order to increase
->>> readability.
->>>
->>> Signed-off-by: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
->>> ---
->>>  arch/arm/mach-omap2/devices.c |    4 ++--
->>>  arch/arm/mach-omap2/fb.c      |    5 +----
->>>  arch/arm/mach-omap2/gpmc.c    |    2 +-
->>>  arch/arm/mach-omap2/pmu.c     |    5 +----
->>>  4 files changed, 5 insertions(+), 11 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
->>> index 1ec7f05..2a0816e 100644
->>> --- a/arch/arm/mach-omap2/devices.c
->>> +++ b/arch/arm/mach-omap2/devices.c
->>> @@ -66,7 +66,7 @@ static int __init omap3_l3_init(void)
->>>
->>>      WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
->>>
->>> -    return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
->>> +    return PTR_RET(pdev);
->>
->> This is incorrect.
->>
->> The return value will be tested for < 0.  Kernel pointers in general are
->> all above 3GB, and so are all "< 0".
->>
->> I'm afraid none of these changes stuff is an improvement - they all
->> introduce bugs.
->
-> Sorry I am now not sure I follow you here. Someone just pointed out to
-> me that PTR_RET() is defined as ...
->
-> static inline int __must_check PTR_RET(const void *ptr)
-> {
->         if (IS_ERR(ptr))
->                 return PTR_ERR(ptr);
->         else
->                 return 0;
-> }
->
-> So the above change appears to be equivalent. Is there something that is
-> wrong with the current implementation that needs to be fixed?
+Quoting Tero Kristo (2013-03-21 10:35:40)
+> This patch adds basic infrastructure support for registering clocks
+> under common clock framework. This patch is done in preparation for
+> moving clock data from arch/arm/mach-omap2/ folder under /drivers/clk/omap.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Cc: Mike Turquette <mturquette@linaro.org>
 
+Thanks for taking a crack at this Tero!  This is a great step towards
+getting rid of clk-private.h.
 
-As the patch message says, it's just for readability purposes.
-I used make coccicheck and it suggested this minor change.
+Regarding the long-term roadmap of the omap clock code:
 
---
-Silviu Popescu
+In general all of the changes to the omap clock code for using the
+common struct clk have been very incremental.  We still have the old
+legacy struct clk definition, the name of that struct was changed to
+clk_hw_omap, but it is still a fairly large, monolithic structure.  Are
+there plans to break the clock types up into smaller, more focused clock
+types?  E.g. get rid of struct dpll_data and have a dedicated dpll clock
+type.
+
+The question above is not reason to block this patch since it is a
+fairly large refactoring effort, but it is something to consider.
+
+Some comments below.
+
+<snip>
+
+> +struct omap_clk {
+> +       u16                             cpu;
+> +       const char                      *dev_id;
+> +       const char                      *con_id;
+> +       struct omap_init_clk            *clk;
+> +};
+> +
+> +#define CLK(dev, con, ck, cp)          \
+> +       {                               \
+> +               .cpu = cp,              \
+> +               .dev_id = dev,          \
+> +               .con_id = con,          \
+> +               .clk = ck,              \
+> +       }       
+> +
+
+IS omap_clk and CLK really necessary today?  I thought that the move to
+separate clocks out by tables got rid of this macro/structure?
+
+> +#define OMAP_CLK_FIXED_RATE(_name, _flags, _rate, _ignore)     \
+> +       static struct omap_init_clk _name __initdata = {        \
+> +               .name = #_name,                                 \
+> +               .clk_flags = _flags,                            \
+> +               .rate = _rate,                                  \
+> +               .clk_register = omap_clk_register_fixed_rate,   \
+> +       };
+> +
+
+These macros are unreadable.  They were originally born out of the nasty
+clk-private.h stuff which included forward declarations of struct clk
+and all sorts of ugliness.  I know it saves you LoC to use them now but
+I really prefer to use designated initializers for the sake of
+readability.  Do you plan to convert the OMAP clock code back to how it
+was, pre-macros?
+
+Regards,
+Mike
