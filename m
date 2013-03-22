@@ -1,56 +1,34 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RFC 0/8]: omap4: clk: move clock data under drivers/clk
-Date: Fri, 22 Mar 2013 11:32:34 +0200
-Message-ID: <1363944754.15426.186.camel@sokoban>
-References: <1363887347-4686-1-git-send-email-t-kristo@ti.com>
-	 <514BEC05.3050105@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Peter Meerwald <pmeerw@pmeerw.net>
+Subject: Re: [alsa-devel] channel swapping issue on OMAP3/TWL4030 is back
+Date: Fri, 22 Mar 2013 10:56:35 +0100 (CET)
+Message-ID: <alpine.DEB.2.01.1303221023070.7975@pmeerw.net>
+References: <alpine.DEB.2.01.1303220932150.7975@pmeerw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36083 "EHLO comal.ext.ti.com"
+Received: from ns.pmeerw.net ([87.118.82.44]:45864 "EHLO pmeerw.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933343Ab3CVJcm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Mar 2013 05:32:42 -0400
-In-Reply-To: <514BEC05.3050105@ti.com>
+	id S932138Ab3CVJ4g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Mar 2013 05:56:36 -0400
+In-Reply-To: <alpine.DEB.2.01.1303220932150.7975@pmeerw.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@linaro.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, "J, Keerthy" <j-keerthy@ti.com>
-
-On Fri, 2013-03-22 at 10:58 +0530, Rajendra Nayak wrote:
-> Tero,
-> 
-> On Thursday 21 March 2013 11:05 PM, Tero Kristo wrote:
-> > Hi,
-> > 
-> > This is an RFC version of the clock data move under drivers/clk.
-> > Tested under 3.8 and boots fine, but don't try this out unless
-> > you are experimental sort (I quickly tried with 3.9-rc3 and it failed to
-> > boot with that.)
-> > 
-> > The approach taken here has minimal impact on the clock data
-> > and should make it easy to transfer clock data for omap2 / omap3 and
-> > omap5 also. omap4 was only done as a proof of concept.
-> > 
-> > Any comments appreciated.
-> 
-> I strangely only see the cover letter delivered to me and no
-> patches. Do you have a branch with the patches which you can
-> share?
-
-Keerthy had a similar question. It looks like TI people have had
-problems with mailing list subscriptions as of late, and I am actually
-also getting moderator bounces for my emails from linux-arm-kernel list
-atm.
-
-Anyway, I just pushed a branch here:
-
-git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
-branch: linux-3.8-omap4-clk-move
-
--Tero
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
 
+> I'm running Linux 3.7 on a beagle-xm and observe very reproducible stereo 
+> channel swapping issue on playback of a stereo stream (one channel has a 
+> sine, the other is zero); the channel swap occurs on starting the playback
 
+> it appears that the swapping issue is back, probably due to the DMA rework 
+> in recent kernel?
+
+kernel 3.4 does not have the issue
+
+regards, p.
+
+-- 
+
+Peter Meerwald
++43-664-2444418 (mobile)
