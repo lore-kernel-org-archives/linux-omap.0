@@ -1,97 +1,37 @@
-From: Frank Rowand <frank.rowand@am.sony.com>
-Subject: Re: [BUG] bisected: PandaBoard smsc95xx ethernet driver error from
- USB timeout
-Date: Fri, 22 Mar 2013 11:23:33 -0700
-Message-ID: <514CA1A5.1090606@am.sony.com>
-References: <Pine.LNX.4.44L0.1303211037070.1899-100000@iolanthe.rowland.org> <514BC5C3.9080808@am.sony.com> <20130322100329.GH29378@enea.se>
-Reply-To: <frank.rowand@am.sony.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] mach_omap2: use PTR_RET instead of IS_ERR + PTR_ERR
+Date: Fri, 22 Mar 2013 13:39:00 -0500
+Message-ID: <514CA544.5080006@ti.com>
+References: <1363075109-27038-1-git-send-email-silviupopescu1990@gmail.com> <20130312110557.GF30923@n2100.arm.linux.org.uk> <5149FFDF.6050501@ti.com> <20130322163650.GN30923@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130322100329.GH29378@enea.se>
+In-Reply-To: <20130322163650.GN30923@n2100.arm.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mats Liljegren <liljegren.mats2@gmail.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/22/13 03:03, Mats Liljegren wrote:
-> Frank Rowand wrote:
->> On 03/21/13 07:41, Alan Stern wrote:
->>> On Wed, 20 Mar 2013, Frank Rowand wrote:
->>>
->>>> Hi All,
->>>>
->>>> Not quite sure quite where the problem is (USB, OMAP, smsc95xx driver, other???),
->>>> so casting the nets wide...
->>>>
->>>> The PandaBoard frequently fails to boot with an eth0 error when mounting
->>>> the root file system via NFS (ethernet driver fails due to a USB timeout;
->>>> no ethernet means NFS won't work).  A typical set of error messages is:
->>>>
->>>> [    3.264373] smsc95xx 1-1.1:1.0: usb_probe_interface
->>>> [    3.269500] smsc95xx 1-1.1:1.0: usb_probe_interface - got id
->>>> [    3.275543] smsc95xx v1.0.4
->>>> [    8.078674] smsc95xx 1-1.1:1.0: eth0: register 'smsc95xx' at usb-ehci-omap.0-1.1, smsc95xx USB 2.0 Ethernet, 82:b9:1d:fa:67:0d
->>>> [    8.091003] hub 1-1:1.0: state 7 ports 5 chg 0000 evt 0002
->>>> [   13.509918] usb 1-1.1: swapper/0 timed out on ep0out len=0/4
->>>> [   13.515869] smsc95xx 1-1.1:1.0: eth0: Failed to write register index 0x00000108
->>>> [   13.523559] smsc95xx 1-1.1:1.0: eth0: Failed to write ADDRL: -110
->>>> [   13.529998] IP-Config: Failed to open eth0
->>>>
->>>> I have bisected this to:
->>>>
->>>>   commit 18aafe64d75d0e27dae206cacf4171e4e485d285
->>>>   Author: Alan Stern <stern@rowland.harvard.edu>
->>>>   Date:   Wed Jul 11 11:23:04 2012 -0400
->>>>
->>>>      USB: EHCI: use hrtimer for the I/O watchdog
->>>
->>> I don't understand how that commit could cause a timeout unless there 
->>> are at least two other bugs present in your system.
->>>
->>>> Note that to compile this version of the kernel, an additional fix must
->>>> also be applied:
->>>>
->>>>   commit ba5952e0711b14d8d4fe172671f8aa6091ace3ee
->>>>   Author: Ming Lei <ming.lei@canonical.com>
->>>>   Date:   Fri Jul 13 17:25:24 2012 +0800
->>>>
->>>>      USB: ehci-omap: fix compile failure(v1)
->>>>
->>>> The symptom can be worked around by retrying the USB access if a timeout
->>>> occurs.  This is clearly _not_ the fix, just a hack that I used to
->>>> investigate the problem:
->>>>
->>>>   http://article.gmane.org/gmane.linux.rt.user/9773
->>>>
->>>> My kernel configuration is:
->>>>
->>>>   arch/arm/configs/omap2plus_defconfig
->>>>
->>>>   plus to get the ethernet driver I add:
->>>>
->>>>     CONFIG_USB_EHCI_HCD
->>>>     CONFIG_USB_NET_SMSC95XX
->>>>
->>>> I found the problem on 3.6.11, but have not replicated it on 3.9-rcX
->>>> yet because my config fails to build on 3.9-rc1 and 3.9-rc2.  I'll try
->>>> to work on that issue tomorrow.
->>>
->>> Let me know how it works out.
+
+On 03/22/2013 11:36 AM, Russell King - ARM Linux wrote:
+> On Wed, Mar 20, 2013 at 01:28:47PM -0500, Jon Hunter wrote:
+>> Sorry I am now not sure I follow you here. Someone just pointed out to
+>> me that PTR_RET() is defined as ...
 >>
->> My PandaBoard builds fail on 3.9-rcX due to ARM multiplatform issues.
->> Either there is something I need to change about the way I build it,
->> or it is broken (that is a side issue).  My simple expedient was to
->> hack around multiplatform, and just make it build (patch below if
->> anyone else wants a _temporary_ hack).
+>> static inline int __must_check PTR_RET(const void *ptr)
+>> {
+>> 	if (IS_ERR(ptr))
+>> 		return PTR_ERR(ptr);
+>> 	else
+>> 		return 0;
+>> }
+>>
+>> So the above change appears to be equivalent. Is there something that is
+>> wrong with the current implementation that needs to be fixed?
 > 
-> I have built 3.9-RC2 for PandaBoard ES and the only problem I have seen is
-> that you need to add "LOADADDR=0x80008000" when building uImage target.
+> No - I misread it as PTR_ERR not PTR_RET.  Your patch is fine.
 
-Yes, that is essentially what my hack patch does.  The result of my patch
-is that arch/arm/boot/Makefile is invoked with MACHINE="arch/arm/mach-omap2"
-so that at the top of the makefile, the "include $(srctree)/$(MACHINE)/Makefile.boot"
-which pulls in the proper values for addresses.
+Thanks for confirming. I had made the same mistake recently too!
 
--Frank
+Jon
