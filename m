@@ -1,119 +1,71 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Display related board specific boot args
-Date: Fri, 22 Mar 2013 17:29:59 +0200
-Message-ID: <514C78F7.5050906@ti.com>
-References: <514C1599.7080803@ti.com> <20130322151838.GB25575@atomide.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
+Date: Fri, 22 Mar 2013 09:33:53 -0600
+Message-ID: <514C79E1.4090106@wwwdotorg.org>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <1329321854-24490-4-git-send-email-b-cousson@ti.com> <4F44FA56.7020000@gmail.com> <4F44FC37.2000701@ti.com> <4F452484.5080503@gmail.com> <74CDBE0F657A3D45AFBB94109FB122FF17BD8BC6C1@HQMAIL01.nvidia.com> <4F47AD08.4030504@ti.com> <CAAwP0s0cB368R2mtbJpTZJreR-5GSRLfxC+8DJLo5nw3_OwBuA@mail.gmail.com> <512D39DA.7020306@ti.com> <512D3AB1.1080202@wwwdotorg.org> <512D3EC2.6050408@ti.com> <20130302200524.D230F3E1571@localhost> <51391F41.5000303@ti.com> <CAAwP0s1CFRO-rf==p5sYs1n0gigMif7wuT8Yv0N_iLUDMrtcOg@mail.gmail.com> <CACRpkdYHj-rEF3Rk_CWnmmMw_Amr7m8SgQ=-2zsDYuLeuu3azw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig5D3DE6B1508D12415F439A5F"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47745 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932548Ab3CVPaC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Mar 2013 11:30:02 -0400
-In-Reply-To: <20130322151838.GB25575@atomide.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:38064 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932192Ab3CVPd5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Mar 2013 11:33:57 -0400
+In-Reply-To: <CACRpkdYHj-rEF3Rk_CWnmmMw_Amr7m8SgQ=-2zsDYuLeuu3azw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---------------enig5D3DE6B1508D12415F439A5F
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 2013-03-22 17:18, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [130322 01:30]:
->> Hi Tony,
+On 03/22/2013 02:10 AM, Linus Walleij wrote:
+> On Fri, Mar 15, 2013 at 12:21 PM, Javier Martinez Canillas
+> <martinez.javier@gmail.com> wrote:
+> 
+>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> index 159f5c5..f5feb43 100644
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -807,6 +807,13 @@ static void gpio_unmask_irq(struct irq_data *d)
+>>         spin_unlock_irqrestore(&bank->lock, flags);
+>>  }
 >>
->> As you probably know, Overo is a very basic omap board to which you ca=
-n
->> attach different add-on modules, like LCD module. In the current overo=
+>> +static int gpio_irq_request(struct irq_data *d)
+>> +{
+>> +       struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
+>> +
+>> +       return gpio_request(irq_to_gpio(bank, d->irq), "gpio-irq");
+>> +}
+>> +
+>>  static struct irq_chip gpio_irq_chip = {
+>>         .name           = "GPIO",
+>>         .irq_shutdown   = gpio_irq_shutdown,
+>> @@ -815,6 +822,7 @@ static struct irq_chip gpio_irq_chip = {
+>>         .irq_unmask     = gpio_unmask_irq,
+>>         .irq_set_type   = gpio_irq_type,
+>>         .irq_set_wake   = gpio_wake_enable,
+>> +       .irq_request    = gpio_irq_request,
+>>  };
+> 
+> This is just turning everything on it's head. The normal order of things
+> is this sequence for GPIO 14 something like:
+> 
+> gpio_request(14);
+> int irq = gpio_to_irq(14);
+> request_any_context_irq(irq);
 
->> board file we always add multiple LCD devices, of which the user shoul=
-d
->> only use one (the one on his module). This model of allowing multiple
->> LCD devices on the same video bus is causing headaches in the dss land=
-,
->> and I'm removing support for it.
->=20
-> OK yes sounds like they should be all selectable, and only the selected=
+That doesn't make any sense at all. Drivers don't want to care whether
+the IRQ number they receive is a GPIO-that-can-act-like-an-IRQ or a pure
+dedicated IRQ input.
 
-> one gets initialized.
-> =20
->> So what we should do is add only the LCD device that you actually have=
+To fully support the model you proprose, a driver would have to:
 
->> attached. With DT this will probably be handled with separate dts file=
-s,
->> depending on the add-on module.
->>
->> How should this be handled with board files? Is it ok to add a board
->> specific kernel boot argument, parsed in the board file, which tells t=
-he
->> add-on board?
->=20
-> At this point I'd stay away adding any kind of custom handling to the
-> board-*.c files as that will make the task of removing them harder. And=
+if (gpio_is_valid(pdata->gpio)) {
+	gpio_request_one(pdata->gpio, GPIOF_IN, "foo irq");
+	irq = gpio_to_irq(pdata->gpio);
+} else
+	irq = pdata->irq;
+request_irq(...);
 
-> a kernel boot argument is something we'd have to support in the future.=
-
-> So if something gets added, it should be a Linux generic boot argument.=
-
->=20
-> Some of these add on boards can be detected over i2c, but it seems as
-> DT is the way to go in the long run in this case.
-> =20
->> We have similar situation in some other boards also.
->=20
-> Yeah. There's the capebus coming that might even allow hotplugging
-> some of these add on boards eventually.
->=20
-> How about just make PANEL_LGPHILIPS_LB035Q02 depends on !PANEL_XYZ_DPI
-> in drivers/video/omap2/displays/Kconfig and add some comments for now?
->=20
-> That way people can still select LB035Q02 but not for generic
-> configurations.
-
-Well, I don't want to disable a panel driver totally because of one
-board. And it's more complex than that. For overo we have three displays
-on the same DPI bus (using the names assigned in the board file): dvi,
-lcd43, lcd35. So even if the LB035Q02 would be disabled, we have dvi and
-lcd43 which conflict.
-
-I also would stay away from custom boot args. So I guess that leaves us
-only the compile time option. Either so that the overo board-file needs
-to be modified by the user to change the add-on board, or a Kconfig
-option to select the add-on board under "TI OMAP2/3/4 Specific Features"
-menu.
-
-Would the Kconfig option be acceptable?
-
- Tomi
-
-
-
---------------enig5D3DE6B1508D12415F439A5F
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRTHj3AAoJEPo9qoy8lh71EGUQAIcUnhkdZokKHTp98THjgtoL
-xspfPTFhA+HtsSx9k/x1ekfFB+voQzaEJxhr4SAUzQGcIyNEdViKYV/aUMHfDgfC
-NHCmYldR05tePfOK0YiTyokZ/oSKPc2k/1WB+rb2VVmCXgiQ31bza0y5mCnNICmS
-OaPJseHYTQTkpOOi00A0ilpDn3zeoU3pYcMAV2Amkv+vK//yucFlBq2fKadgvtLC
-+c1Bj7IomykoL6dSFM1jiTyvqFkK4Zo4USmogXJYpioNM1zTEqi6FSO9Qjg1jeQE
-v9MMWi7jjf1NxIU6xCSHsISLYbO8ZjPAebsMYYlbZFBfEgnZE3shsTBWRGOligMu
-qMicpt9TXO8lk/P0dbsHH2tdshZRKMoWWmllkagUu0musPXYI+EK5TVzc8jP3nPQ
-NcPl+M50aMlMQPVhUKHlQ+jIlshce7hWo4g0P1saV5fMS/u290R6E5uqeMgn1NKn
-cSAzqUQ9PaZl7skdMMx7LYJ/XHn8Y86jzgcP8k3tEZF8Vps2Z4w4LEMRyYaKqqn/
-W89FGp8U9PpaJmGMOImBbLi1xoC3Jv8tt+yQt05Ee1xsarZ3lv7W7OsvGKEHuI/K
-NIQyFF1XQOlPfkujNwK6oD53+ijApS/T3blzJagyySZzXImWmgjK6N3yzfblt+a4
-r5XxsDNkz/x2g2lh3SbJ
-=hrGj
------END PGP SIGNATURE-----
-
---------------enig5D3DE6B1508D12415F439A5F--
+which means complex code in each driver, plus requiring some indication
+in platform data and/or device tree re: whether the IRQ is hosted by a
+GPIO or not.
