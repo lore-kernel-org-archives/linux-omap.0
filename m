@@ -1,115 +1,112 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RFC 1/8] RFC: CLK: OMAP: Add basic infrastructure for OMAP
- clocks
-Date: Fri, 22 Mar 2013 10:39:08 +0200
-Message-ID: <1363941548.15426.181.camel@sokoban>
-References: <1363887347-4686-1-git-send-email-t-kristo@ti.com>
-	 <1363887347-4686-2-git-send-email-t-kristo@ti.com>
-	 <20130321185051.834.97551@quantum>
-Reply-To: <t-kristo@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [BUG] bisected: PandaBoard smsc95xx ethernet driver error from
+ USB timeout
+Date: Fri, 22 Mar 2013 10:42:36 +0200
+Message-ID: <514C197C.2000808@ti.com>
+References: <Pine.LNX.4.44L0.1303211037070.1899-100000@iolanthe.rowland.org> <514BC5C3.9080808@am.sony.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33425 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932350Ab3CVIjP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Mar 2013 04:39:15 -0400
-In-Reply-To: <20130321185051.834.97551@quantum>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <514BC5C3.9080808@am.sony.com>
+Sender: netdev-owner@vger.kernel.org
+To: frank.rowand@am.sony.com
+Cc: Alan Stern <stern@rowland.harvard.edu>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@linaro.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2013-03-21 at 11:50 -0700, Mike Turquette wrote:
-> Quoting Tero Kristo (2013-03-21 10:35:40)
-> > This patch adds basic infrastructure support for registering clocks
-> > under common clock framework. This patch is done in preparation for
-> > moving clock data from arch/arm/mach-omap2/ folder under /drivers/clk/omap.
-> > 
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > Cc: Mike Turquette <mturquette@linaro.org>
+Hi Frank,
+
+On 03/22/2013 04:45 AM, Frank Rowand wrote:
+> On 03/21/13 07:41, Alan Stern wrote:
+>> On Wed, 20 Mar 2013, Frank Rowand wrote:
+>>
+>>> Hi All,
+>>>
+>>> Not quite sure quite where the problem is (USB, OMAP, smsc95xx driver, other???),
+>>> so casting the nets wide...
+>>>
+>>> The PandaBoard frequently fails to boot with an eth0 error when mounting
+>>> the root file system via NFS (ethernet driver fails due to a USB timeout;
+>>> no ethernet means NFS won't work).  A typical set of error messages is:
+>>>
+>>> [    3.264373] smsc95xx 1-1.1:1.0: usb_probe_interface
+>>> [    3.269500] smsc95xx 1-1.1:1.0: usb_probe_interface - got id
+>>> [    3.275543] smsc95xx v1.0.4
+>>> [    8.078674] smsc95xx 1-1.1:1.0: eth0: register 'smsc95xx' at usb-ehci-omap.0-1.1, smsc95xx USB 2.0 Ethernet, 82:b9:1d:fa:67:0d
+>>> [    8.091003] hub 1-1:1.0: state 7 ports 5 chg 0000 evt 0002
+>>> [   13.509918] usb 1-1.1: swapper/0 timed out on ep0out len=0/4
+>>> [   13.515869] smsc95xx 1-1.1:1.0: eth0: Failed to write register index 0x00000108
+>>> [   13.523559] smsc95xx 1-1.1:1.0: eth0: Failed to write ADDRL: -110
+>>> [   13.529998] IP-Config: Failed to open eth0
+>>>
+>>> I have bisected this to:
+>>>
+>>>   commit 18aafe64d75d0e27dae206cacf4171e4e485d285
+>>>   Author: Alan Stern <stern@rowland.harvard.edu>
+>>>   Date:   Wed Jul 11 11:23:04 2012 -0400
+>>>
+>>>      USB: EHCI: use hrtimer for the I/O watchdog
+>>
+>> I don't understand how that commit could cause a timeout unless there 
+>> are at least two other bugs present in your system.
+>>
+>>> Note that to compile this version of the kernel, an additional fix must
+>>> also be applied:
+>>>
+>>>   commit ba5952e0711b14d8d4fe172671f8aa6091ace3ee
+>>>   Author: Ming Lei <ming.lei@canonical.com>
+>>>   Date:   Fri Jul 13 17:25:24 2012 +0800
+>>>
+>>>      USB: ehci-omap: fix compile failure(v1)
+>>>
+>>> The symptom can be worked around by retrying the USB access if a timeout
+>>> occurs.  This is clearly _not_ the fix, just a hack that I used to
+>>> investigate the problem:
+>>>
+>>>   http://article.gmane.org/gmane.linux.rt.user/9773
+>>>
+>>> My kernel configuration is:
+>>>
+>>>   arch/arm/configs/omap2plus_defconfig
+>>>
+>>>   plus to get the ethernet driver I add:
+>>>
+>>>     CONFIG_USB_EHCI_HCD
+>>>     CONFIG_USB_NET_SMSC95XX
+>>>
+>>> I found the problem on 3.6.11, but have not replicated it on 3.9-rcX
+>>> yet because my config fails to build on 3.9-rc1 and 3.9-rc2.  I'll try
+>>> to work on that issue tomorrow.
+>>
+>> Let me know how it works out.
 > 
-> Thanks for taking a crack at this Tero!  This is a great step towards
-> getting rid of clk-private.h.
+> My PandaBoard builds fail on 3.9-rcX due to ARM multiplatform issues.
+> Either there is something I need to change about the way I build it,
+> or it is broken (that is a side issue).  My simple expedient was to
+> hack around multiplatform, and just make it build (patch below if
+> anyone else wants a _temporary_ hack).
 
-Hi Mike,
+This is a known issue and will be resolved the proper way in 3.10.
+For 3.9 you could also use a temporary fix posted here
 
-Thanks for the quick comments.
-
-> 
-> Regarding the long-term roadmap of the omap clock code:
-> 
-> In general all of the changes to the omap clock code for using the
-> common struct clk have been very incremental.  We still have the old
-> legacy struct clk definition, the name of that struct was changed to
-> clk_hw_omap, but it is still a fairly large, monolithic structure.  Are
-> there plans to break the clock types up into smaller, more focused clock
-> types?  E.g. get rid of struct dpll_data and have a dedicated dpll clock
-> type.
-
-I think this sounds like a fair approach to me, currently the struct is
-huge and we register almost everything under it. This RFC set only tries
-to tackle with the most immediate problem, removing the dependency to
-clk-private.h and moving the clock data out from mach-omap2.
+http://thread.gmane.org/gmane.linux.usb.general/82693/
 
 > 
-> The question above is not reason to block this patch since it is a
-> fairly large refactoring effort, but it is something to consider.
-> 
-> Some comments below.
-> 
-> <snip>
-> 
-> > +struct omap_clk {
-> > +       u16                             cpu;
-> > +       const char                      *dev_id;
-> > +       const char                      *con_id;
-> > +       struct omap_init_clk            *clk;
-> > +};
-> > +
-> > +#define CLK(dev, con, ck, cp)          \
-> > +       {                               \
-> > +               .cpu = cp,              \
-> > +               .dev_id = dev,          \
-> > +               .con_id = con,          \
-> > +               .clk = ck,              \
-> > +       }       
-> > +
-> 
-> IS omap_clk and CLK really necessary today?  I thought that the move to
-> separate clocks out by tables got rid of this macro/structure?
+> The problem appears to not be present in 3.9-rc3.  In older kernel versions, 
+> the worst case to see the problem was 18 boots.  For 3.9-rc3 I booted 42
+> times without seeing the problem.
 
-Well, it looks like we have a few clocks which actually use same clock
-nodes, like dpll_mpu_ck is declared twice with different dev / con ids
-here. It is possible to get rid of this in most cases and incorporate
-the data from omap_clk to the omap_init_clk. Maybe for the special cases
-we can just add a static clk registration in the code.
+This is good to hear.
 
 > 
-> > +#define OMAP_CLK_FIXED_RATE(_name, _flags, _rate, _ignore)     \
-> > +       static struct omap_init_clk _name __initdata = {        \
-> > +               .name = #_name,                                 \
-> > +               .clk_flags = _flags,                            \
-> > +               .rate = _rate,                                  \
-> > +               .clk_register = omap_clk_register_fixed_rate,   \
-> > +       };
-> > +
-> 
-> These macros are unreadable.  They were originally born out of the nasty
-> clk-private.h stuff which included forward declarations of struct clk
-> and all sorts of ugliness.  I know it saves you LoC to use them now but
-> I really prefer to use designated initializers for the sake of
-> readability.  Do you plan to convert the OMAP clock code back to how it
-> was, pre-macros?
+> The problem occurs at least up through 3.8.  I'll try to reverse bisect
+> between 3.8 and 3.9-rc3 to see when the problem disappeared (I'm running
+> short of time, so no promises for a near term result).
 
-Yea, I think we should do this eventually once we also split the
-different clock types to their own init structs. Then we can get rid of
-these macros at the same point. However, I decided not to do this at
-this step, as this simple data conversion allows us to convert also
-omap2 / omap3 clocks rather easily, for which we don't have auto
-generation available.
+Thanks for the tests. There were a lot of OMAP EHCI related cleanup/fixes [1]
+that went into 3.9. It would be interesting to know what fixed it.
 
--Tero
+[1] - https://lkml.org/lkml/2013/1/23/155
 
-
+cheers,
+-roger
