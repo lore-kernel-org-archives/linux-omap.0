@@ -1,66 +1,167 @@
-From: Joel A Fernandes <agnel.joel@gmail.com>
-Subject: RFC: Crypto performance (omap-sham)
-Date: Sun, 24 Mar 2013 20:12:03 +0530
-Message-ID: <CAD=GYpaZPwa3mjPN7V6Yt+bMAvw23x=VL25YA8L+vmJ5hQZhgA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: [PATCH 2/2] cpufreq: drivers: Remove unnecessary assignments of policy-> members
+Date: Sun, 24 Mar 2013 20:59:43 +0530
+Message-ID: <07b96c5b68470001197445fb3d28786ad9acdbe0.1364138740.git.viresh.kumar@linaro.org>
+References: <2ece6d9fe8dfb6882a1c83a1cb2404bacc40b22d.1364138740.git.viresh.kumar@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f179.google.com ([209.85.214.179]:56944 "EHLO
-	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754309Ab3CXOmE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 24 Mar 2013 10:42:04 -0400
+Received: from mail-da0-f54.google.com ([209.85.210.54]:42089 "EHLO
+	mail-da0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753383Ab3CXPaJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 24 Mar 2013 11:30:09 -0400
+Received: by mail-da0-f54.google.com with SMTP id p1so2866468dad.13
+        for <linux-omap@vger.kernel.org>; Sun, 24 Mar 2013 08:30:08 -0700 (PDT)
+In-Reply-To: <2ece6d9fe8dfb6882a1c83a1cb2404bacc40b22d.1364138740.git.viresh.kumar@linaro.org>
+In-Reply-To: <2ece6d9fe8dfb6882a1c83a1cb2404bacc40b22d.1364138740.git.viresh.kumar@linaro.org>
+References: <2ece6d9fe8dfb6882a1c83a1cb2404bacc40b22d.1364138740.git.viresh.kumar@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-crypto@vger.kernel.org
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, mgreer@animalcreek.com, Ruben <rperez@ti.com>, "Porter, Matt" <mporter@ti.com>
+To: rjw@sisk.pl
+Cc: arvind.chauhan@arm.com, robin.randhawa@arm.com, Steve.Bannister@arm.com, Liviu.Dudau@arm.com, charles.garcia-tobin@arm.com, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, Viresh Kumar <viresh.kumar@linaro.org>, Sekhar Nori <nsekhar@ti.com>, Sascha Hauer <kernel@pengutronix.de>, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hello,
+Some assignments of policy-> min/max/cur/cpuinfo.min_freq/cpuinfo.max_freq
+aren't required as part of it is done by cpufreq driver or cpufreq core.
 
-I thought to open a thread on discussing some comparison numbers I=92ve
-seen of linux kernel crypto drivers (am33xx device) vs baremetal code.
-It feels that the performance is considerably lower with the kernel
-crypto driver.
+Remove them.
 
-Comparing the 2 setups:
-No-os code (Starterware):
-Buffersize 8MB in DDR2 (266MHz beaglebone). Single EDMA channel setup
-to write to SHA.  110MB/s throughput for crypto SHA operations.
+At some places we merge multiple lines together too.
 
-Switching to Linux, And using OpenSSL, the maximum throughput seen so
-far is =3D~ 60MB/s  as seen from [1] . This is the standard output of
-"openssl speed".
+Cc: Sekhar Nori <nsekhar@ti.com>
+Cc: Sascha Hauer <kernel@pengutronix.de>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: linux-sh@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+---
+ Documentation/cpu-freq/cpu-drivers.txt | 5 +++--
+ arch/arm/mach-davinci/cpufreq.c        | 4 ----
+ arch/arm/mach-imx/cpufreq.c            | 3 ---
+ arch/sh/kernel/cpufreq.c               | 9 +++------
+ drivers/cpufreq/cpufreq-nforce2.c      | 6 ++----
+ drivers/cpufreq/omap-cpufreq.c         | 4 +---
+ 6 files changed, 9 insertions(+), 22 deletions(-)
 
-Tracing and reading code, it seems the kernel needs to =93setup=94 afte=
-r
-every block during the update operation. CPU cycles take considerable
-amount the time that needs to be spent just transferring data from DDR
-to SHA without _any_ CPU intervention. I have seen some improvement
-but not much by increasing BUFSIZE in omap-sham from 4096 to 8192.
+diff --git a/Documentation/cpu-freq/cpu-drivers.txt b/Documentation/cpu-freq/cpu-drivers.txt
+index 72f70b1..c94383f 100644
+--- a/Documentation/cpu-freq/cpu-drivers.txt
++++ b/Documentation/cpu-freq/cpu-drivers.txt
+@@ -108,8 +108,9 @@ policy->governor		must contain the "default policy" for
+ 				cpufreq_driver.target is called with
+ 				these values.
+ 
+-For setting some of these values, the frequency table helpers might be
+-helpful. See the section 2 for more information on them.
++For setting some of these values (cpuinfo.min[max]_freq, policy->min[max]), the
++frequency table helpers might be helpful. See the section 2 for more information
++on them.
+ 
+ SMP systems normally have same clock source for a group of cpus. For these the
+ .init() would be called only once for the first online cpu. Here the .init()
+diff --git a/arch/arm/mach-davinci/cpufreq.c b/arch/arm/mach-davinci/cpufreq.c
+index 8fb0c2a..ff46862 100644
+--- a/arch/arm/mach-davinci/cpufreq.c
++++ b/arch/arm/mach-davinci/cpufreq.c
+@@ -149,10 +149,6 @@ static int davinci_cpu_init(struct cpufreq_policy *policy)
+ 		policy->cpuinfo.max_freq = policy->max;
+ 	}
+ 
+-	policy->min = policy->cpuinfo.min_freq;
+-	policy->max = policy->cpuinfo.max_freq;
+-	policy->cur = davinci_getspeed(0);
+-
+ 	/*
+ 	 * Time measurement across the target() function yields ~1500-1800us
+ 	 * time taken with no drivers on notification list.
+diff --git a/arch/arm/mach-imx/cpufreq.c b/arch/arm/mach-imx/cpufreq.c
+index cfce5e3..387dc4c 100644
+--- a/arch/arm/mach-imx/cpufreq.c
++++ b/arch/arm/mach-imx/cpufreq.c
+@@ -144,14 +144,11 @@ static int mxc_cpufreq_init(struct cpufreq_policy *policy)
+ 	imx_freq_table[i].frequency = CPUFREQ_TABLE_END;
+ 
+ 	policy->cur = clk_get_rate(cpu_clk) / 1000;
+-	policy->min = policy->cpuinfo.min_freq = cpu_freq_khz_min;
+-	policy->max = policy->cpuinfo.max_freq = cpu_freq_khz_max;
+ 
+ 	/* Manual states, that PLL stabilizes in two CLK32 periods */
+ 	policy->cpuinfo.transition_latency = 2 * NANOSECOND / CLK32_FREQ;
+ 
+ 	ret = cpufreq_frequency_table_cpuinfo(policy, imx_freq_table);
+-
+ 	if (ret < 0) {
+ 		printk(KERN_ERR "%s: failed to register i.MXC CPUfreq with error code %d\n",
+ 		       __func__, ret);
+diff --git a/arch/sh/kernel/cpufreq.c b/arch/sh/kernel/cpufreq.c
+index 0fdf64b..88c8fee 100644
+--- a/arch/sh/kernel/cpufreq.c
++++ b/arch/sh/kernel/cpufreq.c
+@@ -116,7 +116,7 @@ static int sh_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 		return PTR_ERR(cpuclk);
+ 	}
+ 
+-	policy->cur = policy->min = policy->max = sh_cpufreq_get(cpu);
++	policy->cur = sh_cpufreq_get(cpu);
+ 
+ 	freq_table = cpuclk->nr_freqs ? cpuclk->freq_table : NULL;
+ 	if (freq_table) {
+@@ -129,15 +129,12 @@ static int sh_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 		dev_notice(dev, "no frequency table found, falling back "
+ 			   "to rate rounding.\n");
+ 
+-		policy->cpuinfo.min_freq =
++		policy->min = policy->cpuinfo.min_freq =
+ 			(clk_round_rate(cpuclk, 1) + 500) / 1000;
+-		policy->cpuinfo.max_freq =
++		policy->max = policy->cpuinfo.max_freq =
+ 			(clk_round_rate(cpuclk, ~0UL) + 500) / 1000;
+ 	}
+ 
+-	policy->min = policy->cpuinfo.min_freq;
+-	policy->max = policy->cpuinfo.max_freq;
+-
+ 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
+ 
+ 	dev_info(dev, "CPU Frequencies - Minimum %u.%03u MHz, "
+diff --git a/drivers/cpufreq/cpufreq-nforce2.c b/drivers/cpufreq/cpufreq-nforce2.c
+index 224a478..af1542d 100644
+--- a/drivers/cpufreq/cpufreq-nforce2.c
++++ b/drivers/cpufreq/cpufreq-nforce2.c
+@@ -359,12 +359,10 @@ static int nforce2_cpu_init(struct cpufreq_policy *policy)
+ 		min_fsb = NFORCE2_MIN_FSB;
+ 
+ 	/* cpuinfo and default policy values */
+-	policy->cpuinfo.min_freq = min_fsb * fid * 100;
+-	policy->cpuinfo.max_freq = max_fsb * fid * 100;
++	policy->min = policy->cpuinfo.min_freq = min_fsb * fid * 100;
++	policy->max = policy->cpuinfo.max_freq = max_fsb * fid * 100;
+ 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
+ 	policy->cur = nforce2_get(policy->cpu);
+-	policy->min = policy->cpuinfo.min_freq;
+-	policy->max = policy->cpuinfo.max_freq;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+index b610edd..ad7549c 100644
+--- a/drivers/cpufreq/omap-cpufreq.c
++++ b/drivers/cpufreq/omap-cpufreq.c
+@@ -177,7 +177,7 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 		goto fail_ck;
+ 	}
+ 
+-	policy->cur = policy->min = policy->max = omap_getspeed(policy->cpu);
++	policy->cur = omap_getspeed(policy->cpu);
+ 
+ 	if (!freq_table)
+ 		result = opp_init_cpufreq_table(mpu_dev, &freq_table);
+@@ -196,8 +196,6 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 
+ 	cpufreq_frequency_table_get_attr(freq_table, policy->cpu);
+ 
+-	policy->min = policy->cpuinfo.min_freq;
+-	policy->max = policy->cpuinfo.max_freq;
+ 	policy->cur = omap_getspeed(policy->cpu);
+ 
+ 	/*
+-- 
+1.7.12.rc2.18.g61b472e
 
-One idea I've been contemplating is to possibly perform a lazy DMA:
-During Crypto update operation, no DMA is really performed, rather the
-data is appended to a physically contiguous buffer. Once the data
-accumulates enough or we=92re in the final operation, an EDMA is
-performed quickly enough.
-
-Another option I=92ve seen to speed things up on the no-os code side is
-to setup an intermediate fast buffer to ping-pong stuff between DDR
-and SHA. Since the fast buffer is internal to the SoC, it results in a
-good performance improvement. This can be done as a secondary
-improvement to improve the perf once the above is addressed.
-
-Summarizing, I think the main bottle neck is the need to have to setup
-EDMA for every page, which I feel hurts performance. When there is a
-large buffer to SHA, the CPU should set everything up once and then
-not have to touch anything till the SHA is done.
-
-Thanks,
-Joel Fernandes
-
-[1] http://processors.wiki.ti.com/index.php/AM335x_Crypto_Performance
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
