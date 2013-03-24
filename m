@@ -1,36 +1,34 @@
-From: sungang <sungang1021@gmail.com>
-Subject: question about OMAP3610
-Date: Sun, 24 Mar 2013 00:37:37 +0800
-Message-ID: <514DDA51.6000200@gmail.com>
+From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [BUG] bisected: PandaBoard smsc95xx ethernet driver error from
+ USB timeout
+Date: Sun, 24 Mar 2013 10:17:36 +0800
+Message-ID: <CACVXFVNQV8SAP+oKJWJta0WPhjQO6TreU9U8OjHKtZwa6p6_=A@mail.gmail.com>
+References: <514A7E81.9000501@am.sony.com>
+	<CACVXFVODZNuoLYSk60YwhFhEv5SX2QkszjjoYDWBHij7zwmhdQ@mail.gmail.com>
+	<514B6D77.8080202@am.sony.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:39682 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751484Ab3CWQhw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Mar 2013 12:37:52 -0400
-Received: by mail-pa0-f41.google.com with SMTP id kx10so395499pab.0
-        for <linux-omap@vger.kernel.org>; Sat, 23 Mar 2013 09:37:51 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <514B6D77.8080202-mEdOJwZ7QcZBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: frank.rowand-mEdOJwZ7QcZBDgjK7y7TUQ@public.gmane.org
+Cc: "Rowand, Frank" <Frank_Rowand-FuZ7eS5WsvxBDgjK7y7TUQ@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "steve.glendinning-sdUf+H5yV5I@public.gmane.org" <steve.glendinning-sdUf+H5yV5I@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-hello=EF=BC=81
-i'm now a college student.i saw this address on=20
-http://omappedia.org/wiki/Linux_OMAP_Kernel_Project.So i can't wait to=20
-email you immediately.I have a motorola ME525 mobile phone and i want t=
-o=20
-migrate linux kernel to it.however,i just don't know if it will be=20
-work.Can you give me some suggestion or some reference material?thanks =
-a=20
-lot!
+On Fri, Mar 22, 2013 at 4:28 AM, Frank Rowand <frank.rowand-mEdOJwZ7QcZBDgjK7y7TUQ@public.gmane.org> wrote:
+>> I play upstream kernel on Pandaboard A1 frequently, looks not
+>> see the failure problem before. Maybe the problem is config dependent.
+>>
+>> If you may share your config file, I'd like to do the test too.
+
+3.9-rc2-20130314 doesn't have the problem observed on my Pandaboard A1,
+but I only tested booting from MMC, not from NFS.
 
 
-looking forward to your reply
+Thanks,
+-- 
+Ming Lei
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
