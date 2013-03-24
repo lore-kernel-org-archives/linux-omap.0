@@ -1,106 +1,129 @@
 From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
-Date: Sun, 24 Mar 2013 15:19:49 +0100
-Message-ID: <201303241519.49243@pali>
-References: <201302171616.50152@pali> <20130306214440.GA11874@earth.universe> <20130307221827.GE31984@valkosipuli.retiisi.org.uk>
+Subject: Re: [PATCH] arm: omap: RX-51: ARM errata 430973 workaround
+Date: Sun, 24 Mar 2013 15:26:59 +0100
+Message-ID: <201303241526.59275@pali>
+References: <517283541.62064.1362124023621.JavaMail.apache@mail81.abv.bg> <20130306175120.GP11806@atomide.com> <201303062013.16302@pali>
 Mime-Version: 1.0
 Content-Type: multipart/signed;
-  boundary="nextPart5714163.pOYO2Fqk82";
+  boundary="nextPart9820409.euZJscsTbO";
   protocol="application/pgp-signature";
   micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130307221827.GE31984@valkosipuli.retiisi.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f47.google.com ([74.125.83.47]:60029 "EHLO
+	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754186Ab3CXO1E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 24 Mar 2013 10:27:04 -0400
+In-Reply-To: <201303062013.16302@pali>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, =?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?= =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---nextPart5714163.pOYO2Fqk82
+--nextPart9820409.euZJscsTbO
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thursday 07 March 2013 23:18:27 Sakari Ailus wrote:
-> Hi guys,
->=20
-> On Wed, Mar 06, 2013 at 10:44:41PM +0100, Sebastian Reichel=20
-wrote:
-> > On Wed, Mar 06, 2013 at 09:20:16PM +0100, Pali Roh=C3=A1r wrote:
-> > > On Wednesday 06 March 2013 21:12:06 Pali Roh=C3=A1r wrote:
-> > > > On Sunday 17 February 2013 20:03:03 Aaro Koskinen wrote:
-> > > > > On Sun, Feb 17, 2013 at 04:16:49PM +0100, Pali Roh=C3=A1r=20
-wrote:
-> > > > > > +/*
-> > > > > > + * arch/arm/mach-omap2/board-rx51-camera.c
-> > > > > > + *
-> > > > > > + * Copyright (C) 2008 Nokia Corporation
-> > > > > > + *
-> > > > > > + * Contact: Sakari Ailus <sakari.ailus@nokia.com>
-> > > > > > + *          Tuukka Toivonen
-> > > > > > <tuukka.o.toivonen@nokia.com>
-> > > > >=20
-> > > > > You should put these people to CC... Just to see if
-> > > > > the addresses are still valid (which I doubt).
-> > > >=20
-> > > > Ok, trying :-)
+On Wednesday 06 March 2013 20:13:15 Pali Roh=C3=A1r wrote:
+> On Wednesday 06 March 2013 18:51:21 Tony Lindgren wrote:
+> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130306 06:13]:
+> > > On Monday 04 March 2013 19:58:06 Tony Lindgren wrote:
+> > > > * Nishanth Menon <nm@ti.com> [130301 06:42]:
+> > > > > On Fri, Mar 1, 2013 at 1:47 AM, =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=
+=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2
 > > >=20
-> > > I got "Delivery Status Notification (Failure)" for both
-> > > addresses.
->=20
-> This is expected.
->=20
-> > Sakari Ailus hosts some code on github [0], which has the
-> > following email address:
-> > sakari.ailus+gitorious@retiisi.org.uk
+> > > <freemangordon@abv.bg> wrote:
+> > > > > > They look similar, but they are not equivalent :).
+> > > > > > The first major difference is here (code taken from
+> > > > > > omap-smc.S)
+> > > > > >=20
+> > > > > >> ENTRY(omap_smc2)
+> > > > > >>=20
+> > > > > >>          stmfd   sp!, {r4-r12, lr}
+> > > > > >>          mov     r3, r2
+> > > > > >>          mov     r2, r1
+> > > > > >>          mov     r1, #0x0        @ Process ID
+> > > > > >>          mov     r6, #0xff
+> > > > > >>          mov     r12, #0x00      @ Secure Service
+> > > > > >>          ID
+> > > > > >=20
+> > > > > > Always zero, while RX51 PPA expects a real value. I
+> > > > > > wonder if it is a bug, but anyway I don't see the id
+> > > > > > parameter (R0) used.
+> > > > > >=20
+> > > > > >>          mov     r7, #0
+> > > > > >>          mcr     p15, 0, r7, c7, c5, 6
+> > > > > >=20
+> > > > > > According to ARM TRM, this is "Invalidate entire
+> > > > > > branch predictor array"(IIUC). NFC why it is needed
+> > > > > > here, but this will not work on RX-51 until IBE bit
+> > > > > > in ACR is set.
+> > > > > >=20
+> > > > > >>          dsb
+> > > > > >>          dmb
+> > > > > >>          smc     #0
+> > > > > >=20
+> > > > > > RX-51 needs smc #1 ;)
+> > > > > >=20
+> > > > > >>          ldmfd   sp!, {r4-r12, pc}
+> > > > > >=20
+> > > > > > The next major difference is that RX-51 expects
+> > > > > > parameter count passed in R3[0] to be the count of
+> > > > > > the remaining parameters +1, but
+> > > > > > omap_secure_dispatcher (in omap-secure.c) is passing
+> > > > > > the exact count of the remaining parameters.
+> > > > > >=20
+> > > > > > I guess all of the above problems can be
+> > > > > > fixed/workarounded, but I wonder does it worth. Not
+> > > > > > to say that I don't have BB around to test if the
+> > > > > > code still works if I make changes to
+> > > > > > omap2-secure.c/omap-smc.S :)
+> > > > >=20
+> > > > > Yep, that was my point - instead of introducing new
+> > > > > functions, extending the existing functions to handle
+> > > > > new requirements is better solution, IMHO.
+> > > >=20
+> > > > I think there have been patches posted for ARM generic
+> > > > SMC handling. Might be worth looking at those a bit and
+> > > > see if this can be made generic. I think only the SMC
+> > > > call numbering is different for various SoCs?
+> > > >=20
+> > > > Regards,
+> > > >=20
+> > > > Tony
+> > >=20
+> > > Hi Tony, where are patches for ARM generic SMC handling?
 > >=20
-> > I added it to this mail's CC.
+> > Sorry don't have the link available, but I recall seeing
+> > some patch on linux-arm-kernel within past six months that
+> > added a generic smc function.. Or maybe I was dreaming or
+> > something.
 > >=20
-> > [0] https://gitorious.org/~sailus
+> > Regards,
+> >=20
+> > Tony
 >=20
-> Nice to hear people are interested in this. ;-)
->=20
-> The primary reason I haven't tried submitting this to mainline
-> is that ARM board code has a bad reputation these days. The
-> N900 does not have yet support for device tree (AFAIK), which
-> also would require a few bits and pieces on the flash driver
-> to work.
->=20
-> Also the sensor and lens drivers would need at least some work
-> before being ready for submission to mainline for camera to
-> be usable. Unfortunately I haven't had recently time to work
-> on this. N9(50) support has higher priority for myself. That,
-> too, is pending the DT support for the device.
->=20
-> There's indeed more up-to-date code in my repository. Even if
-> it's not too close to mainline anymore it should be a better
-> starting point than the old kernel from MeeGo.
->=20
-> <URL:https://gitorious.org/omap3camera/pages/Home>
+> I am not able to find that patch...
 
-Hi,
+Hi Tony,
 
-this board code is same in your git repository and on meego obs.
-
-Patch only adding support for adp1653 driver which is already in=20
-upstream kernel.
-
-Are there any other problems with this patch to go for upstream?
+it is possible to upstream errata 430973 workaround for RX-51?
 
 =2D-=20
 Pali Roh=C3=A1r
 pali.rohar@gmail.com
 
---nextPart5714163.pOYO2Fqk82
+--nextPart9820409.euZJscsTbO
 Content-Type: application/pgp-signature; name=signature.asc 
 Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEABECAAYFAlFPC4UACgkQi/DJPQPkQ1LgqACgrDMtXYsc4V/Pt3gYXG3Xloro
-Il8AnRmc3Ji/3DaWe6tW4FfV/49iWIHY
-=lr8M
+iEYEABECAAYFAlFPDTMACgkQi/DJPQPkQ1KLNQCdEgRl21FJihcjkTzMoUd8PFg+
+gzcAn0iHVxeRnJSQm9a5Bs6+KzvAWZjP
+=V59O
 -----END PGP SIGNATURE-----
 
---nextPart5714163.pOYO2Fqk82--
+--nextPart9820409.euZJscsTbO--
