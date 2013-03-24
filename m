@@ -1,47 +1,43 @@
-From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCHv3 3/3] usb: musb: gadget: use platform callback to enable vbus
-Date: Sun, 24 Mar 2013 17:36:55 +0200
-Message-ID: <1364139415-16695-4-git-send-email-notasas@gmail.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCHv3 2/3] usb: musb: omap2430: turn off vbus on cable disconnect
+Date: Sun, 24 Mar 2013 17:36:54 +0200
+Message-ID: <1364139415-16695-3-git-send-email-notasas@gmail.com>
 References: <1364139415-16695-1-git-send-email-notasas@gmail.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1364139415-16695-1-git-send-email-notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, kishon <kishon-l0cyMroinI0@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:63289 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753932Ab3CXPhH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 24 Mar 2013 11:37:07 -0400
+In-Reply-To: <1364139415-16695-1-git-send-email-notasas@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, kishon <kishon@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-On some platform configurations (like OMAP3+twl4030) it's the platform
-code that enables VBUS, not OTG transceiver, so call vbus platform
-callback instead, it will then call the transceiver if needed.
+On USB_EVENT_ID event the musb glue enables VBUS by calling
+omap2430_musb_set_vbus(musb, 1) that sets the session bit, but on
+USB_EVENT_NONE reverse action is never made, and that breaks PM.
 
-This fixes a use case where USB cable is plugged first and gadget
-driver is loaded later after that.
+Disable VBUS on USB_EVENT_NONE to be sure musb session is ended
+on cable unplug so that PM works.
 
-Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 ---
- drivers/usb/musb/musb_gadget.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/usb/musb/omap2430.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index ff6ba3a..4be4865 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1848,9 +1848,8 @@ static int musb_gadget_start(struct usb_gadget *g,
- 		goto err;
- 	}
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 798e029..3551f1a 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -291,6 +291,7 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
  
--	if ((musb->xceiv->last_event == USB_EVENT_ID)
--				&& otg->set_vbus)
--		otg_set_vbus(otg, 1);
-+	if (musb->xceiv->last_event == USB_EVENT_ID)
-+		musb_platform_set_vbus(musb, 1);
- 
- 	hcd->self.uses_pio_for_control = 1;
- 
+ 		musb->xceiv->last_event = USB_EVENT_NONE;
+ 		if (musb->gadget_driver) {
++			omap2430_musb_set_vbus(musb, 0);
+ 			pm_runtime_mark_last_busy(dev);
+ 			pm_runtime_put_autosuspend(dev);
+ 		}
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
