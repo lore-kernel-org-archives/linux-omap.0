@@ -1,129 +1,66 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] arm: omap: RX-51: ARM errata 430973 workaround
-Date: Sun, 24 Mar 2013 15:26:59 +0100
-Message-ID: <201303241526.59275@pali>
-References: <517283541.62064.1362124023621.JavaMail.apache@mail81.abv.bg> <20130306175120.GP11806@atomide.com> <201303062013.16302@pali>
+From: Joel A Fernandes <agnel.joel@gmail.com>
+Subject: RFC: Crypto performance (omap-sham)
+Date: Sun, 24 Mar 2013 20:12:03 +0530
+Message-ID: <CAD=GYpaZPwa3mjPN7V6Yt+bMAvw23x=VL25YA8L+vmJ5hQZhgA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart9820409.euZJscsTbO";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:60029 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754186Ab3CXO1E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 24 Mar 2013 10:27:04 -0400
-In-Reply-To: <201303062013.16302@pali>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:56944 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754309Ab3CXOmE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 24 Mar 2013 10:42:04 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, =?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?= =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-crypto@vger.kernel.org
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, mgreer@animalcreek.com, Ruben <rperez@ti.com>, "Porter, Matt" <mporter@ti.com>
 
---nextPart9820409.euZJscsTbO
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
-On Wednesday 06 March 2013 20:13:15 Pali Roh=C3=A1r wrote:
-> On Wednesday 06 March 2013 18:51:21 Tony Lindgren wrote:
-> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130306 06:13]:
-> > > On Monday 04 March 2013 19:58:06 Tony Lindgren wrote:
-> > > > * Nishanth Menon <nm@ti.com> [130301 06:42]:
-> > > > > On Fri, Mar 1, 2013 at 1:47 AM, =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=
-=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2
-> > >=20
-> > > <freemangordon@abv.bg> wrote:
-> > > > > > They look similar, but they are not equivalent :).
-> > > > > > The first major difference is here (code taken from
-> > > > > > omap-smc.S)
-> > > > > >=20
-> > > > > >> ENTRY(omap_smc2)
-> > > > > >>=20
-> > > > > >>          stmfd   sp!, {r4-r12, lr}
-> > > > > >>          mov     r3, r2
-> > > > > >>          mov     r2, r1
-> > > > > >>          mov     r1, #0x0        @ Process ID
-> > > > > >>          mov     r6, #0xff
-> > > > > >>          mov     r12, #0x00      @ Secure Service
-> > > > > >>          ID
-> > > > > >=20
-> > > > > > Always zero, while RX51 PPA expects a real value. I
-> > > > > > wonder if it is a bug, but anyway I don't see the id
-> > > > > > parameter (R0) used.
-> > > > > >=20
-> > > > > >>          mov     r7, #0
-> > > > > >>          mcr     p15, 0, r7, c7, c5, 6
-> > > > > >=20
-> > > > > > According to ARM TRM, this is "Invalidate entire
-> > > > > > branch predictor array"(IIUC). NFC why it is needed
-> > > > > > here, but this will not work on RX-51 until IBE bit
-> > > > > > in ACR is set.
-> > > > > >=20
-> > > > > >>          dsb
-> > > > > >>          dmb
-> > > > > >>          smc     #0
-> > > > > >=20
-> > > > > > RX-51 needs smc #1 ;)
-> > > > > >=20
-> > > > > >>          ldmfd   sp!, {r4-r12, pc}
-> > > > > >=20
-> > > > > > The next major difference is that RX-51 expects
-> > > > > > parameter count passed in R3[0] to be the count of
-> > > > > > the remaining parameters +1, but
-> > > > > > omap_secure_dispatcher (in omap-secure.c) is passing
-> > > > > > the exact count of the remaining parameters.
-> > > > > >=20
-> > > > > > I guess all of the above problems can be
-> > > > > > fixed/workarounded, but I wonder does it worth. Not
-> > > > > > to say that I don't have BB around to test if the
-> > > > > > code still works if I make changes to
-> > > > > > omap2-secure.c/omap-smc.S :)
-> > > > >=20
-> > > > > Yep, that was my point - instead of introducing new
-> > > > > functions, extending the existing functions to handle
-> > > > > new requirements is better solution, IMHO.
-> > > >=20
-> > > > I think there have been patches posted for ARM generic
-> > > > SMC handling. Might be worth looking at those a bit and
-> > > > see if this can be made generic. I think only the SMC
-> > > > call numbering is different for various SoCs?
-> > > >=20
-> > > > Regards,
-> > > >=20
-> > > > Tony
-> > >=20
-> > > Hi Tony, where are patches for ARM generic SMC handling?
-> >=20
-> > Sorry don't have the link available, but I recall seeing
-> > some patch on linux-arm-kernel within past six months that
-> > added a generic smc function.. Or maybe I was dreaming or
-> > something.
-> >=20
-> > Regards,
-> >=20
-> > Tony
->=20
-> I am not able to find that patch...
+I thought to open a thread on discussing some comparison numbers I=92ve
+seen of linux kernel crypto drivers (am33xx device) vs baremetal code.
+It feels that the performance is considerably lower with the kernel
+crypto driver.
 
-Hi Tony,
+Comparing the 2 setups:
+No-os code (Starterware):
+Buffersize 8MB in DDR2 (266MHz beaglebone). Single EDMA channel setup
+to write to SHA.  110MB/s throughput for crypto SHA operations.
 
-it is possible to upstream errata 430973 workaround for RX-51?
+Switching to Linux, And using OpenSSL, the maximum throughput seen so
+far is =3D~ 60MB/s  as seen from [1] . This is the standard output of
+"openssl speed".
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Tracing and reading code, it seems the kernel needs to =93setup=94 afte=
+r
+every block during the update operation. CPU cycles take considerable
+amount the time that needs to be spent just transferring data from DDR
+to SHA without _any_ CPU intervention. I have seen some improvement
+but not much by increasing BUFSIZE in omap-sham from 4096 to 8192.
 
---nextPart9820409.euZJscsTbO
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+One idea I've been contemplating is to possibly perform a lazy DMA:
+During Crypto update operation, no DMA is really performed, rather the
+data is appended to a physically contiguous buffer. Once the data
+accumulates enough or we=92re in the final operation, an EDMA is
+performed quickly enough.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Another option I=92ve seen to speed things up on the no-os code side is
+to setup an intermediate fast buffer to ping-pong stuff between DDR
+and SHA. Since the fast buffer is internal to the SoC, it results in a
+good performance improvement. This can be done as a secondary
+improvement to improve the perf once the above is addressed.
 
-iEYEABECAAYFAlFPDTMACgkQi/DJPQPkQ1KLNQCdEgRl21FJihcjkTzMoUd8PFg+
-gzcAn0iHVxeRnJSQm9a5Bs6+KzvAWZjP
-=V59O
------END PGP SIGNATURE-----
+Summarizing, I think the main bottle neck is the need to have to setup
+EDMA for every page, which I feel hurts performance. When there is a
+large buffer to SHA, the CPU should set everything up once and then
+not have to touch anything till the SHA is done.
 
---nextPart9820409.euZJscsTbO--
+Thanks,
+Joel Fernandes
+
+[1] http://processors.wiki.ti.com/index.php/AM335x_Crypto_Performance
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
