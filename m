@@ -1,34 +1,53 @@
-From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [BUG] bisected: PandaBoard smsc95xx ethernet driver error from
- USB timeout
-Date: Sun, 24 Mar 2013 10:17:36 +0800
-Message-ID: <CACVXFVNQV8SAP+oKJWJta0WPhjQO6TreU9U8OjHKtZwa6p6_=A@mail.gmail.com>
-References: <514A7E81.9000501@am.sony.com>
-	<CACVXFVODZNuoLYSk60YwhFhEv5SX2QkszjjoYDWBHij7zwmhdQ@mail.gmail.com>
-	<514B6D77.8080202@am.sony.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] OMAP3 ROM Random Number Generator support
+Date: Sun, 24 Mar 2013 15:15:16 +0100
+Message-ID: <201303241515.16520@pali>
+References: <201302281905.48546@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <514B6D77.8080202-mEdOJwZ7QcZBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: frank.rowand-mEdOJwZ7QcZBDgjK7y7TUQ@public.gmane.org
-Cc: "Rowand, Frank" <Frank_Rowand-FuZ7eS5WsvxBDgjK7y7TUQ@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "steve.glendinning-sdUf+H5yV5I@public.gmane.org" <steve.glendinning-sdUf+H5yV5I@public.gmane.org>
+Content-Type: multipart/signed;
+  boundary="nextPart1494092.28VHEjonLG";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201302281905.48546@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Juha Yrjola <juha.yrjola@solidboot.com>, Russell King <linux@arm.linux.org.uk>, Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 22, 2013 at 4:28 AM, Frank Rowand <frank.rowand-mEdOJwZ7QcZBDgjK7y7TUQ@public.gmane.org> wrote:
->> I play upstream kernel on Pandaboard A1 frequently, looks not
->> see the failure problem before. Maybe the problem is config dependent.
->>
->> If you may share your config file, I'd like to do the test too.
+--nextPart1494092.28VHEjonLG
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-3.9-rc2-20130314 doesn't have the problem observed on my Pandaboard A1,
-but I only tested booting from MMC, not from NFS.
+On Thursday 28 February 2013 19:05:47 Pali Roh=C3=A1r wrote:
+> This driver provides kernel-side support for the Random Number
+> Generator hardware found on OMAP34xx processors.
+>=20
+> This driver is included in Maemo 2.6.28 kernel used on Nokia
+> N900.
+>=20
+> I fixed driver to work with 3.8 kernel and added
+> platform_driver code to autoload it on omap3 devices.
+>=20
 
+Hello, can somebody look at this driver?
 
-Thanks,
--- 
-Ming Lei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1494092.28VHEjonLG
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlFPCnQACgkQi/DJPQPkQ1IflQCdGboSqE1xTIQQYw/Bcs2ltoDa
+Z+QAoMx7pXvb9x/rvl9ZOBfhXZNoaHBw
+=bBo1
+-----END PGP SIGNATURE-----
+
+--nextPart1494092.28VHEjonLG--
