@@ -1,84 +1,94 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 07/18] ARM: OMAP5: Add init_late() hook to enable pm initialization
-Date: Mon, 25 Mar 2013 15:34:59 +0530
-Message-ID: <1364205910-32392-8-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 09/18] ARM: OMAP4+: PM: Restore CPU power state to ON with clockdomain force wakeup method
+Date: Mon, 25 Mar 2013 15:35:01 +0530
+Message-ID: <1364205910-32392-10-git-send-email-santosh.shilimkar@ti.com>
 References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35758 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42650 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754746Ab3CYKD6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Mar 2013 06:03:58 -0400
+	id S1751132Ab3CYKEC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Mar 2013 06:04:02 -0400
 In-Reply-To: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@deeprootsystems.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-With consolidated code, now we can add the .init_late hook for
-OMAP5 to enable power management and mux initialization.
+While waking up CPU from off state using clock domain force wakeup, restore
+the CPU power state to ON state before putting CPU clock domain under
+hardware control. Otherwise CPU wakeup might fail. The change is recommended
+for all OMAP4+ devices though the PRCM weakness was observed on OMAP5
+devices first.
+
+So update the code accordingly.
 
 Acked-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/board-generic.c |    1 +
- arch/arm/mach-omap2/common.h        |    3 ++-
- arch/arm/mach-omap2/io.c            |    8 ++++++++
- 3 files changed, 11 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/cpuidle44xx.c |    1 +
+ arch/arm/mach-omap2/omap-smp.c    |   12 ++++++++++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index e54a480..8e261a6 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -180,6 +180,7 @@ DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
- 	.init_irq	= omap_gic_of_init,
- 	.init_machine	= omap_generic_init,
- 	.init_time	= omap5_realtime_timer_init,
-+	.init_late	= omap5_init_late,
- 	.dt_compat	= omap5_boards_compat,
- 	.restart	= omap44xx_restart,
- MACHINE_END
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 40f4a03..f75d972 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -59,7 +59,7 @@ static inline int omap3_pm_init(void)
- }
- #endif
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index 944e64a..9de47a7 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -131,6 +131,7 @@ static int omap4_enter_idle_coupled(struct cpuidle_device *dev,
+ 	/* Wakeup CPU1 only if it is not offlined */
+ 	if (dev->cpu == 0 && cpumask_test_cpu(1, cpu_online_mask)) {
+ 		clkdm_wakeup(cpu_clkdm[1]);
++		omap_set_pwrdm_state(cpu_pd[1], PWRDM_POWER_ON);
+ 		clkdm_allow_idle(cpu_clkdm[1]);
+ 	}
  
--#if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP4)
-+#if defined(CONFIG_PM) && (defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5))
- int omap4_pm_init(void);
- #else
- static inline int omap4_pm_init(void)
-@@ -108,6 +108,7 @@ void omap35xx_init_late(void);
- void omap3630_init_late(void);
- void am35xx_init_late(void);
- void ti81xx_init_late(void);
-+void omap5_init_late(void);
- int omap2_common_pm_late_init(void);
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index 0cbb677..e4441cc 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -83,6 +83,7 @@ static int __cpuinit omap4_boot_secondary(unsigned int cpu, struct task_struct *
+ {
+ 	static struct clockdomain *cpu1_clkdm;
+ 	static bool booted;
++	static struct powerdomain *cpu1_pwrdm;
+ 	void __iomem *base = omap_get_wakeupgen_base();
  
- #if defined(CONFIG_SOC_OMAP2420) || defined(CONFIG_SOC_OMAP2430)
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index e948a39..cdd1264 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -636,6 +636,14 @@ void __init omap5_init_early(void)
- 	omap_hwmod_init_postsetup();
+ 	/*
+@@ -102,8 +103,10 @@ static int __cpuinit omap4_boot_secondary(unsigned int cpu, struct task_struct *
+ 	else
+ 		__raw_writel(0x20, base + OMAP_AUX_CORE_BOOT_0);
  
- }
-+
-+void __init omap5_init_late(void)
-+{
-+	omap_mux_late_init();
-+	omap2_common_pm_late_init();
-+	omap4_pm_init();
-+	omap2_clk_enable_autoidle_all();
-+}
- #endif
+-	if (!cpu1_clkdm)
++	if (!cpu1_clkdm && !cpu1_pwrdm) {
+ 		cpu1_clkdm = clkdm_lookup("mpu1_clkdm");
++		cpu1_pwrdm = pwrdm_lookup("cpu1_pwrdm");
++	}
  
- void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 	/*
+ 	 * The SGI(Software Generated Interrupts) are not wakeup capable
+@@ -116,7 +119,7 @@ static int __cpuinit omap4_boot_secondary(unsigned int cpu, struct task_struct *
+ 	 * Section :
+ 	 *	4.3.4.2 Power States of CPU0 and CPU1
+ 	 */
+-	if (booted) {
++	if (booted && cpu1_pwrdm && cpu1_clkdm) {
+ 		/*
+ 		 * GIC distributor control register has changed between
+ 		 * CortexA9 r1pX and r2pX. The Control Register secure
+@@ -137,7 +140,12 @@ static int __cpuinit omap4_boot_secondary(unsigned int cpu, struct task_struct *
+ 			gic_dist_disable();
+ 		}
+ 
++		/*
++		 * Ensure that CPU power state is set to ON to avoid CPU
++		 * powerdomain transition on wfi
++		 */
+ 		clkdm_wakeup(cpu1_clkdm);
++		omap_set_pwrdm_state(cpu1_pwrdm, PWRDM_POWER_ON);
+ 		clkdm_allow_idle(cpu1_clkdm);
+ 
+ 		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD)) {
 -- 
 1.7.9.5
 
