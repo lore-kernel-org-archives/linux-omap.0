@@ -1,54 +1,49 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH] ARM: convert arm/arm64 arch timer to use CLKSRC_OF init
-Date: Mon, 25 Mar 2013 23:07:30 +0000
-Message-ID: <20130325230730.GA5518@MacBook-Pro.local>
-References: <1363818875-15978-1-git-send-email-robherring2@gmail.com>
- <20130321110646.GE15279@e106331-lin.cambridge.arm.com>
- <20130325172633.GP30923@n2100.arm.linux.org.uk>
- <5150C16A.3040208@gmail.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: [PATCH] omap: fix typo "CONFIG_BRIDGE_DVFS"
+Date: Tue, 26 Mar 2013 00:30:05 +0100
+Message-ID: <1364254205.1390.307.camel@x61.thuisdomein>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5150C16A.3040208@gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Mark Rutland <Mark.Rutland@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Magnus Damm <magnus.damm@gmail.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Simon Horman <horms@verge.net.au>, John Stultz <john.stultz@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 25, 2013 at 09:28:10PM +0000, Rob Herring wrote:
-> On 03/25/2013 12:26 PM, Russell King - ARM Linux wrote:
-> > On Thu, Mar 21, 2013 at 11:06:47AM +0000, Mark Rutland wrote:
-> >> On TC2 this series leads to using the vexpress 24MHz clock as the sched clock
-> >> in preference to the architected timer:
-> >>
-> >>   Architected local timer running at 24.00MHz (virt).
-> >>   Switching to timer-based delay loop
-> >>   Registered arch_counter_get_cntvct+0x0/0x14 as sched_clock source
-> >>   sched_clock: 32 bits at 24MHz, resolution 41ns, wraps every 178956ms
-> >>   Registered versatile_read_sched_clock+0x0/0x28 as sched_clock source
-> >>
-> >> As they both have the same frequency, neither overrides the other, and
-> >> whichever gets registered last is used as the sched_clock. As accesses
-> >> to the architected timer are going to have a much lower overhead, this
-> >> isn't very nice (and it could be better to use it even if it had a lower
-> >> frequency).
-> > 
-> > I'll remind people that sched_clock() is supposed to be functional at
-> > the point in the boot sequence where the call to sched_init() is called.
-> > That is after setup_arch() and *before* time_init() is called.
-> 
-> I count integrator-cp, realview, versatile and non-DT VExpress that do
-> this (not surprisingly) and 25 platforms or timer implementations plus
-> arm64 that do sched_clock setup in time_init.
+Commit 90173882ed15a8034d6d162da5f343a2c7d87587 ("omap: add dsp platform
+device") used CONFIG_BRIDGE_DVFS were it obviously meant
+CONFIG_TIDSPBRIDGE_DVFS. Fix that.
 
-Before time_init(), sched_clock() currently returns 0 with the
-architected timers (though I don't particularly like this for arm64).
-Marc Rutland has patches to make arch_timer_read_counter() a function
-which always returns the virtual counter. It requires the CNTVOFF
-register to be set to 0 on AArch32 during boot. But this way
-sched_clock() on arm64 would always return meaningful values as we have
-the architected timers.
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+Untested. As this typo has been in the tree since v2.6.37, this really
+needs some testing.
 
+ arch/arm/mach-omap2/dsp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/dsp.c b/arch/arm/mach-omap2/dsp.c
+index b155500..b8208b4 100644
+--- a/arch/arm/mach-omap2/dsp.c
++++ b/arch/arm/mach-omap2/dsp.c
+@@ -26,7 +26,7 @@
+ #include "control.h"
+ #include "cm2xxx_3xxx.h"
+ #include "prm2xxx_3xxx.h"
+-#ifdef CONFIG_BRIDGE_DVFS
++#ifdef CONFIG_TIDSPBRIDGE_DVFS
+ #include "omap-pm.h"
+ #endif
+ 
+@@ -35,7 +35,7 @@
+ static struct platform_device *omap_dsp_pdev;
+ 
+ static struct omap_dsp_platform_data omap_dsp_pdata __initdata = {
+-#ifdef CONFIG_BRIDGE_DVFS
++#ifdef CONFIG_TIDSPBRIDGE_DVFS
+ 	.dsp_set_min_opp = omap_pm_dsp_set_min_opp,
+ 	.dsp_get_opp = omap_pm_dsp_get_opp,
+ 	.cpu_set_freq = omap_pm_cpu_set_freq,
 -- 
-Catalin
+1.7.11.7
