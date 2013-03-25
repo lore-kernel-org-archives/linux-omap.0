@@ -1,189 +1,77 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCH/Resend 2/2] arm: mach-omap2: prevent UART console idle
- on suspend while using "no_console_suspend"
-Date: Mon, 25 Mar 2013 11:59:33 +0530
-Message-ID: <514FEECD.30500@ti.com>
-References: <1363612924-349-1-git-send-email-sourav.poddar@ti.com> <87fvzsilnv.fsf@linaro.org> <5149A221.5@ti.com> <5149A63C.4000102@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH 1/3] ARM: dts: AM33XX: Add pinmux configuration for CPSW to beaglebone
+Date: Mon, 25 Mar 2013 12:57:56 +0530
+Message-ID: <1364196478-16688-2-git-send-email-mugunthanvnm@ti.com>
+References: <1364196478-16688-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37711 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755126Ab3CYG3v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Mar 2013 02:29:51 -0400
-In-Reply-To: <5149A63C.4000102@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56859 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753440Ab3CYH2N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Mar 2013 03:28:13 -0400
+In-Reply-To: <1364196478-16688-1-git-send-email-mugunthanvnm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: devicetree-discuss@lists.ozlabs.org, b-cousson@ti.com, benoit.cousson@linaro.org, tony@atomide.com, Mugunthan V N <mugunthanvnm@ti.com>
 
-Hi Kevin,
-On Wednesday 20 March 2013 05:36 PM, Sourav Poddar wrote:
-> Realised the list  to whom the patch was send got dropped. Ccing them 
-> all..
-> On Wednesday 20 March 2013 05:18 PM, Sourav Poddar wrote:
->> Hi Kevin,
->> On Tuesday 19 March 2013 12:24 AM, Kevin Hilman wrote:
->>> Sourav Poddar<sourav.poddar@ti.com>  writes:
->>>
->>>> With dt boot, uart wakeup after suspend is non functional on 
->>>> omap4/5 while using
->>>> "no_console_suspend" in the bootargs. With "no_console_suspend" 
->>>> used, od->flags
->>>> should be ORed with "OMAP_DEVICE_NO_IDLE_ON_SUSPEND", thereby not 
->>>> allowing the console
->>>> to idle in the suspend path. For non-dt case, this was taken care 
->>>> by platform data.
->>>>
->>>> Tested on omap5430evm, omap4430sdp.
->>>>
->>>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
->>>> Cc: Felipe Balbi<balbi@ti.com>
->>>> Cc: Rajendra nayak<rnayak@ti.com>
->>>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
->>> This patch creates a dependency between omap_device (generic,
->>> device-independent code) and a specific driver (UART.)
->>>
->>> If you need to do something like this that's DT boot specific, then
->>> we probably need some late initcall in serial.c to handle this.  It 
->>> does
->>> not belong in omap_device.
->>>
->> The following function "omap_device_disable_idle_on_suspend(pdev)" 
->> should only
->> be called once the omap device has been build, which in the case of 
->> device tree is
->> done in omap_device.c file. Moreover, the above call should be 
->> executed conditionally
->> and should depend on the following two parameter.
->>
->> [1]  a. Whether "no_console_suspend" is set and
->>      b.  the device build is a console uart.
->>
->> When I look closely into the serial.c file, I realised that
->> "core_initcall(omap_serial_early_init)" gets called irrespective
->> of dt/non dt boot and will take care of most of the stuff(checking 
->> whether
->> "no_console_suspend" is used and which uart is used as a console 
->> uart) which the
->> $subject patch is proposing.
->>
->> But the problem is that we need to exchange the parsed information
->> from serial.c to the omap_device file for the condtional execution of
->> "omap_device_disable_idle_on_suspend"
->>
->> In this case,
->> from "serial.c" we need
->>     1. no_console_suspend = true
->>     2. strcpy(console_name, oh_name), where oh_name corresponds to 
->> the console uart.
->>
->> then in "omap_device.c" do
->>     if (no_console_suspend && !strcmp(oh->name, console_name))
->>                 omap_device_disable_idle_on_suspend(pdev);
->>
->> Please correct if I am understanding it incorrectly.
->>
->> If the above understanding looks good to you, is there a way we can 
->> make this
->> exchange of information happen between serial.c and omap_device.c file?
-Any Input on this?
+Add pinmux configurations for MII based CPSW ethernet to am335x-bone.
+In this patch, only single named mode/state is added and these pins
+are configured during pinctrl driver initialization.
 
-Thanks,
-Sourav
->>> Kevin
->>>
->>>> ---
->>>>   arch/arm/mach-omap2/omap_device.c |   34 
->>>> +++++++++++++++++++++++++++++++++-
->>>>   1 files changed, 33 insertions(+), 1 deletions(-)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/omap_device.c 
->>>> b/arch/arm/mach-omap2/omap_device.c
->>>> index 381be7a..71f5a73 100644
->>>> --- a/arch/arm/mach-omap2/omap_device.c
->>>> +++ b/arch/arm/mach-omap2/omap_device.c
->>>> @@ -35,11 +35,17 @@
->>>>   #include<linux/pm_runtime.h>
->>>>   #include<linux/of.h>
->>>>   #include<linux/notifier.h>
->>>> +#include<linux/platform_data/serial-omap.h>
->>>>
->>>>   #include "soc.h"
->>>>   #include "omap_device.h"
->>>>   #include "omap_hwmod.h"
->>>>
->>>> +#define MAX_UART_HWMOD_NAME_LEN         16
->>>> +
->>>> +static u8 no_console_suspend;
->>>> +static u8 console_uart_num;
->>>> +
->>>>   /* Private functions */
->>>>
->>>>   static void _add_clkdev(struct omap_device *od, const char 
->>>> *clk_alias,
->>>> @@ -108,6 +114,12 @@ static void _add_hwmod_clocks_clkdev(struct 
->>>> omap_device *od,
->>>>           _add_clkdev(od, oh->opt_clks[i].role, oh->opt_clks[i].clk);
->>>>   }
->>>>
->>>> +static char *cmdline_find_option(char *str)
->>>> +{
->>>> +    extern char *saved_command_line;
->>>> +
->>>> +    return strstr(saved_command_line, str);
->>>> +}
->>>>
->>>>   /**
->>>>    * omap_device_build_from_dt - build an omap_device with multiple 
->>>> hwmods
->>>> @@ -129,6 +141,7 @@ static int omap_device_build_from_dt(struct 
->>>> platform_device *pdev)
->>>>       struct device_node *node = pdev->dev.of_node;
->>>>       const char *oh_name;
->>>>       int oh_cnt, i, ret = 0;
->>>> +    static u8 console_uart_id;
->>>>
->>>>       oh_cnt = of_property_count_strings(node, "ti,hwmods");
->>>>       if (!oh_cnt || IS_ERR_VALUE(oh_cnt)) {
->>>> @@ -170,7 +183,12 @@ static int omap_device_build_from_dt(struct 
->>>> platform_device *pdev)
->>>>               r->name = dev_name(&pdev->dev);
->>>>       }
->>>>
->>>> -    if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
->>>> +    if (no_console_suspend&&  !strncmp(oh->name, "uart", 4)) {
->>>> +        if (console_uart_num == console_uart_id)
->>>> +            omap_device_disable_idle_on_suspend(pdev);
->>>> +        else
->>>> +            console_uart_id++;
->>>> +    } else if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
->>>>           omap_device_disable_idle_on_suspend(pdev);
->>>>
->>>>       pdev->dev.pm_domain =&omap_device_pm_domain;
->>>> @@ -838,7 +856,21 @@ static struct notifier_block platform_nb = {
->>>>
->>>>   static int __init omap_device_init(void)
->>>>   {
->>>> +    int i;
->>>> +    char uart_name[MAX_UART_HWMOD_NAME_LEN];
->>>> +
->>>>       bus_register_notifier(&platform_bus_type,&platform_nb);
->>>> +
->>>> +    if (cmdline_find_option("no_console_suspend")) {
->>>> +        no_console_suspend = true;
->>>> +        for (i = 0; i<  OMAP_MAX_HSUART_PORTS; i++) {
->>>> +            snprintf(uart_name, MAX_UART_HWMOD_NAME_LEN,
->>>> +                "%s%d", OMAP_SERIAL_NAME, i);
->>>> +            if (cmdline_find_option(uart_name))
->>>> +                console_uart_num = i;
->>>> +        }
->>>> +    }
->>>> +
->>>>       return 0;
->>>>   }
->>>>   omap_core_initcall(omap_device_init);
->>
->
+Default mode is nothing but the values required for the module during
+active state. With this configurations module is functional as
+expected.
+
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ arch/arm/boot/dts/am335x-bone.dts |   25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 11b240c..f90e665 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -26,7 +26,7 @@
+ 
+ 	am33xx_pinmux: pinmux@44e10800 {
+ 		pinctrl-names = "default";
+-		pinctrl-0 = <&user_leds_s0>;
++		pinctrl-0 = <&user_leds_s0 &cpsw_s0>;
+ 
+ 		user_leds_s0: user_leds_s0 {
+ 			pinctrl-single,pins = <
+@@ -36,6 +36,29 @@
+ 				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+ 			>;
+ 		};
++
++		cpsw_s0: cpsw_s0 {
++			pinctrl-single,pins = <
++				/* Slave 1 */
++				0x110 0x20	/* mii1_rxerr.mii1_rxerr, MODE0 | INPUT */
++				0x114 0x0	/* mii1_txen.mii1_txen, MODE0 | OUTPUT */
++				0x118 0x20	/* mii1_rxdv.mii1_rxdv, MODE0 | INPUT_PULLDOWN */
++				0x11c 0x0	/* mii1_txd3.mii1_txd3, MODE0 | OUTPUT */
++				0x120 0x0	/* mii1_txd2.mii1_txd2, MODE0 | OUTPUT */
++				0x124 0x0	/* mii1_txd1.mii1_txd1, MODE0 | OUTPUT */
++				0x128 0x0	/* mii1_txd0.mii1_txd0, MODE0 | OUTPUT */
++				0x12c 0x20	/* mii1_txclk.mii1_txclk, MODE0 | INPUT_PULLDOWN */
++				0x130 0x20	/* mii1_rxclk.mii1_rxclk, MODE0 | INPUT_PULLDOWN */
++				0x134 0x20	/* mii1_rxd3.mii1_rxd3, MODE0 | INPUT_PULLDOWN */
++				0x138 0x20	/* mii1_rxd2.mii1_rxd2, MODE0 | INPUT_PULLDOWN */
++				0x13c 0x20	/* mii1_rxd1.mii1_rxd1, MODE0 | INPUT_PULLDOWN */
++				0x140 0x20	/* mii1_rxd0.mii1_rxd0, MODE0 | INPUT_PULLDOWN */
++
++				/* MDIO */
++				0x148 0x30	/* mdio_data.mdio_data, MODE0 | INPUT_PULLUP */
++				0x14c 0x10	/* mdio_clk.mdio_clk, MODE0 | OUTPUT_PULLUP */
++			>;
++		};
+ 	};
+ 
+ 	ocp {
+-- 
+1.7.9.5
 
