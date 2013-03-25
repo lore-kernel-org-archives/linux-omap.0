@@ -1,37 +1,32 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if
- system supports 'has_ossr'
-Date: Mon, 25 Mar 2013 10:49:11 +0000
-Message-ID: <20130325104910.GE12110@mudshark.cambridge.arm.com>
-References: <51407120.7030709@ti.com>
- <51417E58.5050501@ti.com>
- <20130315050014.GA15706@tiny-lites>
- <5146B972.1010002@ti.com>
- <20130318150724.GC28585@mudshark.cambridge.arm.com>
- <514736D4.4070906@ti.com>
- <20130318170649.GA29585@mudshark.cambridge.arm.com>
- <5148082A.3060503@ti.com>
- <20130319102803.GB22452@mudshark.cambridge.arm.com>
- <515014A4.5020504@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if system
+ supports 'has_ossr'
+Date: Mon, 25 Mar 2013 16:25:37 +0530
+Message-ID: <51502D29.1010307@ti.com>
+References: <51407120.7030709@ti.com> <51417E58.5050501@ti.com> <20130315050014.GA15706@tiny-lites> <5146B972.1010002@ti.com> <20130318150724.GC28585@mudshark.cambridge.arm.com> <514736D4.4070906@ti.com> <20130318170649.GA29585@mudshark.cambridge.arm.com> <5148082A.3060503@ti.com> <20130319102803.GB22452@mudshark.cambridge.arm.com> <515014A4.5020504@ti.com> <20130325104910.GE12110@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <515014A4.5020504@ti.com>
+In-Reply-To: <20130325104910.GE12110@mudshark.cambridge.arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Will Deacon <will.deacon@arm.com>
 Cc: Will Deacon <will@willdeacon.co.uk>, Lokesh Vutla <lokeshvutla@ti.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 25, 2013 at 09:11:00AM +0000, Santosh Shilimkar wrote:
-> Will,
+On Monday 25 March 2013 04:19 PM, Will Deacon wrote:
+> On Mon, Mar 25, 2013 at 09:11:00AM +0000, Santosh Shilimkar wrote:
+>> Will,
+> 
+> Hi Santosh,
+> 
+>> Are you going to send the patch for 3.9-rcx ? As I said before without the
+>> patch OMAP4 CPUILDE is unusable because of that debug noise and hence it
+>> will be good to get that patch in
+> 
+> It's in Russell's tree, so should be queued for mainline fairly soon.
+> 
+Thanks Will !!
 
-Hi Santosh,
-
-> Are you going to send the patch for 3.9-rcx ? As I said before without the
-> patch OMAP4 CPUILDE is unusable because of that debug noise and hence it
-> will be good to get that patch in
-
-It's in Russell's tree, so should be queued for mainline fairly soon.
-
-Will
+Regards
+Santosh
