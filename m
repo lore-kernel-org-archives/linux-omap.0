@@ -1,97 +1,86 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 04/18] ARM: OMAP5: PM: Set MPUSS-EMIF clock-domain static dependency
-Date: Mon, 25 Mar 2013 15:34:56 +0530
-Message-ID: <1364205910-32392-5-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 06/18] ARM: OMAP5: PM: Enable Mercury retention mode on CPUx powerdomains
+Date: Mon, 25 Mar 2013 15:34:58 +0530
+Message-ID: <1364205910-32392-7-git-send-email-santosh.shilimkar@ti.com>
 References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35747 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35755 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753081Ab3CYKDx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Mar 2013 06:03:53 -0400
+	id S1753081Ab3CYKD4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Mar 2013 06:03:56 -0400
 In-Reply-To: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@deeprootsystems.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-With EMIF clock-domain put under hardware supervised control, memory
-corruption and untraceable crashes are observed on OMAP5. Further
-investigation revealed that there is a weakness in the PRCM on this
-specific dynamic dependency.
+In addition to the standard power-management technique, the OMAP5
+MPU subsystem also employs an SR3-APG (mercury) power management
+technology to reduce leakage.
 
-Async bridge issue which resulted in memory corruption and lock on
-OMAP4 continue to exist on OMAP5 too unfortunately and hence the
-MPU -> EMIF static dependency continue to be there.
+It allows for full logic and memories retention on MPU_C0 and MPU_C1 and
+is controlled by the PRCM_MPU.
 
 Acked-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/pm_omap4plus.c |   42 +++++++++++++++++++++++++++++++++---
- 1 file changed, 39 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/pm_omap4plus.c b/arch/arm/mach-omap2/pm_omap4plus.c
-index e920c34..2dadb4e 100644
---- a/arch/arm/mach-omap2/pm_omap4plus.c
-+++ b/arch/arm/mach-omap2/pm_omap4plus.c
-@@ -195,6 +195,37 @@ static inline int omap4_init_static_deps(void)
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index b1441b1..d390d18 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -62,6 +62,10 @@
+ #include "prm44xx.h"
+ #include "prm-regbits-44xx.h"
+ 
++/* Add defines needed for mercury mode. Refer MPU's PRM_PSCON_COUNT */
++#define PRM_PSCON_HG_EN		(1 << 24)
++#define PRM_PSCON_HG_RAMPUP	(1 << 25)
++
+ #ifdef CONFIG_SMP
+ 
+ struct omap4_cpu_pm_info {
+@@ -337,6 +341,28 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
+ 	return 0;
  }
  
- /**
-+ * omap5_init_static_deps - Add OMAP5 static dependencies
++/**
++ * enable_mercury_retention_mode: Enable OMAP5 mercury retention feature
 + *
-+ * Add needed static clockdomain dependencies on OMAP5 devices.
-+ * Return: 0 on success or 'err' on failures
++ * OMAP5 devices supports  SR3-APG (mercury) power management technology to
++ * reduce leakage. It allows for full logic and memories retention on
++ * MPU_C0 and MPU_C1 and is controlled by the PRCM_MPU. The function enable
++ * the mercury retention feature.
 + */
-+static inline int omap5_init_static_deps(void)
++static void enable_mercury_retention_mode(void)
 +{
-+	struct clockdomain *mpuss_clkdm, *emif_clkdm;
-+	int ret = 0;
++	u32 reg;
 +
 +	/*
-+	 * The dynamic dependency between MPUSS -> EMIF is broken and has
-+	 * not worked as expected on OMAP5 too. Async bridge issue which
-+	 * resulted in memory corruption and lock on OMAP4 continue to
-+	 * exist on OMAP5 too and hence the MPU -> EMIF dependency to avoid
-+	 * random crashes and lockups.
++	 * To enable mercury mode, both HG_EN and HG_RAMPUP needs to be
++	 * enabled from PRM_PSCON_COUNT register.
 +	 */
-+	mpuss_clkdm = clkdm_lookup("mpu_clkdm");
-+	emif_clkdm = clkdm_lookup("emif_clkdm");
-+	if (!mpuss_clkdm || !emif_clkdm)
-+		return -EINVAL;
-+
-+	ret = clkdm_add_wkdep(mpuss_clkdm, emif_clkdm);
-+	if (ret)
-+		pr_err("%s: Failed to add static dependency with %d\n",
-+			__func__, ret);
-+
-+	return ret;
++	reg = omap4_prcm_mpu_read_inst_reg(OMAP54XX_PRCM_MPU_DEVICE_INST,
++			OMAP54XX_PRCM_MPU_PRM_PSCON_COUNT_OFFSET);
++	reg |= PRM_PSCON_HG_EN | PRM_PSCON_HG_RAMPUP;
++	omap4_prcm_mpu_write_inst_reg(reg, OMAP54XX_PRCM_MPU_DEVICE_INST,
++			OMAP54XX_PRCM_MPU_PRM_PSCON_COUNT_OFFSET);
 +}
-+
-+/**
-  * omap4_pm_init - Init routine for OMAP4+ devices
-  *
-  * Initializes all powerdomain and clockdomain target states
-@@ -218,10 +249,15 @@ int __init omap4_pm_init(void)
- 		goto err2;
+ 
+ /*
+  * Initialise OMAP4 MPUSS
+@@ -415,6 +441,7 @@ int __init omap4_mpuss_init(void)
+ 		cpu_context_offset = OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET;
+ 	} else if (soc_is_omap54xx()) {
+ 		cpu_context_offset = OMAP54XX_RM_CPU0_CPU0_CONTEXT_OFFSET;
++		enable_mercury_retention_mode();
  	}
  
--	if (cpu_is_omap44xx()) {
-+	if (cpu_is_omap44xx())
- 		ret = omap4_init_static_deps();
--		if (ret)
--			goto err2;
-+	else if (soc_is_omap54xx())
-+		ret = omap5_init_static_deps();
-+
-+	if (ret) {
-+		pr_err("%s: Failed to initialise static dependency with %d\n",
-+			__func__, ret);
-+		goto err2;
- 	}
- 
- 	ret = omap4_mpuss_init();
+ 	return 0;
 -- 
 1.7.9.5
 
