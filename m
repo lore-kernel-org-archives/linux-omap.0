@@ -1,30 +1,35 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCHv2 09/12] staging: ti-soc-thermal: fix several kernel-doc
- warnings and error
-Date: Mon, 25 Mar 2013 11:22:26 -0700
-Message-ID: <20130325182226.GA15717@kroah.com>
-References: <1363704868-11843-1-git-send-email-eduardo.valentin@ti.com>
- <1363704868-11843-10-git-send-email-eduardo.valentin@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: OK to use commit 71856843 as base for further omap clean up?
+Date: Mon, 25 Mar 2013 14:31:26 -0500
+Message-ID: <5150A60E.2090108@ti.com>
+References: <20130319175921.GA22104@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1363704868-11843-10-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: devel@driverdev.osuosl.org, Nishanth Menon <nm@ti.com>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47825 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758364Ab3CYTbi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Mar 2013 15:31:38 -0400
+In-Reply-To: <20130319175921.GA22104@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, Mar 19, 2013 at 10:54:25AM -0400, Eduardo Valentin wrote:
-> This patch updates the documentation to remove
-> all warnings and errors reported by scripts/kernel-doc.
-> Most are missing arguments due to wrong format.
+Hi Russell,
+
+On 03/19/2013 12:59 PM, Tony Lindgren wrote:
+> Hi Russell,
 > 
-> Cc: Nishanth Menon <nm@ti.com>
-> 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> Can we use your commit 71856843 (ARM: OMAP: use consistent error checking)
+> as an immutable base for further omap dmtimer and gpmc work?
 
-In the future, don't put empty lines between the Cc: and signed-off-by:
-lines please, I had to hand-edit all of these to fix that...
+I saw that you updated your clean-up branch. Ok to use the below commit
+[1] as a base for some v3.10 updates?
 
-greg k-h
+Cheers
+Jon
+
+[1]
+http://ftp.arm.linux.org.uk/git/gitweb.cgi?p=linux-arm.git;a=commit;h=71856843fb1d8ee455a4c1a60696c74afa4809e5
