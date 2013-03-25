@@ -1,89 +1,37 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 0/6] mfd: omap-usb-host: Device tree support for 3.10
-Date: Mon, 25 Mar 2013 12:42:04 +0200
-Message-ID: <515029FC.3030405@ti.com>
-References: <1363083940-20050-1-git-send-email-rogerq@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if
+ system supports 'has_ossr'
+Date: Mon, 25 Mar 2013 10:49:11 +0000
+Message-ID: <20130325104910.GE12110@mudshark.cambridge.arm.com>
+References: <51407120.7030709@ti.com>
+ <51417E58.5050501@ti.com>
+ <20130315050014.GA15706@tiny-lites>
+ <5146B972.1010002@ti.com>
+ <20130318150724.GC28585@mudshark.cambridge.arm.com>
+ <514736D4.4070906@ti.com>
+ <20130318170649.GA29585@mudshark.cambridge.arm.com>
+ <5148082A.3060503@ti.com>
+ <20130319102803.GB22452@mudshark.cambridge.arm.com>
+ <515014A4.5020504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45559 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756295Ab3CYKmN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Mar 2013 06:42:13 -0400
-In-Reply-To: <1363083940-20050-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <515014A4.5020504@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Will Deacon <will@willdeacon.co.uk>, Lokesh Vutla <lokeshvutla@ti.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: sameo@linux.intel.com
-Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, b-cousson@ti.com, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-Hi Samuel,
+On Mon, Mar 25, 2013 at 09:11:00AM +0000, Santosh Shilimkar wrote:
+> Will,
 
-I've rebased this now on top of 3.9-rc4. Please pull this into your
-next branch when appropriate. Thanks.
+Hi Santosh,
 
-The following changes since commit 8bb9660418e05bb1845ac1a2428444d78e322cc7:
+> Are you going to send the patch for 3.9-rcx ? As I said before without the
+> patch OMAP4 CPUILDE is unusable because of that debug noise and hence it
+> will be good to get that patch in
 
-  Linux 3.9-rc4 (2013-03-23 16:52:44 -0700)
+It's in Russell's tree, so should be queued for mainline fairly soon.
 
-are available in the git repository at:
-  git://github.com/rogerq/linux.git usbhost-mfd-next
-
-Roger Quadros (5):
-      mfd: omap-usb-host: update nports in platform_data
-      mfd: omap-usb-host: Remove PHY reset handling code
-      mfd: omap-usb-tll: move configuration code to omap_tll_init()
-      mfd: omap-usb-tll: Add device tree support and binding information
-      mfd: omap-usb-host: Add device tree support and binding information
-
- .../devicetree/bindings/mfd/omap-usb-host.txt      |   80 ++++++++
- .../devicetree/bindings/mfd/omap-usb-tll.txt       |   17 ++
- drivers/mfd/omap-usb-host.c                        |  200 ++++++++++++++-----
- drivers/mfd/omap-usb-tll.c                         |  214 ++++++++++----------
- drivers/mfd/omap-usb.h                             |    5 +-
- 5 files changed, 362 insertions(+), 154 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/mfd/omap-usb-host.txt
- create mode 100644 Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
-
-cheers,
--roger
-
-On 03/12/2013 12:25 PM, Roger Quadros wrote:
-> Hi Samuel,
-> 
-> These patches implement device tree support for the OMAP High Speed
-> USB Host subsystem. The corresponding EHCI & SoC patches will be sent
-> separately and this set has no build dependencies with them.
-> 
-> Patch 3 is acutally a bug fix which should go into 3.9-rc. I've sent
-> it separately to you before.
-> 
-> The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b6ec9:
-> 
->   Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
-> 
-> are available in the git repository at:
->   git://github.com/rogerq/linux.git usbhost-mfd-next
-> 
-> Roger Quadros (6):
->       mfd: omap-usb-host: update nports in platform_data
->       mfd: omap-usb-host: Remove PHY reset handling code
->       mfd: omap-usb-host: Actually update hostconfig
->       mfd: omap-usb-tll: move configuration code to omap_tll_init()
->       mfd: omap-usb-tll: Add device tree support and binding information
->       mfd: omap-usb-host: Add device tree support and binding information
-> 
->  .../devicetree/bindings/mfd/omap-usb-host.txt      |   80 ++++++++
->  .../devicetree/bindings/mfd/omap-usb-tll.txt       |   17 ++
->  drivers/mfd/omap-usb-host.c                        |  206 ++++++++++++++-----
->  drivers/mfd/omap-usb-tll.c                         |  214 ++++++++++----------
->  drivers/mfd/omap-usb.h                             |    5 +-
->  5 files changed, 365 insertions(+), 157 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/mfd/omap-usb-host.txt
->  create mode 100644 Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
-> 
-> --
-> cheers,
-> -roger
-> 
-
+Will
