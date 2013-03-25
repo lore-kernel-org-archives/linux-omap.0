@@ -1,102 +1,158 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 16/18] ARM: OMAP4+: CPUidle: Deprecate use of omap4_mpuss_read_prev_context_state()
-Date: Mon, 25 Mar 2013 15:35:08 +0530
-Message-ID: <1364205910-32392-17-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 15/18] ARM: OMAP4+: CPUidle: Consolidate idle driver for OMAP5 support
+Date: Mon, 25 Mar 2013 15:35:07 +0530
+Message-ID: <1364205910-32392-16-git-send-email-santosh.shilimkar@ti.com>
 References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50683 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35782 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754457Ab3CYKEM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Mar 2013 06:04:12 -0400
+	id S1754168Ab3CYKEL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Mar 2013 06:04:11 -0400
 In-Reply-To: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@deeprootsystems.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Current OMAP4 CPUIdle driver is using omap4_mpuss_read_prev_context_state()
-function to check whether the MPU cluster lost context or not. Thanks to
-couple CPUIdle, cluster low power entry is almost guaranteed and hence
-the programmed cluster check is enough in idle exit path. The API was
-more of an optimization for corner cases, where if the cluster low power
-entry fails for some reason, the cluster context restore gets skipped.
+The OMAP5 idle driver can re-use most of OMAP4 CPUidle driver
+implementation. Also the next derivative SOCs are going to re-use
+the MPUSS so, same driver with minor updates can be re-used.
 
-Moving forward, OMAP CPUidle drivers needs to be moved to drivers/idle/*
-once the PRM/CM code gets moved to drivers. This patch also reduces one
-dependency with platform code for idle driver movement.
+Prepare the code so that its easier to add CPUidle support for
+OMAP5 devices.
 
 Acked-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/common.h              |    5 -----
- arch/arm/mach-omap2/cpuidle44xx.c         |    3 ++-
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |   14 --------------
- 3 files changed, 2 insertions(+), 20 deletions(-)
+ arch/arm/mach-omap2/cpuidle44xx.c |   31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index f75d972..6b97d42 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -250,7 +250,6 @@ extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
- extern int omap4_finish_suspend(unsigned long cpu_state);
- extern void omap4_cpu_resume(void);
- extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
--extern u32 omap4_mpuss_read_prev_context_state(void);
- #else
- static inline int omap4_enter_lowpower(unsigned int cpu,
- 					unsigned int power_state)
-@@ -278,10 +277,6 @@ static inline int omap4_finish_suspend(unsigned long cpu_state)
- static inline void omap4_cpu_resume(void)
- {}
- 
--static inline u32 omap4_mpuss_read_prev_context_state(void)
--{
--	return 0;
--}
- #endif
- 
- struct omap_sdrc_params;
 diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index ac6d526..e6218d3 100644
+index b8a22f0..ac6d526 100644
 --- a/arch/arm/mach-omap2/cpuidle44xx.c
 +++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -146,7 +146,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- 	 * Call idle CPU cluster PM exit notifier chain
- 	 * to restore GIC and wakeupgen context.
- 	 */
--	if (omap4_mpuss_read_prev_context_state())
-+	if ((cx->mpu_state == PWRDM_POWER_RET) &&
-+		(cx->mpu_logic_state == PWRDM_POWER_OFF))
- 		cpu_cluster_pm_exit();
+@@ -1,7 +1,7 @@
+ /*
+- * OMAP4 CPU idle Routines
++ * OMAP4PLUS CPU idle Routines
+  *
+- * Copyright (C) 2011 Texas Instruments, Inc.
++ * Copyright (C) 2011-2013 Texas Instruments, Inc.
+  * Santosh Shilimkar <santosh.shilimkar@ti.com>
+  * Rajendra Nayak <rnayak@ti.com>
+  *
+@@ -24,13 +24,13 @@
+ #include "clockdomain.h"
  
- 	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 995443a..6e917d7 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -185,20 +185,6 @@ static inline void cpu_clear_prev_logic_pwrst(unsigned int cpu_id)
- 	}
+ /* Machine specific information */
+-struct omap4_idle_statedata {
++struct idle_statedata {
+ 	u32 cpu_state;
+ 	u32 mpu_logic_state;
+ 	u32 mpu_state;
+ };
+ 
+-static struct omap4_idle_statedata omap4_idle_data[] = {
++static struct idle_statedata omap4_idle_data[] = {
+ 	{
+ 		.cpu_state = PWRDM_POWER_ON,
+ 		.mpu_state = PWRDM_POWER_ON,
+@@ -53,11 +53,12 @@ static struct clockdomain *cpu_clkdm[NR_CPUS];
+ 
+ static atomic_t abort_barrier;
+ static bool cpu_done[NR_CPUS];
++static struct idle_statedata *state_ptr = &omap4_idle_data[0];
+ 
+ /* Private functions */
+ 
+ /**
+- * omap4_enter_idle_coupled_[simple/coupled] - OMAP4 cpuidle entry functions
++ * omap_enter_idle_[simple/coupled] - OMAP4PLUS cpuidle entry functions
+  * @dev: cpuidle device
+  * @drv: cpuidle driver
+  * @index: the index of state to be entered
+@@ -66,7 +67,7 @@ static bool cpu_done[NR_CPUS];
+  * specified low power state selected by the governor.
+  * Returns the amount of time spent in the low power state.
+  */
+-static int omap4_enter_idle_simple(struct cpuidle_device *dev,
++static int omap_enter_idle_simple(struct cpuidle_device *dev,
+ 			struct cpuidle_driver *drv,
+ 			int index)
+ {
+@@ -74,11 +75,11 @@ static int omap4_enter_idle_simple(struct cpuidle_device *dev,
+ 	return index;
  }
  
--/**
-- * omap4_mpuss_read_prev_context_state:
-- * Function returns the MPUSS previous context state
-- */
--u32 omap4_mpuss_read_prev_context_state(void)
--{
--	u32 reg;
--
--	reg = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
--		OMAP4430_PRM_MPU_INST, OMAP4_RM_MPU_MPU_CONTEXT_OFFSET);
--	reg &= OMAP4430_LOSTCONTEXT_DFF_MASK;
--	return reg;
--}
--
- /*
-  * Store the CPU cluster state for L2X0 low power operations.
+-static int omap4_enter_idle_coupled(struct cpuidle_device *dev,
++static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 			struct cpuidle_driver *drv,
+ 			int index)
+ {
+-	struct omap4_idle_statedata *cx = &omap4_idle_data[index];
++	struct idle_statedata *cx = state_ptr + index;
+ 	int cpu_id = smp_processor_id();
+ 
+ 	/*
+@@ -167,7 +168,7 @@ static void omap_setup_broadcast_timer(void *arg)
+ 	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &cpu);
+ }
+ 
+-static DEFINE_PER_CPU(struct cpuidle_device, omap4_idle_dev);
++static DEFINE_PER_CPU(struct cpuidle_device, omap_idle_dev);
+ 
+ static struct cpuidle_driver omap4_idle_driver = {
+ 	.name				= "omap4_idle",
+@@ -179,7 +180,7 @@ static struct cpuidle_driver omap4_idle_driver = {
+ 			.exit_latency = 2 + 2,
+ 			.target_residency = 5,
+ 			.flags = CPUIDLE_FLAG_TIME_VALID,
+-			.enter = omap4_enter_idle_simple,
++			.enter = omap_enter_idle_simple,
+ 			.name = "C1",
+ 			.desc = "CPUx ON, MPUSS ON"
+ 		},
+@@ -188,7 +189,7 @@ static struct cpuidle_driver omap4_idle_driver = {
+ 			.exit_latency = 328 + 440,
+ 			.target_residency = 960,
+ 			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
+-			.enter = omap4_enter_idle_coupled,
++			.enter = omap_enter_idle_coupled,
+ 			.name = "C2",
+ 			.desc = "CPUx OFF, MPUSS CSWR",
+ 		},
+@@ -197,7 +198,7 @@ static struct cpuidle_driver omap4_idle_driver = {
+ 			.exit_latency = 460 + 518,
+ 			.target_residency = 1100,
+ 			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
+-			.enter = omap4_enter_idle_coupled,
++			.enter = omap_enter_idle_coupled,
+ 			.name = "C3",
+ 			.desc = "CPUx OFF, MPUSS OSWR",
+ 		},
+@@ -209,9 +210,9 @@ static struct cpuidle_driver omap4_idle_driver = {
+ /* Public functions */
+ 
+ /**
+- * omap4_idle_init - Init routine for OMAP4 idle
++ * omap4_idle_init - Init routine for OMAP4PLUS idle
+  *
+- * Registers the OMAP4 specific cpuidle driver to the cpuidle
++ * Registers the OMAP4PLUS specific cpuidle driver to the cpuidle
+  * framework with the valid set of states.
   */
+ int __init omap4_idle_init(void)
+@@ -239,7 +240,7 @@ int __init omap4_idle_init(void)
+ 	}
+ 
+ 	for_each_cpu(cpu_id, cpu_online_mask) {
+-		dev = &per_cpu(omap4_idle_dev, cpu_id);
++		dev = &per_cpu(omap_idle_dev, cpu_id);
+ 		dev->cpu = cpu_id;
+ #ifdef CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED
+ 		dev->coupled_cpus = *cpu_online_mask;
 -- 
 1.7.9.5
 
