@@ -1,44 +1,144 @@
-From: John Stultz <john.stultz@linaro.org>
-Subject: Re: [PATCH] ARM: convert arm/arm64 arch timer to use CLKSRC_OF init
-Date: Mon, 25 Mar 2013 15:53:01 -0700
-Message-ID: <5150D54D.1070004@linaro.org>
-References: <1363818875-15978-1-git-send-email-robherring2@gmail.com> <20130325172633.GP30923@n2100.arm.linux.org.uk> <5150C16A.3040208@gmail.com> <201303252236.23270.arnd@arndb.de>
+From: Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] spi: spi-omap2-mcspi.c: Add dts for slave device
+	configuration.
+Date: Tue, 26 Mar 2013 00:00:15 +0100
+Message-ID: <1364252415-3613-1-git-send-email-matthias.bgg@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <201303252236.23270.arnd@arndb.de>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Rob Herring <robherring2@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Mark Rutland <mark.rutland@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Magnus Damm <magnus.damm@gmail.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Simon Horman <horms@verge.net.au>, Will Deacon <Will.Deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <martinez.javier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/25/2013 03:36 PM, Arnd Bergmann wrote:
-> On Monday 25 March 2013, Rob Herring wrote:
->> I count integrator-cp, realview, versatile and non-DT VExpress that do
->> this (not surprisingly) and 25 platforms or timer implementations plus
->> arm64 that do sched_clock setup in time_init. What's broken by not
->> moving these earlier?
-> timekeeping_init() will leave the persistent_clock_exist variable as "false",
-> which is read in rtc_suspend() and timekeeping_inject_sleeptime().
+TI omap2 mcspi allows the slave devices to configure the behavior of
+the SPI master. This patch adds device tree support to the existing
+options.
 
-Are you mixing up the persistent_clock and sched_clock here? From a 
-generic stand-point they have different requirements.
+Signed-off-by: Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ Documentation/devicetree/bindings/spi/omap-spi.txt | 23 ++++++++++++
+ drivers/spi/spi-omap2-mcspi.c                      | 41 ++++++++++++++++++++++
+ 2 files changed, 64 insertions(+)
 
-> For all I can tell, you will get a little jitter every time you
-> do a suspend in that case. Or perhaps it means the system clock
-> will be forwarded by the amount of time spent in suspend twice
-> after wakeup, but I'm probably misreading the code for that case.
+diff --git a/Documentation/devicetree/bindings/spi/omap-spi.txt b/Documentation/devicetree/bindings/spi/omap-spi.txt
+index 938809c..fef16bf 100644
+--- a/Documentation/devicetree/bindings/spi/omap-spi.txt
++++ b/Documentation/devicetree/bindings/spi/omap-spi.txt
+@@ -10,8 +10,20 @@ Required properties:
+ 			  input. The default is D0 as input and
+ 			  D1 as output.
+ 
++SPI Controller specific data in SPI slave nodes:
++
++- The spi slave nodes can provide the following information which is used
++  by the spi controller.
++
++- ti,spi-cs-per-word: Set chipselect to be toggled on every word send.
++
++- ti,spi-turbo-mode: Set turbo mode for this device.
++
++
+ Example:
+ 
++- SoC Specific Portion:
++
+ mcspi1: mcspi@1 {
+     #address-cells = <1>;
+     #size-cells = <0>;
+@@ -20,3 +32,14 @@ mcspi1: mcspi@1 {
+     ti,spi-num-cs = <4>;
+ };
+ 
++- Board Specific Portion:
++
++	spi-device@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		controller-data {
++			ti,spi-cs-per-word = <1>;
++			ti,spi-turbo-mode = <0>;
++		};
++	};
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 893c3d7..1ae5009 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -731,11 +731,47 @@ static u32 omap2_mcspi_calc_divisor(u32 speed_hz)
+ 	return 15;
+ }
+ 
++static struct omap2_mcspi_device_config *omap2_mcspi_get_slave_ctrldata(
++			struct spi_device *spi)
++{
++	struct omap2_mcspi_device_config *cd;
++	struct device_node *slave_np, *data_np = NULL;
++
++	slave_np = spi->dev.of_node;
++	if (!slave_np) {
++		dev_err(&spi->dev, "device node not found\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	data_np = of_get_child_by_name(slave_np, "controller-data");
++	if (!data_np) {
++		dev_err(&spi->dev, "child node 'controller-data' not found\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	cd = kzalloc(sizeof(*cd), GFP_KERNEL);
++	if (!cd) {
++		dev_err(&spi->dev, "could not allocate memory for controller data\n");
++		of_node_put(data_np);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	if (of_get_property(data_np, "ti,spi-cs-per-word", NULL))
++		cd->cs_per_word = 1;
++
++	if (of_get_property(data_np, "ti,spi-turbo-mode", NULL))
++		cd->turbo_mode = 1;
++
++	of_node_put(data_np);
++	return cd;
++}
++
+ /* called only when no transfer is active to this device */
+ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
+ 		struct spi_transfer *t)
+ {
+ 	struct omap2_mcspi_cs *cs = spi->controller_state;
++	struct omap2_mcspi_device_config *cd = spi->controller_data;
+ 	struct omap2_mcspi *mcspi;
+ 	struct spi_master *spi_cntrl;
+ 	u32 l = 0, div = 0;
+@@ -745,6 +781,11 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
+ 	mcspi = spi_master_get_devdata(spi->master);
+ 	spi_cntrl = mcspi->master;
+ 
++	if (!cd && spi->dev.of_node) {
++		cd = omap2_mcspi_get_slave_ctrldata(spi);
++		spi->controller_data = cd;
++	}
++
+ 	if (t != NULL && t->bits_per_word)
+ 		word_len = t->bits_per_word;
+ 
+-- 
+1.7.11.7
 
-No, you shouldn't see timekeeping being incremented twice, we check in 
-rtc_resume code if the persistent clock is present if so we won't inject 
-any measured suspend time there. But you're probably right that we're 
-being a little overly paranoid checking the same value twice.
 
-As far as the benefit to the persistent clock: it is just a little 
-better to use, since we can access it earlier in resume, prior to 
-interrupts being enabled. So we should see less time error introduced 
-each suspend.
-
-thanks
--john
+------------------------------------------------------------------------------
+Own the Future-Intel&reg; Level Up Game Demo Contest 2013
+Rise to greatness in Intel's independent game demo contest.
+Compete for recognition, cash, and the chance to get your game 
+on Steam. $5K grand prize plus 10 genre and skill prizes. 
+Submit your demo by 6/6/13. http://p.sf.net/sfu/intel_levelupd2d
