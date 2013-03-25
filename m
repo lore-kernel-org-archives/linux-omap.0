@@ -1,161 +1,146 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH] ARM: AM33XX: Add missing .clkdm_name to clkdiv32k_ick clock
-Date: Mon, 25 Mar 2013 17:07:23 +0530
-Message-ID: <1364211443-27536-1-git-send-email-hvaibhav@ti.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH v2 00/18] ARM: OMAP5: PM: Add MPUSS suspend and CPUidle
+ support
+Date: Mon, 25 Mar 2013 17:16:59 +0530
+Message-ID: <51503933.9060106@ti.com>
+References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45300 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:45699 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756296Ab3CYLhq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Mar 2013 07:37:46 -0400
+	with ESMTP id S1756025Ab3CYLrK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Mar 2013 07:47:10 -0400
+In-Reply-To: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com
 
-During common-clock migration, .clkdm_name field got missed
-for "clkdiv32k_ick" clock, which leaves "clk_24mhz_clkdm"
-unused; so boot process will try to disable the clockdomain
-even childs of this clock is enabled, which keeps child modules
-in idle mode.
+Hi Santosh,
 
-This fixes the kernel crash observed on AM335xEVM-Sk platform,
-where clkdiv32_ick clock is being used as a gpio debounce clock
-and since clkdiv32k_ick is in idle mode it leads to below crash -
+On Monday 25 March 2013 03:34 PM, Santosh Shilimkar wrote:
+> Kevin,
+>
+> Here is the refreshed version(v2) of the OMAP5 PM suspport which was posted
+> earlier (March 1st 2013). Patch-set incorporates comments from Nishant
+> Menon (Thanks for review NM) and his acked-by tags. I would like to get this
+> queued for 3.10 merge window if you are ok with the series.
+>
+> Series is built on top of my pull requests [1] [2] [3] sent to Tony and your
+> 'for_3.10/pm/cleanup' branch. For testing, I have created a branch [4]
+> which put together all the needed dependencies, fixes which should make it
+> to 3.10 merge window.
+>
+> Series adds OMAP5 MPUSS power management support for system wide suspend
+> and CPUidle. Its heavy re-use from OMAP4 and hence only ~400 odd lines are
+> needed to add OMAP5 PM support on top of existing OMAP4 PM support.
+>
+> OMAP5 adds a mercury retention feature which is an enhancement of
+> existing retention feature to reduce the leakage. No change in
+> programming model except one time enabling of mercury retention
+> during init.
+>
+> One more notable change in OMAP5 vs OMAP4 devices, CPUx power domains
+> support retention state which lets you hit MPUSS and Core retention with
+> very low latency C-states.
+>
+> Tested on OMAP4430 SDP, OMAP4460 Panda, OMAP5430 SDP and OMAP5432 Panda
+> devices with suspend and CPUIdle. Rootfs is mounted over ramdisk since
+> the mmc and nfs based fs needs DMA engine patches. For suspend wakeup,
+> I used Sourav's couple of serial wakeup wip patches from the lists.
 
-Crash Log:
-=============
-[    2.598347] Unhandled fault: external abort on non-linefetch (0x1028) at
-0xfa1ac150
-[    2.606434] Internal error: : 1028 [#1] SMP ARM
-[    2.611207] Modules linked in:
-[    2.614449] CPU: 0    Not tainted  (3.8.4-01382-g1f449cd-dirty #4)
-[    2.620973] PC is at _set_gpio_debounce+0x60/0x104
-[    2.626025] LR is at clk_enable+0x30/0x3c
-[    2.630249] pc : [<c02e2850>]    lr : [<c0449ad8>]    psr: 60000193
-[    2.630249] sp : cf053df8  ip : 00000001  fp : cf19e000
-[    2.642308] r10: cdc56800  r9 : cf19e010  r8 : cf0b8410
-[    2.647802] r7 : 00000002  r6 : 00000004  r5 : 000000a0  r4 : cf0b8410
-[    2.654668] r3 : fa1ac150  r2 : fa1ac000  r1 : 00000000  r0 : 00000000
-[    2.661540] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM
-	Segment kernel
-[    2.669324] Control: 10c5387d  Table: 80004019  DAC: 00000017
-[    2.675372] Process swapper/0 (pid: 1, stack limit = 0xcf052240)
-[    2.681688] Stack: (0xcf053df8 to 0xcf054000)
-[    2.686279] 3de0: cf0b846c 20000113
-[    2.694892] 3e00: 00001388 c02e2924 00000000 00000002 cf0b848c
-	20000113 00001388 c02e0258
-[    2.703508] 3e20: cdc57ce8 cdca2784 c00028d8 00000000 cdc56800
-	c040ba10 cdc57c50 c08374e0
-[    2.712115] 3e40: 00000001 00000028 cdca2784 cdca2740 cdc57c00
-	00000000 cdc56800 c040bc58
-[    2.720727] 3e60: cf1a0bd0 cf19e010 c08374e0 c0d96ffc c08374e0
-	cf19e010 00000000 c08374e0
-[    2.729341] 3e80: c076c7b0 c07421c4 00000000 c0331c90 c0331c78
-	c033092c cf19e010 c08374e0
-[    2.737957] 3ea0: cf19e044 00000000 00000000 c0330bd8 00000000
-	cf19e010 c08374e0 c0330c84
-[    2.746573] 3ec0: c08374e0 c0330bf0 00000000 c032f2f8 cf0222a8
-	cf198a10 c08374e0 c08265c8
-[    2.755185] 3ee0: cdbca7c0 c033015c c067d1e0 c08374e0 c08374e0
-	c0844600 cf052000 00000000
-[    2.763793] 3f00: 00000000 c03311b8 00000000 c0776fb0 c0844600
-	cf052000 00000000 00000000
-[    2.772393] 3f20: c07421c4 c0008818 0001dd4e 00000000 00000007
-	c076c7b0 07753841 00000000
-[    2.780998] 3f40: 9a64d806 00000000 9a64d806 00000000 60000113
-	c0776fb0 00000007 c0776f90
-[    2.789603] 3f60: c0844600 000000af c0793ee8 c07421c4 00000000
-	c07428f8 00000007 00000007
-[    2.798217] 3f80: c07421c4 00000000 00000000 c0513f0c 00000000
-	00000000 00000000 00000000
-[    2.806827] 3fa0: 00000000 c0513f14 00000000 c0013490 00000000
-	00000000 00000000 00000000
-[    2.815447] 3fc0: 00000000 00000000 00000000 00000000 00000000
-	00000000 00000000 00000000
-[    2.824058] 3fe0: 00000000 00000000 00000000 00000000 00000013
-	00000000 eebff7f9 3a5f1b7e
-[    2.832668] [<c02e2850>] (_set_gpio_debounce+0x60/0x104) from
-	[<c02e2924>] (gpio_debounce+0x30/0x44)
-[    2.842272] [<c02e2924>] (gpio_debounce+0x30/0x44) from [<c02e0258>]
-	(gpio_set_debounce+0xc4/0xdc)
-[    2.851714] [<c02e0258>] (gpio_set_debounce+0xc4/0xdc) from
-	[<c040ba10>] (gpio_keys_setup_key+0x190/0x268)
-[    2.861871] [<c040ba10>] (gpio_keys_setup_key+0x190/0x268) from
-	[<c040bc58>] (gpio_keys_probe+0x170/0x274)
-[    2.872046] [<c040bc58>] (gpio_keys_probe+0x170/0x274) from
-	[<c0331c90>] (platform_drv_probe+0x18/0x1c)
-[    2.881940] [<c0331c90>] (platform_drv_probe+0x18/0x1c) from
-	[<c033092c>] (really_probe+0x60/0x1f4)
-[    2.891453] [<c033092c>] (really_probe+0x60/0x1f4) from [<c0330bd8>]
-	(driver_probe_device+0x30/0x48)
-[    2.901064] [<c0330bd8>] (driver_probe_device+0x30/0x48) from
-	[<c0330c84>] (__driver_attach+0x94/0x98)
-[    2.910858] [<c0330c84>] (__driver_attach+0x94/0x98) from
-	[<c032f2f8>] (bus_for_each_dev+0x64/0x88)
-[    2.920380] [<c032f2f8>] (bus_for_each_dev+0x64/0x88) from
-	[<c033015c>] (bus_add_driver+0xa0/0x240)
-[    2.929900] [<c033015c>] (bus_add_driver+0xa0/0x240) from
-	[<c03311b8>] (driver_register+0x78/0x144)
-[    2.939434] [<c03311b8>] (driver_register+0x78/0x144) from
-	[<c0008818>] (do_one_initcall+0x118/0x180)
-[    2.949160] [<c0008818>] (do_one_initcall+0x118/0x180) from
-	[<c07428f8>] (kernel_init_freeable+0xfc/0x1cc)
-[    2.959343] [<c07428f8>] (kernel_init_freeable+0xfc/0x1cc) from
-	[<c0513f14>] (kernel_init+0x8/0xe4)
-[    2.968867] [<c0513f14>] (kernel_init+0x8/0xe4) from [<c0013490>]
-	(ret_from_fork+0x14/0x24)
-[    2.977663] Code: e5943108 e5942008 e1d331be e0823003 (e5932000)
-	[    2.984092] ---[ end trace d1c5f252789a330b ]---
-[    2.989241] Kernel panic - not syncing: Attempted to kill init!
-	exitcode=0x0000000b
-[    2.989241]
+I did the following build tests on [1]:
+	-> Native omap2plus build
+	-> Omap2 only build
+	-> Omap3 only build
+	-> Omap4 only build
+	-> Omap5 only build
+	-> AM33XX only build.
+	-> omap1_defconfig
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/cclock33xx_data.c |   26 +++++++++++++++++++++++---
- 1 files changed, 23 insertions(+), 3 deletions(-)
+And also did functional testing on [2] where omap5_pm branch[1] is merged.
+	On OMAP5430 EVM: 	Suspend to RAM (UART wakeup)
+			 			CPU_IDLE
+	On OMAP4430 SDP: 	Suspend to RAM (UART wakeup)
+			 			CPU_IDLE
+Note:
+1) Disabled SMP for doing build test on Omap2/3 only builds.
+2) If we enable CPU_IDLE on OMAP4430, debug message flood from 
+reset_ctrl_regs() will appear.
+	As this is already disussed and a patch is already sent on Mainline
+	Will get more info on this here[3]
 
-diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
-index e674e01..b8fd346 100644
---- a/arch/arm/mach-omap2/cclock33xx_data.c
-+++ b/arch/arm/mach-omap2/cclock33xx_data.c
-@@ -449,9 +449,29 @@ DEFINE_CLK_GATE(cefuse_fck, "sys_clkin_ck", &sys_clkin_ck, 0x0,
-  */
- DEFINE_CLK_FIXED_FACTOR(clkdiv32k_ck, "clk_24mhz", &clk_24mhz, 0x0, 1, 732);
+Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
 
--DEFINE_CLK_GATE(clkdiv32k_ick, "clkdiv32k_ck", &clkdiv32k_ck, 0x0,
--		AM33XX_CM_PER_CLKDIV32K_CLKCTRL, AM33XX_MODULEMODE_SWCTRL_SHIFT,
--		0x0, NULL);
-+static struct clk clkdiv32k_ick;
-+
-+static const char *clkdiv32k_ick_parent_names[] = {
-+	"clkdiv32k_ck",
-+};
-+
-+static const struct clk_ops clkdiv32k_ick_ops = {
-+	.enable         = &omap2_dflt_clk_enable,
-+	.disable        = &omap2_dflt_clk_disable,
-+	.is_enabled     = &omap2_dflt_clk_is_enabled,
-+	.init           = &omap2_init_clk_clkdm,
-+};
-+
-+static struct clk_hw_omap clkdiv32k_ick_hw = {
-+	.hw	= {
-+		.clk	= &clkdiv32k_ick,
-+	},
-+	.enable_reg	= AM33XX_CM_PER_CLKDIV32K_CLKCTRL,
-+	.enable_bit	= AM33XX_MODULEMODE_SWCTRL_SHIFT,
-+	.clkdm_name	= "clk_24mhz_clkdm",
-+};
-+
-+DEFINE_STRUCT_CLK(clkdiv32k_ick, clkdiv32k_ick_parent_names, clkdiv32k_ick_ops);
+Thanks and Regards,
+Lokesh
 
- /* "usbotg_fck" is an additional clock and not really a modulemode */
- DEFINE_CLK_GATE(usbotg_fck, "dpll_per_ck", &dpll_per_ck, 0x0,
---
-1.7.0.4
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux 
+for_3.10/omap5_pm
+[2] git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git 
+testing/3.10/omap5_int
+[3] https://lkml.org/lkml/2013/3/13/50
+
+>
+> The following changes since commit 9981cde24de52e5bb9a7cd918d1e54de241f85c9:
+>
+>    Merge branch 'for_3.10/omap5_data_files' of git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux into for_3.10/omap5_pm (2013-03-25 12:29:34 +0530)
+>
+> are available in the git repository at:
+>
+>
+>    git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.10/omap5_pm
+>
+> for you to fetch changes up to 75bd846d3103da858a208fe07127151903d1f608:
+>
+>    ARM: OMAP5: PM: handle device instance for warm reset (2013-03-25 12:37:44 +0530)
+>
+> ----------------------------------------------------------------
+> Nishanth Menon (1):
+>    ARM: OMAP5: PM: handle device instance for warm reset
+>
+> Santosh Shilimkar (17):
+>    ARM: OMAP4+: PM: Consolidate MPU subsystem PM code for re-use
+>    ARM: OMAP5: PM: Update CPU context register offset
+>    ARM: OMAP4+: PM: Consolidate and use OMAP4 PM code for OMAP5
+>    ARM: OMAP5: PM: Set MPUSS-EMIF clock-domain static dependency
+>    ARM: OMAP5: PM: Enables ES2 PM mode by default
+>    ARM: OMAP5: PM: Enable Mercury retention mode on CPUx powerdomains
+>    ARM: OMAP5: Add init_late() hook to enable pm initialization
+>    ARM: OMAP5: PM: Add CPU power off in hotplug path
+>    ARM: OMAP4+: PM: Restore CPU power state to ON with clockdomain force
+>      wakeup method
+>    ARM: OMAP5: PM: Add MPU Open Switch Retention support
+>    ARM: OMAP5: PM: Add L2 memory power down support
+>    ARM: OMAP4: CPUidle: Avoid double idle driver registration
+>    ARM: OMAP: CPUidle: Unregister drivere on device registration failure
+>    ARM: OMAP4: CPUidle: Make C-state description field more precise
+>    ARM: OMAP4+: CPUidle: Consolidate idle driver for OMAP5 support
+>    ARM: OMAP4+: CPUidle: Deprecate use of
+>      omap4_mpuss_read_prev_context_state()
+>    ARM: OMAP4+: CPUidle: Add OMAP5 idle driver support
+>
+>   arch/arm/mach-omap2/Kconfig                        |    1 +
+>   arch/arm/mach-omap2/Makefile                       |   12 +-
+>   arch/arm/mach-omap2/board-generic.c                |    1 +
+>   arch/arm/mach-omap2/common.h                       |    8 +-
+>   arch/arm/mach-omap2/cpuidle34xx.c                  |    6 +-
+>   .../{cpuidle44xx.c => cpuidle_omap4plus.c}         |  151 ++++++++++++++++---
+>   arch/arm/mach-omap2/io.c                           |    8 +
+>   arch/arm/mach-omap2/omap-mpuss-lowpower.c          |  155 +++++++++++++++-----
+>   arch/arm/mach-omap2/omap-secure.h                  |    9 ++
+>   arch/arm/mach-omap2/omap-smp.c                     |   12 +-
+>   arch/arm/mach-omap2/omap-wakeupgen.c               |   30 +++-
+>   arch/arm/mach-omap2/omap-wakeupgen.h               |    1 +
+>   arch/arm/mach-omap2/omap4-sar-layout.h             |    2 +
+>   arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c}   |   90 ++++++++++--
+>   arch/arm/mach-omap2/prminst44xx.c                  |   10 +-
+>   .../mach-omap2/{sleep44xx.S => sleep_omap4plus.S}  |  106 +++++++++++++
+>   16 files changed, 512 insertions(+), 90 deletions(-)
+>   rename arch/arm/mach-omap2/{cpuidle44xx.c => cpuidle_omap4plus.c} (58%)
+>   rename arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c} (74%)
+>   rename arch/arm/mach-omap2/{sleep44xx.S => sleep_omap4plus.S} (77%)
+>
 
