@@ -1,85 +1,102 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 11/18] ARM: OMAP5: PM: Add L2 memory power down support
-Date: Mon, 25 Mar 2013 15:35:03 +0530
-Message-ID: <1364205910-32392-12-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 16/18] ARM: OMAP4+: CPUidle: Deprecate use of omap4_mpuss_read_prev_context_state()
+Date: Mon, 25 Mar 2013 15:35:08 +0530
+Message-ID: <1364205910-32392-17-git-send-email-santosh.shilimkar@ti.com>
 References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35772 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:50683 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754457Ab3CYKEH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Mar 2013 06:04:07 -0400
+	id S1754457Ab3CYKEM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Mar 2013 06:04:12 -0400
 In-Reply-To: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@deeprootsystems.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-When the entire MPUSS cluster is powered down in device off state, L2 cache
-memory looses it's content and hence while targetting such a state,
-l2 cache needs to be flushed to main memory.
+Current OMAP4 CPUIdle driver is using omap4_mpuss_read_prev_context_state()
+function to check whether the MPU cluster lost context or not. Thanks to
+couple CPUIdle, cluster low power entry is almost guaranteed and hence
+the programmed cluster check is enough in idle exit path. The API was
+more of an optimization for corner cases, where if the cluster low power
+entry fails for some reason, the cluster context restore gets skipped.
 
-Add the necessary low power code support for the same.
+Moving forward, OMAP CPUidle drivers needs to be moved to drivers/idle/*
+once the PRM/CM code gets moved to drivers. This patch also reduces one
+dependency with platform code for idle driver movement.
 
 Acked-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/omap-secure.h     |    1 +
- arch/arm/mach-omap2/sleep_omap4plus.S |   21 +++++++++++++++++++++
- 2 files changed, 22 insertions(+)
+ arch/arm/mach-omap2/common.h              |    5 -----
+ arch/arm/mach-omap2/cpuidle44xx.c         |    3 ++-
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |   14 --------------
+ 3 files changed, 2 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
-index 1739468..a171a5a 100644
---- a/arch/arm/mach-omap2/omap-secure.h
-+++ b/arch/arm/mach-omap2/omap-secure.h
-@@ -47,6 +47,7 @@
- #define OMAP4_MON_L2X0_PREFETCH_INDEX	0x113
- #define OMAP5_MON_CACHES_CLEAN_INDEX	0x103
- #define OMAP5_MON_AUX_CTRL_INDEX	0x107
-+#define OMAP5_MON_L2AUX_CTRL_INDEX	0x104
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index f75d972..6b97d42 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -250,7 +250,6 @@ extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
+ extern int omap4_finish_suspend(unsigned long cpu_state);
+ extern void omap4_cpu_resume(void);
+ extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
+-extern u32 omap4_mpuss_read_prev_context_state(void);
+ #else
+ static inline int omap4_enter_lowpower(unsigned int cpu,
+ 					unsigned int power_state)
+@@ -278,10 +277,6 @@ static inline int omap4_finish_suspend(unsigned long cpu_state)
+ static inline void omap4_cpu_resume(void)
+ {}
  
- #define OMAP5_MON_AMBA_IF_INDEX		0x108
+-static inline u32 omap4_mpuss_read_prev_context_state(void)
+-{
+-	return 0;
+-}
+ #endif
  
-diff --git a/arch/arm/mach-omap2/sleep_omap4plus.S b/arch/arm/mach-omap2/sleep_omap4plus.S
-index 4a5e2e4..288f62f 100644
---- a/arch/arm/mach-omap2/sleep_omap4plus.S
-+++ b/arch/arm/mach-omap2/sleep_omap4plus.S
-@@ -337,6 +337,7 @@ ENDPROC(omap4_cpu_resume)
-  *	0 - Nothing lost and no need to save: MPUSS INA/CSWR
-  *	1 - CPUx L1 and logic lost: CPU OFF, MPUSS INA/CSWR
-  *	2 - CPUx L1 and logic lost + GIC lost: MPUSS OSWR
-+ *	3 - CPUx L1 and logic lost + GIC,L2 lost: MPU OSWR & L2 lost(debug only)
+ struct omap_sdrc_params;
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index ac6d526..e6218d3 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -146,7 +146,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	 * Call idle CPU cluster PM exit notifier chain
+ 	 * to restore GIC and wakeupgen context.
+ 	 */
+-	if (omap4_mpuss_read_prev_context_state())
++	if ((cx->mpu_state == PWRDM_POWER_RET) &&
++		(cx->mpu_logic_state == PWRDM_POWER_OFF))
+ 		cpu_cluster_pm_exit();
+ 
+ 	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index 995443a..6e917d7 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -185,20 +185,6 @@ static inline void cpu_clear_prev_logic_pwrst(unsigned int cpu_id)
+ 	}
+ }
+ 
+-/**
+- * omap4_mpuss_read_prev_context_state:
+- * Function returns the MPUSS previous context state
+- */
+-u32 omap4_mpuss_read_prev_context_state(void)
+-{
+-	u32 reg;
+-
+-	reg = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
+-		OMAP4430_PRM_MPU_INST, OMAP4_RM_MPU_MPU_CONTEXT_OFFSET);
+-	reg &= OMAP4430_LOSTCONTEXT_DFF_MASK;
+-	return reg;
+-}
+-
+ /*
+  * Store the CPU cluster state for L2X0 low power operations.
   */
- ENTRY(omap5_finish_suspend)
- 	stmfd	sp!, {r4-r12, lr}
-@@ -391,6 +392,26 @@ skip_secure_l1_clean_op:
- 	isb
- 	dsb
- 
-+	bl	omap4_get_sar_ram_base
-+	mov	r8, r0
-+	mrc	p15, 0, r5, c0, c0, 5		@ Read MPIDR
-+	ands	r5, r5, #0x0f
-+	ldreq	r0, [r8, #L2X0_SAVE_OFFSET0]	@ Retrieve L2 state
-+	ldrne	r0, [r8, #L2X0_SAVE_OFFSET1]
-+	cmp	r0, #3
-+	bne	do_wfi
-+	bl	omap4_get_sar_ram_base
-+	ldr	r9, [r0, #OMAP_TYPE_OFFSET]
-+	cmp	r9, #0x1			@ Check for HS device
-+	bne	skip_secure_l2_clean_op
-+	mov	r0, #1				@ Clean secure L2
-+	stmfd   r13!, {r4-r12, r14}
-+	ldr	r12, =OMAP5_MON_CACHES_CLEAN_INDEX
-+	DO_SMC
-+	ldmfd   r13!, {r4-r12, r14}
-+skip_secure_l2_clean_op:
-+	bl	v7_flush_dcache_all
-+
- do_wfi:
- 	bl	omap_do_wfi
- 
 -- 
 1.7.9.5
 
