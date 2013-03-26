@@ -1,67 +1,79 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 6/8] omapdss: Features: Fix some parameter ranges
-Date: Tue, 26 Mar 2013 19:15:23 +0530
-Message-ID: <1364305525-28496-7-git-send-email-archit@ti.com>
+Subject: [PATCH v2 8/8] OMAPDSS: DISPC: Revert to older DISPC Smart Standby mechanism for OMAP5
+Date: Tue, 26 Mar 2013 19:15:25 +0530
+Message-ID: <1364305525-28496-9-git-send-email-archit@ti.com>
 References: <1362493070-17706-1-git-send-email-archit@ti.com>
  <1364305525-28496-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35677 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934414Ab3CZNqo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Mar 2013 09:46:44 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:36863 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934428Ab3CZNqv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Mar 2013 09:46:51 -0400
 In-Reply-To: <1364305525-28496-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, robdclark@gmail.com, andy.gross@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Archit Taneja <archit@ti.com>
 
-Increase the DSS_FCLK and DSI_FCLK max supported frequencies, these come because
-some frequencies were increased from OMAP5 ES1 to OMAP5 ES2. We support only
-OMAP5 ES2 in the kernel, so replace the ES1 values with ES2 values. Increase the
-DSI PLL Fint range, this was previously just copied from the OMAP4 param range
-struct.
+DISPC on OMAP5 has a more optimised mechanism of asserting Mstandby to achieve
+more power savings when DISPC is configured in Smart Standby mode. This
+mechanism leads to underflows when multiple DISPC pipes are enabled.
 
-Fix the maximum DSS_FCLK on OMAP2, it's 133 Mhz according to the TRM.
+There is a register field which can let us revert to the older mechanism of
+asserting Mstandby. Configure this field to prevent underflows.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dss_features.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/omap2/dss/dispc.c |    7 +++++++
+ drivers/video/omap2/dss/dispc.h |    1 +
+ 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 7f791ae..77dbe0c 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -414,7 +414,7 @@ static const char * const omap5_dss_clk_source_names[] = {
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index ddbf031..b33b016 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -87,6 +87,9 @@ struct dispc_features {
+ 
+ 	/* no DISPC_IRQ_FRAMEDONETV on this SoC */
+ 	bool no_framedone_tv:1;
++
++	/* revert to the OMAP4 mechanism of DISPC Smart Standby operation */
++	bool mstandby_workaround:1;
  };
  
- static const struct dss_param_range omap2_dss_param_range[] = {
--	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
-+	[FEAT_PARAM_DSS_FCK]			= { 0, 133000000 },
- 	[FEAT_PARAM_DSS_PCD]			= { 2, 255 },
- 	[FEAT_PARAM_DSIPLL_REGN]		= { 0, 0 },
- 	[FEAT_PARAM_DSIPLL_REGM]		= { 0, 0 },
-@@ -459,15 +459,15 @@ static const struct dss_param_range omap4_dss_param_range[] = {
+ #define DISPC_MAX_NR_FIFOS 5
+@@ -3502,6 +3505,9 @@ static void _omap_dispc_initial_config(void)
+ 	dispc_configure_burst_sizes();
+ 
+ 	dispc_ovl_enable_zorder_planes();
++
++	if (dispc.feat->mstandby_workaround)
++		REG_FLD_MOD(DISPC_MSTANDBY_CTRL, 1, 0, 0);
+ }
+ 
+ static const struct dispc_features omap24xx_dispc_feats __initconst = {
+@@ -3596,6 +3602,7 @@ static const struct dispc_features omap54xx_dispc_feats __initconst = {
+ 	.calc_core_clk		=	calc_core_clk_44xx,
+ 	.num_fifos		=	5,
+ 	.gfx_fifo_workaround	=	true,
++	.mstandby_workaround	=	true,
  };
  
- static const struct dss_param_range omap5_dss_param_range[] = {
--	[FEAT_PARAM_DSS_FCK]			= { 0, 200000000 },
-+	[FEAT_PARAM_DSS_FCK]			= { 0, 209250000 },
- 	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
- 	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1 << 8) - 1 },
- 	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1 << 12) - 1 },
- 	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1 << 5) - 1 },
- 	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, (1 << 5) - 1 },
--	[FEAT_PARAM_DSIPLL_FINT]		= { 500000, 2500000 },
-+	[FEAT_PARAM_DSIPLL_FINT]		= { 150000, 52000000 },
- 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 0, (1 << 13) - 1 },
--	[FEAT_PARAM_DSI_FCK]			= { 0, 170000000 },
-+	[FEAT_PARAM_DSI_FCK]			= { 0, 209250000 },
- 	[FEAT_PARAM_DOWNSCALE]			= { 1, 4 },
- 	[FEAT_PARAM_LINEWIDTH]			= { 1, 2048 },
- };
+ static int __init dispc_init_features(struct platform_device *pdev)
+diff --git a/drivers/video/omap2/dss/dispc.h b/drivers/video/omap2/dss/dispc.h
+index 222363c..de4863d 100644
+--- a/drivers/video/omap2/dss/dispc.h
++++ b/drivers/video/omap2/dss/dispc.h
+@@ -39,6 +39,7 @@
+ #define DISPC_GLOBAL_BUFFER		0x0800
+ #define DISPC_CONTROL3                  0x0848
+ #define DISPC_CONFIG3                   0x084C
++#define DISPC_MSTANDBY_CTRL		0x0858
+ 
+ /* DISPC overlay registers */
+ #define DISPC_OVL_BA0(n)		(DISPC_OVL_BASE(n) + \
 -- 
 1.7.10.4
 
