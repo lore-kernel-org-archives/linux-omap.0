@@ -1,150 +1,54 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2] ARM: OMAP4: clock: Add device tree support for AUXCLKs
-Date: Tue, 26 Mar 2013 12:23:27 +0200
-Message-ID: <1364293408-20677-1-git-send-email-rogerq@ti.com>
-References: <1363703220-4777-2-git-send-email-rogerq@ti.com>
+From: Peter Meerwald <pmeerw@pmeerw.net>
+Subject: regarding arm: update ARM_ERRATA_430973 Kconfig
+Date: Tue, 26 Mar 2013 12:57:07 +0100 (CET)
+Message-ID: <alpine.DEB.2.01.1303261247320.18121@pmeerw.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363703220-4777-2-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: rnayak@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns.pmeerw.net ([87.118.82.44]:43146 "EHLO pmeerw.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752900Ab3CZL5I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Mar 2013 07:57:08 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tim Niemeyer <tim.niemeyer@corscience.de>, Thomas Weber <thomas.weber@corscience.de>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-Register a device tree clock provider for the clocks
-on the OMAP4 SoC. Also provide the binding information.
+Hello,
 
-For now we only provide AUXCLKs.
+regarding your patch against arch/arm/Kconfig:
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- .../devicetree/bindings/clock/omap4-clock.txt      |   33 ++++++++++++++++
- arch/arm/boot/dts/omap4.dtsi                       |    5 ++
- arch/arm/mach-omap2/cclock44xx_data.c              |   41 ++++++++++++++++++++
- 3 files changed, 79 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/clock/omap4-clock.txt
+@@ -1215,7 +1215,7 @@  config ARM_ERRATA_430973
+ 	depends on CPU_V7
+ 	help
+ 	  This option enables the workaround for the 430973 Cortex-A8
+-	  (r1p0..r1p2) erratum. If a code sequence containing an ARM/Thumb
++	  (r1p*) erratum. If a code sequence containing an ARM/Thumb
+ 	  interworking branch is replaced with another code sequence at the
+ 	  same virtual address, whether due to self-modifying code or virtual
+ 	  to physical address re-mapping, Cortex-A8 does not recover from the
 
-diff --git a/Documentation/devicetree/bindings/clock/omap4-clock.txt b/Documentation/devicetree/bindings/clock/omap4-clock.txt
-new file mode 100644
-index 0000000..2845a3f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/omap4-clock.txt
-@@ -0,0 +1,33 @@
-+* Clock bindings for Texas Instruments OMAP4 clocks
-+
-+Required properties:
-+- compatible: Should be "ti,omap4-clock"
-+- #clock-cells: Should be <1>
-+
-+The clock consumer should specify the desired clock by having the clock
-+ID in its "clocks" phandle cell.  The following is a list of OMAP4 clocks
-+and IDs.
-+
-+	Clock		ID
-+	------------------
-+	auxclk0_ck	0
-+	auxclk1_ck	1
-+	auxclk2_ck	2
-+	auxclk3_ck	3
-+	auxclk4_ck	4
-+	auxclk5_ck	5
-+
-+Example:
-+
-+aux_clks: scrmclks {
-+	compatible = "ti,omap4-clock";
-+	#clock-cells = <1>;
-+};
-+
-+hsusb1_phy: hsusb1_phy {
-+	compatible = "usb-nop-xceiv";
-+	reset-supply = <&hsusb1_reset>;
-+	clocks = <&aux_clks 3>;
-+	clock-names = "main_clk";
-+	clock-frequency = <19200000>;
-+};
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 739bb79..f27548a 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -101,6 +101,11 @@
- 			ti,hwmods = "counter_32k";
- 		};
- 
-+		clks: clocks {
-+			compatible = "ti,omap4-clock";
-+			#clock-cells = <1>;
-+		};
-+
- 		omap4_pmx_core: pinmux@4a100040 {
- 			compatible = "ti,omap4-padconf", "pinctrl-single";
- 			reg = <0x4a100040 0x0196>;
-diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-index 3d58f33..a93617b 100644
---- a/arch/arm/mach-omap2/cclock44xx_data.c
-+++ b/arch/arm/mach-omap2/cclock44xx_data.c
-@@ -27,6 +27,7 @@
- #include <linux/clk-private.h>
- #include <linux/clkdev.h>
- #include <linux/io.h>
-+#include <linux/of.h>
- 
- #include "soc.h"
- #include "iomap.h"
-@@ -1663,6 +1664,44 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
- };
- 
-+/*
-+ * List of clocks that can be referenced in device tree
-+ * Must match with Documentation/devicetree/bindings/clock/omap4-clock.txt
-+ */
-+static struct clk *dt_clks[] = {
-+	&auxclk0_ck,
-+	&auxclk1_ck,
-+	&auxclk2_ck,
-+	&auxclk3_ck,
-+	&auxclk4_ck,
-+	&auxclk5_ck,
-+};
-+
-+static struct clk_onecell_data clock_data;
-+
-+#ifdef CONFIG_OF
-+int __init omap4_clk_init_dt(void)
-+{
-+	struct device_node *np;
-+
-+	np = of_find_compatible_node(NULL, NULL, "ti,omap4-clock");
-+	if (np) {
-+		clock_data.clks = dt_clks;
-+		clock_data.clk_num = ARRAY_SIZE(dt_clks);
-+		of_clk_add_provider(np, of_clk_src_onecell_get,	&clock_data);
-+	}
-+
-+	return 0;
-+}
-+
-+#else
-+
-+int __init omap4_clk_init_dt(void)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_OF */
-+
- int __init omap4xxx_clk_init(void)
- {
- 	u32 cpu_clkflg;
-@@ -1693,6 +1732,8 @@ int __init omap4xxx_clk_init(void)
- 
- 	omap2_clk_disable_autoidle_all();
- 
-+	omap4_clk_init_dt();
-+
- 	/*
- 	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
- 	 * state when turning the ABE clock domain. Workaround this by
+
+I am seeing strange segfault/illegal instructions fixed by enabling 
+ARM_ERRATA_430973 on a TI OMAP3 DM3730, r3p2 IMHO (see below) 
+
+ARM_ERRATA_430973 is relevant for which processors? have you checked the 
+errata list? I had no luck obtaining it yet
+
+
+cat /proc/cpuinfo 
+Processor       : ARMv7 Processor rev 2 (v7l)
+BogoMIPS        : 313.29
+Features        : swp half thumb fastmult vfp edsp thumbee neon vfpv3 tls 
+CPU implementer : 0x41
+CPU architecture: 7
+CPU variant     : 0x3
+CPU part        : 0xc08
+CPU revision    : 2
+
+thanks, p.
+
 -- 
-1.7.4.1
+
+Peter Meerwald
++43-664-2444418 (mobile)
