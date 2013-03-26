@@ -1,93 +1,123 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 25/26] ARM: OMAP: Overo: use new TFP410 platform driver
-Date: Tue, 26 Mar 2013 15:33:55 +0200
-Message-ID: <1364304836-18134-26-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 24/26] ARM: OMAP: 4430SDP: use new Taal driver
+Date: Tue, 26 Mar 2013 15:33:54 +0200
+Message-ID: <1364304836-18134-25-git-send-email-tomi.valkeinen@ti.com>
 References: <1364304836-18134-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35079 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934393Ab3CZNfG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Mar 2013 09:35:06 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:36270 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934388Ab3CZNfF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Mar 2013 09:35:05 -0400
 In-Reply-To: <1364304836-18134-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use the new TFP410 platform driver instead of the old omap_dss_driver.
+Change 4430SDP to use the new Taal platform driver instead of the old
+omap_dss_driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-overo.c |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ arch/arm/mach-omap2/dss-common.c |   41 ++++++++++++++++----------------------
+ 1 file changed, 17 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 86bab51..e3cd2bd 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -157,6 +157,20 @@ static struct gpio overo_dss_gpios[] __initdata = {
- 	{ OVERO_GPIO_LCD_BL, GPIOF_OUT_INIT_HIGH, "OVERO_GPIO_LCD_BL" },
+diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+index 64ca888..a10c56b 100644
+--- a/arch/arm/mach-omap2/dss-common.c
++++ b/arch/arm/mach-omap2/dss-common.c
+@@ -107,7 +107,8 @@ void __init omap4_panda_display_init_of(void)
+ #define DLP_POWER_ON_GPIO	40
+ 
+ static struct nokia_dsi_panel_data dsi1_panel = {
+-		.name		= "taal",
++		.name		= "lcd",
++		.source		= "dsi.0",
+ 		.reset_gpio	= 102,
+ 		.use_ext_te	= false,
+ 		.ext_te_gpio	= 101,
+@@ -118,19 +119,15 @@ static struct nokia_dsi_panel_data dsi1_panel = {
+ 		},
  };
  
-+static struct tfp410_platform_data dvi_panel = {
-+	.name			= "dvi",
-+	.source			= "dpi.0",
-+	.data_lines		= 24,
-+	.i2c_bus_num		= 3,
-+	.power_down_gpio	= -1,
-+};
-+
-+static struct platform_device overo_dvi_device = {
-+	.name			= "tfp410",
+-static struct omap_dss_device sdp4430_lcd_device = {
+-	.name			= "lcd",
+-	.driver_name		= "taal",
+-	.type			= OMAP_DISPLAY_TYPE_DSI,
+-	.data			= &dsi1_panel,
+-	.phy.dsi		= {
+-		.module		= 0,
+-	},
+-	.channel		= OMAP_DSS_CHANNEL_LCD,
++static struct platform_device sdp4430_lcd1_device = {
++	.name			= "taal",
 +	.id			= 0,
-+	.dev.platform_data	= &dvi_panel,
-+};
-+
- static void __init overo_display_init(void)
- {
- 	if (gpio_request_array(overo_dss_gpios, ARRAY_SIZE(overo_dss_gpios))) {
-@@ -166,20 +180,9 @@ static void __init overo_display_init(void)
- 
- 	gpio_export(OVERO_GPIO_LCD_EN, 0);
- 	gpio_export(OVERO_GPIO_LCD_BL, 0);
--}
- 
--static struct tfp410_platform_data dvi_panel = {
--	.i2c_bus_num		= 3,
--	.power_down_gpio	= -1,
--};
--
--static struct omap_dss_device overo_dvi_device = {
--	.name			= "dvi",
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.driver_name		= "tfp410",
--	.data			= &dvi_panel,
--	.phy.dpi.data_lines	= 24,
--};
-+	platform_device_register(&overo_dvi_device);
-+}
- 
- static struct omap_dss_device overo_tv_device = {
- 	.name = "tv",
-@@ -235,7 +238,6 @@ static struct omap_dss_device overo_lcd35_device = {
- #endif
- 
- static struct omap_dss_device *overo_dss_devices[] = {
--	&overo_dvi_device,
- 	&overo_tv_device,
- #if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
- 	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
-@@ -247,7 +249,7 @@ static struct omap_dss_device *overo_dss_devices[] = {
- static struct omap_dss_board_info overo_dss_data = {
- 	.num_devices	= ARRAY_SIZE(overo_dss_devices),
- 	.devices	= overo_dss_devices,
--	.default_device	= &overo_dvi_device,
-+	.default_display_name = "dvi",
++	.dev.platform_data	= &dsi1_panel,
  };
  
- static struct mtd_partition overo_nand_partitions[] = {
+ static struct nokia_dsi_panel_data dsi2_panel = {
+-		.name		= "taal",
++		.name		= "lcd2",
++		.source		= "dsi.1",
+ 		.reset_gpio	= 104,
+ 		.use_ext_te	= false,
+ 		.ext_te_gpio	= 103,
+@@ -141,16 +138,10 @@ static struct nokia_dsi_panel_data dsi2_panel = {
+ 		},
+ };
+ 
+-static struct omap_dss_device sdp4430_lcd2_device = {
+-	.name			= "lcd2",
+-	.driver_name		= "taal",
+-	.type			= OMAP_DISPLAY_TYPE_DSI,
+-	.data			= &dsi2_panel,
+-	.phy.dsi		= {
+-
+-		.module		= 1,
+-	},
+-	.channel		= OMAP_DSS_CHANNEL_LCD2,
++static struct platform_device sdp4430_lcd2_device = {
++	.name			= "taal",
++	.id			= 1,
++	.dev.platform_data	= &dsi2_panel,
+ };
+ 
+ static struct omap_dss_hdmi_data sdp4430_hdmi_data = {
+@@ -214,15 +205,13 @@ static struct omap_dss_device sdp4430_picodlp_device = {
+ };
+ 
+ static struct omap_dss_device *sdp4430_dss_devices[] = {
+-	&sdp4430_lcd_device,
+-	&sdp4430_lcd2_device,
+ 	&sdp4430_picodlp_device,
+ };
+ 
+ static struct omap_dss_board_info sdp4430_dss_data = {
+ 	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
+ 	.devices	= sdp4430_dss_devices,
+-	.default_device	= &sdp4430_lcd_device,
++	.default_display_name = "lcd",
+ };
+ 
+ void __init omap_4430sdp_display_init(void)
+@@ -238,6 +227,8 @@ void __init omap_4430sdp_display_init(void)
+ 	sdp4430_picodlp_init();
+ 	omap_display_init(&sdp4430_dss_data);
+ 	platform_device_register(&sdp4430_hdmi_device);
++	platform_device_register(&sdp4430_lcd1_device);
++	platform_device_register(&sdp4430_lcd2_device);
+ 	/*
+ 	 * OMAP4460SDP/Blaze and OMAP4430 ES2.3 SDP/Blaze boards and
+ 	 * later have external pull up on the HDMI I2C lines
+@@ -265,4 +256,6 @@ void __init omap_4430sdp_display_init_of(void)
+ 	sdp4430_picodlp_init();
+ 	omap_display_init(&sdp4430_dss_data);
+ 	platform_device_register(&sdp4430_hdmi_device);
++	platform_device_register(&sdp4430_lcd1_device);
++	platform_device_register(&sdp4430_lcd2_device);
+ }
 -- 
 1.7.10.4
 
