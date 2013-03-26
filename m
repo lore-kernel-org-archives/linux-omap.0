@@ -1,133 +1,133 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 5/8] omapdss: DISPC: add max pixel clock limits for LCD and TV managers
-Date: Tue, 26 Mar 2013 19:15:22 +0530
-Message-ID: <1364305525-28496-6-git-send-email-archit@ti.com>
+Subject: [PATCH v3 3/8] drm/omap: Make fixed resolution panels work
+Date: Tue, 26 Mar 2013 19:15:20 +0530
+Message-ID: <1364305525-28496-4-git-send-email-archit@ti.com>
 References: <1362493070-17706-1-git-send-email-archit@ti.com>
  <1364305525-28496-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46637 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46632 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934405Ab3CZNqk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Mar 2013 09:46:40 -0400
+	id S934405Ab3CZNqi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Mar 2013 09:46:38 -0400
 In-Reply-To: <1364305525-28496-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, robdclark@gmail.com, andy.gross@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Archit Taneja <archit@ti.com>
 
-Each version of OMAP has a limitation on the maximum pixel clock frequency
-supported by an overlay manager. This limit isn't checked by omapdss. Add
-dispc feats for lcd and tv managers and check whether the target timings can
-be supported or not.
+The omapdrm driver requires omapdss panel drivers to expose ops like detect,
+set_timings and check_timings. These can be NULL for fixed panel DPI, DBI, DSI
+and SDI drivers. At some places, there are no checks to see if the panel driver
+has these ops or not, and that leads to a crash.
 
-The pixel clock limitations are actually more complex. They depend on which OPP
-OMAP is in, and they also depend on which encoder is the manager connected to.
-The OPP dependence is ignored as DSS forces the PM framework to be on OPP100
-when DSS is enabled, and the encoder dependencies are ignored by DISPC for now.
-These limits should come from the encoder driver.
+The following things are done to make fixed panels work:
 
-The OMAP2 TRM doesn't mention the maximum pixel clock limit. This value is left
-as half of DSS_FCLK, as OMAP2 requires the PCD to be atleast 2.
+- The omap_connector's detect function is modified such that it considers panel
+  types which are generally fixed panels as always connected(provided the panel
+  driver doesn't have a detect op). Hence, the connector corresponding to these
+  panels is always in a 'connected' state.
+
+- If a panel driver doesn't have a check_timings op, assume that it supports the
+  mode passed to omap_connector_mode_valid(the 'mode_valid' drm helper function)
+
+- The function omap_encoder_update shouldn't really do anything for fixed
+  resolution panels, make sure that it calls set_timings only if the panel
+  driver has one.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   32 +++++++++++++++++++++++++++-----
- 1 file changed, 27 insertions(+), 5 deletions(-)
+v3: clear the timings local variable first before using memcmp
+v2: make sure the timings we try to set for a fixed resolution panel match the
+    panel's timings
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 8cfa27b..73a730a 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -69,6 +69,8 @@ struct dispc_features {
- 	u8 mgr_height_start;
- 	u16 mgr_width_max;
- 	u16 mgr_height_max;
-+	unsigned long max_lcd_pclk;
-+	unsigned long max_tv_pclk;
- 	int (*calc_scaling) (unsigned long pclk, unsigned long lclk,
- 		const struct omap_video_timings *mgr_timings,
- 		u16 width, u16 height, u16 out_width, u16 out_height,
-@@ -2825,6 +2827,15 @@ static bool _dispc_lcd_timings_ok(int hsw, int hfp, int hbp,
- 	return true;
- }
+ drivers/gpu/drm/omapdrm/omap_connector.c |   27 +++++++++++++++++++++++++--
+ drivers/gpu/drm/omapdrm/omap_encoder.c   |   17 +++++++++++++++--
+ 2 files changed, 40 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm/omapdrm/omap_connector.c
+index c451c41..912759d 100644
+--- a/drivers/gpu/drm/omapdrm/omap_connector.c
++++ b/drivers/gpu/drm/omapdrm/omap_connector.c
+@@ -110,6 +110,11 @@ static enum drm_connector_status omap_connector_detect(
+ 			ret = connector_status_connected;
+ 		else
+ 			ret = connector_status_disconnected;
++	} else if (dssdev->type == OMAP_DISPLAY_TYPE_DPI ||
++			dssdev->type == OMAP_DISPLAY_TYPE_DBI ||
++			dssdev->type == OMAP_DISPLAY_TYPE_SDI ||
++			dssdev->type == OMAP_DISPLAY_TYPE_DSI) {
++		ret = connector_status_connected;
+ 	} else {
+ 		ret = connector_status_unknown;
+ 	}
+@@ -189,12 +194,30 @@ static int omap_connector_mode_valid(struct drm_connector *connector,
+ 	struct omap_video_timings timings = {0};
+ 	struct drm_device *dev = connector->dev;
+ 	struct drm_display_mode *new_mode;
+-	int ret = MODE_BAD;
++	int r, ret = MODE_BAD;
  
-+static bool _dispc_mgr_pclk_ok(enum omap_channel channel,
-+		unsigned long pclk)
-+{
-+	if (dss_mgr_is_lcd(channel))
-+		return pclk <= dispc.feat->max_lcd_pclk ? true : false;
-+	else
-+		return pclk <= dispc.feat->max_tv_pclk ? true : false;
-+}
+ 	copy_timings_drm_to_omap(&timings, mode);
+ 	mode->vrefresh = drm_mode_vrefresh(mode);
+ 
+-	if (!dssdrv->check_timings(dssdev, &timings)) {
++	/*
++	 * if the panel driver doesn't have a check_timings, it's most likely
++	 * a fixed resolution panel, check if the timings match with the
++	 * panel's timings
++	 */
++	if (dssdrv->check_timings) {
++		r = dssdrv->check_timings(dssdev, &timings);
++	} else {
++		struct omap_video_timings t = {0};
 +
- bool dispc_mgr_timings_ok(enum omap_channel channel,
- 		const struct omap_video_timings *timings)
- {
-@@ -2832,11 +2843,13 @@ bool dispc_mgr_timings_ok(enum omap_channel channel,
- 
- 	timings_ok = _dispc_mgr_size_ok(timings->x_res, timings->y_res);
- 
--	if (dss_mgr_is_lcd(channel))
--		timings_ok =  timings_ok && _dispc_lcd_timings_ok(timings->hsw,
--						timings->hfp, timings->hbp,
--						timings->vsw, timings->vfp,
--						timings->vbp);
-+	timings_ok &= _dispc_mgr_pclk_ok(channel, timings->pixel_clock * 1000);
++		dssdrv->get_timings(dssdev, &t);
 +
-+	if (dss_mgr_is_lcd(channel)) {
-+		timings_ok &= _dispc_lcd_timings_ok(timings->hsw, timings->hfp,
-+				timings->hbp, timings->vsw, timings->vfp,
-+				timings->vbp);
++		if (memcmp(&timings, &t, sizeof(struct omap_video_timings)))
++			r = -EINVAL;
++		else
++			r = 0;
 +	}
++
++	if (!r) {
+ 		/* check if vrefresh is still valid */
+ 		new_mode = drm_mode_duplicate(dev, mode);
+ 		new_mode->clock = timings.pixel_clock;
+diff --git a/drivers/gpu/drm/omapdrm/omap_encoder.c b/drivers/gpu/drm/omapdrm/omap_encoder.c
+index d48df71..c29451b 100644
+--- a/drivers/gpu/drm/omapdrm/omap_encoder.c
++++ b/drivers/gpu/drm/omapdrm/omap_encoder.c
+@@ -135,13 +135,26 @@ int omap_encoder_update(struct drm_encoder *encoder,
  
- 	return timings_ok;
+ 	dssdev->output->manager = mgr;
+ 
+-	ret = dssdrv->check_timings(dssdev, timings);
++	if (dssdrv->check_timings) {
++		ret = dssdrv->check_timings(dssdev, timings);
++	} else {
++		struct omap_video_timings t = {0};
++
++		dssdrv->get_timings(dssdev, &t);
++
++		if (memcmp(timings, &t, sizeof(struct omap_video_timings)))
++			ret = -EINVAL;
++		else
++			ret = 0;
++	}
++
+ 	if (ret) {
+ 		dev_err(dev->dev, "could not set timings: %d\n", ret);
+ 		return ret;
+ 	}
+ 
+-	dssdrv->set_timings(dssdev, timings);
++	if (dssdrv->set_timings)
++		dssdrv->set_timings(dssdev, timings);
+ 
+ 	return 0;
  }
-@@ -3491,6 +3504,7 @@ static const struct dispc_features omap24xx_dispc_feats __initconst = {
- 	.mgr_height_start	=	26,
- 	.mgr_width_max		=	2048,
- 	.mgr_height_max		=	2048,
-+	.max_lcd_pclk		=	66500000,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_24xx,
- 	.calc_core_clk		=	calc_core_clk_24xx,
- 	.num_fifos		=	3,
-@@ -3508,6 +3522,8 @@ static const struct dispc_features omap34xx_rev1_0_dispc_feats __initconst = {
- 	.mgr_height_start	=	26,
- 	.mgr_width_max		=	2048,
- 	.mgr_height_max		=	2048,
-+	.max_lcd_pclk		=	173000000,
-+	.max_tv_pclk		=	59000000,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_34xx,
- 	.calc_core_clk		=	calc_core_clk_34xx,
- 	.num_fifos		=	3,
-@@ -3525,6 +3541,8 @@ static const struct dispc_features omap34xx_rev3_0_dispc_feats __initconst = {
- 	.mgr_height_start	=	26,
- 	.mgr_width_max		=	2048,
- 	.mgr_height_max		=	2048,
-+	.max_lcd_pclk		=	173000000,
-+	.max_tv_pclk		=	59000000,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_34xx,
- 	.calc_core_clk		=	calc_core_clk_34xx,
- 	.num_fifos		=	3,
-@@ -3542,6 +3560,8 @@ static const struct dispc_features omap44xx_dispc_feats __initconst = {
- 	.mgr_height_start	=	26,
- 	.mgr_width_max		=	2048,
- 	.mgr_height_max		=	2048,
-+	.max_lcd_pclk		=	170000000,
-+	.max_tv_pclk		=	185625000,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_44xx,
- 	.calc_core_clk		=	calc_core_clk_44xx,
- 	.num_fifos		=	5,
-@@ -3559,6 +3579,8 @@ static const struct dispc_features omap54xx_dispc_feats __initconst = {
- 	.mgr_height_start	=	27,
- 	.mgr_width_max		=	4096,
- 	.mgr_height_max		=	4096,
-+	.max_lcd_pclk		=	170000000,
-+	.max_tv_pclk		=	186000000,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_44xx,
- 	.calc_core_clk		=	calc_core_clk_44xx,
- 	.num_fifos		=	5,
 -- 
 1.7.10.4
 
