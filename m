@@ -1,141 +1,118 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 09/26] OMAPDSS: don't use dss bus in suspend/resume
-Date: Tue, 26 Mar 2013 15:33:39 +0200
-Message-ID: <1364304836-18134-10-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 13/26] OMAPDSS: DSI: new panel registration
+Date: Tue, 26 Mar 2013 15:33:43 +0200
+Message-ID: <1364304836-18134-14-git-send-email-tomi.valkeinen@ti.com>
 References: <1364304836-18134-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55863 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:36248 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934241Ab3CZNeo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Mar 2013 09:34:44 -0400
+	id S934241Ab3CZNeu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Mar 2013 09:34:50 -0400
 In-Reply-To: <1364304836-18134-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-We have support functions to suspend and resume all the displays that
-are used with system suspend. These functions use the dss bus to iterate
-the display devices.
-
-As we aim to remove the custom dss bus totally, this patch removes the
-explicit use of dss bus from these functions. Instead the
-for_each_dss_dev() macro is used to go through the devices.
+This patch adds new way to register DSI panels. This new method will be
+used by the panel drivers that are converted away from the current dss
+bus based model.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/display.c |   77 ++++++++++++++-----------------------
- 1 file changed, 28 insertions(+), 49 deletions(-)
+ drivers/video/omap2/dss/dsi.c |   55 ++++++++++++++++++++++++++++++++++++++++-
+ include/video/omapdss.h       |    3 +++
+ 2 files changed, 57 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index 50792bf..85e1cd3 100644
---- a/drivers/video/omap2/dss/display.c
-+++ b/drivers/video/omap2/dss/display.c
-@@ -76,74 +76,53 @@ void omapdss_default_get_timings(struct omap_dss_device *dssdev,
- }
- EXPORT_SYMBOL(omapdss_default_get_timings);
- 
--static int dss_suspend_device(struct device *dev, void *data)
--{
--	struct omap_dss_device *dssdev = to_dss_device(dev);
--
--	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE) {
--		dssdev->activate_after_resume = false;
--		return 0;
--	}
--
--	dssdev->driver->disable(dssdev);
--
--	dssdev->activate_after_resume = true;
--
--	return 0;
--}
--
- int dss_suspend_all_devices(void)
- {
--	int r;
--	struct bus_type *bus = dss_get_bus();
--
--	r = bus_for_each_dev(bus, NULL, NULL, dss_suspend_device);
--	if (r) {
--		/* resume all displays that were suspended */
--		dss_resume_all_devices();
--		return r;
--	}
--
--	return 0;
--}
-+	struct omap_dss_device *dssdev = NULL;
- 
--static int dss_resume_device(struct device *dev, void *data)
--{
--	int r;
--	struct omap_dss_device *dssdev = to_dss_device(dev);
-+	for_each_dss_dev(dssdev) {
-+		if (!dssdev->driver)
-+			continue;
- 
--	if (dssdev->activate_after_resume) {
--		r = dssdev->driver->enable(dssdev);
--		if (r)
--			return r;
-+		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
-+			dssdev->driver->disable(dssdev);
-+			dssdev->activate_after_resume = true;
-+		} else {
-+			dssdev->activate_after_resume = false;
-+		}
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index ddb8bf6..fb77aa8 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -5225,7 +5225,7 @@ static enum omap_channel dsi_get_channel(int module_id)
  	}
+ }
  
--	dssdev->activate_after_resume = false;
--
+-static int __init dsi_init_display(struct omap_dss_device *dssdev)
++static int dsi_init_display(struct omap_dss_device *dssdev)
+ {
+ 	struct platform_device *dsidev =
+ 			dsi_get_dsidev_from_id(dssdev->phy.dsi.module);
+@@ -5253,6 +5253,59 @@ static int __init dsi_init_display(struct omap_dss_device *dssdev)
  	return 0;
  }
  
- int dss_resume_all_devices(void)
- {
--	struct bus_type *bus = dss_get_bus();
--
--	return bus_for_each_dev(bus, NULL, NULL, dss_resume_device);
--}
-+	struct omap_dss_device *dssdev = NULL;
- 
--static int dss_disable_device(struct device *dev, void *data)
--{
--	struct omap_dss_device *dssdev = to_dss_device(dev);
-+	for_each_dss_dev(dssdev) {
-+		if (!dssdev->driver)
-+			continue;
- 
--	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED)
--		dssdev->driver->disable(dssdev);
-+		if (dssdev->activate_after_resume) {
-+			dssdev->driver->enable(dssdev);
-+			dssdev->activate_after_resume = false;
-+		}
-+	}
- 
- 	return 0;
- }
- 
- void dss_disable_all_devices(void)
- {
--	struct bus_type *bus = dss_get_bus();
--	bus_for_each_dev(bus, NULL, NULL, dss_disable_device);
-+	struct omap_dss_device *dssdev = NULL;
++int omap_dsi_register_panel(struct omap_dss_device *dssdev,
++		struct omap_dss_output *out)
++{
++	int r;
++	struct platform_device *dsidev;
++	struct dsi_data *dsi;
 +
-+	for_each_dss_dev(dssdev) {
-+		if (!dssdev->driver)
-+			continue;
++	dssdev->type = OMAP_DISPLAY_TYPE_DSI;
 +
-+		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-+			dssdev->driver->disable(dssdev);
++	switch (out->id) {
++	case OMAP_DSS_OUTPUT_DSI1:
++		dssdev->phy.dsi.module = 0;
++		break;
++	case OMAP_DSS_OUTPUT_DSI2:
++		dssdev->phy.dsi.module = 1;
++		break;
++	default:
++		return -EINVAL;
 +	}
- }
++
++	dsidev = dsi_get_dsidev_from_id(dssdev->phy.dsi.module);
++	dsi = dsi_get_dsidrv_data(dsidev);
++
++	r = dsi_init_display(dssdev);
++	if (r) {
++		DSSERR("device %s init failed: %d\n", dssdev->name, r);
++		return r;
++	}
++
++	r = omapdss_output_set_device(&dsi->output, dssdev);
++	if (r) {
++		DSSERR("failed to connect output to new device: %s\n",
++				dssdev->name);
++		return r;
++	}
++
++	dss_add_panel(dssdev);
++
++	return 0;
++}
++EXPORT_SYMBOL(omap_dsi_register_panel);
++
++void omap_dsi_free_panel(struct omap_dss_device *dssdev)
++{
++	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
++	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
++
++	dss_remove_panel(dssdev);
++
++	omapdss_output_unset_device(&dsi->output);
++}
++EXPORT_SYMBOL(omap_dsi_free_panel);
++
+ int omap_dsi_request_vc(struct omap_dss_device *dssdev, int *channel)
+ {
+ 	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 78c4e51..2bf90fd 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -862,6 +862,9 @@ int omapdss_dsi_configure_pins(struct omap_dss_device *dssdev,
+ int omapdss_dsi_display_enable(struct omap_dss_device *dssdev);
+ void omapdss_dsi_display_disable(struct omap_dss_device *dssdev,
+ 		bool disconnect_lanes, bool enter_ulps);
++int omap_dsi_register_panel(struct omap_dss_device *dssdev,
++		struct omap_dss_output *out);
++void omap_dsi_free_panel(struct omap_dss_device *dssdev);
  
- static LIST_HEAD(panel_list);
+ int omap_dpi_register_panel(struct omap_dss_device *dssdev);
+ void omap_dpi_free_panel(struct omap_dss_device *dssdev);
 -- 
 1.7.10.4
 
