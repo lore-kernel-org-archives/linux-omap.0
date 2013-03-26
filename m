@@ -1,68 +1,102 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 0/8] omapdss/omapdrm: Misc fixes and improvements
-Date: Tue, 26 Mar 2013 19:15:17 +0530
-Message-ID: <1364305525-28496-1-git-send-email-archit@ti.com>
-References: <1362493070-17706-1-git-send-email-archit@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v3 1/1] gpio: omap: dts: Move interrupt-controller from
+ #interrupt-cells description
+Date: Tue, 26 Mar 2013 15:10:33 +0100
+Message-ID: <5151AC59.5060802@ti.com>
+References: <1363354317-14985-1-git-send-email-javier.martinez@collabora.co.uk> <CAAwP0s3PqsCF6TsMe6-aD9LKAOfQ=ToSXDXnnu5MvN01x3b5cw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <1362493070-17706-1-git-send-email-archit@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: tomi.valkeinen@ti.com, robdclark@gmail.com, andy.gross@ti.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57762 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759789Ab3CZOLK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Mar 2013 10:11:10 -0400
+In-Reply-To: <CAAwP0s3PqsCF6TsMe6-aD9LKAOfQ=ToSXDXnnu5MvN01x3b5cw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Stephen Warren <swarren@nvidia.com>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>
 
-These are misc fixes and improvements within omapdrm and omapdss. The fixes do the
-following:
+Hi Javier,
 
-- Make omapdrm smarter to choose the right overlay managers as it's crtcs. This
-  makes sure that omapdrm is functional for OMAP platforms with different
-  combinations of panels connected to it.
+On 03/26/2013 10:33 AM, Javier Martinez Canillas wrote:
+> On Fri, Mar 15, 2013 at 2:31 PM, Javier Martinez Canillas
+> <javier.martinez@collabora.co.uk> wrote:
+>> The binding documentation for the OMAP GPIO controller has the
+>> "#interrupt-cells" property listed before "#interrupt-controller"
+>> property but its description after.
+>> This is confusing so we move "#interrupt-cells" after the
+>> "interrupt-controller" property so is followed by its description.
+>>
+>> While being there, change the properties order to be consistent with
+>> Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
+>> and Documentation/devicetree/bindings/gpio/gpio.txt.
+>>
+>> According with these docs, the order of the properties for a gpio-omap
+>> device node should be:
+>>
+>>     gpio-controller;
+>>     #gpio-cells = <2>;
+>>     interrupt-controller;
+>>     #interrupt-cells = <2>;
+>>
+>> Reported-by: Stephen Warren <swarren@nvidia.com>
+>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+>> Acked-by: Jon Hunter <jon-hunter@ti.com>
+>> ---
+>>
+>> Changes since v1:
+>>   - Change the properties order to be consistent with the rest of the
+>>     DT bindings docs suggested by Jon Hunter.
+>>
+>> Changes since v2:
+>>   - Fix changelog that explained the opposite of what the patch was doing as
+>>     suggested by Benoit Cousson.
+>>
+>>  .../devicetree/bindings/gpio/gpio-omap.txt         |    8 ++++----
+>>  1 files changed, 4 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+>> index bff51a2..a56e3a5 100644
+>> --- a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+>> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+>> @@ -5,12 +5,12 @@ Required properties:
+>>    - "ti,omap2-gpio" for OMAP2 controllers
+>>    - "ti,omap3-gpio" for OMAP3 controllers
+>>    - "ti,omap4-gpio" for OMAP4 controllers
+>> +- gpio-controller : Marks the device node as a GPIO controller.
+>>  - #gpio-cells : Should be two.
+>>    - first cell is the pin number
+>>    - second cell is used to specify optional parameters (unused)
+>> -- gpio-controller : Marks the device node as a GPIO controller.
+>> +- interrupt-controller: Mark the device node as an interrupt controller.
+>>  - #interrupt-cells : Should be 2.
+>> -- interrupt-controller: Mark the device node as an interrupt controller
+>>    The first cell is the GPIO number.
+>>    The second cell is used to specify flags:
+>>      bits[3:0] trigger type and level flags:
+>> @@ -29,8 +29,8 @@ Example:
+>>  gpio4: gpio4 {
+>>      compatible = "ti,omap4-gpio";
+>>      ti,hwmods = "gpio4";
+>> -    #gpio-cells = <2>;
+>>      gpio-controller;
+>> -    #interrupt-cells = <2>;
+>> +    #gpio-cells = <2>;
+>>      interrupt-controller;
+>> +    #interrupt-cells = <2>;
+>>  };
+>> --
+>> 1.7.7.6
+>>
+> 
+> Hello,
+> 
+> any comments on this patch?
 
-- Fix certain areas in omapdrm which allow fixed resolution panels to work.
+That's perfect. I've just applied it in my branch.
 
-- Fix functional and pixel clock limits for DISPC, this ensures we don't try
-  to try a mode that the hardware can't support.
+Thanks,
+Benoit
 
-- Some changes that came in OMAP5 ES2 silicon.
-
-Note: The branch is based on the DSS misc series and dsi video mode calc series
-posted by Tomi. Reference branch:
-
-git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git for-3.10/misc_drm_dss
-
-Archit Taneja (8):
-  drm/omap: Don't return from modeset_init if a panel doesn't satisfy
-    omapdrm requirements
-  drm/omap: Fix and improve crtc and overlay manager correlation
-  drm/omap: Make fixed resolution panels work
-  omapdss: features: fixed supported outputs for OMAP4
-  omapdss: DISPC: add max pixel clock limits for LCD and TV managers
-  omapdss: Features: Fix some parameter ranges
-  OMAPDSS: DISPC: Configure doublestride for NV12 when using 2D Tiler
-    buffers
-  OMAPDSS: DISPC: Revert to older DISPC Smart Standby mechanism for
-    OMAP5
-
- drivers/gpu/drm/omapdrm/omap_connector.c |   27 ++++-
- drivers/gpu/drm/omapdrm/omap_crtc.c      |   21 ++--
- drivers/gpu/drm/omapdrm/omap_drv.c       |  161 ++++++++++++++++++++++++------
- drivers/gpu/drm/omapdrm/omap_drv.h       |   38 +------
- drivers/gpu/drm/omapdrm/omap_encoder.c   |   24 ++++-
- drivers/gpu/drm/omapdrm/omap_irq.c       |   17 ++--
- drivers/video/omap2/dss/dispc.c          |   52 ++++++++--
- drivers/video/omap2/dss/dispc.h          |    1 +
- drivers/video/omap2/dss/dss_features.c   |   14 ++-
- 9 files changed, 260 insertions(+), 95 deletions(-)
-
--- 
-1.7.10.4
