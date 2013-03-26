@@ -1,110 +1,84 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v3 1/1] gpio: omap: dts: Move interrupt-controller from
- #interrupt-cells description
-Date: Tue, 26 Mar 2013 15:29:13 +0100
-Message-ID: <5151B0B9.7090308@ti.com>
-References: <1363354317-14985-1-git-send-email-javier.martinez@collabora.co.uk> <CAAwP0s3PqsCF6TsMe6-aD9LKAOfQ=ToSXDXnnu5MvN01x3b5cw@mail.gmail.com> <5151AC59.5060802@ti.com>
+Subject: Re: [PATCH v2 00/11] ARM: dts: OMAP5: ocp address space and few updates
+ for 3.10
+Date: Tue, 26 Mar 2013 15:31:19 +0100
+Message-ID: <5151B137.1030605@ti.com>
+References: <1363699857-5505-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58700 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48956 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759793Ab3CZO3s (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Mar 2013 10:29:48 -0400
-In-Reply-To: <5151AC59.5060802@ti.com>
+	id S1759793Ab3CZObg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Mar 2013 10:31:36 -0400
+In-Reply-To: <1363699857-5505-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Stephen Warren <swarren@nvidia.com>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-On 03/26/2013 03:10 PM, Benoit Cousson wrote:
-> Hi Javier,
-> 
-> On 03/26/2013 10:33 AM, Javier Martinez Canillas wrote:
->> On Fri, Mar 15, 2013 at 2:31 PM, Javier Martinez Canillas
->> <javier.martinez@collabora.co.uk> wrote:
->>> The binding documentation for the OMAP GPIO controller has the
->>> "#interrupt-cells" property listed before "#interrupt-controller"
->>> property but its description after.
->>> This is confusing so we move "#interrupt-cells" after the
->>> "interrupt-controller" property so is followed by its description.
->>>
->>> While being there, change the properties order to be consistent with
->>> Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
->>> and Documentation/devicetree/bindings/gpio/gpio.txt.
->>>
->>> According with these docs, the order of the properties for a gpio-omap
->>> device node should be:
->>>
->>>     gpio-controller;
->>>     #gpio-cells = <2>;
->>>     interrupt-controller;
->>>     #interrupt-cells = <2>;
->>>
->>> Reported-by: Stephen Warren <swarren@nvidia.com>
->>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
->>> Acked-by: Jon Hunter <jon-hunter@ti.com>
->>> ---
->>>
->>> Changes since v1:
->>>   - Change the properties order to be consistent with the rest of the
->>>     DT bindings docs suggested by Jon Hunter.
->>>
->>> Changes since v2:
->>>   - Fix changelog that explained the opposite of what the patch was doing as
->>>     suggested by Benoit Cousson.
->>>
->>>  .../devicetree/bindings/gpio/gpio-omap.txt         |    8 ++++----
->>>  1 files changed, 4 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->>> index bff51a2..a56e3a5 100644
->>> --- a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->>> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->>> @@ -5,12 +5,12 @@ Required properties:
->>>    - "ti,omap2-gpio" for OMAP2 controllers
->>>    - "ti,omap3-gpio" for OMAP3 controllers
->>>    - "ti,omap4-gpio" for OMAP4 controllers
->>> +- gpio-controller : Marks the device node as a GPIO controller.
->>>  - #gpio-cells : Should be two.
->>>    - first cell is the pin number
->>>    - second cell is used to specify optional parameters (unused)
->>> -- gpio-controller : Marks the device node as a GPIO controller.
->>> +- interrupt-controller: Mark the device node as an interrupt controller.
->>>  - #interrupt-cells : Should be 2.
->>> -- interrupt-controller: Mark the device node as an interrupt controller
->>>    The first cell is the GPIO number.
->>>    The second cell is used to specify flags:
->>>      bits[3:0] trigger type and level flags:
->>> @@ -29,8 +29,8 @@ Example:
->>>  gpio4: gpio4 {
->>>      compatible = "ti,omap4-gpio";
->>>      ti,hwmods = "gpio4";
->>> -    #gpio-cells = <2>;
->>>      gpio-controller;
->>> -    #interrupt-cells = <2>;
->>> +    #gpio-cells = <2>;
->>>      interrupt-controller;
->>> +    #interrupt-cells = <2>;
->>>  };
->>> --
->>> 1.7.7.6
->>>
->>
->> Hello,
->>
->> any comments on this patch?
-> 
-> That's perfect. I've just applied it in my branch.
+Hi Santosh,
 
-OK, in fact it is almost perfect :-)
+The series looks good to me. I've just applied it and update my branch.
 
-The patch modified the documentation and not the driver itself, so I modified the subject to reflect that accurately.
+I just slightly modified some changelog to fix typos.
 
-Documentation: dt: gpio-omap: Move interrupt-controller from #interrupt-cell
-
-Regards,
+Thanks,
 Benoit
 
+
+On 03/19/2013 02:30 PM, Santosh Shilimkar wrote:
+> Benoit,
+> 
+> Here is the branch rebased and updated against your 'for_3.10/dt' branch.
+> Few minor updates about ocp/l3 node after our discussion at connect from
+> last version. The series also contains couple of hwmod patches to deal
+> with ocp address space from dt blob and avoiding iormap for some of
+> the hwmods.
+> 
+> It has been tested on OMAP4 and OMAP5 devices. Though for OMAP5 testing, data
+> files and other patches are needed which are also targeted for 3.10 merge
+> window.
+> 
+> The following changes since commit 44fab7a60d4c3929a04b7dc882ac1143b3f21b0f:
+> 
+>   ARM: dts: omap3-devkit8000: Add NAND DT node (2013-03-18 15:01:23 +0100)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.10/omap_dt_update
+> 
+> for you to fetch changes up to c0c153b52b9ed4965b7496e462b2effa3e4fa9ce:
+> 
+>   ARM: OMAP2+: omap_hwmod: Don't call _init_mpu_rt_base if no sysc (2013-03-19 17:11:39 +0530)
+> 
+> ----------------------------------------------------------------
+> 
+> Lokesh Vutla (1):
+>   ARM: dts: OMAP5: Add watchdog timer node
+> 
+> Rajendra Nayak (1):
+>   ARM: dts: OMAP5: Specify nonsecure PPI IRQ for arch timer
+> 
+> Santosh Shilimkar (9):
+>   ARM: dts: omap5-evm: Update available memory to 2032 MB
+>   ARM: dts: OMAP5: Align the local timer dt node as per the current
+>     binding code
+>   ARM: dts: OMAP5: Move the gic node out of ocp space
+>   ARM: dts: OMAP5: Update the timer and gic nodes for HYP kernel
+>     support
+>   ARM: dts: OMAP5: Update keypad reg property
+>   Documentation: dt: OMAP: l3-noc: Add *reg* in required properties
+>   ARM: dts: OMAP4/5: Update l3-noc dt nodes
+>   ARM: OMAP2+: hwmod: extract module address space from DT blob
+>   ARM: OMAP2+: omap_hwmod: Don't call _init_mpu_rt_base if no sysc
+> 
+>  .../devicetree/bindings/arm/omap/l3-noc.txt        |    1 +
+>  arch/arm/boot/dts/omap4.dtsi                       |    5 ++
+>  arch/arm/boot/dts/omap5-evm.dts                    |    2 +-
+>  arch/arm/boot/dts/omap5.dtsi                       |   56 +++++++++++++-------
+>  arch/arm/mach-omap2/omap_hwmod.c                   |   48 +++++++++++++++--
+>  5 files changed, 87 insertions(+), 25 deletions(-)
+> 
 
