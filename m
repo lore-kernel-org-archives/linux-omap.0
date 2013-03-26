@@ -1,97 +1,107 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH v3 1/1] gpio: omap: dts: Move interrupt-controller from
- #interrupt-cells description
-Date: Tue, 26 Mar 2013 10:33:12 +0100
-Message-ID: <CAAwP0s3PqsCF6TsMe6-aD9LKAOfQ=ToSXDXnnu5MvN01x3b5cw@mail.gmail.com>
-References: <1363354317-14985-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [alsa-devel] channel swapping issue on OMAP3/TWL4030 is back
+Date: Tue, 26 Mar 2013 10:52:26 +0100
+Message-ID: <51516FDA.5040801@ti.com>
+References: <alpine.DEB.2.01.1303220932150.7975@pmeerw.net> <alpine.DEB.2.01.1303221023070.7975@pmeerw.net> <514C2E5E.2040909@gmail.com> <alpine.DEB.2.01.1303221348250.7975@pmeerw.net> <514C56EA.7020304@ti.com> <20130322163506.GL30923@n2100.arm.linux.org.uk> <51504581.10400@ti.com> <20130325171540.GO30923@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f170.google.com ([209.85.210.170]:37309 "EHLO
-	mail-ia0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754299Ab3CZJdc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Mar 2013 05:33:32 -0400
-Received: by mail-ia0-f170.google.com with SMTP id h8so6305133iaa.1
-        for <linux-omap@vger.kernel.org>; Tue, 26 Mar 2013 02:33:32 -0700 (PDT)
-In-Reply-To: <1363354317-14985-1-git-send-email-javier.martinez@collabora.co.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:54185 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757388Ab3CZJyb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Mar 2013 05:54:31 -0400
+In-Reply-To: <20130325171540.GO30923@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Peter Meerwald <pmeerw@pmeerw.net>, Daniel Mack <zonque@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
 
-On Fri, Mar 15, 2013 at 2:31 PM, Javier Martinez Canillas
-<javier.martinez@collabora.co.uk> wrote:
-> The binding documentation for the OMAP GPIO controller has the
-> "#interrupt-cells" property listed before "#interrupt-controller"
-> property but its description after.
-> This is confusing so we move "#interrupt-cells" after the
-> "interrupt-controller" property so is followed by its description.
->
-> While being there, change the properties order to be consistent with
-> Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
-> and Documentation/devicetree/bindings/gpio/gpio.txt.
->
-> According with these docs, the order of the properties for a gpio-omap
-> device node should be:
->
->     gpio-controller;
->     #gpio-cells = <2>;
->     interrupt-controller;
->     #interrupt-cells = <2>;
->
-> Reported-by: Stephen Warren <swarren@nvidia.com>
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> Acked-by: Jon Hunter <jon-hunter@ti.com>
-> ---
->
-> Changes since v1:
->   - Change the properties order to be consistent with the rest of the
->     DT bindings docs suggested by Jon Hunter.
->
-> Changes since v2:
->   - Fix changelog that explained the opposite of what the patch was doing as
->     suggested by Benoit Cousson.
->
->  .../devicetree/bindings/gpio/gpio-omap.txt         |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> index bff51a2..a56e3a5 100644
-> --- a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> @@ -5,12 +5,12 @@ Required properties:
->    - "ti,omap2-gpio" for OMAP2 controllers
->    - "ti,omap3-gpio" for OMAP3 controllers
->    - "ti,omap4-gpio" for OMAP4 controllers
-> +- gpio-controller : Marks the device node as a GPIO controller.
->  - #gpio-cells : Should be two.
->    - first cell is the pin number
->    - second cell is used to specify optional parameters (unused)
-> -- gpio-controller : Marks the device node as a GPIO controller.
-> +- interrupt-controller: Mark the device node as an interrupt controller.
->  - #interrupt-cells : Should be 2.
-> -- interrupt-controller: Mark the device node as an interrupt controller
->    The first cell is the GPIO number.
->    The second cell is used to specify flags:
->      bits[3:0] trigger type and level flags:
-> @@ -29,8 +29,8 @@ Example:
->  gpio4: gpio4 {
->      compatible = "ti,omap4-gpio";
->      ti,hwmods = "gpio4";
-> -    #gpio-cells = <2>;
->      gpio-controller;
-> -    #interrupt-cells = <2>;
-> +    #gpio-cells = <2>;
->      interrupt-controller;
-> +    #interrupt-cells = <2>;
->  };
-> --
-> 1.7.7.6
->
+On 03/25/2013 06:15 PM, Russell King - ARM Linux wrote:
+> What I'm talking about is having a physical channel scheduler in plac=
+e
+> across DMA engines which have more virtual channels than physical
+> channels.  Some DMA engine implementations sort of do this already (e=
+g,
+> AMBA PL08x stuff) but again, every driver implements this kind of thi=
+ng
+> by themselves.
 
-Hello,
+I see. So basically you want to grab a DMA channel for the upcoming tra=
+nsfer
+at issue_pending time. This is fine, but we do not need to have taskelt=
+ to do
+this. If we do it as the amba-pl08x.c does it it is fine. AMBA does not=
+ use
+tasklet and OMAP should not do that either.
+We might need to lift the code out from the legacy DMA code (and remove=
+ the
+code) from arch/arm/plat-omap/dma.c...
 
-any comments on this patch?
+>>> I guess we could keep the tasklet, but mark the audio DMA channels =
+as
+>>> "pre-reserved" and arrange for pre-reserved channels to avoid the
+>>> tasklet, rather than throwing the tasklet out completely.
+>>
+>> Not sure if we really want to pre-reserve the DMA channels for audio=
+:
+>> on OMAP3 we have 5 McBSP -> 10 DMA channels
+>> on OMAP4 we have 4 McBSP, one McPDM, one DMIC and one McASP + we hav=
+e the
+>> AESS/ABE -> 8 + 2 + 1 + 1 + 8 (AESS/ABE).
+>> Do we really want to pre-allocate DMA channel for all of these?
+>=20
+> Well, at the moment we are effectively pre-allocating a physical chan=
+nel
+> for every virtual channel - as each virtual channel gets allocated.  =
+So,
+> the physical channels are currently being permanently tied up.
+>=20
+> With a scheduling core, we need some way to dynamically reallocate
+> physical channels depending on the workload presented on the virtual
+> channels.  However, as we're still having to deal with the OMAP priva=
+te
+> DMA API, we can only change physical channels from task (or tasklet)
+> context.
+>=20
+> So, the only way to have audio channels in a condition where they can
+> be startable immediately in issue_pending is to avoid the tasklet, an=
+d
+> the only way to avoid that tasklet (where that tasklet eventually
+> becomes the channel scheduler) is to have pre-allocated the physical
+> channel.
 
-Best regards,
-Javier
+The issue has been noticed in audio but it can also affect other driver=
+s as
+well. It might be only latency/throughput issue for others, while audio=
+ suffer
+with the tasklet based DMA start.
+
+>> I have a patch which removes the tasklet from omap-dma.c and it is w=
+orking
+>> fine on my systems (OMAP3 Zoom2, BeagleBoard, OMAP4 PandBoard, OMAP4=
+ Blaze).
+>=20
+> I'm sure you have, but that breaks the future direction of the driver
+> to dynamically allocate the physical channels.
+>=20
+> Had TI not effectively terminated my contract, I might be further for=
+ward
+> with this.  As things are, lack of contract and such like, all the OM=
+AP
+> work I was doing got shelved around Christmas time.  If you stop payi=
+ng
+> people, they generally stop doing useful work for you...
+
+Yeah, that is bad. If it makes you feel a bit better just look up in go=
+ogle:
+"Texas Instruments France"
+Hint: I'm in France...
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
