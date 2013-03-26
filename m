@@ -1,90 +1,120 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 06/26] OMAPDSS: SDI: fix regulators
-Date: Tue, 26 Mar 2013 15:33:36 +0200
-Message-ID: <1364304836-18134-7-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 08/26] OMAPDSS: use the panel list in omap_dss_get_next_device
+Date: Tue, 26 Mar 2013 15:33:38 +0200
+Message-ID: <1364304836-18134-9-git-send-email-tomi.valkeinen@ti.com>
 References: <1364304836-18134-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36230 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45932 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934319Ab3CZNek (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Mar 2013 09:34:40 -0400
+	id S934241Ab3CZNen (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Mar 2013 09:34:43 -0400
 In-Reply-To: <1364304836-18134-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-SDI requires a regulator to operate. This regulator is, for some reason,
-currently attached to the virtual omapdss device, instead of the SDI
-device. This does not work for DT, as the regulator mappings need to be
-described in the DT data, and the virtual omapdss device is not present
-there.
-
-Fix the issue by acquiring the regulator in the SDI device. To retain
-compatibility with the current board files, the old method of getting
-the regulator is kept. The old method can be removed when the board
-files have been changed to pass the regulator to SDI.
+omap_dss_get_next_device() uses the dss bus to iterate over the
+displays. This patch changes omap_dss_get_next_device() to use the new
+panel list instead.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/sdi.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ drivers/video/omap2/dss/display.c |   63 +++++++++++++++++++++++++++----------
+ 1 file changed, 46 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index 0155c7e..607244a 100644
---- a/drivers/video/omap2/dss/sdi.c
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -31,8 +31,11 @@
- #include "dss.h"
+diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
+index e785694..50792bf 100644
+--- a/drivers/video/omap2/dss/display.c
++++ b/drivers/video/omap2/dss/display.c
+@@ -189,27 +189,51 @@ void omap_dss_put_device(struct omap_dss_device *dssdev)
+ }
+ EXPORT_SYMBOL(omap_dss_put_device);
  
- static struct {
-+	struct platform_device *pdev;
-+
- 	bool update_enabled;
- 	struct regulator *vdds_sdi_reg;
-+	bool vdds_sdi_from_core;
- 
- 	struct dss_lcd_mgr_config mgr_config;
- 	struct omap_video_timings timings;
-@@ -258,8 +261,14 @@ static int __init sdi_init_display(struct omap_dss_device *dssdev)
- 		vdds_sdi = dss_get_vdds_sdi();
- 
- 		if (IS_ERR(vdds_sdi)) {
--			DSSERR("can't get VDDS_SDI regulator\n");
--			return PTR_ERR(vdds_sdi);
-+			vdds_sdi = regulator_get(&sdi.pdev->dev, "vdds_sdi");
-+			if (IS_ERR(vdds_sdi)) {
-+				DSSERR("can't get VDDS_SDI regulator\n");
-+				return PTR_ERR(vdds_sdi);
-+			}
-+			sdi.vdds_sdi_from_core = false;
-+		} else {
-+			sdi.vdds_sdi_from_core = true;
- 		}
- 
- 		sdi.vdds_sdi_reg = vdds_sdi;
-@@ -359,6 +368,8 @@ static void __exit sdi_uninit_output(struct platform_device *pdev)
- 
- static int __init omap_sdi_probe(struct platform_device *pdev)
+-/* ref count of the found device is incremented. ref count
+- * of from-device is decremented. */
++/*
++ * ref count of the found device is incremented.
++ * ref count of from-device is decremented.
++ */
+ struct omap_dss_device *omap_dss_get_next_device(struct omap_dss_device *from)
  {
-+	sdi.pdev = pdev;
+-	struct device *dev;
+-	struct device *dev_start = NULL;
+-	struct omap_dss_device *dssdev = NULL;
++	struct list_head *l;
++	struct omap_dss_device *dssdev;
 +
- 	sdi_init_output(pdev);
++	mutex_lock(&panel_list_mutex);
++
++	if (list_empty(&panel_list)) {
++		dssdev = NULL;
++		goto out;
++	}
  
- 	if (pdev->dev.platform_data)
-@@ -373,6 +384,11 @@ static int __exit omap_sdi_remove(struct platform_device *pdev)
+-	int match(struct device *dev, void *data)
+-	{
+-		return 1;
++	if (from == NULL) {
++		dssdev = list_first_entry(&panel_list, struct omap_dss_device,
++				panel_list);
++		omap_dss_get_device(dssdev);
++		goto out;
+ 	}
  
- 	sdi_uninit_output(pdev);
- 
-+	if (sdi.vdds_sdi_reg != NULL && sdi.vdds_sdi_from_core == false) {
-+		regulator_put(sdi.vdds_sdi_reg);
-+		sdi.vdds_sdi_reg = NULL;
+-	if (from)
+-		dev_start = &from->dev;
+-	dev = bus_find_device(dss_get_bus(), dev_start, NULL, match);
+-	if (dev)
+-		dssdev = to_dss_device(dev);
+-	if (from)
+-		put_device(&from->dev);
++	omap_dss_put_device(from);
++
++	list_for_each(l, &panel_list) {
++		dssdev = list_entry(l, struct omap_dss_device, panel_list);
++		if (dssdev == from) {
++			if (list_is_last(l, &panel_list)) {
++				dssdev = NULL;
++				goto out;
++			}
++
++			dssdev = list_entry(l->next, struct omap_dss_device,
++					panel_list);
++			omap_dss_get_device(dssdev);
++			goto out;
++		}
 +	}
 +
- 	return 0;
++	WARN(1, "'from' dssdev not found\n");
+ 
++	dssdev = NULL;
++out:
++	mutex_unlock(&panel_list_mutex);
+ 	return dssdev;
  }
+ EXPORT_SYMBOL(omap_dss_get_next_device);
+@@ -219,12 +243,17 @@ struct omap_dss_device *omap_dss_find_device(void *data,
+ {
+ 	struct omap_dss_device *dssdev = NULL;
+ 
++	mutex_lock(&panel_list_mutex);
++
+ 	while ((dssdev = omap_dss_get_next_device(dssdev)) != NULL) {
+ 		if (match(dssdev, data))
+-			return dssdev;
++			goto out;
+ 	}
+ 
+-	return NULL;
++	dssdev = NULL;
++out:
++	mutex_unlock(&panel_list_mutex);
++	return dssdev;
+ }
+ EXPORT_SYMBOL(omap_dss_find_device);
  
 -- 
 1.7.10.4
