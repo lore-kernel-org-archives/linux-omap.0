@@ -1,77 +1,68 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 7/8] OMAPDSS: DISPC: Configure doublestride for NV12 when using 2D Tiler buffers
-Date: Tue, 26 Mar 2013 19:15:24 +0530
-Message-ID: <1364305525-28496-8-git-send-email-archit@ti.com>
+Subject: [PATCH v2 0/8] omapdss/omapdrm: Misc fixes and improvements
+Date: Tue, 26 Mar 2013 19:15:17 +0530
+Message-ID: <1364305525-28496-1-git-send-email-archit@ti.com>
 References: <1362493070-17706-1-git-send-email-archit@ti.com>
- <1364305525-28496-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35682 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934405Ab3CZNqr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Mar 2013 09:46:47 -0400
-In-Reply-To: <1364305525-28496-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <1362493070-17706-1-git-send-email-archit@ti.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
 To: tomi.valkeinen@ti.com, robdclark@gmail.com, andy.gross@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Archit Taneja <archit@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+List-Id: linux-omap@vger.kernel.org
 
-When using a DISPC video pipeline to a fetch a NV12 buffer in a 2D container, we
-need to set set a doublestride bit in the video pipe's ATTRIBUTES register. This
-is needed because the stride for the UV plane(using a 16 bit Tiler container) is
-double the stride for the Y plane(using a 8 bit Tiler container) for the 0 or
-180 degree views. The ROW_INC register is meant for the Y plane, and the HW will
-calculate the row increment needed for the UV plane by using double the stride
-value based on whether this bit is set or not.
+These are misc fixes and improvements within omapdrm and omapdss. The fixes do the
+following:
 
-Set the bit when we are using a 2D Tiler buffer and when rotation is 0 or 180
-degrees. The stride value is the same for 90 and 270 degree Tiler views, hence
-the bit shouldn't be set.
+- Make omapdrm smarter to choose the right overlay managers as it's crtcs. This
+  makes sure that omapdrm is functional for OMAP platforms with different
+  combinations of panels connected to it.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/dss/dispc.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+- Fix certain areas in omapdrm which allow fixed resolution panels to work.
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 73a730a..ddbf031 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1588,6 +1588,7 @@ static void dispc_ovl_set_scaling(enum omap_plane plane,
- }
- 
- static void dispc_ovl_set_rotation_attrs(enum omap_plane plane, u8 rotation,
-+		enum omap_dss_rotation_type rotation_type,
- 		bool mirroring, enum omap_color_mode color_mode)
- {
- 	bool row_repeat = false;
-@@ -1638,6 +1639,15 @@ static void dispc_ovl_set_rotation_attrs(enum omap_plane plane, u8 rotation,
- 	if (dss_has_feature(FEAT_ROWREPEATENABLE))
- 		REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(plane),
- 			row_repeat ? 1 : 0, 18, 18);
-+
-+	if (color_mode == OMAP_DSS_COLOR_NV12) {
-+		bool doublestride = (rotation_type == OMAP_DSS_ROT_TILER) &&
-+					(rotation == OMAP_DSS_ROT_0 ||
-+					rotation == OMAP_DSS_ROT_180);
-+		/* DOUBLESTRIDE */
-+		REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(plane), doublestride, 22, 22);
-+	}
-+
- }
- 
- static int color_mode_to_bpp(enum omap_color_mode color_mode)
-@@ -2516,7 +2526,8 @@ static int dispc_ovl_setup_common(enum omap_plane plane,
- 		dispc_ovl_set_vid_color_conv(plane, cconv);
- 	}
- 
--	dispc_ovl_set_rotation_attrs(plane, rotation, mirror, color_mode);
-+	dispc_ovl_set_rotation_attrs(plane, rotation, rotation_type, mirror,
-+			color_mode);
- 
- 	dispc_ovl_set_zorder(plane, caps, zorder);
- 	dispc_ovl_set_pre_mult_alpha(plane, caps, pre_mult_alpha);
+- Fix functional and pixel clock limits for DISPC, this ensures we don't try
+  to try a mode that the hardware can't support.
+
+- Some changes that came in OMAP5 ES2 silicon.
+
+Note: The branch is based on the DSS misc series and dsi video mode calc series
+posted by Tomi. Reference branch:
+
+git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git for-3.10/misc_drm_dss
+
+Archit Taneja (8):
+  drm/omap: Don't return from modeset_init if a panel doesn't satisfy
+    omapdrm requirements
+  drm/omap: Fix and improve crtc and overlay manager correlation
+  drm/omap: Make fixed resolution panels work
+  omapdss: features: fixed supported outputs for OMAP4
+  omapdss: DISPC: add max pixel clock limits for LCD and TV managers
+  omapdss: Features: Fix some parameter ranges
+  OMAPDSS: DISPC: Configure doublestride for NV12 when using 2D Tiler
+    buffers
+  OMAPDSS: DISPC: Revert to older DISPC Smart Standby mechanism for
+    OMAP5
+
+ drivers/gpu/drm/omapdrm/omap_connector.c |   27 ++++-
+ drivers/gpu/drm/omapdrm/omap_crtc.c      |   21 ++--
+ drivers/gpu/drm/omapdrm/omap_drv.c       |  161 ++++++++++++++++++++++++------
+ drivers/gpu/drm/omapdrm/omap_drv.h       |   38 +------
+ drivers/gpu/drm/omapdrm/omap_encoder.c   |   24 ++++-
+ drivers/gpu/drm/omapdrm/omap_irq.c       |   17 ++--
+ drivers/video/omap2/dss/dispc.c          |   52 ++++++++--
+ drivers/video/omap2/dss/dispc.h          |    1 +
+ drivers/video/omap2/dss/dss_features.c   |   14 ++-
+ 9 files changed, 260 insertions(+), 95 deletions(-)
+
 -- 
 1.7.10.4
-
