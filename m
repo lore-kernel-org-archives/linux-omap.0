@@ -1,49 +1,35 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: [PATCH] omap: fix typo "CONFIG_BRIDGE_DVFS"
-Date: Tue, 26 Mar 2013 00:30:05 +0100
-Message-ID: <1364254205.1390.307.camel@x61.thuisdomein>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [PATCHv2 09/12] staging: ti-soc-thermal: fix several kernel-doc
+ warnings and error
+Date: Mon, 25 Mar 2013 20:24:12 -0400
+Message-ID: <5150EAAC.8020304@ti.com>
+References: <1363704868-11843-1-git-send-email-eduardo.valentin@ti.com> <1363704868-11843-10-git-send-email-eduardo.valentin@ti.com> <20130325182226.GA15717@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130325182226.GA15717@kroah.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: devel@driverdev.osuosl.org, Nishanth Menon <nm@ti.com>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Commit 90173882ed15a8034d6d162da5f343a2c7d87587 ("omap: add dsp platform
-device") used CONFIG_BRIDGE_DVFS were it obviously meant
-CONFIG_TIDSPBRIDGE_DVFS. Fix that.
+On 25-03-2013 14:22, Greg KH wrote:
+> On Tue, Mar 19, 2013 at 10:54:25AM -0400, Eduardo Valentin wrote:
+>> This patch updates the documentation to remove
+>> all warnings and errors reported by scripts/kernel-doc.
+>> Most are missing arguments due to wrong format.
+>>
+>> Cc: Nishanth Menon <nm@ti.com>
+>>
+>> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+>
+> In the future, don't put empty lines between the Cc: and signed-off-by:
+> lines please, I had to hand-edit all of these to fix that...
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-Untested. As this typo has been in the tree since v2.6.37, this really
-needs some testing.
+Ok. Sure.. My bad..
 
- arch/arm/mach-omap2/dsp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/dsp.c b/arch/arm/mach-omap2/dsp.c
-index b155500..b8208b4 100644
---- a/arch/arm/mach-omap2/dsp.c
-+++ b/arch/arm/mach-omap2/dsp.c
-@@ -26,7 +26,7 @@
- #include "control.h"
- #include "cm2xxx_3xxx.h"
- #include "prm2xxx_3xxx.h"
--#ifdef CONFIG_BRIDGE_DVFS
-+#ifdef CONFIG_TIDSPBRIDGE_DVFS
- #include "omap-pm.h"
- #endif
- 
-@@ -35,7 +35,7 @@
- static struct platform_device *omap_dsp_pdev;
- 
- static struct omap_dsp_platform_data omap_dsp_pdata __initdata = {
--#ifdef CONFIG_BRIDGE_DVFS
-+#ifdef CONFIG_TIDSPBRIDGE_DVFS
- 	.dsp_set_min_opp = omap_pm_dsp_set_min_opp,
- 	.dsp_get_opp = omap_pm_dsp_get_opp,
- 	.cpu_set_freq = omap_pm_cpu_set_freq,
--- 
-1.7.11.7
+>
+> greg k-h
+>
+>
