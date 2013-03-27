@@ -1,87 +1,316 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: OMAP baseline test results for v3.9-rc3
-Date: Wed, 27 Mar 2013 11:11:03 +0200
-Message-ID: <1364375463.3146.9.camel@sokoban>
-References: <alpine.DEB.2.00.1303181536230.29332@utopia.booyaka.com>
-	 <51482707.6020501@ti.com> <1363684373.15426.137.camel@sokoban>
-	 <alpine.DEB.2.00.1303261829440.23957@utopia.booyaka.com>
-Reply-To: <t-kristo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37350 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750851Ab3C0JLM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 05:11:12 -0400
-In-Reply-To: <alpine.DEB.2.00.1303261829440.23957@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH 2/5] capemgr: Add beaglebone's cape driver bindings
+Date: Wed, 27 Mar 2013 11:26:10 +0200
+Message-ID: <EE83C8C3-5EB7-415A-840C-831F574E15BE@antoniou-consulting.com>
+References: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com> <1357584666-17374-3-git-send-email-panto@antoniou-consulting.com> <20130326173619.E6F483E2585@localhost>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130326173619.E6F483E2585@localhost>
+Sender: linux-doc-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Jon Loeliger <jdl@jdl.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, David Gibson <david@gibson.dropbear.id.au>, Benoit Cousson <b-cousson@ti.com>, Mitch Bradley <wmb@firmworks.com>, Alan Tull <atull@altera.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Joel A Fernandes <agnel.joel@gmail.com>, Rob Clark <robdclark@gmail.com>, Jason Kridner <jkridner@beagleboard.org>, Matt Ranostay <mranostay@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
 
-On Tue, 2013-03-26 at 18:43 +0000, Paul Walmsley wrote:
-> Hi.
-> 
-> On Tue, 19 Mar 2013, Tero Kristo wrote:
-> 
-> > I think you should definitely upgrade your bootloader, the old one you
-> > are using is prone to cause trouble due to bugs it has, and we have no
-> > simple way to workaround the issues it causes on kernel side.
-> 
-> So, the kernel should be independent of the bootloader that's used.  Many 
-> of the rest of us have taken great care to ensure that devices get reset 
-> to do this.  We've got pretty good coverage on OMAP3 and most of the other 
-> OMAP4 IP blocks.
-> 
-> You mention that there's no simple way to do it, but as far as I know, no 
-> one has assessed what's needed to reset the remaining devices.  Or if 
-> someone has this information, it hasn't been shared here - please do so.
-> 
-> So what I'd like you to do is:
-> 
-> 1. Determine what devices are remaining to be reset and idled on OMAP4 
->    with the bootloader that I use.  As far as I know, there are only four 
->    that block full-chip idle: M3, DSP, SL2IF, FSUSB
-> 
-> 2. Determine what's needed to reset and idle them.  For the M3 and DSP, 
->    I'd assume this involves pointing the reset vector for those 
->    processors at a few lines of code that basically enter WFI or the C64x 
->    equivalent.
+Hi Grant
 
-This is the nasty part. We need firmware support for the blocks to do
-this, and this is imo a complete overkill for the task at hand, as it
-will duplicate the DSP + M3 firmware and drivers at least partially. On
-OMAP3, it was easy as you could just setup the boot mode for IVA and get
-over with it. We don't have similar luxury on OMAP4.
+On Mar 26, 2013, at 7:36 PM, Grant Likely wrote:
 
-If there was a simple way to do this, don't you think this would have
-been done already a year back when we started to discuss this first
-time? And, a year old bootloader is ancient seeing we didn't have any
-kind of support for OMAP4 core idle in mainline back then and this
-feature was essentially completely untested.... nobody cared about the
-upstream u-boot PM compatibility before that.
+> On Mon,  7 Jan 2013 20:51:03 +0200, Pantelis Antoniou <panto@antoniou-consulting.com> wrote:
+>> Document the beaglebone's cape driver bindings.
+>> 
+>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+> 
+> Hi Pantelis,
+> 
+> I'll go back and review the driver in a minute, but I'll start here
+> since this is the data model that we'll be using for a long time.
+> Overall this looks pretty sane. It's pretty well contained too which I
+> like. Long term I do want to try and create some common patterns for
+> overlay connections, but it's really hard to do that when this is the
+> first serious attempt at implementing one.  :-) This is nicely contained
+> to only the beaglebone use case which makes it easy to try out without
+> forcing this exact data model on all users. If it works in other places,
+> then fantastic! we've got our generic model. If not, then we can refine
+> the interface for new boards without breaking beaglebone.
+> 
 
--Tero
+Glad you liked it. I really tried hard to keep things nicely separated since
+we're definitely on to uncharted waters.
+
+We will definitely adopt this for the beagleboard too (maybe some other boards too)
+so some rearrangement will take place for the v2 of the patches.
+
+We're under the gun for the new beaglebone that's coming out shortly, so the new patches
+will be out in a couple of weeks.
+
+> Comments below...
+> 
+>> ---
+>> .../devicetree/bindings/misc/capes-beaglebone.txt  | 110 +++++++++++++++++++++
+>> 1 file changed, 110 insertions(+)
+>> create mode 100644 Documentation/devicetree/bindings/misc/capes-beaglebone.txt
+>> 
+>> diff --git a/Documentation/devicetree/bindings/misc/capes-beaglebone.txt b/Documentation/devicetree/bindings/misc/capes-beaglebone.txt
+>> new file mode 100644
+>> index 0000000..f73cab5
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/misc/capes-beaglebone.txt
+>> @@ -0,0 +1,110 @@
+>> +* TI Beaglebone DT Overlay Cape Driver
+>> +
+>> +Required properties:
+>> +
+>> +- compatible: "ti,bone-capemgr"
+> 
+> "capemgr" sounds like a software construct. Can you rename this to
+> something that sounds more like describing concrete hardware? From that
+> perspective, "ti,bone-capebus" would be appropriate here, regardless of
+> where the driver actually lives in the kernel tree.
+> 
+
+Hum, well I guess so, that would work. Perhaps same as with 
+ti,beagle-capebus.
+
+But I thought using the work bus was out :)
+
+> It would be better to be more specific here with the compatible
+> property also. Put the actual board name into the compatible string.
+> Following the lead of the board level compatible property, call it
+> 'ti,am335x-bone-capebus". Newer boards can claim compatibilty with the
+> older where appropriate.
+> 
+
+Let's not put am335x there, there's nothing SoC specific. The bone is
+a am335x, but the beagleboard is not, etc.
+
+There's also some crazy talk about compatibility between different board
+families; we can keep it aside for now, but let's not assign anything
+SoC specific. 
+
+>> +
+>> +- eeprom: Contains the phandle beaglebone's baseboard i2c eeprom.
+>> +
+>> +- baseboardmaps - node containing a list of supported
+>> +	beaglebone revisions; each node in should have the
+>> +	following properties:
+>> +	- board-name: The board name stored in the baseboard
+>> +		eeprom.
+> 
+> If it is stored in the baseboard eeprom, then why does it need to appear
+> in the .dtb?
+
+It needs to because there are slightly different revisions of the bone.
+Defining the revisions it allows us to auto-load the dtbos containing the
+differences for the baseboard revision.
+
+In this way we keep the same kernel/software images working on all the
+bone revisions, significantly reducing the support burden.
 
 > 
-> 3. At this point, we can determine the difficulty level of the task.
+>> +	- compatible-name: The name which will be used for
+>> +		matching compatible capes.
 > 
-> 4. Then, assuming it's of the level described in step 2, that reset/idle 
->    code should be implemented.
+> What is the matching logic for this compatible capes? How does it get
+> used?
 > 
-> This process will ensure both that users with "old" OMAP4 bootloaders -- 
-> really, u-boot versions distributed less than a year ago, so not very old 
-> at all -- will be able to successfully enter chip low power states.  It 
-> will also ensure that users who boot to new kernels with kexec will be 
-> able to do so successfully, with a minimum of interference from other 
-> devices.
-> 
-> 
-> - Paul
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+See below.
+
+>> +
+>> +- slots: node containing a list of slot nodes (which in the beaglebone
+>> +	case correspond to I2C addresses for dynamically probed capes,
+>> +	or an override slot definition for hardcoded capes.
+>> +	- eeprom: Contains the phandle beaglebone's cape i2c eeprom.
+>> +
+>> +	It is possible to define override slots that will be activated
+>> +	when the baseboard matches, and/or if supplied on the kernel command
+>> +	line and/or when dynamically requested on runtime.
+>> +	In that case the slot is marked with
+>> +	- ti,cape-override: Marks a slot override.
+>> +	- compatible: any of the "runtime", "kernel", or any compatible-name
+>> +	  on a matching baseboardmap node.
+>> +	- Any of the eeprom-format-revision, board-name, version, manufacturer,
+>> +	  part-number, number-of-pins, serial-number, pin-usage, vdd-3v3exp,
+>> +	  vdd-5v, sys-5v, dc-supplied properties which fill in the simulated
+>> +	  cape's EEPROM fields. The part-number field is required, the rest
+>> +	  are optional taking into default values.
+> 
+> I could use some help understanding the use-case for the override slots.
+> It isn't clear to me how the override is intended to work. Can you
+> describe exactly what happens when an override slot is defined? Do
+> override slots replace detected slots, or are they separate?
+> 
+
+Override slots are slots that are not probed via the eeprom,
+but instead are loaded as a result of
+
+1) User configuration
+2) Base board match
+
+In essence, overrides are when the normal probing method isn't applicable.
+
+To understand why there's needed let's take two examples, one is the
+development version of the Geiger cape.
+
+That version did not have an EEPROM (mainly because it's a wired up board
+with no SMD components).
+
+It's override definition is:
+
+>  /* geiger cape version A0 without an EEPROM */
+>  slot@5 {
+>  	ti,cape-override;
+>  	compatible = "kernel-command-line", "runtime";
+>  	board-name = "Bone-Geiger";
+>  	version = "00A0";
+>  	manufacturer = "Geiger Inc.";
+>  	part-number = "BB-BONE-GEIGER";
+>  };
+
+
+The compatible property declares this to be an override which is enabled
+either from the command line or at runtime.
+
+To load this cape, you can either use the sysfs/slots property or add a kernel
+parameter of the form capemgr.extra_override=BB-BONE-GEIGER:00A0
+
+There's also a new 'force' compatible option in the updated patchset which always
+applies the override (but that's mostly for development purposes).
+
+Let's take a look at new beaglebone that's coming out shortly.
+
+One of the differences it has from the original is that of onboard HDMI.
+
+It's override definition is:
+
+> 
+>  /* Beaglebone black has it soldered on */
+>  slot@6 {
+>   	ti,cape-override;
+>   	compatible = "ti,beaglebone-black";
+>  	board-name = "Bone-Black-HDMI";
+>  	version = "00A0";
+>  	manufacturer = "Texas Instruments";
+>  	part-number = "BB-BONELT-HDMI";
+>  };
+> 
+
+
+
+It's compatible property is "ti,beaglebone-black"
+
+This means that this is an override that should be applied for the new beaglebone.
+
+Taking a look at the baseboardmaps node we see that there's board node that maps
+the internal board-name (A335BNLT) to the well formed DT name ti,beaglebone-black.
+
+And that's the reason of the baeboardsmaps nodes, mapping from some internal
+representation of board revision to a single well formed DT compatible property.
+
+>> +
+>> +- capemaps: node contains list of cape mappings, which allow converting
+>> +	from a part-number & version tuple to the filename of the dtbo file.
+>> +	- part-number: part number contained in the EEPROM
+>> +	- version node containing a
+>> +		- version: specific version to map to
+>> +		- dtbo: name of the dtbo file 
+> 
+> I think you'd be better off here defining a direct 1:1 mapping from
+> board name + revision to dtb filename. Maintaining a list of mappings in
+> the dtb file means it needs to be updated when new capes are created. It
+> would be nicer to drop the new overlay in the root filesystem (or initrd
+> if that is more convenient) and have the kernel know when to pick it up.
+> 
+
+I'm ambivalent about this. There is a direct 1:1 mapping, using directly the
+part number works just as well, but knowing the hardware people, I'm not sure
+I can trust them not to use part number that are not filename friendly.
+I.e. they might sneak a '/' in there and we'll be SOL.
+
+You can think of the capemaps node as an optional filename sanitizer, it's
+not required, but guarantees that we're not dependent on sane part-number fields.
+
+>> +
+>> +Example:
+>> +bone_capemgr {
+>> +	compatible = "ti,bone-capemgr";
+>> +	status = "okay";
+>> +
+>> +	eeprom = <&baseboard_eeprom>;
+>> +
+>> +	baseboardmaps {
+>> +		baseboard_beaglebone: board@0 {
+>> +			board-name = "A335BONE";
+>> +			compatible-name = "ti,beaglebone";
+>> +		};
+>> +	};
+>> +
+>> +	slots {
+>> +		slot@0 {
+>> +			eeprom = <&cape_eeprom0>;
+>> +		};
+>> +
+>> +		slot@1 {
+>> +			eeprom = <&cape_eeprom1>;
+>> +		};
+>> +
+>> +		slot@2 {
+>> +			eeprom = <&cape_eeprom2>;
+>> +		};
+>> +
+>> +		slot@3 {
+>> +			eeprom = <&cape_eeprom3>;
+>> +		};
+>> +	};
+>> +
+>> +	/* mapping between board names and dtb objects */
+>> +	capemaps {
+>> +		/* Weather cape */
+>> +		cape@0 {
+>> +			part-number = "BB-BONE-WTHR-01";
+>> +			version@00A0 {
+>> +				version = "00A0";
+>> +				dtbo = "cape-bone-weather-00A0.dtbo";
+>> +			};
+>> +		};
+>> +	};
+>> +};
+>> +
+>> +Example of the override syntax when used on a bone compatible foo board.
+>> +
+>> +{
+>> +	...
+>> +
+>> +	baseboardmaps {
+>> +		...
+>> +		baseboard_beaglebone: board@0 {
+>> +			board-name = "A335FOO";
+>> +			compatible-name = "ti,foo";
+>> +		};
+>> +
+>> +		slot@6 {
+>> +			ti,cape-override;
+>> +			compatible = "ti,foo";
+>> +			board-name = "FOO-hardcoded";
+>> +			version = "00A0";
+>> +			manufacturer = "Texas Instruments";
+>> +			part-number = "BB-BONE-FOO-01";
+>> +		};
+>> +	};
+>> +
+>> +};
+>> +	
+>> -- 
+>> 1.7.12
+>> 
+> 
+> -- 
+> Grant Likely, B.Sc, P.Eng.
+> Secret Lab Technologies, Ltd.
+
+Regards
+
+-- Pantelis
 
