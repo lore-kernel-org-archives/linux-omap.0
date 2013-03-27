@@ -1,90 +1,148 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2] ARM: AM33XX: Add missing .clkdm_name to clkdiv32k_ick clock
-Date: Wed, 27 Mar 2013 15:34:26 +0530
-Message-ID: <1364378666-23641-1-git-send-email-hvaibhav@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [RFC 02/14] ARM: OMAP2+: add omapdss_init_of()
+Date: Wed, 27 Mar 2013 12:09:12 +0200
+Message-ID: <5152C548.9030500@ti.com>
+References: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com> <1364373921-7599-3-git-send-email-tomi.valkeinen@ti.com> <5152BBD3.9070202@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigF94C5C548F92B7548B4235DC"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58500 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39885 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753895Ab3C0KEj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Mar 2013 06:04:39 -0400
+	id S1751385Ab3C0KJZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Mar 2013 06:09:25 -0400
+In-Reply-To: <5152BBD3.9070202@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Andy Gross <andy.gross@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-It is required to enable respective clock-domain before
-enabling any clock/module inside that clock-domain.
+--------------enigF94C5C548F92B7548B4235DC
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-During common-clock migration, .clkdm_name field got missed
-for "clkdiv32k_ick" clock, which leaves "clk_24mhz_clkdm"
-unused; so it will be disabled even if childs of this clock-domain
-is enabled, which keeps child modules in idle mode.
+On 2013-03-27 11:28, Benoit Cousson wrote:
+> Hi Tomi,
 
-This fixes the kernel crash observed on AM335xEVM-SK platform,
-where clkdiv32_ick clock is being used as a gpio debounce clock
-and since clkdiv32k_ick is in idle mode it leads to below crash -
+Hi Benoit. Thanks for your comments!
 
-Crash Log:
-==========
-[    2.598347] Unhandled fault: external abort on non-linefetch (0x1028) at
-0xfa1ac150
-[    2.606434] Internal error: : 1028 [#1] SMP ARM
-[    2.611207] Modules linked in:
-[    2.614449] CPU: 0    Not tainted  (3.8.4-01382-g1f449cd-dirty #4)
-[    2.620973] PC is at _set_gpio_debounce+0x60/0x104
-[    2.626025] LR is at clk_enable+0x30/0x3c
+> On 03/27/2013 09:45 AM, Tomi Valkeinen wrote:
+>> omapdss driver uses a omapdss platform device to pass platform specifi=
+c
+>> function pointers and DSS hardware version from the arch code to the
+>> driver. This device is needed also when booting with DT.
+>>
+>> This patch adds omapdss_init_of() function, called from board-generic =
+at
+>> init time, which creates the omapdss device.
+>>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/board-generic.c |    1 +
+>>  arch/arm/mach-omap2/common.h        |    2 ++
+>>  arch/arm/mach-omap2/display.c       |   34 ++++++++++++++++++++++++++=
+++++++++
+>>  3 files changed, 37 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2=
+/board-generic.c
+>> index a61544b..29eb085 100644
+>> --- a/arch/arm/mach-omap2/board-generic.c
+>> +++ b/arch/arm/mach-omap2/board-generic.c
+>> @@ -41,6 +41,7 @@ static void __init omap_generic_init(void)
+>> =20
+>>  	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+>> =20
+>> +	omapdss_init_of();
+>=20
+> Mmm, you should not have to call that explicitly. It looks like a hack
+> to me. Everything in theory should be initialized during
+> of_platform_populate / driver probe.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
----
-Change from V1 (no code change):
-	- Commit description updated as per Rajendra and Paul's
-	  comment.
+All the "real" devices are initialized properly. However, we still have
+a "virtual" omapdss device, which does not represent a particular HW
+block as such, and is not represented in the DT data. It's a legacy
+thing, and slowly on its way out.
 
- arch/arm/mach-omap2/cclock33xx_data.c |   26 +++++++++++++++++++++++---
- 1 files changed, 23 insertions(+), 3 deletions(-)
+However, it still helps us to pass the platform callbacks via platform
+data even in DT call, so we have this (hacky) omapdss_init_of() call.
 
-diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
-index 476b820..8327721 100644
---- a/arch/arm/mach-omap2/cclock33xx_data.c
-+++ b/arch/arm/mach-omap2/cclock33xx_data.c
-@@ -446,9 +446,29 @@ DEFINE_CLK_GATE(cefuse_fck, "sys_clkin_ck", &sys_clkin_ck, 0x0,
-  */
- DEFINE_CLK_FIXED_FACTOR(clkdiv32k_ck, "clk_24mhz", &clk_24mhz, 0x0, 1, 732);
+And we also pass the OMAP revision information via the platform data, as
+we need to know the DSS HW version. The only way to get that is to know
+the OMAP version and revision. If we would set the DSS HW version
+information into DT data, we could need separate dts files for each OMAP
+revision.
 
--DEFINE_CLK_GATE(clkdiv32k_ick, "clkdiv32k_ck", &clkdiv32k_ck, 0x0,
--		AM33XX_CM_PER_CLKDIV32K_CLKCTRL, AM33XX_MODULEMODE_SWCTRL_SHIFT,
--		0x0, NULL);
-+static struct clk clkdiv32k_ick;
-+
-+static const char *clkdiv32k_ick_parent_names[] = {
-+	"clkdiv32k_ck",
-+};
-+
-+static const struct clk_ops clkdiv32k_ick_ops = {
-+	.enable         = &omap2_dflt_clk_enable,
-+	.disable        = &omap2_dflt_clk_disable,
-+	.is_enabled     = &omap2_dflt_clk_is_enabled,
-+	.init           = &omap2_init_clk_clkdm,
-+};
-+
-+static struct clk_hw_omap clkdiv32k_ick_hw = {
-+	.hw	= {
-+		.clk	= &clkdiv32k_ick,
-+	},
-+	.enable_reg	= AM33XX_CM_PER_CLKDIV32K_CLKCTRL,
-+	.enable_bit	= AM33XX_MODULEMODE_SWCTRL_SHIFT,
-+	.clkdm_name	= "clk_24mhz_clkdm",
-+};
-+
-+DEFINE_STRUCT_CLK(clkdiv32k_ick, clkdiv32k_ick_parent_names, clkdiv32k_ick_ops);
+>> +
+>> +int __init omapdss_init_of(void)
+>> +{
+>> +	int r;
+>> +	enum omapdss_version ver;
+>> +
+>> +	static struct omap_dss_board_info board_data =3D {
+>> +		.dsi_enable_pads =3D omap_dsi_enable_pads,
+>> +		.dsi_disable_pads =3D omap_dsi_disable_pads,
+>=20
+> Pads config should be handle by pinmux framework is possible. Otherwise=
 
- /* "usbotg_fck" is an additional clock and not really a modulemode */
- DEFINE_CLK_GATE(usbotg_fck, "dpll_per_ck", &dpll_per_ck, 0x0,
---
-1.7.0.4
+> a dedicated driver will be required.
 
+Hmm. These functions touch the OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_DSIPHY
+(CONTROL_DSIPHY in the TRM) register. It's not a normal padconfig thing
+(like, selecting between GPIO and some other function).
+
+Can they be handled by the pinmux framework? I'm not familiar with it.
+What do you mean with dedicated driver? Dedicated pinmux driver, or
+something else?
+
+>> +		.get_context_loss_count =3D omap_pm_get_dev_context_loss_count,
+>> +		.set_min_bus_tput =3D omap_dss_set_min_bus_tput,
+>=20
+>=20
+> All that code should disappear with DT. hacking a platform device with
+> pdata is the old way of initializing a device.
+>=20
+> I know that you do have some omap_pm callback, but you'd better get rid=
+
+> of them in case of DT boot.
+> Fixing that is a generic issue, and as soon as a solution will be done
+> to handle these specific hooks, every drivers will be able to use that.=
+
+
+So, what you're saying is that this is not the correct way, but there's
+no other way to handle it currently? If so, yes, I know that, but, well,
+there's no other way to handle it currently.
+
+I could leave them out, but in that case when booting with DT there must
+be no DSS context loss, and OPP must be at OPP100 all the time.
+
+ Tomi
+
+
+
+--------------enigF94C5C548F92B7548B4235DC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRUsVIAAoJEPo9qoy8lh71E88P/3FdcC5kqgumiFNb3dJ50lxE
+CmS/vdD+kJvofm4dEcyBHgwlskDca7058iMNX3KRLoJA6xp53C5yFRt/zRwQEd5w
+TAygqbizVSZT91Ig8h0rhXMgdU0ayPW2eIscEcNmK1JdIr45KchtHY89325uDcxX
+C+jChXnbwaaDZFgPXrn+o25rf5CGn1QNXlZXkLrI82bK6UcH+L47kaMVyS2tM1V0
+LF2ndg+igNHs8RGyYyQHSLMBH6Asp1pMmTJDZsN2hvAi2AOQ2fpPB1GBqKa3U5tA
+fbXFiB3bFjeazgJOO2yo6Nk8aYLGQM//eeY6GqbwKEsTvwdu1dyGU9/VPl+Snf5q
+eAGdYUqxWN2oThQpqQqUCm5FaiEL/yCXnN4AWix2Tj2G0c+6ZvqQ8Ru7xPaLS7ix
+GAwaBIiCzWt3aNW/QUBrqSXsYYu86cAoiD5jYqDQbgqAKqeV1DngD2mneO4cfHpn
+icxTBBMvKPo8LJpYVVSI4FAIy+HD/gk7j8y0Gc5ySSDFo5OqDYA/aReUsmONffts
+57vrBQDBB1flOpk/t5d3AKjXF2hAVh49V2Vf99WT+16AyfTFfP71c1pQWVQGlD6f
+XgXqc/RGFuf+pYW8nxHQ1GMCU6FxrVJii3GUIEbmVYBSRfF9/EEueaio9RUvBsGm
+VAmPtggvgH96nHl2Lkll
+=Vj1V
+-----END PGP SIGNATURE-----
+
+--------------enigF94C5C548F92B7548B4235DC--
