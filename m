@@ -1,84 +1,105 @@
 From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v3 3/8] drm/omap: Make fixed resolution panels work
-Date: Wed, 27 Mar 2013 13:05:22 +0530
-Message-ID: <5152A13A.7060805@ti.com>
-References: <1362493070-17706-1-git-send-email-archit@ti.com> <1364305525-28496-1-git-send-email-archit@ti.com> <1364305525-28496-4-git-send-email-archit@ti.com> <51529EC2.4040403@ti.com>
+Subject: Re: [PATCH v2 5/8] omapdss: DISPC: add max pixel clock limits for
+ LCD and TV managers
+Date: Wed, 27 Mar 2013 13:06:03 +0530
+Message-ID: <5152A163.8050203@ti.com>
+References: <1362493070-17706-1-git-send-email-archit@ti.com> <1364305525-28496-1-git-send-email-archit@ti.com> <1364305525-28496-6-git-send-email-archit@ti.com> <5152A031.3080209@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60359 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750804Ab3C0HgM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 03:36:12 -0400
-In-Reply-To: <51529EC2.4040403@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50610 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753182Ab3C0Hgv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Mar 2013 03:36:51 -0400
+In-Reply-To: <5152A031.3080209@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: robdclark@gmail.com, andy.gross@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-On Wednesday 27 March 2013 12:54 PM, Tomi Valkeinen wrote:
+On Wednesday 27 March 2013 01:00 PM, Tomi Valkeinen wrote:
 > On 2013-03-26 15:45, Archit Taneja wrote:
->> The omapdrm driver requires omapdss panel drivers to expose ops like detect,
->> set_timings and check_timings. These can be NULL for fixed panel DPI, DBI, DSI
->> and SDI drivers. At some places, there are no checks to see if the panel driver
->> has these ops or not, and that leads to a crash.
+>> Each version of OMAP has a limitation on the maximum pixel clock frequency
+>> supported by an overlay manager. This limit isn't checked by omapdss. Add
+>> dispc feats for lcd and tv managers and check whether the target timings can
+>> be supported or not.
 >>
->> The following things are done to make fixed panels work:
+>> The pixel clock limitations are actually more complex. They depend on which OPP
+>> OMAP is in, and they also depend on which encoder is the manager connected to.
+>> The OPP dependence is ignored as DSS forces the PM framework to be on OPP100
+>> when DSS is enabled, and the encoder dependencies are ignored by DISPC for now.
+>> These limits should come from the encoder driver.
 >>
->> - The omap_connector's detect function is modified such that it considers panel
->>    types which are generally fixed panels as always connected(provided the panel
->>    driver doesn't have a detect op). Hence, the connector corresponding to these
->>    panels is always in a 'connected' state.
->>
->> - If a panel driver doesn't have a check_timings op, assume that it supports the
->>    mode passed to omap_connector_mode_valid(the 'mode_valid' drm helper function)
->>
->> - The function omap_encoder_update shouldn't really do anything for fixed
->>    resolution panels, make sure that it calls set_timings only if the panel
->>    driver has one.
+>> The OMAP2 TRM doesn't mention the maximum pixel clock limit. This value is left
+>> as half of DSS_FCLK, as OMAP2 requires the PCD to be atleast 2.
 >>
 >> Signed-off-by: Archit Taneja <archit@ti.com>
 >> ---
->> v3: clear the timings local variable first before using memcmp
->> v2: make sure the timings we try to set for a fixed resolution panel match the
->>      panel's timings
+>>   drivers/video/omap2/dss/dispc.c |   32 +++++++++++++++++++++++++++-----
+>>   1 file changed, 27 insertions(+), 5 deletions(-)
 >>
->>   drivers/gpu/drm/omapdrm/omap_connector.c |   27 +++++++++++++++++++++++++--
->>   drivers/gpu/drm/omapdrm/omap_encoder.c   |   17 +++++++++++++++--
->>   2 files changed, 40 insertions(+), 4 deletions(-)
+>> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+>> index 8cfa27b..73a730a 100644
+>> --- a/drivers/video/omap2/dss/dispc.c
+>> +++ b/drivers/video/omap2/dss/dispc.c
+>> @@ -69,6 +69,8 @@ struct dispc_features {
+>>   	u8 mgr_height_start;
+>>   	u16 mgr_width_max;
+>>   	u16 mgr_height_max;
+>> +	unsigned long max_lcd_pclk;
+>> +	unsigned long max_tv_pclk;
+>>   	int (*calc_scaling) (unsigned long pclk, unsigned long lclk,
+>>   		const struct omap_video_timings *mgr_timings,
+>>   		u16 width, u16 height, u16 out_width, u16 out_height,
+>> @@ -2825,6 +2827,15 @@ static bool _dispc_lcd_timings_ok(int hsw, int hfp, int hbp,
+>>   	return true;
+>>   }
 >>
->> diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm/omapdrm/omap_connector.c
->> index c451c41..912759d 100644
->> --- a/drivers/gpu/drm/omapdrm/omap_connector.c
->> +++ b/drivers/gpu/drm/omapdrm/omap_connector.c
->> @@ -110,6 +110,11 @@ static enum drm_connector_status omap_connector_detect(
->>   			ret = connector_status_connected;
->>   		else
->>   			ret = connector_status_disconnected;
->> +	} else if (dssdev->type == OMAP_DISPLAY_TYPE_DPI ||
->> +			dssdev->type == OMAP_DISPLAY_TYPE_DBI ||
->> +			dssdev->type == OMAP_DISPLAY_TYPE_SDI ||
->> +			dssdev->type == OMAP_DISPLAY_TYPE_DSI) {
->> +		ret = connector_status_connected;
->>   	} else {
->>   		ret = connector_status_unknown;
->>   	}
+>> +static bool _dispc_mgr_pclk_ok(enum omap_channel channel,
+>> +		unsigned long pclk)
+>> +{
+>> +	if (dss_mgr_is_lcd(channel))
+>> +		return pclk <= dispc.feat->max_lcd_pclk ? true : false;
+>> +	else
+>> +		return pclk <= dispc.feat->max_tv_pclk ? true : false;
+>> +}
+>> +
+>>   bool dispc_mgr_timings_ok(enum omap_channel channel,
+>>   		const struct omap_video_timings *timings)
+>>   {
+>> @@ -2832,11 +2843,13 @@ bool dispc_mgr_timings_ok(enum omap_channel channel,
+>>
+>>   	timings_ok = _dispc_mgr_size_ok(timings->x_res, timings->y_res);
+>>
+>> -	if (dss_mgr_is_lcd(channel))
+>> -		timings_ok =  timings_ok && _dispc_lcd_timings_ok(timings->hsw,
+>> -						timings->hfp, timings->hbp,
+>> -						timings->vsw, timings->vfp,
+>> -						timings->vbp);
+>> +	timings_ok &= _dispc_mgr_pclk_ok(channel, timings->pixel_clock * 1000);
+>> +
+>> +	if (dss_mgr_is_lcd(channel)) {
+>> +		timings_ok &= _dispc_lcd_timings_ok(timings->hsw, timings->hfp,
+>> +				timings->hbp, timings->vsw, timings->vfp,
+>> +				timings->vbp);
+>> +	}
+>>
+>>   	return timings_ok;
+>>   }
+>> @@ -3491,6 +3504,7 @@ static const struct dispc_features omap24xx_dispc_feats __initconst = {
+>>   	.mgr_height_start	=	26,
+>>   	.mgr_width_max		=	2048,
+>>   	.mgr_height_max		=	2048,
+>> +	.max_lcd_pclk		=	66500000,
+>>   	.calc_scaling		=	dispc_ovl_calc_scaling_24xx,
+>>   	.calc_core_clk		=	calc_core_clk_24xx,
+>>   	.num_fifos		=	3,
 >
-> Can we leave this part out? I don't like hardcoding things like that,
-> and if I'm not mistaken, this only affects VENC.
->
-> If the code above would use detect where available, and presume the
-> panel is connected in other cases, it'll be right for all other displays
-> but VENC, for which we have no connect information.
->
-> Or, there could be a special case for VENC, like above, which sets the
-> connector status to unknown for that. And connected for all others. It'd
-> still be hardcoded, but for much less cases.
+> OMAP2 has VENC output, but there's no max_tv_pclk above. This would make
+> VENC pclk check to fail always, wouldn't it?
 
-I guess we can leave the status for VENC as always connected too, if we 
-leave it as unknown by default and have no detect func for VENC, it 
-would never run with omapdrm.
+oops, I missed adding it for omap2, will fix it.
 
 Archit
 
