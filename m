@@ -1,66 +1,62 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 4/9] ARM: OMAP4+: Remove the un-necessary cache flush from hotplug code
-Date: Wed, 27 Mar 2013 11:43:24 -0700
-Message-ID: <87ehf07kfn.fsf@linaro.org>
-References: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com>
-	<1361373527-21695-5-git-send-email-santosh.shilimkar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v3.9-rc4
+Date: Wed, 27 Mar 2013 11:44:04 -0700
+Message-ID: <20130327184404.GD10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:49232 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753257Ab3C0Sn1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 14:43:27 -0400
-Received: by mail-pb0-f45.google.com with SMTP id ro8so5394319pbb.32
-        for <linux-omap@vger.kernel.org>; Wed, 27 Mar 2013 11:43:27 -0700 (PDT)
-In-Reply-To: <1361373527-21695-5-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Wed, 20 Feb 2013 20:48:42 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64466 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753257Ab3C0SoL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 14:44:11 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+The following changes since commit a937536b868b8369b98967929045f1df54234323:
 
-> This was added with intial port where OMAP PM support wasn't existing
-> and only simple WFI based hooks were used.
->
-> This should have been cleaned up while adding the PM support but some
-> how fall through cracks.
+  Linux 3.9-rc3 (2013-03-17 15:59:32 -0700)
 
-Changelog describes a bit of history, but does not it's no longer
-needed.
+are available in the git repository at:
 
-Kevin
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9-rc3/fixes-signed
 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/omap-hotplug.c |    6 ------
->  1 file changed, 6 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
-> index e712d17..458f72f 100644
-> --- a/arch/arm/mach-omap2/omap-hotplug.c
-> +++ b/arch/arm/mach-omap2/omap-hotplug.c
-> @@ -19,11 +19,8 @@
->  #include <linux/smp.h>
->  #include <linux/io.h>
->  
-> -#include <asm/cacheflush.h>
->  #include "omap-wakeupgen.h"
-> -
->  #include "common.h"
-> -
->  #include "powerdomain.h"
->  
->  /*
-> @@ -35,9 +32,6 @@ void __ref omap4_cpu_die(unsigned int cpu)
->  	unsigned int boot_cpu = 0;
->  	void __iomem *base = omap_get_wakeupgen_base();
->  
-> -	flush_cache_all();
-> -	dsb();
-> -
->  	/*
->  	 * we're ready for shutdown now, so do it
->  	 */
+for you to fetch changes up to ff931c821bab6713a52b768b0cd7ee7e90713b36:
+
+  ARM: OMAP: clocks: Delay clk inits atleast until slab is initialized (2013-03-26 22:06:20 -0700)
+
+----------------------------------------------------------------
+A clock regression fix that happened with the common clock
+conversion, and few USB regression fixes.
+
+----------------------------------------------------------------
+Aaro Koskinen (1):
+      ARM: OMAP1: fix USB host on 1710
+
+Grazvydas Ignotas (1):
+      ARM: OMAP3: hwmod data: keep MIDLEMODE in force-standby for musb
+
+Jon Hunter (1):
+      ARM: OMAP4: clock data: lock USB DPLL on boot
+
+Paul Walmsley (1):
+      ARM: OMAP4: PM: fix PM regression introduced by recent clock cleanup
+
+Rajendra Nayak (1):
+      ARM: OMAP: clocks: Delay clk inits atleast until slab is initialized
+
+Tony Lindgren (1):
+      Merge tag 'omap-fixes-a-for-3.9-rc' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.9-rc3/fixes
+
+ arch/arm/mach-omap1/clock_data.c           | 12 +-----------
+ arch/arm/mach-omap2/cclock44xx_data.c      | 20 ++++++++++++++++++++
+ arch/arm/mach-omap2/common.h               |  3 +++
+ arch/arm/mach-omap2/io.c                   | 18 ++++++++++++------
+ arch/arm/mach-omap2/omap_hwmod.c           |  7 +++++--
+ arch/arm/mach-omap2/omap_hwmod.h           |  9 +++++++--
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  7 ++++++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  6 ++++++
+ arch/arm/mach-omap2/timer.c                |  4 ++++
+ 9 files changed, 64 insertions(+), 22 deletions(-)
