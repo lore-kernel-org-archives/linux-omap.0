@@ -1,7 +1,7 @@
 From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: [RFC 13/14] ARM: omap3-tobi.dts: add lcd (TEST)
-Date: Wed, 27 Mar 2013 10:45:20 +0200
-Message-ID: <1364373921-7599-14-git-send-email-tomi.valkeinen@ti.com>
+Subject: [RFC 14/14] ARM: omap3-beagle.dts: add TFP410
+Date: Wed, 27 Mar 2013 10:45:21 +0200
+Message-ID: <1364373921-7599-15-git-send-email-tomi.valkeinen@ti.com>
 References: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,22 +22,16 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY7
 Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Archit Taneja <archit-l0cyMroinI0@public.gmane.org>, Andy Gross <andy.gross-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This is a test for Overo with Palo43 expansion, _not_ Tobi. Palo43
-doesn't have a dts, but seems to work ok with omap3-tobi.dts, so I used
-it as a test.
-
-Not to be merged.
-
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3-tobi.dts |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ arch/arm/boot/dts/omap3-beagle.dts |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-tobi.dts b/arch/arm/boot/dts/omap3-tobi.dts
-index a13d12d..68e3c1b 100644
---- a/arch/arm/boot/dts/omap3-tobi.dts
-+++ b/arch/arm/boot/dts/omap3-tobi.dts
-@@ -33,3 +33,16 @@
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index f624dc8..84785e7 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -65,3 +65,23 @@
  &mmc3 {
  	status = "disabled";
  };
@@ -47,11 +41,18 @@ index a13d12d..68e3c1b 100644
 +};
 +
 +/ {
-+	lcd43 {
-+		compatible = "ti,dpi_panel";
++	tfp410: tfp410 {
++		compatible = "ti,tfp410";
 +		video-source = <&dpi>;
 +		data-lines = <24>;
-+		panel-name = "samsung_lte430wq_f0c";
++		gpios = <&gpio5 10 0>;	/* 170, power-down */
++		i2c-bus = <&i2c3>;
++	};
++
++	dvi {
++		compatible = "ti,dvi_connector";
++
++		video-source = <&tfp410>;
 +	};
 +};
 -- 
