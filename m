@@ -1,24 +1,29 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: clkdev flags removal for 3.10 cleanup
-Date: Wed, 27 Mar 2013 10:51:48 -0700
-Message-ID: <20130327175148.GA10155@atomide.com>
-References: <alpine.DEB.2.00.1303191645030.20326@utopia.booyaka.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: Generic cleanups for 3.10
+Date: Wed, 27 Mar 2013 11:03:21 -0700
+Message-ID: <20130327180321.GB10155@atomide.com>
+References: <1363768789-17929-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34847 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:63887 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752307Ab3C0Rvu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 13:51:50 -0400
+	with ESMTP id S1751128Ab3C0SDX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 14:03:23 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1303191645030.20326@utopia.booyaka.com>
+In-Reply-To: <1363768789-17929-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Paul Walmsley <paul@pwsan.com> [130319 09:50]:
-> Hi Tony
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130320 01:42]:
+> Tony,
+> 
+> Here is the pull request for various OMAP cleanups and fixes which are posted
+> earlier on the list. It contains OMAP4 smp cleanup, removal of unwanted static
+> deps from OMAP4, RAM offset consolidation and fiq tuple cleanup. 
+> 
 > 
 > The following changes since commit a937536b868b8369b98967929045f1df54234323:
 > 
@@ -26,21 +31,13 @@ Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 > 
 > are available in the git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-cleanup-a-for-3.10
+>   git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.10/omap_generic_cleanup
 > 
-> for you to fetch changes up to 78e52e026d288aad88b46bff0d94b05e145c4583:
+> for you to fetch changes up to 37e1f64c3bc2b3455a9688de8527a341847b3ad9:
 > 
->   ARM: OMAP2+: clock data: Remove CK_* flags (2013-03-18 09:57:39 -0600)
-> 
-> ----------------------------------------------------------------
-> In the OMAP2+ clock data, replace the flags that determine whether a
-> clock should be registered on a given SoC with per-SoC lists.
-> 
-> Basic build, boot, and power management test results are available at:
-> 
-> http://www.pwsan.com/omap/testlogs/jk_clock_flags_cleanup_3.10/20130318100504/
+>   ARM: OMAP4: Fix the init code to have OMAP4460 errata available in DT build (2013-03-19 12:57:30 +0530)
 
-Thanks I've pulled this into omap-for-v3.10/cleanup.
+Thanks pulled this into omap-for-v3.10/cleanup.
 
 Regards,
 
