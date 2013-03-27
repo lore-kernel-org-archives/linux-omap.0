@@ -1,39 +1,45 @@
-From: "ADMIN" <cultura@antoniocarlos.sc.gov.br>
-Subject: =?utf-8?q?administrateur_du_syst=C3=A8me?=
-Date: Wed, 27 Mar 2013 06:53:17 +0100
-Message-ID: <20130327055327.C244C8E2B49@mail.ipd.gob.pe>
-Reply-To: weblinks1@07168.cn
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [PATCH 3/5] ARM: dts: AM33XX: Fix gpio numbering to match
+ hardware/TRM
+Date: Wed, 27 Mar 2013 10:11:55 -0400
+Message-ID: <20130327141155.GK18335@beef>
+References: <1364389156-8273-1-git-send-email-hvaibhav@ti.com>
+ <1364389156-8273-4-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.ipd.gob.pe ([200.48.85.20]:59823 "EHLO mail.ipd.gob.pe"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750977Ab3C0N45 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 09:56:57 -0400
-Content-Description: Mail message body
+Received: from mail-ia0-f182.google.com ([209.85.210.182]:52811 "EHLO
+	mail-ia0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752863Ab3C0OKJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 10:10:09 -0400
+Received: by mail-ia0-f182.google.com with SMTP id u8so7377984iag.27
+        for <linux-omap@vger.kernel.org>; Wed, 27 Mar 2013 07:10:09 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1364389156-8273-4-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <cultura@antoniocarlos.sc.gov.br>
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org
 
-Votre bo=EEte aux lettres a d=E9pass=E9 la limite de 2 Go =E9tabli par =
-notre webmaster, vous =EAtes runing =E0 2.30GB vous ne pouvez pas envoy=
-er ou recevoir de nouveaux messages jusqu'=E0 ce que vous confirmiez vo=
-tre bo=EEte de r=E9ception. Remplissez le formulaire ci-dessous pour v=E9=
-rifier votre compte.
-=20
-Remplissez les informations demand=E9es et envoyer des e-mail =E0 ce qu=
-i suit:
-=20
-(1) E-mail:=20
-(2)Nom d'utilisateur :=20
-(3) Mot de passe:=20
-(4) Confirmer mot de passe:=20
-=20
-merci
-administrateur du syst=E8me
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, Mar 27, 2013 at 06:29:14PM +0530, Vaibhav Hiremath wrote:
+> With DT support, where naming convention is based on base-addr
+> and not id, so we should follow TRM/Spec numbering label.
+> 
+> This patch changes GPIO numbering as per TRM, as gpio0-3.
+> 
+> Matt Porter had submitted base patch sometime back but it
+> didn't make it to the mainline -
+> https://patchwork.kernel.org/patch/1433001/
+>
+> Later DT nodes for gpio based keypad and led driver got
+> merged, so this fix needs to propagate to board dts files
+> as well.
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Matt Porter <mporter@ti.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+
+Thanks for picking this up, Vaibhav. It'll eliminate all
+the pain people have with the DT not matching the TRM.
+
+-Matt
