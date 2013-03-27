@@ -1,36 +1,84 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 0/5] ARM: dts: AM33XX: Cleanup and pinctrl binding support
-Date: Wed, 27 Mar 2013 18:29:11 +0530
-Message-ID: <1364389156-8273-1-git-send-email-hvaibhav@ti.com>
+From: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 4/5] ARM: dts: AM33XX: Add pinctrl binding to gpio-leds node
+Date: Wed, 27 Mar 2013 18:29:15 +0530
+Message-ID: <1364389156-8273-5-git-send-email-hvaibhav@ti.com>
+References: <1364389156-8273-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38935 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751049Ab3C0M7a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Mar 2013 08:59:30 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1364389156-8273-1-git-send-email-hvaibhav-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: mporter-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, mporter@ti.com, devicetree-discuss@lists.ozlabs.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-This patch series fixes the numbering schema for I2C and GPIO
-module and adds the pin-control binding for I2C, UART, GPIO-LED across
-supported platforms (EVM, EVM-SK and Bone).
+Now gpio-leds driver is using devm_pinctrl_get_select_default()
+api to set default pinmux configuration required for the
+functionality of the driver, so this patch moves respective
+pinctrl binding inside leds node.
 
-I have divided patches based on functionality and _not_
-into EVM/Board perspective.
+Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
+Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am335x-bone.dts  |    5 ++++-
+ arch/arm/boot/dts/am335x-evmsk.dts |    5 ++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-Vaibhav Hiremath (5):
-  ARM: dts: AM33XX: Fix the i2c numbering to match hardware/TRM
-  ARM: dts: AM33XX: Add default pinctrl binding for I2C device
-  ARM: dts: AM33XX: Fix gpio numbering to match hardware/TRM
-  ARM: dts: AM33XX: Add pinctrl binding to gpio-leds node
-  ARM: dts: AM33XX: Add default pinctrl binding for UART0 device
-
- arch/arm/boot/dts/am335x-bone.dts  |   35 +++++++++++++++++++++----
- arch/arm/boot/dts/am335x-evm.dts   |   48 +++++++++++++++++++++++++++++------
- arch/arm/boot/dts/am335x-evmsk.dts |   43 ++++++++++++++++++++++++-------
- arch/arm/boot/dts/am33xx.dtsi      |   14 +++++-----
- 4 files changed, 108 insertions(+), 32 deletions(-)
-
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 860630b..1d623e4 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -26,7 +26,7 @@
+ 
+ 	am33xx_pinmux: pinmux@44e10800 {
+ 		pinctrl-names = "default";
+-		pinctrl-0 = <&user_leds_s0>;
++		pinctrl-0 = <>;
+ 
+ 		user_leds_s0: user_leds_s0 {
+ 			pinctrl-single,pins = <
+@@ -65,6 +65,9 @@
+ 	};
+ 
+ 	leds {
++		pinctrl-names = "default";
++		pinctrl-0 = <&user_leds_s0>;
++
+ 		compatible = "gpio-leds";
+ 
+ 		led@2 {
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 15a3052..21d5a08 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -32,7 +32,7 @@
+ 
+ 	am33xx_pinmux: pinmux@44e10800 {
+ 		pinctrl-names = "default";
+-		pinctrl-0 = <&user_leds_s0 &gpio_keys_s0>;
++		pinctrl-0 = <&gpio_keys_s0>;
+ 
+ 		user_leds_s0: user_leds_s0 {
+ 			pinctrl-single,pins = <
+@@ -121,6 +121,9 @@
+ 	};
+ 
+ 	leds {
++		pinctrl-names = "default";
++		pinctrl-0 = <&user_leds_s0>;
++
+ 		compatible = "gpio-leds";
+ 
+ 		led@1 {
+-- 
+1.7.0.4
