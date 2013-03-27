@@ -1,33 +1,44 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OK to use commit 71856843 as base for further omap clean up?
-Date: Tue, 26 Mar 2013 23:22:00 +0000
-Message-ID: <20130326232200.GQ30923@n2100.arm.linux.org.uk>
-References: <20130319175921.GA22104@atomide.com> <5150A60E.2090108@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2] ARM: OMAP: clocks: Delay clk inits atleast until slab
+ is initialized
+Date: Wed, 27 Mar 2013 04:57:33 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1303270456280.8161@utopia.booyaka.com>
+References: <1363863892-6810-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45450 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756047Ab3CZXWU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Mar 2013 19:22:20 -0400
-Content-Disposition: inline
-In-Reply-To: <5150A60E.2090108@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:43100 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754359Ab3C0E5e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 00:57:34 -0400
+In-Reply-To: <1363863892-6810-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, phaber@broadcom.com, mturquette@linaro.org, santosh.shilimkar@ti.com
 
-On Mon, Mar 25, 2013 at 02:31:26PM -0500, Jon Hunter wrote:
-> Hi Russell,
-> 
-> On 03/19/2013 12:59 PM, Tony Lindgren wrote:
-> > Hi Russell,
-> > 
-> > Can we use your commit 71856843 (ARM: OMAP: use consistent error checking)
-> > as an immutable base for further omap dmtimer and gpmc work?
-> 
-> I saw that you updated your clean-up branch. Ok to use the below commit
-> [1] as a base for some v3.10 updates?
+Hi
 
-It's still the same commit.  I'm not intending to remove this commit
-from it, so yes, fine, go ahead.
+On Thu, 21 Mar 2013, Rajendra Nayak wrote:
+
+> clk inits on OMAP happen quite early, even before slab is available.
+> The dependency comes from the fact that the timer init code starts to
+> use clocks and hwmod and we need clocks to be initialized by then.
+> 
+> There are various problems doing clk inits this early, one is,
+> not being able to do dynamic clk registrations and hence the
+> dependency on clk-private.h. The other is, inability to debug
+> early kernel crashes without enabling DEBUG_LL and earlyprintk.
+
+...
+
+> Reported-by: Piotr Haber <phaber@broadcom.com>
+> Reported-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+
+Thanks, looks good to me.  Nice patch description!
+
+Acked-by: Paul Walmsley <paul@pwsan.com>
+
+
+- Paul
