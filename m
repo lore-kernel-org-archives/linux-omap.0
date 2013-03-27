@@ -1,64 +1,125 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] ARM: AM33XX: Add missing .clkdm_name to clkdiv32k_ick
- clock
-Date: Wed, 27 Mar 2013 06:17:00 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC3B0AE@DBDE01.ent.ti.com>
-References: <1364211443-27536-1-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1303261812010.23957@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 3/8] drm/omap: Make fixed resolution panels work
+Date: Wed, 27 Mar 2013 09:24:50 +0200
+Message-ID: <51529EC2.4040403@ti.com>
+References: <1362493070-17706-1-git-send-email-archit@ti.com> <1364305525-28496-1-git-send-email-archit@ti.com> <1364305525-28496-4-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigC9125FEF3A688DEE8F7B2BE5"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57100 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:59892 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab3C0GRM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 02:17:12 -0400
-In-Reply-To: <alpine.DEB.2.00.1303261812010.23957@utopia.booyaka.com>
-Content-Language: en-US
+	with ESMTP id S1753950Ab3C0HYy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 03:24:54 -0400
+In-Reply-To: <1364305525-28496-4-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+To: Archit Taneja <archit@ti.com>
+Cc: robdclark@gmail.com, andy.gross@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
+
+--------------enigC9125FEF3A688DEE8F7B2BE5
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 2013-03-26 15:45, Archit Taneja wrote:
+> The omapdrm driver requires omapdss panel drivers to expose ops like de=
+tect,
+> set_timings and check_timings. These can be NULL for fixed panel DPI, D=
+BI, DSI
+> and SDI drivers. At some places, there are no checks to see if the pane=
+l driver
+> has these ops or not, and that leads to a crash.
+>=20
+> The following things are done to make fixed panels work:
+>=20
+> - The omap_connector's detect function is modified such that it conside=
+rs panel
+>   types which are generally fixed panels as always connected(provided t=
+he panel
+>   driver doesn't have a detect op). Hence, the connector corresponding =
+to these
+>   panels is always in a 'connected' state.
+>=20
+> - If a panel driver doesn't have a check_timings op, assume that it sup=
+ports the
+>   mode passed to omap_connector_mode_valid(the 'mode_valid' drm helper =
+function)
+>=20
+> - The function omap_encoder_update shouldn't really do anything for fix=
+ed
+>   resolution panels, make sure that it calls set_timings only if the pa=
+nel
+>   driver has one.
+>=20
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+> v3: clear the timings local variable first before using memcmp
+> v2: make sure the timings we try to set for a fixed resolution panel ma=
+tch the
+>     panel's timings
+>=20
+>  drivers/gpu/drm/omapdrm/omap_connector.c |   27 ++++++++++++++++++++++=
++++--
+>  drivers/gpu/drm/omapdrm/omap_encoder.c   |   17 +++++++++++++++--
+>  2 files changed, 40 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm=
+/omapdrm/omap_connector.c
+> index c451c41..912759d 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_connector.c
+> +++ b/drivers/gpu/drm/omapdrm/omap_connector.c
+> @@ -110,6 +110,11 @@ static enum drm_connector_status omap_connector_de=
+tect(
+>  			ret =3D connector_status_connected;
+>  		else
+>  			ret =3D connector_status_disconnected;
+> +	} else if (dssdev->type =3D=3D OMAP_DISPLAY_TYPE_DPI ||
+> +			dssdev->type =3D=3D OMAP_DISPLAY_TYPE_DBI ||
+> +			dssdev->type =3D=3D OMAP_DISPLAY_TYPE_SDI ||
+> +			dssdev->type =3D=3D OMAP_DISPLAY_TYPE_DSI) {
+> +		ret =3D connector_status_connected;
+>  	} else {
+>  		ret =3D connector_status_unknown;
+>  	}
+
+Can we leave this part out? I don't like hardcoding things like that,
+and if I'm not mistaken, this only affects VENC.
+
+If the code above would use detect where available, and presume the
+panel is connected in other cases, it'll be right for all other displays
+but VENC, for which we have no connect information.
+
+Or, there could be a special case for VENC, like above, which sets the
+connector status to unknown for that. And connected for all others. It'd
+still be hardcoded, but for much less cases.
+
+ Tomi
 
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> Sent: Tuesday, March 26, 2013 11:43 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> Tony Lindgren
-> Subject: Re: [PATCH] ARM: AM33XX: Add missing .clkdm_name to
-> clkdiv32k_ick clock
-> 
-> On Mon, 25 Mar 2013, Vaibhav Hiremath wrote:
-> 
-> > During common-clock migration, .clkdm_name field got missed
-> > for "clkdiv32k_ick" clock, which leaves "clk_24mhz_clkdm"
-> > unused; so boot process will try to disable the clockdomain
-> > even childs of this clock is enabled, which keeps child modules
-> > in idle mode.
-> 
-> Looks fine to me.  You're planning to update the patch description,
-> right?
-> So should I wait until you repost it?
-> 
-Yeup, will submit today.
 
-> Also you should probably trim the crash log after "[    2.626025] LR is
-> at
-> clk_enable+0x30/0x3c"
-> 
-Ok, 
+--------------enigC9125FEF3A688DEE8F7B2BE5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Thanks,
-Vaibhav
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-> 
-> 
-> - Paul
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBAgAGBQJRUp7CAAoJEPo9qoy8lh71tGIP/17046nFOWXcJIZitHwi5wXV
+iAkkNjrwIAppTooJwaFEcVGGegddSgtalZkU2pGTZrnRB0J5NZqbiexGXTrAk8ff
+grdZkKW3XLtkfk8kXVepR1XuiB971K6yyKrZE25evjBYuwCOLSGajTL2IL8af5wy
+nlQd/N7mnD7ktxdllRK6tM+CzDNXoMNrEyLP6255XEWgpGRW0WGufGHBSpUkdPiC
+X+PeNrgdOXT0q2pjvoSmWFgCtmIDb9ZF8oU6eaW/o94rnnP3RMgP9pbaG5Yp2eZ2
+y/h421Wi0cuTiEqB520rbdFfWFv5TYQur/9vWJHCLlqTRQSVhqZinYbdg6LPXYYq
+9I0N6AfNl6pG/JjHEQpL7xetRFMvWZp4GcXz8oKz/ArDn2iQiUy5T5ctXrE49pRZ
+5EsPJz243fOVi5D5s9SSAnixFU/JNWIjHP00qEYi0BpZN9w3+UeAJC228BdW8zTp
+navrY7N7IgQijwofn/zAQlLsrjr+lIm+FuLwafqnz4QP1vwri5/Wj/L9KfKh7MxO
+ruMIaffBaNKy1meQRHEIStV760i1tLmvWEak4cpDtJ/PD8+gwB410blDu4zYSNaL
+CYzdNJOqQK956svUfDCCEtddP07mV7/W8fR8M8Io7AXoEiAOPqJFhPcLFitqZVgf
+MrwGgFZcZZw2pGeRj58r
+=q6LV
+-----END PGP SIGNATURE-----
+
+--------------enigC9125FEF3A688DEE8F7B2BE5--
