@@ -1,105 +1,71 @@
 From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v2 5/8] omapdss: DISPC: add max pixel clock limits for
- LCD and TV managers
-Date: Wed, 27 Mar 2013 13:06:03 +0530
-Message-ID: <5152A163.8050203@ti.com>
-References: <1362493070-17706-1-git-send-email-archit@ti.com> <1364305525-28496-1-git-send-email-archit@ti.com> <1364305525-28496-6-git-send-email-archit@ti.com> <5152A031.3080209@ti.com>
+Subject: Re: [PATCH v2 6/8] omapdss: Features: Fix some parameter ranges
+Date: Wed, 27 Mar 2013 13:08:20 +0530
+Message-ID: <5152A1EC.8010801@ti.com>
+References: <1362493070-17706-1-git-send-email-archit@ti.com> <1364305525-28496-1-git-send-email-archit@ti.com> <1364305525-28496-7-git-send-email-archit@ti.com> <5152A0E6.3010300@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50610 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60187 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753182Ab3C0Hgv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Mar 2013 03:36:51 -0400
-In-Reply-To: <5152A031.3080209@ti.com>
+	id S1753739Ab3C0HjI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Mar 2013 03:39:08 -0400
+In-Reply-To: <5152A0E6.3010300@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: robdclark@gmail.com, andy.gross@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-On Wednesday 27 March 2013 01:00 PM, Tomi Valkeinen wrote:
+On Wednesday 27 March 2013 01:03 PM, Tomi Valkeinen wrote:
 > On 2013-03-26 15:45, Archit Taneja wrote:
->> Each version of OMAP has a limitation on the maximum pixel clock frequency
->> supported by an overlay manager. This limit isn't checked by omapdss. Add
->> dispc feats for lcd and tv managers and check whether the target timings can
->> be supported or not.
+>> Increase the DSS_FCLK and DSI_FCLK max supported frequencies, these come because
+>> some frequencies were increased from OMAP5 ES1 to OMAP5 ES2. We support only
+>> OMAP5 ES2 in the kernel, so replace the ES1 values with ES2 values. Increase the
+>> DSI PLL Fint range, this was previously just copied from the OMAP4 param range
+>> struct.
 >>
->> The pixel clock limitations are actually more complex. They depend on which OPP
->> OMAP is in, and they also depend on which encoder is the manager connected to.
->> The OPP dependence is ignored as DSS forces the PM framework to be on OPP100
->> when DSS is enabled, and the encoder dependencies are ignored by DISPC for now.
->> These limits should come from the encoder driver.
->>
->> The OMAP2 TRM doesn't mention the maximum pixel clock limit. This value is left
->> as half of DSS_FCLK, as OMAP2 requires the PCD to be atleast 2.
+>> Fix the maximum DSS_FCLK on OMAP2, it's 133 Mhz according to the TRM.
 >>
 >> Signed-off-by: Archit Taneja <archit@ti.com>
 >> ---
->>   drivers/video/omap2/dss/dispc.c |   32 +++++++++++++++++++++++++++-----
->>   1 file changed, 27 insertions(+), 5 deletions(-)
+>>   drivers/video/omap2/dss/dss_features.c |    8 ++++----
+>>   1 file changed, 4 insertions(+), 4 deletions(-)
 >>
->> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
->> index 8cfa27b..73a730a 100644
->> --- a/drivers/video/omap2/dss/dispc.c
->> +++ b/drivers/video/omap2/dss/dispc.c
->> @@ -69,6 +69,8 @@ struct dispc_features {
->>   	u8 mgr_height_start;
->>   	u16 mgr_width_max;
->>   	u16 mgr_height_max;
->> +	unsigned long max_lcd_pclk;
->> +	unsigned long max_tv_pclk;
->>   	int (*calc_scaling) (unsigned long pclk, unsigned long lclk,
->>   		const struct omap_video_timings *mgr_timings,
->>   		u16 width, u16 height, u16 out_width, u16 out_height,
->> @@ -2825,6 +2827,15 @@ static bool _dispc_lcd_timings_ok(int hsw, int hfp, int hbp,
->>   	return true;
->>   }
+>> diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+>> index 7f791ae..77dbe0c 100644
+>> --- a/drivers/video/omap2/dss/dss_features.c
+>> +++ b/drivers/video/omap2/dss/dss_features.c
+>> @@ -414,7 +414,7 @@ static const char * const omap5_dss_clk_source_names[] = {
+>>   };
 >>
->> +static bool _dispc_mgr_pclk_ok(enum omap_channel channel,
->> +		unsigned long pclk)
->> +{
->> +	if (dss_mgr_is_lcd(channel))
->> +		return pclk <= dispc.feat->max_lcd_pclk ? true : false;
->> +	else
->> +		return pclk <= dispc.feat->max_tv_pclk ? true : false;
->> +}
->> +
->>   bool dispc_mgr_timings_ok(enum omap_channel channel,
->>   		const struct omap_video_timings *timings)
->>   {
->> @@ -2832,11 +2843,13 @@ bool dispc_mgr_timings_ok(enum omap_channel channel,
+>>   static const struct dss_param_range omap2_dss_param_range[] = {
+>> -	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
+>> +	[FEAT_PARAM_DSS_FCK]			= { 0, 133000000 },
+>>   	[FEAT_PARAM_DSS_PCD]			= { 2, 255 },
+>>   	[FEAT_PARAM_DSIPLL_REGN]		= { 0, 0 },
+>>   	[FEAT_PARAM_DSIPLL_REGM]		= { 0, 0 },
+>> @@ -459,15 +459,15 @@ static const struct dss_param_range omap4_dss_param_range[] = {
+>>   };
 >>
->>   	timings_ok = _dispc_mgr_size_ok(timings->x_res, timings->y_res);
->>
->> -	if (dss_mgr_is_lcd(channel))
->> -		timings_ok =  timings_ok && _dispc_lcd_timings_ok(timings->hsw,
->> -						timings->hfp, timings->hbp,
->> -						timings->vsw, timings->vfp,
->> -						timings->vbp);
->> +	timings_ok &= _dispc_mgr_pclk_ok(channel, timings->pixel_clock * 1000);
->> +
->> +	if (dss_mgr_is_lcd(channel)) {
->> +		timings_ok &= _dispc_lcd_timings_ok(timings->hsw, timings->hfp,
->> +				timings->hbp, timings->vsw, timings->vfp,
->> +				timings->vbp);
->> +	}
->>
->>   	return timings_ok;
->>   }
->> @@ -3491,6 +3504,7 @@ static const struct dispc_features omap24xx_dispc_feats __initconst = {
->>   	.mgr_height_start	=	26,
->>   	.mgr_width_max		=	2048,
->>   	.mgr_height_max		=	2048,
->> +	.max_lcd_pclk		=	66500000,
->>   	.calc_scaling		=	dispc_ovl_calc_scaling_24xx,
->>   	.calc_core_clk		=	calc_core_clk_24xx,
->>   	.num_fifos		=	3,
+>>   static const struct dss_param_range omap5_dss_param_range[] = {
+>> -	[FEAT_PARAM_DSS_FCK]			= { 0, 200000000 },
+>> +	[FEAT_PARAM_DSS_FCK]			= { 0, 209250000 },
+>>   	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
+>>   	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1 << 8) - 1 },
+>>   	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1 << 12) - 1 },
+>>   	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1 << 5) - 1 },
+>>   	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, (1 << 5) - 1 },
+>> -	[FEAT_PARAM_DSIPLL_FINT]		= { 500000, 2500000 },
+>> +	[FEAT_PARAM_DSIPLL_FINT]		= { 150000, 52000000 },
 >
-> OMAP2 has VENC output, but there's no max_tv_pclk above. This would make
-> VENC pclk check to fail always, wouldn't it?
+> Just a note, I think the PLL FINT range for OMAP3/4 may be wrong also.
+> Some TRMs mention the FINT range being up to 52MHz or so. I don't think
+> it's ever very clearly stated, though...
 
-oops, I missed adding it for omap2, will fix it.
+I'll drop the FINT range modification for now. It's not that critical 
+anyway since we manage to lock the PLL for most frequencies anyway. I'll 
+do an update later after reading more detailed specs of the PLL.
 
 Archit
 
