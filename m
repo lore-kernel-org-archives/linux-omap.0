@@ -1,71 +1,83 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v2 6/8] omapdss: Features: Fix some parameter ranges
-Date: Wed, 27 Mar 2013 13:08:20 +0530
-Message-ID: <5152A1EC.8010801@ti.com>
-References: <1362493070-17706-1-git-send-email-archit@ti.com> <1364305525-28496-1-git-send-email-archit@ti.com> <1364305525-28496-7-git-send-email-archit@ti.com> <5152A0E6.3010300@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 0/8] omapdss/omapdrm: Misc fixes and improvements
+Date: Wed, 27 Mar 2013 09:54:57 +0200
+Message-ID: <5152A5D1.3010209@ti.com>
+References: <1362493070-17706-1-git-send-email-archit@ti.com> <1364305525-28496-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig336BBDACF5E77E45CC7D29E8"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60187 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45101 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753739Ab3C0HjI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Mar 2013 03:39:08 -0400
-In-Reply-To: <5152A0E6.3010300@ti.com>
+	id S1750744Ab3C0HzC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Mar 2013 03:55:02 -0400
+In-Reply-To: <1364305525-28496-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Archit Taneja <archit@ti.com>
 Cc: robdclark@gmail.com, andy.gross@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-On Wednesday 27 March 2013 01:03 PM, Tomi Valkeinen wrote:
-> On 2013-03-26 15:45, Archit Taneja wrote:
->> Increase the DSS_FCLK and DSI_FCLK max supported frequencies, these come because
->> some frequencies were increased from OMAP5 ES1 to OMAP5 ES2. We support only
->> OMAP5 ES2 in the kernel, so replace the ES1 values with ES2 values. Increase the
->> DSI PLL Fint range, this was previously just copied from the OMAP4 param range
->> struct.
->>
->> Fix the maximum DSS_FCLK on OMAP2, it's 133 Mhz according to the TRM.
->>
->> Signed-off-by: Archit Taneja <archit@ti.com>
->> ---
->>   drivers/video/omap2/dss/dss_features.c |    8 ++++----
->>   1 file changed, 4 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
->> index 7f791ae..77dbe0c 100644
->> --- a/drivers/video/omap2/dss/dss_features.c
->> +++ b/drivers/video/omap2/dss/dss_features.c
->> @@ -414,7 +414,7 @@ static const char * const omap5_dss_clk_source_names[] = {
->>   };
->>
->>   static const struct dss_param_range omap2_dss_param_range[] = {
->> -	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
->> +	[FEAT_PARAM_DSS_FCK]			= { 0, 133000000 },
->>   	[FEAT_PARAM_DSS_PCD]			= { 2, 255 },
->>   	[FEAT_PARAM_DSIPLL_REGN]		= { 0, 0 },
->>   	[FEAT_PARAM_DSIPLL_REGM]		= { 0, 0 },
->> @@ -459,15 +459,15 @@ static const struct dss_param_range omap4_dss_param_range[] = {
->>   };
->>
->>   static const struct dss_param_range omap5_dss_param_range[] = {
->> -	[FEAT_PARAM_DSS_FCK]			= { 0, 200000000 },
->> +	[FEAT_PARAM_DSS_FCK]			= { 0, 209250000 },
->>   	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
->>   	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1 << 8) - 1 },
->>   	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1 << 12) - 1 },
->>   	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1 << 5) - 1 },
->>   	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, (1 << 5) - 1 },
->> -	[FEAT_PARAM_DSIPLL_FINT]		= { 500000, 2500000 },
->> +	[FEAT_PARAM_DSIPLL_FINT]		= { 150000, 52000000 },
->
-> Just a note, I think the PLL FINT range for OMAP3/4 may be wrong also.
-> Some TRMs mention the FINT range being up to 52MHz or so. I don't think
-> it's ever very clearly stated, though...
+--------------enig336BBDACF5E77E45CC7D29E8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-I'll drop the FINT range modification for now. It's not that critical 
-anyway since we manage to lock the PLL for most frequencies anyway. I'll 
-do an update later after reading more detailed specs of the PLL.
+On 2013-03-26 15:45, Archit Taneja wrote:
+> These are misc fixes and improvements within omapdrm and omapdss. The f=
+ixes do the
+> following:
+>=20
+> - Make omapdrm smarter to choose the right overlay managers as it's crt=
+cs. This
+>   makes sure that omapdrm is functional for OMAP platforms with differe=
+nt
+>   combinations of panels connected to it.
+>=20
+> - Fix certain areas in omapdrm which allow fixed resolution panels to w=
+ork.
+>=20
+> - Fix functional and pixel clock limits for DISPC, this ensures we don'=
+t try
+>   to try a mode that the hardware can't support.
+>=20
+> - Some changes that came in OMAP5 ES2 silicon.
+>=20
+> Note: The branch is based on the DSS misc series and dsi video mode cal=
+c series
+> posted by Tomi. Reference branch:
+>=20
+> git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git for-3=
+=2E10/misc_drm_dss
 
-Archit
+Which of the fixes should go for 3.9? We need those separately, based on
+the mainline.
 
+ Tomi
+
+
+
+--------------enig336BBDACF5E77E45CC7D29E8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRUqXRAAoJEPo9qoy8lh71jZAP/3EysqOpC/oqukCJwfwhx2aO
+k+S4JqHD85CKPkXWaEXQdd+I/eiCBwkUEWK8ggp74XXDfInvagqeq9s9A8hTeyEk
+/YBhULCEfLy89Ew3D98VYnq0eDt72zuP/NFXriJ3nyq6zootNKad/s1wCnbNcNHX
+EPIesaPsYzRcNmwJdFgXZMkzqmJNVePc0K/A+E6vA1oalIj4wJKjIFPkPeN01glK
+QqLtERUeDidcKDadbPi/dfVadOBUS0weDA/vN/qxtYHvFpDLVoYWlaxyaChrn5kt
+4Hgz+48kcDWWLKs0356rGM5GHXPcnwyHk9lUH6qX5jHyHFNkwzowbqbXvz3IAAd7
+V6R4KVT3vXBkye0NgLLME19rwzf1L4bxP7bebr2/kK2chqNfF6BUJkslu41I4G0c
+RyuvHEF3PkdVgkySihLP/6hOXEX268PzV4XWQ51S98+lKkJSvRwy+KY+wvUkEf03
+VA7rLsK/VEIEgx06//WcWS72NcQnjmipft7AY4IX2suvXzGwPnskMULToPDx1MR0
+XXf82wqH35rz0vKDtuTjCpFKyWA1PKDhqLrxIvlHwjEK9kJeiLS0HAZzbcm5jmXP
+KF7KCO1csp7mc1nqFnyjeBr8VJ+4AInJTR8t4fWBbfPr5h03qmt941AKfenLzcUA
+Ktl/TzWQZxPLV50MLWju
+=fNCb
+-----END PGP SIGNATURE-----
+
+--------------enig336BBDACF5E77E45CC7D29E8--
