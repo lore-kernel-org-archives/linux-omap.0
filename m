@@ -1,47 +1,97 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL v2] ARM: omap2: twl-common update
-Date: Wed, 27 Mar 2013 11:38:23 -0700
-Message-ID: <20130327183822.GC10155@atomide.com>
-References: <5146E895.50709@ti.com>
- <20130319182336.GE16413@atomide.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH V2 8/8] cpufreq: OMAP: donot allow to be used with device tree
+Date: Wed, 27 Mar 2013 11:39:09 -0700
+Message-ID: <87vc8c7kmq.fsf@linaro.org>
+References: <1363715590-5131-1-git-send-email-nm@ti.com>
+	<1363715590-5131-9-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50739 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753590Ab3C0Si0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 14:38:26 -0400
-Content-Disposition: inline
-In-Reply-To: <20130319182336.GE16413@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <1363715590-5131-9-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Tue, 19 Mar 2013 12:53:10 -0500")
+Sender: cpufreq-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@list.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [130319 11:28]:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [130318 03:16]:
-> > Hi Tony,
-> > 
-> > I have rebased the branch on 3.9-rc3 tag.
-> > Is it still possible to send this for 3.9?
-> 
-> Let's see if we can still get this in. It's getting a bit late
-> for v3.9, so I'll apply this into a separate branch from other fixes
-> omap-for-v3.9-rc3/fix-twl-reboot branch just in case it's considered
-> too intrusive for the -rc.
+Nishanth Menon <nm@ti.com> writes:
 
-Sorry just noticed that this one adds:
+> We now use Soc generic cpufreq-cpu0 driver using DT entries.
+> However to allow cpufreq-cpu0 and omap-cpufreq drivers to co-exist,
+> we need to ensure the following using the same image:
+> 1. With device tree boot, we use cpufreq-cpu0
+> 2. With non device tree boot, we use omap-cpufreq
+>
+> In the case of (1), we will have cpu OPPs and regulator registered
+> as part of the DT, to ensure that omap-cpufreq and cpufreq-cpu0 don't
+> conflict in managing the frequency of the same cpu, we should not
+> permit init to pass in omap-cpufreq.
+>
+> In the case of (2), we will not have the cpufreq-cpu0 device, hence
+> only omap-cpufreq will be active.
+>
+> So, to acommodate both these usage conditions, we fail init of
+> omap-cpufreq when we boot with device tree.
+>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Jon Hunter <jon-hunter@ti.com>
+> Cc: "Beno=C3=AEt Cousson" <b-cousson@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Shawn Guo <shawn.guo@linaro.org>
+> Cc: Keerthy <j-keerthy@ti.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: devicetree-discuss@lists.ozlabs.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: cpufreq@vger.kernel.org
+> Cc: linux-pm@vger.kernel.org
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> Changes in V2:
+> 	- donot remove support for omap-cpufreq in non-DT boot
+> 	- little more verbose commit log
+> V1: https://patchwork.kernel.org/patch/2273641/
+>
+>  drivers/cpufreq/omap-cpufreq.c |   14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+>
+> diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cp=
+ufreq.c
+> index 9128c07..9382ed0 100644
+> --- a/drivers/cpufreq/omap-cpufreq.c
+> +++ b/drivers/cpufreq/omap-cpufreq.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/err.h>
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+> +#include <linux/of.h>
+>  #include <linux/opp.h>
+>  #include <linux/cpu.h>
+>  #include <linux/module.h>
+> @@ -174,6 +175,19 @@ static inline void freq_table_free(void)
+>  static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+>  {
+>  	int result =3D 0;
+> +	struct device_node *np;
+> +
+> +	/*
+> +	 * If we have a device tree node describing OPPs,
+> +	 * we will NOT permit usage of omap-cpufreq driver.
+> +	 * use cpufreq-cpu0 driver to manage.
+> +	 */
+> +	if (of_have_populated_dt()) {
+> +		for_each_child_of_node(of_find_node_by_path("/cpus"), np) {
+> +			if (of_get_property(np, "operating-points", NULL))
+> +				return -EPERM;
+> +		}
+> +	}
 
-Section mismatch in reference from the variable omap3_power_pdata to the (unknown reference) .init.data:(unknown)
-The variable omap3_power_pdata references
-the (unknown reference) __initdata (unknown)
-If the reference is valid then annotate the
-variable with __init* or __refdata (see linux/init.h) or name the variable:
-*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+I think it's much cleaner to just convert this to a platform_driver lik=
+e
+was done for the generic driver[1].  Then the registration in the
+previous patch can register the omap driver when needed.
 
-Is it safe to make it __initdata, or should also other power_pdata
-have their __initdata flags removed if used by the drivers?
+Kevin
 
-Regards,
-
-Tony
+[1] https://patchwork.kernel.org/patch/2067751/
