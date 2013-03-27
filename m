@@ -1,7 +1,7 @@
 From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: [RFC 08/14] OMAPDSS: panel-generic-dpi: add DT support
-Date: Wed, 27 Mar 2013 10:45:15 +0200
-Message-ID: <1364373921-7599-9-git-send-email-tomi.valkeinen@ti.com>
+Subject: [RFC 09/14] ARM: omap3.dtsi: add omapdss information
+Date: Wed, 27 Mar 2013 10:45:16 +0200
+Message-ID: <1364373921-7599-10-git-send-email-tomi.valkeinen@ti.com>
 References: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,93 +24,67 @@ List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 ---
- drivers/video/omap2/displays/panel-generic-dpi.c |   47 ++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+ arch/arm/boot/dts/omap3.dtsi |   49 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-index cc49c48..a00c942 100644
---- a/drivers/video/omap2/displays/panel-generic-dpi.c
-+++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -34,6 +34,7 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/platform_device.h>
-+#include <linux/of.h>
- #include <video/omapdss.h>
- 
- #include <video/omap-panel-generic-dpi.h>
-@@ -618,6 +619,42 @@ static int generic_dpi_panel_probe_pdata(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static int generic_dpi_panel_probe_of(struct platform_device *pdev)
-+{
-+	struct device_node *node = pdev->dev.of_node;
-+	struct panel_drv_data *drv_data = dev_get_drvdata(&pdev->dev);
-+	struct panel_config *panel_config = NULL;
-+	int r, i;
-+	int datalines;
-+	const char *panel_name;
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 1acc261..49de390 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -397,5 +397,54 @@
+ 			ti,timer-alwon;
+ 			ti,timer-secure;
+ 		};
 +
-+	r = of_property_read_string(node, "panel-name", &panel_name);
-+	if (r)
-+		return r;
++		dss@48050000 {
++			compatible = "ti,omap3-dss", "simple-bus";
++			reg = <0x48050000 0x200>;
++			ti,hwmods = "dss_core";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
 +
-+	for (i = 0; i < ARRAY_SIZE(generic_dpi_panels); i++) {
-+		if (strcmp(panel_name, generic_dpi_panels[i].name) == 0) {
-+			panel_config = &generic_dpi_panels[i];
-+			break;
-+		}
-+	}
++			dispc@48050400 {
++				compatible = "ti,omap3-dispc";
++				reg = <0x48050400 0x400>;
++				interrupts = <25>;
++				ti,hwmods = "dss_dispc";
++			};
 +
-+	if (!panel_config)
-+		return -EINVAL;
++			dpi: dpi {
++				compatible = "ti,omap3-dpi";
++			};
 +
-+	r = of_property_read_u32(node, "data-lines", &datalines);
-+	if (r) {
-+		dev_err(&pdev->dev, "failed to parse datalines");
-+		return r;
-+	}
++			sdi: sdi {
++				compatible = "ti,omap3-sdi";
++			};
 +
-+	drv_data->panel_config = panel_config;
-+	drv_data->name = node->name;
-+	drv_data->data_lines = datalines;
++			dsi: dsi@4804fc00 {
++				compatible = "ti,omap3-dsi";
++				reg = <0x4804fc00 0x400>;
++				interrupts = <25>;
++				ti,hwmods = "dss_dsi1";
 +
-+	return 0;
-+}
++				/*
++				 * XXX dss_core needs to know module-id,
++				 * so this data should be there.
++				 */
++				ti,dsi-module-id = <0>;
++			};
 +
- static int generic_dpi_panel_probe(struct platform_device *pdev)
- {
- 	struct panel_drv_data *drv_data;
-@@ -636,6 +673,10 @@ static int generic_dpi_panel_probe(struct platform_device *pdev)
- 		r = generic_dpi_panel_probe_pdata(pdev);
- 		if (r)
- 			return r;
-+	} else if (pdev->dev.of_node) {
-+		r = generic_dpi_panel_probe_of(pdev);
-+		if (r)
-+			return r;
- 	} else {
- 		return -EINVAL;
- 	}
-@@ -754,12 +795,18 @@ static struct omap_dss_driver generic_dpi_panel_driver = {
- 	.get_resolution	= omapdss_default_get_resolution,
++			rfbi: rfbi@48050800 {
++				compatible = "ti,omap3-rfbi";
++				reg = <0x48050800 0x100>;
++				ti,hwmods = "dss_rfbi";
++			};
++
++			venc: venc@48050c00 {
++				compatible = "ti,omap3-venc";
++				reg = <0x48050c00 0x100>;
++				ti,hwmods = "dss_venc";
++			};
++		};
+ 	};
  };
- 
-+static const struct of_device_id generic_dpi_panel_of_match[] = {
-+	{ .compatible = "ti,dpi_panel", },
-+	{},
-+};
-+
- static struct platform_driver generic_dpi_panel_platform_driver = {
- 	.probe	= generic_dpi_panel_probe,
- 	.remove	= __exit_p(generic_dpi_panel_remove),
- 	.driver	= {
- 		.name	= "generic_dpi_panel",
- 		.owner	= THIS_MODULE,
-+		.of_match_table = generic_dpi_panel_of_match,
- 	},
- };
- 
 -- 
 1.7.10.4
