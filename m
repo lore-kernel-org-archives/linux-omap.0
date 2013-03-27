@@ -1,55 +1,47 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH-V2] ARM: AM33XX: Add missing .clkdm_name to clkdiv32k_ick
- clock
-Date: Wed, 27 Mar 2013 17:45:24 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1303271744510.17356@utopia.booyaka.com>
-References: <1364378666-23641-1-git-send-email-hvaibhav@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: clkdev flags removal for 3.10 cleanup
+Date: Wed, 27 Mar 2013 10:51:48 -0700
+Message-ID: <20130327175148.GA10155@atomide.com>
+References: <alpine.DEB.2.00.1303191645030.20326@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:47816 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754203Ab3C0RpZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 13:45:25 -0400
-In-Reply-To: <1364378666-23641-1-git-send-email-hvaibhav@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34847 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752307Ab3C0Rvu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 13:51:50 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1303191645030.20326@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, 27 Mar 2013, Vaibhav Hiremath wrote:
-
-> It is required to enable respective clock-domain before
-> enabling any clock/module inside that clock-domain.
+* Paul Walmsley <paul@pwsan.com> [130319 09:50]:
+> Hi Tony
 > 
-> During common-clock migration, .clkdm_name field got missed
-> for "clkdiv32k_ick" clock, which leaves "clk_24mhz_clkdm"
-> unused; so it will be disabled even if childs of this clock-domain
-> is enabled, which keeps child modules in idle mode.
+> The following changes since commit a937536b868b8369b98967929045f1df54234323:
 > 
-> This fixes the kernel crash observed on AM335xEVM-SK platform,
-> where clkdiv32_ick clock is being used as a gpio debounce clock
-> and since clkdiv32k_ick is in idle mode it leads to below crash -
+>   Linux 3.9-rc3 (2013-03-17 15:59:32 -0700)
 > 
-> Crash Log:
-> ==========
-> [    2.598347] Unhandled fault: external abort on non-linefetch (0x1028) at
-> 0xfa1ac150
-> [    2.606434] Internal error: : 1028 [#1] SMP ARM
-> [    2.611207] Modules linked in:
-> [    2.614449] CPU: 0    Not tainted  (3.8.4-01382-g1f449cd-dirty #4)
-> [    2.620973] PC is at _set_gpio_debounce+0x60/0x104
-> [    2.626025] LR is at clk_enable+0x30/0x3c
+> are available in the git repository at:
 > 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-cleanup-a-for-3.10
+> 
+> for you to fetch changes up to 78e52e026d288aad88b46bff0d94b05e145c4583:
+> 
+>   ARM: OMAP2+: clock data: Remove CK_* flags (2013-03-18 09:57:39 -0600)
+> 
+> ----------------------------------------------------------------
+> In the OMAP2+ clock data, replace the flags that determine whether a
+> clock should be registered on a given SoC with per-SoC lists.
+> 
+> Basic build, boot, and power management test results are available at:
+> 
+> http://www.pwsan.com/omap/testlogs/jk_clock_flags_cleanup_3.10/20130318100504/
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+Thanks I've pulled this into omap-for-v3.10/cleanup.
 
-Tony, if it isn't too late, could this one be added to your 3.9-rc fixes 
-series?
+Regards,
 
-
-- Paul
+Tony
