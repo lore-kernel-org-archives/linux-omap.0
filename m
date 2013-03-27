@@ -1,78 +1,116 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [RFC 11/14] ARM: omap4-panda.dts: add display information
-Date: Wed, 27 Mar 2013 10:45:18 +0200
-Message-ID: <1364373921-7599-12-git-send-email-tomi.valkeinen@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: [RFC 08/14] OMAPDSS: panel-generic-dpi: add DT support
+Date: Wed, 27 Mar 2013 10:45:15 +0200
+Message-ID: <1364373921-7599-9-git-send-email-tomi.valkeinen@ti.com>
 References: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36066 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754186Ab3C0Iqk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 04:46:40 -0400
-In-Reply-To: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1364373921-7599-1-git-send-email-tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Archit Taneja <archit-l0cyMroinI0@public.gmane.org>, Andy Gross <andy.gross-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
-Cc: Archit Taneja <archit@ti.com>, Andy Gross <andy.gross@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap4-panda.dts |   44 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ drivers/video/omap2/displays/panel-generic-dpi.c |   47 ++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index 4122efe..45dd40a 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -206,3 +206,47 @@
- &twl_usb_comparator {
- 	usb-supply = <&vusb>;
+diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+index cc49c48..a00c942 100644
+--- a/drivers/video/omap2/displays/panel-generic-dpi.c
++++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+@@ -34,6 +34,7 @@
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/platform_device.h>
++#include <linux/of.h>
+ #include <video/omapdss.h>
+ 
+ #include <video/omap-panel-generic-dpi.h>
+@@ -618,6 +619,42 @@ static int generic_dpi_panel_probe_pdata(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int generic_dpi_panel_probe_of(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct panel_drv_data *drv_data = dev_get_drvdata(&pdev->dev);
++	struct panel_config *panel_config = NULL;
++	int r, i;
++	int datalines;
++	const char *panel_name;
++
++	r = of_property_read_string(node, "panel-name", &panel_name);
++	if (r)
++		return r;
++
++	for (i = 0; i < ARRAY_SIZE(generic_dpi_panels); i++) {
++		if (strcmp(panel_name, generic_dpi_panels[i].name) == 0) {
++			panel_config = &generic_dpi_panels[i];
++			break;
++		}
++	}
++
++	if (!panel_config)
++		return -EINVAL;
++
++	r = of_property_read_u32(node, "data-lines", &datalines);
++	if (r) {
++		dev_err(&pdev->dev, "failed to parse datalines");
++		return r;
++	}
++
++	drv_data->panel_config = panel_config;
++	drv_data->name = node->name;
++	drv_data->data_lines = datalines;
++
++	return 0;
++}
++
+ static int generic_dpi_panel_probe(struct platform_device *pdev)
+ {
+ 	struct panel_drv_data *drv_data;
+@@ -636,6 +673,10 @@ static int generic_dpi_panel_probe(struct platform_device *pdev)
+ 		r = generic_dpi_panel_probe_pdata(pdev);
+ 		if (r)
+ 			return r;
++	} else if (pdev->dev.of_node) {
++		r = generic_dpi_panel_probe_of(pdev);
++		if (r)
++			return r;
+ 	} else {
+ 		return -EINVAL;
+ 	}
+@@ -754,12 +795,18 @@ static struct omap_dss_driver generic_dpi_panel_driver = {
+ 	.get_resolution	= omapdss_default_get_resolution,
  };
-+
-+&dsi1 {
-+	vdds_dsi-supply = <&vcxio>;
+ 
++static const struct of_device_id generic_dpi_panel_of_match[] = {
++	{ .compatible = "ti,dpi_panel", },
++	{},
 +};
 +
-+&dsi2 {
-+	vdds_dsi-supply = <&vcxio>;
-+};
-+
-+&hdmi {
-+	vdda_hdmi_dac-supply = <&vdac>;
-+};
-+
-+/ {
-+	tfp410: tfp410 {
-+		compatible = "ti,tfp410";
-+		video-source = <&dpi>;
-+		data-lines = <24>;
-+		gpios = <&gpio1 0 0>;	/* 0, power-down */
-+		i2c-bus = <&i2c3>;
-+	};
-+
-+	dvi {
-+		compatible = "ti,dvi_connector";
-+
-+		video-source = <&tfp410>;
-+	};
-+
-+	tpd12s015: tpd12s015 {
-+		compatible = "ti,tpd12s015";
-+
-+		video-source = <&hdmi>;
-+
-+		gpios = <&gpio2 28 0>,	/* 60, CT CP HPD */
-+			<&gpio2 9 0>,	/* 41, LS OE */
-+			<&gpio2 31 0>;	/* 63, HPD */
-+	};
-+
-+	hdmi {
-+		compatible = "ti,hdmi_connector";
-+
-+		video-source = <&tpd12s015>;
-+	};
-+};
+ static struct platform_driver generic_dpi_panel_platform_driver = {
+ 	.probe	= generic_dpi_panel_probe,
+ 	.remove	= __exit_p(generic_dpi_panel_remove),
+ 	.driver	= {
+ 		.name	= "generic_dpi_panel",
+ 		.owner	= THIS_MODULE,
++		.of_match_table = generic_dpi_panel_of_match,
+ 	},
+ };
+ 
 -- 
 1.7.10.4
-
