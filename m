@@ -1,17 +1,17 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [RFC 02/14] ARM: OMAP2+: add omapdss_init_of()
-Date: Wed, 27 Mar 2013 10:28:51 +0100
-Message-ID: <5152BBD3.9070202@ti.com>
-References: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com> <1364373921-7599-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [RFC 00/14] Add DT support to OMAPDSS
+Date: Wed, 27 Mar 2013 10:30:50 +0100
+Message-ID: <5152BC4A.1060804@ti.com>
+References: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37781 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56765 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751389Ab3C0J3O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Mar 2013 05:29:14 -0400
-In-Reply-To: <1364373921-7599-3-git-send-email-tomi.valkeinen@ti.com>
+	id S1750954Ab3C0JbN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Mar 2013 05:31:13 -0400
+In-Reply-To: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
@@ -20,104 +20,106 @@ Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@
 Hi Tomi,
 
 On 03/27/2013 09:45 AM, Tomi Valkeinen wrote:
-> omapdss driver uses a omapdss platform device to pass platform specific
-> function pointers and DSS hardware version from the arch code to the
-> driver. This device is needed also when booting with DT.
+> Hi,
 > 
-> This patch adds omapdss_init_of() function, called from board-generic at
-> init time, which creates the omapdss device.
+> This is an RFC for OMAPDSS DT support. I've only added support for a few boards
+> and a few DSS outputs, but they should give quite a good range of different use
+> cases. If these work well, I think the rest of the outputs and panels will be
+> ok too.
 > 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  arch/arm/mach-omap2/board-generic.c |    1 +
->  arch/arm/mach-omap2/common.h        |    2 ++
->  arch/arm/mach-omap2/display.c       |   34 ++++++++++++++++++++++++++++++++++
->  3 files changed, 37 insertions(+)
+> The purpose of this series is to get comments about the dts changes. There are
+> still work to be done, like adding DT binding documentation.
 > 
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index a61544b..29eb085 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -41,6 +41,7 @@ static void __init omap_generic_init(void)
->  
->  	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
->  
-> +	omapdss_init_of();
+> Some notes:
+> 
+> * DSS Submodules
+> 
+> The DSS submodules are children of the dss_core node. This is done because the
+> submodules require the dss_core to be alive and initialized to work, even if
+> the submodules are not really behind dss_core. Having the submodules as
+> children will make runtime PM automatically handle the dependency to dss_core.
+> I think usually a node being a child means that it's on the parent's bus, which
+> is not the case here. I'm not sure if that's an issue or not.
 
-Mmm, you should not have to call that explicitly. It looks like a hack
-to me. Everything in theory should be initialized during
-of_platform_populate / driver probe.
-
->  }
->  
->  #ifdef CONFIG_SOC_OMAP2420
-> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-> index 40f4a03..e9ac1fd 100644
-> --- a/arch/arm/mach-omap2/common.h
-> +++ b/arch/arm/mach-omap2/common.h
-> @@ -293,5 +293,7 @@ extern void omap_reserve(void);
->  struct omap_hwmod;
->  extern int omap_dss_reset(struct omap_hwmod *);
->  
-> +int __init omapdss_init_of(void);
-> +
->  #endif /* __ASSEMBLER__ */
->  #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
-> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-> index ff37be1..c62aee0 100644
-> --- a/arch/arm/mach-omap2/display.c
-> +++ b/arch/arm/mach-omap2/display.c
-> @@ -23,6 +23,8 @@
->  #include <linux/clk.h>
->  #include <linux/err.h>
->  #include <linux/delay.h>
-> +#include <linux/of.h>
-> +#include <linux/of_platform.h>
->  
->  #include <video/omapdss.h>
->  #include "omap_hwmod.h"
-> @@ -564,3 +566,35 @@ int omap_dss_reset(struct omap_hwmod *oh)
->  
->  	return r;
->  }
-> +
-> +int __init omapdss_init_of(void)
-> +{
-> +	int r;
-> +	enum omapdss_version ver;
-> +
-> +	static struct omap_dss_board_info board_data = {
-> +		.dsi_enable_pads = omap_dsi_enable_pads,
-> +		.dsi_disable_pads = omap_dsi_disable_pads,
-
-Pads config should be handle by pinmux framework is possible. Otherwise
-a dedicated driver will be required.
-
-> +		.get_context_loss_count = omap_pm_get_dev_context_loss_count,
-> +		.set_min_bus_tput = omap_dss_set_min_bus_tput,
-
-
-All that code should disappear with DT. hacking a platform device with
-pdata is the old way of initializing a device.
-
-I know that you do have some omap_pm callback, but you'd better get rid
-of them in case of DT boot.
-Fixing that is a generic issue, and as soon as a solution will be done
-to handle these specific hooks, every drivers will be able to use that.
-
-> +	};
-> +
-> +	ver = omap_display_get_version();
-> +
-> +	if (ver == OMAPDSS_VER_UNKNOWN) {
-> +		pr_err("DSS not supported on this SoC\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	board_data.version = ver;
-> +
-> +	omap_display_device.dev.platform_data = &board_data;
+FWIW, there is a L4_DSS interconnect. It is used internally to connect
+all the submodules to the DSS L3 port. So this representation is
+perfectly valid and does represent accurately the HW.
 
 Regards,
 Benoit
+
+> 
+> * ti,dsi-module-id
+> 
+> There's a ti,dsi-module-id property in the dsi node. The reason for this
+> module-id property is that we have muxes in the dss_core that route clocks
+> to/from a particular DSI module. So we need some way to index the DSI modules.
+> Another option would be to have a list of DSI modules (phandles) in the
+> dss_core. Both options feel a bit wrong to me, but I went for the module-id
+> approach as that is already used when not using DT.
+> 
+> * Display chains
+> 
+> Currently omapdss driver can handle only one display device connected to one
+> OMAP SoC output. This is not right in many cases, as there may be multiple
+> display devices in a chain, like first an external encoder and then a panel.
+> However, I tried to model this right in the dts. 
+> 
+> So, for example, for Panda HDMI output we have the following display "entities"
+> in a chain: OMAP SoC HDMI output, TPD12S015 ESD/level shifter, and HDMI
+> connector. These are connected using the "video-source" property, which tells
+> where the component in question gets its video data.
+> 
+> You could ask why there's a separate node for HDMI connector. It's true it's
+> not really a proper device, but we need some kind of terminator for the display
+> chains. For HDMI we could as well have an embedded solution, having a chain
+> like this: SoC HDMI, TPD12S015, hardwired embedded HDMI panel. So the connector
+> marks the end of the chain, and acts as a panel in a sense.
+> 
+> * DSI lanes
+> 
+> The DSI panels contain "lanes" property, which tells how the SoCs DSI pins are
+> connected to the DSI panel. I'm not sure if the panel data is the proper place
+> for this, or should the data be separately for the OMAP DSI node.
+> 
+>  Tomi
+> 
+> Tomi Valkeinen (14):
+>   ARM: OMAP: remove DSS DT hack
+>   ARM: OMAP2+: add omapdss_init_of()
+>   OMAPDSS: Add DT support to DSS, DISPC, DPI
+>   OMAPDSS: Add DT support to DSI
+>   OMAPDSS: Add DT support to HDMI
+>   OMAPDSS: Taal: Add DT support
+>   OMAPDSS: TFP410: Add DT support
+>   OMAPDSS: panel-generic-dpi: add DT support
+>   ARM: omap3.dtsi: add omapdss information
+>   ARM: omap4.dtsi: add omapdss information
+>   ARM: omap4-panda.dts: add display information
+>   ARM: omap4-sdp.dts: add display information
+>   ARM: omap3-tobi.dts: add lcd (TEST)
+>   ARM: omap3-beagle.dts: add TFP410
+> 
+>  arch/arm/boot/dts/omap3-beagle.dts               |   20 +++++
+>  arch/arm/boot/dts/omap3-tobi.dts                 |   13 ++++
+>  arch/arm/boot/dts/omap3.dtsi                     |   49 ++++++++++++
+>  arch/arm/boot/dts/omap4-panda.dts                |   44 +++++++++++
+>  arch/arm/boot/dts/omap4-sdp.dts                  |   64 ++++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi                     |   71 +++++++++++++++++
+>  arch/arm/mach-omap2/board-generic.c              |    9 +--
+>  arch/arm/mach-omap2/common.h                     |    2 +
+>  arch/arm/mach-omap2/display.c                    |   34 +++++++++
+>  arch/arm/mach-omap2/dss-common.c                 |   24 ------
+>  arch/arm/mach-omap2/dss-common.h                 |    2 -
+>  drivers/video/omap2/displays/panel-generic-dpi.c |   47 ++++++++++++
+>  drivers/video/omap2/displays/panel-taal.c        |   89 ++++++++++++++++++++++
+>  drivers/video/omap2/displays/panel-tfp410.c      |   71 +++++++++++++++++
+>  drivers/video/omap2/dss/dispc.c                  |    7 ++
+>  drivers/video/omap2/dss/dpi.c                    |    8 ++
+>  drivers/video/omap2/dss/dsi.c                    |   24 +++++-
+>  drivers/video/omap2/dss/dss.c                    |    7 ++
+>  drivers/video/omap2/dss/hdmi.c                   |    7 ++
+>  drivers/video/omap2/dss/hdmi_panel.c             |   86 ++++++++++++++++++++-
+>  20 files changed, 641 insertions(+), 37 deletions(-)
+> 
 
