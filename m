@@ -1,7 +1,7 @@
 From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: [RFC 09/14] ARM: omap3.dtsi: add omapdss information
-Date: Wed, 27 Mar 2013 10:45:16 +0200
-Message-ID: <1364373921-7599-10-git-send-email-tomi.valkeinen@ti.com>
+Subject: [RFC 10/14] ARM: omap4.dtsi: add omapdss information
+Date: Wed, 27 Mar 2013 10:45:17 +0200
+Message-ID: <1364373921-7599-11-git-send-email-tomi.valkeinen@ti.com>
 References: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,45 +24,59 @@ List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3.dtsi |   49 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ arch/arm/boot/dts/omap4.dtsi |   71 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 71 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 1acc261..49de390 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -397,5 +397,54 @@
- 			ti,timer-alwon;
- 			ti,timer-secure;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 739bb79..967f706 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -529,5 +529,76 @@
+ 			ti,hwmods = "timer11";
+ 			ti,timer-pwm;
  		};
 +
-+		dss@48050000 {
-+			compatible = "ti,omap3-dss", "simple-bus";
-+			reg = <0x48050000 0x200>;
++		dss@58000000 {
++			compatible = "ti,omap4-dss", "simple-bus";
++			reg = <0x58000000 0x80>;
 +			ti,hwmods = "dss_core";
 +			#address-cells = <1>;
 +			#size-cells = <1>;
 +			ranges;
 +
-+			dispc@48050400 {
-+				compatible = "ti,omap3-dispc";
-+				reg = <0x48050400 0x400>;
-+				interrupts = <25>;
++			dispc@58001000 {
++				compatible = "ti,omap4-dispc";
++				reg = <0x58001000 0x1000>;
++				interrupts = <0 25 0x4>;
 +				ti,hwmods = "dss_dispc";
 +			};
 +
 +			dpi: dpi {
-+				compatible = "ti,omap3-dpi";
++				compatible = "ti,omap4-dpi";
 +			};
 +
-+			sdi: sdi {
-+				compatible = "ti,omap3-sdi";
++			rfbi: rfbi@58002000  {
++				compatible = "ti,omap4-rfbi";
++				reg = <0x58002000 0x1000>;
++				ti,hwmods = "dss_rfbi";
 +			};
 +
-+			dsi: dsi@4804fc00 {
-+				compatible = "ti,omap3-dsi";
-+				reg = <0x4804fc00 0x400>;
-+				interrupts = <25>;
++			/*
++			 * Accessing venc registers cause a crash on omap4, so
++			 * this is disabled for now.
++			 */
++			/*
++			venc: venc@58003000 {
++				compatible = "ti,omap4-venc";
++				reg = <0x58003000 0x1000>;
++				ti,hwmods = "dss_venc";
++			};
++			*/
++
++			dsi1: dsi@58004000 {
++				compatible = "ti,omap4-dsi";
++				reg = <0x58004000 0x200>;
++				interrupts = <0 53 0x4>;
 +				ti,hwmods = "dss_dsi1";
 +
 +				/*
@@ -72,16 +86,24 @@ index 1acc261..49de390 100644
 +				ti,dsi-module-id = <0>;
 +			};
 +
-+			rfbi: rfbi@48050800 {
-+				compatible = "ti,omap3-rfbi";
-+				reg = <0x48050800 0x100>;
-+				ti,hwmods = "dss_rfbi";
++			dsi2: dsi@58005000 {
++				compatible = "ti,omap4-dsi";
++				reg = <0x58005000 0x200>;
++				interrupts = <0 84 0x4>;
++				ti,hwmods = "dss_dsi2";
++
++				/*
++				 * XXX dss_core needs to know module-id,
++				 * so this data should be there.
++				 */
++				ti,dsi-module-id = <1>;
 +			};
 +
-+			venc: venc@48050c00 {
-+				compatible = "ti,omap3-venc";
-+				reg = <0x48050c00 0x100>;
-+				ti,hwmods = "dss_venc";
++			hdmi: hdmi@58006000 {
++				compatible = "ti,omap4-hdmi";
++				reg = <0x58006000 0x1000>;
++				interrupts = <0 101 0x4>;
++				ti,hwmods = "dss_hdmi";
 +			};
 +		};
  	};
