@@ -1,105 +1,84 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 6/8] omapdss: Features: Fix some parameter ranges
-Date: Wed, 27 Mar 2013 09:33:58 +0200
-Message-ID: <5152A0E6.3010300@ti.com>
-References: <1362493070-17706-1-git-send-email-archit@ti.com> <1364305525-28496-1-git-send-email-archit@ti.com> <1364305525-28496-7-git-send-email-archit@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v3 3/8] drm/omap: Make fixed resolution panels work
+Date: Wed, 27 Mar 2013 13:05:22 +0530
+Message-ID: <5152A13A.7060805@ti.com>
+References: <1362493070-17706-1-git-send-email-archit@ti.com> <1364305525-28496-1-git-send-email-archit@ti.com> <1364305525-28496-4-git-send-email-archit@ti.com> <51529EC2.4040403@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig0B68C973EEFD153AD449E2E0"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59998 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753240Ab3C0HeC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Mar 2013 03:34:02 -0400
-In-Reply-To: <1364305525-28496-7-git-send-email-archit@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60359 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750804Ab3C0HgM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 03:36:12 -0400
+In-Reply-To: <51529EC2.4040403@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: robdclark@gmail.com, andy.gross@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 
---------------enig0B68C973EEFD153AD449E2E0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Wednesday 27 March 2013 12:54 PM, Tomi Valkeinen wrote:
+> On 2013-03-26 15:45, Archit Taneja wrote:
+>> The omapdrm driver requires omapdss panel drivers to expose ops like detect,
+>> set_timings and check_timings. These can be NULL for fixed panel DPI, DBI, DSI
+>> and SDI drivers. At some places, there are no checks to see if the panel driver
+>> has these ops or not, and that leads to a crash.
+>>
+>> The following things are done to make fixed panels work:
+>>
+>> - The omap_connector's detect function is modified such that it considers panel
+>>    types which are generally fixed panels as always connected(provided the panel
+>>    driver doesn't have a detect op). Hence, the connector corresponding to these
+>>    panels is always in a 'connected' state.
+>>
+>> - If a panel driver doesn't have a check_timings op, assume that it supports the
+>>    mode passed to omap_connector_mode_valid(the 'mode_valid' drm helper function)
+>>
+>> - The function omap_encoder_update shouldn't really do anything for fixed
+>>    resolution panels, make sure that it calls set_timings only if the panel
+>>    driver has one.
+>>
+>> Signed-off-by: Archit Taneja <archit@ti.com>
+>> ---
+>> v3: clear the timings local variable first before using memcmp
+>> v2: make sure the timings we try to set for a fixed resolution panel match the
+>>      panel's timings
+>>
+>>   drivers/gpu/drm/omapdrm/omap_connector.c |   27 +++++++++++++++++++++++++--
+>>   drivers/gpu/drm/omapdrm/omap_encoder.c   |   17 +++++++++++++++--
+>>   2 files changed, 40 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm/omapdrm/omap_connector.c
+>> index c451c41..912759d 100644
+>> --- a/drivers/gpu/drm/omapdrm/omap_connector.c
+>> +++ b/drivers/gpu/drm/omapdrm/omap_connector.c
+>> @@ -110,6 +110,11 @@ static enum drm_connector_status omap_connector_detect(
+>>   			ret = connector_status_connected;
+>>   		else
+>>   			ret = connector_status_disconnected;
+>> +	} else if (dssdev->type == OMAP_DISPLAY_TYPE_DPI ||
+>> +			dssdev->type == OMAP_DISPLAY_TYPE_DBI ||
+>> +			dssdev->type == OMAP_DISPLAY_TYPE_SDI ||
+>> +			dssdev->type == OMAP_DISPLAY_TYPE_DSI) {
+>> +		ret = connector_status_connected;
+>>   	} else {
+>>   		ret = connector_status_unknown;
+>>   	}
+>
+> Can we leave this part out? I don't like hardcoding things like that,
+> and if I'm not mistaken, this only affects VENC.
+>
+> If the code above would use detect where available, and presume the
+> panel is connected in other cases, it'll be right for all other displays
+> but VENC, for which we have no connect information.
+>
+> Or, there could be a special case for VENC, like above, which sets the
+> connector status to unknown for that. And connected for all others. It'd
+> still be hardcoded, but for much less cases.
 
-On 2013-03-26 15:45, Archit Taneja wrote:
-> Increase the DSS_FCLK and DSI_FCLK max supported frequencies, these com=
-e because
-> some frequencies were increased from OMAP5 ES1 to OMAP5 ES2. We support=
- only
-> OMAP5 ES2 in the kernel, so replace the ES1 values with ES2 values. Inc=
-rease the
-> DSI PLL Fint range, this was previously just copied from the OMAP4 para=
-m range
-> struct.
->=20
-> Fix the maximum DSS_FCLK on OMAP2, it's 133 Mhz according to the TRM.
->=20
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/video/omap2/dss/dss_features.c |    8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
->=20
-> diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/oma=
-p2/dss/dss_features.c
-> index 7f791ae..77dbe0c 100644
-> --- a/drivers/video/omap2/dss/dss_features.c
-> +++ b/drivers/video/omap2/dss/dss_features.c
-> @@ -414,7 +414,7 @@ static const char * const omap5_dss_clk_source_name=
-s[] =3D {
->  };
-> =20
->  static const struct dss_param_range omap2_dss_param_range[] =3D {
-> -	[FEAT_PARAM_DSS_FCK]			=3D { 0, 173000000 },
-> +	[FEAT_PARAM_DSS_FCK]			=3D { 0, 133000000 },
->  	[FEAT_PARAM_DSS_PCD]			=3D { 2, 255 },
->  	[FEAT_PARAM_DSIPLL_REGN]		=3D { 0, 0 },
->  	[FEAT_PARAM_DSIPLL_REGM]		=3D { 0, 0 },
-> @@ -459,15 +459,15 @@ static const struct dss_param_range omap4_dss_par=
-am_range[] =3D {
->  };
-> =20
->  static const struct dss_param_range omap5_dss_param_range[] =3D {
-> -	[FEAT_PARAM_DSS_FCK]			=3D { 0, 200000000 },
-> +	[FEAT_PARAM_DSS_FCK]			=3D { 0, 209250000 },
->  	[FEAT_PARAM_DSS_PCD]			=3D { 1, 255 },
->  	[FEAT_PARAM_DSIPLL_REGN]		=3D { 0, (1 << 8) - 1 },
->  	[FEAT_PARAM_DSIPLL_REGM]		=3D { 0, (1 << 12) - 1 },
->  	[FEAT_PARAM_DSIPLL_REGM_DISPC]		=3D { 0, (1 << 5) - 1 },
->  	[FEAT_PARAM_DSIPLL_REGM_DSI]		=3D { 0, (1 << 5) - 1 },
-> -	[FEAT_PARAM_DSIPLL_FINT]		=3D { 500000, 2500000 },
-> +	[FEAT_PARAM_DSIPLL_FINT]		=3D { 150000, 52000000 },
+I guess we can leave the status for VENC as always connected too, if we 
+leave it as unknown by default and have no detect func for VENC, it 
+would never run with omapdrm.
 
-Just a note, I think the PLL FINT range for OMAP3/4 may be wrong also.
-Some TRMs mention the FINT range being up to 52MHz or so. I don't think
-it's ever very clearly stated, though...
+Archit
 
- Tomi
-
-
-
---------------enig0B68C973EEFD153AD449E2E0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRUqDmAAoJEPo9qoy8lh71M2EP/2HaYGvsCRliaK4QvbW3gkEX
-kflXKwRDJB3tGAKzkFaaaKn3tL30vPrWysLcznmnHDYE6oGJLkmfo/zbD9j/6dwc
-TrlHzJpCUi5JN67p+xSyv9Mz5I6wbxatty7AO2DoxtXoVqx7iBcjV0MJ3lQCfDNW
-Jy6dHcXj0OD/BOc6Gd/Ky8jqmmm9tRY7kkzX3fvAL1Tc0zeAj0GmFg4vtcoy2gu0
-yhWIxnAgUzMeTCBDNFapFNn/Q5KDEyWAoTrnddIBpfZbEKt0ZH8Ky9wp6Ek3dz19
-JvJI3RZHB0f4/viHfAAssOgXflLwcWqwqd10lOrmFuJKs87h9wu3p87UluB2uC5+
-cUSVm5ikykGJMLr1WgONmu00YuXPe/vPjOH185V26EMXQGCPkyNFikE/Raxa938R
-e67a06SgBR60/6ZLul77oa81XVX8tIiYPUj8COiI/ZIdIyOeqs7HmqIxb/EgCu/L
-ntipdyF5qp3dem8e6LBMXkBmT/tjXGk6CMHyKgzZe+oi4Ps4bxTLpyJLbCXvxxA+
-J2ekFN/o5fyVi/3Y4TQFAL0bUfdaDyyrNxlz//tDyYoSI0FNbFHyPDdhMGhPeFq6
-TZYqxhjs6vTqFLnwQt6Ei4MDf1H045a4+vrkGHtRY3iDfg9PzFsQhrYpB2RV0XHD
-VXeLhi6ICH6FaQ0TYd2g
-=uHsE
------END PGP SIGNATURE-----
-
---------------enig0B68C973EEFD153AD449E2E0--
