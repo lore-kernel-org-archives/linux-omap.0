@@ -1,99 +1,103 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 05/26] OMAPDSS: DPI: fix regulators
-Date: Wed, 27 Mar 2013 15:27:08 +0530
-Message-ID: <5152C274.4070901@ti.com>
-References: <1364304836-18134-1-git-send-email-tomi.valkeinen@ti.com> <1364304836-18134-6-git-send-email-tomi.valkeinen@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [net-next PATCH 1/1] drivers: net: ethernet: ti: sparse warning fix for ti ethernet drivers
+Date: Wed, 27 Mar 2013 15:28:07 +0530
+Message-ID: <1364378287-11194-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51542 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39240 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752990Ab3C0J5z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Mar 2013 05:57:55 -0400
-In-Reply-To: <1364304836-18134-6-git-send-email-tomi.valkeinen@ti.com>
+	id S1750794Ab3C0J6P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Mar 2013 05:58:15 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 
-On Tuesday 26 March 2013 07:03 PM, Tomi Valkeinen wrote:
-> On some platforms DPI requires a regulator to be enabled to power up the
-> output pins. This regulator is, for some reason, currently attached to
-> the virtual omapdss device, instead of the DPI device. This does not
-> work for DT, as the regulator mappings need to be described in the DT
-> data, and the virtual omapdss device is not present there.
->
-> Fix the issue by acquiring the regulator in the DPI device. To retain
-> compatibility with the current board files, the old method of getting
-> the regulator is kept. The old method can be removed when the board
-> files have been changed to pass the regulator to DPI.
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/dss/dpi.c |   21 ++++++++++++++++++---
->   1 file changed, 18 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-> index ad67a9c..08342d1 100644
-> --- a/drivers/video/omap2/dss/dpi.c
-> +++ b/drivers/video/omap2/dss/dpi.c
-> @@ -37,7 +37,10 @@
->   #include "dss_features.h"
->
->   static struct {
-> +	struct platform_device *pdev;
+fix for the below sparse warnings
 
-We can use dpi.output.pdev, we don't really need to have another pdev 
-pointer. Same for SDI in the next patch.
+drivers/net/ethernet/ti/davinci_cpdma.c:182:29: warning: incorrect type in assignment (different address spaces)
+drivers/net/ethernet/ti/davinci_cpdma.c:182:29:    expected void [noderef] <asn:2>*iomap
+drivers/net/ethernet/ti/davinci_cpdma.c:182:29:    got void *cpumap
+drivers/net/ethernet/ti/davinci_cpdma.c:953:27: warning: symbol 'controls' was not declared. Should it be static?
+drivers/net/ethernet/ti/cpsw.c:451:6: warning: symbol 'cpsw_tx_handler' was not declared. Should it be static?
+drivers/net/ethernet/ti/cpsw.c:468:6: warning: symbol 'cpsw_rx_handler' was not declared. Should it be static?
+drivers/net/ethernet/ti/cpsw_ale.c:151:5: warning: symbol 'cpsw_ale_match_addr' was not declared. Should it be static?
+drivers/net/ethernet/ti/cpsw_ale.c:172:5: warning: symbol 'cpsw_ale_match_vlan' was not declared. Should it be static?
 
-Archit
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c          |    4 ++--
+ drivers/net/ethernet/ti/cpsw_ale.c      |    4 ++--
+ drivers/net/ethernet/ti/davinci_cpdma.c |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-> +
->   	struct regulator *vdds_dsi_reg;
-> +	bool vdds_dsi_from_core;
->   	struct platform_device *dsidev;
->
->   	struct mutex lock;
-> @@ -583,10 +586,15 @@ static int __init dpi_init_display(struct omap_dss_device *dssdev)
->   		struct regulator *vdds_dsi;
->
->   		vdds_dsi = dss_get_vdds_dsi();
-> -
->   		if (IS_ERR(vdds_dsi)) {
-> -			DSSERR("can't get VDDS_DSI regulator\n");
-> -			return PTR_ERR(vdds_dsi);
-> +			vdds_dsi = regulator_get(&dpi.pdev->dev, "vdds_dsi");
-> +			if (IS_ERR(vdds_dsi)) {
-> +				DSSERR("can't get VDDS_DSI regulator\n");
-> +				return PTR_ERR(vdds_dsi);
-> +			}
-> +			dpi.vdds_dsi_from_core = false;
-> +		} else {
-> +			dpi.vdds_dsi_from_core = true;
->   		}
->
->   		dpi.vdds_dsi_reg = vdds_dsi;
-> @@ -698,6 +706,8 @@ static void __exit dpi_uninit_output(struct platform_device *pdev)
->
->   static int __init omap_dpi_probe(struct platform_device *pdev)
->   {
-> +	dpi.pdev = pdev;
-> +
->   	mutex_init(&dpi.lock);
->
->   	dpi_init_output(pdev);
-> @@ -714,6 +724,11 @@ static int __exit omap_dpi_remove(struct platform_device *pdev)
->
->   	dpi_uninit_output(pdev);
->
-> +	if (dpi.vdds_dsi_reg != NULL && dpi.vdds_dsi_from_core == false) {
-> +		regulator_put(dpi.vdds_dsi_reg);
-> +		dpi.vdds_dsi_reg = NULL;
-> +	}
-> +
->   	return 0;
->   }
->
->
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 7aebc0c..f4be85b 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -448,7 +448,7 @@ static void cpsw_intr_disable(struct cpsw_priv *priv)
+ 	return;
+ }
+ 
+-void cpsw_tx_handler(void *token, int len, int status)
++static void cpsw_tx_handler(void *token, int len, int status)
+ {
+ 	struct sk_buff		*skb = token;
+ 	struct net_device	*ndev = skb->dev;
+@@ -465,7 +465,7 @@ void cpsw_tx_handler(void *token, int len, int status)
+ 	dev_kfree_skb_any(skb);
+ }
+ 
+-void cpsw_rx_handler(void *token, int len, int status)
++static void cpsw_rx_handler(void *token, int len, int status)
+ {
+ 	struct sk_buff		*skb = token;
+ 	struct net_device	*ndev = skb->dev;
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+index 7fa60d6..79f0b79 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.c
++++ b/drivers/net/ethernet/ti/cpsw_ale.c
+@@ -148,7 +148,7 @@ static int cpsw_ale_write(struct cpsw_ale *ale, int idx, u32 *ale_entry)
+ 	return idx;
+ }
+ 
+-int cpsw_ale_match_addr(struct cpsw_ale *ale, u8 *addr, u16 vid)
++static int cpsw_ale_match_addr(struct cpsw_ale *ale, u8 *addr, u16 vid)
+ {
+ 	u32 ale_entry[ALE_ENTRY_WORDS];
+ 	int type, idx;
+@@ -169,7 +169,7 @@ int cpsw_ale_match_addr(struct cpsw_ale *ale, u8 *addr, u16 vid)
+ 	return -ENOENT;
+ }
+ 
+-int cpsw_ale_match_vlan(struct cpsw_ale *ale, u16 vid)
++static int cpsw_ale_match_vlan(struct cpsw_ale *ale, u16 vid)
+ {
+ 	u32 ale_entry[ALE_ENTRY_WORDS];
+ 	int type, idx;
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index ee13dc7..a6f5de9 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -179,7 +179,7 @@ cpdma_desc_pool_create(struct device *dev, u32 phys, u32 hw_addr,
+ 	} else {
+ 		pool->cpumap = dma_alloc_coherent(dev, size, &pool->phys,
+ 						  GFP_KERNEL);
+-		pool->iomap = pool->cpumap;
++		pool->iomap = (void __iomem *) pool->cpumap;
+ 		pool->hw_addr = pool->phys;
+ 	}
+ 
+@@ -950,7 +950,7 @@ struct cpdma_control_info {
+ #define ACCESS_RW	(ACCESS_RO | ACCESS_WO)
+ };
+ 
+-struct cpdma_control_info controls[] = {
++static struct cpdma_control_info controls[] = {
+ 	[CPDMA_CMD_IDLE]	  = {CPDMA_DMACONTROL,	3,  1,      ACCESS_WO},
+ 	[CPDMA_COPY_ERROR_FRAMES] = {CPDMA_DMACONTROL,	4,  1,      ACCESS_RW},
+ 	[CPDMA_RX_OFF_LEN_UPDATE] = {CPDMA_DMACONTROL,	2,  1,      ACCESS_RW},
+-- 
+1.7.9.5
 
