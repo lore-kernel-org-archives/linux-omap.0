@@ -1,54 +1,28 @@
 From: Benoit Cousson <b-cousson@ti.com>
 Subject: Re: [RFC 00/14] Add DT support to OMAPDSS
-Date: Wed, 27 Mar 2013 10:30:50 +0100
-Message-ID: <5152BC4A.1060804@ti.com>
+Date: Wed, 27 Mar 2013 10:41:11 +0100
+Message-ID: <5152BEB7.4060804@ti.com>
 References: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56765 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57244 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750954Ab3C0JbN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Mar 2013 05:31:13 -0400
+	id S1750785Ab3C0Jlh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Mar 2013 05:41:37 -0400
 In-Reply-To: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Andy Gross <andy.gross@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Andy Gross <andy.gross@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, mturquette@linaro.org
 
-Hi Tomi,
++ mturquette and Rajendra
 
 On 03/27/2013 09:45 AM, Tomi Valkeinen wrote:
-> Hi,
-> 
-> This is an RFC for OMAPDSS DT support. I've only added support for a few boards
-> and a few DSS outputs, but they should give quite a good range of different use
-> cases. If these work well, I think the rest of the outputs and panels will be
-> ok too.
-> 
-> The purpose of this series is to get comments about the dts changes. There are
-> still work to be done, like adding DT binding documentation.
-> 
-> Some notes:
-> 
-> * DSS Submodules
-> 
-> The DSS submodules are children of the dss_core node. This is done because the
-> submodules require the dss_core to be alive and initialized to work, even if
-> the submodules are not really behind dss_core. Having the submodules as
-> children will make runtime PM automatically handle the dependency to dss_core.
-> I think usually a node being a child means that it's on the parent's bus, which
-> is not the case here. I'm not sure if that's an issue or not.
 
-FWIW, there is a L4_DSS interconnect. It is used internally to connect
-all the submodules to the DSS L3 port. So this representation is
-perfectly valid and does represent accurately the HW.
+...
 
-Regards,
-Benoit
-
-> 
 > * ti,dsi-module-id
 > 
 > There's a ti,dsi-module-id property in the dsi node. The reason for this
@@ -57,6 +31,14 @@ Benoit
 > Another option would be to have a list of DSI modules (phandles) in the
 > dss_core. Both options feel a bit wrong to me, but I went for the module-id
 > approach as that is already used when not using DT.
+
+That's not a very nice representation. Ideally you should expose 1 clock
+node per DSI node, and enabling one will select the proper mux for you.
+
+Regards,
+Benoit
+
+
 > 
 > * Display chains
 > 
