@@ -1,14 +1,14 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [RFC 07/14] OMAPDSS: TFP410: Add DT support
-Date: Wed, 27 Mar 2013 10:45:14 +0200
-Message-ID: <1364373921-7599-8-git-send-email-tomi.valkeinen@ti.com>
+Subject: [RFC 06/14] OMAPDSS: Taal: Add DT support
+Date: Wed, 27 Mar 2013 10:45:13 +0200
+Message-ID: <1364373921-7599-7-git-send-email-tomi.valkeinen@ti.com>
 References: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54518 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54517 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753992Ab3C0Iqd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753727Ab3C0Iqd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 27 Mar 2013 04:46:33 -0400
 In-Reply-To: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,120 +16,137 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 Cc: Archit Taneja <archit@ti.com>, Andy Gross <andy.gross@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-In the DT data we model the TFP410 chip and the DVI connector. For the
-moment we have only 1 driver to handle those both.
+Add DT support to Taal panel driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays/panel-tfp410.c |   71 +++++++++++++++++++++++++++
- 1 file changed, 71 insertions(+)
+ drivers/video/omap2/displays/panel-taal.c |   89 +++++++++++++++++++++++++++++
+ 1 file changed, 89 insertions(+)
 
-diff --git a/drivers/video/omap2/displays/panel-tfp410.c b/drivers/video/omap2/displays/panel-tfp410.c
-index a225ea1..a087489c 100644
---- a/drivers/video/omap2/displays/panel-tfp410.c
-+++ b/drivers/video/omap2/displays/panel-tfp410.c
-@@ -24,6 +24,8 @@
- #include <linux/gpio.h>
+diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
+index 01de2a9..f8771da 100644
+--- a/drivers/video/omap2/displays/panel-taal.c
++++ b/drivers/video/omap2/displays/panel-taal.c
+@@ -32,6 +32,8 @@
+ #include <linux/slab.h>
+ #include <linux/mutex.h>
  #include <linux/platform_device.h>
- #include <drm/drm_edid.h>
++#include <linux/of_device.h>
 +#include <linux/of_gpio.h>
-+#include <linux/of_i2c.h>
  
- #include <video/omap-panel-tfp410.h>
- 
-@@ -112,6 +114,63 @@ static int tfp410_probe_pdata(struct platform_device *pdev)
+ #include <video/omapdss.h>
+ #include <video/omap-panel-nokia-dsi.h>
+@@ -788,6 +790,81 @@ static int taal_probe_pdata(struct platform_device *pdev)
  	return 0;
  }
  
-+static int tfp410_probe_of(struct platform_device *pdev)
++static int taal_probe_of(struct platform_device *pdev)
 +{
 +	struct device_node *node = pdev->dev.of_node;
-+	struct panel_drv_data *ddata = dev_get_drvdata(&pdev->dev);
-+	struct device_node *adapter_node;
-+	struct i2c_adapter *adapter;
-+	int r, gpio, datalines;
++	struct taal_data *td = dev_get_drvdata(&pdev->dev);
++	struct property *prop;
++	struct device_node *src_node;
++	u32 lane_arr[10];
++	int gpio, len, num_pins;
++	int r, i;
 +
-+	ddata->name = node->name;
-+
-+	node = of_parse_phandle(node, "video-source", 0);
-+	if (!node) {
++	src_node = of_parse_phandle(node, "video-source", 0);
++	if (!src_node) {
 +		dev_err(&pdev->dev, "failed to parse video source\n");
++		return -ENODEV;
++	}
++
++	td->src = omap_dss_find_output_by_node(src_node);
++	if (!td->src) {
++		dev_err(&pdev->dev, "failed to find video source\n");
 +		return -ENODEV;
 +	}
 +
 +	gpio = of_get_gpio(node, 0);
 +
 +	if (gpio_is_valid(gpio)) {
-+		r = devm_gpio_request_one(&pdev->dev, gpio,
-+				GPIOF_OUT_INIT_LOW, "tfp410 pd");
-+		if (r) {
-+			dev_err(&pdev->dev, "Failed to request PD GPIO %d\n",
-+					gpio);
-+			return r;
-+		}
-+
-+		ddata->pd_gpio = gpio;
-+	} else if (gpio == -ENOENT) {
-+		ddata->pd_gpio = -1;
++		td->reset_gpio = gpio;
 +	} else {
-+		dev_err(&pdev->dev, "failed to parse PD gpio\n");
++		dev_err(&pdev->dev, "failed to parse reset gpio\n");
 +		return gpio;
 +	}
 +
-+	r = of_property_read_u32(node, "data-lines", &datalines);
++	if (of_gpio_count(node) > 1) {
++		gpio = of_get_gpio(node, 1);
++
++		if (gpio_is_valid(gpio)) {
++			td->ext_te_gpio = gpio;
++		} else if (gpio == -ENOENT) {
++			td->ext_te_gpio = -1;
++		} else {
++			dev_err(&pdev->dev, "failed to parse TE gpio\n");
++			return gpio;
++		}
++	} else {
++		td->ext_te_gpio = -1;
++	}
++
++	prop = of_find_property(node, "lanes", &len);
++	if (prop == NULL) {
++		dev_err(&pdev->dev, "failed to find lane data\n");
++		return -EINVAL;
++	}
++
++	num_pins = len / sizeof(u32);
++
++	if (num_pins < 4 || num_pins % 2 != 0
++			|| num_pins > ARRAY_SIZE(lane_arr)) {
++		dev_err(&pdev->dev, "bad number of lanes\n");
++		return -EINVAL;
++	}
++
++	r = of_property_read_u32_array(node, "lanes", lane_arr, num_pins);
 +	if (r) {
-+		dev_err(&pdev->dev, "failed to parse datalines");
++		dev_err(&pdev->dev, "failed to read lane data\n");
 +		return r;
 +	}
 +
-+	ddata->data_lines = datalines;
++	td->pin_config.num_pins = num_pins;
++	for (i = 0; i < num_pins; ++i)
++		td->pin_config.pins[i] = (int)lane_arr[i];
 +
-+	adapter_node = of_parse_phandle(node, "i2c-bus", 0);
-+	if (adapter_node) {
-+		adapter = of_find_i2c_adapter_by_node(adapter_node);
-+		if (adapter == NULL) {
-+			dev_err(&pdev->dev, "failed to parse i2c-bus\n");
-+			return -EINVAL;
-+		}
-+
-+		ddata->i2c_adapter = adapter;
-+	}
++	td->dssdev.name = node->name;
 +
 +	return 0;
 +}
 +
- static int tfp410_probe(struct platform_device *pdev)
+ static int taal_probe(struct platform_device *pdev)
  {
- 	struct tfp410_platform_data *pdata = dev_get_platdata(&pdev->dev);
-@@ -131,6 +190,10 @@ static int tfp410_probe(struct platform_device *pdev)
- 		r = tfp410_probe_pdata(pdev);
- 		if (r)
+ 	const struct nokia_dsi_panel_data *pdata = dev_get_platdata(&pdev->dev);
+@@ -813,6 +890,12 @@ static int taal_probe(struct platform_device *pdev)
+ 			dev_err(&pdev->dev, "failed to read platform data\n");
  			return r;
+ 		}
 +	} else if (pdev->dev.of_node) {
-+		r = tfp410_probe_of(pdev);
-+		if (r)
++		r = taal_probe_of(pdev);
++		if (r) {
++			dev_err(&pdev->dev, "failed to parse OF data\n");
 +			return r;
++		}
  	} else {
  		return -ENODEV;
  	}
-@@ -380,12 +443,20 @@ static struct omap_dss_driver tfp410_driver = {
- 	.detect		= tfp410_detect,
+@@ -1576,12 +1659,18 @@ static struct omap_dss_driver taal_driver = {
+ 	.memory_read	= taal_memory_read,
  };
  
-+static const struct of_device_id tfp410_of_match[] = {
-+	{
-+		.compatible = "ti,dvi_connector",
-+	},
++static const struct of_device_id taal_of_match[] = {
++	{ .compatible = "tpo,taal", },
 +	{},
 +};
 +
- static struct platform_driver tfp410_platform_driver = {
- 	.probe	= tfp410_probe,
- 	.remove	= __exit_p(tfp410_remove),
+ static struct platform_driver taal_platform_driver = {
+ 	.probe	= taal_probe,
+ 	.remove	= __exit_p(taal_remove),
  	.driver	= {
- 		.name	= "tfp410",
+ 		.name	= "taal",
  		.owner	= THIS_MODULE,
-+		.of_match_table = tfp410_of_match,
++		.of_match_table = taal_of_match,
  	},
  };
  
