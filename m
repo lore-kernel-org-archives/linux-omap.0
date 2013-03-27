@@ -1,107 +1,99 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [RFC 00/14] Add DT support to OMAPDSS
-Date: Wed, 27 Mar 2013 10:41:11 +0100
-Message-ID: <5152BEB7.4060804@ti.com>
-References: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 05/26] OMAPDSS: DPI: fix regulators
+Date: Wed, 27 Mar 2013 15:27:08 +0530
+Message-ID: <5152C274.4070901@ti.com>
+References: <1364304836-18134-1-git-send-email-tomi.valkeinen@ti.com> <1364304836-18134-6-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57244 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51542 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750785Ab3C0Jlh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Mar 2013 05:41:37 -0400
-In-Reply-To: <1364373921-7599-1-git-send-email-tomi.valkeinen@ti.com>
+	id S1752990Ab3C0J5z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Mar 2013 05:57:55 -0400
+In-Reply-To: <1364304836-18134-6-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Andy Gross <andy.gross@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, mturquette@linaro.org
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-+ mturquette and Rajendra
+On Tuesday 26 March 2013 07:03 PM, Tomi Valkeinen wrote:
+> On some platforms DPI requires a regulator to be enabled to power up the
+> output pins. This regulator is, for some reason, currently attached to
+> the virtual omapdss device, instead of the DPI device. This does not
+> work for DT, as the regulator mappings need to be described in the DT
+> data, and the virtual omapdss device is not present there.
+>
+> Fix the issue by acquiring the regulator in the DPI device. To retain
+> compatibility with the current board files, the old method of getting
+> the regulator is kept. The old method can be removed when the board
+> files have been changed to pass the regulator to DPI.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>   drivers/video/omap2/dss/dpi.c |   21 ++++++++++++++++++---
+>   1 file changed, 18 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+> index ad67a9c..08342d1 100644
+> --- a/drivers/video/omap2/dss/dpi.c
+> +++ b/drivers/video/omap2/dss/dpi.c
+> @@ -37,7 +37,10 @@
+>   #include "dss_features.h"
+>
+>   static struct {
+> +	struct platform_device *pdev;
 
-On 03/27/2013 09:45 AM, Tomi Valkeinen wrote:
+We can use dpi.output.pdev, we don't really need to have another pdev 
+pointer. Same for SDI in the next patch.
 
-...
+Archit
 
-> * ti,dsi-module-id
-> 
-> There's a ti,dsi-module-id property in the dsi node. The reason for this
-> module-id property is that we have muxes in the dss_core that route clocks
-> to/from a particular DSI module. So we need some way to index the DSI modules.
-> Another option would be to have a list of DSI modules (phandles) in the
-> dss_core. Both options feel a bit wrong to me, but I went for the module-id
-> approach as that is already used when not using DT.
-
-That's not a very nice representation. Ideally you should expose 1 clock
-node per DSI node, and enabling one will select the proper mux for you.
-
-Regards,
-Benoit
-
-
-> 
-> * Display chains
-> 
-> Currently omapdss driver can handle only one display device connected to one
-> OMAP SoC output. This is not right in many cases, as there may be multiple
-> display devices in a chain, like first an external encoder and then a panel.
-> However, I tried to model this right in the dts. 
-> 
-> So, for example, for Panda HDMI output we have the following display "entities"
-> in a chain: OMAP SoC HDMI output, TPD12S015 ESD/level shifter, and HDMI
-> connector. These are connected using the "video-source" property, which tells
-> where the component in question gets its video data.
-> 
-> You could ask why there's a separate node for HDMI connector. It's true it's
-> not really a proper device, but we need some kind of terminator for the display
-> chains. For HDMI we could as well have an embedded solution, having a chain
-> like this: SoC HDMI, TPD12S015, hardwired embedded HDMI panel. So the connector
-> marks the end of the chain, and acts as a panel in a sense.
-> 
-> * DSI lanes
-> 
-> The DSI panels contain "lanes" property, which tells how the SoCs DSI pins are
-> connected to the DSI panel. I'm not sure if the panel data is the proper place
-> for this, or should the data be separately for the OMAP DSI node.
-> 
->  Tomi
-> 
-> Tomi Valkeinen (14):
->   ARM: OMAP: remove DSS DT hack
->   ARM: OMAP2+: add omapdss_init_of()
->   OMAPDSS: Add DT support to DSS, DISPC, DPI
->   OMAPDSS: Add DT support to DSI
->   OMAPDSS: Add DT support to HDMI
->   OMAPDSS: Taal: Add DT support
->   OMAPDSS: TFP410: Add DT support
->   OMAPDSS: panel-generic-dpi: add DT support
->   ARM: omap3.dtsi: add omapdss information
->   ARM: omap4.dtsi: add omapdss information
->   ARM: omap4-panda.dts: add display information
->   ARM: omap4-sdp.dts: add display information
->   ARM: omap3-tobi.dts: add lcd (TEST)
->   ARM: omap3-beagle.dts: add TFP410
-> 
->  arch/arm/boot/dts/omap3-beagle.dts               |   20 +++++
->  arch/arm/boot/dts/omap3-tobi.dts                 |   13 ++++
->  arch/arm/boot/dts/omap3.dtsi                     |   49 ++++++++++++
->  arch/arm/boot/dts/omap4-panda.dts                |   44 +++++++++++
->  arch/arm/boot/dts/omap4-sdp.dts                  |   64 ++++++++++++++++
->  arch/arm/boot/dts/omap4.dtsi                     |   71 +++++++++++++++++
->  arch/arm/mach-omap2/board-generic.c              |    9 +--
->  arch/arm/mach-omap2/common.h                     |    2 +
->  arch/arm/mach-omap2/display.c                    |   34 +++++++++
->  arch/arm/mach-omap2/dss-common.c                 |   24 ------
->  arch/arm/mach-omap2/dss-common.h                 |    2 -
->  drivers/video/omap2/displays/panel-generic-dpi.c |   47 ++++++++++++
->  drivers/video/omap2/displays/panel-taal.c        |   89 ++++++++++++++++++++++
->  drivers/video/omap2/displays/panel-tfp410.c      |   71 +++++++++++++++++
->  drivers/video/omap2/dss/dispc.c                  |    7 ++
->  drivers/video/omap2/dss/dpi.c                    |    8 ++
->  drivers/video/omap2/dss/dsi.c                    |   24 +++++-
->  drivers/video/omap2/dss/dss.c                    |    7 ++
->  drivers/video/omap2/dss/hdmi.c                   |    7 ++
->  drivers/video/omap2/dss/hdmi_panel.c             |   86 ++++++++++++++++++++-
->  20 files changed, 641 insertions(+), 37 deletions(-)
-> 
+> +
+>   	struct regulator *vdds_dsi_reg;
+> +	bool vdds_dsi_from_core;
+>   	struct platform_device *dsidev;
+>
+>   	struct mutex lock;
+> @@ -583,10 +586,15 @@ static int __init dpi_init_display(struct omap_dss_device *dssdev)
+>   		struct regulator *vdds_dsi;
+>
+>   		vdds_dsi = dss_get_vdds_dsi();
+> -
+>   		if (IS_ERR(vdds_dsi)) {
+> -			DSSERR("can't get VDDS_DSI regulator\n");
+> -			return PTR_ERR(vdds_dsi);
+> +			vdds_dsi = regulator_get(&dpi.pdev->dev, "vdds_dsi");
+> +			if (IS_ERR(vdds_dsi)) {
+> +				DSSERR("can't get VDDS_DSI regulator\n");
+> +				return PTR_ERR(vdds_dsi);
+> +			}
+> +			dpi.vdds_dsi_from_core = false;
+> +		} else {
+> +			dpi.vdds_dsi_from_core = true;
+>   		}
+>
+>   		dpi.vdds_dsi_reg = vdds_dsi;
+> @@ -698,6 +706,8 @@ static void __exit dpi_uninit_output(struct platform_device *pdev)
+>
+>   static int __init omap_dpi_probe(struct platform_device *pdev)
+>   {
+> +	dpi.pdev = pdev;
+> +
+>   	mutex_init(&dpi.lock);
+>
+>   	dpi_init_output(pdev);
+> @@ -714,6 +724,11 @@ static int __exit omap_dpi_remove(struct platform_device *pdev)
+>
+>   	dpi_uninit_output(pdev);
+>
+> +	if (dpi.vdds_dsi_reg != NULL && dpi.vdds_dsi_from_core == false) {
+> +		regulator_put(dpi.vdds_dsi_reg);
+> +		dpi.vdds_dsi_reg = NULL;
+> +	}
+> +
+>   	return 0;
+>   }
+>
+>
 
