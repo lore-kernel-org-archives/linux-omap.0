@@ -1,44 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap fixes for v3.9-rc4
-Date: Wed, 27 Mar 2013 12:38:46 -0700
-Message-ID: <20130327193846.GE10155@atomide.com>
-References: <20130327184404.GD10155@atomide.com>
- <201303271905.54489.arnd@arndb.de>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 7/9] ARM: OMAP4+: Move the CPU wakeup prepare code under smp_prepare_cpus()
+Date: Wed, 27 Mar 2013 12:54:09 -0700
+Message-ID: <87txnw62la.fsf@linaro.org>
+References: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com>
+	<1361373527-21695-8-git-send-email-santosh.shilimkar@ti.com>
+	<878v587kco.fsf@linaro.org> <515342D2.2080409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:23566 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753475Ab3C0Tiw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 15:38:52 -0400
-Content-Disposition: inline
-In-Reply-To: <201303271905.54489.arnd@arndb.de>
+Received: from mail-da0-f50.google.com ([209.85.210.50]:38150 "EHLO
+	mail-da0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753864Ab3C0TyN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 15:54:13 -0400
+Received: by mail-da0-f50.google.com with SMTP id t1so2705651dae.9
+        for <linux-omap@vger.kernel.org>; Wed, 27 Mar 2013 12:54:12 -0700 (PDT)
+In-Reply-To: <515342D2.2080409@ti.com> (Santosh Shilimkar's message of "Thu,
+	28 Mar 2013 00:34:50 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-* Arnd Bergmann <arnd@arndb.de> [130327 12:10]:
-> On Wednesday 27 March 2013, Tony Lindgren wrote:
-> > The following changes since commit a937536b868b8369b98967929045f1df54234323:
-> > 
-> >   Linux 3.9-rc3 (2013-03-17 15:59:32 -0700)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9-rc3/fixes-signed
-> > 
-> 
-> Pulled into the fixes branch, thanks!
-> 
-> I guess our next fixes pull request will be much larger than the
-> previous one now. There is also one coming up for ux500, so we
-> have at least 10 patches.
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-Yes sorry I had the others ready to go earlier, but the
-clock fix too some extra time to get acks. I probably should
-have sent the others last week while waiting for the acks.
+> On Thursday 28 March 2013 12:15 AM, Kevin Hilman wrote:
+>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>> 
+>>> Move the secondary CPU wakeup prepare code under smp_prepare_cpus(). 
+>> 
+>> Why?
+>> 
+> Because that code belongs to smp_prepare_cpus(). As I said
+> in earlier patches, it was remainder of the pen release code
+> which was borrowed from ARM code initially.
 
-Regards,
+Sure, but that should be in the changelog.
 
-Tony
+Kevin
