@@ -1,103 +1,90 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net-next PATCH 1/1] drivers: net: ethernet: ti: sparse warning fix for ti ethernet drivers
-Date: Wed, 27 Mar 2013 15:28:07 +0530
-Message-ID: <1364378287-11194-1-git-send-email-mugunthanvnm@ti.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V2] ARM: AM33XX: Add missing .clkdm_name to clkdiv32k_ick clock
+Date: Wed, 27 Mar 2013 15:34:26 +0530
+Message-ID: <1364378666-23641-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39240 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58500 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750794Ab3C0J6P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Mar 2013 05:58:15 -0400
+	id S1753895Ab3C0KEj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Mar 2013 06:04:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 
-fix for the below sparse warnings
+It is required to enable respective clock-domain before
+enabling any clock/module inside that clock-domain.
 
-drivers/net/ethernet/ti/davinci_cpdma.c:182:29: warning: incorrect type in assignment (different address spaces)
-drivers/net/ethernet/ti/davinci_cpdma.c:182:29:    expected void [noderef] <asn:2>*iomap
-drivers/net/ethernet/ti/davinci_cpdma.c:182:29:    got void *cpumap
-drivers/net/ethernet/ti/davinci_cpdma.c:953:27: warning: symbol 'controls' was not declared. Should it be static?
-drivers/net/ethernet/ti/cpsw.c:451:6: warning: symbol 'cpsw_tx_handler' was not declared. Should it be static?
-drivers/net/ethernet/ti/cpsw.c:468:6: warning: symbol 'cpsw_rx_handler' was not declared. Should it be static?
-drivers/net/ethernet/ti/cpsw_ale.c:151:5: warning: symbol 'cpsw_ale_match_addr' was not declared. Should it be static?
-drivers/net/ethernet/ti/cpsw_ale.c:172:5: warning: symbol 'cpsw_ale_match_vlan' was not declared. Should it be static?
+During common-clock migration, .clkdm_name field got missed
+for "clkdiv32k_ick" clock, which leaves "clk_24mhz_clkdm"
+unused; so it will be disabled even if childs of this clock-domain
+is enabled, which keeps child modules in idle mode.
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+This fixes the kernel crash observed on AM335xEVM-SK platform,
+where clkdiv32_ick clock is being used as a gpio debounce clock
+and since clkdiv32k_ick is in idle mode it leads to below crash -
+
+Crash Log:
+==========
+[    2.598347] Unhandled fault: external abort on non-linefetch (0x1028) at
+0xfa1ac150
+[    2.606434] Internal error: : 1028 [#1] SMP ARM
+[    2.611207] Modules linked in:
+[    2.614449] CPU: 0    Not tainted  (3.8.4-01382-g1f449cd-dirty #4)
+[    2.620973] PC is at _set_gpio_debounce+0x60/0x104
+[    2.626025] LR is at clk_enable+0x30/0x3c
+
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c          |    4 ++--
- drivers/net/ethernet/ti/cpsw_ale.c      |    4 ++--
- drivers/net/ethernet/ti/davinci_cpdma.c |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+Change from V1 (no code change):
+	- Commit description updated as per Rajendra and Paul's
+	  comment.
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 7aebc0c..f4be85b 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -448,7 +448,7 @@ static void cpsw_intr_disable(struct cpsw_priv *priv)
- 	return;
- }
- 
--void cpsw_tx_handler(void *token, int len, int status)
-+static void cpsw_tx_handler(void *token, int len, int status)
- {
- 	struct sk_buff		*skb = token;
- 	struct net_device	*ndev = skb->dev;
-@@ -465,7 +465,7 @@ void cpsw_tx_handler(void *token, int len, int status)
- 	dev_kfree_skb_any(skb);
- }
- 
--void cpsw_rx_handler(void *token, int len, int status)
-+static void cpsw_rx_handler(void *token, int len, int status)
- {
- 	struct sk_buff		*skb = token;
- 	struct net_device	*ndev = skb->dev;
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index 7fa60d6..79f0b79 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.c
-+++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -148,7 +148,7 @@ static int cpsw_ale_write(struct cpsw_ale *ale, int idx, u32 *ale_entry)
- 	return idx;
- }
- 
--int cpsw_ale_match_addr(struct cpsw_ale *ale, u8 *addr, u16 vid)
-+static int cpsw_ale_match_addr(struct cpsw_ale *ale, u8 *addr, u16 vid)
- {
- 	u32 ale_entry[ALE_ENTRY_WORDS];
- 	int type, idx;
-@@ -169,7 +169,7 @@ int cpsw_ale_match_addr(struct cpsw_ale *ale, u8 *addr, u16 vid)
- 	return -ENOENT;
- }
- 
--int cpsw_ale_match_vlan(struct cpsw_ale *ale, u16 vid)
-+static int cpsw_ale_match_vlan(struct cpsw_ale *ale, u16 vid)
- {
- 	u32 ale_entry[ALE_ENTRY_WORDS];
- 	int type, idx;
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index ee13dc7..a6f5de9 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -179,7 +179,7 @@ cpdma_desc_pool_create(struct device *dev, u32 phys, u32 hw_addr,
- 	} else {
- 		pool->cpumap = dma_alloc_coherent(dev, size, &pool->phys,
- 						  GFP_KERNEL);
--		pool->iomap = pool->cpumap;
-+		pool->iomap = (void __iomem *) pool->cpumap;
- 		pool->hw_addr = pool->phys;
- 	}
- 
-@@ -950,7 +950,7 @@ struct cpdma_control_info {
- #define ACCESS_RW	(ACCESS_RO | ACCESS_WO)
- };
- 
--struct cpdma_control_info controls[] = {
-+static struct cpdma_control_info controls[] = {
- 	[CPDMA_CMD_IDLE]	  = {CPDMA_DMACONTROL,	3,  1,      ACCESS_WO},
- 	[CPDMA_COPY_ERROR_FRAMES] = {CPDMA_DMACONTROL,	4,  1,      ACCESS_RW},
- 	[CPDMA_RX_OFF_LEN_UPDATE] = {CPDMA_DMACONTROL,	2,  1,      ACCESS_RW},
--- 
-1.7.9.5
+ arch/arm/mach-omap2/cclock33xx_data.c |   26 +++++++++++++++++++++++---
+ 1 files changed, 23 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
+index 476b820..8327721 100644
+--- a/arch/arm/mach-omap2/cclock33xx_data.c
++++ b/arch/arm/mach-omap2/cclock33xx_data.c
+@@ -446,9 +446,29 @@ DEFINE_CLK_GATE(cefuse_fck, "sys_clkin_ck", &sys_clkin_ck, 0x0,
+  */
+ DEFINE_CLK_FIXED_FACTOR(clkdiv32k_ck, "clk_24mhz", &clk_24mhz, 0x0, 1, 732);
+
+-DEFINE_CLK_GATE(clkdiv32k_ick, "clkdiv32k_ck", &clkdiv32k_ck, 0x0,
+-		AM33XX_CM_PER_CLKDIV32K_CLKCTRL, AM33XX_MODULEMODE_SWCTRL_SHIFT,
+-		0x0, NULL);
++static struct clk clkdiv32k_ick;
++
++static const char *clkdiv32k_ick_parent_names[] = {
++	"clkdiv32k_ck",
++};
++
++static const struct clk_ops clkdiv32k_ick_ops = {
++	.enable         = &omap2_dflt_clk_enable,
++	.disable        = &omap2_dflt_clk_disable,
++	.is_enabled     = &omap2_dflt_clk_is_enabled,
++	.init           = &omap2_init_clk_clkdm,
++};
++
++static struct clk_hw_omap clkdiv32k_ick_hw = {
++	.hw	= {
++		.clk	= &clkdiv32k_ick,
++	},
++	.enable_reg	= AM33XX_CM_PER_CLKDIV32K_CLKCTRL,
++	.enable_bit	= AM33XX_MODULEMODE_SWCTRL_SHIFT,
++	.clkdm_name	= "clk_24mhz_clkdm",
++};
++
++DEFINE_STRUCT_CLK(clkdiv32k_ick, clkdiv32k_ick_parent_names, clkdiv32k_ick_ops);
+
+ /* "usbotg_fck" is an additional clock and not really a modulemode */
+ DEFINE_CLK_GATE(usbotg_fck, "dpll_per_ck", &dpll_per_ck, 0x0,
+--
+1.7.0.4
 
