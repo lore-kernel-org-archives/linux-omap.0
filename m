@@ -1,97 +1,64 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH V2 8/8] cpufreq: OMAP: donot allow to be used with device tree
-Date: Wed, 27 Mar 2013 11:39:09 -0700
-Message-ID: <87vc8c7kmq.fsf@linaro.org>
-References: <1363715590-5131-1-git-send-email-nm@ti.com>
-	<1363715590-5131-9-git-send-email-nm@ti.com>
+Subject: Re: [PATCH 1/9] ARM: OMAP4+: Use common scratchpad SAR RAM offsets for all architectures
+Date: Wed, 27 Mar 2013 11:41:54 -0700
+Message-ID: <87mwto7ki5.fsf@linaro.org>
+References: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com>
+	<1361373527-21695-2-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <1363715590-5131-9-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Tue, 19 Mar 2013 12:53:10 -0500")
-Sender: cpufreq-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:51903 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752639Ab3C0Sl6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Mar 2013 14:41:58 -0400
+Received: by mail-pb0-f45.google.com with SMTP id ro8so5405019pbb.18
+        for <linux-omap@vger.kernel.org>; Wed, 27 Mar 2013 11:41:57 -0700 (PDT)
+In-Reply-To: <1361373527-21695-2-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Wed, 20 Feb 2013 20:48:39 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
 
-Nishanth Menon <nm@ti.com> writes:
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> We now use Soc generic cpufreq-cpu0 driver using DT entries.
-> However to allow cpufreq-cpu0 and omap-cpufreq drivers to co-exist,
-> we need to ensure the following using the same image:
-> 1. With device tree boot, we use cpufreq-cpu0
-> 2. With non device tree boot, we use omap-cpufreq
+> From: Tero Kristo <t-kristo@ti.com>
 >
-> In the case of (1), we will have cpu OPPs and regulator registered
-> as part of the DT, to ensure that omap-cpufreq and cpufreq-cpu0 don't
-> conflict in managing the frequency of the same cpu, we should not
-> permit init to pass in omap-cpufreq.
->
-> In the case of (2), we will not have the cpufreq-cpu0 device, hence
-> only omap-cpufreq will be active.
->
-> So, to acommodate both these usage conditions, we fail init of
-> omap-cpufreq when we boot with device tree.
->
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Jon Hunter <jon-hunter@ti.com>
-> Cc: "Beno=C3=AEt Cousson" <b-cousson@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Shawn Guo <shawn.guo@linaro.org>
-> Cc: Keerthy <j-keerthy@ti.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: devicetree-discuss@lists.ozlabs.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: cpufreq@vger.kernel.org
-> Cc: linux-pm@vger.kernel.org
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-> Changes in V2:
-> 	- donot remove support for omap-cpufreq in non-DT boot
-> 	- little more verbose commit log
-> V1: https://patchwork.kernel.org/patch/2273641/
->
->  drivers/cpufreq/omap-cpufreq.c |   14 ++++++++++++++
->  1 file changed, 14 insertions(+)
->
-> diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cp=
-ufreq.c
-> index 9128c07..9382ed0 100644
-> --- a/drivers/cpufreq/omap-cpufreq.c
-> +++ b/drivers/cpufreq/omap-cpufreq.c
-> @@ -22,6 +22,7 @@
->  #include <linux/err.h>
->  #include <linux/clk.h>
->  #include <linux/io.h>
-> +#include <linux/of.h>
->  #include <linux/opp.h>
->  #include <linux/cpu.h>
->  #include <linux/module.h>
-> @@ -174,6 +175,19 @@ static inline void freq_table_free(void)
->  static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
->  {
->  	int result =3D 0;
-> +	struct device_node *np;
-> +
-> +	/*
-> +	 * If we have a device tree node describing OPPs,
-> +	 * we will NOT permit usage of omap-cpufreq driver.
-> +	 * use cpufreq-cpu0 driver to manage.
-> +	 */
-> +	if (of_have_populated_dt()) {
-> +		for_each_child_of_node(of_find_node_by_path("/cpus"), np) {
-> +			if (of_get_property(np, "operating-points", NULL))
-> +				return -EPERM;
-> +		}
-> +	}
+> Simplifies code and also allows the re-use as is on OMAP5 devices.
 
-I think it's much cleaner to just convert this to a platform_driver lik=
-e
-was done for the generic driver[1].  Then the registration in the
-previous patch can register the omap driver when needed.
+nit: changelog here is rather weak.  It claims "simplifies code" but
+it's not obvious from the patch how changing a few #defines does that.
 
 Kevin
 
-[1] https://patchwork.kernel.org/patch/2067751/
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap4-sar-layout.h |   14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
+> index e170fe8..6822d0a 100644
+> --- a/arch/arm/mach-omap2/omap4-sar-layout.h
+> +++ b/arch/arm/mach-omap2/omap4-sar-layout.h
+> @@ -20,13 +20,13 @@
+>  #define SAR_BANK4_OFFSET		0x3000
+>  
+>  /* Scratch pad memory offsets from SAR_BANK1 */
+> -#define SCU_OFFSET0				0xd00
+> -#define SCU_OFFSET1				0xd04
+> -#define OMAP_TYPE_OFFSET			0xd10
+> -#define L2X0_SAVE_OFFSET0			0xd14
+> -#define L2X0_SAVE_OFFSET1			0xd18
+> -#define L2X0_AUXCTRL_OFFSET			0xd1c
+> -#define L2X0_PREFETCH_CTRL_OFFSET		0xd20
+> +#define SCU_OFFSET0				0xfe4
+> +#define SCU_OFFSET1				0xfe8
+> +#define OMAP_TYPE_OFFSET			0xfec
+> +#define L2X0_SAVE_OFFSET0			0xff0
+> +#define L2X0_SAVE_OFFSET1			0xff4
+> +#define L2X0_AUXCTRL_OFFSET			0xff8
+> +#define L2X0_PREFETCH_CTRL_OFFSET		0xffc
+>  
+>  /* CPUx Wakeup Non-Secure Physical Address offsets in SAR_BANK3 */
+>  #define CPU0_WAKEUP_NS_PA_ADDR_OFFSET		0xa04
