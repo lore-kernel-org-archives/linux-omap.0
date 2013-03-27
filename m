@@ -1,84 +1,136 @@
-From: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/5] ARM: dts: AM33XX: Add pinctrl binding to gpio-leds node
-Date: Wed, 27 Mar 2013 18:29:15 +0530
-Message-ID: <1364389156-8273-5-git-send-email-hvaibhav@ti.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 2/5] ARM: dts: AM33XX: Add default pinctrl binding for I2C device
+Date: Wed, 27 Mar 2013 18:29:13 +0530
+Message-ID: <1364389156-8273-3-git-send-email-hvaibhav@ti.com>
 References: <1364389156-8273-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1364389156-8273-1-git-send-email-hvaibhav-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: mporter-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38940 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751049Ab3C0M7d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Mar 2013 08:59:33 -0400
+In-Reply-To: <1364389156-8273-1-git-send-email-hvaibhav@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, mporter@ti.com, devicetree-discuss@lists.ozlabs.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Now gpio-leds driver is using devm_pinctrl_get_select_default()
-api to set default pinmux configuration required for the
-functionality of the driver, so this patch moves respective
-pinctrl binding inside leds node.
+Add pin control binding for I2C device nodes in all
+board specific DT files (as per current usage),
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+EVM: Both i2c0 and i2c1
+EVM-SK and Bone: Only i2c0
+
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/boot/dts/am335x-bone.dts  |    5 ++++-
- arch/arm/boot/dts/am335x-evmsk.dts |    5 ++++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am335x-bone.dts  |   10 ++++++++++
+ arch/arm/boot/dts/am335x-evm.dts   |   20 ++++++++++++++++++++
+ arch/arm/boot/dts/am335x-evmsk.dts |   10 ++++++++++
+ 3 files changed, 40 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 860630b..1d623e4 100644
+index cdc8307..c917efa 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -26,7 +26,7 @@
- 
- 	am33xx_pinmux: pinmux@44e10800 {
- 		pinctrl-names = "default";
--		pinctrl-0 = <&user_leds_s0>;
-+		pinctrl-0 = <>;
- 
- 		user_leds_s0: user_leds_s0 {
- 			pinctrl-single,pins = <
-@@ -65,6 +65,9 @@
+@@ -36,6 +36,13 @@
+ 				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+ 			>;
+ 		};
++
++		i2c0_pins: pinmux_i2c0_pins {
++			pinctrl-single,pins = <
++				0x188 0x30	/* i2c0_sda.i2c0_sda PULLUP | INPUTENABLE | MODE0 */
++				0x18c 0x30	/* i2c0_scl.i2c0_scl PULLUP | INPUTENABLE | MODE0 */
++			>;
++		};
  	};
  
- 	leds {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&user_leds_s0>;
-+
- 		compatible = "gpio-leds";
+ 	ocp {
+@@ -44,6 +51,9 @@
+ 		};
  
- 		led@2 {
+ 		i2c0: i2c@44e0b000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&i2c0_pins>;
++
+ 			status = "okay";
+ 			clock-frequency = <400000>;
+ 
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index a6539ad..db52d3c 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -44,6 +44,20 @@
+ 				0x154 0x27	/* spi0_d0.gpio0_3, INPUT | MODE7 */
+ 			>;
+ 		};
++
++		i2c0_pins: pinmux_i2c0_pins {
++			pinctrl-single,pins = <
++				0x188 0x30	/* i2c0_sda.i2c0_sda PULLUP | INPUTENABLE | MODE0 */
++				0x18c 0x30	/* i2c0_scl.i2c0_scl PULLUP | INPUTENABLE | MODE0 */
++			>;
++		};
++
++		i2c1_pins: pinmux_i2c1_pins {
++			pinctrl-single,pins = <
++				0x158 0x32	/* spi0_d1.i2c1_sda PULLUP | INPUTENABLE | MODE2 */
++				0x15c 0x32	/* spi0_cs0.i2c1_scl PULLUP | INPUTENABLE | MODE2 */
++			>;
++		};
+ 	};
+ 
+ 	ocp {
+@@ -52,6 +66,9 @@
+ 		};
+ 
+ 		i2c0: i2c@44e0b000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&i2c0_pins>;
++
+ 			status = "okay";
+ 			clock-frequency = <400000>;
+ 
+@@ -61,6 +78,9 @@
+ 		};
+ 
+ 		i2c1: i2c@4802a000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&i2c1_pins>;
++
+ 			status = "okay";
+ 			clock-frequency = <100000>;
+ 
 diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 15a3052..21d5a08 100644
+index 45cb39a..24e915c 100644
 --- a/arch/arm/boot/dts/am335x-evmsk.dts
 +++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -32,7 +32,7 @@
- 
- 	am33xx_pinmux: pinmux@44e10800 {
- 		pinctrl-names = "default";
--		pinctrl-0 = <&user_leds_s0 &gpio_keys_s0>;
-+		pinctrl-0 = <&gpio_keys_s0>;
- 
- 		user_leds_s0: user_leds_s0 {
- 			pinctrl-single,pins = <
-@@ -121,6 +121,9 @@
+@@ -51,6 +51,13 @@
+ 				0x9c 0x27	/* gpmc_ben0_cle.gpio2_5, INPUT | MODE7 */
+ 			>;
+ 		};
++
++		i2c0_pins: pinmux_i2c0_pins {
++			pinctrl-single,pins = <
++				0x188 0x30	/* i2c0_sda.i2c0_sda PULLUP | INPUTENABLE | MODE0 */
++				0x18c 0x30	/* i2c0_scl.i2c0_scl PULLUP | INPUTENABLE | MODE0 */
++			>;
++		};
  	};
  
- 	leds {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&user_leds_s0>;
-+
- 		compatible = "gpio-leds";
+ 	ocp {
+@@ -59,6 +66,9 @@
+ 		};
  
- 		led@1 {
+ 		i2c0: i2c@44e0b000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&i2c0_pins>;
++
+ 			status = "okay";
+ 			clock-frequency = <400000>;
+ 
 -- 
 1.7.0.4
+
