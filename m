@@ -1,75 +1,49 @@
-From: Christoph Fritz <chf.fritz@googlemail.com>
-Subject: [PATCH] arm/dts: OMAP3: fix pinctrl-single configuration
-Date: Thu, 28 Mar 2013 09:08:26 +0100
-Message-ID: <1364458106.3757.11.camel@mars>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [GIT PULL v2] ARM: omap2: twl-common update
+Date: Thu, 28 Mar 2013 10:27:37 +0100
+Message-ID: <51540D09.7000104@ti.com>
+References: <5146E895.50709@ti.com> <20130319182336.GE16413@atomide.com> <20130327183822.GC10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f43.google.com ([209.85.214.43]:57809 "EHLO
-	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755353Ab3C1IIc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 04:08:32 -0400
-Received: by mail-bk0-f43.google.com with SMTP id jm2so674974bkc.2
-        for <linux-omap@vger.kernel.org>; Thu, 28 Mar 2013 01:08:30 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36580 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755495Ab3C1J1h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Mar 2013 05:27:37 -0400
+In-Reply-To: <20130327183822.GC10155@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
-Cc: Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@list.infradead.org
 
-- Fix 'function-mask' referring to TRM Section 7.4.4:
-  "Pad Functional Multiplexing and Configuration".
-- Fix 'omap3_pmx_core' referring to TRM Table 7-4:
-  "Core Control Module Pad Configuration Register Fields"
-- Fix 'omap3_pmx_wkup' referring to TRM Table 7-6:
-  "Wake-Up Control Module Pad Configuration Register Fields".
+Hi Tony,
 
-Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
----
- arch/arm/boot/dts/omap3.dtsi |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+On 03/27/2013 07:38 PM, Tony Lindgren wrote:
+> Sorry just noticed that this one adds:
+>=20
+> Section mismatch in reference from the variable omap3_power_pdata to =
+the (unknown reference) .init.data:(unknown)
+> The variable omap3_power_pdata references
+> the (unknown reference) __initdata (unknown)
+> If the reference is valid then annotate the
+> variable with __init* or __refdata (see linux/init.h) or name the var=
+iable:
+> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+>=20
+> Is it safe to make it __initdata, or should also other power_pdata
+> have their __initdata flags removed if used by the drivers?
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 1acc261..6ce3b5c 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -27,7 +27,7 @@
- 	};
- 
- 	/*
--	 * The soc node represents the soc top level view. It is uses for IPs
-+	 * The soc node represents the soc top level view. It is used for IPs
- 	 * that are not memory mapped in the MPU view or for the MPU itself.
- 	 */
- 	soc {
-@@ -77,20 +77,20 @@
- 
- 		omap3_pmx_core: pinmux@48002030 {
- 			compatible = "ti,omap3-padconf", "pinctrl-single";
--			reg = <0x48002030 0x05cc>;
-+			reg = <0x48002030 0x234>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			pinctrl-single,register-width = <16>;
--			pinctrl-single,function-mask = <0x7fff>;
-+			pinctrl-single,function-mask = <0x7f1f>;
- 		};
- 
--		omap3_pmx_wkup: pinmux@0x48002a58 {
-+		omap3_pmx_wkup: pinmux@0x48002a00 {
- 			compatible = "ti,omap3-padconf", "pinctrl-single";
--			reg = <0x48002a58 0x5c>;
-+			reg = <0x48002a00 0x54>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			pinctrl-single,register-width = <16>;
--			pinctrl-single,function-mask = <0x7fff>;
-+			pinctrl-single,function-mask = <0x7f1f>;
- 		};
- 
- 		gpio1: gpio@48310000 {
--- 
-1.7.10.4
+We could make the whole stack of struct for the omap3_power_pdata as
+__initdata since the driver (mfd/twl4030-power) is bool.
 
+I resend the patch and update the branch (and rebase on -rc4) at the sa=
+me time.
 
-
+--=20
+P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
