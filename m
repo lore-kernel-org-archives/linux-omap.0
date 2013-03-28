@@ -1,46 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL v2] ARM: omap2: twl-common update
-Date: Thu, 28 Mar 2013 09:04:15 -0700
-Message-ID: <20130328160414.GU10155@atomide.com>
-References: <5146E895.50709@ti.com>
- <20130319182336.GE16413@atomide.com>
- <20130327183822.GC10155@atomide.com>
- <51540D09.7000104@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 08/28] ARM: OMAP: CM-T35: Kconfig option for the display
+ options
+Date: Thu, 28 Mar 2013 18:09:16 +0200
+Message-ID: <51546B2C.2030101@compulab.co.il>
+References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com> <1364474962-20439-9-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56916 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755558Ab3C1QES (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 12:04:18 -0400
-Content-Disposition: inline
-In-Reply-To: <51540D09.7000104@ti.com>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:51912 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755204Ab3C1QJY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Mar 2013 12:09:24 -0400
+In-Reply-To: <1364474962-20439-9-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@list.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Mike Rapoport <mike@compulab.co.il>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [130328 02:32]:
-> Hi Tony,
+On 03/28/13 14:49, Tomi Valkeinen wrote:
+> Boards with multiple display options for the same video bus have all the
+> possible linux display devices present at the same time. Only one of
+> those devices should be used at a time, as the video bus cannot be
+> shared.
+
+Yes, only one can be used at a time, but you can switch at runtime...
+
 > 
-> On 03/27/2013 07:38 PM, Tony Lindgren wrote:
-> > Sorry just noticed that this one adds:
-> > 
-> > Section mismatch in reference from the variable omap3_power_pdata to the (unknown reference) .init.data:(unknown)
-> > The variable omap3_power_pdata references
-> > the (unknown reference) __initdata (unknown)
-> > If the reference is valid then annotate the
-> > variable with __init* or __refdata (see linux/init.h) or name the variable:
-> > *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
-> > 
-> > Is it safe to make it __initdata, or should also other power_pdata
-> > have their __initdata flags removed if used by the drivers?
+> This model is hacky, and will be changed in the forthcoming DSS patches
+> to a model where only one display device can be present on a single
+> video bus.
+
+What do you mean by "present"?
+Is it active? or registered? or compiled in?
+
 > 
-> We could make the whole stack of struct for the omap3_power_pdata as
-> __initdata since the driver (mfd/twl4030-power) is bool.
+> This patch creates Kconfig options to select which of the display
+> devices is present on the board. While this model is also somewhat
+> hacky, and prevents us from using a single kernel image for all the
+> display options, it allows us to make the DSS driver changes for DT
+> adaptation. And with DT, the information about display devices can be
+> passed from the bootloader, solving the mess.
 
-What if you rebind the driver via sysfs unbind/bind?
+Hmmm, the fact that we cannot use the same binary for multiple displays...
+This does not sound right and good at all...
+While we try to move to support multiple platforms in the same binary, we
+cannot support multiple displays? I agree that the multiplatform stuff is
+not really related, but you know what I mean...
 
+I bet there must be a much better solution for DT support.
+
+
+-- 
 Regards,
-
-Tony
+Igor.
