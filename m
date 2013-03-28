@@ -1,109 +1,37 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2] omap2: twl-common: Add default power configuration
-Date: Thu, 28 Mar 2013 10:34:36 +0100
-Message-ID: <1364463276-22285-1-git-send-email-peter.ujfalusi@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 7/9] ARM: OMAP4+: Move the CPU wakeup prepare code
+	under smp_prepare_cpus()
+Date: Thu, 28 Mar 2013 09:46:22 +0000
+Message-ID: <20130328094622.GR30923@n2100.arm.linux.org.uk>
+References: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com> <1361373527-21695-8-git-send-email-santosh.shilimkar@ti.com> <878v587kco.fsf@linaro.org> <515342D2.2080409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36924 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756059Ab3C1Jej (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Mar 2013 05:34:39 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46848 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756446Ab3C1Jqf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 05:46:35 -0400
+Content-Disposition: inline
+In-Reply-To: <515342D2.2080409@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, matthias.bgg@gmail.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Matthias Brugger <matthias.bgg@gmail.com>
+On Thu, Mar 28, 2013 at 12:34:50AM +0530, Santosh Shilimkar wrote:
+> On Thursday 28 March 2013 12:15 AM, Kevin Hilman wrote:
+> > Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+> > 
+> >> Move the secondary CPU wakeup prepare code under smp_prepare_cpus(). 
+> > 
+> > Why?
+> > 
+> Because that code belongs to smp_prepare_cpus(). As I said
+> in earlier patches, it was remainder of the pen release code
+> which was borrowed from ARM code initially.
 
-This patch adds a generic power script configuration.
-When rebooting an OMAP3530 at 125 MHz, the reboot hangs.
-With the generic power script, TWL4030 will be reset
-when a warm reset occures. This way the OMAP3530 does not
-hang on reboot.
+What about hotplug after the system is suspended?  Is this setup
+preserved by the secure ROM?
 
-Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-Tony, Matthias,
-
-I have marked the structs as __initdata to fix the section mismatch.
-
-Regards,
-Peter
-
- arch/arm/mach-omap2/twl-common.c | 38 ++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/twl-common.h |  1 +
- 2 files changed, 39 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 51e138c..7551bbc 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -121,6 +121,41 @@ static struct twl4030_audio_data omap3_audio_pdata = {
- 	.codec = &omap3_codec,
- };
- 
-+static struct twl4030_ins wrst_seq[] __initdata = {
-+	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wrst_script __initdata = {
-+	.script = wrst_seq,
-+	.size	= ARRAY_SIZE(wrst_seq),
-+	.flags	= TWL4030_WRST_SCRIPT,
-+};
-+
-+static struct twl4030_script *omap3_power_scripts[] __initdata = {
-+	&wrst_script,
-+};
-+
-+static struct twl4030_resconfig omap3_rconfig[] __initdata = {
-+	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
-+		.type2 = -1 },
-+	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
-+		.type2 = -1 },
-+	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
-+		.type2 = -1 },
-+	{ 0, 0},
-+};
-+
-+static struct twl4030_power_data omap3_power_pdata __initdata = {
-+	.scripts	= omap3_power_scripts,
-+	.num		= ARRAY_SIZE(omap3_power_scripts),
-+	.resource_config = omap3_rconfig,
-+};
-+
- static struct regulator_consumer_supply omap3_vdda_dac_supplies[] = {
- 	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
- };
-@@ -225,6 +260,9 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->audio)
- 		pmic_data->audio = &omap3_audio_pdata;
- 
-+	if (pdata_flags & TWL_COMMON_PDATA_POWER && !pmic_data->power)
-+		pmic_data->power = &omap3_power_pdata;
-+
- 	/* Common regulator configurations */
- 	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
- 		pmic_data->vdac = &omap3_vdac_idata;
-diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
-index 24b65d0..b64590b8 100644
---- a/arch/arm/mach-omap2/twl-common.h
-+++ b/arch/arm/mach-omap2/twl-common.h
-@@ -7,6 +7,7 @@
- #define TWL_COMMON_PDATA_BCI		(1 << 1)
- #define TWL_COMMON_PDATA_MADC		(1 << 2)
- #define TWL_COMMON_PDATA_AUDIO		(1 << 3)
-+#define TWL_COMMON_PDATA_POWER		(1 << 4)
- 
- /* Common LDO regulators for TWL4030/TWL6030 */
- #define TWL_COMMON_REGULATOR_VDAC	(1 << 0)
--- 
-1.8.1.5
-
+If not, it really needs to be part of the CPU bringup, not the
+boot-time-only preparation code.
