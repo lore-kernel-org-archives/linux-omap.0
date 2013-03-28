@@ -1,91 +1,130 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm/dts: OMAP3: fix pinctrl-single configuration
-Date: Thu, 28 Mar 2013 09:38:55 -0700
-Message-ID: <20130328163854.GV10155@atomide.com>
-References: <1364458106.3757.11.camel@mars>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 00/28] OMAP: DSS related board file changes
+Date: Thu, 28 Mar 2013 18:48:34 +0200
+Message-ID: <51547462.3070803@ti.com>
+References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com> <51546259.3000704@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigFEC71804184A0CA2C766F8AA"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25942 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756089Ab3C1Qi7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 12:38:59 -0400
-Content-Disposition: inline
-In-Reply-To: <1364458106.3757.11.camel@mars>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58037 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756536Ab3C1Qsm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Mar 2013 12:48:42 -0400
+In-Reply-To: <51546259.3000704@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Christoph Fritz <chf.fritz@googlemail.com>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-* Christoph Fritz <chf.fritz@googlemail.com> [130328 01:12]:
-> - Fix 'function-mask' referring to TRM Section 7.4.4:
->   "Pad Functional Multiplexing and Configuration".
-> - Fix 'omap3_pmx_core' referring to TRM Table 7-4:
->   "Core Control Module Pad Configuration Register Fields"
-> - Fix 'omap3_pmx_wkup' referring to TRM Table 7-6:
->   "Wake-Up Control Module Pad Configuration Register Fields".
+--------------enigFEC71804184A0CA2C766F8AA
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Maybe mention which TRM this is so people will know.
- 
-> Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
-> ---
->  arch/arm/boot/dts/omap3.dtsi |   12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index 1acc261..6ce3b5c 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -27,7 +27,7 @@
->  	};
->  
->  	/*
-> -	 * The soc node represents the soc top level view. It is uses for IPs
-> +	 * The soc node represents the soc top level view. It is used for IPs
->  	 * that are not memory mapped in the MPU view or for the MPU itself.
->  	 */
->  	soc {
-> @@ -77,20 +77,20 @@
->  
->  		omap3_pmx_core: pinmux@48002030 {
->  			compatible = "ti,omap3-padconf", "pinctrl-single";
-> -			reg = <0x48002030 0x05cc>;
-> +			reg = <0x48002030 0x234>;
->  			#address-cells = <1>;
->  			#size-cells = <0>;
->  			pinctrl-single,register-width = <16>;
-> -			pinctrl-single,function-mask = <0x7fff>;
-> +			pinctrl-single,function-mask = <0x7f1f>;
->  		};
+On 2013-03-28 17:31, Igor Grinberg wrote:
+> On 03/28/13 14:48, Tomi Valkeinen wrote:
+>> So here are the DSS related board file changes for 3.10.
+>>
+>> First there are a bunch of patches adding the Kconfig options so that =
+only one
+>> display device is created for a single video bus. Only Overo had more =
+than two
+>> displays on the same bus, but unfortunately there were multiple boards=
+ with a
+>> setup that puts an LCD and DVI output on the same video bus.
+>=20
+> Hmmm, so basically, if one could switch the display at runtime...
+> This cannot be done anymore...
+> This sounds like feature removal, no?
+> I know several of our clients who used this feature
+> (at least for evaluation purposes).
 
-Changing the size from 0x5cc to 0x234 misses the range ending at
-CONTROL_PADCONF_ETK_D14[31:16] 0x480025f8 that's listed at least in
-the 3630 TRM. Which TRM are you looking at?
+At some point in time it was possible to have multiple displays for the
+same bus, and switch them at runtime.
 
-Ack for the function-mask change for omap3, looks like those bits are not
-used.
-  
-> -		omap3_pmx_wkup: pinmux@0x48002a58 {
-> +		omap3_pmx_wkup: pinmux@0x48002a00 {
->  			compatible = "ti,omap3-padconf", "pinctrl-single";
-> -			reg = <0x48002a58 0x5c>;
-> +			reg = <0x48002a00 0x54>;
->  			#address-cells = <1>;
->  			#size-cells = <0>;
->  			pinctrl-single,register-width = <16>;
-> -			pinctrl-single,function-mask = <0x7fff>;
-> +			pinctrl-single,function-mask = <0x7f1f>;
->  		};
+Sometime later it was changed so that the board file adds all the
+displays, but only one (per bus) is actually added to the list of
+panels, but you could still set the default display in the kernel args,
+and thus you could select which display gets added.
 
-Hmm I think I converted these from the legacy mux framework, that seems
-to be missing the wkup range between 0x2a00 - 0x2a58. So yes 0x2a00
-is the right start as otherwise we're missing some wkup registers.
+The reason why the multiple-displays-per-bus is problematic is that the
+video bus cannot be shared, and if we have multiple devices on the same
+bus, the drivers need extra trickery, delaying initializations, etc, to
+handle this. And it still doesn't work right, as it's easy to get two
+displays enabled at the same time, configuring the same video bus,
+creating a mess.
 
-But the size should be 0x50 instead of 0x54 as the JTAG_TDO[31:16] is
-already un-used in TRM?
+Quite often the case is that the other displays are not even present
+physically. But it is true that some boards have gpio switches that can
+be used to change the display during runtime.
 
-Or it could be 0x60 if we want to map also the reserved GPIO128[31:16].
+> Is there any strong pros you obtain while removing this feature?
 
-Regards,
+For an user, only indirectly. The change will make things sane on the
+display side, and will thus make it much easier to proceed towards DT
+adaptation, and Common Display Framework. While I can't say it's a
+strict must to remove this feature, I can say that it's been a constant
+headache for me for, well, ever. And I presume CDF would not have this
+feature anyway, as it's rather bad design.
 
-Tony
+>> So the ifdeffery is not very nice. But, as discussed, this is the best=
+ way
+>> forward, and should be seen as a temporary solution until we get full =
+DT
+>> support.
+>=20
+> I've missed this discussion, can you please point to it?
+
+Well, not so much discussion, but a few mails under "Display related
+board specific boot args" subject on l-o. I proposed a board specific
+kernel argument to select the displays present, Tony was less than
+enthusiastic about that.
+
+> And what will change with full DT support?
+> Will we be able to define several displays through DT and
+> select and active one during runtime?
+
+No, not as such. DT will let the bootloader pass the DT data, thus
+telling which displays are present. So we can have single kernel binary,
+which will work for all the cases.
+
+Dynamic switching during runtime will still be missing. For that I think
+we need board specific drivers. That driver should know about board
+specific restrictions etc (which are rather missing currently), remove
+the old display device, and create the new one.
+
+Well, actually, if there was a way to add a device while somehow marking
+it so that no driver will be bound to it... Then the user could use the
+standard sysfs interface to bind a driver to the device. I wonder if
+that could be done...
+
+ Tomi
+
+
+
+--------------enigFEC71804184A0CA2C766F8AA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRVHRlAAoJEPo9qoy8lh71FqgP/RQNNVM80qroVYJsN1IyeVqR
+NitOnti3KkPIbOXG3JXtvuCn84orsSekvbOj1ENk1e2GSu8z0Mvn96dct8ZLD0rV
+u/XMBsLkvP2BBsg3VR4OSSKRx32Lk/ieXDs+8MoeuZJmfVo3Y5wUFsib7RYga5ix
+RdUhjXkos31bCJ36wiHqbyWR+rcs8d+q84lGvPStIntBF41cviiDoVYeccjHdO8k
+IxFvyED154BXfwSSa9/b9virO2zro5FI+B/9ZJJi9+MQ2+J9aIWANbXHXZ7O/Cto
+y+TpWsTPn7nSNFmIMCF/wUP/++oW0UEarrZT+c4kqdWE2hAfQAFWIryct3MWQFvw
+ZxJAKttrIXo9t1+Jjb56sPBd3/eH8Jd7kkmJFuhBzeO6vNvmQdjZRTmkcmfXZm1z
+eP9lIDMai6U3ZlvzZsPwQJH5bTtZa3hxn2L4L1cRdCVZG8hI3HuWP6PNEjwZ631V
+rQRquM23HiWlcikutrSUgyxWyf5Qf2aAuv66EvnvEcbFEdHj76/Rd5joKJ5ZWxzH
+e36MzL9/OXgt1FGH+zJEIAw8MO6OAUBjBvsMGNIYRzUGeTQNE3cr3ojDQ7aUnwR0
+2bJ0IADG+vFrxRfEAC6eQn5J98NhepLLrlhlB+u2V2vEQ4+j5y6fzcNXMlh2QfMJ
+F3Cy89RaJZtEjBZ471Sg
+=fIuE
+-----END PGP SIGNATURE-----
+
+--------------enigFEC71804184A0CA2C766F8AA--
