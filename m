@@ -1,123 +1,91 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH] ARM: OMAP: dpll: enable bypass clock only when attempting dpll
- bypass
-Date: Thu, 28 Mar 2013 09:32:57 -0700
-Message-ID: <20130328163257.5161.10373@quantum>
-References: <1364468381-10560-1-git-send-email-rnayak@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm/dts: OMAP3: fix pinctrl-single configuration
+Date: Thu, 28 Mar 2013 09:38:55 -0700
+Message-ID: <20130328163854.GV10155@atomide.com>
+References: <1364458106.3757.11.camel@mars>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:41408 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752615Ab3C1QdK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 12:33:10 -0400
-Received: by mail-da0-f46.google.com with SMTP id y19so4586770dan.33
-        for <linux-omap@vger.kernel.org>; Thu, 28 Mar 2013 09:33:09 -0700 (PDT)
-In-Reply-To: <1364468381-10560-1-git-send-email-rnayak@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25942 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756089Ab3C1Qi7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 12:38:59 -0400
+Content-Disposition: inline
+In-Reply-To: <1364458106.3757.11.camel@mars>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com, Rajendra Nayak <rnayak@ti.com>
+To: Christoph Fritz <chf.fritz@googlemail.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
 
-Quoting Rajendra Nayak (2013-03-28 03:59:41)
-> omap3_noncore_dpll_set_rate() attempts an enable of bypass clk as well
-> as ref clk for every .set_rate attempt on a noncore DPLL, regardless of
-> whether the .set_rate results in the DPLL being locked or put in bypass.
-> Early at boot, while some of these DPLLs are programmed and locked
-> (using .set_rate for the DPLL), this causes an ordering issue.
-> 
-> For instance, on OMAP5, the USB DPLL derives its bypass clk from ABE DPLL.
-> If a .set_rate of USB DPLL which programmes the M,N and locks it is called
-> before the one for ABE, the enable of USB bypass clk (derived from ABE DPLL)
-> then attempts to lock the ABE DPLL and fails as the M,N values for ABE
-> are yet to be programmed.
-> 
-> To get rid of this ordering needs, enable bypass clk for a DPLL as part
-> of its .set_rate only when its being put in bypass, and only enable the
-> ref clk when its locked.
-> 
+* Christoph Fritz <chf.fritz@googlemail.com> [130328 01:12]:
+> - Fix 'function-mask' referring to TRM Section 7.4.4:
+>   "Pad Functional Multiplexing and Configuration".
+> - Fix 'omap3_pmx_core' referring to TRM Table 7-4:
+>   "Core Control Module Pad Configuration Register Fields"
+> - Fix 'omap3_pmx_wkup' referring to TRM Table 7-6:
+>   "Wake-Up Control Module Pad Configuration Register Fields".
 
-Hi Rajendra,
-
-Another way to solve this problem would be to model the DPLLs as mux
-clocks with a list of possible parents (e.g. clk->parents[2]).  Then set
-the CLK_SET_RATE_PARENT flag on the USB DPLL which will allow to
-propagate the rate request up to the ABE DPLL.  This should set the MN
-dividers appropriately.
-
-> Reported-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Maybe mention which TRM this is so people will know.
+ 
+> Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
 > ---
->  arch/arm/mach-omap2/dpll3xxx.c |   19 +++++++++----------
->  1 file changed, 9 insertions(+), 10 deletions(-)
+>  arch/arm/boot/dts/omap3.dtsi |   12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-> index 3aed4b0..6e9873f 100644
-> --- a/arch/arm/mach-omap2/dpll3xxx.c
-> +++ b/arch/arm/mach-omap2/dpll3xxx.c
-> @@ -480,20 +480,22 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
->         if (!dd)
->                 return -EINVAL;
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index 1acc261..6ce3b5c 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -27,7 +27,7 @@
+>  	};
 >  
-> -       __clk_prepare(dd->clk_bypass);
-> -       clk_enable(dd->clk_bypass);
-> -       __clk_prepare(dd->clk_ref);
-> -       clk_enable(dd->clk_ref);
+>  	/*
+> -	 * The soc node represents the soc top level view. It is uses for IPs
+> +	 * The soc node represents the soc top level view. It is used for IPs
+>  	 * that are not memory mapped in the MPU view or for the MPU itself.
+>  	 */
+>  	soc {
+> @@ -77,20 +77,20 @@
+>  
+>  		omap3_pmx_core: pinmux@48002030 {
+>  			compatible = "ti,omap3-padconf", "pinctrl-single";
+> -			reg = <0x48002030 0x05cc>;
+> +			reg = <0x48002030 0x234>;
+>  			#address-cells = <1>;
+>  			#size-cells = <0>;
+>  			pinctrl-single,register-width = <16>;
+> -			pinctrl-single,function-mask = <0x7fff>;
+> +			pinctrl-single,function-mask = <0x7f1f>;
+>  		};
 
-Is this safe?  I always thought that the programming sequence in the TRM
-was to enable both the ref and bypass clocks during DPLL reprogramming.
-Maybe I am misremembering or assuming that the code strictly followed
-the TRM.
+Changing the size from 0x5cc to 0x234 misses the range ending at
+CONTROL_PADCONF_ETK_D14[31:16] 0x480025f8 that's listed at least in
+the 3630 TRM. Which TRM are you looking at?
+
+Ack for the function-mask change for omap3, looks like those bits are not
+used.
+  
+> -		omap3_pmx_wkup: pinmux@0x48002a58 {
+> +		omap3_pmx_wkup: pinmux@0x48002a00 {
+>  			compatible = "ti,omap3-padconf", "pinctrl-single";
+> -			reg = <0x48002a58 0x5c>;
+> +			reg = <0x48002a00 0x54>;
+>  			#address-cells = <1>;
+>  			#size-cells = <0>;
+>  			pinctrl-single,register-width = <16>;
+> -			pinctrl-single,function-mask = <0x7fff>;
+> +			pinctrl-single,function-mask = <0x7f1f>;
+>  		};
+
+Hmm I think I converted these from the legacy mux framework, that seems
+to be missing the wkup range between 0x2a00 - 0x2a58. So yes 0x2a00
+is the right start as otherwise we're missing some wkup registers.
+
+But the size should be 0x50 instead of 0x54 as the JTAG_TDO[31:16] is
+already un-used in TRM?
+
+Or it could be 0x60 if we want to map also the reserved GPIO128[31:16].
 
 Regards,
-Mike
 
-> -
->         if (__clk_get_rate(dd->clk_bypass) == rate &&
->             (dd->modes & (1 << DPLL_LOW_POWER_BYPASS))) {
->                 pr_debug("%s: %s: set rate: entering bypass.\n",
->                          __func__, __clk_get_name(hw->clk));
->  
-> +               __clk_prepare(dd->clk_bypass);
-> +               clk_enable(dd->clk_bypass);
->                 ret = _omap3_noncore_dpll_bypass(clk);
->                 if (!ret)
->                         new_parent = dd->clk_bypass;
-> +               clk_disable(dd->clk_bypass);
-> +               __clk_unprepare(dd->clk_bypass);
->         } else {
-> +               __clk_prepare(dd->clk_ref);
-> +               clk_enable(dd->clk_ref);
-> +
->                 if (dd->last_rounded_rate != rate)
->                         rate = __clk_round_rate(hw->clk, rate);
->  
-> @@ -514,6 +516,8 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
->                 ret = omap3_noncore_dpll_program(clk, freqsel);
->                 if (!ret)
->                         new_parent = dd->clk_ref;
-> +               clk_disable(dd->clk_ref);
-> +               __clk_unprepare(dd->clk_ref);
->         }
->         /*
->         * FIXME - this is all wrong.  common code handles reparenting and
-> @@ -525,11 +529,6 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
->         if (!ret)
->                 __clk_reparent(hw->clk, new_parent);
->  
-> -       clk_disable(dd->clk_ref);
-> -       __clk_unprepare(dd->clk_ref);
-> -       clk_disable(dd->clk_bypass);
-> -       __clk_unprepare(dd->clk_bypass);
-> -
->         return 0;
->  }
->  
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
