@@ -1,46 +1,137 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: Generic cleanups for 3.10
-Date: Thu, 28 Mar 2013 15:04:47 -0700
-Message-ID: <20130328220447.GA10155@atomide.com>
-References: <1363768789-17929-1-git-send-email-santosh.shilimkar@ti.com>
- <20130327180321.GB10155@atomide.com>
- <5153431E.60007@ti.com>
- <20130327195839.GF10155@atomide.com>
- <448912EABC71F84BBCADFD3C67C4BE52784FD7@DBDE01.ent.ti.com>
- <5153F4CF.505@ti.com>
- <87ppyj4fkl.fsf@linaro.org>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 5/6] ARM: OMAP3+: ABB: introduce ABB driver
+Date: Thu, 28 Mar 2013 17:35:13 -0500
+Message-ID: <20130328223513.GA19470@kahuna>
+References: <1364490968-13613-1-git-send-email-andrii.tseglytskyi@ti.com>
+ <1364490968-13613-5-git-send-email-andrii.tseglytskyi@ti.com>
+ <20130328212739.13785.44736@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:57585 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751453Ab3C1WEw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 18:04:52 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45061 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752607Ab3C1WfO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Mar 2013 18:35:14 -0400
 Content-Disposition: inline
-In-Reply-To: <87ppyj4fkl.fsf@linaro.org>
+In-Reply-To: <20130328212739.13785.44736@quantum>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>, Tero Kristo <t-kristo@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@linaro.org> [130328 10:13]:
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+- ti internal list which got into the git send-email by error. Apologies
+on the bounces which might have resulted...
+
+On 14:27-20130328, Mike Turquette wrote:
+> Quoting Andrii Tseglytskyi (2013-03-28 10:16:07)
+> > From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
+Ownership of ABB driver patch probably still belongs to Mike as the original
+author of the code and working out all the details to entitle ABB on OMAP
+platforms :)
+> > 
+[..]
+> You should probably post this as an RFC.  It remains to be seen if using
+> the clk rate-change notifiers will be the mechanism for scaling voltage
+> in The Future.  This patch is helpful for the purposes of that
+> discussion but shouldn't be merged until there is more consensus.
+I agree. + include linux-arm-kernel and lkml in CC on the next *public*
+revision :).
+
+[..]
 > 
-> > On Thursday 28 March 2013 01:39 AM, Shilimkar, Santosh wrote:
-> >> Sorry for top posting ...
-> >> I will pick the ack and update commit log to prepare new pull request
-> >> for you. 
-> >> 
-> > I have updated the branch picking acks and updating changelogs and same
-> > is available below. No change in code.
-> >
-> > git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.10/omap_generic_cleanup_v2
-> >
+> > +/*
+> > + * struct omap_abb_data - common data for each instance of ABB ldo
+> > + *
+> > + * @opp_sel_mask:      selects Fast/Nominal/Slow OPP for ABB
+> > + * @opp_change_mask:   selects OPP_CHANGE bit value
+> > + * @sr2_wtcnt_value_mask:      LDO settling time for active-mode OPP change
+> > + * @sr2en_mask:                        enables/disables ABB
+> > + * @fbb_sel_mask:              selects FBB mode
+> > + * @rbb_sel_mask:              selects RBB mode
+> > + * @settling_time:     IRQ handle used to resolve IRQSTATUS offset & masks
+> > + * @clock_cycles:      value needed for LDO setting time calculation
+> > + * @setup_offs:                PRM_LDO_ABB_XXX_SETUP register offset
+> > + * @control_offs:      PRM_LDO_ABB_IVA_CTRL register offset
 > 
-> Thanks for the changelog updates.  No more concerns from me.
+> Can you align all of these?
+We should check up on AM and DM series as well - if the bit offsets are
+precisely the same, we could stick with macros instead of having the
+masks and register offsets in a device specific manner.
 
-Thanks pulled into omap-for-v3.10/cleanup-v2.
+[..]
+> > +/**
+> > + * omap_abb_readl() - reads ABB control memory
+> > + * @abb:       pointer to the abb instance
+> > + * @offs:      offset to read
+> > + *
+> > + * Returns @offs value
+> > + */
+> > +static u32 omap_abb_readl(struct omap_abb *abb, u32 offs)
+> > +{
+> > +       return __raw_readl(abb->control + offs);
+> > +}
+> 
+> readl instead of __raw_readl?
+Ack. readl/writel should be used..
 
+> > +/**
+> > + * omap_abb_clock_rate_change() - ABB clock notifier callback
+> > + * @nb:                notifier block
+> > + * @flags:     notifier event type
+> > + * @data:      notifier data, contains clock rates
+> > + *
+> > + * Returns NOTIFY_OK
+> > + */
+> > +static int omap_abb_clock_rate_change(struct notifier_block *nb,
+> > +                                     unsigned long flags, void *data)
+> > +{
+> > +       struct clk_notifier_data *cnd = data;
+> > +       struct omap_abb *abb = container_of(nb, struct omap_abb, abb_clk_nb);
+> > +
+> > +       switch (flags) {
+> > +       case PRE_RATE_CHANGE:
+> > +               omap_abb_pre_scale(abb, cnd->old_rate, cnd->new_rate);
+> > +               break;
+> > +       case POST_RATE_CHANGE:
+> > +               omap_abb_post_scale(abb, cnd->old_rate, cnd->new_rate);
+> > +               break;
+> > +       }
+> > +
+> > +       return NOTIFY_OK;
+> > +}
+> 
+> How does this synchronize with the VC/VP voltage transition?  Ordering
+> is important here and if the clk rate-change notifiers are used for both
+> a VP force update and for an FBB transition there is no guarantee of the
+> ordering.
+I need to dig into this series deeper, but the requirement is as
+follows:
+Actual voltage change may occur with vc/vp - OMAP3,4,5 OR with i2c1- AM
+series or the upcoming DRA SoCs, intent is to model the vc-vp->pmic as
+regulators (some internal patches circulate for this, but not mature enough
+to be send out in a public list yet)
+
+Key however is:
+* if we do as clock notifiers(as this series attempts I believe), we'd get ABB
+settings around clock change boundary.
+Alternative might be to do it around voltage change - we could, in
+theory:
+a) make an omap voltage regulator and provide notifier around the same
+and hook ABB to it. the omap voltage regulator will in turn call the
+appropriate voltage regulator (modelled from a regulator that controls
+an PMIC over i2c1 OR over vc-vp regulator)
+b) make ABB as an regulator by itself?
+c) how might this work if we have DVFS capability in CCF itself[1]? it
+might be better to have it as notifiers to regulator (the pseudo
+omap-voltage regulator perhaps?)
+
+[1] CCF DVFS patches:
+https://patchwork.kernel.org/patch/2195431/
+https://patchwork.kernel.org/patch/2195421/
+https://patchwork.kernel.org/patch/2195451/
+https://patchwork.kernel.org/patch/2195441/
+https://patchwork.kernel.org/patch/2195461/
+
+-- 
 Regards,
-
-Tony
+Nishanth Menon
