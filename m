@@ -1,61 +1,130 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V3 2/2] cpufreq: OMAP: instantiate omap-cpufreq as a platform_driver
-Date: Thu, 28 Mar 2013 16:52:56 -0500
-Message-ID: <1364507576-19345-3-git-send-email-nm@ti.com>
-References: <1364507576-19345-1-git-send-email-nm@ti.com>
+Subject: [PATCH V3 0/2] ARM: OMAP3+: support cpufreq-cpu0 for device tree boot
+Date: Thu, 28 Mar 2013 16:52:54 -0500
+Message-ID: <1364507576-19345-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43434 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753810Ab3C1VxE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Mar 2013 17:53:04 -0400
-In-Reply-To: <1364507576-19345-1-git-send-email-nm@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59195 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753786Ab3C1VxE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 17:53:04 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Rob Herring <robherring2@gmail.com>, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@linaro.org>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
 
-As multi-platform build is being adopted by more and more ARM platforms=
-,
-initcall function should be used very carefully.  For example, when
-CONFIG_ARM_OMAP2PLUS_CPUFREQ is built in the kernel, omap_cpufreq_init(=
-)
-will be called on all the platforms to initialize omap-cpufreq driver.
+The following version 3 of the series arose from trying to use BeagleBo=
+ard-XM
+(OMAP3 variant) for doing CPU DVFS using cpufreq-cpu0. This series enab=
+les the
+generic cpufreq-cpu0 driver to be used in device tree enabled boot whil=
+e
+maintaining support of the legacy omap-cpufreq driver when used in non =
+device
+tree enabled boot.
 
-=46urther, on OMAP, we now use Soc generic cpufreq-cpu0 driver using de=
-vice
-tree entries.  To allow cpufreq-cpu0 and omap-cpufreq drivers to co-exi=
-st
-for OMAP in a single image, we need to ensure the following:
-1. With device tree boot, we use cpufreq-cpu0
-2. With non device tree boot, we use omap-cpufreq
+However, in order to enable complete SoC entitlement for OMAP platforms=
+, with
+this series, key features are still pending on device tree adaptation f=
+or OMAP:
+A) clock framework data transition to DT - this should happen soon, so =
+this
+series hacks the clock node for the time being as suggested in review o=
+f
+original series[1].
+B) On processors that use voltage controller, voltage processor (VC/VP =
+hardware
+loop using I2C_SR path) - we have started work on transitioning them to
+regulator framework driven by DT.
+C) Adaptive Body Bias and SmartReflex AVS conversion to DT. [2]
 
-In the case of (1), we will have cpu OPPs and regulator registered
-as part of the device tree nodes, to ensure that omap-cpufreq
-and cpufreq-cpu0 don't conflict in managing the frequency of the
-same CPU, we should not permit omap-cpufreq to be probed.
+Note: At this point in time, we do not have DT entries for clock on OMA=
+P
+platforms. Common Clock Framework(CCF) could also control regulators[3]=
+=2E
+Once these conversions are complete, there might be minimal cleanup wor=
+k to
+switch to the new data structure changes.
 
-In the case of (2), we will not have the cpufreq-cpu0 device, hence
-only omap-cpufreq will be active.
+Key benefit of the series is to allow all relevant TI platforms now to =
+use a
+single cpufreq driver and equivalent frameworks in addition be part of =
+the
+transition to device tree.
+NOTE: As a result of this series:
+1. omap-cpufreq will be used only in non device tree boot scenario. we =
+should
+   delete this driver once the 100% DT conversion is complete.
+2. Generic cpufreq-cpu0 will be used only in device tree boot scenario.
+   boot systems.
 
-To eliminate this undesired these effects, we change omap-cpufreq
-driver to have it instantiated as a platform_driver and register
-"omap-cpufreq" device only when booted without device tree nodes on
-OMAP platforms.
+Key changes in version 3:
+	- series now rebased on Device tree patches queued for OMAP 3.10
+	- DT patches introducing OPPs are now merged, so pending patches alone
+	  are part of the new series.
+	- omap-cpufreq is now converted to platform_device to address:
+		http://marc.info/?t=3D136434901900001&r=3D1&w=3D2
 
-This allows the following:
-a) Will only run on platforms that create the platform_device
-   "omap-cpufreq".
-b) Since the platform_device is registered only when device tree nodes
-   are *not* populated, omap-cpufreq driver does not conflict with
-   the usage of cpufreq-cpu0 driver which is used on OMAP platforms whe=
-n
-   device tree nodes are present.
+version 2 of the series:
+	http://marc.info/?t=3D136371570200003&r=3D1&w=3D2
+	available at:
+	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cp=
+u0-omap-all-v2
 
-Inspired by commit 5553f9e26f6f49a93ba732fd222eac6973a4cf35
-(cpufreq: instantiate cpufreq-cpu0 as a platform_driver)
+version 1 of the series:
+	http://marc.info/?t=3D136329485400005&r=3D1&w=3D2
+	available at:
+	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cp=
+u0-omap-all-v1
+
+[1] Original discussion thread which triggered this series:
+	http://marc.info/?l=3Dlinux-pm&m=3D136304313700602&w=3D2
+	https://patchwork.kernel.org/patch/2251841/
+	https://patchwork.kernel.org/patch/2251851/
+[2] ABB RFC: http://marc.info/?l=3Dlinux-omap&m=3D136449099409794&w=3D2=
+=20
+[3] CCF DVFS patches:
+https://patchwork.kernel.org/patch/2195431/
+https://patchwork.kernel.org/patch/2195421/
+https://patchwork.kernel.org/patch/2195451/
+https://patchwork.kernel.org/patch/2195441/
+https://patchwork.kernel.org/patch/2195461/
+
+Version 3 is now based on for-3.10/dts branch from Benoit:
+	http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git=
+/log/?h=3Dfor_3.10/dts
+	d114294 ARM: dts: AM33XX: Corrects typo in interrupt field in SPI node
+
+Version 3 is also available at:
+	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cp=
+u0-omap-all-v3
+	git link: git://github.com/nmenon/linux-2.6-playground.git
+	branch: cpufreq-cpu0-omap-all-v3
+
+Test coverage:
+	test script: http://pastebin.com/zrr8ptge
+Platforms verified:
+	beaglebone(rev A6a) - AM33xx compatible - http://pastebin.com/GVP2wDVr
+	beagleboard (rev C1D) - OMAP3430 compatible
+		- DT enabled boot: http://pastebin.com/2AY1F5Qa
+		- No DT enabled boot: http://pastebin.com/hDk0gbpU
+	omap3-beagle-xm -OMAP3630 compatible - http://pastebin.com/5tHAQcLZ
+	Pandaboard -(OMAP4430 ES2.2) - http://pastebin.com/6D9aDPXT
+	Pandaboard-ES -(OMAP4460 ES1.1) - http://pastebin.com/ExrBEczr
+
+Nishanth Menon (2):
+  ARM: OMAP3+: use cpu0-cpufreq driver in device tree supported boot
+  cpufreq: OMAP: instantiate omap-cpufreq as a platform_driver
+
+ arch/arm/mach-omap2/board-generic.c   |    5 +++++
+ arch/arm/mach-omap2/cclock33xx_data.c |    2 +-
+ arch/arm/mach-omap2/cclock3xxx_data.c |    3 ++-
+ arch/arm/mach-omap2/cclock44xx_data.c |    3 ++-
+ arch/arm/mach-omap2/pm.c              |    9 +++++++++
+ drivers/cpufreq/omap-cpufreq.c        |   19 ++++++++++++++-----
+ 6 files changed, 33 insertions(+), 8 deletions(-)
 
 Cc: Kevin Hilman <khilman@linaro.org>
 Cc: Rajendra Nayak <rnayak@ti.com>
@@ -65,97 +134,9 @@ Cc: Jon Hunter <jon-hunter@ti.com>
 Cc: Keerthy <j-keerthy@ti.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Shawn Guo <shawn.guo@linaro.org>
-[robherring2@gmail.com: reported conflict of omap-cpufreq vs other
-driver in an non-device tree supported boot]
-Reported-by: Rob Herring <robherring2@gmail.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Changes in V3:
-	- converted to platform_driver to
-		address https://patchwork.kernel.org/patch/2303491/ as well
-	- modified CC list.
-V2: https://patchwork.kernel.org/patch/2303491/
-V1: https://patchwork.kernel.org/patch/2273681/
 
- arch/arm/mach-omap2/pm.c       |    9 +++++++++
- drivers/cpufreq/omap-cpufreq.c |   19 ++++++++++++++-----
- 2 files changed, 23 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 673a4c1..8d15f9a 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -265,6 +265,12 @@ static void __init omap4_init_voltages(void)
- 	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", "iva");
- }
-=20
-+static inline void omap_init_cpufreq(void)
-+{
-+	struct platform_device_info devinfo =3D { .name =3D "omap-cpufreq", }=
-;
-+	platform_device_register_full(&devinfo);
-+}
-+
- static int __init omap2_common_pm_init(void)
- {
- 	if (!of_have_populated_dt())
-@@ -294,6 +300,9 @@ int __init omap2_common_pm_late_init(void)
-=20
- 		/* Smartreflex device init */
- 		omap_devinit_smartreflex();
-+
-+		/* cpufreq dummy device instantiation */
-+		omap_init_cpufreq();
- 	}
-=20
- #ifdef CONFIG_SUSPEND
-diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpuf=
-req.c
-index 9128c07..d4f84b8 100644
---- a/drivers/cpufreq/omap-cpufreq.c
-+++ b/drivers/cpufreq/omap-cpufreq.c
-@@ -25,6 +25,7 @@
- #include <linux/opp.h>
- #include <linux/cpu.h>
- #include <linux/module.h>
-+#include <linux/platform_device.h>
- #include <linux/regulator/consumer.h>
-=20
- #include <asm/smp_plat.h>
-@@ -252,7 +253,7 @@ static struct cpufreq_driver omap_driver =3D {
- 	.attr		=3D omap_cpufreq_attr,
- };
-=20
--static int __init omap_cpufreq_init(void)
-+static int omap_cpufreq_probe(struct platform_device *pdev)
- {
- 	mpu_dev =3D get_cpu_device(0);
- 	if (!mpu_dev) {
-@@ -280,12 +281,20 @@ static int __init omap_cpufreq_init(void)
- 	return cpufreq_register_driver(&omap_driver);
- }
-=20
--static void __exit omap_cpufreq_exit(void)
-+static int omap_cpufreq_remove(struct platform_device *pdev)
- {
--	cpufreq_unregister_driver(&omap_driver);
-+	return cpufreq_unregister_driver(&omap_driver);
- }
-=20
-+static struct platform_driver omap_cpufreq_platdrv =3D {
-+	.driver =3D {
-+		.name	=3D "omap-cpufreq",
-+		.owner	=3D THIS_MODULE,
-+	},
-+	.probe		=3D omap_cpufreq_probe,
-+	.remove		=3D omap_cpufreq_remove,
-+};
-+module_platform_driver(omap_cpufreq_platdrv);
-+
- MODULE_DESCRIPTION("cpufreq driver for OMAP SoCs");
- MODULE_LICENSE("GPL");
--module_init(omap_cpufreq_init);
--module_exit(omap_cpufreq_exit);
+Regards,
+Nishanth Menon
 --=20
 1.7.9.5
 
