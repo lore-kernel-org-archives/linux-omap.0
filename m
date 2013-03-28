@@ -1,56 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH] arm: omap: RX-51: ARM errata 430973 workaround
-Date: Thu, 28 Mar 2013 08:53:30 -0700
-Message-ID: <20130328155330.GS10155@atomide.com>
-References: <517283541.62064.1362124023621.JavaMail.apache@mail81.abv.bg>
- <20130306175120.GP11806@atomide.com>
- <201303062013.16302@pali>
- <201303241526.59275@pali>
- <20130327205606.GN10155@atomide.com>
- <20130328095011.GS30923@n2100.arm.linux.org.uk>
- <5154165C.4050604@ti.com>
+Date: Thu, 28 Mar 2013 08:58:04 -0700
+Message-ID: <20130328155803.GT10155@atomide.com>
+References: <24838523.73311.1364448607026.JavaMail.apache@mail82.abv.bg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50237 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752715Ab3C1P6K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 11:58:10 -0400
 Content-Disposition: inline
-In-Reply-To: <5154165C.4050604@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Nishanth Menon <nm@ti.com>, linux-kernel@vger.kernel.org, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <24838523.73311.1364448607026.JavaMail.apache@mail82.abv.bg>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>
+Cc: pali.rohar@gmail.com, nm@ti.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [130328 03:10]:
-> On Thursday 28 March 2013 03:20 PM, Russell King - ARM Linux wrote:
-> > On Wed, Mar 27, 2013 at 01:56:07PM -0700, Tony Lindgren wrote:
-> >> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130324 07:31]:
-> >>> it is possible to upstream errata 430973 workaround for RX-51?
-> >>
-> >> I think we should make the SMC handling a generic function for ARM=
-=2E
-> >>
-> >> AFAIK just the SMC call numbering is different for various
-> >> implementations. So the handler and passing of the parameters
-> >> seems like it should be generic.
-> >=20
-> > SMC calls vary greatly in how they are handled.  The only thing tha=
-t's
-> > generic is issuing the SMC call.  All the setup and what arguments =
-are
-> > required are completely different from SoC to SoC.
-> >=20
-> > For example, some SoCs require arguments passed via memory.  Others=
- like
-> > OMAP its via registers.
+* =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=
+=80=D0=BE=D0=B2 <freemangordon@abv.bg> [130327 22:34]:
+>  Tony,
 >=20
-> Exactly. As somebody said on the list, that code looks identical but
-> it is not. An SMC with barrier instruction is mostly common and nothi=
-ng
-> more than that.
+> Who do you expect to make that code merge? Do you expect us to mechan=
+ically merge RX51 PPA API patch with the existing generic OMAP PPA API =
+code putting #ifdefs all over the place? Not that it is impossible, but=
+ the only real piece of HW I have here is n900, so I just can't be sure=
+ the code will still work on the other platforms besides RX51, once the=
+ code modified. Please, advice on how to proceed.
 
-Thanks all, case closed then. There's no way to come up with a generic
-SMC function.
+Probably ifdefs won't work nice for other omapss. It seems that
+your original patch is pretty close based on all that's been
+discussed. Can you please repost with a proper patch description
+also summarizing why we cannot have generci SMC API as discussed?
 
-Regards,
+Thanks,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
