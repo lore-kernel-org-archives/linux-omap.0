@@ -1,107 +1,71 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 25/28] ARM: OMAP: Devkit8000: use new generic-dpi-panel platform driver
-Date: Thu, 28 Mar 2013 14:49:19 +0200
-Message-ID: <1364474962-20439-26-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 21/28] ARM: OMAP: Overo: use new TFP410 platform driver
+Date: Thu, 28 Mar 2013 14:49:15 +0200
+Message-ID: <1364474962-20439-22-git-send-email-tomi.valkeinen@ti.com>
 References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57283 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:57272 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754669Ab3C1MuR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 08:50:17 -0400
+	with ESMTP id S1754669Ab3C1MuM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 08:50:12 -0400
 In-Reply-To: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use the new generic-dpi-panel platform driver instead of the old
-omap_dss_driver.
+Use the new TFP410 platform driver instead of the old omap_dss_driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-devkit8000.c |   33 ++++++++++++++++++--------------
- 1 file changed, 19 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap2/board-overo.c |   20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index d05f069..1e0343f 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -122,35 +122,37 @@ static struct omap_dss_device devkit8000_tv_device = {
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 3253682..9cb29fc 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -148,30 +148,26 @@ static inline void __init overo_init_smsc911x(void) { return; }
+ #if defined(CONFIG_MACH_OVERO_EXPANSION_SUMMIT)
  
- #if defined(CONFIG_MACH_DEVKIT8000_EXPANSION_LCD)
- 
-+static int lcd_reset_gpio;
-+
- static int devkit8000_panel_enable_lcd(struct omap_dss_device *dssdev)
- {
--	if (gpio_is_valid(dssdev->reset_gpio))
--		gpio_set_value_cansleep(dssdev->reset_gpio, 1);
-+	if (gpio_is_valid(lcd_reset_gpio))
-+		gpio_set_value_cansleep(lcd_reset_gpio, 1);
- 	return 0;
- }
- 
- static void devkit8000_panel_disable_lcd(struct omap_dss_device *dssdev)
- {
--	if (gpio_is_valid(dssdev->reset_gpio))
--		gpio_set_value_cansleep(dssdev->reset_gpio, 0);
-+	if (gpio_is_valid(lcd_reset_gpio))
-+		gpio_set_value_cansleep(lcd_reset_gpio, 0);
- }
- 
- static struct panel_generic_dpi_data lcd_panel = {
-+	.display_name		= "lcd",
+ static struct tfp410_platform_data dvi_panel = {
++	.name			= "dvi",
 +	.source			= "dpi.0",
- 	.name			= "innolux_at070tn83",
 +	.data_lines		= 24,
- 	.platform_enable        = devkit8000_panel_enable_lcd,
- 	.platform_disable       = devkit8000_panel_disable_lcd,
+ 	.i2c_bus_num		= 3,
+ 	.power_down_gpio	= -1,
  };
  
--static struct omap_dss_device devkit8000_lcd_device = {
--	.name                   = "lcd",
--	.type                   = OMAP_DISPLAY_TYPE_DPI,
--	.driver_name            = "generic_dpi_panel",
--	.data			= &lcd_panel,
--	.phy.dpi.data_lines     = 24,
-+static struct platform_device devkit8000_lcd_device = {
-+	.name			= "generic_dpi_panel",
+-static struct omap_dss_device overo_dvi_device = {
+-	.name			= "dvi",
+-	.type			= OMAP_DISPLAY_TYPE_DPI,
+-	.driver_name		= "tfp410",
+-	.data			= &dvi_panel,
+-	.phy.dpi.data_lines	= 24,
+-};
+-
+-static struct omap_dss_device *overo_dss_devices[] = {
+-	&overo_dvi_device,
++static struct platform_device overo_dvi_device = {
++	.name			= "tfp410",
 +	.id			= 0,
-+	.dev.platform_data	= &lcd_panel,
++	.dev.platform_data	= &dvi_panel,
  };
  
- static struct omap_dss_device *devkit8000_dss_devices[] = {
--	&devkit8000_lcd_device,
- 	&devkit8000_tv_device,
+ static struct omap_dss_board_info overo_dss_data = {
+-	.num_devices	= ARRAY_SIZE(overo_dss_devices),
+-	.devices	= overo_dss_devices,
+ 	.default_display_name = "dvi",
  };
  
-@@ -238,11 +240,11 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
+ static void __init overo_display_init(void)
+ {
++	platform_device_register(&overo_dvi_device);
+ }
  
- #if defined(CONFIG_MACH_DEVKIT8000_EXPANSION_LCD)
- 	/* TWL4030_GPIO_MAX + 0 is "LCD_PWREN" (out, active high) */
--	devkit8000_lcd_device.reset_gpio = gpio + TWL4030_GPIO_MAX + 0;
--	ret = gpio_request_one(devkit8000_lcd_device.reset_gpio,
-+	lcd_reset_gpio = gpio + TWL4030_GPIO_MAX + 0;
-+	ret = gpio_request_one(lcd_reset_gpio,
- 			       GPIOF_OUT_INIT_LOW, "LCD_PWREN");
- 	if (ret < 0) {
--		devkit8000_lcd_device.reset_gpio = -EINVAL;
-+		lcd_reset_gpio = -EINVAL;
- 		printk(KERN_ERR "Failed to request GPIO for LCD_PWRN\n");
- 	}
- #elif defined(CONFIG_MACH_DEVKIT8000_EXPANSION_DVI)
-@@ -455,6 +457,9 @@ static struct platform_device *devkit8000_devices[] __initdata = {
- #if defined(CONFIG_MACH_DEVKIT8000_EXPANSION_DVI)
- 	&devkit8000_dvi_device,
- #endif
-+#if defined(CONFIG_MACH_DEVKIT8000_EXPANSION_LCD)
-+	&devkit8000_lcd_device,
-+#endif
- };
- 
- static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
+ #elif defined(CONFIG_MACH_OVERO_EXPANSION_PALO35)
 -- 
 1.7.10.4
 
