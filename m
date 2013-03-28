@@ -1,40 +1,56 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH V2 0/8] ARM: OMAP3+: support cpufreq-cpu0 for device tree
- boot
-Date: Thu, 28 Mar 2013 16:49:20 +0100
-Message-ID: <51546680.5080107@ti.com>
-References: <1363715590-5131-1-git-send-email-nm@ti.com> <51542390.1020300@ti.com> <CAGo_u6rn=GHVfJiz_7gkse2e-e3BZicEqJBQWomftpi-nCvfng@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: omap: RX-51: ARM errata 430973 workaround
+Date: Thu, 28 Mar 2013 08:53:30 -0700
+Message-ID: <20130328155330.GS10155@atomide.com>
+References: <517283541.62064.1362124023621.JavaMail.apache@mail81.abv.bg>
+ <20130306175120.GP11806@atomide.com>
+ <201303062013.16302@pali>
+ <201303241526.59275@pali>
+ <20130327205606.GN10155@atomide.com>
+ <20130328095011.GS30923@n2100.arm.linux.org.uk>
+ <5154165C.4050604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <CAGo_u6rn=GHVfJiz_7gkse2e-e3BZicEqJBQWomftpi-nCvfng@mail.gmail.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Shawn Guo <shawn.guo@linaro.org>, linux-pm@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, cpufreq@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5154165C.4050604@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Nishanth Menon <nm@ti.com>, linux-kernel@vger.kernel.org, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/28/2013 02:43 PM, Nishanth Menon wrote:
-> Hi Benoit,
-> 
-> On Thu, Mar 28, 2013 at 6:03 AM, Benoit Cousson <b-cousson@ti.com> wrote:
->> The patches 1 to 6 looks good to me. Beside the pretty long Cc list,
->> that should not necessarily contain all the mailing list.
-> Arrgh.. my bad. I will keep it in mind for the future.
-> 
->>
->> Since you are changing / renaming some DTS files, and to avoid any merge
->> conflict I will apply only these 6 patches.
->> DTS and driver changes are in theory orthogonal enough to allow merging
->> them separately and in any order.
->>
->> I'll update my branch with these patches ASAP.
-> Thanks. I will post a v3 of remaining patches later today.
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130328 03:10]:
+> On Thursday 28 March 2013 03:20 PM, Russell King - ARM Linux wrote:
+> > On Wed, Mar 27, 2013 at 01:56:07PM -0700, Tony Lindgren wrote:
+> >> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130324 07:31]:
+> >>> it is possible to upstream errata 430973 workaround for RX-51?
+> >>
+> >> I think we should make the SMC handling a generic function for ARM=
+=2E
+> >>
+> >> AFAIK just the SMC call numbering is different for various
+> >> implementations. So the handler and passing of the parameters
+> >> seems like it should be generic.
+> >=20
+> > SMC calls vary greatly in how they are handled.  The only thing tha=
+t's
+> > generic is issuing the SMC call.  All the setup and what arguments =
+are
+> > required are completely different from SoC to SoC.
+> >=20
+> > For example, some SoCs require arguments passed via memory.  Others=
+ like
+> > OMAP its via registers.
+>=20
+> Exactly. As somebody said on the list, that code looks identical but
+> it is not. An SMC with barrier instruction is mostly common and nothi=
+ng
+> more than that.
 
-Patches after changelog cleanup are available in the following branch:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.10/dts
+Thanks all, case closed then. There's no way to come up with a generic
+SMC function.
 
 Regards,
-Benoit
 
+Tony
