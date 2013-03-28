@@ -1,82 +1,83 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 08/28] ARM: OMAP: CM-T35: Kconfig option for the
- display options
-Date: Thu, 28 Mar 2013 14:28:38 -0700
-Message-ID: <20130328212837.GY10155@atomide.com>
-References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
- <1364474962-20439-9-git-send-email-tomi.valkeinen@ti.com>
- <51546B2C.2030101@compulab.co.il>
- <20130328165336.GW10155@atomide.com>
- <515479F6.9090005@ti.com>
+Subject: Re: [PATCH] OMAP3 ROM Random Number Generator support
+Date: Thu, 28 Mar 2013 14:44:11 -0700
+Message-ID: <20130328214411.GZ10155@atomide.com>
+References: <201302281905.48546@pali>
+ <201303272303.44420@pali>
+ <20130327222524.GR10155@atomide.com>
+ <201303281854.02847@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44866 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753543Ab3C1V2l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 17:28:41 -0400
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <515479F6.9090005@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <201303281854.02847@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Juha Yrjola <juha.yrjola@solidboot.com>, Russell King <linux@arm.linux.org.uk>, Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Mike Rapoport <mike@compulab.co.il>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [130328 10:16]:
-> On 2013-03-28 18:53, Tony Lindgren wrote:
-> > 
-> > Yes that's not nice from usability point of view. Can we still switch
-> > between LCD and DVI during the runtime? I thought the issue was registering
-> > multiple LCD panels where only one can exist at a time?
-> 
-> I guess I could've been more verbose in my descriptions. And I agree
-> this is not a nice change.
-> 
-> No, we can't switch between the LCD and DVI. But that's not strictly DSS
-> issue. The selection between LCD and DVI (or any other displays on the
-> same bus) are board specific things, sometimes requiring board specific
-> gpios or even things like i2c commands to muxes.
-> 
-> It works now because we have custom callbacks in the board files to do
-> those things, but it'll break with DT.
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130328 10:58]:
+>=20
+> Here is new version of patch:
+>=20
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -486,6 +486,23 @@ static void omap_init_mcspi(void)
+>  static inline void omap_init_mcspi(void) {}
+>  #endif
+> =20
+> +extern u32 *omap3_rom_rng_call(u32 id, u32 proc, u32 flags, u32 va_p=
+tr);
+> +
+> +static struct platform_device omap3_rom_rng_device =3D {
+> +	.name		=3D "omap3-rom-rng",
+> +	.id		=3D -1,
+> +	.dev	=3D {
+> +		.platform_data	=3D omap3_rom_rng_call,
+> +	},
+> +};
+> +
+> +static void omap_init_rom_rng(void)
+> +{
+> +	if (!cpu_is_omap34xx() || omap_type() =3D=3D OMAP2_DEVICE_TYPE_GP)
+> +		return;
+> +	platform_device_register(&omap3_rom_rng_device);
+> +}
+> +
+>  /**
+>   * omap_init_rng - bind the RNG hwmod to the RNG omap_device
+>   *
 
-Well people are already used to changing between LCD and DVI.. So we
-need some way of doing it with DT also.
+This driver probably only works on Nokia boards because of the
+different SMC call numbering. Until it's been verified on some
+other HS omap34xx, I'd probably register this only from the
+Nokia board-*.c file.
 
-How do you plan to change between LCD and DVI with DT? By using some
-custom driver modules?
+> --- /dev/null
+> +++ b/drivers/char/hw_random/omap3-rom-rng.c
+> +static int omap3_rom_rng_probe(struct platform_device *pdev)
+> +{
+> +	printk(KERN_INFO "%s: initializing\n", omap3_rom_rng_name);
+> +
+> +	omap3_rom_rng_call =3D pdev->dev.platform_data;
+> +	if (!omap3_rom_rng_call) {
+> +		printk(KERN_ERR "%s: omap3_rom_rng_call is NULL\n",
+> +		       omap3_rom_rng_name);
+> +		return -EINVAL;
+> +	}
+> +
+> +	setup_timer(&idle_timer, omap3_rom_idle_rng, 0);
+> +	rng_clk =3D clk_get_sys("omap_rng", "ick");
+> +	if (IS_ERR(rng_clk)) {
+> +		printk(KERN_ERR "%s: unable to get RNG clock\n",
+> +		       omap3_rom_rng_name);
+> +		return IS_ERR(rng_clk);
+> +	}
 
-There's the capebus coming that can be used for that too, but in most
-cases all the hardware is permanently connected with LCD and DVI. So
-sounds like capebus should only be needed for the add on boards.
- 
-> >> I bet there must be a much better solution for DT support.
-> > 
-> > Well the best legacy support option would be some fbdev/panel generic cmdline
-> > option to specify which one to use. Maybe there is already something like
-> > that available that the board-*.c files can parse and can be used also
-> > later on with DT support to specify the preferred output?
-> > 
-> > What we don't want to do is add a board specific cmdline option as the
-> > board-*.c files will be going away as soon as DT is usable for us and we
-> > don't want to support a board specific cmdline after that. But if it's
-> > a generic option then parsing it in the board-*.c file or the driver later
-> > on can be supported.
-> > 
-> > Of course for some cases it might be possible to detect the configured
-> > panel based on what's plugged in over i2c.
-> 
-> I could look at using omapdss's module parameter for this. It has
-> default display parameter. Perhaps the board files could parse this, and
-> use it to decide which display to register. Perhaps that'd cause less
-> inconvenience.
-> 
-> It's still quite hacky, as you can only select one display. If there's a
-> board with two video outputs, and, say, 2 displays connected to each.
-> You can only select the display for one of the busses. Anyway, we don't
-> have that kind of board in the mainline, so it's not an issue.
+You can use regular clk_get if you add the alias to
+struct omap_clk omap3xxx_clks table.
 
-If we can use omapdss cmdline params for initializing the selected display,
-that allows leaving out the kconfig selection, so that's much nicer for
-distros etc.
+Regards,
 
+Tony
