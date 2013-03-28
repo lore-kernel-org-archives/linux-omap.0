@@ -1,15 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 04/28] ARM: OMAP: 3430SDP: Kconfig option for the display options
-Date: Thu, 28 Mar 2013 14:48:58 +0200
-Message-ID: <1364474962-20439-5-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 05/28] ARM: OMAP: 4430SDP: Kconfig option for the display options
+Date: Thu, 28 Mar 2013 14:48:59 +0200
+Message-ID: <1364474962-20439-6-git-send-email-tomi.valkeinen@ti.com>
 References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57242 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755121Ab3C1Mts (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 08:49:48 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44541 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755121Ab3C1Mtu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Mar 2013 08:49:50 -0400
 In-Reply-To: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -34,124 +34,112 @@ passed from the bootloader, solving the mess.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig         |   13 ++++++++
- arch/arm/mach-omap2/board-3430sdp.c |   63 +++++++++++++++++++++++------------
- 2 files changed, 54 insertions(+), 22 deletions(-)
+ arch/arm/mach-omap2/Kconfig      |   13 +++++++++++++
+ arch/arm/mach-omap2/dss-common.c |   39 +++++++++++++++++++++++++-------------
+ 2 files changed, 39 insertions(+), 13 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index f30aadb..17e02a3 100644
+index 17e02a3..fcbcd6c 100644
 --- a/arch/arm/mach-omap2/Kconfig
 +++ b/arch/arm/mach-omap2/Kconfig
-@@ -296,6 +296,19 @@ config MACH_OMAP_3430SDP
- 	default y
- 	select OMAP_PACKAGE_CBB
+@@ -413,6 +413,19 @@ config MACH_OMAP_4430SDP
+ 	select OMAP_PACKAGE_CBS
+ 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
  
 +choice
-+	depends on MACH_OMAP_3430SDP
-+	default MACH_OMAP_3430SDP_EXPANSION_LCD
-+	prompt "OMAP 3430 SDP video output"
++	depends on MACH_OMAP_4430SDP
++	default MACH_OMAP_4430SDP_EXPANSION_LCD2
++	prompt "OMAP 4430 SDP video output"
 +
-+config MACH_OMAP_3430SDP_EXPANSION_LCD
-+	bool "OMAP 3430 SDP with LCD"
++config MACH_OMAP_4430SDP_EXPANSION_LCD2
++	bool "OMAP 4430 SDP with second LCD panel"
 +
-+config MACH_OMAP_3430SDP_EXPANSION_DVI
-+	bool "OMAP 3430 SDP with DVI"
++config MACH_OMAP_4430SDP_EXPANSION_PICO
++	bool "OMAP 4430 SDP with Pico DLP projector"
 +
 +endchoice
 +
- config MACH_NOKIA_N800
-        bool
+ config MACH_OMAP4_PANDA
+ 	bool "OMAP4 Panda Board"
+ 	default y
+diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+index 4228e57..135fdd8 100644
+--- a/arch/arm/mach-omap2/dss-common.c
++++ b/arch/arm/mach-omap2/dss-common.c
+@@ -108,8 +108,21 @@ void __init omap4_panda_display_init_of(void)
  
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 5fdb382..4acd4aa 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -105,6 +105,45 @@ static struct twl4030_keypad_data sdp3430_kp_data = {
- 	.rep		= 1,
+ /* OMAP4 Blaze display data */
+ 
++static struct omap_dss_hdmi_data sdp4430_hdmi_data = {
++	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
++	.ls_oe_gpio = HDMI_GPIO_LS_OE,
++	.hpd_gpio = HDMI_GPIO_HPD,
++};
++
++static struct omap_dss_device sdp4430_hdmi_device = {
++	.name = "hdmi",
++	.driver_name = "hdmi_panel",
++	.type = OMAP_DISPLAY_TYPE_HDMI,
++	.channel = OMAP_DSS_CHANNEL_DIGIT,
++	.data = &sdp4430_hdmi_data,
++};
++
+ #define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
+-#define DLP_POWER_ON_GPIO	40
+ 
+ static struct nokia_dsi_panel_data dsi1_panel = {
+ 		.name		= "taal",
+@@ -134,6 +147,10 @@ static struct omap_dss_device sdp4430_lcd_device = {
+ 	.channel		= OMAP_DSS_CHANNEL_LCD,
  };
  
-+static struct omap_dss_device sdp3430_tv_device = {
-+	.name			= "tv",
-+	.driver_name		= "venc",
-+	.type			= OMAP_DISPLAY_TYPE_VENC,
-+	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-+};
++#if defined(CONFIG_MACH_OMAP_4430SDP_EXPANSION_LCD2)
 +
-+#if defined(CONFIG_MACH_OMAP_3430SDP_EXPANSION_DVI)
++static void sdp4430_picodlp_init(void) { }
 +
-+static void __init sdp3430_display_init(void)
-+{
-+}
-+
-+static struct tfp410_platform_data dvi_panel = {
-+	.power_down_gpio	= -1,
-+	.i2c_bus_num		= -1,
-+};
-+
-+static struct omap_dss_device sdp3430_dvi_device = {
-+	.name			= "dvi",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.driver_name		= "tfp410",
-+	.data			= &dvi_panel,
-+	.phy.dpi.data_lines	= 24,
-+};
-+
-+static struct omap_dss_device *sdp3430_dss_devices[] = {
-+	&sdp3430_dvi_device,
-+	&sdp3430_tv_device,
-+};
-+
-+static struct omap_dss_board_info sdp3430_dss_data = {
-+	.num_devices	= ARRAY_SIZE(sdp3430_dss_devices),
-+	.devices	= sdp3430_dss_devices,
-+	.default_device	= &sdp3430_dvi_device,
-+};
-+
-+#elif defined(CONFIG_MACH_OMAP_3430SDP_EXPANSION_LCD)
-+
- #define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	8
- #define SDP3430_LCD_PANEL_ENABLE_GPIO		5
- 
-@@ -147,30 +186,8 @@ static struct omap_dss_device sdp3430_lcd_device = {
- 	.platform_disable	= sdp3430_panel_disable_lcd,
+ static struct nokia_dsi_panel_data dsi2_panel = {
+ 		.name		= "taal",
+ 		.reset_gpio	= 104,
+@@ -158,19 +175,9 @@ static struct omap_dss_device sdp4430_lcd2_device = {
+ 	.channel		= OMAP_DSS_CHANNEL_LCD2,
  };
  
--static struct tfp410_platform_data dvi_panel = {
--	.power_down_gpio	= -1,
--	.i2c_bus_num		= -1,
+-static struct omap_dss_hdmi_data sdp4430_hdmi_data = {
+-	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
+-	.ls_oe_gpio = HDMI_GPIO_LS_OE,
+-	.hpd_gpio = HDMI_GPIO_HPD,
 -};
--
--static struct omap_dss_device sdp3430_dvi_device = {
--	.name			= "dvi",
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.driver_name		= "tfp410",
--	.data			= &dvi_panel,
--	.phy.dpi.data_lines	= 24,
--};
--
--static struct omap_dss_device sdp3430_tv_device = {
--	.name			= "tv",
--	.driver_name		= "venc",
--	.type			= OMAP_DISPLAY_TYPE_VENC,
--	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
--};
--
--
- static struct omap_dss_device *sdp3430_dss_devices[] = {
- 	&sdp3430_lcd_device,
--	&sdp3430_dvi_device,
- 	&sdp3430_tv_device,
- };
++#elif defined(CONFIG_MACH_OMAP_4430SDP_EXPANSION_PICO)
  
-@@ -180,6 +197,8 @@ static struct omap_dss_board_info sdp3430_dss_data = {
- 	.default_device	= &sdp3430_lcd_device,
+-static struct omap_dss_device sdp4430_hdmi_device = {
+-	.name = "hdmi",
+-	.driver_name = "hdmi_panel",
+-	.type = OMAP_DISPLAY_TYPE_HDMI,
+-	.channel = OMAP_DSS_CHANNEL_DIGIT,
+-	.data = &sdp4430_hdmi_data,
+-};
++#define DLP_POWER_ON_GPIO	40
+ 
+ static struct picodlp_panel_data sdp4430_picodlp_pdata = {
+ 	.picodlp_adapter_id	= 2,
+@@ -220,11 +227,17 @@ static struct omap_dss_device sdp4430_picodlp_device = {
+ 	.data			= &sdp4430_picodlp_pdata,
  };
  
 +#endif
 +
- static struct omap2_hsmmc_info mmc[] = {
- 	{
- 		.mmc		= 1,
+ static struct omap_dss_device *sdp4430_dss_devices[] = {
+ 	&sdp4430_lcd_device,
++#ifdef CONFIG_MACH_OMAP_4430SDP_EXPANSION_LCD2
+ 	&sdp4430_lcd2_device,
++#endif
+ 	&sdp4430_hdmi_device,
++#ifdef CONFIG_MACH_OMAP_4430SDP_EXPANSION_PICO
+ 	&sdp4430_picodlp_device,
++#endif
+ };
+ 
+ static struct omap_dss_board_info sdp4430_dss_data = {
 -- 
 1.7.10.4
 
