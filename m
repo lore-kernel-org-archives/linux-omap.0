@@ -1,226 +1,137 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2 3/6] ARM: dts: AM33XX: Fix gpio numbering to match hardware/TRM
-Date: Thu, 28 Mar 2013 12:12:40 +0530
-Message-ID: <1364452963-22083-4-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V2 2/6] ARM: dts: AM33XX: Add default pinctrl binding for I2C device
+Date: Thu, 28 Mar 2013 12:12:39 +0530
+Message-ID: <1364452963-22083-3-git-send-email-hvaibhav@ti.com>
 References: <1364452963-22083-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41344 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755663Ab3C1GoD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 02:44:03 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:51566 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756055Ab3C1GoN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Mar 2013 02:44:13 -0400
 In-Reply-To: <1364452963-22083-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, mporter@ti.com, b-cousson@ti.com, jacmet@sunsite.dk, Vaibhav Hiremath <hvaibhav@ti.com>
 
-With DT support, where naming convention is based on base-addr
-and not id, so we should follow TRM/Spec numbering label.
+Add pin control binding for I2C device nodes in all
+board specific DT files (as per current usage),
 
-This patch changes GPIO numbering as per TRM, as gpio0-3.
-
-Matt Porter had submitted base patch sometime back but it
-didn't make it to the mainline -
-https://patchwork.kernel.org/patch/1433001/
-
-Later DT nodes for gpio based keypad and led driver got
-merged, so this fix needs to propagate to board dts files
-as well.
+EVM: Both i2c0 and i2c1
+EVM-SK and Bone: Only i2c0
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Matt Porter <mporter@ti.com>
-Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
+Acked-by: Matt Porter <mporter@ti.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/boot/dts/am335x-bone.dts  |    8 ++++----
- arch/arm/boot/dts/am335x-evm.dts   |   14 +++++++-------
- arch/arm/boot/dts/am335x-evmsk.dts |   16 ++++++++--------
- arch/arm/boot/dts/am33xx.dtsi      |    8 ++++----
- 4 files changed, 23 insertions(+), 23 deletions(-)
+ arch/arm/boot/dts/am335x-bone.dts  |   10 ++++++++++
+ arch/arm/boot/dts/am335x-evm.dts   |   20 ++++++++++++++++++++
+ arch/arm/boot/dts/am335x-evmsk.dts |   10 ++++++++++
+ 3 files changed, 40 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index c917efa..860630b 100644
+index cdc8307..c917efa 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -69,27 +69,27 @@
-
- 		led@2 {
- 			label = "beaglebone:green:heartbeat";
--			gpios = <&gpio2 21 0>;
-+			gpios = <&gpio1 21 0>;
- 			linux,default-trigger = "heartbeat";
- 			default-state = "off";
+@@ -36,6 +36,13 @@
+ 				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+ 			>;
  		};
-
- 		led@3 {
- 			label = "beaglebone:green:mmc0";
--			gpios = <&gpio2 22 0>;
-+			gpios = <&gpio1 22 0>;
- 			linux,default-trigger = "mmc0";
- 			default-state = "off";
- 		};
-
- 		led@4 {
- 			label = "beaglebone:green:usr2";
--			gpios = <&gpio2 23 0>;
-+			gpios = <&gpio1 23 0>;
- 			default-state = "off";
- 		};
-
- 		led@5 {
- 			label = "beaglebone:green:usr3";
--			gpios = <&gpio2 24 0>;
-+			gpios = <&gpio1 24 0>;
- 			default-state = "off";
- 		};
++
++		i2c0_pins: pinmux_i2c0_pins {
++			pinctrl-single,pins = <
++				0x188 0x30	/* i2c0_sda.i2c0_sda PULLUP | INPUTENABLE | MODE0 */
++				0x18c 0x30	/* i2c0_scl.i2c0_scl PULLUP | INPUTENABLE | MODE0 */
++			>;
++		};
  	};
+
+ 	ocp {
+@@ -44,6 +51,9 @@
+ 		};
+
+ 		i2c0: i2c@44e0b000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&i2c0_pins>;
++
+ 			status = "okay";
+ 			clock-frequency = <400000>;
+
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index db52d3c..79b3cc8 100644
+index a6539ad..db52d3c 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -143,12 +143,12 @@
- 		debounce-delay-ms = <5>;
- 		col-scan-delay-us = <2>;
-
--		row-gpios = <&gpio2 25 0	/* Bank1, pin25 */
--			     &gpio2 26 0	/* Bank1, pin26 */
--			     &gpio2 27 0>;	/* Bank1, pin27 */
-+		row-gpios = <&gpio1 25 0	/* Bank1, pin25 */
-+			     &gpio1 26 0	/* Bank1, pin26 */
-+			     &gpio1 27 0>;	/* Bank1, pin27 */
-
--		col-gpios = <&gpio2 21 0	/* Bank1, pin21 */
--			     &gpio2 22 0>;	/* Bank1, pin22 */
-+		col-gpios = <&gpio1 21 0	/* Bank1, pin21 */
-+			     &gpio1 22 0>;	/* Bank1, pin22 */
-
- 		linux,keymap = <0x0000008b	/* MENU */
- 				0x0100009e	/* BACK */
-@@ -167,14 +167,14 @@
- 		switch@9 {
- 			label = "volume-up";
- 			linux,code = <115>;
--			gpios = <&gpio1 2 1>;
-+			gpios = <&gpio0 2 1>;	/* Bank0, pin2 */
- 			gpio-key,wakeup;
+@@ -44,6 +44,20 @@
+ 				0x154 0x27	/* spi0_d0.gpio0_3, INPUT | MODE7 */
+ 			>;
  		};
-
- 		switch@10 {
- 			label = "volume-down";
- 			linux,code = <114>;
--			gpios = <&gpio1 3 1>;
-+			gpios = <&gpio0 3 1>;	/* Bank0, pin3 */
- 			gpio-key,wakeup;
- 		};
++
++		i2c0_pins: pinmux_i2c0_pins {
++			pinctrl-single,pins = <
++				0x188 0x30	/* i2c0_sda.i2c0_sda PULLUP | INPUTENABLE | MODE0 */
++				0x18c 0x30	/* i2c0_scl.i2c0_scl PULLUP | INPUTENABLE | MODE0 */
++			>;
++		};
++
++		i2c1_pins: pinmux_i2c1_pins {
++			pinctrl-single,pins = <
++				0x158 0x32	/* spi0_d1.i2c1_sda PULLUP | INPUTENABLE | MODE2 */
++				0x15c 0x32	/* spi0_cs0.i2c1_scl PULLUP | INPUTENABLE | MODE2 */
++			>;
++		};
  	};
+
+ 	ocp {
+@@ -52,6 +66,9 @@
+ 		};
+
+ 		i2c0: i2c@44e0b000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&i2c0_pins>;
++
+ 			status = "okay";
+ 			clock-frequency = <400000>;
+
+@@ -61,6 +78,9 @@
+ 		};
+
+ 		i2c1: i2c@4802a000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&i2c1_pins>;
++
+ 			status = "okay";
+ 			clock-frequency = <100000>;
+
 diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 24e915c..15a3052 100644
+index 45cb39a..24e915c 100644
 --- a/arch/arm/boot/dts/am335x-evmsk.dts
 +++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -125,26 +125,26 @@
-
- 		led@1 {
- 			label = "evmsk:green:usr0";
--			gpios = <&gpio2 4 0>;
-+			gpios = <&gpio1 4 0>;
- 			default-state = "off";
+@@ -51,6 +51,13 @@
+ 				0x9c 0x27	/* gpmc_ben0_cle.gpio2_5, INPUT | MODE7 */
+ 			>;
  		};
-
- 		led@2 {
- 			label = "evmsk:green:usr1";
--			gpios = <&gpio2 5 0>;
-+			gpios = <&gpio1 5 0>;
- 			default-state = "off";
- 		};
-
- 		led@3 {
- 			label = "evmsk:green:mmc0";
--			gpios = <&gpio2 6 0>;
-+			gpios = <&gpio1 6 0>;
- 			linux,default-trigger = "mmc0";
- 			default-state = "off";
- 		};
-
- 		led@4 {
- 			label = "evmsk:green:heartbeat";
--			gpios = <&gpio2 7 0>;
-+			gpios = <&gpio1 7 0>;
- 			linux,default-trigger = "heartbeat";
- 			default-state = "off";
- 		};
-@@ -158,26 +158,26 @@
- 		switch@1 {
- 			label = "button0";
- 			linux,code = <0x100>;
--			gpios = <&gpio3 3 0>;
-+			gpios = <&gpio2 3 0>;
- 		};
-
- 		switch@2 {
- 			label = "button1";
- 			linux,code = <0x101>;
--			gpios = <&gpio3 2 0>;
-+			gpios = <&gpio2 2 0>;
- 		};
-
- 		switch@3 {
- 			label = "button2";
- 			linux,code = <0x102>;
--			gpios = <&gpio1 30 0>;
-+			gpios = <&gpio0 30 0>;
- 			gpio-key,wakeup;
- 		};
-
- 		switch@4 {
- 			label = "button3";
- 			linux,code = <0x103>;
--			gpios = <&gpio3 5 0>;
-+			gpios = <&gpio2 5 0>;
- 		};
++
++		i2c0_pins: pinmux_i2c0_pins {
++			pinctrl-single,pins = <
++				0x188 0x30	/* i2c0_sda.i2c0_sda PULLUP | INPUTENABLE | MODE0 */
++				0x18c 0x30	/* i2c0_scl.i2c0_scl PULLUP | INPUTENABLE | MODE0 */
++			>;
++		};
  	};
- };
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index c38b2fa..dd237de 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -87,7 +87,7 @@
- 			reg = <0x48200000 0x1000>;
+
+ 	ocp {
+@@ -59,6 +66,9 @@
  		};
 
--		gpio1: gpio@44e07000 {
-+		gpio0: gpio@44e07000 {
- 			compatible = "ti,omap4-gpio";
- 			ti,hwmods = "gpio1";
- 			gpio-controller;
-@@ -98,7 +98,7 @@
- 			interrupts = <96>;
- 		};
+ 		i2c0: i2c@44e0b000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&i2c0_pins>;
++
+ 			status = "okay";
+ 			clock-frequency = <400000>;
 
--		gpio2: gpio@4804c000 {
-+		gpio1: gpio@4804c000 {
- 			compatible = "ti,omap4-gpio";
- 			ti,hwmods = "gpio2";
- 			gpio-controller;
-@@ -109,7 +109,7 @@
- 			interrupts = <98>;
- 		};
-
--		gpio3: gpio@481ac000 {
-+		gpio2: gpio@481ac000 {
- 			compatible = "ti,omap4-gpio";
- 			ti,hwmods = "gpio3";
- 			gpio-controller;
-@@ -120,7 +120,7 @@
- 			interrupts = <32>;
- 		};
-
--		gpio4: gpio@481ae000 {
-+		gpio3: gpio@481ae000 {
- 			compatible = "ti,omap4-gpio";
- 			ti,hwmods = "gpio4";
- 			gpio-controller;
 --
 1.7.0.4
 
