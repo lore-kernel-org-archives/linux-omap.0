@@ -1,56 +1,113 @@
-From: Tim Niemeyer <tim.niemeyer@corscience.de>
-Subject: Re: regarding arm: update ARM_ERRATA_430973 Kconfig
-Date: Thu, 28 Mar 2013 12:19:25 +0100
-Message-ID: <1364469565.2235.6.camel@herbert.er.corscience.de>
-References: <alpine.DEB.2.01.1303261247320.18121@pmeerw.net>
+From: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Subject: Re: [PATCH] ARM: hw_breakpoint: Enable debug powerdown only if system
+ supports 'has_ossr'
+Date: Thu, 28 Mar 2013 11:59:00 +0000
+Message-ID: <51543084.9070004@arm.com>
+References: <1363157553-21085-1-git-send-email-lokeshvutla@ti.com> <51406BA7.8010306@arm.com> <51407120.7030709@ti.com> <51417E58.5050501@ti.com> <20130315050014.GA15706@tiny-lites> <5146B972.1010002@ti.com> <20130318150724.GC28585@mudshark.cambridge.arm.com> <514736D4.4070906@ti.com> <20130318170649.GA29585@mudshark.cambridge.arm.com> <5148082A.3060503@ti.com> <20130319102803.GB22452@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:50737 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754956Ab3C1LT3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 07:19:29 -0400
-In-Reply-To: <alpine.DEB.2.01.1303261247320.18121@pmeerw.net>
+Received: from service87.mimecast.com ([91.220.42.44]:44761 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752650Ab3C1L7B convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 07:59:01 -0400
+In-Reply-To: <20130319102803.GB22452@mudshark.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: Thomas Weber <thomas.weber@corscience.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Will Deacon <will@willdeacon.co.uk>, Lokesh Vutla <lokeshvutla@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi
+On 19/03/13 10:28, Will Deacon wrote:
+> On Tue, Mar 19, 2013 at 06:39:38AM +0000, Santosh Shilimkar wrote:
+>> On Monday 18 March 2013 10:36 PM, Will Deacon wrote:
+>>> Any chance you could follow up with your firmware/hardware guys about this
+>>> please? I'd really like to understand how we end up in this state in case we
+>>> can do something in the architecture to stop it from happening in future.
+>>>
+>> I will check on this part and update you when I hear from them.
+>
+> Ok, thanks.
+>
+> Dietmar -- I seem to remember that you thought GDB did actually work with
+> hardware breakpoints on Pandaboard across low-power states. Can you
+> confirm/deny this please?
 
-Am Dienstag, den 26.03.2013, 12:57 +0100 schrieb Peter Meerwald:
-> regarding your patch against arch/arm/Kconfig:
-> 
-> @@ -1215,7 +1215,7 @@  config ARM_ERRATA_430973
->  	depends on CPU_V7
->  	help
->  	  This option enables the workaround for the 430973 Cortex-A8
-> -	  (r1p0..r1p2) erratum. If a code sequence containing an ARM/Thumb
-> +	  (r1p*) erratum. If a code sequence containing an ARM/Thumb
->  	  interworking branch is replaced with another code sequence at the
->  	  same virtual address, whether due to self-modifying code or virtual
->  	  to physical address re-mapping, Cortex-A8 does not recover from the
-> 
-> 
-> I am seeing strange segfault/illegal instructions fixed by enabling 
-> ARM_ERRATA_430973 on a TI OMAP3 DM3730, r3p2 IMHO (see below) 
-The only information i have is that it was fixed in r2p1. The statement
-is from mru on:
-http://www.beagleboard.org/irclogs/index.php?date=2013-02-18#T15:00:07
+Sorry for the late response.
 
-> ARM_ERRATA_430973 is relevant for which processors? have you checked the 
-> errata list? I had no luck obtaining it yet
-No, i don't have it either.
+I did some testing on my Pandaboard trying to set hwbp from gdb.
 
--- 
-Tim Niemeyer
+System is a vanilla Linaro 13.02.
+gdb is (GNU gdb (GDB) 7.5.1), build from tag gdb_7_5_1-2012-11-29-release
 
-Corscience GmbH & Co. KG
-Henkestr. 91
-D-91052 Erlangen
-Germany
+(gdb) hb *0x00008440
+Hardware assisted breakpoint 2 at 0x8440: file test.c, line 14.
+(gdb) c
+Continuing.
+Unexpected error setting breakpoint address: No such device.
 
-e-mail: tim.niemeyer@corscience.de
-Internet: www.corscience.de
+With additional kernel logs:
+
+[<c0011597>] (unwind_backtrace+0x1/0x92) from [<c0012603>]
+(arch_validate_hwbkpt_settings+0x23/0x1d4)
+[<c0012603>] (arch_validate_hwbkpt_settings+0x23/0x1d4) from
+[<c0088aa9>] (register_perf_hw_breakpoint+0x19/0x30)
+[<c0088aa9>] (register_perf_hw_breakpoint+0x19/0x30) from [<c0088ae9>]
+(hw_breakpoint_event_init+0x29/0x48)
+[<c0088ae9>] (hw_breakpoint_event_init+0x29/0x48) from [<c0086c81>]
+(perf_init_event+0x79/0xcc)
+[<c0086c81>] (perf_init_event+0x79/0xcc) from [<c0086e97>]
+(perf_event_alloc+0x1c3/0x32c)
+[<c0086e97>] (perf_event_alloc+0x1c3/0x32c) from [<c00871eb>]
+(perf_event_create_kernel_counter+0x19/0xc6)
+[<c00871eb>] (perf_event_create_kernel_counter+0x19/0xc6) from
+[<c00885e9>] (register_user_hw_breakpoint+0x2d/0x38)
+[<c00885e9>] (register_user_hw_breakpoint+0x2d/0x38) from [<c03dd723>]
+(ptrace_hbp_create+0x53/0x5c)
+[<c03dd723>] (ptrace_hbp_create+0x53/0x5c) from [<c000e0d7>]
+(ptrace_sethbpregs+0x95/0x1a6)
+[<c000e0d7>] (ptrace_sethbpregs+0x95/0x1a6) from [<c000e777>]
+(arch_ptrace+0x3bf/0x3ec)
+[<c000e777>] (arch_ptrace+0x3bf/0x3ec) from [<c002f621>]
+(sys_ptrace+0x251/0x278)
+[<c002f621>] (sys_ptrace+0x251/0x278) from [<c000c781>]
+(ret_fast_syscall+0x1/0x52)
+perf_event_create_kernel_counter:6721 ret=-19
+ptrace_sethbpregs:557 ret=-19
+
+The call to monitor_mode_enabled() in arch_validate_hwbkpt_settings()
+fails since DSCR.15 MDBGen is not set:
+
+monitor_mode_enabled:239 dscr=0x1030002
+
+I don't get the warning "Failed to enable monitor mode on CPU" during
+system start-up though.
+
+Doing the same on my TC2 gives me:
+
+monitor_mode_enabled:239 dscr=0x2008002
+
+So I guess that setting hwbp from self-hosted debugger on Pandaboard is
+not possible at all.
+
+There is no CPUidle enabled on Linaro 13.02 Pandaboard.
+
+-- Dietmar
+
+
+>
+>>> Well, we could just add the warn_once prints but that doesn't stop debug
+>>> from breaking after the first pm/suspend/hotplug operation.
+>>>
+>> Probably we should drop the $subject patch approach and use warn_once
+>> at least for current rc. Ofcourse it doesn't help to get working
+>> hw_breakpoint support. Patch end of the email with warn_once.
+>
+> Yeah, I'll merge that, but it's a real shame that this breaks hardware debug
+> on one of the few platforms where it was reported to work.
+>
+> Will
+>
+
+-- IMPORTANT NOTICE: The contents of this email and any attachments are confidential and may also be privileged. If you are not the intended recipient, please notify the sender immediately and do not disclose the contents to any other person, use it for any purpose, or store or copy the information in any medium.  Thank you.
 
