@@ -1,78 +1,71 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 22/28] ARM: OMAP: Overo: use new generic-dpi-panel platform driver
-Date: Thu, 28 Mar 2013 14:49:16 +0200
-Message-ID: <1364474962-20439-23-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 18/28] ARM: OMAP: CM-T35: use new TFP410 platform driver
+Date: Thu, 28 Mar 2013 14:49:12 +0200
+Message-ID: <1364474962-20439-19-git-send-email-tomi.valkeinen@ti.com>
 References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57274 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754669Ab3C1MuN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 08:50:13 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44569 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754669Ab3C1MuJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Mar 2013 08:50:09 -0400
 In-Reply-To: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Mike Rapoport <mike@compulab.co.il>, Igor Grinberg <grinberg@compulab.co.il>
 
-Use the new generic-dpi-panel platform driver instead of the old
-omap_dss_driver.
+Use the new TFP410 platform driver instead of the old omap_dss_driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Mike Rapoport <mike@compulab.co.il>
+Cc: Igor Grinberg <grinberg@compulab.co.il>
 ---
- arch/arm/mach-omap2/board-overo.c |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/board-cm-t35.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 9cb29fc..03624c5 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -241,27 +241,22 @@ static void overo_panel_disable_lcd(struct omap_dss_device *dssdev)
- 	gpio_set_value(OVERO_GPIO_LCD_BL, 0);
- }
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 1b34c96..4f23be0 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -294,20 +294,20 @@ static void __init cm_t35_init_display(void)
+ #define CM_T35_DVI_EN_GPIO 54
  
--static struct panel_generic_dpi_data lcd43_panel = {
-+static struct panel_generic_dpi_data overo_lcd43_data = {
-+	.display_name		= "lcd43",
+ static struct tfp410_platform_data dvi_panel = {
++	.name			= "dvi",
 +	.source			= "dpi.0",
- 	.name			= "samsung_lte430wq_f0c",
- 	.platform_enable	= overo_panel_enable_lcd,
- 	.platform_disable	= overo_panel_disable_lcd,
 +	.data_lines		= 24,
+ 	.power_down_gpio	= CM_T35_DVI_EN_GPIO,
+ 	.i2c_bus_num		= -1,
  };
  
--static struct omap_dss_device overo_lcd43_device = {
--	.name			= "lcd43",
+-static struct omap_dss_device cm_t35_dvi_device = {
+-	.name			= "dvi",
 -	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.driver_name		= "generic_dpi_panel",
--	.data			= &lcd43_panel,
+-	.driver_name		= "tfp410",
+-	.data			= &dvi_panel,
 -	.phy.dpi.data_lines	= 24,
--};
--
--static struct omap_dss_device *overo_dss_devices[] = {
--	&overo_lcd43_device,
-+static struct platform_device overo_lcd43_device = {
-+	.name			= "generic_dpi_panel",
++static struct platform_device cm_t35_dvi_device = {
++	.name			= "tfp410",
 +	.id			= 0,
-+	.dev.platform_data	= &overo_lcd43_data,
++	.dev.platform_data	= &dvi_panel,
  };
  
- static struct omap_dss_board_info overo_dss_data = {
--	.num_devices	= ARRAY_SIZE(overo_dss_devices),
--	.devices	= overo_dss_devices,
- 	.default_display_name = "lcd43",
+ static struct omap_dss_device *cm_t35_dss_devices[] = {
+-	&cm_t35_dvi_device,
+ 	&cm_t35_tv_device,
  };
  
-@@ -279,6 +274,8 @@ static void __init overo_display_init(void)
+@@ -321,6 +321,8 @@ static void __init cm_t35_init_display(void)
+ {
+ 	int err;
  
- 	gpio_export(OVERO_GPIO_LCD_EN, 0);
- 	gpio_export(OVERO_GPIO_LCD_BL, 0);
++	platform_device_register(&cm_t35_dvi_device);
 +
-+	platform_device_register(&overo_lcd43_device);
- }
- 
- #endif
+ 	err = omap_display_init(&cm_t35_dss_data);
+ 	if (err)
+ 		pr_err("CM-T35: failed to register DSS device\n");
 -- 
 1.7.10.4
 
