@@ -1,73 +1,70 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 26/28] ARM: OMAP: CM-T35: use new generic-dpi-panel platform driver
-Date: Thu, 28 Mar 2013 14:49:20 +0200
-Message-ID: <1364474962-20439-27-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 19/28] ARM: OMAP: AM3517EVM: use new TFP410 platform driver
+Date: Thu, 28 Mar 2013 14:49:13 +0200
+Message-ID: <1364474962-20439-20-git-send-email-tomi.valkeinen@ti.com>
 References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44580 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44571 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756128Ab3C1MuT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Mar 2013 08:50:19 -0400
+	id S1755728Ab3C1MuJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Mar 2013 08:50:09 -0400
 In-Reply-To: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Mike Rapoport <mike@compulab.co.il>, Igor Grinberg <grinberg@compulab.co.il>
+Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use the new generic-dpi-panel platform driver instead of the old
-omap_dss_driver.
+Use the new TFP410 platform driver instead of the old omap_dss_driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Mike Rapoport <mike@compulab.co.il>
-Cc: Igor Grinberg <grinberg@compulab.co.il>
 ---
- arch/arm/mach-omap2/board-cm-t35.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/board-am3517evm.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 4f23be0..6b8aa87 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -214,21 +214,21 @@ static void cm_t35_panel_disable_lcd(struct omap_dss_device *dssdev)
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 1d7d0d8..c545981 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -200,20 +200,20 @@ static void __init am3517_evm_display_init(void)
  }
  
- static struct panel_generic_dpi_data lcd_panel = {
-+	.display_name		= "lcd",
+ static struct tfp410_platform_data dvi_panel = {
++	.name			= "dvi",
 +	.source			= "dpi.0",
- 	.name			= "toppoly_tdo35s",
-+	.data_lines		= 18,
- 	.platform_enable	= cm_t35_panel_enable_lcd,
- 	.platform_disable	= cm_t35_panel_disable_lcd,
++	.data_lines		= 24,
+ 	.power_down_gpio	= -1,
+ 	.i2c_bus_num		= -1,
  };
  
--static struct omap_dss_device cm_t35_lcd_device = {
--	.name			= "lcd",
+-static struct omap_dss_device am3517_evm_dvi_device = {
 -	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.driver_name		= "generic_dpi_panel",
--	.data			= &lcd_panel,
--	.phy.dpi.data_lines	= 18,
-+static struct platform_device cm_t35_lcd_device = {
-+	.name			= "generic_dpi_panel",
+-	.name			= "dvi",
+-	.driver_name		= "tfp410",
+-	.data			= &dvi_panel,
+-	.phy.dpi.data_lines	= 24,
++static struct platform_device am3517_evm_dvi_device = {
++	.name			= "tfp410",
 +	.id			= 0,
-+	.dev.platform_data	= &lcd_panel,
++	.dev.platform_data	= &dvi_panel,
  };
  
- static struct omap_dss_device *cm_t35_dss_devices[] = {
--	&cm_t35_lcd_device,
- 	&cm_t35_tv_device,
+ static struct omap_dss_device *am3517_evm_dss_devices[] = {
+-	&am3517_evm_dvi_device,
+ 	&am3517_evm_tv_device,
  };
  
-@@ -282,6 +282,8 @@ static void __init cm_t35_init_display(void)
- 	msleep(50);
- 	gpio_set_value(CM_T35_LCD_EN_GPIO, 1);
+@@ -359,6 +359,9 @@ static void __init am3517_evm_init(void)
+ 	am3517_evm_hecc_init(&am3517_evm_hecc_pdata);
+ 	/* DSS */
+ 	am3517_evm_display_init();
++#if defined(CONFIG_MACH_OMAP3517EVM_EXPANSION_DVI)
++	platform_device_register(&am3517_evm_dvi_device);
++#endif
  
-+	platform_device_register(&cm_t35_lcd_device);
-+
- 	err = omap_display_init(&cm_t35_dss_data);
- 	if (err) {
- 		pr_err("CM-T35: failed to register DSS device\n");
+ 	/* RTC - S35390A */
+ 	am3517_evm_rtc_init();
 -- 
 1.7.10.4
 
