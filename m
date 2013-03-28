@@ -1,179 +1,268 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 01/28] ARM: OMAP: Remove unnecessary platform callbacks for VENC devices
-Date: Thu, 28 Mar 2013 14:48:55 +0200
-Message-ID: <1364474962-20439-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 03/28] ARM: OMAP: Overo: Kconfig option for the display options
+Date: Thu, 28 Mar 2013 14:48:57 +0200
+Message-ID: <1364474962-20439-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44530 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44537 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755004Ab3C1Mto (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Mar 2013 08:49:44 -0400
+	id S1755121Ab3C1Mtr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Mar 2013 08:49:47 -0400
 In-Reply-To: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-From: Archit Taneja <archit@ti.com>
+Boards with multiple display options for the same video bus have all the
+possible linux display devices present at the same time. Only one of
+those devices should be used at a time, as the video bus cannot be
+shared.
 
-The omap_dss_device's platform_enable/disable callbacks don't do anything for
-any of the boards. The platform calls from the VENC driver will also be removed
-in the future. Remove these calls from boards which have a VENC device.
+This model is hacky, and will be changed in the forthcoming DSS patches
+to a model where only one display device can be present on a single
+video bus.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
+This patch creates Kconfig options to select which of the display
+devices is present on the board. While this model is also somewhat
+hacky, and prevents us from using a single kernel image for all the
+display options, it allows us to make the DSS driver changes for DT
+adaptation. And with DT, the information about display devices can be
+passed from the bootloader, solving the mess.
+
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c      |   12 ------------
- arch/arm/mach-omap2/board-am3517evm.c    |   11 -----------
- arch/arm/mach-omap2/board-cm-t35.c       |   11 -----------
- arch/arm/mach-omap2/board-omap3evm.c     |   11 -----------
- arch/arm/mach-omap2/board-omap3stalker.c |   11 -----------
- 5 files changed, 56 deletions(-)
+ arch/arm/mach-omap2/Kconfig       |   22 ++++++
+ arch/arm/mach-omap2/board-overo.c |  134 +++++++++++++++++++++++--------------
+ 2 files changed, 107 insertions(+), 49 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index ce812de..5fdb382 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -138,16 +138,6 @@ static void sdp3430_panel_disable_lcd(struct omap_dss_device *dssdev)
- 	gpio_direction_output(SDP3430_LCD_PANEL_BACKLIGHT_GPIO, 0);
- }
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 8111cd9..f30aadb 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -238,6 +238,28 @@ config MACH_OVERO
+ 	default y
+ 	select OMAP_PACKAGE_CBB
  
--static int sdp3430_panel_enable_tv(struct omap_dss_device *dssdev)
--{
--	return 0;
--}
--
--static void sdp3430_panel_disable_tv(struct omap_dss_device *dssdev)
--{
--}
--
--
- static struct omap_dss_device sdp3430_lcd_device = {
- 	.name			= "lcd",
- 	.driver_name		= "sharp_ls_panel",
-@@ -175,8 +165,6 @@ static struct omap_dss_device sdp3430_tv_device = {
- 	.driver_name		= "venc",
- 	.type			= OMAP_DISPLAY_TYPE_VENC,
- 	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
--	.platform_enable	= sdp3430_panel_enable_tv,
--	.platform_disable	= sdp3430_panel_disable_tv,
- };
- 
- 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 9fb8590..25a0894 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -188,22 +188,11 @@ static struct omap_dss_device am3517_evm_lcd_device = {
- 	.phy.dpi.data_lines 	= 16,
- };
- 
--static int am3517_evm_panel_enable_tv(struct omap_dss_device *dssdev)
--{
--	return 0;
--}
--
--static void am3517_evm_panel_disable_tv(struct omap_dss_device *dssdev)
--{
--}
--
- static struct omap_dss_device am3517_evm_tv_device = {
- 	.type 			= OMAP_DISPLAY_TYPE_VENC,
- 	.name 			= "tv",
- 	.driver_name		= "venc",
- 	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
--	.platform_enable	= am3517_evm_panel_enable_tv,
--	.platform_disable	= am3517_evm_panel_disable_tv,
- };
- 
- static struct tfp410_platform_data dvi_panel = {
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index af2bb21..9c1895a 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -217,15 +217,6 @@ static void cm_t35_panel_disable_lcd(struct omap_dss_device *dssdev)
- 	gpio_set_value(CM_T35_LCD_EN_GPIO, 0);
- }
- 
--static int cm_t35_panel_enable_tv(struct omap_dss_device *dssdev)
--{
--	return 0;
--}
--
--static void cm_t35_panel_disable_tv(struct omap_dss_device *dssdev)
--{
--}
--
- static struct panel_generic_dpi_data lcd_panel = {
- 	.name			= "toppoly_tdo35s",
- 	.platform_enable	= cm_t35_panel_enable_lcd,
-@@ -258,8 +249,6 @@ static struct omap_dss_device cm_t35_tv_device = {
- 	.driver_name		= "venc",
- 	.type			= OMAP_DISPLAY_TYPE_VENC,
- 	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
--	.platform_enable	= cm_t35_panel_enable_tv,
--	.platform_disable	= cm_t35_panel_disable_tv,
- };
- 
- static struct omap_dss_device *cm_t35_dss_devices[] = {
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 48789e0..e86eb41 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -221,22 +221,11 @@ static struct omap_dss_device omap3_evm_lcd_device = {
- 	.platform_disable	= omap3_evm_disable_lcd,
- };
- 
--static int omap3_evm_enable_tv(struct omap_dss_device *dssdev)
--{
--	return 0;
--}
--
--static void omap3_evm_disable_tv(struct omap_dss_device *dssdev)
--{
--}
--
- static struct omap_dss_device omap3_evm_tv_device = {
- 	.name			= "tv",
- 	.driver_name		= "venc",
- 	.type			= OMAP_DISPLAY_TYPE_VENC,
- 	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
--	.platform_enable	= omap3_evm_enable_tv,
--	.platform_disable	= omap3_evm_disable_tv,
- };
- 
- static struct tfp410_platform_data dvi_panel = {
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index 95c10b3..d427240 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -95,15 +95,6 @@ static void __init omap3_stalker_display_init(void)
- 	return;
- }
- 
--static int omap3_stalker_enable_tv(struct omap_dss_device *dssdev)
--{
--	return 0;
--}
--
--static void omap3_stalker_disable_tv(struct omap_dss_device *dssdev)
--{
--}
--
- static struct omap_dss_device omap3_stalker_tv_device = {
- 	.name			= "tv",
- 	.driver_name		= "venc",
-@@ -113,8 +104,6 @@ static struct omap_dss_device omap3_stalker_tv_device = {
- #elif defined(CONFIG_OMAP2_VENC_OUT_TYPE_COMPOSITE)
- 	.u.venc.type		= OMAP_DSS_VENC_TYPE_COMPOSITE,
++choice
++	depends on MACH_OVERO
++	default MACH_OVERO_EXPANSION_PALO43
++	prompt "Overo Expansion Board"
++
++config MACH_OVERO_EXPANSION_PALO43
++	bool "Gumstix Overo Palo43 Expansion Board"
++	help
++	  Palo43 Expansion board with Samsung 4.3" 480x272 LCD.
++
++config MACH_OVERO_EXPANSION_PALO35
++	bool "Gumstix Overo Palo35 Expansion Board"
++	help
++	  Palo35 Expansion board with LG 3.5" 320x240 LCD.
++
++config MACH_OVERO_EXPANSION_SUMMIT
++	bool "Gumstix Overo Summit Expansion Board"
++	help
++	  Summit expansion board with DVI output.
++
++endchoice
++
+ config MACH_OMAP3EVM
+ 	bool "OMAP 3530 EVM board"
+ 	depends on ARCH_OMAP3
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 86bab51..3253682 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -145,13 +145,72 @@ static void __init overo_init_smsc911x(void)
+ static inline void __init overo_init_smsc911x(void) { return; }
  #endif
--	.platform_enable	= omap3_stalker_enable_tv,
--	.platform_disable	= omap3_stalker_disable_tv,
+ 
+-/* DSS */
+-static int lcd_enabled;
+-static int dvi_enabled;
++#if defined(CONFIG_MACH_OVERO_EXPANSION_SUMMIT)
++
++static struct tfp410_platform_data dvi_panel = {
++	.i2c_bus_num		= 3,
++	.power_down_gpio	= -1,
++};
++
++static struct omap_dss_device overo_dvi_device = {
++	.name			= "dvi",
++	.type			= OMAP_DISPLAY_TYPE_DPI,
++	.driver_name		= "tfp410",
++	.data			= &dvi_panel,
++	.phy.dpi.data_lines	= 24,
++};
++
++static struct omap_dss_device *overo_dss_devices[] = {
++	&overo_dvi_device,
++};
++
++static struct omap_dss_board_info overo_dss_data = {
++	.num_devices	= ARRAY_SIZE(overo_dss_devices),
++	.devices	= overo_dss_devices,
++	.default_display_name = "dvi",
++};
++
++static void __init overo_display_init(void)
++{
++}
++
++#elif defined(CONFIG_MACH_OVERO_EXPANSION_PALO35)
+ 
+ #define OVERO_GPIO_LCD_EN 144
+ #define OVERO_GPIO_LCD_BL 145
+ 
++static int overo_panel_enable_lcd(struct omap_dss_device *dssdev)
++{
++	gpio_set_value(OVERO_GPIO_LCD_EN, 1);
++	gpio_set_value(OVERO_GPIO_LCD_BL, 1);
++	return 0;
++}
++
++static void overo_panel_disable_lcd(struct omap_dss_device *dssdev)
++{
++	gpio_set_value(OVERO_GPIO_LCD_EN, 0);
++	gpio_set_value(OVERO_GPIO_LCD_BL, 0);
++}
++
++static struct omap_dss_device overo_lcd35_device = {
++	.type			= OMAP_DISPLAY_TYPE_DPI,
++	.name			= "lcd35",
++	.driver_name		= "lgphilips_lb035q02_panel",
++	.phy.dpi.data_lines	= 24,
++	.platform_enable	= overo_panel_enable_lcd,
++	.platform_disable	= overo_panel_disable_lcd,
++};
++
++static struct omap_dss_device *overo_dss_devices[] = {
++	&overo_lcd35_device,
++};
++
++static struct omap_dss_board_info overo_dss_data = {
++	.num_devices	= ARRAY_SIZE(overo_dss_devices),
++	.devices	= overo_dss_devices,
++	.default_display_name = "lcd35",
++};
++
+ static struct gpio overo_dss_gpios[] __initdata = {
+ 	{ OVERO_GPIO_LCD_EN, GPIOF_OUT_INIT_HIGH, "OVERO_GPIO_LCD_EN" },
+ 	{ OVERO_GPIO_LCD_BL, GPIOF_OUT_INIT_HIGH, "OVERO_GPIO_LCD_BL" },
+@@ -168,36 +227,15 @@ static void __init overo_display_init(void)
+ 	gpio_export(OVERO_GPIO_LCD_BL, 0);
+ }
+ 
+-static struct tfp410_platform_data dvi_panel = {
+-	.i2c_bus_num		= 3,
+-	.power_down_gpio	= -1,
+-};
++#elif defined(CONFIG_MACH_OVERO_EXPANSION_PALO43)
+ 
+-static struct omap_dss_device overo_dvi_device = {
+-	.name			= "dvi",
+-	.type			= OMAP_DISPLAY_TYPE_DPI,
+-	.driver_name		= "tfp410",
+-	.data			= &dvi_panel,
+-	.phy.dpi.data_lines	= 24,
+-};
+-
+-static struct omap_dss_device overo_tv_device = {
+-	.name = "tv",
+-	.driver_name = "venc",
+-	.type = OMAP_DISPLAY_TYPE_VENC,
+-	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
+-};
++#define OVERO_GPIO_LCD_EN 144
++#define OVERO_GPIO_LCD_BL 145
+ 
+ static int overo_panel_enable_lcd(struct omap_dss_device *dssdev)
+ {
+-	if (dvi_enabled) {
+-		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
+-		return -EINVAL;
+-	}
+-
+ 	gpio_set_value(OVERO_GPIO_LCD_EN, 1);
+ 	gpio_set_value(OVERO_GPIO_LCD_BL, 1);
+-	lcd_enabled = 1;
+ 	return 0;
+ }
+ 
+@@ -205,7 +243,6 @@ static void overo_panel_disable_lcd(struct omap_dss_device *dssdev)
+ {
+ 	gpio_set_value(OVERO_GPIO_LCD_EN, 0);
+ 	gpio_set_value(OVERO_GPIO_LCD_BL, 0);
+-	lcd_enabled = 0;
+ }
+ 
+ static struct panel_generic_dpi_data lcd43_panel = {
+@@ -222,34 +259,34 @@ static struct omap_dss_device overo_lcd43_device = {
+ 	.phy.dpi.data_lines	= 24,
  };
  
- static struct tfp410_platform_data dvi_panel = {
+-#if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
+-	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
+-static struct omap_dss_device overo_lcd35_device = {
+-	.type			= OMAP_DISPLAY_TYPE_DPI,
+-	.name			= "lcd35",
+-	.driver_name		= "lgphilips_lb035q02_panel",
+-	.phy.dpi.data_lines	= 24,
+-	.platform_enable	= overo_panel_enable_lcd,
+-	.platform_disable	= overo_panel_disable_lcd,
+-};
+-#endif
+-
+ static struct omap_dss_device *overo_dss_devices[] = {
+-	&overo_dvi_device,
+-	&overo_tv_device,
+-#if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
+-	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
+-	&overo_lcd35_device,
+-#endif
+ 	&overo_lcd43_device,
+ };
+ 
+ static struct omap_dss_board_info overo_dss_data = {
+ 	.num_devices	= ARRAY_SIZE(overo_dss_devices),
+ 	.devices	= overo_dss_devices,
+-	.default_device	= &overo_dvi_device,
++	.default_display_name = "lcd43",
++};
++
++static struct gpio overo_dss_gpios[] __initdata = {
++	{ OVERO_GPIO_LCD_EN, GPIOF_OUT_INIT_HIGH, "OVERO_GPIO_LCD_EN" },
++	{ OVERO_GPIO_LCD_BL, GPIOF_OUT_INIT_HIGH, "OVERO_GPIO_LCD_BL" },
+ };
+ 
++static void __init overo_display_init(void)
++{
++	if (gpio_request_array(overo_dss_gpios, ARRAY_SIZE(overo_dss_gpios))) {
++		printk(KERN_ERR "could not obtain DSS control GPIOs\n");
++		return;
++	}
++
++	gpio_export(OVERO_GPIO_LCD_EN, 0);
++	gpio_export(OVERO_GPIO_LCD_BL, 0);
++}
++
++#endif
++
+ static struct mtd_partition overo_nand_partitions[] = {
+ 	{
+ 		.name           = "xloader",
+@@ -438,8 +475,7 @@ static int __init overo_i2c_init(void)
+ }
+ 
+ static struct spi_board_info overo_spi_board_info[] __initdata = {
+-#if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
+-	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
++#ifdef MACH_OVERO_EXPANSION_PALO35
+ 	{
+ 		.modalias		= "lgphilips_lb035q02_panel-spi",
+ 		.bus_num		= 1,
 -- 
 1.7.10.4
 
