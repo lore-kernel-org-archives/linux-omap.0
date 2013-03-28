@@ -1,184 +1,134 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 07/28] ARM: OMAP: OMAP3EVM: Kconfig option for the display options
-Date: Thu, 28 Mar 2013 14:49:01 +0200
-Message-ID: <1364474962-20439-8-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 12/28] ARM: OMAP: 4430SDP: use new Taal driver
+Date: Thu, 28 Mar 2013 14:49:06 +0200
+Message-ID: <1364474962-20439-13-git-send-email-tomi.valkeinen@ti.com>
 References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38199 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38204 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755121Ab3C1Mtx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Mar 2013 08:49:53 -0400
+	id S1756040Ab3C1Mt7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Mar 2013 08:49:59 -0400
 In-Reply-To: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Boards with multiple display options for the same video bus have all the
-possible linux display devices present at the same time. Only one of
-those devices should be used at a time, as the video bus cannot be
-shared.
-
-This model is hacky, and will be changed in the forthcoming DSS patches
-to a model where only one display device can be present on a single
-video bus.
-
-This patch creates Kconfig options to select which of the display
-devices is present on the board. While this model is also somewhat
-hacky, and prevents us from using a single kernel image for all the
-display options, it allows us to make the DSS driver changes for DT
-adaptation. And with DT, the information about display devices can be
-passed from the bootloader, solving the mess.
+Change 4430SDP to use the new Taal platform driver instead of the old
+omap_dss_driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig          |   13 ++++++++++
- arch/arm/mach-omap2/board-omap3evm.c |   46 +++++++++++++++++++++-------------
- 2 files changed, 41 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap2/dss-common.c |   47 +++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 26 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 940903e..4108d07 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -279,6 +279,19 @@ config MACH_OMAP3EVM
- 	default y
- 	select OMAP_PACKAGE_CBB
+diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+index 1e2c5c0..0c0fc79 100644
+--- a/arch/arm/mach-omap2/dss-common.c
++++ b/arch/arm/mach-omap2/dss-common.c
+@@ -118,7 +118,8 @@ static struct platform_device sdp4430_hdmi_device = {
+ #define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
  
-+choice
-+	depends on MACH_OMAP3EVM
-+	default MACH_OMAP3EVM_EXPANSION_LCD
-+	prompt "OMAP 3530 EVM video output"
-+
-+config MACH_OMAP3EVM_EXPANSION_LCD
-+	bool "OMAP 3530 EVM with LCD"
-+
-+config MACH_OMAP3EVM_EXPANSION_DVI
-+	bool "OMAP 3530 EVM with DVI"
-+
-+endchoice
-+
- config MACH_OMAP3517EVM
- 	bool "OMAP3517/ AM3517 EVM board"
- 	depends on ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index e86eb41..2050679 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -149,6 +149,14 @@ static inline void __init omap3evm_init_smsc911x(void)
- static inline void __init omap3evm_init_smsc911x(void) { return; }
+ static struct nokia_dsi_panel_data dsi1_panel = {
+-		.name		= "taal",
++		.name		= "lcd",
++		.source		= "dsi.0",
+ 		.reset_gpio	= 102,
+ 		.use_ext_te	= false,
+ 		.ext_te_gpio	= 101,
+@@ -129,15 +130,10 @@ static struct nokia_dsi_panel_data dsi1_panel = {
+ 		},
+ };
+ 
+-static struct omap_dss_device sdp4430_lcd_device = {
+-	.name			= "lcd",
+-	.driver_name		= "taal",
+-	.type			= OMAP_DISPLAY_TYPE_DSI,
+-	.data			= &dsi1_panel,
+-	.phy.dsi		= {
+-		.module		= 0,
+-	},
+-	.channel		= OMAP_DSS_CHANNEL_LCD,
++static struct platform_device sdp4430_lcd1_device = {
++	.name			= "taal",
++	.id			= 0,
++	.dev.platform_data	= &dsi1_panel,
+ };
+ 
+ #if defined(CONFIG_MACH_OMAP_4430SDP_EXPANSION_LCD2)
+@@ -145,7 +141,8 @@ static struct omap_dss_device sdp4430_lcd_device = {
+ static void sdp4430_picodlp_init(void) { }
+ 
+ static struct nokia_dsi_panel_data dsi2_panel = {
+-		.name		= "taal",
++		.name		= "lcd2",
++		.source		= "dsi.1",
+ 		.reset_gpio	= 104,
+ 		.use_ext_te	= false,
+ 		.ext_te_gpio	= 103,
+@@ -156,16 +153,10 @@ static struct nokia_dsi_panel_data dsi2_panel = {
+ 		},
+ };
+ 
+-static struct omap_dss_device sdp4430_lcd2_device = {
+-	.name			= "lcd2",
+-	.driver_name		= "taal",
+-	.type			= OMAP_DISPLAY_TYPE_DSI,
+-	.data			= &dsi2_panel,
+-	.phy.dsi		= {
+-
+-		.module		= 1,
+-	},
+-	.channel		= OMAP_DSS_CHANNEL_LCD2,
++static struct platform_device sdp4430_lcd2_device = {
++	.name			= "taal",
++	.id			= 1,
++	.dev.platform_data	= &dsi2_panel,
+ };
+ 
+ #elif defined(CONFIG_MACH_OMAP_4430SDP_EXPANSION_PICO)
+@@ -223,10 +214,6 @@ static struct omap_dss_device sdp4430_picodlp_device = {
  #endif
  
-+static struct omap_dss_device omap3_evm_tv_device = {
-+	.name			= "tv",
-+	.driver_name		= "venc",
-+	.type			= OMAP_DISPLAY_TYPE_VENC,
-+	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-+};
-+
-+#if defined(CONFIG_MACH_OMAP3EVM_EXPANSION_LCD)
- /*
-  * OMAP3EVM LCD Panel control signals
-  */
-@@ -159,7 +167,6 @@ static inline void __init omap3evm_init_smsc911x(void) { return; }
- #define OMAP3EVM_LCD_PANEL_QVGA		154
- #define OMAP3EVM_LCD_PANEL_RESB		155
- #define OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO	210
--#define OMAP3EVM_DVI_PANEL_EN_GPIO	199
- 
- static struct gpio omap3_evm_dss_gpios[] __initdata = {
- 	{ OMAP3EVM_LCD_PANEL_RESB,  GPIOF_OUT_INIT_HIGH, "lcd_panel_resb"  },
-@@ -170,9 +177,6 @@ static struct gpio omap3_evm_dss_gpios[] __initdata = {
- 	{ OMAP3EVM_LCD_PANEL_ENVDD, GPIOF_OUT_INIT_LOW,  "lcd_panel_envdd" },
- };
- 
--static int lcd_enabled;
--static int dvi_enabled;
--
- static void __init omap3_evm_display_init(void)
- {
- 	int r;
-@@ -185,10 +189,6 @@ static void __init omap3_evm_display_init(void)
- 
- static int omap3_evm_enable_lcd(struct omap_dss_device *dssdev)
- {
--	if (dvi_enabled) {
--		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
--		return -EINVAL;
--	}
- 	gpio_set_value(OMAP3EVM_LCD_PANEL_ENVDD, 0);
- 
- 	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
-@@ -196,7 +196,6 @@ static int omap3_evm_enable_lcd(struct omap_dss_device *dssdev)
- 	else
- 		gpio_set_value_cansleep(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 1);
- 
--	lcd_enabled = 1;
- 	return 0;
- }
- 
-@@ -208,8 +207,6 @@ static void omap3_evm_disable_lcd(struct omap_dss_device *dssdev)
- 		gpio_set_value_cansleep(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 1);
- 	else
- 		gpio_set_value_cansleep(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 0);
--
--	lcd_enabled = 0;
- }
- 
- static struct omap_dss_device omap3_evm_lcd_device = {
-@@ -221,13 +218,25 @@ static struct omap_dss_device omap3_evm_lcd_device = {
- 	.platform_disable	= omap3_evm_disable_lcd,
- };
- 
--static struct omap_dss_device omap3_evm_tv_device = {
--	.name			= "tv",
--	.driver_name		= "venc",
--	.type			= OMAP_DISPLAY_TYPE_VENC,
--	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-+static struct omap_dss_device *omap3_evm_dss_devices[] = {
-+	&omap3_evm_lcd_device,
-+	&omap3_evm_tv_device,
- };
- 
-+static struct omap_dss_board_info omap3_evm_dss_data = {
-+	.num_devices	= ARRAY_SIZE(omap3_evm_dss_devices),
-+	.devices	= omap3_evm_dss_devices,
+ static struct omap_dss_device *sdp4430_dss_devices[] = {
+-	&sdp4430_lcd_device,
+-#ifdef CONFIG_MACH_OMAP_4430SDP_EXPANSION_LCD2
+-	&sdp4430_lcd2_device,
+-#endif
+ #ifdef CONFIG_MACH_OMAP_4430SDP_EXPANSION_PICO
+ 	&sdp4430_picodlp_device,
+ #endif
+@@ -235,7 +222,7 @@ static struct omap_dss_device *sdp4430_dss_devices[] = {
+ static struct omap_dss_board_info sdp4430_dss_data = {
+ 	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
+ 	.devices	= sdp4430_dss_devices,
+-	.default_device	= &sdp4430_lcd_device,
 +	.default_display_name = "lcd",
-+};
-+
-+#elif defined(CONFIG_MACH_OMAP3EVM_EXPANSION_DVI)
-+
-+#define OMAP3EVM_DVI_PANEL_EN_GPIO	199
-+
-+static void __init omap3_evm_display_init(void)
-+{
-+}
-+
- static struct tfp410_platform_data dvi_panel = {
- 	.power_down_gpio	= OMAP3EVM_DVI_PANEL_EN_GPIO,
- 	.i2c_bus_num		= -1,
-@@ -242,7 +251,6 @@ static struct omap_dss_device omap3_evm_dvi_device = {
  };
  
- static struct omap_dss_device *omap3_evm_dss_devices[] = {
--	&omap3_evm_lcd_device,
- 	&omap3_evm_tv_device,
- 	&omap3_evm_dvi_device,
- };
-@@ -250,9 +258,11 @@ static struct omap_dss_device *omap3_evm_dss_devices[] = {
- static struct omap_dss_board_info omap3_evm_dss_data = {
- 	.num_devices	= ARRAY_SIZE(omap3_evm_dss_devices),
- 	.devices	= omap3_evm_dss_devices,
--	.default_device	= &omap3_evm_lcd_device,
-+	.default_display_name = "dvi",
- };
- 
+ void __init omap_4430sdp_display_init(void)
+@@ -251,6 +238,10 @@ void __init omap_4430sdp_display_init(void)
+ 	sdp4430_picodlp_init();
+ 	omap_display_init(&sdp4430_dss_data);
+ 	platform_device_register(&sdp4430_hdmi_device);
++	platform_device_register(&sdp4430_lcd1_device);
++#ifdef CONFIG_MACH_OMAP_4430SDP_EXPANSION_LCD2
++	platform_device_register(&sdp4430_lcd2_device);
 +#endif
-+
- static struct regulator_consumer_supply omap3evm_vmmc1_supply[] = {
- 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
- };
+ 	/*
+ 	 * OMAP4460SDP/Blaze and OMAP4430 ES2.3 SDP/Blaze boards and
+ 	 * later have external pull up on the HDMI I2C lines
+@@ -278,4 +269,8 @@ void __init omap_4430sdp_display_init_of(void)
+ 	sdp4430_picodlp_init();
+ 	omap_display_init(&sdp4430_dss_data);
+ 	platform_device_register(&sdp4430_hdmi_device);
++	platform_device_register(&sdp4430_lcd1_device);
++#ifdef CONFIG_MACH_OMAP_4430SDP_EXPANSION_LCD2
++	platform_device_register(&sdp4430_lcd2_device);
++#endif
+ }
 -- 
 1.7.10.4
 
