@@ -1,71 +1,74 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 18/28] ARM: OMAP: CM-T35: use new TFP410 platform driver
-Date: Thu, 28 Mar 2013 14:49:12 +0200
-Message-ID: <1364474962-20439-19-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 24/28] ARM: OMAP: H4: use new generic-dpi-panel platform driver
+Date: Thu, 28 Mar 2013 14:49:18 +0200
+Message-ID: <1364474962-20439-25-git-send-email-tomi.valkeinen@ti.com>
 References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44569 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754669Ab3C1MuJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Mar 2013 08:50:09 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:57281 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756118Ab3C1MuQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 08:50:16 -0400
 In-Reply-To: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Mike Rapoport <mike@compulab.co.il>, Igor Grinberg <grinberg@compulab.co.il>
+Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use the new TFP410 platform driver instead of the old omap_dss_driver.
+Use the new generic-dpi-panel platform driver instead of the old
+omap_dss_driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Mike Rapoport <mike@compulab.co.il>
-Cc: Igor Grinberg <grinberg@compulab.co.il>
 ---
- arch/arm/mach-omap2/board-cm-t35.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/board-h4.c |   24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 1b34c96..4f23be0 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -294,20 +294,20 @@ static void __init cm_t35_init_display(void)
- #define CM_T35_DVI_EN_GPIO 54
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index 812c829..bbcbc31 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -194,30 +194,26 @@ static struct platform_device h4_flash_device = {
+ 	.resource	= &h4_flash_resource,
+ };
  
- static struct tfp410_platform_data dvi_panel = {
-+	.name			= "dvi",
+-static struct platform_device *h4_devices[] __initdata = {
+-	&h4_flash_device,
+-};
+-
+ static struct panel_generic_dpi_data h4_panel_data = {
++	.display_name		= "lcd",
 +	.source			= "dpi.0",
-+	.data_lines		= 24,
- 	.power_down_gpio	= CM_T35_DVI_EN_GPIO,
- 	.i2c_bus_num		= -1,
+ 	.name			= "h4",
++	.data_lines		= 16,
  };
  
--static struct omap_dss_device cm_t35_dvi_device = {
--	.name			= "dvi",
+-static struct omap_dss_device h4_lcd_device = {
+-	.name			= "lcd",
+-	.driver_name		= "generic_dpi_panel",
 -	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.driver_name		= "tfp410",
--	.data			= &dvi_panel,
--	.phy.dpi.data_lines	= 24,
-+static struct platform_device cm_t35_dvi_device = {
-+	.name			= "tfp410",
+-	.phy.dpi.data_lines	= 16,
+-	.data			= &h4_panel_data,
++static struct platform_device h4_lcd_device = {
++	.name			= "generic_dpi_panel",
 +	.id			= 0,
-+	.dev.platform_data	= &dvi_panel,
++	.dev.platform_data	= &h4_panel_data,
  };
  
- static struct omap_dss_device *cm_t35_dss_devices[] = {
--	&cm_t35_dvi_device,
- 	&cm_t35_tv_device,
+-static struct omap_dss_device *h4_dss_devices[] = {
++static struct platform_device *h4_devices[] __initdata = {
++	&h4_flash_device,
+ 	&h4_lcd_device,
  };
  
-@@ -321,6 +321,8 @@ static void __init cm_t35_init_display(void)
- {
- 	int err;
+ static struct omap_dss_board_info h4_dss_data = {
+-	.num_devices	= ARRAY_SIZE(h4_dss_devices),
+-	.devices	= h4_dss_devices,
+-	.default_device	= &h4_lcd_device,
++	.default_display_name = "lcd",
+ };
  
-+	platform_device_register(&cm_t35_dvi_device);
-+
- 	err = omap_display_init(&cm_t35_dss_data);
- 	if (err)
- 		pr_err("CM-T35: failed to register DSS device\n");
+ /* 2420 Sysboot setup (2430 is different) */
 -- 
 1.7.10.4
 
