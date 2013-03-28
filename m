@@ -1,20 +1,20 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 09/28] ARM: OMAP: AM3517EVM: Kconfig option for the display options
-Date: Thu, 28 Mar 2013 14:49:03 +0200
-Message-ID: <1364474962-20439-10-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 08/28] ARM: OMAP: CM-T35: Kconfig option for the display options
+Date: Thu, 28 Mar 2013 14:49:02 +0200
+Message-ID: <1364474962-20439-9-git-send-email-tomi.valkeinen@ti.com>
 References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38202 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44544 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755805Ab3C1Mt4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Mar 2013 08:49:56 -0400
+	id S1755121Ab3C1Mtz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Mar 2013 08:49:55 -0400
 In-Reply-To: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Mike Rapoport <mike@compulab.co.il>, Igor Grinberg <grinberg@compulab.co.il>
 
 Boards with multiple display options for the same video bus have all the
 possible linux display devices present at the same time. Only one of
@@ -33,137 +33,167 @@ adaptation. And with DT, the information about display devices can be
 passed from the bootloader, solving the mess.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Mike Rapoport <mike@compulab.co.il>
+Cc: Igor Grinberg <grinberg@compulab.co.il>
 ---
- arch/arm/mach-omap2/Kconfig           |   13 +++++++++
- arch/arm/mach-omap2/board-am3517evm.c |   49 ++++++++++++++++++---------------
- 2 files changed, 40 insertions(+), 22 deletions(-)
+ arch/arm/mach-omap2/Kconfig        |   13 ++++++
+ arch/arm/mach-omap2/board-cm-t35.c |   84 +++++++++++++++++++++---------------
+ 2 files changed, 62 insertions(+), 35 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 6e73cb4..57e1d37 100644
+index 4108d07..6e73cb4 100644
 --- a/arch/arm/mach-omap2/Kconfig
 +++ b/arch/arm/mach-omap2/Kconfig
-@@ -298,6 +298,19 @@ config MACH_OMAP3517EVM
- 	default y
- 	select OMAP_PACKAGE_CBB
+@@ -387,6 +387,19 @@ config MACH_CM_T35
+ 	select MACH_CM_T3730
+ 	select OMAP_PACKAGE_CUS
  
 +choice
-+	depends on MACH_OMAP3517EVM
-+	default MACH_OMAP3517EVM_EXPANSION_LCD
-+	prompt "OMAP3517/ AM3517 EVM video output"
++	depends on MACH_CM_T35
++	default MACH_CM_T35_EXPANSION_LCD
++	prompt "CM-T35/CM-T3730 video output"
 +
-+config MACH_OMAP3517EVM_EXPANSION_LCD
-+	bool "OMAP3517/ AM3517 EVM with LCD"
++config MACH_CM_T35_EXPANSION_LCD
++	bool "CM-T35/CM-T3730 with LCD"
 +
-+config MACH_OMAP3517EVM_EXPANSION_DVI
-+	bool "OMAP3517/ AM3517 EVM with DVI"
++config MACH_CM_T35_EXPANSION_DVI
++	bool "CM-T35/CM-T3730 with DVI"
 +
 +endchoice
 +
- config MACH_CRANEBOARD
- 	bool "AM3517/05 CRANE board"
+ config MACH_CM_T3517
+ 	bool "CompuLab CM-T3517 module"
  	depends on ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 25a0894..1d7d0d8 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -121,11 +121,15 @@ static int __init am3517_evm_i2c_init(void)
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 9c1895a..1b34c96 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -187,32 +187,28 @@ static void __init cm_t35_init_nand(void)
+ static inline void cm_t35_init_nand(void) {}
+ #endif
  
--static int lcd_enabled;
--static int dvi_enabled;
-+static struct omap_dss_device am3517_evm_tv_device = {
-+	.type			= OMAP_DISPLAY_TYPE_VENC,
++static struct omap_dss_device cm_t35_tv_device = {
 +	.name			= "tv",
 +	.driver_name		= "venc",
++	.type			= OMAP_DISPLAY_TYPE_VENC,
 +	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
 +};
 +
-+#if defined(CONFIG_MACH_OMAP3517EVM_EXPANSION_LCD)
++#if defined(CONFIG_MACH_CM_T35_EXPANSION_LCD)
++
+ #define CM_T35_LCD_EN_GPIO 157
+ #define CM_T35_LCD_BL_GPIO 58
+-#define CM_T35_DVI_EN_GPIO 54
+-
+-static int lcd_enabled;
+-static int dvi_enabled;
  
--#if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
--		defined(CONFIG_PANEL_SHARP_LQ043T1DG01_MODULE)
- static struct gpio am3517_evm_dss_gpios[] __initdata = {
- 	/* GPIO 182 = LCD Backlight Power */
- 	{ LCD_PANEL_BKLIGHT_PWR, GPIOF_OUT_INIT_HIGH, "lcd_backlight_pwr" },
-@@ -152,26 +156,16 @@ static void __init am3517_evm_display_init(void)
- 
- 	printk(KERN_INFO "Display initialized successfully\n");
- }
--#else
--static void __init am3517_evm_display_init(void) {}
--#endif
- 
- static int am3517_evm_panel_enable_lcd(struct omap_dss_device *dssdev)
+ static int cm_t35_panel_enable_lcd(struct omap_dss_device *dssdev)
  {
 -	if (dvi_enabled) {
 -		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
 -		return -EINVAL;
 -	}
- 	gpio_set_value(LCD_PANEL_PWR, 1);
+-
+ 	gpio_set_value(CM_T35_LCD_EN_GPIO, 1);
+ 	gpio_set_value(CM_T35_LCD_BL_GPIO, 1);
+ 
 -	lcd_enabled = 1;
 -
  	return 0;
  }
  
- static void am3517_evm_panel_disable_lcd(struct omap_dss_device *dssdev)
+ static void cm_t35_panel_disable_lcd(struct omap_dss_device *dssdev)
  {
- 	gpio_set_value(LCD_PANEL_PWR, 0);
 -	lcd_enabled = 0;
+-
+ 	gpio_set_value(CM_T35_LCD_BL_GPIO, 0);
+ 	gpio_set_value(CM_T35_LCD_EN_GPIO, 0);
  }
- 
- static struct panel_generic_dpi_data lcd_panel = {
-@@ -188,13 +182,23 @@ static struct omap_dss_device am3517_evm_lcd_device = {
- 	.phy.dpi.data_lines 	= 16,
+@@ -231,36 +227,15 @@ static struct omap_dss_device cm_t35_lcd_device = {
+ 	.phy.dpi.data_lines	= 18,
  };
  
--static struct omap_dss_device am3517_evm_tv_device = {
--	.type 			= OMAP_DISPLAY_TYPE_VENC,
--	.name 			= "tv",
+-static struct tfp410_platform_data dvi_panel = {
+-	.power_down_gpio	= CM_T35_DVI_EN_GPIO,
+-	.i2c_bus_num		= -1,
+-};
+-
+-static struct omap_dss_device cm_t35_dvi_device = {
+-	.name			= "dvi",
+-	.type			= OMAP_DISPLAY_TYPE_DPI,
+-	.driver_name		= "tfp410",
+-	.data			= &dvi_panel,
+-	.phy.dpi.data_lines	= 24,
+-};
+-
+-static struct omap_dss_device cm_t35_tv_device = {
+-	.name			= "tv",
 -	.driver_name		= "venc",
+-	.type			= OMAP_DISPLAY_TYPE_VENC,
 -	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-+static struct omap_dss_device *am3517_evm_dss_devices[] = {
-+	&am3517_evm_lcd_device,
-+	&am3517_evm_tv_device,
-+};
-+
-+static struct omap_dss_board_info am3517_evm_dss_data = {
-+	.num_devices	= ARRAY_SIZE(am3517_evm_dss_devices),
-+	.devices	= am3517_evm_dss_devices,
+-};
+-
+ static struct omap_dss_device *cm_t35_dss_devices[] = {
+ 	&cm_t35_lcd_device,
+-	&cm_t35_dvi_device,
+ 	&cm_t35_tv_device,
+ };
+ 
+ static struct omap_dss_board_info cm_t35_dss_data = {
+ 	.num_devices	= ARRAY_SIZE(cm_t35_dss_devices),
+ 	.devices	= cm_t35_dss_devices,
+-	.default_device	= &cm_t35_dvi_device,
 +	.default_display_name = "lcd",
  };
  
-+#elif defined(CONFIG_MACH_OMAP3517EVM_EXPANSION_DVI)
+ static struct omap2_mcspi_device_config tdo24m_mcspi_config = {
+@@ -314,6 +289,45 @@ static void __init cm_t35_init_display(void)
+ 	}
+ }
+ 
++#elif defined(CONFIG_MACH_CM_T35_EXPANSION_DVI)
 +
-+static void __init am3517_evm_display_init(void)
++#define CM_T35_DVI_EN_GPIO 54
++
++static struct tfp410_platform_data dvi_panel = {
++	.power_down_gpio	= CM_T35_DVI_EN_GPIO,
++	.i2c_bus_num		= -1,
++};
++
++static struct omap_dss_device cm_t35_dvi_device = {
++	.name			= "dvi",
++	.type			= OMAP_DISPLAY_TYPE_DPI,
++	.driver_name		= "tfp410",
++	.data			= &dvi_panel,
++	.phy.dpi.data_lines	= 24,
++};
++
++static struct omap_dss_device *cm_t35_dss_devices[] = {
++	&cm_t35_dvi_device,
++	&cm_t35_tv_device,
++};
++
++static struct omap_dss_board_info cm_t35_dss_data = {
++	.num_devices	= ARRAY_SIZE(cm_t35_dss_devices),
++	.devices	= cm_t35_dss_devices,
++	.default_display_name = "dvi",
++};
++
++static void __init cm_t35_init_display(void)
 +{
++	int err;
++
++	err = omap_display_init(&cm_t35_dss_data);
++	if (err)
++		pr_err("CM-T35: failed to register DSS device\n");
 +}
 +
- static struct tfp410_platform_data dvi_panel = {
- 	.power_down_gpio	= -1,
- 	.i2c_bus_num		= -1,
-@@ -209,17 +213,18 @@ static struct omap_dss_device am3517_evm_dvi_device = {
- };
- 
- static struct omap_dss_device *am3517_evm_dss_devices[] = {
--	&am3517_evm_lcd_device,
--	&am3517_evm_tv_device,
- 	&am3517_evm_dvi_device,
-+	&am3517_evm_tv_device,
- };
- 
- static struct omap_dss_board_info am3517_evm_dss_data = {
- 	.num_devices	= ARRAY_SIZE(am3517_evm_dss_devices),
- 	.devices	= am3517_evm_dss_devices,
--	.default_device	= &am3517_evm_lcd_device,
-+	.default_display_name = "dvi",
- };
- 
 +#endif
 +
- /*
-  * Board initialization
-  */
+ static struct regulator_consumer_supply cm_t35_vmmc1_supply[] = {
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+ };
 -- 
 1.7.10.4
 
