@@ -1,90 +1,63 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [GIT PULL] fbdev fixes for 3.9
-Date: Thu, 28 Mar 2013 14:26:37 +0200
-Message-ID: <515436FD.6020004@ti.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH-V2 0/6] ARM: dts: AM33XX: Cleanup and pinctrl binding
+ support
+Date: Thu, 28 Mar 2013 13:26:39 +0100
+Message-ID: <515436FF.9030703@ti.com>
+References: <1364452963-22083-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigCDF8D88454D26DD074F8D15F"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev <linux-fbdev@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1364452963-22083-1-git-send-email-hvaibhav-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
+Cc: mporter-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---------------enigCDF8D88454D26DD074F8D15F
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Vaibhav,
 
-Hi Linus,
+The series looks good to me, but unfortunately does not apply cleanly on
+top of the latest for_3.10/dts branch.
 
-Since Florian is still away/inactive, I volunteered to collect fbdev fixe=
-s for
-3.9 and changes for 3.10. I didn't receive any other fbdev fixes than OMA=
-P yet,
-but I didn't want to delay this further as there's a compilation fix for =
-OMAP1.
-So there could be still some fbdev fixes on the way a bit later.
+Could you rebase it?
 
- Tomi
+Thanks,
+Benoit
 
-The following changes since commit a937536b868b8369b98967929045f1df542343=
-23:
-
-  Linux 3.9-rc3 (2013-03-17 15:59:32 -0700)
-
-are available in the git repository at:
-
-  git://gitorious.org/linux-omap-dss2/linux.git tags/fbdev-fixes-3.9-rc4
-
-for you to fetch changes up to ff588d83bf12fe05521a64e85dd4e2b848c0b20d:
-
-  omapdss: features: fix supported outputs for OMAP4 (2013-03-22 10:14:32=
- +0200)
-
-----------------------------------------------------------------
-* Fix OMAP1 compilation
-* OMAP display fixes
-
-----------------------------------------------------------------
-Aaro Koskinen (1):
-      omapfb: fix broken build on OMAP1
-
-Archit Taneja (1):
-      omapdss: features: fix supported outputs for OMAP4
-
-Grazvydas Ignotas (1):
-      OMAPDSS: tpo-td043 panel: fix data passing between SPI/DSS parts
-
- drivers/video/omap/omapfb_main.c                    |    2 ++
- drivers/video/omap2/displays/panel-tpo-td043mtea1.c |   13 +++++++++++--=
-
- drivers/video/omap2/dss/dss_features.c              |    6 ++----
- 3 files changed, 15 insertions(+), 6 deletions(-)
-
-
---------------enigCDF8D88454D26DD074F8D15F
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRVDb9AAoJEPo9qoy8lh71apQP/1ak58UeAItvJw+pZFz5/yqS
-8AniWHlLiHSbbhIwOJjk9Unji74GIH2pg6SfCNPdpov/W7mgVC/7zqLRwOhUOmjP
-nG2pWUCh8lZCDQGpUvtiCYpAQpT7R3IZj7uH1oEoJH9GgnIwPdSc779PGfz6bZfR
-zQnJT9NSbdVczJVZef4jEIw40l4CZdG0H1KZS/dQPD3ikSwUrrM7FIRcGMMqwiFM
-pWPIiu4yWQECyG728++MaPJ4f5Rm3tovIaMy2e4KVrehVKSiohkZdhHwgBTIfwPz
-29xy7boocb/DUDtUFLMCaP9jfiL/Au9OgkMOks41bnLFLULJB7Gi7PhaYzFYyRZt
-i5p4HkndI2t2syYyI1F7h5+8k3O9vVNuJKdrbBqzO//QeT1AlRa7Ume/Xtnpjnhv
-2lXylSoupG2WTUtJCNoc1gQ+/WD5D+qIG61YiNFqrOqNeKLG+zfn2ASClBDDZl+z
-aBO/oFYqyZboPvW2sjAnx+su8AsJSDMrcDJIf49YXZhszd0NM+dHDxroy7XvpRCv
-GJflcHmgXAjLuQYaIeyXARsM2JhhE0SHauKL4ZNSK9cucqpQHxfY4jYgmQSXHBgo
-1pz/nFuAhY1D6xGD2a+kJwOsl+qIcX37DpFnxjJ/G6GCx3kAo6QeSuAPBX9PC4ti
-4UsL9aedmKPCq5EKPCoW
-=VotD
------END PGP SIGNATURE-----
-
---------------enigCDF8D88454D26DD074F8D15F--
+On 03/28/2013 07:42 AM, Vaibhav Hiremath wrote:
+> This patch series fixes the numbering schema for I2C and GPIO
+> module and adds the pin-control binding for I2C, UART, GPIO-LED across
+> supported platforms (EVM, EVM-SK and Bone).
+> 
+> I have divided patches based on functionality and _not_
+> into EVM/Board perspective.
+> 
+> Changes from V1: (no code change from last version, except uart)
+> 	- Added Acked-by from Matt Porter and Peter Korsgaard
+> 	  on couple of patches.
+> 	- Added new patch (PATCH 5/6) in the series for UART
+> 	  indexing fix
+> 
+> Vaibhav Hiremath (6):
+>   ARM: dts: AM33XX: Fix the i2c numbering to match hardware/TRM
+>   ARM: dts: AM33XX: Add default pinctrl binding for I2C device
+>   ARM: dts: AM33XX: Fix gpio numbering to match hardware/TRM
+>   ARM: dts: AM33XX: Add pinctrl binding to gpio-leds node
+>   ARM: dts: AM33XX: Fix uart numbering to match hardware/TRM
+>   ARM: dts: AM33XX: Add default pinctrl binding for UART0 device
+> 
+>  arch/arm/boot/dts/am335x-bone.dts  |   37 +++++++++++++++++++++-----
+>  arch/arm/boot/dts/am335x-evm.dts   |   50 ++++++++++++++++++++++++++++-------
+>  arch/arm/boot/dts/am335x-evmsk.dts |   45 ++++++++++++++++++++++++--------
+>  arch/arm/boot/dts/am33xx.dtsi      |   38 +++++++++++++-------------
+>  4 files changed, 123 insertions(+), 47 deletions(-)
+> 
