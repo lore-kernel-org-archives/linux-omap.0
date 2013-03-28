@@ -1,15 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 27/28] ARM: OMAP: AM3517EVM: use new generic-dpi-panel platform driver
-Date: Thu, 28 Mar 2013 14:49:21 +0200
-Message-ID: <1364474962-20439-28-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 28/28] ARM: OMAP: 2430SDP: use new generic-dpi-panel platform driver
+Date: Thu, 28 Mar 2013 14:49:22 +0200
+Message-ID: <1364474962-20439-29-git-send-email-tomi.valkeinen@ti.com>
 References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55107 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44585 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756118Ab3C1MuU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Mar 2013 08:50:20 -0400
+	id S1756134Ab3C1MuV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Mar 2013 08:50:21 -0400
 In-Reply-To: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,52 +21,62 @@ omap_dss_driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-am3517evm.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/board-2430sdp.c |   24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index c545981..a7e728e 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -169,21 +169,21 @@ static void am3517_evm_panel_disable_lcd(struct omap_dss_device *dssdev)
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index a3e0aaa..4f94dec 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -100,10 +100,6 @@ static struct platform_device sdp2430_flash_device = {
+ 	.resource	= &sdp2430_flash_resource,
+ };
+ 
+-static struct platform_device *sdp2430_devices[] __initdata = {
+-	&sdp2430_flash_device,
+-};
+-
+ /* LCD */
+ #define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
+ #define SDP2430_LCD_PANEL_ENABLE_GPIO		154
+@@ -123,27 +119,27 @@ static void sdp2430_panel_disable_lcd(struct omap_dss_device *dssdev)
  }
  
- static struct panel_generic_dpi_data lcd_panel = {
+ static struct panel_generic_dpi_data sdp2430_panel_data = {
 +	.display_name		= "lcd",
 +	.source			= "dpi.0",
- 	.name			= "sharp_lq",
+ 	.name			= "nec_nl2432dr22-11b",
 +	.data_lines		= 16,
- 	.platform_enable	= am3517_evm_panel_enable_lcd,
- 	.platform_disable	= am3517_evm_panel_disable_lcd,
+ 	.platform_enable	= sdp2430_panel_enable_lcd,
+ 	.platform_disable	= sdp2430_panel_disable_lcd,
  };
  
--static struct omap_dss_device am3517_evm_lcd_device = {
--	.type			= OMAP_DISPLAY_TYPE_DPI,
+-static struct omap_dss_device sdp2430_lcd_device = {
 -	.name			= "lcd",
 -	.driver_name		= "generic_dpi_panel",
--	.data			= &lcd_panel,
--	.phy.dpi.data_lines 	= 16,
-+static struct platform_device am3517_evm_lcd_device = {
+-	.type			= OMAP_DISPLAY_TYPE_DPI,
+-	.phy.dpi.data_lines	= 16,
+-	.data			= &sdp2430_panel_data,
++static struct platform_device sdp2430_lcd_device = {
 +	.name			= "generic_dpi_panel",
 +	.id			= 0,
-+	.dev.platform_data	= &lcd_panel,
++	.dev.platform_data	= &sdp2430_panel_data,
  };
  
- static struct omap_dss_device *am3517_evm_dss_devices[] = {
--	&am3517_evm_lcd_device,
- 	&am3517_evm_tv_device,
+-static struct omap_dss_device *sdp2430_dss_devices[] = {
++static struct platform_device *sdp2430_devices[] __initdata = {
++	&sdp2430_flash_device,
+ 	&sdp2430_lcd_device,
  };
  
-@@ -362,6 +362,9 @@ static void __init am3517_evm_init(void)
- #if defined(CONFIG_MACH_OMAP3517EVM_EXPANSION_DVI)
- 	platform_device_register(&am3517_evm_dvi_device);
- #endif
-+#if defined(CONFIG_MACH_OMAP3517EVM_EXPANSION_LCD)
-+	platform_device_register(&am3517_evm_lcd_device);
-+#endif
+ static struct omap_dss_board_info sdp2430_dss_data = {
+-	.num_devices	= ARRAY_SIZE(sdp2430_dss_devices),
+-	.devices	= sdp2430_dss_devices,
+-	.default_device	= &sdp2430_lcd_device,
++	.default_display_name = "lcd",
+ };
  
- 	/* RTC - S35390A */
- 	am3517_evm_rtc_init();
+ static void __init sdp2430_display_init(void)
 -- 
 1.7.10.4
 
