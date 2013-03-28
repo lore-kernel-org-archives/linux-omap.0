@@ -1,62 +1,56 @@
-From: =?UTF-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?=
-	<freemangordon@abv.bg>
-Subject: Re: [PATCH] arm: omap: RX-51: ARM errata 430973 workaround
-Date: Thu, 28 Mar 2013 07:30:07 +0200 (EET)
-Message-ID: <24838523.73311.1364448607026.JavaMail.apache@mail82.abv.bg>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4 4/6] ARM: OMAP: USB: Add phy binding information
+Date: Thu, 28 Mar 2013 11:13:26 +0530
+Message-ID: <1364449408-9510-5-git-send-email-kishon@ti.com>
+References: <1364449408-9510-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: pali.rohar@gmail.com, nm@ti.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1364449408-9510-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org
+Cc: sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
- Tony,
+In order for controllers to get PHY in case of non dt boot, the phy
+binding information should be added in the platform specific
+initialization code using phy_bind.
 
-Who do you expect to make that code merge? Do you expect us to mechanic=
-ally merge RX51 PPA API patch with the existing generic OMAP PPA API co=
-de putting #ifdefs all over the place? Not that it is impossible, but t=
-he only real piece of HW I have here is n900, so I just can't be sure t=
-he code will still work on the other platforms besides RX51, once the c=
-ode modified. Please, advice on how to proceed.
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/mach-omap2/usb-musb.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-Regards,
-Ivo
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 3242a55..f01bc42 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -24,6 +24,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/io.h>
+ #include <linux/usb/musb.h>
++#include <linux/phy/phy.h>
+ 
+ #include "omap_device.h"
+ #include "soc.h"
+@@ -85,8 +86,12 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+ 	musb_plat.mode = board_data->mode;
+ 	musb_plat.extvbus = board_data->extvbus;
+ 
+-	if (cpu_is_omap44xx())
++	if (cpu_is_omap44xx()) {
+ 		musb_plat.has_mailbox = true;
++		phy_bind("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
++	} else if (cpu_is_omap34xx()) {
++		phy_bind("musb-hdrc.0.auto", 0, "twl4030_usb");
++	}
+ 
+ 	if (soc_is_am35xx()) {
+ 		oh_name = "am35x_otg_hs";
+-- 
+1.7.10.4
 
- >-------- =D0=9E=D1=80=D0=B8=D0=B3=D0=B8=D0=BD=D0=B0=D0=BB=D0=BD=D0=BE=
- =D0=BF=D0=B8=D1=81=D0=BC=D0=BE --------
- >=D0=9E=D1=82:  Tony Lindgren=20
- >=D0=9E=D1=82=D0=BD=D0=BE=D1=81=D0=BD=D0=BE: Re: [PATCH] arm: omap: RX=
--51: ARM errata 430973 workaround
- >=D0=94=D0=BE: Pali Roh=C3=A1r=20
- >=D0=98=D0=B7=D0=BF=D1=80=D0=B0=D1=82=D0=B5=D0=BD=D0=BE =D0=BD=D0=B0: =
-=D0=A1=D1=80=D1=8F=D0=B4=D0=B0, 2013, =D0=9C=D0=B0=D1=80=D1=82 27 23:12=
-:09 EET
- >
- >
- >* Pali Roh=C3=A1r  [130327 14:09]:
- >> On Wednesday 27 March 2013 21:56:07 Tony Lindgren wrote:
- >> > * Pali Roh=C3=A1r  [130324 07:31]:
- >> > > it is possible to upstream errata 430973 workaround for
- >> > > RX-51?
- >> >=20
- >> > I think we should make the SMC handling a generic function for
- >> > ARM.
- >> >=20
- >> > AFAIK just the SMC call numbering is different for various
- >> > implementations. So the handler and passing of the parameters
- >> > seems like it should be generic.
- >> >=20
- >>=20
- >> Not only, look at freemangordon's email:=20
- >> https://lkml.org/lkml/2013/3/1/62
- >
- >Seem like you may need some SoC specific wrapper to the
- >generic function to deal with the params. But still seems
- >like we can have an ARM generic smc funtion.
- >
- >Regards,
- >
- >Tony
- >
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
