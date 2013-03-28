@@ -1,14 +1,11 @@
 From: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH-V2 6/6] ARM: dts: AM33XX: Add default pinctrl binding for
- UART0 device
-Date: Thu, 28 Mar 2013 12:12:43 +0530
-Message-ID: <1364452963-22083-7-git-send-email-hvaibhav@ti.com>
-References: <1364452963-22083-1-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V2 0/6] ARM: dts: AM33XX: Cleanup and pinctrl binding support
+Date: Thu, 28 Mar 2013 12:12:37 +0530
+Message-ID: <1364452963-22083-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1364452963-22083-1-git-send-email-hvaibhav-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
  <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
@@ -23,92 +20,29 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: mporter-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add pin control binding for UART0 device nodes in all
-board specific DT files.
+This patch series fixes the numbering schema for I2C and GPIO
+module and adds the pin-control binding for I2C, UART, GPIO-LED across
+supported platforms (EVM, EVM-SK and Bone).
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Acked-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am335x-bone.dts  |   10 ++++++++++
- arch/arm/boot/dts/am335x-evm.dts   |   10 ++++++++++
- arch/arm/boot/dts/am335x-evmsk.dts |   10 ++++++++++
- 3 files changed, 30 insertions(+), 0 deletions(-)
+I have divided patches based on functionality and _not_
+into EVM/Board perspective.
 
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index be2c501..bfba6fc 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -43,10 +43,20 @@
- 				0x18c 0x30	/* i2c0_scl.i2c0_scl PULLUP | INPUTENABLE | MODE0 */
- 			>;
- 		};
-+
-+		uart0_pins: pinmux_uart0_pins {
-+			pinctrl-single,pins = <
-+				0x170 0x30	/* uart0_rxd.uart0_rxd PULLUP | INPUTENABLE | MODE0 */
-+				0x174 0x00	/* uart0_txd.uart0_txd PULLDOWN | MODE0 */
-+			>;
-+		};
- 	};
+Changes from V1: (no code change from last version, except uart)
+	- Added Acked-by from Matt Porter and Peter Korsgaard
+	  on couple of patches.
+	- Added new patch (PATCH 5/6) in the series for UART
+	  indexing fix
 
- 	ocp {
- 		uart0: serial@44e09000 {
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&uart0_pins>;
-+
- 			status = "okay";
- 		};
+Vaibhav Hiremath (6):
+  ARM: dts: AM33XX: Fix the i2c numbering to match hardware/TRM
+  ARM: dts: AM33XX: Add default pinctrl binding for I2C device
+  ARM: dts: AM33XX: Fix gpio numbering to match hardware/TRM
+  ARM: dts: AM33XX: Add pinctrl binding to gpio-leds node
+  ARM: dts: AM33XX: Fix uart numbering to match hardware/TRM
+  ARM: dts: AM33XX: Add default pinctrl binding for UART0 device
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 2f3f5be..f598ed2 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -58,10 +58,20 @@
- 				0x15c 0x32	/* spi0_cs0.i2c1_scl PULLUP | INPUTENABLE | MODE2 */
- 			>;
- 		};
-+
-+		uart0_pins: pinmux_uart0_pins {
-+			pinctrl-single,pins = <
-+				0x170 0x30	/* uart0_rxd.uart0_rxd PULLUP | INPUTENABLE | MODE0 */
-+				0x174 0x00	/* uart0_txd.uart0_txd PULLDOWN | MODE0 */
-+			>;
-+		};
- 	};
-
- 	ocp {
- 		uart0: serial@44e09000 {
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&uart0_pins>;
-+
- 			status = "okay";
- 		};
-
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index bcd7028..0eec644 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -58,10 +58,20 @@
- 				0x18c 0x30	/* i2c0_scl.i2c0_scl PULLUP | INPUTENABLE | MODE0 */
- 			>;
- 		};
-+
-+		uart0_pins: pinmux_uart0_pins {
-+			pinctrl-single,pins = <
-+				0x170 0x30	/* uart0_rxd.uart0_rxd PULLUP | INPUTENABLE | MODE0 */
-+				0x174 0x00	/* uart0_txd.uart0_txd PULLDOWN | MODE0 */
-+			>;
-+		};
- 	};
-
- 	ocp {
- 		uart0: serial@44e09000 {
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&uart0_pins>;
-+
- 			status = "okay";
- 		};
-
---
-1.7.0.4
+ arch/arm/boot/dts/am335x-bone.dts  |   37 +++++++++++++++++++++-----
+ arch/arm/boot/dts/am335x-evm.dts   |   50 ++++++++++++++++++++++++++++-------
+ arch/arm/boot/dts/am335x-evmsk.dts |   45 ++++++++++++++++++++++++--------
+ arch/arm/boot/dts/am33xx.dtsi      |   38 +++++++++++++-------------
+ 4 files changed, 123 insertions(+), 47 deletions(-)
