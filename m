@@ -1,37 +1,33 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 7/9] ARM: OMAP4+: Move the CPU wakeup prepare code
-	under smp_prepare_cpus()
-Date: Thu, 28 Mar 2013 09:46:22 +0000
-Message-ID: <20130328094622.GR30923@n2100.arm.linux.org.uk>
-References: <1361373527-21695-1-git-send-email-santosh.shilimkar@ti.com> <1361373527-21695-8-git-send-email-santosh.shilimkar@ti.com> <878v587kco.fsf@linaro.org> <515342D2.2080409@ti.com>
+Subject: Re: [PATCH] arm: omap: RX-51: ARM errata 430973 workaround
+Date: Thu, 28 Mar 2013 09:50:12 +0000
+Message-ID: <20130328095011.GS30923@n2100.arm.linux.org.uk>
+References: <517283541.62064.1362124023621.JavaMail.apache@mail81.abv.bg> <20130306175120.GP11806@atomide.com> <201303062013.16302@pali> <201303241526.59275@pali> <20130327205606.GN10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46848 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756446Ab3C1Jqf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 05:46:35 -0400
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <515342D2.2080409@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20130327205606.GN10155@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Nishanth Menon <nm@ti.com>, linux-kernel@vger.kernel.org, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Mar 28, 2013 at 12:34:50AM +0530, Santosh Shilimkar wrote:
-> On Thursday 28 March 2013 12:15 AM, Kevin Hilman wrote:
-> > Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
-> > 
-> >> Move the secondary CPU wakeup prepare code under smp_prepare_cpus(). 
-> > 
-> > Why?
-> > 
-> Because that code belongs to smp_prepare_cpus(). As I said
-> in earlier patches, it was remainder of the pen release code
-> which was borrowed from ARM code initially.
+On Wed, Mar 27, 2013 at 01:56:07PM -0700, Tony Lindgren wrote:
+> * Pali Roh=E1r <pali.rohar@gmail.com> [130324 07:31]:
+> > it is possible to upstream errata 430973 workaround for RX-51?
+>=20
+> I think we should make the SMC handling a generic function for ARM.
+>=20
+> AFAIK just the SMC call numbering is different for various
+> implementations. So the handler and passing of the parameters
+> seems like it should be generic.
 
-What about hotplug after the system is suspended?  Is this setup
-preserved by the secure ROM?
+SMC calls vary greatly in how they are handled.  The only thing that's
+generic is issuing the SMC call.  All the setup and what arguments are
+required are completely different from SoC to SoC.
 
-If not, it really needs to be part of the CPU bringup, not the
-boot-time-only preparation code.
+=46or example, some SoCs require arguments passed via memory.  Others l=
+ike
+OMAP its via registers.
