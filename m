@@ -1,128 +1,41 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 08/28] ARM: OMAP: CM-T35: Kconfig option for the display
- options
-Date: Thu, 28 Mar 2013 19:02:08 +0200
-Message-ID: <51547790.7010108@ti.com>
-References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com> <1364474962-20439-9-git-send-email-tomi.valkeinen@ti.com> <51546B2C.2030101@compulab.co.il>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [GIT PULL] ARM: OMAP2+: Generic cleanups for 3.10
+Date: Thu, 28 Mar 2013 10:08:58 -0700
+Message-ID: <87ppyj4fkl.fsf@linaro.org>
+References: <1363768789-17929-1-git-send-email-santosh.shilimkar@ti.com>
+	<20130327180321.GB10155@atomide.com> <5153431E.60007@ti.com>
+	<20130327195839.GF10155@atomide.com>
+	<448912EABC71F84BBCADFD3C67C4BE52784FD7@DBDE01.ent.ti.com>
+	<5153F4CF.505@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig26CA1F6FE6837F1AEBA7985F"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41481 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755610Ab3C1RCN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Mar 2013 13:02:13 -0400
-In-Reply-To: <51546B2C.2030101@compulab.co.il>
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:38123 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756896Ab3C1RJC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 13:09:02 -0400
+Received: by mail-pb0-f54.google.com with SMTP id rq13so1856648pbb.13
+        for <linux-omap@vger.kernel.org>; Thu, 28 Mar 2013 10:09:01 -0700 (PDT)
+In-Reply-To: <5153F4CF.505@ti.com> (Santosh Shilimkar's message of "Thu, 28
+	Mar 2013 13:14:15 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Mike Rapoport <mike@compulab.co.il>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---------------enig26CA1F6FE6837F1AEBA7985F
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-On 2013-03-28 18:09, Igor Grinberg wrote:
-> On 03/28/13 14:49, Tomi Valkeinen wrote:
->> Boards with multiple display options for the same video bus have all t=
-he
->> possible linux display devices present at the same time. Only one of
->> those devices should be used at a time, as the video bus cannot be
->> shared.
->=20
-> Yes, only one can be used at a time, but you can switch at runtime...
+> On Thursday 28 March 2013 01:39 AM, Shilimkar, Santosh wrote:
+>> Sorry for top posting ...
+>> I will pick the ack and update commit log to prepare new pull request
+>> for you. 
+>> 
+> I have updated the branch picking acks and updating changelogs and same
+> is available below. No change in code.
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.10/omap_generic_cleanup_v2
+>
 
-Yep. But the panel drivers need to know about this, and they cannot do
-more or less anything in the driver probe function, which I think should
-be the place to reserve resources and do initialization. With the
-current model that would lead to multiple drivers trying to acquire the
-same resources.
+Thanks for the changelog updates.  No more concerns from me.
 
->> This model is hacky, and will be changed in the forthcoming DSS patche=
-s
->> to a model where only one display device can be present on a single
->> video bus.
->=20
-> What do you mean by "present"?
-> Is it active? or registered? or compiled in?
-
-I mean that only one device can be registered. Well, nothing strictly
-prevents having multiple devices registered, but if the devices have
-matching drivers, the drivers would acquire the same resources. Possibly
-the same gpios, but at least the same video bus.
-
->> This patch creates Kconfig options to select which of the display
->> devices is present on the board. While this model is also somewhat
->> hacky, and prevents us from using a single kernel image for all the
->> display options, it allows us to make the DSS driver changes for DT
->> adaptation. And with DT, the information about display devices can be
->> passed from the bootloader, solving the mess.
->=20
-> Hmmm, the fact that we cannot use the same binary for multiple displays=
-=2E..
-> This does not sound right and good at all...
-> While we try to move to support multiple platforms in the same binary, =
-we
-> cannot support multiple displays? I agree that the multiplatform stuff =
-is
-> not really related, but you know what I mean...
-
-Yes, I quite agree that this sucks =3D). There are a few reasons I chose
-to try this approach:
-
-- The whole multi-display feature is hacky
-
-- DT support for DSS has been in development too long time. We really
-need it, preferably yesterday. This change helps getting DT support ready=
-=2E
-
-- Common Display Framework won't (most likely) support this kind of
-feature, as the feature itself is rather hacky, so this would anyway
-disappear.
-
-- DT support should solve this (except for runtime switching), and the
-board files are on the way out (as far as I understand). So in that
-sense this is temporary.
-
-- Keeping this feature functional consumes considerable amount of
-man-hours, which are in short supply.
-
-I still feel quite bad about this, though. Any ideas how to manage this
-better are appreciated.
-
-> I bet there must be a much better solution for DT support.
-
-Yes, I think I covered that in the last email. DT will solve the issue,
-except for runtime switching, which is still open. I'm not sure how
-these board specific drivers would be implemented.
-
- Tomi
-
-
-
---------------enig26CA1F6FE6837F1AEBA7985F
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRVHeQAAoJEPo9qoy8lh71CsEP+wdXrjKADCr0V/+dGruR+kbY
-3dqY9C0dj7JelrWxO3Ysk0e3v60fl8FolXRRnCMfExdwABe3arPC/aSGy8kw7WEZ
-zKdfnmL8WXd30+aXrRegi4jKfQDUBW/6XasRgmovC3BFwrdARol2P0jVElehEOKC
-AZ/bvejIyDuE8SKPaqIcBuHCNKOSgAmEqyF4KJ3WaE9NVW5I1cjLb7yGRyelI/63
-oujq5UlxNBoI6hodasnJyq+Xxu5I+UDNsricz1MskeM1Ju1uKkMHIwxy0z0+CFOS
-wanJi8OTQMAodmj/nbh7PB48+qlvL8h37J1/8fvfjdgt5pKPrZRQTDgwRqQBbl02
-5yoNHtI28xuywv0A+Wd2CMltog5diJMx1ek8GBhYbbalz40e6RDjV2d1Vp5PVdLd
-fvwOV7GZSlEqvFjX7pffABWoRfpsxn7xcqS7vML9OxV8EVW6R6EqkkbNLw+vbQ1W
-o4eSkDBGNPcRGAyM7hscVVr98SvgHPejywiIM2BWRhHJNzAl1O8wflUM08PZ7oV/
-5gXiPHDZJNuFQ3ECIQVwMHsIxvzYFQNVQxYx8up+cuIVDbZSQc4aH2FyrK3R/HrW
-xcpPQYeF0bPsZBpSG6V6ObHw2AEyEQR7ssd69Cu8gUAOtJwxgoxpkwWVWo8AUmSm
-rrFdudinPONFeXiFxGAW
-=EgJz
------END PGP SIGNATURE-----
-
---------------enig26CA1F6FE6837F1AEBA7985F--
+Kevin
