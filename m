@@ -1,77 +1,78 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 23/28] ARM: OMAP: LDP: use new generic-dpi-panel platform driver
-Date: Thu, 28 Mar 2013 14:49:17 +0200
-Message-ID: <1364474962-20439-24-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 20/28] ARM: OMAP: 3430SDP: use new TFP410 platform driver
+Date: Thu, 28 Mar 2013 14:49:14 +0200
+Message-ID: <1364474962-20439-21-git-send-email-tomi.valkeinen@ti.com>
 References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55095 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756118Ab3C1MuP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Mar 2013 08:50:15 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:57270 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754669Ab3C1MuL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Mar 2013 08:50:11 -0400
 In-Reply-To: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use the new generic-dpi-panel platform driver instead of the old
-omap_dss_driver.
+Use the new TFP410 platform driver instead of the old omap_dss_driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-ldp.c |   22 +++++++++-------------
- 1 file changed, 9 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/board-3430sdp.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index b12fe96..78e0470 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -206,27 +206,22 @@ static void ldp_panel_disable_lcd(struct omap_dss_device *dssdev)
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 4acd4aa..2f9d4e0 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -119,27 +119,27 @@ static void __init sdp3430_display_init(void)
  }
  
- static struct panel_generic_dpi_data ldp_panel_data = {
-+	.display_name		= "lcd",
+ static struct tfp410_platform_data dvi_panel = {
++	.name			= "dvi",
 +	.source			= "dpi.0",
- 	.name			= "nec_nl2432dr22-11b",
-+	.data_lines		= 18,
- 	.platform_enable	= ldp_panel_enable_lcd,
- 	.platform_disable	= ldp_panel_disable_lcd,
++	.data_lines		= 24,
+ 	.power_down_gpio	= -1,
+ 	.i2c_bus_num		= -1,
  };
  
--static struct omap_dss_device ldp_lcd_device = {
--	.name			= "lcd",
--	.driver_name		= "generic_dpi_panel",
+-static struct omap_dss_device sdp3430_dvi_device = {
+-	.name			= "dvi",
 -	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.phy.dpi.data_lines	= 18,
--	.data			= &ldp_panel_data,
--};
--
--static struct omap_dss_device *ldp_dss_devices[] = {
--	&ldp_lcd_device,
-+static struct platform_device ldp_lcd_device = {
-+	.name			= "generic_dpi_panel",
+-	.driver_name		= "tfp410",
+-	.data			= &dvi_panel,
+-	.phy.dpi.data_lines	= 24,
++static struct platform_device sdp3430_dvi_device = {
++	.name			= "tfp410",
 +	.id			= 0,
-+	.dev.platform_data	= &ldp_panel_data,
++	.dev.platform_data	= &dvi_panel,
  };
  
- static struct omap_dss_board_info ldp_dss_data = {
--	.num_devices	= ARRAY_SIZE(ldp_dss_devices),
--	.devices	= ldp_dss_devices,
--	.default_device	= &ldp_lcd_device,
-+	.default_display_name = "lcd",
+ static struct omap_dss_device *sdp3430_dss_devices[] = {
+-	&sdp3430_dvi_device,
+ 	&sdp3430_tv_device,
  };
  
- static void __init ldp_display_init(void)
-@@ -364,6 +359,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
- 
- static struct platform_device *ldp_devices[] __initdata = {
- 	&ldp_gpio_keys_device,
-+	&ldp_lcd_device,
+ static struct omap_dss_board_info sdp3430_dss_data = {
+ 	.num_devices	= ARRAY_SIZE(sdp3430_dss_devices),
+ 	.devices	= sdp3430_dss_devices,
+-	.default_device	= &sdp3430_dvi_device,
++	.default_display_name = "dvi",
  };
  
- #ifdef CONFIG_OMAP_MUX
+ #elif defined(CONFIG_MACH_OMAP_3430SDP_EXPANSION_LCD)
+@@ -612,6 +612,9 @@ static void __init omap_3430sdp_init(void)
+ 	board_smc91x_init();
+ 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
+ 	sdp3430_display_init();
++#if defined(CONFIG_MACH_OMAP_3430SDP_EXPANSION_DVI)
++	platform_device_register(&sdp3430_dvi_device);
++#endif
+ 	enable_board_wakeup_source();
+ 	usbhs_init(&usbhs_bdata);
+ }
 -- 
 1.7.10.4
 
