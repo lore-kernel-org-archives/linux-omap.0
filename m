@@ -1,42 +1,27 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC] dmaengine: omap-dma: Start DMA without delay
-Date: Fri, 29 Mar 2013 17:31:00 +0000
-Message-ID: <20130329173100.GV30923@n2100.arm.linux.org.uk>
-References: <1364566323-24144-1-git-send-email-peter.ujfalusi@ti.com>
+From: <info@privateassignment.com>
+Subject: Private Assignment
+Date: Fri, 29 Mar 2013 17:56:06 -0500 (CDT)
+Message-ID: <201303292256.r2TMu6UX065487@mars.uplync.com>
+Reply-To: kamara.william147@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48091 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756537Ab3C2Rbf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Mar 2013 13:31:35 -0400
-Content-Disposition: inline
-In-Reply-To: <1364566323-24144-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from mx2.getgoin.net ([208.73.196.197]:54069 "EHLO mx2.getgoin.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755945Ab3C2WCT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Mar 2013 18:02:19 -0400
+Received: from mars.uplync.com (mars.uplync.com [208.73.196.198])
+	by mx2.getgoin.net (Postfix) with ESMTP id EB7061C06AA
+	for <linux-omap@vger.kernel.org>; Fri, 29 Mar 2013 16:57:41 -0500 (CDT)
+Received: from mars.uplync.com (localhost.uplync.com [127.0.0.1])
+	by mars.uplync.com (Postfix) with ESMTP id 2B1208BD22
+	for <linux-omap@vger.kernel.org>; Fri, 29 Mar 2013 17:56:06 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: linux-omap@vger.kernel.org
 
-On Fri, Mar 29, 2013 at 03:12:03PM +0100, Peter Ujfalusi wrote:
-> Remove the use of a tasklet to start the DMA channel when issue_pending is
-> called.
-> The use of tasklet delays the DMA start which can cause issues at drivers,
-> for example the audio drivers expect that the DMA is started right away.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
-> Hi Russell,
-> 
-> I know you are against removing the tasklet since you have planed to move the
-> omap-dma to use runtime/dynamic DMA channel use.
-> I have looked at the amba-pl08x.c driver which is doing that exactly (as you
-> pointed out that to me). AMBA did not use tasklet either and I'm sure we can
-> change the omap-dma driver to do the same in a same way as we could have done it
-> with the tasklet use.
+I need a Personal Representative to work in your area on part time and i will pay six hundred dollars per week. Kindly send your name & location for more info.
 
-It's rather sad that you're ignoring what I'm saying, and going by what
-another DMA engine driver - which is self contained - is doing, rather
-than listening to my arguments against that approach.
 
-I think in return I'll just ignore this patch, showing you the same
-respect you show me.  Congratuations.
+
