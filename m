@@ -1,39 +1,108 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: NAND: ecc-opt=hw-romcode == OMAP_ECC_HAMMING_CODE_HW_ROMCODE
-Date: Fri, 29 Mar 2013 10:27:10 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9A5B14@DBDE01.ent.ti.com>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: Re: [PATCH] arm/dts: OMAP3: fix pinctrl-single configuration
+Date: Fri, 29 Mar 2013 11:52:57 +0100
+Message-ID: <1364554377.4634.19.camel@mars>
+References: <1364458106.3757.11.camel@mars>
+	 <20130328163854.GV10155@atomide.com>  <1364549848.4634.13.camel@mars>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33177 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751593Ab3C2K1P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Mar 2013 06:27:15 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id r2TARDTk008329
-	for <linux-omap@vger.kernel.org>; Fri, 29 Mar 2013 05:27:14 -0500
-Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id r2TARCQq018950
-	for <linux-omap@vger.kernel.org>; Fri, 29 Mar 2013 15:57:12 +0530 (IST)
-Content-Language: en-US
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:49376 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753149Ab3C2KxD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Mar 2013 06:53:03 -0400
+Received: by mail-ea0-f174.google.com with SMTP id m14so165500eaj.19
+        for <linux-omap@vger.kernel.org>; Fri, 29 Mar 2013 03:53:01 -0700 (PDT)
+In-Reply-To: <1364549848.4634.13.camel@mars>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
 
-Hi,
+On Fri, 2013-03-29 at 10:37 +0100, Christoph Fritz wrote:
+> On Thu, 2013-03-28 at 09:38 -0700, Tony Lindgren wrote:
+> > * Christoph Fritz <chf.fritz@googlemail.com> [130328 01:12]:
+> > > - Fix 'function-mask' referring to TRM Section 7.4.4:
+> > >   "Pad Functional Multiplexing and Configuration".
+> > > - Fix 'omap3_pmx_core' referring to TRM Table 7-4:
+> > >   "Core Control Module Pad Configuration Register Fields"
+> > > - Fix 'omap3_pmx_wkup' referring to TRM Table 7-6:
+> > >   "Wake-Up Control Module Pad Configuration Register Fields".
+> > 
+> > Maybe mention which TRM this is so people will know.
+> >  
+> > > Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
+> > > ---
+> > >  arch/arm/boot/dts/omap3.dtsi |   12 ++++++------
+> > >  1 file changed, 6 insertions(+), 6 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> > > index 1acc261..6ce3b5c 100644
+> > > --- a/arch/arm/boot/dts/omap3.dtsi
+> > > +++ b/arch/arm/boot/dts/omap3.dtsi
+> > > @@ -27,7 +27,7 @@
+> > >  	};
+> > >  
+> > >  	/*
+> > > -	 * The soc node represents the soc top level view. It is uses for IPs
+> > > +	 * The soc node represents the soc top level view. It is used for IPs
+> > >  	 * that are not memory mapped in the MPU view or for the MPU itself.
+> > >  	 */
+> > >  	soc {
+> > > @@ -77,20 +77,20 @@
+> > >  
+> > >  		omap3_pmx_core: pinmux@48002030 {
+> > >  			compatible = "ti,omap3-padconf", "pinctrl-single";
+> > > -			reg = <0x48002030 0x05cc>;
+> > > +			reg = <0x48002030 0x234>;
+> > >  			#address-cells = <1>;
+> > >  			#size-cells = <0>;
+> > >  			pinctrl-single,register-width = <16>;
+> > > -			pinctrl-single,function-mask = <0x7fff>;
+> > > +			pinctrl-single,function-mask = <0x7f1f>;
+> > >  		};
+> > 
+> > Changing the size from 0x5cc to 0x234 misses the range ending at
+> > CONTROL_PADCONF_ETK_D14[31:16] 0x480025f8 that's listed at least in
+> > the 3630 TRM. Which TRM are you looking at?
+> 
+> I used TRM Omap35xx, and yes in the TRM Omap36xx 0x234 is fine. I'll fix
+> this in the next revision of this patch.
 
-Just wanted to enquire,
-if someone has used following configuration with earlier OMAP devices.
-
-ti,nand-ecc-opt = "hw-romcode";
-
-Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-	"hw-romcode"	gpmc hamming mode method & romcode layout
+I mean 0x5cc is fine :)
 
 
-which in earlier non-DT kernels would map to:
-ecc_opt == ' OMAP_ECC_HAMMING_CODE_HW_ROMCODE'
+> 
+> > Ack for the function-mask change for omap3, looks like those bits are not
+> > used.
+> >   
+> > > -		omap3_pmx_wkup: pinmux@0x48002a58 {
+> > > +		omap3_pmx_wkup: pinmux@0x48002a00 {
+> > >  			compatible = "ti,omap3-padconf", "pinctrl-single";
+> > > -			reg = <0x48002a58 0x5c>;
+> > > +			reg = <0x48002a00 0x54>;
+> > >  			#address-cells = <1>;
+> > >  			#size-cells = <0>;
+> > >  			pinctrl-single,register-width = <16>;
+> > > -			pinctrl-single,function-mask = <0x7fff>;
+> > > +			pinctrl-single,function-mask = <0x7f1f>;
+> > >  		};
+> > 
+> > Hmm I think I converted these from the legacy mux framework, that seems
+> > to be missing the wkup range between 0x2a00 - 0x2a58. So yes 0x2a00
+> > is the right start as otherwise we're missing some wkup registers.
+> > 
+> > But the size should be 0x50 instead of 0x54 as the JTAG_TDO[31:16] is
+> > already un-used in TRM?
+> > 
+> > Or it could be 0x60 if we want to map also the reserved GPIO128[31:16].
+> 
+> Why not 0x5c ? GPIO128[31:16] starts at 0x2a5a and its size is 2 bytes.
+> 
+>  Thanks
+>   -- Christoph
+> 
 
 
-with regards, pekon
+
