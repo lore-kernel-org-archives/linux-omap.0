@@ -1,99 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 08/28] ARM: OMAP: CM-T35: Kconfig option for the
- display options
-Date: Fri, 29 Mar 2013 08:47:33 -0700
-Message-ID: <20130329154732.GC10155@atomide.com>
-References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
- <1364474962-20439-9-git-send-email-tomi.valkeinen@ti.com>
- <51546B2C.2030101@compulab.co.il>
- <20130328165336.GW10155@atomide.com>
- <515479F6.9090005@ti.com>
- <20130328212837.GY10155@atomide.com>
- <51551841.9070704@ti.com>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: [PATCH v2] arm/dts: OMAP3: fix pinctrl-single configuration
+Date: Fri, 29 Mar 2013 17:32:05 +0100
+Message-ID: <1364574725.4634.51.camel@mars>
+References: <1364458106.3757.11.camel@mars>
+	 <20130328163854.GV10155@atomide.com> <1364549848.4634.13.camel@mars>
+	 <20130329151759.GB10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27572 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755731Ab3C2Prg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Mar 2013 11:47:36 -0400
-Content-Disposition: inline
-In-Reply-To: <51551841.9070704@ti.com>
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:58971 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753263Ab3C2QcL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Mar 2013 12:32:11 -0400
+Received: by mail-ea0-f180.google.com with SMTP id d10so278732eaj.11
+        for <linux-omap@vger.kernel.org>; Fri, 29 Mar 2013 09:32:09 -0700 (PDT)
+In-Reply-To: <20130329151759.GB10155@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Mike Rapoport <mike@compulab.co.il>
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [130328 21:32]:
-> On 2013-03-28 23:28, Tony Lindgren wrote:
-> > 
-> > How do you plan to change between LCD and DVI with DT? By using some
-> > custom driver modules?
-> 
-> I don't know, but I guess we need board specific drivers.
-> 
-> Do you know if there are other similar cases for other busses? I mean, I
-> think this is a similar case than, say, having two i2c devices with the
-> same i2c-id on the same bus. Only one of the devices can be enabled, the
-> other must be disconnected. And how the connect/disconnect is made is
-> board specific.
+ - Fix 'function-mask' referring to TRM (Omap 36xx) Section 13.4.4:
+   "Pad Functional Multiplexing and Configuration".
+ - Fix 'omap3_pmx_wkup' referring to TRM Table 13-6:
+   "Wkup Control Module Pad Configuration Register Fields".
 
-No good ideas, unless it all can be controlled via pinctrl framework?
+Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
+---
+ arch/arm/boot/dts/omap3.dtsi |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-With pinctrl framework the dss driver could request named modes like
-"dvi" and "lcd" for sets of pins. And the panel driver could implement
-pinctrl functions, so when a named mode "lcd" is requested by the dss
-driver, the data lines configured and GPIO and regulators get set.
-If we are really muxing the dss data lines, then using that might
-make sense.
-
-Note that there may be issues related to waiting sleeping regulators etc.
-
-> > There's the capebus coming that can be used for that too, but in most
-> > cases all the hardware is permanently connected with LCD and DVI. So
-> > sounds like capebus should only be needed for the add on boards.
-> 
-> True.
-> 
-> Well, depends on how you look at it. From one point of view there's no
-> real difference whether the disabled device is physically on the board
-> or not, as it has to be disconnected. The details depend on the bus, but
-> for example for DSI I think the disabled device has to be totally
-> removed from the DSI bus with some mux or such.
-
-Yes, so if we're really muxing lines, then maybe using the pinctrl
-framework makes sense until we have the capebus available?
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 1acc261..1997b41 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -27,7 +27,7 @@
+ 	};
  
-> But, from the other point of view, the devices are there, on the board,
-> and in some cases the HW has been designed to support switching the
-> displays during runtime.
-> 
-> So what I wish is that I could make the linux device for the display to
-> be removed when it's disabled. I believe that can be done, but I guess
-> it requires a board specific driver, with some custom user interface to
-> do that.
-
-Sounds like capebus will do that when it's available.
+ 	/*
+-	 * The soc node represents the soc top level view. It is uses for IPs
++	 * The soc node represents the soc top level view. It is used for IPs
+ 	 * that are not memory mapped in the MPU view or for the MPU itself.
+ 	 */
+ 	soc {
+@@ -81,16 +81,16 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			pinctrl-single,register-width = <16>;
+-			pinctrl-single,function-mask = <0x7fff>;
++			pinctrl-single,function-mask = <0x7f1f>;
+ 		};
  
-> And it would be different user interface than currently, which is again
-> not so nice. Currently the devices are always there, with their sysfs
-> files, and those sysfs files are used to enable/disable the devices. If
-> the device is removed, the sysfs files get removed also...
-
-You can probably keep the user interface the same if the dss driver
-requests changing the panels, and can probably support both pinctrl
-muxing and capebus pretty easily. The biggest change would be that when
-capebus is available there's more than one struct device for the panels,
-so the .dts files would have to be updated for that.
-
-Or maybe the pinctrl handler could already easily add and remove devices
-depending which named mode is requested by the dss driver, I don't know.
+-		omap3_pmx_wkup: pinmux@0x48002a58 {
++		omap3_pmx_wkup: pinmux@0x48002a00 {
+ 			compatible = "ti,omap3-padconf", "pinctrl-single";
+-			reg = <0x48002a58 0x5c>;
++			reg = <0x48002a00 0x5c>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			pinctrl-single,register-width = <16>;
+-			pinctrl-single,function-mask = <0x7fff>;
++			pinctrl-single,function-mask = <0x7f1f>;
+ 		};
  
-> But I would really like to get rid of the current model, which I think
-> was a very bad design decision.
+ 		gpio1: gpio@48310000 {
+-- 
+1.7.10.4
 
-Yes agreed, we need to get rid of the board-*.c file callback functions.
 
-Regards,
 
-Tony
