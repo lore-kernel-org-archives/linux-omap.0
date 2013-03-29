@@ -1,65 +1,104 @@
-From: Phillip Williams <p.williams@americanmediadistributioninc.com>
-Subject: Offer to Attend Events for AMD
-Date: Fri, 29 Mar 2013 10:50:15 -0400
-Message-ID: <fa3f6986ad43dedc840401dcf0db27f4@www.americanmediadistributioninc.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm/dts: OMAP3: fix pinctrl-single configuration
+Date: Fri, 29 Mar 2013 08:17:59 -0700
+Message-ID: <20130329151759.GB10155@atomide.com>
+References: <1364458106.3757.11.camel@mars>
+ <20130328163854.GV10155@atomide.com>
+ <1364549848.4634.13.camel@mars>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [204.12.61.126] ([204.12.61.126]:42967 "EHLO
-	s1051440.instanturl.net" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1755416Ab3C2O4H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Mar 2013 10:56:07 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:23885 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755628Ab3C2PSH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Mar 2013 11:18:07 -0400
+Content-Disposition: inline
+In-Reply-To: <1364549848.4634.13.camel@mars>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Christoph Fritz <chf.fritz@googlemail.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
 
-I would like to know if you would have any interest in covering some
-events for us in your area?
+* Christoph Fritz <chf.fritz@googlemail.com> [130329 02:41]:
+> On Thu, 2013-03-28 at 09:38 -0700, Tony Lindgren wrote:
+> > * Christoph Fritz <chf.fritz@googlemail.com> [130328 01:12]:
+> > > - Fix 'function-mask' referring to TRM Section 7.4.4:
+> > >   "Pad Functional Multiplexing and Configuration".
+> > > - Fix 'omap3_pmx_core' referring to TRM Table 7-4:
+> > >   "Core Control Module Pad Configuration Register Fields"
+> > > - Fix 'omap3_pmx_wkup' referring to TRM Table 7-6:
+> > >   "Wake-Up Control Module Pad Configuration Register Fields".
+> > 
+> > Maybe mention which TRM this is so people will know.
+> >  
+> > > Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
+> > > ---
+> > >  arch/arm/boot/dts/omap3.dtsi |   12 ++++++------
+> > >  1 file changed, 6 insertions(+), 6 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> > > index 1acc261..6ce3b5c 100644
+> > > --- a/arch/arm/boot/dts/omap3.dtsi
+> > > +++ b/arch/arm/boot/dts/omap3.dtsi
+> > > @@ -27,7 +27,7 @@
+> > >  	};
+> > >  
+> > >  	/*
+> > > -	 * The soc node represents the soc top level view. It is uses for IPs
+> > > +	 * The soc node represents the soc top level view. It is used for IPs
+> > >  	 * that are not memory mapped in the MPU view or for the MPU itself.
+> > >  	 */
+> > >  	soc {
+> > > @@ -77,20 +77,20 @@
+> > >  
+> > >  		omap3_pmx_core: pinmux@48002030 {
+> > >  			compatible = "ti,omap3-padconf", "pinctrl-single";
+> > > -			reg = <0x48002030 0x05cc>;
+> > > +			reg = <0x48002030 0x234>;
+> > >  			#address-cells = <1>;
+> > >  			#size-cells = <0>;
+> > >  			pinctrl-single,register-width = <16>;
+> > > -			pinctrl-single,function-mask = <0x7fff>;
+> > > +			pinctrl-single,function-mask = <0x7f1f>;
+> > >  		};
+> > 
+> > Changing the size from 0x5cc to 0x234 misses the range ending at
+> > CONTROL_PADCONF_ETK_D14[31:16] 0x480025f8 that's listed at least in
+> > the 3630 TRM. Which TRM are you looking at?
+> 
+> I used TRM Omap35xx, and yes in the TRM Omap36xx 0x234 is fine. I'll fix
+> this in the next revision of this patch.
 
-There would be NO COST at all for admission, and it would not be
-necessary for you to be an experienced reporter.
+OK 
+ 
+> > Ack for the function-mask change for omap3, looks like those bits are not
+> > used.
+> >   
+> > > -		omap3_pmx_wkup: pinmux@0x48002a58 {
+> > > +		omap3_pmx_wkup: pinmux@0x48002a00 {
+> > >  			compatible = "ti,omap3-padconf", "pinctrl-single";
+> > > -			reg = <0x48002a58 0x5c>;
+> > > +			reg = <0x48002a00 0x54>;
+> > >  			#address-cells = <1>;
+> > >  			#size-cells = <0>;
+> > >  			pinctrl-single,register-width = <16>;
+> > > -			pinctrl-single,function-mask = <0x7fff>;
+> > > +			pinctrl-single,function-mask = <0x7f1f>;
+> > >  		};
+> > 
+> > Hmm I think I converted these from the legacy mux framework, that seems
+> > to be missing the wkup range between 0x2a00 - 0x2a58. So yes 0x2a00
+> > is the right start as otherwise we're missing some wkup registers.
+> > 
+> > But the size should be 0x50 instead of 0x54 as the JTAG_TDO[31:16] is
+> > already un-used in TRM?
+> > 
+> > Or it could be 0x60 if we want to map also the reserved GPIO128[31:16].
+> 
+> Why not 0x5c ? GPIO128[31:16] starts at 0x2a5a and its size is 2 bytes.
 
-We are looking for members of the public to cover events such as Music
-Concerts, Sporting Events, Restaurant Openings, Movies, Gallery
-Openings, Shows, and others.
+Oops yes 0x5c as it's 2 bytes. So the original value is fine then.
 
-Since AMD has different pools relevant to experience (beginners up to
-experienced working reporters) should you not be familiar with our
-company, please take a moment to look into American Media Distribution
-with any source you deem trusted.
+Regards,
 
-Here is a link to the AMD BBB page for your convenience.
-
-http://www.bbb.org/new-jersey/business-reviews/news-service/american-media-distribution-in-howell-nj-90096055
-
-There is compensation for the events you would attend and again, there
-is no cost for admission to any of the events, and no obligation is
-required. 
-
-We will be accepting only a few people from your area so let us know
-if you are interested in obtaining any further information. 
-
-Phil Williams
-AMD Event Coverage Coordinator
-American Media Distribution(.com) or americanmediadist.com
-4057 US Hwy 9 North Howell NJ 07731
-888.319.6336 x714(by appointment only please)
-
--This e-mail and any accompanying attachments are confidential. This
-information is intended solely for the use of the individual to whom
-it is addressed. Any review, disclosure, copying, distribution, or use
-of this e-mail communication by others is strictly prohibited. THERE
-WILL BE NO FOLLOWING EMAILS SENT - If you are not the intended
-recipient, please notify us immediately by returning this message to
-the sender and delete all copies. Thank you for your cooperation.
--MacAfee Virus Checked - Virus Free-
-
--- no more reporter/event updates reply w NO MORE in subject
-
-
-
---
-
-
+Tony
