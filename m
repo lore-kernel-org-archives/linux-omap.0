@@ -1,122 +1,134 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 08/28] ARM: OMAP: CM-T35: Kconfig option for the display
- options
-Date: Fri, 29 Mar 2013 06:27:45 +0200
-Message-ID: <51551841.9070704@ti.com>
-References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com> <1364474962-20439-9-git-send-email-tomi.valkeinen@ti.com> <51546B2C.2030101@compulab.co.il> <20130328165336.GW10155@atomide.com> <515479F6.9090005@ti.com> <20130328212837.GY10155@atomide.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: dpll: enable bypass clock only when attempting
+ dpll bypass
+Date: Fri, 29 Mar 2013 10:56:05 +0530
+Message-ID: <515525ED.8040605@ti.com>
+References: <1364468381-10560-1-git-send-email-rnayak@ti.com> <20130328163257.5161.10373@quantum>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig393B913913493ABD640B7E6D"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59100 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45745 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752658Ab3C2E1y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Mar 2013 00:27:54 -0400
-In-Reply-To: <20130328212837.GY10155@atomide.com>
+	id S1750831Ab3C2F0S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Mar 2013 01:26:18 -0400
+In-Reply-To: <20130328163257.5161.10373@quantum>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Mike Rapoport <mike@compulab.co.il>
+To: Mike Turquette <mturquette@linaro.org>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
 
---------------enig393B913913493ABD640B7E6D
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 2013-03-28 23:28, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [130328 10:16]:
->> On 2013-03-28 18:53, Tony Lindgren wrote:
->>>
->>> Yes that's not nice from usability point of view. Can we still switch=
-
->>> between LCD and DVI during the runtime? I thought the issue was regis=
-tering
->>> multiple LCD panels where only one can exist at a time?
+On Thursday 28 March 2013 10:02 PM, Mike Turquette wrote:
+> Quoting Rajendra Nayak (2013-03-28 03:59:41)
+>> omap3_noncore_dpll_set_rate() attempts an enable of bypass clk as well
+>> as ref clk for every .set_rate attempt on a noncore DPLL, regardless of
+>> whether the .set_rate results in the DPLL being locked or put in bypass.
+>> Early at boot, while some of these DPLLs are programmed and locked
+>> (using .set_rate for the DPLL), this causes an ordering issue.
 >>
->> I guess I could've been more verbose in my descriptions. And I agree
->> this is not a nice change.
+>> For instance, on OMAP5, the USB DPLL derives its bypass clk from ABE DPLL.
+>> If a .set_rate of USB DPLL which programmes the M,N and locks it is called
+>> before the one for ABE, the enable of USB bypass clk (derived from ABE DPLL)
+>> then attempts to lock the ABE DPLL and fails as the M,N values for ABE
+>> are yet to be programmed.
 >>
->> No, we can't switch between the LCD and DVI. But that's not strictly D=
-SS
->> issue. The selection between LCD and DVI (or any other displays on the=
-
->> same bus) are board specific things, sometimes requiring board specifi=
-c
->> gpios or even things like i2c commands to muxes.
+>> To get rid of this ordering needs, enable bypass clk for a DPLL as part
+>> of its .set_rate only when its being put in bypass, and only enable the
+>> ref clk when its locked.
 >>
->> It works now because we have custom callbacks in the board files to do=
+> 
+> Hi Rajendra,
+> 
+> Another way to solve this problem would be to model the DPLLs as mux
+> clocks with a list of possible parents (e.g. clk->parents[2]).  Then set
+> the CLK_SET_RATE_PARENT flag on the USB DPLL which will allow to
 
->> those things, but it'll break with DT.
->=20
-> Well people are already used to changing between LCD and DVI.. So we
-> need some way of doing it with DT also.
->=20
-> How do you plan to change between LCD and DVI with DT? By using some
-> custom driver modules?
+But isn't this applicable only to the _current_ parent? The bypass_clk isn't
+the parent of DPLL USB when I try a .set_rate on it. Its the ref_clk.
 
-I don't know, but I guess we need board specific drivers.
+> propagate the rate request up to the ABE DPLL.  This should set the MN
+> dividers appropriately.
+> 
+>> Reported-by: Roger Quadros <rogerq@ti.com>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/dpll3xxx.c |   19 +++++++++----------
+>>  1 file changed, 9 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+>> index 3aed4b0..6e9873f 100644
+>> --- a/arch/arm/mach-omap2/dpll3xxx.c
+>> +++ b/arch/arm/mach-omap2/dpll3xxx.c
+>> @@ -480,20 +480,22 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
+>>         if (!dd)
+>>                 return -EINVAL;
+>>  
+>> -       __clk_prepare(dd->clk_bypass);
+>> -       clk_enable(dd->clk_bypass);
+>> -       __clk_prepare(dd->clk_ref);
+>> -       clk_enable(dd->clk_ref);
+> 
+> Is this safe?  I always thought that the programming sequence in the TRM
+> was to enable both the ref and bypass clocks during DPLL reprogramming.
+> Maybe I am misremembering or assuming that the code strictly followed
+> the TRM.
 
-Do you know if there are other similar cases for other busses? I mean, I
-think this is a similar case than, say, having two i2c devices with the
-same i2c-id on the same bus. Only one of the devices can be enabled, the
-other must be disconnected. And how the connect/disconnect is made is
-board specific.
+hmm, I didn't bother to check either. Will check, it would be strange though
+if such a sequence is indeed needed.
 
-> There's the capebus coming that can be used for that too, but in most
-> cases all the hardware is permanently connected with LCD and DVI. So
-> sounds like capebus should only be needed for the add on boards.
+regards,
+Rajendra
 
-True.
+> 
+> Regards,
+> Mike
+> 
+>> -
+>>         if (__clk_get_rate(dd->clk_bypass) == rate &&
+>>             (dd->modes & (1 << DPLL_LOW_POWER_BYPASS))) {
+>>                 pr_debug("%s: %s: set rate: entering bypass.\n",
+>>                          __func__, __clk_get_name(hw->clk));
+>>  
+>> +               __clk_prepare(dd->clk_bypass);
+>> +               clk_enable(dd->clk_bypass);
+>>                 ret = _omap3_noncore_dpll_bypass(clk);
+>>                 if (!ret)
+>>                         new_parent = dd->clk_bypass;
+>> +               clk_disable(dd->clk_bypass);
+>> +               __clk_unprepare(dd->clk_bypass);
+>>         } else {
+>> +               __clk_prepare(dd->clk_ref);
+>> +               clk_enable(dd->clk_ref);
+>> +
+>>                 if (dd->last_rounded_rate != rate)
+>>                         rate = __clk_round_rate(hw->clk, rate);
+>>  
+>> @@ -514,6 +516,8 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
+>>                 ret = omap3_noncore_dpll_program(clk, freqsel);
+>>                 if (!ret)
+>>                         new_parent = dd->clk_ref;
+>> +               clk_disable(dd->clk_ref);
+>> +               __clk_unprepare(dd->clk_ref);
+>>         }
+>>         /*
+>>         * FIXME - this is all wrong.  common code handles reparenting and
+>> @@ -525,11 +529,6 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
+>>         if (!ret)
+>>                 __clk_reparent(hw->clk, new_parent);
+>>  
+>> -       clk_disable(dd->clk_ref);
+>> -       __clk_unprepare(dd->clk_ref);
+>> -       clk_disable(dd->clk_bypass);
+>> -       __clk_unprepare(dd->clk_bypass);
+>> -
+>>         return 0;
+>>  }
+>>  
+>> -- 
+>> 1.7.9.5
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Well, depends on how you look at it. From one point of view there's no
-real difference whether the disabled device is physically on the board
-or not, as it has to be disconnected. The details depend on the bus, but
-for example for DSI I think the disabled device has to be totally
-removed from the DSI bus with some mux or such.
-
-But, from the other point of view, the devices are there, on the board,
-and in some cases the HW has been designed to support switching the
-displays during runtime.
-
-So what I wish is that I could make the linux device for the display to
-be removed when it's disabled. I believe that can be done, but I guess
-it requires a board specific driver, with some custom user interface to
-do that.
-
-And it would be different user interface than currently, which is again
-not so nice. Currently the devices are always there, with their sysfs
-files, and those sysfs files are used to enable/disable the devices. If
-the device is removed, the sysfs files get removed also...
-
-But I would really like to get rid of the current model, which I think
-was a very bad design decision.
-
- Tomi
-
-
-
---------------enig393B913913493ABD640B7E6D
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRVRhGAAoJEPo9qoy8lh714fEQAIH7eKKLhOZpZK+6238ohUNc
-M2Qswv4Bha+sjOMjFE4r7GePUEvzjt9EOgxtjYGM8+JnIwV2+dTljFRvEsim6Qfr
-qU8NhoMU6d41w32KLzxLNJLipPQVFdK+Jy+e5X/9kIUFxlwf1dEAWE1tr241ta1r
-bH4+9846rPpfx+41IighQ24Dh0P4oFsaxUrvpRrayoPOsKG6VKfcxbOr/YEAc10A
-Dd3jD2FQQzOgmMgRtRtwflgEGJMqzrV9+GgYV8XdHB+ktymu9i/wz6px6bTyZOfF
-fCi+a1kMUTqsMi5LpDbJO7LIOPth/8f5f173x2aEgWolrJV6JYUpOlT90JO0BEt7
-p78/cNPf7ysPyFsFGs04CSeRZpjBaH26QkfLg1PoDrzUDgu6GQBjKWYvucMHsYTC
-ft9PWLZOqOeSYxlFEAVvXdjVmKd7iepWqQulKlJp33xsuuC8cng3DIRms/H7jOma
-LTHWfrZQD8eyOcABO6YC+zrccVgB1ceQbUT1GWCXOpXtOrkSSBK6DszRTVdUvGXU
-K9FEmW08ry8WIBnXQzW7ptLOb257X/3jh8Du5yWx2wpiGU3eULD0CdSYQJHx+RbU
-b4H5Z7pRvuIwAvwbmW0F1U2EV0qtQqOydddPw0WV/rRQZvOA2wLW9HzTkoByiRIl
-UwiUr5sarodYxeXow7ZH
-=7V0N
------END PGP SIGNATURE-----
-
---------------enig393B913913493ABD640B7E6D--
