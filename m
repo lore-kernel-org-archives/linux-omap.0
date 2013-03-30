@@ -1,102 +1,95 @@
-From: Christoph Fritz <chf.fritz@googlemail.com>
-Subject: [RFC][BUG] arm/dts: OMAP3: set #interrupt-cells to two
-Date: Sat, 30 Mar 2013 09:21:28 +0100
-Message-ID: <1364631689.3767.7.camel@mars>
+From: Marc Murphy <marcmltd@marcm.co.uk>
+Subject: AM3517 USB and OTG issues 3.9-rc1 kernel.
+Date: Sat, 30 Mar 2013 09:01:21 +0000
+Message-ID: <F690310232FDDF4AB457E8B3EF90DDE07A474399@MARCM-SBS2011.marcmltd.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:52782 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753017Ab3C3IVe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Mar 2013 04:21:34 -0400
-Received: by mail-ee0-f47.google.com with SMTP id t10so459721eei.20
-        for <linux-omap@vger.kernel.org>; Sat, 30 Mar 2013 01:21:33 -0700 (PDT)
+Received: from nm4.bt.bullet.mail.ird.yahoo.com ([212.82.108.235]:35741 "EHLO
+	nm4.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755239Ab3C3JBq convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 30 Mar 2013 05:01:46 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch sets gpio #interrupt-cells from a falsely acquired '1' to '2'
-referring to Documentation/devicetree/bindings/gpio/gpio-omap.txt:
+Hello All,
+I have a question about the updates/changes that have been made to the USB OTG support in the latest 3.9-rc1 kernel
 
-      The first cell is the GPIO number.
-      The second cell is used to specify flags:
-        bits[3:0] trigger type and level flags:
-          1 = low-to-high edge triggered.
-          2 = high-to-low edge triggered.
-          4 = active high level-sensitive.
-          8 = active low level-sensitive.
+My platform is using an AM3517 processor and I am in the progress of moving from 3.6 to 3.9 kernel because I need some of the iio support in the latest 3.9 kernel.
+The last hurdle I have is in trying to get the USB OTG support working in HOST mode, as I am using it to connect a storage device to.
 
-But using this trigger cell in a board specific devicetree leads to a
-non-starting kernel. This is due to not yet enabled gpio-clocks while
-kernel/irq/irqdomain.c tries to set this trigger-flag (from the second
-interrupt-cell) to gpio-irq-controller.
+If I configure the kernel in the same way as I do for 3.6 it doesn't bring the interface up.
+The log output is ;
+[    0.897552] usbcore: registered new interface driver carl9170
+[    0.903900] usbcore: registered new interface driver cdc_ether
+[    0.910400] usbcore: registered new interface driver cdc_ncm
+[    0.917327] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[    0.924499] ehci-omap.0 supply hsusb0 not found, using dummy regulator
+[    0.931549] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
+[    0.937927] ehci-omap ehci-omap.0: new USB bus registered, assigned bus number 1
+[    1.949218] ehci-omap ehci-omap.0: irq 93, io mem 0x48064800
+[    1.968811] ehci-omap ehci-omap.0: USB 2.0 started, EHCI 1.00
+[    1.975067] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+[    1.982269] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.989929] usb usb1: Product: OMAP-EHCI Host Controller
+[    1.995544] usb usb1: Manufacturer: Linux 3.9.0-rc1 ehci_hcd
+[    2.001556] usb usb1: SerialNumber: ehci-omap.0
+[    2.007507] hub 1-0:1.0: USB hub found
+[    2.011596] hub 1-0:1.0: 3 ports detected
+[    2.016967] usbcore: registered new interface driver cdc_wdm
+[    2.023010] Initializing USB Mass Storage driver...
+[    2.028472] usbcore: registered new interface driver usb-storage
+[    2.034851] USB Mass Storage support registered.
+[    2.040283] usbcore: registered new interface driver usbserial
+[    2.046447] musb-hdrc: version 6.0, ?dma?, otg (peripheral+host)
+[    2.054107] 6Waiting for PHY clock good...
+[    2.070343] mousedev: PS/2 mouse device common for all mice
 
- Any ideas?
----
- arch/arm/boot/dts/omap3.dtsi |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+The output from 3.6 shows usb2 being initialised and recognising the connected device.
+[    1.369934] usbcore: registered new interface driver cdc_ether
+[    1.376373] usbcore: registered new interface driver cdc_ncm
+[    1.383361] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[    1.390380] ehci-omap.0 supply hsusb0 not found, using dummy regulator
+[    1.397399] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
+[    1.403717] ehci-omap ehci-omap.0: new USB bus registered, assigned bus number 1
+[    2.443176] ehci-omap ehci-omap.0: irq 77, io mem 0x48064800
+[    2.458770] ehci-omap ehci-omap.0: USB 2.0 started, EHCI 1.00
+[    2.464935] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+[    2.472106] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    2.479675] usb usb1: Product: OMAP-EHCI Host Controller
+[    2.485290] usb usb1: Manufacturer: Linux 3.6.0-rc6 ehci_hcd
+[    2.491241] usb usb1: SerialNumber: ehci-omap.0
+[    2.497039] hub 1-0:1.0: USB hub found
+[    2.501098] hub 1-0:1.0: 3 ports detected
+[    2.506134] usbcore: registered new interface driver cdc_wdm
+[    2.512329] usbcore: registered new interface driver uas
+[    2.517913] Initializing USB Mass Storage driver...
+[    2.523345] usbcore: registered new interface driver usb-storage
+[    2.529663] USB Mass Storage support registered.
+[    2.534484] musb-hdrc: version 6.0, ?dma?, otg (peripheral+host)
+[    2.541778] 6Waiting for PHY clock good...
+[    2.560424] musb-hdrc musb-hdrc: MUSB HDRC host driver
+[    2.566223] musb-hdrc musb-hdrc: new USB bus registered, assigned bus number 2
+[    2.574035] usb usb2: New USB device found, idVendor=1d6b, idProduct=0002
+[    2.581176] usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    2.588775] usb usb2: Product: MUSB HDRC host driver
+[    2.593994] usb usb2: Manufacturer: Linux 3.6.0-rc6 musb-hcd
+[    2.599945] usb usb2: SerialNumber: musb-hdrc
+[    2.605651] hub 2-0:1.0: USB hub found
+[    2.609680] hub 2-0:1.0: 1 port detected
+[    2.614166] musb-hdrc musb-hdrc: USB Host mode controller at d080e000 using PIO, IRQ 71
+[    2.623504] mousedev: PS/2 mouse device common for all mice
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 1997b41..e8e6b8f 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -99,7 +99,7 @@
- 			gpio-controller;
- 			#gpio-cells = <2>;
- 			interrupt-controller;
--			#interrupt-cells = <1>;
-+			#interrupt-cells = <2>;
- 		};
- 
- 		gpio2: gpio@49050000 {
-@@ -108,7 +108,7 @@
- 			gpio-controller;
- 			#gpio-cells = <2>;
- 			interrupt-controller;
--			#interrupt-cells = <1>;
-+			#interrupt-cells = <2>;
- 		};
- 
- 		gpio3: gpio@49052000 {
-@@ -117,7 +117,7 @@
- 			gpio-controller;
- 			#gpio-cells = <2>;
- 			interrupt-controller;
--			#interrupt-cells = <1>;
-+			#interrupt-cells = <2>;
- 		};
- 
- 		gpio4: gpio@49054000 {
-@@ -126,7 +126,7 @@
- 			gpio-controller;
- 			#gpio-cells = <2>;
- 			interrupt-controller;
--			#interrupt-cells = <1>;
-+			#interrupt-cells = <2>;
- 		};
- 
- 		gpio5: gpio@49056000 {
-@@ -135,7 +135,7 @@
- 			gpio-controller;
- 			#gpio-cells = <2>;
- 			interrupt-controller;
--			#interrupt-cells = <1>;
-+			#interrupt-cells = <2>;
- 		};
- 
- 		gpio6: gpio@49058000 {
-@@ -144,7 +144,7 @@
- 			gpio-controller;
- 			#gpio-cells = <2>;
- 			interrupt-controller;
--			#interrupt-cells = <1>;
-+			#interrupt-cells = <2>;
- 		};
- 
- 		uart1: serial@4806a000 {
--- 
-1.7.10.4
+Is there a known issue with the HOST support for OTG ? Or could there be something missing from the config ?
+I have looked but can't see anything obvious.
 
+Any help greatly appreciated.
+
+Thanks
+Marc
 
 
