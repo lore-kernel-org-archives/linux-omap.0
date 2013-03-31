@@ -1,34 +1,32 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC][PATCH 0/5] Introduce .get_voltage callback into voltdm
-Date: Sun, 31 Mar 2013 02:35:03 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1303310234110.6436@utopia.booyaka.com>
-References: <1349313365-5262-1-git-send-email-mturquette@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] arm: omap: RX-51: ARM errata 430973 workaround
+Date: Sun, 31 Mar 2013 09:37:52 +0200
+Message-ID: <20130331073752.GB13159@amd.pavel.ucw.cz>
+References: <1838509461.25809.1364682678664.JavaMail.apache@mail83.abv.bg>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:36029 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755406Ab3CaCfF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Mar 2013 22:35:05 -0400
-In-Reply-To: <1349313365-5262-1-git-send-email-mturquette@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1838509461.25809.1364682678664.JavaMail.apache@mail83.abv.bg>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>
+Cc: pali.rohar@gmail.com, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>, khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
 
-Hi Mike, Kevin,
+Hi!
 
-On Wed, 3 Oct 2012, Mike Turquette wrote:
-
-> From: Mike Turquette <mturquette@linaro.org>
+>  >You can do without ret variable... Also more detailed changelog would
+>  >be nice... like what exact problem this works around.
+>  >
 > 
-> This series creates a new callback for struct voltagedomain,
-> .get_voltage.  This fetches the voltage from hardware, if possible, and
-> returns it to the caller.  We use this call to populate
-> voltdm->nominal_volt at boot time.
+> Sure i can, but I don't see a reason to ignore SM's return value. Changelog of what?
+> 
+> I guess if you read the thread over the ML you'll have your questions already answered. 
+> Or google for "ARM errata 430973 workaround" :).
 
-Just checking on the status of this series.  Is this superseded by 
-Andrii's driver?  Does it need to be reposted for merging?  etc.
-
-
-- Paul
+I did my googling. But I should not have had to. Just put the
+explanatory link in commit log.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
