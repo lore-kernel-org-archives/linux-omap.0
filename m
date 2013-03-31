@@ -1,35 +1,38 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: LOCKDEP: 3.9-rc1: mount.nfs/4272 still has locks held!
-Date: Sun, 31 Mar 2013 00:07:01 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1303310004550.6436@utopia.booyaka.com>
-References: <20130305140312.243cb094@tlielax.poochiereds.net> <20130305190923.GI12795@htj.dyndns.org> <20130305183941.19ff39ce@tlielax.poochiereds.net> <20130305234700.GE1227@htj.dyndns.org> <20130306181608.GA18687@redhat.com> <20130306185304.GM1227@htj.dyndns.org>
- <CA+55aFwDogteVd=vwGHXDSASnga-nZZnKaQz9aO1yBU2CPKSbA@mail.gmail.com> <20130306212452.GO1227@htj.dyndns.org> <CA+55aFy49AWptMcvEzJxg95ikf-dC+-vcCPq-cnaCCwje3tyoQ@mail.gmail.com> <20130306213636.GP1227@htj.dyndns.org> <20130306214016.GQ1227@htj.dyndns.org>
- <20130313111727.63391672@tlielax.poochiereds.net>
+Subject: Re: AM3517 USB and OTG issues 3.9-rc1 kernel.
+Date: Sun, 31 Mar 2013 00:19:22 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1303310018350.6436@utopia.booyaka.com>
+References: <F690310232FDDF4AB457E8B3EF90DDE07A474399@MARCM-SBS2011.marcmltd.local>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:35692 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:35720 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754615Ab3CaAHC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Mar 2013 20:07:02 -0400
-In-Reply-To: <20130313111727.63391672@tlielax.poochiereds.net>
+	with ESMTP id S1754661Ab3CaATX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Mar 2013 20:19:23 -0400
+In-Reply-To: <F690310232FDDF4AB457E8B3EF90DDE07A474399@MARCM-SBS2011.marcmltd.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jeff Layton <jlayton@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, "Myklebust, Trond" <Trond.Myklebust@netapp.com>, Mandeep Singh Baines <msb@chromium.org>, Ming Lei <ming.lei@canonical.com>, "J. Bruce Fields" <bfields@fieldses.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-cifs@vger.kernel.org, linux-omap@vger.kernel.org
+To: Marc Murphy <marcmltd@marcm.co.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 13 Mar 2013, Jeff Layton wrote:
+Hi,
 
-> Of course, this is all a lot of work, and not something we can shove
-> into the kernel for 3.9 at this point. In the meantime, while Mandeep's
-> warning is correctly pointing out a problem, I think we ought to back
-> it out until we can fix this properly.
+On Sat, 30 Mar 2013, Marc Murphy wrote:
 
-Revert posted at:
+> Hello All,
+> I have a question about the updates/changes that have been made to the USB OTG support in the latest 3.9-rc1 kernel
+> 
+> My platform is using an AM3517 processor and I am in the progress of 
+> moving from 3.6 to 3.9 kernel because I need some of the iio support in 
+> the latest 3.9 kernel. The last hurdle I have is in trying to get the 
+> USB OTG support working in HOST mode, as I am using it to connect a 
+> storage device to.
+> 
+> If I configure the kernel in the same way as I do for 3.6 it doesn't bring the interface up.
 
-http://marc.info/?l=linux-kernel&m=136468829626184&w=2
-
-Andrew or Linus, care to pick this up before for 3.9-rc?
+Maybe try resending this and cc Felipe Balbi <balbi@ti.com> and 
+<linux-usb@vger.kernel.org>?
 
 
 - Paul
