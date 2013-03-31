@@ -1,155 +1,116 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 08/28] ARM: OMAP: CM-T35: Kconfig option for the display
- options
-Date: Sun, 31 Mar 2013 12:17:21 +0300
-Message-ID: <5157FF21.9000702@compulab.co.il>
-References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com> <1364474962-20439-9-git-send-email-tomi.valkeinen@ti.com> <51546B2C.2030101@compulab.co.il> <51547790.7010108@ti.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] OMAP3 ROM Random Number Generator support
+Date: Sun, 31 Mar 2013 11:28:12 +0200
+Message-ID: <201303311128.12698@pali>
+References: <201302281905.48546@pali> <201303281854.02847@pali> <20130328214411.GZ10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed;
+  boundary="nextPart4508047.TXkkfaCaca";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:55948 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755730Ab3CaJR2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 31 Mar 2013 05:17:28 -0400
-In-Reply-To: <51547790.7010108@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130328214411.GZ10155@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Juha Yrjola <juha.yrjola@solidboot.com>, Russell King <linux@arm.linux.org.uk>, Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?= =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Mike Rapoport <mike@compulab.co.il>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+--nextPart4508047.TXkkfaCaca
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Thursday 28 March 2013 22:44:11 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130328 10:58]:
+> > Here is new version of patch:
+> >=20
+> > --- a/arch/arm/mach-omap2/devices.c
+> > +++ b/arch/arm/mach-omap2/devices.c
+> > @@ -486,6 +486,23 @@ static void omap_init_mcspi(void)
+> >=20
+> >  static inline void omap_init_mcspi(void) {}
+> >  #endif
+> >=20
+> > +extern u32 *omap3_rom_rng_call(u32 id, u32 proc, u32 flags,
+> > u32 va_ptr); +
+> > +static struct platform_device omap3_rom_rng_device =3D {
+> > +	.name		=3D "omap3-rom-rng",
+> > +	.id		=3D -1,
+> > +	.dev	=3D {
+> > +		.platform_data	=3D omap3_rom_rng_call,
+> > +	},
+> > +};
+> > +
+> > +static void omap_init_rom_rng(void)
+> > +{
+> > +	if (!cpu_is_omap34xx() || omap_type() =3D=3D
+> > OMAP2_DEVICE_TYPE_GP) +		return;
+> > +	platform_device_register(&omap3_rom_rng_device);
+> > +}
+> > +
+> >=20
+> >  /**
+> > =20
+> >   * omap_init_rng - bind the RNG hwmod to the RNG
+> >   omap_device *
+>=20
+> This driver probably only works on Nokia boards because of the
+> different SMC call numbering. Until it's been verified on some
+> other HS omap34xx, I'd probably register this only from the
+> Nokia board-*.c file.
+>=20
 
+=46reemangordon, can you look at this smc and errara 430973 code if=20
+they could be merged? Really omap3_rom_rng_call function looks=20
+like n900 specific.
 
-On 03/28/13 19:02, Tomi Valkeinen wrote:
-> On 2013-03-28 18:09, Igor Grinberg wrote:
->> On 03/28/13 14:49, Tomi Valkeinen wrote:
->>> Boards with multiple display options for the same video bus have all the
->>> possible linux display devices present at the same time. Only one of
->>> those devices should be used at a time, as the video bus cannot be
->>> shared.
->>
->> Yes, only one can be used at a time, but you can switch at runtime...
-> 
-> Yep. But the panel drivers need to know about this, and they cannot do
-> more or less anything in the driver probe function, which I think should
-> be the place to reserve resources and do initialization. With the
-> current model that would lead to multiple drivers trying to acquire the
-> same resources.
+Link: https://lkml.org/lkml/2013/3/28/398
 
-Yep, this is a problem, but it only means that probably
-the platform device framework is not suitable for this.
+> > --- /dev/null
+> > +++ b/drivers/char/hw_random/omap3-rom-rng.c
+> > +static int omap3_rom_rng_probe(struct platform_device
+> > *pdev) +{
+> > +	printk(KERN_INFO "%s: initializing\n",
+> > omap3_rom_rng_name); +
+> > +	omap3_rom_rng_call =3D pdev->dev.platform_data;
+> > +	if (!omap3_rom_rng_call) {
+> > +		printk(KERN_ERR "%s: omap3_rom_rng_call is NULL\n",
+> > +		       omap3_rom_rng_name);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	setup_timer(&idle_timer, omap3_rom_idle_rng, 0);
+> > +	rng_clk =3D clk_get_sys("omap_rng", "ick");
+> > +	if (IS_ERR(rng_clk)) {
+> > +		printk(KERN_ERR "%s: unable to get RNG clock\n",
+> > +		       omap3_rom_rng_name);
+> > +		return IS_ERR(rng_clk);
+> > +	}
+>=20
+> You can use regular clk_get if you add the alias to
+> struct omap_clk omap3xxx_clks table.
+>=20
+> Regards,
+>=20
+> Tony
 
-What about having some kind of display manager which will have a private
-list of registered devices and will instantiate only those that are marked
-active?
-This also might be useful with DT.
+Tony, can you show me how?
 
-> 
->>> This model is hacky, and will be changed in the forthcoming DSS patches
->>> to a model where only one display device can be present on a single
->>> video bus.
->>
->> What do you mean by "present"?
->> Is it active? or registered? or compiled in?
-> 
-> I mean that only one device can be registered. Well, nothing strictly
-> prevents having multiple devices registered, but if the devices have
-> matching drivers, the drivers would acquire the same resources. Possibly
-> the same gpios, but at least the same video bus.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-Well, I think, we should follow/extend the already existing EDID concept...
-Instantiate a display device only when one has been "plugged in".
-By "plugged in" I mean enabled - made active.
+--nextPart4508047.TXkkfaCaca
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-> 
->>> This patch creates Kconfig options to select which of the display
->>> devices is present on the board. While this model is also somewhat
->>> hacky, and prevents us from using a single kernel image for all the
->>> display options, it allows us to make the DSS driver changes for DT
->>> adaptation. And with DT, the information about display devices can be
->>> passed from the bootloader, solving the mess.
->>
->> Hmmm, the fact that we cannot use the same binary for multiple displays...
->> This does not sound right and good at all...
->> While we try to move to support multiple platforms in the same binary, we
->> cannot support multiple displays? I agree that the multiplatform stuff is
->> not really related, but you know what I mean...
-> 
-> Yes, I quite agree that this sucks =). There are a few reasons I chose
-> to try this approach:
-> 
-> - The whole multi-display feature is hacky
-> 
-> - DT support for DSS has been in development too long time. We really
-> need it, preferably yesterday. This change helps getting DT support ready.
-
-Yes, but I don't think this should involve removing the existing
-functionality..
-Let me exaggerate a bit: this is like removing ARM support from mainline,
-so it will make less noise and headache to Linus...
-
-> 
-> - Common Display Framework won't (most likely) support this kind of
-> feature, as the feature itself is rather hacky, so this would anyway
-> disappear.
-
-Hmmm, I don't think it will disappear, but instead you will keep
-receiving hacky patches to bring that support in...
-So, IMO, it would be better designed to support this or at least
-keep it in mind, so there will no necessity for hacky patches...
-
-> 
-> - DT support should solve this (except for runtime switching), and the
-> board files are on the way out (as far as I understand). So in that
-> sense this is temporary.
-
-But not the runtime switching...
-The runtime switching should be done in the framework.
-
-> 
-> - Keeping this feature functional consumes considerable amount of
-> man-hours, which are in short supply.
-
-This is where you should request some help from the interested sides...
-And mailing lists are quite handy.
-
-> 
-> I still feel quite bad about this, though. Any ideas how to manage this
-> better are appreciated.
-> 
->> I bet there must be a much better solution for DT support.
-> 
-> Yes, I think I covered that in the last email. DT will solve the issue,
-> except for runtime switching, which is still open. I'm not sure how
-> these board specific drivers would be implemented.
-
-Well, at least the generic kernel display parameter will do more than
-half of the job.
-We can discuss the runtime switch stuff, but it is really a non-sense
-to compile a kernel for specific display...
-
-
-- -- 
-Regards,
-Igor.
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRV/8gAAoJEBDE8YO64EfaGOQQAIEnXwrHiZFlsMkCo5n8uUok
-qBBvEoFh5s1h2aaDNna3Q7tvKF42UlaGtZPqwl5bDUHimcEaLnNPy14MQJ/w/dHN
-AvDaI2ZoqGCYDVjVa0KUCWqL6Chm7ZpAoU9NeY3T3+U8S7kIeizz0oBJKoZ4bfpk
-g6Kq5vnbi36pCWFMqQe+7fEn5CHJNHTp+miPpq3Dsed2zkVgIg9re0nTxpQjlDHO
-+kLwJjrHbCqZoBMzE0MacaibROiHhccQ9Xtf25iVemyHQ6CP6g+ibJduFF7S4pOk
-kOwH1NY2QiFGDyA0Tj+kuYsbUYe3E1ds7FCu0/9g2KpiGRqSAqrFDghJzj1PojL+
-SxL47jgMkDUehEnBC2Eq3DD5jq4YRd2Sn989FH5ov9GWcyFhzBl72LHHhI78YRpu
-3QKGAnAcSVOyNcvkDNYhsJRqs9qUpnn9Z89jrx430ckK+SI4T4qiczn4aFEXFPxC
-Zqp8Rmvn95X5D9kMBgMScy1cHzkWRZ32GCKSRkOqnaFim2knxrflnX1Riu11jFCL
-k1AK+rKhqUB9FaME3Uyn07s+cTKCVX1TWmnP6Er9ObZkOKR2fR7ZwEmTbhA/m0pe
-iefjKf6gxuZV/FX+OnTvivorw2CMfGyweolu2JHj9cTuEGvddeq/LhKz+cEzdMVL
-Vpj9krR7L6Hq8dFqz8Dk
-=sr0U
+iEYEABECAAYFAlFYAawACgkQi/DJPQPkQ1J4eACgj3BxpHuap4RtxayaL9La1C9y
+8vkAn1WzN6qDwLLOlk4ZvwJTweq/KnOT
+=2mr3
 -----END PGP SIGNATURE-----
+
+--nextPart4508047.TXkkfaCaca--
