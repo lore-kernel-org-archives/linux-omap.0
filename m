@@ -1,90 +1,57 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 2/8] ARM: OMAP2+: hwmod: Cleanup sidle/mstandby programming
-Date: Mon, 1 Apr 2013 14:09:47 +0530
-Message-ID: <515947D3.50904@ti.com>
-References: <1361354272-18089-1-git-send-email-santosh.shilimkar@ti.com> <1361354272-18089-3-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1303310053351.6436@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] Revert "OMAP/serial: Fix incorrect Rx FIFO threshold
+ setting, LSR validation on Tx, and Tx FIFO IRQ generation"
+Date: Mon, 1 Apr 2013 09:13:04 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1304010844100.28273@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1304010519260.28273@utopia.booyaka.com> <CAOmKuSpttQJmrL=Htiz-Zc4voAF7CnG_GQYAO2onKpauwYjtvw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39904 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757832Ab3DAIkD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Apr 2013 04:40:03 -0400
-In-Reply-To: <alpine.DEB.2.00.1303310053351.6436@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:38896 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756924Ab3DAJNG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 05:13:06 -0400
+In-Reply-To: <CAOmKuSpttQJmrL=Htiz-Zc4voAF7CnG_GQYAO2onKpauwYjtvw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org
+To: Alexey Pelykh <alexey.pelykh@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Paul,
+Hi
 
->> _enable_wakeup() and _disable_wakeup() are expected to program the
->> OCP_SYSCONFIG.ENAWAKEUP bit.
-> 
-> These functions were originally intended to take care of everything needed 
-> for the IP block to wake up the chip, including the PRCM WKEN programming.  
-> ENAWAKEUP is simply one part of that.
-> 
->> Get rid of the additional sidle/mstandby programming in them, as its 
->> confusing (this is expected to be handled elsewhere as part of 
->> _enable_sysc()/__idle_sysc())
-> 
-> Sorry, why does the expectation exist for the code to enable and disable 
-> device wakeup to be part of _enable_sysc()/_idle_sysc(), rather than in 
-> functions called by _enable_sysc()/_idle_sysc()?
+On Mon, 1 Apr 2013, Alexey Pelykh wrote:
 
-It all comes down to if SIDLE_SMART_WKUP/MSTANDBY_SMART_WKUP programming
-be considered as 'idlemode' programming or 'enwakeup' programming.
-If you consider these are being part of 'enwakeup' progrmming, these should
-certainly be handled as part of _enable_wakeup() and _disable_wakeup().
+> Actually, I've tested my patch on DM3730,
 
-Today, in some cases, these are *also* handled as part of _enable_sysc()
-and _idle_sysc(). The way _enable_wakeup() is invoked from _enable_sysc()
-is also very inconsistent. For instance, for any IP which supports
-SYSC_HAS_MIDLEMODE and SYSC_HAS_ENAWAKEUP, we invoke _enable_wakeup()
-regardless of the MIDLEMODE programmmed.
-While in case of the IP supporting SYSC_HAS_SIDLEMODE, _enable_wakeup() is
-invoked only when the SIDLEMODE programmed is SMART or SMART_WKUP.
+What board, bootloader, and test steps did you use?  Can you post a dmesg?
 
-I understand the cleanups you are suggesting below as part of the movement
-of some of these things outside of mach-omap2.
-I was more looking at fixing the existing piece so its readable and does
-things more consistently.
+> and, at least, can prove that original settings of UART are incorrect 
+> according to TRM of processor. 
 
-regards,
-Rajendra
+The TRM could be buggy or wrong; or your patch could be correct as far as 
+the UART goes, but could be triggering a separate bug.  We're reaching the 
+end of the v3.9-rc fixes period, so we need to deal with the v3.9-rc 
+regression quickly so folks don't wind up with a broken v3.9 kernel.  
+Then the issue can be debugged and tested, and the revised fix targeted 
+for the v3.11 kernel.
 
-> 
->> and unnecessary.
-> 
-> So here's part of the reason why the module wakeup control functions 
-> should remain separate.  When the kernel boots, all the PM features should 
-> be disabled.  Then mach-omap2/pm*.c should enables PM features where 
-> they're needed.
-> 
-> Right now, mach-omap2/pm34xx.c sets module WKEN bits.  (These direct 
-> register accesses need to be moved as part of the cleanup work, of moving 
-> the PM/PRM/CM code into drivers.)  But the list of IP blocks that 
-> should be allowed to wake the system is board-dependent.
-> 
-> So really, what mach-omap2/pm34xx.c should do is to call into the hwmod 
-> enable-wakeups code to enable MPU wakeups for all the IP blocks that have 
-> some DT property set, something like 'enable-wakeups'.  Then the hwmod 
-> code should ensure that the PRM wakeup-enable and GRPSEL bits are 
-> programmed (by calling into the PRM driver code) and should then either 
-> set the ENAWAKEUP bits or put the module into smart_wkup MSTANDBY/MIDLE.
-> 
-> Similarly, when the PM driver is unloaded, it should set no-idle on all 
-> the IP blocks that were marked as wakeup-capable and disable the PRCM 
-> wakeup control bits, by calling some hwmod disable-wakeups code.
-> 
->> Well, the _enable_sysc()/_idle_sysc() handled only the mstandby modes
->> correctly. So fix them so they also handle the midle modes correctly
-> 
-> If there's a fix here, please split that out into a separate patch.
-> 
-> 
-> - Paul
-> 
+> What settings of UART you were using to reproduce issue? I'd like to 
+> kindly ask you to describe your test environment, since I've never 
+> experiences issues that you've described nor in debug console, nor in 
+> regular UART usage.
 
+Could you be more specific about what information you're looking for, 
+beyond what's in:
+
+http://www.pwsan.com/omap/testlogs/test_v3.9-rc5/20130331205513/pm/37xxevm/37xxevm_log.txt 
+
+?  As you can see from the log, it's using UART1 at 115kbps -- init=/bin/sh, 
+so no userspace to speak of.
+
+It's also worth mentioning that the 3730 Beagle XM here doesn't fail the 
+PM test, UART3 at 230kbps in a "full" userspace:
+
+http://www.pwsan.com/omap/testlogs/test_v3.9-rc5/20130331205513/pm/3730beaglexm/3730beaglexm_log.txt
+
+
+- Paul
