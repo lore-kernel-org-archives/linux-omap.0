@@ -1,50 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: standardize integration for AES &
- SHA/MD5 IP blocks for 3.10
-Date: Mon, 1 Apr 2013 10:08:12 -0700
-Message-ID: <20130401170811.GL10155@atomide.com>
-References: <alpine.DEB.2.00.1303302244540.6436@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] Revert "OMAP/serial: Fix incorrect Rx FIFO threshold
+ setting, LSR validation on Tx, and Tx FIFO IRQ generation"
+Date: Mon, 1 Apr 2013 17:09:24 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1304011654520.9148@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1304010519260.28273@utopia.booyaka.com> <CAOmKuSpttQJmrL=Htiz-Zc4voAF7CnG_GQYAO2onKpauwYjtvw@mail.gmail.com> <alpine.DEB.2.00.1304010844100.28273@utopia.booyaka.com> <CAOmKuSrABrPcZ=Yg1+LAHWbh9CdTYR0eUmJ2dd3z91oz0uu21g@mail.gmail.com>
+ <alpine.DEB.2.00.1304011008230.28273@utopia.booyaka.com> <CAOmKuSrbDc025Tj9xsqDebJ_KZdp_VnWAOs_OO5UAegV43JcDQ@mail.gmail.com> <CAOmKuSpbaKutLxbNihBRDz+B0Wt0XiPss-PcEHc-efCTvciNFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29024 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751751Ab3DARIO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 13:08:14 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1303302244540.6436@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:41039 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751350Ab3DARJZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 13:09:25 -0400
+In-Reply-To: <CAOmKuSpbaKutLxbNihBRDz+B0Wt0XiPss-PcEHc-efCTvciNFg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Alexey Pelykh <alexey.pelykh@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@linaro.org, balbi@ti.com
 
-* Paul Walmsley <paul@pwsan.com> [130330 15:51]:
-> Hi Tony,
-> 
-> The following changes since commit 78e52e026d288aad88b46bff0d94b05e145c4583:
-> 
->   ARM: OMAP2+: clock data: Remove CK_* flags (2013-03-18 09:57:39 -0600)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-a-for-3.10
-> 
-> for you to fetch changes up to 1cb804b93f506dfba5fd684a8ea63706aaa8e709:
-> 
->   ARM: AM33XX: hwmod: Update and uncomment AES0 module data (2013-03-30 15:52:17 -0600)
-> 
-> ----------------------------------------------------------------
-> For OMAP2+ SoCs, convert the SHA/MD5 and AES accelerator integration
-> code and data to use hwmod and omap_device. This is a prerequisite for
-> moving the hwmod code out of arch/arm.
-> 
-> Basic test logs are available at:
-> 
->    http://www.pwsan.com/omap/testlogs/sham_aes_integration_devel_3.10/20130330155313/
+On Mon, 1 Apr 2013, Alexey Pelykh wrote:
 
-Thanks pulling into omap-for-v3.10/crypto.
+> Please, correct me if I'm wrong, you're experiencing issues on Tx, or
+> Rx direction? You've said that characters are echoed incorrectly, but
+> haven't mentioned in what direction issue appears?
 
-Regards,
+The problem seems to be on the Rx path.  If I 'cat' a file, it's 
+transmitted without hesitation.  But when I paste in this Simpsons quote 
+into the serial console via X:
 
-Tony
- 
+-----
+Mr. Burns: A lifetime of working with nuclear power has left me with a healthy green glow... and left me as impotent as a Nevada boxing commissioner. 
+-----
+
+... everything up to the end of "boxing" is echoed immediately, and then 
+"commissioner." stutters its way across the screen over the next five 
+seconds.  
+
+
+- Paul
