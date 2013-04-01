@@ -1,73 +1,49 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 07/14] staging: ti-soc-thermal: Initialise counter_delay field for OMAP5 sensors
-Date: Mon, 1 Apr 2013 12:04:39 -0400
-Message-ID: <1364832286-17304-8-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCH 08/14] staging: ti-soc-thermal: Introduce HAS_COUNTER_DELAY feature for bandgap
+Date: Mon, 1 Apr 2013 12:04:40 -0400
+Message-ID: <1364832286-17304-9-git-send-email-eduardo.valentin@ti.com>
 References: <1364832286-17304-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59240 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758754Ab3DAQHu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Apr 2013 12:07:50 -0400
+Return-path: <linux-pm-owner@vger.kernel.org>
 In-Reply-To: <1364832286-17304-1-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-pm-owner@vger.kernel.org
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: devel@driverdev.osuosl.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, J Keerthy <j-keerthy@ti.com>, Eduardo Valentin <eduardo.valentin@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
 From: J Keerthy <j-keerthy@ti.com>
 
-Initialize all 3 temperature sensors of OMAP5 bandgap with the counter delay
-mask.
+Introduce HAS_COUNTER_DELAY feature for bandgap.
 
 Signed-off-by: J Keerthy <j-keerthy@ti.com>
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- .../staging/ti-soc-thermal/omap5-thermal-data.c    |    3 +++
- drivers/staging/ti-soc-thermal/omap5xxx-bandgap.h  |    1 +
- 2 files changed, 4 insertions(+), 0 deletions(-)
+ drivers/staging/ti-soc-thermal/ti-bandgap.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/staging/ti-soc-thermal/omap5-thermal-data.c b/drivers/staging/ti-soc-thermal/omap5-thermal-data.c
-index aa16f92..a5fa113 100644
---- a/drivers/staging/ti-soc-thermal/omap5-thermal-data.c
-+++ b/drivers/staging/ti-soc-thermal/omap5-thermal-data.c
-@@ -39,6 +39,7 @@ omap5430_mpu_temp_sensor_registers = {
- 	.mask_hot_mask = OMAP5430_MASK_HOT_MPU_MASK,
- 	.mask_cold_mask = OMAP5430_MASK_COLD_MPU_MASK,
- 	.mask_sidlemode_mask = OMAP5430_MASK_SIDLEMODE_MASK,
-+	.mask_counter_delay_mask = OMAP5430_MASK_COUNTER_DELAY_MASK,
- 	.mask_freeze_mask = OMAP5430_MASK_FREEZE_MPU_MASK,
- 	.mask_clear_mask = OMAP5430_MASK_CLEAR_MPU_MASK,
- 	.mask_clear_accum_mask = OMAP5430_MASK_CLEAR_ACCUM_MPU_MASK,
-@@ -84,6 +85,7 @@ omap5430_gpu_temp_sensor_registers = {
- 	.mask_hot_mask = OMAP5430_MASK_HOT_GPU_MASK,
- 	.mask_cold_mask = OMAP5430_MASK_COLD_GPU_MASK,
- 	.mask_sidlemode_mask = OMAP5430_MASK_SIDLEMODE_MASK,
-+	.mask_counter_delay_mask = OMAP5430_MASK_COUNTER_DELAY_MASK,
- 	.mask_freeze_mask = OMAP5430_MASK_FREEZE_GPU_MASK,
- 	.mask_clear_mask = OMAP5430_MASK_CLEAR_GPU_MASK,
- 	.mask_clear_accum_mask = OMAP5430_MASK_CLEAR_ACCUM_GPU_MASK,
-@@ -129,6 +131,7 @@ omap5430_core_temp_sensor_registers = {
- 	.mask_hot_mask = OMAP5430_MASK_HOT_CORE_MASK,
- 	.mask_cold_mask = OMAP5430_MASK_COLD_CORE_MASK,
- 	.mask_sidlemode_mask = OMAP5430_MASK_SIDLEMODE_MASK,
-+	.mask_counter_delay_mask = OMAP5430_MASK_COUNTER_DELAY_MASK,
- 	.mask_freeze_mask = OMAP5430_MASK_FREEZE_CORE_MASK,
- 	.mask_clear_mask = OMAP5430_MASK_CLEAR_CORE_MASK,
- 	.mask_clear_accum_mask = OMAP5430_MASK_CLEAR_ACCUM_CORE_MASK,
-diff --git a/drivers/staging/ti-soc-thermal/omap5xxx-bandgap.h b/drivers/staging/ti-soc-thermal/omap5xxx-bandgap.h
-index 8824db4..400b55d 100644
---- a/drivers/staging/ti-soc-thermal/omap5xxx-bandgap.h
-+++ b/drivers/staging/ti-soc-thermal/omap5xxx-bandgap.h
-@@ -95,6 +95,7 @@
+diff --git a/drivers/staging/ti-soc-thermal/ti-bandgap.h b/drivers/staging/ti-soc-thermal/ti-bandgap.h
+index 8f9bdb9..8ee4857 100644
+--- a/drivers/staging/ti-soc-thermal/ti-bandgap.h
++++ b/drivers/staging/ti-soc-thermal/ti-bandgap.h
+@@ -312,6 +312,9 @@ struct ti_temp_sensor {
+  * TI_BANDGAP_FEATURE_FREEZE_BIT - used when the bandgap device features
+  *      a history buffer that its update can be freezed/unfreezed.
+  *
++ * TI_BANDGAP_FEATURE_COUNTER_DELAY - used when the bandgap device features
++ *	a delay programming based on distinct values.
++ *
+  * TI_BANDGAP_HAS(b, f) - macro to check if a bandgap device is capable of a
+  *      specific feature (above) or not. Return non-zero, if yes.
+  */
+@@ -323,6 +326,7 @@ struct ti_temp_sensor {
+ #define TI_BANDGAP_FEATURE_POWER_SWITCH		BIT(5)
+ #define TI_BANDGAP_FEATURE_CLK_CTRL		BIT(6)
+ #define TI_BANDGAP_FEATURE_FREEZE_BIT		BIT(7)
++#define TI_BANDGAP_FEATURE_COUNTER_DELAY	BIT(8)
+ #define TI_BANDGAP_HAS(b, f)			\
+ 			((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
  
- /* OMAP5430.BANDGAP_CTRL */
- #define OMAP5430_MASK_SIDLEMODE_MASK			(0x3 << 30)
-+#define OMAP5430_MASK_COUNTER_DELAY_MASK		(0x7 << 27)
- #define OMAP5430_MASK_FREEZE_CORE_MASK			BIT(23)
- #define OMAP5430_MASK_FREEZE_GPU_MASK			BIT(22)
- #define OMAP5430_MASK_FREEZE_MPU_MASK			BIT(21)
 -- 
 1.7.7.1.488.ge8e1c
 
