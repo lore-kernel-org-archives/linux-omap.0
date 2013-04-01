@@ -1,73 +1,63 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: Query regarding clk framework - from .set_rate api
-Date: Mon, 1 Apr 2013 11:20:04 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC3E84A@DBDE01.ent.ti.com>
-References: <79CD15C6BA57404B839C016229A409A83EC3E7C3@DBDE01.ent.ti.com>
- <51596501.1020904@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=Windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60349 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756693Ab3DALUM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 07:20:12 -0400
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Vivek Gautam <gautam.vivek@samsung.com>
+Subject: [PATCH v3 00/11] usb: dwc3/xhci/phy: Enable runtime power management
+Date: Mon, 01 Apr 2013 19:23:59 +0530
+Message-ID: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "mturquette@linaro.org" <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
+This patch-series enables runtime power management on xhci-plat,
+dwc3-core, dwc3-exynos as well as on Samsung's USB 2.0 type and
+USB 3.0 type PHYs.
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Monday, April 01, 2013 4:37 PM
-> To: Nayak, Rajendra
-> Cc: mturquette@linaro.org; Paul Walmsley; Tony Lindgren; linux-
-> omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> khilman@deeprootsystems.com
-> Subject: RE: Query regarding clk framework - from .set_rate api
->=20
-> > -----Original Message-----
-> > From: Nayak, Rajendra
-> > Sent: Monday, April 01, 2013 4:14 PM
-> > To: Hiremath, Vaibhav
-> > Cc: mturquette@linaro.org; Paul Walmsley; Tony Lindgren; linux-
-> > omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> > khilman@deeprootsystems.com
-> > Subject: Re: Query regarding clk framework - from .set_rate api
-> >
-> > >
-> > > Where, the clk_set_rate() seems to be not working, and that's tru=
-e
-> > > with the current implementation of OMAP/AM33xx clock tree,
-> > > as the CLK_SET_RATE_PARENT flag is not set to any of the clock
-> nodes.
-> > >
-> > > Please note that I am using DEFINE_STRUCT_CLK() macro for definin=
-g
-> > clocks
-> > > And which doesn't allow you to specify the flags.
-> >
-> > Use DEFINE_STRUCT_CLK_FLAGS() then. Its already used in AM33xx cloc=
-k
-> > tree.
->=20
-> Its not there in my kernel baseline v3.8.5, that=92s why I missed it.
-> It got merged into v3.9-rc.
->=20
-> I am testing it now, and will update shortly.
->=20
+Based on 'next' branch of Felipe Balbi's USB tree.
 
-And it works fine...
+Changes from v2:
+ - Using separate functions for USB PHY runtime power management, instead of
+   using macros.
+ - Adding 'pm_runtime_set_suspended()' api call in dwc3 core layer before
+   enabling runtime pm. (Ideally, we should be explicitly make device
+   'suspended' or 'active' before enabling runtime pm on it).
+ - Checking return code for 'put_sync' and 'get_sync' of USB-PHYs when
+   waking up or suspending them from dwc3 core's runtime_pm callbacks.
+ - Removed buggy pm_runtime_put() calls from driver's (xhci, dwc3 and PHY)
+   remove functions.
+ - Adding a patch to enable runtime power management of Samsung's USB 2.0 PHY
+   (usb: phy: samsung: Enable runtime power management on usb2phy)
 
-Sorry for the noise, I should have checked mainline status
-before drafting this email.
+Changes from v1:
+ - Adding required PHY APIs to handle runtime power management
+   instead of directly twiddling with phy->dev.
+ - Handling runtime power management of usb PHYs in dwc3 core
+   driver instead of in any glue layer.
+ - Splitting the patch:
+   [PATCH 4/4] usb: phy: samsung: Enable runtime power management on samsung-usb
+   into required number to bifurcate functionality.
 
-Thanks,
-Vaibhav
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Vivek Gautam (11):
+  usb: phy: Add APIs for runtime power management
+  USB: dwc3: Adjust runtime pm to allow autosuspend
+  usb: dwc3: Enable runtime pm only after PHYs are initialized
+  usb: dwc3: Add runtime power management callbacks
+  usb: dwc3: exynos: Enable runtime power management
+  usb: xhci: Enable runtime pm in xhci-plat
+  usb: phy: samsung: Enable runtime power management on usb2phy
+  usb: phy: samsung: Enable runtime power management on usb3phy
+  usb: phy: samsung: Add support for external reference clock
+  usb: phy: samsung: Add support for PHY ref_clk gpio
+  usb: phy: samsung: Add support for PHY refclk switching
+
+ drivers/usb/dwc3/core.c            |   59 ++++++++++++++--
+ drivers/usb/dwc3/dwc3-exynos.c     |   12 +++
+ drivers/usb/host/xhci-plat.c       |    6 ++
+ drivers/usb/phy/phy-samsung-usb.c  |   26 +++++++
+ drivers/usb/phy/phy-samsung-usb.h  |    1 +
+ drivers/usb/phy/phy-samsung-usb2.c |    5 ++
+ drivers/usb/phy/phy-samsung-usb3.c |  119 +++++++++++++++++++++++++++++--
+ include/linux/usb/phy.h            |  141 ++++++++++++++++++++++++++++++++++++
+ 8 files changed, 358 insertions(+), 11 deletions(-)
+
+-- 
+1.7.6.5
