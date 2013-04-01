@@ -1,142 +1,96 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: Re: [PATCH] ARM:OMAP2: an issue about curr_pwrst, u8 is never < 0
-Date: Mon, 01 Apr 2013 18:41:11 +0800
-Message-ID: <51596447.9070000@asianux.com>
-References: <51415048.6000607@asianux.com> <alpine.DEB.2.00.1304011024090.28273@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP2+: PRCM fixes for 3.10
+Date: Mon, 1 Apr 2013 10:43:44 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1304011042310.28273@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:10542 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758507Ab3DAKmN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 06:42:13 -0400
-In-Reply-To: <alpine.DEB.2.00.1304011024090.28273@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:39312 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758177Ab3DAKno (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 06:43:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 2013=E5=B9=B404=E6=9C=8801=E6=97=A5 18:25, Paul Walmsley wrote:
-> Hi,
->=20
-> On Thu, 14 Mar 2013, Chen Gang wrote:
->=20
->>
->>   if pwrdm_read_pwrst returns negative number, curr_pwrst can not no=
-tice it.
->>   since really need check curr_pwrst whether is negative,
->>     need let the check valid in _pwrdm_save_clkdm_state_and_activate=
-=2E
->>     and also better to check the return value of pwrdm_read_pwrst, f=
-irstly.
->>
->> Signed-off-by: Chen Gang <gang.chen@asianux.com>
->=20
-> thanks for reporting this and sending a suggested fix.  The following=
-=20
-> patch is what I've queued here, which should deal with the root cause=
-=20
-> without the casts.
->=20
->=20
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-  yours (patch below) is simpler and clearer than mine.
+Hi Tony
 
-  thanks.
+The following changes since commit 07961ac7c0ee8b546658717034fe692fd12eefa9:
 
-  :-)
+  Linux 3.9-rc5 (2013-03-31 15:12:43 -0700)
 
+are available in the git repository at:
 
-> - Paul
->=20
-> From: Paul Walmsley <paul@pwsan.com>
-> Date: Sun, 31 Mar 2013 20:22:22 -0600
-> Subject: [PATCH] ARM: OMAP2+: powerdomain: avoid testing whether an u=
-nsigned
->  char is less than 0
->=20
-> _pwrdm_save_clkdm_state_and_activate() tried to test one of its
-> unsigned arguments to determine whether it was less than zero.  Fix b=
-y
-> moving the error test to the caller.
->=20
-> Reported-by: Chen Gang <gang.chen@asianux.com>
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/powerdomain.c |   18 ++++++++----------
->  1 file changed, 8 insertions(+), 10 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/=
-powerdomain.c
-> index 8e61d80..89cad4a 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -52,7 +52,6 @@ enum {
->  #define ALREADYACTIVE_SWITCH		0
->  #define FORCEWAKEUP_SWITCH		1
->  #define LOWPOWERSTATE_SWITCH		2
-> -#define ERROR_SWITCH			3
-> =20
->  /* pwrdm_list contains all registered struct powerdomains */
->  static LIST_HEAD(pwrdm_list);
-> @@ -233,10 +232,7 @@ static u8 _pwrdm_save_clkdm_state_and_activate(s=
-truct powerdomain *pwrdm,
->  {
->  	u8 sleep_switch;
-> =20
-> -	if (curr_pwrst < 0) {
-> -		WARN_ON(1);
-> -		sleep_switch =3D ERROR_SWITCH;
-> -	} else if (curr_pwrst < PWRDM_POWER_ON) {
-> +	if (curr_pwrst < PWRDM_POWER_ON) {
->  		if (curr_pwrst > pwrst &&
->  		    pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE &&
->  		    arch_pwrdm->pwrdm_set_lowpwrstchange) {
-> @@ -1091,7 +1087,8 @@ int pwrdm_post_transition(struct powerdomain *p=
-wrdm)
->   */
->  int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 pwrst)
->  {
-> -	u8 curr_pwrst, next_pwrst, sleep_switch;
-> +	u8 next_pwrst, sleep_switch;
-> +	int curr_pwrst;
->  	int ret =3D 0;
->  	bool hwsup =3D false;
-> =20
-> @@ -1107,16 +1104,17 @@ int omap_set_pwrdm_state(struct powerdomain *=
-pwrdm, u8 pwrst)
->  	pwrdm_lock(pwrdm);
-> =20
->  	curr_pwrst =3D pwrdm_read_pwrst(pwrdm);
-> +	if (curr_pwrst < 0) {
-> +		ret =3D -EINVAL;
-> +		goto osps_out;
-> +	}
-> +
->  	next_pwrst =3D pwrdm_read_next_pwrst(pwrdm);
->  	if (curr_pwrst =3D=3D pwrst && next_pwrst =3D=3D pwrst)
->  		goto osps_out;
-> =20
->  	sleep_switch =3D _pwrdm_save_clkdm_state_and_activate(pwrdm, curr_p=
-wrst,
->  							    pwrst, &hwsup);
-> -	if (sleep_switch =3D=3D ERROR_SWITCH) {
-> -		ret =3D -EINVAL;
-> -		goto osps_out;
-> -	}
-> =20
->  	ret =3D pwrdm_set_next_pwrst(pwrdm, pwrst);
->  	if (ret)
->=20
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-b-for-3.10
+
+for you to fetch changes up to 469d633d20c774ecd34ac615c838193e1e150c62:
+
+  ARM: OMAP: dpll: enable bypass clock only when attempting dpll bypass (2013-03-31 20:43:06 -0600)
+
+- ----------------------------------------------------------------
+Some miscellaneous OMAP hwmod, powerdomain, and clock fixes for 3.10.
+
+Basic test logs are here:
+
+http://www.pwsan.com/omap/testlogs/prcm_fixes_a_3.10/20130331205716/
+
+- ----------------------------------------------------------------
+vmlinux object size
+(delta in bytes from test_v3.9-rc5 (07961ac7c0ee8b546658717034fe692fd12eefa9)):
+   text     data      bss    total  kernel
+    -36       +8        0      -28  n800_multi_omap2xxx
+     -4       +8        0       +4  n800_only_a
+      0        0        0        0  omap1_defconfig
+      0        0        0        0  omap1_defconfig_1510innovator_only
+      0        0        0        0  omap1_defconfig_5912osk_only
+    +76      +56        0     +132  omap2plus_defconfig
+    +76      +16        0      +92  omap2plus_defconfig_cpupm
+    +76      +80        0     +156  omap2plus_defconfig_no_pm
+    +60        0        0      +60  omap2plus_defconfig_omap2_4_only
+    +80      +80        0     +160  omap2plus_defconfig_omap3_4_only
+    +44      +56        0     +100  rmk_omap3430_ldp_allnoconfig
+    +48      +16        0      +64  rmk_omap3430_ldp_oldconfig
+    +44      +56        0     +100  rmk_omap4430_sdp_allnoconfig
+    +16      +16        0      +32  rmk_omap4430_sdp_oldconfig
 
 
---=20
-Chen Gang
+Paul Walmsley (1):
+      ARM: OMAP2+: powerdomain: avoid testing whether an unsigned char is less than 0
 
-Asianux Corporation
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rajendra Nayak (2):
+      ARM: OMAP2+: hwmod: Remove unused _HWMOD_WAKEUP_ENABLED flag
+      ARM: OMAP: dpll: enable bypass clock only when attempting dpll bypass
+
+Vaibhav Hiremath (2):
+      ARM: OMAP2+: AM33xx: hwmod: Add missing sysc definition to wdt1 entry
+      ARM: OMAP2+: am335x: Change the wdt1 func clk src to per_32k clk
+
+ arch/arm/mach-omap2/cclock33xx_data.c      |    8 ++++++++
+ arch/arm/mach-omap2/dpll3xxx.c             |   19 +++++++++----------
+ arch/arm/mach-omap2/omap_hwmod.c           |    4 ----
+ arch/arm/mach-omap2/omap_hwmod.h           |    6 ++----
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   15 +++++++++++++++
+ arch/arm/mach-omap2/powerdomain.c          |   18 ++++++++----------
+ 6 files changed, 42 insertions(+), 28 deletions(-)
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRWWSNAAoJEMePsQ0LvSpLMB4P/RzdRMcPLkFBrJaG76uXXmRg
+yFHJnaS8nQ5obtpu0yzmgznEhuhU9I4DpmIcqaoiAIFO55jPvsWDK1RkQaJpWzou
+8DERbYURBELN33iVpChakTLmCzt9spPYqs2F0Eg9h08CpJWlhsIFj1SqRk57Ze8A
+3eY/ayqpDTiRbUKzy/PocpUmbT+kwoXNZFNuguM8WQnbVlFKCC8OTVvm3K9iCGCr
+30gF+RKAhbNtOMPpruJodBKkld+8rnUx/lOsvDudCs5ggszw7Kb8x4KyLRwZct1j
+zQAp2We4OKluHYZjPUV1ewAQBuD0YbVJM0A7wpDU6avY4Glf849uOhx+3ScCfVR5
+E+9HwpBPfDQlVzPIRhick0LaDAmPtj+68n6r+J9FBTUUTONfJDDu9jDAPPt2qn7P
+fg8YUiB6tmRInx4lkxfqNuhfHUH96zc+ffQLwNJ1YDFGV460Ltk2j57ienhO/UhX
+WDAB8b147rsw/dXcF2YlR6b3UjO5vILbO/eJkEPIMCsUXx7WMX729MNp9q+Hskiv
+DpULnXTd3P4T7dj99/rKlhcHQ2rT9fJ2kM7tPss71j87MvihrPecxCnA/4H401p3
+YQf1Mt1EpBPPodhOIiOl9TgqslIZno+R0hSDtO1th/ZuZTPrTG/KKeMqau45WYkr
+iv4uHjsjFYjgvAhMV43J
+=z+VJ
+-----END PGP SIGNATURE-----
