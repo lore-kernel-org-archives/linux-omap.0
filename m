@@ -1,76 +1,90 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] RX-51: ARM errata 430973 workaround
-Date: Mon, 1 Apr 2013 14:03:41 +0530
-Message-ID: <51594665.1090903@ti.com>
-References: <20130328155803.GT10155@atomide.com> <1364738063-23868-1-git-send-email-pali.rohar@gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 2/8] ARM: OMAP2+: hwmod: Cleanup sidle/mstandby programming
+Date: Mon, 1 Apr 2013 14:09:47 +0530
+Message-ID: <515947D3.50904@ti.com>
+References: <1361354272-18089-1-git-send-email-santosh.shilimkar@ti.com> <1361354272-18089-3-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1303310053351.6436@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1364738063-23868-1-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Pavel Machek <pavel@ucw.cz>, Peter De Schrijver <pdeschrijver@nvidia.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <freemangordon@abv.bg>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39904 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757832Ab3DAIkD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Apr 2013 04:40:03 -0400
+In-Reply-To: <alpine.DEB.2.00.1303310053351.6436@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Sunday 31 March 2013 07:24 PM, Pali Roh=C3=A1r wrote:
-> Closed and signed Nokia X-Loader bootloader stored in RX-51 nand does=
- not set
-> IBE bit in ACTLR and starting kernel in non-secure mode. So direct wr=
-ite to
-> ACTLR by our kernel does not working and the code for ARM errata 4309=
-73 in
-> commit 7ce236fcd6fd45b0441a2d49acb2ceb2de2e8a47 that sets IBE bit is =
-a noop.
->=20
-> In order to have workaround for ARM errata 430973 from non-secure wor=
-ld on
-> RX-51 we needs Secure Monitor Call to set IBE BIT in ACTLR.
->=20
-> This patch adds RX-51 specific SMC support and sets IBE bit in ACTLR =
-during
-> board init code for ARM errata 430973 workaround.
->=20
-> Because all the setup and what arguments are required for SMC are com=
-pletely
-> different from SoC to SoC it is not possible to create generic SMC ha=
-ndling.
-> Code in omap-smc.S looks identical but it is not. So RX-51 needs anot=
-her code.
->=20
-> ARM errata 430973 workaround is needed for thumb-2 ISA compiled users=
-pace
-> binaries. Without this workaround thumb-2 binaries crashing. So with =
-this
-> patch it is possible to recompile and run applications/binaries with =
-thumb-2
-> ISA on RX-51.
->=20
-> Signed-off-by: Ivaylo Dimitrov <freemangordon@abv.bg>
-> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> ---
->  arch/arm/mach-omap2/Makefile            |    1 +
->  arch/arm/mach-omap2/board-rx51-secure.c |   66 +++++++++++++++++++++=
-++++++++++
->  arch/arm/mach-omap2/board-rx51-secure.h |   36 +++++++++++++++++
->  arch/arm/mach-omap2/board-rx51-smc.S    |   34 ++++++++++++++++
->  arch/arm/mach-omap2/board-rx51.c        |    7 ++++
->  5 files changed, 144 insertions(+)
->  create mode 100644 arch/arm/mach-omap2/board-rx51-secure.c
->  create mode 100644 arch/arm/mach-omap2/board-rx51-secure.h
->  create mode 100644 arch/arm/mach-omap2/board-rx51-smc.S
->=20
-> diff --git a/arch/arm/mach-omap2/board-rx51-smc.S b/arch/arm/mach-oma=
-p2/board-rx51-smc.S
-> new file mode 100644
-> index 0000000..70e2eb7
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-rx51-smc.S
-> @@ -0,0 +1,34 @@
-You can avoid creating board-rx51-smc.S by having rx51_ppa_smc()
-part of board-rx51-secure.c using inline asm. You can avoid the
-board-rx51-secure.h as well considering the usage is limited to
-the rx51 board.
+Paul,
 
-Regards,
-Santosh
+>> _enable_wakeup() and _disable_wakeup() are expected to program the
+>> OCP_SYSCONFIG.ENAWAKEUP bit.
+> 
+> These functions were originally intended to take care of everything needed 
+> for the IP block to wake up the chip, including the PRCM WKEN programming.  
+> ENAWAKEUP is simply one part of that.
+> 
+>> Get rid of the additional sidle/mstandby programming in them, as its 
+>> confusing (this is expected to be handled elsewhere as part of 
+>> _enable_sysc()/__idle_sysc())
+> 
+> Sorry, why does the expectation exist for the code to enable and disable 
+> device wakeup to be part of _enable_sysc()/_idle_sysc(), rather than in 
+> functions called by _enable_sysc()/_idle_sysc()?
+
+It all comes down to if SIDLE_SMART_WKUP/MSTANDBY_SMART_WKUP programming
+be considered as 'idlemode' programming or 'enwakeup' programming.
+If you consider these are being part of 'enwakeup' progrmming, these should
+certainly be handled as part of _enable_wakeup() and _disable_wakeup().
+
+Today, in some cases, these are *also* handled as part of _enable_sysc()
+and _idle_sysc(). The way _enable_wakeup() is invoked from _enable_sysc()
+is also very inconsistent. For instance, for any IP which supports
+SYSC_HAS_MIDLEMODE and SYSC_HAS_ENAWAKEUP, we invoke _enable_wakeup()
+regardless of the MIDLEMODE programmmed.
+While in case of the IP supporting SYSC_HAS_SIDLEMODE, _enable_wakeup() is
+invoked only when the SIDLEMODE programmed is SMART or SMART_WKUP.
+
+I understand the cleanups you are suggesting below as part of the movement
+of some of these things outside of mach-omap2.
+I was more looking at fixing the existing piece so its readable and does
+things more consistently.
+
+regards,
+Rajendra
+
+> 
+>> and unnecessary.
+> 
+> So here's part of the reason why the module wakeup control functions 
+> should remain separate.  When the kernel boots, all the PM features should 
+> be disabled.  Then mach-omap2/pm*.c should enables PM features where 
+> they're needed.
+> 
+> Right now, mach-omap2/pm34xx.c sets module WKEN bits.  (These direct 
+> register accesses need to be moved as part of the cleanup work, of moving 
+> the PM/PRM/CM code into drivers.)  But the list of IP blocks that 
+> should be allowed to wake the system is board-dependent.
+> 
+> So really, what mach-omap2/pm34xx.c should do is to call into the hwmod 
+> enable-wakeups code to enable MPU wakeups for all the IP blocks that have 
+> some DT property set, something like 'enable-wakeups'.  Then the hwmod 
+> code should ensure that the PRM wakeup-enable and GRPSEL bits are 
+> programmed (by calling into the PRM driver code) and should then either 
+> set the ENAWAKEUP bits or put the module into smart_wkup MSTANDBY/MIDLE.
+> 
+> Similarly, when the PM driver is unloaded, it should set no-idle on all 
+> the IP blocks that were marked as wakeup-capable and disable the PRCM 
+> wakeup control bits, by calling some hwmod disable-wakeups code.
+> 
+>> Well, the _enable_sysc()/_idle_sysc() handled only the mstandby modes
+>> correctly. So fix them so they also handle the midle modes correctly
+> 
+> If there's a fix here, please split that out into a separate patch.
+> 
+> 
+> - Paul
+> 
+
