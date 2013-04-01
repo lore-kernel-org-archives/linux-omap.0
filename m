@@ -1,102 +1,186 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH 5/6] ARM: OMAP3+: ABB: introduce ABB driver
-Date: Mon, 1 Apr 2013 14:28:20 -0500
-Message-ID: <CAGo_u6ofjT_HyzdFNj3ByCbsyYzGU-LncUKo9=84BU3u6FK6Hw@mail.gmail.com>
-References: <1364490968-13613-1-git-send-email-andrii.tseglytskyi@ti.com>
-	<1364490968-13613-5-git-send-email-andrii.tseglytskyi@ti.com>
-	<20130328212739.13785.44736@quantum>
-	<20130328223513.GA19470@kahuna>
-	<51596725.9060109@ti.com>
-	<20130401181057.8177.19688@quantum>
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH v4 1/6] drivers: phy: add generic PHY framework
+Date: Mon, 01 Apr 2013 21:34:47 +0200
+Message-ID: <5159E157.6000800@gmail.com>
+References: <1364449408-9510-1-git-send-email-kishon@ti.com> <1364449408-9510-2-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:34503 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753964Ab3DAT2V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 15:28:21 -0400
-Received: by mail-we0-f179.google.com with SMTP id p43so2031194wea.10
-        for <linux-omap@vger.kernel.org>; Mon, 01 Apr 2013 12:28:20 -0700 (PDT)
-In-Reply-To: <20130401181057.8177.19688@quantum>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1364449408-9510-2-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, arnd@arndb.de, akpm@linux-foundation.org, rob@landley.net, swarren@wwwdotorg.org, davem@davemloft.net, cesarb@cesarb.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, b-cousson@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, mchehab@redhat.com, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>, Tero Kristo <t-kristo@ti.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org
 
-On Mon, Apr 1, 2013 at 1:10 PM, Mike Turquette <mturquette@linaro.org> wrote:
-> Andrii,
->
-> Sorry to nitpick further but this your replies look very non-standard.
-> Typically a right chevron and a space is used to indent replies instead
-> of a tab.  Something like this:
-> https://wiki.openstack.org/wiki/MailingListEtiquette#Reply_Level_Indication
->
-> Quoting Andrii Tseglytskyi (2013-04-01 03:53:25)
->> In case if VC/VP use clock notifier to scale voltage, there is no guarantee of
->> order.
->> The only option which I see is to create ABB API and call it from OMAP
->> regulator during OPP change.
->>
->
-> I doubt that is the only option.  Do you mean it is the only option to
-> quickly get it working right now?
->
-> The VC & VP code should be converted to the regulator framework if not
-> already.  After that is done there are some options for how ABB is
-> handled.
->
-> The VC & VP regulator driver could directly call the api's you list
-> below in their .set_voltage callback.
->
-> Additionally if the regulator is reentrant then ABB could be modeled as
-> a regulator itself and the VC or VP .set_voltage callback could perhaps
-> call regulator_set_mode(abb_reg, FBB_MODE).
->
-> Creating a regulator for each ABB instance may be overkill or may not be
-> overkill... that IP has been around since 3630 so several chips use it.
->
->> omap_abb_pre_scale(struct omap_abb *abb, u32 old_volt, u32 new_volt);
->> omap_abb_post_scale(struct omap_abb *abb, u32 old_volt, u32 new_volt);
->>
->> Mike, do you agree to proceed in this way? Also I need you opinion about files
->> placement. Now it is placed in
->>
->
-> The above code looks like a quick solution to me.  The long-term
-> upstream path for this code needs be decided first.  If everything is
-> going to get converted to the regulator framework then I do not agree to
-> proceed that way.
->
-> Let's figure out what is happening to the VC/VP code first and then
-> figure out what to do about ABB.
->
-http://picpaste.com/KmqDYTn0.jpg
-is an quick depiction of the thought I have in my mind.
+Just couple minor comments...
 
-We do have, in the upcoming SoCs, where Nominal Voltages per device,
-will now be encoded into the efuse itself(so called class 0 voltage).
-Future SoCs will need to be able to use ABB along with standard
-regulators (without use of VC-VP) - in fact, even today, SoCs like AM
-and DM series of processors have the same requirement.
+On 03/28/2013 06:43 AM, Kishon Vijay Abraham I wrote:
+> The PHY framework provides a set of APIs for the PHY drivers to
+> create/destroy a PHY and APIs for the PHY users to obtain a reference to the
+> PHY with or without using phandle. To obtain a reference to the PHY without
+> using phandle, the platform specfic intialization code (say from board file)
+> should have already called phy_bind with the binding information. The binding
+> information consists of phy's device name, phy user device name and an index.
+> The index is used when the same phy user binds to mulitple phys.
+>
+> PHY drivers should create the PHY by passing phy_descriptor that has
+> describes the PHY (label, type etc..) and ops like init, exit, suspend, resume,
+> poweron, shutdown.
+>
+> The documentation for the generic PHY framework is added in
+> Documentation/phy.txt and the documentation for the sysfs entry is added
+> in Documentation/ABI/testing/sysfs-class-phy and the documentation for
+> dt binding is can be found at
+> Documentation/devicetree/bindings/phy/phy-bindings.txt
+>
+> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+> ---
+[...]
+> +/**
+> + * phy_put - release the PHY
 
-We also will have to support class 2 variants of AVS (which will use
-standard regulators to set voltage).
+nit: According to kernel-doc documentation function names should have
+parentheses appended to the name. So it would need to be
 
-As of date, CCF does not control regulators - which means the interim
-solution would be for the device control to manipulate both clock and
-regulator voltage (similar to what cpufreq-cpu0 driver does today).
-these drivers should not know the existance of SoC specific
-intricacies - so ABB linked to voltage values make more sense if ABB
-sequencing is handled in "TI regulator"
++ * phy_put() - release the PHY
 
-Intent of VC/VP regulator is to be replaceable, on required platforms,
-with appropriate regulator which do not use VC/VP paths (e.g. on SoCs
-that do not have it).
+in this case and it applies to multiple places elsewhere in this patch.
 
-There is also need to support multiple voltage rails supplied by a
-single SMPS - in which case controlling via regulator framework is
-more desirable.
+> + * @phy: the phy returned by phy_get()
+> + *
+> + * Releases a refcount the caller received from phy_get().
+> + */
+> +void phy_put(struct phy *phy)
+> +{
+> +	if (phy) {
+> +		module_put(phy->ops->owner);
+> +		put_device(&phy->dev);
+> +	}
+> +}
+> +EXPORT_SYMBOL_GPL(phy_put);
+[...]
+> +/**
+> + * devm_of_phy_get_byname - lookup and obtain a reference to a phy by name
+> + * @dev: device that requests this phy
+> + * @string - the phy name as given in the dt data
 
----
-Regards,
-NIshanth Menon
+s/ -/:
+
+> + *
+> + * Calls devm_of_phy_get (which associates the device with the phy using devres
+> + * on successful phy get) and passes on the return value of devm_of_phy_get.
+> + */
+> +struct phy *devm_of_phy_get_byname(struct device *dev, const char *string)
+> +{
+> +	int index;
+> +
+> +	if (!dev->of_node) {
+> +		dev_dbg(dev, "device does not have a device node entry\n");
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> +	index = of_property_match_string(dev->of_node, "phy-names", string);
+> +
+> +	return devm_of_phy_get(dev, index);
+> +}
+> +EXPORT_SYMBOL_GPL(devm_of_phy_get_byname);
+> +
+> +/**
+> + * phy_get - lookup and obtain a reference to a phy.
+> + * @dev: device that requests this phy
+> + * @index: the index of the phy
+> + *
+> + * Returns the phy driver, after getting a refcount to it; or
+> + * -ENODEV if there is no such phy.  The caller is responsible for
+> + * calling phy_put() to release that count.
+> + */
+> +struct phy *phy_get(struct device *dev, int index)
+> +{
+> +	struct phy *phy = NULL;
+
+Unneeded initialization.
+
+> +	phy = phy_lookup(dev, index);
+> +	if (IS_ERR(phy)) {
+> +		dev_err(dev, "unable to find phy\n");
+> +		goto err0;
+
+Wouldn't it be better to just do:
+
+		return phy;
+> +	}
+> +
+> +	if (!try_module_get(phy->ops->owner)) {
+> +		phy = ERR_PTR(-EPROBE_DEFER);
+
+and
+		return ERR_PTR(-EPROBE_DEFER);
+
+> +		goto err0;
+
+and to drop this goto and the label below ?
+
+> +	}
+> +
+> +	get_device(&phy->dev);
+> +
+> +err0:
+> +	return phy;
+> +}
+> +EXPORT_SYMBOL_GPL(phy_get);
+
+> diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
+> new file mode 100644
+> index 0000000..0cb2298
+> --- /dev/null
+> +++ b/include/linux/phy/phy.h
+> @@ -0,0 +1,237 @@
+> +/*
+> + * phy.h -- generic phy header file
+[...]
+> +#ifndef __DRIVERS_PHY_H
+> +#define __DRIVERS_PHY_H
+> +
+> +#include<linux/err.h>
+> +#include<linux/of.h>
+> +
+> +struct phy
+
+I think you also need to add either
+
+#include <linux/device.h>
+
+or
+
+struct device;
+
+struct device * is used further in this file.
+
+> +/**
+> + * struct phy_ops - set of function pointers for performing phy operations
+> + * @init: operation to be performed for initializing phy
+> + * @exit: operation to be performed while exiting
+> + * @suspend: suspending the phy
+> + * @resume: resuming the phy
+
+> + * @poweron: powering on the phy
+> + * @shutdown: shutting down the phy
+
+Could these be named power_on/power_off ? Looks a bit more symmetric
+to me that way.
+
+> + * @owner: the module owner containing the ops
+> + */
+> +struct phy_ops {
+> +	int	(*init)(struct phy *phy);
+> +	int	(*exit)(struct phy *phy);
+> +	int	(*suspend)(struct phy *phy);
+> +	int	(*resume)(struct phy *phy);
+> +	int	(*poweron)(struct phy *phy);
+> +	int	(*shutdown)(struct phy *phy);
+> +	struct module *owner;
+> +};
+
+Thanks,
+Sylwester
