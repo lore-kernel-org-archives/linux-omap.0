@@ -1,46 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: PRCM fixes for 3.10
-Date: Mon, 1 Apr 2013 08:55:51 -0700
-Message-ID: <20130401155551.GF10155@atomide.com>
-References: <alpine.DEB.2.00.1304011042310.28273@utopia.booyaka.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCH 00/14] staging: ti-soc-thermal: fixes and trending support
+Date: Mon, 1 Apr 2013 12:04:32 -0400
+Message-ID: <1364832286-17304-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19690 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758313Ab3DAPzy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 11:55:54 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1304011042310.28273@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59101 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758837Ab3DAQFO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Apr 2013 12:05:14 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: devel@driverdev.osuosl.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [130401 03:48]:
-> Hi Tony
-> 
-> The following changes since commit 07961ac7c0ee8b546658717034fe692fd12eefa9:
-> 
->   Linux 3.9-rc5 (2013-03-31 15:12:43 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-b-for-3.10
-> 
-> for you to fetch changes up to 469d633d20c774ecd34ac615c838193e1e150c62:
-> 
->   ARM: OMAP: dpll: enable bypass clock only when attempting dpll bypass (2013-03-31 20:43:06 -0600)
-> 
-> ----------------------------------------------------------------
-> Some miscellaneous OMAP hwmod, powerdomain, and clock fixes for 3.10.
-> 
-> Basic test logs are here:
-> 
-> http://www.pwsan.com/omap/testlogs/prcm_fixes_a_3.10/20130331205716/
+Hello Greg,
 
-Thanks applying into omap-for-v3.10/fixes-non-critical.
+Here is a new series of patches for ti-soc-thermal. It will contain
+a couple of minor fixes, but it has also support for trending,
+computed by HW history buffer.
 
-Regards,
+These patches are also available here:
+git@gitorious.org:thermal-framework/thermal-framework.git thermal_work/omap/ti-soc-thermal-history-buffer
+https://git.gitorious.org/thermal-framework/thermal-framework.git thermal_work/omap/ti-soc-thermal-history-buffer
 
-Tony
+Eduardo Valentin (4):
+  staging: ti-soc-thermal: return error in case power switch is not
+    supported
+  staging: ti-soc-thermal: expose ti_thermal_report_temperature
+  staging: ti-soc-thermal: report alert events on OMAP4 devices
+  staging: ti-soc-thermal: report alert events on OMAP5 devices
+
+J Keerthy (9):
+  staging: ti-soc-thermal: Add counter_delay_mask field to
+    temp_sensor_registers struct
+  staging: ti-soc-thermal: Initialise counter_delay field for OMAP5
+    sensors
+  staging: ti-soc-thermal: Introduce HAS_COUNTER_DELAY feature for
+    bandgap
+  staging: ti-soc-thermal: Enable COUNTER_DELAY feature for OMAP5
+  staging: ti-soc-thermal: Modify update_interval r/w functions to
+    incorporate the OMAP5 feature of COUNTER_DELAY.
+  staging: ti-soc-thermal: Introduce HAS_HISTORY_BUFFER feature for
+    bandgap
+  staging: ti-soc-thermal: Enable HISTORY_BUFFER Feature for OMAP5
+  staging: ti-soc-thermal:Introduce ti_bandgap_get_trend function for
+    OMAP5
+  staging: ti-soc-thermal: Add get_trend support
+
+Nishanth Menon (1):
+  staging: ti-soc-thermal: remove kernel-doc warnings reported with -v
+
+ .../staging/ti-soc-thermal/omap4-thermal-data.c    |    2 +
+ .../staging/ti-soc-thermal/omap5-thermal-data.c    |    8 +-
+ drivers/staging/ti-soc-thermal/omap5xxx-bandgap.h  |    1 +
+ drivers/staging/ti-soc-thermal/ti-bandgap.c        |  298 +++++++++++++++++---
+ drivers/staging/ti-soc-thermal/ti-bandgap.h        |   11 +
+ drivers/staging/ti-soc-thermal/ti-thermal-common.c |   27 ++-
+ drivers/staging/ti-soc-thermal/ti-thermal.h        |    7 +
+ 7 files changed, 319 insertions(+), 35 deletions(-)
+
+-- 
+1.7.7.1.488.ge8e1c
+
