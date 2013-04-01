@@ -1,31 +1,94 @@
-From: Andrew Jones <andyjjones26@gmail.com>
-Subject: OMAP custom board question
-Date: Mon, 1 Apr 2013 11:40:36 +0800
-Message-ID: <CAC03O5nPJrOwaZ=6cmOK4gGGj-bFrNzsPbEqj-A-B0DPaeqwWA@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] Revert "OMAP/serial: Fix incorrect Rx FIFO threshold setting,
+ LSR validation on Tx, and Tx FIFO IRQ generation"
+Date: Mon, 1 Apr 2013 05:25:11 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1304010519260.28273@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f194.google.com ([209.85.210.194]:34754 "EHLO
-	mail-ia0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756242Ab3DADxv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Mar 2013 23:53:51 -0400
-Received: by mail-ia0-f194.google.com with SMTP id m10so536292iam.1
-        for <linux-omap@vger.kernel.org>; Sun, 31 Mar 2013 20:53:51 -0700 (PDT)
+Received: from utopia.booyaka.com ([74.50.51.50]:38260 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751626Ab3DAFZM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 01:25:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Alexey Pelykh <alexey.pelykh@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi everyone,
 
-This is a newbie question.  It's my first time to post on the
-linux-omap mailing list.
+This reverts commit 1776fd059c40907297d6c26c51876575d63fd9e2.
 
-I have a custom board based on the AM3517.  My questions:
+Commit 1776fd059c40 causes UART sluggishness on the OMAP37xx EVM.
+This can be demonstrated by pasting in a ten-character string, like
+"ffffffffff", at the serial console.  The string will be echoed back
+two to three characters at a time, with about a one-second pause
+between groups.  This causes one of the OMAP PM validation tests to
+time out:
 
-a) Is this mailing list able to accept any code for custom boards?
-b) Should I submit a boardfile (eg.
-linux/arch/arm/mach-omap2/board-xyz.c) or should I submit a device
-tree blob?
+http://www.pwsan.com/omap/testlogs/test_v3.9-rc5/20130331205513/pm/37xxevm/37xxevm_log.txt
 
-Thankyou very much!
-Andrew
+With commit 1776fd059c40 reverted, the test succeeds:
+
+http://www.pwsan.com/omap/testlogs/serial_fix_37xx_v3.9-rc/20130331230517/pm/37xxevm/37xxevm_log.txt
+
+This problem has been present since v3.9-rc1, but was incorrectly 
+suspected to be due to commit 6aa9707099c4b25700940eb3d016f16c4434360d 
+("lockdep: check that no locks held at freeze time"), due to limitations
+in my local testbed.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Alexey Pelykh <alexey.pelykh@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+
+Alexey, care to make another attempt for 3.11 at fixing the issue you were 
+originally debugging, but one that also works on OMAP37xx EVM?  It would 
+be good to cc the <linux-omap@vger.kernel.org> on your OMAP work.  If you 
+don't have a 37xx EVM, someone there might be able to help you test.
+
+ drivers/tty/serial/omap-serial.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 4dc4140..9915e4d 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -59,7 +59,6 @@
+ 
+ /* SCR register bitmasks */
+ #define OMAP_UART_SCR_RX_TRIG_GRANU1_MASK		(1 << 7)
+-#define OMAP_UART_SCR_TX_TRIG_GRANU1_MASK		(1 << 6)
+ #define OMAP_UART_SCR_TX_EMPTY			(1 << 3)
+ 
+ /* FCR register bitmasks */
+@@ -321,6 +320,9 @@ static void transmit_chars(struct uart_omap_port *up, unsigned int lsr)
+ 	struct circ_buf *xmit = &up->port.state->xmit;
+ 	int count;
+ 
++	if (!(lsr & UART_LSR_THRE))
++		return;
++
+ 	if (up->port.x_char) {
+ 		serial_out(up, UART_TX, up->port.x_char);
+ 		up->port.icount.tx++;
+@@ -862,7 +864,7 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	serial_out(up, UART_IER, up->ier);
+ 	serial_out(up, UART_LCR, cval);		/* reset DLAB */
+ 	up->lcr = cval;
+-	up->scr = 0;
++	up->scr = OMAP_UART_SCR_TX_EMPTY;
+ 
+ 	/* FIFOs and DMA Settings */
+ 
+@@ -886,6 +888,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
+ 	/* FIFO ENABLE, DMA MODE */
+ 
++	up->scr |= OMAP_UART_SCR_RX_TRIG_GRANU1_MASK;
++
+ 	/* Set receive FIFO threshold to 16 characters and
+ 	 * transmit FIFO threshold to 16 spaces
+ 	 */
+-- 
+1.7.10.4
+
