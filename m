@@ -1,31 +1,100 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 6/8] SERIAL: OMAP: Remove the slave idle handling from
- the driver
-Date: Mon, 1 Apr 2013 11:26:24 +0530
-Message-ID: <51592188.5000109@ti.com>
-References: <1361354444-18230-1-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1303310136490.6436@utopia.booyaka.com> <alpine.DEB.2.00.1303310140210.6436@utopia.booyaka.com>
+From: Alexey Pelykh <alexey.pelykh@gmail.com>
+Subject: Re: [PATCH] Revert "OMAP/serial: Fix incorrect Rx FIFO threshold
+ setting, LSR validation on Tx, and Tx FIFO IRQ generation"
+Date: Mon, 1 Apr 2013 11:31:40 +0300
+Message-ID: <CAOmKuSpttQJmrL=Htiz-Zc4voAF7CnG_GQYAO2onKpauwYjtvw@mail.gmail.com>
+References: <alpine.DEB.2.00.1304010519260.28273@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60246 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757401Ab3DAFyp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Apr 2013 01:54:45 -0400
-In-Reply-To: <alpine.DEB.2.00.1303310140210.6436@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1304010519260.28273@utopia.booyaka.com>
+Sender: linux-serial-owner@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-On Sunday 31 March 2013 07:10 AM, Paul Walmsley wrote:
-> 
-> (and also please add Greg's ack when this is reposted)
-> 
-> 
-Yes. His ack is already picked up in the pull request I sent.
-Will add a note about DMA support in the commit.
+Actually, I've tested my patch on DM3730, and, at least, can prove
+that original settings of UART are incorrect according to TRM of
+processor. What settings of UART you were using to reproduce issue?
+I'd like to kindly ask you to describe your test environment, since
+I've never experiences issues that you've described nor in debug
+console, nor in regular UART usage.
 
-Regards,
-Santosh
-
+On Mon, Apr 1, 2013 at 8:25 AM, Paul Walmsley <paul@pwsan.com> wrote:
+>
+> This reverts commit 1776fd059c40907297d6c26c51876575d63fd9e2.
+>
+> Commit 1776fd059c40 causes UART sluggishness on the OMAP37xx EVM.
+> This can be demonstrated by pasting in a ten-character string, like
+> "ffffffffff", at the serial console.  The string will be echoed back
+> two to three characters at a time, with about a one-second pause
+> between groups.  This causes one of the OMAP PM validation tests to
+> time out:
+>
+> http://www.pwsan.com/omap/testlogs/test_v3.9-rc5/20130331205513/pm/37xxevm/37xxevm_log.txt
+>
+> With commit 1776fd059c40 reverted, the test succeeds:
+>
+> http://www.pwsan.com/omap/testlogs/serial_fix_37xx_v3.9-rc/20130331230517/pm/37xxevm/37xxevm_log.txt
+>
+> This problem has been present since v3.9-rc1, but was incorrectly
+> suspected to be due to commit 6aa9707099c4b25700940eb3d016f16c4434360d
+> ("lockdep: check that no locks held at freeze time"), due to limitations
+> in my local testbed.
+>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Alexey Pelykh <alexey.pelykh@gmail.com>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> ---
+>
+> Alexey, care to make another attempt for 3.11 at fixing the issue you were
+> originally debugging, but one that also works on OMAP37xx EVM?  It would
+> be good to cc the <linux-omap@vger.kernel.org> on your OMAP work.  If you
+> don't have a 37xx EVM, someone there might be able to help you test.
+>
+>  drivers/tty/serial/omap-serial.c |    8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+> index 4dc4140..9915e4d 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -59,7 +59,6 @@
+>
+>  /* SCR register bitmasks */
+>  #define OMAP_UART_SCR_RX_TRIG_GRANU1_MASK              (1 << 7)
+> -#define OMAP_UART_SCR_TX_TRIG_GRANU1_MASK              (1 << 6)
+>  #define OMAP_UART_SCR_TX_EMPTY                 (1 << 3)
+>
+>  /* FCR register bitmasks */
+> @@ -321,6 +320,9 @@ static void transmit_chars(struct uart_omap_port *up, unsigned int lsr)
+>         struct circ_buf *xmit = &up->port.state->xmit;
+>         int count;
+>
+> +       if (!(lsr & UART_LSR_THRE))
+> +               return;
+> +
+>         if (up->port.x_char) {
+>                 serial_out(up, UART_TX, up->port.x_char);
+>                 up->port.icount.tx++;
+> @@ -862,7 +864,7 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+>         serial_out(up, UART_IER, up->ier);
+>         serial_out(up, UART_LCR, cval);         /* reset DLAB */
+>         up->lcr = cval;
+> -       up->scr = 0;
+> +       up->scr = OMAP_UART_SCR_TX_EMPTY;
+>
+>         /* FIFOs and DMA Settings */
+>
+> @@ -886,6 +888,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+>         serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
+>         /* FIFO ENABLE, DMA MODE */
+>
+> +       up->scr |= OMAP_UART_SCR_RX_TRIG_GRANU1_MASK;
+> +
+>         /* Set receive FIFO threshold to 16 characters and
+>          * transmit FIFO threshold to 16 spaces
+>          */
+> --
+> 1.7.10.4
+>
