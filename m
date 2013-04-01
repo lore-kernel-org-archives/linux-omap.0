@@ -1,7 +1,7 @@
 From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: [PATCH v3 05/11] usb: dwc3: exynos: Enable runtime power management
-Date: Mon, 01 Apr 2013 19:24:04 +0530
-Message-ID: <1364824448-14732-6-git-send-email-gautam.vivek@samsung.com>
+Subject: [PATCH v3 06/11] usb: xhci: Enable runtime pm in xhci-plat
+Date: Mon, 01 Apr 2013 19:24:05 +0530
+Message-ID: <1364824448-14732-7-git-send-email-gautam.vivek@samsung.com>
 References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-reply-to: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
@@ -10,62 +10,48 @@ To: linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vge
 Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-Enabling runtime power management on dwc3-exynos
-letting dwc3 controller to be autosuspended on exynos
-platform when not in use.
+By enabling runtime pm in this driver allows users of
+xhci-plat to enter into runtime pm. This is not full
+runtime pm support (AKA xhci-plat doesn't actually power
+anything off when in runtime suspend mode) but,
+just basic enablement.
 
 Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+CC: Doug Anderson <dianders@chromium.org>
 ---
- drivers/usb/dwc3/dwc3-exynos.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+ drivers/usb/host/xhci-plat.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
-index 1ea7bd8..1ae81a0 100644
---- a/drivers/usb/dwc3/dwc3-exynos.c
-+++ b/drivers/usb/dwc3/dwc3-exynos.c
-@@ -19,6 +19,7 @@
- #include <linux/platform_data/dwc3-exynos.h>
- #include <linux/dma-mapping.h>
- #include <linux/clk.h>
+diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+index df90fe5..b10573e 100644
+--- a/drivers/usb/host/xhci-plat.c
++++ b/drivers/usb/host/xhci-plat.c
+@@ -12,6 +12,7 @@
+  */
+ 
+ #include <linux/platform_device.h>
 +#include <linux/pm_runtime.h>
- #include <linux/usb/otg.h>
- #include <linux/usb/nop-usb-xceiv.h>
- #include <linux/of.h>
-@@ -138,6 +139,11 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
- 	exynos->dev	= dev;
- 	exynos->clk	= clk;
+ #include <linux/module.h>
+ #include <linux/slab.h>
  
-+	pm_runtime_set_active(dev);
-+	pm_runtime_enable(dev);
-+	pm_runtime_get_sync(dev);
-+	pm_runtime_forbid(dev);
-+
- 	clk_prepare_enable(exynos->clk);
+@@ -149,6 +150,9 @@ static int xhci_plat_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto put_usb3_hcd;
  
- 	if (node) {
-@@ -152,10 +158,14 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
- 		goto err2;
- 	}
- 
-+	pm_runtime_put_sync(dev);
-+	pm_runtime_allow(dev);
++	pm_runtime_set_active(&pdev->dev);
++	pm_runtime_enable(&pdev->dev);
 +
  	return 0;
  
- err2:
- 	clk_disable_unprepare(clk);
-+	pm_runtime_disable(dev);
- err1:
- 	return ret;
- }
-@@ -164,6 +174,8 @@ static int dwc3_exynos_remove(struct platform_device *pdev)
- {
- 	struct dwc3_exynos	*exynos = platform_get_drvdata(pdev);
+ put_usb3_hcd:
+@@ -174,6 +178,8 @@ static int xhci_plat_remove(struct platform_device *dev)
+ 	struct usb_hcd	*hcd = platform_get_drvdata(dev);
+ 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
  
-+	pm_runtime_disable(&pdev->dev);
++	pm_runtime_disable(&dev->dev);
 +
- 	platform_device_unregister(exynos->usb2_phy);
- 	platform_device_unregister(exynos->usb3_phy);
- 	device_for_each_child(&pdev->dev, NULL, dwc3_exynos_remove_child);
+ 	usb_remove_hcd(xhci->shared_hcd);
+ 	usb_put_hcd(xhci->shared_hcd);
+ 
 -- 
 1.7.6.5
