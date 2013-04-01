@@ -1,28 +1,36 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: Query regarding clk framework - from .set_rate api
-Date: Mon, 1 Apr 2013 16:14:17 +0530
-Message-ID: <51596501.1020904@ti.com>
-References: <79CD15C6BA57404B839C016229A409A83EC3E7C3@DBDE01.ent.ti.com>
+From: Jan Luebbe <jlu@pengutronix.de>
+Subject: Re: [PATCH 1/3] ARM: dts: AM33XX: Add pinmux configuration for CPSW
+ to beaglebone
+Date: Mon, 1 Apr 2013 12:45:14 +0200
+Message-ID: <20130401104514.GA27388@pengutronix.de>
+References: <1364196478-16688-1-git-send-email-mugunthanvnm@ti.com>
+ <1364196478-16688-2-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41291 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759372Ab3DAKob (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 06:44:31 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EC3E7C3@DBDE01.ent.ti.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54230 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757560Ab3DAKpS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 06:45:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1364196478-16688-2-git-send-email-mugunthanvnm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "mturquette@linaro.org" <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, b-cousson@ti.com, benoit.cousson@linaro.org, tony@atomide.com
 
-> 
-> Where, the clk_set_rate() seems to be not working, and that's true
-> with the current implementation of OMAP/AM33xx clock tree,
-> as the CLK_SET_RATE_PARENT flag is not set to any of the clock nodes.
-> 
-> Please note that I am using DEFINE_STRUCT_CLK() macro for defining clocks
-> And which doesn't allow you to specify the flags.
+On Mon, Mar 25, 2013 at 12:57:56PM +0530, Mugunthan V N wrote:
+>  	am33xx_pinmux: pinmux@44e10800 {
+>  		pinctrl-names = "default";
+> -		pinctrl-0 = <&user_leds_s0>;
+> +		pinctrl-0 = <&user_leds_s0 &cpsw_s0>;
 
-Use DEFINE_STRUCT_CLK_FLAGS() then. Its already used in AM33xx clock tree.
+Why do you add &cpsw_s0 to the pinmux node? This should go into the cpsw
+node itself, which should work without further code changes since:
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=ab78029ecc347
+(drivers/pinctrl: grab default handles from device core)
+
+Same for the other patches.
+
+Regards,
+Jan
