@@ -1,50 +1,44 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [RFC][PATCH 0/5] Introduce .get_voltage callback into voltdm
-Date: Mon, 1 Apr 2013 14:56:30 -0700
-Message-ID: <CAPtuhTgNQShFvfe+AyN-uFJuFL85V1ceT-udWqFMeUUbmjhqmw@mail.gmail.com>
-References: <1349313365-5262-1-git-send-email-mturquette@ti.com> <alpine.DEB.2.00.1303310234110.6436@utopia.booyaka.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] OMAP3 ROM Random Number Generator support
+Date: Tue, 2 Apr 2013 01:09:42 +0300
+Message-ID: <20130401220942.GB18196@blackmetal.musicnaut.iki.fi>
+References: <2059303614.30062.1364731542427.JavaMail.apache@mail83.abv.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:48345 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758662Ab3DAV4v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 17:56:51 -0400
-Received: by mail-we0-f181.google.com with SMTP id d7so2062142wer.12
-        for <linux-omap@vger.kernel.org>; Mon, 01 Apr 2013 14:56:50 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1303310234110.6436@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2059303614.30062.1364731542427.JavaMail.apache@mail83.abv.bg>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, tony@atomide.com, juha.yrjola@solidboot.com, linux@arm.linux.org.uk, mpm@selenic.com, herbert@gondor.apana.org.au, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Mike Turquette <mturquette@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Sat, Mar 30, 2013 at 7:35 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi Mike, Kevin,
->
-> On Wed, 3 Oct 2012, Mike Turquette wrote:
->
->> From: Mike Turquette <mturquette@linaro.org>
->>
->> This series creates a new callback for struct voltagedomain,
->> .get_voltage.  This fetches the voltage from hardware, if possible, and
->> returns it to the caller.  We use this call to populate
->> voltdm->nominal_volt at boot time.
->
-> Just checking on the status of this series.  Is this superseded by
-> Andrii's driver?  Does it need to be reposted for merging?  etc.
->
+Hi,
 
-Hi Paul,
+On Sun, Mar 31, 2013 at 03:05:42PM +0300, =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=
+=D0=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2 wrote:
+> Yep, the code looks almost identical, I guess with some tweaks all SM=
+C
+> code from that patch could be removed and instead used the one from S=
+MC
+> PPA API.
+>=20
+> What I don't get, is why one needs to disable/enable fiqs/irqs:
 
-Thanks for resurrecting this thread.  This series is needed if the ABB
-transition is triggered by the OMAP VC/VP code.  Andrii's approach
-triggers an ABB transition based on the clock rate-change notifiers
-but that is still in discussion.
+[..]
 
-So the short answer is "I don't know yet".
+> Do you have any idea why is that needed? Any other code I've ever see=
+n
+> to call SM, does not disable fiqs/irqs, is RNG SMC somehow special? I
+> know this is Nokia's code, but still, if we can get some understandin=
+g...
 
-Regards,
-Mike
+I think without disabling irqs you may suffer some strange crashes when
+heavily stressing the RNG... that's why you also have cache flushes bef=
+ore
+and after the SMC. With proper test suite you could probably verify thi=
+s.
+How are you testing this driver?
 
->
-> - Paul
+A.
