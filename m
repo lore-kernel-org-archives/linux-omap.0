@@ -1,63 +1,173 @@
 From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: [PATCH v3 00/11] usb: dwc3/xhci/phy: Enable runtime power management
-Date: Mon, 01 Apr 2013 19:23:59 +0530
-Message-ID: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
+Subject: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
+Date: Mon, 01 Apr 2013 19:24:00 +0530
+Message-ID: <1364824448-14732-2-git-send-email-gautam.vivek@samsung.com>
+References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-This patch-series enables runtime power management on xhci-plat,
-dwc3-core, dwc3-exynos as well as on Samsung's USB 2.0 type and
-USB 3.0 type PHYs.
+Adding  APIs to handle runtime power management on PHY
+devices. PHY consumers may need to wake-up/suspend PHYs
+when they work across autosuspend.
 
-Based on 'next' branch of Felipe Balbi's USB tree.
+Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+---
+ include/linux/usb/phy.h |  141 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 141 insertions(+), 0 deletions(-)
 
-Changes from v2:
- - Using separate functions for USB PHY runtime power management, instead of
-   using macros.
- - Adding 'pm_runtime_set_suspended()' api call in dwc3 core layer before
-   enabling runtime pm. (Ideally, we should be explicitly make device
-   'suspended' or 'active' before enabling runtime pm on it).
- - Checking return code for 'put_sync' and 'get_sync' of USB-PHYs when
-   waking up or suspending them from dwc3 core's runtime_pm callbacks.
- - Removed buggy pm_runtime_put() calls from driver's (xhci, dwc3 and PHY)
-   remove functions.
- - Adding a patch to enable runtime power management of Samsung's USB 2.0 PHY
-   (usb: phy: samsung: Enable runtime power management on usb2phy)
-
-Changes from v1:
- - Adding required PHY APIs to handle runtime power management
-   instead of directly twiddling with phy->dev.
- - Handling runtime power management of usb PHYs in dwc3 core
-   driver instead of in any glue layer.
- - Splitting the patch:
-   [PATCH 4/4] usb: phy: samsung: Enable runtime power management on samsung-usb
-   into required number to bifurcate functionality.
-
-Vivek Gautam (11):
-  usb: phy: Add APIs for runtime power management
-  USB: dwc3: Adjust runtime pm to allow autosuspend
-  usb: dwc3: Enable runtime pm only after PHYs are initialized
-  usb: dwc3: Add runtime power management callbacks
-  usb: dwc3: exynos: Enable runtime power management
-  usb: xhci: Enable runtime pm in xhci-plat
-  usb: phy: samsung: Enable runtime power management on usb2phy
-  usb: phy: samsung: Enable runtime power management on usb3phy
-  usb: phy: samsung: Add support for external reference clock
-  usb: phy: samsung: Add support for PHY ref_clk gpio
-  usb: phy: samsung: Add support for PHY refclk switching
-
- drivers/usb/dwc3/core.c            |   59 ++++++++++++++--
- drivers/usb/dwc3/dwc3-exynos.c     |   12 +++
- drivers/usb/host/xhci-plat.c       |    6 ++
- drivers/usb/phy/phy-samsung-usb.c  |   26 +++++++
- drivers/usb/phy/phy-samsung-usb.h  |    1 +
- drivers/usb/phy/phy-samsung-usb2.c |    5 ++
- drivers/usb/phy/phy-samsung-usb3.c |  119 +++++++++++++++++++++++++++++--
- include/linux/usb/phy.h            |  141 ++++++++++++++++++++++++++++++++++++
- 8 files changed, 358 insertions(+), 11 deletions(-)
-
+diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
+index 6b5978f..01bf9c1 100644
+--- a/include/linux/usb/phy.h
++++ b/include/linux/usb/phy.h
+@@ -297,4 +297,145 @@ static inline const char *usb_phy_type_string(enum usb_phy_type type)
+ 		return "UNKNOWN PHY TYPE";
+ 	}
+ }
++
++static inline void usb_phy_autopm_enable(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return;
++		}
++
++	pm_runtime_enable(x->dev);
++}
++
++static inline void usb_phy_autopm_disable(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return;
++	}
++
++	pm_runtime_disable(x->dev);
++}
++
++static inline int usb_phy_autopm_get(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return -ENODEV;
++	}
++
++	return pm_runtime_get(x->dev);
++}
++
++static inline int usb_phy_autopm_get_sync(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return -ENODEV;
++	}
++
++	return pm_runtime_get_sync(x->dev);
++}
++
++static inline int usb_phy_autopm_put(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return -ENODEV;
++	}
++
++	return pm_runtime_put(x->dev);
++}
++
++static inline int usb_phy_autopm_put_sync(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return -ENODEV;
++	}
++
++	return pm_runtime_put_sync(x->dev);
++}
++
++static inline void usb_phy_autopm_allow(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return;
++	}
++
++	pm_runtime_allow(x->dev);
++}
++
++static inline void usb_phy_autopm_forbid(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return;
++	}
++
++	pm_runtime_forbid(x->dev);
++}
++
++static inline int usb_phy_autopm_set_active(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return -ENODEV;
++	}
++
++	return pm_runtime_set_active(x->dev);
++}
++
++static inline void usb_phy_autopm_set_suspended(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return;
++	}
++
++	pm_runtime_set_suspended(x->dev);
++}
++
++static inline bool usb_phy_autopm_suspended(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return 0;
++	}
++
++	return pm_runtime_suspended(x->dev);
++}
++
++static inline bool usb_phy_autopm_active(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return 0;
++	}
++
++	return pm_runtime_active(x->dev);
++}
++
++static inline int usb_phy_autopm_suspend(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return -ENODEV;
++	}
++
++	return pm_runtime_suspend(x->dev);
++}
++
++static inline int usb_phy_autopm_resume(struct usb_phy *x)
++{
++	if (!x || !x->dev) {
++		dev_err(x->dev, "no PHY or attached device available\n");
++		return -ENODEV;
++	}
++
++	return pm_runtime_resume(x->dev);
++}
++
+ #endif /* __LINUX_USB_PHY_H */
 -- 
 1.7.6.5
