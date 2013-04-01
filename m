@@ -1,167 +1,50 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V3 2/2] dmaengine: OMAP: Register SDMA controller with
- Device Tree DMA driver
-Date: Mon, 1 Apr 2013 12:48:26 -0500
-Message-ID: <5159C86A.30701@ti.com>
-References: <1361903244-19837-1-git-send-email-jon-hunter@ti.com> <1361903244-19837-3-git-send-email-jon-hunter@ti.com> <51488C8B.4010206@ti.com> <20130320163654.GN16413@atomide.com>
+From: Alexey Pelykh <alexey.pelykh@gmail.com>
+Subject: Re: [PATCH] Revert "OMAP/serial: Fix incorrect Rx FIFO threshold
+ setting, LSR validation on Tx, and Tx FIFO IRQ generation"
+Date: Mon, 1 Apr 2013 21:01:55 +0300
+Message-ID: <CAOmKuSo4onVtk2Ke-i+0_1Ych33KuUYspRy+cySRHf4yWB5XDw@mail.gmail.com>
+References: <alpine.DEB.2.00.1304010519260.28273@utopia.booyaka.com>
+	<CAOmKuSpttQJmrL=Htiz-Zc4voAF7CnG_GQYAO2onKpauwYjtvw@mail.gmail.com>
+	<alpine.DEB.2.00.1304010844100.28273@utopia.booyaka.com>
+	<CAOmKuSrABrPcZ=Yg1+LAHWbh9CdTYR0eUmJ2dd3z91oz0uu21g@mail.gmail.com>
+	<alpine.DEB.2.00.1304011008230.28273@utopia.booyaka.com>
+	<CAOmKuSrbDc025Tj9xsqDebJ_KZdp_VnWAOs_OO5UAegV43JcDQ@mail.gmail.com>
+	<CAOmKuSpbaKutLxbNihBRDz+B0Wt0XiPss-PcEHc-efCTvciNFg@mail.gmail.com>
+	<alpine.DEB.2.00.1304011654520.9148@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33759 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758277Ab3DARtW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 13:49:22 -0400
-In-Reply-To: <20130320163654.GN16413@atomide.com>
+Received: from mail-ia0-f182.google.com ([209.85.210.182]:59288 "EHLO
+	mail-ia0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758157Ab3DASB4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 14:01:56 -0400
+In-Reply-To: <alpine.DEB.2.00.1304011654520.9148@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, balbi@ti.com
 
-Vinod,
+Paul, can you please try to comment out change related to Rx line
+(granulation one). That's only Rx line related change in the patch.
 
-On 03/20/2013 11:36 AM, Tony Lindgren wrote:
-> * Jon Hunter <jon-hunter@ti.com> [130319 09:08]:
->> Vinod, Tony, Benoit,
->>
->> On 02/26/2013 12:27 PM, Jon Hunter wrote:
->>> If the device-tree blob is present during boot, then register the SDMA
->>> controller with the device-tree DMA driver so that we can use device-tree
->>> to look-up DMA client information.
->>>
->>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->>> Reviewed-by: Felipe Balbi <balbi@ti.com>
->>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> ---
->>>  arch/arm/mach-omap2/dma.c |    4 ++++
->>>  drivers/dma/omap-dma.c    |   38 ++++++++++++++++++++++++++++++++++++--
->>>  2 files changed, 40 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
->>> index dab9fc0..49fd0d5 100644
->>> --- a/arch/arm/mach-omap2/dma.c
->>> +++ b/arch/arm/mach-omap2/dma.c
->>> @@ -28,6 +28,7 @@
->>>  #include <linux/init.h>
->>>  #include <linux/device.h>
->>>  #include <linux/dma-mapping.h>
->>> +#include <linux/of.h>
->>>  #include <linux/omap-dma.h>
->>>  
->>>  #include "soc.h"
->>> @@ -304,6 +305,9 @@ static int __init omap2_system_dma_init(void)
->>>  	if (res)
->>>  		return res;
->>>  
->>> +	if (of_have_populated_dt())
->>> +		return res;
->>> +
->>>  	pdev = platform_device_register_full(&omap_dma_dev_info);
->>>  	if (IS_ERR(pdev))
->>>  		return PTR_ERR(pdev);
-> 
-> AFAIK we don't currently have anything else touching this file..
-> 
->>> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
->>> index c4b4fd2..2ea3d7e 100644
->>> --- a/drivers/dma/omap-dma.c
->>> +++ b/drivers/dma/omap-dma.c
->>> @@ -16,6 +16,8 @@
->>>  #include <linux/platform_device.h>
->>>  #include <linux/slab.h>
->>>  #include <linux/spinlock.h>
->>> +#include <linux/of_dma.h>
->>> +#include <linux/of_device.h>
->>>  
->>>  #include "virt-dma.h"
->>>  
->>> @@ -67,6 +69,10 @@ static const unsigned es_bytes[] = {
->>>  	[OMAP_DMA_DATA_TYPE_S32] = 4,
->>>  };
->>>  
->>> +static struct of_dma_filter_info omap_dma_info = {
->>> +	.filter_fn = omap_dma_filter_fn,
->>> +};
->>> +
->>>  static inline struct omap_dmadev *to_omap_dma_dev(struct dma_device *d)
->>>  {
->>>  	return container_of(d, struct omap_dmadev, ddev);
->>> @@ -621,8 +627,22 @@ static int omap_dma_probe(struct platform_device *pdev)
->>>  		pr_warn("OMAP-DMA: failed to register slave DMA engine device: %d\n",
->>>  			rc);
->>>  		omap_dma_free(od);
->>> -	} else {
->>> -		platform_set_drvdata(pdev, od);
->>> +		return rc;
->>> +	}
->>> +
->>> +	platform_set_drvdata(pdev, od);
->>> +
->>> +	if (pdev->dev.of_node) {
->>> +		omap_dma_info.dma_cap = od->ddev.cap_mask;
->>> +
->>> +		/* Device-tree DMA controller registration */
->>> +		rc = of_dma_controller_register(pdev->dev.of_node,
->>> +				of_dma_simple_xlate, &omap_dma_info);
->>> +		if (rc) {
->>> +			pr_warn("OMAP-DMA: failed to register DMA controller\n");
->>> +			dma_async_device_unregister(&od->ddev);
->>> +			omap_dma_free(od);
->>> +		}
->>>  	}
->>>  
->>>  	dev_info(&pdev->dev, "OMAP DMA engine driver\n");
->>> @@ -634,18 +654,32 @@ static int omap_dma_remove(struct platform_device *pdev)
->>>  {
->>>  	struct omap_dmadev *od = platform_get_drvdata(pdev);
->>>  
->>> +	if (pdev->dev.of_node)
->>> +		of_dma_controller_free(pdev->dev.of_node);
->>> +
->>>  	dma_async_device_unregister(&od->ddev);
->>>  	omap_dma_free(od);
->>>  
->>>  	return 0;
->>>  }
->>>  
->>> +static const struct of_device_id omap_dma_match[] = {
->>> +	{ .compatible = "ti,omap2420-sdma", },
->>> +	{ .compatible = "ti,omap2430-sdma", },
->>> +	{ .compatible = "ti,omap3430-sdma", },
->>> +	{ .compatible = "ti,omap3630-sdma", },
->>> +	{ .compatible = "ti,omap4430-sdma", },
->>> +	{},
->>> +};
->>> +MODULE_DEVICE_TABLE(of, omap_dma_match);
->>> +
->>>  static struct platform_driver omap_dma_driver = {
->>>  	.probe	= omap_dma_probe,
->>>  	.remove	= omap_dma_remove,
->>>  	.driver = {
->>>  		.name = "omap-dma-engine",
->>>  		.owner = THIS_MODULE,
->>> +		.of_match_table = of_match_ptr(omap_dma_match),
->>>  	},
->>>  };
->>
->> Who's tree does it make most sense for this patch to go through?
->>
->> Benoit has queued up patch 1/2 and so I am not sure if this should go
->> via Benoit tree to Tony or directly via Vinod's tree. What are your
->> thoughts?
-> 
-> OK
->  
->> It would be great if this could make v3.10.
-> 
-> I suggest Vinod/Grant/Linus W queue this patch:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-
-Can you take this patch with Tony's ACK? Let me know if you want me to
-resend with the ACK.
-
-Cheers
-Jon
-
+On Mon, Apr 1, 2013 at 8:09 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Mon, 1 Apr 2013, Alexey Pelykh wrote:
+>
+>> Please, correct me if I'm wrong, you're experiencing issues on Tx, or
+>> Rx direction? You've said that characters are echoed incorrectly, but
+>> haven't mentioned in what direction issue appears?
+>
+> The problem seems to be on the Rx path.  If I 'cat' a file, it's
+> transmitted without hesitation.  But when I paste in this Simpsons quote
+> into the serial console via X:
+>
+> -----
+> Mr. Burns: A lifetime of working with nuclear power has left me with a healthy green glow... and left me as impotent as a Nevada boxing commissioner.
+> -----
+>
+> ... everything up to the end of "boxing" is echoed immediately, and then
+> "commissioner." stutters its way across the screen over the next five
+> seconds.
+>
+>
+> - Paul
