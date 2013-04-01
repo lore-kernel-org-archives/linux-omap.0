@@ -1,7 +1,7 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 13/14] staging: ti-soc-thermal:Introduce ti_bandgap_get_trend function for OMAP5
-Date: Mon, 1 Apr 2013 12:04:45 -0400
-Message-ID: <1364832286-17304-14-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCH 14/14] staging: ti-soc-thermal: Add get_trend support
+Date: Mon, 1 Apr 2013 12:04:46 -0400
+Message-ID: <1364832286-17304-15-git-send-email-eduardo.valentin@ti.com>
 References: <1364832286-17304-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,114 +14,59 @@ List-Id: linux-omap@vger.kernel.org
 
 From: J Keerthy <j-keerthy@ti.com>
 
-The patch adds ti_bandgap_get_trend function. This is specific
-to OMAP5 for now it computes the trend from the temp values stored
-in the hardware history buffer.
-
-Formula: (T1 - T2) / P.
-
-Where:
-                T1: Last read valid temperature.
-                T2: Last but one read valid temperature.
-                P:  Update Interval.
+Patch adds get_trend functionality for OMAP Bandgap thermal devices.
 
 Signed-off-by: J Keerthy <j-keerthy@ti.com>
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/staging/ti-soc-thermal/ti-bandgap.c |   67 +++++++++++++++++++++++++++
- drivers/staging/ti-soc-thermal/ti-bandgap.h |    1 +
- 2 files changed, 68 insertions(+), 0 deletions(-)
+ drivers/staging/ti-soc-thermal/ti-thermal-common.c |   27 +++++++++++++++++++-
+ 1 files changed, 26 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/staging/ti-soc-thermal/ti-bandgap.c b/drivers/staging/ti-soc-thermal/ti-bandgap.c
-index cc0c4ba..5b06b12 100644
---- a/drivers/staging/ti-soc-thermal/ti-bandgap.c
-+++ b/drivers/staging/ti-soc-thermal/ti-bandgap.c
-@@ -962,6 +962,73 @@ static int ti_bandgap_set_continuous_mode(struct ti_bandgap *bgp)
+diff --git a/drivers/staging/ti-soc-thermal/ti-thermal-common.c b/drivers/staging/ti-soc-thermal/ti-thermal-common.c
+index 231c549..092b39d 100644
+--- a/drivers/staging/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/staging/ti-soc-thermal/ti-thermal-common.c
+@@ -215,6 +215,31 @@ static int ti_thermal_get_trip_temp(struct thermal_zone_device *thermal,
+ 	return 0;
  }
  
- /**
-+ * ti_bandgap_get_trend() - To fetch the temperature trend of a sensor
-+ * @bgp: pointer to struct ti_bandgap
-+ * @id: id of the individual sensor
-+ * @trend: Pointer to trend.
-+ *
-+ * This function needs to be called to fetch the temperature trend of a
-+ * Particular sensor. The function computes the difference in temperature
-+ * w.r.t time. For the bandgaps with built in history buffer the temperatures
-+ * are read from the buffer and for those without the Buffer -ENOTSUPP is
-+ * returned.
-+ *
-+ * Return: 0 if no error, else return corresponding error. If no
-+ *		error then the trend value is passed on to trend parameter
-+ */
-+int ti_bandgap_get_trend(struct ti_bandgap *bgp, int id, int *trend)
++/* Get the temperature trend callback functions for thermal zone */
++static int ti_thermal_get_trend(struct thermal_zone_device *thermal,
++				int trip, enum thermal_trend *trend)
 +{
-+	struct temp_sensor_registers *tsr;
-+	u32 temp1, temp2, reg1, reg2;
-+	int t1, t2, interval, ret = 0;
++	struct ti_thermal_data *data = thermal->devdata;
++	struct ti_bandgap *bgp;
++	int id, tr, ret = 0;
 +
-+	ret = ti_bandgap_validate(bgp, id);
++	bgp = data->bgp;
++	id = data->sensor_id;
++
++	ret = ti_bandgap_get_trend(bgp, id, &tr);
 +	if (ret)
-+		goto exit;
++		return ret;
 +
-+	if (!TI_BANDGAP_HAS(bgp, HISTORY_BUFFER) ||
-+	    !TI_BANDGAP_HAS(bgp, FREEZE_BIT)) {
-+		ret = -ENOTSUPP;
-+		goto exit;
-+	}
++	if (tr > 0)
++		*trend = THERMAL_TREND_RAISING;
++	else if (tr < 0)
++		*trend = THERMAL_TREND_DROPPING;
++	else
++		*trend = THERMAL_TREND_STABLE;
 +
-+	tsr = bgp->conf->sensors[id].registers;
-+
-+	/* Freeze and read the last 2 valid readings */
-+	reg1 = tsr->ctrl_dtemp_1;
-+	reg2 = tsr->ctrl_dtemp_2;
-+
-+	/* read temperature from history buffer */
-+	temp1 = ti_bandgap_readl(bgp, reg1);
-+	temp1 &= tsr->bgap_dtemp_mask;
-+
-+	temp2 = ti_bandgap_readl(bgp, reg2);
-+	temp2 &= tsr->bgap_dtemp_mask;
-+
-+	/* Convert from adc values to mCelsius temperature */
-+	ret = ti_bandgap_adc_to_mcelsius(bgp, temp1, &t1);
-+	if (ret)
-+		goto exit;
-+
-+	ret = ti_bandgap_adc_to_mcelsius(bgp, temp2, &t2);
-+	if (ret)
-+		goto exit;
-+
-+	/* Fetch the update interval */
-+	ret = ti_bandgap_read_update_interval(bgp, id, &interval);
-+	if (ret || !interval)
-+		goto exit;
-+
-+	*trend = (t1 - t2) / interval;
-+
-+	dev_dbg(bgp->dev, "The temperatures are t1 = %d and t2 = %d and trend =%d\n",
-+		t1, t2, *trend);
-+
-+exit:
-+	return ret;
++	return 0;
 +}
 +
-+/**
-  * ti_bandgap_tshut_init() - setup and initialize tshut handling
-  * @bgp: pointer to struct ti_bandgap
-  * @pdev: pointer to device struct platform_device
-diff --git a/drivers/staging/ti-soc-thermal/ti-bandgap.h b/drivers/staging/ti-soc-thermal/ti-bandgap.h
-index e29e357..5f4794a 100644
---- a/drivers/staging/ti-soc-thermal/ti-bandgap.h
-+++ b/drivers/staging/ti-soc-thermal/ti-bandgap.h
-@@ -382,6 +382,7 @@ int ti_bandgap_read_temperature(struct ti_bandgap *bgp, int id,
- 				  int *temperature);
- int ti_bandgap_set_sensor_data(struct ti_bandgap *bgp, int id, void *data);
- void *ti_bandgap_get_sensor_data(struct ti_bandgap *bgp, int id);
-+int ti_bandgap_get_trend(struct ti_bandgap *bgp, int id, int *trend);
+ /* Get critical temperature callback functions for thermal zone */
+ static int ti_thermal_get_crit_temp(struct thermal_zone_device *thermal,
+ 				    unsigned long *temp)
+@@ -225,7 +250,7 @@ static int ti_thermal_get_crit_temp(struct thermal_zone_device *thermal,
  
- #ifdef CONFIG_OMAP4_THERMAL
- extern const struct ti_bandgap_data omap4430_data;
+ static struct thermal_zone_device_ops ti_thermal_ops = {
+ 	.get_temp = ti_thermal_get_temp,
+-	/* TODO: add .get_trend */
++	.get_trend = ti_thermal_get_trend,
+ 	.bind = ti_thermal_bind,
+ 	.unbind = ti_thermal_unbind,
+ 	.get_mode = ti_thermal_get_mode,
 -- 
 1.7.7.1.488.ge8e1c
 
