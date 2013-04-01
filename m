@@ -1,84 +1,50 @@
-From: =?UTF-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?=
-	<freemangordon@abv.bg>
-Subject: Re: [PATCH] OMAP3 ROM Random Number Generator support
-Date: Mon, 1 Apr 2013 23:37:11 +0300 (EEST)
-Message-ID: <414980284.76676.1364848631348.JavaMail.apache@mail82.abv.bg>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [RFC][PATCH 0/5] Introduce .get_voltage callback into voltdm
+Date: Mon, 1 Apr 2013 14:56:30 -0700
+Message-ID: <CAPtuhTgNQShFvfe+AyN-uFJuFL85V1ceT-udWqFMeUUbmjhqmw@mail.gmail.com>
+References: <1349313365-5262-1-git-send-email-mturquette@ti.com> <alpine.DEB.2.00.1303310234110.6436@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.abv.bg ([194.153.145.99]:40414 "EHLO smtp-out.abv.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757230Ab3DAUhN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Apr 2013 16:37:13 -0400
+Received: from mail-we0-f181.google.com ([74.125.82.181]:48345 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758662Ab3DAV4v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 17:56:51 -0400
+Received: by mail-we0-f181.google.com with SMTP id d7so2062142wer.12
+        for <linux-omap@vger.kernel.org>; Mon, 01 Apr 2013 14:56:50 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1303310234110.6436@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: pali.rohar@gmail.com, juha.yrjola@solidboot.com, linux@arm.linux.org.uk, mpm@selenic.com, herbert@gondor.apana.org.au, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Mike Turquette <mturquette@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
- It could be that I am misreading something, but RX51 is OMAP3.
+On Sat, Mar 30, 2013 at 7:35 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hi Mike, Kevin,
+>
+> On Wed, 3 Oct 2012, Mike Turquette wrote:
+>
+>> From: Mike Turquette <mturquette@linaro.org>
+>>
+>> This series creates a new callback for struct voltagedomain,
+>> .get_voltage.  This fetches the voltage from hardware, if possible, and
+>> returns it to the caller.  We use this call to populate
+>> voltdm->nominal_volt at boot time.
+>
+> Just checking on the status of this series.  Is this superseded by
+> Andrii's driver?  Does it need to be reposted for merging?  etc.
+>
+
+Hi Paul,
+
+Thanks for resurrecting this thread.  This series is needed if the ABB
+transition is triggered by the OMAP VC/VP code.  Andrii's approach
+triggers an ABB transition based on the clock rate-change notifiers
+but that is still in discussion.
+
+So the short answer is "I don't know yet".
 
 Regards,
-Ivo
+Mike
 
-
- >-------- =D0=9E=D1=80=D0=B8=D0=B3=D0=B8=D0=BD=D0=B0=D0=BB=D0=BD=D0=BE=
- =D0=BF=D0=B8=D1=81=D0=BC=D0=BE --------
- >=D0=9E=D1=82:  Tony Lindgren=20
- >=D0=9E=D1=82=D0=BD=D0=BE=D1=81=D0=BD=D0=BE: Re: [PATCH] OMAP3 ROM Ran=
-dom Number Generator support
- >=D0=94=D0=BE: =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE =D0=94=D0=B8=D0=BC=
-=D0=B8=D1=82=D1=80=D0=BE=D0=B2=20
- >=D0=98=D0=B7=D0=BF=D1=80=D0=B0=D1=82=D0=B5=D0=BD=D0=BE =D0=BD=D0=B0: =
-=D0=9F=D0=BE=D0=BD=D0=B5=D0=B4=D0=B5=D0=BB=D0=BD=D0=B8=D0=BA, 2013, =D0=
-=90=D0=BF=D1=80=D0=B8=D0=BB 1 19:59:50 EEST
- >
- >
- >* =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=
-=D1=80=D0=BE=D0=B2  [130331 05:10]:
- >> =20
- >> Hi Pali,
- >>=20
- >> Yep, the code looks almost identical, I guess with some tweaks all =
-SMC code from that patch could be removed and instead used the one from=
- SMC PPA API.=20
- >>=20
- >> What I don't get, is why one needs to disable/enable fiqs/irqs:
- >>=20
- >> +static int call_sec_rom(u32 appl_id, u32 proc_id, u32 flag, ...)
- >> +{
- >> +	va_list ap;
- >> +	u32 ret;
- >> +	u32 val;
- >> +
- >> +	va_start(ap, flag);
- >> +	val =3D *(u32 *) &amp;ap;
- >> +	local_irq_disable();
- >> +	local_fiq_disable();
- >> +	ret =3D omap3_rom_rng_call(appl_id, proc_id, flag,
- >> +				 (u32) virt_to_phys((void *) val));
- >> +	local_fiq_enable();
- >> +	local_irq_enable();
- >> +	va_end(ap);
- >> +
- >> +	return ret;
- >> +}
- >>=20
- >> Do you have any idea why is that needed? Any other code I've ever s=
-een to call SM, does not disable fiqs/irqs, is RNG SMC somehow special?=
- I know this is Nokia's code, but still, if we can get some understandi=
-ng...
- >
- >Sounds like the fiq handling can be dropped based on what
- >the TI guys posted recently about FIQs only be available in
- >the secure mode starting with omap2.
- >
- >Regards,
- >
- >Tony
- >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> - Paul
