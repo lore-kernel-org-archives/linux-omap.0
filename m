@@ -1,37 +1,31 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 00/28] OMAP: DSS related board file changes
-Date: Sun, 31 Mar 2013 08:03:00 -0700
-Message-ID: <20130331150300.GD9494@kroah.com>
-References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
- <51546259.3000704@compulab.co.il>
- <51547462.3070803@ti.com>
- <5157F625.5070509@compulab.co.il>
+From: Andrew Jones <andyjjones26@gmail.com>
+Subject: OMAP custom board question
+Date: Mon, 1 Apr 2013 11:40:36 +0800
+Message-ID: <CAC03O5nPJrOwaZ=6cmOK4gGGj-bFrNzsPbEqj-A-B0DPaeqwWA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f44.google.com ([209.85.160.44]:53074 "EHLO
-	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755197Ab3CaPDD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Mar 2013 11:03:03 -0400
-Received: by mail-pb0-f44.google.com with SMTP id wz17so835365pbc.17
-        for <linux-omap@vger.kernel.org>; Sun, 31 Mar 2013 08:03:02 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <5157F625.5070509@compulab.co.il>
+Received: from mail-ia0-f194.google.com ([209.85.210.194]:34754 "EHLO
+	mail-ia0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756242Ab3DADxv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Mar 2013 23:53:51 -0400
+Received: by mail-ia0-f194.google.com with SMTP id m10so536292iam.1
+        for <linux-omap@vger.kernel.org>; Sun, 31 Mar 2013 20:53:51 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>
+To: linux-omap@vger.kernel.org
 
-On Sun, Mar 31, 2013 at 11:39:01AM +0300, Igor Grinberg wrote:
-> > Well, actually, if there was a way to add a device while somehow marking
-> > it so that no driver will be bound to it... Then the user could use the
-> > standard sysfs interface to bind a driver to the device. I wonder if
-> > that could be done...
-> 
-> I don't think this can fit current platform device framework.
-> But may be I'm missing something...
-> May be Greg can comment on this? Greg?
+Hi everyone,
 
-I have no idea what you all are talking about, sorry.
+This is a newbie question.  It's my first time to post on the
+linux-omap mailing list.
 
-greg k-h
+I have a custom board based on the AM3517.  My questions:
+
+a) Is this mailing list able to accept any code for custom boards?
+b) Should I submit a boardfile (eg.
+linux/arch/arm/mach-omap2/board-xyz.c) or should I submit a device
+tree blob?
+
+Thankyou very much!
+Andrew
