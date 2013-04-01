@@ -1,186 +1,83 @@
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v4 1/6] drivers: phy: add generic PHY framework
-Date: Mon, 01 Apr 2013 21:34:47 +0200
-Message-ID: <5159E157.6000800@gmail.com>
-References: <1364449408-9510-1-git-send-email-kishon@ti.com> <1364449408-9510-2-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1364449408-9510-2-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, arnd@arndb.de, akpm@linux-foundation.org, rob@landley.net, swarren@wwwdotorg.org, davem@davemloft.net, cesarb@cesarb.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, b-cousson@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, mchehab@redhat.com, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH v2 RESEND] ARM: OMAP1: fix omap_udc registration
+Date: Mon,  1 Apr 2013 23:03:00 +0300
+Message-ID: <1364846580-5256-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:48402 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759025Ab3DAUDV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 16:03:21 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Just couple minor comments...
+omap_udc platform device is not registered properly anymore:
+CONFIG_USB_GADGET_OMAP was deleted by 193ab2a6 (usb: gadget: allow
+multiple gadgets to be built) already in v3.1.
 
-On 03/28/2013 06:43 AM, Kishon Vijay Abraham I wrote:
-> The PHY framework provides a set of APIs for the PHY drivers to
-> create/destroy a PHY and APIs for the PHY users to obtain a reference to the
-> PHY with or without using phandle. To obtain a reference to the PHY without
-> using phandle, the platform specfic intialization code (say from board file)
-> should have already called phy_bind with the binding information. The binding
-> information consists of phy's device name, phy user device name and an index.
-> The index is used when the same phy user binds to mulitple phys.
->
-> PHY drivers should create the PHY by passing phy_descriptor that has
-> describes the PHY (label, type etc..) and ops like init, exit, suspend, resume,
-> poweron, shutdown.
->
-> The documentation for the generic PHY framework is added in
-> Documentation/phy.txt and the documentation for the sysfs entry is added
-> in Documentation/ABI/testing/sysfs-class-phy and the documentation for
-> dt binding is can be found at
-> Documentation/devicetree/bindings/phy/phy-bindings.txt
->
-> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
-> ---
-[...]
-> +/**
-> + * phy_put - release the PHY
+Fix by using CONFIG_USB_OMAP instead. Tested on Nokia 770 by checking
+that omap_udc is probed & working properly when built as a module.
 
-nit: According to kernel-doc documentation function names should have
-parentheses appended to the name. So it would need to be
+Acked-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
 
-+ * phy_put() - release the PHY
+	Patch history:
 
-in this case and it applies to multiple places elsewhere in this patch.
+	v2: http://marc.info/?t=136266319800006&r=1&w=2
+            - use IS_ENABLED()
 
-> + * @phy: the phy returned by phy_get()
-> + *
-> + * Releases a refcount the caller received from phy_get().
-> + */
-> +void phy_put(struct phy *phy)
-> +{
-> +	if (phy) {
-> +		module_put(phy->ops->owner);
-> +		put_device(&phy->dev);
-> +	}
-> +}
-> +EXPORT_SYMBOL_GPL(phy_put);
-[...]
-> +/**
-> + * devm_of_phy_get_byname - lookup and obtain a reference to a phy by name
-> + * @dev: device that requests this phy
-> + * @string - the phy name as given in the dt data
+	v1: http://marc.info/?t=136260886600006&r=1&w=2
 
-s/ -/:
+ arch/arm/mach-omap1/include/mach/usb.h |    2 +-
+ arch/arm/mach-omap1/usb.c              |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-> + *
-> + * Calls devm_of_phy_get (which associates the device with the phy using devres
-> + * on successful phy get) and passes on the return value of devm_of_phy_get.
-> + */
-> +struct phy *devm_of_phy_get_byname(struct device *dev, const char *string)
-> +{
-> +	int index;
-> +
-> +	if (!dev->of_node) {
-> +		dev_dbg(dev, "device does not have a device node entry\n");
-> +		return ERR_PTR(-EINVAL);
-> +	}
-> +
-> +	index = of_property_match_string(dev->of_node, "phy-names", string);
-> +
-> +	return devm_of_phy_get(dev, index);
-> +}
-> +EXPORT_SYMBOL_GPL(devm_of_phy_get_byname);
-> +
-> +/**
-> + * phy_get - lookup and obtain a reference to a phy.
-> + * @dev: device that requests this phy
-> + * @index: the index of the phy
-> + *
-> + * Returns the phy driver, after getting a refcount to it; or
-> + * -ENODEV if there is no such phy.  The caller is responsible for
-> + * calling phy_put() to release that count.
-> + */
-> +struct phy *phy_get(struct device *dev, int index)
-> +{
-> +	struct phy *phy = NULL;
+diff --git a/arch/arm/mach-omap1/include/mach/usb.h b/arch/arm/mach-omap1/include/mach/usb.h
+index 753cd5c..45e5ac7 100644
+--- a/arch/arm/mach-omap1/include/mach/usb.h
++++ b/arch/arm/mach-omap1/include/mach/usb.h
+@@ -2,7 +2,7 @@
+  * FIXME correct answer depends on hmc_mode,
+  * as does (on omap1) any nonzero value for config->otg port number
+  */
+-#ifdef	CONFIG_USB_GADGET_OMAP
++#if IS_ENABLED(CONFIG_USB_OMAP)
+ #define	is_usb0_device(config)	1
+ #else
+ #define	is_usb0_device(config)	0
+diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
+index 1a1db59..4118db5 100644
+--- a/arch/arm/mach-omap1/usb.c
++++ b/arch/arm/mach-omap1/usb.c
+@@ -123,7 +123,7 @@ omap_otg_init(struct omap_usb_config *config)
+ 	syscon = omap_readl(OTG_SYSCON_1);
+ 	syscon |= HST_IDLE_EN|DEV_IDLE_EN|OTG_IDLE_EN;
+ 
+-#ifdef	CONFIG_USB_GADGET_OMAP
++#if IS_ENABLED(CONFIG_USB_OMAP)
+ 	if (config->otg || config->register_dev) {
+ 		struct platform_device *udc_device = config->udc_device;
+ 		int status;
+@@ -169,7 +169,7 @@ omap_otg_init(struct omap_usb_config *config)
+ void omap_otg_init(struct omap_usb_config *config) {}
+ #endif
+ 
+-#ifdef	CONFIG_USB_GADGET_OMAP
++#if IS_ENABLED(CONFIG_USB_OMAP)
+ 
+ static struct resource udc_resources[] = {
+ 	/* order is significant! */
+@@ -600,7 +600,7 @@ static void __init omap_1510_usb_init(struct omap_usb_config *config)
+ 	while (!(omap_readw(ULPD_DPLL_CTRL) & DPLL_LOCK))
+ 		cpu_relax();
+ 
+-#ifdef	CONFIG_USB_GADGET_OMAP
++#if IS_ENABLED(CONFIG_USB_OMAP)
+ 	if (config->register_dev) {
+ 		int status;
+ 
+-- 
+1.7.10.4
 
-Unneeded initialization.
-
-> +	phy = phy_lookup(dev, index);
-> +	if (IS_ERR(phy)) {
-> +		dev_err(dev, "unable to find phy\n");
-> +		goto err0;
-
-Wouldn't it be better to just do:
-
-		return phy;
-> +	}
-> +
-> +	if (!try_module_get(phy->ops->owner)) {
-> +		phy = ERR_PTR(-EPROBE_DEFER);
-
-and
-		return ERR_PTR(-EPROBE_DEFER);
-
-> +		goto err0;
-
-and to drop this goto and the label below ?
-
-> +	}
-> +
-> +	get_device(&phy->dev);
-> +
-> +err0:
-> +	return phy;
-> +}
-> +EXPORT_SYMBOL_GPL(phy_get);
-
-> diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
-> new file mode 100644
-> index 0000000..0cb2298
-> --- /dev/null
-> +++ b/include/linux/phy/phy.h
-> @@ -0,0 +1,237 @@
-> +/*
-> + * phy.h -- generic phy header file
-[...]
-> +#ifndef __DRIVERS_PHY_H
-> +#define __DRIVERS_PHY_H
-> +
-> +#include<linux/err.h>
-> +#include<linux/of.h>
-> +
-> +struct phy
-
-I think you also need to add either
-
-#include <linux/device.h>
-
-or
-
-struct device;
-
-struct device * is used further in this file.
-
-> +/**
-> + * struct phy_ops - set of function pointers for performing phy operations
-> + * @init: operation to be performed for initializing phy
-> + * @exit: operation to be performed while exiting
-> + * @suspend: suspending the phy
-> + * @resume: resuming the phy
-
-> + * @poweron: powering on the phy
-> + * @shutdown: shutting down the phy
-
-Could these be named power_on/power_off ? Looks a bit more symmetric
-to me that way.
-
-> + * @owner: the module owner containing the ops
-> + */
-> +struct phy_ops {
-> +	int	(*init)(struct phy *phy);
-> +	int	(*exit)(struct phy *phy);
-> +	int	(*suspend)(struct phy *phy);
-> +	int	(*resume)(struct phy *phy);
-> +	int	(*poweron)(struct phy *phy);
-> +	int	(*shutdown)(struct phy *phy);
-> +	struct module *owner;
-> +};
-
-Thanks,
-Sylwester
