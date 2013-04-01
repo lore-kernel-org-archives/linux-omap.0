@@ -1,67 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3 ROM Random Number Generator support
-Date: Mon, 1 Apr 2013 09:59:50 -0700
-Message-ID: <20130401165949.GI10155@atomide.com>
-References: <2059303614.30062.1364731542427.JavaMail.apache@mail83.abv.bg>
+Subject: Re: [GIT PULL] ARM: OMAP2+: Serial driver sysc cleanup for 3.10
+Date: Mon, 1 Apr 2013 10:01:48 -0700
+Message-ID: <20130401170148.GJ10155@atomide.com>
+References: <1363768601-17862-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11092 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759000Ab3DARAK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 13:00:10 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61804 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759224Ab3DARBu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 13:01:50 -0400
 Content-Disposition: inline
-In-Reply-To: <2059303614.30062.1364731542427.JavaMail.apache@mail83.abv.bg>
+In-Reply-To: <1363768601-17862-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>
-Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, juha.yrjola@solidboot.com, linux@arm.linux.org.uk, mpm@selenic.com, herbert@gondor.apana.org.au, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=
-=80=D0=BE=D0=B2 <freemangordon@abv.bg> [130331 05:10]:
-> =20
-> Hi Pali,
->=20
-> Yep, the code looks almost identical, I guess with some tweaks all SM=
-C code from that patch could be removed and instead used the one from S=
-MC PPA API.=20
->=20
-> What I don't get, is why one needs to disable/enable fiqs/irqs:
->=20
-> +static int call_sec_rom(u32 appl_id, u32 proc_id, u32 flag, ...)
-> +{
-> +	va_list ap;
-> +	u32 ret;
-> +	u32 val;
-> +
-> +	va_start(ap, flag);
-> +	val =3D *(u32 *) &ap;
-> +	local_irq_disable();
-> +	local_fiq_disable();
-> +	ret =3D omap3_rom_rng_call(appl_id, proc_id, flag,
-> +				 (u32) virt_to_phys((void *) val));
-> +	local_fiq_enable();
-> +	local_irq_enable();
-> +	va_end(ap);
-> +
-> +	return ret;
-> +}
->=20
-> Do you have any idea why is that needed? Any other code I've ever see=
-n to call SM, does not disable fiqs/irqs, is RNG SMC somehow special? I=
- know this is Nokia's code, but still, if we can get some understanding=
-=2E..
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130320 01:39]:
+> Tony,
+> 
+> Here is the pull request for OMAP serial driver sysconfig cleanup. The series
+> removes all the hackery of sysconfig from UART driver and let runtime backend
+> handle it. Without this series serial console is almost un-usable on OMAP5.
+> One of the patch touches driver/serial but I got an ack from Greg KH to get
+> it queued via OMAP tree.
+> 
+> 
+> The following changes since commit a937536b868b8369b98967929045f1df54234323:
+> 
+>   Linux 3.9-rc3 (2013-03-17 15:59:32 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.10/omap_serial_sysc_cleanup
+> 
+> for you to fetch changes up to 0f78c88b107a25561d0830c7fb695134ac7e8892:
+> 
+>   ARM: OMAP2+: hwmod: Remove sysc slave idle and auto idle apis (2013-03-19 12:07:49 +0530)
 
-Sounds like the fiq handling can be dropped based on what
-the TI guys posted recently about FIQs only be available in
-the secure mode starting with omap2.
+Looks like Paul had some comments and has applied some of these,
+so ignoring this one for now.
 
 Regards,
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony 
+
