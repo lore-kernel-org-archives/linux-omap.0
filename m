@@ -1,60 +1,90 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 04/11] usb: dwc3: Add runtime power management
- callbacks
-Date: Tue, 2 Apr 2013 11:32:05 +0300
-Message-ID: <20130402083204.GH30286@arwen.pp.htv.fi>
+Subject: Re: [PATCH v3 05/11] usb: dwc3: exynos: Enable runtime power
+ management
+Date: Tue, 2 Apr 2013 11:33:27 +0300
+Message-ID: <20130402083326.GI30286@arwen.pp.htv.fi>
 References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
- <1364824448-14732-5-git-send-email-gautam.vivek@samsung.com>
+ <1364824448-14732-6-git-send-email-gautam.vivek@samsung.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zhtSGe8h3+lMyY1M"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="e5GLnnZ8mDMEwH4V"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60044 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761346Ab3DBIdr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Apr 2013 04:33:47 -0400
 Content-Disposition: inline
-In-Reply-To: <1364824448-14732-5-git-send-email-gautam.vivek@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1364824448-14732-6-git-send-email-gautam.vivek@samsung.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Vivek Gautam <gautam.vivek@samsung.com>
 Cc: linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
-List-Id: linux-omap@vger.kernel.org
 
---zhtSGe8h3+lMyY1M
+--e5GLnnZ8mDMEwH4V
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Mon, Apr 01, 2013 at 07:24:04PM +0530, Vivek Gautam wrote:
+> Enabling runtime power management on dwc3-exynos
+> letting dwc3 controller to be autosuspended on exynos
+> platform when not in use.
+>=20
+> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> ---
+>  drivers/usb/dwc3/dwc3-exynos.c |   12 ++++++++++++
+>  1 files changed, 12 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exyno=
+s.c
+> index 1ea7bd8..1ae81a0 100644
+> --- a/drivers/usb/dwc3/dwc3-exynos.c
+> +++ b/drivers/usb/dwc3/dwc3-exynos.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/platform_data/dwc3-exynos.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/clk.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/usb/otg.h>
+>  #include <linux/usb/nop-usb-xceiv.h>
+>  #include <linux/of.h>
+> @@ -138,6 +139,11 @@ static int dwc3_exynos_probe(struct platform_device =
+*pdev)
+>  	exynos->dev	=3D dev;
+>  	exynos->clk	=3D clk;
+> =20
+> +	pm_runtime_set_active(dev);
+> +	pm_runtime_enable(dev);
+> +	pm_runtime_get_sync(dev);
+> +	pm_runtime_forbid(dev);
 
-On Mon, Apr 01, 2013 at 07:24:03PM +0530, Vivek Gautam wrote:
-> +#else
-> +#define dwc3_runtime_suspend		NULL
-> +#define dwc3_runtime_resume		NULL
-
-this #else branch is unnecessary. Look at the definition for
-SET_RUNTIME_PM_OPS()
+don't you want to use autosuspend() to avoid consecutive suspend/resume
+calls when controller is under use ?
 
 --=20
 balbi
 
---zhtSGe8h3+lMyY1M
+--e5GLnnZ8mDMEwH4V
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRWpeEAAoJEIaOsuA1yqREWJoP/39b+e0q4u0GkpqDq+9Ly+8M
-eQMe79xrBCSHxH4FpDs56nhGdTJQER1WuSkcAjh0OQzQfMXTy3hSQCO1Z/47ZdIZ
-y5bNqRU9tj+Q0dltlgjSDL42XXCEzhvpjM8k7sfCuIxSZmPZr4lmUw+A5e2etuM3
-3uLWr78/kLoPCMOHOyOcFgyrPm3jOXuEjI+nktjgRxCqeaV4FOJCzZ3CNB3WV7PP
-7Az15LDkL6xB/E9ApwkgP/HJnIeaBdmGxbM6fAXzVPtwiiRilruPAyzW/+TDNGnW
-+oPeLsdo3ukLjLH2So6ia1HHdEP9IcBuNySEu5FphtnAmH1wPQtp8VJwsAco/Q/K
-wf/CYrzcYWH+qDAyCPtZdp4ftbpztePvSETit61RjeAWnPbzz5xXt2i9OSWym2pn
-4dPXmH0z/mEEa17aMamclgTGEJf+7NtQoYsMBAPgY4cYQXUb9WgVJFQ3Vo1Wc0nl
-EcT1shMYRTBUYdKXWSKHS+3R3afI3wdVs0E2Tu90cTrwQVqLS02dvTNArEJo402s
-wxENHn4ewHskaclfl8ADg4h4TK23JxHJxDnr3/BEnHk9r4XgHnMimR1dM9/mxlD6
-4yYCbjxN/Fc3fnX+d33bMMHXDW/zHqCOb+GhNdstZIYb+ZfGW4uqFPNyj8UKuz8K
-QxuM+uY/tY/p+yevSnhM
-=k2th
+iQIcBAEBAgAGBQJRWpfWAAoJEIaOsuA1yqRE/ecP/jaogkFFALSZKOGLPHt3+pj1
+mmiYf2UDYTBfjg7IPBOh8IR5aebLk2TqaytzxCE0Uf3N9hkmsi4i53ucHHqebPRD
+fK7EwPnzPq0IzuF70OUtPAOcBZ9Y6RGe1lhogLOK8b1ivWRNqm2jOOmYLhmHBbEf
+pnhvrFCHlf5tXRyuXWOXiFMpPF5ivDQyylM9yBja+FWOGaCMLoUXNi5KL+j/E3S6
+NKtRiWmiTLdOxiSjnPyQ0PcniB0K87dzLSg8Edcj0mu+jrNyhCLOeKuaLyGsDXkN
+LgS1FJK56+qpHLCpDa/yfWEBxV93vlP+alLhTul1ipNQhOviIy94AQb6wGb3LKRW
+T6BIZTp7G0BzrjJDGXwm4LLBACUeT+4B7D8JK7uLizqmaXF8kE8lKF+VctoYhFte
+qixZpUIluzm9f1Mv320+8wHSU9PiJZ6rXmBBUvPWkrwH0b6UQIWMD6LHKyHdcBr5
+aIUt81j/skbqtNcC7MTqY75ekzcMwvW91QvwUKvNc+A1IxTsAFi4MbdgeifEbbGx
+GS6z0RJYthyW8hT6o2BcXnM/FstLvV4dO6qu3yYnjG13wLlpsks6dNG2seEEqLtr
+L3J++e7oSzMzC067tj8FHwnyM/7JyFFTehcHPKyJ7PTFdLvSf5MxR97vIVlxCMtH
+ijKV+uMjgK1Y8F95NPtW
+=iuwz
 -----END PGP SIGNATURE-----
 
---zhtSGe8h3+lMyY1M--
+--e5GLnnZ8mDMEwH4V--
