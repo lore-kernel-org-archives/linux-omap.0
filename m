@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/3] omap cleanup for v3.10 merge window
-Date: Tue, 2 Apr 2013 10:29:10 -0700
-Message-ID: <E1UN51T-0001nO-Kt@merlin.infradead.org>
+Subject: [GIT PULL 3/3] omap hw crypto updates for v3.10 merge window
+Date: Tue, 2 Apr 2013 10:29:11 -0700
+Message-ID: <E1UN51e-0001qW-Lr@merlin.infradead.org>
 References: <pull-1364923751-842943>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,68 +22,58 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit a937536b868b8369b98967929045f1df54234323:
+The following changes since commit 78e52e026d288aad88b46bff0d94b05e145c4583:
 
-  Linux 3.9-rc3 (2013-03-17 15:59:32 -0700)
+  ARM: OMAP2+: clock data: Remove CK_* flags (2013-03-18 09:57:39 -0600)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/cleanup-v2-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/crypto-signed
 
-for you to fetch changes up to c309f7f46167e85d1aae2fd31f23e7d2b5cdfbe0:
+for you to fetch changes up to f13acab6594451da8b5bd39db0c0513aba592a8d:
 
-  Merge branch 'for_3.10/omap_generic_cleanup_v2' of git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux into omap-for-v3.10/cleanup-v2 (2013-03-28 14:45:31 -0700)
-
-----------------------------------------------------------------
-
-Clean up related changes for v3.10 merge window.
-Mostly clock and PM related with removal of now unused
-DMA channel definitions. The clock change to use SoC
-specific lists will make it a little bit easier to
-add support for new SoCs variants without having to patch
-all over the place.
+  Merge tag 'omap-devel-a-for-3.10' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.10/crypto (2013-04-01 10:07:28 -0700)
 
 ----------------------------------------------------------------
-J Keerthy (1):
-      ARM: OMAP2+: clock data: Remove CK_* flags
 
-Jarkko Nikula (2):
-      ARM: OMAP1: Remove unused DMA channel definitions
-      ARM: OMAP2+: Remove unused DMA channel definitions
+Omap crypto related bus level changes via Paul Walmsley <paul@pwsan.com>:
 
-Santosh Shilimkar (8):
-      ARM: OMAP2+: PM: Remove bogus fiq_[enable/disable] tuple
-      ARM: OMAP4+: Remove the un-necessary cache flush from hotplug code
-      ARM: OMAP4+: Remove un-necessary cacheflush in secondary CPU boot path
-      ARM: OMAP4+: Remove out of placed smp_wmb() in secondary wakeup code
-      ARM: OMAP4+: Move the CPU wakeup prepare code under smp_prepare_cpus()
-      ARM: OMAP4: PM: Remove L4 wakeup depedency with MPU since errata fix exist now
-      ARM: OMAP4: PM: Now remove L4 per clockdomain static depedency with MPU
-      ARM: OMAP4: Fix the init code to have OMAP4460 errata available in DT build
+For OMAP2+ SoCs, convert the SHA/MD5 and AES accelerator integration
+code and data to use hwmod and omap_device. This is a prerequisite for
+moving the hwmod code out of arch/arm.
 
-Tero Kristo (1):
-      ARM: OMAP4+: Use common scratchpad SAR RAM offsets for all architectures
+Basic test logs are available at:
 
-Tony Lindgren (2):
-      Merge tag 'omap-cleanup-a-for-3.10' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.10/cleanup
-      Merge branch 'for_3.10/omap_generic_cleanup_v2' of git://git.kernel.org/.../ssantosh/linux into omap-for-v3.10/cleanup-v2
+http://www.pwsan.com/omap/testlogs/sham_aes_integration_devel_3.10/20130330155313/
 
- arch/arm/mach-omap1/dma.h              |  41 --
- arch/arm/mach-omap2/cclock2420_data.c  | 283 +++++++-------
- arch/arm/mach-omap2/cclock2430_data.c  | 311 ++++++++-------
- arch/arm/mach-omap2/cclock33xx_data.c  | 165 ++++----
- arch/arm/mach-omap2/cclock3xxx_data.c  | 685 ++++++++++++++++++---------------
- arch/arm/mach-omap2/cclock44xx_data.c  | 515 ++++++++++++-------------
- arch/arm/mach-omap2/clock.c            |  17 +-
- arch/arm/mach-omap2/clock.h            |  20 +-
- arch/arm/mach-omap2/cpuidle34xx.c      |   3 -
- arch/arm/mach-omap2/cpuidle44xx.c      |   7 -
- arch/arm/mach-omap2/dma.h              |  70 ----
- arch/arm/mach-omap2/omap-hotplug.c     |   6 -
- arch/arm/mach-omap2/omap-smp.c         |  57 +--
- arch/arm/mach-omap2/omap4-common.c     |  16 +
- arch/arm/mach-omap2/omap4-sar-layout.h |  14 +-
- arch/arm/mach-omap2/pm24xx.c           |  11 +-
- arch/arm/mach-omap2/pm34xx.c           |   9 +-
- arch/arm/mach-omap2/pm44xx.c           |  20 +-
- 18 files changed, 1059 insertions(+), 1191 deletions(-)
+----------------------------------------------------------------
+Mark A. Greer (13):
+      ARM: OMAP2xxx: hwmod: Convert SHAM crypto device data to hwmod
+      ARM: OMAP2xxx: hwmod: Add DMA support for SHAM module
+      ARM: OMAP3xxx: hwmod: Convert SHAM crypto device data to hwmod
+      ARM: OMAP2+: Remove unnecessary message when no SHA IP is present
+      ARM: OMAP2+: Only manually add hwmod data when DT not used.
+      ARM: AM33XX: Add sha0 crypto clock data
+      ARM: AM33XX: hwmod: Update and uncomment SHA0 module data
+      ARM: OMAP2xxx: hwmod: Convert AES crypto devcie data to hwmod
+      ARM: OMAP3xxx: hwmod: Convert AES crypto device data to hwmod
+      ARM: OMAP2+: Remove unnecessary message when no AES IP is present
+      ARM: OMAP2+: Only manually add hwmod data when DT not used.
+      ARM: AM33XX: Add aes0 crypto clock data
+      ARM: AM33XX: hwmod: Update and uncomment AES0 module data
+
+Tony Lindgren (1):
+      Merge tag 'omap-devel-a-for-3.10' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.10/crypto
+
+ arch/arm/mach-omap2/cclock2430_data.c              |   4 +-
+ arch/arm/mach-omap2/cclock33xx_data.c              |  10 ++
+ arch/arm/mach-omap2/cclock3xxx_data.c              |   2 +
+ arch/arm/mach-omap2/devices.c                      | 149 +++---------------
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   2 +
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   2 +
+ .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |  36 +++++
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  81 ++++++++++
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  92 +++++++++--
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 172 +++++++++++++++++++--
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |   4 +
+ 11 files changed, 401 insertions(+), 153 deletions(-)
