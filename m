@@ -1,74 +1,82 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
-Date: Tue, 2 Apr 2013 18:10:35 +0530
-Message-ID: <CAFp+6iEqHOc6G+4UpUGneQ43FGf11DOH_LignFiXJxVJnjry2w@mail.gmail.com>
-References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
-	<1364824448-14732-2-git-send-email-gautam.vivek@samsung.com>
-	<20130402082342.GF30286@arwen.pp.htv.fi>
-	<CAFp+6iFW9-fOCgCfpfQzS9PZyjb9_NahjSxzbrS0AhVeNngyXw@mail.gmail.com>
-	<20130402121048.GA9488@arwen.pp.htv.fi>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC PATCH 5/6] ARM: OMAP3+: ABB: introduce ABB driver
+Date: Tue, 2 Apr 2013 07:49:20 -0500
+Message-ID: <20130402124919.GA2028@snafu>
+References: <20130328212739.13785.44736@quantum>
+ <20130328223513.GA19470@kahuna>
+ <51596725.9060109@ti.com>
+ <20130401181057.8177.19688@quantum>
+ <CAGo_u6ofjT_HyzdFNj3ByCbsyYzGU-LncUKo9=84BU3u6FK6Hw@mail.gmail.com>
+ <20130401213430.8177.21940@quantum>
+ <20130401230009.GA2038@snafu>
+ <20130402000545.8177.65252@quantum>
+ <20130402033545.GA2020@snafu>
+ <515AAFAC.50908@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130402121048.GA9488@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57191 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760028Ab3DBMtV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Apr 2013 08:49:21 -0400
+Content-Disposition: inline
+In-Reply-To: <515AAFAC.50908@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>, Tero Kristo <t-kristo@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org
 
-Hi,
+On 13:15-20130402, Grygorii Strashko wrote:
+> On 04/02/2013 06:35 AM, Nishanth Menon wrote:
+> >On 17:05-20130401, Mike Turquette wrote:
+> >>OK, so we're in agreement on what The Future looks like.  What does that
+> >>mean for Andrii's patchset?
+> >Unless anyone has an fundamental issue with the approach of an "Super
+> >regulator" controlling "sub regulators", I think, in-line with your
+> >view, we should probably make ABB as an regulator instead of inventing
+> >our own API and hooking it around clock notifiers.
+> Hi Nishanth, All
+> One question here, regarding "Super regulator" - How are you going
+> to differentiate
+> OPP changing and AVS Voltage adjustment requests to the "Super regulator"??
+> As you know, to select OPP changing direction, ABB type (or VC/VP
+> parameters)
+> properly you need Nominal (and only Nominal) voltage as input.
+> And in real world, AVS can adjust voltage, as example, for OPP100
+> even low than for OPP50.
+> OMAP4 example:
+>     MPU OPP    Vsr                Vnom   ABB
+>     OPP50      0.862249970436096  1.025  NOM
+>     OPP100     1.03509700298309   1.2    NOM
+>     OPPTurbo   1.09257805347443   1.325  NOM
+>     OPPNitro   1.18703103065491   1.388  FAST
+>     OPPNitroSB 1.29427194595337   1.398  FAST
+> So, while adjusting voltage, AVS can hit other OPP voltage and, as
+> result, ABB mode may be changed.
+The expectation is that we will use Vnom in the "super regulator". Vnom
+does not change per OPP across devices. Expectation will be to use Vnom
+as indexing key inside regulator framework.
 
+> 
+> I think, your vision would be more clear if you could be able to
+> provide Sequence diagram in addition.
+I should be able to do better, I should be able to post a RFC revision
+of the "super regulator" verifiable on Beagle XM using I2C1 (instead of
+i2c_sr) as start, I will give it hooks to handle "Efuse Vnom" support
+which our upcoming SoC needs as well.
+> 
+> And would it be allowed to use DT for such regulator chain definitions
+> (or board-generic.c should be used instead), just for clarification,
+>  because I have not to much DT experience:
+> omap443x.dtsi:
+> vdd_mpu: regulator-omap-ti1 { << -- Super regulator
+I would not link only *OMAP* to this - as originally stated, this is
+needed by OMAP, AM, DM and potentially, Keystone family of TI
+processors.
 
-On Tue, Apr 2, 2013 at 5:40 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Tue, Apr 02, 2013 at 04:04:01PM +0530, Vivek Gautam wrote:
->> > On Mon, Apr 01, 2013 at 07:24:00PM +0530, Vivek Gautam wrote:
->> >> Adding  APIs to handle runtime power management on PHY
->> >> devices. PHY consumers may need to wake-up/suspend PHYs
->> >> when they work across autosuspend.
->> >>
->> >> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
->> >> ---
->> >>  include/linux/usb/phy.h |  141 +++++++++++++++++++++++++++++++++++++++++++++++
->> >>  1 files changed, 141 insertions(+), 0 deletions(-)
->> >>
->> >> diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
->> >> index 6b5978f..01bf9c1 100644
->> >> --- a/include/linux/usb/phy.h
->> >> +++ b/include/linux/usb/phy.h
->> >> @@ -297,4 +297,145 @@ static inline const char *usb_phy_type_string(enum usb_phy_type type)
->> >>               return "UNKNOWN PHY TYPE";
->> >>       }
->> >>  }
->> >> +
->> >> +static inline void usb_phy_autopm_enable(struct usb_phy *x)
->> >> +{
->> >> +     if (!x || !x->dev) {
->> >> +             dev_err(x->dev, "no PHY or attached device available\n");
->> >> +             return;
->> >> +             }
->> >
->> > wrong indentation, also, I'm not sure we should allow calls with NULL
->> > pointers. Perhaps a WARN() so we get API offenders early enough ?
->>
->> True, bad coding style :-(
->> We should be handling dev_err with a NULL pointer.
->> Will just keep here:
->> if (WARN_ON(!x->dev))
->>       return .... ;
->
-> right, but I guess:
->
-> if (WARN(!x || !x->dev, "Invalid parameters\n"))
->         return -EINVAL;
->
-> would be better ??
+How about we debate this with the "super regulator" patch?
 
-Yea, better. Thanks
-Will amend this accordingly.
-
-
+[...]
 -- 
-Thanks & Regards
-Vivek
+Regards,
+Nishanth Menon
