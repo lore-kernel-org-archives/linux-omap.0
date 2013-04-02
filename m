@@ -1,110 +1,184 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 08/28] ARM: OMAP: CM-T35: Kconfig option for the display
- options
-Date: Tue, 02 Apr 2013 14:20:53 +0300
-Message-ID: <515ABF15.9070400@compulab.co.il>
-References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com> <1364474962-20439-9-git-send-email-tomi.valkeinen@ti.com> <51546B2C.2030101@compulab.co.il> <51547790.7010108@ti.com> <5157FF21.9000702@compulab.co.il> <515A91CA.7060801@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCH/Resend 2/2] arm: mach-omap2: prevent UART console idle
+ on suspend while using "no_console_suspend"
+Date: Tue, 2 Apr 2013 17:13:53 +0530
+Message-ID: <515AC479.9020508@ti.com>
+References: <1363612924-349-1-git-send-email-sourav.poddar@ti.com> <87fvzsilnv.fsf@linaro.org> <5149A221.5@ti.com> <5149A63C.4000102@ti.com> <515AA9CD.5000004@ti.com> <515AADB7.3080906@amarulasolutions.com> <515AB579.7010705@ti.com> <515AB67A.8010206@amarulasolutions.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:53438 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751621Ab3DBLVE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Apr 2013 07:21:04 -0400
-In-Reply-To: <515A91CA.7060801@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <515AB67A.8010206@amarulasolutions.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Michael Trimarchi <michael@amarulasolutions.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Mike Rapoport <mike@compulab.co.il>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-On 04/02/13 11:07, Tomi Valkeinen wrote:
-> On 2013-03-31 12:17, Igor Grinberg wrote:
->>
->>
->> On 03/28/13 19:02, Tomi Valkeinen wrote:
->>> On 2013-03-28 18:09, Igor Grinberg wrote:
->>>> On 03/28/13 14:49, Tomi Valkeinen wrote:
->>>>> Boards with multiple display options for the same video bus have all the
->>>>> possible linux display devices present at the same time. Only one of
->>>>> those devices should be used at a time, as the video bus cannot be
->>>>> shared.
+Hi,
+On Tuesday 02 April 2013 04:14 PM, Michael Trimarchi wrote:
+> Hi
+>
+> On 02/04/13 12:39, Sourav Poddar wrote:
+>> Hi,
+>> On Tuesday 02 April 2013 03:36 PM, Michael Trimarchi wrote:
+>>> Hi
+>>>
+>>> On 02/04/13 11:50, Sourav Poddar wrote:
+>>>> Hi Kevin,
+>>>> On Wednesday 20 March 2013 05:36 PM, Sourav Poddar wrote:
+>>>>> Realised the list  to whom the patch was send got dropped. Ccing them all..
+>>>>> On Wednesday 20 March 2013 05:18 PM, Sourav Poddar wrote:
+>>>>>> Hi Kevin,
+>>>>>> On Tuesday 19 March 2013 12:24 AM, Kevin Hilman wrote:
+>>>>>>> Sourav Poddar<sourav.poddar@ti.com>    writes:
+>>>>>>>
+>>>>>>>> With dt boot, uart wakeup after suspend is non functional on omap4/5 while using
+>>>>>>>> "no_console_suspend" in the bootargs. With "no_console_suspend" used, od->flags
+>>>>>>>> should be ORed with "OMAP_DEVICE_NO_IDLE_ON_SUSPEND", thereby not allowing the console
+>>>>>>>> to idle in the suspend path. For non-dt case, this was taken care by platform data.
+>>>>>>>>
+>>>>>>>> Tested on omap5430evm, omap4430sdp.
+>>>>>>>>
+>>>>>>>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>>>>>>>> Cc: Felipe Balbi<balbi@ti.com>
+>>>>>>>> Cc: Rajendra nayak<rnayak@ti.com>
+>>>>>>>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+>>>>>>> This patch creates a dependency between omap_device (generic,
+>>>>>>> device-independent code) and a specific driver (UART.)
+>>>>>>>
+>>>>>>> If you need to do something like this that's DT boot specific, then
+>>>>>>> we probably need some late initcall in serial.c to handle this.  It does
+>>>>>>> not belong in omap_device.
+>>>>>>>
+>>>>>> The following function "omap_device_disable_idle_on_suspend(pdev)" should only
+>>>>>> be called once the omap device has been build, which in the case of device tree is
+>>>>>> done in omap_device.c file. Moreover, the above call should be executed conditionally
+>>>>>> and should depend on the following two parameter.
+>>>>>>
+>>>>>> [1]  a. Whether "no_console_suspend" is set and
+>>>>>>        b.  the device build is a console uart.
+>>>>>>
+>>>>>> When I look closely into the serial.c file, I realised that
+>>>>>> "core_initcall(omap_serial_early_init)" gets called irrespective
+>>>>>> of dt/non dt boot and will take care of most of the stuff(checking whether
+>>>>>> "no_console_suspend" is used and which uart is used as a console uart) which the
+>>>>>> $subject patch is proposing.
+>>>>>>
+>>>>>> But the problem is that we need to exchange the parsed information
+>>>>>> from serial.c to the omap_device file for the condtional execution of
+>>>>>> "omap_device_disable_idle_on_suspend"
+>>>>>>
+>>>>>> In this case,
+>>>>>> from "serial.c" we need
+>>>>>>       1. no_console_suspend = true
+>>>>>>       2. strcpy(console_name, oh_name), where oh_name corresponds to the console uart.
+>>>>>>
+>>>>>> then in "omap_device.c" do
+>>>>>>       if (no_console_suspend&&   !strcmp(oh->name, console_name))
+>>>>>>                   omap_device_disable_idle_on_suspend(pdev);
+>>>>>>
+>>>>>> Please correct if I am understanding it incorrectly.
+>>>>>>
+>>>>>> If the above understanding looks good to you, is there a way we can make this
+>>>>>> exchange of information happen between serial.c and omap_device.c file?
+>>>> Any input on this?
+>>>> As I explained earlier, that there is a need to parse information in serial.c and use that in
+>>>> omap_device.c only after the device is build.
 >>>>
->>>> Yes, only one can be used at a time, but you can switch at runtime...
->>
->>> Yep. But the panel drivers need to know about this, and they cannot do
->>> more or less anything in the driver probe function, which I think should
->>> be the place to reserve resources and do initialization. With the
->>> current model that would lead to multiple drivers trying to acquire the
->>> same resources.
->>
->> Yep, this is a problem, but it only means that probably
->> the platform device framework is not suitable for this.
->>
->> What about having some kind of display manager which will have a private
->> list of registered devices and will instantiate only those that are marked
->> active?
->> This also might be useful with DT.
-> 
-> We can't have a generic manager that handles instantiating the devices,
-> as we don't know what device they are. They could be platform devices,
-> i2c, anything. There could even be a single device that creates multiple
-> displays.
-
-Unless, the registered device node is descriptive enough,
-or the device node can "instantiate itself".
-We use the "ops" structures all over the kernel.
-
-What about the capebus? Can it help with abstracting such things?
-
-> 
->>>>> This model is hacky, and will be changed in the forthcoming DSS patches
->>>>> to a model where only one display device can be present on a single
->>>>> video bus.
+>>>> Below is the patch (inlined) which further explains my point. The patch is "just for the
+>>>> idea" I am trying to express.
+>>>> I have used extern variables to exchange information between serial.c and omap_device.c.
+>>>> Is there is a better way, we can do this "information exchange" without using extern variables?
 >>>>
->>>> What do you mean by "present"?
->>>> Is it active? or registered? or compiled in?
->>
->>> I mean that only one device can be registered. Well, nothing strictly
->>> prevents having multiple devices registered, but if the devices have
->>> matching drivers, the drivers would acquire the same resources. Possibly
->>> the same gpios, but at least the same video bus.
->>
->> Well, I think, we should follow/extend the already existing EDID concept...
->> Instantiate a display device only when one has been "plugged in".
->> By "plugged in" I mean enabled - made active.
-> 
-> This brings the complication that we need a way to make the display
-> active even if the display device doesn't exist. So we need to know
-> about the display even if it's not there.
+>>>>
+>>>> -----
+>>>> From: Sourav Poddar<sourav.poddar@ti.com>
+>>>> Date: Wed, 13 Mar 2013 20:32:36 +0530
+>>>> Subject: [RFC/PATCH] arm: mach-omap2: prevent UART console idle on suspend while using "no_console_suspend"
+>>>>
+>>>> With dt boot on omap5, uart wakeup after suspend is non functional while using
+>>>> "no_console_suspend" in the bootargs. With "no_console_suspend" used, od->flags
+>>>> should be ORed with "OMAP_DEVICE_NO_IDLE_ON_SUSPEND", thereby not allowing the console
+>>>> to idle in the suspend path. For non-dt case, this was taken care by platform data.
+>>>>
+>>>> Tested on omap5430evm, omap4430sdp.
+>>>>
+>>>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+>>>> ---
+>>>> The problem is I need to use couple of "extern variables" which
+>>>> can be used in the omap_device file, after the device is built from dt.
+>>>>
+>>>>    arch/arm/mach-omap2/omap_device.c |    7 ++++++-
+>>>>    arch/arm/mach-omap2/serial.c      |    4 +++-
+>>>>    2 files changed, 9 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+>>>> index e065daa..f4ebf9f 100644
+>>>> --- a/arch/arm/mach-omap2/omap_device.c
+>>>> +++ b/arch/arm/mach-omap2/omap_device.c
+>>>> @@ -96,6 +96,9 @@
+>>>>    #define USE_WAKEUP_LAT            0
+>>>>    #define IGNORE_WAKEUP_LAT        1
+>>>>
+>>>> +extern u8 no_console_suspend;
+>>>> +extern char console_uart_name[];
+>>>> +
+>>>>    static int omap_early_device_register(struct platform_device *pdev);
+>>>>
+>>>>    static struct omap_device_pm_latency omap_default_latency[] = {
+>>>> @@ -372,7 +375,9 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+>>>>                r->name = dev_name(&pdev->dev);
+>>>>        }
+>>>>
+>>>> -    if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
+>>>> +    if (no_console_suspend&&   !strcmp(oh->name, console_uart_name))
+>>>> +        omap_device_disable_idle_on_suspend(pdev);
+>>>> +    else if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
+>>>>            omap_device_disable_idle_on_suspend(pdev);
+>>> Why do not use some flags instead of external variable?
+>>>
+>>>
+>> That flag also need to be set in serial.c and used in omap_device.c.
+>> Moreover, I am doing a strcmp so I need a console uart name to be passed
+>> from serial.c to omap_device.c
+> Just an idea, I didn't check the code
+>
+> if (oh->flags&  OMAP_FORCE_DISABLE_IDLE_ON_SUSPEND || of_get_property(node, "ti,no_idle_on_suspend", NULL))
+> 	omap_device_disable_idle_on_suspend(pdev);
+>
+> And I don't know if you can set such flags in serial.c
+>
+Yes, it should be possible.  I will try this out.
+Thanks for the suggestion.
 
-Yes, well, I mean that the process of making the display active can
-involve registering the display device, no?
-And yes, it does bring the complication, but I don't really see a way we
-can avoid such complications and yet support the modern hardware.
+~Sourav
+> Michael
+>
+>
+>>>>        pdev->dev.pm_domain =&omap_device_pm_domain;
+>>>> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+>>>> index 037e691..f841ab5 100644
+>>>> --- a/arch/arm/mach-omap2/serial.c
+>>>> +++ b/arch/arm/mach-omap2/serial.c
+>>>> @@ -63,8 +63,9 @@ struct omap_uart_state {
+>>>>    static LIST_HEAD(uart_list);
+>>>>    static u8 num_uarts;
+>>>>    static u8 console_uart_id = -1;
+>>>> -static u8 no_console_suspend;
+>>>>    static u8 uart_debug;
+>>>> +u8 no_console_suspend;
+>>>> +char console_uart_name[MAX_UART_HWMOD_NAME_LEN];
+>>>>
+>>>>    #define DEFAULT_RXDMA_POLLRATE        1    /* RX DMA polling rate (us) */
+>>>>    #define DEFAULT_RXDMA_BUFSIZE        4096    /* RX DMA buffer size */
+>>>> @@ -199,6 +200,7 @@ static int __init omap_serial_early_init(void)
+>>>>                    "%s%d", OMAP_SERIAL_NAME, uart->num);
+>>>>
+>>>>            if (cmdline_find_option(uart_name)) {
+>>>> +            strcpy(console_uart_name, oh_name);
+>>>>                console_uart_id = uart->num;
+>>>>
+>>>>                if (console_loglevel>= 10) {
+>>> Michael
+>> ~Sourav
 
-
-- -- 
-Regards,
-Igor.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRWr8VAAoJEBDE8YO64Efa5sgP/ArPjYtGakOnWkbFah5ClnPH
-sOMDwnTEW76rLpXzPE63dTBIImiBhKpaKNKK3pxdPH7uhZ5qr1usi/s/W59MPrYA
-7lsZnkdsJLk/piFKk1IdB9Q+ke7qftCEmVTrv9fXtYrojZ9NHH1yGqmjQIINyzUm
-hGTbplKUldfMSh9z+XszUcGgBkkZQgMd435eJKOYw9Bny56u0ekOfPIo5pHTJioc
-F4gQybWQ41hpBVWe8OkYH8tN9hOnujbdgQ+K4K5JYizJV0NYnGgxESvescieAINn
-0INEYhiyD97Fcr6sFFjOSqkLTZoBaXFLDl0EPWqasImf5sCLapmtkqfpMRlUjoiW
-MiVv6XACE5AmFicivjPowDn01HurH0Q8aXXhvhtSEu8oLePN3gH5PW9P6VIjAUbM
-85OT+VkPfWIUupw2aeygy+ePoBpjj4NtZWzhpxzdDi/k5HkrZvSh3uGernCbAsYj
-/JV4wZRQQVml7j65uYRLmnKx+tMbBnd/QU96OLdSOdGaNor+bY0x0zDcy4DAKuw3
-/W0HPGMr6dctBOb26ofYn97jxjLAcULKTWffykxktNyB1ODzN2NdEUnUv6rtq4Bv
-6EA7EaK1dehM2TV4eVNiCxxvv88Kk58uJqzuxvx2BHGtDkbygJGxkBZ41/MNWQOT
-3UMYsUEKecOie5cT+JtG
-=IrRQ
------END PGP SIGNATURE-----
