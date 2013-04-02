@@ -1,79 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/3] omap hw crypto updates for v3.10 merge window
-Date: Tue, 2 Apr 2013 10:29:11 -0700
-Message-ID: <E1UN51e-0001qW-Lr@merlin.infradead.org>
-References: <pull-1364923751-842943>
+From: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
+Subject: Re: [RFC PATCH 5/6] ARM: OMAP3+: ABB: introduce ABB driver
+Date: Tue, 2 Apr 2013 20:35:49 +0300
+Message-ID: <515B16F5.2090708@ti.com>
+References: <1364490968-13613-1-git-send-email-andrii.tseglytskyi@ti.com> <20130328212739.13785.44736@quantum> <20130328223513.GA19470@kahuna> <51596725.9060109@ti.com> <20130401181057.8177.19688@quantum> <CAGo_u6ofjT_HyzdFNj3ByCbsyYzGU-LncUKo9=84BU3u6FK6Hw@mail.gmail.com> <20130401213430.8177.21940@quantum> <20130401230009.GA2038@snafu> <20130402000545.8177.65252@quantum> <20130402033545.GA2020@snafu> <20130402171614.8177.68752@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <pull-1364923751-842943>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38610 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756756Ab3DBRfw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Apr 2013 13:35:52 -0400
+In-Reply-To: <20130402171614.8177.68752@quantum>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, linux-omap@vger.kernel.org, andrii.tseglytskyi@ti.com
 
-The following changes since commit 78e52e026d288aad88b46bff0d94b05e145c4583:
+On 04/02/2013 08:16 PM, Mike Turquette wrote:
+> Quoting Nishanth Menon (2013-04-01 20:35:45)
+>> On 17:05-20130401, Mike Turquette wrote:
+>>> OK, so we're in agreement on what The Future looks like.  What does that
+>>> mean for Andrii's patchset?
+>> Unless anyone has an fundamental issue with the approach of an "Super
+>> regulator" controlling "sub regulators", I think, in-line with your
+>> view, we should probably make ABB as an regulator instead of inventing
+>> our own API and hooking it around clock notifiers.
+> ACK.  Making the ABB code into a regulator driver is the right thing to
+> do regardless of whether or not we use a Super Regulator(tm) or just
+> chain together Not So Super Regulators(tm).
+>
+> I'm not an expert at the regulator framework, but I encourage Andrii to
+> look into regulator_set_mode(), which might be a more semantically
+> accurate alternative than regulator_set_voltage() for the ABB ldo.
+>
+> Regards,
+> Mike
+>
+>> -- 
+>> Regards,
+>> Nishanth Menon
 
-  ARM: OMAP2+: clock data: Remove CK_* flags (2013-03-18 09:57:39 -0600)
+Hi,
 
-are available in the git repository at:
+Agree. It is a good idea in general.
+regulator_set_mode() API seems to be good enough for handling ABB mode 
+(FBB/RBB/Bypass).
+Knowledge about ABB mode on each OPP can be moved from ABB regulator to 
+"Super regulator".
+Thanks a lot for all your comments.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/crypto-signed
-
-for you to fetch changes up to f13acab6594451da8b5bd39db0c0513aba592a8d:
-
-  Merge tag 'omap-devel-a-for-3.10' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.10/crypto (2013-04-01 10:07:28 -0700)
-
-----------------------------------------------------------------
-
-Omap crypto related bus level changes via Paul Walmsley <paul@pwsan.com>:
-
-For OMAP2+ SoCs, convert the SHA/MD5 and AES accelerator integration
-code and data to use hwmod and omap_device. This is a prerequisite for
-moving the hwmod code out of arch/arm.
-
-Basic test logs are available at:
-
-http://www.pwsan.com/omap/testlogs/sham_aes_integration_devel_3.10/20130330155313/
-
-----------------------------------------------------------------
-Mark A. Greer (13):
-      ARM: OMAP2xxx: hwmod: Convert SHAM crypto device data to hwmod
-      ARM: OMAP2xxx: hwmod: Add DMA support for SHAM module
-      ARM: OMAP3xxx: hwmod: Convert SHAM crypto device data to hwmod
-      ARM: OMAP2+: Remove unnecessary message when no SHA IP is present
-      ARM: OMAP2+: Only manually add hwmod data when DT not used.
-      ARM: AM33XX: Add sha0 crypto clock data
-      ARM: AM33XX: hwmod: Update and uncomment SHA0 module data
-      ARM: OMAP2xxx: hwmod: Convert AES crypto devcie data to hwmod
-      ARM: OMAP3xxx: hwmod: Convert AES crypto device data to hwmod
-      ARM: OMAP2+: Remove unnecessary message when no AES IP is present
-      ARM: OMAP2+: Only manually add hwmod data when DT not used.
-      ARM: AM33XX: Add aes0 crypto clock data
-      ARM: AM33XX: hwmod: Update and uncomment AES0 module data
-
-Tony Lindgren (1):
-      Merge tag 'omap-devel-a-for-3.10' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.10/crypto
-
- arch/arm/mach-omap2/cclock2430_data.c              |   4 +-
- arch/arm/mach-omap2/cclock33xx_data.c              |  10 ++
- arch/arm/mach-omap2/cclock3xxx_data.c              |   2 +
- arch/arm/mach-omap2/devices.c                      | 149 +++---------------
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   2 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   2 +
- .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |  36 +++++
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  81 ++++++++++
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  92 +++++++++--
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 172 +++++++++++++++++++--
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |   4 +
- 11 files changed, 401 insertions(+), 153 deletions(-)
+Regards,
+Andrii
