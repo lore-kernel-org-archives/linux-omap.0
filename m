@@ -1,38 +1,43 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH 5/6] ARM: OMAP3+: ABB: introduce ABB driver
-Date: Mon, 1 Apr 2013 22:35:45 -0500
-Message-ID: <20130402033545.GA2020@snafu>
-References: <1364490968-13613-1-git-send-email-andrii.tseglytskyi@ti.com>
- <1364490968-13613-5-git-send-email-andrii.tseglytskyi@ti.com>
- <20130328212739.13785.44736@quantum>
- <20130328223513.GA19470@kahuna>
- <51596725.9060109@ti.com>
- <20130401181057.8177.19688@quantum>
- <CAGo_u6ofjT_HyzdFNj3ByCbsyYzGU-LncUKo9=84BU3u6FK6Hw@mail.gmail.com>
- <20130401213430.8177.21940@quantum>
- <20130401230009.GA2038@snafu>
- <20130402000545.8177.65252@quantum>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP5: Generic updates and es2 fixes for 3.10
+Date: Tue, 2 Apr 2013 11:49:54 +0530
+Message-ID: <515A788A.1050601@ti.com>
+References: <1363768822-18084-1-git-send-email-santosh.shilimkar@ti.com> <20130401164746.GH10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58893 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36731 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759877Ab3DBDfs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Apr 2013 23:35:48 -0400
-Content-Disposition: inline
-In-Reply-To: <20130402000545.8177.65252@quantum>
+	id S1758089Ab3DBGR7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Apr 2013 02:17:59 -0400
+In-Reply-To: <20130401164746.GH10155@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>, Tero Kristo <t-kristo@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 17:05-20130401, Mike Turquette wrote:
-> OK, so we're in agreement on what The Future looks like.  What does that
-> mean for Andrii's patchset?
-Unless anyone has an fundamental issue with the approach of an "Super
-regulator" controlling "sub regulators", I think, in-line with your
-view, we should probably make ABB as an regulator instead of inventing
-our own API and hooking it around clock notifiers.
--- 
-Regards,
-Nishanth Menon
+On Monday 01 April 2013 10:17 PM, Tony Lindgren wrote:
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130320 01:42]:
+>> Tony,
+>>
+>> Here is the pull request for various OMAP5 generic updates which are posted
+>> earlier on the list. It contains OMAP5 es2 related updates like idcode,
+>> RAM base and couple of initialisation fixes.
+>>
+>> The following changes since commit a937536b868b8369b98967929045f1df54234323:
+>>
+>>   Linux 3.9-rc3 (2013-03-17 15:59:32 -0700)
+>>
+>> are available in the git repository at:
+>>
+>>   git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.10/omap5_generic_updates
+>>
+>> for you to fetch changes up to ecf51648c192377ea2830101b12fc3017bfd2b0c:
+>>
+>>   ARM: OMAP5: clock: No Freqsel on OMAP5 devices too (2013-03-19 12:57:03 +0530)
+> 
+> Thanks pulling into omap-for-v3.10/fixes-non-critical.
+> 
+Thanks Tony !!
+
