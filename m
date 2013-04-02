@@ -1,82 +1,98 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH 5/6] ARM: OMAP3+: ABB: introduce ABB driver
-Date: Tue, 2 Apr 2013 07:49:20 -0500
-Message-ID: <20130402124919.GA2028@snafu>
-References: <20130328212739.13785.44736@quantum>
- <20130328223513.GA19470@kahuna>
- <51596725.9060109@ti.com>
- <20130401181057.8177.19688@quantum>
- <CAGo_u6ofjT_HyzdFNj3ByCbsyYzGU-LncUKo9=84BU3u6FK6Hw@mail.gmail.com>
- <20130401213430.8177.21940@quantum>
- <20130401230009.GA2038@snafu>
- <20130402000545.8177.65252@quantum>
- <20130402033545.GA2020@snafu>
- <515AAFAC.50908@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCHv2] arm: mach-omap2: prevent UART console idle on suspend while using "no_console_suspend"
+Date: Tue, 2 Apr 2013 18:58:22 +0530
+Message-ID: <1364909302-27970-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57191 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760028Ab3DBMtV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Apr 2013 08:49:21 -0400
-Content-Disposition: inline
-In-Reply-To: <515AAFAC.50908@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: tony@atomide.com, khilman@linaro.org, rmk+kernel@arm.linux.org.uk, gregkh@linuxfoundation.org
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, b-cousson@ti.com, michael@amarulasolutions.com, Sourav Poddar <sourav.poddar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Mike Turquette <mturquette@linaro.org>, Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>, Tero Kristo <t-kristo@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org
 
-On 13:15-20130402, Grygorii Strashko wrote:
-> On 04/02/2013 06:35 AM, Nishanth Menon wrote:
-> >On 17:05-20130401, Mike Turquette wrote:
-> >>OK, so we're in agreement on what The Future looks like.  What does that
-> >>mean for Andrii's patchset?
-> >Unless anyone has an fundamental issue with the approach of an "Super
-> >regulator" controlling "sub regulators", I think, in-line with your
-> >view, we should probably make ABB as an regulator instead of inventing
-> >our own API and hooking it around clock notifiers.
-> Hi Nishanth, All
-> One question here, regarding "Super regulator" - How are you going
-> to differentiate
-> OPP changing and AVS Voltage adjustment requests to the "Super regulator"??
-> As you know, to select OPP changing direction, ABB type (or VC/VP
-> parameters)
-> properly you need Nominal (and only Nominal) voltage as input.
-> And in real world, AVS can adjust voltage, as example, for OPP100
-> even low than for OPP50.
-> OMAP4 example:
->     MPU OPP    Vsr                Vnom   ABB
->     OPP50      0.862249970436096  1.025  NOM
->     OPP100     1.03509700298309   1.2    NOM
->     OPPTurbo   1.09257805347443   1.325  NOM
->     OPPNitro   1.18703103065491   1.388  FAST
->     OPPNitroSB 1.29427194595337   1.398  FAST
-> So, while adjusting voltage, AVS can hit other OPP voltage and, as
-> result, ABB mode may be changed.
-The expectation is that we will use Vnom in the "super regulator". Vnom
-does not change per OPP across devices. Expectation will be to use Vnom
-as indexing key inside regulator framework.
+With dt boot, uart wakeup after suspend is non functional while using
+"no_console_suspend" in the bootargs. With "no_console_suspend" used, od->flags
+should be ORed with "OMAP_DEVICE_NO_IDLE_ON_SUSPEND", thereby not allowing the console
+to idle in the suspend path.
 
-> 
-> I think, your vision would be more clear if you could be able to
-> provide Sequence diagram in addition.
-I should be able to do better, I should be able to post a RFC revision
-of the "super regulator" verifiable on Beagle XM using I2C1 (instead of
-i2c_sr) as start, I will give it hooks to handle "Efuse Vnom" support
-which our upcoming SoC needs as well.
-> 
-> And would it be allowed to use DT for such regulator chain definitions
-> (or board-generic.c should be used instead), just for clarification,
->  because I have not to much DT experience:
-> omap443x.dtsi:
-> vdd_mpu: regulator-omap-ti1 { << -- Super regulator
-I would not link only *OMAP* to this - as originally stated, this is
-needed by OMAP, AM, DM and potentially, Keystone family of TI
-processors.
+Tested on omap5430evm, omap4430sdp.
 
-How about we debate this with the "super regulator" patch?
+Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+Cc: Felipe Balbi<balbi@ti.com>
+Cc: Rajendra nayak<rnayak@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+v1->v2
+These patches were sent before as a series[1], but realised
+"core_initcall(omap_serial_early_init)" in serial.c get executed
+irrespective of dt or non dt boot and it will do most of the stuff
+for us.
+As suggested by Kevin Hilman in the previous version, this patch will
+also prevent creating dependency between omap_device
+(generic device-independent code) and a specific driver (UART).
 
-[...]
+[1]: http://lkml.org/lkml/2013/3/18/294
+
+ arch/arm/mach-omap2/omap_device.c |    5 +++--
+ arch/arm/mach-omap2/omap_hwmod.h  |    5 +++++
+ arch/arm/mach-omap2/serial.c      |    4 +++-
+ 3 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 381be7a..89be64d 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -170,8 +170,9 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+ 			r->name = dev_name(&pdev->dev);
+ 	}
+ 
+-	if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
+-		omap_device_disable_idle_on_suspend(pdev);
++	if (oh->flags & HWMOD_DISABLE_IDLE_ON_SUSPEND ||
++		of_get_property(node, "ti,no_idle_on_suspend", NULL))
++			omap_device_disable_idle_on_suspend(pdev);
+ 
+ 	pdev->dev.pm_domain = &omap_device_pm_domain;
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index d43d9b6..50e6145 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -459,6 +459,10 @@ struct omap_hwmod_omap4_prcm {
+  *     correctly, or this is being abused to deal with some PM latency
+  *     issues -- but we're currently suffering from a shortage of
+  *     folks who are able to track these issues down properly.
++ * HWMOD_DISABLE_IDLE_ON_SUSPEND: don't idle this module on suspend. This is
++ *     needed for uart controller, which requires its clock not to be cut
++ *     during suspend while using "no_console_suspend" in bootargs with
++ *     device tree boot.
+  */
+ #define HWMOD_SWSUP_SIDLE			(1 << 0)
+ #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
+@@ -471,6 +475,7 @@ struct omap_hwmod_omap4_prcm {
+ #define HWMOD_16BIT_REG				(1 << 8)
+ #define HWMOD_EXT_OPT_MAIN_CLK			(1 << 9)
+ #define HWMOD_BLOCK_WFI				(1 << 10)
++#define HWMOD_DISABLE_IDLE_ON_SUSPEND		(1 << 12)
+ 
+ /*
+  * omap_hwmod._int_flags definitions
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 8396b5b..adbafbd 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -236,8 +236,10 @@ static int __init omap_serial_early_init(void)
+ 					uart_name, uart->num);
+ 			}
+ 
+-			if (cmdline_find_option("no_console_suspend"))
++			if (cmdline_find_option("no_console_suspend")) {
+ 				no_console_suspend = true;
++				oh->flags |= HWMOD_DISABLE_IDLE_ON_SUSPEND;
++			}
+ 
+ 			/*
+ 			 * omap-uart can be used for earlyprintk logs
 -- 
-Regards,
-Nishanth Menon
+1.7.1
+
