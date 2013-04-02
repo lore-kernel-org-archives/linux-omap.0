@@ -1,217 +1,145 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 1/6] drivers: phy: add generic PHY framework
-Date: Tue, 2 Apr 2013 14:07:07 +0530
-Message-ID: <515A98B3.7090405@ti.com>
-References: <1364449408-9510-1-git-send-email-kishon@ti.com>
- <1364449408-9510-2-git-send-email-kishon@ti.com>
- <5154658A.3080209@wwwdotorg.org>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 00/28] OMAP: DSS related board file changes
+Date: Tue, 02 Apr 2013 11:40:17 +0300
+Message-ID: <515A9971.80703@compulab.co.il>
+References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com> <51546259.3000704@compulab.co.il> <51547462.3070803@ti.com> <5157F625.5070509@compulab.co.il> <515A9059.4020203@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <5154658A.3080209-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:43803 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757101Ab3DBIkX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Apr 2013 04:40:23 -0400
+In-Reply-To: <515A9059.4020203@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-Hi,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On Thursday 28 March 2013 09:15 PM, Stephen Warren wrote:
-> On 03/27/2013 11:43 PM, Kishon Vijay Abraham I wrote:
->> The PHY framework provides a set of APIs for the PHY drivers to
->> create/destroy a PHY and APIs for the PHY users to obtain a reference to the
->
->> diff --git a/Documentation/devicetree/bindings/phy/phy-bindings.txt b/Documentation/devicetree/bindings/phy/phy-bindings.txt
->
->> +This document explains only the dt data binding. For general information about
->> +PHY subsystem refer Documentation/phy.txt
->> +
->> +PHY device node
->> +===============
->> +
->> +Optional Properties:
->> +#phy-cells:	Number of cells in a PHY specifier;  The meaning of all those
->> +		cells is defined by the binding for the phy node. However
->> +		in-order to return the correct PHY, the PHY susbsystem
->> +		requires the first cell always refers to the port.
->
-> Why impose that restriction? Other DT bindings do not.
->
-> This is typically implemented by having each provider driver implement a
-> .of_xlate() operation, which parses all of the specifier cells, and
-> returns the ID of the object it represents. This allows bindings to use
-> whatever arbitrary representation they want.
+On 04/02/13 11:01, Tomi Valkeinen wrote:
+> On 2013-03-31 11:39, Igor Grinberg wrote:
+>> On 03/28/13 18:48, Tomi Valkeinen wrote:
+>>> On 2013-03-28 17:31, Igor Grinberg wrote:
+>>>> On 03/28/13 14:48, Tomi Valkeinen wrote:
+>>>>> So here are the DSS related board file changes for 3.10.
+>>>>>
+>>>>> First there are a bunch of patches adding the Kconfig options so that only one
+>>>>> display device is created for a single video bus. Only Overo had more than two
+>>>>> displays on the same bus, but unfortunately there were multiple boards with a
+>>>>> setup that puts an LCD and DVI output on the same video bus.
+>>>>
+>>>> Hmmm, so basically, if one could switch the display at runtime...
+>>>> This cannot be done anymore...
+>>>> This sounds like feature removal, no?
+>>>> I know several of our clients who used this feature
+>>>> (at least for evaluation purposes).
+>>
+>>> At some point in time it was possible to have multiple displays for the
+>>> same bus, and switch them at runtime.
+>>
+>>> Sometime later it was changed so that the board file adds all the
+>>> displays, but only one (per bus) is actually added to the list of
+>>> panels, but you could still set the default display in the kernel args,
+>>> and thus you could select which display gets added.
+>>
+>> Yeah, I remember we had to hack this to have the functionality back...
+> 
+> Ok. You could've informed me so that I knew it's needed =). I've
+> received no complaints about it, so I thought nobody is even using it.
 
-Do you mean something like this
+Yeah, I know, we wanted to make sure that this is not our fault and when
+we did and it worked, I've lost in the amount of patches for DSS that were
+sent and what are the real intentions (also taking into account that it all
+was post factum).
 
-struct phy *of_phy_get(struct device *dev, int index)
-{
-	struct phy *phy = NULL;
-	struct phy_bind *phy_map = NULL;
-	struct of_phandle_args args;
-	struct device_node *node;
+> 
+>>> The reason why the multiple-displays-per-bus is problematic is that the
+>>> video bus cannot be shared, and if we have multiple devices on the same
+>>> bus, the drivers need extra trickery, delaying initializations, etc, to
+>>> handle this. And it still doesn't work right, as it's easy to get two
+>>> displays enabled at the same time, configuring the same video bus,
+>>> creating a mess.
+>>
+>> Yep, looks like additional display manager framework is needed.
+>> Which will manage the displays on per bus basis?
+>>
+>>
+>>> Quite often the case is that the other displays are not even present
+>>> physically. But it is true that some boards have gpio switches that can
+>>> be used to change the display during runtime.
+>>
+>> I don't think the runtime switch requirement will ever go away, so we'd
+>> better prepare for it wisely.
+>>
+>>
+>>>> Is there any strong pros you obtain while removing this feature?
+>>
+>>> For an user, only indirectly. The change will make things sane on the
+>>> display side, and will thus make it much easier to proceed towards DT
+>>> adaptation, and Common Display Framework. While I can't say it's a
+>>> strict must to remove this feature, I can say that it's been a constant
+>>> headache for me for, well, ever. And I presume CDF would not have this
+>>> feature anyway, as it's rather bad design.
+>>
+>> Well, I don't know about the CDF, but the runtime switch was there
+>> for ages... Think of a DVI or an HDMI... they have the EDID stuff
+>> to make the switch work as expected and it really brings multiple
+>> displays to the same video bus.
+>> I see this is only a meter of how we represent things.
+>> Instead of real EDID (or in addition), that comes with the display,
+>> currently we have the panel info already in the kernel and
+>> panel driver with board specific callbacks to make it work.
+>> So abstracting the above (in the long run) to CDF or some other
+>> framework, should suit everybody's needs.
+>> Probably, we will need board specific drivers, but that never
+>> was a problem...
+> 
+> Comparing desktop DVI/HDMI to our case is not a very good comparison.
+> For desktop DVI/HDMI there are no panel devices or such, so it's trivial
+> to manage multiple outputs in the display driver.
 
-	if (!dev->of_node) {
-		dev_dbg(dev, "device does not have a device node entry\n");
-		return ERR_PTR(-EINVAL);
-	}
+Well, reading EDID can sometimes involve additional hackery, but you are
+right in the general case.
 
-	ret = of_parse_phandle_with_args(dev->of_node, "phys", "#phy-cells",
-		index, &args);
-	if (ret) {
-		dev_dbg(dev, "failed to get phy in %s node\n",
-			dev->of_node->full_name);
-		return ERR_PTR(-ENODEV);
-	}
+> 
+> We need panel device hotplug/unplug support to make this work properly,
+> and as there's no generic way to do that, we need board specific drivers
+> to handle the hotplug/unplug.
 
-//Here we have to get a reference to the phy in order to call of_xlate 
-which seems a little hacky to me. I'm not sure how else can we call the 
-provider driver :-(
-	phy = of_phy_lookup(dev, node);
-	if (IS_ERR(phy) || !try_module_get(phy->ops->owner)) {
-		phy = ERR_PTR(-EPROBE_DEFER);
-		goto err0;
-	}
+Yep, I don't see any problem with having board specific drivers.
+Multiple subsystems have them, so we also can have them in CDF.
 
-//here we are checking if the phy has additional specifiers and if so 
-call of_xlate using the phy we just obtained. The provider driver should 
-check the args and return the appropriate *phy in this case.
-	if (args.args_count > 0) {
-		phy = phy->of_xlate(&args);
-		if (IS_ERR(phy))
-			goto err0;
-	}
+> 
+> And we probably need some way to show the information about possible
+> displays to the userspace. I mean, with a case like DVI/Panel on the
+> board, it would make sense to show the userspace that there are those
+> two options, even if the other device is not even present.
 
-	phy_map = phy_bind(dev_name(dev), index, dev_name(&phy->dev));
-	if (!IS_ERR(phy_map)) {
-		phy_map->phy = phy;
-		phy_map->auto_bind = true;
-	}
+Indeed this is needed for the runtime switch.
 
-	get_device(&phy->dev);
 
-err0:
-	of_node_put(node);
+- -- 
+Regards,
+Igor.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.17 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-	return phy;
-}
-EXPORT_SYMBOL_GPL(of_phy_get);
->
-> For the common/simple cases where #phy-cells==0, or #phy-cells==1 and
-> directly represents the PHY ID, the PHY core can provide an
-> implementation of that common .of_xlate() function, which PHY provider
-> drivers can simply plug in as their .of_xlate() function.
->
->> +This property is optional because it is needed only for the case where a
->> +single IP implements multiple PHYs.
->
-> The property should always exist so that the DT-parsing code in the PHY
-> core can always validate exactly how many cells are present in the PHY
-> specifier.
->
->> +
->> +For example:
->> +
->> +phys: phy {
->> +    compatible = "xxx";
->> +    reg1 = <...>;
->> +    reg2 = <...>;
->> +    reg3 = <...>;
->
-> 3 separate reg values should be 3 separate entries in a single reg
-> property, not 3 separate reg properties, with non-standard names.
->
->> +    .
->> +    .
->> +    #phy-cells = <1>;
->> +    .
->> +    .
->> +};
->> +
->> +That node describes an IP block that implements 3 different PHYs. In order to
->> +differentiate between these 3 PHYs, an additonal specifier should be given
->> +while trying to get a reference to it. (The PHY subsystem assumes the
->> +specifier is port id).
->
-> A single DT node would typically represent a single HW IP block, and
-> hence typically have a single reg property. If there are 3 separate HW
-> IP blocks, and their register aren't interleaved, and hence can be
-> represented by 3 separate reg values, then I'd typically expect to see 3
-> separate DT nodes, one for each independent register range.
->
-> The only case where I'd expect a single DT node to provide multipe PHYs,
-> is when a single HW IP block actually implements multiple PHYs /and/ the
-> registers for those 3 PHYs are interleaved (or share bits in the same
-> registers) such that each PHY can't be represented by a separate
-> non-overlapping reg property.
->
->> +example1:
->> +phys: phy {
->
-> How about:
->
-> Example 1:
->
-> usb1: usb@xxx {
->
->> +};
->> +This node represents a controller that uses two PHYs one for usb2 and one for
->
-> Blank line after }?
->
->> +usb3. The controller driver can get the appropriate PHY either by using
->> +devm_of_phy_get/of_phy_get by passing the correct index or by using
->> +of_phy_get_byname/devm_of_phy_get_byname by passing the names given in
->> +*phy-names*.
->
-> Discussions of Linux-specific driver APIs should be in the Linux API
-> documentation, not the DT binding documentation, which is supposed to be
-> OS-agnostic. Instead, perhaps say:
->
-> Individual bindings must specify the required set of entries the phys
-> property. Bindings must also specify either a required order for those
-> entries in the phys property, or specify required set of names that must
-> be present in the phy-names property, in which case the order is arbitrary.
->
->> +example2:
->> +phys: phy {
->
-> How about:
->
-> Example 2:
->
-> usb2: usb@yyy {
->
->> +This node represents a controller that uses one of the PHYs which is defined
->> +previously. Note that the phy handle has an additional specifier "1" to
->> +differentiate between the three PHYs. For this case, the controller driver
->> +should use of_phy_get_with_args/devm_of_phy_get_with_args.
->
-> I think tha last sentence should be removed, and perhaps the previous
-> sentence extended with:
->
-> , as required by #phy-cells = <1> in the PHY provider node.
->
->> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
->
->> +subsys_initcall(phy_core_init);
->
-> Why not make that module_init(); device probe() ordering should be
-> handled using -EPROBE_DEFER these days, so the exact initcall used
-> doesn't really matter, and hence it'd be best to use the most common one
-> rather than something unusual.
-
-hmm.. ok.
-
-Thanks
-Kishon
+iQIcBAEBAgAGBQJRWplwAAoJEBDE8YO64EfaKH4P/jaMuXrGyvCmfYgD5OLFU0fV
+BvsLyy0/DVqoDjB2N8YH8PnuixKrP17L8nEDckq725byXf/ZQEIaYTeyBZ/COYDD
+NGAkVn8sFe2w7FLsg+dVa2+GSgYL2Pprvvf4DrJy1JMepBsDlaSkZL7V5LOq7m7J
+7PIMizeZIngeDy4OHu4BNAksylPUj/3iqPDGJ9BZpgzoj1TwbPDG/ECyKADD9J8+
+JHrK+aSnJFI/5qE+J1j+6ghYhDnIz5OQqtjA/CHNLaBOloNIk6FxgbMAt+Eu+xBZ
+7zZ9kk/Esh1QwfdelHHkH1gW7ogfsBqa5lvJ3pa/R06lOaeEAewUSpSzF02+fVqN
+hg3shXOjw5ukjxqDytvOtPjb9vJrJ2nHRa2ftmEo2f5w2CJOyOgul1B+QODjztgb
+VJCGhAt/+RSxI2RvmRkR9jgG/GNm3psFSBGWQbMN4jND9/ToNEJBDbBP2ewiPe7i
+a3ZtAD0ZiUF9sWt27e3r6jT2nHwp0/35uVTigeHzJBTnwliykO/djhyxgO+IGDKn
+9iugdPJceh1L8HBfJ+u+MdN+2qpNONzAvP8N1GJWiL5U8hzkR6wNb/r5Hk0gDxaG
+crPn8c3BrmSlEcy7kywM2MOe14wZOMPGW5H2LQ6lPA2VXGz4iFioeM3TdEMMv11H
+pxMvFk4hNPbXgwSyHlAj
+=H7CL
+-----END PGP SIGNATURE-----
