@@ -1,79 +1,163 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RFC] dmaengine: omap-dma: Start DMA without delay
-Date: Tue, 2 Apr 2013 10:14:10 +0200
-Message-ID: <515A9352.5060702@ti.com>
-References: <1364566323-24144-1-git-send-email-peter.ujfalusi@ti.com> <20130329173100.GV30923@n2100.arm.linux.org.uk>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: OMAP4: clock: Add device tree support for AUXCLKs
+Date: Tue, 2 Apr 2013 11:23:39 +0300
+Message-ID: <515A958B.5080905@ti.com>
+References: <1363703220-4777-2-git-send-email-rogerq@ti.com>
+ <1364293408-20677-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130329173100.GV30923@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1364293408-20677-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Russell,
++ Paul
 
-On 03/29/2013 06:31 PM, Russell King - ARM Linux wrote:
-> On Fri, Mar 29, 2013 at 03:12:03PM +0100, Peter Ujfalusi wrote:
->> Remove the use of a tasklet to start the DMA channel when issue_pend=
-ing is
->> called.
->> The use of tasklet delays the DMA start which can cause issues at dr=
-ivers,
->> for example the audio drivers expect that the DMA is started right a=
-way.
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> ---
->> Hi Russell,
->>
->> I know you are against removing the tasklet since you have planed to=
- move the
->> omap-dma to use runtime/dynamic DMA channel use.
->> I have looked at the amba-pl08x.c driver which is doing that exactly=
- (as you
->> pointed out that to me). AMBA did not use tasklet either and I'm sur=
-e we can
->> change the omap-dma driver to do the same in a same way as we could =
-have done it
->> with the tasklet use.
->=20
-> It's rather sad that you're ignoring what I'm saying, and going by wh=
-at
-> another DMA engine driver - which is self contained - is doing, rathe=
-r
-> than listening to my arguments against that approach.
-
-The reason I send this as RFC to start a discussion to find out how we =
-should
-handle this. I were to ignore what you were saying I would have just se=
-nt a
-PATCH instead.
-
-I don't think that the tasklet is the solution for the runtime DMA chan=
-nel
-selection. We can do it in a same way as AMBA has been doing. In this w=
-ay we
-can handle all cases with the same code.
-The pre-allocating of channels and starting the DMA right away is diffe=
-rent issue.
-
-What need to be done anyway is to convert the remaining drivers to use =
-dmaengine:
-drivers/usb/musb/tusb6010_omap.c
-drivers/usb/gadget/omap_udc.c
-drivers/mtd/onenand/omap2.c
-drivers/media/platform/omap3isp/isphist.c
-drivers/media/platform/soc_camera/omap1_camera.c
-drivers/media/platform/omap/omap_vout_vrfb.c
-
-When that is done we can remove the arch/arm/plat-omap/dma.c and migrat=
-e the
-code under dmaengine to restructure it and finally we can have runtime =
-channel
-allocation.
-
---=20
-P=E9ter
+On 03/26/2013 12:23 PM, Roger Quadros wrote:
+> Register a device tree clock provider for the clocks
+> on the OMAP4 SoC. Also provide the binding information.
+> 
+> For now we only provide AUXCLKs.
+> 
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>  .../devicetree/bindings/clock/omap4-clock.txt      |   33 ++++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi                       |    5 ++
+>  arch/arm/mach-omap2/cclock44xx_data.c              |   41 ++++++++++++++++++++
+>  3 files changed, 79 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/clock/omap4-clock.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/clock/omap4-clock.txt b/Documentation/devicetree/bindings/clock/omap4-clock.txt
+> new file mode 100644
+> index 0000000..2845a3f
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/clock/omap4-clock.txt
+> @@ -0,0 +1,33 @@
+> +* Clock bindings for Texas Instruments OMAP4 clocks
+> +
+> +Required properties:
+> +- compatible: Should be "ti,omap4-clock"
+> +- #clock-cells: Should be <1>
+> +
+> +The clock consumer should specify the desired clock by having the clock
+> +ID in its "clocks" phandle cell.  The following is a list of OMAP4 clocks
+> +and IDs.
+> +
+> +	Clock		ID
+> +	------------------
+> +	auxclk0_ck	0
+> +	auxclk1_ck	1
+> +	auxclk2_ck	2
+> +	auxclk3_ck	3
+> +	auxclk4_ck	4
+> +	auxclk5_ck	5
+> +
+> +Example:
+> +
+> +aux_clks: scrmclks {
+> +	compatible = "ti,omap4-clock";
+> +	#clock-cells = <1>;
+> +};
+> +
+> +hsusb1_phy: hsusb1_phy {
+> +	compatible = "usb-nop-xceiv";
+> +	reset-supply = <&hsusb1_reset>;
+> +	clocks = <&aux_clks 3>;
+> +	clock-names = "main_clk";
+> +	clock-frequency = <19200000>;
+> +};
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 739bb79..f27548a 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -101,6 +101,11 @@
+>  			ti,hwmods = "counter_32k";
+>  		};
+>  
+> +		clks: clocks {
+> +			compatible = "ti,omap4-clock";
+> +			#clock-cells = <1>;
+> +		};
+> +
+>  		omap4_pmx_core: pinmux@4a100040 {
+>  			compatible = "ti,omap4-padconf", "pinctrl-single";
+>  			reg = <0x4a100040 0x0196>;
+> diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+> index 3d58f33..a93617b 100644
+> --- a/arch/arm/mach-omap2/cclock44xx_data.c
+> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/clk-private.h>
+>  #include <linux/clkdev.h>
+>  #include <linux/io.h>
+> +#include <linux/of.h>
+>  
+>  #include "soc.h"
+>  #include "iomap.h"
+> @@ -1663,6 +1664,44 @@ static struct omap_clk omap44xx_clks[] = {
+>  	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
+>  };
+>  
+> +/*
+> + * List of clocks that can be referenced in device tree
+> + * Must match with Documentation/devicetree/bindings/clock/omap4-clock.txt
+> + */
+> +static struct clk *dt_clks[] = {
+> +	&auxclk0_ck,
+> +	&auxclk1_ck,
+> +	&auxclk2_ck,
+> +	&auxclk3_ck,
+> +	&auxclk4_ck,
+> +	&auxclk5_ck,
+> +};
+> +
+> +static struct clk_onecell_data clock_data;
+> +
+> +#ifdef CONFIG_OF
+> +int __init omap4_clk_init_dt(void)
+> +{
+> +	struct device_node *np;
+> +
+> +	np = of_find_compatible_node(NULL, NULL, "ti,omap4-clock");
+> +	if (np) {
+> +		clock_data.clks = dt_clks;
+> +		clock_data.clk_num = ARRAY_SIZE(dt_clks);
+> +		of_clk_add_provider(np, of_clk_src_onecell_get,	&clock_data);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +#else
+> +
+> +int __init omap4_clk_init_dt(void)
+> +{
+> +	return 0;
+> +}
+> +#endif /* CONFIG_OF */
+> +
+>  int __init omap4xxx_clk_init(void)
+>  {
+>  	u32 cpu_clkflg;
+> @@ -1693,6 +1732,8 @@ int __init omap4xxx_clk_init(void)
+>  
+>  	omap2_clk_disable_autoidle_all();
+>  
+> +	omap4_clk_init_dt();
+> +
+>  	/*
+>  	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
+>  	 * state when turning the ABE clock domain. Workaround this by
+> 
