@@ -1,88 +1,60 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v4] drivers: video: use module_platform_driver_probe()
-Date: Tue, 2 Apr 2013 13:21:07 +0300
-Message-ID: <515AB113.6030700@ti.com>
-References: <1363352558-6275-1-git-send-email-fabio.porcedda@gmail.com>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
+Date: Tue, 2 Apr 2013 16:04:01 +0530
+Message-ID: <CAFp+6iFW9-fOCgCfpfQzS9PZyjb9_NahjSxzbrS0AhVeNngyXw@mail.gmail.com>
+References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
+	<1364824448-14732-2-git-send-email-gautam.vivek@samsung.com>
+	<20130402082342.GF30286@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigC485F9D041B16CBE60546AC9"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36155 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754228Ab3DBKVW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Apr 2013 06:21:22 -0400
-In-Reply-To: <1363352558-6275-1-git-send-email-fabio.porcedda@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, David Howells <dhowells@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-
---------------enigC485F9D041B16CBE60546AC9
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130402082342.GF30286@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
+List-Id: linux-omap@vger.kernel.org
 
-On 2013-03-15 15:02, Fabio Porcedda wrote:
-> This patch converts the drivers to use the
-> module_platform_driver_probe() macro which makes the code smaller and
-> a bit simpler.
->=20
-> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com> # atmel_lcdfb.c
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: David Howells <dhowells@redhat.com>
-> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com> # amifb.=
-c
-> Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-> ---
->=20
-> Notes:
->     v4:
->      - add acked-by Nicolas & Laurent
->      - fix amifb.c
->     v3:
->      - add missing drivers: amifb, atmel_lcdfb, vrfb
->      - split patch set to each maintainer to easy up respin
->     v2:
->      - rebased over linux-next and remove already converted drivers
->=20
->  drivers/video/amifb.c          | 14 +-------------
->  drivers/video/atmel_lcdfb.c    | 13 +------------
->  drivers/video/omap2/vrfb.c     | 13 +------------
->  drivers/video/sh_mipi_dsi.c    | 12 +-----------
->  drivers/video/sh_mobile_hdmi.c | 12 +-----------
->  5 files changed, 5 insertions(+), 59 deletions(-)
-
-Thanks, applied to fbdev branch.
-
- Tomi
+Hi,
 
 
+On Tue, Apr 2, 2013 at 1:53 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Mon, Apr 01, 2013 at 07:24:00PM +0530, Vivek Gautam wrote:
+>> Adding  APIs to handle runtime power management on PHY
+>> devices. PHY consumers may need to wake-up/suspend PHYs
+>> when they work across autosuspend.
+>>
+>> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>> ---
+>>  include/linux/usb/phy.h |  141 +++++++++++++++++++++++++++++++++++++++++++++++
+>>  1 files changed, 141 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
+>> index 6b5978f..01bf9c1 100644
+>> --- a/include/linux/usb/phy.h
+>> +++ b/include/linux/usb/phy.h
+>> @@ -297,4 +297,145 @@ static inline const char *usb_phy_type_string(enum usb_phy_type type)
+>>               return "UNKNOWN PHY TYPE";
+>>       }
+>>  }
+>> +
+>> +static inline void usb_phy_autopm_enable(struct usb_phy *x)
+>> +{
+>> +     if (!x || !x->dev) {
+>> +             dev_err(x->dev, "no PHY or attached device available\n");
+>> +             return;
+>> +             }
+>
+> wrong indentation, also, I'm not sure we should allow calls with NULL
+> pointers. Perhaps a WARN() so we get API offenders early enough ?
 
---------------enigC485F9D041B16CBE60546AC9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+True, bad coding style :-(
+We should be handling dev_err with a NULL pointer.
+Will just keep here:
+if (WARN_ON(!x->dev))
+      return .... ;
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJRWrETAAoJEPo9qoy8lh71OaIP/1IqoM04jBJlAKUXmLqMqNZJ
-Oc75Y6cVVRyVs65ndoYO5J1IBy/LUere14Zig0fFHr2kOtC81XobiQePEcEMJS/k
-6poqaZUQ8/hoZgeCwVgrMWK/frdpjuxHyTE+t9iMCf3Cq1UO6uqrjd+tkQNm02YT
-1gbj8PF2zYLAdVMc3tVGv7Qyjso6IK6jQtLfetvap0Ao+uA/8KNypRQQh5kzlcej
-sGB5Vxn82kR7pBD+BbsBe0xqe0NGBsTKGcyrNuHrFRv7UAcwma46qGLrBMr28AUo
-zkvA6YZGTr9dCuxuSKDxuDmw2R5sHNd/CfpsHjJZAGiH3XMMd9YbBvpHAYofnc7Z
-xxuWzwQ/oSpsCVCGCoy8k3CyioqjGgOxb1YuZyIBUwQgZzn2CXgHDRIFaIEUthJd
-fKvntsDFHDOW6G/b9ZfSRFyC94S+bwzmxf4MNHtVlryEvoaN6O2oI6TtxxYB4U/6
-nmz6PYsVC2DOloU3/upCbAIvNbKcLO+Gnyp62eg3JlCsr+fhsO7jGFDITugDHDSP
-amT5CNuY6TTlWPop6r3EdFxAd5WHnnxzSKmzIPfLfPXHbtgUMBB/SUOPxw1a5mEG
-kARFpofHPRciT30zpR8Y2QqDQlqmmFkT8Ffc/LWwYhijJ18Jqgib6js+iSJnACqF
-YAcWYqHwKZURBirTQfRj
-=gciT
------END PGP SIGNATURE-----
 
---------------enigC485F9D041B16CBE60546AC9--
+-- 
+Thanks & Regards
+Vivek
