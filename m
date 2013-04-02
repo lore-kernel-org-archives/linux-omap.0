@@ -1,145 +1,208 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 00/28] OMAP: DSS related board file changes
-Date: Tue, 02 Apr 2013 11:40:17 +0300
-Message-ID: <515A9971.80703@compulab.co.il>
-References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com> <51546259.3000704@compulab.co.il> <51547462.3070803@ti.com> <5157F625.5070509@compulab.co.il> <515A9059.4020203@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 1/6] drivers: phy: add generic PHY framework
+Date: Tue, 2 Apr 2013 14:09:21 +0530
+Message-ID: <515A9939.40406@ti.com>
+References: <1364449408-9510-1-git-send-email-kishon@ti.com>
+ <1364449408-9510-2-git-send-email-kishon@ti.com> <5159E157.6000800@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:43803 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757101Ab3DBIkX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Apr 2013 04:40:23 -0400
-In-Reply-To: <515A9059.4020203@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <5159E157.6000800-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Sylwester Nawrocki <sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi,
 
-On 04/02/13 11:01, Tomi Valkeinen wrote:
-> On 2013-03-31 11:39, Igor Grinberg wrote:
->> On 03/28/13 18:48, Tomi Valkeinen wrote:
->>> On 2013-03-28 17:31, Igor Grinberg wrote:
->>>> On 03/28/13 14:48, Tomi Valkeinen wrote:
->>>>> So here are the DSS related board file changes for 3.10.
->>>>>
->>>>> First there are a bunch of patches adding the Kconfig options so that only one
->>>>> display device is created for a single video bus. Only Overo had more than two
->>>>> displays on the same bus, but unfortunately there were multiple boards with a
->>>>> setup that puts an LCD and DVI output on the same video bus.
->>>>
->>>> Hmmm, so basically, if one could switch the display at runtime...
->>>> This cannot be done anymore...
->>>> This sounds like feature removal, no?
->>>> I know several of our clients who used this feature
->>>> (at least for evaluation purposes).
+On Tuesday 02 April 2013 01:04 AM, Sylwester Nawrocki wrote:
+> Just couple minor comments...
+>
+> On 03/28/2013 06:43 AM, Kishon Vijay Abraham I wrote:
+>> The PHY framework provides a set of APIs for the PHY drivers to
+>> create/destroy a PHY and APIs for the PHY users to obtain a reference
+>> to the
+>> PHY with or without using phandle. To obtain a reference to the PHY
+>> without
+>> using phandle, the platform specfic intialization code (say from board
+>> file)
+>> should have already called phy_bind with the binding information. The
+>> binding
+>> information consists of phy's device name, phy user device name and an
+>> index.
+>> The index is used when the same phy user binds to mulitple phys.
 >>
->>> At some point in time it was possible to have multiple displays for the
->>> same bus, and switch them at runtime.
+>> PHY drivers should create the PHY by passing phy_descriptor that has
+>> describes the PHY (label, type etc..) and ops like init, exit,
+>> suspend, resume,
+>> poweron, shutdown.
 >>
->>> Sometime later it was changed so that the board file adds all the
->>> displays, but only one (per bus) is actually added to the list of
->>> panels, but you could still set the default display in the kernel args,
->>> and thus you could select which display gets added.
+>> The documentation for the generic PHY framework is added in
+>> Documentation/phy.txt and the documentation for the sysfs entry is added
+>> in Documentation/ABI/testing/sysfs-class-phy and the documentation for
+>> dt binding is can be found at
+>> Documentation/devicetree/bindings/phy/phy-bindings.txt
 >>
->> Yeah, I remember we had to hack this to have the functionality back...
-> 
-> Ok. You could've informed me so that I knew it's needed =). I've
-> received no complaints about it, so I thought nobody is even using it.
+>> Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
+>> ---
+> [...]
+>> +/**
+>> + * phy_put - release the PHY
+>
+> nit: According to kernel-doc documentation function names should have
+> parentheses appended to the name. So it would need to be
+>
+> + * phy_put() - release the PHY
+>
+> in this case and it applies to multiple places elsewhere in this patch.
 
-Yeah, I know, we wanted to make sure that this is not our fault and when
-we did and it worked, I've lost in the amount of patches for DSS that were
-sent and what are the real intentions (also taking into account that it all
-was post factum).
+Will fix it.
+>
+>> + * @phy: the phy returned by phy_get()
+>> + *
+>> + * Releases a refcount the caller received from phy_get().
+>> + */
+>> +void phy_put(struct phy *phy)
+>> +{
+>> +    if (phy) {
+>> +        module_put(phy->ops->owner);
+>> +        put_device(&phy->dev);
+>> +    }
+>> +}
+>> +EXPORT_SYMBOL_GPL(phy_put);
+> [...]
+>> +/**
+>> + * devm_of_phy_get_byname - lookup and obtain a reference to a phy by
+>> name
+>> + * @dev: device that requests this phy
+>> + * @string - the phy name as given in the dt data
+>
+> s/ -/:
 
-> 
->>> The reason why the multiple-displays-per-bus is problematic is that the
->>> video bus cannot be shared, and if we have multiple devices on the same
->>> bus, the drivers need extra trickery, delaying initializations, etc, to
->>> handle this. And it still doesn't work right, as it's easy to get two
->>> displays enabled at the same time, configuring the same video bus,
->>> creating a mess.
->>
->> Yep, looks like additional display manager framework is needed.
->> Which will manage the displays on per bus basis?
->>
->>
->>> Quite often the case is that the other displays are not even present
->>> physically. But it is true that some boards have gpio switches that can
->>> be used to change the display during runtime.
->>
->> I don't think the runtime switch requirement will ever go away, so we'd
->> better prepare for it wisely.
->>
->>
->>>> Is there any strong pros you obtain while removing this feature?
->>
->>> For an user, only indirectly. The change will make things sane on the
->>> display side, and will thus make it much easier to proceed towards DT
->>> adaptation, and Common Display Framework. While I can't say it's a
->>> strict must to remove this feature, I can say that it's been a constant
->>> headache for me for, well, ever. And I presume CDF would not have this
->>> feature anyway, as it's rather bad design.
->>
->> Well, I don't know about the CDF, but the runtime switch was there
->> for ages... Think of a DVI or an HDMI... they have the EDID stuff
->> to make the switch work as expected and it really brings multiple
->> displays to the same video bus.
->> I see this is only a meter of how we represent things.
->> Instead of real EDID (or in addition), that comes with the display,
->> currently we have the panel info already in the kernel and
->> panel driver with board specific callbacks to make it work.
->> So abstracting the above (in the long run) to CDF or some other
->> framework, should suit everybody's needs.
->> Probably, we will need board specific drivers, but that never
->> was a problem...
-> 
-> Comparing desktop DVI/HDMI to our case is not a very good comparison.
-> For desktop DVI/HDMI there are no panel devices or such, so it's trivial
-> to manage multiple outputs in the display driver.
+Ok.
+>
+>> + *
+>> + * Calls devm_of_phy_get (which associates the device with the phy
+>> using devres
+>> + * on successful phy get) and passes on the return value of
+>> devm_of_phy_get.
+>> + */
+>> +struct phy *devm_of_phy_get_byname(struct device *dev, const char
+>> *string)
+>> +{
+>> +    int index;
+>> +
+>> +    if (!dev->of_node) {
+>> +        dev_dbg(dev, "device does not have a device node entry\n");
+>> +        return ERR_PTR(-EINVAL);
+>> +    }
+>> +
+>> +    index = of_property_match_string(dev->of_node, "phy-names", string);
+>> +
+>> +    return devm_of_phy_get(dev, index);
+>> +}
+>> +EXPORT_SYMBOL_GPL(devm_of_phy_get_byname);
+>> +
+>> +/**
+>> + * phy_get - lookup and obtain a reference to a phy.
+>> + * @dev: device that requests this phy
+>> + * @index: the index of the phy
+>> + *
+>> + * Returns the phy driver, after getting a refcount to it; or
+>> + * -ENODEV if there is no such phy.  The caller is responsible for
+>> + * calling phy_put() to release that count.
+>> + */
+>> +struct phy *phy_get(struct device *dev, int index)
+>> +{
+>> +    struct phy *phy = NULL;
+>
+> Unneeded initialization.
+>
+>> +    phy = phy_lookup(dev, index);
+>> +    if (IS_ERR(phy)) {
+>> +        dev_err(dev, "unable to find phy\n");
+>> +        goto err0;
+>
+> Wouldn't it be better to just do:
 
-Well, reading EDID can sometimes involve additional hackery, but you are
-right in the general case.
+Indeed.
+>
+>          return phy;
+>> +    }
+>> +
+>> +    if (!try_module_get(phy->ops->owner)) {
+>> +        phy = ERR_PTR(-EPROBE_DEFER);
+>
+> and
+>          return ERR_PTR(-EPROBE_DEFER);
+>
+>> +        goto err0;
+>
+> and to drop this goto and the label below ?
+>
+>> +    }
+>> +
+>> +    get_device(&phy->dev);
+>> +
+>> +err0:
+>> +    return phy;
+>> +}
+>> +EXPORT_SYMBOL_GPL(phy_get);
+>
+>> diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
+>> new file mode 100644
+>> index 0000000..0cb2298
+>> --- /dev/null
+>> +++ b/include/linux/phy/phy.h
+>> @@ -0,0 +1,237 @@
+>> +/*
+>> + * phy.h -- generic phy header file
+> [...]
+>> +#ifndef __DRIVERS_PHY_H
+>> +#define __DRIVERS_PHY_H
+>> +
+>> +#include<linux/err.h>
+>> +#include<linux/of.h>
+>> +
+>> +struct phy
+>
+> I think you also need to add either
+>
+> #include <linux/device.h>
+>
+> or
+>
+> struct device;
+>
+> struct device * is used further in this file.
 
-> 
-> We need panel device hotplug/unplug support to make this work properly,
-> and as there's no generic way to do that, we need board specific drivers
-> to handle the hotplug/unplug.
+Ok.
+>
+>> +/**
+>> + * struct phy_ops - set of function pointers for performing phy
+>> operations
+>> + * @init: operation to be performed for initializing phy
+>> + * @exit: operation to be performed while exiting
+>> + * @suspend: suspending the phy
+>> + * @resume: resuming the phy
+>
+>> + * @poweron: powering on the phy
+>> + * @shutdown: shutting down the phy
+>
+> Could these be named power_on/power_off ? Looks a bit more symmetric
+> to me that way.
 
-Yep, I don't see any problem with having board specific drivers.
-Multiple subsystems have them, so we also can have them in CDF.
+Ok. Will have it that way.
 
-> 
-> And we probably need some way to show the information about possible
-> displays to the userspace. I mean, with a case like DVI/Panel on the
-> board, it would make sense to show the userspace that there are those
-> two options, even if the other device is not even present.
-
-Indeed this is needed for the runtime switch.
-
-
-- -- 
-Regards,
-Igor.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRWplwAAoJEBDE8YO64EfaKH4P/jaMuXrGyvCmfYgD5OLFU0fV
-BvsLyy0/DVqoDjB2N8YH8PnuixKrP17L8nEDckq725byXf/ZQEIaYTeyBZ/COYDD
-NGAkVn8sFe2w7FLsg+dVa2+GSgYL2Pprvvf4DrJy1JMepBsDlaSkZL7V5LOq7m7J
-7PIMizeZIngeDy4OHu4BNAksylPUj/3iqPDGJ9BZpgzoj1TwbPDG/ECyKADD9J8+
-JHrK+aSnJFI/5qE+J1j+6ghYhDnIz5OQqtjA/CHNLaBOloNIk6FxgbMAt+Eu+xBZ
-7zZ9kk/Esh1QwfdelHHkH1gW7ogfsBqa5lvJ3pa/R06lOaeEAewUSpSzF02+fVqN
-hg3shXOjw5ukjxqDytvOtPjb9vJrJ2nHRa2ftmEo2f5w2CJOyOgul1B+QODjztgb
-VJCGhAt/+RSxI2RvmRkR9jgG/GNm3psFSBGWQbMN4jND9/ToNEJBDbBP2ewiPe7i
-a3ZtAD0ZiUF9sWt27e3r6jT2nHwp0/35uVTigeHzJBTnwliykO/djhyxgO+IGDKn
-9iugdPJceh1L8HBfJ+u+MdN+2qpNONzAvP8N1GJWiL5U8hzkR6wNb/r5Hk0gDxaG
-crPn8c3BrmSlEcy7kywM2MOe14wZOMPGW5H2LQ6lPA2VXGz4iFioeM3TdEMMv11H
-pxMvFk4hNPbXgwSyHlAj
-=H7CL
------END PGP SIGNATURE-----
+Thanks
+Kishon
