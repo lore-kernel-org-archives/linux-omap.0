@@ -1,208 +1,274 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 1/6] drivers: phy: add generic PHY framework
-Date: Tue, 2 Apr 2013 14:09:21 +0530
-Message-ID: <515A9939.40406@ti.com>
-References: <1364449408-9510-1-git-send-email-kishon@ti.com>
- <1364449408-9510-2-git-send-email-kishon@ti.com> <5159E157.6000800@gmail.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCH/Resend 2/2] arm: mach-omap2: prevent UART console idle
+ on suspend while using "no_console_suspend"
+Date: Tue, 2 Apr 2013 15:20:05 +0530
+Message-ID: <515AA9CD.5000004@ti.com>
+References: <1363612924-349-1-git-send-email-sourav.poddar@ti.com> <87fvzsilnv.fsf@linaro.org> <5149A221.5@ti.com> <5149A63C.4000102@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <5159E157.6000800-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Sylwester Nawrocki <sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5149A63C.4000102@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Tuesday 02 April 2013 01:04 AM, Sylwester Nawrocki wrote:
-> Just couple minor comments...
->
-> On 03/28/2013 06:43 AM, Kishon Vijay Abraham I wrote:
->> The PHY framework provides a set of APIs for the PHY drivers to
->> create/destroy a PHY and APIs for the PHY users to obtain a reference
->> to the
->> PHY with or without using phandle. To obtain a reference to the PHY
->> without
->> using phandle, the platform specfic intialization code (say from board
->> file)
->> should have already called phy_bind with the binding information. The
->> binding
->> information consists of phy's device name, phy user device name and an
->> index.
->> The index is used when the same phy user binds to mulitple phys.
+Hi Kevin,
+On Wednesday 20 March 2013 05:36 PM, Sourav Poddar wrote:
+> Realised the list  to whom the patch was send got dropped. Ccing them 
+> all..
+> On Wednesday 20 March 2013 05:18 PM, Sourav Poddar wrote:
+>> Hi Kevin,
+>> On Tuesday 19 March 2013 12:24 AM, Kevin Hilman wrote:
+>>> Sourav Poddar<sourav.poddar@ti.com>  writes:
+>>>
+>>>> With dt boot, uart wakeup after suspend is non functional on 
+>>>> omap4/5 while using
+>>>> "no_console_suspend" in the bootargs. With "no_console_suspend" 
+>>>> used, od->flags
+>>>> should be ORed with "OMAP_DEVICE_NO_IDLE_ON_SUSPEND", thereby not 
+>>>> allowing the console
+>>>> to idle in the suspend path. For non-dt case, this was taken care 
+>>>> by platform data.
+>>>>
+>>>> Tested on omap5430evm, omap4430sdp.
+>>>>
+>>>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>>>> Cc: Felipe Balbi<balbi@ti.com>
+>>>> Cc: Rajendra nayak<rnayak@ti.com>
+>>>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+>>> This patch creates a dependency between omap_device (generic,
+>>> device-independent code) and a specific driver (UART.)
+>>>
+>>> If you need to do something like this that's DT boot specific, then
+>>> we probably need some late initcall in serial.c to handle this.  It 
+>>> does
+>>> not belong in omap_device.
+>>>
+>> The following function "omap_device_disable_idle_on_suspend(pdev)" 
+>> should only
+>> be called once the omap device has been build, which in the case of 
+>> device tree is
+>> done in omap_device.c file. Moreover, the above call should be 
+>> executed conditionally
+>> and should depend on the following two parameter.
 >>
->> PHY drivers should create the PHY by passing phy_descriptor that has
->> describes the PHY (label, type etc..) and ops like init, exit,
->> suspend, resume,
->> poweron, shutdown.
+>> [1]  a. Whether "no_console_suspend" is set and
+>>      b.  the device build is a console uart.
 >>
->> The documentation for the generic PHY framework is added in
->> Documentation/phy.txt and the documentation for the sysfs entry is added
->> in Documentation/ABI/testing/sysfs-class-phy and the documentation for
->> dt binding is can be found at
->> Documentation/devicetree/bindings/phy/phy-bindings.txt
+>> When I look closely into the serial.c file, I realised that
+>> "core_initcall(omap_serial_early_init)" gets called irrespective
+>> of dt/non dt boot and will take care of most of the stuff(checking 
+>> whether
+>> "no_console_suspend" is used and which uart is used as a console 
+>> uart) which the
+>> $subject patch is proposing.
 >>
->> Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
->> ---
-> [...]
->> +/**
->> + * phy_put - release the PHY
->
-> nit: According to kernel-doc documentation function names should have
-> parentheses appended to the name. So it would need to be
->
-> + * phy_put() - release the PHY
->
-> in this case and it applies to multiple places elsewhere in this patch.
+>> But the problem is that we need to exchange the parsed information
+>> from serial.c to the omap_device file for the condtional execution of
+>> "omap_device_disable_idle_on_suspend"
+>>
+>> In this case,
+>> from "serial.c" we need
+>>     1. no_console_suspend = true
+>>     2. strcpy(console_name, oh_name), where oh_name corresponds to 
+>> the console uart.
+>>
+>> then in "omap_device.c" do
+>>     if (no_console_suspend && !strcmp(oh->name, console_name))
+>>                 omap_device_disable_idle_on_suspend(pdev);
+>>
+>> Please correct if I am understanding it incorrectly.
+>>
+>> If the above understanding looks good to you, is there a way we can 
+>> make this
+>> exchange of information happen between serial.c and omap_device.c file?
+Any input on this?
+As I explained earlier, that there is a need to parse information in 
+serial.c and use that in
+omap_device.c only after the device is build.
 
-Will fix it.
->
->> + * @phy: the phy returned by phy_get()
->> + *
->> + * Releases a refcount the caller received from phy_get().
->> + */
->> +void phy_put(struct phy *phy)
->> +{
->> +    if (phy) {
->> +        module_put(phy->ops->owner);
->> +        put_device(&phy->dev);
->> +    }
->> +}
->> +EXPORT_SYMBOL_GPL(phy_put);
-> [...]
->> +/**
->> + * devm_of_phy_get_byname - lookup and obtain a reference to a phy by
->> name
->> + * @dev: device that requests this phy
->> + * @string - the phy name as given in the dt data
->
-> s/ -/:
+Below is the patch (inlined) which further explains my point. The patch 
+is "just for the
+idea" I am trying to express.
+I have used extern variables to exchange information between serial.c 
+and omap_device.c.
+Is there is a better way, we can do this "information exchange" without 
+using extern variables?
 
-Ok.
->
->> + *
->> + * Calls devm_of_phy_get (which associates the device with the phy
->> using devres
->> + * on successful phy get) and passes on the return value of
->> devm_of_phy_get.
->> + */
->> +struct phy *devm_of_phy_get_byname(struct device *dev, const char
->> *string)
->> +{
->> +    int index;
->> +
->> +    if (!dev->of_node) {
->> +        dev_dbg(dev, "device does not have a device node entry\n");
->> +        return ERR_PTR(-EINVAL);
->> +    }
->> +
->> +    index = of_property_match_string(dev->of_node, "phy-names", string);
->> +
->> +    return devm_of_phy_get(dev, index);
->> +}
->> +EXPORT_SYMBOL_GPL(devm_of_phy_get_byname);
->> +
->> +/**
->> + * phy_get - lookup and obtain a reference to a phy.
->> + * @dev: device that requests this phy
->> + * @index: the index of the phy
->> + *
->> + * Returns the phy driver, after getting a refcount to it; or
->> + * -ENODEV if there is no such phy.  The caller is responsible for
->> + * calling phy_put() to release that count.
->> + */
->> +struct phy *phy_get(struct device *dev, int index)
->> +{
->> +    struct phy *phy = NULL;
->
-> Unneeded initialization.
->
->> +    phy = phy_lookup(dev, index);
->> +    if (IS_ERR(phy)) {
->> +        dev_err(dev, "unable to find phy\n");
->> +        goto err0;
->
-> Wouldn't it be better to just do:
 
-Indeed.
->
->          return phy;
->> +    }
->> +
->> +    if (!try_module_get(phy->ops->owner)) {
->> +        phy = ERR_PTR(-EPROBE_DEFER);
->
-> and
->          return ERR_PTR(-EPROBE_DEFER);
->
->> +        goto err0;
->
-> and to drop this goto and the label below ?
->
->> +    }
->> +
->> +    get_device(&phy->dev);
->> +
->> +err0:
->> +    return phy;
->> +}
->> +EXPORT_SYMBOL_GPL(phy_get);
->
->> diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
->> new file mode 100644
->> index 0000000..0cb2298
->> --- /dev/null
->> +++ b/include/linux/phy/phy.h
->> @@ -0,0 +1,237 @@
->> +/*
->> + * phy.h -- generic phy header file
-> [...]
->> +#ifndef __DRIVERS_PHY_H
->> +#define __DRIVERS_PHY_H
->> +
->> +#include<linux/err.h>
->> +#include<linux/of.h>
->> +
->> +struct phy
->
-> I think you also need to add either
->
-> #include <linux/device.h>
->
-> or
->
-> struct device;
->
-> struct device * is used further in this file.
+-----
+From: Sourav Poddar <sourav.poddar@ti.com>
+Date: Wed, 13 Mar 2013 20:32:36 +0530
+Subject: [RFC/PATCH] arm: mach-omap2: prevent UART console idle on 
+suspend while using "no_console_suspend"
 
-Ok.
->
->> +/**
->> + * struct phy_ops - set of function pointers for performing phy
->> operations
->> + * @init: operation to be performed for initializing phy
->> + * @exit: operation to be performed while exiting
->> + * @suspend: suspending the phy
->> + * @resume: resuming the phy
->
->> + * @poweron: powering on the phy
->> + * @shutdown: shutting down the phy
->
-> Could these be named power_on/power_off ? Looks a bit more symmetric
-> to me that way.
+With dt boot on omap5, uart wakeup after suspend is non functional while 
+using
+"no_console_suspend" in the bootargs. With "no_console_suspend" used, 
+od->flags
+should be ORed with "OMAP_DEVICE_NO_IDLE_ON_SUSPEND", thereby not 
+allowing the console
+to idle in the suspend path. For non-dt case, this was taken care by 
+platform data.
 
-Ok. Will have it that way.
+Tested on omap5430evm, omap4430sdp.
 
-Thanks
-Kishon
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+The problem is I need to use couple of "extern variables" which
+can be used in the omap_device file, after the device is built from dt.
+
+  arch/arm/mach-omap2/omap_device.c |    7 ++++++-
+  arch/arm/mach-omap2/serial.c      |    4 +++-
+  2 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_device.c 
+b/arch/arm/mach-omap2/omap_device.c
+index e065daa..f4ebf9f 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -96,6 +96,9 @@
+  #define USE_WAKEUP_LAT            0
+  #define IGNORE_WAKEUP_LAT        1
+
++extern u8 no_console_suspend;
++extern char console_uart_name[];
++
+  static int omap_early_device_register(struct platform_device *pdev);
+
+  static struct omap_device_pm_latency omap_default_latency[] = {
+@@ -372,7 +375,9 @@ static int omap_device_build_from_dt(struct 
+platform_device *pdev)
+              r->name = dev_name(&pdev->dev);
+      }
+
+-    if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
++    if (no_console_suspend && !strcmp(oh->name, console_uart_name))
++        omap_device_disable_idle_on_suspend(pdev);
++    else if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
+          omap_device_disable_idle_on_suspend(pdev);
+
+      pdev->dev.pm_domain = &omap_device_pm_domain;
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 037e691..f841ab5 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -63,8 +63,9 @@ struct omap_uart_state {
+  static LIST_HEAD(uart_list);
+  static u8 num_uarts;
+  static u8 console_uart_id = -1;
+-static u8 no_console_suspend;
+  static u8 uart_debug;
++u8 no_console_suspend;
++char console_uart_name[MAX_UART_HWMOD_NAME_LEN];
+
+  #define DEFAULT_RXDMA_POLLRATE        1    /* RX DMA polling rate (us) */
+  #define DEFAULT_RXDMA_BUFSIZE        4096    /* RX DMA buffer size */
+@@ -199,6 +200,7 @@ static int __init omap_serial_early_init(void)
+                  "%s%d", OMAP_SERIAL_NAME, uart->num);
+
+          if (cmdline_find_option(uart_name)) {
++            strcpy(console_uart_name, oh_name);
+              console_uart_id = uart->num;
+
+              if (console_loglevel >= 10) {
+-- 
+1.7.1
+
+~Sourav
+>>> Kevin
+>>>
+>>>> ---
+>>>>   arch/arm/mach-omap2/omap_device.c |   34 
+>>>> +++++++++++++++++++++++++++++++++-
+>>>>   1 files changed, 33 insertions(+), 1 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/omap_device.c 
+>>>> b/arch/arm/mach-omap2/omap_device.c
+>>>> index 381be7a..71f5a73 100644
+>>>> --- a/arch/arm/mach-omap2/omap_device.c
+>>>> +++ b/arch/arm/mach-omap2/omap_device.c
+>>>> @@ -35,11 +35,17 @@
+>>>>   #include<linux/pm_runtime.h>
+>>>>   #include<linux/of.h>
+>>>>   #include<linux/notifier.h>
+>>>> +#include<linux/platform_data/serial-omap.h>
+>>>>
+>>>>   #include "soc.h"
+>>>>   #include "omap_device.h"
+>>>>   #include "omap_hwmod.h"
+>>>>
+>>>> +#define MAX_UART_HWMOD_NAME_LEN         16
+>>>> +
+>>>> +static u8 no_console_suspend;
+>>>> +static u8 console_uart_num;
+>>>> +
+>>>>   /* Private functions */
+>>>>
+>>>>   static void _add_clkdev(struct omap_device *od, const char 
+>>>> *clk_alias,
+>>>> @@ -108,6 +114,12 @@ static void _add_hwmod_clocks_clkdev(struct 
+>>>> omap_device *od,
+>>>>           _add_clkdev(od, oh->opt_clks[i].role, oh->opt_clks[i].clk);
+>>>>   }
+>>>>
+>>>> +static char *cmdline_find_option(char *str)
+>>>> +{
+>>>> +    extern char *saved_command_line;
+>>>> +
+>>>> +    return strstr(saved_command_line, str);
+>>>> +}
+>>>>
+>>>>   /**
+>>>>    * omap_device_build_from_dt - build an omap_device with multiple 
+>>>> hwmods
+>>>> @@ -129,6 +141,7 @@ static int omap_device_build_from_dt(struct 
+>>>> platform_device *pdev)
+>>>>       struct device_node *node = pdev->dev.of_node;
+>>>>       const char *oh_name;
+>>>>       int oh_cnt, i, ret = 0;
+>>>> +    static u8 console_uart_id;
+>>>>
+>>>>       oh_cnt = of_property_count_strings(node, "ti,hwmods");
+>>>>       if (!oh_cnt || IS_ERR_VALUE(oh_cnt)) {
+>>>> @@ -170,7 +183,12 @@ static int omap_device_build_from_dt(struct 
+>>>> platform_device *pdev)
+>>>>               r->name = dev_name(&pdev->dev);
+>>>>       }
+>>>>
+>>>> -    if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
+>>>> +    if (no_console_suspend&&  !strncmp(oh->name, "uart", 4)) {
+>>>> +        if (console_uart_num == console_uart_id)
+>>>> +            omap_device_disable_idle_on_suspend(pdev);
+>>>> +        else
+>>>> +            console_uart_id++;
+>>>> +    } else if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
+>>>>           omap_device_disable_idle_on_suspend(pdev);
+>>>>
+>>>>       pdev->dev.pm_domain =&omap_device_pm_domain;
+>>>> @@ -838,7 +856,21 @@ static struct notifier_block platform_nb = {
+>>>>
+>>>>   static int __init omap_device_init(void)
+>>>>   {
+>>>> +    int i;
+>>>> +    char uart_name[MAX_UART_HWMOD_NAME_LEN];
+>>>> +
+>>>>       bus_register_notifier(&platform_bus_type,&platform_nb);
+>>>> +
+>>>> +    if (cmdline_find_option("no_console_suspend")) {
+>>>> +        no_console_suspend = true;
+>>>> +        for (i = 0; i<  OMAP_MAX_HSUART_PORTS; i++) {
+>>>> +            snprintf(uart_name, MAX_UART_HWMOD_NAME_LEN,
+>>>> +                "%s%d", OMAP_SERIAL_NAME, i);
+>>>> +            if (cmdline_find_option(uart_name))
+>>>> +                console_uart_num = i;
+>>>> +        }
+>>>> +    }
+>>>> +
+>>>>       return 0;
+>>>>   }
+>>>>   omap_core_initcall(omap_device_init);
+>>
+>
