@@ -1,208 +1,117 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [RFC 1/1] of/irq: store IRQ trigger/level in struct resource flags
-Date: Tue,  2 Apr 2013 15:57:33 +0200
-Message-ID: <1364911053-27442-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH v4 1/6] drivers: phy: add generic PHY framework
+Date: Tue, 02 Apr 2013 09:40:54 -0600
+Message-ID: <515AFC06.8000502@wwwdotorg.org>
+References: <1364449408-9510-1-git-send-email-kishon@ti.com> <1364449408-9510-2-git-send-email-kishon@ti.com> <5154658A.3080209@wwwdotorg.org> <515A98B3.7090405@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:50267 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761019Ab3DBN55 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Apr 2013 09:57:57 -0400
+Received: from avon.wwwdotorg.org ([70.85.31.133]:43208 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932491Ab3DBPlA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Apr 2013 11:41:00 -0400
+In-Reply-To: <515A98B3.7090405@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@nvidia.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-usb@vger.kernel.org, mchehab@redhat.com, linux-doc@vger.kernel.org, tony@atomide.com, grant.likely@secretlab.ca, linux@arm.linux.org.uk, javier@dowhile0.org, cesarb@cesarb.net, arnd@arndb.de, eballetbo@gmail.com, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, swarren@nvidia.com, sylvester.nawrocki@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, gregkh@linuxfoundation.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, rob@landley.net, akpm@linux-foundation.org, davem@davemloft.net
 
-According to Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
-the "#interrupt-cells" property of an "interrupt-controller" is used
-to define the number of cells needed to specify a single interrupt.
+On 04/02/2013 02:37 AM, Kishon Vijay Abraham I wrote:
+> Hi,
+> 
+> On Thursday 28 March 2013 09:15 PM, Stephen Warren wrote:
+>> On 03/27/2013 11:43 PM, Kishon Vijay Abraham I wrote:
+>>> The PHY framework provides a set of APIs for the PHY drivers to
+>>> create/destroy a PHY and APIs for the PHY users to obtain a reference
+>>> to the
+>>
+>>> diff --git a/Documentation/devicetree/bindings/phy/phy-bindings.txt
 
-A commonly used variant is two cell on which #interrupt-cells = <2>
-and the first cell defines the index of the interrupt in the controller
-and the second cell is used to specify any of the following flags:
+>>> +PHY subsystem refer Documentation/phy.txt
+>>> +
+>>> +PHY device node
+>>> +===============
+>>> +
+>>> +Optional Properties:
+>>> +#phy-cells:    Number of cells in a PHY specifier;  The meaning of all those
+>>> +        cells is defined by the binding for the phy node. However
+>>> +        in-order to return the correct PHY, the PHY susbsystem
+>>> +        requires the first cell always refers to the port.
+>>
+>> Why impose that restriction? Other DT bindings do not.
+>>
+>> This is typically implemented by having each provider driver implement a
+>> .of_xlate() operation, which parses all of the specifier cells, and
+>> returns the ID of the object it represents. This allows bindings to use
+>> whatever arbitrary representation they want.
+> 
+> Do you mean something like this
+> 
+> struct phy *of_phy_get(struct device *dev, int index)
+> {
+>     struct phy *phy = NULL;
+>     struct phy_bind *phy_map = NULL;
+>     struct of_phandle_args args;
+>     struct device_node *node;
+> 
+>     if (!dev->of_node) {
+>         dev_dbg(dev, "device does not have a device node entry\n");
+>         return ERR_PTR(-EINVAL);
+>     }
+> 
+>     ret = of_parse_phandle_with_args(dev->of_node, "phys", "#phy-cells",
+>         index, &args);
+>     if (ret) {
+>         dev_dbg(dev, "failed to get phy in %s node\n",
+>             dev->of_node->full_name);
+>         return ERR_PTR(-ENODEV);
+>     }
 
-    - bits[3:0] trigger type and level flags
-        1 = low-to-high edge triggered
-        2 = high-to-low edge triggered
-        4 = active high level-sensitive
-        8 = active low level-sensitive
+Looks good.
 
-An example of an interrupt controller which use the two cell format is
-the OMAP GPIO controller that allows GPIO lines to be used as IRQ
-(Documentation/devicetree/bindings/gpio/gpio-omap.txt)
+> //Here we have to get a reference to the phy in order to call of_xlate
+> which seems a little hacky to me. I'm not sure how else can we call the
+> provider driver :-(
+>     phy = of_phy_lookup(dev, node);
+>     if (IS_ERR(phy) || !try_module_get(phy->ops->owner)) {
+>         phy = ERR_PTR(-EPROBE_DEFER);
+>         goto err0;
+>     }
 
-But setting #interrupt-cells = <2> on the OMAP GPIO device node and
-specifying the GPIO-IRQ type and level flags on the second cell does not
-store this value on the populated IORESOURCE_IRQ struct resource.
+I think the concept of a "PHY provider" and a "PHY instance" are different.
 
-This is because when using an IRQ from an interrupt controller and
-setting both cells (e.g:)
+of_xlate should be called on a "PHY provider", and return a "PHY
+instance". Hence, above you want to only look up a "PHY provider", so
+there's no hackiness involved.
 
-	interrupt-parent = <&gpio6>;
-	interrupts = <16 8>;
+> //here we are checking if the phy has additional specifiers and if so
+> call of_xlate using the phy we just obtained. The provider driver should
+> check the args and return the appropriate *phy in this case.
+>     if (args.args_count > 0) {
 
-A call to of_irq_to_resource() is made and this function calls to
-irq_of_parse_and_map_type() to get the virtual IRQ mapped to the real
-index for this interrupt controller. This IRQ number is populated on
-the struct resource:
+It's probably simplest to always call of_xlate; that way, you're always
+calling it on a "PHY provider" and getting back a "PHY instance". For
+providers that only provide 1 instance, the implementation should be
+simple:-)
 
-int of_irq_to_resource(struct device_node *dev, int index, struct resource *r)
-{
-	int irq = irq_of_parse_and_map(dev, index);
-	..
-	r->start = r->end = irq;
-}
-
-irq_of_parse_and_map() calls to irq_create_of_mapping() which calls to
-the correct xlate function handler according to "#interrupt-cells"
-(irq_domain_xlate_onecell or irq_domain_xlate_twocell) and to
-irq_set_irq_type() to set the IRQ type.
-
-But the type is never returned so it can't be saved on the IRQ struct
-resource flags member.
-
-This means that drivers that need the IRQ type/level flags defined in
-the DT won't be able to get it.
-
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
-
-Hello,
-
-This is a RFC since I don't know if this is the best approach to solve
-the issue. I've tested this patch a TI OMAP3 DM3735 SoC board and his
-working correctly both with and without DeviceTrees.
-
-I've added an indirection level to keep the patch as small as possible
-instead of changing dozens of files to update the callers. I think this
-make it easier to review the change.
-
-If you agree with this patch I can send a v2 that juse add a type param
-to irq_of_parse_and_map() and irq_create_of_mapping(), updating all the
-callers of this functions as well.
-
-Thanks a lot and best regards,
-
- drivers/of/irq.c       |   30 ++++++++++++++++++++++++------
- include/linux/of_irq.h |    4 ++++
- kernel/irq/irqdomain.c |   14 ++++++++++++--
- 3 files changed, 40 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/of/irq.c b/drivers/of/irq.c
-index a3c1c5a..6f6aa75 100644
---- a/drivers/of/irq.c
-+++ b/drivers/of/irq.c
-@@ -27,22 +27,39 @@
- #include <linux/slab.h>
- 
- /**
-- * irq_of_parse_and_map - Parse and map an interrupt into linux virq space
-+ * irq_of_parse_and_map_type - Parse and map an interrupt into linux virq space
-  * @device: Device node of the device whose interrupt is to be mapped
-  * @index: Index of the interrupt to map
-+ * @type: Interrupt trigger type and level flags filled by this function
-  *
-  * This function is a wrapper that chains of_irq_map_one() and
-  * irq_create_of_mapping() to make things easier to callers
-  */
--unsigned int irq_of_parse_and_map(struct device_node *dev, int index)
-+static unsigned int irq_of_parse_and_map_type(struct device_node *dev,
-+					      int index, unsigned int *type)
- {
- 	struct of_irq oirq;
-+	unsigned int virq;
- 
- 	if (of_irq_map_one(dev, index, &oirq))
- 		return 0;
- 
--	return irq_create_of_mapping(oirq.controller, oirq.specifier,
--				     oirq.size);
-+	virq = irq_create_of_mapping_type(oirq.controller, oirq.specifier,
-+					  oirq.size, type);
-+	return virq;
-+}
-+
-+/**
-+ * irq_of_parse_and_map - Parse and map an interrupt into linux virq space
-+ * @device: Device node of the device whose interrupt is to be mapped
-+ * @index: Index of the interrupt to map
-+ *
-+ * This function is a wrapper of irq_of_parse_and_map_type() when the IRQ
-+ * type and level flags are not needed
-+ */
-+unsigned int irq_of_parse_and_map(struct device_node *dev, int index)
-+{
-+	return irq_of_parse_and_map_type(dev, index, NULL);
- }
- EXPORT_SYMBOL_GPL(irq_of_parse_and_map);
- 
-@@ -338,7 +355,8 @@ EXPORT_SYMBOL_GPL(of_irq_map_one);
-  */
- int of_irq_to_resource(struct device_node *dev, int index, struct resource *r)
- {
--	int irq = irq_of_parse_and_map(dev, index);
-+	int type = IRQ_TYPE_NONE;
-+	int irq = irq_of_parse_and_map_type(dev, index, &type);
- 
- 	/* Only dereference the resource if both the
- 	 * resource and the irq are valid. */
-@@ -353,7 +371,7 @@ int of_irq_to_resource(struct device_node *dev, int index, struct resource *r)
- 					      &name);
- 
- 		r->start = r->end = irq;
--		r->flags = IORESOURCE_IRQ;
-+		r->flags = (IORESOURCE_IRQ | type);
- 		r->name = name ? name : dev->full_name;
- 	}
- 
-diff --git a/include/linux/of_irq.h b/include/linux/of_irq.h
-index 535cecf..98aec57 100644
---- a/include/linux/of_irq.h
-+++ b/include/linux/of_irq.h
-@@ -66,6 +66,10 @@ extern int of_irq_map_one(struct device_node *device, int index,
- extern unsigned int irq_create_of_mapping(struct device_node *controller,
- 					  const u32 *intspec,
- 					  unsigned int intsize);
-+extern unsigned int irq_create_of_mapping_type(struct device_node *controller,
-+					       const u32 *intspec,
-+					       unsigned int intsize,
-+					       unsigned int *otype);
- extern int of_irq_to_resource(struct device_node *dev, int index,
- 			      struct resource *r);
- extern int of_irq_count(struct device_node *dev);
-diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index 96f3a1d..4a2f222 100644
---- a/kernel/irq/irqdomain.c
-+++ b/kernel/irq/irqdomain.c
-@@ -636,8 +636,9 @@ int irq_create_strict_mappings(struct irq_domain *domain, unsigned int irq_base,
- }
- EXPORT_SYMBOL_GPL(irq_create_strict_mappings);
- 
--unsigned int irq_create_of_mapping(struct device_node *controller,
--				   const u32 *intspec, unsigned int intsize)
-+unsigned int irq_create_of_mapping_type(struct device_node *controller,
-+					const u32 *intspec, unsigned int intsize,
-+					unsigned int *otype)
- {
- 	struct irq_domain *domain;
- 	irq_hw_number_t hwirq;
-@@ -681,8 +682,17 @@ unsigned int irq_create_of_mapping(struct device_node *controller,
- 	if (type != IRQ_TYPE_NONE &&
- 	    type != (irqd_get_trigger_type(irq_get_irq_data(virq))))
- 		irq_set_irq_type(virq, type);
-+	if (otype)
-+		*otype = type;
- 	return virq;
- }
-+EXPORT_SYMBOL_GPL(irq_create_of_mapping_type);
-+
-+unsigned int irq_create_of_mapping(struct device_node *controller,
-+				   const u32 *intspec, unsigned int intsize)
-+{
-+	return irq_create_of_mapping_type(controller, intspec, intsize, NULL);
-+}
- EXPORT_SYMBOL_GPL(irq_create_of_mapping);
- 
- /**
--- 
-1.7.7.6
+>         phy = phy->of_xlate(&args);
+>         if (IS_ERR(phy))
+>             goto err0;
+>     }
+> 
+>     phy_map = phy_bind(dev_name(dev), index, dev_name(&phy->dev));
+>     if (!IS_ERR(phy_map)) {
+>         phy_map->phy = phy;
+>         phy_map->auto_bind = true;
+>     }
+> 
+>     get_device(&phy->dev);
+> 
+> err0:
+>     of_node_put(node);
+> 
+>     return phy;
+> }
+> EXPORT_SYMBOL_GPL(of_phy_get);
 
