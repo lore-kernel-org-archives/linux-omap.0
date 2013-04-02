@@ -1,64 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.9-rc3
-Date: Tue, 2 Apr 2013 20:25:24 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1304022006360.31045@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1303181536230.29332@utopia.booyaka.com>  <51482707.6020501@ti.com> <1363684373.15426.137.camel@sokoban>  <alpine.DEB.2.00.1303261829440.23957@utopia.booyaka.com> <1364375463.3146.9.camel@sokoban>
+From: Alexey Pelykh <alexey.pelykh@gmail.com>
+Subject: Re: [PATCH] Revert "OMAP/serial: Fix incorrect Rx FIFO threshold
+ setting, LSR validation on Tx, and Tx FIFO IRQ generation"
+Date: Wed, 3 Apr 2013 00:19:45 +0300
+Message-ID: <CAOmKuSqd=gNYFutpgDref58pbAbDwDin4mvL_OEooD1XuwKtgQ@mail.gmail.com>
+References: <alpine.DEB.2.00.1304010519260.28273@utopia.booyaka.com>
+	<CAOmKuSpttQJmrL=Htiz-Zc4voAF7CnG_GQYAO2onKpauwYjtvw@mail.gmail.com>
+	<alpine.DEB.2.00.1304010844100.28273@utopia.booyaka.com>
+	<CAOmKuSrABrPcZ=Yg1+LAHWbh9CdTYR0eUmJ2dd3z91oz0uu21g@mail.gmail.com>
+	<alpine.DEB.2.00.1304011008230.28273@utopia.booyaka.com>
+	<CAOmKuSrbDc025Tj9xsqDebJ_KZdp_VnWAOs_OO5UAegV43JcDQ@mail.gmail.com>
+	<CAOmKuSpbaKutLxbNihBRDz+B0Wt0XiPss-PcEHc-efCTvciNFg@mail.gmail.com>
+	<alpine.DEB.2.00.1304011654520.9148@utopia.booyaka.com>
+	<CAOmKuSo4onVtk2Ke-i+0_1Ych33KuUYspRy+cySRHf4yWB5XDw@mail.gmail.com>
+	<alpine.DEB.2.00.1304021821190.27146@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:50349 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761031Ab3DBUZZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Apr 2013 16:25:25 -0400
-In-Reply-To: <1364375463.3146.9.camel@sokoban>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1304021821190.27146@utopia.booyaka.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
 
-Hi
+Hi Paul,
 
-On Wed, 27 Mar 2013, Tero Kristo wrote:
+No problem, I'll prepare patch in next 24 hours and will send in ASAP.
 
-> On Tue, 2013-03-26 at 18:43 +0000, Paul Walmsley wrote:
+But, since we've found the issue, I suggest that we should look at it
+closer, especially since at this moment only you can reproduce it. As
+far as I understand, but I may be wrong,
+this comment is wrong, since if to specify
+OMAP_UART_SCR_RX_TRIG_GRANU1_MASK, it effectively sets Rx threshold to
+1 character, instead of 16.
+/* Set receive FIFO threshold to 16 characters and
+ * transmit FIFO threshold to 16 spaces
+ */
+
+On Tue, Apr 2, 2013 at 9:24 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Mon, 1 Apr 2013, Alexey Pelykh wrote:
 >
-> > So what I'd like you to do is:
-> > 
-> > 1. Determine what devices are remaining to be reset and idled on OMAP4 
-> >    with the bootloader that I use.  As far as I know, there are only four 
-> >    that block full-chip idle: M3, DSP, SL2IF, FSUSB
-> > 
-> > 2. Determine what's needed to reset and idle them.  For the M3 and DSP, 
-> >    I'd assume this involves pointing the reset vector for those 
-> >    processors at a few lines of code that basically enter WFI or the C64x 
-> >    equivalent.
-> 
-> This is the nasty part. We need firmware support for the blocks to do
-> this, and this is imo a complete overkill for the task at hand, as it
-> will duplicate the DSP + M3 firmware and drivers at least partially.
-
-Why can't the DSP & M3 go straight from the reset vector to WFI (or the 
-C64x equivalent?)  The M3s might need a couple of additional instructions 
-to program DEEPSLEEP mode.  What other significant additional code is 
-needed for those processors?
-
-> If there was a simple way to do this, don't you think this would have
-> been done already a year back when we started to discuss this first
-> time? 
-
-No, I don't think it has anything to do with the simplicity of the task.  
-My sense is that no one at TI wants to work on it.  I can sympathize, but 
-all of us who work on upstream Linux do things that we'd rather not do, 
-for a more stable or more maintainable kernel.
-
-So the first thing that should be done is to figure out whether the 
-situation is really as bad as was suggested above.  Doesn't it seem 
-unlikely that it would be necessary to "duplicate the firmware" -- which 
-does much more than just idle the DSP & M3 -- just to put those subsystems 
-into idle?
-
-There's also the reset of the FSUSB IP block, which shouldn't need any 
-firmware.  Who's going to work on that one?
-
-
-- Paul
+>> Paul, can you please try to comment out change related to Rx line
+>> (granulation one). That's only Rx line related change in the patch.
+>
+> Yes, looks like simply reverting the commit 1776fd059c40 ("OMAP/serial:
+> Fix incorrect Rx FIFO threshold setting, LSR validation on Tx, and Tx FIFO
+> IRQ generation") change to OMAP_UART_SCR_RX_TRIG_GRANU1_MASK fixes it.
+>
+> Care to send a patch doing so ASAP for v3.9-rc fixes?  That would moot the
+> revert of the entire commit 1776fd059c40.
+>
+>
+> - Paul
