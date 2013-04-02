@@ -1,77 +1,64 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/3] mtd nand : onfi need to be probed in 8 bits mode
-Date: Tue, 2 Apr 2013 18:28:12 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1304021826310.27146@utopia.booyaka.com>
-References: <1352199105-30215-1-git-send-email-matthieu.castet@parrot.com> <1354530053.30168.183.camel@sauron.fi.intel.com> <alpine.DEB.2.00.1212240023100.17282@utopia.booyaka.com> <50E40336.2080008@parrot.com> <alpine.DEB.2.00.1301031704460.8721@utopia.booyaka.com>
- <50F6B904.5000600@parrot.com> <alpine.DEB.2.00.1301161713380.32170@utopia.booyaka.com> <alpine.DEB.2.00.1301220226530.25789@utopia.booyaka.com> <alpine.DEB.2.00.1302062321080.12769@utopia.booyaka.com> <5113783B.6010806@parrot.com>
- <5130B4E9.5050700@parrot.com>
+Subject: Re: OMAP baseline test results for v3.9-rc3
+Date: Tue, 2 Apr 2013 20:25:24 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1304022006360.31045@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1303181536230.29332@utopia.booyaka.com>  <51482707.6020501@ti.com> <1363684373.15426.137.camel@sokoban>  <alpine.DEB.2.00.1303261829440.23957@utopia.booyaka.com> <1364375463.3146.9.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-2069735505-1364927246=:27146"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:49639 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:50349 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760612Ab3DBS2N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Apr 2013 14:28:13 -0400
-In-Reply-To: <5130B4E9.5050700@parrot.com>
-Content-ID: <alpine.DEB.2.00.1304021827340.27146@utopia.booyaka.com>
+	with ESMTP id S1761031Ab3DBUZZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Apr 2013 16:25:25 -0400
+In-Reply-To: <1364375463.3146.9.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthieu CASTET <matthieu.castet@parrot.com>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, jon-hunter@ti.com, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Afzal Mohammed <afzal@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi
 
---843723315-2069735505-1364927246=:27146
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1304021827341.27146@utopia.booyaka.com>
+On Wed, 27 Mar 2013, Tero Kristo wrote:
 
-Hi Matthieu,
+> On Tue, 2013-03-26 at 18:43 +0000, Paul Walmsley wrote:
+>
+> > So what I'd like you to do is:
+> > 
+> > 1. Determine what devices are remaining to be reset and idled on OMAP4 
+> >    with the bootloader that I use.  As far as I know, there are only four 
+> >    that block full-chip idle: M3, DSP, SL2IF, FSUSB
+> > 
+> > 2. Determine what's needed to reset and idle them.  For the M3 and DSP, 
+> >    I'd assume this involves pointing the reset vector for those 
+> >    processors at a few lines of code that basically enter WFI or the C64x 
+> >    equivalent.
+> 
+> This is the nasty part. We need firmware support for the blocks to do
+> this, and this is imo a complete overkill for the task at hand, as it
+> will duplicate the DSP + M3 firmware and drivers at least partially.
 
-On Fri, 1 Mar 2013, Matthieu CASTET wrote:
+Why can't the DSP & M3 go straight from the reset vector to WFI (or the 
+C64x equivalent?)  The M3s might need a couple of additional instructions 
+to program DEEPSLEEP mode.  What other significant additional code is 
+needed for those processors?
 
-> Matthieu CASTET a =E9crit :
-> > Paul Walmsley a =E9crit :
-> >> On Tue, 22 Jan 2013, Paul Walmsley wrote:
-> >>
-> >>> Any progress on updating and resending your "omap3 nand : use=20
-> >>> NAND_BUSWIDTH_AUTO" patch?  We're in danger of missing the 3.9 merge=
-=20
-> >>> window if it takes too much longer.
-> >> Could you let us know if you're planning to update and repost this one=
-?
-> >>
-> > Sorry for the delay I attached an updated version of the patch.
-> >=20
-> > I was not able to test it : with mtd tree and my configuration I have t=
-o apply
-> > https://patchwork.kernel.org/patch/1810441/
-> > https://patchwork.kernel.org/patch/1884341/
-> > http://comments.gmane.org/gmane.linux.ports.arm.omap/91096
-> >=20
-> > in order the kernel build.
-> >=20
-> > And after that the kernel doesn't seem to boot on my beagle board. Coul=
-d you
-> > test the patch ?
-> >=20
-> > I have also a problem : how should I change nand bus size. It is done b=
-y
-> > "gpmc_cs_configure(info->gpmc_cs, GPMC_CONFIG_DEV_SIZE, ...);", but now=
- gpmc.h
-> > header is not public anymore.
-> >=20
-> > I have to do a '#include "../gpmc.h"'.
-> >=20
-> >=20
-> Any news on this ?
+> If there was a simple way to do this, don't you think this would have
+> been done already a year back when we started to discuss this first
+> time? 
 
-Unfortunately, I don't have the time at the moment to track this issue. =20
-Could you follow up on this with Jon Hunter <jon-hunter@ti.com> ?  He's=20
-been working on the GPMC code for the last few merge windows and is=20
-basically the maintainer of it at this point.
+No, I don't think it has anything to do with the simplicity of the task.  
+My sense is that no one at TI wants to work on it.  I can sympathize, but 
+all of us who work on upstream Linux do things that we'd rather not do, 
+for a more stable or more maintainable kernel.
+
+So the first thing that should be done is to figure out whether the 
+situation is really as bad as was suggested above.  Doesn't it seem 
+unlikely that it would be necessary to "duplicate the firmware" -- which 
+does much more than just idle the DSP & M3 -- just to put those subsystems 
+into idle?
+
+There's also the reset of the FSUSB IP block, which shouldn't need any 
+firmware.  Who's going to work on that one?
 
 
 - Paul
---843723315-2069735505-1364927246=:27146--
