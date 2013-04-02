@@ -1,85 +1,56 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH 5/6] ARM: OMAP3+: ABB: introduce ABB driver
-Date: Mon, 1 Apr 2013 18:00:10 -0500
-Message-ID: <20130401230009.GA2038@snafu>
-References: <1364490968-13613-1-git-send-email-andrii.tseglytskyi@ti.com>
- <1364490968-13613-5-git-send-email-andrii.tseglytskyi@ti.com>
- <20130328212739.13785.44736@quantum>
- <20130328223513.GA19470@kahuna>
- <51596725.9060109@ti.com>
- <20130401181057.8177.19688@quantum>
- <CAGo_u6ofjT_HyzdFNj3ByCbsyYzGU-LncUKo9=84BU3u6FK6Hw@mail.gmail.com>
- <20130401213430.8177.21940@quantum>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [GIT PULL] ARM: OMAP2+: System timer updates
+Date: Mon, 1 Apr 2013 21:10:09 -0500
+Message-ID: <515A3E01.1060308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48573 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756506Ab3DAXAL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Apr 2013 19:00:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20130401213430.8177.21940@quantum>
+Received: from devils.ext.ti.com ([198.47.26.153]:54599 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759338Ab3DBCKQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Apr 2013 22:10:16 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>, Tero Kristo <t-kristo@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 14:34-20130401, Mike Turquette wrote:
-> Quoting Nishanth Menon (2013-04-01 12:28:20)
-> > On Mon, Apr 1, 2013 at 1:10 PM, Mike Turquette <mturquette@linaro.org> wrote:
-> > > Let's figure out what is happening to the VC/VP code first and then
-> > > figure out what to do about ABB.
-> > >
-> > http://picpaste.com/KmqDYTn0.jpg
-> > is an quick depiction of the thought I have in my mind.
-> > 
-> 
-> OK, looks like the Super Regulator Approach(tm).
-:D I hope it can be modelled after TI SoCs and then expanded to other
-SoCs as needed.
-> 
-> > We do have, in the upcoming SoCs, where Nominal Voltages per device,
-> > will now be encoded into the efuse itself(so called class 0 voltage).
-> > Future SoCs will need to be able to use ABB along with standard
-> > regulators (without use of VC-VP) - in fact, even today, SoCs like AM
-> > and DM series of processors have the same requirement.
-> > 
-> 
-> This de-linking of ABB from VC/VP probably supports modeling ABB ldo's
-> as Linux regulators.  That would provide a common interface where either
-> the VC/VP code or another regulator could call something like
-> regulator_set_mode.
-> 
-> If we're going to export something which can get called by different
-> actors it's best to use an already exported interface which the
-> regulator framework supplies, instead of exporting something new and
-> omap-specific.
-Yep - that was my original thought - though modeling it as a regulator
-in itself is, IMHO, I think is a good idea.
+The following changes since commit 2d61aecee8f32259920cdf90a452fa26ffc64e9f:
 
-> 
-> > We also will have to support class 2 variants of AVS (which will use
-> > standard regulators to set voltage).
-> > 
-> > As of date, CCF does not control regulators - which means the interim
-> > solution would be for the device control to manipulate both clock and
-> > regulator voltage (similar to what cpufreq-cpu0 driver does today).
-> > these drivers should not know the existance of SoC specific
-> > intricacies - so ABB linked to voltage values make more sense if ABB
-> > sequencing is handled in "TI regulator"
-> > 
-> > Intent of VC/VP regulator is to be replaceable, on required platforms,
-> > with appropriate regulator which do not use VC/VP paths (e.g. on SoCs
-> > that do not have it).
-> > 
-> 
-> Well if everything is nicely modeled then I suppose per-board and
-> per-soc DT will give you the ability to link things up nicely.  E.g.
-> replacing VC/VP with an external physical LDO, etc.
+  Merge commit '6bb27d7349db51b50c40534710fe164ca0d58902' into omap-timer-for-v3.10 (2013-04-01 13:47:29 -0500)
 
-True - that is precisely what are attempting to do in (hopefully) edible
-stages :).
+are available in the git repository at:
 
--- 
-Regards,
-Nishanth Menon
+
+  git://github.com/jonhunter/linux.git omap-timer-for-v3.10
+
+for you to fetch changes up to 4615943cf3a531bc76f589c22bd366da092b7c0f:
+
+  ARM: OMAP4+: Fix sparse warning in system timers (2013-04-01 13:49:46 -0500)
+
+----------------------------------------------------------------
+This series consists mainly of clean-ups for clockevents and
+clocksource timers on OMAP2+ devices. The most significant change
+in functionality comes from the 5th patch which is changing the
+selection of the clocksource timer for OMAP3 and AM335x devices
+when gptimers are used for clocksource.
+
+This series is dependent on commit 7185684 (ARM: OMAP: use
+consistent error checking) from RMK's clean-up branch and commit
+6bb27d7 (ARM: delete struct sys_timer)
+----------------------------------------------------------------
+
+Jon Hunter (7):
+      ARM: OMAP2+: Display correct system timer name
+      ARM: OMAP2+: Remove hard-coded test on timer ID
+      ARM: OMAP2+: Simplify system timer clock definitions
+      ARM: OMAP2+: Simplify system timers definitions
+      ARM: OMAP3: Update clocksource timer selection
+      ARM: OMAP2+: Store ID of system timers in timer structure
+      ARM: OMAP4+: Fix sparse warning in system timers
+
+ arch/arm/mach-omap2/board-cm-t3517.c |    2 +-
+ arch/arm/mach-omap2/board-generic.c  |    2 +-
+ arch/arm/mach-omap2/common.h         |    3 +-
+ arch/arm/mach-omap2/timer.c          |  121 +++++++++++++++++-----------------
+ 4 files changed, 65 insertions(+), 63 deletions(-)
