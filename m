@@ -1,78 +1,88 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [RFC PATCH 5/6] ARM: OMAP3+: ABB: introduce ABB driver
-Date: Tue, 2 Apr 2013 13:15:08 +0300
-Message-ID: <515AAFAC.50908@ti.com>
-References: <1364490968-13613-1-git-send-email-andrii.tseglytskyi@ti.com> <1364490968-13613-5-git-send-email-andrii.tseglytskyi@ti.com> <20130328212739.13785.44736@quantum> <20130328223513.GA19470@kahuna> <51596725.9060109@ti.com> <20130401181057.8177.19688@quantum> <CAGo_u6ofjT_HyzdFNj3ByCbsyYzGU-LncUKo9=84BU3u6FK6Hw@mail.gmail.com> <20130401213430.8177.21940@quantum> <20130401230009.GA2038@snafu> <20130402000545.8177.65252@quantum> <20130402033545.GA2020@snafu>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v4] drivers: video: use module_platform_driver_probe()
+Date: Tue, 2 Apr 2013 13:21:07 +0300
+Message-ID: <515AB113.6030700@ti.com>
+References: <1363352558-6275-1-git-send-email-fabio.porcedda@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigC485F9D041B16CBE60546AC9"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38293 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:36155 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754331Ab3DBKQ2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Apr 2013 06:16:28 -0400
-In-Reply-To: <20130402033545.GA2020@snafu>
+	id S1754228Ab3DBKVW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Apr 2013 06:21:22 -0400
+In-Reply-To: <1363352558-6275-1-git-send-email-fabio.porcedda@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Mike Turquette <mturquette@linaro.org>, Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>, Tero Kristo <t-kristo@ti.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org
+To: Fabio Porcedda <fabio.porcedda@gmail.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, David Howells <dhowells@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 
-On 04/02/2013 06:35 AM, Nishanth Menon wrote:
-> On 17:05-20130401, Mike Turquette wrote:
->> OK, so we're in agreement on what The Future looks like.  What does that
->> mean for Andrii's patchset?
-> Unless anyone has an fundamental issue with the approach of an "Super
-> regulator" controlling "sub regulators", I think, in-line with your
-> view, we should probably make ABB as an regulator instead of inventing
-> our own API and hooking it around clock notifiers.
-Hi Nishanth, All
-One question here, regarding "Super regulator" - How are you going to 
-differentiate
-OPP changing and AVS Voltage adjustment requests to the "Super regulator"??
-As you know, to select OPP changing direction, ABB type (or VC/VP 
-parameters)
-properly you need Nominal (and only Nominal) voltage as input.
-And in real world, AVS can adjust voltage, as example, for OPP100 even 
-low than for OPP50.
-OMAP4 example:
-     MPU OPP    Vsr                Vnom   ABB
-     OPP50      0.862249970436096  1.025  NOM
-     OPP100     1.03509700298309   1.2    NOM
-     OPPTurbo   1.09257805347443   1.325  NOM
-     OPPNitro   1.18703103065491   1.388  FAST
-     OPPNitroSB 1.29427194595337   1.398  FAST
-So, while adjusting voltage, AVS can hit other OPP voltage and, as 
-result, ABB mode may be changed.
+--------------enigC485F9D041B16CBE60546AC9
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-I think, your vision would be more clear if you could be able to provide 
-Sequence diagram in addition.
+On 2013-03-15 15:02, Fabio Porcedda wrote:
+> This patch converts the drivers to use the
+> module_platform_driver_probe() macro which makes the code smaller and
+> a bit simpler.
+>=20
+> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com> # atmel_lcdfb.c
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: David Howells <dhowells@redhat.com>
+> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com> # amifb.=
+c
+> Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+> ---
+>=20
+> Notes:
+>     v4:
+>      - add acked-by Nicolas & Laurent
+>      - fix amifb.c
+>     v3:
+>      - add missing drivers: amifb, atmel_lcdfb, vrfb
+>      - split patch set to each maintainer to easy up respin
+>     v2:
+>      - rebased over linux-next and remove already converted drivers
+>=20
+>  drivers/video/amifb.c          | 14 +-------------
+>  drivers/video/atmel_lcdfb.c    | 13 +------------
+>  drivers/video/omap2/vrfb.c     | 13 +------------
+>  drivers/video/sh_mipi_dsi.c    | 12 +-----------
+>  drivers/video/sh_mobile_hdmi.c | 12 +-----------
+>  5 files changed, 5 insertions(+), 59 deletions(-)
 
-And would it be allowed to use DT for such regulator chain definitions
-(or board-generic.c should be used instead), just for clarification,
-  because I have not to much DT experience:
-omap443x.dtsi:
-vdd_mpu: regulator-omap-ti1 { << -- Super regulator
-          compatible = "ti,omapX-regulator";
-          regulator-min-microvolt = <750000>;
-          regulator-max-microvolt = <1388000>;
-          smps-supply = <&smps_mpu>; [or smps-supply = <&vcc>;]
-          abb-supply = <&abb_mpu>;
-};
+Thanks, applied to fbdev branch.
 
-smps_mpu: regulator-omap-smps1 { <--VC/VP regulator
-          compatible = "ti,omapX-smps-regulator";
-          ti,vc = <&vc>
-          ti,vp = <&vp_mpu>
-};
-
-twl4030.dtsi
-vcc: regulator-vdd1 {
-           compatible = "ti,twl4030-vdd1";
-           regulator-min-microvolt = <600000>;
-           regulator-max-microvolt = <1450000>;
-};
-
-Regards,
-Grygorii Strashko
+ Tomi
 
 
+
+--------------enigC485F9D041B16CBE60546AC9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRWrETAAoJEPo9qoy8lh71OaIP/1IqoM04jBJlAKUXmLqMqNZJ
+Oc75Y6cVVRyVs65ndoYO5J1IBy/LUere14Zig0fFHr2kOtC81XobiQePEcEMJS/k
+6poqaZUQ8/hoZgeCwVgrMWK/frdpjuxHyTE+t9iMCf3Cq1UO6uqrjd+tkQNm02YT
+1gbj8PF2zYLAdVMc3tVGv7Qyjso6IK6jQtLfetvap0Ao+uA/8KNypRQQh5kzlcej
+sGB5Vxn82kR7pBD+BbsBe0xqe0NGBsTKGcyrNuHrFRv7UAcwma46qGLrBMr28AUo
+zkvA6YZGTr9dCuxuSKDxuDmw2R5sHNd/CfpsHjJZAGiH3XMMd9YbBvpHAYofnc7Z
+xxuWzwQ/oSpsCVCGCoy8k3CyioqjGgOxb1YuZyIBUwQgZzn2CXgHDRIFaIEUthJd
+fKvntsDFHDOW6G/b9ZfSRFyC94S+bwzmxf4MNHtVlryEvoaN6O2oI6TtxxYB4U/6
+nmz6PYsVC2DOloU3/upCbAIvNbKcLO+Gnyp62eg3JlCsr+fhsO7jGFDITugDHDSP
+amT5CNuY6TTlWPop6r3EdFxAd5WHnnxzSKmzIPfLfPXHbtgUMBB/SUOPxw1a5mEG
+kARFpofHPRciT30zpR8Y2QqDQlqmmFkT8Ffc/LWwYhijJ18Jqgib6js+iSJnACqF
+YAcWYqHwKZURBirTQfRj
+=gciT
+-----END PGP SIGNATURE-----
+
+--------------enigC485F9D041B16CBE60546AC9--
