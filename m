@@ -1,179 +1,82 @@
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-Subject: Re: [PATCH v4] drivers: video: use module_platform_driver_probe()
-Date: Tue, 2 Apr 2013 12:08:02 +0200
-Message-ID: <CAHkwnC9FFp+55RZQjTsETPtTZ5p_z_x5XD1h=1f2iNrG8QL_7g@mail.gmail.com>
-References: <1363352558-6275-1-git-send-email-fabio.porcedda@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] video: omap2: dss: use PTR_RET function
+Date: Tue, 2 Apr 2013 13:13:36 +0300
+Message-ID: <515AAF50.9010504@ti.com>
+References: <1364416537-25367-1-git-send-email-epure.andrei@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f178.google.com ([209.85.214.178]:48534 "EHLO
-	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759771Ab3DBKIW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Apr 2013 06:08:22 -0400
-In-Reply-To: <1363352558-6275-1-git-send-email-fabio.porcedda@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigFC07AC7C235DE6BE0BECC3F8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1364416537-25367-1-git-send-email-epure.andrei@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrei Epure <epure.andrei@gmail.com>
+Cc: FlorianSchandinat@gmx.de, archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev <linux-fbdev@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, David Howells <dhowells@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 
-On Fri, Mar 15, 2013 at 2:02 PM, Fabio Porcedda
-<fabio.porcedda@gmail.com> wrote:
-> This patch converts the drivers to use the
-> module_platform_driver_probe() macro which makes the code smaller and
-> a bit simpler.
->
-> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com> # atmel_lcdfb.c
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: David Howells <dhowells@redhat.com>
-> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com> # amifb.c
-> Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+--------------enigFC07AC7C235DE6BE0BECC3F8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On 2013-03-27 22:35, Andrei Epure wrote:
+> Use PTR_RET function instead of IS_ERR + PTR_ERR.
+> Patch found using coccinelle.
+>=20
+> Signed-off-by: Andrei Epure <epure.andrei@gmail.com>
 > ---
->
-> Notes:
->     v4:
->      - add acked-by Nicolas & Laurent
->      - fix amifb.c
->     v3:
->      - add missing drivers: amifb, atmel_lcdfb, vrfb
->      - split patch set to each maintainer to easy up respin
->     v2:
->      - rebased over linux-next and remove already converted drivers
->
->  drivers/video/amifb.c          | 14 +-------------
->  drivers/video/atmel_lcdfb.c    | 13 +------------
->  drivers/video/omap2/vrfb.c     | 13 +------------
->  drivers/video/sh_mipi_dsi.c    | 12 +-----------
->  drivers/video/sh_mobile_hdmi.c | 12 +-----------
->  5 files changed, 5 insertions(+), 59 deletions(-)
->
-> diff --git a/drivers/video/amifb.c b/drivers/video/amifb.c
-> index 7fa1bf8..77cb4ff 100644
-> --- a/drivers/video/amifb.c
-> +++ b/drivers/video/amifb.c
-> @@ -3788,19 +3788,7 @@ static struct platform_driver amifb_driver = {
->         },
->  };
->
-> -static int __init amifb_init(void)
-> -{
-> -       return platform_driver_probe(&amifb_driver, amifb_probe);
-> -}
+>  drivers/video/omap2/dss/core.c |    5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/c=
+ore.c
+> index f8779d4..60cc6fe 100644
+> --- a/drivers/video/omap2/dss/core.c
+> +++ b/drivers/video/omap2/dss/core.c
+> @@ -181,10 +181,7 @@ int dss_debugfs_create_file(const char *name, void=
+ (*write)(struct seq_file *))
+>  	d =3D debugfs_create_file(name, S_IRUGO, dss_debugfs_dir,
+>  			write, &dss_debug_fops);
+> =20
+> -	if (IS_ERR(d))
+> -		return PTR_ERR(d);
 > -
-> -module_init(amifb_init);
-> -
-> -static void __exit amifb_exit(void)
-> -{
-> -       platform_driver_unregister(&amifb_driver);
-> -}
-> -
-> -module_exit(amifb_exit);
-> +module_platform_driver_probe(amifb_driver, amifb_probe);
->
->  MODULE_LICENSE("GPL");
->  MODULE_ALIAS("platform:amiga-video");
-> diff --git a/drivers/video/atmel_lcdfb.c b/drivers/video/atmel_lcdfb.c
-> index 12cf5f3..654e102 100644
-> --- a/drivers/video/atmel_lcdfb.c
-> +++ b/drivers/video/atmel_lcdfb.c
-> @@ -1150,18 +1150,7 @@ static struct platform_driver atmel_lcdfb_driver = {
->         },
->  };
->
-> -static int __init atmel_lcdfb_init(void)
-> -{
-> -       return platform_driver_probe(&atmel_lcdfb_driver, atmel_lcdfb_probe);
-> -}
-> -
-> -static void __exit atmel_lcdfb_exit(void)
-> -{
-> -       platform_driver_unregister(&atmel_lcdfb_driver);
-> -}
-> -
-> -module_init(atmel_lcdfb_init);
-> -module_exit(atmel_lcdfb_exit);
-> +module_platform_driver_probe(atmel_lcdfb_driver, atmel_lcdfb_probe);
->
->  MODULE_DESCRIPTION("AT91/AT32 LCD Controller framebuffer driver");
->  MODULE_AUTHOR("Nicolas Ferre <nicolas.ferre@atmel.com>");
-> diff --git a/drivers/video/omap2/vrfb.c b/drivers/video/omap2/vrfb.c
-> index 10560ef..5261229 100644
-> --- a/drivers/video/omap2/vrfb.c
-> +++ b/drivers/video/omap2/vrfb.c
-> @@ -397,18 +397,7 @@ static struct platform_driver vrfb_driver = {
->         .remove         = __exit_p(vrfb_remove),
->  };
->
-> -static int __init vrfb_init(void)
-> -{
-> -       return platform_driver_probe(&vrfb_driver, &vrfb_probe);
-> -}
-> -
-> -static void __exit vrfb_exit(void)
-> -{
-> -       platform_driver_unregister(&vrfb_driver);
-> -}
-> -
-> -module_init(vrfb_init);
-> -module_exit(vrfb_exit);
-> +module_platform_driver_probe(vrfb_driver, vrfb_probe);
->
->  MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@ti.com>");
->  MODULE_DESCRIPTION("OMAP VRFB");
-> diff --git a/drivers/video/sh_mipi_dsi.c b/drivers/video/sh_mipi_dsi.c
-> index 701b461..6cad530 100644
-> --- a/drivers/video/sh_mipi_dsi.c
-> +++ b/drivers/video/sh_mipi_dsi.c
-> @@ -581,17 +581,7 @@ static struct platform_driver sh_mipi_driver = {
->         },
->  };
->
-> -static int __init sh_mipi_init(void)
-> -{
-> -       return platform_driver_probe(&sh_mipi_driver, sh_mipi_probe);
-> -}
-> -module_init(sh_mipi_init);
-> -
-> -static void __exit sh_mipi_exit(void)
-> -{
-> -       platform_driver_unregister(&sh_mipi_driver);
-> -}
-> -module_exit(sh_mipi_exit);
-> +module_platform_driver_probe(sh_mipi_driver, sh_mipi_probe);
->
->  MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
->  MODULE_DESCRIPTION("SuperH / ARM-shmobile MIPI DSI driver");
-> diff --git a/drivers/video/sh_mobile_hdmi.c b/drivers/video/sh_mobile_hdmi.c
-> index 930e550..bfe4728 100644
-> --- a/drivers/video/sh_mobile_hdmi.c
-> +++ b/drivers/video/sh_mobile_hdmi.c
-> @@ -1445,17 +1445,7 @@ static struct platform_driver sh_hdmi_driver = {
->         },
->  };
->
-> -static int __init sh_hdmi_init(void)
-> -{
-> -       return platform_driver_probe(&sh_hdmi_driver, sh_hdmi_probe);
-> -}
-> -module_init(sh_hdmi_init);
-> -
-> -static void __exit sh_hdmi_exit(void)
-> -{
-> -       platform_driver_unregister(&sh_hdmi_driver);
-> -}
-> -module_exit(sh_hdmi_exit);
-> +module_platform_driver_probe(sh_hdmi_driver, sh_hdmi_probe);
->
->  MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
->  MODULE_DESCRIPTION("SuperH / ARM-shmobile HDMI driver");
-> --
-> 1.8.1.5
->
+> -	return 0;
+> +	return PTR_RET(d);
+>  }
+>  #else /* CONFIG_OMAP2_DSS_DEBUGFS */
+>  static inline int dss_initialize_debugfs(void)
+>=20
 
-ping
+There's an identical patch from Alexandru Gheorghiu already queued.
 
-Regards
---
-Fabio Porcedda
+ Tomi
+
+
+
+--------------enigFC07AC7C235DE6BE0BECC3F8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRWq9QAAoJEPo9qoy8lh7119YP/098U8am6Ljox7mOGjoVC86j
+puhBovr4Qmtea+FqomExIaS7zmvawpvNnrO/9AKzHGJuqHmUMIbfJFR3VxNm5gZk
+iPG29BiI9K0C4h7jCzN4kxVr+waQzCVm2pJNrqtkxow0f39sII3+bv/TULyVR3iw
+eVLIwVl0QaQlBNQyonUh++0DIbrsreR77Il4Zid1lA7RP+2nX1L/fCq+2eZp9j/0
+TfjPx/CuRykiJJuNCrAIZIYxb4160nzBbjfQ+31YqFTJIhwSGgUQBD1zWRiO3i0K
+Np0l0atAikD5h4iUalZctT0XZ+XykQFTgHtQi5FGyep7AM46NIXRmtorO/hjjmv0
+/GDYFRtagnOnC8lj4kUGk5aGjRijTL8b6dHs9D+BMfYic5UxsCnFcuaSgtm0C3OE
+qh3+5jHFEwOBHpRhqNRYO8HnVCdqR121guf3T8SK1GNmy6t2r8iLCTMCcNfX/StP
+gSf5tB0O3RMk3Q76ZGxQgoFO1x/d7wYvxHWQnxdwuummIZokkF9GdnhQX5nWldSs
+iBt772fetw8XYSlU/RvKfXY+ZhvThVS9dqS8+VQ9mC8WXf49b3wcznXLnWXusBdg
+BqB6cyarWGHpr4cBPJVQnvFaYye1WDv292GpCPsU1D4qFIRoMvclxsCILLJoDa5u
+of93dqQQJGtgGoqNzWF4
+=cgro
+-----END PGP SIGNATURE-----
+
+--------------enigFC07AC7C235DE6BE0BECC3F8--
