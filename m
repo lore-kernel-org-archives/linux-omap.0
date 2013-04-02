@@ -1,40 +1,38 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2 02/13] ARM: convert arm/arm64 arch timer to use CLKSRC_OF
- init
-Date: Tue, 2 Apr 2013 08:53:58 +0530
-Message-ID: <515A4F4E.3060107@ti.com>
-References: <1364854883-5961-1-git-send-email-robherring2@gmail.com> <1364854883-5961-3-git-send-email-robherring2@gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC PATCH 5/6] ARM: OMAP3+: ABB: introduce ABB driver
+Date: Mon, 1 Apr 2013 22:35:45 -0500
+Message-ID: <20130402033545.GA2020@snafu>
+References: <1364490968-13613-1-git-send-email-andrii.tseglytskyi@ti.com>
+ <1364490968-13613-5-git-send-email-andrii.tseglytskyi@ti.com>
+ <20130328212739.13785.44736@quantum>
+ <20130328223513.GA19470@kahuna>
+ <51596725.9060109@ti.com>
+ <20130401181057.8177.19688@quantum>
+ <CAGo_u6ofjT_HyzdFNj3ByCbsyYzGU-LncUKo9=84BU3u6FK6Hw@mail.gmail.com>
+ <20130401213430.8177.21940@quantum>
+ <20130401230009.GA2038@snafu>
+ <20130402000545.8177.65252@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46388 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58893 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759353Ab3DBDWo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Apr 2013 23:22:44 -0400
-In-Reply-To: <1364854883-5961-3-git-send-email-robherring2@gmail.com>
+	id S1759877Ab3DBDfs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Apr 2013 23:35:48 -0400
+Content-Disposition: inline
+In-Reply-To: <20130402000545.8177.65252@quantum>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, Thomas Gleixner <tglx@linutronix.de>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>, John Stultz <john.stultz@linaro.org>, arm@kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Kukjin Kim <kgene.kim@samsung.com>, Tony Lindgren <tony@atomide.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>, Tero Kristo <t-kristo@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org
 
-On Tuesday 02 April 2013 03:51 AM, Rob Herring wrote:
-> From: Rob Herring <rob.herring@calxeda.com>
-> 
-> This converts arm and arm64 to use CLKSRC_OF DT based initialization for
-> the arch timer. A new function arch_timer_arch_init is added to allow for
-> arch specific setup.
-> 
-> This has a side effect of enabling sched_clock on omap5 and exynos5. There
-> should not be any reason not to use the arch timers for sched_clock.
-> 
-Absolutely.
-
-> Signed-off-by: Rob Herring <rob.herring@calxeda.com>
-
-[..]
-
->  arch/arm/mach-omap2/timer.c                  |    5 +----
-
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-
+On 17:05-20130401, Mike Turquette wrote:
+> OK, so we're in agreement on what The Future looks like.  What does that
+> mean for Andrii's patchset?
+Unless anyone has an fundamental issue with the approach of an "Super
+regulator" controlling "sub regulators", I think, in-line with your
+view, we should probably make ABB as an regulator instead of inventing
+our own API and hooking it around clock notifiers.
+-- 
+Regards,
+Nishanth Menon
