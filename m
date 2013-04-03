@@ -1,128 +1,66 @@
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v4 1/6] drivers: phy: add generic PHY framework
-Date: Tue, 02 Apr 2013 23:51:17 +0200
-Message-ID: <515B52D5.5090709@gmail.com>
-References: <1364449408-9510-1-git-send-email-kishon@ti.com> <1364449408-9510-2-git-send-email-kishon@ti.com> <515A09D8.7040703@gmail.com> <515A0C70.90201@wwwdotorg.org>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC PATCH 5/6] ARM: OMAP3+: ABB: introduce ABB driver
+Date: Tue, 2 Apr 2013 21:00:02 -0500
+Message-ID: <20130403020002.GA13340@snafu>
+References: <20130328223513.GA19470@kahuna>
+ <51596725.9060109@ti.com>
+ <20130401181057.8177.19688@quantum>
+ <CAGo_u6ofjT_HyzdFNj3ByCbsyYzGU-LncUKo9=84BU3u6FK6Hw@mail.gmail.com>
+ <20130401213430.8177.21940@quantum>
+ <20130401230009.GA2038@snafu>
+ <20130402000545.8177.65252@quantum>
+ <20130402033545.GA2020@snafu>
+ <20130402171614.8177.68752@quantum>
+ <515B16F5.2090708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <515A0C70.90201@wwwdotorg.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, balbi@ti.com, gregkh@linuxfoundation.org, arnd@arndb.de, akpm@linux-foundation.org, rob@landley.net, davem@davemloft.net, cesarb@cesarb.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, b-cousson@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, mchehab@redhat.com, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:34440 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760596Ab3DCCAE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Apr 2013 22:00:04 -0400
+Content-Disposition: inline
+In-Reply-To: <515B16F5.2090708@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Tero Kristo <t-kristo@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org
 
-On 04/02/2013 12:38 AM, Stephen Warren wrote:
-> On 04/01/2013 04:27 PM, Sylwester Nawrocki wrote:
->> On 03/28/2013 06:43 AM, Kishon Vijay Abraham I wrote:
->>> diff --git a/Documentation/devicetree/bindings/phy/phy-bindings.txt
->
->>> +example2:
->>> +phys: phy {
->>> +    compatible = "xxx";
->>> +    reg =<...>;
->>> +    .
->>> +    .
->>> +    phys =<&phys 1>;
->>> +    .
->>> +    .
->>> +};
->>> +
->>> +This node represents a controller that uses one of the PHYs which is defined
->>> +previously. Note that the phy handle has an additional specifier "1" to
->>> +differentiate between the three PHYs. For this case, the controller driver
->>> +should use of_phy_get_with_args/devm_of_phy_get_with_args.
->>
->> This means a PHY user needs to know indexes at the PHY driver ?
->
-> The client node's DT has to specify which of the provider's PHYs it
-> references, yes. Presumably the device driver for the client node knows
-> absolutely nothing about this.
+On 20:35-20130402, Andrii Tseglytskyi wrote:
+> On 04/02/2013 08:16 PM, Mike Turquette wrote:
+> >Quoting Nishanth Menon (2013-04-01 20:35:45)
+> >>On 17:05-20130401, Mike Turquette wrote:
+> >>>OK, so we're in agreement on what The Future looks like.  What does that
+> >>>mean for Andrii's patchset?
+> >>Unless anyone has an fundamental issue with the approach of an "Super
+> >>regulator" controlling "sub regulators", I think, in-line with your
+> >>view, we should probably make ABB as an regulator instead of inventing
+> >>our own API and hooking it around clock notifiers.
+> >ACK.  Making the ABB code into a regulator driver is the right thing to
+> >do regardless of whether or not we use a Super Regulator(tm) or just
+> >chain together Not So Super Regulators(tm).
+> >
+> >I'm not an expert at the regulator framework, but I encourage Andrii to
+> >look into regulator_set_mode(), which might be a more semantically
+> >accurate alternative than regulator_set_voltage() for the ABB ldo.
+> 
+> 
+> Agree. It is a good idea in general.
+> regulator_set_mode() API seems to be good enough for handling ABB
+> mode (FBB/RBB/Bypass).
+> Knowledge about ABB mode on each OPP can be moved from ABB regulator
+> to "Super regulator".
+> Thanks a lot for all your comments.
+> 
 
-Ah, right. The device driver for the client node not necessarily need to be
-aware about this. I think I got misled by the 'index' argument of
-of_phy_get_with_args() which the PHY consumer need to supply. However it is
-only an index pointing to a PHY specifier in its 'phys' property, hence it
-would be normally 0 if the client needs only one PHY. Hopefully I got it
-right this time.
+Digging a little more on this:
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/include/linux/regulator/consumer.h#n41
 
->> I have been thinking of using this for an IP which has 4 video PHYs: 2 MIPI
->> CSI-2 and 2 MIPI DSI. The IP has just 2 registers, each of which is shared
->> between one MIPI CSI-2 DPHY and one MIPI DSI DPHY. So I thought about creating
->> a single device node for this IP and using 4 indexes for the PHYs, e.g. 0...3.
->
-> That sounds right.
->
->> Then users of each PHY type would use only indexes 0..1 (to select their
->> corresponding port).
->
-> I don't follow that. If the provider exports PHYs 0..3, then the client
-> nodes would refer to PHYS 0..3 not 0..1.
+If we were to mean usage of mode to mean - usage of PWM/PFM etc
+mode(like in tps/twl chips), this makes sense. However, if we mean
+forward, reverse and bypass as "modes" we might be misusing the original
+intent of the API.
 
-Indeed, it seems I just wanted to preserve the CSI/DSI "channel" information
-(0, 1), but that is not really needed anywhere.
-
->> However I fail to see how this could now be represented in the bindings.
->
-> Exactly like the example you gave below, I would expect.
->
->> I assume struct phy::type could be used to differentiate between CSI-2 and DSI.
->> And struct phy::port could be used to select specific CSI-2 or DSI channel
->> (0, 1). Ideally the phy users should not care about index of a PHY at the PHY
->> device tree node. E.g. there are 2 MIPI CSI-2 receivers and each has only
->> one PHY assigned to it. I'm just wondering how the binding should look like,
->> so a PHY could be associated with a receiver automatically by the phy-core,
->> e.g.
->
-> Details such as phy::type and phy::port sounds like internal driver
-> implementation details which would have no effect on the bindings.
-
-Yes, I seem to have mixed the phy-core implementation and the bindings a 
-bit.
-My intention was to have the PHYs registered with phy::port that would 
-reflect
-data channel id, as specified in the SoC's datasheet. However I can't 
-think of
-any use of it at the moment, except for debugging purpose.
-
->> /* DPHY IP node */
->> video-phy {
->>        reg =<0x10000000 8>;
->> };
->>
->> /* MIPI DSI nodes */
->> dsi_0 {
->>       phys =<&video-phy 0>;
->> };
->>
->> dsi_1 {
->>       phys =<&video-phy 1>;
->> };
->>
->> /* MIPI CSI-2 nodes */
->> csi_0 {
->>       phys =<&video-phy 2>;
->> };
->>
->> csi_1 {
->>       phys =<&video-phy 3>;
->> };
->
-> That looks correct to me.
->
->> I'm not sure if it is not an overkill to use this the PHY framework with
->> a device which has only 2 registers. Perhaps something less heavy could
->> be designed for it. However, if the PHY framework is commonly used there
->> should be no issue wrt enabling the whole big infrastructure for a simple
->> device like this.
->
-> I don't think the number of registers should really makes any
-> difference; the whole point of the PHY framework is to decouple to
-> providers and consumers, so doing anything custom for special cases
-> would completely destroy the ability of the PHY framework to do that.
-
-Ok, that's a very good argument. Something I have not been focused on
-that much, given the architecture of hardware I used to work with.
-
-I'll git it a try and I'll see if any any further questions jump out.
+-- 
+Regards,
+Nishanth Menon
