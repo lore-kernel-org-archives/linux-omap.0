@@ -1,40 +1,116 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH 0/5] usb: musb: am335x support
-Date: Wed, 03 Apr 2013 14:43:00 +0200
-Message-ID: <515C23D4.3010206@gmail.com>
-References: <509420D8.1030307@gmail.com> <C8443D0743D26F4388EA172BF4E2A7A93EA0A1F2@DBDE01.ent.ti.com> <51312430.6060306@gmail.com> <87sj4cunp6.fsf@dell.be.48ers.dk> <5133E268.5010604@gmail.com> <51388D64.9000005@gmail.com> <513A1580.90303@gmail.com> <514863BD.5010503@gmail.com> <87620nwmd2.fsf@dell.be.48ers.dk> <515C19D7.6080702@gmail.com> <20130403120454.GX25837@arwen.pp.htv.fi>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v5 2/6] usb: phy: omap-usb2: use the new generic PHY framework
+Date: Wed, 3 Apr 2013 18:23:50 +0530
+Message-ID: <1364993634-6378-3-git-send-email-kishon@ti.com>
+References: <1364993634-6378-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f44.google.com ([209.85.214.44]:59634 "EHLO
-	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756765Ab3DCMm7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 08:42:59 -0400
-In-Reply-To: <20130403120454.GX25837@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1364993634-6378-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org
+Cc: broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Peter Korsgaard <jacmet@sunsite.dk>, "Mohammed, Afzal" <afzal@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, "Santhapuri, Damodar" <damodar.santhapuri@ti.com>, "B, Ravi" <ravibabu@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Kishon Vijay Abraham I <kishon@ti.com>
 
-On 03.04.2013 14:04, Felipe Balbi wrote:
-> On Wed, Apr 03, 2013 at 02:00:23PM +0200, Daniel Mack wrote:
+Used the generic PHY framework API to create the PHY. omap_usb2_suspend
+is split into omap_usb_suspend and omap_usb_resume in order to align
+with the new framework.
 
->> Felipe, could you explain the background on how the dsps driver is
->> supposed to work in host mode at boot time with the rework of the driver
->> you did for 3.7? It might just be me not understanding the rationale
->> behind all these changes, but appearantly, I'm not the only one who's
->> affected by that.
-> 
-> right, so the idea with that was to drop the huge amount of ifdeferry
-> hack from the MUSB driver. It would be great if someone would send
-> *CLEAN* patches adding Kconfig-based role choices again.
+However using the old USB PHY library cannot be completely removed
+because OTG is intertwined with PHY and moving to the new framework
+will break OTG. Once we have a separate OTG state machine, we
+can get rid of the USB PHY library.
 
-Are Kconfig-based rules really what we want here after all? Wouldn't
-run-time configured settings make much more sense, considering that
-people might want to run a single kernel image on multiple platforms? I
-believe it should be up to the DT to define the actual hardware wiring.
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/phy/omap-usb2.c |   48 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
-
-Daniel
-
+diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
+index 844ab68..4e48db4 100644
+--- a/drivers/usb/phy/omap-usb2.c
++++ b/drivers/usb/phy/omap-usb2.c
+@@ -28,6 +28,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/delay.h>
+ #include <linux/usb/omap_control_usb.h>
++#include <linux/phy/phy.h>
+ 
+ /**
+  * omap_usb2_set_comparator - links the comparator present in the sytem with
+@@ -119,9 +120,49 @@ static int omap_usb2_suspend(struct usb_phy *x, int suspend)
+ 	return 0;
+ }
+ 
++static int omap_usb_suspend(struct phy *x)
++{
++	struct omap_usb *phy = dev_get_drvdata(&x->dev);
++
++	if (!phy->is_suspended) {
++		omap_control_usb_phy_power(phy->control_dev, 0);
++		pm_runtime_put_sync(phy->dev);
++		phy->is_suspended = 1;
++	}
++
++	return 0;
++}
++
++static int omap_usb_resume(struct phy *x)
++{
++	u32 ret;
++	struct omap_usb *phy = dev_get_drvdata(&x->dev);
++
++	if (phy->is_suspended) {
++		ret = pm_runtime_get_sync(phy->dev);
++		if (ret < 0) {
++			dev_err(phy->dev, "get_sync failed with err %d\n",
++									ret);
++			return ret;
++		}
++		omap_control_usb_phy_power(phy->control_dev, 1);
++		phy->is_suspended = 0;
++	}
++
++	return 0;
++}
++
++static struct phy_ops ops = {
++	.suspend	= omap_usb_suspend,
++	.resume		= omap_usb_resume,
++	.of_xlate	= of_phy_xlate,
++	.owner		= THIS_MODULE,
++};
++
+ static int omap_usb2_probe(struct platform_device *pdev)
+ {
+ 	struct omap_usb			*phy;
++	struct phy			*generic_phy;
+ 	struct usb_otg			*otg;
+ 
+ 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+@@ -144,6 +185,13 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 	phy->phy.otg		= otg;
+ 	phy->phy.type		= USB_PHY_TYPE_USB2;
+ 
++	generic_phy = devm_phy_create(phy->dev, "omap-usb2", pdev->dev.of_node,
++		USB_PHY_TYPE_USB2, &ops, phy);
++	if (IS_ERR(generic_phy)) {
++		dev_dbg(&pdev->dev, "Failed to create PHY\n");
++		return PTR_ERR(generic_phy);
++	}
++
+ 	phy->control_dev = omap_get_control_dev();
+ 	if (IS_ERR(phy->control_dev)) {
+ 		dev_dbg(&pdev->dev, "Failed to get control device\n");
+-- 
+1.7.10.4
