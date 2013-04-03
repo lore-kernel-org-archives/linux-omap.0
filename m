@@ -1,104 +1,51 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH/Resend 2/2] arm: mach-omap2: prevent UART console idle on suspend while using "no_console_suspend"
-Date: Wed, 03 Apr 2013 10:48:18 -0700
-Message-ID: <87txnnzesd.fsf@linaro.org>
-References: <1363612924-349-1-git-send-email-sourav.poddar@ti.com>
-	<87fvzsilnv.fsf@linaro.org> <5149A221.5@ti.com>
-	<5149A63C.4000102@ti.com> <515AA9CD.5000004@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OK to use commit 71856843 as base for further omap clean up?
+Date: Wed, 3 Apr 2013 11:03:58 -0700
+Message-ID: <20130403180358.GW10155@atomide.com>
+References: <20130319175921.GA22104@atomide.com>
+ <5150A60E.2090108@ti.com>
+ <20130326232200.GQ30923@n2100.arm.linux.org.uk>
+ <20130403165353.GW30923@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <515AA9CD.5000004@ti.com> (Sourav Poddar's message of "Tue, 2 Apr
-	2013 15:20:05 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:29559 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1760077Ab3DCSED (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 14:04:03 -0400
+Content-Disposition: inline
+In-Reply-To: <20130403165353.GW30923@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Sourav Poddar <sourav.poddar@ti.com> writes:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [130403 09:58]:
+> On Tue, Mar 26, 2013 at 11:22:00PM +0000, Russell King - ARM Linux wrote:
+> > On Mon, Mar 25, 2013 at 02:31:26PM -0500, Jon Hunter wrote:
+> > > Hi Russell,
+> > > 
+> > > On 03/19/2013 12:59 PM, Tony Lindgren wrote:
+> > > > Hi Russell,
+> > > > 
+> > > > Can we use your commit 71856843 (ARM: OMAP: use consistent error checking)
+> > > > as an immutable base for further omap dmtimer and gpmc work?
+> > > 
+> > > I saw that you updated your clean-up branch. Ok to use the below commit
+> > > [1] as a base for some v3.10 updates?
+> > 
+> > It's still the same commit.  I'm not intending to remove this commit
+> > from it, so yes, fine, go ahead.
+> 
+> *sigh*.  Actually, 4d485661d799e81f98097057d445f4803cef2af0 is buggered
+> which is the commit below it.  I said yes too quickly.  Oh well, it'll
+> just have to be broken for when it hits mainline now.
 
-> Hi Kevin,
-> On Wednesday 20 March 2013 05:36 PM, Sourav Poddar wrote:
->> Realised the list  to whom the patch was send got dropped. Ccing
->> them all..
->> On Wednesday 20 March 2013 05:18 PM, Sourav Poddar wrote:
->>> Hi Kevin,
->>> On Tuesday 19 March 2013 12:24 AM, Kevin Hilman wrote:
->>>> Sourav Poddar<sourav.poddar@ti.com>  writes:
->>>>
->>>>> With dt boot, uart wakeup after suspend is non functional on
->>>>> omap4/5 while using
->>>>> "no_console_suspend" in the bootargs. With "no_console_suspend"
->>>>> used, od->flags
->>>>> should be ORed with "OMAP_DEVICE_NO_IDLE_ON_SUSPEND", thereby not
->>>>> allowing the console
->>>>> to idle in the suspend path. For non-dt case, this was taken care
->>>>> by platform data.
->>>>>
->>>>> Tested on omap5430evm, omap4430sdp.
->>>>>
->>>>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
->>>>> Cc: Felipe Balbi<balbi@ti.com>
->>>>> Cc: Rajendra nayak<rnayak@ti.com>
->>>>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
->>>> This patch creates a dependency between omap_device (generic,
->>>> device-independent code) and a specific driver (UART.)
->>>>
->>>> If you need to do something like this that's DT boot specific, then
->>>> we probably need some late initcall in serial.c to handle this.
->>>> It does
->>>> not belong in omap_device.
->>>>
->>> The following function "omap_device_disable_idle_on_suspend(pdev)"
->>> should only
->>> be called once the omap device has been build, which in the case of
->>> device tree is
->>> done in omap_device.c file. Moreover, the above call should be
->>> executed conditionally
->>> and should depend on the following two parameter.
->>>
->>> [1]  a. Whether "no_console_suspend" is set and
->>>      b.  the device build is a console uart.
->>>
->>> When I look closely into the serial.c file, I realised that
->>> "core_initcall(omap_serial_early_init)" gets called irrespective
->>> of dt/non dt boot and will take care of most of the stuff(checking
->>> whether
->>> "no_console_suspend" is used and which uart is used as a console
->>> uart) which the
->>> $subject patch is proposing.
->>>
->>> But the problem is that we need to exchange the parsed information
->>> from serial.c to the omap_device file for the condtional execution of
->>> "omap_device_disable_idle_on_suspend"
->>>
->>> In this case,
->>> from "serial.c" we need
->>>     1. no_console_suspend = true
->>>     2. strcpy(console_name, oh_name), where oh_name corresponds to
->>> the console uart.
->>>
->>> then in "omap_device.c" do
->>>     if (no_console_suspend && !strcmp(oh->name, console_name))
->>>                 omap_device_disable_idle_on_suspend(pdev);
->>>
->>> Please correct if I am understanding it incorrectly.
->>>
->>> If the above understanding looks good to you, is there a way we can
->>> make this
->>> exchange of information happen between serial.c and omap_device.c file?
-> Any input on this?
-> As I explained earlier, that there is a need to parse information in
-> serial.c and use that in
-> omap_device.c only after the device is build.
+Yes we have few branches based on that. Note that the issue reported by
+Lothar I just resolved in the omap-for-v3.10/timer branch along with
+other conflicts when pulling in Jon's patches, so that might do the trick
+assuming there are no other issues.
 
-As I explained earlier, any device specific hacks inside omap_device
-should be a red flag that something has gone wrong.
+Regards,
 
-How about fixing the UART driver/core to not runtime suspend if
-no_console_suspend is given?  
-
-Then we can get rid of this no_idle_on_suspend hack all together since
-UART is the only remaining user.
-
-Kevin
+Tony
