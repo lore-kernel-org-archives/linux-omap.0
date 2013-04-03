@@ -1,50 +1,54 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
-Date: Wed, 3 Apr 2013 14:14:02 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1304031410320.2027-100000@iolanthe.rowland.org>
-References: <20130403141831.GJ14680@arwen.pp.htv.fi>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V3 0/2] ARM: OMAP3+: support cpufreq-cpu0 for device tree
+ boot
+Date: Wed, 3 Apr 2013 13:22:24 -0500
+Message-ID: <20130403182224.GA3410@kahuna>
+References: <1364507576-19345-1-git-send-email-nm@ti.com>
+ <87y5czzetg.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:57876 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1762782Ab3DCSOD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 14:14:03 -0400
-In-Reply-To: <20130403141831.GJ14680@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <cpufreq-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <87y5czzetg.fsf@linaro.org>
+Sender: cpufreq-owner@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: linux-omap@vger.kernel.org, Rob Herring <robherring2@gmail.com>, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Vivek Gautam <gautamvivek1987@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 
-On Wed, 3 Apr 2013, Felipe Balbi wrote:
-
-> > Lets suppose DWC3 enables runtime_pm on USB 2 type phy,
-> > it will try to go into suspend state and thereby call runtime_suspend(), if any.
-> > And PHY will come to active state only when its consumer wakes it up,
-> > and this consumer is operational
-> > only when its related PHY is in fully functional state.
-> > So do we have a situation in which this PHY goes into low power state
-> > in its runtime_suspend(),
-> > resulting in non-detection of devices on further attach (since PHY is
-> > in low power state) ?
-> > 
-> > Will the controller (like EHCI/OHCI) be functional now ?
+On 10:47-20130403, Kevin Hilman wrote:
+> Nishanth Menon <nm@ti.com> writes:
+[...]
+> > Test coverage:
+> > 	test script: http://pastebin.com/zrr8ptge
+> > Platforms verified:
+> > 	beaglebone(rev A6a) - AM33xx compatible - http://pastebin.com/GVP2wDVr
+> > 	beagleboard (rev C1D) - OMAP3430 compatible
+> > 		- DT enabled boot: http://pastebin.com/2AY1F5Qa
+> > 		- No DT enabled boot: http://pastebin.com/hDk0gbpU
+> > 	omap3-beagle-xm -OMAP3630 compatible - http://pastebin.com/5tHAQcLZ
+> > 	Pandaboard -(OMAP4430 ES2.2) - http://pastebin.com/6D9aDPXT
+> > 	Pandaboard-ES -(OMAP4460 ES1.1) - http://pastebin.com/ExrBEczr
 > 
-> ehci/ohci need to cope with that by calling usb_phy_autopm_get_sync(),
-> right ? (so does DWC3 :-)
+> And thanks also for the broad testing.
+> 
+> One nit about the test report/coverage is I don't see any
+> test/verification that the voltage is still being scaled based on the DT
+> based OPPs.  It's easy to verify at least from the regulator PoV that
+> the voltage is scaled also.
+I had probed and verified voltage on beagle and beagle XM. OMAP4
+obviously wont scale (as mentioned) due to the fact that vc-vp regulator
+is needed.
 
-Maybe you guys have already got this all figured out -- if so, feel 
-free to ignore this email.
+> 
+> My dumb DVFS test script (below) should work on any busybox rootfs 
+thanks for the script. yep - I can use this as well, but given that probe
+did verify voltage scale on TWL5030 inductors, it might be redundant.
 
-Some subsystems handle this issue by calling pm_runtime_get_sync() 
-before probing a driver and pm_runtime_put_sync() after unbinding the 
-driver.  If the driver is runtime-PM-enabled, it then does its own 
-put_sync near the end of its probe routine and get_sync in its release 
-routine.
+Ref:
+https://plus.google.com/photos/112464029509057661457/albums/5715034179943520193/5854221132322035042
+I can take it again and show the same snap along with the log with the
+mentioned script later today.
 
-With PHYs you don't have probing and releasing, but you do have 
-consumers registering and unregistering themselves, which is about the 
-same thing.
-
-Alan Stern
-
+-- 
+Regards,
+Nishanth Menon
