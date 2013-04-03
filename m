@@ -1,111 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support
- for AUXCLKs
-Date: Wed, 3 Apr 2013 16:42:43 -0700
-Message-ID: <20130403234242.GE10155@atomide.com>
-References: <1363703220-4777-1-git-send-email-rogerq@ti.com>
- <1363703220-4777-2-git-send-email-rogerq@ti.com>
+From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Subject: Re: [PATCH v5 0/6] Generic PHY Framework
+Date: Wed, 03 Apr 2013 17:42:41 -0600
+Message-ID: <515CBE71.9000401@wwwdotorg.org>
+References: <1364993634-6378-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1363703220-4777-2-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: b-cousson@ti.com, linux@arm.linux.org.uk, rnayak@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1364993634-6378-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Roger Quadros <rogerq@ti.com> [130319 07:31]:
-> Register a device tree clock provider for AUX clocks
-> on the OMAP4 SoC. Also provide the binding information.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  .../devicetree/bindings/clock/omap4-clock.txt      |   32 ++++++++++++++++++
->  arch/arm/boot/dts/omap4.dtsi                       |    5 +++
->  arch/arm/mach-omap2/board-generic.c                |    2 +-
->  arch/arm/mach-omap2/cclock44xx_data.c              |   35 ++++++++++++++++++++
->  arch/arm/mach-omap2/clock44xx.h                    |    1 +
->  arch/arm/mach-omap2/common.h                       |    9 +++++
->  arch/arm/mach-omap2/io.c                           |    6 +++
->  7 files changed, 89 insertions(+), 1 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/clock/omap4-clock.txt
-> 
+On 04/03/2013 06:53 AM, Kishon Vijay Abraham I wrote:
+> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+> the PHY with or without using phandle. To obtain a reference to the PHY
+> without using phandle, the platform specfic intialization code (say from board
+> file) should have already called phy_bind with the binding information. The
+> binding information consists of phy's device name, phy user device name and an
+> index. The index is used when the same phy user binds to mulitple phys.
 ...
+> Changes from v4:
+> * removed of_phy_get_with_args/devm_of_phy_get_with_args. Now the *phy providers*
+>   should use their custom implementation of of_xlate or use of_phy_xlate to get
+>   *phy instance* from *phy providers*.
+> * Added of_phy_xlate to be used by *phy providers* if it provides only one PHY.
+> * changed phy_core from having subsys_initcall to module_init.
 
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/clock/omap4-clock.txt
-
-Is this really specific to omap4 and auxclk only?
-
-Shouldn't it be just omap-clock.txt?
-
-> --- a/arch/arm/mach-omap2/cclock44xx_data.c
-> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
-> @@ -27,6 +27,7 @@
->  #include <linux/clk-private.h>
->  #include <linux/clkdev.h>
->  #include <linux/io.h>
-> +#include <linux/of.h>
->  
->  #include "soc.h"
->  #include "iomap.h"
-> @@ -1663,6 +1664,40 @@ static struct omap_clk omap44xx_clks[] = {
->  	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
->  };
->  
-> +static struct clk *scrm_clks[] = {
-> +	&auxclk0_ck,
-> +	&auxclk1_ck,
-> +	&auxclk2_ck,
-> +	&auxclk3_ck,
-> +	&auxclk4_ck,
-> +	&auxclk5_ck,
-> +};
-
-Hmm I don't like the idea of specifying the auxclk both in the
-cclock44xx_data.c and in DT..
-
-> +static struct clk_onecell_data scrm_data;
-> +
-> +#ifdef CONFIG_OF
-> +int __init omap4_clk_init_dt(void)
-> +{
-> +	struct device_node *np;
-> +
-> +	np = of_find_compatible_node(NULL, NULL, "ti,omap4-scrm");
-> +	if (np) {
-> +		scrm_data.clks = scrm_clks;
-> +		scrm_data.clk_num = ARRAY_SIZE(scrm_clks);
-> +		of_clk_add_provider(np, of_clk_src_onecell_get,	&scrm_data);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +#else
-> +
-> +int __init omap4_clk_init_dt(void)
-> +{
-> +	return 0;
-> +}
-> +#endif /* CONFIG_OF */
-> +
->  int __init omap4xxx_clk_init(void)
->  {
->  	u32 cpu_clkflg;
-
-.. and I'm not too keen on adding driver specific stuff to this file.
-
-How about just add a minimal drivers/clk/omap/clk-xyz.c that takes
-the configuration from DT and is based on the binding we already have in
-Documentation/devicetree/bindings/clock/clock-bindings.txt?
-
-Then as we add new bindings there we can drop them from current
-cclock44xx_data.c, no? That is after omap4 is DT only..
-
-Regards,
-
-Tony
+s/of_phy_xlate/of_phy_simple_xlate/ ? That would hightlight the fact
+it's just /an/ implementation for the simple case, not /the/
+implementation for all cases. It'd be consistent with e.g. drivers/gpio,
+which has of_gpio_simple_xlate().
