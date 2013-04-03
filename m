@@ -1,48 +1,26 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP/serial: Revert bad fix of Rx FIFO threshold
- granularity
-Date: Wed, 3 Apr 2013 20:16:18 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1304032015050.16711@utopia.booyaka.com>
-References: <20130403183146.GA4072@inertiallabs-linux64>
+Subject: Re: [PATCH] Revert "OMAP/serial: Fix incorrect Rx FIFO threshold
+ setting, LSR validation on Tx, and Tx FIFO IRQ generation"
+Date: Wed, 3 Apr 2013 20:17:40 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1304032016370.16711@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1304010519260.28273@utopia.booyaka.com> <CAOmKuSpttQJmrL=Htiz-Zc4voAF7CnG_GQYAO2onKpauwYjtvw@mail.gmail.com> <alpine.DEB.2.00.1304010844100.28273@utopia.booyaka.com> <CAOmKuSrABrPcZ=Yg1+LAHWbh9CdTYR0eUmJ2dd3z91oz0uu21g@mail.gmail.com>
+ <alpine.DEB.2.00.1304011008230.28273@utopia.booyaka.com> <CAOmKuSrbDc025Tj9xsqDebJ_KZdp_VnWAOs_OO5UAegV43JcDQ@mail.gmail.com> <CAOmKuSpbaKutLxbNihBRDz+B0Wt0XiPss-PcEHc-efCTvciNFg@mail.gmail.com> <alpine.DEB.2.00.1304011654520.9148@utopia.booyaka.com>
+ <CAOmKuSo4onVtk2Ke-i+0_1Ych33KuUYspRy+cySRHf4yWB5XDw@mail.gmail.com> <alpine.DEB.2.00.1304021821190.27146@utopia.booyaka.com> <CAOmKuSqd=gNYFutpgDref58pbAbDwDin4mvL_OEooD1XuwKtgQ@mail.gmail.com> <CAOmKuSp8nPJw7+LKK3ny7ZjEEV-CeDjGg0GD2fDjZiP6HBKGGw@mail.gmail.com>
+ <CAOmKuSoJ38YKyzuyESfx=jgi3y=EunAUt7RPp2=7pRQosytQYg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:59228 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762609Ab3DCUQT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 16:16:19 -0400
-In-Reply-To: <20130403183146.GA4072@inertiallabs-linux64>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <CAOmKuSoJ38YKyzuyESfx=jgi3y=EunAUt7RPp2=7pRQosytQYg@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Alexey Pelykh <alexey.pelykh@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>, Alexey Pelykh <alexey.pelykh@gmail.com>
-Cc: Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-
-Hi Greg, Alexey,
 
 On Wed, 3 Apr 2013, Alexey Pelykh wrote:
 
-> From: Alexey Pelykh <alexey.pelykh@gmail.com>
-> 
-> Partially reverts 1776fd059c40907297d6c26c51876575d63fd9e2
-> that introduced regression reported by Paul Walmsley.
-> 
-> This commit restores setting granularity in SCR register
-> and adds note about comments below being inconsistent with
-> actual code.
-> 
-> Signed-off-by: Alexey Pelykh <alexey.pelykh@gmail.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@linaro.org>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: linux-serial@vger.kernel.org 
-> Cc: linux-arm-kernel@lists.infradead.org 
-> Cc: linux-omap@vger.kernel.org 
+> I've submitted patch that should remove this regression
 
-Tested-by: Paul Walmsley <paul@pwsan.com>
-
-Thanks for the fast response and fix, Alexey.
-
-Greg, is it possible for you to take this for v3.9-rc fixes?
-
+Thanks, indeed it does.  So the revert patch that I sent at the beginning 
+of this thread is now mooted.
 
 - Paul
