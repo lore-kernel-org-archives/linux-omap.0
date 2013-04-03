@@ -1,112 +1,150 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/5] usb: musb: am335x support
-Date: Wed, 3 Apr 2013 16:46:12 +0300
-Message-ID: <20130403134612.GE14680@arwen.pp.htv.fi>
-References: <51388D64.9000005@gmail.com>
- <513A1580.90303@gmail.com>
- <514863BD.5010503@gmail.com>
- <87620nwmd2.fsf@dell.be.48ers.dk>
- <515C19D7.6080702@gmail.com>
- <20130403120454.GX25837@arwen.pp.htv.fi>
- <515C23D4.3010206@gmail.com>
- <20130403130807.GB14680@arwen.pp.htv.fi>
- <62C108BE-894A-4F1D-BE85-14DB3217120E@dominion.thruhere.net>
- <515C2B95.7050408@gmail.com>
-Reply-To: <balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 2/6] usb: phy: omap-usb2: use the new generic PHY
+ framework
+Date: Wed, 3 Apr 2013 16:48:27 +0300
+Message-ID: <20130403134827.GF14680@arwen.pp.htv.fi>
+References: <1364993634-6378-1-git-send-email-kishon@ti.com>
+ <1364993634-6378-3-git-send-email-kishon@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gm5TwAJMO0F2iVRz"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38179 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759699Ab3DCNql (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Apr 2013 09:46:41 -0400
-Content-Disposition: inline
-In-Reply-To: <515C2B95.7050408@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0292480595452152103=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1364993634-6378-3-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, balbi@ti.com, Peter Korsgaard <jacmet@sunsite.dk>, "Mohammed, Afzal" <afzal@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, "Santhapuri, Damodar" <damodar.santhapuri@ti.com>, "B, Ravi" <ravibabu@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>
 
---gm5TwAJMO0F2iVRz
+--===============0292480595452152103==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ik0NlRzMGhMnxrMX"
+Content-Disposition: inline
+
+--ik0NlRzMGhMnxrMX
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Wed, Apr 03, 2013 at 03:16:05PM +0200, Daniel Mack wrote:
-> On 03.04.2013 15:12, Koen Kooi wrote:
-> >=20
-> > Op 3 apr. 2013, om 15:09 heeft Felipe Balbi <balbi@ti.com> het
-> > volgende geschreven:
-> >=20
-> >> Hi,
-> >>=20
-> >> On Wed, Apr 03, 2013 at 02:43:00PM +0200, Daniel Mack wrote:
-> >>> On 03.04.2013 14:04, Felipe Balbi wrote:
-> >>>> On Wed, Apr 03, 2013 at 02:00:23PM +0200, Daniel Mack wrote:
-> >>>=20
-> >>>>> Felipe, could you explain the background on how the dsps
-> >>>>> driver is supposed to work in host mode at boot time with the
-> >>>>> rework of the driver you did for 3.7? It might just be me not
-> >>>>> understanding the rationale behind all these changes, but
-> >>>>> appearantly, I'm not the only one who's affected by that.
-> >>>>=20
-> >>>> right, so the idea with that was to drop the huge amount of
-> >>>> ifdeferry hack from the MUSB driver. It would be great if
-> >>>> someone would send *CLEAN* patches adding Kconfig-based role
-> >>>> choices again.
-> >>>=20
-> >>> Are Kconfig-based rules really what we want here after all?
-> >>> Wouldn't run-time configured settings make much more sense,
-> >>> considering that
-> >>=20
-> >> we need both. Say that you want to build a product with MUSB
-> >> hardwired as host, why would you enable gadget framework ?
-> >>=20
-> >> I can think of at least am335x where this would be perfectly
-> >> plausible (no EHCI available, only MUSB).
-> >=20
-> > Nice that you mention am335x, since the beaglebone has 2 MUSB
-> > controllers: one hardwired as host and one hardwired as slave. So how
-> > will KConfig options solve that?
-> >=20
+On Wed, Apr 03, 2013 at 06:23:50PM +0530, Kishon Vijay Abraham I wrote:
+> Used the generic PHY framework API to create the PHY. omap_usb2_suspend
+> is split into omap_usb_suspend and omap_usb_resume in order to align
+> with the new framework.
 >=20
-> You would enable DUAL_ROLE and then let run-time code sort out the
-> actual config. Which is what most people would do if they are uncertain,
-> and which leaves the Kconfig option only for opting out some binary size.
+> However using the old USB PHY library cannot be completely removed
+> because OTG is intertwined with PHY and moving to the new framework
+> will break OTG. Once we have a separate OTG state machine, we
+> can get rid of the USB PHY library.
 >=20
-> Also, we already have CONFIG_USB_GADGET_MUSB_HDRC which is there to
-> remove all the gadget-only bits, right?
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/usb/phy/omap-usb2.c |   48 +++++++++++++++++++++++++++++++++++++=
+++++++
+>  1 file changed, 48 insertions(+)
+>=20
+> diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
+> index 844ab68..4e48db4 100644
+> --- a/drivers/usb/phy/omap-usb2.c
+> +++ b/drivers/usb/phy/omap-usb2.c
+> @@ -28,6 +28,7 @@
+>  #include <linux/pm_runtime.h>
+>  #include <linux/delay.h>
+>  #include <linux/usb/omap_control_usb.h>
+> +#include <linux/phy/phy.h>
+> =20
+>  /**
+>   * omap_usb2_set_comparator - links the comparator present in the sytem =
+with
+> @@ -119,9 +120,49 @@ static int omap_usb2_suspend(struct usb_phy *x, int =
+suspend)
+>  	return 0;
+>  }
+> =20
+> +static int omap_usb_suspend(struct phy *x)
+> +{
+> +	struct omap_usb *phy =3D dev_get_drvdata(&x->dev);
+> +
+> +	if (!phy->is_suspended) {
+> +		omap_control_usb_phy_power(phy->control_dev, 0);
+> +		pm_runtime_put_sync(phy->dev);
+> +		phy->is_suspended =3D 1;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int omap_usb_resume(struct phy *x)
+> +{
+> +	u32 ret;
+> +	struct omap_usb *phy =3D dev_get_drvdata(&x->dev);
+> +
+> +	if (phy->is_suspended) {
+> +		ret =3D pm_runtime_get_sync(phy->dev);
+> +		if (ret < 0) {
+> +			dev_err(phy->dev, "get_sync failed with err %d\n",
+> +									ret);
+> +			return ret;
+> +		}
+> +		omap_control_usb_phy_power(phy->control_dev, 1);
+> +		phy->is_suspended =3D 0;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static struct phy_ops ops =3D {
 
-kinda, it's there but it's unused :-) But you got the idea. We use
-Kconfig to opt-out of some features if we're certain our product won'
-use it.
+const ? Maybe provide a:
+
+#define DEFINE_PHY_OPS(name)	\
+const struct phy_ops #name_phy_ops =3D {
+
+macro ? This will force people to add the const keyword :-)
 
 --=20
 balbi
 
---gm5TwAJMO0F2iVRz
+--ik0NlRzMGhMnxrMX
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRXDKkAAoJEIaOsuA1yqREYy0P/2oBqMNC0P6b2Jp+usXr/+yP
-kCMPatxdlrUXBAaQmKKKccE2Gg8KoYDPgFbpMSIjvm+++77Ti7y2xCgr0pEZDC7m
-duLPpWiyaAB2cax+Cr7WszebVOQxllEHbX+Rkv+HP15k39i6VHlFLOdKdiDo+Meh
-3+1NS1SBB4ZtuVDi7oQxrvq4G704Wrs833O5KDE54YIS3mmkpv99zTahp/fdabvU
-GdCEIpfcbawdqQJGL7/vDEXEChZWhe1NQrmRgmfn3UOowOx3lAppNL2s5qLF5ntp
-mzqOohdHTaqwALN03GIvUtYPgs7D5KHobXi/DsLdx/yq6fs5kkykMhxa/bVsMLvw
-SesBVvNTqIAfcl1fEy2hWejIaCqxvMTy6i+V9q9hv6qOnGpQYgBuRrskaJwqGJd0
-7P2aVKEllso/pHyT+/TdBhwX7PvrcsNlXuVce3/v+Nh9Jsm6U7FkXzTtZUHyrzji
-i7wRiw8nQP1mMoKKceXSwO85x43U1amn6W1ZR+DaaYPT6LBTNw8B6hfOrxACkwUM
-b7kQDLs2V+5++Io+IBPn55I8ZMzjk2DBf9mhRnBySaZYaJVbjezwoNqIH0jV/irW
-caW7CRrgKqjEKrDGVcZER5XHVmRZAhUmSu5VqpK6LRKt1PRWrlnT0erLn/NP4Yrl
-rPHEY5LMlIidlsokCB+H
-=tMR8
+iQIcBAEBAgAGBQJRXDMrAAoJEIaOsuA1yqRE9YMQAKAO8yLvo66L/58x/SnJxyrl
+3A7JrDkmh/d07zz19R3XrwfvTaYJg/k1NxakWd/iIUSHbeWGTJrmJzS0DlRbHlmr
++DrRSu1DlkfmKPKCB8Z7kajn8osqFSLAhJzw3tfBbcCTV+8ZnzruQbE1BvJJUlGz
+W4AVjssYOoI1Dll/qDekz8QgDdPTkZ7rhabCKEXZjGFbq3RDfe/0UtlPLyTZnM0K
+LQlIcZymLCUTTpoY0NdAlM6twdMGc5IEFvRjnDJeEN8z6ILVBolt7dbHwo8DxgBT
+naFC/t9lV9e+vBegd5bDzNjH1vbC2Hf9Pu5kf+m+bCCqNV/z+ncCCAMXWDBG8JXA
+SS0nsdov7CDbr58FGjTY4VcHv6KIWB4wyepak/nCPrDLaVARiB03l/zMZpVZGO7g
+mL3TvIeCRvObsszo/F91xMb+eu11XRuwGOt16reur1yupJ/FvDO91HkxBsK63KX0
+tXXyXFLtVM1Ias1xH18GN6Nbz6i3b+0ZSE2GBEitXUAFQF6kBB5FzjmzAm6f8M8a
+kksgrQchEr/LkPYKapeKiU0fpRXCIO0DaaXT/kFpte1LoOniq3Z5VoYadZpFoLN2
+acpWPTSbG0Myxbru4sjY8p1MzcV6XTleDmv5BCmMVo2XRx31k29r7TRa6VSzGidM
+oA9NXDSz1r3RpzIuEuRH
+=OvUh
 -----END PGP SIGNATURE-----
 
---gm5TwAJMO0F2iVRz--
+--ik0NlRzMGhMnxrMX--
+
+--===============0292480595452152103==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============0292480595452152103==--
