@@ -1,20 +1,20 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v2 15/18] ARM: OMAP4+: CPUidle: Consolidate idle driver for OMAP5 support
-Date: Wed, 03 Apr 2013 14:10:27 -0700
-Message-ID: <87ip43s4l8.fsf@linaro.org>
+Subject: Re: [PATCH v2 17/18] ARM: OMAP4+: CPUidle: Add OMAP5 idle driver support
+Date: Wed, 03 Apr 2013 14:25:05 -0700
+Message-ID: <87fvz7qpce.fsf@linaro.org>
 References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
-	<1364205910-32392-16-git-send-email-santosh.shilimkar@ti.com>
+	<1364205910-32392-18-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:57988 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759183Ab3DCVKb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 17:10:31 -0400
-Received: by mail-pd0-f179.google.com with SMTP id x11so1056272pdj.10
-        for <linux-omap@vger.kernel.org>; Wed, 03 Apr 2013 14:10:31 -0700 (PDT)
-In-Reply-To: <1364205910-32392-16-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Mon, 25 Mar 2013 15:35:07 +0530")
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:63764 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760497Ab3DCVZI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 17:25:08 -0400
+Received: by mail-pd0-f169.google.com with SMTP id 10so1073459pdc.14
+        for <linux-omap@vger.kernel.org>; Wed, 03 Apr 2013 14:25:08 -0700 (PDT)
+In-Reply-To: <1364205910-32392-18-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Mon, 25 Mar 2013 15:35:09 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
@@ -22,62 +22,79 @@ Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com,
 
 Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> The OMAP5 idle driver can re-use most of OMAP4 CPUidle driver
-> implementation. Also the next derivative SOCs are going to re-use
-> the MPUSS so, same driver with minor updates can be re-used.
+> The OMAP5 idle driver can re-use OMAP4 CPUidle driver implementation thanks
+> to compatible MPUSS design.
 >
-> Prepare the code so that its easier to add CPUidle support for
-> OMAP5 devices.
+> Though unlike OMAP4, on OMAP5 devices, MPUSS CSWR (Close Switch
+> Retention) power states can be achieved with respective power states
+> on CPU0 and CPU1 power domain. This mode was broken on OMAP4 devices
+> because of hardware limitation.
+
+I'm a bit confused by the description here.
+
+I gather from the code that this means that CPU0 and CPU1 can hit CSWR
+independently, correct?
+
+> Also there is no CPU low power entry order requirement like
+> master CPU etc for CSWR C-state, which is icing on the cake. 
+
+Even on secure devices?
+
+> Code makes use of voting scheme for cluster low power state to support
+> MPUSS CSWR C-state.
+
+The voting scheme and associated locking should be better described
+here, or commented in the code itself.
+
+> Supported OMAP5 CPUidle C-states:
+>         C1 - CPU0 ON(WFI) + CPU1 ON(WFI) + MPUSS ON
+>         C2 - CPU0 CSWR + CPU1 CSWR + MPUSS CSWR
+>         C3 - CPU0 OFF + CPU1 OFF + MPUSS OSWR
 >
 > Acked-by: Nishanth Menon <nm@ti.com>
 > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/cpuidle44xx.c |   31 ++++++++++++++++---------------
->  1 file changed, 16 insertions(+), 15 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-> index b8a22f0..ac6d526 100644
-> --- a/arch/arm/mach-omap2/cpuidle44xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
-> @@ -1,7 +1,7 @@
->  /*
-> - * OMAP4 CPU idle Routines
-> + * OMAP4PLUS CPU idle Routines
 
-nit: s/PLUS/+/ 
+[...]
 
-in a few other places in this patch also.
+> +static int omap_enter_idle_smp(struct cpuidle_device *dev,
+> +			struct cpuidle_driver *drv,
+> +			int index)
+> +{
+> +	struct idle_statedata *cx = state_ptr + index;
+> +	int cpu_id = smp_processor_id();
+> +	unsigned long flag;
+> +
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
 
+I think the CPUidle core handles the broadcast notification now.
 
->   *
-> - * Copyright (C) 2011 Texas Instruments, Inc.
-> + * Copyright (C) 2011-2013 Texas Instruments, Inc.
->   * Santosh Shilimkar <santosh.shilimkar@ti.com>
->   * Rajendra Nayak <rnayak@ti.com>
->   *
-> @@ -24,13 +24,13 @@
->  #include "clockdomain.h"
->  
->  /* Machine specific information */
-> -struct omap4_idle_statedata {
-> +struct idle_statedata {
->  	u32 cpu_state;
->  	u32 mpu_logic_state;
->  	u32 mpu_state;
->  };
->  
-> -static struct omap4_idle_statedata omap4_idle_data[] = {
-> +static struct idle_statedata omap4_idle_data[] = {
->  	{
->  		.cpu_state = PWRDM_POWER_ON,
->  		.mpu_state = PWRDM_POWER_ON,
-> @@ -53,11 +53,12 @@ static struct clockdomain *cpu_clkdm[NR_CPUS];
->  
->  static atomic_t abort_barrier;
->  static bool cpu_done[NR_CPUS];
-> +static struct idle_statedata *state_ptr = &omap4_idle_data[0];
+> +	raw_spin_lock_irqsave(&mpu_lock, flag);
+> +	cx->mpu_state_vote++;
 
-The assignment at init time (from the next patch) should be done here
-for 44xx, and the next patch can just add OMAP5 support.
+How about using an atomic_t and atomic_inc()/atomic_dec() instead, which
+will avoid the need for a spinlock.
+
+Even with that, it still seems potentially racy.  Do you need a memory
+barrier here to be sure that any changes from another CPU are visible
+here, and vice versa?
+
+> +	if (cx->mpu_state_vote == num_online_cpus()) {
+> +		pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
+> +		omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
+> +	}
+> +	raw_spin_unlock_irqrestore(&mpu_lock, flag);
+> +
+> +	omap4_enter_lowpower(dev->cpu, cx->cpu_state);
+> +
+> +	raw_spin_lock_irqsave(&mpu_lock, flag);
+> +	if (cx->mpu_state_vote == num_online_cpus())
+> +		omap_set_pwrdm_state(mpu_pd, PWRDM_POWER_ON);
+> +	cx->mpu_state_vote--;
+> +	raw_spin_unlock_irqrestore(&mpu_lock, flag);
+> +
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
+> +
+> +	return index;
+> +}
 
 Kevin
