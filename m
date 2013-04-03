@@ -1,143 +1,104 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH V3 0/2] ARM: OMAP3+: support cpufreq-cpu0 for device tree boot
-Date: Wed, 03 Apr 2013 10:47:39 -0700
-Message-ID: <87y5czzetg.fsf@linaro.org>
-References: <1364507576-19345-1-git-send-email-nm@ti.com>
+Subject: Re: [PATCH/Resend 2/2] arm: mach-omap2: prevent UART console idle on suspend while using "no_console_suspend"
+Date: Wed, 03 Apr 2013 10:48:18 -0700
+Message-ID: <87txnnzesd.fsf@linaro.org>
+References: <1363612924-349-1-git-send-email-sourav.poddar@ti.com>
+	<87fvzsilnv.fsf@linaro.org> <5149A221.5@ti.com>
+	<5149A63C.4000102@ti.com> <515AA9CD.5000004@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1364507576-19345-1-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Thu, 28 Mar 2013 16:52:54 -0500")
-Sender: linux-pm-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, Rob Herring <robherring2@gmail.com>, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <515AA9CD.5000004@ti.com> (Sourav Poddar's message of "Tue, 2 Apr
+	2013 15:20:05 +0530")
+Sender: linux-serial-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+Sourav Poddar <sourav.poddar@ti.com> writes:
 
-> The following version 3 of the series arose from trying to use BeagleBoard-XM
-> (OMAP3 variant) for doing CPU DVFS using cpufreq-cpu0. This series enables the
-> generic cpufreq-cpu0 driver to be used in device tree enabled boot while
-> maintaining support of the legacy omap-cpufreq driver when used in non device
-> tree enabled boot.
->
-> However, in order to enable complete SoC entitlement for OMAP platforms, with
-> this series, key features are still pending on device tree adaptation for OMAP:
-> A) clock framework data transition to DT - this should happen soon, so this
-> series hacks the clock node for the time being as suggested in review of
-> original series[1].
-> B) On processors that use voltage controller, voltage processor (VC/VP hardware
-> loop using I2C_SR path) - we have started work on transitioning them to
-> regulator framework driven by DT.
-> C) Adaptive Body Bias and SmartReflex AVS conversion to DT. [2]
->
-> Note: At this point in time, we do not have DT entries for clock on OMAP
-> platforms. Common Clock Framework(CCF) could also control regulators[3].
-> Once these conversions are complete, there might be minimal cleanup work to
-> switch to the new data structure changes.
->
-> Key benefit of the series is to allow all relevant TI platforms now to use a
-> single cpufreq driver and equivalent frameworks in addition be part of the
-> transition to device tree.
-> NOTE: As a result of this series:
-> 1. omap-cpufreq will be used only in non device tree boot scenario. we should
->    delete this driver once the 100% DT conversion is complete.
-> 2. Generic cpufreq-cpu0 will be used only in device tree boot scenario.
->    boot systems.
+> Hi Kevin,
+> On Wednesday 20 March 2013 05:36 PM, Sourav Poddar wrote:
+>> Realised the list  to whom the patch was send got dropped. Ccing
+>> them all..
+>> On Wednesday 20 March 2013 05:18 PM, Sourav Poddar wrote:
+>>> Hi Kevin,
+>>> On Tuesday 19 March 2013 12:24 AM, Kevin Hilman wrote:
+>>>> Sourav Poddar<sourav.poddar@ti.com>  writes:
+>>>>
+>>>>> With dt boot, uart wakeup after suspend is non functional on
+>>>>> omap4/5 while using
+>>>>> "no_console_suspend" in the bootargs. With "no_console_suspend"
+>>>>> used, od->flags
+>>>>> should be ORed with "OMAP_DEVICE_NO_IDLE_ON_SUSPEND", thereby not
+>>>>> allowing the console
+>>>>> to idle in the suspend path. For non-dt case, this was taken care
+>>>>> by platform data.
+>>>>>
+>>>>> Tested on omap5430evm, omap4430sdp.
+>>>>>
+>>>>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>>>>> Cc: Felipe Balbi<balbi@ti.com>
+>>>>> Cc: Rajendra nayak<rnayak@ti.com>
+>>>>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+>>>> This patch creates a dependency between omap_device (generic,
+>>>> device-independent code) and a specific driver (UART.)
+>>>>
+>>>> If you need to do something like this that's DT boot specific, then
+>>>> we probably need some late initcall in serial.c to handle this.
+>>>> It does
+>>>> not belong in omap_device.
+>>>>
+>>> The following function "omap_device_disable_idle_on_suspend(pdev)"
+>>> should only
+>>> be called once the omap device has been build, which in the case of
+>>> device tree is
+>>> done in omap_device.c file. Moreover, the above call should be
+>>> executed conditionally
+>>> and should depend on the following two parameter.
+>>>
+>>> [1]  a. Whether "no_console_suspend" is set and
+>>>      b.  the device build is a console uart.
+>>>
+>>> When I look closely into the serial.c file, I realised that
+>>> "core_initcall(omap_serial_early_init)" gets called irrespective
+>>> of dt/non dt boot and will take care of most of the stuff(checking
+>>> whether
+>>> "no_console_suspend" is used and which uart is used as a console
+>>> uart) which the
+>>> $subject patch is proposing.
+>>>
+>>> But the problem is that we need to exchange the parsed information
+>>> from serial.c to the omap_device file for the condtional execution of
+>>> "omap_device_disable_idle_on_suspend"
+>>>
+>>> In this case,
+>>> from "serial.c" we need
+>>>     1. no_console_suspend = true
+>>>     2. strcpy(console_name, oh_name), where oh_name corresponds to
+>>> the console uart.
+>>>
+>>> then in "omap_device.c" do
+>>>     if (no_console_suspend && !strcmp(oh->name, console_name))
+>>>                 omap_device_disable_idle_on_suspend(pdev);
+>>>
+>>> Please correct if I am understanding it incorrectly.
+>>>
+>>> If the above understanding looks good to you, is there a way we can
+>>> make this
+>>> exchange of information happen between serial.c and omap_device.c file?
+> Any input on this?
+> As I explained earlier, that there is a need to parse information in
+> serial.c and use that in
+> omap_device.c only after the device is build.
 
-Yes, I like this direction better.  Thanks for reworking and thanks for
-the thorough changelog.
+As I explained earlier, any device specific hacks inside omap_device
+should be a red flag that something has gone wrong.
 
-> Key changes in version 3:
-> 	- series now rebased on Device tree patches queued for OMAP 3.10
-> 	- DT patches introducing OPPs are now merged, so pending patches alone
-> 	  are part of the new series.
-> 	- omap-cpufreq is now converted to platform_device to address:
-> 		http://marc.info/?t=136434901900001&r=1&w=2
->
-> version 2 of the series:
-> 	http://marc.info/?t=136371570200003&r=1&w=2
-> 	available at:
-> 	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cpu0-omap-all-v2
->
-> version 1 of the series:
-> 	http://marc.info/?t=136329485400005&r=1&w=2
-> 	available at:
-> 	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cpu0-omap-all-v1
->
-> [1] Original discussion thread which triggered this series:
-> 	http://marc.info/?l=linux-pm&m=136304313700602&w=2
-> 	https://patchwork.kernel.org/patch/2251841/
-> 	https://patchwork.kernel.org/patch/2251851/
-> [2] ABB RFC: http://marc.info/?l=linux-omap&m=136449099409794&w=2 
-> [3] CCF DVFS patches:
-> https://patchwork.kernel.org/patch/2195431/
-> https://patchwork.kernel.org/patch/2195421/
-> https://patchwork.kernel.org/patch/2195451/
-> https://patchwork.kernel.org/patch/2195441/
-> https://patchwork.kernel.org/patch/2195461/
->
-> Version 3 is now based on for-3.10/dts branch from Benoit:
-> 	http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.10/dts
-> 	d114294 ARM: dts: AM33XX: Corrects typo in interrupt field in SPI node
->
-> Version 3 is also available at:
-> 	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cpu0-omap-all-v3
-> 	git link: git://github.com/nmenon/linux-2.6-playground.git
-> 	branch: cpufreq-cpu0-omap-all-v3
->
-> Test coverage:
-> 	test script: http://pastebin.com/zrr8ptge
-> Platforms verified:
-> 	beaglebone(rev A6a) - AM33xx compatible - http://pastebin.com/GVP2wDVr
-> 	beagleboard (rev C1D) - OMAP3430 compatible
-> 		- DT enabled boot: http://pastebin.com/2AY1F5Qa
-> 		- No DT enabled boot: http://pastebin.com/hDk0gbpU
-> 	omap3-beagle-xm -OMAP3630 compatible - http://pastebin.com/5tHAQcLZ
-> 	Pandaboard -(OMAP4430 ES2.2) - http://pastebin.com/6D9aDPXT
-> 	Pandaboard-ES -(OMAP4460 ES1.1) - http://pastebin.com/ExrBEczr
+How about fixing the UART driver/core to not runtime suspend if
+no_console_suspend is given?  
 
-And thanks also for the broad testing.
-
-One nit about the test report/coverage is I don't see any
-test/verification that the voltage is still being scaled based on the DT
-based OPPs.  It's easy to verify at least from the regulator PoV that
-the voltage is scaled also.
-
-My dumb DVFS test script (below) should work on any busybox rootfs 
-
-Care to give that (or something like it) a try as well?  
-
-With that extra confirmation of testing, I will queue up this series.
-
-Thanks,
+Then we can get rid of this no_idle_on_suspend hack all together since
+UART is the only remaining user.
 
 Kevin
-
-[1]
-#!/bin/sh
-
-REG=`find /sys/class/regulator -follow -maxdepth 2 -name name -exec grep -l mpu {} \;`
-mpu_reg=`echo $REG | cut -d'/' -f5`
-echo MPU regulator: $mpu_reg
-
-if [ ! -d /sys/devices/system/cpu/cpu0/cpufreq ]; then
-  echo "CPUfreq not enabled in kernel."
-  exit 0
-fi
-
-cd /sys/devices/system/cpu/cpu0/cpufreq
-echo -n "Available frequencies: "
-cat scaling_available_frequencies
-echo -n "Current frequency: "
-cat scaling_cur_freq
-echo userspace > scaling_governor
-
-for freq in `cat scaling_available_frequencies`; do
-  echo ${freq} > scaling_setspeed
-  echo -n "current freq: "
-  cat scaling_cur_freq
-  echo -n "current voltage: "
-  cat /sys/class/regulator/${mpu_reg}/microvolts
-  sleep 2
-done
