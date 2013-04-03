@@ -1,109 +1,154 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v5 1/6] drivers: phy: add generic PHY framework
-Date: Wed, 3 Apr 2013 20:02:52 +0530
-Message-ID: <515C3D94.1060000@ti.com>
-References: <1364993634-6378-1-git-send-email-kishon@ti.com> <1364993634-6378-2-git-send-email-kishon@ti.com> <20130403134102.GC14680@arwen.pp.htv.fi> <515C3A42.4020404@ti.com> <20130403142747.GK14680@arwen.pp.htv.fi>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
+Date: Wed, 3 Apr 2013 20:12:29 +0530
+Message-ID: <CAFp+6iGqmUK1r2CN-0jwoEhCuzVhxaRS1W3CMm0JhTPvDyh_rw@mail.gmail.com>
+References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
+	<1364824448-14732-2-git-send-email-gautam.vivek@samsung.com>
+	<515BB951.40702@ti.com>
+	<CAFp+6iG8WdWHXVCANx77OiTXLeZ-4qE4jySWqPLhfR1KOEP4fw@mail.gmail.com>
+	<20130403081532.GE25837@arwen.pp.htv.fi>
+	<CAFp+6iHXW8z2sc44c1hq2au_UnUyVZEr9D0t5BM4mfqcQKZgbA@mail.gmail.com>
+	<20130403135414.GG14680@arwen.pp.htv.fi>
+	<20130403135659.GH14680@arwen.pp.htv.fi>
+	<CAFp+6iEmJtS2vxz8YHXP+FbNsxK2bR94rDrrSiKbGRRuUhBA5g@mail.gmail.com>
+	<20130403141831.GJ14680@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130403142747.GK14680@arwen.pp.htv.fi>
-Sender: linux-doc-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20130403141831.GJ14680@arwen.pp.htv.fi>
+Sender: linux-samsung-soc-owner@vger.kernel.org
 To: balbi@ti.com
-Cc: gregkh@linuxfoundation.org, arnd@arndb.de, akpm@linux-foundation.org, swarren@wwwdotorg.org, sylvester.nawrocki@gmail.com, rob@landley.net, netdev@vger.kernel.org, davem@davemloft.net, cesarb@cesarb.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, b-cousson@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, mchehab@redhat.com, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Wed, Apr 3, 2013 at 7:48 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Wed, Apr 03, 2013 at 07:40:44PM +0530, Vivek Gautam wrote:
+>> >> > >> >> +static inline void usb_phy_autopm_enable(struct usb_phy *x)
+>> >> > >> >> +{
+>> >> > >> >> +       if (!x || !x->dev) {
+>> >> > >> >> +               dev_err(x->dev, "no PHY or attached device available\n");
+>> >> > >> >> +               return;
+>> >> > >> >> +               }
+>> >> > >> >> +
+>> >> > >> >> +       pm_runtime_enable(x->dev);
+>> >> > >> >> +}
+>> >> > >> >
+>> >> > >> >
+>> >> > >> > IMO we need not have wrapper APIs for runtime_enable and runtime_disable
+>> >> > >> > here. Generally runtime_enable and runtime_disable is done in probe and
+>> >> > >> > remove of a driver respectively. So it's better to leave the
+>> >> > >> > runtime_enable/runtime_disable to be done in *phy provider* driver than
+>> >> > >> > having an API for it to be done by *phy user* driver. Felipe, what do you
+>> >> > >> > think?
+>> >> > >>
+>> >> > >> Thanks!!
+>> >> > >> That's very true, runtime_enable() and runtime_disable() calls are made by
+>> >> > >> *phy_provider* only. But a querry here.
+>> >> > >> Wouldn't in any case a PHY consumer might want to disable runtime_pm on PHY ?
+>> >> > >> Say, when consumer failed to suspend the PHY properly
+>> >> > >> (*put_sync(phy->dev)* fails), how much sure is the consumer about the
+>> >> > >> state of PHY ?
+>> >> > >
+>> >> > > no no, wait a minute. We might not want to enable runtime pm for the PHY
+>> >> > > until the UDC says it can handle runtime pm, no ? I guess this makes a
+>> >> > > bit of sense (at least in my head :-p).
+>> >> > >
+>> >> > > Imagine if PHY is runtime suspended but e.g. DWC3 isn't runtime pm
+>> >> > > enabled... Does it make sense to leave that control to the USB
+>> >> > > controller drivers ?
+>> >> > >
+>> >> > > I'm open for suggestions
+>> >> >
+>> >> > Of course unless the PHY consumer can handle runtime PM for PHY,
+>> >> > PHY should not ideally be going into runtime_suspend.
+>> >> >
+>> >> > Actually trying out few things, here are my observations
+>> >> >
+>> >> > Enabling runtime_pm on PHY pushes PHY to go into runtime_suspend state.
+>> >> > But a device detection wakes up DWC3 controller, and if i don't wake
+>> >> > up PHY (using get_sync(phy->dev)) here
+>> >> > in runtime_resume() callback of DWC3, i don't get PHY back in active state.
+>> >> > So it becomes the duty of DWC3 controller to handle PHY's sleep and wake-up.
+>> >> > Thereby it becomes logical that DWC3 controller has the right to
+>> >> > enable runtime_pm
+>> >> > of PHY.
+>> >> >
+>> >> > But there's a catch here. if there are multiple consumers of PHY (like
+>> >> > USB2 type PHY can
+>> >> > have DWC3 controller as well as EHCI/OHCI or even HSGadget) then in that case,
+>> >> > only one of the consumer can enable runtime_pm on PHY. So who decides this.
+>> >> >
+>> >> > Aargh!! lot of confusion here :-(
+>> >>
+>> >>
+>> >> hmmm, maybe add a flag to struct usb_phy and check it on
+>> >> usb_phy_autopm_enable() ??
+>> >>
+>> >> How does usbcore handle it ? They request class drivers to pass
+>> >> supports_autosuspend, but while we should have a similar flag, that's
+>> >> not enough. We also need a flag to tell us when pm_runtime has already
+>> >> been enabled.
+>>
+>> True
+>>
+>> >>
+>> >> So how about:
+>> >>
+>> >> usb_phy_autopm_enable()
+>> >> {
+>> >>       if (!phy->suports_autosuspend)
+>> >>               return -ENOSYS;
+>> >>
+>> >>       if (phy->autosuspend_enabled)
+>> >>               return 0;
+>> >>
+>> >>       phy->autosuspend_enabled = true;
+>> >>       return pm_runtime_enable(phy->dev);
+>> >> }
+>> >>
+>> >> ???
+>>
+>> Great
+>>
+>> >
+>> > and of course I missed the fact that pm_runtime_enable returns nothing
+>> > :-) But you got my point.
+>>
+>> Yea, this is a way around this. :-)
+>>
+>> Just one more query :-)
+>>
+>> Lets suppose DWC3 enables runtime_pm on USB 2 type phy,
+>> it will try to go into suspend state and thereby call runtime_suspend(), if any.
+>> And PHY will come to active state only when its consumer wakes it up,
+>> and this consumer is operational
+>> only when its related PHY is in fully functional state.
+>> So do we have a situation in which this PHY goes into low power state
+>> in its runtime_suspend(),
+>> resulting in non-detection of devices on further attach (since PHY is
+>> in low power state) ?
+>>
+>> Will the controller (like EHCI/OHCI) be functional now ?
+>
+> ehci/ohci need to cope with that by calling usb_phy_autopm_get_sync(),
+> right ? (so does DWC3 :-)
 
-On Wednesday 03 April 2013 07:57 PM, Felipe Balbi wrote:
-> hi,
->
-> On Wed, Apr 03, 2013 at 07:48:42PM +0530, Kishon Vijay Abraham I wrote:
->>>> +struct phy *of_phy_xlate(struct phy *phy, struct of_phandle_args *args)
->>>> +{
->>>> +	return phy;
->>>> +}
->>>> +EXPORT_SYMBOL_GPL(of_phy_xlate);
->>>
->>> so you get a PHY and just return it ? What gives ?? (maybe I skipped
->>> some of the discussion...)
->>
->> hmm.. this is for the common case where the PHY provider implements
->> only one PHY. And both phy provider and phy_instance is represented
->> by struct phy *.
->>
->> For the case where PHY provider implements multiple PHYs (here it
->> will have a single dt node), the PHY provider will implement it's own
->> version of of_xlate that takes *of_phandle_args* as argument and
->> finds the appropriate PHY.
->
-> got it.
->
->>>> +struct phy *of_phy_get(struct device *dev, int index)
->>>> +{
->>>> +	int ret;
->>>> +	struct phy *phy = NULL;
->>>> +	struct phy_bind *phy_map = NULL;
->>>> +	struct of_phandle_args args;
->>>> +	struct device_node *node;
->>>> +
->>>> +	if (!dev->of_node) {
->>>> +		dev_dbg(dev, "device does not have a device node entry\n");
->>>> +		return ERR_PTR(-EINVAL);
->>>> +	}
->>>> +
->>>> +	ret = of_parse_phandle_with_args(dev->of_node, "phys", "#phy-cells",
->>>> +		index, &args);
->>>> +	if (ret) {
->>>> +		dev_dbg(dev, "failed to get phy in %s node\n",
->>>> +			dev->of_node->full_name);
->>>> +		return ERR_PTR(-ENODEV);
->>>> +	}
->>>> +
->>>> +	phy = of_phy_lookup(args.np);
->>>> +	if (IS_ERR(phy) || !try_module_get(phy->ops->owner)) {
->>>> +		phy = ERR_PTR(-EPROBE_DEFER);
->>>> +		goto err0;
->>>> +	}
->>>> +
->>>> +	phy = phy->ops->of_xlate(phy, &args);
->>>
->>> alright, so of_xlate() is optional, am I right ? How about not
->>
->> Not really. of_xlate is mandatory (it's even checked in phy_create).
->> Either the PHY provider can implement it's own version or use the
->> implementation above (by filling the function pointer).
->
-> alright.
->
->>> implementing the above and have a check for of_xlate() being a valid
->>> pointer here ?
->>
->> Having the way it is actually mandates the PHY providers to always
->> provide of_xlate which IMO is better since some PHY providers wont
->> accidentally be using the default implementation.
->
-> ok cool, thanks for clarifying.
->
->>>> +		ret = -EINVAL;
->>>> +		goto err0;
->>>> +	}
->>>> +
->>>> +	if (!phy_class)
->>>> +		phy_core_init();
->>>
->>> why don't you setup the class on module_init ? Then this would be a
->>> terrible error condition here :-)
->>
->> This is for the case where the PHY driver gets loaded before the PHY
->> framework. I could have returned EPROBE_DEFER here instead I thought
->> will have it this way.
->
-> looks a bit weird IMO. Is it really possible for PHY to load before ?
+Yes ofcourse.
+So PHYs (in their runtime_suspend) should not be pulled into a state
+wherein even the controllers become in-operational.
+Thereby no attach-detection, and controller doesn't wake up to be able
+to usb_phy_autopm_get_sync()
 
-yeah. it actually happened when I tried with beagle and had all the 
-modules as built-in. Because twl4030 has subsys_initcall(), it loads 
-before PHY framework.
+Sorry for so much noise, i am acting like slow study ;-)
 
-Thanks
-Kishon
+>
+> --
+> balbi
+
+
+
+-- 
+Thanks & Regards
+Vivek
