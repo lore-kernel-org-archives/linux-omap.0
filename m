@@ -1,68 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: System timer updates
-Date: Wed, 3 Apr 2013 11:04:47 -0700
-Message-ID: <20130403180447.GX10155@atomide.com>
-References: <515A3E01.1060308@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
+Date: Wed, 3 Apr 2013 14:14:02 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1304031410320.2027-100000@iolanthe.rowland.org>
+References: <20130403141831.GJ14680@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21041 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762890Ab3DCSEu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 14:04:50 -0400
-Content-Disposition: inline
-In-Reply-To: <515A3E01.1060308@ti.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:57876 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1762782Ab3DCSOD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 14:14:03 -0400
+In-Reply-To: <20130403141831.GJ14680@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Vivek Gautam <gautamvivek1987@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 
-* Jon Hunter <jon-hunter@ti.com> [130401 19:14]:
-> The following changes since commit 2d61aecee8f32259920cdf90a452fa26ffc64e9f:
-> 
->   Merge commit '6bb27d7349db51b50c40534710fe164ca0d58902' into omap-timer-for-v3.10 (2013-04-01 13:47:29 -0500)
-> 
-> are available in the git repository at:
-> 
-> 
->   git://github.com/jonhunter/linux.git omap-timer-for-v3.10
-> 
-> for you to fetch changes up to 4615943cf3a531bc76f589c22bd366da092b7c0f:
-> 
->   ARM: OMAP4+: Fix sparse warning in system timers (2013-04-01 13:49:46 -0500)
-> 
-> ----------------------------------------------------------------
-> This series consists mainly of clean-ups for clockevents and
-> clocksource timers on OMAP2+ devices. The most significant change
-> in functionality comes from the 5th patch which is changing the
-> selection of the clocksource timer for OMAP3 and AM335x devices
-> when gptimers are used for clocksource.
-> 
-> This series is dependent on commit 7185684 (ARM: OMAP: use
-> consistent error checking) from RMK's clean-up branch and commit
-> 6bb27d7 (ARM: delete struct sys_timer)
+On Wed, 3 Apr 2013, Felipe Balbi wrote:
 
-Thanks pulling into omap-for-v3.10/timer. I ended up merging this
-with omap-for-v3.10/fixes-non-critical because of the omap5 merge
-conflict.
-
-Regards,
-
-Tony
-
-> ----------------------------------------------------------------
+> > Lets suppose DWC3 enables runtime_pm on USB 2 type phy,
+> > it will try to go into suspend state and thereby call runtime_suspend(), if any.
+> > And PHY will come to active state only when its consumer wakes it up,
+> > and this consumer is operational
+> > only when its related PHY is in fully functional state.
+> > So do we have a situation in which this PHY goes into low power state
+> > in its runtime_suspend(),
+> > resulting in non-detection of devices on further attach (since PHY is
+> > in low power state) ?
+> > 
+> > Will the controller (like EHCI/OHCI) be functional now ?
 > 
-> Jon Hunter (7):
->       ARM: OMAP2+: Display correct system timer name
->       ARM: OMAP2+: Remove hard-coded test on timer ID
->       ARM: OMAP2+: Simplify system timer clock definitions
->       ARM: OMAP2+: Simplify system timers definitions
->       ARM: OMAP3: Update clocksource timer selection
->       ARM: OMAP2+: Store ID of system timers in timer structure
->       ARM: OMAP4+: Fix sparse warning in system timers
-> 
->  arch/arm/mach-omap2/board-cm-t3517.c |    2 +-
->  arch/arm/mach-omap2/board-generic.c  |    2 +-
->  arch/arm/mach-omap2/common.h         |    3 +-
->  arch/arm/mach-omap2/timer.c          |  121 +++++++++++++++++-----------------
->  4 files changed, 65 insertions(+), 63 deletions(-)
+> ehci/ohci need to cope with that by calling usb_phy_autopm_get_sync(),
+> right ? (so does DWC3 :-)
+
+Maybe you guys have already got this all figured out -- if so, feel 
+free to ignore this email.
+
+Some subsystems handle this issue by calling pm_runtime_get_sync() 
+before probing a driver and pm_runtime_put_sync() after unbinding the 
+driver.  If the driver is runtime-PM-enabled, it then does its own 
+put_sync near the end of its probe routine and get_sync in its release 
+routine.
+
+With PHYs you don't have probing and releasing, but you do have 
+consumers registering and unregistering themselves, which is about the 
+same thing.
+
+Alan Stern
+
