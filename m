@@ -1,63 +1,85 @@
-From: Alexey Pelykh <alexey.pelykh@gmail.com>
-Subject: Re: [PATCH] Revert "OMAP/serial: Fix incorrect Rx FIFO threshold
- setting, LSR validation on Tx, and Tx FIFO IRQ generation"
-Date: Wed, 3 Apr 2013 22:04:05 +0300
-Message-ID: <CAOmKuSoJ38YKyzuyESfx=jgi3y=EunAUt7RPp2=7pRQosytQYg@mail.gmail.com>
-References: <alpine.DEB.2.00.1304010519260.28273@utopia.booyaka.com>
-	<CAOmKuSpttQJmrL=Htiz-Zc4voAF7CnG_GQYAO2onKpauwYjtvw@mail.gmail.com>
-	<alpine.DEB.2.00.1304010844100.28273@utopia.booyaka.com>
-	<CAOmKuSrABrPcZ=Yg1+LAHWbh9CdTYR0eUmJ2dd3z91oz0uu21g@mail.gmail.com>
-	<alpine.DEB.2.00.1304011008230.28273@utopia.booyaka.com>
-	<CAOmKuSrbDc025Tj9xsqDebJ_KZdp_VnWAOs_OO5UAegV43JcDQ@mail.gmail.com>
-	<CAOmKuSpbaKutLxbNihBRDz+B0Wt0XiPss-PcEHc-efCTvciNFg@mail.gmail.com>
-	<alpine.DEB.2.00.1304011654520.9148@utopia.booyaka.com>
-	<CAOmKuSo4onVtk2Ke-i+0_1Ych33KuUYspRy+cySRHf4yWB5XDw@mail.gmail.com>
-	<alpine.DEB.2.00.1304021821190.27146@utopia.booyaka.com>
-	<CAOmKuSqd=gNYFutpgDref58pbAbDwDin4mvL_OEooD1XuwKtgQ@mail.gmail.com>
-	<CAOmKuSp8nPJw7+LKK3ny7ZjEEV-CeDjGg0GD2fDjZiP6HBKGGw@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and updates for
+ 3.10
+Date: Wed, 3 Apr 2013 19:42:22 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1304031146230.2616@utopia.booyaka.com>
+References: <1363768852-18125-1-git-send-email-santosh.shilimkar@ti.com> <20130401170539.GK10155@atomide.com> <515BA76D.3000302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <CAOmKuSp8nPJw7+LKK3ny7ZjEEV-CeDjGg0GD2fDjZiP6HBKGGw@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, balbi@ti.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:59048 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761638Ab3DCTmX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 15:42:23 -0400
+In-Reply-To: <515BA76D.3000302@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-I've submitted patch that should remove this regression
+Hi Santosh
 
-On Wed, Apr 3, 2013 at 6:55 PM, Alexey Pelykh <alexey.pelykh@gmail.com> wrote:
-> Paul,
->
-> Should I start a new email chain with that patch or add it here?
->
-> On Wed, Apr 3, 2013 at 12:19 AM, Alexey Pelykh <alexey.pelykh@gmail.com> wrote:
->> Hi Paul,
->>
->> No problem, I'll prepare patch in next 24 hours and will send in ASAP.
->>
->> But, since we've found the issue, I suggest that we should look at it
->> closer, especially since at this moment only you can reproduce it. As
->> far as I understand, but I may be wrong,
->> this comment is wrong, since if to specify
->> OMAP_UART_SCR_RX_TRIG_GRANU1_MASK, it effectively sets Rx threshold to
->> 1 character, instead of 16.
->> /* Set receive FIFO threshold to 16 characters and
->>  * transmit FIFO threshold to 16 spaces
->>  */
->>
->> On Tue, Apr 2, 2013 at 9:24 PM, Paul Walmsley <paul@pwsan.com> wrote:
->>> On Mon, 1 Apr 2013, Alexey Pelykh wrote:
->>>
->>>> Paul, can you please try to comment out change related to Rx line
->>>> (granulation one). That's only Rx line related change in the patch.
->>>
->>> Yes, looks like simply reverting the commit 1776fd059c40 ("OMAP/serial:
->>> Fix incorrect Rx FIFO threshold setting, LSR validation on Tx, and Tx FIFO
->>> IRQ generation") change to OMAP_UART_SCR_RX_TRIG_GRANU1_MASK fixes it.
->>>
->>> Care to send a patch doing so ASAP for v3.9-rc fixes?  That would moot the
->>> revert of the entire commit 1776fd059c40.
->>>
->>>
->>> - Paul
+On Wed, 3 Apr 2013, Santosh Shilimkar wrote:
+
+> Thes patchset has already missed last couple of merge windows and its the
+> biggest bottleneck in getting OMAP5 booting from mainline. So I request
+> you to please have a look it quickly so that Tony can line that up for
+> 3.10.
+
+Looks like there are a few minor issues with the patches based on a quick 
+look.  I'll post those to the list shortly; they should be easy to fix.  
+But those issues aren't my real concern with this series.
+
+What's harder to fix are the underlying process issues.  My main concern 
+is that these patches add almost 9,000 lines of code and data.  We've 
+received clear guidance from the upstream ARM SoC maintainers that any 
+significant new additions need to be balanced with moving a similar number 
+of lines of code and data out of arch/arm/{plat-,mach-}* into drivers/.  
+(Or the new patches should be accompanied with patches that show obvious 
+progress towards the goal of moving code and data out of 
+arch/arm/{plat-,mach-}*.)  We need to see more help from TI on the 
+prerequisites for this cleanup process.
+
+For example, as discussed last year with the TI upstream PM team, an 
+important first step in this process in my view is to get rid of the 
+direct PRM/CM register accesses in the OMAP PM code.  See commit 
+c4ceedcb18cf7a06059482a3a1828b9aad9f78cf ("ARM: OMAP2+: CM/clock: convert 
+_omap2_module_wait_ready() to use SoC-independent CM functions") as an 
+example of this process.  This should make it easier to get the PRM/CM 
+functionality into drivers/.  That in turn make it possible to move the 
+clockdomain, clock, powerdomain, and hwmod code to drivers/.ARM: OMAP2+: 
+CM/clock: convert _omap2_module_wait_ready() to use SoC-independent CM 
+functions.  So far as I can tell, there hasn't been any forward progress 
+on this.
+
+It's also necessary to see more TI contributions in finding and fixing 
+regressions.  Detecting and fixing regressions from the previous kernel 
+release should be done first, before working on cleanup series or new 
+feature/SoC additions.  Looking at the list of v3.9-rc regressions that 
+I've found, we've gotten very little organized help from TI on dealing 
+with them.  
+
+This in turn robs the maintainers of time that could be spent doing patch 
+review or further cleanup work, which benefits no one in the end.  
+Ideally each regression would be assigned to a member of the TI upstream 
+team, and the whole process could be completed within one or two weeks.
+
+...
+
+So from my point of view, I'd like to see the following changes before we 
+accept any new patchsets that add a significant number of lines:
+
+1. Organized help from TI in finding and fixing regressions in the -rc 
+cycle, with the regressions dealt with before any new feature 
+pull-requests are sent
+
+2. Help from TI on some of the cleanup work that we've mentioned in the 
+past, starting with the PRM/CM register access cleanup inside mach-omap2/
+
+3. Pairing any large feature or SoC additions with at least an equal 
+removal of lines of code
+
+
+regards,
+
+- Paul
