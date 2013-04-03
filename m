@@ -1,74 +1,54 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [RFC v2] dmaengine: omap-dma: Start DMA without delay for cyclic
- channels
-Date: Wed, 3 Apr 2013 16:54:42 +0530
-Message-ID: <515C117A.6060700@ti.com>
-References: <1364987862-14597-1-git-send-email-peter.ujfalusi@ti.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v9 0/9] DMA Engine support for AM33XX
+Date: Wed, 3 Apr 2013 17:15:54 +0530
+Message-ID: <515C1672.4060000@ti.com>
+References: <1362586540-10393-1-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1364987862-14597-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Meerwald <pmeerw@pmeerw.net>
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1362586540-10393-1-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 03 April 2013 04:47 PM, Peter Ujfalusi wrote:
-> cyclic DMA is only used by audio which needs DMA to be started without a
-> delay.
-> If the DMA for audio is started using the tasklet we experience random
-> channel switch (to be more precise: channel shift).
-> 
-> Reported-by: Peter Meerwald <pmeerw@pmeerw.net>
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
-> Hi Russell,
-> 
-> Instead of removing the tasklet we can identify the DMA channel used by audio
-> based on the cyclic flag of the channel.
-> I think this can be used as a short term solution to fix the audio channel shift
-> issue and later when we have the dynamic DMA channel allocation we can adjust
-> the code.
-> 
-> Regards,
-> Peter
-> 
->  drivers/dma/omap-dma.c | 20 ++++++++++++++------
->  1 file changed, 14 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-> index 2ea3d7e..ec3fc4f 100644
-> --- a/drivers/dma/omap-dma.c
-> +++ b/drivers/dma/omap-dma.c
-> @@ -282,12 +282,20 @@ static void omap_dma_issue_pending(struct dma_chan *chan)
->  
->  	spin_lock_irqsave(&c->vc.lock, flags);
->  	if (vchan_issue_pending(&c->vc) && !c->desc) {
-If you add "!c->cyclic" in above if then you can avoid
-indentation change and just have else for cyclic case.
+Hi Matt,
 
-> -		struct omap_dmadev *d = to_omap_dma_dev(chan->device);
-> -		spin_lock(&d->lock);
-> -		if (list_empty(&c->node))
-> -			list_add_tail(&c->node, &d->pending);
-> -		spin_unlock(&d->lock);
-> -		tasklet_schedule(&d->task);
-> +		/*
-> +		 * c->cyclic is used only by audio and in this case the DMA need
-> +		 * to be started without delay.
-> +		 */
-> +		if (!c->cyclic) {
-> +			struct omap_dmadev *d = to_omap_dma_dev(chan->device);
-> +			spin_lock(&d->lock);
-> +			if (list_empty(&c->node))
-> +				list_add_tail(&c->node, &d->pending);
-> +			spin_unlock(&d->lock);
-> +			tasklet_schedule(&d->task);
-> +		} else {
-> +			omap_dma_start_desc(c);
-> +		}
->  	}
->  	spin_unlock_irqrestore(&c->vc.lock, flags);
->  }
-> 
+On 3/6/2013 9:45 PM, Matt Porter wrote:
+
+> This series adds DMA Engine support for AM33xx, which uses
+> an EDMA DMAC. The EDMA DMAC has been previously supported by only
+> a private API implementation (much like the situation with OMAP
+> DMA) found on the DaVinci family of SoCs.
+
+> Matt Porter (9):
+>   ARM: davinci: move private EDMA API to arm/common
+>   ARM: edma: remove unused transfer controller handlers
+
+If you are going to be late in re-spinning the entire series in time for
+v3.10, then I suggest I queue the first two patches through davinci tree
+for v3.10 and then you can work on rest of patches for next (v3.11)
+merge window.
+
+Let me know what you think.
+
+>   ARM: edma: add AM33XX support to the private EDMA API
+>   dmaengine: edma: enable build for AM33XX
+>   dmaengine: edma: Add TI EDMA device tree binding
+>   ARM: dts: add AM33XX EDMA support
+>   spi: omap2-mcspi: convert to dma_request_slave_channel_compat()
+>   spi: omap2-mcspi: add generic DMA request support to the DT binding
+>   ARM: dts: add AM33XX SPI DMA support
+
+Thanks,
+Sekhar
