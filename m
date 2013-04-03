@@ -1,41 +1,37 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v2 09/18] ARM: OMAP4+: PM: Restore CPU power state to ON with clockdomain force wakeup method
-Date: Wed, 03 Apr 2013 13:54:41 -0700
-Message-ID: <87mwtftjvy.fsf@linaro.org>
-References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
-	<1364205910-32392-10-git-send-email-santosh.shilimkar@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] Revert "OMAP/serial: Fix incorrect Rx FIFO threshold
+ setting, LSR validation on Tx, and Tx FIFO IRQ generation"
+Date: Wed, 3 Apr 2013 20:57:28 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1304030933510.12727@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1304010519260.28273@utopia.booyaka.com> <CAOmKuSpttQJmrL=Htiz-Zc4voAF7CnG_GQYAO2onKpauwYjtvw@mail.gmail.com> <alpine.DEB.2.00.1304010844100.28273@utopia.booyaka.com> <CAOmKuSrABrPcZ=Yg1+LAHWbh9CdTYR0eUmJ2dd3z91oz0uu21g@mail.gmail.com>
+ <alpine.DEB.2.00.1304011008230.28273@utopia.booyaka.com> <CAOmKuSrbDc025Tj9xsqDebJ_KZdp_VnWAOs_OO5UAegV43JcDQ@mail.gmail.com> <CAOmKuSpbaKutLxbNihBRDz+B0Wt0XiPss-PcEHc-efCTvciNFg@mail.gmail.com> <alpine.DEB.2.00.1304011654520.9148@utopia.booyaka.com>
+ <CAOmKuSo4onVtk2Ke-i+0_1Ych33KuUYspRy+cySRHf4yWB5XDw@mail.gmail.com> <alpine.DEB.2.00.1304021821190.27146@utopia.booyaka.com> <CAOmKuSqd=gNYFutpgDref58pbAbDwDin4mvL_OEooD1XuwKtgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:42400 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760979Ab3DCUyp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 16:54:45 -0400
-Received: by mail-pb0-f41.google.com with SMTP id mc17so1063763pbc.14
-        for <linux-omap@vger.kernel.org>; Wed, 03 Apr 2013 13:54:45 -0700 (PDT)
-In-Reply-To: <1364205910-32392-10-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Mon, 25 Mar 2013 15:35:01 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <CAOmKuSqd=gNYFutpgDref58pbAbDwDin4mvL_OEooD1XuwKtgQ@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Alexey Pelykh <alexey.pelykh@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+Hi Alexey,
 
-> While waking up CPU from off state using clock domain force wakeup, restore
-> the CPU power state to ON state before putting CPU clock domain under
-> hardware control. Otherwise CPU wakeup might fail. The change is recommended
-> for all OMAP4+ devices though the PRCM weakness was observed on OMAP5
-> devices first.
+On Wed, 3 Apr 2013, Alexey Pelykh wrote:
 
-Sounds reasonable, but can you describe the "weakness" a little more?
+> But, since we've found the issue, I suggest that we should look at it
+> closer, especially since at this moment only you can reproduce it.
 
-IOW, what exactly happens if this is not done?  It sounds like the CPU
-might immediately go back to retention, but how does that happen unless
-it does a WFI?
+Well probably no one else is testing it :-)
 
-Also, this sounds like a fix to me, and should probably be broken out
-accordingly.
+> As far as I understand, but I may be wrong, this comment is wrong, since 
+> if to specify OMAP_UART_SCR_RX_TRIG_GRANU1_MASK, it effectively sets Rx 
+> threshold to 1 character, instead of 16. /* Set receive FIFO threshold 
+> to 16 characters and
+>  * transmit FIFO threshold to 16 spaces
+>  */
 
-Kevin
+Again it certainly would not surprise me... that UART IP block seems to be 
+poorly understood :-(  Bizarre, I know.
 
+- Paul
