@@ -1,75 +1,33 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
-Date: Wed, 3 Apr 2013 11:48:39 +0530
-Message-ID: <CAFp+6iG8WdWHXVCANx77OiTXLeZ-4qE4jySWqPLhfR1KOEP4fw@mail.gmail.com>
-References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
-	<1364824448-14732-2-git-send-email-gautam.vivek@samsung.com>
-	<515BB951.40702@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v4 0/6] Generic PHY Framework
+Date: Wed, 03 Apr 2013 02:31:57 -0400 (EDT)
+Message-ID: <20130403.023157.1254170239558661397.davem@davemloft.net>
+References: <1364449408-9510-1-git-send-email-kishon@ti.com>
+	<20130328.143142.2080627792603647441.davem@davemloft.net>
+	<515BC559.1070602@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <515BB951.40702@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Vivek Gautam <gautam.vivek@samsung.com>, balbi@ti.com, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <515BC559.1070602@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: kishon@ti.com
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, arnd@arndb.de, akpm@linux-foundation.org, rob@landley.net, sylvester.nawrocki@gmail.com, swarren@wwwdotorg.org, cesarb@cesarb.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, b-cousson@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, mchehab@redhat.com, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kishon,
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Date: Wed, 3 Apr 2013 11:29:53 +0530
 
-
-On Wed, Apr 3, 2013 at 10:38 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
 > Hi,
->
->
-> On Monday 01 April 2013 07:24 PM, Vivek Gautam wrote:
+> 
+> On Friday 29 March 2013 12:01 AM, David Miller wrote:
 >>
->> Adding  APIs to handle runtime power management on PHY
->> devices. PHY consumers may need to wake-up/suspend PHYs
->> when they work across autosuspend.
->>
->> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
->> ---
->>   include/linux/usb/phy.h |  141
->> +++++++++++++++++++++++++++++++++++++++++++++++
->>   1 files changed, 141 insertions(+), 0 deletions(-)
->>
->> diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
->> index 6b5978f..01bf9c1 100644
->> --- a/include/linux/usb/phy.h
->> +++ b/include/linux/usb/phy.h
->> @@ -297,4 +297,145 @@ static inline const char *usb_phy_type_string(enum
->> usb_phy_type type)
->>                 return "UNKNOWN PHY TYPE";
->>         }
->>   }
->> +
->> +static inline void usb_phy_autopm_enable(struct usb_phy *x)
->> +{
->> +       if (!x || !x->dev) {
->> +               dev_err(x->dev, "no PHY or attached device available\n");
->> +               return;
->> +               }
->> +
->> +       pm_runtime_enable(x->dev);
->> +}
->
->
-> IMO we need not have wrapper APIs for runtime_enable and runtime_disable
-> here. Generally runtime_enable and runtime_disable is done in probe and
-> remove of a driver respectively. So it's better to leave the
-> runtime_enable/runtime_disable to be done in *phy provider* driver than
-> having an API for it to be done by *phy user* driver. Felipe, what do you
-> think?
+>> You really need to CC: netdev@vger.kernel.org rather than me
+>> explicitly
+>> on this patch set.
+> 
+> I was CC'ing whatever get_maintainer shows. I'll make sure to CC
+> netdev@vger.kernel.org though there's nothing related to network in
+> this patch series (Maybe sometime in the future it'll be used).
 
-Thanks!!
-That's very true, runtime_enable() and runtime_disable() calls are made by
-*phy_provider* only. But a querry here.
-Wouldn't in any case a PHY consumer might want to disable runtime_pm on PHY ?
-Say, when consumer failed to suspend the PHY properly
-(*put_sync(phy->dev)* fails), how much sure is the consumer about the
-state of PHY ?
-
-
--- 
-Thanks & Regards
-Vivek
+What about drivers/net/phy isn't networking?
