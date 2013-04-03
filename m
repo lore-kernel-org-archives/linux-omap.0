@@ -1,89 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/33] OMAPDSS: platform_enable/disable callback
- removal from panel drivers
-Date: Wed, 3 Apr 2013 08:46:45 -0700
-Message-ID: <20130403154645.GV10155@atomide.com>
-References: <1360765345-19312-1-git-send-email-archit@ti.com>
- <20130213164647.GF7144@atomide.com>
- <515C2058.8030402@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 1/6] drivers: phy: add generic PHY framework
+Date: Wed, 3 Apr 2013 18:47:04 +0300
+Message-ID: <20130403154704.GD19093@arwen.pp.htv.fi>
+References: <1364993634-6378-1-git-send-email-kishon@ti.com>
+ <1364993634-6378-2-git-send-email-kishon@ti.com>
+ <20130403134102.GC14680@arwen.pp.htv.fi> <515C3A42.4020404@ti.com>
+ <20130403142747.GK14680@arwen.pp.htv.fi> <515C3D94.1060000@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27079 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758296Ab3DCPqt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 11:46:49 -0400
-Content-Disposition: inline
-In-Reply-To: <515C2058.8030402@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============6840397604861865279=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <515C3D94.1060000-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [130403 05:32]:
-> Hi Tony,
-> 
-> On 2013-02-13 18:46, Tony Lindgren wrote:
-> > * Archit Taneja <archit@ti.com> [130213 06:26]:
-> >> init functions in omap board files request panel specific gpios, and provide
-> >> functions which omapdss panel drivers call to enable or disable them.
+--===============6840397604861865279==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="iVCmgExH7+hIHJ1A"
+Content-Disposition: inline
+
+--iVCmgExH7+hIHJ1A
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Wed, Apr 03, 2013 at 08:02:52PM +0530, Kishon Vijay Abraham I wrote:
+> >>>>+		ret =3D -EINVAL;
+> >>>>+		goto err0;
+> >>>>+	}
+> >>>>+
+> >>>>+	if (!phy_class)
+> >>>>+		phy_core_init();
+> >>>
+> >>>why don't you setup the class on module_init ? Then this would be a
+> >>>terrible error condition here :-)
 > >>
-> >> Instead of the board files requesting these gpios, they should just pass the
-> >> platform specific data(like the gpio numbers), the panel should retrieve the
-> >> platform data and request the gpios. Doing this prevents the need of the panel
-> >> driver calling platform functions in board files.
-> >>
-> >> Panel drivers have their own platform data struct, and the board files populate
-> >> these structs and pass the pointer to the 'data' field of omap_dss_device. This
-> >> work will make it easier for the panel drivers be more adaptable to the
-> >> DT model.
-> >>
-> >> There is also removal of passing panel reset_gpio numbers through
-> >> omap_dss_device struct directly, reset gpios are passed through platform data
-> >> only.
-> > 
-> > To avoid merge conflicts and dependencies between drivers and core
-> > Soc code, please break thes kind of patches into following parts:
-> > 
-> > 1. Any platform_data header changes needed so both I and Tomi
-> >    can pull it in as needed.
-> > 
-> > 2. Changes to DSS drivers. Please keep stubs around for the
-> >    board specific callback functions so omap2plus_defconfig
-> >    won't break with just #1 merged into arm soc tree.
-> > 
-> > 3. All the arch/arm/*omap* changes based on #1 above to
-> >    drop obsolete callback functions and add new pdata if still
-> >    needed. This needs to build and boot on #1 so I can merge
-> >    this in via arm soc tree.
-> > 
-> > 4. Any .dts changes needed.
-> 
-> Tony, I've split these patches as follows:
-> 
-> Platform data header file changes:
-> git://gitorious.org/linux-omap-dss2/linux.git 3.10/0-dss-headers
-> 
-> Board file changes (based on header changes):
-> git://gitorious.org/linux-omap-dss2/linux.git 3.10-lo/board-cleanup
-> 
-> DSS panel changes (based on header changes):
-> git://gitorious.org/linux-omap-dss2/linux.git 3.10/1-panel-cleanup
-> 
-> Removing unused fields from header files (based on panel changes):
-> git://gitorious.org/linux-omap-dss2/linux.git 3.10/2-late-panel-cleanup
-> 
-> The 2-late-panel-cleanup breaks compilation if the arch changes are not
-> merged, so I'll leave that until they have been merged.
-> 
-> Do you mind if I add the board-cleanup branch temporarily to omapdss's
-> for-next, to simplify testing? When everything looks ok, I'll remove it
-> and pass the branch to you to be handled through l-o.
+> >>This is for the case where the PHY driver gets loaded before the PHY
+> >>framework. I could have returned EPROBE_DEFER here instead I thought
+> >>will have it this way.
+> >
+> >looks a bit weird IMO. Is it really possible for PHY to load before ?
+>=20
+> yeah. it actually happened when I tried with beagle and had all the
+> modules as built-in. Because twl4030 has subsys_initcall(), it loads
+> before PHY framework.
 
-Sure please go ahead. There are still some board-*.c related patches
-that I have not merged, but we'll see those merge conflicts before
-next as I usually do a merge with next before sending out pull reqs.
+that's a bug in twl4030.
 
-Regards,
+--=20
+balbi
 
-Tony
+--iVCmgExH7+hIHJ1A
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRXE74AAoJEIaOsuA1yqREhR8P/jdBsfIWk5F+FRL20sflOaaH
+13di2G7fjFq8smKog+YR48DhMyDSF4wO6l9LK+T9iIbt2jA65YfZ2LgZVXVCSUH1
+coqm3yY2tfVGaDWd9s+oUP65sUCJT6Y57HKXIl1VOPex1YAiyESDXW3xT+Y+Cqg2
+nzdtKbQexAP+tmFt2mrairEHhO5guWe1O/dFOfPKFScU++bpJ8iMYndEBy9ACqNW
+felCwwIQaQHuU+axAgnNdK/Yy0UbEJwVxWMtQ1jcVrNCZQw1UO6xrpkodMJer+4I
+98c7zvUb6dtVUfwWCAyGMfkw6uZ8Ydjpse7rmPy7qRsyTg74pfIfgM18iSj5AqKn
+zLJ0+00Ij+EiJoPl1JL/JWdGMk3PxBhJBKwQSNXbO4Kbo5c9EiOqycgfg7Wd+4li
+hx1YUYk/fQxmELb7ynZdaO9rgEQJ5ogS3p8Juxndr2cVHc89qT9pLJc0QKYrVlUD
+BuXwB87cZSppheUeQ1lIOw8GIwmihs/eymLzAwrvoa0KbZfGiUa5Zg1AqLXeJXWo
+xG6tFtZdc49xD7kwyiFyQaJ+7FxuOcLE1O6OSuAGN9ODsyYGe6VhyQqDb3rajK8W
+RDv4B6cV9dZwOdvN8i3OnQ1Iz0zhAOeeZSoNJeoQEI8X1pt4IH6SVafyu9vG4WtH
+nCKnVNuQ1rzUX1AAiEqI
+=7PWu
+-----END PGP SIGNATURE-----
+
+--iVCmgExH7+hIHJ1A--
+
+--===============6840397604861865279==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============6840397604861865279==--
