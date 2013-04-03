@@ -1,38 +1,81 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OK to use commit 71856843 as base for further omap clean up?
-Date: Wed, 3 Apr 2013 17:53:53 +0100
-Message-ID: <20130403165353.GW30923@n2100.arm.linux.org.uk>
-References: <20130319175921.GA22104@atomide.com> <5150A60E.2090108@ti.com> <20130326232200.GQ30923@n2100.arm.linux.org.uk>
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Subject: Re: [PATCH v3 00/11] usb: dwc3/xhci/phy: Enable runtime power
+ management
+Date: Wed, 3 Apr 2013 10:27:51 -0700
+Message-ID: <20130403172751.GC10089@xanatos>
+References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51424 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762275Ab3DCQyE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 12:54:04 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130326232200.GQ30923@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vivek Gautam <gautam.vivek@samsung.com>
+Cc: linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Mar 26, 2013 at 11:22:00PM +0000, Russell King - ARM Linux wrote:
-> On Mon, Mar 25, 2013 at 02:31:26PM -0500, Jon Hunter wrote:
-> > Hi Russell,
-> > 
-> > On 03/19/2013 12:59 PM, Tony Lindgren wrote:
-> > > Hi Russell,
-> > > 
-> > > Can we use your commit 71856843 (ARM: OMAP: use consistent error checking)
-> > > as an immutable base for further omap dmtimer and gpmc work?
-> > 
-> > I saw that you updated your clean-up branch. Ok to use the below commit
-> > [1] as a base for some v3.10 updates?
+Question: Do you still need this patch for 3.10?
+
+http://marc.info/?l=linux-usb&m=136057666911621&w=2
+
+Does this patchset build on top of that?
+
+I'm really behind on my patches for 3.10, sorry.
+
+Sarah Sharp
+
+On Mon, Apr 01, 2013 at 07:23:59PM +0530, Vivek Gautam wrote:
+> This patch-series enables runtime power management on xhci-plat,
+> dwc3-core, dwc3-exynos as well as on Samsung's USB 2.0 type and
+> USB 3.0 type PHYs.
 > 
-> It's still the same commit.  I'm not intending to remove this commit
-> from it, so yes, fine, go ahead.
-
-*sigh*.  Actually, 4d485661d799e81f98097057d445f4803cef2af0 is buggered
-which is the commit below it.  I said yes too quickly.  Oh well, it'll
-just have to be broken for when it hits mainline now.
+> Based on 'next' branch of Felipe Balbi's USB tree.
+> 
+> Changes from v2:
+>  - Using separate functions for USB PHY runtime power management, instead of
+>    using macros.
+>  - Adding 'pm_runtime_set_suspended()' api call in dwc3 core layer before
+>    enabling runtime pm. (Ideally, we should be explicitly make device
+>    'suspended' or 'active' before enabling runtime pm on it).
+>  - Checking return code for 'put_sync' and 'get_sync' of USB-PHYs when
+>    waking up or suspending them from dwc3 core's runtime_pm callbacks.
+>  - Removed buggy pm_runtime_put() calls from driver's (xhci, dwc3 and PHY)
+>    remove functions.
+>  - Adding a patch to enable runtime power management of Samsung's USB 2.0 PHY
+>    (usb: phy: samsung: Enable runtime power management on usb2phy)
+> 
+> Changes from v1:
+>  - Adding required PHY APIs to handle runtime power management
+>    instead of directly twiddling with phy->dev.
+>  - Handling runtime power management of usb PHYs in dwc3 core
+>    driver instead of in any glue layer.
+>  - Splitting the patch:
+>    [PATCH 4/4] usb: phy: samsung: Enable runtime power management on samsung-usb
+>    into required number to bifurcate functionality.
+> 
+> Vivek Gautam (11):
+>   usb: phy: Add APIs for runtime power management
+>   USB: dwc3: Adjust runtime pm to allow autosuspend
+>   usb: dwc3: Enable runtime pm only after PHYs are initialized
+>   usb: dwc3: Add runtime power management callbacks
+>   usb: dwc3: exynos: Enable runtime power management
+>   usb: xhci: Enable runtime pm in xhci-plat
+>   usb: phy: samsung: Enable runtime power management on usb2phy
+>   usb: phy: samsung: Enable runtime power management on usb3phy
+>   usb: phy: samsung: Add support for external reference clock
+>   usb: phy: samsung: Add support for PHY ref_clk gpio
+>   usb: phy: samsung: Add support for PHY refclk switching
+> 
+>  drivers/usb/dwc3/core.c            |   59 ++++++++++++++--
+>  drivers/usb/dwc3/dwc3-exynos.c     |   12 +++
+>  drivers/usb/host/xhci-plat.c       |    6 ++
+>  drivers/usb/phy/phy-samsung-usb.c  |   26 +++++++
+>  drivers/usb/phy/phy-samsung-usb.h  |    1 +
+>  drivers/usb/phy/phy-samsung-usb2.c |    5 ++
+>  drivers/usb/phy/phy-samsung-usb3.c |  119 +++++++++++++++++++++++++++++--
+>  include/linux/usb/phy.h            |  141 ++++++++++++++++++++++++++++++++++++
+>  8 files changed, 358 insertions(+), 11 deletions(-)
+> 
+> -- 
+> 1.7.6.5
+> 
