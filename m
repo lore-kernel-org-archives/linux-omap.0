@@ -1,70 +1,59 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v5 2/6] usb: phy: omap-usb2: use the new generic PHY
- framework
-Date: Wed, 3 Apr 2013 18:48:07 +0300
-Message-ID: <20130403154807.GE19093@arwen.pp.htv.fi>
-References: <1364993634-6378-1-git-send-email-kishon@ti.com>
- <1364993634-6378-3-git-send-email-kishon@ti.com>
- <20130403134827.GF14680@arwen.pp.htv.fi>
- <201304031455.47864.arnd@arndb.de>
-Reply-To: <balbi@ti.com>
+From: Alexey Pelykh <alexey.pelykh@gmail.com>
+Subject: Re: [PATCH] Revert "OMAP/serial: Fix incorrect Rx FIFO threshold
+ setting, LSR validation on Tx, and Tx FIFO IRQ generation"
+Date: Wed, 3 Apr 2013 18:55:12 +0300
+Message-ID: <CAOmKuSp8nPJw7+LKK3ny7ZjEEV-CeDjGg0GD2fDjZiP6HBKGGw@mail.gmail.com>
+References: <alpine.DEB.2.00.1304010519260.28273@utopia.booyaka.com>
+	<CAOmKuSpttQJmrL=Htiz-Zc4voAF7CnG_GQYAO2onKpauwYjtvw@mail.gmail.com>
+	<alpine.DEB.2.00.1304010844100.28273@utopia.booyaka.com>
+	<CAOmKuSrABrPcZ=Yg1+LAHWbh9CdTYR0eUmJ2dd3z91oz0uu21g@mail.gmail.com>
+	<alpine.DEB.2.00.1304011008230.28273@utopia.booyaka.com>
+	<CAOmKuSrbDc025Tj9xsqDebJ_KZdp_VnWAOs_OO5UAegV43JcDQ@mail.gmail.com>
+	<CAOmKuSpbaKutLxbNihBRDz+B0Wt0XiPss-PcEHc-efCTvciNFg@mail.gmail.com>
+	<alpine.DEB.2.00.1304011654520.9148@utopia.booyaka.com>
+	<CAOmKuSo4onVtk2Ke-i+0_1Ych33KuUYspRy+cySRHf4yWB5XDw@mail.gmail.com>
+	<alpine.DEB.2.00.1304021821190.27146@utopia.booyaka.com>
+	<CAOmKuSqd=gNYFutpgDref58pbAbDwDin4mvL_OEooD1XuwKtgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xA/XKXTdy9G3iaIz"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201304031455.47864.arnd@arndb.de>
-Sender: linux-doc-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: balbi@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, gregkh@linuxfoundation.org, akpm@linux-foundation.org, swarren@wwwdotorg.org, sylvester.nawrocki@gmail.com, rob@landley.net, netdev@vger.kernel.org, davem@davemloft.net, cesarb@cesarb.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, b-cousson@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, mchehab@redhat.com, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <CAOmKuSqd=gNYFutpgDref58pbAbDwDin4mvL_OEooD1XuwKtgQ@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---xA/XKXTdy9G3iaIz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Paul,
 
-Hi,
+Should I start a new email chain with that patch or add it here?
 
-On Wed, Apr 03, 2013 at 02:55:47PM +0000, Arnd Bergmann wrote:
-> On Wednesday 03 April 2013, Felipe Balbi wrote:
-> > const ? Maybe provide a:
-> >=20
-> > #define DEFINE_PHY_OPS(name)    \
-> > const struct phy_ops #name_phy_ops =3D {
-> >=20
-> > macro ? This will force people to add the const keyword :-)
->=20
-> Forcing people to use const structures is good, but I think it would be
-> better without the macro, just by marking the argument in=20
-> devm_phy_create() as const.
-
-that won't force the definition of the struct to be const, however. But
-I get your point.
-
---=20
-balbi
-
---xA/XKXTdy9G3iaIz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRXE83AAoJEIaOsuA1yqREQ+sQAKeGj69voh941wu/KTn7tFb4
-D0RrvEHfbTUhaNkpsTUfurdzKk3k3GuH59HvfK9zoei36ogCIlSCwZKWWs4I9Yii
-IBpXzJp9n0fZUWLMdOrJgf/JOhouLuRJ1d5u5UTeAmRBtQT3dq89EEG1sixJCNBA
-QBGTW0bNdXAE2oglFG7EH2HMGeTxSJM49v2z+Lusv1bbbog8qjAOz+pL0WHBttzi
-h8wKxp8yOzrmCQ4ktsiin68JFV1AuaLS+BVdbxbtgKVdDDaJ7lvqfRHnmnBSOy27
-23Z2Vl36Gv299sZOiNEaYFI9z0ubNJc5N4YCVefGHPkn0+6Y/BeMrk8tXAnUnZq2
-HeCtlCLxtp7HmrvRt48paDOheQc7jcamPcMktIm5QhAD1uzRwVtk34XVMY1AEWKF
-TK3u7YJiy3THqXlvUvrYz+sPrpBFUEDK15Rcn/Cmk8H0gqpBtdCBU0HWHqeK//Jb
-vmpvmXzpWwPPWUYWDqumf3YyAonYz/oDCmaJR/mbuIMKK5A4IIcHiqGoU11j4BUI
-JU0yPf0n9BE8KEcZXKJy3LdRr6MOgSF3XZOZl4425pucdLnZNUJ1ILGHM7/6wkCx
-ILTlo6mtHSU3RE5do6JCw2EwqnK5lAAsrRUGtpuIQOclt2h4npWpYe+s3XR4fxz0
-xiUXWZKeY3w7HHLXlToJ
-=xgLX
------END PGP SIGNATURE-----
-
---xA/XKXTdy9G3iaIz--
+On Wed, Apr 3, 2013 at 12:19 AM, Alexey Pelykh <alexey.pelykh@gmail.com> wrote:
+> Hi Paul,
+>
+> No problem, I'll prepare patch in next 24 hours and will send in ASAP.
+>
+> But, since we've found the issue, I suggest that we should look at it
+> closer, especially since at this moment only you can reproduce it. As
+> far as I understand, but I may be wrong,
+> this comment is wrong, since if to specify
+> OMAP_UART_SCR_RX_TRIG_GRANU1_MASK, it effectively sets Rx threshold to
+> 1 character, instead of 16.
+> /* Set receive FIFO threshold to 16 characters and
+>  * transmit FIFO threshold to 16 spaces
+>  */
+>
+> On Tue, Apr 2, 2013 at 9:24 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>> On Mon, 1 Apr 2013, Alexey Pelykh wrote:
+>>
+>>> Paul, can you please try to comment out change related to Rx line
+>>> (granulation one). That's only Rx line related change in the patch.
+>>
+>> Yes, looks like simply reverting the commit 1776fd059c40 ("OMAP/serial:
+>> Fix incorrect Rx FIFO threshold setting, LSR validation on Tx, and Tx FIFO
+>> IRQ generation") change to OMAP_UART_SCR_RX_TRIG_GRANU1_MASK fixes it.
+>>
+>> Care to send a patch doing so ASAP for v3.9-rc fixes?  That would moot the
+>> revert of the entire commit 1776fd059c40.
+>>
+>>
+>> - Paul
