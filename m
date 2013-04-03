@@ -1,54 +1,60 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V3 0/2] ARM: OMAP3+: support cpufreq-cpu0 for device tree
- boot
-Date: Wed, 3 Apr 2013 13:22:24 -0500
-Message-ID: <20130403182224.GA3410@kahuna>
-References: <1364507576-19345-1-git-send-email-nm@ti.com>
- <87y5czzetg.fsf@linaro.org>
+From: Alexey Pelykh <alexey.pelykh@gmail.com>
+Subject: [PATCH] OMAP/serial: Revert bad fix of Rx FIFO threshold granularity
+Date: Wed, 3 Apr 2013 14:31:46 -0400
+Message-ID: <20130403183146.GA4072@inertiallabs-linux64>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <cpufreq-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qc0-f176.google.com ([209.85.216.176]:48346 "EHLO
+	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759104Ab3DCSby (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 14:31:54 -0400
 Content-Disposition: inline
-In-Reply-To: <87y5czzetg.fsf@linaro.org>
-Sender: cpufreq-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-omap@vger.kernel.org, Rob Herring <robherring2@gmail.com>, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 10:47-20130403, Kevin Hilman wrote:
-> Nishanth Menon <nm@ti.com> writes:
-[...]
-> > Test coverage:
-> > 	test script: http://pastebin.com/zrr8ptge
-> > Platforms verified:
-> > 	beaglebone(rev A6a) - AM33xx compatible - http://pastebin.com/GVP2wDVr
-> > 	beagleboard (rev C1D) - OMAP3430 compatible
-> > 		- DT enabled boot: http://pastebin.com/2AY1F5Qa
-> > 		- No DT enabled boot: http://pastebin.com/hDk0gbpU
-> > 	omap3-beagle-xm -OMAP3630 compatible - http://pastebin.com/5tHAQcLZ
-> > 	Pandaboard -(OMAP4430 ES2.2) - http://pastebin.com/6D9aDPXT
-> > 	Pandaboard-ES -(OMAP4460 ES1.1) - http://pastebin.com/ExrBEczr
-> 
-> And thanks also for the broad testing.
-> 
-> One nit about the test report/coverage is I don't see any
-> test/verification that the voltage is still being scaled based on the DT
-> based OPPs.  It's easy to verify at least from the regulator PoV that
-> the voltage is scaled also.
-I had probed and verified voltage on beagle and beagle XM. OMAP4
-obviously wont scale (as mentioned) due to the fact that vc-vp regulator
-is needed.
+From: Alexey Pelykh <alexey.pelykh@gmail.com>
 
-> 
-> My dumb DVFS test script (below) should work on any busybox rootfs 
-thanks for the script. yep - I can use this as well, but given that probe
-did verify voltage scale on TWL5030 inductors, it might be redundant.
+Partially reverts 1776fd059c40907297d6c26c51876575d63fd9e2
+that introduced regression reported by Paul Walmsley.
 
-Ref:
-https://plus.google.com/photos/112464029509057661457/albums/5715034179943520193/5854221132322035042
-I can take it again and show the same snap along with the log with the
-mentioned script later today.
+This commit restores setting granularity in SCR register
+and adds note about comments below being inconsistent with
+actual code.
 
--- 
-Regards,
-Nishanth Menon
+Signed-off-by: Alexey Pelykh <alexey.pelykh@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: linux-serial@vger.kernel.org 
+Cc: linux-arm-kernel@lists.infradead.org 
+Cc: linux-omap@vger.kernel.org 
+
+---
+
+Paul, please confirm that this patch solves the regression.
+
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 4dc4140..30d4f7a 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -886,6 +886,17 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
+ 	/* FIFO ENABLE, DMA MODE */
+ 
++	up->scr |= OMAP_UART_SCR_RX_TRIG_GRANU1_MASK;
++	/*
++	 * NOTE: Setting OMAP_UART_SCR_RX_TRIG_GRANU1_MASK
++	 * sets Enables the granularity of 1 for TRIGGER RX
++	 * level. Along with setting RX FIFO trigger level
++	 * to 1 (as noted below, 16 characters) and TLR[3:0]
++	 * to zero this will result RX FIFO threshold level
++	 * to 1 character, instead of 16 as noted in comment
++	 * below.
++	 */
++
+ 	/* Set receive FIFO threshold to 16 characters and
+ 	 * transmit FIFO threshold to 16 spaces
+ 	 */
