@@ -1,49 +1,62 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH] Revert "OMAP/serial: Fix incorrect Rx FIFO threshold
- setting, LSR validation on Tx, and Tx FIFO IRQ generation"
-Date: Wed, 3 Apr 2013 23:48:10 +0300
-Message-ID: <CANOLnOPc-=RP8K8A8sda6riBNTHG0vBAeGtryXALgewm53_B3A@mail.gmail.com>
-References: <alpine.DEB.2.00.1304010519260.28273@utopia.booyaka.com>
-	<CAOmKuSpttQJmrL=Htiz-Zc4voAF7CnG_GQYAO2onKpauwYjtvw@mail.gmail.com>
-	<alpine.DEB.2.00.1304010844100.28273@utopia.booyaka.com>
-	<CAOmKuSrABrPcZ=Yg1+LAHWbh9CdTYR0eUmJ2dd3z91oz0uu21g@mail.gmail.com>
-	<alpine.DEB.2.00.1304011008230.28273@utopia.booyaka.com>
-	<CAOmKuSrbDc025Tj9xsqDebJ_KZdp_VnWAOs_OO5UAegV43JcDQ@mail.gmail.com>
-	<CAOmKuSpbaKutLxbNihBRDz+B0Wt0XiPss-PcEHc-efCTvciNFg@mail.gmail.com>
-	<alpine.DEB.2.00.1304011654520.9148@utopia.booyaka.com>
-	<CAOmKuSo4onVtk2Ke-i+0_1Ych33KuUYspRy+cySRHf4yWB5XDw@mail.gmail.com>
-	<alpine.DEB.2.00.1304021821190.27146@utopia.booyaka.com>
-	<CAOmKuSqd=gNYFutpgDref58pbAbDwDin4mvL_OEooD1XuwKtgQ@mail.gmail.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v2 08/18] ARM: OMAP5: PM: Add CPU power off in hotplug path
+Date: Wed, 03 Apr 2013 13:49:18 -0700
+Message-ID: <876203uypd.fsf@linaro.org>
+References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
+	<1364205910-32392-9-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:53394 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761784Ab3DCUsL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 16:48:11 -0400
-In-Reply-To: <CAOmKuSqd=gNYFutpgDref58pbAbDwDin4mvL_OEooD1XuwKtgQ@mail.gmail.com>
+Received: from mail-da0-f43.google.com ([209.85.210.43]:40372 "EHLO
+	mail-da0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761357Ab3DCUtW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 16:49:22 -0400
+Received: by mail-da0-f43.google.com with SMTP id u36so824047dak.2
+        for <linux-omap@vger.kernel.org>; Wed, 03 Apr 2013 13:49:21 -0700 (PDT)
+In-Reply-To: <1364205910-32392-9-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Mon, 25 Mar 2013 15:35:00 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexey Pelykh <alexey.pelykh@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, linux-serial@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com
 
-Hi,
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-On Wed, Apr 3, 2013 at 12:19 AM, Alexey Pelykh <alexey.pelykh@gmail.com=
-> wrote:
+> Add power management code to handle the CPU off mode to enable CPUP hotplug
+> mode for OMAP5 devices. Separate suspend finisher is used for OMAP5(Cortex-A15)
+> because it doesn't use SCU power status register and external PL310 L2 cache
+> which makes code flow bit different.
 >
-> But, since we've found the issue, I suggest that we should look at it
-> closer, especially since at this moment only you can reproduce it. As
+> Acked-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-=46WIW I was also affected by it, maybe because my console is on UART3
-and that is on different power (or was is clock?) domain than UART1.
+[...]
 
+> @@ -436,14 +445,21 @@ int __init omap4_mpuss_init(void)
+>  
+>  	if (cpu_is_omap44xx()) {
+>  		omap_pm_ops.finish_suspend = omap4_finish_suspend;
+> +		omap_pm_ops.hotplug_restart = omap_secondary_startup;
+>  		omap_pm_ops.resume = omap4_cpu_resume;
+>  		omap_pm_ops.scu_prepare = scu_pwrst_prepare;
+>  		cpu_context_offset = OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET;
+>  	} else if (soc_is_omap54xx()) {
+> +		omap_pm_ops.finish_suspend = omap5_finish_suspend;
+> +		omap_pm_ops.hotplug_restart = omap5_secondary_startup;
+>  		cpu_context_offset = OMAP54XX_RM_CPU0_CPU0_CONTEXT_OFFSET;
+>  		enable_mercury_retention_mode();
+>  	}
+>  
+> +	/* Over-write the OMAP4 hook to take care of ROM BUG */
+> +	if (cpu_is_omap446x())
+> +		omap_pm_ops.hotplug_restart = omap_secondary_startup_4460;
 
---
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A couple nits...
+
+I think this would go better at the end of the 'if omap44xx' block
+above.
+
+Also, while you're hear, maybe it's time to rename the current secondary 
+startup functions to match the new one.  IOW omap4_..., omap4460_... and omap5_...
+
+Kevin
