@@ -1,101 +1,67 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 00/28] OMAP: DSS related board file changes
-Date: Wed, 3 Apr 2013 12:36:58 +0300
-Message-ID: <515BF83A.7000108@ti.com>
-References: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [RFC v2] dmaengine: omap-dma: Start DMA without delay for cyclic channels
+Date: Wed, 3 Apr 2013 13:17:42 +0200
+Message-ID: <1364987862-14597-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigAE2AFA5B1ECC6BC2E60D0EFB"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53917 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758952Ab3DCJhD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Apr 2013 05:37:03 -0400
-In-Reply-To: <1364474962-20439-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>
+Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Meerwald <pmeerw@pmeerw.net>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Igor Grinberg <grinberg@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
---------------enigAE2AFA5B1ECC6BC2E60D0EFB
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+cyclic DMA is only used by audio which needs DMA to be started without a
+delay.
+If the DMA for audio is started using the tasklet we experience random
+channel switch (to be more precise: channel shift).
 
-Hi,
+Reported-by: Peter Meerwald <pmeerw@pmeerw.net>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+Hi Russell,
 
-On 2013-03-28 14:48, Tomi Valkeinen wrote:
-> So here are the DSS related board file changes for 3.10.
->=20
-> First there are a bunch of patches adding the Kconfig options so that o=
-nly one
-> display device is created for a single video bus. Only Overo had more t=
-han two
-> displays on the same bus, but unfortunately there were multiple boards =
-with a
-> setup that puts an LCD and DVI output on the same video bus.
->=20
-> So the ifdeffery is not very nice. But, as discussed, this is the best =
-way
-> forward, and should be seen as a temporary solution until we get full D=
-T
-> support.
->=20
-> Then the rest are converting the old omap_dss_device style displays to =
-platform
-> devices. Only TFP410, generic-dpi-panel, HDMI and Taal drivers have bee=
-n
-> converted yet, but those seem to form the bulk of the display options u=
-sed.
->=20
-> This series can be found from:
-> git://gitorious.org/linux-omap-dss2/linux.git 3.10-lo/1-arch-dss
->=20
-> These patches depend on a few dss header file changes. These header fil=
-e
-> changes can be found from:
-> git://gitorious.org/linux-omap-dss2/linux.git 3.10/0-dss-headers
->=20
-> If this series is applied without the relevant omapdss changes, everyth=
-ing
-> compiles and the boards boot, but the converted displays do not work. T=
-he same
-> happens if only the omapdss changes are applied, but not this series.
->=20
-> The related omapdss changes can be found from:
-> git://gitorious.org/linux-omap-dss2/linux.git 3.10/3-dss-dev-model
+Instead of removing the tasklet we can identify the DMA channel used by audio
+based on the cyclic flag of the channel.
+I think this can be used as a short term solution to fix the audio channel shift
+issue and later when we have the dynamic DMA channel allocation we can adjust
+the code.
 
-I'll drop these patches and the branches mentioned above, as I don't
-have a solution to the multiple-displays-per-output problem. I'll
-continue looking at this, but it surely won't make into the next merge
-window.
+Regards,
+Peter
 
- Tomi
+ drivers/dma/omap-dma.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-
-
---------------enigAE2AFA5B1ECC6BC2E60D0EFB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRW/g6AAoJEPo9qoy8lh71XwQP/1skfB+jd9weYG5DaJ0aidMI
-nRVyHD8JJKnGnhU5nxslMImer4u6Iu1B7xZ/Bnau8gb6hyKjmaVdNnH3NS5qP1Zm
-VR4yX/BODfJg7o6lULFkSvjYsK4zULXXOR93DFIvW+u9Cz7puznNi+Yz79hWBBnw
-87ogSoVVlGLMNU5zJCPUxBDYGF23VelgsBFI5QorIlCk1AJHSozfoYyNqXz/fTvZ
-PrEa1qSqQ8Yzg+CWtY1THqs64VUGXnMXEC8Xkp+50UL1vANcHq/bAIXWU2EP0P2F
-v+qO0MyVmJknhvgP54K06Ue+6wKDceJ/VokeCQ6Ut196CS7NSMep4tb4/PcQtZ9N
-kYce/5I91ZtjNXjGpwR0xqOet/HvMgyEIeFKGboRy+icWUdcJqz1EH4GbCxX8A6M
-JWBgxczVGNXZonHrvDKAzNDD5rxjcwSaREd6R9Jnh4C8yBVMP2igGbNwmzj82poh
-FYvXbyy7vTC5O92eZnbwIrxnik3uOneJyDY0jiT4MwoLOpOQ1x9EuJFLB0J7jCk4
-p87SMI7GSqdV9OJ1Oi4WFEWimpPGpA0SoBGgzbzK4Yd0wi41gwYV0HScIXXnNJuC
-xsp9LGBbfZKez3wrSK5hURnx9LQSmginvoCFYSTSXHYBx9UAu9Gt+O6cLffHTXjE
-mnQJHM3WwUXL0IJpNQuz
-=U4Vx
------END PGP SIGNATURE-----
-
---------------enigAE2AFA5B1ECC6BC2E60D0EFB--
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 2ea3d7e..ec3fc4f 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -282,12 +282,20 @@ static void omap_dma_issue_pending(struct dma_chan *chan)
+ 
+ 	spin_lock_irqsave(&c->vc.lock, flags);
+ 	if (vchan_issue_pending(&c->vc) && !c->desc) {
+-		struct omap_dmadev *d = to_omap_dma_dev(chan->device);
+-		spin_lock(&d->lock);
+-		if (list_empty(&c->node))
+-			list_add_tail(&c->node, &d->pending);
+-		spin_unlock(&d->lock);
+-		tasklet_schedule(&d->task);
++		/*
++		 * c->cyclic is used only by audio and in this case the DMA need
++		 * to be started without delay.
++		 */
++		if (!c->cyclic) {
++			struct omap_dmadev *d = to_omap_dma_dev(chan->device);
++			spin_lock(&d->lock);
++			if (list_empty(&c->node))
++				list_add_tail(&c->node, &d->pending);
++			spin_unlock(&d->lock);
++			tasklet_schedule(&d->task);
++		} else {
++			omap_dma_start_desc(c);
++		}
+ 	}
+ 	spin_unlock_irqrestore(&c->vc.lock, flags);
+ }
+-- 
+1.8.1.5
