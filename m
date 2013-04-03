@@ -1,110 +1,54 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3] ARM: omap2: twl-common: Add default power configuration
-Date: Wed, 3 Apr 2013 13:59:11 +0200
-Message-ID: <1364990351-6778-1-git-send-email-peter.ujfalusi@ti.com>
+From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/5] usb: musb: am335x support
+Date: Wed, 03 Apr 2013 14:00:23 +0200
+Message-ID: <515C19D7.6080702@gmail.com>
+References: <cover.1351870620.git.afzal@ti.com> <509420D8.1030307@gmail.com> <C8443D0743D26F4388EA172BF4E2A7A93EA0A1F2@DBDE01.ent.ti.com> <51312430.6060306@gmail.com> <87sj4cunp6.fsf@dell.be.48ers.dk> <5133E268.5010604@gmail.com> <51388D64.9000005@gmail.com> <513A1580.90303@gmail.com> <514863BD.5010503@gmail.com> <87620nwmd2.fsf@dell.be.48ers.dk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59626 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761013Ab3DCL7R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Apr 2013 07:59:17 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87620nwmd2.fsf-D6SC8u56vOOJDPpyT6T3/w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
+Cc: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "Santhapuri, Damodar" <damodar.santhapuri-l0cyMroinI0@public.gmane.org>, "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Matthias Brugger <matthias.bgg@gmail.com>
 
-From: Matthias Brugger <matthias.bgg@gmail.com>
+On 19.03.2013 14:27, Peter Korsgaard wrote:
+>>>>>> "Daniel" == Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+> 
+> Hi,
+> 
+>  >> I know this patch reintroduces bits that have been intentionally
+>  >> removed before, in particular by 032ec49f53 ("usb: musb: drop
+>  >> useless board_mode usage"), but I don't know how this usb driver is
+>  >> supposed to work in host mode without taking the configured port
+>  >> mode into account. If anyone can explain to me which information I'm
+>  >> missing here, I can happily test a patch. For now, this works for
+>  >> me.
+> 
+>  Daniel> Hmm, nobody, really? Am I the only one who's running the musb
+>  Daniel> driver in host-only mode?
+> 
+> Sorry, I'll be needing host mode as well, but am currently stuck working
+> on non-am335x stuff - So I'm definately interested in getting it to
+> work, but don't have free cycles to look into it right now.
+> 
 
-This patch adds a generic power script configuration.
-When rebooting an OMAP3530 at 125 MHz, the reboot hangs.
-With the generic power script, TWL4030 will be reset
-when a warm reset occures. This way the OMAP3530 does not
-hang on reboot.
+Another two weeks passed with no answer at all, which makes me wonder
+whether the changes were made considering the setup at all that at least
+Peter, Koen and me are using.
 
-Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-Tony, Matthias,
+Felipe, could you explain the background on how the dsps driver is
+supposed to work in host mode at boot time with the rework of the driver
+you did for 3.7? It might just be me not understanding the rationale
+behind all these changes, but appearantly, I'm not the only one who's
+affected by that.
 
-Changes since v2:
-- remove the __initdata from all the structures introduced by this patch
 
-Regards,
-Peter
+Thanks,
+Daniel
 
- arch/arm/mach-omap2/twl-common.c | 38 ++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/twl-common.h |  1 +
- 2 files changed, 39 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 51e138c..7551bbc 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -121,6 +121,41 @@ static struct twl4030_audio_data omap3_audio_pdata = {
- 	.codec = &omap3_codec,
- };
- 
-+static struct twl4030_ins wrst_seq[] __initdata = {
-+	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wrst_script __initdata = {
-+	.script = wrst_seq,
-+	.size	= ARRAY_SIZE(wrst_seq),
-+	.flags	= TWL4030_WRST_SCRIPT,
-+};
-+
-+static struct twl4030_script *omap3_power_scripts[] __initdata = {
-+	&wrst_script,
-+};
-+
-+static struct twl4030_resconfig omap3_rconfig[] __initdata = {
-+	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
-+		.type2 = -1 },
-+	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
-+		.type2 = -1 },
-+	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
-+		.type2 = -1 },
-+	{ 0, 0},
-+};
-+
-+static struct twl4030_power_data omap3_power_pdata __initdata = {
-+	.scripts	= omap3_power_scripts,
-+	.num		= ARRAY_SIZE(omap3_power_scripts),
-+	.resource_config = omap3_rconfig,
-+};
-+
- static struct regulator_consumer_supply omap3_vdda_dac_supplies[] = {
- 	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
- };
-@@ -225,6 +260,9 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->audio)
- 		pmic_data->audio = &omap3_audio_pdata;
- 
-+	if (pdata_flags & TWL_COMMON_PDATA_POWER && !pmic_data->power)
-+		pmic_data->power = &omap3_power_pdata;
-+
- 	/* Common regulator configurations */
- 	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
- 		pmic_data->vdac = &omap3_vdac_idata;
-diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
-index 24b65d0..b64590b8 100644
---- a/arch/arm/mach-omap2/twl-common.h
-+++ b/arch/arm/mach-omap2/twl-common.h
-@@ -7,6 +7,7 @@
- #define TWL_COMMON_PDATA_BCI		(1 << 1)
- #define TWL_COMMON_PDATA_MADC		(1 << 2)
- #define TWL_COMMON_PDATA_AUDIO		(1 << 3)
-+#define TWL_COMMON_PDATA_POWER		(1 << 4)
- 
- /* Common LDO regulators for TWL4030/TWL6030 */
- #define TWL_COMMON_REGULATOR_VDAC	(1 << 0)
--- 
-1.8.1.5
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
