@@ -1,38 +1,71 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 0/6] Generic PHY Framework
-Date: Wed, 3 Apr 2013 11:29:53 +0530
-Message-ID: <515BC559.1070602@ti.com>
-References: <1364449408-9510-1-git-send-email-kishon@ti.com>
- <20130328.143142.2080627792603647441.davem@davemloft.net>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH v3 02/11] USB: dwc3: Adjust runtime pm to allow autosuspend
+Date: Wed, 3 Apr 2013 11:35:43 +0530
+Message-ID: <CAFp+6iFv43Xbck1cy8AcvGzBrxOECHLjowfV7askCCYgFFgNrQ@mail.gmail.com>
+References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
+	<1364824448-14732-3-git-send-email-gautam.vivek@samsung.com>
+	<20130402082952.GG30286@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20130328.143142.2080627792603647441.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20130402082952.GG30286@arwen.pp.htv.fi>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Felipe,
 
-On Friday 29 March 2013 12:01 AM, David Miller wrote:
+
+On Tue, Apr 2, 2013 at 1:59 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Mon, Apr 01, 2013 at 07:24:01PM +0530, Vivek Gautam wrote:
+>> The current code in the dwc3 probe effectively disables runtime pm
+>> from ever working because it calls a get() that was never put() until
+>> device removal.  Change the runtime pm code to match the standard
+>> formula and allow runtime pm to function.
+>>
+>> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>> CC: Doug Anderson <dianders@chromium.org>
+>> ---
+>>  drivers/usb/dwc3/core.c |    8 +++++++-
+>>  1 files changed, 7 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>> index e2325ad..3a6993c 100644
+>> --- a/drivers/usb/dwc3/core.c
+>> +++ b/drivers/usb/dwc3/core.c
+>> @@ -491,6 +491,11 @@ static int dwc3_probe(struct platform_device *pdev)
+>>
+>>       dwc->needs_fifo_resize = of_property_read_bool(node, "tx-fifo-resize");
+>>
+>> +     /* Setting device state as 'suspended' initially,
 >
-> You really need to CC: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org rather than me explicitly
-> on this patch set.
+> wrong comment style.
+Yea :-(  will fix this.
 
-I was CC'ing whatever get_maintainer shows. I'll make sure to CC 
-netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org though there's nothing related to network in this 
-patch series (Maybe sometime in the future it'll be used).
+>
+>> +      * to make sure we know device state prior to
+>> +      * pm_runtime_enable
+>> +      */
+>> +     pm_runtime_set_suspended(dev);
+>
+> didn't Alan mention this should be done at the Bus level ? In that case,
+> shouldn't you have call pm_runtime_set_active/suspended() based on
+> DT's status=okay or status=disabled ? Or something similar ?
 
-Thanks
-Kishon
+True, we should be doing this at bus level. But he did also mention to
+let pm core
+know of the state of the device before enabling the runtime pm. Right ?
+Moreover immediately after pm_runtime_enable(), we do pm_runtime_get_sync()
+so that device comes to active state.
+I am possibly missing things out here, not able to grab this whole
+picture completely :-(
+
+Wouldn't DT's status=disabled actually be disabling the device as a whole ?
+So, how much will runtime power management on the device be affecting ?
+
+
+
+-- 
+Thanks & Regards
+Vivek
