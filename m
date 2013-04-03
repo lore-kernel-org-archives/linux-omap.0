@@ -1,17 +1,17 @@
 From: "Kristie Shay" <kristie.shay@esu10.org>
 Subject: Inheritance
-Date: Wed, 03 Apr 2013 03:06:08 -0500
-Message-ID: <54e3-515be300-83-2e873ac0__2159.57727418772$1364977892$gmane$org@99847976>
+Date: Wed, 03 Apr 2013 03:06:01 -0500
+Message-ID: <5c47-515be300-2ad-5fdce080__31145.3892071315$1364977904$gmane$org@182547175>
 Reply-To: dh351406@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtpout04.project42.k12.ne.us ([204.234.17.77]:46326 "EHLO
+Received: from smtpout04.project42.k12.ne.us ([204.234.17.77]:46329 "EHLO
 	SMTPOut03.project42.k12.ne.us" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1761034Ab3DCI3u convert rfc822-to-8bit
+	by vger.kernel.org with ESMTP id S1761452Ab3DCI3v convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Apr 2013 04:29:50 -0400
+	Wed, 3 Apr 2013 04:29:51 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
