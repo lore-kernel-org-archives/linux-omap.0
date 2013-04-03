@@ -1,154 +1,53 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
-Date: Wed, 3 Apr 2013 20:12:29 +0530
-Message-ID: <CAFp+6iGqmUK1r2CN-0jwoEhCuzVhxaRS1W3CMm0JhTPvDyh_rw@mail.gmail.com>
-References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
-	<1364824448-14732-2-git-send-email-gautam.vivek@samsung.com>
-	<515BB951.40702@ti.com>
-	<CAFp+6iG8WdWHXVCANx77OiTXLeZ-4qE4jySWqPLhfR1KOEP4fw@mail.gmail.com>
-	<20130403081532.GE25837@arwen.pp.htv.fi>
-	<CAFp+6iHXW8z2sc44c1hq2au_UnUyVZEr9D0t5BM4mfqcQKZgbA@mail.gmail.com>
-	<20130403135414.GG14680@arwen.pp.htv.fi>
-	<20130403135659.GH14680@arwen.pp.htv.fi>
-	<CAFp+6iEmJtS2vxz8YHXP+FbNsxK2bR94rDrrSiKbGRRuUhBA5g@mail.gmail.com>
-	<20130403141831.GJ14680@arwen.pp.htv.fi>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v4 01/21] usb: phy: nop: Add some parameters to platform
+ data
+Date: Wed, 3 Apr 2013 17:53:50 +0300
+Message-ID: <515C427E.4020101@ti.com>
+References: <1363794300-31526-1-git-send-email-rogerq@ti.com> <1363794300-31526-2-git-send-email-rogerq@ti.com> <20130320155555.GG1567@arwen.pp.htv.fi> <20130320161324.GL16413@atomide.com> <20130320161947.GJ1567@arwen.pp.htv.fi> <20130402172129.GT10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20130403141831.GJ14680@arwen.pp.htv.fi>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130402172129.GT10155@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 3, 2013 at 7:48 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Wed, Apr 03, 2013 at 07:40:44PM +0530, Vivek Gautam wrote:
->> >> > >> >> +static inline void usb_phy_autopm_enable(struct usb_phy *x)
->> >> > >> >> +{
->> >> > >> >> +       if (!x || !x->dev) {
->> >> > >> >> +               dev_err(x->dev, "no PHY or attached device available\n");
->> >> > >> >> +               return;
->> >> > >> >> +               }
->> >> > >> >> +
->> >> > >> >> +       pm_runtime_enable(x->dev);
->> >> > >> >> +}
->> >> > >> >
->> >> > >> >
->> >> > >> > IMO we need not have wrapper APIs for runtime_enable and runtime_disable
->> >> > >> > here. Generally runtime_enable and runtime_disable is done in probe and
->> >> > >> > remove of a driver respectively. So it's better to leave the
->> >> > >> > runtime_enable/runtime_disable to be done in *phy provider* driver than
->> >> > >> > having an API for it to be done by *phy user* driver. Felipe, what do you
->> >> > >> > think?
->> >> > >>
->> >> > >> Thanks!!
->> >> > >> That's very true, runtime_enable() and runtime_disable() calls are made by
->> >> > >> *phy_provider* only. But a querry here.
->> >> > >> Wouldn't in any case a PHY consumer might want to disable runtime_pm on PHY ?
->> >> > >> Say, when consumer failed to suspend the PHY properly
->> >> > >> (*put_sync(phy->dev)* fails), how much sure is the consumer about the
->> >> > >> state of PHY ?
->> >> > >
->> >> > > no no, wait a minute. We might not want to enable runtime pm for the PHY
->> >> > > until the UDC says it can handle runtime pm, no ? I guess this makes a
->> >> > > bit of sense (at least in my head :-p).
->> >> > >
->> >> > > Imagine if PHY is runtime suspended but e.g. DWC3 isn't runtime pm
->> >> > > enabled... Does it make sense to leave that control to the USB
->> >> > > controller drivers ?
->> >> > >
->> >> > > I'm open for suggestions
->> >> >
->> >> > Of course unless the PHY consumer can handle runtime PM for PHY,
->> >> > PHY should not ideally be going into runtime_suspend.
->> >> >
->> >> > Actually trying out few things, here are my observations
->> >> >
->> >> > Enabling runtime_pm on PHY pushes PHY to go into runtime_suspend state.
->> >> > But a device detection wakes up DWC3 controller, and if i don't wake
->> >> > up PHY (using get_sync(phy->dev)) here
->> >> > in runtime_resume() callback of DWC3, i don't get PHY back in active state.
->> >> > So it becomes the duty of DWC3 controller to handle PHY's sleep and wake-up.
->> >> > Thereby it becomes logical that DWC3 controller has the right to
->> >> > enable runtime_pm
->> >> > of PHY.
->> >> >
->> >> > But there's a catch here. if there are multiple consumers of PHY (like
->> >> > USB2 type PHY can
->> >> > have DWC3 controller as well as EHCI/OHCI or even HSGadget) then in that case,
->> >> > only one of the consumer can enable runtime_pm on PHY. So who decides this.
->> >> >
->> >> > Aargh!! lot of confusion here :-(
->> >>
->> >>
->> >> hmmm, maybe add a flag to struct usb_phy and check it on
->> >> usb_phy_autopm_enable() ??
->> >>
->> >> How does usbcore handle it ? They request class drivers to pass
->> >> supports_autosuspend, but while we should have a similar flag, that's
->> >> not enough. We also need a flag to tell us when pm_runtime has already
->> >> been enabled.
+On 04/02/2013 08:21 PM, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [130320 09:24]:
+>> On Wed, Mar 20, 2013 at 09:13:24AM -0700, Tony Lindgren wrote:
+>>> * Felipe Balbi <balbi@ti.com> [130320 09:00]:
+>>>> On Wed, Mar 20, 2013 at 05:44:40PM +0200, Roger Quadros wrote:
+>>>>> Add clk_rate parameter to platform data. If supplied, the
+>>>>> NOP phy driver will program the clock to that rate during probe.
+>>>>>
+>>>>> Also add 2 flags, needs_vcc and needs_reset.
+>>>>> If the flag is set and the regulator couldn't be found
+>>>>> then the driver will bail out with -EPROBE_DEFER.
+>>>>>
+>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>>> Acked-by: Felipe Balbi <balbi@ti.com>
+>>>>
+>>>> Hi Tony,
+>>>>
+>>>> maybe you might prefer to merge commit 1f0972f from my next branch which
+>>>> is exactly this patch. Basically, if you:
+>>>>
+>>>> $ git fetch git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git next
+>>>> $ git merge 1f0972f
+>>>>
+>>>> you get $SUBJECT and can apply the others without fear of conflicts
+>>>> later.
+>>>
+>>> OK thanks will use commit 1f0972f, so let's consider that commit immutable.
 >>
->> True
->>
->> >>
->> >> So how about:
->> >>
->> >> usb_phy_autopm_enable()
->> >> {
->> >>       if (!phy->suports_autosuspend)
->> >>               return -ENOSYS;
->> >>
->> >>       if (phy->autosuspend_enabled)
->> >>               return 0;
->> >>
->> >>       phy->autosuspend_enabled = true;
->> >>       return pm_runtime_enable(phy->dev);
->> >> }
->> >>
->> >> ???
->>
->> Great
->>
->> >
->> > and of course I missed the fact that pm_runtime_enable returns nothing
->> > :-) But you got my point.
->>
->> Yea, this is a way around this. :-)
->>
->> Just one more query :-)
->>
->> Lets suppose DWC3 enables runtime_pm on USB 2 type phy,
->> it will try to go into suspend state and thereby call runtime_suspend(), if any.
->> And PHY will come to active state only when its consumer wakes it up,
->> and this consumer is operational
->> only when its related PHY is in fully functional state.
->> So do we have a situation in which this PHY goes into low power state
->> in its runtime_suspend(),
->> resulting in non-detection of devices on further attach (since PHY is
->> in low power state) ?
->>
->> Will the controller (like EHCI/OHCI) be functional now ?
->
-> ehci/ohci need to cope with that by calling usb_phy_autopm_get_sync(),
-> right ? (so does DWC3 :-)
+>> yeah, once it hits my 'next' branch, I don't rebase anymore.
+> 
+> I've applied the board related patchs into omap-for-v3.10/usb that's based
+> on commit 1f0972f.
 
-Yes ofcourse.
-So PHYs (in their runtime_suspend) should not be pulled into a state
-wherein even the controllers become in-operational.
-Thereby no attach-detection, and controller doesn't wake up to be able
-to usb_phy_autopm_get_sync()
+Thanks Tony.
 
-Sorry for so much noise, i am acting like slow study ;-)
-
->
-> --
-> balbi
-
-
-
--- 
-Thanks & Regards
-Vivek
+cheers,
+-roger
