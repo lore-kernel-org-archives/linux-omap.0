@@ -1,150 +1,170 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 2/6] usb: phy: omap-usb2: use the new generic PHY
- framework
-Date: Wed, 3 Apr 2013 16:48:27 +0300
-Message-ID: <20130403134827.GF14680@arwen.pp.htv.fi>
-References: <1364993634-6378-1-git-send-email-kishon@ti.com>
- <1364993634-6378-3-git-send-email-kishon@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
+Date: Wed, 3 Apr 2013 16:54:14 +0300
+Message-ID: <20130403135414.GG14680@arwen.pp.htv.fi>
+References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
+ <1364824448-14732-2-git-send-email-gautam.vivek@samsung.com>
+ <515BB951.40702@ti.com>
+ <CAFp+6iG8WdWHXVCANx77OiTXLeZ-4qE4jySWqPLhfR1KOEP4fw@mail.gmail.com>
+ <20130403081532.GE25837@arwen.pp.htv.fi>
+ <CAFp+6iHXW8z2sc44c1hq2au_UnUyVZEr9D0t5BM4mfqcQKZgbA@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0292480595452152103=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1364993634-6378-3-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="N8NGGaQn1mzfvaPg"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAFp+6iHXW8z2sc44c1hq2au_UnUyVZEr9D0t5BM4mfqcQKZgbA@mail.gmail.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Vivek Gautam <gautamvivek1987@gmail.com>
+Cc: balbi@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0292480595452152103==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ik0NlRzMGhMnxrMX"
-Content-Disposition: inline
-
---ik0NlRzMGhMnxrMX
+--N8NGGaQn1mzfvaPg
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 03, 2013 at 06:23:50PM +0530, Kishon Vijay Abraham I wrote:
-> Used the generic PHY framework API to create the PHY. omap_usb2_suspend
-> is split into omap_usb_suspend and omap_usb_resume in order to align
-> with the new framework.
->=20
-> However using the old USB PHY library cannot be completely removed
-> because OTG is intertwined with PHY and moving to the new framework
-> will break OTG. Once we have a separate OTG state machine, we
-> can get rid of the USB PHY library.
->=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/usb/phy/omap-usb2.c |   48 +++++++++++++++++++++++++++++++++++++=
-++++++
->  1 file changed, 48 insertions(+)
->=20
-> diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
-> index 844ab68..4e48db4 100644
-> --- a/drivers/usb/phy/omap-usb2.c
-> +++ b/drivers/usb/phy/omap-usb2.c
-> @@ -28,6 +28,7 @@
->  #include <linux/pm_runtime.h>
->  #include <linux/delay.h>
->  #include <linux/usb/omap_control_usb.h>
-> +#include <linux/phy/phy.h>
-> =20
->  /**
->   * omap_usb2_set_comparator - links the comparator present in the sytem =
-with
-> @@ -119,9 +120,49 @@ static int omap_usb2_suspend(struct usb_phy *x, int =
-suspend)
->  	return 0;
->  }
-> =20
-> +static int omap_usb_suspend(struct phy *x)
-> +{
-> +	struct omap_usb *phy =3D dev_get_drvdata(&x->dev);
-> +
-> +	if (!phy->is_suspended) {
-> +		omap_control_usb_phy_power(phy->control_dev, 0);
-> +		pm_runtime_put_sync(phy->dev);
-> +		phy->is_suspended =3D 1;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int omap_usb_resume(struct phy *x)
-> +{
-> +	u32 ret;
-> +	struct omap_usb *phy =3D dev_get_drvdata(&x->dev);
-> +
-> +	if (phy->is_suspended) {
-> +		ret =3D pm_runtime_get_sync(phy->dev);
-> +		if (ret < 0) {
-> +			dev_err(phy->dev, "get_sync failed with err %d\n",
-> +									ret);
-> +			return ret;
-> +		}
-> +		omap_control_usb_phy_power(phy->control_dev, 1);
-> +		phy->is_suspended =3D 0;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static struct phy_ops ops =3D {
+HI,
 
-const ? Maybe provide a:
+On Wed, Apr 03, 2013 at 06:42:48PM +0530, Vivek Gautam wrote:
+> >> >> Adding  APIs to handle runtime power management on PHY
+> >> >> devices. PHY consumers may need to wake-up/suspend PHYs
+> >> >> when they work across autosuspend.
+> >> >>
+> >> >> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> >> >> ---
+> >> >>   include/linux/usb/phy.h |  141
+> >> >> +++++++++++++++++++++++++++++++++++++++++++++++
+> >> >>   1 files changed, 141 insertions(+), 0 deletions(-)
+> >> >>
+> >> >> diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
+> >> >> index 6b5978f..01bf9c1 100644
+> >> >> --- a/include/linux/usb/phy.h
+> >> >> +++ b/include/linux/usb/phy.h
+> >> >> @@ -297,4 +297,145 @@ static inline const char *usb_phy_type_string=
+(enum
+> >> >> usb_phy_type type)
+> >> >>                 return "UNKNOWN PHY TYPE";
+> >> >>         }
+> >> >>   }
+> >> >> +
+> >> >> +static inline void usb_phy_autopm_enable(struct usb_phy *x)
+> >> >> +{
+> >> >> +       if (!x || !x->dev) {
+> >> >> +               dev_err(x->dev, "no PHY or attached device availabl=
+e\n");
+> >> >> +               return;
+> >> >> +               }
+> >> >> +
+> >> >> +       pm_runtime_enable(x->dev);
+> >> >> +}
+> >> >
+> >> >
+> >> > IMO we need not have wrapper APIs for runtime_enable and runtime_dis=
+able
+> >> > here. Generally runtime_enable and runtime_disable is done in probe =
+and
+> >> > remove of a driver respectively. So it's better to leave the
+> >> > runtime_enable/runtime_disable to be done in *phy provider* driver t=
+han
+> >> > having an API for it to be done by *phy user* driver. Felipe, what d=
+o you
+> >> > think?
+> >>
+> >> Thanks!!
+> >> That's very true, runtime_enable() and runtime_disable() calls are mad=
+e by
+> >> *phy_provider* only. But a querry here.
+> >> Wouldn't in any case a PHY consumer might want to disable runtime_pm o=
+n PHY ?
+> >> Say, when consumer failed to suspend the PHY properly
+> >> (*put_sync(phy->dev)* fails), how much sure is the consumer about the
+> >> state of PHY ?
+> >
+> > no no, wait a minute. We might not want to enable runtime pm for the PHY
+> > until the UDC says it can handle runtime pm, no ? I guess this makes a
+> > bit of sense (at least in my head :-p).
+> >
+> > Imagine if PHY is runtime suspended but e.g. DWC3 isn't runtime pm
+> > enabled... Does it make sense to leave that control to the USB
+> > controller drivers ?
+> >
+> > I'm open for suggestions
+>=20
+> Of course unless the PHY consumer can handle runtime PM for PHY,
+> PHY should not ideally be going into runtime_suspend.
+>=20
+> Actually trying out few things, here are my observations
+>=20
+> Enabling runtime_pm on PHY pushes PHY to go into runtime_suspend state.
+> But a device detection wakes up DWC3 controller, and if i don't wake
+> up PHY (using get_sync(phy->dev)) here
+> in runtime_resume() callback of DWC3, i don't get PHY back in active stat=
+e.
+> So it becomes the duty of DWC3 controller to handle PHY's sleep and wake-=
+up.
+> Thereby it becomes logical that DWC3 controller has the right to
+> enable runtime_pm
+> of PHY.
+>=20
+> But there's a catch here. if there are multiple consumers of PHY (like
+> USB2 type PHY can
+> have DWC3 controller as well as EHCI/OHCI or even HSGadget) then in that =
+case,
+> only one of the consumer can enable runtime_pm on PHY. So who decides thi=
+s.
+>=20
+> Aargh!! lot of confusion here :-(
 
-#define DEFINE_PHY_OPS(name)	\
-const struct phy_ops #name_phy_ops =3D {
 
-macro ? This will force people to add the const keyword :-)
+hmmm, maybe add a flag to struct usb_phy and check it on
+usb_phy_autopm_enable() ??
+
+How does usbcore handle it ? They request class drivers to pass
+supports_autosuspend, but while we should have a similar flag, that's
+not enough. We also need a flag to tell us when pm_runtime has already
+been enabled.
+
+So how about:
+
+usb_phy_autopm_enable()
+{
+	if (!phy->suports_autosuspend)
+		return -ENOSYS;
+
+	if (phy->autosuspend_enabled)
+		return 0;
+
+	phy->autosuspend_enabled =3D true;
+	return pm_runtime_enable(phy->dev);
+}
+
+???
 
 --=20
 balbi
 
---ik0NlRzMGhMnxrMX
+--N8NGGaQn1mzfvaPg
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRXDMrAAoJEIaOsuA1yqRE9YMQAKAO8yLvo66L/58x/SnJxyrl
-3A7JrDkmh/d07zz19R3XrwfvTaYJg/k1NxakWd/iIUSHbeWGTJrmJzS0DlRbHlmr
-+DrRSu1DlkfmKPKCB8Z7kajn8osqFSLAhJzw3tfBbcCTV+8ZnzruQbE1BvJJUlGz
-W4AVjssYOoI1Dll/qDekz8QgDdPTkZ7rhabCKEXZjGFbq3RDfe/0UtlPLyTZnM0K
-LQlIcZymLCUTTpoY0NdAlM6twdMGc5IEFvRjnDJeEN8z6ILVBolt7dbHwo8DxgBT
-naFC/t9lV9e+vBegd5bDzNjH1vbC2Hf9Pu5kf+m+bCCqNV/z+ncCCAMXWDBG8JXA
-SS0nsdov7CDbr58FGjTY4VcHv6KIWB4wyepak/nCPrDLaVARiB03l/zMZpVZGO7g
-mL3TvIeCRvObsszo/F91xMb+eu11XRuwGOt16reur1yupJ/FvDO91HkxBsK63KX0
-tXXyXFLtVM1Ias1xH18GN6Nbz6i3b+0ZSE2GBEitXUAFQF6kBB5FzjmzAm6f8M8a
-kksgrQchEr/LkPYKapeKiU0fpRXCIO0DaaXT/kFpte1LoOniq3Z5VoYadZpFoLN2
-acpWPTSbG0Myxbru4sjY8p1MzcV6XTleDmv5BCmMVo2XRx31k29r7TRa6VSzGidM
-oA9NXDSz1r3RpzIuEuRH
-=OvUh
+iQIcBAEBAgAGBQJRXDSGAAoJEIaOsuA1yqREVDQQAIr+4rqnr5SvAfNJTzELP4a/
+A42ZFuDjrFIrIMPtqGZZkjXGkQ98sTAaIER0D+rXXDeV7bJLNN+8g2yfszO2jrAF
+bATNzFLfA6PH3zl2OpAXwMe/Hk6b0uzndBmSwrr7IeeEvBy5v7myFp7TSf4e4lKF
+Ki4dumLXOl4p1HBsmm7QpF6jH2+MIvCS9oWXwvqSfL6apFakLasYO+CVtvZmhXy7
+BCbzL361pHm/JhwOnoTgIWy7lySNxdLloAfQ4vqzemI16/oTlev1wnIL8iZDG9u1
+ANTimhXCE9z0RZSj2SRsqugAppULeZkYsmrYMX5DQMEK0CDr5OGSuV0QQMvhkLi/
+wjTmOosajail3pT7Gr4AUMhi+wXcGHtiKZAl68Rv42W8M0s2Jpc4Ho2jlIVOFdlA
+gzQZw1juLW+qKycx20IsK8WWghHaM8tQ56rvlyI94d90mbuwnEeDLGCaoHVMFT2D
+AlicnpsWFrNUqRQIzx8uvbrXdQJcUkpaWPV/9BA9KlwgSXtoB1TI/9pmjjvx9xWI
+kzikaLMG21IVee7ymmsGbB88K515tOyIU9+P5RT7YKGMgow22brs9dZP64GBJ2CS
+ZlePYZaWagQNwV1FSUrDZ58BN/O8xy/8KhM2tn84dq07JeSEDTUScYW3GqnSHwRZ
+3obrP50rqiKKG8oXfhKB
+=WX/N
 -----END PGP SIGNATURE-----
 
---ik0NlRzMGhMnxrMX--
-
---===============0292480595452152103==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============0292480595452152103==--
+--N8NGGaQn1mzfvaPg--
