@@ -1,51 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OK to use commit 71856843 as base for further omap clean up?
-Date: Wed, 3 Apr 2013 11:03:58 -0700
-Message-ID: <20130403180358.GW10155@atomide.com>
-References: <20130319175921.GA22104@atomide.com>
- <5150A60E.2090108@ti.com>
- <20130326232200.GQ30923@n2100.arm.linux.org.uk>
- <20130403165353.GW30923@n2100.arm.linux.org.uk>
+Subject: Re: [GIT PULL] ARM: OMAP2+: System timer updates
+Date: Wed, 3 Apr 2013 11:04:47 -0700
+Message-ID: <20130403180447.GX10155@atomide.com>
+References: <515A3E01.1060308@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:29559 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1760077Ab3DCSED (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 14:04:03 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21041 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762890Ab3DCSEu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Apr 2013 14:04:50 -0400
 Content-Disposition: inline
-In-Reply-To: <20130403165353.GW30923@n2100.arm.linux.org.uk>
+In-Reply-To: <515A3E01.1060308@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [130403 09:58]:
-> On Tue, Mar 26, 2013 at 11:22:00PM +0000, Russell King - ARM Linux wrote:
-> > On Mon, Mar 25, 2013 at 02:31:26PM -0500, Jon Hunter wrote:
-> > > Hi Russell,
-> > > 
-> > > On 03/19/2013 12:59 PM, Tony Lindgren wrote:
-> > > > Hi Russell,
-> > > > 
-> > > > Can we use your commit 71856843 (ARM: OMAP: use consistent error checking)
-> > > > as an immutable base for further omap dmtimer and gpmc work?
-> > > 
-> > > I saw that you updated your clean-up branch. Ok to use the below commit
-> > > [1] as a base for some v3.10 updates?
-> > 
-> > It's still the same commit.  I'm not intending to remove this commit
-> > from it, so yes, fine, go ahead.
+* Jon Hunter <jon-hunter@ti.com> [130401 19:14]:
+> The following changes since commit 2d61aecee8f32259920cdf90a452fa26ffc64e9f:
 > 
-> *sigh*.  Actually, 4d485661d799e81f98097057d445f4803cef2af0 is buggered
-> which is the commit below it.  I said yes too quickly.  Oh well, it'll
-> just have to be broken for when it hits mainline now.
+>   Merge commit '6bb27d7349db51b50c40534710fe164ca0d58902' into omap-timer-for-v3.10 (2013-04-01 13:47:29 -0500)
+> 
+> are available in the git repository at:
+> 
+> 
+>   git://github.com/jonhunter/linux.git omap-timer-for-v3.10
+> 
+> for you to fetch changes up to 4615943cf3a531bc76f589c22bd366da092b7c0f:
+> 
+>   ARM: OMAP4+: Fix sparse warning in system timers (2013-04-01 13:49:46 -0500)
+> 
+> ----------------------------------------------------------------
+> This series consists mainly of clean-ups for clockevents and
+> clocksource timers on OMAP2+ devices. The most significant change
+> in functionality comes from the 5th patch which is changing the
+> selection of the clocksource timer for OMAP3 and AM335x devices
+> when gptimers are used for clocksource.
+> 
+> This series is dependent on commit 7185684 (ARM: OMAP: use
+> consistent error checking) from RMK's clean-up branch and commit
+> 6bb27d7 (ARM: delete struct sys_timer)
 
-Yes we have few branches based on that. Note that the issue reported by
-Lothar I just resolved in the omap-for-v3.10/timer branch along with
-other conflicts when pulling in Jon's patches, so that might do the trick
-assuming there are no other issues.
+Thanks pulling into omap-for-v3.10/timer. I ended up merging this
+with omap-for-v3.10/fixes-non-critical because of the omap5 merge
+conflict.
 
 Regards,
 
 Tony
+
+> ----------------------------------------------------------------
+> 
+> Jon Hunter (7):
+>       ARM: OMAP2+: Display correct system timer name
+>       ARM: OMAP2+: Remove hard-coded test on timer ID
+>       ARM: OMAP2+: Simplify system timer clock definitions
+>       ARM: OMAP2+: Simplify system timers definitions
+>       ARM: OMAP3: Update clocksource timer selection
+>       ARM: OMAP2+: Store ID of system timers in timer structure
+>       ARM: OMAP4+: Fix sparse warning in system timers
+> 
+>  arch/arm/mach-omap2/board-cm-t3517.c |    2 +-
+>  arch/arm/mach-omap2/board-generic.c  |    2 +-
+>  arch/arm/mach-omap2/common.h         |    3 +-
+>  arch/arm/mach-omap2/timer.c          |  121 +++++++++++++++++-----------------
+>  4 files changed, 65 insertions(+), 63 deletions(-)
