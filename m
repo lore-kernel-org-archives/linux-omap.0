@@ -1,81 +1,143 @@
-From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Subject: Re: [PATCH v3 00/11] usb: dwc3/xhci/phy: Enable runtime power
- management
-Date: Wed, 3 Apr 2013 10:27:51 -0700
-Message-ID: <20130403172751.GC10089@xanatos>
-References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH V3 0/2] ARM: OMAP3+: support cpufreq-cpu0 for device tree boot
+Date: Wed, 03 Apr 2013 10:47:39 -0700
+Message-ID: <87y5czzetg.fsf@linaro.org>
+References: <1364507576-19345-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
+Content-Type: text/plain
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1364507576-19345-1-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Thu, 28 Mar 2013 16:52:54 -0500")
+Sender: linux-pm-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, Rob Herring <robherring2@gmail.com>, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Question: Do you still need this patch for 3.10?
+Nishanth Menon <nm@ti.com> writes:
 
-http://marc.info/?l=linux-usb&m=136057666911621&w=2
+> The following version 3 of the series arose from trying to use BeagleBoard-XM
+> (OMAP3 variant) for doing CPU DVFS using cpufreq-cpu0. This series enables the
+> generic cpufreq-cpu0 driver to be used in device tree enabled boot while
+> maintaining support of the legacy omap-cpufreq driver when used in non device
+> tree enabled boot.
+>
+> However, in order to enable complete SoC entitlement for OMAP platforms, with
+> this series, key features are still pending on device tree adaptation for OMAP:
+> A) clock framework data transition to DT - this should happen soon, so this
+> series hacks the clock node for the time being as suggested in review of
+> original series[1].
+> B) On processors that use voltage controller, voltage processor (VC/VP hardware
+> loop using I2C_SR path) - we have started work on transitioning them to
+> regulator framework driven by DT.
+> C) Adaptive Body Bias and SmartReflex AVS conversion to DT. [2]
+>
+> Note: At this point in time, we do not have DT entries for clock on OMAP
+> platforms. Common Clock Framework(CCF) could also control regulators[3].
+> Once these conversions are complete, there might be minimal cleanup work to
+> switch to the new data structure changes.
+>
+> Key benefit of the series is to allow all relevant TI platforms now to use a
+> single cpufreq driver and equivalent frameworks in addition be part of the
+> transition to device tree.
+> NOTE: As a result of this series:
+> 1. omap-cpufreq will be used only in non device tree boot scenario. we should
+>    delete this driver once the 100% DT conversion is complete.
+> 2. Generic cpufreq-cpu0 will be used only in device tree boot scenario.
+>    boot systems.
 
-Does this patchset build on top of that?
+Yes, I like this direction better.  Thanks for reworking and thanks for
+the thorough changelog.
 
-I'm really behind on my patches for 3.10, sorry.
+> Key changes in version 3:
+> 	- series now rebased on Device tree patches queued for OMAP 3.10
+> 	- DT patches introducing OPPs are now merged, so pending patches alone
+> 	  are part of the new series.
+> 	- omap-cpufreq is now converted to platform_device to address:
+> 		http://marc.info/?t=136434901900001&r=1&w=2
+>
+> version 2 of the series:
+> 	http://marc.info/?t=136371570200003&r=1&w=2
+> 	available at:
+> 	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cpu0-omap-all-v2
+>
+> version 1 of the series:
+> 	http://marc.info/?t=136329485400005&r=1&w=2
+> 	available at:
+> 	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cpu0-omap-all-v1
+>
+> [1] Original discussion thread which triggered this series:
+> 	http://marc.info/?l=linux-pm&m=136304313700602&w=2
+> 	https://patchwork.kernel.org/patch/2251841/
+> 	https://patchwork.kernel.org/patch/2251851/
+> [2] ABB RFC: http://marc.info/?l=linux-omap&m=136449099409794&w=2 
+> [3] CCF DVFS patches:
+> https://patchwork.kernel.org/patch/2195431/
+> https://patchwork.kernel.org/patch/2195421/
+> https://patchwork.kernel.org/patch/2195451/
+> https://patchwork.kernel.org/patch/2195441/
+> https://patchwork.kernel.org/patch/2195461/
+>
+> Version 3 is now based on for-3.10/dts branch from Benoit:
+> 	http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.10/dts
+> 	d114294 ARM: dts: AM33XX: Corrects typo in interrupt field in SPI node
+>
+> Version 3 is also available at:
+> 	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cpu0-omap-all-v3
+> 	git link: git://github.com/nmenon/linux-2.6-playground.git
+> 	branch: cpufreq-cpu0-omap-all-v3
+>
+> Test coverage:
+> 	test script: http://pastebin.com/zrr8ptge
+> Platforms verified:
+> 	beaglebone(rev A6a) - AM33xx compatible - http://pastebin.com/GVP2wDVr
+> 	beagleboard (rev C1D) - OMAP3430 compatible
+> 		- DT enabled boot: http://pastebin.com/2AY1F5Qa
+> 		- No DT enabled boot: http://pastebin.com/hDk0gbpU
+> 	omap3-beagle-xm -OMAP3630 compatible - http://pastebin.com/5tHAQcLZ
+> 	Pandaboard -(OMAP4430 ES2.2) - http://pastebin.com/6D9aDPXT
+> 	Pandaboard-ES -(OMAP4460 ES1.1) - http://pastebin.com/ExrBEczr
 
-Sarah Sharp
+And thanks also for the broad testing.
 
-On Mon, Apr 01, 2013 at 07:23:59PM +0530, Vivek Gautam wrote:
-> This patch-series enables runtime power management on xhci-plat,
-> dwc3-core, dwc3-exynos as well as on Samsung's USB 2.0 type and
-> USB 3.0 type PHYs.
-> 
-> Based on 'next' branch of Felipe Balbi's USB tree.
-> 
-> Changes from v2:
->  - Using separate functions for USB PHY runtime power management, instead of
->    using macros.
->  - Adding 'pm_runtime_set_suspended()' api call in dwc3 core layer before
->    enabling runtime pm. (Ideally, we should be explicitly make device
->    'suspended' or 'active' before enabling runtime pm on it).
->  - Checking return code for 'put_sync' and 'get_sync' of USB-PHYs when
->    waking up or suspending them from dwc3 core's runtime_pm callbacks.
->  - Removed buggy pm_runtime_put() calls from driver's (xhci, dwc3 and PHY)
->    remove functions.
->  - Adding a patch to enable runtime power management of Samsung's USB 2.0 PHY
->    (usb: phy: samsung: Enable runtime power management on usb2phy)
-> 
-> Changes from v1:
->  - Adding required PHY APIs to handle runtime power management
->    instead of directly twiddling with phy->dev.
->  - Handling runtime power management of usb PHYs in dwc3 core
->    driver instead of in any glue layer.
->  - Splitting the patch:
->    [PATCH 4/4] usb: phy: samsung: Enable runtime power management on samsung-usb
->    into required number to bifurcate functionality.
-> 
-> Vivek Gautam (11):
->   usb: phy: Add APIs for runtime power management
->   USB: dwc3: Adjust runtime pm to allow autosuspend
->   usb: dwc3: Enable runtime pm only after PHYs are initialized
->   usb: dwc3: Add runtime power management callbacks
->   usb: dwc3: exynos: Enable runtime power management
->   usb: xhci: Enable runtime pm in xhci-plat
->   usb: phy: samsung: Enable runtime power management on usb2phy
->   usb: phy: samsung: Enable runtime power management on usb3phy
->   usb: phy: samsung: Add support for external reference clock
->   usb: phy: samsung: Add support for PHY ref_clk gpio
->   usb: phy: samsung: Add support for PHY refclk switching
-> 
->  drivers/usb/dwc3/core.c            |   59 ++++++++++++++--
->  drivers/usb/dwc3/dwc3-exynos.c     |   12 +++
->  drivers/usb/host/xhci-plat.c       |    6 ++
->  drivers/usb/phy/phy-samsung-usb.c  |   26 +++++++
->  drivers/usb/phy/phy-samsung-usb.h  |    1 +
->  drivers/usb/phy/phy-samsung-usb2.c |    5 ++
->  drivers/usb/phy/phy-samsung-usb3.c |  119 +++++++++++++++++++++++++++++--
->  include/linux/usb/phy.h            |  141 ++++++++++++++++++++++++++++++++++++
->  8 files changed, 358 insertions(+), 11 deletions(-)
-> 
-> -- 
-> 1.7.6.5
-> 
+One nit about the test report/coverage is I don't see any
+test/verification that the voltage is still being scaled based on the DT
+based OPPs.  It's easy to verify at least from the regulator PoV that
+the voltage is scaled also.
+
+My dumb DVFS test script (below) should work on any busybox rootfs 
+
+Care to give that (or something like it) a try as well?  
+
+With that extra confirmation of testing, I will queue up this series.
+
+Thanks,
+
+Kevin
+
+[1]
+#!/bin/sh
+
+REG=`find /sys/class/regulator -follow -maxdepth 2 -name name -exec grep -l mpu {} \;`
+mpu_reg=`echo $REG | cut -d'/' -f5`
+echo MPU regulator: $mpu_reg
+
+if [ ! -d /sys/devices/system/cpu/cpu0/cpufreq ]; then
+  echo "CPUfreq not enabled in kernel."
+  exit 0
+fi
+
+cd /sys/devices/system/cpu/cpu0/cpufreq
+echo -n "Available frequencies: "
+cat scaling_available_frequencies
+echo -n "Current frequency: "
+cat scaling_cur_freq
+echo userspace > scaling_governor
+
+for freq in `cat scaling_available_frequencies`; do
+  echo ${freq} > scaling_setspeed
+  echo -n "current freq: "
+  cat scaling_cur_freq
+  echo -n "current voltage: "
+  cat /sys/class/regulator/${mpu_reg}/microvolts
+  sleep 2
+done
