@@ -1,43 +1,71 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [RFC v2 16/18] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Thu, 4 Apr 2013 08:47:26 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433ED8AFAA@DBDE01.ent.ti.com>
-References: <1356959231-17335-1-git-send-email-vaibhav.bedia@ti.com>
-	<1356959231-17335-17-git-send-email-vaibhav.bedia@ti.com>
- <CACTFLAM=69kZOGoJU8_tBfrJKmDTivpF8ZC8R95anHHA37f7_A@mail.gmail.com>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
+Date: Thu, 4 Apr 2013 14:26:51 +0530
+Message-ID: <CAFp+6iF9VJ5EneyVA9c6ggEa_RiUw0ZRBTRgh_gy--5ubP=8=Q@mail.gmail.com>
+References: <20130403141831.GJ14680@arwen.pp.htv.fi>
+	<Pine.LNX.4.44L0.1304031410320.2027-100000@iolanthe.rowland.org>
+	<20130404071832.GD30287@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58974 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933714Ab3DDIrj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 04:47:39 -0400
-In-Reply-To: <CACTFLAM=69kZOGoJU8_tBfrJKmDTivpF8ZC8R95anHHA37f7_A@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20130404071832.GD30287@arwen.pp.htv.fi>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Alan Stern <stern@rowland.harvard.edu>, Kishon Vijay Abraham I <kishon@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi Daniel,
+Hi,
 
-On Wed, Apr 03, 2013 at 17:22:41, Daniel Mack wrote:
-> Hi Vaibhav,
-> 
-> On Mon, Dec 31, 2012 at 2:07 PM, Vaibhav Bedia <vaibhav.bedia@ti.com> wrote:
-> > AM335x supports various low power modes as documented
-> > in section 8.1.4.3 of the AM335x TRM which is available
-> > @ http://www.ti.com/litv/pdf/spruh73f
-> 
-> May I ask about the plans for this series? Will you be re-spinning
-> them for a current
-> tree, and what's the planned merge window for it?
-> 
 
-I am tied up in some other stuff right now. I plan to address Kevin's comments
-and repost the patches soon. Since rc5 is already out i think v3.10 is not
-a realistic target any more but I do hope to have this accepted for v3.11.
+On Thu, Apr 4, 2013 at 12:48 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Wed, Apr 03, 2013 at 02:14:02PM -0400, Alan Stern wrote:
+>> > > Lets suppose DWC3 enables runtime_pm on USB 2 type phy,
+>> > > it will try to go into suspend state and thereby call runtime_suspend(), if any.
+>> > > And PHY will come to active state only when its consumer wakes it up,
+>> > > and this consumer is operational
+>> > > only when its related PHY is in fully functional state.
+>> > > So do we have a situation in which this PHY goes into low power state
+>> > > in its runtime_suspend(),
+>> > > resulting in non-detection of devices on further attach (since PHY is
+>> > > in low power state) ?
+>> > >
+>> > > Will the controller (like EHCI/OHCI) be functional now ?
+>> >
+>> > ehci/ohci need to cope with that by calling usb_phy_autopm_get_sync(),
+>> > right ? (so does DWC3 :-)
+>>
+>> Maybe you guys have already got this all figured out -- if so, feel
+>> free to ignore this email.
+>>
+>> Some subsystems handle this issue by calling pm_runtime_get_sync()
+>> before probing a driver and pm_runtime_put_sync() after unbinding the
+>> driver.  If the driver is runtime-PM-enabled, it then does its own
+>> put_sync near the end of its probe routine and get_sync in its release
+>> routine.
+>
+> sounds a bit 'fishy' to me... So a separate entity would call
+> pm_runtime_get_sync(), even when we don't have registered dev_pm_ops,
+> then drivers need to check if runtime_pm is enabled and call
+> pm_runtime_put*() conditionally before returning from probe(). One
+> remove, we might have another issue: device is already runtime_suspended
+> (due to e.g. autosuspend) when module is removed, a call to
+> pm_runtime_put_sync() will be unbalanced. No ?
 
-Regards,
-Vaibhav
+May be i am misinterpreting !!
+If PHYs are runtime-PM enabled (PHY probe calls *runtime_enable*),
+then the consumers
+need to call pm_runtime_get_sync whever they want to access PHY.
+Besides PHYs also need to *put_sync* just before their probe is
+finishing, so that it's
+availbale for autosuspend.
+
+I, however didn't understand the need of PHY to *get_sync* itself in
+release routine.
+
+
+
+-- 
+Thanks & Regards
+Vivek
