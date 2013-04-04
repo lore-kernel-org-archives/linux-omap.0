@@ -1,68 +1,80 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2 00/18] ARM: OMAP5: PM: Add MPUSS suspend and CPUidle
- support
-Date: Thu, 4 Apr 2013 22:19:25 +0530
-Message-ID: <515DAF15.8000700@ti.com>
-References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com> <87hajnp6ph.fsf@linaro.org> <515D8F60.1080603@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and updates
+ for 3.10
+Date: Thu, 4 Apr 2013 09:52:09 -0700
+Message-ID: <20130404165208.GI10155@atomide.com>
+References: <1363768852-18125-1-git-send-email-santosh.shilimkar@ti.com>
+ <20130401170539.GK10155@atomide.com>
+ <515BA76D.3000302@ti.com>
+ <alpine.DEB.2.00.1304031146230.2616@utopia.booyaka.com>
+ <515D6020.2030103@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57974 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762536Ab3DDQrc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Apr 2013 12:47:32 -0400
-In-Reply-To: <515D8F60.1080603@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25548 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762933Ab3DDQwO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 12:52:14 -0400
+Content-Disposition: inline
+In-Reply-To: <515D6020.2030103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Kristo, Tero" <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "Anna, Suman" <s-anna@ti.com>
 
-On Thursday 04 April 2013 08:04 PM, Santosh Shilimkar wrote:
-> On Thursday 04 April 2013 04:22 AM, Kevin Hilman wrote:
->> Hi Santosh,
->>
->> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->>
->>> Here is the refreshed version(v2) of the OMAP5 PM suspport which was posted
->>> earlier (March 1st 2013). Patch-set incorporates comments from Nishant
->>> Menon (Thanks for review NM) and his acked-by tags. I would like to get this
->>> queued for 3.10 merge window if you are ok with the series.
->>
->> I did a review of this series with several comments on the individual
->> patches.  
->>
-> Thanks a lot Kevin. I have addressed all the comments and have
-> updated patches ready.
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130404 04:15]:
+> + Tero and few more TI folks,
 > 
->> I've already queued most of the CPUidle fixes/cleanups in my
->> for_3.10/cleanup/cpuidle branch and will get that to Tony soon.  For the
->> rest, I suggest probably breaking it up into cleanup/consolidation stuff
->> and then OMAP5 support.  The latter will depend on all the OMAP5
->> data/headers but the cleanup/consolidation stuff could be merged sooner
->> (but probably a bit late for v3.10 now.)
->>
-> I have already split the patch-set into 'consolidation' and 'OMAP5
-> support' since it was straight forward. Need to just build the
-> branches on top of your branches. So waiting for you to update
-> your 'for_3.10/*' branches.
-> 
-> For the merge, its your call:)
-> As you said OMAP5 support(couple of patches) has a dependency
-> on OMAP5 data files. I will at least make the branches ready on
-> top of yours.
-> 
-After looking at your tree, looks like the branches are already
-there. Idle branch name is not for_3.10/fixes/cpuidle though :)
+> On Thursday 04 April 2013 01:12 AM, Paul Walmsley wrote:
+> > Hi Santosh
+> > 
+> > On Wed, 3 Apr 2013, Santosh Shilimkar wrote:
+> > 
+> >> Thes patchset has already missed last couple of merge windows and its the
+> >> biggest bottleneck in getting OMAP5 booting from mainline. So I request
+> >> you to please have a look it quickly so that Tony can line that up for
+> >> 3.10.
+> > 
+> > Looks like there are a few minor issues with the patches based on a quick 
+> > look.  I'll post those to the list shortly; they should be easy to fix.  
+> > But those issues aren't my real concern with this series.
+> > 
+> > What's harder to fix are the underlying process issues.  My main concern 
+> > is that these patches add almost 9,000 lines of code and data.  We've 
+> > received clear guidance from the upstream ARM SoC maintainers that any 
+> > significant new additions need to be balanced with moving a similar number 
+> > of lines of code and data out of arch/arm/{plat-,mach-}* into drivers/.  
+> > (Or the new patches should be accompanied with patches that show obvious 
+> > progress towards the goal of moving code and data out of 
+> > arch/arm/{plat-,mach-}*.)  We need to see more help from TI on the 
+> > prerequisites for this cleanup process.
+> >
+> I agree that we are not making faster progress but as part of the
+> $subject series itself, for DT only build, we removed around ~4000
+> lines of data from hwmod. After the merge window, we can trim
+> the AM33XX and then later OMAP4 when it is made DT only support.
+> That should give us another 6000 lines of negative diff.
+> At the same time removal of MUX data for OMAP4 should be
+> around 2000 lines of negative diff.
 
-So I created 'for_3.10/omap_pm-cleanup' and 'for_3.10/omap5_pm_v2'
-and pushed on my git tree [1] in case you would like to have
-a look. I briefly tested them on OMAP4 device with
-CPUidle enabled and they seems to work fine. Will do OMAP5
-testing tomorrow and then post the updated patches on list.
+Can't we already trim the am33xx hwmod data after your patches for
+v3.10 as am33xx is already DT only? Unfortunately we cannot create
+negative diffstat in other ways for v3.10 merge window as we cannot
+make omap4 DT only just quite yet.
 
-Regards,
-Santosh
+FYI, I have some trivial patches here to drop board and mux support for
+omap4 once we can make omap4 DT only, so that will be about 3000 lines
+of reduction with estimated 1000 - 2000 lines once I go through the
+unneeded platform init code for omap4 for things like MMC and USB.
+ 
+The rest of the clean-up issues I believe we all agree, we just need
+to get it done so we can avoid getting flamed for every new SoC for
+the huge data files. To fix the data issue for good, it seems that we can
+get started moving both the clock and hwmod data to simple drivers
+that can get clocks and hwmod data both from DT and /lib/firmware.
+It also seems that we don't need to move all the data at once, which
+makes the task easier.
 
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git
+Cheers,
 
+Tony
