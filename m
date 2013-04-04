@@ -1,43 +1,91 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH v3 00/11] usb: dwc3/xhci/phy: Enable runtime power management
-Date: Thu, 4 Apr 2013 13:02:45 +0530
-Message-ID: <CAFp+6iGqDFPhNjktD3WA4ZJuEdcX1C7Ma3hsSZieuW-b4_wpLA@mail.gmail.com>
-References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
-	<20130403172751.GC10089@xanatos>
-	<CAFp+6iGnDUSOjVgu9ZCAPF9rUDWD5r9ZttBtTo864Q2ACvKFrA@mail.gmail.com>
-	<20130404071015.GB30287@arwen.pp.htv.fi>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support for
+ AUXCLKs
+Date: Thu, 4 Apr 2013 10:35:12 +0300
+Message-ID: <515D2D30.3000306@ti.com>
+References: <1363703220-4777-1-git-send-email-rogerq@ti.com> <1363703220-4777-2-git-send-email-rogerq@ti.com> <20130403234242.GE10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f45.google.com ([209.85.214.45]:54156 "EHLO
-	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933245Ab3DDHcr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 03:32:47 -0400
-In-Reply-To: <20130404071015.GB30287@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130403234242.GE10155-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: b-cousson-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 
-On Thu, Apr 4, 2013 at 12:40 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Thu, Apr 04, 2013 at 10:34:57AM +0530, Vivek Gautam wrote:
->> Hi Sarah,
+Hi,
+
+On 04/04/2013 02:42 AM, Tony Lindgren wrote:
+> Hi,
+> 
+> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [130319 07:31]:
+>> Register a device tree clock provider for AUX clocks
+>> on the OMAP4 SoC. Also provide the binding information.
 >>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  .../devicetree/bindings/clock/omap4-clock.txt      |   32 ++++++++++++++++++
+>>  arch/arm/boot/dts/omap4.dtsi                       |    5 +++
+>>  arch/arm/mach-omap2/board-generic.c                |    2 +-
+>>  arch/arm/mach-omap2/cclock44xx_data.c              |   35 ++++++++++++++++++++
+>>  arch/arm/mach-omap2/clock44xx.h                    |    1 +
+>>  arch/arm/mach-omap2/common.h                       |    9 +++++
+>>  arch/arm/mach-omap2/io.c                           |    6 +++
+>>  7 files changed, 89 insertions(+), 1 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/clock/omap4-clock.txt
 >>
->> On Wed, Apr 3, 2013 at 10:57 PM, Sarah Sharp
->> <sarah.a.sharp@linux.intel.com> wrote:
->> > Question: Do you still need this patch for 3.10?
->>
->> Felipe's 'next' is closed for 3.10, so this series won't be making it
->> to 3.10 now, as a whole. :-(
->
-> right, besides we're still discussing what to do with the whole PHY
-> part, right ?
+> ...
+> 
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/clock/omap4-clock.txt
+> 
+> Is this really specific to omap4 and auxclk only?
+> 
+> Shouldn't it be just omap-clock.txt?
 
-Right ofcourse. :-)
+Yes, I've fixed this up in v2 of this patch.
 
+> 
+>> --- a/arch/arm/mach-omap2/cclock44xx_data.c
+>> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
+>> @@ -27,6 +27,7 @@
+>>  #include <linux/clk-private.h>
+>>  #include <linux/clkdev.h>
+>>  #include <linux/io.h>
+>> +#include <linux/of.h>
+>>  
+>>  #include "soc.h"
+>>  #include "iomap.h"
+>> @@ -1663,6 +1664,40 @@ static struct omap_clk omap44xx_clks[] = {
+>>  	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
+>>  };
+>>  
+>> +static struct clk *scrm_clks[] = {
+>> +	&auxclk0_ck,
+>> +	&auxclk1_ck,
+>> +	&auxclk2_ck,
+>> +	&auxclk3_ck,
+>> +	&auxclk4_ck,
+>> +	&auxclk5_ck,
+>> +};
+> 
+> Hmm I don't like the idea of specifying the auxclk both in the
+> cclock44xx_data.c and in DT..
 
+Right, but till we have all clocks moved to DT we only need this
+approach for general purpose clocks that are not mapped to devices
+by hwmod.
 
--- 
-Thanks & Regards
-Vivek
+e.g. auxclk are required to be specified in DT nodes for USB PHY.
+Without this we can't get USB host working on Panda.
+
+As Rajendra points out, it seems moving entire clock data to DT is not
+going to happen soon. So this is the simplistic way things can work.
+
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
