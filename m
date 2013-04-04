@@ -1,71 +1,60 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
-Date: Thu, 4 Apr 2013 14:26:51 +0530
-Message-ID: <CAFp+6iF9VJ5EneyVA9c6ggEa_RiUw0ZRBTRgh_gy--5ubP=8=Q@mail.gmail.com>
-References: <20130403141831.GJ14680@arwen.pp.htv.fi>
-	<Pine.LNX.4.44L0.1304031410320.2027-100000@iolanthe.rowland.org>
-	<20130404071832.GD30287@arwen.pp.htv.fi>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 1/6] drivers: phy: add generic PHY framework
+Date: Thu, 4 Apr 2013 14:26:48 +0530
+Message-ID: <515D4050.7090506@ti.com>
+References: <1364993634-6378-1-git-send-email-kishon@ti.com>
+ <1364993634-6378-2-git-send-email-kishon@ti.com>
+ <20130403134102.GC14680@arwen.pp.htv.fi> <515C3A42.4020404@ti.com>
+ <20130403142747.GK14680@arwen.pp.htv.fi> <515C3D94.1060000@ti.com>
+ <20130403154704.GD19093@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20130404071832.GD30287@arwen.pp.htv.fi>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Alan Stern <stern@rowland.harvard.edu>, Kishon Vijay Abraham I <kishon@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130403154704.GD19093-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-
-On Thu, Apr 4, 2013 at 12:48 PM, Felipe Balbi <balbi@ti.com> wrote:
+On Wednesday 03 April 2013 09:17 PM, Felipe Balbi wrote:
 > Hi,
 >
-> On Wed, Apr 03, 2013 at 02:14:02PM -0400, Alan Stern wrote:
->> > > Lets suppose DWC3 enables runtime_pm on USB 2 type phy,
->> > > it will try to go into suspend state and thereby call runtime_suspend(), if any.
->> > > And PHY will come to active state only when its consumer wakes it up,
->> > > and this consumer is operational
->> > > only when its related PHY is in fully functional state.
->> > > So do we have a situation in which this PHY goes into low power state
->> > > in its runtime_suspend(),
->> > > resulting in non-detection of devices on further attach (since PHY is
->> > > in low power state) ?
->> > >
->> > > Will the controller (like EHCI/OHCI) be functional now ?
->> >
->> > ehci/ohci need to cope with that by calling usb_phy_autopm_get_sync(),
->> > right ? (so does DWC3 :-)
+> On Wed, Apr 03, 2013 at 08:02:52PM +0530, Kishon Vijay Abraham I wrote:
+>>>>>> +		ret = -EINVAL;
+>>>>>> +		goto err0;
+>>>>>> +	}
+>>>>>> +
+>>>>>> +	if (!phy_class)
+>>>>>> +		phy_core_init();
+>>>>>
+>>>>> why don't you setup the class on module_init ? Then this would be a
+>>>>> terrible error condition here :-)
+>>>>
+>>>> This is for the case where the PHY driver gets loaded before the PHY
+>>>> framework. I could have returned EPROBE_DEFER here instead I thought
+>>>> will have it this way.
+>>>
+>>> looks a bit weird IMO. Is it really possible for PHY to load before ?
 >>
->> Maybe you guys have already got this all figured out -- if so, feel
->> free to ignore this email.
->>
->> Some subsystems handle this issue by calling pm_runtime_get_sync()
->> before probing a driver and pm_runtime_put_sync() after unbinding the
->> driver.  If the driver is runtime-PM-enabled, it then does its own
->> put_sync near the end of its probe routine and get_sync in its release
->> routine.
+>> yeah. it actually happened when I tried with beagle and had all the
+>> modules as built-in. Because twl4030 has subsys_initcall(), it loads
+>> before PHY framework.
 >
-> sounds a bit 'fishy' to me... So a separate entity would call
-> pm_runtime_get_sync(), even when we don't have registered dev_pm_ops,
-> then drivers need to check if runtime_pm is enabled and call
-> pm_runtime_put*() conditionally before returning from probe(). One
-> remove, we might have another issue: device is already runtime_suspended
-> (due to e.g. autosuspend) when module is removed, a call to
-> pm_runtime_put_sync() will be unbalanced. No ?
+> that's a bug in twl4030.
 
-May be i am misinterpreting !!
-If PHYs are runtime-PM enabled (PHY probe calls *runtime_enable*),
-then the consumers
-need to call pm_runtime_get_sync whever they want to access PHY.
-Besides PHYs also need to *put_sync* just before their probe is
-finishing, so that it's
-availbale for autosuspend.
+right. Will fix it.
 
-I, however didn't understand the need of PHY to *get_sync* itself in
-release routine.
-
-
-
--- 
-Thanks & Regards
-Vivek
+Thanks
+Kishon
