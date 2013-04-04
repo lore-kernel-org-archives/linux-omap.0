@@ -1,81 +1,43 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2 01/18] ARM: OMAP4+: PM: Consolidate MPU subsystem PM
- code for re-use
-Date: Thu, 4 Apr 2013 17:02:39 +0530
-Message-ID: <515D64D7.7050403@ti.com>
-References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com> <1364205910-32392-2-git-send-email-santosh.shilimkar@ti.com> <87a9pfxuts.fsf@linaro.org>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: MUSB regression in linux next at least for pandboard
+Date: Thu, 4 Apr 2013 14:36:51 +0300
+Message-ID: <515D65D3.40006@ti.com>
+References: <Pine.LNX.4.44L0.1302061038310.1893-100000@iolanthe.rowland.org> <511370D7.9070509@ti.com> <CANOLnOODiu+rEqCQH5BAzTXhWi4cUZO-OXO=-1xxyhMFW77UZQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58308 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758350Ab3DDLao (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Apr 2013 07:30:44 -0400
-In-Reply-To: <87a9pfxuts.fsf@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CANOLnOODiu+rEqCQH5BAzTXhWi4cUZO-OXO=-1xxyhMFW77UZQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Vivek Gautam <gautamvivek1987-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com
 
-On Thursday 04 April 2013 01:14 AM, Kevin Hilman wrote:
-> Hi Santosh,
-> 
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
-> 
->> OMAP5 and future OMAP based SOCs has backward compatible MPUSS
->> IP block with OMAP4. It's programming model is mostly similar.
->> Hence consolidate the OMAP MPUSS code so that it can be re-used
->> on OMAP5 and future SOCs.
->>
->> No functional change.
->>
->> Acked-by: Nishanth Menon <nm@ti.com>
->> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> ---
->>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   65 ++++++++++++++++++++++++-----
->>  1 file changed, 54 insertions(+), 11 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
->> index d650f91..d9e4843 100644
->> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
->> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
->> @@ -71,10 +71,46 @@ struct omap4_cpu_pm_info {
->>  	void (*secondary_startup)(void);
->>  };
->>  
->> +/**
->> + * struct cpu_pm_ops - CPU pm operations
->> + * @finish_suspend:	CPU suspend finisher function pointer
->> + * @resume:		CPU resume function pointer
->> + * @scu_prepare:	CPU Snoop Control program function pointer
->> + *
->> + * Structure holds functions pointer for CPU low power operations like
->> + * suspend, resume and scu programming.
->> + */
->> +struct cpu_pm_ops {
->> +	int (*finish_suspend)(unsigned long cpu_state);
->> +	void (*resume)(void);
->> +	void (*scu_prepare)(unsigned int cpu_id, unsigned int cpu_state);
->> +};
->> +
->> +extern int omap4_finish_suspend(unsigned long cpu_state);
->> +extern void omap4_cpu_resume(void);
-> 
-> checkpatch should've yelled at you for adding externs to .c files.
-> 
-It does. I didn't see they were already in header file and considering
-they were shared between asm and mpuss file, I just kept it that way.
-i have seen many places in kernel for asm exports, this is being used
-and hence kept it.
+Hi,
 
-> Also, aren't these already defined in common.h anyways?
->
-Yep. I will just drop above hunk.
- 
-> Otherwise, patch looks fine.
+On 02/07/2013 04:10 PM, Grazvydas Ignotas wrote:
+> On Thu, Feb 7, 2013 at 11:16 AM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+> <snip>
+>> It seems the beagleboard problem is related to OMAP silicon errata [1].
+>> Apparently, remote wakeup as well as host issued wakeup break omap-ehci and have
+>> nothing to do with the hub or it's driver.
+>>
+>> I'll work on this issue after I'm done with device tree migration.
 > 
-I will take that as an ack then ?
+> Looking forward to this, mainline has been suffering from this since
+> almost forever..
+> 
+> 
 
-Regards,
-Santosh
+Unfortunately, there is another errata [2] that makes it impossible to
+support suspend/resume on the beagleboard.
+
+cheers,
+-roger
+
+[2] Advisory 3.1.1.195 HSUSB Interoperability Issue With SMSC USB3320 PHY
+http://www.ti.com/general/docs/lit/getliterature.tsp?literatureNumber=sprz278f&fileType=pdf
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
