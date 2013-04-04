@@ -1,101 +1,65 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH v3 00/11] usb: dwc3/xhci/phy: Enable runtime power management
-Date: Thu, 4 Apr 2013 10:34:57 +0530
-Message-ID: <CAFp+6iGnDUSOjVgu9ZCAPF9rUDWD5r9ZttBtTo864Q2ACvKFrA@mail.gmail.com>
-References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
-	<20130403172751.GC10089@xanatos>
+From: "B, Ravi" <ravibabu@ti.com>
+Subject: RE: [PATCH 0/5] usb: musb: am335x support
+Date: Thu, 4 Apr 2013 05:10:43 +0000
+Message-ID: <6C6B28D4DC342643927BEAFCE8707BF63EAA07D7@DBDE01.ent.ti.com>
+References: <51312430.6060306@gmail.com> <87sj4cunp6.fsf@dell.be.48ers.dk>
+ <5133E268.5010604@gmail.com> <51388D64.9000005@gmail.com>
+ <513A1580.90303@gmail.com> <514863BD.5010503@gmail.com>
+ <87620nwmd2.fsf@dell.be.48ers.dk> <515C19D7.6080702@gmail.com>
+ <20130403120454.GX25837@arwen.pp.htv.fi> <515C23D4.3010206@gmail.com>
+ <20130403130807.GB14680@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130403172751.GC10089@xanatos>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50343 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1763299Ab3DDFLH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 01:11:07 -0400
+In-Reply-To: <20130403130807.GB14680@arwen.pp.htv.fi>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Balbi, Felipe" <balbi@ti.com>, Daniel Mack <zonque@gmail.com>
+Cc: Peter Korsgaard <jacmet@sunsite.dk>, "Mohammed, Afzal" <afzal@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, "Santhapuri, Damodar" <damodar.santhapuri@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
 
-Hi Sarah,
+Felipe
 
+> 
+> Hi,
+> 
+> On Wed, Apr 03, 2013 at 02:43:00PM +0200, Daniel Mack wrote:
+> > On 03.04.2013 14:04, Felipe Balbi wrote:
+> > > On Wed, Apr 03, 2013 at 02:00:23PM +0200, Daniel Mack wrote:
+> >
+> > >> Felipe, could you explain the background on how the dsps driver is
+> > >> supposed to work in host mode at boot time with the rework of the
+> driver
+> > >> you did for 3.7? It might just be me not understanding the rationale
+> > >> behind all these changes, but appearantly, I'm not the only one who's
+> > >> affected by that.
+> > >
+> > > right, so the idea with that was to drop the huge amount of ifdeferry
+> > > hack from the MUSB driver. It would be great if someone would send
+> > > *CLEAN* patches adding Kconfig-based role choices again.
+> >
+> > Are Kconfig-based rules really what we want here after all? Wouldn't
+> > run-time configured settings make much more sense, considering that
+> 
+> we need both. Say that you want to build a product with MUSB hardwired
+> as host, why would you enable gadget framework ?
+> 
+> I can think of at least am335x where this would be perfectly plausible
+> (no EHCI available, only MUSB).
+> 
+> > people might want to run a single kernel image on multiple platforms? I
+> > believe it should be up to the DT to define the actual hardware wiring.
+> 
+> Right, for runtime decision Ravi pointed me to a patch implementing that
+> (Ravi, could you post it by any chance as RFC ?) which we could start a
+> discussion and hopefully merge for v3.11
 
-On Wed, Apr 3, 2013 at 10:57 PM, Sarah Sharp
-<sarah.a.sharp@linux.intel.com> wrote:
-> Question: Do you still need this patch for 3.10?
+Ok. 
 
-Felipe's 'next' is closed for 3.10, so this series won't be making it
-to 3.10 now, as a whole. :-(
-
->
-> http://marc.info/?l=linux-usb&m=136057666911621&w=2
->
-> Does this patchset build on top of that?
-
-Yea, it builds fine on top of the above mentioned patch.
-I would suggest that we pull the xhci-plat patch in this series when the
-complete patch-set getting in.
-btw, its your decision ;-)
-
->
-> I'm really behind on my patches for 3.10, sorry.
->
-> Sarah Sharp
->
-> On Mon, Apr 01, 2013 at 07:23:59PM +0530, Vivek Gautam wrote:
->> This patch-series enables runtime power management on xhci-plat,
->> dwc3-core, dwc3-exynos as well as on Samsung's USB 2.0 type and
->> USB 3.0 type PHYs.
->>
->> Based on 'next' branch of Felipe Balbi's USB tree.
->>
->> Changes from v2:
->>  - Using separate functions for USB PHY runtime power management, instead of
->>    using macros.
->>  - Adding 'pm_runtime_set_suspended()' api call in dwc3 core layer before
->>    enabling runtime pm. (Ideally, we should be explicitly make device
->>    'suspended' or 'active' before enabling runtime pm on it).
->>  - Checking return code for 'put_sync' and 'get_sync' of USB-PHYs when
->>    waking up or suspending them from dwc3 core's runtime_pm callbacks.
->>  - Removed buggy pm_runtime_put() calls from driver's (xhci, dwc3 and PHY)
->>    remove functions.
->>  - Adding a patch to enable runtime power management of Samsung's USB 2.0 PHY
->>    (usb: phy: samsung: Enable runtime power management on usb2phy)
->>
->> Changes from v1:
->>  - Adding required PHY APIs to handle runtime power management
->>    instead of directly twiddling with phy->dev.
->>  - Handling runtime power management of usb PHYs in dwc3 core
->>    driver instead of in any glue layer.
->>  - Splitting the patch:
->>    [PATCH 4/4] usb: phy: samsung: Enable runtime power management on samsung-usb
->>    into required number to bifurcate functionality.
->>
->> Vivek Gautam (11):
->>   usb: phy: Add APIs for runtime power management
->>   USB: dwc3: Adjust runtime pm to allow autosuspend
->>   usb: dwc3: Enable runtime pm only after PHYs are initialized
->>   usb: dwc3: Add runtime power management callbacks
->>   usb: dwc3: exynos: Enable runtime power management
->>   usb: xhci: Enable runtime pm in xhci-plat
->>   usb: phy: samsung: Enable runtime power management on usb2phy
->>   usb: phy: samsung: Enable runtime power management on usb3phy
->>   usb: phy: samsung: Add support for external reference clock
->>   usb: phy: samsung: Add support for PHY ref_clk gpio
->>   usb: phy: samsung: Add support for PHY refclk switching
->>
->>  drivers/usb/dwc3/core.c            |   59 ++++++++++++++--
->>  drivers/usb/dwc3/dwc3-exynos.c     |   12 +++
->>  drivers/usb/host/xhci-plat.c       |    6 ++
->>  drivers/usb/phy/phy-samsung-usb.c  |   26 +++++++
->>  drivers/usb/phy/phy-samsung-usb.h  |    1 +
->>  drivers/usb/phy/phy-samsung-usb2.c |    5 ++
->>  drivers/usb/phy/phy-samsung-usb3.c |  119 +++++++++++++++++++++++++++++--
->>  include/linux/usb/phy.h            |  141 ++++++++++++++++++++++++++++++++++++
->>  8 files changed, 358 insertions(+), 11 deletions(-)
->>
->> --
->> 1.7.6.5
->>
-
-
-
--- 
-Thanks & Regards
-Vivek
+--
+Ravi B
