@@ -1,106 +1,74 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
-Date: Thu, 4 Apr 2013 12:26:16 +0300
-Message-ID: <20130404092616.GD30991@arwen.pp.htv.fi>
-References: <20130403141831.GJ14680@arwen.pp.htv.fi>
- <Pine.LNX.4.44L0.1304031410320.2027-100000@iolanthe.rowland.org>
- <20130404071832.GD30287@arwen.pp.htv.fi>
- <CAFp+6iF9VJ5EneyVA9c6ggEa_RiUw0ZRBTRgh_gy--5ubP=8=Q@mail.gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 1/2] mfd: twl4030-madc: Add support for raw value in twl4030_madc_conversion
+Date: Thu, 4 Apr 2013 11:32:20 +0200
+Message-ID: <201304041132.21158@pali>
+References: <1360969010-8571-1-git-send-email-pali.rohar@gmail.com> <201303022323.06091@pali> <201303241503.29912@pali>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="u65IjBhB3TIa72Vp"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAFp+6iF9VJ5EneyVA9c6ggEa_RiUw0ZRBTRgh_gy--5ubP=8=Q@mail.gmail.com>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vivek Gautam <gautamvivek1987-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, t.figa-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, p.paneri-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
+Content-Type: multipart/signed;
+  boundary="nextPart4204324.nyTu21UEpb";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201303241503.29912@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Anton Vorontsov <cbou@mail.ru>, Keerthy <j-keerthy@ti.com>, Kyle Manna <kyle@kylemanna.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---u65IjBhB3TIa72Vp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--nextPart4204324.nyTu21UEpb
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Thu, Apr 04, 2013 at 02:26:51PM +0530, Vivek Gautam wrote:
-> >> > > Lets suppose DWC3 enables runtime_pm on USB 2 type phy,
-> >> > > it will try to go into suspend state and thereby call runtime_susp=
-end(), if any.
-> >> > > And PHY will come to active state only when its consumer wakes it =
-up,
-> >> > > and this consumer is operational
-> >> > > only when its related PHY is in fully functional state.
-> >> > > So do we have a situation in which this PHY goes into low power st=
-ate
-> >> > > in its runtime_suspend(),
-> >> > > resulting in non-detection of devices on further attach (since PHY=
- is
-> >> > > in low power state) ?
-> >> > >
-> >> > > Will the controller (like EHCI/OHCI) be functional now ?
-> >> >
-> >> > ehci/ohci need to cope with that by calling usb_phy_autopm_get_sync(=
-),
-> >> > right ? (so does DWC3 :-)
-> >>
-> >> Maybe you guys have already got this all figured out -- if so, feel
-> >> free to ignore this email.
-> >>
-> >> Some subsystems handle this issue by calling pm_runtime_get_sync()
-> >> before probing a driver and pm_runtime_put_sync() after unbinding the
-> >> driver.  If the driver is runtime-PM-enabled, it then does its own
-> >> put_sync near the end of its probe routine and get_sync in its release
-> >> routine.
-> >
-> > sounds a bit 'fishy' to me... So a separate entity would call
-> > pm_runtime_get_sync(), even when we don't have registered dev_pm_ops,
-> > then drivers need to check if runtime_pm is enabled and call
-> > pm_runtime_put*() conditionally before returning from probe(). One
-> > remove, we might have another issue: device is already runtime_suspended
-> > (due to e.g. autosuspend) when module is removed, a call to
-> > pm_runtime_put_sync() will be unbalanced. No ?
+On Sunday 24 March 2013 15:03:29 Pali Roh=C3=A1r wrote:
+> On Saturday 02 March 2013 23:23:05 Pali Roh=C3=A1r wrote:
+> > On Friday 15 February 2013 23:56:49 Pali Roh=C3=A1r wrote:
+> > > Driver twl4030-madc has hardcoded channel types (10 -
+> > > battery current, 1 - battery temperature) and also
+> > > conversation data in variable twl4030_divider_ratios.
+> > > These hardcoded channels are incorrect for Nokia RX-51
+> > > board (where is channel 0 - battery temperature).
+> > >=20
+> > > For Nokia RX-51 there is rx51_battery power_supply driver
+> > > which reporting battery information via
+> > > twl4030_madc_conversion. But this driver needs raw values
+> > > (not converted via some hardcoded functions). So this
+> > > patch adding new parameter "raw" to struct
+> > > twl4030_madc_request which tell twl4030-madc driver to
+> > > not convert values, but rather return raw.
+> > >=20
+> > > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> > > ---
+> > >=20
+> > >  drivers/mfd/twl4030-madc.c       |   14 ++++++++++----
+> > >  include/linux/i2c/twl4030-madc.h |    2 ++
+> > >  2 files changed, 12 insertions(+), 4 deletions(-)
+> >=20
+> > Hello, can somebody review this twl4030-madc patch?
 >=20
-> May be i am misinterpreting !!
-> If PHYs are runtime-PM enabled (PHY probe calls *runtime_enable*),
-> then the consumers
-> need to call pm_runtime_get_sync whever they want to access PHY.
+> Bump.
+>=20
+> Can some of mfd maintainers look at this patch and include it
+> to mfd tree? It is needed for rx51_battery power supply
+> driver.
 
-Alright, so here's my understanding:
+CCing Tony, can you look at this patch?
 
-I suggested letting e.g. DWC3 enable the PHY's runtime_pm; Alan said
-that it could be done before that so that DWC3 sees an enabled PHY
-during probe.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
---=20
-balbi
-
---u65IjBhB3TIa72Vp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+--nextPart4204324.nyTu21UEpb
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRXUc4AAoJEIaOsuA1yqREyrcP/joqz7ntl5jWu2qWDFdo73Oz
-Pz+JPP4UI7sRtIcdz+QajORhKYk0BTfc5J1uZAMbkjr9/DVfp2UN8YmEXSCOOMjM
-LTI5tyuEQNfMsucaWkveE2MytHk84jfTZKCE03cw6U/DCKnsMcWq+/cS8YGRz+rx
-7hGbSaMMmkLq+q7isY+PKz4VwixBT7kOLUCvrp6KXKKFoTrbg4ycgyCXIEL4hBg0
-sn4RJLThO+yNY6Bo35tJ2pVqutcLFtV3te0Q1BICYr5RK0kE5iOLJLC0Z3oJGFA3
-JzA1fy2ebJkc0MPJyAnqicdgwH4Q6QAKghSesp8hQ9QrHBMYIl+29LVyvBBODgDF
-EAZjHLVRUvGCkPyH/DwcrZ2MrUdifD6pQYuRG8qKxrcAPZdHzHybth9iLqdh3DC9
-IGR+QPGl6jAO6rHrF4iop7YbwEJbhDnRqBc3g0MYJk6VOtOhe+mHw1+HV11jJqV4
-JH6snQTYTLpm7BWqba9HkpDL4/Jdi+4yrvRqxQuHcR2Juq9oDDLLfN8pigwBymH2
-V25hLo8lFvWnL/WPFdjOUHagQQFGDXS3/uASYc+x+neshn9YY7i38fG2K2nPyVWI
-IztYpdjINSBGPkqLWY8ETf+8DgXKNcWPhsznH/Wf49BNyfzjJ5vpKllKldmOM6og
-HFXsU93ql1urJyXchzal
-=iDob
+iEYEABECAAYFAlFdSKUACgkQi/DJPQPkQ1J3FwCgsdsQMZ9ABbG+1TJ9cLK8pSCm
+XgoAn03qdIow1/rBhSL214sDBT7RJZZW
+=kBoX
 -----END PGP SIGNATURE-----
 
---u65IjBhB3TIa72Vp--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--nextPart4204324.nyTu21UEpb--
