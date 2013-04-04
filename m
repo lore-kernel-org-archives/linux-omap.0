@@ -1,138 +1,160 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: GPMC updates
-Date: Wed, 3 Apr 2013 21:20:59 -0500
-Message-ID: <515CE38B.3080400@ti.com>
-References: <515B0D92.6070503@ti.com> <20130403214036.GD10155@atomide.com>
+From: CF Adad <cfadad@rocketmail.com>
+Subject: AM3517 DaVinci EMAC Ethernet performance issues
+Date: Wed, 3 Apr 2013 19:36:07 -0700 (PDT)
+Message-ID: <1365042967.79225.YahooMailNeo@web160505.mail.bf1.yahoo.com>
+Reply-To: CF Adad <cfadad@rocketmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36963 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932825Ab3DDCVG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Apr 2013 22:21:06 -0400
-In-Reply-To: <20130403214036.GD10155@atomide.com>
+Received: from nm21.bullet.mail.bf1.yahoo.com ([98.139.212.180]:37912 "EHLO
+	nm21.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932247Ab3DDCgI convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 3 Apr 2013 22:36:08 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+(( Attempting to re-post this since Yahoo! shipped the previous one as =
+HTML... ))
 
-On 04/03/2013 04:40 PM, Tony Lindgren wrote:
-> * Jon Hunter <jon-hunter@ti.com> [130402 10:00]:
->> The following changes since commit dca3a783400a18e2bf4503b1d4a85c4d0=
-ca1a7e4:
->>
->>   Merge commit '31d9adca82ce65e5c99d045b5fd917c702b6fce3' into tmp (=
-2013-04-01 14:33:50 -0500)
->>
->> are available in the git repository at:
->>
->>
->>   git://github.com/jonhunter/linux.git omap-gpmc-for-v3.10
->>
->> for you to fetch changes up to c67bd6e7cad2160c3bbfa2ac2bd954f918301=
-c23:
->>
->>   ARM: OMAP2+: Add GPMC DT support for Ethernet child nodes (2013-04=
--01 14:53:50 -0500)
->>
->> ----------------------------------------------------------------
->> Adds GPMC DT support for NOR flash and Ethernet and includes
->> various GPMC cleans-up and fixes.
->>
->> This series is dependent on commit 7185684 (ARM: OMAP: use
->> consistent error checking) from RMK's clean-up branch and commit
->> 31d9adc (ARM: OMAP2+: Fix broken gpmc support).
->=20
-> Looks good except it adds a new warning:
->=20
-> arch/arm/mach-omap2/gpmc.c: In function =E2=80=98gpmc_read_timings_dt=
-=E2=80=99:
-> arch/arm/mach-omap2/gpmc.c:1324: warning: =E2=80=98p=E2=80=99 may be =
-used uninitialized in this function
->=20
-> Can you please take a look?
+All,
 
-No problem. I did not see get this warning, but I believe that=20
-there is a bug that needed to be fixed. Can you try the below?
+My team is presently seeing *extremely poor* (on the order of single-di=
+git Mbps) Ethernet performance out of an AM3517-based COM (Technexion's=
+ TAM-3517 in this case) when it _transmits TCP_. Receiving TCP appears =
+to happen fine, and our UDP transmit and receive appears pretty solid. =
+Is anyone else seeing anything like this on an AM3517-based platform? (=
+I have a CompuLab CM-T3517 that I'll try to get to by the end of this w=
+eek for comparison.)
 
-Jon
+I reported a similar, perhaps related, issue nearly a year ago at http:=
+//thread.gmane.org/gmane.linux.ports.arm.omap/78647 & http://e2e.ti.com=
+/support/arm/sitara_arm/f/416/t/195442.aspx, and never heard much in re=
+sponse. Though the performance of the EMAC port has never been stellar =
+(others have admitted that), we've continued working with the COM becau=
+se the network performance our tests were seeing at the time was more t=
+han adequate to our tasks at hand. Recently however, while testing our =
+latest hardware we hit this nasty performance snag and that caused us t=
+o revisit this entirely. Frustratingly, these tests are showing that th=
+at performance now appears to be way worse than anything we previously =
+saw, on both our custom hardware and dev. kit systems.
 
-The following changes since commit dca3a783400a18e2bf4503b1d4a85c4d0ca1=
-a7e4:
+The behavior is easily characterized using 'iperf'. If the TAM hosts th=
+e iperf server (i.e. receives TCP using 'iperf -s'), a client can conne=
+ct to it and run ~90Mbps forever. That's perfect. If those roles are re=
+versed however, and the TAM plays client (i.e. transmits TCP using 'ipe=
+rf -i 10 -t 60 -c <server_ip>'), the data rate becomes sporadic and oft=
+en plummets or even times out. Please see captures below. Although it m=
+isbehaves dramatically, the driver never registers a single error, xrun=
+, nothing...
 
-  Merge commit '31d9adca82ce65e5c99d045b5fd917c702b6fce3' into tmp (201=
-3-04-01 14:33:50 -0500)
+*** EMAC running server (receiving TCP) ***
+$ iperf -i 10 -t 60 -c 10.22.0.17
+------------------------------------------------------------
+Client connecting to 10.22.0.17, TCP port 5001
+TCP window size: 23.5 KByte (default)
+------------------------------------------------------------
+[ 3] local 10.22.255.5 port 60936 connected with 10.22.0.17 port 5001
+[ ID] Interval Transfer Bandwidth
+[ 3] 0.0-10.0 sec 113 MBytes 94.5 Mbits/sec
+[ 3] 10.0-20.0 sec 112 MBytes 94.3 Mbits/sec
+[ 3] 20.0-30.0 sec 112 MBytes 94.0 Mbits/sec
+[ 3] 30.0-40.0 sec 112 MBytes 94.2 Mbits/sec
+[ 3] 40.0-50.0 sec 112 MBytes 94.3 Mbits/sec
+[ 3] 50.0-60.0 sec 112 MBytes 94.0 Mbits/sec
+[ 3] 0.0-60.0 sec 674 MBytes 94.2 Mbits/sec
 
-are available in the git repository at:
+*** EMAC running client (transmitting TCP) ***
+# iperf -i 10 -t 60 -c 10.22.255.5
+------------------------------------------------------------
+Client connecting to 10.22.255.5, TCP port 5001
+TCP window size: 19.6 KByte (default)
+------------------------------------------------------------
+[ 3] local 10.22.0.17 port 43185 connected with 10.22.255.5 port 5001
+[ ID] Interval Transfer Bandwidth
+[ 3] 0.0-10.0 sec 92.5 MBytes 77.6 Mbits/sec
+[ 3] 10.0-20.0 sec 102 MBytes 85.3 Mbits/sec
+[ 3] 20.0-30.0 sec 98.6 MBytes 82.7 Mbits/sec
+[ 3] 30.0-40.0 sec 55.4 MBytes 46.5 Mbits/sec
+[ 3] 40.0-50.0 sec 2.73 MBytes 2.29 Mbits/sec
+[ 3] 50.0-60.0 sec 1.26 MBytes 1.06 Mbits/sec
+[ 3] 0.0-64.5 sec 352 MBytes 45.8 Mbits/sec
 
+Since discovering this behavior at the end of last week, I have systema=
+tically gone back through our generations of our custom carrier boards =
+as well as the TAM's Twister dev kit and proven that the issue is now p=
+resent on everything we have. Since the behavior appears to have change=
+d since we last aggressively tested this nearly a year ago, I'm assumin=
+g a slight software alteration somewhere is largely to blame. So I walk=
+ed back through all of my recorded boot logs and retried running our ma=
+in previous kernels (l-o 3.4-rc6 and l-o 3.5-rc4) as well as older vers=
+ions of the bootloaders. In every case, the problem has remained.
 
-  git://github.com/jonhunter/linux.git omap-gpmc-for-v3.10-take2
+The latest software we're running is still based on linux-omap's 3.5-rc=
+4. We locked the kernel down there several months ago in order to stage=
+ for release, and until we discovered this last week it has been runnin=
+g _very_ stably. I have, however, continued to monitor the lists and ma=
+jor patch sites looking to see if any major bug fixes are released in t=
+he drivers we're using, etc. Since discovering this issue, I've also go=
+ne ahead and backported in many of the patches released by the folks I =
+CC'd onto this message - at least those I could easily pull in without =
+upgrading the kernel. Unless I'm overlooking something, it now looks to=
+ me like I have everything but the DT and OF stuff worked into our kern=
+el. (I'm assuming that DT and OF stuff really does not impact performan=
+ce. Is that a safe assumption?)=A0 Unfortunately, pulling in those chan=
+ges has not corrected this issue.
 
-for you to fetch changes up to 5330dc161cb41e399e85d30e6908f1b93b956d1e=
-:
+We've done network captures on our link, and the problem is very strang=
+e. The iperf client transmits data quickly and steadily for a while, bu=
+t then all the sudden just stops. In the captures you can see an ACK co=
+me back from the server for the frame that was just sent, but then inst=
+ead of immediately sending the next one it just sits there for sometime=
+s several seconds. Then, it suddenly picks back up and starts running a=
+gain. It's as though it just paused due to lack of data. Again, no erro=
+rs or xruns are ever triggered, and even with full NETIF_MSG debugging =
+on, we're getting nothing.
 
-  ARM: OMAP2+: Add GPMC DT support for Ethernet child nodes (2013-04-03=
- 20:13:42 -0500)
+One other note: The more I play around with this the more I'm noticing =
+that manually increasing the TCP window size helps things dramatically.
 
-----------------------------------------------------------------
-Ezequiel Garcia (8):
-      ARM: omap2: gpmc: Mark local scoped functions static
-      ARM: omap2: gpmc: Remove unused gpmc_round_ns_to_ticks() function
-      ARM: omap2: gpmc: Fix gpmc_cs_reserved() return value
-      ARM: omap2: gpmc-nand: Print something useful on CS request failu=
-re
-      ARM: omap2: gpmc-onenand: Print something useful on CS request fa=
-ilure
-      ARM: omap2: gpmc-onenand: Replace pr_err() with dev_err()
-      ARM: omap2: gpmc-onenand: Replace printk KERN_ERR with dev_warn()
-      ARM: omap2: gpmc: Remove redundant chip select out of range check
+*** EMAC running client (transmitting TCP) WITH larger window ***
+# iperf -i 10 -t 60 -c 10.22.255.5 -w 85K
+------------------------------------------------------------
+Client connecting to 10.22.255.5, TCP port 5001
+TCP window size: 170 KByte (WARNING: requested 85.0 KByte)
+------------------------------------------------------------
+[ 3] local 10.22.0.17 port 43189 connected with 10.22.255.5 port 5001
+[ ID] Interval Transfer Bandwidth
+[ 3] 0.0-10.0 sec 105 MBytes 88.3 Mbits/sec
+[ 3] 10.0-20.0 sec 92.0 MBytes 77.2 Mbits/sec
+[ 3] 20.0-30.0 sec 94.8 MBytes 79.6 Mbits/sec
+[ 3] 30.0-40.0 sec 88.3 MBytes 74.1 Mbits/sec
+[ 3] 40.0-50.0 sec 95.8 MBytes 80.3 Mbits/sec
+[ 3] 50.0-60.0 sec 105 MBytes 87.9 Mbits/sec
+[ 3] 0.0-60.0 sec 581 MBytes 81.2 Mbits/sec
 
-Javier Martinez Canillas (3):
-      ARM: OMAP2+: return -ENODEV if GPMC child device creation fails
-      ARM: OMAP2+: rename gpmc_probe_nor_child() to gpmc_probe_generic_=
-child()
-      ARM: OMAP2+: Add GPMC DT support for Ethernet child nodes
+While encouraging, I know I should not have to do this. This feels like=
+ it's simply masking the real problem.
 
-Jon Hunter (17):
-      ARM: OMAP2+: Simplify code configuring ONENAND devices
-      ARM: OMAP2+: Add variable to store number of GPMC waitpins
-      ARM: OMAP2+: Add structure for storing GPMC settings
-      ARM: OMAP2+: Add function for configuring GPMC settings
-      ARM: OMAP2+: Convert ONENAND to use gpmc_cs_program_settings()
-      ARM: OMAP2+: Convert NAND to use gpmc_cs_program_settings()
-      ARM: OMAP2+: Convert SMC91x to use gpmc_cs_program_settings()
-      ARM: OMAP2+: Convert TUSB to use gpmc_cs_program_settings()
-      ARM: OMAP2+: Don't configure of chip-select options in gpmc_cs_co=
-nfigure()
-      ARM: OMAP2+: Add function to read GPMC settings from device-tree
-      ARM: OMAP2+: Add additional GPMC timing parameters
-      ARM: OMAP2+: Add device-tree support for NOR flash
-      ARM: OMAP2+: Convert NAND to retrieve GPMC settings from DT
-      ARM: OMAP2+: Convert ONENAND to retrieve GPMC settings from DT
-      ARM: OMAP2+: Detect incorrectly aligned GPMC base address
-      ARM: OMAP2+: Remove unnecesssary GPMC definitions and variable
-      ARM: OMAP2+: Allow GPMC probe to complete even if CS mapping fail=
-s
+I've looked closely sysctl parameters associated with the ipv4 stuff (w=
+e're not using ipv6), and have contrasted that against parameters for s=
+everal systems around here. Again, I'm not finding anything obvious.
 
-Mark Jackson (1):
-      ARM: OMAP: Clear GPMC bits when applying new setting.
+Has anyone seen anything like this out of TI's DaVinci EMAC before and/=
+or does anyone have any idea what could be causing this? Any and all he=
+lp in tracking this down would be greatly appreciated! To anyone willin=
+g to help, I'll happily provide as much info as I can. Please just ask.
 
- Documentation/devicetree/bindings/bus/ti-gpmc.txt  |  103 +++-
- Documentation/devicetree/bindings/mtd/gpmc-nor.txt |   98 ++++
- .../devicetree/bindings/mtd/gpmc-onenand.txt       |    3 +
- Documentation/devicetree/bindings/net/gpmc-eth.txt |   97 ++++
- arch/arm/mach-omap2/gpmc-nand.c                    |   42 +-
- arch/arm/mach-omap2/gpmc-onenand.c                 |  118 ++---
- arch/arm/mach-omap2/gpmc-smc91x.c                  |   30 +-
- arch/arm/mach-omap2/gpmc.c                         |  544 ++++++++++++=
-++------
- arch/arm/mach-omap2/gpmc.h                         |   43 +-
- arch/arm/mach-omap2/usb-tusb6010.c                 |   62 ++-
- 10 files changed, 831 insertions(+), 309 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nor.txt
- create mode 100644 Documentation/devicetree/bindings/net/gpmc-eth.txt
+While I would prefer to not do so given that it would void the months o=
+f testing we've already done, if necessary I can look into pushing our =
+kernel forward toward the leading edge of the l-o series.=A0 However, I=
+ would prefer other efforts be exhausted first given the sacrifice in t=
+esting that would require.
+
+Thanks in advance and thanks to all who contribute to these excellent o=
+pen source tools and products.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
