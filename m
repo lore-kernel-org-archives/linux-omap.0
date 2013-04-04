@@ -1,86 +1,106 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2 15/18] ARM: OMAP4+: CPUidle: Consolidate idle driver
- for OMAP5 support
-Date: Thu, 4 Apr 2013 19:34:47 +0530
-Message-ID: <515D887F.8070901@ti.com>
-References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com> <1364205910-32392-16-git-send-email-santosh.shilimkar@ti.com> <87ip43s4l8.fsf@linaro.org>
+Subject: Re: [PATCH v2 17/18] ARM: OMAP4+: CPUidle: Add OMAP5 idle driver
+ support
+Date: Thu, 4 Apr 2013 19:46:43 +0530
+Message-ID: <515D8B4B.6000800@ti.com>
+References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com> <1364205910-32392-18-git-send-email-santosh.shilimkar@ti.com> <87fvz7qpce.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48537 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760655Ab3DDOCw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Apr 2013 10:02:52 -0400
-In-Reply-To: <87ip43s4l8.fsf@linaro.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:51078 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760684Ab3DDOOn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 10:14:43 -0400
+In-Reply-To: <87fvz7qpce.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@linaro.org>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com
 
-On Thursday 04 April 2013 02:40 AM, Kevin Hilman wrote:
+On Thursday 04 April 2013 02:55 AM, Kevin Hilman wrote:
 > Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 > 
->> The OMAP5 idle driver can re-use most of OMAP4 CPUidle driver
->> implementation. Also the next derivative SOCs are going to re-use
->> the MPUSS so, same driver with minor updates can be re-used.
+>> The OMAP5 idle driver can re-use OMAP4 CPUidle driver implementation thanks
+>> to compatible MPUSS design.
 >>
->> Prepare the code so that its easier to add CPUidle support for
->> OMAP5 devices.
+>> Though unlike OMAP4, on OMAP5 devices, MPUSS CSWR (Close Switch
+>> Retention) power states can be achieved with respective power states
+>> on CPU0 and CPU1 power domain. This mode was broken on OMAP4 devices
+>> because of hardware limitation.
+> 
+> I'm a bit confused by the description here.
+> 
+> I gather from the code that this means that CPU0 and CPU1 can hit CSWR
+> independently, correct?
+> 
+They can be programmed independently without any ordering(like
+CPU0 last etc), but the actual transition to the low power CSWR
+happens together. Till that the first CPU hit WFI remains in WFI
+state waiting for other CPU to hit WFI and then both transition
+together.
+Completely managed inside hardware.
+
+
+>> Also there is no CPU low power entry order requirement like
+>> master CPU etc for CSWR C-state, which is icing on the cake. 
+> 
+> Even on secure devices?
+> 
+Yes. On secure devices too. Actually since we don't loose context,
+secure entry/exit doesn't come into picture.
+
+>> Code makes use of voting scheme for cluster low power state to support
+>> MPUSS CSWR C-state.
+> 
+> The voting scheme and associated locking should be better described
+> here, or commented in the code itself.
+> 
+You are right. It deserves some description.
+
+>> Supported OMAP5 CPUidle C-states:
+>>         C1 - CPU0 ON(WFI) + CPU1 ON(WFI) + MPUSS ON
+>>         C2 - CPU0 CSWR + CPU1 CSWR + MPUSS CSWR
+>>         C3 - CPU0 OFF + CPU1 OFF + MPUSS OSWR
 >>
 >> Acked-by: Nishanth Menon <nm@ti.com>
 >> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> ---
->>  arch/arm/mach-omap2/cpuidle44xx.c |   31 ++++++++++++++++---------------
->>  1 file changed, 16 insertions(+), 15 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
->> index b8a22f0..ac6d526 100644
->> --- a/arch/arm/mach-omap2/cpuidle44xx.c
->> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
->> @@ -1,7 +1,7 @@
->>  /*
->> - * OMAP4 CPU idle Routines
->> + * OMAP4PLUS CPU idle Routines
 > 
-> nit: s/PLUS/+/ 
+> [...]
 > 
-> in a few other places in this patch also.
+>> +static int omap_enter_idle_smp(struct cpuidle_device *dev,
+>> +			struct cpuidle_driver *drv,
+>> +			int index)
+>> +{
+>> +	struct idle_statedata *cx = state_ptr + index;
+>> +	int cpu_id = smp_processor_id();
+>> +	unsigned long flag;
+>> +
+>> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
 > 
-yes. Will update that.
+> I think the CPUidle core handles the broadcast notification now.
+> 
+Not in mainline yet. And those patches came after my patches and
+I don't wanted un-necessary merge dependency, I avoided it. Its trivial
+though to drop if from here once the idle next is merged.
 
->> @@ -24,13 +24,13 @@
->>  #include "clockdomain.h"
->>  
->>  /* Machine specific information */
->> -struct omap4_idle_statedata {
->> +struct idle_statedata {
->>  	u32 cpu_state;
->>  	u32 mpu_logic_state;
->>  	u32 mpu_state;
->>  };
->>  
->> -static struct omap4_idle_statedata omap4_idle_data[] = {
->> +static struct idle_statedata omap4_idle_data[] = {
->>  	{
->>  		.cpu_state = PWRDM_POWER_ON,
->>  		.mpu_state = PWRDM_POWER_ON,
->> @@ -53,11 +53,12 @@ static struct clockdomain *cpu_clkdm[NR_CPUS];
->>  
->>  static atomic_t abort_barrier;
->>  static bool cpu_done[NR_CPUS];
->> +static struct idle_statedata *state_ptr = &omap4_idle_data[0];
+>> +	raw_spin_lock_irqsave(&mpu_lock, flag);
+>> +	cx->mpu_state_vote++;
 > 
-> The assignment at init time (from the next patch) should be done here
-> for 44xx, and the next patch can just add OMAP5 support.
+> How about using an atomic_t and atomic_inc()/atomic_dec() instead, which
+> will avoid the need for a spinlock.
 > 
-You don't need that to be differentiated at init at this
-patch since only OMAP4 is supported and static assignment takes care
-of it. Next patch ofcouse we need to differentiate and hence added
-the checks there.
+Spin lock is not just for the vote variable. I had atomics opps in first
+version I gave it to product team. But they found a race condition in
+where MPU power state was getting overwritten by other CPU.
+
+> Even with that, it still seems potentially racy.  Do you need a memory
+> barrier here to be sure that any changes from another CPU are visible
+> here, and vice versa?
+> 
+With locks, you don't need barriers since the updated copy is guaranteed.
+Can you please elaborate on potential race ? I have given pretty hard
+thought and didn't see any race which can be exposed with locks in place.
 
 Regards,
 Santosh
-
-
-
