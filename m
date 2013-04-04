@@ -1,43 +1,65 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: MUSB regression in linux next at least for pandboard
-Date: Thu, 4 Apr 2013 14:36:51 +0300
-Message-ID: <515D65D3.40006@ti.com>
-References: <Pine.LNX.4.44L0.1302061038310.1893-100000@iolanthe.rowland.org> <511370D7.9070509@ti.com> <CANOLnOODiu+rEqCQH5BAzTXhWi4cUZO-OXO=-1xxyhMFW77UZQ@mail.gmail.com>
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+Subject: Re: [PATCH v4] drivers: video: use module_platform_driver_probe()
+Date: Thu, 4 Apr 2013 13:38:49 +0200
+Message-ID: <CAHkwnC_AAJ5bcoH0=Zq8vVufKXqwC4WVtc9wY01h07FbZveGeg@mail.gmail.com>
+References: <1363352558-6275-1-git-send-email-fabio.porcedda@gmail.com> <515AB113.6030700@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CANOLnOODiu+rEqCQH5BAzTXhWi4cUZO-OXO=-1xxyhMFW77UZQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Vivek Gautam <gautamvivek1987-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f41.google.com ([209.85.219.41]:50074 "EHLO
+	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759178Ab3DDLjK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 07:39:10 -0400
+In-Reply-To: <515AB113.6030700@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev <linux-fbdev@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, David Howells <dhowells@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 
-Hi,
-
-On 02/07/2013 04:10 PM, Grazvydas Ignotas wrote:
-> On Thu, Feb 7, 2013 at 11:16 AM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
-> <snip>
->> It seems the beagleboard problem is related to OMAP silicon errata [1].
->> Apparently, remote wakeup as well as host issued wakeup break omap-ehci and have
->> nothing to do with the hub or it's driver.
+On Tue, Apr 2, 2013 at 12:21 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 2013-03-15 15:02, Fabio Porcedda wrote:
+>> This patch converts the drivers to use the
+>> module_platform_driver_probe() macro which makes the code smaller and
+>> a bit simpler.
 >>
->> I'll work on this issue after I'm done with device tree migration.
-> 
-> Looking forward to this, mainline has been suffering from this since
-> almost forever..
-> 
-> 
+>> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+>> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+>> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com> # atmel_lcdfb.c
+>> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> Cc: David Howells <dhowells@redhat.com>
+>> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com> # amifb.c
+>> Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+>> ---
+>>
+>> Notes:
+>>     v4:
+>>      - add acked-by Nicolas & Laurent
+>>      - fix amifb.c
+>>     v3:
+>>      - add missing drivers: amifb, atmel_lcdfb, vrfb
+>>      - split patch set to each maintainer to easy up respin
+>>     v2:
+>>      - rebased over linux-next and remove already converted drivers
+>>
+>>  drivers/video/amifb.c          | 14 +-------------
+>>  drivers/video/atmel_lcdfb.c    | 13 +------------
+>>  drivers/video/omap2/vrfb.c     | 13 +------------
+>>  drivers/video/sh_mipi_dsi.c    | 12 +-----------
+>>  drivers/video/sh_mobile_hdmi.c | 12 +-----------
+>>  5 files changed, 5 insertions(+), 59 deletions(-)
+>
+> Thanks, applied to fbdev branch.
 
-Unfortunately, there is another errata [2] that makes it impossible to
-support suspend/resume on the beagleboard.
+Thanks for taking it.
+I don't see this patch neither in linux-next nor in
+git://gitorious.org/linux-omap-dss2/linux.git,
+in which repository/branch is it?
 
-cheers,
--roger
-
-[2] Advisory 3.1.1.195 HSUSB Interoperability Issue With SMSC USB3320 PHY
-http://www.ti.com/general/docs/lit/getliterature.tsp?literatureNumber=sprz278f&fileType=pdf
+Regards
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fabio Porcedda
+
+>  Tomi
+>
+>
