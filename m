@@ -1,21 +1,21 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v2 09/18] ARM: OMAP4+: PM: Restore CPU power state to ON with clockdomain force wakeup method
-Date: Thu, 04 Apr 2013 10:42:22 -0700
-Message-ID: <87li8ynqf5.fsf@linaro.org>
+Subject: Re: [PATCH v2 17/18] ARM: OMAP4+: CPUidle: Add OMAP5 idle driver support
+Date: Thu, 04 Apr 2013 10:55:55 -0700
+Message-ID: <87li8ymb84.fsf@linaro.org>
 References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
-	<1364205910-32392-10-git-send-email-santosh.shilimkar@ti.com>
-	<87mwtftjvy.fsf@linaro.org> <515D8215.10705@ti.com>
+	<1364205910-32392-18-git-send-email-santosh.shilimkar@ti.com>
+	<87fvz7qpce.fsf@linaro.org> <515D8B4B.6000800@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f43.google.com ([209.85.210.43]:46682 "EHLO
-	mail-da0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763664Ab3DDRm0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 13:42:26 -0400
-Received: by mail-da0-f43.google.com with SMTP id u36so1230352dak.30
-        for <linux-omap@vger.kernel.org>; Thu, 04 Apr 2013 10:42:25 -0700 (PDT)
-In-Reply-To: <515D8215.10705@ti.com> (Santosh Shilimkar's message of "Thu, 4
-	Apr 2013 19:07:25 +0530")
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:44778 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764185Ab3DDRz7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 13:55:59 -0400
+Received: by mail-pa0-f51.google.com with SMTP id jh10so1602113pab.10
+        for <linux-omap@vger.kernel.org>; Thu, 04 Apr 2013 10:55:58 -0700 (PDT)
+In-Reply-To: <515D8B4B.6000800@ti.com> (Santosh Shilimkar's message of "Thu, 4
+	Apr 2013 19:46:43 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
@@ -23,123 +23,115 @@ Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com,
 
 Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> On Thursday 04 April 2013 02:24 AM, Kevin Hilman wrote:
+> On Thursday 04 April 2013 02:55 AM, Kevin Hilman wrote:
 >> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 >> 
->>> While waking up CPU from off state using clock domain force wakeup, restore
->>> the CPU power state to ON state before putting CPU clock domain under
->>> hardware control. Otherwise CPU wakeup might fail. The change is recommended
->>> for all OMAP4+ devices though the PRCM weakness was observed on OMAP5
->>> devices first.
+>>> The OMAP5 idle driver can re-use OMAP4 CPUidle driver implementation thanks
+>>> to compatible MPUSS design.
+>>>
+>>> Though unlike OMAP4, on OMAP5 devices, MPUSS CSWR (Close Switch
+>>> Retention) power states can be achieved with respective power states
+>>> on CPU0 and CPU1 power domain. This mode was broken on OMAP4 devices
+>>> because of hardware limitation.
 >> 
->> Sounds reasonable, but can you describe the "weakness" a little more?
+>> I'm a bit confused by the description here.
 >> 
->> IOW, what exactly happens if this is not done?  It sounds like the CPU
->> might immediately go back to retention, but how does that happen unless
->> it does a WFI?
+>> I gather from the code that this means that CPU0 and CPU1 can hit CSWR
+>> independently, correct?
 >> 
-> Its more of lock-up inside the hardware state machine and results
-> are UN-predictable. We have seen hard-locks most of the time where system
-> is just frozen. The hardware gets into wrong state machine if the power
-> domain state isn't restored. I will add this information to changelog.
->
->> Also, this sounds like a fix to me, and should probably be broken out
->> accordingly.
->> 
-> Yeah. You mean a separate patch from the series, right ? This patch
-> actually can be independently added.
->
-> In case you decide to apply it for the fixes branch, updated patch
-> at end of the email.
+> They can be programmed independently without any ordering(like
+> CPU0 last etc), but the actual transition to the low power CSWR
+> happens together. Till that the first CPU hit WFI remains in WFI
+> state waiting for other CPU to hit WFI and then both transition
+> together.
+> Completely managed inside hardware.
 
-Curious which branch you applied it to?  It didn't apply cleanly to
-v3.9-rc5 (but did with fuzz).
+OK, elaborating this in the changelog would be helpful.  Use the "will I
+understand this changelog in a year" rule to see if the changelog is
+detailed enough.  Or better, "will Kevin understand this changelog in a
+year."  (hint: the answer is usually no.)  ;)
 
-So I've now added it to my for_3.10/fixes/pm branch.
+>>> Also there is no CPU low power entry order requirement like
+>>> master CPU etc for CSWR C-state, which is icing on the cake. 
+>> 
+>> Even on secure devices?
+>> 
+> Yes. On secure devices too. Actually since we don't loose context,
+> secure entry/exit doesn't come into picture.
+>
+>>> Code makes use of voting scheme for cluster low power state to support
+>>> MPUSS CSWR C-state.
+>> 
+>> The voting scheme and associated locking should be better described
+>> here, or commented in the code itself.
+>> 
+> You are right. It deserves some description.
+>
+>>> Supported OMAP5 CPUidle C-states:
+>>>         C1 - CPU0 ON(WFI) + CPU1 ON(WFI) + MPUSS ON
+>>>         C2 - CPU0 CSWR + CPU1 CSWR + MPUSS CSWR
+>>>         C3 - CPU0 OFF + CPU1 OFF + MPUSS OSWR
+>>>
+>>> Acked-by: Nishanth Menon <nm@ti.com>
+>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> 
+>> [...]
+>> 
+>>> +static int omap_enter_idle_smp(struct cpuidle_device *dev,
+>>> +			struct cpuidle_driver *drv,
+>>> +			int index)
+>>> +{
+>>> +	struct idle_statedata *cx = state_ptr + index;
+>>> +	int cpu_id = smp_processor_id();
+>>> +	unsigned long flag;
+>>> +
+>>> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
+>> 
+>> I think the CPUidle core handles the broadcast notification now.
+>> 
+> Not in mainline yet. And those patches came after my patches and
+> I don't wanted un-necessary merge dependency, I avoided it. Its trivial
+> though to drop if from here once the idle next is merged.
+
+OK.
+
+I believe that stuff is already queued, no?  Maybe ahave this as an
+add-on separate patch that can be used for your loal testing, but does
+not go upstream.
+
+I would only include this if you're sure the other series is not going
+upstream.
+
+>>> +	raw_spin_lock_irqsave(&mpu_lock, flag);
+>>> +	cx->mpu_state_vote++;
+>> 
+>> How about using an atomic_t and atomic_inc()/atomic_dec() instead, which
+>> will avoid the need for a spinlock.
+>> 
+> Spin lock is not just for the vote variable. I had atomics opps in first
+> version I gave it to product team. But they found a race condition in
+> where MPU power state was getting overwritten by other CPU.
+>
+>> Even with that, it still seems potentially racy.  Do you need a memory
+>> barrier here to be sure that any changes from another CPU are visible
+>> here, and vice versa?
+>> 
+> With locks, you don't need barriers since the updated copy is guaranteed.
+
+It's guaranteed because the spinlock implementation uses barriers. 
+
+> Can you please elaborate on potential race ? I have given pretty hard
+> thought and didn't see any race which can be exposed with locks in place.
+
+I was referring to using atomic ops.  With atomic ops, you'd need an
+explicit barrier (which you're getting inside the spinlock
+implementation)
+
+That being said, I have not thought through all the corner cases as you
+have, so I'll defer to your choice (as long as it's well documented.)
+If you decide to stick with spinlocks, be sure to describe all of what
+the spinlock is protecting, and why.
+
+Thanks,
 
 Kevin
-
-> From a0cef44760d859b63a34603010f8c0621da4b8ab Mon Sep 17 00:00:00 2001
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Date: Fri, 8 Feb 2013 22:50:58 +0530
-> Subject: [PATCH] ARM: OMAP4+: PM: Restore CPU power state to ON with
->  clockdomain force wakeup method
->
-> While waking up CPU from off state using clock domain force wakeup, restore
-> the CPU power state to ON state before putting CPU clock domain under
-> hardware control. Otherwise CPU wakeup might fail. The change is recommended
-> for all OMAP4+ devices though the PRCM weakness was observed on OMAP5
-> devices first.
->
-> As a result of weakness, lock-up is observed inside the hardware state
-> machine of local CPU PRCM and results are UN-predictable as per designers.
-> In software testing, we have seen hard-locks most of the time where system
-> gets frozen. With power domain state restored, system behaves correctly.
->
-> So update the code accordingly.
->
-> Acked-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/cpuidle44xx.c |    1 +
->  arch/arm/mach-omap2/omap-smp.c    |   12 ++++++++++--
->  2 files changed, 11 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-> index 944e64a..9de47a7 100644
-> --- a/arch/arm/mach-omap2/cpuidle44xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
-> @@ -131,6 +131,7 @@ static int omap4_enter_idle_coupled(struct cpuidle_device *dev,
->  	/* Wakeup CPU1 only if it is not offlined */
->  	if (dev->cpu == 0 && cpumask_test_cpu(1, cpu_online_mask)) {
->  		clkdm_wakeup(cpu_clkdm[1]);
-> +		omap_set_pwrdm_state(cpu_pd[1], PWRDM_POWER_ON);
->  		clkdm_allow_idle(cpu_clkdm[1]);
->  	}
->  
-> diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-> index 5b20165..8106e8d 100644
-> --- a/arch/arm/mach-omap2/omap-smp.c
-> +++ b/arch/arm/mach-omap2/omap-smp.c
-> @@ -83,6 +83,7 @@ static int __cpuinit omap4_boot_secondary(unsigned int cpu, struct task_struct *
->  {
->  	static struct clockdomain *cpu1_clkdm;
->  	static bool booted;
-> +	static struct powerdomain *cpu1_pwrdm;
->  	void __iomem *base = omap_get_wakeupgen_base();
->  
->  	/*
-> @@ -102,8 +103,10 @@ static int __cpuinit omap4_boot_secondary(unsigned int cpu, struct task_struct *
->  	else
->  		__raw_writel(0x20, base + OMAP_AUX_CORE_BOOT_0);
->  
-> -	if (!cpu1_clkdm)
-> +	if (!cpu1_clkdm && !cpu1_pwrdm) {
->  		cpu1_clkdm = clkdm_lookup("mpu1_clkdm");
-> +		cpu1_pwrdm = pwrdm_lookup("cpu1_pwrdm");
-> +	}
->  
->  	/*
->  	 * The SGI(Software Generated Interrupts) are not wakeup capable
-> @@ -116,7 +119,7 @@ static int __cpuinit omap4_boot_secondary(unsigned int cpu, struct task_struct *
->  	 * Section :
->  	 *	4.3.4.2 Power States of CPU0 and CPU1
->  	 */
-> -	if (booted) {
-> +	if (booted && cpu1_pwrdm && cpu1_clkdm) {
->  		/*
->  		 * GIC distributor control register has changed between
->  		 * CortexA9 r1pX and r2pX. The Control Register secure
-> @@ -137,7 +140,12 @@ static int __cpuinit omap4_boot_secondary(unsigned int cpu, struct task_struct *
->  			gic_dist_disable();
->  		}
->  
-> +		/*
-> +		 * Ensure that CPU power state is set to ON to avoid CPU
-> +		 * powerdomain transition on wfi
-> +		 */
->  		clkdm_wakeup(cpu1_clkdm);
-> +		omap_set_pwrdm_state(cpu1_pwrdm, PWRDM_POWER_ON);
->  		clkdm_allow_idle(cpu1_clkdm);
->  
->  		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD)) {
