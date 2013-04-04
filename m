@@ -1,73 +1,88 @@
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-Subject: Re: [PATCH v4] drivers: video: use module_platform_driver_probe()
-Date: Thu, 4 Apr 2013 13:47:40 +0200
-Message-ID: <CAHkwnC_iesmqvqmD22f5oAFmnEs8Z+qYGa0Dvm9mEj3JGrPHzA@mail.gmail.com>
-References: <1363352558-6275-1-git-send-email-fabio.porcedda@gmail.com>
- <515AB113.6030700@ti.com> <CAHkwnC_AAJ5bcoH0=Zq8vVufKXqwC4WVtc9wY01h07FbZveGeg@mail.gmail.com>
- <515D66D3.3040904@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2 03/18] ARM: OMAP4+: PM: Consolidate and use OMAP4 PM
+ code for OMAP5
+Date: Thu, 4 Apr 2013 17:21:51 +0530
+Message-ID: <515D6957.5000802@ti.com>
+References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com> <1364205910-32392-4-git-send-email-santosh.shilimkar@ti.com> <87li8zwel4.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f47.google.com ([209.85.219.47]:39836 "EHLO
-	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758981Ab3DDLsB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 07:48:01 -0400
-In-Reply-To: <515D66D3.3040904@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37704 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759284Ab3DDLt5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Apr 2013 07:49:57 -0400
+In-Reply-To: <87li8zwel4.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev <linux-fbdev@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, David Howells <dhowells@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com
 
-On Thu, Apr 4, 2013 at 1:41 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On 2013-04-04 14:38, Fabio Porcedda wrote:
->> On Tue, Apr 2, 2013 at 12:21 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->>> On 2013-03-15 15:02, Fabio Porcedda wrote:
->>>> This patch converts the drivers to use the
->>>> module_platform_driver_probe() macro which makes the code smaller and
->>>> a bit simpler.
->>>>
->>>> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
->>>> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
->>>> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com> # atmel_lcdfb.c
->>>> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
->>>> Cc: David Howells <dhowells@redhat.com>
->>>> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
->>>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com> # amifb.c
->>>> Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
->>>> ---
->>>>
->>>> Notes:
->>>>     v4:
->>>>      - add acked-by Nicolas & Laurent
->>>>      - fix amifb.c
->>>>     v3:
->>>>      - add missing drivers: amifb, atmel_lcdfb, vrfb
->>>>      - split patch set to each maintainer to easy up respin
->>>>     v2:
->>>>      - rebased over linux-next and remove already converted drivers
->>>>
->>>>  drivers/video/amifb.c          | 14 +-------------
->>>>  drivers/video/atmel_lcdfb.c    | 13 +------------
->>>>  drivers/video/omap2/vrfb.c     | 13 +------------
->>>>  drivers/video/sh_mipi_dsi.c    | 12 +-----------
->>>>  drivers/video/sh_mobile_hdmi.c | 12 +-----------
->>>>  5 files changed, 5 insertions(+), 59 deletions(-)
->>>
->>> Thanks, applied to fbdev branch.
+On Thursday 04 April 2013 01:50 AM, Kevin Hilman wrote:
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+> 
+>> OMAP5 has backward compatible PRCM block and it's programming
+>> model is mostly similar to OMAP4. Same is going to be maintained
+>> for future OMAP4 based SOCs. Hence consolidate the OMAP4 power
+>> management code so that it can be re-used on OMAP5 and later devices.
 >>
->> Thanks for taking it.
->> I don't see this patch neither in linux-next nor in
->> git://gitorious.org/linux-omap-dss2/linux.git,
->> in which repository/branch is it?
->
-> I just pushed for-next branch an hour ago or so, to the above mentioned
-> gitorious tree. So should be in linux-next tomorrow, I guess.
+>> With consolidated code, let basic power management code build
+>> for OMAP5 devices. While at it, update the kernel-doc for omap4_pm_init().
+>>
+>> Acked-by: Nishanth Menon <nm@ti.com>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/Makefile                       |    9 ++--
+>>  arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c}   |   54 ++++++++++++++++----
+>>  .../mach-omap2/{sleep44xx.S => sleep_omap4plus.S}  |    0
+>>  3 files changed, 49 insertions(+), 14 deletions(-)
+>>  rename arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c} (86%)
+>>  rename arch/arm/mach-omap2/{sleep44xx.S => sleep_omap4plus.S} (100%)
+>>
 
-Thanks.
+[..]
 
---
-Fabio Porcedda
+>> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm_omap4plus.c
+>> similarity index 86%
+>> rename from arch/arm/mach-omap2/pm44xx.c
+>> rename to arch/arm/mach-omap2/pm_omap4plus.c
+>> index 5ba6d88..e920c34 100644
+>> --- a/arch/arm/mach-omap2/pm44xx.c
+>> +++ b/arch/arm/mach-omap2/pm_omap4plus.c
+>> @@ -1,7 +1,7 @@
+>>  /*
+>> - * OMAP4 Power Management Routines
+>> + * OMAP4PLUS Power Management Routines
+> 
+> nit: OMAP4+  (you only need to spell out "plus" in the filename.
+> 
+OK. I will replace '+' instead of 'PLUS' in rest of the places.
+>>   *
+>> - * Copyright (C) 2010-2011 Texas Instruments, Inc.
+>> + * Copyright (C) 2010-2013 Texas Instruments, Inc.
+>>   * Rajendra Nayak <rnayak@ti.com>
+>>   * Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>   *
+>> @@ -135,16 +135,16 @@ static void omap_default_idle(void)
+>>  }
+>>  
+>>  /**
+>> - * omap4_pm_init - Init routine for OMAP4 PM
+>> + * omap4_init_static_deps - Add OMAP4 static dependencies
+>>   *
+>> - * Initializes all powerdomain and clockdomain target states
+>> - * and all PRCM settings.
+>> + * Add needed static clockdomain dependencies on OMAP4 devices.
+>> + * Return: 0 on success or 'err' on failures
+>>   */
+>> -int __init omap4_pm_init(void)
+>> +static inline int omap4_init_static_deps(void)
+> 
+> You dropped the __init here, but it's still only called from another
+> __init function, so I suspect it should stay.
+> 
+Yep. Will keep that in next version.
 
->  Tomi
->
->
+Regards,
+Santosh
+
