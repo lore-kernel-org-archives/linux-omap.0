@@ -1,43 +1,80 @@
-From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Subject: Re: [PATCH v3 00/11] usb: dwc3/xhci/phy: Enable runtime power
- management
-Date: Thu, 4 Apr 2013 09:40:21 -0700
-Message-ID: <20130404164021.GB15489@xanatos>
-References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
- <20130403172751.GC10089@xanatos>
- <CAFp+6iGnDUSOjVgu9ZCAPF9rUDWD5r9ZttBtTo864Q2ACvKFrA@mail.gmail.com>
- <20130404071015.GB30287@arwen.pp.htv.fi>
- <CAFp+6iGqDFPhNjktD3WA4ZJuEdcX1C7Ma3hsSZieuW-b4_wpLA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support
+ for AUXCLKs
+Date: Thu, 4 Apr 2013 09:41:38 -0700
+Message-ID: <20130404164137.GH10155@atomide.com>
+References: <1363703220-4777-1-git-send-email-rogerq@ti.com>
+ <1363703220-4777-2-git-send-email-rogerq@ti.com>
+ <20130403234242.GE10155@atomide.com>
+ <515D2D30.3000306@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAFp+6iGqDFPhNjktD3WA4ZJuEdcX1C7Ma3hsSZieuW-b4_wpLA@mail.gmail.com>
+In-Reply-To: <515D2D30.3000306@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Gautam <gautamvivek1987@gmail.com>
-Cc: balbi@ti.com, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
+To: Roger Quadros <rogerq@ti.com>
+Cc: b-cousson@ti.com, linux@arm.linux.org.uk, rnayak@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Apr 04, 2013 at 01:02:45PM +0530, Vivek Gautam wrote:
-> On Thu, Apr 4, 2013 at 12:40 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Thu, Apr 04, 2013 at 10:34:57AM +0530, Vivek Gautam wrote:
-> >> Hi Sarah,
-> >>
-> >>
-> >> On Wed, Apr 3, 2013 at 10:57 PM, Sarah Sharp
-> >> <sarah.a.sharp@linux.intel.com> wrote:
-> >> > Question: Do you still need this patch for 3.10?
-> >>
-> >> Felipe's 'next' is closed for 3.10, so this series won't be making it
-> >> to 3.10 now, as a whole. :-(
-> >
-> > right, besides we're still discussing what to do with the whole PHY
-> > part, right ?
+* Roger Quadros <rogerq@ti.com> [130404 00:39]:
+> On 04/04/2013 02:42 AM, Tony Lindgren wrote:
+> >> --- a/arch/arm/mach-omap2/cclock44xx_data.c
+> >> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
+> >> @@ -27,6 +27,7 @@
+> >>  #include <linux/clk-private.h>
+> >>  #include <linux/clkdev.h>
+> >>  #include <linux/io.h>
+> >> +#include <linux/of.h>
+> >>  
+> >>  #include "soc.h"
+> >>  #include "iomap.h"
+> >> @@ -1663,6 +1664,40 @@ static struct omap_clk omap44xx_clks[] = {
+> >>  	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
+> >>  };
+> >>  
+> >> +static struct clk *scrm_clks[] = {
+> >> +	&auxclk0_ck,
+> >> +	&auxclk1_ck,
+> >> +	&auxclk2_ck,
+> >> +	&auxclk3_ck,
+> >> +	&auxclk4_ck,
+> >> +	&auxclk5_ck,
+> >> +};
+> > 
+> > Hmm I don't like the idea of specifying the auxclk both in the
+> > cclock44xx_data.c and in DT..
 > 
-> Right ofcourse. :-)
+> Right, but till we have all clocks moved to DT we only need this
+> approach for general purpose clocks that are not mapped to devices
+> by hwmod.
 
-Ok, so it sounds like I shouldn't merge that patch for 3.10.  Please
-include that patch in your next round of revisions instead.  And now I'm
-glad I'm slow. :)
+For v3.10, let's just make sure that USB works with DT as then
+after v3.10 we can make omap4 DT only and get rid of estimated
+7K lines of code and data. I guess this is the last piece missing
+for that, or are we also missing something else?
 
-Sarah Sharp
+Can't you set up a clock alias for your device so it can find the
+auxclk when requesting it with the dev entry?
+
+For the DT clock driver if needed for v3.10, how about just do a
+minimal drivers/clock/omap/ that uses the standard binding?
+Then that driver can just do clk_get() from cclock44xx_data.c
+for now? And then later on we'll just move all the clocks to a
+combination of DT + /lib/firmware.
+
+> e.g. auxclk are required to be specified in DT nodes for USB PHY.
+> Without this we can't get USB host working on Panda.
+
+OK. So if the USB PHY has a dev entry, can't you just set up a
+clock alias in struct omap_clk omap44xx_clks[] for it?
+ 
+> As Rajendra points out, it seems moving entire clock data to DT is not
+> going to happen soon. So this is the simplistic way things can work.
+
+Right but seems like we can get started there without moving
+them all at once.
+
+Regards,
+
+Tony
