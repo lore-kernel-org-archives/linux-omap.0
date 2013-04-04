@@ -1,73 +1,73 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH] ARM: dts: OMAP4+: Correct L3 interrupts
-Date: Thu, 4 Apr 2013 13:06:30 -0500
-Message-ID: <1365098790-9078-1-git-send-email-jon-hunter@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: GPMC updates
+Date: Thu, 4 Apr 2013 11:24:50 -0700
+Message-ID: <20130404182447.GN10155@atomide.com>
+References: <515B0D92.6070503@ti.com>
+ <20130403214036.GD10155@atomide.com>
+ <515CE38B.3080400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33673 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764294Ab3DDSGr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Apr 2013 14:06:47 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10828 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764457Ab3DDSYw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 14:24:52 -0400
+Content-Disposition: inline
+In-Reply-To: <515CE38B.3080400@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-The L3 interrupt numbers are incorrect for OMAP4+ and are conflicting
-with some of the timer interrupts causing the allocation of timer
-interrupts to fail.
+* Jon Hunter <jon-hunter@ti.com> [130403 19:25]:
+>=20
+> On 04/03/2013 04:40 PM, Tony Lindgren wrote:
+> > * Jon Hunter <jon-hunter@ti.com> [130402 10:00]:
+> >> The following changes since commit dca3a783400a18e2bf4503b1d4a85c4=
+d0ca1a7e4:
+> >>
+> >>   Merge commit '31d9adca82ce65e5c99d045b5fd917c702b6fce3' into tmp=
+ (2013-04-01 14:33:50 -0500)
+> >>
+> >> are available in the git repository at:
+> >>
+> >>
+> >>   git://github.com/jonhunter/linux.git omap-gpmc-for-v3.10
+> >>
+> >> for you to fetch changes up to c67bd6e7cad2160c3bbfa2ac2bd954f9183=
+01c23:
+> >>
+> >>   ARM: OMAP2+: Add GPMC DT support for Ethernet child nodes (2013-=
+04-01 14:53:50 -0500)
+> >>
+> >> ----------------------------------------------------------------
+> >> Adds GPMC DT support for NOR flash and Ethernet and includes
+> >> various GPMC cleans-up and fixes.
+> >>
+> >> This series is dependent on commit 7185684 (ARM: OMAP: use
+> >> consistent error checking) from RMK's clean-up branch and commit
+> >> 31d9adc (ARM: OMAP2+: Fix broken gpmc support).
+> >=20
+> > Looks good except it adds a new warning:
+> >=20
+> > arch/arm/mach-omap2/gpmc.c: In function =E2=80=98gpmc_read_timings_=
+dt=E2=80=99:
+> > arch/arm/mach-omap2/gpmc.c:1324: warning: =E2=80=98p=E2=80=99 may b=
+e used uninitialized in this function
+> >=20
+> > Can you please take a look?
+>=20
+> No problem. I did not see get this warning, but I believe that=20
+> there is a bug that needed to be fixed. Can you try the below?
 
-The problem is caused by adding 32 to the interrupt number for the L3
-interrupts to account for per processor interrupts (PPI) and software
-generated interrupts (SGI) which typically are mapped to the first 32
-interrupts in the ARM GIC. This is not necessary because the first
-parameter of the ARM GIC interrupt property specifies the GIC interrupt
-type (ie. SGI, PPI, etc). Hence, fix the interrupt number fo the L3
-interrupts by substracting 32.
+Thanks yes that works. Pulling into omap-for-v3.10/gpmc.
 
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
+Regards,
 
-Please note that this problem is observed in Benoit's for_3.10/dts branch [1].
-
-[1] http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git
-
- arch/arm/boot/dts/omap4.dtsi |    4 ++--
- arch/arm/boot/dts/omap5.dtsi |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 3329140..3ae6a3f 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -97,8 +97,8 @@
- 		reg = <0x44000000 0x1000>,
- 		      <0x44800000 0x2000>,
- 		      <0x45000000 0x1000>;
--		interrupts = <0 41 0x4>,
--			     <0 42 0x4>;
-+		interrupts = <0 9 0x4>,
-+			     <0 10 0x4>;
- 
- 		counter32k: counter@4a304000 {
- 			compatible = "ti,omap-counter32k";
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index f4c71d9..86f784e 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -90,8 +90,8 @@
- 		reg = <0x44000000 0x2000>,
- 		      <0x44800000 0x3000>,
- 		      <0x45000000 0x4000>;
--		interrupts = <0 41 0x4>,
--			     <0 42 0x4>;
-+		interrupts = <0 9 0x4>,
-+			     <0 10 0x4>;
- 
- 		counter32k: counter@4ae04000 {
- 			compatible = "ti,omap-counter32k";
--- 
-1.7.10.4
-
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
