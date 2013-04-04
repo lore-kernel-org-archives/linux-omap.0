@@ -1,60 +1,131 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] ARM: OMAP: DMTIMER updates for v3.10
-Date: Thu, 4 Apr 2013 11:38:55 -0700
-Message-ID: <20130404183855.GP10155@atomide.com>
-References: <1363714699-29622-1-git-send-email-jon-hunter@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V3 1/2] ARM: OMAP3+: use cpu0-cpufreq driver in device
+ tree supported boot
+Date: Thu, 4 Apr 2013 14:00:53 -0500
+Message-ID: <20130404190053.GA4371@kahuna>
+References: <1364507576-19345-1-git-send-email-nm@ti.com>
+ <1364507576-19345-2-git-send-email-nm@ti.com>
+ <87ppybxxi0.fsf@linaro.org>
+ <20130404025211.GA2456@snafu>
+ <515D0BF1.7060802@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42389 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761674Ab3DDSi7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 14:38:59 -0400
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <cpufreq-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1363714699-29622-1-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <515D0BF1.7060802@ti.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, linux-omap@vger.kernel.org, Rob Herring <robherring2@gmail.com>, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-* Jon Hunter <jon-hunter@ti.com> [130319 10:42]:
-> Includes:
-> - A couple fixes for DMTIMER context loss handling.
-> - Populating DMTIMER errata when booting with device-tree.
-> - A new function for requesting a DMTIMER by device-tree node.
+On 10:43-20130404, Rajendra Nayak wrote:
+> On Thursday 04 April 2013 08:22 AM, Nishanth Menon wrote:
+> > On 11:47-20130403, Kevin Hilman wrote:
+> >> Nishanth Menon <nm@ti.com> writes:
+> >>
+> > [...]
+> >>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> >>> index afa509a..5b147ef 100644
+> >>> --- a/arch/arm/mach-omap2/board-generic.c
+> >>> +++ b/arch/arm/mach-omap2/board-generic.c
+> >>> @@ -49,6 +49,11 @@ static void __init omap_generic_init(void)
+> >>>  		omap4_panda_display_init_of();
+> >>>  	else if (of_machine_is_compatible("ti,omap4-sdp"))
+> >>>  		omap_4430sdp_display_init_of();
+> >>> +
+> >>> +	if (IS_ENABLED(CONFIG_GENERIC_CPUFREQ_CPU0)) {
+> >>> +		struct platform_device_info devinfo = { .name = "cpufreq-cpu0", };
+> >>> +		platform_device_register_full(&devinfo);
+> >>> +	}
+> >>
+> >> Rather than adding new clkdev nodes below, how about using clk add_alias
+> >> here?
+> > Thanks for pointing this out, I spend some time implementing such a
+> > scheme and following is my opinion:
+> > 
+> > Summary:
+> > There is one major problem which forces us to introduce this "clock
+> > hack" - clock nodes are not in device tree yet. Yes, clock add alias
 > 
-> Based upon v3.9-rc3.
-> 
-> Tested on OMAP5912 OSK, OMAP2420 H4, OMAP3430 SDP, OMAP4430 Blaze
-> and AM335x EVM. Testing includes ...
-> 1. Booting kernel on above boards
-> 2. Testing of various DMTIMER request APIs
-> 3. Testing the timer overflow and match interrupts.
-> 4. Using different clock sources to operate the timer with.
-> 
-> Jon Hunter (4):
->   ARM: OMAP: Force dmtimer restore if context loss is not detectable
->   ARM: OMAP: Add function to request timer by node
->   ARM: dts: OMAP2+: Update DMTIMER compatibility property
->   ARM: OMAP2+: Populate DMTIMER errata when using device-tree
-> 
-> NeilBrown (1):
->   ARM: OMAP: Simplify dmtimer context-loss handling
-> 
->  .../devicetree/bindings/arm/omap/timer.txt         |   17 +-
->  arch/arm/boot/dts/am33xx.dtsi                      |   14 +-
->  arch/arm/boot/dts/omap2.dtsi                       |   22 +-
->  arch/arm/boot/dts/omap2420.dtsi                    |    2 +-
->  arch/arm/boot/dts/omap2430.dtsi                    |    2 +-
->  arch/arm/boot/dts/omap3.dtsi                       |   24 +-
->  arch/arm/boot/dts/omap4.dtsi                       |   22 +-
->  arch/arm/boot/dts/omap5.dtsi                       |   22 +-
->  arch/arm/mach-omap2/timer.c                        |    7 +-
->  arch/arm/plat-omap/dmtimer.c                       |  241 ++++++++++++--------
->  arch/arm/plat-omap/include/plat/dmtimer.h          |    1 +
->  11 files changed, 220 insertions(+), 154 deletions(-)
+> There's already a patch floating around for this..
+> https://lkml.org/lkml/2013/4/2/84
+Not really. Try on OMAP4 PandaBoard:
+Based on
+git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+for_3.10/dts  d114294 ARM: dts: AM33XX: Corrects typo in interrupt field in SPI node
++ the patch https://patchwork.kernel.org/patch/2335671/ applied
+Pandaboard 4 Log: http://pastebin.com/qsdsbv7p
+The Patch does not even work, unless there is un-documented patch
+dependencies!
 
-For all these it sounds like it's best that Benoit queues
-them with the .dts changes:
+Secondly, even if it did work, it would still continue to need yet another
+hack[1] - I am agree with Tony in his discussion in
+http://marc.info/?t=136370325600009&r=1&w=2
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+*if* we are moving clock to DT, we should move the data to DT as well -
+similar to what other platforms do - highbank as far as i can quickly
+see. (drivers/clk/clk-highbank.c and arch/arm/boot/dts/ecx-common.dtsi
+as examples). Clk alias might have been a solution, but in this case,
+clk add alias (as I indicated in this thread is not really worth the
+effort for the mess of code it creates for cpu clock).
+
+[1]
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index dd8f58f..9282b4c 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -635,4 +635,9 @@
+ 			ti,has-mailbox;
+ 		};
+ 	};
++
++	dpll_mpu: scrmclks {
++		compatible = "ti,omap4-clock";
++		#clock-cells = <1>;
++	};
+ };
+diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap443x.dtsi
+index cccf39a..1587a5f 100644
+--- a/arch/arm/boot/dts/omap443x.dtsi
++++ b/arch/arm/boot/dts/omap443x.dtsi
+@@ -21,6 +21,8 @@
+ 				800000  1313000
+ 				1008000 1375000
+ 			>;
++			clocks = <&dpll_mpu>;
++			clock-names = "cpu";
+ 			clock-latency = <300000>; /* From legacy driver */
+ 		};
+ 	};
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index afa509a..5b147ef 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -49,6 +49,11 @@ static void __init omap_generic_init(void)
+ 		omap4_panda_display_init_of();
+ 	else if (of_machine_is_compatible("ti,omap4-sdp"))
+ 		omap_4430sdp_display_init_of();
++
++	if (IS_ENABLED(CONFIG_GENERIC_CPUFREQ_CPU0)) {
++		struct platform_device_info devinfo = { .name = "cpufreq-cpu0", };
++		platform_device_register_full(&devinfo);
++	}
+ }
+ 
+ #ifdef CONFIG_SOC_OMAP2420
+diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+index a93617b..ba4562a 100644
+--- a/arch/arm/mach-omap2/cclock44xx_data.c
++++ b/arch/arm/mach-omap2/cclock44xx_data.c
+@@ -1675,6 +1675,7 @@ static struct clk *dt_clks[] = {
+ 	&auxclk3_ck,
+ 	&auxclk4_ck,
+ 	&auxclk5_ck,
++	&dpll_mpu_ck,
+ };
+ 
+ static struct clk_onecell_data clock_data;
+
+-- 
+Regards,
+Nishanth Menon
