@@ -1,93 +1,563 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support for
- AUXCLKs
-Date: Thu, 4 Apr 2013 10:50:10 +0530
-Message-ID: <515D0D8A.7030500@ti.com>
-References: <1363703220-4777-1-git-send-email-rogerq@ti.com> <1363703220-4777-2-git-send-email-rogerq@ti.com> <20130403234242.GE10155@atomide.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH v2 02/13] ARM: convert arm/arm64 arch timer to use
+ CLKSRC_OF init
+Date: Thu, 4 Apr 2013 14:56:15 +0900
+Message-ID: <20130404055615.GI28297@verge.net.au>
+References: <1364854883-5961-1-git-send-email-robherring2@gmail.com>
+ <1364854883-5961-3-git-send-email-robherring2@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130403234242.GE10155@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Roger Quadros <rogerq@ti.com>, b-cousson@ti.com, linux@arm.linux.org.uk, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from kirsty.vergenet.net ([202.4.237.240]:36389 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755433Ab3DDF4T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 01:56:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1364854883-5961-3-git-send-email-robherring2@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, Thomas Gleixner <tglx@linutronix.de>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>, John Stultz <john.stultz@linaro.org>, arm@kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Kukjin Kim <kgene.kim@samsung.com>, Tony Lindgren <tony@atomide.com>, Magnus Damm <magnus.damm@gmail.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
 
-Hi Tony,
+On Mon, Apr 01, 2013 at 05:21:12PM -0500, Rob Herring wrote:
+> From: Rob Herring <rob.herring@calxeda.com>
+> 
+> This converts arm and arm64 to use CLKSRC_OF DT based initialization for
+> the arch timer. A new function arch_timer_arch_init is added to allow for
+> arch specific setup.
+> 
+> This has a side effect of enabling sched_clock on omap5 and exynos5. There
+> should not be any reason not to use the arch timers for sched_clock.
 
-On Thursday 04 April 2013 05:12 AM, Tony Lindgren wrote:
-> Hi,
-> 
-[]..
+Would it be possible for you to either delay the removal of
+shmobile_timer_init. In general I am in favour of the following
+approach to wide changes such as this one:
 
->> @@ -1663,6 +1664,40 @@ static struct omap_clk omap44xx_clks[] = {
->>  	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
->>  };
->>  
->> +static struct clk *scrm_clks[] = {
->> +	&auxclk0_ck,
->> +	&auxclk1_ck,
->> +	&auxclk2_ck,
->> +	&auxclk3_ck,
->> +	&auxclk4_ck,
->> +	&auxclk5_ck,
->> +};
-> 
-> Hmm I don't like the idea of specifying the auxclk both in the
-> cclock44xx_data.c and in DT..
-> 
->> +static struct clk_onecell_data scrm_data;
->> +
->> +#ifdef CONFIG_OF
->> +int __init omap4_clk_init_dt(void)
->> +{
->> +	struct device_node *np;
->> +
->> +	np = of_find_compatible_node(NULL, NULL, "ti,omap4-scrm");
->> +	if (np) {
->> +		scrm_data.clks = scrm_clks;
->> +		scrm_data.clk_num = ARRAY_SIZE(scrm_clks);
->> +		of_clk_add_provider(np, of_clk_src_onecell_get,	&scrm_data);
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +#else
->> +
->> +int __init omap4_clk_init_dt(void)
->> +{
->> +	return 0;
->> +}
->> +#endif /* CONFIG_OF */
->> +
->>  int __init omap4xxx_clk_init(void)
->>  {
->>  	u32 cpu_clkflg;
-> 
-> .. and I'm not too keen on adding driver specific stuff to this file.
-> 
-> How about just add a minimal drivers/clk/omap/clk-xyz.c that takes
-> the configuration from DT and is based on the binding we already have in
-> Documentation/devicetree/bindings/clock/clock-bindings.txt?
-> 
-> Then as we add new bindings there we can drop them from current
-> cclock44xx_data.c, no? That is after omap4 is DT only..
+1. Add new feature
+2. Convert users to new feature
+3. Remove old feature.
 
-The patch just provides an alternative for clkdev mapping in case of DT.
-Are you suggesting we move all *clock data* related to auxclks (and eventually
-all clocks) into DT?
-We have discussed this multiple times in the past, and moving 250 clock nodes
-with each needing multiple register offsets, masks, shifts etc into DT makes it
-completely un-readable. For me, having a way for devices to reference a clock that they
-use for a device using DT makes sense, but not moving all clock data into dts files.
+If it is not possible to delay the removal of shmobile_timer_init could you
+update your base such that you also remove its usage from the following
+files:
 
-regards,
-Rajendra
+arch/arm/mach-shmobile/board-kzm9g-reference.c
+arch/arm/mach-shmobile/setup-r8a73a4.c
+arch/arm/mach-shmobile/setup-r8a7779.c
+arch/arm/mach-shmobile/board-lager.c
+arch/arm/mach-shmobile/board-ape6evm.c
+arch/arm/mach-shmobile/setup-r8a7778.c
+arch/arm/mach-shmobile/board-marzen-reference.c
+arch/arm/mach-shmobile/setup-r8a7790.c
+arch/arm/mach-shmobile/board-bockw.c
 
+The above files are all present in the arm-soc/next/boards2 branch
+of the arm-soc tree which has pulled the renesas-boards3-for-v3.10 tag
+of git://git.kernel.org/pub/scm/linux/kernel/git/horms/renesas.git.
+I am happy for you use the later as a base if you wish.
+
+> Signed-off-by: Rob Herring <rob.herring@calxeda.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Kukjin Kim <kgene.kim@samsung.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Simon Horman <horms@verge.net.au>
+> Cc: Magnus Damm <magnus.damm@gmail.com>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: John Stultz <john.stultz@linaro.org>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: linux-samsung-soc@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-sh@vger.kernel.org
+> ---
+>  arch/arm/include/asm/arch_timer.h            |   13 +------------
+>  arch/arm/kernel/arch_timer.c                 |   17 +++--------------
+>  arch/arm/mach-exynos/mach-exynos5-dt.c       |    1 -
+>  arch/arm/mach-exynos/mct.c                   |    6 ------
+>  arch/arm/mach-highbank/highbank.c            |    5 +----
+>  arch/arm/mach-omap2/timer.c                  |    5 +----
+>  arch/arm/mach-shmobile/board-kzm9d.c         |    1 -
+
+I have boot tested the board-kzm9d change on the kzm9d board, it seems fine.
+
+>  arch/arm/mach-shmobile/include/mach/common.h |    1 -
+>  arch/arm/mach-shmobile/setup-emev2.c         |    1 -
+
+I am not able to test the setup-emev2 portion properly at this time,
+booting the kzm9d board without the board-kzm9d file seems broken without
+your patch. However, your change seems reasonable to me.
+
+>  arch/arm/mach-shmobile/setup-r8a7740.c       |    1 -
+
+I am not able to test the setup-r8a7740 portion properly at this time,
+booting the armadillo800eva board without the board-armadillo800eva file
+seems broken without your patch. However, your change seems reasonable to
+me.
+
+>  arch/arm/mach-shmobile/setup-sh7372.c        |    1 -
+
+I am not able to test the setup-sh7372 portion properly at this time,
+booting the mackerel board without the board-mackerel file seems broken without
+your patch. However, your change seems reasonable to me.
+
+>  arch/arm/mach-shmobile/setup-sh73a0.c        |    1 -
+
+I have boot tested the setup-sh73a0 change on the kzm9g board, it seems fine.
+
+
+The tests above were made by merging
+
+git://sources.calxeda.com/kernel/linux.git arm-timers
+head commit: df3f518db302caf9fc0511917c5e9021037f6fcd
+	     ("devtree: add binding documentation for sp804")
+
+and the renesas-next-20130403 tag of the renesas tree (URL above).
+
+>  arch/arm/mach-shmobile/timer.c               |    6 ------
+>  arch/arm/mach-vexpress/v2m.c                 |    7 ++-----
+>  arch/arm/mach-virt/virt.c                    |    9 ---------
+>  arch/arm64/include/asm/arch_timer.h          |    5 +++++
+>  arch/arm64/kernel/time.c                     |    6 ++++--
+>  drivers/clocksource/Kconfig                  |    1 +
+>  drivers/clocksource/arm_arch_timer.c         |   23 +++++++++--------------
+>  include/clocksource/arm_arch_timer.h         |    6 ------
+>  20 files changed, 27 insertions(+), 89 deletions(-)
 > 
-> Regards,
+> diff --git a/arch/arm/include/asm/arch_timer.h b/arch/arm/include/asm/arch_timer.h
+> index 7ade91d..7c1bfc0 100644
+> --- a/arch/arm/include/asm/arch_timer.h
+> +++ b/arch/arm/include/asm/arch_timer.h
+> @@ -10,8 +10,7 @@
+>  #include <clocksource/arm_arch_timer.h>
+>  
+>  #ifdef CONFIG_ARM_ARCH_TIMER
+> -int arch_timer_of_register(void);
+> -int arch_timer_sched_clock_init(void);
+> +int arch_timer_arch_init(void);
+>  
+>  /*
+>   * These register accessors are marked inline so the compiler can
+> @@ -110,16 +109,6 @@ static inline void __cpuinit arch_counter_set_user_access(void)
+>  
+>  	asm volatile("mcr p15, 0, %0, c14, c1, 0" : : "r" (cntkctl));
+>  }
+> -#else
+> -static inline int arch_timer_of_register(void)
+> -{
+> -	return -ENXIO;
+> -}
+> -
+> -static inline int arch_timer_sched_clock_init(void)
+> -{
+> -	return -ENXIO;
+> -}
+>  #endif
+>  
+>  #endif
+> diff --git a/arch/arm/kernel/arch_timer.c b/arch/arm/kernel/arch_timer.c
+> index a7536d4..dc74048 100644
+> --- a/arch/arm/kernel/arch_timer.c
+> +++ b/arch/arm/kernel/arch_timer.c
+> @@ -39,26 +39,15 @@ static void __init arch_timer_delay_timer_register(void)
+>  	register_current_timer_delay(&arch_delay_timer);
+>  }
+>  
+> -int __init arch_timer_of_register(void)
+> -{
+> -	int ret;
+> -
+> -	ret = arch_timer_init();
+> -	if (ret)
+> -		return ret;
+> -
+> -	arch_timer_delay_timer_register();
+> -
+> -	return 0;
+> -}
+> -
+> -int __init arch_timer_sched_clock_init(void)
+> +int __init arch_timer_arch_init(void)
+>  {
+>          u32 arch_timer_rate = arch_timer_get_rate();
+>  
+>  	if (arch_timer_rate == 0)
+>  		return -ENXIO;
+>  
+> +	arch_timer_delay_timer_register();
+> +
+>  	/* Cache the sched_clock multiplier to save a divide in the hot path. */
+>  	sched_clock_mult = NSEC_PER_SEC / arch_timer_rate;
+>  	sched_clock_func = arch_timer_sched_clock;
+> diff --git a/arch/arm/mach-exynos/mach-exynos5-dt.c b/arch/arm/mach-exynos/mach-exynos5-dt.c
+> index acaeb14..4d97b43 100644
+> --- a/arch/arm/mach-exynos/mach-exynos5-dt.c
+> +++ b/arch/arm/mach-exynos/mach-exynos5-dt.c
+> @@ -216,7 +216,6 @@ DT_MACHINE_START(EXYNOS5_DT, "SAMSUNG EXYNOS5 (Flattened Device Tree)")
+>  	.map_io		= exynos5_dt_map_io,
+>  	.init_machine	= exynos5_dt_machine_init,
+>  	.init_late	= exynos_init_late,
+> -	.init_time	= exynos4_timer_init,
+>  	.dt_compat	= exynos5_dt_compat,
+>  	.restart        = exynos5_restart,
+>  	.reserve	= exynos5_reserve,
+> diff --git a/arch/arm/mach-exynos/mct.c b/arch/arm/mach-exynos/mct.c
+> index c9d6650..04aff6a 100644
+> --- a/arch/arm/mach-exynos/mct.c
+> +++ b/arch/arm/mach-exynos/mct.c
+> @@ -21,7 +21,6 @@
+>  #include <linux/percpu.h>
+>  #include <linux/of.h>
+>  
+> -#include <asm/arch_timer.h>
+>  #include <asm/localtimer.h>
+>  
+>  #include <plat/cpu.h>
+> @@ -469,11 +468,6 @@ static void __init exynos4_timer_resources(void)
+>  
+>  void __init exynos4_timer_init(void)
+>  {
+> -	if (soc_is_exynos5440()) {
+> -		arch_timer_of_register();
+> -		return;
+> -	}
+> -
+>  	if ((soc_is_exynos4210()) || (soc_is_exynos5250()))
+>  		mct_int_type = MCT_INT_SPI;
+>  	else
+> diff --git a/arch/arm/mach-highbank/highbank.c b/arch/arm/mach-highbank/highbank.c
+> index 76c1170..758150e 100644
+> --- a/arch/arm/mach-highbank/highbank.c
+> +++ b/arch/arm/mach-highbank/highbank.c
+> @@ -15,6 +15,7 @@
+>   */
+>  #include <linux/clk.h>
+>  #include <linux/clkdev.h>
+> +#include <linux/clocksource.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/io.h>
+>  #include <linux/irq.h>
+> @@ -28,7 +29,6 @@
+>  #include <linux/amba/bus.h>
+>  #include <linux/clk-provider.h>
+>  
+> -#include <asm/arch_timer.h>
+>  #include <asm/cacheflush.h>
+>  #include <asm/cputype.h>
+>  #include <asm/smp_plat.h>
+> @@ -118,9 +118,6 @@ static void __init highbank_timer_init(void)
+>  	sp804_clocksource_and_sched_clock_init(timer_base + 0x20, "timer1");
+>  	sp804_clockevents_init(timer_base, irq, "timer0");
+>  
+> -	arch_timer_of_register();
+> -	arch_timer_sched_clock_init();
+> -
+>  	clocksource_of_init();
+>  }
+>  
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 4fd8025..7dd6453 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -46,7 +46,6 @@
+>  #include <asm/smp_twd.h>
+>  #include <asm/sched_clock.h>
+>  
+> -#include <asm/arch_timer.h>
+>  #include "omap_hwmod.h"
+>  #include "omap_device.h"
+>  #include <plat/counter-32k.h>
+> @@ -624,9 +623,7 @@ void __init omap5_realtime_timer_init(void)
+>  	omap5_sync32k_timer_init();
+>  	realtime_counter_init();
+>  
+> -	err = arch_timer_of_register();
+> -	if (err)
+> -		pr_err("%s: arch_timer_register failed %d\n", __func__, err);
+> +        clocksource_of_init();
+>  }
+>  #endif /* CONFIG_SOC_OMAP5 */
+>  
+> diff --git a/arch/arm/mach-shmobile/board-kzm9d.c b/arch/arm/mach-shmobile/board-kzm9d.c
+> index c254782..c016ccd 100644
+> --- a/arch/arm/mach-shmobile/board-kzm9d.c
+> +++ b/arch/arm/mach-shmobile/board-kzm9d.c
+> @@ -90,6 +90,5 @@ DT_MACHINE_START(KZM9D_DT, "kzm9d")
+>  	.init_irq	= emev2_init_irq,
+>  	.init_machine	= kzm9d_add_standard_devices,
+>  	.init_late	= shmobile_init_late,
+> -	.init_time	= shmobile_timer_init,
+>  	.dt_compat	= kzm9d_boards_compat_dt,
+>  MACHINE_END
+> diff --git a/arch/arm/mach-shmobile/include/mach/common.h b/arch/arm/mach-shmobile/include/mach/common.h
+> index e48606d..5efc0f0 100644
+> --- a/arch/arm/mach-shmobile/include/mach/common.h
+> +++ b/arch/arm/mach-shmobile/include/mach/common.h
+> @@ -2,7 +2,6 @@
+>  #define __ARCH_MACH_COMMON_H
+>  
+>  extern void shmobile_earlytimer_init(void);
+> -extern void shmobile_timer_init(void);
+>  extern void shmobile_setup_delay(unsigned int max_cpu_core_mhz,
+>  			 unsigned int mult, unsigned int div);
+>  struct twd_local_timer;
+> diff --git a/arch/arm/mach-shmobile/setup-emev2.c b/arch/arm/mach-shmobile/setup-emev2.c
+> index 47662a5..4e38a66 100644
+> --- a/arch/arm/mach-shmobile/setup-emev2.c
+> +++ b/arch/arm/mach-shmobile/setup-emev2.c
+> @@ -456,7 +456,6 @@ DT_MACHINE_START(EMEV2_DT, "Generic Emma Mobile EV2 (Flattened Device Tree)")
+>  	.nr_irqs	= NR_IRQS_LEGACY,
+>  	.init_irq	= irqchip_init,
+>  	.init_machine	= emev2_add_standard_devices_dt,
+> -	.init_time	= shmobile_timer_init,
+>  	.dt_compat	= emev2_boards_compat_dt,
+>  MACHINE_END
+>  
+> diff --git a/arch/arm/mach-shmobile/setup-r8a7740.c b/arch/arm/mach-shmobile/setup-r8a7740.c
+> index 8b85d4d..104b474 100644
+> --- a/arch/arm/mach-shmobile/setup-r8a7740.c
+> +++ b/arch/arm/mach-shmobile/setup-r8a7740.c
+> @@ -906,7 +906,6 @@ DT_MACHINE_START(R8A7740_DT, "Generic R8A7740 (Flattened Device Tree)")
+>  	.init_irq	= r8a7740_init_irq,
+>  	.handle_irq	= shmobile_handle_irq_intc,
+>  	.init_machine	= r8a7740_add_standard_devices_dt,
+> -	.init_time	= shmobile_timer_init,
+>  	.dt_compat	= r8a7740_boards_compat_dt,
+>  MACHINE_END
+>  
+> diff --git a/arch/arm/mach-shmobile/setup-sh7372.c b/arch/arm/mach-shmobile/setup-sh7372.c
+> index 59c7146..5502d62 100644
+> --- a/arch/arm/mach-shmobile/setup-sh7372.c
+> +++ b/arch/arm/mach-shmobile/setup-sh7372.c
+> @@ -1175,7 +1175,6 @@ DT_MACHINE_START(SH7372_DT, "Generic SH7372 (Flattened Device Tree)")
+>  	.init_irq	= sh7372_init_irq,
+>  	.handle_irq	= shmobile_handle_irq_intc,
+>  	.init_machine	= sh7372_add_standard_devices_dt,
+> -	.init_time	= shmobile_timer_init,
+>  	.dt_compat	= sh7372_boards_compat_dt,
+>  MACHINE_END
+>  
+> diff --git a/arch/arm/mach-shmobile/setup-sh73a0.c b/arch/arm/mach-shmobile/setup-sh73a0.c
+> index bdab575..ea66316 100644
+> --- a/arch/arm/mach-shmobile/setup-sh73a0.c
+> +++ b/arch/arm/mach-shmobile/setup-sh73a0.c
+> @@ -923,7 +923,6 @@ DT_MACHINE_START(SH73A0_DT, "Generic SH73A0 (Flattened Device Tree)")
+>  	.nr_irqs	= NR_IRQS_LEGACY,
+>  	.init_irq	= sh73a0_init_irq_dt,
+>  	.init_machine	= sh73a0_add_standard_devices_dt,
+> -	.init_time	= shmobile_timer_init,
+>  	.dt_compat	= sh73a0_boards_compat_dt,
+>  MACHINE_END
+>  #endif /* CONFIG_USE_OF */
+> diff --git a/arch/arm/mach-shmobile/timer.c b/arch/arm/mach-shmobile/timer.c
+> index 3d16d4d..add2f15 100644
+> --- a/arch/arm/mach-shmobile/timer.c
+> +++ b/arch/arm/mach-shmobile/timer.c
+> @@ -60,9 +60,3 @@ void __init shmobile_earlytimer_init(void)
+>  {
+>  	late_time_init = shmobile_late_time_init;
+>  }
+> -
+> -void __init shmobile_timer_init(void)
+> -{
+> -	arch_timer_of_register();
+> -	arch_timer_sched_clock_init();
+> -}
+> diff --git a/arch/arm/mach-vexpress/v2m.c b/arch/arm/mach-vexpress/v2m.c
+> index d0ad789..6215717 100644
+> --- a/arch/arm/mach-vexpress/v2m.c
+> +++ b/arch/arm/mach-vexpress/v2m.c
+> @@ -1,6 +1,7 @@
+>  /*
+>   * Versatile Express V2M Motherboard Support
+>   */
+> +#include <linux/clocksource.h>
+>  #include <linux/device.h>
+>  #include <linux/amba/bus.h>
+>  #include <linux/amba/mmci.h>
+> @@ -23,7 +24,6 @@
+>  #include <linux/regulator/machine.h>
+>  #include <linux/vexpress.h>
+>  
+> -#include <asm/arch_timer.h>
+>  #include <asm/mach-types.h>
+>  #include <asm/sizes.h>
+>  #include <asm/mach/arch.h>
+> @@ -446,10 +446,7 @@ static void __init v2m_dt_timer_init(void)
+>  				irq_of_parse_and_map(node, 0));
+>  	}
+>  
+> -	arch_timer_of_register();
+> -
+> -	if (arch_timer_sched_clock_init() != 0)
+> -		versatile_sched_clock_init(vexpress_get_24mhz_clock_base(),
+> +	versatile_sched_clock_init(vexpress_get_24mhz_clock_base(),
+>  				24000000);
+>  }
+>  
+> diff --git a/arch/arm/mach-virt/virt.c b/arch/arm/mach-virt/virt.c
+> index 31666f6..adc0945 100644
+> --- a/arch/arm/mach-virt/virt.c
+> +++ b/arch/arm/mach-virt/virt.c
+> @@ -23,21 +23,13 @@
+>  #include <linux/of_platform.h>
+>  #include <linux/smp.h>
+>  
+> -#include <asm/arch_timer.h>
+>  #include <asm/mach/arch.h>
+> -#include <asm/mach/time.h>
+>  
+>  static void __init virt_init(void)
+>  {
+>  	of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
+>  }
+>  
+> -static void __init virt_timer_init(void)
+> -{
+> -	WARN_ON(arch_timer_of_register() != 0);
+> -	WARN_ON(arch_timer_sched_clock_init() != 0);
+> -}
+> -
+>  static const char *virt_dt_match[] = {
+>  	"linux,dummy-virt",
+>  	NULL
+> @@ -47,7 +39,6 @@ extern struct smp_operations virt_smp_ops;
+>  
+>  DT_MACHINE_START(VIRT, "Dummy Virtual Machine")
+>  	.init_irq	= irqchip_init,
+> -	.init_time	= virt_timer_init,
+>  	.init_machine	= virt_init,
+>  	.smp		= smp_ops(virt_smp_ops),
+>  	.dt_compat	= virt_dt_match,
+> diff --git a/arch/arm64/include/asm/arch_timer.h b/arch/arm64/include/asm/arch_timer.h
+> index 91e2a6a..bf6ab242 100644
+> --- a/arch/arm64/include/asm/arch_timer.h
+> +++ b/arch/arm64/include/asm/arch_timer.h
+> @@ -130,4 +130,9 @@ static inline u64 arch_counter_get_cntvct(void)
+>  	return cval;
+>  }
+>  
+> +static inline int arch_timer_arch_init(void)
+> +{
+> +	return 0;
+> +}
+> +
+>  #endif
+> diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
+> index b0ef18d..a551f88 100644
+> --- a/arch/arm64/kernel/time.c
+> +++ b/arch/arm64/kernel/time.c
+> @@ -32,6 +32,7 @@
+>  #include <linux/timer.h>
+>  #include <linux/irq.h>
+>  #include <linux/delay.h>
+> +#include <linux/clocksource.h>
+>  
+>  #include <clocksource/arm_arch_timer.h>
+>  
+> @@ -77,10 +78,11 @@ void __init time_init(void)
+>  {
+>  	u32 arch_timer_rate;
+>  
+> -	if (arch_timer_init())
+> -		panic("Unable to initialise architected timer.\n");
+> +	clocksource_of_init();
+>  
+>  	arch_timer_rate = arch_timer_get_rate();
+> +	if (!arch_timer_rate)
+> +		panic("Unable to initialise architected timer.\n");
+>  
+>  	/* Cache the sched_clock multiplier to save a divide in the hot path. */
+>  	sched_clock_mult = NSEC_PER_SEC / arch_timer_rate;
+> diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
+> index e507ab7..d98e7e1 100644
+> --- a/drivers/clocksource/Kconfig
+> +++ b/drivers/clocksource/Kconfig
+> @@ -62,6 +62,7 @@ config CLKSRC_DBX500_PRCMU_SCHED_CLOCK
+>  
+>  config ARM_ARCH_TIMER
+>  	bool
+> +	select CLKSRC_OF if OF
+>  
+>  config CLKSRC_METAG_GENERIC
+>  	def_bool y if METAG
+> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+> index d7ad425..122ff05 100644
+> --- a/drivers/clocksource/arm_arch_timer.c
+> +++ b/drivers/clocksource/arm_arch_timer.c
+> @@ -337,22 +337,14 @@ out:
+>  	return err;
+>  }
+>  
+> -static const struct of_device_id arch_timer_of_match[] __initconst = {
+> -	{ .compatible	= "arm,armv7-timer",	},
+> -	{ .compatible	= "arm,armv8-timer",	},
+> -	{},
+> -};
+> -
+> -int __init arch_timer_init(void)
+> +static void __init arch_timer_init(struct device_node *np)
+>  {
+> -	struct device_node *np;
+>  	u32 freq;
+>  	int i;
+>  
+> -	np = of_find_matching_node(NULL, arch_timer_of_match);
+> -	if (!np) {
+> -		pr_err("arch_timer: can't find DT node\n");
+> -		return -ENODEV;
+> +	if (arch_timer_get_rate()) {
+> +		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
+> +		return;
+>  	}
+>  
+>  	/* Try to determine the frequency from the device tree or CNTFRQ */
+> @@ -378,7 +370,7 @@ int __init arch_timer_init(void)
+>  		if (!arch_timer_ppi[PHYS_SECURE_PPI] ||
+>  		    !arch_timer_ppi[PHYS_NONSECURE_PPI]) {
+>  			pr_warn("arch_timer: No interrupt available, giving up\n");
+> -			return -EINVAL;
+> +			return;
+>  		}
+>  	}
+>  
+> @@ -387,5 +379,8 @@ int __init arch_timer_init(void)
+>  	else
+>  		arch_timer_read_counter = arch_counter_get_cntpct;
+>  
+> -	return arch_timer_register();
+> +	arch_timer_register();
+> +	arch_timer_arch_init();
+>  }
+> +CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_init);
+> +CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_init);
+> diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
+> index 2603267..e6c9c4c 100644
+> --- a/include/clocksource/arm_arch_timer.h
+> +++ b/include/clocksource/arm_arch_timer.h
+> @@ -31,18 +31,12 @@
+>  
+>  #ifdef CONFIG_ARM_ARCH_TIMER
+>  
+> -extern int arch_timer_init(void);
+>  extern u32 arch_timer_get_rate(void);
+>  extern u64 (*arch_timer_read_counter)(void);
+>  extern struct timecounter *arch_timer_get_timecounter(void);
+>  
+>  #else
+>  
+> -static inline int arch_timer_init(void)
+> -{
+> -	return -ENXIO;
+> -}
+> -
+>  static inline u32 arch_timer_get_rate(void)
+>  {
+>  	return 0;
+> -- 
+> 1.7.10.4
 > 
-> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-sh" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
