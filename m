@@ -1,101 +1,55 @@
-From: CF Adad <cfadad@rocketmail.com>
-Subject: Re: AM3517 DaVinci EMAC Ethernet performance issues
-Date: Thu, 4 Apr 2013 07:18:25 -0700 (PDT)
-Message-ID: <1365085105.58314.YahooMailNeo@web160505.mail.bf1.yahoo.com>
-References: <1365042051.84279.YahooMailNeo@web160501.mail.bf1.yahoo.com> <515D3A86.6000504@ti.com>
-Reply-To: CF Adad <cfadad@rocketmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2 00/18] ARM: OMAP5: PM: Add MPUSS suspend and CPUidle
+ support
+Date: Thu, 4 Apr 2013 20:04:08 +0530
+Message-ID: <515D8F60.1080603@ti.com>
+References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com> <87hajnp6ph.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm20-vm0.bullet.mail.bf1.yahoo.com ([98.139.213.165]:29262 "HELO
-	nm20-vm0.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1760751Ab3DDOS0 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Apr 2013 10:18:26 -0400
-In-Reply-To: <515D3A86.6000504@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44802 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761093Ab3DDOcM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Apr 2013 10:32:12 -0400
+In-Reply-To: <87hajnp6ph.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com
 
-Mugunthan V N,
+On Thursday 04 April 2013 04:22 AM, Kevin Hilman wrote:
+> Hi Santosh,
+> 
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+> 
+>> Here is the refreshed version(v2) of the OMAP5 PM suspport which was posted
+>> earlier (March 1st 2013). Patch-set incorporates comments from Nishant
+>> Menon (Thanks for review NM) and his acked-by tags. I would like to get this
+>> queued for 3.10 merge window if you are ok with the series.
+> 
+> I did a review of this series with several comments on the individual
+> patches.  
+> 
+Thanks a lot Kevin. I have addressed all the comments and have
+updated patches ready.
 
-Thank you SO much for your repsonse.=A0 That did help enormously.
+> I've already queued most of the CPUidle fixes/cleanups in my
+> for_3.10/cleanup/cpuidle branch and will get that to Tony soon.  For the
+> rest, I suggest probably breaking it up into cleanup/consolidation stuff
+> and then OMAP5 support.  The latter will depend on all the OMAP5
+> data/headers but the cleanup/consolidation stuff could be merged sooner
+> (but probably a bit late for v3.10 now.)
+> 
+I have already split the patch-set into 'consolidation' and 'OMAP5
+support' since it was straight forward. Need to just build the
+branches on top of your branches. So waiting for you to update
+your 'for_3.10/*' branches.
 
-# ./iperf-arm -i 1 -t 3000 -c 10.22.255.5
-------------------------------------------------------------
-Client connecting to 10.22.255.5, TCP port 5001
-TCP window size: 19.6 KByte (default)
-------------------------------------------------------------
-[=A0 3] local 10.22.0.17 port 40201 connected with 10.22.255.5 port 500=
-1
-[ ID] Interval=A0=A0=A0=A0=A0=A0 Transfer=A0=A0=A0=A0 Bandwidth
-[=A0 3]=A0 0.0- 1.0 sec=A0 8.88 MBytes=A0 74.4 Mbits/sec
-[=A0 3]=A0 1.0- 2.0 sec=A0 10.7 MBytes=A0 90.0 Mbits/sec
-[=A0 3]=A0 2.0- 3.0 sec=A0 8.24 MBytes=A0 69.1 Mbits/sec
-[=A0 3]=A0 3.0- 4.0 sec=A0 8.54 MBytes=A0 71.6 Mbits/sec
-[=A0 3]=A0 4.0- 5.0 sec=A0 7.23 MBytes=A0 60.6 Mbits/sec
-[=A0 3]=A0 5.0- 6.0 sec=A0 11.2 MBytes=A0 93.6 Mbits/sec
-[=A0 3]=A0 6.0- 7.0 sec=A0 10.6 MBytes=A0 89.2 Mbits/sec
-[=A0 3]=A0 7.0- 8.0 sec=A0 10.1 MBytes=A0 84.9 Mbits/sec
-[=A0 3]=A0 8.0- 9.0 sec=A0 7.76 MBytes=A0 65.1 Mbits/sec
-[=A0 3]=A0 9.0-10.0 sec=A0 4.66 MBytes=A0 39.1 Mbits/sec
-[=A0 3] 10.0-11.0 sec=A0 6.79 MBytes=A0 57.0 Mbits/sec
-[=A0 3] 11.0-12.0 sec=A0 7.30 MBytes=A0 61.3 Mbits/sec
-[=A0 3] 12.0-13.0 sec=A0 7.01 MBytes=A0 58.8 Mbits/sec
+For the merge, its your call:)
+As you said OMAP5 support(couple of patches) has a dependency
+on OMAP5 data files. I will at least make the branches ready on
+top of yours.
 
-We're still not at 100%, but the exhorbitant timeouts are gone, and we'=
-re back to bandwidth we can live with for the time being.=A0=A0 Thanks!
-
-The oddity is the patch you shared is one that I actually suggested to =
-myself in my code comments from nearly a year ago.=A0 I guess I needed =
-someone to remind me of my own notes!=A0 :-P=A0 See the comment in that=
- line from http://article.gmane.org/gmane.linux.ports.arm.omap/79787 ??=
-?
-
-Since that fix appears to help, please review the other contents of tha=
-t draft patch I posted back then.=A0 Perhaps there are a few other good=
- things that can be applied from there to the driver today?=A0 The bigg=
-est change I proposed was removing the redundant=A0 emac_rx_alloc() fun=
-ction and replacing it with the standard netdev_alloc_skb_ip_align() in=
-stead.=A0 I also took a look at improving the detection and handling of=
- some potential errors.=A0 To be honest, I never saw any of my dev_err(=
-) calls hit, but that's not to say that they could never do so.
-
-
-
-Thanks again!
-
-
-
------ Original Message -----
-=46rom: Mugunthan V N <mugunthanvnm@ti.com>
-To: CF Adad <cfadad@rocketmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>; "davem@d=
-avemloft.net" <davem@davemloft.net>
-Sent: Thursday, April 4, 2013 4:32 AM
-Subject: Re: AM3517 DaVinci EMAC Ethernet performance issues
-
-On 4/4/2013 7:50 AM, CF Adad wrote:
-> We've done network captures on our link, and the problem is very stra=
-nge. The iperf client transmits data quickly and steadily for a while, =
-but then all the sudden just stops. In the captures you can see an ACK =
-come back from the server for the frame that was just sent, but then in=
-stead of immediately sending the next one it just sits there for someti=
-mes several seconds. Then, it suddenly picks back up and starts running=
- again. It's as though it just paused due to lack of data.=20
-The same kind of issue was observed in different SoC with Davinci EMAC
-and resolved by the patch below. Can you make sure the patch is applied
-in your kernel and take the performance again.
-https://git.kernel.org/cgit/linux/kernel/git/davem/net.git/commit/?id=3D=
-7e51cde276ca820d526c6c21cf8147df595a36bf
-
-Regards
-Mugunthan V N
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Santosh
