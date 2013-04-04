@@ -1,127 +1,101 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V3 1/2] ARM: OMAP3+: use cpu0-cpufreq driver in device
- tree supported boot
-Date: Wed, 3 Apr 2013 21:52:11 -0500
-Message-ID: <20130404025211.GA2456@snafu>
-References: <1364507576-19345-1-git-send-email-nm@ti.com>
- <1364507576-19345-2-git-send-email-nm@ti.com>
- <87ppybxxi0.fsf@linaro.org>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH v3 00/11] usb: dwc3/xhci/phy: Enable runtime power management
+Date: Thu, 4 Apr 2013 10:34:57 +0530
+Message-ID: <CAFp+6iGnDUSOjVgu9ZCAPF9rUDWD5r9ZttBtTo864Q2ACvKFrA@mail.gmail.com>
+References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
+	<20130403172751.GC10089@xanatos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87ppybxxi0.fsf@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-omap@vger.kernel.org, Rob Herring <robherring2@gmail.com>, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130403172751.GC10089@xanatos>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, rob.herring@calxeda.com, kgene.kim@samsung.com, kishon@ti.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-On 11:47-20130403, Kevin Hilman wrote:
-> Nishanth Menon <nm@ti.com> writes:
-> 
-[...]
-> > diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> > index afa509a..5b147ef 100644
-> > --- a/arch/arm/mach-omap2/board-generic.c
-> > +++ b/arch/arm/mach-omap2/board-generic.c
-> > @@ -49,6 +49,11 @@ static void __init omap_generic_init(void)
-> >  		omap4_panda_display_init_of();
-> >  	else if (of_machine_is_compatible("ti,omap4-sdp"))
-> >  		omap_4430sdp_display_init_of();
-> > +
-> > +	if (IS_ENABLED(CONFIG_GENERIC_CPUFREQ_CPU0)) {
-> > +		struct platform_device_info devinfo = { .name = "cpufreq-cpu0", };
-> > +		platform_device_register_full(&devinfo);
-> > +	}
-> 
-> Rather than adding new clkdev nodes below, how about using clk add_alias
-> here?
-Thanks for pointing this out, I spend some time implementing such a
-scheme and following is my opinion:
+Hi Sarah,
 
-Summary:
-There is one major problem which forces us to introduce this "clock
-hack" - clock nodes are not in device tree yet. Yes, clock add alias
-can be used (see option b,c,d..) - but the maintenance burden while we
-transition into DT based clock node is just not worth the effort. The
-current patch(option a) seems to be least of the compromise approaches
-available, IMHO.
 
-(testing example:
- options a, b, c all generate the log: http://pastebin.com/dJe7G9Q9
- with the updated test script: http://pastebin.com/c3ZiU2Ng (now prints
-voltage as well))
+On Wed, Apr 3, 2013 at 10:57 PM, Sarah Sharp
+<sarah.a.sharp@linux.intel.com> wrote:
+> Question: Do you still need this patch for 3.10?
 
-So this means we have to be able to choose one of the available hacks:
-option a) - add clock nodes in cclock_xyz_data.c
-	the current patch under discussion.
-Pros:
-	- we keep board-generic.c intact
-	- DT entries as needed example:
-	clocks = <&dpll1>; can be used. So conversion of DT clock nodes
-	and delete of cclock_xyz_data.c could be done in a smooth manner
-	- we do can continue to support with the same code some TI
-	platforms which have been transitioned to DT clock nodes, while
-	in the same code others remain with _data.c and at the end of
-	complete transition we dont need to cleanup code.
-	- Allows us to have different DPLL names for controlling cpu0
-	clock as SoC needs in DT/_data.c
-Cons:
-	yes, we have those ugly clock entries in clock_xyz_data.c files
-	- but it anyways needs an HACK to work with current data files -
-	why spread the hack around to other files and DT as well?
+Felipe's 'next' is closed for 3.10, so this series won't be making it
+to 3.10 now, as a whole. :-(
 
-option b) using *only* clock alias cpufreq_ck
-	http://pastebin.com/BHLNsfib
-Pros:
-	- we could maintain clock_xyz_data.c without much modification
-Cons:
-	- forced to maintain cpufreq_ck clock node even for DT
-	conversion
-	- tons of cleanup in code, DT entries to be done while we
-	are in-transition and completion of transition to DT clock
-	nodes.
+>
+> http://marc.info/?l=linux-usb&m=136057666911621&w=2
+>
+> Does this patchset build on top of that?
 
-option c) detect if clock node is populated, else use clock alias:
-	http://pastebin.com/WpP8CSL8
-Pros:
-	- we could add DT nodes without cleanup later on.
-Cons:
-	- replicated code (which needs to be eventually cleaned up) just
-	to detect cpu nodes with clock nodes registered
-	- cleanup needs to be done anyways in 
-Pros:
-	- we could maintain clock_xyz_data.c without much modification
-Cons:
-	- forced to maintain cpufreq_ck clock node even for DT
-	conversion
-	- tons of cleanup in code, DT entries to be done while we
-	are in-transition and completion of transition to DT clock
-	nodes.
+Yea, it builds fine on top of the above mentioned patch.
+I would suggest that we pull the xhci-plat patch in this series when the
+complete patch-set getting in.
+btw, its your decision ;-)
 
-option d) pass the dummy pdev created for cpufreq to clock_xyz_data
-init/ io.c early_init.
-	I did not implement this, but is an theoretical possibility
-	we create the clock nodes in early_init, yeah we could register
-	the platform_device and pass the node over to clock_xyz_data as
-	an option, but that just means we have to cleanup in more than
-	one place now - board-generic, io.c, clock_xyz_data.c etc..
+>
+> I'm really behind on my patches for 3.10, sorry.
+>
+> Sarah Sharp
+>
+> On Mon, Apr 01, 2013 at 07:23:59PM +0530, Vivek Gautam wrote:
+>> This patch-series enables runtime power management on xhci-plat,
+>> dwc3-core, dwc3-exynos as well as on Samsung's USB 2.0 type and
+>> USB 3.0 type PHYs.
+>>
+>> Based on 'next' branch of Felipe Balbi's USB tree.
+>>
+>> Changes from v2:
+>>  - Using separate functions for USB PHY runtime power management, instead of
+>>    using macros.
+>>  - Adding 'pm_runtime_set_suspended()' api call in dwc3 core layer before
+>>    enabling runtime pm. (Ideally, we should be explicitly make device
+>>    'suspended' or 'active' before enabling runtime pm on it).
+>>  - Checking return code for 'put_sync' and 'get_sync' of USB-PHYs when
+>>    waking up or suspending them from dwc3 core's runtime_pm callbacks.
+>>  - Removed buggy pm_runtime_put() calls from driver's (xhci, dwc3 and PHY)
+>>    remove functions.
+>>  - Adding a patch to enable runtime power management of Samsung's USB 2.0 PHY
+>>    (usb: phy: samsung: Enable runtime power management on usb2phy)
+>>
+>> Changes from v1:
+>>  - Adding required PHY APIs to handle runtime power management
+>>    instead of directly twiddling with phy->dev.
+>>  - Handling runtime power management of usb PHYs in dwc3 core
+>>    driver instead of in any glue layer.
+>>  - Splitting the patch:
+>>    [PATCH 4/4] usb: phy: samsung: Enable runtime power management on samsung-usb
+>>    into required number to bifurcate functionality.
+>>
+>> Vivek Gautam (11):
+>>   usb: phy: Add APIs for runtime power management
+>>   USB: dwc3: Adjust runtime pm to allow autosuspend
+>>   usb: dwc3: Enable runtime pm only after PHYs are initialized
+>>   usb: dwc3: Add runtime power management callbacks
+>>   usb: dwc3: exynos: Enable runtime power management
+>>   usb: xhci: Enable runtime pm in xhci-plat
+>>   usb: phy: samsung: Enable runtime power management on usb2phy
+>>   usb: phy: samsung: Enable runtime power management on usb3phy
+>>   usb: phy: samsung: Add support for external reference clock
+>>   usb: phy: samsung: Add support for PHY ref_clk gpio
+>>   usb: phy: samsung: Add support for PHY refclk switching
+>>
+>>  drivers/usb/dwc3/core.c            |   59 ++++++++++++++--
+>>  drivers/usb/dwc3/dwc3-exynos.c     |   12 +++
+>>  drivers/usb/host/xhci-plat.c       |    6 ++
+>>  drivers/usb/phy/phy-samsung-usb.c  |   26 +++++++
+>>  drivers/usb/phy/phy-samsung-usb.h  |    1 +
+>>  drivers/usb/phy/phy-samsung-usb2.c |    5 ++
+>>  drivers/usb/phy/phy-samsung-usb3.c |  119 +++++++++++++++++++++++++++++--
+>>  include/linux/usb/phy.h            |  141 ++++++++++++++++++++++++++++++++++++
+>>  8 files changed, 358 insertions(+), 11 deletions(-)
+>>
+>> --
+>> 1.7.6.5
+>>
 
-[...]
-> > diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
-> > index 4579c3c..5a5b471 100644
-> > --- a/arch/arm/mach-omap2/cclock3xxx_data.c
-> > +++ b/arch/arm/mach-omap2/cclock3xxx_data.c
-> > @@ -3501,7 +3501,8 @@ static struct omap_clk omap3xxx_clks[] = {
-> >  	CLK(NULL,	"uart4_ick",	&uart4_ick_am35xx,	CK_AM35XX),
-> >  	CLK(NULL,	"timer_32k_ck",	&omap_32k_fck,  CK_3XXX),
-> >  	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_3XXX),
-> > -	CLK(NULL,	"cpufreq_ck",	&dpll1_ck,	CK_3XXX),
-> > +	CLK(NULL,	"cpufreq_ck",	&dpll1_ck,	CK_3XXX), /* used in non-device tree boot */
-> > +	CLK("cpufreq-cpu0.0",	NULL,	&dpll1_ck,	CK_3XXX), /* used in device tree boot */
-> >  };
-[...]
+
 
 -- 
-Regards,
-Nishanth Menon
+Thanks & Regards
+Vivek
