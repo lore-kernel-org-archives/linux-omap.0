@@ -1,141 +1,241 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and updates for
- 3.10
-Date: Thu, 4 Apr 2013 16:42:32 +0530
-Message-ID: <515D6020.2030103@ti.com>
-References: <1363768852-18125-1-git-send-email-santosh.shilimkar@ti.com> <20130401170539.GK10155@atomide.com> <515BA76D.3000302@ti.com> <alpine.DEB.2.00.1304031146230.2616@utopia.booyaka.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v5 1/6] drivers: phy: add generic PHY framework
+Date: Thu, 4 Apr 2013 16:41:18 +0530
+Message-ID: <515D5FD6.4040909@ti.com>
+References: <1364993634-6378-1-git-send-email-kishon@ti.com> <1364993634-6378-2-git-send-email-kishon@ti.com> <515CA337.1010504@gmail.com> <515D462F.9050109@ti.com> <515D58F2.7030404@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40444 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757405Ab3DDLKg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Apr 2013 07:10:36 -0400
-In-Reply-To: <alpine.DEB.2.00.1304031146230.2616@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <515D58F2.7030404@samsung.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, arnd@arndb.de, akpm@linux-foundation.org, swarren@wwwdotorg.org, rob@landley.net, netdev@vger.kernel.org, davem@davemloft.net, cesarb@cesarb.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, b-cousson@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, mchehab@redhat.com, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Kristo, Tero" <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "Anna, Suman" <s-anna@ti.com>
 
-+ Tero and few more TI folks,
+Hi,
 
-On Thursday 04 April 2013 01:12 AM, Paul Walmsley wrote:
-> Hi Santosh
-> 
-> On Wed, 3 Apr 2013, Santosh Shilimkar wrote:
-> 
->> Thes patchset has already missed last couple of merge windows and its the
->> biggest bottleneck in getting OMAP5 booting from mainline. So I request
->> you to please have a look it quickly so that Tony can line that up for
->> 3.10.
-> 
-> Looks like there are a few minor issues with the patches based on a quick 
-> look.  I'll post those to the list shortly; they should be easy to fix.  
-> But those issues aren't my real concern with this series.
-> 
-> What's harder to fix are the underlying process issues.  My main concern 
-> is that these patches add almost 9,000 lines of code and data.  We've 
-> received clear guidance from the upstream ARM SoC maintainers that any 
-> significant new additions need to be balanced with moving a similar number 
-> of lines of code and data out of arch/arm/{plat-,mach-}* into drivers/.  
-> (Or the new patches should be accompanied with patches that show obvious 
-> progress towards the goal of moving code and data out of 
-> arch/arm/{plat-,mach-}*.)  We need to see more help from TI on the 
-> prerequisites for this cleanup process.
+On Thursday 04 April 2013 04:11 PM, Sylwester Nawrocki wrote:
+> Hi,
 >
-I agree that we are not making faster progress but as part of the
-$subject series itself, for DT only build, we removed around ~4000
-lines of data from hwmod. After the merge window, we can trim
-the AM33XX and then later OMAP4 when it is made DT only support.
-That should give us another 6000 lines of negative diff.
-At the same time removal of MUX data for OMAP4 should be
-around 2000 lines of negative diff.
-
-You might also notice, we dropped OMAP5 clock data considering
-its move under drivers/clk/. Rajendra and Tero already posted
-patches [1] for the same on the list. Ofcourse your feedback is
-needed to make progress there.
-
-> For example, as discussed last year with the TI upstream PM team, an 
-> important first step in this process in my view is to get rid of the 
-> direct PRM/CM register accesses in the OMAP PM code.  See commit 
-> c4ceedcb18cf7a06059482a3a1828b9aad9f78cf ("ARM: OMAP2+: CM/clock: convert 
-> _omap2_module_wait_ready() to use SoC-independent CM functions") as an 
-> example of this process.  This should make it easier to get the PRM/CM 
-> functionality into drivers/.  That in turn make it possible to move the 
-> clockdomain, clock, powerdomain, and hwmod code to drivers/.ARM: OMAP2+: 
-> CM/clock: convert _omap2_module_wait_ready() to use SoC-independent CM 
-> functions.  So far as I can tell, there hasn't been any forward progress 
-> on this.
+> On 04/04/2013 11:21 AM, Kishon Vijay Abraham I wrote:
+>> On Thursday 04 April 2013 03:16 AM, Sylwester Nawrocki wrote:
+>>> On 04/03/2013 02:53 PM, Kishon Vijay Abraham I wrote:
 >
-On this part as well after my discussion with Tony, Tero picked it up
-and he and Eduardo posted questions to you [2] considering you
-already had some WIP patches as we learned from Tony. I suggest
-you send any information on this to "Tero" since he is leading the
-PM effort and has plans to work on these items.
- 
-> It's also necessary to see more TI contributions in finding and fixing 
-> regressions.  Detecting and fixing regressions from the previous kernel 
-> release should be done first, before working on cleanup series or new 
-> feature/SoC additions.  Looking at the list of v3.9-rc regressions that 
-> I've found, we've gotten very little organized help from TI on dealing 
-> with them.  
-> 
-> This in turn robs the maintainers of time that could be spent doing patch 
-> review or further cleanup work, which benefits no one in the end.  
-> Ideally each regression would be assigned to a member of the TI upstream 
-> team, and the whole process could be completed within one or two weeks.
+>>>> +4. Getting a reference to the PHY
+>>>> +
+>>>> +Before the controller can make use of the PHY, it has to get a
+>>>> reference to
+>>>> +it. This framework provides 6 APIs to get a reference to the PHY.
+>>>> +
+>>>> +struct phy *phy_get(struct device *dev, int index);
+>>>> +struct phy *devm_phy_get(struct device *dev, int index);
+>>>> +struct phy *of_phy_get(struct device *dev, const char *phandle, int
+>>>> index);
+>>>> +struct phy *devm_of_phy_get(struct device *dev, const char *phandle,
+>>>> int index);
+>>>
+>>> Why do we need separate functions for dt and non-dt ? Couldn't it be
+>>> handled
+>>> internally by the framework ? So the PHY users can use same calls for dt
+>>> and non-dt, like in case of e.g. the regulators API ?
+>>
+>> yeah. Indeed it makes sense to do it that way.
+>>
+>>> Also signatures of some functions are different now:
+>>>
+>>> extern struct phy *phy_get(struct device *dev, int index);
+>>> extern struct phy *devm_phy_get(struct device *dev, int index);
+>>> extern struct phy *of_phy_get(struct device *dev, int index);
+>>> extern struct phy *devm_of_phy_get(struct device *dev, int index);
+>>
+>> My bad :-(
+>>
+>>> BTW, I think "extern" could be dropped, does it have any significance in
+>>> function declarations in header files ?
+>>
+>> it shouldn't have any effect I guess. It's harmless nevertheless.
 >
-I agree with you overall. 
-
-On couple of specific issues though,
-
-- BOOT-Loader version:  IMHO boot-loader should be upgraded here.
-We always upgrade kernel for new/fixed features and bootloader should
-be no exception.
-
-- Co-processor Power issue: This one is also has boot-loader dependency
-but here too, going on path where firmware needs to be loaded to idle
-them isn't great idea. We never did that for OMAP2/3 where DSP, Tesla
-was present. IMO, we should not bring these devices out of reset and
-let the "remote_proc()" frame works take care of them when it is
-available in kernel. Suman from TI is working on it to enable that.
- 
-> ...
-> 
-> So from my point of view, I'd like to see the following changes before we 
-> accept any new patchsets that add a significant number of lines:
-> 
-> 1. Organized help from TI in finding and fixing regressions in the -rc 
-> cycle, with the regressions dealt with before any new feature 
-> pull-requests are sent
+> Yup.
 >
-Agreed. Tero can help here to streamline the process for PM regressions.
-Rest of the core regressions and MPU PM, feel free to pass it on to
-Rajendra/me. We will try to address them on priority.
+>>>> +struct phy *of_phy_get_byname(struct device *dev, const char *string);
+>>>> +struct phy *devm_of_phy_get_byname(struct device *dev, const char
+>>>> *string);
+>
+>>>> --- /dev/null
+>>>> +++ b/drivers/phy/phy-core.c
+>>>> @@ -0,0 +1,616 @@
+>>>
+>>>> +static struct phy *of_phy_lookup(struct device_node *node)
+>>>> +{
+>>>> +    struct phy *phy;
+>>>> +    struct device *dev;
+>>>> +    struct class_dev_iter iter;
+>>>> +
+>>>> +    class_dev_iter_init(&iter, phy_class, NULL, NULL);
+>>>
+>>> There is currently nothing preventing a call to this function before
+>>> phy_class is initialized. It happened during my tests, and the nice
+>>> stack dump showed that it was the PHY user attempting to get the PHY
+>>> before the framework got initialized. So either phy_core_init should
+>>> be a subsys_initcall or we need a better protection against phy_class
+>>> being NULL or ERR_PTR in more places.
+>>
+>> Whats the initcall used in your PHY user? Looks like more people prefer having
+>
+> It happened in a regular platform driver probe() callback.
+>
+>> module_init and any issue because of it should be fixed in PHY providers and
+>> PHY users.
+>
+> OK. In fact this uncovered some issues in the MIPI DSI interface driver
+> (some unexpected interrupts). But this should just be fixed in those drivers
+> anyway. Now the DSI interface driver needs to wait for the PHY to be
+> registered and ready, so the initialization will likely be changed regardless
+> the framework initializes in module_init or earlier.
+>
+>>>> +    while ((dev = class_dev_iter_next(&iter))) {
+>>>> +        phy = container_of(dev, struct phy, dev);
+>>>> +        if (node != phy->of_node)
+>>>> +            continue;
+>>>> +
+>>>> +        class_dev_iter_exit(&iter);
+>>>> +        return phy;
+>>>> +    }
+>>>> +
+>>>> +    class_dev_iter_exit(&iter);
+>>>> +    return ERR_PTR(-EPROBE_DEFER);
+>>>> +}
+>>>
+>>>> +/**
+>>>> + * of_phy_get() - lookup and obtain a reference to a phy by phandle
+>>>> + * @dev: device that requests this phy
+>>>> + * @index: the index of the phy
+>>>> + *
+>>>> + * Returns the phy associated with the given phandle value,
+>>>> + * after getting a refcount to it or -ENODEV if there is no such phy or
+>>>> + * -EPROBE_DEFER if there is a phandle to the phy, but the device is
+>>>> + * not yet loaded.
+>>>> + */
+>>>> +struct phy *of_phy_get(struct device *dev, int index)
+>>>> +{
+>>>> +    int ret;
+>>>> +    struct phy *phy = NULL;
+>>>> +    struct phy_bind *phy_map = NULL;
+>>>> +    struct of_phandle_args args;
+>>>> +    struct device_node *node;
+>>>> +
+>>>> +    if (!dev->of_node) {
+>>>> +        dev_dbg(dev, "device does not have a device node entry\n");
+>>>> +        return ERR_PTR(-EINVAL);
+>>>> +    }
+>>>> +
+>>>> +    ret = of_parse_phandle_with_args(dev->of_node, "phys", "#phy-cells",
+>>>> +        index,&args);
+>>>> +    if (ret) {
+>>>> +        dev_dbg(dev, "failed to get phy in %s node\n",
+>>>> +            dev->of_node->full_name);
+>>>> +        return ERR_PTR(-ENODEV);
+>>>> +    }
+>>>> +
+>>>> +    phy = of_phy_lookup(args.np);
+>>>> +    if (IS_ERR(phy) || !try_module_get(phy->ops->owner)) {
+>>>> +        phy = ERR_PTR(-EPROBE_DEFER);
+>>>> +        goto err0;
+>>>> +    }
+>>>> +
+>>>> +    phy = phy->ops->of_xlate(phy,&args);
+>>>> +    if (IS_ERR(phy))
+>>>> +        goto err1;
+>>>> +
+>>>> +    phy_map = phy_bind(dev_name(dev), index, dev_name(&phy->dev));
+>>>> +    if (!IS_ERR(phy_map)) {
+>>>> +        phy_map->phy = phy;
+>>>> +        phy_map->auto_bind = true;
+>>>
+>>> Shouldn't it be done with the phy_bind_mutex held ? I guess an unlocked
+>>> version of the phy_bind functions is needed, so it can be used internally.
+>>
+>> The locking is done inside phy_bind function. I'm not sure but I vaguely
+>> remember getting a dump stack (incorrect mutex ordering or something) when
+>> trying to have phy_bind_mutex here. I can check it again.
+>
+> Yes, IIUC the locking needs to be reworked a bit so "phy_map" is not modified
+> without the mutex held.
+>
+>>>> +    }
+>>>> +
+>>>> +    get_device(&phy->dev);
+>>>> +
+>>>> +err1:
+>>>> +    module_put(phy->ops->owner);
+>>>> +
+>>>> +err0:
+>>>> +    of_node_put(node);
+>>>> +
+>>>> +    return phy;
+>>>> +}
+>>>> +EXPORT_SYMBOL_GPL(of_phy_get);
+>>>
+>>>> +/**
+>>>> + * phy_create() - create a new phy
+>>>> + * @dev: device that is creating the new phy
+>>>> + * @label: label given to phy
+>>>> + * @of_node: device node of the phy
+>>>> + * @type: specifies the phy type
+>>>> + * @ops: function pointers for performing phy operations
+>>>> + * @priv: private data from phy driver
+>>>> + *
+>>>> + * Called to create a phy using phy framework.
+>>>> + */
+>>>> +struct phy *phy_create(struct device *dev, const char *label,
+>>>> +    struct device_node *of_node, int type, struct phy_ops *ops,
+>>>> +    void *priv)
+>>>> +{
+>>>> +    int ret;
+>>>> +    struct phy *phy;
+>>>> +    struct phy_bind *phy_bind;
+>>>> +    const char *devname = NULL;
+>>>> +
+>>>> +    if (!dev) {
+>>>> +        dev_err(dev, "no device provided for PHY\n");
+>>>> +        ret = -EINVAL;
+>>>> +        goto err0;
+>>>> +    }
+>>>> +
+>>>> +    if (!ops || !ops->of_xlate || !priv) {
+>>>> +        dev_err(dev, "no PHY ops/PHY data provided\n");
+>>>> +        ret = -EINVAL;
+>>>> +        goto err0;
+>>>> +    }
+>>>> +
+>>>> +    if (!phy_class)
+>>>> +        phy_core_init();
+>>>> +
+>>>> +    phy = kzalloc(sizeof(*phy), GFP_KERNEL);
+>>>> +    if (!phy) {
+>>>> +        ret = -ENOMEM;
+>>>> +        goto err0;
+>>>> +    }
+>>>> +
+>>>> +    devname = dev_name(dev);
+>>>
+>>> OK, a sort of serious issue here is that you can't call phy_create()
+>>> multiple times for same PHY provider device.
+>>
+>> Ah.. right.
+>
+> The other question I had was why we needed struct device object for each
+> PHY. And if it wouldn't be enough to have only struct device * in
+> struct phy, and the real device would be the PHY provider only. I might
 
- 
-> 2. Help from TI on some of the cleanup work that we've mentioned in the 
-> past, starting with the PRM/CM register access cleanup inside mach-omap2/
-> 
-Absolutely. As I mentioned earlier, Eduardo and Tero are waiting for your
-inputs on this topic.
+IMO the PHY framework shouldn't be modifying the properties of device of 
+some other driver. Consider the case where the PHY provider implements 
+other functions also (in addition to acting as a PHY) in which case the 
+PHY provider entirely doesn't come under *PHY class* but only a part of 
+it. There might be other reasons as well.
 
-> 3. Pairing any large feature or SoC additions with at least an equal 
-> removal of lines of code
-> 
-As listed in beginning of the email, there is an effort going on in this
-direction. In fact removal of lines of code has to happen even without
-any new feature. As Tony mentioned in past, we eventually want to support
-DT only builds and that should also allow us significant loc removal
-opportunity. But feel free to suggest ideas if you see more opportunities
-apart from the obvious ones.
+Thanks
+Kishon
 
-Thanks for all your help.
 
-Regards,
-Santosh
-
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg87110.html
-[2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85602.html
