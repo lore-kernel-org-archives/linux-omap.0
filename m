@@ -1,97 +1,95 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 01/12] ARM: OMAP4+: PRM: Move function prototypes to common header for re-use
-Date: Thu, 4 Apr 2013 15:50:48 +0530
-Message-ID: <1365070859-21790-2-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 03/12] ARM: OMAP4+: CM: Move function prototypes to common header for re-use
+Date: Thu, 4 Apr 2013 15:50:50 +0530
+Message-ID: <1365070859-21790-4-git-send-email-santosh.shilimkar@ti.com>
 References: <1365070859-21790-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41082 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758185Ab3DDKTJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 06:19:09 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34662 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758185Ab3DDKTN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Apr 2013 06:19:13 -0400
 In-Reply-To: <1365070859-21790-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-OMAP5 reuses OMAP4 PRM IP block which lets us re-use PRM functions.
-So move the function prototypes from prm44xx.h to prm44xx_54xx.h
-header. The suggestion came from Paul Walmsley as part of the
-OMAP5 data file review.
+OMAP5 reuses OMAP4 CM IP block which lets us re-use CM1/CM2 functions.
+So move the function prototypes from cm1_44xx.h, cm2_44xx.h to
+cm_prm44xx_54xx.h header. The suggestion came from Paul Walmsley
+as part of the OMAP5 data file review.
 
-This is preparatory  patch to add OMAP5 PRM data file.
+This is preparatory  patch to add OMAP5 CM data file.
 
 Cc: Paul Walmsley <paul@pwsan.com>
 
 Acked-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/prm44xx.h      |   33 +-------------------
- arch/arm/mach-omap2/prm44xx_54xx.h |   58 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 59 insertions(+), 32 deletions(-)
- create mode 100644 arch/arm/mach-omap2/prm44xx_54xx.h
+ arch/arm/mach-omap2/cm1_44xx.h     |    7 ++-----
+ arch/arm/mach-omap2/cm2_44xx.h     |    7 ++-----
+ arch/arm/mach-omap2/cm_44xx_54xx.h |   36 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 40 insertions(+), 10 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cm_44xx_54xx.h
 
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index 8ee1fbd..7db2422 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -25,6 +25,7 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_PRM44XX_H
- #define __ARCH_ARM_MACH_OMAP2_PRM44XX_H
+diff --git a/arch/arm/mach-omap2/cm1_44xx.h b/arch/arm/mach-omap2/cm1_44xx.h
+index 1bc00dc..5ae8fe3 100644
+--- a/arch/arm/mach-omap2/cm1_44xx.h
++++ b/arch/arm/mach-omap2/cm1_44xx.h
+@@ -25,6 +25,8 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_CM1_44XX_H
+ #define __ARCH_ARM_MACH_OMAP2_CM1_44XX_H
  
-+#include "prm44xx_54xx.h"
- #include "prcm-common.h"
- #include "prm.h"
++#include "cm_44xx_54xx.h"
++
+ /* CM1 base address */
+ #define OMAP4430_CM1_BASE		0x4a004000
  
-@@ -744,36 +745,4 @@
- #define OMAP4_PRM_VC_ERRST_OFFSET			0x00f8
- #define OMAP4430_PRM_VC_ERRST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00f8)
+@@ -217,9 +219,4 @@
+ #define OMAP4_CM1_ABE_WDT3_CLKCTRL_OFFSET		0x0088
+ #define OMAP4430_CM1_ABE_WDT3_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_ABE_INST, 0x0088)
  
 -/* Function prototypes */
--# ifndef __ASSEMBLER__
--
--extern u32 omap4_prm_read_inst_reg(s16 inst, u16 idx);
--extern void omap4_prm_write_inst_reg(u32 val, s16 inst, u16 idx);
--extern u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
--
--/* OMAP4-specific VP functions */
--u32 omap4_prm_vp_check_txdone(u8 vp_id);
--void omap4_prm_vp_clear_txdone(u8 vp_id);
--
--/*
-- * OMAP4 access functions for voltage controller (VC) and
-- * voltage proccessor (VP) in the PRM.
-- */
--extern u32 omap4_prm_vcvp_read(u8 offset);
--extern void omap4_prm_vcvp_write(u32 val, u8 offset);
--extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
--
--extern void omap44xx_prm_reconfigure_io_chain(void);
--
--/* PRM interrupt-related functions */
--extern void omap44xx_prm_read_pending_irqs(unsigned long *events);
--extern void omap44xx_prm_ocp_barrier(void);
--extern void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask);
--extern void omap44xx_prm_restore_irqen(u32 *saved_mask);
--
--extern int __init omap44xx_prm_init(void);
--extern u32 omap44xx_prm_get_reset_sources(void);
--
--# endif
+-extern u32 omap4_cm1_read_inst_reg(s16 inst, u16 idx);
+-extern void omap4_cm1_write_inst_reg(u32 val, s16 inst, u16 idx);
+-extern u32 omap4_cm1_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
 -
  #endif
-diff --git a/arch/arm/mach-omap2/prm44xx_54xx.h b/arch/arm/mach-omap2/prm44xx_54xx.h
+diff --git a/arch/arm/mach-omap2/cm2_44xx.h b/arch/arm/mach-omap2/cm2_44xx.h
+index b9de72d..ee5136d 100644
+--- a/arch/arm/mach-omap2/cm2_44xx.h
++++ b/arch/arm/mach-omap2/cm2_44xx.h
+@@ -25,6 +25,8 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_CM2_44XX_H
+ #define __ARCH_ARM_MACH_OMAP2_CM2_44XX_H
+ 
++#include "cm_44xx_54xx.h"
++
+ /* CM2 base address */
+ #define OMAP4430_CM2_BASE		0x4a008000
+ 
+@@ -449,9 +451,4 @@
+ #define OMAP4_CM_CEFUSE_CEFUSE_CLKCTRL_OFFSET		0x0020
+ #define OMAP4430_CM_CEFUSE_CEFUSE_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CEFUSE_INST, 0x0020)
+ 
+-/* Function prototypes */
+-extern u32 omap4_cm2_read_inst_reg(s16 inst, u16 idx);
+-extern void omap4_cm2_write_inst_reg(u32 val, s16 inst, u16 idx);
+-extern u32 omap4_cm2_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
+-
+ #endif
+diff --git a/arch/arm/mach-omap2/cm_44xx_54xx.h b/arch/arm/mach-omap2/cm_44xx_54xx.h
 new file mode 100644
-index 0000000..7cd22ab
+index 0000000..4154f86
 --- /dev/null
-+++ b/arch/arm/mach-omap2/prm44xx_54xx.h
-@@ -0,0 +1,58 @@
++++ b/arch/arm/mach-omap2/cm_44xx_54xx.h
+@@ -0,0 +1,36 @@
 +/*
-+ * OMAP44xx and 54xx PRM common functions
++ * OMAP44xx and OMAP54xx CM1/CM2 function prototypes
 + *
-+ * Copyright (C) 2009-2013 Texas Instruments, Inc.
++ * Copyright (C) 2009-201333 Texas Instruments, Inc.
 + * Copyright (C) 2009-2010 Nokia Corporation
 + *
 + * Paul Walmsley (paul@pwsan.com)
@@ -110,40 +108,18 @@ index 0000000..7cd22ab
 + *
 + */
 +
-+#ifndef __ARCH_ARM_MACH_OMAP2_PRM44XX_54XX_H
-+#define __ARCH_ARM_MACH_OMAP2_PRM44XX_54XX_H
++#ifndef __ARCH_ARM_MACH_OMAP2_CM_44XX_54XX_H
++#define __ARCH_ARM_MACH_OMAP2_CM_44XX_55XX_H
 +
-+/* Function prototypes */
-+#ifndef __ASSEMBLER__
++/* CM1 Function prototypes */
++extern u32 omap4_cm1_read_inst_reg(s16 inst, u16 idx);
++extern void omap4_cm1_write_inst_reg(u32 val, s16 inst, u16 idx);
++extern u32 omap4_cm1_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
 +
-+extern u32 omap4_prm_read_inst_reg(s16 inst, u16 idx);
-+extern void omap4_prm_write_inst_reg(u32 val, s16 inst, u16 idx);
-+extern u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
-+
-+/* OMAP4/OMAP5-specific VP functions */
-+u32 omap4_prm_vp_check_txdone(u8 vp_id);
-+void omap4_prm_vp_clear_txdone(u8 vp_id);
-+
-+/*
-+ * OMAP4/OMAP5 access functions for voltage controller (VC) and
-+ * voltage proccessor (VP) in the PRM.
-+ */
-+extern u32 omap4_prm_vcvp_read(u8 offset);
-+extern void omap4_prm_vcvp_write(u32 val, u8 offset);
-+extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
-+
-+extern void omap44xx_prm_reconfigure_io_chain(void);
-+
-+/* PRM interrupt-related functions */
-+extern void omap44xx_prm_read_pending_irqs(unsigned long *events);
-+extern void omap44xx_prm_ocp_barrier(void);
-+extern void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask);
-+extern void omap44xx_prm_restore_irqen(u32 *saved_mask);
-+
-+extern int __init omap44xx_prm_init(void);
-+extern u32 omap44xx_prm_get_reset_sources(void);
-+
-+#endif
++/* CM2 Function prototypes */
++extern u32 omap4_cm2_read_inst_reg(s16 inst, u16 idx);
++extern void omap4_cm2_write_inst_reg(u32 val, s16 inst, u16 idx);
++extern u32 omap4_cm2_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
 +
 +#endif
 -- 
