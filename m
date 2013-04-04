@@ -1,74 +1,109 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 1/2] mfd: twl4030-madc: Add support for raw value in twl4030_madc_conversion
-Date: Thu, 4 Apr 2013 11:32:20 +0200
-Message-ID: <201304041132.21158@pali>
-References: <1360969010-8571-1-git-send-email-pali.rohar@gmail.com> <201303022323.06091@pali> <201303241503.29912@pali>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH v2 00/12] ARM: OMAP5: hwmod, prm/cm data files and updates for 3.10
+Date: Thu, 4 Apr 2013 15:50:47 +0530
+Message-ID: <1365070859-21790-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart4204324.nyTu21UEpb";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201303241503.29912@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Anton Vorontsov <cbou@mail.ru>, Keerthy <j-keerthy@ti.com>, Kyle Manna <kyle@kylemanna.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:55938 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758078Ab3DDKTD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Apr 2013 06:19:03 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
---nextPart4204324.nyTu21UEpb
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Pual,
 
-On Sunday 24 March 2013 15:03:29 Pali Roh=C3=A1r wrote:
-> On Saturday 02 March 2013 23:23:05 Pali Roh=C3=A1r wrote:
-> > On Friday 15 February 2013 23:56:49 Pali Roh=C3=A1r wrote:
-> > > Driver twl4030-madc has hardcoded channel types (10 -
-> > > battery current, 1 - battery temperature) and also
-> > > conversation data in variable twl4030_divider_ratios.
-> > > These hardcoded channels are incorrect for Nokia RX-51
-> > > board (where is channel 0 - battery temperature).
-> > >=20
-> > > For Nokia RX-51 there is rx51_battery power_supply driver
-> > > which reporting battery information via
-> > > twl4030_madc_conversion. But this driver needs raw values
-> > > (not converted via some hardcoded functions). So this
-> > > patch adding new parameter "raw" to struct
-> > > twl4030_madc_request which tell twl4030-madc driver to
-> > > not convert values, but rather return raw.
-> > >=20
-> > > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> > > ---
-> > >=20
-> > >  drivers/mfd/twl4030-madc.c       |   14 ++++++++++----
-> > >  include/linux/i2c/twl4030-madc.h |    2 ++
-> > >  2 files changed, 12 insertions(+), 4 deletions(-)
-> >=20
-> > Hello, can somebody review this twl4030-madc patch?
->=20
-> Bump.
->=20
-> Can some of mfd maintainers look at this patch and include it
-> to mfd tree? It is needed for rx51_battery power supply
-> driver.
+Here is the series which updates the minor updates you suggested.
+As aligned on list with Tony, I have dropped clock data from the
+series. That means for the boot, one clock data patch needs to be applied.
+It is available on my git tree in 'out_of_tree/omap5_clk_data' branch.
 
-CCing Tony, can you look at this patch?
+Alsot, you will notice hwmod data loc has come down from ~6000 lines to
+~2000 lines because of removal of iospace, irq, dma data as well as
+unused hwmods. Few hwmods for which dt conversion is pending are
+not added as well but those would add max ~400 loc in future.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Series has been tested boot on OMAP4 and OMAP5 devices and compile
+tested for all the OMAP2/3/4/5 specific configs. For OMAP5 testing,
+I have to pull in Tony's arm-soc pull requests, benoit's dt branch
+and hence ended up creating a 'testing/3.10/omap5_int_rebuild' branch.
 
---nextPart4204324.nyTu21UEpb
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+The following changes since commit a937536b868b8369b98967929045f1df54234323:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+  Linux 3.9-rc3 (2013-03-17 15:59:32 -0700)
 
-iEYEABECAAYFAlFdSKUACgkQi/DJPQPkQ1J3FwCgsdsQMZ9ABbG+1TJ9cLK8pSCm
-XgoAn03qdIow1/rBhSL214sDBT7RJZZW
-=kBoX
------END PGP SIGNATURE-----
+are available in the git repository at:
 
---nextPart4204324.nyTu21UEpb--
+  git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.10/omap5_data_files_v2
+
+for you to fetch changes up to f97c560324a0e3c0607d57089930493db6ad7435:
+
+  ARM: OMAP5: Enable build and frameowrk initialisations (2013-04-04 14:00:52 +0530)
+
+----------------------------------------------------------------
+
+Benoit Cousson (7):
+  ARM: OMAP5: PRM: Add OMAP54XX register and bitfield files
+  ARM: OMAP5: CM: Add OMAP54XX register and bitfield files
+  ARM: OMAP5: PRCM: Add OMAP54XX local MPU PRCM registers
+  ARM: OMAP5: SCRM: Add OMAP54XX header file.
+  ARM: OMAP5: clockdomain data: Add OMAP54XX data and update the header
+  ARM: OMAP5: powerdomain data: Add OMAP54XX data and update the header
+  ARM: OMAP5: hwmod data: Create initial OMAP5 SOC hwmod data
+
+Santosh Shilimkar (5):
+  ARM: OMAP4+: PRM: Move function prototypes to common header for
+    re-use
+  ARM: OMAP4+: CM: Move function prototypes to common header for re-use
+  ARM: OMAP4+: PRCM MPU: Move function prototypes to common header for
+    re-use
+  ARM: OMAP5: voltagedomain data: Add OMAP5 voltage domain data
+  ARM: OMAP5: Enable build and frameowrk initialisations
+
+ arch/arm/mach-omap2/Makefile                  |    4 +
+ arch/arm/mach-omap2/clockdomain.h             |    1 +
+ arch/arm/mach-omap2/clockdomains54xx_data.c   |  464 +++++
+ arch/arm/mach-omap2/cm-regbits-54xx.h         | 1737 ++++++++++++++++
+ arch/arm/mach-omap2/cm1_44xx.h                |    7 +-
+ arch/arm/mach-omap2/cm1_54xx.h                |  218 ++
+ arch/arm/mach-omap2/cm2_44xx.h                |    7 +-
+ arch/arm/mach-omap2/cm2_54xx.h                |  394 ++++
+ arch/arm/mach-omap2/cm_44xx_54xx.h            |   36 +
+ arch/arm/mach-omap2/io.c                      |    7 +
+ arch/arm/mach-omap2/omap_hwmod.h              |    1 +
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c    | 2151 ++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h             |    1 +
+ arch/arm/mach-omap2/powerdomains54xx_data.c   |  331 +++
+ arch/arm/mach-omap2/prcm44xx.h                |    6 +
+ arch/arm/mach-omap2/prcm_mpu44xx.h            |   14 +-
+ arch/arm/mach-omap2/prcm_mpu54xx.h            |   87 +
+ arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h      |   36 +
+ arch/arm/mach-omap2/prm-regbits-54xx.h        | 2701 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm44xx.h                 |   33 +-
+ arch/arm/mach-omap2/prm44xx_54xx.h            |   58 +
+ arch/arm/mach-omap2/prm54xx.h                 |  421 ++++
+ arch/arm/mach-omap2/scrm54xx.h                |  231 +++
+ arch/arm/mach-omap2/voltage.h                 |    1 +
+ arch/arm/mach-omap2/voltagedomains54xx_data.c |  102 +
+ 25 files changed, 8994 insertions(+), 55 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clockdomains54xx_data.c
+ create mode 100644 arch/arm/mach-omap2/cm-regbits-54xx.h
+ create mode 100644 arch/arm/mach-omap2/cm1_54xx.h
+ create mode 100644 arch/arm/mach-omap2/cm2_54xx.h
+ create mode 100644 arch/arm/mach-omap2/cm_44xx_54xx.h
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+ create mode 100644 arch/arm/mach-omap2/powerdomains54xx_data.c
+ create mode 100644 arch/arm/mach-omap2/prcm_mpu54xx.h
+ create mode 100644 arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
+ create mode 100644 arch/arm/mach-omap2/prm-regbits-54xx.h
+ create mode 100644 arch/arm/mach-omap2/prm44xx_54xx.h
+ create mode 100644 arch/arm/mach-omap2/prm54xx.h
+ create mode 100644 arch/arm/mach-omap2/scrm54xx.h
+ create mode 100644 arch/arm/mach-omap2/voltagedomains54xx_data.c
+
+-- 
+1.7.9.5
+
