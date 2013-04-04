@@ -1,87 +1,79 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and updates for
- 3.10
-Date: Thu, 4 Apr 2013 22:27:52 +0530
-Message-ID: <515DB110.9000503@ti.com>
-References: <1363768852-18125-1-git-send-email-santosh.shilimkar@ti.com> <20130401170539.GK10155@atomide.com> <515BA76D.3000302@ti.com> <alpine.DEB.2.00.1304031146230.2616@utopia.booyaka.com> <515D6020.2030103@ti.com> <20130404165208.GI10155@atomide.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v2 08/18] ARM: OMAP5: PM: Add CPU power off in hotplug path
+Date: Thu, 04 Apr 2013 10:31:00 -0700
+Message-ID: <87vc82nqy3.fsf@linaro.org>
+References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
+	<1364205910-32392-9-git-send-email-santosh.shilimkar@ti.com>
+	<876203uypd.fsf@linaro.org> <515D7ECE.6040503@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59741 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763193Ab3DDQzx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 12:55:53 -0400
-In-Reply-To: <20130404165208.GI10155@atomide.com>
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:36865 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763998Ab3DDRbD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Apr 2013 13:31:03 -0400
+Received: by mail-pb0-f41.google.com with SMTP id mc17so1555547pbc.0
+        for <linux-omap@vger.kernel.org>; Thu, 04 Apr 2013 10:31:03 -0700 (PDT)
+In-Reply-To: <515D7ECE.6040503@ti.com> (Santosh Shilimkar's message of "Thu, 4
+	Apr 2013 18:53:26 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Kristo, Tero" <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "Anna, Suman" <s-anna@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com
 
-On Thursday 04 April 2013 10:22 PM, Tony Lindgren wrote:
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130404 04:15]:
->> + Tero and few more TI folks,
->>
->> On Thursday 04 April 2013 01:12 AM, Paul Walmsley wrote:
->>> Hi Santosh
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+
+> On Thursday 04 April 2013 02:19 AM, Kevin Hilman wrote:
+>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>> 
+>>> Add power management code to handle the CPU off mode to enable CPUP hotplug
+>>> mode for OMAP5 devices. Separate suspend finisher is used for OMAP5(Cortex-A15)
+>>> because it doesn't use SCU power status register and external PL310 L2 cache
+>>> which makes code flow bit different.
 >>>
->>> On Wed, 3 Apr 2013, Santosh Shilimkar wrote:
->>>
->>>> Thes patchset has already missed last couple of merge windows and its the
->>>> biggest bottleneck in getting OMAP5 booting from mainline. So I request
->>>> you to please have a look it quickly so that Tony can line that up for
->>>> 3.10.
->>>
->>> Looks like there are a few minor issues with the patches based on a quick 
->>> look.  I'll post those to the list shortly; they should be easy to fix.  
->>> But those issues aren't my real concern with this series.
->>>
->>> What's harder to fix are the underlying process issues.  My main concern 
->>> is that these patches add almost 9,000 lines of code and data.  We've 
->>> received clear guidance from the upstream ARM SoC maintainers that any 
->>> significant new additions need to be balanced with moving a similar number 
->>> of lines of code and data out of arch/arm/{plat-,mach-}* into drivers/.  
->>> (Or the new patches should be accompanied with patches that show obvious 
->>> progress towards the goal of moving code and data out of 
->>> arch/arm/{plat-,mach-}*.)  We need to see more help from TI on the 
->>> prerequisites for this cleanup process.
->>>
->> I agree that we are not making faster progress but as part of the
->> $subject series itself, for DT only build, we removed around ~4000
->> lines of data from hwmod. After the merge window, we can trim
->> the AM33XX and then later OMAP4 when it is made DT only support.
->> That should give us another 6000 lines of negative diff.
->> At the same time removal of MUX data for OMAP4 should be
->> around 2000 lines of negative diff.
-> 
-> Can't we already trim the am33xx hwmod data after your patches for
-> v3.10 as am33xx is already DT only? Unfortunately we cannot create
-> negative diffstat in other ways for v3.10 merge window as we cannot
-> make omap4 DT only just quite yet.
-> 
-Yes we can and I can take a stab it tomorrow. The only thing is I
-might need some support for testing but thats manageable. Will
-take a stab at it tomorrow and if everything goes well, post a
-patch for smae.
+>>> Acked-by: Nishanth Menon <nm@ti.com>
+>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> 
+>> [...]
+>> 
+>>> @@ -436,14 +445,21 @@ int __init omap4_mpuss_init(void)
+>>>  
+>>>  	if (cpu_is_omap44xx()) {
+>>>  		omap_pm_ops.finish_suspend = omap4_finish_suspend;
+>>> +		omap_pm_ops.hotplug_restart = omap_secondary_startup;
+>>>  		omap_pm_ops.resume = omap4_cpu_resume;
+>>>  		omap_pm_ops.scu_prepare = scu_pwrst_prepare;
+>>>  		cpu_context_offset = OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET;
+>>>  	} else if (soc_is_omap54xx()) {
+>>> +		omap_pm_ops.finish_suspend = omap5_finish_suspend;
+>>> +		omap_pm_ops.hotplug_restart = omap5_secondary_startup;
+>>>  		cpu_context_offset = OMAP54XX_RM_CPU0_CPU0_CONTEXT_OFFSET;
+>>>  		enable_mercury_retention_mode();
+>>>  	}
+>>>  
+>>> +	/* Over-write the OMAP4 hook to take care of ROM BUG */
+>>> +	if (cpu_is_omap446x())
+>>> +		omap_pm_ops.hotplug_restart = omap_secondary_startup_4460;
+>> 
+>> A couple nits...
+>> 
+>> I think this would go better at the end of the 'if omap44xx' block
+>> above.
+>> 
+> Nishant commented on this as well. The indentation was looking ugly
+> and I thought its better to have this BUG hunk separate. I prefer
+> it this way though if you really insist, i have to change it.
 
-> FYI, I have some trivial patches here to drop board and mux support for
-> omap4 once we can make omap4 DT only, so that will be about 3000 lines
-> of reduction with estimated 1000 - 2000 lines once I go through the
-> unneeded platform init code for omap4 for things like MMC and USB.
->  
-Cool.
+I insist.
 
-> The rest of the clean-up issues I believe we all agree, we just need
-> to get it done so we can avoid getting flamed for every new SoC for
-> the huge data files. To fix the data issue for good, it seems that we can
-> get started moving both the clock and hwmod data to simple drivers
-> that can get clocks and hwmod data both from DT and /lib/firmware.
-> It also seems that we don't need to move all the data at once, which
-> makes the task easier.
-> 
-Agree.
+>> Also, while you're hear, maybe it's time to rename the current secondary 
+>> startup functions to match the new one.  IOW omap4_..., omap4460_... and omap5_...
+>> 
+> Good idea. Will do it in a separate patch since these have been there in few
+> files.
 
+OK.
 
-regards,
-santosh
+Thanks,
 
+Kevin
