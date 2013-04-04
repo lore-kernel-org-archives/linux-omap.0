@@ -1,80 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support
- for AUXCLKs
-Date: Thu, 4 Apr 2013 09:41:38 -0700
-Message-ID: <20130404164137.GH10155@atomide.com>
-References: <1363703220-4777-1-git-send-email-rogerq@ti.com>
- <1363703220-4777-2-git-send-email-rogerq@ti.com>
- <20130403234242.GE10155@atomide.com>
- <515D2D30.3000306@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2 00/18] ARM: OMAP5: PM: Add MPUSS suspend and CPUidle
+ support
+Date: Thu, 4 Apr 2013 22:19:25 +0530
+Message-ID: <515DAF15.8000700@ti.com>
+References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com> <87hajnp6ph.fsf@linaro.org> <515D8F60.1080603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <515D2D30.3000306@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: b-cousson@ti.com, linux@arm.linux.org.uk, rnayak@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57974 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762536Ab3DDQrc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Apr 2013 12:47:32 -0400
+In-Reply-To: <515D8F60.1080603@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com
 
-* Roger Quadros <rogerq@ti.com> [130404 00:39]:
-> On 04/04/2013 02:42 AM, Tony Lindgren wrote:
-> >> --- a/arch/arm/mach-omap2/cclock44xx_data.c
-> >> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
-> >> @@ -27,6 +27,7 @@
-> >>  #include <linux/clk-private.h>
-> >>  #include <linux/clkdev.h>
-> >>  #include <linux/io.h>
-> >> +#include <linux/of.h>
-> >>  
-> >>  #include "soc.h"
-> >>  #include "iomap.h"
-> >> @@ -1663,6 +1664,40 @@ static struct omap_clk omap44xx_clks[] = {
-> >>  	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
-> >>  };
-> >>  
-> >> +static struct clk *scrm_clks[] = {
-> >> +	&auxclk0_ck,
-> >> +	&auxclk1_ck,
-> >> +	&auxclk2_ck,
-> >> +	&auxclk3_ck,
-> >> +	&auxclk4_ck,
-> >> +	&auxclk5_ck,
-> >> +};
-> > 
-> > Hmm I don't like the idea of specifying the auxclk both in the
-> > cclock44xx_data.c and in DT..
+On Thursday 04 April 2013 08:04 PM, Santosh Shilimkar wrote:
+> On Thursday 04 April 2013 04:22 AM, Kevin Hilman wrote:
+>> Hi Santosh,
+>>
+>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>>
+>>> Here is the refreshed version(v2) of the OMAP5 PM suspport which was posted
+>>> earlier (March 1st 2013). Patch-set incorporates comments from Nishant
+>>> Menon (Thanks for review NM) and his acked-by tags. I would like to get this
+>>> queued for 3.10 merge window if you are ok with the series.
+>>
+>> I did a review of this series with several comments on the individual
+>> patches.  
+>>
+> Thanks a lot Kevin. I have addressed all the comments and have
+> updated patches ready.
 > 
-> Right, but till we have all clocks moved to DT we only need this
-> approach for general purpose clocks that are not mapped to devices
-> by hwmod.
+>> I've already queued most of the CPUidle fixes/cleanups in my
+>> for_3.10/cleanup/cpuidle branch and will get that to Tony soon.  For the
+>> rest, I suggest probably breaking it up into cleanup/consolidation stuff
+>> and then OMAP5 support.  The latter will depend on all the OMAP5
+>> data/headers but the cleanup/consolidation stuff could be merged sooner
+>> (but probably a bit late for v3.10 now.)
+>>
+> I have already split the patch-set into 'consolidation' and 'OMAP5
+> support' since it was straight forward. Need to just build the
+> branches on top of your branches. So waiting for you to update
+> your 'for_3.10/*' branches.
+> 
+> For the merge, its your call:)
+> As you said OMAP5 support(couple of patches) has a dependency
+> on OMAP5 data files. I will at least make the branches ready on
+> top of yours.
+> 
+After looking at your tree, looks like the branches are already
+there. Idle branch name is not for_3.10/fixes/cpuidle though :)
 
-For v3.10, let's just make sure that USB works with DT as then
-after v3.10 we can make omap4 DT only and get rid of estimated
-7K lines of code and data. I guess this is the last piece missing
-for that, or are we also missing something else?
-
-Can't you set up a clock alias for your device so it can find the
-auxclk when requesting it with the dev entry?
-
-For the DT clock driver if needed for v3.10, how about just do a
-minimal drivers/clock/omap/ that uses the standard binding?
-Then that driver can just do clk_get() from cclock44xx_data.c
-for now? And then later on we'll just move all the clocks to a
-combination of DT + /lib/firmware.
-
-> e.g. auxclk are required to be specified in DT nodes for USB PHY.
-> Without this we can't get USB host working on Panda.
-
-OK. So if the USB PHY has a dev entry, can't you just set up a
-clock alias in struct omap_clk omap44xx_clks[] for it?
- 
-> As Rajendra points out, it seems moving entire clock data to DT is not
-> going to happen soon. So this is the simplistic way things can work.
-
-Right but seems like we can get started there without moving
-them all at once.
+So I created 'for_3.10/omap_pm-cleanup' and 'for_3.10/omap5_pm_v2'
+and pushed on my git tree [1] in case you would like to have
+a look. I briefly tested them on OMAP4 device with
+CPUidle enabled and they seems to work fine. Will do OMAP5
+testing tomorrow and then post the updated patches on list.
 
 Regards,
+Santosh
 
-Tony
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git
+
