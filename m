@@ -1,16 +1,16 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 2/4] ARM: OMAP4+: PM: Consolidate OMAP4 PM code to
- re-use it for OMAP5
-Date: Fri, 5 Apr 2013 14:34:34 -0700
-Message-ID: <20130405213433.GF10155@atomide.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v3 1/4] ARM: OMAP4+: PM: Consolidate MPU subsystem PM
+ code for re-use
+Date: Fri, 5 Apr 2013 19:09:19 +0530
+Message-ID: <515ED407.5000609@ti.com>
 References: <1365166743-5940-1-git-send-email-santosh.shilimkar@ti.com>
- <1365166743-5940-3-git-send-email-santosh.shilimkar@ti.com>
+ <1365166743-5940-2-git-send-email-santosh.shilimkar@ti.com>
+ <20130405131935.GM11464@arwen.pp.htv.fi> <20130405133511.GA4143@kahuna>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1365166743-5940-3-git-send-email-santosh.shilimkar@ti.com>
+In-Reply-To: <20130405133511.GA4143@kahuna>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,31 +20,41 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: khilman@deeprootsystems.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [130405 06:01]:
-> OMAP5 has backward compatible PRCM block and it's programming
-> model is mostly similar to OMAP4. Same is going to be maintained
-> for future OMAP4 based SOCs. Hence consolidate the OMAP4 power
-> management code so that it can be re-used on OMAP5 and later devices.
-> 
-> While at it, update the kernel-doc for omap4_pm_init().
-> 
-> Acked-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile                       |    9 +--
->  arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c}   |   58 ++++++++++++++++----
->  .../mach-omap2/{sleep44xx.S => sleep_omap4plus.S}  |    0
->  3 files changed, 53 insertions(+), 14 deletions(-)
->  rename arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c} (83%)
->  rename arch/arm/mach-omap2/{sleep44xx.S => sleep_omap4plus.S} (100%)
-
-I suggest you leave out the rename. That just adds churn and has
-flame potential.
+On Friday 05 April 2013 07:05 PM, Nishanth Menon wrote:
+> On 16:19-20130405, Felipe Balbi wrote:
+>> On Fri, Apr 05, 2013 at 06:29:00PM +0530, Santosh Shilimkar wrote:
+>>> OMAP5 and future OMAP based SOCs has backward compatible MPUSS
+>>> IP block with OMAP4. It's programming model is mostly similar.
+>>
+>> s/It's/Its/
+>> s/mostly //
+>>
+>> (similar already expands to 'almost the same' :-)
+>>
+>>> @@ -355,6 +389,12 @@ int __init omap4_mpuss_init(void)
+>>>  
+>>>  	save_l2x0_context();
+>>>  
+>>> +	if (cpu_is_omap44xx()) {
+>>> +		omap_pm_ops.finish_suspend = omap4_finish_suspend;
+>>> +		omap_pm_ops.resume = omap4_cpu_resume;
+>>> +		omap_pm_ops.scu_prepare = scu_pwrst_prepare;
+>>> +	}
+>>
+>> why don't you just rename omap4_* into omap_* and add cpu-based checks
+>> there in order to handle differences between omap4 and omap5?
+>>
+>> If implementation will be almost the same for both, you might be able to
+>> save on some more duplication, no ?
+> Jeez NO! finish_suspend is assembly, further, it is the hottest path in
+> cpuidle framework - for every WFI we invoke it. we definitely dont want
+> to add more overhead beyond what is necessary.
+:-)
+Our emails crossed. I just said the same thing in other words.
 
 Regards,
-
-Tony
+Santosh 
