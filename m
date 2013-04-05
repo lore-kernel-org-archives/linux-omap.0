@@ -1,126 +1,153 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 1/4] ARM: OMAP4+: PM: Consolidate MPU subsystem PM
- code for re-use
-Date: Fri, 5 Apr 2013 17:29:44 +0300
-Message-ID: <20130405142944.GC12229@arwen.pp.htv.fi>
-References: <1365166743-5940-1-git-send-email-santosh.shilimkar@ti.com>
- <1365166743-5940-2-git-send-email-santosh.shilimkar@ti.com>
- <20130405131935.GM11464@arwen.pp.htv.fi>
- <20130405133511.GA4143@kahuna>
- <20130405140420.GB12229@arwen.pp.htv.fi>
- <20130405141801.GA4270@kahuna>
-Reply-To: balbi@ti.com
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH V3 1/2] ARM: OMAP3+: use cpu0-cpufreq driver in device
+ tree supported boot
+Date: Fri, 5 Apr 2013 15:20:49 +0530
+Message-ID: <515E9E79.8010300@ti.com>
+References: <1364507576-19345-1-git-send-email-nm@ti.com> <1364507576-19345-2-git-send-email-nm@ti.com> <87ppybxxi0.fsf@linaro.org> <20130404025211.GA2456@snafu> <515D0BF1.7060802@ti.com> <20130404190053.GA4371@kahuna>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2677036183587900478=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130405141801.GA4270@kahuna>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: khilman@deeprootsystems.com, Felipe Balbi <balbi@ti.com>, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
-
---===============2677036183587900478==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KN5l+BnMqAQyZLvT"
-Content-Disposition: inline
-
---KN5l+BnMqAQyZLvT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Apr 05, 2013 at 09:18:02AM -0500, Nishanth Menon wrote:
-> On 17:04-20130405, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Fri, Apr 05, 2013 at 08:35:11AM -0500, Nishanth Menon wrote:
-> > > On 16:19-20130405, Felipe Balbi wrote:
-> > > > On Fri, Apr 05, 2013 at 06:29:00PM +0530, Santosh Shilimkar wrote:
-> > > > > OMAP5 and future OMAP based SOCs has backward compatible MPUSS
-> > > > > IP block with OMAP4. It's programming model is mostly similar.
-> > > >=20
-> > > > s/It's/Its/
-> > > > s/mostly //
-> > > >=20
-> > > > (similar already expands to 'almost the same' :-)
-> > > >=20
-> > > > > @@ -355,6 +389,12 @@ int __init omap4_mpuss_init(void)
-> > > > > =20
-> > > > >  	save_l2x0_context();
-> > > > > =20
-> > > > > +	if (cpu_is_omap44xx()) {
-> > > > > +		omap_pm_ops.finish_suspend =3D omap4_finish_suspend;
-> > > > > +		omap_pm_ops.resume =3D omap4_cpu_resume;
-> > > > > +		omap_pm_ops.scu_prepare =3D scu_pwrst_prepare;
-> > > > > +	}
-> > > >=20
-> > > > why don't you just rename omap4_* into omap_* and add cpu-based che=
-cks
-> > > > there in order to handle differences between omap4 and omap5?
-> > > >=20
-> > > > If implementation will be almost the same for both, you might be ab=
-le to
-> > > > save on some more duplication, no ?
-> > > Jeez NO! finish_suspend is assembly, further, it is the hottest path =
-in
-> > > cpuidle framework - for every WFI we invoke it. we definitely dont wa=
-nt
-> > > to add more overhead beyond what is necessary.
-> >=20
-> > alright, settle down ;-) whoever suggested that isn't here anymore
-> hehe, Apologies, I was'nt that stressed as the wording might have
-> indicated.. We spend tons of time evaluating with Lauterbach tracing to
-> weed out hot paths - folks who have been bitten by these tend to feel a
-> little defensive I guess and to have surprise regressions are painful to
-> find and fix - esp when around not-so-obvious paths ;)
-
-understood ;-)
-
---=20
-balbi
-
---KN5l+BnMqAQyZLvT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRXt/YAAoJEIaOsuA1yqREYvAP/0MCo2iDnZCEKYe86ZwHsIXo
-aSBqkyUxjKxfo+w/OZSPL9oJUqvo5ayvSnTzNiwyChJycjO8vSjNC5kQHtHeAYS2
-ZkcGfetS8Lt9hlnJPJqwhSBvoaL1k99k/3h9k4EqcsgJnbJg/MQWaPRQyOuKxE7U
-2XClJ/gTKDewDi0HLs4gc6soLvKqwKZR8REE4rFJYqPBrDDU3vl1PHDbQ37mnXiE
-1G4FMo/43jK3EHxV1Xy7zrRTCN/YxxbA9+BPYR67p2pL0129cJzeeX5BNYEcHyxI
-UQGJ4jpGTjNbjyrtdX2nhB3DBA4LRRb8L2jeo1WJbOU7bMglr+S9uPSLM7DmHRn1
-dSoFCVSvlWPDqQljdh/eW7kYfWk452NJI2upyeYnOSEI9aunAepUocPCm6IpE2OU
-LLOE6kTGIVJPFJrsNVjPv4pXxq1tXjUhZhpowI3kSM0WMHib24KSG06XN+uHTqVM
-RrEy+Tnlu/tBy6ljqAoG9qsCYVRrpDc9ZS8dGOeoijqEF4Mn2XceYr44Su8a7SnD
-pB8vYTOEAN6R4AZHGSl7pvEgKEV9nzj9Zj94GwlUUT+bKEtmMhtWW4i/sbjlciTN
-WG1j2JIUOuqBTmx4FvTLkFsTVRu2Vpeq+zlzr3Xhba9UX+U7Zk0M4zGNYKJA0tvq
-DNmPUgFY6SGNrzIoVpVH
-=xHuQ
------END PGP SIGNATURE-----
-
---KN5l+BnMqAQyZLvT--
-
-
---===============2677036183587900478==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:56659 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932509Ab3DEJu5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Apr 2013 05:50:57 -0400
+In-Reply-To: <20130404190053.GA4371@kahuna>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, linux-omap@vger.kernel.org, Rob Herring <robherring2@gmail.com>, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+On Friday 05 April 2013 12:30 AM, Nishanth Menon wrote:
+> On 10:43-20130404, Rajendra Nayak wrote:
+>> On Thursday 04 April 2013 08:22 AM, Nishanth Menon wrote:
+>>> On 11:47-20130403, Kevin Hilman wrote:
+>>>> Nishanth Menon <nm@ti.com> writes:
+>>>>
+>>> [...]
+>>>>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+>>>>> index afa509a..5b147ef 100644
+>>>>> --- a/arch/arm/mach-omap2/board-generic.c
+>>>>> +++ b/arch/arm/mach-omap2/board-generic.c
+>>>>> @@ -49,6 +49,11 @@ static void __init omap_generic_init(void)
+>>>>>  		omap4_panda_display_init_of();
+>>>>>  	else if (of_machine_is_compatible("ti,omap4-sdp"))
+>>>>>  		omap_4430sdp_display_init_of();
+>>>>> +
+>>>>> +	if (IS_ENABLED(CONFIG_GENERIC_CPUFREQ_CPU0)) {
+>>>>> +		struct platform_device_info devinfo = { .name = "cpufreq-cpu0", };
+>>>>> +		platform_device_register_full(&devinfo);
+>>>>> +	}
+>>>>
+>>>> Rather than adding new clkdev nodes below, how about using clk add_alias
+>>>> here?
+>>> Thanks for pointing this out, I spend some time implementing such a
+>>> scheme and following is my opinion:
+>>>
+>>> Summary:
+>>> There is one major problem which forces us to introduce this "clock
+>>> hack" - clock nodes are not in device tree yet. Yes, clock add alias
+>>
+>> There's already a patch floating around for this..
+>> https://lkml.org/lkml/2013/4/2/84
+> Not really. Try on OMAP4 PandaBoard:
+> Based on
+> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+> for_3.10/dts  d114294 ARM: dts: AM33XX: Corrects typo in interrupt field in SPI node
+> + the patch https://patchwork.kernel.org/patch/2335671/ applied
+> Pandaboard 4 Log: http://pastebin.com/qsdsbv7p
+> The Patch does not even work, unless there is un-documented patch
+> dependencies!
 
---===============2677036183587900478==--
+I guess Roger responded to that.
+
+> 
+> Secondly, even if it did work, it would still continue to need yet another
+> hack[1] 
+
+Why do you think thats a hack? Besides I don't know if you are
+doing it right.
+
+- I am agree with Tony in his discussion in
+> http://marc.info/?t=136370325600009&r=1&w=2
+> 
+> *if* we are moving clock to DT, we should move the data to DT as well -
+
+I don't think Tony said 'move all clock data into DT'. He was suggesting
+a combination of DT and /lib/firmware
+
+> similar to what other platforms do - highbank as far as i can quickly
+> see. (drivers/clk/clk-highbank.c and arch/arm/boot/dts/ecx-common.dtsi
+
+Well, you chose to look at highbank (which has 8 clock nodes in DT, as
+opposed to OMAP5 which has around 250 in kernel) why don't you also look at imx?
+drivers/clk/mxs/clk-imx28.c and Documentation/devicetree/bindings/clock/imx28-clock.txt
+for examples.
+They have around 65 nodes (still way lesser than OMAP) and see what
+they do. Thats exactly what Roger does in his patch.
+
+regards,
+Rajendra
+
+> as examples). Clk alias might have been a solution, but in this case,
+> clk add alias (as I indicated in this thread is not really worth the
+> effort for the mess of code it creates for cpu clock).
+> 
+> [1]
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index dd8f58f..9282b4c 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -635,4 +635,9 @@
+>  			ti,has-mailbox;
+>  		};
+>  	};
+> +
+> +	dpll_mpu: scrmclks {
+> +		compatible = "ti,omap4-clock";
+> +		#clock-cells = <1>;
+> +	};
+>  };
+> diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap443x.dtsi
+> index cccf39a..1587a5f 100644
+> --- a/arch/arm/boot/dts/omap443x.dtsi
+> +++ b/arch/arm/boot/dts/omap443x.dtsi
+> @@ -21,6 +21,8 @@
+>  				800000  1313000
+>  				1008000 1375000
+>  			>;
+> +			clocks = <&dpll_mpu>;
+> +			clock-names = "cpu";
+>  			clock-latency = <300000>; /* From legacy driver */
+>  		};
+>  	};
+> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> index afa509a..5b147ef 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -49,6 +49,11 @@ static void __init omap_generic_init(void)
+>  		omap4_panda_display_init_of();
+>  	else if (of_machine_is_compatible("ti,omap4-sdp"))
+>  		omap_4430sdp_display_init_of();
+> +
+> +	if (IS_ENABLED(CONFIG_GENERIC_CPUFREQ_CPU0)) {
+> +		struct platform_device_info devinfo = { .name = "cpufreq-cpu0", };
+> +		platform_device_register_full(&devinfo);
+> +	}
+>  }
+>  
+>  #ifdef CONFIG_SOC_OMAP2420
+> diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+> index a93617b..ba4562a 100644
+> --- a/arch/arm/mach-omap2/cclock44xx_data.c
+> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
+> @@ -1675,6 +1675,7 @@ static struct clk *dt_clks[] = {
+>  	&auxclk3_ck,
+>  	&auxclk4_ck,
+>  	&auxclk5_ck,
+> +	&dpll_mpu_ck,
+>  };
+>  
+>  static struct clk_onecell_data clock_data;
+> 
+
