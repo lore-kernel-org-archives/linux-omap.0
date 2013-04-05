@@ -1,46 +1,44 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: [PATCH] omap2+: Remove useless Makefile line
-Date: Fri, 05 Apr 2013 12:16:32 +0200
-Message-ID: <1365156992.1830.63.camel@x61.thuisdomein>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v3 0/4] ARM: OMAP4+: PM: Consolidate code for re-use on
+ OMAP5
+Date: Fri, 05 Apr 2013 16:42:41 -0700
+Message-ID: <87mwtck0i6.fsf@linaro.org>
+References: <1365166743-5940-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cpsmtpb-ews06.kpnxchange.com ([213.75.39.9]:55585 "EHLO
-	cpsmtpb-ews06.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751148Ab3DEKQe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Apr 2013 06:16:34 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1365166743-5940-1-git-send-email-santosh.shilimkar@ti.com>
+ (Santosh Shilimkar's message of "Fri, 5 Apr 2013 18:28:59 +0530")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Merge commit 952414505f55afe5cd6dc004765076aa22b3ed7e ("Merge branch
-'next/cleanup' of git://git.linaro.org/people/arnd/arm-soc") added
-references to CONFIG_MACH_PCM049 and board-omap4pcm049.o to this
-Makefile. But there's no Kconfig symbol MACH_PCM049 and there's no file
-board-omap4pcm049.c. This line can safely be removed.
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-Note that MACH_PCM049 was removed from mach-types in v3.5.
+> As discussed on list, I split the v2 [1] series into cleanup and OMAP5 support.
 
- arch/arm/mach-omap2/Makefile | 2 --
- 1 file changed, 2 deletions(-)
+Thanks.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 3d0697c..62bb352 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -254,8 +254,6 @@ obj-$(CONFIG_MACH_TOUCHBOOK)		+= board-omap3touchbook.o
- obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o
- obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board-omap4panda.o
- 
--obj-$(CONFIG_MACH_PCM049)		+= board-omap4pcm049.o
--
- obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
- 
- obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
--- 
-1.7.11.7
+> This series contains the clean-up patches. I have rebased on top of Tony's
+> pull request and your 3.10/* branches. Series is tested on OMAP4430 SDP
+> with CPUIDLE and suspend. OMAP5 PM support I will post later since it has
+> a dependency with OMAP5 data files which are not pulled in yet.
 
+I've added 4/4 to my cpuidle branch and added 1,3/4 to my
+for_3.10/cleanup/pm branch (now based on Tony's cleanup-v2 branch for
+dependencies.)   Patch 2/4 needs a respin without the rename as per
+Tony's comments.
+
+Thanks,
+
+Kevin
