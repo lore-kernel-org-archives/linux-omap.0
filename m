@@ -1,42 +1,60 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCHv3] driver: serial: prevent UART console idle on suspend while using "no_console_suspend"
-Date: Fri, 05 Apr 2013 10:40:29 -0700
-Message-ID: <87mwtclvua.fsf@linaro.org>
-References: <1365167733-28083-1-git-send-email-sourav.poddar@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: USB ehci suspend/resume on beagleboard
+Date: Fri, 5 Apr 2013 14:55:35 +0300
+Message-ID: <515EBBB7.3070503@ti.com>
+References: <Pine.LNX.4.44L0.1302061038310.1893-100000@iolanthe.rowland.org> <511370D7.9070509@ti.com> <CANOLnOODiu+rEqCQH5BAzTXhWi4cUZO-OXO=-1xxyhMFW77UZQ@mail.gmail.com> <515D65D3.40006@ti.com> <515D68E9.5070404@ti.com> <CANOLnOPpkhSXZVa2CFsD33QT5XOxtrscNGVwZLy7vGZ1Oq5zGw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1365167733-28083-1-git-send-email-sourav.poddar@ti.com> (Sourav
-	Poddar's message of "Fri, 5 Apr 2013 18:45:33 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36826 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751502Ab3DELzm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Apr 2013 07:55:42 -0400
+In-Reply-To: <CANOLnOPpkhSXZVa2CFsD33QT5XOxtrscNGVwZLy7vGZ1Oq5zGw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Vivek Gautam <gautamvivek1987@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jason Kridner <jkridner@beagleboard.org>
 
-Sourav Poddar <sourav.poddar@ti.com> writes:
+On 04/05/2013 02:11 PM, Grazvydas Ignotas wrote:
+> On Thu, Apr 4, 2013 at 2:50 PM, Roger Quadros <rogerq@ti.com> wrote:
+>> correcting misleading subject line.
+>> was (Re: MUSB regression in linux next at least for pandboard)
+>>
+>> On 04/04/2013 02:36 PM, Roger Quadros wrote:
+>>> Hi,
+>>>
+>>> On 02/07/2013 04:10 PM, Grazvydas Ignotas wrote:
+>>>> On Thu, Feb 7, 2013 at 11:16 AM, Roger Quadros <rogerq@ti.com> wrote:
+>>>> <snip>
+>>>>> It seems the beagleboard problem is related to OMAP silicon errata [1].
+>>>>> Apparently, remote wakeup as well as host issued wakeup break omap-ehci and have
+>>>>> nothing to do with the hub or it's driver.
+>>>>>
+>>>>> I'll work on this issue after I'm done with device tree migration.
+>>>>
+>>>> Looking forward to this, mainline has been suffering from this since
+>>>> almost forever..
+>>>>
+>>>>
+>>>
+>>> Unfortunately, there is another errata [2] that makes it impossible to
+>>> support suspend/resume on the beagleboard.
+> 
+> You could fix it for BeagleBoard-xM at least, I think it is not
+> affected by this as it has DM3730 (only early revisions with 1.0
+> silicon of that are affected with [2]). This would also fix it for
+> DM3730-based pandoras.
+> 
 
-> With dt boot, uart wakeup after suspend is non functional while using
-> "no_console_suspend" in the bootargs. With "no_console_suspend" used, we
-> should prevent the runtime suspend of the uart port which is getting used
-> as an console.
->
-> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
-> Cc: Felipe Balbi<balbi@ti.com>
-> Cc: Rajendra nayak<rnayak@ti.com>
-> Tested on omap5430evm, omap4430sdp.
->
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+Yes you are right. I need to get a beagleboard-xM.
 
-Rather than make these special checks inside the driver's runtime PM
-callbacks, you should just disable runtime PM (pm_runtime_disable())
+cheers,
+-roger
 
-Then, this should be broken into 2 patches.
+>>>
+>>> [2] Advisory 3.1.1.195 HSUSB Interoperability Issue With SMSC USB3320 PHY
+>>> http://www.ti.com/general/docs/lit/getliterature.tsp?literatureNumber=sprz278f&fileType=pdf
 
-1) serial core: add the '->is_console' flag.  (nit on naming: don't call
-   it port_is_console, since the struct is already a uart_port)
 
-2) In the OMAP UART driver's ->prepare callback, check the is_console flag
-   and pm_runtime_disable() accordingly  (then pm_runtime_enable() in
-   the drivers's ->complete callback.
-
-Kevin
