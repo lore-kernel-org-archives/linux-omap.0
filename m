@@ -1,59 +1,94 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: dts: OMAP4+: Correct L3 interrupts
-Date: Fri, 5 Apr 2013 13:55:33 +0530
-Message-ID: <515E8A7D.8000401@ti.com>
-References: <1365098790-9078-1-git-send-email-jon-hunter@ti.com> <515E6EAE.9000107@ti.com> <515E8677.40404@ti.com> <515E89BA.9010709@ti.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 00/21] ARM: OMAP2+: Adapt to ehci-omap changes for
+ 3.10
+Date: Fri, 5 Apr 2013 10:30:17 +0200
+Message-ID: <515E8B99.8080803@ti.com>
+References: <1363794300-31526-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38239 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751799Ab3DEIXj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Apr 2013 04:23:39 -0400
-In-Reply-To: <515E89BA.9010709@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1363794300-31526-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Friday 05 April 2013 01:52 PM, Benoit Cousson wrote:
-> Santosh and Jon,
-> 
-> On 04/05/2013 10:08 AM, Benoit Cousson wrote:
->> On 04/05/2013 08:26 AM, Santosh Shilimkar wrote:
->>> On Thursday 04 April 2013 11:36 PM, Jon Hunter wrote:
->>>> The L3 interrupt numbers are incorrect for OMAP4+ and are conflicting
->>>> with some of the timer interrupts causing the allocation of timer
->>>> interrupts to fail.
->>>>
->>>> The problem is caused by adding 32 to the interrupt number for the L3
->>>> interrupts to account for per processor interrupts (PPI) and software
->>>> generated interrupts (SGI) which typically are mapped to the first 32
->>>> interrupts in the ARM GIC. This is not necessary because the first
->>>> parameter of the ARM GIC interrupt property specifies the GIC interrupt
->>>> type (ie. SGI, PPI, etc). Hence, fix the interrupt number fo the L3
->>>> interrupts by substracting 32.
->>>>
->>>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->>>> ---
->>>>
->>>> Please note that this problem is observed in Benoit's for_3.10/dts branch [1].
->>>>
->>>> [1] http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git
->>>>
->>> Thats correct. I overlooked the 32 addition part. This patch should
->>> also be pulled into Benoit's 3.10 tree.
->>
->> Done. I've just applied it. But I will probably merge it with the
->> original patch, because having a broken patch and the fix in the same
->> pull request does not look right.
-> 
-> Please find below the fixed version.
-> 
-Thanks Benoit. Patch looks fine to me.
+Hi Roger,
 
-Regards,
-Santosh
+On 03/20/2013 04:44 PM, Roger Quadros wrote:
+> Hi Tony,
+> 
+> These patches provide the SoC side code required to support
+> the changes in the OMAP USB Host drivers done in [1], [2] & [3].
+> 
+> Device tree support is added for Beagleboard only. I've removed
+> Panda device tree support till we have resolved the AUXCLK issue.
+> 
+> NOTE: The first patch needs to be shared between the
+> OMAP tree and Felipe's USB tree.
+> 
+> v4:
+> - Some more cleanup to usbhs_init_phys(). Moved repeated code into
+> another helper function usbhs_add_regulator().
+> - Removed patch for Panda device tree support for USB host since
+> it is non functional.
+> 
+> v3:
+> - Moved more functionality into usbhs_init_phys().
+> 
+> v2:
+> - Added helper function usbhs_init_phys() that can be used by board files
+> to simplify adding of PHY regulators for USB host ports.
+> 
+> [1] MFD side changes to omap-usb-host and omap-usb-tll
+>   https://lkml.org/lkml/2013/3/12/179
+> [2] USB EHCI side changes to ehci-omap 
+>   http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg86265.html
+> [3] USB PHY driver changes
+>   http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg86293.html
+> 
+> The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b6ec9:
+> 
+>   Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
+> 
+> are available in the git repository at:
+>   git://github.com/rogerq/linux.git usbhost-arm-next
+> 
+> Roger Quadros (21):
+>   usb: phy: nop: Add some parameters to platform data
+>   ARM: OMAP2+: omap-usb-host: Add usbhs_init_phys()
+>   ARM: OMAP2+: omap4panda: Adapt to ehci-omap changes
+>   ARM: OMAP3: Beagle: Adapt to ehci-omap changes
+>   ARM: OMAP3: 3430SDP: Adapt to ehci-omap changes
+>   ARM: OMAP3: 3630SDP: Adapt to ehci-omap changes
+>   ARM: OMAP: AM3517crane: Adapt to ehci-omap changes
+>   ARM: OMAP: AM3517evm: Adapt to ehci-omap changes
+>   ARM: OMAP3: cm-t35: Adapt to ehci-omap changes
+>   ARM: OMAP3: cm-t3517: Adapt to ehci-omap changes
+>   ARM: OMAP: devkit8000: Adapt to ehci-omap changes
+>   ARM: OMAP3: igep0020: Adapt to ehci-omap changes
+>   ARM: OMAP3: omap3evm: Adapt to ehci-omap changes
+>   ARM: OMAP3: omap3pandora: Adapt to ehci-omap changes
+>   ARM: OMAP3: omap3stalker: Adapt to ehci-omap changes
+>   ARM: OMAP3: omap3touchbook: Adapt to ehci-omap changes
+>   ARM: OMAP3: overo: Adapt to ehci-omap changes
+>   ARM: OMAP: zoom: Adapt to ehci-omap changes
+>   ARM: dts: OMAP4: Add HS USB Host IP nodes
+>   ARM: dts: OMAP3: Add HS USB Host IP nodes
+>   ARM: dts: omap3-beagle: Add USB Host support
 
+These 3 DTS patches are good to me, but I cannot applied them on top of
+the already existing patches I queued for 3.10.
+
+git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+for_3.10/dts
+
+Could you rebase these 3 ones only, and I will applied them.
+
+Thanks,
+Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
