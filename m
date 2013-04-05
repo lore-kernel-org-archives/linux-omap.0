@@ -1,35 +1,50 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] hwspinlock: depend on OMAP4 or OMAP5
-Date: Fri, 5 Apr 2013 09:13:35 +0300
-Message-ID: <CAK=WgbbcdVGRKgzp==g23DJfT-RbWBmRpCMTT7L+0RRb=Xm16A@mail.gmail.com>
-References: <1361985036-15255-1-git-send-email-v-stehle@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: OMAP4+: Correct L3 interrupts
+Date: Fri, 5 Apr 2013 11:56:54 +0530
+Message-ID: <515E6EAE.9000107@ti.com>
+References: <1365098790-9078-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:44110 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756751Ab3DEGN5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Apr 2013 02:13:57 -0400
-Received: by mail-lb0-f181.google.com with SMTP id r11so3359625lbv.26
-        for <linux-omap@vger.kernel.org>; Thu, 04 Apr 2013 23:13:55 -0700 (PDT)
-In-Reply-To: <1361985036-15255-1-git-send-email-v-stehle@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1365098790-9078-1-git-send-email-jon-hunter-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Vincent_Stehl=E9?= <v-stehle@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Wed, Feb 27, 2013 at 7:10 PM, Vincent Stehl=E9 <v-stehle@ti.com> wro=
-te:
-> OMAP5 has spinlocks, too.
->
-> Signed-off-by: Vincent Stehl=E9 <v-stehle@ti.com>
-> Cc: Ohad Ben-Cohen <ohad@wizery.com>
-> Cc: Tony Lindgren <tony@atomide.com>
+On Thursday 04 April 2013 11:36 PM, Jon Hunter wrote:
+> The L3 interrupt numbers are incorrect for OMAP4+ and are conflicting
+> with some of the timer interrupts causing the allocation of timer
+> interrupts to fail.
+> 
+> The problem is caused by adding 32 to the interrupt number for the L3
+> interrupts to account for per processor interrupts (PPI) and software
+> generated interrupts (SGI) which typically are mapped to the first 32
+> interrupts in the ARM GIC. This is not necessary because the first
+> parameter of the ARM GIC interrupt property specifies the GIC interrupt
+> type (ie. SGI, PPI, etc). Hence, fix the interrupt number fo the L3
+> interrupts by substracting 32.
+> 
+> Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+> ---
+> 
+> Please note that this problem is observed in Benoit's for_3.10/dts branch [1].
+> 
+> [1] http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git
+> 
+Thats correct. I overlooked the 32 addition part. This patch should
+also be pulled into Benoit's 3.10 tree.
 
-Thanks, applied to hwspinlock-next.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For the patch,
+Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
