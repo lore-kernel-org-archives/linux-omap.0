@@ -1,14 +1,12 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 0/5] gpio/omap: 2nd batch of updates for v3.10
-Date: Fri, 5 Apr 2013 07:18:29 -0500
-Message-ID: <515EC115.8040408@ti.com>
-References: <1365106576-31816-1-git-send-email-jon-hunter@ti.com>
- <515E70B8.6060903@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: regulator: query on regulator re-entrance
+Date: Fri, 5 Apr 2013 10:44:12 +0100
+Message-ID: <20130405094411.GA6597@opensource.wolfsonmicro.com>
+References: <1365138582-10409-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============8089943007161918235=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <515E70B8.6060903@ti.com>
+In-Reply-To: <1365138582-10409-1-git-send-email-nm@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,52 +16,78 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Greg Guyotte <gguyotte@ti.com>, lkml <linux-kernel@vger.kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
 
-On 04/05/2013 01:35 AM, Santosh Shilimkar wrote:
-> On Friday 05 April 2013 01:46 AM, Jon Hunter wrote:
->> Main change is ensuring that the state of a gpio bank is restored when
->> booting with device-tree. The rest of the patches are clean-ups and one
->> optimisation.
->>
->> The patch modifying the *.dtsi files should go via Benoit Cousson's
->> for_3.10/dts branch [1] as it is dependent on changes in his branch but
->> I have included here for completeness.
->>
->> Testing includes:
->> - Boot testing on OMAP5912 OSK, OMAP2420 H4, OMAP3430 SDP, OMAP4430 SDP
->>   and AM335x EVM.
->> - Verified that GPIO interrupts are working on OMAP5912 OSK, OMAP2420 H4,
->>   OMAP3430 SDP and OMAP4430 SDP by making sure networking was working
->>   correctly as these boards use a GPIO with the ethernet chips. Also
->>   checked /proc/interrupts to ensure GPIO interrupt counts are
->>   incrementing as expected.
->>
->> [1] http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git
->>
->> Jon Hunter (4):
->>   gpio/omap: free irq domain in probe() failure paths
->>   gpio/omap: optimise interrupt service routine
->>   gpio/omap: force restore if context loss is not detectable
->>   ARM: dts: OMAP2+: Identify GPIO banks that are always powered
->>
->> Tarun Kanti DebBarma (1):
->>   gpio/omap: remove extra context restores in *_runtime_resume()
->>
-> 
-> Thanks Jon for pulling the fixes. I suggest you to split the series so
-> that 'gpio/omap:*' can be pulled by Grant and 'ARM: dts:*' by Benoit.
+--===============8089943007161918235==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="n8g4imXOkfNTN/H1"
+Content-Disposition: inline
 
-Agreed. I had kept them altogether here for completeness as it would
-have been odd to add a new property but not use it. If everyone is ok
-with the changes, then I can either resend or Grant/Linus just pick up 1-4.
 
-> All the 'gpio/omap:*' patches in the series looks fine to me.
-> FWIW,
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+--n8g4imXOkfNTN/H1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks
-Jon
+On Fri, Apr 05, 2013 at 12:09:42AM -0500, Nishanth Menon wrote:
+
+> If we ignore the details of the class 1.5 implementation, we will notice
+> a) regulator set_voltage equivalent set_voltage() is required.
+> b) this set_voltage does some 'magic stuff' depending on the SoC and AVS =
+class
+> and calls the 'real regulator' which talks to the PMIC over i2c/spi etc..
+> in short the call sequence is more or less:
+>=20
+> driver (cpufreq) -> AVS -> PMIC regulator.
+>=20
+> By modeling AVS class drivers as an regulator, we then do not need to int=
+roduce
+> SoC specific hacks and APIs.
+
+But you're shoehorning something into the regulator API which isn't
+supposed to be there and causing yourself problems.  This just isn't a
+good idea.  The regulator API already has a mechanism for supporting
+regulators which are supplied by other regulators, if you can't model in
+terms of that (adding something to support variability better) then
+you're not using a regulator.
+
+--n8g4imXOkfNTN/H1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRXpzfAAoJELSic+t+oim9RaoP/iU25GrbgzdsFkKLALHexFZ3
+uhkGuGcJxYRQa9La6f/LRCWWmCX+QL/qAuXXK8UYaeYWHpNOLYvODN13NpxRwTk+
+FtvK4M02/AnKSh3j2uIGkgqzAiufYlRx++jNgrlAp38kvLATJdDZWavqHOgsvv6W
+x34cWQtJ9hROm6KEPea0nRmILK6CXkqIUOB3/dcEXVI8P6jYp7tZJdxvHvfuZVAi
+9aJK9+/pz7L7aqxo3N85xCtzxZEan7fhYArc4emA/ZPr/R2qDIRiqQwvhQM83PUv
+4ifA4ls1g0ILKXAsQkuJH/FrX4jSY9zN3ZT9UvbLpmJMYwfgc8fE0MsfL2RJ8kXv
+2mZZJTtKdrObysEW0L0oTxR58B1cEjayWKQl0DdF4ig8DVHTdUrV2FbGkS8f1CkG
+73OPekcO6l4zxpH1Ep7NEmRYBGQO3/Zde8LTZVHjIGtsBRs9jQMoqVF6bZLdTiwZ
+B4qZDpKHGkdazIcPg8Ewvvn7pKR+lUUk+qSnSNUMAdyvqXraRn+yTm/6UYltMb3h
+oV72n9gi4aRcdzIL0dL5/STPi0C8v6GZ7dno1i6afifP9wTgc1HWbctqlmRB1fq1
+5nKMb4aCoSdGR9L6sGULU7iRBGc7E2R9H1Qti8Xq2qM/Nkvsi8kwQc53dw0LaC37
+KRos2uwxeVx5zIkyMCMW
+=yICT
+-----END PGP SIGNATURE-----
+
+--n8g4imXOkfNTN/H1--
+
+
+--===============8089943007161918235==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============8089943007161918235==--
