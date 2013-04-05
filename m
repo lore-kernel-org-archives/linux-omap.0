@@ -1,11 +1,17 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v3 0/4] ARM: OMAP4+: PM: Consolidate code for re-use on OMAP5
-Date: Fri, 5 Apr 2013 18:28:59 +0530
-Message-ID: <1365166743-5940-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2 09/18] ARM: OMAP4+: PM: Restore CPU power state to
+ ON with clockdomain force wakeup method
+Date: Fri, 5 Apr 2013 17:28:22 +0530
+Message-ID: <515EBC5E.6090705@ti.com>
+References: <1364205910-32392-1-git-send-email-santosh.shilimkar@ti.com>
+ <1364205910-32392-10-git-send-email-santosh.shilimkar@ti.com>
+ <87mwtftjvy.fsf@linaro.org> <515D8215.10705@ti.com>
+ <87li8ynqf5.fsf@linaro.org> <515E9435.6050007@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <515E9435.6050007@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,55 +21,57 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: khilman@deeprootsystems.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: nm@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Kevin,
-
-As discussed on list, I split the v2 [1] series into cleanup and OMAP5 support.
-This series contains the clean-up patches. I have rebased on top of Tony's
-pull request and your 3.10/* branches. Series is tested on OMAP4430 SDP
-with CPUIDLE and suspend. OMAP5 PM support I will post later since it has
-a dependency with OMAP5 data files which are not pulled in yet.
+On Friday 05 April 2013 02:37 PM, Santosh Shilimkar wrote:
+> On Thursday 04 April 2013 11:12 PM, Kevin Hilman wrote:
+>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>>
+>>> On Thursday 04 April 2013 02:24 AM, Kevin Hilman wrote:
+>>>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>>>>
+>>>>> While waking up CPU from off state using clock domain force wakeup, restore
+>>>>> the CPU power state to ON state before putting CPU clock domain under
+>>>>> hardware control. Otherwise CPU wakeup might fail. The change is recommended
+>>>>> for all OMAP4+ devices though the PRCM weakness was observed on OMAP5
+>>>>> devices first.
+>>>>
+>>>> Sounds reasonable, but can you describe the "weakness" a little more?
+>>>>
+>>>> IOW, what exactly happens if this is not done?  It sounds like the CPU
+>>>> might immediately go back to retention, but how does that happen unless
+>>>> it does a WFI?
+>>>>
+>>> Its more of lock-up inside the hardware state machine and results
+>>> are UN-predictable. We have seen hard-locks most of the time where system
+>>> is just frozen. The hardware gets into wrong state machine if the power
+>>> domain state isn't restored. I will add this information to changelog.
+>>>
+>>>> Also, this sounds like a fix to me, and should probably be broken out
+>>>> accordingly.
+>>>>
+>>> Yeah. You mean a separate patch from the series, right ? This patch
+>>> actually can be independently added.
+>>>
+>>> In case you decide to apply it for the fixes branch, updated patch
+>>> at end of the email.
+>>
+>> Curious which branch you applied it to?  It didn't apply cleanly to
+>> v3.9-rc5 (but did with fuzz).
+>>
+> Mostly applied on top of the Tony's pull request branches.
+> 
+>> So I've now added it to my for_3.10/fixes/pm branch.
+>>
+> Thanks. I will pull that in to re-base other patches.
+> 
+While pulling your 'for_3.10/fixes/pm' branch on top
+of Tony's pull request[1] sent to arm-soc already.
+In my tree, I had pulled Tony's couple of pull requests.
 
 Regards,
 Santosh
-[1] http://www.spinics.net/lists/linux-omap/msg88901.html
 
-
-The following changes since commit 4b9ce8484d8122f2088cedf60265ae86f7822350:
-
-  Merge branch 'for_3.10/fixes/pm' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into for_3.10/omap_pm-cleanup (2013-04-05 18:10:34 +0530)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git 
-
-for you to fetch changes up to 884ef029cb434aad124bf8413211a698597f8f7a:
-
-  ARM: OMAP4+: CPUidle: Consolidate idle driver for OMAP5 support (2013-04-05 18:11:06 +0530)
-
-----------------------------------------------------------------
-
-Santosh Shilimkar (4):
-  ARM: OMAP4+: PM: Consolidate MPU subsystem PM code for re-use
-  ARM: OMAP4+: PM: Consolidate OMAP4 PM code to re-use it for OMAP5
-  ARM: OMAP4+: Make secondary_startup function name more consistent
-  ARM: OMAP4+: CPUidle: Consolidate idle driver for OMAP5 support
-
- arch/arm/mach-omap2/Makefile                       |    9 +--
- arch/arm/mach-omap2/common.h                       |    4 +-
- arch/arm/mach-omap2/cpuidle44xx.c                  |   31 ++++-----
- arch/arm/mach-omap2/omap-headsmp.S                 |    8 +--
- arch/arm/mach-omap2/omap-mpuss-lowpower.c          |   68 ++++++++++++++++----
- arch/arm/mach-omap2/omap-smp.c                     |    6 +-
- arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c}   |   58 ++++++++++++++---
- .../mach-omap2/{sleep44xx.S => sleep_omap4plus.S}  |    0
- 8 files changed, 132 insertions(+), 52 deletions(-)
- rename arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c} (83%)
- rename arch/arm/mach-omap2/{sleep44xx.S => sleep_omap4plus.S} (100%)
-
--- 
-1.7.9.5
+[1] http://www.spinics.net/lists/arm-kernel/msg235788.html
