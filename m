@@ -1,17 +1,17 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support for
- AUXCLKs
-Date: Fri, 5 Apr 2013 20:56:05 +0300
-Message-ID: <515F1035.8090500@ti.com>
-References: <1363703220-4777-1-git-send-email-rogerq@ti.com>
- <1363703220-4777-2-git-send-email-rogerq@ti.com>
- <20130403234242.GE10155@atomide.com> <515D2D30.3000306@ti.com>
- <20130404164137.GH10155@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 1/4] ARM: OMAP4+: PM: Consolidate MPU subsystem PM
+ code for re-use
+Date: Fri, 5 Apr 2013 17:04:20 +0300
+Message-ID: <20130405140420.GB12229@arwen.pp.htv.fi>
+References: <1365166743-5940-1-git-send-email-santosh.shilimkar@ti.com>
+ <1365166743-5940-2-git-send-email-santosh.shilimkar@ti.com>
+ <20130405131935.GM11464@arwen.pp.htv.fi>
+ <20130405133511.GA4143@kahuna>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============6481825244275904906=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130404164137.GH10155@atomide.com>
+In-Reply-To: <20130405133511.GA4143@kahuna>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,97 +21,91 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-usb@vger.kernel.org, linux@arm.linux.org.uk, b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: khilman@deeprootsystems.com, Felipe Balbi <balbi@ti.com>, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/04/2013 07:41 PM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [130404 00:39]:
->> On 04/04/2013 02:42 AM, Tony Lindgren wrote:
->>>> --- a/arch/arm/mach-omap2/cclock44xx_data.c
->>>> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
->>>> @@ -27,6 +27,7 @@
->>>>   #include <linux/clk-private.h>
->>>>   #include <linux/clkdev.h>
->>>>   #include <linux/io.h>
->>>> +#include <linux/of.h>
->>>>   
->>>>   #include "soc.h"
->>>>   #include "iomap.h"
->>>> @@ -1663,6 +1664,40 @@ static struct omap_clk omap44xx_clks[] = {
->>>>   	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
->>>>   };
->>>>   
->>>> +static struct clk *scrm_clks[] = {
->>>> +	&auxclk0_ck,
->>>> +	&auxclk1_ck,
->>>> +	&auxclk2_ck,
->>>> +	&auxclk3_ck,
->>>> +	&auxclk4_ck,
->>>> +	&auxclk5_ck,
->>>> +};
->>> Hmm I don't like the idea of specifying the auxclk both in the
->>> cclock44xx_data.c and in DT..
->> Right, but till we have all clocks moved to DT we only need this
->> approach for general purpose clocks that are not mapped to devices
->> by hwmod.
-> For v3.10, let's just make sure that USB works with DT as then
-> after v3.10 we can make omap4 DT only and get rid of estimated
-> 7K lines of code and data. I guess this is the last piece missing
-> for that, or are we also missing something else?
->
-> Can't you set up a clock alias for your device so it can find the
-> auxclk when requesting it with the dev entry?
->
-> For the DT clock driver if needed for v3.10, how about just do a
-> minimal drivers/clock/omap/ that uses the standard binding?
-> Then that driver can just do clk_get() from cclock44xx_data.c
-> for now? And then later on we'll just move all the clocks to a
-> combination of DT + /lib/firmware.
->
-Hi Roger, Rajendra, All
+--===============6481825244275904906==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yNb1oOkm5a9FJOVX"
+Content-Disposition: inline
 
-Sorry that disturbing you.
+--yNb1oOkm5a9FJOVX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm supporting Android OMAP4 kernels (K3.0/K3.4) and like to clarify few
-points regarding this approach (having into account possible future 
-migrations
-on newer Kernels and OMAP5).
-If I understand everything right, this patch series allows to create 
-clock binding
-in DT using following syntax: clocks = <&aux_clks 3>
-  - does it means that in worst case there will be ~200 clock IDs defined?
-  - does it means that clock nodes binding using phandles 
-(human-friendly notation)
-isn't going to be supported?
-for example:
-     clocks = <&sys_clkin_ck>
-     clocks = <&dss_sys_clk &dss_tv_clk &dss_dss_clk>)
+Hi,
 
-I was horrified to think about the problems of this approach support
-(in case if there would be more then ~30 IDs) - just miss with on digit
-and weeks of debugging would be guaranteed.
+On Fri, Apr 05, 2013 at 08:35:11AM -0500, Nishanth Menon wrote:
+> On 16:19-20130405, Felipe Balbi wrote:
+> > On Fri, Apr 05, 2013 at 06:29:00PM +0530, Santosh Shilimkar wrote:
+> > > OMAP5 and future OMAP based SOCs has backward compatible MPUSS
+> > > IP block with OMAP4. It's programming model is mostly similar.
+> >=20
+> > s/It's/Its/
+> > s/mostly //
+> >=20
+> > (similar already expands to 'almost the same' :-)
+> >=20
+> > > @@ -355,6 +389,12 @@ int __init omap4_mpuss_init(void)
+> > > =20
+> > >  	save_l2x0_context();
+> > > =20
+> > > +	if (cpu_is_omap44xx()) {
+> > > +		omap_pm_ops.finish_suspend =3D omap4_finish_suspend;
+> > > +		omap_pm_ops.resume =3D omap4_cpu_resume;
+> > > +		omap_pm_ops.scu_prepare =3D scu_pwrst_prepare;
+> > > +	}
+> >=20
+> > why don't you just rename omap4_* into omap_* and add cpu-based checks
+> > there in order to handle differences between omap4 and omap5?
+> >=20
+> > If implementation will be almost the same for both, you might be able to
+> > save on some more duplication, no ?
+> Jeez NO! finish_suspend is assembly, further, it is the hottest path in
+> cpuidle framework - for every WFI we invoke it. we definitely dont want
+> to add more overhead beyond what is necessary.
 
-Please, say me that i'm wrong.
-And why clock DT data can't be auto-generated like all other OMAP data
-to close this questions?
+alright, settle down ;-) whoever suggested that isn't here anymore
 
-Thanks.
+--=20
+balbi
 
->> e.g. auxclk are required to be specified in DT nodes for USB PHY.
->> Without this we can't get USB host working on Panda.
-> OK. So if the USB PHY has a dev entry, can't you just set up a
-> clock alias in struct omap_clk omap44xx_clks[] for it?
->   
->> As Rajendra points out, it seems moving entire clock data to DT is not
->> going to happen soon. So this is the simplistic way things can work.
-> Right but seems like we can get started there without moving
-> them all at once.
->
-> Regards,
->
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--yNb1oOkm5a9FJOVX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRXtnkAAoJEIaOsuA1yqREdUgQAKzFiMYL1VOQkcaMHhVTOghP
+c9fniNwJF4m47zdpT7MmQiEj6vdMFzpNIpAVfLqUCS9HZ0XlhZvC2bhVDIX4dkdj
+QvfolMKursDyNggFhSf8cJO+ZewJqmdXIzSAGTya72Gn3ukrX6oFiKyAi31SSqUD
+Jwv37PwdVvwlLbBx/3gO9DBo8beZEAtYB14X+UNqKoFrWdflwzi0odAyZDljzjmq
+PCI5yPSNR0yvCXD+sVXQFzVr9Nmd8qLoxplEUAAKOwN6aMqKfBbs8d3GXUavPUu+
+uP0BgtdNQmFPzdTn+E4To5Z/zlvx5f9bLW8YKMG9dupAM+fV8WwJD8C6ihJctcDJ
+6d2+FgsZB6FY29Z7BtWvLEkiLUN7/KiK69Ky45+LNKlCszGoKjuqt04rZRphE0jL
+fZBlVUaSu45hb822F+9XHUdsbOFLkgXBUceXhdl9iB3ig11Fc8EQS1LVX+6eBKBV
+16amtg6KqRaTWTlTLmCFVP3MJd8Ds6Z9TfkYqbpPQtUuaPkpMvLDnTaYSYP0Eb+p
+zLVOfKYgWHNw33G1gy3BxnLhVVbI9C1PV7tSFRbQiLjAzG0PNAY+8bT+EpjSOww5
+BevzX/03Ha97DUeYnh4OtpDAuYp96YWlmNmGPNnsz1GDKpDgS/4QYp66+SKW5twy
+lONwlTe8fLenQ/axfZCQ
+=pjVE
+-----END PGP SIGNATURE-----
+
+--yNb1oOkm5a9FJOVX--
+
+
+--===============6481825244275904906==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============6481825244275904906==--
