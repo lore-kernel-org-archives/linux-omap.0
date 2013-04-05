@@ -1,70 +1,42 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V3 1/2] ARM: OMAP3+: use cpu0-cpufreq driver in device
- tree supported boot
-Date: Fri, 5 Apr 2013 15:02:01 -0500
-Message-ID: <20130405200201.GA7804@kahuna>
-References: <20130404025211.GA2456@snafu>
- <515D0BF1.7060802@ti.com>
- <20130404190053.GA4371@kahuna>
- <515E9E79.8010300@ti.com>
- <CAGo_u6r+JdNaCmVh+dHLppJ7eaYh4W5aL1aAg8xQfAju6PyZdQ@mail.gmail.com>
- <20130405161338.GB10155@atomide.com>
- <20130405163254.GA7259@kahuna>
- <20130405170527.GC10155@atomide.com>
- <20130405171750.GA7398@kahuna>
- <20130405192829.GE10155@atomide.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v3 0/2] omap_hsmmc DT DMA Client support
+Date: Fri, 5 Apr 2013 18:28:36 +0530
+Message-ID: <515ECA7C.4080604@ti.com>
+References: <1362579128-5312-1-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130405192829.GE10155@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Rob Herring <robherring2@gmail.com>, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1362579128-5312-1-git-send-email-mporter@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Porter <mporter@ti.com>, Chris Ball <cjb@laptop.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Jon Hunter <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 12:28-20130405, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [130405 10:22]:
-> > On 10:05-20130405, Tony Lindgren wrote:
-> > > 
-> > > > diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> > > > index afa509a..5b147ef 100644
-> > > > --- a/arch/arm/mach-omap2/board-generic.c
-> > > > +++ b/arch/arm/mach-omap2/board-generic.c
-> > > > @@ -49,6 +49,11 @@ static void __init omap_generic_init(void)
-> > > >  		omap4_panda_display_init_of();
-> > > >  	else if (of_machine_is_compatible("ti,omap4-sdp"))
-> > > >  		omap_4430sdp_display_init_of();
-> > > > +
-> > > > +	if (IS_ENABLED(CONFIG_GENERIC_CPUFREQ_CPU0)) {
-> > > > +		struct platform_device_info devinfo = { .name = "cpufreq-cpu0", };
-> > > > +		platform_device_register_full(&devinfo);
-> > > > +	}
-> > > >  }
-> > > 
-> > > Hmm why would the driver need this? Sounds like the driver is
-> > > missing support for DT?
-> > Nope, this was a long chain of discussion in previous iterations of this
-> > patch.. more or less started here:
-> > https://patchwork.kernel.org/patch/2251821/
-> > Suggested as the generic approach for cpufreq drivers.
-> > Paul questioned this approach in:
-> > http://marc.info/?l=linux-pm&m=136485349218809&w=2
-> 
-> How about just set it up in omap2_common_pm_init instead
-> of the board-generic?
-umm.. We want to eventually want to get rid of mach-omap2/pm.c (all
-those create processor devices etc should go away with proper
-representation of devices as nodes in DT if possible.
-But, I think you mean something like in the "else" condition of
-https://patchwork.kernel.org/patch/2359711/ ? - I'd again have the same
-request of not having anything to do with pm.c and keeping as little as
-possible for all TI processors in mach-omap2.
+On Wednesday 06 March 2013 07:42 PM, Matt Porter wrote:
+> Changes since v2:
+> 	- dropped skip platform_get_resource_byname() patch
+> Changes since v1:
+> 	- rebase to 3.9-rc1, previous dependencies upstream
+>
+> This series adds DT DMA Engine Client support to the omap_hsmmc.
+> It leverages the generic DMA OF helpers and the
+> dma_request_slave_channel_compat() wrapper to support DMA in
+> omap_hsmmc on platforms booting via DT. These platforms include
+> omap2/3/4/5 and am33xx.
+>
+> These patches were split out from the v5 version of the AM33XX DMA
+> series and split from the EDMA-specific omap_hsmmc changes.
+>
+> Matt Porter (2):
+>    mmc: omap_hsmmc: convert to dma_request_slave_channel_compat()
+>    mmc: omap_hsmmc: add generic DMA request support to the DT binding
+>
 
-Could you enlighten me about why you'd not like it in board-generic.c?
-will creating an function ti_generic_cpufreq_init() in board-generic.c
-and calling it from omap_generic_init help?
+Looks good to me
+Acked-by: Balaji T K <balajitk@ti.com>
 
--- 
-Regards,
-Nishanth Menon
+>   .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   26 +++++++++++++++++++-
+>   drivers/mmc/host/omap_hsmmc.c                      |   10 ++++++--
+>   2 files changed, 33 insertions(+), 3 deletions(-)
+>
