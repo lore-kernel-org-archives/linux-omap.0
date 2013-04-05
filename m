@@ -1,111 +1,133 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 1/4] ARM: OMAP4+: PM: Consolidate MPU subsystem PM
- code for re-use
-Date: Fri, 5 Apr 2013 17:04:20 +0300
-Message-ID: <20130405140420.GB12229@arwen.pp.htv.fi>
-References: <1365166743-5940-1-git-send-email-santosh.shilimkar@ti.com>
- <1365166743-5940-2-git-send-email-santosh.shilimkar@ti.com>
- <20130405131935.GM11464@arwen.pp.htv.fi>
- <20130405133511.GA4143@kahuna>
-Reply-To: balbi@ti.com
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V3 1/2] ARM: OMAP3+: use cpu0-cpufreq driver in device
+ tree supported boot
+Date: Fri, 5 Apr 2013 06:26:48 -0500
+Message-ID: <CAGo_u6r+JdNaCmVh+dHLppJ7eaYh4W5aL1aAg8xQfAju6PyZdQ@mail.gmail.com>
+References: <1364507576-19345-1-git-send-email-nm@ti.com>
+	<1364507576-19345-2-git-send-email-nm@ti.com>
+	<87ppybxxi0.fsf@linaro.org>
+	<20130404025211.GA2456@snafu>
+	<515D0BF1.7060802@ti.com>
+	<20130404190053.GA4371@kahuna>
+	<515E9E79.8010300@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6481825244275904906=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130405133511.GA4143@kahuna>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: khilman@deeprootsystems.com, Felipe Balbi <balbi@ti.com>, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f177.google.com ([74.125.82.177]:54891 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753372Ab3DEL0v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Apr 2013 07:26:51 -0400
+In-Reply-To: <515E9E79.8010300@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Rob Herring <robherring2@gmail.com>, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
 
---===============6481825244275904906==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yNb1oOkm5a9FJOVX"
-Content-Disposition: inline
+On Fri, Apr 5, 2013 at 4:50 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+> On Friday 05 April 2013 12:30 AM, Nishanth Menon wrote:
+>> On 10:43-20130404, Rajendra Nayak wrote:
+>>> On Thursday 04 April 2013 08:22 AM, Nishanth Menon wrote:
+>>>> On 11:47-20130403, Kevin Hilman wrote:
+>>>>> Nishanth Menon <nm@ti.com> writes:
+>>>>>
+>>>> [...]
+>>>>>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+>>>>>> index afa509a..5b147ef 100644
+>>>>>> --- a/arch/arm/mach-omap2/board-generic.c
+>>>>>> +++ b/arch/arm/mach-omap2/board-generic.c
+>>>>>> @@ -49,6 +49,11 @@ static void __init omap_generic_init(void)
+>>>>>>           omap4_panda_display_init_of();
+>>>>>>   else if (of_machine_is_compatible("ti,omap4-sdp"))
+>>>>>>           omap_4430sdp_display_init_of();
+>>>>>> +
+>>>>>> + if (IS_ENABLED(CONFIG_GENERIC_CPUFREQ_CPU0)) {
+>>>>>> +         struct platform_device_info devinfo = { .name = "cpufreq-cpu0", };
+>>>>>> +         platform_device_register_full(&devinfo);
+>>>>>> + }
+>>>>>
+>>>>> Rather than adding new clkdev nodes below, how about using clk add_alias
+>>>>> here?
+>>>> Thanks for pointing this out, I spend some time implementing such a
+>>>> scheme and following is my opinion:
+>>>>
+>>>> Summary:
+>>>> There is one major problem which forces us to introduce this "clock
+>>>> hack" - clock nodes are not in device tree yet. Yes, clock add alias
+>>>
+>>> There's already a patch floating around for this..
+>>> https://lkml.org/lkml/2013/4/2/84
+>> Not really. Try on OMAP4 PandaBoard:
+>> Based on
+>> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+>> for_3.10/dts  d114294 ARM: dts: AM33XX: Corrects typo in interrupt field in SPI node
+>> + the patch https://patchwork.kernel.org/patch/2335671/ applied
+>> Pandaboard 4 Log: http://pastebin.com/qsdsbv7p
+>> The Patch does not even work, unless there is un-documented patch
+>> dependencies!
+>
+> I guess Roger responded to that.
+yep, I am beyond that now :)
+>
+>>
+>> Secondly, even if it did work, it would still continue to need yet another
+>> hack[1]
+>
+> Why do you think thats a hack? Besides I don't know if you are
+> doing it right.
+traditionally, we state the following:
+DT will represent actual hardware data.
+what we are doing is the following:
+DT has virtual clk nodes and kernel contains the actual data.
 
---yNb1oOkm5a9FJOVX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This is counter intuitive to the original idea of DT containing
+hardware data - hence the notion, IMHO, of a hack.
 
-Hi,
+>
+> - I am agree with Tony in his discussion in
+>> http://marc.info/?t=136370325600009&r=1&w=2
+>>
+>> *if* we are moving clock to DT, we should move the data to DT as well -
+>
+> I don't think Tony said 'move all clock data into DT'. He was suggesting
+> a combination of DT and /lib/firmware
+>
+>> similar to what other platforms do - highbank as far as i can quickly
+>> see. (drivers/clk/clk-highbank.c and arch/arm/boot/dts/ecx-common.dtsi
+>
+> Well, you chose to look at highbank (which has 8 clock nodes in DT, as
+> opposed to OMAP5 which has around 250 in kernel) why don't you also look at imx?
+> drivers/clk/mxs/clk-imx28.c and Documentation/devicetree/bindings/clock/imx28-clock.txt
+> for examples.
+> They have around 65 nodes (still way lesser than OMAP) and see what
+> they do. Thats exactly what Roger does in his patch.
+>
 
-On Fri, Apr 05, 2013 at 08:35:11AM -0500, Nishanth Menon wrote:
-> On 16:19-20130405, Felipe Balbi wrote:
-> > On Fri, Apr 05, 2013 at 06:29:00PM +0530, Santosh Shilimkar wrote:
-> > > OMAP5 and future OMAP based SOCs has backward compatible MPUSS
-> > > IP block with OMAP4. It's programming model is mostly similar.
-> >=20
-> > s/It's/Its/
-> > s/mostly //
-> >=20
-> > (similar already expands to 'almost the same' :-)
-> >=20
-> > > @@ -355,6 +389,12 @@ int __init omap4_mpuss_init(void)
-> > > =20
-> > >  	save_l2x0_context();
-> > > =20
-> > > +	if (cpu_is_omap44xx()) {
-> > > +		omap_pm_ops.finish_suspend =3D omap4_finish_suspend;
-> > > +		omap_pm_ops.resume =3D omap4_cpu_resume;
-> > > +		omap_pm_ops.scu_prepare =3D scu_pwrst_prepare;
-> > > +	}
-> >=20
-> > why don't you just rename omap4_* into omap_* and add cpu-based checks
-> > there in order to handle differences between omap4 and omap5?
-> >=20
-> > If implementation will be almost the same for both, you might be able to
-> > save on some more duplication, no ?
-> Jeez NO! finish_suspend is assembly, further, it is the hottest path in
-> cpuidle framework - for every WFI we invoke it. we definitely dont want
-> to add more overhead beyond what is necessary.
+Precisely - thanks for highlighting my view - all the more reason for
+us to move clock data out of kernel image :).
+$ c_count arch/arm/mach-omap2/cclock*_data.c|tail -1
+8110
+$ wc -l arch/arm/mach-omap2/cclock*_data.c|tail -1
+10310 total
 
-alright, settle down ;-) whoever suggested that isn't here anymore
+that much code sitting in kernel makes it heavier for us(and others
+working on clock framework code) -
+we do also foresee that eventually dt data might move out to it's own
+repository.
 
---=20
-balbi
+Further, maintaining dts vs kernel code compatibility aside, consider
+adding new platforms - more code containing clock data that we have to
+carry on in kernel - If we have !
 
---yNb1oOkm5a9FJOVX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I love the idea that Roger's patch does, as a *step #1* of
+transitioning clock data out-of-kernel image and enabling drivers to
+entitle DT based boot.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+if this is the only step we will ever take, then it will be a
+disappointing decision. whether the final data goes to /lib/firmware
+or arch/arm/boot/dts - even though, I prefer it in dts, I have no
+strong feelings about it.
+However, we need to be prepared (at the earliest possible time) to
+move that data out of kernel image as *step #2*.
 
-iQIcBAEBAgAGBQJRXtnkAAoJEIaOsuA1yqREdUgQAKzFiMYL1VOQkcaMHhVTOghP
-c9fniNwJF4m47zdpT7MmQiEj6vdMFzpNIpAVfLqUCS9HZ0XlhZvC2bhVDIX4dkdj
-QvfolMKursDyNggFhSf8cJO+ZewJqmdXIzSAGTya72Gn3ukrX6oFiKyAi31SSqUD
-Jwv37PwdVvwlLbBx/3gO9DBo8beZEAtYB14X+UNqKoFrWdflwzi0odAyZDljzjmq
-PCI5yPSNR0yvCXD+sVXQFzVr9Nmd8qLoxplEUAAKOwN6aMqKfBbs8d3GXUavPUu+
-uP0BgtdNQmFPzdTn+E4To5Z/zlvx5f9bLW8YKMG9dupAM+fV8WwJD8C6ihJctcDJ
-6d2+FgsZB6FY29Z7BtWvLEkiLUN7/KiK69Ky45+LNKlCszGoKjuqt04rZRphE0jL
-fZBlVUaSu45hb822F+9XHUdsbOFLkgXBUceXhdl9iB3ig11Fc8EQS1LVX+6eBKBV
-16amtg6KqRaTWTlTLmCFVP3MJd8Ds6Z9TfkYqbpPQtUuaPkpMvLDnTaYSYP0Eb+p
-zLVOfKYgWHNw33G1gy3BxnLhVVbI9C1PV7tSFRbQiLjAzG0PNAY+8bT+EpjSOww5
-BevzX/03Ha97DUeYnh4OtpDAuYp96YWlmNmGPNnsz1GDKpDgS/4QYp66+SKW5twy
-lONwlTe8fLenQ/axfZCQ
-=pjVE
------END PGP SIGNATURE-----
-
---yNb1oOkm5a9FJOVX--
-
-
---===============6481825244275904906==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============6481825244275904906==--
+Regards,
+Nishanth Menon
