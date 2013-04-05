@@ -1,15 +1,17 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 00/21] ARM: OMAP2+: Adapt to ehci-omap changes for 3.10
-Date: Fri, 5 Apr 2013 08:43:00 -0700
-Message-ID: <20130405154259.GZ10155@atomide.com>
-References: <1363794300-31526-1-git-send-email-rogerq@ti.com>
- <515E8B99.8080803@ti.com> <515E9FB1.2040803@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support for
+ AUXCLKs
+Date: Fri, 5 Apr 2013 20:56:05 +0300
+Message-ID: <515F1035.8090500@ti.com>
+References: <1363703220-4777-1-git-send-email-rogerq@ti.com>
+ <1363703220-4777-2-git-send-email-rogerq@ti.com>
+ <20130403234242.GE10155@atomide.com> <515D2D30.3000306@ti.com>
+ <20130404164137.GH10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <515E9FB1.2040803@ti.com>
+In-Reply-To: <20130404164137.GH10155@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,49 +21,97 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-usb@vger.kernel.org, linux@arm.linux.org.uk, b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Benoit Cousson <b-cousson@ti.com> [130405 03:00]:
-> On 04/05/2013 10:30 AM, Benoit Cousson wrote:
-> 
-> ...
-> 
-> >>   ARM: dts: OMAP4: Add HS USB Host IP nodes
-> >>   ARM: dts: OMAP3: Add HS USB Host IP nodes
-> >>   ARM: dts: omap3-beagle: Add USB Host support
-> > 
-> > These 3 DTS patches are good to me, but I cannot applied them on top of
-> > the already existing patches I queued for 3.10.
-> > 
-> > git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
-> > for_3.10/dts
-> > 
-> > Could you rebase these 3 ones only, and I will applied them.
-> 
-> Mmm, in fact, I've just seen the pull request from Tony :-(
-> 
-> 
-> Tony,
-> 
-> Don't you want to remove these DTS patches from the pull-request?
+On 04/04/2013 07:41 PM, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [130404 00:39]:
+>> On 04/04/2013 02:42 AM, Tony Lindgren wrote:
+>>>> --- a/arch/arm/mach-omap2/cclock44xx_data.c
+>>>> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
+>>>> @@ -27,6 +27,7 @@
+>>>>   #include <linux/clk-private.h>
+>>>>   #include <linux/clkdev.h>
+>>>>   #include <linux/io.h>
+>>>> +#include <linux/of.h>
+>>>>   
+>>>>   #include "soc.h"
+>>>>   #include "iomap.h"
+>>>> @@ -1663,6 +1664,40 @@ static struct omap_clk omap44xx_clks[] = {
+>>>>   	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
+>>>>   };
+>>>>   
+>>>> +static struct clk *scrm_clks[] = {
+>>>> +	&auxclk0_ck,
+>>>> +	&auxclk1_ck,
+>>>> +	&auxclk2_ck,
+>>>> +	&auxclk3_ck,
+>>>> +	&auxclk4_ck,
+>>>> +	&auxclk5_ck,
+>>>> +};
+>>> Hmm I don't like the idea of specifying the auxclk both in the
+>>> cclock44xx_data.c and in DT..
+>> Right, but till we have all clocks moved to DT we only need this
+>> approach for general purpose clocks that are not mapped to devices
+>> by hwmod.
+> For v3.10, let's just make sure that USB works with DT as then
+> after v3.10 we can make omap4 DT only and get rid of estimated
+> 7K lines of code and data. I guess this is the last piece missing
+> for that, or are we also missing something else?
+>
+> Can't you set up a clock alias for your device so it can find the
+> auxclk when requesting it with the dev entry?
+>
+> For the DT clock driver if needed for v3.10, how about just do a
+> minimal drivers/clock/omap/ that uses the standard binding?
+> Then that driver can just do clk_get() from cclock44xx_data.c
+> for now? And then later on we'll just move all the clocks to a
+> combination of DT + /lib/firmware.
+>
+Hi Roger, Rajendra, All
 
-Oops sorry :( Looks like I applied them mistakenly as I saved all
-the patches into a mbox, then applied it. Anyways, too late to start
-messing with it now.
- 
-> Otherwise, I will have to rebase the whole DTS series on top of yours.
-> That being said, if the branch is not supposed to be rebased, it is doable.
+Sorry that disturbing you.
 
-I pulled in your for_3.10/dts for testing, and to me it looks like
-it's just overlapping additions. So that should be OK to resolve while
-pulling it in.
+I'm supporting Android OMAP4 kernels (K3.0/K3.4) and like to clarify few
+points regarding this approach (having into account possible future 
+migrations
+on newer Kernels and OMAP5).
+If I understand everything right, this patch series allows to create 
+clock binding
+in DT using following syntax: clocks = <&aux_clks 3>
+  - does it means that in worst case there will be ~200 clock IDs defined?
+  - does it means that clock nodes binding using phandles 
+(human-friendly notation)
+isn't going to be supported?
+for example:
+     clocks = <&sys_clkin_ck>
+     clocks = <&dss_sys_clk &dss_tv_clk &dss_dss_clk>)
 
-It seems there's no need to add omap-for-v3.10/usb as a dependency for
-your for_3.10/dts unless the conflict gets non-trivial with some
-additional patches.
+I was horrified to think about the problems of this approach support
+(in case if there would be more then ~30 IDs) - just miss with on digit
+and weeks of debugging would be guaranteed.
 
-Regards,
+Please, say me that i'm wrong.
+And why clock DT data can't be auto-generated like all other OMAP data
+to close this questions?
 
-Tony
+Thanks.
+
+>> e.g. auxclk are required to be specified in DT nodes for USB PHY.
+>> Without this we can't get USB host working on Panda.
+> OK. So if the USB PHY has a dev entry, can't you just set up a
+> clock alias in struct omap_clk omap44xx_clks[] for it?
+>   
+>> As Rajendra points out, it seems moving entire clock data to DT is not
+>> going to happen soon. So this is the simplistic way things can work.
+> Right but seems like we can get started there without moving
+> them all at once.
+>
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
