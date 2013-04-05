@@ -1,72 +1,59 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 0/5] ARM: OMAP: DMTIMER updates for v3.10
-Date: Fri, 5 Apr 2013 10:05:33 +0200
-Message-ID: <515E85CD.1060307@ti.com>
-References: <1363714699-29622-1-git-send-email-jon-hunter@ti.com> <20130404183855.GP10155@atomide.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: OMAP4+: Correct L3 interrupts
+Date: Fri, 5 Apr 2013 10:08:23 +0200
+Message-ID: <515E8677.40404@ti.com>
+References: <1365098790-9078-1-git-send-email-jon-hunter@ti.com>
+ <515E6EAE.9000107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38819 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752196Ab3DEIFn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Apr 2013 04:05:43 -0400
-In-Reply-To: <20130404183855.GP10155@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <515E6EAE.9000107-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Jon Hunter <jon-hunter@ti.com>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 04/04/2013 08:38 PM, Tony Lindgren wrote:
-> * Jon Hunter <jon-hunter@ti.com> [130319 10:42]:
->> Includes:
->> - A couple fixes for DMTIMER context loss handling.
->> - Populating DMTIMER errata when booting with device-tree.
->> - A new function for requesting a DMTIMER by device-tree node.
+On 04/05/2013 08:26 AM, Santosh Shilimkar wrote:
+> On Thursday 04 April 2013 11:36 PM, Jon Hunter wrote:
+>> The L3 interrupt numbers are incorrect for OMAP4+ and are conflicting
+>> with some of the timer interrupts causing the allocation of timer
+>> interrupts to fail.
 >>
->> Based upon v3.9-rc3.
+>> The problem is caused by adding 32 to the interrupt number for the L3
+>> interrupts to account for per processor interrupts (PPI) and software
+>> generated interrupts (SGI) which typically are mapped to the first 32
+>> interrupts in the ARM GIC. This is not necessary because the first
+>> parameter of the ARM GIC interrupt property specifies the GIC interrupt
+>> type (ie. SGI, PPI, etc). Hence, fix the interrupt number fo the L3
+>> interrupts by substracting 32.
 >>
->> Tested on OMAP5912 OSK, OMAP2420 H4, OMAP3430 SDP, OMAP4430 Blaze
->> and AM335x EVM. Testing includes ...
->> 1. Booting kernel on above boards
->> 2. Testing of various DMTIMER request APIs
->> 3. Testing the timer overflow and match interrupts.
->> 4. Using different clock sources to operate the timer with.
+>> Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+>> ---
 >>
->> Jon Hunter (4):
->>   ARM: OMAP: Force dmtimer restore if context loss is not detectable
->>   ARM: OMAP: Add function to request timer by node
->>   ARM: dts: OMAP2+: Update DMTIMER compatibility property
->>   ARM: OMAP2+: Populate DMTIMER errata when using device-tree
+>> Please note that this problem is observed in Benoit's for_3.10/dts branch [1].
 >>
->> NeilBrown (1):
->>   ARM: OMAP: Simplify dmtimer context-loss handling
+>> [1] http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git
 >>
->>  .../devicetree/bindings/arm/omap/timer.txt         |   17 +-
->>  arch/arm/boot/dts/am33xx.dtsi                      |   14 +-
->>  arch/arm/boot/dts/omap2.dtsi                       |   22 +-
->>  arch/arm/boot/dts/omap2420.dtsi                    |    2 +-
->>  arch/arm/boot/dts/omap2430.dtsi                    |    2 +-
->>  arch/arm/boot/dts/omap3.dtsi                       |   24 +-
->>  arch/arm/boot/dts/omap4.dtsi                       |   22 +-
->>  arch/arm/boot/dts/omap5.dtsi                       |   22 +-
->>  arch/arm/mach-omap2/timer.c                        |    7 +-
->>  arch/arm/plat-omap/dmtimer.c                       |  241 ++++++++++++--------
->>  arch/arm/plat-omap/include/plat/dmtimer.h          |    1 +
->>  11 files changed, 220 insertions(+), 154 deletions(-)
-> 
-> For all these it sounds like it's best that Benoit queues
-> them with the .dts changes:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> 
+> Thats correct. I overlooked the 32 addition part. This patch should
+> also be pulled into Benoit's 3.10 tree.
 
-Great.
+Done. I've just applied it. But I will probably merge it with the
+original patch, because having a broken patch and the fix in the same
+pull request does not look right.
 
-Jon,
-
-I've just applied the whole series and will push it soon.
+> For the patch,
+> Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 
 Thanks,
 Benoit
-
