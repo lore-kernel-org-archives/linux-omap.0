@@ -1,71 +1,39 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH] OMAPDSS: nec-nl8048 panel: Use dev_pm_ops
-Date: Sun,  7 Apr 2013 11:14:13 +0200
-Message-ID: <1365326053-16248-1-git-send-email-lars@metafoo.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+From: WebMail =?utf-8?Q?J=C3=A4rjestelm=C3=A4nvalvoja?=
+	<sebastian.jucu@cbg.uvt.ro>
+Subject: =?utf-8?Q?S=C3=A4hk=C3=B6posti?= Alert
+Date: Sun, 07 Apr 2013 23:40:25 +0300 (EEST)
+Message-ID: <b549e0b9-692d-43c6-b746-a37a70fc25c3__37148.848854895$1365403603$gmane$org@hercules.uvt.ro>
+Reply-To: WebMail =?utf-8?Q?J=C3=A4rjestelm=C3=A4nvalvoja?=
+	  <upgrade@execs.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.uvt.ro ([85.120.204.100]:54242 "EHLO hercules.uvt.ro"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934319Ab3DGUtF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Apr 2013 16:49:05 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Use dev_pm_ops instead of the deprecated legacy suspend/resume callbacks.
+Postilaatikko on ylitt=C3=A4nyt varastointi rajan 2.GB
+M=C3=A4=C3=A4rittelee yll=C3=A4pito on t=C3=A4ll=C3=A4 hetkell=C3=A4 2.=
+30GB, ei voi l=C3=A4hett=C3=A4=C3=A4 tai vastaanottaa uusia viestej=C3=A4=
+ ennen kuin olet uudelleen Vahvista s=C3=A4hk=C3=B6postiosoite l=C3=A4h=
+ett=C3=A4=C3=A4 tiedon edellytetyt uudelleen vahvistat s=C3=A4hk=C3=B6p=
+ostiosoitteen
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
----
- .../video/omap2/displays/panel-nec-nl8048hl11-01b.c  | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+E-mail:
+K=C3=A4ytt=C3=A4j=C3=A4tunnus:
+salasana:
+Vahvista salasana:
+jona viimeinen merkint=C3=A4:
 
-diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-index 1e0097d..20c3cd9 100644
---- a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-+++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-@@ -242,16 +242,22 @@ static int nec_8048_spi_remove(struct spi_device *spi)
- 	return 0;
- }
- 
--static int nec_8048_spi_suspend(struct spi_device *spi, pm_message_t mesg)
-+#ifdef CONFIG_PM_SLEEP
-+
-+static int nec_8048_spi_suspend(struct device *dev)
- {
-+	struct spi_device *spi = to_spi_device(dev);
-+
- 	nec_8048_spi_send(spi, 2, 0x01);
- 	mdelay(40);
- 
- 	return 0;
- }
- 
--static int nec_8048_spi_resume(struct spi_device *spi)
-+static int nec_8048_spi_resume(struct device *dev)
- {
-+	struct spi_device *spi = to_spi_device(dev);
-+
- 	/* reinitialize the panel */
- 	spi_setup(spi);
- 	nec_8048_spi_send(spi, 2, 0x00);
-@@ -260,14 +266,20 @@ static int nec_8048_spi_resume(struct spi_device *spi)
- 	return 0;
- }
- 
-+static SIMPLE_DEV_PM_OPS(nec_8048_spi_pm_ops, nec_8048_spi_suspend,
-+		nec_8048_spi_resume);
-+#define NEC_8048_SPI_PM_OPS (&nec_8048_spi_pm_ops)
-+#else
-+#define NEC_8048_SPI_PM_OPS NULL
-+#endif
-+
- static struct spi_driver nec_8048_spi_driver = {
- 	.probe		= nec_8048_spi_probe,
- 	.remove		= nec_8048_spi_remove,
--	.suspend	= nec_8048_spi_suspend,
--	.resume		= nec_8048_spi_resume,
- 	.driver		= {
- 		.name	= "nec_8048_spi",
- 		.owner	= THIS_MODULE,
-+		.pm	= NEC_8048_SPI_PM_OPS,
- 	},
- };
- 
--- 
-1.8.0
+E-mail: upgrade@execs.com
+
+System Manager
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
