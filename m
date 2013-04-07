@@ -1,54 +1,71 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V3 1/2] ARM: OMAP3+: use cpu0-cpufreq driver in device
- tree supported boot
-Date: Fri, 5 Apr 2013 17:23:24 -0500
-Message-ID: <20130405222324.GA8732@kahuna>
-References: <20130405163254.GA7259@kahuna>
- <20130405170527.GC10155@atomide.com>
- <20130405171750.GA7398@kahuna>
- <20130405192829.GE10155@atomide.com>
- <20130405200201.GA7804@kahuna>
- <20130405211003.GK6182@atomide.com>
- <20130405213250.GA8534@kahuna>
- <20130405214051.GG10155@atomide.com>
- <20130405221041.GA8648@kahuna>
- <20130405221755.GI10155@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35534 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1162867Ab3DEWX1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Apr 2013 18:23:27 -0400
-Content-Disposition: inline
-In-Reply-To: <20130405221755.GI10155@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH] OMAPDSS: nec-nl8048 panel: Use dev_pm_ops
+Date: Sun,  7 Apr 2013 11:14:13 +0200
+Message-ID: <1365326053-16248-1-git-send-email-lars@metafoo.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Rob Herring <robherring2@gmail.com>, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shawn Guo <shawn.guo@linaro.org>
 
-On 15:17-20130405, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [130405 15:15]:
-> > Option b) leave a dummy node registered
-> > static inline void omap_init_cpufreq(void)
-> > {
-> > 	struct platform_device_info devinfo = { };
-> > 
-> > 	if (!of_have_populated_dt())
-> > 		devinfo.name = "omap-cpufreq";
-> > 	else
-> > 		devinfo.name = "cpufreq-cpu0"
-> > 	
-> > 	platform_device_register_full(&devinfo);
-> > }
-> > 
-> > If there are no objections to (b), I dont mind it either.
-> 
-> To me option (b) looks better as it's if else :)
-Alrity.. Going once...twice...sold! All Nay-sayers will now be branded with
-if-else braces ;)
+Use dev_pm_ops instead of the deprecated legacy suspend/resume callbacks.
 
-I will now wait for conclusion of  https://lkml.org/lkml/2013/4/2/84
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+ .../video/omap2/displays/panel-nec-nl8048hl11-01b.c  | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+index 1e0097d..20c3cd9 100644
+--- a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
++++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+@@ -242,16 +242,22 @@ static int nec_8048_spi_remove(struct spi_device *spi)
+ 	return 0;
+ }
+ 
+-static int nec_8048_spi_suspend(struct spi_device *spi, pm_message_t mesg)
++#ifdef CONFIG_PM_SLEEP
++
++static int nec_8048_spi_suspend(struct device *dev)
+ {
++	struct spi_device *spi = to_spi_device(dev);
++
+ 	nec_8048_spi_send(spi, 2, 0x01);
+ 	mdelay(40);
+ 
+ 	return 0;
+ }
+ 
+-static int nec_8048_spi_resume(struct spi_device *spi)
++static int nec_8048_spi_resume(struct device *dev)
+ {
++	struct spi_device *spi = to_spi_device(dev);
++
+ 	/* reinitialize the panel */
+ 	spi_setup(spi);
+ 	nec_8048_spi_send(spi, 2, 0x00);
+@@ -260,14 +266,20 @@ static int nec_8048_spi_resume(struct spi_device *spi)
+ 	return 0;
+ }
+ 
++static SIMPLE_DEV_PM_OPS(nec_8048_spi_pm_ops, nec_8048_spi_suspend,
++		nec_8048_spi_resume);
++#define NEC_8048_SPI_PM_OPS (&nec_8048_spi_pm_ops)
++#else
++#define NEC_8048_SPI_PM_OPS NULL
++#endif
++
+ static struct spi_driver nec_8048_spi_driver = {
+ 	.probe		= nec_8048_spi_probe,
+ 	.remove		= nec_8048_spi_remove,
+-	.suspend	= nec_8048_spi_suspend,
+-	.resume		= nec_8048_spi_resume,
+ 	.driver		= {
+ 		.name	= "nec_8048_spi",
+ 		.owner	= THIS_MODULE,
++		.pm	= NEC_8048_SPI_PM_OPS,
+ 	},
+ };
+ 
 -- 
-Regards,
-Nishanth Menon
+1.8.0
