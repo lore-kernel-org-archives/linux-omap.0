@@ -1,76 +1,165 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 2/4] ARM: OMAP4+: PM: Consolidate OMAP4 PM code to
- re-use it for OMAP5
-Date: Mon, 8 Apr 2013 09:42:28 -0700
-Message-ID: <20130408164228.GK10155@atomide.com>
-References: <1365166743-5940-1-git-send-email-santosh.shilimkar@ti.com>
- <1365166743-5940-3-git-send-email-santosh.shilimkar@ti.com>
- <20130405213433.GF10155@atomide.com>
- <5162A093.7090808@ti.com>
+From: Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] spi: spi-omap2-mcspi.c: Add dts for slave device
+	configuration.
+Date: Mon, 8 Apr 2013 14:18:00 +0200
+Message-ID: <CABuKBeKN+cPbsf95mTvDfzAwzOh4V-+bycp=sujNndDeMG2HMw@mail.gmail.com>
+References: <1364252415-3613-1-git-send-email-matthias.bgg@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62769 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S935117Ab3DHQmb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 12:42:31 -0400
-Content-Disposition: inline
-In-Reply-To: <5162A093.7090808@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1364252415-3613-1-git-send-email-matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <martinez.javier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [130408 03:51]:
-> On Saturday 06 April 2013 03:04 AM, Tony Lindgren wrote:
-> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [130405 06:01]:
-> >> OMAP5 has backward compatible PRCM block and it's programming
-> >> model is mostly similar to OMAP4. Same is going to be maintained
-> >> for future OMAP4 based SOCs. Hence consolidate the OMAP4 power
-> >> management code so that it can be re-used on OMAP5 and later devices.
-> >>
-> >> While at it, update the kernel-doc for omap4_pm_init().
-> >>
-> >> Acked-by: Nishanth Menon <nm@ti.com>
-> >> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> >> ---
-> >>  arch/arm/mach-omap2/Makefile                       |    9 +--
-> >>  arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c}   |   58 ++++++++++++++++----
-> >>  .../mach-omap2/{sleep44xx.S => sleep_omap4plus.S}  |    0
-> >>  3 files changed, 53 insertions(+), 14 deletions(-)
-> >>  rename arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c} (83%)
-> >>  rename arch/arm/mach-omap2/{sleep44xx.S => sleep_omap4plus.S} (100%)
-> > 
-> > I suggest you leave out the rename. That just adds churn and has
-> > flame potential.
-> > 
-> OK. I can leave that mow but have to do renames anyways when
-> I add OMAP5 support. OMAP54XX support inside pm44xx.c and sleep44x.S
-> will be really odd.
+Hello,
 
-Well that should be just fine if the hardware is the same.
- 
-> Let me know if you have concern on renaming it while OMAP5 support
-> gets added ?
+2013/3/26 Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-If the rename is done, it should have a clear reason to do it in
-a separate patch. IMHO it's just fine to have omap4 in some name and
-then assume that at least some follow up SoCs also use that code.
-In the worst case we may end up renaming things many times:
+> TI omap2 mcspi allows the slave devices to configure the behavior of
+> the SPI master. This patch adds device tree support to the existing
+> options.
+>
+> Signed-off-by: Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+>
 
-omap-xyz.c -> omap2-xyz.c -> omap2plus-xyz.c -> omap2-to-4-xyz.c ->
-omap2-to-4-and-am35xx-xyz.c etc :)
+Any comments on this patch?
 
-If we rename something, the description should have a clear reason
-for doing it like "To avoid confusing between PM code that does not
-have support for bootrom assisted off-idle on SMP omaps with PM code
-that's not bootrom assisted, let's rename foo to.."
 
-For the naming, the only safe naming convention is to use something
-actually describing the piece of hardware. Maybe some combination
-of bootrom-assisted-off-idle + SMP in this case if there's no actual
-name for this hwblock?
+>  Documentation/devicetree/bindings/spi/omap-spi.txt | 23 ++++++++++++
+>  drivers/spi/spi-omap2-mcspi.c                      | 41
+> ++++++++++++++++++++++
+>  2 files changed, 64 insertions(+)
+>
+> diff --git a/Documentation/devicetree/bindings/spi/omap-spi.txt
+> b/Documentation/devicetree/bindings/spi/omap-spi.txt
+> index 938809c..fef16bf 100644
+> --- a/Documentation/devicetree/bindings/spi/omap-spi.txt
+> +++ b/Documentation/devicetree/bindings/spi/omap-spi.txt
+> @@ -10,8 +10,20 @@ Required properties:
+>                           input. The default is D0 as input and
+>                           D1 as output.
+>
+> +SPI Controller specific data in SPI slave nodes:
+> +
+> +- The spi slave nodes can provide the following information which is used
+> +  by the spi controller.
+> +
+> +- ti,spi-cs-per-word: Set chipselect to be toggled on every word send.
+> +
+> +- ti,spi-turbo-mode: Set turbo mode for this device.
+> +
+> +
+>  Example:
+>
+> +- SoC Specific Portion:
+> +
+>  mcspi1: mcspi@1 {
+>      #address-cells = <1>;
+>      #size-cells = <0>;
+> @@ -20,3 +32,14 @@ mcspi1: mcspi@1 {
+>      ti,spi-num-cs = <4>;
+>  };
+>
+> +- Board Specific Portion:
+> +
+> +       spi-device@0 {
+> +               #address-cells = <1>;
+> +               #size-cells = <1>;
+> +
+> +               controller-data {
+> +                       ti,spi-cs-per-word = <1>;
+> +                       ti,spi-turbo-mode = <0>;
+> +               };
+> +       };
+> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+> index 893c3d7..1ae5009 100644
+> --- a/drivers/spi/spi-omap2-mcspi.c
+> +++ b/drivers/spi/spi-omap2-mcspi.c
+> @@ -731,11 +731,47 @@ static u32 omap2_mcspi_calc_divisor(u32 speed_hz)
+>         return 15;
+>  }
+>
+> +static struct omap2_mcspi_device_config *omap2_mcspi_get_slave_ctrldata(
+> +                       struct spi_device *spi)
+> +{
+> +       struct omap2_mcspi_device_config *cd;
+> +       struct device_node *slave_np, *data_np = NULL;
+> +
+> +       slave_np = spi->dev.of_node;
+> +       if (!slave_np) {
+> +               dev_err(&spi->dev, "device node not found\n");
+> +               return ERR_PTR(-EINVAL);
+> +       }
+> +
+> +       data_np = of_get_child_by_name(slave_np, "controller-data");
+> +       if (!data_np) {
+> +               dev_err(&spi->dev, "child node 'controller-data' not
+> found\n");
+> +               return ERR_PTR(-EINVAL);
+> +       }
+> +
+> +       cd = kzalloc(sizeof(*cd), GFP_KERNEL);
+> +       if (!cd) {
+> +               dev_err(&spi->dev, "could not allocate memory for
+> controller data\n");
+> +               of_node_put(data_np);
+> +               return ERR_PTR(-ENOMEM);
+> +       }
+> +
+> +       if (of_get_property(data_np, "ti,spi-cs-per-word", NULL))
+> +               cd->cs_per_word = 1;
+> +
+> +       if (of_get_property(data_np, "ti,spi-turbo-mode", NULL))
+> +               cd->turbo_mode = 1;
+> +
+> +       of_node_put(data_np);
+> +       return cd;
+> +}
+> +
+>  /* called only when no transfer is active to this device */
+>  static int omap2_mcspi_setup_transfer(struct spi_device *spi,
+>                 struct spi_transfer *t)
+>  {
+>         struct omap2_mcspi_cs *cs = spi->controller_state;
+> +       struct omap2_mcspi_device_config *cd = spi->controller_data;
+>         struct omap2_mcspi *mcspi;
+>         struct spi_master *spi_cntrl;
+>         u32 l = 0, div = 0;
+> @@ -745,6 +781,11 @@ static int omap2_mcspi_setup_transfer(struct
+> spi_device *spi,
+>         mcspi = spi_master_get_devdata(spi->master);
+>         spi_cntrl = mcspi->master;
+>
+> +       if (!cd && spi->dev.of_node) {
+> +               cd = omap2_mcspi_get_slave_ctrldata(spi);
+> +               spi->controller_data = cd;
+> +       }
+> +
+>         if (t != NULL && t->bits_per_word)
+>                 word_len = t->bits_per_word;
+>
+> --
+> 1.7.11.7
+>
+>
 
-Regards,
 
-Tony
+-- 
+---
+motzblog.wordpress.com
+------------------------------------------------------------------------------
+Minimize network downtime and maximize team effectiveness.
+Reduce network management and security costs.Learn how to hire 
+the most talented Cisco Certified professionals. Visit the 
+Employer Resources Portal
+http://www.cisco.com/web/learning/employer_resources/index.html
