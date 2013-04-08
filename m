@@ -1,120 +1,55 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 1/3] ARM: dts: Update OMAP3430 SDP NAND and ONENAND properties
-Date: Mon, 8 Apr 2013 14:12:44 +0200
-Message-ID: <5162B43C.5000307@ti.com>
-References: <1365383828-25627-1-git-send-email-jon-hunter@ti.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCH 0/8] staging: ti-soc-thermal: fixes and TODO update
+Date: Mon, 8 Apr 2013 08:19:06 -0400
+Message-ID: <1365423555-2669-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43281 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759763Ab3DHMMy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Apr 2013 08:12:54 -0400
-In-Reply-To: <1365383828-25627-1-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: gregkh@linuxfoundation.org
+Cc: devel@driverdev.osuosl.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Jon,
+Hello Greg,
 
-On 04/08/2013 03:17 AM, Jon Hunter wrote:
-> The GPMC timing properties for device-tree have been updated by adding
-> a "-ns" or "-ps" suffix to indicate the units of time the property
-> represents (as suggested by Rob Herring). Therefore, update the timing
-> property names for the OMAP3430 SDP NAND and ONENAND devices.
-> 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> ---
-> 
-> Hi Benoit, this is a changed that is going to be introduced for v3.10.
-> Feel free to squash this with the patch "ARM: dts: OMAP3: Add support
-> for OMAP3430 SDP board" that you have queued for v3.10 if you prefer.
+Here is a series of fixes and I am also updating and revising
+the TODO list.
 
-I applied them like that. I did not want to rebase again the whole series.
+The fixes present in this series  are:
+. Extrapolation rules for OMAP4/5 (have been updated)
+. Defer probe whenever cpufreq is not ready (Thanks to Keerthy for reporting)
+. Device removal was checking for wrong callback
 
+The TODO list has shrink as many of them was already DONE by
+previous series of patches.
 
-Regards,
-Benoit
+These patches are based on top of your staging-next. Tested
+on OMAP4430 and OMAP5430.
 
+These patches are also available here:
+git@gitorious.org:thermal-framework/thermal-framework.git thermal_work/omap/ti-soc-thermal-fixes
+https://git.gitorious.org/thermal-framework/thermal-framework.git thermal_work/omap/ti-soc-fixes
 
->  arch/arm/boot/dts/omap3430-sdp.dts |   56 ++++++++++++++++++------------------
->  1 file changed, 28 insertions(+), 28 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
-> index 05cd8ba..44d2191 100644
-> --- a/arch/arm/boot/dts/omap3430-sdp.dts
-> +++ b/arch/arm/boot/dts/omap3430-sdp.dts
-> @@ -57,20 +57,20 @@
->  
->  		ti,nand-ecc-opt = "sw";
->  		gpmc,device-nand;
-> -		gpmc,cs-on = <0>;
-> -		gpmc,cs-rd-off = <36>;
-> -		gpmc,cs-wr-off = <36>;
-> -		gpmc,adv-on = <6>;
-> -		gpmc,adv-rd-off = <24>;
-> -		gpmc,adv-wr-off = <36>;
-> -		gpmc,oe-on = <6>;
-> -		gpmc,oe-off = <48>;
-> -		gpmc,we-on = <6>;
-> -		gpmc,we-off = <30>;
-> -		gpmc,rd-cycle = <72>;
-> -		gpmc,wr-cycle = <72>;
-> -		gpmc,access = <54>;
-> -		gpmc,wr-access = <30>;
-> +		gpmc,cs-on-ns = <0>;
-> +		gpmc,cs-rd-off-ns = <36>;
-> +		gpmc,cs-wr-off-ns = <36>;
-> +		gpmc,adv-on-ns = <6>;
-> +		gpmc,adv-rd-off-ns = <24>;
-> +		gpmc,adv-wr-off-ns = <36>;
-> +		gpmc,oe-on-ns = <6>;
-> +		gpmc,oe-off-ns = <48>;
-> +		gpmc,we-on-ns = <6>;
-> +		gpmc,we-off-ns = <30>;
-> +		gpmc,rd-cycle-ns = <72>;
-> +		gpmc,wr-cycle-ns = <72>;
-> +		gpmc,access-ns = <54>;
-> +		gpmc,wr-access-ns = <30>;
->  
->  		partition@0 {
->  			label = "xloader-nand";
-> @@ -102,20 +102,20 @@
->  
->  		gpmc,device-width = <2>;
->  		gpmc,mux-add-data = <2>;
-> -		gpmc,cs-on = <0>;
-> -		gpmc,cs-rd-off = <84>;
-> -		gpmc,cs-wr-off = <72>;
-> -		gpmc,adv-on = <0>;
-> -		gpmc,adv-rd-off = <18>;
-> -		gpmc,adv-wr-off = <18>;
-> -		gpmc,oe-on = <30>;
-> -		gpmc,oe-off = <84>;
-> -		gpmc,we-on = <0>;
-> -		gpmc,we-off = <42>;
-> -		gpmc,rd-cycle = <108>;
-> -		gpmc,wr-cycle = <96>;
-> -		gpmc,access = <78>;
-> -		gpmc,wr-data-mux-bus = <30>;
-> +		gpmc,cs-on-ns = <0>;
-> +		gpmc,cs-rd-off-ns = <84>;
-> +		gpmc,cs-wr-off-ns = <72>;
-> +		gpmc,adv-on-ns = <0>;
-> +		gpmc,adv-rd-off-ns = <18>;
-> +		gpmc,adv-wr-off-ns = <18>;
-> +		gpmc,oe-on-ns = <30>;
-> +		gpmc,oe-off-ns = <84>;
-> +		gpmc,we-on-ns = <0>;
-> +		gpmc,we-off-ns = <42>;
-> +		gpmc,rd-cycle-ns = <108>;
-> +		gpmc,wr-cycle-ns = <96>;
-> +		gpmc,access-ns = <78>;
-> +		gpmc,wr-data-mux-bus-ns = <30>;
->  
->  		partition@0 {
->  			label = "xloader-onenand";
-> 
+All best,
+
+Eduardo Valentin (8):
+  staging: ti-soc-thermal: update TODO list
+  staging: ti-soc-thermal: fix min/max TODO (already done)
+  staging: ti-soc-thermal: Remove TC1/TC2 TODO (already done)
+  staging: ti-soc-thermal: introduce OMAP4430 extrapolation constants
+  staging: ti-soc-thermal: update OMAP5 extrapolation rules
+  staging: ti-soc-thermal: remove extrapolation rules from TODO
+  staging: ti-soc-thermal: defer probe if cpufreq is not ready
+  staging: ti-soc-thermal: fix device removal
+
+ drivers/staging/ti-soc-thermal/TODO                |   12 --------
+ .../staging/ti-soc-thermal/omap4-thermal-data.c    |    8 +++---
+ .../staging/ti-soc-thermal/omap5-thermal-data.c    |    1 -
+ drivers/staging/ti-soc-thermal/ti-bandgap.c        |   29 +++++++++++++++----
+ drivers/staging/ti-soc-thermal/ti-thermal-common.c |    8 ++++-
+ drivers/staging/ti-soc-thermal/ti-thermal.h        |   20 ++++++++-----
+ 6 files changed, 45 insertions(+), 33 deletions(-)
+
+-- 
+1.7.7.1.488.ge8e1c
 
