@@ -1,40 +1,44 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [GIT PULL] an hwspinlock fix for 3.9
-Date: Mon, 8 Apr 2013 17:43:12 +0300
-Message-ID: <CAK=WgbZu8u=5pEq_W2FpYr_fP+zBhHc94pg4xWZ_0h75_1JE0w@mail.gmail.com>
+From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [RFC PATCH 1/4] retu-mfd: support also Tahvo
+Date: Mon, 8 Apr 2013 18:25:07 +0200
+Message-ID: <20130408162507.GD24058@zurbaran>
+References: <1362667221-30659-1-git-send-email-aaro.koskinen@iki.fi>
+ <1362667221-30659-2-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f181.google.com ([209.85.214.181]:46577 "EHLO
-	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965105Ab3DHOnd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 10:43:33 -0400
-Received: by mail-ob0-f181.google.com with SMTP id wo10so1436486obc.26
-        for <linux-omap@vger.kernel.org>; Mon, 08 Apr 2013 07:43:33 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1362667221-30659-2-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Li Fei <fei.li@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b6ec9:
+Hi Aaro,
 
-  Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
+On Thu, Mar 07, 2013 at 04:40:18PM +0200, Aaro Koskinen wrote:
+> Tahvo is a multi-function device on Nokia 770, implementing USB
+> transceiver and charge/battery control.
+> 
+> It's so close to Retu that a single driver can support both.
+> 
+> Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+> Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> ---
+>  drivers/mfd/Kconfig      |    6 +--
+>  drivers/mfd/retu-mfd.c   |   95 +++++++++++++++++++++++++++++++++++++++-------
+>  include/linux/mfd/retu.h |    8 +++-
+>  3 files changed, 92 insertions(+), 17 deletions(-)
+Overall the patch looks good, but could you please adress Felipe's comments on
+it ?
 
-are available in the git repository at:
+Cheers,
+Samuel.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git
-tags/hwspinlock-3.9-fix
-
-for you to fetch changes up to c10b90d85a5126d25c89cbaa50dc9fdd1c4d001a:
-
-  hwspinlock: fix __hwspin_lock_request error path (2013-04-05 17:45:11 +0300)
-
-----------------------------------------------------------------
-An hwspinlock fix from Li Fei, taking care of a faulty error path.
-
-----------------------------------------------------------------
-Li Fei (1):
-      hwspinlock: fix __hwspin_lock_request error path
-
- drivers/hwspinlock/hwspinlock_core.c | 2 ++
- 1 file changed, 2 insertions(+)
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
