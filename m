@@ -1,76 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V3 1/2] ARM: OMAP: board-4430sdp: Provide regulator to
- pwm-backlight
-Date: Mon, 8 Apr 2013 14:46:24 -0700
-Message-ID: <20130408214624.GZ10155@atomide.com>
-References: <1363214006-10662-1-git-send-email-achew@nvidia.com>
- <1363214006-10662-2-git-send-email-achew@nvidia.com>
+Subject: Re: [PATCH] ARM: OMAP: RX-51: add missing regulator supply
+ definitions for lis3lv02d
+Date: Mon, 8 Apr 2013 14:46:32 -0700
+Message-ID: <20130408214632.GA10155@atomide.com>
+References: <1364846644-5302-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:24945 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25300 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965221Ab3DHVq3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 17:46:29 -0400
+	with ESMTP id S965178Ab3DHVqj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 17:46:39 -0400
 Content-Disposition: inline
-In-Reply-To: <1363214006-10662-2-git-send-email-achew@nvidia.com>
+In-Reply-To: <1364846644-5302-1-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Chew <achew@nvidia.com>
-Cc: peter.ujfalusi@ti.com, thierry.reding@avionic-design.de, acourbot@nvidia.com, linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-* Andrew Chew <achew@nvidia.com> [130313 15:37]:
-> The pwm-backlight driver now takes a mandatory regulator that is gotten
-> during driver probe.  Initialize a dummy regulator to satisfy this
-> requirement.
-> 
-> Signed-off-by: Andrew Chew <achew@nvidia.com>
+* Aaro Koskinen <aaro.koskinen@iki.fi> [130401 13:08]:
+> Add missing regulator definitions for lis3lv02d accelerometer. Fixes
+> the following probe issue:
+>=20
+> [   57.737518] lis3lv02d_i2c 3-001d: Failed to get supply 'Vdd': -517
+> [   57.747100] i2c 3-001d: Driver lis3lv02d_i2c requests probe deferr=
+al
+>=20
+> Reported-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 > ---
-> Changed the device name of the backlight regulator supply to "pwm-backlight",
-> per Peter's comment.
-> 
-> Changed the name of the regulator to "backlight-enable", per Thierry's
-> suggestion.
+>=20
+> 	The patch was discussed in this thread...
+>=20
+> 		http://marc.info/?t=3D136105842400001&r=3D1&w=3D2
+>=20
+> 	...and now sending it to relevant mailing lists.
+>=20
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |    4 ++++
+>  1 file changed, 4 insertions(+)
 
-Thanks applying into omap-for-v3.10/board. Note that I'm not taking the
-second one, that should be resent to the related driver maintainers.
-You can get that list by running scripts/get_maintainer.pl against it.
-
-Regards,
+Thanks applying into omap-for-v3.10/board.
 
 Tony
- 
->  arch/arm/mach-omap2/board-4430sdp.c |    6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-> index 35f3ad0..a01a39a 100644
-> --- a/arch/arm/mach-omap2/board-4430sdp.c
-> +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -291,6 +291,10 @@ static struct platform_device sdp4430_leds_pwm = {
->  	},
+=20
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/=
+mach-omap2/board-rx51-peripherals.c
+> index 3a077df..1a88467 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -547,12 +547,16 @@ static struct regulator_consumer_supply rx51_vi=
+o_supplies[] =3D {
+>  	REGULATOR_SUPPLY("DVDD", "2-0019"),
+>  	/* Si4713 IO supply */
+>  	REGULATOR_SUPPLY("vio", "2-0063"),
+> +	/* lis3lv02d */
+> +	REGULATOR_SUPPLY("Vdd_IO", "3-001d"),
 >  };
->  
-> +/* Dummy regulator for pwm-backlight driver */
-> +static struct regulator_consumer_supply backlight_supply =
-> +	REGULATOR_SUPPLY("enable", "pwm-backlight");
-> +
->  static struct platform_pwm_backlight_data sdp4430_backlight_data = {
->  	.max_brightness = 127,
->  	.dft_brightness = 127,
-> @@ -718,6 +722,8 @@ static void __init omap_4430sdp_init(void)
->  
->  	omap4_i2c_init();
->  	omap_sfh7741prox_init();
-> +	regulator_register_always_on(-1, "backlight-enable",
-> +				     &backlight_supply, 1, 0);
->  	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
->  	omap_serial_init();
->  	omap_sdrc_init(NULL, NULL);
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> =20
+>  static struct regulator_consumer_supply rx51_vaux1_consumers[] =3D {
+>  	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
+>  	/* Si4713 supply */
+>  	REGULATOR_SUPPLY("vdd", "2-0063"),
+> +	/* lis3lv02d */
+> +	REGULATOR_SUPPLY("Vdd", "3-001d"),
+>  };
+> =20
+>  static struct regulator_init_data rx51_vaux1 =3D {
+> --=20
+> 1.7.10.4
+>=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
