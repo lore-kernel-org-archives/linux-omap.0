@@ -1,44 +1,45 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC v2] dmaengine: omap-dma: Start DMA without delay for
-	cyclic channels
-Date: Mon, 8 Apr 2013 18:09:56 +0100
-Message-ID: <20130408170956.GX30923@n2100.arm.linux.org.uk>
-References: <1364987862-14597-1-git-send-email-peter.ujfalusi@ti.com> <51626D88.8020809@ti.com>
+Subject: Re: [PATCHv3] driver: serial: prevent UART console idle on suspend
+	while using "no_console_suspend"
+Date: Mon, 8 Apr 2013 18:14:32 +0100
+Message-ID: <20130408171432.GY30923@n2100.arm.linux.org.uk>
+References: <1365167733-28083-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54379 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54390 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934769Ab3DHRKh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:10:37 -0400
+	with ESMTP id S934432Ab3DHROp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:14:45 -0400
 Content-Disposition: inline
-In-Reply-To: <51626D88.8020809@ti.com>
+In-Reply-To: <1365167733-28083-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Meerwald <pmeerw@pmeerw.net>
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
 
-On Mon, Apr 08, 2013 at 09:11:04AM +0200, Peter Ujfalusi wrote:
-> Russell,
+On Fri, Apr 05, 2013 at 06:45:33PM +0530, Sourav Poddar wrote:
+> With dt boot, uart wakeup after suspend is non functional while using
+> "no_console_suspend" in the bootargs. With "no_console_suspend" used, we
+> should prevent the runtime suspend of the uart port which is getting used
+> as an console.
 > 
-> On 04/03/2013 01:17 PM, Peter Ujfalusi wrote:
-> > cyclic DMA is only used by audio which needs DMA to be started without a
-> > delay.
-> > If the DMA for audio is started using the tasklet we experience random
-> > channel switch (to be more precise: channel shift).
-> > 
-> > Reported-by: Peter Meerwald <pmeerw@pmeerw.net>
-> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > ---
-> > Hi Russell,
-> > 
-> > Instead of removing the tasklet we can identify the DMA channel used by audio
-> > based on the cyclic flag of the channel.
-> > I think this can be used as a short term solution to fix the audio channel shift
-> > issue and later when we have the dynamic DMA channel allocation we can adjust
-> > the code.
+> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+> Cc: Felipe Balbi<balbi@ti.com>
+> Cc: Rajendra nayak<rnayak@ti.com>
+> Tested on omap5430evm, omap4430sdp.
 > 
-> Could you, please look at this patch?
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> ---
+> v2->v3
+> Based on Kevin Hilman and Santosh Shilimkar comments, modified
+> serial core/driver layer to bypass runtime suspend 
+> for console uart while using "no_console_suspend".
+> 
+> This patch is based on Santosh Shilimkar serial patch[1]
 
-Now that I'm back from a short 4 day break, then yes, and the answer is
-that it's fine.  Who's handling the patch?
+Rather than introducing this "port_is_console" thing, please move
+uart_console() into the serial_core.h header file, making it an inline
+function, and use that in omap-serial.c.
+
+Remember to fix drivers/tty/serial/mpc52xx_uart.c as well for that change.
