@@ -1,62 +1,76 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP4: PM: fix PM regression introduced by recent
- clock cleanup
-Date: Mon, 8 Apr 2013 16:23:32 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1304081617470.32105@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1302122026530.29149@utopia.booyaka.com> <5162B019.6050407@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 2/4] ARM: OMAP4+: PM: Consolidate OMAP4 PM code to
+ re-use it for OMAP5
+Date: Mon, 8 Apr 2013 09:42:28 -0700
+Message-ID: <20130408164228.GK10155@atomide.com>
+References: <1365166743-5940-1-git-send-email-santosh.shilimkar@ti.com>
+ <1365166743-5940-3-git-send-email-santosh.shilimkar@ti.com>
+ <20130405213433.GF10155@atomide.com>
+ <5162A093.7090808@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:56966 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934833Ab3DHQXd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 12:23:33 -0400
-In-Reply-To: <5162B019.6050407@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62769 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S935117Ab3DHQmb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 12:42:31 -0400
+Content-Disposition: inline
+In-Reply-To: <5162A093.7090808@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, j-keerthy@ti.com, b-cousson@ti.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
-
-On Mon, 8 Apr 2013, Kishon Vijay Abraham I wrote:
-
-> On Wednesday 13 February 2013 01:58 AM, Paul Walmsley wrote:
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130408 03:51]:
+> On Saturday 06 April 2013 03:04 AM, Tony Lindgren wrote:
+> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [130405 06:01]:
+> >> OMAP5 has backward compatible PRCM block and it's programming
+> >> model is mostly similar to OMAP4. Same is going to be maintained
+> >> for future OMAP4 based SOCs. Hence consolidate the OMAP4 power
+> >> management code so that it can be re-used on OMAP5 and later devices.
+> >>
+> >> While at it, update the kernel-doc for omap4_pm_init().
+> >>
+> >> Acked-by: Nishanth Menon <nm@ti.com>
+> >> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >> ---
+> >>  arch/arm/mach-omap2/Makefile                       |    9 +--
+> >>  arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c}   |   58 ++++++++++++++++----
+> >>  .../mach-omap2/{sleep44xx.S => sleep_omap4plus.S}  |    0
+> >>  3 files changed, 53 insertions(+), 14 deletions(-)
+> >>  rename arch/arm/mach-omap2/{pm44xx.c => pm_omap4plus.c} (83%)
+> >>  rename arch/arm/mach-omap2/{sleep44xx.S => sleep_omap4plus.S} (100%)
 > > 
-> > Commit 17b7e7d33530e2bbd3bdc90f4db09b91cfdde2bb ("ARM: OMAP4:
-> > clock/hwmod data: start to remove some IP block control "clocks"")
-> > introduced a regression preventing the L3INIT clockdomain of OMAP4
-> > systems from entering idle.  This in turn prevented these systems from
-> > entering full chip clock-stop.
+> > I suggest you leave out the rename. That just adds churn and has
+> > flame potential.
 > > 
-> > The regression was caused by the incorrect removal of a so-called
-> > "optional functional clock" from the OMAP4 clock data.  This wasn't
-> > caught for two reasons.  First, I missed the retention entry failure
-> > in the branch test logs:
-> > 
-> > http://www.pwsan.com/omap/testlogs/cleanup_a_3.9/20130126014242/pm/4460pandaes/4460pandaes_log.txt
-> > 
-> > Second, the integration data for the OCP2SCP PHY IP block, added by
-> > commit 0c6688753f9912c6a7013549ec31c8844020bbc1 ("ARM: OMAP4: hwmod
-> > data: add remaining USB-related IP blocks"), should have associated this
-> > clock with the IP block, but did not.
-> > 
-> > Fix by adding back the so-called "optional" functional clock to the
-> > clock data, and by linking that clock to the OCP2SCP PHY IP block
-> > integration hwmod data.
-> 
-> This patch breaks MUSB in OMAP4 panda. The 48M clock is modeled as main clk
-> [1] for ocp2scp so after doing get_sync, this optional clock gets enabled. But
-> after this patch, the optional clock seems to be not enabled after get_sync.
-> 
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2012-September/118285.html
-> (this patch is not directly merged but I guess the discussion here is taken
-> care of)
+> OK. I can leave that mow but have to do renames anyways when
+> I add OMAP5 support. OMAP54XX support inside pm44xx.c and sleep44x.S
+> will be really odd.
 
-The OMAP integration for the MUSB driver needs to clk_enable() and 
-clk_disable() its optional clock.  It's not correct to work around a 
-driver problem by changing the hardware description data - that data is 
-intended to be driver-neutral.
+Well that should be just fine if the hardware is the same.
+ 
+> Let me know if you have concern on renaming it while OMAP5 support
+> gets added ?
 
+If the rename is done, it should have a clear reason to do it in
+a separate patch. IMHO it's just fine to have omap4 in some name and
+then assume that at least some follow up SoCs also use that code.
+In the worst case we may end up renaming things many times:
 
-- Paul
+omap-xyz.c -> omap2-xyz.c -> omap2plus-xyz.c -> omap2-to-4-xyz.c ->
+omap2-to-4-and-am35xx-xyz.c etc :)
+
+If we rename something, the description should have a clear reason
+for doing it like "To avoid confusing between PM code that does not
+have support for bootrom assisted off-idle on SMP omaps with PM code
+that's not bootrom assisted, let's rename foo to.."
+
+For the naming, the only safe naming convention is to use something
+actually describing the piece of hardware. Maybe some combination
+of bootrom-assisted-off-idle + SMP in this case if there's no actual
+name for this hwblock?
+
+Regards,
+
+Tony
