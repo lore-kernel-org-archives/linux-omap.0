@@ -1,34 +1,64 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 3/3] omap gpmc changes for v3.10 merge window
-Date: Mon, 8 Apr 2013 19:54:54 +0200
-Message-ID: <201304081954.54959.arnd@arndb.de>
-References: <0MLQ4w-1UONym4BnO-000gHb@mx.kundenserver.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] mfd: twl4030-madc: Add support for raw value in
+ twl4030_madc_conversion
+Date: Mon, 8 Apr 2013 11:15:24 -0700
+Message-ID: <20130408181524.GU10155@atomide.com>
+References: <1360969010-8571-1-git-send-email-pali.rohar@gmail.com>
+ <201303022323.06091@pali>
+ <201303241503.29912@pali>
+ <201304041132.21158@pali>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:55866 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934750Ab3DHRzD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:55:03 -0400
-In-Reply-To: <0MLQ4w-1UONym4BnO-000gHb@mx.kundenserver.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201304041132.21158@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Anton Vorontsov <cbou@mail.ru>, Keerthy <j-keerthy@ti.com>, Kyle Manna <kyle@kylemanna.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thursday 04 April 2013, Tony Lindgren wrote:
-> GPMC updates from Jon Hunter <jon-hunter@ti.com>:
-> 
-> Adds GPMC (General Purpose Memory Controller) DT support for
-> NOR flash and Ethernet and includes various GPMC cleans-up
-> and fixes.
-> 
-> This series is dependent on commit 7185684 (ARM: OMAP: use
-> consistent error checking) from RMK's clean-up branch and commit
-> 31d9adc (ARM: OMAP2+: Fix broken gpmc support).
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130404 02:37]:
+> On Sunday 24 March 2013 15:03:29 Pali Roh=C3=A1r wrote:
+> > On Saturday 02 March 2013 23:23:05 Pali Roh=C3=A1r wrote:
+> > > On Friday 15 February 2013 23:56:49 Pali Roh=C3=A1r wrote:
+> > > > Driver twl4030-madc has hardcoded channel types (10 -
+> > > > battery current, 1 - battery temperature) and also
+> > > > conversation data in variable twl4030_divider_ratios.
+> > > > These hardcoded channels are incorrect for Nokia RX-51
+> > > > board (where is channel 0 - battery temperature).
+> > > >=20
+> > > > For Nokia RX-51 there is rx51_battery power_supply driver
+> > > > which reporting battery information via
+> > > > twl4030_madc_conversion. But this driver needs raw values
+> > > > (not converted via some hardcoded functions). So this
+> > > > patch adding new parameter "raw" to struct
+> > > > twl4030_madc_request which tell twl4030-madc driver to
+> > > > not convert values, but rather return raw.
+> > > >=20
+> > > > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> > > > ---
+> > > >=20
+> > > >  drivers/mfd/twl4030-madc.c       |   14 ++++++++++----
+> > > >  include/linux/i2c/twl4030-madc.h |    2 ++
+> > > >  2 files changed, 12 insertions(+), 4 deletions(-)
+> > >=20
+> > > Hello, can somebody review this twl4030-madc patch?
+> >=20
+> > Bump.
+> >=20
+> > Can some of mfd maintainers look at this patch and include it
+> > to mfd tree? It is needed for rx51_battery power supply
+> > driver.
+>=20
+> CCing Tony, can you look at this patch?
 
-Pulled into the next/drivers branch, thanks!
+Sorry for the delay in replying, I've been going through my
+inbox for the merge window and noticed this.
 
-	Arnd
+I suggest resend with Peter Ujfalusi cc:d as he is the de-facto
+twl/tps maintainer and expert by now.
+
+Regards,
+
+Tony
