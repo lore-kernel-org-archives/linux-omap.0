@@ -1,55 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC v2] dmaengine: omap-dma: Start DMA without delay for
- cyclic channels
-Date: Mon, 8 Apr 2013 10:15:19 -0700
-Message-ID: <20130408171519.GP10155@atomide.com>
-References: <1364987862-14597-1-git-send-email-peter.ujfalusi@ti.com>
- <51626D88.8020809@ti.com>
- <20130408170956.GX30923@n2100.arm.linux.org.uk>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL 1/3] omap usb platform init changes for v3.10 merge window
+Date: Mon, 8 Apr 2013 19:29:21 +0200
+Message-ID: <201304081929.21834.arnd@arndb.de>
+References: <pull-1365104396-577667>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42524 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S934558Ab3DHRPi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:15:38 -0400
-Content-Disposition: inline
-In-Reply-To: <20130408170956.GX30923@n2100.arm.linux.org.uk>
+Received: from moutng.kundenserver.de ([212.227.17.9]:57059 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935014Ab3DHR31 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:29:27 -0400
+In-Reply-To: <pull-1365104396-577667>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Meerwald <pmeerw@pmeerw.net>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [130408 10:15]:
-> On Mon, Apr 08, 2013 at 09:11:04AM +0200, Peter Ujfalusi wrote:
-> > Russell,
-> > 
-> > On 04/03/2013 01:17 PM, Peter Ujfalusi wrote:
-> > > cyclic DMA is only used by audio which needs DMA to be started without a
-> > > delay.
-> > > If the DMA for audio is started using the tasklet we experience random
-> > > channel switch (to be more precise: channel shift).
-> > > 
-> > > Reported-by: Peter Meerwald <pmeerw@pmeerw.net>
-> > > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > > ---
-> > > Hi Russell,
-> > > 
-> > > Instead of removing the tasklet we can identify the DMA channel used by audio
-> > > based on the cyclic flag of the channel.
-> > > I think this can be used as a short term solution to fix the audio channel shift
-> > > issue and later when we have the dynamic DMA channel allocation we can adjust
-> > > the code.
-> > 
-> > Could you, please look at this patch?
+On Thursday 04 April 2013, Tony Lindgren wrote:
+> b05a674d73e4eb314fa1b6c78e37aef1:
 > 
-> Now that I'm back from a short 4 day break, then yes, and the answer is
-> that it's fine.  Who's handling the patch?
+>   usb: phy: nop: Add some parameters to platform data (2013-03-18 11:13:54 +0200)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/usb-signed
+> 
+> for you to fetch changes up to 2e5f78aeceb6f203b514ca03a48e3fd056025524:
+> 
+>   ARM: dts: omap3-beagle: Add USB Host support (2013-04-02 10:00:04 -0700)
+> 
+> ----------------------------------------------------------------
+> EHCI platform data related changes for v3.10 merge window.
+> These are needed for the USB PHY support, and are based on
+> commit 1f0972f5 from Felipe Balbi's tree as agreed on the
+> mailing lists.
 
-I suggest Peter resend the patch with also Grant + Linus W cc:d so
-they can queue it unless there are other related patches pending
-somewhere else.
+Pulled into next/drivers branch.
 
-Regards,
-
-Tony
+	Arnd
