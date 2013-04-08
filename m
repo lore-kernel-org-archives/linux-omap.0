@@ -1,40 +1,41 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 6/8] staging: ti-soc-thermal: remove extrapolation rules from TODO
-Date: Mon, 8 Apr 2013 08:19:12 -0400
-Message-ID: <1365423555-2669-7-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCH 8/8] staging: ti-soc-thermal: fix device removal
+Date: Mon, 8 Apr 2013 08:19:14 -0400
+Message-ID: <1365423555-2669-9-git-send-email-eduardo.valentin@ti.com>
 References: <1365423555-2669-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43970 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935283Ab3DHMWJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Apr 2013 08:22:09 -0400
+Return-path: <linux-pm-owner@vger.kernel.org>
 In-Reply-To: <1365423555-2669-1-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-pm-owner@vger.kernel.org
 To: gregkh@linuxfoundation.org
 Cc: devel@driverdev.osuosl.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Extrapolation rules have been revisited.
+While removing, the device needs to unregister
+the sensor from thermal framework. Before
+calling the call back the driver needs to check
+if the call back is registered. This patch
+fix the check by checking the right callback.
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/staging/ti-soc-thermal/TODO |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/staging/ti-soc-thermal/ti-bandgap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/staging/ti-soc-thermal/TODO b/drivers/staging/ti-soc-thermal/TODO
-index b320388..7da787d 100644
---- a/drivers/staging/ti-soc-thermal/TODO
-+++ b/drivers/staging/ti-soc-thermal/TODO
-@@ -4,7 +4,6 @@ on ti-bandgap.c:
- - Revisit PM support
+diff --git a/drivers/staging/ti-soc-thermal/ti-bandgap.c b/drivers/staging/ti-soc-thermal/ti-bandgap.c
+index 37fdba6..f20c1cf 100644
+--- a/drivers/staging/ti-soc-thermal/ti-bandgap.c
++++ b/drivers/staging/ti-soc-thermal/ti-bandgap.c
+@@ -1369,7 +1369,7 @@ int ti_bandgap_remove(struct platform_device *pdev)
  
- on ti-thermal-common.c/ti-thermal.h:
--- Revisit extrapolation constants for O4/O5
- - Revisit need for locking
+ 	/* First thing is to remove sensor interfaces */
+ 	for (i = 0; i < bgp->conf->sensor_count; i++) {
+-		if (bgp->conf->sensors[i].register_cooling)
++		if (bgp->conf->sensors[i].unregister_cooling)
+ 			bgp->conf->sensors[i].unregister_cooling(bgp, i);
  
- generally:
+ 		if (bgp->conf->remove_sensor)
 -- 
 1.7.7.1.488.ge8e1c
 
