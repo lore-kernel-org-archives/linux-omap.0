@@ -1,92 +1,57 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 3/3] ARM: dts: Add OMAP3430 SDP NOR flash memory binding
-Date: Sun, 7 Apr 2013 20:17:08 -0500
-Message-ID: <1365383828-25627-3-git-send-email-jon-hunter@ti.com>
-References: <1365383828-25627-1-git-send-email-jon-hunter@ti.com>
+From: Mail Delivery Subsystem <postmaster@mail.telenor.dk>
+Subject: Rejected: Delivery reports about your e-mail
+Date: Mon, 08 Apr 2013 07:11:29 +0200
+Message-ID: <dovecot-1365397889-735737-0@uf7.cybercity.dk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/report; report-type=disposition-notification;
+	boundary="11320/uf7.cybercity.dk"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52715 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934511Ab3DHBR3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 7 Apr 2013 21:17:29 -0400
-In-Reply-To: <1365383828-25627-1-git-send-email-jon-hunter@ti.com>
+Received: from smtp1.cybercity.dk ([212.242.43.251]:26260 "EHLO
+	smtp1.cybercity.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123Ab3DHFLc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 01:11:32 -0400
+Received: from uf7.cybercity.dk (uf7.cybercity.dk [212.242.42.164])
+	by smtp1.cybercity.dk (Postfix) with ESMTP id 0F7DF1088C9
+	for <linux-omap@vger.kernel.org>; Mon,  8 Apr 2013 07:11:30 +0200 (CEST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
+To: linux-omap@vger.kernel.org
 
-Add device-tree node for the 128MB NOR on the OMAP3423-SDP board.
+This is a MIME-encapsulated message
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/boot/dts/omap3430-sdp.dts |   51 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 50 insertions(+), 1 deletion(-)
+--11320/uf7.cybercity.dk
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
-index 44d2191..144ae43 100644
---- a/arch/arm/boot/dts/omap3430-sdp.dts
-+++ b/arch/arm/boot/dts/omap3430-sdp.dts
-@@ -45,9 +45,58 @@
- };
- 
- &gpmc {
--	ranges = <1 0 0x28000000 0x08000000>,
-+	ranges = <0 0 0x10000000 0x08000000>,
-+		 <1 0 0x28000000 0x08000000>,
- 		 <2 0 0x20000000 0x10000000>;
- 
-+	nor@0,0 {
-+		compatible = "cfi-flash";
-+		linux,mtd-name= "intel,pf48f6000m0y1be";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		reg = <0 0 0x08000000>;
-+		bank-width = <2>;
-+
-+		gpmc,mux-add-data = <2>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <186>;
-+		gpmc,cs-wr-off-ns = <186>;
-+		gpmc,adv-on-ns = <12>;
-+		gpmc,adv-rd-off-ns = <48>;
-+		gpmc,adv-wr-off-ns = <48>;
-+		gpmc,oe-on-ns = <54>;
-+		gpmc,oe-off-ns = <168>;
-+		gpmc,we-on-ns = <54>;
-+		gpmc,we-off-ns = <168>;
-+		gpmc,rd-cycle-ns = <186>;
-+		gpmc,wr-cycle-ns = <186>;
-+		gpmc,access-ns = <114>;
-+		gpmc,page-burst-access-ns = <6>;
-+		gpmc,bus-turnaround-ns = <12>;
-+		gpmc,cycle2cycle-delay-ns = <18>;
-+		gpmc,wr-data-mux-bus-ns = <90>;
-+		gpmc,wr-access-ns = <186>;
-+		gpmc,cycle2cycle-samecsen;
-+		gpmc,cycle2cycle-diffcsen;
-+
-+		partition@0 {
-+			label = "bootloader-nor";
-+			reg = <0 0x40000>;
-+		};
-+		partition@0x40000 {
-+			label = "params-nor";
-+			reg = <0x40000 0x40000>;
-+		};
-+		partition@0x80000 {
-+			label = "kernel-nor";
-+			reg = <0x80000 0x200000>;
-+		};
-+		partition@0x280000 {
-+			label = "filesystem-nor";
-+			reg = <0x240000 0x7d80000>;
-+		};
-+	};
-+
- 	nand@1,0 {
- 		linux,mtd-name= "micron,mt29f1g08abb";
- 		#address-cells = <1>;
--- 
-1.7.10.4
+Your message to <numis@vip.cybercity.dk> was automatically rejected:
+Quota exceeded (mailbox for user is full)
+--11320/uf7.cybercity.dk
+Content-Type: message/disposition-notification
 
+Reporting-UA: uf7.cybercity.dk; Dovecot Mail Delivery Agent
+Final-Recipient: rfc822; numis@vip.cybercity.dk
+Disposition: automatic-action/MDN-sent-automatically; deleted
+
+
+--11320/uf7.cybercity.dk
+Content-Type: message/rfc822
+
+Return-Path: <linux-omap@vger.kernel.org>
+Delivered-To: numis@vip.cybercity.dk
+Received: from vger.kernel.org (unknown [59.37.252.99])
+	by uf7.cybercity.dk (Postfix) with ESMTP id CFD113F437
+	for <numis@vip.cybercity.dk>; Mon,  8 Apr 2013 07:11:27 +0200 (CEST)
+From: linux-omap@vger.kernel.org
+To: numis@vip.cybercity.dk
+Subject: Delivery reports about your e-mail
+Date: Mon, 8 Apr 2013 13:07:03 +0800
+MIME-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+
+
+
+--11320/uf7.cybercity.dk--
