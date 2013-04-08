@@ -1,76 +1,120 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 5/8] staging: ti-soc-thermal: update OMAP5 extrapolation rules
-Date: Mon, 8 Apr 2013 08:19:11 -0400
-Message-ID: <1365423555-2669-6-git-send-email-eduardo.valentin@ti.com>
-References: <1365423555-2669-1-git-send-email-eduardo.valentin@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 1/3] ARM: dts: Update OMAP3430 SDP NAND and ONENAND properties
+Date: Mon, 8 Apr 2013 14:12:44 +0200
+Message-ID: <5162B43C.5000307@ti.com>
+References: <1365383828-25627-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37044 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935569Ab3DHMVt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 08:21:49 -0400
-In-Reply-To: <1365423555-2669-1-git-send-email-eduardo.valentin@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43281 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759763Ab3DHMMy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Apr 2013 08:12:54 -0400
+In-Reply-To: <1365383828-25627-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: gregkh@linuxfoundation.org
-Cc: devel@driverdev.osuosl.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Update the constants to the correct hotspot extrapolation
-equation constants. OMAP4 constants are revisited and correct.
+Hi Jon,
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- .../staging/ti-soc-thermal/omap5-thermal-data.c    |    1 -
- drivers/staging/ti-soc-thermal/ti-thermal.h        |   16 ++++++++--------
- 2 files changed, 8 insertions(+), 9 deletions(-)
+On 04/08/2013 03:17 AM, Jon Hunter wrote:
+> The GPMC timing properties for device-tree have been updated by adding
+> a "-ns" or "-ps" suffix to indicate the units of time the property
+> represents (as suggested by Rob Herring). Therefore, update the timing
+> property names for the OMAP3430 SDP NAND and ONENAND devices.
+> 
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+> 
+> Hi Benoit, this is a changed that is going to be introduced for v3.10.
+> Feel free to squash this with the patch "ARM: dts: OMAP3: Add support
+> for OMAP3430 SDP board" that you have queued for v3.10 if you prefer.
 
-diff --git a/drivers/staging/ti-soc-thermal/omap5-thermal-data.c b/drivers/staging/ti-soc-thermal/omap5-thermal-data.c
-index f170211..eff0c80 100644
---- a/drivers/staging/ti-soc-thermal/omap5-thermal-data.c
-+++ b/drivers/staging/ti-soc-thermal/omap5-thermal-data.c
-@@ -314,7 +314,6 @@ omap5430_adc_to_temp[
- };
- 
- /* OMAP54xx ES2.0 data */
--/* TODO : Need to update the slope/constant for ES2.0 silicon */
- const struct ti_bandgap_data omap5430_data = {
- 	.features = TI_BANDGAP_FEATURE_TSHUT_CONFIG |
- 			TI_BANDGAP_FEATURE_FREEZE_BIT |
-diff --git a/drivers/staging/ti-soc-thermal/ti-thermal.h b/drivers/staging/ti-soc-thermal/ti-thermal.h
-index 47cc902..5055777 100644
---- a/drivers/staging/ti-soc-thermal/ti-thermal.h
-+++ b/drivers/staging/ti-soc-thermal/ti-thermal.h
-@@ -33,10 +33,10 @@
- #define OMAP_GRADIENT_SLOPE_4470				308
- #define OMAP_GRADIENT_CONST_4470				-7896
- 
--#define OMAP_GRADIENT_SLOPE_5430_CPU				196
--#define OMAP_GRADIENT_CONST_5430_CPU				-6822
--#define OMAP_GRADIENT_SLOPE_5430_GPU				64
--#define OMAP_GRADIENT_CONST_5430_GPU				978
-+#define OMAP_GRADIENT_SLOPE_5430_CPU				65
-+#define OMAP_GRADIENT_CONST_5430_CPU				-1791
-+#define OMAP_GRADIENT_SLOPE_5430_GPU				117
-+#define OMAP_GRADIENT_CONST_5430_GPU				-2992
- 
- /* PCB sensor calculation constants */
- #define OMAP_GRADIENT_SLOPE_W_PCB_4430				0
-@@ -46,10 +46,10 @@
- #define OMAP_GRADIENT_SLOPE_W_PCB_4470				1063
- #define OMAP_GRADIENT_CONST_W_PCB_4470				-477
- 
--#define OMAP_GRADIENT_SLOPE_W_PCB_5430_CPU			469
--#define OMAP_GRADIENT_CONST_W_PCB_5430_CPU			-1272
--#define OMAP_GRADIENT_SLOPE_W_PCB_5430_GPU			378
--#define OMAP_GRADIENT_CONST_W_PCB_5430_GPU			154
-+#define OMAP_GRADIENT_SLOPE_W_PCB_5430_CPU			100
-+#define OMAP_GRADIENT_CONST_W_PCB_5430_CPU			484
-+#define OMAP_GRADIENT_SLOPE_W_PCB_5430_GPU			464
-+#define OMAP_GRADIENT_CONST_W_PCB_5430_GPU			-5102
- 
- /* trip points of interest in milicelsius (at hotspot level) */
- #define OMAP_TRIP_COLD						100000
--- 
-1.7.7.1.488.ge8e1c
+I applied them like that. I did not want to rebase again the whole series.
+
+
+Regards,
+Benoit
+
+
+>  arch/arm/boot/dts/omap3430-sdp.dts |   56 ++++++++++++++++++------------------
+>  1 file changed, 28 insertions(+), 28 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
+> index 05cd8ba..44d2191 100644
+> --- a/arch/arm/boot/dts/omap3430-sdp.dts
+> +++ b/arch/arm/boot/dts/omap3430-sdp.dts
+> @@ -57,20 +57,20 @@
+>  
+>  		ti,nand-ecc-opt = "sw";
+>  		gpmc,device-nand;
+> -		gpmc,cs-on = <0>;
+> -		gpmc,cs-rd-off = <36>;
+> -		gpmc,cs-wr-off = <36>;
+> -		gpmc,adv-on = <6>;
+> -		gpmc,adv-rd-off = <24>;
+> -		gpmc,adv-wr-off = <36>;
+> -		gpmc,oe-on = <6>;
+> -		gpmc,oe-off = <48>;
+> -		gpmc,we-on = <6>;
+> -		gpmc,we-off = <30>;
+> -		gpmc,rd-cycle = <72>;
+> -		gpmc,wr-cycle = <72>;
+> -		gpmc,access = <54>;
+> -		gpmc,wr-access = <30>;
+> +		gpmc,cs-on-ns = <0>;
+> +		gpmc,cs-rd-off-ns = <36>;
+> +		gpmc,cs-wr-off-ns = <36>;
+> +		gpmc,adv-on-ns = <6>;
+> +		gpmc,adv-rd-off-ns = <24>;
+> +		gpmc,adv-wr-off-ns = <36>;
+> +		gpmc,oe-on-ns = <6>;
+> +		gpmc,oe-off-ns = <48>;
+> +		gpmc,we-on-ns = <6>;
+> +		gpmc,we-off-ns = <30>;
+> +		gpmc,rd-cycle-ns = <72>;
+> +		gpmc,wr-cycle-ns = <72>;
+> +		gpmc,access-ns = <54>;
+> +		gpmc,wr-access-ns = <30>;
+>  
+>  		partition@0 {
+>  			label = "xloader-nand";
+> @@ -102,20 +102,20 @@
+>  
+>  		gpmc,device-width = <2>;
+>  		gpmc,mux-add-data = <2>;
+> -		gpmc,cs-on = <0>;
+> -		gpmc,cs-rd-off = <84>;
+> -		gpmc,cs-wr-off = <72>;
+> -		gpmc,adv-on = <0>;
+> -		gpmc,adv-rd-off = <18>;
+> -		gpmc,adv-wr-off = <18>;
+> -		gpmc,oe-on = <30>;
+> -		gpmc,oe-off = <84>;
+> -		gpmc,we-on = <0>;
+> -		gpmc,we-off = <42>;
+> -		gpmc,rd-cycle = <108>;
+> -		gpmc,wr-cycle = <96>;
+> -		gpmc,access = <78>;
+> -		gpmc,wr-data-mux-bus = <30>;
+> +		gpmc,cs-on-ns = <0>;
+> +		gpmc,cs-rd-off-ns = <84>;
+> +		gpmc,cs-wr-off-ns = <72>;
+> +		gpmc,adv-on-ns = <0>;
+> +		gpmc,adv-rd-off-ns = <18>;
+> +		gpmc,adv-wr-off-ns = <18>;
+> +		gpmc,oe-on-ns = <30>;
+> +		gpmc,oe-off-ns = <84>;
+> +		gpmc,we-on-ns = <0>;
+> +		gpmc,we-off-ns = <42>;
+> +		gpmc,rd-cycle-ns = <108>;
+> +		gpmc,wr-cycle-ns = <96>;
+> +		gpmc,access-ns = <78>;
+> +		gpmc,wr-data-mux-bus-ns = <30>;
+>  
+>  		partition@0 {
+>  			label = "xloader-onenand";
+> 
 
