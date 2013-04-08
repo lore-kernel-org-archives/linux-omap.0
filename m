@@ -1,63 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V3 1/2] ARM: OMAP: board-4430sdp: Provide regulator to
- pwm-backlight
-Date: Mon, 8 Apr 2013 15:16:57 -0700
-Message-ID: <20130408221657.GC10155@atomide.com>
-References: <1363214006-10662-1-git-send-email-achew@nvidia.com>
- <1363214006-10662-2-git-send-email-achew@nvidia.com>
- <20130408214624.GZ10155@atomide.com>
- <20130408215616.GA25124@avionic-0098.mockup.avionic-design.de>
+Subject: Re: [PATCH] omap2+: Remove useless Makefile line
+Date: Mon, 8 Apr 2013 15:17:32 -0700
+Message-ID: <20130408221732.GD10155@atomide.com>
+References: <1365156749.1830.60.camel@x61.thuisdomein>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32778 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934888Ab3DHWRD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 18:17:03 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42148 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S934846Ab3DHWRl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 18:17:41 -0400
 Content-Disposition: inline
-In-Reply-To: <20130408215616.GA25124@avionic-0098.mockup.avionic-design.de>
+In-Reply-To: <1365156749.1830.60.camel@x61.thuisdomein>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Andrew Chew <achew@nvidia.com>, peter.ujfalusi@ti.com, acourbot@nvidia.com, linux-omap@vger.kernel.org
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Thierry Reding <thierry.reding@avionic-design.de> [130408 15:01]:
-> On Mon, Apr 08, 2013 at 02:46:24PM -0700, Tony Lindgren wrote:
-> > * Andrew Chew <achew@nvidia.com> [130313 15:37]:
-> > > The pwm-backlight driver now takes a mandatory regulator that is gotten
-> > > during driver probe.  Initialize a dummy regulator to satisfy this
-> > > requirement.
-> > > 
-> > > Signed-off-by: Andrew Chew <achew@nvidia.com>
-> > > ---
-> > > Changed the device name of the backlight regulator supply to "pwm-backlight",
-> > > per Peter's comment.
-> > > 
-> > > Changed the name of the regulator to "backlight-enable", per Thierry's
-> > > suggestion.
-> > 
-> > Thanks applying into omap-for-v3.10/board. Note that I'm not taking the
-> > second one, that should be resent to the related driver maintainers.
-> > You can get that list by running scripts/get_maintainer.pl against it.
-> 
-> The plan was to take these all through one tree, preferably the PWM tree
-> because it's all PWM related and the pwm-backlight change will go
-> through that tree as well. Technically these individual patches can be
-> applied as is and aren't harmful, but keeping track of the dependencies
-> might be difficult if they go in via separate trees.
+* Paul Bolle <pebolle@tiscali.nl> [130405 03:17]:
+> Commit f41caddbe73f52a42f529d668ce47b4d693fd2c0 ("omap2+: Use Kconfig
+> symbol in Makefile instead of obj-y") reorganized this Makefile. But,
+> for some reason, it also added references to CONFIG_MACH_ENCORE and
+> board-omap3encore.o. But there's no Kconfig symbol MACH_ENCORE and
+> there's no file board-omap3encore.c. This line can safely be removed.
 
-Registering the regulator alone should not do anything. Also the driver
-should do the right thing if the regulator is not yet registered.
-
-Can you please check your driver patch so the driver won't do anything
-if the regulator is not (yet) registered and repost it alone as I've
-already applied the board-*.c change.
-
-The reason why we want to do queue these patches separately is to cut
-away the dependency between drivers and the core arch/arm changes. 
-Otherwise we'll end up with pointless merge conflicts as we've seen
-earlier several times with the USB patches for example.
-
-Regards,
+Thanks applying into omap-for-v3.10/board.
 
 Tony
+ 
+> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+> ---
+>  arch/arm/mach-omap2/Makefile | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index b068b7f..3d0697c 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -229,7 +229,6 @@ obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o
+>  obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o
+>  obj-$(CONFIG_MACH_OMAP3530_LV_SOM)      += board-omap3logic.o
+>  obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o
+> -obj-$(CONFIG_MACH_ENCORE)		+= board-omap3encore.o
+>  obj-$(CONFIG_MACH_OVERO)		+= board-overo.o
+>  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
+>  obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
+> -- 
+> 1.7.11.7
+> 
+> 
+> 
