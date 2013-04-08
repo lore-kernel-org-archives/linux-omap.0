@@ -1,46 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 0/3] ARM: OMAP2+: Add command line parameter for
- debugSS module control
-Date: Mon, 8 Apr 2013 10:30:53 -0700
-Message-ID: <20130408173052.GR10155@atomide.com>
-References: <hvaibhav@ti.com>
- <1362396957-30113-1-git-send-email-hvaibhav@ti.com>
- <79CD15C6BA57404B839C016229A409A83EC281C1@DBDE01.ent.ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL 2/3] omap timer changes for v3.10 merge window
+Date: Mon, 8 Apr 2013 19:36:56 +0200
+Message-ID: <201304081936.56288.arnd@arndb.de>
+References: <0LdWUM-1V6HSB0nzO-00i0Xm@mx.kundenserver.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26305 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S934759Ab3DHRay (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:30:54 -0400
-Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EC281C1@DBDE01.ent.ti.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:53806 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752559Ab3DHRhE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:37:04 -0400
+In-Reply-To: <0LdWUM-1V6HSB0nzO-00i0Xm@mx.kundenserver.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@linaro.org" <khilman@linaro.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [130314 04:33]:
-> > From: Hiremath, Vaibhav
-> > This patch introduces new kernel parameter "omap_debugss_en",
-> > which will allow user to control debugSS module enable/disable
-> > part during boot-time.
-> > 
-> > In case of OMAP3, the debugSS is part of EMU domain and
-> > is currently controlled by clock tree alone.
-> > 
-> > In case of OMAP4, the debugSS is part of EMU domain and
-> > is currently controlled by clock tree, as MODULEMODE_SWCTRL
-> > is not defined for hwmod.
-> > 
-> > In case of AM335x, the debugSS is in wakeup domain and is currently
-> > controlled through hwmod alone. Currently we keep it always enabled.
+On Thursday 04 April 2013, Tony Lindgren wrote:
+> Clean-up for omap2+ timers from Jon Hunter <jon-hunter@ti.com>:
 > 
-> Any comments or input on this patch series?
+> This series consists mainly of clean-ups for clockevents and
+> clocksource timers on OMAP2+ devices. The most significant change
+> in functionality comes from the 5th patch which is changing the
+> selection of the clocksource timer for OMAP3 and AM335x devices
+> when gptimers are used for clocksource.
+> 
+> Note that this series depends on 7185684 (ARM: OMAP: use
+> consistent error checking) in RMK's tree and 960cba6 (ARM:
+> OMAP5: timer: Update the clocksource name as per clock data)
+> in omap-for-v3.10/fixes-non-critical. So this branch is based
+> on a merge of 7185684 and omap-for-v3.10/fixes-non-critical
+> to avoid non-trivial merge conflicts.
+> 
 
-No comments on adding the clocks, but the enabling of
-them should be just a regular device driver.
+Pulled into next/drivers, thanks!
 
-Regards,
+Do you have a URL for a stable branch containing 7185684
+that we can list in our branch description file?
 
-Tony
+	Arnd
