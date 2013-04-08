@@ -1,39 +1,63 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 1/1] of/irq: store IRQ trigger/level in struct resource
- flags
-Date: Mon, 08 Apr 2013 16:16:15 -0600
-Message-ID: <516341AF.7030207@wwwdotorg.org>
-References: <1365148088-11175-1-git-send-email-javier.martinez@collabora.co.uk> <51633F26.7000400@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V3 1/2] ARM: OMAP: board-4430sdp: Provide regulator to
+ pwm-backlight
+Date: Mon, 8 Apr 2013 15:16:57 -0700
+Message-ID: <20130408221657.GC10155@atomide.com>
+References: <1363214006-10662-1-git-send-email-achew@nvidia.com>
+ <1363214006-10662-2-git-send-email-achew@nvidia.com>
+ <20130408214624.GZ10155@atomide.com>
+ <20130408215616.GA25124@avionic-0098.mockup.avionic-design.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:51392 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935124Ab3DHWQS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 18:16:18 -0400
-In-Reply-To: <51633F26.7000400@gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32778 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934888Ab3DHWRD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 18:17:03 -0400
+Content-Disposition: inline
+In-Reply-To: <20130408215616.GA25124@avionic-0098.mockup.avionic-design.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Stephen Warren <swarren@nvidia.com>, devicetree-discuss@lists.ozlabs.org, Rob Herring <rob.herring@calxeda.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Andrew Chew <achew@nvidia.com>, peter.ujfalusi@ti.com, acourbot@nvidia.com, linux-omap@vger.kernel.org
 
-On 04/08/2013 04:05 PM, Rob Herring wrote:
-> On 04/05/2013 02:48 AM, Javier Martinez Canillas wrote:
->> According to Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
->> the "#interrupt-cells" property of an "interrupt-controller" is used
->> to define the number of cells needed to specify a single interrupt.
-...
->> But the type is never returned so it can't be saved on the IRQ struct
->> resource flags member.
->>
->> This means that drivers that need the IRQ type/level flags defined in
->> the DT won't be able to get it.
+* Thierry Reding <thierry.reding@avionic-design.de> [130408 15:01]:
+> On Mon, Apr 08, 2013 at 02:46:24PM -0700, Tony Lindgren wrote:
+> > * Andrew Chew <achew@nvidia.com> [130313 15:37]:
+> > > The pwm-backlight driver now takes a mandatory regulator that is gotten
+> > > during driver probe.  Initialize a dummy regulator to satisfy this
+> > > requirement.
+> > > 
+> > > Signed-off-by: Andrew Chew <achew@nvidia.com>
+> > > ---
+> > > Changed the device name of the backlight regulator supply to "pwm-backlight",
+> > > per Peter's comment.
+> > > 
+> > > Changed the name of the regulator to "backlight-enable", per Thierry's
+> > > suggestion.
+> > 
+> > Thanks applying into omap-for-v3.10/board. Note that I'm not taking the
+> > second one, that should be resent to the related driver maintainers.
+> > You can get that list by running scripts/get_maintainer.pl against it.
 > 
-> But the interrupt controllers that need the information should be able
-> to get to it via irqd_get_trigger_type. What problem exactly are you
-> trying to fix? What driver would use this?
+> The plan was to take these all through one tree, preferably the PWM tree
+> because it's all PWM related and the pwm-backlight change will go
+> through that tree as well. Technically these individual patches can be
+> applied as is and aren't harmful, but keeping track of the dependencies
+> might be difficult if they go in via separate trees.
 
-FYI, that is indeed what I did in sound/soc/codecs/wm8903.c. Thinking
-back, I'm not sure if that was the right thing or whether I should have
-sent this same patch:-)
+Registering the regulator alone should not do anything. Also the driver
+should do the right thing if the regulator is not yet registered.
+
+Can you please check your driver patch so the driver won't do anything
+if the regulator is not (yet) registered and repost it alone as I've
+already applied the board-*.c change.
+
+The reason why we want to do queue these patches separately is to cut
+away the dependency between drivers and the core arch/arm changes. 
+Otherwise we'll end up with pointless merge conflicts as we've seen
+earlier several times with the USB patches for example.
+
+Regards,
+
+Tony
