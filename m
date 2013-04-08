@@ -1,89 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 00/21] ARM: OMAP2+: Adapt to ehci-omap changes for
- 3.10
-Date: Mon, 8 Apr 2013 10:09:14 -0700
-Message-ID: <20130408170914.GO10155@atomide.com>
-References: <1363794300-31526-1-git-send-email-rogerq@ti.com>
- <515E8B99.8080803@ti.com>
- <515E9FB1.2040803@ti.com>
- <20130405154259.GZ10155@atomide.com>
- <5162B2D3.6070007@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP4: PM: fix PM regression introduced by recent
+ clock cleanup
+Date: Mon, 8 Apr 2013 17:09:41 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1304081704380.32105@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1302122026530.29149@utopia.booyaka.com> <5162B019.6050407@ti.com> <alpine.DEB.2.00.1304081617470.32105@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61771 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760109Ab3DHRJR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:09:17 -0400
-Content-Disposition: inline
-In-Reply-To: <5162B2D3.6070007@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:57392 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934674Ab3DHRJl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:09:41 -0400
+In-Reply-To: <alpine.DEB.2.00.1304081617470.32105@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, j-keerthy@ti.com, b-cousson@ti.com
 
-* Benoit Cousson <b-cousson@ti.com> [130408 05:11]:
-> Hi Tony,
+On Mon, 8 Apr 2013, Paul Walmsley wrote:
+
+> On Mon, 8 Apr 2013, Kishon Vijay Abraham I wrote:
 > 
-> On 04/05/2013 05:43 PM, Tony Lindgren wrote:
-> > * Benoit Cousson <b-cousson@ti.com> [130405 03:00]:
-> >> On 04/05/2013 10:30 AM, Benoit Cousson wrote:
-> >>
-> >> ...
-> >>
-> >>>>   ARM: dts: OMAP4: Add HS USB Host IP nodes
-> >>>>   ARM: dts: OMAP3: Add HS USB Host IP nodes
-> >>>>   ARM: dts: omap3-beagle: Add USB Host support
-> >>>
-> >>> These 3 DTS patches are good to me, but I cannot applied them on top of
-> >>> the already existing patches I queued for 3.10.
-> >>>
-> >>> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
-> >>> for_3.10/dts
-> >>>
-> >>> Could you rebase these 3 ones only, and I will applied them.
-> >>
-> >> Mmm, in fact, I've just seen the pull request from Tony :-(
-> >>
-> >>
-> >> Tony,
-> >>
-> >> Don't you want to remove these DTS patches from the pull-request?
+> > On Wednesday 13 February 2013 01:58 AM, Paul Walmsley wrote:
+> > > 
+> > > Commit 17b7e7d33530e2bbd3bdc90f4db09b91cfdde2bb ("ARM: OMAP4:
+> > > clock/hwmod data: start to remove some IP block control "clocks"")
+> > > introduced a regression preventing the L3INIT clockdomain of OMAP4
+> > > systems from entering idle.  This in turn prevented these systems from
+> > > entering full chip clock-stop.
+> > > integration hwmod data.
 > > 
-> > Oops sorry :( Looks like I applied them mistakenly as I saved all
-> > the patches into a mbox, then applied it. Anyways, too late to start
-> > messing with it now.
-> >  
-> >> Otherwise, I will have to rebase the whole DTS series on top of yours.
-> >> That being said, if the branch is not supposed to be rebased, it is doable.
+> > This patch breaks MUSB in OMAP4 panda. The 48M clock is modeled as main clk
+> > [1] for ocp2scp so after doing get_sync, this optional clock gets enabled. But
+> > after this patch, the optional clock seems to be not enabled after get_sync.
 > > 
-> > I pulled in your for_3.10/dts for testing, and to me it looks like
-> > it's just overlapping additions. So that should be OK to resolve while
-> > pulling it in.
-> > 
-> > It seems there's no need to add omap-for-v3.10/usb as a dependency for
-> > your for_3.10/dts unless the conflict gets non-trivial with some
-> > additional patches.
+> > http://lists.infradead.org/pipermail/linux-arm-kernel/2012-September/118285.html
+> > (this patch is not directly merged but I guess the discussion here is taken
+> > care of)
 > 
-> The branch was not complete, with the latest additions, we do have
-> conflict due to the addition of several new nodes at the same place.
+> The OMAP integration for the MUSB driver needs to clk_enable() and 
+> clk_disable() its optional clock.  It's not correct to work around a 
+> driver problem by changing the hardware description data - that data is 
+> intended to be driver-neutral.
 
-OK
- 
-> The resolution is not that hard since it is addition of node only, but
-> the rebase on to of omap-for-v3.10/usb will avoid the issue.
-> 
-> I have a new pre-merged branch available. for_3.10/dts_merged is based
-> on omap-for-v3.10/usb and Paul's omap-devel-b-for-3.10 branch to get the
-> AM33xx hwmod.
-> Paul's branch is just needed to avoid AM33xx regression introduced by
-> Santosh hwmod changes present in my branch.
-> 
-> Just let me know which one you will prefer to pull.
+Ugh, took a closer look at this one.  Now I recall what's going on here.  
+This is a case where a bit that's clearly marked as an "optional clock" in 
+the hardware is really the main functional clock for the IP block.
 
-If the merge conflicts are non-trivial, then let's do the pre-merged
-branch. That will be easier to test also in this case for am33xx.
+So I'm open to solving this problem in the integration data as we did 
+before, by making ocp2scp_usb_phy_phy_48m the main clock of the 
+ocp2scp_usb_phy.  But we need to have a big comment in the hwmod data to 
+indicate what's going on here so it doesn't get missed again, since it's 
+an inconsistency.  
 
-Regards,
 
-Tony
+- Paul
