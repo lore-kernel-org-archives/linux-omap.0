@@ -1,78 +1,84 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH V3 1/2] ARM: OMAP: board-4430sdp: Provide regulator to
- pwm-backlight
-Date: Mon, 8 Apr 2013 23:56:17 +0200
-Message-ID: <20130408215616.GA25124@avionic-0098.mockup.avionic-design.de>
-References: <1363214006-10662-1-git-send-email-achew@nvidia.com>
- <1363214006-10662-2-git-send-email-achew@nvidia.com>
- <20130408214624.GZ10155@atomide.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 1/1] of/irq: store IRQ trigger/level in struct resource
+ flags
+Date: Mon, 08 Apr 2013 17:05:26 -0500
+Message-ID: <51633F26.7000400@gmail.com>
+References: <1365148088-11175-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4Ckj6UjgE2iN1+kY"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:51340 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936362Ab3DHV4Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 17:56:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20130408214624.GZ10155@atomide.com>
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:51879 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759408Ab3DHWF3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 18:05:29 -0400
+Received: by mail-ob0-f171.google.com with SMTP id v19so3168897obq.16
+        for <linux-omap@vger.kernel.org>; Mon, 08 Apr 2013 15:05:29 -0700 (PDT)
+In-Reply-To: <1365148088-11175-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Andrew Chew <achew@nvidia.com>, peter.ujfalusi@ti.com, acourbot@nvidia.com, linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Stephen Warren <swarren@nvidia.com>, devicetree-discuss@lists.ozlabs.org, Rob Herring <rob.herring@calxeda.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+
+On 04/05/2013 02:48 AM, Javier Martinez Canillas wrote:
+> According to Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
+> the "#interrupt-cells" property of an "interrupt-controller" is used
+> to define the number of cells needed to specify a single interrupt.
+> 
+> A commonly used variant is two cell on which #interrupt-cells = <2>
+> and the first cell defines the index of the interrupt in the controller
+> and the second cell is used to specify any of the following flags:
+> 
+>     - bits[3:0] trigger type and level flags
+>         1 = low-to-high edge triggered
+>         2 = high-to-low edge triggered
+>         4 = active high level-sensitive
+>         8 = active low level-sensitive
+> 
+> An example of an interrupt controller which use the two cell format is
+> the OMAP GPIO controller that allows GPIO lines to be used as IRQ
+> (Documentation/devicetree/bindings/gpio/gpio-omap.txt)
+> 
+> But setting #interrupt-cells = <2> on the OMAP GPIO device node and
+> specifying the GPIO-IRQ type and level flags on the second cell does not
+> store this value on the populated IORESOURCE_IRQ struct resource.
+> 
+> This is because when using an IRQ from an interrupt controller and
+> setting both cells (e.g:)
+> 
+> 	interrupt-parent = <&gpio6>;
+> 	interrupts = <16 8>;
+> 
+> A call to of_irq_to_resource() is made and this function calls to
+> irq_of_parse_and_map_type() to get the virtual IRQ mapped to the real
+> index for this interrupt controller. This IRQ number is populated on
+> the struct resource:
+> 
+> int of_irq_to_resource(struct device_node *dev, int index, struct resource *r)
+> {
+> 	int irq = irq_of_parse_and_map(dev, index);
+> 	..
+> 	r->start = r->end = irq;
+> }
+> 
+> irq_of_parse_and_map() calls to irq_create_of_mapping() which calls to
+> the correct xlate function handler according to "#interrupt-cells"
+> (irq_domain_xlate_onecell or irq_domain_xlate_twocell) and to
+> irq_set_irq_type() to set the IRQ type.
+> 
+> But the type is never returned so it can't be saved on the IRQ struct
+> resource flags member.
+> 
+> This means that drivers that need the IRQ type/level flags defined in
+> the DT won't be able to get it.
+
+But the interrupt controllers that need the information should be able
+to get to it via irqd_get_trigger_type. What problem exactly are you
+trying to fix? What driver would use this?
+
+My understanding of the IORESOURCE_IRQ_xxx (and DMA) bits are they are
+ISA specific and therefore should not be used on non-ISA buses.
+
+Rob
 
 
---4Ckj6UjgE2iN1+kY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Apr 08, 2013 at 02:46:24PM -0700, Tony Lindgren wrote:
-> * Andrew Chew <achew@nvidia.com> [130313 15:37]:
-> > The pwm-backlight driver now takes a mandatory regulator that is gotten
-> > during driver probe.  Initialize a dummy regulator to satisfy this
-> > requirement.
-> >=20
-> > Signed-off-by: Andrew Chew <achew@nvidia.com>
-> > ---
-> > Changed the device name of the backlight regulator supply to "pwm-backl=
-ight",
-> > per Peter's comment.
-> >=20
-> > Changed the name of the regulator to "backlight-enable", per Thierry's
-> > suggestion.
->=20
-> Thanks applying into omap-for-v3.10/board. Note that I'm not taking the
-> second one, that should be resent to the related driver maintainers.
-> You can get that list by running scripts/get_maintainer.pl against it.
-
-The plan was to take these all through one tree, preferably the PWM tree
-because it's all PWM related and the pwm-backlight change will go
-through that tree as well. Technically these individual patches can be
-applied as is and aren't harmful, but keeping track of the dependencies
-might be difficult if they go in via separate trees.
-
-Thierry
-
---4Ckj6UjgE2iN1+kY
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRYz0AAAoJEN0jrNd/PrOh96cP+wdfbXIEuXAATCzbk3OsEMXD
-+wQljDeGkpPU28pTmDzBM+Ww/7ng9YlHa+YHjTganTE5Z3HVNrB2yaaUxH49271z
-8tONBmxh0fdpoKE+f3fonK8VGMUutHWdKPpewsEEJ9ENLHTZwBhcK2m6lG4GVNeJ
-3f+J1QdsXybKGN5FsWhD1GFqLEbtht/BpOFO+BopUEU32NsW7avctLcBtE1sbg7d
-A+sr0rAC4DUAishAbAu7QwA/m/h1OD/iWA7yKpoyjQaHRSEnZ+Key8fFbwSqCUtz
-5lsOus/QN/atXTETQ3X8LpRc9B6FLEwB2MA/+c2taxBm249vaT6o4CcTODv+2Ipl
-2DP8aK6q9atyrmVBaYKpGrNHcjhRd2gzPqcoJZHS0eFil3r13v1Bx6FB42pnx0Cr
-OXWnc4dYW28Vj+bgslofz7tHHANSlbX0kDwLcb7nbnMhudG9Q9vDDX0YMxt+f15g
-lg+A3OVsRZ1FAmgjIy1mdy3qAksXmkySvjH8nzxC8Z1QF5UEq/G7WXhXbx8wVMqi
-4SyHnygbKfViu+QYXbjnExGuUhGtMH9iEK81Mi3ZL0BxVpF19FNI52erdAu5h4c0
-sqILyHB1BmdYB0AuWFnKOx2xbC9UyOigMkoG41zfuKI9ClTfXiH9Vt2xNceTZlKc
-vsNkE7zaJIgkQMT3XRC9
-=m8dh
------END PGP SIGNATURE-----
-
---4Ckj6UjgE2iN1+kY--
