@@ -1,57 +1,44 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP4: PM: fix PM regression introduced by recent
- clock cleanup
-Date: Mon, 8 Apr 2013 17:09:41 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1304081704380.32105@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1302122026530.29149@utopia.booyaka.com> <5162B019.6050407@ti.com> <alpine.DEB.2.00.1304081617470.32105@utopia.booyaka.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC v2] dmaengine: omap-dma: Start DMA without delay for
+	cyclic channels
+Date: Mon, 8 Apr 2013 18:09:56 +0100
+Message-ID: <20130408170956.GX30923@n2100.arm.linux.org.uk>
+References: <1364987862-14597-1-git-send-email-peter.ujfalusi@ti.com> <51626D88.8020809@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:57392 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934674Ab3DHRJl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:09:41 -0400
-In-Reply-To: <alpine.DEB.2.00.1304081617470.32105@utopia.booyaka.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54379 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934769Ab3DHRKh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:10:37 -0400
+Content-Disposition: inline
+In-Reply-To: <51626D88.8020809@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, j-keerthy@ti.com, b-cousson@ti.com
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Meerwald <pmeerw@pmeerw.net>
 
-On Mon, 8 Apr 2013, Paul Walmsley wrote:
-
-> On Mon, 8 Apr 2013, Kishon Vijay Abraham I wrote:
+On Mon, Apr 08, 2013 at 09:11:04AM +0200, Peter Ujfalusi wrote:
+> Russell,
 > 
-> > On Wednesday 13 February 2013 01:58 AM, Paul Walmsley wrote:
-> > > 
-> > > Commit 17b7e7d33530e2bbd3bdc90f4db09b91cfdde2bb ("ARM: OMAP4:
-> > > clock/hwmod data: start to remove some IP block control "clocks"")
-> > > introduced a regression preventing the L3INIT clockdomain of OMAP4
-> > > systems from entering idle.  This in turn prevented these systems from
-> > > entering full chip clock-stop.
-> > > integration hwmod data.
+> On 04/03/2013 01:17 PM, Peter Ujfalusi wrote:
+> > cyclic DMA is only used by audio which needs DMA to be started without a
+> > delay.
+> > If the DMA for audio is started using the tasklet we experience random
+> > channel switch (to be more precise: channel shift).
 > > 
-> > This patch breaks MUSB in OMAP4 panda. The 48M clock is modeled as main clk
-> > [1] for ocp2scp so after doing get_sync, this optional clock gets enabled. But
-> > after this patch, the optional clock seems to be not enabled after get_sync.
+> > Reported-by: Peter Meerwald <pmeerw@pmeerw.net>
+> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> > ---
+> > Hi Russell,
 > > 
-> > http://lists.infradead.org/pipermail/linux-arm-kernel/2012-September/118285.html
-> > (this patch is not directly merged but I guess the discussion here is taken
-> > care of)
+> > Instead of removing the tasklet we can identify the DMA channel used by audio
+> > based on the cyclic flag of the channel.
+> > I think this can be used as a short term solution to fix the audio channel shift
+> > issue and later when we have the dynamic DMA channel allocation we can adjust
+> > the code.
 > 
-> The OMAP integration for the MUSB driver needs to clk_enable() and 
-> clk_disable() its optional clock.  It's not correct to work around a 
-> driver problem by changing the hardware description data - that data is 
-> intended to be driver-neutral.
+> Could you, please look at this patch?
 
-Ugh, took a closer look at this one.  Now I recall what's going on here.  
-This is a case where a bit that's clearly marked as an "optional clock" in 
-the hardware is really the main functional clock for the IP block.
-
-So I'm open to solving this problem in the integration data as we did 
-before, by making ocp2scp_usb_phy_phy_48m the main clock of the 
-ocp2scp_usb_phy.  But we need to have a big comment in the hwmod data to 
-indicate what's going on here so it doesn't get missed again, since it's 
-an inconsistency.  
-
-
-- Paul
+Now that I'm back from a short 4 day break, then yes, and the answer is
+that it's fine.  Who's handling the patch?
