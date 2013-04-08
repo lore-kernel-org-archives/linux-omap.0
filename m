@@ -1,47 +1,88 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 1/3] omap non critical fixes for v3.10 merge window
-Date: Mon, 8 Apr 2013 10:06:19 -0700
-Message-ID: <20130408170619.GN10155@atomide.com>
-References: <pull-1364923751-842943>
- <201304081824.35663.arnd@arndb.de>
+Subject: Re: [PATCH v4 00/21] ARM: OMAP2+: Adapt to ehci-omap changes for
+ 3.10
+Date: Mon, 8 Apr 2013 10:09:14 -0700
+Message-ID: <20130408170914.GO10155@atomide.com>
+References: <1363794300-31526-1-git-send-email-rogerq@ti.com>
+ <515E8B99.8080803@ti.com>
+ <515E9FB1.2040803@ti.com>
+ <20130405154259.GZ10155@atomide.com>
+ <5162B2D3.6070007@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54549 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61771 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934191Ab3DHRGZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:06:25 -0400
+	with ESMTP id S1760109Ab3DHRJR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 13:09:17 -0400
 Content-Disposition: inline
-In-Reply-To: <201304081824.35663.arnd@arndb.de>
+In-Reply-To: <5162B2D3.6070007@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [130408 09:29]:
-> On Tuesday 02 April 2013, Tony Lindgren wrote:
-> > The following changes since commit 07961ac7c0ee8b546658717034fe692fd12eefa9:
-> > 
-> >   Linux 3.9-rc5 (2013-03-31 15:12:43 -0700)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/fixes-non-critical-signed
-> > 
-> > for you to fetch changes up to 105612489bf59386b46b3f9f034e03f70e57aee6:
-> > 
-> >   Merge branch 'for_3.10/omap5_generic_updates' of git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux into omap-for-v3.10/fixes-non-critical (2013-04-01 09:30:47 -0700)
-> > 
+* Benoit Cousson <b-cousson@ti.com> [130408 05:11]:
+> Hi Tony,
 > 
-> Pulled all three branches, thanks a lot!
+> On 04/05/2013 05:43 PM, Tony Lindgren wrote:
+> > * Benoit Cousson <b-cousson@ti.com> [130405 03:00]:
+> >> On 04/05/2013 10:30 AM, Benoit Cousson wrote:
+> >>
+> >> ...
+> >>
+> >>>>   ARM: dts: OMAP4: Add HS USB Host IP nodes
+> >>>>   ARM: dts: OMAP3: Add HS USB Host IP nodes
+> >>>>   ARM: dts: omap3-beagle: Add USB Host support
+> >>>
+> >>> These 3 DTS patches are good to me, but I cannot applied them on top of
+> >>> the already existing patches I queued for 3.10.
+> >>>
+> >>> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+> >>> for_3.10/dts
+> >>>
+> >>> Could you rebase these 3 ones only, and I will applied them.
+> >>
+> >> Mmm, in fact, I've just seen the pull request from Tony :-(
+> >>
+> >>
+> >> Tony,
+> >>
+> >> Don't you want to remove these DTS patches from the pull-request?
+> > 
+> > Oops sorry :( Looks like I applied them mistakenly as I saved all
+> > the patches into a mbox, then applied it. Anyways, too late to start
+> > messing with it now.
+> >  
+> >> Otherwise, I will have to rebase the whole DTS series on top of yours.
+> >> That being said, if the branch is not supposed to be rebased, it is doable.
+> > 
+> > I pulled in your for_3.10/dts for testing, and to me it looks like
+> > it's just overlapping additions. So that should be OK to resolve while
+> > pulling it in.
+> > 
+> > It seems there's no need to add omap-for-v3.10/usb as a dependency for
+> > your for_3.10/dts unless the conflict gets non-trivial with some
+> > additional patches.
 > 
-> The cleanup branch conflicted with a bug fix from Paul Walmsley that Linus
-> already merged, see below for the resolution that I used, adding a modified
-> line from the one Paul submitted.
+> The branch was not complete, with the latest additions, we do have
+> conflict due to the addition of several new nodes at the same place.
 
-Yes looks good thanks. I think I had the same resolve in one
-of the other branches, but that should not cause issues with
-your branches I presume.
+OK
+ 
+> The resolution is not that hard since it is addition of node only, but
+> the rebase on to of omap-for-v3.10/usb will avoid the issue.
+> 
+> I have a new pre-merged branch available. for_3.10/dts_merged is based
+> on omap-for-v3.10/usb and Paul's omap-devel-b-for-3.10 branch to get the
+> AM33xx hwmod.
+> Paul's branch is just needed to avoid AM33xx regression introduced by
+> Santosh hwmod changes present in my branch.
+> 
+> Just let me know which one you will prefer to pull.
+
+If the merge conflicts are non-trivial, then let's do the pre-merged
+branch. That will be easier to test also in this case for am33xx.
 
 Regards,
 
