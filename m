@@ -1,119 +1,62 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 1/1] Documentation: dt: update TI GPMC ethernet binding properties
-Date: Tue,  9 Apr 2013 14:11:30 +0200
-Message-ID: <1365509490-26991-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH] drm/omap: Take a fb reference in omap_plane_update()
+Date: Tue, 9 Apr 2013 17:56:02 +0530
+Message-ID: <1365510362-18379-1-git-send-email-archit@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:60859 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758387Ab3DIMLp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 08:11:45 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:45896 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759154Ab3DIM1E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 08:27:04 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Jon Hunter <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: robdclark@gmail.com
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Archit Taneja <archit@ti.com>
 
-The GPMC timing properties for device-tree have been updated
-by adding a "-ns" or "-ps" suffix to indicate the units of
-time the property represents. Therefore, update the timing
-property names for TI GPMC ethernet binding.
+When userspace calls SET_PLANE ioctl, drm core takes a reference of the fb and
+passes control to the update_plane op defined by the drm driver.
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+In omapdrm, we have a worker thread which queues framebuffers objects received
+from update_plane and displays them at the appropriate time.
+
+It is possible that the framebuffer is destoryed by userspace between the time
+of calling the ioctl and apply-worker being scheduled. If this happens, the
+apply-worker holds a pointer to a framebuffer which is already destroyed.
+
+Take an extra refernece/unreference of the fb in omap_plane_update() to prevent
+this from happening. A reference is taken of the fb passed to update_plane(),
+the previous framebuffer (held by plane->fb) is unreferenced. This will prevent
+drm from destroying the framebuffer till the time it's unreferenced by the
+apply-worker.
+
+This is in addition to the exisitng reference/unreference in update_pin(),
+which is taken for the scanout of the plane's current framebuffer, and an
+unreference the previous framebuffer.
+
+Signed-off-by: Archit Taneja <archit@ti.com>
+Cc: Rob Clark <robdclark@gmail.com>
 ---
+ drivers/gpu/drm/omapdrm/omap_plane.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Jon, Benoit:
-
-Sorry that I didn't send this patch before but I just realized
-that the GPMC timing properties changed after
-
-commit 5330dc16 ("ARM: OMAP2+: Add GPMC DT support for Ethernet child nodes")
-
-got queued.
-
-Tony,
-
-Is still possible to queue this patch on your omap-for-v3.10/gpmc branch
-or it is too late?
-
-Thanks a lot and best regards,
-Javier
-
- Documentation/devicetree/bindings/net/gpmc-eth.txt |   56 ++++++++++----------
- 1 files changed, 28 insertions(+), 28 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/net/gpmc-eth.txt b/Documentation/devicetree/bindings/net/gpmc-eth.txt
-index 24cb4e4..ace4a64 100644
---- a/Documentation/devicetree/bindings/net/gpmc-eth.txt
-+++ b/Documentation/devicetree/bindings/net/gpmc-eth.txt
-@@ -26,16 +26,16 @@ Required properties:
- - bank-width: 		Address width of the device in bytes. GPMC supports 8-bit
- 			and 16-bit devices and so must be either 1 or 2 bytes.
- - compatible:		Compatible string property for the ethernet child device.
--- gpmc,cs-on:		Chip-select assertion time
--- gpmc,cs-rd-off:	Chip-select de-assertion time for reads
--- gpmc,cs-wr-off:	Chip-select de-assertion time for writes
--- gpmc,oe-on:		Output-enable assertion time
--- gpmc,oe-off		Output-enable de-assertion time
--- gpmc,we-on:		Write-enable assertion time
--- gpmc,we-off:		Write-enable de-assertion time
--- gpmc,access:		Start cycle to first data capture (read access)
--- gpmc,rd-cycle:	Total read cycle time
--- gpmc,wr-cycle:	Total write cycle time
-+- gpmc,cs-on-ns:	Chip-select assertion time
-+- gpmc,cs-rd-off-ns:	Chip-select de-assertion time for reads
-+- gpmc,cs-wr-off-ns:	Chip-select de-assertion time for writes
-+- gpmc,oe-on-ns:	Output-enable assertion time
-+- gpmc,oe-off-ns:	Output-enable de-assertion time
-+- gpmc,we-on-ns:	Write-enable assertion time
-+- gpmc,we-off-ns:	Write-enable de-assertion time
-+- gpmc,access-ns:	Start cycle to first data capture (read access)
-+- gpmc,rd-cycle-ns:	Total read cycle time
-+- gpmc,wr-cycle-ns:	Total write cycle time
- - reg:			Chip-select, base address (relative to chip-select)
- 			and size of the memory mapped for the device.
- 			Note that base address will be typically 0 as this
-@@ -65,24 +65,24 @@ gpmc: gpmc@6e000000 {
- 		bank-width = <2>;
- 
- 		gpmc,mux-add-data;
--		gpmc,cs-on = <0>;
--		gpmc,cs-rd-off = <186>;
--		gpmc,cs-wr-off = <186>;
--		gpmc,adv-on = <12>;
--		gpmc,adv-rd-off = <48>;
--		gpmc,adv-wr-off = <48>;
--		gpmc,oe-on = <54>;
--		gpmc,oe-off = <168>;
--		gpmc,we-on = <54>;
--		gpmc,we-off = <168>;
--		gpmc,rd-cycle = <186>;
--		gpmc,wr-cycle = <186>;
--		gpmc,access = <114>;
--		gpmc,page-burst-access = <6>;
--		gpmc,bus-turnaround = <12>;
--		gpmc,cycle2cycle-delay = <18>;
--		gpmc,wr-data-mux-bus = <90>;
--		gpmc,wr-access = <186>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <186>;
-+		gpmc,cs-wr-off-ns = <186>;
-+		gpmc,adv-on-ns = <12>;
-+		gpmc,adv-rd-off-ns = <48>;
-+		gpmc,adv-wr-off-ns = <48>;
-+		gpmc,oe-on-ns = <54>;
-+		gpmc,oe-off-ns = <168>;
-+		gpmc,we-on-ns = <54>;
-+		gpmc,we-off-ns = <168>;
-+		gpmc,rd-cycle-ns = <186>;
-+		gpmc,wr-cycle-ns = <186>;
-+		gpmc,access-ns = <114>;
-+		gpmc,page-burst-access-ns = <6>;
-+		gpmc,bus-turnaround-ns = <12>;
-+		gpmc,cycle2cycle-delay-ns = <18>;
-+		gpmc,wr-data-mux-bus-ns = <90>;
-+		gpmc,wr-access-ns = <186>;
- 		gpmc,cycle2cycle-samecsen;
- 		gpmc,cycle2cycle-diffcsen;
- 
+diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c b/drivers/gpu/drm/omapdrm/omap_plane.c
+index 2882cda..8d225d7 100644
+--- a/drivers/gpu/drm/omapdrm/omap_plane.c
++++ b/drivers/gpu/drm/omapdrm/omap_plane.c
+@@ -247,6 +247,12 @@ static int omap_plane_update(struct drm_plane *plane,
+ {
+ 	struct omap_plane *omap_plane = to_omap_plane(plane);
+ 	omap_plane->enabled = true;
++
++	if (plane->fb)
++		drm_framebuffer_unreference(plane->fb);
++
++	drm_framebuffer_reference(fb);
++
+ 	return omap_plane_mode_set(plane, crtc, fb,
+ 			crtc_x, crtc_y, crtc_w, crtc_h,
+ 			src_x, src_y, src_w, src_h,
 -- 
-1.7.7.6
+1.7.10.4
 
