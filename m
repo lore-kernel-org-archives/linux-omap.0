@@ -1,219 +1,379 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 5/5] omap dt changes for v3.10 merge window
-Date: Mon, 8 Apr 2013 21:51:03 -0700
-Message-ID: <E1UPQXA-0007zW-Gm@merlin.infradead.org>
-References: <pull-1365483063-475562>
+From: CF Adad <cfadad@rocketmail.com>
+Subject: Re: AM3517 DaVinci EMAC Ethernet performance issues
+Date: Mon, 8 Apr 2013 22:45:43 -0700 (PDT)
+Message-ID: <1365486343.94427.YahooMailNeo@web160506.mail.bf1.yahoo.com>
+References: <1365042051.84279.YahooMailNeo@web160501.mail.bf1.yahoo.com> <515D3A86.6000504@ti.com> <1365085105.58314.YahooMailNeo@web160505.mail.bf1.yahoo.com> <1365105688.76437.YahooMailNeo@web160502.mail.bf1.yahoo.com>
+Reply-To: CF Adad <cfadad@rocketmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <pull-1365483063-475562>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nm17.bullet.mail.bf1.yahoo.com ([98.139.212.176]:29407 "HELO
+	nm17.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752931Ab3DIFpp convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Apr 2013 01:45:45 -0400
+In-Reply-To: <1365105688.76437.YahooMailNeo@web160502.mail.bf1.yahoo.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>
 
-The following changes since commit 5852264f9d6139751796853fdfca9d5230cbfb97:
+Mugunthan and all,
 
-  Merge tag 'omap-devel-b-for-3.10' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into for_3.10/dts_merged (2013-04-09 00:11:05 +0200)
+We have essentially proven our theory, but have yet to solve the proble=
+m.=A0 Our theory was that the driver was essentially taking a few secon=
+d nap during transmission, despite there being plenty more work to do.=A0=
+ We further theorized that our custom userspace application was somehow=
+ preventing the driver from taking this nap, and that's why our RX perf=
+ormance is perfect all the time while our TX is so spotty unless that a=
+pplication is running.
 
-are available in the git repository at:
+Over the last few days, we've went through several test patches and hav=
+e essentially tracked the issue back to our emac_poll() function not be=
+ing called.=A0 By inserting the following patch snippet, and snippets l=
+ike it, into various functions in the emac driver, we were able to prov=
+e that from time to time these functions sleep for several seconds, des=
+pite iperf certainly having given them something to do.=A0 (Note: the p=
+atch has changed a bit since the output pasted below was captured, as w=
+e were looking for more detail, but the core functionality is the same.=
+)
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+[[ ---- patch snippet ---- ]]
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+
+--- linux/drivers/net/ethernet/ti/davinci_emac.c=A0=A0 =A02013-04-08 16=
+:20:19.202550042 -0400
++++ linux_emac_tst/drivers/net/ethernet/ti/davinci_emac.c=A0=A0 =A02013=
+-04-08 18:45:37.000000000 -0400
+@@ -64,6 +64,12 @@
+=A0
+=A0#include "davinci_cpdma.h"
+=A0
++//// DEBUGGING ONLY!!!!
++#include <linux/jiffies.h>
++static unsigned long qstopped_jifs =3D 0;
++static unsigned long poll_func_jifs =3D 0;
++static u32 last_num_rx_pkts =3D 0, last_num_tx_pkts =3D 0;
++
+=A0static int debug_level;
+=A0module_param(debug_level, int, 0);
+=A0MODULE_PARM_DESC(debug_level, "DaVinci EMAC debug level (NETIF_MSG b=
+its)");
+@@ -1055,7 +1061,19 @@
+=A0=A0=A0 =A0 * queue is stopped then start the queue as we have free d=
+esc for tx
+=A0=A0=A0 =A0 */
+=A0=A0=A0 =A0if (unlikely(netif_queue_stopped(ndev)))
++=A0=A0 =A0{
+=A0=A0=A0 =A0=A0=A0 =A0netif_wake_queue(ndev);
++=A0=A0 =A0=A0=A0 =A0if (qstopped_jifs > 0)
++=A0=A0 =A0=A0=A0 =A0{
++=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0// we've been stopped, measure how long
++=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0if ( time_after_eq(jiffies, (qstopped_ji=
+fs + HZ/2)) )
++=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0{
++=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0// we've been stopped >=3D 1/2=
+ second!!!
++=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0printk(KERN_ERR "=3D=3D=3DEMAC=
+: TX queue has been stopped for > 1/2 second!!!\n");
++=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0}
++=A0=A0 =A0=A0=A0 =A0}
++=A0=A0 =A0=A0=A0 =A0qstopped_jifs =3D 0;
++=A0=A0 =A0}=A0=A0 =A0
+=A0=A0=A0 =A0ndev->stats.tx_packets++;
+=A0=A0=A0 =A0ndev->stats.tx_bytes +=3D len;
+=A0=A0=A0 =A0dev_kfree_skb_any(skb);
+@@ -1105,7 +1123,11 @@
+=A0=A0=A0 =A0 * tell the kernel to stop sending us tx frames.
+=A0=A0=A0 =A0 */
+=A0=A0=A0 =A0if (unlikely(!cpdma_check_free_tx_desc(priv->txchan)))
++=A0=A0 =A0{
+=A0=A0=A0 =A0=A0=A0 =A0netif_stop_queue(ndev);
++=A0=A0 =A0=A0=A0 =A0// we just stopped, record the time
++=A0=A0 =A0=A0=A0 =A0qstopped_jifs =3D jiffies;
++=A0=A0 =A0}
+=A0
+=A0=A0=A0 =A0return NETDEV_TX_OK;
+=A0
+@@ -1374,6 +1396,15 @@
+=A0=A0=A0 =A0u32 status =3D 0;
+=A0=A0=A0 =A0u32 num_tx_pkts =3D 0, num_rx_pkts =3D 0;
+=A0
++
++unsigned long tmp =3D jiffies;
++if ( time_after_eq(tmp, (poll_func_jifs + HZ/2)) )
++{
++=A0=A0 =A0// we've been stopped >=3D 1/2 second!!!
++=A0=A0 =A0printk(KERN_ERR "=3D=3D=3DEMAC: POLL FUNCTION, last RX/TX=3D=
+[%d][%d]\n", last_num_rx_pkts, last_num_tx_pkts);
++}
++poll_func_jifs =3D tmp;
++
+=A0=A0=A0 =A0/* Check interrupt vectors and call packet processing */
+=A0=A0=A0 =A0status =3D emac_read(EMAC_MACINVECTOR);
+=A0
+@@ -1385,6 +1416,10 @@
+=A0=A0=A0 =A0if (status & mask) {
+=A0=A0=A0 =A0=A0=A0 =A0num_tx_pkts =3D cpdma_chan_process(priv->txchan,
+=A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=A0=A0=A0=A0=A0 EM=
+AC_DEF_TX_MAX_SERVICE);
++=A0=A0 =A0=A0=A0 =A0if (num_tx_pkts < 0)
++=A0=A0 =A0=A0=A0 =A0{
++printk(KERN_ERR "=3D=3D=3D ERR!!! num_tx_pkts=3D%d\n", num_tx_pkts);=A0=
+=A0 =A0=A0=A0 =A0
++=A0=A0 =A0=A0=A0 =A0}
+=A0=A0=A0 =A0} /* TX processing */
+=A0
+=A0=A0=A0 =A0mask =3D EMAC_DM644X_MAC_IN_VECTOR_RX_INT_VEC;
+@@ -1394,8 +1429,17 @@
+=A0
+=A0=A0=A0 =A0if (status & mask) {
+=A0=A0=A0 =A0=A0=A0 =A0num_rx_pkts =3D cpdma_chan_process(priv->rxchan,=
+ budget);
++=A0=A0 =A0=A0=A0 =A0if (num_rx_pkts < 0)
++=A0=A0 =A0=A0=A0 =A0{
++printk(KERN_ERR "=3D=3D=3D ERR!!! num_rx_pkts=3D%d\n", num_rx_pkts);
++=A0=A0 =A0=A0=A0 =A0}
+=A0=A0=A0 =A0} /* RX processing */
+=A0
++
++last_num_tx_pkts =3D num_tx_pkts;
++last_num_rx_pkts =3D num_rx_pkts;
++
++
+=A0=A0=A0 =A0mask =3D EMAC_DM644X_MAC_IN_VECTOR_HOST_INT;
+=A0=A0=A0 =A0if (priv->version =3D=3D EMAC_VERSION_2)
+=A0=A0=A0 =A0=A0=A0 =A0mask =3D EMAC_DM646X_MAC_IN_VECTOR_HOST_INT;
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+[[ ---- patch snippet ---- ]]
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/dt-signed-v2
+It appears from our debugging that somehow the emac_poll() function is =
+not being called despite there being work to do.=A0 As before however, =
+when we start our custom application (which presently does very little =
+from a system calls' perspective), our performance stabilizes greatly.=A0=
+ Please see below.
 
-for you to fetch changes up to 161e89a689bb88004b757986eefda2402448eef7:
+Has anyone else seen anything like this with the EMAC, or have any idea=
+ why or how this could be happening?=A0 We initially thought it could j=
+ust be a failure to properly reschedule the emac_wait(), but after play=
+ing with various items there for a while, we're convinced that's not it=
+=2E=A0 Now we're guessing that perhaps softirqs or something within the=
+ DMA world is to blame here, but we're certainly not experts in this ar=
+ea.=A0 Again, we've passed in 'nohlt' and have worked to remove power m=
+anagement.=A0 So we don't think that plays a role.=A0 Likewise, we neve=
+r see a packet error -- even in our Wireshark traces.=A0 We just see th=
+e system take a split-second to multi-second break.
 
-  ARM/dts: OMAP3: fix pinctrl-single configuration (2013-04-08 17:00:22 -0700)
+What specifically causes the emac_poll() and emac_tx_handler() function=
+s to fire, and is there a way to debug that cleanly?
 
-----------------------------------------------------------------
-Device tree updates for omaps via Benoit Cousson <b-cousson@ti.com>.
+Can anyone imagine how a userspace application would be able to improve=
+ this behavior so much?
 
-Note that the branch has dependencies to two other branches:
+Again, thank you so very much for your time.
+CF
 
-- omap-devel-b-for-3.10 from Paul to get the AM33xx missing
-  hwmod and thus avoid a regression with Santosh's hwmod
-  cleanup including in this DT series [1]. It avoids breaking
-  bisect if this series is merged before Paul's fixes.
 
-- omap-for-v3.10/usb branch to avoid nasty merge conflict in
-  omap3.dtsi and omap4.dtsi due to the DTS patches contained
-  in the USB branch because of a screw up by the unnamed person
-  typing this signed tag based on Benoit's comments.
+Boot log:
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+=46resh boot with no network activity, we see this with our debugging i=
+n there.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
 
-[1] https://patchwork.kernel.org/patch/2366291/
+[=A0=A0 22.815582] =3D=3D=3DEMAC: POLL FUNCTION has not been called for=
+ > 1/2 second!!!
+[=A0=A0 22.822937] =3D=3D=3DEMAC: TX FUNCTION has not been called for >=
+ 1/2 second!!!
+[=A0=A0 23.817993] =3D=3D=3DEMAC: POLL FUNCTION has not been called for=
+ > 1/2 second!!!
+[=A0=A0 23.825378] =3D=3D=3DEMAC: TX FUNCTION has not been called for >=
+ 1/2 second!!!
+[=A0=A0 24.817810] =3D=3D=3DEMAC: POLL FUNCTION has not been called for=
+ > 1/2 second!!!
+[=A0=A0 24.825225] =3D=3D=3DEMAC: TX FUNCTION has not been called for >=
+ 1/2 second!!!
+[=A0=A0 30.793365] =3D=3D=3DEMAC: POLL FUNCTION has not been called for=
+ > 1/2 second!!!
+[=A0=A0 30.800811] =3D=3D=3DEMAC: TX FUNCTION has not been called for >=
+ 1/2 second!!!
+[=A0=A0 31.427093] =3D=3D=3DEMAC: POLL FUNCTION has not been called for=
+ > 1/2 second!!!
+[=A0=A0 31.434661] =3D=3D=3DEMAC: TX FUNCTION has not been called for >=
+ 1/2 second!!!
+[=A0=A0 32.426879] =3D=3D=3DEMAC: POLL FUNCTION has not been called for=
+ > 1/2 second!!!
+[=A0=A0 32.434387] =3D=3D=3DEMAC: TX FUNCTION has not been called for >=
+ 1/2 second!!!
 
-----------------------------------------------------------------
-Anil Kumar (3):
-      ARM: dts: Add minimal DT support for DevKit8000
-      ARM: dts: omap3-devkit8000: Enable audio support
-      ARM: dts: omap3-devkit8000: Add NAND DT node
+root@test:~# iperf-i 5 -t 30000 -c 10.22.255.254
+[=A0=A0 43.093078] =3D=3D=3DEMAC: POLL FUNCTION has not been called for=
+ > 1/2 second!!!
+[=A0=A0 43.100463] =3D=3D=3DEMAC: TX FUNCTION has not been called for >=
+ 1/2 second!!!
 
-AnilKumar Ch (3):
-      ARM: dts: AM33XX: Rename I2C and GPIO nodes
-      ARM: dts: AM33XX: Add d_can instances to aliases
-      ARM: dts: AM33XX: Add memory resource to d_can node
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+Starting iperf with 4x instances of <Custom App> stuff running.=A0 See?=
+=A0 It's very happy for a long time.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
 
-Christoph Fritz (1):
-      ARM/dts: OMAP3: fix pinctrl-single configuration
+------------------------------------------------------------
+Client connecting to 10.22.255.254, TCP port 5001
+TCP window size: 19.6 KByte (default)
+------------------------------------------------------------
+[=A0 3] local 10.22.0.2 port 44102 connected with 10.22.255.254 port 50=
+01
+[ ID] Interval=A0=A0=A0=A0=A0=A0 Transfer=A0=A0=A0=A0 Bandwidth
+[=A0 3]=A0 0.0- 5.0 sec=A0 56.8 MBytes=A0 95.3 Mbits/sec
+[=A0 3]=A0 5.0-10.0 sec=A0 56.0 MBytes=A0 94.0 Mbits/sec
+[[ ---- SNIP ---- ]]
+[=A0 3] 615.0-620.0 sec=A0 56.4 MBytes=A0 94.6 Mbits/sec
+[=A0 3] 620.0-625.0 sec=A0 55.3 MBytes=A0 92.9 Mbits/sec
 
-Felipe Balbi (1):
-      ARM: dts: OMAP5: Add SPI nodes
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+Stopping all 4 <Custom App> instances from running...
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+=A0=A0=A0=A0=A0=A0=A0=A0 Stopping <Custom App>1...
+[=A0 OK=A0 ] Stopped <Custom App>1.
+=A0=A0=A0=A0=A0=A0=A0=A0 Stopping <Custom App>2...
+[=A0 OK=A0 ] Stopped <Custom App>2.
+=A0=A0=A0=A0=A0=A0=A0=A0 Stopping <Custom App>3...
+[=A0 OK=A0 ] Stopped <Custom App>3.
+[=A0 3] 625.0-630.0 sec=A0 55.1 MBytes=A0 92.4 Mbits/sec
+=A0=A0=A0=A0=A0=A0=A0=A0 Stopping <Custom App>4...
+[=A0 OK=A0 ] Stopped <Custom App>4.
 
-Florian Vaussard (3):
-      ARM: dts: omap3-overo: Add support for pwm-leds
-      ARM: dts: omap3-overo: Add audio support
-      ARM: dts: OMAP3: Add GPMC controller
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+Instantaneously, we see the POLL (and therefore the TX handler) warning=
+s getting called
+and the performance is slipping and/or timing out all together.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
 
-Javier Martinez Canillas (5):
-      ARM: dts: omap3: Add generic DT support for IGEP devices
-      ARM: dts: omap3: Add support for IGEPv2 board
-      ARM: dts: omap3: Add support for IGEP COM Module
-      ARM: dts: OMAP3: reduce GPMC mapped registers address space
-      Documentation: dt: gpio-omap: Move interrupt-controller from #interrupt-cells description
-
-Jon Hunter (16):
-      ARM: OMAP2+: Prepare for device-tree PMU support
-      ARM: dts: OMAP2+: Add PMU nodes
-      ARM: dts: OMAP2+: Add SDMA controller bindings and nodes
-      ARM: dts: Add GPMC node for OMAP2, OMAP4 and OMAP5
-      ARM: dts: Add OMAP2 gpio bindings
-      ARM: dts: OMAP3+: Correct gpio #interrupts-cells property
-      ARM: dts: OMAP3: Add reg and interrupt properties for gpio
-      ARM: dts: OMAP3: Add support for OMAP3430 SDP board
-      ARM: OMAP: Force dmtimer restore if context loss is not detectable
-      ARM: OMAP: Add function to request timer by node
-      ARM: dts: OMAP2+: Update DMTIMER compatibility property
-      ARM: OMAP2+: Populate DMTIMER errata when using device-tree
-      ARM: dts: OMAP2+: Identify GPIO banks that are always powered
-      ARM: dts: Update OMAP3430 SDP NAND and ONENAND properties
-      ARM: dts: Add NOR flash bindings for OMAP2420 H4
-      ARM: dts: Add OMAP3430 SDP NOR flash memory binding
-
-Kishon Vijay Abraham I (7):
-      ARM: dts: OMAP4: Add omap control usb data
-      ARM: dts: OMAP4: Add omap-usb2 data
-      ARM: dts: OMAP: Add usb_otg and glue data to OMAP3+ boards
-      ARM: dts: OMAP5: Add OMAP control usb data
-      ARM: dts: OMAP5: Add ocp2scp data
-      ARM: dts: OMAP5: Add omap-usb3 and omap-usb2 data
-      ARM: dts: OMAP5: add dwc3 omap and dwc3 core data
-
-Lokesh Vutla (1):
-      ARM: dts: OMAP5: Add watchdog timer node
-
-Matthias Brugger (1):
-      ARM: dts: omap3-igep: Add uart1 and uart2 to igep boards
-
-NeilBrown (1):
-      ARM: OMAP: Simplify dmtimer context-loss handling
-
-Nishanth Menon (6):
-      ARM: dts: OMAP34xx/35xx: Add CPU OPP table
-      ARM: dts: OMAP36xx: Add CPU OPP table
-      ARM: dts: OMAP3: use twl4030 vdd1 regulator for CPU
-      ARM: dts: OMAP443x: Add CPU OPP table
-      ARM: dts: omap4-panda: move generic sections to panda-common
-      ARM: dts: OMAP4460: Add CPU OPP table
-
-Peter Ujfalusi (5):
-      ARM: dts: twl4030: Add PWM support
-      ARM: dts: twl6030: Add PWM support
-      ARM: dts: omap3-beagle-xm: Use pwm-leds for pmu_stat LED
-      ARM: dts: omap4-sdp: Add support for pwm-leds (keypad and charging LED)
-      ARM: dts: omap4-sdp: Add support for pwm-backlight
-
-Philip Avinash (1):
-      ARM: dts: AM33XX: Corrects typo in interrupt field in SPI node
-
-Rajendra Nayak (1):
-      ARM: dts: OMAP5: Specify nonsecure PPI IRQ for arch timer
-
-Santosh Shilimkar (9):
-      ARM: dts: omap5-evm: Update available memory to 2032 MB
-      ARM: dts: OMAP5: Align the local timer dt node as per the current binding code
-      ARM: dts: OMAP5: Move the gic node out of ocp space
-      ARM: dts: OMAP5: Update the timer and GIC nodes for HYP kernel support
-      ARM: dts: OMAP5: Update keypad reg property
-      Documentation: dt: OMAP: l3-noc: Add *reg* in required properties
-      ARM: dts: OMAP4/5: Update l3-noc DT nodes
-      ARM: OMAP2+: hwmod: extract module address space from DT blob
-      ARM: OMAP2+: hwmod: Don't call _init_mpu_rt_base if no sysc
-
-Sebastien Guiriec (1):
-      ARM: dts: OMAP2+: Add SDMA Audio IPs bindings
-
-Sourav Poddar (4):
-      ARM: dts: omap4-sdp: Add I2c pinctrl data
-      ARM: dts: omap5-evm: Add I2c pinctrl data
-      ARM: dts: omap4-panda: Add I2c pinctrl data
-      ARM: dts: omap5-evm: Add mcspi data
-
-Tony Lindgren (1):
-      Merge branch 'for_3.10/dts' of git://git.kernel.org/.../bcousson/linux-omap-dt into omap-for-v3.10/dt
-
- .../devicetree/bindings/arm/omap/l3-noc.txt        |   1 +
- .../devicetree/bindings/arm/omap/timer.txt         |  17 +-
- .../devicetree/bindings/gpio/gpio-omap.txt         |   8 +-
- Documentation/devicetree/bindings/usb/omap-usb.txt |   1 +
- arch/arm/boot/dts/Makefile                         |   4 +
- arch/arm/boot/dts/am335x-bone.dts                  |  10 +-
- arch/arm/boot/dts/am335x-evm.dts                   |  18 +-
- arch/arm/boot/dts/am335x-evmsk.dts                 |  18 +-
- arch/arm/boot/dts/am33xx.dtsi                      |  40 ++--
- arch/arm/boot/dts/am3517-evm.dts                   |   2 +-
- arch/arm/boot/dts/am3517_mt_ventoux.dts            |   2 +-
- arch/arm/boot/dts/omap2.dtsi                       |  39 +++-
- arch/arm/boot/dts/omap2420-h4.dts                  |  46 ++++
- arch/arm/boot/dts/omap2420.dtsi                    |  67 +++++-
- arch/arm/boot/dts/omap2430.dtsi                    |  87 ++++++-
- arch/arm/boot/dts/omap3-beagle-xm.dts              |  26 ++-
- arch/arm/boot/dts/omap3-beagle.dts                 |   8 +-
- arch/arm/boot/dts/omap3-devkit8000.dts             | 169 ++++++++++++++
- arch/arm/boot/dts/omap3-evm.dts                    |  14 +-
- arch/arm/boot/dts/omap3-igep.dtsi                  | 122 ++++++++++
- arch/arm/boot/dts/omap3-igep0020.dts               |  56 +++++
- arch/arm/boot/dts/omap3-igep0030.dts               |  44 ++++
- arch/arm/boot/dts/omap3-overo.dtsi                 |  31 ++-
- arch/arm/boot/dts/omap3.dtsi                       | 142 ++++++++++--
- arch/arm/boot/dts/omap3430-sdp.dts                 | 190 ++++++++++++++++
- arch/arm/boot/dts/omap34xx.dtsi                    |  28 +++
- arch/arm/boot/dts/omap36xx.dtsi                    |  13 ++
- arch/arm/boot/dts/omap4-panda-a4.dts               |   5 +-
- arch/arm/boot/dts/omap4-panda-common.dtsi          | 251 +++++++++++++++++++++
- arch/arm/boot/dts/omap4-panda-es.dts               |   5 +-
- arch/arm/boot/dts/omap4-panda.dts                  | 201 +----------------
- arch/arm/boot/dts/omap4-sdp.dts                    |  74 +++++-
- arch/arm/boot/dts/omap4-var-som.dts                |   2 +-
- arch/arm/boot/dts/omap4.dtsi                       | 135 +++++++++--
- arch/arm/boot/dts/omap443x.dtsi                    |  27 +++
- arch/arm/boot/dts/omap4460.dtsi                    |  32 +++
- arch/arm/boot/dts/omap5-evm.dts                    | 110 ++++++++-
- arch/arm/boot/dts/omap5.dtsi                       | 245 +++++++++++++++++---
- arch/arm/boot/dts/twl4030.dtsi                     |  18 +-
- arch/arm/boot/dts/twl6030.dtsi                     |  12 +
- arch/arm/mach-omap2/board-generic.c                |   1 +
- arch/arm/mach-omap2/omap_hwmod.c                   |  48 +++-
- arch/arm/mach-omap2/pmu.c                          |  14 +-
- arch/arm/mach-omap2/timer.c                        |   7 +-
- arch/arm/plat-omap/dmtimer.c                       | 241 ++++++++++++--------
- arch/arm/plat-omap/include/plat/dmtimer.h          |   1 +
- 46 files changed, 2172 insertions(+), 460 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-devkit8000.dts
- create mode 100644 arch/arm/boot/dts/omap3-igep.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-igep0020.dts
- create mode 100644 arch/arm/boot/dts/omap3-igep0030.dts
- create mode 100644 arch/arm/boot/dts/omap3430-sdp.dts
- create mode 100644 arch/arm/boot/dts/omap34xx.dtsi
- create mode 100644 arch/arm/boot/dts/omap4-panda-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap443x.dtsi
- create mode 100644 arch/arm/boot/dts/omap4460.dtsi
+[=A0 681.469207] =3D=3D=3DEMAC: POLL FUNCTION has not been called for >=
+ 1/2 second!!!
+[=A0 681.476501] =3D=3D=3DEMAC: TX FUNCTION has not been called for > 1=
+/2 second!!!
+[=A0 3] 630.0-635.0 sec=A0 8.59 MBytes=A0 14.4 Mbits/sec
+[=A0 692.489929] =3D=3D=3DEMAC: POLL FUNCTION has not been called for >=
+ 1/2 second!!!
+[=A0 692.497222] =3D=3D=3DEMAC: TX FUNCTION has not been called for > 1=
+/2 second!!!
+[=A0 692.504272] =3D=3D=3DEMAC: TX queue has been stopped for > 1/2 sec=
+ond!!!
+[=A0 3] 635.0-640.0 sec=A0 11.4 MBytes=A0 19.1 Mbits/sec
+[=A0 3] 640.0-645.0 sec=A0 0.00 Bytes=A0 0.00 bits/sec
+[=A0 3] 645.0-650.0 sec=A0 5.71 MBytes=A0 9.58 Mbits/sec
+[=A0 3] 650.0-655.0 sec=A0 29.6 MBytes=A0 49.6 Mbits/sec
+[=A0 3] 655.0-660.0 sec=A0 46.7 MBytes=A0 78.3 Mbits/sec
+[=A0 714.523315] =3D=3D=3DEMAC: POLL FUNCTION has not been called for >=
+ 1/2 second!!!
+[=A0 714.530609] =3D=3D=3DEMAC: TX FUNCTION has not been called for > 1=
+/2 second!!!
+[=A0 3] 660.0-665.0 sec=A0 42.3 MBytes=A0 71.0 Mbits/sec
+[=A0 3] 665.0-670.0 sec=A0 0.00 Bytes=A0 0.00 bits/sec
+[=A0 3] 670.0-675.0 sec=A0 37.5 MBytes=A0 62.9 Mbits/sec
+[=A0 3] 675.0-680.0 sec=A0 53.1 MBytes=A0 89.1 Mbits/sec
+[=A0 3] 680.0-685.0 sec=A0 44.8 MBytes=A0 75.2 Mbits/sec
+[=A0 3] 685.0-690.0 sec=A0 49.2 MBytes=A0 82.6 Mbits/sec
+[=A0 3] 690.0-695.0 sec=A0 49.0 MBytes=A0 82.2 Mbits/sec
+[=A0 747.616729] =3D=3D=3DEMAC: POLL FUNCTION has not been called for >=
+ 1/2 second!!!
+[=A0 747.624023] =3D=3D=3DEMAC: TX FUNCTION has not been called for > 1=
+/2 second!!!
+[=A0 3] 695.0-700.0 sec=A0 40.2 MBytes=A0 67.4 Mbits/sec
+[=A0 3] 700.0-705.0 sec=A0 5.38 MBytes=A0 9.03 Mbits/sec
+[=A0 3] 705.0-710.0 sec=A0 51.8 MBytes=A0 86.9 Mbits/sec
+=A0=A0=A0=A0=A0=A0=A0=A0 Starting <Custom App>2...
+[=A0 OK=A0 ] Started <Custom App>2.
+[=A0 3] 710.0-715.0 sec=A0 51.9 MBytes=A0 87.1 Mbits/sec
+[=A0 3] 715.0-720.0 sec=A0 54.1 MBytes=A0 90.8 Mbits/sec
+[=A0 3] 720.0-725.0 sec=A0 53.6 MBytes=A0 89.9 Mbits/sec
+[=A0 3] 725.0-730.0 sec=A0 53.3 MBytes=A0 89.4 Mbits/sec
+[=A0 3] 730.0-735.0 sec=A0 53.2 MBytes=A0 89.3 Mbits/sec
+[=A0 3] 735.0-740.0 sec=A0 56.1 MBytes=A0 94.1 Mbits/sec
+[=A0 3] 740.0-745.0 sec=A0 52.0 MBytes=A0 87.3 Mbits/sec
+[=A0 3] 745.0-750.0 sec=A0 52.5 MBytes=A0 88.1 Mbits/sec
+[=A0 3] 750.0-755.0 sec=A0 55.9 MBytes=A0 93.8 Mbits/sec
+[=A0 3] 755.0-760.0 sec=A0 55.9 MBytes=A0 93.9 Mbits/sec
+[=A0 3] 760.0-765.0 sec=A0 53.3 MBytes=A0 89.5 Mbits/sec
+^C[=A0 3]=A0 0.0-765.9 sec=A0 7.93 GBytes=A0 88.9 Mbits/sec
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+Shut down iperf and drop back to the default idling
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+root@test:~# [=A0 809.822906] =3D=3D=3DEMAC: POLL FUNCTION has not been=
+ called for > 1/2 second!!!
+[=A0 809.960937] =3D=3D=3DEMAC: TX FUNCTION has not been called for > 1=
+/2 second!!!
+[=A0 810.822845] =3D=3D=3DEMAC: POLL FUNCTION has not been called for >=
+ 1/2 second!!!
+[=A0 810.960937] =3D=3D=3DEMAC: TX FUNCTION has not been called for > 1=
+/2 second!!!
+[=A0 813.143280] =3D=3D=3DEMAC: POLL FUNCTION has not been called for >=
+ 1/2 second!!!
+[=A0 813.355712] =3D=3D=3DEMAC: TX FUNCTION has not been called for > 1=
+/2 second!!!
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
