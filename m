@@ -1,17 +1,13 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RFC v2] dmaengine: omap-dma: Start DMA without delay for cyclic
- channels
-Date: Tue, 9 Apr 2013 12:20:17 +0200
-Message-ID: <5163EB61.3000507@ti.com>
-References: <1364987862-14597-1-git-send-email-peter.ujfalusi@ti.com>
- <51626D88.8020809@ti.com> <20130408170956.GX30923@n2100.arm.linux.org.uk>
- <20130408171519.GP10155@atomide.com> <5163BAA8.7040502@ti.com>
- <5163C103.8020101@ti.com> <20130409072600.GA31193@intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] mailbox driver framework for v3.10 merge window
+Date: Tue, 9 Apr 2013 12:55:02 +0200
+Message-ID: <201304091255.03020.arnd@arndb.de>
+References: <37C860A02101E749A747FA2D3C1E3C504A1971@DLEE11.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130409072600.GA31193@intel.com>
+In-Reply-To: <37C860A02101E749A747FA2D3C1E3C504A1971@DLEE11.ent.ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,23 +17,25 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Peter Meerwald <pmeerw@pmeerw.net>, Dan Williams <djbw@fb.com>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: "Anna, Suman" <s-anna@ti.com>
+Cc: "Russell King - ARM Linux (linux@arm.linux.org.uk)" <linux@arm.linux.org.uk>, "Loic PALLARDY (loic.pallardy@st.com)" <loic.pallardy@st.com>, "Tony Lindgren (tony@atomide.com)" <tony@atomide.com>, "Linus Walleij (linus.walleij@linaro.org)" <linus.walleij@linaro.org>, "Omar Ramirez Luna (omar.ramirez@copitl.com)" <omar.ramirez@copitl.com>, Olof Johansson <olof@lixom.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/09/2013 09:26 AM, Vinod Koul wrote:
-> Yes it should go thru dmaengine tree, sorry was travelling hence the dela=
-y, pls
-> resend the patch and I will do the needful
+On Thursday 04 April 2013, Anna, Suman wrote:
+> OMAP and ST-Ericsson platforms are both using mailbox to communicate with some coprocessors. This series creates a consolidated framework, living under drivers/mailbox.
+> The changes mainly contain:
+> - create a mailbox framework independent from OMAP h/w
+> - creates dbx500 mailbox driver for ST-Ericsson platforms
+> - move the omap mailbox out of plat-omap/mach-omapX  adapting to the new framework.
+> - minor bug fixes in mailbox code
 
-I already have the patch rebased on today's linux-next, just waiting for
-Russell to confirm that I can add his Acked-by to the patch.
-I take this from Russell as ACK: "Now that I'm back from a short 4 day brea=
-k,
-then yes, and the answer is that it's fine.  Who's handling the patch?"
+Pulled into a new next/mailbox branch, to keep it separate from the
+existing subsystems.
 
-But I want to be sure I can add that line...
+As a note for you: when you send a pull request, please make sure that you
+use a tag that includes the changeset text (your description above), so I
+don't have to copy it from the email. I noticed that you do have a tag
+"mailbox-for-v3.10" in your tree, but the pull request was for the branch
+with the same contents.
 
--- =
-
-P=E9ter
+	Arnd
