@@ -1,57 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] Documentation: dt: update TI GPMC ethernet binding
- properties
-Date: Tue, 9 Apr 2013 09:58:00 -0700
-Message-ID: <20130409165759.GO10155@atomide.com>
-References: <1365509490-26991-1-git-send-email-javier.martinez@collabora.co.uk>
- <51644151.2080200@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH] Documentation: dt: update properties in TI GPMC NAND example
+Date: Tue, 9 Apr 2013 12:23:35 -0500
+Message-ID: <1365528215-5030-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17026 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S936173Ab3DIQ6D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 12:58:03 -0400
-Content-Disposition: inline
-In-Reply-To: <51644151.2080200@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34040 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932140Ab3DIRX6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 13:23:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-* Jon Hunter <jon-hunter@ti.com> [130409 09:31]:
-> 
-> On 04/09/2013 07:11 AM, Javier Martinez Canillas wrote:
-> > The GPMC timing properties for device-tree have been updated
-> > by adding a "-ns" or "-ps" suffix to indicate the units of
-> > time the property represents. Therefore, update the timing
-> > property names for TI GPMC ethernet binding.
-> > 
-> > Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> > ---
-> > 
-> > Jon, Benoit:
-> > 
-> > Sorry that I didn't send this patch before but I just realized
-> > that the GPMC timing properties changed after
-> > 
-> > commit 5330dc16 ("ARM: OMAP2+: Add GPMC DT support for Ethernet child nodes")
-> > 
-> > got queued.
-> 
-> Thanks, I missed this one too. Looks like I need to update the gpmc-nand
-> documentation as well :-(
-> 
-> > Tony,
-> > 
-> > Is still possible to queue this patch on your omap-for-v3.10/gpmc branch
-> > or it is too late?
-> 
-> If it is I think that this could be queued as a fix. Tony?
+The GPMC timing properties for device-tree have been updated
+by adding a "-ns" or "-ps" suffix to indicate the units of
+time the property represents. Therefore, update the timing
+property names for TI GPMC NAND example.
 
-Yes let's plan on making this a fix. Then it can be merged during
-the merge window or right after it.
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |   28 ++++++++++----------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-Regards,
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index e7f8d7e..6a983c1 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -56,20 +56,20 @@ Example for an AM33xx board:
+ 			nand-bus-width = <16>;
+ 			ti,nand-ecc-opt = "bch8";
+ 
+-			gpmc,sync-clk = <0>;
+-			gpmc,cs-on = <0>;
+-			gpmc,cs-rd-off = <44>;
+-			gpmc,cs-wr-off = <44>;
+-			gpmc,adv-on = <6>;
+-			gpmc,adv-rd-off = <34>;
+-			gpmc,adv-wr-off = <44>;
+-			gpmc,we-off = <40>;
+-			gpmc,oe-off = <54>;
+-			gpmc,access = <64>;
+-			gpmc,rd-cycle = <82>;
+-			gpmc,wr-cycle = <82>;
+-			gpmc,wr-access = <40>;
+-			gpmc,wr-data-mux-bus = <0>;
++			gpmc,sync-clk-ps = <0>;
++			gpmc,cs-on-ns = <0>;
++			gpmc,cs-rd-off-ns = <44>;
++			gpmc,cs-wr-off-ns = <44>;
++			gpmc,adv-on-ns = <6>;
++			gpmc,adv-rd-off-ns = <34>;
++			gpmc,adv-wr-off-ns = <44>;
++			gpmc,we-off-ns = <40>;
++			gpmc,oe-off-ns = <54>;
++			gpmc,access-ns = <64>;
++			gpmc,rd-cycle-ns = <82>;
++			gpmc,wr-cycle-ns = <82>;
++			gpmc,wr-access-ns = <40>;
++			gpmc,wr-data-mux-bus-ns = <0>;
+ 
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+-- 
+1.7.10.4
 
-Tony
