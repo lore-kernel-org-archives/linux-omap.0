@@ -1,81 +1,77 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCHv3] driver: serial: prevent UART console idle on suspend while using "no_console_suspend"
-Date: Tue, 09 Apr 2013 12:07:05 -0700
-Message-ID: <87obdnh6au.fsf@linaro.org>
-References: <1365167733-28083-1-git-send-email-sourav.poddar@ti.com>
-	<87mwtclvua.fsf@linaro.org> <516463D2.2070008@ti.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: [PATCH V3 1/2] ARM: OMAP: board-4430sdp: Provide regulator to
+ pwm-backlight
+Date: Tue, 9 Apr 2013 21:40:49 +0200
+Message-ID: <20130409194049.GA16847@avionic-0098.mockup.avionic-design.de>
+References: <1363214006-10662-1-git-send-email-achew@nvidia.com>
+ <1363214006-10662-2-git-send-email-achew@nvidia.com>
+ <20130408214624.GZ10155@atomide.com>
+ <20130408215616.GA25124@avionic-0098.mockup.avionic-design.de>
+ <20130408221657.GC10155@atomide.com>
+ <20130409075602.GA27255@avionic-0098.mockup.avionic-design.de>
+ <20130409164003.GK10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <516463D2.2070008@ti.com> (Sourav Poddar's message of "Wed, 10
-	Apr 2013 00:24:10 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="opJtzjQTFsWo+cga"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:51921 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759626Ab3DITkx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 15:40:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20130409164003.GK10155@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Andrew Chew <achew@nvidia.com>, peter.ujfalusi@ti.com, acourbot@nvidia.com, linux-omap@vger.kernel.org
 
-Sourav Poddar <sourav.poddar@ti.com> writes:
 
-> Hi Kevin,
-> On Friday 05 April 2013 11:10 PM, Kevin Hilman wrote:
->> Sourav Poddar<sourav.poddar@ti.com>  writes:
->>
->>> With dt boot, uart wakeup after suspend is non functional while using
->>> "no_console_suspend" in the bootargs. With "no_console_suspend" used, we
->>> should prevent the runtime suspend of the uart port which is getting used
->>> as an console.
->>>
->>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
->>> Cc: Felipe Balbi<balbi@ti.com>
->>> Cc: Rajendra nayak<rnayak@ti.com>
->>> Tested on omap5430evm, omap4430sdp.
->>>
->>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
->> Rather than make these special checks inside the driver's runtime PM
->> callbacks, you should just disable runtime PM (pm_runtime_disable())
->>
->> Then, this should be broken into 2 patches.
->>
->> 1) serial core: add the '->is_console' flag.  (nit on naming: don't call
->>     it port_is_console, since the struct is already a uart_port)
->>
->> 2) In the OMAP UART driver's ->prepare callback, check the is_console flag
->>     and pm_runtime_disable() accordingly  (then pm_runtime_enable() in
->>     the drivers's ->complete callback.
->>
->> Kevin
->
-> I was working on your above suggestions, but realised there is not
-> only console
-> uart which has the requirement of keeping the clocks enabled while going on
-> suspend.
->
-> If you see arch/arm/boot/dts/am33xx.dtsi, there is a ocmcram which has
-> "no_idle_on_suspend" property used.
+--opJtzjQTFsWo+cga
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Can you please ask the AM33xx folks how (and why) this is being used?
+On Tue, Apr 09, 2013 at 09:40:04AM -0700, Tony Lindgren wrote:
+[...]
+> But then the regulator is not found and the driver should just exit,
+> or do nothing. If this is an optional regulator, then that should be
+> indicated in some platform data flags?
 
-I don't see/find a driver for this device in mainline, so without a
-driver this flag will not be used.
+Yes, if the regulator isn't found then the driver fails. However the
+goal was to maintain bisectability. If we apply them in the wrong order
+we can't guarantee that because pwm-backlight will fail to work between
+both patches.
 
->     ocmcram: ocmcram@40300000 {
->                         compatible = "ti,am3352-ocmcram";
->                         reg = <0x40300000 0x10000>;
->                         ti,hwmods = "ocmcram";
->                         ti,no_idle_on_suspend;
->         };
-> This property gets checked in omap_device file and correspondingly
-> od->flags is set.
->
-> Based on your above inputs, the patches which I cooked up is
-> inlined[1]. Though, the below
-> patches works fine for uart case. The patches will effect ocmcram case
-> and I am inling them
-> "just for discussion".
+> The driver parts really must be done in independently from any platform
+> data or .dts changes. The only common part needed should be changes
+> to include/linux/platform_data/*.h files.
 
-Could you also have a look at Russell's suggestion for getting rid of
-the 'is_console' flag.
+We don't even need to touch platform data because the regulators are
+looked up via a global table. And the changes are all done independently
+but as I mentioned above, bisectability isn't maintained, so the
+preferred patch order is the one in which pwm-backlight keeps working at
+each point in the commit history.
 
-Thanks,
+Thierry
 
-Kevin
+--opJtzjQTFsWo+cga
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRZG7BAAoJEN0jrNd/PrOhFeoP/0fZjVSDX+zviB98PLN2sCgh
+5L5d8ur5hOI9gf9ckgJHL6LrzzVHJGrsn4zSXOSTJ3RYt/LjM+gw7XtFGqEAu2PZ
+ghkGBXF6YY+hcCLUZMeghRh2JgFHJoWq44lknjmkwAC2q8Bu3j5DdoAuSC9BqHxE
+vt0jQvD3g6a9nAexohEI39S2HqI5/IDxSpkuJHtujXhFos8/hHZQS7aGnj3R6lTS
+JCz8K6rah8RrpVXrbUD5b5W9wHKAsyD9PuKcFi3UeakGVMeducwcjdP+HwsbcLdI
+IJjxyiODZO6yg5G0wgbdS7DxGZ88o/FjpW7SKxe9NkuaTRzTk7I38NB0pCgSg+Is
+terkxHHwo6FfqJr6nAGhy5dEeHr0i+FmJkxZcG382hyw/XWcd6EVwg/i6Yi20W8X
+OazoN1Use0lwMYj3dvzFj9Ibzkq7DxYiWx2ahWsVZR3HytOturByifq0PWQDtUcN
+jmhjvtYcRPvto2GGecPqVaekzlumRCLob2Kb/w+excM0dStFBTyz7g2jbOaFIpq7
+YcPStKic+NWzodEJ5DiVZAAsANksU4OTbP4deSUIXmV76BQ3x98lCMC5tPPyYWiL
+xf6J2EGssugpQYodgY7gha+zRv9g4CxdS2YQe+XDDLWeGt30ewG70FQmtrNJiiJ0
+FyRR4qrOdT8YT6RRIzQi
+=7mxw
+-----END PGP SIGNATURE-----
+
+--opJtzjQTFsWo+cga--
