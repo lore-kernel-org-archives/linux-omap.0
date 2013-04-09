@@ -1,68 +1,76 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH] Documentation: dt: update properties in TI GPMC NAND example
-Date: Tue, 9 Apr 2013 12:23:35 -0500
-Message-ID: <1365528215-5030-1-git-send-email-jon-hunter@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [GIT PULL 2/5] omap pm clean-up for v3.10 merge window
+Date: Tue, 09 Apr 2013 10:36:26 -0700
+Message-ID: <874nffip2d.fsf@linaro.org>
+References: <0MarPy-1U9XGk2D8s-00Ks1o@mx.kundenserver.de>
+	<201304091652.28385.arnd@arndb.de> <87vc7virqz.fsf@linaro.org>
+	<20130409165633.GN10155@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34040 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932140Ab3DIRX6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 13:23:58 -0400
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:53737 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932140Ab3DIRg3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 13:36:29 -0400
+Received: by mail-pa0-f49.google.com with SMTP id kp14so3931677pab.36
+        for <linux-omap@vger.kernel.org>; Tue, 09 Apr 2013 10:36:29 -0700 (PDT)
+In-Reply-To: <20130409165633.GN10155@atomide.com> (Tony Lindgren's message of
+	"Tue, 9 Apr 2013 09:56:33 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-arm-kernel@lists.infradead.org
 
-The GPMC timing properties for device-tree have been updated
-by adding a "-ns" or "-ps" suffix to indicate the units of
-time the property represents. Therefore, update the timing
-property names for TI GPMC NAND example.
+Tony Lindgren <tony@atomide.com> writes:
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- .../devicetree/bindings/mtd/gpmc-nand.txt          |   28 ++++++++++----------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+> * Kevin Hilman <khilman@linaro.org> [130409 09:43]:
+>> Arnd Bergmann <arnd@arndb.de> writes:
+>> 
+>> > On Tuesday 09 April 2013, Tony Lindgren wrote:
+>> >> The following changes since commit 07961ac7c0ee8b546658717034fe692fd12eefa9:
+>> >> 
+>> >>   Linux 3.9-rc5 (2013-03-31 15:12:43 -0700)
+>> >> 
+>> >> are available in the git repository at:
+>> >> 
+>> >>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/cleanup-pm-signed
+>> >> 
+>> >> for you to fetch changes up to ca8cdff548da76da01f3783548ceb917139a5ddc:
+>> >> 
+>> >>   Merge tag 'omap-pm-v3.10/cleanup/cpuidle' of
+>> >> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm
+>> >> into omap-for-v3.10/cleanup-pm (2013-04-08 09:51:00 -0700)
+>> >> 
+>> >> ----------------------------------------------------------------
+>> >> 
+>> >> PM cleanup to prepare for omap5 PM via Kevin Hilman <khilman@linaro.org>:
+>> >> 
+>> >> OMAP3/4 CPUidle cleanups for v3.10
+>> >
+>> > Adding Daniel and Rafael to Cc.
+>> >
+>> > Is this series coordinated with the other cpuidle changes? Please tell me if this
+>> > is good to go into arm-soc.
+>> 
+>> Hmm, looks like it's not ready.  There are some minor conflicts with
+>> what Rafael has queued up from Daniel.
+>> 
+>> I will work this out with Daniel to figure out how we should proceed.
+>
+> OK it seems that this branch can also be queued by Rafael after
+> updating it if there's a dependency. So far it's not conflicting
+> with anything else we have queued up for arm soc tree.
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-index e7f8d7e..6a983c1 100644
---- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-@@ -56,20 +56,20 @@ Example for an AM33xx board:
- 			nand-bus-width = <16>;
- 			ti,nand-ecc-opt = "bch8";
- 
--			gpmc,sync-clk = <0>;
--			gpmc,cs-on = <0>;
--			gpmc,cs-rd-off = <44>;
--			gpmc,cs-wr-off = <44>;
--			gpmc,adv-on = <6>;
--			gpmc,adv-rd-off = <34>;
--			gpmc,adv-wr-off = <44>;
--			gpmc,we-off = <40>;
--			gpmc,oe-off = <54>;
--			gpmc,access = <64>;
--			gpmc,rd-cycle = <82>;
--			gpmc,wr-cycle = <82>;
--			gpmc,wr-access = <40>;
--			gpmc,wr-data-mux-bus = <0>;
-+			gpmc,sync-clk-ps = <0>;
-+			gpmc,cs-on-ns = <0>;
-+			gpmc,cs-rd-off-ns = <44>;
-+			gpmc,cs-wr-off-ns = <44>;
-+			gpmc,adv-on-ns = <6>;
-+			gpmc,adv-rd-off-ns = <34>;
-+			gpmc,adv-wr-off-ns = <44>;
-+			gpmc,we-off-ns = <40>;
-+			gpmc,oe-off-ns = <54>;
-+			gpmc,access-ns = <64>;
-+			gpmc,rd-cycle-ns = <82>;
-+			gpmc,wr-cycle-ns = <82>;
-+			gpmc,wr-access-ns = <40>;
-+			gpmc,wr-data-mux-bus-ns = <0>;
- 
- 			#address-cells = <1>;
- 			#size-cells = <1>;
--- 
-1.7.10.4
+Right, I just did a test rebase onto the relevant commit in Rafael
+linux-next branch, and fixed up all the conflicts[1].
 
+If Rafael agrees, it's fine with me if it goes via him.
+
+Rafael, the signed tag for the updated branch is below[1], based on the
+commit in your linux-next branch where you merged the rest of the
+CPUidle changes.  Let me know if you want a different base commit, or an
+official pull request.
+
+Kevin
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.10/cleanup/cpuidle-v2
