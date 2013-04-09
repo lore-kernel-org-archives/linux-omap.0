@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/5] omap soc changes for v3.10 merge window
-Date: Mon, 8 Apr 2013 21:51:02 -0700
-Message-ID: <E1UPQWr-0007y9-Sb@merlin.infradead.org>
+Subject: [GIT PULL 2/5] omap pm clean-up for v3.10 merge window
+Date: Mon, 8 Apr 2013 21:51:01 -0700
+Message-ID: <E1UPQX1-0007yl-BI@merlin.infradead.org>
 References: <pull-1365483063-475562>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,33 +22,40 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 31880c37c11e28cb81c70757e38392b42e695dc6:
+The following changes since commit 07961ac7c0ee8b546658717034fe692fd12eefa9:
 
-  Linux 3.9-rc6 (2013-04-07 20:49:54 -0700)
+  Linux 3.9-rc5 (2013-03-31 15:12:43 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/soc-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/cleanup-pm-signed
 
-for you to fetch changes up to 7a9819950f47dbf319895ee78220f2761f3687a3:
+for you to fetch changes up to ca8cdff548da76da01f3783548ceb917139a5ddc:
 
-  ARM: OMAP4: Enable fix for Cortex-A9 erratas (2013-04-08 16:14:51 -0700)
-
-----------------------------------------------------------------
-Changes needed for enabling SOC_BUS for the SoC revision
-information. Also enable few HW errata workarounds for omap4.
+  Merge tag 'omap-pm-v3.10/cleanup/cpuidle' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into omap-for-v3.10/cleanup-pm (2013-04-08 09:51:00 -0700)
 
 ----------------------------------------------------------------
-Ruslan Bilovol (3):
-      ARM: OMAP2+: Move common part of late init into common function
-      ARM: OMAP2+: SoC name and revision unification
-      ARM: OMAP2+: Export SoC information to userspace
 
-Sricharan R (1):
-      ARM: OMAP4: Enable fix for Cortex-A9 erratas
+PM cleanup to prepare for omap5 PM via Kevin Hilman <khilman@linaro.org>:
 
- arch/arm/mach-omap2/Kconfig  |  3 ++
- arch/arm/mach-omap2/common.h |  8 ++++
- arch/arm/mach-omap2/id.c     | 95 ++++++++++++++++++++++++++++++++++++++++----
- arch/arm/mach-omap2/io.c     | 34 ++++++++--------
- 4 files changed, 114 insertions(+), 26 deletions(-)
+OMAP3/4 CPUidle cleanups for v3.10
+
+----------------------------------------------------------------
+Daniel Lezcano (1):
+      ARM: omap3: cpuidle: enable time keeping
+
+Santosh Shilimkar (5):
+      ARM: OMAP4: CPUidle: Avoid double idle driver registration
+      ARM: OMAP: CPUidle: Unregister drivere on device registration failure
+      ARM: OMAP4: CPUidle: Make C-state description field more precise
+      ARM: OMAP4+: CPUidle: Deprecate use of omap4_mpuss_read_prev_context_state()
+      ARM: OMAP4+: CPUidle: Consolidate idle driver for OMAP5 support
+
+Tony Lindgren (1):
+      Merge tag 'omap-pm-v3.10/cleanup/cpuidle' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-v3.10/cleanup-pm
+
+ arch/arm/mach-omap2/common.h              |  5 ----
+ arch/arm/mach-omap2/cpuidle34xx.c         | 11 +++++--
+ arch/arm/mach-omap2/cpuidle44xx.c         | 48 +++++++++++++++++--------------
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c | 14 ---------
+ 4 files changed, 35 insertions(+), 43 deletions(-)
