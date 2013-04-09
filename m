@@ -1,43 +1,42 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: HWMOD: make 'ocp2scp_usb_phy_phy_48m" as
- the main clock
-Date: Tue, 9 Apr 2013 14:25:05 +0530
-Message-ID: <5163D769.1040401@ti.com>
-References: <1365496101-7829-1-git-send-email-kishon@ti.com>
- <5163D72B.5040205@ti.com>
+From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 0/6] mfd: omap-usb-host: Device tree support for 3.10
+Date: Tue, 9 Apr 2013 11:00:27 +0200
+Message-ID: <20130409090027.GE23447@zurbaran>
+References: <20130409075457.GF24058@zurbaran>
+ <1365496758-16287-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5163D72B.5040205@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux@arm.linux.org.uk, tony@atomide.com, Keerthy <j-keerthy@ti.com>, rnayak@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1365496758-16287-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Tue, Apr 09, 2013 at 11:39:16AM +0300, Roger Quadros wrote:
+> Samuel,
+> 
+> You had the conflicts because a patch [*] was introduced and is not
+> required since the reset logic is being removed from the driver.
+> 
+> Anyways, I've rebased the 2 patches on top of mfd-next, so now it
+> shouldn't matter.
+Both patches applied, thanks a lot.
 
-On Tuesday 09 April 2013 02:24 PM, Benoit Cousson wrote:
-> Hi Kishon,
->
-> On 04/09/2013 10:28 AM, Kishon Vijay Abraham I wrote:
->> commit 92702d (ARM: OMAP4: PM: fix PM regression introduced by recent
->> clock cleanup) makes the 'ocp2scp_usb_phy_phy_48m' as optional
->> functional clock causing regression in MUSB. But this 48MHz clock is a
->> mandatory clock for usb phy attached to ocp2scp and hence made as the main
->> clock for ocp2scp.
->
-> It is a fix for 3.9-rcX?
+Cheers,
+Samuel.
 
-Yeah.
-
-Thanks
-Kishon
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
