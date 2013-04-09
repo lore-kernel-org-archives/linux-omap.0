@@ -1,53 +1,29 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH] drm/omap: Take a fb reference in omap_plane_update()
-Date: Tue, 9 Apr 2013 15:41:42 +0200
-Message-ID: <CAKMK7uHfWhhYzFagbBSBfwcDPz7AbXZaBtMQFmvvUTN2H4Uk8g@mail.gmail.com>
-References: <1365510362-18379-1-git-send-email-archit@ti.com>
-	<20130409125317.GX2228@phenom.ffwll.local>
-	<CAF6AEGsXDp5gnNyfU3CYNvxhEL98ngbJ7OnBnLxpFQb-2o4=aQ@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL 1/5] omap pm fixes for v3.10 merge window
+Date: Tue, 9 Apr 2013 15:43:26 +0200
+Message-ID: <201304091543.26551.arnd@arndb.de>
+References: <pull-1365483063-475562>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:44000 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932747Ab3DINln (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 09:41:43 -0400
-Received: by mail-ie0-f175.google.com with SMTP id c12so8480116ieb.34
-        for <linux-omap@vger.kernel.org>; Tue, 09 Apr 2013 06:41:43 -0700 (PDT)
-In-Reply-To: <CAF6AEGsXDp5gnNyfU3CYNvxhEL98ngbJ7OnBnLxpFQb-2o4=aQ@mail.gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:55404 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752257Ab3DINoM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 09:44:12 -0400
+In-Reply-To: <pull-1365483063-475562>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <robdclark@gmail.com>
-Cc: Archit Taneja <archit@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, Apr 9, 2013 at 3:17 PM, Rob Clark <robdclark@gmail.com> wrote:
->>> diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c b/drivers/gpu/drm/omapdrm/omap_plane.c
->>> index 2882cda..8d225d7 100644
->>> --- a/drivers/gpu/drm/omapdrm/omap_plane.c
->>> +++ b/drivers/gpu/drm/omapdrm/omap_plane.c
->>> @@ -247,6 +247,12 @@ static int omap_plane_update(struct drm_plane *plane,
->>>  {
->>>       struct omap_plane *omap_plane = to_omap_plane(plane);
->>>       omap_plane->enabled = true;
->>> +
->>> +     if (plane->fb)
->>> +             drm_framebuffer_unreference(plane->fb);
->>
->> Shouldn't the unref only happen once the flip has completed? Otherwise we
->> might free the memory which is still being scanned out and put some other
->> crap there.
->
-> yup, there is a 2nd ref grabbed when we start scanout and dropped when
-> we finish scanout..  so that part was already covered.  What wasn't
-> covered before was the time between the ioctl and the worker thread
-> (which was grabbing/dropping the scanout ref)
+On Tuesday 09 April 2013, Tony Lindgren wrote:
+> The following changes since commit c309f7f46167e85d1aae2fd31f23e7d2b5cdfbe0:
+> 
+>   Merge branch 'for_3.10/omap_generic_cleanup_v2' of git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux into omap-for-v3.10/cleanup-v2 (2013-03-28 14:45:31 -0700)
+> 
 
-Ah, I see. And the ordering doesn't seem to matter here since it's all
-protected by locks (against races with the worker thread) anyway.
-Thanks for the explanation.
--Daniel
+Pulled into next/cleanup branch because of the dependency. Thanks,
 
---
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+	Arnd
