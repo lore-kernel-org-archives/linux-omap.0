@@ -1,76 +1,49 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH 1/1] of/irq: store IRQ trigger/level in struct resource
- flags
-Date: Mon, 08 Apr 2013 21:45:43 -0500
-Message-ID: <516380D7.3060000@gmail.com>
-References: <1365148088-11175-1-git-send-email-javier.martinez@collabora.co.uk> <51633F26.7000400@gmail.com> <516341AF.7030207@wwwdotorg.org> <51634B1F.4030408@collabora.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/5] omap pm fixes for v3.10 merge window
+Date: Mon, 8 Apr 2013 21:51:00 -0700
+Message-ID: <43725.5370467485$1365483079@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:44974 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933990Ab3DICpq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Apr 2013 22:45:46 -0400
-Received: by mail-oa0-f46.google.com with SMTP id k1so6998899oag.33
-        for <linux-omap@vger.kernel.org>; Mon, 08 Apr 2013 19:45:46 -0700 (PDT)
-In-Reply-To: <51634B1F.4030408@collabora.co.uk>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47024 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751813Ab3DIEvJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 00:51:09 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Stephen Warren <swarren@nvidia.com>, devicetree-discuss@lists.ozlabs.org, Rob Herring <rob.herring@calxeda.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 04/08/2013 05:56 PM, Javier Martinez Canillas wrote:
-> On 04/09/2013 12:16 AM, Stephen Warren wrote:
->> On 04/08/2013 04:05 PM, Rob Herring wrote:
->>> On 04/05/2013 02:48 AM, Javier Martinez Canillas wrote:
->>>> According to Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
->>>> the "#interrupt-cells" property of an "interrupt-controller" is used
->>>> to define the number of cells needed to specify a single interrupt.
->> ...
->>>> But the type is never returned so it can't be saved on the IRQ struct
->>>> resource flags member.
->>>>
->>>> This means that drivers that need the IRQ type/level flags defined in
->>>> the DT won't be able to get it.
->>>
->>> But the interrupt controllers that need the information should be able
->>> to get to it via irqd_get_trigger_type. What problem exactly are you
->>> trying to fix? What driver would use this?
->>
->> FYI, that is indeed what I did in sound/soc/codecs/wm8903.c. Thinking
->> back, I'm not sure if that was the right thing or whether I should have
->> sent this same patch:-)
->>
-> 
-> Hi Stephen,
-> 
-> I'm glad you agree :-)
-> 
-> I could change drivers/net/ethernet/smsc/smsc911x.c to get the type flags for
-> the IRQ with irqd_get_trigger_type() but I prefer $subject because:
+The following changes since commit c309f7f46167e85d1aae2fd31f23e7d2b5cdfbe0:
 
-irqd_get_trigger_type probably is not meant for outside of irqchips.
-Creating an irq_get_irq_type function which takes an irq number would be
-the right function as that does not expose struct irq_data.
+  Merge branch 'for_3.10/omap_generic_cleanup_v2' of git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux into omap-for-v3.10/cleanup-v2 (2013-03-28 14:45:31 -0700)
 
-> a) This works in the non-DT case with board files and filling the resources from
-> platform data in arch/arm/mach-omap2/gpmc-smsc911x.c. So this is definitely a
-> bug on the DT core.
+are available in the git repository at:
 
-And hackery/abuse like this:
 
-arch/arm/mach-omap2/board-3630sdp.c:32:    .flags          =
-GPMC_MUX_ADD_DATA | IORESOURCE_IRQ_LOWLEVEL,
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/fixes-pm-signed
 
-> b) I don't see why of_irq_to_resource() should discard the type/level flags when
-> filling the IORESOURCE_IRQ if it was specified on the DT.
-> 
-> c) We will have to change all drivers that expect to get the IRQ type flags from
-> a IORESOURCE_IRQ struct resource.
+for you to fetch changes up to 5e7deed71290136cf70944e158f40401d0eed784:
 
-I'm not convinced that is a high number of drivers. Nearly all the
-occurrences of IORESOURCE_IRQ_ in drivers/ are for ISA (acpi/pnp) and
-drivers for ISA devices.
+  Merge tag 'omap-pm-v3.10/fixes/pm' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into omap-for-v3.10/fixes-pm (2013-04-08 09:58:00 -0700)
 
-Rob
+----------------------------------------------------------------
+
+Non-critical PM fix via Kevin Hilman <khilman@linaro.org>:
+
+OMAP PM fixes for v3.10
+
+Note that this has a dependency to omap-for-v3.10/cleanup-v2-signed.
+
+----------------------------------------------------------------
+Santosh Shilimkar (1):
+      ARM: OMAP4+: PM: Restore CPU power state to ON with clockdomain force wakeup method
+
+Tony Lindgren (1):
+      Merge tag 'omap-pm-v3.10/fixes/pm' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-v3.10/fixes-pm
+
+ arch/arm/mach-omap2/cpuidle44xx.c |  1 +
+ arch/arm/mach-omap2/omap-smp.c    | 12 ++++++++++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
