@@ -1,92 +1,217 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and updates for
- 3.10
-Date: Tue, 9 Apr 2013 18:03:51 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC49D42@DBDE01.ent.ti.com>
-References: <1363768852-18125-1-git-send-email-santosh.shilimkar@ti.com>
- <20130401170539.GK10155@atomide.com> <515BA76D.3000302@ti.com>
- <alpine.DEB.2.00.1304031146230.2616@utopia.booyaka.com>
- <515D6020.2030103@ti.com> <20130404165208.GI10155@atomide.com>
- <515DB110.9000503@ti.com> <515F00B8.3000501@ti.com>
- <20130405171052.GD10155@atomide.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCHv3] driver: serial: prevent UART console idle on suspend
+ while using "no_console_suspend"
+Date: Wed, 10 Apr 2013 00:24:10 +0530
+Message-ID: <516463D2.2070008@ti.com>
+References: <1365167733-28083-1-git-send-email-sourav.poddar@ti.com> <87mwtclvua.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35710 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759834Ab3DISD7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 14:03:59 -0400
-In-Reply-To: <20130405171052.GD10155@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <87mwtclvua.fsf@linaro.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kristo, Tero" <t-kristo@ti.com>, "Menon, Nishanth" <nm@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "Anna, Suman" <s-anna@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
 
+Hi Kevin,
+On Friday 05 April 2013 11:10 PM, Kevin Hilman wrote:
+> Sourav Poddar<sourav.poddar@ti.com>  writes:
+>
+>> With dt boot, uart wakeup after suspend is non functional while using
+>> "no_console_suspend" in the bootargs. With "no_console_suspend" used, we
+>> should prevent the runtime suspend of the uart port which is getting used
+>> as an console.
+>>
+>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>> Cc: Felipe Balbi<balbi@ti.com>
+>> Cc: Rajendra nayak<rnayak@ti.com>
+>> Tested on omap5430evm, omap4430sdp.
+>>
+>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+> Rather than make these special checks inside the driver's runtime PM
+> callbacks, you should just disable runtime PM (pm_runtime_disable())
+>
+> Then, this should be broken into 2 patches.
+>
+> 1) serial core: add the '->is_console' flag.  (nit on naming: don't call
+>     it port_is_console, since the struct is already a uart_port)
+>
+> 2) In the OMAP UART driver's ->prepare callback, check the is_console flag
+>     and pm_runtime_disable() accordingly  (then pm_runtime_enable() in
+>     the drivers's ->complete callback.
+>
+> Kevin
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Friday, April 05, 2013 10:41 PM
-> To: Shilimkar, Santosh
-> Cc: Paul Walmsley; linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org; Kristo, Tero; Menon, Nishanth; Nayak,
-> Rajendra; Valentin, Eduardo; Anna, Suman; Bedia, Vaibhav; Hiremath,
-> Vaibhav
-> Subject: Re: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and
-> updates for 3.10
-> 
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130405 09:52]:
-> > On Thursday 04 April 2013 10:27 PM, Santosh Shilimkar wrote:
-> > > On Thursday 04 April 2013 10:22 PM, Tony Lindgren wrote:
-> > >> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130404 04:15]:
-> > [..]
-> >
-> > >> Can't we already trim the am33xx hwmod data after your patches for
-> > >> v3.10 as am33xx is already DT only? Unfortunately we cannot create
-> > >> negative diffstat in other ways for v3.10 merge window as we
-> cannot
-> > >> make omap4 DT only just quite yet.
-> > >>
-> > > Yes we can and I can take a stab it tomorrow. The only thing is I
-> > > might need some support for testing but thats manageable. Will
-> > > take a stab at it tomorrow and if everything goes well, post a
-> > > patch for smae.
-> > >
-> > Patch for the AM33XX to trim is end of the email. Thanks to
-> > Sricharan and Pekon for patch and testing. Looping both
-> > Vaibhav's if they have any objection on the patch.
-> >
-> > Regards,
-> > Santosh
-> >
-> > From b95dd33fe59b8e77727eb3b1717d763bbf9a2893 Mon Sep 17 00:00:00
-> 2001
-> > From: Sricharan R <r.sricharan@ti.com>
-> > Date: Fri, 5 Apr 2013 20:39:12 +0530
-> > Subject: [PATCH] ARM: AM33XX: hwmod data: Clean up the data file
-> >
-> > - The IO resource information like dma request lines, irq number and
-> > ocp address space can be populated via dt blob. So such data can be
-> stripped
-> > from SOC hwmod data file.
-> >
-> > - The devices like adc, mailbox, gpmc which are missing the device
-> > tree bindings, hwmod data is not added since AM33XX is DT only build.
-> > When such devices add the dt bindings, respective hwmod data can be
-> > added along with it.
-> >
-> > - The hwmod like firewall etc which are not useful are also dropped.
-> >
-> > This gets us around ~2000 loc of negative diff. Patch is boot tested
-> on
-> > AM335X EVM.
-> 
-> Great, that's a nice reduction :) Considering am33xx is DT only, it
-> should be safe.. But can the am33xx guys please test and ack it?
-> 
-I am reviewing the patch-diff and will give my comment as soon as possible.
+I was working on your above suggestions, but realised there is not only 
+console
+uart which has the requirement of keeping the clocks enabled while going on
+suspend.
+
+If you see arch/arm/boot/dts/am33xx.dtsi, there is a ocmcram which has
+"no_idle_on_suspend" property used.
+
+     ocmcram: ocmcram@40300000 {
+                         compatible = "ti,am3352-ocmcram";
+                         reg = <0x40300000 0x10000>;
+                         ti,hwmods = "ocmcram";
+                         ti,no_idle_on_suspend;
+         };
+This property gets checked in omap_device file and correspondingly 
+od->flags is set.
+
+Based on your above inputs, the patches which I cooked up is inlined[1]. 
+Though, the below
+patches works fine for uart case. The patches will effect ocmcram case 
+and I am inling them
+"just for discussion".
+
+I am not sure, if there is any other cleaner way of getting around this 
+"no_idle_on_suspend" flag
+as they are getting used for ocmcram also. ?
 
 Thanks,
-Vaibhav
+Sourav
+
+[1]:
+From: Sourav Poddar <sourav.poddar@ti.com>
+Date: Wed, 13 Mar 2013 20:32:36 +0530
+Subject: [PATCH 1/2] arm: mach-omap2: remove 
+"OMAP_DEVICE_NO_IDLE_ON_SUSPEND" check
+
+Remove the "OMAP_DEVICE_NO_IDLE_ON_SUSPEND" check, since serial core and 
+driver
+takes care of the case when "no_console_suspend" is used in the bootargs and
+you need to keep the clock enable for console even while suspend.
+
+Tested on omap5430evm, omap4430sdp.
+
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+  arch/arm/mach-omap2/omap_device.c |    7 +------
+  1 files changed, 1 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_device.c 
+b/arch/arm/mach-omap2/omap_device.c
+index 381be7a..d6dce8f 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -620,11 +620,8 @@ static int _od_suspend_noirq(struct device *dev)
+         ret = pm_generic_suspend_noirq(dev);
+
+         if (!ret && !pm_runtime_status_suspended(dev)) {
+-               if (pm_generic_runtime_suspend(dev) == 0) {
+-                       if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+-                               omap_device_idle(pdev);
++               if (pm_generic_runtime_suspend(dev) == 0)
+                         od->flags |= OMAP_DEVICE_SUSPENDED;
+-               }
+         }
+
+         return ret;
+@@ -638,8 +635,6 @@ static int _od_resume_noirq(struct device *dev)
+         if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
+             !pm_runtime_status_suspended(dev)) {
+                 od->flags &= ~OMAP_DEVICE_SUSPENDED;
+-               if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+-                       omap_device_enable(pdev);
+                 pm_generic_runtime_resume(dev);
+         }
+
+--
+
+From: Sourav Poddar <sourav.poddar@ti.com>
+Date: Wed, 13 Mar 2013 20:32:36 +0530
+Subject: [PATCH 2/2] driver: serial: omap: add prepare/complete callback 
+for "no_console_suspend" case
+
+This patch adapt the serial core/driver to take care of the case when 
+"no_console_suspend"
+is used in the bootargs. This patch will remove dependency to set 
+od->flags to
+"OMAP_DEVICE_NO_IDLE_ON_SUSPEND" in serial.c(non dt case) and 
+omap_device.c(dt case).
+
+Prepare and complete callbacks will ensure that clocks remain active for 
+the console
+uart when "no_console_suspend" is used in the bootargs.
+
+Tested on omap5430evm, omap4430sdp.
+
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+  drivers/tty/serial/omap-serial.c |   20 ++++++++++++++++++++
+  drivers/tty/serial/serial_core.c |    3 +++
+  include/linux/serial_core.h      |    1 +
+  3 files changed, 24 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/tty/serial/omap-serial.c 
+b/drivers/tty/serial/omap-serial.c
+index 08332f3..b726b2b 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1278,6 +1278,24 @@ static struct uart_driver serial_omap_reg = {
+  };
+
+  #ifdef CONFIG_PM_SLEEP
++static int serial_omap_prepare(struct device *dev)
++{
++       struct uart_omap_port *up = dev_get_drvdata(dev);
++
++       if (!console_suspend_enabled && up->port.is_console)
++               pm_runtime_disable(dev);
++
++       return 0;
++}
++
++static void serial_omap_complete(struct device *dev)
++{
++       struct uart_omap_port *up = dev_get_drvdata(dev);
++
++       if (!console_suspend_enabled && up->port.is_console)
++               pm_runtime_enable(dev);
++}
++
+  static int serial_omap_suspend(struct device *dev)
+  {
+         struct uart_omap_port *up = dev_get_drvdata(dev);
+@@ -1632,6 +1650,8 @@ static const struct dev_pm_ops 
+serial_omap_dev_pm_ops = {
+         SET_SYSTEM_SLEEP_PM_OPS(serial_omap_suspend, serial_omap_resume)
+         SET_RUNTIME_PM_OPS(serial_omap_runtime_suspend,
+                                 serial_omap_runtime_resume, NULL)
++       .prepare        = serial_omap_prepare,
++       .complete       = serial_omap_complete,
+  };
+
+  #if defined(CONFIG_OF)
+diff --git a/drivers/tty/serial/serial_core.c 
+b/drivers/tty/serial/serial_core.c
+index a400002..c4d9328 100644
+--- a/drivers/tty/serial/serial_core.c
++++ b/drivers/tty/serial/serial_core.c
+@@ -2594,6 +2594,9 @@ int uart_add_one_port(struct uart_driver *drv, 
+struct uart_port *uport)
+         uport->cons = drv->cons;
+         uport->state = state;
+
++       if (uart_console(uport))
++               uport->is_console = true;
++
+         /*
+          * If this port is a console, then the spinlock is already
+          * initialised.
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index 87d4bbc..7fcdd90 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -194,6 +194,7 @@ struct uart_port {
+         unsigned char           irq_wake;
+         unsigned char           unused[2];
+         void                    *private_data;          /* generic 
+platform data pointer */
++       bool                    is_console;
+  };
+
+  static inline int serial_port_in(struct uart_port *up, int offset)
+
