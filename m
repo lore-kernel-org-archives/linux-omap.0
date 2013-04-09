@@ -1,46 +1,87 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 3/5] omap board changes for v3.10 merge window
-Date: Tue, 9 Apr 2013 14:36:41 +0200
-Message-ID: <201304091436.42046.arnd@arndb.de>
-References: <0Lgo4c-1UueHv2nOo-00naI8@mx.kundenserver.de>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH] drm/omap: Take a fb reference in omap_plane_update()
+Date: Tue, 9 Apr 2013 14:53:17 +0200
+Message-ID: <20130409125317.GX2228@phenom.ffwll.local>
+References: <1365510362-18379-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <0Lgo4c-1UueHv2nOo-00naI8@mx.kundenserver.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:39530 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935719Ab3DIMuS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 08:50:18 -0400
+Received: by mail-ee0-f51.google.com with SMTP id c4so2824072eek.10
+        for <linux-omap@vger.kernel.org>; Tue, 09 Apr 2013 05:50:17 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1365510362-18379-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: robdclark@gmail.com, linux-omap@vger.kernel.org, tomi.valkeinen@ti.com, dri-devel@lists.freedesktop.org
 
-On Tuesday 09 April 2013, Tony Lindgren wrote:
-> The following changes since commit 31880c37c11e28cb81c70757e38392b42e695dc6:
+On Tue, Apr 09, 2013 at 05:56:02PM +0530, Archit Taneja wrote:
+> When userspace calls SET_PLANE ioctl, drm core takes a reference of the fb and
+> passes control to the update_plane op defined by the drm driver.
 > 
->   Linux 3.9-rc6 (2013-04-07 20:49:54 -0700)
+> In omapdrm, we have a worker thread which queues framebuffers objects received
+> from update_plane and displays them at the appropriate time.
 > 
-> are available in the git repository at:
+> It is possible that the framebuffer is destoryed by userspace between the time
+> of calling the ioctl and apply-worker being scheduled. If this happens, the
+> apply-worker holds a pointer to a framebuffer which is already destroyed.
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/board-signed
+> Take an extra refernece/unreference of the fb in omap_plane_update() to prevent
+> this from happening. A reference is taken of the fb passed to update_plane(),
+> the previous framebuffer (held by plane->fb) is unreferenced. This will prevent
+> drm from destroying the framebuffer till the time it's unreferenced by the
+> apply-worker.
 > 
-> for you to fetch changes up to 06993d6a8a51b90fc78c8c3cb7a81c9b4b88c683:
+> This is in addition to the exisitng reference/unreference in update_pin(),
+> which is taken for the scanout of the plane's current framebuffer, and an
+> unreference the previous framebuffer.
 > 
->   ARM: OMAP: board-4430sdp: Provide regulator to pwm-backlight (2013-04-08 14:01:05 -0700)
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> Cc: Rob Clark <robdclark@gmail.com>
+> ---
+>  drivers/gpu/drm/omapdrm/omap_plane.c |    6 ++++++
+>  1 file changed, 6 insertions(+)
 > 
-> ----------------------------------------------------------------
-> Board related changes for v3.10 merge window. These are pretty
-> much all non-critical fixes for platform device initialization
-> that will be needed until we can drop the board-*.c files and
-> move to DT based boot.
-> 
+> diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c b/drivers/gpu/drm/omapdrm/omap_plane.c
+> index 2882cda..8d225d7 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_plane.c
+> +++ b/drivers/gpu/drm/omapdrm/omap_plane.c
+> @@ -247,6 +247,12 @@ static int omap_plane_update(struct drm_plane *plane,
+>  {
+>  	struct omap_plane *omap_plane = to_omap_plane(plane);
+>  	omap_plane->enabled = true;
+> +
+> +	if (plane->fb)
+> +		drm_framebuffer_unreference(plane->fb);
 
-Pulled into next/boards branch
+Shouldn't the unref only happen once the flip has completed? Otherwise we
+might free the memory which is still being scanned out and put some other
+crap there.
 
-	Arnd
+Note that I've been too lazy to read the code, but I expected the unref of
+the old one to happen after the ref-taking for the new one, with a vblank
+wait/delay in between ... Might be that I'm completely off ;-)
+-Daniel
+
+> +
+> +	drm_framebuffer_reference(fb);
+> +
+>  	return omap_plane_mode_set(plane, crtc, fb,
+>  			crtc_x, crtc_y, crtc_w, crtc_h,
+>  			src_x, src_y, src_w, src_h,
+> -- 
+> 1.7.10.4
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
