@@ -1,32 +1,72 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC v2] dmaengine: omap-dma: Start DMA without delay for
-	cyclic channels
-Date: Tue, 9 Apr 2013 14:54:06 +0100
-Message-ID: <20130409135406.GA14500@n2100.arm.linux.org.uk>
-References: <1364987862-14597-1-git-send-email-peter.ujfalusi@ti.com> <51626D88.8020809@ti.com> <20130408170956.GX30923@n2100.arm.linux.org.uk> <5163C118.5000207@ti.com> <5163C184.1010200@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] dmaengine: omap-dma: Start DMA without delay for cyclic channels
+Date: Tue, 9 Apr 2013 16:33:06 +0200
+Message-ID: <1365517986-9401-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5163C184.1010200@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Meerwald <pmeerw@pmeerw.net>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>
+Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Meerwald <pmeerw@pmeerw.net>, patches@linaro.org, stable@vger.kernel.org.#.v3.7+
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 09, 2013 at 09:21:40AM +0200, Peter Ujfalusi wrote:
-> Russell,
->=20
-> On 04/09/2013 09:19 AM, Peter Ujfalusi wrote:
-> > On 04/08/2013 07:09 PM, Russell King - ARM Linux wrote:
-> >> Now that I'm back from a short 4 day break, then yes, and the answ=
-er is
-> >> that it's fine.  Who's handling the patch?
-> >=20
-> > Thank you,
-> > P=E9ter
->=20
-> Can I add you acked-by to the patch?
+cyclic DMA is only used by audio which needs DMA to be started without a
+delay.
+If the DMA for audio is started using the tasklet we experience random
+channel switch (to be more precise: channel shift).
 
-You may, using the rmk+kernel address, not this one.  Thanks.
+Reported-by: Peter Meerwald <pmeerw@pmeerw.net>
+CC: stable@vger.kernel.org  # v3.7+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+Hi Vinod,
+
+Would it be possible to send this patch for 3.9. The channel shift (or switch)
+issue in audio has been noticed recently and it turns out that it has been
+present since 3.7 kernel.
+It would be great if 3.9 kernel could work correctly out of box...
+
+Changes since RFCv2:
+- added Acked-by from Santosh and Russell
+
+Thank you,
+Peter
+
+ drivers/dma/omap-dma.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 2ea3d7e..ec3fc4f 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -282,12 +282,20 @@ static void omap_dma_issue_pending(struct dma_chan *chan)
+ 
+ 	spin_lock_irqsave(&c->vc.lock, flags);
+ 	if (vchan_issue_pending(&c->vc) && !c->desc) {
+-		struct omap_dmadev *d = to_omap_dma_dev(chan->device);
+-		spin_lock(&d->lock);
+-		if (list_empty(&c->node))
+-			list_add_tail(&c->node, &d->pending);
+-		spin_unlock(&d->lock);
+-		tasklet_schedule(&d->task);
++		/*
++		 * c->cyclic is used only by audio and in this case the DMA need
++		 * to be started without delay.
++		 */
++		if (!c->cyclic) {
++			struct omap_dmadev *d = to_omap_dma_dev(chan->device);
++			spin_lock(&d->lock);
++			if (list_empty(&c->node))
++				list_add_tail(&c->node, &d->pending);
++			spin_unlock(&d->lock);
++			tasklet_schedule(&d->task);
++		} else {
++			omap_dma_start_desc(c);
++		}
+ 	}
+ 	spin_unlock_irqrestore(&c->vc.lock, flags);
+ }
+-- 
+1.8.1.5
