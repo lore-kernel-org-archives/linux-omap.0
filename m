@@ -1,64 +1,41 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: =?UTF-8?q?=5BPATCH=5D=20ARM=3A=20OMAP4=3A=20HWMOD=3A=20make=20=27ocp2scp=5Fusb=5Fphy=5Fphy=5F48m=22=20as=20the=20main=20clock?=
-Date: Tue, 9 Apr 2013 13:58:21 +0530
-Message-ID: <1365496101-7829-1-git-send-email-kishon@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/6] mfd: omap-usb-host: Device tree support for 3.10
+Date: Tue, 9 Apr 2013 11:39:16 +0300
+Message-ID: <1365496758-16287-1-git-send-email-rogerq@ti.com>
+References: <20130409075457.GF24058@zurbaran>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rnayak@ti.com, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk
-Cc: kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130409075457.GF24058@zurbaran>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-commit 92702d (ARM: OMAP4: PM: fix PM regression introduced by recent
-clock cleanup) makes the 'ocp2scp_usb_phy_phy_48m' as optional
-functional clock causing regression in MUSB. But this 48MHz clock is a
-mandatory clock for usb phy attached to ocp2scp and hence made as the m=
-ain
-clock for ocp2scp.
+Samuel,
 
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+You had the conflicts because a patch [*] was introduced and is not
+required since the reset logic is being removed from the driver.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
--omap2/omap_hwmod_44xx_data.c
-index 9e05765..c1fb090 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2714,16 +2714,12 @@ static struct omap_ocp2scp_dev ocp2scp_dev_attr=
-[] =3D {
- 	{ }
- };
-=20
--static struct omap_hwmod_opt_clk ocp2scp_usb_phy_opt_clks[] =3D {
--	{ .role =3D "48mhz", .clk =3D "ocp2scp_usb_phy_phy_48m" },
--};
--
- /* ocp2scp_usb_phy */
- static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwmod =3D {
- 	.name		=3D "ocp2scp_usb_phy",
- 	.class		=3D &omap44xx_ocp2scp_hwmod_class,
- 	.clkdm_name	=3D "l3_init_clkdm",
--	.main_clk	=3D "func_48m_fclk",
-+	.main_clk	=3D "ocp2scp_usb_phy_phy_48m",
- 	.prcm =3D {
- 		.omap4 =3D {
- 			.clkctrl_offs =3D OMAP4_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL_OFFSET,
-@@ -2732,8 +2728,6 @@ static struct omap_hwmod omap44xx_ocp2scp_usb_phy=
-_hwmod =3D {
- 		},
- 	},
- 	.dev_attr	=3D ocp2scp_dev_attr,
--	.opt_clks	=3D ocp2scp_usb_phy_opt_clks,
--	.opt_clks_cnt	=3D ARRAY_SIZE(ocp2scp_usb_phy_opt_clks),
- };
-=20
- /*
---=20
-1.7.10.4
+Anyways, I've rebased the 2 patches on top of mfd-next, so now it
+shouldn't matter.
+
+cheers,
+-roger
+
+[*]
+commit 71f4b9cdfccfb82cff702fe61f4ace97a1dfb0e0
+Author: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Date:   Wed Feb 20 18:29:30 2013 +0900
+
+    mfd: omap-usb-host: Use devm_gpio_request_one()
