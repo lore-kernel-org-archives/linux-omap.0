@@ -1,138 +1,76 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support
- for AUXCLKs
-Date: Tue, 9 Apr 2013 15:22:31 -0700
-Message-ID: <20130409222231.GS10155@atomide.com>
-References: <1363703220-4777-2-git-send-email-rogerq@ti.com>
- <20130403234242.GE10155@atomide.com>
- <515D2D30.3000306@ti.com>
- <20130404164137.GH10155@atomide.com>
- <515EA9E3.1010409@ti.com>
- <20130405155851.GA10155@atomide.com>
- <5163E589.1040809@ti.com>
- <20130409164928.GL10155@atomide.com>
- <20130409174319.GP10155@atomide.com>
- <20130409204900.GA8815@kahuna>
+Subject: Re: [PATCH V3 1/2] ARM: OMAP: board-4430sdp: Provide regulator to
+ pwm-backlight
+Date: Tue, 9 Apr 2013 15:27:07 -0700
+Message-ID: <20130409222706.GT10155@atomide.com>
+References: <1363214006-10662-1-git-send-email-achew@nvidia.com>
+ <1363214006-10662-2-git-send-email-achew@nvidia.com>
+ <20130408214624.GZ10155@atomide.com>
+ <20130408215616.GA25124@avionic-0098.mockup.avionic-design.de>
+ <20130408221657.GC10155@atomide.com>
+ <20130409075602.GA27255@avionic-0098.mockup.avionic-design.de>
+ <20130409164003.GK10155@atomide.com>
+ <20130409194049.GA16847@avionic-0098.mockup.avionic-design.de>
+ <20130409201745.GQ10155@atomide.com>
+ <20130409205708.GA17920@avionic-0098.mockup.avionic-design.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:32354 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1760498Ab3DIW1M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 18:27:12 -0400
 Content-Disposition: inline
-In-Reply-To: <20130409204900.GA8815@kahuna>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, linux-usb@vger.kernel.org, linux@arm.linux.org.uk, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, balbi@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20130409205708.GA17920@avionic-0098.mockup.avionic-design.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Andrew Chew <achew@nvidia.com>, peter.ujfalusi@ti.com, acourbot@nvidia.com, linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [130409 13:53]:
-> I did try to have an implementation for cpufreq using clock nodes.
-> unfortunately, device tree wont let me have arguments of strings :(
-> So, I am unable to do clock = <&clk mpu_dpll>;
-> instead, I am forced to do clock = <&clk 249>;
-
-It seems that you should have a separate clock defines for each
-clock instead. That way we can later on populate that with
-the clock specific data.
- 
-> Here is an attempt on beagleXM - adds every clock node to the list.
-> Tons of un-necessary prints added to give an idea - see log:
-> http://pastebin.com/F9A2zSTr
+* Thierry Reding <thierry.reding@avionic-design.de> [130409 14:01]:
+> On Tue, Apr 09, 2013 at 01:17:46PM -0700, Tony Lindgren wrote:
+> > * Thierry Reding <thierry.reding@avionic-design.de> [130409 12:45]:
+> > > On Tue, Apr 09, 2013 at 09:40:04AM -0700, Tony Lindgren wrote:
+> > > [...]
+> > > > But then the regulator is not found and the driver should just exit,
+> > > > or do nothing. If this is an optional regulator, then that should be
+> > > > indicated in some platform data flags?
+> > > 
+> > > Yes, if the regulator isn't found then the driver fails. However the
+> > > goal was to maintain bisectability. If we apply them in the wrong order
+> > > we can't guarantee that because pwm-backlight will fail to work between
+> > > both patches.
+> > 
+> > But it's fixing something that's not working anyways for board-4430sdp.c,
+> > It seems so as these patches just add new features?
 > 
-> Would an cleaned up version be good enough as a step #1 of transition?
+> Not quite. It's adding a dummy regulator to represent hardware where the
+> enable pin is always high. So I think pwm-backlight will work in the
+> current state, but if we make the pwm-backlight driver change without
+> adding the dummy regulator, then pwm-backlight will fail to probe and
+> therefore the PWM won't be enabled either and the display will stay
+> black.
 
-Well I would make it even simpler initially. Just a standard .dts
-clock defined that gets parsed by drivers/clock/ driver that just
-calls clk_add_alias(). Then the consumer driver can just do clk_get()
-and and the right clock is found, see below.
+OK
+ 
+> > > > The driver parts really must be done in independently from any platform
+> > > > data or .dts changes. The only common part needed should be changes
+> > > > to include/linux/platform_data/*.h files.
+> > > 
+> > > We don't even need to touch platform data because the regulators are
+> > > looked up via a global table. And the changes are all done independently
+> > > but as I mentioned above, bisectability isn't maintained, so the
+> > > preferred patch order is the one in which pwm-backlight keeps working at
+> > > each point in the commit history.
+> > 
+> > Bisectability is a good point. But in the 4430sdp case I'm sure it's enough
+> > that it builds and boots no matter how the patches get merged :)
+> 
+> If you don't mind some intermediary breakage, I will no longer object.
 
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -73,6 +73,11 @@
->  			ti,hwmods = "counter_32k";
->  		};
->  
-> +		clks: clocks {
-> +			compatible = "ti,clock";
-> +			#clock-cells = <1>;
-> +		};
-> +
->  		intc: interrupt-controller@48200000 {
->  			compatible = "ti,omap2-intc";
->  			interrupt-controller;
-
-There should be a separate entry for each clock defined,
-like auxclk1 in the USB case assuming the clock being used
-is aux clock #1. I doubt that we want to map all the auxclks
-as a single clock as they are separate clocks AFAIK.
-
-> --- a/arch/arm/boot/dts/omap34xx.dtsi
-> +++ b/arch/arm/boot/dts/omap34xx.dtsi
-> @@ -23,6 +23,8 @@
->  				600000  1350000
->  			>;
->  			clock-latency = <300000>; /* From legacy driver */
-> +			clocks = <&clks 249>; /* index to cpufreq_ck */
-> +			clock-names = "cpu";
->  		};
->  	};
->  };
-
-Then in the consumer driver you would just have:
-
-			clocks = <&auxclk1 0>;
-
-for the USB case, then something else for the cpufreq driver.
-
-> --- a/arch/arm/mach-omap2/cclock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/cclock3xxx_data.c
-> @@ -22,6 +22,7 @@
->  #include <linux/clk-private.h>
->  #include <linux/list.h>
->  #include <linux/io.h>
-> +#include <linux/clk/ti.h>
->  
->  #include "soc.h"
->  #include "iomap.h"
-> @@ -3574,7 +3575,7 @@ int __init omap3xxx_clk_init(void)
->  	for (c = omap3xxx_clks; c < omap3xxx_clks + ARRAY_SIZE(omap3xxx_clks);
->  	     c++)
->  		if (c->cpu & cpu_clkflg) {
-> -			clkdev_add(&c->lk);
-> +			ti_clk_node_add(&c->lk);
->  			if (!__clk_init(NULL, c->lk.clk))
->  				omap2_init_clk_hw_omap_clocks(c->lk.clk);
->  		}
-
-AFAIK no need to tinkering with the clockxxxx_data.c files.
-
-> --- /dev/null
-> +++ b/drivers/clk/ti.c
-> @@ -0,0 +1,100 @@
-> +/*
-> + * TI Clock node provider
-> + *
-> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-> + *	Nishanth Menon
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warranty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +#include <linux/kernel.h>
-> +#include <linux/list.h>
-> +#include <linux/clk-private.h>
-> +#include <linux/clkdev.h>
-> +#include <linux/io.h>
-> +#include <linux/of.h>
-> +#include <linux/clk/ti.h>
-
-Then this can be just a minimal DT device driver that initially just
-calls clk_add_alias() so the right clock is found when the driver
-does clk_get(). Probably should be drivers/clock/omap/clk.c.
+In this case it should be fine. If you are worried about it, you could
+add something that enables the new features in the driver only in
+a follow-up patch after the merge window. But I doubt that it's needed.
 
 Regards,
 
