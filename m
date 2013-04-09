@@ -1,57 +1,60 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: [GIT PULL] OMAP PM cleanups for v3.10
-Date: Tue, 09 Apr 2013 16:13:29 -0700
-Message-ID: <87ehej1ena.fsf@linaro.org>
+Subject: [GIT PULL] CPUidle: OMAP cleanups for v3.10
+Date: Tue, 09 Apr 2013 16:19:59 -0700
+Message-ID: <871uaj1ecg.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f41.google.com ([209.85.210.41]:58072 "EHLO
-	mail-da0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751808Ab3DIXNc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 19:13:32 -0400
-Received: by mail-da0-f41.google.com with SMTP id w4so3244840dam.0
-        for <linux-omap@vger.kernel.org>; Tue, 09 Apr 2013 16:13:32 -0700 (PDT)
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:38482 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753857Ab3DIXUD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 19:20:03 -0400
+Received: by mail-pa0-f49.google.com with SMTP id kp14so4038228pab.36
+        for <linux-omap@vger.kernel.org>; Tue, 09 Apr 2013 16:20:01 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Tony,
+Rafael,
 
-Here's the final set of OMAP PM cleanups for v3.10.  This is a small set
-of cleanups from Santosh to consolidate and prepare for OMAP5 PM additions.
+Please pull the following OMAP CPUidle changes for v3.10.
 
-It's based on your cleanup-v2 branch.
+Due to dependencies on other CPUidle changes that are already in your
+linux-next branch, this branch is based on the commit where you merged
+your pm-cpuidle-next branch into linux-next.
 
 Kevin
 
+The following changes since commit f69e44b2059f2238ac558b4a115ebcdefe20b9be:
 
-The following changes since commit c309f7f46167e85d1aae2fd31f23e7d2b5cdfbe0:
-
-  Merge branch 'for_3.10/omap_generic_cleanup_v2' of git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux into omap-for-v3.10/cleanup-v2 (2013-03-28 14:45:31 -0700)
+  Merge branch 'pm-cpuidle-next' into linux-next (2013-04-08 12:32:07 +0200)
 
 are available in the git repository at:
 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.10/cleanup/pm
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.10/cleanup/cpuidle-v2
 
-for you to fetch changes up to 705814b5ea6ff69d4da8ad581c3da5d26d1eae83:
+for you to fetch changes up to db4f3dab629109882170a7b1b8fb655a34c52846:
 
-  ARM: OMAP4+: PM: Consolidate OMAP4 PM code to re-use it for OMAP5 (2013-04-09 10:53:06 -0700)
-
-----------------------------------------------------------------
-OMAP PM cleanups for v3.10
+  ARM: OMAP4+: CPUidle: Consolidate idle driver for OMAP5 support (2013-04-09 09:48:21 -0700)
 
 ----------------------------------------------------------------
-Santosh Shilimkar (4):
-      ARM: OMAP4: PM: Avoid expensive cpu_suspend() path for all CPU power states except off
-      ARM: OMAP4+: PM: Consolidate MPU subsystem PM code for re-use
-      ARM: OMAP4+: Make secondary_startup function name more consistent
-      ARM: OMAP4+: PM: Consolidate OMAP4 PM code to re-use it for OMAP5
+OMAP CPUidle cleanups for v3.10
 
- arch/arm/mach-omap2/common.h              |  4 +-
- arch/arm/mach-omap2/omap-headsmp.S        |  8 ++--
- arch/arm/mach-omap2/omap-mpuss-lowpower.c | 69 +++++++++++++++++++++++++------
- arch/arm/mach-omap2/omap-smp.c            |  6 +--
- arch/arm/mach-omap2/pm44xx.c              | 58 +++++++++++++++++++++-----
- 5 files changed, 113 insertions(+), 32 deletions(-)
+----------------------------------------------------------------
+Daniel Lezcano (1):
+      ARM: omap3: cpuidle: enable time keeping
+
+Santosh Shilimkar (5):
+      ARM: OMAP4: CPUidle: Avoid double idle driver registration
+      ARM: OMAP: CPUidle: Unregister drivere on device registration failure
+      ARM: OMAP4: CPUidle: Make C-state description field more precise
+      ARM: OMAP4+: CPUidle: Deprecate use of omap4_mpuss_read_prev_context_state()
+      ARM: OMAP4+: CPUidle: Consolidate idle driver for OMAP5 support
+
+ arch/arm/mach-omap2/common.h              |  5 ----
+ arch/arm/mach-omap2/cpuidle34xx.c         | 11 +++++--
+ arch/arm/mach-omap2/cpuidle44xx.c         | 48 +++++++++++++++++--------------
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c | 14 ---------
+ 4 files changed, 35 insertions(+), 43 deletions(-)
