@@ -1,17 +1,17 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support for
- AUXCLKs
-Date: Tue, 9 Apr 2013 13:16:27 +0300
-Message-ID: <5163EA7B.6090109@ti.com>
-References: <1363703220-4777-1-git-send-email-rogerq@ti.com>
- <1363703220-4777-2-git-send-email-rogerq@ti.com>
- <20130403234242.GE10155@atomide.com> <515D2D30.3000306@ti.com>
- <20130404164137.GH10155@atomide.com> <515F1035.8090500@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [RFC v2] dmaengine: omap-dma: Start DMA without delay for cyclic
+ channels
+Date: Tue, 9 Apr 2013 12:20:17 +0200
+Message-ID: <5163EB61.3000507@ti.com>
+References: <1364987862-14597-1-git-send-email-peter.ujfalusi@ti.com>
+ <51626D88.8020809@ti.com> <20130408170956.GX30923@n2100.arm.linux.org.uk>
+ <20130408171519.GP10155@atomide.com> <5163BAA8.7040502@ti.com>
+ <5163C103.8020101@ti.com> <20130409072600.GA31193@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <515F1035.8090500@ti.com>
+In-Reply-To: <20130409072600.GA31193@intel.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,117 +21,23 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-usb@vger.kernel.org, linux@arm.linux.org.uk, b-cousson@ti.com, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Peter Meerwald <pmeerw@pmeerw.net>, Dan Williams <djbw@fb.com>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/05/2013 08:56 PM, Grygorii Strashko wrote:
-> On 04/04/2013 07:41 PM, Tony Lindgren wrote:
->> * Roger Quadros <rogerq@ti.com> [130404 00:39]:
->>> On 04/04/2013 02:42 AM, Tony Lindgren wrote:
->>>>> --- a/arch/arm/mach-omap2/cclock44xx_data.c
->>>>> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
->>>>> @@ -27,6 +27,7 @@
->>>>>   #include <linux/clk-private.h>
->>>>>   #include <linux/clkdev.h>
->>>>>   #include <linux/io.h>
->>>>> +#include <linux/of.h>
->>>>>     #include "soc.h"
->>>>>   #include "iomap.h"
->>>>> @@ -1663,6 +1664,40 @@ static struct omap_clk omap44xx_clks[] = {
->>>>>       CLK(NULL,    "cpufreq_ck",    &dpll_mpu_ck,    CK_443X),
->>>>>   };
->>>>>   +static struct clk *scrm_clks[] = {
->>>>> +    &auxclk0_ck,
->>>>> +    &auxclk1_ck,
->>>>> +    &auxclk2_ck,
->>>>> +    &auxclk3_ck,
->>>>> +    &auxclk4_ck,
->>>>> +    &auxclk5_ck,
->>>>> +};
->>>> Hmm I don't like the idea of specifying the auxclk both in the
->>>> cclock44xx_data.c and in DT..
->>> Right, but till we have all clocks moved to DT we only need this
->>> approach for general purpose clocks that are not mapped to devices
->>> by hwmod.
->> For v3.10, let's just make sure that USB works with DT as then
->> after v3.10 we can make omap4 DT only and get rid of estimated
->> 7K lines of code and data. I guess this is the last piece missing
->> for that, or are we also missing something else?
->>
->> Can't you set up a clock alias for your device so it can find the
->> auxclk when requesting it with the dev entry?
->>
->> For the DT clock driver if needed for v3.10, how about just do a
->> minimal drivers/clock/omap/ that uses the standard binding?
->> Then that driver can just do clk_get() from cclock44xx_data.c
->> for now? And then later on we'll just move all the clocks to a
->> combination of DT + /lib/firmware.
->>
-> Hi Roger, Rajendra, All
-> 
-> Sorry that disturbing you.
+On 04/09/2013 09:26 AM, Vinod Koul wrote:
+> Yes it should go thru dmaengine tree, sorry was travelling hence the dela=
+y, pls
+> resend the patch and I will do the needful
 
-Hi Grygorri,
+I already have the patch rebased on today's linux-next, just waiting for
+Russell to confirm that I can add his Acked-by to the patch.
+I take this from Russell as ACK: "Now that I'm back from a short 4 day brea=
+k,
+then yes, and the answer is that it's fine.  Who's handling the patch?"
 
-Nothing to disturb at all ;).
+But I want to be sure I can add that line...
 
-> 
-> I'm supporting Android OMAP4 kernels (K3.0/K3.4) and like to clarify few
-> points regarding this approach (having into account possible future migrations
-> on newer Kernels and OMAP5).
-> If I understand everything right, this patch series allows to create clock binding
-> in DT using following syntax: clocks = <&aux_clks 3>
+-- =
 
-Actually in v2 of the patch this would be clocks = <&clks 3>
-
->  - does it means that in worst case there will be ~200 clock IDs defined?
-
-I'm afraid so yes. But when I wrote this I was only thinking of generic clocks, i.e. AUXCLKS.
-So when we start talking of all clocks we might need to reconsider the approach.
-
->  - does it means that clock nodes binding using phandles (human-friendly notation)
-> isn't going to be supported?
-> for example:
->     clocks = <&sys_clkin_ck>
->     clocks = <&dss_sys_clk &dss_tv_clk &dss_dss_clk>)
-
-This would depend if we define the clock nodes within DT or not. From what Tony
-mentioned (i.e. inefficiency) it seems that the clock nodes won't be defined
-in the device tree. Then we are left with using an index.
-> 
-> I was horrified to think about the problems of this approach support
-> (in case if there would be more then ~30 IDs) - just miss with on digit
-> and weeks of debugging would be guaranteed.
-> 
-> Please, say me that i'm wrong.
-
-It is still not written in stone so if you have a better idea we could
-go that route.
-
-cheers,
--roger
-
-> And why clock DT data can't be auto-generated like all other OMAP data
-> to close this questions?
-> 
-> Thanks.
-> 
->>> e.g. auxclk are required to be specified in DT nodes for USB PHY.
->>> Without this we can't get USB host working on Panda.
->> OK. So if the USB PHY has a dev entry, can't you just set up a
->> clock alias in struct omap_clk omap44xx_clks[] for it?
->>  
->>> As Rajendra points out, it seems moving entire clock data to DT is not
->>> going to happen soon. So this is the simplistic way things can work.
->> Right but seems like we can get started there without moving
->> them all at once.
->>
->> Regards,
->>
->> Tony
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+P=E9ter
