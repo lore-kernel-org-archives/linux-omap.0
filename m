@@ -1,226 +1,523 @@
-From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Subject: [RFC PATCH v2 1/4] retu-mfd: support also Tahvo
-Date: Tue,  9 Apr 2013 22:51:25 +0300
-Message-ID: <1365537088-23199-2-git-send-email-aaro.koskinen@iki.fi>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [RFC PATCH v2 4/4] USB: OMAP: Tahvo USB transceiver driver
+Date: Tue,  9 Apr 2013 22:51:28 +0300
+Message-ID: <1365537088-23199-5-git-send-email-aaro.koskinen@iki.fi>
 References: <1365537088-23199-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1365537088-23199-1-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:57093 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935931Ab3DITvi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 15:51:38 -0400
+In-Reply-To: <1365537088-23199-1-git-send-email-aaro.koskinen@iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Tahvo is a multi-function device on Nokia 770, implementing USB
-transceiver and charge/battery control.
+Add Tahvo USB transceiver driver.
 
-It's so close to Retu that a single driver can support both.
+Based on old code from linux-omap tree. The original driver was written
+by Juha Yrj=C3=B6l=C3=A4, Tony Lindgren, and Timo Ter=C3=A4s.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- drivers/mfd/Kconfig      |    6 ++--
- drivers/mfd/retu-mfd.c   |   85 ++++++++++++++++++++++++++++++++++++++++------
- include/linux/mfd/retu.h |    8 ++++-
- 3 files changed, 85 insertions(+), 14 deletions(-)
+ drivers/usb/phy/Kconfig     |   14 ++
+ drivers/usb/phy/Makefile    |    1 +
+ drivers/usb/phy/phy-tahvo.c |  429 +++++++++++++++++++++++++++++++++++=
+++++++++
+ 3 files changed, 444 insertions(+)
+ create mode 100644 drivers/usb/phy/phy-tahvo.c
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index c346941..8628955 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -1102,13 +1102,13 @@ config MFD_VIPERBOARD
- 	  The drivers do not support all features the board exposes.
- 
- config MFD_RETU
--	tristate "Support for Retu multi-function device"
-+	tristate "Support for Retu and Tahvo multi-function devices"
- 	select MFD_CORE
- 	depends on I2C && GENERIC_HARDIRQS
- 	select REGMAP_IRQ
- 	help
--	  Retu is a multi-function device found on Nokia Internet Tablets
--	  (770, N800 and N810).
-+	  Retu and Tahvo are multi-function devices found on Nokia
-+	  Internet Tablets (770, N800 and N810).
- 
- config MFD_AS3711
- 	bool "Support for AS3711"
-diff --git a/drivers/mfd/retu-mfd.c b/drivers/mfd/retu-mfd.c
-index 3ba0486..a183098 100644
---- a/drivers/mfd/retu-mfd.c
-+++ b/drivers/mfd/retu-mfd.c
-@@ -1,5 +1,5 @@
- /*
-- * Retu MFD driver
-+ * Retu/Tahvo MFD driver
-  *
-  * Copyright (C) 2004, 2005 Nokia Corporation
-  *
-@@ -33,7 +33,8 @@
- #define RETU_REG_ASICR		0x00		/* ASIC ID and revision */
- #define RETU_REG_ASICR_VILMA	(1 << 7)	/* Bit indicating Vilma */
- #define RETU_REG_IDR		0x01		/* Interrupt ID */
--#define RETU_REG_IMR		0x02		/* Interrupt mask */
-+#define RETU_REG_IMR		0x02		/* Interrupt mask (Retu) */
-+#define TAHVO_REG_IMR		0x03		/* Interrupt mask (Tahvo) */
- 
- /* Interrupt sources */
- #define RETU_INT_PWR		0		/* Power button */
-@@ -84,6 +85,62 @@ static struct regmap_irq_chip retu_irq_chip = {
- /* Retu device registered for the power off. */
- static struct retu_dev *retu_pm_power_off;
- 
-+static struct resource tahvo_usb_res[] = {
-+	{
-+		.name	= "tahvo-usb",
-+		.start	= TAHVO_INT_VBUS,
-+		.end	= TAHVO_INT_VBUS,
-+		.flags	= IORESOURCE_IRQ,
-+	},
+diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
+index 8c051c2..85b2e2c 100644
+--- a/drivers/usb/phy/Kconfig
++++ b/drivers/usb/phy/Kconfig
+@@ -145,6 +145,20 @@ config OMAP_OTG
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called omap-otg.
+=20
++config TAHVO_USB
++	tristate "Tahvo USB transceiver driver"
++	depends on MFD_RETU && OMAP_OTG
++	help
++	  Enable this to support USB transceiver on Tahvo. This is used
++	  at least on Nokia 770.
++
++config TAHVO_USB_HOST_BY_DEFAULT
++	depends on TAHVO_USB
++	boolean "Device in USB host mode by default"
++	help
++	  Say Y here, if you want the device to enter USB host mode
++	  by default on bootup.
++
+ config USB_ISP1301
+ 	tristate "NXP ISP1301 USB transceiver support"
+ 	depends on USB || USB_GADGET
+diff --git a/drivers/usb/phy/Makefile b/drivers/usb/phy/Makefile
+index 7e67e96..c6079ff 100644
+--- a/drivers/usb/phy/Makefile
++++ b/drivers/usb/phy/Makefile
+@@ -13,6 +13,7 @@ phy-fsl-usb2-objs			:=3D phy-fsl-usb.o phy-fsm-usb.o
+ obj-$(CONFIG_FSL_USB2_OTG)		+=3D phy-fsl-usb2.o
+ obj-$(CONFIG_ISP1301_OMAP)		+=3D phy-isp1301.omap.o
+ obj-$(CONFIG_MV_U3D_PHY)		+=3D phy-mv-u3d-usb.o
++obj-$(CONFIG_TAHVO_USB)			+=3D phy-tahvo.o
+ obj-$(CONFIG_NOP_USB_XCEIV)		+=3D phy-nop.o
+ obj-$(CONFIG_OMAP_CONTROL_USB)		+=3D phy-omap-control.o
+ obj-$(CONFIG_OMAP_OTG)			+=3D phy-omap-otg.o
+diff --git a/drivers/usb/phy/phy-tahvo.c b/drivers/usb/phy/phy-tahvo.c
+new file mode 100644
+index 0000000..51bc40e
+--- /dev/null
++++ b/drivers/usb/phy/phy-tahvo.c
+@@ -0,0 +1,429 @@
++/*
++ * Tahvo USB transceiver driver
++ *
++ * Copyright (C) 2005-2006 Nokia Corporation
++ *
++ * Parts copied from isp1301_omap.c.
++ * Copyright (C) 2004 Texas Instruments
++ * Copyright (C) 2004 David Brownell
++ *
++ * Original driver written by Juha Yrj=C3=B6l=C3=A4, Tony Lindgren and=
+ Timo Ter=C3=A4s.
++ * Modified for Retu/Tahvo MFD by Aaro Koskinen.
++ *
++ * This file is subject to the terms and conditions of the GNU General
++ * Public License. See the file "COPYING" in the main directory of thi=
+s
++ * archive for more details.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/io.h>
++#include <linux/clk.h>
++#include <linux/usb.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/usb/otg.h>
++#include <linux/mfd/retu.h>
++#include <linux/usb/gadget.h>
++#include <linux/usb/omap-otg.h>
++#include <linux/platform_device.h>
++
++#define DRIVER_NAME     "tahvo-usb"
++
++#define TAHVO_REG_IDSR	0x02
++#define TAHVO_REG_USBR	0x06
++
++#define USBR_SLAVE_CONTROL	(1 << 8)
++#define USBR_VPPVIO_SW		(1 << 7)
++#define USBR_SPEED		(1 << 6)
++#define USBR_REGOUT		(1 << 5)
++#define USBR_MASTER_SW2		(1 << 4)
++#define USBR_MASTER_SW1		(1 << 3)
++#define USBR_SLAVE_SW		(1 << 2)
++#define USBR_NSUSPEND		(1 << 1)
++#define USBR_SEMODE		(1 << 0)
++
++#define TAHVO_MODE_HOST		0
++#define TAHVO_MODE_PERIPHERAL	1
++
++struct tahvo_usb {
++	struct platform_device	*pt_dev;
++	struct usb_phy		phy;
++	int			vbus_state;
++	struct mutex		serialize;
++	struct clk		*ick;
++	int			irq;
++	int			tahvo_mode;
 +};
 +
-+static struct mfd_cell tahvo_devs[] = {
-+	{
-+		.name		= "tahvo-usb",
-+		.resources	= tahvo_usb_res,
-+		.num_resources	= ARRAY_SIZE(tahvo_usb_res),
-+	},
-+};
++static ssize_t vbus_state_show(struct device *device,
++			       struct device_attribute *attr, char *buf)
++{
++	struct tahvo_usb *tu =3D dev_get_drvdata(device);
++	return sprintf(buf, "%d\n", tu->vbus_state);
++}
++static DEVICE_ATTR(vbus_state, 0444, vbus_state_show, NULL);
 +
-+static struct regmap_irq tahvo_irqs[] = {
-+	[TAHVO_INT_VBUS] = {
-+		.mask = 1 << TAHVO_INT_VBUS,
++static void check_vbus_state(struct tahvo_usb *tu)
++{
++	struct retu_dev *rdev =3D dev_get_drvdata(tu->pt_dev->dev.parent);
++	int reg, prev_state;
++
++	reg =3D retu_read(rdev, TAHVO_REG_IDSR);
++	if (reg & TAHVO_STAT_VBUS) {
++		switch (tu->phy.state) {
++		case OTG_STATE_B_IDLE:
++			/* Enable the gadget driver */
++			if (tu->phy.otg->gadget)
++				usb_gadget_vbus_connect(tu->phy.otg->gadget);
++			omap_otg_set_mode(OMAP_OTG_MODE_DEVICE);
++			tu->phy.state =3D OTG_STATE_B_PERIPHERAL;
++			break;
++		case OTG_STATE_A_IDLE:
++			/*
++			 * Session is now valid assuming the USB hub is driving
++			 * Vbus.
++			 */
++			tu->phy.state =3D OTG_STATE_A_HOST;
++			break;
++		default:
++			break;
++		}
++		dev_info(&tu->pt_dev->dev, "USB cable connected\n");
++	} else {
++		switch (tu->phy.state) {
++		case OTG_STATE_B_PERIPHERAL:
++			if (tu->phy.otg->gadget)
++				usb_gadget_vbus_disconnect(tu->phy.otg->gadget);
++			tu->phy.state =3D OTG_STATE_B_IDLE;
++			break;
++		case OTG_STATE_A_HOST:
++			tu->phy.state =3D OTG_STATE_A_IDLE;
++			break;
++		default:
++			break;
++		}
++		dev_info(&tu->pt_dev->dev, "USB cable disconnected\n");
 +	}
-+};
 +
-+static struct regmap_irq_chip tahvo_irq_chip = {
-+	.name		= "TAHVO",
-+	.irqs		= tahvo_irqs,
-+	.num_irqs	= ARRAY_SIZE(tahvo_irqs),
-+	.num_regs	= 1,
-+	.status_base	= RETU_REG_IDR,
-+	.mask_base	= TAHVO_REG_IMR,
-+	.ack_base	= RETU_REG_IDR,
-+};
++	prev_state =3D tu->vbus_state;
++	tu->vbus_state =3D reg & TAHVO_STAT_VBUS;
++	if (prev_state !=3D tu->vbus_state)
++		sysfs_notify(&tu->pt_dev->dev.kobj, NULL, "vbus_state");
++}
 +
-+static const struct retu_data {
-+	char			*chip_name;
-+	char			*companion_name;
-+	struct regmap_irq_chip	*irq_chip;
-+	struct mfd_cell		*children;
-+	int			nchildren;
-+} retu_data[] = {
-+	[0] = {
-+		.chip_name	= "Retu",
-+		.companion_name	= "Vilma",
-+		.irq_chip	= &retu_irq_chip,
-+		.children	= retu_devs,
-+		.nchildren	= ARRAY_SIZE(retu_devs),
-+	},
-+	[1] = {
-+		.chip_name	= "Tahvo",
-+		.companion_name	= "Betty",
-+		.irq_chip	= &tahvo_irq_chip,
-+		.children	= tahvo_devs,
-+		.nchildren	= ARRAY_SIZE(tahvo_devs),
-+	}
-+};
++static void tahvo_usb_become_host(struct tahvo_usb *tu)
++{
++	struct retu_dev *rdev =3D dev_get_drvdata(tu->pt_dev->dev.parent);
 +
- int retu_read(struct retu_dev *rdev, u8 reg)
- {
- 	int ret;
-@@ -173,9 +230,14 @@ static struct regmap_config retu_config = {
- 
- static int retu_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
- {
-+	struct retu_data const *rdat;
- 	struct retu_dev *rdev;
- 	int ret;
- 
-+	if (i2c->addr > ARRAY_SIZE(retu_data))
++	omap_otg_set_mode(OMAP_OTG_MODE_HOST);
++
++	/* Power up the transceiver in USB host mode */
++	retu_write(rdev, TAHVO_REG_USBR, USBR_REGOUT | USBR_NSUSPEND |
++		   USBR_MASTER_SW2 | USBR_MASTER_SW1);
++	tu->phy.state =3D OTG_STATE_A_IDLE;
++
++	check_vbus_state(tu);
++}
++
++static void tahvo_usb_stop_host(struct tahvo_usb *tu)
++{
++	tu->phy.state =3D OTG_STATE_A_IDLE;
++}
++
++static void tahvo_usb_become_peripheral(struct tahvo_usb *tu)
++{
++	struct retu_dev *rdev =3D dev_get_drvdata(tu->pt_dev->dev.parent);
++
++	omap_otg_set_mode(OMAP_OTG_MODE_DISCONNECT);
++
++	/* Power up transceiver and set it in USB peripheral mode */
++	retu_write(rdev, TAHVO_REG_USBR, USBR_SLAVE_CONTROL | USBR_REGOUT |
++		   USBR_NSUSPEND | USBR_SLAVE_SW);
++	tu->phy.state =3D OTG_STATE_B_IDLE;
++
++	check_vbus_state(tu);
++}
++
++static void tahvo_usb_stop_peripheral(struct tahvo_usb *tu)
++{
++	omap_otg_set_mode(OMAP_OTG_MODE_DISCONNECT);
++	if (tu->phy.otg->gadget)
++		usb_gadget_vbus_disconnect(tu->phy.otg->gadget);
++	tu->phy.state =3D OTG_STATE_B_IDLE;
++}
++
++static void tahvo_usb_power_off(struct tahvo_usb *tu)
++{
++	struct retu_dev *rdev =3D dev_get_drvdata(tu->pt_dev->dev.parent);
++
++	/* Disable gadget controller if any */
++	if (tu->phy.otg->gadget)
++		usb_gadget_vbus_disconnect(tu->phy.otg->gadget);
++
++	if (tu->tahvo_mode =3D=3D TAHVO_MODE_PERIPHERAL)
++		omap_otg_set_mode(OMAP_OTG_MODE_DISCONNECT);
++
++	/* Power off transceiver */
++	retu_write(rdev, TAHVO_REG_USBR, 0);
++	tu->phy.state =3D OTG_STATE_UNDEFINED;
++}
++
++static int tahvo_usb_set_suspend(struct usb_phy *dev, int suspend)
++{
++	struct tahvo_usb *tu =3D container_of(dev, struct tahvo_usb, phy);
++	struct retu_dev *rdev =3D dev_get_drvdata(tu->pt_dev->dev.parent);
++	u16 w;
++
++	dev_dbg(&tu->pt_dev->dev, "%s\n", __func__);
++
++	w =3D retu_read(rdev, TAHVO_REG_USBR);
++	if (suspend)
++		w &=3D ~USBR_NSUSPEND;
++	else
++		w |=3D USBR_NSUSPEND;
++	retu_write(rdev, TAHVO_REG_USBR, w);
++
++	return 0;
++}
++
++static int tahvo_usb_set_host(struct usb_otg *otg, struct usb_bus *hos=
+t)
++{
++	struct tahvo_usb *tu =3D container_of(otg->phy, struct tahvo_usb, phy=
+);
++
++	dev_dbg(&tu->pt_dev->dev, "%s %p\n", __func__, host);
++
++	if (otg =3D=3D NULL)
 +		return -ENODEV;
-+	rdat = &retu_data[i2c->addr - 1];
 +
- 	rdev = devm_kzalloc(&i2c->dev, sizeof(*rdev), GFP_KERNEL);
- 	if (rdev == NULL)
- 		return -ENOMEM;
-@@ -190,25 +252,27 @@ static int retu_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
- 
- 	ret = retu_read(rdev, RETU_REG_ASICR);
- 	if (ret < 0) {
--		dev_err(rdev->dev, "could not read Retu revision: %d\n", ret);
-+		dev_err(rdev->dev, "could not read %s revision: %d\n",
-+			rdat->chip_name, ret);
- 		return ret;
- 	}
- 
--	dev_info(rdev->dev, "Retu%s v%d.%d found\n",
--		 (ret & RETU_REG_ASICR_VILMA) ? " & Vilma" : "",
-+	dev_info(rdev->dev, "%s%s%s v%d.%d found\n", rdat->chip_name,
-+		 (ret & RETU_REG_ASICR_VILMA) ? " & " : "",
-+		 (ret & RETU_REG_ASICR_VILMA) ? rdat->companion_name : "",
- 		 (ret >> 4) & 0x7, ret & 0xf);
- 
--	/* Mask all RETU interrupts. */
--	ret = retu_write(rdev, RETU_REG_IMR, 0xffff);
-+	/* Mask all interrupts. */
-+	ret = retu_write(rdev, rdat->irq_chip->mask_base, 0xffff);
- 	if (ret < 0)
- 		return ret;
- 
- 	ret = regmap_add_irq_chip(rdev->regmap, i2c->irq, IRQF_ONESHOT, -1,
--				  &retu_irq_chip, &rdev->irq_data);
-+				  rdat->irq_chip, &rdev->irq_data);
- 	if (ret < 0)
- 		return ret;
- 
--	ret = mfd_add_devices(rdev->dev, -1, retu_devs, ARRAY_SIZE(retu_devs),
-+	ret = mfd_add_devices(rdev->dev, -1, rdat->children, rdat->nchildren,
- 			      NULL, regmap_irq_chip_get_base(rdev->irq_data),
- 			      NULL);
- 	if (ret < 0) {
-@@ -216,7 +280,7 @@ static int retu_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
- 		return ret;
- 	}
- 
--	if (!pm_power_off) {
-+	if (i2c->addr == 1 && !pm_power_off) {
- 		retu_pm_power_off = rdev;
- 		pm_power_off	  = retu_power_off;
- 	}
-@@ -240,6 +304,7 @@ static int retu_remove(struct i2c_client *i2c)
- 
- static const struct i2c_device_id retu_id[] = {
- 	{ "retu-mfd", 0 },
-+	{ "tahvo-mfd", 0 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, retu_id);
-diff --git a/include/linux/mfd/retu.h b/include/linux/mfd/retu.h
-index 1e2715d..65471c4 100644
---- a/include/linux/mfd/retu.h
-+++ b/include/linux/mfd/retu.h
-@@ -1,5 +1,5 @@
- /*
-- * Retu MFD driver interface
-+ * Retu/Tahvo MFD driver interface
-  *
-  * This file is subject to the terms and conditions of the GNU General
-  * Public License. See the file "COPYING" in the main directory of this
-@@ -19,4 +19,10 @@ int retu_write(struct retu_dev *, u8, u16);
- #define RETU_REG_CC1		0x0d		/* Common control register 1 */
- #define RETU_REG_STATUS		0x16		/* Status register */
- 
-+/* Interrupt sources */
-+#define TAHVO_INT_VBUS		0		/* VBUS state */
++	mutex_lock(&tu->serialize);
 +
-+/* Interrupt status */
-+#define TAHVO_STAT_VBUS		(1 << TAHVO_INT_VBUS)
++	if (host =3D=3D NULL) {
++		if (tu->tahvo_mode =3D=3D TAHVO_MODE_HOST)
++			tahvo_usb_power_off(tu);
++		otg->host =3D NULL;
++		mutex_unlock(&tu->serialize);
++		return 0;
++	}
 +
- #endif /* __LINUX_MFD_RETU_H */
--- 
++	if (tu->tahvo_mode =3D=3D TAHVO_MODE_HOST) {
++		otg->host =3D NULL;
++		tahvo_usb_become_host(tu);
++	}
++
++	otg->host =3D host;
++
++	mutex_unlock(&tu->serialize);
++
++	return 0;
++}
++
++static int tahvo_usb_set_peripheral(struct usb_otg *otg,
++				    struct usb_gadget *gadget)
++{
++	struct tahvo_usb *tu =3D container_of(otg->phy, struct tahvo_usb, phy=
+);
++
++	dev_dbg(&tu->pt_dev->dev, "%s %p\n", __func__, gadget);
++
++	if (!otg)
++		return -ENODEV;
++
++	mutex_lock(&tu->serialize);
++
++	if (!gadget) {
++		if (tu->tahvo_mode =3D=3D TAHVO_MODE_PERIPHERAL)
++			tahvo_usb_power_off(tu);
++		tu->phy.otg->gadget =3D NULL;
++		mutex_unlock(&tu->serialize);
++		return 0;
++	}
++
++	tu->phy.otg->gadget =3D gadget;
++	if (tu->tahvo_mode =3D=3D TAHVO_MODE_PERIPHERAL)
++		tahvo_usb_become_peripheral(tu);
++
++	mutex_unlock(&tu->serialize);
++
++	return 0;
++}
++
++static irqreturn_t tahvo_usb_vbus_interrupt(int irq, void *_tu)
++{
++	struct tahvo_usb *tu =3D _tu;
++
++	mutex_lock(&tu->serialize);
++	check_vbus_state(tu);
++	mutex_unlock(&tu->serialize);
++
++	return IRQ_HANDLED;
++}
++
++static ssize_t otg_mode_show(struct device *device,
++			     struct device_attribute *attr, char *buf)
++{
++	struct tahvo_usb *tu =3D dev_get_drvdata(device);
++
++	switch (tu->tahvo_mode) {
++	case TAHVO_MODE_HOST:
++		return sprintf(buf, "host\n");
++	case TAHVO_MODE_PERIPHERAL:
++		return sprintf(buf, "peripheral\n");
++	}
++
++	return -EINVAL;
++}
++
++static ssize_t otg_mode_store(struct device *device,
++			      struct device_attribute *attr,
++			      const char *buf, size_t count)
++{
++	struct tahvo_usb *tu =3D dev_get_drvdata(device);
++	int r;
++
++	mutex_lock(&tu->serialize);
++	if (count >=3D 4 && strncmp(buf, "host", 4) =3D=3D 0) {
++		if (tu->tahvo_mode =3D=3D TAHVO_MODE_PERIPHERAL)
++			tahvo_usb_stop_peripheral(tu);
++		tu->tahvo_mode =3D TAHVO_MODE_HOST;
++		if (tu->phy.otg->host) {
++			dev_info(device, "HOST mode: host controller present\n");
++			tahvo_usb_become_host(tu);
++		} else {
++			dev_info(device, "HOST mode: no host controller, powering off\n");
++			tahvo_usb_power_off(tu);
++		}
++		r =3D strlen(buf);
++	} else if (count >=3D 10 && strncmp(buf, "peripheral", 10) =3D=3D 0) =
+{
++		if (tu->tahvo_mode =3D=3D TAHVO_MODE_HOST)
++			tahvo_usb_stop_host(tu);
++		tu->tahvo_mode =3D TAHVO_MODE_PERIPHERAL;
++		if (tu->phy.otg->gadget) {
++			dev_info(device, "PERIPHERAL mode: gadget driver present\n");
++			tahvo_usb_become_peripheral(tu);
++		} else {
++			dev_info(device, "PERIPHERAL mode: no gadget driver, powering off\n=
+");
++			tahvo_usb_power_off(tu);
++		}
++		r =3D strlen(buf);
++	} else {
++		r =3D -EINVAL;
++	}
++	mutex_unlock(&tu->serialize);
++
++	return r;
++}
++
++static DEVICE_ATTR(otg_mode, 0644, otg_mode_show, otg_mode_store);
++
++static int tahvo_usb_probe(struct platform_device *pdev)
++{
++	struct retu_dev *rdev =3D dev_get_drvdata(pdev->dev.parent);
++	struct tahvo_usb *tu;
++	int ret;
++
++	tu =3D devm_kzalloc(&pdev->dev, sizeof(*tu), GFP_KERNEL);
++	if (!tu)
++		return -ENOMEM;
++
++	tu->phy.otg =3D devm_kzalloc(&pdev->dev, sizeof(*tu->phy.otg),
++				   GFP_KERNEL);
++	if (!tu->phy.otg)
++		return -ENOMEM;
++
++	tu->pt_dev =3D pdev;
++
++	/* Default mode */
++#ifdef CONFIG_TAHVO_USB_HOST_BY_DEFAULT
++	tu->tahvo_mode =3D TAHVO_MODE_HOST;
++#else
++	tu->tahvo_mode =3D TAHVO_MODE_PERIPHERAL;
++#endif
++
++	mutex_init(&tu->serialize);
++
++	tu->ick =3D devm_clk_get(&pdev->dev, "usb_l4_ick");
++	if (!IS_ERR(tu->ick))
++		clk_enable(tu->ick);
++
++	/*
++	 * Set initial state, so that we generate kevents only on state chang=
+es.
++	 */
++	tu->vbus_state =3D retu_read(rdev, TAHVO_REG_IDSR) & TAHVO_STAT_VBUS;
++
++	tu->irq =3D platform_get_irq(pdev, 0);
++	ret =3D request_threaded_irq(tu->irq, NULL, tahvo_usb_vbus_interrupt,=
+ 0,
++				   "tahvo-vbus", tu);
++	if (ret) {
++		dev_err(&pdev->dev, "could not register tahvo-vbus irq: %d\n",
++			ret);
++		goto err_disable_clk;
++	}
++
++	/* Attributes */
++	ret =3D device_create_file(&pdev->dev, &dev_attr_vbus_state);
++	ret |=3D device_create_file(&pdev->dev, &dev_attr_otg_mode);
++	if (ret)
++		dev_err(&pdev->dev, "attribute creation failed: %d\n", ret);
++
++	/* Create OTG interface */
++	tahvo_usb_power_off(tu);
++	tu->phy.dev =3D &pdev->dev;
++	tu->phy.state =3D OTG_STATE_UNDEFINED;
++	tu->phy.label =3D DRIVER_NAME;
++	tu->phy.set_suspend =3D tahvo_usb_set_suspend;
++
++	tu->phy.otg->phy =3D &tu->phy;
++	tu->phy.otg->set_host =3D tahvo_usb_set_host;
++	tu->phy.otg->set_peripheral =3D tahvo_usb_set_peripheral;
++
++	ret =3D usb_add_phy(&tu->phy, USB_PHY_TYPE_USB2);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "cannot register USB transceiver: %d\n",
++			ret);
++		goto err_free_irq;
++	}
++
++	dev_set_drvdata(&pdev->dev, tu);
++
++	return 0;
++
++err_free_irq:
++	free_irq(tu->irq, tu);
++err_disable_clk:
++	if (!IS_ERR(tu->ick))
++		clk_disable(tu->ick);
++
++	return ret;
++}
++
++static int tahvo_usb_remove(struct platform_device *pdev)
++{
++	struct tahvo_usb *tu =3D platform_get_drvdata(pdev);
++
++	free_irq(tu->irq, tu);
++	usb_remove_phy(&tu->phy);
++	device_remove_file(&pdev->dev, &dev_attr_vbus_state);
++	device_remove_file(&pdev->dev, &dev_attr_otg_mode);
++	if (!IS_ERR(tu->ick))
++		clk_disable(tu->ick);
++
++	return 0;
++}
++
++static struct platform_driver tahvo_usb_driver =3D {
++	.probe		=3D tahvo_usb_probe,
++	.remove		=3D tahvo_usb_remove,
++	.driver		=3D {
++		.name	=3D "tahvo-usb",
++		.owner	=3D THIS_MODULE,
++	},
++};
++module_platform_driver(tahvo_usb_driver);
++
++MODULE_DESCRIPTION("Tahvo USB transceiver driver");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Juha Yrj=C3=B6l=C3=A4, Tony Lindgren, and Timo Ter=C3=A4=
+s");
++MODULE_AUTHOR("Aaro Koskinen <aaro.koskinen@iki.fi>");
+--=20
 1.7.10.4
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
