@@ -1,14 +1,15 @@
-From: Benoit Cousson <b-cousson@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
 Subject: Re: [PATCH] ARM: OMAP4: HWMOD: make 'ocp2scp_usb_phy_phy_48m" as
  the main clock
-Date: Tue, 9 Apr 2013 10:54:03 +0200
-Message-ID: <5163D72B.5040205@ti.com>
+Date: Tue, 9 Apr 2013 14:25:05 +0530
+Message-ID: <5163D769.1040401@ti.com>
 References: <1365496101-7829-1-git-send-email-kishon@ti.com>
+ <5163D72B.5040205@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1365496101-7829-1-git-send-email-kishon@ti.com>
+In-Reply-To: <5163D72B.5040205@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,42 +19,25 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>, linux@arm.linux.org.uk, tony@atomide.com, Keerthy <j-keerthy@ti.com>, rnayak@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgS2lzaG9uLAoKT24gMDQvMDkvMjAxMyAxMDoyOCBBTSwgS2lzaG9uIFZpamF5IEFicmFoYW0g
-SSB3cm90ZToKPiBjb21taXQgOTI3MDJkIChBUk06IE9NQVA0OiBQTTogZml4IFBNIHJlZ3Jlc3Np
-b24gaW50cm9kdWNlZCBieSByZWNlbnQKPiBjbG9jayBjbGVhbnVwKSBtYWtlcyB0aGUgJ29jcDJz
-Y3BfdXNiX3BoeV9waHlfNDhtJyBhcyBvcHRpb25hbAo+IGZ1bmN0aW9uYWwgY2xvY2sgY2F1c2lu
-ZyByZWdyZXNzaW9uIGluIE1VU0IuIEJ1dCB0aGlzIDQ4TUh6IGNsb2NrIGlzIGEKPiBtYW5kYXRv
-cnkgY2xvY2sgZm9yIHVzYiBwaHkgYXR0YWNoZWQgdG8gb2NwMnNjcCBhbmQgaGVuY2UgbWFkZSBh
-cyB0aGUgbWFpbgo+IGNsb2NrIGZvciBvY3Ayc2NwLgoKSXQgaXMgYSBmaXggZm9yIDMuOS1yY1g/
-CgpSZWdhcmRzLApCZW5vaXQKCj4gCj4gQ2M6IEtlZXJ0aHkgPGota2VlcnRoeUB0aS5jb20+Cj4g
-Q2M6IEJlbm/DrnQgQ291c3NvbiA8Yi1jb3Vzc29uQHRpLmNvbT4KPiBDYzogUGF1bCBXYWxtc2xl
-eSA8cGF1bEBwd3Nhbi5jb20+Cj4gU2lnbmVkLW9mZi1ieTogS2lzaG9uIFZpamF5IEFicmFoYW0g
-SSA8a2lzaG9uQHRpLmNvbT4KPiAtLS0KPiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9k
-XzQ0eHhfZGF0YS5jIHwgICAgOCArLS0tLS0tLQo+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRp
-b24oKyksIDcgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21h
-cDIvb21hcF9od21vZF80NHh4X2RhdGEuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21v
-ZF80NHh4X2RhdGEuYwo+IGluZGV4IDllMDU3NjUuLmMxZmIwOTAgMTAwNjQ0Cj4gLS0tIGEvYXJj
-aC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzQ0eHhfZGF0YS5jCj4gKysrIGIvYXJjaC9hcm0v
-bWFjaC1vbWFwMi9vbWFwX2h3bW9kXzQ0eHhfZGF0YS5jCj4gQEAgLTI3MTQsMTYgKzI3MTQsMTIg
-QEAgc3RhdGljIHN0cnVjdCBvbWFwX29jcDJzY3BfZGV2IG9jcDJzY3BfZGV2X2F0dHJbXSA9IHsK
-PiAgCXsgfQo+ICB9Owo+ICAKPiAtc3RhdGljIHN0cnVjdCBvbWFwX2h3bW9kX29wdF9jbGsgb2Nw
-MnNjcF91c2JfcGh5X29wdF9jbGtzW10gPSB7Cj4gLQl7IC5yb2xlID0gIjQ4bWh6IiwgLmNsayA9
-ICJvY3Ayc2NwX3VzYl9waHlfcGh5XzQ4bSIgfSwKPiAtfTsKPiAtCj4gIC8qIG9jcDJzY3BfdXNi
-X3BoeSAqLwo+ICBzdGF0aWMgc3RydWN0IG9tYXBfaHdtb2Qgb21hcDQ0eHhfb2NwMnNjcF91c2Jf
-cGh5X2h3bW9kID0gewo+ICAJLm5hbWUJCT0gIm9jcDJzY3BfdXNiX3BoeSIsCj4gIAkuY2xhc3MJ
-CT0gJm9tYXA0NHh4X29jcDJzY3BfaHdtb2RfY2xhc3MsCj4gIAkuY2xrZG1fbmFtZQk9ICJsM19p
-bml0X2Nsa2RtIiwKPiAtCS5tYWluX2Nsawk9ICJmdW5jXzQ4bV9mY2xrIiwKPiArCS5tYWluX2Ns
-awk9ICJvY3Ayc2NwX3VzYl9waHlfcGh5XzQ4bSIsCj4gIAkucHJjbSA9IHsKPiAgCQkub21hcDQg
-PSB7Cj4gIAkJCS5jbGtjdHJsX29mZnMgPSBPTUFQNF9DTV9MM0lOSVRfVVNCUEhZT0NQMlNDUF9D
-TEtDVFJMX09GRlNFVCwKPiBAQCAtMjczMiw4ICsyNzI4LDYgQEAgc3RhdGljIHN0cnVjdCBvbWFw
-X2h3bW9kIG9tYXA0NHh4X29jcDJzY3BfdXNiX3BoeV9od21vZCA9IHsKPiAgCQl9LAo+ICAJfSwK
-PiAgCS5kZXZfYXR0cgk9IG9jcDJzY3BfZGV2X2F0dHIsCj4gLQkub3B0X2Nsa3MJPSBvY3Ayc2Nw
-X3VzYl9waHlfb3B0X2Nsa3MsCj4gLQkub3B0X2Nsa3NfY250CT0gQVJSQVlfU0laRShvY3Ayc2Nw
-X3VzYl9waHlfb3B0X2Nsa3MpLAo+ICB9Owo+ICAKPiAgLyoKPiAKCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcg
-bGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmlu
-ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+Hi,
+
+On Tuesday 09 April 2013 02:24 PM, Benoit Cousson wrote:
+> Hi Kishon,
+>
+> On 04/09/2013 10:28 AM, Kishon Vijay Abraham I wrote:
+>> commit 92702d (ARM: OMAP4: PM: fix PM regression introduced by recent
+>> clock cleanup) makes the 'ocp2scp_usb_phy_phy_48m' as optional
+>> functional clock causing regression in MUSB. But this 48MHz clock is a
+>> mandatory clock for usb phy attached to ocp2scp and hence made as the main
+>> clock for ocp2scp.
+>
+> It is a fix for 3.9-rcX?
+
+Yeah.
+
+Thanks
+Kishon
