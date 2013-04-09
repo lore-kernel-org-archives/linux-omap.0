@@ -1,12 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/5] omap pm fixes for v3.10 merge window
-Date: Mon, 8 Apr 2013 21:51:00 -0700
-Message-ID: <13262.4219557785$1365483100@news.gmane.org>
+Subject: [GIT PULL 3/5] omap board changes for v3.10 merge window
+Date: Mon, 8 Apr 2013 21:51:02 -0700
+Message-ID: <E1UPQWi-0007xc-Kz@merlin.infradead.org>
+References: <pull-1365483063-475562>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
+In-Reply-To: <pull-1365483063-475562>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,34 +22,48 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit c309f7f46167e85d1aae2fd31f23e7d2b5cdfbe0:
+The following changes since commit 31880c37c11e28cb81c70757e38392b42e695dc6:
 
-  Merge branch 'for_3.10/omap_generic_cleanup_v2' of git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux into omap-for-v3.10/cleanup-v2 (2013-03-28 14:45:31 -0700)
+  Linux 3.9-rc6 (2013-04-07 20:49:54 -0700)
 
 are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/board-signed
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/fixes-pm-signed
+for you to fetch changes up to 06993d6a8a51b90fc78c8c3cb7a81c9b4b88c683:
 
-for you to fetch changes up to 5e7deed71290136cf70944e158f40401d0eed784:
-
-  Merge tag 'omap-pm-v3.10/fixes/pm' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into omap-for-v3.10/fixes-pm (2013-04-08 09:58:00 -0700)
-
-----------------------------------------------------------------
-
-Non-critical PM fix via Kevin Hilman <khilman@linaro.org>:
-
-OMAP PM fixes for v3.10
-
-Note that this has a dependency to omap-for-v3.10/cleanup-v2-signed.
+  ARM: OMAP: board-4430sdp: Provide regulator to pwm-backlight (2013-04-08 14:01:05 -0700)
 
 ----------------------------------------------------------------
-Santosh Shilimkar (1):
-      ARM: OMAP4+: PM: Restore CPU power state to ON with clockdomain force wakeup method
+Board related changes for v3.10 merge window. These are pretty
+much all non-critical fixes for platform device initialization
+that will be needed until we can drop the board-*.c files and
+move to DT based boot.
 
-Tony Lindgren (1):
-      Merge tag 'omap-pm-v3.10/fixes/pm' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-v3.10/fixes-pm
+----------------------------------------------------------------
+Aaro Koskinen (2):
+      ARM: OMAP1: fix omap_udc registration
+      ARM: OMAP: RX-51: add missing regulator supply definitions for lis3lv02d
 
- arch/arm/mach-omap2/cpuidle44xx.c |  1 +
- arch/arm/mach-omap2/omap-smp.c    | 12 ++++++++++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
+Andrew Chew (1):
+      ARM: OMAP: board-4430sdp: Provide regulator to pwm-backlight
+
+Paul Bolle (2):
+      omap2+: Remove useless Makefile line
+      omap2+: Remove useless Makefile line
+
+Peter Ujfalusi (1):
+      ARM: OMAP: zoom: Use pwm stack for lcd and keyboard backlight
+
+Ruslan Bilovol (1):
+      ARM: OMAP2+: omap2plus_defconfig: Add support for BMP085 pressure sensor
+
+ arch/arm/configs/omap2plus_defconfig         |  1 +
+ arch/arm/mach-omap1/include/mach/usb.h       |  2 +-
+ arch/arm/mach-omap1/usb.c                    |  6 +--
+ arch/arm/mach-omap2/Makefile                 |  3 --
+ arch/arm/mach-omap2/board-4430sdp.c          |  6 +++
+ arch/arm/mach-omap2/board-rx51-peripherals.c |  4 ++
+ arch/arm/mach-omap2/board-zoom-display.c     | 56 ----------------------------
+ arch/arm/mach-omap2/board-zoom-peripherals.c | 53 +++++++++++++++++++++++++-
+ 8 files changed, 67 insertions(+), 64 deletions(-)
