@@ -1,77 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V3 1/2] ARM: OMAP: board-4430sdp: Provide regulator to
- pwm-backlight
-Date: Tue, 9 Apr 2013 15:27:07 -0700
-Message-ID: <20130409222706.GT10155@atomide.com>
-References: <1363214006-10662-1-git-send-email-achew@nvidia.com>
- <1363214006-10662-2-git-send-email-achew@nvidia.com>
- <20130408214624.GZ10155@atomide.com>
- <20130408215616.GA25124@avionic-0098.mockup.avionic-design.de>
- <20130408221657.GC10155@atomide.com>
- <20130409075602.GA27255@avionic-0098.mockup.avionic-design.de>
- <20130409164003.GK10155@atomide.com>
- <20130409194049.GA16847@avionic-0098.mockup.avionic-design.de>
- <20130409201745.GQ10155@atomide.com>
- <20130409205708.GA17920@avionic-0098.mockup.avionic-design.de>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: [GIT PULL] OMAP PM cleanups for v3.10
+Date: Tue, 09 Apr 2013 16:13:29 -0700
+Message-ID: <87ehej1ena.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:32354 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1760498Ab3DIW1M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 18:27:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20130409205708.GA17920@avionic-0098.mockup.avionic-design.de>
+Received: from mail-da0-f41.google.com ([209.85.210.41]:58072 "EHLO
+	mail-da0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751808Ab3DIXNc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 19:13:32 -0400
+Received: by mail-da0-f41.google.com with SMTP id w4so3244840dam.0
+        for <linux-omap@vger.kernel.org>; Tue, 09 Apr 2013 16:13:32 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Andrew Chew <achew@nvidia.com>, peter.ujfalusi@ti.com, acourbot@nvidia.com, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-* Thierry Reding <thierry.reding@avionic-design.de> [130409 14:01]:
-> On Tue, Apr 09, 2013 at 01:17:46PM -0700, Tony Lindgren wrote:
-> > * Thierry Reding <thierry.reding@avionic-design.de> [130409 12:45]:
-> > > On Tue, Apr 09, 2013 at 09:40:04AM -0700, Tony Lindgren wrote:
-> > > [...]
-> > > > But then the regulator is not found and the driver should just exit,
-> > > > or do nothing. If this is an optional regulator, then that should be
-> > > > indicated in some platform data flags?
-> > > 
-> > > Yes, if the regulator isn't found then the driver fails. However the
-> > > goal was to maintain bisectability. If we apply them in the wrong order
-> > > we can't guarantee that because pwm-backlight will fail to work between
-> > > both patches.
-> > 
-> > But it's fixing something that's not working anyways for board-4430sdp.c,
-> > It seems so as these patches just add new features?
-> 
-> Not quite. It's adding a dummy regulator to represent hardware where the
-> enable pin is always high. So I think pwm-backlight will work in the
-> current state, but if we make the pwm-backlight driver change without
-> adding the dummy regulator, then pwm-backlight will fail to probe and
-> therefore the PWM won't be enabled either and the display will stay
-> black.
+Tony,
 
-OK
- 
-> > > > The driver parts really must be done in independently from any platform
-> > > > data or .dts changes. The only common part needed should be changes
-> > > > to include/linux/platform_data/*.h files.
-> > > 
-> > > We don't even need to touch platform data because the regulators are
-> > > looked up via a global table. And the changes are all done independently
-> > > but as I mentioned above, bisectability isn't maintained, so the
-> > > preferred patch order is the one in which pwm-backlight keeps working at
-> > > each point in the commit history.
-> > 
-> > Bisectability is a good point. But in the 4430sdp case I'm sure it's enough
-> > that it builds and boots no matter how the patches get merged :)
-> 
-> If you don't mind some intermediary breakage, I will no longer object.
+Here's the final set of OMAP PM cleanups for v3.10.  This is a small set
+of cleanups from Santosh to consolidate and prepare for OMAP5 PM additions.
 
-In this case it should be fine. If you are worried about it, you could
-add something that enables the new features in the driver only in
-a follow-up patch after the merge window. But I doubt that it's needed.
+It's based on your cleanup-v2 branch.
 
-Regards,
+Kevin
 
-Tony
+
+The following changes since commit c309f7f46167e85d1aae2fd31f23e7d2b5cdfbe0:
+
+  Merge branch 'for_3.10/omap_generic_cleanup_v2' of git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux into omap-for-v3.10/cleanup-v2 (2013-03-28 14:45:31 -0700)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.10/cleanup/pm
+
+for you to fetch changes up to 705814b5ea6ff69d4da8ad581c3da5d26d1eae83:
+
+  ARM: OMAP4+: PM: Consolidate OMAP4 PM code to re-use it for OMAP5 (2013-04-09 10:53:06 -0700)
+
+----------------------------------------------------------------
+OMAP PM cleanups for v3.10
+
+----------------------------------------------------------------
+Santosh Shilimkar (4):
+      ARM: OMAP4: PM: Avoid expensive cpu_suspend() path for all CPU power states except off
+      ARM: OMAP4+: PM: Consolidate MPU subsystem PM code for re-use
+      ARM: OMAP4+: Make secondary_startup function name more consistent
+      ARM: OMAP4+: PM: Consolidate OMAP4 PM code to re-use it for OMAP5
+
+ arch/arm/mach-omap2/common.h              |  4 +-
+ arch/arm/mach-omap2/omap-headsmp.S        |  8 ++--
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c | 69 +++++++++++++++++++++++++------
+ arch/arm/mach-omap2/omap-smp.c            |  6 +--
+ arch/arm/mach-omap2/pm44xx.c              | 58 +++++++++++++++++++++-----
+ 5 files changed, 113 insertions(+), 32 deletions(-)
