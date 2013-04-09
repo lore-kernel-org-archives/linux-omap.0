@@ -1,72 +1,40 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] dmaengine: omap-dma: Start DMA without delay for cyclic channels
-Date: Tue, 9 Apr 2013 16:33:06 +0200
-Message-ID: <1365517986-9401-1-git-send-email-peter.ujfalusi@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL 4/5] omap soc changes for v3.10 merge window
+Date: Tue, 9 Apr 2013 16:46:06 +0200
+Message-ID: <201304091646.06384.arnd@arndb.de>
+References: <0MeglY-1UETDn0lho-00OeKU@mx.kundenserver.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>
-Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Meerwald <pmeerw@pmeerw.net>, patches@linaro.org, stable@vger.kernel.org.#.v3.7+
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:54563 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762362Ab3DIOqT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 10:46:19 -0400
+In-Reply-To: <0MeglY-1UETDn0lho-00OeKU@mx.kundenserver.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-cyclic DMA is only used by audio which needs DMA to be started without a
-delay.
-If the DMA for audio is started using the tasklet we experience random
-channel switch (to be more precise: channel shift).
+On Tuesday 09 April 2013, Tony Lindgren wrote:
+> The following changes since commit 31880c37c11e28cb81c70757e38392b42e695dc6:
+> 
+>   Linux 3.9-rc6 (2013-04-07 20:49:54 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/soc-signed
+> 
+> for you to fetch changes up to 7a9819950f47dbf319895ee78220f2761f3687a3:
+> 
+>   ARM: OMAP4: Enable fix for Cortex-A9 erratas (2013-04-08 16:14:51 -0700)
+> 
+> ----------------------------------------------------------------
+> Changes needed for enabling SOC_BUS for the SoC revision
+> information. Also enable few HW errata workarounds for omap4.
 
-Reported-by: Peter Meerwald <pmeerw@pmeerw.net>
-CC: stable@vger.kernel.org  # v3.7+
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
-Hi Vinod,
+Pulled into next/soc, thanks!
 
-Would it be possible to send this patch for 3.9. The channel shift (or switch)
-issue in audio has been noticed recently and it turns out that it has been
-present since 3.7 kernel.
-It would be great if 3.9 kernel could work correctly out of box...
-
-Changes since RFCv2:
-- added Acked-by from Santosh and Russell
-
-Thank you,
-Peter
-
- drivers/dma/omap-dma.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 2ea3d7e..ec3fc4f 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -282,12 +282,20 @@ static void omap_dma_issue_pending(struct dma_chan *chan)
- 
- 	spin_lock_irqsave(&c->vc.lock, flags);
- 	if (vchan_issue_pending(&c->vc) && !c->desc) {
--		struct omap_dmadev *d = to_omap_dma_dev(chan->device);
--		spin_lock(&d->lock);
--		if (list_empty(&c->node))
--			list_add_tail(&c->node, &d->pending);
--		spin_unlock(&d->lock);
--		tasklet_schedule(&d->task);
-+		/*
-+		 * c->cyclic is used only by audio and in this case the DMA need
-+		 * to be started without delay.
-+		 */
-+		if (!c->cyclic) {
-+			struct omap_dmadev *d = to_omap_dma_dev(chan->device);
-+			spin_lock(&d->lock);
-+			if (list_empty(&c->node))
-+				list_add_tail(&c->node, &d->pending);
-+			spin_unlock(&d->lock);
-+			tasklet_schedule(&d->task);
-+		} else {
-+			omap_dma_start_desc(c);
-+		}
- 	}
- 	spin_unlock_irqrestore(&c->vc.lock, flags);
- }
--- 
-1.8.1.5
+	Arnd
