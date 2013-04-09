@@ -1,76 +1,60 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [GIT PULL 2/5] omap pm clean-up for v3.10 merge window
-Date: Tue, 09 Apr 2013 10:36:26 -0700
-Message-ID: <874nffip2d.fsf@linaro.org>
-References: <0MarPy-1U9XGk2D8s-00Ks1o@mx.kundenserver.de>
-	<201304091652.28385.arnd@arndb.de> <87vc7virqz.fsf@linaro.org>
-	<20130409165633.GN10155@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support
+ for AUXCLKs
+Date: Tue, 9 Apr 2013 10:43:20 -0700
+Message-ID: <20130409174319.GP10155@atomide.com>
+References: <1363703220-4777-1-git-send-email-rogerq@ti.com>
+ <1363703220-4777-2-git-send-email-rogerq@ti.com>
+ <20130403234242.GE10155@atomide.com> <515D2D30.3000306@ti.com>
+ <20130404164137.GH10155@atomide.com> <515EA9E3.1010409@ti.com>
+ <20130405155851.GA10155@atomide.com> <5163E589.1040809@ti.com>
+ <20130409164928.GL10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:53737 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932140Ab3DIRg3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 13:36:29 -0400
-Received: by mail-pa0-f49.google.com with SMTP id kp14so3931677pab.36
-        for <linux-omap@vger.kernel.org>; Tue, 09 Apr 2013 10:36:29 -0700 (PDT)
-In-Reply-To: <20130409165633.GN10155@atomide.com> (Tony Lindgren's message of
-	"Tue, 9 Apr 2013 09:56:33 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20130409164928.GL10155@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, grygorii.strashko@ti.com, linux@arm.linux.org.uk, devicetree-discuss@lists.ozlabs.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-arm-kernel@lists.infradead.org
 
-Tony Lindgren <tony@atomide.com> writes:
+* Tony Lindgren <tony@atomide.com> [130409 09:54]:
+> * Roger Quadros <rogerq@ti.com> [130409 03:00]:
+> > On 04/05/2013 06:58 PM, Tony Lindgren wrote:
+> > > 
+> > > Can't you just use the clock name there to get it?
+> > 
+> > In device tree we don't pass around clock names. You can either get
+> > a phandle or an index to the clock.
+> > 
+> > e.g. Documentation/devicetree/bindings/clock/imx31-clock.txt
+> 
+> Yes I understand that. But the driver/clock/omap driver can just
+> remap the DT device initially so the board specific clock is
+> found from the clock alias table. Basically initially a passthrough
+> driver that can be enhanced to parse DT clock bindings and load
+> data from /lib/firmware.
 
-> * Kevin Hilman <khilman@linaro.org> [130409 09:43]:
->> Arnd Bergmann <arnd@arndb.de> writes:
->> 
->> > On Tuesday 09 April 2013, Tony Lindgren wrote:
->> >> The following changes since commit 07961ac7c0ee8b546658717034fe692fd12eefa9:
->> >> 
->> >>   Linux 3.9-rc5 (2013-03-31 15:12:43 -0700)
->> >> 
->> >> are available in the git repository at:
->> >> 
->> >>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/cleanup-pm-signed
->> >> 
->> >> for you to fetch changes up to ca8cdff548da76da01f3783548ceb917139a5ddc:
->> >> 
->> >>   Merge tag 'omap-pm-v3.10/cleanup/cpuidle' of
->> >> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm
->> >> into omap-for-v3.10/cleanup-pm (2013-04-08 09:51:00 -0700)
->> >> 
->> >> ----------------------------------------------------------------
->> >> 
->> >> PM cleanup to prepare for omap5 PM via Kevin Hilman <khilman@linaro.org>:
->> >> 
->> >> OMAP3/4 CPUidle cleanups for v3.10
->> >
->> > Adding Daniel and Rafael to Cc.
->> >
->> > Is this series coordinated with the other cpuidle changes? Please tell me if this
->> > is good to go into arm-soc.
->> 
->> Hmm, looks like it's not ready.  There are some minor conflicts with
->> what Rafael has queued up from Daniel.
->> 
->> I will work this out with Daniel to figure out how we should proceed.
->
-> OK it seems that this branch can also be queued by Rafael after
-> updating it if there's a dependency. So far it's not conflicting
-> with anything else we have queued up for arm soc tree.
+Actually probably the driver/clock/omap can even do even less
+initially. There probably even no need to remap clocks there.
 
-Right, I just did a test rebase onto the relevant commit in Rafael
-linux-next branch, and fixed up all the conflicts[1].
+As long as the DT clock driver understands that a board specific
+auxclk is specified in the DT it can just call clk_add_alias() so
+the driver will get the right auxclk from cclock44xx_data.c.
 
-If Rafael agrees, it's fine with me if it goes via him.
+Then other features can be added later on like to allocate a
+clock entirely based on the binding etc.
 
-Rafael, the signed tag for the updated branch is below[1], based on the
-commit in your linux-next branch where you merged the rest of the
-CPUidle changes.  Let me know if you want a different base commit, or an
-official pull request.
+Regards,
 
-Kevin
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.10/cleanup/cpuidle-v2
+Tony 
