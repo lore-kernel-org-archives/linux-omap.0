@@ -1,70 +1,73 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] RX-51: Fix probe order of SPI devices
-Date: Wed, 10 Apr 2013 10:00:05 -0700
-Message-ID: <20130410170001.GY10155@atomide.com>
-References: <1364724561-18045-1-git-send-email-pali.rohar@gmail.com>
- <201303311318.41846@pali>
- <20130402163138.GS10155@atomide.com>
- <201304101615.19400@pali>
+Subject: Re: [PATCH 1/2] mfd: twl4030-madc: Add support for raw value in
+ twl4030_madc_conversion
+Date: Wed, 10 Apr 2013 10:00:26 -0700
+Message-ID: <20130410170026.GZ10155@atomide.com>
+References: <1360969010-8571-1-git-send-email-pali.rohar@gmail.com>
+ <201304041132.21158@pali>
+ <20130408181524.GU10155@atomide.com>
+ <201304101612.51620@pali>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201304101615.19400@pali>
+In-Reply-To: <201304101612.51620@pali>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Sebastian Reichel <sre@debian.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-kernel@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Anton Vorontsov <cbou@mail.ru>, Keerthy <j-keerthy@ti.com>, Kyle Manna <kyle@kylemanna.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130410 07:20]:
-> On Tuesday 02 April 2013 18:31:38 Tony Lindgren wrote:
-> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130331 04:23]:
-> > > On Sunday 31 March 2013 12:52:23 Sebastian Reichel wrote:
-> > > > On Sun, Mar 31, 2013 at 12:09:21PM +0200, Pali Roh=C3=A1r wrote=
-:
-> > > > > From: Joni Lapilainen <joni.lapilainen@gmail.com>
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130410 07:17]:
+> On Monday 08 April 2013 20:15:24 Tony Lindgren wrote:
+> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130404 02:37]:
+> > > On Sunday 24 March 2013 15:03:29 Pali Roh=C3=A1r wrote:
+> > > > On Saturday 02 March 2013 23:23:05 Pali Roh=C3=A1r wrote:
+> > > > > On Friday 15 February 2013 23:56:49 Pali Roh=C3=A1r wrote:
+> > > > > > Driver twl4030-madc has hardcoded channel types (10 -
+> > > > > > battery current, 1 - battery temperature) and also
+> > > > > > conversation data in variable twl4030_divider_ratios.
+> > > > > > These hardcoded channels are incorrect for Nokia RX-51
+> > > > > > board (where is channel 0 - battery temperature).
+> > > > > >=20
+> > > > > > For Nokia RX-51 there is rx51_battery power_supply
+> > > > > > driver which reporting battery information via
+> > > > > > twl4030_madc_conversion. But this driver needs raw
+> > > > > > values (not converted via some hardcoded functions).
+> > > > > > So this patch adding new parameter "raw" to struct
+> > > > > > twl4030_madc_request which tell twl4030-madc driver to
+> > > > > > not convert values, but rather return raw.
+> > > > > >=20
+> > > > > > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> > > > > > ---
+> > > > > >=20
+> > > > > >  drivers/mfd/twl4030-madc.c       |   14
+> > > > > >  ++++++++++---- include/linux/i2c/twl4030-madc.h |  =20
+> > > > > >  2 ++
+> > > > > >  2 files changed, 12 insertions(+), 4 deletions(-)
 > > > > >=20
-> > > > > Without this patch LCD panel on Nokia RX-51 is still
-> > > > > black
-> > > > >=20
-> > > > > Signed-off-by: Joni Lapilainen
-> > > > > <joni.lapilainen@gmail.com> Signed-off-by: Pali Roh=C3=A1r
-> > > > > <pali.rohar@gmail.com>
+> > > > > Hello, can somebody review this twl4030-madc patch?
 > > > >=20
-> > > > Tested-by: Sebastian Reichel <sre@debian.org>
+> > > > Bump.
 > > > >=20
-> > > > Please note, that this patch has actually been proposed by
-> > > > Aaro Koskinen <aaro.koskinen@iki.fi> quite some time ago
-> > > > [0].
-> > > >=20
-> > > > [0]
-> > > > http://permalink.gmane.org/gmane.linux.ports.arm.omap/8172
-> > > > 9
-> > > >=20
-> > > > -- Sebastian
+> > > > Can some of mfd maintainers look at this patch and include
+> > > > it to mfd tree? It is needed for rx51_battery power
+> > > > supply driver.
 > > >=20
-> > > CCing Aaro.
+> > > CCing Tony, can you look at this patch?
 > >=20
-> > Any ideas why this is happening?
+> > Sorry for the delay in replying, I've been going through my
+> > inbox for the merge window and noticed this.
 > >=20
-> > Is the touch screen controller somehow pulling one of the SPI
-> > lines before it's reset? I don't think there's any other
-> > connection between the LCD and touch controller besides the
-> > SPI lines?
-> >=20
-> > In any case there should be something in the description why
-> > this is needed..
+> > I suggest resend with Peter Ujfalusi cc:d as he is the
+> > de-facto twl/tps maintainer and expert by now.
 > >=20
 > > Regards,
 > >=20
 > > Tony
 >=20
-> Hi Tony, look at this Aaro's email:
-> http://permalink.gmane.org/gmane.linux.ports.arm.omap/81729
+> Ok, both patches are now in mfd-next tree.
 
-OK can we have that summarized in the patch description please?
-
-Regards,
+Great thanks!
 
 Tony
