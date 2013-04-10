@@ -1,54 +1,139 @@
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 4/5] gpio/omap: force restore if context loss is not
- detectable
-Date: Wed, 10 Apr 2013 14:41:58 -0500
-Message-ID: <5165C086.5010105@ti.com>
-References: <1365106576-31816-1-git-send-email-jon-hunter@ti.com>
- <1365106576-31816-5-git-send-email-jon-hunter@ti.com>
- <CACRpkdbeABuFXr0Gt6gRto3Pmo0m88AFn_xKJq14VonGg7Doww@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH v2] ARM: OMAP4: hwmod data: make 'ocp2scp_usb_phy_phy_48m"
+ as the main clock (fwd)
+Date: Wed, 10 Apr 2013 19:43:25 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1304101941550.25123@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CACRpkdbeABuFXr0Gt6gRto3Pmo0m88AFn_xKJq14VonGg7Doww-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: MULTIPART/Mixed;
+ BOUNDARY="843723315-1840391867-1365622592=:25123"
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-ID: <alpine.DEB.2.00.1304101937000.25123@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: linux@arm.linux.org.uk, b-cousson@ti.com, Keerthy <j-keerthy@ti.com>, rnayak@ti.com, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On 04/10/2013 02:39 PM, Linus Walleij wrote:
-> On Thu, Apr 4, 2013 at 10:16 PM, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org> wrote:
-> 
->> When booting with device-tree the function pointer for detecting context
->> loss is not populated. Ideally, the pm_runtime framework should be
->> enhanced to allow a means for reporting context/state loss and we could
->> avoid populating such function pointers altogether. In the interim until
->> a generic non-device specific solution is in place, force a restore of
->> the gpio bank when enabling the gpio controller.
->>
->> Adds a new device-tree property for the OMAP GPIO controller to indicate
->> if the GPIO controller is located in a power-domain that never loses
->> power and hence will always maintain its logic state.
->>
->> Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-> 
-> In this case it'd be really helpful to get an ACK from somebody else.
-> I have no clue whether this thing is doing what it should, and if
-> you were the maintainer I'd apply it but now I'd like to hear from
-> Kevin or Santosh first...
+--843723315-1840391867-1365622592=:25123
+Content-Type: TEXT/PLAIN; CHARSET=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1304101937001.25123@utopia.booyaka.com>
 
-Santosh gave the his ACK for 1-4 (see 0/5) and Kevin added his
-reviewed-by for 1-4 (again see 0/5).
 
-Cheers
-Jon
+Hi Tony,
+
+could you send this one upstream for v3.9-rc fixes?  Should prevent=20
+a MUSB regression in v3.9, mostly due to my own incompetence.
+
+
+- Paul
+
+---------- Forwarded message ----------
+Date: Wed, 10 Apr 2013 19:41:38 +0000 (UTC)
+From: Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, rnayak@ti.com, b-cousson@ti.com=
+,
+    tony@atomide.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org,
+    Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2] ARM: OMAP4: hwmod data: make
+    'ocp2scp_usb_phy_phy_48m" as the main clock
+
+From: Kishon Vijay Abraham I <kishon@ti.com>
+
+Commit 92702df3570e ("ARM: OMAP4: PM: fix PM regression introduced by recen=
+t
+clock cleanup") makes the 'ocp2scp_usb_phy_phy_48m' as optional
+functional clock causing regression in MUSB. But this 48MHz clock is a
+mandatory clock for usb phy attached to ocp2scp and hence made as the main
+clock for ocp2scp.
+
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+[paul@pwsan.com: add comment to the hwmod data to try to prevent any
+ future mistakes here]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+
+Nothing further received from Kishon per the request:
+
+http://marc.info/?l=3Dlinux-omap&m=3D136554118302342&w=3D2
+
+Since the deadline for v3.9-rc fixes is quite close, have added the=20
+comment myself, and have confirmed that this patch does not cause=20
+additional PM regressions on 4460 Panda-ES in the tests here.
+
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-oma=
+p2/omap_hwmod_44xx_data.c
+index 9e05765..eaba9dc 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2714,16 +2714,22 @@ static struct omap_ocp2scp_dev ocp2scp_dev_attr[] =
+=3D {
+ =09{ }
+ };
+=20
+-static struct omap_hwmod_opt_clk ocp2scp_usb_phy_opt_clks[] =3D {
+-=09{ .role =3D "48mhz", .clk =3D "ocp2scp_usb_phy_phy_48m" },
+-};
+-
+ /* ocp2scp_usb_phy */
+ static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwmod =3D {
+ =09.name=09=09=3D "ocp2scp_usb_phy",
+ =09.class=09=09=3D &omap44xx_ocp2scp_hwmod_class,
+ =09.clkdm_name=09=3D "l3_init_clkdm",
+-=09.main_clk=09=3D "func_48m_fclk",
++=09/*
++=09 * ocp2scp_usb_phy_phy_48m is provided by the OMAP4 PRCM IP
++=09 * block as an "optional clock," and normally should never be
++=09 * specified as the main_clk for an OMAP IP block.  However it
++=09 * turns out that this clock is actually the main clock for
++=09 * the ocp2scp_usb_phy IP block:
++=09 * http://lists.infradead.org/pipermail/linux-arm-kernel/2012-September=
+/119943.html
++=09 * So listing ocp2scp_usb_phy_phy_48m as a main_clk here seems
++=09 * to be the best workaround.
++=09 */
++=09.main_clk=09=3D "ocp2scp_usb_phy_phy_48m",
+ =09.prcm =3D {
+ =09=09.omap4 =3D {
+ =09=09=09.clkctrl_offs =3D OMAP4_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL_OFFSET,
+@@ -2732,8 +2738,6 @@ static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwm=
+od =3D {
+ =09=09},
+ =09},
+ =09.dev_attr=09=3D ocp2scp_dev_attr,
+-=09.opt_clks=09=3D ocp2scp_usb_phy_opt_clks,
+-=09.opt_clks_cnt=09=3D ARRAY_SIZE(ocp2scp_usb_phy_opt_clks),
+ };
+=20
+ /*
+--=20
+1.7.10.4
+--843723315-1840391867-1365622592=:25123
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--843723315-1840391867-1365622592=:25123--
