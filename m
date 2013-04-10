@@ -1,88 +1,32 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] RX-51: Fix probe order of SPI devices
-Date: Wed, 10 Apr 2013 16:15:19 +0200
-Message-ID: <201304101615.19400@pali>
-References: <1364724561-18045-1-git-send-email-pali.rohar@gmail.com> <201303311318.41846@pali> <20130402163138.GS10155@atomide.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: Kexec couldn't reboot capture kernel on pandaboard ES with OMAP4460
+Date: Wed, 10 Apr 2013 09:54:02 -0600
+Message-ID: <51658B1A.6090706@wwwdotorg.org>
+References: <CAFNq8R5FFUyH+JgjoGc5ctgEfiLvxzi7fzawM7+wFX5nEyTv-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1422385.Cm4OgzPyZM";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f178.google.com ([209.85.215.178]:47700 "EHLO
-	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936040Ab3DJOPY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Apr 2013 10:15:24 -0400
-In-Reply-To: <20130402163138.GS10155@atomide.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:59283 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934856Ab3DJPyH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Apr 2013 11:54:07 -0400
+In-Reply-To: <CAFNq8R5FFUyH+JgjoGc5ctgEfiLvxzi7fzawM7+wFX5nEyTv-w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@debian.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Li Haifeng <omycle@gmail.com>
+Cc: pandaboard@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kexec@lists.infradead.org
 
---nextPart1422385.Cm4OgzPyZM
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On 04/10/2013 03:35 AM, Li Haifeng wrote:
+> Hi, everyone.
+> 
+> Recently, I try to run kdump on pandaboard ES with omap4460. After
+> load capture kernel by "kexec -l" and execute "kexec -e", the serial
+> port output "Starting new kernel" and "Bye", then the system hangs up.
+> 
+> I have tried the upstream Linux Kernel v3.4 and v3.8. All are with this issue.
 
-On Tuesday 02 April 2013 18:31:38 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130331 04:23]:
-> > On Sunday 31 March 2013 12:52:23 Sebastian Reichel wrote:
-> > > On Sun, Mar 31, 2013 at 12:09:21PM +0200, Pali Roh=C3=A1r wrote:
-> > > > From: Joni Lapilainen <joni.lapilainen@gmail.com>
-> > > >=20
-> > > > Without this patch LCD panel on Nokia RX-51 is still
-> > > > black
-> > > >=20
-> > > > Signed-off-by: Joni Lapilainen
-> > > > <joni.lapilainen@gmail.com> Signed-off-by: Pali Roh=C3=A1r
-> > > > <pali.rohar@gmail.com>
-> > >=20
-> > > Tested-by: Sebastian Reichel <sre@debian.org>
-> > >=20
-> > > Please note, that this patch has actually been proposed by
-> > > Aaro Koskinen <aaro.koskinen@iki.fi> quite some time ago
-> > > [0].
-> > >=20
-> > > [0]
-> > > http://permalink.gmane.org/gmane.linux.ports.arm.omap/8172
-> > > 9
-> > >=20
-> > > -- Sebastian
-> >=20
-> > CCing Aaro.
->=20
-> Any ideas why this is happening?
->=20
-> Is the touch screen controller somehow pulling one of the SPI
-> lines before it's reset? I don't think there's any other
-> connection between the LCD and touch controller besides the
-> SPI lines?
->=20
-> In any case there should be something in the description why
-> this is needed..
->=20
-> Regards,
->=20
-> Tony
-
-Hi Tony, look at this Aaro's email:
-http://permalink.gmane.org/gmane.linux.ports.arm.omap/81729
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1422385.Cm4OgzPyZM
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlFlc/cACgkQi/DJPQPkQ1KEgACeIBJYaHTBmQT1+XOTc8ni40jV
-/agAn2ash3zy4hRxLCg9eTc2tA025T6A
-=W6fK
------END PGP SIGNATURE-----
-
---nextPart1422385.Cm4OgzPyZM--
+This is a shot in the dark. I assume you have SMP enabled. Can you use
+hotplug to remove all CPUs other than CPU0, so that the kexec happens on
+the boot CPU? That is certainly necessary for kexec to work correctly on
+Tegra.
