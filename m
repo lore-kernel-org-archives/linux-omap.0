@@ -1,40 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support
- for AUXCLKs
-Date: Wed, 10 Apr 2013 13:21:21 -0700
-Message-ID: <20130410202121.GM10155@atomide.com>
-References: <20130405155851.GA10155@atomide.com>
- <5163E589.1040809@ti.com>
- <20130409164928.GL10155@atomide.com>
- <20130409174319.GP10155@atomide.com>
- <20130409204900.GA8815@kahuna>
- <20130410080630.14359.68178@quantum>
- <5165453E.6090503@ti.com>
- <20130410173921.GA31017@kahuna>
- <20130410184919.GJ10155@atomide.com>
- <CAGo_u6rqN6YFQ6vX87-Cg28RbiR9UU2JHgLecOU5Nd=B5XPUEA@mail.gmail.com>
+Subject: Re: [PATCH v2] ARM: OMAP4: hwmod data: make
+ 'ocp2scp_usb_phy_phy_48m" as the main clock (fwd)
+Date: Wed, 10 Apr 2013 13:26:53 -0700
+Message-ID: <20130410202653.GN10155@atomide.com>
+References: <alpine.DEB.2.00.1304101941550.25123@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAGo_u6rqN6YFQ6vX87-Cg28RbiR9UU2JHgLecOU5Nd=B5XPUEA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, Mike Turquette <mturquette@linaro.org>, linux-usb@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, devicetree-discuss@lists.ozlabs.org, lkml <linux-kernel@vger.kernel.org>, balbi@ti.com, grygorii.strashko@ti.com, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1304101941550.25123@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux@arm.linux.org.uk, b-cousson@ti.com, Keerthy <j-keerthy@ti.com>, rnayak@ti.com, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [130410 12:23]:
-> On Wed, Apr 10, 2013 at 1:49 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > We can avoid the concern of storing the struct clk * and do the
-> > look up lazily on consumer driver probe by setting a dummy struct
-> > clk * here. Then replace of_clk_src_simple_get() with a custom
-> > omap_clk_src_get() that does the lookup and replaces the struct
-> > clk * with the real one.
-> Hmm.. this is interesting. will give it a try. Thanks on the suggestion.
+* Paul Walmsley <paul@pwsan.com> [130410 12:48]:
+> 
+> Hi Tony,
+> 
+> could you send this one upstream for v3.9-rc fixes?  Should prevent 
+> a MUSB regression in v3.9, mostly due to my own incompetence.
 
-Setting the struct clk * to NULL initially might work too, but that
-needs to be checked.
+Thanks will do, applying into omap-for-v3.9-rc6/fixes.
 
 Regards,
 
