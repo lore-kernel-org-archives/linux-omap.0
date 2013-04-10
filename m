@@ -1,33 +1,41 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP4: PM: fix PM regression introduced by recent
- clock cleanup
-Date: Wed, 10 Apr 2013 20:09:30 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1304102007030.25123@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1302122026530.29149@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support
+ for AUXCLKs
+Date: Wed, 10 Apr 2013 13:21:21 -0700
+Message-ID: <20130410202121.GM10155@atomide.com>
+References: <20130405155851.GA10155@atomide.com>
+ <5163E589.1040809@ti.com>
+ <20130409164928.GL10155@atomide.com>
+ <20130409174319.GP10155@atomide.com>
+ <20130409204900.GA8815@kahuna>
+ <20130410080630.14359.68178@quantum>
+ <5165453E.6090503@ti.com>
+ <20130410173921.GA31017@kahuna>
+ <20130410184919.GJ10155@atomide.com>
+ <CAGo_u6rqN6YFQ6vX87-Cg28RbiR9UU2JHgLecOU5Nd=B5XPUEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:46858 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935970Ab3DJUJb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Apr 2013 16:09:31 -0400
-In-Reply-To: <alpine.DEB.2.00.1302122026530.29149@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAGo_u6rqN6YFQ6vX87-Cg28RbiR9UU2JHgLecOU5Nd=B5XPUEA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, Mike Turquette <mturquette@linaro.org>, linux-usb@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, devicetree-discuss@lists.ozlabs.org, lkml <linux-kernel@vger.kernel.org>, balbi@ti.com, grygorii.strashko@ti.com, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, j-keerthy@ti.com, b-cousson@ti.com
 
-On Tue, 12 Feb 2013, Paul Walmsley wrote:
+* Nishanth Menon <nm@ti.com> [130410 12:23]:
+> On Wed, Apr 10, 2013 at 1:49 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > We can avoid the concern of storing the struct clk * and do the
+> > look up lazily on consumer driver probe by setting a dummy struct
+> > clk * here. Then replace of_clk_src_simple_get() with a custom
+> > omap_clk_src_get() that does the lookup and replaces the struct
+> > clk * with the real one.
+> Hmm.. this is interesting. will give it a try. Thanks on the suggestion.
 
-> First, I missed the retention entry failure in the branch test logs:
-> 
-> http://www.pwsan.com/omap/testlogs/cleanup_a_3.9/20130126014242/pm/4460pandaes/4460pandaes_log.txt
+Setting the struct clk * to NULL initially might work too, but that
+needs to be checked.
 
-Just a brief note.  For the past few -rc releases, have switched here to 
-using scripts that parse the PM result logs, for PM validation.
+Regards,
 
-The scripts are probably not perfect, but they're less likely to miss the 
-cases they're set up to test.
-
-
-- Paul
+Tony
