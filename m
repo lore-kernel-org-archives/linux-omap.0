@@ -1,62 +1,59 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: [GIT PULL] CPUidle: OMAP cleanups for v3.10
-Date: Tue, 09 Apr 2013 16:40:11 -0700
-Message-ID: <87txnfz31g.fsf@linaro.org>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [RFC PATCH 3/3] ARM: OMAP2+: Add command line parameter for
+ debugSS module control
+Date: Wed, 10 Apr 2013 05:11:31 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EC4A236@DBDE01.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1362396957-30113-4-git-send-email-hvaibhav@ti.com>
+ <20130408172936.GQ10155@atomide.com>
+ <79CD15C6BA57404B839C016229A409A83EC47BB2@DBDE01.ent.ti.com>
+ <20130409163459.GJ10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f47.google.com ([209.85.210.47]:65356 "EHLO
-	mail-da0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936675Ab3DIXkP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Apr 2013 19:40:15 -0400
-Received: by mail-da0-f47.google.com with SMTP id s35so3231317dak.34
-        for <linux-omap@vger.kernel.org>; Tue, 09 Apr 2013 16:40:14 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43237 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751779Ab3DJFLs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Apr 2013 01:11:48 -0400
+In-Reply-To: <20130409163459.GJ10155@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: linux-pm@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@linaro.org" <khilman@linaro.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-[resend with correct address for linux-pm]
-
-Rafael,
-
-Please pull the following OMAP CPUidle changes for v3.10.
-
-Due to dependencies on other CPUidle changes that are already in your
-linux-next branch, this branch is based on the commit where you merged
-your pm-cpuidle-next branch into linux-next.
-
-Kevin
-
-The following changes since commit f69e44b2059f2238ac558b4a115ebcdefe20b9be:
-
-  Merge branch 'pm-cpuidle-next' into linux-next (2013-04-08 12:32:07 +0200)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.10/cleanup/cpuidle-v2
-
-for you to fetch changes up to db4f3dab629109882170a7b1b8fb655a34c52846:
-
-  ARM: OMAP4+: CPUidle: Consolidate idle driver for OMAP5 support (2013-04-09 09:48:21 -0700)
-
-----------------------------------------------------------------
-OMAP CPUidle cleanups for v3.10
-
-----------------------------------------------------------------
-Daniel Lezcano (1):
-      ARM: omap3: cpuidle: enable time keeping
-
-Santosh Shilimkar (5):
-      ARM: OMAP4: CPUidle: Avoid double idle driver registration
-      ARM: OMAP: CPUidle: Unregister drivere on device registration failure
-      ARM: OMAP4: CPUidle: Make C-state description field more precise
-      ARM: OMAP4+: CPUidle: Deprecate use of omap4_mpuss_read_prev_context_state()
-      ARM: OMAP4+: CPUidle: Consolidate idle driver for OMAP5 support
-
- arch/arm/mach-omap2/common.h              |  5 ----
- arch/arm/mach-omap2/cpuidle34xx.c         | 11 +++++--
- arch/arm/mach-omap2/cpuidle44xx.c         | 48 +++++++++++++++++--------------
- arch/arm/mach-omap2/omap-mpuss-lowpower.c | 14 ---------
- 4 files changed, 35 insertions(+), 43 deletions(-)
+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbnkgTGluZGdyZW4gW21h
+aWx0bzp0b255QGF0b21pZGUuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBBcHJpbCAwOSwgMjAxMyAx
+MDowNSBQTQ0KPiBUbzogSGlyZW1hdGgsIFZhaWJoYXYNCj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5r
+ZXJuZWwub3JnOyBraGlsbWFuQGxpbmFyby5vcmc7IHBhdWxAcHdzYW4uY29tOw0KPiBOYXlhaywg
+UmFqZW5kcmE7IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZw0KPiBTdWJqZWN0
+OiBSZTogW1JGQyBQQVRDSCAzLzNdIEFSTTogT01BUDIrOiBBZGQgY29tbWFuZCBsaW5lIHBhcmFt
+ZXRlcg0KPiBmb3IgZGVidWdTUyBtb2R1bGUgY29udHJvbA0KPiANCj4gKiBIaXJlbWF0aCwgVmFp
+YmhhdiA8aHZhaWJoYXZAdGkuY29tPiBbMTMwNDA5IDAxOjEyXToNCj4gPiA+IEZyb206IFRvbnkg
+TGluZGdyZW4gW21haWx0bzp0b255QGF0b21pZGUuY29tXQ0KPiA+ID4NCj4gPiA+IEkgc3VnZ2Vz
+dCB5b3UganVzdCBtYWtlIHRoaXMgcGFydCBpbnRvIGEgc3RhbmRhcmQgRFQgb25seQ0KPiA+ID4g
+ZGV2aWNlIGRyaXZlci4gVGhhdCB3YXkgdGhlIGNvbW1hbmQgbGluZSBwYXJzaW5nIGFuZCBjbG9j
+aw0KPiA+ID4gZW5hYmxpbmcgY2FuIGhhcHBlbiB0aGUgbm9ybWFsIHdheS4NCj4gPiA+DQo+ID4N
+Cj4gPiBUaGF04oCZcyBnb29kIGlkZWEsIGFzIHdlIGFyZSBtb3ZpbmcgdG93YXJkcyBEVCBvbmx5
+IGJvb3Qgc3VwcG9ydC4NCj4gPiBBbHNvLCBhcmUgeW91IHN1Z2dlc3RpbmcgdG8gaGF2ZSBib3Ro
+IGNvbW1hbmQtbGluZSBwYXJhbSBhbmQgRFQNCj4gPiBQcm9wZXJ0eSBmb3IgdGhpcz8NCj4gPg0K
+PiA+DQo+ID4gPiBJcyB0aGVyZSBhbnkgcmVhc29uIHdoeSB0aGlzIGNvdWxkIG5vdCBiZSBhIGxv
+YWRhYmxlIG1vZHVsZT8NCj4gPiA+DQo+ID4NCj4gPiBCZWNhdXNlIHdlIHdhbnQgdG8ga2VlcCBp
+dCBlbmFibGVkIGJlZm9yZSBsYXRlX2luaXRjYWxsLiBBcyBwYXJ0IG9mDQo+IGxhdGVfaW5pdGNh
+bGwNCj4gPiBDbG9jay9od21vZCBmcmFtZXdvcmsgd2lsbCBzdGFydCBkaXNhYmxpbmcgdW51c2Vk
+IG1vZHVsZXMsIHdoaWNoIHdpbGwNCj4gaW1wYWN0IHRoZQ0KPiA+IERlYnVncyBhcyB3ZWxsLiBD
+b25zaWRlciB0aGUgY2FzZSB3aGVyZSB0aGlzIGRlYnVnc3MgaXMgbG9hZGVkIGFzIGENCj4gbW9k
+dWxlLCB0aGUgdXNlcg0KPiA+IFdpbGwgbG9vc2UgdGhlIEpUQUcgY29ubmVjdGlvbiB1bnRpbCB0
+aGUgbW9kdWxlIGlzIGxvYWRlZDsgYW5kIG9uY2UNCj4gbW9kdWxlIGlzDQo+ID4gTG9hZGVkLCBo
+ZSBoYXMgdG8gYWdhaW4gcmUtY29ubmVjdCB0byB0aGUgZGVidWdzcy4NCj4gDQo+IEl0IHdpbGwg
+Z2V0IHJ1biBiZWZvcmUgbGF0ZV9pbml0Y2FsbCBpZiBjb21waWxlZCBpbi4gU291bmRzDQo+IGxp
+a2UgdGhlcmUgYXJlIG5vIGlzc3VlcyBhbHNvIG1ha2UgaXQgd29yayBhcyBhIGxvYWRhYmxlIG1v
+ZHVsZQ0KPiBhcyBuZWVkZWQuDQo+IA0KQWdyZWVkIG9uIG1ha2luZyBpdCBhcyBhIG1vZHVsZS4N
+Cg0KQnV0IGRvIHlvdSB0aGluayB3ZSBzaG91bGQgYWxsb3cgaXQgYXMgYSBsb2FkYWJsZSBtb2R1
+bGUgKE0pIGFzIHdlbGwsIA0KYXMgdXNlciB3aWxsIGxvb3NlIENvbm5lY3Rpdml0eSB0byBKVEFH
+IGR1cmluZyBib290Lg0KQW5vdGhlciBwZXJzcGVjdGl2ZSBoZXJlIHdvdWxkIGJlLCB1c2VyIGNh
+biBpbnNlcnQgdGhlIG1vZHVsZSBhbmQNCkdldCBKVEFHIGNvbm5lY3Rpdml0eSwgd2hpY2ggYWxz
+byBzZWVtcyBvayB0byBtZS4NCg0KQ2FuIHlvdSBhbHNvIGNvbmZpcm0gb24gaGF2aW5nIGNvbW1h
+bmQgbGluZSBhcmd1bWVudD8gSSB0aGluaw0KV2UgY2FuIG9ubHkgbGl2ZSB3aXRoIERUIGJhc2Vk
+IGFwcHJvYWNoLCByaWdodD8NCg0KVGhhbmtzLA0KVmFpYmhhdiANCg0K
