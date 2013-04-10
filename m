@@ -1,41 +1,47 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 3/5] gpio/omap: optimise interrupt service routine
-Date: Wed, 10 Apr 2013 21:37:02 +0200
-Message-ID: <CACRpkdZ46vq6GOtS31DYSVZj44GawxT-PabqRr=0nmam6kBsTQ@mail.gmail.com>
+Subject: Re: [PATCH 4/5] gpio/omap: force restore if context loss is not
+ detectable
+Date: Wed, 10 Apr 2013 21:39:40 +0200
+Message-ID: <CACRpkdbeABuFXr0Gt6gRto3Pmo0m88AFn_xKJq14VonGg7Doww@mail.gmail.com>
 References: <1365106576-31816-1-git-send-email-jon-hunter@ti.com>
-	<1365106576-31816-4-git-send-email-jon-hunter@ti.com>
+ <1365106576-31816-5-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f177.google.com ([209.85.223.177]:53834 "EHLO
-	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752182Ab3DJThE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Apr 2013 15:37:04 -0400
-Received: by mail-ie0-f177.google.com with SMTP id 9so749395iec.22
-        for <linux-omap@vger.kernel.org>; Wed, 10 Apr 2013 12:37:03 -0700 (PDT)
-In-Reply-To: <1365106576-31816-4-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1365106576-31816-5-git-send-email-jon-hunter@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Jon Hunter <jon-hunter@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-omap@vger.kernel.org
 
 On Thu, Apr 4, 2013 at 10:16 PM, Jon Hunter <jon-hunter@ti.com> wrote:
 
-> The OMAP GPIO interrupt service routine is checking each bit in the
-> GPIO interrupt status register to see which bits are set. It is not
-> efficient to check every bit especially if only a few bits are set.
-> Therefore, instead of checking every bit use the __ffs() function,
-> which returns the location of the first set bit, to find all the set
-> bits.
+> When booting with device-tree the function pointer for detecting context
+> loss is not populated. Ideally, the pm_runtime framework should be
+> enhanced to allow a means for reporting context/state loss and we could
+> avoid populating such function pointers altogether. In the interim until
+> a generic non-device specific solution is in place, force a restore of
+> the gpio bank when enabling the gpio controller.
 >
-> This optimisation was suggested-by and developed in collaboration
-> with Felipe Balbi.
->
-> Cc: Felipe Balbi <balbi@ti.com>
+> Adds a new device-tree property for the OMAP GPIO controller to indicate
+> if the GPIO controller is located in a power-domain that never loses
+> power and hence will always maintain its logic state.
 >
 > Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 
-Patch applied with Felipe's Reviewed-by tag.
+In this case it'd be really helpful to get an ACK from somebody else.
+I have no clue whether this thing is doing what it should, and if
+you were the maintainer I'd apply it but now I'd like to hear from
+Kevin or Santosh first...
 
-Thanks,
+Yours,
 Linus Walleij
