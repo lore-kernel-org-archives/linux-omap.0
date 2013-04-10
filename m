@@ -1,323 +1,141 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC][PATCH 1/2] ARM: OMAP4: clock: Add device tree support for
- AUXCLKs
-Date: Wed, 10 Apr 2013 12:39:21 -0500
-Message-ID: <20130410173921.GA31017@kahuna>
-References: <515D2D30.3000306@ti.com>
- <20130404164137.GH10155@atomide.com>
- <515EA9E3.1010409@ti.com>
- <20130405155851.GA10155@atomide.com>
- <5163E589.1040809@ti.com>
- <20130409164928.GL10155@atomide.com>
- <20130409174319.GP10155@atomide.com>
- <20130409204900.GA8815@kahuna>
- <20130410080630.14359.68178@quantum>
- <5165453E.6090503@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
+Date: Wed, 10 Apr 2013 20:12:54 +0200
+Message-ID: <CACRpkdYbs4-uudpRUY8e+7icYYkZrfM0kReP3pLL5DMiURJ4dg@mail.gmail.com>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
+	<1329321854-24490-4-git-send-email-b-cousson@ti.com>
+	<4F44FA56.7020000@gmail.com>
+	<4F44FC37.2000701@ti.com>
+	<4F452484.5080503@gmail.com>
+	<74CDBE0F657A3D45AFBB94109FB122FF17BD8BC6C1@HQMAIL01.nvidia.com>
+	<4F47AD08.4030504@ti.com>
+	<CAAwP0s0cB368R2mtbJpTZJreR-5GSRLfxC+8DJLo5nw3_OwBuA@mail.gmail.com>
+	<512D39DA.7020306@ti.com>
+	<512D3AB1.1080202@wwwdotorg.org>
+	<512D3EC2.6050408@ti.com>
+	<20130302200524.D230F3E1571@localhost>
+	<51391F41.5000303@ti.com>
+	<CAAwP0s1CFRO-rf==p5sYs1n0gigMif7wuT8Yv0N_iLUDMrtcOg@mail.gmail.com>
+	<CACRpkdYHj-rEF3Rk_CWnmmMw_Amr7m8SgQ=-2zsDYuLeuu3azw@mail.gmail.com>
+	<514C79E1.4090106@wwwdotorg.org>
+	<514CE0AB.6060207@ti.com>
+	<CACRpkdZmv-rAoKSQYpkHHSMzKJOn5TixVW_P3=m7ZNagBYCUPw@mail.gmail.com>
+	<515319D5.20105@wwwdotorg.org>
+	<CACRpkdYXVLgCz1Tyu-Ls2V2OTc4R3cGNJhfQJB6Hiz_K9dkZYQ@mail.gmail.com>
+	<5155C902.7080207@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5165453E.6090503@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Mike Turquette <mturquette@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-usb@vger.kernel.org, linux@arm.linux.org.uk, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, balbi@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:51482 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935980Ab3DJSMz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Apr 2013 14:12:55 -0400
+Received: by mail-ie0-f169.google.com with SMTP id ar20so528596iec.0
+        for <linux-omap@vger.kernel.org>; Wed, 10 Apr 2013 11:12:55 -0700 (PDT)
+In-Reply-To: <5155C902.7080207@wwwdotorg.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Jon Hunter <jon-hunter@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Alexandre Courbot <acourbot@nvidia.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 13:55-20130410, Roger Quadros wrote:
-> On 04/10/2013 11:06 AM, Mike Turquette wrote:
-> > Quoting Nishanth Menon (2013-04-09 13:49:00)
-> >> On 10:43-20130409, Tony Lindgren wrote:
-> >>> * Tony Lindgren <tony@atomide.com> [130409 09:54]:
-> >>>> * Roger Quadros <rogerq@ti.com> [130409 03:00]:
-> >>>>> On 04/05/2013 06:58 PM, Tony Lindgren wrote:
-> >>>>>>
-> >>>>>> Can't you just use the clock name there to get it?
-> >>>>>
-> >>>>> In device tree we don't pass around clock names. You can either get
-> >>>>> a phandle or an index to the clock.
-> >>>>>
-> >>>>> e.g. Documentation/devicetree/bindings/clock/imx31-clock.txt
-> >>>>
-> >>>> Yes I understand that. But the driver/clock/omap driver can just
-> >>>> remap the DT device initially so the board specific clock is
-> >>>> found from the clock alias table. Basically initially a passthrough
-> >>>> driver that can be enhanced to parse DT clock bindings and load
-> >>>> data from /lib/firmware.
-> >>>
-> >>> Actually probably the driver/clock/omap can even do even less
-> >>> initially. There probably even no need to remap clocks there.
-> >>>
-> >>> As long as the DT clock driver understands that a board specific
-> >>> auxclk is specified in the DT it can just call clk_add_alias() so
-> >>> the driver will get the right auxclk from cclock44xx_data.c.
-> >>>
-> >>> Then other features can be added later on like to allocate a
-> >>> clock entirely based on the binding etc.
-> >> I did try to have an implementation for cpufreq using clock nodes.
-> >> unfortunately, device tree wont let me have arguments of strings :(
-> >> So, I am unable to do clock = <&clk mpu_dpll>;
-> >> instead, I am forced to do clock = <&clk 249>;
-> >>
-> > 
-> > See http://article.gmane.org/gmane.linux.ports.arm.kernel/229034
-> > 
-> 
-> Awesome. Thanks for pointing this out Mike.
-> 
-> Now all we need to do is create a named define for each clock index in the
-> header file.
-Approach #3: Thanks to Tony for collaborating on this:
-Works for cpufreq-cpu0 - additional patches:
-http://pastebin.com/GHnTRVJf, http://pastebin.com/FZS89J6L (tested on
-beagleXM)
-Work for USB - http://pastebin.com/aJpDnXci - thanks Roger for testing
-this.
-Details in the patch below (Tony, I have added you as collaborator for
-helping in getting this working-clk_add_alias was'nt needed in the
-internal patch discussion we had - I have taken a bit of freedom in
-adding your contributions to the patch below)
+On Fri, Mar 29, 2013 at 6:01 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
+> On 03/27/2013 02:55 PM, Linus Walleij wrote:
+>> On Wed, Mar 27, 2013 at 5:09 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
+>>
+>> This is the case for some SMSC911x clients like the snowball
+>> routing it to a GPIO, whereas I think the RealView and Integrator/CP
+>> has a dedicated IRQ line for it on the FPGA so it's a good example.
+>>
+>> In such cases the right thing to do is for the platform
+>> code populating the platform data with the int irq field, or device tree
+>> core, or whatever piece of code that knows about
+>> the actual GPIO shall start from the GPIO, request it and
+>> then convert it to an IRQ.
+>
+> So board code could easily do that; plenty of opportunity to put
+> whatever custom code is needed right there.
+>
+> For DT core code to do that, we'd need some alternative way of
+> specifying interrupts. That would change the DT bindings for interrupts.
+> I don't think we can do that...
 
-Folks, this does seem to be the best compromise we can achieve at this
-point in time. feedback on this approach is much appreciated - if folks
-are ok, I can post this as an formal patch series.
+Sorry, I'm probably not knowledgeable about DT to understand this.
+The information for what GPIO corresponds to what IRQ is
+present in the device tree, is it not?
 
->From 130a41821bf57081ca45ef654029175d173135e6 Mon Sep 17 00:00:00 2001
-From: Nishanth Menon <nm@ti.com>
-Date: Tue, 9 Apr 2013 19:26:40 -0500
-Subject: [RFC PATCH] clk: OMAP: introduce device tree binding to kernel clock
- data
+If the information is there, whether to convert from IRQ to GPIO
+or from GPIO to IRQ is a technicality and any order should be
+feasible in some way?
 
-OMAP clock data is located in arch/arm/mach-omap2/cclockXYZ_data.c.
-However, this presents an obstacle for using these clock nodes in
-Device Tree definitions. There are many possible approaches to this
-problem as discussed in the following thread:
-http://marc.info/?t=136370325600009&r=1&w=2
-Highlights of the options:
-a) device specific clk_add_alias:
-	cons: driver handling required
-b) using an generic clk node and indexing to reach the clock required.
-   This is similar in approach taken by tegra and few other platforms.
-   example clock = <&clk 5>;
-   cons: potential to have mismatches in indexed table and associated
-   dtb data. In addition, managing continued documentation in bindings
-   as clock indexing increases. Even though readability angle could be
-   improved by using preprocessing of DT using macros, indexed approach
-   is inherently risky from cases like the following:
-   clk indexes in kernel:
-   1 - mpu_dpll
-   2 - aux_clk1
-   3 - core_clk
-   DT entry for peripheral x uses <&clk 2>, kernel updates to:
-   1 - mpu_dpll
-   2 - per_dpll
-   3 - aux_clk1
-   4 - core_clk
-   using the old dtb(or dts missing an update), on new kernel which has
-   updated indices will result in per_dpll now controlled for peripheral
-   X without warning or any potential error detection and warning.
+I just can't get the necessity to do it one way preferred over the
+other through my head, sorry...
 
-   Even though we can claim this is user error, such errors are hard to
-   track down and fix.
+>> If it seems like identical boilerplate in every machine we can
+>> simply centralize it to gpiolib. Something like
+>>
+>> int gpio_add_single_irq_resource(struct platform_device *pdev, int
+>> gpio, unsigned flags)
+> ... [code to convert GPIO to IRQ and create IORESOURCE_IRQ from it]
+>
+>> int gpio_populate_irq_resource(struct platform_device *pdev, int gpio,
+>>                               unsigned flags, struct resource *r)
+> ... [code to create IORESOURCE_IRQ from the IRQ]
+>
+> ...
+>> gpio_populate_irq_resource(&ethernet, 17,
+>>      IORESOURCE_IRQ_HIGHEDGE, &ethernet_res[1]);
+>> platform_device_register(&ethernet);
+>>
+>> That populates the device with the single GPIO IRQ from
+>> the GPIO number in a smooth way.
+>>
+>> Of course it has to be done after the GPIO driver is up
+>> and running so may require some other refactoring,
+>> but it should work.
+>
+> That latter issue also somewhat scuppers this approach; then you have to
+> somehow run a bunch of your board file code inter-mixed with various
+> driver probe() calls. That will quickly get nasy.
 
-An alternate approach introduced here is to introduce device tree bindings
-corresponding to the clock nodes required in DT definition for SoC which
-automatically maps back to the definitions in cclockXYZ_data.c.
+No, just use a module_init() for the above code in the board
+file and it will defer just like any other initcall.
 
-The driver introduced here to do this mapping will eventually be the
-place where the clock handling will migrate to. We need to consider this
-angle as well so that the solution will be an valid transition point for
-moving the clock data out of kernel image (into device tree or firmware load
-etc..).
+> And it doesn't address how the DT core will know when to call
+> gpio_add_single_irq_resource() vs. gpio_populate_irq_resource() without
+> changing the DT binding for interrupts.
 
-Overall strategy introduced here is simple: an clock node described in
-device tree blob is used to identify the exact clock provided in the SoC
-specific data. This is then linked back using of_clk_add_provider to the
-device node to be accessible by of_clk_get.
+Is it not possible to do this in
+drivers/gpio/gpiolib-of.c: of_gpiochip_add(), if the DT *know*
+which GPIOs will be used as plain IRQs? That is the point with
+the gpio hogs I talk about ...
 
-Based on discussion contributions from Roger Quadros, Grygorii Strashko
-and others.
+GPIO hogs would hog input pins here and immediately
+call gpio_to_irq() on them, and from that point on they can
+only be used for input, and only for generating IRQs.
 
-[tony@atomide.com: co-developed]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- .../devicetree/bindings/clock/omap-clock.txt       |   40 +++++++++
- drivers/clk/Makefile                               |    1 +
- drivers/clk/omap/Makefile                          |    1 +
- drivers/clk/omap/clk.c                             |   94 ++++++++++++++++++++
- 4 files changed, 136 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/clock/omap-clock.txt
- create mode 100644 drivers/clk/omap/Makefile
- create mode 100644 drivers/clk/omap/clk.c
+>>> And then, given that irq_to_gpio() isn't semantically possible, there's
+>>> no way for the driver to be able to gpio_request() anything, since it
+>>> doesn't, can't, and shouldn't know whether there is in fact any GPIO ID
+>>> that it should request, let alone what that GPIO ID is.
+>>
+>> That's cool. The driver does not have to know the IRQ is backed by a
+>> GPIO, but somewhere in the system something should know this.
+>
+> Something already does; the irqchip driver for the IRQ in question would
+> always know whether it's programming a plain IRQ controller, or an IRQ
+> controller that's part of a GPIO controller. In the GPIO case, the
+> irqchip driver also has enought HW-specific information to perform
+> whatever GPIO<->IRQ number conversion is needed.
 
-diff --git a/Documentation/devicetree/bindings/clock/omap-clock.txt b/Documentation/devicetree/bindings/clock/omap-clock.txt
-new file mode 100644
-index 0000000..07e3ff8
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/omap-clock.txt
-@@ -0,0 +1,40 @@
-+Device Tree Clock bindings for Texas Instrument's OMAP compatible platforms
-+
-+This binding is a work-in-progress, and meant to be stage #1 of transitioning
-+OMAP clock data out of kernel image.
-+
-+This binding uses the common clock binding[1].
-+
-+[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+
-+Required properties:
-+- compatible : shall be "ti,omap-clock"
-+- #clock-cells : from common clock binding; shall be set to 0.
-+NOTE:
-+node name should map to clock database in arch/arm/mach-omap2/cclock<SoC>_data.c
-+Since all clocks are described with _ck, the node name is optimized to drop the
-+usage of _ck. For example, a clock called dpll1_ck will be defined as dpll1.
-+
-+Example #1: describing clock node for CPU on OMAP34xx platform:
-+Ref: arch/arm/mach-omap2/cclock3xxx_data.c
-+describes the CPU clock to be as follows
-+	CLK(NULL,	"dpll1_ck",	&dpll1_ck,	CK_3XXX),
-+Corresponding binding will be:
-+	dpll1: dpll1 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap-clock";
-+	};
-+And it's usage will be:
-+		clocks = <&dpll1>;
-+
-+Example #2: describing clock node for auxilary clock #3 on OMAP443x platform:
-+Ref: arch/arm/mach-omap2/cclock44xx_data.c
-+describes the auxclk3 clock to be as follows:
-+	CLK(NULL,	"auxclk3_ck",	&auxclk3_ck,	CK_443X),
-+Corresponding binding will be:
-+	auxclk3: auxclk3 {
-+		#clock-cells = <1>;
-+		compatible = "ti,omap-clock";
-+	};
-+And it's usage will be:
-+	clocks = <&auxclk3>;
-diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-index 300d477..a0209d7 100644
---- a/drivers/clk/Makefile
-+++ b/drivers/clk/Makefile
-@@ -27,6 +27,7 @@ obj-$(CONFIG_ARCH_U8500)	+= ux500/
- obj-$(CONFIG_ARCH_VT8500)	+= clk-vt8500.o
- obj-$(CONFIG_ARCH_ZYNQ)		+= clk-zynq.o
- obj-$(CONFIG_ARCH_TEGRA)	+= tegra/
-+obj-$(CONFIG_ARCH_OMAP)		+= omap/
- 
- obj-$(CONFIG_X86)		+= x86/
- 
-diff --git a/drivers/clk/omap/Makefile b/drivers/clk/omap/Makefile
-new file mode 100644
-index 0000000..8195931
---- /dev/null
-+++ b/drivers/clk/omap/Makefile
-@@ -0,0 +1 @@
-+obj-y					+= clk.o
-diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
-new file mode 100644
-index 0000000..63a4cce
---- /dev/null
-+++ b/drivers/clk/omap/clk.c
-@@ -0,0 +1,94 @@
-+/*
-+ * Texas Instruments OMAP Clock driver
-+ *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Nishanth Menon
-+ *	Tony Lindgren <tony@atomide.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/clkdev.h>
-+#include <linux/clk-private.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of_device.h>
-+#include <linux/platform_device.h>
-+#include <linux/string.h>
-+
-+static const struct of_device_id omap_clk_of_match[] = {
-+	{.compatible = "ti,omap-clock",},
-+	{},
-+};
-+
-+MODULE_DEVICE_TABLE(of, omap_clk_of_match);
-+
-+/**
-+ * omap_clk_probe() - create link from DT definition to clock data
-+ * @pdev:	device node
-+ *
-+ * REVISIT: We are now assuming the following:
-+ * 1. omap clock names end with _ck
-+ * 2. omap clocks don't get removed
-+ */
-+static int omap_clk_probe(struct platform_device *pdev)
-+{
-+	struct clk *clk;
-+	int res;
-+
-+	const struct of_device_id *match;
-+	struct device_node *np = pdev->dev.of_node;
-+	char clk_name[32];
-+
-+	match = of_match_device(omap_clk_of_match, &pdev->dev);
-+
-+	/* Set up things so consumer can call clk_get() with name */
-+	snprintf(clk_name, 32, "%s_ck", np->name);
-+	clk = clk_get(NULL, clk_name);
-+	if (IS_ERR(clk)) {
-+		res = PTR_ERR(clk);
-+		dev_err(&pdev->dev, "could not get clock %s (%d)\n",
-+			clk_name, res);
-+		goto out;
-+	}
-+
-+	/* This allows the driver to of_clk_get() */
-+	res = of_clk_add_provider(np, of_clk_src_simple_get, clk);
-+	if (res)
-+		dev_err(&pdev->dev, "could not add provider for %s (%d)\n",
-+			clk_name, res);
-+
-+	clk_put(clk);
-+out:
-+	return res;
-+}
-+
-+MODULE_ALIAS("platform:omap_clk");
-+
-+/* We assume here that OMAP clocks will not be removed */
-+static struct platform_driver omap_clk_driver = {
-+	.probe = omap_clk_probe,
-+	.driver = {
-+		   .name = "omap_clk",
-+		   .owner = THIS_MODULE,
-+		   .of_match_table = of_match_ptr(omap_clk_of_match),
-+		   },
-+};
-+
-+static int __init omap_clk_init(void)
-+{
-+	return platform_driver_register(&omap_clk_driver);
-+}
-+
-+arch_initcall(omap_clk_init);
-+
-+MODULE_DESCRIPTION("OMAP Clock driver");
-+MODULE_AUTHOR("Texas Instruments Inc.");
-+MODULE_LICENSE("GPL v2");
--- 
-1.7.9.5
+So I'm opposed to doing these things both ways because
+I think it's getting messy. We have already has irq_to_gpio()
+cause problems in the past and this reminds me heavily
+about that.
 
--- 
-Regards,
-Nishanth Menon
+> Or, were you thinking of creating some kind of hogging system for
+> gpiolib itself?
+
+Yes.
+
+Yours,
+Linus Walleij
