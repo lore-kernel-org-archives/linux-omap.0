@@ -1,183 +1,89 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] cpufreq: OMAP: instantiate omap-cpufreq as a platform_driver
-Date: Wed, 10 Apr 2013 14:20:26 +0200
-Message-ID: <7179834.vhxUWUzCyV@vostro.rjw.lan>
-References: <1365549721-15620-1-git-send-email-khilman@linaro.org>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 1/2] mfd: twl4030-madc: Add support for raw value in twl4030_madc_conversion
+Date: Wed, 10 Apr 2013 16:12:51 +0200
+Message-ID: <201304101612.51620@pali>
+References: <1360969010-8571-1-git-send-email-pali.rohar@gmail.com> <201304041132.21158@pali> <20130408181524.GU10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:55416 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935572Ab3DJMMl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Apr 2013 08:12:41 -0400
-In-Reply-To: <1365549721-15620-1-git-send-email-khilman@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart7010346.usi0f2nBaA";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130408181524.GU10155@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Anton Vorontsov <cbou@mail.ru>, Keerthy <j-keerthy@ti.com>, Kyle Manna <kyle@kylemanna.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-On Tuesday, April 09, 2013 04:22:01 PM Kevin Hilman wrote:
-> From: Nishanth Menon <nm@ti.com>
->=20
-> As multi-platform build is being adopted by more and more ARM platfor=
-ms,
-> initcall function should be used very carefully.  For example, when
-> CONFIG_ARM_OMAP2PLUS_CPUFREQ is built in the kernel, omap_cpufreq_ini=
-t()
-> will be called on all the platforms to initialize omap-cpufreq driver=
-=2E
->=20
-> Further, on OMAP, we now use Soc generic cpufreq-cpu0 driver using de=
-vice
-> tree entries.  To allow cpufreq-cpu0 and omap-cpufreq drivers to co-e=
-xist
-> for OMAP in a single image, we need to ensure the following:
-> 1. With device tree boot, we use cpufreq-cpu0
-> 2. With non device tree boot, we use omap-cpufreq
->=20
-> In the case of (1), we will have cpu OPPs and regulator registered
-> as part of the device tree nodes, to ensure that omap-cpufreq
-> and cpufreq-cpu0 don't conflict in managing the frequency of the
-> same CPU, we should not permit omap-cpufreq to be probed.
->=20
-> In the case of (2), we will not have the cpufreq-cpu0 device, hence
-> only omap-cpufreq will be active.
->=20
-> To eliminate this undesired these effects, we change omap-cpufreq
-> driver to have it instantiated as a platform_driver and register
-> "omap-cpufreq" device only when booted without device tree nodes on
-> OMAP platforms.
->=20
-> This allows the following:
-> a) Will only run on platforms that create the platform_device
->    "omap-cpufreq".
-> b) Since the platform_device is registered only when device tree node=
-s
->    are *not* populated, omap-cpufreq driver does not conflict with
->    the usage of cpufreq-cpu0 driver which is used on OMAP platforms w=
-hen
->    device tree nodes are present.
->=20
-> Inspired by commit 5553f9e26f6f49a93ba732fd222eac6973a4cf35
-> (cpufreq: instantiate cpufreq-cpu0 as a platform_driver)
->=20
-> Cc: Kevin Hilman <khilman@linaro.org>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: "Beno=C3=AEt Cousson" <b-cousson@ti.com>
-> Cc: Jon Hunter <jon-hunter@ti.com>
-> Cc: Keerthy <j-keerthy@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Shawn Guo <shawn.guo@linaro.org>
-> [robherring2@gmail.com: reported conflict of omap-cpufreq vs other
-> driver in an non-device tree supported boot]
-> Reported-by: Rob Herring <robherring2@gmail.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
-> Signed-off-by: Kevin Hilman <khilman@linaro.org>
-> ---
-> Rafael, can you add this one for v3.10?  It applies on top the
-> rest of your cpufreq changes and I've verified that the OMAP
-> changes are OK and don't conflict with anything else we have
-> queued for v3.10 on OMAP.
->=20
-> This patch was previously part of a 2-patch series, but the=20
-> other part is still in discussion, and this part can be merged
-> independently.
+--nextPart7010346.usi0f2nBaA
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Applied to my bleeding-edge branch and will go to linux-next after buil=
-d testing.
-
-Thanks,
-Rafael
-
-
->  arch/arm/mach-omap2/pm.c       |  9 +++++++++
->  drivers/cpufreq/omap-cpufreq.c | 19 ++++++++++++++-----
->  2 files changed, 23 insertions(+), 5 deletions(-)
+On Monday 08 April 2013 20:15:24 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130404 02:37]:
+> > On Sunday 24 March 2013 15:03:29 Pali Roh=C3=A1r wrote:
+> > > On Saturday 02 March 2013 23:23:05 Pali Roh=C3=A1r wrote:
+> > > > On Friday 15 February 2013 23:56:49 Pali Roh=C3=A1r wrote:
+> > > > > Driver twl4030-madc has hardcoded channel types (10 -
+> > > > > battery current, 1 - battery temperature) and also
+> > > > > conversation data in variable twl4030_divider_ratios.
+> > > > > These hardcoded channels are incorrect for Nokia RX-51
+> > > > > board (where is channel 0 - battery temperature).
+> > > > >=20
+> > > > > For Nokia RX-51 there is rx51_battery power_supply
+> > > > > driver which reporting battery information via
+> > > > > twl4030_madc_conversion. But this driver needs raw
+> > > > > values (not converted via some hardcoded functions).
+> > > > > So this patch adding new parameter "raw" to struct
+> > > > > twl4030_madc_request which tell twl4030-madc driver to
+> > > > > not convert values, but rather return raw.
+> > > > >=20
+> > > > > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> > > > > ---
+> > > > >=20
+> > > > >  drivers/mfd/twl4030-madc.c       |   14
+> > > > >  ++++++++++---- include/linux/i2c/twl4030-madc.h |  =20
+> > > > >  2 ++
+> > > > >  2 files changed, 12 insertions(+), 4 deletions(-)
+> > > >=20
+> > > > Hello, can somebody review this twl4030-madc patch?
+> > >=20
+> > > Bump.
+> > >=20
+> > > Can some of mfd maintainers look at this patch and include
+> > > it to mfd tree? It is needed for rx51_battery power
+> > > supply driver.
+> >=20
+> > CCing Tony, can you look at this patch?
 >=20
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index 673a4c1..8d15f9a 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -265,6 +265,12 @@ static void __init omap4_init_voltages(void)
->  	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", "iva");
->  }
-> =20
-> +static inline void omap_init_cpufreq(void)
-> +{
-> +	struct platform_device_info devinfo =3D { .name =3D "omap-cpufreq",=
- };
-> +	platform_device_register_full(&devinfo);
-> +}
-> +
->  static int __init omap2_common_pm_init(void)
->  {
->  	if (!of_have_populated_dt())
-> @@ -294,6 +300,9 @@ int __init omap2_common_pm_late_init(void)
-> =20
->  		/* Smartreflex device init */
->  		omap_devinit_smartreflex();
-> +
-> +		/* cpufreq dummy device instantiation */
-> +		omap_init_cpufreq();
->  	}
-> =20
->  #ifdef CONFIG_SUSPEND
-> diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cp=
-ufreq.c
-> index 9128c07..d4f84b8 100644
-> --- a/drivers/cpufreq/omap-cpufreq.c
-> +++ b/drivers/cpufreq/omap-cpufreq.c
-> @@ -25,6 +25,7 @@
->  #include <linux/opp.h>
->  #include <linux/cpu.h>
->  #include <linux/module.h>
-> +#include <linux/platform_device.h>
->  #include <linux/regulator/consumer.h>
-> =20
->  #include <asm/smp_plat.h>
-> @@ -252,7 +253,7 @@ static struct cpufreq_driver omap_driver =3D {
->  	.attr		=3D omap_cpufreq_attr,
->  };
-> =20
-> -static int __init omap_cpufreq_init(void)
-> +static int omap_cpufreq_probe(struct platform_device *pdev)
->  {
->  	mpu_dev =3D get_cpu_device(0);
->  	if (!mpu_dev) {
-> @@ -280,12 +281,20 @@ static int __init omap_cpufreq_init(void)
->  	return cpufreq_register_driver(&omap_driver);
->  }
-> =20
-> -static void __exit omap_cpufreq_exit(void)
-> +static int omap_cpufreq_remove(struct platform_device *pdev)
->  {
-> -	cpufreq_unregister_driver(&omap_driver);
-> +	return cpufreq_unregister_driver(&omap_driver);
->  }
-> =20
-> +static struct platform_driver omap_cpufreq_platdrv =3D {
-> +	.driver =3D {
-> +		.name	=3D "omap-cpufreq",
-> +		.owner	=3D THIS_MODULE,
-> +	},
-> +	.probe		=3D omap_cpufreq_probe,
-> +	.remove		=3D omap_cpufreq_remove,
-> +};
-> +module_platform_driver(omap_cpufreq_platdrv);
-> +
->  MODULE_DESCRIPTION("cpufreq driver for OMAP SoCs");
->  MODULE_LICENSE("GPL");
-> -module_init(omap_cpufreq_init);
-> -module_exit(omap_cpufreq_exit);
+> Sorry for the delay in replying, I've been going through my
+> inbox for the merge window and noticed this.
 >=20
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I suggest resend with Peter Ujfalusi cc:d as he is the
+> de-facto twl/tps maintainer and expert by now.
+>=20
+> Regards,
+>=20
+> Tony
+
+Ok, both patches are now in mfd-next tree.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart7010346.usi0f2nBaA
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlFlc2MACgkQi/DJPQPkQ1JSUwCgt49V+IUbtYDHASF9N9d9hXEs
+um8An2Err6LU1JWsztu/zF3WzlJbk+WR
+=vkH3
+-----END PGP SIGNATURE-----
+
+--nextPart7010346.usi0f2nBaA--
