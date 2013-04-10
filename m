@@ -1,88 +1,80 @@
-From: Andy Gross <andy.gross@ti.com>
-Subject: [PATCH v2 1/2] ARM: dts: OMAP4+: Add DMM bindings
-Date: Wed, 10 Apr 2013 15:50:42 -0500
-Message-ID: <1365627043-11846-2-git-send-email-andy.gross@ti.com>
-References: <1365627043-11846-1-git-send-email-andy.gross@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 4430sdp nfsroot broken with ff5c9059
+Date: Wed, 10 Apr 2013 13:54:07 -0700
+Message-ID: <20130410205407.GQ10155@atomide.com>
+References: <20130409212318.GR10155@atomide.com>
+ <5165A1DB.3020404@ti.com>
+ <20130410182034.GH10155@atomide.com>
+ <5165CED4.1040800@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42431 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933904Ab3DJUvF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Apr 2013 16:51:05 -0400
-In-Reply-To: <1365627043-11846-1-git-send-email-andy.gross@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:15421 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1765493Ab3DJUyK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Apr 2013 16:54:10 -0400
+Content-Disposition: inline
+In-Reply-To: <5165CED4.1040800@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Andy Gross <andy.gross@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>
 
-Add Dynamic Memory Manager (DMM) bindings for OMAP4 and OMAP5 devices.
-Add documentation for the DMM bindings.
+* Jon Hunter <jon-hunter@ti.com> [130410 13:47]:
+> 
+> On 04/10/2013 01:20 PM, Tony Lindgren wrote:
+> > * Jon Hunter <jon-hunter@ti.com> [130410 10:35]:
+> >> Hi Tony,
+> >>
+> >> On 04/09/2013 04:23 PM, Tony Lindgren wrote:
+> >>> Hi Jon,
+> >>>
+> >>> Looks like at least 4430sdp nfsroot got broken with commit
+> >>> ff5c9059 (ARM: dts: OMAP3+: Correct gpio #interrupts-cells
+> >>> property).
+> >>
+> >> Thanks for reporting. I am actually amazed that ethernet is 
+> >> working on any OMAP board (with device-tree) that requires a
+> >> gpio as an interrupt because we have still not come to an
+> >> agreement on [1]. Looking at the OMAP4 SDP I believe this is
+> >> working by luck because there are other gpios in the same
+> >> bank that are active and so the bank is enabled. If that were
+> >> not the case then this would not work. 
+> >>
+> >> Hence, I have not been testing ethernet when booting with 
+> >> device-tree because we need to fix [1] which has been really
+> >> crippling my testing. So this needs to be resolved so ethernet
+> >> can work consistently on all omap boards.
+> > 
+> > Cool.
+> >   
+> >>> Do we need to pass the GPIO edge/level info now?
+> >>
+> >> Yes and here is a patch. I have tested on my OMAP4 SDP this
+> >> morning. Reviewing all the OMAP/AM dts(i) files I believe
+> >> that only the SDP and OMAP4-VAR-SOM are impacted by this. I
+> >> don't see any other boards currently using the gpio as an 
+> >> interrupt-controller.
+> > 
+> > Great. Just one comment: You might be able to already use
+> > the DT preprocessor now easily with linux next for the edge
+> > info.
+> 
+> Good idea. We could do something like the below, but it would
+> be better to include the "arm-gic.h" from the omap4.dtsi file
+> so that the definitions can be used there too. The problem is
+> that if I include "arm-gic.h" in the omap4.dtsi file I get a
+> DTC compiler error because of the "#include" statement. It
+> appears that the compiler does not like it if a file includes
+> a file using "/include/" and the file it is including uses
+> "#include". So really I think that we need to switch all the
+> dts/dtsi files to use "#include" first.
 
-Signed-off-by: Andy Gross <andy.gross@ti.com>
----
- Documentation/devicetree/bindings/arm/omap/dmm.txt |   16 ++++++++++++++++
- arch/arm/boot/dts/omap4.dtsi                       |    7 +++++++
- arch/arm/boot/dts/omap5.dtsi                       |    7 +++++++
- 3 files changed, 30 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/dmm.txt
+OK maybe note that in the description too.
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/dmm.txt b/Documentation/devicetree/bindings/arm/omap/dmm.txt
-new file mode 100644
-index 0000000..5fd1134
---- /dev/null
-+++ b/Documentation/devicetree/bindings/arm/omap/dmm.txt
-@@ -0,0 +1,16 @@
-+OMAP Dynamic Memory Manager (DMM) bindings
-+
-+Required properties:
-+- compatible:	Must be "ti,dmm" for OMAP processors containing DMM block
-+- reg:		Contains timer register address range (base address and length)
-+- interrupts:	Contains interrupt information (source, etc) for the DMM IRQ
-+- ti,hwmods:	Name of the hwmod associated to the counter, which is typically
-+		"dmm"
-+
-+Example:
-+
-+dmm: dmm@4e000000 {
-+	compatible = "ti,dmm";
-+	reg = <0x4e000000 0x800>;
-+	ti,hwmods = "dmm";
-+};
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 2a56428..53951e9 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -660,5 +660,12 @@
- 			ram-bits = <12>;
- 			ti,has-mailbox;
- 		};
-+
-+		dmm: dmm@4e000000 {
-+			compatible = "ti,dmm";
-+			reg = <0x4e000000 0x800>;
-+			interrupts = <0 113 0x4>;
-+			ti,hwmods = "dmm";
-+		};
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 3dd7ff8..e77af8d 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -667,5 +667,12 @@
- 				ctrl-module = <&omap_control_usb>;
- 			};
- 		};
-+
-+		dmm: dmm@4e000000 {
-+			compatible = "ti,dmm";
-+			reg = <0x4e000000 0x800>;
-+			interrupts = <0 113 0x4>;
-+			ti,hwmods = "dmm";
-+		};
- 	};
- };
--- 
-1.7.5.4
+Also, is there need to back port these two patches to v3.9-rc?
+If nobody has noticed, I guess not?
 
+Regards,
+
+Tony
