@@ -1,231 +1,96 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 25/26] arm: Don't use create_proc_read_entry() [RFC]
-Date: Thu, 11 Apr 2013 14:30:58 +0100
-Message-ID: <20130411133058.32763.5466.stgit@warthog.procyon.org.uk>
-References: <20130411132739.32763.82609.stgit@warthog.procyon.org.uk>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCHv3] driver: serial: prevent UART console idle on suspend while using "no_console_suspend"
+Date: Thu, 11 Apr 2013 07:15:33 -0700
+Message-ID: <87y5cpxiey.fsf@linaro.org>
+References: <1365167733-28083-1-git-send-email-sourav.poddar@ti.com>
+	<87mwtclvua.fsf@linaro.org> <516463D2.2070008@ti.com>
+	<87obdnh6au.fsf@linaro.org> <516501A0.4000004@ti.com>
+	<B5906170F1614E41A8A28DE3B8D121433ED96446@DBDE01.ent.ti.com>
+	<51653450.2010200@ti.com>
+	<B5906170F1614E41A8A28DE3B8D121433ED96C45@DBDE01.ent.ti.com>
+	<87bo9myt52.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130411132739.32763.82609.stgit@warthog.procyon.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org
-Cc: Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, viro@ZenIV.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <87bo9myt52.fsf@linaro.org> (Kevin Hilman's message of "Wed, 10
+	Apr 2013 14:26:17 -0700")
+Sender: linux-serial-owner@vger.kernel.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "Poddar, Sourav" <sourav.poddar@ti.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "tony@atomide.com" <tony@atomide.com>, "rmk+kernel@arm.linux.org.uk" <rmk+kernel@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Don't use create_proc_read_entry() as that is deprecated, but rather use
-proc_create_data() and seq_file instead.
+Kevin Hilman <khilman@linaro.org> writes:
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: Russell King <linux@arm.linux.org.uk>
-cc: Kevin Hilman <khilman@deeprootsystems.com>
-cc: Tony Lindgren <tony@atomide.com>
-cc: linux-arm-kernel@lists.infradead.org
-cc: linux-omap@vger.kernel.org
----
+> "Bedia, Vaibhav" <vaibhav.bedia@ti.com> writes:
+>
+>> Hi Sourav,
+>>
+>> On Wed, Apr 10, 2013 at 15:13:44, Poddar, Sourav wrote:
+>> [...]
+>>> Yes, had a look at that and found your situation similar to UART.
+>>> 
+>>> But how exactly this gets used, I mean I don't  see any drivers/ in mainline
+>>> making use of this compatible string  "ti,am3352-ocmcram".  ?
+>>
+>> OCMC clock is enabled during bootup (not sure whether that's the h/w
+>> default or ROM does it) since the initial bootloader runs from there.
+>> By marking the corresponding hwmod with HWMOD_INIT_NO_IDLE we leave the
+>> clock running. Right now the sram code under arch/arm/plat-omap/ is what
+>> manages the OCMC. I guess this needs to move somewhere under drivers/
+>> and start managing the clocks. Even then we'll need a mechanism
+>> to leave the clocks running as part of the kernel suspend process
+>> since the assembly code which runs at the fag end of the suspend
+>> process runs out of OCMC and hence we can't cut its clock.
+>>
+>> On AM335x, the OCMC clock is cut to have PER power domain transition
+>> but that's done in the WKUP-M3 firmware when going down. During the
+>> wakeup sequence, WKUP-M3 re-enables the OCMC clock so that when the
+>> kernel resumes the h/w state is same.
+>
+> OK, but *today*, in *mainline*, where in the linux kernel (not the M3
+> firmware) is the OCMRAM clock cut during suspend?
+>
+> From what I can see, there is no driver for this device, so there are no
+> system PM calls being done for that device, and thus no omap_device
+> calls being done for that device, so the no_idle_on_suspend has no
+> effect.
 
- arch/arm/kernel/swp_emulate.c |   42 +++++++++++++-----------------
- arch/arm/mach-omap1/pm.c      |   58 +++++++++++++++++------------------------
- 2 files changed, 43 insertions(+), 57 deletions(-)
+OK, I think I confused things here, sorry. I was thinking runtime PM
+here, but wrote system PM.  The no_idle_on_suspend feature only affects
+system PM, and the omap_device calls will still be called during system
+PM, even without a driver.
 
-diff --git a/arch/arm/kernel/swp_emulate.c b/arch/arm/kernel/swp_emulate.c
-index 0bba47a..087fc32 100644
---- a/arch/arm/kernel/swp_emulate.c
-+++ b/arch/arm/kernel/swp_emulate.c
-@@ -21,6 +21,7 @@
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
- #include <linux/sched.h>
- #include <linux/syscalls.h>
- #include <linux/perf_event.h>
-@@ -79,27 +80,27 @@ static unsigned long abtcounter;
- static pid_t         previous_pid;
- 
- #ifdef CONFIG_PROC_FS
--static int proc_read_status(char *page, char **start, off_t off, int count,
--			    int *eof, void *data)
-+static int proc_status_show(struct seq_file *m, void *v)
- {
--	char *p = page;
--	int len;
--
--	p += sprintf(p, "Emulated SWP:\t\t%lu\n", swpcounter);
--	p += sprintf(p, "Emulated SWPB:\t\t%lu\n", swpbcounter);
--	p += sprintf(p, "Aborted SWP{B}:\t\t%lu\n", abtcounter);
-+	seq_printf(m, "Emulated SWP:\t\t%lu\n", swpcounter);
-+	seq_printf(m, "Emulated SWPB:\t\t%lu\n", swpbcounter);
-+	seq_printf(m, "Aborted SWP{B}:\t\t%lu\n", abtcounter);
- 	if (previous_pid != 0)
--		p += sprintf(p, "Last process:\t\t%d\n", previous_pid);
--
--	len = (p - page) - off;
--	if (len < 0)
--		len = 0;
--
--	*eof = (len <= count) ? 1 : 0;
--	*start = page + off;
-+		seq_printf(m, "Last process:\t\t%d\n", previous_pid);
-+	return 0;
-+}
- 
--	return len;
-+static int proc_status_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, proc_status_show, PDE_DATA(inode));
- }
-+
-+static const struct file_operations proc_status_fops = {
-+	.open		= proc_status_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= seq_release,
-+};
- #endif
- 
- /*
-@@ -266,12 +267,7 @@ static struct undef_hook swp_hook = {
- static int __init swp_emulation_init(void)
- {
- #ifdef CONFIG_PROC_FS
--	struct proc_dir_entry *res;
--
--	res = create_proc_read_entry("cpu/swp_emulation", S_IRUGO, NULL,
--					proc_read_status, NULL);
--
--	if (!res)
-+	if (!proc_create("cpu/swp_emulation", S_IRUGO, NULL, &proc_status_fops))
- 		return -ENOMEM;
- #endif /* CONFIG_PROC_FS */
- 
-diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-index 7a7690a..2645e37 100644
---- a/arch/arm/mach-omap1/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -38,6 +38,7 @@
- #include <linux/suspend.h>
- #include <linux/sched.h>
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
- #include <linux/interrupt.h>
- #include <linux/sysfs.h>
- #include <linux/module.h>
-@@ -423,22 +424,11 @@ void omap1_pm_suspend(void)
- }
- 
- #if defined(DEBUG) && defined(CONFIG_PROC_FS)
--static int g_read_completed;
--
- /*
-  * Read system PM registers for debugging
-  */
--static int omap_pm_read_proc(
--	char *page_buffer,
--	char **my_first_byte,
--	off_t virtual_start,
--	int length,
--	int *eof,
--	void *data)
-+static int omap_pm_proc_show(struct seq_file *m, void *v)
- {
--	int my_buffer_offset = 0;
--	char * const my_base = page_buffer;
--
- 	ARM_SAVE(ARM_CKCTL);
- 	ARM_SAVE(ARM_IDLECT1);
- 	ARM_SAVE(ARM_IDLECT2);
-@@ -479,10 +469,7 @@ static int omap_pm_read_proc(
- 		MPUI1610_SAVE(EMIFS_CONFIG);
- 	}
- 
--	if (virtual_start == 0) {
--		g_read_completed = 0;
--
--		my_buffer_offset += sprintf(my_base + my_buffer_offset,
-+	seq_printf(m,
- 		   "ARM_CKCTL_REG:            0x%-8x     \n"
- 		   "ARM_IDLECT1_REG:          0x%-8x     \n"
- 		   "ARM_IDLECT2_REG:          0x%-8x     \n"
-@@ -512,8 +499,8 @@ static int omap_pm_read_proc(
- 		   ULPD_SHOW(ULPD_STATUS_REQ),
- 		   ULPD_SHOW(ULPD_POWER_CTRL));
- 
--		if (cpu_is_omap7xx()) {
--			my_buffer_offset += sprintf(my_base + my_buffer_offset,
-+	if (cpu_is_omap7xx()) {
-+		seq_printf(m,
- 			   "MPUI7XX_CTRL_REG	     0x%-8x \n"
- 			   "MPUI7XX_DSP_STATUS_REG:      0x%-8x \n"
- 			   "MPUI7XX_DSP_BOOT_CONFIG_REG: 0x%-8x \n"
-@@ -526,8 +513,8 @@ static int omap_pm_read_proc(
- 			   MPUI7XX_SHOW(MPUI_DSP_API_CONFIG),
- 			   MPUI7XX_SHOW(EMIFF_SDRAM_CONFIG),
- 			   MPUI7XX_SHOW(EMIFS_CONFIG));
--		} else if (cpu_is_omap15xx()) {
--			my_buffer_offset += sprintf(my_base + my_buffer_offset,
-+	} else if (cpu_is_omap15xx()) {
-+		seq_printf(m,
- 			   "MPUI1510_CTRL_REG             0x%-8x \n"
- 			   "MPUI1510_DSP_STATUS_REG:      0x%-8x \n"
- 			   "MPUI1510_DSP_BOOT_CONFIG_REG: 0x%-8x \n"
-@@ -540,8 +527,8 @@ static int omap_pm_read_proc(
- 			   MPUI1510_SHOW(MPUI_DSP_API_CONFIG),
- 			   MPUI1510_SHOW(EMIFF_SDRAM_CONFIG),
- 			   MPUI1510_SHOW(EMIFS_CONFIG));
--		} else if (cpu_is_omap16xx()) {
--			my_buffer_offset += sprintf(my_base + my_buffer_offset,
-+	} else if (cpu_is_omap16xx()) {
-+		seq_printf(m,
- 			   "MPUI1610_CTRL_REG             0x%-8x \n"
- 			   "MPUI1610_DSP_STATUS_REG:      0x%-8x \n"
- 			   "MPUI1610_DSP_BOOT_CONFIG_REG: 0x%-8x \n"
-@@ -554,25 +541,28 @@ static int omap_pm_read_proc(
- 			   MPUI1610_SHOW(MPUI_DSP_API_CONFIG),
- 			   MPUI1610_SHOW(EMIFF_SDRAM_CONFIG),
- 			   MPUI1610_SHOW(EMIFS_CONFIG));
--		}
--
--		g_read_completed++;
--	} else if (g_read_completed >= 1) {
--		 *eof = 1;
--		 return 0;
- 	}
--	g_read_completed++;
- 
--	*my_first_byte = page_buffer;
--	return  my_buffer_offset;
-+	return 0;
-+}
-+
-+static int omap_pm_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, omap_pm_proc_show, PDE_DATA(inode));
- }
- 
-+static const struct file_operations omap_pm_proc_fops = {
-+	.open		= omap_pm_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= seq_release,
-+};
-+
- static void omap_pm_init_proc(void)
- {
- 	/* XXX Appears to leak memory */
--	create_proc_read_entry("driver/omap_pm",
--			       S_IWUSR | S_IRUGO, NULL,
--			       omap_pm_read_proc, NULL);
-+	create_proc("driver/omap_pm", S_IWUSR | S_IRUGO, NULL,
-+		    &omap_pm_proc_fops);
- }
- 
- #endif /* DEBUG && CONFIG_PROC_FS */
+That being said, the commit below[1], added in v3.6 should prevent the
+any automaic clock gating for devices without drivers bound.  Since
+there is no driver for the OCM RAM block, you shouldn't be affected by
+the automatic idle on suspend anyways.
+
+So, my proposal is that Sourav remove that flag from the AM33xx hwmod
+when he removes this feature.
+
+Kevin
+
+
+[1]
+commit 72bb6f9b51c82c820ddef892455a85b115460904
+Author: Kevin Hilman <khilman@ti.com>
+Date:   Tue Jul 10 15:29:04 2012 -0700
+
+    ARM: OMAP: omap_device: don't attempt late suspend if no driver bound
+    
+    Currently, the omap_device PM domain layer uses the late suspend and
+    early resume callbacks to ensure devices are in their low power
+    states.
+    
+    However, this is attempted even in cases where a driver probe has
+    failed.  If a driver's ->probe() method fails, the driver is likely in
+    a state where it is not expecting its runtime PM callbacks to be
+    called, yet currently the omap_device PM domain code attempts to call
+    the drivers callbacks.
+    
+    To fix, use the omap_device driver_status field to check whether a
+    driver is bound to the omap_device before attempting to trigger driver
+    callbacks.
+    
+    Reviewed-by: Paul Walmsley <paul@pwsan.com>
+    Signed-off-by: Kevin Hilman <khilman@ti.com>
