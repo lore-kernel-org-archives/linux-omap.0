@@ -1,82 +1,92 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: 4430sdp nfsroot broken with ff5c9059
-Date: Thu, 11 Apr 2013 11:22:13 +0200
-Message-ID: <516680C5.9040505@ti.com>
-References: <20130409212318.GR10155@atomide.com> <5165A1DB.3020404@ti.com> <CAAwP0s395mo58b0Wf5mb7TUS8Jske-RWQMKHV2e5KEGNOXZHDw@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 1/2] OMAPDSS: fix dss_fck clock rate rounding
+Date: Thu, 11 Apr 2013 12:31:01 +0300
+Message-ID: <1365672662-612-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53384 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752394Ab3DKJWT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Apr 2013 05:22:19 -0400
-In-Reply-To: <CAAwP0s395mo58b0Wf5mb7TUS8Jske-RWQMKHV2e5KEGNOXZHDw@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56454 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935076Ab3DKJbK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Apr 2013 05:31:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi Javier,
+DSS func clock is calculated with prate / div * m. However, the current
+omapdss code calculates it with prate * m / div, which yields a slightly
+different result when there's a remainder. For example, 432000000 / 14 *
+2 = 61714284, but 432000000 * 2 / 14 = 61714285.
 
-On 04/11/2013 01:58 AM, Javier Martinez Canillas wrote:
-> On Wed, Apr 10, 2013 at 7:31 PM, Jon Hunter <jon-hunter@ti.com> wrote:
->> Hi Tony,
->>
->> On 04/09/2013 04:23 PM, Tony Lindgren wrote:
->>> Hi Jon,
->>>
->>> Looks like at least 4430sdp nfsroot got broken with commit
->>> ff5c9059 (ARM: dts: OMAP3+: Correct gpio #interrupts-cells
->>> property).
->>
->> Thanks for reporting. I am actually amazed that ethernet is
->> working on any OMAP board (with device-tree) that requires a
->> gpio as an interrupt because we have still not come to an
->> agreement on [1]. Looking at the OMAP4 SDP I believe this is
->> working by luck because there are other gpios in the same
->> bank that are active and so the bank is enabled. If that were
->> not the case then this would not work.
->>
-> 
-> Hi Jon,
-> 
-> Ethernet is working on 4430sdp since the optional "gpio" property is
-> specified on the fixed regulator used by the eth device node.
-> 
-> From arch/arm/boot/dts/omap4-sdp.dts:
-> 
->         vdd_eth: fixedregulator-vdd-eth {
->                 compatible = "regulator-fixed";
->                 regulator-name = "VDD_ETH";
->                 regulator-min-microvolt = <3300000>;
->                 regulator-max-microvolt = <3300000>;
->                 gpio = <&gpio2 16 0>;  /* gpio line 48 */
->                 enable-active-high;
->                 regulator-boot-on;
->         };
-> ...
-> &mcspi1 {
->         eth@0 {
->                 compatible = "ks8851";
->                 spi-max-frequency = <24000000>;
->                 reg = <0>;
->                 interrupt-parent = <&gpio2>;
->                 interrupts = <2>; /* gpio line 34 */
->                 vdd-supply = <&vdd_eth>;
->         };
-> };
-> 
-> So is the regulator who is calling gpio_request() and enabling the
-> GPIO bank and no the ks881 ethernet driver. That's why it was working
-> although I think is just a DT hack and should be changed once we found
-> a proper solution to fhis.
+In addition to that, the clock framework wants the clock rate given with
+clk_set_rate to be higher than the actual (truncated) end result. So, if
+prate is 432000000, and div is 14, the real result is 30857142.8571...
+We need to call clk_set_rate with 30857143, which gives us a clock of
+30857142. That's why we need to use DIV_ROUND_UP() when calling
+clk_set_rate.
 
-It is not really a hack. There is a regulator controlled by a GPIO that
-can control the Ethernet chip power. Both gpio48 and gpio34 are used for
-Ethernet. On some SDP version there is even a third line, but I was not
-able to find any evidence in the schematic I was using.
+This patch fixes the clock calculation.
 
-Regards,
-Benoit
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/dss/dss.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index fdd32e8..b9f6f24 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -480,6 +480,7 @@ bool dss_div_calc(unsigned long fck_min, dss_div_calc_func func, void *data)
+ 	unsigned long fck_hw_max;
+ 	unsigned long fckd_hw_max;
+ 	unsigned long prate;
++	unsigned m;
+ 
+ 	if (dss.dpll4_m4_ck == NULL) {
+ 		/*
+@@ -495,15 +496,16 @@ bool dss_div_calc(unsigned long fck_min, dss_div_calc_func func, void *data)
+ 	fck_hw_max = dss_feat_get_param_max(FEAT_PARAM_DSS_FCK);
+ 	fckd_hw_max = dss.feat->fck_div_max;
+ 
+-	prate = dss_get_dpll4_rate() * dss.feat->dss_fck_multiplier;
++	m = dss.feat->dss_fck_multiplier;
++	prate = dss_get_dpll4_rate();
+ 
+ 	fck_min = fck_min ? fck_min : 1;
+ 
+-	fckd_start = min(prate / fck_min, fckd_hw_max);
+-	fckd_stop = max(DIV_ROUND_UP(prate, fck_hw_max), 1ul);
++	fckd_start = min(prate * m / fck_min, fckd_hw_max);
++	fckd_stop = max(DIV_ROUND_UP(prate * m, fck_hw_max), 1ul);
+ 
+ 	for (fckd = fckd_start; fckd >= fckd_stop; --fckd) {
+-		fck = prate / fckd;
++		fck = prate / fckd * m;
+ 
+ 		if (func(fckd, fck, data))
+ 			return true;
+@@ -521,7 +523,8 @@ int dss_set_clock_div(struct dss_clock_info *cinfo)
+ 		prate = clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
+ 		DSSDBG("dpll4_m4 = %ld\n", prate);
+ 
+-		r = clk_set_rate(dss.dpll4_m4_ck, prate / cinfo->fck_div);
++		r = clk_set_rate(dss.dpll4_m4_ck,
++				DIV_ROUND_UP(prate, cinfo->fck_div));
+ 		if (r)
+ 			return r;
+ 	} else {
+@@ -531,7 +534,9 @@ int dss_set_clock_div(struct dss_clock_info *cinfo)
+ 
+ 	dss.dss_clk_rate = clk_get_rate(dss.dss_clk);
+ 
+-	WARN_ONCE(dss.dss_clk_rate != cinfo->fck, "clk rate mismatch");
++	WARN_ONCE(dss.dss_clk_rate != cinfo->fck,
++			"clk rate mismatch: %lu != %lu", dss.dss_clk_rate,
++			cinfo->fck);
+ 
+ 	DSSDBG("fck = %ld (%d)\n", cinfo->fck, cinfo->fck_div);
+ 
+-- 
+1.7.10.4
 
