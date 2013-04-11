@@ -1,66 +1,61 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 5/5] omap dt changes for v3.10 merge window
-Date: Thu, 11 Apr 2013 04:06:45 -0700
-Message-ID: <20130411110645.GA8802@quad.lixom.net>
-References: <pull-1365483063-475562>
- <51639e43.d294dc0a.2f07.03b4SMTPIN_ADDED_MISSING@mx.google.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] USB: ehci-omap: Select USB_PHY
+Date: Thu, 11 Apr 2013 15:42:58 +0300
+Message-ID: <5166AFD2.4070108@ti.com>
+References: <5166856C.3080906@ti.com> <20130411100435.GB14394@arwen.pp.htv.fi> <516695A4.2050804@ti.com> <20130411105557.GE14394@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:57102 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809Ab3DKLGp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Apr 2013 07:06:45 -0400
-Received: by mail-pa0-f44.google.com with SMTP id bi5so849999pad.17
-        for <linux-omap@vger.kernel.org>; Thu, 11 Apr 2013 04:06:44 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <51639e43.d294dc0a.2f07.03b4SMTPIN_ADDED_MISSING@mx.google.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130411105557.GE14394@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Greg KH <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi,
-
-On Mon, Apr 08, 2013 at 09:51:03PM -0700, Tony Lindgren wrote:
-> The following changes since commit 5852264f9d6139751796853fdfca9d5230cbfb97:
+On 04/11/2013 01:55 PM, Felipe Balbi wrote:
+> Hi,
 > 
->   Merge tag 'omap-devel-b-for-3.10' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into for_3.10/dts_merged (2013-04-09 00:11:05 +0200)
+> On Thu, Apr 11, 2013 at 01:51:16PM +0300, Roger Quadros wrote:
+>> On 04/11/2013 01:04 PM, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Thu, Apr 11, 2013 at 12:42:04PM +0300, Roger Quadros wrote:
+>>>> Hi Greg,
+>>>>
+>>>> The following patch gets rid of Kbuild warnings when USB_EHCI_HCD_OMAP
+>>>> is enabled.
+>>>>
+>>>> Patch is based on your usb-next branch and is needed for 3.10.
+>>>>
+>>>> From: Roger Quadros <rogerq@ti.com>
+>>>> Date: Thu, 11 Apr 2013 12:08:19 +0300
+>>>> Subject: [PATCH] USB: ehci-omap: Select USB_PHY
+>>>>
+>>>> As we need NOP_USB_XCEIV which depends on USB_PHY
+>>>> we need to select USB_PHY as well.
+>>>>
+>>>> Gets rid of the below warnings when USB_EHCI_HCD_OMAP
+>>>> is enabled.
+>>>>
+>>>> warning: (USB_EHCI_HCD_OMAP) selects NOP_USB_XCEIV which has unmet direct dependencies (USB_SUPPORT && USB_PHY)
+>>>> warning: (USB_EHCI_HCD_OMAP) selects NOP_USB_XCEIV which has unmet direct dependencies (USB_SUPPORT && USB_PHY)
+>>>>
+>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>
+>>> Ideally, however, we wouldn't select any PHY in particular as different
+>>> boards might need a different PHY driver, even on OMAP ;-)
+>>>
+>> Right, but we need to select USB_PHY here as the driver uses
+>> the USB_PHY APIs.
+>>
+>> The NOP_USB_XCEIV selection could be done by the board config.
 > 
-> are available in the git repository at:
+> I would avoid 'select' completely and just update omap2plus_defconfig
+> adding those two as modules.
 > 
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/dt-signed-v2
-> 
-> for you to fetch changes up to 161e89a689bb88004b757986eefda2402448eef7:
-> 
->   ARM/dts: OMAP3: fix pinctrl-single configuration (2013-04-08 17:00:22 -0700)
-> 
-> ----------------------------------------------------------------
-> Device tree updates for omaps via Benoit Cousson <b-cousson@ti.com>.
-> 
-> Note that the branch has dependencies to two other branches:
-> 
-> - omap-devel-b-for-3.10 from Paul to get the AM33xx missing
->   hwmod and thus avoid a regression with Santosh's hwmod
->   cleanup including in this DT series [1]. It avoids breaking
->   bisect if this series is merged before Paul's fixes.
 
-Looks like this was part of omap/fixes-non-critical, the branch name from Paul
-just didn't percolate up. At least the topmost SHA from that merge in your
-history seems to be part of said branch. :)
+OK, makes sense. I will update the patch to remove "select NOP_USB_XCEIV".
 
-
-> - omap-for-v3.10/usb branch to avoid nasty merge conflict in
->   omap3.dtsi and omap4.dtsi due to the DTS patches contained
->   in the USB branch because of a screw up by the unnamed person
->   typing this signed tag based on Benoit's comments.
-
-
-Ok, it looks like this one was merged in next/drivers as omap/usb.
-
-
-So based on the above, I've merged in omap/fixes-non-critical and omap/usb as
-a base, and merged this on top. All of this has gone into next/dt2.
-
--Olof
+cheers,
+-roger
