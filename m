@@ -1,52 +1,51 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: Re: [PATCH] USB: ehci-omap: Select USB_PHY
-Date: Thu, 11 Apr 2013 19:33:32 +0200
-Message-ID: <5166F3EC.8040807@ahsoftware.de>
-References: <5166856C.3080906@ti.com> <20130411100435.GB14394@arwen.pp.htv.fi> <516695A4.2050804@ti.com> <20130411105557.GE14394@arwen.pp.htv.fi> <5166AFD2.4070108@ti.com> <5166B450.1000404@ahsoftware.de> <5166CC30.4060507@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: gpio/omap v2: map irq_enable/disable to mask/unmask.
+Date: Thu, 11 Apr 2013 12:52:14 -0500
+Message-ID: <5166F84E.9050502@ti.com>
+References: <20130411131842.GA9331@blumentopf> <5166DCAD.1030409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5166CC30.4060507@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, Greg KH <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49064 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964931Ab3DKRwZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Apr 2013 13:52:25 -0400
+In-Reply-To: <5166DCAD.1030409@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Andreas Fenkart <andreas.fenkart@streamunlimited.com>, khilman@deeprootsystems.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, linux-omap@vger.kernel.org, daniel@zonque.org
 
-Am 11.04.2013 16:44, schrieb Roger Quadros:
 
->> Sorry, but this just will end up with many users having broken configs
->> because of disabled stuff they don't know why they have to enable them.
->> And thus with a never ending stream of questions and thus with a needed
->> FAQ entry.
+On 04/11/2013 10:54 AM, Santosh Shilimkar wrote:
+> On Thursday 11 April 2013 06:48 PM, Andreas Fenkart wrote:
+>> Hi Santosh,
 >>
->
-> Alexander,
->
-> I agree with you that it can get difficult with users. But it is best for
-> users do not disable anything they are not familiar with.
->
-> As the USB_PHY option doesn't depend on anything, it is safe to select it
-> from USB_EHCI_HCD_OMAP.
->
-> However, the PHY drivers themselves must be selected from the board configs.
+>> I submitted the following patch a while back.
+>> https://patchwork.kernel.org/patch/1886421/
+>>
+>> As already said, the patch is straight forward, but without it,
+>> we probably will not see decent SDIO performance on am335x chips.
+>>
+>> [why it is needed]
+>>
+> Why part is clear for me.
+> 
+>> There are still open questions to gpio patch itself, see here
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg87217.html
+>>
+>> So could we pls reopen that thread? It might be on the other side
+>> of your mailbox
+>>
+> Your idea is reasonable and probably patch make lot of sense for
+> edge triggered interrupt.
+> 
+> Can you please repost the patch with the more comprehensive change-log
+> as discussed in the thread.
 
-Maybe I understood something wrong, but if the OMAP USB driver requires 
-CONFIG_USB_PHY (or similiar), it should be selected automatically and 
-not just enabled in the board config.
+Originally, I had a question on enable/disable versus mask/unmask, but
+looking at the way we have implemented mask/unmask for omap, I don't
+think that my question is really applicable. Yes so please re-post.
 
-I just had it to often, that I needed to search around why a driver 
-doesn't work (or even compiles), just to find out that I need to enable 
-some strange config option which wasn't selected automatically. 
-Especially with OMAPs. ;)
-
-And this not only occured when disabling options, it often occured by 
-just updating the kernel. Suddenly some obscur option was needed too, it 
-wasn't selected automatically by make oldconfig, bang. So the argument 
-to not remove anything from a board config doesn't help much.
-
-Sorry for the rant. ;)
-
-Regards,
-
-Alexander
+Jon
