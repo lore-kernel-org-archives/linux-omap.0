@@ -1,120 +1,93 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] USB: ehci-omap: Select USB_PHY
-Date: Thu, 11 Apr 2013 18:09:38 +0300
-Message-ID: <20130411150938.GS14394@arwen.pp.htv.fi>
-References: <5166856C.3080906@ti.com>
- <20130411100435.GB14394@arwen.pp.htv.fi>
- <516695A4.2050804@ti.com>
- <20130411105557.GE14394@arwen.pp.htv.fi>
- <5166AFD2.4070108@ti.com>
- <5166B829.1020304@ti.com>
- <20130411143404.GO14394@arwen.pp.htv.fi>
- <5166CE56.2070400@ti.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: gpio/omap v2: map irq_enable/disable to mask/unmask.
+Date: Thu, 11 Apr 2013 08:40:20 -0700
+Message-ID: <20130411154020.GT10155@atomide.com>
+References: <20130411131842.GA9331@blumentopf>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WWBpDPuG52WufD7Q"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5166CE56.2070400@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, Greg KH <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-List-Id: linux-omap@vger.kernel.org
-
---WWBpDPuG52WufD7Q
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30063 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1161156Ab3DKPk0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Apr 2013 11:40:26 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20130411131842.GA9331@blumentopf>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Cc: santosh.shilimkar@ti.com, jon-hunter@ti.com, khilman@deeprootsystems.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, linux-omap@vger.kernel.org, daniel@zonque.org
 
 Hi,
 
-On Thu, Apr 11, 2013 at 05:53:10PM +0300, Roger Quadros wrote:
-> >>>>>>> From: Roger Quadros <rogerq@ti.com>
-> >>>>>>> Date: Thu, 11 Apr 2013 12:08:19 +0300
-> >>>>>>> Subject: [PATCH] USB: ehci-omap: Select USB_PHY
-> >>>>>>>
-> >>>>>>> As we need NOP_USB_XCEIV which depends on USB_PHY
-> >>>>>>> we need to select USB_PHY as well.
-> >>>>>>>
-> >>>>>>> Gets rid of the below warnings when USB_EHCI_HCD_OMAP
-> >>>>>>> is enabled.
-> >>>>>>>
-> >>>>>>> warning: (USB_EHCI_HCD_OMAP) selects NOP_USB_XCEIV which has unme=
-t direct dependencies (USB_SUPPORT && USB_PHY)
-> >>>>>>> warning: (USB_EHCI_HCD_OMAP) selects NOP_USB_XCEIV which has unme=
-t direct dependencies (USB_SUPPORT && USB_PHY)
-> >>>>>>>
-> >>>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >>>>>>
-> >>>>>> Ideally, however, we wouldn't select any PHY in particular as diff=
-erent
-> >>>>>> boards might need a different PHY driver, even on OMAP ;-)
-> >>>>>>
-> >>>>> Right, but we need to select USB_PHY here as the driver uses
-> >>>>> the USB_PHY APIs.
-> >>>>>
-> >>>>> The NOP_USB_XCEIV selection could be done by the board config.
-> >>>>
-> >>>> I would avoid 'select' completely and just update omap2plus_defconfig
-> >>>> adding those two as modules.
-> >>>>
-> >>>
-> >>> OK, makes sense. I will update the patch to remove "select NOP_USB_XC=
-EIV".
-> >>>
-> >>
-> >> One more issue to clarify.
-> >>
-> >> if USB_PHY is not enabled, then all phy_get() API's should return NULL=
- and not
-> >> -ENXIO as it does now.
-> >=20
-> > ENXIO means "No such device or address", looks alright to me ;-)
-> >=20
-> >> This way the drivers need not treat it as an error and all PHY ops can
-> >> be NOPs.
-> >=20
-> > drivers will already be using if (IS_ERR()) construction, returning
-> > -ENXIO when the API is disabled gives them an oportunity to *not*
-> > request probe deferral since the API isn't enabled anyway.
->=20
-> on second thoughts I agree with you. So the general understanding is
-> that USB_PHY users without USB_PHY enabled is an error case.
->=20
-> This means we need to allow controller drivers to select USB_PHY
-> and minimize this possibility.
+* Andreas Fenkart <andreas.fenkart@streamunlimited.com> [130411 06:23]:
+> Hi Santosh,
+> 
+> I submitted the following patch a while back.
+> https://patchwork.kernel.org/patch/1886421/
+> 
+> As already said, the patch is straight forward, but without it,
+> we probably will not see decent SDIO performance on am335x chips.
 
-perhaps but OTOH careless select will also cause lots of problems.
-distro-like kernels will just put all those as modules and product-like
-kernels will only enable exactly what they need, so it makes no
-difference if we select or not. Except that select will enable that PHY
-even in e.g. beaglebone derivative which is, for now, using the same DTS
-file.
+I suggest you repost, patches can easily get forgotten unuless
+you follow-up getting them merged.
 
---=20
-balbi
+> [why it is needed]
+> 
+> The omap_hsmmc module is suspended whenever it is idle, its
+> functional clock being turned off. In this mode it is not able to
+> forwared IRQs to the system. For that to happen, it needs to tell
+> the PRCM to restore it's fclk.
+> 
+>                    ------
+>                   | PRCM |
+>                    ------
+>                     | ^
+>                fclk | | swakeup
+>                     v |
+>                   -------               ------
+>       <-- IRQ -- | hsmmc | <-- CIRQ -- | card |
+>                   -------               ------
+> 
+> This is done through the swakeup line, which can be configured to
+> trigger for various events, among others; CIRQ. The problem is
+> that on the AM335x family the swakeup line is missing, it has not
+> been routed from the module to the PRCM.
+> 
+> [solution]
+> the simplest solution was to keep the fclk enabled all the
+> time. But that was not accepted, instead this was suggested
+> 
+> > > The alternative was to configure dat1 line as a GPIO, while
+> > > waiting for an IRQ. Then configuring it back as dat1 to serve
+> > > the SDIO card after it signalled an IRQ. Or when the host
+> > > wants to start a transfer.
+> >
+> > The way to implement this is set named states in the .dts file
+> > for the pins using pinctrl-single.c, then have the MMC driver
+> > request states "default" "active" and "idle" during the probe,
+> > then toggle between active and idle during the runtime.
+> 
+> Surprisingly the induced overhead is quite small, the performance
+> is similar to keeping the fclk enabled at all times. See here
+> for full thread:
+> http://www.spinics.net/lists/linux-omap/msg83363.html
+> https://patchwork.kernel.org/patch/1901471/  ... or just the patch
 
---WWBpDPuG52WufD7Q
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+That's nice, AFAIK this is the only way to do it for some omaps.
+ 
+> There are still open questions to gpio patch itself, see here
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg87217.html
+> 
+> So could we pls reopen that thread? It might be on the other side
+> of your mailbox
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+The SDIO related patch can already get merged while the GPIO patch
+is being discussed I hope?
 
-iQIcBAEBAgAGBQJRZtIyAAoJEIaOsuA1yqREmIIP/RQNc1jdqk667CXTj47opLVx
-XYyOkQHGM+u09qiJ3+5W7lwktzUS1PGbJPYF7iu7md7nze6iONYkZcQ0GtYSR63s
-jY8um+DheXRNBpliohJeKzELM/mgPzYM9ZSUqv9x55kgGhObmAwcTi6WKHi4Jdf/
-j7xOv5yeMCuDo+dumrECWk+1KwGzgvYc2p2uy+YqK2/1u8D2Pl2d92jPNJI4TS6X
-RyLHma4Mycasp+iGUbu9RrRig57s9PNRLHfK1lgAj7+daOAd+Mwk/dMx1W4emCj6
-sDAoxd/d6Qpr9n7vHqHHwtd0IH8+LUj+D0tfP5zB+GLxmZbReQpZlp1RhJojhJef
-8U5dHCE5s4JDPv7c0KqSxhqjS20LRV5AvI9JpW4wak8ewxnkRhdkWoJHzEAgkOB/
-GlPQTo9Nfj7Gc0wYePCm6+s96VUheAo8H/axzYtC/KYzl0KcYEIBkxWhtpCkqOUs
-WxIrL7rnNSz6hSs7rWqjBu7efc5jl6zMG5nHsZo+v+VYXR/N3FQofXCTwI5QP4SR
-vE89Gcp8+T060WEMJCVenLmVvZGXecPVG5Oedu27Y0Ynd+kB/WYOz4T2nv/118rI
-uOUmguC8T0BzI0Z/yBP4KcxMlzjdE6xcj16i3/+plDTDI0tRpvOiBeVFc/8vw2Ak
-hkEK7L2Kg32raUIJfG26
-=5qhv
------END PGP SIGNATURE-----
+If so, you should fix #if 0 part I commented on and repost with
+the ack from Grant. And update it against the current linux next
+so people can apply it for testing.
 
---WWBpDPuG52WufD7Q--
+Regards,
+
+Tony
