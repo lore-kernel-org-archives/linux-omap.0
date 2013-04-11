@@ -1,45 +1,68 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: Kexec couldn't reboot capture kernel on pandaboard ES with OMAP4460
-Date: Thu, 11 Apr 2013 10:19:21 -0600
-Message-ID: <5166E289.8070104@wwwdotorg.org>
-References: <CAFNq8R5FFUyH+JgjoGc5ctgEfiLvxzi7fzawM7+wFX5nEyTv-w@mail.gmail.com> <51658B1A.6090706@wwwdotorg.org> <CAFNq8R6mRJRygfnYvZgwVWOqsrhrjNUYzyZGU0cVsnE30W_xGg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL 5/5] omap dt changes for v3.10 merge window
+Date: Thu, 11 Apr 2013 09:34:29 -0700
+Message-ID: <20130411163428.GY10155@atomide.com>
+References: <pull-1365483063-475562>
+ <51639e43.d294dc0a.2f07.03b4SMTPIN_ADDED_MISSING@mx.google.com>
+ <20130411110645.GA8802@quad.lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAFNq8R6mRJRygfnYvZgwVWOqsrhrjNUYzyZGU0cVsnE30W_xGg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Li Haifeng <omycle@gmail.com>
-Cc: pandaboard@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kexec@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30004 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754699Ab3DKQee (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Apr 2013 12:34:34 -0400
+Content-Disposition: inline
+In-Reply-To: <20130411110645.GA8802@quad.lixom.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 04/10/2013 10:46 PM, Li Haifeng wrote:
-> 2013/4/10 Stephen Warren <swarren@wwwdotorg.org>:
->> On 04/10/2013 03:35 AM, Li Haifeng wrote:
->>> Hi, everyone.
->>>
->>> Recently, I try to run kdump on pandaboard ES with omap4460. After
->>> load capture kernel by "kexec -l" and execute "kexec -e", the serial
->>> port output "Starting new kernel" and "Bye", then the system hangs up.
->>>
->>> I have tried the upstream Linux Kernel v3.4 and v3.8. All are with this issue.
->>
->> This is a shot in the dark. I assume you have SMP enabled. Can you use
->> hotplug to remove all CPUs other than CPU0, so that the kexec happens on
->> the boot CPU? That is certainly necessary for kexec to work correctly on
->> Tegra.
+* Olof Johansson <olof@lixom.net> [130411 04:11]:
+> Hi,
 > 
-> Thanks for your attention.
+> On Mon, Apr 08, 2013 at 09:51:03PM -0700, Tony Lindgren wrote:
+> > The following changes since commit 5852264f9d6139751796853fdfca9d5230cbfb97:
+> > 
+> >   Merge tag 'omap-devel-b-for-3.10' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into for_3.10/dts_merged (2013-04-09 00:11:05 +0200)
+> > 
+> > are available in the git repository at:
+> > 
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/dt-signed-v2
+> > 
+> > for you to fetch changes up to 161e89a689bb88004b757986eefda2402448eef7:
+> > 
+> >   ARM/dts: OMAP3: fix pinctrl-single configuration (2013-04-08 17:00:22 -0700)
+> > 
+> > ----------------------------------------------------------------
+> > Device tree updates for omaps via Benoit Cousson <b-cousson@ti.com>.
+> > 
+> > Note that the branch has dependencies to two other branches:
+> > 
+> > - omap-devel-b-for-3.10 from Paul to get the AM33xx missing
+> >   hwmod and thus avoid a regression with Santosh's hwmod
+> >   cleanup including in this DT series [1]. It avoids breaking
+> >   bisect if this series is merged before Paul's fixes.
 > 
-> I do disable SMP feature. And the .config file for v3.8 could be found here:
-> http://pastehtml.com/view/cylyrfejt.txt
-...
-> The output:
-> [   57.373687] Starting new kernel
-> [   57.377044] Bye!
+> Looks like this was part of omap/fixes-non-critical, the branch name from Paul
+> just didn't percolate up. At least the topmost SHA from that merge in your
+> history seems to be part of said branch. :)
 > 
-> Then system hangs.
+> 
+> > - omap-for-v3.10/usb branch to avoid nasty merge conflict in
+> >   omap3.dtsi and omap4.dtsi due to the DTS patches contained
+> >   in the USB branch because of a screw up by the unnamed person
+> >   typing this signed tag based on Benoit's comments.
+> 
+> 
+> Ok, it looks like this one was merged in next/drivers as omap/usb.
+> 
+> 
+> So based on the above, I've merged in omap/fixes-non-critical and omap/usb as
+> a base, and merged this on top. All of this has gone into next/dt2.
 
-Oh well, you've exhausted my knowledge I'm afraid! I can only suggesting
-trying to enable earlyprintk and/or uncompressor debug in the kernel
-you're kexec'ing and see if that yields any clue. Either that, or JTAG!
+OK thanks.
+
+Tony
