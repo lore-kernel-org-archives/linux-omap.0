@@ -1,93 +1,232 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: gpio/omap v2: map irq_enable/disable to mask/unmask.
-Date: Thu, 11 Apr 2013 08:40:20 -0700
-Message-ID: <20130411154020.GT10155@atomide.com>
-References: <20130411131842.GA9331@blumentopf>
+Subject: Re: [PATCH 25/26] arm: Don't use create_proc_read_entry() [RFC]
+Date: Thu, 11 Apr 2013 08:48:07 -0700
+Message-ID: <20130411154806.GU10155@atomide.com>
+References: <20130411132739.32763.82609.stgit@warthog.procyon.org.uk>
+ <20130411133058.32763.5466.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30063 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1161156Ab3DKPk0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Apr 2013 11:40:26 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130411131842.GA9331@blumentopf>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20130411133058.32763.5466.stgit@warthog.procyon.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Howells <dhowells@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, viro@ZenIV.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
-Cc: santosh.shilimkar@ti.com, jon-hunter@ti.com, khilman@deeprootsystems.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, linux-omap@vger.kernel.org, daniel@zonque.org
 
-Hi,
+* David Howells <dhowells@redhat.com> [130411 06:35]:
+> Don't use create_proc_read_entry() as that is deprecated, but rather use
+> proc_create_data() and seq_file instead.
+> 
+> Signed-off-by: David Howells <dhowells@redhat.com>
+> cc: Russell King <linux@arm.linux.org.uk>
+> cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-* Andreas Fenkart <andreas.fenkart@streamunlimited.com> [130411 06:23]:
-> Hi Santosh,
-> 
-> I submitted the following patch a while back.
-> https://patchwork.kernel.org/patch/1886421/
-> 
-> As already said, the patch is straight forward, but without it,
-> we probably will not see decent SDIO performance on am335x chips.
+Looks like the mach-omap1/pm.c part we can make into
+a debugfs entry as it only contains PM debug data. But
+that we can do after this patch.
 
-I suggest you repost, patches can easily get forgotten unuless
-you follow-up getting them merged.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-> [why it is needed]
+> cc: linux-arm-kernel@lists.infradead.org
+> cc: linux-omap@vger.kernel.org
+> ---
 > 
-> The omap_hsmmc module is suspended whenever it is idle, its
-> functional clock being turned off. In this mode it is not able to
-> forwared IRQs to the system. For that to happen, it needs to tell
-> the PRCM to restore it's fclk.
+>  arch/arm/kernel/swp_emulate.c |   42 +++++++++++++-----------------
+>  arch/arm/mach-omap1/pm.c      |   58 +++++++++++++++++------------------------
+>  2 files changed, 43 insertions(+), 57 deletions(-)
 > 
->                    ------
->                   | PRCM |
->                    ------
->                     | ^
->                fclk | | swakeup
->                     v |
->                   -------               ------
->       <-- IRQ -- | hsmmc | <-- CIRQ -- | card |
->                   -------               ------
+> diff --git a/arch/arm/kernel/swp_emulate.c b/arch/arm/kernel/swp_emulate.c
+> index 0bba47a..087fc32 100644
+> --- a/arch/arm/kernel/swp_emulate.c
+> +++ b/arch/arm/kernel/swp_emulate.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/init.h>
+>  #include <linux/kernel.h>
+>  #include <linux/proc_fs.h>
+> +#include <linux/seq_file.h>
+>  #include <linux/sched.h>
+>  #include <linux/syscalls.h>
+>  #include <linux/perf_event.h>
+> @@ -79,27 +80,27 @@ static unsigned long abtcounter;
+>  static pid_t         previous_pid;
+>  
+>  #ifdef CONFIG_PROC_FS
+> -static int proc_read_status(char *page, char **start, off_t off, int count,
+> -			    int *eof, void *data)
+> +static int proc_status_show(struct seq_file *m, void *v)
+>  {
+> -	char *p = page;
+> -	int len;
+> -
+> -	p += sprintf(p, "Emulated SWP:\t\t%lu\n", swpcounter);
+> -	p += sprintf(p, "Emulated SWPB:\t\t%lu\n", swpbcounter);
+> -	p += sprintf(p, "Aborted SWP{B}:\t\t%lu\n", abtcounter);
+> +	seq_printf(m, "Emulated SWP:\t\t%lu\n", swpcounter);
+> +	seq_printf(m, "Emulated SWPB:\t\t%lu\n", swpbcounter);
+> +	seq_printf(m, "Aborted SWP{B}:\t\t%lu\n", abtcounter);
+>  	if (previous_pid != 0)
+> -		p += sprintf(p, "Last process:\t\t%d\n", previous_pid);
+> -
+> -	len = (p - page) - off;
+> -	if (len < 0)
+> -		len = 0;
+> -
+> -	*eof = (len <= count) ? 1 : 0;
+> -	*start = page + off;
+> +		seq_printf(m, "Last process:\t\t%d\n", previous_pid);
+> +	return 0;
+> +}
+>  
+> -	return len;
+> +static int proc_status_open(struct inode *inode, struct file *file)
+> +{
+> +	return single_open(file, proc_status_show, PDE_DATA(inode));
+>  }
+> +
+> +static const struct file_operations proc_status_fops = {
+> +	.open		= proc_status_open,
+> +	.read		= seq_read,
+> +	.llseek		= seq_lseek,
+> +	.release	= seq_release,
+> +};
+>  #endif
+>  
+>  /*
+> @@ -266,12 +267,7 @@ static struct undef_hook swp_hook = {
+>  static int __init swp_emulation_init(void)
+>  {
+>  #ifdef CONFIG_PROC_FS
+> -	struct proc_dir_entry *res;
+> -
+> -	res = create_proc_read_entry("cpu/swp_emulation", S_IRUGO, NULL,
+> -					proc_read_status, NULL);
+> -
+> -	if (!res)
+> +	if (!proc_create("cpu/swp_emulation", S_IRUGO, NULL, &proc_status_fops))
+>  		return -ENOMEM;
+>  #endif /* CONFIG_PROC_FS */
+>  
+> diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
+> index 7a7690a..2645e37 100644
+> --- a/arch/arm/mach-omap1/pm.c
+> +++ b/arch/arm/mach-omap1/pm.c
+> @@ -38,6 +38,7 @@
+>  #include <linux/suspend.h>
+>  #include <linux/sched.h>
+>  #include <linux/proc_fs.h>
+> +#include <linux/seq_file.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/sysfs.h>
+>  #include <linux/module.h>
+> @@ -423,22 +424,11 @@ void omap1_pm_suspend(void)
+>  }
+>  
+>  #if defined(DEBUG) && defined(CONFIG_PROC_FS)
+> -static int g_read_completed;
+> -
+>  /*
+>   * Read system PM registers for debugging
+>   */
+> -static int omap_pm_read_proc(
+> -	char *page_buffer,
+> -	char **my_first_byte,
+> -	off_t virtual_start,
+> -	int length,
+> -	int *eof,
+> -	void *data)
+> +static int omap_pm_proc_show(struct seq_file *m, void *v)
+>  {
+> -	int my_buffer_offset = 0;
+> -	char * const my_base = page_buffer;
+> -
+>  	ARM_SAVE(ARM_CKCTL);
+>  	ARM_SAVE(ARM_IDLECT1);
+>  	ARM_SAVE(ARM_IDLECT2);
+> @@ -479,10 +469,7 @@ static int omap_pm_read_proc(
+>  		MPUI1610_SAVE(EMIFS_CONFIG);
+>  	}
+>  
+> -	if (virtual_start == 0) {
+> -		g_read_completed = 0;
+> -
+> -		my_buffer_offset += sprintf(my_base + my_buffer_offset,
+> +	seq_printf(m,
+>  		   "ARM_CKCTL_REG:            0x%-8x     \n"
+>  		   "ARM_IDLECT1_REG:          0x%-8x     \n"
+>  		   "ARM_IDLECT2_REG:          0x%-8x     \n"
+> @@ -512,8 +499,8 @@ static int omap_pm_read_proc(
+>  		   ULPD_SHOW(ULPD_STATUS_REQ),
+>  		   ULPD_SHOW(ULPD_POWER_CTRL));
+>  
+> -		if (cpu_is_omap7xx()) {
+> -			my_buffer_offset += sprintf(my_base + my_buffer_offset,
+> +	if (cpu_is_omap7xx()) {
+> +		seq_printf(m,
+>  			   "MPUI7XX_CTRL_REG	     0x%-8x \n"
+>  			   "MPUI7XX_DSP_STATUS_REG:      0x%-8x \n"
+>  			   "MPUI7XX_DSP_BOOT_CONFIG_REG: 0x%-8x \n"
+> @@ -526,8 +513,8 @@ static int omap_pm_read_proc(
+>  			   MPUI7XX_SHOW(MPUI_DSP_API_CONFIG),
+>  			   MPUI7XX_SHOW(EMIFF_SDRAM_CONFIG),
+>  			   MPUI7XX_SHOW(EMIFS_CONFIG));
+> -		} else if (cpu_is_omap15xx()) {
+> -			my_buffer_offset += sprintf(my_base + my_buffer_offset,
+> +	} else if (cpu_is_omap15xx()) {
+> +		seq_printf(m,
+>  			   "MPUI1510_CTRL_REG             0x%-8x \n"
+>  			   "MPUI1510_DSP_STATUS_REG:      0x%-8x \n"
+>  			   "MPUI1510_DSP_BOOT_CONFIG_REG: 0x%-8x \n"
+> @@ -540,8 +527,8 @@ static int omap_pm_read_proc(
+>  			   MPUI1510_SHOW(MPUI_DSP_API_CONFIG),
+>  			   MPUI1510_SHOW(EMIFF_SDRAM_CONFIG),
+>  			   MPUI1510_SHOW(EMIFS_CONFIG));
+> -		} else if (cpu_is_omap16xx()) {
+> -			my_buffer_offset += sprintf(my_base + my_buffer_offset,
+> +	} else if (cpu_is_omap16xx()) {
+> +		seq_printf(m,
+>  			   "MPUI1610_CTRL_REG             0x%-8x \n"
+>  			   "MPUI1610_DSP_STATUS_REG:      0x%-8x \n"
+>  			   "MPUI1610_DSP_BOOT_CONFIG_REG: 0x%-8x \n"
+> @@ -554,25 +541,28 @@ static int omap_pm_read_proc(
+>  			   MPUI1610_SHOW(MPUI_DSP_API_CONFIG),
+>  			   MPUI1610_SHOW(EMIFF_SDRAM_CONFIG),
+>  			   MPUI1610_SHOW(EMIFS_CONFIG));
+> -		}
+> -
+> -		g_read_completed++;
+> -	} else if (g_read_completed >= 1) {
+> -		 *eof = 1;
+> -		 return 0;
+>  	}
+> -	g_read_completed++;
+>  
+> -	*my_first_byte = page_buffer;
+> -	return  my_buffer_offset;
+> +	return 0;
+> +}
+> +
+> +static int omap_pm_proc_open(struct inode *inode, struct file *file)
+> +{
+> +	return single_open(file, omap_pm_proc_show, PDE_DATA(inode));
+>  }
+>  
+> +static const struct file_operations omap_pm_proc_fops = {
+> +	.open		= omap_pm_proc_open,
+> +	.read		= seq_read,
+> +	.llseek		= seq_lseek,
+> +	.release	= seq_release,
+> +};
+> +
+>  static void omap_pm_init_proc(void)
+>  {
+>  	/* XXX Appears to leak memory */
+> -	create_proc_read_entry("driver/omap_pm",
+> -			       S_IWUSR | S_IRUGO, NULL,
+> -			       omap_pm_read_proc, NULL);
+> +	create_proc("driver/omap_pm", S_IWUSR | S_IRUGO, NULL,
+> +		    &omap_pm_proc_fops);
+>  }
+>  
+>  #endif /* DEBUG && CONFIG_PROC_FS */
 > 
-> This is done through the swakeup line, which can be configured to
-> trigger for various events, among others; CIRQ. The problem is
-> that on the AM335x family the swakeup line is missing, it has not
-> been routed from the module to the PRCM.
-> 
-> [solution]
-> the simplest solution was to keep the fclk enabled all the
-> time. But that was not accepted, instead this was suggested
-> 
-> > > The alternative was to configure dat1 line as a GPIO, while
-> > > waiting for an IRQ. Then configuring it back as dat1 to serve
-> > > the SDIO card after it signalled an IRQ. Or when the host
-> > > wants to start a transfer.
-> >
-> > The way to implement this is set named states in the .dts file
-> > for the pins using pinctrl-single.c, then have the MMC driver
-> > request states "default" "active" and "idle" during the probe,
-> > then toggle between active and idle during the runtime.
-> 
-> Surprisingly the induced overhead is quite small, the performance
-> is similar to keeping the fclk enabled at all times. See here
-> for full thread:
-> http://www.spinics.net/lists/linux-omap/msg83363.html
-> https://patchwork.kernel.org/patch/1901471/  ... or just the patch
-
-That's nice, AFAIK this is the only way to do it for some omaps.
- 
-> There are still open questions to gpio patch itself, see here
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg87217.html
-> 
-> So could we pls reopen that thread? It might be on the other side
-> of your mailbox
-
-The SDIO related patch can already get merged while the GPIO patch
-is being discussed I hope?
-
-If so, you should fix #if 0 part I commented on and repost with
-the ack from Grant. And update it against the current linux next
-so people can apply it for testing.
-
-Regards,
-
-Tony
