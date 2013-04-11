@@ -1,30 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 25/26] arm: Don't use create_proc_read_entry() [RFC]
-Date: Thu, 11 Apr 2013 09:57:03 -0700
-Message-ID: <20130411165702.GZ10155@atomide.com>
-References: <20130411154806.GU10155@atomide.com>
- <20130411132739.32763.82609.stgit@warthog.procyon.org.uk>
- <20130411133058.32763.5466.stgit@warthog.procyon.org.uk>
- <13448.1365698725@warthog.procyon.org.uk>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: [PATCH] USB: ehci-omap: Select USB_PHY
+Date: Thu, 11 Apr 2013 19:33:32 +0200
+Message-ID: <5166F3EC.8040807@ahsoftware.de>
+References: <5166856C.3080906@ti.com> <20130411100435.GB14394@arwen.pp.htv.fi> <516695A4.2050804@ti.com> <20130411105557.GE14394@arwen.pp.htv.fi> <5166AFD2.4070108@ti.com> <5166B450.1000404@ahsoftware.de> <5166CC30.4060507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <13448.1365698725@warthog.procyon.org.uk>
+In-Reply-To: <5166CC30.4060507@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, viro@ZenIV.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, Greg KH <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* David Howells <dhowells@redhat.com> [130411 09:50]:
-> Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > Looks like the mach-omap1/pm.c part we can make into
-> > a debugfs entry as it only contains PM debug data. But
-> > that we can do after this patch.
-> 
-> If you have a patch to do that, I can substitute it for this one.
+Am 11.04.2013 16:44, schrieb Roger Quadros:
 
-Sure will do.
+>> Sorry, but this just will end up with many users having broken configs
+>> because of disabled stuff they don't know why they have to enable them.
+>> And thus with a never ending stream of questions and thus with a needed
+>> FAQ entry.
+>>
+>
+> Alexander,
+>
+> I agree with you that it can get difficult with users. But it is best for
+> users do not disable anything they are not familiar with.
+>
+> As the USB_PHY option doesn't depend on anything, it is safe to select it
+> from USB_EHCI_HCD_OMAP.
+>
+> However, the PHY drivers themselves must be selected from the board configs.
 
-Tony
+Maybe I understood something wrong, but if the OMAP USB driver requires 
+CONFIG_USB_PHY (or similiar), it should be selected automatically and 
+not just enabled in the board config.
+
+I just had it to often, that I needed to search around why a driver 
+doesn't work (or even compiles), just to find out that I need to enable 
+some strange config option which wasn't selected automatically. 
+Especially with OMAPs. ;)
+
+And this not only occured when disabling options, it often occured by 
+just updating the kernel. Suddenly some obscur option was needed too, it 
+wasn't selected automatically by make oldconfig, bang. So the argument 
+to not remove anything from a board config doesn't help much.
+
+Sorry for the rant. ;)
+
+Regards,
+
+Alexander
