@@ -1,125 +1,55 @@
-From: "Vishwanathrao Badarkhe, Manish" <manishv.b@ti.com>
-Subject: RE: [PATCH] ARM: dts: omap2plus: remove interrupt-parent property
-Date: Fri, 12 Apr 2013 06:49:32 +0000
-Message-ID: <A4887BF146CD57468F700B415D2F470158738C@DBDE01.ent.ti.com>
-References: <1362996002-15552-1-git-send-email-manishv.b@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2] ARM: OMAP4: hwmod data: make 'ocp2scp_usb_phy_phy_48m"
+ as the main clock
+Date: Fri, 12 Apr 2013 14:09:36 +0530
+Message-ID: <5167C848.4010203@ti.com>
+References: <1365496101-7829-1-git-send-email-kishon@ti.com>
+ <alpine.DEB.2.00.1304092058450.26840@utopia.booyaka.com>
+ <alpine.DEB.2.00.1304101935450.25123@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362996002-15552-1-git-send-email-manishv.b@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Vishwanathrao Badarkhe, Manish" <manishv.b@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
+Content-Type: text/plain; charset="iso-8859-15"; Format="flowed"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1304101935450.25123@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, Keerthy <j-keerthy@ti.com>, rnayak@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Benoit,
-Are there any review comments on this patch? 
-Could you please accept this patch if there are not any review comments?
+Hi,
+
+On Thursday 11 April 2013 01:11 AM, Paul Walmsley wrote:
+> From: Kishon Vijay Abraham I <kishon@ti.com>
+>
+> Commit 92702df3570e ("ARM: OMAP4: PM: fix PM regression introduced by rec=
+ent
+> clock cleanup") makes the 'ocp2scp_usb_phy_phy_48m' as optional
+> functional clock causing regression in MUSB. But this 48MHz clock is a
+> mandatory clock for usb phy attached to ocp2scp and hence made as the main
+> clock for ocp2scp.
+>
+> Cc: Keerthy <j-keerthy@ti.com>
+> Cc: Beno=EEt Cousson <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> [paul@pwsan.com: add comment to the hwmod data to try to prevent any
+>   future mistakes here]
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+>
+> Nothing further received from Kishon per the request:
+>
+> http://marc.info/?l=3Dlinux-omap&m=3D136554118302342&w=3D2
+
+Sorry. Missed reading this mail.
 
 Thanks
-Manish Badarkhe
-
------Original Message-----
-From: Vishwanathrao Badarkhe, Manish 
-Sent: Monday, March 11, 2013 3:30 PM
-To: devicetree-discuss@lists.ozlabs.org; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
-Cc: tony@atomide.com; Cousson, Benoit; linux@arm.linux.org.uk; Vishwanathrao Badarkhe, Manish
-Subject: [PATCH] ARM: dts: omap2plus: remove interrupt-parent property
-
-Removed interrupt-parent property from dts file as it is already
-with root node in dtsi file.
-
-Signed-off-by: Vishwanathrao Badarkhe, Manish <manishv.b@ti.com>
----
-:100644 100644 f624dc8... 36e839a... M	arch/arm/boot/dts/omap3-beagle.dts
-:100644 100644 e8ba1c2... a5375fd... M	arch/arm/boot/dts/omap3-evm.dts
-:100644 100644 4122efe... 389c9c7... M	arch/arm/boot/dts/omap4-panda.dts
-:100644 100644 43e5258... cdf5dfd... M	arch/arm/boot/dts/omap4-sdp.dts
-:100644 100644 6601e6a... 1d4a9d4... M	arch/arm/boot/dts/omap4-var-som.dts
- arch/arm/boot/dts/omap3-beagle.dts  |    1 -
- arch/arm/boot/dts/omap3-evm.dts     |    1 -
- arch/arm/boot/dts/omap4-panda.dts   |    2 --
- arch/arm/boot/dts/omap4-sdp.dts     |    2 --
- arch/arm/boot/dts/omap4-var-som.dts |    1 -
- 5 files changed, 0 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index f624dc8..36e839a 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -46,7 +46,6 @@
- 	twl: twl@48 {
- 		reg = <0x48>;
- 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
--		interrupt-parent = <&intc>;
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-index e8ba1c2..a5375fd 100644
---- a/arch/arm/boot/dts/omap3-evm.dts
-+++ b/arch/arm/boot/dts/omap3-evm.dts
-@@ -34,7 +34,6 @@
- 	twl: twl@48 {
- 		reg = <0x48>;
- 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
--		interrupt-parent = <&intc>;
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index 4122efe..389c9c7 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -119,7 +119,6 @@
- 		reg = <0x48>;
- 		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
- 		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
--		interrupt-parent = <&gic>;
- 	};
- 
- 	twl6040: twl@4b {
-@@ -127,7 +126,6 @@
- 		reg = <0x4b>;
- 		/* SPI = 0, IRQ# = 119, 4 = active high level-sensitive */
- 		interrupts = <0 119 4>; /* IRQ_SYS_2N cascaded to gic */
--		interrupt-parent = <&gic>;
- 		ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
- 
- 		vio-supply = <&v1v8>;
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 43e5258..cdf5dfd 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -221,7 +221,6 @@
- 		reg = <0x48>;
- 		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
- 		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
--		interrupt-parent = <&gic>;
- 	};
- 
- 	twl6040: twl@4b {
-@@ -229,7 +228,6 @@
- 		reg = <0x4b>;
- 		/* SPI = 0, IRQ# = 119, 4 = active high level-sensitive */
- 		interrupts = <0 119 4>; /* IRQ_SYS_2N cascaded to gic */
--		interrupt-parent = <&gic>;
- 		ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
- 
- 		vio-supply = <&v1v8>;
-diff --git a/arch/arm/boot/dts/omap4-var-som.dts b/arch/arm/boot/dts/omap4-var-som.dts
-index 6601e6a..1d4a9d4 100644
---- a/arch/arm/boot/dts/omap4-var-som.dts
-+++ b/arch/arm/boot/dts/omap4-var-som.dts
-@@ -35,7 +35,6 @@
- 		reg = <0x48>;
- 		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
- 		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
--		interrupt-parent = <&gic>;
- 	};
- };
- 
--- 
-1.7.4.1
+Kishon
