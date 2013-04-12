@@ -1,45 +1,34 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 2/2] net: smsc911x: get IRQ flags from chip if not present in IORESOURCE_IRQ
-Date: Fri, 12 Apr 2013 20:05:43 +0200
-Message-ID: <1365789943-3812-3-git-send-email-javier.martinez@collabora.co.uk>
-References: <1365789943-3812-1-git-send-email-javier.martinez@collabora.co.uk>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1365789943-3812-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: netdev-owner@vger.kernel.org
-To: Steve Glendinning <steve.glendinning@shawell.net>
-Cc: David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Rob Herring <robherring2@gmail.com>, Stephen Warren <swarren@wwwdotorg.org>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>, netdev@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH 1/2] genirq: add function to get IRQ edge/level flags
+Date: Fri, 12 Apr 2013 15:56:32 -0600
+Message-ID: <51688310.9040008@wwwdotorg.org>
+References: <1365789943-3812-1-git-send-email-javier.martinez@collabora.co.uk> <1365789943-3812-2-git-send-email-javier.martinez@collabora.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:44082 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752784Ab3DLV4g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Apr 2013 17:56:36 -0400
+In-Reply-To: <1365789943-3812-2-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Steve Glendinning <steve.glendinning@shawell.net>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Rob Herring <robherring2@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>, netdev@vger.kernel.org
 
-When defining an IRQ trigger type and level flags from a Device Tree
-a call to of_irq_to_resource() is made to parse the "interrupts"
-property cells and return a struct resource.
+On 04/12/2013 12:05 PM, Javier Martinez Canillas wrote:
+...
+> So, is better to add an irq_get_trigger_type() function to obtain
+> the edge/level flags for an IRQ.
 
-But the flags are not saved on this struct resource which means that
-drivers that try to obtain this information from an IORESOURCE_IRQ
-will not be able to get it.
+> diff --git a/include/linux/irq.h b/include/linux/irq.h
 
-So, is more safe to fallback and query this information from the irq
-chip directly if it was not found on the struct resource.
+> +static inline u32 irq_get_trigger_type(unsigned int irq)
+> +{
+> +	struct irq_data *d = irq_get_irq_data(irq);
+> +	return d ? d->state_use_accessors & IRQD_TRIGGER_MASK : 0;
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
- drivers/net/ethernet/smsc/smsc911x.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/net/ethernet/smsc/smsc911x.c b/drivers/net/ethernet/smsc/smsc911x.c
-index da5cc9a..3d535b3 100644
---- a/drivers/net/ethernet/smsc/smsc911x.c
-+++ b/drivers/net/ethernet/smsc/smsc911x.c
-@@ -2390,6 +2390,10 @@ static int smsc911x_drv_probe(struct platform_device *pdev)
- 	pdata = netdev_priv(dev);
- 	dev->irq = irq_res->start;
- 	irq_flags = irq_res->flags & IRQF_TRIGGER_MASK;
-+
-+	if (!irq_flags)
-+		irq_flags = irq_get_trigger_type(dev->irq);
-+
- 	pdata->ioaddr = ioremap_nocache(res->start, res_size);
- 
- 	pdata->dev = dev;
--- 
-1.7.7.6
+Should the direct access to d->state_use_accessors be replaced with a
+call to irqd_get_trigger_type()? Perhaps since this is inside the IRQ
+code header, there's no need to use the accessor function?
