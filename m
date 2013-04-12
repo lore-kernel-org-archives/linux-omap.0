@@ -1,56 +1,77 @@
-From: Jyri Sarha <oku@iki.fi>
-Subject: Re: [PATCH] ARM: OMAP4+: =?UTF-8?Q?omap=32plus=5Fdefconfig=3A=20Enable=20?=
- =?UTF-8?Q?audio=20via=20TWL=36=30=34=30=20as=20module?=
-Date: Fri, 12 Apr 2013 15:14:44 +0300
-Message-ID: <acf32629312b1315da0d04598a757673@mail.kapsi.fi>
-References: <1365584880-25810-1-git-send-email-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42677 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753077Ab3DLMOu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Apr 2013 08:14:50 -0400
-In-Reply-To: <1365584880-25810-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Subject: [PATCH v2 0/3] omap_hsmmc: SDIO IRQ on AM335x family
+Date: Fri, 12 Apr 2013 14:38:24 +0200
+Message-ID: <1365770307-19859-1-git-send-email-andreas.fenkart@streamunlimited.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: cjb@laptop.org, arnd@arndb.de, svenkatr@ti.com, balajitk@ti.com, grant.likely@secretlab.ca, linux-mmc@vger.kernel.org, rob@landley.net, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, zonque@gmail.com, Andreas Fenkart <andreas.fenkart@streamunlimited.com>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Jyri Sarha <jsarha@ti.com>
 
-On Wed, 10 Apr 2013 11:08:00 +0200, Peter Ujfalusi <peter.ujfalusi@ti.com>
-wrote:
-> Boards supported upstream all use TWL6040 as audio codec, enable the
-common
-> ASoC machine driver by default for them.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Tested-by: Jyri Sarha <jsarha@ti.com>
+This is a resend of an earlier patch
+http://comments.gmane.org/gmane.linux.ports.arm.omap/90381
 
-Brings a working PCM for TWL6040 trough McPDM legacy port on top of
-8.3-rc3 for my Blaze and Panda.
-> ---
->  arch/arm/configs/omap2plus_defconfig | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm/configs/omap2plus_defconfig
-> b/arch/arm/configs/omap2plus_defconfig
-> index bd07864..eea501c 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -152,6 +152,7 @@ CONFIG_OMAP_WATCHDOG=y
->  CONFIG_TWL4030_WATCHDOG=y
->  CONFIG_MFD_TPS65217=y
->  CONFIG_MFD_TPS65910=y
-> +CONFIG_TWL6040_CORE=y
->  CONFIG_REGULATOR_TWL4030=y
->  CONFIG_REGULATOR_TPS65023=y
->  CONFIG_REGULATOR_TPS6507X=y
-> @@ -194,6 +195,7 @@ CONFIG_SND_USB_AUDIO=m
->  CONFIG_SND_SOC=m
->  CONFIG_SND_OMAP_SOC=m
->  CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
-> +CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
->  CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
->  CONFIG_USB=y
->  CONFIG_USB_DEBUG=y
+It's rebased against Linux 3.9-rc6 / 31880c37c11e28cb8
+Main changes are two bug fixes. Also did lots of testing.
+
+Fixes are a race condition during suspend and the gpio
+irq being disabled unintendedly.
+
+The gpio irq is managed via the 'disable_depth' ref counter of
+the irq subsystem, driver simply call enable_irq/disable_irq when
+needed.
+
+                      sdio irq    sdio irq
+                      unmasked     masked
+   -----------------------------------------
+    runtime suspend  |    0     |   1
+    runtime default  |    1     |   2
+
+               irq disable depth
+
+
+only when sdio irq is enabled AND module is idle, the ref drops
+to zero and the gpio irq is effectively armed.
+
+problem was that omap_hsmmc_enable_sdio_irq(.. disable)
+was called when the irq was already disabled. This corrupted
+the ref count. Another issue was to ensure that the ref count
+starts with the right initial value (2).
+
+I did quite some duration testing. Test setup is two sdio wifi
+cards, running iperf as server/client. Test is running for 8+
+days now, still running.
+
+# cat /sys/kernel/debug/mmc0/regs                        
+[snip]
+pinmux config   sdio
+sdio irq        enabled
+pm suspends     19993594
+
+So there had been ~20 Mio sdio to gpio pinmux transitions.
+
+Without enabling the pinmux toggling in the dts file, there is no
+functional change. The driver will use polling as it does now.
+If you want to enable it, you also need to implement
+enable_irq/disable_irq for omap chips.
+
+https://patchwork.kernel.org/patch/1886421/
+http://permalink.gmane.org/gmane.linux.ports.arm.omap/97093
+
+
+/Andi
+
+
+Andreas Fenkart (3):
+  mmc: omap_hsmmc: Enable SDIO IRQ using a GPIO in idle mode.
+  mmc: omap_hsmmc: debugfs entries for GPIO mode.
+  mmc: omap_hsmmc: add PSTATE to debugfs regs_show.
+
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   42 +++
+ drivers/mmc/host/omap_hsmmc.c                      |  269 ++++++++++++++++++--
+ include/linux/platform_data/mmc-omap.h             |    4 +
+ 3 files changed, 294 insertions(+), 21 deletions(-)
+
+-- 
+1.7.10.4
+
