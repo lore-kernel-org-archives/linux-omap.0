@@ -1,40 +1,35 @@
-From: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
-Subject: [PATCH v2 3/3] mmc: omap_hsmmc: add PSTATE to debugfs regs_show.
-Date: Fri, 12 Apr 2013 14:38:27 +0200
-Message-ID: <1365770307-19859-4-git-send-email-andreas.fenkart@streamunlimited.com>
-References: <1365770307-19859-1-git-send-email-andreas.fenkart@streamunlimited.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1365770307-19859-1-git-send-email-andreas.fenkart@streamunlimited.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: cjb@laptop.org, arnd@arndb.de, svenkatr@ti.com, balajitk@ti.com, grant.likely@secretlab.ca, linux-mmc@vger.kernel.org, rob@landley.net, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, zonque@gmail.com, Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Subject: Re: Kexec couldn't reboot capture kernel on pandaboard
+ ES with OMAP4460
+Date: Fri, 12 Apr 2013 09:22:20 -0600
+Message-ID: <516826AC.20006@wwwdotorg.org>
+References: <CAFNq8R5FFUyH+JgjoGc5ctgEfiLvxzi7fzawM7+wFX5nEyTv-w@mail.gmail.com> <51658B1A.6090706@wwwdotorg.org> <CAFNq8R6mRJRygfnYvZgwVWOqsrhrjNUYzyZGU0cVsnE30W_xGg@mail.gmail.com> <5166E289.8070104@wwwdotorg.org> <20130412104528.GE12363@mudshark.cambridge.arm.com>
+Reply-To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <pandaboard+bncBCZPNS6XRIARBNONUCFQKGQEUQPPFKI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <20130412104528.GE12363-MRww78TxoiP5vMa5CHWGZ34zcgK1vI+I0E9HWUfgJXw@public.gmane.org>
+List-Post: <http://groups.google.com/group/pandaboard/post?hl=en-US>, <mailto:pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/?hl=en-US>, <mailto:pandaboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/pandaboard?hl=en-US>
+Sender: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en-US>,
+ <mailto:pandaboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en-US>,
+ <mailto:googlegroups-manage+575825281776+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+Cc: Li Haifeng <omycle-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-PSTATE shows current state of data lines.
+On 04/12/2013 04:45 AM, Will Deacon wrote:
+...
+> Back to the SMP point: Stephen, did you ever get anywhere with that
+> disable_nonboot_cpus thread from a few months back? I'm still keen to get
+> that working, and I *thought* we had a potential solution...
 
-Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+No, I've been side-tracked on too many other things to follow up on that:-(
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 0f9eb54..f292d1d 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -54,6 +54,7 @@
- #define OMAP_HSMMC_RSP54	0x0118
- #define OMAP_HSMMC_RSP76	0x011C
- #define OMAP_HSMMC_DATA		0x0120
-+#define OMAP_HSMMC_PSTATE	0x0124
- #define OMAP_HSMMC_HCTL		0x0128
- #define OMAP_HSMMC_SYSCTL	0x012C
- #define OMAP_HSMMC_STAT		0x0130
-@@ -1797,6 +1798,8 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
- 	seq_printf(s, "\nregs:\n");
- 	seq_printf(s, "CON:\t\t0x%08x\n",
- 			OMAP_HSMMC_READ(host->base, CON));
-+	seq_printf(s, "PSTATE:\t\t0x%08x\n",
-+		   OMAP_HSMMC_READ(host->base, PSTATE));
- 	seq_printf(s, "HCTL:\t\t0x%08x\n",
- 			OMAP_HSMMC_READ(host->base, HCTL));
- 	seq_printf(s, "SYSCTL:\t\t0x%08x\n",
 -- 
-1.7.10.4
-
+You received this message because you are subscribed to the Google Groups "pandaboard" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to pandaboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/groups/opt_out.
