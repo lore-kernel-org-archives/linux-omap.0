@@ -1,66 +1,87 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH V4 3/6] ARM: dts: OMAP4: add clock nodes for CPU
-Date: Fri, 12 Apr 2013 17:54:35 -0500
-Message-ID: <1365807278-554-4-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V4 1/6] clk: OMAP: introduce device tree binding to
+ kernel clock data
+Date: Fri, 12 Apr 2013 16:31:43 -0700
+Message-ID: <20130412233142.GE10155@atomide.com>
 References: <1365807278-554-1-git-send-email-nm@ti.com>
+ <1365807278-554-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1365807278-554-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1365807278-554-2-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP443x, OMAP446x and OMAP447x platforms use dpll_mpu clock.
-Add same to common definition.
+* Nishanth Menon <nm@ti.com> [130412 15:59]:
+> --- /dev/null
+> +++ b/drivers/clk/omap/clk.c
+> +/**
+> + * omap_clk_src_get() - Get OMAP clock from node name when needed
+> + * @clkspec:	clkspec argument
+> + * @data:	unused
+> + *
+> + * REVISIT: We assume the following:
+> + * 1. omap clock names end with _ck
+> + * 2. omap clock names are under 32 characters in length
+> + */
+> +static struct clk *omap_clk_src_get(struct of_phandle_args *clkspec, void *data)
+> +{
+> +	struct clk *clk;
+> +	char clk_name[32];
+> +	struct device_node *np = clkspec->np;
+> +
+> +	/* Set up things so consumer can call clk_get() with name */
 
-Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
----
-RFC of this patch approach for OMAP3 was discussed in http://marc.info/?t=136370325600009&r=1&w=2
-along with the detailed context as to why this is an intermediate step.
+I would leave out the comment above, it's a leftover from
+the clk_add_alias() version that we don't need because of
+of_clk_get().
 
-previous revisions of cpufreq-cpu0 support do not use this approach.
-[Probably belongs to Benoit's tree]
+> +	snprintf(clk_name, 32, "%s_ck", np->name);
+> +	clk = clk_get(NULL, clk_name);
+> +	if (IS_ERR(clk)) {
+> +		pr_err("%s: could not get clock %s(%ld)\n", __func__,
+> +		       clk_name, PTR_ERR(clk));
+> +		goto out;
+> +	}
+> +	clk_put(clk);
+> +
+> +out:
+> +	return clk;
+> +}
+> +
+> +/**
+> + * omap_clk_probe() - create link from DT definition to clock data
+> + * @pdev:	device node
+> + *
+> + * NOTE: We assume that omap clocks are not removed.
+> + */
 
- arch/arm/boot/dts/omap4.dtsi |    7 +++++++
- 1 file changed, 7 insertions(+)
+How about drop the comment on clocks being removed above.
+It no longer an issue, so maybe something like this instead:
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 2a56428..1c6d969 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -31,6 +31,8 @@
- 		cpu@0 {
- 			compatible = "arm,cortex-a9";
- 			next-level-cache = <&L2>;
-+			clocks = <&dpll_mpu>;
-+			clock-names = "cpu";
- 		};
- 		cpu@1 {
- 			compatible = "arm,cortex-a9";
-@@ -106,6 +108,11 @@
- 			ti,hwmods = "counter_32k";
- 		};
- 
-+		dpll_mpu: dpll_mpu {
-+			#clock-cells = <0>;
-+			compatible = "ti,omap-clock";
-+		};
-+
- 		omap4_pmx_core: pinmux@4a100040 {
- 			compatible = "ti,omap4-padconf", "pinctrl-single";
- 			reg = <0x4a100040 0x0196>;
--- 
-1.7.9.5
+* Note that we look up the clock lazily when the consumer
+* driver does of_clk_get() and initialize a NULL clock here.
+
+> +static int omap_clk_probe(struct platform_device *pdev)
+> +{
+> +	int res;
+> +	struct device_node *np = pdev->dev.of_node;
+> +
+> +	/* This allows the driver to of_clk_get() */
+> +	res = of_clk_add_provider(np, omap_clk_src_get, NULL);
+> +	if (res)
+> +		dev_err(&pdev->dev, "could not add provider(%d)\n", res);
+> +
+> +	return res;
+> +}
+> +
+> +/* We assume here that OMAP clocks will not be removed */
+
+Then the above comment can be removed too.
+
+Regards,
+
+Tony
