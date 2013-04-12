@@ -1,71 +1,59 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] gpio/omap: implement irq_enable/disable using mask/unmask.
-Date: Fri, 12 Apr 2013 15:49:52 +0530
-Message-ID: <5167DFC8.8060202@ti.com>
-References: <1365758001-15562-1-git-send-email-andreas.fenkart@streamunlimited.com> <1365758001-15562-2-git-send-email-andreas.fenkart@streamunlimited.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: Kexec couldn't reboot capture kernel on pandaboard ES with
+ OMAP4460
+Date: Fri, 12 Apr 2013 11:45:28 +0100
+Message-ID: <20130412104528.GE12363@mudshark.cambridge.arm.com>
+References: <CAFNq8R5FFUyH+JgjoGc5ctgEfiLvxzi7fzawM7+wFX5nEyTv-w@mail.gmail.com>
+ <51658B1A.6090706@wwwdotorg.org>
+ <CAFNq8R6mRJRygfnYvZgwVWOqsrhrjNUYzyZGU0cVsnE30W_xGg@mail.gmail.com>
+ <5166E289.8070104@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57386 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752954Ab3DLKSF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Apr 2013 06:18:05 -0400
-In-Reply-To: <1365758001-15562-2-git-send-email-andreas.fenkart@streamunlimited.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5166E289.8070104@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Li Haifeng <omycle@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "pandaboard@googlegroups.com" <pandaboard@googlegroups.com>, "kexec@lists.infradead.org" <kexec@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Fenkart <andreas.fenkart@streamunlimited.com>, jon-hunter@ti.com
-Cc: khilman@deeprootsystems.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, linux-omap@vger.kernel.org, daniel@zonque.org
 
-On Friday 12 April 2013 02:43 PM, Andreas Fenkart wrote:
-> In PM suspend, some omaps can't detect sdio irqs via the sdio interface.
-> The way to implement this, is to declare the corresponding pin as part
-> of the sdio interface and as a gpio input via pinctrl-single states.
-> The MMC driver request states "default" "active" and "idle" during the
-> probe, then toggles between active and idle during the runtime. This
-> requires low overhead functions for enable/disable of gpio irqs.
+On Thu, Apr 11, 2013 at 05:19:21PM +0100, Stephen Warren wrote:
+> On 04/10/2013 10:46 PM, Li Haifeng wrote:
+> > 2013/4/10 Stephen Warren <swarren@wwwdotorg.org>:
+> >> On 04/10/2013 03:35 AM, Li Haifeng wrote:
+> >>> Hi, everyone.
+> >>>
+> >>> Recently, I try to run kdump on pandaboard ES with omap4460. After
+> >>> load capture kernel by "kexec -l" and execute "kexec -e", the serial
+> >>> port output "Starting new kernel" and "Bye", then the system hangs up.
+> >>>
+> >>> I have tried the upstream Linux Kernel v3.4 and v3.8. All are with this issue.
+> >>
+> >> This is a shot in the dark. I assume you have SMP enabled. Can you use
+> >> hotplug to remove all CPUs other than CPU0, so that the kexec happens on
+> >> the boot CPU? That is certainly necessary for kexec to work correctly on
+> >> Tegra.
+> > 
+> > Thanks for your attention.
+> > 
+> > I do disable SMP feature. And the .config file for v3.8 could be found here:
+> > http://pastehtml.com/view/cylyrfejt.txt
+> ...
+> > The output:
+> > [   57.373687] Starting new kernel
+> > [   57.377044] Bye!
+> > 
+> > Then system hangs.
 > 
-> For level triggered interrupt there is no difference between masking
-> and disabling an interrupt. For edge interrupt interrupts there is.
-> When masked, interrupts should still be latched to the interrupt status
-> register so when unmasked later there is an interrupt straight away.
-> However, if the interrupt is disabled then gpio events occurring will not
-> be latched/stored. Hence proposed patch is incomplete for edge type
-> interrupts.
-> 
-> Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
-> ---
-Patch is incomplete and still confusing ;-) if some one reads the
-patch without the thread. I think you have already ask the question/
-suggestion in past but its better to split masking/disabling functions
-and make them behave properly. Mapping enable/disable to mask/unmask
-to get around the issue seems more of a hack.
+> Oh well, you've exhausted my knowledge I'm afraid! I can only suggesting
+> trying to enable earlyprintk and/or uncompressor debug in the kernel
+> you're kexec'ing and see if that yields any clue. Either that, or JTAG!
 
-Also I think, we can address the edge type IRQ issue along with this
-patch to be complete.
+Also worth using the bleeding edge kexec-tools (i.e. build from source),
+especially if you want to anything device-tree related.
 
-Before you go ahead with the update, I would like to hear Jon's
-opinion on the edge IRQ related fixing.
+Back to the SMP point: Stephen, did you ever get anywhere with that
+disable_nonboot_cpus thread from a few months back? I'm still keen to get
+that working, and I *thought* we had a potential solution...
 
->  drivers/gpio/gpio-omap.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 159f5c5..69ef2d8 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -815,6 +815,8 @@ static struct irq_chip gpio_irq_chip = {
->  	.irq_unmask	= gpio_unmask_irq,
->  	.irq_set_type	= gpio_irq_type,
->  	.irq_set_wake	= gpio_wake_enable,
-> +	.irq_disable    = gpio_mask_irq, /* FIXME for edge type IRQ */
-> +	.irq_enable     = gpio_unmask_irq,
->  };
->  
->  /*---------------------------------------------------------------------*/
-> 
-Sorry to make you wait for the proposal discussion.
-
-Regards,
-Santosh
-
+Will
