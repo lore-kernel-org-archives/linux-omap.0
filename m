@@ -1,59 +1,111 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: Kexec couldn't reboot capture kernel on pandaboard ES with
- OMAP4460
-Date: Fri, 12 Apr 2013 11:45:28 +0100
-Message-ID: <20130412104528.GE12363@mudshark.cambridge.arm.com>
-References: <CAFNq8R5FFUyH+JgjoGc5ctgEfiLvxzi7fzawM7+wFX5nEyTv-w@mail.gmail.com>
- <51658B1A.6090706@wwwdotorg.org>
- <CAFNq8R6mRJRygfnYvZgwVWOqsrhrjNUYzyZGU0cVsnE30W_xGg@mail.gmail.com>
- <5166E289.8070104@wwwdotorg.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] gpio/omap: implement irq_enable/disable using
+ mask/unmask.
+Date: Fri, 12 Apr 2013 14:07:01 +0300
+Message-ID: <20130412110701.GF7361@arwen.pp.htv.fi>
+References: <1365758001-15562-1-git-send-email-andreas.fenkart@streamunlimited.com>
+ <1365758001-15562-2-git-send-email-andreas.fenkart@streamunlimited.com>
+ <5167DFC8.8060202@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Ls2Gy6y7jbHLe9Od"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59269 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753028Ab3DLLHU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Apr 2013 07:07:20 -0400
 Content-Disposition: inline
-In-Reply-To: <5166E289.8070104@wwwdotorg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Li Haifeng <omycle@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "pandaboard@googlegroups.com" <pandaboard@googlegroups.com>, "kexec@lists.infradead.org" <kexec@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <5167DFC8.8060202@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Andreas Fenkart <andreas.fenkart@streamunlimited.com>, jon-hunter@ti.com, khilman@deeprootsystems.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, linux-omap@vger.kernel.org, daniel@zonque.org
 
-On Thu, Apr 11, 2013 at 05:19:21PM +0100, Stephen Warren wrote:
-> On 04/10/2013 10:46 PM, Li Haifeng wrote:
-> > 2013/4/10 Stephen Warren <swarren@wwwdotorg.org>:
-> >> On 04/10/2013 03:35 AM, Li Haifeng wrote:
-> >>> Hi, everyone.
-> >>>
-> >>> Recently, I try to run kdump on pandaboard ES with omap4460. After
-> >>> load capture kernel by "kexec -l" and execute "kexec -e", the serial
-> >>> port output "Starting new kernel" and "Bye", then the system hangs up.
-> >>>
-> >>> I have tried the upstream Linux Kernel v3.4 and v3.8. All are with this issue.
-> >>
-> >> This is a shot in the dark. I assume you have SMP enabled. Can you use
-> >> hotplug to remove all CPUs other than CPU0, so that the kexec happens on
-> >> the boot CPU? That is certainly necessary for kexec to work correctly on
-> >> Tegra.
-> > 
-> > Thanks for your attention.
-> > 
-> > I do disable SMP feature. And the .config file for v3.8 could be found here:
-> > http://pastehtml.com/view/cylyrfejt.txt
-> ...
-> > The output:
-> > [   57.373687] Starting new kernel
-> > [   57.377044] Bye!
-> > 
-> > Then system hangs.
-> 
-> Oh well, you've exhausted my knowledge I'm afraid! I can only suggesting
-> trying to enable earlyprintk and/or uncompressor debug in the kernel
-> you're kexec'ing and see if that yields any clue. Either that, or JTAG!
+--Ls2Gy6y7jbHLe9Od
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Also worth using the bleeding edge kexec-tools (i.e. build from source),
-especially if you want to anything device-tree related.
+Hi,
 
-Back to the SMP point: Stephen, did you ever get anywhere with that
-disable_nonboot_cpus thread from a few months back? I'm still keen to get
-that working, and I *thought* we had a potential solution...
+On Fri, Apr 12, 2013 at 03:49:52PM +0530, Santosh Shilimkar wrote:
+> On Friday 12 April 2013 02:43 PM, Andreas Fenkart wrote:
+> > In PM suspend, some omaps can't detect sdio irqs via the sdio interface.
+> > The way to implement this, is to declare the corresponding pin as part
+> > of the sdio interface and as a gpio input via pinctrl-single states.
+> > The MMC driver request states "default" "active" and "idle" during the
+> > probe, then toggles between active and idle during the runtime. This
+> > requires low overhead functions for enable/disable of gpio irqs.
+> >=20
+> > For level triggered interrupt there is no difference between masking
+> > and disabling an interrupt. For edge interrupt interrupts there is.
+> > When masked, interrupts should still be latched to the interrupt status
+> > register so when unmasked later there is an interrupt straight away.
+> > However, if the interrupt is disabled then gpio events occurring will n=
+ot
+> > be latched/stored. Hence proposed patch is incomplete for edge type
+> > interrupts.
+> >=20
+> > Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+> > ---
+> Patch is incomplete and still confusing ;-) if some one reads the
+> patch without the thread. I think you have already ask the question/
+> suggestion in past but its better to split masking/disabling functions
+> and make them behave properly. Mapping enable/disable to mask/unmask
+> to get around the issue seems more of a hack.
 
-Will
+right, specially since IRQ susystem will already do that for
+irq_enable():
+
+kernel/irq/chip.c::irq_enable()
+
+192 void irq_enable(struct irq_desc *desc)
+193 {
+194         irq_state_clr_disabled(desc);
+195         if (desc->irq_data.chip->irq_enable)
+196                 desc->irq_data.chip->irq_enable(&desc->irq_data);
+197         else
+198                 desc->irq_data.chip->irq_unmask(&desc->irq_data);
+199         irq_state_clr_masked(desc);
+200 }
+
+In fact this patch shouldn't be necessary if only IRQ subsystem would do
+the same for irq_disable() (though it doesn't and I haven't fully read
+the code you to understand why, however there's definitely a reason):
+
+202 void irq_disable(struct irq_desc *desc)
+203 {
+204         irq_state_set_disabled(desc);
+205         if (desc->irq_data.chip->irq_disable) {
+206                 desc->irq_data.chip->irq_disable(&desc->irq_data);
+207                 irq_state_set_masked(desc);
+208         }
+209 }
+
+--=20
+balbi
+
+--Ls2Gy6y7jbHLe9Od
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRZ+rVAAoJEIaOsuA1yqREltgQAIS0ogiHGhcP/4hmUl/C9tUI
+7zhItdXbgCQ/3nj+DpAxQ9+X/2Id9OFcOzEHpuMqED/UAUm8RgEyniZeS7ARba6Q
+gwxlMhVPVlinl7uATKwXbqEyEWp6trJscGtRi/0pfxTOWfjbuaW17PLJpnefcuVB
+1uEsvEZI/OS4OZr8Cq50lBK0+ZLR/kd1ob3aEWJe2aTt8BjCRRwGnbovychUSYdU
+06ST4XXWA5EuuMZ4BhbDN+NsdK/zgaeHlUu0OTPfOWhwqGj6uwy5S2b4Mt93GFvs
+PN9HiuForVNMG4RVrO8EyWcNll5EYZXVVmN7gr1+hUcoOghYWNVEtL5bf3dP3ieo
+JtnX9XJfkm8UbiDnqCfVKa2Zw83RE70imufFOOloyVVjt7GDpTAarKIecT8uPaOg
+xjDPYYPjyAU2Nh2TmODr1ELm+lBtIa8rfWvks9kTwKpkB0KDE5KjE4uv0JaTRWry
+XHb+OLsRk5tgULPyQPiUU/5gCXP3jPRV0mcGINaCWuptPIiEBF8/zXXxeA1tW7g/
+3wCrc1x2FJbyaPyhMwjVnAC7Niuw3sxneRRHMICkJJx9wr9KV9bfGTaUqjEqAUQa
+RumXLKkHfYlcEdhJLKchj42NHoL3eOX/pSq7V4zTqZaXEL9s4nHmIG7rSl+rTCM+
+1ibtJTW+inMj0asoFrc9
+=Lyeq
+-----END PGP SIGNATURE-----
+
+--Ls2Gy6y7jbHLe9Od--
