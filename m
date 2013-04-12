@@ -1,56 +1,71 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V4 2/6] ARM: dts: OMAP3: add clock nodes for CPU
-Date: Fri, 12 Apr 2013 17:54:34 -0500
-Message-ID: <1365807278-554-3-git-send-email-nm@ti.com>
+Subject: [PATCH V4 6/6] ARM: OMAP3+: use cpu0-cpufreq driver in device tree supported boot
+Date: Fri, 12 Apr 2013 17:54:38 -0500
+Message-ID: <1365807278-554-7-git-send-email-nm@ti.com>
 References: <1365807278-554-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:32791 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758735Ab3DLWzM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Apr 2013 18:55:12 -0400
 In-Reply-To: <1365807278-554-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Turquette <mturquette@linaro.org>, Nishanth Menon <nm@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-OMAP34xx and OMAP36xx platforms use dpll1 clock. Add same to common
-definition.
+With OMAP3+ and AM33xx supported SoC having defined CPU device tree
+entries with operating-points and clock nodes defined, we can now use
+the SoC generic cpufreq-cpu0 driver by registering appropriate device.
 
 Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
-RFC of this patch was discussed in http://marc.info/?t=136370325600009&r=1&w=2
-along with the detailed context as to why this is an intermediate step.
+Introduced as a result of alignment in http://marc.info/?t=136450773400004&r=1&w=2
+previous versions do not use this approach.
 
-previous revisions of cpufreq-cpu0 support do not use this approach.
+This would probably be good to get merged *after* Rafael's tree is merged in.
 
-[Probably belongs to Benoit's tree]
- arch/arm/boot/dts/omap3.dtsi |    7 +++++++
- 1 file changed, 7 insertions(+)
+[Probably belongs to Kevin/Tony's tree?]
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 559b02f..58c6ed6 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -23,6 +23,8 @@
- 	cpus {
- 		cpu@0 {
- 			compatible = "arm,cortex-a8";
-+			clocks = <&dpll1>;
-+			clock-names = "cpu";
- 		};
- 	};
+ arch/arm/mach-omap2/pm.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 8d15f9a..6cf95160 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -267,7 +267,12 @@ static void __init omap4_init_voltages(void)
  
-@@ -73,6 +75,11 @@
- 			ti,hwmods = "counter_32k";
- 		};
- 
-+		dpll1: dpll1 {
-+			#clock-cells = <0>;
-+			compatible = "ti,omap-clock";
-+		};
+ static inline void omap_init_cpufreq(void)
+ {
+-	struct platform_device_info devinfo = { .name = "omap-cpufreq", };
++	struct platform_device_info devinfo = { };
 +
- 		intc: interrupt-controller@48200000 {
- 			compatible = "ti,omap2-intc";
- 			interrupt-controller;
++	if (!of_have_populated_dt())
++		devinfo.name = "omap-cpufreq";
++	else
++		devinfo.name = "cpufreq-cpu0";
+ 	platform_device_register_full(&devinfo);
+ }
+ 
+@@ -301,9 +306,9 @@ int __init omap2_common_pm_late_init(void)
+ 		/* Smartreflex device init */
+ 		omap_devinit_smartreflex();
+ 
+-		/* cpufreq dummy device instantiation */
+-		omap_init_cpufreq();
+ 	}
++	/* cpufreq dummy device instantiation */
++	omap_init_cpufreq();
+ 
+ #ifdef CONFIG_SUSPEND
+ 	suspend_set_ops(&omap_pm_ops);
 -- 
 1.7.9.5
+
