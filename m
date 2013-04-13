@@ -1,53 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: dts: Configure and fix the McSPI pins for 4430sdp
-Date: Fri, 12 Apr 2013 17:26:43 -0700
-Message-ID: <20130413002643.GH10155@atomide.com>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH 1/2] genirq: add function to get IRQ edge/level flags
+Date: Sat, 13 Apr 2013 03:21:26 +0200
+Message-ID: <5168B316.8010801@collabora.co.uk>
+References: <1365789943-3812-1-git-send-email-javier.martinez@collabora.co.uk> <1365789943-3812-2-git-send-email-javier.martinez@collabora.co.uk> <51688310.9040008@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10511 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752182Ab3DMA0q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Apr 2013 20:26:46 -0400
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <51688310.9040008@wwwdotorg.org>
+Sender: netdev-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Steve Glendinning <steve.glendinning@shawell.net>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Rob Herring <robherring2@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
 
-The bootloader configures the pins, but has pull bits
-set without pull enable bits. While this is harmless,
-and won't do anything, it seems to cause confusion at
-least for me every time looking at the pin configuration.
-Fix it for DT based boot.
+On 04/12/2013 11:56 PM, Stephen Warren wrote:
+> On 04/12/2013 12:05 PM, Javier Martinez Canillas wrote:
+> ...
+>> So, is better to add an irq_get_trigger_type() function to obtain
+>> the edge/level flags for an IRQ.
+> 
+>> diff --git a/include/linux/irq.h b/include/linux/irq.h
+> 
+>> +static inline u32 irq_get_trigger_type(unsigned int irq)
+>> +{
+>> +	struct irq_data *d = irq_get_irq_data(irq);
+>> +	return d ? d->state_use_accessors & IRQD_TRIGGER_MASK : 0;
+> 
+> Should the direct access to d->state_use_accessors be replaced with a
+> call to irqd_get_trigger_type()? Perhaps since this is inside the IRQ
+> code header, there's no need to use the accessor function?
+> 
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Yes, it's better to use irqd_get_trigger_type() instead of a direct access to
+d->state_use_accessors since that function is inline so it should be the same
+performance wise and it will be easier to maintain.
 
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -223,6 +223,15 @@
- 		>;
- 	};
- 
-+	mcspi1_pins: pinmux_mcspi1_pins {
-+		pinctrl-single,pins = <
-+			0xf2 0x100	/*  mcspi1_clk.mcspi1_clk INPUT | MODE0 */
-+			0xf4 0x100	/*  mcspi1_somi.mcspi1_somi INPUT | MODE0 */
-+			0xf6 0x100	/*  mcspi1_simo.mcspi1_simo INPUT | MODE0 */
-+			0xf8 0x100	/*  mcspi1_cs0.mcspi1_cs0 INPUT | MODE0*/
-+		>;
-+	};
-+
- 	dss_hdmi_pins: pinmux_dss_hdmi_pins {
- 		pinctrl-single,pins = <
- 			0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
-@@ -358,6 +367,9 @@
- };
- 
- &mcspi1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcspi1_pins>;
-+
- 	eth@0 {
- 		compatible = "ks8851";
- 		spi-max-frequency = <24000000>;
+I'll send a v2 changing that.
+
+Thanks a lot and best regards,
+Javier
