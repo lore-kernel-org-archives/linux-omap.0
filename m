@@ -1,47 +1,80 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: Re: Latest randconfig build errors
-Date: Sat, 13 Apr 2013 08:54:22 -0400
-Message-ID: <CAF6AEGv=3453KKS9-8YAgHrxMMbNvLMvt0pz-=qdG+zcd-Trrw@mail.gmail.com>
-References: <20130304095136.GI17833@n2100.arm.linux.org.uk>
-	<20130304184649.GO11806@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 4430sdp nfsroot broken with ff5c9059
+Date: Sat, 13 Apr 2013 09:50:15 -0700
+Message-ID: <20130413165014.GL10155@atomide.com>
+References: <20130409212318.GR10155@atomide.com>
+ <5165A1DB.3020404@ti.com>
+ <20130410182034.GH10155@atomide.com>
+ <5165CED4.1040800@ti.com>
+ <20130410205407.GQ10155@atomide.com>
+ <5165E6F1.8040102@ti.com>
+ <20130410222749.GR10155@atomide.com>
+ <20130413000615.GF10155@atomide.com>
+ <5168C050.7030006@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130304184649.GO11806@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, arm@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17982 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753682Ab3DMQuS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Apr 2013 12:50:18 -0400
+Content-Disposition: inline
+In-Reply-To: <5168C050.7030006@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>
 
-On Mon, Mar 4, 2013 at 1:46 PM, Tony Lindgren <tony@atomide.com> wrote:
->
->> drivers/gpu/drm/tilcdc/tilcdc_slave.o:(.data+0x54): multiple definition of `__mod_of_device_table'
->> drivers/gpu/drm/tilcdc/tilcdc_tfp410.o:(.data+0x54): first defined here
->> drivers/gpu/drm/tilcdc/tilcdc_panel.o:(.data+0x54): multiple definition of `__mod_of_device_table'
->> drivers/gpu/drm/tilcdc/tilcdc_tfp410.o:(.data+0x54): first defined here
->> drivers/gpu/drm/tilcdc/tilcdc_drv.o:(.data+0x184): multiple definition of `__mod_of_device_table'
->> drivers/gpu/drm/tilcdc/tilcdc_tfp410.o:(.data+0x54): first defined here
->
-> Rob, I assume you'll do a patch for this one?
+* Jon Hunter <jon-hunter@ti.com> [130412 19:22]:
+> 
+> On 04/12/2013 07:06 PM, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [130410 15:32]:
+> >> * Jon Hunter <jon-hunter@ti.com> [130410 15:30]:
+> >>>
+> >>> Are you saying that you want to use the version with that is using the
+> >>> pre-processor definitions? I was thinking that may be we could do that
+> >>> as a clean-up for v3.11 and just use the original version I posted
+> >>> earlier. Seems cleaner to me.
+> >>
+> >> No let's do that the preprocessor conversion for v3.11.
+> > 
+> > Hmm looks like there are few more 3430sdp dt nfsroot exposed
+> > issues in today's linux next.
+> 
+> I don't even see any ethernet devices defined in the omap3430-sdp.dts
+> file. Is this something that you have added on top?
 
+Oops sorry I meant the ks8851 on SPI on 4430sdp, not 3430.
+ 
+> > To get nfsroot to behave, I had to have your earlier fix
+> > from this thread and also revert a2797bea (gpio/omap: force
+> > restore if context loss is not detectable).
+> > 
+> > Otherwise nfsroot fails, but not necessarily every time?
+> 
+> Well this patch is going to force a gpio restore everytime we call
+> pm_runtime_get() when the use-count is 0. Yes this is not efficient,
+> however, without this patch you run the risk of context being lost and
+> you would never know. Per the changelog, long term a better solution is
+> needed.
 
-oh, I apologize for the late reply, I didn't see this email...
+It seems that this patch kills the ks8851 GPIO interrupt somehow,
+at least most of the time.
+ 
+> > I could not git bisect it down to the commit above, had to
+> > manually figure it out.. There may also be DMA related
+> > issues, but I don't know for sure any longer. I made a
+> > patch to fix SPI PIO mode and then hacked SPI to always use
+> > PIO to leave out the DMA related parts. Anyways, will post
+> > that separately, let's hope the DMA related issues I saw
+> > earlier are also related to dt + a2797bea.
+> 
+> Ok, I don't follow that. I am not sure how gpio is related to DMA in
+> this case.
 
-There is a patch that we can merge to make tilcdc bool instead of
-tristate[1], which I suppose is ok for a temporary fix.  Although I'm
-all-ears if someone has a better idea about how to fix this.  The
-problem is that we have multiple sub-devices for different possible
-panel drivers, so that depending on DT tables, the correct ones get
-loaded for the hw.  But they are all built into a single module.
-Splitting them into multiple modules will be problematic, as panel
-drivers which are present really need to get probed before the
-toplevel drm device.. I suppose in theory it is possible to make drm
-cope better with dynamically loaded outputs, but I'm not sure that
-there is any way to do this without breaking userspace which expects
-that all of the connectors/encoders are present once the drm device is
-loaded.
+I think the DMA issues might be related to the GPIO interrupt
+not working properly.
 
-BR,
--R
+Regards,
 
-[1] https://patchwork.kernel.org/patch/2376061/
+Tony
