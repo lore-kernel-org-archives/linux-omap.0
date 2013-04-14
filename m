@@ -1,84 +1,58 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: [PATCH 3/3] driver: net: ethernet: cpsw: dual emac interface
- implementation
-Date: Sun, 14 Apr 2013 20:20:15 +0100
-Message-ID: <516B016F.3020308@mimc.co.uk>
-References: <1360612340-9266-1-git-send-email-mugunthanvnm@ti.com> <1360612340-9266-4-git-send-email-mugunthanvnm@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
+Date: Sun, 14 Apr 2013 22:53:05 +0200
+Message-ID: <CACRpkda4h+qXTvsirPAS7E7sjXhMLE62q=VDy53W8UchsYjbNg@mail.gmail.com>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
+	<4F47AD08.4030504@ti.com>
+	<CAAwP0s0cB368R2mtbJpTZJreR-5GSRLfxC+8DJLo5nw3_OwBuA@mail.gmail.com>
+	<512D39DA.7020306@ti.com>
+	<512D3AB1.1080202@wwwdotorg.org>
+	<512D3EC2.6050408@ti.com>
+	<20130302200524.D230F3E1571@localhost>
+	<51391F41.5000303@ti.com>
+	<CAAwP0s1CFRO-rf==p5sYs1n0gigMif7wuT8Yv0N_iLUDMrtcOg@mail.gmail.com>
+	<CACRpkdYHj-rEF3Rk_CWnmmMw_Amr7m8SgQ=-2zsDYuLeuu3azw@mail.gmail.com>
+	<514C79E1.4090106@wwwdotorg.org>
+	<514CE0AB.6060207@ti.com>
+	<CACRpkdZmv-rAoKSQYpkHHSMzKJOn5TixVW_P3=m7ZNagBYCUPw@mail.gmail.com>
+	<515319D5.20105@wwwdotorg.org>
+	<CACRpkdYXVLgCz1Tyu-Ls2V2OTc4R3cGNJhfQJB6Hiz_K9dkZYQ@mail.gmail.com>
+	<5155C902.7080207@wwwdotorg.org>
+	<CACRpkdYbs4-uudpRUY8e+7icYYkZrfM0kReP3pLL5DMiURJ4dg@mail.gmail.com>
+	<5165CB9D.1090202@wwwdotorg.org>
+	<CACRpkdYirFNqmGhA4K9CL4ve4NYhs8Rd3SFt1iwW9vHBkrcz8g@mail.gmail.com>
+	<51671D7B.5060303@wwwdotorg.org>
+	<CACRpkdbf32Ef77GmXk9id9+RRjcDRTr7S+F4nznoeZU8y=BT_Q@mail.gmail.com>
+	<51673D70.3010503@wwwdotorg.org>
+	<CAAwP0s0e2x33jZQhFRY+Hoo61SFqYKRgWk=1mL2+DNxSDJHz+A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:48179 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753106Ab3DNTUR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Apr 2013 15:20:17 -0400
-In-Reply-To: <1360612340-9266-4-git-send-email-mugunthanvnm@ti.com>
+Received: from mail-ia0-f176.google.com ([209.85.210.176]:43331 "EHLO
+	mail-ia0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753730Ab3DNUxH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Apr 2013 16:53:07 -0400
+Received: by mail-ia0-f176.google.com with SMTP id i9so1485526iad.21
+        for <linux-omap@vger.kernel.org>; Sun, 14 Apr 2013 13:53:05 -0700 (PDT)
+In-Reply-To: <CAAwP0s0e2x33jZQhFRY+Hoo61SFqYKRgWk=1mL2+DNxSDJHz+A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Jon Hunter <jon-hunter@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Alexandre Courbot <acourbot@nvidia.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 11/02/13 19:52, Mugunthan V N wrote:
-> The CPSW switch can act as Dual EMAC by segregating the switch ports
-> using VLAN and port VLAN as per the TRM description in
-> 14.3.2.10.2 Dual Mac Mode
->
-> Following CPSW components will be common for both the interfaces.
-> * Interrupt source is common for both eth interfaces
-> * Interrupt pacing is common for both interfaces
-> * Hardware statistics is common for all the ports
-> * CPDMA is common for both eth interface
-> * CPTS is common for both the interface and it should not be enabled on
->    both the interface as timestamping information doesn't contain port
->    information.
->
-> Constrains
-> * Reserved VID of One port should not be used in other interface which will
->    enable switching functionality
-> * Same VID must not be used in both the interface which will enable switching
->    functionality
->
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-> ---
->   Documentation/devicetree/bindings/net/cpsw.txt |    2 +
->   drivers/net/ethernet/ti/cpsw.c                 |  335 ++++++++++++++++++++----
->   include/linux/platform_data/cpsw.h             |    3 +
->   3 files changed, 288 insertions(+), 52 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-> index 6ddd028..ecfdf75 100644
-> --- a/Documentation/devicetree/bindings/net/cpsw.txt
-> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
-> @@ -24,6 +24,8 @@ Required properties:
->   Optional properties:
->   - ti,hwmods		: Must be "cpgmac0"
->   - no_bd_ram		: Must be 0 or 1
-> +- dual_emac		: Specifies Switch to act as Dual EMAC
-> +- dual_emac_res_vlan	: Specifies VID to be used to segregate the ports
->
->   Note: "ti,hwmods" field is used to fetch the base address and irq
->   resources from TI, omap hwmod data base during device registration.
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 4b964bb..4ceed6e 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
+On Sun, Apr 14, 2013 at 3:35 AM, Javier Martinez Canillas
+<martinez.javier@gmail.com> wrote:
 
-<snip>
+> Is the following inlined patch [1] what you were thinking that would
+> be the right approach?
 
-> @@ -1237,6 +1372,18 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
->   		if (mac_addr)
->   			memcpy(slave_data->mac_addr, mac_addr, ETH_ALEN);
->
-> +		if (data->dual_emac) {
-> +			if (of_property_read_u32(node, "dual_emac_res_vlan",
-> +						 &prop)) {
+This looks sort of OK, but I'm still struggling with the question of
+what we could do to help other implementations facing the same issue.
 
-Shouldn't this be:-
+This is a pretty hard design pattern to properly replicate in every such
+driver is it not?
 
-	if (of_property_read_u32(slave_node, "dual_emac_res_vlan",
-                                  ^^^^^^^^^^
+Hmmmm
 
-... so we pick each VLAN id from the individual slaves ?
-
-Regards
-Mark J.
+Yours,
+Linus Walleij
