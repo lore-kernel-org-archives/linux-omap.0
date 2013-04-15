@@ -1,106 +1,72 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
-Date: Mon, 15 Apr 2013 13:25:38 +0200
-Message-ID: <CAAwP0s2tdDGXsWm0b5rHsxcv_qjMSOqE8g_mmyNW3oeXW=VpYA@mail.gmail.com>
-References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
- <4F47AD08.4030504@ti.com> <CAAwP0s0cB368R2mtbJpTZJreR-5GSRLfxC+8DJLo5nw3_OwBuA@mail.gmail.com>
- <512D39DA.7020306@ti.com> <512D3AB1.1080202@wwwdotorg.org>
- <512D3EC2.6050408@ti.com> <20130302200524.D230F3E1571@localhost>
- <51391F41.5000303@ti.com> <CAAwP0s1CFRO-rf==p5sYs1n0gigMif7wuT8Yv0N_iLUDMrtcOg@mail.gmail.com>
- <CACRpkdYHj-rEF3Rk_CWnmmMw_Amr7m8SgQ=-2zsDYuLeuu3azw@mail.gmail.com>
- <514C79E1.4090106@wwwdotorg.org> <514CE0AB.6060207@ti.com>
- <CACRpkdZmv-rAoKSQYpkHHSMzKJOn5TixVW_P3=m7ZNagBYCUPw@mail.gmail.com>
- <515319D5.20105@wwwdotorg.org> <CACRpkdYXVLgCz1Tyu-Ls2V2OTc4R3cGNJhfQJB6Hiz_K9dkZYQ@mail.gmail.com>
- <5155C902.7080207@wwwdotorg.org> <CACRpkdYbs4-uudpRUY8e+7icYYkZrfM0kReP3pLL5DMiURJ4dg@mail.gmail.com>
- <5165CB9D.1090202@wwwdotorg.org> <CACRpkdYirFNqmGhA4K9CL4ve4NYhs8Rd3SFt1iwW9vHBkrcz8g@mail.gmail.com>
- <51671D7B.5060303@wwwdotorg.org> <CACRpkdbf32Ef77GmXk9id9+RRjcDRTr7S+F4nznoeZU8y=BT_Q@mail.gmail.com>
- <51673D70.3010503@wwwdotorg.org> <CAAwP0s0e2x33jZQhFRY+Hoo61SFqYKRgWk=1mL2+DNxSDJHz+A@mail.gmail.com>
- <CACRpkda4h+qXTvsirPAS7E7sjXhMLE62q=VDy53W8UchsYjbNg@mail.gmail.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v3 0/6] Generic PHY Framework
+Date: Mon, 15 Apr 2013 13:27:37 +0200
+Message-ID: <516BE429.9040002@samsung.com>
+References: <1363770725-13717-1-git-send-email-kishon@ti.com>
+ <20130415102009.D358E3E0AA8@localhost> <516BD835.8060007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f177.google.com ([209.85.210.177]:42152 "EHLO
-	mail-ia0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754647Ab3DOL0B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Apr 2013 07:26:01 -0400
-Received: by mail-ia0-f177.google.com with SMTP id w33so4227499iag.22
-        for <linux-omap@vger.kernel.org>; Mon, 15 Apr 2013 04:25:58 -0700 (PDT)
-In-Reply-To: <CACRpkda4h+qXTvsirPAS7E7sjXhMLE62q=VDy53W8UchsYjbNg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-reply-to: <516BD835.8060007@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, linux-usb@vger.kernel.org, mchehab@redhat.com, linux-doc@vger.kernel.org, linux@arm.linux.org.uk, javier@dowhile0.org, cesarb@cesarb.net, eballetbo@gmail.com, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, swarren@nvidia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, akpm@linux-foundation.org, davem@davemloft.net
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Jon Hunter <jon-hunter@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Alexandre Courbot <acourbot@nvidia.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Sun, Apr 14, 2013 at 10:53 PM, Linus Walleij
-<linus.walleij@linaro.org> wrote:
-> On Sun, Apr 14, 2013 at 3:35 AM, Javier Martinez Canillas
-> <martinez.javier@gmail.com> wrote:
->
->> Is the following inlined patch [1] what you were thinking that would
->> be the right approach?
+On 04/15/2013 12:36 PM, Kishon Vijay Abraham I wrote:
+> On Monday 15 April 2013 03:50 PM, Grant Likely wrote:
+>> On Wed, 20 Mar 2013 14:41:59 +0530, Kishon Vijay Abraham I <kishon@ti.com>
+>> wrote:
+>>> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+>>> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+>>> the PHY with or without using phandle. To obtain a reference to the PHY
+>>> without using phandle, the platform specfic intialization code (say from board
+>>> file) should have already called phy_bind with the binding information. The
+>>> binding information consists of phy's device name, phy user device name and an
+>>> index. The index is used when the same phy user binds to mulitple phys.
+>>>
+>>> This framework will be of use only to devices that uses external PHY (PHY
+>>> functionality is not embedded within the controller).
+>>>
+>>> The intention of creating this framework is to bring the phy drivers spread
+>>> all over the Linux kernel to drivers/phy to increase code re-use and to
+>>> increase code maintainability.
+>>>
+>>> Comments to make PHY as bus wasn't done because PHY devices can be part of
+>>> other bus and making a same device attached to multiple bus leads to bad
+>>> design.
+>>>
+>>> Making omap-usb2 and twl4030 to use this framework is provided as a sample.
+>>>
+>>> This patch series is developed on 3.9-rc3. Once the patch series gets finalised
+>>> I'll resend omap-usb2 and twl4030 part based on Felipe's tree.
+>>>
+>>
+>> [...]
+>>
+>>>   drivers/Kconfig                                    |    2 +
+>>>   drivers/Makefile                                   |    2 +
+>>>   drivers/phy/Kconfig                                |   13 +
+>>>   drivers/phy/Makefile                               |    5 +
+>>>   drivers/phy/phy-core.c                             |  574
+>>> ++++++++++++++++++++
+>>
+>> This looks to be very specific for USB PHYs. Are you intending it to be
+>> used for other types of PHYs, like Ethernet PHYs? If not, then this
+> 
+> Not really. This can be used by USB, SATA and Sylwester was planning to use it
+> for video PHY's.
 
-Hi Linus, thanks a lot for your feedback.
+Yes, I have already some RFC patches to handle the display and the camera
+interface DPHYs (MIPI DSI, MIPI CSI-2) with this API. I didn't post it, since
+this framework is not settled yet. Those DPHYs need very few operations, like
+disable/enable only and there was really not suitable API in the kernel until
+now to handle them. We had plans in the past to write something like this 
+generic PHY framework for the Samsung SoCs.
 
->
-> This looks sort of OK, but I'm still struggling with the question of
-> what we could do to help other implementations facing the same issue.
->
+Some SoCs have plenty different PHYs: USB, SATA, MIPI CSI-2, MIPI DSI, HDMI... 
+And some of them are simple enough to be covered by this generic PHY API.
 
-Yes, I don't know how we can make it easier to other implementations
-(besides adding the irq_request hook to irq_chip) since the logic is
-GPIO controller specific.
-
-For example I took a look to drivers/gpio/gpio-tegra.c and if I
-understood correctly, the implementation for this driver should be
-something like this:
-
-diff --git a/drivers/gpio/gpio-tegra.c b/drivers/gpio/gpio-tegra.c
-index 414ad91..a2d5c3d 100644
---- a/drivers/gpio/gpio-tegra.c
-+++ b/drivers/gpio/gpio-tegra.c
-@@ -346,6 +346,11 @@ static int tegra_gpio_wake_enable(struct irq_data
-*d, unsigned int enable)
- }
- #endif
-
-+static int tegra_gpio_irq_request(struct irq_data *d)
-+{
-+	tegra_gpio_request(NULL, d->hwirq);
-+}
-+
- static struct irq_chip tegra_gpio_irq_chip = {
- 	.name		= "GPIO",
- 	.irq_ack	= tegra_gpio_irq_ack,
-@@ -355,6 +360,7 @@ static struct irq_chip tegra_gpio_irq_chip = {
- #ifdef CONFIG_PM_SLEEP
- 	.irq_set_wake	= tegra_gpio_wake_enable,
- #endif
-+	.irq_request    = tegra_gpio_irq_request,
- };
-
- static const struct dev_pm_ops tegra_gpio_pm_ops = {
-
-This is definitely quite similar to the omap-gpio.c change but not the same.
-
-> This is a pretty hard design pattern to properly replicate in every such
-> driver is it not?
->
-> Hmmmm
->
-
-Is indeed a hard design pattern but I couldn't figure out a more
-generic way to handle this.
-
-Maybe we could use [1] for now to solve the issue that we have with
-OMAP GPIO and later when the same issue is found on other GPIO
-controllers and a similar change is made on these drivers we will see
-some form of pattern that emerge allowing us to make a later refactor
-to reduce the code duplication.
-
-Or do you have a better idea on how to solve this?
-
-> Yours,
-> Linus Walleij
-
-Best regards,
-Javier
+Thanks,
+Sylwester
