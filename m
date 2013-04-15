@@ -1,101 +1,64 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [BUG] omap: mfd/regulator: twl/core: init order
-Date: Mon, 15 Apr 2013 13:59:56 +0300
-Message-ID: <516BDDAC.8040905@ti.com>
-References: <1365877659.3812.110.camel@mars>  <516BD479.2020904@ti.com> <1366023401.957.5.camel@mars>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] ARM: OMAP3: Beagle: Fix USB Host on beagle xM Ax/Bx
+Date: Mon, 15 Apr 2013 14:20:08 +0300
+Message-ID: <1366024808-4691-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52139 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753536Ab3DOLAt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Apr 2013 07:00:49 -0400
-In-Reply-To: <1366023401.957.5.camel@mars>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Christoph Fritz <chf.fritz@googlemail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, Liam Girdwood <lrg@ti.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org, Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
 
-On 04/15/2013 01:56 PM, Christoph Fritz wrote:
-> On Mon, 2013-04-15 at 13:20 +0300, Grygorii Strashko wrote:
->> On 04/13/2013 09:27 PM, Christoph Fritz wrote:
->>> Hi
->>>
->>>    while testing an omap3 board with device tree support I stumbled upon a
->>> bug which is due to wrong initialization order of twl-core and
->>> twl-regulator (I suppose): In the boot process they get loaded way too
->>> late so that a lot of drivers before where configured wrong or just
->>> refuse to load.
->>>
->>> For example the real time clock driver: The RTC kicks in way before
->>> twl_probe() and due to that it configures its register map wrong
->>> (at this time twl_priv->twl_id isn't configured yet).
->>>
->>> Another example is the omap display subsystem. It (DSS) fails loading
->>> while trying to register some not yet existent regulators and because it
->>> lacks EPROBE_DEFER.
->>>
->>> USB and MMC is also not working and I'm suspicious of the same cause.
->>>
->>> Any ideas?
->> Hi Christoph,
->>
->> It happens, because I2C probes execution  have been deferred due to
->> "pinctrl-single" driver (, which is not ready at i2c bus initialization
->> time:
->>
->> [    0.525939] omap_i2c 48070000.i2c: could not find pctldev for node
->> /ocp/pinmux@4a100040/pinmux_i2c1_pins, deferring probe
->> [    0.526000] platform 48070000.i2c: Driver omap_i2c requests probe
->> deferral
->> [    0.526062] omap_i2c 48072000.i2c: could not find pctldev for node
->> /ocp/pinmux@4a100040/pinmux_i2c2_pins, deferring probe
->> [    0.526092] platform 48072000.i2c: Driver omap_i2c requests probe
->> deferral
->> [    0.526153] omap_i2c 48060000.i2c: could not find pctldev for node
->> /ocp/pinmux@4a100040/pinmux_i2c3_pins, deferring probe
->> [    0.526184] platform 48060000.i2c: Driver omap_i2c requests probe
->> deferral
->> [    0.526245] omap_i2c 48350000.i2c: could not find pctldev for node
->> /ocp/pinmux@4a100040/pinmux_i2c4_pins, deferring probe
->> [    0.526275] platform 48350000.i2c: Driver omap_i2c requests probe
->> deferral
->>
->> I think following change should fix it, could you try it, pls:
->> diff --git a/drivers/pinctrl/pinctrl-single.c
->> b/drivers/pinctrl/pinctrl-single.c
->> index 5c32e88..b2a9d4b 100644
->> --- a/drivers/pinctrl/pinctrl-single.c
->> +++ b/drivers/pinctrl/pinctrl-single.c
->> @@ -1014,7 +1014,18 @@ static struct platform_driver pcs_driver = {
->>           },
->>    };
->>
->> -module_platform_driver(pcs_driver);
->> +static int __init pcs_driver_drv_init(void)
->> +{
->> +       return platform_driver_register(&pcs_driver);
->> +}
->> +postcore_initcall(pcs_driver_drv_init);
->> +
->> +static void __exit pcs_driver_drv_exit(void)
->> +{
->> +       platform_driver_unregister(&pcs_driver);
->> +}
->> +module_exit(pcs_driver_drv_exit);
->> +
-> Hi Grygorii,
->   thanks - indeed it does fix the problem. I checked at least the rtc
-> which is now configured right and working :-)
->
-> Do you consider the patch above as a hack or will it go mainline?
-I think, need more opinions on this from community )
-I'm just trying to solve my problem and found similar issue.
->
->   Thanks
->    -- Christoph
->
->
->
+On Beagle xM Rev. Ax/Bx, the USB power enable GPIO logic is
+reversed when compared to other revisions i.e. it is
+active high instead of active low.
 
+Use the beagle_config.usb_pwr_level flag correctly so that
+the power regulator can be configured at runtime.
+
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 5382215..21136b2 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -112,13 +112,13 @@ static u8 omap3_beagle_version;
+  */
+ static struct {
+ 	int mmc1_gpio_wp;
+-	int usb_pwr_level;
++	bool usb_pwr_level;	/* 0 - Active Low, 1 - Active High */
+ 	int dvi_pd_gpio;
+ 	int usr_button_gpio;
+ 	int mmc_caps;
+ } beagle_config = {
+ 	.mmc1_gpio_wp = -EINVAL,
+-	.usb_pwr_level = GPIOF_OUT_INIT_LOW,
++	.usb_pwr_level = 0,
+ 	.dvi_pd_gpio = -EINVAL,
+ 	.usr_button_gpio = 4,
+ 	.mmc_caps = MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+@@ -178,7 +178,7 @@ static void __init omap3_beagle_init_rev(void)
+ 	case 0:
+ 		printk(KERN_INFO "OMAP3 Beagle Rev: xM Ax/Bx\n");
+ 		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+-		beagle_config.usb_pwr_level = GPIOF_OUT_INIT_HIGH;
++		beagle_config.usb_pwr_level = 1;
+ 		beagle_config.mmc_caps &= ~MMC_CAP_8_BIT_DATA;
+ 		break;
+ 	case 2:
+-- 
+1.7.4.1
