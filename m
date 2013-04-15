@@ -1,79 +1,53 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: 4430sdp nfsroot broken with ff5c9059
-Date: Mon, 15 Apr 2013 11:57:29 -0500
-Message-ID: <516C3179.4070501@ti.com>
-References: <20130409212318.GR10155@atomide.com> <5165A1DB.3020404@ti.com> <20130410182034.GH10155@atomide.com> <5165CED4.1040800@ti.com> <20130410205407.GQ10155@atomide.com> <5165E6F1.8040102@ti.com> <20130410222749.GR10155@atomide.com> <20130413000615.GF10155@atomide.com> <5168C050.7030006@ti.com> <20130413165014.GL10155@atomide.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
+Date: Mon, 15 Apr 2013 10:58:43 -0600
+Message-ID: <516C31C3.9040505@wwwdotorg.org>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <20130302200524.D230F3E1571@localhost> <51391F41.5000303@ti.com> <CAAwP0s1CFRO-rf==p5sYs1n0gigMif7wuT8Yv0N_iLUDMrtcOg@mail.gmail.com> <CACRpkdYHj-rEF3Rk_CWnmmMw_Amr7m8SgQ=-2zsDYuLeuu3azw@mail.gmail.com> <514C79E1.4090106@wwwdotorg.org> <514CE0AB.6060207@ti.com> <CACRpkdZmv-rAoKSQYpkHHSMzKJOn5TixVW_P3=m7ZNagBYCUPw@mail.gmail.com> <515319D5.20105@wwwdotorg.org> <CACRpkdYXVLgCz1Tyu-Ls2V2OTc4R3cGNJhfQJB6Hiz_K9dkZYQ@mail.gmail.com> <5155C902.7080207@wwwdotorg.org> <CACRpkdYbs4-uudpRUY8e+7icYYkZrfM0kReP3pLL5DMiURJ4dg@mail.gmail.com> <5165CB9D.1090202@wwwdotorg.org> <CACRpkdYirFNqmGhA4K9CL4ve4NYhs8Rd3SFt1iwW9vHBkrcz8g@mail.gmail.com> <51671D7B.5060303@wwwdotorg.org> <CACRpkdbf32Ef77GmXk9id9+RRjcDRTr7S+F4nznoeZU8y=BT_Q@mail.gmail.com
+ > <51673D70.3010503@wwwdotorg.org> <CAAwP0s0e2x33jZQhFRY+Hoo61SFqYKRgWk=1mL2+DNxSDJHz+A@mail.gmail.com> <CACRpkda4h+qXTvsirPAS7E7sjXhMLE62q=VDy53W8UchsYjbNg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51245 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751679Ab3DOQ5b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Apr 2013 12:57:31 -0400
-In-Reply-To: <20130413165014.GL10155@atomide.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:37335 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933415Ab3DOQ6s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Apr 2013 12:58:48 -0400
+In-Reply-To: <CACRpkda4h+qXTvsirPAS7E7sjXhMLE62q=VDy53W8UchsYjbNg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Jon Hunter <jon-hunter@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Alexandre Courbot <acourbot@nvidia.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-
-On 04/13/2013 11:50 AM, Tony Lindgren wrote:
-> * Jon Hunter <jon-hunter@ti.com> [130412 19:22]:
->>
->> On 04/12/2013 07:06 PM, Tony Lindgren wrote:
->>> * Tony Lindgren <tony@atomide.com> [130410 15:32]:
->>>> * Jon Hunter <jon-hunter@ti.com> [130410 15:30]:
->>>>>
->>>>> Are you saying that you want to use the version with that is using the
->>>>> pre-processor definitions? I was thinking that may be we could do that
->>>>> as a clean-up for v3.11 and just use the original version I posted
->>>>> earlier. Seems cleaner to me.
->>>>
->>>> No let's do that the preprocessor conversion for v3.11.
->>>
->>> Hmm looks like there are few more 3430sdp dt nfsroot exposed
->>> issues in today's linux next.
->>
->> I don't even see any ethernet devices defined in the omap3430-sdp.dts
->> file. Is this something that you have added on top?
+On 04/14/2013 02:53 PM, Linus Walleij wrote:
+> On Sun, Apr 14, 2013 at 3:35 AM, Javier Martinez Canillas
+> <martinez.javier@gmail.com> wrote:
 > 
-> Oops sorry I meant the ks8851 on SPI on 4430sdp, not 3430.
-
-Ok makes sense.
-
->>> To get nfsroot to behave, I had to have your earlier fix
->>> from this thread and also revert a2797bea (gpio/omap: force
->>> restore if context loss is not detectable).
->>>
->>> Otherwise nfsroot fails, but not necessarily every time?
->>
->> Well this patch is going to force a gpio restore everytime we call
->> pm_runtime_get() when the use-count is 0. Yes this is not efficient,
->> however, without this patch you run the risk of context being lost and
->> you would never know. Per the changelog, long term a better solution is
->> needed.
+>> Is the following inlined patch [1] what you were thinking that would
+>> be the right approach?
 > 
-> It seems that this patch kills the ks8851 GPIO interrupt somehow,
-> at least most of the time.
-
-Hmmm, let me go back and re-test this.
-
->>> I could not git bisect it down to the commit above, had to
->>> manually figure it out.. There may also be DMA related
->>> issues, but I don't know for sure any longer. I made a
->>> patch to fix SPI PIO mode and then hacked SPI to always use
->>> PIO to leave out the DMA related parts. Anyways, will post
->>> that separately, let's hope the DMA related issues I saw
->>> earlier are also related to dt + a2797bea.
->>
->> Ok, I don't follow that. I am not sure how gpio is related to DMA in
->> this case.
+> This looks sort of OK, but I'm still struggling with the question of
+> what we could do to help other implementations facing the same issue.
 > 
-> I think the DMA issues might be related to the GPIO interrupt
-> not working properly.
+> This is a pretty hard design pattern to properly replicate in every such
+> driver is it not?
 
-What is the use-case? DMA + SPI? Talking to what on what board?
+Well, instead of adding .request_irq() to the irqchip, and then making
+each driver call gpio_request() from the implementation, perhaps you
+could add a .irq_to_gpio() to the irqchip, have the IRQ core call that,
+and if it gets back a non-error response, the IRQ core could call
+gpio_request(). That means that the change to each GPIO+IRQ driver is
+simply to implement a standalone data transformation function
+.irq_to_gpio().
 
-Cheers
-Jon
+Now, this does re-introduce irq_to_gpio() in some way, but with the
+following advantages:
+
+1) The implementation is per-controller, not a single global function,
+so isn't introducing any kind of centralized mapping scheme again.
+
+2) This irq-chip-specific .irq_to_gpio() would only be implemented for
+IRQ+GPIO chips that actually have a 1:1 mapping between GPIOs and IRQs.
+Its potential existence doesn't imply that all IRQ chips need implement
+this; it would be very specifically be for this one particular case.
+
+So, I think it's reasonable to introduce this.
