@@ -1,98 +1,63 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCHv3] driver: serial: prevent UART console idle on suspend
- while using "no_console_suspend"
-Date: Mon, 15 Apr 2013 17:25:48 +0530
-Message-ID: <516BEAC4.7040608@ti.com>
-References: <1365167733-28083-1-git-send-email-sourav.poddar@ti.com>	<87mwtclvua.fsf@linaro.org> <516463D2.2070008@ti.com>	<87obdnh6au.fsf@linaro.org> <516501A0.4000004@ti.com>	<B5906170F1614E41A8A28DE3B8D121433ED96446@DBDE01.ent.ti.com>	<51653450.2010200@ti.com>	<B5906170F1614E41A8A28DE3B8D121433ED96C45@DBDE01.ent.ti.com>	<87bo9myt52.fsf@linaro.org> <87y5cpxiey.fsf@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87y5cpxiey.fsf@linaro.org>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "tony@atomide.com" <tony@atomide.com>, "rmk+kernel@arm.linux.org.uk" <rmk+kernel@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v3 0/6] Generic PHY Framework
+Date: Mon, 15 Apr 2013 13:26:34 +0100
+Message-ID: <20130415122634.3A08A3E0AA8@localhost>
+References: <1363770725-13717-1-git-send-email-kishon@ti.com> <20130415102009.D358E3E0AA8@localhost> <516BD835.8060007@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <516BD835.8060007@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-usb@vger.kernel.org, mchehab@redhat.com, linux-doc@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, javier@dowhile0.org, cesarb@cesarb.net, arnd@arndb.de, eballetbo@gmail.com, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, swarren@nvidia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, gregkh@linuxfoundation.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, rob@landley.net, akpm@linux-foundation.org, davem@davemloft.net
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kevin,
-On Thursday 11 April 2013 07:45 PM, Kevin Hilman wrote:
-> Kevin Hilman<khilman@linaro.org>  writes:
->
->> "Bedia, Vaibhav"<vaibhav.bedia@ti.com>  writes:
->>
->>> Hi Sourav,
->>>
->>> On Wed, Apr 10, 2013 at 15:13:44, Poddar, Sourav wrote:
->>> [...]
->>>> Yes, had a look at that and found your situation similar to UART.
->>>>
->>>> But how exactly this gets used, I mean I don't  see any drivers/ in mainline
->>>> making use of this compatible string  "ti,am3352-ocmcram".  ?
->>> OCMC clock is enabled during bootup (not sure whether that's the h/w
->>> default or ROM does it) since the initial bootloader runs from there.
->>> By marking the corresponding hwmod with HWMOD_INIT_NO_IDLE we leave the
->>> clock running. Right now the sram code under arch/arm/plat-omap/ is what
->>> manages the OCMC. I guess this needs to move somewhere under drivers/
->>> and start managing the clocks. Even then we'll need a mechanism
->>> to leave the clocks running as part of the kernel suspend process
->>> since the assembly code which runs at the fag end of the suspend
->>> process runs out of OCMC and hence we can't cut its clock.
->>>
->>> On AM335x, the OCMC clock is cut to have PER power domain transition
->>> but that's done in the WKUP-M3 firmware when going down. During the
->>> wakeup sequence, WKUP-M3 re-enables the OCMC clock so that when the
->>> kernel resumes the h/w state is same.
->> OK, but *today*, in *mainline*, where in the linux kernel (not the M3
->> firmware) is the OCMRAM clock cut during suspend?
->>
->>  From what I can see, there is no driver for this device, so there are no
->> system PM calls being done for that device, and thus no omap_device
->> calls being done for that device, so the no_idle_on_suspend has no
->> effect.
-> OK, I think I confused things here, sorry. I was thinking runtime PM
-> here, but wrote system PM.  The no_idle_on_suspend feature only affects
-> system PM, and the omap_device calls will still be called during system
-> PM, even without a driver.
->
-> That being said, the commit below[1], added in v3.6 should prevent the
-> any automaic clock gating for devices without drivers bound.  Since
-> there is no driver for the OCM RAM block, you shouldn't be affected by
-> the automatic idle on suspend anyways.
->
-> So, my proposal is that Sourav remove that flag from the AM33xx hwmod
-> when he removes this feature.
->
-> Kevin
->
-Thanks a lot for your inputs and helping in bringing this thread to
-a logical conclusion.
+On Mon, 15 Apr 2013 16:06:37 +0530, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> Hi,
+> 
+> On Monday 15 April 2013 03:50 PM, Grant Likely wrote:
+> > On Wed, 20 Mar 2013 14:41:59 +0530, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> >> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+> >> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+> >> the PHY with or without using phandle. To obtain a reference to the PHY
+> >> without using phandle, the platform specfic intialization code (say from board
+> >> file) should have already called phy_bind with the binding information. The
+> >> binding information consists of phy's device name, phy user device name and an
+> >> index. The index is used when the same phy user binds to mulitple phys.
+> >>
+> >> This framework will be of use only to devices that uses external PHY (PHY
+> >> functionality is not embedded within the controller).
+> >>
+> >> The intention of creating this framework is to bring the phy drivers spread
+> >> all over the Linux kernel to drivers/phy to increase code re-use and to
+> >> increase code maintainability.
+> >>
+> >> Comments to make PHY as bus wasn't done because PHY devices can be part of
+> >> other bus and making a same device attached to multiple bus leads to bad
+> >> design.
+> >>
+> >> Making omap-usb2 and twl4030 to use this framework is provided as a sample.
+> >>
+> >> This patch series is developed on 3.9-rc3. Once the patch series gets finalised
+> >> I'll resend omap-usb2 and twl4030 part based on Felipe's tree.
+> >>
+> >
+> > [...]
+> >
+> >>   drivers/Kconfig                                    |    2 +
+> >>   drivers/Makefile                                   |    2 +
+> >>   drivers/phy/Kconfig                                |   13 +
+> >>   drivers/phy/Makefile                               |    5 +
+> >>   drivers/phy/phy-core.c                             |  574 ++++++++++++++++++++
+> >
+> > This looks to be very specific for USB PHYs. Are you intending it to be
+> > used for other types of PHYs, like Ethernet PHYs? If not, then this
+> 
+> Not really. This can be used by USB, SATA and Sylwester was planning to 
+> use it for video PHY's.
 
-I will post a v4 for this patch along with other fixes/cleanups
-required as recommended by you and russell.
+So what are the common bits that are shared between those phys? Merely
+matching phys to controllers? Besides that, each of those devices have
+very different behaviour. You wouldn't be able to attach any interface
+logic to the generic struct phy. I don't think it makes a whole lot of
+sense to lump them all into the same type of registration.
 
-Thanks,
-Sourav
-> [1]
-> commit 72bb6f9b51c82c820ddef892455a85b115460904
-> Author: Kevin Hilman<khilman@ti.com>
-> Date:   Tue Jul 10 15:29:04 2012 -0700
->
->      ARM: OMAP: omap_device: don't attempt late suspend if no driver bound
->
->      Currently, the omap_device PM domain layer uses the late suspend and
->      early resume callbacks to ensure devices are in their low power
->      states.
->
->      However, this is attempted even in cases where a driver probe has
->      failed.  If a driver's ->probe() method fails, the driver is likely in
->      a state where it is not expecting its runtime PM callbacks to be
->      called, yet currently the omap_device PM domain code attempts to call
->      the drivers callbacks.
->
->      To fix, use the omap_device driver_status field to check whether a
->      driver is bound to the omap_device before attempting to trigger driver
->      callbacks.
->
->      Reviewed-by: Paul Walmsley<paul@pwsan.com>
->      Signed-off-by: Kevin Hilman<khilman@ti.com>
-
+g.
