@@ -1,53 +1,66 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
-Date: Mon, 15 Apr 2013 10:58:43 -0600
-Message-ID: <516C31C3.9040505@wwwdotorg.org>
-References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <20130302200524.D230F3E1571@localhost> <51391F41.5000303@ti.com> <CAAwP0s1CFRO-rf==p5sYs1n0gigMif7wuT8Yv0N_iLUDMrtcOg@mail.gmail.com> <CACRpkdYHj-rEF3Rk_CWnmmMw_Amr7m8SgQ=-2zsDYuLeuu3azw@mail.gmail.com> <514C79E1.4090106@wwwdotorg.org> <514CE0AB.6060207@ti.com> <CACRpkdZmv-rAoKSQYpkHHSMzKJOn5TixVW_P3=m7ZNagBYCUPw@mail.gmail.com> <515319D5.20105@wwwdotorg.org> <CACRpkdYXVLgCz1Tyu-Ls2V2OTc4R3cGNJhfQJB6Hiz_K9dkZYQ@mail.gmail.com> <5155C902.7080207@wwwdotorg.org> <CACRpkdYbs4-uudpRUY8e+7icYYkZrfM0kReP3pLL5DMiURJ4dg@mail.gmail.com> <5165CB9D.1090202@wwwdotorg.org> <CACRpkdYirFNqmGhA4K9CL4ve4NYhs8Rd3SFt1iwW9vHBkrcz8g@mail.gmail.com> <51671D7B.5060303@wwwdotorg.org> <CACRpkdbf32Ef77GmXk9id9+RRjcDRTr7S+F4nznoeZU8y=BT_Q@mail.gmail.com
- > <51673D70.3010503@wwwdotorg.org> <CAAwP0s0e2x33jZQhFRY+Hoo61SFqYKRgWk=1mL2+DNxSDJHz+A@mail.gmail.com> <CACRpkda4h+qXTvsirPAS7E7sjXhMLE62q=VDy53W8UchsYjbNg@mail.gmail.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH 3/3] driver: net: ethernet: cpsw: dual emac interface
+ implementation
+Date: Mon, 15 Apr 2013 22:34:00 +0530
+Message-ID: <516C3300.10005@ti.com>
+References: <1360612340-9266-1-git-send-email-mugunthanvnm@ti.com> <1360612340-9266-4-git-send-email-mugunthanvnm@ti.com> <516B016F.3020308@mimc.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:37335 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933415Ab3DOQ6s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Apr 2013 12:58:48 -0400
-In-Reply-To: <CACRpkda4h+qXTvsirPAS7E7sjXhMLE62q=VDy53W8UchsYjbNg@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52563 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751679Ab3DORE4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Apr 2013 13:04:56 -0400
+In-Reply-To: <516B016F.3020308@mimc.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Jon Hunter <jon-hunter@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Alexandre Courbot <acourbot@nvidia.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 04/14/2013 02:53 PM, Linus Walleij wrote:
-> On Sun, Apr 14, 2013 at 3:35 AM, Javier Martinez Canillas
-> <martinez.javier@gmail.com> wrote:
-> 
->> Is the following inlined patch [1] what you were thinking that would
->> be the right approach?
-> 
-> This looks sort of OK, but I'm still struggling with the question of
-> what we could do to help other implementations facing the same issue.
-> 
-> This is a pretty hard design pattern to properly replicate in every such
-> driver is it not?
+On 4/15/2013 12:50 AM, Mark Jackson wrote:
+> On 11/02/13 19:52, Mugunthan V N wrote:
+>> The CPSW switch can act as Dual EMAC by segregating the switch ports
+>> using VLAN and port VLAN as per the TRM description in
+>> 14.3.2.10.2 Dual Mac Mode
+>>
+>> Following CPSW components will be common for both the interfaces.
+>> * Interrupt source is common for both eth interfaces
+>> * Interrupt pacing is common for both interfaces
+>> * Hardware statistics is common for all the ports
+>> * CPDMA is common for both eth interface
+>> * CPTS is common for both the interface and it should not be enabled on
+>>    both the interface as timestamping information doesn't contain port
+>>    information.
+>>
+>> Constrains
+>> * Reserved VID of One port should not be used in other interface 
+>> which will
+>>    enable switching functionality
+>> * Same VID must not be used in both the interface which will enable 
+>> switching
+>>    functionality
+>>
+>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+>> ---
+>
+>> @@ -1237,6 +1372,18 @@ static int cpsw_probe_dt(struct 
+>> cpsw_platform_data *data,
+>>           if (mac_addr)
+>>               memcpy(slave_data->mac_addr, mac_addr, ETH_ALEN);
+>>
+>> +        if (data->dual_emac) {
+>> +            if (of_property_read_u32(node, "dual_emac_res_vlan",
+>> +                         &prop)) {
+>
+> Shouldn't this be:-
+>
+>     if (of_property_read_u32(slave_node, "dual_emac_res_vlan",
+>                                  ^^^^^^^^^^
+>
+> ... so we pick each VLAN id from the individual slaves ?
 
-Well, instead of adding .request_irq() to the irqchip, and then making
-each driver call gpio_request() from the implementation, perhaps you
-could add a .irq_to_gpio() to the irqchip, have the IRQ core call that,
-and if it gets back a non-error response, the IRQ core could call
-gpio_request(). That means that the change to each GPIO+IRQ driver is
-simply to implement a standalone data transformation function
-.irq_to_gpio().
+Good catch, will send a fixup patch for this.
 
-Now, this does re-introduce irq_to_gpio() in some way, but with the
-following advantages:
-
-1) The implementation is per-controller, not a single global function,
-so isn't introducing any kind of centralized mapping scheme again.
-
-2) This irq-chip-specific .irq_to_gpio() would only be implemented for
-IRQ+GPIO chips that actually have a 1:1 mapping between GPIOs and IRQs.
-Its potential existence doesn't imply that all IRQ chips need implement
-this; it would be very specifically be for this one particular case.
-
-So, I think it's reasonable to introduce this.
+Regards
+Mugunthan V N
