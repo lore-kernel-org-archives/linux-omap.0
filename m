@@ -1,168 +1,101 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.9-rc7
-Date: Mon, 15 Apr 2013 05:33:48 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1304150530520.17469@utopia.booyaka.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: Latest randconfig build errors
+Date: Mon, 15 Apr 2013 08:04:44 +0200
+Message-ID: <20130415060444.GA7746@avionic-0098.mockup.avionic-design.de>
+References: <20130304095136.GI17833@n2100.arm.linux.org.uk>
+ <20130304184649.GO11806@atomide.com>
+ <CAF6AEGv=3453KKS9-8YAgHrxMMbNvLMvt0pz-=qdG+zcd-Trrw@mail.gmail.com>
+ <20130413214539.GA32613@avionic-0098.mockup.avionic-design.de>
+ <CAF6AEGtbqT23bjniwmGP-PhcxRPk5Q9aDaWM-=vVgkVrvDbCaQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:41157 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933432Ab3DOFdt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Apr 2013 01:33:49 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGtbqT23bjniwmGP-PhcxRPk5Q9aDaWM-=vVgkVrvDbCaQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Clark <robdclark@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, arm@kernel.org, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
 
 
-Here are some basic OMAP test results for Linux v3.9-rc7.
-Logs and other details at:
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-    http://www.pwsan.com/omap/testlogs/test_v3.9-rc7/20130414220303/
+On Sun, Apr 14, 2013 at 12:29:46AM -0400, Rob Clark wrote:
+> On Sat, Apr 13, 2013 at 5:45 PM, Thierry Reding
+[...]
+> > I had been thinking about this on and off for a while, but I haven't
+> > come up with anything concrete. Ideally we could just have some kind of
+> > event that userspace would listen for, so that new outputs can be
+> > dynamically added and userspace informed about them. Last time I checked
+> > most of the helpers assumed that the complete output configuration is
+> > known when the DRM device is registered, so some major rework will be
+> > required to efficiently make use of such dynamicity.
+>=20
+> I'm less worried about the kernel re-work.. more worried about the
+> fact that we have no way to know whether userspace knows to listen for
+> this new event.  So anything down this path could, I think, be
+> considered as breaking userspace.
 
+Yes, that's probably true. Although the typical use-case would be that
+the application would run on any of the detected outputs and if there is
+none to begin with it will just fail. If there already is one, it will
+try to use that instead and only fail to use a second one if it becomes
+available.
 
-Test summary
-------------
+> I think in the end, we need some way to have sort of "dummy"
+> connectors for output drivers which might or might not be probed, so
+> that from userspace perspective, non-present panels appear as displays
+> that are not plugged in.
 
-Build:
-    FAIL ( 2/16): am33xx_only, omap2plus_defconfig_2430sdp_only
-    Pass (14/16): n800_multi_omap2xxx, n800_only_a, omap1_defconfig, 
-                  omap1_defconfig_1510innovator_only, 
-                  omap1_defconfig_5912osk_only, omap2plus_defconfig, 
-                  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm, 
-                  omap2plus_defconfig_omap2_4_only, 
-                  omap2plus_defconfig_omap3_4_only, 
-                  rmk_omap3430_ldp_allnoconfig, 
-                  rmk_omap3430_ldp_oldconfig, 
-                  rmk_omap4430_sdp_allnoconfig, 
-                  rmk_omap4430_sdp_oldconfig
+I can imagine that quite a few userspace programs will be broken by this
+as well. For instance if you have an LVDS panel, I'm pretty sure people
+will just assume that it can't be in a disconnected state and therefore
+won't deal with that case.
 
-Boot to userspace:
-    FAIL ( 1/11): am335xbone
-    Pass (10/11): 2420n800, 2430sdp, 3517evm, 3530es3beagle,
-                  3730beaglexm, 37xxevm, 4430es2panda, 4460pandaes,
-                  5912osk, cmt3517
+=46rom a driver's point of view this isn't all that different from the
+case you're trying to solve now. You still need to find out which
+outputs can eventually become available. But instead of waiting until
+they do before registering the DRM device you'd have to create dummy
+outputs and keep checking whether the device is actually there each time
+somebody interacts with the output.
 
-PM ret, suspend:
-    FAIL ( 2/ 6): 2430sdp, 4430es2panda
-    Pass ( 4/ 6): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
+But maybe this case is different. For Tegra the problem is that some
+outputs (such as HDMI) require other drivers to be loaded first because
+they provide resources (regulators, GPIOs, ...) that the output drivers
+require. All of the drivers use deferred probing to resolve this
+dependency and we can be reasonably sure that eventually probing of the
+output will succeed (and therefore the output will become available).
+Postponing the DRM registration until that point doesn't hurt. From what
+I understand your use-case is similar. You need to load drivers for
+different panels based on a runtime decision. So the only thing you need
+is to be able to postpone the DRM registration until the panel driver
+has been loaded, right?
 
-PM ret, dynamic idle:
-    FAIL ( 3/ 6): 2430sdp, 4430es2panda, 4460pandaes
-    Pass ( 3/ 6): 3530es3beagle, 3730beaglexm, 37xxevm
+Thierry
 
-PM off, suspend:
-    FAIL ( 2/ 5): 4430es2panda, 4460pandaes
-    Pass ( 3/ 5): 3530es3beagle, 3730beaglexm, 37xxevm
+--ZPt4rx8FFjLCG7dd
+Content-Type: application/pgp-signature
 
-PM off, dynamic idle:
-    FAIL ( 2/ 5): 4430es2panda, 4460pandaes
-    Pass ( 3/ 5): 3530es3beagle, 3730beaglexm, 37xxevm
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
 
+iQIcBAEBAgAGBQJRa5h8AAoJEN0jrNd/PrOhVOMQAKcUGnsir9C6fpvrbof72Cn9
+azTQPTdBCszIDNqqvxkG9tnPX/6RX8gjufZfgfza51J+vSG1qiuhoKswq4mk5cry
+JgG8szHHyv7apoGsjyRApEkYjbi+5npVFEaVEuFTp218x1NG0uJFtMFqAAj/jaUo
+Yp7nb99YE2icPjVEkuZmJjwnQa+ReO+l+cRxVRseA3SIqXp5zhfvETsER/ev4d7E
+cMxvFhboewxAoPMjEYJYwZe8tNAiqZI+ojXE9M18DiBlHw6Ciqacy1SfvtdGfh6h
+kkc2li0qMAGAC08JjyTl9yqS/yA9N5gkPmkGOG5yP8Ms9H4lKMb8slGdGFSWqvMs
++m85nDYLPDXjJgtQw2DeirGdSzVfaZ9tbJ1sKHN6KHQvzGP5iP0JreBS7mDE5WGr
+P02bKuZFThaNpP/w+tO1s6TARNPurc+KkdSpn+WmTiGvakrr0BiLj7ZBd50ANPP6
+jOU9vuRtCOXeHxmqrYIq/7cmil6AllcpzpkkyqHeXLNNO870Bh0gWpbgDLhUEvKs
+pctrsc/F75Z8up3+KErtzmeyr0sjqjZyC3Vvw0kTfW2T5pxKrqoP2dJDPrzRUn2S
+zN1vrbWXvURMe1DyXTKVN5cGqndV2WpDpFHmDOOZugYWGSZlCZgThlmf+5AGjzCl
+QcHNHhvSmfd068+xYXrV
+=VoP6
+-----END PGP SIGNATURE-----
 
-
-Failing tests: fixed by posted patches
---------------------------------------
-
-Build:
-
-* am33xx_only, omap2plus_defconfig_2430sdp_only: omap-{smp,hotplug}.c link errors
-  - Discussion & RFC patch: http://www.spinics.net/lists/arm-kernel/msg230017.html
-  - Still needs revision of the patch
-
-
-Failing tests: needing investigation
-------------------------------------
-
-Boot tests:
-
-* 3517EVM & CM-T3517: boot hangs with NFS root
-  - Likely some Kconfig, board file, and PM issues with EMAC
-  - Longstanding bug
-  - Not currently part of the automated test suite
-
-Boot warnings:
-
-* CM-T3517: L3 in-band error with IPSS during boot
-  - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
-  - Longstanding issue; does not occur on the 3517EVM
-
-PM tests:
-
-* 2430sdp: pwrdm state mismatch(dsp_pwrdm) 0 != 3
-  - need to doublecheck wakeup dependencies
-  - (am assuming it's still there; userspace problems prevent the test
-     from running, probably due to the lock warning)
-
-* 2430sdp: power domains not entering retention
-  - Cause unknown
-  - (am assuming it's still there; userspace problems prevent the test
-     from running, probably due to the lock warning)
-
-* 4430es2panda, 4460pandaes: pwrdm state mismatch on CAM, DSS, ABE
-
-* 4460pandaes: pwrdm state mismatch on IVAHD, TESLA 
-
-* 4430es2panda: CORE, TESLA, IVAHD, L3INIT didn't enter target state
-  - Probably due to lack of reset code for M3, DSP, SL2IF, FSUSB
-    per discussion with Tero Kristo
-  - Likely dependent on the bootloader version
-    - fails with 2012.07-00136-g755de79
-  - http://marc.info/?l=linux-arm-kernel&m=136432340618226&w=2
-
-* 4460pandaes: chip not entering retention in dynamic idle
-  - Presumably 4430es2panda also fails this
-  - Suspend-to-RAM enters full chip retention
-
-* 3730 Beagle XM: does not serial wake from off-idle suspend when console
-  UART doesn't clock-gate ("debug ignore_loglevel")
-  - Cause unknown
-  - Not yet part of the automated test suite
-  - Re-tested at v3.7; still failing:
-    http://www.pwsan.com/omap/transcripts/20121211-3730beaglexm-3.7-pm-offmode-fail-debug.txt
-
-Other:
-
-* 4430es2panda: omap_hwmod: l3_instr: _wait_target_disable failed
-  - Unknown cause; could be due to the lack of hierarchical enable/disable
-    in hwmod code
-  - Jon Hunter and Santosh Shilimkar report this does not appear with
-    the same X-loader/bootloader on his 4430ES2.3 Panda, so could be
-    ES-level dependent
-
-
-Failing tests: reported by others 
----------------------------------
-
-- MUSB broken after v3.9-rc6
-  - due to commit 92702df3570e1ccfa050e135e50c450502251b79
-  - discussion here: http://marc.info/?l=linux-omap&m=136544098331552&w=2
-  - patch pending upstream:
-    http://marc.info/?l=linux-omap&m=136562302329307&w=2
-
-vmlinux object size
-(delta in bytes from test_v3.9-rc6 
-(31880c37c11e28cb81c70757e38392b42e695dc6)):
-   text     data      bss    total  kernel
-  +5067        0        0    +5067  n800_multi_omap2xxx
-   +975        0        0     +975  n800_only_a
-  +1135        0        0    +1135  omap1_defconfig
-  +1119        0        0    +1119  omap1_defconfig_1510innovator_only
-  +1135        0        0    +1135  omap1_defconfig_5912osk_only
-  +1251        0        0    +1251  omap2plus_defconfig
-  +1271       -8        0    +1263  omap2plus_defconfig_cpupm
-  +1255      +24        0    +1279  omap2plus_defconfig_no_pm
-  +1255       -8        0    +1247  omap2plus_defconfig_omap2_4_only
-  +1359        0        0    +1359  omap2plus_defconfig_omap3_4_only
-  +2064       +8      -56    +2016  rmk_omap3430_ldp_allnoconfig
-   +703        0        0     +703  rmk_omap3430_ldp_oldconfig
-  +2064       +8      -56    +2016  rmk_omap4430_sdp_allnoconfig
-  +1743      -16        0    +1727  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.9-rc6 
-(31880c37c11e28cb81c70757e38392b42e695dc6))
-  avail  rsrvd   high  freed  board          kconfig
-    -8k     8k      .      .  2420n800       n800_only_a
-
-
+--ZPt4rx8FFjLCG7dd--
