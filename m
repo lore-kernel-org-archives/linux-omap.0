@@ -1,101 +1,112 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: Latest randconfig build errors
-Date: Mon, 15 Apr 2013 08:04:44 +0200
-Message-ID: <20130415060444.GA7746@avionic-0098.mockup.avionic-design.de>
-References: <20130304095136.GI17833@n2100.arm.linux.org.uk>
- <20130304184649.GO11806@atomide.com>
- <CAF6AEGv=3453KKS9-8YAgHrxMMbNvLMvt0pz-=qdG+zcd-Trrw@mail.gmail.com>
- <20130413214539.GA32613@avionic-0098.mockup.avionic-design.de>
- <CAF6AEGtbqT23bjniwmGP-PhcxRPk5Q9aDaWM-=vVgkVrvDbCaQ@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and updates for
+ 3.10
+Date: Mon, 15 Apr 2013 11:50:04 +0530
+Message-ID: <516B9C14.5070406@ti.com>
+References: <1363768852-18125-1-git-send-email-santosh.shilimkar@ti.com> <20130401170539.GK10155@atomide.com> <515BA76D.3000302@ti.com> <alpine.DEB.2.00.1304031146230.2616@utopia.booyaka.com> <515D6020.2030103@ti.com> <20130404165208.GI10155@atomide.com> <515DB110.9000503@ti.com> <515F00B8.3000501@ti.com> <79CD15C6BA57404B839C016229A409A83EC4A81D@DBDE01.ent.ti.com> <51654DC5.2040909@ti.com> <79CD15C6BA57404B839C016229A409A83EC55521@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAF6AEGtbqT23bjniwmGP-PhcxRPk5Q9aDaWM-=vVgkVrvDbCaQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Clark <robdclark@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, arm@kernel.org, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:40602 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753030Ab3DOGR6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Apr 2013 02:17:58 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EC55521@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kristo, Tero" <t-kristo@ti.com>, "Menon, Nishanth" <nm@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "Anna, Suman" <s-anna@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
 
+On Monday 15 April 2013 10:36 AM, Hiremath, Vaibhav wrote:
+> 
+>> -----Original Message-----
+>> From: Shilimkar, Santosh
+>> Sent: Wednesday, April 10, 2013 5:02 PM
 
---ZPt4rx8FFjLCG7dd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+[..]
 
-On Sun, Apr 14, 2013 at 12:29:46AM -0400, Rob Clark wrote:
-> On Sat, Apr 13, 2013 at 5:45 PM, Thierry Reding
-[...]
-> > I had been thinking about this on and off for a while, but I haven't
-> > come up with anything concrete. Ideally we could just have some kind of
-> > event that userspace would listen for, so that new outputs can be
-> > dynamically added and userspace informed about them. Last time I checked
-> > most of the helpers assumed that the complete output configuration is
-> > known when the DRM device is registered, so some major rework will be
-> > required to efficiently make use of such dynamicity.
->=20
-> I'm less worried about the kernel re-work.. more worried about the
-> fact that we have no way to know whether userspace knows to listen for
-> this new event.  So anything down this path could, I think, be
-> considered as breaking userspace.
+>>>> From b95dd33fe59b8e77727eb3b1717d763bbf9a2893 Mon Sep 17 00:00:00
+>> 2001
+>>>> From: Sricharan R <r.sricharan@ti.com>
+>>>> Date: Fri, 5 Apr 2013 20:39:12 +0530
+>>>> Subject: [PATCH] ARM: AM33XX: hwmod data: Clean up the data file
+>>>>
+>>>> - The IO resource information like dma request lines, irq number and
+>>>> ocp address space can be populated via dt blob. So such data can be
+>>>> stripped
+>>>> from SOC hwmod data file.
+>>>>
+>>>> - The devices like adc, mailbox, gpmc which are missing the device
+>>>> tree bindings, hwmod data is not added since AM33XX is DT only
+>> build.
+>>>> When such devices add the dt bindings, respective hwmod data can be
+>>>> added along with it.
+>>>>
+>>> This seems unnecessary churn to me. DT bindings for most of the
+>> devices
+>>> which you mentioned above are submitted and are at various stages of
+>> review
+>>> process.
+>>>
+>>> ADC:
+>>>
+>>> GPMC:
+>>>
+>>> PWM:
+>>>
+>> The modules are dropped as per what is going for 3.10 merge window.
+>> Above 3 modules can be retained if the DT conversion patches are
+>> under review and can go along with this patch most likely for 3.11.
+>>
+>>>
+>>>> - The hwmod like firewall etc which are not useful are also dropped.
+>>>>
+>>>> This gets us around ~2000 loc of negative diff. Patch is boot tested
+>> on
+>>>> AM335X EVM.
+>>>>
+>>> I would not recommend to get into unnecessary code churn in the
+>> future just
+>>> to reduce temp Number of Lines of code. This will also kill our
+>> autogeneration
+>>> concept as well.
+>>>
+>> It doesn't break any concept. We just autogenrate what is *useful*
+>> rather.
+>> BTW, I didn't find any srcipt to auto-generate the AM33XX data so we
+>> have
+>> to manually do the updates. Can you send me a pointer if you have a
+>> sript
+>> for this. With script it is much simpler to clean-up the data.
+>>
+>>
+>>> I would suggest you to just alone drop base-addr, irq and dma
+>> references
+>>> from hwmod entries.
+>>>
+>> That we are doing anyways. Apart from that we should also clean-up data
+>> which is not used and useful. Why do you need unused data like firewall
+>> and
+>> friends ?
+>>
+>> So as I understood, you would like to keep the data for ADC, PWM and
+>> GPMC
+>> which is fine by me. We just need those DT bindings in place so that
+>> they
+>> go together. Who is following the DT patches for these ?
+>>
+>> Thanks for looking into it Vaibhav.
+>>
+> Are you planning to send updated version of this?
+> I would rather prefer to review next version.
+> 
+> Please let me know if you need any help here.
+> 
+Yes :-)
+It will be great if you take the patch forward and update it
+based on the discussion.
 
-Yes, that's probably true. Although the typical use-case would be that
-the application would run on any of the detected outputs and if there is
-none to begin with it will just fail. If there already is one, it will
-try to use that instead and only fail to use a second one if it becomes
-available.
+Regards,
+Santosh
 
-> I think in the end, we need some way to have sort of "dummy"
-> connectors for output drivers which might or might not be probed, so
-> that from userspace perspective, non-present panels appear as displays
-> that are not plugged in.
-
-I can imagine that quite a few userspace programs will be broken by this
-as well. For instance if you have an LVDS panel, I'm pretty sure people
-will just assume that it can't be in a disconnected state and therefore
-won't deal with that case.
-
-=46rom a driver's point of view this isn't all that different from the
-case you're trying to solve now. You still need to find out which
-outputs can eventually become available. But instead of waiting until
-they do before registering the DRM device you'd have to create dummy
-outputs and keep checking whether the device is actually there each time
-somebody interacts with the output.
-
-But maybe this case is different. For Tegra the problem is that some
-outputs (such as HDMI) require other drivers to be loaded first because
-they provide resources (regulators, GPIOs, ...) that the output drivers
-require. All of the drivers use deferred probing to resolve this
-dependency and we can be reasonably sure that eventually probing of the
-output will succeed (and therefore the output will become available).
-Postponing the DRM registration until that point doesn't hurt. From what
-I understand your use-case is similar. You need to load drivers for
-different panels based on a runtime decision. So the only thing you need
-is to be able to postpone the DRM registration until the panel driver
-has been loaded, right?
-
-Thierry
-
---ZPt4rx8FFjLCG7dd
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRa5h8AAoJEN0jrNd/PrOhVOMQAKcUGnsir9C6fpvrbof72Cn9
-azTQPTdBCszIDNqqvxkG9tnPX/6RX8gjufZfgfza51J+vSG1qiuhoKswq4mk5cry
-JgG8szHHyv7apoGsjyRApEkYjbi+5npVFEaVEuFTp218x1NG0uJFtMFqAAj/jaUo
-Yp7nb99YE2icPjVEkuZmJjwnQa+ReO+l+cRxVRseA3SIqXp5zhfvETsER/ev4d7E
-cMxvFhboewxAoPMjEYJYwZe8tNAiqZI+ojXE9M18DiBlHw6Ciqacy1SfvtdGfh6h
-kkc2li0qMAGAC08JjyTl9yqS/yA9N5gkPmkGOG5yP8Ms9H4lKMb8slGdGFSWqvMs
-+m85nDYLPDXjJgtQw2DeirGdSzVfaZ9tbJ1sKHN6KHQvzGP5iP0JreBS7mDE5WGr
-P02bKuZFThaNpP/w+tO1s6TARNPurc+KkdSpn+WmTiGvakrr0BiLj7ZBd50ANPP6
-jOU9vuRtCOXeHxmqrYIq/7cmil6AllcpzpkkyqHeXLNNO870Bh0gWpbgDLhUEvKs
-pctrsc/F75Z8up3+KErtzmeyr0sjqjZyC3Vvw0kTfW2T5pxKrqoP2dJDPrzRUn2S
-zN1vrbWXvURMe1DyXTKVN5cGqndV2WpDpFHmDOOZugYWGSZlCZgThlmf+5AGjzCl
-QcHNHhvSmfd068+xYXrV
-=VoP6
------END PGP SIGNATURE-----
-
---ZPt4rx8FFjLCG7dd--
