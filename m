@@ -1,15 +1,15 @@
 From: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Subject: [RFC PATCH v2 1/6] ARM: dts: OMAP36xx: add device tree for ABB
-Date: Mon, 15 Apr 2013 16:28:06 +0300
-Message-ID: <1366032491-4162-2-git-send-email-andrii.tseglytskyi@ti.com>
+Subject: [RFC PATCH v2 3/6] ARM: dts: OMAP5: add device tree for ABB
+Date: Mon, 15 Apr 2013 16:28:08 +0300
+Message-ID: <1366032491-4162-4-git-send-email-andrii.tseglytskyi@ti.com>
 References: <1366032491-4162-1-git-send-email-andrii.tseglytskyi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46171 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751741Ab3DON2Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Apr 2013 09:28:16 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:39382 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752022Ab3DON2S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Apr 2013 09:28:18 -0400
 In-Reply-To: <1366032491-4162-1-git-send-email-andrii.tseglytskyi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,91 +18,64 @@ Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tero Kristo <t-kristo@
 
 From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
 
-Add DT ABB data for OMAP36xx family of devices.
-Data is based on OMAP36XX TRM document.
+Add DT ABB data for OMAP543x family of devices.
+Data is based on OMAP543x TRM document.
 
 Signed-off-by: Andrii.Tseglytskyi <andrii.tseglytskyi@ti.com>
 ---
- Documentation/devicetree/bindings/power/abb.txt |   38 +++++++++++++++++++++++
- arch/arm/boot/dts/omap36xx.dtsi                 |   20 ++++++++++++
- 2 files changed, 58 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/power/abb.txt
+ arch/arm/boot/dts/omap5.dtsi |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/power/abb.txt b/Documentation/devicetree/bindings/power/abb.txt
-new file mode 100644
-index 0000000..3f6c17c
---- /dev/null
-+++ b/Documentation/devicetree/bindings/power/abb.txt
-@@ -0,0 +1,38 @@
-+ABB regulator for OMAP platforms
-+
-+Required properties :
-+- compatible:
-+  - "ti,omap36xx-abb" for OMAP36XX
-+  - "ti,omap4-abb" for OMAP4
-+  - "ti,omap5-abb" for OMAP5
-+
-+- regulator-min-microvolt: lowest OPP voltage
-+- regulator-max-microvolt: highest OPP voltage
-+- regulator-always-on: ABB should be always on
-+- reg: addres range defined in TRM
-+- ti,tranxdone_status_mask: ABB transition state mask
-+- operating-points: An array of 2-tuples items, and each item consists
-+  of voltage and ABB opp_sel, like <volt-uV opp_sel>.
-+	volt: voltage in uV
-+	opp_sel: 0-bypass, 1-FBB, 2-RBB
-+
-+Examples :
-+abb_mpu_iva: regulator-abb1 {
-+	compatible = "ti,omap36xx-abb";
-+	regulator-name = "abb_mpu_iva";
-+	regulator-min-microvolt = <1012500>;
-+	regulator-max-microvolt = <1375000>;
-+	regulator-always-on;
-+	#address-cells = <1>;
-+	#size-cells = <1>;
-+	reg = <0x483072f0 0x8>,
-+	      <0x48306818 0x4>;
-+	ti,tranxdone_status_mask = <0x4000000>;
-+	operating-points = <
-+		/* uV   ABB */
-+		1012500 0
-+		1200000 0
-+		1325000 0
-+		1375000 1
-+	>;
-+};
-diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
-index b89233e..5e917ca 100644
---- a/arch/arm/boot/dts/omap36xx.dtsi
-+++ b/arch/arm/boot/dts/omap36xx.dtsi
-@@ -28,6 +28,26 @@
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 3dd7ff8..e1b2c92 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -74,6 +74,45 @@
  		};
  	};
  
-+	abb_mpu_iva: regulator-abb1 {
-+		compatible = "ti,omap36xx-abb";
-+		regulator-name = "abb_mpu_iva";
-+		regulator-min-microvolt = <1012500>;
-+		regulator-max-microvolt = <1375000>;
++	abb_mpu: regulator-abb1 {
++		compatible = "ti,omap5-abb";
++		regulator-name = "abb_mpu";
++		regulator-min-microvolt = <880000>;
++		regulator-max-microvolt = <1260000>;
 +		regulator-always-on;
 +		#address-cells = <1>;
 +		#size-cells = <1>;
-+		reg = <0x483072f0 0x8>,
-+		      <0x48306818 0x4>;
-+		ti,tranxdone_status_mask = <0x4000000>;
++		reg = <0x4ae07cdc 0x8>,
++		      <0x4ae06014 0x4>;
++		ti,tranxdone_status_mask = <0x80>;
 +		operating-points = <
 +			/* uV   ABB */
-+			1012500	0
-+			1200000	0
-+			1325000	0
-+			1375000	1
++			880000	0
++			1060000	1
++			1250000	1
++			1260000	1
 +		>;
 +	};
 +
- 	ocp {
- 		uart4: serial@49042000 {
- 			compatible = "ti,omap3-uart";
++	abb_iva: regulator-abb2 {
++		compatible = "ti,omap5-abb";
++		regulator-name = "abb_iva";
++		regulator-min-microvolt = <880000>;
++		regulator-max-microvolt = <1120000>;
++		regulator-always-on;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		reg = <0x4ae07ce4 0x8>,
++		      <0x4ae06010 0x4>;
++		ti,tranxdone_status_mask = <0x80000000>;
++		operating-points = <
++			/* uV   ABB */
++			880000	0
++			1025000	0
++			1120000	0
++		>;
++	};
++
+ 	/*
+ 	 * XXX: Use a flat representation of the OMAP3 interconnect.
+ 	 * The real OMAP interconnect network is quite complex.
 -- 
 1.7.9.5
 
