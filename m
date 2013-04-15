@@ -1,64 +1,60 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH V4 1/6] clk: OMAP: introduce device tree binding to kernel
- clock data
-Date: Mon, 15 Apr 2013 10:22:37 -0600
-Message-ID: <516C294D.6070700@wwwdotorg.org>
-References: <1365807278-554-1-git-send-email-nm@ti.com> <1365807278-554-2-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [BUG] omap: mfd/regulator: twl/core: init order
+Date: Mon, 15 Apr 2013 09:25:42 -0700
+Message-ID: <20130415162541.GO10155@atomide.com>
+References: <1365877659.3812.110.camel@mars>
+ <516BD479.2020904@ti.com>
+ <1366023401.957.5.camel@mars>
+ <516BDDAC.8040905@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1365807278-554-2-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Turquette <mturquette@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:57007 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751385Ab3DOQ0D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Apr 2013 12:26:03 -0400
+Content-Disposition: inline
+In-Reply-To: <516BDDAC.8040905@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Christoph Fritz <chf.fritz@googlemail.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, Liam Girdwood <lrg@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org, Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
 
-On 04/12/2013 04:54 PM, Nishanth Menon wrote:
-> OMAP clock data is located in arch/arm/mach-omap2/cclockXYZ_data.c.
-> However, this presents an obstacle for using these clock nodes in
-> Device Tree definitions. This is especially true for board specific
-> clocks initially. The fixed clocks are currently found via clock
-> aliases table. There are many possible approaches to this problem as
-> discussed in the following thread:
-> http://marc.info/?t=136370325600009&r=1&w=2.
-> Highlights of the options:
-> a) device specific clk_add_alias:
->    cons: driver handling required
-> b) using an generic clk node and indexing to reach the clock required.
->    This is similar in approach taken by tegra and few other platforms.
->    Example usage: clock = <&clk 5>;
->    cons: potential to have mismatches in indexed table and associated
->    dtb data. In addition, managing continued documentation in bindings
->    as clock indexing increases. Even though readability angle could be
->    improved by using preprocessing of DT using macros, indexed
->    approach is inherently risky from cases like the following:
->    clk indexes in kernel:
->    1 - mpu_dpll
->    2 - aux_clk1
->    3 - core_clk
->    DT entry for peripheral X uses <&clk 2> to reach aux_clk1. Now, let's
->    say kernel updates indices to:
->    1 - mpu_dpll
->    2 - per_dpll
->    3 - aux_clk1
->    4 - core_clk
->    using the old dtb(or dts missing an update), on new kernel which
->    has updated indices will result in per_dpll now controlled for
->    peripheral X without warning or any potential error detection.
-> 
->    Even though we could claim this is user error, such errors are hard
->    to track down and fix.
+* Grygorii Strashko <grygorii.strashko@ti.com> [130415 04:05]:
+> On 04/15/2013 01:56 PM, Christoph Fritz wrote:
+> >On Mon, 2013-04-15 at 13:20 +0300, Grygorii Strashko wrote:
+> >>--- a/drivers/pinctrl/pinctrl-single.c
+> >>+++ b/drivers/pinctrl/pinctrl-single.c
+> >>@@ -1014,7 +1014,18 @@ static struct platform_driver pcs_driver = {
+> >>          },
+> >>   };
+> >>
+> >>-module_platform_driver(pcs_driver);
+> >>+static int __init pcs_driver_drv_init(void)
+> >>+{
+> >>+       return platform_driver_register(&pcs_driver);
+> >>+}
+> >>+postcore_initcall(pcs_driver_drv_init);
+> >>+
+> >>+static void __exit pcs_driver_drv_exit(void)
+> >>+{
+> >>+       platform_driver_unregister(&pcs_driver);
+> >>+}
+> >>+module_exit(pcs_driver_drv_exit);
+> >>+
+> >Hi Grygorii,
+> >  thanks - indeed it does fix the problem. I checked at least the rtc
+> >which is now configured right and working :-)
+> >
+> >Do you consider the patch above as a hack or will it go mainline?
+> I think, need more opinions on this from community )
+> I'm just trying to solve my problem and found similar issue.
 
-The error in case (b) is that you shouldn't be changing the DT bindings
-after they've first been created. That would avoid the problem
-situation. The person using the old DTB with the new kernel didn't
-commit user error.
+This fix should not be needed. It just means the real
+problem is somewhere else. Pinctrl is already before the i2c
+in drivers/Makefile. Maybe one of the MFD drivers has
+a wrong initcall level?
 
-> An alternate approach introduced here is to introduce device tree
-> bindings corresponding to the clock nodes required in DT definition
-> for SoC which automatically maps back to the definitions in
-> cclockXYZ_data.c.
+Regards,
 
-Well, I haven't read the patches, but isn't that exactly what the "2" is
-in <&clk 2>?
+Tony
