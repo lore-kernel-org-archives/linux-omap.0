@@ -1,53 +1,75 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v3 0/6] Generic PHY Framework
-Date: Mon, 15 Apr 2013 11:20:09 +0100
-Message-ID: <20130415102009.D358E3E0AA8@localhost>
-References: <1363770725-13717-1-git-send-email-kishon@ti.com>
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1363770725-13717-1-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: balbi@ti.com, gregkh@linuxfoundation.org, arnd@arndb.de, akpm@linux-foundation.org, rob@landley.net
-Cc: davem@davemloft.net, cesarb@cesarb.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, rob.herring@calxeda.com, b-cousson@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, kishon@ti.com, mchehab@redhat.com, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/5] capemgr: Beaglebone DT overlay based cape manager
+Date: Mon, 15 Apr 2013 12:14:04 +0200
+Message-ID: <20130415101404.GA1952@game.jcrosoft.org>
+References: <1357584666-17374-1-git-send-email-panto@antoniou-consulting.com>
+ <93BF5C62-ADE8-4EFC-9175-C2D7E43300E3@antoniou-consulting.com>
+ <20130107210551.GL14149@atomide.com>
+ <201301072135.05166.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <201301072135.05166.arnd-r2nGTMty4D4@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Matt Ranostay <mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Rob Clark <robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 20 Mar 2013 14:41:59 +0530, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> Added a generic PHY framework that provides a set of APIs for the PHY drivers
-> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
-> the PHY with or without using phandle. To obtain a reference to the PHY
-> without using phandle, the platform specfic intialization code (say from board
-> file) should have already called phy_bind with the binding information. The
-> binding information consists of phy's device name, phy user device name and an
-> index. The index is used when the same phy user binds to mulitple phys.
+On 21:35 Mon 07 Jan     , Arnd Bergmann wrote:
+> (Adding Sascha Hauer, Linus Walleij, Lee Jones to Cc)
 > 
-> This framework will be of use only to devices that uses external PHY (PHY
-> functionality is not embedded within the controller).
+> On Monday 07 January 2013, Tony Lindgren wrote:
+> > > 
+> > > At the end of the line, some kind of hardware glue is going to be needed.
+> > > 
+> > > I just feel that drawing from a sample size of 1 (maybe 2 if I get to throw
+> > > in the beagleboard), it is a bit premature to think about making it overly
+> > > general, besides the part that are obviously part of the infrastructure 
+> > > (like the DT overlay stuff).
+> > > 
+> > > What I'm getting at, is that we need some user experience about this, before
+> > > going away and creating structure out of possible misconception about the uses. 
+> > 
+> > IMHO stuff like this will be needed by many SoCs. Some examples of similar
+> > things for omaps that have eventually become generic frameworks have been
+> > the clock framework, USB OTG support, runtime PM, pinmux framework and
+> > so on.
+> > 
+> > So I suggest a minimal generic API from the start as that will make things
+> > a lot easier in the long run.
 > 
-> The intention of creating this framework is to bring the phy drivers spread
-> all over the Linux kernel to drivers/phy to increase code re-use and to
-> increase code maintainability.
+> I agree. The ux500 platform already has the concept of "user interface boards",
+> which currently is not well integrated into devicetree. I believe Sascha
+> mentioned that Pengutronix had been shipping some other systems with add-on
+> boards and generating device tree binaries from source for each combination.
 > 
-> Comments to make PHY as bus wasn't done because PHY devices can be part of
-> other bus and making a same device attached to multiple bus leads to bad
-> design.
-> 
-> Making omap-usb2 and twl4030 to use this framework is provided as a sample.
-> 
-> This patch series is developed on 3.9-rc3. Once the patch series gets finalised
-> I'll resend omap-usb2 and twl4030 part based on Felipe's tree.
-> 
+> Ideally, both of the above should be able to use the same DT overlay logic
+> as BeagleBone, and I'm sure there are more of those.
+I'm looking for this also as on at91 sama9x5ek and sam9cn12ek and the
+sama5d3xek, we have 1 wire eeproms to detect the boards (motherboards and
+daugther boards)
+where we have 1 1-wire per board and cpu boards so we can detect everything
+and have it's revision and more information
 
-[...]
+we already have barebox that detect the 1-wire but we need the same handling
+in the kernel
 
->  drivers/Kconfig                                    |    2 +
->  drivers/Makefile                                   |    2 +
->  drivers/phy/Kconfig                                |   13 +
->  drivers/phy/Makefile                               |    5 +
->  drivers/phy/phy-core.c                             |  574 ++++++++++++++++++++
-
-This looks to be very specific for USB PHYs. Are you intending it to be
-used for other types of PHYs, like Ethernet PHYs? If not, then this
-infrastruction should be named something like usb-phy so that it isn't
-confused with other layers, and it really should live under drivers/usb.
-
-g.
-
+Best Regards,
+J.
+> 
+> 	Arnd
+> _______________________________________________
+> devicetree-discuss mailing list
+> devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+> https://lists.ozlabs.org/listinfo/devicetree-discuss
