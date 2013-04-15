@@ -1,60 +1,96 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap3-beagle-xm: Add USB Host support for Rev
- Ax/Bx
-Date: Mon, 15 Apr 2013 15:39:15 +0300
-Message-ID: <516BF4F3.5060904@ti.com>
-References: <1366029306-1824-1-git-send-email-rogerq@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [RFC v1 0/1] introduce regulator chain locking scheme
+Date: Mon, 15 Apr 2013 16:03:34 +0300
+Message-ID: <1366031015-17073-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1366029306-1824-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: b-cousson@ti.com, tony@atomide.com
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Liam Girdwood <liam.r.girdwood@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, open list <linux-kernel@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDQvMTUvMjAxMyAwMzozNSBQTSwgUm9nZXIgUXVhZHJvcyB3cm90ZToKPiBQcm92aWRlIFJF
-U0VUIGFuZCBQb3dlciByZWd1bGF0b3JzIGZvciB0aGUgVVNCIFBIWSwKPiB0aGUgVVNCIEhvc3Qg
-cG9ydCBtb2RlIGFuZCB0aGUgUEhZIGRldmljZS4KPiAKPiBBbHNvIHByb3ZpZGUgcGluIG11bHRp
-cGxleGVyIGluZm9ybWF0aW9uIGZvciBVU0IgaG9zdAo+IHBpbnMuCj4gCj4gVGhpcyB3aWxsIG5v
-dCB3b3JrIGZvciBSZXYgQ3ggYm9hcmRzIGJlY2F1c2Ugb2YgcmV2ZXJzZWQgbG9naWMKPiBmb3Ig
-VVNCX1BPV0VSX0VuYWJsZS4KPiAKPiBDQzogQmVub8OudCBDb3Vzc29uIDxiLWNvdXNzb25AdGku
-Y29tPgo+IFNpZ25lZC1vZmYtYnk6IFJvZ2VyIFF1YWRyb3MgPHJvZ2VycUB0aS5jb20+Cj4gLS0t
-Cj4gIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14bS5kdHMgfCAgIDYyICsrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKwo+ICAxIGZpbGVzIGNoYW5nZWQsIDYyIGluc2VydGlv
-bnMoKyksIDAgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRz
-L29tYXAzLWJlYWdsZS14bS5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwMy1iZWFnbGUteG0u
-ZHRzCj4gaW5kZXggNWEzMTk2NC4uZDM5NGM1MSAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9ib290
-L2R0cy9vbWFwMy1iZWFnbGUteG0uZHRzCj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMt
-YmVhZ2xlLXhtLmR0cwo+IEBAIC01Nyw2ICs1Nyw2MCBAQAo+ICAJCXRpLG1jYnNwID0gPCZtY2Jz
-cDI+Owo+ICAJCXRpLGNvZGVjID0gPCZ0d2xfYXVkaW8+Owo+ICAJfTsKPiArCj4gKwkvKiBIUyBV
-U0IgUG9ydCAyIFJFU0VUICovCj4gKwloc3VzYjJfcmVzZXQ6IGhzdXNiMl9yZXNldF9yZWcgewo+
-ICsJCWNvbXBhdGlibGUgPSAicmVndWxhdG9yLWZpeGVkIjsKPiArCQlyZWd1bGF0b3ItbmFtZSA9
-ICJoc3VzYjJfcmVzZXQiOwo+ICsJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDMzMDAwMDA+
-Owo+ICsJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDMzMDAwMDA+Owo+ICsJCWdwaW8gPSA8
-JmdwaW81IDE5IDA+OwkvKiBncGlvXzE0NyAqLwo+ICsJCXN0YXJ0dXAtZGVsYXktdXMgPSA8NzAw
-MDA+Owo+ICsJCWVuYWJsZS1hY3RpdmUtaGlnaDsKPiArCX07Cj4gKwo+ICsJLyogSFMgVVNCIFBv
-cnQgMiBQb3dlciAqLwo+ICsJaHN1c2IyX3Bvd2VyOiBoc3VzYjJfcG93ZXJfcmVnIHsKPiArCQlj
-b21wYXRpYmxlID0gInJlZ3VsYXRvci1maXhlZCI7Cj4gKwkJcmVndWxhdG9yLW5hbWUgPSAiaHN1
-c2IyX3ZidXMiOwo+ICsJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDMzMDAwMDA+Owo+ICsJ
-CXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDMzMDAwMDA+Owo+ICsJCWdwaW8gPSA8JnR3bF9n
-cGlvIDE4IDA+OwkvKiBHUElPIExFREEgKi8KPiArCQlzdGFydHVwLWRlbGF5LXVzID0gPDcwMDAw
-PjsKPiArCQllbmFibGUtYWN0aXZlLWhpZ2g7CS8qIEZJWE1FOiBhY3RpdmUtbG93IGZvciBSZXYu
-IEMgKi8KCkJlbm9pdCAmIFRvbnksCgpBbnkgaWRlYXMgaG93IHRvIHRhY2tsZSB0aGUgcmV2ZXJz
-ZWQgbG9naWMgZm9yIFJldi4gQyBib2FyZHM/Cgo+ICsJfTsKPiArCj4gKwkvKiBIUyBVU0IgSG9z
-dCBQSFkgb24gUE9SVCAyICovCj4gKwloc3VzYjJfcGh5OiBoc3VzYjJfcGh5IHsKPiArCQljb21w
-YXRpYmxlID0gInVzYi1ub3AteGNlaXYiOwo+ICsJCXJlc2V0LXN1cHBseSA9IDwmaHN1c2IyX3Jl
-c2V0PjsKPiArCQl2Y2Mtc3VwcGx5ID0gPCZoc3VzYjJfcG93ZXI+Owo+ICsJfTsKPiArCj4gK307
-CgpjaGVlcnMsCi1yb2dlcgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxA
-bGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+Hi Mark, Liam, All
+
+Our target is to reuse common DVFS framework proposed by Mike Turquette
+in http://lwn.net/Articles/540422/ and cpufreq-cpu0.c for all TI SoC and
+minimize creation of any TI specific APIs or modules.
+The common DVFS framework solution is based on assumption that Regulator,
+connected to DVFS FW or CPU0 CPUFreq, is able to change requested voltage for
+the corresponding Voltage domain (like CPU/MPU) by itself.
+But most of TI SoCs, which support DVFS, have more complex voltage supply
+schema as shown below:
+
+  |------------|  |------------|
+--| RegulatorY |--| CPU DVFS   |
+  |------------|  |------------|
+   \           \
+    \           \_____________________________
+     \                                        \
+     |-------------------|  |---------------|  |---------|
+   --| RegulatorX (PMIC) |--| Regulator AVS |--| ABB LDO |--
+     |-------------------|  |---------------|  |---------|
+		/|\				        |					
+         |______________________|
+         Voltage adjustment
+
+and they need to configure, at least, internal ABB LDO befor/after
+reconfiguring external voltage supplier in PMIC.
+(as maximum - Regulator AVS (Adaptive voltage scaling) is needed to be
+reconfigured after ABB LDO, and Regulator AVS may, finally, reconfigure external
+voltage supplier with voltage value which is different from initially requested by DVFS).
+
+for example (Vcur<Vreq):
+- DVFS requests voltage change
+- AVS converts Vreq to Vreq1 (say calibrated)
+- AVS reconfigure RegulatorX (PMIC) to voltage Vreq1
+- ABB LDO change type to FBB
+
+This Regulator chaining scema can fit to Regulator framework very well
+(from our point of view):
+- DVFS: abb->set_voltage(Vreq)
+- ABB: if (Vcur<Vreq)
+			AVS->set_voltage(Vreq)
+- AVS: PMIC->set_voltage(Vreq1)
+- ABB: if (Vcur<Vreq)
+			change type to FBB
+
+But there are some limitations:
+ - the whole Regulator chain need to be locked in case if any part of
+   it has been accessed from outside;
+ - child regulator should have access to set/get voltage methods of its 
+   parent (supplier).
+
+The proposed patches allow to remove these restrictions and they are inspired by
+http://lwn.net/Articles/540422/.
+
+Related dicussions:
+ - regulator: query on regulator re-entrance 
+   http://marc.info/?l=linux-omap&m=136513861315970&w=2
+ - clk: notifier handler for dynamic voltage scaling
+   https://lkml.org/lkml/2013/2/27/414
+
+Tested on K3.8 OMAP4 SDP/T2 (ABB+vcvp regulator) and
+OMAP5 sevm (ABB+smps123(i2c) regulator):
+- cpu freq & voltages was scaled.
+
+Could you please review and advise? Does anyone else interested in or have similar problems?
+
+Grygorii Strashko (1):
+  regulator: core: introduce regulator chain locking scheme
+
+ drivers/regulator/core.c         |  134 ++++++++++++++++++++++++--------------
+ include/linux/regulator/driver.h |    2 +
+ 2 files changed, 88 insertions(+), 48 deletions(-)
+
+Regards
+Grygorii Strashko
+
+Cc: linux-kernel@vger.kernel.org (open list)
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>
+-- 
+1.7.9.5
