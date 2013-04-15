@@ -1,45 +1,53 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v2 02/13] ARM: convert arm/arm64 arch timer to use
- CLKSRC_OF init
-Date: Mon, 15 Apr 2013 10:39:58 +0100
-Message-ID: <20130415093958.GA29528@arm.com>
-References: <1364854883-5961-1-git-send-email-robherring2@gmail.com>
- <1364854883-5961-3-git-send-email-robherring2@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1364854883-5961-3-git-send-email-robherring2@gmail.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Mark Rutland <Mark.Rutland@arm.com>, Russell King <linux@arm.linux.org.uk>, John Stultz <john.stultz@linaro.org>, "arm@kernel.org" <arm@kernel.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Linus Walleij <linus.walleij@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Kukjin Kim <kgene.kim@samsung.com>, Tony Lindgren <tony@atomide.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Will Deacon <Will.Deacon@arm.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v3 0/6] Generic PHY Framework
+Date: Mon, 15 Apr 2013 11:20:09 +0100
+Message-ID: <20130415102009.D358E3E0AA8@localhost>
+References: <1363770725-13717-1-git-send-email-kishon@ti.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1363770725-13717-1-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: balbi@ti.com, gregkh@linuxfoundation.org, arnd@arndb.de, akpm@linux-foundation.org, rob@landley.net
+Cc: davem@davemloft.net, cesarb@cesarb.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, rob.herring@calxeda.com, b-cousson@ti.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, kishon@ti.com, mchehab@redhat.com, santosh.shilimkar@ti.com, broonie@opensource.wolfsonmicro.com, swarren@nvidia.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Apr 01, 2013 at 11:21:12PM +0100, Rob Herring wrote:
-> From: Rob Herring <rob.herring@calxeda.com>
+On Wed, 20 Mar 2013 14:41:59 +0530, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+> the PHY with or without using phandle. To obtain a reference to the PHY
+> without using phandle, the platform specfic intialization code (say from board
+> file) should have already called phy_bind with the binding information. The
+> binding information consists of phy's device name, phy user device name and an
+> index. The index is used when the same phy user binds to mulitple phys.
 > 
-> This converts arm and arm64 to use CLKSRC_OF DT based initialization for
-> the arch timer. A new function arch_timer_arch_init is added to allow for
-> arch specific setup.
+> This framework will be of use only to devices that uses external PHY (PHY
+> functionality is not embedded within the controller).
 > 
-> This has a side effect of enabling sched_clock on omap5 and exynos5. There
-> should not be any reason not to use the arch timers for sched_clock.
+> The intention of creating this framework is to bring the phy drivers spread
+> all over the Linux kernel to drivers/phy to increase code re-use and to
+> increase code maintainability.
 > 
-> Signed-off-by: Rob Herring <rob.herring@calxeda.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Kukjin Kim <kgene.kim@samsung.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Simon Horman <horms@verge.net.au>
-> Cc: Magnus Damm <magnus.damm@gmail.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: John Stultz <john.stultz@linaro.org>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: linux-samsung-soc@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-sh@vger.kernel.org
+> Comments to make PHY as bus wasn't done because PHY devices can be part of
+> other bus and making a same device attached to multiple bus leads to bad
+> design.
+> 
+> Making omap-usb2 and twl4030 to use this framework is provided as a sample.
+> 
+> This patch series is developed on 3.9-rc3. Once the patch series gets finalised
+> I'll resend omap-usb2 and twl4030 part based on Felipe's tree.
+> 
 
-Unless you pushed the patches already (I've been away for two weeks),
-for arm64:
+[...]
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+>  drivers/Kconfig                                    |    2 +
+>  drivers/Makefile                                   |    2 +
+>  drivers/phy/Kconfig                                |   13 +
+>  drivers/phy/Makefile                               |    5 +
+>  drivers/phy/phy-core.c                             |  574 ++++++++++++++++++++
+
+This looks to be very specific for USB PHYs. Are you intending it to be
+used for other types of PHYs, like Ethernet PHYs? If not, then this
+infrastruction should be named something like usb-phy so that it isn't
+confused with other layers, and it really should live under drivers/usb.
+
+g.
+
