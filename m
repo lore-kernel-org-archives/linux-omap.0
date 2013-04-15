@@ -1,152 +1,168 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and updates for
- 3.10
-Date: Mon, 15 Apr 2013 05:06:33 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC55521@DBDE01.ent.ti.com>
-References: <1363768852-18125-1-git-send-email-santosh.shilimkar@ti.com>
- <20130401170539.GK10155@atomide.com> <515BA76D.3000302@ti.com>
- <alpine.DEB.2.00.1304031146230.2616@utopia.booyaka.com>
- <515D6020.2030103@ti.com> <20130404165208.GI10155@atomide.com>
- <515DB110.9000503@ti.com> <515F00B8.3000501@ti.com>
- <79CD15C6BA57404B839C016229A409A83EC4A81D@DBDE01.ent.ti.com>
- <51654DC5.2040909@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.9-rc7
+Date: Mon, 15 Apr 2013 05:33:48 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1304150530520.17469@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46037 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932513Ab3DOFGo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Apr 2013 01:06:44 -0400
-In-Reply-To: <51654DC5.2040909@ti.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([74.50.51.50]:41157 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933432Ab3DOFdt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Apr 2013 01:33:49 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kristo, Tero" <t-kristo@ti.com>, "Menon, Nishanth" <nm@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "Anna, Suman" <s-anna@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
 
-> -----Original Message-----
-> From: Shilimkar, Santosh
-> Sent: Wednesday, April 10, 2013 5:02 PM
-> To: Hiremath, Vaibhav
-> Cc: Tony Lindgren; Paul Walmsley; linux-omap@vger.kernel.org; linux-
-> arm-kernel@lists.infradead.org; Kristo, Tero; Menon, Nishanth; Nayak,
-> Rajendra; Valentin, Eduardo; Anna, Suman; Bedia, Vaibhav
-> Subject: Re: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and
-> updates for 3.10
-> 
-> On Wednesday 10 April 2013 04:45 PM, Hiremath, Vaibhav wrote:
-> >> -----Original Message-----
-> >> From: Shilimkar, Santosh
-> >> Sent: Friday, April 05, 2013 10:20 PM
-> >> To: Tony Lindgren
-> >> Cc: Paul Walmsley; linux-omap@vger.kernel.org; linux-arm-
-> >> kernel@lists.infradead.org; Kristo, Tero; Menon, Nishanth; Nayak,
-> >> Rajendra; Valentin, Eduardo; Anna, Suman; Bedia, Vaibhav; Hiremath,
-> >> Vaibhav
-> >> Subject: Re: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and
-> >> updates for 3.10
-> >>
-> >> On Thursday 04 April 2013 10:27 PM, Santosh Shilimkar wrote:
-> >>> On Thursday 04 April 2013 10:22 PM, Tony Lindgren wrote:
-> >>>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130404 04:15]:
-> >> [..]
-> >>
-> >>>> Can't we already trim the am33xx hwmod data after your patches for
-> >>>> v3.10 as am33xx is already DT only? Unfortunately we cannot create
-> >>>> negative diffstat in other ways for v3.10 merge window as we
-> cannot
-> >>>> make omap4 DT only just quite yet.
-> >>>>
-> >>> Yes we can and I can take a stab it tomorrow. The only thing is I
-> >>> might need some support for testing but thats manageable. Will
-> >>> take a stab at it tomorrow and if everything goes well, post a
-> >>> patch for smae.
-> >>>
-> >> Patch for the AM33XX to trim is end of the email. Thanks to
-> >> Sricharan and Pekon for patch and testing. Looping both
-> >> Vaibhav's if they have any objection on the patch.
-> >>
-> >> Regards,
-> >> Santosh
-> >>
-> >> From b95dd33fe59b8e77727eb3b1717d763bbf9a2893 Mon Sep 17 00:00:00
-> 2001
-> >> From: Sricharan R <r.sricharan@ti.com>
-> >> Date: Fri, 5 Apr 2013 20:39:12 +0530
-> >> Subject: [PATCH] ARM: AM33XX: hwmod data: Clean up the data file
-> >>
-> >> - The IO resource information like dma request lines, irq number and
-> >> ocp address space can be populated via dt blob. So such data can be
-> >> stripped
-> >> from SOC hwmod data file.
-> >>
-> >> - The devices like adc, mailbox, gpmc which are missing the device
-> >> tree bindings, hwmod data is not added since AM33XX is DT only
-> build.
-> >> When such devices add the dt bindings, respective hwmod data can be
-> >> added along with it.
-> >>
-> > This seems unnecessary churn to me. DT bindings for most of the
-> devices
-> > which you mentioned above are submitted and are at various stages of
-> review
-> > process.
-> >
-> > ADC:
-> >
-> > GPMC:
-> >
-> > PWM:
-> >
-> The modules are dropped as per what is going for 3.10 merge window.
-> Above 3 modules can be retained if the DT conversion patches are
-> under review and can go along with this patch most likely for 3.11.
-> 
-> >
-> >> - The hwmod like firewall etc which are not useful are also dropped.
-> >>
-> >> This gets us around ~2000 loc of negative diff. Patch is boot tested
-> on
-> >> AM335X EVM.
-> >>
-> > I would not recommend to get into unnecessary code churn in the
-> future just
-> > to reduce temp Number of Lines of code. This will also kill our
-> autogeneration
-> > concept as well.
-> >
-> It doesn't break any concept. We just autogenrate what is *useful*
-> rather.
-> BTW, I didn't find any srcipt to auto-generate the AM33XX data so we
-> have
-> to manually do the updates. Can you send me a pointer if you have a
-> sript
-> for this. With script it is much simpler to clean-up the data.
-> 
-> 
-> > I would suggest you to just alone drop base-addr, irq and dma
-> references
-> > from hwmod entries.
-> >
-> That we are doing anyways. Apart from that we should also clean-up data
-> which is not used and useful. Why do you need unused data like firewall
-> and
-> friends ?
-> 
-> So as I understood, you would like to keep the data for ADC, PWM and
-> GPMC
-> which is fine by me. We just need those DT bindings in place so that
-> they
-> go together. Who is following the DT patches for these ?
-> 
-> Thanks for looking into it Vaibhav.
-> 
-Are you planning to send updated version of this?
-I would rather prefer to review next version.
+Here are some basic OMAP test results for Linux v3.9-rc7.
+Logs and other details at:
 
-Please let me know if you need any help here.
+    http://www.pwsan.com/omap/testlogs/test_v3.9-rc7/20130414220303/
 
-Thanks,
-Vaibhav
+
+Test summary
+------------
+
+Build:
+    FAIL ( 2/16): am33xx_only, omap2plus_defconfig_2430sdp_only
+    Pass (14/16): n800_multi_omap2xxx, n800_only_a, omap1_defconfig, 
+                  omap1_defconfig_1510innovator_only, 
+                  omap1_defconfig_5912osk_only, omap2plus_defconfig, 
+                  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm, 
+                  omap2plus_defconfig_omap2_4_only, 
+                  omap2plus_defconfig_omap3_4_only, 
+                  rmk_omap3430_ldp_allnoconfig, 
+                  rmk_omap3430_ldp_oldconfig, 
+                  rmk_omap4430_sdp_allnoconfig, 
+                  rmk_omap4430_sdp_oldconfig
+
+Boot to userspace:
+    FAIL ( 1/11): am335xbone
+    Pass (10/11): 2420n800, 2430sdp, 3517evm, 3530es3beagle,
+                  3730beaglexm, 37xxevm, 4430es2panda, 4460pandaes,
+                  5912osk, cmt3517
+
+PM ret, suspend:
+    FAIL ( 2/ 6): 2430sdp, 4430es2panda
+    Pass ( 4/ 6): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
+
+PM ret, dynamic idle:
+    FAIL ( 3/ 6): 2430sdp, 4430es2panda, 4460pandaes
+    Pass ( 3/ 6): 3530es3beagle, 3730beaglexm, 37xxevm
+
+PM off, suspend:
+    FAIL ( 2/ 5): 4430es2panda, 4460pandaes
+    Pass ( 3/ 5): 3530es3beagle, 3730beaglexm, 37xxevm
+
+PM off, dynamic idle:
+    FAIL ( 2/ 5): 4430es2panda, 4460pandaes
+    Pass ( 3/ 5): 3530es3beagle, 3730beaglexm, 37xxevm
+
+
+
+Failing tests: fixed by posted patches
+--------------------------------------
+
+Build:
+
+* am33xx_only, omap2plus_defconfig_2430sdp_only: omap-{smp,hotplug}.c link errors
+  - Discussion & RFC patch: http://www.spinics.net/lists/arm-kernel/msg230017.html
+  - Still needs revision of the patch
+
+
+Failing tests: needing investigation
+------------------------------------
+
+Boot tests:
+
+* 3517EVM & CM-T3517: boot hangs with NFS root
+  - Likely some Kconfig, board file, and PM issues with EMAC
+  - Longstanding bug
+  - Not currently part of the automated test suite
+
+Boot warnings:
+
+* CM-T3517: L3 in-band error with IPSS during boot
+  - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
+  - Longstanding issue; does not occur on the 3517EVM
+
+PM tests:
+
+* 2430sdp: pwrdm state mismatch(dsp_pwrdm) 0 != 3
+  - need to doublecheck wakeup dependencies
+  - (am assuming it's still there; userspace problems prevent the test
+     from running, probably due to the lock warning)
+
+* 2430sdp: power domains not entering retention
+  - Cause unknown
+  - (am assuming it's still there; userspace problems prevent the test
+     from running, probably due to the lock warning)
+
+* 4430es2panda, 4460pandaes: pwrdm state mismatch on CAM, DSS, ABE
+
+* 4460pandaes: pwrdm state mismatch on IVAHD, TESLA 
+
+* 4430es2panda: CORE, TESLA, IVAHD, L3INIT didn't enter target state
+  - Probably due to lack of reset code for M3, DSP, SL2IF, FSUSB
+    per discussion with Tero Kristo
+  - Likely dependent on the bootloader version
+    - fails with 2012.07-00136-g755de79
+  - http://marc.info/?l=linux-arm-kernel&m=136432340618226&w=2
+
+* 4460pandaes: chip not entering retention in dynamic idle
+  - Presumably 4430es2panda also fails this
+  - Suspend-to-RAM enters full chip retention
+
+* 3730 Beagle XM: does not serial wake from off-idle suspend when console
+  UART doesn't clock-gate ("debug ignore_loglevel")
+  - Cause unknown
+  - Not yet part of the automated test suite
+  - Re-tested at v3.7; still failing:
+    http://www.pwsan.com/omap/transcripts/20121211-3730beaglexm-3.7-pm-offmode-fail-debug.txt
+
+Other:
+
+* 4430es2panda: omap_hwmod: l3_instr: _wait_target_disable failed
+  - Unknown cause; could be due to the lack of hierarchical enable/disable
+    in hwmod code
+  - Jon Hunter and Santosh Shilimkar report this does not appear with
+    the same X-loader/bootloader on his 4430ES2.3 Panda, so could be
+    ES-level dependent
+
+
+Failing tests: reported by others 
+---------------------------------
+
+- MUSB broken after v3.9-rc6
+  - due to commit 92702df3570e1ccfa050e135e50c450502251b79
+  - discussion here: http://marc.info/?l=linux-omap&m=136544098331552&w=2
+  - patch pending upstream:
+    http://marc.info/?l=linux-omap&m=136562302329307&w=2
+
+vmlinux object size
+(delta in bytes from test_v3.9-rc6 
+(31880c37c11e28cb81c70757e38392b42e695dc6)):
+   text     data      bss    total  kernel
+  +5067        0        0    +5067  n800_multi_omap2xxx
+   +975        0        0     +975  n800_only_a
+  +1135        0        0    +1135  omap1_defconfig
+  +1119        0        0    +1119  omap1_defconfig_1510innovator_only
+  +1135        0        0    +1135  omap1_defconfig_5912osk_only
+  +1251        0        0    +1251  omap2plus_defconfig
+  +1271       -8        0    +1263  omap2plus_defconfig_cpupm
+  +1255      +24        0    +1279  omap2plus_defconfig_no_pm
+  +1255       -8        0    +1247  omap2plus_defconfig_omap2_4_only
+  +1359        0        0    +1359  omap2plus_defconfig_omap3_4_only
+  +2064       +8      -56    +2016  rmk_omap3430_ldp_allnoconfig
+   +703        0        0     +703  rmk_omap3430_ldp_oldconfig
+  +2064       +8      -56    +2016  rmk_omap4430_sdp_allnoconfig
+  +1743      -16        0    +1727  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.9-rc6 
+(31880c37c11e28cb81c70757e38392b42e695dc6))
+  avail  rsrvd   high  freed  board          kconfig
+    -8k     8k      .      .  2420n800       n800_only_a
+
+
