@@ -1,202 +1,109 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: 4430sdp nfsroot broken with ff5c9059
-Date: Tue, 16 Apr 2013 13:40:29 -0500
-Message-ID: <516D9B1D.6040909@ti.com>
-References: <20130410205407.GQ10155@atomide.com> <5165E6F1.8040102@ti.com> <20130410222749.GR10155@atomide.com> <20130413000615.GF10155@atomide.com> <5168C050.7030006@ti.com> <20130413165014.GL10155@atomide.com> <516C3179.4070501@ti.com> <516C428B.3020805@ti.com> <20130415212756.GQ10155@atomide.com> <516D870C.2030108@ti.com> <20130416180613.GS10155@atomide.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [RFC PATCH v2 0/6] ARM: OMAP3+: Introduce ABB driver
+Date: Tue, 16 Apr 2013 12:07:03 -0700
+Message-ID: <20130416190703.19887.10780@quantum>
+References: <1366032491-4162-1-git-send-email-andrii.tseglytskyi@ti.com>
+ <87sj2rbguv.fsf@linaro.org> <516D46CC.3080705@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51320 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753786Ab3DPSkb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Apr 2013 14:40:31 -0400
-In-Reply-To: <20130416180613.GS10155@atomide.com>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:56912 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752230Ab3DPTHJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Apr 2013 15:07:09 -0400
+Received: by mail-pd0-f175.google.com with SMTP id g10so447621pdj.34
+        for <linux-omap@vger.kernel.org>; Tue, 16 Apr 2013 12:07:08 -0700 (PDT)
+In-Reply-To: <516D46CC.3080705@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>
+To: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>, Kevin Hilman <khilman@linaro.org>
+Cc: linux-omap@vger.kernel.org, =?utf-8?q?Beno=C3=AEt_Cousson?= <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>
 
-
-On 04/16/2013 01:06 PM, Tony Lindgren wrote:
-> * Jon Hunter <jon-hunter@ti.com> [130416 10:19]:
->>
->> On 04/15/2013 04:27 PM, Tony Lindgren wrote:
->>> * Jon Hunter <jon-hunter@ti.com> [130415 11:15]:
->>
->> ...
->>
->>>> From 56598ba51a75481b050433bb38b7ae31a5ed4ae8 Mon Sep 17 00:00:00 2001
->>>> From: Jon Hunter <jon-hunter@ti.com>
->>>> Date: Mon, 15 Apr 2013 13:06:54 -0500
->>>> Subject: [PATCH] gpio/omap: ensure gpio context is initialised
->>>
->>> Seems to work thanks:
->>>
->>> Tested-by: Tony Lindgren <tony@atomide.com> 
->>
->> Thanks. I have been cleaning this up and updating a little. Care to
->> re-test this version? If it is good I will send it out.
+Quoting Andrii Tseglytskyi (2013-04-16 05:40:44)
+> On 04/16/2013 12:53 AM, Kevin Hilman wrote:
+> > In addition to Mike's comments (which I completely agree with), it would
+> > be very helfpul to see how this is actually used.  e.g, how the
+> > regulators are chained together, how the proper ordering is managed,
+> > etc. etc.
 > 
-> Yes this works too, you can recycle my Tested-by on this one.
-
-Thanks. Final version below to fix build error if pm-runtime is not
-enabled (this was breaking omap1 build). 
-  
->> By the way, I realise I need to add a similar fix for dmtimer :-p
+> We would like to handle voltage scaling in the following way:
 > 
-> OK good to find out now rather than after the merge window.
 
-Actually, I am wrong here. The dmtimer registers that are restored
-all default to zero and so we don't need a similar fix for dmtimers. 
+I expanded the example below to include the SR AVS regulator.
 
-Cheers
-Jon
+> cpufreq_cpu0
+> clk_set_rate(cpu0)
+>      |
+>      |-->set_voltage(ABB regulator)
+>                  |
+>                  |-->set_voltage(AVS)
+>                             |
+>                             |-->set_voltage(smps123 regulator)
 
->From 79fb33de1ada7cce7527adb15376bb7c5ddc4f14 Mon Sep 17 00:00:00 2001
-From: Jon Hunter <jon-hunter@ti.com>
-Date: Mon, 15 Apr 2013 13:06:54 -0500
-Subject: [PATCH] gpio/omap: ensure gpio context is initialised
+Hi Andrii,
 
-Commit a2797be (gpio/omap: force restore if context loss is not
-detectable) broke gpio support for OMAP when booting with device-tree
-because a restore of the gpio context being performed without ever
-initialising the gpio context. In other words, the context restored was
-bad.
+Why was regulator chaining chosen over a simple sequence of calls to
+regulator_set_voltage?  Instead of nested calls into the regulator
+framework, why don't you just make the calls serially?  E.g:
 
-This problem could also occur in the non device-tree case, however, it
-is much less likely because when booting without device-tree we can
-detect context loss via a platform specific API and so context restore
-is performed less often.
+regulator_set_voltage(abb_reg, foo_volt);
+regulator_set_voltage(avs_reg, bar_volt);
+regulator_set_voltage(smps123_reg, baz_volt);
 
-Nevertheless we should ensure that the gpio context is initialised
-during the probe for gpio banks that could lose their state regardless
-of whether we are booting with device-tree or not.
+It is still to be determined where these calls originate from; maybe
+from clock notifiers, maybe directly from the cpufreq driver's .target()
+callback, or maybe somewhere else.  Regardless, I do not see why
+regulator chaining is truly necessary here.  You are just calling
+regulator_set_voltage in sequence on a few regulators, right?
 
-Reported-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
----
- drivers/gpio/gpio-omap.c |   53 +++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 43 insertions(+), 10 deletions(-)
+I think it would help me a lot to understand why regulator chaining is a
+requirement for this to work properly.
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 0557529..0ba5cb9 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -70,6 +70,7 @@ struct gpio_bank {
- 	bool is_mpuio;
- 	bool dbck_flag;
- 	bool loses_context;
-+	bool context_valid;
- 	int stride;
- 	u32 width;
- 	int context_loss_count;
-@@ -1085,6 +1086,7 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
- }
- 
- static const struct of_device_id omap_gpio_match[];
-+static void omap_gpio_init_context(struct gpio_bank *p);
- 
- static int omap_gpio_probe(struct platform_device *pdev)
- {
-@@ -1179,8 +1181,10 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	omap_gpio_chip_init(bank);
- 	omap_gpio_show_rev(bank);
- 
--	if (bank->loses_context)
-+	if (bank->loses_context) {
- 		bank->get_context_loss_count = pdata->get_context_loss_count;
-+		omap_gpio_init_context(bank);
-+	}
- 
- 	pm_runtime_put(bank->dev);
- 
-@@ -1269,6 +1273,14 @@ static int omap_gpio_runtime_resume(struct device *dev)
- 	int c;
- 
- 	spin_lock_irqsave(&bank->lock, flags);
-+
-+	/*
-+	 * On the first resume during the probe, the context has not
-+	 * been initialised and so if the context is not valid return.
-+	 */
-+	if (!bank->context_valid)
-+		goto done;
-+
- 	_gpio_dbck_enable(bank);
- 
- 	/*
-@@ -1287,19 +1299,15 @@ static int omap_gpio_runtime_resume(struct device *dev)
- 			omap_gpio_restore_context(bank);
- 		} else {
- 			c = bank->get_context_loss_count(bank->dev);
--			if (c != bank->context_loss_count) {
-+			if (c != bank->context_loss_count)
- 				omap_gpio_restore_context(bank);
--			} else {
--				spin_unlock_irqrestore(&bank->lock, flags);
--				return 0;
--			}
-+			else
-+				goto done;
- 		}
- 	}
- 
--	if (!bank->workaround_enabled) {
--		spin_unlock_irqrestore(&bank->lock, flags);
--		return 0;
--	}
-+	if (!bank->workaround_enabled)
-+		goto done;
- 
- 	l = __raw_readl(bank->base + bank->regs->datain);
- 
-@@ -1352,6 +1360,7 @@ static int omap_gpio_runtime_resume(struct device *dev)
- 	}
- 
- 	bank->workaround_enabled = false;
-+done:
- 	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	return 0;
-@@ -1385,6 +1394,29 @@ void omap2_gpio_resume_after_idle(void)
- }
- 
- #if defined(CONFIG_PM_RUNTIME)
-+static void omap_gpio_init_context(struct gpio_bank *p)
-+{
-+	struct omap_gpio_reg_offs *regs = p->regs;
-+	void __iomem *base = p->base;
-+
-+	p->context.ctrl		= __raw_readl(base + regs->ctrl);
-+	p->context.oe		= __raw_readl(base + regs->direction);
-+	p->context.wake_en	= __raw_readl(base + regs->wkup_en);
-+	p->context.leveldetect0	= __raw_readl(base + regs->leveldetect0);
-+	p->context.leveldetect1	= __raw_readl(base + regs->leveldetect1);
-+	p->context.risingdetect	= __raw_readl(base + regs->risingdetect);
-+	p->context.fallingdetect = __raw_readl(base + regs->fallingdetect);
-+	p->context.irqenable1	= __raw_readl(base + regs->irqenable);
-+	p->context.irqenable2	= __raw_readl(base + regs->irqenable2);
-+
-+	if (regs->set_dataout && p->regs->clr_dataout)
-+		p->context.dataout = __raw_readl(base + regs->set_dataout);
-+	else
-+		p->context.dataout = __raw_readl(base + regs->dataout);
-+
-+	p->context_valid = true;
-+}
-+
- static void omap_gpio_restore_context(struct gpio_bank *bank)
- {
- 	__raw_writel(bank->context.wake_en,
-@@ -1422,6 +1454,7 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
- #else
- #define omap_gpio_runtime_suspend NULL
- #define omap_gpio_runtime_resume NULL
-+static void omap_gpio_init_context(struct gpio_bank *p) {}
- #endif
- 
- static const struct dev_pm_ops gpio_pm_ops = {
--- 
-1.7.10.4
+Thanks,
+Mike
+
+> 
+> 
+> This simple model will be extended to handle AVS as a part of the chain.
+> smps123 regulator may be changed to VP/VC regulator.
+> 
+> Following example is from integration branch, which already has smps123 
+> regulator.
+> It demonstrates an example of linkage to chain. ABB regulator is linked 
+> with smps123 and cpu0 inside device tree.
+> cpu0 calls set_voltage() function for ABB, and then ABB calls 
+> set_voltage() function for smps123 to do actual voltage scaling.
+> 
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index bb5ee70..c8cbbee 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -36,7 +36,7 @@
+>          cpus {
+>                  cpu@0 {
+>                          compatible = "arm,cortex-a15";
+> -                       cpu0-supply = <&smps123_reg>;
+> +                       cpu0-supply = <&abb_mpu>;
+>                          operating-points = <
+>                                  /* kHz    uV */
+>                                  /* Only for Nominal Samples */
+> @@ -94,6 +94,7 @@
+>                  reg = <0x4ae07cdc 0x8>,
+>                        <0x4ae06014 0x4>;
+>                  ti,tranxdone_status_mask = <0x80>;
+> +               avs-supply = <&smps123_reg>;
+>                  operating-points = <
+>                          /* uV   ABB */
+>                          880000  0
+> 
+> This RFC patch series is verified together with:
+> https://patchwork.kernel.org/patch/2445091/
+> 
+> Kevin, what do you think about this model in general? Does it fit to 
+> regulator framework?
+> 
+> Thank you.
+> 
+> Regards,
+> Andrii
