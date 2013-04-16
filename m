@@ -1,62 +1,84 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: adding rpmsg.git to linux next
-Date: Tue, 16 Apr 2013 10:07:15 +1000
-Message-ID: <20130416100715.cd726b96944237ef975ebe7d@canb.auug.org.au>
-References: <CAK=WgbY=4rosYr2g3fYYk6WrqXjN7f=5Dk5+D-h3cWrOtVmNag@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 00/33] OMAPDSS: platform_enable/disable callback removal
+ from panel drivers
+Date: Tue, 16 Apr 2013 07:20:10 +0300
+Message-ID: <516CD17A.5050403@ti.com>
+References: <1360765345-19312-1-git-send-email-archit@ti.com> <20130213164647.GF7144@atomide.com> <515C2058.8030402@ti.com> <20130403154645.GV10155@atomide.com> <516BC897.5020802@ti.com> <20130415212022.GP10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Tue__16_Apr_2013_10_07_15_+1000_qumq2kZEKiI0nh3B"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=WgbY=4rosYr2g3fYYk6WrqXjN7f=5Dk5+D-h3cWrOtVmNag@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "Tivy, Robert" <rtivy@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigF7F19DE49E131AE106A5817E"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:56787 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751821Ab3DPEUR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Apr 2013 00:20:17 -0400
+In-Reply-To: <20130415212022.GP10155@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
---Signature=_Tue__16_Apr_2013_10_07_15_+1000_qumq2kZEKiI0nh3B
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
+--------------enigF7F19DE49E131AE106A5817E
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hi Ohad,
+On 2013-04-16 00:20, Tony Lindgren wrote:
 
-On Mon, 15 Apr 2013 09:28:17 +0300 Ohad Ben-Cohen <ohad@wizery.com> wrote:
->
-> Could you please add:
+>> So, to recap, the common header changes are located in:
+>>
+>> git://gitorious.org/linux-omap-dss2/linux.git 3.10/0-dss-headers
+>>
+>> And the branch for linux-omap is:
+>>
+>> git://gitorious.org/linux-omap-dss2/linux.git 3.10-lo/board-cleanup
+>>
+>> After merging those, some displays won't start anymore until the omapd=
+ss
+>> changes are in, but things should still compile.
 >=20
-> git://git.kernel.org/pub/scm/linux/kernel/git/ohad/rpmsg.git#for-next
->=20
-> to linux-next to include new stuff coming from Rob?
+> Sounds like it's best that you merge those branches via your
+> tree as the conflicts have been already resolved in linux next.
 
-Well, you could tell me something about it.  Like what is in it and how
-it will be merged up to Linus.  Does this have anything to do with the
-remoteproc tree I already include?  Who is the official maintainer (there
-is no mention of drivers/rpmsg in the MAINTAINERS file).
+The dss changes are going through drm tree this time, as there are some
+drm dependencies also, and I've already sent the pull request for those.
+And when I asked Dave Airlie if he can merge the dss changes, I didn't
+talk about a big chunk of arch file changes getting included.
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+Also, the whole division to two independent branches was done only to
+make it possible for the arch changes to go through l-o tree.
 
---Signature=_Tue__16_Apr_2013_10_07_15_+1000_qumq2kZEKiI0nh3B
-Content-Type: application/pgp-signature
+There will probably be more these kind of changes in the future, so I
+think we should agree how to handle those and stick to the plan.
+Dividing the arch file changes to a separate branch is often quite
+laborious, and I'd rather not do that for nothing.
+
+ Tomi
+
+
+
+--------------enigF7F19DE49E131AE106A5817E
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJRbJYzAAoJEECxmPOUX5FEnf4P/A+lnN80cb/n+rxJdbK5SttF
-w9wHcfonMUIbs6+QfCAap6/Q/d3hmRcROXQyl/7QDY5WDSw+drk2dDFdU/WhMdX/
-WEmz2pU6z8zH2ctC1+JQhs0UeMus7wcn1bC5GHjZrsuPM8rSoyarr1AMfWhsavmr
-9VT339uEWpxEdemFWqYrtk1fBzHM8wyFIujCnWD/jb0EIWjbvbsXyQieiRpq9cqY
-9JEV7EaW1e3zwy33Y9UiZ9bRTFmQvstQ8t8klr6AZLT1lyaDA0ky9w4i4fqvrp3Z
-3HrLCqHV7mUwOAUlAfgmrHq+Y8lDA5hzp8NT9HFVBom9vXCIxS+9iHXdIdzhPJ/6
-Ur2Igep5u4xKfACBr+vuFbYxySr42uyvb9MyohEozh5+y56ULB4ryXYHB8f7Qr/m
-+3pEcqDykPd9cfUtUp6iR4MlCIIurgqHzZ6KWYi4GE+JbEWBuh+y2/BMY/gt7W+d
-PD40n4kVpC5q1RsKRS7rDua7n4ATJ25tK6Duze6c6H5eThB5nPsgtzw8uApT/NmN
-E/n+JoLT+H/XAA+rTDf0xTyw0dtXd8q0Z4cqEX/+Q3xnvny0Xuzw9mMwV3+vgmXY
-W4VEm+pqYnCut73SjUCYUwaotrKinFeGYYSn7I8TiDDN5SFx7zJUxZ0BGi7huCiR
-87FAO0k9jlQycquMZA+p
-=NaRd
+iQIcBAEBAgAGBQJRbNF+AAoJEPo9qoy8lh711T4QAJiV3umIhy3DeQyQ09YP+h2I
+JcKQMklHLUqoG2T9WzE0+RdKel6EW8N0F5wGDKjochqFSDAHqAq5YCBTF3VKzUIq
+1goe2FI8m4RiQ4BrGTFlv0WT37i7ETOPQz/IUBIYahyhNu8amMcrOXgDfkImTQkM
+64PXygo0b5yt34jhP/OzQAqBCBK7aRr5ssvBVLmL0AF5oK0aIw/cMji12uIn+fy0
+FYU9XDxM4X7hOQvJg3Nog5ziVIXqrXeuojfq5zeMw/JK9D0J+hOlXahPL7MF70DX
+FPt3Tj1X3gAVBMBc+OP9a2X6sRrxnNMyOX6G0SwAgHRnVHtJYBxemlNTIWZQr+Im
+X80HWqNfw+e9aCyUNrBa6gih5Bb+1kKjEGgaTcSfRDAOb3qgc6gaD8eqlZreDN4j
+qNuELUuAoqKTGMFtAG+UbsLEN1QvFsR1J1fy/Zzk6Smyo4IFX8FWzO8BZWnBJoMP
+KYWOlh6oXZRcura8jjifYLqcSHfAYeMOd8WonRMPhmGS5a5UvDpbJoLsQl3TZBFA
+wSWI4ZQ2noyvJpvCXUjpctDqo/V3R+2fichfiLpnUGx5RbScLzOjquXjjXhhNrvf
+KL5C7PMNpNuR73CU2qZRLaXB0NAxhbeqcyOCLUcf7HSIVPE3jcCC9sxMBeglD5K2
+OrRKBqjEJ18pBro3T2lt
+=YI6F
 -----END PGP SIGNATURE-----
 
---Signature=_Tue__16_Apr_2013_10_07_15_+1000_qumq2kZEKiI0nh3B--
+--------------enigF7F19DE49E131AE106A5817E--
