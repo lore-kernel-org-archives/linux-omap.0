@@ -1,114 +1,55 @@
-From: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Subject: Re: [RFC PATCH v2 0/6] ARM: OMAP3+: Introduce ABB driver
-Date: Tue, 16 Apr 2013 15:40:44 +0300
-Message-ID: <516D46CC.3080705@ti.com>
-References: <1366032491-4162-1-git-send-email-andrii.tseglytskyi@ti.com> <87sj2rbguv.fsf@linaro.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/2] USB: ehci-omap: Don't select any PHY driver
+Date: Tue, 16 Apr 2013 11:30:56 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1304161130380.1391-100000@iolanthe.rowland.org>
+References: <1366026636-29198-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46530 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753010Ab3DPMkr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Apr 2013 08:40:47 -0400
-In-Reply-To: <87sj2rbguv.fsf@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1366026636-29198-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, holler@ahsoftware.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-omap@vger.kernel.org, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>
 
-Hi Kevin,
+On Mon, 15 Apr 2013, Roger Quadros wrote:
 
-On 04/16/2013 12:53 AM, Kevin Hilman wrote:
-> Andrii Tseglytskyi <andrii.tseglytskyi@ti.com> writes:
->
->> From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
->>
->> Following patch series introduces the Adaptive Body-Bias
->> LDO driver, which handles LDOs voltage during OPP change routine.
->> Current implementation is based on patch series from
->> Mike Turquette:
->>
->> http://marc.info/?l=linux-omap&m=134931341818379&w=2
->>
->> ABB transition is a part of OPP changing sequence.
->> ABB can operate in the following modes:
->> - Bypass mode: Activated when ABB is not required
->> - FBB mode: Fast Body Bias mode, used on fast OPPs
-> Fast?  I thought the 'F' was for Forward?
-You are right. Should be 'Forward' here.
+> Don't select NOP_USB_XCEIV. Instead, board config
+> must select USB_PHY and the appropriate PHY driver.
+> 
+> Also add a hint in Kconfig so that users enabling
+> this driver manually enable the right PHY drivers as well.
+> 
+> Gets rid of the below warnings when USB_EHCI_HCD_OMAP
+> is enabled.
+> 
+> warning: (USB_EHCI_HCD_OMAP) selects NOP_USB_XCEIV which has unmet direct dependencies (USB_SUPPORT && USB_PHY)
+> warning: (USB_EHCI_HCD_OMAP) selects NOP_USB_XCEIV which has unmet direct dependencies (USB_SUPPORT && USB_PHY)
+> 
+> CC: Alan Stern <stern@rowland.harvard.edu>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/usb/host/Kconfig |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
+> index c0be25c..c558472 100644
+> --- a/drivers/usb/host/Kconfig
+> +++ b/drivers/usb/host/Kconfig
+> @@ -150,11 +150,13 @@ config USB_EHCI_MXC
+>  config USB_EHCI_HCD_OMAP
+>  	tristate "EHCI support for OMAP3 and later chips"
+>  	depends on ARCH_OMAP
+> -	select NOP_USB_XCEIV
+>  	default y
+>  	---help---
+>  	  Enables support for the on-chip EHCI controller on
+>  	  OMAP3 and later chips.
+> +	  If your system uses a PHY on the USB port, you will need to
+> +	  enable USB_PHY and the appropriate PHY driver as well. Most
+> +	  boards need the NOP_USB_XCEIV PHY driver.
+>  
+>  config USB_EHCI_HCD_ORION
+>  	tristate  "Support for Marvell EBU on-chip EHCI USB controller"
 
->> - RBB mode: Reverse Body Bias mode, used on slow OPPs
->>
->> In current implementation ABB is converted to regulator.
->> Standalone OPP table is used to store ABB mode, it is defined
->> in device tree for each ABB regulator. It has the following format:
->>
->> operating-points = <
->> 	       /* uV   ABB (0 - Bypass, 1 - FBB, 2 - RBB) */
->> 	       880000		0
->> 	       1060000		1
->> 	       1250000		1
->> 	       1260000		1
->>> ;
->> ABB regulator is linked to regulator chain
-> In addition to Mike's comments (which I completely agree with), it would
-> be very helfpul to see how this is actually used.  e.g, how the
-> regulators are chained together, how the proper ordering is managed,
-> etc. etc.
-
-We would like to handle voltage scaling in the following way:
-
-cpufreq_cpu0
-clk_set_rate(cpu0)
-     |
-     |-->set_voltage(ABB regulator) /* all ABB related stuff will be 
-handled here */
-                 |
-                 |-->set_voltage(smps123 regulator) /* actual voltage 
-scaling */
-
-
-This simple model will be extended to handle AVS as a part of the chain.
-smps123 regulator may be changed to VP/VC regulator.
-
-Following example is from integration branch, which already has smps123 
-regulator.
-It demonstrates an example of linkage to chain. ABB regulator is linked 
-with smps123 and cpu0 inside device tree.
-cpu0 calls set_voltage() function for ABB, and then ABB calls 
-set_voltage() function for smps123 to do actual voltage scaling.
-
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index bb5ee70..c8cbbee 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -36,7 +36,7 @@
-         cpus {
-                 cpu@0 {
-                         compatible = "arm,cortex-a15";
--                       cpu0-supply = <&smps123_reg>;
-+                       cpu0-supply = <&abb_mpu>;
-                         operating-points = <
-                                 /* kHz    uV */
-                                 /* Only for Nominal Samples */
-@@ -94,6 +94,7 @@
-                 reg = <0x4ae07cdc 0x8>,
-                       <0x4ae06014 0x4>;
-                 ti,tranxdone_status_mask = <0x80>;
-+               avs-supply = <&smps123_reg>;
-                 operating-points = <
-                         /* uV   ABB */
-                         880000  0
-
-This RFC patch series is verified together with:
-https://patchwork.kernel.org/patch/2445091/
-
-Kevin, what do you think about this model in general? Does it fit to 
-regulator framework?
-
-Thank you.
-
-Regards,
-Andrii
-
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
