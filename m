@@ -1,160 +1,128 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [RFC PATCH v2 0/6] ARM: OMAP3+: Introduce ABB driver
-Date: Tue, 16 Apr 2013 12:18:23 -0700
-Message-ID: <87y5ci5log.fsf@linaro.org>
-References: <1366032491-4162-1-git-send-email-andrii.tseglytskyi@ti.com>
-	<87sj2rbguv.fsf@linaro.org> <516D46CC.3080705@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
+Date: Tue, 16 Apr 2013 14:27:06 -0500
+Message-ID: <516DA60A.5070000@ti.com>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <CACRpkdYHj-rEF3Rk_CWnmmMw_Amr7m8SgQ=-2zsDYuLeuu3azw@mail.gmail.com> <514C79E1.4090106@wwwdotorg.org> <514CE0AB.6060207@ti.com> <CACRpkdZmv-rAoKSQYpkHHSMzKJOn5TixVW_P3=m7ZNagBYCUPw@mail.gmail.com> <515319D5.20105@wwwdotorg.org> <CACRpkdYXVLgCz1Tyu-Ls2V2OTc4R3cGNJhfQJB6Hiz_K9dkZYQ@mail.gmail.com> <5155C902.7080207@wwwdotorg.org> <CACRpkdYbs4-uudpRUY8e+7icYYkZrfM0kReP3pLL5DMiURJ4dg@mail.gmail.com> <5165CB9D.1090202@wwwdotorg.org> <CACRpkdYirFNqmGhA4K9CL4ve4NYhs8Rd3SFt1iwW9vHBkrcz8g@mail.gmail.com> <51671D7B.5060303@wwwdotorg.org> <CACRpkdbf32Ef77GmXk9id9+RRjcDRTr7S+F4nznoeZU8y=BT_Q@mail.gmail.com> <51673D70.3010503@wwwdotorg.org> <CAAwP0s0e2x33jZQhFRY+Hoo61SFqYKRgWk=1mL2+DNxSDJHz+A@mail.gmail.com> <CACRpkda4h+qXTvsirPAS7E7sjXhM
+ LE62q=VDy53W8UchsYjbNg@mail.gmail.com> <516C31C3.9040505@wwwdotorg.org> <516C73C6.5050409@ti.co m> <516C7C43.3040105@wwwdotorg.org> <516C8760.2050500@ti.com> <516D9B05.1000501@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:52605 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753687Ab3DPTS2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Apr 2013 15:18:28 -0400
-Received: by mail-pb0-f54.google.com with SMTP id xa7so457011pbc.27
-        for <linux-omap@vger.kernel.org>; Tue, 16 Apr 2013 12:18:27 -0700 (PDT)
-In-Reply-To: <516D46CC.3080705@ti.com> (Andrii Tseglytskyi's message of "Tue,
-	16 Apr 2013 15:40:44 +0300")
+Received: from comal.ext.ti.com ([198.47.26.152]:40059 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753687Ab3DPT1U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Apr 2013 15:27:20 -0400
+In-Reply-To: <516D9B05.1000501@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Cc: linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <martinez.javier@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Alexandre Courbot <acourbot@nvidia.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Andrii Tseglytskyi <andrii.tseglytskyi@ti.com> writes:
 
-> Hi Kevin,
->
-> On 04/16/2013 12:53 AM, Kevin Hilman wrote:
->> Andrii Tseglytskyi <andrii.tseglytskyi@ti.com> writes:
+On 04/16/2013 01:40 PM, Stephen Warren wrote:
+> On 04/15/2013 05:04 PM, Jon Hunter wrote:
 >>
->>> From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
+>> On 04/15/2013 05:16 PM, Stephen Warren wrote:
+>>> On 04/15/2013 03:40 PM, Jon Hunter wrote:
+> ...
+>>>> mmc {
+>>>> 	label = "pandaboard::status2";
+>>>>  	gpios = <&gpio1 8 0>;
+>>>> 	...
+>>>> };
 >>>
->>> Following patch series introduces the Adaptive Body-Bias
->>> LDO driver, which handles LDOs voltage during OPP change routine.
->>> Current implementation is based on patch series from
->>> Mike Turquette:
+>>> But that's a gpio-leds instance, not an MMC controller... I really
+>>> really hope there's no DT node using "gpios" to mean "interrupts"... And
+>>> it wouldn't make any sense for an on-SoC device anyway.
+>>
+>> Oops yes, I overlooked that. However, the omap mmc driver
+>> (drivers/mmc/host/omap_hsmmc.c) does call gpio_request() and
+>> request_threaded_irq() for the mmc card-detect interrupt. I believe
+>> tegra is doing the same ...
+>>
+>> sdhci@78000000 {
+>> 	...
+>> 	cd-gpios = <&gpio 69 0>; /* gpio PI5 */
+>> 	...	
+>> };
+> 
+> Ah true. I guess at least all MMC drivers are likely hooking cd-gpios as
+> an interrupt, /and/ requesting it as a GPIO so that they can read the
+> current state when the GPIO goes off.
+> 
+> That tends to imply that no core code can possibly call gpio_request()
+> in response to request_irq(), since doing so likely will conflict with
+> quite a few drivers...
+
+Yes that was my concern.
+
+>>>> Both these devices are using a gpio as an interrupt source, but the mmc
+>>>> driver is requesting the gpio directly. In the first case the xlate
+>>>> function for the gpio irq domain will be called where as it is not used
+>>>> in the 2nd case. Therefore, we could add a custom xlate function. For
+>>>> example ...
+>>>>
+>>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
 >>>
->>> http://marc.info/?l=linux-omap&m=134931341818379&w=2
+>>>> +int omap_irq_domain_xlate(struct irq_domain *d, struct device_node *ctrlr,
+>>> ...
+>>>> +       gpio_request_one(irq_to_gpio(bank, intspec[0]), GPIOF_IN, ctrlr->name);
 >>>
->>> ABB transition is a part of OPP changing sequence.
->>> ABB can operate in the following modes:
->>> - Bypass mode: Activated when ABB is not required
->>> - FBB mode: Fast Body Bias mode, used on fast OPPs
->> Fast?  I thought the 'F' was for Forward?
-> You are right. Should be 'Forward' here.
->
->>> - RBB mode: Reverse Body Bias mode, used on slow OPPs
+>>> I guess that could work, but:
 >>>
->>> In current implementation ABB is converted to regulator.
->>> Standalone OPP table is used to store ABB mode, it is defined
->>> in device tree for each ABB regulator. It has the following format:
->>>
->>> operating-points = <
->>> 	       /* uV   ABB (0 - Bypass, 1 - FBB, 2 - RBB) */
->>> 	       880000		0
->>> 	       1060000		1
->>> 	       1250000		1
->>> 	       1260000		1
->>>> ;
->>> ABB regulator is linked to regulator chain
->> In addition to Mike's comments (which I completely agree with), it would
->> be very helfpul to see how this is actually used.  e.g, how the
->> regulators are chained together, how the proper ordering is managed,
->> etc. etc.
->
-> We would like to handle voltage scaling in the following way:
+>>> a) It still means doing the gpio_request() in each driver instead of
+>>> centrally.
+>>
+>> Right this is device specific, but it avoids exposing irq_to_gpio for a
+>> device. However, we could make this generic if we did expose irq_to_gpio
+>> for each device.
+>>
+>>> b) This approach doesn't solve the issue where some client driver has
+>>> already requested the GPIO. This code would simply prevent that call
+>>> from succeeding, which would probably make the driver probe() error out,
+>>> which isn't any different to the equivalent proposed centralized
+>>> gpio_request() inside some request_irq() failing, and causing the
+>>> device's probe() to error out.
+>>
+>> If some driver is calling gpio_request() directly, then they will most
+>> likely just call gpio_to_irq() when requesting the interrupt and so the
+>> xlate function would not be called in this case (mmc drivers are a good
+>> example). So I don't see that as being a problem. In fact that's the
+>> benefit of this approach as AFAICT it solves this problem.
+> 
+> Oh. That assumption seems very fragile. What about drivers that actually
+> do have platform data (or DT bindings) that provide both the IRQ and
+> GPIO IDs, and hence don't use gpio_to_irq()? That's entirely possible.
 
-What I meant is that a detailed description of the use case should be
-included in the changelog.
+Right. In the DT case though, if someone does provide the IRQ and GPIO
+IDs then at least they would use a different xlate function. Another
+option to consider would be defining the #interrupt-cells = <3> where we
+would have ...
 
-> cpufreq_cpu0
-> clk_set_rate(cpu0)
->     |
->     |-->set_voltage(ABB regulator) /* all ABB related stuff will be
-> handled here */
->                 |
->                 |-->set_voltage(smps123 regulator) /* actual voltage
-> scaling */
+cell-#1 --> IRQ domain ID
+cell-#2 --> Trigger type
+cell-#3 --> GPIO ID
 
--EASCII_ART_WRAP
+Then we could have a generic xlate for 3 cells that would also request
+the GPIO. Again not sure if people are against a gpio being requested in
+the xlate but just an idea. Or given that irq_of_parse_and_map() calls
+the xlate, we could have this function call gpio_request() if the
+interrupt controller is a gpio and there are 3 cells.
 
->
-> This simple model will be extended to handle AVS as a part of the chain.
-> smps123 regulator may be changed to VP/VC regulator.
->
-> Following example is from integration branch, which already has
-> smps123 regulator.
+> Given all this, I guess simply having each GPIO+IRQ driver's set_type
+> function simply do whatever is required in HW to set up that GPIO
+> actually does seem like the best idea. Admittedly that isn't
+> centralized, but I'm not sure now that any centralized implementation is
+> possible, without significant rework of a bunch of drivers. This is what
+> the Tegra GPIO driver already does, and I think one of the earlier
+> patches in this thread did exactly that for OMAP IRQs too right?
 
-I don't know what integration branch you're referring to, and I don't
-know what the smps123 regulator is.
+Yes, however, Linus wanted us to make sure the gpio is requested which
+is why we have not taken that patch. However, if we cannot find a better
+alternative may be we have to do that for now.
 
-> It demonstrates an example of linkage to chain. ABB regulator is
-> linked with smps123 and cpu0 inside device tree.
-> cpu0 calls set_voltage() function for ABB, and then ABB calls
-> set_voltage() function for smps123 to do actual voltage scaling.
->
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index bb5ee70..c8cbbee 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -36,7 +36,7 @@
->         cpus {
->                 cpu@0 {
->                         compatible = "arm,cortex-a15";
-> -                       cpu0-supply = <&smps123_reg>;
-> +                       cpu0-supply = <&abb_mpu>;
->                         operating-points = <
->                                 /* kHz    uV */
->                                 /* Only for Nominal Samples */
-> @@ -94,6 +94,7 @@
->                 reg = <0x4ae07cdc 0x8>,
->                       <0x4ae06014 0x4>;
->                 ti,tranxdone_status_mask = <0x80>;
-> +               avs-supply = <&smps123_reg>;
->                 operating-points = <
->                         /* uV   ABB */
->                         880000  0
->
-> This RFC patch series is verified together with:
-> https://patchwork.kernel.org/patch/2445091/
->
-> Kevin, what do you think about this model in general? Does it fit to
-> regulator framework?
+> BTW, just so you know, I'm on vacation for 2 weeks starting Wed
+> afternoon, so replies will be non-existent or spotty during that time.
 
-I don't know yet, because I don't think the use case has been described
-well enough for me to fully understand it the motiviation behind the
-series.
-
-In addition, there are alternative approaches that seem to have been
-ruled out without describing why.  For example, the regulator framework
-already allows you to override methods with custom hooks (as we do for
-VC/VP controlled regulators already.)  Without thinking about it too
-deeply, it seems this approach could be used to manage the chain of
-events you need as well.  I can imagine there are limitations to this
-approach for what you're trying to do, but I don't feel they have been
-described in the changelog as part of the motivation for this series.
-
-So for now, the guidance I have is this:
-
-First, write changelogs (and cover letters) assuming your audience has
-not been staring at the code as long as you have.  Even if they have
-been staring at the same code, assume they've been staring at mainline,
-and not a random integration branch somewhere.  My general advice is to
-write changelogs in a way that you will understand what you wrote a year
-from now after having forgotten all the details currently in your brains
-cache.  Even better, write them so that I will understand them in a year
-since I forget much better than I remember.
-
-Second, before inventing something new, start with the existing
-framework.  When the existing framework doesn't work, make an argument
-for your new approach or extentions to the framework based on why the
-existing stuff doesn't work.  If you don't do this, the reviewers first
-reaction will almost always be "why don't you use what already exists in
-the framework."  And then you'll have a bunch of back and forth with
-reviewers when you could've explained the reasoning from the beginning.
-
-Hope that helps,
-
-Kevin
-
-
+Thanks!
+Jon
