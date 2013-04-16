@@ -1,66 +1,49 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 1/2] RTC: rtc-twl: Fix rtc_reg_map initialization
-Date: Tue, 16 Apr 2013 10:30:12 +0200
-Message-ID: <1366101013-21183-1-git-send-email-peter.ujfalusi@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [BUG] omap: mfd/regulator: twl/core: init order
+Date: Tue, 16 Apr 2013 11:33:48 +0300
+Message-ID: <516D0CEC.2060306@ti.com>
+References: <1365877659.3812.110.camel@mars> <516BD479.2020904@ti.com> <1366023401.957.5.camel@mars> <516BDDAC.8040905@ti.com> <20130415162541.GO10155@atomide.com> <516D01A4.8080301@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>
-Cc: rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Christoph Fritz <chf.fritz@googlemail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Tomi Valkeinen <tomi.valkeinen@iki.fi>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38694 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755139Ab3DPIet (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Apr 2013 04:34:49 -0400
+In-Reply-To: <516D01A4.8080301@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Christoph Fritz <chf.fritz@googlemail.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Samuel Ortiz <sameo@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org, Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
 
-Initialize the rtc_reg_map in platform_driver's probe function instead at
-module_init time. This way we can make sure that the twl-core has been already
-probed and initialized (twl_priv->twl_id is valid) since the platform device
-for the RTC driver will be created by the twl-core after it finished it's
-init.
+On 04/16/2013 10:45 AM, Peter Ujfalusi wrote:
+> On 04/15/2013 06:25 PM, Tony Lindgren wrote:
+>> This fix should not be needed. It just means the real
+>> problem is somewhere else. Pinctrl is already before the i2c
+>> in drivers/Makefile. Maybe one of the MFD drivers has
+>> a wrong initcall level?
+> FYI; I just sent a patch which I believe is the correct way to fix this issue.
+>
+Hi Tony, Peter
 
-Reported-by: Christoph Fritz <chf.fritz@googlemail.com>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-Hi,
+OMAP i2c/pin-control initialization isn't controlled by Makefiles now (:
+- i2c initialized at subsys_initcall(omap_i2c_init_driver);
+- pinctrl-single at module_platform_driver(pcs_driver) => module_init => 
+device_initcall (if built-in)
 
-As Tomi commented on the first version:
-www.spinics.net/lists/linux-omap/msg90064.html
-www.spinics.net/lists/linux-omap/msg90066.html
+And pls, pay attention on overall BUG description - twl-regulators
+initialization has been delayed as result all Regulators consumers
+(drivers which use regulators) will need to defer it's probe correctly too.
+For now it isn't true for many drivers and, for example,
+omap_hsmmc driver's probe will just fail if it can't get regulator.
+(+ problems with DSS - most probably Panel/DSI driver probe can't handle 
+pin configuration)
 
-I have separated the actual fix from the module_platform_driver() conversion.
+Before, on early kernel versions, the OMAP pinmux was ready to work at 
+arch_initcall time
+and most of the code has been created with this assumption.
 
-Regards,
-Peter
+Unfortunately, RTC is just a small part of problem.
 
- drivers/rtc/rtc-twl.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index 8bc6c80..c385e9b 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
-@@ -469,6 +469,12 @@ static int twl_rtc_probe(struct platform_device *pdev)
- 	if (irq <= 0)
- 		goto out1;
- 
-+	/* Initialize the register map */
-+	if (twl_class_is_4030())
-+		rtc_reg_map = (u8 *)twl4030_rtc_reg_map;
-+	else
-+		rtc_reg_map = (u8 *)twl6030_rtc_reg_map;
-+
- 	ret = twl_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
- 	if (ret < 0)
- 		goto out1;
-@@ -614,11 +620,6 @@ static struct platform_driver twl4030rtc_driver = {
- 
- static int __init twl_rtc_init(void)
- {
--	if (twl_class_is_4030())
--		rtc_reg_map = (u8 *) twl4030_rtc_reg_map;
--	else
--		rtc_reg_map = (u8 *) twl6030_rtc_reg_map;
--
- 	return platform_driver_register(&twl4030rtc_driver);
- }
- module_init(twl_rtc_init);
--- 
-1.8.1.5
+-grygorii
