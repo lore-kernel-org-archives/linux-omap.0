@@ -1,95 +1,79 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: adding rpmsg.git to linux next
-Date: Tue, 16 Apr 2013 20:51:13 +0300
-Message-ID: <CAK=WgbbVP+3eugev8szRBCV84uZLdKP6QXAH_Fr89SXDs-V5GQ@mail.gmail.com>
-References: <CAK=WgbY=4rosYr2g3fYYk6WrqXjN7f=5Dk5+D-h3cWrOtVmNag@mail.gmail.com>
- <20130416100715.cd726b96944237ef975ebe7d@canb.auug.org.au>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [BUG] omap: mfd/regulator: twl/core: init order
+Date: Tue, 16 Apr 2013 10:54:39 -0700
+Message-ID: <20130416175438.GR10155@atomide.com>
+References: <1365877659.3812.110.camel@mars>
+ <516BD479.2020904@ti.com>
+ <1366023401.957.5.camel@mars>
+ <516BDDAC.8040905@ti.com>
+ <20130415162541.GO10155@atomide.com>
+ <516D01A4.8080301@ti.com>
+ <516D0CEC.2060306@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:38226 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935536Ab3DPRvf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Apr 2013 13:51:35 -0400
-Received: by mail-lb0-f169.google.com with SMTP id p11so823061lbi.0
-        for <linux-omap@vger.kernel.org>; Tue, 16 Apr 2013 10:51:34 -0700 (PDT)
-In-Reply-To: <20130416100715.cd726b96944237ef975ebe7d@canb.auug.org.au>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35395 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965031Ab3DPRys (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Apr 2013 13:54:48 -0400
+Content-Disposition: inline
+In-Reply-To: <516D0CEC.2060306@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: "Tivy, Robert" <rtivy@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Christoph Fritz <chf.fritz@googlemail.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Samuel Ortiz <sameo@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org, Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
 
-Hi Stephen,
+* Grygorii Strashko <grygorii.strashko@ti.com> [130416 01:39]:
+> On 04/16/2013 10:45 AM, Peter Ujfalusi wrote:
+> >On 04/15/2013 06:25 PM, Tony Lindgren wrote:
+> >>This fix should not be needed. It just means the real
+> >>problem is somewhere else. Pinctrl is already before the i2c
+> >>in drivers/Makefile. Maybe one of the MFD drivers has
+> >>a wrong initcall level?
+> >FYI; I just sent a patch which I believe is the correct way to fix this issue.
+> >
+> Hi Tony, Peter
+> 
+> OMAP i2c/pin-control initialization isn't controlled by Makefiles now (:
+> - i2c initialized at subsys_initcall(omap_i2c_init_driver);
 
-On Tue, Apr 16, 2013 at 3:07 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> On Mon, 15 Apr 2013 09:28:17 +0300 Ohad Ben-Cohen <ohad@wizery.com> wrote:
->> Could you please add:
->>
->> git://git.kernel.org/pub/scm/linux/kernel/git/ohad/rpmsg.git#for-next
->>
->> to linux-next to include new stuff coming from Rob?
->
-> Well, you could tell me something about it.  Like what is in it and how
-> it will be merged up to Linus.  Does this have anything to do with the
-> remoteproc tree I already include?  Who is the official maintainer (there
-> is no mention of drivers/rpmsg in the MAINTAINERS file).
+AFAIK there should be no reason to have this as subsys_initcall
+any longer. It should be just regular module init.
 
-Sorry for not mentioning this.
+> - pinctrl-single at module_platform_driver(pcs_driver) =>
+> module_init => device_initcall (if built-in)
 
-This tree isn't new and is being used to send pull requests to Linus
-for some time. I guess that most (all?) of the pull requests contained
-fixes which needed no linux-next presence, so it never occurred to me
-the tree isn't part of linux-next.
+Yes but still, the deferred probe should handle this case too,
+I wonder why we're not seeing this issue on omap4 for example?
+ 
+> And pls, pay attention on overall BUG description - twl-regulators
+> initialization has been delayed as result all Regulators consumers
+> (drivers which use regulators) will need to defer it's probe correctly too.
+> For now it isn't true for many drivers and, for example,
+> omap_hsmmc driver's probe will just fail if it can't get regulator.
+> (+ problems with DSS - most probably Panel/DSI driver probe can't
+> handle pin configuration)
 
-Some background:
+Sounds like there are a few places to fix. Got something available
+for these?
+ 
+> Before, on early kernel versions, the OMAP pinmux was ready to work
+> at arch_initcall time
+> and most of the code has been created with this assumption.
 
-Rpmsg is a virtio-based messaging bus that allows kernel drivers to communicate
-with entities running on remote processors available on the system. In
-turn, drivers could then
-expose appropriate user space interfaces, if needed.
+Yes. In general we've been moving to initializing things later
+on rather than earlier so we have a real console available for
+error messages instead of earlyprintk if something goes wrong.
 
-Rpmsg is essentially a multiplexer providing communication channels
-which rpmsg drivers utilizes; it does not handle the physical state of
-the remote processor, and in fact is completely decoupled from
-remoteproc, which does focus on the physical state of the remote
-processor (but has no communications aspect). For much more
-information, please see Documentation/rpmsg.txt.
+BTW, the legacy omap pinmux code will be going away as soon as
+we have moved platforms to use DT only booting. I think we can
+make omap4 DT only after v3.10, omap3 later on.
+ 
+> Unfortunately, RTC is just a small part of problem.
 
-I maintain rpmsg (by sending pull requests to Linus), and for some
-reason never added a MAINTAINERS entry for it. I can fix that quite
-easily, let me know if this helps:
+Can you try just setting the related drivers to be regular
+module initcalls and see if that solves the problem?
 
-commit d8115db52b99eefb99bcbf992edc349e691b4ca7
-Author: Ohad Ben-Cohen <ohad@wizery.com>
-Date:   Tue Apr 16 20:34:49 2013 +0300
+Regards,
 
-    MAINTAINERS: add rpmsg entry
-
-    People and scripts look for this.
-
-    Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 9561658..eaca6c8 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6604,6 +6604,14 @@ F:       drivers/remoteproc/
- F:     Documentation/remoteproc.txt
- F:     include/linux/remoteproc.h
-
-+REMOTE PROCESSOR MESSAGING (RPMSG) SUBSYSTEM
-+M:     Ohad Ben-Cohen <ohad@wizery.com>
-+T:     git git://git.kernel.org/pub/scm/linux/kernel/git/ohad/rpmsg.git
-+S:     Maintained
-+F:     drivers/rpmsg/
-+F:     Documentation/rpmsg.txt
-+F:     include/linux/rpmsg.h
-+
- RFKILL
- M:     Johannes Berg <johannes@sipsolutions.net>
- L:     linux-wireless@vger.kernel.org
-
-Hope this all helps, please let me know if anything else is needed.
-
-Thanks,
-Ohad.
+Tony
