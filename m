@@ -1,68 +1,39 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH] ARM: dts: OMAP4+: remove multimedia carveouts
-Date: Wed, 17 Apr 2013 16:26:30 -0500
-Message-ID: <1366233990-29724-1-git-send-email-s-anna@ti.com>
+Subject: [PATCH] ARM: OMAP2+: control: add OMAP5 support for dsp boot programming
+Date: Wed, 17 Apr 2013 16:31:03 -0500
+Message-ID: <1366234263-29875-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36828 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54048 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965578Ab3DQVbX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Apr 2013 17:31:23 -0400
+	id S965578Ab3DQVfz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Apr 2013 17:35:55 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-The carveouts that have been reserved for multimedia usecases
-are not being used currently by any driver and so have been
-cleaned up. Memory will be allocated runtime through CMA for
-enabling the multimedia usecases.
+Support for OMAP5 is added to the omap_dsp_ctrl_write_boot_addr()
+to enable the DSP boot.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi | 8 --------
- arch/arm/boot/dts/omap5.dtsi | 8 --------
- 2 files changed, 16 deletions(-)
+ arch/arm/mach-omap2/control.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 55c633a..79aaafe 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -6,14 +6,6 @@
-  * published by the Free Software Foundation.
-  */
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 2adb268..31e0dfe 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -249,6 +249,7 @@ void omap_ctrl_write_dsp_boot_addr(u32 bootaddr)
+ 	u32 offset = cpu_is_omap243x() ? OMAP243X_CONTROL_IVA2_BOOTADDR :
+ 		     cpu_is_omap34xx() ? OMAP343X_CONTROL_IVA2_BOOTADDR :
+ 		     cpu_is_omap44xx() ? OMAP4_CTRL_MODULE_CORE_DSP_BOOTADDR :
++		     soc_is_omap54xx() ? OMAP4_CTRL_MODULE_CORE_DSP_BOOTADDR :
+ 		     0;
  
--/*
-- * Carveout for multimedia usecases
-- * It should be the last 48MB of the first 512MB memory part
-- * In theory, it should not even exist. That zone should be reserved
-- * dynamically during the .reserve callback.
-- */
--/memreserve/ 0x9d000000 0x03000000;
--
- /include/ "skeleton.dtsi"
- 
- / {
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index c9ecdbe..7006554 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -7,14 +7,6 @@
-  * Based on "omap4.dtsi"
-  */
- 
--/*
-- * Carveout for multimedia usecases
-- * It should be the last 48MB of the first 512MB memory part
-- * In theory, it should not even exist. That zone should be reserved
-- * dynamically during the .reserve callback.
-- */
--/memreserve/ 0x9d000000 0x03000000;
--
- /include/ "skeleton.dtsi"
- 
- / {
+ 	if (!offset) {
 -- 
 1.8.2
 
