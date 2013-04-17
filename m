@@ -1,92 +1,67 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: dts: omap3-beagle-xm: Add USB Host support for Rev
- Ax/Bx
-Date: Wed, 17 Apr 2013 10:56:07 +0300
-Message-ID: <516E5597.7050801@compulab.co.il>
-References: <1366029306-1824-1-git-send-email-rogerq@ti.com> <516BF4F3.5060904@ti.com> <20130417005232.GV10155@atomide.com> <CAOCHtYgFnCy5Qn2LeJOK96_NdwzxzVe8Vrb8cL=K9AdzPUtQow@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/2] USB: ehci-omap: Improve PHY error handling
+Date: Wed, 17 Apr 2013 11:12:43 +0300
+Message-ID: <516E597B.9010100@ti.com>
+References: <Pine.LNX.4.44L0.1304161130590.1391-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOCHtYgFnCy5Qn2LeJOK96_NdwzxzVe8Vrb8cL=K9AdzPUtQow@mail.gmail.com>
+In-Reply-To: <Pine.LNX.4.44L0.1304161130590.1391-100000@iolanthe.rowland.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, holler@ahsoftware.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/17/13 04:30, Robert Nelson wrote:
-> On Tue, Apr 16, 2013 at 7:52 PM, Tony Lindgren <tony@atomide.com> wro=
-te:
->> * Roger Quadros <rogerq@ti.com> [130415 05:44]:
->>> On 04/15/2013 03:35 PM, Roger Quadros wrote:
->>>> Provide RESET and Power regulators for the USB PHY,
->>>> the USB Host port mode and the PHY device.
->>>>
->>>> Also provide pin multiplexer information for USB host
->>>> pins.
->>>>
->>>> This will not work for Rev Cx boards because of reversed logic
->>>> for USB_POWER_Enable.
->>>>
->>>> CC: Beno=EEt Cousson <b-cousson@ti.com>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>  arch/arm/boot/dts/omap3-beagle-xm.dts |   62 ++++++++++++++++++++=
-+++++++++++++
->>>>  1 files changed, 62 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot=
-/dts/omap3-beagle-xm.dts
->>>> index 5a31964..d394c51 100644
->>>> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
->>>> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
->>>> @@ -57,6 +57,60 @@
->>>>             ti,mcbsp =3D <&mcbsp2>;
->>>>             ti,codec =3D <&twl_audio>;
->>>>     };
->>>> +
->>>> +   /* HS USB Port 2 RESET */
->>>> +   hsusb2_reset: hsusb2_reset_reg {
->>>> +           compatible =3D "regulator-fixed";
->>>> +           regulator-name =3D "hsusb2_reset";
->>>> +           regulator-min-microvolt =3D <3300000>;
->>>> +           regulator-max-microvolt =3D <3300000>;
->>>> +           gpio =3D <&gpio5 19 0>;   /* gpio_147 */
->>>> +           startup-delay-us =3D <70000>;
->>>> +           enable-active-high;
->>>> +   };
->>>> +
->>>> +   /* HS USB Port 2 Power */
->>>> +   hsusb2_power: hsusb2_power_reg {
->>>> +           compatible =3D "regulator-fixed";
->>>> +           regulator-name =3D "hsusb2_vbus";
->>>> +           regulator-min-microvolt =3D <3300000>;
->>>> +           regulator-max-microvolt =3D <3300000>;
->>>> +           gpio =3D <&twl_gpio 18 0>;        /* GPIO LEDA */
->>>> +           startup-delay-us =3D <70000>;
->>>> +           enable-active-high;     /* FIXME: active-low for Rev. =
-C */
->>>
->>> Benoit & Tony,
->>>
->>> Any ideas how to tackle the reversed logic for Rev. C boards?
+On 04/16/2013 06:32 PM, Alan Stern wrote:
+> On Mon, 15 Apr 2013, Roger Quadros wrote:
+> 
+>> As the USB PHY layer never returns NULL we don't need
+>> to check for that condition.
 >>
->> Sounds like we need a shared omap3-beage.dtsi, then omap3-beagle-xm.=
-dts
->> and omap3-beagle-rev-c.dts. Then xm and rev-c can both include the
->=20
-> Bike-sheding, but we might want to make that "omap3-beagle-xmc.dts" a=
-s
-> there is the "rev c" variant of the original beagle...
->=20
-> It's too bad we can't read the 3 gpio pin states in the device tree
-> and make a decision.
+>> If we fail to get the PHY device it could be due
+>> to missing USB PHY drivers. Give this hint to the user
+>> in the error message.
+>>
+>> CC: Alan Stern <stern@rowland.harvard.edu>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  drivers/usb/host/ehci-omap.c |    6 +++---
+>>  1 files changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+>> index 5de3e43..2e34ddd 100644
+>> --- a/drivers/usb/host/ehci-omap.c
+>> +++ b/drivers/usb/host/ehci-omap.c
+>> @@ -175,13 +175,13 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+>>  			phy = devm_usb_get_phy_by_phandle(dev, "phys", i);
+>>  		else
+>>  			phy = devm_usb_get_phy_dev(dev, i);
+>> -		if (IS_ERR(phy) || !phy) {
+>> +		if (IS_ERR(phy)) {
+>>  			/* Don't bail out if PHY is not absolutely necessary */
+>>  			if (pdata->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY)
+>>  				continue;
+>>  
+>> -			ret = IS_ERR(phy) ? PTR_ERR(phy) : -ENODEV;
+>> -			dev_err(dev, "Can't get PHY device for port %d: %d\n",
+>> +			ret = PTR_ERR(phy);
+>> +			dev_err(dev, "Can't get PHY device for port %d: %d. Is USB_PHY driver enabled?\n",
+>>  					i, ret);
+>>  			goto err_phy;
+>>  		}
+> 
+> Getting rid of the !phy test is good.  But I'm doubtful about the 
+> change to the error message.  Are you going to make a similar change to 
+> every platform driver?  There doesn't seem to be any reason to do this 
+> for ehci-omap but not the others.
 
-I would recommend to move the detection to the boot loader and
-adjust the DT blob at run time (in the boot loader).
-This way, we will not need to deal with all the (sub)revision stuff.
+I'm not very sure about that. If using the PHY API while USB_PHY is disabled
+is to be treated as a universal failure, then the print might as well come from
+the dummy stub for xx_usb_get_phy_xx().
 
+For this patch, I'll just undo the print message change and resend. That could be
+done in a separate patch instead.
 
---=20
-Regards,
-Igor.
+cheers,
+-roger
