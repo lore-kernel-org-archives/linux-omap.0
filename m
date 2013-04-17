@@ -1,124 +1,67 @@
-From: Lars Poeschel <poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org>
-Subject: Re: [PATCH v3 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet
- child nodes
-Date: Wed, 17 Apr 2013 16:41:23 +0200
-Message-ID: <201304171641.23871.poeschel@lemonage.de>
-References: <1363298051-24574-1-git-send-email-javier.martinez@collabora.co.uk>
- <201304171140.52529.poeschel@lemonage.de> <516E9026.8070804@collabora.co.uk>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] spi: spi-omap2-mcspi.c: Add dts for slave device
+ configuration.
+Date: Wed, 17 Apr 2013 16:11:24 +0100
+Message-ID: <20130417151124.GY13687@opensource.wolfsonmicro.com>
+References: <1364252415-3613-1-git-send-email-matthias.bgg@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <516E9026.8070804-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="iRaAnoDFBoP0sW/E"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1364252415-3613-1-git-send-email-matthias.bgg@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Daniel Mack <zonque@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, ezequiel.garcia@free-electrons.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 17 April 2013 at 14:05:58, Javier Martinez Canillas wrote:
 
-...
+--iRaAnoDFBoP0sW/E
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> Yes, in fact I just realized that for_each_node_by_name() expand to:
-> 
-> #define for_each_node_by_name(dn, name) \
->         for (dn = of_find_node_by_name(NULL, name); dn; \
->              dn = of_find_node_by_name(dn, name))
-> 
-> which means that it will search for a node with "name" on the complete
-> DeviceTree and this is wrong. It should only search on GPMC childs.
-> 
-> Could you please test the following patch? If it works for you I'll add
-> a proper description and submit it as a PATCH.
+On Tue, Mar 26, 2013 at 12:00:15AM +0100, Matthias Brugger wrote:
 
-I see discussion is already going on, I just want to report:
-I tested the patch and it work as intended. Probing of the gpmc childs 
-succeeds on am335x with another ethernet node in device tree.
+> +- The spi slave nodes can provide the following information which is used
+> +  by the spi controller.
 
+> +- ti,spi-cs-per-word: Set chipselect to be toggled on every word send.
 
-Lars
+Why is this part of the DT binding for the SPI controller?  Surely if
+the devices attached to the SPI bus want to configure this they should
+be setting things up appropriately in the transfers?  There might be
+devices that both want and do not want this on the same bus for example,
+and this isn't something that should depend on controller support.
 
-> From d8dab9ae9a0284f17553875c2fddd806d9f6ab2e Mon Sep 17 00:00:00 2001
-> From: Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-> Date: Wed, 17 Apr 2013 13:50:30 +0200
-> Subject: [PATCH] ARM: OMAP2+: only search for GPMC DT child nodes on
->  probe
-> 
-> Signed-off-by: Javier Martinez Canillas
-> <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org> ---
->  arch/arm/mach-omap2/gpmc.c |   51
-> ++++++++++++++++++++----------------------- 1 files changed, 24
-> insertions(+), 27 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index ed946df..58e2415 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -1520,35 +1520,32 @@ static int gpmc_probe_dt(struct platform_device
-> *pdev) return ret;
->  	}
-> 
-> -	for_each_node_by_name(child, "nand") {
-> -		ret = gpmc_probe_nand_child(pdev, child);
-> -		if (ret < 0) {
-> -			of_node_put(child);
-> -			return ret;
-> -		}
-> -	}
-> -
-> -	for_each_node_by_name(child, "onenand") {
-> -		ret = gpmc_probe_onenand_child(pdev, child);
-> -		if (ret < 0) {
-> -			of_node_put(child);
-> -			return ret;
-> -		}
-> -	}
-> +	for_each_child_of_node(pdev->dev.of_node, child) {
-> +		if (child->name) {
-> +			if (of_node_cmp(child->name, "nand") == 0) {
-> +				ret = gpmc_probe_nand_child(pdev, child);
-> +				if (ret < 0) {
-> +					of_node_put(child);
-> +					return ret;
-> +				}
-> +			}
-> 
-> -	for_each_node_by_name(child, "nor") {
-> -		ret = gpmc_probe_generic_child(pdev, child);
-> -		if (ret < 0) {
-> -			of_node_put(child);
-> -			return ret;
-> -		}
-> -	}
-> +			if (of_node_cmp(child->name, "onenand") == 0) {
-> +				ret = gpmc_probe_onenand_child(pdev, child);
-> +				if (ret < 0) {
-> +					of_node_put(child);
-> +					return ret;
-> +				}
-> +			}
-> 
-> -	for_each_node_by_name(child, "ethernet") {
-> -		ret = gpmc_probe_generic_child(pdev, child);
-> -		if (ret < 0) {
-> -			of_node_put(child);
-> -			return ret;
-> +			if (of_node_cmp(child->name, "ethernet") == 0 ||
-> +			    of_node_cmp(child->name, "nor") == 0) {
-> +				ret = gpmc_probe_generic_child(pdev, child);
-> +				if (ret < 0) {
-> +					of_node_put(child);
-> +					return ret;
-> +				}
-> +			}
->  		}
->  	}
+> +- ti,spi-turbo-mode: Set turbo mode for this device.
+
+> +		controller-data {
+> +			ti,spi-cs-per-word = <1>;
+> +			ti,spi-turbo-mode = <0>;
+
+Better to use a boolean property here - check with of_find_property() to
+see if the property is defined at all rather than using a value.
+
+--iRaAnoDFBoP0sW/E
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRbrt9AAoJELSic+t+oim9mNgP/1Ur05zvRjGfz4+puXCqslo1
+qgYOwUFXI4KFBCem64s4zcNAgSzhyqVpESO+2n1sVOWGKhQRft6m70Gdjvs+2RfD
+xCwaQFe0bcstFoO6bF+imE3QqId9W2tPTDDAmBxv5qqqZLgdKQ4Ub8niX9RbvMdu
+lqoSEmZiIrm2cFFFhB2JxT65UeZMYtrR9BoTuUpH7OV2fEXffb6Vxa8LBjswK2RP
+ndw7s53HEewXpdWHdWE6mqvlhYlhPYYJG85ql/SjuBBuFlmLiludsAFRl1zVaWx1
+uwRszVptPvREYDYOd27zAzrTlk8tJ14o1TfoCVu1m06Ea3lqDWymRys+jwhbOLN6
+JfVVrzYv+Zy3Yuy5peEuNOmkbTNav9VLLsKjucQcOZ0EjxZPosLZGDWuVINBXmTA
+X07FeJ7wzYUEu5TOfgIDm7TdjczpFW2sGYVr3+994I5el/dTdeovBfaYIqPgqMm5
+YBACrqcfbjLfRoUVuJt2zxmQO7+ECkdC0DvXbQ0Htg8TiD0TIAKydo1D29kGjGpS
+SN/rpNqLOCYJPM++5IS9n9IQjLFn9eoAU3C5/WsT48EoVS1xXF+VtW3jej3xivp9
+RKU97m+RwlM//0kQkEeGMaVvNTUx24rD65OxUeFRCxTIN6wjhNDmjk0PEW6W1dKa
+62eWBTZdzPYqYC69riXx
+=HRwu
+-----END PGP SIGNATURE-----
+
+--iRaAnoDFBoP0sW/E--
