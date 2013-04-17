@@ -1,7 +1,7 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 4/6] arm: mach-omap2: remove "OMAP_DEVICE_NO_IDLE_ON_SUSPEND" check
-Date: Wed, 17 Apr 2013 17:04:25 +0530
-Message-ID: <1366198467-6757-5-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCH 1/6] driver: tty: serial: Move "uart_console" def to core header file.
+Date: Wed, 17 Apr 2013 17:04:22 +0530
+Message-ID: <1366198467-6757-2-git-send-email-sourav.poddar@ti.com>
 References: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,44 +9,55 @@ Return-path: <linux-serial-owner@vger.kernel.org>
 In-Reply-To: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-serial-owner@vger.kernel.org
 To: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Remove the "OMAP_DEVICE_NO_IDLE_ON_SUSPEND" check, since UART was the only one making
-use of it. Now serial core/driver takes care of the case when "no_console_suspend" 
-is used in the bootargs and you need to keep the clock enable for console even while suspend.
+Move "uart_console" definition to serial core header file, so that it can be
+used by serial drivers.
 
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Rajendra nayak <rnayak@ti.com>
 Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 ---
- arch/arm/mach-omap2/omap_device.c |    7 +------
- 1 files changed, 1 insertions(+), 6 deletions(-)
+ drivers/tty/serial/serial_core.c |    6 ------
+ include/linux/serial_core.h      |    6 ++++++
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 381be7a..d6dce8f 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -620,11 +620,8 @@ static int _od_suspend_noirq(struct device *dev)
- 	ret = pm_generic_suspend_noirq(dev);
+diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+index a400002..b5f74bf 100644
+--- a/drivers/tty/serial/serial_core.c
++++ b/drivers/tty/serial/serial_core.c
+@@ -50,12 +50,6 @@ static struct lock_class_key port_lock_key;
  
- 	if (!ret && !pm_runtime_status_suspended(dev)) {
--		if (pm_generic_runtime_suspend(dev) == 0) {
--			if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
--				omap_device_idle(pdev);
-+		if (pm_generic_runtime_suspend(dev) == 0)
- 			od->flags |= OMAP_DEVICE_SUSPENDED;
--		}
- 	}
+ #define HIGH_BITS_OFFSET	((sizeof(long)-sizeof(int))*8)
  
- 	return ret;
-@@ -638,8 +635,6 @@ static int _od_resume_noirq(struct device *dev)
- 	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
- 	    !pm_runtime_status_suspended(dev)) {
- 		od->flags &= ~OMAP_DEVICE_SUSPENDED;
--		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
--			omap_device_enable(pdev);
- 		pm_generic_runtime_resume(dev);
- 	}
+-#ifdef CONFIG_SERIAL_CORE_CONSOLE
+-#define uart_console(port)	((port)->cons && (port)->cons->index == (port)->line)
+-#else
+-#define uart_console(port)	(0)
+-#endif
+-
+ static void uart_change_speed(struct tty_struct *tty, struct uart_state *state,
+ 					struct ktermios *old_termios);
+ static void uart_wait_until_sent(struct tty_struct *tty, int timeout);
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index 87d4bbc..a6f27f2 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -31,6 +31,12 @@
+ #include <linux/sysrq.h>
+ #include <uapi/linux/serial_core.h>
  
++#ifdef CONFIG_SERIAL_CORE_CONSOLE
++#define uart_console(port)      ((port)->cons && (port)->cons->index == (port)->line)
++#else
++#define uart_console(port)      (0)
++#endif
++
+ struct uart_port;
+ struct serial_struct;
+ struct device;
 -- 
 1.7.1
 
