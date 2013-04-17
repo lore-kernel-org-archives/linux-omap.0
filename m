@@ -1,114 +1,96 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH] ARM: dts: omap3-igep0020: Add SMSC911x LAN chip support
-Date: Wed, 17 Apr 2013 18:32:09 +0200
-Message-ID: <1366216329-10677-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH] ARM: OMAP2+: only search for GPMC DT child nodes on probe
+Date: Wed, 17 Apr 2013 18:37:31 +0200
+Message-ID: <1366216651-11164-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:37649 "EHLO
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:37674 "EHLO
 	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752314Ab3DQQdJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Apr 2013 12:33:09 -0400
+	with ESMTP id S1753531Ab3DQQhj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Apr 2013 12:37:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Lars Poeschel <poeschel@lemonage.de>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-The IGEPv2 board has an SMSC LAN9221i ethernet chip connected to
-the OMAP3 processor though the General-Purpose Memory Controller.
+The GPMC DT probe function use for_each_node_by_name() to search
+child device nodes of the GPMC controller. But this function does
+not use the GPMC device node as the root of the search and instead
+search across the complete Device Tree.
 
-This patch adds a device node for the ethernet chip as a GPMC child
-and all its dependencies (regulators, GPIO and pin muxs).
+This means that any device node on the DT that is using any of the
+GPMC child nodes names searched for will be returned even if they
+are not connected to the GPMC, making the gpmc_probe_xxx_child()
+function to fail.
 
+Fix this by using the GPMC device node as the search root so the
+search will be restricted to its children.
+
+Also, if any of the GPMC child nodes fails, this shouldn't make
+the whole gpmc_probe_dt() function to fail. It is better to just
+WARN and allow other devices probe function to succeed.
+
+Reported-by: Lars Poeschel <poeschel@lemonage.de>
 Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 ---
- arch/arm/boot/dts/omap3-igep.dtsi    |    6 ++++
- arch/arm/boot/dts/omap3-igep0020.dts |   53 ++++++++++++++++++++++++++++++++++
- 2 files changed, 59 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/gpmc.c |   41 +++++++++++++++++------------------------
+ 1 files changed, 17 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-index f8fe3b7..d5cd504 100644
---- a/arch/arm/boot/dts/omap3-igep.dtsi
-+++ b/arch/arm/boot/dts/omap3-igep.dtsi
-@@ -62,6 +62,12 @@
- 			0x126 0x0100	/* sdmmc1_dat7.sdmmc1_dat7 INPUT | MODE 0 */
- 		>;
- 	};
-+
-+	smsc911x_pins: pinmux_smsc911x_pins {
-+		pinctrl-single,pins = <
-+                        0x1a2 0x0104    /* mcspi1_cs2.gpio_176 INPUT | MODE4 */
-+		>;
-+	};
- };
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index ed946df..f10d735 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1520,35 +1520,28 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+ 		return ret;
+ 	}
  
- &i2c1 {
-diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
-index e2b9849..4bac32e 100644
---- a/arch/arm/boot/dts/omap3-igep0020.dts
-+++ b/arch/arm/boot/dts/omap3-igep0020.dts
-@@ -40,6 +40,18 @@
- 			gpios = <&twl_gpio 19 1>;
- 		};
- 	};
+-	for_each_node_by_name(child, "nand") {
+-		ret = gpmc_probe_nand_child(pdev, child);
+-		if (ret < 0) {
+-			of_node_put(child);
+-			return ret;
+-		}
+-	}
++	for_each_child_of_node(pdev->dev.of_node, child) {
 +
-+	vddvario: regulator-vddvario {
-+		  compatible = "regulator-fixed";
-+		  regulator-name = "vddvario";
-+		  regulator-always-on;
-+	};
-+
-+	vdd33a: regulator-vdd33a {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vdd33a";
-+		regulator-always-on;
-+	};
- };
++		if (!child->name)
++			continue;
  
- &i2c3 {
-@@ -54,3 +66,44 @@
- 		reg = <0x50>;
- 	};
- };
-+
-+&gpmc {
-+	ranges = <5 0 0x2c000000 0x1000000>;
-+	ethernet@5,0 {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&smsc911x_pins>;
-+		compatible = "smsc,lan9221", "smsc,lan9115";
-+		reg = <5 0 0xff>;
-+		bank-width = <2>;
-+
-+		gpmc,mux-add-data;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <186>;
-+		gpmc,cs-wr-off-ns = <186>;
-+		gpmc,adv-on-ns = <12>;
-+		gpmc,adv-rd-off-ns = <48>;
-+		gpmc,adv-wr-off-ns = <48>;
-+		gpmc,oe-on-ns = <54>;
-+		gpmc,oe-off-ns = <168>;
-+		gpmc,we-on-ns = <54>;
-+		gpmc,we-off-ns = <168>;
-+		gpmc,rd-cycle-ns = <186>;
-+		gpmc,wr-cycle-ns = <186>;
-+		gpmc,access-ns = <114>;
-+		gpmc,page-burst-access-ns = <6>;
-+		gpmc,bus-turnaround-ns = <12>;
-+		gpmc,cycle2cycle-delay-ns = <18>;
-+		gpmc,wr-data-mux-bus-ns = <90>;
-+		gpmc,wr-access-ns = <186>;
-+		gpmc,cycle2cycle-samecsen;
-+		gpmc,cycle2cycle-diffcsen;
-+
-+		interrupt-parent = <&gpio6>;
-+		interrupts = <16 8>;
-+		vmmc-supply = <&vddvario>;
-+		vmmc_aux-supply = <&vdd33a>;
-+		reg-io-width = <4>;
-+
-+		smsc,save-mac-address;
-+	};
-+};
+-	for_each_node_by_name(child, "onenand") {
+-		ret = gpmc_probe_onenand_child(pdev, child);
+-		if (ret < 0) {
+-			of_node_put(child);
+-			return ret;
++		if (of_node_cmp(child->name, "nand") == 0) {
++			ret = gpmc_probe_nand_child(pdev, child);
++			if (WARN_ON(ret < 0))
++				of_node_put(child);
+ 		}
+-	}
+ 
+-	for_each_node_by_name(child, "nor") {
+-		ret = gpmc_probe_generic_child(pdev, child);
+-		if (ret < 0) {
+-			of_node_put(child);
+-			return ret;
++		if (of_node_cmp(child->name, "onenand") == 0) {
++			ret = gpmc_probe_onenand_child(pdev, child);
++			if (WARN_ON(ret < 0))
++				of_node_put(child);
+ 		}
+-	}
+ 
+-	for_each_node_by_name(child, "ethernet") {
+-		ret = gpmc_probe_generic_child(pdev, child);
+-		if (ret < 0) {
+-			of_node_put(child);
+-			return ret;
++		if (of_node_cmp(child->name, "ethernet") == 0 ||
++		    of_node_cmp(child->name, "nor") == 0) {
++			ret = gpmc_probe_generic_child(pdev, child);
++			if (WARN_ON(ret < 0))
++				of_node_put(child);
+ 		}
+ 	}
+ 
 -- 
 1.7.7.6
 
