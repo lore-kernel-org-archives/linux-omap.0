@@ -1,124 +1,66 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: [PATCHv2] ARM:dts:omap4-panda:Update the LED support for the panda DTS
-Date: Wed, 17 Apr 2013 15:16:00 -0500
-Message-ID: <1366229760-4808-1-git-send-email-dmurphy@ti.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCH 1/3] arm: dts: introduce config HAS_BANDGAP
+Date: Wed, 17 Apr 2013 16:29:32 -0400
+Message-ID: <1366230574-31547-2-git-send-email-eduardo.valentin@ti.com>
+References: <1366230574-31547-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50807 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965338Ab3DQUQU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Apr 2013 16:16:20 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1366230574-31547-1-git-send-email-eduardo.valentin@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: b-cousson@ti.com
+Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Dan Murphy <dmurphy@ti.com>
 
-The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda-es
-are different.
+Introduce HAS_BANDGAP config entry. This config is a
+boolean value so that arch code can flag is they
+feature a bandgap device.
 
-A1-A3 = gpio_wk7
-ES = gpio_110
-
-There is no change to LED D2
-
-Abstract away the pinmux and the LED definitions for the two boards into
-the respective DTS files.
-
-Signed-off-by: Dan Murphy <dmurphy@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- arch/arm/boot/dts/omap4-panda-common.dtsi |   22 ++++++++++++++++++-
- arch/arm/boot/dts/omap4-panda-es.dts      |   33 +++++++++++++++++++++++++++++
- 2 files changed, 54 insertions(+), 1 deletion(-)
+ arch/arm/Kconfig            | 3 +++
+ arch/arm/mach-omap2/Kconfig | 1 +
+ 2 files changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index 03bd60d..0c48f6b 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -16,7 +16,7 @@
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index abf4467..04abc7c 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -179,6 +179,9 @@ config ARCH_HAS_CPUFREQ
+ 	  and that the relevant menu configurations are displayed for
+ 	  it.
  
--	leds {
-+	leds: leds {
- 		compatible = "gpio-leds";
- 		heartbeat {
- 			label = "pandaboard::status1";
-@@ -64,6 +64,7 @@
- 			&mcbsp1_pins
- 			&dss_hdmi_pins
- 			&tpd12s015_pins
-+			&led_gpio_pins
- 	>;
- 
- 	twl6040_pins: pinmux_twl6040_pins {
-@@ -135,6 +136,25 @@
- 			0xf0 0x118     /* i2c4_sda PULLUP | INPUTENABLE | MODE0 */
- 		>;
- 	};
++config ARCH_HAS_BANDGAP
++	bool
 +
-+	led_gpio_pins: pinmux_leds_pins {
-+		pinctrl-single,pins = <
-+		>;
-+	};
-+};
-+
-+&omap4_pmx_wkup {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+		&led_wkgpio_pins
-+	>;
-+
-+	led_wkgpio_pins: pinmux_leds_wkpins {
-+		pinctrl-single,pins = <
-+			0x1a 0x3	/* gpio_wk7 OUTPUT | MODE 3 */
-+			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
-+		>;
-+	};
- };
- 
- &i2c1 {
-diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
-index f1d8c21..565d37e 100644
---- a/arch/arm/boot/dts/omap4-panda-es.dts
-+++ b/arch/arm/boot/dts/omap4-panda-es.dts
-@@ -34,3 +34,36 @@
- 		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
- 		>;
- };
-+
-+&leds {
-+	compatible = "gpio-leds";
-+	heartbeat {
-+		label = "pandaboard::status1";
-+		gpios = <&gpio4 14 0>;
-+		linux,default-trigger = "heartbeat";
-+	};
-+	mmc {
-+		label = "pandaboard::status2";
-+		gpios = <&gpio1 8 0>;
-+		linux,default-trigger = "gpio";
-+	};
-+};
-+
-+&led_gpio_pins {
-+	pinctrl-single,pins = <
-+		0xb6 0x3	/* gpio_110 OUTPUT | MODE 3 */
-+	>;
-+};
-+
-+&omap4_pmx_wkup {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+		&led_wkgpio_pins
-+	>;
-+
-+	led_wkgpio_pins: pinmux_leds_wkpins {
-+		pinctrl-single,pins = <
-+			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
-+		>;
-+	};
-+};
+ config GENERIC_HWEIGHT
+ 	bool
+ 	default y
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 9ef5e9e..c36b0e7 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -4,6 +4,7 @@ config ARCH_OMAP
+ config ARCH_OMAP2PLUS
+ 	bool "TI OMAP2/3/4/5 SoCs with device tree support" if (ARCH_MULTI_V6 || ARCH_MULTI_V7)
+ 	select ARCH_HAS_CPUFREQ
++	select ARCH_HAS_BANDGAP
+ 	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARCH_OMAP
+ 	select ARCH_REQUIRE_GPIOLIB
 -- 
-1.7.9.5
-
+1.8.2.1.342.gfa7285d
