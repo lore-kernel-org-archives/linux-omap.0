@@ -1,120 +1,161 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: adding rpmsg.git to linux next
-Date: Wed, 17 Apr 2013 10:02:33 +1000
-Message-ID: <20130417100233.a31e740ec21c96150fde0d81@canb.auug.org.au>
-References: <CAK=WgbY=4rosYr2g3fYYk6WrqXjN7f=5Dk5+D-h3cWrOtVmNag@mail.gmail.com>
-	<20130416100715.cd726b96944237ef975ebe7d@canb.auug.org.au>
-	<CAK=WgbbVP+3eugev8szRBCV84uZLdKP6QXAH_Fr89SXDs-V5GQ@mail.gmail.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
+Date: Wed, 17 Apr 2013 02:41:02 +0200
+Message-ID: <CAAwP0s0-VNUoeSKaGbvoDeD7m7kZRdp5rCJ7iVpFoFAaQtXcmQ@mail.gmail.com>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
+ <514C79E1.4090106@wwwdotorg.org> <514CE0AB.6060207@ti.com>
+ <CACRpkdZmv-rAoKSQYpkHHSMzKJOn5TixVW_P3=m7ZNagBYCUPw@mail.gmail.com>
+ <515319D5.20105@wwwdotorg.org> <CACRpkdYXVLgCz1Tyu-Ls2V2OTc4R3cGNJhfQJB6Hiz_K9dkZYQ@mail.gmail.com>
+ <5155C902.7080207@wwwdotorg.org> <CACRpkdYbs4-uudpRUY8e+7icYYkZrfM0kReP3pLL5DMiURJ4dg@mail.gmail.com>
+ <5165CB9D.1090202@wwwdotorg.org> <CACRpkdYirFNqmGhA4K9CL4ve4NYhs8Rd3SFt1iwW9vHBkrcz8g@mail.gmail.com>
+ <51671D7B.5060303@wwwdotorg.org> <CACRpkdbf32Ef77GmXk9id9+RRjcDRTr7S+F4nznoeZU8y=BT_Q@mail.gmail.com>
+ <51673D70.3010503@wwwdotorg.org> <CAAwP0s0e2x33jZQhFRY+Hoo61SFqYKRgWk=1mL2+DNxSDJHz+A@mail.gmail.com>
+ <CACRpkda4h+qXTvsirPAS7E7sjXhMLE62q=VDy53W8UchsYjbNg@mail.gmail.com>
+ <516C31C3.9040505@wwwdotorg.org> <516C7C43.3040105@wwwdotorg.org>
+ <516C8760.2050500@ti.com> <516D9B05.1000501@wwwdotorg.org>
+ <516DA60A.5070000@ti.com> <516DCCA8.3070108@wwwdotorg.org> <516DDB4D.9020500@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Wed__17_Apr_2013_10_02_33_+1000_dKAZA.efXJPgjYAQ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=WgbbVP+3eugev8szRBCV84uZLdKP6QXAH_Fr89SXDs-V5GQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "Tivy, Robert" <rtivy@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f182.google.com ([209.85.223.182]:46515 "EHLO
+	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755034Ab3DQAlW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Apr 2013 20:41:22 -0400
+Received: by mail-ie0-f182.google.com with SMTP id at1so1304641iec.41
+        for <linux-omap@vger.kernel.org>; Tue, 16 Apr 2013 17:41:22 -0700 (PDT)
+In-Reply-To: <516DDB4D.9020500@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Alexandre Courbot <acourbot@nvidia.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---Signature=_Wed__17_Apr_2013_10_02_33_+1000_dKAZA.efXJPgjYAQ
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Ohad,
-
-On Tue, 16 Apr 2013 20:51:13 +0300 Ohad Ben-Cohen <ohad@wizery.com> wrote:
+On Wed, Apr 17, 2013 at 1:14 AM, Jon Hunter <jon-hunter@ti.com> wrote:
 >
-> On Tue, Apr 16, 2013 at 3:07 AM, Stephen Rothwell <sfr@canb.auug.org.au> =
-wrote:
-> > On Mon, 15 Apr 2013 09:28:17 +0300 Ohad Ben-Cohen <ohad@wizery.com> wro=
-te:
-> >> Could you please add:
-> >>
-> >> git://git.kernel.org/pub/scm/linux/kernel/git/ohad/rpmsg.git#for-next
-> >>
-> >> to linux-next to include new stuff coming from Rob?
-> >
-> > Well, you could tell me something about it.  Like what is in it and how
-> > it will be merged up to Linus.  Does this have anything to do with the
-> > remoteproc tree I already include?  Who is the official maintainer (the=
-re
-> > is no mention of drivers/rpmsg in the MAINTAINERS file).
->=20
-> Sorry for not mentioning this.
->=20
-> This tree isn't new and is being used to send pull requests to Linus
-> for some time. I guess that most (all?) of the pull requests contained
-> fixes which needed no linux-next presence, so it never occurred to me
-> the tree isn't part of linux-next.
+> On 04/16/2013 05:11 PM, Stephen Warren wrote:
+>> On 04/16/2013 01:27 PM, Jon Hunter wrote:
+>>>
+>>> On 04/16/2013 01:40 PM, Stephen Warren wrote:
+>>>> On 04/15/2013 05:04 PM, Jon Hunter wrote:
+>> ...
+>>>>> If some driver is calling gpio_request() directly, then they will most
+>>>>> likely just call gpio_to_irq() when requesting the interrupt and so the
+>>>>> xlate function would not be called in this case (mmc drivers are a good
+>>>>> example). So I don't see that as being a problem. In fact that's the
+>>>>> benefit of this approach as AFAICT it solves this problem.
+>>>>
+>>>> Oh. That assumption seems very fragile. What about drivers that actually
+>>>> do have platform data (or DT bindings) that provide both the IRQ and
+>>>> GPIO IDs, and hence don't use gpio_to_irq()? That's entirely possible.
+>>>
+>>> Right. In the DT case though, if someone does provide the IRQ and GPIO
+>>> IDs then at least they would use a different xlate function. Another
+>>> option to consider would be defining the #interrupt-cells = <3> where we
+>>> would have ...
+>>>
+>>> cell-#1 --> IRQ domain ID
+>>> cell-#2 --> Trigger type
+>>> cell-#3 --> GPIO ID
+>>>
+>>> Then we could have a generic xlate for 3 cells that would also request
+>>> the GPIO. Again not sure if people are against a gpio being requested in
+>>> the xlate but just an idea. Or given that irq_of_parse_and_map() calls
+>>> the xlate, we could have this function call gpio_request() if the
+>>> interrupt controller is a gpio and there are 3 cells.
+>>
+>> I rather dislike this approach since:
+>>
+>> a) It requires changes to the DT bindings, which are already defined.
+>> Admittedly it's backwards-compatible, but still.
+>>
+>> b) There isn't really any need for the DT to represent this; the
+>> GPIO+IRQ driver itself already knows which IRQ ID is which GPIO ID and
+>> vice-versa (if the HW has such a concept), so there's no need for the DT
+>> to contain this information. This seems like pushing Linux's internal
+>> requirements into the design of the DT binding.
+>
+> Yes, so the only alternative is to use irq_to_gpio to avoid this.
+>
+>> c) I have the feeling that hooking the of_xlate function for this is a
+>> bit of an abuse of the function.
+>
+> I was wondering about that. So I was grep'ing through the various xlate
+> implementations and found this [1]. Also you may recall that in the
+> of_dma_simple_xlate() we call the dma_request_channel() to allocate the
+> channel, which is very similar. However, I don't wish to get a
+> reputation as abusing APIs so would be good to know if this really is
+> abuse or not ;-)
+>
+> Cheers
+> Jon
+>
+> [1] http://permalink.gmane.org/gmane.linux.ports.arm.kernel/195124
 
-All good, thanks for the explanation.  I have added that tree from today.
+I was looking at [1] shared by Jon and come up with the following
+patch that does something similar for OMAP GPIO. This has the
+advantage that is local to gpio-omap instead changing gpiolib-of and
+also doesn't require DT changes
 
-> commit d8115db52b99eefb99bcbf992edc349e691b4ca7
-> Author: Ohad Ben-Cohen <ohad@wizery.com>
-> Date:   Tue Apr 16 20:34:49 2013 +0300
->=20
->     MAINTAINERS: add rpmsg entry
->=20
->     People and scripts look for this.
->=20
->     Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+But I don't want to get a reputation for abusing APIs neither :-)
 
-Good idea.
+Best regards,
+Javier
 
-Thanks for adding your subsystem tree as a participant of linux-next.  As
-you may know, this is not a judgment of your code.  The purpose of
-linux-next is for integration testing and to lower the impact of
-conflicts between subsystems in the next merge window.=20
+>From 23368eb72b125227fcf4b22be19ea70b4ab94556 Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Date: Wed, 17 Apr 2013 02:03:08 +0200
+Subject: [PATCH 1/1] gpio/omap: add custom xlate function handler
 
-You will need to ensure that the patches/commits in your tree/series have
-been:
-     * submitted under GPL v2 (or later) and include the Contributor's
-	Signed-off-by,
-     * posted to the relevant mailing list,
-     * reviewed by you (or another maintainer of your subsystem tree),
-     * successfully unit tested, and=20
-     * destined for the current or next Linux merge window.
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
+ drivers/gpio/gpio-omap.c |   29 ++++++++++++++++++++++++++++-
+ 1 files changed, 28 insertions(+), 1 deletions(-)
 
-Basically, this should be just what you would send to Linus (or ask him
-to fetch).  It is allowed to be rebased if you deem it necessary.
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 8524ce5..77216f9 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1097,6 +1097,33 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
+ static const struct of_device_id omap_gpio_match[];
+ static void omap_gpio_init_context(struct gpio_bank *p);
 
---=20
-Cheers,
-Stephen Rothwell=20
-sfr@canb.auug.org.au
++static int omap_gpio_irq_domain_xlate(struct irq_domain *d,
++				      struct device_node *ctrlr,
++				      const u32 *intspec, unsigned int intsize,
++				      irq_hw_number_t *out_hwirq,
++				      unsigned int *out_type)
++{
++	int ret;
++	struct gpio_bank *bank = d->host_data;
++	int gpio = bank->chip.base + intspec[0];
++
++	if (WARN_ON(intsize < 2))
++		return -EINVAL;
++
++	ret = gpio_request_one(gpio, GPIOF_IN, ctrlr->full_name);
++	if (ret)
++		return ret;
++
++	*out_hwirq = intspec[0];
++	*out_type = (intsize > 1) ? intspec[1] : IRQ_TYPE_NONE;
++
++	return 0;
++}
++
++static struct irq_domain_ops omap_gpio_irq_ops = {
++	.xlate	= omap_gpio_irq_domain_xlate,
++};
++
+ static int omap_gpio_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -1144,7 +1171,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
 
-Legal Stuff:
-By participating in linux-next, your subsystem tree contributions are
-public and will be included in the linux-next trees.  You may be sent
-e-mail messages indicating errors or other issues when the
-patches/commits from your subsystem tree are merged and tested in
-linux-next.  These messages may also be cross-posted to the linux-next
-mailing list, the linux-kernel mailing list, etc.  The linux-next tree
-project and IBM (my employer) make no warranties regarding the linux-next
-project, the testing procedures, the results, the e-mails, etc.  If you
-don't agree to these ground rules, let me know and I'll remove your tree
-from participation in linux-next.
 
---Signature=_Wed__17_Apr_2013_10_02_33_+1000_dKAZA.efXJPgjYAQ
-Content-Type: application/pgp-signature
+ 	bank->domain = irq_domain_add_linear(node, bank->width,
+-					     &irq_domain_simple_ops, NULL);
++					     &omap_gpio_irq_ops, bank);
+ 	if (!bank->domain)
+ 		return -ENODEV;
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCAAGBQJRbeaZAAoJEECxmPOUX5FEo/MQAKAOWcD78WCIaqy5SPO7kr44
-S5yKRlJTQXub0Hp9pmJWmCT+i9T5S/Y7u9LbLEiDmNQ/1tKaFke2fmtloU9KrzIW
-ifHnSRTbH6/tVTTKwLjpOhVHlCvn/ItBO/q1MhpFPRk/B9Y2tY7MypeREzte5egQ
-dIZgReliltdPe5ObxS+ohYbyOM1dx6xE+TyVKFY+OwHhyxp+UsJCR/wxQz76cFLv
-3FAwH7zsaLv+BGPSbW+jtwkwvVD5/4i78VtQ/eAm5NO4jmefSM/1+ZdvjzzuDg7P
-va+Ej9Oe2HnL7n75jxID6zOB10Ndl8y488y0enEvKz6k8hMJ8plk179XyGSK1ce6
-NzpMJQk44PggSuMFdqH/ecCNE2WwCYH+QL3eWYM4tc4kPgv4gLao7aOCJa8YY3r2
-N+bWqDu8iLhPwLEXuH55Derev+rQFsSC2+80X0BMfB0ewsb/2FfiiztaY779Obzr
-SQKjQ3x3/o7T9EVRiW2xS+oGq0U8hBQQWhR/BVjBtxfUChUNvVCUdYuWTWQ6tRDk
-jCL5HC5aWy0+t03j0ypn+QWZZe+tHqtwVT+v9B0yiwbNIzgPJMXnmH88bsWCTfbj
-dYwA3tQzocT0NQGXS54tXNNoycoyptO30ClCFKVj9IruuNC29VAvekAdzoR78moI
-xaswWHEWW/i0tQeP+H20
-=4wHY
------END PGP SIGNATURE-----
-
---Signature=_Wed__17_Apr_2013_10_02_33_+1000_dKAZA.efXJPgjYAQ--
+-- 
+1.7.7.6
