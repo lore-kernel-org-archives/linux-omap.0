@@ -1,49 +1,126 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 2/2] USB: ehci-omap: Improve PHY error handling
-Date: Wed, 17 Apr 2013 11:24:25 +0300
-Message-ID: <1366187065-10795-1-git-send-email-rogerq@ti.com>
-References: <1366026636-29198-2-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] ARM: dts: omap3-beagle-xm: Add USB Host support for Rev
+ Ax/Bx
+Date: Wed, 17 Apr 2013 11:38:54 +0300
+Message-ID: <516E5F9E.3050204@ti.com>
+References: <1366029306-1824-1-git-send-email-rogerq@ti.com> <516BF4F3.5060904@ti.com> <20130417005232.GV10155@atomide.com> <CAOCHtYgFnCy5Qn2LeJOK96_NdwzxzVe8Vrb8cL=K9AdzPUtQow@mail.gmail.com> <516E5597.7050801@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1366026636-29198-2-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
-Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, holler-SXC+2es9fhnfWeYVQQPykw@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44331 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965893Ab3DQIjL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Apr 2013 04:39:11 -0400
+In-Reply-To: <516E5597.7050801@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>
+Cc: Robert Nelson <robertcnelson@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-As the USB PHY layer never returns NULL we don't need
-to check for that condition.
+On 04/17/2013 10:56 AM, Igor Grinberg wrote:
+> On 04/17/13 04:30, Robert Nelson wrote:
+>> On Tue, Apr 16, 2013 at 7:52 PM, Tony Lindgren <tony@atomide.com> wr=
+ote:
+>>> * Roger Quadros <rogerq@ti.com> [130415 05:44]:
+>>>> On 04/15/2013 03:35 PM, Roger Quadros wrote:
+>>>>> Provide RESET and Power regulators for the USB PHY,
+>>>>> the USB Host port mode and the PHY device.
+>>>>>
+>>>>> Also provide pin multiplexer information for USB host
+>>>>> pins.
+>>>>>
+>>>>> This will not work for Rev Cx boards because of reversed logic
+>>>>> for USB_POWER_Enable.
+>>>>>
+>>>>> CC: Beno=EEt Cousson <b-cousson@ti.com>
+>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>>> ---
+>>>>>  arch/arm/boot/dts/omap3-beagle-xm.dts |   62 +++++++++++++++++++=
+++++++++++++++
+>>>>>  1 files changed, 62 insertions(+), 0 deletions(-)
+>>>>>
+>>>>> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boo=
+t/dts/omap3-beagle-xm.dts
+>>>>> index 5a31964..d394c51 100644
+>>>>> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+>>>>> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+>>>>> @@ -57,6 +57,60 @@
+>>>>>             ti,mcbsp =3D <&mcbsp2>;
+>>>>>             ti,codec =3D <&twl_audio>;
+>>>>>     };
+>>>>> +
+>>>>> +   /* HS USB Port 2 RESET */
+>>>>> +   hsusb2_reset: hsusb2_reset_reg {
+>>>>> +           compatible =3D "regulator-fixed";
+>>>>> +           regulator-name =3D "hsusb2_reset";
+>>>>> +           regulator-min-microvolt =3D <3300000>;
+>>>>> +           regulator-max-microvolt =3D <3300000>;
+>>>>> +           gpio =3D <&gpio5 19 0>;   /* gpio_147 */
+>>>>> +           startup-delay-us =3D <70000>;
+>>>>> +           enable-active-high;
+>>>>> +   };
+>>>>> +
+>>>>> +   /* HS USB Port 2 Power */
+>>>>> +   hsusb2_power: hsusb2_power_reg {
+>>>>> +           compatible =3D "regulator-fixed";
+>>>>> +           regulator-name =3D "hsusb2_vbus";
+>>>>> +           regulator-min-microvolt =3D <3300000>;
+>>>>> +           regulator-max-microvolt =3D <3300000>;
+>>>>> +           gpio =3D <&twl_gpio 18 0>;        /* GPIO LEDA */
+>>>>> +           startup-delay-us =3D <70000>;
+>>>>> +           enable-active-high;     /* FIXME: active-low for Rev.=
+ C */
+>>>>
+>>>> Benoit & Tony,
+>>>>
+>>>> Any ideas how to tackle the reversed logic for Rev. C boards?
+>>>
+>>> Sounds like we need a shared omap3-beage.dtsi, then omap3-beagle-xm=
+=2Edts
+>>> and omap3-beagle-rev-c.dts. Then xm and rev-c can both include the
+>>
+>> Bike-sheding, but we might want to make that "omap3-beagle-xmc.dts" =
+as
+>> there is the "rev c" variant of the original beagle...
+>>
+>> It's too bad we can't read the 3 gpio pin states in the device tree
+>> and make a decision.
+>=20
+> I would recommend to move the detection to the boot loader and
+> adjust the DT blob at run time (in the boot loader).
+> This way, we will not need to deal with all the (sub)revision stuff.
+>=20
+>=20
+Moving the detection to bootloader is fine, but modifying the DT at
+runtime would create a debug/maintenance issue. Instead it could just
+pick one of the .DTBs and pass it to kernel.
 
-CC: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/host/ehci-omap.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Since most users will be using rev-c, I think we should keep the origin=
+al
+file 'omap3-beagle-xm.dts" as it is for rev-c boards.
+I can just create a new dts file for Revisions A and B that will be
+like so.
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 5de3e43..3d1491b 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -175,12 +175,12 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 			phy = devm_usb_get_phy_by_phandle(dev, "phys", i);
- 		else
- 			phy = devm_usb_get_phy_dev(dev, i);
--		if (IS_ERR(phy) || !phy) {
-+		if (IS_ERR(phy)) {
- 			/* Don't bail out if PHY is not absolutely necessary */
- 			if (pdata->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY)
- 				continue;
- 
--			ret = IS_ERR(phy) ? PTR_ERR(phy) : -ENODEV;
-+			ret = PTR_ERR(phy);
- 			dev_err(dev, "Can't get PHY device for port %d: %d\n",
- 					i, ret);
- 			goto err_phy;
--- 
-1.7.4.1
++++ b/arch/arm/boot/dts/omap3-beagle-xm-ab.dts
+@@ -0,0 +1,6 @@
++/include/ "omap3-beagle-xm.dts"
++
++/* On Rev A/B USBHOST_PWR_EN is active high */
++&hsusb2_power {
++       enable-active-high;
++};
 
+Since omap3-beagle and omap3-beagle-xm use different SoC versions and h=
+ave
+quite many differences, I don't think it is a good idea to create a com=
+mon
+file between the two.
+
+cheers,
+-roger
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
