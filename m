@@ -1,174 +1,46 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [PATCH v3 3/3] ARM: OMAP2+: Add GPMC DT support for Ethernet
- child nodes
-Date: Wed, 17 Apr 2013 16:07:55 +0200
-Message-ID: <516EACBB.9020607@collabora.co.uk>
-References: <1363298051-24574-1-git-send-email-javier.martinez@collabora.co.uk> <201304171140.52529.poeschel@lemonage.de> <516E9026.8070804@collabora.co.uk> <516EA838.3010003@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH v2 2/2] USB: ehci-omap: Improve PHY error handling
+Date: Wed, 17 Apr 2013 10:15:06 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1304171014540.1623-100000@iolanthe.rowland.org>
+References: <1366187065-10795-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:37453 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966437Ab3DQOIA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Apr 2013 10:08:00 -0400
-In-Reply-To: <516EA838.3010003@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1366187065-10795-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, holler@ahsoftware.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Lars Poeschel <poeschel@lemonage.de>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On 04/17/2013 03:48 PM, Jon Hunter wrote:
+On Wed, 17 Apr 2013, Roger Quadros wrote:
+
+> As the USB PHY layer never returns NULL we don't need
+> to check for that condition.
 > 
-> On 04/17/2013 07:05 AM, Javier Martinez Canillas wrote:
+> CC: Alan Stern <stern@rowland.harvard.edu>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/usb/host/ehci-omap.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> ...
-> 
->> Yes, in fact I just realized that for_each_node_by_name() expand to:
->> 
->> #define for_each_node_by_name(dn, name) \
->>         for (dn = of_find_node_by_name(NULL, name); dn; \
->>              dn = of_find_node_by_name(dn, name))
->> 
->> which means that it will search for a node with "name" on the complete
->> DeviceTree and this is wrong. It should only search on GPMC childs.
-> 
-> Good catch. I guess we could have flash & ethernet devices connected to
-> other interfaces such as SPI.
-> 
+> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+> index 5de3e43..3d1491b 100644
+> --- a/drivers/usb/host/ehci-omap.c
+> +++ b/drivers/usb/host/ehci-omap.c
+> @@ -175,12 +175,12 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+>  			phy = devm_usb_get_phy_by_phandle(dev, "phys", i);
+>  		else
+>  			phy = devm_usb_get_phy_dev(dev, i);
+> -		if (IS_ERR(phy) || !phy) {
+> +		if (IS_ERR(phy)) {
+>  			/* Don't bail out if PHY is not absolutely necessary */
+>  			if (pdata->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY)
+>  				continue;
+>  
+> -			ret = IS_ERR(phy) ? PTR_ERR(phy) : -ENODEV;
+> +			ret = PTR_ERR(phy);
+>  			dev_err(dev, "Can't get PHY device for port %d: %d\n",
+>  					i, ret);
+>  			goto err_phy;
 
-Yes, in fact this is the case for omap4-sdp.dts which has an ethernet controller
-connected through SPI:
-
-&mcspi1 {
-        eth@0 {
-                compatible = "ks8851";
-                spi-max-frequency = <24000000>;
-                reg = <0>;
-                interrupt-parent = <&gpio2>;
-                interrupts = <2>; /* gpio line 34 */
-                vdd-supply = <&vdd_eth>;
-        };
-};
-
-it just didn't fail because the device node name is "eth" and not "ethernet".
-
-which makes me wonder if is OK to rely on a device node name or we should use
-compatible properties instead such as "ti,gpmc-{eth,nand,nor,onenand}" and do
-something like:
-
-for_each_compatible_node(pdev->dev.of_node, NULL, "ti,gpmc-eth") and so on.
-
->> Could you please test the following patch? If it works for you I'll add a proper
->> description and submit it as a PATCH.
->> 
->> Thanks a lot and best regards,
->> Javier
->> 
->> From d8dab9ae9a0284f17553875c2fddd806d9f6ab2e Mon Sep 17 00:00:00 2001
->> From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
->> Date: Wed, 17 Apr 2013 13:50:30 +0200
->> Subject: [PATCH] ARM: OMAP2+: only search for GPMC DT child nodes on
->>  probe
->> 
->> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
->> ---
->>  arch/arm/mach-omap2/gpmc.c |   51 ++++++++++++++++++++-----------------------
->>  1 files changed, 24 insertions(+), 27 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
->> index ed946df..58e2415 100644
->> --- a/arch/arm/mach-omap2/gpmc.c
->> +++ b/arch/arm/mach-omap2/gpmc.c
->> @@ -1520,35 +1520,32 @@ static int gpmc_probe_dt(struct platform_device *pdev)
->>  		return ret;
->>  	}
->> 
->> -	for_each_node_by_name(child, "nand") {
->> -		ret = gpmc_probe_nand_child(pdev, child);
->> -		if (ret < 0) {
->> -			of_node_put(child);
->> -			return ret;
->> -		}
->> -	}
->> -
->> -	for_each_node_by_name(child, "onenand") {
->> -		ret = gpmc_probe_onenand_child(pdev, child);
->> -		if (ret < 0) {
->> -			of_node_put(child);
->> -			return ret;
->> -		}
->> -	}
->> +	for_each_child_of_node(pdev->dev.of_node, child) {
->> +		if (child->name) {
-> 
-> Minor nit ... how about ...
-> 
-> +		if (!child->name)
-> 			continue;
->
-
-Yes, much better. I just cooked a quick patch so Lars could test it ;-)
- 		
->> +			if (of_node_cmp(child->name, "nand") == 0) {
->> +				ret = gpmc_probe_nand_child(pdev, child);
->> +				if (ret < 0) {
->> +					of_node_put(child);
->> +					return ret;
->> +				}
->> +			}
->> 
->> -	for_each_node_by_name(child, "nor") {
->> -		ret = gpmc_probe_generic_child(pdev, child);
->> -		if (ret < 0) {
->> -			of_node_put(child);
->> -			return ret;
->> -		}
->> -	}
->> +			if (of_node_cmp(child->name, "onenand") == 0) {
->> +				ret = gpmc_probe_onenand_child(pdev, child);
->> +				if (ret < 0) {
->> +					of_node_put(child);
->> +					return ret;
->> +				}
->> +			}
->> 
->> -	for_each_node_by_name(child, "ethernet") {
->> -		ret = gpmc_probe_generic_child(pdev, child);
->> -		if (ret < 0) {
->> -			of_node_put(child);
->> -			return ret;
->> +			if (of_node_cmp(child->name, "ethernet") == 0 ||
->> +			    of_node_cmp(child->name, "nor") == 0) {
->> +				ret = gpmc_probe_generic_child(pdev, child);
->> +				if (ret < 0) {
->> +					of_node_put(child);
->> +					return ret;
->> +				}
->> +			}
->>  		}
->>  	}
-> 
-> I am also wondering if the probe should fail if one of its children
-> fails. The panic that Lars reported occurred because the nand
-> successfully probed and so the nand device was registered, but because
-> the ethernet device probe failed, the gpmc probe fails, and then when
-> the nand device is probed by the mtd driver the kernel panics. I wonder
-> if it would be better to WARN on child devices that fail to probe but
-> not return error from the gpmc probe.
-> 
-
-I wonder the same. Probably is better to just WARN so a user could at lest use
-some of the peripherals connected to the GPMC. This is specially important for
-flash memory devices since the rootfs could have to be mounted from there.
-
-Do you want me to split the child node search and the WARN_ON() replacement in
-two different patchs or should I send both changes in one patch?
-
-> Cheers
-> Jon
-> 
-
-Best regards,
-Javier
-
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
