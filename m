@@ -1,64 +1,68 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: omap3-beagle-xm: Add USB Host support for
- Rev Ax/Bx
-Date: Tue, 16 Apr 2013 17:52:32 -0700
-Message-ID: <20130417005232.GV10155@atomide.com>
-References: <1366029306-1824-1-git-send-email-rogerq@ti.com>
- <516BF4F3.5060904@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 4430sdp nfsroot broken with ff5c9059
+Date: Tue, 16 Apr 2013 17:56:37 -0700
+Message-ID: <20130417005636.GW10155@atomide.com>
+References: <20130410222749.GR10155@atomide.com>
+ <20130413000615.GF10155@atomide.com>
+ <5168C050.7030006@ti.com>
+ <20130413165014.GL10155@atomide.com>
+ <516C3179.4070501@ti.com>
+ <516C428B.3020805@ti.com>
+ <20130415212756.GQ10155@atomide.com>
+ <516D870C.2030108@ti.com>
+ <20130416180613.GS10155@atomide.com>
+ <516D9B1D.6040909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54103 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756001Ab3DQA4j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Apr 2013 20:56:39 -0400
 Content-Disposition: inline
-In-Reply-To: <516BF4F3.5060904-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <516D9B1D.6040909@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>
 
-KiBSb2dlciBRdWFkcm9zIDxyb2dlcnFAdGkuY29tPiBbMTMwNDE1IDA1OjQ0XToKPiBPbiAwNC8x
-NS8yMDEzIDAzOjM1IFBNLCBSb2dlciBRdWFkcm9zIHdyb3RlOgo+ID4gUHJvdmlkZSBSRVNFVCBh
-bmQgUG93ZXIgcmVndWxhdG9ycyBmb3IgdGhlIFVTQiBQSFksCj4gPiB0aGUgVVNCIEhvc3QgcG9y
-dCBtb2RlIGFuZCB0aGUgUEhZIGRldmljZS4KPiA+IAo+ID4gQWxzbyBwcm92aWRlIHBpbiBtdWx0
-aXBsZXhlciBpbmZvcm1hdGlvbiBmb3IgVVNCIGhvc3QKPiA+IHBpbnMuCj4gPiAKPiA+IFRoaXMg
-d2lsbCBub3Qgd29yayBmb3IgUmV2IEN4IGJvYXJkcyBiZWNhdXNlIG9mIHJldmVyc2VkIGxvZ2lj
-Cj4gPiBmb3IgVVNCX1BPV0VSX0VuYWJsZS4KPiA+IAo+ID4gQ0M6IEJlbm/DrnQgQ291c3NvbiA8
-Yi1jb3Vzc29uQHRpLmNvbT4KPiA+IFNpZ25lZC1vZmYtYnk6IFJvZ2VyIFF1YWRyb3MgPHJvZ2Vy
-cUB0aS5jb20+Cj4gPiAtLS0KPiA+ICBhcmNoL2FybS9ib290L2R0cy9vbWFwMy1iZWFnbGUteG0u
-ZHRzIHwgICA2MiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiA+ICAxIGZpbGVz
-IGNoYW5nZWQsIDYyIGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pCj4gPiAKPiA+IGRpZmYg
-LS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwMy1iZWFnbGUteG0uZHRzIGIvYXJjaC9hcm0v
-Ym9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cwo+ID4gaW5kZXggNWEzMTk2NC4uZDM5NGM1MSAx
-MDA2NDQKPiA+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14bS5kdHMKPiA+
-ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14bS5kdHMKPiA+IEBAIC01Nyw2
-ICs1Nyw2MCBAQAo+ID4gIAkJdGksbWNic3AgPSA8Jm1jYnNwMj47Cj4gPiAgCQl0aSxjb2RlYyA9
-IDwmdHdsX2F1ZGlvPjsKPiA+ICAJfTsKPiA+ICsKPiA+ICsJLyogSFMgVVNCIFBvcnQgMiBSRVNF
-VCAqLwo+ID4gKwloc3VzYjJfcmVzZXQ6IGhzdXNiMl9yZXNldF9yZWcgewo+ID4gKwkJY29tcGF0
-aWJsZSA9ICJyZWd1bGF0b3ItZml4ZWQiOwo+ID4gKwkJcmVndWxhdG9yLW5hbWUgPSAiaHN1c2Iy
-X3Jlc2V0IjsKPiA+ICsJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDMzMDAwMDA+Owo+ID4g
-KwkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MzMwMDAwMD47Cj4gPiArCQlncGlvID0gPCZn
-cGlvNSAxOSAwPjsJLyogZ3Bpb18xNDcgKi8KPiA+ICsJCXN0YXJ0dXAtZGVsYXktdXMgPSA8NzAw
-MDA+Owo+ID4gKwkJZW5hYmxlLWFjdGl2ZS1oaWdoOwo+ID4gKwl9Owo+ID4gKwo+ID4gKwkvKiBI
-UyBVU0IgUG9ydCAyIFBvd2VyICovCj4gPiArCWhzdXNiMl9wb3dlcjogaHN1c2IyX3Bvd2VyX3Jl
-ZyB7Cj4gPiArCQljb21wYXRpYmxlID0gInJlZ3VsYXRvci1maXhlZCI7Cj4gPiArCQlyZWd1bGF0
-b3ItbmFtZSA9ICJoc3VzYjJfdmJ1cyI7Cj4gPiArCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9
-IDwzMzAwMDAwPjsKPiA+ICsJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDMzMDAwMDA+Owo+
-ID4gKwkJZ3BpbyA9IDwmdHdsX2dwaW8gMTggMD47CS8qIEdQSU8gTEVEQSAqLwo+ID4gKwkJc3Rh
-cnR1cC1kZWxheS11cyA9IDw3MDAwMD47Cj4gPiArCQllbmFibGUtYWN0aXZlLWhpZ2g7CS8qIEZJ
-WE1FOiBhY3RpdmUtbG93IGZvciBSZXYuIEMgKi8KPiAKPiBCZW5vaXQgJiBUb255LAo+IAo+IEFu
-eSBpZGVhcyBob3cgdG8gdGFja2xlIHRoZSByZXZlcnNlZCBsb2dpYyBmb3IgUmV2LiBDIGJvYXJk
-cz8KClNvdW5kcyBsaWtlIHdlIG5lZWQgYSBzaGFyZWQgb21hcDMtYmVhZ2UuZHRzaSwgdGhlbiBv
-bWFwMy1iZWFnbGUteG0uZHRzCmFuZCBvbWFwMy1iZWFnbGUtcmV2LWMuZHRzLiBUaGVuIHhtIGFu
-ZCByZXYtYyBjYW4gYm90aCBpbmNsdWRlIHRoZQpjb21tb24gLmR0c2kuCgpSZWdhcmRzLAoKVG9u
-eQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkZXZpY2V0
-cmVlLWRpc2N1c3MgbWFpbGluZyBsaXN0CmRldmljZXRyZWUtZGlzY3Vzc0BsaXN0cy5vemxhYnMu
-b3JnCmh0dHBzOi8vbGlzdHMub3psYWJzLm9yZy9saXN0aW5mby9kZXZpY2V0cmVlLWRpc2N1c3MK
+* Jon Hunter <jon-hunter@ti.com> [130416 11:45]:
+> 
+> On 04/16/2013 01:06 PM, Tony Lindgren wrote:
+> > * Jon Hunter <jon-hunter@ti.com> [130416 10:19]:
+> >>
+> >> On 04/15/2013 04:27 PM, Tony Lindgren wrote:
+> >>> * Jon Hunter <jon-hunter@ti.com> [130415 11:15]:
+> >>
+> >> ...
+> >>
+> >>>> From 56598ba51a75481b050433bb38b7ae31a5ed4ae8 Mon Sep 17 00:00:00 2001
+> >>>> From: Jon Hunter <jon-hunter@ti.com>
+> >>>> Date: Mon, 15 Apr 2013 13:06:54 -0500
+> >>>> Subject: [PATCH] gpio/omap: ensure gpio context is initialised
+> >>>
+> >>> Seems to work thanks:
+> >>>
+> >>> Tested-by: Tony Lindgren <tony@atomide.com> 
+> >>
+> >> Thanks. I have been cleaning this up and updating a little. Care to
+> >> re-test this version? If it is good I will send it out.
+> > 
+> > Yes this works too, you can recycle my Tested-by on this one.
+> 
+> Thanks. Final version below to fix build error if pm-runtime is not
+> enabled (this was breaking omap1 build). 
+>   
+> >> By the way, I realise I need to add a similar fix for dmtimer :-p
+> > 
+> > OK good to find out now rather than after the merge window.
+> 
+> Actually, I am wrong here. The dmtimer registers that are restored
+> all default to zero and so we don't need a similar fix for dmtimers. 
+
+OK assuming you'll send this patch to the usual drivers/gpio
+maintainers so it can be merged.
+
+Regards,
+
+Tony
