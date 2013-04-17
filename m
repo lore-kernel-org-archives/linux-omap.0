@@ -1,49 +1,52 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [RFT/PATCH 2/6] driver: serial: mpc52xx_uart: Remove "uart_console" defintion
-Date: Wed, 17 Apr 2013 17:04:23 +0530
-Message-ID: <1366198467-6757-3-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCH 4/6] arm: mach-omap2: remove "OMAP_DEVICE_NO_IDLE_ON_SUSPEND" check
+Date: Wed, 17 Apr 2013 17:04:25 +0530
+Message-ID: <1366198467-6757-5-git-send-email-sourav.poddar@ti.com>
 References: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-serial-owner@vger.kernel.org>
 In-Reply-To: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-serial-owner@vger.kernel.org
 To: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Sylvain Munaut <tnt@246tNt.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Since "uart_console" definition is now moved to serial core
-haeder file . Serial drivers need not define them.
+Remove the "OMAP_DEVICE_NO_IDLE_ON_SUSPEND" check, since UART was the only one making
+use of it. Now serial core/driver takes care of the case when "no_console_suspend" 
+is used in the bootargs and you need to keep the clock enable for console even while suspend.
 
-Cc: Sylvain Munaut <tnt@246tNt.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Rajendra nayak <rnayak@ti.com>
 Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 ---
- drivers/tty/serial/mpc52xx_uart.c |   10 ----------
- 1 files changed, 0 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/omap_device.c |    7 +------
+ 1 files changed, 1 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/tty/serial/mpc52xx_uart.c b/drivers/tty/serial/mpc52xx_uart.c
-index 018bad9..d74ac06 100644
---- a/drivers/tty/serial/mpc52xx_uart.c
-+++ b/drivers/tty/serial/mpc52xx_uart.c
-@@ -84,16 +84,6 @@ static void mpc52xx_uart_of_enumerate(void);
- static irqreturn_t mpc52xx_uart_int(int irq, void *dev_id);
- static irqreturn_t mpc5xxx_uart_process_int(struct uart_port *port);
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 381be7a..d6dce8f 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -620,11 +620,8 @@ static int _od_suspend_noirq(struct device *dev)
+ 	ret = pm_generic_suspend_noirq(dev);
  
--
--/* Simple macro to test if a port is console or not. This one is taken
-- * for serial_core.c and maybe should be moved to serial_core.h ? */
--#ifdef CONFIG_SERIAL_CORE_CONSOLE
--#define uart_console(port) \
--	((port)->cons && (port)->cons->index == (port)->line)
--#else
--#define uart_console(port)	(0)
--#endif
--
- /* ======================================================================== */
- /* PSC fifo operations for isolating differences between 52xx and 512x      */
- /* ======================================================================== */
+ 	if (!ret && !pm_runtime_status_suspended(dev)) {
+-		if (pm_generic_runtime_suspend(dev) == 0) {
+-			if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+-				omap_device_idle(pdev);
++		if (pm_generic_runtime_suspend(dev) == 0)
+ 			od->flags |= OMAP_DEVICE_SUSPENDED;
+-		}
+ 	}
+ 
+ 	return ret;
+@@ -638,8 +635,6 @@ static int _od_resume_noirq(struct device *dev)
+ 	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
+ 	    !pm_runtime_status_suspended(dev)) {
+ 		od->flags &= ~OMAP_DEVICE_SUSPENDED;
+-		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+-			omap_device_enable(pdev);
+ 		pm_generic_runtime_resume(dev);
+ 	}
+ 
 -- 
 1.7.1
+
