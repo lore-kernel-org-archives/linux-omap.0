@@ -1,161 +1,64 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
-Date: Wed, 17 Apr 2013 02:41:02 +0200
-Message-ID: <CAAwP0s0-VNUoeSKaGbvoDeD7m7kZRdp5rCJ7iVpFoFAaQtXcmQ@mail.gmail.com>
-References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
- <514C79E1.4090106@wwwdotorg.org> <514CE0AB.6060207@ti.com>
- <CACRpkdZmv-rAoKSQYpkHHSMzKJOn5TixVW_P3=m7ZNagBYCUPw@mail.gmail.com>
- <515319D5.20105@wwwdotorg.org> <CACRpkdYXVLgCz1Tyu-Ls2V2OTc4R3cGNJhfQJB6Hiz_K9dkZYQ@mail.gmail.com>
- <5155C902.7080207@wwwdotorg.org> <CACRpkdYbs4-uudpRUY8e+7icYYkZrfM0kReP3pLL5DMiURJ4dg@mail.gmail.com>
- <5165CB9D.1090202@wwwdotorg.org> <CACRpkdYirFNqmGhA4K9CL4ve4NYhs8Rd3SFt1iwW9vHBkrcz8g@mail.gmail.com>
- <51671D7B.5060303@wwwdotorg.org> <CACRpkdbf32Ef77GmXk9id9+RRjcDRTr7S+F4nznoeZU8y=BT_Q@mail.gmail.com>
- <51673D70.3010503@wwwdotorg.org> <CAAwP0s0e2x33jZQhFRY+Hoo61SFqYKRgWk=1mL2+DNxSDJHz+A@mail.gmail.com>
- <CACRpkda4h+qXTvsirPAS7E7sjXhMLE62q=VDy53W8UchsYjbNg@mail.gmail.com>
- <516C31C3.9040505@wwwdotorg.org> <516C7C43.3040105@wwwdotorg.org>
- <516C8760.2050500@ti.com> <516D9B05.1000501@wwwdotorg.org>
- <516DA60A.5070000@ti.com> <516DCCA8.3070108@wwwdotorg.org> <516DDB4D.9020500@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: omap3-beagle-xm: Add USB Host support for
+ Rev Ax/Bx
+Date: Tue, 16 Apr 2013 17:52:32 -0700
+Message-ID: <20130417005232.GV10155@atomide.com>
+References: <1366029306-1824-1-git-send-email-rogerq@ti.com>
+ <516BF4F3.5060904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:46515 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755034Ab3DQAlW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Apr 2013 20:41:22 -0400
-Received: by mail-ie0-f182.google.com with SMTP id at1so1304641iec.41
-        for <linux-omap@vger.kernel.org>; Tue, 16 Apr 2013 17:41:22 -0700 (PDT)
-In-Reply-To: <516DDB4D.9020500@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <516BF4F3.5060904-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Alexandre Courbot <acourbot@nvidia.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Apr 17, 2013 at 1:14 AM, Jon Hunter <jon-hunter@ti.com> wrote:
->
-> On 04/16/2013 05:11 PM, Stephen Warren wrote:
->> On 04/16/2013 01:27 PM, Jon Hunter wrote:
->>>
->>> On 04/16/2013 01:40 PM, Stephen Warren wrote:
->>>> On 04/15/2013 05:04 PM, Jon Hunter wrote:
->> ...
->>>>> If some driver is calling gpio_request() directly, then they will most
->>>>> likely just call gpio_to_irq() when requesting the interrupt and so the
->>>>> xlate function would not be called in this case (mmc drivers are a good
->>>>> example). So I don't see that as being a problem. In fact that's the
->>>>> benefit of this approach as AFAICT it solves this problem.
->>>>
->>>> Oh. That assumption seems very fragile. What about drivers that actually
->>>> do have platform data (or DT bindings) that provide both the IRQ and
->>>> GPIO IDs, and hence don't use gpio_to_irq()? That's entirely possible.
->>>
->>> Right. In the DT case though, if someone does provide the IRQ and GPIO
->>> IDs then at least they would use a different xlate function. Another
->>> option to consider would be defining the #interrupt-cells = <3> where we
->>> would have ...
->>>
->>> cell-#1 --> IRQ domain ID
->>> cell-#2 --> Trigger type
->>> cell-#3 --> GPIO ID
->>>
->>> Then we could have a generic xlate for 3 cells that would also request
->>> the GPIO. Again not sure if people are against a gpio being requested in
->>> the xlate but just an idea. Or given that irq_of_parse_and_map() calls
->>> the xlate, we could have this function call gpio_request() if the
->>> interrupt controller is a gpio and there are 3 cells.
->>
->> I rather dislike this approach since:
->>
->> a) It requires changes to the DT bindings, which are already defined.
->> Admittedly it's backwards-compatible, but still.
->>
->> b) There isn't really any need for the DT to represent this; the
->> GPIO+IRQ driver itself already knows which IRQ ID is which GPIO ID and
->> vice-versa (if the HW has such a concept), so there's no need for the DT
->> to contain this information. This seems like pushing Linux's internal
->> requirements into the design of the DT binding.
->
-> Yes, so the only alternative is to use irq_to_gpio to avoid this.
->
->> c) I have the feeling that hooking the of_xlate function for this is a
->> bit of an abuse of the function.
->
-> I was wondering about that. So I was grep'ing through the various xlate
-> implementations and found this [1]. Also you may recall that in the
-> of_dma_simple_xlate() we call the dma_request_channel() to allocate the
-> channel, which is very similar. However, I don't wish to get a
-> reputation as abusing APIs so would be good to know if this really is
-> abuse or not ;-)
->
-> Cheers
-> Jon
->
-> [1] http://permalink.gmane.org/gmane.linux.ports.arm.kernel/195124
-
-I was looking at [1] shared by Jon and come up with the following
-patch that does something similar for OMAP GPIO. This has the
-advantage that is local to gpio-omap instead changing gpiolib-of and
-also doesn't require DT changes
-
-But I don't want to get a reputation for abusing APIs neither :-)
-
-Best regards,
-Javier
-
->From 23368eb72b125227fcf4b22be19ea70b4ab94556 Mon Sep 17 00:00:00 2001
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Date: Wed, 17 Apr 2013 02:03:08 +0200
-Subject: [PATCH 1/1] gpio/omap: add custom xlate function handler
-
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
- drivers/gpio/gpio-omap.c |   29 ++++++++++++++++++++++++++++-
- 1 files changed, 28 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 8524ce5..77216f9 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1097,6 +1097,33 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
- static const struct of_device_id omap_gpio_match[];
- static void omap_gpio_init_context(struct gpio_bank *p);
-
-+static int omap_gpio_irq_domain_xlate(struct irq_domain *d,
-+				      struct device_node *ctrlr,
-+				      const u32 *intspec, unsigned int intsize,
-+				      irq_hw_number_t *out_hwirq,
-+				      unsigned int *out_type)
-+{
-+	int ret;
-+	struct gpio_bank *bank = d->host_data;
-+	int gpio = bank->chip.base + intspec[0];
-+
-+	if (WARN_ON(intsize < 2))
-+		return -EINVAL;
-+
-+	ret = gpio_request_one(gpio, GPIOF_IN, ctrlr->full_name);
-+	if (ret)
-+		return ret;
-+
-+	*out_hwirq = intspec[0];
-+	*out_type = (intsize > 1) ? intspec[1] : IRQ_TYPE_NONE;
-+
-+	return 0;
-+}
-+
-+static struct irq_domain_ops omap_gpio_irq_ops = {
-+	.xlate	= omap_gpio_irq_domain_xlate,
-+};
-+
- static int omap_gpio_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-@@ -1144,7 +1171,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
-
-
- 	bank->domain = irq_domain_add_linear(node, bank->width,
--					     &irq_domain_simple_ops, NULL);
-+					     &omap_gpio_irq_ops, bank);
- 	if (!bank->domain)
- 		return -ENODEV;
-
--- 
-1.7.7.6
+KiBSb2dlciBRdWFkcm9zIDxyb2dlcnFAdGkuY29tPiBbMTMwNDE1IDA1OjQ0XToKPiBPbiAwNC8x
+NS8yMDEzIDAzOjM1IFBNLCBSb2dlciBRdWFkcm9zIHdyb3RlOgo+ID4gUHJvdmlkZSBSRVNFVCBh
+bmQgUG93ZXIgcmVndWxhdG9ycyBmb3IgdGhlIFVTQiBQSFksCj4gPiB0aGUgVVNCIEhvc3QgcG9y
+dCBtb2RlIGFuZCB0aGUgUEhZIGRldmljZS4KPiA+IAo+ID4gQWxzbyBwcm92aWRlIHBpbiBtdWx0
+aXBsZXhlciBpbmZvcm1hdGlvbiBmb3IgVVNCIGhvc3QKPiA+IHBpbnMuCj4gPiAKPiA+IFRoaXMg
+d2lsbCBub3Qgd29yayBmb3IgUmV2IEN4IGJvYXJkcyBiZWNhdXNlIG9mIHJldmVyc2VkIGxvZ2lj
+Cj4gPiBmb3IgVVNCX1BPV0VSX0VuYWJsZS4KPiA+IAo+ID4gQ0M6IEJlbm/DrnQgQ291c3NvbiA8
+Yi1jb3Vzc29uQHRpLmNvbT4KPiA+IFNpZ25lZC1vZmYtYnk6IFJvZ2VyIFF1YWRyb3MgPHJvZ2Vy
+cUB0aS5jb20+Cj4gPiAtLS0KPiA+ICBhcmNoL2FybS9ib290L2R0cy9vbWFwMy1iZWFnbGUteG0u
+ZHRzIHwgICA2MiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiA+ICAxIGZpbGVz
+IGNoYW5nZWQsIDYyIGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pCj4gPiAKPiA+IGRpZmYg
+LS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwMy1iZWFnbGUteG0uZHRzIGIvYXJjaC9hcm0v
+Ym9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cwo+ID4gaW5kZXggNWEzMTk2NC4uZDM5NGM1MSAx
+MDA2NDQKPiA+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14bS5kdHMKPiA+
+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14bS5kdHMKPiA+IEBAIC01Nyw2
+ICs1Nyw2MCBAQAo+ID4gIAkJdGksbWNic3AgPSA8Jm1jYnNwMj47Cj4gPiAgCQl0aSxjb2RlYyA9
+IDwmdHdsX2F1ZGlvPjsKPiA+ICAJfTsKPiA+ICsKPiA+ICsJLyogSFMgVVNCIFBvcnQgMiBSRVNF
+VCAqLwo+ID4gKwloc3VzYjJfcmVzZXQ6IGhzdXNiMl9yZXNldF9yZWcgewo+ID4gKwkJY29tcGF0
+aWJsZSA9ICJyZWd1bGF0b3ItZml4ZWQiOwo+ID4gKwkJcmVndWxhdG9yLW5hbWUgPSAiaHN1c2Iy
+X3Jlc2V0IjsKPiA+ICsJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDMzMDAwMDA+Owo+ID4g
+KwkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MzMwMDAwMD47Cj4gPiArCQlncGlvID0gPCZn
+cGlvNSAxOSAwPjsJLyogZ3Bpb18xNDcgKi8KPiA+ICsJCXN0YXJ0dXAtZGVsYXktdXMgPSA8NzAw
+MDA+Owo+ID4gKwkJZW5hYmxlLWFjdGl2ZS1oaWdoOwo+ID4gKwl9Owo+ID4gKwo+ID4gKwkvKiBI
+UyBVU0IgUG9ydCAyIFBvd2VyICovCj4gPiArCWhzdXNiMl9wb3dlcjogaHN1c2IyX3Bvd2VyX3Jl
+ZyB7Cj4gPiArCQljb21wYXRpYmxlID0gInJlZ3VsYXRvci1maXhlZCI7Cj4gPiArCQlyZWd1bGF0
+b3ItbmFtZSA9ICJoc3VzYjJfdmJ1cyI7Cj4gPiArCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9
+IDwzMzAwMDAwPjsKPiA+ICsJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDMzMDAwMDA+Owo+
+ID4gKwkJZ3BpbyA9IDwmdHdsX2dwaW8gMTggMD47CS8qIEdQSU8gTEVEQSAqLwo+ID4gKwkJc3Rh
+cnR1cC1kZWxheS11cyA9IDw3MDAwMD47Cj4gPiArCQllbmFibGUtYWN0aXZlLWhpZ2g7CS8qIEZJ
+WE1FOiBhY3RpdmUtbG93IGZvciBSZXYuIEMgKi8KPiAKPiBCZW5vaXQgJiBUb255LAo+IAo+IEFu
+eSBpZGVhcyBob3cgdG8gdGFja2xlIHRoZSByZXZlcnNlZCBsb2dpYyBmb3IgUmV2LiBDIGJvYXJk
+cz8KClNvdW5kcyBsaWtlIHdlIG5lZWQgYSBzaGFyZWQgb21hcDMtYmVhZ2UuZHRzaSwgdGhlbiBv
+bWFwMy1iZWFnbGUteG0uZHRzCmFuZCBvbWFwMy1iZWFnbGUtcmV2LWMuZHRzLiBUaGVuIHhtIGFu
+ZCByZXYtYyBjYW4gYm90aCBpbmNsdWRlIHRoZQpjb21tb24gLmR0c2kuCgpSZWdhcmRzLAoKVG9u
+eQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkZXZpY2V0
+cmVlLWRpc2N1c3MgbWFpbGluZyBsaXN0CmRldmljZXRyZWUtZGlzY3Vzc0BsaXN0cy5vemxhYnMu
+b3JnCmh0dHBzOi8vbGlzdHMub3psYWJzLm9yZy9saXN0aW5mby9kZXZpY2V0cmVlLWRpc2N1c3MK
