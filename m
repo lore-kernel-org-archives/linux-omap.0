@@ -1,96 +1,144 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH] ARM: OMAP2+: only search for GPMC DT child nodes on probe
-Date: Wed, 17 Apr 2013 18:37:31 +0200
-Message-ID: <1366216651-11164-1-git-send-email-javier.martinez@collabora.co.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:37674 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753531Ab3DQQhj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Apr 2013 12:37:39 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: omap3-beagle-xm: Add USB Host support for
+ Rev Ax/Bx
+Date: Wed, 17 Apr 2013 10:11:32 -0700
+Message-ID: <20130417171132.GY10155@atomide.com>
+References: <1366029306-1824-1-git-send-email-rogerq@ti.com>
+ <516BF4F3.5060904@ti.com>
+ <20130417005232.GV10155@atomide.com>
+ <CAOCHtYgFnCy5Qn2LeJOK96_NdwzxzVe8Vrb8cL=K9AdzPUtQow@mail.gmail.com>
+ <516E5597.7050801@compulab.co.il>
+ <516E5F9E.3050204@ti.com>
+ <516E94FA.9060606@compulab.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <516E94FA.9060606@compulab.co.il>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Roger Quadros <rogerq@ti.com>, Robert Nelson <robertcnelson@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Lars Poeschel <poeschel@lemonage.de>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-The GPMC DT probe function use for_each_node_by_name() to search
-child device nodes of the GPMC controller. But this function does
-not use the GPMC device node as the root of the search and instead
-search across the complete Device Tree.
+* Igor Grinberg <grinberg@compulab.co.il> [130417 05:31]:
+> On 04/17/13 11:38, Roger Quadros wrote:
+> > On 04/17/2013 10:56 AM, Igor Grinberg wrote:
+> >> On 04/17/13 04:30, Robert Nelson wrote:
+> >>> On Tue, Apr 16, 2013 at 7:52 PM, Tony Lindgren <tony@atomide.com>=
+ wrote:
+> >>>> * Roger Quadros <rogerq@ti.com> [130415 05:44]:
+> >>>>> On 04/15/2013 03:35 PM, Roger Quadros wrote:
+> >>>>>> Provide RESET and Power regulators for the USB PHY,
+> >>>>>> the USB Host port mode and the PHY device.
+> >>>>>>
+> >>>>>> Also provide pin multiplexer information for USB host
+> >>>>>> pins.
+> >>>>>>
+> >>>>>> This will not work for Rev Cx boards because of reversed logic
+> >>>>>> for USB_POWER_Enable.
+> >>>>>>
+> >>>>>> CC: Beno=C3=AEt Cousson <b-cousson@ti.com>
+> >>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >>>>>> ---
+> >>>>>>  arch/arm/boot/dts/omap3-beagle-xm.dts |   62 ++++++++++++++++=
++++++++++++++++++
+> >>>>>>  1 files changed, 62 insertions(+), 0 deletions(-)
+> >>>>>>
+> >>>>>> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/=
+boot/dts/omap3-beagle-xm.dts
+> >>>>>> index 5a31964..d394c51 100644
+> >>>>>> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+> >>>>>> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+> >>>>>> @@ -57,6 +57,60 @@
+> >>>>>>             ti,mcbsp =3D <&mcbsp2>;
+> >>>>>>             ti,codec =3D <&twl_audio>;
+> >>>>>>     };
+> >>>>>> +
+> >>>>>> +   /* HS USB Port 2 RESET */
+> >>>>>> +   hsusb2_reset: hsusb2_reset_reg {
+> >>>>>> +           compatible =3D "regulator-fixed";
+> >>>>>> +           regulator-name =3D "hsusb2_reset";
+> >>>>>> +           regulator-min-microvolt =3D <3300000>;
+> >>>>>> +           regulator-max-microvolt =3D <3300000>;
+> >>>>>> +           gpio =3D <&gpio5 19 0>;   /* gpio_147 */
+> >>>>>> +           startup-delay-us =3D <70000>;
+> >>>>>> +           enable-active-high;
+> >>>>>> +   };
+> >>>>>> +
+> >>>>>> +   /* HS USB Port 2 Power */
+> >>>>>> +   hsusb2_power: hsusb2_power_reg {
+> >>>>>> +           compatible =3D "regulator-fixed";
+> >>>>>> +           regulator-name =3D "hsusb2_vbus";
+> >>>>>> +           regulator-min-microvolt =3D <3300000>;
+> >>>>>> +           regulator-max-microvolt =3D <3300000>;
+> >>>>>> +           gpio =3D <&twl_gpio 18 0>;        /* GPIO LEDA */
+> >>>>>> +           startup-delay-us =3D <70000>;
+> >>>>>> +           enable-active-high;     /* FIXME: active-low for R=
+ev. C */
+> >>>>>
+> >>>>> Benoit & Tony,
+> >>>>>
+> >>>>> Any ideas how to tackle the reversed logic for Rev. C boards?
+> >>>>
+> >>>> Sounds like we need a shared omap3-beage.dtsi, then omap3-beagle=
+-xm.dts
+> >>>> and omap3-beagle-rev-c.dts. Then xm and rev-c can both include t=
+he
+> >>>
+> >>> Bike-sheding, but we might want to make that "omap3-beagle-xmc.dt=
+s" as
+> >>> there is the "rev c" variant of the original beagle...
+> >>>
+> >>> It's too bad we can't read the 3 gpio pin states in the device tr=
+ee
+> >>> and make a decision.
+> >>
+> >> I would recommend to move the detection to the boot loader and
+> >> adjust the DT blob at run time (in the boot loader).
+> >> This way, we will not need to deal with all the (sub)revision stuf=
+f.
+> >>
+> >>
+> > Moving the detection to bootloader is fine, but modifying the DT at
+> > runtime would create a debug/maintenance issue. Instead it could ju=
+st
+> > pick one of the .DTBs and pass it to kernel.
+>=20
+> Like this will not create create any debug/maintenance issues.... ;-)
+> We have no problem with debug, as all the DT nodes can be seen in
+> both U-Boot (with fdt commands) and Linux through procfs...
+>=20
+> I've just dropped my 2 cents and I don't really insist...
 
-This means that any device node on the DT that is using any of the
-GPMC child nodes names searched for will be returned even if they
-are not connected to the GPMC, making the gpmc_probe_xxx_child()
-function to fail.
+The dynamic configuration from the bootloader can also be done too, I
+don't think they are mutually exclusive.=20
+=20
+> > Since most users will be using rev-c, I think we should keep the or=
+iginal
+> > file 'omap3-beagle-xm.dts" as it is for rev-c boards.
+> > I can just create a new dts file for Revisions A and B that will be
+> > like so.
+> >=20
+> > +++ b/arch/arm/boot/dts/omap3-beagle-xm-ab.dts
+> > @@ -0,0 +1,6 @@
+> > +/include/ "omap3-beagle-xm.dts"
+> > +
+> > +/* On Rev A/B USBHOST_PWR_EN is active high */
+> > +&hsusb2_power {
+> > +       enable-active-high;
+> > +};
+> >=20
+> > Since omap3-beagle and omap3-beagle-xm use different SoC versions a=
+nd have
+> > quite many differences, I don't think it is a good idea to create a=
+ common
+> > file between the two.
 
-Fix this by using the GPMC device node as the search root so the
-search will be restricted to its children.
+Sounds good to me. But please also add the revision info to the compati=
+ble
+flags for both .dts files.
 
-Also, if any of the GPMC child nodes fails, this shouldn't make
-the whole gpmc_probe_dt() function to fail. It is better to just
-WARN and allow other devices probe function to succeed.
+Regards,
 
-Reported-by: Lars Poeschel <poeschel@lemonage.de>
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
- arch/arm/mach-omap2/gpmc.c |   41 +++++++++++++++++------------------------
- 1 files changed, 17 insertions(+), 24 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index ed946df..f10d735 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1520,35 +1520,28 @@ static int gpmc_probe_dt(struct platform_device *pdev)
- 		return ret;
- 	}
- 
--	for_each_node_by_name(child, "nand") {
--		ret = gpmc_probe_nand_child(pdev, child);
--		if (ret < 0) {
--			of_node_put(child);
--			return ret;
--		}
--	}
-+	for_each_child_of_node(pdev->dev.of_node, child) {
-+
-+		if (!child->name)
-+			continue;
- 
--	for_each_node_by_name(child, "onenand") {
--		ret = gpmc_probe_onenand_child(pdev, child);
--		if (ret < 0) {
--			of_node_put(child);
--			return ret;
-+		if (of_node_cmp(child->name, "nand") == 0) {
-+			ret = gpmc_probe_nand_child(pdev, child);
-+			if (WARN_ON(ret < 0))
-+				of_node_put(child);
- 		}
--	}
- 
--	for_each_node_by_name(child, "nor") {
--		ret = gpmc_probe_generic_child(pdev, child);
--		if (ret < 0) {
--			of_node_put(child);
--			return ret;
-+		if (of_node_cmp(child->name, "onenand") == 0) {
-+			ret = gpmc_probe_onenand_child(pdev, child);
-+			if (WARN_ON(ret < 0))
-+				of_node_put(child);
- 		}
--	}
- 
--	for_each_node_by_name(child, "ethernet") {
--		ret = gpmc_probe_generic_child(pdev, child);
--		if (ret < 0) {
--			of_node_put(child);
--			return ret;
-+		if (of_node_cmp(child->name, "ethernet") == 0 ||
-+		    of_node_cmp(child->name, "nor") == 0) {
-+			ret = gpmc_probe_generic_child(pdev, child);
-+			if (WARN_ON(ret < 0))
-+				of_node_put(child);
- 		}
- 	}
- 
--- 
-1.7.7.6
-
+Tony
