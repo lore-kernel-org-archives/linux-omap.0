@@ -1,289 +1,119 @@
-From: Christoph Fritz <chf.fritz@googlemail.com>
-Subject: Re: ARM: dts: omap3: NAND support - how?
-Date: Fri, 19 Apr 2013 00:48:02 +0200
-Message-ID: <1366325282.4232.6.camel@lovely>
-References: <1366311829.4085.90.camel@mars>  <51704C05.4030200@ti.com>
-	 <1366316595.4085.113.camel@mars>  <5170738F.8050305@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] gpio/omap: ensure gpio context is initialised
+Date: Thu, 18 Apr 2013 18:10:52 -0500
+Message-ID: <51707D7C.1050600@ti.com>
+References: <1366230707-32681-1-git-send-email-jon-hunter@ti.com> <871ua734mv.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f47.google.com ([209.85.214.47]:50428 "EHLO
-	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966948Ab3DRWsI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Apr 2013 18:48:08 -0400
-Received: by mail-bk0-f47.google.com with SMTP id ik5so1455208bkc.20
-        for <linux-omap@vger.kernel.org>; Thu, 18 Apr 2013 15:48:07 -0700 (PDT)
-In-Reply-To: <5170738F.8050305@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:36374 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753871Ab3DRXK6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Apr 2013 19:10:58 -0400
+In-Reply-To: <871ua734mv.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Daniel Mack <daniel@zonque.org>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Thu, 2013-04-18 at 17:28 -0500, Jon Hunter wrote:
-> On 04/18/2013 03:23 PM, Christoph Fritz wrote:
+Hi Kevin,
 
-
-> > OMAP3_EVM # md 0x6E000060 7
-> > 6e000060: 00001800 00141400 00141400 0f010f01    ................
-> > 6e000070: 010c1414 1f0f0a80 00000870             ........p...
-
+On 04/18/2013 04:34 PM, Kevin Hilman wrote:
+> Hi Jon,
 > 
-> I don't see any other errors in the log. So I am wondering if the
-> chip-select mapping is setup correctly. Can you share a dump of the gpmc
-> registers from u-boot?
+> Jon Hunter <jon-hunter@ti.com> writes:
+> 
+>> Commit a2797be (gpio/omap: force restore if context loss is not
+>> detectable) broke gpio support for OMAP when booting with device-tree
+>> because a restore of the gpio context being performed without ever
+>> initialising the gpio context. In other words, the context restored was
+>> bad.
+>>
+>> This problem could also occur in the non device-tree case, however, it
+>> is much less likely because when booting without device-tree we can
+>> detect context loss via a platform specific API and so context restore
+>> is performed less often.
+>>
+>> Nevertheless we should ensure that the gpio context is initialised
+>> during the probe for gpio banks that could lose their state regardless
+>> of whether we are booting with device-tree or not.
+>>
+>> Reported-by: Tony Lindgren <tony@atomide.com>
+>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>> Tested-by: Tony Lindgren <tony@atomide.com>
+>> ---
+>>  drivers/gpio/gpio-omap.c |   53 +++++++++++++++++++++++++++++++++++++---------
+>>  1 file changed, 43 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> index 0557529..0ba5cb9 100644
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -70,6 +70,7 @@ struct gpio_bank {
+>>  	bool is_mpuio;
+>>  	bool dbck_flag;
+>>  	bool loses_context;
+>> +	bool context_valid;
+>>  	int stride;
+>>  	u32 width;
+>>  	int context_loss_count;
+>> @@ -1085,6 +1086,7 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
+>>  }
+>>  
+>>  static const struct of_device_id omap_gpio_match[];
+>> +static void omap_gpio_init_context(struct gpio_bank *p);
+>>  
+>>  static int omap_gpio_probe(struct platform_device *pdev)
+>>  {
+>> @@ -1179,8 +1181,10 @@ static int omap_gpio_probe(struct platform_device *pdev)
+>>  	omap_gpio_chip_init(bank);
+>>  	omap_gpio_show_rev(bank);
+>>  
+>> -	if (bank->loses_context)
+>> +	if (bank->loses_context) {
+>>  		bank->get_context_loss_count = pdata->get_context_loss_count;
+>> +		omap_gpio_init_context(bank);
+>> +	}
+>>  
+>>  	pm_runtime_put(bank->dev);
+>>  
+>> @@ -1269,6 +1273,14 @@ static int omap_gpio_runtime_resume(struct device *dev)
+>>  	int c;
+>>  
+>>  	spin_lock_irqsave(&bank->lock, flags);
+>> +
+>> +	/*
+>> +	 * On the first resume during the probe, the context has not
+>> +	 * been initialised and so if the context is not valid return.
+>> +	 */
+>> +	if (!bank->context_valid)
+>> +		goto done;
+> 
+> Not sure I follow the reason to separate it here and in probe.  
+> 
+> Also, this makes the first runtime_resume a special case and leaves
+> things in a strange semi-initialized state that is confusing IMO.
 
-I already did, please see the "md 0x6E000060 7" from above. Below is my
-work-sheet how I configured the values:
+The first resume has always been a special case. The
+"bank->get_context_loss_count" is not initialised until after the first
+resume (due to another issue we had found - 7b86cef gpio/omap: fix
+invalid context restore of gpio bank-0). This should not leave things in
+a strange semi-init'ed state, as on the first resume nothing is really
+done anyway because there is no context loss.
 
----
+> Why not just init context right here if bank->loses_context &&
+> !bank->context_valid?
 
-To get the values right for dt-GPMC-NAND-Config, here are the GPMC
-config registers for chip-select 0, they are taken from u-boot
-by doing "md 0x6E000060 7" on the u-boot shell:
+Thanks for the suggestion.
 
-	GPMC_CONFIG1: 0x6e000060: 0x00001800
-	GPMC_CONFIG2: 0x6e000064: 0x00141400
-	GPMC_CONFIG3: 0x6e000068: 0x00141400
-	GPMC_CONFIG4: 0x6e00006c: 0x0F010F01
-	GPMC_CONFIG5: 0x6e000070: 0x010C1414
-	GPMC_CONFIG6: 0x6e000074: 0x1F0F0A80
-	GPMC_CONFIG7: 0x6e000078: 0x00000870
+> Then the first resume can continue as expected, and everything is fully
+> initialized as expected also.  IMO, this is much more readable (and
+> maintainable, but that's your job now, so you can decide ;)
 
-and analyzed by datasheet (TRM page 2210):
+If the context has not been lost, which it has not on the first resume,
+then resume really does nothing. That's why I had just returned.
+However, I would agree that is not completely readable.
 
-GPMC_CONFIG7 0x00000870:
-		|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|
-		| 1| 0| 0| 0| 0| 1| 1| 1| 0| 0| 0| 0|
-
-	5:0  BASEADDR: 0x4 (reg addr: 0x30000000)
-	dT: not supported
-		CSi base address
-	6    CSVALID: 1
-	dT: not supported
-		CS enable
-	11:8 MASKADDRESS: 0x1000: Chip-select size of 128 Mbytes
-	dT: not supported
-		CS mask address
-
-GPMC_CONFIG6 0x1F0F0A80:
-		|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|
-		| 0| 0| 0| 1| 1| 1| 1| 1| 0| 0| 0| 0| 1| 1| 1| 1|
-
-		|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|
-		| 0| 0| 0| 0| 1| 0| 1| 0| 1| 0| 0| 0| 0| 0| 0| 0|
-
-	28:24 WRACCESSTIME: 0x1F: 31 GPMC_FCLK cycles
-	dT: "gpmc,wr-access-ns = <0x1F>;" (0x0 to 0x1F)
-		used by the attached memory for the first data capture
-
-	19:16 WRDATAONADMUXBUS: 0xF
-	dT: "gpmc,wr-data-mux-bus-ns = <0xF>;" (0x0 to 0xF)
-		Specifies on which GPMC_FCLK rising edge the first data is
-		driven in the add/data mux bus
-
-	11:8  CYCLE2CYCLEDELAY: 0xA GPMC_FCLK cycles
-	dT: "gpmc,cycle2cycle-delay-ns = <0xA>;" (0x0 to 0xF)
-		Chip-select high pulse delay between successive accesses
-
-	7     CYCLE2CYCLESAMECSEN: 0x1: Add CYCLE2CYCLEDELAY
-	dT: "gpmc,cycle2cycle-samecsen = <0x1>;" (bool)
-		Add CYCLE2CYCLEDELAY between successive accesses
-		to the same CS (any access type)
-
-	6     CYCLE2CYCLEDIFFCSEN: 0x0: No delay between the two accesses
-	dT: "gpmc,cycle2cycle-diffcsen = <0x0>;" (bool)
-		Add CYCLE2CYCLEDELAY between successive accesses
-		to a different CS (any access type)
-
-	3:0   BUSTURNAROUND: 0x0: 0 GPMC_FCLK cycle
-	dT: "gpmc,bus-turnaround-ns = <0x0>;" (0x0 to 0xF)
-		Bus turn around latency between successive accesses to
-		the same CS (read to write) or to a different CS (read to
-		read and read to write)
-
-GPMC_CONFIG5 0x010C1414:
-		|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|
-		| 0| 0| 0| 0| 0| 0| 0| 1| 0| 0| 0| 0| 1| 1| 0| 0|
-
-		|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|
-		| 0| 0| 0| 1| 0| 1| 0| 0| 0| 0| 0| 1| 0| 1| 0| 0|
-
-	27:24 PAGEBURSTACCESSTIME: 0x1: 1 GPMC_FCLK cycle
-	dT: "gpmc,page-burst-access-ns = <0x1>;" (0x0 to 0xF)
-		Delay between successive words in a multiple access
-
-	20:16 RDACCESSTIME: 0xC: 12 GPMC_FCLK cycles
-	dT: "gpmc,access-ns = <0xC>;" (0x0 to 0x1F)
-		Delay between start cycle time and first data valid
-
-	12:8  WRCYCLETIME: 0x14: 20 GPMC_FCLK cycles
-	dT: "gpmc,wr-cycle-ns = <0x14>;" (0x0 to 0x1F)
-		Total write cycle time
-
-	4:0   RDCYCLETIME: 0x14: 20 GPMC_FCLK cycles
-	dT: "gpmc,rd-cycle-ns = <0x14>;" (0x0 to 0x1F)
-		Total read cycle time
-
-GPMC_CONFIG4 0x0F010F01:
-		|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|
-		| 0| 0| 0| 0| 1| 1| 1| 1| 0| 0| 0| 0| 0| 0| 0| 1|
-
-		|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|
-		| 0| 0| 0| 0| 1| 1| 1| 1| 0| 0| 0| 0| 0| 0| 0| 1|
-
-	28:24 WEOFFTIME: 0xF: 16 GPMC_FCLK cycle
-	dT: "gpmc,we-off-ns = <0xF>;" (0x0 to 0x1F)
-		nWE de-assertion time from start cycle time
-
-	23    WEEXTRADELAY: 0x0: nWE Timing control signal is not delayed
-	dT: "gpmc,we-extra-delay = <0>;" (bool)
-		nWE Add Extra Half GPMC_FCLK cycle
-
-	19:16 WEONTIME: 0x1: 1 GPMC_FCLK cycle
-	dT: "gpmc,we-on-ns = <0x1>;" (0x0 to 0x1F)
-		nWE assertion time from start cycle time
-
-	12:8  OEOFFTIME: 0xF: 15 GPMC_FCLK cycles
-	dT: "gpmc,oe-off-ns = <0xF>;" (0x0 to 0x1F)
-		nOE de-assertion time from start cycle time
-
-	7     OEEXTRADELAY: 0x0: nOE Timing control signal is not delayed
-	dT: "gpmc,oe-extra-delay = <0>;" (bool)
-		nOE Add Extra Half GPMC_FCLK cycle
-
-	3:0   OEONTIME: 0x1: 1 GPMC_FCLK cycle
-	dT: "gpmc,oe-on-ns = <0x1>;" (0x0 to 0x1F)
-		nOE assertion time from start cycle time
-
-GPMC_CONFIG3 0x00141400:
-		|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|
-		| 0| 0| 0| 0| 0| 0| 0| 0| 0| 0| 0| 1| 0| 1| 0| 0|
-
-		|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|
-		| 0| 0| 0| 1| 0| 1| 0| 0| 0| 0| 0| 0| 0| 0| 0| 0|
-
-	20:16 ADVWROFFTIME: 0x14: 20 GPMC_FCLK cycles
-	dT: "gpmc,adv-wr-off-ns = <0x14>;" (0x0 to 0x1F)
-		nADV de-assertion time from start cycle time for write accesses
-
-	12:8  ADVRDOFFTIME: 0x14: 20 GPMC_FCLK cycles
-	dT: "gpmc,adv-rd-off-ns = <0x14>;" (0x0 to 0x1F)
-		nADV de-assertion time from start cycle time for read accesses
-
-	7     ADVEXTRADELAY: 0x0: nADV Timing control signal is not delayed
-	dT: "gpmc,adv-extra-delay = <0>;" (bool)
-		nADV Add Extra Half GPMC_FCLK cycle
-
-	3:0   ADVONTIME: 0x0: 0 GPMC_FCLK cycle
-	dT: "gpmc,adv-on-ns = <0>;" (0x0 to 0xF)
-		nADV assertion time from start cycle time
-
-GPMC_CONFIG2 0x00141400:
-		|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|
-		| 0| 0| 0| 0| 0| 0| 0| 0| 0| 0| 0| 1| 0| 1| 0| 0|
-
-		|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|
-		| 0| 0| 0| 1| 0| 1| 0| 0| 0| 0| 0| 0| 0| 0| 0| 0|
-
-	20:16 CSWROFFTIME: 0x14: 20 GPMC_FCLK cycles
-	dT: "gpmc,cs-wr-off-ns = <0x14>;" (0x0 to 0x1F)
-		CS i de-assertion time from start cycle time for write accesses
-
-	12:8  CSRDOFFTIME: 0x14: 20 GPMC_FCLK cycles
-	dT: "gpmc,cs-rd-off-ns = <0x14>;" (0x0 to 0x1F)
-		CS i de-assertion time from start cycle time for read accesses
-
-	7     CSEXTRADELAY: 0x0: CS i Timing control signal is not delayed
-	dT: "gpmc,cs-extra-delay = <0>;" (bool)
-		CS i Add Extra Half GPMC_FCLK cycle
-
-	3:0   CSONTIME: 0x0: 0 GPMC_FCLK cycle
-	dT: "gpmc,cs-on-ns = <0>;" (0x0 to 0xF)
-		CS i assertion time from start cycle time
-
-GPMC_CONFIG1 0x00001800:
-		|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|
-		| 1| 1| 0| 0| 0| 0| 0| 0| 0| 0| 0| 0| 0|
-
-	31 WRAPBURST: 0x0: Synchronous wrapping burst not supported
-	dT: "gpmc,burst-wrap = <0>;" (bool)
-		Enables the wrapping burst capability. Must be set if the
-		attached device is configured in wrapping burst
-
-	30 READMULTIPLE: 0x0: Single access
-	dT: "gpmc,burst-read = <0>;" (bool)
-		Selects the read single or multiple access
-
-	29 READTYPE: 0x0: Read Asynchronous
-	dT: "gpmc,sync-read = <0>;" (bool)
-		Selects the read mode operation
-
-	28 WRITEMULTIPLE: 0x0: Single access
-	dT: "gpmc,burst-write = <0>;" (bool)
-		Selects the write single or multiple access
-
-	27 WRITETYPE: 0x0: Write Asynchronous
-	dT: "gpmc,sync-write = <0>;" (bool)
-		Selects the write mode operation
-
-	26:25 CLKACTIVATIONTIME: 0x0: First rising edge of GPMC_CLK at start
-	                              access time
-	dT: not supported
-		Output GPMC_CLK activation time
-
-	24:23 ATTACHEDDEVICEPAGE LENGTH: 0x0: 4 Words
-	dT: "gpmc,burst-length= <4>;" (4, 8 or 16)
-		Specifies the attached device page (burst) length
-
-	22 WAITREADMONITORING: 0x0: Wait pin is not monitored for read accesses
-	dT: "gpmc,wait-on-read = <0>;" (bool)
-		Selects the Wait monitoring configuration for Read accesses
-		(Reset value is BOOTWAITEN input pin sampled at IC reset)
-
-	21 WAITWRITEMONITORING: 0x0: Wait pin is not monitored for write accesses
-	dT: "gpmc,wait-on-write = <0>;" (bool)
-		Selects the Wait monitoring configuration for Write accesses
-
-	19:18 WAITMONITORINGTIME: 0x0: Wait pin is monitored with valid data
-	dT: not supported
-		Selects input pin Wait monitoring time
-
-	17:16 WAITPINSELECT: 0x0: Wait input pin is WAIT0
-	dT: "gpmc,wait-pin = <0>;" (0 to 3)
-		Selects the input WAIT pin for this chip-select (Reset value
-		is BOOTWAITSELECT input pin sampled at IC reset for
-		CS0 and 0 for CS1-7)
-
-	13:12 DEVICESIZE: 0x1: 16 bit
-	dT: "gpmc,device-width = <2>;" (1 or 2)
-		Selects the device size attached (Reset value is
-		BOOTDEVICESIZE input pin sampled at IC reset for CS0
-		and 0x1 for CS1 to CS7)
-
-	11:10 DEVICETYPE: 0x2: NAND Flash like devices, stream mode
-	dT: "gpmc,device-nand = <1>;" (bool)
-		Selects the attached device type
-
-	9 MUXADDDATA: 0x0: Non Multiplexed attached device
-	dT: "gpmc,mux-add-data = <0>;" (0 or 1 or 2)
-		Enables the Address and data multiplexed protocol (Reset
-		value is CS0MUXDEVICE input pin sampled at IC reset for
-		CS0 and 0 for CS1-7)
-
-	4 TIMEPARAGRANULARITY: 0x0: x1 latencies
-	dT: "gpmc,time-para-granularity = <0>;" (bool)
-		Signals timing latencies scalar factor (Rd/WrCycleTime,
-		Rd/WrAccessTime, PageBurstAccessTime, CSOnTime,
-		CSRd/WrOffTime, ADVOnTime, ADVRd/WrOffTime,
-		OEOnTime, OEOffTime, WEOnTime, WEOffTime,
-		Cycle2CycleDelay, BusTurnAround, TimeOutStartValue)
-
-	1:0 GPMCFCLKDIVIDER: 0x0: GPMC_CLK frequency = GPMC_FCLK frequency
-	dT: not supported
-		Divides the GPMC_FCLK clock
-
-
-
-
-
+Cheers
+Jon
