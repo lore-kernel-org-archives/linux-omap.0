@@ -1,73 +1,63 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 00/33] OMAPDSS: platform_enable/disable callback removal
- from panel drivers
-Date: Thu, 18 Apr 2013 06:40:08 +0300
-Message-ID: <516F6B18.8080407@ti.com>
-References: <1360765345-19312-1-git-send-email-archit@ti.com> <20130213164647.GF7144@atomide.com> <515C2058.8030402@ti.com> <20130403154645.GV10155@atomide.com> <516BC897.5020802@ti.com> <20130415212022.GP10155@atomide.com> <516CD17A.5050403@ti.com> <20130418003419.GB10155@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFT/PATCH 2/6] driver: serial: mpc52xx_uart: Remove
+ "uart_console" defintion
+Date: Thu, 18 Apr 2013 06:56:10 +0300
+Message-ID: <20130418035610.GA18349@arwen.pp.htv.fi>
+References: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com>
+ <1366198467-6757-3-git-send-email-sourav.poddar@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig68FF7CC488801802B8F2A4F8"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39501 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965342Ab3DRDkQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Apr 2013 23:40:16 -0400
-In-Reply-To: <20130418003419.GB10155@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1366198467-6757-3-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sylvain Munaut <tnt@246tNt.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
---------------enig68FF7CC488801802B8F2A4F8
-Content-Type: text/plain; charset=ISO-8859-1
+--cNdxnHkX5QqsyA0e
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2013-04-18 03:34, Tony Lindgren wrote:
+On Wed, Apr 17, 2013 at 05:04:23PM +0530, Sourav Poddar wrote:
+> Since "uart_console" definition is now moved to serial core
+> haeder file . Serial drivers need not define them.
+>=20
+> Cc: Sylvain Munaut <tnt@246tNt.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Rajendra nayak <rnayak@ti.com>
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 
-> Just one request: Let's do branches like this early on before -rc6,
-> not what might be five days before the merge window potentially
-> opens..
+looks like it should be merged with previous patch to avoid redefinition
+errors.
 
-Agreed, it got a bit late. But the branch itself has been stable and in
-linux-next for some time.
+--=20
+balbi
 
-Perhaps it would've been better to merge it to l-o earlier, instead of
-me pushing it to linux-next via my tree. Any possible found problems
-(there weren't any this time) could've been fixed with a new fixes branch=
-=2E
-
-> I've pulled them into omap-for-v3.10/dss and will send a pull
-> request for Arnd and Olof.
-
-Ok, thanks!
-
- Tomi
-
-
-
---------------enig68FF7CC488801802B8F2A4F8
+--cNdxnHkX5QqsyA0e
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRb2scAAoJEPo9qoy8lh71QAYQAKpqTpp8IcTWe7BvASWjyvu3
-lTlB0i4YXRFdoILyFFYL9LbSY3lEXsHDytRvyoonnu+Lvpthli/Hen0u3MLFzoq3
-os7reHf0NS6SIpl3AJrh/i69N4ANrXPmFumg74OdpV1wtxQwu5/DAJZUjhWb6K+i
-AHhqYLs/fmJS+X+5Wny32eXdXdzJ5FhTzXxOd9vdpuH6KHGayZhcq4piSsYt28gn
-3tpW1Ay1WoOuycOkaaznHluVjkKJFC95U9sd/2RzNBe6oqdYDAo5Z3vX4rOGnLrJ
-c+PnutwKE+prq6ARWHCVOF7jdeChp1NmBr9+uiLGSHnigL6e/mEm8wX2g0vktxPv
-qCtosWmtAImZ/+lcS2W/+ZOBA7HjuBi/9MxuevD22LrJoMCWBhIRSQQ9DjxvE2xW
-hBcNGdsqFhYKMYl3yanMYThS4Pv4UKAu6jL6qSWQfBn3O0z5f5/hV1WflIWrx77K
-yTU89jI9CRDbRPXHNGDq52nv0cyyjByVdxuRPrGUJ/eeH4cRChUl8gLjsGU/q91j
-TZ3g86lZmnwPbYQPvG2p90fdsivTbQgXcH/Gt+FHIPcYoJrO0ZrM2HkSZvyRBiFk
-4i9uKyjlTIBOf0cJs8iSTlbeacOuFlHf+8LalzFb4CmVx7DH8fpasHZPYnVUk8ut
-HBQNqkWd8Sc8E1GmnEEb
-=1Ll0
+iQIcBAEBAgAGBQJRb27aAAoJEIaOsuA1yqREqM0P/iUI2YrhnUH30OFCIsOYyVbT
+IiNHMkNlFk376CeQAN2zQp3zw9IKdWIEyEnkGVgX4ENlz7vPLOSyJp/wx0wM5M5+
+w/lSZlhNBwkcZs22aFUFWnW1cQF3QkhR1VKRpMbF+e62sMFMRX2gS32G1yjRsKmS
+PhBBMtJeVDMEXxBHH6fLAk5+Qg1cwUhFQj9j/XOLIa7uVGc5vBlIrQMQy11P8grl
+JmOL81fwPiecjDx5BaLeQDW5k/LVbj8ZikmmW32cE5ERpJrJsNrB/Ogwv0MSMi4I
+C9SY2mKMzeAtDSPDTMpNAfLlyafrnF/nlCl40kIVzn4CPvSZP7ijOh7WAUN2RQlb
+MVd/9M/2TV++TSZ53oYRFb9ZjS92bCzoQZwRh7WdPHWiIQHGdz/aMjL3vzdbNUHa
+caAFt2Z+UavfpzbyiWUIOvx4dibi2KAZWc1w1x7G+HlbZa2WBdfkNQAk0RHoIKLS
++s4GqiOV7E/zXhE4OwCvTkvmir+eMJ3VO6+E8rTYxhSJj9aSxm4IdDvHrNi7a6Rx
+6I5r4YQY+RIAKdggtknezHG/ttwHNLWz9er0zAx6ZLEhFTUaAnra9tefFHi345kZ
+AYtFIrS+xq9KPm2FO5HmRhYaQs8iufpfoJbMpPjffILVvMIFHwUwnTDtPa/32CmC
+Wwzp5Ngc/ihy6vdAgMT0
+=uywt
 -----END PGP SIGNATURE-----
 
---------------enig68FF7CC488801802B8F2A4F8--
+--cNdxnHkX5QqsyA0e--
