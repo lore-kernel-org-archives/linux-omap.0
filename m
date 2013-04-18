@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@linaro.org>
 Subject: Re: [PATCH 6/6] arm: mach-omap2: Remove "no_console_suspend"
-Date: Thu, 18 Apr 2013 11:09:08 -0700
-Message-ID: <87d2tr4sor.fsf@linaro.org>
+Date: Thu, 18 Apr 2013 11:11:53 -0700
+Message-ID: <877gjz4sk6.fsf@linaro.org>
 References: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com>
 	<1366198467-6757-7-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
@@ -29,9 +29,10 @@ Sourav Poddar <sourav.poddar@ti.com> writes:
 > Cc: Rajendra nayak <rnayak@ti.com>
 > Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 
-Subject should be arm: omap2+: omap_device: remove no_idle_on_suspend
+also, the serial.c change here should be a separate patch
+subject: arm: omap2+: serial: remove no_console_suspend support
 
-Also, you should remove the flag from omap_device.h.
+with a changelog stating that it's no longer handled in the core.
 
 Kevin
 
