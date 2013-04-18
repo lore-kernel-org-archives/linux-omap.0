@@ -1,66 +1,76 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCHv2] ARM:dts:omap4-panda:Update the LED support for the
- panda DTS
-Date: Thu, 18 Apr 2013 13:31:11 -0500
-Message-ID: <51703BEF.6050804@ti.com>
-References: <1366229760-4808-1-git-send-email-dmurphy@ti.com> <516FBD18.3060501@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCH 4/6] arm: mach-omap2: remove "OMAP_DEVICE_NO_IDLE_ON_SUSPEND"
+ check
+Date: Fri, 19 Apr 2013 00:32:36 +0530
+Message-ID: <5170434C.7040706@ti.com>
+References: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com>	<1366198467-6757-5-git-send-email-sourav.poddar@ti.com> <87li8f4sum.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <516FBD18.3060501@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-1?Q?Vincent_Stehl=E9?= <v-stehle@ti.com>
-Cc: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <87li8f4sum.fsf@linaro.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/18/2013 04:30 AM, Vincent Stehl=E9 wrote:
-> On 04/17/2013 10:16 PM, Dan Murphy wrote:
->> The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda=
--es
->> are different.
-> (..)
->> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/bo=
-ot/dts/omap4-panda-common.dtsi
->> index 03bd60d..0c48f6b 100644
->> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
->> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> (..)
->> @@ -135,6 +136,25 @@
->>   			0xf0 0x118     /* i2c4_sda PULLUP | INPUTENABLE | MODE0 */
->>   		>;
->>   	};
->> +
->> +	led_gpio_pins: pinmux_leds_pins {
->> +		pinctrl-single,pins =3D <
->> +		>;
->> +	};
->> +};
-> Hi,
+On Thursday 18 April 2013 11:35 PM, Kevin Hilman wrote:
+> Sourav Poddar<sourav.poddar@ti.com>  writes:
 >
-> FYI, there was a recent discussion precisely on this topic, where Tom=
-y
-> suggested to remove the empty section:
-> http://marc.info/?l=3Dlinux-omap&m=3D136546635409232&w=3D2
+>> Remove the "OMAP_DEVICE_NO_IDLE_ON_SUSPEND" check, since UART was the only one making
+>> use of it. Now serial core/driver takes care of the case when "no_console_suspend"
+>> is used in the bootargs and you need to keep the clock enable for console even while suspend.
+>>
+>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+> NAK.  This patch will break many things...
 >
-> Apart from that, I just tested your patch on top of Tomy's
-> omap-for-v3.10/dt branch and it is working fine for me on PandaBoards
-> EA3, A4 and ES.
->
-> Tested-by: Vincent Stehl=E9 <v-stehle@ti.com>
->
-> Best regards,
->
-> V.
->
-Thanks for testing Vincent
+>> ---
+>>   arch/arm/mach-omap2/omap_device.c |    7 +------
+>>   1 files changed, 1 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+>> index 381be7a..d6dce8f 100644
+>> --- a/arch/arm/mach-omap2/omap_device.c
+>> +++ b/arch/arm/mach-omap2/omap_device.c
+>> @@ -620,11 +620,8 @@ static int _od_suspend_noirq(struct device *dev)
+>>   	ret = pm_generic_suspend_noirq(dev);
+>>
+>>   	if (!ret&&  !pm_runtime_status_suspended(dev)) {
+>> -		if (pm_generic_runtime_suspend(dev) == 0) {
+>> -			if (!(od->flags&  OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+>> -				omap_device_idle(pdev);
+> Why did you remove the omap_device_idle() here?
+This patch is used along with patch3 to get rid of the issue. I posted 
+them as a
+seperate patch beacuse of the subject line as one goes under drivers/* 
+and the other
+arm/mach-omap2/*..
 
-Is there a way to append the data to an already existing node?
-I do not see a clean way.
+This check was only valid for UART, and if od->flags is set to the
+"OMAP_DEVICE_NO_IDLE_ON_SUSPEND" flag, then UART will not be idled. But now,
+we no longer depend on od->flag value to prevent idling of our console 
+UART as the
+prepare/complete apis will take care of them.
 
-Dan
+>> +		if (pm_generic_runtime_suspend(dev) == 0)
+>>   			od->flags |= OMAP_DEVICE_SUSPENDED;
+>> -		}
+>>   	}
+>>
+>>   	return ret;
+>> @@ -638,8 +635,6 @@ static int _od_resume_noirq(struct device *dev)
+>>   	if ((od->flags&  OMAP_DEVICE_SUSPENDED)&&
+>>   	!pm_runtime_status_suspended(dev)) {
+>>   		od->flags&= ~OMAP_DEVICE_SUSPENDED;
+>> -		if (!(od->flags&  OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+>> -			omap_device_enable(pdev);
+> And the _enable() here?
+>
+>>   		pm_generic_runtime_resume(dev);
+>>   	}
+> Note that the check is for when the flag is *not* set, so this patch
+> changes behavior for all the drivers that do not use
+> _NO_IDLE_ON_SUSPEND.  I think that's the opposite of what you intended.
+>
+> Kevin
 
---=20
-----------------------------------------------
-Dan Murphy
