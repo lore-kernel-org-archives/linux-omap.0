@@ -1,102 +1,106 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] gpio/omap: ensure gpio context is initialised
-Date: Thu, 18 Apr 2013 13:52:32 +0530
-Message-ID: <516FAD48.4020304@ti.com>
-References: <1366230707-32681-1-git-send-email-jon-hunter@ti.com>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: [PATCH] OMAPDSS: DPI: add dependency to DSI
+Date: Thu, 18 Apr 2013 10:37:05 +0200
+Message-ID: <1366274225.4085.44.camel@mars>
+References: <516BDD35.4000807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33433 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754992Ab3DRIUe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Apr 2013 04:20:34 -0400
-In-Reply-To: <1366230707-32681-1-git-send-email-jon-hunter@ti.com>
+Received: from mail-bk0-f51.google.com ([209.85.214.51]:48891 "EHLO
+	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966354Ab3DRIhK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Apr 2013 04:37:10 -0400
+Received: by mail-bk0-f51.google.com with SMTP id y8so1149128bkt.10
+        for <linux-omap@vger.kernel.org>; Thu, 18 Apr 2013 01:37:09 -0700 (PDT)
+In-Reply-To: <516BDD35.4000807@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Dave Airlie <airlied@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
 
-On Thursday 18 April 2013 02:01 AM, Jon Hunter wrote:
-> Commit a2797be (gpio/omap: force restore if context loss is not
-> detectable) broke gpio support for OMAP when booting with device-tree
-> because a restore of the gpio context being performed without ever
-> initialising the gpio context. In other words, the context restored was
-> bad.
-> 
-> This problem could also occur in the non device-tree case, however, it
-> is much less likely because when booting without device-tree we can
-> detect context loss via a platform specific API and so context restore
-> is performed less often.
-> 
-> Nevertheless we should ensure that the gpio context is initialised
-> during the probe for gpio banks that could lose their state regardless
-> of whether we are booting with device-tree or not.
-> 
-> Reported-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/gpio/gpio-omap.c |   53 +++++++++++++++++++++++++++++++++++++---------
->  1 file changed, 43 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 0557529..0ba5cb9 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -70,6 +70,7 @@ struct gpio_bank {
->  	bool is_mpuio;
->  	bool dbck_flag;
->  	bool loses_context;
-> +	bool context_valid;
->  	int stride;
->  	u32 width;
->  	int context_loss_count;
-> @@ -1085,6 +1086,7 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
->  }
->  
->  static const struct of_device_id omap_gpio_match[];
-> +static void omap_gpio_init_context(struct gpio_bank *p);
->  
->  static int omap_gpio_probe(struct platform_device *pdev)
->  {
-> @@ -1179,8 +1181,10 @@ static int omap_gpio_probe(struct platform_device *pdev)
->  	omap_gpio_chip_init(bank);
->  	omap_gpio_show_rev(bank);
->  
-> -	if (bank->loses_context)
-> +	if (bank->loses_context) {
->  		bank->get_context_loss_count = pdata->get_context_loss_count;
-> +		omap_gpio_init_context(bank);
-> +	}
->  
->  	pm_runtime_put(bank->dev);
->  
-> @@ -1269,6 +1273,14 @@ static int omap_gpio_runtime_resume(struct device *dev)
->  	int c;
->  
->  	spin_lock_irqsave(&bank->lock, flags);
-> +
-> +	/*
-> +	 * On the first resume during the probe, the context has not
-> +	 * been initialised and so if the context is not valid return.
-> +	 */
-> +	if (!bank->context_valid)
-> +		goto done;
-> +
-The use of 'context_valid' is just for the probe resume case and hence
-adding a state variable for GPIO bank structures looks bit too much.
-Ideally gpio_init_context() should make the first callback successful
-as well if ordered correctly but then you need clocks for that
-to happen which are enabled in runtime pm calls. 
+Hi Tomi
 
-Do you really need that "context_valid" flag per bank ? I mean
-every gpio bank which can "loses_context", probe time context
-validity is an issue, right ? In that case, won't just an
-__init static variable do for all banks which can loose
-context?
+On Mon, 2013-04-15 at 13:57 +0300, Tomi Valkeinen wrote:
+> Tomi Valkeinen (38):
+>       OMAPDSS: add fields to panels' platform data
+>       OMAPDSS: DSI: remove DSI & DISPC clk divisors from dssdev
+>       OMAPDSS: HDMI: remove HDMI clk divisors from dssdev
+>       OMAPDSS: DPI: remove omap_dss_device uses
+>       OMAPDSS: DSI: remove omap_dss_device uses
+>       OMAPDSS: Taal: remove multi-panel support
+>       OMAPDSS: APPLY: remove dssdev from dss_mgr_wait_for_vsync
+>       OMAPDSS: add missing export for omap_dss_get_output()
+>       OMAPDSS: HDMI: init output earlier
+>       OMAPDSS: add output->name
+>       OMAPDSS: add output->dispc_channel
+>       OMAPDSS: DSI: delay dispc initialization
+>       OMAPDSS: DSI: fix DSI channel source initialization
+>       OMAPDSS: Taal: remove rotate & mirror support
+>       OMAPDSS: DPI: fix dpi_get_dsidev() for omap5
+>       OMAPDSS: DISPC: store core clk rate
+>       OMAPDSS: DSI: fix wrong unsigned long long use
+>       OMAPDSS: DSI: simplify dsi configuration
+>       OMAPDSS: DSI: get line buffer size at probe
+>       OMAPDSS: DSI: add enum omap_dss_dsi_trans_mode
+>       OMAPDSS: DSI remove unneeded clk source setup code
+>       OMAPDSS: DISPC: add new clock calculation code
+>       OMAPDSS: DSS: add new clock calculation code
+>       OMAPDSS: DSI: add new clock calculation code
+>       OMAPDSS: SDI: use new clock calculation code
+>       OMAPDSS: DPI: use new clock calculation code
 
-Regards,
-Santosh
+With linux-next this patch breaks compiling here because DPI now depend=
+s
+on DSI - but my omap3 board here doesn't use DSI at all:
+
+drivers/video/omap2/dss/dpi.c: In function =E2=80=98dpi_calc_pll_cb=E2=80=
+=99:
+drivers/video/omap2/dss/dpi.c:181: error: implicit declaration of funct=
+ion =E2=80=98dsi_hsdiv_calc=E2=80=99
+drivers/video/omap2/dss/dpi.c: In function =E2=80=98dpi_dsi_clk_calc=E2=
+=80=99:
+drivers/video/omap2/dss/dpi.c:201: error: implicit declaration of funct=
+ion =E2=80=98dsi_get_pll_clkin=E2=80=99
+drivers/video/omap2/dss/dpi.c:212: error: implicit declaration of funct=
+ion =E2=80=98dsi_pll_calc=E2=80=99
+
+Enabling OMAP2_DSS_DSI fixes this. This is my proposed patch. You may b=
+e want to merge it?
+
+=46rom: Christoph Fritz <chf.fritz@googlemail.com>
+Date: Thu, 18 Apr 2013 10:26:54 +0200
+Subject: [PATCH] OMAPDSS: DPI: add dependency to DSI
+
+A dependency from DPI to DSI is introduced by commit 100c82623
+"OMAPDSS: DPI: use new clock calculation code".
+This patch adds the dependency also on Kconfig-Level.
+
+Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
+---
+ drivers/video/omap2/dss/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/=
+Kconfig
+index cb0f145..b4211c5 100644
+--- a/drivers/video/omap2/dss/Kconfig
++++ b/drivers/video/omap2/dss/Kconfig
+@@ -36,6 +36,7 @@ config OMAP2_DSS_COLLECT_IRQ_STATS
+ config OMAP2_DSS_DPI
+ 	bool "DPI support"
+ 	default y
++	select OMAP2_DSS_DSI
+ 	help
+ 	  DPI Interface. This is the Parallel Display Interface.
+=20
+--=20
+1.7.10.4
 
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
