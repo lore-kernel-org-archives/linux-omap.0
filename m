@@ -1,69 +1,52 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
-Date: Thu, 18 Apr 2013 17:20:11 +0530
-Message-ID: <516FDDF3.30507@ti.com>
-References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com> <1364824448-14732-2-git-send-email-gautam.vivek@samsung.com> <20130402082342.GF30286@arwen.pp.htv.fi> <CAFp+6iFW9-fOCgCfpfQzS9PZyjb9_NahjSxzbrS0AhVeNngyXw@mail.gmail.com> <20130402121048.GA9488@arwen.pp.htv.fi> <CAFp+6iEqHOc6G+4UpUGneQ43FGf11DOH_LignFiXJxVJnjry2w@mail.gmail.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCH 3/6] driver: serial: omap: add prepare/complete callback
+ for "no_console_suspend" case
+Date: Thu, 18 Apr 2013 17:37:48 +0530
+Message-ID: <516FE214.6010008@ti.com>
+References: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com> <1366198467-6757-4-git-send-email-sourav.poddar@ti.com> <20130418035801.GB18349@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <CAFp+6iEqHOc6G+4UpUGneQ43FGf11DOH_LignFiXJxVJnjry2w@mail.gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Vivek Gautam <gautamvivek1987@gmail.com>
-Cc: balbi@ti.com, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20130418035801.GB18349@arwen.pp.htv.fi>
+Sender: linux-serial-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 02 April 2013 06:10 PM, Vivek Gautam wrote:
+Hi Felipe,
+On Thursday 18 April 2013 09:28 AM, Felipe Balbi wrote:
 > Hi,
 >
+> On Wed, Apr 17, 2013 at 05:04:24PM +0530, Sourav Poddar wrote:
+>> @@ -1632,6 +1650,8 @@ static const struct dev_pm_ops serial_omap_dev_pm_ops = {
+>>   	SET_SYSTEM_SLEEP_PM_OPS(serial_omap_suspend, serial_omap_resume)
+>>   	SET_RUNTIME_PM_OPS(serial_omap_runtime_suspend,
+>>   				serial_omap_runtime_resume, NULL)
+>> +	.prepare        = serial_omap_prepare,
+>> +	.complete       = serial_omap_complete,
+> if CONFIG_PM_SLEEP isn't defined, this will break compilation.
 >
-> On Tue, Apr 2, 2013 at 5:40 PM, Felipe Balbi <balbi@ti.com> wrote:
->> Hi,
->>
->> On Tue, Apr 02, 2013 at 04:04:01PM +0530, Vivek Gautam wrote:
->>>> On Mon, Apr 01, 2013 at 07:24:00PM +0530, Vivek Gautam wrote:
->>>>> Adding  APIs to handle runtime power management on PHY
->>>>> devices. PHY consumers may need to wake-up/suspend PHYs
->>>>> when they work across autosuspend.
->>>>>
->>>>> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
->>>>> ---
->>>>>   include/linux/usb/phy.h |  141 +++++++++++++++++++++++++++++++++++++++++++++++
->>>>>   1 files changed, 141 insertions(+), 0 deletions(-)
->>>>>
->>>>> diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
->>>>> index 6b5978f..01bf9c1 100644
->>>>> --- a/include/linux/usb/phy.h
->>>>> +++ b/include/linux/usb/phy.h
->>>>> @@ -297,4 +297,145 @@ static inline const char *usb_phy_type_string(enum usb_phy_type type)
->>>>>                return "UNKNOWN PHY TYPE";
->>>>>        }
->>>>>   }
->>>>> +
->>>>> +static inline void usb_phy_autopm_enable(struct usb_phy *x)
->>>>> +{
->>>>> +     if (!x || !x->dev) {
->>>>> +             dev_err(x->dev, "no PHY or attached device available\n");
->>>>> +             return;
->>>>> +             }
->>>>
->>>> wrong indentation, also, I'm not sure we should allow calls with NULL
->>>> pointers. Perhaps a WARN() so we get API offenders early enough ?
->>>
->>> True, bad coding style :-(
->>> We should be handling dev_err with a NULL pointer.
->>> Will just keep here:
->>> if (WARN_ON(!x->dev))
->>>        return .... ;
->>
->> right, but I guess:
->>
->> if (WARN(!x || !x->dev, "Invalid parameters\n"))
->>          return -EINVAL;
->>
->> would be better ??
+True.
 
-btw, shouldn't it be IS_ERR(x)?
+Then, will it not be  a better idea to add a similar macro[1] in 
+include/linux/pm.h for
+prepare/complete callback as it is present for suspend/resume ?.
 
-Thanks
-Kishon
+[1]:
+#ifdef CONFIG_PM_SLEEP
+#define SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
+         .suspend = suspend_fn, \
+         .resume = resume_fn, \
+         .freeze = suspend_fn, \
+         .thaw = resume_fn, \
+         .poweroff = suspend_fn, \
+         .restore = resume_fn,
+#else
+#define SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn)
+#endif
+
+
+
+~Sourav
+
