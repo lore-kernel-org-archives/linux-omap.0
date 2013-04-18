@@ -1,88 +1,261 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 0/6] Serial Omap fixes and cleanups
-Date: Thu, 18 Apr 2013 11:23:23 -0700
-Message-ID: <87mwsv3dgk.fsf@linaro.org>
-References: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP4+: Add a timer attribute for timers that
+ can interrupt IPU
+Date: Thu, 18 Apr 2013 13:29:56 -0500
+Message-ID: <51703BA4.7010908@ti.com>
+References: <1366241008-53572-1-git-send-email-s-anna@ti.com> <516F388C.2050708@ti.com> <516F3CFB.8000708@ti.com> <37C860A02101E749A747FA2D3C1E3C504A50ED@DLEE11.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com> (Sourav
-	Poddar's message of "Wed, 17 Apr 2013 17:04:21 +0530")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55131 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750968Ab3DRS36 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Apr 2013 14:29:58 -0400
+In-Reply-To: <37C860A02101E749A747FA2D3C1E3C504A50ED@DLEE11.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Anna, Suman" <s-anna@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Sourav,
 
-Sourav Poddar <sourav.poddar@ti.com> writes:
+On 04/18/2013 01:21 PM, Anna, Suman wrote:
+> Jon,
+> 
+>>
+>> On 04/17/2013 07:04 PM, Jon Hunter wrote:
+>>>
+>>> On 04/17/2013 06:23 PM, Suman Anna wrote:
+>>>> Some instances of the DMTIMER peripheral on OMAP4+ devices have the
+>>>> ability to interrupt the on-chip image processor unit (IPU) subsystem
+>>>> (a common name for the dual Cortex-M3 subsystem on OMAP4 or the dual
+>>>> Cortex-M4 subsystem on OMAP5) in addition to the ARM CPU. Add a
+>>>> DMTIMER attribute to indicate which timers can interrupt the IPU.
+>>>>
+>>>> This patch is similar to the patch, 5c3e4ec (ARM: OMAP: Add a timer
+>>>> attribute for timers that can interrupt the DSP) that adds a similar
+>>>> capability for DSP.
+>>>>
+>>>> DMTIMERs that have the ability to interrupt the IPU on OMAP devices
+>>>> are as follows:
+>>>>     OMAP1/2/3 devices : not applicable
+>>>>     OMAP4/5 devices   : DMTIMERs 3,4,9 & 11
+>>>>
+>>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>>> ---
+>>>>  Documentation/devicetree/bindings/arm/omap/timer.txt |  3 +++
+>>>>  arch/arm/boot/dts/omap4.dtsi                         |  4 ++++
+>>>>  arch/arm/boot/dts/omap5.dtsi                         |  4 ++++
+>>>>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c           | 16
+>> ++++++++++++++--
+>>>>  arch/arm/plat-omap/dmtimer.c                         |  2 ++
+>>>>  arch/arm/plat-omap/include/plat/dmtimer.h            |  1 +
+>>>>  6 files changed, 28 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/arm/omap/timer.txt
+>>>> b/Documentation/devicetree/bindings/arm/omap/timer.txt
+>>>> index 8732d4d..edaf664 100644
+>>>> --- a/Documentation/devicetree/bindings/arm/omap/timer.txt
+>>>> +++ b/Documentation/devicetree/bindings/arm/omap/timer.txt
+>>>> @@ -15,6 +15,9 @@ Optional properties:
+>>>>  - ti,timer-alwon:	Indicates the timer is in an alway-on power domain.
+>>>>  - ti,timer-dsp:		Indicates the timer can interrupt the on-chip DSP
+>> in
+>>>>  			addition to the ARM CPU.
+>>>> +- ti,timer-ipu:		Indicates the timer can interrupt the on-chip IPU
+>> (the
+>>>> +			dual Cortex-M3/Cortex-M4 subsystem on
+>> OMAP4/OMAP5) in
+>>>> +			addition to the ARM CPU.
+>>>
+>>> I am ok with adding a new property. However, reading the omap5
+>>> reference manual I see that the timers can interrupt the dsp, c2c and ipu.
+>>> Therefore, I am not sure if we should consider making this a property
+>>> with a value that is a mask of all other devices that can be
+>>> interrupted. For example, "ti,timer-irqs".
+> 
+> Do you intend for this to be only a DT entry simplification, but re-use the capability element in struct omap_dm_timer when parsing it and storing it? That might be ok since the capability property is already a bit-mask.  If the intention is to add another element/property, then I feel it may not add that much value. 
 
-> Hi,
->
-> This patch series contains fixes and cleanups around the issue that 
-> the console UART should not idled on suspend while using "no_console_suspend"
-> in bootargs.
->
+Yes DT only simplifcation.
 
-The direction of the series is right, thanks for the updated approach.
-I had a comple minor comments on specific patches, but the ordering of
-the series needs a little tweaking.  It should be
+>>>
+>>>>  - ti,timer-pwm: 	Indicates the timer can generate a PWM output.
+>>>>  - ti,timer-secure: 	Indicates the timer is reserved on a secure OMAP device
+>>>>  			and therefore cannot be used by the kernel.
+>>>> diff --git a/arch/arm/boot/dts/omap4.dtsi
+>>>> b/arch/arm/boot/dts/omap4.dtsi index 739bb79..55c633a 100644
+>>>> --- a/arch/arm/boot/dts/omap4.dtsi
+>>>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>>>> @@ -460,6 +460,7 @@
+>>>>  			reg = <0x48034000 0x80>;
+>>>>  			interrupts = <0 39 0x4>;
+>>>>  			ti,hwmods = "timer3";
+>>>> +			ti,timer-ipu;
+>>>>  		};
+>>>>
+>>>>  		timer4: timer@48036000 {
+>>>> @@ -467,6 +468,7 @@
+>>>>  			reg = <0x48036000 0x80>;
+>>>>  			interrupts = <0 40 0x4>;
+>>>>  			ti,hwmods = "timer4";
+>>>> +			ti,timer-ipu;
+>>>>  		};
+>>>>
+>>>>  		timer5: timer@40138000 {
+>>>> @@ -511,6 +513,7 @@
+>>>>  			reg = <0x4803e000 0x80>;
+>>>>  			interrupts = <0 45 0x4>;
+>>>>  			ti,hwmods = "timer9";
+>>>> +			ti,timer-ipu;
+>>>>  			ti,timer-pwm;
+>>>>  		};
+>>>>
+>>>> @@ -527,6 +530,7 @@
+>>>>  			reg = <0x48088000 0x80>;
+>>>>  			interrupts = <0 47 0x4>;
+>>>>  			ti,hwmods = "timer11";
+>>>> +			ti,timer-ipu;
+>>>>  			ti,timer-pwm;
+>>>>  		};
+>>>>  	};
+>>>> diff --git a/arch/arm/boot/dts/omap5.dtsi
+>>>> b/arch/arm/boot/dts/omap5.dtsi index 0d155f5..c9ecdbe 100644
+>>>> --- a/arch/arm/boot/dts/omap5.dtsi
+>>>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>>>> @@ -406,6 +406,7 @@
+>>>>  			reg = <0x48034000 0x80>;
+>>>>  			interrupts = <0 39 0x4>;
+>>>>  			ti,hwmods = "timer3";
+>>>> +			ti,timer-ipu;
+>>>>  		};
+>>>>
+>>>>  		timer4: timer@48036000 {
+>>>> @@ -413,6 +414,7 @@
+>>>>  			reg = <0x48036000 0x80>;
+>>>>  			interrupts = <0 40 0x4>;
+>>>>  			ti,hwmods = "timer4";
+>>>> +			ti,timer-ipu;
+>>>>  		};
+>>>>
+>>>>  		timer5: timer@40138000 {
+>>>> @@ -459,6 +461,7 @@
+>>>>  			reg = <0x4803e000 0x80>;
+>>>>  			interrupts = <0 45 0x4>;
+>>>>  			ti,hwmods = "timer9";
+>>>> +			ti,timer-ipu;
+>>>>  			ti,timer-pwm;
+>>>>  		};
+>>>>
+>>>> @@ -475,6 +478,7 @@
+>>>>  			reg = <0x48088000 0x80>;
+>>>>  			interrupts = <0 47 0x4>;
+>>>>  			ti,hwmods = "timer11";
+>>>> +			ti,timer-ipu;
+>>>>  			ti,timer-pwm;
+>>>>  		};
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>>> b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>>> index 9e05765..f57796b 100644
+>>>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>>> @@ -3150,6 +3150,16 @@ static struct omap_timer_capability_dev_attr
+>> capability_dsp_pwm_dev_attr = {
+>>>>  	.timer_capability       = OMAP_TIMER_HAS_DSP_IRQ |
+>> OMAP_TIMER_HAS_PWM,
+>>>>  };
+>>>>
+>>>> +/* timers with IPU interrupt dev attribute */ static struct
+>>>> +omap_timer_capability_dev_attr capability_ipu_dev_attr = {
+>>>> +	.timer_capability       = OMAP_TIMER_HAS_IPU_IRQ,
+>>>> +};
+>>>> +
+>>>> +/* pwm timers with IPU interrupt dev attribute */ static struct
+>>>> +omap_timer_capability_dev_attr capability_ipu_pwm_dev_attr = {
+>>>> +	.timer_capability       = OMAP_TIMER_HAS_IPU_IRQ |
+>> OMAP_TIMER_HAS_PWM,
+>>>> +};
+>>>> +
+>>>>  /* timer1 */
+>>>>  static struct omap_hwmod_irq_info omap44xx_timer1_irqs[] = {
+>>>>  	{ .irq = 37 + OMAP44XX_IRQ_GIC_START }, @@ -3214,6 +3224,7 @@
+>>>> static struct omap_hwmod omap44xx_timer3_hwmod = {
+>>>>  			.modulemode   = MODULEMODE_SWCTRL,
+>>>>  		},
+>>>>  	},
+>>>> +	.dev_attr	= &capability_ipu_dev_attr,
+>>>>  };
+>>>>
+>>>>  /* timer4 */
+>>>> @@ -3235,6 +3246,7 @@ static struct omap_hwmod
+>> omap44xx_timer4_hwmod = {
+>>>>  			.modulemode   = MODULEMODE_SWCTRL,
+>>>>  		},
+>>>>  	},
+>>>> +	.dev_attr	= &capability_ipu_dev_attr,
+>>>>  };
+>>>>
+>>>>  /* timer5 */
+>>>> @@ -3344,7 +3356,7 @@ static struct omap_hwmod
+>> omap44xx_timer9_hwmod = {
+>>>>  			.modulemode   = MODULEMODE_SWCTRL,
+>>>>  		},
+>>>>  	},
+>>>> -	.dev_attr	= &capability_pwm_dev_attr,
+>>>> +	.dev_attr	= &capability_ipu_pwm_dev_attr,
+>>>>  };
+>>>>
+>>>>  /* timer10 */
+>>>> @@ -3389,7 +3401,7 @@ static struct omap_hwmod
+>> omap44xx_timer11_hwmod = {
+>>>>  			.modulemode   = MODULEMODE_SWCTRL,
+>>>>  		},
+>>>>  	},
+>>>> -	.dev_attr	= &capability_pwm_dev_attr,
+>>>> +	.dev_attr	= &capability_ipu_pwm_dev_attr,
+>>>>  };
+>>>>
+>>>>  /*
+>>>> diff --git a/arch/arm/plat-omap/dmtimer.c
+>>>> b/arch/arm/plat-omap/dmtimer.c index a0daa2f..b97bd6a 100644
+>>>> --- a/arch/arm/plat-omap/dmtimer.c
+>>>> +++ b/arch/arm/plat-omap/dmtimer.c
+>>>> @@ -817,6 +817,8 @@ static int omap_dm_timer_probe(struct
+>> platform_device *pdev)
+>>>>  			timer->capability |= OMAP_TIMER_ALWON;
+>>>>  		if (of_find_property(dev->of_node, "ti,timer-dsp", NULL))
+>>>>  			timer->capability |= OMAP_TIMER_HAS_DSP_IRQ;
+>>>> +		if (of_find_property(dev->of_node, "ti,timer-ipu", NULL))
+>>>> +			timer->capability |= OMAP_TIMER_HAS_IPU_IRQ;
+>>>>  		if (of_find_property(dev->of_node, "ti,timer-pwm", NULL))
+>>>>  			timer->capability |= OMAP_TIMER_HAS_PWM;
+>>>>  		if (of_find_property(dev->of_node, "ti,timer-secure", NULL)) diff
+>>>> --git a/arch/arm/plat-omap/include/plat/dmtimer.h
+>>>> b/arch/arm/plat-omap/include/plat/dmtimer.h
+>>>> index a3fbc48..4bbc72d 100644
+>>>> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
+>>>> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+>>>> @@ -64,6 +64,7 @@
+>>>>  #define OMAP_TIMER_HAS_PWM				0x20000000
+>>>>  #define OMAP_TIMER_NEEDS_RESET
+>> 	0x10000000
+>>>>  #define OMAP_TIMER_HAS_DSP_IRQ
+>> 	0x08000000
+>>>> +#define OMAP_TIMER_HAS_IPU_IRQ
+>> 	0x04000000
+>>>>
+>>>>  /*
+>>>>   * timer errata flags
+>>>
+>>> You also need to update arch/arm/mach-omap2/timer.c if you are adding
+>>> a new property. See [1].
+>>>
+>>> [1]
+>>> http://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/comm
+>>> it/?h=omap-for-
+>> v3.10/timer&id=2eb03937df3ebc822dab413bd69533dcd66afd48
+> 
+> Thanks, I will rebase the patch on the omap-for-v3.10/timer branch instead of the omap-for-v3.10/dt branch, on which I have created this patch.
 
-- core/driver changes [current 1-3/6 are ok]
-- remove usage from mach-omap2/serial.c (currently part of 4/6)
-- remove am33x DT usage (current 5/6 is ok)
-- remove entirely from omap_device (omap_device part of 4/6 and 6/6 should be combined)
-
-Kevin
-
-> The approach thought of is to modify the serial core/serial driver to bypass
-> runtime PM if the UART in contention is a console and we are using "no_console_suspend"
-> in our bootargs.
->
-> While fixing the above issue, there are other cleanups also done as part of
-> this series which are no longer required. This cleanups mainly include getting
-> rid of using "omap_device_disable_idle_on_suspend" api for both dt and non dt case 
-> as the serial driver will be self sufficient to handle the "no_idle_on_suspend" issue.
-> Serial was the only one making use of "omap_device_disable_idle_on_suspend"
->
-> Test info (except drivers: serial: mpc52xx_uart: Remove "uart_console" defintion):
-> Omap4430sdp:
-> - Tested wakeup from UART after suspend for dt and non dt case.
-> Omap5430evm:
-> - Tested wakeup from UART after suspend for dt case.
->
->
-> There were discussions about how to handle "no_idle_on_suspend" issue and all the
-> discussions are as follows:
-> [v3]: https://lkml.org/lkml/2013/4/5/239
-> [v2]: https://lkml.org/lkml/2013/4/2/350
-> [v1]: https://lkml.org/lkml/2013/3/18/199
->       https://lkml.org/lkml/2013/3/18/295
-> Due to the amount of change in approach and other cleanups coming around it, I am posting
-> this as a new series.
->
-> This patches are based on 3.9-rc3 custom tree which has 
-> Santosh Shilimkar serial patch[1]
-> [1]: http://permalink.gmane.org/gmane.linux.ports.arm.omap/95828
->
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Rajendra nayak <rnayak@ti.com>
->
-> Sourav Poddar (6):
->   drivers: tty: serial: Move "uart_console" def to core header file.
->   drivers: serial: mpc52xx_uart: Remove "uart_console" defintion
->   driver: serial: omap: add prepare/complete callback for
->     "no_console_suspend" case
->   arm: mach-omap2: remove "OMAP_DEVICE_NO_IDLE_ON_SUSPEND" check
->   arm: dts: am33xx: Remove "ti,no_idle_on_suspend" property.
->   arm: mach-omap2: Remove "no_console_suspend"
->
->  arch/arm/boot/dts/am33xx.dtsi     |    1 -
->  arch/arm/mach-omap2/omap_device.c |   10 +---------
->  arch/arm/mach-omap2/serial.c      |    7 -------
->  drivers/tty/serial/mpc52xx_uart.c |   10 ----------
->  drivers/tty/serial/omap-serial.c  |   20 ++++++++++++++++++++
->  drivers/tty/serial/serial_core.c  |    6 ------
->  include/linux/serial_core.h       |    6 ++++++
->  7 files changed, 27 insertions(+), 33 deletions(-)
+Thanks!
+Jon
