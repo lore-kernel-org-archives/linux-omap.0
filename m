@@ -1,176 +1,115 @@
-From: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Subject: Re: [RFC PATCH v2 0/6] ARM: OMAP3+: Introduce ABB driver
-Date: Thu, 18 Apr 2013 13:55:51 +0300
-Message-ID: <516FD137.9090501@ti.com>
-References: <1366032491-4162-1-git-send-email-andrii.tseglytskyi@ti.com> <87sj2rbguv.fsf@linaro.org> <516D46CC.3080705@ti.com> <87y5ci5log.fsf@linaro.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 1/2] ARM: dts: omap3-beagle-xm: Add USB Host support
+Date: Thu, 18 Apr 2013 14:44:33 +0300
+Message-ID: <1366285474-19967-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42495 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968297Ab3DRKzy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Apr 2013 06:55:54 -0400
-In-Reply-To: <87y5ci5log.fsf@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: b-cousson@ti.com, tony@atomide.com
+Cc: robertcnelson@gmail.com, grinberg@compulab.co.il, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-omap@vger.kernel.org, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>
 
-On 04/16/2013 10:18 PM, Kevin Hilman wrote:
-> Andrii Tseglytskyi <andrii.tseglytskyi@ti.com> writes:
->
->> Hi Kevin,
->>
->> On 04/16/2013 12:53 AM, Kevin Hilman wrote:
->>> Andrii Tseglytskyi <andrii.tseglytskyi@ti.com> writes:
->>>
->>>> From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
->>>>
->>>> Following patch series introduces the Adaptive Body-Bias
->>>> LDO driver, which handles LDOs voltage during OPP change routine.
->>>> Current implementation is based on patch series from
->>>> Mike Turquette:
->>>>
->>>> http://marc.info/?l=linux-omap&m=134931341818379&w=2
->>>>
->>>> ABB transition is a part of OPP changing sequence.
->>>> ABB can operate in the following modes:
->>>> - Bypass mode: Activated when ABB is not required
->>>> - FBB mode: Fast Body Bias mode, used on fast OPPs
->>> Fast?  I thought the 'F' was for Forward?
->> You are right. Should be 'Forward' here.
->>
->>>> - RBB mode: Reverse Body Bias mode, used on slow OPPs
->>>>
->>>> In current implementation ABB is converted to regulator.
->>>> Standalone OPP table is used to store ABB mode, it is defined
->>>> in device tree for each ABB regulator. It has the following format:
->>>>
->>>> operating-points = <
->>>> 	       /* uV   ABB (0 - Bypass, 1 - FBB, 2 - RBB) */
->>>> 	       880000		0
->>>> 	       1060000		1
->>>> 	       1250000		1
->>>> 	       1260000		1
->>>>> ;
->>>> ABB regulator is linked to regulator chain
->>> In addition to Mike's comments (which I completely agree with), it would
->>> be very helfpul to see how this is actually used.  e.g, how the
->>> regulators are chained together, how the proper ordering is managed,
->>> etc. etc.
->> We would like to handle voltage scaling in the following way:
-> What I meant is that a detailed description of the use case should be
-> included in the changelog.
->
->> cpufreq_cpu0
->> clk_set_rate(cpu0)
->>      |
->>      |-->set_voltage(ABB regulator) /* all ABB related stuff will be
->> handled here */
->>                  |
->>                  |-->set_voltage(smps123 regulator) /* actual voltage
->> scaling */
-> -EASCII_ART_WRAP
->
->> This simple model will be extended to handle AVS as a part of the chain.
->> smps123 regulator may be changed to VP/VC regulator.
->>
->> Following example is from integration branch, which already has
->> smps123 regulator.
-> I don't know what integration branch you're referring to, and I don't
-> know what the smps123 regulator is.
->
->> It demonstrates an example of linkage to chain. ABB regulator is
->> linked with smps123 and cpu0 inside device tree.
->> cpu0 calls set_voltage() function for ABB, and then ABB calls
->> set_voltage() function for smps123 to do actual voltage scaling.
->>
->> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
->> index bb5ee70..c8cbbee 100644
->> --- a/arch/arm/boot/dts/omap5.dtsi
->> +++ b/arch/arm/boot/dts/omap5.dtsi
->> @@ -36,7 +36,7 @@
->>          cpus {
->>                  cpu@0 {
->>                          compatible = "arm,cortex-a15";
->> -                       cpu0-supply = <&smps123_reg>;
->> +                       cpu0-supply = <&abb_mpu>;
->>                          operating-points = <
->>                                  /* kHz    uV */
->>                                  /* Only for Nominal Samples */
->> @@ -94,6 +94,7 @@
->>                  reg = <0x4ae07cdc 0x8>,
->>                        <0x4ae06014 0x4>;
->>                  ti,tranxdone_status_mask = <0x80>;
->> +               avs-supply = <&smps123_reg>;
->>                  operating-points = <
->>                          /* uV   ABB */
->>                          880000  0
->>
->> This RFC patch series is verified together with:
->> https://patchwork.kernel.org/patch/2445091/
->>
->> Kevin, what do you think about this model in general? Does it fit to
->> regulator framework?
-> I don't know yet, because I don't think the use case has been described
-> well enough for me to fully understand it the motiviation behind the
-> series.
->
-> In addition, there are alternative approaches that seem to have been
-> ruled out without describing why.  For example, the regulator framework
-> already allows you to override methods with custom hooks (as we do for
-> VC/VP controlled regulators already.)  Without thinking about it too
-> deeply, it seems this approach could be used to manage the chain of
-> events you need as well.  I can imagine there are limitations to this
-> approach for what you're trying to do, but I don't feel they have been
-> described in the changelog as part of the motivation for this series.
->
-> So for now, the guidance I have is this:
->
-> First, write changelogs (and cover letters) assuming your audience has
-> not been staring at the code as long as you have.  Even if they have
-> been staring at the same code, assume they've been staring at mainline,
-> and not a random integration branch somewhere.  My general advice is to
-> write changelogs in a way that you will understand what you wrote a year
-> from now after having forgotten all the details currently in your brains
-> cache.  Even better, write them so that I will understand them in a year
-> since I forget much better than I remember.
->
-> Second, before inventing something new, start with the existing
-> framework.  When the existing framework doesn't work, make an argument
-> for your new approach or extentions to the framework based on why the
-> existing stuff doesn't work.  If you don't do this, the reviewers first
-> reaction will almost always be "why don't you use what already exists in
-> the framework."  And then you'll have a bunch of back and forth with
-> reviewers when you could've explained the reasoning from the beginning.
->
-> Hope that helps,
->
-> Kevin
->
->
-Hi Kevin, Mike
+Provide RESET and Power regulators for the USB PHY,
+the USB Host port mode and the PHY device.
 
-Thanks a lot for your comments.
+Also provide pin multiplexer information for USB host
+pins.
 
-"regulator chain" approach was added to ABB series to demonstrate how this
-approach works in general, and get more comments on this.
-It was initially introduced in:
+CC: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/boot/dts/omap3-beagle-xm.dts |   61 +++++++++++++++++++++++++=
+++++++++
+ 1 files changed, 61 insertions(+), 0 deletions(-)
 
-https://lkml.org/lkml/2013/4/5/33 <https://lkml.org/lkml/2013/4/5/33> - 
-regulator: query on regulator re-entrance
-http://www.spinics.net/lists/linux-omap/msg90022.html - [RFC v1 0/1] 
-introduce regulator chain locking scheme
-
-Taking in account your comments - I'll split ABB logic and "regulator 
-chain" logic,
-ABB has a possibility to work standalone. In this case DVFS framework 
-will be responsible
-for calls like *regulator_set_voltage(abb_regulator)*.
-
-Could you please exclude "regulator chain" approach from this review and 
-take a look to ABB handling logic?
-
-Regards,
-Andrii
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/=
+omap3-beagle-xm.dts
+index 5a31964..04376a6 100644
+--- a/arch/arm/boot/dts/omap3-beagle-xm.dts
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+@@ -57,6 +57,59 @@
+ 		ti,mcbsp =3D <&mcbsp2>;
+ 		ti,codec =3D <&twl_audio>;
+ 	};
++
++	/* HS USB Port 2 RESET */
++	hsusb2_reset: hsusb2_reset_reg {
++		compatible =3D "regulator-fixed";
++		regulator-name =3D "hsusb2_reset";
++		regulator-min-microvolt =3D <3300000>;
++		regulator-max-microvolt =3D <3300000>;
++		gpio =3D <&gpio5 19 0>;	/* gpio_147 */
++		startup-delay-us =3D <70000>;
++		enable-active-high;
++	};
++
++	/* HS USB Port 2 Power */
++	hsusb2_power: hsusb2_power_reg {
++		compatible =3D "regulator-fixed";
++		regulator-name =3D "hsusb2_vbus";
++		regulator-min-microvolt =3D <3300000>;
++		regulator-max-microvolt =3D <3300000>;
++		gpio =3D <&twl_gpio 18 0>;	/* GPIO LEDA */
++		startup-delay-us =3D <70000>;
++	};
++
++	/* HS USB Host PHY on PORT 2 */
++	hsusb2_phy: hsusb2_phy {
++		compatible =3D "usb-nop-xceiv";
++		reset-supply =3D <&hsusb2_reset>;
++		vcc-supply =3D <&hsusb2_power>;
++	};
++
++};
++
++&omap3_pmx_core {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <
++			&hsusbb2_pins
++	>;
++
++	hsusbb2_pins: pinmux_hsusbb2_pins {
++		pinctrl-single,pins =3D <
++			0x5c0 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_clk OUTPUT */
++			0x5c2 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_stp OUTPUT */
++			0x5c4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dir INPUT |=
+ PULLDOWN */
++			0x5c6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_nxt INPUT |=
+ PULLDOWN */
++			0x5c8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat0 INPUT =
+| PULLDOWN */
++			0x5cA 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat1 INPUT =
+| PULLDOWN */
++			0x1a4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat2 INPUT =
+| PULLDOWN */
++			0x1a6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat3 INPUT =
+| PULLDOWN */
++			0x1a8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat4 INPUT =
+| PULLDOWN */
++			0x1aa 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat5 INPUT =
+| PULLDOWN */
++			0x1ac 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat6 INPUT =
+| PULLDOWN */
++			0x1ae 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat7 INPUT =
+| PULLDOWN */
++		>;
++	};
+ };
+=20
+ &i2c1 {
+@@ -125,3 +178,11 @@
+ 	mode =3D <3>;
+ 	power =3D <50>;
+ };
++
++&usbhshost {
++	port2-mode =3D "ehci-phy";
++};
++
++&usbhsehci {
++	phys =3D <0 &hsusb2_phy>;
++};
+--=20
+1.7.4.1
