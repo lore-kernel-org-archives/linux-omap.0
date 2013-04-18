@@ -1,90 +1,100 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3/6] driver: serial: omap: add prepare/complete callback
- for "no_console_suspend" case
-Date: Thu, 18 Apr 2013 16:06:05 +0300
-Message-ID: <20130418130605.GC23120@arwen.pp.htv.fi>
-References: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com>
- <1366198467-6757-4-git-send-email-sourav.poddar@ti.com>
- <20130418035801.GB18349@arwen.pp.htv.fi>
- <516FE214.6010008@ti.com>
-Reply-To: <balbi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: DPI: add dependency to DSI
+Date: Thu, 18 Apr 2013 17:37:45 +0300
+Message-ID: <51700539.7080603@ti.com>
+References: <516BDD35.4000807@ti.com> <1366274225.4085.44.camel@mars>  <516FB845.3070505@ti.com>  <516FBB19.4090609@ti.com> <1366280026.4085.55.camel@mars>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ALfTUftag+2gvp1h"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <516FE214.6010008@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+	protocol="application/pgp-signature";
+	boundary="------------enig9D8641BAB21A52E42329DAE7"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42907 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965340Ab3DROhu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Apr 2013 10:37:50 -0400
+In-Reply-To: <1366280026.4085.55.camel@mars>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Christoph Fritz <chf.fritz@googlemail.com>
+Cc: Dave Airlie <airlied@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
 
---ALfTUftag+2gvp1h
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--------------enig9D8641BAB21A52E42329DAE7
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Thu, Apr 18, 2013 at 05:37:48PM +0530, Sourav Poddar wrote:
-> Hi Felipe,
-> On Thursday 18 April 2013 09:28 AM, Felipe Balbi wrote:
-> >Hi,
-> >
-> >On Wed, Apr 17, 2013 at 05:04:24PM +0530, Sourav Poddar wrote:
-> >>@@ -1632,6 +1650,8 @@ static const struct dev_pm_ops serial_omap_dev_pm=
-_ops =3D {
-> >>  	SET_SYSTEM_SLEEP_PM_OPS(serial_omap_suspend, serial_omap_resume)
-> >>  	SET_RUNTIME_PM_OPS(serial_omap_runtime_suspend,
-> >>  				serial_omap_runtime_resume, NULL)
-> >>+	.prepare        =3D serial_omap_prepare,
-> >>+	.complete       =3D serial_omap_complete,
-> >if CONFIG_PM_SLEEP isn't defined, this will break compilation.
-> >
-> True.
+On 2013-04-18 13:13, Christoph Fritz wrote:
+> On Thu, 2013-04-18 at 12:21 +0300, Tomi Valkeinen wrote:
+>> On 2013-04-18 12:09, Tomi Valkeinen wrote:
+>>> On 2013-04-18 11:37, Christoph Fritz wrote:
+>>
+>>>> With linux-next this patch breaks compiling here because DPI now dep=
+ends
+>>>> on DSI - but my omap3 board here doesn't use DSI at all:
+>>>>
+>>>> drivers/video/omap2/dss/dpi.c: In function =E2=80=98dpi_calc_pll_cb=E2=
+=80=99:
+>>>> drivers/video/omap2/dss/dpi.c:181: error: implicit declaration of fu=
+nction =E2=80=98dsi_hsdiv_calc=E2=80=99
+>>>> drivers/video/omap2/dss/dpi.c: In function =E2=80=98dpi_dsi_clk_calc=
+=E2=80=99:
+>>>> drivers/video/omap2/dss/dpi.c:201: error: implicit declaration of fu=
+nction =E2=80=98dsi_get_pll_clkin=E2=80=99
+>>>> drivers/video/omap2/dss/dpi.c:212: error: implicit declaration of fu=
+nction =E2=80=98dsi_pll_calc=E2=80=99
+>>>>
+>>>> Enabling OMAP2_DSS_DSI fixes this. This is my proposed patch. You ma=
+y be want to merge it?
+>>>
+>>> Thanks for reporting this. We shouldn't make DPI depend on DSI. We
+>>> should make dummy functions for the above when DSI is not enabled so
+>>> that DPI compiles. I'll make a fix.
+>>
+>> Patch below. Can you try it out? It works for me on Panda.
 >=20
-> Then, will it not be  a better idea to add a similar macro[1] in
-> include/linux/pm.h for
-> prepare/complete callback as it is present for suspend/resume ?.
+> Thanks, it compiles here fine too.
 >=20
-> [1]:
-> #ifdef CONFIG_PM_SLEEP
-> #define SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
->         .suspend =3D suspend_fn, \
->         .resume =3D resume_fn, \
->         .freeze =3D suspend_fn, \
->         .thaw =3D resume_fn, \
->         .poweroff =3D suspend_fn, \
->         .restore =3D resume_fn,
-> #else
-> #define SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn)
-> #endif
+> and while booting I'm now getting as with 3.9-rc:
+> [    0.409729] OMAP DSS rev 2.0
+> [    0.410980] omapdss DPI error: can't get VDDS_DSI regulator
+> [    0.410980] omapdss DPI error: device ips-056t init failed: -517
+>=20
+> But here with linux-next (in contrast to 3.9-rc) removing all regulator=
 
-might be :-)
+> dependencies from drivers/video/omap2/dss/dpi.c does not make the trick=
+=2E
+> The display stays dark :-( ...
 
---=20
-balbi
+That's with your DT hacked kernel, right? Not the official supported one.=
 
---ALfTUftag+2gvp1h
+
+I don't think anything changed related to regulators in omapdss.
+
+ Tomi
+
+
+
+--------------enig9D8641BAB21A52E42329DAE7
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJRb++9AAoJEIaOsuA1yqREgNwQAKuUl9/lwD2aFQsx8cvwWJVt
-NUpZf8yCsgmIeMj+ZdcyI2HAxgUqSY2g6HxCfaYGHzDvCu6Rp/S6XMP9yxY888Wo
-NU7ed672g4+LJIqM2DStrUDwbo1Sunxng3M4DwQOJWRpVs4DXJ8gx3/gzVFFAqCA
-9a/FCm7YAfl9H7Brbr1jxNIYtc1KSzKD/kF2grUaUCTqzwsa1iJB/B2FD4sFRShz
-zFpSF4IMRyJanPZEOIPwN6nD18+Ao+Yi6z+ylDk5AbyX16+iLu0fNFL+SpUk5wg0
-W9gJg+JNLGoNJHQXWkHrYyFeU0xqB96Y+S6LrLapIcu9euiBBVmI4t7Rf41qsF5N
-gavAmCVuFLdlFoQ4U311EmB85n9jyzXfdCrwmlk3zw1wh8CAMpEzpG3cqjRi7tnB
-dTB8ZlCKOMS1yKN3Q87UFXxkL292NLCpomUPt6ZpkVSsTLdgehOZW6xnx6HgF1zo
-zEEnOEwVoRsxHR9zZYAsEG/8CZ+V0z2ulxVS2ycXY625EOlenXZrbLeiWCL6H7qs
-asKNIJTf/iLkZ5Yr/VR47otycmKxy2MQULPR/JzRi9Dkedb0YPBzHr6jnkIKavPj
-5TMFZj8393dF93P8AaDaQvOcjKpIn8AgoWqdPRgQMiFZ78N5LMAYSKS9vdr45ys0
-IP6TB66hALVo1AeMWn3y
-=0QMA
+iQIcBAEBAgAGBQJRcAU5AAoJEPo9qoy8lh71CjMP/3v6+ccVP3BCJ8JEqmq6JsdM
+mtFy19fReemjCIGRNYI5FuHEeHS3VL1eSBXkvIFOTupTSKAT8JCDzvhc+DEYrBT3
+iuHRBhlfQC+VTceQczR4l1tuSDivI/Q1AIwiMsEUk25FC4r4PBBLOVa89mZK+BKw
+VXSfj1QaSLV6XksXPkGsIUqjBKuxUrKyfTELumwI0vuAWNlySJM+NSQk0d7IxLgd
+GNuGIenVF79PWmtEuURlkhp2IDrXBKiiP9A8Ren90q+zSJimHaYWF9C9DIT02CN8
+xlXtU1CzSoppQVme8nl+PlFTxlZ+Vr35VeKQdABCKqB4m4KdNmMER0qKR3qc6aLb
+24zpjJ19dhUuvGGJ9FPG9QTlRByy0RJR6G1tgoVHcfHQmAFoFWYDtrLVOTPGa0AM
+n9tRwDZamVvl0qOY+FOjsf64gxCjO9YPXnkiTrZHOO+LRfAy8E+IVy6Vq+/hpkGE
+p2C/hyYelaZNwnBHvFoiH3Af0grS5rEFNdjgL/wvFDAFOBYgzalt8U+qHwl8HMzW
+W6Av3gYgis0MZvJ7KS+tBpDOi/gOYiBb5QGwNT5jY++xhfCbvfWQeoKfey+6U6L8
+eDfpjm+/q9wrypmEgZIqGbdJ9cPtJzLi28DGPMDEPSeAjR25LEoaQzZwG6tb32Pa
+lKtABF4k/pDhZWzZQvdI
+=rZUn
 -----END PGP SIGNATURE-----
 
---ALfTUftag+2gvp1h--
+--------------enig9D8641BAB21A52E42329DAE7--
