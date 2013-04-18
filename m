@@ -1,48 +1,125 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [RFC v1] regulator: core: introduce regulator chain locking scheme
-Date: Thu, 18 Apr 2013 19:29:35 +0300
-Message-ID: <51701F6F.7070206@ti.com>
-References: <1366031015-17073-1-git-send-email-grygorii.strashko@ti.com>
- <1366031015-17073-2-git-send-email-grygorii.strashko@ti.com>
- <20130415155040.GD15837@opensource.wolfsonmicro.com>
- <516C2905.8000200@ti.com> <20130415164018.GA14064@sirena.org.uk>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] gpio/omap: ensure gpio context is initialised
+Date: Thu, 18 Apr 2013 11:46:07 -0500
+Message-ID: <5170234F.7010707@ti.com>
+References: <1366230707-32681-1-git-send-email-jon-hunter@ti.com> <516FAD48.4020304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130415164018.GA14064@sirena.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>, linux-kernel@vger.kernel.org, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Mark Brown <broonie@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:57062 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966108Ab3DRQqM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Apr 2013 12:46:12 -0400
+In-Reply-To: <516FAD48.4020304@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 04/15/2013 07:40 PM, Mark Brown wrote:
-> On Mon, Apr 15, 2013 at 07:21:25PM +0300, Andrii Tseglytskyi wrote:
->> On 04/15/2013 06:50 PM, Mark Brown wrote:
->>>> In addition, such locking scheme allows to have access to the supplier
->>>> regulator API from inside child's (consumer) regulator API.
->>> I've still not seen any use case articulated for doing this...
->> Use case is introduced in ABB series:
-> Sorry, I meant any sensible use case.
-Hi Mark,
 
-Thanks for you comments. I'll split it to 3 patches:
-- abstract locking out into helper functions;
-- introduce regulator chain locking scheme
-- allow reentrant calls into the regulator framework (with hope that is 
-has future,
-may be can enable/disable it through constraints)
+On 04/18/2013 03:22 AM, Santosh Shilimkar wrote:
+> On Thursday 18 April 2013 02:01 AM, Jon Hunter wrote:
+>> Commit a2797be (gpio/omap: force restore if context loss is not
+>> detectable) broke gpio support for OMAP when booting with device-tree
+>> because a restore of the gpio context being performed without ever
+>> initialising the gpio context. In other words, the context restored was
+>> bad.
+>>
+>> This problem could also occur in the non device-tree case, however, it
+>> is much less likely because when booting without device-tree we can
+>> detect context loss via a platform specific API and so context restore
+>> is performed less often.
+>>
+>> Nevertheless we should ensure that the gpio context is initialised
+>> during the probe for gpio banks that could lose their state regardless
+>> of whether we are booting with device-tree or not.
+>>
+>> Reported-by: Tony Lindgren <tony@atomide.com>
+>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>> Tested-by: Tony Lindgren <tony@atomide.com>
+>> ---
+>>  drivers/gpio/gpio-omap.c |   53 +++++++++++++++++++++++++++++++++++++---------
+>>  1 file changed, 43 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> index 0557529..0ba5cb9 100644
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -70,6 +70,7 @@ struct gpio_bank {
+>>  	bool is_mpuio;
+>>  	bool dbck_flag;
+>>  	bool loses_context;
+>> +	bool context_valid;
+>>  	int stride;
+>>  	u32 width;
+>>  	int context_loss_count;
+>> @@ -1085,6 +1086,7 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
+>>  }
+>>  
+>>  static const struct of_device_id omap_gpio_match[];
+>> +static void omap_gpio_init_context(struct gpio_bank *p);
+>>  
+>>  static int omap_gpio_probe(struct platform_device *pdev)
+>>  {
+>> @@ -1179,8 +1181,10 @@ static int omap_gpio_probe(struct platform_device *pdev)
+>>  	omap_gpio_chip_init(bank);
+>>  	omap_gpio_show_rev(bank);
+>>  
+>> -	if (bank->loses_context)
+>> +	if (bank->loses_context) {
+>>  		bank->get_context_loss_count = pdata->get_context_loss_count;
+>> +		omap_gpio_init_context(bank);
+>> +	}
+>>  
+>>  	pm_runtime_put(bank->dev);
+>>  
+>> @@ -1269,6 +1273,14 @@ static int omap_gpio_runtime_resume(struct device *dev)
+>>  	int c;
+>>  
+>>  	spin_lock_irqsave(&bank->lock, flags);
+>> +
+>> +	/*
+>> +	 * On the first resume during the probe, the context has not
+>> +	 * been initialised and so if the context is not valid return.
+>> +	 */
+>> +	if (!bank->context_valid)
+>> +		goto done;
+>> +
+> The use of 'context_valid' is just for the probe resume case and hence
+> adding a state variable for GPIO bank structures looks bit too much.
 
-I understand that Regulator FW is common and wide used and we should 
-very careful here.
+Yes it is not ideal. However, it is safe.
 
-Regards,
-- grygorii
+> Ideally gpio_init_context() should make the first callback successful
+> as well if ordered correctly but then you need clocks for that
+> to happen which are enabled in runtime pm calls. 
+
+Right.
+
+> Do you really need that "context_valid" flag per bank ? I mean
+> every gpio bank which can "loses_context", probe time context
+> validity is an issue, right ? In that case, won't just an
+> __init static variable do for all banks which can loose
+> context?
+
+I think that it would be fragile to have a global for all banks. What
+happens if one bank failed during the probe? Probably unlikely but still.
+
+The best solution would be to be able to plug the pm-runtime
+resume/suspend handlers at the end of the probe or be able to enable the
+module without the callback handlers being calling during the probe. I
+am not sure if there is a way to do this. May be Kevin knows.
+
+Another option is to move the initialisation of the bank->loses_context
+to after the call to pm_runtime_get_sync() in the probe. This would
+prevent the context restore occurring during the initial runtime resume.
+However, if you look at the runtime resume function there are still some
+register writes that do occur (which is basically what happens today).
+This works but it is a little fragile, however, we can do that if
+preferred. May be I could add a comment to the probe to say why we
+initialise bank->loses_context after the pm_runtime_get_sync() so no one
+moves this in the future (and more importantly I don't forget!).
+
+Cheers
+Jon
