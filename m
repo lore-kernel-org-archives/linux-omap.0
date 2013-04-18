@@ -1,77 +1,69 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 2/2] ARM: dts: omap3-beagle-xm: Add USB host supprot for Rev. Ax/Bx
-Date: Thu, 18 Apr 2013 14:44:34 +0300
-Message-ID: <1366285474-19967-2-git-send-email-rogerq@ti.com>
-References: <1366285474-19967-1-git-send-email-rogerq@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
+Date: Thu, 18 Apr 2013 17:20:11 +0530
+Message-ID: <516FDDF3.30507@ti.com>
+References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com> <1364824448-14732-2-git-send-email-gautam.vivek@samsung.com> <20130402082342.GF30286@arwen.pp.htv.fi> <CAFp+6iFW9-fOCgCfpfQzS9PZyjb9_NahjSxzbrS0AhVeNngyXw@mail.gmail.com> <20130402121048.GA9488@arwen.pp.htv.fi> <CAFp+6iEqHOc6G+4UpUGneQ43FGf11DOH_LignFiXJxVJnjry2w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1366285474-19967-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: b-cousson@ti.com, tony@atomide.com
-Cc: robertcnelson@gmail.com, grinberg@compulab.co.il, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <CAFp+6iEqHOc6G+4UpUGneQ43FGf11DOH_LignFiXJxVJnjry2w@mail.gmail.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Vivek Gautam <gautamvivek1987@gmail.com>
+Cc: balbi@ti.com, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-Rev. Ax/Bx boards have reversed polarity for USBHOST_PWR_ENable
-signal when compared to Rev. C boards.
+On Tuesday 02 April 2013 06:10 PM, Vivek Gautam wrote:
+> Hi,
+>
+>
+> On Tue, Apr 2, 2013 at 5:40 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> Hi,
+>>
+>> On Tue, Apr 02, 2013 at 04:04:01PM +0530, Vivek Gautam wrote:
+>>>> On Mon, Apr 01, 2013 at 07:24:00PM +0530, Vivek Gautam wrote:
+>>>>> Adding  APIs to handle runtime power management on PHY
+>>>>> devices. PHY consumers may need to wake-up/suspend PHYs
+>>>>> when they work across autosuspend.
+>>>>>
+>>>>> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>>>>> ---
+>>>>>   include/linux/usb/phy.h |  141 +++++++++++++++++++++++++++++++++++++++++++++++
+>>>>>   1 files changed, 141 insertions(+), 0 deletions(-)
+>>>>>
+>>>>> diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
+>>>>> index 6b5978f..01bf9c1 100644
+>>>>> --- a/include/linux/usb/phy.h
+>>>>> +++ b/include/linux/usb/phy.h
+>>>>> @@ -297,4 +297,145 @@ static inline const char *usb_phy_type_string(enum usb_phy_type type)
+>>>>>                return "UNKNOWN PHY TYPE";
+>>>>>        }
+>>>>>   }
+>>>>> +
+>>>>> +static inline void usb_phy_autopm_enable(struct usb_phy *x)
+>>>>> +{
+>>>>> +     if (!x || !x->dev) {
+>>>>> +             dev_err(x->dev, "no PHY or attached device available\n");
+>>>>> +             return;
+>>>>> +             }
+>>>>
+>>>> wrong indentation, also, I'm not sure we should allow calls with NULL
+>>>> pointers. Perhaps a WARN() so we get API offenders early enough ?
+>>>
+>>> True, bad coding style :-(
+>>> We should be handling dev_err with a NULL pointer.
+>>> Will just keep here:
+>>> if (WARN_ON(!x->dev))
+>>>        return .... ;
+>>
+>> right, but I guess:
+>>
+>> if (WARN(!x || !x->dev, "Invalid parameters\n"))
+>>          return -EINVAL;
+>>
+>> would be better ??
 
-We create a new dts file for Ax/Bx boards.
+btw, shouldn't it be IS_ERR(x)?
 
-Also update model and compatible flags for Rev. C board.
-
-CC: Beno=C3=AEt Cousson <b-cousson@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/omap3-beagle-xm-ab.dts |   19 +++++++++++++++++++
- arch/arm/boot/dts/omap3-beagle-xm.dts    |    4 ++--
- 2 files changed, 21 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-beagle-xm-ab.dts
-
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm-ab.dts b/arch/arm/boot/d=
-ts/omap3-beagle-xm-ab.dts
-new file mode 100644
-index 0000000..041b40e
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-beagle-xm-ab.dts
-@@ -0,0 +1,19 @@
-+/*
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.c=
-om/
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/include/ "omap3-beagle-xm.dts"
-+
-+/ {
-+        model =3D "TI OMAP3 BeagleBoard xM Rev: Ax/Bx";
-+        compatible =3D "ti,omap3-beagle-xm-ab", "ti,omap3-beagle", "ti=
-,omap3";
-+};
-+
-+/* On Rev A/B USBHOST_PWR_EN is active high */
-+&hsusb2_power {
-+	enable-active-high;
-+};
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/=
-omap3-beagle-xm.dts
-index 04376a6..8a46dc5 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -10,8 +10,8 @@
- /include/ "omap36xx.dtsi"
-=20
- / {
--	model =3D "TI OMAP3 BeagleBoard xM";
--	compatible =3D "ti,omap3-beagle-xm, ti,omap3-beagle", "ti,omap3";
-+	model =3D "TI OMAP3 BeagleBoard xM Rev: C";
-+	compatible =3D "ti,omap3-beagle-xm-c", "ti,omap3-beagle", "ti,omap3";
-=20
- 	cpus {
- 		cpu@0 {
---=20
-1.7.4.1
+Thanks
+Kishon
