@@ -1,100 +1,206 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: DPI: add dependency to DSI
-Date: Thu, 18 Apr 2013 17:37:45 +0300
-Message-ID: <51700539.7080603@ti.com>
-References: <516BDD35.4000807@ti.com> <1366274225.4085.44.camel@mars>  <516FB845.3070505@ti.com>  <516FBB19.4090609@ti.com> <1366280026.4085.55.camel@mars>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: Re: [PATCH 0/3] Dual EMAC mode implementation of CPSW
+Date: Thu, 18 Apr 2013 17:01:42 +0100
+Message-ID: <517018E6.6080108@newflow.co.uk>
+References: <1360612340-9266-1-git-send-email-mugunthanvnm@ti.com> <516B0098.4040809@mimc.co.uk> <516C33D2.4050105@ti.com> <516C38B9.50904@mimc.co.uk> <516C3A0D.70903@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig9D8641BAB21A52E42329DAE7"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42907 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965340Ab3DROhu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Apr 2013 10:37:50 -0400
-In-Reply-To: <1366280026.4085.55.camel@mars>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <516C3A0D.70903@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Christoph Fritz <chf.fritz@googlemail.com>
-Cc: Dave Airlie <airlied@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
 
---------------enig9D8641BAB21A52E42329DAE7
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-On 2013-04-18 13:13, Christoph Fritz wrote:
-> On Thu, 2013-04-18 at 12:21 +0300, Tomi Valkeinen wrote:
->> On 2013-04-18 12:09, Tomi Valkeinen wrote:
->>> On 2013-04-18 11:37, Christoph Fritz wrote:
+On 15/04/13 18:34, Mugunthan V N wrote:
+> On 4/15/2013 10:58 PM, Mark Jackson wrote:
+>> On 15/04/13 18:07, Mugunthan V N wrote:
+>>> On 4/15/2013 12:46 AM, Mark Jackson wrote:
 >>
->>>> With linux-next this patch breaks compiling here because DPI now dep=
-ends
->>>> on DSI - but my omap3 board here doesn't use DSI at all:
+>> <snip>
+>>
 >>>>
->>>> drivers/video/omap2/dss/dpi.c: In function =E2=80=98dpi_calc_pll_cb=E2=
-=80=99:
->>>> drivers/video/omap2/dss/dpi.c:181: error: implicit declaration of fu=
-nction =E2=80=98dsi_hsdiv_calc=E2=80=99
->>>> drivers/video/omap2/dss/dpi.c: In function =E2=80=98dpi_dsi_clk_calc=
-=E2=80=99:
->>>> drivers/video/omap2/dss/dpi.c:201: error: implicit declaration of fu=
-nction =E2=80=98dsi_get_pll_clkin=E2=80=99
->>>> drivers/video/omap2/dss/dpi.c:212: error: implicit declaration of fu=
-nction =E2=80=98dsi_pll_calc=E2=80=99
+>>>> Notice that at the end, the nfs link appears to come back "ok", but
+>>>> the "ps" command never completes.
 >>>>
->>>> Enabling OMAP2_DSS_DSI fixes this. This is my proposed patch. You ma=
-y be want to merge it?
+>>>> Any ideas of what's going on ?
 >>>
->>> Thanks for reporting this. We shouldn't make DPI depend on DSI. We
->>> should make dummy functions for the above when DSI is not enabled so
->>> that DPI compiles. I'll make a fix.
+>>> I have tried ping on both the interface fine. Will verify with ps again
+>>> later in this week.
+>>> Can you provide below details details
+>>> - Are you using EVMsk or custom build EVM?
 >>
->> Patch below. Can you try it out? It works for me on Panda.
->=20
-> Thanks, it compiles here fine too.
->=20
-> and while booting I'm now getting as with 3.9-rc:
-> [    0.409729] OMAP DSS rev 2.0
-> [    0.410980] omapdss DPI error: can't get VDDS_DSI regulator
-> [    0.410980] omapdss DPI error: device ips-056t init failed: -517
->=20
-> But here with linux-next (in contrast to 3.9-rc) removing all regulator=
+>> This is a custom board (based on the BeagleBone design) with dual
+>> Ethernet, NAND, NOR and FRAM.
+>>
+>> The dual emac thing is (one of) the last things to get signed off, so
+>> I'm willing to assist in tracking this down.
+> 
+> After testing the scenario i may be able to send you an update later in
+> this week.
 
-> dependencies from drivers/video/omap2/dss/dpi.c does not make the trick=
-=2E
-> The display stays dark :-( ...
+I have made some progress ... I realised I was missing a (clearly rather
+important !!) item in my .config file, namely CONFIG_TI_DAVINCI_EMAC.
 
-That's with your DT hacked kernel, right? Not the official supported one.=
+I am now able to ping from our board to other systems on the network
+(again, I've only tested eth0 at the moment).
 
+However, I am unable to ping everything I should be able to !!
 
-I don't think anything changed related to regulators in omapdss.
+Here's my setup ...
 
- Tomi
+# cat /etc/network/interfaces
+# Configure Loopback
+auto lo eth0 eth1
+iface lo inet loopback
+iface eth1 inet static
+address 10.1.101.111
+netmask 255.255.0.0
+gateway 10.1.0.1
+iface eth0 inet static
+address 10.0.101.111
+netmask 255.255.0.0
+gateway 10.0.0.1
 
+# ifconfig
+eth0      Link encap:Ethernet  HWaddr C2:21:5E:B4:06:5E
+          inet addr:10.0.101.111  Bcast:0.0.0.0  Mask:255.255.0.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:67 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:62 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:8848 (8.6 KiB)  TX bytes:4290 (4.1 KiB)
+          Interrupt:56
 
+eth1      Link encap:Ethernet  HWaddr D6:2F:CF:39:22:4E
+          inet addr:10.1.101.111  Bcast:0.0.0.0  Mask:255.255.0.0
+          UP BROADCAST MULTICAST  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
 
---------------enig9D8641BAB21A52E42329DAE7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+lo        Link encap:Local Loopback
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:38 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:38 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:4022 (3.9 KiB)  TX bytes:4022 (3.9 KiB)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
+# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use
+Iface
+0.0.0.0         10.0.0.1        0.0.0.0         UG    0      0        0 eth0
+10.0.0.0        0.0.0.0         255.255.0.0     U     0      0        0 eth0
+10.1.0.0        0.0.0.0         255.255.0.0     U     0      0        0 eth1
 
-iQIcBAEBAgAGBQJRcAU5AAoJEPo9qoy8lh71CjMP/3v6+ccVP3BCJ8JEqmq6JsdM
-mtFy19fReemjCIGRNYI5FuHEeHS3VL1eSBXkvIFOTupTSKAT8JCDzvhc+DEYrBT3
-iuHRBhlfQC+VTceQczR4l1tuSDivI/Q1AIwiMsEUk25FC4r4PBBLOVa89mZK+BKw
-VXSfj1QaSLV6XksXPkGsIUqjBKuxUrKyfTELumwI0vuAWNlySJM+NSQk0d7IxLgd
-GNuGIenVF79PWmtEuURlkhp2IDrXBKiiP9A8Ren90q+zSJimHaYWF9C9DIT02CN8
-xlXtU1CzSoppQVme8nl+PlFTxlZ+Vr35VeKQdABCKqB4m4KdNmMER0qKR3qc6aLb
-24zpjJ19dhUuvGGJ9FPG9QTlRByy0RJR6G1tgoVHcfHQmAFoFWYDtrLVOTPGa0AM
-n9tRwDZamVvl0qOY+FOjsf64gxCjO9YPXnkiTrZHOO+LRfAy8E+IVy6Vq+/hpkGE
-p2C/hyYelaZNwnBHvFoiH3Af0grS5rEFNdjgL/wvFDAFOBYgzalt8U+qHwl8HMzW
-W6Av3gYgis0MZvJ7KS+tBpDOi/gOYiBb5QGwNT5jY++xhfCbvfWQeoKfey+6U6L8
-eDfpjm+/q9wrypmEgZIqGbdJ9cPtJzLi28DGPMDEPSeAjR25LEoaQzZwG6tb32Pa
-lKtABF4k/pDhZWzZQvdI
-=rZUn
------END PGP SIGNATURE-----
+I can ping a couple of units on 10.0.0.x ...
 
---------------enig9D8641BAB21A52E42329DAE7--
+# ping 10.0.0.120
+PING 10.0.0.120 (10.0.0.120): 56 data bytes
+64 bytes from 10.0.0.120: seq=0 ttl=64 time=0.955 ms
+64 bytes from 10.0.0.120: seq=1 ttl=64 time=0.676 ms
+64 bytes from 10.0.0.120: seq=2 ttl=64 time=0.732 ms
+64 bytes from 10.0.0.120: seq=3 ttl=64 time=0.762 ms
+
+--- 10.0.0.120 ping statistics ---
+4 packets transmitted, 4 packets received, 0% packet loss
+round-trip min/avg/max = 0.676/0.781/0.955 ms
+# ping 10.0.0.5
+PING 10.0.0.5 (10.0.0.5): 56 data bytes
+64 bytes from 10.0.0.5: seq=0 ttl=64 time=1.815 ms
+64 bytes from 10.0.0.5: seq=1 ttl=64 time=0.458 ms
+64 bytes from 10.0.0.5: seq=2 ttl=64 time=0.474 ms
+64 bytes from 10.0.0.5: seq=3 ttl=64 time=0.345 ms
+64 bytes from 10.0.0.5: seq=4 ttl=64 time=0.329 ms
+
+--- 10.0.0.5 ping statistics ---
+5 packets transmitted, 5 packets received, 0% packet loss
+round-trip min/avg/max = 0.329/0.684/1.815 ms
+
+But *not* my router on the same subnet ...
+
+# ping 10.0.0.1
+PING 10.0.0.1 (10.0.0.1): 56 data bytes
+
+--- 10.0.0.1 ping statistics ---
+15 packets transmitted, 0 packets received, 100% packet loss
+
+I am also unable to ping other equipment that exists:-
+
+# ping 10.0.101.2
+PING 10.0.101.2 (10.0.101.2): 56 data bytes
+
+--- 10.0.101.2 ping statistics ---
+6 packets transmitted, 0 packets received, 100% packet loss
+
+# ping 10.0.200.2
+PING 10.0.200.2 (10.0.200.2): 56 data bytes
+
+--- 10.0.200.2 ping statistics ---
+5 packets transmitted, 0 packets received, 100% packet loss
+
+Just to prove these other item do exist, here's me pinging them from
+another Linux VM (working off the same physical switch):-
+
+mpfj@mpfj-nanobone:~/linux/linux-2.6$ ifconfig
+eth0      Link encap:Ethernet  HWaddr 08:00:27:1e:0d:f5
+          inet addr:10.0.0.120  Bcast:10.0.255.255  Mask:255.255.0.0
+          inet6 addr: fe80::a00:27ff:fe1e:df5/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:135935 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:172692 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:109340858 (109.3 MB)  TX bytes:177519151 (177.5 MB)
+
+lo        Link encap:Local Loopback
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:3771 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:3771 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:294818 (294.8 KB)  TX bytes:294818 (294.8 KB)
+
+mpfj@mpfj-nanobone:~/linux/linux-2.6$ ping 10.0.0.1
+PING 10.0.0.1 (10.0.0.1) 56(84) bytes of data.
+64 bytes from 10.0.0.1: icmp_req=1 ttl=255 time=0.453 ms
+64 bytes from 10.0.0.1: icmp_req=2 ttl=255 time=0.445 ms
+64 bytes from 10.0.0.1: icmp_req=3 ttl=255 time=0.488 ms
+64 bytes from 10.0.0.1: icmp_req=4 ttl=255 time=0.471 ms
+64 bytes from 10.0.0.1: icmp_req=5 ttl=255 time=0.460 ms
+^C
+--- 10.0.0.1 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 3998ms
+rtt min/avg/max/mdev = 0.445/0.463/0.488/0.024 ms
+mpfj@mpfj-nanobone:~/linux/linux-2.6$ ping 10.0.200.2
+PING 10.0.200.2 (10.0.200.2) 56(84) bytes of data.
+64 bytes from 10.0.200.2: icmp_req=1 ttl=64 time=2.09 ms
+64 bytes from 10.0.200.2: icmp_req=2 ttl=64 time=1.17 ms
+64 bytes from 10.0.200.2: icmp_req=3 ttl=64 time=0.994 ms
+64 bytes from 10.0.200.2: icmp_req=4 ttl=64 time=0.920 ms
+^C
+--- 10.0.200.2 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3004ms
+rtt min/avg/max/mdev = 0.920/1.296/2.095/0.471 ms
+mpfj@mpfj-nanobone:~/linux/linux-2.6$ ping 10.0.101.2
+PING 10.0.101.2 (10.0.101.2) 56(84) bytes of data.
+64 bytes from 10.0.101.2: icmp_req=1 ttl=64 time=1.48 ms
+64 bytes from 10.0.101.2: icmp_req=2 ttl=64 time=0.939 ms
+64 bytes from 10.0.101.2: icmp_req=3 ttl=64 time=0.946 ms
+64 bytes from 10.0.101.2: icmp_req=4 ttl=64 time=1.04 ms
+^C
+--- 10.0.101.2 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3004ms
+rtt min/avg/max/mdev = 0.939/1.104/1.483/0.223 ms
+
+When the pings fail, I am unable to see *any* activity on the network
+(using wireshark).
+
+Is there anything else I should try ?
+
+Cheers
+Mark J.
