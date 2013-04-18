@@ -1,60 +1,88 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/3] ARM: OMAP2+: Fix is_gpmc_muxed warning for H4
-Date: Thu, 18 Apr 2013 10:54:35 -0700
-Message-ID: <20130418175435.7436.60372.stgit@muffinssi.local>
-References: <20130418175303.7436.75241.stgit@muffinssi.local>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 3/6] driver: serial: omap: add prepare/complete callback for "no_console_suspend" case
+Date: Thu, 18 Apr 2013 10:56:58 -0700
+Message-ID: <874nf367th.fsf@linaro.org>
+References: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com>
+	<1366198467-6757-4-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56704 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153Ab3DRRyg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Apr 2013 13:54:36 -0400
-In-Reply-To: <20130418175303.7436.75241.stgit@muffinssi.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1366198467-6757-4-git-send-email-sourav.poddar@ti.com> (Sourav
+	Poddar's message of "Wed, 17 Apr 2013 17:04:24 +0530")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
 
-=46ix the following error by moving the function to be within
-the smc91x related ifdef as that's the only user:
+Sourav Poddar <sourav.poddar@ti.com> writes:
 
-arch/arm/mach-omap2/board-h4.c:238: warning: =E2=80=98is_gpmc_muxed=E2=80=
-=99 defined but not used
+> The patch adapt the serial core/driver to take care of the case when "no_console_suspend"
+> is used in the bootargs. The patch will remove dependency to set od->flags to
+> "OMAP_DEVICE_NO_IDLE_ON_SUSPEND" in serial.c(non dt case) and omap_device.c(dt case).
+>
+> Prepare and complete callbacks will ensure that clocks remain active for the console
+> uart when "no_console_suspend" is used in the bootargs.
+>
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-h4.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+This changelog needs a rework.  The driver itself was not aware of
+od->flags and omap_device stuff in general, so it's not really
+relevant.  The driver is also not directly managing clocks, int's only
+doing runtime PM callbacks.
 
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board=
--h4.c
-index 69c0acf..f745cae 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -229,6 +229,8 @@ static u32 get_sysboot_value(void)
- 		 OMAP2_SYSBOOT_1_MASK | OMAP2_SYSBOOT_0_MASK));
- }
-=20
-+#if IS_ENABLED(CONFIG_SMC91X)
-+
- /* H4-2420's always used muxed mode, H4-2422's always use non-muxed
-  *
-  * Note: OMAP-GIT doesn't correctly do is_cpu_omap2422 and is_cpu_omap=
-2423
-@@ -246,8 +248,6 @@ static u32 is_gpmc_muxed(void)
- 		return 0;
- }
-=20
--#if IS_ENABLED(CONFIG_SMC91X)
--
- static struct omap_smc91x_platform_data board_smc91x_data =3D {
- 	.cs		=3D 1,
- 	.gpio_irq	=3D 92,
+What you want to say in the changelog is that the driver manages
+"no_console_suspend" by preventing runtime PM during the suspend path,
+which forces the console UART to stay awake.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/tty/serial/omap-serial.c |   20 ++++++++++++++++++++
+>  1 files changed, 20 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+> index 08332f3..9ef80cf 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -1278,6 +1278,24 @@ static struct uart_driver serial_omap_reg = {
+>  };
+>  
+>  #ifdef CONFIG_PM_SLEEP
+> +static int serial_omap_prepare(struct device *dev)
+> +{
+> +	struct uart_omap_port *up = dev_get_drvdata(dev);
+> +
+> +	if (!console_suspend_enabled && uart_console(&up->port))
+> +		pm_runtime_disable(dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static void serial_omap_complete(struct device *dev)
+> +{
+> +	struct uart_omap_port *up = dev_get_drvdata(dev);
+> +
+> +	if (!console_suspend_enabled && uart_console(&up->port))
+> +		pm_runtime_enable(dev);
+> +}
+> +
+
+For compilation with !CONFIG_PM_SLEEP, you'll also need:
+
+#else 
+#define serial_omap_prepare NULL
+#define serial_omap_prepare NULL
+#endif /* CONFIG_PM_SLEEP */
+
+>  static int serial_omap_suspend(struct device *dev)
+>  {
+>  	struct uart_omap_port *up = dev_get_drvdata(dev);
+> @@ -1632,6 +1650,8 @@ static const struct dev_pm_ops serial_omap_dev_pm_ops = {
+>  	SET_SYSTEM_SLEEP_PM_OPS(serial_omap_suspend, serial_omap_resume)
+>  	SET_RUNTIME_PM_OPS(serial_omap_runtime_suspend,
+>  				serial_omap_runtime_resume, NULL)
+> +	.prepare        = serial_omap_prepare,
+> +	.complete       = serial_omap_complete,
+>  };
+>  
+>  #if defined(CONFIG_OF)
+
+Kevin
