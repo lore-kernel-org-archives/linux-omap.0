@@ -1,106 +1,128 @@
-From: Christoph Fritz <chf.fritz@googlemail.com>
-Subject: [PATCH] OMAPDSS: DPI: add dependency to DSI
-Date: Thu, 18 Apr 2013 10:37:05 +0200
-Message-ID: <1366274225.4085.44.camel@mars>
-References: <516BDD35.4000807@ti.com>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH v2 1/2] ARM: OMAP2+: only search for GPMC DT child nodes
+ on probe
+Date: Thu, 18 Apr 2013 11:05:46 +0200
+Message-ID: <516FB76A.5080708@collabora.co.uk>
+References: <1366230852-2440-1-git-send-email-javier.martinez@collabora.co.uk> <516F13B8.20601@ti.com> <516F1DC8.2000707@collabora.co.uk> <516F2355.5080501@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:48891 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966354Ab3DRIhK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Apr 2013 04:37:10 -0400
-Received: by mail-bk0-f51.google.com with SMTP id y8so1149128bkt.10
-        for <linux-omap@vger.kernel.org>; Thu, 18 Apr 2013 01:37:09 -0700 (PDT)
-In-Reply-To: <516BDD35.4000807@ti.com>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:38788 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755604Ab3DRJFt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Apr 2013 05:05:49 -0400
+In-Reply-To: <516F2355.5080501@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Dave Airlie <airlied@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Lars Poeschel <poeschel@lemonage.de>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Tomi
+On 04/18/2013 12:33 AM, Jon Hunter wrote:
+> 
+> On 04/17/2013 05:10 PM, Javier Martinez Canillas wrote:
+>> On 04/17/2013 11:27 PM, Jon Hunter wrote:
+>>>
+>>> On 04/17/2013 03:34 PM, Javier Martinez Canillas wrote:
+>>>> The GPMC DT probe function use for_each_node_by_name() to search
+>>>> child device nodes of the GPMC controller. But this function does
+>>>> not use the GPMC device node as the root of the search and instead
+>>>> search across the complete Device Tree.
+>>>>
+>>>> This means that any device node on the DT that is using any of the
+>>>> GPMC child nodes names searched for will be returned even if they
+>>>> are not connected to the GPMC, making the gpmc_probe_xxx_child()
+>>>> function to fail.
+>>>>
+>>>> Fix this by using the GPMC device node as the search root so the
+>>>> search will be restricted to its children.
+>>>>
+>>>> Reported-by: Lars Poeschel <poeschel@lemonage.de>
+>>>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+>>>> ---
+>>>>
+>>>> Changes since v1 (suggested by Jon Hunter):
+>>>>   - Split the search for GPMC child nodes and only warn if a
+>>>>     child probe fails on two different patches
+>>>>   - Don't probe all childs unnecesary if a previous matched
+>>>>
+>>>>  arch/arm/mach-omap2/gpmc.c |   33 ++++++++++-----------------------
+>>>>  1 files changed, 10 insertions(+), 23 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+>>>> index ed946df..6166847 100644
+>>>> --- a/arch/arm/mach-omap2/gpmc.c
+>>>> +++ b/arch/arm/mach-omap2/gpmc.c
+>>>> @@ -1520,32 +1520,19 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+>>>>  		return ret;
+>>>>  	}
+>>>>  
+>>>> -	for_each_node_by_name(child, "nand") {
+>>>> -		ret = gpmc_probe_nand_child(pdev, child);
+>>>> -		if (ret < 0) {
+>>>> -			of_node_put(child);
+>>>> -			return ret;
+>>>> -		}
+>>>> -	}
+>>>> +	for_each_child_of_node(pdev->dev.of_node, child) {
+>>>>  
+>>>> -	for_each_node_by_name(child, "onenand") {
+>>>> -		ret = gpmc_probe_onenand_child(pdev, child);
+>>>> -		if (ret < 0) {
+>>>> -			of_node_put(child);
+>>>> -			return ret;
+>>>> -		}
+>>>> -	}
+>>>> +		if (!child->name)
+>>>> +			continue;
+>>>>  
+>>>> -	for_each_node_by_name(child, "nor") {
+>>>> -		ret = gpmc_probe_generic_child(pdev, child);
+>>>> -		if (ret < 0) {
+>>>> -			of_node_put(child);
+>>>> -			return ret;
+>>>> -		}
+>>>> -	}
+>>>> +		if (of_node_cmp(child->name, "nand") == 0)
+>>>> +			ret = gpmc_probe_nand_child(pdev, child);
+>>>> +		else if (of_node_cmp(child->name, "onenand") == 0)
+>>>> +			ret = gpmc_probe_onenand_child(pdev, child);
+>>>> +		else if (of_node_cmp(child->name, "ethernet") == 0 ||
+>>>> +			 of_node_cmp(child->name, "nor") == 0)
+>>>> +			ret = gpmc_probe_generic_child(pdev, child);
+>>>>  
+>>>> -	for_each_node_by_name(child, "ethernet") {
+>>>> -		ret = gpmc_probe_generic_child(pdev, child);
+>>>>  		if (ret < 0) {
+>>>
+>>> I think that we need to make sure that "ret" is initialised to 0 at the
+>>> beginning of the function. We should not have a case where the child
+>> 
+>> Hi Jon,
+>> 
+>> I didn't set ret  to 0 at the beginning of the function since it is assigned the
+>> return value of a previous call to of_property_read_u32(). So ret should be 0
+>> when execution reaches the for loop.
+> 
+> Yes you are right, I overlooked that.
+> 
+>>> name does not match but who knows. Actually that raises another point,
+>>> should we have an "else" clause at the end that WARNs on
+>>> "unknown/unsupported child" device?
+>>>
+>> 
+>> Actually I thought about it when I was writing that patch and then I decided to
+>> not add a WARN for that case since nothing really fail in that case.
+>> 
+>> I mean if we want to check that a DT is well formed then I think we will need to
+>> add much more checks and I don't know if is worth it.
+>> 
+>> But I don't have a strong opinion on this so if you want I can add it an send a v3.
+> 
+> Ok, that's fine. I am happy with this version, so no need then to re-do.
+>
 
-On Mon, 2013-04-15 at 13:57 +0300, Tomi Valkeinen wrote:
-> Tomi Valkeinen (38):
->       OMAPDSS: add fields to panels' platform data
->       OMAPDSS: DSI: remove DSI & DISPC clk divisors from dssdev
->       OMAPDSS: HDMI: remove HDMI clk divisors from dssdev
->       OMAPDSS: DPI: remove omap_dss_device uses
->       OMAPDSS: DSI: remove omap_dss_device uses
->       OMAPDSS: Taal: remove multi-panel support
->       OMAPDSS: APPLY: remove dssdev from dss_mgr_wait_for_vsync
->       OMAPDSS: add missing export for omap_dss_get_output()
->       OMAPDSS: HDMI: init output earlier
->       OMAPDSS: add output->name
->       OMAPDSS: add output->dispc_channel
->       OMAPDSS: DSI: delay dispc initialization
->       OMAPDSS: DSI: fix DSI channel source initialization
->       OMAPDSS: Taal: remove rotate & mirror support
->       OMAPDSS: DPI: fix dpi_get_dsidev() for omap5
->       OMAPDSS: DISPC: store core clk rate
->       OMAPDSS: DSI: fix wrong unsigned long long use
->       OMAPDSS: DSI: simplify dsi configuration
->       OMAPDSS: DSI: get line buffer size at probe
->       OMAPDSS: DSI: add enum omap_dss_dsi_trans_mode
->       OMAPDSS: DSI remove unneeded clk source setup code
->       OMAPDSS: DISPC: add new clock calculation code
->       OMAPDSS: DSS: add new clock calculation code
->       OMAPDSS: DSI: add new clock calculation code
->       OMAPDSS: SDI: use new clock calculation code
->       OMAPDSS: DPI: use new clock calculation code
+Great, thanks a lot for your feedback!
 
-With linux-next this patch breaks compiling here because DPI now depend=
-s
-on DSI - but my omap3 board here doesn't use DSI at all:
-
-drivers/video/omap2/dss/dpi.c: In function =E2=80=98dpi_calc_pll_cb=E2=80=
-=99:
-drivers/video/omap2/dss/dpi.c:181: error: implicit declaration of funct=
-ion =E2=80=98dsi_hsdiv_calc=E2=80=99
-drivers/video/omap2/dss/dpi.c: In function =E2=80=98dpi_dsi_clk_calc=E2=
-=80=99:
-drivers/video/omap2/dss/dpi.c:201: error: implicit declaration of funct=
-ion =E2=80=98dsi_get_pll_clkin=E2=80=99
-drivers/video/omap2/dss/dpi.c:212: error: implicit declaration of funct=
-ion =E2=80=98dsi_pll_calc=E2=80=99
-
-Enabling OMAP2_DSS_DSI fixes this. This is my proposed patch. You may b=
-e want to merge it?
-
-=46rom: Christoph Fritz <chf.fritz@googlemail.com>
-Date: Thu, 18 Apr 2013 10:26:54 +0200
-Subject: [PATCH] OMAPDSS: DPI: add dependency to DSI
-
-A dependency from DPI to DSI is introduced by commit 100c82623
-"OMAPDSS: DPI: use new clock calculation code".
-This patch adds the dependency also on Kconfig-Level.
-
-Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
----
- drivers/video/omap2/dss/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/=
-Kconfig
-index cb0f145..b4211c5 100644
---- a/drivers/video/omap2/dss/Kconfig
-+++ b/drivers/video/omap2/dss/Kconfig
-@@ -36,6 +36,7 @@ config OMAP2_DSS_COLLECT_IRQ_STATS
- config OMAP2_DSS_DPI
- 	bool "DPI support"
- 	default y
-+	select OMAP2_DSS_DSI
- 	help
- 	  DPI Interface. This is the Parallel Display Interface.
-=20
---=20
-1.7.10.4
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+Javier
