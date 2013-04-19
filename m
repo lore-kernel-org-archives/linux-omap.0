@@ -1,57 +1,90 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap dss board clean-up for v3.10 merge window
-Date: Fri, 19 Apr 2013 12:33:46 -0700
-Message-ID: <20130419193346.GO10155@atomide.com>
-References: <20130418033936.GC10155@atomide.com>
- <20130419184518.GA30836@quad.lixom.net>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: [PATCH] ARM: OMAP2+: Allow NAND transfer mode to be specified in
+ DT
+Date: Fri, 19 Apr 2013 21:08:28 +0100
+Message-ID: <5171A43C.7040602@newflow.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:24638 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753941Ab3DSTdv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Apr 2013 15:33:51 -0400
-Content-Disposition: inline
-In-Reply-To: <20130419184518.GA30836@quad.lixom.net>
+Received: from mercuryimc.plus.com ([80.229.200.144]:43316 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753135Ab3DSUIb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Apr 2013 16:08:31 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: b-cousson@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org
 
-* Olof Johansson <olof@lixom.net> [130419 11:50]:
-> Hi,
-> 
-> On Wed, Apr 17, 2013 at 08:39:37PM -0700, Tony Lindgren wrote:
-> > The following changes since commit 07961ac7c0ee8b546658717034fe692fd12eefa9:
-> > 
-> >   Linux 3.9-rc5 (2013-03-31 15:12:43 -0700)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/dss-signed
-> 
-> 
-> Merged, but not happy about it.
-> 
-> As mentioned on IRC, I was going to let this one be until 3.11, but it sounds
-> like it will cause regressions in DSS if we don't merge it.
-> 
-> This is an indication that the work wasn't done right on the DSS rework.
-> Ideally the old configurations through platform_data should have been left in
-> for a release to give the boards a window to convert over without regressing
-> functionality. Tomi, please don't do it this way in the future since it's
-> painful for everybody to deal with.
+OMAP devices support various NAND transfer modes.
 
-Yes sorry this should have been done already few weeks ago when these
-patches hit linux next via Tomi's tree. In the future, let's plan on doing
-the shared branches early on between -rc2 and -rc4 so we don't all have to
-scramble just before the merge window.
+Currently all device-tree definitions will use the default "prefetch
+polled" mode, so this patch enables the transfer mode to be specified
+in the device-tree.
+---
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |    8 ++++++++
+ arch/arm/mach-omap2/gpmc.c                         |   14 ++++++++++++++
+ 2 files changed, 22 insertions(+)
 
-> I've queued this with late/cleanup. I noticed some conflicts with the previous
-> omap/fixes-non-critical and omap/boards branches that I brought in as a base so
-> I could fix it up in my merge instead of having it go all the way up to Linus
-> to resolve.
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index e7f8d7e..cd4a19b 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -29,6 +29,13 @@ Optional properties:
+ 		"bch4"		4-bit BCH ecc code
+ 		"bch8"		8-bit BCH ecc code
 
-OK thanks.
++ - ti,nand-xfer-type:		A string setting the data transfer type. One of:
++
++		"prefetch-polled"	Prefetch polled mode (default)
++		"polled"		Polled mode, without prefetch
++		"prefetch-dma"		Prefetch enabled sDMA mode
++		"prefetch-irq"		Prefetch enabled irq mode
++
+  - elm_id:	Specifies elm device node. This is required to support BCH
+  		error correction using ELM module.
 
-Tony
+@@ -55,6 +62,7 @@ Example for an AM33xx board:
+ 			reg = <0 0 0>; /* CS0, offset 0 */
+ 			nand-bus-width = <16>;
+ 			ti,nand-ecc-opt = "bch8";
++			ti,nand-xfer-type = "polled";
+
+ 			gpmc,sync-clk = <0>;
+ 			gpmc,cs-on = <0>;
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 410e1ba..2f47f76 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1212,6 +1212,13 @@ static const char * const nand_ecc_opts[] = {
+ 	[OMAP_ECC_BCH8_CODE_HW]			= "bch8",
+ };
+
++static const char * const nand_xfer_types[] = {
++	[NAND_OMAP_PREFETCH_POLLED]		= "prefetch-polled",
++	[NAND_OMAP_POLLED]			= "polled",
++	[NAND_OMAP_PREFETCH_DMA]		= "prefetch-dma",
++	[NAND_OMAP_PREFETCH_IRQ]		= "prefetch-irq",
++};
++
+ static int gpmc_probe_nand_child(struct platform_device *pdev,
+ 				 struct device_node *child)
+ {
+@@ -1241,6 +1248,13 @@ static int gpmc_probe_nand_child(struct
+platform_device *pdev,
+ 				break;
+ 			}
+
++	if (!of_property_read_string(child, "ti,nand-xfer-type", &s))
++		for (val = 0; val < ARRAY_SIZE(nand_xfer_types); val++)
++			if (!strcasecmp(s, nand_xfer_types[val])) {
++				gpmc_nand_data->xfer_type = val;
++				break;
++			}
++
+ 	val = of_get_nand_bus_width(child);
+ 	if (val == 16)
+ 		gpmc_nand_data->devsize = NAND_BUSWIDTH_16;
+-- 
+1.7.9.5
