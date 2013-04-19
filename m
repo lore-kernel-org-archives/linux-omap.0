@@ -1,60 +1,90 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 2/4] ARM: dts: omap3-beagle: Make USB host pin naming consistent
-Date: Fri, 19 Apr 2013 12:57:35 +0300
-Message-ID: <1366365457-28972-3-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 1/4] ARM: dts: omap4-panda: Add USB Host support
+Date: Fri, 19 Apr 2013 12:57:34 +0300
+Message-ID: <1366365457-28972-2-git-send-email-rogerq@ti.com>
 References: <1366365457-28972-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1366365457-28972-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: b-cousson@ti.com, tony@atomide.com
-Cc: nm@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1366365457-28972-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: nm-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Use a common naming scheme "mode0name.modename flags" for the
-USB host pins to be consistent.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/omap3-beagle.dts |   25 +++++++++++++------------
- 1 files changed, 13 insertions(+), 12 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index 6eec699..ce7a7be 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -81,18 +81,19 @@
- 
- 	hsusbb2_pins: pinmux_hsusbb2_pins {
- 		pinctrl-single,pins = <
--			0x5c0 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_clk OUTPUT */
--			0x5c2 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_stp OUTPUT */
--			0x5c4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dir INPUT | PULLDOWN */
--			0x5c6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_nxt INPUT | PULLDOWN */
--			0x5c8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat0 INPUT | PULLDOWN */
--			0x5cA 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat1 INPUT | PULLDOWN */
--			0x1a4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat2 INPUT | PULLDOWN */
--			0x1a6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat3 INPUT | PULLDOWN */
--			0x1a8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat4 INPUT | PULLDOWN */
--			0x1aa 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat5 INPUT | PULLDOWN */
--			0x1ac 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat6 INPUT | PULLDOWN */
--			0x1ae 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat7 INPUT | PULLDOWN */
-+			0x5c0 0x3	/* etk_d10.hsusb2_clk OUTPUT | MODE3 */
-+			0x5c2 0x3	/* etk_d11.hsusb2_stp OUTPUT | MODE3 */
-+			0x5c4 0x10b	/* etk_d12.hsusb2_dir INPUT_PULLDOWN | MODE3 */
-+			0x5c6 0x10b	/* etk_d13.hsusb2_nxt INPUT_PULLDOWN | MODE3 */
-+			0x5c8 0x10b	/* etk_d14.hsusb2_data0 INPUT_PULLDOWN | MODE3*/
-+			0x5cA 0x10b	/* etk_d15.hsusb2_data1 INPUT_PULLDOWN | MODE3 */
-+			0x1a4 0x10b	/* mcspi1_cs3.hsusb2_data2 INPUT_PULLDOWN | MODE3 */
-+			0x1a6 0x10b	/* mcspi2_cs1.hsusb2_data3 INPUT_PULLDOWN | MODE3 */
-+			0x1a8 0x10b	/* mcspi2_simo.hsusb2_data4 INPUT_PULLDOWN | MODE3 */
-+			0x1aa 0x10b	/* mcspi2_somi.hsusb2_data5 INPUT_PULLDOWN | MODE3 */
-+			0x1ac 0x10b	/* mcspi2_cs0.hsusb2_data6 INPUT_PULLDOWN | MODE3 */
-+			0x1ae 0x10b	/* mcspi2_clk.hsusb2_data7 INPUT_PULLDOWN | MODE3 */
-+
- 		>;
- 	};
- };
--- 
-1.7.4.1
+UHJvdmlkZSB0aGUgUkVTRVQgYW5kIFBvd2VyIHJlZ3VsYXRvcnMgZm9yIHRoZSBVU0IgUEhZLAp0
+aGUgVVNCIEhvc3QgcG9ydCBtb2RlIGFuZCB0aGUgUEhZIGRldmljZS4KClRoZSBVU0IgUEhZIG5l
+ZWRzIEFVWENMSzMgdG8gb3BlcmF0ZS4gUHJvdmlkZSB0aGlzIGluZm9ybWF0aW9uCmFzIHdlbGwu
+CgpBbHNvIHByb3ZpZGUgcGluIG11bHRpcGxleGVyIGluZm9ybWF0aW9uIGZvciB0aGUgVVNCIGhv
+c3QKcGlucy4KCkNDOiBCZW5vw650IENvdXNzb24gPGItY291c3NvbkB0aS5jb20+ClNpZ25lZC1v
+ZmYtYnk6IFJvZ2VyIFF1YWRyb3MgPHJvZ2VycUB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9k
+dHMvb21hcDQtcGFuZGEtY29tbW9uLmR0c2kgfCAgIDU4ICsrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNC5kdHNpICAgICAgICAgICAgICB8ICAgIDUg
+KysKIDIgZmlsZXMgY2hhbmdlZCwgNjMgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKCmRp
+ZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1wYW5kYS1jb21tb24uZHRzaSBiL2Fy
+Y2gvYXJtL2Jvb3QvZHRzL29tYXA0LXBhbmRhLWNvbW1vbi5kdHNpCmluZGV4IDAzYmQ2MGQuLjUy
+YjhkODkgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LXBhbmRhLWNvbW1vbi5k
+dHNpCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LXBhbmRhLWNvbW1vbi5kdHNpCkBAIC01
+NCw2ICs1NCwzOCBAQAogCQkJIkFGTUwiLCAiTGluZSBJbiIsCiAJCQkiQUZNUiIsICJMaW5lIElu
+IjsKIAl9OworCisJLyogSFMgVVNCIFBvcnQgMSBSRVNFVCAqLworCWhzdXNiMV9yZXNldDogaHN1
+c2IxX3Jlc2V0X3JlZyB7CisJCWNvbXBhdGlibGUgPSAicmVndWxhdG9yLWZpeGVkIjsKKwkJcmVn
+dWxhdG9yLW5hbWUgPSAiaHN1c2IxX3Jlc2V0IjsKKwkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQg
+PSA8MzMwMDAwMD47CisJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDMzMDAwMDA+OworCQln
+cGlvID0gPCZncGlvMiAzMCAwPjsJLyogZ3Bpb182MiAqLworCQlzdGFydHVwLWRlbGF5LXVzID0g
+PDcwMDAwPjsKKwkJZW5hYmxlLWFjdGl2ZS1oaWdoOworCX07CisKKwkvKiBIUyBVU0IgUG9ydCAx
+IFBvd2VyICovCisJaHN1c2IxX3Bvd2VyOiBoc3VzYjFfcG93ZXJfcmVnIHsKKwkJY29tcGF0aWJs
+ZSA9ICJyZWd1bGF0b3ItZml4ZWQiOworCQlyZWd1bGF0b3ItbmFtZSA9ICJoc3VzYjFfdmJ1cyI7
+CisJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDMzMDAwMDA+OworCQlyZWd1bGF0b3ItbWF4
+LW1pY3Jvdm9sdCA9IDwzMzAwMDAwPjsKKwkJZ3BpbyA9IDwmZ3BpbzEgMSAwPjsJLyogZ3Bpb18x
+ICovCisJCXN0YXJ0dXAtZGVsYXktdXMgPSA8NzAwMDA+OworCQllbmFibGUtYWN0aXZlLWhpZ2g7
+CisJfTsKKworCS8qIEhTIFVTQiBIb3N0IFBIWSBvbiBQT1JUIDEgKi8KKwloc3VzYjFfcGh5OiBo
+c3VzYjFfcGh5IHsKKwkJY29tcGF0aWJsZSA9ICJ1c2Itbm9wLXhjZWl2IjsKKwkJcmVzZXQtc3Vw
+cGx5ID0gPCZoc3VzYjFfcmVzZXQ+OworCQl2Y2Mtc3VwcGx5ID0gPCZoc3VzYjFfcG93ZXI+Owor
+CQljbG9ja3MgPSA8JmF1eGNsazM+OworCQljbG9jay1uYW1lcyA9ICJtYWluX2NsayI7CisJCWNs
+b2NrLWZyZXF1ZW5jeSA9IDwxOTIwMDAwMD47CisJfTsKIH07CiAKICZvbWFwNF9wbXhfY29yZSB7
+CkBAIC02NCw2ICs5Niw3IEBACiAJCQkmbWNic3AxX3BpbnMKIAkJCSZkc3NfaGRtaV9waW5zCiAJ
+CQkmdHBkMTJzMDE1X3BpbnMKKwkJCSZoc3VzYmIxX3BpbnMKIAk+OwogCiAJdHdsNjA0MF9waW5z
+OiBwaW5tdXhfdHdsNjA0MF9waW5zIHsKQEAgLTEwOCw2ICsxNDEsMjMgQEAKIAkJPjsKIAl9Owog
+CisJaHN1c2JiMV9waW5zOiBwaW5tdXhfaHN1c2JiMV9waW5zIHsKKwkJcGluY3RybC1zaW5nbGUs
+cGlucyA9IDwKKwkJCTB4ODIgMHgxMGMJLyogdXNiYjFfdWxwaXRsbF9jbGsudXNiYjFfdWxwaXBo
+eV9jbGsgSU5QVVRfUFVMTERPV04gfCBNT0RFNCAqLworCQkJMHg4NCAweDQJLyogdXNiYjFfdWxw
+aXRsbF9zdHAudXNiYjFfdWxwaXBoeV9zdHAgT1VUUFVUIHwgTU9ERTQgKi8KKwkJCTB4ODYgMHgx
+MGMJLyogdXNiYjFfdWxwaXRsbF9kaXIudXNiYjFfdWxwaXBoeV9kaXIgSU5QVVRfUFVMTERPV04g
+fCBNT0RFNCAqLworCQkJMHg4OCAweDEwYwkvKiB1c2JiMV91bHBpdGxsX254dC51c2JiMV91bHBp
+cGh5X254dCBJTlBVVF9QVUxMRE9XTiB8IE1PREU0ICovCisJCQkweDhhIDB4MTBjCS8qIHVzYmIx
+X3VscGl0bGxfZGF0MC51c2JiMV91bHBpcGh5X2RhdDAgSU5QVVRfUFVMTERPV04gfCBNT0RFNCAq
+LworCQkJMHg4YyAweDEwYwkvKiB1c2JiMV91bHBpdGxsX2RhdDEudXNiYjFfdWxwaXBoeV9kYXQx
+IElOUFVUX1BVTExET1dOIHwgTU9ERTQgKi8KKwkJCTB4OGUgMHgxMGMJLyogdXNiYjFfdWxwaXRs
+bF9kYXQyLnVzYmIxX3VscGlwaHlfZGF0MiBJTlBVVF9QVUxMRE9XTiB8IE1PREU0ICovCisJCQkw
+eDkwIDB4MTBjCS8qIHVzYmIxX3VscGl0bGxfZGF0My51c2JiMV91bHBpcGh5X2RhdDMgSU5QVVRf
+UFVMTERPV04gfCBNT0RFNCAqLworCQkJMHg5MiAweDEwYwkvKiB1c2JiMV91bHBpdGxsX2RhdDQu
+dXNiYjFfdWxwaXBoeV9kYXQ0IElOUFVUX1BVTExET1dOIHwgTU9ERTQgKi8KKwkJCTB4OTQgMHgx
+MGMJLyogdXNiYjFfdWxwaXRsbF9kYXQ1LnVzYmIxX3VscGlwaHlfZGF0NSBJTlBVVF9QVUxMRE9X
+TiB8IE1PREU0ICovCisJCQkweDk2IDB4MTBjCS8qIHVzYmIxX3VscGl0bGxfZGF0Ni51c2JiMV91
+bHBpcGh5X2RhdDYgSU5QVVRfUFVMTERPV04gfCBNT0RFNCAqLworCQkJMHg5OCAweDEwYwkvKiB1
+c2JiMV91bHBpdGxsX2RhdDcudXNiYjFfdWxwaXBoeV9kYXQ3IElOUFVUX1BVTExET1dOIHwgTU9E
+RTQgKi8KKwkJPjsKKwl9OworCiAJaTJjMV9waW5zOiBwaW5tdXhfaTJjMV9waW5zIHsKIAkJcGlu
+Y3RybC1zaW5nbGUscGlucyA9IDwKIAkJCTB4ZTIgMHgxMTggICAgICAgIC8qIGkyYzFfc2NsIFBV
+TExVUCB8IElOUFVURU5BQkxFIHwgTU9ERTAgKi8KQEAgLTI0OSwzICsyOTksMTEgQEAKIAltb2Rl
+ID0gPDM+OwogCXBvd2VyID0gPDUwPjsKIH07CisKKyZ1c2Joc2hvc3QgeworCXBvcnQxLW1vZGUg
+PSAiZWhjaS1waHkiOworfTsKKworJnVzYmhzZWhjaSB7CisJcGh5cyA9IDwmaHN1c2IxX3BoeT47
+Cit9OwpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQuZHRzaSBiL2FyY2gvYXJt
+L2Jvb3QvZHRzL29tYXA0LmR0c2kKaW5kZXggMmE1NjQyOC4uYmQ2MDM2ZSAxMDA2NDQKLS0tIGEv
+YXJjaC9hcm0vYm9vdC9kdHMvb21hcDQuZHRzaQorKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFw
+NC5kdHNpCkBAIC02NjAsNSArNjYwLDEwIEBACiAJCQlyYW0tYml0cyA9IDwxMj47CiAJCQl0aSxo
+YXMtbWFpbGJveDsKIAkJfTsKKworCQlhdXhjbGszOiBhdXhjbGszIHsKKwkJCSNjbG9jay1jZWxs
+cyA9IDwwPjsKKwkJCWNvbXBhdGlibGUgPSAidGksb21hcC1jbG9jayI7CisJCX07CiAJfTsKIH07
+Ci0tIAoxLjcuNC4xCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpkZXZpY2V0cmVlLWRpc2N1c3MgbWFpbGluZyBsaXN0CmRldmljZXRyZWUtZGlzY3Vzc0Bs
+aXN0cy5vemxhYnMub3JnCmh0dHBzOi8vbGlzdHMub3psYWJzLm9yZy9saXN0aW5mby9kZXZpY2V0
+cmVlLWRpc2N1c3MK
