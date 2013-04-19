@@ -1,53 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: omap4-panda: Add USB Host support
-Date: Fri, 19 Apr 2013 08:21:17 -0700
-Message-ID: <20130419152117.GE10155@atomide.com>
-References: <1366015721-25608-1-git-send-email-rogerq@ti.com>
- <20130418200935.GD10155@atomide.com> <5170FDD9.904@ti.com>
+Subject: Re: [PATCH] gpio/omap: ensure gpio context is initialised
+Date: Fri, 19 Apr 2013 08:36:14 -0700
+Message-ID: <20130419153614.GF10155@atomide.com>
+References: <1366230707-32681-1-git-send-email-jon-hunter@ti.com>
+ <871ua734mv.fsf@linaro.org>
+ <51707D7C.1050600@ti.com>
+ <5170911C.6010507@ti.com>
+ <51709499.8030208@ti.com>
+ <5170E4EE.7090100@ti.com>
+ <87sj2mzkcf.fsf@linaro.org>
+ <51715772.9020003@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31360 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030594Ab3DSPgU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Apr 2013 11:36:20 -0400
 Content-Disposition: inline
-In-Reply-To: <5170FDD9.904@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: nm@ti.com, paul@pwsan.com, b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <51715772.9020003@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-* Roger Quadros <rogerq@ti.com> [130419 01:23]:
-> On 04/18/2013 11:09 PM, Tony Lindgren wrote:
-> 
-> > the naming should be mode0name.modename to be consistent. Here's
-> > what I dumped out, please check and replace spaces with tabs:
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130419 07:43]:
+> On Friday 19 April 2013 07:35 PM, Kevin Hilman wrote:
+> > Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 > > 
-> >                         0x82 0x10c      /* usbb1_ulpitll_clk.usbb1_ulpiphy_clk gpio84 INPUT_PULLDOWN | MODE4 */
-> >                         0x84 0x4        /* usbb1_ulpitll_stp.usbb1_ulpiphy_stp gpio85 OUTPUT | MODE4 */
-> >                         0x86 0x104      /* usbb1_ulpitll_dir.usbb1_ulpiphy_dir gpio86 INPUT | MODE4 */
-> >                         0x88 0x104      /* usbb1_ulpitll_nxt.usbb1_ulpiphy_nxt gpio87 INPUT | MODE4 */
-> >                         0x8a 0x104      /* usbb1_ulpitll_dat0.usbb1_ulpiphy_dat0 gpio88 INPUT | MODE4 */
-> >                         0x8c 0x104      /* usbb1_ulpitll_dat1.usbb1_ulpiphy_dat1 gpio89 INPUT | MODE4 */
-> >                         0x8e 0x104      /* usbb1_ulpitll_dat2.usbb1_ulpiphy_dat2 gpio90 INPUT | MODE4 */
-> >                         0x90 0x104      /* usbb1_ulpitll_dat3.usbb1_ulpiphy_dat3 gpio91 INPUT | MODE4 */
-> >                         0x92 0x104      /* usbb1_ulpitll_dat4.usbb1_ulpiphy_dat4 gpio92 INPUT | MODE4 */
-> >                         0x94 0x104      /* usbb1_ulpitll_dat5.usbb1_ulpiphy_dat5 gpio93 INPUT | MODE4 */
-> >                         0x96 0x104      /* usbb1_ulpitll_dat6.usbb1_ulpiphy_dat6 gpio94 INPUT | MODE4 */
-> >                         0x98 0x104      /* usbb1_ulpitll_dat7.usbb1_ulpiphy_dat7 gpio95 INPUT | MODE4 */
-> 
-> I don't think gpioXX is necessary as we aren't using any of them as GPIOs.
+> >> On Friday 19 April 2013 06:19 AM, Jon Hunter wrote:
+> >>>
+> >>> On 04/18/2013 07:34 PM, Jon Hunter wrote:
+> >>>>
+> >>>> On 04/18/2013 06:10 PM, Jon Hunter wrote:
+> >>>>> On 04/18/2013 04:34 PM, Kevin Hilman wrote:
+> >>>>
+> >>>> ...
+> >>>>
+> >>>>>> Why not just init context right here if bank->loses_context &&
+> >>>>>> !bank->context_valid?
+> >>>>
+> >>>> I really like this idea a lot. It can really clean-up the code
+> >>>> and really make it much more readable. Before we were playing 
+> >>>> some tricks with when we init'ed the get_context_loss_count()
+> >>>> function pointer. How about the below?
+> >>>>
+> >>>> Tony, care to re-test?
 
-Oops sorry yeah please check as that's something I just dumped
-from the system. The gpio numbering is just data for debugging
-that you can leave out. Also check please check I dumped the right
-pins, I just grepped for usbb1.
+Still works thanks:
+
+Tested-by: Tony Lindgren <tony@atomide.com>
+
+> > Assuming this driver could become a module someday (not terribly likely,
+> > I know), but context_valid would have meaning for each module reload.
+> > 
+> I don't think GPIO can ever be a module(at least on OMAP) considering the way
+> it is used in many SOCs and hence the objection on that flag. GPIO is really
+> an infrastructure driver which is needed to be always available for the
+> client drivers to work. 
+
+Not really related to this fix.. But when booting with initramfs, we should
+be able to make everything into loadable modules except things that are related
+to enabling timers and interrupts. This is important for distros to be able
+do generic kernels. Surely for mounting non-initramfs root GPIO is most
+likely needed though :)
 
 Regards,
 
