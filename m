@@ -1,102 +1,53 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v3 1/6] drivers: phy: add generic PHY framework
-Date: Fri, 19 Apr 2013 10:09:33 +0100
-Message-ID: <20130419090933.AB4253E116D@localhost>
-References: <1363770725-13717-1-git-send-email-kishon@ti.com> <1363770725-13717-2-git-send-email-kishon@ti.com> <20130415113416.7C3943E0AA8@localhost> <516BF1E2.3020104@ti.com> <20130415195030.9F7E93E0AA8@localhost> <516D255F.40604@ti.com>
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <516D255F.40604@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-usb@vger.kernel.org, mchehab@redhat.com, linux-doc@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, javier@dowhile0.org, cesarb@cesarb.net, arnd@arndb.de, eballetbo@gmail.com, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, swarren@nvidia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, gregkh@linuxfoundation.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, rob@landley.net, akpm@linux-foundation.org, davem@davemloft.net
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v3 0/4] ARM: dts: Add USB host support for Panda and Beagle-xm
+Date: Fri, 19 Apr 2013 12:57:33 +0300
+Message-ID: <1366365457-28972-1-git-send-email-rogerq@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45937 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757001Ab3DSJ5r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Apr 2013 05:57:47 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: b-cousson@ti.com, tony@atomide.com
+Cc: nm@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Roger Quadros <rogerq@ti.com>
 
-On Tue, 16 Apr 2013 15:48:07 +0530, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> On Tuesday 16 April 2013 01:20 AM, Grant Likely wrote:
-> > On Mon, 15 Apr 2013 17:56:10 +0530, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> >> On Monday 15 April 2013 05:04 PM, Grant Likely wrote:
-> >>> On Wed, 20 Mar 2013 14:42:00 +0530, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> >> We have decided not to implement the PHY layer as a separate bus layer.
-> >> The PHY provider can be part of any other bus. Making the PHY layer as a
-> >> bus will make the PHY provider to be part of multiple buses which will
-> >> lead to bad design. All we are trying to do here is keep the pool of PHY
-> >> devices under PHY class in this layer and help any controller that wants
-> >> to use the PHY to get it.
-> >
-> > If you're using a class, then you already have your list of registered
-> > phy devices! :-) No need to create another global list that you need to
-> > manage.
-> 
-> right. We already use _class_dev_iter_ for finding the phy device.
-> .
-> .
-> +static struct phy *of_phy_lookup(struct device *dev, struct device_node 
-> *node)
-> +{
-> +	struct phy *phy;
-> +	struct class_dev_iter iter;
-> +
-> +	class_dev_iter_init(&iter, phy_class, NULL, NULL);
-> +	while ((dev = class_dev_iter_next(&iter))) {
-> +		phy = container_of(dev, struct phy, dev);
-> +		if (node != phy->of_node)
-> +			continue;
-> +
-> +		class_dev_iter_exit(&iter);
-> +		return phy;
-> +	}
-> +
-> +	class_dev_iter_exit(&iter);
-> +	return ERR_PTR(-EPROBE_DEFER);
-> +}
-> .
-> .
-> 
-> however we can't get rid of the other list (phy_bind_list) where we 
-> maintain the phy binding information. It's used for the non-dt boot case.
+Hi Benoit/Tony
 
-Why? If you're using a class, then it is always there. Why would non-DT
-and DT be different in this regard? (more below)
+I've consolidated all the USB host device tree patches for Panda and Beagles
+to one place and addressed Tony's comments.
 
-> >>> Since there is at most a 1:N relationship between host controllers and
-> >>> PHYs, there shouldn't be any need for a separate structure to describe
-> >>> binding. Put the inding data into the struct phy itself. Each host
-> >>> controller can have a list of phys that it is bound to.
-> >>
-> >> No. Having the host controller to have a list of phys wont be a good
-> >> idea IMHO. The host controller is just an IP and the PHY to which it
-> >> will be connected can vary from board to board, platform to platform. So
-> >> ideally this binding should come from platform initialization code/dt data.
-> >
-> > That is not what I mean. I mean the host controller instance should
-> > contain a list of all the PHYs that are attached to it. There should not
-> 
-> Doesn't sound correct IMO. The host controller instance need not know 
-> anything about the PHY instances that is connected to it. Think of it 
-> similar to regulator, the controller wouldn't know which regulator it is 
-> connected to, all it has to know is it just has a regulator connected to 
-> it. It's up-to the regulator framework to give the controller the 
-> correct regulator. It's similar here. It makes sense for me to keep a 
-> list in the PHY framework in order for it to return the correct PHY (but 
-> note that this list is not needed for dt boot).
+NOTE: patch 1 depends on OMAP clock binding introduced in
+https://lkml.org/lkml/2013/4/12/407
 
-With regulators and clocks it makes sense to have a global
-registration place becase both implement an interconnected network
-independent of the device that use them. (clocks depend on other clocks;
-regulators depend on other regulators).
+v3:
+- updated mux mode to use pulldowns on panda as non-DT boot uses pulldowns.
+- fixed usb pin naming for panda, beagle and beagle-xm
 
-Phys are different. There is a 1:N relationship between host controllers
-and phys, and you don't get a interconnected network of PHYs. Its a bad
-idea to keep the binding data separate from the actual host controller
-when there is nothing else that actually needs to use the data. It
-creates a new set of data structures that need housekeeping to keep them
-in sync with the actual device structures. It really is just a bad idea
-and it becomes more difficult (in the non-DT case) to determine what
-data is associated with a given host controller. You can't tell by
-looking at the struct device.
+The following changes since commit 1fac4fffa719a98ec1047eaece236244333c9afe:
 
-Instead, for the non-DT case, do what we've always done for describing
-connections. Put the phy reference into the host controllers
-platform_data structure. That is what it is there for. That completely
-eliminates the need to housekeep a new set of data structures.
+  ARM: dts: Add OMAP3430 SDP NOR flash memory binding (2013-04-09 00:21:35 +0200)
 
-g.
+are available in the git repository at:
+  git://github.com/rogerq/linux.git usbhost-omap-dts
+
+Roger Quadros (4):
+      ARM: dts: omap4-panda: Add USB Host support
+      ARM: dts: omap3-beagle: Make USB host pin naming consistent
+      ARM: dts: omap3-beagle-xm: Add USB Host support
+      ARM: dts: omap3-beagle-xm: Add USB host supprot for Rev. Ax/Bx
+
+ arch/arm/boot/dts/omap3-beagle-xm-ab.dts  |   19 ++++++++
+ arch/arm/boot/dts/omap3-beagle-xm.dts     |   65 ++++++++++++++++++++++++++++-
+ arch/arm/boot/dts/omap3-beagle.dts        |   25 ++++++-----
+ arch/arm/boot/dts/omap4-panda-common.dtsi |   58 +++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi              |    5 ++
+ 5 files changed, 158 insertions(+), 14 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-beagle-xm-ab.dts
+
+-- 
+1.7.4.1
+
