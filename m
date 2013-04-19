@@ -1,183 +1,44 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: ARM: dts: omap3: NAND support - how?
-Date: Fri, 19 Apr 2013 10:36:27 -0500
-Message-ID: <5171647B.9070108@ti.com>
-References: <1366311829.4085.90.camel@mars>  <51704C05.4030200@ti.com>  <1366316595.4085.113.camel@mars>  <5170738F.8050305@ti.com>  <1366325282.4232.6.camel@lovely> <51708097.6070102@ti.com>  <51708131.2040208@ti.com>  <1366362081.3928.18.camel@mars>  <1366372957.3928.104.camel@mars>  <51714E0D.7020304@ti.com> <1366383208.3928.144.camel@mars>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 0/4] ARM: dts: Add USB host support for Panda and
+ Beagle-xm
+Date: Fri, 19 Apr 2013 08:43:22 -0700
+Message-ID: <20130419154321.GG10155@atomide.com>
+References: <1366365457-28972-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51530 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030762Ab3DSPgb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Apr 2013 11:36:31 -0400
-In-Reply-To: <1366383208.3928.144.camel@mars>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1366365457-28972-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: b-cousson@ti.com, nm@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Christoph Fritz <chf.fritz@googlemail.com>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Daniel Mack <daniel@zonque.org>, linux-omap@vger.kernel.org
 
-
-On 04/19/2013 09:53 AM, Christoph Fritz wrote:
-> On Fri, 2013-04-19 at 09:00 -0500, Jon Hunter wrote:
->> On 04/19/2013 07:02 AM, Christoph Fritz wrote:
->>> so I hacked the missing values to omap2_nand_gpmc_retime():
->>>
->>> From 8868823925441a824fe0d3143614482f25fb379b Mon Sep 17 00:00:00 2001
->>> From: Christoph Fritz <chf.fritz@googlemail.com>
->>> Date: Fri, 19 Apr 2013 12:41:11 +0200
->>> Subject: [PATCH] [RFC] ARM: OMAP2+: nand: add missing gpmc timing values
->>>
->>> This patch adds missing gpmc timing values to omap2_nand_gpmc_retime().
->>> ---
->>>  arch/arm/mach-omap2/gpmc-nand.c |   10 ++++++++++
->>>  1 file changed, 10 insertions(+)
->>>
->>> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
->>> index d9c2719..d8bb241 100644
->>> --- a/arch/arm/mach-omap2/gpmc-nand.c
->>> +++ b/arch/arm/mach-omap2/gpmc-nand.c
->>> @@ -58,6 +58,9 @@ static int omap2_nand_gpmc_retime(
->>>  	/* Read */
->>>  	t.adv_rd_off = gpmc_t->adv_rd_off;
->>>  	t.oe_on  = t.adv_on;
->>> +	if (cpu_is_omap34xx()) {
->>> +		t.oe_on = gpmc_t->oe_on;
->>> +	}
->>
->> How about just setting gpmc,adv-on-ns, then you don't need the above.
->>
->>>  	t.access = gpmc_t->access;
->>>  	t.oe_off = gpmc_t->oe_off;
->>>  	t.cs_rd_off = gpmc_t->cs_rd_off;
->>> @@ -69,11 +72,18 @@ static int omap2_nand_gpmc_retime(
->>>  	if (cpu_is_omap34xx()) {
->>
->> We should get rid of cpu_is_omap34xx() here as this is handled by
->> gpmc_cs_set_timings().
->>
->>>  		t.wr_data_mux_bus = gpmc_t->wr_data_mux_bus;
->>>  		t.wr_access = gpmc_t->wr_access;
->>> +		t.we_on = gpmc_t->we_on;
->>
->> How about just setting gpmc,adv-on-ns, then you don't need the above.
->>
->>>  	}
->>>  	t.we_off = gpmc_t->we_off;
->>>  	t.cs_wr_off = gpmc_t->cs_wr_off;
->>>  	t.wr_cycle = gpmc_t->wr_cycle;
->>>  
->>> +	if (cpu_is_omap34xx()) {
->>> +		t.bool_timings = gpmc_t->bool_timings;
->>> +		t.cycle2cycle_delay = gpmc_t->cycle2cycle_delay;
->>> +		t.page_burst_access = gpmc_t->page_burst_access;
->>> +	}
->>
->> The above timings are applicable to all gpmc versions and so you should
->> not need to make this dependent on cpu_is_omap34xx(). So would be
->> worthwhile spending a patch to add the above timings to this function.
+* Roger Quadros <rogerq@ti.com> [130419 03:02]:
+> Hi Benoit/Tony
 > 
-> Before sending this patch, I'd like to get your opinion on this
-> approach:
+> I've consolidated all the USB host device tree patches for Panda and Beagles
+> to one place and addressed Tony's comments.
 > 
-> From 015f1e8006f8f85818b6bbd5ba00dc6b4ae48b65 Mon Sep 17 00:00:00 2001
-> From: Christoph Fritz <chf.fritz@googlemail.com>
-> Date: Fri, 19 Apr 2013 12:41:11 +0200
-> Subject: [RFC][PATCH] ARM: OMAP2+: nand: reorganize gpmc timing values
+> NOTE: patch 1 depends on OMAP clock binding introduced in
+> https://lkml.org/lkml/2013/4/12/407
 > 
-> This patch removes omap2_nand_gpmc_retime() which was used to quirk
-> some timing values before gpmc_cs_set_timings(). Due to recent changes,
-> gpmc_cs_set_timings() has evolved so that there is no more need for
-> omap2_nand_gpmc_retime().
-> 
-> Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
-> ---
->  arch/arm/mach-omap2/gpmc-nand.c |   40 +--------------------------------------
->  1 file changed, 1 insertion(+), 39 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-> index d9c2719..c8044b0 100644
-> --- a/arch/arm/mach-omap2/gpmc-nand.c
-> +++ b/arch/arm/mach-omap2/gpmc-nand.c
-> @@ -43,44 +43,6 @@ static struct platform_device gpmc_nand_device = {
->  	.resource	= gpmc_nand_resource,
->  };
->  
-> -static int omap2_nand_gpmc_retime(
-> -				struct omap_nand_platform_data *gpmc_nand_data,
-> -				struct gpmc_timings *gpmc_t)
-> -{
-> -	struct gpmc_timings t;
-> -	int err;
-> -
-> -	memset(&t, 0, sizeof(t));
-> -	t.sync_clk = gpmc_t->sync_clk;
-> -	t.cs_on = gpmc_t->cs_on;
-> -	t.adv_on = gpmc_t->adv_on;
-> -
-> -	/* Read */
-> -	t.adv_rd_off = gpmc_t->adv_rd_off;
-> -	t.oe_on  = t.adv_on;
-> -	t.access = gpmc_t->access;
-> -	t.oe_off = gpmc_t->oe_off;
-> -	t.cs_rd_off = gpmc_t->cs_rd_off;
-> -	t.rd_cycle = gpmc_t->rd_cycle;
-> -
-> -	/* Write */
-> -	t.adv_wr_off = gpmc_t->adv_wr_off;
-> -	t.we_on  = t.oe_on;
-> -	if (cpu_is_omap34xx()) {
-> -		t.wr_data_mux_bus = gpmc_t->wr_data_mux_bus;
-> -		t.wr_access = gpmc_t->wr_access;
-> -	}
-> -	t.we_off = gpmc_t->we_off;
-> -	t.cs_wr_off = gpmc_t->cs_wr_off;
-> -	t.wr_cycle = gpmc_t->wr_cycle;
-> -
-> -	err = gpmc_cs_set_timings(gpmc_nand_data->cs, &t);
-> -	if (err)
-> -		return err;
-> -
-> -	return 0;
-> -}
-> -
->  static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
->  {
->  	/* support only OMAP3 class */
-> @@ -131,7 +93,7 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
->  				gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
->  
->  	if (gpmc_t) {
-> -		err = omap2_nand_gpmc_retime(gpmc_nand_data, gpmc_t);
-> +		err = gpmc_cs_set_timings(gpmc_nand_data->cs, gpmc_t);
->  		if (err < 0) {
->  			dev_err(dev, "Unable to set gpmc timings: %d\n", err);
->  			return err;
-> 
+> v3:
+> - updated mux mode to use pulldowns on panda as non-DT boot uses pulldowns.
+> - fixed usb pin naming for panda, beagle and beagle-xm
 
-Thanks for sending this. I would agree with this approach. The retime
-function seems very redundant looking at what it does.
+Cool. Sounds like we should be able to make omap4 DT only for v3.11
+then. For that we also need USB on 4430-sdp working, but it now
+does:
 
-Grep'ing through the source, the only place I see a board file call
-gpmc_nand_init() and pass timings is in
-arch/arm/mach-omap2/board-flash.c. To keep the gpmc configuration
-consistent, I would also suggest making the following change so that
-oe_on and we_on are programmed as they would be by the current retime
-function.
+ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+ehci-omap 4a064c00.ehci: failed to get phys phandle in /ocp/usbhshost@4a064000/ehci@4a064c00 node
+ehci-omap 4a064c00.ehci: failed to get phys phandle in /ocp/usbhshost@4a064000/ehci@4a064c00 node
+...
 
-diff --git a/arch/arm/mach-omap2/board-flash.c
-b/arch/arm/mach-omap2/board-flash.c
-index c33adea..946a7516 100644
---- a/arch/arm/mach-omap2/board-flash.c
-+++ b/arch/arm/mach-omap2/board-flash.c
-@@ -116,6 +116,8 @@ struct gpmc_timings nand_default_timings[1] = {
-                .adv_rd_off = 24,
-                .adv_wr_off = 36,
+As I have mine in a rack I don't have anything plugged into the
+USB port there though, but sounds like the phy is not initialized?
 
-+               .we_on = 6,
-+               .oe_on = 6,
-                .we_off = 30,
-                .oe_off = 48,
+Regards,
 
-Cheers
-Jon
+Tony
