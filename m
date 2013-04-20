@@ -1,129 +1,124 @@
-From: "Kondratiuk, Taras" <taras@ti.com>
-Subject: RE: [RFC PATCH 0/2] cpufreq/regulator: Limit minimum voltage only
-Date: Sat, 20 Apr 2013 00:24:10 +0000
-Message-ID: <F2EE74CEB87D4A44AC98442FCBF00207018E2E21@DNCE04.ent.ti.com>
-References: <1366372554-20866-1-git-send-email-taras@ti.com>,<20130419162153.GA24066@kahuna>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2] gpio/omap: implement irq mask/disable with proper
+ semantic.
+Date: Sat, 20 Apr 2013 18:05:50 +0530
+Message-ID: <51728BA6.1090800@ti.com>
+References: <5167DFC8.8060202@ti.com> <1366399255-30245-1-git-send-email-andreas.fenkart@streamunlimited.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <20130419162153.GA24066@kahuna>
-Content-Language: en-US
-Sender: cpufreq-owner@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "Mohammed, Afzal" <afzal@ti.com>
-Cc: "lgirdwood@gmail.com" <lgirdwood@gmail.com>, "broonie@kernel.org" <broonie@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>, "shawn.guo@linaro.org" <shawn.guo@linaro.org>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Strashko, Grygorii" <grygorii.strashko@ti.com>, "Tseglytskyi, Andrii" <andrii.tseglytskyi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "AnilKumar, Chimata" <anilkumar@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37598 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755207Ab3DTMdq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 20 Apr 2013 08:33:46 -0400
+In-Reply-To: <1366399255-30245-1-git-send-email-andreas.fenkart@streamunlimited.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Cc: khilman@deeprootsystems.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org, daniel@zonque.org, jon-hunter@ti.com
 
-On 04/19/2013 07:21 PM, Nishanth Menon wrote:
-> On 14:55-20130419, Taras Kondratiuk wrote:
->> Using a "voltage tolerance" for doing DVFS is not a proper way.
->> It leads to a few issues:
->> - voltage is limited to a narrow range near OPP voltage,
->>   so other consumers of the same regulator can't set their own constraints
->>   if they don't overlap with this narrow range. No ganged rails :(
->> - usually OPP voltage is an absolute minimum voltage
->>   necessary for correct work (not taking into account AVS).
->>   Applying plus/minus tolerance can lead to an unstable device.
->>   For example omap-cpufreq has 4% tolerance configured,
->>   so for OMAP4430 MPU OPP50 we get 0.984V instead of 1.025V. 
-> there is a reason for this - board level IRDROP and the real PMIC
-> accuracy compared to the SoC assumption about the PMIC accuracy.
+On Saturday 20 April 2013 12:50 AM, Andreas Fenkart wrote:
+> When a gpio interrupt is masked, the gpio event will still be latched in
+> the interrupt status register so when you unmask it later you may get an
+> interrupt straight away. However, if the interrupt is disabled then gpio
+> events occurring will not be latched/stored.
+> 
+> Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+> ---
+>  drivers/gpio/gpio-omap.c |   45 ++++++++++++++++++++++++++++++++++++---------
+>  1 file changed, 36 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 159f5c5..9ab7ba5 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -780,7 +780,7 @@ static void gpio_mask_irq(struct irq_data *d)
+>  
+>  	spin_lock_irqsave(&bank->lock, flags);
+>  	_set_gpio_irqenable(bank, gpio, 0);
+> -	_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
+> +	/* latching new IRQ, but don't signal */
+You can add the comment in begining of the function. Comment just
+before spin_lock release will be confusing.
 
-I don't see how current implementation of voltage-tolerance can help with this.
+>  	spin_unlock_irqrestore(&bank->lock, flags);
+>  }
+>  
+> @@ -789,24 +789,48 @@ static void gpio_unmask_irq(struct irq_data *d)
+>  	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
+>  	unsigned int gpio = irq_to_gpio(bank, d->irq);
+>  	unsigned int irq_mask = GPIO_BIT(bank, gpio);
+> -	u32 trigger = irqd_get_trigger_type(d);
+>  	unsigned long flags;
+>  
+>  	spin_lock_irqsave(&bank->lock, flags);
+> -	if (trigger)
+> -		_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), trigger);
+>  
+> -	/* For level-triggered GPIOs, the clearing must be done after
+> -	 * the HW source is cleared, thus after the handler has run */
+> -	if (bank->level_mask & irq_mask) {
+> -		_set_gpio_irqenable(bank, gpio, 0);
+> +	/* For level-triggered GPIOs, clear the IRQ. If the HW
+> +	 * still needs service, IRQ will be latched again */
+While at this, please fix the comment style
+/*
+ *
+ */
+> +	if (bank->level_mask & irq_mask)
+>  		_clear_gpio_irqstatus(bank, gpio);
+> -	}
+>  
+>  	_set_gpio_irqenable(bank, gpio, 1);
+>  	spin_unlock_irqrestore(&bank->lock, flags);
+>  }
+>  
+> +static void gpio_disable_irq(struct irq_data *d)
+> +{
+> +	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
+> +	unsigned int gpio = irq_to_gpio(bank, d->irq);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&bank->lock, flags);
+> +	/* stop latching new IRQ */
+Best thing is you add kernel doc for all these function and
+describe them clearly. mask/unmask, disable/enable
 
->
-> That said, I had been always been a little confused with the usage
-> in AM335x. For that matter, I dont even think this is constrainted to
-> TI SoC usage, other SoCs also probably have the same pain.
->
-> How does it actually work?
+> +	_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
+> +	_set_gpio_irqenable(bank, gpio, 0);
+> +	spin_unlock_irqrestore(&bank->lock, flags);
+> +}
+> +
+> +static void gpio_enable_irq(struct irq_data *d)
+> +{
+> +	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
+> +	unsigned int gpio = irq_to_gpio(bank, d->irq);
+> +	unsigned int irq_mask = GPIO_BIT(bank, gpio);
+> +	u32 trigger = irqd_get_trigger_type(d);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&bank->lock, flags);
+> +	if (trigger)
+> +		_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), trigger);
+> +	_clear_gpio_irqstatus(bank, gpio);
+> +	_set_gpio_irqenable(bank, gpio, 1);
+> +	spin_unlock_irqrestore(&bank->lock, flags);
+> +}
+> +
+>  static struct irq_chip gpio_irq_chip = {
+>  	.name		= "GPIO",
+>  	.irq_shutdown	= gpio_irq_shutdown,
+> @@ -815,6 +839,9 @@ static struct irq_chip gpio_irq_chip = {
+>  	.irq_unmask	= gpio_unmask_irq,
+>  	.irq_set_type	= gpio_irq_type,
+>  	.irq_set_wake	= gpio_wake_enable,
+> +	.irq_disable    = gpio_disable_irq,
+> +	.irq_enable     = gpio_enable_irq,
+> +
+Drop above extra line.
+>  };
+>  
+>  /*---------------------------------------------------------------------*/
+> 
 
-I think this is a question to Afzal as he is an original author
-of commit 42daffd2d6c665716d442d518022ecaad17ddf64 which later
-migrated to cpufreq-cpu0 driver.
-
-I can only guess...
-Without tolerance cpufreq requests the same value for min_uV and max_uV.
-So regulator have to set an exact voltage value on the rail,
-which is not always possible if different PMICs can be used for the SoC.
-For example in v3.9-rc7 voltage-tolerance is used *only*
-in AM33xx which can use two PMICs: TPS65217 and TPS65910.
-These PMICs have different voltage steps so they can't set the same voltage.
-I think this was the reason for adding voltage-tolerance.
-
-*But* there is a trick.
-If you compare MPU OPP voltages in AM335x datasheet and am33xx.dtsi
-you will see that am33xx.dtsi has already applied tolerance (2%) on top
-of nominal voltages.
-So final range passed to regulator is [Vnom; Vnom+2*tol]
-instead of [Vnom-tol; Vnom+tol].
-That's why it works for AM335x, but IMHO it is a hack.
-That patch broke omap-cpufreq functionality, since mach-omap2/oppxxxx_data.c
-files doesn't have tolerance added on top of nominal voltages.
-
-regulator_set_voltage_min() should solve AM335x issue
-without introducing voltage-tolerance hack.
-Probably I need to add one more patch to the series which will remove
-voltage-tolerance from am335x.dtsi and set CPU voltages back to nominal.
-
->
-> Lets say ntarget/Vnom has PMIC tolerance of 5% (SoC tolerance assumed
-> for OPP voltage documented in data manual for the SoC), say the
-> OPP voltage is 1.2V - that translates to an voltage of 1.14V on a perfect
-> PMIC (with 0 drop or perfect accuracy) for the SoC.
-
-Even if you have a perfect PMIC it worth to set 1.2V.
-
-For example OMAP4 DM states clearly about what nominal voltage is:
-"Nominal voltage value documented in this table corresponds
-to the voltage to be applied at power IC (PMIC) level.
-Whereas minimum and maximum voltage values correspond
-to the possible voltage at OMAP ball level."
-
-> Now, the real world is never perfect. So, lets take the following cases:
-> a) PMIC with 2% variance
-> b) PMIC with 5% variance (usually the reference PMIC we put on SoC
->    vendor platform)
-
-In two cases above PMIC tolerance fits into SoC tolerance, so no issue.
-Just set nominal voltage to PMIC and that's all.
-
-> c) PMIC with 10% variance.
-
-This is "out of specification" use-case.
-It should be possible to add a knowledge about tolerance into regulator
-framework and then add a new constraint type "guarantee-minimum",
-but I don't think we need some generic solution for this specific case.
-You can override OPPs from board dts and add some margin
-on top of nominal voltages if bad PMIC is used.
-
->
-> How does this translate to dts definition? As you stated, with 5%
-> variance(b), the call will become min_uV=1.14V max_uV=1.26V when
-> the tolerance translation is done. with (a) and (c) tolernace value
-> chooses a different value.
->
-> In short,
-> a) we need to be able to describe in some form the assumption for
-> board variances in the OPP voltage in the SoC data manual.
-> b) we need some way for board/PMIC definitions to be able to influence
-> and adjust for assumption.
-
-Why do we need this?
-Most board designs has a proper PMIC that matches SoC tolerance requirements.
-Is there any example where PMIC tolerance is less than required by SoC?
-
->
-> This is what I believe is achieved using voltage_tolerance.
->
->
-> regulator_set_voltage_min is not really the way to do it IMHO.
-
-What issues do you see with regulator_set_voltage_min() approach?
-
-PS: I have to sent this email from Outlook web interface :(
-Sorry if it is not formatted correctly.
-
--- 
-BR
-Taras Kondratiuk | GlobalLogic
