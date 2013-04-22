@@ -1,122 +1,66 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [RFC/PATCHv2 5/5] arm: omap2+: omap_device: remove no_idle_on_suspend
-Date: Mon, 22 Apr 2013 17:14:26 +0300
-Message-ID: <517545C2.3080006@ti.com>
-References: <1366638237-6880-1-git-send-email-sourav.poddar@ti.com> <1366638237-6880-6-git-send-email-sourav.poddar@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2 1/5] driver: tty: serial: Move "uart_console" def to
+ core header file.
+Date: Mon, 22 Apr 2013 17:30:10 +0300
+Message-ID: <20130422143010.GA7508@arwen.pp.htv.fi>
+References: <1366638237-6880-1-git-send-email-sourav.poddar@ti.com>
+ <1366638237-6880-2-git-send-email-sourav.poddar@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37269 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753233Ab3DVOP1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Apr 2013 10:15:27 -0400
-In-Reply-To: <1366638237-6880-6-git-send-email-sourav.poddar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1366638237-6880-2-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Sourav Poddar <sourav.poddar@ti.com>
 Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-On 04/22/2013 04:43 PM, Sourav Poddar wrote:
-> Remove the "OMAP_DEVICE_NO_IDLE_ON_SUSPEND" check, since
-> driver should be able to prevent idling of an omap device
-> whenever required.
->
+--Nq2Wo0NMKNjxTN9z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Apr 22, 2013 at 07:13:53PM +0530, Sourav Poddar wrote:
+> Move "uart_console" definition to serial core header file, so that it can=
+ be
+> used by serial drivers.
+> Get rid of the uart_console defintion from mpc52xx_uart driver.
+>=20
+>=20
 > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > Cc: Felipe Balbi <balbi@ti.com>
 > Cc: Rajendra nayak <rnayak@ti.com>
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
 > Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
-> Hi Kevin,
->
-> I have put this as an RFC, due to few comments on cover letter of
-> the previous version by Grygorii Strashko.
-> As, he has mentioned that there are Audio playback use cases which
-> also requires "no_idle_on_suspend" and using them on mainline after
-> this series can cause regression.
->
-> What you think will be the right approach on this in relation to this patch?
-> I mean every driver(if possible) should  prevent
-> runtime PM for no_idle_on_suspend usecase and we get
-> rid of this OMAP_DEVICE_NO_IDLE_ON_SUSPEND check? OR we should
-> drop this patch as of now?
->
-> Hi Grygorii,
->
-> Is it possible to handle ABE no_idle_on_suspend uscase the way I am
-> trying to handle it for UART in the 2nd patch of this series?
-Unfortunately, I don't know ASOC details (my part is PM),  but from the 
-first look it
-will be not easy, because map4-dmic have no Runtime PM handlers at all, 
-for example ((
->
->   arch/arm/mach-omap2/omap_device.c |   12 +++---------
->   arch/arm/mach-omap2/omap_device.h |   10 ----------
->   2 files changed, 3 insertions(+), 19 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-> index 381be7a..2043d71 100644
-> --- a/arch/arm/mach-omap2/omap_device.c
-> +++ b/arch/arm/mach-omap2/omap_device.c
-> @@ -170,9 +170,6 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
->   			r->name = dev_name(&pdev->dev);
->   	}
->   
-> -	if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
-> -		omap_device_disable_idle_on_suspend(pdev);
-> -
->   	pdev->dev.pm_domain = &omap_device_pm_domain;
->   
->   odbfd_exit1:
-> @@ -620,11 +617,9 @@ static int _od_suspend_noirq(struct device *dev)
->   	ret = pm_generic_suspend_noirq(dev);
->   
->   	if (!ret && !pm_runtime_status_suspended(dev)) {
-> -		if (pm_generic_runtime_suspend(dev) == 0) {
-> -			if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
-> -				omap_device_idle(pdev);
-> +		if (pm_generic_runtime_suspend(dev) == 0)
-> +			omap_device_idle(pdev);
->   			od->flags |= OMAP_DEVICE_SUSPENDED;
-> -		}
->   	}
->   
->   	return ret;
-> @@ -638,8 +633,7 @@ static int _od_resume_noirq(struct device *dev)
->   	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
->   	    !pm_runtime_status_suspended(dev)) {
->   		od->flags &= ~OMAP_DEVICE_SUSPENDED;
-> -		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
-> -			omap_device_enable(pdev);
-> +		omap_device_enable(pdev);
->   		pm_generic_runtime_resume(dev);
->   	}
->   
-> diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
-> index 044c31d..17ca1ae 100644
-> --- a/arch/arm/mach-omap2/omap_device.h
-> +++ b/arch/arm/mach-omap2/omap_device.h
-> @@ -38,7 +38,6 @@ extern struct dev_pm_domain omap_device_pm_domain;
->   
->   /* omap_device.flags values */
->   #define OMAP_DEVICE_SUSPENDED		BIT(0)
-> -#define OMAP_DEVICE_NO_IDLE_ON_SUSPEND	BIT(1)
->   
->   /**
->    * struct omap_device - omap_device wrapper for platform_devices
-> @@ -101,13 +100,4 @@ static inline struct omap_device *to_omap_device(struct platform_device *pdev)
->   {
->   	return pdev ? pdev->archdata.od : NULL;
->   }
-> -
-> -static inline
-> -void omap_device_disable_idle_on_suspend(struct platform_device *pdev)
-> -{
-> -	struct omap_device *od = to_omap_device(pdev);
-> -
-> -	od->flags |= OMAP_DEVICE_NO_IDLE_ON_SUSPEND;
-> -}
-> -
->   #endif
 
+looks alright
+
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+
+--=20
+balbi
+
+--Nq2Wo0NMKNjxTN9z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRdUlyAAoJEIaOsuA1yqRESEsP/30PjrZ0cfRwE0stjnBoOQNn
+gv+w/J8SFrInpDlFhs9OrC4uLSSZUNb1st76Idnyajz6hmxbFvLj5rvN91dMNU9r
+Lq1tjGETxjDYIRR3UlQEB+H098OO5Ta3CvMdie/fq5xguekPQIxtvoBwYNx0UtPh
+5VaW43IOrEhaUQw52jcgIRma860GD8/5h0G/Kdv1y/SK4Nw+se1YoSKUZwE7zlNU
+ZALPERo+kPymf0zswpKi2AkRafKYF6eEfzFqogVwPHHB9mE3x1zPUM8yMbxH5NDM
+282ouvDRd0ZA7gqz0H5RnINYq8S3NPUYYWXuzVp+NGFyX9FE4D2NAHAevLcVDopF
+3uwqMNvirt63g0aSZPf5TFoxODCYPGFx43CfwJkX3KLf5kB4D3Eq5zJmla0KEIE1
+D0AH4Vk/z3/YEmCE8coiSuDDigz9mLeifF+WbeTKhrAHWuMBs6ixPN5smKw9kQFH
+ViPNfV3Uge3/DbbtGRmEvcrsz2570Qz59l4QQ4BK3qXqff7jQ5NBgla3KQ6WwOpy
+RZpMXIXWXsVexsbk9Yg3aUY1tgNu0NXXtca+IJMHRa2jJdp2Z44lhSs8CQHtn/wQ
+yIO7Qo/UMx0LntDbO+iAiW53rsUegBP6Po5/l5raQ5AMBNKyRC8y9o/vMzI0/n9J
+xdCtps2hsIWht+arz4ko
+=xpms
+-----END PGP SIGNATURE-----
+
+--Nq2Wo0NMKNjxTN9z--
