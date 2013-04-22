@@ -1,63 +1,88 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: Multiple issues with omap4 panda es in linux next
-Date: Mon, 22 Apr 2013 11:03:17 -0700
-Message-ID: <20130422180316.GA10155@atomide.com>
+Date: Mon, 22 Apr 2013 11:08:22 -0700
+Message-ID: <20130422180822.GB10155@atomide.com>
 References: <20130419171318.GK10155@atomide.com>
- <5174F7A8.7070308@ti.com>
+ <5174FE16.6080307@ti.com>
+ <51750FF8.6000401@ti.com>
+ <51752B48.50700@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13311 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753888Ab3DVSDV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Apr 2013 14:03:21 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:21609 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754472Ab3DVSI1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Apr 2013 14:08:27 -0400
 Content-Disposition: inline
-In-Reply-To: <5174F7A8.7070308@ti.com>
+In-Reply-To: <51752B48.50700@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>
 
-* Kishon Vijay Abraham I <kishon@ti.com> [130422 01:46]:
-> Hi,
+* Grygorii Strashko <grygorii.strashko@ti.com> [130422 05:27]:
+> On 04/22/2013 01:24 PM, Tomi Valkeinen wrote:
+> >On 2013-04-22 12:08, Tomi Valkeinen wrote:
+> >>On 2013-04-19 20:13, Tony Lindgren wrote:
+> >>
+> >>>3. DSS fails with DT booting
+> >>>
+> >>>Works with legacy booting but fails with DT. I'm almost certain
+> >>>the DT booting was working last week or so?
+> >>>
+> >>>This is what I now get with DT booting:
+> >>>
+> >>>omapdss DSI error: can't get VDDS_DSI regulator
+> >>>omapdss HDMI error: can't get VDDA_HDMI_DAC regulator
+> >>>omapdss HDMI error: device hdmi init failed: -517
+> >>>omapdss CORE error: driver probe failed: -22
+> >>>...
+> >>I think this is the issue Christoph Fritz reported earlier, DSS is being
+> >>initialized before TWL, and thus DSS doesn't find the regulators.
+> >>
+> >>The proper fix is of course to make DSS support EPROBE_DEFER, but that's
+> >>easier said than done. I'll have a look if I can get it working enough
+> >>to fix this issue.
+> >Yes, it seems delayed regulator initialization brought up this issue.
+> >
+> >I hacked DSI driver of omapdss and Taal panel driver to somewhat work
+> >with EPROBE_DEFER. But then the issue was with omapfb.
+> >
+> >omapfb is currently set to start at late_initcall, so that omapdss and
+> >panels are loaded before omapfb. But even that's not late enough to get
+> >the regulators for omapdss. It seems the regulators get also initialized
+> >at the late_initcall level. Changing omapfb to late_initcall_sync was
+> >late enough to get things working.
+> >
+> >Again, making omapdss, panel drivers and omapfb support EPROBE_DEFER and
+> >dynamic panel driver insertion is the proper fix, but it's a big job,
+> >and there are "interesting" issues with it (like how to know if a panel
+> >device will ever get a driver loaded).
+> >
+> >But is there something wrong with the TWL and regulators? late_initcall
+> >sounds rather late for such a core resource. Even if all drivers
+> >supported EPROBE_DEFER, won't it cause extra delays in the boot as
+> >drivers are getting probed multiple times?
+> >
+> >As for fixing the DSS problem for 3.10, I don't have any ideas except
+> >pure hacks. I'll continue studying this.
+> Hi Tomi,
+> twl is not initialized because of I2C,
+> I2C is not initialized because of pinctrl-single,
+> pinctrl-single is initialized at mudule/device init time.
+> So, most everything will be shifted at late_initcall time.
 > 
-> On Friday 19 April 2013 10:43 PM, Tony Lindgren wrote:
-> >Hi all,
-> >
-> >Here's a list of breakage I've noticed so far while trying to
-> >use linux next on my pandaboard es. Probably similar issues exist
-> >on other boards as well.
-> >
-> >Ideally we would not have any breakage by the merge window, so
-> >let's try to get these fixed ASAP:
-> >
-> >1. Serial console broken on panda es booting with DT
-> >
-> >The symptoms are dmesg output stopping after few lines
-> >and only continuing after pressing a key. Does not seem to
-> >happen on blaze with DT for some reason. And does not happen
-> >on panda es with legacy booting.
-> >
-> >2. MUSB fails with legacy booting and DT on panda es
-> >
-> >With both legacy and DT booting I get something like:
-> >
-> >HS USB OTG: no transceiver configured
-> >musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
-> 
-> The dt should work fine with https://patchwork.kernel.org/patch/2423061/.
+> Hack that sequence is here - https://patchwork.kernel.org/patch/2444501/
 
-OK thanks for checking that.
- 
-> But non-dt has got a real issue. We were using usb_bind_phy() for
-> binding the controller with the PHY (we use device names). But in
-> linux-next the device names have changed because of using
-> PLATFORM_DEVID_AUTO. We can modify the usb_bind_phy() calls to use
-> the new device names, But I suspect the device names can change
-> again. Not sure what we can do here :-(
+Hmm I'm pretty sure the LCD was working on panda with DT
+few weeks ago?
 
-Let's do a minimal fix for v3.10. Then we'll make omap4 DT only for
-v3.11 and that problem is solved for good.
+In any case, all those drivers should be just module_init
+so we get out of the race to bottom to initialize drivers
+early. Pinctrl is already before i2c in drivers/Makefile.
+
+I suspect there may be some recent regression that has
+happened in linux next over past few weeks.
 
 Regards,
 
