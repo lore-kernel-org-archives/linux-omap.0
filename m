@@ -1,53 +1,64 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 0/4] ARM: dts: Add USB host support for Panda and Beagle-xm
-Date: Mon, 22 Apr 2013 10:10:51 +0300
-Message-ID: <5174E27B.5090808@ti.com>
-References: <1366365457-28972-1-git-send-email-rogerq@ti.com> <20130419154321.GG10155@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: Multiple issues with omap4 panda es in linux next
+Date: Mon, 22 Apr 2013 10:49:31 +0300
+Message-ID: <20130422074931.GH10536@arwen.pp.htv.fi>
+References: <20130419171318.GK10155@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130419154321.GG10155@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: b-cousson@ti.com, nm@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, "B, Ravi" <ravibabu@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NzX0AQGjRQPusK/O"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47246 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754645Ab3DVHuC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Apr 2013 03:50:02 -0400
+Content-Disposition: inline
+In-Reply-To: <20130419171318.GK10155@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>
 
-On 04/19/2013 06:43 PM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [130419 03:02]:
->> Hi Benoit/Tony
->>
->> I've consolidated all the USB host device tree patches for Panda and Beagles
->> to one place and addressed Tony's comments.
->>
->> NOTE: patch 1 depends on OMAP clock binding introduced in
->> https://lkml.org/lkml/2013/4/12/407
->>
->> v3:
->> - updated mux mode to use pulldowns on panda as non-DT boot uses pulldowns.
->> - fixed usb pin naming for panda, beagle and beagle-xm
-> 
-> Cool. Sounds like we should be able to make omap4 DT only for v3.11
+--NzX0AQGjRQPusK/O
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-when we say DT only for 3.11, does this mean getting rid of hwmod dependency?
+Hi,
 
-> then. For that we also need USB on 4430-sdp working, but it now
-> does:
-> 
-> ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
-> ehci-omap 4a064c00.ehci: failed to get phys phandle in /ocp/usbhshost@4a064000/ehci@4a064c00 node
-> ehci-omap 4a064c00.ehci: failed to get phys phandle in /ocp/usbhshost@4a064000/ehci@4a064c00 node
-> ...
+On Fri, Apr 19, 2013 at 10:13:19AM -0700, Tony Lindgren wrote:
+> 2. MUSB fails with legacy booting and DT on panda es
+>=20
+> With both legacy and DT booting I get something like:
+>=20
+> HS USB OTG: no transceiver configured
+> musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
 
-4430-sdp (Blaze) does not have EHCI USB Host port. It should be using the 
-MUSB OTG port.
-> 
-> As I have mine in a rack I don't have anything plugged into the
-> USB port there though, but sounds like the phy is not initialized?
-> 
+well, enable a transceiver :-p
 
-+Ravi B.
-He might have some clues.
+--=20
+balbi
 
-cheers,
--roger
+--NzX0AQGjRQPusK/O
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRdOuLAAoJEIaOsuA1yqRESuYP/3bAmMlFl20JMRqhVZn8KdTB
+EtIy/K8xU8aGQTaxNOSDm5U/4YdisDkfiJkTcsJ1y4kAPITpf4cZjVZKKPdLbF6u
+wlSh7fkV6oKYxSoq4bWctA+KjdjcFZxCpRD/qcf7kS/b/RKvNQ8jfTM4Vr6WOEP2
+VJcELYHlWlFyzAk92fxV0njaN2/a3ZfzgIv/i7mwmKgxYp84H7tV8CEcbgYQqww7
+MhRk1YjkjxskFWLhgb7TgzC6MQJWELnUazd6Tl1z4hF+sHtBRTOuSSHMuy8R+i/f
+T/0uJ0kI2kJ0hYPMM04GUNXyzxma4O7sR7l4D6AMopBtO7X78XPdAW/gjrgqs6e1
+XzY0T4zvI3+S+nn8P9J6kvCGlqp557snPotG1JFdHpH4opij4Oe1abyjdv+vplWU
+I5R9+5p9ResLwpwM/FahmsTQVPA0ZWToqoYcIHu4jzYia09RgG5L26Jfnu6Bw4lj
+Dxf1oxvovBYlXDNxQy0rpwd2vACeDgTX0Gux8fq4oq7dkSz82OBKYFTIdks/RJ6e
+i52dumZ6ZMvso2QuetyiAeIhumEBd2ULWCqrxMXJDxzcdC/z9JhKvXJX5qQ2lURt
+yvbPyN1jbTvH1zKjCvtPfO2J81EtlrZFdMJk4MH/r7oIA/pETAH/VX6f8//tTHKu
+/ZSXbkGbXOwUcRXSCibp
+=zICf
+-----END PGP SIGNATURE-----
+
+--NzX0AQGjRQPusK/O--
