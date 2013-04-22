@@ -1,75 +1,71 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Multiple issues with omap4 panda es in linux next
-Date: Mon, 22 Apr 2013 12:08:38 +0300
-Message-ID: <5174FE16.6080307@ti.com>
-References: <20130419171318.GK10155@atomide.com>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: MTD : cannot reserve enough PEBs for bad PEB handling
+Date: Mon, 22 Apr 2013 10:38:46 +0100
+Message-ID: <51750526.70508@newflow.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig8B561FB1F4CE59A19294C863"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40771 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753240Ab3DVJIp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Apr 2013 05:08:45 -0400
-In-Reply-To: <20130419171318.GK10155@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>
-
---------------enig8B561FB1F4CE59A19294C863
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+Cc: dedekind1@gmail.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
-On 2013-04-19 20:13, Tony Lindgren wrote:
+I'm trying to work out how to generate a "valid" UBI image, but I keep
+getting a "cannot get enough PEBs" warning.
 
-> 3. DSS fails with DT booting
->=20
-> Works with legacy booting but fails with DT. I'm almost certain
-> the DT booting was working last week or so?
->=20
-> This is what I now get with DT booting:
->=20
-> omapdss DSI error: can't get VDDS_DSI regulator
-> omapdss HDMI error: can't get VDDA_HDMI_DAC regulator
-> omapdss HDMI error: device hdmi init failed: -517
-> omapdss CORE error: driver probe failed: -22
-> ...
+I generate my image (destined for a 64MB NAND partition) using:-
 
-I think this is the issue Christoph Fritz reported earlier, DSS is being
-initialized before TWL, and thus DSS doesn't find the regulators.
+$ mkfs.ubifs -d output/target -e 0x1f000 -c 483 -m 0x800 -x none -F -o
+output/images/rootfs.ubifs
+$ ubinize -o output/images/rootfs.ubi -m 0x800 -p 0x20000 -s 512 -O 2048
+ubinize.cfg
 
-The proper fix is of course to make DSS support EPROBE_DEFER, but that's
-easier said than done. I'll have a look if I can get it working enough
-to fix this issue.
+My .cfg file is:-
 
- Tomi
+[ubifs]
+mode=ubi
+vol_id=0
+vol_type=dynamic
+vol_name=rootfs
+vol_alignment=1
+vol_flags=autoresize
+vol_size=61MiB
+image=output/images/rootfs.ubifs
 
+And the resulting image is:-
 
+-rw-rw-r-- 1 mpfj mpfj 9437184 Apr 16 10:19 rootfs.ubi
 
---------------enig8B561FB1F4CE59A19294C863
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+This is then written to a freshly erased 64MB NAND partition, and
+appears to mount correctly, apart from the warning about not enough
+reserved PEBs, as follows:-
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
+...
+[    0.792456] UBI: attaching mtd7 to ubi0
+[    1.540858] UBI: scanning is finished
+[    1.557578] UBI warning: print_rsvd_warning: cannot reserve enough
+PEBs for bad PEB handling, reserved 4, need 40
+[    1.561346] UBI: attached mtd7 (name "rootfs", size 64 MiB) to ubi0
+[    1.561404] UBI: PEB size: 131072 bytes (128 KiB), LEB size: 126976 bytes
+[    1.561434] UBI: min./max. I/O unit sizes: 2048/2048, sub-page size 512
+[    1.561464] UBI: VID header offset: 2048 (aligned 2048), data offset:
+4096
+[    1.561493] UBI: good PEBs: 512, bad PEBs: 0, corrupted PEBs: 0
+[    1.561520] UBI: user volume: 1, internal volumes: 1, max. volumes
+count: 128
+[    1.561554] UBI: max/mean erase counter: 2/1, WL threshold: 4096,
+image sequence number: 1434266085
+[    1.561591] UBI: available PEBs: 0, total reserved PEBs: 512, PEBs
+reserved for bad PEB handling: 4
+[    1.562374] UBI: background thread "ubi_bgt0d" started, PID 598
+...
 
-iQIcBAEBAgAGBQJRdP4WAAoJEPo9qoy8lh71WZAP/jwgoFOKba5HUV5eElP1JuXC
-F0Dyk03W/oquTnTblSDd253PLu199NOxTYImiLsAwUImwQtly9H485Q9ClsI1l8m
-HP6MMKXNmoq9EFqguLn9PxRz2xqPInR2xocjcxYZs4//YWcn2EMojviVad7zdzEG
-JTwGNatZZEHiT1vRwLqgJzJIUvqI9T9C/TOCJiFaCIvaNqI+w1lpXS4NZMqwIqUo
-uvQdbbW98kiyXZGSMCx3s5hgsDg1o4o+xGIN55Os4DStqrMkeWv+xNTp+UmlxlJp
-ztBL6IubXsrXnO+mB1ld427jOeY43c8BD6ARsfo762f6Yzlo1R5BAQls2NovYlAz
-p7E+ydES+xU5U8pjVoG7SEJcXAl8xIQuWAHpob3tHaCs+s+jkDhOa7djTZLxJb8O
-BT9zjNqaYHHsoqpHX5FcIsoC2VzpkGSC4CJpe3n07BlqZ4sMq5b4ljMvaO4pDYxh
-u5QZzXmAA8tZHDt1hEkN0KnoI9Ceajbd6of687CAhdvg+KvRLuC2Nccu23RkJGyr
-EQGhdc4DTEVFk07vMkr/QgVjIo9hP4Yjw4Z7ryIm0xnara5C7onAkNsBNeRfzvJg
-yhMSq2VH6V/D3wIvPpqjz9EnjBLXoJVLgc1mN6wxp0fz9DkbNx/fZrlbDTn1NTd7
-7WpIZPGFKaH2MLS1ctAm
-=7/ll
------END PGP SIGNATURE-----
+I think I've calculated the various option values correctly for
+mkfs.ubifs and ubinize.
 
---------------enig8B561FB1F4CE59A19294C863--
+But since I'm getting the warning, can anyone explain where I've gone
+wrong ?
+
+Thanks in advance
+Mark J.
