@@ -1,66 +1,82 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv2 1/5] driver: tty: serial: Move "uart_console" def to
- core header file.
-Date: Mon, 22 Apr 2013 17:30:10 +0300
-Message-ID: <20130422143010.GA7508@arwen.pp.htv.fi>
+Subject: Re: [PATCHv2 2/5] driver: serial: omap: prevent runtime PM for
+ "no_console_suspend"
+Date: Mon, 22 Apr 2013 17:31:36 +0300
+Message-ID: <20130422143136.GB7508@arwen.pp.htv.fi>
 References: <1366638237-6880-1-git-send-email-sourav.poddar@ti.com>
- <1366638237-6880-2-git-send-email-sourav.poddar@ti.com>
+ <1366638237-6880-3-git-send-email-sourav.poddar@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="DKU6Jbt7q3WqK7+M"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49974 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752844Ab3DVOcS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Apr 2013 10:32:18 -0400
 Content-Disposition: inline
-In-Reply-To: <1366638237-6880-2-git-send-email-sourav.poddar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+In-Reply-To: <1366638237-6880-3-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
---Nq2Wo0NMKNjxTN9z
+--DKU6Jbt7q3WqK7+M
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Apr 22, 2013 at 07:13:53PM +0530, Sourav Poddar wrote:
-> Move "uart_console" definition to serial core header file, so that it can=
- be
-> used by serial drivers.
-> Get rid of the uart_console defintion from mpc52xx_uart driver.
+Hi,
+
+On Mon, Apr 22, 2013 at 07:13:54PM +0530, Sourav Poddar wrote:
+> The driver manages "no_console_suspend" by preventing runtime PM
+> during the suspend path, which forces the console UART to stay awake.
 >=20
->=20
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Rajendra nayak <rnayak@ti.com>
 > Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> ---
+>  drivers/tty/serial/omap-serial.c |    5 ++++-
+>  1 files changed, 4 insertions(+), 1 deletions(-)
+>=20
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-s=
+erial.c
+> index 08332f3..640b14e 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -1582,7 +1582,7 @@ static int serial_omap_runtime_suspend(struct devic=
+e *dev)
+>  	struct uart_omap_port *up =3D dev_get_drvdata(dev);
+>  	struct omap_uart_port_info *pdata =3D dev->platform_data;
+> =20
+> -	if (!up)
+> +	if (!up || (!console_suspend_enabled && uart_console(&up->port)))
+>  		return -EINVAL;
 
-looks alright
-
-Reviewed-by: Felipe Balbi <balbi@ti.com>
+-EBUSY would be a better value for uart_console case, so this check
+should be splitted accordingly. Likewise on second hunk.
 
 --=20
 balbi
 
---Nq2Wo0NMKNjxTN9z
+--DKU6Jbt7q3WqK7+M
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRdUlyAAoJEIaOsuA1yqRESEsP/30PjrZ0cfRwE0stjnBoOQNn
-gv+w/J8SFrInpDlFhs9OrC4uLSSZUNb1st76Idnyajz6hmxbFvLj5rvN91dMNU9r
-Lq1tjGETxjDYIRR3UlQEB+H098OO5Ta3CvMdie/fq5xguekPQIxtvoBwYNx0UtPh
-5VaW43IOrEhaUQw52jcgIRma860GD8/5h0G/Kdv1y/SK4Nw+se1YoSKUZwE7zlNU
-ZALPERo+kPymf0zswpKi2AkRafKYF6eEfzFqogVwPHHB9mE3x1zPUM8yMbxH5NDM
-282ouvDRd0ZA7gqz0H5RnINYq8S3NPUYYWXuzVp+NGFyX9FE4D2NAHAevLcVDopF
-3uwqMNvirt63g0aSZPf5TFoxODCYPGFx43CfwJkX3KLf5kB4D3Eq5zJmla0KEIE1
-D0AH4Vk/z3/YEmCE8coiSuDDigz9mLeifF+WbeTKhrAHWuMBs6ixPN5smKw9kQFH
-ViPNfV3Uge3/DbbtGRmEvcrsz2570Qz59l4QQ4BK3qXqff7jQ5NBgla3KQ6WwOpy
-RZpMXIXWXsVexsbk9Yg3aUY1tgNu0NXXtca+IJMHRa2jJdp2Z44lhSs8CQHtn/wQ
-yIO7Qo/UMx0LntDbO+iAiW53rsUegBP6Po5/l5raQ5AMBNKyRC8y9o/vMzI0/n9J
-xdCtps2hsIWht+arz4ko
-=xpms
+iQIcBAEBAgAGBQJRdUnIAAoJEIaOsuA1yqRE0AQP/2SzcP5BIHTwNyTVuwa+/YpW
+aqkJe33D15IfwjtJfMDFAxFPwSAd42CLIT/MTgHp2z2CcWPG5SYjk9VXt9Q1e2K6
+/uu9/vBoHsKM6wJ8u5O/INpwNvPplEyUQlB06ZszojTP6aOD495MC5qUi6Gavtb5
+FMdLLO6go4aem0T7HWNz6m1geNO1zlAytp3goQu5UKpDPFXkMq6pkkKPjNd1Zo6E
+2jlg271wDM/lVTJWaO0vHVQRhdd1hA2id0CI7BBbQxKM9Rxb88wlwmRgutoulApr
+9fnkcSMPGF4eC+gRvFTCiFNUIOEeP/PARLROREv9yLaQeQJmSy/TcGAgRgobZiCt
+5U/+wLIy1+lYM3FTuQy0q/+Y8uvSoFR+oG02iECkyPmCs1Nly/Jxn0BZFzV3NWCl
+nPc3KRAZdIIzf4WfcevCRqeI7L4+CbES4V7WAU9La9k0rb95ruc51GdaqK6s4PSs
+VGoJEkxZnKBTymSa0rmgnqLUdM6vq5ZApN0bEJA3QbfdqUT88MbjawM3RN+heyhQ
+QrrFJELubavFMFY0NLb0S05maN8n5178m7D9qaQ395eGlzcI52ysog2onIZ/0TZo
+pCWF8C1AsMsHjDJG1rIBMked0B/UuMBKBkfvAz7WuxxET/cE3YTC2C+RXp04CN1k
+CbbQb/CuJAHlMVlASIPp
+=NxG/
 -----END PGP SIGNATURE-----
 
---Nq2Wo0NMKNjxTN9z--
+--DKU6Jbt7q3WqK7+M--
