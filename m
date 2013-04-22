@@ -1,56 +1,30 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: Multiple issues with omap4 panda es in linux next
-Date: Mon, 22 Apr 2013 14:11:12 +0530
-Message-ID: <5174F7A8.7070308@ti.com>
-References: <20130419171318.GK10155@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Subject: [PATCH v3] gpio/omap: implement irq mask/disable with proper
+Date: Mon, 22 Apr 2013 10:54:20 +0200
+Message-ID: <1366620861-5489-1-git-send-email-andreas.fenkart@streamunlimited.com>
+References: <51728BA6.1090800@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60463 "EHLO bear.ext.ti.com"
+Received: from mout.gmx.net ([212.227.17.21]:50028 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755037Ab3DVIlY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Apr 2013 04:41:24 -0400
-In-Reply-To: <20130419171318.GK10155@atomide.com>
+	id S1753099Ab3DVIyg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Apr 2013 04:54:36 -0400
+Received: from mailout-de.gmx.net ([10.1.76.34]) by mrigmx.server.lan
+ (mrigmx002) with ESMTP (Nemesis) id 0MY1JW-1TzHZo422C-00UuZt for
+ <linux-omap@vger.kernel.org>; Mon, 22 Apr 2013 10:54:33 +0200
+In-Reply-To: <51728BA6.1090800@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>
+To: santosh.shilimkar@ti.com
+Cc: khilman@deeprootsystems.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org, daniel@zonque.org, jon-hunter@ti.com, Andreas Fenkart <andreas.fenkart@streamunlimited.com>
 
-Hi,
+Added kernel doc for mask/unmask, disable/enable functions.
 
-On Friday 19 April 2013 10:43 PM, Tony Lindgren wrote:
-> Hi all,
->
-> Here's a list of breakage I've noticed so far while trying to
-> use linux next on my pandaboard es. Probably similar issues exist
-> on other boards as well.
->
-> Ideally we would not have any breakage by the merge window, so
-> let's try to get these fixed ASAP:
->
-> 1. Serial console broken on panda es booting with DT
->
-> The symptoms are dmesg output stopping after few lines
-> and only continuing after pressing a key. Does not seem to
-> happen on blaze with DT for some reason. And does not happen
-> on panda es with legacy booting.
->
-> 2. MUSB fails with legacy booting and DT on panda es
->
-> With both legacy and DT booting I get something like:
->
-> HS USB OTG: no transceiver configured
-> musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
+Andreas Fenkart (1):
+  gpio/omap: implement irq mask/disable with proper semantic.
 
-The dt should work fine with https://patchwork.kernel.org/patch/2423061/.
+ drivers/gpio/gpio-omap.c |   69 ++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 60 insertions(+), 9 deletions(-)
 
-But non-dt has got a real issue. We were using usb_bind_phy() for 
-binding the controller with the PHY (we use device names). But in 
-linux-next the device names have changed because of using 
-PLATFORM_DEVID_AUTO. We can modify the usb_bind_phy() calls to use the 
-new device names, But I suspect the device names can change again. Not 
-sure what we can do here :-(
+-- 
+1.7.10.4
 
-Thanks
-Kishon
