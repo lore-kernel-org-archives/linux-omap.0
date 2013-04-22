@@ -1,115 +1,73 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [RFC/PATCHv2 5/5] arm: omap2+: omap_device: remove no_idle_on_suspend
-Date: Mon, 22 Apr 2013 19:13:57 +0530
-Message-ID: <1366638237-6880-6-git-send-email-sourav.poddar@ti.com>
-References: <1366638237-6880-1-git-send-email-sourav.poddar@ti.com>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: Re: [PATCH 0/3] Dual EMAC mode implementation of CPSW
+Date: Mon, 22 Apr 2013 15:07:35 +0100
+Message-ID: <51754427.7000908@newflow.co.uk>
+References: <1360612340-9266-1-git-send-email-mugunthanvnm@ti.com> <516B0098.4040809@mimc.co.uk> <516C33D2.4050105@ti.com> <516C38B9.50904@mimc.co.uk> <516C3A0D.70903@ti.com> <517018E6.6080108@newflow.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1366638237-6880-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <517018E6.6080108@newflow.co.uk>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Remove the "OMAP_DEVICE_NO_IDLE_ON_SUSPEND" check, since 
-driver should be able to prevent idling of an omap device
-whenever required.
+On 18/04/13 17:01, Mark Jackson wrote:
+> On 15/04/13 18:34, Mugunthan V N wrote:
+>> On 4/15/2013 10:58 PM, Mark Jackson wrote:
+>>> On 15/04/13 18:07, Mugunthan V N wrote:
+>>>> On 4/15/2013 12:46 AM, Mark Jackson wrote:
+>>>
+>>> <snip>
+>>>
+>>>>>
+>>>>> Notice that at the end, the nfs link appears to come back "ok", but
+>>>>> the "ps" command never completes.
+>>>>>
+>>>>> Any ideas of what's going on ?
+>>>>
+>>>> I have tried ping on both the interface fine. Will verify with ps again
+>>>> later in this week.
+>>>> Can you provide below details details
+>>>> - Are you using EVMsk or custom build EVM?
+>>>
+>>> This is a custom board (based on the BeagleBone design) with dual
+>>> Ethernet, NAND, NOR and FRAM.
+>>>
+>>> The dual emac thing is (one of) the last things to get signed off, so
+>>> I'm willing to assist in tracking this down.
+>>
+>> After testing the scenario i may be able to send you an update later in
+>> this week.
+> 
+> I have made some progress ... I realised I was missing a (clearly rather
+> important !!) item in my .config file, namely CONFIG_TI_DAVINCI_EMAC.
+> 
+> I am now able to ping from our board to other systems on the network
+> (again, I've only tested eth0 at the moment).
+> 
+> However, I am unable to ping everything I should be able to !!
 
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Rajendra nayak <rnayak@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
-Hi Kevin,
+<snip>
 
-I have put this as an RFC, due to few comments on cover letter of
-the previous version by Grygorii Strashko.
-As, he has mentioned that there are Audio playback use cases which 
-also requires "no_idle_on_suspend" and using them on mainline after
-this series can cause regression.
+> When the pings fail, I am unable to see *any* activity on the network
+> (using wireshark).
+> 
+> Is there anything else I should try ?
 
-What you think will be the right approach on this in relation to this patch? 
-I mean every driver(if possible) should  prevent 
-runtime PM for no_idle_on_suspend usecase and we get 
-rid of this OMAP_DEVICE_NO_IDLE_ON_SUSPEND check? OR we should
-drop this patch as of now? 
+Mugunthan
 
-Hi Grygorii,
+Can you confirm that I'm actually trying to achieve the right thing ?
 
-Is it possible to handle ABE no_idle_on_suspend uscase the way I am
-trying to handle it for UART in the 2nd patch of this series? 
+I have all along assumed that Dual EMAC mode would simply provide the
+kernel will a pair of independent Ethernet ports.
 
+All I am trying to do is to get both Ethernet ports working so I can
+have one port on (say) 10.0.x.x and the other on (say) 10.1.x.x
 
- arch/arm/mach-omap2/omap_device.c |   12 +++---------
- arch/arm/mach-omap2/omap_device.h |   10 ----------
- 2 files changed, 3 insertions(+), 19 deletions(-)
+But there is all this reference to VLANs(in the source code and the TRM)
+... I have not setup any VLANs.  Do I need to ?  If so, how ?
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 381be7a..2043d71 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -170,9 +170,6 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 			r->name = dev_name(&pdev->dev);
- 	}
- 
--	if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
--		omap_device_disable_idle_on_suspend(pdev);
--
- 	pdev->dev.pm_domain = &omap_device_pm_domain;
- 
- odbfd_exit1:
-@@ -620,11 +617,9 @@ static int _od_suspend_noirq(struct device *dev)
- 	ret = pm_generic_suspend_noirq(dev);
- 
- 	if (!ret && !pm_runtime_status_suspended(dev)) {
--		if (pm_generic_runtime_suspend(dev) == 0) {
--			if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
--				omap_device_idle(pdev);
-+		if (pm_generic_runtime_suspend(dev) == 0)
-+			omap_device_idle(pdev);
- 			od->flags |= OMAP_DEVICE_SUSPENDED;
--		}
- 	}
- 
- 	return ret;
-@@ -638,8 +633,7 @@ static int _od_resume_noirq(struct device *dev)
- 	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
- 	    !pm_runtime_status_suspended(dev)) {
- 		od->flags &= ~OMAP_DEVICE_SUSPENDED;
--		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
--			omap_device_enable(pdev);
-+		omap_device_enable(pdev);
- 		pm_generic_runtime_resume(dev);
- 	}
- 
-diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
-index 044c31d..17ca1ae 100644
---- a/arch/arm/mach-omap2/omap_device.h
-+++ b/arch/arm/mach-omap2/omap_device.h
-@@ -38,7 +38,6 @@ extern struct dev_pm_domain omap_device_pm_domain;
- 
- /* omap_device.flags values */
- #define OMAP_DEVICE_SUSPENDED		BIT(0)
--#define OMAP_DEVICE_NO_IDLE_ON_SUSPEND	BIT(1)
- 
- /**
-  * struct omap_device - omap_device wrapper for platform_devices
-@@ -101,13 +100,4 @@ static inline struct omap_device *to_omap_device(struct platform_device *pdev)
- {
- 	return pdev ? pdev->archdata.od : NULL;
- }
--
--static inline
--void omap_device_disable_idle_on_suspend(struct platform_device *pdev)
--{
--	struct omap_device *od = to_omap_device(pdev);
--
--	od->flags |= OMAP_DEVICE_NO_IDLE_ON_SUSPEND;
--}
--
- #endif
--- 
-1.7.1
-
+Cheers
+Mark J.
