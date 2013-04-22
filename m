@@ -1,60 +1,65 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH 0/2] cpufreq/regulator: Limit minimum voltage only
-Date: Mon, 22 Apr 2013 14:25:49 +0100
-Message-ID: <20130422132549.GM30351@opensource.wolfsonmicro.com>
-References: <1366372554-20866-1-git-send-email-taras@ti.com>
- <20130419162153.GA24066@kahuna>
- <F2EE74CEB87D4A44AC98442FCBF00207018E2E21@DNCE04.ent.ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EDB23C1@DBDE01.ent.ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCHv2 4/5] arm: dts: am33xx: Remove "ti,no_idle_on_suspend" property.
+Date: Mon, 22 Apr 2013 19:13:56 +0530
+Message-ID: <1366638237-6880-5-git-send-email-sourav.poddar@ti.com>
+References: <1366638237-6880-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="W4pDZ/VvazBYHhxQ"
-Return-path: <cpufreq-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EDB23C1@DBDE01.ent.ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "Kondratiuk, Taras" <taras@ti.com>, "Menon, Nishanth" <nm@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "lgirdwood@gmail.com" <lgirdwood@gmail.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>, "shawn.guo@linaro.org" <shawn.guo@linaro.org>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Strashko, Grygorii" <grygorii.strashko@ti.com>, "Tseglytskyi, Andrii" <andrii.tseglytskyi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "AnilKumar, Chimata" <anilkumar@ti.com>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1366638237-6880-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+The "ti,no_idle_on_suspend" property was required to keep ocmcram
+clocks running during idle.
 
---W4pDZ/VvazBYHhxQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+But the commit below[1], added in v3.6 should prevent the
+any automaic clock gating for devices without drivers bound.  Since
+there is no driver for the OCM RAM block, we are not affected by
+the automatic idle on suspend anyways.
+[1]:
+commit 72bb6f9b51c82c820ddef892455a85b115460904
+Author: Kevin Hilman <khilman@ti.com>
+Date:   Tue Jul 10 15:29:04 2012 -0700
 
-On Mon, Apr 22, 2013 at 06:11:12AM +0000, Bedia, Vaibhav wrote:
-> On Sat, Apr 20, 2013 at 05:54:10, Kondratiuk, Taras wrote:
+    ARM: OMAP: omap_device: don't attempt late suspend if no driver bound
 
-> that the PMIC outputs can come is either 1.25V or 1.275V. Now i think there's
-> been some confusion in the implementation phase due to things like board level
-> IR drops and variations mentioned in the PMIC datasheets which has resulted in
-> the tolerance being used both in am33xx.dtsi and then again in the cpufreq driver.
+    Currently, the omap_device PM domain layer uses the late suspend and
+    early resume callbacks to ensure devices are in their low power
+    states.
 
-Note that there is support in the regulator API for putting information
-in about voltage drops from the board to help compensate for things like
-this.  It's just a straight linear offset but it should be OK for most
-uses.
+    However, this is attempted even in cases where a driver probe has
+    failed.  If a driver's ->probe() method fails, the driver is likely in
+    a state where it is not expecting its runtime PM callbacks to be
+    called, yet currently the omap_device PM domain code attempts to call
+    the drivers callbacks.
 
---W4pDZ/VvazBYHhxQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+    To fix, use the omap_device driver_status field to check whether a
+    driver is bound to the omap_device before attempting to trigger driver
+    callbacks.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Rajendra nayak <rnayak@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-iQIcBAEBAgAGBQJRdTpWAAoJELSic+t+oim99AIP/2A3/88H1j0WU+/4HOgwMQFb
-5oS22ytwV9VBQZURzTB0goQW7b59lkU5T+Rk2XPTnxgPzKa4awsgBGS5FPTqLb0n
-hlsjYXTCRhpdzhx0XAYE5l6iboSDc26IXogfcF9aftFUULo87mh33FRgyo9Ptf8z
-5WqRaf0WdZtYRPzdkXZYFzwXmXFV7bFmDY7BumbGvCWa9NBwZYN8Ar3SnX24j8BH
-9p0vDlddjrM1qWgze1sE3r4qwml8UKdpPm4hAQBCuXwdcevfJEVOzso6FaHndcTK
-15pT8bbOtEBrlxa55uRMTD6Z3chwGzEuHTcspeFRUT4hNSlcJGeqlxx9TDgj9iFn
-SHv9aDXNO5Xl88MAyfxTjkmgnuT4C7tMkwb+FLS4fu7+aPNkFJD61jDoxeQItsr1
-WTxCf445IwVFKt1gwZa/DyRn1nkXC+k//JRhDeZKVN2eZCI9+UkUWuPhSe3YyNoh
-6+tABmHUMCDsGG0/Qm5inbtNT3OYfUg7qYeUmAu/JIE09fepeioBEiacV3BVwslc
-a5xaaPFRXIJ/OJtlp1gntWaGRukJe4e/lNHS/YJb/xWuD2co/mgjNbLbv9Rqwi6o
-iB2UPAtlAdobIg+MIzsU8aDmPKqxI9msLCsU90zh3pwRfFqgbBFatZHCXRwqXYBT
-jTZZgdw01Ld2lQRd6/5e
-=bY67
------END PGP SIGNATURE-----
-
---W4pDZ/VvazBYHhxQ--
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 74a8125..49a050e 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -394,7 +394,6 @@
+ 			compatible = "ti,am3352-ocmcram";
+ 			reg = <0x40300000 0x10000>;
+ 			ti,hwmods = "ocmcram";
+-			ti,no_idle_on_suspend;
+ 		};
+ 
+ 		wkup_m3: wkup_m3@44d00000 {
+-- 
+1.7.1
