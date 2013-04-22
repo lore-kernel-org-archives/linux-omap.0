@@ -1,80 +1,126 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCH 4/6] arm: mach-omap2: remove "OMAP_DEVICE_NO_IDLE_ON_SUSPEND"
- check
-Date: Mon, 22 Apr 2013 11:20:27 +0530
-Message-ID: <5174CFA3.6020402@ti.com>
-References: <1366198467-6757-1-git-send-email-sourav.poddar@ti.com>	<1366198467-6757-5-git-send-email-sourav.poddar@ti.com>	<87li8f4sum.fsf@linaro.org> <5170434C.7040706@ti.com>	<874nf31opn.fsf@linaro.org> <51714CCC.9090800@ti.com> <871ua6zi6w.fsf@linaro.org>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 1/6] drivers: phy: add generic PHY framework
+Date: Mon, 22 Apr 2013 11:39:57 +0530
+Message-ID: <5174D435.7080408@ti.com>
+References: <1363770725-13717-1-git-send-email-kishon@ti.com>
+ <1363770725-13717-2-git-send-email-kishon@ti.com>
+ <20130415113416.7C3943E0AA8@localhost> <516BF1E2.3020104@ti.com>
+ <20130415195030.9F7E93E0AA8@localhost> <516D255F.40604@ti.com>
+ <20130419090933.AB4253E116D@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <871ua6zi6w.fsf@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130419090933.AB4253E116D@localhost>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-usb@vger.kernel.org, mchehab@redhat.com, linux-doc@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, javier@dowhile0.org, cesarb@cesarb.net, arnd@arndb.de, eballetbo@gmail.com, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, swarren@nvidia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, gregkh@linuxfoundation.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, rob@landley.net, akpm@linux-foundation.org, davem@davemloft.net
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kevin,
-On Friday 19 April 2013 08:22 PM, Kevin Hilman wrote:
-> Sourav Poddar<sourav.poddar@ti.com>  writes:
->
-> [...]
->
->> Yes, got your point. omap_device_idle should not be called only
->> for console uart.
->>
->> Just did a quick testing by including the following hunk on top of my
->> patch series..
->>
->> diff --git a/arch/arm/mach-omap2/omap_device.c
->> b/arch/arm/mach-omap2/omap_device.c
->> index c226946..7480e87 100644
->> --- a/arch/arm/mach-omap2/omap_device.c
->> +++ b/arch/arm/mach-omap2/omap_device.c
->> @@ -617,8 +617,10 @@ static int _od_suspend_noirq(struct device *dev)
->>          ret = pm_generic_suspend_noirq(dev);
->>
->>          if (!ret&&  !pm_runtime_status_suspended(dev)) {
->> -               if (pm_generic_runtime_suspend(dev) == 0)
->> +               if (pm_generic_runtime_suspend(dev) == 0) {
->> +                       omap_device_idle(pdev);
->>                          od->flags |= OMAP_DEVICE_SUSPENDED;
->> +               }
->>          }
->>
->>          return ret;
->> @@ -631,6 +633,7 @@ static int _od_resume_noirq(struct device *dev)
->>
->>          if ((od->flags&  OMAP_DEVICE_SUSPENDED)&&
->>              !pm_runtime_status_suspended(dev)) {
->> +               omap_device_enable(pdev);
->>                  od->flags&= ~OMAP_DEVICE_SUSPENDED;
->>                  pm_generic_runtime_resume(dev);
->>          }
->> And found the wakeup from UART is no more functional.
->> So, the omap_device_idle gets called for console UART also, thereby
->> preventing the "no_idle_on_suspend" theory.
->>
->> Hence, merely putting prepare/complete callback the way I did is not
->> helping.
->> We need to delete omap_device_idle also, which I agree is not correct.
->> So, we need a way to bypass this "omap_device_idle"
->> call for console UART. ?
-> OK, I see what's happening now.
->
-> How about this: rather than using prepare/complete callbacks, can you
-> use the runtime_suspend callback to return an error code during suspend?
-Yes, that can be done.
-> (only for the console, and only when no_console_suspend is enabled, and
-> only during suspend)
->
-> Since _od_suspend_noirq checks to be sure the drivers ->runtime_suspend
-> callback succeeds before it calls omap_device_idle(), if you report a
-> failure, omap_device_idle will not be called.
->
-True.
+Hi,
 
-~Sourav
-> Kevin
+On Friday 19 April 2013 02:39 PM, Grant Likely wrote:
+> On Tue, 16 Apr 2013 15:48:07 +0530, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> On Tuesday 16 April 2013 01:20 AM, Grant Likely wrote:
+>>> On Mon, 15 Apr 2013 17:56:10 +0530, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>>> On Monday 15 April 2013 05:04 PM, Grant Likely wrote:
+>>>>> On Wed, 20 Mar 2013 14:42:00 +0530, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>>> We have decided not to implement the PHY layer as a separate bus layer.
+>>>> The PHY provider can be part of any other bus. Making the PHY layer as a
+>>>> bus will make the PHY provider to be part of multiple buses which will
+>>>> lead to bad design. All we are trying to do here is keep the pool of PHY
+>>>> devices under PHY class in this layer and help any controller that wants
+>>>> to use the PHY to get it.
+>>>
+>>> If you're using a class, then you already have your list of registered
+>>> phy devices! :-) No need to create another global list that you need to
+>>> manage.
+>>
+>> right. We already use _class_dev_iter_ for finding the phy device.
+>> .
+>> .
+>> +static struct phy *of_phy_lookup(struct device *dev, struct device_node
+>> *node)
+>> +{
+>> +	struct phy *phy;
+>> +	struct class_dev_iter iter;
+>> +
+>> +	class_dev_iter_init(&iter, phy_class, NULL, NULL);
+>> +	while ((dev = class_dev_iter_next(&iter))) {
+>> +		phy = container_of(dev, struct phy, dev);
+>> +		if (node != phy->of_node)
+>> +			continue;
+>> +
+>> +		class_dev_iter_exit(&iter);
+>> +		return phy;
+>> +	}
+>> +
+>> +	class_dev_iter_exit(&iter);
+>> +	return ERR_PTR(-EPROBE_DEFER);
+>> +}
+>> .
+>> .
+>>
+>> however we can't get rid of the other list (phy_bind_list) where we
+>> maintain the phy binding information. It's used for the non-dt boot case.
 >
+> Why? If you're using a class, then it is always there. Why would non-DT
+> and DT be different in this regard? (more below)
 >
+>>>>> Since there is at most a 1:N relationship between host controllers and
+>>>>> PHYs, there shouldn't be any need for a separate structure to describe
+>>>>> binding. Put the inding data into the struct phy itself. Each host
+>>>>> controller can have a list of phys that it is bound to.
+>>>>
+>>>> No. Having the host controller to have a list of phys wont be a good
+>>>> idea IMHO. The host controller is just an IP and the PHY to which it
+>>>> will be connected can vary from board to board, platform to platform. So
+>>>> ideally this binding should come from platform initialization code/dt data.
+>>>
+>>> That is not what I mean. I mean the host controller instance should
+>>> contain a list of all the PHYs that are attached to it. There should not
+>>
+>> Doesn't sound correct IMO. The host controller instance need not know
+>> anything about the PHY instances that is connected to it. Think of it
+>> similar to regulator, the controller wouldn't know which regulator it is
+>> connected to, all it has to know is it just has a regulator connected to
+>> it. It's up-to the regulator framework to give the controller the
+>> correct regulator. It's similar here. It makes sense for me to keep a
+>> list in the PHY framework in order for it to return the correct PHY (but
+>> note that this list is not needed for dt boot).
+>
+> With regulators and clocks it makes sense to have a global
+> registration place becase both implement an interconnected network
+> independent of the device that use them. (clocks depend on other clocks;
+> regulators depend on other regulators).
+>
+> Phys are different. There is a 1:N relationship between host controllers
+> and phys, and you don't get a interconnected network of PHYs. Its a bad
+> idea to keep the binding data separate from the actual host controller
+> when there is nothing else that actually needs to use the data. It
+> creates a new set of data structures that need housekeeping to keep them
+> in sync with the actual device structures. It really is just a bad idea
+> and it becomes more difficult (in the non-DT case) to determine what
+> data is associated with a given host controller. You can't tell by
+> looking at the struct device.
+>
+> Instead, for the non-DT case, do what we've always done for describing
+> connections. Put the phy reference into the host controllers
+> platform_data structure.
+hmm... my only concern here is there is no way we can enforce the phy 
+reference is added in the platform_data structure.
+That is what it is there for. That completely
+> eliminates the need to housekeep a new set of data structures.
+
+Ok. Makes sense.
+
+Thanks
+Kishon
