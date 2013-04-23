@@ -1,48 +1,46 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCHv2 4/5] arm: dts: am33xx: Remove "ti,no_idle_on_suspend"
- property.
-Date: Tue, 23 Apr 2013 10:23:03 +0530
-Message-ID: <517613AF.7060305@ti.com>
-References: <1366638237-6880-1-git-send-email-sourav.poddar@ti.com> <1366638237-6880-5-git-send-email-sourav.poddar@ti.com> <20130422143537.GD7508@arwen.pp.htv.fi>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: Re: [PATCH 0/3] Dual EMAC mode implementation of CPSW
+Date: Tue, 23 Apr 2013 06:11:06 +0100
+Message-ID: <517617EA.7050807@newflow.co.uk>
+References: <1360612340-9266-1-git-send-email-mugunthanvnm@ti.com> <516B0098.4040809@mimc.co.uk> <516C33D2.4050105@ti.com> <516C38B9.50904@mimc.co.uk> <516C3A0D.70903@ti.com> <517018E6.6080108@newflow.co.uk> <51754427.7000908@newflow.co.uk> <51756CF2.4050602@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20130422143537.GD7508@arwen.pp.htv.fi>
-Sender: linux-serial-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra nayak <rnayak@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mercuryimc.plus.com ([80.229.200.144]:47543 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754873Ab3DWFLI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Apr 2013 01:11:08 -0400
+In-Reply-To: <51756CF2.4050602@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>, systemprogrammierung.brunner@gmail.com
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Felipe,
-On Monday 22 April 2013 08:05 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Mon, Apr 22, 2013 at 07:13:56PM +0530, Sourav Poddar wrote:
->> The "ti,no_idle_on_suspend" property was required to keep ocmcram
->> clocks running during idle.
+On 22/04/13 18:01, Mugunthan V N wrote:
+> On 4/22/2013 7:37 PM, Mark Jackson wrote:
+>> Mugunthan
 >>
->> But the commit below[1], added in v3.6 should prevent the
->> any automaic clock gating for devices without drivers bound.  Since
->> there is no driver for the OCM RAM block, we are not affected by
->> the automatic idle on suspend anyways.
->> [1]:
->> commit 72bb6f9b51c82c820ddef892455a85b115460904
-> your commit log can be improved a bit, it could look like below:
->
-> The "ti,no_idle_on_suspend" property was required to keep ocmcram clocks
-> running during idle.
->
-> But commit 72bb6f9 (ARM: OMAP: omap_device: don't attempt late suspend
-> if no driver bound), added in v3.6 should prevent any automatic clock
-> gating for devices without drivers bound.  Since there is no driver for
-> the OCM RAM block, we are not affected by the automatic idle on suspend
-> anyways which means "ti,no_idle_on_suspend" can be safely removed since
-> there are no users for it.
->
-Looks better. Will make the necesary change in the next version.
-> other than that:
->
-> Reviewed-by: Felipe Balbi<balbi@ti.com>
->
+>> Can you confirm that I'm actually trying to achieve the right thing ?
+>>
+>> I have all along assumed that Dual EMAC mode would simply provide the
+>> kernel will a pair of independent Ethernet ports.
+> Yes, it will provide two network interfaces for ex eth0 and eth1
+>> All I am trying to do is to get both Ethernet ports working so I can
+>> have one port on (say) 10.0.x.x and the other on (say) 10.1.x.x
+> This is perfectly correct
+>> But there is all this reference to VLANs(in the source code and the TRM)
+>> ... I have not setup any VLANs.  Do I need to ?  If so, how ?
+> No need to setup any VLAN. VLAN are used to segregate the
+> two down stream ports and it will be taken care by the driver
 
+Mugunthan
+
+I now have this all working, thanks to Markus Brunner who spotted that
+the CPSW_VLAN_AWARE bit is being incorrectly set rather than cleared in
+cpsw_init_host_port().
+
+I think he will be posting a patch soon.
+
+Regards
+Mark J.
