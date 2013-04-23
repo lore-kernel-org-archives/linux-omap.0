@@ -1,47 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Multiple issues with omap4 panda es in linux next
-Date: Tue, 23 Apr 2013 16:16:06 -0700
-Message-ID: <20130423231605.GO10155@atomide.com>
-References: <20130419171318.GK10155@atomide.com>
- <5174F7A8.7070308@ti.com>
- <20130422180316.GA10155@atomide.com>
- <5176A45B.5@ti.com>
- <20130423172353.GD10155@atomide.com>
- <20130423213151.GM10155@atomide.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v3] gpio/omap: implement irq mask/disable with proper semantic.
+Date: Tue, 23 Apr 2013 16:38:38 -0700
+Message-ID: <878v486cn5.fsf@linaro.org>
+References: <51728BA6.1090800@ti.com>
+	<1366620861-5489-1-git-send-email-andreas.fenkart@streamunlimited.com>
+	<1366620861-5489-2-git-send-email-andreas.fenkart@streamunlimited.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33543 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755894Ab3DWXQK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Apr 2013 19:16:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20130423213151.GM10155@atomide.com>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:65305 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755523Ab3DWXin (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Apr 2013 19:38:43 -0400
+Received: by mail-pa0-f48.google.com with SMTP id lj1so790763pab.35
+        for <linux-omap@vger.kernel.org>; Tue, 23 Apr 2013 16:38:42 -0700 (PDT)
+In-Reply-To: <1366620861-5489-2-git-send-email-andreas.fenkart@streamunlimited.com>
+	(Andreas Fenkart's message of "Mon, 22 Apr 2013 10:54:21 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>
+To: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Cc: santosh.shilimkar@ti.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org, daniel@zonque.org, jon-hunter@ti.com
 
-* Tony Lindgren <tony@atomide.com> [130423 14:37]:
-> * Tony Lindgren <tony@atomide.com> [130423 10:28]:
-> > * Kishon Vijay Abraham I <kishon@ti.com> [130423 08:15]:
-> > > >>>2. MUSB fails with legacy booting and DT on panda es
-> > > >>>
-> > > >>>With both legacy and DT booting I get something like:
-> > > >>>
-> > > >>>HS USB OTG: no transceiver configured
-> > > >>>musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
-> > > >>
-> > > >>The dt should work fine with https://patchwork.kernel.org/patch/2423061/.
-> > > >
-> > > >OK thanks for checking that.
+Andreas Fenkart <andreas.fenkart@streamunlimited.com> writes:
 
-Kishon, I think there's also some other issue remaining
-in linux next with MUSB and DT. I'm still getting the
-"HS USB OTG: no transceiver configured" although the nop
-xceiv is compiled in. Maybe give it a try against linux
-next?
+> When a gpio interrupt is masked, the gpio event will still be latched in
+> the interrupt status register so when you unmask it later you may get an
+> interrupt straight away. However, if the interrupt is disabled then gpio
+> events occurring will not be latched/stored.
+>
+> Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
 
-Regards,
+The approach seems OK to me, but the changelog is still missing quite a
+bit of information.
 
-Tony
+I know it's been hashed over in the various threads, but the changelog
+needs all that discussion summarized.  The changelog should at least:
+
+- describe the problem/bug being fixed
+- describe the fix
+- answer "why" the approach was taken (not how.)  This part is very
+  important to reviewers and maintainers.
+- how it was tested, and on what platforms
+
+In addition, I'd like to see a description of how (or whether) this
+affects the genirq lazy disable functionality, and how it was tested.
+
+Kevin
+
