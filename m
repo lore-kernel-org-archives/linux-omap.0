@@ -1,63 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: change the device names in usb_bind_phy
-Date: Tue, 23 Apr 2013 10:36:23 -0700
-Message-ID: <20130423173623.GG10155@atomide.com>
-References: <1366697656-14315-1-git-send-email-kishon@ti.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/2] OMAP: fix boot sequence
+Date: Tue, 23 Apr 2013 20:50:52 +0300
+Message-ID: <5176C9FC.4080306@ti.com>
+References: <1366723151-23209-1-git-send-email-grygorii.strashko@ti.com> <20130423173442.GF10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1366697656-14315-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130423173442.GF10155-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [130422 23:19]:
-> After the device names are created using PLATFORM_DEVID_AUTO, the old
-> device names given in usb_bind_phy are no longer valid causing the musb
-> controller not to get the phy reference. Updated the usb_bind_phy with
-> the new device names to get MUSB functional in omap4 panda.
-
-Thanks will apply this into omap-for-v3.10/fixes.
-
-Regards,
-
-Tony
- 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
-> Tested in OMAP4 PANDA.
->  arch/arm/mach-omap2/board-4430sdp.c    |    2 +-
->  arch/arm/mach-omap2/board-omap4panda.c |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-> index 00d7290..56a9a4f 100644
-> --- a/arch/arm/mach-omap2/board-4430sdp.c
-> +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -730,7 +730,7 @@ static void __init omap_4430sdp_init(void)
->  	omap4_sdp4430_wifi_init();
->  	omap4_twl6030_hsmmc_init(mmc);
->  
-> -	usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
-> +	usb_bind_phy("musb-hdrc.2.auto", 0, "omap-usb2.3.auto");
->  	usb_musb_init(&musb_board_data);
->  
->  	status = omap_ethernet_init();
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> index a71ad34..1e2c75e 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -435,7 +435,7 @@ static void __init omap4_panda_init(void)
->  	omap_sdrc_init(NULL, NULL);
->  	omap4_twl6030_hsmmc_init(mmc);
->  	omap4_ehci_init();
-> -	usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
-> +	usb_bind_phy("musb-hdrc.2.auto", 0, "omap-usb2.3.auto");
->  	usb_musb_init(&musb_board_data);
->  	omap4_panda_display_init();
->  }
-> -- 
-> 1.7.10.4
-> 
+On 04/23/2013 08:34 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [130423 06:25]:
+>> Hi
+>>
+>> There are two public discussions now related to OMAP boot and drivers
+>> initialization issues:
+>> "Multiple issues with omap4 panda es in linux next"
+>>    http://www.spinics.net/lists/linux-omap/msg90241.html
+>> "[BUG] omap: mfd/regulator: twl/core: init order"
+>>    http://www.spinics.net/lists/linux-omap/msg89980.html
+>>
+>> In both cases there are pinctrl-single/I2C/MFD/Regulators initailization issue:
+>> - regulators are not initialized because of twl,
+>> - twl is not initialized because of I2C,
+>> - I2C is not initialized because of pinctrl-single,
+>> - pinctrl-single is initialized at mudule/device init time.
+>> So, most everything will be shifted at late_initcall time.
+>>
+>> This may cause boot delay (more over, it can broken initialization of drivers
+>> which are not ready to use deferred probe mechanism yet, for example DSS).
+>>
+>> Introduced pathes shift I2C and TWL iniialization to module/device init layer
+>> instead of subsys init layer where initialization dependencies resolved
+>> indirectly in drivers/Makefile now.
+>>
+>> Grygorii Strashko (2):
+>>    i2c: omap: convert to module_platform_driver()
+>>    mfd: twl-core: convert to module_i2c_driver()
+>>
+>>   drivers/i2c/busses/i2c-omap.c |   14 +-------------
+>>   drivers/mfd/twl-core.c        |   12 +-----------
+>>   2 files changed, 2 insertions(+), 24 deletions(-)
+> Thanks, I have few questions:
+>
+> 1. It seems that the real fix to the issues we're seeing
+>     is to make the broken drivers to support -EPROBE_DEFER?
+yes.
+>
+> 2. If so, can these be merged later on as clean-up?
+if i understand Tomi correctly, he has problems with DSS updating to use
+  -EPROBE_DEFER, so this is rather fix than clean-up.
+But need confirmation that it's true from him.
+>
+> 3. Can these two patches be merged separately without
+>     breaking things?
+I think, yes.
+>
+> Regards,
+>
+> Tony
