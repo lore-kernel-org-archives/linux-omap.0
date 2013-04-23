@@ -1,47 +1,53 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH] remove vlan tags in CPSW dual emac mode
-Date: Tue, 23 Apr 2013 22:59:34 +0530
-Message-ID: <5176C4FE.4080305@ti.com>
-References: <4699400.vD3TdgH1nR@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Multiple issues with omap4 panda es in linux next
+Date: Tue, 23 Apr 2013 10:31:07 -0700
+Message-ID: <20130423173107.GE10155@atomide.com>
+References: <20130419171318.GK10155@atomide.com>
+ <5174FE16.6080307@ti.com>
+ <51750FF8.6000401@ti.com>
+ <51752B48.50700@ti.com>
+ <20130422180822.GB10155@atomide.com>
+ <51769248.60602@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51530 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755699Ab3DWR36 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Apr 2013 13:29:58 -0400
-In-Reply-To: <4699400.vD3TdgH1nR@localhost>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:20200 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756718Ab3DWRbK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Apr 2013 13:31:10 -0400
+Content-Disposition: inline
+In-Reply-To: <51769248.60602@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Markus Brunner <systemprogrammierung.brunner@gmail.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mark Jackson <mpfj-list@newflow.co.uk>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>
 
-On 4/23/2013 9:48 PM, Markus Brunner wrote:
-> If operating in dual emac mode all packets sent by the CPSW contain vlan headers with the reserved VID 0,
-> which gets stripped away by all somewhat recent Linux versions. Operating systems without that behaviour will fail to communicate.
-> This patch fixes that behaviour by disabling the VLAN_AWARE mode as already described by the comment above.
->
-> Signed-off-by: Markus Brunner <systemprogrammierung.brunner@gmail.com>
-> Tested-by: Mark Jackson <mpfj@newflow.co.uk>
->
-> ---
-> --- linux-3.9-rc8.orig/drivers/net/ethernet/ti/cpsw.c	2013-04-23 17:26:11.000000000 +0200
-> +++ linux-3.9-rc8/drivers/net/ethernet/ti/cpsw.c	2013-04-23 17:36:25.000000000 +0200
-> @@ -751,9 +751,9 @@ static void cpsw_init_host_port(struct c
->   	/* switch to vlan unaware mode */
->   	cpsw_ale_control_set(priv->ale, priv->host_port, ALE_VLAN_AWARE,
->   			     CPSW_ALE_VLAN_AWARE);
->   	control_reg = readl(&priv->regs->control);
-> -	control_reg |= CPSW_VLAN_AWARE;
-> +	control_reg &= ~CPSW_VLAN_AWARE;
->   	writel(control_reg, &priv->regs->control);
->   	fifo_mode = (priv->data.dual_emac) ? CPSW_FIFO_DUAL_MAC_MODE :
->   		     CPSW_FIFO_NORMAL_MODE;
->   	writel(fifo_mode, &priv->host_port_regs->tx_in_ctl);
-Disabling VLAN aware mode will enable switching mode and the feature of
-separating the two down stream port is lost with this patch
-Please check TRM for more info in *14.3.2.10.2 Dual Mac Mode* chapter
+* Grygorii Strashko <grygorii.strashko@ti.com> [130423 06:59]:
+> 
+> I've posted two patches to fix I2C/TWL initialization and they should fix
+> DSS indirectly (if not - DSS need to be shifted to init later).
+> lkml.org/lkml/2013/4/23/215
+> lkml.org/lkml/2013/4/23/217
 
-Regards
-Mugunthan V N
+OK, thanks. We may want to wait a bit on those, but I'll reply to
+that thread.
+
+> In addition, It seems, possibly :), drivers/Makefile might need to
+> be changed a bit:
+> - move generic drivers framework to be initialized first ("base", "clk");
+> - move "i2c" buses initialization as early as possible (but after
+> "pinctrl" and "gpio")
+> - move "mfd" initialization before "regulators"
+> - move "video" initialization down after "regulators" (as minimum).
+
+I doubt that we want to start messing with the current ordering
+of the drivers/Makefile. That always breaks something else, and
+the real fix is to get -EPROBE_DEFER to work for us.
+
+With the DSS there are way too many dependencies to various other
+drivers to try to initialize it early. We're better off just fixing
+it to work with -EPROBE_DEFER.
+
+Regards,
+
+Tony
