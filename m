@@ -1,64 +1,100 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
-Date: Tue, 23 Apr 2013 12:53:04 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1304231243040.1679-100000@iolanthe.rowland.org>
-References: <CAFp+6iHWMqNQjKV_EQH-Zm6qKbuFwvPJZeswzNFVSSdH-VDB3Q@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap dss board clean-up for v3.10 merge window
+Date: Tue, 23 Apr 2013 10:14:38 -0700
+Message-ID: <20130423171438.GC10155@atomide.com>
+References: <20130418033936.GC10155@atomide.com>
+ <20130419184518.GA30836@quad.lixom.net>
+ <5174F593.20705@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:35433 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757044Ab3DWQxG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Apr 2013 12:53:06 -0400
-In-Reply-To: <CAFp+6iHWMqNQjKV_EQH-Zm6qKbuFwvPJZeswzNFVSSdH-VDB3Q@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35113 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756508Ab3DWROq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Apr 2013 13:14:46 -0400
+Content-Disposition: inline
+In-Reply-To: <5174F593.20705@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vivek Gautam <gautamvivek1987@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, 23 Apr 2013, Vivek Gautam wrote:
-
-> >> Alright, so here's my understanding:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [130422 01:37]:
+> On 2013-04-19 21:45, Olof Johansson wrote:
+> > Hi,
+> > 
+> > On Wed, Apr 17, 2013 at 08:39:37PM -0700, Tony Lindgren wrote:
+> >> The following changes since commit 07961ac7c0ee8b546658717034fe692fd12eefa9:
 > >>
-> >> I suggested letting e.g. DWC3 enable the PHY's runtime_pm; Alan said
-> >> that it could be done before that so that DWC3 sees an enabled PHY
-> >> during probe.
-> >
-> > Basically right.  Help me to understand the overall situation a little
-> > better:
-> >
-> >         What code registers the PHY initially?
->            PHY is added to global list by PHY drivers (like
-> phy-samsung-usb2.c/phy-omap-usb2.c)
->            by usb_add_phy() API
+> >>   Linux 3.9-rc5 (2013-03-31 15:12:43 -0700)
+> >>
+> >> are available in the git repository at:
+> >>
+> >>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/dss-signed
+> > 
+> > 
+> > Merged, but not happy about it.
+> 
+> Thanks.
+> 
+> > As mentioned on IRC, I was going to let this one be until 3.11, but it sounds
+> > like it will cause regressions in DSS if we don't merge it.
+> 
+> Yes, that's true. The branch has been unchanged and in linux-next, so
+> merging it late shouldn't cause any bigger issues. But I understand it's
+> quite late, and I should've pushed the branch forward much earlier.
+> Sorry about that.
+> 
+> > This is an indication that the work wasn't done right on the DSS rework.
+> > Ideally the old configurations through platform_data should have been left in
+> > for a release to give the boards a window to convert over without regressing
+> > functionality. Tomi, please don't do it this way in the future since it's
+> > painful for everybody to deal with.
+> 
+> I've been trying to keep everything working even if parts of the whole
+> series go through different trees. I've been very strict on that things
+> must compile, but keeping display working if only half of the series is
+> merged is rather difficult at times.
+> 
+> For this series, I think it could've been done, but it would have
+> required adding hacks, or some kind of "bool new_pdata" fields so that
+> the driver understand what to do. And duplicate code to manage the
+> different platform data versions.
+> 
+> In the near future we'll get rid of the current custom omapdss panel
+> device, and use the standard platform/i2c/etc devices for the panel. The
+> only way to do that while keeping everything running is to clone the
+> panel drivers, one handling the old one and the other handling the new one.
+> 
+> All this makes me spend lots of time doing extra work, that in no way
+> improves the driver. Its only for the purpose of getting arch changes
+> through one tree, and driver changes through the other. And this makes
+> the patches much more difficult to follow, as the related changes are in
+> separate series, and there may be extra crud just to handle this separation.
+> 
+> So while I think it is a good habit to push the arch changes and driver
+> changes separately, my question is, should that rule be followed to the
+> extreme? Can I just keep all the changes in one branch if separating the
+> arch and driver changes would end up with cloning files or lots of extra
+> code?
 
-Then this routine should initialize the PHY.  The initialized state 
-could be either active or suspended, your choice.  Suspended would be 
-best, in case the PHY never gets used.
+Shread branches are just fine. In most cases it's possible to add new
+pdata and then remove the old pdata later on with follow-up patches.
+ 
+> Of course, I don't know what DRM maintainer thinks of merging arch
+> changes through his tree, so that's also open.
 
-> >         What routine does the DWC3 driver call to register itself
-> >         as a consumer of the PHY?
->            I think DWC3 doesn't registers itself as consumer of PHY,
-> rather it gets that PHY from
->            the list using devm_usb_get_phy()/devm_usb_get_phy_by_phandle() API.
->            DWC3 can now call PHY's initialization sequence using usb_phy_init().
->            So, before DWC3 initializes the PHY, PHYs should be in active state.
+No let's not go there, Linus T already complained about the conflicts
+between drivers/net and arch/arm/*omap*/ code few merge windows ago.
+We need to remove the driver dependencies to the arch/arm code, otherwise
+the merging requires way too much work from multiple maintainers. That
+does not scale well and often leads into merge errors that could have
+been avoided in the first place.
 
-Then usb_phy_init should make sure the PHY is in the active state.  If 
-usb_add_phy() left the PHY suspended, then this routine should call 
-pm_runtime_get_sync().
+Of course the real solution here is to get things moved over to DT
+based booting and then we don't have any of these dependencies as the
+.dts changes can get merged separately from the driver changes.
 
-After DWC3 (or any other driver) has acquired the PHY, it can call
-pm_runtime_put/get() however it likes, so long as the calls balance
-properly.  If the driver isn't runtime-PM aware then it won't use any
-of these calls, and the PHY will remain active the entire time.
+Regards,
 
-> >         Likewise, what routine does it call to unregister itself?
->            Once DWC3's remove() is called PHYs are put.
-
-Is there a routine analogous to usb_phy_init() that gets called when
-PHY is released?  That routine would do the opposite of usb_phy_init(),
-putting the PHY back into its initialized state.
-
-Alan Stern
-
+Tony
