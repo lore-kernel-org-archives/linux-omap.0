@@ -1,40 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] musb regression on omap4 for v3.9
-Date: Tue, 23 Apr 2013 14:45:45 -0700
-Message-ID: <20130423214544.GN10155@atomide.com>
+Subject: Re: Multiple issues with omap4 panda es in linux next
+Date: Tue, 23 Apr 2013 16:16:06 -0700
+Message-ID: <20130423231605.GO10155@atomide.com>
+References: <20130419171318.GK10155@atomide.com>
+ <5174F7A8.7070308@ti.com>
+ <20130422180316.GA10155@atomide.com>
+ <5176A45B.5@ti.com>
+ <20130423172353.GD10155@atomide.com>
+ <20130423213151.GM10155@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59565 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753246Ab3DWVpu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Apr 2013 17:45:50 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33543 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755894Ab3DWXQK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Apr 2013 19:16:10 -0400
 Content-Disposition: inline
+In-Reply-To: <20130423213151.GM10155@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>
 
+* Tony Lindgren <tony@atomide.com> [130423 14:37]:
+> * Tony Lindgren <tony@atomide.com> [130423 10:28]:
+> > * Kishon Vijay Abraham I <kishon@ti.com> [130423 08:15]:
+> > > >>>2. MUSB fails with legacy booting and DT on panda es
+> > > >>>
+> > > >>>With both legacy and DT booting I get something like:
+> > > >>>
+> > > >>>HS USB OTG: no transceiver configured
+> > > >>>musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
+> > > >>
+> > > >>The dt should work fine with https://patchwork.kernel.org/patch/2423061/.
+> > > >
+> > > >OK thanks for checking that.
 
-The following changes since commit 31880c37c11e28cb81c70757e38392b42e695dc6:
+Kishon, I think there's also some other issue remaining
+in linux next with MUSB and DT. I'm still getting the
+"HS USB OTG: no transceiver configured" although the nop
+xceiv is compiled in. Maybe give it a try against linux
+next?
 
-  Linux 3.9-rc6 (2013-04-07 20:49:54 -0700)
+Regards,
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9-rc6/fixes-signed
-
-for you to fetch changes up to f4d7a536faa43f30d87f701268db76b8433a2a8b:
-
-  ARM: OMAP4: hwmod data: make 'ocp2scp_usb_phy_phy_48m" as the main clock (2013-04-10 13:26:07 -0700)
-
-----------------------------------------------------------------
-One MUSB regression fix that I forgot to send earlier. Without
-this MUSB no longer works on omap4 based devices.
-
-----------------------------------------------------------------
-Kishon Vijay Abraham I (1):
-      ARM: OMAP4: hwmod data: make 'ocp2scp_usb_phy_phy_48m" as the main clock
-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+Tony
