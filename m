@@ -1,38 +1,48 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RFC/PATCHv2 5/5] arm: omap2+: omap_device: remove no_idle_on_suspend
-Date: Tue, 23 Apr 2013 09:13:39 +0200
-Message-ID: <517634A3.30104@ti.com>
-References: <1366638237-6880-1-git-send-email-sourav.poddar@ti.com> <1366638237-6880-6-git-send-email-sourav.poddar@ti.com> <20130422143839.GE7508@arwen.pp.htv.fi>
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [net-next PATCH 0/3] Adding phy register fixup in DT
+Date: Tue, 23 Apr 2013 10:02:57 +0200
+Message-ID: <20130423080257.GQ32299@pengutronix.de>
+References: <1366654838-26479-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130422143839.GE7508@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Sourav Poddar <sourav.poddar@ti.com>, gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra nayak <rnayak@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1366654838-26479-1-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, davem@davemloft.net
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, Apr 22, 2013 at 11:50:35PM +0530, Mugunthan V N wrote:
+> In earlier days phy fixup was added to phy frame work in board files.
+> As there won't be any board files here after the same has to be done in DT
+> This patch series adds the following features
+> * support for adding phy resigter fixup via DT
+> * adds phy id for EVMsk n DTS file
+> * adds phy fixup for AM335x EVM and EVMsk
+> 
+> Mugunthan V N (3):
+>   drivers: of: add phy fixup support in DT
+>   ARM: dts: AM33XX: Add CPSW phy_id device tree data to am335x-evmsk
+>   ARM: dts: AM33XX: add phy fixup for evm and evmsk boards
 
-On 04/22/2013 04:38 PM, Felipe Balbi wrote:
->> Is it possible to handle ABE no_idle_on_suspend uscase the way I am
->> trying to handle it for UART in the 2nd patch of this series?=20
->=20
-> let's ask P=E9ter.
->=20
-> P=E9ter, OMAP_DEVICE_NO_IDLE_ON_SUSPEND should be removed as driver's=
- can
-> get same behavior by just returning -EBUSY from their ->runtime_suspe=
-nd
-> callbacks. Do you see any problems with patch below (left for
-> reference) ? Would it be too difficult to add
-> ->runtime_suspend/->runtime_resume on ASoC layer ?
+I generally do not offend to phy fixups from the devicetree. I see
+though that becomes more and more common that we have to configure
+the tx delays in phys.
 
-I don't see any issue with this. FWIW AESS/ABE does not use the
-OMAP_DEVICE_NO_IDLE_ON_SUSPEND flag neither in upstream nor in my devel=
-opment
-branch.
+The current way seems to be to hardcode register values for each board
+which seems not very flexible and forces us to read phy datasheets
+each time for a new board.
 
---=20
-P=E9ter
+Wouldn't it make more sense to configure the actual delays (in ns) and
+let the phy drivers figure out how to turn this into register values?
+
+Not that I volunteer to write such things... :-/
+
+Sascha
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
