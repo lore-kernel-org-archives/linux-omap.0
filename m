@@ -1,106 +1,93 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
-Date: Tue, 23 Apr 2013 14:15:41 +0300
-Message-ID: <20130423111541.GY15177@arwen.pp.htv.fi>
-References: <1364824448-14732-1-git-send-email-gautam.vivek@samsung.com>
- <1364824448-14732-2-git-send-email-gautam.vivek@samsung.com>
- <20130402082342.GF30286@arwen.pp.htv.fi>
- <CAFp+6iFW9-fOCgCfpfQzS9PZyjb9_NahjSxzbrS0AhVeNngyXw@mail.gmail.com>
- <20130402121048.GA9488@arwen.pp.htv.fi>
- <CAFp+6iEqHOc6G+4UpUGneQ43FGf11DOH_LignFiXJxVJnjry2w@mail.gmail.com>
- <516FDDF3.30507@ti.com>
-Reply-To: <balbi@ti.com>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: [PATCH v2] ARM: OMAP2+: Allow NAND transfer mode to be specified
+ in DT
+Date: Tue, 23 Apr 2013 13:23:37 +0100
+Message-ID: <51767D49.1010909@newflow.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="edESjMboOAwUFn6i"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <516FDDF3.30507@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Vivek Gautam <gautamvivek1987@gmail.com>, balbi@ti.com, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mercuryimc.plus.com ([80.229.200.144]:48934 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755750Ab3DWMXu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Apr 2013 08:23:50 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
---edESjMboOAwUFn6i
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+OMAP devices support various NAND transfer modes.
 
-Hi,
+Currently all device-tree definitions will use the default "prefetch
+polled" mode, so this patch enables the transfer mode to be specified
+in the device-tree.
 
-On Thu, Apr 18, 2013 at 05:20:11PM +0530, Kishon Vijay Abraham I wrote:
-> >>>>>Adding  APIs to handle runtime power management on PHY
-> >>>>>devices. PHY consumers may need to wake-up/suspend PHYs
-> >>>>>when they work across autosuspend.
-> >>>>>
-> >>>>>Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
-> >>>>>---
-> >>>>>  include/linux/usb/phy.h |  141 +++++++++++++++++++++++++++++++++++=
-++++++++++++
-> >>>>>  1 files changed, 141 insertions(+), 0 deletions(-)
-> >>>>>
-> >>>>>diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
-> >>>>>index 6b5978f..01bf9c1 100644
-> >>>>>--- a/include/linux/usb/phy.h
-> >>>>>+++ b/include/linux/usb/phy.h
-> >>>>>@@ -297,4 +297,145 @@ static inline const char *usb_phy_type_string(=
-enum usb_phy_type type)
-> >>>>>               return "UNKNOWN PHY TYPE";
-> >>>>>       }
-> >>>>>  }
-> >>>>>+
-> >>>>>+static inline void usb_phy_autopm_enable(struct usb_phy *x)
-> >>>>>+{
-> >>>>>+     if (!x || !x->dev) {
-> >>>>>+             dev_err(x->dev, "no PHY or attached device available\n=
-");
-> >>>>>+             return;
-> >>>>>+             }
-> >>>>
-> >>>>wrong indentation, also, I'm not sure we should allow calls with NULL
-> >>>>pointers. Perhaps a WARN() so we get API offenders early enough ?
-> >>>
-> >>>True, bad coding style :-(
-> >>>We should be handling dev_err with a NULL pointer.
-> >>>Will just keep here:
-> >>>if (WARN_ON(!x->dev))
-> >>>       return .... ;
-> >>
-> >>right, but I guess:
-> >>
-> >>if (WARN(!x || !x->dev, "Invalid parameters\n"))
-> >>         return -EINVAL;
-> >>
-> >>would be better ??
->=20
-> btw, shouldn't it be IS_ERR(x)?
+Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
+---
+Changes in v2:
+- Fixed line wrapping
 
-not in this case, since we're trying to catch users passing NULL to as
-the phy argument.
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |    8 ++++++++
+ arch/arm/mach-omap2/gpmc.c                         |   14 ++++++++++++++
+ 2 files changed, 22 insertions(+)
 
---=20
-balbi
-
---edESjMboOAwUFn6i
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRdm1dAAoJEIaOsuA1yqREaOYP/ilMFJ7fBdvCqCIMnDWmjeF9
-m7aiur+xk0TGPYKaxl9jTgEyA8AISPxwM76XVOB4PGpKu2fQP2ltpVVvOOW2wR4l
-oADNYNEYqugkEqBW7tzB8S/VX0cJNy+yTVEFoY/Xlj7DkLFyB7lvMqAx7X+L/8lf
-MrxmyQGOniIxg4aBB425nM6yLGH6PJ2heWLDc9a+XfGd8R2zpnVqM9lZOB4H6pzP
-A75RSaIuj/RSGWZ6hhIyf/yC+EcH4AJX9SYICKOLDLU8bNhGhsJHt15eNV2tVzHJ
-75hszKM8p7ekivIQJr29poT7HQvz7P1+ST6SR5XujB12DAJV6kVJwmZZ6Qx6uqrw
-nK8kk1XCi73ZxJh9bycxWmPSkzE2g6EofK6kGilwU6/I03nknSOMTMicK2c+p8dU
-Ej2l2rPTPi+KyVzNH60GbRPVa1xoYc9F97dPoiRsDdtzdPvXsKGz5uAexao+8pHl
-kAAyCkMqZ3cOCpsVwnfQyWUYMgOEadWcs+6Eksw+gagTLNaHaNuAaFEUMWaMQ2NE
-AoHWHTAp29l8cCt+wHHB1u42lxRO2rljr951nM/XvLx4I6OFssUr3ntREZZN5bMA
-gFUFTQhwYtvIeQvotMDEjOypoqE9flebOfYdEyk9DyGvdeGH6mN1sLtsBTLHROvT
-E+Nn1pRhwk/4P0HvS4mi
-=yds5
------END PGP SIGNATURE-----
-
---edESjMboOAwUFn6i--
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index e7f8d7e..cd4a19b 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -29,6 +29,13 @@ Optional properties:
+ 		"bch4"		4-bit BCH ecc code
+ 		"bch8"		8-bit BCH ecc code
+ 
++ - ti,nand-xfer-type:		A string setting the data transfer type. One of:
++
++		"prefetch-polled"	Prefetch polled mode (default)
++		"polled"		Polled mode, without prefetch
++		"prefetch-dma"		Prefetch enabled sDMA mode
++		"prefetch-irq"		Prefetch enabled irq mode
++
+  - elm_id:	Specifies elm device node. This is required to support BCH
+  		error correction using ELM module.
+ 
+@@ -55,6 +62,7 @@ Example for an AM33xx board:
+ 			reg = <0 0 0>; /* CS0, offset 0 */
+ 			nand-bus-width = <16>;
+ 			ti,nand-ecc-opt = "bch8";
++			ti,nand-xfer-type = "polled";
+ 
+ 			gpmc,sync-clk = <0>;
+ 			gpmc,cs-on = <0>;
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 410e1ba..2f47f76 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1212,6 +1212,13 @@ static const char * const nand_ecc_opts[] = {
+ 	[OMAP_ECC_BCH8_CODE_HW]			= "bch8",
+ };
+ 
++static const char * const nand_xfer_types[] = {
++	[NAND_OMAP_PREFETCH_POLLED]		= "prefetch-polled",
++	[NAND_OMAP_POLLED]			= "polled",
++	[NAND_OMAP_PREFETCH_DMA]		= "prefetch-dma",
++	[NAND_OMAP_PREFETCH_IRQ]		= "prefetch-irq",
++};
++
+ static int gpmc_probe_nand_child(struct platform_device *pdev,
+ 				 struct device_node *child)
+ {
+@@ -1241,6 +1248,13 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+ 				break;
+ 			}
+ 
++	if (!of_property_read_string(child, "ti,nand-xfer-type", &s))
++		for (val = 0; val < ARRAY_SIZE(nand_xfer_types); val++)
++			if (!strcasecmp(s, nand_xfer_types[val])) {
++				gpmc_nand_data->xfer_type = val;
++				break;
++			}
++
+ 	val = of_get_nand_bus_width(child);
+ 	if (val == 16)
+ 		gpmc_nand_data->devsize = NAND_BUSWIDTH_16;
+-- 
+1.7.9.5
