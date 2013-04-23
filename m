@@ -1,49 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: remove unused variable
-Date: Tue, 23 Apr 2013 14:26:07 -0700
-Message-ID: <20130423212607.GL10155@atomide.com>
-References: <1363818875-15978-1-git-send-email-robherring2@gmail.com>
- <201304232323.27751.arnd@arndb.de>
+Subject: Re: Multiple issues with omap4 panda es in linux next
+Date: Tue, 23 Apr 2013 14:31:52 -0700
+Message-ID: <20130423213151.GM10155@atomide.com>
+References: <20130419171318.GK10155@atomide.com>
+ <5174F7A8.7070308@ti.com>
+ <20130422180316.GA10155@atomide.com>
+ <5176A45B.5@ti.com>
+ <20130423172353.GD10155@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19790 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752848Ab3DWVb5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Apr 2013 17:31:57 -0400
 Content-Disposition: inline
-In-Reply-To: <201304232323.27751.arnd@arndb.de>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Rob Herring <robherring2@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Russell King <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, John Stultz <john.stultz@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
+In-Reply-To: <20130423172353.GD10155@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>
 
-* Arnd Bergmann <arnd@arndb.de> [130423 14:28]:
-> ARM: OMAP: remove unused variable
->     
-> Commit 0583fe478a7 "ARM: convert arm/arm64 arch timer to use CLKSRC_OF init"
-> has left the omap5_realtime_timer_init() function with a stale variable and
-> broken whitespace. This fixes both.
->     
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> I've applied this patch on top of the timer cleanup series
+* Tony Lindgren <tony@atomide.com> [130423 10:28]:
+> * Kishon Vijay Abraham I <kishon@ti.com> [130423 08:15]:
+> > >>>2. MUSB fails with legacy booting and DT on panda es
+> > >>>
+> > >>>With both legacy and DT booting I get something like:
+> > >>>
+> > >>>HS USB OTG: no transceiver configured
+> > >>>musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
+> > >>
+> > >>The dt should work fine with https://patchwork.kernel.org/patch/2423061/.
+> > >
+> > >OK thanks for checking that.
+> > >
+> > >>But non-dt has got a real issue. We were using usb_bind_phy() for
+> > >>binding the controller with the PHY (we use device names). But in
+> > >>linux-next the device names have changed because of using
+> > >>PLATFORM_DEVID_AUTO. We can modify the usb_bind_phy() calls to use
+> > >>the new device names, But I suspect the device names can change
+> > >>again. Not sure what we can do here :-(
+> > >
+> > >Let's do a minimal fix for v3.10. Then we'll make omap4 DT only for
+> > >v3.11 and that problem is solved for good.
+> > 
+> > Have posted a patch https://patchwork.kernel.org/patch/2475521/ for
+> > getting MUSB functional in omap4 panda.
+> 
+> OK thanks. Paul it seems that this patch is still queued in one of
+> your branches?
+> 
+> Let me know if you want me to pick that one up for fixes for the
+> merge window, or if you have multiple patches to pull.
 
-OK thanks.
+Oops this I already have sitting in omap-for-v3.9-rc6/fixes.. Let's
+see if that can still get merged. Looks like I forgot to send off
+that one, sorry about that.
+
+Regards,
 
 Tony
- 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index 7dd6453..686e498 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -618,12 +618,10 @@ OMAP_SYS_32K_TIMER_INIT(5, 1, OMAP4_32K_SOURCE, "ti,timer-alwon",
->  			2, OMAP4_MPU_SOURCE);
->  void __init omap5_realtime_timer_init(void)
->  {
-> -	int err;
-> -
->  	omap5_sync32k_timer_init();
->  	realtime_counter_init();
->  
-> -        clocksource_of_init();
-> +	clocksource_of_init();
->  }
->  #endif /* CONFIG_SOC_OMAP5 */
->  
