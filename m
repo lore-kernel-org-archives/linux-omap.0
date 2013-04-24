@@ -1,59 +1,96 @@
-From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [net-next PATCH 0/3] Adding phy register fixup in DT
-Date: Wed, 24 Apr 2013 14:12:30 +0530
-Message-ID: <51779AF6.8060808@ti.com>
-References: <1366654838-26479-1-git-send-email-mugunthanvnm@ti.com>
- <20130423080257.GQ32299@pengutronix.de>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] RX-51: Fix probe order of SPI devices
+Date: Wed, 24 Apr 2013 14:23:58 +0200
+Message-ID: <201304241423.58635@pali>
+References: <1364724561-18045-1-git-send-email-pali.rohar@gmail.com> <201304101615.19400@pali> <20130410170001.GY10155@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: multipart/signed;
+  boundary="nextPart2642373.QS0rev7zdg";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20130423080257.GQ32299-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130410170001.GY10155@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@debian.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Joni Lapilainen <joni.lapilainen@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 4/23/2013 1:32 PM, Sascha Hauer wrote:
-> On Mon, Apr 22, 2013 at 11:50:35PM +0530, Mugunthan V N wrote:
->> In earlier days phy fixup was added to phy frame work in board files.
->> As there won't be any board files here after the same has to be done in DT
->> This patch series adds the following features
->> * support for adding phy resigter fixup via DT
->> * adds phy id for EVMsk n DTS file
->> * adds phy fixup for AM335x EVM and EVMsk
->>
->> Mugunthan V N (3):
->>    drivers: of: add phy fixup support in DT
->>    ARM: dts: AM33XX: Add CPSW phy_id device tree data to am335x-evmsk
->>    ARM: dts: AM33XX: add phy fixup for evm and evmsk boards
-> I generally do not offend to phy fixups from the devicetree. I see
-> though that becomes more and more common that we have to configure
-> the tx delays in phys.
->
-> The current way seems to be to hardcode register values for each board
-> which seems not very flexible and forces us to read phy datasheets
-> each time for a new board.
->
-> Wouldn't it make more sense to configure the actual delays (in ns) and
-> let the phy drivers figure out how to turn this into register values?
->
-> Not that I volunteer to write such things... :-/
->
-There is no calculation done for enabling RGMII Tx internal delay. Its all
-pre-calculated in Hardware (Either in Phy or EMAC)
-In this patch as CPSW IP in AM335x doesn't support internal delay inside
-SoC, so enabling the same in Phy and it is just a bit set in the phy debug
-registers
+--nextPart2642373.QS0rev7zdg
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Regards
-Mugunthan V N
+On Wednesday 10 April 2013 19:00:05 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130410 07:20]:
+> > On Tuesday 02 April 2013 18:31:38 Tony Lindgren wrote:
+> > > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130331 04:23]:
+> > > > On Sunday 31 March 2013 12:52:23 Sebastian Reichel wrote:
+> > > > > On Sun, Mar 31, 2013 at 12:09:21PM +0200, Pali Roh=C3=A1r=20
+wrote:
+> > > > > > From: Joni Lapilainen <joni.lapilainen@gmail.com>
+> > > > > >=20
+> > > > > > Without this patch LCD panel on Nokia RX-51 is still
+> > > > > > black
+> > > > > >=20
+> > > > > > Signed-off-by: Joni Lapilainen
+> > > > > > <joni.lapilainen@gmail.com> Signed-off-by: Pali
+> > > > > > Roh=C3=A1r <pali.rohar@gmail.com>
+> > > > >=20
+> > > > > Tested-by: Sebastian Reichel <sre@debian.org>
+> > > > >=20
+> > > > > Please note, that this patch has actually been
+> > > > > proposed by Aaro Koskinen <aaro.koskinen@iki.fi>
+> > > > > quite some time ago [0].
+> > > > >=20
+> > > > > [0]
+> > > > > http://permalink.gmane.org/gmane.linux.ports.arm.omap/
+> > > > > 8172 9
+> > > > >=20
+> > > > > -- Sebastian
+> > > >=20
+> > > > CCing Aaro.
+> > >=20
+> > > Any ideas why this is happening?
+> > >=20
+> > > Is the touch screen controller somehow pulling one of the
+> > > SPI lines before it's reset? I don't think there's any
+> > > other connection between the LCD and touch controller
+> > > besides the SPI lines?
+> > >=20
+> > > In any case there should be something in the description
+> > > why this is needed..
+> > >=20
+> > > Regards,
+> > >=20
+> > > Tony
+> >=20
+> > Hi Tony, look at this Aaro's email:
+> > http://permalink.gmane.org/gmane.linux.ports.arm.omap/81729
+>=20
+> OK can we have that summarized in the patch description
+> please?
+>=20
+> Regards,
+>=20
+> Tony
+
+Aaro, this patch is yours, can you resend it with description?
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart2642373.QS0rev7zdg
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlF3zt4ACgkQi/DJPQPkQ1KbQACgmcBaUvMsGHe0hn+mlWlJP/PK
+w68AnRMiCCRO784KIirkiqOrwq0qpiJI
+=COqc
+-----END PGP SIGNATURE-----
+
+--nextPart2642373.QS0rev7zdg--
