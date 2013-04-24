@@ -1,82 +1,53 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCHv3 0/5] Serial Omap fixes and cleanups
-Date: Wed, 24 Apr 2013 18:45:48 +0530
-Message-ID: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCHv3 4/5] arm: dts: am33xx: Remove "ti,no_idle_on_suspend" property.
+Date: Wed, 24 Apr 2013 18:45:52 +0530
+Message-ID: <1366809353-19435-5-git-send-email-sourav.poddar@ti.com>
+References: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43108 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755157Ab3DXNQa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Apr 2013 09:16:30 -0400
+In-Reply-To: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
 
-Hi,
+The "ti,no_idle_on_suspend" property was required to keep ocmcram clocks
+running during idle.
 
-This patch series contains fixes and cleanups around the issue that
-the console UART should not idled on suspend while using "no_console_suspend"
-in bootargs.
+But commit 72bb6f9 (ARM: OMAP: omap_device: don't attempt late suspend
+if no driver bound), added in v3.6 should prevent any automatic clock
+gating for devices without drivers bound.  Since there is no driver for
+the OCM RAM block, we are not affected by the automatic idle on suspend
+anyways which means "ti,no_idle_on_suspend" can be safely removed since
+there are no users for it.
 
-The approach thought of is to modify the serial core/serial driver to bypass
-runtime PM if the UART in contention is a console and we are using "no_console_suspend"
-in our bootargs.
-
-While fixing the above issue, there are other cleanups also done as part of
-this series which are no longer required. This cleanups mainly include getting
-rid of using "omap_device_disable_idle_on_suspend" api for both dt and non dt case
-as the serial driver will be self sufficient to handle the "no_idle_on_suspend" issue.
-Serial was the only one making use of "omap_device_disable_idle_on_suspend"
-
-There were discussions about how to handle "no_idle_on_suspend" issue and all the
-discussions are as follows:
-https://lkml.org/lkml/2013/4/5/239
-https://lkml.org/lkml/2013/4/2/350
-https://lkml.org/lkml/2013/3/18/199
-https://lkml.org/lkml/2013/3/18/295
-Due to the amount of change in approach and other cleanups coming around it, I am posting
-this as a new series.
-
-Test info
-Omap4430sdp:
-- Tested wakeup from UART after suspend for dt and non dt case.
-Omap5430evm:
-- Tested wakeup from UART after suspend for dt case.
-
-
-This patches are based on 3.9-rc3 custom tree which has
-Santosh Shilimkar serial patch[1]
-[1]: http://permalink.gmane.org/gmane.linux.ports.arm.omap/95828
-
-v2->v3
-1. Use "-EBUSY" for no_console_suspend case
-2. Bypass runtime PM only during suspend
-3. Improve the commit log based on community suggestion.
-
-v1->v2
-1. Remove the prepare/complete callback.
-2. Adapt runtime PM callback to deal with the issue.
-3. Fold patch(1,2) of previous series into 1.
-4. Reordered the patch.
-5. Change $subject and chage log for few patches.
-
+Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Felipe Balbi <balbi@ti.com>
 Cc: Rajendra nayak <rnayak@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 74a8125..49a050e 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -394,7 +394,6 @@
+ 			compatible = "ti,am3352-ocmcram";
+ 			reg = <0x40300000 0x10000>;
+ 			ti,hwmods = "ocmcram";
+-			ti,no_idle_on_suspend;
+ 		};
+ 
+ 		wkup_m3: wkup_m3@44d00000 {
+-- 
+1.7.1
 
-Sourav Poddar (5):
-  driver: tty: serial: Move "uart_console" def to core header file.
-  driver: serial: omap: prevent runtime PM for "no_console_suspend"
-    case
-  arm: omap2+: serial: remove no_console_suspend support
-  arm: dts: am33xx: Remove "ti,no_idle_on_suspend" property.
-  arm: omap2+: device: remove "OMAP_DEVICE_NO_IDLE_ON_SUSPEND" check
-
- arch/arm/boot/dts/am33xx.dtsi     |    1 -
- arch/arm/mach-omap2/omap_device.c |   12 +++---------
- arch/arm/mach-omap2/omap_device.h |   10 ----------
- arch/arm/mach-omap2/serial.c      |    7 -------
- drivers/tty/serial/mpc52xx_uart.c |   10 ----------
- drivers/tty/serial/omap-serial.c  |    5 ++++-
- drivers/tty/serial/serial_core.c  |    6 ------
- include/linux/serial_core.h       |    7 +++++++
- 8 files changed, 14 insertions(+), 44 deletions(-)
