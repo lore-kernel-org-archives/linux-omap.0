@@ -1,95 +1,64 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 2/2] staging: ti-soc-thermal: remove external heat while extrapolating hotspot
-Date: Wed, 24 Apr 2013 14:16:08 -0400
-Message-ID: <1366827368-14316-3-git-send-email-eduardo.valentin@ti.com>
-References: <1366827368-14316-1-git-send-email-eduardo.valentin@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Multiple issues with omap4 panda es in linux next
+Date: Wed, 24 Apr 2013 12:08:21 -0700
+Message-ID: <20130424190821.GB5184@atomide.com>
+References: <20130419171318.GK10155@atomide.com>
+ <5174F7A8.7070308@ti.com>
+ <20130422180316.GA10155@atomide.com>
+ <5176A45B.5@ti.com>
+ <20130423172353.GD10155@atomide.com>
+ <20130423213151.GM10155@atomide.com>
+ <20130423231605.GO10155@atomide.com>
+ <517770A0.4000609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1366827368-14316-1-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org
-Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:15600 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757042Ab3DXTIZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Apr 2013 15:08:25 -0400
+Content-Disposition: inline
+In-Reply-To: <517770A0.4000609@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>
 
-For boards that provide a PCB sensor close to SoC junction
-temperature, it is possible to remove the cumulative heat
-reported by the SoC temperature sensor.
+* Kishon Vijay Abraham I <kishon@ti.com> [130423 22:46]:
+> Hi Tony,
+> 
+> On Wednesday 24 April 2013 04:46 AM, Tony Lindgren wrote:
+> >* Tony Lindgren <tony@atomide.com> [130423 14:37]:
+> >>* Tony Lindgren <tony@atomide.com> [130423 10:28]:
+> >>>* Kishon Vijay Abraham I <kishon@ti.com> [130423 08:15]:
+> >>>>>>>2. MUSB fails with legacy booting and DT on panda es
+> >>>>>>>
+> >>>>>>>With both legacy and DT booting I get something like:
+> >>>>>>>
+> >>>>>>>HS USB OTG: no transceiver configured
+> >>>>>>>musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
+> >>>>>>
+> >>>>>>The dt should work fine with https://patchwork.kernel.org/patch/2423061/.
+> >>>>>
+> >>>>>OK thanks for checking that.
+> >
+> >Kishon, I think there's also some other issue remaining
+> >in linux next with MUSB and DT. I'm still getting the
+> >"HS USB OTG: no transceiver configured" although the nop
+> >xceiv is compiled in. Maybe give it a try against linux
+> >next?
+> 
+> For OMAP4 MUSB, you'll need omap-usb2 phy. I've attached my .config.
 
-This patch changes the extrapolation computation to consider
-an external sensor in the extrapolation equations.
+Thanks your config helped me to track it down. Looks like I got
+the PHYs the wrong way around between EHCI and MUSB..
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- drivers/staging/ti-soc-thermal/ti-thermal-common.c | 30 ++++++++++++++--------
- 1 file changed, 20 insertions(+), 10 deletions(-)
+In any case, I did have omap-usb2 compiled in, but I did not have
+OMAP_OCP2SCP=y set. Should OMAP_USB2 depend on that?
 
-diff --git a/drivers/staging/ti-soc-thermal/ti-thermal-common.c b/drivers/staging/ti-soc-thermal/ti-thermal-common.c
-index e3c5e67..8e67ebf 100644
---- a/drivers/staging/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/staging/ti-soc-thermal/ti-thermal-common.c
-@@ -38,6 +38,7 @@
- /* common data structures */
- struct ti_thermal_data {
- 	struct thermal_zone_device *ti_thermal;
-+	struct thermal_zone_device *pcb_tz;
- 	struct thermal_cooling_device *cool_dev;
- 	struct ti_bandgap *bgp;
- 	enum thermal_device_mode mode;
-@@ -77,10 +78,12 @@ static inline int ti_thermal_hotspot_temperature(int t, int s, int c)
- static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
- 				      unsigned long *temp)
- {
-+	struct thermal_zone_device *pcb_tz = NULL;
- 	struct ti_thermal_data *data = thermal->devdata;
- 	struct ti_bandgap *bgp;
- 	const struct ti_temp_sensor *s;
--	int ret, tmp, pcb_temp, slope, constant;
-+	int ret, tmp, slope, constant;
-+	unsigned long pcb_temp;
- 
- 	if (!data)
- 		return 0;
-@@ -92,16 +95,22 @@ static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
- 	if (ret)
- 		return ret;
- 
--	pcb_temp = 0;
--	/* TODO: Introduce pcb temperature lookup */
-+	/* Default constants */
-+	slope = s->slope;
-+	constant = s->constant;
-+
-+	pcb_tz = data->pcb_tz;
- 	/* In case pcb zone is available, use the extrapolation rule with it */
--	if (pcb_temp) {
--		tmp -= pcb_temp;
--		slope = s->slope_pcb;
--		constant = s->constant_pcb;
--	} else {
--		slope = s->slope;
--		constant = s->constant;
-+	if (!IS_ERR_OR_NULL(pcb_tz)) {
-+		ret = thermal_zone_get_temp(pcb_tz, &pcb_temp);
-+		if (!ret) {
-+			tmp -= pcb_temp; /* got a valid PCB temp */
-+			slope = s->slope_pcb;
-+			constant = s->constant_pcb;
-+		} else {
-+			dev_err(bgp->dev,
-+				"Failed to read PCB state. Using defaults\n");
-+		}
- 	}
- 	*temp = ti_thermal_hotspot_temperature(tmp, slope, constant);
- 
-@@ -273,6 +282,7 @@ static struct ti_thermal_data
- 	data->sensor_id = id;
- 	data->bgp = bgp;
- 	data->mode = THERMAL_DEVICE_ENABLED;
-+	data->pcb_tz = thermal_zone_get_zone_by_name("pcb");
- 	INIT_WORK(&data->thermal_wq, ti_thermal_work);
- 
- 	return data;
--- 
-1.8.2.1.342.gfa7285d
+Also, looks like MUSB just sits in b_idle mode though, so no more
+ID pin interrupt for some reason.
 
+Regards,
+
+Tony
