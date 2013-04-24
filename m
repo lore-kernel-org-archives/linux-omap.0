@@ -1,96 +1,51 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] RX-51: Fix probe order of SPI devices
-Date: Wed, 24 Apr 2013 14:23:58 +0200
-Message-ID: <201304241423.58635@pali>
-References: <1364724561-18045-1-git-send-email-pali.rohar@gmail.com> <201304101615.19400@pali> <20130410170001.GY10155@atomide.com>
+From: wally bkg <wb666greene-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Long latencies in spidev device driver break real-time performance on
+	Panda/Beagle
+Date: Wed, 24 Apr 2013 07:56:41 -0500
+Message-ID: <CANGjJb6FNHyUW5U3=sUMOEpUSuDjCF25a14AxkNDkoBnvjr2qQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2642373.QS0rev7zdg";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130410170001.GY10155@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@debian.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Joni Lapilainen <joni.lapilainen@gmail.com>
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart2642373.QS0rev7zdg
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+I've been trying to run a real-time process to feed a D/A chip using the
+spidev driver but am finding the call to /dev/spidevX.Y is responsible for
+"random" very long latencies that do not occur if I call the "driver" to
+toggle a GPIO pin instead.
 
-On Wednesday 10 April 2013 19:00:05 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130410 07:20]:
-> > On Tuesday 02 April 2013 18:31:38 Tony Lindgren wrote:
-> > > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130331 04:23]:
-> > > > On Sunday 31 March 2013 12:52:23 Sebastian Reichel wrote:
-> > > > > On Sun, Mar 31, 2013 at 12:09:21PM +0200, Pali Roh=C3=A1r=20
-wrote:
-> > > > > > From: Joni Lapilainen <joni.lapilainen@gmail.com>
-> > > > > >=20
-> > > > > > Without this patch LCD panel on Nokia RX-51 is still
-> > > > > > black
-> > > > > >=20
-> > > > > > Signed-off-by: Joni Lapilainen
-> > > > > > <joni.lapilainen@gmail.com> Signed-off-by: Pali
-> > > > > > Roh=C3=A1r <pali.rohar@gmail.com>
-> > > > >=20
-> > > > > Tested-by: Sebastian Reichel <sre@debian.org>
-> > > > >=20
-> > > > > Please note, that this patch has actually been
-> > > > > proposed by Aaro Koskinen <aaro.koskinen@iki.fi>
-> > > > > quite some time ago [0].
-> > > > >=20
-> > > > > [0]
-> > > > > http://permalink.gmane.org/gmane.linux.ports.arm.omap/
-> > > > > 8172 9
-> > > > >=20
-> > > > > -- Sebastian
-> > > >=20
-> > > > CCing Aaro.
-> > >=20
-> > > Any ideas why this is happening?
-> > >=20
-> > > Is the touch screen controller somehow pulling one of the
-> > > SPI lines before it's reset? I don't think there's any
-> > > other connection between the LCD and touch controller
-> > > besides the SPI lines?
-> > >=20
-> > > In any case there should be something in the description
-> > > why this is needed..
-> > >=20
-> > > Regards,
-> > >=20
-> > > Tony
-> >=20
-> > Hi Tony, look at this Aaro's email:
-> > http://permalink.gmane.org/gmane.linux.ports.arm.omap/81729
->=20
-> OK can we have that summarized in the patch description
-> please?
->=20
-> Regards,
->=20
-> Tony
+My most recent attempts have been with Robert Nelson's 3.9-rc6 kernel for
+the Pandaboard ES and he has suggested I contact the OMAP and SPI
+maintainers, hence I am sending this message.
 
-Aaro, this patch is yours, can you resend it with description?
+Details are here:
+http://eewiki.net/display/linuxonarm/PandaBoard_Comments?focusedCommentId=13599653&#comment-13599653
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+A sample test program that will illustrate the issue can be downloaded
+here:
+http://eewiki.net/download/attachments/12059008/swave_spidev.c?version=1&modificationDate=1365778735227&api=v2
 
---nextPart2642373.QS0rev7zdg
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Robert has run this test code (after changing the GPIO and spidev name
+strings for the Beagleboard) and has found the xM is much closer to usable,
+but what is curious is that the worst case and number of "missed samples"
+are made worse when running as root.
 
-iEYEABECAAYFAlF3zt4ACgkQi/DJPQPkQ1KbQACgmcBaUvMsGHe0hn+mlWlJP/PK
-w68AnRMiCCRO784KIirkiqOrwq0qpiJI
-=COqc
------END PGP SIGNATURE-----
-
---nextPart2642373.QS0rev7zdg--
+Hoping you have a solution.
+--wally.
+------------------------------------------------------------------------------
+Try New Relic Now & We'll Send You this Cool Shirt
+New Relic is the only SaaS-based application performance monitoring service 
+that delivers powerful full stack analytics. Optimize and monitor your
+browser, app, & servers with just a few lines of code. Try New Relic
+and get this awesome Nerd Life shirt! http://p.sf.net/sfu/newrelic_d2d_apr
