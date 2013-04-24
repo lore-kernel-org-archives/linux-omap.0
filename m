@@ -1,87 +1,47 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCHv3 1/5] driver: tty: serial: Move "uart_console" def to core header file.
-Date: Wed, 24 Apr 2013 18:45:49 +0530
-Message-ID: <1366809353-19435-2-git-send-email-sourav.poddar@ti.com>
-References: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH V4 1/6] clk: OMAP: introduce device tree binding to kernel clock
+ data
+Date: Wed, 24 Apr 2013 09:28:47 -0700
+Message-ID: <20130424162847.8998.73264@quantum>
+References: <1365807278-554-1-git-send-email-nm@ti.com>
+ <1365807278-554-2-git-send-email-nm@ti.com>
+ <20130412233142.GE10155@atomide.com> <20130412233900.GA1599@kahuna>
+ <20130413172210.GM10155@atomide.com> <20130414211917.GA3275@snafu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>
+In-Reply-To: <20130414211917.GA3275@snafu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?utf-8?q?Beno=C3=AEt_Cousson?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
 
-Move "uart_console" definition to serial core header file, so that it can be
-used by serial drivers.
-Get rid of the uart_console defintion from mpc52xx_uart driver.
+Quoting Nishanth Menon (2013-04-14 14:19:17)
+> Overall strategy introduced here is simple: a clock node described in
+> device tree blob is used to identify the exact clock provided in the
+> SoC specific data. This is then linked back using of_clk_add_provider
+> to the device node to be accessible by of_clk_get.
+> 
+> Based on discussion contributions from Roger Quadros, Grygorii Strashko
+> and others.
+> 
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Mike Turquette <mturquette@linaro.org>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> [tony@atomide.com: co-developed]
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Rajendra nayak <rnayak@ti.com>
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
----
- drivers/tty/serial/mpc52xx_uart.c |   10 ----------
- drivers/tty/serial/serial_core.c  |    6 ------
- include/linux/serial_core.h       |    7 +++++++
- 3 files changed, 7 insertions(+), 16 deletions(-)
+I can take this into clk-next after the merge window.  Please refresh it
+for -rc1 as we discussed on irc.
 
-diff --git a/drivers/tty/serial/mpc52xx_uart.c b/drivers/tty/serial/mpc52xx_uart.c
-index 018bad9..d74ac06 100644
---- a/drivers/tty/serial/mpc52xx_uart.c
-+++ b/drivers/tty/serial/mpc52xx_uart.c
-@@ -84,16 +84,6 @@ static void mpc52xx_uart_of_enumerate(void);
- static irqreturn_t mpc52xx_uart_int(int irq, void *dev_id);
- static irqreturn_t mpc5xxx_uart_process_int(struct uart_port *port);
- 
--
--/* Simple macro to test if a port is console or not. This one is taken
-- * for serial_core.c and maybe should be moved to serial_core.h ? */
--#ifdef CONFIG_SERIAL_CORE_CONSOLE
--#define uart_console(port) \
--	((port)->cons && (port)->cons->index == (port)->line)
--#else
--#define uart_console(port)	(0)
--#endif
--
- /* ======================================================================== */
- /* PSC fifo operations for isolating differences between 52xx and 512x      */
- /* ======================================================================== */
-diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
-index a400002..b5f74bf 100644
---- a/drivers/tty/serial/serial_core.c
-+++ b/drivers/tty/serial/serial_core.c
-@@ -50,12 +50,6 @@ static struct lock_class_key port_lock_key;
- 
- #define HIGH_BITS_OFFSET	((sizeof(long)-sizeof(int))*8)
- 
--#ifdef CONFIG_SERIAL_CORE_CONSOLE
--#define uart_console(port)	((port)->cons && (port)->cons->index == (port)->line)
--#else
--#define uart_console(port)	(0)
--#endif
--
- static void uart_change_speed(struct tty_struct *tty, struct uart_state *state,
- 					struct ktermios *old_termios);
- static void uart_wait_until_sent(struct tty_struct *tty, int timeout);
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index 87d4bbc..b98291a 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -31,6 +31,13 @@
- #include <linux/sysrq.h>
- #include <uapi/linux/serial_core.h>
- 
-+#ifdef CONFIG_SERIAL_CORE_CONSOLE
-+#define uart_console(port) \
-+	((port)->cons && (port)->cons->index == (port)->line)
-+#else
-+#define uart_console(port)      (0)
-+#endif
-+
- struct uart_port;
- struct serial_struct;
- struct device;
--- 
-1.7.1
+As an aside, will Tero's series for migrating to drivers/clk/omap[1] and
+Rajendra's patch for registering clocks late[2] be refreshed after the
+merge window?  It would be nice to combine these efforts.
+
+Thanks,
+Mike
+
+[1] http://article.gmane.org/gmane.linux.ports.arm.omap/95948
+[2] http://www.spinics.net/lists/arm-kernel/msg231288.html
