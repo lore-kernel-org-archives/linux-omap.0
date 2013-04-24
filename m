@@ -1,98 +1,61 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH v3 01/11] usb: phy: Add APIs for runtime power management
-Date: Wed, 24 Apr 2013 18:42:57 +0530
-Message-ID: <CAFp+6iE72VRaBC3_AKGvD3XA5meYSsuUYuQivj3_719OZKGpVg@mail.gmail.com>
-References: <CAFp+6iECumogLo9Tf+4pMqRhtkGHf1CqA52YjL1tACTRyGO7jw@mail.gmail.com>
-	<Pine.LNX.4.44L0.1304231408370.1679-100000@iolanthe.rowland.org>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCHv3 3/5] arm: omap2+: serial: remove no_console_suspend support
+Date: Wed, 24 Apr 2013 18:45:51 +0530
+Message-ID: <1366809353-19435-4-git-send-email-sourav.poddar@ti.com>
+References: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1304231408370.1679-100000@iolanthe.rowland.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, rob.herring@calxeda.com, kgene.kim@samsung.com, dianders@chromium.org, t.figa@samsung.com, p.paneri@samsung.com
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 23, 2013 at 11:42 PM, Alan Stern <stern@rowland.harvard.edu> wrote:
-> On Tue, 23 Apr 2013, Vivek Gautam wrote:
->
->> Hi,
->>
->>
->> On Tue, Apr 23, 2013 at 10:23 PM, Alan Stern <stern@rowland.harvard.edu> wrote:
->> > On Tue, 23 Apr 2013, Vivek Gautam wrote:
->> >
->> >> >> Alright, so here's my understanding:
->> >> >>
->> >> >> I suggested letting e.g. DWC3 enable the PHY's runtime_pm; Alan said
->> >> >> that it could be done before that so that DWC3 sees an enabled PHY
->> >> >> during probe.
->> >> >
->> >> > Basically right.  Help me to understand the overall situation a little
->> >> > better:
->> >> >
->> >> >         What code registers the PHY initially?
->> >>            PHY is added to global list by PHY drivers (like
->> >> phy-samsung-usb2.c/phy-omap-usb2.c)
->> >>            by usb_add_phy() API
->> >
->> > Then this routine should initialize the PHY.  The initialized state
->> > could be either active or suspended, your choice.  Suspended would be
->> > best, in case the PHY never gets used.
->>
->> Fair enough.
->>
->> >
->> >> >         What routine does the DWC3 driver call to register itself
->> >> >         as a consumer of the PHY?
->> >>            I think DWC3 doesn't registers itself as consumer of PHY,
->> >> rather it gets that PHY from
->> >>            the list using devm_usb_get_phy()/devm_usb_get_phy_by_phandle() API.
->> >>            DWC3 can now call PHY's initialization sequence using usb_phy_init().
->> >>            So, before DWC3 initializes the PHY, PHYs should be in active state.
->> >
->> > Then usb_phy_init should make sure the PHY is in the active state.  If
->> > usb_add_phy() left the PHY suspended, then this routine should call
->> > pm_runtime_get_sync().
->>
->> Right
->>
->> >
->> > After DWC3 (or any other driver) has acquired the PHY, it can call
->> > pm_runtime_put/get() however it likes, so long as the calls balance
->> > properly.  If the driver isn't runtime-PM aware then it won't use any
->> > of these calls, and the PHY will remain active the entire time.
->>
->> Alright, so DWC3 (or any other consumer of PHY) should do minimal to
->> handle runtime state of PHYs; get() when accessing PHY and put() when it's done
->> with it.
->
-> Yes.  The first operation will generally be a put, because
-> usb_phy_init() will leave the PHY in an active state.
+"no_console_suspend" is no longer handled in platform file,
+Since the omap serial driver is now adapted to prevent
+console UART idleing during suspend.
 
-Alright.
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Rajendra nayak <rnayak@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/serial.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
->
->> >> >         Likewise, what routine does it call to unregister itself?
->> >>            Once DWC3's remove() is called PHYs are put.
->> >
->> > Is there a routine analogous to usb_phy_init() that gets called when
->> > PHY is released?  That routine would do the opposite of usb_phy_init(),
->> > putting the PHY back into its initialized state.
->>
->> Yes, ofcourse there's a routine usb_phy_shutdown(). So this will be
->> calling put_sync()
->> to put PHYs back to its initialized state. Right ?
->
-> Correct.
-
-Hmm.
-
-Thanks for explaining things here and keeping patience to my queries :-)
-
-Felipe, thanks to you too for the discussion :-)
-I shall update the patchset asap.
-
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index f660156..58d5b56 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -63,7 +63,6 @@ struct omap_uart_state {
+ static LIST_HEAD(uart_list);
+ static u8 num_uarts;
+ static u8 console_uart_id = -1;
+-static u8 no_console_suspend;
+ static u8 uart_debug;
+ 
+ #define DEFAULT_RXDMA_POLLRATE		1	/* RX DMA polling rate (us) */
+@@ -207,9 +206,6 @@ static int __init omap_serial_early_init(void)
+ 					uart_name, uart->num);
+ 			}
+ 
+-			if (cmdline_find_option("no_console_suspend"))
+-				no_console_suspend = true;
+-
+ 			/*
+ 			 * omap-uart can be used for earlyprintk logs
+ 			 * So if omap-uart is used as console then prevent
+@@ -292,9 +288,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
+ 		return;
+ 	}
+ 
+-	if ((console_uart_id == bdata->id) && no_console_suspend)
+-		omap_device_disable_idle_on_suspend(pdev);
+-
+ 	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
+ 
+ 	if (console_uart_id == bdata->id) {
 -- 
-Best Regards
-Vivek
+1.7.1
