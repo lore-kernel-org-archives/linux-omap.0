@@ -1,117 +1,115 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH v2 1/2] genirq: add function to get IRQ edge/level flags
-Date: Thu, 25 Apr 2013 00:10:44 +0200
-Message-ID: <CAAwP0s3cV55XY7RyoPpT_BYeeuHXivqjd_2_25qJBwdgCP5DNA@mail.gmail.com>
-References: <1365816094-31568-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCHv3 5/5] arm: omap2+: omap_device: remove no_idle_on_suspend
+Date: Wed, 24 Apr 2013 15:15:49 -0700
+Message-ID: <87d2tj378q.fsf@linaro.org>
+References: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>
+	<1366809353-19435-6-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:63166 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758508Ab3DXWLE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Apr 2013 18:11:04 -0400
-In-Reply-To: <1365816094-31568-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1366809353-19435-6-git-send-email-sourav.poddar@ti.com> (Sourav
+	Poddar's message of "Wed, 24 Apr 2013 18:45:53 +0530")
+Sender: linux-serial-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Steve Glendinning <steve.glendinning@shawell.net>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Rob Herring <robherring2@gmail.com>, Stephen Warren <swarren@wwwdotorg.org>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>, netdev@vger.kernel.org
 
-On Sat, Apr 13, 2013 at 3:21 AM, Javier Martinez Canillas
-<javier.martinez@collabora.co.uk> wrote:
-> According to Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
-> the "#interrupt-cells" property of an "interrupt-controller" is used
-> to define the number of cells needed to specify a single interrupt.
+Sourav Poddar <sourav.poddar@ti.com> writes:
+
+> Remove "no_idle_on_suspend" check, since respective
+> driver should be able to prevent idling of a
+> device whenever required.
 >
-> A commonly used variant is two cell on which #interrupt-cells = <2>
-> and the first cell defines the index of the interrupt in the controller
-> while the second cell is used to specify any of the following flags:
+> Driver's can get same behavior by just returning -EBUSY
+> from their ->runtime_suspend only during suspend.
 >
->     - bits[3:0] trigger type and level flags
->         1 = low-to-high edge triggered
->         2 = high-to-low edge triggered
->         4 = active high level-sensitive
->         8 = active low level-sensitive
->
-> An example of an interrupt controller which use the two cell format is
-> the OMAP GPIO controller that allows GPIO lines to be used as IRQ
-> (Documentation/devicetree/bindings/gpio/gpio-omap.txt)
->
-> But setting #interrupt-cells = <2> on the OMAP GPIO device node and
-> specifying the GPIO-IRQ type and level flags on the second cell does not
-> store this value on the populated IORESOURCE_IRQ struct resource.
->
-> This is because when using an IRQ from an interrupt controller and
-> setting both cells (e.g:)
->
->         interrupt-parent = <&gpio6>;
->         interrupts = <16 8>;
->
-> A call to of_irq_to_resource() is made and this function calls
-> irq_of_parse_and_map_type() to get the virtual IRQ mapped to the real
-> index for this interrupt controller. This IRQ number is populated on
-> the struct resource:
->
-> int of_irq_to_resource(struct device_node *dev, int index, struct resource *r)
-> {
->         int irq = irq_of_parse_and_map(dev, index);
->         ..
->         r->start = r->end = irq;
-> }
->
-> irq_of_parse_and_map() calls to irq_create_of_mapping() which calls to
-> the correct xlate function handler according to "#interrupt-cells"
-> (irq_domain_xlate_onecell or irq_domain_xlate_twocell) and to
-> irq_set_irq_type() to set the IRQ type.
->
-> But the type is never returned so it can't be saved on the IRQ struct
-> resource flags member.
->
-> This means that drivers that want to get the IRQ edge/level flags
-> defined in the Device Tree from a struct resource will not be able
-> to get it.
->
-> Drivers can get the IRQ flags by using irq_get_irq_data(irq) and
-> irqd_get_trigger_type(irq_data) but this will unnecessary expose
-> irq_data to callers and also is more error prone.
->
-> So, is better to add an irq_get_trigger_type() function to obtain
-> the edge/level flags for an IRQ.
->
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Rajendra nayak <rnayak@ti.com>
+> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
 > ---
+>  arch/arm/mach-omap2/omap_device.c |   12 +++---------
+>  arch/arm/mach-omap2/omap_device.h |   10 ----------
+>  2 files changed, 3 insertions(+), 19 deletions(-)
 >
-> Changes since v1:
->   - use irqd_get_trigger_type() instead of a direct access to
->     d->state_use_accessors as suggested by Stephen Warren.
->
->  include/linux/irq.h |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
->
-> diff --git a/include/linux/irq.h b/include/linux/irq.h
-> index bc4e066..0e8e3a6 100644
-> --- a/include/linux/irq.h
-> +++ b/include/linux/irq.h
-> @@ -579,6 +579,12 @@ static inline struct msi_desc *irq_data_get_msi(struct irq_data *d)
->         return d->msi_desc;
+> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+> index 381be7a..2043d71 100644
+> --- a/arch/arm/mach-omap2/omap_device.c
+> +++ b/arch/arm/mach-omap2/omap_device.c
+> @@ -170,9 +170,6 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+>  			r->name = dev_name(&pdev->dev);
+>  	}
+>  
+> -	if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
+> -		omap_device_disable_idle_on_suspend(pdev);
+> -
+>  	pdev->dev.pm_domain = &omap_device_pm_domain;
+>  
+>  odbfd_exit1:
+> @@ -620,11 +617,9 @@ static int _od_suspend_noirq(struct device *dev)
+>  	ret = pm_generic_suspend_noirq(dev);
+>  
+>  	if (!ret && !pm_runtime_status_suspended(dev)) {
+> -		if (pm_generic_runtime_suspend(dev) == 0) {
+> -			if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+> -				omap_device_idle(pdev);
+> +		if (pm_generic_runtime_suspend(dev) == 0)
+> +			omap_device_idle(pdev);
+>  			od->flags |= OMAP_DEVICE_SUSPENDED;
+> -		}
+
+Look closely at the if statement, followed by more than one line, and
+the braces removed.
+
+That means that od->flag will be set, even when omap_device_idle() was
+not called.  Which in turn means that upon resume, omap_device_enable()
+will be called on a device that has not had omap_device_idle() called,
+which means there would be WARNs coming from omap_device due to the
+mismatch.
+
+Hmm... this does not instill confidence that this code has been tested.
+
+Kevin
+
+
+>  	}
+>  
+>  	return ret;
+> @@ -638,8 +633,7 @@ static int _od_resume_noirq(struct device *dev)
+>  	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
+>  	    !pm_runtime_status_suspended(dev)) {
+>  		od->flags &= ~OMAP_DEVICE_SUSPENDED;
+> -		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+> -			omap_device_enable(pdev);
+> +		omap_device_enable(pdev);
+>  		pm_generic_runtime_resume(dev);
+>  	}
+>  
+> diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
+> index 044c31d..17ca1ae 100644
+> --- a/arch/arm/mach-omap2/omap_device.h
+> +++ b/arch/arm/mach-omap2/omap_device.h
+> @@ -38,7 +38,6 @@ extern struct dev_pm_domain omap_device_pm_domain;
+>  
+>  /* omap_device.flags values */
+>  #define OMAP_DEVICE_SUSPENDED		BIT(0)
+> -#define OMAP_DEVICE_NO_IDLE_ON_SUSPEND	BIT(1)
+>  
+>  /**
+>   * struct omap_device - omap_device wrapper for platform_devices
+> @@ -101,13 +100,4 @@ static inline struct omap_device *to_omap_device(struct platform_device *pdev)
+>  {
+>  	return pdev ? pdev->archdata.od : NULL;
 >  }
->
-> +static inline u32 irq_get_trigger_type(unsigned int irq)
-> +{
-> +       struct irq_data *d = irq_get_irq_data(irq);
-> +       return d ? irqd_get_trigger_type(d) : 0;
-> +}
-> +
->  int __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
->                 struct module *owner);
->
-> --
-> 1.7.7.6
->
-> --
-
-Hello,
-
-Any comments about this patch?
-
-Thanks a lot and best regards,
-Javier
+> -
+> -static inline
+> -void omap_device_disable_idle_on_suspend(struct platform_device *pdev)
+> -{
+> -	struct omap_device *od = to_omap_device(pdev);
+> -
+> -	od->flags |= OMAP_DEVICE_NO_IDLE_ON_SUSPEND;
+> -}
+> -
+>  #endif
