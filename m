@@ -1,7 +1,7 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCHv3 5/5] arm: omap2+: omap_device: remove no_idle_on_suspend
-Date: Wed, 24 Apr 2013 18:45:53 +0530
-Message-ID: <1366809353-19435-6-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCHv3 2/5] driver: serial: omap: prevent runtime PM for "no_console_suspend"
+Date: Wed, 24 Apr 2013 18:45:50 +0530
+Message-ID: <1366809353-19435-3-git-send-email-sourav.poddar@ti.com>
 References: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,90 +9,84 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Remove "no_idle_on_suspend" check, since respective
-driver should be able to prevent idling of a
-device whenever required.
+The driver manages "no_console_suspend" by preventing runtime PM
+during the suspend path, which forces the console UART to stay awake.
 
-Driver's can get same behavior by just returning -EBUSY
-from their ->runtime_suspend only during suspend.
-
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Rajendra nayak <rnayak@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/omap_device.c |   12 +++---------
- arch/arm/mach-omap2/omap_device.h |   10 ----------
- 2 files changed, 3 insertions(+), 19 deletions(-)
+ drivers/tty/serial/omap-serial.c |   29 ++++++++++++++++++++++++++++-
+ 1 files changed, 28 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 381be7a..2043d71 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -170,9 +170,6 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 			r->name = dev_name(&pdev->dev);
- 	}
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 08332f3..468e7ad 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -161,6 +161,7 @@ struct uart_omap_port {
+ 	u32			calc_latency;
+ 	struct work_struct	qos_work;
+ 	struct pinctrl		*pins;
++	bool			is_suspending;
+ };
  
--	if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
--		omap_device_disable_idle_on_suspend(pdev);
--
- 	pdev->dev.pm_domain = &omap_device_pm_domain;
+ #define to_uart_omap_port(p)	((container_of((p), struct uart_omap_port, port)))
+@@ -1278,6 +1279,24 @@ static struct uart_driver serial_omap_reg = {
+ };
  
- odbfd_exit1:
-@@ -620,11 +617,9 @@ static int _od_suspend_noirq(struct device *dev)
- 	ret = pm_generic_suspend_noirq(dev);
- 
- 	if (!ret && !pm_runtime_status_suspended(dev)) {
--		if (pm_generic_runtime_suspend(dev) == 0) {
--			if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
--				omap_device_idle(pdev);
-+		if (pm_generic_runtime_suspend(dev) == 0)
-+			omap_device_idle(pdev);
- 			od->flags |= OMAP_DEVICE_SUSPENDED;
--		}
- 	}
- 
- 	return ret;
-@@ -638,8 +633,7 @@ static int _od_resume_noirq(struct device *dev)
- 	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
- 	    !pm_runtime_status_suspended(dev)) {
- 		od->flags &= ~OMAP_DEVICE_SUSPENDED;
--		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
--			omap_device_enable(pdev);
-+		omap_device_enable(pdev);
- 		pm_generic_runtime_resume(dev);
- 	}
- 
-diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
-index 044c31d..17ca1ae 100644
---- a/arch/arm/mach-omap2/omap_device.h
-+++ b/arch/arm/mach-omap2/omap_device.h
-@@ -38,7 +38,6 @@ extern struct dev_pm_domain omap_device_pm_domain;
- 
- /* omap_device.flags values */
- #define OMAP_DEVICE_SUSPENDED		BIT(0)
--#define OMAP_DEVICE_NO_IDLE_ON_SUSPEND	BIT(1)
- 
- /**
-  * struct omap_device - omap_device wrapper for platform_devices
-@@ -101,13 +100,4 @@ static inline struct omap_device *to_omap_device(struct platform_device *pdev)
+ #ifdef CONFIG_PM_SLEEP
++static int serial_omap_prepare(struct device *dev)
++{
++	struct uart_omap_port *up = dev_get_drvdata(dev);
++
++	if (!console_suspend_enabled && uart_console(&up->port))
++		up->is_suspending = true;
++
++	return 0;
++}
++
++static void serial_omap_complete(struct device *dev)
++{
++	struct uart_omap_port *up = dev_get_drvdata(dev);
++
++	if (!console_suspend_enabled && uart_console(&up->port))
++		up->is_suspending = false;
++}
++
+ static int serial_omap_suspend(struct device *dev)
  {
- 	return pdev ? pdev->archdata.od : NULL;
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
+@@ -1296,7 +1315,10 @@ static int serial_omap_resume(struct device *dev)
+ 
+ 	return 0;
  }
--
--static inline
--void omap_device_disable_idle_on_suspend(struct platform_device *pdev)
--{
--	struct omap_device *od = to_omap_device(pdev);
--
--	od->flags |= OMAP_DEVICE_NO_IDLE_ON_SUSPEND;
--}
--
- #endif
+-#endif
++#else
++#define serial_omap_prepare NULL
++#define serial_omap_prepare NULL
++#endif /* CONFIG_PM_SLEEP */
+ 
+ static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
+ {
+@@ -1582,6 +1604,9 @@ static int serial_omap_runtime_suspend(struct device *dev)
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
+ 	struct omap_uart_port_info *pdata = dev->platform_data;
+ 
++	if (up->is_suspending)
++		return -EBUSY;
++
+ 	if (!up)
+ 		return -EINVAL;
+ 
+@@ -1632,6 +1657,8 @@ static const struct dev_pm_ops serial_omap_dev_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(serial_omap_suspend, serial_omap_resume)
+ 	SET_RUNTIME_PM_OPS(serial_omap_runtime_suspend,
+ 				serial_omap_runtime_resume, NULL)
++	.prepare        = serial_omap_prepare,
++	.complete       = serial_omap_complete,
+ };
+ 
+ #if defined(CONFIG_OF)
 -- 
 1.7.1
