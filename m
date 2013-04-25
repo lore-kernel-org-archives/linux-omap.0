@@ -1,80 +1,81 @@
-From: Kevin Hilman <khilman@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: Multiple issues with omap4 panda es in linux next
-Date: Thu, 25 Apr 2013 06:58:19 -0700
-Message-ID: <87obd21zlw.fsf@linaro.org>
-References: <20130419171318.GK10155@atomide.com> <517181B2.9070302@ti.com>
-	<20130419174454.GM10155@atomide.com> <517184A2.9020908@ti.com>
-	<20130419181825.GN10155@atomide.com>
+Date: Thu, 25 Apr 2013 08:01:20 -0700
+Message-ID: <20130425150120.GH5184@atomide.com>
+References: <5174F7A8.7070308@ti.com>
+ <20130422180316.GA10155@atomide.com>
+ <5176A45B.5@ti.com>
+ <20130423172353.GD10155@atomide.com>
+ <20130423213151.GM10155@atomide.com>
+ <20130423231605.GO10155@atomide.com>
+ <517770A0.4000609@ti.com>
+ <20130424190821.GB5184@atomide.com>
+ <20130424192330.GC5184@atomide.com>
+ <20130425090447.GK7889@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:34979 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758712Ab3DYN6X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Apr 2013 09:58:23 -0400
-Received: by mail-pd0-f179.google.com with SMTP id x11so1821981pdj.38
-        for <linux-omap@vger.kernel.org>; Thu, 25 Apr 2013 06:58:22 -0700 (PDT)
-In-Reply-To: <20130419181825.GN10155@atomide.com> (Tony Lindgren's message of
-	"Fri, 19 Apr 2013 11:18:26 -0700")
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50117 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757413Ab3DYPB0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Apr 2013 11:01:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20130425090447.GK7889@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>
 
-Tony Lindgren <tony@atomide.com> writes:
+* Felipe Balbi <balbi@ti.com> [130425 02:10]:
+> On Wed, Apr 24, 2013 at 12:23:30PM -0700, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [130424 12:13]:
+> > > * Kishon Vijay Abraham I <kishon@ti.com> [130423 22:46]:
+> > > > Hi Tony,
+> > > > 
+> > > > On Wednesday 24 April 2013 04:46 AM, Tony Lindgren wrote:
+> > > > >* Tony Lindgren <tony@atomide.com> [130423 14:37]:
+> > > > >>* Tony Lindgren <tony@atomide.com> [130423 10:28]:
+> > > > >>>* Kishon Vijay Abraham I <kishon@ti.com> [130423 08:15]:
+> > > > >>>>>>>2. MUSB fails with legacy booting and DT on panda es
+> > > > >>>>>>>
+> > > > >>>>>>>With both legacy and DT booting I get something like:
+> > > > >>>>>>>
+> > > > >>>>>>>HS USB OTG: no transceiver configured
+> > > > >>>>>>>musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
+> > > > >>>>>>
+> > > > >>>>>>The dt should work fine with https://patchwork.kernel.org/patch/2423061/.
+> > > > >>>>>
+> > > > >>>>>OK thanks for checking that.
+> > > > >
+> > > > >Kishon, I think there's also some other issue remaining
+> > > > >in linux next with MUSB and DT. I'm still getting the
+> > > > >"HS USB OTG: no transceiver configured" although the nop
+> > > > >xceiv is compiled in. Maybe give it a try against linux
+> > > > >next?
+> > > > 
+> > > > For OMAP4 MUSB, you'll need omap-usb2 phy. I've attached my .config.
+> > > 
+> > > Thanks your config helped me to track it down. Looks like I got
+> > > the PHYs the wrong way around between EHCI and MUSB..
+> > > 
+> > > In any case, I did have omap-usb2 compiled in, but I did not have
+> > > OMAP_OCP2SCP=y set. Should OMAP_USB2 depend on that?
+> > > 
+> > > Also, looks like MUSB just sits in b_idle mode though, so no more
+> > > ID pin interrupt for some reason.
+> > 
+> > OK looks like I got the ID interrupt going by enabling
+> > CONFIG_TWL6030_USB=y. Still stays in a_idle with no keyboard
+> > after plugging it in, but now changes between a and b mode.
+> 
+> come again, you ground ID pin and have no devices attached ? Then it
+> should stay in a_idle.
 
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130419 10:56]:
->> On Friday 19 April 2013 11:14 PM, Tony Lindgren wrote:
->> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [130419 10:43]:
->> >> On Friday 19 April 2013 10:43 PM, Tony Lindgren wrote:
->> >>> Hi all,
->> >>>
->> >>> Here's a list of breakage I've noticed so far while trying to
->> >>> use linux next on my pandaboard es. Probably similar issues exist
->> >>> on other boards as well.
->> >>>
->> >>> Ideally we would not have any breakage by the merge window, so
->> >>> let's try to get these fixed ASAP:
->> >>>
->> >>> 1. Serial console broken on panda es booting with DT
->> >>>
->> >>> The symptoms are dmesg output stopping after few lines
->> >>> and only continuing after pressing a key. Does not seem to
->> >>> happen on blaze with DT for some reason. And does not happen
->> >>> on panda es with legacy booting.
->> >>>
->> >> This one is known and reported on list along with fix patches and
->> >> later pull request [1].
->> >>
->> >> Unfortunately with all the testing and everything and patches have
->> >> been on the list for quite some time, feedback on one of the patch
->> >> received was after pull request and then there was no further
->> >> clarification. That series address the same exact issue you have
->> >> mentioned above.
->> > 
->> > OK thanks. I think Paul picked some of those and the plan was
->> > to update the branch? Which one(s) should go into v3.10 as fixes?
->> > 
->> Main in that series was to handle driver sysc handling withing hwmod
->> layer and that is where the series got stuck [2]. Without that support
->> other patches won't fix the issue.
->
-> OK it seems that that is still ongoing discussion. For v3.10 we should
-> probably just disable PM for omap4 for DT booting so people can use
-> it for DT related development.
+After playing with looks like it detects the keyboard after replugging
+the cable a few times. So it's not detecting the keyboard every time when
+plugged in, but sounds like that's not related to the DT patches. It's
+probably the session bit related issues again..
 
-Disabling PM (and even avoiding WFI using 'nohlt') will not fix this
-problem, since it's related to the idle-mode of the IP block itself.
+Regards,
 
-What fixes the problem is the series from Santosh for the SYSC removal.
-
-Santosh, it seems that series combined a fix for this problem with some
-cleanup of the hwmod code that Paul had some concerns with.  Is there
-any chance you can split up that series into a fix targetted at the
-DT-boot UART problem and a feature cleanup for hwmod?
-
-Then we hopefully get this fix into v3.10-rc and work on the hwmod
-changes/cleanup for the following merge window.
-
-Kevin
-
+Tony
