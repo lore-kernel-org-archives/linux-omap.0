@@ -1,70 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 0/4] ARM: dts: Add USB host support for Panda and
- Beagle-xm
-Date: Thu, 25 Apr 2013 08:34:17 -0700
-Message-ID: <20130425153417.GI5184@atomide.com>
-References: <1366365457-28972-1-git-send-email-rogerq@ti.com>
- <20130419154321.GG10155@atomide.com>
- <5174E27B.5090808@ti.com>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: Re: [net-next PATCH 1/3] drivers: of: add phy fixup support in DT
+Date: Thu, 25 Apr 2013 17:09:25 +0100
+Message-ID: <1366906165.2594.5.camel@bwh-desktop.uk.solarflarecom.com>
+References: <1366654838-26479-1-git-send-email-mugunthanvnm@ti.com>
+	 <1366654838-26479-2-git-send-email-mugunthanvnm@ti.com>
+	 <20130425.035649.1109561373283256109.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21240 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754811Ab3DYPeW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Apr 2013 11:34:22 -0400
-Content-Disposition: inline
-In-Reply-To: <5174E27B.5090808@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130425.035649.1109561373283256109.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: mugunthanvnm@ti.com, netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: b-cousson@ti.com, nm@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, "B, Ravi" <ravibabu@ti.com>
 
-* Roger Quadros <rogerq@ti.com> [130422 00:15]:
-> On 04/19/2013 06:43 PM, Tony Lindgren wrote:
-> > * Roger Quadros <rogerq@ti.com> [130419 03:02]:
-> >> Hi Benoit/Tony
-> >>
-> >> I've consolidated all the USB host device tree patches for Panda and Beagles
-> >> to one place and addressed Tony's comments.
-> >>
-> >> NOTE: patch 1 depends on OMAP clock binding introduced in
-> >> https://lkml.org/lkml/2013/4/12/407
-> >>
-> >> v3:
-> >> - updated mux mode to use pulldowns on panda as non-DT boot uses pulldowns.
-> >> - fixed usb pin naming for panda, beagle and beagle-xm
-> > 
-> > Cool. Sounds like we should be able to make omap4 DT only for v3.11
+On Thu, 2013-04-25 at 03:56 -0400, David Miller wrote:
+> From: Mugunthan V N <mugunthanvnm@ti.com>
+> Date: Mon, 22 Apr 2013 23:50:36 +0530
 > 
-> when we say DT only for 3.11, does this mean getting rid of hwmod dependency?
-
-That too, but mostly getting rid of the board-*.c files and platform data
-init for omap4 :) So a saving of about 5000 lines of code and data
-with the legacy mux data dropped. I have some patches to do that but have
-not yet posted them as we need to get the boards working well enough
-with DT first.
- 
-> > then. For that we also need USB on 4430-sdp working, but it now
-> > does:
+> > In earlier case phy fixup are added in board file as this is no more the case
+> > so adding support for phy register fixup in Device Tree
 > > 
-> > ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
-> > ehci-omap 4a064c00.ehci: failed to get phys phandle in /ocp/usbhshost@4a064000/ehci@4a064c00 node
-> > ehci-omap 4a064c00.ehci: failed to get phys phandle in /ocp/usbhshost@4a064000/ehci@4a064c00 node
-> > ...
+> > Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 > 
-> 4430-sdp (Blaze) does not have EHCI USB Host port. It should be using the 
-> MUSB OTG port.
-> > 
-> > As I have mine in a rack I don't have anything plugged into the
-> > USB port there though, but sounds like the phy is not initialized?
-> > 
+> When people put a series of undocumented PHY register writes using
+> constants, we tell them it's firmware.
 > 
-> +Ravi B.
-> He might have some clues.
+> If these PHY registers are actually documented in the driver, write a
+> function in that driver which does the programming sequence, then add
+> a property that the driver looks for in order to determine whether to
+> call that sequence or not.
+> 
+> I don't want people putting random PHY raw programming sequences and
+> other crap like that into the OF device nodes.  It's extremely
+> inelegant and inviting abuse.
 
-Yes please check.
+I don't think booleans will be enough in general; a PHY may well require
+link tuning for a specific board.  But the set of register addresses to
+program is likely to be known in advance and then only the values would
+belong in DT.
 
-Regards,
+Ben.
 
-Tony
+-- 
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
