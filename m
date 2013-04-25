@@ -1,17 +1,17 @@
 From: Jon Hunter <jon-hunter@ti.com>
 Subject: Re: [PATCH v3] gpio/omap: implement irq mask/disable with proper
  semantic.
-Date: Thu, 25 Apr 2013 14:30:21 -0500
-Message-ID: <5179844D.8010003@ti.com>
+Date: Thu, 25 Apr 2013 14:40:39 -0500
+Message-ID: <517986B7.9020506@ti.com>
 References: <51728BA6.1090800@ti.com> <1366620861-5489-1-git-send-email-andreas.fenkart@streamunlimited.com> <1366620861-5489-2-git-send-email-andreas.fenkart@streamunlimited.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51428 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932250Ab3DYTa3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Apr 2013 15:30:29 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:56303 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757176Ab3DYTkr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Apr 2013 15:40:47 -0400
 In-Reply-To: <1366620861-5489-2-git-send-email-andreas.fenkart@streamunlimited.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -52,17 +52,6 @@ On 04/22/2013 03:54 AM, Andreas Fenkart wrote:
 >  	spin_lock_irqsave(&bank->lock, flags);
 >  	_set_gpio_irqenable(bank, gpio, 0);
 > -	_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
-
-My only concern here is that _set_gpio_triggering() is also handling the
-wake-up enable register. So by clearing the triggering here it was also
-clearing the wake-up enable. Ideally, I would think that when masking
-the interrupt we would also want to disable the wake-up generation too
-(if enabled). I think it would only be a problem if someone called
-gpio_enable_irq() and the gpio_mask_irq().
-
-Ideally the wake-up enable stuff should be removed from the triggering
-function. May be we could add explicit calls to _set_gpio_wakeup().
-
 >  	spin_unlock_irqrestore(&bank->lock, flags);
 >  }
 >  
@@ -99,8 +88,54 @@ function. May be we could add explicit calls to _set_gpio_wakeup().
 >  	_set_gpio_irqenable(bank, gpio, 1);
 >  	spin_unlock_irqrestore(&bank->lock, flags);
 >  }
+>  
+> +/**
+> + * gpio_disable_irq - disable the interrupt
+> + * @d : the gpio data we're acting upon
+> + *
+> + * While disabled all IRQ events are ignored. No latching to IRQ status
+> + * register.
+> + */
+> +static void gpio_disable_irq(struct irq_data *d)
+> +{
+> +	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
+> +	unsigned int gpio = irq_to_gpio(bank, d->irq);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&bank->lock, flags);
+> +	_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
+> +	_set_gpio_irqenable(bank, gpio, 0);
+> +	spin_unlock_irqrestore(&bank->lock, flags);
+> +}
+> +
+> +/**
+> + * gpio_enable_irq - enable the interrupt
+> + * @d : the gpio data we're acting upon
+> + *
+> + * Enables latching and signalling IRQ.
+> + */
+> +static void gpio_enable_irq(struct irq_data *d)
+> +{
+> +	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
+> +	unsigned int gpio = irq_to_gpio(bank, d->irq);
+> +	unsigned int irq_mask = GPIO_BIT(bank, gpio);
+> +	u32 trigger = irqd_get_trigger_type(d);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&bank->lock, flags);
+> +	if (trigger)
+> +		_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), trigger);
+> +	_clear_gpio_irqstatus(bank, gpio);
+> +	_set_gpio_irqenable(bank, gpio, 1);
+> +	spin_unlock_irqrestore(&bank->lock, flags);
+> +}
 
-Similarly here, can we ensure the wake-up enable is set?
+This generates the following warning ...
 
-Cheers
+drivers/gpio/gpio-omap.c: In function 'gpio_enable_irq':
+drivers/gpio/gpio-omap.c:852:15: warning: unused variable 'irq_mask'
+[-Wunused-variable]
+
+So you can get rid of irq_mask in the above function.
+
 Jon
