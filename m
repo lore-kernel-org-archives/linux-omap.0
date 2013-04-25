@@ -1,123 +1,65 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCHv3 5/5] arm: omap2+: omap_device: remove no_idle_on_suspend
-Date: Thu, 25 Apr 2013 12:19:04 +0530
-Message-ID: <5178D1E0.6010400@ti.com>
-References: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>	<1366809353-19435-6-git-send-email-sourav.poddar@ti.com> <87d2tj378q.fsf@linaro.org>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH V4 1/6] clk: OMAP: introduce device tree binding to kernel
+ clock data
+Date: Thu, 25 Apr 2013 12:31:22 +0530
+Message-ID: <5178D4C2.7080400@ti.com>
+References: <1365807278-554-1-git-send-email-nm@ti.com>
+ <1365807278-554-2-git-send-email-nm@ti.com>
+ <20130412233142.GE10155@atomide.com> <20130412233900.GA1599@kahuna>
+ <20130413172210.GM10155@atomide.com> <20130414211917.GA3275@snafu>
+ <20130424162847.8998.73264@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87d2tj378q.fsf@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130424162847.8998.73264@quantum>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kevin,
-On Thursday 25 April 2013 03:45 AM, Kevin Hilman wrote:
-> Sourav Poddar<sourav.poddar@ti.com>  writes:
->
->> Remove "no_idle_on_suspend" check, since respective
->> driver should be able to prevent idling of a
->> device whenever required.
+On Wednesday 24 April 2013 09:58 PM, Mike Turquette wrote:
+> Quoting Nishanth Menon (2013-04-14 14:19:17)
+>> Overall strategy introduced here is simple: a clock node described in
+>> device tree blob is used to identify the exact clock provided in the
+>> SoC specific data. This is then linked back using of_clk_add_provider
+>> to the device node to be accessible by of_clk_get.
 >>
->> Driver's can get same behavior by just returning -EBUSY
->> from their ->runtime_suspend only during suspend.
+>> Based on discussion contributions from Roger Quadros, Grygorii Strashko
+>> and others.
 >>
->> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
->> Cc: Felipe Balbi<balbi@ti.com>
->> Cc: Rajendra nayak<rnayak@ti.com>
->> Cc: Grygorii Strashko<grygorii.strashko@ti.com>
->> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
->> Reviewed-by: Felipe Balbi<balbi@ti.com>
->> ---
->>   arch/arm/mach-omap2/omap_device.c |   12 +++---------
->>   arch/arm/mach-omap2/omap_device.h |   10 ----------
->>   2 files changed, 3 insertions(+), 19 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
->> index 381be7a..2043d71 100644
->> --- a/arch/arm/mach-omap2/omap_device.c
->> +++ b/arch/arm/mach-omap2/omap_device.c
->> @@ -170,9 +170,6 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
->>   			r->name = dev_name(&pdev->dev);
->>   	}
->>
->> -	if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
->> -		omap_device_disable_idle_on_suspend(pdev);
->> -
->>   	pdev->dev.pm_domain =&omap_device_pm_domain;
->>
->>   odbfd_exit1:
->> @@ -620,11 +617,9 @@ static int _od_suspend_noirq(struct device *dev)
->>   	ret = pm_generic_suspend_noirq(dev);
->>
->>   	if (!ret&&  !pm_runtime_status_suspended(dev)) {
->> -		if (pm_generic_runtime_suspend(dev) == 0) {
->> -			if (!(od->flags&  OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
->> -				omap_device_idle(pdev);
->> +		if (pm_generic_runtime_suspend(dev) == 0)
->> +			omap_device_idle(pdev);
->>   			od->flags |= OMAP_DEVICE_SUSPENDED;
->> -		}
-> Look closely at the if statement, followed by more than one line, and
-> the braces removed.
->
-> That means that od->flag will be set, even when omap_device_idle() was
-> not called.  Which in turn means that upon resume, omap_device_enable()
-> will be called on a device that has not had omap_device_idle() called,
-> which means there would be WARNs coming from omap_device due to the
-> mismatch.
->
-True, my bad. Will modify the code to bypass
-"od->flags |= OMAP_DEVICE_SUSPENDED"
-> Hmm... this does not instill confidence that this code has been tested.
->
-Sorry for the above glitch, I tested this code. I checked that the
-system is able to resume from suspend state, but completely missed the
-following statement in the log..
-"[   47.922424] omap_uart omap_uart.2: omap_device: omap_device_enable() 
-called from invalid state 1"
+>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>> Cc: Mike Turquette <mturquette@linaro.org>
+>> Cc: Paul Walmsley <paul@pwsan.com>
+>> [tony@atomide.com: co-developed]
+>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+> 
+> I can take this into clk-next after the merge window.  Please refresh it
+> for -rc1 as we discussed on irc.
+> 
+> As an aside, will Tero's series for migrating to drivers/clk/omap[1] and
+> Rajendra's patch for registering clocks late[2] be refreshed after the
 
-> Kevin
->
->
->>   	}
->>
->>   	return ret;
->> @@ -638,8 +633,7 @@ static int _od_resume_noirq(struct device *dev)
->>   	if ((od->flags&  OMAP_DEVICE_SUSPENDED)&&
->>   	!pm_runtime_status_suspended(dev)) {
->>   		od->flags&= ~OMAP_DEVICE_SUSPENDED;
->> -		if (!(od->flags&  OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
->> -			omap_device_enable(pdev);
->> +		omap_device_enable(pdev);
->>   		pm_generic_runtime_resume(dev);
->>   	}
->>
->> diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
->> index 044c31d..17ca1ae 100644
->> --- a/arch/arm/mach-omap2/omap_device.h
->> +++ b/arch/arm/mach-omap2/omap_device.h
->> @@ -38,7 +38,6 @@ extern struct dev_pm_domain omap_device_pm_domain;
->>
->>   /* omap_device.flags values */
->>   #define OMAP_DEVICE_SUSPENDED		BIT(0)
->> -#define OMAP_DEVICE_NO_IDLE_ON_SUSPEND	BIT(1)
->>
->>   /**
->>    * struct omap_device - omap_device wrapper for platform_devices
->> @@ -101,13 +100,4 @@ static inline struct omap_device *to_omap_device(struct platform_device *pdev)
->>   {
->>   	return pdev ? pdev->archdata.od : NULL;
->>   }
->> -
->> -static inline
->> -void omap_device_disable_idle_on_suspend(struct platform_device *pdev)
->> -{
->> -	struct omap_device *od = to_omap_device(pdev);
->> -
->> -	od->flags |= OMAP_DEVICE_NO_IDLE_ON_SUSPEND;
->> -}
->> -
->>   #endif
+[2] is already in mainline.
+
+> merge window?  It would be nice to combine these efforts.
+> 
+> Thanks,
+> Mike
+> 
+> [1] http://article.gmane.org/gmane.linux.ports.arm.omap/95948
+> [2] http://www.spinics.net/lists/arm-kernel/msg231288.html
+> _______________________________________________
+> devicetree-discuss mailing list
+> devicetree-discuss@lists.ozlabs.org
+> https://lists.ozlabs.org/listinfo/devicetree-discuss
+> 
