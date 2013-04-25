@@ -1,101 +1,123 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCHv3 2/5] driver: serial: omap: prevent runtime PM for "no_console_suspend"
-Date: Thu, 25 Apr 2013 10:58:03 +0530
-Message-ID: <5178BEE3.80600@ti.com>
-References: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>	<1366809353-19435-3-git-send-email-sourav.poddar@ti.com> <87sj2f394t.fsf@linaro.org>
+Subject: Re: [PATCHv3 5/5] arm: omap2+: omap_device: remove no_idle_on_suspend
+Date: Thu, 25 Apr 2013 12:19:04 +0530
+Message-ID: <5178D1E0.6010400@ti.com>
+References: <1366809353-19435-1-git-send-email-sourav.poddar@ti.com>	<1366809353-19435-6-git-send-email-sourav.poddar@ti.com> <87d2tj378q.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87sj2f394t.fsf@linaro.org>
+In-Reply-To: <87d2tj378q.fsf@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Kevin Hilman <khilman@linaro.org>
-Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 Hi Kevin,
-On Thursday 25 April 2013 03:04 AM, Kevin Hilman wrote:
+On Thursday 25 April 2013 03:45 AM, Kevin Hilman wrote:
 > Sourav Poddar<sourav.poddar@ti.com>  writes:
 >
->> The driver manages "no_console_suspend" by preventing runtime PM
->> during the suspend path, which forces the console UART to stay awake.
+>> Remove "no_idle_on_suspend" check, since respective
+>> driver should be able to prevent idling of a
+>> device whenever required.
 >>
+>> Driver's can get same behavior by just returning -EBUSY
+>> from their ->runtime_suspend only during suspend.
+>>
+>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>> Cc: Felipe Balbi<balbi@ti.com>
+>> Cc: Rajendra nayak<rnayak@ti.com>
+>> Cc: Grygorii Strashko<grygorii.strashko@ti.com>
 >> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+>> Reviewed-by: Felipe Balbi<balbi@ti.com>
 >> ---
->>   drivers/tty/serial/omap-serial.c |   29 ++++++++++++++++++++++++++++-
->>   1 files changed, 28 insertions(+), 1 deletions(-)
+>>   arch/arm/mach-omap2/omap_device.c |   12 +++---------
+>>   arch/arm/mach-omap2/omap_device.h |   10 ----------
+>>   2 files changed, 3 insertions(+), 19 deletions(-)
 >>
->> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
->> index 08332f3..468e7ad 100644
->> --- a/drivers/tty/serial/omap-serial.c
->> +++ b/drivers/tty/serial/omap-serial.c
->> @@ -161,6 +161,7 @@ struct uart_omap_port {
->>   	u32			calc_latency;
->>   	struct work_struct	qos_work;
->>   	struct pinctrl		*pins;
->> +	bool			is_suspending;
->>   };
+>> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+>> index 381be7a..2043d71 100644
+>> --- a/arch/arm/mach-omap2/omap_device.c
+>> +++ b/arch/arm/mach-omap2/omap_device.c
+>> @@ -170,9 +170,6 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+>>   			r->name = dev_name(&pdev->dev);
+>>   	}
 >>
->>   #define to_uart_omap_port(p)	((container_of((p), struct uart_omap_port, port)))
->> @@ -1278,6 +1279,24 @@ static struct uart_driver serial_omap_reg = {
->>   };
+>> -	if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
+>> -		omap_device_disable_idle_on_suspend(pdev);
+>> -
+>>   	pdev->dev.pm_domain =&omap_device_pm_domain;
 >>
->>   #ifdef CONFIG_PM_SLEEP
->> +static int serial_omap_prepare(struct device *dev)
->> +{
->> +	struct uart_omap_port *up = dev_get_drvdata(dev);
->> +
->> +	if (!console_suspend_enabled&&  uart_console(&up->port))
->> +		up->is_suspending = true;
-> This flag should be set unconditionally.  IOW, the system is suspending
-> independently of the values of those flags.  And then...
+>>   odbfd_exit1:
+>> @@ -620,11 +617,9 @@ static int _od_suspend_noirq(struct device *dev)
+>>   	ret = pm_generic_suspend_noirq(dev);
+>>
+>>   	if (!ret&&  !pm_runtime_status_suspended(dev)) {
+>> -		if (pm_generic_runtime_suspend(dev) == 0) {
+>> -			if (!(od->flags&  OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+>> -				omap_device_idle(pdev);
+>> +		if (pm_generic_runtime_suspend(dev) == 0)
+>> +			omap_device_idle(pdev);
+>>   			od->flags |= OMAP_DEVICE_SUSPENDED;
+>> -		}
+> Look closely at the if statement, followed by more than one line, and
+> the braces removed.
 >
-True. Will change.
->> +	return 0;
->> +}
->> +
->> +static void serial_omap_complete(struct device *dev)
->> +{
->> +	struct uart_omap_port *up = dev_get_drvdata(dev);
->> +
->> +	if (!console_suspend_enabled&&  uart_console(&up->port))
->> +		up->is_suspending = false;
->> +}
->> +
->>   static int serial_omap_suspend(struct device *dev)
->>   {
->>   	struct uart_omap_port *up = dev_get_drvdata(dev);
->> @@ -1296,7 +1315,10 @@ static int serial_omap_resume(struct device *dev)
->>
->>   	return 0;
->>   }
->> -#endif
->> +#else
->> +#define serial_omap_prepare NULL
->> +#define serial_omap_prepare NULL
->> +#endif /* CONFIG_PM_SLEEP */
->>
->>   static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
->>   {
->> @@ -1582,6 +1604,9 @@ static int serial_omap_runtime_suspend(struct device *dev)
->>   	struct uart_omap_port *up = dev_get_drvdata(dev);
->>   	struct omap_uart_port_info *pdata = dev->platform_data;
->>
->> +	if (up->is_suspending)
->> +		return -EBUSY;
-> ... the console checks should be here.
+> That means that od->flag will be set, even when omap_device_idle() was
+> not called.  Which in turn means that upon resume, omap_device_enable()
+> will be called on a device that has not had omap_device_idle() called,
+> which means there would be WARNs coming from omap_device due to the
+> mismatch.
 >
-Ok. will change.
->>   	if (!up)
->>   		return -EINVAL;
->>
->> @@ -1632,6 +1657,8 @@ static const struct dev_pm_ops serial_omap_dev_pm_ops = {
->>   	SET_SYSTEM_SLEEP_PM_OPS(serial_omap_suspend, serial_omap_resume)
->>   	SET_RUNTIME_PM_OPS(serial_omap_runtime_suspend,
->>   				serial_omap_runtime_resume, NULL)
->> +	.prepare        = serial_omap_prepare,
->> +	.complete       = serial_omap_complete,
->>   };
->>
->>   #if defined(CONFIG_OF)
+True, my bad. Will modify the code to bypass
+"od->flags |= OMAP_DEVICE_SUSPENDED"
+> Hmm... this does not instill confidence that this code has been tested.
+>
+Sorry for the above glitch, I tested this code. I checked that the
+system is able to resume from suspend state, but completely missed the
+following statement in the log..
+"[   47.922424] omap_uart omap_uart.2: omap_device: omap_device_enable() 
+called from invalid state 1"
+
 > Kevin
+>
+>
+>>   	}
+>>
+>>   	return ret;
+>> @@ -638,8 +633,7 @@ static int _od_resume_noirq(struct device *dev)
+>>   	if ((od->flags&  OMAP_DEVICE_SUSPENDED)&&
+>>   	!pm_runtime_status_suspended(dev)) {
+>>   		od->flags&= ~OMAP_DEVICE_SUSPENDED;
+>> -		if (!(od->flags&  OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+>> -			omap_device_enable(pdev);
+>> +		omap_device_enable(pdev);
+>>   		pm_generic_runtime_resume(dev);
+>>   	}
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
+>> index 044c31d..17ca1ae 100644
+>> --- a/arch/arm/mach-omap2/omap_device.h
+>> +++ b/arch/arm/mach-omap2/omap_device.h
+>> @@ -38,7 +38,6 @@ extern struct dev_pm_domain omap_device_pm_domain;
+>>
+>>   /* omap_device.flags values */
+>>   #define OMAP_DEVICE_SUSPENDED		BIT(0)
+>> -#define OMAP_DEVICE_NO_IDLE_ON_SUSPEND	BIT(1)
+>>
+>>   /**
+>>    * struct omap_device - omap_device wrapper for platform_devices
+>> @@ -101,13 +100,4 @@ static inline struct omap_device *to_omap_device(struct platform_device *pdev)
+>>   {
+>>   	return pdev ? pdev->archdata.od : NULL;
+>>   }
+>> -
+>> -static inline
+>> -void omap_device_disable_idle_on_suspend(struct platform_device *pdev)
+>> -{
+>> -	struct omap_device *od = to_omap_device(pdev);
+>> -
+>> -	od->flags |= OMAP_DEVICE_NO_IDLE_ON_SUSPEND;
+>> -}
+>> -
+>>   #endif
