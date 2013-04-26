@@ -1,66 +1,82 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH] ARM: OMAP1: DMA: fix error handling in omap1_system_dma_init()
-Date: Fri, 26 Apr 2013 16:31:44 +0800
-Message-ID: <CAPgLHd-5cRFtN-rF8c5Jvg9cqE3jvxuOa6KaDgcoYHPM4DhbMQ@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: Multiple issues with omap4 panda es in linux next
+Date: Fri, 26 Apr 2013 14:10:36 +0530
+Message-ID: <517A3D84.3000605@ti.com>
+References: <20130419171318.GK10155@atomide.com> <517181B2.9070302@ti.com> <20130419174454.GM10155@atomide.com> <517184A2.9020908@ti.com> <20130419181825.GN10155@atomide.com> <87obd21zlw.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f54.google.com ([209.85.214.54]:56427 "EHLO
-	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754122Ab3DZIbq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Apr 2013 04:31:46 -0400
-Received: by mail-bk0-f54.google.com with SMTP id q11so1654622bkw.27
-        for <linux-omap@vger.kernel.org>; Fri, 26 Apr 2013 01:31:45 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:35734 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758717Ab3DZIi1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Apr 2013 04:38:27 -0400
+In-Reply-To: <87obd21zlw.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk
-Cc: yongjun_wei@trendmicro.com.cn, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Luciano Coelho <coelho@ti.com>, Roger Quadros <rogerq@ti.com>, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>, Ravi Babu <ravibabu@ti.com>, Ruslan Bilovol <ruslan.bilovol@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On Thursday 25 April 2013 07:28 PM, Kevin Hilman wrote:
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130419 10:56]:
+>>> On Friday 19 April 2013 11:14 PM, Tony Lindgren wrote:
+>>>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130419 10:43]:
+>>>>> On Friday 19 April 2013 10:43 PM, Tony Lindgren wrote:
+>>>>>> Hi all,
+>>>>>>
+>>>>>> Here's a list of breakage I've noticed so far while trying to
+>>>>>> use linux next on my pandaboard es. Probably similar issues exist
+>>>>>> on other boards as well.
+>>>>>>
+>>>>>> Ideally we would not have any breakage by the merge window, so
+>>>>>> let's try to get these fixed ASAP:
+>>>>>>
+>>>>>> 1. Serial console broken on panda es booting with DT
+>>>>>>
+>>>>>> The symptoms are dmesg output stopping after few lines
+>>>>>> and only continuing after pressing a key. Does not seem to
+>>>>>> happen on blaze with DT for some reason. And does not happen
+>>>>>> on panda es with legacy booting.
+>>>>>>
+>>>>> This one is known and reported on list along with fix patches and
+>>>>> later pull request [1].
+>>>>>
+>>>>> Unfortunately with all the testing and everything and patches have
+>>>>> been on the list for quite some time, feedback on one of the patch
+>>>>> received was after pull request and then there was no further
+>>>>> clarification. That series address the same exact issue you have
+>>>>> mentioned above.
+>>>>
+>>>> OK thanks. I think Paul picked some of those and the plan was
+>>>> to update the branch? Which one(s) should go into v3.10 as fixes?
+>>>>
+>>> Main in that series was to handle driver sysc handling withing hwmod
+>>> layer and that is where the series got stuck [2]. Without that support
+>>> other patches won't fix the issue.
+>>
+>> OK it seems that that is still ongoing discussion. For v3.10 we should
+>> probably just disable PM for omap4 for DT booting so people can use
+>> it for DT related development.
+> 
+> Disabling PM (and even avoiding WFI using 'nohlt') will not fix this
+> problem, since it's related to the idle-mode of the IP block itself.
+> 
+> What fixes the problem is the series from Santosh for the SYSC removal.
+> 
+> Santosh, it seems that series combined a fix for this problem with some
+> cleanup of the hwmod code that Paul had some concerns with.  Is there
+> any chance you can split up that series into a fix targetted at the
+> DT-boot UART problem and a feature cleanup for hwmod?
+> 
+> Then we hopefully get this fix into v3.10-rc and work on the hwmod
+> changes/cleanup for the following merge window.
+> 
+That was just one patch which was added so that UART async wakeup
+works. Rajendra is cleaning up that patch and post an updated
+series which hopefully make the console issue go away.
 
-Add the missing iounmap() before return from omap1_system_dma_init()
-in the error handling case.
-Also removed platform_device_del() on add resources error case which
-cause dup device delete.
-
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
-no compile test.
----
- arch/arm/mach-omap1/dma.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
-index 1a4e887..68ab858 100644
---- a/arch/arm/mach-omap1/dma.c
-+++ b/arch/arm/mach-omap1/dma.c
-@@ -301,7 +301,7 @@ static int __init omap1_system_dma_init(void)
- 	if (ret) {
- 		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
- 			__func__, pdev->name, pdev->id);
--		goto exit_device_put;
-+		goto exit_iounmap;
- 	}
- 
- 	p = kzalloc(sizeof(struct omap_system_dma_plat_info), GFP_KERNEL);
-@@ -309,7 +309,7 @@ static int __init omap1_system_dma_init(void)
- 		dev_err(&pdev->dev, "%s: Unable to allocate 'p' for %s\n",
- 			__func__, pdev->name);
- 		ret = -ENOMEM;
--		goto exit_device_del;
-+		goto exit_iounmap;
- 	}
- 
- 	d = kzalloc(sizeof(struct omap_dma_dev_attr), GFP_KERNEL);
-@@ -402,8 +402,8 @@ exit_release_d:
- 	kfree(d);
- exit_release_p:
- 	kfree(p);
--exit_device_del:
--	platform_device_del(pdev);
-+exit_iounmap:
-+	iounmap(dma_base);
- exit_device_put:
- 	platform_device_put(pdev);
- 
+Regards,
+Santosh
 
