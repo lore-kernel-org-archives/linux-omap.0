@@ -1,45 +1,105 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v2 0/6] ARM; OMAP2+: hwmod and SERIAL: Remove sysc handling from driver
-Date: Fri, 26 Apr 2013 11:09:33 -0700
-Message-ID: <87ppxhxixu.fsf@linaro.org>
-References: <1366973695-2088-1-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCHv4 2/5] driver: serial: omap: prevent runtime PM for "no_console_suspend"
+Date: Fri, 26 Apr 2013 11:28:58 -0700
+Message-ID: <87mwslw3h1.fsf@linaro.org>
+References: <1366980168-30566-1-git-send-email-sourav.poddar@ti.com>
+	<1366980168-30566-3-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:42505 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756519Ab3DZSJh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Apr 2013 14:09:37 -0400
-Received: by mail-pa0-f51.google.com with SMTP id jh10so2642003pab.10
-        for <linux-omap@vger.kernel.org>; Fri, 26 Apr 2013 11:09:36 -0700 (PDT)
-In-Reply-To: <1366973695-2088-1-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Fri, 26 Apr 2013 16:24:49 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1366980168-30566-3-git-send-email-sourav.poddar@ti.com> (Sourav
+	Poddar's message of "Fri, 26 Apr 2013 18:12:45 +0530")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org
 
-Rajendra Nayak <rnayak@ti.com> writes:
+Sourav Poddar <sourav.poddar@ti.com> writes:
 
-[...]
-
-> OMAP UART IP needs manual idle modes based on functional state of the
-> IP. Currently this is handled by the driver with function pointers
-> implemented in platform code.
+> The driver manages "no_console_suspend" by preventing runtime PM
+> during the suspend path, which forces the console UART to stay awake.
 >
-> This however breaks in case of device tree because of missing
-> idle handling. 
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  drivers/tty/serial/omap-serial.c |   28 +++++++++++++++++++++++++++-
+>  1 files changed, 27 insertions(+), 1 deletions(-)
 >
-> The series tries to address the issue and tries to remove complete
-> sysc handling from serial driver.
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+> index 30d4f7a..eddff3c 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -161,6 +161,7 @@ struct uart_omap_port {
+>  	u32			calc_latency;
+>  	struct work_struct	qos_work;
+>  	struct pinctrl		*pins;
+> +	bool			is_suspending;
+>  };
+>  
+>  #define to_uart_omap_port(p)	((container_of((p), struct uart_omap_port, port)))
+> @@ -1312,6 +1313,22 @@ static struct uart_driver serial_omap_reg = {
+>  };
+>  
+>  #ifdef CONFIG_PM_SLEEP
+> +static int serial_omap_prepare(struct device *dev)
+> +{
+> +	struct uart_omap_port *up = dev_get_drvdata(dev);
+> +
+> +	up->is_suspending = true;
+> +
+> +	return 0;
+> +}
+> +
+> +static void serial_omap_complete(struct device *dev)
+> +{
+> +	struct uart_omap_port *up = dev_get_drvdata(dev);
+> +
+> +	up->is_suspending = false;
+> +}
+> +
+>  static int serial_omap_suspend(struct device *dev)
+>  {
+>  	struct uart_omap_port *up = dev_get_drvdata(dev);
+> @@ -1330,7 +1347,10 @@ static int serial_omap_resume(struct device *dev)
+>  
+>  	return 0;
+>  }
+> -#endif
+> +#else
+> +#define serial_omap_prepare NULL
+> +#define serial_omap_prepare NULL
+> +#endif /* CONFIG_PM_SLEEP */
+>  
+>  static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
+>  {
+> @@ -1616,6 +1636,10 @@ static int serial_omap_runtime_suspend(struct device *dev)
+>  	struct uart_omap_port *up = dev_get_drvdata(dev);
+>  	struct omap_uart_port_info *pdata = dev->platform_data;
+>  
 
-Other than the minor nit about the order of the series for bisect, 
+I'd like to see a comment here about why we return error.  It's written
+in the changelog, but it deserves a comment here as well.  Something like:
 
-Reviewed-by: Kevin Hilman <khilman@linaro.org>
+When using 'no_console_suspend', the console UART must not be suspended.
+Since driver suspend is managed by runtime suspend, preventing runtime
+suspend (by returning error) will keep device active during suspend.
 
-Also tested this on OMAP4/Panda where I was having the sluggish console
-issues using DT boot, and and can confirm that this fixes the problem:
 
-Tested-by: Kevin Hilman <khilman@linaro.org>  # OMAP4/Panda
+> +	if (up->is_suspending && !console_suspend_enabled
+> +			&& uart_console(&up->port))
+
+nit: can you put the '&&' at the end of the first line, and have the
+2nd line line up with the start of the first line?
+
+See other examples of similiar multi-line checks elsewhere in the
+driver.
+
+Other than those minor things, this patch is good.
+
+Then, can you repost and break this into 2 series since they can go
+independently.
+
+Patches 1-2 need to go through the serial tree (Greg), and I will queue
+up the OMAP specific changes once Greg has queued the serial core changes.
 
 Kevin
