@@ -1,84 +1,88 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 0/6] ARM; OMAP2+: hwmod and SERIAL: Remove sysc handling from driver
-Date: Fri, 26 Apr 2013 16:24:49 +0530
-Message-ID: <1366973695-2088-1-git-send-email-rnayak@ti.com>
+Subject: [PATCH v2 5/6] ARM: OMAP2+: serial: Remove the un-used slave idle hooks
+Date: Fri, 26 Apr 2013 16:24:54 +0530
+Message-ID: <1366973695-2088-6-git-send-email-rnayak@ti.com>
+References: <1366973695-2088-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42827 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39323 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759275Ab3DZKze (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Apr 2013 06:55:34 -0400
+	id S1759546Ab3DZKzl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Apr 2013 06:55:41 -0400
+In-Reply-To: <1366973695-2088-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+Cc: santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra nayak <rnayak@ti.com>
 
-changes in v2:
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+
+UART IP idle handling now taken care by runtime pm backend(hwmod) indirectly
+and OMAP serial driver is also cleaned up accordingly.
+
+So remove the un-used slave idle platforms hooks now.
+
+Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Tested-by: Sourav Poddar <sourav.poddar@ti.com>
+Signed-off-by: Rajendra nayak <rnayak@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
-1. Addressed the concerns from Paul Wamsley around cleanups in
-_enable_wakeup()/_disable_wakeup(), and left them intact
-2. Updates in changelogs in the serial patch about changes
-needed when dma support is added back for serial
-3. Dropped 1/8 from v1 since its already pulled in
+ arch/arm/mach-omap2/serial.c |   31 -------------------------------
+ 1 file changed, 31 deletions(-)
 
-The patches are based of 'fixes-non-critical' branch of
-'git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap' tree
-since patch 1/8 from v1 was pulled in here.
-
-Patches can be found here:
-git://github.com/rrnayak/linux.git sysc-cleanups
----
-
-OMAP UART IP needs manual idle modes based on functional state of the
-IP. Currently this is handled by the driver with function pointers
-implemented in platform code.
-
-This however breaks in case of device tree because of missing
-idle handling. 
-
-The series tries to address the issue and tries to remove complete
-sysc handling from serial driver.
-
-Patches has been tested on OMAP4430 SDP and OMAP5 EVM where the console
-sluggishness was observed without idle mode handling. CPUIDLE and
-suspend tested ok on these devices.
-
-Thanks to Vaibhav Bedia for testing on Beaglebone(AM33XX) with suspend and
-also the UART async wakeup from suspend.
-
-Thanks to Sourav Poddar for Beagle XM(OMAP3630) devices testing with
-retention and offmode in Idle and suspend for non-DT builds.
-
-Serial driver platform code still has one more function pointer
-left which is used to trigger io_ring(). This one needs some
-discussion with pincontrol driver folks on how to implement
-such a feature with generic pincontrol driver.
-
-Rajendra Nayak (2):
-  ARM: OMAP2+: hwmod: Fix sidle programming in
-    _enable_sysc()/_idle_sysc()
-  ARM: OMAP2+: hwmod: Add a new flag to handle SIDLE in SWSUP only in
-    active
-
-Santosh Shilimkar (4):
-  ARM: OMAP2+: hwmod-data: UART IP needs software control to manage
-    sidle modes
-  SERIAL: OMAP: Remove the slave idle handling from the driver
-  ARM: OMAP2+: serial: Remove the un-used slave idle hooks
-  ARM: OMAP2+: hwmod: Remove sysc slave idle and auto idle apis
-
- arch/arm/mach-omap2/omap_hwmod.c                   |  111 +++++---------------
- arch/arm/mach-omap2/omap_hwmod.h                   |    7 +-
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    3 +
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    6 ++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    4 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 +-
- arch/arm/mach-omap2/serial.c                       |   31 ------
- drivers/tty/serial/omap-serial.c                   |   23 ----
- include/linux/platform_data/serial-omap.h          |    2 -
- 9 files changed, 48 insertions(+), 145 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 8396b5b..f660156 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -95,38 +95,9 @@ static void omap_uart_enable_wakeup(struct device *dev, bool enable)
+ 		omap_hwmod_disable_wakeup(od->hwmods[0]);
+ }
+ 
+-/*
+- * Errata i291: [UART]:Cannot Acknowledge Idle Requests
+- * in Smartidle Mode When Configured for DMA Operations.
+- * WA: configure uart in force idle mode.
+- */
+-static void omap_uart_set_noidle(struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct omap_device *od = to_omap_device(pdev);
+-
+-	omap_hwmod_set_slave_idlemode(od->hwmods[0], HWMOD_IDLEMODE_NO);
+-}
+-
+-static void omap_uart_set_smartidle(struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct omap_device *od = to_omap_device(pdev);
+-	u8 idlemode;
+-
+-	if (od->hwmods[0]->class->sysc->idlemodes & SIDLE_SMART_WKUP)
+-		idlemode = HWMOD_IDLEMODE_SMART_WKUP;
+-	else
+-		idlemode = HWMOD_IDLEMODE_SMART;
+-
+-	omap_hwmod_set_slave_idlemode(od->hwmods[0], idlemode);
+-}
+-
+ #else
+ static void omap_uart_enable_wakeup(struct device *dev, bool enable)
+ {}
+-static void omap_uart_set_noidle(struct device *dev) {}
+-static void omap_uart_set_smartidle(struct device *dev) {}
+ #endif /* CONFIG_PM */
+ 
+ #ifdef CONFIG_OMAP_MUX
+@@ -299,8 +270,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
+ 	omap_up.uartclk = OMAP24XX_BASE_BAUD * 16;
+ 	omap_up.flags = UPF_BOOT_AUTOCONF;
+ 	omap_up.get_context_loss_count = omap_pm_get_dev_context_loss_count;
+-	omap_up.set_forceidle = omap_uart_set_smartidle;
+-	omap_up.set_noidle = omap_uart_set_noidle;
+ 	omap_up.enable_wakeup = omap_uart_enable_wakeup;
+ 	omap_up.dma_rx_buf_size = info->dma_rx_buf_size;
+ 	omap_up.dma_rx_timeout = info->dma_rx_timeout;
 -- 
 1.7.9.5
 
