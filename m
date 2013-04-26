@@ -1,104 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/3] ARM: dts: Add muxing for wl12xx on the SDIO bus for
- blaze
-Date: Thu, 25 Apr 2013 20:52:16 -0700
-Message-ID: <20130426035216.26065.32776.stgit@muffinssi.local>
-References: <20130426034858.26065.65118.stgit@muffinssi.local>
+From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] usb: musb: omap2430: add missing platform_device_put() on
+ error in omap2430_probe()
+Date: Fri, 26 Apr 2013 14:27:09 +0800
+Message-ID: <CAPgLHd8vY6xDuhCBucRRziQuBig-8vEf_R5uyrCREkErZLXyxQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42331 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758331Ab3DZDwU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Apr 2013 23:52:20 -0400
-In-Reply-To: <20130426034858.26065.65118.stgit@muffinssi.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
+Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Luciano Coelho <coelho@ti.com>, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, Ruslan Bilovol <ruslan.bilovol@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org
 
-This should work assuming the board-4430sdp.c works, but it seems
-that I don't have the "1283 PG 2.21 connectivity device" on
-my blaze. Anybody got a spare connectivity device for blaze?
+From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 
-Also, if somebody has the schematics, please provide a patch
-for the missing GPIO muxes for blaze, see the the panda for
-what's currently missing.
+Add the missing platform_device_put() before return from
+omap2430_probe() in the error handling case.
 
-Cc: Luciano Coelho <coelho@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Introduced by commit ca784be36cc725bca9b526eba342de7550329731
+(usb: start using the control module driver)
+
+Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 ---
- arch/arm/boot/dts/omap4-sdp.dts |   39 ++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 38 insertions(+), 1 deletion(-)
+ drivers/usb/musb/omap2430.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index a35d9cd..c13c483 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -140,6 +140,19 @@
- 			"DMic", "Digital Mic",
- 			"Digital Mic", "Digital Mic1 Bias";
- 	};
-+
-+	/* regulator for wl12xx on sdio5 */
-+	wl12xx_vmmc: wl12xx_vmmc {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&wl12xx_gpio>;
-+		compatible = "regulator-fixed";
-+		regulator-name = "vwl1271";
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
-+		gpio = <&gpio2 22 0>;
-+		startup-delay-us = <70000>;
-+		enable-active-high;
-+	};
- };
- 
- &omap4_pmx_core {
-@@ -275,6 +288,26 @@
- 			0xf0 0x118     /* i2c4_sda PULLUP | INPUTENABLE | MODE0 */
- 		>;
- 	};
-+
-+	/* wl12xx GPIO output for WLAN_EN */
-+	wl12xx_gpio: pinmux_wl12xx_gpio {
-+		pinctrl-single,pins = <
-+			0x3c 0x3	/* gpmc_nwp.gpio_54 OUTPUT | MODE3 */
-+		>;
-+	};
-+
-+	/* wl12xx GPIO inputs and SDIO pins */
-+	wl12xx_pins: pinmux_wl12xx_pins {
-+		pinctrl-single,pins = <
-+			0x3a 0x103	/* gpmc_ncs3.gpio_53 INPUT | MODE3 */
-+			0x108 0x118	/* sdmmc5_clk.sdmmc5_clk INPUT_PULLUP | MODE0 */
-+			0x10a 0x118	/* sdmmc5_cmd.sdmmc5_cmd INPUT_PULLUP | MODE0 */
-+			0x10c 0x118	/* sdmmc5_dat0.sdmmc5_dat0 INPUT_PULLUP | MODE0 */
-+			0x10e 0x118	/* sdmmc5_dat1.sdmmc5_dat1 INPUT_PULLUP | MODE0 */
-+			0x110 0x118	/* sdmmc5_dat2.sdmmc5_dat2 INPUT_PULLUP | MODE0 */
-+			0x112 0x118	/* sdmmc5_dat3.sdmmc5_dat3 INPUT_PULLUP | MODE0 */
-+      		>;
-+	};
- };
- 
- &i2c1 {
-@@ -400,8 +433,12 @@
- };
- 
- &mmc5 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&wl12xx_pins>;
-+	vmmc-supply = <&wl12xx_vmmc>;
-+	non-removable;
- 	bus-width = <4>;
--	ti,non-removable;
-+	cap-power-off-card;
- };
- 
- &emif1 {
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 3551f1a..628b93f 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -549,7 +549,8 @@ static int omap2430_probe(struct platform_device *pdev)
+ 		glue->control_otghs = omap_get_control_dev();
+ 		if (IS_ERR(glue->control_otghs)) {
+ 			dev_vdbg(&pdev->dev, "Failed to get control device\n");
+-			return -ENODEV;
++			ret = PTR_ERR(glue->control_otghs);
++			goto err2;
+ 		}
+ 	} else {
+ 		glue->control_otghs = ERR_PTR(-ENODEV);
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
