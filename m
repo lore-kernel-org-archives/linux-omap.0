@@ -1,102 +1,39 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 4/6] SERIAL: OMAP: Remove the slave idle handling from the driver
-Date: Fri, 26 Apr 2013 16:24:53 +0530
-Message-ID: <1366973695-2088-5-git-send-email-rnayak@ti.com>
-References: <1366973695-2088-1-git-send-email-rnayak@ti.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: Legacy support for wl12xx when booted
+ with devicetree
+Date: Fri, 26 Apr 2013 14:00:32 +0300
+Message-ID: <1366974032.4029.31.camel@cumari.coelho.fi>
+References: <20130426034858.26065.65118.stgit@muffinssi.local>
+	 <20130426035210.26065.39995.stgit@muffinssi.local>
+	 <0104F687-1726-476D-B2DF-7E72223B127A@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60858 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759613Ab3DZKzm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Apr 2013 06:55:42 -0400
-In-Reply-To: <1366973695-2088-1-git-send-email-rnayak@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43113 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751265Ab3DZLCB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Apr 2013 07:02:01 -0400
+In-Reply-To: <0104F687-1726-476D-B2DF-7E72223B127A@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra nayak <rnayak@ti.com>
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>, Pantelis Antoniou <pantelis.antoniou@gmail.com>, Jason Kridner <jkridner@beagleboard.org>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Hi Koen,
 
-UART IP slave idle handling now taken care by runtime pm backend(hwmod layer)
-so remove the hackery from the driver.
+On Fri, 2013-04-26 at 11:33 +0200, Koen Kooi wrote:
+> Op 26 apr. 2013, om 05:52 heeft Tony Lindgren <tony@atomide.com> het volgende geschreven:
+> 
+> > Without WLAN we cannot switch omap4 to use device tree
+> > only booting. This patch can be reverted when the
+> > binding for wl12xx is added.
+> 
+> How much boards am I allowed to add to this? I need to get the wl12xx wifi expansionboards for beagleboard, beagleboard xM and beaglebone working with DT :)
 
-As discussed on the list, in future if dma mode needs to be brought
-back to this driver, UART sysc handling needs to be updated in
-framework such a way that no-idle/force idle profile can be supported.
-Given the broken dma mode for OMAP uarts, its very unlikely.
+Do you know where I can get a wl12xx wifi expansion board for
+beaglebone?
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Tested-by: Sourav Poddar <sourav.poddar@ti.com>
-Signed-off-by: Rajendra nayak <rnayak@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- drivers/tty/serial/omap-serial.c          |   23 -----------------------
- include/linux/platform_data/serial-omap.h |    2 --
- 2 files changed, 25 deletions(-)
-
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 4dc4140..08332f3 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -202,26 +202,6 @@ static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
- 	return pdata->get_context_loss_count(up->dev);
- }
- 
--static void serial_omap_set_forceidle(struct uart_omap_port *up)
--{
--	struct omap_uart_port_info *pdata = up->dev->platform_data;
--
--	if (!pdata || !pdata->set_forceidle)
--		return;
--
--	pdata->set_forceidle(up->dev);
--}
--
--static void serial_omap_set_noidle(struct uart_omap_port *up)
--{
--	struct omap_uart_port_info *pdata = up->dev->platform_data;
--
--	if (!pdata || !pdata->set_noidle)
--		return;
--
--	pdata->set_noidle(up->dev);
--}
--
- static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
- {
- 	struct omap_uart_port_info *pdata = up->dev->platform_data;
-@@ -298,8 +278,6 @@ static void serial_omap_stop_tx(struct uart_port *port)
- 		serial_out(up, UART_IER, up->ier);
- 	}
- 
--	serial_omap_set_forceidle(up);
--
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
- }
-@@ -364,7 +342,6 @@ static void serial_omap_start_tx(struct uart_port *port)
- 
- 	pm_runtime_get_sync(up->dev);
- 	serial_omap_enable_ier_thri(up);
--	serial_omap_set_noidle(up);
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
- }
-diff --git a/include/linux/platform_data/serial-omap.h b/include/linux/platform_data/serial-omap.h
-index ff9b0aa..c860c1b 100644
---- a/include/linux/platform_data/serial-omap.h
-+++ b/include/linux/platform_data/serial-omap.h
-@@ -43,8 +43,6 @@ struct omap_uart_port_info {
- 	int			DTR_present;
- 
- 	int (*get_context_loss_count)(struct device *);
--	void (*set_forceidle)(struct device *);
--	void (*set_noidle)(struct device *);
- 	void (*enable_wakeup)(struct device *, bool);
- };
- 
 -- 
-1.7.9.5
+Luca.
 
