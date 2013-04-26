@@ -1,71 +1,64 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH 2/3] ARM: dts: Add muxing for wl12xx on the SDIO bus for
- pandaboard
-Date: Fri, 26 Apr 2013 16:23:23 +0300
-Message-ID: <1366982603.4029.42.camel@cumari.coelho.fi>
-References: <20130426034858.26065.65118.stgit@muffinssi.local>
-	 <20130426035213.26065.63243.stgit@muffinssi.local>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [net-next PATCH 1/1] drivers: net: cpsw: fix kernel warn on cpsw
+ irq enable
+Date: Fri, 26 Apr 2013 17:48:08 +0400
+Message-ID: <517A8598.3090602@cogentembedded.com>
+References: <1366975848-31503-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50246 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755091Ab3DZNYu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Apr 2013 09:24:50 -0400
-In-Reply-To: <20130426035213.26065.63243.stgit@muffinssi.local>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:51939 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756261Ab3DZNt2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Apr 2013 09:49:28 -0400
+Received: by mail-lb0-f182.google.com with SMTP id v20so3726392lbc.41
+        for <linux-omap@vger.kernel.org>; Fri, 26 Apr 2013 06:49:26 -0700 (PDT)
+In-Reply-To: <1366975848-31503-1-git-send-email-mugunthanvnm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, Sebastian Siewior <bigeasy@linutronix.de>
 
-On Thu, 2013-04-25 at 20:52 -0700, Tony Lindgren wrote:
-> This is needed to get wl12xx working with device tree based
-> booting.
-> 
-> Note that we claim the various GPIO inputs in the regulator
-> as the proper muxing is needed to enable and disable the
-> regulator.
-> 
-> Also, we want to use non-removable instead of ti,non-removable
-> as the ti,non-removable also sets no_regulator_off_init which
-> is really not what we want as then wl12xx won't get powered
-> up and down which is needed for resetting it.
-> 
-> Cc: Luciano Coelho <coelho@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: devicetree-discuss@lists.ozlabs.org
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
+Hello.
 
-I tried this now and it seems to work fine too.  So:
+On 26-04-2013 15:30, Mugunthan V N wrote:
 
-Tested-by: Luciano Coelho <coelho@ti.com>
+> With the commit id a11fbba
 
-Except that with linux-next I'm getting some problems with the
-interrupts when trying to use wl12xx.  It's not related to this patch
-though, and I'm investigating it right now.
+    Please also specify that commit's summary line in parens.
 
-Also, I found one small whitespace problem in this patch:
+> from Sebastian Siewior, a kernel warning is
+> generated as below. This warning is generated as the irq_enabled is not
+> initialized for the primary interface and in probe it is initialized for
+> the secondary interface. This patch moves irq_enabled initialization from
+> second interface to primary interface.
 
-[...]
-> +	/* wl12xx GPIO inputs and SDIO pins */
-> +	wl12xx_pins: pinmux_wl12xx_pins {
-> +		pinctrl-single,pins = <
-> +			0x38 0x103	/* gpmc_ncs2.gpio_52 INPUT | MODE3 */
-> +			0x3a 0x103	/* gpmc_ncs3.gpio_53 INPUT | MODE3 */
-> +			0x108 0x118	/* sdmmc5_clk.sdmmc5_clk INPUT_PULLUP | MODE0 */
-> +			0x10a 0x118	/* sdmmc5_cmd.sdmmc5_cmd INPUT_PULLUP | MODE0 */
-> +			0x10c 0x118	/* sdmmc5_dat0.sdmmc5_dat0 INPUT_PULLUP | MODE0 */
-> +			0x10e 0x118	/* sdmmc5_dat1.sdmmc5_dat1 INPUT_PULLUP | MODE0 */
-> +			0x110 0x118	/* sdmmc5_dat2.sdmmc5_dat2 INPUT_PULLUP | MODE0 */
-> +			0x112 0x118	/* sdmmc5_dat3.sdmmc5_dat3 INPUT_PULLUP | MODE0 */
-> +      		>;
+    s/second/secondary/?
 
-git am reports a "space before tab in indent" here.
+> [    3.049173] net eth0: phy found : id is : 0x4dd074
+> [    3.054552] net eth0: phy found : id is : 0x4dd074
+> [    3.070421] ------------[ cut here ]------------
+> [    3.075308] WARNING: at kernel/irq/manage.c:437 enable_irq+0x3c/0x74()
+> [    3.082173] Unbalanced enable for IRQ 56
+> [    3.086299] Modules linked in:
+> [    3.089557] [<c001abcc>] (unwind_backtrace+0x0/0xf0) from [<c004294c>] (warn_slowpath_common+0x4c/0x68)
+> [    3.099450] [<c004294c>] (warn_slowpath_common+0x4c/0x68) from [<c00429fc>] (warn_slowpath_fmt+0x30/0x40)
+> [    3.109521] [<c00429fc>] (warn_slowpath_fmt+0x30/0x40) from [<c00a29fc>] (enable_irq+0x3c/0x74)
+> [    3.118681] [<c00a29fc>] (enable_irq+0x3c/0x74) from [<c03a7818>] (cpsw_ndo_open+0x61c/0x684)
+> [    3.127669] [<c03a7818>] (cpsw_ndo_open+0x61c/0x684) from [<c0445c08>] (__dev_open+0x9c/0xf8)
+> [    3.136646] [<c0445c08>] (__dev_open+0x9c/0xf8) from [<c0445e34>] (__dev_change_flags+0x78/0x13c)
+> [    3.145988] [<c0445e34>] (__dev_change_flags+0x78/0x13c) from [<c0445f64>] (dev_change_flags+0x10/0x48)
+> [    3.155884] [<c0445f64>] (dev_change_flags+0x10/0x48) from [<c0736d88>] (ip_auto_config+0x198/0x111c)
+> [    3.165592] [<c0736d88>] (ip_auto_config+0x198/0x111c) from [<c00086a4>] (do_one_initcall+0x34/0x180)
+> [    3.175309] [<c00086a4>] (do_one_initcall+0x34/0x180) from [<c07078f8>] (kernel_init_freeable+0xfc/0x1c8)
+> [    3.185393] [<c07078f8>] (kernel_init_freeable+0xfc/0x1c8) from [<c04f36ec>] (kernel_init+0x8/0xe4)
+> [    3.194929] [<c04f36ec>] (kernel_init+0x8/0xe4) from [<c00133d0>] (ret_from_fork+0x14/0x24)
+> [    3.203712] ---[ end trace d6f979da080bc391 ]---
 
+> Cc: Sebastian Siewior <bigeasy@linutronix.de>
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 
--- 
-Luca.
+WBR, Sergei
+
 
