@@ -1,30 +1,78 @@
-From: Mats Liljegren <liljegren.mats2@gmail.com>
-Subject: Full nohz on TCI6638k2k (KeyStone II)
-Date: Fri, 26 Apr 2013 09:06:25 +0200
-Message-ID: <CA+xJJ18wBM7G=Nt12yMX8KLmTZWS+SnBsXb3F4X1xgq=Y=0y0w@mail.gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 2/8] ARM: OMAP2+: hwmod: Cleanup sidle/mstandby programming
+Date: Fri, 26 Apr 2013 12:38:31 +0530
+Message-ID: <517A27EF.40408@ti.com>
+References: <1361354272-18089-1-git-send-email-santosh.shilimkar@ti.com> <1361354272-18089-3-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1303310053351.6436@utopia.booyaka.com> <515947D3.50904@ti.com> <516FD093.1020607@ti.com> <alpine.DEB.2.00.1304230804410.30196@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:45446 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752907Ab3DZHG1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Apr 2013 03:06:27 -0400
-Received: by mail-ee0-f46.google.com with SMTP id c13so1547775eek.19
-        for <linux-omap@vger.kernel.org>; Fri, 26 Apr 2013 00:06:26 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:56761 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755422Ab3DZHIx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Apr 2013 03:08:53 -0400
+In-Reply-To: <alpine.DEB.2.00.1304230804410.30196@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>, meta-ti <meta-ti@yoctoproject.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org
 
-I would like to perform a customer demo running a benchmark
-application in full nohz mode on TCI6638k2k target, which as far as I
-understand it is a KeyStone II architecture.
+On Tuesday 23 April 2013 01:49 PM, Paul Walmsley wrote:
+> Hi Rajendra,
+> 
+> On Thu, 18 Apr 2013, Rajendra Nayak wrote:
+> 
+>>>>> _enable_wakeup() and _disable_wakeup() are expected to program the
+>>>>> OCP_SYSCONFIG.ENAWAKEUP bit.
+>>>>
+>>>> These functions were originally intended to take care of everything needed 
+>>>> for the IP block to wake up the chip, including the PRCM WKEN programming.  
+>>>> ENAWAKEUP is simply one part of that.
+>>>>
+>>>>> Get rid of the additional sidle/mstandby programming in them, as its 
+>>>>> confusing (this is expected to be handled elsewhere as part of 
+>>>>> _enable_sysc()/__idle_sysc())
+>>>>
+>>>> Sorry, why does the expectation exist for the code to enable and disable 
+>>>> device wakeup to be part of _enable_sysc()/_idle_sysc(), rather than in 
+>>>> functions called by _enable_sysc()/_idle_sysc()?
+>>>
+>>> It all comes down to if SIDLE_SMART_WKUP/MSTANDBY_SMART_WKUP programming
+>>> be considered as 'idlemode' programming or 'enwakeup' programming.
+>>> If you consider these are being part of 'enwakeup' progrmming, these should
+>>> certainly be handled as part of _enable_wakeup() and _disable_wakeup().
+>>>
+>>> Today, in some cases, these are *also* handled as part of _enable_sysc()
+>>> and _idle_sysc(). The way _enable_wakeup() is invoked from _enable_sysc()
+>>> is also very inconsistent. For instance, for any IP which supports
+>>> SYSC_HAS_MIDLEMODE and SYSC_HAS_ENAWAKEUP, we invoke _enable_wakeup()
+>>> regardless of the MIDLEMODE programmmed.
+>>> While in case of the IP supporting SYSC_HAS_SIDLEMODE, _enable_wakeup() is
+>>> invoked only when the SIDLEMODE programmed is SMART or SMART_WKUP.
+>>>
+>>> I understand the cleanups you are suggesting below as part of the movement
+>>> of some of these things outside of mach-omap2.
+>>> I was more looking at fixing the existing piece so its readable and does
+>>> things more consistently.
+>>
+>> Do you have any further thoughts on how we should do about this?
+> 
+> Is it possible to implement a solution that preserves _enable_wakeup() and 
+> _disable_wakeup() as distinct functions, that can be called by separate 
+> wakeup control entry points?
+> 
+> If it makes sense to change _enable_sysc() so that it doesn't call 
+> _enable_wakeup(), but does similar work itself, that's fine with me, as 
+> long as there's not too much code duplication.
+> 
+> It will be good to have the inconsistencies fixed.
 
-Does anyone know what the best Linux source code is to perform the
-nohz port for this board? It should preferably be Linux 3.9 of any RC
-level, but 3.8 should work as well.
+Sure, I'll post something on those lines shortly.
 
-I also need a hardware timer to be used as an interrupt source for the
-interrupt latency measurements. Any suggestions for framework or
-driver to use?
+regards,
+Rajendra
+> 
+> 
+> - Paul
+> 
 
-/Mats
