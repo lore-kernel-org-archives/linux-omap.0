@@ -1,7 +1,7 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCHv4 4/5] arm: dts: am33xx: Remove "ti,no_idle_on_suspend" property.
-Date: Fri, 26 Apr 2013 18:12:47 +0530
-Message-ID: <1366980168-30566-5-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCHv4 2/5] driver: serial: omap: prevent runtime PM for "no_console_suspend"
+Date: Fri, 26 Apr 2013 18:12:45 +0530
+Message-ID: <1366980168-30566-3-git-send-email-sourav.poddar@ti.com>
 References: <1366980168-30566-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,40 +9,84 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1366980168-30566-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, khilman@linaro.org, linux-kernel@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The "ti,no_idle_on_suspend" property was required to keep ocmcram clocks
-running during idle.
+The driver manages "no_console_suspend" by preventing runtime PM
+during the suspend path, which forces the console UART to stay awake.
 
-But commit 72bb6f9 (ARM: OMAP: omap_device: don't attempt late suspend
-if no driver bound), added in v3.6 should prevent any automatic clock
-gating for devices without drivers bound.  Since there is no driver for
-the OCM RAM block, we are not affected by the automatic idle on suspend
-anyways which means "ti,no_idle_on_suspend" can be safely removed since
-there are no users for it.
-
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Rajendra nayak <rnayak@ti.com>
 Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 Reviewed-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/tty/serial/omap-serial.c |   28 +++++++++++++++++++++++++++-
+ 1 files changed, 27 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 0957645..729ca24 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -390,7 +390,6 @@
- 			compatible = "ti,am3352-ocmcram";
- 			reg = <0x40300000 0x10000>;
- 			ti,hwmods = "ocmcram";
--			ti,no_idle_on_suspend;
- 		};
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 30d4f7a..eddff3c 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -161,6 +161,7 @@ struct uart_omap_port {
+ 	u32			calc_latency;
+ 	struct work_struct	qos_work;
+ 	struct pinctrl		*pins;
++	bool			is_suspending;
+ };
  
- 		wkup_m3: wkup_m3@44d00000 {
+ #define to_uart_omap_port(p)	((container_of((p), struct uart_omap_port, port)))
+@@ -1312,6 +1313,22 @@ static struct uart_driver serial_omap_reg = {
+ };
+ 
+ #ifdef CONFIG_PM_SLEEP
++static int serial_omap_prepare(struct device *dev)
++{
++	struct uart_omap_port *up = dev_get_drvdata(dev);
++
++	up->is_suspending = true;
++
++	return 0;
++}
++
++static void serial_omap_complete(struct device *dev)
++{
++	struct uart_omap_port *up = dev_get_drvdata(dev);
++
++	up->is_suspending = false;
++}
++
+ static int serial_omap_suspend(struct device *dev)
+ {
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
+@@ -1330,7 +1347,10 @@ static int serial_omap_resume(struct device *dev)
+ 
+ 	return 0;
+ }
+-#endif
++#else
++#define serial_omap_prepare NULL
++#define serial_omap_prepare NULL
++#endif /* CONFIG_PM_SLEEP */
+ 
+ static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
+ {
+@@ -1616,6 +1636,10 @@ static int serial_omap_runtime_suspend(struct device *dev)
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
+ 	struct omap_uart_port_info *pdata = dev->platform_data;
+ 
++	if (up->is_suspending && !console_suspend_enabled
++			&& uart_console(&up->port))
++		return -EBUSY;
++
+ 	if (!up)
+ 		return -EINVAL;
+ 
+@@ -1666,6 +1690,8 @@ static const struct dev_pm_ops serial_omap_dev_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(serial_omap_suspend, serial_omap_resume)
+ 	SET_RUNTIME_PM_OPS(serial_omap_runtime_suspend,
+ 				serial_omap_runtime_resume, NULL)
++	.prepare        = serial_omap_prepare,
++	.complete       = serial_omap_complete,
+ };
+ 
+ #if defined(CONFIG_OF)
 -- 
 1.7.1
