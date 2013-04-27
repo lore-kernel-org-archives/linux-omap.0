@@ -1,54 +1,44 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCHv5 1/2] driver: tty: serial: Move "uart_console" def to
- core header file.
-Date: Fri, 26 Apr 2013 15:18:17 -0700
-Message-ID: <20130426221817.GA28377@kroah.com>
-References: <1367006686-3720-1-git-send-email-sourav.poddar@ti.com>
- <1367006686-3720-2-git-send-email-sourav.poddar@ti.com>
- <87vc79uezo.fsf@linaro.org>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] musb regression on omap4 for v3.9
+Date: Fri, 26 Apr 2013 17:35:51 -0700
+Message-ID: <20130427003551.GB2350@quad.lixom.net>
+References: <20130423214544.GN10155@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:45267 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752937Ab3DZWSU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Apr 2013 18:18:20 -0400
-Received: by mail-da0-f46.google.com with SMTP id x4so1565076daj.33
-        for <linux-omap@vger.kernel.org>; Fri, 26 Apr 2013 15:18:19 -0700 (PDT)
+Received: from mail-pd0-f181.google.com ([209.85.192.181]:48874 "EHLO
+	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755984Ab3D0Af4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Apr 2013 20:35:56 -0400
+Received: by mail-pd0-f181.google.com with SMTP id q10so356549pdj.40
+        for <linux-omap@vger.kernel.org>; Fri, 26 Apr 2013 17:35:55 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <87vc79uezo.fsf@linaro.org>
+In-Reply-To: <20130423214544.GN10155@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, Apr 26, 2013 at 03:03:07PM -0700, Kevin Hilman wrote:
-> Hi Greg,
+On Tue, Apr 23, 2013 at 02:45:45PM -0700, Tony Lindgren wrote:
 > 
-> Sourav Poddar <sourav.poddar@ti.com> writes:
+> The following changes since commit 31880c37c11e28cb81c70757e38392b42e695dc6:
 > 
-> > Move "uart_console" definition to serial core header file, so that it can be
-> > used by serial drivers.
-> > Get rid of the uart_console defintion from mpc52xx_uart driver.
-> >
-> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Cc: Felipe Balbi <balbi@ti.com>
-> > Cc: Rajendra nayak <rnayak@ti.com>
-> > Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> > Reviewed-by: Felipe Balbi <balbi@ti.com>
+>   Linux 3.9-rc6 (2013-04-07 20:49:54 -0700)
 > 
-> Can you queue up this patch (and 2/2)?  Once these are in, I will queue
-> up the corresponding arch/arm changes which can go independently.
+> are available in the git repository at:
 > 
-> And feel free to add
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.9-rc6/fixes-signed
 > 
-> Reviewed-by: Kevin Hilman <khilman@linaro.org>
-> Tested-by: Kevin Hilman <khilman@linaro.org>
+> for you to fetch changes up to f4d7a536faa43f30d87f701268db76b8433a2a8b:
+> 
+>   ARM: OMAP4: hwmod data: make 'ocp2scp_usb_phy_phy_48m" as the main clock (2013-04-10 13:26:07 -0700)
+> 
+> ----------------------------------------------------------------
+> One MUSB regression fix that I forgot to send earlier. Without
+> this MUSB no longer works on omap4 based devices.
 
-I will do so after 3.10-rc1 is out, it is _way_ too late in the
-development cycle for me to add these to my trees right now, considering
-they are pretty much closed at the moment.
+Pulled into fixes. I'll send a pull request to Linus tonight, hopefully he
+won't cut 3.9-final until later this weekend.
 
-thanks,
 
-greg k-h
+-Olof
