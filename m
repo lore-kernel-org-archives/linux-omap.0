@@ -1,102 +1,70 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 04/10] OMAPDSS: DSI: use platform_driver_register()
-Date: Mon, 29 Apr 2013 13:22:31 +0300
-Message-ID: <1367230957-32337-5-git-send-email-tomi.valkeinen@ti.com>
-References: <1367230957-32337-1-git-send-email-tomi.valkeinen@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 0/4] ARM: dts: Add USB host support for Panda and
+ Beagle-xm
+Date: Mon, 29 Apr 2013 15:32:18 +0300
+Message-ID: <517E6852.5010001@ti.com>
+References: <1366365457-28972-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35761 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758036Ab3D2KXK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Apr 2013 06:23:10 -0400
-In-Reply-To: <1367230957-32337-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1366365457-28972-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: nm-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, grygorii.strashko@ti.com, chf.fritz@googlemail.com, Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use platform_driver_register() instead of platform_driver_probe() so
-that we can support EPROBE_DEFER.
+On 04/19/2013 12:57 PM, Roger Quadros wrote:
+> Hi Benoit/Tony
+> 
+> I've consolidated all the USB host device tree patches for Panda and Beagles
+> to one place and addressed Tony's comments.
+> 
+> NOTE: patch 1 depends on OMAP clock binding introduced in
+> https://lkml.org/lkml/2013/4/12/407
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/dss/dsi.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+Tony, Benoit,
 
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 9b1c5ec..55fc0d4 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -5225,7 +5225,7 @@ static enum omap_channel dsi_get_channel(int module_id)
- 	}
- }
- 
--static int __init dsi_init_display(struct omap_dss_device *dssdev)
-+static int dsi_init_display(struct omap_dss_device *dssdev)
- {
- 	struct platform_device *dsidev =
- 			dsi_get_dsidev_from_id(dssdev->phy.dsi.module);
-@@ -5366,7 +5366,7 @@ static int dsi_get_clocks(struct platform_device *dsidev)
- 	return 0;
- }
- 
--static struct omap_dss_device * __init dsi_find_dssdev(struct platform_device *pdev)
-+static struct omap_dss_device *dsi_find_dssdev(struct platform_device *pdev)
- {
- 	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
- 	struct dsi_data *dsi = dsi_get_dsidrv_data(pdev);
-@@ -5398,7 +5398,7 @@ static struct omap_dss_device * __init dsi_find_dssdev(struct platform_device *p
- 	return def_dssdev;
- }
- 
--static void __init dsi_probe_pdata(struct platform_device *dsidev)
-+static void dsi_probe_pdata(struct platform_device *dsidev)
- {
- 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
- 	struct omap_dss_device *plat_dssdev;
-@@ -5436,11 +5436,13 @@ static void __init dsi_probe_pdata(struct platform_device *dsidev)
- 		DSSERR("device %s register failed: %d\n", dssdev->name, r);
- 		omapdss_output_unset_device(&dsi->output);
- 		dss_put_device(dssdev);
--		return;
-+		return r;
- 	}
-+
-+	return 0;
- }
- 
--static void __init dsi_init_output(struct platform_device *dsidev)
-+static void dsi_init_output(struct platform_device *dsidev)
- {
- 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
- 	struct omap_dss_output *out = &dsi->output;
-@@ -5465,7 +5467,7 @@ static void __exit dsi_uninit_output(struct platform_device *dsidev)
- }
- 
- /* DSI1 HW IP initialisation */
--static int __init omap_dsihw_probe(struct platform_device *dsidev)
-+static int omap_dsihw_probe(struct platform_device *dsidev)
- {
- 	u32 rev;
- 	int r, i;
-@@ -5632,6 +5634,7 @@ static const struct dev_pm_ops dsi_pm_ops = {
- };
- 
- static struct platform_driver omap_dsihw_driver = {
-+	.probe		= omap_dsihw_probe,
- 	.remove         = __exit_p(omap_dsihw_remove),
- 	.driver         = {
- 		.name   = "omapdss_dsi",
-@@ -5642,7 +5645,7 @@ static struct platform_driver omap_dsihw_driver = {
- 
- int __init dsi_init_platform_driver(void)
- {
--	return platform_driver_probe(&omap_dsihw_driver, omap_dsihw_probe);
-+	return platform_driver_register(&omap_dsihw_driver);
- }
- 
- void __exit dsi_uninit_platform_driver(void)
--- 
-1.7.10.4
+Just FYI, the patch [1] that is needed will probably not get in
+until 3.10 rc1. However, this series need not wait till that happens.
 
+[1] https://lkml.org/lkml/2013/4/12/407
+
+cheers,
+-roger
+
+> 
+> v3:
+> - updated mux mode to use pulldowns on panda as non-DT boot uses pulldowns.
+> - fixed usb pin naming for panda, beagle and beagle-xm
+> 
+> The following changes since commit 1fac4fffa719a98ec1047eaece236244333c9afe:
+> 
+>   ARM: dts: Add OMAP3430 SDP NOR flash memory binding (2013-04-09 00:21:35 +0200)
+> 
+> are available in the git repository at:
+>   git://github.com/rogerq/linux.git usbhost-omap-dts
+> 
+> Roger Quadros (4):
+>       ARM: dts: omap4-panda: Add USB Host support
+>       ARM: dts: omap3-beagle: Make USB host pin naming consistent
+>       ARM: dts: omap3-beagle-xm: Add USB Host support
+>       ARM: dts: omap3-beagle-xm: Add USB host supprot for Rev. Ax/Bx
+> 
+>  arch/arm/boot/dts/omap3-beagle-xm-ab.dts  |   19 ++++++++
+>  arch/arm/boot/dts/omap3-beagle-xm.dts     |   65 ++++++++++++++++++++++++++++-
+>  arch/arm/boot/dts/omap3-beagle.dts        |   25 ++++++-----
+>  arch/arm/boot/dts/omap4-panda-common.dtsi |   58 +++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi              |    5 ++
+>  5 files changed, 158 insertions(+), 14 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/omap3-beagle-xm-ab.dts
+> 
