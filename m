@@ -1,40 +1,40 @@
-From: Mark Jackson <mpfj-list@newflow.co.uk>
-Subject: Re: v3.9.0-rc8 : oops in tick_do_update_jiffies64+0xbc/0x110
-Date: Mon, 29 Apr 2013 16:46:18 +0100
-Message-ID: <517E95CA.4000708@newflow.co.uk>
-References: <517E3039.2070204@newflow.co.uk> <20130429154146.GB28721@atomide.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [net-next PATCH 1/1] drivers: net: cpsw: fix kernel warn on
+ cpsw irq enable
+Date: Mon, 29 Apr 2013 14:08:16 -0400 (EDT)
+Message-ID: <20130429.140816.128860616603400300.davem@davemloft.net>
+References: <1366975848-31503-1-git-send-email-mugunthanvnm@ti.com>
+	<517A6D0C.6020702@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130429154146.GB28721@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, tglx@linutronix.de, lkml <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:60055 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757285Ab3D2SIT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Apr 2013 14:08:19 -0400
+In-Reply-To: <517A6D0C.6020702@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: bigeasy@linutronix.de
+Cc: mugunthanvnm@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 29/04/13 16:41, Tony Lindgren wrote:
-> * Mark Jackson <mpfj-list@newflow.co.uk> [130429 01:38]:
->> I've been experiencing several crashes all pointing exactly the same place in the same tick routine (see below).
->>
->> The "exception stack" trace at the end changes depending on when the oops occurs.
->>
->> I've had the oops occur maybe 6 times in the last 50 reboots.
->>
->> Any ideas ?
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Fri, 26 Apr 2013 14:03:24 +0200
+
+> David, how did this happen? The patch I've sent
 > 
-> Sounds like it might be an issue with the physical memory or
-> the timings. It could also be related to the idle loop not
-> restoring something right for deeper idle states that corrupts
-> the memory. And that's why it would seem to appear while waking
-> to a timer.
+>    http://www.spinics.net/lists/netdev/msg234240.html
+> 
+> adds this to the probe function, according to the net-next tree it was
+> added to cpsw_probe_dual_emac(). The context is similar but not exact
+> the same.
 
-I am suspecting a borderline CPU.  We only have "X" AM3359 parts which
-are all pre-production.
+This is usually I ask people to respin patches even if there are minor
+fuzz differences when I try to apply this patch.
 
-> Maybe disable PM and run memtester to see if that runs reliably?
+I tried to be nice and save you some work this time, 'patch' accepted
+it with minor offsets, and with a cursory glance I didn't see any
+problems.
 
-I'll see if I can get it running on our platform.
-
-Thanks
-Mark J.
+Next time I'll be a hardliner and request a respin :-)
