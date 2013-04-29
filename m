@@ -1,41 +1,71 @@
-From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH v4 5/8] MFD: ti_am335x_tscadc: Add DT support
-Date: Mon, 29 Apr 2013 12:13:26 +0200
-Message-ID: <1367230406.4148.9.camel@coredoba.hi.pengutronix.de>
-References: <1358999112-31192-1-git-send-email-rachna@ti.com>
-	 <1358999112-31192-6-git-send-email-rachna@ti.com>
-	 <A9839AA2-ABCD-4642-9766-D56824AC27AD@dominion.thruhere.net>
-	 <4CE347531D4CA947960AF71FF095B9323E9B1EE9@DBDE01.ent.ti.com>
-	 <79CD15C6BA57404B839C016229A409A83EBEFAE8@DBDE01.ent.ti.com>
-	 <4CE347531D4CA947960AF71FF095B9323E9B44E9@DBDE01.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: Section mismatch warning with linux next in usbhs_init_phys()
+Date: Mon, 29 Apr 2013 13:16:01 +0300
+Message-ID: <20130429101601.GF16881@arwen.pp.htv.fi>
+References: <20130411183201.GB10155@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CE347531D4CA947960AF71FF095B9323E9B44E9-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
-Cc: Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Yia77v5a8fyVHJSl"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36943 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754931Ab3D2KQl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Apr 2013 06:16:41 -0400
+Content-Disposition: inline
+In-Reply-To: <20130411183201.GB10155@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
 
-On Wed, 2013-02-06 at 11:17 +0000, Patil, Rachna wrote:
-> > > Can you share the branch which you have tested?
-> > 
-> > https://github.com/patilrachna/linux/tree/v3.8_rc3_MFD_TSCADC_DT-v2
-> 
-> Did you get a chance to test this branch?
-> And can you also share your branch, on which you observed the issue.
+--Yia77v5a8fyVHJSl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Rachana,
+On Thu, Apr 11, 2013 at 11:32:01AM -0700, Tony Lindgren wrote:
+> Hi Roger,
+>=20
+> Looks like there's a section mismatch issue in linux next:
+>=20
+> WARNING: vmlinux.o(.text+0x2a7b4): Section mismatch in reference from the=
+ function usbhs_init_phys() to the function .init.text:usb_bind_phy()
+> The function usbhs_init_phys() references
+> the function __init usb_bind_phy().
+> This is often because usbhs_init_phys lacks a __init=20
+> annotation or the annotation of usb_bind_phy is wrong.
+>=20
+> Can you please take a look?
 
-I have not seen a new version of this patch since January. Are you still
-working on the TSCADC? If not, where can I find the most recent version?
+already taken care of, should be on today's linux-next:
 
-Regards,
-Jan
+http://git.kernel.org/cgit/linux/kernel/git/gregkh/usb.git/commit/?id=3D19d=
+8ceddda8b3a806a0960106ae6aa4dcc21df3b
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+--=20
+balbi
+
+--Yia77v5a8fyVHJSl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRfkhhAAoJEIaOsuA1yqREPW8P/2+DKoMJX19G+CE5WJhKxdSi
+CRvrCr94P/FrLwgnHg0U5INRsA31S7CwBYq+EPXTh2/56+lBvCNPlcTpvmOBI/yR
+YWOnTnryytQpLmPE47inxwYsS0jhCLl/hr+Xb48QKtngGMmui2X66/P/TzYvQ+Pb
+8McwzgXrT8vOuFJk123bljKKVXKSrKFETLdVgHMzF0iN3ilysAO3f6mUSpIBWEFG
+29FAeRWGAIj4gYXHzVAFT9cYq8o3jT+IZ1aklBhKLw3KjGFwIRz2yYrZRG4ipxqO
+RuDU1qbhnDeDJuRUfz10wFMuNUfiNre4d61Ltyg7sEUs3eGKEeSUoURERP42k/pN
+k4t0ZBfdADoWYYWKKFsu+bLNzUuPSBbWXIw/iwHcYSAYRxAEVjtFZdKJPOvLXeRy
+I1g9ZmZJpHl+XvhXwY9fTf34Z0x7kYHjBb8jZBaDXXbn0JJy/ZiTo1hZiu3javW2
+sZ1R4sGKWo8oS4+rx5cM70exH/7pA2AVghpqvBhi6MJQ6rsC/S2rVhXlzWxriuLw
+mPyRh0BLmbrCjpCFLL4SRlbfd+WQw/5VIy/aWuL+Rl9WPgeXjRYFlPTbnrspebWr
+bWR3IDe/sLo8f73/xq0T1wx5H/PBfu5HVzBwIR2w17XFhWza3IoNAb1buo01uKlr
+fO5BvN2JUs8R9t8qCEu3
+=aH+U
+-----END PGP SIGNATURE-----
+
+--Yia77v5a8fyVHJSl--
