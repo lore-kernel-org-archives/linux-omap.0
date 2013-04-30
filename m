@@ -1,56 +1,61 @@
 From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH 12/13] ARM: dts: omap5: Add omap control mmc data
-Date: Tue, 30 Apr 2013 19:33:52 +0530
-Message-ID: <1367330633-5941-13-git-send-email-balajitk@ti.com>
+Subject: [PATCH 07/13] mmc: omap_hsmmc: remove dt pbias workaround
+Date: Tue, 30 Apr 2013 19:33:47 +0530
+Message-ID: <1367330633-5941-8-git-send-email-balajitk@ti.com>
 References: <1367330633-5941-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58099 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60394 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760713Ab3D3OEJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Apr 2013 10:04:09 -0400
+	id S1760708Ab3D3OEH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Apr 2013 10:04:07 -0400
 In-Reply-To: <1367330633-5941-1-git-send-email-balajitk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, b-cousson@ti.com
 Cc: Balaji T K <balajitk@ti.com>
 
-Add omap-hsmmc-control data to omap5.
-Update with pbias register address, used for pbias dual volt i/o cells
-in mmc1.
+With pbias control support in place remove dt workaround for pbias
 
 Signed-off-by: Balaji T K <balajitk@ti.com>
 ---
- arch/arm/boot/dts/omap5.dtsi |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   15 +--------------
+ 1 files changed, 1 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 790bb2a..d480b9f 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -289,6 +289,13 @@
- 			clock-frequency = <48000000>;
- 		};
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 217c063..c84d2ad 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -256,13 +256,6 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
+ 	 */
+ 	if (!host->vcc && !host->vcc_aux)
+ 		return 0;
+-	/*
+-	 * With DT, never turn OFF the regulator. This is because
+-	 * the pbias cell programming support is still missing when
+-	 * booting with Device tree
+-	 */
+-	if (dev->of_node && !vdd)
+-		return 0;
  
-+		omap_control_mmc1: omap-hsmmc-control@4a002E00 {
-+			compatible = "ti,omap-hsmmc-control";
-+			reg = <0x4a002E00 0x4>;
-+			reg-names = "pbias";
-+			ctrl-type = <7>;
-+		};
-+
- 		mmc1: mmc@4809c000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x4809c000 0x400>;
-@@ -296,6 +303,7 @@
- 			ti,hwmods = "mmc1";
- 			ti,dual-volt;
- 			ti,needs-special-reset;
-+			ctrl-module = <&omap_control_mmc1>;
- 		};
- 
- 		mmc2: mmc@480b4000 {
+ 	if (mmc_slot(host).before_set_reg)
+ 		mmc_slot(host).before_set_reg(dev, slot, power_on, vdd);
+@@ -1528,13 +1521,7 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+ 		 * of external transceiver; but they all handle 1.8V.
+ 		 */
+ 		if ((OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET) &&
+-			(ios->vdd == DUAL_VOLT_OCR_BIT) &&
+-			/*
+-			 * With pbias cell programming missing, this
+-			 * can't be allowed when booting with device
+-			 * tree.
+-			 */
+-			!host->dev->of_node) {
++			(ios->vdd == DUAL_VOLT_OCR_BIT)) {
+ 				/*
+ 				 * The mmc_select_voltage fn of the core does
+ 				 * not seem to set the power_mode to
 -- 
 1.7.5.4
 
