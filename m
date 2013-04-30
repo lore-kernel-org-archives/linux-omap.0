@@ -1,40 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [net-next PATCH 1/1] drivers: net: cpsw: fix kernel warn on
- cpsw irq enable
-Date: Mon, 29 Apr 2013 14:08:16 -0400 (EDT)
-Message-ID: <20130429.140816.128860616603400300.davem@davemloft.net>
-References: <1366975848-31503-1-git-send-email-mugunthanvnm@ti.com>
-	<517A6D0C.6020702@linutronix.de>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [v2,1/3] ARM: dts: AM33XX: Add ELM node
+Date: Tue, 30 Apr 2013 10:31:59 +0530
+Message-ID: <517F5047.5040507@ti.com>
+References: <7fa7438c9a7c5da575d762423815625d523c4689.1359007746.git.avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:60055 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757285Ab3D2SIT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Apr 2013 14:08:19 -0400
-In-Reply-To: <517A6D0C.6020702@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <7fa7438c9a7c5da575d762423815625d523c4689.1359007746.git.avinashphilip-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gururaja.hebbar-l0cyMroinI0@public.gmane.org, avinash philip <avinashphilip-l0cyMroinI0@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: bigeasy@linutronix.de
-Cc: mugunthanvnm@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Date: Fri, 26 Apr 2013 14:03:24 +0200
-
-> David, how did this happen? The patch I've sent
+On 4/29/2013 1:23 PM, Gupta, Pekon wrote:
+> From: avinash philip <avinashphilip-l0cyMroinI0@public.gmane.org>
 > 
->    http://www.spinics.net/lists/netdev/msg234240.html
+> From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
+
+From: line is repeated twice.
+
 > 
-> adds this to the probe function, according to the net-next tree it was
-> added to cpsw_probe_dual_emac(). The context is similar but not exact
-> the same.
+> Add ELM data node to AM33XX device tree file.
+> 
+> Signed-off-by: Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
+> Acked-by: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
+> Tested-by: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
 
-This is usually I ask people to respin patches even if there are minor
-fuzz differences when I try to apply this patch.
+You should add your sign-off (instead of tested-by) since you are now in
+the submission path.
 
-I tried to be nice and save you some work this time, 'patch' accepted
-it with minor offsets, and with a cursory glance I didn't see any
-problems.
-
-Next time I'll be a hardliner and request a respin :-)
+Thanks,
+Sekhar
