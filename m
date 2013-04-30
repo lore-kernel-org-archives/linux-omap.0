@@ -1,43 +1,61 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [v2,1/3] ARM: dts: AM33XX: Add ELM node
-Date: Tue, 30 Apr 2013 10:31:59 +0530
-Message-ID: <517F5047.5040507@ti.com>
-References: <7fa7438c9a7c5da575d762423815625d523c4689.1359007746.git.avinashphilip@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [v2, 3/3] ARM: dts: AM33XX: Add NAND flash device tree data to
+ am335x-evm
+Date: Tue, 30 Apr 2013 10:35:42 +0530
+Message-ID: <517F5126.5000509@ti.com>
+References: <ebfab3e9123b3e50b9a9678c1480191addd86d59.1359007746.git.avinashphilip@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <7fa7438c9a7c5da575d762423815625d523c4689.1359007746.git.avinashphilip-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gururaja.hebbar-l0cyMroinI0@public.gmane.org, avinash philip <avinashphilip-l0cyMroinI0@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <ebfab3e9123b3e50b9a9678c1480191addd86d59.1359007746.git.avinashphilip@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, hvaibhav@ti.com, gururaja.hebbar@ti.com, zonque@gmail.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 4/29/2013 1:23 PM, Gupta, Pekon wrote:
-> From: avinash philip <avinashphilip-l0cyMroinI0@public.gmane.org>
-> 
-> From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
 
-From: line is repeated twice.
-
+On 4/29/2013 1:25 PM, Gupta, Pekon wrote:
+> From: avinash philip <avinashphilip@ti.com>
 > 
-> Add ELM data node to AM33XX device tree file.
+> NAND flash connected in am335x-evm on GPMC controller. This patch adds
+> device tree node in am3355-evm with GPMC contoller timing for NAND flash
+> interface, NAND partition table, ECC scheme, elm handle id.
 > 
-> Signed-off-by: Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
-> Acked-by: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
-> Tested-by: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+> Tested-by: Pekon Gupta <pekon@ti.com>
+> 
+> ---
+> arch/arm/boot/dts/am335x-evm.dts |   98 +++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 97 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+> index 0423298..1c2fd89 100644
+> --- a/arch/arm/boot/dts/am335x-evm.dts
+> +++ b/arch/arm/boot/dts/am335x-evm.dts
+> @@ -26,7 +26,8 @@
+>  
+>  	am33xx_pinmux: pinmux@44e10800 {
+>  		pinctrl-names = "default";
+> -		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0>;
+> +		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0
+> +			&nandflash_pins_s0>;
 
-You should add your sign-off (instead of tested-by) since you are now in
-the submission path.
+Why add this to the board level fallback (called pinctrl hogs, I think)?
+This can be part of nand node you added below so that the pinctrl will
+take effect when nand gets probed instead of all the time.
 
 Thanks,
 Sekhar
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
