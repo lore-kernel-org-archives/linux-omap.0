@@ -1,73 +1,55 @@
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: Latest build results - errors/warnings - lots of them
-Date: Tue, 30 Apr 2013 11:12:12 -0400 (EDT)
-Message-ID: <alpine.LFD.2.03.1304301110030.17372@syhkavp.arg>
-References: <20130430081739.GP14496@n2100.arm.linux.org.uk> <201304301304.20650.arnd@arndb.de> <20130430114229.GA2439@linaro.org>
+Date: Tue, 30 Apr 2013 09:11:04 -0700
+Message-ID: <20130430161104.GB26257@atomide.com>
+References: <20130430081739.GP14496@n2100.arm.linux.org.uk>
+ <201304301304.20650.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qe0-f52.google.com ([209.85.128.52]:51983 "EHLO
-	mail-qe0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759735Ab3D3PMS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Apr 2013 11:12:18 -0400
-Received: by mail-qe0-f52.google.com with SMTP id q19so343729qeb.25
-        for <linux-omap@vger.kernel.org>; Tue, 30 Apr 2013 08:12:16 -0700 (PDT)
-In-Reply-To: <20130430114229.GA2439@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <201304301304.20650.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, 30 Apr 2013, Dave Martin wrote:
+* Arnd Bergmann <arnd@arndb.de> [130430 04:10]:
+> On Tuesday 30 April 2013, Russell King - ARM Linux wrote:
+> > Latest nightly build of 3.9+my for-next+arm-soc's for-next results in a
+> > great load of new warnings and errors.  arch/arm/common/mcpm_head.S,
+> > arch/arm/common/mcpm_platsmp.c, arch/arm/common/vlock.S are the biggest
+> > source of errors.
+> 
+> Yes, I noticed this but haven't gotten around to prepare a patch. I'll comment
+> below.
+> 
+> > OMAP stuff needs a serious look at too - much Kconfig madness there
+> > caused by over-use of select, which then goes on to cause build errors
+> > because it assumes some stuff is always enabled.
 
-> On Tue, Apr 30, 2013 at 01:04:20PM +0200, Arnd Bergmann wrote:
-> > On Tuesday 30 April 2013, Russell King - ARM Linux wrote:
-> > > Latest nightly build of 3.9+my for-next+arm-soc's for-next results in a
-> > > great load of new warnings and errors.  arch/arm/common/mcpm_head.S,
-> > > arch/arm/common/mcpm_platsmp.c, arch/arm/common/vlock.S are the biggest
-> > > source of errors.
-> 
-> [...]
->  
-> > >arch/arm/common/mcpm_head.S:39: Error: selected processor does not support ARM mode `ubfx r9,r0,#0,#8'
-> > >arch/arm/common/mcpm_head.S:40: Error: selected processor does not support ARM mode `ubfx r10,r0,#8,#8'
-> > >arch/arm/common/mcpm_head.S:100: Error: selected processor does not support ARM mode `dmb'
-> > >arch/arm/common/mcpm_head.S:115: Error: selected processor does not support ARM mode `dmb'
-> > >arch/arm/common/mcpm_head.S:127: Error: selected processor does not support ARM mode `dmb'
-> > >arch/arm/common/mcpm_head.S:131: Error: selected processor does not support ARM mode `dmb'
-> > >arch/arm/common/mcpm_head.S:138: Error: selected processor does not support ARM mode `dsb'
-> > >arch/arm/common/mcpm_head.S:152: Error: selected processor does not support ARM mode `dmb'
-> > >arch/arm/common/mcpm_head.S:161: Error: selected processor does not support ARM mode `dmb'
-> > >arch/arm/common/mcpm_head.S:175: Error: selected processor does not support ARM mode `dmb'
-> > >arch/arm/common/vlock.S:62: Error: selected processor does not support ARM mode `dmb'
-> > >arch/arm/common/vlock.S:72: Error: selected processor does not support ARM mode `dmb'
-> > >arch/arm/common/vlock.S:72: Error: selected processor does not support ARM mode `dsb'
-> > >arch/arm/common/vlock.S:89: Error: selected processor does not support ARM mode `dmb'
-> > >arch/arm/common/vlock.S:95: Error: selected processor does not support ARM mode `dmb'
-> > >arch/arm/common/vlock.S:95: Error: selected processor does not support ARM mode `dsb'
-> > >arch/arm/common/vlock.S:102: Error: selected processor does not support ARM mode `dmb'
-> > >arch/arm/common/vlock.S:105: Error: selected processor does not support ARM mode `dsb'
-> > 
-> > Right, the problem here is that the code was never tested with an ARMv6+ARMv7 config.
-> > We can either fix it up by adding
-> > 
-> > 	.arch	armv7-a
-> > 
-> > in the assembly files, or by doing the same in the Makefile:
-> > 
-> > AFLAGS_vlock.S += -march=armv7-a
-> > AFLAGS_mcpm_head.S += -march=armv7-a
-> 
-> 
-> Hmmm, this code was tested with ARCH_MULTIPLATFORM, but it looks like
-> no v6 boards were configured in when testing that...
-> 
-> 
-> Assuming people are OK with the Makefile route, here's a patch for that,
-> build-tested with a v6+v7 ARCH_MULTIPLATFORM config.
+I have posted a few randconfig fixes in "[PATCH 0/3] few omap randconfig
+fixes for v3.10" that also remove the select of SERIAL_OMAP that I missed
+while fixing the 8250 issue. I was planning to send a pull request after
+the merge window, but can do it now too if people prefer that.
+ 
+> Ack. I have not looked much at randconfig output, but this has certianly
+> grown worse after CONFIG_ARCH_OMAP has gotten included in ARCH_MULTIPLATFORM
 
-Isn't the .arch armv7-a route a bit cleaner?  That would have been my 
-choice, although I don't feel strongly about it.
+I have a patch coming for the "no SoC selected" randconfig issue as
+discussed in the "linux-next ARM multi-platform randconfig errors"
+thread. I suggest we do the minimal fix I already posted for now,
+then reorganize more of the Makefile as Arnd suggested for v3.11.
 
+Regards,
 
-Nicolas
+Tony
