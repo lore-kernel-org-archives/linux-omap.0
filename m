@@ -1,70 +1,191 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net-next PATCH v2 1/1] drivers: net: cpsw: fix kernel warn on cpsw irq enable
-Date: Tue, 30 Apr 2013 14:57:28 +0530
-Message-ID: <1367314048-11503-1-git-send-email-mugunthanvnm@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: Latest build results - errors/warnings - lots of them
+Date: Tue, 30 Apr 2013 13:04:20 +0200
+Message-ID: <201304301304.20650.arnd@arndb.de>
+References: <20130430081739.GP14496@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sebastian Siewior <bigeasy@linutronix.de>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.9]:60081 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752591Ab3D3LE5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Apr 2013 07:04:57 -0400
+In-Reply-To: <20130430081739.GP14496@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
 
-With the commit a11fbba (net/cpsw: fix irq_disable() with threaded interrupts)
-from Sebastian Siewior, a kernel warning is generated as below. This warning
-is generated as the irq_enabled is not initialized for the primary interface
-and in probe it is initialized for the second interface. This patch moves
-irq_enabled initialization from second interface to primary interface.
+On Tuesday 30 April 2013, Russell King - ARM Linux wrote:
+> Latest nightly build of 3.9+my for-next+arm-soc's for-next results in a
+> great load of new warnings and errors.  arch/arm/common/mcpm_head.S,
+> arch/arm/common/mcpm_platsmp.c, arch/arm/common/vlock.S are the biggest
+> source of errors.
 
-[    3.049173] net eth0: phy found : id is : 0x4dd074
-[    3.054552] net eth0: phy found : id is : 0x4dd074
-[    3.070421] ------------[ cut here ]------------
-[    3.075308] WARNING: at kernel/irq/manage.c:437 enable_irq+0x3c/0x74()
-[    3.082173] Unbalanced enable for IRQ 56
-[    3.086299] Modules linked in:
-[    3.089557] [<c001abcc>] (unwind_backtrace+0x0/0xf0) from [<c004294c>] (warn_slowpath_common+0x4c/0x68)
-[    3.099450] [<c004294c>] (warn_slowpath_common+0x4c/0x68) from [<c00429fc>] (warn_slowpath_fmt+0x30/0x40)
-[    3.109521] [<c00429fc>] (warn_slowpath_fmt+0x30/0x40) from [<c00a29fc>] (enable_irq+0x3c/0x74)
-[    3.118681] [<c00a29fc>] (enable_irq+0x3c/0x74) from [<c03a7818>] (cpsw_ndo_open+0x61c/0x684)
-[    3.127669] [<c03a7818>] (cpsw_ndo_open+0x61c/0x684) from [<c0445c08>] (__dev_open+0x9c/0xf8)
-[    3.136646] [<c0445c08>] (__dev_open+0x9c/0xf8) from [<c0445e34>] (__dev_change_flags+0x78/0x13c)
-[    3.145988] [<c0445e34>] (__dev_change_flags+0x78/0x13c) from [<c0445f64>] (dev_change_flags+0x10/0x48)
-[    3.155884] [<c0445f64>] (dev_change_flags+0x10/0x48) from [<c0736d88>] (ip_auto_config+0x198/0x111c)
-[    3.165592] [<c0736d88>] (ip_auto_config+0x198/0x111c) from [<c00086a4>] (do_one_initcall+0x34/0x180)
-[    3.175309] [<c00086a4>] (do_one_initcall+0x34/0x180) from [<c07078f8>] (kernel_init_freeable+0xfc/0x1c8)
-[    3.185393] [<c07078f8>] (kernel_init_freeable+0xfc/0x1c8) from [<c04f36ec>] (kernel_init+0x8/0xe4)
-[    3.194929] [<c04f36ec>] (kernel_init+0x8/0xe4) from [<c00133d0>] (ret_from_fork+0x14/0x24)
-[    3.203712] ---[ end trace d6f979da080bc391 ]---
+Yes, I noticed this but haven't gotten around to prepare a patch. I'll comment
+below.
 
-Cc: Sebastian Siewior <bigeasy@linutronix.de>
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
-Changes from initial version:
-* added previous commit summary
-* changed secondary interface to second interface
+> OMAP stuff needs a serious look at too - much Kconfig madness there
+> caused by over-use of select, which then goes on to cause build errors
+> because it assumes some stuff is always enabled.
 
- drivers/net/ethernet/ti/cpsw.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Ack. I have not looked much at randconfig output, but this has certianly
+grown worse after CONFIG_ARCH_OMAP has gotten included in ARCH_MULTIPLATFORM
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 4e2d224..59c4391 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1633,7 +1633,6 @@ static int cpsw_probe_dual_emac(struct platform_device *pdev,
- 		priv_sl2->irqs_table[i] = priv->irqs_table[i];
- 		priv_sl2->num_irqs = priv->num_irqs;
- 	}
--	priv->irq_enabled = true;
- 	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
- 
- 	ndev->netdev_ops = &cpsw_netdev_ops;
-@@ -1679,6 +1678,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 	priv->msg_enable = netif_msg_init(debug_level, CPSW_DEBUG);
- 	priv->rx_packet_max = max(rx_packet_max, 128);
- 	priv->cpts = devm_kzalloc(&pdev->dev, sizeof(struct cpts), GFP_KERNEL);
-+	priv->irq_enabled = true;
- 	if (!ndev) {
- 		pr_err("error allocating cpts\n");
- 		goto clean_ndev_ret;
--- 
-1.7.9.5
+> There's also warnings about of_device_id from include/linux/of_platform.h
+> via from arch/arm/kernel/setup.c which feature in all the non-OF builds
+> too which need addressing.
+
+Hmm, I did not get that one, but I think that's from arm-soc and I'll
+try to fix it up.
+
+>arch/arm/common/mcpm_head.S:39: Error: selected processor does not support ARM mode `ubfx r9,r0,#0,#8'
+>arch/arm/common/mcpm_head.S:40: Error: selected processor does not support ARM mode `ubfx r10,r0,#8,#8'
+>arch/arm/common/mcpm_head.S:100: Error: selected processor does not support ARM mode `dmb'
+>arch/arm/common/mcpm_head.S:115: Error: selected processor does not support ARM mode `dmb'
+>arch/arm/common/mcpm_head.S:127: Error: selected processor does not support ARM mode `dmb'
+>arch/arm/common/mcpm_head.S:131: Error: selected processor does not support ARM mode `dmb'
+>arch/arm/common/mcpm_head.S:138: Error: selected processor does not support ARM mode `dsb'
+>arch/arm/common/mcpm_head.S:152: Error: selected processor does not support ARM mode `dmb'
+>arch/arm/common/mcpm_head.S:161: Error: selected processor does not support ARM mode `dmb'
+>arch/arm/common/mcpm_head.S:175: Error: selected processor does not support ARM mode `dmb'
+>arch/arm/common/vlock.S:62: Error: selected processor does not support ARM mode `dmb'
+>arch/arm/common/vlock.S:72: Error: selected processor does not support ARM mode `dmb'
+>arch/arm/common/vlock.S:72: Error: selected processor does not support ARM mode `dsb'
+>arch/arm/common/vlock.S:89: Error: selected processor does not support ARM mode `dmb'
+>arch/arm/common/vlock.S:95: Error: selected processor does not support ARM mode `dmb'
+>arch/arm/common/vlock.S:95: Error: selected processor does not support ARM mode `dsb'
+>arch/arm/common/vlock.S:102: Error: selected processor does not support ARM mode `dmb'
+>arch/arm/common/vlock.S:105: Error: selected processor does not support ARM mode `dsb'
+
+Right, the problem here is that the code was never tested with an ARMv6+ARMv7 config.
+We can either fix it up by adding
+
+	.arch	armv7-a
+
+in the assembly files, or by doing the same in the Makefile:
+
+AFLAGS_vlock.S += -march=armv7-a
+AFLAGS_mcpm_head.S += -march=armv7-a
+
+If you have a preference one way or another I can send you a proper patch,
+or you just fix it up in your tree.
+
+>arch/arm/common/mcpm_platsmp.c: In function 'mcpm_secondary_init':
+>arch/arm/common/mcpm_platsmp.c:52:2: error: implicit declaration of function 'gic_secondary_init'
+
+This is from a conflict between Nico's patch and Catalin's removal of the
+gic_secondary_init function as part of c0114709ed "irqchip: gic: Perform
+the gic_secondary_init() call via CPU notifier". I think we can just remove
+the call here, but I'm not completely sure if I understand the patch
+right.
+
+>arch/arm/mach-imx/hotplug.c: In function 'imx_cpu_die':
+>arch/arm/mach-imx/hotplug.c:53:2: error: implicit declaration of function 'cpu_do_idle'
+>arch/arm/mach-imx/hotplug.c: In function 'imx_cpu_kill':
+>arch/arm/mach-imx/hotplug.c:58:26: error: 'jiffies' undeclared (first use in this function)
+>arch/arm/mach-imx/hotplug.c:58:2: error: implicit declaration of function 'msecs_to_jiffies'
+>arch/arm/mach-imx/hotplug.c:61:3: error: implicit declaration of function 'time_after'
+
+I've not seen this one before. There are many randconfig problems remaining I fear.
+
+>In file included from arch/arm/include/asm/kvm_host.h:41:0,
+>                 from include/linux/kvm_host.h:33,
+>                 from kernel/context_tracking.c:18:
+>arch/arm/include/asm/kvm_vgic.h:59:11: error: 'CONFIG_KVM_ARM_MAX_VCPUS' undeclared here (not in a function)
+
+I sent a patch last week for this one, and the patch was applied in the
+KVM tree.
+
+>drivers/gpu/drm/tilcdc/tilcdc_slave.o:(.data+0x54): multiple definition of `__mod_of_device_table'
+>drivers/gpu/drm/tilcdc/tilcdc_tfp410.o:(.data+0x54): first defined here
+>drivers/gpu/drm/tilcdc/tilcdc_panel.o:(.data+0x54): multiple definition of `__mod_of_device_table'
+>drivers/gpu/drm/tilcdc/tilcdc_tfp410.o:(.data+0x54): first defined here
+>drivers/gpu/drm/tilcdc/tilcdc_drv.o:(.data+0x184): multiple definition of `__mod_of_device_table'
+>drivers/gpu/drm/tilcdc/tilcdc_tfp410.o:(.data+0x54): first defined here
+
+My patch for this one was applied to the DRM tree.
+
+>drivers/tty/serial/omap-serial.c: In function 'serial_omap_console_write':
+>drivers/tty/serial/omap-serial.c:1224:14: error: 'struct uart_port' has no member named 'sysrq'
+
+I haven't seen this one.
+
+>Warnings
+>
+>warning: (BPCTL) selects NET_CORE which has unmet direct dependencies (NETDEVICES)
+
+I'm not that worried about staging drivers, although I sent a couple of fixes for
+other staging bugs I found.
+
+>warning: (UX500_SOC_COMMON) selects PINCTRL_ABX500 which has unmet direct dependencies (PINCTRL && AB8500_CORE)
+
+This seems to be newly introduced and should definitely be fixed soon.
+
+>warning: (VIRTIO_PCI && VIRTIO_MMIO && REMOTEPROC && RPMSG) selects VIRTIO which has unmet direct dependencies (VIRTUALIZATION)
+
+This one has been around forever. I had a patch before but it was never urgent enough, since it's
+only a harmless warning in randconfig.
+
+
+>In file included from arch/arm/mach-imx/hotplug.c:16:0:
+>arch/arm/mach-imx/common.h:100:29: warning: 'struct pt_regs' declared inside parameter list
+>arch/arm/mach-imx/common.h:100:29: warning: its scope is only this definition or declaration, which is probably not what you want
+>arch/arm/mach-imx/common.h:101:29: warning: 'struct pt_regs' declared inside parameter list
+
+I don't know this one.
+
+>kernel/time/tick-sched.c:89:16: warning: 'tick_init_jiffy_update' defined but not used
+>kernel/time/tick-sched.c:103:13: warning: 'tick_sched_do_timer' defined but not used
+>kernel/time/tick-sched.c:124:13: warning: 'tick_sched_handle' defined but not used
+>kernel/profile.c:247:13: warning: 'profile_flip_buffers' defined but not used
+>kernel/profile.c:270:13: warning: 'profile_discard_flip_buffers' defined but not used
+>kernel/profile.c:334:125: warning: 'profile_cpu_callback' defined but not used
+>drivers/staging/csr/io.c:80:12: warning: 'uf_read_proc' used but never defined
+>drivers/video/aty/radeon_pm.c:1718:13: warning: 'radeon_reinitialize_M10' defined but not used
+
+I think I made a fix for these before but gave up for now with too many other randconfig
+warnings without CONFIG_PROC_FS. Same thing for CONFIG_BUG: I ended up just hard enabling
+those.
+
+>crypto/wp512.c: In function 'wp512_process_buffer':
+>crypto/wp512.c:987:1: warning: the frame size of 1296 bytes is larger than 1024 bytes
+
+My solution to this one was to slightly enlarge the stack size limit on ARM. There are a couple
+of functions that have a stack that is just over 1KB on ARM but just under 1KB on other
+architectures.
+
+>drivers/mfd/wm8994-core.c: In function 'wm8994_device_init.clone.1':
+>drivers/mfd/wm8994-core.c:408:14: warning: 'patch_regs' may be used uninitialized in this function
+>drivers/pinctrl/pinctrl-nomadik.c: In function 'nmk_pmx_enable':
+>drivers/pinctrl/pinctrl-nomadik.c:1810:16: warning: 'flags' may be used uninitialized in this function
+>drivers/gpu/drm/radeon/r100.c: In function 'r100_bandwidth_update':
+>drivers/gpu/drm/radeon/r100.c:3153:50: warning: 'disp_drain_rate.full' may be used uninitialized in this function
+>drivers/gpu/drm/radeon/r100.c:3099:63: warning: 'crit_point_ff.full' may be used uninitialized in this function
+>drivers/gpu/drm/tegra/dc.c: In function 'tegra_dc_setup_window':
+>drivers/gpu/drm/tegra/dc.c:420:12: warning: 'planar' may be used uninitialized in this function
+>drivers/gpu/drm/drm_irq.c: In function 'drm_calc_vbltimestamp_from_scanoutpos':
+>drivers/gpu/drm/drm_irq.c:587:24: warning: 'mono_time_offset.tv64' may be used uninitialized in this function
+>net/wireless/reg.c: In function 'reg_device_uevent':
+>net/wireless/reg.c:2271:5: warning: 'alpha2[0]' may be used uninitialized in this function
+>net/wireless/reg.c:2271:5: warning: 'alpha2[1]' may be used uninitialized in this function
+>net/wireless/nl80211.c: In function '__cfg80211_wdev_from_attrs.clone.61':
+>net/wireless/nl80211.c:58:6: warning: 'wdev_id' may be used uninitialized in this function
+
+I have now queued up my patch that removes the bogus "used uninitialized" warnings
+we get with gcc-4.7 or later and -Os.
+
+>
+>Section mismatch errors
+>
+>WARNING: arch/arm/mach-tegra/built-in.o(.text+0xb4c): Section mismatch in reference from the function tegra_pmc_parse_dt() to the (unknown reference) .init.rodata:(unknown)
+>The function tegra_pmc_parse_dt() references
+>the (unknown reference) __initconst (unknown).
+>This is often because tegra_pmc_parse_dt lacks a __initconst 
+>annotation or the annotation of (unknown) is wrong.
+
+Stupid gcc optimization. I thought this was fixed in gcc. Which version are you using?
+
+	Arnd
