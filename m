@@ -1,78 +1,61 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] ARM: OMAP: RX-51: change probe order of touchscreen and panel SPI devices
-Date: Wed,  1 May 2013 19:59:57 +0300
-Message-ID: <1367427597-30060-1-git-send-email-aaro.koskinen@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Russ Dill <Russ.Dill@ti.com>
+Subject: [RFC 0/2] am33xx 0.950V core sleep mode
+Date: Wed,  1 May 2013 12:02:25 -0700
+Message-ID: <1367434947-6442-1-git-send-email-Russ.Dill@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri5.pp.htv.fi ([213.243.153.188]:52250 "EHLO
-	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752649Ab3EARAv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 May 2013 13:00:51 -0400
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:47188 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755978Ab3EATCe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 May 2013 15:02:34 -0400
+Received: by mail-pa0-f53.google.com with SMTP id kx1so989238pab.40
+        for <linux-omap@vger.kernel.org>; Wed, 01 May 2013 12:02:33 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Joni Lapilainen <joni.lapilainen@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Felipe Balbi <balbi@ti.com>, stable@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: khilman@deeprootsystems.com, tony@atomide.com, Vaibhav Bedia <vaibhav.bedia@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Commit 9fdca9df (spi: omap2-mcspi: convert to module_platform_driver)
-broke the SPI display/panel driver probe on RX-51/N900. The exact cause=
- is
-not fully understood, but it seems to be related to the probe order. SP=
-I
-communication to the panel driver (spi1.2) fails unless the touchscreen
-(spi1.0) has been probed/initialized before. When the omap2-mcspi drive=
-r
-was converted to a platform driver, it resulted in that the devices are
-probed immediately after the board registers them in the order they are
-listed in the board file.
+This patchset adds support for setting vdd core to 0.95V during
+suspend. I wanted to get some comments on the DT usage and also
+the location of the code, in sleep33xx.S. Since the am33xx PM code
+is not yet merged, the patchset is based on ti-linux-3.8.y kernel
+located at https://git.ti.com/ti-linux-kernel/ti-linux-kernel.
 
-=46ix the issue by moving the touchscreen before the panel in the SPI
-device list.
+am33xx processors have a special VDD core operating point that can
+lower power consumption, but the operating point has many
+restrictions. One of the restrictions is that it does not support
+any DDR3 clock rates, meaning that the memory controller must be
+disabled to enter this operating point. For DDR2 systems, the
+clock rate must be changed, which can only be done from internal
+memory.
 
-The patch fixes the following failure:
+For these reasons, the mode is most useful during suspend. The
+change must be done after the memory controller has been disabled.
+The memory controller is disabled as the last step in the suspend
+sequence, within sleep33xx.S.
 
-[    1.260955] acx565akm spi1.2: invalid display ID
-[    1.265899] panel-acx565akm display0: acx_panel_probe panel detect e=
-rror
-[    1.273071] omapdss CORE error: driver probe failed: -19
+The patchset basically adds a small I2C controller to sleep33xx.S,
+allowing simple I2C messages to be sent to anything on the I2C1 bus.
+It can support any am33xx platform so long as VDD core can be
+controlled via simple writes on the I2C1 bus.
 
-Tested-by: Sebastian Reichel <sre@debian.org>
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-Cc: Joni Lapilainen <joni.lapilainen@gmail.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: stable@vger.kernel.org
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Since am33xx is a device tree platform, I needed to find a way to
+integrate this into DT. I put the sleep and wake sequences as arrays
+of binary bytes in the I2C1 node. I'm not sure where else it would
+fit better, but I'm open to suggestions.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/ma=
-ch-omap2/board-rx51-peripherals.c
-index 1a88467..18ca61e 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -73,11 +73,11 @@
- #define LIS302_IRQ1_GPIO 181
- #define LIS302_IRQ2_GPIO 180  /* Not yet in use */
-=20
--/* list all spi devices here */
-+/* List all SPI devices here. Note that the list/probe order seems to =
-matter! */
- enum {
- 	RX51_SPI_WL1251,
--	RX51_SPI_MIPID,		/* LCD panel */
- 	RX51_SPI_TSC2005,	/* Touch Controller */
-+	RX51_SPI_MIPID,		/* LCD panel */
- };
-=20
- static struct wl12xx_platform_data wl1251_pdata;
---=20
-1.7.10.4
+An example sequence is included for Beaglebone, where this patchset
+has been tested.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Russ Dill (2):
+  ARM: OMAP2+: AM33XX: I2C Sleep/wake sequence support
+  ARM: dts: add AM33XX vdd core opp50 suspend for Beaglebone.
+
+ arch/arm/boot/dts/am335x-bone.dts |  25 +++++-
+ arch/arm/mach-omap2/pm33xx.c      | 108 ++++++++++++++++++++++
+ arch/arm/mach-omap2/pm33xx.h      |  23 +++++
+ arch/arm/mach-omap2/sleep33xx.S   | 184 ++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 339 insertions(+), 1 deletion(-)
+
+-- 
+1.8.1.2
+
