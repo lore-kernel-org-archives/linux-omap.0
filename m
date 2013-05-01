@@ -1,61 +1,70 @@
 From: Russ Dill <Russ.Dill@ti.com>
-Subject: [RFC 0/2] am33xx 0.950V core sleep mode
-Date: Wed,  1 May 2013 12:02:25 -0700
-Message-ID: <1367434947-6442-1-git-send-email-Russ.Dill@ti.com>
+Subject: [RFC 2/2] ARM: dts: add AM33XX vdd core opp50 suspend for Beaglebone.
+Date: Wed,  1 May 2013 12:02:27 -0700
+Message-ID: <1367434947-6442-3-git-send-email-Russ.Dill@ti.com>
+References: <1367434947-6442-1-git-send-email-Russ.Dill@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:47188 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755978Ab3EATCe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 May 2013 15:02:34 -0400
-Received: by mail-pa0-f53.google.com with SMTP id kx1so989238pab.40
-        for <linux-omap@vger.kernel.org>; Wed, 01 May 2013 12:02:33 -0700 (PDT)
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:53684 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755978Ab3EATCj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 May 2013 15:02:39 -0400
+Received: by mail-pb0-f44.google.com with SMTP id wz17so869233pbc.3
+        for <linux-omap@vger.kernel.org>; Wed, 01 May 2013 12:02:38 -0700 (PDT)
+In-Reply-To: <1367434947-6442-1-git-send-email-Russ.Dill@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: khilman@deeprootsystems.com, tony@atomide.com, Vaibhav Bedia <vaibhav.bedia@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patchset adds support for setting vdd core to 0.95V during
-suspend. I wanted to get some comments on the DT usage and also
-the location of the code, in sleep33xx.S. Since the am33xx PM code
-is not yet merged, the patchset is based on ti-linux-3.8.y kernel
-located at https://git.ti.com/ti-linux-kernel/ti-linux-kernel.
+This adds a sleep and wake sequence to set the VDD core voltage to the
+OPP50 level, 0.950V. This saves power during suspend. The sequences are
+specific to the Beaglebone layout and PMIC, the TPS65217. The sequences
+are written out by the am33xx PM code.
 
-am33xx processors have a special VDD core operating point that can
-lower power consumption, but the operating point has many
-restrictions. One of the restrictions is that it does not support
-any DDR3 clock rates, meaning that the memory controller must be
-disabled to enter this operating point. For DDR2 systems, the
-clock rate must be changed, which can only be done from internal
-memory.
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+---
+ arch/arm/boot/dts/am335x-bone.dts | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-For these reasons, the mode is most useful during suspend. The
-change must be done after the memory controller has been disabled.
-The memory controller is disabled as the last step in the suspend
-sequence, within sleep33xx.S.
-
-The patchset basically adds a small I2C controller to sleep33xx.S,
-allowing simple I2C messages to be sent to anything on the I2C1 bus.
-It can support any am33xx platform so long as VDD core can be
-controlled via simple writes on the I2C1 bus.
-
-Since am33xx is a device tree platform, I needed to find a way to
-integrate this into DT. I put the sleep and wake sequences as arrays
-of binary bytes in the I2C1 node. I'm not sure where else it would
-fit better, but I'm open to suggestions.
-
-An example sequence is included for Beaglebone, where this patchset
-has been tested.
-
-Russ Dill (2):
-  ARM: OMAP2+: AM33XX: I2C Sleep/wake sequence support
-  ARM: dts: add AM33XX vdd core opp50 suspend for Beaglebone.
-
- arch/arm/boot/dts/am335x-bone.dts |  25 +++++-
- arch/arm/mach-omap2/pm33xx.c      | 108 ++++++++++++++++++++++
- arch/arm/mach-omap2/pm33xx.h      |  23 +++++
- arch/arm/mach-omap2/sleep33xx.S   | 184 ++++++++++++++++++++++++++++++++++++++
- 4 files changed, 339 insertions(+), 1 deletion(-)
-
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 725aa63..bccada7 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -73,10 +73,33 @@
+ 			status = "okay";
+ 			clock-frequency = <400000>;
+ 
++			/* Set OPP50 (0.95V) for VDD core */
++			sleep_sequence = /bits/ 8 <
++				0x02 0x24 0x0b 0x6d /* Password unlock 1 */
++				0x02 0x24 0x10 0x02 /* Set DCDC3 to 0.95V */
++				0x02 0x24 0x0b 0x6d /* Password unlock 2 */
++				0x02 0x24 0x10 0x02 /* Set DCDC3 to 0.95V */
++				0x02 0x24 0x0b 0x6c /* Password unlock 1 */
++				0x02 0x24 0x11 0x86 /* Apply DCDC changes */
++				0x02 0x24 0x0b 0x6c /* Password unlock 2 */
++				0x02 0x24 0x11 0x86 /* Apply DCDC changes */
++			>;
++
++			/* Set OPP100 (1.10V) for VDD core */
++			wake_sequence = /bits/ 8 <
++				0x02 0x24 0x0b 0x6d /* Password unlock 1 */
++				0x02 0x24 0x10 0x08 /* Set DCDC3 to 1.1V */
++				0x02 0x24 0x0b 0x6d /* Password unlock 2 */
++				0x02 0x24 0x10 0x08 /* Set DCDC3 to 1.1V */
++				0x02 0x24 0x0b 0x6c /* Password unlock 1 */
++				0x02 0x24 0x11 0x86 /* Apply DCDC changes */
++				0x02 0x24 0x0b 0x6c /* Password unlock 2 */
++				0x02 0x24 0x11 0x86 /* Apply DCDC changes */
++			>;
++
+ 			tps: tps@24 {
+ 				reg = <0x24>;
+ 			};
+-
+ 		};
+ 
+ 		rtc@44e3e000 {
 -- 
 1.8.1.2
 
