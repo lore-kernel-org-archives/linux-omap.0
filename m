@@ -1,38 +1,41 @@
-From: "SYSTEM ADMINISTRATOR" <info@baisano.com.ec>
-Subject: Webmail Maintenance,
-Date: Wed, 1 May 2013 21:31:12 -0500 (ECT)
-Message-ID: <49709.41.150.172.77.1367461872.squirrel@186.5.127.6>
+From: Shawn Guo <shawn.guo@linaro.org>
+Subject: Re: Latest build results - errors/warnings - lots of them
+Date: Thu, 2 May 2013 14:02:45 +0800
+Message-ID: <20130502060242.GA3616@S2101-09.ap.freescale.net>
+References: <20130430081739.GP14496@n2100.arm.linux.org.uk>
+ <201304301304.20650.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.baisano.com.ec ([186.5.127.6]:39647 "EHLO baisano.com.ec"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750732Ab3EBEGI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 May 2013 00:06:08 -0400
+Received: from ch1ehsobe002.messaging.microsoft.com ([216.32.181.182]:5737
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751226Ab3EBGCx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 May 2013 02:02:53 -0400
+Content-Disposition: inline
+In-Reply-To: <201304301304.20650.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>
 
+On Tue, Apr 30, 2013 at 01:04:20PM +0200, Arnd Bergmann wrote:
+> >arch/arm/mach-imx/hotplug.c: In function 'imx_cpu_die':
+> >arch/arm/mach-imx/hotplug.c:53:2: error: implicit declaration of function 'cpu_do_idle'
+> >arch/arm/mach-imx/hotplug.c: In function 'imx_cpu_kill':
+> >arch/arm/mach-imx/hotplug.c:58:26: error: 'jiffies' undeclared (first use in this function)
+> >arch/arm/mach-imx/hotplug.c:58:2: error: implicit declaration of function 'msecs_to_jiffies'
+> >arch/arm/mach-imx/hotplug.c:61:3: error: implicit declaration of function 'time_after'
 
+...
 
+> >In file included from arch/arm/mach-imx/hotplug.c:16:0:
+> >arch/arm/mach-imx/common.h:100:29: warning: 'struct pt_regs' declared inside parameter list
+> >arch/arm/mach-imx/common.h:100:29: warning: its scope is only this definition or declaration, which is probably not what you want
+> >arch/arm/mach-imx/common.h:101:29: warning: 'struct pt_regs' declared inside parameter list
 
-Webmail Maintenance,
+I just send a patch [1] to fix these.
 
-You have exceeded your mail limit quota of 450MB. You  need to upgrade
-your email limit quota to 2GB within  the next 48 hours.
-Use the below web link to upgrade your Email quota to  enable more spac=
-e
-in your mail account or your email  will be blocked
+Shawn
 
-http://webmasteradministrationsystemcentercare.webs.com/
+[1] http://www.spinics.net/lists/arm-kernel/msg241316.html
 
-Thank you for your co-operation
-
-Terms & Conditions | Privacy | Downloads & Plug-ins |  About Our Ads |
-Advertise With Us |
-=A9 2012 Wide Open West
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
