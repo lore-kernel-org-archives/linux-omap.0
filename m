@@ -1,38 +1,34 @@
-From: "SYSTEM ADMINISTRATOR" <info@baisano.com.ec>
-Subject: Webmail Maintenance
-Date: Thu, 2 May 2013 06:42:10 -0500 (ECT)
-Message-ID: <53019.197.228.13.124.1367494930.squirrel__46167.8925589242$1367495726$gmane$org@186.5.127.6>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 0/5] drivers: bus: omap_l3: Conversion to devm_*
+Date: Thu, 2 May 2013 14:09:42 +0200
+Message-ID: <1367496587-6210-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.baisano.com.ec ([186.5.127.6]:43406 "EHLO baisano.com.ec"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757822Ab3EBLzN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 May 2013 07:55:13 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
+Cleanup of platform probe and remove (removing the remove function at the end)
+with converting the driver to use the devm_* versions kzalloc, ioremap and
+request_irq.
 
+Regards,
+Peter
+---
+Peter Ujfalusi (5):
+  drivers: bus: omap_l3: Convert to use devm_kzalloc
+  drivers: bus: omap_l3: Convert to use devm_request_and_ioremap()
+  drivers: bus: omap_l3: Convert to use devm_request_irq()
+  drivers: bus: omap_l3: Remove the platform driver's remove function
+  drivers: bus: omap_l3: Change pr_crit() to dev_err() when IRQ request
+    fails
 
-Webmail Maintenance,
+ drivers/bus/omap_l3_noc.c | 106 +++++++++++-----------------------------------
+ 1 file changed, 24 insertions(+), 82 deletions(-)
 
-You have exceeded your mail limit quota of 450MB. You  need to upgrade
-your email limit quota to 2GB within  the next 48 hours.
-Use the below web link to upgrade your Email quota to  enable more spac=
-e
-in your mail account or your email  will be blocked
-
-http://webmasteradministrationsystemcentercare.webs.com/
-
-Thank you for your co-operation
-
-Terms & Conditions | Privacy | Downloads & Plug-ins |  About Our Ads |
-Advertise With Us |
-=A9 2012 Wide Open West
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.8.2.1
