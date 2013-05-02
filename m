@@ -1,137 +1,183 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] ARM: OMAP-USB: Fix possible memory leak
-Date: Thu, 2 May 2013 19:40:58 +0300
-Message-ID: <20130502164058.GC8577@arwen.pp.htv.fi>
-References: <1367510596-27780-1-git-send-email-shc_work@mail.ru>
- <20130502162433.GA10016@kahuna>
- <1367512124.978518915@f372.mail.ru>
-Reply-To: <balbi@ti.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: Latest build results - errors/warnings - lots of them
+Date: Thu, 2 May 2013 13:07:49 -0400
+Message-ID: <51829D65.7040109@ti.com>
+References: <20130430081739.GP14496@n2100.arm.linux.org.uk> <20130502082218.GA21614@n2100.arm.linux.org.uk> <20130502153834.GR28721@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="adJ1OR3c6QgCpb/j"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="----enig2RVRTDHNQSUKEXJOGHURI"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56810 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58064 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758913Ab3EBQlb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 May 2013 12:41:31 -0400
-Content-Disposition: inline
-In-Reply-To: <1367512124.978518915@f372.mail.ru>
+	id S1757385Ab3EBRIy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 2 May 2013 13:08:54 -0400
+In-Reply-To: <20130502153834.GR28721@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Shiyan <shc_work@mail.ru>
-Cc: Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Eduardo Valentin <eduardo.valentin@ti.com>, Neil Brown <neilb@suse.de>, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Durgadoss R <durgadoss.r@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
 
---adJ1OR3c6QgCpb/j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+------enig2RVRTDHNQSUKEXJOGHURI
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Arnd, Tony,
 
-On Thu, May 02, 2013 at 08:28:44PM +0400, Alexander Shiyan wrote:
-> > On 20:03-20130502, Alexander Shiyan wrote:
-> > >=20
-> > > Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
-> > > ---
-> > >  arch/arm/mach-omap2/usb-host.c | 21 +++++++++++++++++----
-> > >  1 file changed, 17 insertions(+), 4 deletions(-)
-> > >=20
-> > > diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb=
--host.c
-> > > index aa27d7f..8d17a0d 100644
-> > > --- a/arch/arm/mach-omap2/usb-host.c
-> > > +++ b/arch/arm/mach-omap2/usb-host.c
-> > > @@ -570,8 +570,10 @@ static int usbhs_add_regulator(char *name, char =
-*dev_id, char *dev_supply,
-> > >  	supplies->dev_name =3D dev_id;
-> > > =20
-> > >  	reg_data =3D kzalloc(sizeof(*reg_data), GFP_KERNEL);
-> > > -	if (!reg_data)
-> > > +	if (!reg_data) {
-> > > +		kfree(supplies);
-> > >  		return -ENOMEM;
-> > > +	}
-> > > =20
-> > >  	reg_data->constraints.valid_ops_mask =3D REGULATOR_CHANGE_STATUS;
-> > >  	reg_data->consumer_supplies =3D supplies;
-> > > @@ -579,8 +581,11 @@ static int usbhs_add_regulator(char *name, char =
-*dev_id, char *dev_supply,
-> > > =20
-> > >  	config =3D kmemdup(&hsusb_reg_config, sizeof(hsusb_reg_config),
-> > >  			GFP_KERNEL);
-> > > -	if (!config)
-> > > +	if (!config) {
-> > > +		kfree(supplies);
-> > > +		kfree(reg_data);
-> > >  		return -ENOMEM;
-> > > +	}
-> > > =20
-> > >  	config->supply_name =3D name;
-> > >  	config->gpio =3D gpio;
-> > > @@ -589,17 +594,25 @@ static int usbhs_add_regulator(char *name, char=
- *dev_id, char *dev_supply,
-> > > =20
-> > >  	/* create a regulator device */
-> > >  	pdev =3D kzalloc(sizeof(*pdev), GFP_KERNEL);
-> > > -	if (!pdev)
-> > > +	if (!pdev) {
-> > > +		kfree(supplies);
-> > > +		kfree(reg_data);
-> > > +		kfree(config);
-> > >  		return -ENOMEM;
-> > > +	}
-> > > =20
-> > >  	pdev->id =3D PLATFORM_DEVID_AUTO;
-> > >  	pdev->name =3D reg_name;
-> > >  	pdev->dev.platform_data =3D config;
-> > > =20
-> > >  	ret =3D platform_device_register(pdev);
-> > > -	if (ret)
-> > > +	if (ret) {
-> > >  		pr_err("%s: Failed registering regulator %s for %s\n",
-> > >  				__func__, name, dev_id);
-> > > +		kfree(supplies);
-> > > +		kfree(reg_data);
-> > > +		kfree(config);
-> > > +	}
-> >=20
-> > Might be better to switch to devm_XXX managed functions?
+On 02-05-2013 11:38, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [130502 01:27]:
+>> On Tue, Apr 30, 2013 at 09:17:39AM +0100, Russell King - ARM Linux wro=
+te:
+>>> Latest nightly build of 3.9+my for-next+arm-soc's for-next results in=
+ a
+>>> great load of new warnings and errors.  arch/arm/common/mcpm_head.S,
+>>> arch/arm/common/mcpm_platsmp.c, arch/arm/common/vlock.S are the bigge=
+st
+>>> source of errors.
+>>>
+>>> OMAP stuff needs a serious look at too - much Kconfig madness there
+>>> caused by over-use of select, which then goes on to cause build error=
+s
+>>> because it assumes some stuff is always enabled.
+>>>
+>>> There's also warnings about of_device_id from include/linux/of_platfo=
+rm.h
+>>> via from arch/arm/kernel/setup.c which feature in all the non-OF buil=
+ds
+>>> too which need addressing.
+>>>
+>>> See todays http://www.arm.linux.org.uk/developer/build/ results for a=
+ll
+>>> the details and configs.  Not pushing my tree until some of this stuf=
+f
+>>> gets fixed.
+>>
+>> And now we have a new bunch of warnings from OMAP stuff which weren't
+>> previously there...
+>>
+>> arch/arm/mach-omap2/omap_device.c: In function 'omap_device_get_by_hwm=
+od_name':
+>> arch/arm/mach-omap2/omap_device.c:821:3: warning: return makes pointer=
+ from integer without a cast
+>> arch/arm/mach-omap2/omap_device.c:826:3: warning: return makes pointer=
+ from integer without a cast
+>=20
+> Hmm these I already fixed earlier along with a merge resolution, and
+> I'm not seeing them in next/master or arm-soc/for-next. What do you
+> have merged into your current tree?
+>=20
+>> drivers/power/twl4030_charger.c: In function 'twl4030_charger_enable_u=
+sb':
+>> drivers/power/twl4030_charger.c:192:20: warning: ignoring return value=
+ of 'regulator_enable', declared with attribute warn_unused_result
+>=20
+> Neil, care to provide a fix for this? It's from your commit ab37813
+> (twl4030_charger: Allow charger to control the regulator that feeds it)=
+=2E
+>=20
+>> include/linux/thermal.h:254:12: warning: 'thermal_generate_netlink_eve=
+nt' defined but not used
+>=20
+> Eduardo, can you fix that one? It seems to be from your commit 8ab3e6a
+> (thermal: Use thermal zone device id in netlink messages).
 
-I don't think it makes sense since the platform_device hasn't been
-registered yet.
+Yeah sure I can fix it. As simple as the following:
+=46rom c04244c87312f5bfc61d9e12ba3fbaa0fdd81adb Mon Sep 17 00:00:00 2001
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Thu, 2 May 2013 12:58:20 -0400
+Subject: [PATCH 1/1] thermal: remove stub for thermal_generate_netlink_ev=
+ent
 
-Still, patch can be improved with proper goto labels instead of
-sprinkling different kfree() calls in every single error branch.
+This patch removes the stub for thermal_generate_netlink_event
+because this function is not used anywhere inside the kernel.
 
-> If anyone can rewrite driver to use devm_xx, it would have been better.
-> I'm not going to redo the patch yet, let it be so, I just showed a point
-> for OMAP-developers.
+In case CONFIG_NET is not set we get:
+include/linux/thermal.h:254:12: warning:
+'thermal_generate_netlink_event' defined but not used
 
-fair enough.
+Thus removing it.
 
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ include/linux/thermal.h | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index e3c0ae9..e3f3cba 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -250,12 +250,6 @@ void thermal_unregister_governor(struct
+thermal_governor *);
+ #ifdef CONFIG_NET
+ extern int thermal_generate_netlink_event(struct thermal_zone_device *tz=
+,
+ 						enum events event);
+-#else
+-static int thermal_generate_netlink_event(struct thermal_zone_device *tz=
+,
+-						enum events event)
+-{
+-	return 0;
+-}
+ #endif
+
+ #endif /* __THERMAL_H__ */
 --=20
-balbi
+1.8.2.1.342.gfa7285d
 
---adJ1OR3c6QgCpb/j
+However,...
+
+Rui, Durga,
+
+ That function was used in the previous thermal  layer design. Now the
+notification is done via sysfs, not netlink. The netlink interface needs
+to be flagged as DEPRECATED and then we would remove it.
+
+In any case, the above function is used by no one within the kernel:
+$ git grep thermal_generate_netlink_event
+Documentation/thermal/sysfs-api.txt:just need to call
+thermal_generate_netlink_event() with two arguments viz
+drivers/thermal/thermal_core.c:int thermal_generate_netlink_event(struct
+thermal_zone_device *tz,
+drivers/thermal/thermal_core.c:EXPORT_SYMBOL_GPL(thermal_generate_netlink=
+_event);
+include/linux/thermal.h:extern int thermal_generate_netlink_event(struct
+thermal_zone_device *tz,
+include/linux/thermal.h:static inline int
+thermal_generate_netlink_event(struct thermal_zone_device *tz,
+
+
+For that reason, I d propose to simply remove it, as I do not have any
+user space application that uses that net link interface. But that needs
+a confirmation from the Intel folks.
+
+Rui, Durga? Last merge window we discussed to remove this API, do you
+guys have dependency on this one still?
+
+
+Cheers,
+
+>=20
+> Regards,
+>=20
+> Tony
+>=20
+>=20
+
+
+
+------enig2RVRTDHNQSUKEXJOGHURI
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJRgpcaAAoJEIaOsuA1yqREUTkQAJ74Ftx6VhF7DSdeTmqzH8pC
-XP5IVzXSUIU/TjUtqW4o+HnZsZNgCA7bho60nq/HF+7RNtjd1mkpguD33Ez5FLW5
-OaUcNZPLzXUJP1Cllq6KV8Zr70jcenpa4oflwGxTF9yrUoyfg7MZUP+lif22IfyJ
-KPiBJlJS/oN6zItMdz+yGn0GuH20hMvKBcT73dU1oXJzI6BzDcMgSOyMBFo/VVMK
-lsvuOtMgJ5HVQy2Yfpb2Mp10f0wSDGDrsr+E9Q/1wQ6sE5KVMCqFeSvIljhGGyuR
-4ykmk+W6m+ygxyW8S2DxNAhlo6tXg+4cbFH+WREGtMwh+8Km+T+l+OMRVVaVk59F
-8ehFuU0QvSdTUGa6gE+H6N1VVJln2EdOTnoqTjcPdMI0FrDl1tUCJXdi3TLS84uq
-17dLBkKiR9EvNkp+NOMJ9Mvuy7tGV5G1LnWbYXjtqNkIuzsrAVTHulfrXorO+QZ7
-ZDFdEZtcIBj+pqjx+bvAU+pFDvxl++TDEV9k08yOuE4acOa+Kthz0MVtuTZ0FVQr
-q6hLa8pXm4Pq6BUqmfVpZTq3trkqZhJgo1OnWzQzzMCV2EyQ+XWy/N4NJ5hU4x0p
-hP7kBosteWL54vLCDGrI5VpJXZVovBf+5s3awxwmfo+DLZnjscWMEWPqxTmG1DNK
-J1oJ/tX5FDEFmR12pZo1
-=wzP9
+iF4EAREIAAYFAlGCnWUACgkQCXcVR3XQvP2Z7QD9FtmJ1sGtF8035Vt+rHIkfmWm
+Rn6duTuGVwbFA9hax2wA/3kHif5+UM6pxx2Dd+EvCHaM3dQRa2nNQy4mtcD0UfgD
+=YE31
 -----END PGP SIGNATURE-----
 
---adJ1OR3c6QgCpb/j--
+------enig2RVRTDHNQSUKEXJOGHURI--
