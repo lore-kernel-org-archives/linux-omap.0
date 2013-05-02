@@ -1,87 +1,149 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Latest build results - errors/warnings - lots of them
-Date: Thu, 2 May 2013 09:34:30 +0100
-Message-ID: <20130502083430.GB21614@n2100.arm.linux.org.uk>
-References: <20130430081739.GP14496@n2100.arm.linux.org.uk> <201304301304.20650.arnd@arndb.de> <20130430114229.GA2439@linaro.org> <alpine.LFD.2.03.1304301110030.17372@syhkavp.arg> <20130430172816.GA31101@linaro.org> <alpine.LFD.2.03.1304301418100.17372@syhkavp.arg>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: [v3,
+ 3/3] ARM: dts: AM33XX: Add NAND flash device tree data to am335x-evm
+Date: Thu, 2 May 2013 14:18:21 +0530
+Message-ID: <1367484501-3623-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42398 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880Ab3EBIeq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 May 2013 04:34:46 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.03.1304301418100.17372@syhkavp.arg>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: pekon@ti.com, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk
+Cc: devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, hvaibhav@ti.com, gururaja.hebbar@ti.com, zonque@gmail.com, avinash philip <avinashphilip@ti.com>, jacmet@sunsite.dk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Dave Martin <dave.martin@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Apr 30, 2013 at 02:18:42PM -0400, Nicolas Pitre wrote:
-> On Tue, 30 Apr 2013, Dave Martin wrote:
-> 
-> > On Tue, Apr 30, 2013 at 11:12:12AM -0400, Nicolas Pitre wrote:
-> > > On Tue, 30 Apr 2013, Dave Martin wrote:
-> > > 
-> > > > On Tue, Apr 30, 2013 at 01:04:20PM +0200, Arnd Bergmann wrote:
-> > > > > On Tuesday 30 April 2013, Russell King - ARM Linux wrote:
-> > > > > > Latest nightly build of 3.9+my for-next+arm-soc's for-next results in a
-> > > > > > great load of new warnings and errors.  arch/arm/common/mcpm_head.S,
-> > > > > > arch/arm/common/mcpm_platsmp.c, arch/arm/common/vlock.S are the biggest
-> > > > > > source of errors.
-> > > > 
-> > > > [...]
-> > > >  
-> > > > > >arch/arm/common/mcpm_head.S:39: Error: selected processor does not support ARM mode `ubfx r9,r0,#0,#8'
-> > > > > >arch/arm/common/mcpm_head.S:40: Error: selected processor does not support ARM mode `ubfx r10,r0,#8,#8'
-> > > > > >arch/arm/common/mcpm_head.S:100: Error: selected processor does not support ARM mode `dmb'
-> > > > > >arch/arm/common/mcpm_head.S:115: Error: selected processor does not support ARM mode `dmb'
-> > > > > >arch/arm/common/mcpm_head.S:127: Error: selected processor does not support ARM mode `dmb'
-> > > > > >arch/arm/common/mcpm_head.S:131: Error: selected processor does not support ARM mode `dmb'
-> > > > > >arch/arm/common/mcpm_head.S:138: Error: selected processor does not support ARM mode `dsb'
-> > > > > >arch/arm/common/mcpm_head.S:152: Error: selected processor does not support ARM mode `dmb'
-> > > > > >arch/arm/common/mcpm_head.S:161: Error: selected processor does not support ARM mode `dmb'
-> > > > > >arch/arm/common/mcpm_head.S:175: Error: selected processor does not support ARM mode `dmb'
-> > > > > >arch/arm/common/vlock.S:62: Error: selected processor does not support ARM mode `dmb'
-> > > > > >arch/arm/common/vlock.S:72: Error: selected processor does not support ARM mode `dmb'
-> > > > > >arch/arm/common/vlock.S:72: Error: selected processor does not support ARM mode `dsb'
-> > > > > >arch/arm/common/vlock.S:89: Error: selected processor does not support ARM mode `dmb'
-> > > > > >arch/arm/common/vlock.S:95: Error: selected processor does not support ARM mode `dmb'
-> > > > > >arch/arm/common/vlock.S:95: Error: selected processor does not support ARM mode `dsb'
-> > > > > >arch/arm/common/vlock.S:102: Error: selected processor does not support ARM mode `dmb'
-> > > > > >arch/arm/common/vlock.S:105: Error: selected processor does not support ARM mode `dsb'
-> > > > > 
-> > > > > Right, the problem here is that the code was never tested with an ARMv6+ARMv7 config.
-> > > > > We can either fix it up by adding
-> > > > > 
-> > > > > 	.arch	armv7-a
-> > > > > 
-> > > > > in the assembly files, or by doing the same in the Makefile:
-> > > > > 
-> > > > > AFLAGS_vlock.S += -march=armv7-a
-> > > > > AFLAGS_mcpm_head.S += -march=armv7-a
-> > > > 
-> > > > 
-> > > > Hmmm, this code was tested with ARCH_MULTIPLATFORM, but it looks like
-> > > > no v6 boards were configured in when testing that...
-> > > > 
-> > > > 
-> > > > Assuming people are OK with the Makefile route, here's a patch for that,
-> > > > build-tested with a v6+v7 ARCH_MULTIPLATFORM config.
-> > > 
-> > > Isn't the .arch armv7-a route a bit cleaner?  That would have been my 
-> > > choice, although I don't feel strongly about it.
-> > 
-> > I don't feel strongly either.  We already have the CFLAGS_DISABLE stuff,
-> > so it didn't feel that unnatural to add this in the Makefile; but .arch
-> > would work equally well.
-> > 
-> > If somebody wants to change it, it's not a problem for me, but I didn't
-> > want to create extra disruption by proposing a different patch...
-> 
-> Fair enough.
-> 
-> Acked-by: Nicolas Pitre <nico@linaro.org>
+From: avinash philip <avinashphilip@ti.com>
 
-I see Dave Martin has sent a patch for this without your ack.  Was that
-a mistake?
+NAND flash connected in am335x-evm on GPMC controller. This patch adds
+device tree node in am3355-evm with GPMC contoller timing for NAND flash
+interface, NAND partition table, ECC scheme, elm handle id.
+
+Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+Signed-off-by: Gupta, Pekon <pekon@ti.com>
+---
+ arch/arm/boot/dts/am335x-evm.dts | 95 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 95 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index d649644..07761fd 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -44,6 +44,26 @@
+ 				0x154 0x27	/* spi0_d0.gpio0_3, INPUT | MODE7 */
+ 			>;
+ 		};
++
++		nandflash_pins_s0: nandflash_pins_s0 {
++			pinctrl-single,pins = <
++				0x0 0x30	/* gpmc_ad0.gpmc_ad0, INPUT | PULLUP | MODE0 */
++				0x4 0x30	/* gpmc_ad1.gpmc_ad1, INPUT | PULLUP | MODE0 */
++				0x8 0x30	/* gpmc_ad2.gpmc_ad2, INPUT | PULLUP | MODE0 */
++				0xc 0x30	/* gpmc_ad3.gpmc_ad3, INPUT | PULLUP | MODE0 */
++				0x10 0x30	/* gpmc_ad4.gpmc_ad4, INPUT | PULLUP | MODE0 */
++				0x14 0x30	/* gpmc_ad5.gpmc_ad5, INPUT | PULLUP | MODE0 */
++				0x18 0x30	/* gpmc_ad6.gpmc_ad6, INPUT | PULLUP | MODE0 */
++				0x1c 0x30	/* gpmc_ad7.gpmc_ad7, INPUT | PULLUP | MODE0 */
++				0x70 0x30	/* gpmc_wait0.gpmc_wait0, INPUT | PULLUP | MODE0 */
++				0x74 0x37	/* gpmc_wpn.gpio0_30, INPUT | PULLUP | MODE7 */
++				0x7c 0x8	/* gpmc_csn0.gpmc_csn0,  PULL DISA */
++				0x90 0x8	/* gpmc_advn_ale.gpmc_advn_ale, PULL DISA */
++				0x94 0x8	/* gpmc_oen_ren.gpmc_oen_ren, PULL DISA */
++				0x98 0x8	/* gpmc_wen.gpmc_wen, PULL DISA */
++				0x9c 0x8	/* gpmc_be0n_cle.gpmc_be0n_cle, PULL DISA */
++			>;
++		};
+ 	};
+ 
+ 	ocp {
+@@ -102,6 +122,81 @@
+ 				reg = <0x48>;
+ 			};
+ 		};
++
++		elm: elm@48080000 {
++			status = "okay";
++		};
++
++		gpmc: gpmc@50000000 {
++			status = "okay";
++			pinctrl-0 = <&nandflash_pins_s0>;
++			ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
++			nand@0,0 {
++				reg = <0 0 0>; /* CS0, offset 0 */
++				nand-bus-width = <8>;
++				ti,nand-ecc-opt = "bch8";
++
++				gpmc,sync-clk = <0>;
++				gpmc,cs-on = <0>;
++				gpmc,cs-rd-off = <44>;
++				gpmc,cs-wr-off = <44>;
++				gpmc,adv-on = <6>;
++				gpmc,adv-rd-off = <34>;
++				gpmc,adv-wr-off = <44>;
++				gpmc,we-off = <40>;
++				gpmc,oe-off = <54>;
++				gpmc,access = <64>;
++				gpmc,rd-cycle = <82>;
++				gpmc,wr-cycle = <82>;
++				gpmc,wr-access = <40>;
++				gpmc,wr-data-mux-bus = <0>;
++
++				#address-cells = <1>;
++				#size-cells = <1>;
++				elm_id = <&elm>;
++
++				/* MTD partition table */
++				partition@0 {
++					label = "SPL1";
++					reg = <0x00000000 0x000020000>;
++				};
++
++				partition@1 {
++					label = "SPL2";
++					reg = <0x00020000 0x00020000>;
++				};
++
++				partition@2 {
++					label = "SPL3";
++					reg = <0x00040000 0x00020000>;
++				};
++
++				partition@3 {
++					label = "SPL4";
++					reg = <0x00060000 0x00020000>;
++				};
++
++				partition@4 {
++					label = "U-boot";
++					reg = <0x00080000 0x001e0000>;
++				};
++
++				partition@5 {
++					label = "environment";
++					reg = <0x00260000 0x00020000>;
++				};
++
++				partition@6 {
++					label = "Kernel";
++					reg = <0x00280000 0x00500000>;
++				};
++
++				partition@7 {
++					label = "File-System";
++					reg = <0x00780000 0x0F880000>;
++				};
++			};
++		};
+ 	};
+ 
+ 	vbat: fixedregulator@0 {
+-- 
+1.8.1
