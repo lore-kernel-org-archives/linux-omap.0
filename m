@@ -1,129 +1,44 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: Latest build results - errors/warnings - lots of them
-Date: Thu, 2 May 2013 11:40:18 +0100
-Message-ID: <20130502104018.GA9879@linaro.org>
-References: <20130430081739.GP14496@n2100.arm.linux.org.uk>
- <201304301304.20650.arnd@arndb.de>
- <20130430114229.GA2439@linaro.org>
- <alpine.LFD.2.03.1304301110030.17372@syhkavp.arg>
- <20130430172816.GA31101@linaro.org>
- <alpine.LFD.2.03.1304301418100.17372@syhkavp.arg>
- <20130502083430.GB21614@n2100.arm.linux.org.uk>
- <20130502094620.GC21614@n2100.arm.linux.org.uk>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [net-next PATCH 1/1] drivers: net: cpsw: irq not disabled in cpsw isr in particular sequence
+Date: Thu, 2 May 2013 17:22:11 +0530
+Message-ID: <1367495531-19470-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:52858 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754695Ab3EBKk2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 May 2013 06:40:28 -0400
-Received: by mail-bk0-f52.google.com with SMTP id q16so185960bkw.25
-        for <linux-omap@vger.kernel.org>; Thu, 02 May 2013 03:40:27 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20130502094620.GC21614@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sebastian Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, May 02, 2013 at 10:46:21AM +0100, Russell King - ARM Linux wrote:
-> On Thu, May 02, 2013 at 09:34:30AM +0100, Russell King - ARM Linux wrote:
-> > On Tue, Apr 30, 2013 at 02:18:42PM -0400, Nicolas Pitre wrote:
-> > > On Tue, 30 Apr 2013, Dave Martin wrote:
-> > > 
-> > > > On Tue, Apr 30, 2013 at 11:12:12AM -0400, Nicolas Pitre wrote:
-> > > > > On Tue, 30 Apr 2013, Dave Martin wrote:
-> > > > > 
-> > > > > > On Tue, Apr 30, 2013 at 01:04:20PM +0200, Arnd Bergmann wrote:
-> > > > > > > On Tuesday 30 April 2013, Russell King - ARM Linux wrote:
-> > > > > > > > Latest nightly build of 3.9+my for-next+arm-soc's for-next results in a
-> > > > > > > > great load of new warnings and errors.  arch/arm/common/mcpm_head.S,
-> > > > > > > > arch/arm/common/mcpm_platsmp.c, arch/arm/common/vlock.S are the biggest
-> > > > > > > > source of errors.
-> > > > > > 
-> > > > > > [...]
-> > > > > >  
-> > > > > > > >arch/arm/common/mcpm_head.S:39: Error: selected processor does not support ARM mode `ubfx r9,r0,#0,#8'
-> > > > > > > >arch/arm/common/mcpm_head.S:40: Error: selected processor does not support ARM mode `ubfx r10,r0,#8,#8'
-> > > > > > > >arch/arm/common/mcpm_head.S:100: Error: selected processor does not support ARM mode `dmb'
-> > > > > > > >arch/arm/common/mcpm_head.S:115: Error: selected processor does not support ARM mode `dmb'
-> > > > > > > >arch/arm/common/mcpm_head.S:127: Error: selected processor does not support ARM mode `dmb'
-> > > > > > > >arch/arm/common/mcpm_head.S:131: Error: selected processor does not support ARM mode `dmb'
-> > > > > > > >arch/arm/common/mcpm_head.S:138: Error: selected processor does not support ARM mode `dsb'
-> > > > > > > >arch/arm/common/mcpm_head.S:152: Error: selected processor does not support ARM mode `dmb'
-> > > > > > > >arch/arm/common/mcpm_head.S:161: Error: selected processor does not support ARM mode `dmb'
-> > > > > > > >arch/arm/common/mcpm_head.S:175: Error: selected processor does not support ARM mode `dmb'
-> > > > > > > >arch/arm/common/vlock.S:62: Error: selected processor does not support ARM mode `dmb'
-> > > > > > > >arch/arm/common/vlock.S:72: Error: selected processor does not support ARM mode `dmb'
-> > > > > > > >arch/arm/common/vlock.S:72: Error: selected processor does not support ARM mode `dsb'
-> > > > > > > >arch/arm/common/vlock.S:89: Error: selected processor does not support ARM mode `dmb'
-> > > > > > > >arch/arm/common/vlock.S:95: Error: selected processor does not support ARM mode `dmb'
-> > > > > > > >arch/arm/common/vlock.S:95: Error: selected processor does not support ARM mode `dsb'
-> > > > > > > >arch/arm/common/vlock.S:102: Error: selected processor does not support ARM mode `dmb'
-> > > > > > > >arch/arm/common/vlock.S:105: Error: selected processor does not support ARM mode `dsb'
-> > > > > > > 
-> > > > > > > Right, the problem here is that the code was never tested with an ARMv6+ARMv7 config.
-> > > > > > > We can either fix it up by adding
-> > > > > > > 
-> > > > > > > 	.arch	armv7-a
-> > > > > > > 
-> > > > > > > in the assembly files, or by doing the same in the Makefile:
-> > > > > > > 
-> > > > > > > AFLAGS_vlock.S += -march=armv7-a
-> > > > > > > AFLAGS_mcpm_head.S += -march=armv7-a
-> > > > > > 
-> > > > > > 
-> > > > > > Hmmm, this code was tested with ARCH_MULTIPLATFORM, but it looks like
-> > > > > > no v6 boards were configured in when testing that...
-> > > > > > 
-> > > > > > 
-> > > > > > Assuming people are OK with the Makefile route, here's a patch for that,
-> > > > > > build-tested with a v6+v7 ARCH_MULTIPLATFORM config.
-> > > > > 
-> > > > > Isn't the .arch armv7-a route a bit cleaner?  That would have been my 
-> > > > > choice, although I don't feel strongly about it.
-> > > > 
-> > > > I don't feel strongly either.  We already have the CFLAGS_DISABLE stuff,
-> > > > so it didn't feel that unnatural to add this in the Makefile; but .arch
-> > > > would work equally well.
-> > > > 
-> > > > If somebody wants to change it, it's not a problem for me, but I didn't
-> > > > want to create extra disruption by proposing a different patch...
-> > > 
-> > > Fair enough.
-> > > 
-> > > Acked-by: Nicolas Pitre <nico@linaro.org>
-> > 
-> > I see Dave Martin has sent a patch for this without your ack.  Was that
-> > a mistake?
+In CPSW NAPI, after processing all interrupts IRQ is enabled and then book
+keeping irq_enabled is updated. In random cases when a packet is transmitted
+or received between processing packets and IRQ enabled, then just after
+enabled IRQ and before irq_enabled is updated, ISR is called so IRQs are
+not disabled as irq_enabled is still false and CPU gets locked in CPSW ISR.
 
-My bad -- Nico asked me to send you the patch, but I neglected to add
-his ack.
+By changing the sequence as update the irq_enabled and then enable IRQ
+fixes the issue. This issue is not captured always as it is a timing issue
+whether Tx or Rx IRQ is invoked between packet processing and enable IRQ.
+
+Cc: Sebastian Siewior <bigeasy@linutronix.de>
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 59c4391..21a5b29 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -555,8 +555,8 @@ static int cpsw_poll(struct napi_struct *napi, int budget)
+ 		cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
+ 		prim_cpsw = cpsw_get_slave_priv(priv, 0);
+ 		if (prim_cpsw->irq_enabled == false) {
+-			cpsw_enable_irq(priv);
+ 			prim_cpsw->irq_enabled = true;
++			cpsw_enable_irq(priv);
+ 		}
+ 	}
  
-> ... and the patch in the patch system doesn't apply anyway because its
-> against some other tree.  I've no idea what it's against, it's not as
-> the version on the patch advertises (v3.9-rc7) and not even the build
-> tree has the three additional FIQ lines at the end (so it's not in
-> arm-soc):
-> 
->  obj-$(CONFIG_PCI_HOST_ITE8152)  += it8152.o
->  obj-$(CONFIG_ARM_TIMER_SP804)  += timer-sp.o
->  obj-$(CONFIG_MCPM)             += mcpm_head.o mcpm_entry.o mcpm_platsmp.o vlock...
-> +AFLAGS_mcpm_head.o             := -march=armv7-a
-> +AFLAGS_vlock.o                 := -march=armv7-a
->  CFLAGS_REMOVE_mcpm_entry.o     = -pg
->  obj-$(CONFIG_FIQ_GLUE)         += fiq_glue.o fiq_glue_setup.o
->  obj-$(CONFIG_FIQ_DEBUGGER)     += fiq_debugger.o
-> 
-> So, this is unapplyable.
-
-...and this was a plain screwup up my part.  v3.9* could not possibly
-contain the relevant patches, but somehow I convinced myself I had test-
-applied the patch on 3.9-rc7, instead of a local tree based on that.
-
-I've sent you a patch based on devel-stable which should apply.
-
-Apologies for the churn.
-
-Cheers
----Dave
+-- 
+1.7.9.5
