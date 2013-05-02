@@ -1,97 +1,61 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP-USB: Fix possible memory leak
-Date: Thu, 2 May 2013 11:24:33 -0500
-Message-ID: <20130502162433.GA10016@kahuna>
+From: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
+Subject: =?UTF-8?B?UmVbMl06IFtQQVRDSF0gQVJNOiBPTUFQLVVTQjogRml4IHBvc3NpYmxlIG1l?=
+ =?UTF-8?B?bW9yeSBsZWFr?=
+Date: Thu, 02 May 2013 20:28:44 +0400
+Message-ID: <1367512124.978518915@f372.mail.ru>
 References: <1367510596-27780-1-git-send-email-shc_work@mail.ru>
+ <20130502162433.GA10016@kahuna>
+Reply-To: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38923 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758743Ab3EBQZF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 May 2013 12:25:05 -0400
-Content-Disposition: inline
-In-Reply-To: <1367510596-27780-1-git-send-email-shc_work@mail.ru>
+Received: from fallback4.mail.ru ([94.100.176.42]:52467 "EHLO
+	fallback4.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758073Ab3EBQ3O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 May 2013 12:29:14 -0400
+In-Reply-To: <20130502162433.GA10016@kahuna>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Shiyan <shc_work@mail.ru>
-Cc: linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
+To: =?UTF-8?B?TmlzaGFudGggTWVub24=?= <nm@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, =?UTF-8?B?QXJuZCBCZXJnbWFubg==?= <arnd@arndb.de>, =?UTF-8?B?VG9ueSBMaW5kZ3Jlbg==?= <tony@atomide.com>, linux-usb@vger.kernel.org, =?UTF-8?B?RmVsaXBlIEJhbGJp?= <balbi@ti.com>, linux-omap@vger.kernel.org
 
-On 20:03-20130502, Alexander Shiyan wrote:
-> 
-> Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
-> ---
->  arch/arm/mach-omap2/usb-host.c | 21 +++++++++++++++++----
->  1 file changed, 17 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-> index aa27d7f..8d17a0d 100644
-> --- a/arch/arm/mach-omap2/usb-host.c
-> +++ b/arch/arm/mach-omap2/usb-host.c
-> @@ -570,8 +570,10 @@ static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
->  	supplies->dev_name = dev_id;
->  
->  	reg_data = kzalloc(sizeof(*reg_data), GFP_KERNEL);
-> -	if (!reg_data)
-> +	if (!reg_data) {
-> +		kfree(supplies);
->  		return -ENOMEM;
-> +	}
->  
->  	reg_data->constraints.valid_ops_mask = REGULATOR_CHANGE_STATUS;
->  	reg_data->consumer_supplies = supplies;
-> @@ -579,8 +581,11 @@ static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
->  
->  	config = kmemdup(&hsusb_reg_config, sizeof(hsusb_reg_config),
->  			GFP_KERNEL);
-> -	if (!config)
-> +	if (!config) {
-> +		kfree(supplies);
-> +		kfree(reg_data);
->  		return -ENOMEM;
-> +	}
->  
->  	config->supply_name = name;
->  	config->gpio = gpio;
-> @@ -589,17 +594,25 @@ static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
->  
->  	/* create a regulator device */
->  	pdev = kzalloc(sizeof(*pdev), GFP_KERNEL);
-> -	if (!pdev)
-> +	if (!pdev) {
-> +		kfree(supplies);
-> +		kfree(reg_data);
-> +		kfree(config);
->  		return -ENOMEM;
-> +	}
->  
->  	pdev->id = PLATFORM_DEVID_AUTO;
->  	pdev->name = reg_name;
->  	pdev->dev.platform_data = config;
->  
->  	ret = platform_device_register(pdev);
-> -	if (ret)
-> +	if (ret) {
->  		pr_err("%s: Failed registering regulator %s for %s\n",
->  				__func__, name, dev_id);
-> +		kfree(supplies);
-> +		kfree(reg_data);
-> +		kfree(config);
-> +	}
-
-Might be better to switch to devm_XXX managed functions?
->  
->  	return ret;
->  }
-> -- 
-> 1.8.1.5
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
--- 
-Regards,
-Nishanth Menon
+PiBPbiAyMDowMy0yMDEzMDUwMiwgQWxleGFuZGVyIFNoaXlhbiB3cm90ZToKPiA+IAo+ID4gU2ln
+bmVkLW9mZi1ieTogQWxleGFuZGVyIFNoaXlhbiA8c2hjX3dvcmtAbWFpbC5ydT4KPiA+IC0tLQo+
+ID4gIGFyY2gvYXJtL21hY2gtb21hcDIvdXNiLWhvc3QuYyB8IDIxICsrKysrKysrKysrKysrKysr
+LS0tLQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxNyBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygt
+KQo+ID4gCj4gPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi91c2ItaG9zdC5jIGIv
+YXJjaC9hcm0vbWFjaC1vbWFwMi91c2ItaG9zdC5jCj4gPiBpbmRleCBhYTI3ZDdmLi44ZDE3YTBk
+IDEwMDY0NAo+ID4gLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi91c2ItaG9zdC5jCj4gPiArKysg
+Yi9hcmNoL2FybS9tYWNoLW9tYXAyL3VzYi1ob3N0LmMKPiA+IEBAIC01NzAsOCArNTcwLDEwIEBA
+IHN0YXRpYyBpbnQgdXNiaHNfYWRkX3JlZ3VsYXRvcihjaGFyICpuYW1lLCBjaGFyICpkZXZfaWQs
+IGNoYXIgKmRldl9zdXBwbHksCj4gPiAgCXN1cHBsaWVzLT5kZXZfbmFtZSA9IGRldl9pZDsKPiA+
+ICAKPiA+ICAJcmVnX2RhdGEgPSBremFsbG9jKHNpemVvZigqcmVnX2RhdGEpLCBHRlBfS0VSTkVM
+KTsKPiA+IC0JaWYgKCFyZWdfZGF0YSkKPiA+ICsJaWYgKCFyZWdfZGF0YSkgewo+ID4gKwkJa2Zy
+ZWUoc3VwcGxpZXMpOwo+ID4gIAkJcmV0dXJuIC1FTk9NRU07Cj4gPiArCX0KPiA+ICAKPiA+ICAJ
+cmVnX2RhdGEtPmNvbnN0cmFpbnRzLnZhbGlkX29wc19tYXNrID0gUkVHVUxBVE9SX0NIQU5HRV9T
+VEFUVVM7Cj4gPiAgCXJlZ19kYXRhLT5jb25zdW1lcl9zdXBwbGllcyA9IHN1cHBsaWVzOwo+ID4g
+QEAgLTU3OSw4ICs1ODEsMTEgQEAgc3RhdGljIGludCB1c2Joc19hZGRfcmVndWxhdG9yKGNoYXIg
+Km5hbWUsIGNoYXIgKmRldl9pZCwgY2hhciAqZGV2X3N1cHBseSwKPiA+ICAKPiA+ICAJY29uZmln
+ID0ga21lbWR1cCgmaHN1c2JfcmVnX2NvbmZpZywgc2l6ZW9mKGhzdXNiX3JlZ19jb25maWcpLAo+
+ID4gIAkJCUdGUF9LRVJORUwpOwo+ID4gLQlpZiAoIWNvbmZpZykKPiA+ICsJaWYgKCFjb25maWcp
+IHsKPiA+ICsJCWtmcmVlKHN1cHBsaWVzKTsKPiA+ICsJCWtmcmVlKHJlZ19kYXRhKTsKPiA+ICAJ
+CXJldHVybiAtRU5PTUVNOwo+ID4gKwl9Cj4gPiAgCj4gPiAgCWNvbmZpZy0+c3VwcGx5X25hbWUg
+PSBuYW1lOwo+ID4gIAljb25maWctPmdwaW8gPSBncGlvOwo+ID4gQEAgLTU4OSwxNyArNTk0LDI1
+IEBAIHN0YXRpYyBpbnQgdXNiaHNfYWRkX3JlZ3VsYXRvcihjaGFyICpuYW1lLCBjaGFyICpkZXZf
+aWQsIGNoYXIgKmRldl9zdXBwbHksCj4gPiAgCj4gPiAgCS8qIGNyZWF0ZSBhIHJlZ3VsYXRvciBk
+ZXZpY2UgKi8KPiA+ICAJcGRldiA9IGt6YWxsb2Moc2l6ZW9mKCpwZGV2KSwgR0ZQX0tFUk5FTCk7
+Cj4gPiAtCWlmICghcGRldikKPiA+ICsJaWYgKCFwZGV2KSB7Cj4gPiArCQlrZnJlZShzdXBwbGll
+cyk7Cj4gPiArCQlrZnJlZShyZWdfZGF0YSk7Cj4gPiArCQlrZnJlZShjb25maWcpOwo+ID4gIAkJ
+cmV0dXJuIC1FTk9NRU07Cj4gPiArCX0KPiA+ICAKPiA+ICAJcGRldi0+aWQgPSBQTEFURk9STV9E
+RVZJRF9BVVRPOwo+ID4gIAlwZGV2LT5uYW1lID0gcmVnX25hbWU7Cj4gPiAgCXBkZXYtPmRldi5w
+bGF0Zm9ybV9kYXRhID0gY29uZmlnOwo+ID4gIAo+ID4gIAlyZXQgPSBwbGF0Zm9ybV9kZXZpY2Vf
+cmVnaXN0ZXIocGRldik7Cj4gPiAtCWlmIChyZXQpCj4gPiArCWlmIChyZXQpIHsKPiA+ICAJCXBy
+X2VycigiJXM6IEZhaWxlZCByZWdpc3RlcmluZyByZWd1bGF0b3IgJXMgZm9yICVzXG4iLAo+ID4g
+IAkJCQlfX2Z1bmNfXywgbmFtZSwgZGV2X2lkKTsKPiA+ICsJCWtmcmVlKHN1cHBsaWVzKTsKPiA+
+ICsJCWtmcmVlKHJlZ19kYXRhKTsKPiA+ICsJCWtmcmVlKGNvbmZpZyk7Cj4gPiArCX0KPiAKPiBN
+aWdodCBiZSBiZXR0ZXIgdG8gc3dpdGNoIHRvIGRldm1fWFhYIG1hbmFnZWQgZnVuY3Rpb25zPwoK
+SWYgYW55b25lIGNhbiByZXdyaXRlIGRyaXZlciB0byB1c2UgZGV2bV94eCwgaXQgd291bGQgaGF2
+ZSBiZWVuIGJldHRlci4KSSdtIG5vdCBnb2luZyB0byByZWRvIHRoZSBwYXRjaCB5ZXQsIGxldCBp
+dCBiZSBzbywgSSBqdXN0IHNob3dlZCBhIHBvaW50CmZvciBPTUFQLWRldmVsb3BlcnMuClRoYW5r
+cy4KCi0tLQo=
