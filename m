@@ -1,105 +1,59 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Latest build results - errors/warnings - lots of them
-Date: Thu, 2 May 2013 10:46:21 +0100
-Message-ID: <20130502094620.GC21614@n2100.arm.linux.org.uk>
-References: <20130430081739.GP14496@n2100.arm.linux.org.uk> <201304301304.20650.arnd@arndb.de> <20130430114229.GA2439@linaro.org> <alpine.LFD.2.03.1304301110030.17372@syhkavp.arg> <20130430172816.GA31101@linaro.org> <alpine.LFD.2.03.1304301418100.17372@syhkavp.arg> <20130502083430.GB21614@n2100.arm.linux.org.uk>
+From: skannan@codeaurora.org
+Subject: Re: [Patch 2/3] clk: skip re-parenting orphan clk
+Date: Thu, 2 May 2013 03:09:24 -0700
+Message-ID: <f023185a0414961d3c30b3cfaf8b9a51.squirrel@www.codeaurora.org>
+References: <1367475929-32166-1-git-send-email-ambresh@ti.com>
+    <1367475929-32166-3-git-send-email-ambresh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42452 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754098Ab3EBJqj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 May 2013 05:46:39 -0400
-Content-Disposition: inline
-In-Reply-To: <20130502083430.GB21614@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1367475929-32166-3-git-send-email-ambresh@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: Mike Turquette <mturquette@linaro.org>, Nishanth Menon <nm@ti.com>, Rajendra <rnayak@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Ambresh K <ambresh@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Dave Martin <dave.martin@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, May 02, 2013 at 09:34:30AM +0100, Russell King - ARM Linux wrote:
-> On Tue, Apr 30, 2013 at 02:18:42PM -0400, Nicolas Pitre wrote:
-> > On Tue, 30 Apr 2013, Dave Martin wrote:
-> > 
-> > > On Tue, Apr 30, 2013 at 11:12:12AM -0400, Nicolas Pitre wrote:
-> > > > On Tue, 30 Apr 2013, Dave Martin wrote:
-> > > > 
-> > > > > On Tue, Apr 30, 2013 at 01:04:20PM +0200, Arnd Bergmann wrote:
-> > > > > > On Tuesday 30 April 2013, Russell King - ARM Linux wrote:
-> > > > > > > Latest nightly build of 3.9+my for-next+arm-soc's for-next results in a
-> > > > > > > great load of new warnings and errors.  arch/arm/common/mcpm_head.S,
-> > > > > > > arch/arm/common/mcpm_platsmp.c, arch/arm/common/vlock.S are the biggest
-> > > > > > > source of errors.
-> > > > > 
-> > > > > [...]
-> > > > >  
-> > > > > > >arch/arm/common/mcpm_head.S:39: Error: selected processor does not support ARM mode `ubfx r9,r0,#0,#8'
-> > > > > > >arch/arm/common/mcpm_head.S:40: Error: selected processor does not support ARM mode `ubfx r10,r0,#8,#8'
-> > > > > > >arch/arm/common/mcpm_head.S:100: Error: selected processor does not support ARM mode `dmb'
-> > > > > > >arch/arm/common/mcpm_head.S:115: Error: selected processor does not support ARM mode `dmb'
-> > > > > > >arch/arm/common/mcpm_head.S:127: Error: selected processor does not support ARM mode `dmb'
-> > > > > > >arch/arm/common/mcpm_head.S:131: Error: selected processor does not support ARM mode `dmb'
-> > > > > > >arch/arm/common/mcpm_head.S:138: Error: selected processor does not support ARM mode `dsb'
-> > > > > > >arch/arm/common/mcpm_head.S:152: Error: selected processor does not support ARM mode `dmb'
-> > > > > > >arch/arm/common/mcpm_head.S:161: Error: selected processor does not support ARM mode `dmb'
-> > > > > > >arch/arm/common/mcpm_head.S:175: Error: selected processor does not support ARM mode `dmb'
-> > > > > > >arch/arm/common/vlock.S:62: Error: selected processor does not support ARM mode `dmb'
-> > > > > > >arch/arm/common/vlock.S:72: Error: selected processor does not support ARM mode `dmb'
-> > > > > > >arch/arm/common/vlock.S:72: Error: selected processor does not support ARM mode `dsb'
-> > > > > > >arch/arm/common/vlock.S:89: Error: selected processor does not support ARM mode `dmb'
-> > > > > > >arch/arm/common/vlock.S:95: Error: selected processor does not support ARM mode `dmb'
-> > > > > > >arch/arm/common/vlock.S:95: Error: selected processor does not support ARM mode `dsb'
-> > > > > > >arch/arm/common/vlock.S:102: Error: selected processor does not support ARM mode `dmb'
-> > > > > > >arch/arm/common/vlock.S:105: Error: selected processor does not support ARM mode `dsb'
-> > > > > > 
-> > > > > > Right, the problem here is that the code was never tested with an ARMv6+ARMv7 config.
-> > > > > > We can either fix it up by adding
-> > > > > > 
-> > > > > > 	.arch	armv7-a
-> > > > > > 
-> > > > > > in the assembly files, or by doing the same in the Makefile:
-> > > > > > 
-> > > > > > AFLAGS_vlock.S += -march=armv7-a
-> > > > > > AFLAGS_mcpm_head.S += -march=armv7-a
-> > > > > 
-> > > > > 
-> > > > > Hmmm, this code was tested with ARCH_MULTIPLATFORM, but it looks like
-> > > > > no v6 boards were configured in when testing that...
-> > > > > 
-> > > > > 
-> > > > > Assuming people are OK with the Makefile route, here's a patch for that,
-> > > > > build-tested with a v6+v7 ARCH_MULTIPLATFORM config.
-> > > > 
-> > > > Isn't the .arch armv7-a route a bit cleaner?  That would have been my 
-> > > > choice, although I don't feel strongly about it.
-> > > 
-> > > I don't feel strongly either.  We already have the CFLAGS_DISABLE stuff,
-> > > so it didn't feel that unnatural to add this in the Makefile; but .arch
-> > > would work equally well.
-> > > 
-> > > If somebody wants to change it, it's not a problem for me, but I didn't
-> > > want to create extra disruption by proposing a different patch...
-> > 
-> > Fair enough.
-> > 
-> > Acked-by: Nicolas Pitre <nico@linaro.org>
-> 
-> I see Dave Martin has sent a patch for this without your ack.  Was that
-> a mistake?
 
-... and the patch in the patch system doesn't apply anyway because its
-against some other tree.  I've no idea what it's against, it's not as
-the version on the patch advertises (v3.9-rc7) and not even the build
-tree has the three additional FIQ lines at the end (so it's not in
-arm-soc):
+Ambresh K wrote:
+> From: Ambresh K <ambresh@ti.com>
+>
+> If clk is same as orphan clk than skip the iteration, there
 
- obj-$(CONFIG_PCI_HOST_ITE8152)  += it8152.o
- obj-$(CONFIG_ARM_TIMER_SP804)  += timer-sp.o
- obj-$(CONFIG_MCPM)             += mcpm_head.o mcpm_entry.o mcpm_platsmp.o vlock...
-+AFLAGS_mcpm_head.o             := -march=armv7-a
-+AFLAGS_vlock.o                 := -march=armv7-a
- CFLAGS_REMOVE_mcpm_entry.o     = -pg
- obj-$(CONFIG_FIQ_GLUE)         += fiq_glue.o fiq_glue_setup.o
- obj-$(CONFIG_FIQ_DEBUGGER)     += fiq_debugger.o
+Typo: than => then
 
-So, this is unapplyable.
+> by avoiding unnecessary look-up.
+>
+> Signed-off-by: Ambresh K <ambresh@ti.com>
+> ---
+>  drivers/clk/clk.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> index c187321..f4d2c73 100644
+> --- a/drivers/clk/clk.c
+> +++ b/drivers/clk/clk.c
+> @@ -1635,6 +1635,10 @@ int __clk_init(struct device *dev, struct clk *clk)
+>  	 * this clock
+>  	 */
+>  	hlist_for_each_entry_safe(orphan, tmp2, &clk_orphan_list, child_node) {
+> +		/* Skip if clk is same as orphan clk */
+> +		if (!strcmp(clk->name, orphan->name))
+> +			continue;
+> +
+>  		if (orphan->ops->get_parent) {
+>  			i = orphan->ops->get_parent(orphan->hw);
+>  			if (i < 0) {
+> --
+> 1.7.4.1
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
+
+
+-- 
+The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+hosted by The Linux Foundation
