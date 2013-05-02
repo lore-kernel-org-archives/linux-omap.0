@@ -1,7 +1,7 @@
 From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 4/5] ARM: dts: OMAP4460: Add device nodes for ABB
-Date: Thu, 2 May 2013 12:20:13 -0500
-Message-ID: <1367515215-30753-5-git-send-email-nm@ti.com>
+Subject: [PATCH v3 3/5] ARM: dts: OMAP443x: Add device nodes for ABB
+Date: Thu, 2 May 2013 12:20:12 -0500
+Message-ID: <1367515215-30753-4-git-send-email-nm@ti.com>
 References: <1367515215-30753-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,62 +24,102 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Andrii.Tseglytskyi" <andrii.tseglytskyi-l0cyMroinI0@public.gmane.org>
 
-Add ABB device nodes for OMAP4460 device Data is based on OMAP4460
-Technical Reference Manual revision Z (April 2013)
+Add ABB device nodes for OMAP443x family of devices. abb_iva is
+populated, but disabled as it is not used on current OMAP443x family,
+but the node is used on OMAP446x family. Data is based on OMAP443x
+Technical Reference Manual revision AN (April 2013).
 
 [nm-l0cyMroinI0@public.gmane.org: co-developer]
 Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Andrii.Tseglytskyi <andrii.tseglytskyi-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap4460.dtsi |   38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ arch/arm/boot/dts/omap4.dtsi    |   32 ++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap443x.dtsi |   26 ++++++++++++++++++++++++++
+ 2 files changed, 58 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
-index 2cf227c..e854c41 100644
---- a/arch/arm/boot/dts/omap4460.dtsi
-+++ b/arch/arm/boot/dts/omap4460.dtsi
-@@ -29,4 +29,42 @@
- 			     <0 55 0x4>;
- 		ti,hwmods = "debugss";
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 1c6d969..8f6a1fb 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -108,6 +108,11 @@
+ 			ti,hwmods = "counter_32k";
+ 		};
+ 
++		sysclk_in: sys_clkin {
++			#clock-cells = <0>;
++			compatible = "ti,omap-clock";
++		};
++
+ 		dpll_mpu: dpll_mpu {
+ 			#clock-cells = <0>;
+ 			compatible = "ti,omap-clock";
+@@ -667,5 +672,32 @@
+ 			ram-bits = <12>;
+ 			ti,has-mailbox;
+ 		};
++
++		abb_mpu: regulator-abb-mpu {
++			compatible = "ti,abb-v2";
++			regulator-name = "abb_mpu";
++			#address-cells = <0>;
++			#size-cells = <0>;
++			ti,tranxdone-status-mask = <0x80>;
++			clocks = <&sysclk_in>;
++			ti,settling-time = <50>;
++			ti,clock-cycles = <16>;
++
++			status = "disabled";
++		};
++
++		abb_iva: regulator-abb-iva {
++			compatible = "ti,abb-v2";
++			regulator-name = "abb_iva";
++			#address-cells = <0>;
++			#size-cells = <0>;
++			ti,tranxdone-status-mask = <0x80000000>;
++			clocks = <&sysclk_in>;
++			ti,settling-time = <50>;
++			ti,clock-cycles = <16>;
++
++			status = "disabled";
++		};
++
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap443x.dtsi
+index cccf39a..377e519 100644
+--- a/arch/arm/boot/dts/omap443x.dtsi
++++ b/arch/arm/boot/dts/omap443x.dtsi
+@@ -24,4 +24,30 @@
+ 			clock-latency = <300000>; /* From legacy driver */
+ 		};
  	};
 +
 +	ocp {
 +		abb_mpu: regulator-abb-mpu {
 +			status = "okay";
 +
-+			reg = <0x4a307bd0 0x8>, <0x4a306014 0x4>,
-+			      <0x4A002268 0x4>;
-+			reg-names = "base-address", "int-address",
-+				    "efuse-address";
++			reg = <0x4a307bd0 0x8>, <0x4a306014 0x4>;
++			reg-names = "base-address", "int-address";
 +
 +			ti,abb_info = <
 +			/*uV		ABB	efuse	rbb_m	fbb_m	vset_m*/
 +			1025000		0	0	0	0	0
 +			1200000		0	0	0	0	0
-+			1313000		0	0	0x100000 0x40000 0
++			1313000		0	0	0	0	0
 +			1375000		1	0	0	0	0
 +			1389000		1	0	0	0	0
 +			>;
 +		};
 +
++		/* Default unused, just provide register info for record */
 +		abb_iva: regulator-abb-iva {
-+			status = "okay";
-+
-+			reg = <0x4a307bd8 0x8>, <0x4a306010 0x4>,
-+			      <0x4A002268 0x4>;
-+			reg-names = "base-address", "int-address",
-+				    "efuse-address";
-+
-+			ti,abb_info = <
-+			/*uV		ABB	efuse	rbb_m	fbb_m	vset_m*/
-+			950000		0	0	0	0	0
-+			1140000		0	0	0	0	0
-+			1291000		0	0	0x200000 0	0
-+			1375000		1	0	0	0	0
-+			1376000		1	0	0	0	0
-+			>;
++			reg = <0x4a307bd8 0x8>, <0x4a306010 0x4>;
++			reg-names = "base-address", "int-address";
 +		};
++
 +	};
++
  };
 -- 
 1.7.9.5
