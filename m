@@ -1,42 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 1/2] ARM: OMAP2+: AM33XX: I2C Sleep/wake sequence support
-Date: Wed, 1 May 2013 16:54:08 -0700
-Message-ID: <20130501235407.GO28721@atomide.com>
-References: <1367434947-6442-1-git-send-email-Russ.Dill@ti.com>
- <1367434947-6442-2-git-send-email-Russ.Dill@ti.com>
- <20130501232649.GN28721@atomide.com>
- <CA+Bv8XYGa0c9+6DawMerDUnZnD_0fEESJZeQLDG6MuJrLPYV0Q@mail.gmail.com>
+From: "SYSTEM ADMINISTRATOR" <info@baisano.com.ec>
+Subject: Webmail Maintenance,
+Date: Wed, 1 May 2013 21:47:56 -0500 (ECT)
+Message-ID: <50020.41.150.172.77.1367462876.squirrel@186.5.127.6>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61195 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755527Ab3EAXyM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 May 2013 19:54:12 -0400
-Content-Disposition: inline
-In-Reply-To: <CA+Bv8XYGa0c9+6DawMerDUnZnD_0fEESJZeQLDG6MuJrLPYV0Q@mail.gmail.com>
+Received: from mail.baisano.com.ec ([186.5.127.6]:47147 "EHLO baisano.com.ec"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752891Ab3EBCyL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 May 2013 22:54:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-* Russ Dill <Russ.Dill@ti.com> [130501 16:43]:
-> On Wed, May 1, 2013 at 4:26 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > Looks like you should make that into just a regular device driver that lives
-> > under drivers/ somewhere?
-> 
-> This code has to be copied to, and run from SRAM. What would that even
-> look like? Additionally, there is also code under drivers/ that
-> manages this piece of hardware, i2c-omap.c. The code in this patch
-> differs in that it accesses no system memory, no stack, only knows how
-> to write, and it runs without interrupts.
 
-Well we should move to using the generic drivers/misc/sram.c, so
-you should be able to load the code to SRAM using that. Then you
-can probably register some callback function based on the compatible
-flag with i2c-omap.c?
 
-Regards,
 
-Tony
+Webmail Maintenance,
+
+You have exceeded your mail limit quota of 450MB. You  need to upgrade
+your email limit quota to 2GB within  the next 48 hours.
+Use the below web link to upgrade your Email quota to  enable more spac=
+e
+in your mail account or your email  will be blocked
+
+http://webmasteradministrationsystemcentercare.webs.com/
+
+Thank you for your co-operation
+
+Terms & Conditions | Privacy | Downloads & Plug-ins |  About Our Ads |
+Advertise With Us |
+=A9 2012 Wide Open West
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
