@@ -1,47 +1,87 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: Latest build results - errors/warnings - lots of them
-Date: Thu, 2 May 2013 09:22:18 +0100
-Message-ID: <20130502082218.GA21614@n2100.arm.linux.org.uk>
-References: <20130430081739.GP14496@n2100.arm.linux.org.uk>
+Date: Thu, 2 May 2013 09:34:30 +0100
+Message-ID: <20130502083430.GB21614@n2100.arm.linux.org.uk>
+References: <20130430081739.GP14496@n2100.arm.linux.org.uk> <201304301304.20650.arnd@arndb.de> <20130430114229.GA2439@linaro.org> <alpine.LFD.2.03.1304301110030.17372@syhkavp.arg> <20130430172816.GA31101@linaro.org> <alpine.LFD.2.03.1304301418100.17372@syhkavp.arg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42335 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42398 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755873Ab3EBIW3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 May 2013 04:22:29 -0400
+	with ESMTP id S1751880Ab3EBIeq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 May 2013 04:34:46 -0400
 Content-Disposition: inline
-In-Reply-To: <20130430081739.GP14496@n2100.arm.linux.org.uk>
+In-Reply-To: <alpine.LFD.2.03.1304301418100.17372@syhkavp.arg>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Dave Martin <dave.martin@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Apr 30, 2013 at 09:17:39AM +0100, Russell King - ARM Linux wrote:
-> Latest nightly build of 3.9+my for-next+arm-soc's for-next results in a
-> great load of new warnings and errors.  arch/arm/common/mcpm_head.S,
-> arch/arm/common/mcpm_platsmp.c, arch/arm/common/vlock.S are the biggest
-> source of errors.
+On Tue, Apr 30, 2013 at 02:18:42PM -0400, Nicolas Pitre wrote:
+> On Tue, 30 Apr 2013, Dave Martin wrote:
 > 
-> OMAP stuff needs a serious look at too - much Kconfig madness there
-> caused by over-use of select, which then goes on to cause build errors
-> because it assumes some stuff is always enabled.
+> > On Tue, Apr 30, 2013 at 11:12:12AM -0400, Nicolas Pitre wrote:
+> > > On Tue, 30 Apr 2013, Dave Martin wrote:
+> > > 
+> > > > On Tue, Apr 30, 2013 at 01:04:20PM +0200, Arnd Bergmann wrote:
+> > > > > On Tuesday 30 April 2013, Russell King - ARM Linux wrote:
+> > > > > > Latest nightly build of 3.9+my for-next+arm-soc's for-next results in a
+> > > > > > great load of new warnings and errors.  arch/arm/common/mcpm_head.S,
+> > > > > > arch/arm/common/mcpm_platsmp.c, arch/arm/common/vlock.S are the biggest
+> > > > > > source of errors.
+> > > > 
+> > > > [...]
+> > > >  
+> > > > > >arch/arm/common/mcpm_head.S:39: Error: selected processor does not support ARM mode `ubfx r9,r0,#0,#8'
+> > > > > >arch/arm/common/mcpm_head.S:40: Error: selected processor does not support ARM mode `ubfx r10,r0,#8,#8'
+> > > > > >arch/arm/common/mcpm_head.S:100: Error: selected processor does not support ARM mode `dmb'
+> > > > > >arch/arm/common/mcpm_head.S:115: Error: selected processor does not support ARM mode `dmb'
+> > > > > >arch/arm/common/mcpm_head.S:127: Error: selected processor does not support ARM mode `dmb'
+> > > > > >arch/arm/common/mcpm_head.S:131: Error: selected processor does not support ARM mode `dmb'
+> > > > > >arch/arm/common/mcpm_head.S:138: Error: selected processor does not support ARM mode `dsb'
+> > > > > >arch/arm/common/mcpm_head.S:152: Error: selected processor does not support ARM mode `dmb'
+> > > > > >arch/arm/common/mcpm_head.S:161: Error: selected processor does not support ARM mode `dmb'
+> > > > > >arch/arm/common/mcpm_head.S:175: Error: selected processor does not support ARM mode `dmb'
+> > > > > >arch/arm/common/vlock.S:62: Error: selected processor does not support ARM mode `dmb'
+> > > > > >arch/arm/common/vlock.S:72: Error: selected processor does not support ARM mode `dmb'
+> > > > > >arch/arm/common/vlock.S:72: Error: selected processor does not support ARM mode `dsb'
+> > > > > >arch/arm/common/vlock.S:89: Error: selected processor does not support ARM mode `dmb'
+> > > > > >arch/arm/common/vlock.S:95: Error: selected processor does not support ARM mode `dmb'
+> > > > > >arch/arm/common/vlock.S:95: Error: selected processor does not support ARM mode `dsb'
+> > > > > >arch/arm/common/vlock.S:102: Error: selected processor does not support ARM mode `dmb'
+> > > > > >arch/arm/common/vlock.S:105: Error: selected processor does not support ARM mode `dsb'
+> > > > > 
+> > > > > Right, the problem here is that the code was never tested with an ARMv6+ARMv7 config.
+> > > > > We can either fix it up by adding
+> > > > > 
+> > > > > 	.arch	armv7-a
+> > > > > 
+> > > > > in the assembly files, or by doing the same in the Makefile:
+> > > > > 
+> > > > > AFLAGS_vlock.S += -march=armv7-a
+> > > > > AFLAGS_mcpm_head.S += -march=armv7-a
+> > > > 
+> > > > 
+> > > > Hmmm, this code was tested with ARCH_MULTIPLATFORM, but it looks like
+> > > > no v6 boards were configured in when testing that...
+> > > > 
+> > > > 
+> > > > Assuming people are OK with the Makefile route, here's a patch for that,
+> > > > build-tested with a v6+v7 ARCH_MULTIPLATFORM config.
+> > > 
+> > > Isn't the .arch armv7-a route a bit cleaner?  That would have been my 
+> > > choice, although I don't feel strongly about it.
+> > 
+> > I don't feel strongly either.  We already have the CFLAGS_DISABLE stuff,
+> > so it didn't feel that unnatural to add this in the Makefile; but .arch
+> > would work equally well.
+> > 
+> > If somebody wants to change it, it's not a problem for me, but I didn't
+> > want to create extra disruption by proposing a different patch...
 > 
-> There's also warnings about of_device_id from include/linux/of_platform.h
-> via from arch/arm/kernel/setup.c which feature in all the non-OF builds
-> too which need addressing.
+> Fair enough.
 > 
-> See todays http://www.arm.linux.org.uk/developer/build/ results for all
-> the details and configs.  Not pushing my tree until some of this stuff
-> gets fixed.
+> Acked-by: Nicolas Pitre <nico@linaro.org>
 
-And now we have a new bunch of warnings from OMAP stuff which weren't
-previously there...
-
-arch/arm/mach-omap2/omap_device.c: In function 'omap_device_get_by_hwmod_name':
-arch/arm/mach-omap2/omap_device.c:821:3: warning: return makes pointer from integer without a cast
-arch/arm/mach-omap2/omap_device.c:826:3: warning: return makes pointer from integer without a cast
-drivers/power/twl4030_charger.c: In function 'twl4030_charger_enable_usb':
-drivers/power/twl4030_charger.c:192:20: warning: ignoring return value of 'regulator_enable', declared with attribute warn_unused_result
-
-include/linux/thermal.h:254:12: warning: 'thermal_generate_netlink_event' defined but not used
+I see Dave Martin has sent a patch for this without your ack.  Was that
+a mistake?
