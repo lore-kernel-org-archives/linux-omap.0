@@ -1,72 +1,31 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 3/5] drivers: bus: omap_l3: Convert to use devm_request_irq()
-Date: Thu, 2 May 2013 14:09:45 +0200
-Message-ID: <1367496587-6210-4-git-send-email-peter.ujfalusi@ti.com>
-References: <1367496587-6210-1-git-send-email-peter.ujfalusi@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [net-next PATCH 1/1] drivers: net: cpsw: irq not disabled in
+ cpsw isr in particular sequence
+Date: Thu, 2 May 2013 14:37:27 +0200
+Message-ID: <20130502123727.GA17149@linutronix.de>
+References: <1367495531-19470-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1367496587-6210-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1367495531-19470-1-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-With this we can remove the free_irq() calls from probe and remove.
+* Mugunthan V N | 2013-05-02 17:22:11 [+0530]:
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/bus/omap_l3_noc.c | 23 +++++------------------
- 1 file changed, 5 insertions(+), 18 deletions(-)
+>In CPSW NAPI, after processing all interrupts IRQ is enabled and then book
+>keeping irq_enabled is updated. In random cases when a packet is transmitted
+>or received between processing packets and IRQ enabled, then just after
+>enabled IRQ and before irq_enabled is updated, ISR is called so IRQs are
+>not disabled as irq_enabled is still false and CPU gets locked in CPSW ISR.
+>
+>By changing the sequence as update the irq_enabled and then enable IRQ
+>fixes the issue. This issue is not captured always as it is a timing issue
+>whether Tx or Rx IRQ is invoked between packet processing and enable IRQ.
 
-diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-index ca95d3d..2bbc87b 100644
---- a/drivers/bus/omap_l3_noc.c
-+++ b/drivers/bus/omap_l3_noc.c
-@@ -159,9 +159,8 @@ static int omap4_l3_probe(struct platform_device *pdev)
- 	 * Setup interrupt Handlers
- 	 */
- 	l3->debug_irq = platform_get_irq(pdev, 0);
--	ret = request_irq(l3->debug_irq,
--			l3_interrupt_handler,
--			IRQF_DISABLED, "l3-dbg-irq", l3);
-+	ret = devm_request_irq(&pdev->dev, l3->debug_irq, l3_interrupt_handler,
-+			       IRQF_DISABLED, "l3-dbg-irq", l3);
- 	if (ret) {
- 		pr_crit("L3: request_irq failed to register for 0x%x\n",
- 						l3->debug_irq);
-@@ -169,29 +168,17 @@ static int omap4_l3_probe(struct platform_device *pdev)
- 	}
- 
- 	l3->app_irq = platform_get_irq(pdev, 1);
--	ret = request_irq(l3->app_irq,
--			l3_interrupt_handler,
--			IRQF_DISABLED, "l3-app-irq", l3);
--	if (ret) {
-+	ret = devm_request_irq(&pdev->dev, l3->app_irq, l3_interrupt_handler,
-+			       IRQF_DISABLED, "l3-app-irq", l3);
-+	if (ret)
- 		pr_crit("L3: request_irq failed to register for 0x%x\n",
- 						l3->app_irq);
--		goto err4;
--	}
--
--	return 0;
- 
--err4:
--	free_irq(l3->debug_irq, l3);
- 	return ret;
- }
- 
- static int omap4_l3_remove(struct platform_device *pdev)
- {
--	struct omap4_l3 *l3 = platform_get_drvdata(pdev);
--
--	free_irq(l3->app_irq, l3);
--	free_irq(l3->debug_irq, l3);
--
- 	return 0;
- }
- 
--- 
-1.8.2.1
+Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+
+Sebastian
