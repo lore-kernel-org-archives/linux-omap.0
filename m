@@ -1,141 +1,94 @@
-From: jean-philippe francois <jp.francois@cynove.com>
-Subject: omap pm : _enable_preprogram should not be __init ?
-Date: Fri, 3 May 2013 16:39:00 +0200
-Message-ID: <CAGGh5h02PQccdY=J-X_M+kb6TXSX+igrF_hyWytm4+cY8zo3Wg@mail.gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [GIT PULL] mailbox driver framework for v3.10 merge window
+Date: Fri, 3 May 2013 11:29:32 -0500
+Message-ID: <5183E5EC.9040702@ti.com>
+References: <37C860A02101E749A747FA2D3C1E3C504A1971@DLEE11.ent.ti.com> <201304091255.03020.arnd@arndb.de> <CAJe_Zhf5QwQQU5aVtNhbDT3EK9Dof-ZK_boP9WaNghqO8xY7iA@mail.gmail.com> <5182E403.1030808@ti.com> <CAJe_ZhfA=eqihefgtYGmLt03sNV6arme9t1YgzTFoC8nB6SNkQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=089e0141a202d395d604dbd14f54
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:64866 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933751Ab3ECOjC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 May 2013 10:39:02 -0400
-Received: by mail-wi0-f179.google.com with SMTP id l13so683527wie.12
-        for <linux-omap@vger.kernel.org>; Fri, 03 May 2013 07:39:00 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55977 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760490Ab3ECQfK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 May 2013 12:35:10 -0400
+In-Reply-To: <CAJe_ZhfA=eqihefgtYGmLt03sNV6arme9t1YgzTFoC8nB6SNkQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: s-guiriec@ti.com, paul@pwsan.com
+To: Jassi Brar <jaswinder.singh@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, "Russell King - ARM Linux (linux@arm.linux.org.uk)" <linux@arm.linux.org.uk>, "Loic PALLARDY (loic.pallardy@st.com)" <loic.pallardy@st.com>, "Tony Lindgren (tony@atomide.com)" <tony@atomide.com>, "Linus Walleij (linus.walleij@linaro.org)" <linus.walleij@linaro.org>, "Omar Ramirez Luna (omar.ramirez@copitl.com)" <omar.ramirez@copitl.com>, Olof Johansson <olof@lixom.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---089e0141a202d395d604dbd14f54
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On 05/02/2013 09:37 PM, Jassi Brar wrote:
+> On 3 May 2013 03:39, Suman Anna <s-anna@ti.com> wrote:
+>> Hi Arnd,
+>>
+>> On 04/28/2013 11:07 PM, Jassi Brar wrote:
+>>>
+>>> Not to mean only talk and no do, I prepared another proposal that
+>>> addressed all the concerns shared so far in the RFC
+>>> http://www.spinics.net/lists/kernel/msg1523873.html (its not ready for
+>>> primetime yet)  And also converted the PL320 driver to the new API,
+>>> unlike the pulled patchset which leaves that out in the cold.
+>>> http://www.spinics.net/lists/kernel/msg1523874.html
+>>
+>> Yes, the current code is mainly interrupt-driven and supports only
+>> non-atomic context. We have a need to support atomic contexts and ipc
+>> controllers that do not have interrupt-based triggering.
+>>
+> Supporting poll and client driven TX and atomic context is going to
+> need big chunks of changes which we can avoid by doing them already.
+> Plus a bottleneck with PL320, as Mark pointed out they can't afford
+> any bigger latency, which will come from RX via notifier path.
+> 
+>> As Jassi
+>> pointed out, the RFC is not ready yet and there are still some
+>> contention points that needs to be sorted out (especially to maintain
+>> OMAP mailbox functionality).
+>>
+> Apart from a few checkpatch fixes, a missing timer delete call and
+> some testing with dummy client and controller drivers for various
+> usecases, it's ready from my side. It worked at least as good as your
+> API in our internal testing.
+> 
+> Please do let me know which OMAP functionality are you worried about,
+> I believe it could all still be done above this api.
 
-Hi list,
+Mainly the splitting of bottom-half responsibility of the controller
+driver between mailbox and the client (or another in-between layer
+between my existing client (remoteproc driver), because of the support
+for only atomic context.
 
-Launching program using I2C after init leads to an oops with 3.9 on a
-custom dm3730 based board.
+> 
+>>>
+>>> Now, we could either call it (effectively the TI's framework with
+>>> quirks for STE) as the "Common API" and then dismantle and convert it
+>>> patch by patch (authors and I seem to agree many things need to be
+>>> changed and implemented).
+>>>   OR we do it reasonably right the first time even if that means yet
+>>> another release. IMHO we should go for slow but steady thing.
+>>
+>> I think it is your call here, either of the above approaches would
+>> definitely involve some rework on the framework as well as both the OMAP
+>> & ST mailboxes.
+> 
+> I am interested to know what changes do you anticipate in my proposed
+> API. Not to mean it's perfect, but I thought I provided for all
+> practical use-cases.
 
-Looking at the disassembly of the _enable function in omap_hwmod.o, I
-noticed the call to _enable_preprogram was a direct branch to an
-adress in the .text section in the middle of another function. Looking
-for _enable_preprogram, it was at the right offset, but in the
-.init.text section, so I guess this is why it works fine during the
-boot, and oops once init is started
+I will provide feedback on the RFC thread, and we can continue the
+discussion on that thread. I will also share the link to my current
+work-in-progress branch so that you can see the design approach that I
+have taken.
 
-I recompiled the kernel with the attached patch and the oops is gone.
-Is that the right ting to do ?
+> 
+> Yes, TI and STE would need re-work, but then as of now they are their
+> own APIs upstream. And even with your proposal they would still need
+> to be changed if we are to implement the desired features. What about
+> PL320?
 
-Jean-Philippe Fran=C3=A7ois
+The pl320_transmit function is identical to the present
+mailbox_msg_send_receive_no_irq, but that is a non-factor anyway since
+we would have changed the API.
 
---089e0141a202d395d604dbd14f54
-Content-Type: text/plain; charset=US-ASCII; name="oops2.txt"
-Content-Disposition: attachment; filename="oops2.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hg9fnku70
+regards
+Suman
 
-WyAgICA4LjQxMzYzNV0gVW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgcGFnaW5nIHJlcXVlc3QgYXQg
-dmlydHVhbCBhZGRyZXNzIDAwMGIwMDEyClsgICAgOC40MjEyNjRdIHBnZCA9IGNmOTY4MDAwClsg
-ICAgOC40MjQxMDJdIFswMDBiMDAxMl0gKnBnZD04ZmIwNjgzMSwgKnB0ZT0wMDAwMDAwMCwgKnBw
-dGU9MDAwMDAwMDAKWyAgICA4LjQzMDcyNV0gSW50ZXJuYWwgZXJyb3I6IE9vcHM6IDE3IFsjMV0g
-UFJFRU1QVCBBUk0KWyAgICA4LjQzNjA2NV0gTW9kdWxlcyBsaW5rZWQgaW46ClsgICAgOC40Mzky
-NzBdIENQVTogMCAgICBOb3QgdGFpbnRlZCAgKDMuOS4wICMyKQpbICAgIDguNDQzODc4XSBQQyBp
-cyBhdCBfZW5hYmxlX3ByZXByb2dyYW0rMHgxYy8weDI0ClsgICAgOC40NDg4NTJdIExSIGlzIGF0
-IG9tYXBfaHdtb2RfZW5hYmxlKzB4MzQvMHg2MApbICAgIDguNDUzNzM1XSBwYyA6IFs8YzA0ZTQw
-OGM+XSAgICBsciA6IFs8YzAwMWNiODA+XSAgICBwc3I6IDgwMDAwMDkzClsgICAgOC40NTM3MzVd
-IHNwIDogY2Y5NWRlMDggIGlwIDogMDAwMDJkZTUgIGZwIDogYmVjMzNkNGMKWyAgICA4LjQ2NTgy
-MF0gcjEwOiAwMDAwMDAwMCAgcjkgOiAwMDAwMDAwMiAgcjggOiBiNmRkMmM3OApbICAgIDguNDcx
-MzQzXSByNyA6IDAwMDAwMDA0ICByNiA6IDAwMDAwMDAwICByNSA6IGEwMDAwMDEzICByNCA6IGNm
-OTVjMDAwClsgICAgOC40NzgyMTBdIHIzIDogMDAwMDAwMDAgIHIyIDogYjZkZDJjN2MgIHIxIDog
-MDAwMDAwMDAgIHIwIDogMDAwYjAwMTIKWyAgICA4LjQ4NTEwN10gRmxhZ3M6IE56Y3YgIElSUXMg
-b2ZmICBGSVFzIG9uICBNb2RlIFNWQ18zMiAgSVNBIEFSTSAgU2VnbWVudCB1c2VyClsgICAgOC40
-OTI3MDZdIENvbnRyb2w6IDEwYzUzODdkICBUYWJsZTogOGY5NjgwMTkgIERBQzogMDAwMDAwMTUK
-WyAgICA4LjQ5ODc3OV0gUHJvY2VzcyBvdHBjbWQgKHBpZDogNjA3LCBzdGFjayBsaW1pdCA9IDB4
-Y2Y5NWMyMzApClsgICAgOC41MDUwMDRdIFN0YWNrOiAoMHhjZjk1ZGUwOCB0byAweGNmOTVlMDAw
-KQpbICAgIDguNTA5NjEzXSBkZTAwOiAgICAgICAgICAgICAgICAgICAwMDAwMDAwMSBjZjkxZjg0
-MCAwMDAwMDAwMCBjMDAxZDZmYyAwMDAwMDAwMiBjZjkxZjg0MApbICAgIDguNTE4MjQ5XSBkZTIw
-OiBjZjhmN2UxMCBjMDAxZGU1NCBjZjhmN2UxMCBjMDAxZGU3OCBjMDAxZGU2OCBjMDFkNWU4MCAw
-MDAwMDAwMCBjZjhmN2UxMApbICAgIDguNTI2ODU1XSBkZTQwOiBjZjhmN2UxMCBjMDFkNWYyOCBj
-ZjhmN2UxMCBjMDUzMGQzMCAwMDAwMDAwMCBjMDFkNmYyOCAwMDAwMDAwMCBjMDA4ODY2NApbICAg
-IDguNTM1NDkxXSBkZTYwOiBiNmVhMTAwMCBjZmIwNTI4NCBjZjk1YzAwMCAwMDAwMDAwMSBjZjk1
-YzAwMCA2MDAwMDAxMyAwMDAwMDAwMSBjZjk1ZGVlNApbICAgIDguNTQ0MTI4XSBkZTgwOiBjZjg3
-MDA1MCBjMDFkNzMwOCBjZjg3MDAxMCBjZjg3MDA1MCAwMDAwMDAwMSBjMDI3OGIxNCBjMDUyNmYy
-OCAwMDAwMDAwMApbICAgIDguNTUyNzM0XSBkZWEwOiBjZjg3MDA1MCBmZmZmOGUxOCAwMDAwMDAw
-MSBjZjk1ZGVlNCAwMDAwMDAwMCBjMDI3NGY3YyBjZjg3MDA1MCAwMDAwMDAwMQpbICAgIDguNTYx
-MzcwXSBkZWMwOiBjZjk1ZGVlNCBjZjFkODQ4NCAwMDAwMDBlMCBjMDI3NjQ2NCAwMDAwMDAwOCBj
-ZjljMDAwMCAwMDAwMDAwNyBjMDI3Njk4MApbICAgIDguNTcwMDA3XSBkZWUwOiBjZjljMDAwMCAw
-MDAwMDA2NCAwMDAwMDAwOCBjZjFkODQwNCBjZjFkODQwMCBjMDFjYzA1YyAwMDAwMjcwYSBjZjFk
-ODUwNApbICAgIDguNTc4NjEzXSBkZjAwOiAwMDAwMDAyMyBjZjFkODQ4NCAwMDAwMDAwNyBjMDFj
-YzY3MCAwMDAwMGJkZCAwMDAwMDAwMSAwMDAwMDAwMCBjZjQ0OWU2MApbICAgIDguNTg3MjQ5XSBk
-ZjIwOiBjZjFkZGU3MCBjZjFkODQwMCBiZWMzM2QxOCBjZjFkODUwNCBjMDI0NmYwMCAwMDAwMDAw
-MyBjZjk1YzAwMCAwMDAwMDAwMApbICAgIDguNTk1ODg2XSBkZjQwOiBiZWMzM2Q0YyBjMDFjZDA3
-OCAwMDAwMDAwMyBjZjFkODUwNCAwMDAwMDA4MSBjMDFjYmNiOCBiZWMzM2QxOCAwMDAwMDAwMwpb
-ICAgIDguNjA0NDkyXSBkZjYwOiBiZWMzM2QxOCBjMDBhOTAzNCAwMDAwMjAwMCBjMDBhOWM2OCBj
-ZjkyZmUwMCAwMDAwMDAwMyBjMDI0NmYwMCBjZjkyZmUwMApbICAgIDguNjEzMTI4XSBkZjgwOiAw
-MDAwMDAwMCBjMDBhOWNiMCAwMDAwMDAwMyAwMDAwMDAwMCAwMDAwOGU3MCAwMDAwMDAwMCBiNmYx
-NzAwMCAwMDAwMDAzNgpbICAgIDguNjIxNzY1XSBkZmEwOiBjMDAwZTQ4NCBjMDAwZTMwMCAwMDAw
-OGU3MCAwMDAwMDAwMCAwMDAwMDAwMyBjMDI0NmYwMCBiZWMzM2QxOCBiZWMzM2QxOApbICAgIDgu
-NjMwMzcxXSBkZmMwOiAwMDAwOGU3MCAwMDAwMDAwMCBiNmYxNzAwMCAwMDAwMDAzNiAwMDAwMDAw
-MCAwMDAwMDAwMCBiNmY2ZDAwMCBiZWMzM2Q0YwpbICAgIDguNjM5MDA3XSBkZmUwOiBiNmVhMWJk
-MCBiZWMzM2QwYyAwMDAwOGM5YyBiNmVhMWJkYyA2MDAwMDAxMCAwMDAwMDAwMyAwMDAwMDAwMCAw
-MDAwMDAwMApbICAgIDguNjQ3NjQ0XSBbPGMwMDFjYjgwPl0gKG9tYXBfaHdtb2RfZW5hYmxlKzB4
-MzQvMHg2MCkgZnJvbSBbPGMwMDFkNmZjPl0gKF9vbWFwX2RldmljZV9lbmFibGVfaHdtb2RzKzB4
-MjAvMHgzNCkKWyAgICA4LjY1ODI5NF0gWzxjMDAxZDZmYz5dIChfb21hcF9kZXZpY2VfZW5hYmxl
-X2h3bW9kcysweDIwLzB4MzQpIGZyb20gWzxjMDAxZGU1ND5dIChvbWFwX2RldmljZV9lbmFibGUr
-MHgzYy8weDUwKQpbICAgIDguNjY5MDM2XSBbPGMwMDFkZTU0Pl0gKG9tYXBfZGV2aWNlX2VuYWJs
-ZSsweDNjLzB4NTApIGZyb20gWzxjMDAxZGU3OD5dIChfb2RfcnVudGltZV9yZXN1bWUrMHgxMC8w
-eDFjKQpbICAgIDguNjc5MDQ2XSBbPGMwMDFkZTc4Pl0gKF9vZF9ydW50aW1lX3Jlc3VtZSsweDEw
-LzB4MWMpIGZyb20gWzxjMDFkNWU4MD5dIChfX3JwbV9jYWxsYmFjaysweDU0LzB4OTgpClsgICAg
-OC42ODg2OTBdIFs8YzAxZDVlODA+XSAoX19ycG1fY2FsbGJhY2srMHg1NC8weDk4KSBmcm9tIFs8
-YzAxZDVmMjg+XSAocnBtX2NhbGxiYWNrKzB4NjQvMHg3YykKWyAgICA4LjY5Nzc4NF0gWzxjMDFk
-NWYyOD5dIChycG1fY2FsbGJhY2srMHg2NC8weDdjKSBmcm9tIFs8YzAxZDZmMjg+XSAocnBtX3Jl
-c3VtZSsweDQzNC8weDU1NCkKWyAgICA4LjcwNjY2NV0gWzxjMDFkNmYyOD5dIChycG1fcmVzdW1l
-KzB4NDM0LzB4NTU0KSBmcm9tIFs8YzAxZDczMDg+XSAoX19wbV9ydW50aW1lX3Jlc3VtZSsweDQ4
-LzB4NzQpClsgICAgOC43MTYyMTddIFs8YzAxZDczMDg+XSAoX19wbV9ydW50aW1lX3Jlc3VtZSsw
-eDQ4LzB4NzQpIGZyb20gWzxjMDI3OGIxND5dIChvbWFwX2kyY194ZmVyKzB4MjgvMHhlOCkKWyAg
-ICA4LjcyNTg2MF0gWzxjMDI3OGIxND5dIChvbWFwX2kyY194ZmVyKzB4MjgvMHhlOCkgZnJvbSBb
-PGMwMjc0ZjdjPl0gKF9faTJjX3RyYW5zZmVyKzB4M2MvMHg3OCkKWyAgICA4LjczNTA0Nl0gWzxj
-MDI3NGY3Yz5dIChfX2kyY190cmFuc2ZlcisweDNjLzB4NzgpIGZyb20gWzxjMDI3NjQ2ND5dIChp
-MmNfdHJhbnNmZXIrMHg2Yy8weGMwKQpbICAgIDguNzQ0MTQwXSBbPGMwMjc2NDY0Pl0gKGkyY190
-cmFuc2ZlcisweDZjLzB4YzApIGZyb20gWzxjMDI3Njk4MD5dIChpMmNfbWFzdGVyX3NlbmQrMHgz
-OC8weDQ4KQpbICAgIDguNzUzMzI2XSBbPGMwMjc2OTgwPl0gKGkyY19tYXN0ZXJfc2VuZCsweDM4
-LzB4NDgpIGZyb20gWzxjMDFjYzA1Yz5dIChzaGEyMDRwX3NlbmRfY29tbWFuZCsweDYwLzB4OWMp
-ClsgICAgOC43NjMyNDRdIFs8YzAxY2MwNWM+XSAoc2hhMjA0cF9zZW5kX2NvbW1hbmQrMHg2MC8w
-eDljKSBmcm9tIFs8YzAxY2M2NzA+XSAoc2hhMjA0Y19zZW5kX2FuZF9yZWNlaXZlKzB4NWMvMHgx
-ZTApClsgICAgOC43NzQwNzhdIFs8YzAxY2M2NzA+XSAoc2hhMjA0Y19zZW5kX2FuZF9yZWNlaXZl
-KzB4NWMvMHgxZTApIGZyb20gWzxjMDFjZDA3OD5dIChzaGEyMDRtX3JlYWQrMHg5NC8weGEwKQpb
-ICAgIDguNzg0MTc5XSBbPGMwMWNkMDc4Pl0gKHNoYTIwNG1fcmVhZCsweDk0LzB4YTApIGZyb20g
-WzxjMDFjYmNiOD5dIChvdHBfZG9fcmVhZCsweDUwLzB4YTQpClsgICAgOC43OTI5OTldIFs8YzAx
-Y2JjYjg+XSAob3RwX2RvX3JlYWQrMHg1MC8weGE0KSBmcm9tIFs8YzAwYTkwMzQ+XSAodmZzX2lv
-Y3RsKzB4MjQvMHg0MCkKWyAgICA4LjgwMTU0NF0gWzxjMDBhOTAzND5dICh2ZnNfaW9jdGwrMHgy
-NC8weDQwKSBmcm9tIFs8YzAwYTljNjg+XSAoZG9fdmZzX2lvY3RsKzB4MWIwLzB4MWMwKQpbICAg
-IDguODEwMzYzXSBbPGMwMGE5YzY4Pl0gKGRvX3Zmc19pb2N0bCsweDFiMC8weDFjMCkgZnJvbSBb
-PGMwMGE5Y2IwPl0gKHN5c19pb2N0bCsweDM4LzB4NTQpClsgICAgOC44MTkxNTJdIFs8YzAwYTlj
-YjA+XSAoc3lzX2lvY3RsKzB4MzgvMHg1NCkgZnJvbSBbPGMwMDBlMzAwPl0gKHJldF9mYXN0X3N5
-c2NhbGwrMHgwLzB4MzApClsgICAgOC44MjgwNjNdIENvZGU6IGUxYTA4MDAyIGVhMDAwMDA5IGU1
-OTgwMDNjIGU1OTJjMDVjIChlNzkwNDAwMykgCg==
---089e0141a202d395d604dbd14f54
-Content-Type: application/octet-stream; name=omap_hwmod_fix
-Content-Disposition: attachment; filename=omap_hwmod_fix
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hg9grhg21
-
-SW5kZXg6IGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kLmMKPT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0g
-YS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2QuYworKysgYi9hcmNoL2FybS9tYWNoLW9t
-YXAyL29tYXBfaHdtb2QuYwpAQCAtMjA2Niw3ICsyMDY2LDcgQEAKICAqIGRvIHNvIGlzIHByZXNl
-bnQgaW4gdGhlIGh3bW9kIGRhdGEsIHRoZW4gY2FsbCBpdCBhbmQgcGFzcyBhbG9uZyB0aGUKICAq
-IHJldHVybiB2YWx1ZTsgb3RoZXJ3aXNlLCByZXR1cm4gMC4KICAqLwotc3RhdGljIGludCBfX2lu
-aXQgX2VuYWJsZV9wcmVwcm9ncmFtKHN0cnVjdCBvbWFwX2h3bW9kICpvaCkKK3N0YXRpYyBpbnQg
-X2VuYWJsZV9wcmVwcm9ncmFtKHN0cnVjdCBvbWFwX2h3bW9kICpvaCkKIHsKIAlpZiAoIW9oLT5j
-bGFzcy0+ZW5hYmxlX3ByZXByb2dyYW0pCiAJCXJldHVybiAwOwo=
---089e0141a202d395d604dbd14f54--
