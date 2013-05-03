@@ -1,98 +1,141 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
-Date: Fri, 3 May 2013 16:35:28 +0200
-Message-ID: <CACRpkdbSjKaeAreG02Q4c3bZ3-Zzg6d=qUKfm4WTQKWsX8B_Xg@mail.gmail.com>
-References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
- <515319D5.20105@wwwdotorg.org>
- <CACRpkdYXVLgCz1Tyu-Ls2V2OTc4R3cGNJhfQJB6Hiz_K9dkZYQ@mail.gmail.com>
- <5155C902.7080207@wwwdotorg.org>
- <CACRpkdYbs4-uudpRUY8e+7icYYkZrfM0kReP3pLL5DMiURJ4dg@mail.gmail.com>
- <5165CB9D.1090202@wwwdotorg.org>
- <CACRpkdYirFNqmGhA4K9CL4ve4NYhs8Rd3SFt1iwW9vHBkrcz8g@mail.gmail.com>
- <51671D7B.5060303@wwwdotorg.org>
- <CACRpkdbf32Ef77GmXk9id9+RRjcDRTr7S+F4nznoeZU8y=BT_Q@mail.gmail.com>
- <51673D70.3010503@wwwdotorg.org>
- <CAAwP0s0e2x33jZQhFRY+Hoo61SFqYKRgWk=1mL2+DNxSDJHz+A@mail.gmail.com>
- <CACRpkda4h+qXTvsirPAS7E7sjXhMLE62q=VDy53W8UchsYjbNg@mail.gmail.com>
- <516C31C3.9040505@wwwdotorg.org> <516C7C43.3040105@wwwdotorg.org>
- <516C8760.2050500@ti.com> <516D9B05.1000501@wwwdotorg.org>
- <516DA60A.5070000@ti.com> <516DCCA8.3070108@wwwdotorg.org>
- <516DDB4D.9020500@ti.com> <516EC2AF.9090905@wwwdotorg.org>
- <CACRpkdaOOrooK7kff2Y-7gH6L6m-MsiU7PfHnqBkPpc=tk_iWA@mail.gmail.com>
- <517AF0C1.60009@ti.com>
+From: jean-philippe francois <jp.francois@cynove.com>
+Subject: omap pm : _enable_preprogram should not be __init ?
+Date: Fri, 3 May 2013 16:39:00 +0200
+Message-ID: <CAGGh5h02PQccdY=J-X_M+kb6TXSX+igrF_hyWytm4+cY8zo3Wg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <517AF0C1.60009-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Cc: Javier Martinez Canillas <martinez.javier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Alexandre Courbot <acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/mixed; boundary=089e0141a202d395d604dbd14f54
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:64866 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933751Ab3ECOjC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 May 2013 10:39:02 -0400
+Received: by mail-wi0-f179.google.com with SMTP id l13so683527wie.12
+        for <linux-omap@vger.kernel.org>; Fri, 03 May 2013 07:39:00 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: s-guiriec@ti.com, paul@pwsan.com
 
-On Fri, Apr 26, 2013 at 11:25 PM, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org> wrote:
-> On 04/26/2013 02:27 AM, Linus Walleij wrote:
+--089e0141a202d395d604dbd14f54
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
->> You will just have to give the xlate function information about which
->> GPIOs are used as IRQs only, and only request the GPIO on these.
->
-> That should not be necessary. The xlate is only called in the case where
-> the gpio controller is declared as the interrupt controller in the
-> device tree source ...
+Hi list,
 
-Sorry I don't understand this. Irqdomains are not device tree
-concepts. Why would it only be called if it was declared such
-or such in the device tree?
+Launching program using I2C after init leads to an oops with 3.9 on a
+custom dm3730 based board.
 
-> eth@0 {
->         compatible = "ks8851";
->         ...
->         interrupt-parent = <&gpio2>;
->         interrupts = <2 8>; /* gpio line 34, low triggered */
->         ...
-> };
->
-> So in the case where you have a driver call gpio_request() and then
-> request_irq(), in the device tree source, the gpio controller will not
-> be declared as an interrupt controller. It will just list the gpios ...
+Looking at the disassembly of the _enable function in omap_hwmod.o, I
+noticed the call to _enable_preprogram was a direct branch to an
+adress in the .text section in the middle of another function. Looking
+for _enable_preprogram, it was at the right offset, but in the
+.init.text section, so I guess this is why it works fine during the
+boot, and oops once init is started
 
-And how do you get from there to the conclusion that
-gpio_to_irq() will not ever be called, maybe by
-some other driver than the ethernet?
+I recompiled the kernel with the attached patch and the oops is gone.
+Is that the right ting to do ?
 
-> sdhci@c8000200 {
->         ...
->         cd-gpios = <&gpio 69 0>; /* gpio PI5 */
->         wp-gpios = <&gpio 57 0>; /* gpio PH1 */
->         ...
-> };
+Jean-Philippe Fran=C3=A7ois
 
-Like if this driver wants to set up an IRQ?
+--089e0141a202d395d604dbd14f54
+Content-Type: text/plain; charset=US-ASCII; name="oops2.txt"
+Content-Disposition: attachment; filename="oops2.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hg9fnku70
 
->> It all comes back to this: keep all applicable knowledge in the
->> system, so it can make proper decisions, don't try to create
->> mechanisms that will half-guess things.
->
-> Agreed. However the xlate looks like a good place to request the gpio
-> without needing to add these "input-hogs" or any other platform code. So
-> if this is not considered abuse of the xlate, then it seems like an
-> ideal solution. I have been also implementing a generic xlate so that we
-> don't need to have a xlate for each platform as well.
+WyAgICA4LjQxMzYzNV0gVW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgcGFnaW5nIHJlcXVlc3QgYXQg
+dmlydHVhbCBhZGRyZXNzIDAwMGIwMDEyClsgICAgOC40MjEyNjRdIHBnZCA9IGNmOTY4MDAwClsg
+ICAgOC40MjQxMDJdIFswMDBiMDAxMl0gKnBnZD04ZmIwNjgzMSwgKnB0ZT0wMDAwMDAwMCwgKnBw
+dGU9MDAwMDAwMDAKWyAgICA4LjQzMDcyNV0gSW50ZXJuYWwgZXJyb3I6IE9vcHM6IDE3IFsjMV0g
+UFJFRU1QVCBBUk0KWyAgICA4LjQzNjA2NV0gTW9kdWxlcyBsaW5rZWQgaW46ClsgICAgOC40Mzky
+NzBdIENQVTogMCAgICBOb3QgdGFpbnRlZCAgKDMuOS4wICMyKQpbICAgIDguNDQzODc4XSBQQyBp
+cyBhdCBfZW5hYmxlX3ByZXByb2dyYW0rMHgxYy8weDI0ClsgICAgOC40NDg4NTJdIExSIGlzIGF0
+IG9tYXBfaHdtb2RfZW5hYmxlKzB4MzQvMHg2MApbICAgIDguNDUzNzM1XSBwYyA6IFs8YzA0ZTQw
+OGM+XSAgICBsciA6IFs8YzAwMWNiODA+XSAgICBwc3I6IDgwMDAwMDkzClsgICAgOC40NTM3MzVd
+IHNwIDogY2Y5NWRlMDggIGlwIDogMDAwMDJkZTUgIGZwIDogYmVjMzNkNGMKWyAgICA4LjQ2NTgy
+MF0gcjEwOiAwMDAwMDAwMCAgcjkgOiAwMDAwMDAwMiAgcjggOiBiNmRkMmM3OApbICAgIDguNDcx
+MzQzXSByNyA6IDAwMDAwMDA0ICByNiA6IDAwMDAwMDAwICByNSA6IGEwMDAwMDEzICByNCA6IGNm
+OTVjMDAwClsgICAgOC40NzgyMTBdIHIzIDogMDAwMDAwMDAgIHIyIDogYjZkZDJjN2MgIHIxIDog
+MDAwMDAwMDAgIHIwIDogMDAwYjAwMTIKWyAgICA4LjQ4NTEwN10gRmxhZ3M6IE56Y3YgIElSUXMg
+b2ZmICBGSVFzIG9uICBNb2RlIFNWQ18zMiAgSVNBIEFSTSAgU2VnbWVudCB1c2VyClsgICAgOC40
+OTI3MDZdIENvbnRyb2w6IDEwYzUzODdkICBUYWJsZTogOGY5NjgwMTkgIERBQzogMDAwMDAwMTUK
+WyAgICA4LjQ5ODc3OV0gUHJvY2VzcyBvdHBjbWQgKHBpZDogNjA3LCBzdGFjayBsaW1pdCA9IDB4
+Y2Y5NWMyMzApClsgICAgOC41MDUwMDRdIFN0YWNrOiAoMHhjZjk1ZGUwOCB0byAweGNmOTVlMDAw
+KQpbICAgIDguNTA5NjEzXSBkZTAwOiAgICAgICAgICAgICAgICAgICAwMDAwMDAwMSBjZjkxZjg0
+MCAwMDAwMDAwMCBjMDAxZDZmYyAwMDAwMDAwMiBjZjkxZjg0MApbICAgIDguNTE4MjQ5XSBkZTIw
+OiBjZjhmN2UxMCBjMDAxZGU1NCBjZjhmN2UxMCBjMDAxZGU3OCBjMDAxZGU2OCBjMDFkNWU4MCAw
+MDAwMDAwMCBjZjhmN2UxMApbICAgIDguNTI2ODU1XSBkZTQwOiBjZjhmN2UxMCBjMDFkNWYyOCBj
+ZjhmN2UxMCBjMDUzMGQzMCAwMDAwMDAwMCBjMDFkNmYyOCAwMDAwMDAwMCBjMDA4ODY2NApbICAg
+IDguNTM1NDkxXSBkZTYwOiBiNmVhMTAwMCBjZmIwNTI4NCBjZjk1YzAwMCAwMDAwMDAwMSBjZjk1
+YzAwMCA2MDAwMDAxMyAwMDAwMDAwMSBjZjk1ZGVlNApbICAgIDguNTQ0MTI4XSBkZTgwOiBjZjg3
+MDA1MCBjMDFkNzMwOCBjZjg3MDAxMCBjZjg3MDA1MCAwMDAwMDAwMSBjMDI3OGIxNCBjMDUyNmYy
+OCAwMDAwMDAwMApbICAgIDguNTUyNzM0XSBkZWEwOiBjZjg3MDA1MCBmZmZmOGUxOCAwMDAwMDAw
+MSBjZjk1ZGVlNCAwMDAwMDAwMCBjMDI3NGY3YyBjZjg3MDA1MCAwMDAwMDAwMQpbICAgIDguNTYx
+MzcwXSBkZWMwOiBjZjk1ZGVlNCBjZjFkODQ4NCAwMDAwMDBlMCBjMDI3NjQ2NCAwMDAwMDAwOCBj
+ZjljMDAwMCAwMDAwMDAwNyBjMDI3Njk4MApbICAgIDguNTcwMDA3XSBkZWUwOiBjZjljMDAwMCAw
+MDAwMDA2NCAwMDAwMDAwOCBjZjFkODQwNCBjZjFkODQwMCBjMDFjYzA1YyAwMDAwMjcwYSBjZjFk
+ODUwNApbICAgIDguNTc4NjEzXSBkZjAwOiAwMDAwMDAyMyBjZjFkODQ4NCAwMDAwMDAwNyBjMDFj
+YzY3MCAwMDAwMGJkZCAwMDAwMDAwMSAwMDAwMDAwMCBjZjQ0OWU2MApbICAgIDguNTg3MjQ5XSBk
+ZjIwOiBjZjFkZGU3MCBjZjFkODQwMCBiZWMzM2QxOCBjZjFkODUwNCBjMDI0NmYwMCAwMDAwMDAw
+MyBjZjk1YzAwMCAwMDAwMDAwMApbICAgIDguNTk1ODg2XSBkZjQwOiBiZWMzM2Q0YyBjMDFjZDA3
+OCAwMDAwMDAwMyBjZjFkODUwNCAwMDAwMDA4MSBjMDFjYmNiOCBiZWMzM2QxOCAwMDAwMDAwMwpb
+ICAgIDguNjA0NDkyXSBkZjYwOiBiZWMzM2QxOCBjMDBhOTAzNCAwMDAwMjAwMCBjMDBhOWM2OCBj
+ZjkyZmUwMCAwMDAwMDAwMyBjMDI0NmYwMCBjZjkyZmUwMApbICAgIDguNjEzMTI4XSBkZjgwOiAw
+MDAwMDAwMCBjMDBhOWNiMCAwMDAwMDAwMyAwMDAwMDAwMCAwMDAwOGU3MCAwMDAwMDAwMCBiNmYx
+NzAwMCAwMDAwMDAzNgpbICAgIDguNjIxNzY1XSBkZmEwOiBjMDAwZTQ4NCBjMDAwZTMwMCAwMDAw
+OGU3MCAwMDAwMDAwMCAwMDAwMDAwMyBjMDI0NmYwMCBiZWMzM2QxOCBiZWMzM2QxOApbICAgIDgu
+NjMwMzcxXSBkZmMwOiAwMDAwOGU3MCAwMDAwMDAwMCBiNmYxNzAwMCAwMDAwMDAzNiAwMDAwMDAw
+MCAwMDAwMDAwMCBiNmY2ZDAwMCBiZWMzM2Q0YwpbICAgIDguNjM5MDA3XSBkZmUwOiBiNmVhMWJk
+MCBiZWMzM2QwYyAwMDAwOGM5YyBiNmVhMWJkYyA2MDAwMDAxMCAwMDAwMDAwMyAwMDAwMDAwMCAw
+MDAwMDAwMApbICAgIDguNjQ3NjQ0XSBbPGMwMDFjYjgwPl0gKG9tYXBfaHdtb2RfZW5hYmxlKzB4
+MzQvMHg2MCkgZnJvbSBbPGMwMDFkNmZjPl0gKF9vbWFwX2RldmljZV9lbmFibGVfaHdtb2RzKzB4
+MjAvMHgzNCkKWyAgICA4LjY1ODI5NF0gWzxjMDAxZDZmYz5dIChfb21hcF9kZXZpY2VfZW5hYmxl
+X2h3bW9kcysweDIwLzB4MzQpIGZyb20gWzxjMDAxZGU1ND5dIChvbWFwX2RldmljZV9lbmFibGUr
+MHgzYy8weDUwKQpbICAgIDguNjY5MDM2XSBbPGMwMDFkZTU0Pl0gKG9tYXBfZGV2aWNlX2VuYWJs
+ZSsweDNjLzB4NTApIGZyb20gWzxjMDAxZGU3OD5dIChfb2RfcnVudGltZV9yZXN1bWUrMHgxMC8w
+eDFjKQpbICAgIDguNjc5MDQ2XSBbPGMwMDFkZTc4Pl0gKF9vZF9ydW50aW1lX3Jlc3VtZSsweDEw
+LzB4MWMpIGZyb20gWzxjMDFkNWU4MD5dIChfX3JwbV9jYWxsYmFjaysweDU0LzB4OTgpClsgICAg
+OC42ODg2OTBdIFs8YzAxZDVlODA+XSAoX19ycG1fY2FsbGJhY2srMHg1NC8weDk4KSBmcm9tIFs8
+YzAxZDVmMjg+XSAocnBtX2NhbGxiYWNrKzB4NjQvMHg3YykKWyAgICA4LjY5Nzc4NF0gWzxjMDFk
+NWYyOD5dIChycG1fY2FsbGJhY2srMHg2NC8weDdjKSBmcm9tIFs8YzAxZDZmMjg+XSAocnBtX3Jl
+c3VtZSsweDQzNC8weDU1NCkKWyAgICA4LjcwNjY2NV0gWzxjMDFkNmYyOD5dIChycG1fcmVzdW1l
+KzB4NDM0LzB4NTU0KSBmcm9tIFs8YzAxZDczMDg+XSAoX19wbV9ydW50aW1lX3Jlc3VtZSsweDQ4
+LzB4NzQpClsgICAgOC43MTYyMTddIFs8YzAxZDczMDg+XSAoX19wbV9ydW50aW1lX3Jlc3VtZSsw
+eDQ4LzB4NzQpIGZyb20gWzxjMDI3OGIxND5dIChvbWFwX2kyY194ZmVyKzB4MjgvMHhlOCkKWyAg
+ICA4LjcyNTg2MF0gWzxjMDI3OGIxND5dIChvbWFwX2kyY194ZmVyKzB4MjgvMHhlOCkgZnJvbSBb
+PGMwMjc0ZjdjPl0gKF9faTJjX3RyYW5zZmVyKzB4M2MvMHg3OCkKWyAgICA4LjczNTA0Nl0gWzxj
+MDI3NGY3Yz5dIChfX2kyY190cmFuc2ZlcisweDNjLzB4NzgpIGZyb20gWzxjMDI3NjQ2ND5dIChp
+MmNfdHJhbnNmZXIrMHg2Yy8weGMwKQpbICAgIDguNzQ0MTQwXSBbPGMwMjc2NDY0Pl0gKGkyY190
+cmFuc2ZlcisweDZjLzB4YzApIGZyb20gWzxjMDI3Njk4MD5dIChpMmNfbWFzdGVyX3NlbmQrMHgz
+OC8weDQ4KQpbICAgIDguNzUzMzI2XSBbPGMwMjc2OTgwPl0gKGkyY19tYXN0ZXJfc2VuZCsweDM4
+LzB4NDgpIGZyb20gWzxjMDFjYzA1Yz5dIChzaGEyMDRwX3NlbmRfY29tbWFuZCsweDYwLzB4OWMp
+ClsgICAgOC43NjMyNDRdIFs8YzAxY2MwNWM+XSAoc2hhMjA0cF9zZW5kX2NvbW1hbmQrMHg2MC8w
+eDljKSBmcm9tIFs8YzAxY2M2NzA+XSAoc2hhMjA0Y19zZW5kX2FuZF9yZWNlaXZlKzB4NWMvMHgx
+ZTApClsgICAgOC43NzQwNzhdIFs8YzAxY2M2NzA+XSAoc2hhMjA0Y19zZW5kX2FuZF9yZWNlaXZl
+KzB4NWMvMHgxZTApIGZyb20gWzxjMDFjZDA3OD5dIChzaGEyMDRtX3JlYWQrMHg5NC8weGEwKQpb
+ICAgIDguNzg0MTc5XSBbPGMwMWNkMDc4Pl0gKHNoYTIwNG1fcmVhZCsweDk0LzB4YTApIGZyb20g
+WzxjMDFjYmNiOD5dIChvdHBfZG9fcmVhZCsweDUwLzB4YTQpClsgICAgOC43OTI5OTldIFs8YzAx
+Y2JjYjg+XSAob3RwX2RvX3JlYWQrMHg1MC8weGE0KSBmcm9tIFs8YzAwYTkwMzQ+XSAodmZzX2lv
+Y3RsKzB4MjQvMHg0MCkKWyAgICA4LjgwMTU0NF0gWzxjMDBhOTAzND5dICh2ZnNfaW9jdGwrMHgy
+NC8weDQwKSBmcm9tIFs8YzAwYTljNjg+XSAoZG9fdmZzX2lvY3RsKzB4MWIwLzB4MWMwKQpbICAg
+IDguODEwMzYzXSBbPGMwMGE5YzY4Pl0gKGRvX3Zmc19pb2N0bCsweDFiMC8weDFjMCkgZnJvbSBb
+PGMwMGE5Y2IwPl0gKHN5c19pb2N0bCsweDM4LzB4NTQpClsgICAgOC44MTkxNTJdIFs8YzAwYTlj
+YjA+XSAoc3lzX2lvY3RsKzB4MzgvMHg1NCkgZnJvbSBbPGMwMDBlMzAwPl0gKHJldF9mYXN0X3N5
+c2NhbGwrMHgwLzB4MzApClsgICAgOC44MjgwNjNdIENvZGU6IGUxYTA4MDAyIGVhMDAwMDA5IGU1
+OTgwMDNjIGU1OTJjMDVjIChlNzkwNDAwMykgCg==
+--089e0141a202d395d604dbd14f54
+Content-Type: application/octet-stream; name=omap_hwmod_fix
+Content-Disposition: attachment; filename=omap_hwmod_fix
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hg9grhg21
 
-I'm still not following. Maybe I'm just too stupid...
-
-How do you *avoid* requesting the GPIO in the translation
-for a certain IRQ if the driver first issues gpio_request() and
-then goes on to perform gpio_to_irq() itself?
-
-Yours,
-Linus Walleij
+SW5kZXg6IGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kLmMKPT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0g
+YS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2QuYworKysgYi9hcmNoL2FybS9tYWNoLW9t
+YXAyL29tYXBfaHdtb2QuYwpAQCAtMjA2Niw3ICsyMDY2LDcgQEAKICAqIGRvIHNvIGlzIHByZXNl
+bnQgaW4gdGhlIGh3bW9kIGRhdGEsIHRoZW4gY2FsbCBpdCBhbmQgcGFzcyBhbG9uZyB0aGUKICAq
+IHJldHVybiB2YWx1ZTsgb3RoZXJ3aXNlLCByZXR1cm4gMC4KICAqLwotc3RhdGljIGludCBfX2lu
+aXQgX2VuYWJsZV9wcmVwcm9ncmFtKHN0cnVjdCBvbWFwX2h3bW9kICpvaCkKK3N0YXRpYyBpbnQg
+X2VuYWJsZV9wcmVwcm9ncmFtKHN0cnVjdCBvbWFwX2h3bW9kICpvaCkKIHsKIAlpZiAoIW9oLT5j
+bGFzcy0+ZW5hYmxlX3ByZXByb2dyYW0pCiAJCXJldHVybiAwOwo=
+--089e0141a202d395d604dbd14f54--
