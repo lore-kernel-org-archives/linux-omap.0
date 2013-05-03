@@ -1,47 +1,82 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: OMAP-USB: Fix possible memory leak
-Date: Fri, 3 May 2013 09:43:21 +0100
-Message-ID: <20130503084321.GJ21614@n2100.arm.linux.org.uk>
-References: <1367510596-27780-1-git-send-email-shc_work@mail.ru> <20130502162433.GA10016@kahuna> <1367512124.978518915@f372.mail.ru> <20130502164058.GC8577@arwen.pp.htv.fi> <20130502231353.GF21614@n2100.arm.linux.org.uk> <20130503061931.GB27451@arwen.pp.htv.fi> <20130503083205.GH21614@n2100.arm.linux.org.uk> <20130503083859.GB19377@arwen.pp.htv.fi>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 1/5] regulator: Introduce TI Adaptive Body Bias(ABB)
+ on-chip LDO driver
+Date: Fri, 3 May 2013 10:02:58 +0100
+Message-ID: <20130503090258.GG4945@sirena.org.uk>
+References: <1367515215-30753-1-git-send-email-nm@ti.com>
+ <1367515215-30753-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20130503083859.GB19377-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Alexander Shiyan <shc_work-JGs/UdohzUI@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============8625868075164494361=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1367515215-30753-2-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Andrii.Tseglytskyi" <andrii.tseglytskyi-l0cyMroinI0@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 03, 2013 at 11:39:00AM +0300, Felipe Balbi wrote:
-> Hi,
-> 
-> On Fri, May 03, 2013 at 09:32:06AM +0100, Russell King - ARM Linux wrote:
-> > On Fri, May 03, 2013 at 09:21:51AM +0300, Felipe Balbi wrote:
-> > > How about we pass yours for not reading the patch before flaming ?
-> > 
-> > And another thing.  If you want to be flamed, continue with that tone.
-> > The problem here is that *you* have not been flamed in the previous
-> > message.  The previous message was all about pointing out an error in
-> > the code in a way that hopefully you will take notice of, because you
-> > showed no sign of taking any notice of my previous mail.
-> > 
-> > If you want to be a total dork, continue behaving as you currently are.
-> > There, *now* I *have* flamed you!
-> 
-> what a load of crap. Just because it wasn't pointed out in my previous
-> email doesn't automatically mean I haven't noticed. Anyway, I won't be
-> doing this all day.
 
-Yes you are a load of crap *you* spout about people flaming you.  Well, if
-you can't be bothered to acknowledge a problem then you can expect to get
-resends because it's not clear that the message has been received.  And
-you do *not* call resends "flames" back to those who were kind enough put
-the effort in to tell you about them more than once.
+--===============8625868075164494361==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lQSB8Tqijvu1+4Ba"
+Content-Disposition: inline
 
-That's just down right insulting and flame provoking.  Which is exactly
-how we ended up here.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--lQSB8Tqijvu1+4Ba
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, May 02, 2013 at 12:20:10PM -0500, Nishanth Menon wrote:
+> From: "Andrii.Tseglytskyi" <andrii.tseglytskyi-l0cyMroinI0@public.gmane.org>
+>=20
+> Adaptive Body Biasing (ABB) modulates transistor bias voltages
+> dynamically in order to optimize switching speed versus leakage.
+
+I've applied this but please note that I still have deep concerns about
+some of the discussion about controlling this from other regulators.
+
+--lQSB8Tqijvu1+4Ba
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRg30/AAoJELSic+t+oim9GncP/3NEkoeofdTRdgmFPO1kdgGB
+V7/vInEISlsssB26JwmkdR8U5RFyQHoOOsSZ+0iDkljRsaTFm1TRVpRcRiYgoiFh
+SnKTeKoVPd/ElWToodrHzNfX8a+7WKLfyylgvH+sOeLlSK12+IaSzQt7+Y/4sQ0E
+uavcEVTtZXdk92xZ7NNIM5HWiDXnZUtpfO+saNTY8dIZewQ8Lhpk228jVfUYx18r
+d0wOSQGCtpST6RtdlzLOgnr4asNyoS22S1mJmQd5qWbn5+nLptdqMHDpRkVYgrEk
+DEZ3shmUIJKfjGIHqDEo6/RHlwz0wuU2OqBSVbePy1/pz/taIwfV2ljxDxa7Qua0
+RSQkmX48k70F9NPC34g/RTBocNjBxqB6K8YZezKOBYXo3JRu0ub7tdC+yawUg7fC
+pGfIGI1CBIC68FFDVbhW6PyfPDMohE6TUVPBVSOV2KW2eI3LhGA0sCP2E0mWpHKo
+filJjW+TGKBV7M+re6/Fch7JP7dbU9ercBofRa1H/aGLHVdbWIcRkc/ioXzO0s7r
+cT4AFV59CCkC66RgAsKE7qViTodJOQUSI1MN2p6DE5NS6RZPXaKjaL7KXLSVIW9u
+0IVukE/GT8wVtPIZs2PL7YqXlHuIUInxZihWfsHR7YY6QhBnci2wuYb2WTbahumI
+d5iOkL2mwU9LDQmkqlN6
+=WHVM
+-----END PGP SIGNATURE-----
+
+--lQSB8Tqijvu1+4Ba--
+
+--===============8625868075164494361==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============8625868075164494361==--
