@@ -1,94 +1,91 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [GIT PULL] mailbox driver framework for v3.10 merge window
-Date: Fri, 3 May 2013 11:29:32 -0500
-Message-ID: <5183E5EC.9040702@ti.com>
-References: <37C860A02101E749A747FA2D3C1E3C504A1971@DLEE11.ent.ti.com> <201304091255.03020.arnd@arndb.de> <CAJe_Zhf5QwQQU5aVtNhbDT3EK9Dof-ZK_boP9WaNghqO8xY7iA@mail.gmail.com> <5182E403.1030808@ti.com> <CAJe_ZhfA=eqihefgtYGmLt03sNV6arme9t1YgzTFoC8nB6SNkQ@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: usb: musb: Fix LapDock enumeration on omap for boot and slow cable
+ insertion
+Date: Fri, 3 May 2013 10:50:16 -0700
+Message-ID: <20130503175016.GV28721@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55977 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760490Ab3ECQfK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 May 2013 12:35:10 -0400
-In-Reply-To: <CAJe_ZhfA=eqihefgtYGmLt03sNV6arme9t1YgzTFoC8nB6SNkQ@mail.gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16984 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933812Ab3ECRuS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 May 2013 13:50:18 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, "Russell King - ARM Linux (linux@arm.linux.org.uk)" <linux@arm.linux.org.uk>, "Loic PALLARDY (loic.pallardy@st.com)" <loic.pallardy@st.com>, "Tony Lindgren (tony@atomide.com)" <tony@atomide.com>, "Linus Walleij (linus.walleij@linaro.org)" <linus.walleij@linaro.org>, "Omar Ramirez Luna (omar.ramirez@copitl.com)" <omar.ramirez@copitl.com>, Olof Johansson <olof@lixom.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>
 
-On 05/02/2013 09:37 PM, Jassi Brar wrote:
-> On 3 May 2013 03:39, Suman Anna <s-anna@ti.com> wrote:
->> Hi Arnd,
->>
->> On 04/28/2013 11:07 PM, Jassi Brar wrote:
->>>
->>> Not to mean only talk and no do, I prepared another proposal that
->>> addressed all the concerns shared so far in the RFC
->>> http://www.spinics.net/lists/kernel/msg1523873.html (its not ready for
->>> primetime yet)  And also converted the PL320 driver to the new API,
->>> unlike the pulled patchset which leaves that out in the cold.
->>> http://www.spinics.net/lists/kernel/msg1523874.html
->>
->> Yes, the current code is mainly interrupt-driven and supports only
->> non-atomic context. We have a need to support atomic contexts and ipc
->> controllers that do not have interrupt-based triggering.
->>
-> Supporting poll and client driven TX and atomic context is going to
-> need big chunks of changes which we can avoid by doing them already.
-> Plus a bottleneck with PL320, as Mark pointed out they can't afford
-> any bigger latency, which will come from RX via notifier path.
-> 
->> As Jassi
->> pointed out, the RFC is not ready yet and there are still some
->> contention points that needs to be sorted out (especially to maintain
->> OMAP mailbox functionality).
->>
-> Apart from a few checkpatch fixes, a missing timer delete call and
-> some testing with dummy client and controller drivers for various
-> usecases, it's ready from my side. It worked at least as good as your
-> API in our internal testing.
-> 
-> Please do let me know which OMAP functionality are you worried about,
-> I believe it could all still be done above this api.
+Looks like we can get VBUS interrupt before the ID interrupt
+at least with a Motorola LapDock if the USB mini-A cable is
+inserted slowly at the omap end. This issue also prevents
+enumerating the LapDock during the boot.
 
-Mainly the splitting of bottom-half responsibility of the controller
-driver between mailbox and the client (or another in-between layer
-between my existing client (remoteproc driver), because of the support
-for only atomic context.
+It seems that the issue is caused by musb getting confused and
+trying to do things on it's own as the LapDock provides VBUS.
+Fix the issue by disconnecting the transceiver before setting the
+host mode if the previous state was VBUS, and check that musb
+is in a sane state with the session bit cleared before we attempt
+to start the session.
 
-> 
->>>
->>> Now, we could either call it (effectively the TI's framework with
->>> quirks for STE) as the "Common API" and then dismantle and convert it
->>> patch by patch (authors and I seem to agree many things need to be
->>> changed and implemented).
->>>   OR we do it reasonably right the first time even if that means yet
->>> another release. IMHO we should go for slow but steady thing.
->>
->> I think it is your call here, either of the above approaches would
->> definitely involve some rework on the framework as well as both the OMAP
->> & ST mailboxes.
-> 
-> I am interested to know what changes do you anticipate in my proposed
-> API. Not to mean it's perfect, but I thought I provided for all
-> practical use-cases.
+With this patch the LapDock is properly enumerated during the
+boot and on slow insertion after a cold boot. This means that
+the LapDock can be used for both power and keyboard with at
+least omap panda es.
 
-I will provide feedback on the RFC thread, and we can continue the
-discussion on that thread. I will also share the link to my current
-work-in-progress branch so that you can see the design approach that I
-have taken.
+However, there seems to be a separate issue with musb not
+resetting properly after a warm reset which also leads to
+devices not enumerating.
 
-> 
-> Yes, TI and STE would need re-work, but then as of now they are their
-> own APIs upstream. And even with your proposal they would still need
-> to be changed if we are to implement the desired features. What about
-> PL320?
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-The pl320_transmit function is identical to the present
-mailbox_msg_send_receive_no_irq, but that is a non-factor anyway since
-we would have changed the API.
+---
 
-regards
-Suman
+Can you guys please test that this does not cause regressions
+on other devices when connecting USB devices?
 
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -251,6 +251,20 @@ void omap_musb_mailbox(enum omap_musb_vbus_id_status status)
+ }
+ EXPORT_SYMBOL_GPL(omap_musb_mailbox);
+ 
++static void omap_musb_disconnect(struct musb *musb, struct omap2430_glue *glue)
++{
++	int loops = 100;
++
++	omap_control_usb_set_mode(glue->control_otghs,
++				  USB_MODE_DISCONNECT);
++	while (loops--) {
++		u8 devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
++		if (!(devctl & MUSB_DEVCTL_SESSION))
++			break;
++		dev_dbg(dev, "disconnecting: %02x\n", devctl);
++	}
++}
++
+ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ {
+ 	struct musb *musb = glue_to_musb(glue);
+@@ -258,6 +272,7 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 	struct musb_hdrc_platform_data *pdata = dev->platform_data;
+ 	struct omap_musb_board_data *data = pdata->board_data;
+ 	struct usb_otg *otg = musb->xceiv->otg;
++	int disconnect = 0;
+ 
+ 	switch (glue->status) {
+ 	case OMAP_MUSB_ID_GROUND:
+@@ -265,9 +280,13 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 
+ 		otg->default_a = true;
+ 		musb->xceiv->state = OTG_STATE_A_IDLE;
++		if (musb->xceiv->last_event == USB_EVENT_VBUS)
++			disconnect = 1;
+ 		musb->xceiv->last_event = USB_EVENT_ID;
+ 		if (musb->gadget_driver) {
+ 			pm_runtime_get_sync(dev);
++			if (disconnect)
++				omap_musb_disconnect(musb, glue);
+ 			omap_control_usb_set_mode(glue->control_otghs,
+ 				USB_MODE_HOST);
+ 			omap2430_musb_set_vbus(musb, 1);
