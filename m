@@ -1,109 +1,79 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: OMAP-USB: Fix possible memory leak
-Date: Fri, 3 May 2013 00:13:53 +0100
-Message-ID: <20130502231353.GF21614@n2100.arm.linux.org.uk>
-References: <1367510596-27780-1-git-send-email-shc_work@mail.ru> <20130502162433.GA10016@kahuna> <1367512124.978518915@f372.mail.ru> <20130502164058.GC8577@arwen.pp.htv.fi>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [GIT PULL] mailbox driver framework for v3.10 merge window
+Date: Fri, 3 May 2013 08:07:54 +0530
+Message-ID: <CAJe_ZhfA=eqihefgtYGmLt03sNV6arme9t1YgzTFoC8nB6SNkQ@mail.gmail.com>
+References: <37C860A02101E749A747FA2D3C1E3C504A1971@DLEE11.ent.ti.com>
+	<201304091255.03020.arnd@arndb.de>
+	<CAJe_Zhf5QwQQU5aVtNhbDT3EK9Dof-ZK_boP9WaNghqO8xY7iA@mail.gmail.com>
+	<5182E403.1030808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20130502164058.GC8577-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Alexander Shiyan <shc_work-JGs/UdohzUI@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:52912 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756827Ab3ECChz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 May 2013 22:37:55 -0400
+Received: by mail-ob0-f174.google.com with SMTP id dn14so1066059obc.19
+        for <linux-omap@vger.kernel.org>; Thu, 02 May 2013 19:37:54 -0700 (PDT)
+In-Reply-To: <5182E403.1030808@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, "Russell King - ARM Linux (linux@arm.linux.org.uk)" <linux@arm.linux.org.uk>, "Loic PALLARDY (loic.pallardy@st.com)" <loic.pallardy@st.com>, "Tony Lindgren (tony@atomide.com)" <tony@atomide.com>, "Linus Walleij (linus.walleij@linaro.org)" <linus.walleij@linaro.org>, "Omar Ramirez Luna (omar.ramirez@copitl.com)" <omar.ramirez@copitl.com>, Olof Johansson <olof@lixom.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, May 02, 2013 at 07:40:58PM +0300, Felipe Balbi wrote:
-> Hi,
-> 
-> On Thu, May 02, 2013 at 08:28:44PM +0400, Alexander Shiyan wrote:
-> > > On 20:03-20130502, Alexander Shiyan wrote:
-> > > > 
-> > > > Signed-off-by: Alexander Shiyan <shc_work-JGs/UdohzUI@public.gmane.org>
-> > > > ---
-> > > >  arch/arm/mach-omap2/usb-host.c | 21 +++++++++++++++++----
-> > > >  1 file changed, 17 insertions(+), 4 deletions(-)
-> > > > 
-> > > > diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-> > > > index aa27d7f..8d17a0d 100644
-> > > > --- a/arch/arm/mach-omap2/usb-host.c
-> > > > +++ b/arch/arm/mach-omap2/usb-host.c
-> > > > @@ -570,8 +570,10 @@ static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
-> > > >  	supplies->dev_name = dev_id;
-> > > >  
-> > > >  	reg_data = kzalloc(sizeof(*reg_data), GFP_KERNEL);
-> > > > -	if (!reg_data)
-> > > > +	if (!reg_data) {
-> > > > +		kfree(supplies);
-> > > >  		return -ENOMEM;
-> > > > +	}
-> > > >  
-> > > >  	reg_data->constraints.valid_ops_mask = REGULATOR_CHANGE_STATUS;
-> > > >  	reg_data->consumer_supplies = supplies;
-> > > > @@ -579,8 +581,11 @@ static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
-> > > >  
-> > > >  	config = kmemdup(&hsusb_reg_config, sizeof(hsusb_reg_config),
-> > > >  			GFP_KERNEL);
-> > > > -	if (!config)
-> > > > +	if (!config) {
-> > > > +		kfree(supplies);
-> > > > +		kfree(reg_data);
-> > > >  		return -ENOMEM;
-> > > > +	}
-> > > >  
-> > > >  	config->supply_name = name;
-> > > >  	config->gpio = gpio;
-> > > > @@ -589,17 +594,25 @@ static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
-> > > >  
-> > > >  	/* create a regulator device */
-> > > >  	pdev = kzalloc(sizeof(*pdev), GFP_KERNEL);
-> > > > -	if (!pdev)
-> > > > +	if (!pdev) {
-> > > > +		kfree(supplies);
-> > > > +		kfree(reg_data);
-> > > > +		kfree(config);
-> > > >  		return -ENOMEM;
-> > > > +	}
-> > > >  
-> > > >  	pdev->id = PLATFORM_DEVID_AUTO;
-> > > >  	pdev->name = reg_name;
-> > > >  	pdev->dev.platform_data = config;
-> > > >  
-> > > >  	ret = platform_device_register(pdev);
-> > > > -	if (ret)
-> > > > +	if (ret) {
-> > > >  		pr_err("%s: Failed registering regulator %s for %s\n",
-> > > >  				__func__, name, dev_id);
-> > > > +		kfree(supplies);
-> > > > +		kfree(reg_data);
-> > > > +		kfree(config);
-> > > > +	}
-> > > 
-> > > Might be better to switch to devm_XXX managed functions?
-> 
-> I don't think it makes sense since the platform_device hasn't been
-> registered yet.
-> 
-> Still, patch can be improved with proper goto labels instead of
-> sprinkling different kfree() calls in every single error branch.
-> 
-> > If anyone can rewrite driver to use devm_xx, it would have been better.
-> > I'm not going to redo the patch yet, let it be so, I just showed a point
-> > for OMAP-developers.
-> 
-> fair enough.
+On 3 May 2013 03:39, Suman Anna <s-anna@ti.com> wrote:
+> Hi Arnd,
+>
+> On 04/28/2013 11:07 PM, Jassi Brar wrote:
+>>
+>> Not to mean only talk and no do, I prepared another proposal that
+>> addressed all the concerns shared so far in the RFC
+>> http://www.spinics.net/lists/kernel/msg1523873.html (its not ready for
+>> primetime yet)  And also converted the PL320 driver to the new API,
+>> unlike the pulled patchset which leaves that out in the cold.
+>> http://www.spinics.net/lists/kernel/msg1523874.html
+>
+> Yes, the current code is mainly interrupt-driven and supports only
+> non-atomic context. We have a need to support atomic contexts and ipc
+> controllers that do not have interrupt-based triggering.
+>
+Supporting poll and client driven TX and atomic context is going to
+need big chunks of changes which we can avoid by doing them already.
+Plus a bottleneck with PL320, as Mark pointed out they can't afford
+any bigger latency, which will come from RX via notifier path.
 
-Well, as long as this crap violates the driver model by using kfree() on
-a device...  Devices are refcounted and must only be freed when the
-refcount drops to zero.
+> As Jassi
+> pointed out, the RFC is not ready yet and there are still some
+> contention points that needs to be sorted out (especially to maintain
+> OMAP mailbox functionality).
+>
+Apart from a few checkpatch fixes, a missing timer delete call and
+some testing with dummy client and controller drivers for various
+usecases, it's ready from my side. It worked at least as good as your
+API in our internal testing.
 
-This is exactly why we have platform_device_alloc(),
-platform_device_register_full() and friends - so that people don't have to
-fsck around with kzalloc themselves and get it wrong like the above does.
+Please do let me know which OMAP functionality are you worried about,
+I believe it could all still be done above this api.
 
-Would you like me to pass your details to gregkh for another one of his
-public humilation exercises over basic kernel programming stuff? :)
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>> Now, we could either call it (effectively the TI's framework with
+>> quirks for STE) as the "Common API" and then dismantle and convert it
+>> patch by patch (authors and I seem to agree many things need to be
+>> changed and implemented).
+>>   OR we do it reasonably right the first time even if that means yet
+>> another release. IMHO we should go for slow but steady thing.
+>
+> I think it is your call here, either of the above approaches would
+> definitely involve some rework on the framework as well as both the OMAP
+> & ST mailboxes.
+
+I am interested to know what changes do you anticipate in my proposed
+API. Not to mean it's perfect, but I thought I provided for all
+practical use-cases.
+
+Yes, TI and STE would need re-work, but then as of now they are their
+own APIs upstream. And even with your proposal they would still need
+to be changed if we are to implement the desired features. What about
+PL320?
+
+Thanks.
