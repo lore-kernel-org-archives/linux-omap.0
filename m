@@ -1,49 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: mach-omap2/timer.c: Bug introduced while merging patch -
- ff931c82
-Date: Mon, 6 May 2013 08:27:06 -0700
-Message-ID: <20130506152706.GD28721@atomide.com>
-References: <79CD15C6BA57404B839C016229A409A83EC7C45D@DBDE04.ent.ti.com>
+From: =?UTF-8?q?Vincent=20Stehl=C3=A9?= <vincent.stehle@laposte.net>
+Subject: [PATCH] ARM: omap2: gpmc: fix compilation warning
+Date: Mon,  6 May 2013 17:38:49 +0200
+Message-ID: <1367854729-11416-1-git-send-email-vincent.stehle@laposte.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17773 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753874Ab3EFP1K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 May 2013 11:27:10 -0400
-Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EC7C45D@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Vincent=20Stehl=C3=A9?= <v-stehle@ti.com>, trivial@kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [130506 00:12]:
-> Hi,
-> 
-> Not sure whether this got discussed and fixed already, but Google didn't give me anything :)
-> 
-> The below commit got merged wrongly to Mainline (Changes from timer.c got missed), and 
-> due to this none of omap boards will boot.
-> 
-> 
-> From ff931c821bab6713a52b768b0cd7ee7e90713b36 Mon Sep 17 00:00:00 2001
-> From: Rajendra Nayak <rnayak@ti.com>
-> Date: Thu, 21 Mar 2013 11:04:52 +0000
-> Subject: ARM: OMAP: clocks: Delay clk inits atleast until slab is initialized
-> 
-> 
-> It seems Linux-omap tree has the fix patch for this, and it should get pushed ASAP. 
-> Below are links for Linus's mainline commit [1], the actual patch submitted to the list [2] and
-> Commit  present in Linux-omap [3].
+=46rom: Vincent Stehl=C3=A9 <v-stehle@ti.com>
 
-Can you please provide a proper patch for the regression since sounds
-like you already figured out what happened?
+=46ix the following compilation warning:
 
-Regards,
+  arch/arm/mach-omap2/gpmc.c: In function 'gpmc_probe_generic_child':
+  arch/arm/mach-omap2/gpmc.c:1477:4: warning: format '%x' expects argum=
+ent of type 'unsigned int', but argument 4 has type 'resource_size_t' [=
+-Wformat]
 
-Tony 
- 
-> [1] http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/arch/arm/mach-omap2/io.c?id=ff931c821bab6713a52b768b0cd7ee7e90713b36
-> [2] https://patchwork.kernel.org/patch/2300071/
-> [3] http://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/commit/arch/arm/mach-omap2/timer.c?id=ff931c821bab6713a52b768b0cd7ee7e90713b36
+Signed-off-by: Vincent Stehl=C3=A9 <v-stehle@ti.com>
+Cc: trivial@kernel.org
+---
+
+(This is a resend.)
+
+ arch/arm/mach-omap2/gpmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index ed946df..3cd7074 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1474,7 +1474,7 @@ static int gpmc_probe_generic_child(struct platfo=
+rm_device *pdev,
+ 	ret =3D gpmc_cs_remap(cs, res.start);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "cannot remap GPMC CS %d to 0x%x\n",
+-			cs, res.start);
++			cs, (unsigned)res.start);
+ 		goto err;
+ 	}
+=20
+--=20
+1.7.10.4
