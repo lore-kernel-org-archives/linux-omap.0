@@ -1,46 +1,66 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: Removing vestiges of CONFIG_USB_SUSPEND
-Date: Mon, 06 May 2013 15:47:29 -0700
-Message-ID: <87ip2vwwse.fsf@linaro.org>
-References: <Pine.LNX.4.44L0.1305011115090.1380-100000@iolanthe.rowland.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: mach-omap2/timer.c: Bug introduced while merging patch -
+ ff931c82
+Date: Mon, 6 May 2013 16:37:43 -0700
+Message-ID: <20130506233743.GJ28721@atomide.com>
+References: <79CD15C6BA57404B839C016229A409A83EC7C45D@DBDE04.ent.ti.com>
+ <20130506152706.GD28721@atomide.com>
+ <79CD15C6BA57404B839C016229A409A83EC7C93A@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:55324 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932360Ab3EFWrd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 May 2013 18:47:33 -0400
-Received: by mail-pb0-f50.google.com with SMTP id um15so2194488pbc.23
-        for <linux-omap@vger.kernel.org>; Mon, 06 May 2013 15:47:32 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.44L0.1305011115090.1380-100000@iolanthe.rowland.org>
-	(Alan Stern's message of "Wed, 1 May 2013 11:22:55 -0400 (EDT)")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EC7C93A@DBDE04.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, USB list <linux-usb@vger.kernel.org>
 
-Hi Alan,
+* Hiremath, Vaibhav <hvaibhav@ti.com> [130506 11:35]:
+> 
+> Ohh yeah, I already have a patch for it -
 
-Alan Stern <stern@rowland.harvard.edu> writes:
+Thanks, I'll add that into omap-for-v3.10/fixes. I modified
+the comments a bit trying to figure out where it changed, updated
+patch below.
 
-> Felipe and Kevin:
->
-> While removing the remaining usages of USB_SUSPEND (things that I
-> missed in the original patch), I noticed that
-> arch/arm/configs/omap2plus_defconfig does not enable PM_RUNTIME -- even
-> though it currently does enable USB_SUSPEND, which depends on
-> PM_RUNTIME.  Was this an oversight?
+Regards,
 
-Looks like an oversight, but covered up by some other default options
-in mach-omap2/Kconfig.  Specifially, config ARCH_OMAP2PLUS_TYPICAL
-(default y) does a select PM_RUNTIME.
+Tony
 
-> In a little while I will submit a patch which removes USB_SUSPEND from
-> that file.  You or someone else may want to write a separate patch to
-> enable PM_RUNTIME.
 
-I think we'll be covered by our current defaults.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Date: Mon, 6 May 2013 15:19:01 -0700
+Subject: [PATCH] ARM: OMAP2+: Fix mismerge for timer.c between ff931c82 and da4a686a
 
-Thanks for the heads up.
+Looks like the timer.c fixes in commit ff931c82 (ARM: OMAP: clocks:
+Delay clk inits atleast until slab is initialized) got lost in a
+merge with da4a686a (ARM: smp_twd: convert to use CLKSRC_OF init).
 
-Kevin
+Without the omap_clk_init() calls none of OMAP family of devices
+boot.
+
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+[tony@atomide.com: updated comments to describe merge error]
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -549,6 +549,8 @@ static inline void __init realtime_counter_init(void)
+ 			       clksrc_nr, clksrc_src, clksrc_prop)	\
+ void __init omap##name##_gptimer_timer_init(void)			\
+ {									\
++	if (omap_clk_init)						\
++		omap_clk_init();					\
+ 	omap_dmtimer_init();						\
+ 	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+ 	omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src,		\
+@@ -559,6 +561,8 @@ void __init omap##name##_gptimer_timer_init(void)			\
+ 				clksrc_nr, clksrc_src, clksrc_prop)	\
+ void __init omap##name##_sync32k_timer_init(void)		\
+ {									\
++	if (omap_clk_init)						\
++		omap_clk_init();					\
+ 	omap_dmtimer_init();						\
+ 	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+ 	/* Enable the use of clocksource="gp_timer" kernel parameter */	\
