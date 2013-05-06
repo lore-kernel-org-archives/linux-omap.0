@@ -1,62 +1,46 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [RESEND][PATCH 1/3] arm: dts: introduce config HAS_BANDGAP
-Date: Mon, 6 May 2013 18:40:53 -0400
-Message-ID: <51883175.8010001@ti.com>
-References: <1367874058-2378-1-git-send-email-eduardo.valentin@ti.com> <1367874058-2378-2-git-send-email-eduardo.valentin@ti.com> <20130506213413.GH5634@blackmetal.musicnaut.iki.fi>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: Removing vestiges of CONFIG_USB_SUSPEND
+Date: Mon, 06 May 2013 15:47:29 -0700
+Message-ID: <87ip2vwwse.fsf@linaro.org>
+References: <Pine.LNX.4.44L0.1305011115090.1380-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="----enig2XIADUSPFQQCAIOPDKHKC"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130506213413.GH5634@blackmetal.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:55324 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932360Ab3EFWrd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 May 2013 18:47:33 -0400
+Received: by mail-pb0-f50.google.com with SMTP id um15so2194488pbc.23
+        for <linux-omap@vger.kernel.org>; Mon, 06 May 2013 15:47:32 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.44L0.1305011115090.1380-100000@iolanthe.rowland.org>
+	(Alan Stern's message of "Wed, 1 May 2013 11:22:55 -0400 (EDT)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, USB list <linux-usb@vger.kernel.org>
 
-------enig2XIADUSPFQQCAIOPDKHKC
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Alan,
 
-On 06-05-2013 17:34, Aaro Koskinen wrote:
-> On Mon, May 06, 2013 at 05:00:56PM -0400, Eduardo Valentin wrote:
->> Introduce HAS_BANDGAP config entry. This config is a
->> boolean value so that arch code can flag is they
->> feature a bandgap device.
->=20
-> Maybe it could be mentioned that omap-thermal already depend on this?
-> At least for a random reviewer it was not immediately clear why this is=
+Alan Stern <stern@rowland.harvard.edu> writes:
 
-> added, especially since there were no users for it in subsequent patche=
-s.
->=20
-> A.
->=20
->=20
-The flag has been proposed here [1]. The adaptation on the driver has
-been introduced here [2,3]. It has reached the staging (next) tree. That
-is why you do not see any follow up patch. Although it does not have
-users at v3.9, the patch on the user has been sent several weeks ago.
+> Felipe and Kevin:
+>
+> While removing the remaining usages of USB_SUSPEND (things that I
+> missed in the original patch), I noticed that
+> arch/arm/configs/omap2plus_defconfig does not enable PM_RUNTIME -- even
+> though it currently does enable USB_SUSPEND, which depends on
+> PM_RUNTIME.  Was this an oversight?
 
-[1] -
-http://lists.infradead.org/pipermail/linux-arm-kernel/2012-May/101827.htm=
-l
-[2] - http://marc.info/?l=3Dlinux-omap&m=3D136335347305197&w=3D2
-[3] - http://marc.info/?l=3Dlinux-driver-devel&m=3D136335404205514&w=3D1
+Looks like an oversight, but covered up by some other default options
+in mach-omap2/Kconfig.  Specifially, config ARCH_OMAP2PLUS_TYPICAL
+(default y) does a select PM_RUNTIME.
 
+> In a little while I will submit a patch which removes USB_SUSPEND from
+> that file.  You or someone else may want to write a separate patch to
+> enable PM_RUNTIME.
 
-------enig2XIADUSPFQQCAIOPDKHKC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+I think we'll be covered by our current defaults.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Thanks for the heads up.
 
-iF4EAREIAAYFAlGIMYEACgkQCXcVR3XQvP1c4wEAk3fkX0Nof1JRgpeNjGNnbpqe
-SFHC6EvXxjdon1tkT8QBANg72RQCIYz5qd6BgaHOG21iR7D0vu2t2IsvN5iX7+4K
-=xy6d
------END PGP SIGNATURE-----
-
-------enig2XIADUSPFQQCAIOPDKHKC--
+Kevin
