@@ -1,7 +1,7 @@
 From: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: [PATCH 1/2] iio: adc: ti_am335x_adc: revert info_mask removal
-Date: Mon,  6 May 2013 14:48:58 +0200
-Message-ID: <1367844539-6812-2-git-send-email-jlu@pengutronix.de>
+Subject: [PATCH 2/2] iio: adc: ti_am335x_adc: make tiadc_read_raw() more robust
+Date: Mon,  6 May 2013 14:48:59 +0200
+Message-ID: <1367844539-6812-3-git-send-email-jlu@pengutronix.de>
 References: <1351698938-3839-1-git-send-email-panto@antoniou-consulting.com>
  <1367844539-6812-1-git-send-email-jlu@pengutronix.de>
 Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,26 +11,89 @@ To: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
 Cc: rachna-l0cyMroinI0@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit "ti_tscadc: Update with IIO map interface & deal with partial activation"
-by Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org> removed this line.
-Without it, the in_voltage?_raw entries are missing from sysfs.
+Check that mask is actually IIO_CHAN_INFO_RAW.
+
+Also handle the case where not enough data is in the fifo.
 
 Signed-off-by: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 ---
- drivers/iio/adc/ti_am335x_adc.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/iio/adc/ti_am335x_adc.c | 48 ++++++++++++++++++++++++-----------------
+ 1 file changed, 28 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-index ee20c0c..620cc0c 100644
+index 620cc0c..4b764a9 100644
 --- a/drivers/iio/adc/ti_am335x_adc.c
 +++ b/drivers/iio/adc/ti_am335x_adc.c
-@@ -107,6 +107,7 @@ static int tiadc_channel_init(struct iio_dev *indio_dev,
- 		chan->type = IIO_VOLTAGE;
- 		chan->indexed = 1;
- 		chan->channel = i;
-+		chan->info_mask = IIO_CHAN_INFO_RAW_SEPARATE_BIT;
- 		chan->datasheet_name = s;
- 		chan->scan_type.sign = 'u';
- 		chan->scan_type.realbits = 12;
+@@ -157,26 +157,34 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+ 	int i;
+ 	unsigned int fifo1count, readx1;
+ 
+-	/*
+-	 * When the sub-system is first enabled,
+-	 * the sequencer will always start with the
+-	 * lowest step (1) and continue until step (16).
+-	 * For ex: If we have enabled 4 ADC channels and
+-	 * currently use only 1 out of them, the
+-	 * sequencer still configures all the 4 steps,
+-	 * leading to 3 unwanted data.
+-	 * Hence we need to flush out this data.
+-	 */
++	switch (mask) {
++	case IIO_CHAN_INFO_RAW:
++		/*
++		 * When the sub-system is first enabled,
++		 * the sequencer will always start with the
++		 * lowest step (1) and continue until step (16).
++		 * For ex: If we have enabled 4 ADC channels and
++		 * currently use only 1 out of them, the
++		 * sequencer still configures all the 4 steps,
++		 * leading to 3 unwanted data.
++		 * Hence we need to flush out this data.
++		 */
++
++		fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
++		for (i = 0; i < fifo1count; i++) {
++			readx1 = tiadc_readl(adc_dev, REG_FIFO1);
++			if (i == chan->channel)
++				*val = readx1 & 0xfff;
++		}
++		tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
+ 
+-	fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
+-	for (i = 0; i < fifo1count; i++) {
+-		readx1 = tiadc_readl(adc_dev, REG_FIFO1);
+-		if (i == chan->channel)
+-			*val = readx1 & 0xfff;
+-	}
+-	tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
++		if (fifo1count <= chan->channel)
++			return -EINVAL;
+ 
+-	return IIO_VAL_INT;
++		return IIO_VAL_INT;
++	default:
++		return -EINVAL;
++	}
+ }
+ 
+ static const struct iio_info tiadc_info = {
+@@ -213,7 +221,7 @@ static int tiadc_probe(struct platform_device *pdev)
+ 	else {
+ 		node = of_get_child_by_name(node, "adc");
+ 		if (!node)
+-			return  -EINVAL;
++			return	-EINVAL;
+ 		else {
+ 			err = of_property_read_u32(node,
+ 					"ti,adc-channels", &val32);
+@@ -310,7 +318,7 @@ static const struct dev_pm_ops tiadc_pm_ops = {
+ 
+ static struct platform_driver tiadc_driver = {
+ 	.driver = {
+-		.name   = "tiadc",
++		.name	= "tiadc",
+ 		.owner	= THIS_MODULE,
+ 		.pm	= TIADC_PM_OPS,
+ 	},
 -- 
 1.8.2.rc2
