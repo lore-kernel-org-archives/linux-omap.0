@@ -1,48 +1,80 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: mach-omap2/timer.c: Bug introduced while merging patch - ff931c82
-Date: Mon, 6 May 2013 07:06:25 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC7C45D@DBDE04.ent.ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH] ARM: dts: OMAP4+: remove multimedia carveouts
+Date: Mon, 6 May 2013 14:36:54 +0200
+Message-ID: <5187A3E6.4000208@ti.com>
+References: <1366233990-29724-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52589 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753340Ab3EFMhI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 May 2013 08:37:08 -0400
+In-Reply-To: <1366233990-29724-1-git-send-email-s-anna@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
 
-Hi,
+Hi Suman,
 
-Not sure whether this got discussed and fixed already, but Google didn't give me anything :)
+On 04/17/2013 11:26 PM, Suman Anna wrote:
+> The carveouts that have been reserved for multimedia usecases
+> are not being used currently by any driver and so have been
+> cleaned up. Memory will be allocated runtime through CMA for
+> enabling the multimedia usecases.
+> 
+> Signed-off-by: Suman Anna <s-anna@ti.com>
 
-The below commit got merged wrongly to Mainline (Changes from timer.c got missed), and 
-due to this none of omap boards will boot.
+Thanks for that cleanup. I'll queue that after the merge widow on top of
+3.10-rc1.
 
+Regards,
+Benoit
 
->From ff931c821bab6713a52b768b0cd7ee7e90713b36 Mon Sep 17 00:00:00 2001
-From: Rajendra Nayak <rnayak@ti.com>
-Date: Thu, 21 Mar 2013 11:04:52 +0000
-Subject: ARM: OMAP: clocks: Delay clk inits atleast until slab is initialized
+> ---
+>  arch/arm/boot/dts/omap4.dtsi | 8 --------
+>  arch/arm/boot/dts/omap5.dtsi | 8 --------
+>  2 files changed, 16 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 55c633a..79aaafe 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -6,14 +6,6 @@
+>   * published by the Free Software Foundation.
+>   */
+>  
+> -/*
+> - * Carveout for multimedia usecases
+> - * It should be the last 48MB of the first 512MB memory part
+> - * In theory, it should not even exist. That zone should be reserved
+> - * dynamically during the .reserve callback.
+> - */
+> -/memreserve/ 0x9d000000 0x03000000;
+> -
+>  /include/ "skeleton.dtsi"
+>  
+>  / {
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index c9ecdbe..7006554 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -7,14 +7,6 @@
+>   * Based on "omap4.dtsi"
+>   */
+>  
+> -/*
+> - * Carveout for multimedia usecases
+> - * It should be the last 48MB of the first 512MB memory part
+> - * In theory, it should not even exist. That zone should be reserved
+> - * dynamically during the .reserve callback.
+> - */
+> -/memreserve/ 0x9d000000 0x03000000;
+> -
+>  /include/ "skeleton.dtsi"
+>  
+>  / {
+> 
 
-
-It seems Linux-omap tree has the fix patch for this, and it should get pushed ASAP. 
-Below are links for Linus's mainline commit [1], the actual patch submitted to the list [2] and
-Commit  present in Linux-omap [3].
-
-
-[1] http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/arch/arm/mach-omap2/io.c?id=ff931c821bab6713a52b768b0cd7ee7e90713b36
-[2] https://patchwork.kernel.org/patch/2300071/
-[3] http://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/commit/arch/arm/mach-omap2/timer.c?id=ff931c821bab6713a52b768b0cd7ee7e90713b36
-
-
-Thanks,
-Vaibhav
