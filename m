@@ -1,99 +1,49 @@
-From: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: [PATCH 2/2] iio: adc: ti_am335x_adc: make tiadc_read_raw() more robust
-Date: Mon,  6 May 2013 14:48:59 +0200
-Message-ID: <1367844539-6812-3-git-send-email-jlu@pengutronix.de>
-References: <1351698938-3839-1-git-send-email-panto@antoniou-consulting.com>
- <1367844539-6812-1-git-send-email-jlu@pengutronix.de>
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1367844539-6812-1-git-send-email-jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Cc: rachna-l0cyMroinI0@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: mach-omap2/timer.c: Bug introduced while merging patch -
+ ff931c82
+Date: Mon, 6 May 2013 08:27:06 -0700
+Message-ID: <20130506152706.GD28721@atomide.com>
+References: <79CD15C6BA57404B839C016229A409A83EC7C45D@DBDE04.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17773 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753874Ab3EFP1K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 May 2013 11:27:10 -0400
+Content-Disposition: inline
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EC7C45D@DBDE04.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Check that mask is actually IIO_CHAN_INFO_RAW.
+* Hiremath, Vaibhav <hvaibhav@ti.com> [130506 00:12]:
+> Hi,
+> 
+> Not sure whether this got discussed and fixed already, but Google didn't give me anything :)
+> 
+> The below commit got merged wrongly to Mainline (Changes from timer.c got missed), and 
+> due to this none of omap boards will boot.
+> 
+> 
+> From ff931c821bab6713a52b768b0cd7ee7e90713b36 Mon Sep 17 00:00:00 2001
+> From: Rajendra Nayak <rnayak@ti.com>
+> Date: Thu, 21 Mar 2013 11:04:52 +0000
+> Subject: ARM: OMAP: clocks: Delay clk inits atleast until slab is initialized
+> 
+> 
+> It seems Linux-omap tree has the fix patch for this, and it should get pushed ASAP. 
+> Below are links for Linus's mainline commit [1], the actual patch submitted to the list [2] and
+> Commit  present in Linux-omap [3].
 
-Also handle the case where not enough data is in the fifo.
+Can you please provide a proper patch for the regression since sounds
+like you already figured out what happened?
 
-Signed-off-by: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
----
- drivers/iio/adc/ti_am335x_adc.c | 48 ++++++++++++++++++++++++-----------------
- 1 file changed, 28 insertions(+), 20 deletions(-)
+Regards,
 
-diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-index 620cc0c..4b764a9 100644
---- a/drivers/iio/adc/ti_am335x_adc.c
-+++ b/drivers/iio/adc/ti_am335x_adc.c
-@@ -157,26 +157,34 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
- 	int i;
- 	unsigned int fifo1count, readx1;
+Tony 
  
--	/*
--	 * When the sub-system is first enabled,
--	 * the sequencer will always start with the
--	 * lowest step (1) and continue until step (16).
--	 * For ex: If we have enabled 4 ADC channels and
--	 * currently use only 1 out of them, the
--	 * sequencer still configures all the 4 steps,
--	 * leading to 3 unwanted data.
--	 * Hence we need to flush out this data.
--	 */
-+	switch (mask) {
-+	case IIO_CHAN_INFO_RAW:
-+		/*
-+		 * When the sub-system is first enabled,
-+		 * the sequencer will always start with the
-+		 * lowest step (1) and continue until step (16).
-+		 * For ex: If we have enabled 4 ADC channels and
-+		 * currently use only 1 out of them, the
-+		 * sequencer still configures all the 4 steps,
-+		 * leading to 3 unwanted data.
-+		 * Hence we need to flush out this data.
-+		 */
-+
-+		fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
-+		for (i = 0; i < fifo1count; i++) {
-+			readx1 = tiadc_readl(adc_dev, REG_FIFO1);
-+			if (i == chan->channel)
-+				*val = readx1 & 0xfff;
-+		}
-+		tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
- 
--	fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
--	for (i = 0; i < fifo1count; i++) {
--		readx1 = tiadc_readl(adc_dev, REG_FIFO1);
--		if (i == chan->channel)
--			*val = readx1 & 0xfff;
--	}
--	tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
-+		if (fifo1count <= chan->channel)
-+			return -EINVAL;
- 
--	return IIO_VAL_INT;
-+		return IIO_VAL_INT;
-+	default:
-+		return -EINVAL;
-+	}
- }
- 
- static const struct iio_info tiadc_info = {
-@@ -213,7 +221,7 @@ static int tiadc_probe(struct platform_device *pdev)
- 	else {
- 		node = of_get_child_by_name(node, "adc");
- 		if (!node)
--			return  -EINVAL;
-+			return	-EINVAL;
- 		else {
- 			err = of_property_read_u32(node,
- 					"ti,adc-channels", &val32);
-@@ -310,7 +318,7 @@ static const struct dev_pm_ops tiadc_pm_ops = {
- 
- static struct platform_driver tiadc_driver = {
- 	.driver = {
--		.name   = "tiadc",
-+		.name	= "tiadc",
- 		.owner	= THIS_MODULE,
- 		.pm	= TIADC_PM_OPS,
- 	},
--- 
-1.8.2.rc2
+> [1] http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/arch/arm/mach-omap2/io.c?id=ff931c821bab6713a52b768b0cd7ee7e90713b36
+> [2] https://patchwork.kernel.org/patch/2300071/
+> [3] http://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/commit/arch/arm/mach-omap2/timer.c?id=ff931c821bab6713a52b768b0cd7ee7e90713b36
