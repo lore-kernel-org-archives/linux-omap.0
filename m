@@ -1,47 +1,42 @@
-From: =?UTF-8?q?Vincent=20Stehl=C3=A9?= <vincent.stehle@laposte.net>
-Subject: [PATCH] ARM: omap2: gpmc: fix compilation warning
-Date: Mon,  6 May 2013 17:38:49 +0200
-Message-ID: <1367854729-11416-1-git-send-email-vincent.stehle@laposte.net>
+From: Jonathan Cameron <jic23@kernel.org>
+Subject: Re: [PATCH] ti_tscadc: Update with IIO map interface & deal with
+ partial activation
+Date: Mon, 06 May 2013 17:12:05 +0100
+Message-ID: <5187D655.1010402@kernel.org>
+References: <1351698938-3839-1-git-send-email-panto@antoniou-consulting.com> <1367844539-6812-1-git-send-email-jlu@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Vincent=20Stehl=C3=A9?= <v-stehle@ti.com>, trivial@kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from saturn.retrosnub.co.uk ([178.18.118.26]:42416 "EHLO
+	saturn.retrosnub.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754177Ab3EFQMF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 May 2013 12:12:05 -0400
+In-Reply-To: <1367844539-6812-1-git-send-email-jlu@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jan Luebbe <jlu@pengutronix.de>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, rachna@ti.com, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>
 
-=46rom: Vincent Stehl=C3=A9 <v-stehle@ti.com>
+On 05/06/2013 01:48 PM, Jan Luebbe wrote:
+> Hi Pantelis,
+> 
+> while trying out your patch on a custom AM335x board, I noticed that the
+> sysfs entries ware missing. This is fixed in the first patch, you might want
+> to squash that into your original patch.
+> 
+> The second one makes sure that the iio framework does not read invalid data.
+> 
+> Regards,
+> Jan
 
-=46ix the following compilation warning:
+I don't believe Pantelis ever came back with a response to the various issues
+raised with the original patches?
 
-  arch/arm/mach-omap2/gpmc.c: In function 'gpmc_probe_generic_child':
-  arch/arm/mach-omap2/gpmc.c:1477:4: warning: format '%x' expects argum=
-ent of type 'unsigned int', but argument 4 has type 'resource_size_t' [=
--Wformat]
+If Pantelis has moved on, Jan feel free to pick up the patches, respin them
+and resend to linux-iio if you like (with appropriate crediting naturally)
 
-Signed-off-by: Vincent Stehl=C3=A9 <v-stehle@ti.com>
-Cc: trivial@kernel.org
----
+Until these are appropriately fixed up and resent, I'm lazy so will ignore these.
+(your patches look reasonable to me based on a really superficial look)
 
-(This is a resend.)
-
- arch/arm/mach-omap2/gpmc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index ed946df..3cd7074 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1474,7 +1474,7 @@ static int gpmc_probe_generic_child(struct platfo=
-rm_device *pdev,
- 	ret =3D gpmc_cs_remap(cs, res.start);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "cannot remap GPMC CS %d to 0x%x\n",
--			cs, res.start);
-+			cs, (unsigned)res.start);
- 		goto err;
- 	}
-=20
---=20
-1.7.10.4
+Jonathan
