@@ -1,47 +1,40 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] Urgent omap timer fix for current merge window
-Date: Tue, 7 May 2013 14:48:19 +0200
-Message-ID: <201305071448.19868.arnd@arndb.de>
-References: <20130506234610.GK28721@atomide.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 0/5] drivers: bus: omap_l3: Conversion to devm_*
+Date: Tue, 7 May 2013 18:24:08 +0530
+Message-ID: <5188F970.6010401@ti.com>
+References: <1367496587-6210-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:65326 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758097Ab3EGMsZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 May 2013 08:48:25 -0400
-In-Reply-To: <20130506234610.GK28721@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1367496587-6210-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-On Tuesday 07 May 2013, Tony Lindgren wrote:
-> The following changes since commit dc2d3db8137fba0f62d7517e1bea8a47f69fcbc4:
+On Thursday 02 May 2013 05:39 PM, Peter Ujfalusi wrote:
+> Hi,
 > 
->   Merge tag 'omap-for-v3.10/timer-signed' of git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap into next/drivers (2013-04-08 19:30:48 +0200)
+> Cleanup of platform probe and remove (removing the remove function at the end)
+> with converting the driver to use the devm_* versions kzalloc, ioremap and
+> request_irq.
 > 
-> are available in the git repository at:
-> 
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/fixes-for-merge-window
-> 
-> for you to fetch changes up to 08a48be32ff31d38bcfec7d210c954cb62fd5cd7:
-> 
->   ARM: OMAP4: change the device names in usb_bind_phy (2013-05-06 16:39:16 -0700)
-> 
-> ----------------------------------------------------------------
-> An urgent fix for a timer mismerge for and a regression fix for
-> musb device naming change.
-> 
+Thanks Peter. All patches looks fine to my eyes. In the last patch wher
+you are changing the error level is bit debatable but I agree with you.
 
-Hi Tony,
+So FWIW,
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Russell also ran into this problem, so I'm including these in the late/cleanup branch,
-which I'll send to Linus later today.
 
-Thanks,
-
-	Arnd
+> Peter Ujfalusi (5):
+>   drivers: bus: omap_l3: Convert to use devm_kzalloc
+>   drivers: bus: omap_l3: Convert to use devm_request_and_ioremap()
+>   drivers: bus: omap_l3: Convert to use devm_request_irq()
+>   drivers: bus: omap_l3: Remove the platform driver's remove function
+>   drivers: bus: omap_l3: Change pr_crit() to dev_err() when IRQ request
+>     fails
+> 
+>  drivers/bus/omap_l3_noc.c | 106 +++++++++++-----------------------------------
+>  1 file changed, 24 insertions(+), 82 deletions(-)
+> 
