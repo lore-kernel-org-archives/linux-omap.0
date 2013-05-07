@@ -1,29 +1,38 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [GIT PULL] Urgent omap timer fix for current merge window
-Date: Tue, 7 May 2013 13:02:02 +0100
-Message-ID: <20130507120202.GK21614@n2100.arm.linux.org.uk>
-References: <20130506234610.GK28721@atomide.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [GIT PULL] hwspinlock for 3.10
+Date: Tue, 7 May 2013 15:04:27 +0300
+Message-ID: <CAK=WgbbLUya4MQeh3h6v3a8LcTryJ8H4P7uLK3u9vKBvQey=ag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45749 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757117Ab3EGMCR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 May 2013 08:02:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20130506234610.GK28721@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: =?ISO-8859-1?Q?Vincent_Stehl=E9?= <v-stehle@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, May 06, 2013 at 04:46:11PM -0700, Tony Lindgren wrote:
-> Vaibhav Hiremath (1):
->       ARM: OMAP2+: Fix mismerge for timer.c between ff931c82 and da4a686a
+The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b=
+6ec9:
 
-Neither your pull request subject nor the above summary line really
-sum up what the problem is - the real problem is "fix breakage causing
-OMAP to fail to boot".
+  Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
 
-I've just been chasing this problem and the descriptions given on this
-just suggest that it's a timer issue not a non-boot issue.
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git
+tags/hwspinlock-3.10
+
+for you to fetch changes up to 8ae053d62e88c400330ebaf27558bf02dde5a1fa=
+:
+
+  hwspinlock/omap: support OMAP5 as well (2013-04-05 09:11:17 +0300)
+
+----------------------------------------------------------------
+A single patch from Vincent extending OMAP's hwspinlock support to OMAP=
+5.
+
+----------------------------------------------------------------
+Vincent Stehl=E9 (1):
+      hwspinlock/omap: support OMAP5 as well
+
+ drivers/hwspinlock/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
