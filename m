@@ -1,78 +1,59 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [RESEND][PATCH 1/3] arm: dts: introduce config HAS_BANDGAP
-Date: Tue, 7 May 2013 09:15:00 -0400
-Message-ID: <5188FE54.6050200@ti.com>
-References: <1367874058-2378-1-git-send-email-eduardo.valentin@ti.com> <1367874058-2378-2-git-send-email-eduardo.valentin@ti.com> <20130506213413.GH5634@blackmetal.musicnaut.iki.fi> <20130506223653.GA12089@obsidianresearch.com> <51884971.9050508@ti.com> <20130507003651.GA26035@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="----enig2WTIPEAPNWATTXGNEDRSO"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130507003651.GA26035@obsidianresearch.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, tony@atomide.com, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH] ti_tscadc: Update with IIO map interface & deal with partial activation
+Date: Tue, 7 May 2013 16:08:40 +0300
+Message-ID: <902E054D-F014-4380-A493-96384AC85DD4@antoniou-consulting.com>
+References: <1351698938-3839-1-git-send-email-panto@antoniou-consulting.com> <1367844539-6812-1-git-send-email-jlu@pengutronix.de> <5187D655.1010402@kernel.org>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from li42-95.members.linode.com ([209.123.162.95]:55737 "EHLO
+	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758536Ab3EGNP7 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 May 2013 09:15:59 -0400
+In-Reply-To: <5187D655.1010402@kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: Jan Luebbe <jlu@pengutronix.de>, rachna@ti.com, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>
 
-------enig2WTIPEAPNWATTXGNEDRSO
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Jonathan,
 
-Hello Jason,
+On May 6, 2013, at 7:12 PM, Jonathan Cameron wrote:
 
-On 06-05-2013 20:36, Jason Gunthorpe wrote:
-> On Mon, May 06, 2013 at 08:23:13PM -0400, Eduardo Valentin wrote:
->=20
->>> I get the impression it is desired to minimize driver kconfig
->>> dependencies to the minimum required to compile to increase build
->>> testing coverage, so maybe it would be appropriate to drop this
->>> entirely?
->=20
->> Well, it is also desired to compile things to the correct target
->> right?
->=20
-> There is some of that too..
->=20
-> But broadly the direction seems that drivers should have minimal
-> dependencies so, eg, the thermal maintainer compiling for x86 should
-> be able to compile test/static analyze your driver..
->=20
+> On 05/06/2013 01:48 PM, Jan Luebbe wrote:
+>> Hi Pantelis,
+>> 
+>> while trying out your patch on a custom AM335x board, I noticed that the
+>> sysfs entries ware missing. This is fixed in the first patch, you might want
+>> to squash that into your original patch.
+>> 
+>> The second one makes sure that the iio framework does not read invalid data.
+>> 
+>> Regards,
+>> Jan
+> 
+> I don't believe Pantelis ever came back with a response to the various issues
+> raised with the original patches?
+> 
 
-Well, I do not see much of this attempt actually. Do you have some link
-/ evidene that shows someone who actually cares about compiling drivers
-for targets that they are not used for? On this specific driver, I
-actually have  had exactly the opposite advice [1]. I am not convinced
-people actually want to do that.
+I am aware. We've been quite busy getting the new beaglebone out. I plan to
+revisit the full patchset for all the various fixes we had to do in a month
+or so.
 
->> Thats the idea behind this config option. It follows the same design a=
-s
->> CONFIG_ARCH_HAS_CPUFREQ, for instance.
->=20
-> That is entirely contained inside arch/arm and doesn't involve
-> drivers.
+> If Pantelis has moved on, Jan feel free to pick up the patches, respin them
+> and resend to linux-iio if you like (with appropriate crediting naturally)
+> 
 
-It actually goes outside arch/arm.
+I wouldn't mind Jan to pick up the IIO patches.
 
->=20
-> Jason
->=20
->=20
+> Until these are appropriately fixed up and resent, I'm lazy so will ignore these.
+> (your patches look reasonable to me based on a really superficial look)
+> 
+> Jonathan
 
-[1] - https://patchwork.kernel.org/patch/1185431/
+Regards
 
+-- Pantelis
 
-------enig2WTIPEAPNWATTXGNEDRSO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iF4EAREIAAYFAlGI/lQACgkQCXcVR3XQvP1jfQEA8LtORo7s4WiJR/8Sx+DAMixY
-D/TlaN98D/EJjePV87ABAMinzf3CXDuprOVPzfulqBvuFYza/K7Ti+az8ia3vQ0r
-=An59
------END PGP SIGNATURE-----
-
-------enig2WTIPEAPNWATTXGNEDRSO--
