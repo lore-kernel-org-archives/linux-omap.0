@@ -1,48 +1,24 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] Urgent omap timer fix for current merge window
-Date: Tue, 7 May 2013 08:04:38 -0700
-Message-ID: <20130507150438.GQ28721@atomide.com>
-References: <20130506234610.GK28721@atomide.com>
- <201305071448.19868.arnd@arndb.de>
+From: =?iso-8859-5?Q?=BF=DE=DB=D8=DD=D0_=C1=D5=E0=D3=D5=D5=D2?=
+	 =?iso-8859-5?Q?=DD=D0?= <unimed@araxa.com.br>
+Subject: =?iso-8859-5?Q?=BE=E1=E7=D0=E1=E2=DB=D8=D2=EC=E2=D5_=DD?=
+	=?iso-8859-5?Q?=D5=D1=EB=D2=D0=DB=EB=DC?=
+Date: Tue, 7 May 2013 19:29:01 +0300
+Message-ID: <81C546993A98453A8DAB37A445D84C59@bvhmfwl>
+Reply-To: =?iso-8859-5?Q?=BF=DE=DB=D8=DD=D0_=C1=D5=E0=D3=D5=D5=D2?=
+	   =?iso-8859-5?Q?=DD=D0?= <mosik506@salford.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-5";
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25656 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756460Ab3EGPEn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 May 2013 11:04:43 -0400
-Content-Disposition: inline
-In-Reply-To: <201305071448.19868.arnd@arndb.de>
+Received: from static-201-62-48-10.v4.naclick.com.br ([201.62.48.10]:36717
+	"EHLO cp01.naclick.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750747Ab3EGQsW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 May 2013 12:48:22 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: childlibfil12@rambler.ru, linux-omap@vger.kernel.org, mail1995@inbox.ru, maxik-98@mail.ru, culture.news.dombun@rambler.ru
 
-* Arnd Bergmann <arnd@arndb.de> [130507 05:54]:
-> On Tuesday 07 May 2013, Tony Lindgren wrote:
-> > The following changes since commit dc2d3db8137fba0f62d7517e1bea8a47f69fcbc4:
-> > 
-> >   Merge tag 'omap-for-v3.10/timer-signed' of git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap into next/drivers (2013-04-08 19:30:48 +0200)
-> > 
-> > are available in the git repository at:
-> > 
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/fixes-for-merge-window
-> > 
-> > for you to fetch changes up to 08a48be32ff31d38bcfec7d210c954cb62fd5cd7:
-> > 
-> >   ARM: OMAP4: change the device names in usb_bind_phy (2013-05-06 16:39:16 -0700)
-> > 
-> > ----------------------------------------------------------------
-> > An urgent fix for a timer mismerge for and a regression fix for
-> > musb device naming change.
-> > 
-> 
-> Hi Tony,
-> 
-> Russell also ran into this problem, so I'm including these in the late/cleanup branch,
-> which I'll send to Linus later today.
-
-Thanks!
-
-Tony
+sNTg1eEg3dDo1dPeIOHQ2eLQOiBodHRwOi8vbXVybC5rei9XRmtzeiC77tHe2SDe4t/g6+HaINHj
+1NXiIODQ1N7h4tXdINfQ397b4+fY4uwg4tDa3tkg1NDgLiC/4Njh4+Lh4tLj7unY1SDU0NbVIN3V
+IN7W2NTQ29gg397h3N7i4NXi7CDn4t4gLSDb2NHeINDd0Nve09jn3d7VLg0K
