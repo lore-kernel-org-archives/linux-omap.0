@@ -1,95 +1,144 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [GIT PULL] remoteproc for 3.10
-Date: Tue, 7 May 2013 15:19:52 +0300
-Message-ID: <CAK=WgbYBk=ut8M_Mn5hQ8V_b+gUijFz8RrOkyfKaC1Xk8p4+Jg@mail.gmail.com>
+From: jean-philippe francois <jp.francois@cynove.com>
+Subject: Re: omap3-isp : panic using previewer from V4L input
+Date: Tue, 7 May 2013 14:41:46 +0200
+Message-ID: <CAGGh5h1zzF7mKgof=jcEBHVmnG9i-A=xpzc9Ri8bHL5xe7bnuQ@mail.gmail.com>
+References: <CAGGh5h00H10F7GWgjyhN_5Zn8JNMXRptt4FF+u=NHDdTXFD2MA@mail.gmail.com>
+	<7361840.3pfFsIn2FS@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:52394 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758310Ab3EGMUP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 May 2013 08:20:15 -0400
-Received: by mail-la0-f43.google.com with SMTP id ea20so490465lab.16
-        for <linux-omap@vger.kernel.org>; Tue, 07 May 2013 05:20:13 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <7361840.3pfFsIn2FS@avalon>
+Sender: linux-media-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: =?ISO-8859-1?Q?Sjur_Br=E6ndeland?= <sjurbren@gmail.com>, "Tivy, Robert" <rtivy@ti.com>, =?ISO-8859-1?Q?Vincent_Stehl=E9?= <v-stehle@ti.com>, Suman Anna <s-anna@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-There's a trivial merge conflict with a Kconfig typo that got fixed
-during the rc cycle,
-but otherwise:
+2013/5/7 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Jean-Philippe,
+>
+> (CC'ed linux-omap)
+>
+> On Monday 06 May 2013 10:59:07 jean-philippe francois wrote:
+>> Hi,
+>>
+>> I am trying to use the previewer to debayer pictures coming from the
+>> filesystem instead of the capture hardware. The media-ctl links are as
+>> follows :
+>>
+>> preview V4L input -> preview pad 0 (sink), preview pad 1(src)
+>> ->preview V4L output.
+>>
+>> Input output format is set via media-ctl for the preview element, and
+>> via the V4L2 api for the V4L2 file descriptors. I am using USERPTR
+>> buffer allocated via memalign, and the application goes like this :
+>>
+>> REQBUFS 1 buf on on input
+>> REQBUFS 1 buf on output
+>> alloc buffers
+>> QBUF on input
+>> QBUF on output
+>> STREAMON on output
+>> STREAMON on input
+>> DQBUF on output.
+>>
+>> The board either panics or hangs (though HUNG_TASK_DETECTION and
+>> SOFT_LOCKUP_DETECTION is set)
+>
+> Does it happen every time you run the application, including on the first run
+> after a cold boot ?
 
-The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b=
-6ec9:
+Yes, every time.
+Previewer usage in device to memory mode works fine.
+Tested on 3.6.11 and 3.9 with the same results.
+The only difference observed so far between runs is that sometimes
+the board hangs without anything printed on the console.
 
-  Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
-tags/remoteproc-3.10
-
-for you to fetch changes up to b9777859ec015a78dae1476e317d04f851bfdd0d=
-:
-
-  remoteproc: fix kconfig dependencies for VIRTIO (2013-04-21 16:30:22 =
-+0300)
-
-----------------------------------------------------------------
-This pull request contains:
-- Some refactoring, cleanups and small improvements
-  from Sjur Br=E6ndeland. The improvements are mainly
-  about better supporting varios virtio properties
-  (such as virtio's config space, status and features).
-  I now see that I messed up while commiting one of Sjur's
-  patches and erroneously put myself as the author, as well
-  as letting a nasty typo sneak in. I will not fix this in
-  order to avoid rebasing the patches. Sjur - sorry!
-- A new remoteproc driver for OMAP-L13x (technically a
-  DaVinci platform) from Robert Tivy.
-- Extend OMAP support to OMAP5 as well, from Vincent Stehl=E9.
-- Fix Kconfig VIRTUALIZATION dependency, from Suman Anna
-  (a non-critical fix which arrived late during the rc cycle).
-
-----------------------------------------------------------------
-Ohad Ben-Cohen (1):
-      remoteproc: perserve resource table data
-
-Robert Tivy (2):
-      remoteproc: support default firmware name in rproc_alloc()
-      remoteproc/davinci: add a remoteproc driver for OMAP-L13x DSP
-
-Sjur Br=E6ndeland (7):
-      remoteproc: refactor rproc_elf_find_rsc_table()
-      remoteproc: add find_loaded_rsc_table firmware ops
-      remoteproc: parse STE-firmware and find resource table address
-      remoteproc: code cleanup of resource parsing
-      remoteproc: calculate max_notifyid by counting vrings
-      remoteproc: support virtio config space.
-      remoteproc: set vring addresses in resource table
-
-Suman Anna (1):
-      remoteproc: fix kconfig dependencies for VIRTIO
-
-Vincent Stehl=E9 (1):
-      remoteproc/omap: support OMAP5 too
-
- drivers/remoteproc/Kconfig                 |  27 ++-
- drivers/remoteproc/Makefile                |   1 +
- drivers/remoteproc/da8xx_remoteproc.c      | 324 +++++++++++++++++++++=
-++++++++
- drivers/remoteproc/remoteproc_core.c       | 211 ++++++++++++-------
- drivers/remoteproc/remoteproc_elf_loader.c | 100 ++++++---
- drivers/remoteproc/remoteproc_internal.h   |  15 +-
- drivers/remoteproc/remoteproc_virtio.c     |  79 +++++--
- drivers/remoteproc/ste_modem_rproc.c       |  45 ++--
- include/linux/remoteproc.h                 |  13 +-
- 9 files changed, 677 insertions(+), 138 deletions(-)
- create mode 100644 drivers/remoteproc/da8xx_remoteproc.c
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>> Please find attached the panic log, and the application code.
+>
+> (log inlined)
+>
+>> omap3isp omap3isp: can't find source, failing now
+>> omap3isp omap3isp: can't find source, failing now
+>
+> Those are harmless warnings. I have a fix for them, I'll repost it.
+>
+>> ------------[ cut here ]------------
+>> Kernel BUG at c019bb1c [verbose debug info unavailable]
+>> Internal error: Oops - BUG: 0 [#1] PREEMPT ARM
+>> Modules linked in: omap3_isp ov10630(O)
+>> CPU: 0    Tainted: G           O  (3.9.0 #3)
+>> PC is at omap3_l3_app_irq+0x3c/0xbc
+>
+> L3 APP interconnect timeout errors are not supposed to happen. This is the
+> first time I see one. Maybe someone on the linux-omap list will have some
+> clues regarding how to debug this.
+>
+>> LR is at handle_irq_event_percpu+0x28/0x10c
+>> pc : [<c019bb1c>]    lr : [<c006b354>]    psr: 20000193
+>> sp : c0507e58  ip : 00060000  fp : 00000000
+>> r10: cf804dc0  r9 : ffff9e65  r8 : 00200000
+>> r7 : 00000000  r6 : 00001000  r5 : 00000000  r4 : cf87f3c0
+>> r3 : 00000000  r2 : 00001000  r1 : cf8ffc80  r0 : 00001000
+>> Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+>> Control: 10c5387d  Table: 8fa80019  DAC: 00000015
+>> Process swapper (pid: 0, stack limit = 0xc0506230)
+>> Stack: (0xc0507e58 to 0xc0508000)
+>> 7e40:                                                      00000002 cf87f3c0
+>> 7e60:0000001a 00000000 00000000 c006b354 cf804dc0 cf87f3c0 cf804dc0 c0506000
+>> 7e80:cf87f3c0 c0507f0c 00200000 ffff9e65 c054d640 c006b490 cf804dc0 c0507f80
+>> 7ea0:ffffffff c006da68 0000001a c006ac44 0000001a c000ebc8 0000000a c0507ed8
+>> 7ec0:0000001a c0008594 c054d600 c003400c 60000113 c000df00 00000001 c054d600
+>> 7ee0:00000101 c0506000 00000002 00000000 ffffffff c0507fb4 00200000 ffff9e65
+>> 7f00:c054d640 00000000 c0526f28 c0507f20 c054d600 c003400c 60000113 ffffffff
+>> 7f20:cf805c40 c0506000 c0511c98 c0507fb4 80004059 00000035 00000000 ffffffff
+>> 7f40:c0507fb4 80004059 413fc082 00000000 00000000 c003440c 00000035 c000ebcc
+>> 7f60:00000025 c0507f80 00000035 c0008594 c0506008 c000ed78 20000013 c000df00
+>> 7f80:c0547548 c050fb50 00000001 c0506000 c050e0d8 00000000 c04fb954 c0510844
+>> 7fa0:80004059 413fc082 00000000 00000000 00000000 c0507fc8 c0506008 c000ed78
+>> 7fc0:20000013 ffffffff c036c958 c04da7a8 ffffffff ffffffff c04da344 00000000
+>> 7fe0:c04fb958 271ae41c 00000000 10c53c7d c050e028 80008070 00000000 00000000
+>> [<c019bb1c>] (omap3_l3_app_irq+0x3c/0xbc)
+>> from [<c006b354>] (handle_irq_event_percpu+0x28/0x10c)
+>> [<c006b354>] (handle_irq_event_percpu+0x28/0x10c)
+>> from [<c006b490>] (handle_irq_event+0x58/0x74)
+>> [<c006b490>] (handle_irq_event+0x58/0x74)
+>> from [<c006da68>] (handle_level_irq+0xd8/0x110)
+>> [<c006da68>] (handle_level_irq+0xd8/0x110)
+>> from [<c006ac44>] (generic_handle_irq+0x20/0x30)
+>> [<c006ac44>] (generic_handle_irq+0x20/0x30)
+>> from [<c000ebc8>] (handle_IRQ+0x60/0x84)
+>> [<c000ebc8>] (handle_IRQ+0x60/0x84)
+>> from [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
+>> [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
+>> from [<c000df00>] (__irq_svc+0x40/0x70)
+>> Exception stack(0xc0507ed8 to 0xc0507f20)
+>> 7ec0:                                                      00000001 c054d600
+>> 7ee0:00000101 c0506000 00000002 00000000 ffffffff c0507fb4 00200000 ffff9e65
+>> 7f00:c054d640 00000000 c0526f28 c0507f20 c054d600 c003400c 60000113 ffffffff
+>> [<c000df00>] (__irq_svc+0x40/0x70)
+>> from [<c003400c>] (__do_softirq+0x60/0x184)
+>> [<c003400c>] (__do_softirq+0x60/0x184)
+>> from [<c003440c>] (irq_exit+0x70/0xc4)
+>> [<c003440c>] (irq_exit+0x70/0xc4)
+>> from [<c000ebcc>] (handle_IRQ+0x64/0x84)
+>> [<c000ebcc>] (handle_IRQ+0x64/0x84)
+>> from [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
+>> [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
+>> from [<c000df00>] (__irq_svc+0x40/0x70)
+>> Exception stack(0xc0507f80 to 0xc0507fc8)
+>> 7f80:c0547548 c050fb50 00000001 c0506000 c050e0d8 00000000 c04fb954 c0510844
+>> 7fa0:80004059 413fc082 00000000 00000000 00000000 c0507fc8 c0506008 c000ed78
+>> 7fc0:20000013 ffffffff
+>> [<c000df00>] (__irq_svc+0x40/0x70) from [<c000ed78>] (cpu_idle+0x60/0x90)
+>> [<c000ed78>] (cpu_idle+0x60/0x90)
+>> from [<c04da7a8>] (start_kernel+0x234/0x284)
+>> Code: e0022006 e0033007 e1920003 0a000002 (e7f001f2)
+>> ---[ end trace 58d781a6c1166535 ]---
+>> Kernel panic - not syncing: Fatal exception in interrupt
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
