@@ -1,100 +1,55 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: [PATCH RESEND] genirq: add function to get IRQ edge/level flags
-Date: Tue,  7 May 2013 18:48:08 +0200
-Message-ID: <1367945288-5625-1-git-send-email-javier@dowhile0.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:51360 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758587Ab3EGQs1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 May 2013 12:48:27 -0400
-Received: by mail-wg0-f53.google.com with SMTP id y10so888952wgg.32
-        for <linux-omap@vger.kernel.org>; Tue, 07 May 2013 09:48:25 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [RESEND][PATCH 1/3] arm: dts: introduce config HAS_BANDGAP
+Date: Tue, 7 May 2013 12:27:11 -0600
+Message-ID: <20130507182711.GB28628@obsidianresearch.com>
+References: <1367874058-2378-1-git-send-email-eduardo.valentin@ti.com>
+ <1367874058-2378-2-git-send-email-eduardo.valentin@ti.com>
+ <20130506213413.GH5634@blackmetal.musicnaut.iki.fi>
+ <20130506223653.GA12089@obsidianresearch.com>
+ <51884971.9050508@ti.com>
+ <20130507003651.GA26035@obsidianresearch.com>
+ <5188FE54.6050200@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5188FE54.6050200@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, tony@atomide.com, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>, Alexander Gordeev <agordeev@redhat.com>, Richard Weinberger <richard@nod.at>, Rob Herring <robherring2@gmail.com>, Stephen Warren <swarren@wwwdotorg.org>, Grant Likely <grant.likely@secretlab.ca>, Jon Hunter <jon-hunter@ti.com>, Linus Walleij <linus.walleij@linaro.org>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, Javier Martinez Canillas <javier.martinez@dowhile0.org>
 
-According to Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
-the "#interrupt-cells" property of an "interrupt-controller" is used
-to define the number of cells needed to specify a single interrupt.
+On Tue, May 07, 2013 at 09:15:00AM -0400, Eduardo Valentin wrote:
+> > But broadly the direction seems that drivers should have minimal
+> > dependencies so, eg, the thermal maintainer compiling for x86 should
+> > be able to compile test/static analyze your driver..
 
-A commonly used variant is two cell on which #interrupt-cells = <2>
-and the first cell defines the index of the interrupt in the controller
-while the second cell is used to specify any of the following flags:
+> Well, I do not see much of this attempt actually. Do you have some link
+> / evidene that shows someone who actually cares about compiling drivers
+> for targets that they are not used for? On this specific driver, I
+> actually have  had exactly the opposite advice [1]. I am not convinced
+> people actually want to do that.
 
-    - bits[3:0] trigger type and level flags
-        1 = low-to-high edge triggered
-        2 = high-to-low edge triggered
-        4 = active high level-sensitive
-        8 = active low level-sensitive
+There was a discussion a bit ago, but I can't find a link.. The
+context was subsystem maintainers are being asked to look after more
+code with the DT transition moving things out of arch/arm and at least
+one complained they couldn't even compile test on x86... But again, I
+can't find a link and you are right, there are lots and lots of
+'depends ARCH..' style things in kConfig already.
 
-An example of an interrupt controller which use the two cell format is
-the OMAP GPIO controller that allows GPIO lines to be used as IRQ
-(Documentation/devicetree/bindings/gpio/gpio-omap.txt)
+Lets just call it something to think about.
 
-But setting #interrupt-cells = <2> on the OMAP GPIO device node and
-specifying the GPIO-IRQ type and level flags on the second cell does not
-store this value on the populated IORESOURCE_IRQ struct resource.
+> >> Thats the idea behind this config option. It follows the same design as
+> >> CONFIG_ARCH_HAS_CPUFREQ, for instance.
+> > 
+> > That is entirely contained inside arch/arm and doesn't involve
+> > drivers.
+> 
+> It actually goes outside arch/arm.
 
-This is because when using an IRQ from an interrupt controller and
-setting both cells (e.g:)
+Hm, must have missed that, seemed like all it did was control
+including drivers/cpufreq/Kconfig within the ARM kconfigs.. And
+unicore32 copied the name, but did the same thing.
 
-        interrupt-parent = <&gpio6>;
-        interrupts = <16 8>;
-
-A call to of_irq_to_resource() is made and this function calls
-irq_of_parse_and_map_type() to get the virtual IRQ mapped to the real
-index for this interrupt controller. This IRQ number is populated on
-the struct resource:
-
-int of_irq_to_resource(struct device_node *dev, int index, struct resource *r)
-{
-        int irq = irq_of_parse_and_map(dev, index);
-        ..
-        r->start = r->end = irq;
-}
-
-irq_of_parse_and_map() calls to irq_create_of_mapping() which calls to
-the correct xlate function handler according to "#interrupt-cells"
-(irq_domain_xlate_onecell or irq_domain_xlate_twocell) and to
-irq_set_irq_type() to set the IRQ type.
-
-But the type is never returned so it can't be saved on the IRQ struct
-resource flags member.
-
-This means that drivers that want to get the IRQ edge/level flags
-defined in the Device Tree from a struct resource will not be able
-to get it.
-
-Drivers can get the IRQ flags by using irq_get_irq_data(irq) and
-irqd_get_trigger_type(irq_data) but this will unnecessary expose
-irq_data to callers and also is more error prone.
-
-So, is better to add an irq_get_trigger_type() function to obtain
-the edge/level flags for an IRQ.
-
-Signed-off-by: Javier Martinez Canillas <javier.martinez@dowhile0.org>
----
- include/linux/irq.h |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index bc4e066..0e8e3a6 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -579,6 +579,12 @@ static inline struct msi_desc *irq_data_get_msi(struct irq_data *d)
- 	return d->msi_desc;
- }
- 
-+static inline u32 irq_get_trigger_type(unsigned int irq)
-+{
-+	struct irq_data *d = irq_get_irq_data(irq);
-+	return d ? irqd_get_trigger_type(d) : 0;
-+}
-+
- int __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
- 		struct module *owner);
- 
--- 
-1.7.7.6
-
+Regards,
+Jason
