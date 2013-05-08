@@ -1,41 +1,55 @@
-From: Peter Chen <hzpeterchen@gmail.com>
-Subject: Re: [PATCH] USB: set device dma_mask without reference to global data
-Date: Wed, 8 May 2013 10:54:48 +0800
-Message-ID: <CAL411-pY_i19otiE2pLux6eR_OFHhfhK=+6BF=H6wABDsGCP6Q@mail.gmail.com>
+From: Tony Prisk <linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org>
+Subject: Re: [PATCH] USB: set device dma_mask without reference to global
+ data
+Date: Wed, 08 May 2013 17:11:25 +1200
+Message-ID: <5189DE7D.7060205@prisktech.co.nz>
 References: <1367967232-10128-1-git-send-email-swarren@wwwdotorg.org>
- <CAL411-qVnm0_wwdAiAp9eq_hYkXzFSmRMLAmknpSAG7Jb3bM9A@mail.gmail.com> <5189B7BF.8070607@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f171.google.com ([209.85.210.171]:57021 "EHLO
-	mail-ia0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752312Ab3EHCzJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 May 2013 22:55:09 -0400
-In-Reply-To: <5189B7BF.8070607@wwwdotorg.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1367967232-10128-1-git-send-email-swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Stephen Warren <swarren@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Alan Stern <stern@rowland.harvard.edu>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On 08/05/13 10:53, Stephen Warren wrote:
+> From: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 >
-> This probably could be initialized from some DT property. However,
-> there's no such property defined right now, and considering that DT is
-> supposed to be an ABI, we'd always need the code in this patch as a
-> fallback for DTs that were created before any such property was defined.
+> Many USB host drivers contain code such as:
 >
-> Equally, since the data is SoC-specific rather than board-specific, and
-> is even fairly unlikely to vary between SoC versions since these values
-> are all 0xffffffff anyway, I don't really see much point in putting it
-> into DT, rather than just putting the static data into the driver.
+> if (!pdev->dev.dma_mask)
+>          pdev->dev.dma_mask = &tegra_ehci_dma_mask;
+>
+> ... where tegra_ehci_dma_mask is a global. I suspect this code originated
+> in commit 4a53f4e "USB: ehci-tegra: add probing through device tree" and
+> was simply copied everywhere else.
+>
+> This works fine when the code is built-in, but can cause a crash when the
+> code is in a module. The first module load sets up the dma_mask pointer,
+> but if the module is removed and re-inserted, the value is now non-NULL,
+> and hence is not updated to point at the new location, and hence points
+> at a stale location within the previous module load address, which in
+> turn causes a crash if the pointer is de-referenced.
+>
+> The simplest way of solving this seems to be to copy the code from
+> ehci-platform.c, which uses the coherent_dma_mask as the target for the
+> dma_mask pointer.
+>
+> Suggested-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> Signed-off-by: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+> ---
+In the case of uhci-platform you would be absolutely correct. I copied the
+example from tegra when we first had the problem on arch-vt8500.Because we
+have no NAND support yet, I have always booted myrootfs from USB so it's
+always been builtin and the problem wasnever a problem. The same problem 
+would
+have existed on ehci-vt8500 but Arnd replaced it with ehci-platform due to
+the multiplatform issues.
 
-I mean there is already dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
-at function of_platform_device_create, why can't add
-dev->dev.dma_mask = &dev->dev.coherent_dma_mask after that?
+for uhci-platform.c
+Acked-by: Tony Prisk <linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org>
 
-If DT core can do above things, can we delete dma_mask assignment
-at every driver?
-
-
---
-BR,
-Peter Chen
+Regards
+Tony P
