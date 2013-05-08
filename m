@@ -1,130 +1,40 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH] ARM: dts: omap3-igep0020: Add SMSC911x LAN chip support
-Date: Thu, 9 May 2013 00:37:07 +0200
-Message-ID: <CAAwP0s2M7WOva27-viWjZq9CrjsZStn6cJZ8KhJVWTxHkKdP7A@mail.gmail.com>
-References: <1366216329-10677-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Subject: Re: [PATCH] USB: set device dma_mask without reference to global
+ data
+Date: Wed, 08 May 2013 16:42:04 -0600
+Message-ID: <518AD4BC.6090009@wwwdotorg.org>
+References: <1367967232-10128-1-git-send-email-swarren@wwwdotorg.org> <CAL411-qVnm0_wwdAiAp9eq_hYkXzFSmRMLAmknpSAG7Jb3bM9A@mail.gmail.com> <5189B7BF.8070607@wwwdotorg.org> <CAL411-pY_i19otiE2pLux6eR_OFHhfhK=+6BF=H6wABDsGCP6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f177.google.com ([209.85.220.177]:50792 "EHLO
-	mail-vc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752066Ab3EHWh2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 18:37:28 -0400
-Received: by mail-vc0-f177.google.com with SMTP id ha12so2206270vcb.36
-        for <linux-omap@vger.kernel.org>; Wed, 08 May 2013 15:37:27 -0700 (PDT)
-In-Reply-To: <1366216329-10677-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL411-pY_i19otiE2pLux6eR_OFHhfhK=+6BF=H6wABDsGCP6Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>
 
-On Wed, Apr 17, 2013 at 6:32 PM, Javier Martinez Canillas
-<javier.martinez@collabora.co.uk> wrote:
-> The IGEPv2 board has an SMSC LAN9221i ethernet chip connected to
-> the OMAP3 processor though the General-Purpose Memory Controller.
->
-> This patch adds a device node for the ethernet chip as a GPMC child
-> and all its dependencies (regulators, GPIO and pin muxs).
->
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> ---
->  arch/arm/boot/dts/omap3-igep.dtsi    |    6 ++++
->  arch/arm/boot/dts/omap3-igep0020.dts |   53 ++++++++++++++++++++++++++++++++++
->  2 files changed, 59 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-> index f8fe3b7..d5cd504 100644
-> --- a/arch/arm/boot/dts/omap3-igep.dtsi
-> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
-> @@ -62,6 +62,12 @@
->                         0x126 0x0100    /* sdmmc1_dat7.sdmmc1_dat7 INPUT | MODE 0 */
->                 >;
->         };
-> +
-> +       smsc911x_pins: pinmux_smsc911x_pins {
-> +               pinctrl-single,pins = <
-> +                        0x1a2 0x0104    /* mcspi1_cs2.gpio_176 INPUT | MODE4 */
-> +               >;
-> +       };
->  };
->
->  &i2c1 {
-> diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
-> index e2b9849..4bac32e 100644
-> --- a/arch/arm/boot/dts/omap3-igep0020.dts
-> +++ b/arch/arm/boot/dts/omap3-igep0020.dts
-> @@ -40,6 +40,18 @@
->                         gpios = <&twl_gpio 19 1>;
->                 };
->         };
-> +
-> +       vddvario: regulator-vddvario {
-> +                 compatible = "regulator-fixed";
-> +                 regulator-name = "vddvario";
-> +                 regulator-always-on;
-> +       };
-> +
-> +       vdd33a: regulator-vdd33a {
-> +               compatible = "regulator-fixed";
-> +               regulator-name = "vdd33a";
-> +               regulator-always-on;
-> +       };
->  };
->
->  &i2c3 {
-> @@ -54,3 +66,44 @@
->                 reg = <0x50>;
->         };
->  };
-> +
-> +&gpmc {
-> +       ranges = <5 0 0x2c000000 0x1000000>;
-> +       ethernet@5,0 {
-> +               pinctrl-names = "default";
-> +               pinctrl-0 = <&smsc911x_pins>;
-> +               compatible = "smsc,lan9221", "smsc,lan9115";
-> +               reg = <5 0 0xff>;
-> +               bank-width = <2>;
-> +
-> +               gpmc,mux-add-data;
-> +               gpmc,cs-on-ns = <0>;
-> +               gpmc,cs-rd-off-ns = <186>;
-> +               gpmc,cs-wr-off-ns = <186>;
-> +               gpmc,adv-on-ns = <12>;
-> +               gpmc,adv-rd-off-ns = <48>;
-> +               gpmc,adv-wr-off-ns = <48>;
-> +               gpmc,oe-on-ns = <54>;
-> +               gpmc,oe-off-ns = <168>;
-> +               gpmc,we-on-ns = <54>;
-> +               gpmc,we-off-ns = <168>;
-> +               gpmc,rd-cycle-ns = <186>;
-> +               gpmc,wr-cycle-ns = <186>;
-> +               gpmc,access-ns = <114>;
-> +               gpmc,page-burst-access-ns = <6>;
-> +               gpmc,bus-turnaround-ns = <12>;
-> +               gpmc,cycle2cycle-delay-ns = <18>;
-> +               gpmc,wr-data-mux-bus-ns = <90>;
-> +               gpmc,wr-access-ns = <186>;
-> +               gpmc,cycle2cycle-samecsen;
-> +               gpmc,cycle2cycle-diffcsen;
-> +
-> +               interrupt-parent = <&gpio6>;
-> +               interrupts = <16 8>;
-> +               vmmc-supply = <&vddvario>;
-> +               vmmc_aux-supply = <&vdd33a>;
-> +               reg-io-width = <4>;
-> +
-> +               smsc,save-mac-address;
-> +       };
-> +};
-> --
-> 1.7.7.6
->
-> --
+On 05/07/2013 08:54 PM, Peter Chen wrote:
+>>
+>> This probably could be initialized from some DT property. However,
+>> there's no such property defined right now, and considering that DT is
+>> supposed to be an ABI, we'd always need the code in this patch as a
+>> fallback for DTs that were created before any such property was defined.
+>>
+>> Equally, since the data is SoC-specific rather than board-specific, and
+>> is even fairly unlikely to vary between SoC versions since these values
+>> are all 0xffffffff anyway, I don't really see much point in putting it
+>> into DT, rather than just putting the static data into the driver.
+> 
+> I mean there is already dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
+> at function of_platform_device_create, why can't add
+> dev->dev.dma_mask = &dev->dev.coherent_dma_mask after that?
+> 
+> If DT core can do above things, can we delete dma_mask assignment
+> at every driver?
 
-Hi Benoit,
+Perhaps. However, such a change has a much larger potential for regressions.
 
-Any comments on this patch?
-
-Thanks a lot and best regards,
-Javier
+I would suggest going with the current patch for 3.10 and any later
+backports in order to reduce risk. We can revisit better cleanup for
+later kernels.
