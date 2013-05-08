@@ -1,74 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2: AM33XX: id: Add support for new AM335x
- PG2.1 Si
-Date: Wed, 8 May 2013 16:33:06 -0700
-Message-ID: <20130508233306.GU32546@atomide.com>
-References: <1367691820-11875-1-git-send-email-hvaibhav@ti.com>
+Subject: Re: [PATCHv2] ARM:dts:omap4-panda:Update the LED support for the
+ panda DTS
+Date: Wed, 8 May 2013 16:47:46 -0700
+Message-ID: <20130508234745.GV32546@atomide.com>
+References: <1366229760-4808-1-git-send-email-dmurphy@ti.com>
+ <516FBD18.3060501@ti.com>
+ <51703BEF.6050804@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16014 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753077Ab3EHXdK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 19:33:10 -0400
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1367691820-11875-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <51703BEF.6050804@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Murphy <dmurphy@ti.com>
+Cc: Vincent =?utf-8?Q?Stehl=C3=A9?= <v-stehle@ti.com>, b-cousson@ti.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Vaibhav Hiremath <hvaibhav@ti.com> [130504 11:29]:
-> Add support for chip id detection of AM335x PG2.1 Silicon.
-> 
-> Currently omap3xxx_check_revision() detects PG1.0 and PG2.0 only,
-> this patch extends it by adding PG2.1 Si support.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+* Dan Murphy <dmurphy@ti.com> [130418 11:35]:
+> On 04/18/2013 04:30 AM, Vincent Stehl=C3=A9 wrote:
+> >On 04/17/2013 10:16 PM, Dan Murphy wrote:
+> >>The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-pand=
+a-es
+> >>are different.
+> >(..)
+> >>diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/b=
+oot/dts/omap4-panda-common.dtsi
+> >>index 03bd60d..0c48f6b 100644
+> >>--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
+> >>+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> >(..)
+> >>@@ -135,6 +136,25 @@
+> >>  			0xf0 0x118     /* i2c4_sda PULLUP | INPUTENABLE | MODE0 */
+> >>  		>;
+> >>  	};
+> >>+
+> >>+	led_gpio_pins: pinmux_leds_pins {
+> >>+		pinctrl-single,pins =3D <
+> >>+		>;
+> >>+	};
+> >>+};
+> >Hi,
+> >
+> >FYI, there was a recent discussion precisely on this topic, where To=
+my
+> >suggested to remove the empty section:
+> >http://marc.info/?l=3Dlinux-omap&m=3D136546635409232&w=3D2
+> >
+> >Apart from that, I just tested your patch on top of Tomy's
+> >omap-for-v3.10/dt branch and it is working fine for me on PandaBoard=
+s
+> >EA3, A4 and ES.
+> >
+> >Tested-by: Vincent Stehl=C3=A9 <v-stehle@ti.com>
+> >
+> >Best regards,
+> >
+> >V.
+> >
+> Thanks for testing Vincent
+>=20
+> Is there a way to append the data to an already existing node?
+> I do not see a clean way.
 
-Thanks applying into omap-for-v3.10/fixes.
+If you have something in omap4-panda-common.dtsi and the same entry
+in the omap4-panda-es.dts, the entries in omap4-panda-es.dts will
+override and append the entries in omap4-panda-common.dtsi.
+
+So I think you can avoid the empty entry that way.
+
+Regards,
 
 Tony
-
-> ---
->  arch/arm/mach-omap2/id.c  |    8 ++++++--
->  arch/arm/mach-omap2/soc.h |    1 +
->  2 files changed, 7 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 0f4c18e..9bc5a18 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -419,11 +419,15 @@ void __init omap3xxx_check_revision(void)
->  			cpu_rev = "1.0";
->  			break;
->  		case 1:
-> -		/* FALLTHROUGH */
-> -		default:
->  			omap_revision = AM335X_REV_ES2_0;
->  			cpu_rev = "2.0";
->  			break;
-> +		case 2:
-> +		/* FALLTHROUGH */
-> +		default:
-> +			omap_revision = AM335X_REV_ES2_1;
-> +			cpu_rev = "2.1";
-> +			break;
->  		}
->  		break;
->  	case 0xb8f2:
-> diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-> index 18fdeeb..ccef2dd 100644
-> --- a/arch/arm/mach-omap2/soc.h
-> +++ b/arch/arm/mach-omap2/soc.h
-> @@ -396,6 +396,7 @@ IS_OMAP_TYPE(3430, 0x3430)
->  #define AM335X_CLASS		0x33500033
->  #define AM335X_REV_ES1_0	AM335X_CLASS
->  #define AM335X_REV_ES2_0	(AM335X_CLASS | (0x1 << 8))
-> +#define AM335X_REV_ES2_1	(AM335X_CLASS | (0x2 << 8))
-> 
->  #define OMAP443X_CLASS		0x44300044
->  #define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
-> --
-> 1.7.0.4
-> 
