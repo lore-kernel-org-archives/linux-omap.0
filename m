@@ -1,72 +1,65 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V5 6/6] ARM: OMAP3+: use cpu0-cpufreq driver in device tree
- supported boot
-Date: Wed, 8 May 2013 14:06:16 -0500
-Message-ID: <1368039976-29648-7-git-send-email-nm@ti.com>
-References: <1368039976-29648-1-git-send-email-nm@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1368039976-29648-1-git-send-email-nm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Turquette <mturquette@linaro.org>
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: [RFC PATCH 3/3] ARM: omap3: wireless plus gpmc wip
+Date: Wed,  8 May 2013 19:23:34 +0000
+Message-ID: <35ebdefa151c2f2d49ccfed5ddba0cd627963581.1368038129.git.jason@lakedaemon.net>
+References: <cover.1368038129.git.jason@lakedaemon.net>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:57539 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753196Ab3EHTX6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 15:23:58 -0400
+In-Reply-To: <cover.1368038129.git.jason@lakedaemon.net>
+In-Reply-To: <cover.1368038129.git.jason@lakedaemon.net>
+References: <cover.1368038129.git.jason@lakedaemon.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jason Cooper <jason@lakedaemon.net>
 
-With OMAP3+ and AM33xx supported SoC having defined CPU device tree
-entries with operating-points and clock nodes defined, we can now use
-the SoC generic cpufreq-cpu0 driver by registering appropriate device.
+Need this in order to add the nand node and then the partitions.
 
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
+in it's current state, crashes the system. :(
 ---
-no change in current revision.
-Previous version: http://marc.info/?l=linux-omap&m=136580759924239&w=2
+ arch/arm/boot/dts/omap3-wireless_plus.dts | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
- arch/arm/mach-omap2/pm.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index e742118..11bd585 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -266,7 +266,12 @@ static void __init omap4_init_voltages(void)
- 
- static inline void omap_init_cpufreq(void)
- {
--	struct platform_device_info devinfo = { .name = "omap-cpufreq", };
-+	struct platform_device_info devinfo = { };
+diff --git a/arch/arm/boot/dts/omap3-wireless_plus.dts b/arch/arm/boot/dts/omap3-wireless_plus.dts
+index 8a0acdf..6f33731 100644
+--- a/arch/arm/boot/dts/omap3-wireless_plus.dts
++++ b/arch/arm/boot/dts/omap3-wireless_plus.dts
+@@ -17,6 +17,23 @@
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
+ 	};
 +
-+	if (!of_have_populated_dt())
-+		devinfo.name = "omap-cpufreq";
-+	else
-+		devinfo.name = "cpufreq-cpu0";
- 	platform_device_register_full(&devinfo);
- }
++	gpmc: gpmc@6800A000 {
++		compatible = "ti,omap2430-gpmc";
++		ti,hwmods = "gpmc";
++		reg = <0x6800A000 0x2000>;
++		/* interrupts = <100>; */
++		pinctrl-names = "default";
++		pinctrl-0 = <&gpmc_pins>;
++
++		gpmc,num-cs = <8>;
++		gpmc,num-waitpins = <2>;
++		#address-cells = <2>;
++		#size-cells = <1>;
++		ranges = <0 0 0x08000000 0x10000000>;
++
++		/* child nodes go here */
++	};
+ };
  
-@@ -300,9 +305,9 @@ int __init omap2_common_pm_late_init(void)
- 		/* Smartreflex device init */
- 		omap_devinit_smartreflex();
+ &omap3_pmx_core {
+@@ -26,7 +43,7 @@
+ 	 * itself during the boot (or just set them up in the bootloader)
+ 	 */
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <&sdrc_pins &gpmc_pins &hsusb1_pins>;
++	pinctrl-0 = <&sdrc_pins &hsusb1_pins>;
  
--		/* cpufreq dummy device instantiation */
--		omap_init_cpufreq();
- 	}
-+	/* cpufreq dummy device instantiation */
-+	omap_init_cpufreq();
- 
- #ifdef CONFIG_SUSPEND
- 	suspend_set_ops(&omap_pm_ops);
+ 	/* AM3703CUS pins for this board */
+ 	sdrc_pins: pinmux_sdrc_pins {
 -- 
-1.7.9.5
+1.8.2.1
+
