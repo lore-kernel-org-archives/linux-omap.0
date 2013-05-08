@@ -1,52 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: mux: add AM/DM37x gpios
-Date: Wed, 8 May 2013 16:30:44 -0700
-Message-ID: <20130508233044.GT32546@atomide.com>
-References: <1365874225.3812.53.camel@mars>
+Subject: Re: [PATCH] ARM: OMAP2: AM33XX: id: Add support for new AM335x
+ PG2.1 Si
+Date: Wed, 8 May 2013 16:33:06 -0700
+Message-ID: <20130508233306.GU32546@atomide.com>
+References: <1367691820-11875-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:13309 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752490Ab3EHXar (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 19:30:47 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16014 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753077Ab3EHXdK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 19:33:10 -0400
 Content-Disposition: inline
-In-Reply-To: <1365874225.3812.53.camel@mars>
+In-Reply-To: <1367691820-11875-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Christoph Fritz <chf.fritz@googlemail.com>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Christoph Fritz <chf.fritz@googlemail.com> [130413 10:35]:
-> This patch adds GPIO pins found on AM/DM37x.
+* Vaibhav Hiremath <hvaibhav@ti.com> [130504 11:29]:
+> Add support for chip id detection of AM335x PG2.1 Silicon.
+> 
+> Currently omap3xxx_check_revision() detects PG1.0 and PG2.0 only,
+> this patch extends it by adding PG2.1 Si support.
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
 Thanks applying into omap-for-v3.10/fixes.
 
 Tony
- 
-> Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
+
 > ---
->  arch/arm/mach-omap2/mux34xx.h |    6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+>  arch/arm/mach-omap2/id.c  |    8 ++++++--
+>  arch/arm/mach-omap2/soc.h |    1 +
+>  2 files changed, 7 insertions(+), 2 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/mux34xx.h b/arch/arm/mach-omap2/mux34xx.h
-> index 6543ebf..3f26d29 100644
-> --- a/arch/arm/mach-omap2/mux34xx.h
-> +++ b/arch/arm/mach-omap2/mux34xx.h
-> @@ -393,6 +393,10 @@
->  #define OMAP3_CONTROL_PADCONF_SAD2D_SWAKEUP_OFFSET		0xa1c
->  #define OMAP3_CONTROL_PADCONF_JTAG_RTCK_OFFSET			0xa1e
->  #define OMAP3_CONTROL_PADCONF_JTAG_TDO_OFFSET			0xa20
-> +#define OMAP3_CONTROL_PADCONF_GPIO_127				0xa24
-> +#define OMAP3_CONTROL_PADCONF_GPIO_126				0xa26
-> +#define OMAP3_CONTROL_PADCONF_GPIO_128				0xa28
-> +#define OMAP3_CONTROL_PADCONF_GPIO_129				0xa2a
->  
->  #define OMAP3_CONTROL_PADCONF_MUX_SIZE				\
-> -		(OMAP3_CONTROL_PADCONF_JTAG_TDO_OFFSET + 0x2)
-> +		(OMAP3_CONTROL_PADCONF_GPIO_129 + 0x2)
-> -- 
-> 1.7.10.4
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 0f4c18e..9bc5a18 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -419,11 +419,15 @@ void __init omap3xxx_check_revision(void)
+>  			cpu_rev = "1.0";
+>  			break;
+>  		case 1:
+> -		/* FALLTHROUGH */
+> -		default:
+>  			omap_revision = AM335X_REV_ES2_0;
+>  			cpu_rev = "2.0";
+>  			break;
+> +		case 2:
+> +		/* FALLTHROUGH */
+> +		default:
+> +			omap_revision = AM335X_REV_ES2_1;
+> +			cpu_rev = "2.1";
+> +			break;
+>  		}
+>  		break;
+>  	case 0xb8f2:
+> diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+> index 18fdeeb..ccef2dd 100644
+> --- a/arch/arm/mach-omap2/soc.h
+> +++ b/arch/arm/mach-omap2/soc.h
+> @@ -396,6 +396,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+>  #define AM335X_CLASS		0x33500033
+>  #define AM335X_REV_ES1_0	AM335X_CLASS
+>  #define AM335X_REV_ES2_0	(AM335X_CLASS | (0x1 << 8))
+> +#define AM335X_REV_ES2_1	(AM335X_CLASS | (0x2 << 8))
 > 
-> 
+>  #define OMAP443X_CLASS		0x44300044
+>  #define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
+> --
+> 1.7.0.4
 > 
