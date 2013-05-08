@@ -1,29 +1,86 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH] USB: set device dma_mask without reference to global data
-Date: Wed, 8 May 2013 17:10:23 +0200
-Message-ID: <201305081710.23489.arnd@arndb.de>
-References: <Pine.LNX.4.44L0.1305081011480.1450-100000@iolanthe.rowland.org>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH V5 5/6] ARM: OMAP2+: AM33XX: add lateinit hook for calling pm
+ late init
+Date: Wed, 8 May 2013 14:06:15 -0500
+Message-ID: <1368039976-29648-6-git-send-email-nm@ti.com>
+References: <1368039976-29648-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1305081011480.1450-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Prisk <linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1368039976-29648-1-git-send-email-nm@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 08 May 2013, Alan Stern wrote:
-> > The first occurence was apparently in 3.3, but only in ehci-tegra.c,
-> > while the other drivers subsequently copied the bug.
-> 
-> An alternative solution -- perhaps not better but also not relying on
-> coherent_dma_mask -- is to clear pdev->dev.dma_mask in the remove
-> routine if it points to the static mask value.
-> 
+Call OMAP2+ generic lateinit hook from AM specific late init hook.
+This allows the generic late initializations such as cpufreq hooks
+to be active.
 
-Yes, I thought about that, but couldn't see any advantage one way
-or the other and this one seemed simpler.
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+Change in this revision compared to previous revision:
+	- rebase, no functional change.
+Previous version: http://marc.info/?l=linux-kernel&m=136580760924258&w=2
 
-	Arnd
+ arch/arm/mach-omap2/board-generic.c |    1 +
+ arch/arm/mach-omap2/common.h        |    1 +
+ arch/arm/mach-omap2/io.c            |    6 ++++++
+ 3 files changed, 8 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 88aa6b1..2c5c67c 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -141,6 +141,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
+ 	.init_irq	= omap_intc_of_init,
+ 	.handle_irq	= omap3_intc_handle_irq,
+ 	.init_machine	= omap_generic_init,
++	.init_late	= am33xx_init_late,
+ 	.init_time	= omap3_gptimer_timer_init,
+ 	.dt_compat	= am33xx_boards_compat,
+ 	.restart	= am33xx_restart,
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index d555cf2..e2d7ecf 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -107,6 +107,7 @@ void omap35xx_init_late(void);
+ void omap3630_init_late(void);
+ void am35xx_init_late(void);
+ void ti81xx_init_late(void);
++void am33xx_init_late(void);
+ int omap2_common_pm_late_init(void);
+ 
+ #ifdef CONFIG_SOC_BUS
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 09abf99..401e268 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -584,6 +584,12 @@ void __init am33xx_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	omap_clk_init = am33xx_clk_init;
+ }
++
++void __init am33xx_init_late(void)
++{
++	omap2_common_pm_late_init();
++}
++
+ #endif
+ 
+ #ifdef CONFIG_ARCH_OMAP4
+-- 
+1.7.9.5
