@@ -1,120 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 4430sdp nfsroot broken with ff5c9059
-Date: Wed, 8 May 2013 15:05:46 -0700
-Message-ID: <20130508220545.GH32546@atomide.com>
-References: <20130409212318.GR10155@atomide.com>
- <5165A1DB.3020404@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4+: omap2plus_defconfig: Enable audio via
+ TWL6040 as module
+Date: Wed, 8 May 2013 15:08:42 -0700
+Message-ID: <20130508220841.GI32546@atomide.com>
+References: <1365584880-25810-1-git-send-email-peter.ujfalusi@ti.com>
+ <acf32629312b1315da0d04598a757673@mail.kapsi.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30768 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36201 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754813Ab3EHWFs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 18:05:48 -0400
+	with ESMTP id S1751996Ab3EHWIp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 18:08:45 -0400
 Content-Disposition: inline
-In-Reply-To: <5165A1DB.3020404@ti.com>
+In-Reply-To: <acf32629312b1315da0d04598a757673@mail.kapsi.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>
+To: Jyri Sarha <oku@iki.fi>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Jyri Sarha <jsarha@ti.com>
 
-* Jon Hunter <jon-hunter@ti.com> [130410 10:35]:
-> Hi Tony,
-> 
-> On 04/09/2013 04:23 PM, Tony Lindgren wrote:
-> > Hi Jon,
+* Jyri Sarha <oku@iki.fi> [130412 05:19]:
+> On Wed, 10 Apr 2013 11:08:00 +0200, Peter Ujfalusi <peter.ujfalusi@ti.com>
+> wrote:
+> > Boards supported upstream all use TWL6040 as audio codec, enable the
+> common
+> > ASoC machine driver by default for them.
 > > 
-> > Looks like at least 4430sdp nfsroot got broken with commit
-> > ff5c9059 (ARM: dts: OMAP3+: Correct gpio #interrupts-cells
-> > property).
+> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Tested-by: Jyri Sarha <jsarha@ti.com>
 > 
-> Thanks for reporting. I am actually amazed that ethernet is 
-> working on any OMAP board (with device-tree) that requires a
-> gpio as an interrupt because we have still not come to an
-> agreement on [1]. Looking at the OMAP4 SDP I believe this is
-> working by luck because there are other gpios in the same
-> bank that are active and so the bank is enabled. If that were
-> not the case then this would not work. 
-> 
-> Hence, I have not been testing ethernet when booting with 
-> device-tree because we need to fix [1] which has been really
-> crippling my testing. So this needs to be resolved so ethernet
-> can work consistently on all omap boards.
->  
-> > Do we need to pass the GPIO edge/level info now?
-> 
-> Yes and here is a patch. I have tested on my OMAP4 SDP this
-> morning. Reviewing all the OMAP/AM dts(i) files I believe
-> that only the SDP and OMAP4-VAR-SOM are impacted by this. I
-> don't see any other boards currently using the gpio as an 
-> interrupt-controller.
+> Brings a working PCM for TWL6040 trough McPDM legacy port on top of
+> 8.3-rc3 for my Blaze and Panda.
 
-I'll apply this into omap-for-v3.10/dt-fixes. Benoit, I'll have
-only dt stuff in that branch so it should play along with whatever
-you'll be applying as well.
+Thanks applying into omap-for-v3.10/fixes.
 
 Regards,
 
 Tony
- 
-> Cheers
-> Jon
-> 
-> [1] comments.gmane.org/gmane.linux.ports.arm.omap/92192
-> 
-> From ed3e66bcd4c0cb3df4cb70e75c45fa4462f70565 Mon Sep 17 00:00:00 2001
-> From: Jon Hunter <jon-hunter@ti.com>
-> Date: Wed, 10 Apr 2013 11:44:44 -0500
-> Subject: [PATCH] ARM: dts: OMAP4: Fix ethernet IRQ for OMAP4 boards
-> 
-> Commit ff5c9059 (ARM: dts: OMAP3+: Correct gpio #interrupts-cells
-> property) updated the number of interrupt cells required for configuring
-> gpios as interrupts for other devices (such as ethernet controllers).
-> This update allowed the interrupt type (edge, level, etc) to be
-> configured via device-tree (as described in the
-> Documentation/devicetree/bindings/gpio/gpio-omap.txt).
-> 
-> This broke ethernet support on the OMAP4 SDP board that defines a gpio
-> as the ethernet IRQ because the interrupt type (level, edge, etc) was
-> not getting configured correctly. This board use the ks8851 ethernet
-> chip which has an active low interrupt. Fix this by defining the gpio
-> interrupt as active-low in the device-tree binding.
-> 
-> Please note that the OMAP4-VAR-SOM also uses the same ethernet
-> controller and it is expected it will have the same problem. So the
-> same fix is also applied to this board.
-> 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> ---
->  arch/arm/boot/dts/omap4-sdp.dts     |    2 +-
->  arch/arm/boot/dts/omap4-var-som.dts |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-> index c387bdc..25cbe43 100644
-> --- a/arch/arm/boot/dts/omap4-sdp.dts
-> +++ b/arch/arm/boot/dts/omap4-sdp.dts
-> @@ -363,7 +363,7 @@
->  		spi-max-frequency = <24000000>;
->  		reg = <0>;
->  		interrupt-parent = <&gpio2>;
-> -		interrupts = <2>; /* gpio line 34 */
-> +		interrupts = <2 8>; /* gpio line 34, low triggered */
->  		vdd-supply = <&vdd_eth>;
->  	};
->  };
-> diff --git a/arch/arm/boot/dts/omap4-var-som.dts b/arch/arm/boot/dts/omap4-var-som.dts
-> index 222a413..7e04103 100644
-> --- a/arch/arm/boot/dts/omap4-var-som.dts
-> +++ b/arch/arm/boot/dts/omap4-var-som.dts
-> @@ -68,7 +68,7 @@
->  		spi-max-frequency = <24000000>;
->  		reg = <0>;
->  		interrupt-parent = <&gpio6>;
-> -		interrupts = <11>; /* gpio line 171 */
-> +		interrupts = <11 8>; /* gpio line 171, low triggered */
->  		vdd-supply = <&vdd_eth>;
->  	};
->  };
-> -- 
-> 1.7.10.4
+
+> > ---
+> >  arch/arm/configs/omap2plus_defconfig | 2 ++
+> >  1 file changed, 2 insertions(+)
+> > 
+> > diff --git a/arch/arm/configs/omap2plus_defconfig
+> > b/arch/arm/configs/omap2plus_defconfig
+> > index bd07864..eea501c 100644
+> > --- a/arch/arm/configs/omap2plus_defconfig
+> > +++ b/arch/arm/configs/omap2plus_defconfig
+> > @@ -152,6 +152,7 @@ CONFIG_OMAP_WATCHDOG=y
+> >  CONFIG_TWL4030_WATCHDOG=y
+> >  CONFIG_MFD_TPS65217=y
+> >  CONFIG_MFD_TPS65910=y
+> > +CONFIG_TWL6040_CORE=y
+> >  CONFIG_REGULATOR_TWL4030=y
+> >  CONFIG_REGULATOR_TPS65023=y
+> >  CONFIG_REGULATOR_TPS6507X=y
+> > @@ -194,6 +195,7 @@ CONFIG_SND_USB_AUDIO=m
+> >  CONFIG_SND_SOC=m
+> >  CONFIG_SND_OMAP_SOC=m
+> >  CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
+> > +CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
+> >  CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
+> >  CONFIG_USB=y
+> >  CONFIG_USB_DEBUG=y
