@@ -1,71 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Latest build results - errors/warnings - lots of them
-Date: Wed, 8 May 2013 15:17:20 -0700
-Message-ID: <20130508221720.GK32546@atomide.com>
-References: <20130430081739.GP14496@n2100.arm.linux.org.uk>
- <20130502082218.GA21614@n2100.arm.linux.org.uk>
- <20130502153834.GR28721@atomide.com>
- <20130506124011.7e4c2806@notabene.brown>
+Subject: Re: [PATCH] ARM: OMAP: RX-51: change probe order of touchscreen
+ and panel SPI devices
+Date: Wed, 8 May 2013 15:23:21 -0700
+Message-ID: <20130508222320.GL32546@atomide.com>
+References: <1367427597-30060-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:49307 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751520Ab3EHWR3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 18:17:29 -0400
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130506124011.7e4c2806@notabene.brown>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1367427597-30060-1-git-send-email-aaro.koskinen@iki.fi>
+Sender: stable-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Joni Lapilainen <joni.lapilainen@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Felipe Balbi <balbi@ti.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Eduardo Valentin <eduardo.valentin@ti.com>, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* NeilBrown <neilb@suse.de> [130505 19:45]:
-> On Thu, 2 May 2013 08:38:34 -0700 Tony Lindgren <tony@atomide.com> wrote:
+* Aaro Koskinen <aaro.koskinen@iki.fi> [130501 10:06]:
+> Commit 9fdca9df (spi: omap2-mcspi: convert to module_platform_driver)
+> broke the SPI display/panel driver probe on RX-51/N900. The exact cause is
+> not fully understood, but it seems to be related to the probe order. SPI
+> communication to the panel driver (spi1.2) fails unless the touchscreen
+> (spi1.0) has been probed/initialized before. When the omap2-mcspi driver
+> was converted to a platform driver, it resulted in that the devices are
+> probed immediately after the board registers them in the order they are
+> listed in the board file.
 > 
-> > > drivers/power/twl4030_charger.c: In function 'twl4030_charger_enable_usb':
-> > > drivers/power/twl4030_charger.c:192:20: warning: ignoring return value of 'regulator_enable', declared with attribute warn_unused_result
-> > 
-> > Neil, care to provide a fix for this? It's from your commit ab37813
-> > (twl4030_charger: Allow charger to control the regulator that feeds it).
-> > 
-> >
-> This the sort of thing that might be appropriate?
+> Fix the issue by moving the touchscreen before the panel in the SPI
+> device list.
+> 
+> The patch fixes the following failure:
+> 
+> [    1.260955] acx565akm spi1.2: invalid display ID
+> [    1.265899] panel-acx565akm display0: acx_panel_probe panel detect error
+> [    1.273071] omapdss CORE error: driver probe failed: -19
 
-Thanks looks good to me. Care to send it to the appropriate
-mailing lists and maintainers for drivers/power?
+Thanks for updating the description, applying into omap-for-v3.10/fixes.
 
 Regards,
 
 Tony
- 
-> From: NeilBrown <neilb@suse.de>
-> Date: Mon, 6 May 2013 12:35:59 +1000
-> Subject: [PATCH] twl4030_charger: don't ignore regulator_enable()
-> 
-> regulator_enable() doesn't like being ignored.  If it does fail there
-> is nothing we can do except not set usb_enabled (which is necessary
-> else a subsequent regulator_disable() will be unbalanced).
-> 
-> We cannot usefully return an error here as errors from
-> twl4030_charger_enable_usb() are ignored.
-> 
-> Signed-off-by: NeilBrown <neilb@suse.de>
-> 
-> diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
-> index bed4581..8b0ec70 100644
-> --- a/drivers/power/twl4030_charger.c
-> +++ b/drivers/power/twl4030_charger.c
-> @@ -189,8 +189,8 @@ static int twl4030_charger_enable_usb(struct twl4030_bci *bci, bool enable)
->  
->  		/* Need to keep regulator on */
->  		if (!bci->usb_enabled) {
-> -			regulator_enable(bci->usb_reg);
-> -			bci->usb_enabled = 1;
-> +			if (regulator_enable(bci->usb_reg) == 0)
-> +				bci->usb_enabled = 1;
->  		}
->  
->  		/* forcing the field BCIAUTOUSB (BOOT_BCI[1]) to 1 */
-
-
