@@ -1,25 +1,24 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.9-rc8
-Date: Wed, 8 May 2013 19:33:25 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1305081931470.19747@utopia.booyaka.com>
+Subject: OMAP baseline test results for v3.9
+Date: Wed, 8 May 2013 19:39:59 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1305081933270.19747@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:58161 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:58199 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153Ab3EHTd0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 15:33:26 -0400
+	with ESMTP id S1752592Ab3EHTkA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 15:40:00 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
 
-
-Here are some basic OMAP test results for Linux v3.9-rc8.
+Here are some basic OMAP test results for Linux v3.9.
 Logs and other details at:
 
-    http://www.pwsan.com/omap/testlogs/test_v3.9-rc8/20130422154921/
+    http://www.pwsan.com/omap/testlogs/test_v3.9/20130429104339/
 
 
 Test summary
@@ -125,34 +124,59 @@ Other:
     ES-level dependent
 
 
-Failing tests: reported by others 
----------------------------------
-
-- MUSB broken after v3.9-rc6
-  - due to commit 92702df3570e1ccfa050e135e50c450502251b79
-  - discussion here: http://marc.info/?l=linux-omap&m=136544098331552&w=2
-  - patch pending upstream:
-    http://marc.info/?l=linux-omap&m=136562302329307&w=2
+vmlinux object size
+(delta in bytes from test_v3.9-rc8 
+(60d509fa6a9c4653a86ad830e4c4b30360b23f0e)):
+   text     data      bss    total  kernel
+   +176       +8        0     +184  n800_multi_omap2xxx
+   +160       +8        0     +168  n800_only_a
+   +120       +8        0     +128  omap1_defconfig
+   +136       +8        0     +144  omap1_defconfig_1510innovator_only
+   +152      -24        0     +128  omap1_defconfig_5912osk_only
+   +204        0        0     +204  omap2plus_defconfig
+   +204        0        0     +204  omap2plus_defconfig_cpupm
+   +204        0        0     +204  omap2plus_defconfig_no_pm
+   +204        0        0     +204  omap2plus_defconfig_omap2_4_only
+   +204        0        0     +204  omap2plus_defconfig_omap3_4_only
+   +132        0        0     +132  rmk_omap3430_ldp_allnoconfig
+    +80        0        0      +80  rmk_omap3430_ldp_oldconfig
+   +132        0        0     +132  rmk_omap4430_sdp_allnoconfig
+    +96        0        0      +96  rmk_omap4430_sdp_oldconfig
 
 
 
 vmlinux object size
-(delta in bytes from test_v3.9-rc7 
-(41ef2d5678d83af030125550329b6ae8b74618fa)):
+(delta in bytes from test_v3.8 
+(19f949f52599ba7c3f67a5897ac6be14bfcb1200)):
    text     data      bss    total  kernel
-   +408       +8        0     +416  n800_multi_omap2xxx
-   +408       +8        0     +416  n800_only_a
-    +54       -8        0      +46  omap1_defconfig
-    +58       -8        0      +50  omap1_defconfig_1510innovator_only
-    +54      +24        0      +78  omap1_defconfig_5912osk_only
-   +252      +96        0     +348  omap2plus_defconfig
-  +4348      +72        0    +4420  omap2plus_defconfig_cpupm
-   +388      +64        0     +452  omap2plus_defconfig_no_pm
-   +252      +72        0     +324  omap2plus_defconfig_omap2_4_only
-  +4236      +80        0    +4316  omap2plus_defconfig_omap3_4_only
-   +168      +16      -40     +144  rmk_omap3430_ldp_allnoconfig
-  -4040       -8        0    -4048  rmk_omap3430_ldp_oldconfig
-   +168      +16      -40     +144  rmk_omap4430_sdp_allnoconfig
-   +192        0       +8     +200  rmk_omap4430_sdp_oldconfig
+-549808   +23520    -9184  -535472  n800_multi_omap2xxx
+-548359   +27432    -9268  -530195  n800_only_a
+ +61909    +5680     +392   +67981  omap1_defconfig
+ +62549    +5664     +424   +68637  omap1_defconfig_1510innovator_only
+ +63725    +5672     +328   +69725  omap1_defconfig_5912osk_only
++215063   +40984    +1364  +257411  omap2plus_defconfig
++209163   +40088    +1364  +250615  omap2plus_defconfig_cpupm
++213279   +39256    +1364  +253899  omap2plus_defconfig_no_pm
++206200   +34440    +1428  +242068  omap2plus_defconfig_omap2_4_only
++200798   +44440    +1364  +246602  omap2plus_defconfig_omap3_4_only
+  -5420    +9908    +2428    +6916  rmk_omap3430_ldp_allnoconfig
+ +43627   +27696     +788   +72111  rmk_omap3430_ldp_oldconfig
+  -5420    +9908    +2428    +6916  rmk_omap4430_sdp_allnoconfig
+ +46204   +14712     +980   +61896  rmk_omap4430_sdp_oldconfig
 
+
+Boot-time memory difference
+(delta in bytes from test_v3.8 (19f949f52599ba7c3f67a5897ac6be14bfcb1200))
+  avail  rsrvd   high  freed  board          kconfig
+ -15904k 15904k      .     4k  2420n800       n800_only_a
+ -16668k 16668k      .    12k  2430sdp        omap2plus_defconfig
+ -16668k 16668k      .    12k  3517evm        omap2plus_defconfig
+ -16668k 16668k      .    12k  3530es3beagle  omap2plus_defconfig
+ -16668k 16668k      .    12k  3730beaglexm   omap2plus_defconfig
+ -16668k 16668k      .    12k  37xxevm        omap2plus_defconfig
+ -16660k 16660k      .    12k  4430es2panda   omap2plus_defconfig
+ -16680k 16680k      .    12k  4460pandaes    omap2plus_defconfig
+   -68k    68k      .     4k  5912osk        omap1_defconfig
+
+16MiB of the reserved memory increase is probably due to CMA.
 
