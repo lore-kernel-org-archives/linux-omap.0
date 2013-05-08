@@ -1,40 +1,73 @@
-From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Subject: Re: [PATCH] USB: set device dma_mask without reference to global
- data
-Date: Wed, 08 May 2013 16:42:04 -0600
-Message-ID: <518AD4BC.6090009@wwwdotorg.org>
-References: <1367967232-10128-1-git-send-email-swarren@wwwdotorg.org> <CAL411-qVnm0_wwdAiAp9eq_hYkXzFSmRMLAmknpSAG7Jb3bM9A@mail.gmail.com> <5189B7BF.8070607@wwwdotorg.org> <CAL411-pY_i19otiE2pLux6eR_OFHhfhK=+6BF=H6wABDsGCP6Q@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP1: DMA: fix error handling in
+ omap1_system_dma_init()
+Date: Wed, 8 May 2013 16:10:34 -0700
+Message-ID: <20130508231034.GP32546@atomide.com>
+References: <CAPgLHd-5cRFtN-rF8c5Jvg9cqE3jvxuOa6KaDgcoYHPM4DhbMQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL411-pY_i19otiE2pLux6eR_OFHhfhK=+6BF=H6wABDsGCP6Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34384 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750774Ab3EHXKq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 19:10:46 -0400
+Content-Disposition: inline
+In-Reply-To: <CAPgLHd-5cRFtN-rF8c5Jvg9cqE3jvxuOa6KaDgcoYHPM4DhbMQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: linux@arm.linux.org.uk, yongjun_wei@trendmicro.com.cn, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 05/07/2013 08:54 PM, Peter Chen wrote:
->>
->> This probably could be initialized from some DT property. However,
->> there's no such property defined right now, and considering that DT is
->> supposed to be an ABI, we'd always need the code in this patch as a
->> fallback for DTs that were created before any such property was defined.
->>
->> Equally, since the data is SoC-specific rather than board-specific, and
->> is even fairly unlikely to vary between SoC versions since these values
->> are all 0xffffffff anyway, I don't really see much point in putting it
->> into DT, rather than just putting the static data into the driver.
+* Wei Yongjun <weiyj.lk@gmail.com> [130426 01:36]:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 > 
-> I mean there is already dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
-> at function of_platform_device_create, why can't add
-> dev->dev.dma_mask = &dev->dev.coherent_dma_mask after that?
+> Add the missing iounmap() before return from omap1_system_dma_init()
+> in the error handling case.
+> Also removed platform_device_del() on add resources error case which
+> cause dup device delete.
 > 
-> If DT core can do above things, can we delete dma_mask assignment
-> at every driver?
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> ---
+> no compile test.
 
-Perhaps. However, such a change has a much larger potential for regressions.
+Seems to work, applying into omap-for-v3.10/fixes thanks.
 
-I would suggest going with the current patch for 3.10 and any later
-backports in order to reduce risk. We can revisit better cleanup for
-later kernels.
+Tony
+
+>  arch/arm/mach-omap1/dma.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+> index 1a4e887..68ab858 100644
+> --- a/arch/arm/mach-omap1/dma.c
+> +++ b/arch/arm/mach-omap1/dma.c
+> @@ -301,7 +301,7 @@ static int __init omap1_system_dma_init(void)
+>  	if (ret) {
+>  		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
+>  			__func__, pdev->name, pdev->id);
+> -		goto exit_device_put;
+> +		goto exit_iounmap;
+>  	}
+>  
+>  	p = kzalloc(sizeof(struct omap_system_dma_plat_info), GFP_KERNEL);
+> @@ -309,7 +309,7 @@ static int __init omap1_system_dma_init(void)
+>  		dev_err(&pdev->dev, "%s: Unable to allocate 'p' for %s\n",
+>  			__func__, pdev->name);
+>  		ret = -ENOMEM;
+> -		goto exit_device_del;
+> +		goto exit_iounmap;
+>  	}
+>  
+>  	d = kzalloc(sizeof(struct omap_dma_dev_attr), GFP_KERNEL);
+> @@ -402,8 +402,8 @@ exit_release_d:
+>  	kfree(d);
+>  exit_release_p:
+>  	kfree(p);
+> -exit_device_del:
+> -	platform_device_del(pdev);
+> +exit_iounmap:
+> +	iounmap(dma_base);
+>  exit_device_put:
+>  	platform_device_put(pdev);
+>  
+> 
