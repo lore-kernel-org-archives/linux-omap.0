@@ -1,68 +1,130 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 0/3] ARM: omap3: add Seagate Wireless Plus board
-Date: Wed, 8 May 2013 15:30:27 -0700
-Message-ID: <20130508223027.GN32546@atomide.com>
-References: <cover.1368038129.git.jason@lakedaemon.net>
- <20130508195152.GE32546@atomide.com>
- <20130508215853.GD31290@titan.lakedaemon.net>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH] ARM: dts: omap3-igep0020: Add SMSC911x LAN chip support
+Date: Thu, 9 May 2013 00:37:07 +0200
+Message-ID: <CAAwP0s2M7WOva27-viWjZq9CrjsZStn6cJZ8KhJVWTxHkKdP7A@mail.gmail.com>
+References: <1366216329-10677-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21134 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750830Ab3EHWab (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 18:30:31 -0400
-Content-Disposition: inline
-In-Reply-To: <20130508215853.GD31290@titan.lakedaemon.net>
+Received: from mail-vc0-f177.google.com ([209.85.220.177]:50792 "EHLO
+	mail-vc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066Ab3EHWh2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 18:37:28 -0400
+Received: by mail-vc0-f177.google.com with SMTP id ha12so2206270vcb.36
+        for <linux-omap@vger.kernel.org>; Wed, 08 May 2013 15:37:27 -0700 (PDT)
+In-Reply-To: <1366216329-10677-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jason Cooper <jason@lakedaemon.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jon Hunter <jon-hunter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>
 
-* Jason Cooper <jason@lakedaemon.net> [130508 15:04]:
-> On Wed, May 08, 2013 at 12:51:53PM -0700, Tony Lindgren wrote:
-> > * Jason Cooper <jason@lakedaemon.net> [130508 12:29]:
-> > > 
-> > > Current Problem:
-> > > 
-> > > There are several gaps in my understanding of how far along TI's conversion to
-> > > DT is.  Should I be doing a separate board file for initializing the legacy
-> > > items?  I was hoping to do it all with DT.
-> > 
-> > Sorry forgot to reply to this.. No seprate board file should be needed,
-> > some devices may still need to be initialized with pdata based on the
-> > compatible flag.
-> 
-> ti,hwmod, right?
+On Wed, Apr 17, 2013 at 6:32 PM, Javier Martinez Canillas
+<javier.martinez@collabora.co.uk> wrote:
+> The IGEPv2 board has an SMSC LAN9221i ethernet chip connected to
+> the OMAP3 processor though the General-Purpose Memory Controller.
+>
+> This patch adds a device node for the ethernet chip as a GPMC child
+> and all its dependencies (regulators, GPIO and pin muxs).
+>
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> ---
+>  arch/arm/boot/dts/omap3-igep.dtsi    |    6 ++++
+>  arch/arm/boot/dts/omap3-igep0020.dts |   53 ++++++++++++++++++++++++++++++++++
+>  2 files changed, 59 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+> index f8fe3b7..d5cd504 100644
+> --- a/arch/arm/boot/dts/omap3-igep.dtsi
+> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+> @@ -62,6 +62,12 @@
+>                         0x126 0x0100    /* sdmmc1_dat7.sdmmc1_dat7 INPUT | MODE 0 */
+>                 >;
+>         };
+> +
+> +       smsc911x_pins: pinmux_smsc911x_pins {
+> +               pinctrl-single,pins = <
+> +                        0x1a2 0x0104    /* mcspi1_cs2.gpio_176 INPUT | MODE4 */
+> +               >;
+> +       };
+>  };
+>
+>  &i2c1 {
+> diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+> index e2b9849..4bac32e 100644
+> --- a/arch/arm/boot/dts/omap3-igep0020.dts
+> +++ b/arch/arm/boot/dts/omap3-igep0020.dts
+> @@ -40,6 +40,18 @@
+>                         gpios = <&twl_gpio 19 1>;
+>                 };
+>         };
+> +
+> +       vddvario: regulator-vddvario {
+> +                 compatible = "regulator-fixed";
+> +                 regulator-name = "vddvario";
+> +                 regulator-always-on;
+> +       };
+> +
+> +       vdd33a: regulator-vdd33a {
+> +               compatible = "regulator-fixed";
+> +               regulator-name = "vdd33a";
+> +               regulator-always-on;
+> +       };
+>  };
+>
+>  &i2c3 {
+> @@ -54,3 +66,44 @@
+>                 reg = <0x50>;
+>         };
+>  };
+> +
+> +&gpmc {
+> +       ranges = <5 0 0x2c000000 0x1000000>;
+> +       ethernet@5,0 {
+> +               pinctrl-names = "default";
+> +               pinctrl-0 = <&smsc911x_pins>;
+> +               compatible = "smsc,lan9221", "smsc,lan9115";
+> +               reg = <5 0 0xff>;
+> +               bank-width = <2>;
+> +
+> +               gpmc,mux-add-data;
+> +               gpmc,cs-on-ns = <0>;
+> +               gpmc,cs-rd-off-ns = <186>;
+> +               gpmc,cs-wr-off-ns = <186>;
+> +               gpmc,adv-on-ns = <12>;
+> +               gpmc,adv-rd-off-ns = <48>;
+> +               gpmc,adv-wr-off-ns = <48>;
+> +               gpmc,oe-on-ns = <54>;
+> +               gpmc,oe-off-ns = <168>;
+> +               gpmc,we-on-ns = <54>;
+> +               gpmc,we-off-ns = <168>;
+> +               gpmc,rd-cycle-ns = <186>;
+> +               gpmc,wr-cycle-ns = <186>;
+> +               gpmc,access-ns = <114>;
+> +               gpmc,page-burst-access-ns = <6>;
+> +               gpmc,bus-turnaround-ns = <12>;
+> +               gpmc,cycle2cycle-delay-ns = <18>;
+> +               gpmc,wr-data-mux-bus-ns = <90>;
+> +               gpmc,wr-access-ns = <186>;
+> +               gpmc,cycle2cycle-samecsen;
+> +               gpmc,cycle2cycle-diffcsen;
+> +
+> +               interrupt-parent = <&gpio6>;
+> +               interrupts = <16 8>;
+> +               vmmc-supply = <&vddvario>;
+> +               vmmc_aux-supply = <&vdd33a>;
+> +               reg-io-width = <4>;
+> +
+> +               smsc,save-mac-address;
+> +       };
+> +};
+> --
+> 1.7.7.6
+>
+> --
 
-Yes.. see mach-omap2/devices.c for the list that's still not initialized
-via DT.
- 
-> > > Obviously, I don't expect anybody to run out and buy one of these, take it
-> > > apart, and try to boot this code.  But if the omap guys could take a look at
-> > > this and give me a few pointers, I'd appreciate it.  I'm kind of spinning my
-> > > wheels at the moment.
-> > > 
-> > > Primarily, I'd like to get nand and usb working, so that I can read/write,
-> > > mount a rootfs and do better testing.
-> > 
-> > The USB should be doable with device tree. At least both echi and
-> > musb are working properly on pandaboard. I think people have been
-> > using NAND with the gpmc DT patches, but I don't know the current
-> > status for sure.
-> 
-> I'll try your suggestion in your other email for ToT and see if I can
-> get gpmc going.
-> 
-> > Is the hard drive on the EHCI bus or how is it connected to omap?
-> 
-> via ehci.  They brutalized the tps driver to detect if the goflex cable
-> was attached or not.  Once I get something stable, I'll probably write a
-> separate driver for that code.  Or, push it out to userspace.
+Hi Benoit,
 
-OK. I guess you need to disconnect the drive from EHCI if the goflex
-is attached to avoid disk corruption?
+Any comments on this patch?
 
-Regards,
-
-Tony
+Thanks a lot and best regards,
+Javier
