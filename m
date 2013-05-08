@@ -1,72 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: omap_device: use late_initcall_sync
-Date: Wed, 8 May 2013 16:17:36 -0700
-Message-ID: <20130508231736.GR32546@atomide.com>
-References: <1367962765-13912-1-git-send-email-khilman@linaro.org>
+Subject: Re: [PATCH] omap: mux: add AM/DM37x gpios
+Date: Wed, 8 May 2013 16:30:44 -0700
+Message-ID: <20130508233044.GT32546@atomide.com>
+References: <1365874225.3812.53.camel@mars>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46867 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932Ab3EHXRj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 19:17:39 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:13309 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752490Ab3EHXar (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 19:30:47 -0400
 Content-Disposition: inline
-In-Reply-To: <1367962765-13912-1-git-send-email-khilman@linaro.org>
+In-Reply-To: <1365874225.3812.53.camel@mars>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Christoph Fritz <chf.fritz@googlemail.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Daniel Mack <daniel@zonque.org>, "Hans J. Koch" <hjk@hansjkoch.de>
 
-* Kevin Hilman <khilman@linaro.org> [130507 14:44]:
-> If DEBUG_LL and earlyprintk are enabled, and omap-serial.c is compiled
-> as a module, the kernel boot hangs early as the clocks for serial port
-> are cut while earlyprintk still uses the port.
-> 
-> The problem is a race between the late_initcall for omap_device (which
-> idles devices that have no drivers) and the late_initcall in
-> kernel/printk.c which turns off the earlyconsole.   Any printks
-> that happen between this omap_device late initcall and the earlyconsole
-> late initcall will crash when accessing the UART.
-> 
-> The fix is to ensure the omap_device initcall happens after the
-> earlyconsole initcall.
-> 
-> Reported-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+* Christoph Fritz <chf.fritz@googlemail.com> [130413 10:35]:
+> This patch adds GPIO pins found on AM/DM37x.
 
 Thanks applying into omap-for-v3.10/fixes.
 
 Tony
-
+ 
+> Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
 > ---
-> Based on v3.9-rc8
+>  arch/arm/mach-omap2/mux34xx.h |    6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
 > 
->  arch/arm/mach-omap2/omap_device.c | 2 +-
->  arch/arm/mach-omap2/soc.h         | 1 +
->  2 files changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-> index 381be7a..2d20d69 100644
-> --- a/arch/arm/mach-omap2/omap_device.c
-> +++ b/arch/arm/mach-omap2/omap_device.c
-> @@ -879,4 +879,4 @@ static int __init omap_device_late_init(void)
->  	bus_for_each_dev(&platform_bus_type, NULL, NULL, omap_device_late_idle);
->  	return 0;
->  }
-> -omap_late_initcall(omap_device_late_init);
-> +omap_late_initcall_sync(omap_device_late_init);
-> diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-> index c62116b..de88611 100644
-> --- a/arch/arm/mach-omap2/soc.h
-> +++ b/arch/arm/mach-omap2/soc.h
-> @@ -494,6 +494,7 @@ level(__##fn);
->  #define omap_subsys_initcall(fn)	omap_initcall(subsys_initcall, fn)
->  #define omap_device_initcall(fn)	omap_initcall(device_initcall, fn)
->  #define omap_late_initcall(fn)		omap_initcall(late_initcall, fn)
-> +#define omap_late_initcall_sync(fn)	omap_initcall(late_initcall_sync, fn)
+> diff --git a/arch/arm/mach-omap2/mux34xx.h b/arch/arm/mach-omap2/mux34xx.h
+> index 6543ebf..3f26d29 100644
+> --- a/arch/arm/mach-omap2/mux34xx.h
+> +++ b/arch/arm/mach-omap2/mux34xx.h
+> @@ -393,6 +393,10 @@
+>  #define OMAP3_CONTROL_PADCONF_SAD2D_SWAKEUP_OFFSET		0xa1c
+>  #define OMAP3_CONTROL_PADCONF_JTAG_RTCK_OFFSET			0xa1e
+>  #define OMAP3_CONTROL_PADCONF_JTAG_TDO_OFFSET			0xa20
+> +#define OMAP3_CONTROL_PADCONF_GPIO_127				0xa24
+> +#define OMAP3_CONTROL_PADCONF_GPIO_126				0xa26
+> +#define OMAP3_CONTROL_PADCONF_GPIO_128				0xa28
+> +#define OMAP3_CONTROL_PADCONF_GPIO_129				0xa2a
 >  
->  #endif	/* __ASSEMBLY__ */
->  
+>  #define OMAP3_CONTROL_PADCONF_MUX_SIZE				\
+> -		(OMAP3_CONTROL_PADCONF_JTAG_TDO_OFFSET + 0x2)
+> +		(OMAP3_CONTROL_PADCONF_GPIO_129 + 0x2)
 > -- 
-> 1.8.2
+> 1.7.10.4
+> 
+> 
 > 
