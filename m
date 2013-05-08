@@ -1,36 +1,27 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4+: omap2plus_defconfig: Enable audio via
- TWL6040 as module
-Date: Wed, 8 May 2013 15:08:42 -0700
-Message-ID: <20130508220841.GI32546@atomide.com>
-References: <1365584880-25810-1-git-send-email-peter.ujfalusi@ti.com>
- <acf32629312b1315da0d04598a757673@mail.kapsi.fi>
+Subject: Re: [PATCH] ARM: OMAP3: Beagle: Fix USB Host on beagle xM Ax/Bx
+Date: Wed, 8 May 2013 15:12:22 -0700
+Message-ID: <20130508221221.GJ32546@atomide.com>
+References: <1366024808-4691-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36201 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996Ab3EHWIp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 18:08:45 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <acf32629312b1315da0d04598a757673@mail.kapsi.fi>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1366024808-4691-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <oku@iki.fi>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Jyri Sarha <jsarha@ti.com>
 
-* Jyri Sarha <oku@iki.fi> [130412 05:19]:
-> On Wed, 10 Apr 2013 11:08:00 +0200, Peter Ujfalusi <peter.ujfalusi@ti.com>
-> wrote:
-> > Boards supported upstream all use TWL6040 as audio codec, enable the
-> common
-> > ASoC machine driver by default for them.
-> > 
-> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Tested-by: Jyri Sarha <jsarha@ti.com>
+* Roger Quadros <rogerq@ti.com> [130415 04:25]:
+> On Beagle xM Rev. Ax/Bx, the USB power enable GPIO logic is
+> reversed when compared to other revisions i.e. it is
+> active high instead of active low.
 > 
-> Brings a working PCM for TWL6040 trough McPDM legacy port on top of
-> 8.3-rc3 for my Blaze and Panda.
+> Use the beagle_config.usb_pwr_level flag correctly so that
+> the power regulator can be configured at runtime.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
 Thanks applying into omap-for-v3.10/fixes.
 
@@ -38,28 +29,39 @@ Regards,
 
 Tony
 
-> > ---
-> >  arch/arm/configs/omap2plus_defconfig | 2 ++
-> >  1 file changed, 2 insertions(+)
-> > 
-> > diff --git a/arch/arm/configs/omap2plus_defconfig
-> > b/arch/arm/configs/omap2plus_defconfig
-> > index bd07864..eea501c 100644
-> > --- a/arch/arm/configs/omap2plus_defconfig
-> > +++ b/arch/arm/configs/omap2plus_defconfig
-> > @@ -152,6 +152,7 @@ CONFIG_OMAP_WATCHDOG=y
-> >  CONFIG_TWL4030_WATCHDOG=y
-> >  CONFIG_MFD_TPS65217=y
-> >  CONFIG_MFD_TPS65910=y
-> > +CONFIG_TWL6040_CORE=y
-> >  CONFIG_REGULATOR_TWL4030=y
-> >  CONFIG_REGULATOR_TPS65023=y
-> >  CONFIG_REGULATOR_TPS6507X=y
-> > @@ -194,6 +195,7 @@ CONFIG_SND_USB_AUDIO=m
-> >  CONFIG_SND_SOC=m
-> >  CONFIG_SND_OMAP_SOC=m
-> >  CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
-> > +CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
-> >  CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
-> >  CONFIG_USB=y
-> >  CONFIG_USB_DEBUG=y
+> ---
+>  arch/arm/mach-omap2/board-omap3beagle.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 5382215..21136b2 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -112,13 +112,13 @@ static u8 omap3_beagle_version;
+>   */
+>  static struct {
+>  	int mmc1_gpio_wp;
+> -	int usb_pwr_level;
+> +	bool usb_pwr_level;	/* 0 - Active Low, 1 - Active High */
+>  	int dvi_pd_gpio;
+>  	int usr_button_gpio;
+>  	int mmc_caps;
+>  } beagle_config = {
+>  	.mmc1_gpio_wp = -EINVAL,
+> -	.usb_pwr_level = GPIOF_OUT_INIT_LOW,
+> +	.usb_pwr_level = 0,
+>  	.dvi_pd_gpio = -EINVAL,
+>  	.usr_button_gpio = 4,
+>  	.mmc_caps = MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+> @@ -178,7 +178,7 @@ static void __init omap3_beagle_init_rev(void)
+>  	case 0:
+>  		printk(KERN_INFO "OMAP3 Beagle Rev: xM Ax/Bx\n");
+>  		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+> -		beagle_config.usb_pwr_level = GPIOF_OUT_INIT_HIGH;
+> +		beagle_config.usb_pwr_level = 1;
+>  		beagle_config.mmc_caps &= ~MMC_CAP_8_BIT_DATA;
+>  		break;
+>  	case 2:
+> -- 
+> 1.7.4.1
+> 
