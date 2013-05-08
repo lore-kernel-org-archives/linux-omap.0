@@ -1,48 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap2: gpmc: fix compilation warning
-Date: Wed, 8 May 2013 15:26:39 -0700
-Message-ID: <20130508222639.GM32546@atomide.com>
-References: <1367839093-13033-1-git-send-email-v-stehle@ti.com>
+Subject: Re: [RFC PATCH 0/3] ARM: omap3: add Seagate Wireless Plus board
+Date: Wed, 8 May 2013 15:30:27 -0700
+Message-ID: <20130508223027.GN32546@atomide.com>
+References: <cover.1368038129.git.jason@lakedaemon.net>
+ <20130508195152.GE32546@atomide.com>
+ <20130508215853.GD31290@titan.lakedaemon.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21134 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750830Ab3EHWab (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 18:30:31 -0400
 Content-Disposition: inline
-In-Reply-To: <1367839093-13033-1-git-send-email-v-stehle@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vincent =?utf-8?Q?Stehl=C3=A9?= <v-stehle@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, trivial@kernel.org
+In-Reply-To: <20130508215853.GD31290@titan.lakedaemon.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jason Cooper <jason@lakedaemon.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Vincent Stehl=C3=A9 <v-stehle@ti.com> [130506 04:24]:
-> Fix the following compilation warning:
->=20
->   arch/arm/mach-omap2/gpmc.c: In function 'gpmc_probe_generic_child':
->   arch/arm/mach-omap2/gpmc.c:1477:4: warning: format '%x' expects arg=
-ument of type 'unsigned int', but argument 4 has type 'resource_size_t'=
- [-Wformat]
->=20
-> Signed-off-by: Vincent Stehl=C3=A9 <v-stehle@ti.com>
-> Cc: trivial@kernel.org
-> ---
->  arch/arm/mach-omap2/gpmc.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index ed946df..3cd7074 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -1474,7 +1474,7 @@ static int gpmc_probe_generic_child(struct plat=
-form_device *pdev,
->  	ret =3D gpmc_cs_remap(cs, res.start);
->  	if (ret < 0) {
->  		dev_err(&pdev->dev, "cannot remap GPMC CS %d to 0x%x\n",
-> -			cs, res.start);
-> +			cs, (unsigned)res.start);
->  		goto err;
->  	}
+* Jason Cooper <jason@lakedaemon.net> [130508 15:04]:
+> On Wed, May 08, 2013 at 12:51:53PM -0700, Tony Lindgren wrote:
+> > * Jason Cooper <jason@lakedaemon.net> [130508 12:29]:
+> > > 
+> > > Current Problem:
+> > > 
+> > > There are several gaps in my understanding of how far along TI's conversion to
+> > > DT is.  Should I be doing a separate board file for initializing the legacy
+> > > items?  I was hoping to do it all with DT.
+> > 
+> > Sorry forgot to reply to this.. No seprate board file should be needed,
+> > some devices may still need to be initialized with pdata based on the
+> > compatible flag.
+> 
+> ti,hwmod, right?
 
-You should just change the format for dev_err instead of the casting.
+Yes.. see mach-omap2/devices.c for the list that's still not initialized
+via DT.
+ 
+> > > Obviously, I don't expect anybody to run out and buy one of these, take it
+> > > apart, and try to boot this code.  But if the omap guys could take a look at
+> > > this and give me a few pointers, I'd appreciate it.  I'm kind of spinning my
+> > > wheels at the moment.
+> > > 
+> > > Primarily, I'd like to get nand and usb working, so that I can read/write,
+> > > mount a rootfs and do better testing.
+> > 
+> > The USB should be doable with device tree. At least both echi and
+> > musb are working properly on pandaboard. I think people have been
+> > using NAND with the gpmc DT patches, but I don't know the current
+> > status for sure.
+> 
+> I'll try your suggestion in your other email for ToT and see if I can
+> get gpmc going.
+> 
+> > Is the hard drive on the EHCI bus or how is it connected to omap?
+> 
+> via ehci.  They brutalized the tps driver to detect if the goflex cable
+> was attached or not.  Once I get something stable, I'll probably write a
+> separate driver for that code.  Or, push it out to userspace.
+
+OK. I guess you need to disconnect the drive from EHCI if the goflex
+is attached to avoid disk corruption?
 
 Regards,
 
