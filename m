@@ -1,97 +1,74 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH] ARM: OMAP3+: am33xx id: Add new am33xx specific function to check dev_feature
-Date: Wed, 8 May 2013 12:28:33 +0530
-Message-ID: <1367996313-6676-1-git-send-email-hvaibhav@ti.com>
+From: Matthijs Kooijman <matthijs-gZv8Wpyq0Kk@public.gmane.org>
+Subject: Re: [PATCH] USB: set device dma_mask without reference to global
+ data
+Date: Wed, 8 May 2013 09:11:37 +0200
+Message-ID: <20130508071137.GM25742@login.drsnuggles.stderr.nl>
+References: <1367967232-10128-1-git-send-email-swarren@wwwdotorg.org>
+ <CAL411-qVnm0_wwdAiAp9eq_hYkXzFSmRMLAmknpSAG7Jb3bM9A@mail.gmail.com>
+ <5189B7BF.8070607@wwwdotorg.org>
+ <CAL411-pY_i19otiE2pLux6eR_OFHhfhK=+6BF=H6wABDsGCP6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58173 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752484Ab3EHHEH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 May 2013 03:04:07 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAL411-pY_i19otiE2pLux6eR_OFHhfhK=+6BF=H6wABDsGCP6Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-usb@vger.kernel.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Layout of DEV_FEATURE register (offset = 0x604) is different
-between TI81xx and AM33xx device, so create separate function
-which will check for features available on specific AM33xx SoC
-and set the flags accordingly.
+Hi folks,
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- arch/arm/mach-omap2/control.h |    5 +++++
- arch/arm/mach-omap2/id.c      |   13 +++++++++++++
- arch/arm/mach-omap2/io.c      |    2 +-
- arch/arm/mach-omap2/soc.h     |    1 +
- 4 files changed, 20 insertions(+), 1 deletions(-)
+I also bumped into the question of how to set the dma_mask when enabling
+the dwc2 driver on the ramips target and found there didn't seem to be
+any clear way to get a dma_mask.
 
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index e6c3281..4acdfc5 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -358,6 +358,11 @@
- #define AM33XX_CONTROL_STATUS_SYSBOOT1_WIDTH		0x2
- #define AM33XX_CONTROL_STATUS_SYSBOOT1_MASK		(0x3 << 22)
- 
-+/* DEV Feature register to identify AM33XX features */
-+#define AM33XX_DEV_FEATURE		0x604
-+#define AM33XX_SGX_SHIFT		29
-+#define AM33XX_SGX_MASK			(1 << AM33XX_SGX_SHIFT)
-+
- /* CONTROL OMAP STATUS register to identify OMAP3 features */
- #define OMAP3_CONTROL_OMAP_STATUS	0x044c
- 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 9bc5a18..02feef7 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -302,6 +302,19 @@ void __init ti81xx_check_features(void)
- 	omap3_cpuinfo();
- }
- 
-+void __init am33xx_check_features(void)
-+{
-+	u32 status;
-+
-+	omap_features = OMAP3_HAS_NEON;
-+
-+	status = omap_ctrl_readl(AM33XX_DEV_FEATURE);
-+	if (status & AM33XX_SGX_MASK)
-+		omap_features |= OMAP3_HAS_SGX;
-+
-+	omap3_cpuinfo();
-+}
-+
- void __init omap3xxx_check_revision(void)
- {
- 	const char *cpu_rev;
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 09abf99..06a8946 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -576,7 +576,7 @@ void __init am33xx_init_early(void)
- 	omap2_set_globals_prm(AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRCM_BASE));
- 	omap2_set_globals_cm(AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRCM_BASE), NULL);
- 	omap3xxx_check_revision();
--	ti81xx_check_features();
-+	am33xx_check_features();
- 	am33xx_voltagedomains_init();
- 	am33xx_powerdomains_init();
- 	am33xx_clockdomains_init();
-diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-index ccef2dd..7d8722c 100644
---- a/arch/arm/mach-omap2/soc.h
-+++ b/arch/arm/mach-omap2/soc.h
-@@ -424,6 +424,7 @@ void omap4xxx_check_revision(void);
- void omap5xxx_check_revision(void);
- void omap3xxx_check_features(void);
- void ti81xx_check_features(void);
-+void am33xx_check_features(void);
- void omap4xxx_check_features(void);
- 
- /*
--- 
-1.7.0.4
+It seems to me that in the pre-DT era, a platform_device would get a
+dma_mask when it was defined in the board / soc code, which makes sense
+since that code knows if a dma_mask is required and what its value
+should be (it seems to me that a driver can only know it needs a
+dma_mask, but not what value it should have?).
 
+> > This probably could be initialized from some DT property. However,
+> > there's no such property defined right now, and considering that DT is
+> > supposed to be an ABI, we'd always need the code in this patch as a
+> > fallback for DTs that were created before any such property was defined.
+It seems there has already been a patch to implement this. For
+reference, this seems to be the most recent version:
+
+https://lkml.org/lkml/2012/12/4/54
+
+And here's the previous attempt, to which Rob Herring refers in a reply.
+
+https://lists.ozlabs.org/pipermail/devicetree-discuss/2012-March/013180.html
+
+> > Equally, since the data is SoC-specific rather than board-specific, and
+> > is even fairly unlikely to vary between SoC versions since these values
+> > are all 0xffffffff anyway, I don't really see much point in putting it
+> > into DT, rather than just putting the static data into the driver.
+>
+> I mean there is already dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
+> at function of_platform_device_create, why can't add
+> dev->dev.dma_mask = &dev->dev.coherent_dma_mask after that?
+Perhaps it would sense to set the 32-bit mask as a default, but allow to
+override this mask from the devicetree for boards that need another
+value? Or perhaps override it from the soc code instead?
+
+For the ramips target, the MIPS folks suggested another approach: The
+soc code finds the platform_device generated by DT and adds the
+dma_mask:
+
+http://www.linux-mips.org/archives/linux-mips/2013-04/msg00162.html
+
+> If DT core can do above things, can we delete dma_mask assignment
+> at every driver?
+That would seem like a likeably goal to me :-)
+
+
+Gr.
+
+Matthijs
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
