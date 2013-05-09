@@ -1,42 +1,41 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 1/2] omap fixes for v3.10 merge window part2
-Date: Thu, 9 May 2013 13:15:04 -0700
-Message-ID: <20130509201504.GA21598@quad.lixom.net>
-References: <518bef23.e79f320a.5202.ffffc873SMTPIN_ADDED_BROKEN@mx.google.com>
+Subject: Re: [GIT PULL 2/2] omap device tree fixes for v3.10 merge window
+Date: Thu, 9 May 2013 13:15:15 -0700
+Message-ID: <20130509201515.GB21598@quad.lixom.net>
+References: <pull-1368125211-439797>
+ <E1UaVsF-0001Zt-HW@merlin.infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:51350 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751761Ab3EIUPE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 May 2013 16:15:04 -0400
-Received: by mail-pa0-f48.google.com with SMTP id kp6so2370251pab.35
-        for <linux-omap@vger.kernel.org>; Thu, 09 May 2013 13:15:03 -0700 (PDT)
+Received: from mail-da0-f45.google.com ([209.85.210.45]:35292 "EHLO
+	mail-da0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761Ab3EIUPP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 May 2013 16:15:15 -0400
+Received: by mail-da0-f45.google.com with SMTP id w3so1800968dad.4
+        for <linux-omap@vger.kernel.org>; Thu, 09 May 2013 13:15:14 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <518bef23.e79f320a.5202.ffffc873SMTPIN_ADDED_BROKEN@mx.google.com>
+In-Reply-To: <E1UaVsF-0001Zt-HW@merlin.infradead.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 On Thu, May 09, 2013 at 11:46:51AM -0700, Tony Lindgren wrote:
-> The following changes since commit 956e46efb2478ebff7a871138458fa8124fd18dd:
+> The following changes since commit bb9055b2744ada735a2fe555c4196ad39a83ef2a:
 > 
->   mm/slab: Fix crash during slab init (2013-05-08 15:02:33 -0700)
+>   Merge tag 'multiplatform-for-linus-2' of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc (2013-05-07 11:28:42 -0700)
 > 
 > are available in the git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/fixes-for-merge-window-part2
 > 
-> for you to fetch changes up to b1dd11d60e5357c13d3f3decfb69bd07dde159bd:
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/dt-fixes-for-merge-window
 > 
->   ARM: OMAP2+: Remove bogus IS_ERR_OR_NULL checking from id.c (2013-05-09 09:06:27 -0700)
+> for you to fetch changes up to 914dc329ee11d6b1ecbebef802962dc06e78b942:
+> 
+>   ARM: dts: don't assume boards are using twl4030 for omap3 (2013-05-09 09:06:57 -0700)
+
 
 Pulled, thanks.
-
-As Arnd mentioned on an ux500 pull request earlier, we usually don't like
-fixes branches on non-rc bases, but since this is targeting pre-rc1 but
-post-what-we-merged, there's not much else to do.
 
 
 -Olof
