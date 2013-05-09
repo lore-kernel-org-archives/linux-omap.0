@@ -1,56 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [v2, 3/3] ARM: dts: AM33XX: Add NAND flash device tree data to
- am335x-evm
-Date: Wed, 8 May 2013 16:54:06 -0700
-Message-ID: <20130508235404.GX32546@atomide.com>
-References: <ebfab3e9123b3e50b9a9678c1480191addd86d59.1359007746.git.avinashphilip@ti.com>
- <517F5126.5000509@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: GPMC fixes for v3.10
+Date: Wed, 8 May 2013 17:13:28 -0700
+Message-ID: <20130509001328.GY32546@atomide.com>
+References: <517FCCF0.1030105@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30548 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066Ab3EIANf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 May 2013 20:13:35 -0400
 Content-Disposition: inline
-In-Reply-To: <517F5126.5000509@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: "Gupta, Pekon" <pekon@ti.com>, linux-mtd@lists.infradead.org, b-cousson@ti.com, linux@arm.linux.org.uk, avinash philip <avinashphilip@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, gururaja.hebbar@ti.com, hvaibhav@ti.com, zonque@gmail.com, jacmet@sunsite.dk
+In-Reply-To: <517FCCF0.1030105@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
-* Sekhar Nori <nsekhar@ti.com> [130429 22:11]:
+* Jon Hunter <jon-hunter@ti.com> [130430 06:59]:
+> The following changes since commit aecb65a34a780cd07fbaa652cc5d640f13f3ed5f:
 > 
-> On 4/29/2013 1:25 PM, Gupta, Pekon wrote:
-> > From: avinash philip <avinashphilip@ti.com>
-> > 
-> > NAND flash connected in am335x-evm on GPMC controller. This patch adds
-> > device tree node in am3355-evm with GPMC contoller timing for NAND flash
-> > interface, NAND partition table, ECC scheme, elm handle id.
-> > 
-> > Signed-off-by: Philip Avinash <avinashphilip@ti.com>
-> > Tested-by: Pekon Gupta <pekon@ti.com>
-> > 
-> > ---
-> > arch/arm/boot/dts/am335x-evm.dts |   98 +++++++++++++++++++++++++++++++++++++-
-> >  1 file changed, 97 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> > index 0423298..1c2fd89 100644
-> > --- a/arch/arm/boot/dts/am335x-evm.dts
-> > +++ b/arch/arm/boot/dts/am335x-evm.dts
-> > @@ -26,7 +26,8 @@
-> >  
-> >  	am33xx_pinmux: pinmux@44e10800 {
-> >  		pinctrl-names = "default";
-> > -		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0>;
-> > +		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0
-> > +			&nandflash_pins_s0>;
+>   Merge branch 'omap-gpmc-for-v3.10-take2' of git://github.com/jonhunter/linux into omap-for-v3.10/gpmc (2013-04-04 11:22:33 -0700)
 > 
-> Why add this to the board level fallback (called pinctrl hogs, I think)?
-> This can be part of nand node you added below so that the pinctrl will
-> take effect when nand gets probed instead of all the time.
+> are available in the git repository at:
+> 
+>   git://github.com/jonhunter/linux.git omap-gpmc-fixes-for-v3.10
+> 
+> for you to fetch changes up to b327b3627bb428eb7d98f25224532425a673d89e:
+> 
+>   ARM: OMAP2+: only WARN if a GPMC child probe function fail (2013-04-30 08:43:05 -0500)
+> 
+> ----------------------------------------------------------------
+> GPMC fixes for v3.10. Main fix is to only search the GPMC node
+> for GPMC child devices and not the entire device-tree (which was
+> breaking ethernet support on some boards where the GPMC does not
+> interface with the ethernet chip). This branch is based upon
+> Tony's omap-for-v3.10/gpmc branch.
 
-Yes we should have all the pinctrl entries under the related drivers.
-This makes it easy remux pins during runtime if needed, and also
-allows unloading pinctrl-single.ko for development.
+Thanks pulling into omap-for-v3.10/fixes.
 
 Regards,
 
 Tony
+
+> ----------------------------------------------------------------
+> Javier Martinez Canillas (3):
+>       Documentation: dt: update TI GPMC ethernet binding properties
+>       ARM: OMAP2+: only search for GPMC DT child nodes on probe
+>       ARM: OMAP2+: only WARN if a GPMC child probe function fail
+> 
+> Jon Hunter (1):
+>       Documentation: dt: update properties in TI GPMC NAND example
+> 
+>  .../devicetree/bindings/mtd/gpmc-nand.txt          |   28 +++++-----
+>  Documentation/devicetree/bindings/net/gpmc-eth.txt |   56 ++++++++++----------
+>  arch/arm/mach-omap2/gpmc.c                         |   38 +++++--------
+>  3 files changed, 54 insertions(+), 68 deletions(-)
