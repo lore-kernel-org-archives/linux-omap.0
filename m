@@ -1,37 +1,48 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH] mmc: omap_hsmmc: fix error return code in omap_hsmmc_probe()
-Date: Thu, 9 May 2013 10:06:20 +0800
-Message-ID: <CAPgLHd-Trv1W4+NC2m8=quDpyZ74kHZiY35ZV7f7_PnRZAP+4g@mail.gmail.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [v2, 3/3] ARM: dts: AM33XX: Add NAND flash device tree data to
+ am335x-evm
+Date: Thu, 9 May 2013 04:12:10 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9C320D@DBDE04.ent.ti.com>
+References: <ebfab3e9123b3e50b9a9678c1480191addd86d59.1359007746.git.avinashphilip@ti.com>
+ <517F5126.5000509@ti.com> <20130508235404.GX32546@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: balajitk@ti.com, cjb@laptop.org, grant.likely@linaro.org, rob.herring@calxeda.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:55067 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750748Ab3EIENE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 May 2013 00:13:04 -0400
+In-Reply-To: <20130508235404.GX32546@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Philip, Avinash" <avinashphilip@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "zonque@gmail.com" <zonque@gmail.com>, "jacmet@sunsite.dk" <jacmet@sunsite.dk>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> > >
+> > >  	am33xx_pinmux: pinmux@44e10800 {
+> > >  		pinctrl-names = "default";
+> > > -		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0>;
+> > > +		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0
+> > > +			&nandflash_pins_s0>;
+> >
+> > Why add this to the board level fallback (called pinctrl hogs, I think)?
+> > This can be part of nand node you added below so that the pinctrl will
+> > take effect when nand gets probed instead of all the time.
+> 
+> Yes we should have all the pinctrl entries under the related drivers.
+> This makes it easy remux pins during runtime if needed, and also
+> allows unloading pinctrl-single.ko for development.
+> 
+Yes, accepted. This has been already fixed in v3 of this patch set.
+If all fine, then please pull this for next merge..
 
-Fix to return a negative error code in the init error handling
-case instead of 0, as done elsewhere in this function.
+http://lists.infradead.org/pipermail/linux-mtd/2013-May/046712.html
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/mmc/host/omap_hsmmc.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+http://lists.infradead.org/pipermail/linux-mtd/2013-May/046814.html (already pulled)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 6e44025..32d3659 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1948,7 +1948,8 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 	}
- 
- 	if (pdata->init != NULL) {
--		if (pdata->init(&pdev->dev) != 0) {
-+		ret = pdata->init(&pdev->dev);
-+		if (ret != 0) {
- 			dev_err(mmc_dev(host->mmc),
- 				"Unable to configure MMC IRQs\n");
- 			goto err_irq_cd_init;
+http://lists.infradead.org/pipermail/linux-mtd/2013-May/046710.html
 
+
+with regards, pekon
