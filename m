@@ -1,38 +1,96 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv2] ARM:dts:omap4-panda:Update the LED support for the
- panda DTS
-Date: Thu, 9 May 2013 11:45:48 -0700
-Message-ID: <20130509184548.GH31554@atomide.com>
-References: <1366229760-4808-1-git-send-email-dmurphy@ti.com>
- <516FBD18.3060501@ti.com> <51703BEF.6050804@ti.com>
- <20130508234745.GV32546@atomide.com> <518BE617.1080509@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/2] omap fixes for v3.10 merge window part2
+Date: Thu, 9 May 2013 11:46:51 -0700
+Message-ID: <27616.4507646628$1368125227@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52436 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752049Ab3EISq6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 May 2013 14:46:58 -0400
 Content-Disposition: inline
-In-Reply-To: <518BE617.1080509-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Vincent =?utf-8?Q?Stehl=C3=A9?= <v-stehle-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org> [130509 11:13]:
->
-> Can we cleanly append to omap4_pmx_core without overriding the whole node?
-> I don't want to recreate the pmx_core node in the es file.
+The following changes since commit 956e46efb2478ebff7a871138458fa8124fd18dd:
 
-Yes that should work just fine.
+  mm/slab: Fix crash during slab init (2013-05-08 15:02:33 -0700)
 
-Regards,
+are available in the git repository at:
 
-Tony
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/fixes-for-merge-window-part2
+
+for you to fetch changes up to b1dd11d60e5357c13d3f3decfb69bd07dde159bd:
+
+  ARM: OMAP2+: Remove bogus IS_ERR_OR_NULL checking from id.c (2013-05-09 09:06:27 -0700)
+
+----------------------------------------------------------------
+Omap fixes for things that were discovered during the merge window:
+
+- Few GPMC fixes and binding doc updates noted after sending
+  pull requests for the GPMC branch.
+
+- Board fixes for beagle usb host and rx51 spi probe order
+
+- SoC fixes dt earlyprintk, omap1 dma and omap2+ id.c error
+  handling fixes
+
+Then few minor things that are not strictly fixes but are good
+to get out of the way:
+
+- Add missing legacy mux registers for am/dm73x gpio
+
+- Add detection for am33xx pg2.1 silicon
+
+- Enable twl4030 audio modules in defconfig
+
+----------------------------------------------------------------
+Aaro Koskinen (1):
+      ARM: OMAP: RX-51: change probe order of touchscreen and panel SPI devices
+
+Christoph Fritz (1):
+      omap: mux: add AM/DM37x gpios
+
+Javier Martinez Canillas (3):
+      Documentation: dt: update TI GPMC ethernet binding properties
+      ARM: OMAP2+: only search for GPMC DT child nodes on probe
+      ARM: OMAP2+: only WARN if a GPMC child probe function fail
+
+Jon Hunter (1):
+      Documentation: dt: update properties in TI GPMC NAND example
+
+Kevin Hilman (1):
+      ARM: OMAP2+: omap_device: use late_initcall_sync
+
+Peter Ujfalusi (1):
+      ARM: OMAP4+: omap2plus_defconfig: Enable audio via TWL6040 as module
+
+Roger Quadros (1):
+      ARM: OMAP3: Beagle: Fix USB Host on beagle xM Ax/Bx
+
+Tony Lindgren (2):
+      Merge branch 'omap-gpmc-fixes-for-v3.10' of git://github.com/jonhunter/linux into fixes
+      ARM: OMAP2+: Remove bogus IS_ERR_OR_NULL checking from id.c
+
+Vaibhav Hiremath (1):
+      ARM: OMAP2: AM33XX: id: Add support for new AM335x PG2.1 Si
+
+Wei Yongjun (1):
+      ARM: OMAP1: DMA: fix error handling in omap1_system_dma_init()
+
+ .../devicetree/bindings/mtd/gpmc-nand.txt          | 28 +++++------
+ Documentation/devicetree/bindings/net/gpmc-eth.txt | 56 +++++++++++-----------
+ arch/arm/configs/omap2plus_defconfig               |  2 +
+ arch/arm/mach-omap1/dma.c                          |  8 ++--
+ arch/arm/mach-omap2/board-omap3beagle.c            |  6 +--
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |  4 +-
+ arch/arm/mach-omap2/gpmc.c                         | 38 +++++----------
+ arch/arm/mach-omap2/id.c                           | 13 +++--
+ arch/arm/mach-omap2/mux34xx.h                      |  6 ++-
+ arch/arm/mach-omap2/omap_device.c                  |  2 +-
+ arch/arm/mach-omap2/soc.h                          |  2 +
+ 11 files changed, 81 insertions(+), 84 deletions(-)
