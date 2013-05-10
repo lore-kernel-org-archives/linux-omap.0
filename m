@@ -1,57 +1,97 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 38/42] arch/arm/plat-omap: don't check resource with
- devm_ioremap_resource
-Date: Fri, 10 May 2013 09:46:18 -0700
-Message-ID: <20130510164617.GK31554@atomide.com>
-References: <1368173847-5661-1-git-send-email-wsa@the-dreams.de>
- <1368173847-5661-39-git-send-email-wsa@the-dreams.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1368173847-5661-39-git-send-email-wsa@the-dreams.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 1/2] ARM: dts: omap3-igep0020: Add NAND flash support
+Date: Fri, 10 May 2013 21:31:10 +0200
+Message-ID: <1368214271-22780-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:43405 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753089Ab3EJTbT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 May 2013 15:31:19 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-* Wolfram Sang <wsa@the-dreams.de> [130510 01:23]:
-> devm_ioremap_resource does sanity checks on the given resource. No need to
-> duplicate this in the driver.
-> 
-> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+The IGEPv2 board has an 512MB NAND flash memory.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Add a device node for this NAND and its parition layout.
 
-> ---
->  arch/arm/plat-omap/dmtimer.c |    7 +------
->  1 file changed, 1 insertion(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> index 869254c..da1a3f7 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -814,12 +814,6 @@ static int omap_dm_timer_probe(struct platform_device *pdev)
->  		return -ENODEV;
->  	}
->  
-> -	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	if (unlikely(!mem)) {
-> -		dev_err(dev, "%s: no memory resource.\n", __func__);
-> -		return -ENODEV;
-> -	}
-> -
->  	timer = devm_kzalloc(dev, sizeof(struct omap_dm_timer), GFP_KERNEL);
->  	if (!timer) {
->  		dev_err(dev, "%s: memory alloc failed!\n", __func__);
-> @@ -827,6 +821,7 @@ static int omap_dm_timer_probe(struct platform_device *pdev)
->  	}
->  
->  	timer->fclk = ERR_PTR(-ENODEV);
-> +	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	timer->io_base = devm_ioremap_resource(dev, mem);
->  	if (IS_ERR(timer->io_base))
->  		return PTR_ERR(timer->io_base);
-> -- 
-> 1.7.10.4
-> 
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
+
+Benoit,
+
+This patch depends on a previous posted patch:
+
+[PATCH] ARM: dts: omap3-igep0020: Add SMSC911x LAN chip support
+
+Best regards,
+Javier
+
+ arch/arm/boot/dts/omap3-igep0020.dts |   50 +++++++++++++++++++++++++++++++++-
+ 1 files changed, 49 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+index 4bac32e..0ba4313 100644
+--- a/arch/arm/boot/dts/omap3-igep0020.dts
++++ b/arch/arm/boot/dts/omap3-igep0020.dts
+@@ -68,7 +68,55 @@
+ };
+ 
+ &gpmc {
+-	ranges = <5 0 0x2c000000 0x1000000>;
++	ranges = <0 0 0x00000000 0x20000000>,
++		 <5 0 0x2c000000 0x01000000>;
++
++	nand@0,0 {
++		linux,mtd-name= "micron,mt29c4g96maz";
++		reg = <0 0 0>;
++		nand-bus-width = <16>;
++		ti,nand-ecc-opt = "bch8";
++
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <44>;
++		gpmc,cs-wr-off-ns = <44>;
++		gpmc,adv-on-ns = <6>;
++		gpmc,adv-rd-off-ns = <34>;
++		gpmc,adv-wr-off-ns = <44>;
++		gpmc,we-off-ns = <40>;
++		gpmc,oe-off-ns = <54>;
++		gpmc,access-ns = <64>;
++		gpmc,rd-cycle-ns = <82>;
++		gpmc,wr-cycle-ns = <82>;
++		gpmc,wr-access-ns = <40>;
++		gpmc,wr-data-mux-bus-ns = <0>;
++
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		partition@0 {
++			label = "SPL";
++			reg = <0 0x100000>;
++		};
++		partition@0x80000 {
++			label = "U-Boot";
++			reg = <0x100000 0x180000>;
++		};
++		partition@0x1c0000 {
++			label = "Environment";
++			reg = <0x280000 0x100000>;
++		};
++		partition@0x280000 {
++			label = "Kernel";
++			reg = <0x380000 0x300000>;
++		};
++		partition@0x780000 {
++			label = "Filesystem";
++			reg = <0x680000 0x1f980000>;
++		};
++	};
++
+ 	ethernet@5,0 {
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&smsc911x_pins>;
+-- 
+1.7.7.6
+
