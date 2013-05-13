@@ -1,69 +1,45 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] spi/omap2: Let device core handle pinctrl
-Date: Mon, 13 May 2013 06:25:12 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EBEA4CC@DBDE04.ent.ti.com>
-References: <1367868998-12667-1-git-send-email-broonie@opensource.wolfsonmicro.com>
-	<1BAFE6F6C881BF42822005164F1491C33EBE473A@DBDE04.ent.ti.com>
-	<20130507085535.GN7478@sirena.org.uk>
-	<1BAFE6F6C881BF42822005164F1491C33EBE4E07@DBDE04.ent.ti.com>
-	<20130510095629.GM3200@sirena.org.uk>
+From: jean-philippe francois <jp.francois@cynove.com>
+Subject: [PATCH] ARM: OMAP: fix __init section mismatch for _enable_preprogram
+Date: Mon, 13 May 2013 11:28:38 +0200
+Message-ID: <CAGGh5h1_-zbe=gw+YtMeddGxGkVzos=siavOv9nbSOVZqk1nVw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20130510095629.GM3200-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed; boundary=089e0141a20242dd7b04dc9624b1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f182.google.com ([74.125.82.182]:47545 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752402Ab3EMJ2j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 May 2013 05:28:39 -0400
+Received: by mail-we0-f182.google.com with SMTP id t60so6053175wes.41
+        for <linux-omap@vger.kernel.org>; Mon, 13 May 2013 02:28:38 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On Fri, May 10, 2013 at 15:26:29, Mark Brown wrote:
-> On Tue, May 07, 2013 at 10:47:31AM +0000, Hebbar, Gururaja wrote:
-> > On Tue, May 07, 2013 at 14:25:35, Mark Brown wrote:
-> 
-> > > There's also been some discussion about factoring out the suspend/resume
-> > > code since it's going to get equally repetitive.
-> 
-> > Really. Any link/referenceso that I can follow.
-> > But I think each module will have its own work to do. May be I can confirm once 
-> > I look at the factoring-out discussion.
-> 
-> It was part of the threads where the idea of adding the helper for the
-> boilerplate stuff to the core was discussed initially IIRC.
+--089e0141a20242dd7b04dc9624b1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Ok. Thanks. I will check for it.
+Hi,
 
-> 
-> > > > I will be submitting a patch to enhance the existing pinctrl support for 
-> > > > spi omap2 shortly which does above work.
-> 
-> > > How soon is shortly?
-> 
-> > Since I am adding this Pinctrl PM mode support to many other drivers (i2c, 
-> > cpsw, da8xx-fb, hsmmc, ti-pwm, usb ...), I would say Shortly = 1 week - 10 days.
-> 
-> Well, I guess I'll keep the patch for now and drop it when you send out
-> the PM code.
+_enable_preprogram is marked as __init, but is called from _enable
+which is not. Without this patch, the board oopses after init. Tested
+on custom hardware and on beagle board xM.
 
-Fair enough.
+Signed-off-by: Jean-Philippe Fran=C3=A7ois <jp.francois@cynove.com>
 
-> 
+--089e0141a20242dd7b04dc9624b1
+Content-Type: application/octet-stream; name="omap_hwmod_fix.patch"
+Content-Disposition: attachment; filename="omap_hwmod_fix.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hgng7rxb0
 
-
-Regards, 
-Gururaja
-
-------------------------------------------------------------------------------
-Learn Graph Databases - Download FREE O'Reilly Book
-"Graph Databases" is the definitive new guide to graph databases and 
-their applications. This 200-page book is written by three acclaimed 
-leaders in the field. The early access version is available now. 
-Download your free book today! http://p.sf.net/sfu/neotech_d2d_may
+SW5kZXg6IGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kLmMKPT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0g
+YS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2QuYworKysgYi9hcmNoL2FybS9tYWNoLW9t
+YXAyL29tYXBfaHdtb2QuYwpAQCAtMjA2Niw3ICsyMDY2LDcgQEAKICAqIGRvIHNvIGlzIHByZXNl
+bnQgaW4gdGhlIGh3bW9kIGRhdGEsIHRoZW4gY2FsbCBpdCBhbmQgcGFzcyBhbG9uZyB0aGUKICAq
+IHJldHVybiB2YWx1ZTsgb3RoZXJ3aXNlLCByZXR1cm4gMC4KICAqLwotc3RhdGljIGludCBfX2lu
+aXQgX2VuYWJsZV9wcmVwcm9ncmFtKHN0cnVjdCBvbWFwX2h3bW9kICpvaCkKK3N0YXRpYyBpbnQg
+X2VuYWJsZV9wcmVwcm9ncmFtKHN0cnVjdCBvbWFwX2h3bW9kICpvaCkKIHsKIAlpZiAoIW9oLT5j
+bGFzcy0+ZW5hYmxlX3ByZXByb2dyYW0pCiAJCXJldHVybiAwOwo=
+--089e0141a20242dd7b04dc9624b1--
