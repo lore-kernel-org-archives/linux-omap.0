@@ -1,44 +1,64 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
-Date: Mon, 13 May 2013 23:53:02 +0300
-Message-ID: <20130513205302.GA3157@blackmetal.musicnaut.iki.fi>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] ARM: OMAP3+: am33xx id: Add new am33xx specific function to check dev_feature
+Date: Mon, 13 May 2013 14:53:27 -0700
+Message-ID: <87bo8e1r8o.fsf@linaro.org>
+References: <1367996313-6676-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-da0-f44.google.com ([209.85.210.44]:36526 "EHLO
+	mail-da0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755222Ab3EMVxa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 May 2013 17:53:30 -0400
+Received: by mail-da0-f44.google.com with SMTP id z8so1312686daj.17
+        for <linux-omap@vger.kernel.org>; Mon, 13 May 2013 14:53:30 -0700 (PDT)
+In-Reply-To: <1367996313-6676-1-git-send-email-hvaibhav@ti.com> (Vaibhav
+	Hiremath's message of "Wed, 8 May 2013 12:28:33 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-Hi,
+Vaibhav Hiremath <hvaibhav@ti.com> writes:
 
-I tested 3.10-rc1 on OMAP1 / Nokia 770, and Retu MFD probe is broken:
+> Layout of DEV_FEATURE register (offset = 0x604) is different
+> between TI81xx and AM33xx device, so create separate function
+> which will check for features available on specific AM33xx SoC
+> and set the flags accordingly.
+>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-[    2.264221] retu-mfd 2-0001: Retu v3.2 found
-[    2.281951] retu-mfd 2-0001: Failed to allocate IRQs: -12
-[    2.300140] retu-mfd: probe of 2-0001 failed with error -12
+Minor nit below, otherwise...
 
-The error is coming from regmap code. According to git bisect, it is
-caused by:
+Reviewed-by: Kevin Hilman <khilman@linaro.org>
 
-	commit ede4d7a5b9835510fd1f724367f68d2fa4128453
-	Author: Jon Hunter <jon-hunter@ti.com>
-	Date:   Fri Mar 1 11:22:47 2013 -0600
+> ---
+>  arch/arm/mach-omap2/control.h |    5 +++++
+>  arch/arm/mach-omap2/id.c      |   13 +++++++++++++
+>  arch/arm/mach-omap2/io.c      |    2 +-
+>  arch/arm/mach-omap2/soc.h     |    1 +
+>  4 files changed, 20 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+> index e6c3281..4acdfc5 100644
+> --- a/arch/arm/mach-omap2/control.h
+> +++ b/arch/arm/mach-omap2/control.h
+> @@ -358,6 +358,11 @@
+>  #define AM33XX_CONTROL_STATUS_SYSBOOT1_WIDTH		0x2
+>  #define AM33XX_CONTROL_STATUS_SYSBOOT1_MASK		(0x3 << 22)
+>  
+> +/* DEV Feature register to identify AM33XX features */
+> +#define AM33XX_DEV_FEATURE		0x604
+> +#define AM33XX_SGX_SHIFT		29
 
-	    gpio/omap: convert gpio irq domain to linear mapping
+You don't need the shift value anywhere in the code, so...
 
-The commit does not anymore revert cleanly, and I haven't yet tried
-crafting a manual revert, so any fix proposals/ideas are welcome...
+> +#define AM33XX_SGX_MASK			(1 << AM33XX_SGX_SHIFT)
 
-Thanks,
+#define AM33XX_SGX_MASK		BIT(29)
 
-A.
+instead?
+
+Otherwise, rest of patch looks fine.
+
+Kevin
