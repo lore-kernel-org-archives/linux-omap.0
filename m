@@ -1,114 +1,198 @@
-From: Joel A Fernandes <joelagnel@ti.com>
-Subject: [PATCH v2] OMAP: AES: Don't idle/start AES device between Encrypt operations
-Date: Mon, 13 May 2013 22:07:47 -0500
-Message-ID: <1368500867-7737-1-git-send-email-joelagnel@ti.com>
+From: jean-philippe francois <jp.francois@cynove.com>
+Subject: Re: omap3-isp : panic using previewer from V4L input
+Date: Tue, 14 May 2013 11:29:39 +0200
+Message-ID: <CAGGh5h0eAdk+2pHcNn+xBgpvWmGgTa87_WN5GP-64Gexm-oK_Q@mail.gmail.com>
+References: <CAGGh5h00H10F7GWgjyhN_5Zn8JNMXRptt4FF+u=NHDdTXFD2MA@mail.gmail.com>
+	<7361840.3pfFsIn2FS@avalon>
+	<CAGGh5h1zzF7mKgof=jcEBHVmnG9i-A=xpzc9Ri8bHL5xe7bnuQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43759 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752338Ab3ENDHx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 May 2013 23:07:53 -0400
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:64313 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756437Ab3ENJ3l convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 May 2013 05:29:41 -0400
+In-Reply-To: <CAGGh5h1zzF7mKgof=jcEBHVmnG9i-A=xpzc9Ri8bHL5xe7bnuQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: khilman@linaro.org, "Mark A. Greer" <mgreer@animalcreek.com>, Joel A Fernandes <joelagnel@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Calling runtime PM API for every block causes serious perf hit to
-crypto operations that are done on a long buffer.
-As crypto is performed on a page boundary, encrypting large buffers can
-cause a series of crypto operations divided by page. The runtime PM API
-is also called those many times.
+Hi Laurent,
 
-We call runtime_pm_get_sync only at beginning on the session (cra_init)
-and runtime_pm_put at the end. This result in upto a 50% speedup as below.
-This doesn't make the driver to keep the system awake as runtime get/put
-is only called during a crypto session which completes usually quickly.
+I have a beagle xm board, but no sensor board. Is it possible to have
+the omap3-isp initialised ?
+I would like to try my program on a beagle board to eliminate any
+hardware related problem.
+=46rom the board file in mainline kernel, it seems omap3_init_camera is
+not called, do you know any kernel tree
+where isp is initialized for beagle board ?
 
-Before:
-root@beagleboard:~# time -v openssl speed -evp aes-128-cbc
-Doing aes-128-cbc for 3s on 16 size blocks: 13310 aes-128-cbc's in 0.01s
-Doing aes-128-cbc for 3s on 64 size blocks: 13040 aes-128-cbc's in 0.04s
-Doing aes-128-cbc for 3s on 256 size blocks: 9134 aes-128-cbc's in 0.03s
-Doing aes-128-cbc for 3s on 1024 size blocks: 8939 aes-128-cbc's in 0.01s
-Doing aes-128-cbc for 3s on 8192 size blocks: 4299 aes-128-cbc's in 0.00s
+Thank you,
+Jean-Philippe Fran=C3=A7ois
 
-After:
-root@beagleboard:~# time -v openssl speed -evp aes-128-cbc
-Doing aes-128-cbc for 3s on 16 size blocks: 18911 aes-128-cbc's in 0.02s
-Doing aes-128-cbc for 3s on 64 size blocks: 18878 aes-128-cbc's in 0.02s
-Doing aes-128-cbc for 3s on 256 size blocks: 11878 aes-128-cbc's in 0.10s
-Doing aes-128-cbc for 3s on 1024 size blocks: 11538 aes-128-cbc's in 0.05s
-Doing aes-128-cbc for 3s on 8192 size blocks: 4857 aes-128-cbc's in 0.03s
 
-While at it, also drop enter and exit pr_debugs, in related code. tracers
-can be used for that.
 
-Tested on a Beaglebone (AM335x SoC) board.
-
-Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
----
-v2 changes: Clarify usage of runtime PM a bit more in the commit logs.
-
- drivers/crypto/omap-aes.c |   23 +++++++++++++++++++----
- 1 files changed, 19 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index 6aa425f..e6474eb 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -208,7 +208,6 @@ static int omap_aes_hw_init(struct omap_aes_dev *dd)
- 	 * It may be long delays between requests.
- 	 * Device might go to off mode to save power.
- 	 */
--	pm_runtime_get_sync(dd->dev);
- 
- 	if (!(dd->flags & FLAGS_INIT)) {
- 		dd->flags |= FLAGS_INIT;
-@@ -636,7 +635,6 @@ static void omap_aes_finish_req(struct omap_aes_dev *dd, int err)
- 
- 	pr_debug("err: %d\n", err);
- 
--	pm_runtime_put_sync(dd->dev);
- 	dd->flags &= ~FLAGS_BUSY;
- 
- 	req->base.complete(&req->base, err);
-@@ -837,8 +835,16 @@ static int omap_aes_ctr_decrypt(struct ablkcipher_request *req)
- 
- static int omap_aes_cra_init(struct crypto_tfm *tfm)
- {
--	pr_debug("enter\n");
-+	struct omap_aes_dev *dd = NULL;
-+
-+	/* Find AES device, currently picks the first device */
-+	spin_lock_bh(&list_lock);
-+	list_for_each_entry(dd, &dev_list, list) {
-+		break;
-+	}
-+	spin_unlock_bh(&list_lock);
- 
-+	pm_runtime_get_sync(dd->dev);
- 	tfm->crt_ablkcipher.reqsize = sizeof(struct omap_aes_reqctx);
- 
- 	return 0;
-@@ -846,7 +852,16 @@ static int omap_aes_cra_init(struct crypto_tfm *tfm)
- 
- static void omap_aes_cra_exit(struct crypto_tfm *tfm)
- {
--	pr_debug("enter\n");
-+	struct omap_aes_dev *dd = NULL;
-+
-+	/* Find AES device, currently picks the first device */
-+	spin_lock_bh(&list_lock);
-+	list_for_each_entry(dd, &dev_list, list) {
-+		break;
-+	}
-+	spin_unlock_bh(&list_lock);
-+
-+	pm_runtime_put_sync(dd->dev);
- }
- 
- /* ********************** ALGS ************************************ */
--- 
-1.7.4.1
-
+2013/5/7 jean-philippe francois <jp.francois@cynove.com>:
+> 2013/5/7 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> Hi Jean-Philippe,
+>>
+>> (CC'ed linux-omap)
+>>
+>> On Monday 06 May 2013 10:59:07 jean-philippe francois wrote:
+>>> Hi,
+>>>
+>>> I am trying to use the previewer to debayer pictures coming from th=
+e
+>>> filesystem instead of the capture hardware. The media-ctl links are=
+ as
+>>> follows :
+>>>
+>>> preview V4L input -> preview pad 0 (sink), preview pad 1(src)
+>>> ->preview V4L output.
+>>>
+>>> Input output format is set via media-ctl for the preview element, a=
+nd
+>>> via the V4L2 api for the V4L2 file descriptors. I am using USERPTR
+>>> buffer allocated via memalign, and the application goes like this :
+>>>
+>>> REQBUFS 1 buf on on input
+>>> REQBUFS 1 buf on output
+>>> alloc buffers
+>>> QBUF on input
+>>> QBUF on output
+>>> STREAMON on output
+>>> STREAMON on input
+>>> DQBUF on output.
+>>>
+>>> The board either panics or hangs (though HUNG_TASK_DETECTION and
+>>> SOFT_LOCKUP_DETECTION is set)
+>>
+>> Does it happen every time you run the application, including on the =
+first run
+>> after a cold boot ?
+>
+> Yes, every time.
+> Previewer usage in device to memory mode works fine.
+> Tested on 3.6.11 and 3.9 with the same results.
+> The only difference observed so far between runs is that sometimes
+> the board hangs without anything printed on the console.
+>
+>>
+>>> Please find attached the panic log, and the application code.
+>>
+>> (log inlined)
+>>
+>>> omap3isp omap3isp: can't find source, failing now
+>>> omap3isp omap3isp: can't find source, failing now
+>>
+>> Those are harmless warnings. I have a fix for them, I'll repost it.
+>>
+>>> ------------[ cut here ]------------
+>>> Kernel BUG at c019bb1c [verbose debug info unavailable]
+>>> Internal error: Oops - BUG: 0 [#1] PREEMPT ARM
+>>> Modules linked in: omap3_isp ov10630(O)
+>>> CPU: 0    Tainted: G           O  (3.9.0 #3)
+>>> PC is at omap3_l3_app_irq+0x3c/0xbc
+>>
+>> L3 APP interconnect timeout errors are not supposed to happen. This =
+is the
+>> first time I see one. Maybe someone on the linux-omap list will have=
+ some
+>> clues regarding how to debug this.
+>>
+>>> LR is at handle_irq_event_percpu+0x28/0x10c
+>>> pc : [<c019bb1c>]    lr : [<c006b354>]    psr: 20000193
+>>> sp : c0507e58  ip : 00060000  fp : 00000000
+>>> r10: cf804dc0  r9 : ffff9e65  r8 : 00200000
+>>> r7 : 00000000  r6 : 00001000  r5 : 00000000  r4 : cf87f3c0
+>>> r3 : 00000000  r2 : 00001000  r1 : cf8ffc80  r0 : 00001000
+>>> Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kerne=
+l
+>>> Control: 10c5387d  Table: 8fa80019  DAC: 00000015
+>>> Process swapper (pid: 0, stack limit =3D 0xc0506230)
+>>> Stack: (0xc0507e58 to 0xc0508000)
+>>> 7e40:                                                      00000002=
+ cf87f3c0
+>>> 7e60:0000001a 00000000 00000000 c006b354 cf804dc0 cf87f3c0 cf804dc0=
+ c0506000
+>>> 7e80:cf87f3c0 c0507f0c 00200000 ffff9e65 c054d640 c006b490 cf804dc0=
+ c0507f80
+>>> 7ea0:ffffffff c006da68 0000001a c006ac44 0000001a c000ebc8 0000000a=
+ c0507ed8
+>>> 7ec0:0000001a c0008594 c054d600 c003400c 60000113 c000df00 00000001=
+ c054d600
+>>> 7ee0:00000101 c0506000 00000002 00000000 ffffffff c0507fb4 00200000=
+ ffff9e65
+>>> 7f00:c054d640 00000000 c0526f28 c0507f20 c054d600 c003400c 60000113=
+ ffffffff
+>>> 7f20:cf805c40 c0506000 c0511c98 c0507fb4 80004059 00000035 00000000=
+ ffffffff
+>>> 7f40:c0507fb4 80004059 413fc082 00000000 00000000 c003440c 00000035=
+ c000ebcc
+>>> 7f60:00000025 c0507f80 00000035 c0008594 c0506008 c000ed78 20000013=
+ c000df00
+>>> 7f80:c0547548 c050fb50 00000001 c0506000 c050e0d8 00000000 c04fb954=
+ c0510844
+>>> 7fa0:80004059 413fc082 00000000 00000000 00000000 c0507fc8 c0506008=
+ c000ed78
+>>> 7fc0:20000013 ffffffff c036c958 c04da7a8 ffffffff ffffffff c04da344=
+ 00000000
+>>> 7fe0:c04fb958 271ae41c 00000000 10c53c7d c050e028 80008070 00000000=
+ 00000000
+>>> [<c019bb1c>] (omap3_l3_app_irq+0x3c/0xbc)
+>>> from [<c006b354>] (handle_irq_event_percpu+0x28/0x10c)
+>>> [<c006b354>] (handle_irq_event_percpu+0x28/0x10c)
+>>> from [<c006b490>] (handle_irq_event+0x58/0x74)
+>>> [<c006b490>] (handle_irq_event+0x58/0x74)
+>>> from [<c006da68>] (handle_level_irq+0xd8/0x110)
+>>> [<c006da68>] (handle_level_irq+0xd8/0x110)
+>>> from [<c006ac44>] (generic_handle_irq+0x20/0x30)
+>>> [<c006ac44>] (generic_handle_irq+0x20/0x30)
+>>> from [<c000ebc8>] (handle_IRQ+0x60/0x84)
+>>> [<c000ebc8>] (handle_IRQ+0x60/0x84)
+>>> from [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
+>>> [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
+>>> from [<c000df00>] (__irq_svc+0x40/0x70)
+>>> Exception stack(0xc0507ed8 to 0xc0507f20)
+>>> 7ec0:                                                      00000001=
+ c054d600
+>>> 7ee0:00000101 c0506000 00000002 00000000 ffffffff c0507fb4 00200000=
+ ffff9e65
+>>> 7f00:c054d640 00000000 c0526f28 c0507f20 c054d600 c003400c 60000113=
+ ffffffff
+>>> [<c000df00>] (__irq_svc+0x40/0x70)
+>>> from [<c003400c>] (__do_softirq+0x60/0x184)
+>>> [<c003400c>] (__do_softirq+0x60/0x184)
+>>> from [<c003440c>] (irq_exit+0x70/0xc4)
+>>> [<c003440c>] (irq_exit+0x70/0xc4)
+>>> from [<c000ebcc>] (handle_IRQ+0x64/0x84)
+>>> [<c000ebcc>] (handle_IRQ+0x64/0x84)
+>>> from [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
+>>> [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
+>>> from [<c000df00>] (__irq_svc+0x40/0x70)
+>>> Exception stack(0xc0507f80 to 0xc0507fc8)
+>>> 7f80:c0547548 c050fb50 00000001 c0506000 c050e0d8 00000000 c04fb954=
+ c0510844
+>>> 7fa0:80004059 413fc082 00000000 00000000 00000000 c0507fc8 c0506008=
+ c000ed78
+>>> 7fc0:20000013 ffffffff
+>>> [<c000df00>] (__irq_svc+0x40/0x70) from [<c000ed78>] (cpu_idle+0x60=
+/0x90)
+>>> [<c000ed78>] (cpu_idle+0x60/0x90)
+>>> from [<c04da7a8>] (start_kernel+0x234/0x284)
+>>> Code: e0022006 e0033007 e1920003 0a000002 (e7f001f2)
+>>> ---[ end trace 58d781a6c1166535 ]---
+>>> Kernel panic - not syncing: Fatal exception in interrupt
+>>
+>> --
+>> Regards,
+>>
+>> Laurent Pinchart
+>>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
