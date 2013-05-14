@@ -1,45 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: OMAP baseline test results for v3.9
-Date: Tue, 14 May 2013 14:13:29 -0700
-Message-ID: <20130514211328.GC5600@atomide.com>
-References: <alpine.DEB.2.00.1305081933270.19747@utopia.booyaka.com>
+Date: Tue, 14 May 2013 21:19:12 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1305142116001.4368@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1305081933270.19747@utopia.booyaka.com> <20130514211328.GC5600@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51072 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758451Ab3ENVNd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 May 2013 17:13:33 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1305081933270.19747@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:35272 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757626Ab3ENVTN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 May 2013 17:19:13 -0400
+In-Reply-To: <20130514211328.GC5600@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@linaro.org>
 
-Hi,
+On Tue, 14 May 2013, Tony Lindgren wrote:
 
-* Paul Walmsley <paul@pwsan.com> [130508 12:45]:
+> Hi,
 > 
-> PM off, dynamic idle:
->     FAIL ( 2/ 5): 4430es2panda, 4460pandaes
->     Pass ( 3/ 5): 3530es3beagle, 3730beaglexm, 37xxevm
+> * Paul Walmsley <paul@pwsan.com> [130508 12:45]:
+> > 
+> > PM off, dynamic idle:
+> >     FAIL ( 2/ 5): 4430es2panda, 4460pandaes
+> >     Pass ( 3/ 5): 3530es3beagle, 3730beaglexm, 37xxevm
+> 
+> Looking at your pm logs, 3730beaglexm won't hit off-idle.
+> I've pasted the relevant lines from your logs below.
+> 
+> Is this a known issue?
 
-Looking at your pm logs, 3730beaglexm won't hit off-idle.
-I've pasted the relevant lines from your logs below.
+Yes, the Beagle XM in my testbed is a 3630ES1.0.  From the PM logs:
 
-Is this a known issue?
+[   63.154418] omap3_pm_off_mode_enable: Core OFF disabled due to errata 
+i583
 
-Regards,
-
-Tony
+I should probably clarify how this is reported in the test results.
 
 
-3530es3beagle hits OFF:
-core_pwrdm (ON),OFF:24,RET:41,INA:0,ON:66,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-
-3730beaglexm won't hit OFF:
-core_pwrdm (ON),OFF:0,RET:88,INA:0,ON:89,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-
-37xxevm hits OFF:
-core_pwrdm (ON),OFF:8,RET:10,INA:0,ON:19,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+- Paul
