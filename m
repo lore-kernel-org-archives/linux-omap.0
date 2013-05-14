@@ -1,67 +1,51 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] arm: configs: omap2plus_defconfig: enable USB bits which work
-Date: Tue, 14 May 2013 04:23:20 +0300
-Message-ID: <1368494600-18953-1-git-send-email-balbi@ti.com>
+From: "Fernandes, Joel A" <joelagnel@ti.com>
+Subject: RE: [PATCH] OMAP: AES: Don't idle/start AES device between Encrypt
+ operations
+Date: Tue, 14 May 2013 02:49:50 +0000
+Message-ID: <083BC63EECB6FD41B8E81CF7FD87CC0F2E4D6FF3@DLEE08.ent.ti.com>
+References: <1368293024-6654-1-git-send-email-joelagnel@ti.com>
+	<878v3i6dne.fsf@linaro.org>
+	<083BC63EECB6FD41B8E81CF7FD87CC0F2E4D6E5F@DLEE08.ent.ti.com>
+ <87y5bi38yc.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38054 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38233 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755856Ab3ENBXm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 May 2013 21:23:42 -0400
+	id S1755826Ab3ENCtz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 May 2013 22:49:55 -0400
+In-Reply-To: <87y5bi38yc.fsf@linaro.org>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: kevin.hilman@linaro.org, Roger Quadros <rogerq@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mark A. Greer" <mgreer@animalcreek.com>
 
-those USB bits work fine, so we can enable them
-safely. Plus, without USB_PHY EHCI wouldn't work
-and it would take quite a few bogus error reports
-until all users got the new changes.
+Hi Kevin,
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
+> have to be created anyway.
+> > Imagine encrypting a 20M block- this means runtime PM API is called
+> > 20 * 1024 / 4 =~ 5000 times. The slow down in my opinion doesn't make it
+> worth it.
+> > What is your opinion about this?
+> 
+> OK, I'm not terribly familiar with the crypto API, so I was assuming that the
+> init/exit calls you're instrumenting were happening at driver probe/remove
+> time.  Based on your clarifications, that doesn't seem to be the case.
+> 
+> My main concern is that drivers don't simply use 'get' on driver probe and 'put'
+> on driver remove and force the system awake as long as the driver is present.
+> I've seen that plenty of times, and I was assuming that's what was going on
+> here.  Sorry for the confusion.
 
-comiple tested only. Would be great to have someone
-testing on actual HW. Right now I don't have access
-to my HW.
+[Joel] No problem, thanks. Yes, the driver doesn't put/get in the probe functions.
+Just when it has to do its work.
 
-cheers
+> How about just add a few more details to the changelog summarizing
+> how/when the init/exit calls happen to make it a bit more clear.
 
- arch/arm/configs/omap2plus_defconfig | 9 +++++++++
- 1 file changed, 9 insertions(+)
+[Joel] Sure, I will make this more clear. Sorry for not doing so earlier.
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index c1ef64b..a1fc0ca 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -74,6 +74,7 @@ CONFIG_CMA=y
- CONFIG_CONNECTOR=y
- CONFIG_DEVTMPFS=y
- CONFIG_DEVTMPFS_MOUNT=y
-+CONFIG_OMAP_OCP2SCP=y
- CONFIG_MTD=y
- CONFIG_MTD_CMDLINE_PARTS=y
- CONFIG_MTD_CHAR=y
-@@ -206,10 +207,18 @@ CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
- CONFIG_USB_DEVICEFS=y
- CONFIG_USB_SUSPEND=y
- CONFIG_USB_MON=y
-+CONFIG_USB_EHCI_HCD=y
- CONFIG_USB_WDM=y
- CONFIG_USB_STORAGE=y
- CONFIG_USB_LIBUSUAL=y
-+CONFIG_USB_DWC3=m
-+CONFIG_USB_DWC3_DEBUG=y
-+CONFIG_USB_DWC3_VERBOSE=y
- CONFIG_USB_TEST=y
-+CONFIG_USB_PHY=y
-+CONFIG_NOP_USB_XCEIV=y
-+CONFIG_OMAP_USB2=y
-+CONFIG_OMAP_USB3=y
- CONFIG_USB_GADGET=y
- CONFIG_USB_GADGET_DEBUG=y
- CONFIG_USB_GADGET_DEBUG_FILES=y
--- 
-1.8.2.1
-
+Thanks,
+Joel
