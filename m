@@ -1,118 +1,35 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: [PATCH v3] ARM:dts:omap4-panda:Update the LED support for the panda DTS
-Date: Tue, 14 May 2013 09:17:56 -0500
-Message-ID: <1368541076-6854-1-git-send-email-dmurphy@ti.com>
+From: jp.francois@cynove.com
+Subject: [PATCH] ARM : omap : remove __init for _enable_preprogram
+Date: Tue, 14 May 2013 18:07:01 +0200
+Message-ID: <1368547621-8570-1-git-send-email-jp.francois@cynove.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53228 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756015Ab3ENOSY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 May 2013 10:18:24 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: khilman@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, paul@pwsan.com, stable@vger.kernel.org, =?UTF-8?q?Jean-Philippe=20Fran=C3=A7ois?= <jp.francois@cynove.com>
 List-Id: linux-omap@vger.kernel.org
-To: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Dan Murphy <dmurphy@ti.com>
 
-The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda-es
-are different.
+_enable_preprogram is marked as __init, but is called from _enable whic=
+h is not.
+This results in oops once init is freed.
+=46ix this by removing the __init marker.
 
-A1-A3 = gpio_wk7
-ES = gpio_110
+Signed-off-by: Jean-Philippe Fran=C3=A7ois <jp.francois@cynove.com>
 
-There is no change to LED D2
-
-Abstract away the pinmux and the LED definitions for the two boards into
-the respective DTS files.
-
-Signed-off-by: Dan Murphy <dmurphy@ti.com>
----
- arch/arm/boot/dts/omap4-panda-common.dtsi |   16 +++++++++++-
- arch/arm/boot/dts/omap4-panda-es.dts      |   40 +++++++++++++++++++++++++++++
- 2 files changed, 55 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index 03bd60d..2b516af 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -16,7 +16,7 @@
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
- 
--	leds {
-+	leds: leds {
- 		compatible = "gpio-leds";
- 		heartbeat {
- 			label = "pandaboard::status1";
-@@ -137,6 +137,20 @@
- 	};
- };
- 
-+&omap4_pmx_wkup {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+		&led_wkgpio_pins
-+	>;
-+
-+	led_wkgpio_pins: pinmux_leds_wkpins {
-+		pinctrl-single,pins = <
-+			0x1a 0x3	/* gpio_wk7 OUTPUT | MODE 3 */
-+			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
-+		>;
-+	};
-+};
-+
- &i2c1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c1_pins>;
-diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
-index f1d8c21..8d1ba03 100644
---- a/arch/arm/boot/dts/omap4-panda-es.dts
-+++ b/arch/arm/boot/dts/omap4-panda-es.dts
-@@ -34,3 +34,43 @@
- 		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
- 		>;
- };
-+
-+&leds {
-+	compatible = "gpio-leds";
-+	heartbeat {
-+		label = "pandaboard::status1";
-+		gpios = <&gpio4 14 0>;
-+		linux,default-trigger = "heartbeat";
-+	};
-+	mmc {
-+		label = "pandaboard::status2";
-+		gpios = <&gpio1 8 0>;
-+		linux,default-trigger = "gpio";
-+	};
-+};
-+
-+&omap4_pmx_core {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+		&led_gpio_pins
-+	>;
-+
-+	led_gpio_pins: gpio_led_pmx {
-+		pinctrl-single,pins = <
-+			0xb6 0x3	/* gpio_110 OUTPUT | MODE 3 */
-+		>;
-+	};
-+};
-+
-+&omap4_pmx_wkup {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+		&led_wkgpio_pins
-+	>;
-+
-+	led_wkgpio_pins: pinmux_leds_wkpins {
-+		pinctrl-single,pins = <
-+			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
-+		>;
-+	};
-+};
--- 
-1.7.9.5
-
+Index: b/arch/arm/mach-omap2/omap_hwmod.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2066,7 +2066,7 @@
+  * do so is present in the hwmod data, then call it and pass along the
+  * return value; otherwise, return 0.
+  */
+-static int __init _enable_preprogram(struct omap_hwmod *oh)
++static int _enable_preprogram(struct omap_hwmod *oh)
+ {
+ 	if (!oh->class->enable_preprogram)
+ 		return 0;
